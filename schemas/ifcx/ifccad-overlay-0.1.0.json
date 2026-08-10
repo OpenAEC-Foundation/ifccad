@@ -186,7 +186,44 @@
     },
     "packageRelativeUri": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "allOf": [
+        {
+          "not": {
+            "pattern": "^/"
+          }
+        },
+        {
+          "not": {
+            "pattern": "\\\\"
+          }
+        },
+        {
+          "not": {
+            "pattern": "\u0000"
+          }
+        },
+        {
+          "not": {
+            "pattern": "^[^/]*:"
+          }
+        },
+        {
+          "not": {
+            "pattern": "//"
+          }
+        },
+        {
+          "not": {
+            "pattern": "/$"
+          }
+        },
+        {
+          "not": {
+            "pattern": "(^|/)\\.{1,2}(/|$)"
+          }
+        }
+      ]
     }
   }
 }

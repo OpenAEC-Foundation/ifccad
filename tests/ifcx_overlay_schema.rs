@@ -2,8 +2,7 @@ use serde_json::{json, Value};
 use std::fs;
 use std::path::{Path, PathBuf};
 
-const OVERLAY_ID: &str =
-    "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.1.0.json";
+const OVERLAY_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.1.0.json";
 
 fn overlay_path() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -164,10 +163,7 @@ fn preservation_descriptor_requires_the_owned_contract() {
     }
 
     for (pointer, value) in [
-        (
-            "/attributes/preservation/format",
-            json!("example:other"),
-        ),
+        ("/attributes/preservation/format", json!("example:other")),
         ("/attributes/preservation/version", json!("0.2.0")),
         ("/attributes/preservation/checksum", json!("sha256:ABC")),
         ("/attributes/preservation/sourceDocumentId", json!("")),
@@ -178,4 +174,85 @@ fn preservation_descriptor_requires_the_owned_contract() {
             .expect("preservation test pointer") = value;
         assert!(!validator.is_valid(&json!({"data": [node]})));
     }
+}
+
+#[test]
+fn package_resource_uris_match_the_rust_syntax_boundary() {
+    let validator = overlay_validator();
+
+    for uri in [
+        "drawing.ifcdr.json",
+        "resources/drawing.ifcdr.json",
+        "blobs/0123456789abcdef",
+    ] {
+        let mut node = geometry_node();
+        *node
+            .pointer_mut("/attributes/geometry/uri")
+            .expect("geometry URI") = json!(uri);
+        assert!(
+            validator.is_valid(&json!({"data": [node]})),
+            "rejected {uri:?}"
+        );
+    }
+
+    for uri in [
+        "",
+        "/absolute.json",
+        "C:/absolute.json",
+        "scheme:value.json",
+        r"dir\file.json",
+        "dir//file.json",
+        "./file.json",
+        "dir/../file.json",
+        "dir/.",
+        "trailing/",
+        "nul\0byte.json",
+    ] {
+        let mut node = geometry_node();
+        *node
+            .pointer_mut("/attributes/geometry/uri")
+            .expect("geometry URI") = json!(uri);
+        assert!(
+            !validator.is_valid(&json!({"data": [node]})),
+            "accepted {uri:?}"
+        );
+    }
+}
+
+#[test]
+fn owned_descriptors_are_closed_but_surrounding_ifcx_content_is_open() {
+    let validator = overlay_validator();
+    let mut geometry = geometry_node();
+    geometry["attributes"]["geometry"]["futureField"] = json!(true);
+    assert!(!validator.is_valid(&json!({"data": [geometry]})));
+
+    let mut preservation = preservation_node();
+    preservation["attributes"]["preservation"]["futureField"] = json!(true);
+    assert!(!validator.is_valid(&json!({"data": [preservation]})));
+}
+
+#[test]
+fn preservation_links_are_non_empty_unique_uris_with_the_correct_name() {
+    let validator = overlay_validator();
+
+    let mut empty = preservation_node();
+    empty["attributes"]["preservation"]["linkedDrawingResourceUris"] = json!([]);
+    assert!(!validator.is_valid(&json!({"data": [empty]})));
+
+    let mut duplicate = preservation_node();
+    duplicate["attributes"]["preservation"]["linkedDrawingResourceUris"] = json!([
+        "resources/drawing.ifcdr.json",
+        "resources/drawing.ifcdr.json"
+    ]);
+    assert!(!validator.is_valid(&json!({"data": [duplicate]})));
+
+    let mut historical_name = preservation_node();
+    let descriptor = historical_name["attributes"]["preservation"]
+        .as_object_mut()
+        .expect("preservation descriptor");
+    let links = descriptor
+        .remove("linkedDrawingResourceUris")
+        .expect("current link property");
+    descriptor.insert("linkedDrawingResourceIds".to_owned(), links);
+    assert!(!validator.is_valid(&json!({"data": [historical_name]})));
 }
