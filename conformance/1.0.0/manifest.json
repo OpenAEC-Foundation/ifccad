@@ -1,0 +1,340 @@
+{
+  "cases": [
+    {
+      "caseId": "vector.canonicalization",
+      "category": "vector",
+      "description": "Typed canonical projection byte vectors",
+      "entrypoint": "vectors/canonicalization.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": []
+          },
+          "name": "canonicalize"
+        }
+      ]
+    },
+    {
+      "caseId": "vector.fingerprints",
+      "category": "vector",
+      "description": "Typed canonical projection fingerprint vectors",
+      "entrypoint": "vectors/fingerprints.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": []
+          },
+          "name": "fingerprint"
+        }
+      ]
+    },
+    {
+      "caseId": "lifecycle.reference",
+      "category": "lifecycle",
+      "description": "Preservation lifecycle reference scenarios",
+      "entrypoint": "packages/lifecycle/scenarios.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": []
+          },
+          "name": "evaluateLifecycle"
+        }
+      ]
+    },
+    {
+      "caseId": "planning.reference",
+      "category": "planning",
+      "description": "Preservation export-planning reference scenarios",
+      "entrypoint": "packages/planning/scenarios.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": []
+          },
+          "name": "planExport"
+        }
+      ]
+    },
+    {
+      "caseId": "valid.minimal-no-preservation",
+      "category": "valid",
+      "description": "Valid package: minimal-no-preservation",
+      "entrypoint": "packages/valid/minimal-no-preservation/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": []
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "valid.unrepresented-packed",
+      "category": "valid",
+      "description": "Valid package: unrepresented-packed",
+      "entrypoint": "packages/valid/unrepresented-packed/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": []
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "valid.source-archive",
+      "category": "valid",
+      "description": "Valid package: source-archive",
+      "entrypoint": "packages/valid/source-archive/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": []
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "valid.generated-snapshot",
+      "category": "valid",
+      "description": "Valid package: generated-snapshot",
+      "entrypoint": "packages/valid/generated-snapshot/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": []
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "valid.multi-drawing-projections",
+      "category": "valid",
+      "description": "Valid package: multi-drawing-projections",
+      "entrypoint": "packages/valid/multi-drawing-projections/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": []
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.schema-wrong-scalar",
+      "category": "invalid",
+      "description": "Invalid package: schema-wrong-scalar",
+      "entrypoint": "packages/invalid/schema-wrong-scalar/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCPR_SCHEMA_INVALID",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.schema-unknown-field",
+      "category": "invalid",
+      "description": "Invalid package: schema-unknown-field",
+      "entrypoint": "packages/invalid/schema-unknown-field/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCPR_SCHEMA_INVALID",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.schema-unknown-origin",
+      "category": "invalid",
+      "description": "Invalid package: schema-unknown-origin",
+      "entrypoint": "packages/invalid/schema-unknown-origin/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCPR_SCHEMA_INVALID",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.generated-source-archive",
+      "category": "invalid",
+      "description": "Invalid package: generated-source-archive",
+      "entrypoint": "packages/invalid/generated-source-archive/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCPR_SCHEMA_INVALID",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.package-missing-resource",
+      "category": "invalid",
+      "description": "Invalid package: package-missing-resource",
+      "entrypoint": "packages/invalid/package-missing-resource/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_RESOURCE_MISSING",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.package-checksum-mismatch",
+      "category": "invalid",
+      "description": "Invalid package: package-checksum-mismatch",
+      "entrypoint": "packages/invalid/package-checksum-mismatch/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_CHECKSUM_MISMATCH",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.blob-digest-mismatch",
+      "category": "invalid",
+      "description": "Invalid package: blob-digest-mismatch",
+      "entrypoint": "packages/invalid/blob-digest-mismatch/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCPR_BLOB_DIGEST_MISMATCH",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.payload-range-invalid",
+      "category": "invalid",
+      "description": "Invalid package: payload-range-invalid",
+      "entrypoint": "packages/invalid/payload-range-invalid/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCPR_PAYLOAD_RANGE_INVALID",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.record-reference-missing",
+      "category": "invalid",
+      "description": "Invalid package: record-reference-missing",
+      "entrypoint": "packages/invalid/record-reference-missing/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCPR_RECORD_REFERENCE_MISSING",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.dependency-cycle",
+      "category": "invalid",
+      "description": "Invalid package: dependency-cycle",
+      "entrypoint": "packages/invalid/dependency-cycle/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCPR_DEPENDENCY_CYCLE",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.projection-resource-missing",
+      "category": "invalid",
+      "description": "Invalid package: projection-resource-missing",
+      "entrypoint": "packages/invalid/projection-resource-missing/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_TARGET_RESOURCE_MISSING",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    }
+  ],
+  "suiteVersion": "1.0.0"
+}

@@ -1,0 +1,369 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.ifccad.org/ifcpr/schema-0.1.0.json",
+  "title": "IFCPR 0.1.0 Preservation Resource",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "header",
+    "source",
+    "linkedDrawingResources",
+    "blobs",
+    "records",
+    "dependencyEdges",
+    "projectionBindings",
+    "structuredAttachments"
+  ],
+  "properties": {
+    "header": {"$ref": "#/$defs/header"},
+    "source": {"$ref": "#/$defs/source"},
+    "linkedDrawingResources": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/packageUri"},
+      "uniqueItems": true
+    },
+    "blobs": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/blobReference"}
+    },
+    "records": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/preservationRecord"}
+    },
+    "dependencyEdges": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/dependencyEdge"}
+    },
+    "projectionBindings": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/projectionBinding"}
+    },
+    "structuredAttachments": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/structuredAttachment"}
+    },
+    "sourceFile": {"$ref": "#/$defs/sourceFile"}
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "source": {
+            "properties": {"profile": {"const": "sourceArchive"}},
+            "required": ["profile"]
+          }
+        }
+      },
+      "then": {"required": ["sourceFile"]},
+      "else": {"not": {"required": ["sourceFile"]}}
+    },
+    {
+      "if": {
+        "properties": {
+          "source": {
+            "properties": {
+              "resourceOrigin": {"const": "generatedSnapshot"}
+            },
+            "required": ["resourceOrigin"]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "source": {
+            "properties": {
+              "profile": {"const": "unrepresentedData"}
+            }
+          }
+        },
+        "not": {"required": ["sourceFile"]}
+      }
+    }
+  ],
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "uint64": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 18446744073709551615
+    },
+    "packageUri": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\).+$"
+    },
+    "header": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format", "version", "resourceId", "uri"],
+      "properties": {
+        "format": {"const": "openaec.ifcpr"},
+        "version": {"const": "0.1.0"},
+        "resourceId": {"$ref": "#/$defs/nonEmptyString"},
+        "uri": {"$ref": "#/$defs/packageUri"}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "documentId",
+        "format",
+        "version",
+        "originalFilename",
+        "resourceOrigin",
+        "profile"
+      ],
+      "properties": {
+        "documentId": {"$ref": "#/$defs/nonEmptyString"},
+        "format": {"$ref": "#/$defs/nonEmptyString"},
+        "version": {"$ref": "#/$defs/nonEmptyString"},
+        "originalFilename": {"$ref": "#/$defs/nonEmptyString"},
+        "resourceOrigin": {
+          "enum": ["originalSource", "generatedSnapshot"]
+        },
+        "profile": {
+          "enum": ["none", "unrepresentedData", "sourceArchive"]
+        }
+      }
+    },
+    "policyReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version"],
+      "properties": {
+        "id": {"$ref": "#/$defs/nonEmptyString"},
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "parameters": {"type": "object"}
+      }
+    },
+    "payloadLocator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["blobId", "offset", "length"],
+      "properties": {
+        "blobId": {"$ref": "#/$defs/sha256"},
+        "offset": {"$ref": "#/$defs/uint64"},
+        "length": {"$ref": "#/$defs/uint64"}
+      }
+    },
+    "sourceFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["blobId", "offset", "length", "digest"],
+      "properties": {
+        "blobId": {"$ref": "#/$defs/sha256"},
+        "offset": {"$ref": "#/$defs/uint64"},
+        "length": {"$ref": "#/$defs/uint64"},
+        "digest": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "blobReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "uri",
+        "sha256",
+        "byteLength",
+        "mediaType",
+        "compression"
+      ],
+      "properties": {
+        "id": {"$ref": "#/$defs/sha256"},
+        "uri": {"$ref": "#/$defs/packageUri"},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "byteLength": {"$ref": "#/$defs/uint64"},
+        "mediaType": {"$ref": "#/$defs/nonEmptyString"},
+        "compression": {"const": "none"},
+        "sourceEncoding": {"$ref": "#/$defs/nonEmptyString"}
+      }
+    },
+    "preservationRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["recordId", "sourceObjectKey", "sourceType"],
+      "properties": {
+        "recordId": {"$ref": "#/$defs/uint64"},
+        "sourceObjectKey": {"$ref": "#/$defs/nonEmptyString"},
+        "sourceType": {"$ref": "#/$defs/nonEmptyString"},
+        "sourceHandle": {"$ref": "#/$defs/nonEmptyString"},
+        "sourceOwnerRecordId": {"$ref": "#/$defs/uint64"},
+        "sourceOrder": {"$ref": "#/$defs/uint64"},
+        "payload": {"$ref": "#/$defs/payloadLocator"},
+        "payloadDigest": {"$ref": "#/$defs/sha256"},
+        "sourceEncoding": {"$ref": "#/$defs/nonEmptyString"},
+        "sourceVersion": {"$ref": "#/$defs/nonEmptyString"},
+        "validityPolicy": {"$ref": "#/$defs/policyReference"}
+      },
+      "dependentRequired": {
+        "payload": ["payloadDigest", "validityPolicy"],
+        "payloadDigest": ["payload"]
+      }
+    },
+    "dependencyEdge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceRecordId",
+        "targetRecordId",
+        "role",
+        "strength"
+      ],
+      "properties": {
+        "sourceRecordId": {"$ref": "#/$defs/uint64"},
+        "targetRecordId": {"$ref": "#/$defs/uint64"},
+        "role": {
+          "enum": [
+            "owner",
+            "structuralChild",
+            "hardPointer",
+            "softPointer",
+            "reactor",
+            "encodingDependency",
+            "semanticDependency"
+          ]
+        },
+        "strength": {
+          "enum": ["required", "preferred", "informational"]
+        },
+        "sourceEncodingHint": {"type": "object"}
+      }
+    },
+    "sourceRecordProjection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["recordId", "role", "requiredForReuse"],
+      "properties": {
+        "recordId": {"$ref": "#/$defs/uint64"},
+        "role": {"$ref": "#/$defs/nonEmptyString"},
+        "requiredForReuse": {"type": "boolean"}
+      }
+    },
+    "modelProjectionTargetIfcdr": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "resourceId", "targetId"],
+      "properties": {
+        "role": {"$ref": "#/$defs/nonEmptyString"},
+        "resourceId": {"$ref": "#/$defs/packageUri"},
+        "targetId": {"$ref": "#/$defs/uint64"}
+      }
+    },
+    "modelProjectionTargetNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "targetId"],
+      "properties": {
+        "role": {"$ref": "#/$defs/nonEmptyString"},
+        "targetId": {"$ref": "#/$defs/nonEmptyString"}
+      }
+    },
+    "projectionBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "projectionId",
+        "sourceRecords",
+        "targetKind",
+        "modelTargets",
+        "projectionSchemaId",
+        "baselineFingerprint",
+        "coverage"
+      ],
+      "properties": {
+        "projectionId": {"$ref": "#/$defs/uint64"},
+        "sourceRecords": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/sourceRecordProjection"}
+        },
+        "targetKind": {
+          "enum": ["ifcdrEntity", "ifcxNode", "drawingResource"]
+        },
+        "modelTargets": {
+          "type": "array",
+          "minItems": 1
+        },
+        "projectionSchemaId": {"$ref": "#/$defs/nonEmptyString"},
+        "baselineFingerprint": {"$ref": "#/$defs/sha256"},
+        "coverage": {
+          "enum": ["complete", "partial", "unrepresented"]
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"targetKind": {"const": "ifcdrEntity"}}},
+          "then": {
+            "properties": {
+              "modelTargets": {
+                "items": {"$ref": "#/$defs/modelProjectionTargetIfcdr"}
+              }
+            }
+          }
+        },
+        {
+          "if": {"properties": {"targetKind": {"const": "ifcxNode"}}},
+          "then": {
+            "properties": {
+              "modelTargets": {
+                "items": {"$ref": "#/$defs/modelProjectionTargetNode"}
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {"targetKind": {"const": "drawingResource"}}
+          },
+          "then": {
+            "properties": {
+              "modelTargets": {
+                "items": {"$ref": "#/$defs/modelProjectionTargetNode"}
+              }
+            }
+          }
+        }
+      ]
+    },
+    "structuredAttachment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "attachmentId",
+        "parentRecordId",
+        "kind",
+        "metadata",
+        "projectionIds"
+      ],
+      "properties": {
+        "attachmentId": {"$ref": "#/$defs/uint64"},
+        "parentRecordId": {"$ref": "#/$defs/uint64"},
+        "kind": {"$ref": "#/$defs/nonEmptyString"},
+        "metadata": {"type": "object"},
+        "payload": {"$ref": "#/$defs/payloadLocator"},
+        "payloadDigest": {"$ref": "#/$defs/sha256"},
+        "validityPolicy": {"$ref": "#/$defs/policyReference"},
+        "projectionIds": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/uint64"},
+          "uniqueItems": true
+        }
+      },
+      "dependentRequired": {
+        "payload": ["payloadDigest", "validityPolicy"],
+        "payloadDigest": ["payload"]
+      }
+    }
+  }
+}

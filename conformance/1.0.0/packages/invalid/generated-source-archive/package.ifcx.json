@@ -1,0 +1,171 @@
+{
+  "data": [
+    {
+      "children": {
+        "Drawings": [
+          "drawing-main"
+        ],
+        "PreservationResources": [
+          "preservation-golden-source"
+        ]
+      },
+      "path": "drawing-set-main",
+      "type": "openaec:DrawingSet"
+    },
+    {
+      "attributes": {
+        "insertionBase": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "plotStyleMode": "colorDependent"
+      },
+      "children": {
+        "Layouts": [
+          "drawing-main-layout-model"
+        ],
+        "Representation": "representation-modelspace-main"
+      },
+      "path": "drawing-main",
+      "type": "openaec:Drawing"
+    },
+    {
+      "attributes": {
+        "kind": "model",
+        "limitsCheckEnabled": false,
+        "name": "Model",
+        "paperSpaceLinetypeScaling": true,
+        "scopeId": 0,
+        "tabOrder": 0
+      },
+      "children": {
+        "Representation": "representation-modelspace-main"
+      },
+      "path": "drawing-main-layout-model",
+      "type": "openaec:DrawingLayout"
+    },
+    {
+      "attributes": {
+        "geometry": {
+          "checksum": "sha256:0c789de5e23b4eeb89b42411013aa5100236d8ca2549b60765bdb6921eb04876",
+          "format": "openaec.ifcdr",
+          "role": "modelspace",
+          "uri": "drawing.ifcdr.json",
+          "version": "0.5.0"
+        },
+        "name": "ModelSpace"
+      },
+      "path": "representation-modelspace-main",
+      "type": "openaec:DrawingGeometryRepresentation"
+    },
+    {
+      "attributes": {
+        "appearance": "appearance-default-solid",
+        "name": "0",
+        "visible": true
+      },
+      "path": "layer-0",
+      "type": "openaec:Layer"
+    },
+    {
+      "attributes": {
+        "appearance": "appearance-dashed-red",
+        "name": "A-WALL",
+        "visible": true
+      },
+      "path": "layer-a-wall",
+      "type": "openaec:Layer"
+    },
+    {
+      "attributes": {
+        "color": {
+          "mode": "explicit",
+          "value": {
+            "indexedColor": {
+              "index": 7,
+              "system": "ACI"
+            },
+            "rgb": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "linePattern": {
+          "mode": "explicit",
+          "value": "continuous"
+        },
+        "lineWeight": {
+          "mode": "explicit",
+          "value": 0.25
+        },
+        "name": "Default Solid",
+        "opacity": {
+          "mode": "explicit",
+          "value": 1.0
+        }
+      },
+      "path": "appearance-default-solid",
+      "type": "openaec:Appearance"
+    },
+    {
+      "attributes": {
+        "color": {
+          "mode": "explicit",
+          "value": {
+            "namedColor": {
+              "catalog": "RAL",
+              "name": "Traffic red"
+            },
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        },
+        "linePattern": {
+          "mode": "explicit",
+          "value": "dashed"
+        },
+        "lineWeight": {
+          "mode": "explicit",
+          "value": 0.18
+        },
+        "name": "Dashed Red",
+        "opacity": {
+          "mode": "explicit",
+          "value": 1.0
+        }
+      },
+      "path": "appearance-dashed-red",
+      "type": "openaec:Appearance"
+    },
+    {
+      "attributes": {
+        "preservation": {
+          "checksum": "sha256:5adecdb338d4391d0561f51187c6fdaf81839d7194b9bad3a3235209df801c57",
+          "format": "openaec.ifcpr",
+          "linkedDrawingResourceIds": [
+            "drawing.ifcdr.json"
+          ],
+          "sourceDocumentId": "golden-source-dxf",
+          "uri": "preservation.ifcpr.json",
+          "version": "0.1.0"
+        }
+      },
+      "path": "preservation-golden-source",
+      "type": "openaec:PreservationRepresentation"
+    }
+  ],
+  "header": {
+    "author": "IFC-CAD prototype",
+    "dataVersion": "0.5.0",
+    "id": "ifccad/examples/golden-minimal/golden_minimal.ifcx.json",
+    "ifcxVersion": "ifcx_alpha",
+    "timestamp": "2026-07-06T00:00:00Z"
+  },
+  "imports": []
+}

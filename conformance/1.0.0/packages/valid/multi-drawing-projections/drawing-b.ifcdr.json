@@ -1,0 +1,244 @@
+{
+  "appearanceBindings": [
+    {
+      "colorMode": 0,
+      "id": 0,
+      "ifcxAppearance": null,
+      "linePatternMode": 0,
+      "lineWeightMode": 0,
+      "opacityMode": 0,
+      "overrideId": null
+    },
+    {
+      "colorMode": 2,
+      "id": 1,
+      "ifcxAppearance": null,
+      "linePatternMode": 2,
+      "lineWeightMode": 2,
+      "opacityMode": 2,
+      "overrideId": null
+    },
+    {
+      "colorMode": 1,
+      "id": 2,
+      "ifcxAppearance": "appearance-default-solid",
+      "linePatternMode": 1,
+      "lineWeightMode": 1,
+      "opacityMode": 1,
+      "overrideId": null
+    },
+    {
+      "colorMode": 1,
+      "id": 3,
+      "ifcxAppearance": "appearance-dashed-red",
+      "linePatternMode": 1,
+      "lineWeightMode": 1,
+      "opacityMode": 1,
+      "overrideId": null
+    }
+  ],
+  "bounds": {
+    "maxX": 30.0,
+    "maxY": 15.0,
+    "minX": 0.0,
+    "minY": 0.0
+  },
+  "dimensionOverrideTable": [],
+  "header": {
+    "format": "openaec.ifcdr",
+    "nextEntityId": 5,
+    "resourceId": "geometry-second",
+    "unit": "m",
+    "version": "0.5.0"
+  },
+  "layerBindings": [
+    {
+      "id": 0,
+      "ifcxLayer": "layer-0"
+    },
+    {
+      "id": 1,
+      "ifcxLayer": "layer-a-wall"
+    }
+  ],
+  "namedUcsBindings": [],
+  "scopeTable": [
+    {
+      "baseX": 0.0,
+      "baseY": 0.0,
+      "flags": 0,
+      "id": 0,
+      "kind": 0,
+      "name": "ModelSpace"
+    }
+  ],
+  "streamDirectory": {
+    "streams": [
+      {
+        "columns": [
+          "entityId",
+          "scopeId",
+          "x1",
+          "y1",
+          "x2",
+          "y2",
+          "layerId",
+          "appearanceId"
+        ],
+        "count": 2,
+        "name": "line",
+        "role": "object",
+        "schema": "ifccad.ifcdr.line.v2"
+      },
+      {
+        "columns": [
+          "entityId",
+          "scopeId",
+          "vertexOffset",
+          "vertexCount",
+          "closed",
+          "x",
+          "y",
+          "layerId",
+          "appearanceId"
+        ],
+        "count": 2,
+        "name": "polyline",
+        "role": "object",
+        "schema": "ifccad.ifcdr.polyline.v2"
+      },
+      {
+        "children": [
+          "entityOrderEntry"
+        ],
+        "columns": [
+          "scopeId",
+          "entryOffset",
+          "entryCount"
+        ],
+        "count": 1,
+        "name": "entityOrder",
+        "role": "order",
+        "schema": "ifccad.ifcdr.entityOrder.v1"
+      },
+      {
+        "columns": [
+          "entityId"
+        ],
+        "count": 4,
+        "name": "entityOrderEntry",
+        "parent": "entityOrder",
+        "role": "child",
+        "schema": "ifccad.ifcdr.entityOrderEntry.v1"
+      }
+    ],
+    "version": "ifccad.ifcdr.streamDirectory.v1"
+  },
+  "streams": {
+    "entityOrderEntryStream": {
+      "count": 4,
+      "entityId": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    "entityOrderStream": {
+      "count": 1,
+      "entryCount": [
+        4
+      ],
+      "entryOffset": [
+        0
+      ],
+      "scopeId": [
+        0
+      ]
+    },
+    "lineStream": {
+      "appearanceId": [
+        0,
+        0
+      ],
+      "count": 2,
+      "entityId": [
+        1,
+        2
+      ],
+      "layerId": [
+        0,
+        1
+      ],
+      "scopeId": [
+        0,
+        0
+      ],
+      "x1": [
+        0.0,
+        10.0
+      ],
+      "x2": [
+        5.0,
+        10.0
+      ],
+      "y1": [
+        0.0,
+        0.0
+      ],
+      "y2": [
+        5.0,
+        8.0
+      ]
+    },
+    "polylineStream": {
+      "appearanceId": [
+        0,
+        3
+      ],
+      "closed": [
+        true,
+        false
+      ],
+      "count": 2,
+      "entityId": [
+        3,
+        4
+      ],
+      "layerId": [
+        1,
+        0
+      ],
+      "scopeId": [
+        0,
+        0
+      ],
+      "vertexCount": [
+        4,
+        3
+      ],
+      "vertexOffset": [
+        0,
+        4
+      ],
+      "x": [
+        0.0,
+        10.0,
+        10.0,
+        0.0,
+        20.0,
+        25.0,
+        30.0
+      ],
+      "y": [
+        0.0,
+        0.0,
+        5.0,
+        5.0,
+        10.0,
+        15.0,
+        10.0
+      ]
+    }
+  }
+}

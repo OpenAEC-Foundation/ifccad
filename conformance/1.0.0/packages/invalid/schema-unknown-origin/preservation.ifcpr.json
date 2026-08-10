@@ -1,0 +1,150 @@
+{
+  "blobs": [
+    {
+      "byteLength": 94,
+      "compression": "none",
+      "id": "sha256:fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044",
+      "mediaType": "application/vnd.ifccad.dxf-record-pack",
+      "sha256": "sha256:fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044",
+      "sourceEncoding": "windows-1252",
+      "uri": "blobs/fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044"
+    }
+  ],
+  "dependencyEdges": [
+    {
+      "role": "hardPointer",
+      "sourceEncodingHint": {
+        "groupCode": 340
+      },
+      "sourceRecordId": 1,
+      "strength": "required",
+      "targetRecordId": 2
+    }
+  ],
+  "header": {
+    "format": "openaec.ifcpr",
+    "resourceId": "preservation-golden-source",
+    "uri": "preservation.ifcpr.json",
+    "version": "0.1.0"
+  },
+  "linkedDrawingResources": [
+    "drawing.ifcdr.json"
+  ],
+  "projectionBindings": [
+    {
+      "baselineFingerprint": "sha256:ebcb0b04b9789c6f428fe17c1e1bc22f301e062a9a8cec2f5c0653504d5039ce",
+      "coverage": "partial",
+      "modelTargets": [
+        {
+          "resourceId": "drawing.ifcdr.json",
+          "role": "primary",
+          "targetId": 1
+        }
+      ],
+      "projectionId": 1,
+      "projectionSchemaId": "ifccad.projection.line.v1",
+      "sourceRecords": [
+        {
+          "recordId": 1,
+          "requiredForReuse": true,
+          "role": "primary"
+        }
+      ],
+      "targetKind": "ifcdrEntity"
+    },
+    {
+      "baselineFingerprint": "sha256:4644d837e302561c0405b5f64695175aaa944f843b9977f52205c7a49f43450f",
+      "coverage": "partial",
+      "modelTargets": [
+        {
+          "role": "semantic",
+          "targetId": "layer-0"
+        }
+      ],
+      "projectionId": 2,
+      "projectionSchemaId": "ifccad.projection.semantic.v1",
+      "sourceRecords": [
+        {
+          "recordId": 1,
+          "requiredForReuse": true,
+          "role": "semantic"
+        }
+      ],
+      "targetKind": "ifcxNode"
+    }
+  ],
+  "records": [
+    {
+      "payload": {
+        "blobId": "sha256:fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044",
+        "length": 28,
+        "offset": 0
+      },
+      "payloadDigest": "sha256:c0385142e786d7dbc9d9630fe0a5fbf859839cbbb28206994495781b386dd107",
+      "recordId": 1,
+      "sourceEncoding": "dxfAsciiTags",
+      "sourceHandle": "2A7",
+      "sourceObjectKey": "handle:2A7",
+      "sourceOrder": 4,
+      "sourceType": "LINE",
+      "sourceVersion": "AC1032",
+      "validityPolicy": {
+        "id": "acadifc.dxf.entityBodyTags",
+        "parameters": {
+          "recordBoundary": "entity"
+        },
+        "version": 1
+      }
+    },
+    {
+      "payload": {
+        "blobId": "sha256:fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044",
+        "length": 30,
+        "offset": 28
+      },
+      "payloadDigest": "sha256:554c54cee9c69f6af972ea6633c8a390439804b70cc9377436d169547ed78cbb",
+      "recordId": 2,
+      "sourceEncoding": "dxfAsciiTags",
+      "sourceHandle": "2A8",
+      "sourceObjectKey": "handle:2A8",
+      "sourceOrder": 1,
+      "sourceType": "ACAD_PROXY_ENTITY",
+      "sourceVersion": "AC1032",
+      "validityPolicy": {
+        "id": "acadifc.dxf.entityBodyTags",
+        "version": 1
+      }
+    }
+  ],
+  "source": {
+    "documentId": "golden-source-dxf",
+    "format": "dxf",
+    "originalFilename": "golden_source.dxf",
+    "profile": "unrepresentedData",
+    "resourceOrigin": "unknownOrigin",
+    "version": "AC1032"
+  },
+  "structuredAttachments": [
+    {
+      "attachmentId": 1,
+      "kind": "xdata",
+      "metadata": {
+        "application": "OPENAEC"
+      },
+      "parentRecordId": 1,
+      "payload": {
+        "blobId": "sha256:fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044",
+        "length": 36,
+        "offset": 58
+      },
+      "payloadDigest": "sha256:326614f87637c19984211aca92124c916973258d858eacdb2e022aef1721b3ed",
+      "projectionIds": [
+        1
+      ],
+      "validityPolicy": {
+        "id": "acadifc.common.xdataValidity",
+        "version": 1
+      }
+    }
+  ]
+}

@@ -1,0 +1,3163 @@
+{
+  "$schema": "./registry-meta-schema-v1.json",
+  "registrySchemaVersion": "ifccad.ifcdr.registry.v1",
+  "ifcdrVersion": "0.5.0",
+  "resource": {
+    "schemaId": "ifccad.ifcdr.resource.v0.5.0",
+    "fields": [
+      {
+        "name": "header",
+        "valueType": "object",
+        "presence": "required",
+        "nullable": false,
+        "fields": [
+          {
+            "name": "format",
+            "valueType": "string",
+            "presence": "required",
+            "nullable": false
+          },
+          {
+            "name": "version",
+            "valueType": "string",
+            "presence": "required",
+            "nullable": false
+          },
+          {
+            "name": "resourceId",
+            "valueType": "string",
+            "presence": "required",
+            "nullable": false
+          },
+          {
+            "name": "unit",
+            "valueType": "string",
+            "presence": "required",
+            "nullable": false
+          },
+          {
+            "name": "nextEntityId",
+            "valueType": "uint64",
+            "presence": "required",
+            "nullable": false
+          }
+        ]
+      },
+      {
+        "name": "streamDirectory",
+        "valueType": "object",
+        "presence": "required",
+        "nullable": false
+      },
+      {
+        "name": "bounds",
+        "valueType": "object",
+        "presence": "required",
+        "nullable": false,
+        "fields": [
+          {
+            "name": "minX",
+            "valueType": "float64",
+            "presence": "required",
+            "nullable": false
+          },
+          {
+            "name": "minY",
+            "valueType": "float64",
+            "presence": "required",
+            "nullable": false
+          },
+          {
+            "name": "maxX",
+            "valueType": "float64",
+            "presence": "required",
+            "nullable": false
+          },
+          {
+            "name": "maxY",
+            "valueType": "float64",
+            "presence": "required",
+            "nullable": false
+          }
+        ]
+      },
+      {
+        "name": "scopeTable",
+        "valueType": "array",
+        "presence": "required",
+        "nullable": false
+      },
+      {
+        "name": "streams",
+        "valueType": "object",
+        "presence": "required",
+        "nullable": false
+      }
+    ]
+  },
+  "directory": {
+    "schemaId": "ifccad.ifcdr.streamDirectory.v1",
+    "fields": [
+      {
+        "name": "version",
+        "valueType": "string",
+        "presence": "required",
+        "nullable": false
+      },
+      {
+        "name": "streams",
+        "valueType": "array",
+        "presence": "required",
+        "nullable": false
+      }
+    ],
+    "entryFields": [
+      {
+        "name": "name",
+        "valueType": "string",
+        "presence": "required",
+        "nullable": false
+      },
+      {
+        "name": "schema",
+        "valueType": "string",
+        "presence": "required",
+        "nullable": false
+      },
+      {
+        "name": "role",
+        "valueType": "string",
+        "presence": "required",
+        "nullable": false
+      },
+      {
+        "name": "count",
+        "valueType": "uint32",
+        "presence": "required",
+        "nullable": false
+      },
+      {
+        "name": "columns",
+        "valueType": "array",
+        "presence": "required",
+        "nullable": false
+      },
+      {
+        "name": "parent",
+        "valueType": "string",
+        "presence": "optional",
+        "nullable": false
+      },
+      {
+        "name": "children",
+        "valueType": "array",
+        "presence": "optional",
+        "nullable": false
+      }
+    ]
+  },
+  "tables": [
+    {
+      "name": "appearanceBinding",
+      "schemaId": "ifccad.ifcdr.appearanceBinding.v1",
+      "payloadPath": "appearanceBindings",
+      "presence": "optional",
+      "rowFields": [
+        {
+          "name": "id",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false
+        },
+        {
+          "name": "ifcxAppearance",
+          "valueType": "ifcxId",
+          "presence": "required",
+          "nullable": true,
+          "reference": {"category": "ifcx", "target": "ifcx"}
+        },
+        {
+          "name": "colorMode",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false
+        },
+        {
+          "name": "opacityMode",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false
+        },
+        {
+          "name": "linePatternMode",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false
+        },
+        {
+          "name": "lineWeightMode",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false
+        },
+        {
+          "name": "overrideId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": true,
+          "reference": {"category": "tableField", "target": "appearanceOverrides.id"}
+        }
+      ]
+    },
+    {
+      "name": "appearanceOverride",
+      "schemaId": "ifccad.ifcdr.appearanceOverride.v1",
+      "payloadPath": "appearanceOverrides",
+      "presence": "optional",
+      "rowFields": [
+        {
+          "name": "id",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false
+        },
+        {
+          "name": "color",
+          "valueType": "jsonValue",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "opacity",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "ifcxLinePattern",
+          "valueType": "ifcxId",
+          "presence": "required",
+          "nullable": true,
+          "reference": {"category": "ifcx", "target": "ifcx"}
+        },
+        {
+          "name": "lineWeight",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "name": "layerBinding",
+      "schemaId": "ifccad.ifcdr.layerBinding.v1",
+      "payloadPath": "layerBindings",
+      "presence": "optional",
+      "rowFields": [
+        {
+          "name": "id",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false
+        },
+        {
+          "name": "ifcxLayer",
+          "valueType": "ifcxId",
+          "presence": "required",
+          "nullable": false,
+          "reference": {"category": "ifcx", "target": "ifcx"}
+        }
+      ]
+    },
+    {
+      "name": "textStyleBinding",
+      "schemaId": "ifccad.ifcdr.textStyleBinding.v1",
+      "payloadPath": "textStyleBindings",
+      "presence": "optional",
+      "rowFields": [
+        {
+          "name": "id",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false
+        },
+        {
+          "name": "ifcxTextStyle",
+          "valueType": "ifcxId",
+          "presence": "required",
+          "nullable": false,
+          "reference": {"category": "ifcx", "target": "ifcx"}
+        }
+      ]
+    },
+    {
+      "name": "dimensionStyleBinding",
+      "schemaId": "ifccad.ifcdr.dimensionStyleBinding.v1",
+      "payloadPath": "dimensionStyleBindings",
+      "presence": "optional",
+      "rowFields": [
+        {
+          "name": "id",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false
+        },
+        {
+          "name": "ifcxDimensionStyle",
+          "valueType": "ifcxId",
+          "presence": "required",
+          "nullable": false,
+          "reference": {"category": "ifcx", "target": "ifcx"}
+        }
+      ]
+    },
+    {
+      "name": "hatchPatternBinding",
+      "schemaId": "ifccad.ifcdr.hatchPatternBinding.v1",
+      "payloadPath": "hatchPatternBindings",
+      "presence": "optional",
+      "rowFields": [
+        {
+          "name": "id",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false
+        },
+        {
+          "name": "ifcxHatchPattern",
+          "valueType": "ifcxId",
+          "presence": "required",
+          "nullable": false,
+          "reference": {"category": "ifcx", "target": "ifcx"}
+        }
+      ]
+    },
+    {
+      "name": "namedUcsBinding",
+      "schemaId": "ifccad.ifcdr.namedUcsBinding.v1",
+      "payloadPath": "namedUcsBindings",
+      "presence": "optional",
+      "rowFields": [
+        {
+          "name": "id",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false
+        },
+        {
+          "name": "ifcxNamedUcs",
+          "valueType": "ifcxId",
+          "presence": "required",
+          "nullable": false,
+          "reference": {"category": "ifcx", "target": "ifcx"}
+        }
+      ]
+    },
+    {
+      "name": "dimensionOverride",
+      "schemaId": "ifccad.ifcdr.dimensionOverride.v1",
+      "payloadPath": "dimensionOverrideTable",
+      "presence": "required",
+      "rowFields": [
+        {
+          "name": "id",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false
+        },
+        {
+          "name": "dimensionLineAppearanceId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": true,
+          "reference": {"category": "tableField", "target": "appearanceBindings.id"}
+        },
+        {
+          "name": "extensionLineAppearanceId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": true,
+          "reference": {"category": "tableField", "target": "appearanceBindings.id"}
+        },
+        {
+          "name": "extensionLineOffset",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "extensionLineOvershoot",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "dimensionLineExtension",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "baselineSpacing",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "fixedExtensionLength",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "suppressExtensionLine1",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "suppressExtensionLine2",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "suppressDimensionLine1",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "suppressDimensionLine2",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "textStyleId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": true,
+          "reference": {"category": "tableField", "target": "textStyleBindings.id"}
+        },
+        {
+          "name": "textAppearanceId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": true,
+          "reference": {"category": "tableField", "target": "appearanceBindings.id"}
+        },
+        {
+          "name": "textHeight",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "textGap",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "horizontalAlignment",
+          "valueType": "string",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "verticalAlignment",
+          "valueType": "string",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "insideHorizontal",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "outsideHorizontal",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "textMovementRule",
+          "valueType": "string",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "arrowhead1",
+          "valueType": "string",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "arrowhead2",
+          "valueType": "string",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "arrowSize",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "unitFormat",
+          "valueType": "string",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "unitPrecision",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "unitScaleFactor",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "roundingIncrement",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "decimalSeparator",
+          "valueType": "string",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "suppressLeadingZeros",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "suppressTrailingZeros",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "unitPrefix",
+          "valueType": "string",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "unitSuffix",
+          "valueType": "string",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "flipArrow1",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "flipArrow2",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "forceTextInside",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "fractionFormat",
+          "valueType": "string",
+          "presence": "required",
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "name": "scope",
+      "schemaId": "ifccad.ifcdr.scope.v1",
+      "payloadPath": "scopeTable",
+      "presence": "required",
+      "rowFields": [
+        {
+          "name": "id",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false
+        },
+        {
+          "name": "kind",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "valueType": "string",
+          "presence": "required",
+          "nullable": false
+        },
+        {
+          "name": "baseX",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false
+        },
+        {
+          "name": "baseY",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false
+        },
+        {
+          "name": "flags",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "name": "characterFormat",
+      "schemaId": "ifccad.ifcdr.characterFormat.v1",
+      "payloadPath": "characterFormatTable",
+      "presence": "optional",
+      "rowFields": [
+        {
+          "name": "id",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false
+        },
+        {
+          "name": "textStyleId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": true,
+          "reference": {"category": "tableField", "target": "textStyleBindings.id"}
+        },
+        {
+          "name": "heightFactor",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "absoluteHeight",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "widthFactor",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "obliqueAngle",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "colorRgb",
+          "valueType": "jsonValue",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "colorSystem",
+          "valueType": "string",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "colorIndex",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "bold",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "italic",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "underline",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "overline",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "tracking",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "colorCatalog",
+          "valueType": "string",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "colorName",
+          "valueType": "string",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "colorMode",
+          "valueType": "string",
+          "presence": "required",
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "name": "paragraphFormat",
+      "schemaId": "ifccad.ifcdr.paragraphFormat.v1",
+      "payloadPath": "paragraphFormatTable",
+      "presence": "optional",
+      "rowFields": [
+        {
+          "name": "id",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false
+        },
+        {
+          "name": "alignment",
+          "valueType": "string",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "firstLineIndent",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "leftIndent",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "rightIndent",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "spaceBefore",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "spaceAfter",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": true
+        },
+        {
+          "name": "tabStops",
+          "valueType": "jsonValue",
+          "presence": "required",
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "name": "textRun",
+      "schemaId": "ifccad.ifcdr.textRun.v1",
+      "payloadPath": "streams.textRuns",
+      "presence": "optional",
+      "rowFields": [
+        {
+          "name": "value",
+          "valueType": "string",
+          "presence": "required",
+          "nullable": false
+        },
+        {
+          "name": "textStyleName",
+          "valueType": "string",
+          "presence": "required",
+          "nullable": false
+        }
+      ]
+    }
+  ],
+  "streams": [
+    {
+      "name": "line",
+      "schemaId": "ifccad.ifcdr.line.v2",
+      "payloadKey": "lineStream",
+      "role": "object",
+      "columns": [
+        {
+          "name": "entityId",
+          "valueType": "uint64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "entity", "target": "entity"}
+        },
+        {
+          "name": "scopeId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "scopeTable.id"}
+        },
+        {
+          "name": "x1",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "y1",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "x2",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "y2",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "layerBindings.id"}
+        },
+        {
+          "name": "appearanceId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "appearanceBindings.id"}
+        },
+        {
+          "name": "visible",
+          "valueType": "boolean",
+          "presence": "optional",
+          "nullable": false,
+          "cardinality": "row",
+          "omissionDefault": true
+        }
+      ]
+    },
+    {
+      "name": "polyline",
+      "schemaId": "ifccad.ifcdr.polyline.v2",
+      "payloadKey": "polylineStream",
+      "role": "object",
+      "columns": [
+        {
+          "name": "entityId",
+          "valueType": "uint64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "entity", "target": "entity"}
+        },
+        {
+          "name": "scopeId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "scopeTable.id"}
+        },
+        {
+          "name": "vertexOffset",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "vertexCount",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "closed",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "x",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "pool"
+        },
+        {
+          "name": "y",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "pool"
+        },
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "layerBindings.id"}
+        },
+        {
+          "name": "appearanceId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "appearanceBindings.id"}
+        },
+        {
+          "name": "visible",
+          "valueType": "boolean",
+          "presence": "optional",
+          "nullable": false,
+          "cardinality": "row",
+          "omissionDefault": true
+        }
+      ],
+      "ranges": [
+        {
+          "offsetColumn": "vertexOffset",
+          "countColumn": "vertexCount",
+          "targetColumns": [
+            "x",
+            "y"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "circle",
+      "schemaId": "ifccad.ifcdr.circle.v2",
+      "payloadKey": "circleStream",
+      "role": "object",
+      "columns": [
+        {
+          "name": "entityId",
+          "valueType": "uint64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "entity", "target": "entity"}
+        },
+        {
+          "name": "scopeId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "scopeTable.id"}
+        },
+        {
+          "name": "cx",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "cy",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "radius",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "layerBindings.id"}
+        },
+        {
+          "name": "appearanceId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "appearanceBindings.id"}
+        },
+        {
+          "name": "visible",
+          "valueType": "boolean",
+          "presence": "optional",
+          "nullable": false,
+          "cardinality": "row",
+          "omissionDefault": true
+        }
+      ]
+    },
+    {
+      "name": "arc",
+      "schemaId": "ifccad.ifcdr.arc.v2",
+      "payloadKey": "arcStream",
+      "role": "object",
+      "columns": [
+        {
+          "name": "entityId",
+          "valueType": "uint64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "entity", "target": "entity"}
+        },
+        {
+          "name": "scopeId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "scopeTable.id"}
+        },
+        {
+          "name": "cx",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "cy",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "radius",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "startAngle",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "endAngle",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "layerBindings.id"}
+        },
+        {
+          "name": "appearanceId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "appearanceBindings.id"}
+        },
+        {
+          "name": "visible",
+          "valueType": "boolean",
+          "presence": "optional",
+          "nullable": false,
+          "cardinality": "row",
+          "omissionDefault": true
+        }
+      ]
+    },
+    {
+      "name": "point",
+      "schemaId": "ifccad.ifcdr.point.v2",
+      "payloadKey": "pointStream",
+      "role": "object",
+      "columns": [
+        {
+          "name": "entityId",
+          "valueType": "uint64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "entity", "target": "entity"}
+        },
+        {
+          "name": "scopeId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "scopeTable.id"}
+        },
+        {
+          "name": "x",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "y",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "layerBindings.id"}
+        },
+        {
+          "name": "appearanceId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "appearanceBindings.id"}
+        },
+        {
+          "name": "visible",
+          "valueType": "boolean",
+          "presence": "optional",
+          "nullable": false,
+          "cardinality": "row",
+          "omissionDefault": true
+        }
+      ]
+    },
+    {
+      "name": "ellipse",
+      "schemaId": "ifccad.ifcdr.ellipse.v2",
+      "payloadKey": "ellipseStream",
+      "role": "object",
+      "columns": [
+        {
+          "name": "entityId",
+          "valueType": "uint64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "entity", "target": "entity"}
+        },
+        {
+          "name": "scopeId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "scopeTable.id"}
+        },
+        {
+          "name": "cx",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "cy",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "majorX",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "majorY",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "ratio",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "startParam",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "endParam",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "layerBindings.id"}
+        },
+        {
+          "name": "appearanceId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "appearanceBindings.id"}
+        },
+        {
+          "name": "visible",
+          "valueType": "boolean",
+          "presence": "optional",
+          "nullable": false,
+          "cardinality": "row",
+          "omissionDefault": true
+        }
+      ]
+    },
+    {
+      "name": "dimension",
+      "schemaId": "ifccad.ifcdr.dimension.v2",
+      "payloadKey": "dimensionStream",
+      "role": "object",
+      "columns": [
+        {
+          "name": "entityId",
+          "valueType": "uint64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "entity", "target": "entity"}
+        },
+        {
+          "name": "scopeId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "scopeTable.id"}
+        },
+        {
+          "name": "kind",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "payloadIndex",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "dimensionStyleId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "dimensionStyleBindings.id"}
+        },
+        {
+          "name": "dimensionOverrideId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "dimensionOverrideTable.id"}
+        },
+        {
+          "name": "cachedMeasurement",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": true,
+          "cardinality": "row"
+        },
+        {
+          "name": "textMode",
+          "valueType": "int32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "textPrefix",
+          "valueType": "string",
+          "presence": "required",
+          "nullable": true,
+          "cardinality": "row"
+        },
+        {
+          "name": "textSuffix",
+          "valueType": "string",
+          "presence": "required",
+          "nullable": true,
+          "cardinality": "row"
+        },
+        {
+          "name": "textOverrideValue",
+          "valueType": "string",
+          "presence": "required",
+          "nullable": true,
+          "cardinality": "row"
+        },
+        {
+          "name": "belowText",
+          "valueType": "string",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "textPlacementMode",
+          "valueType": "int32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "textX",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": true,
+          "cardinality": "row"
+        },
+        {
+          "name": "textY",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": true,
+          "cardinality": "row"
+        },
+        {
+          "name": "cachedTextX",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": true,
+          "cardinality": "row"
+        },
+        {
+          "name": "cachedTextY",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": true,
+          "cardinality": "row"
+        },
+        {
+          "name": "textRotation",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": true,
+          "cardinality": "row"
+        },
+        {
+          "name": "textAttachment",
+          "valueType": "int32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "lineSpacingStyle",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "lineSpacingFactor",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "horizontalDirection",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "layerBindings.id"}
+        },
+        {
+          "name": "appearanceId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "appearanceBindings.id"}
+        },
+        {
+          "name": "visible",
+          "valueType": "boolean",
+          "presence": "optional",
+          "nullable": false,
+          "cardinality": "row",
+          "omissionDefault": true
+        }
+      ],
+      "children": [
+        "linearDimension",
+        "alignedDimension"
+      ]
+    },
+    {
+      "name": "linearDimension",
+      "schemaId": "ifccad.ifcdr.linearDimension.v1",
+      "payloadKey": "linearDimensionStream",
+      "role": "child",
+      "columns": [
+        {
+          "name": "firstX",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "firstY",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "secondX",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "secondY",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "dimensionLineX",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "dimensionLineY",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "measurementAngle",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "obliqueAngle",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        }
+      ],
+      "parent": "dimension"
+    },
+    {
+      "name": "alignedDimension",
+      "schemaId": "ifccad.ifcdr.alignedDimension.v1",
+      "payloadKey": "alignedDimensionStream",
+      "role": "child",
+      "columns": [
+        {
+          "name": "firstX",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "firstY",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "secondX",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "secondY",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "dimensionLineX",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "dimensionLineY",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "obliqueAngle",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        }
+      ],
+      "parent": "dimension"
+    },
+    {
+      "name": "text",
+      "schemaId": "ifccad.ifcdr.text.v2",
+      "payloadKey": "textStream",
+      "role": "object",
+      "columns": [
+        {
+          "name": "entityId",
+          "valueType": "uint64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "entity", "target": "entity"}
+        },
+        {
+          "name": "scopeId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "scopeTable.id"}
+        },
+        {
+          "name": "kind",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "ownerKind",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "ownerId",
+          "valueType": "uint64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "tag",
+          "valueType": "string",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "runOffset",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "runCount",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "x",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "y",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "height",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "rotation",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "boxWidth",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "attachment",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "textStyleName",
+          "valueType": "string",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "textStyleId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "textStyleBindings.id"}
+        },
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "layerBindings.id"}
+        },
+        {
+          "name": "appearanceId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "appearanceBindings.id"}
+        },
+        {
+          "name": "visible",
+          "valueType": "boolean",
+          "presence": "optional",
+          "nullable": false,
+          "cardinality": "row",
+          "omissionDefault": true
+        }
+      ],
+      "ranges": [
+        {"offsetColumn": "runOffset", "countColumn": "runCount", "targetPath": "streams.textRuns"}
+      ]
+    },
+    {
+      "name": "mtext",
+      "schemaId": "ifccad.ifcdr.mtext.v2",
+      "payloadKey": "mtextStream",
+      "role": "object",
+      "columns": [
+        {
+          "name": "entityId",
+          "valueType": "uint64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "entity", "target": "entity"}
+        },
+        {
+          "name": "scopeId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "scopeTable.id"}
+        },
+        {
+          "name": "paragraphOffset",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "paragraphCount",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "x",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "y",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "height",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "rotation",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "referenceWidth",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "definedHeight",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "attachment",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "flowDirection",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "lineSpacingStyle",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "lineSpacingFactor",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "columnOffset",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "columnCount",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "textStyleId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "textStyleBindings.id"}
+        },
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "layerBindings.id"}
+        },
+        {
+          "name": "appearanceId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "appearanceBindings.id"}
+        },
+        {
+          "name": "columnType",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "columnAutoHeight",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "columnFlowReversed",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "visible",
+          "valueType": "boolean",
+          "presence": "optional",
+          "nullable": false,
+          "cardinality": "row",
+          "omissionDefault": true
+        }
+      ],
+      "ranges": [
+        {"offsetColumn": "paragraphOffset", "countColumn": "paragraphCount", "targetPath": "streams.mtextParagraphStream"},
+        {"offsetColumn": "columnOffset", "countColumn": "columnCount", "targetPath": "streams.mtextColumnStream"}
+      ],
+      "children": [
+        "mtextParagraph",
+        "mtextColumn"
+      ]
+    },
+    {
+      "name": "mtextParagraph",
+      "schemaId": "ifccad.ifcdr.mtextParagraph.v1",
+      "payloadKey": "mtextParagraphStream",
+      "role": "child",
+      "columns": [
+        {
+          "name": "contentOffset",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "contentCount",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "paragraphFormatId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "paragraphFormatTable.id"}
+        }
+      ],
+      "ranges": [
+        {"offsetColumn": "contentOffset", "countColumn": "contentCount", "targetPath": "streams.mtextContentStream"}
+      ],
+      "parent": "mtext",
+      "children": [
+        "mtextContent"
+      ]
+    },
+    {
+      "name": "mtextContent",
+      "schemaId": "ifccad.ifcdr.mtextContent.v1",
+      "payloadKey": "mtextContentStream",
+      "role": "child",
+      "columns": [
+        {
+          "name": "kind",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "payloadIndex",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        }
+      ],
+      "parent": "mtextParagraph",
+      "children": [
+        "mtextRun",
+        "mtextTab",
+        "mtextStackedText"
+      ]
+    },
+    {
+      "name": "mtextRun",
+      "schemaId": "ifccad.ifcdr.mtextRun.v1",
+      "payloadKey": "mtextRunStream",
+      "role": "child",
+      "columns": [
+        {
+          "name": "value",
+          "valueType": "string",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "characterFormatId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "characterFormatTable.id"}
+        }
+      ],
+      "parent": "mtextContent"
+    },
+    {
+      "name": "mtextTab",
+      "schemaId": "ifccad.ifcdr.mtextTab.v1",
+      "payloadKey": "mtextTabStream",
+      "role": "child",
+      "columns": [
+        {
+          "name": "tabKind",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        }
+      ],
+      "parent": "mtextContent"
+    },
+    {
+      "name": "mtextStackedText",
+      "schemaId": "ifccad.ifcdr.mtextStackedText.v1",
+      "payloadKey": "mtextStackedTextStream",
+      "role": "child",
+      "columns": [
+        {
+          "name": "upper",
+          "valueType": "string",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "lower",
+          "valueType": "string",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "separatorKind",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "characterFormatId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "characterFormatTable.id"}
+        }
+      ],
+      "parent": "mtextContent"
+    },
+    {
+      "name": "mtextColumn",
+      "schemaId": "ifccad.ifcdr.mtextColumn.v1",
+      "payloadKey": "mtextColumnStream",
+      "role": "child",
+      "columns": [
+        {
+          "name": "width",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "gutter",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "height",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": true,
+          "cardinality": "row"
+        }
+      ],
+      "parent": "mtext"
+    },
+    {
+      "name": "blockReference",
+      "schemaId": "ifccad.ifcdr.blockReference.v2",
+      "payloadKey": "blockReferenceStream",
+      "role": "object",
+      "columns": [
+        {
+          "name": "entityId",
+          "valueType": "uint64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "entity", "target": "entity"}
+        },
+        {
+          "name": "scopeId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "scopeTable.id"}
+        },
+        {
+          "name": "targetScopeId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "scopeTable.id"}
+        },
+        {
+          "name": "x",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "y",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "rotation",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "scaleX",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "scaleY",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "layerBindings.id"}
+        },
+        {
+          "name": "appearanceId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "appearanceBindings.id"}
+        },
+        {
+          "name": "visible",
+          "valueType": "boolean",
+          "presence": "optional",
+          "nullable": false,
+          "cardinality": "row",
+          "omissionDefault": true
+        }
+      ]
+    },
+    {
+      "name": "hatch",
+      "schemaId": "ifccad.ifcdr.hatch.v2",
+      "payloadKey": "hatchStream",
+      "role": "object",
+      "columns": [
+        {
+          "name": "entityId",
+          "valueType": "uint64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "entity", "target": "entity"}
+        },
+        {
+          "name": "scopeId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "scopeTable.id"}
+        },
+        {
+          "name": "patternId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "hatchPatternBindings.id"}
+        },
+        {
+          "name": "patternName",
+          "valueType": "string",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "solidFill",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "patternType",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "patternAngle",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "patternScale",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "patternDouble",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "hatchStyle",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "layerBindings.id"}
+        },
+        {
+          "name": "appearanceId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "appearanceBindings.id"}
+        },
+        {
+          "name": "visible",
+          "valueType": "boolean",
+          "presence": "optional",
+          "nullable": false,
+          "cardinality": "row",
+          "omissionDefault": true
+        }
+      ],
+      "children": [
+        "hatchPath"
+      ]
+    },
+    {
+      "name": "viewport",
+      "schemaId": "ifccad.ifcdr.viewport.v1",
+      "payloadKey": "viewportStream",
+      "role": "object",
+      "columns": [
+        {
+          "name": "entityId",
+          "valueType": "uint64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "entity", "target": "entity"}
+        },
+        {
+          "name": "scopeId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "scopeTable.id"}
+        },
+        {
+          "name": "centerX",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "centerY",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "width",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "height",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "viewCenterX",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "viewCenterY",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "viewTargetX",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "viewTargetY",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "viewTargetZ",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "viewDirectionX",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "viewDirectionY",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "viewDirectionZ",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "viewHeight",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "twistAngle",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "enabled",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "locked",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "clipMode",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "clipBoundaryEntityId",
+          "valueType": "uint64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "entity", "target": "entity"}
+        },
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "layerBindings.id"}
+        },
+        {
+          "name": "appearanceId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "appearanceBindings.id"}
+        },
+        {
+          "name": "layerOverrideOffset",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "layerOverrideCount",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "visible",
+          "valueType": "boolean",
+          "presence": "optional",
+          "nullable": false,
+          "cardinality": "row",
+          "omissionDefault": true
+        }
+      ],
+      "ranges": [
+        {"offsetColumn": "layerOverrideOffset", "countColumn": "layerOverrideCount", "targetPath": "streams.viewportLayerOverrideStream"}
+      ],
+      "children": [
+        "viewportLayerOverride",
+        "viewportWorkspaceState"
+      ]
+    },
+    {
+      "name": "viewportLayerOverride",
+      "schemaId": "ifccad.ifcdr.viewportLayerOverride.v1",
+      "payloadKey": "viewportLayerOverrideStream",
+      "role": "child",
+      "columns": [
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "layerBindings.id"}
+        },
+        {
+          "name": "flags",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "appearanceOverrideId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": true,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "appearanceOverrides.id"}
+        }
+      ],
+      "parent": "viewport"
+    },
+    {
+      "name": "viewportWorkspaceState",
+      "schemaId": "ifccad.ifcdr.viewportWorkspaceState.v1",
+      "payloadKey": "viewportWorkspaceStateStream",
+      "role": "child",
+      "columns": [
+        {
+          "name": "viewportEntityId",
+          "valueType": "uint64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "streamColumn", "target": "viewportStream.entityId"}
+        },
+        {
+          "name": "perspectiveEnabled",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "lensLength",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "frontClipEnabled",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "frontClipDistance",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "backClipEnabled",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "backClipDistance",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "frontClipAtEye",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "renderMode",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "gridEnabled",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "gridSpacingX",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "gridSpacingY",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "gridFlags",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "gridMajorLineFrequency",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "snapEnabled",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "snapBaseX",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "snapBaseY",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "snapSpacingX",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "snapSpacingY",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "snapAngle",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "snapStyle",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "snapIsometricPlane",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "ucsMode",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "ucsBindingId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "namedUcsBindings.id"}
+        },
+        {
+          "name": "customUcsOriginX",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "customUcsOriginY",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "customUcsOriginZ",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "customUcsXAxisX",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "customUcsXAxisY",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "customUcsXAxisZ",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "customUcsYAxisX",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "customUcsYAxisY",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "customUcsYAxisZ",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "ucsFlags",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        }
+      ],
+      "parent": "viewport"
+    },
+    {
+      "name": "entityOrder",
+      "schemaId": "ifccad.ifcdr.entityOrder.v1",
+      "payloadKey": "entityOrderStream",
+      "role": "order",
+      "columns": [
+        {
+          "name": "scopeId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "tableField", "target": "scopeTable.id"}
+        },
+        {
+          "name": "entryOffset",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "entryCount",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        }
+      ],
+      "ranges": [
+        {"offsetColumn": "entryOffset", "countColumn": "entryCount", "targetPath": "streams.entityOrderEntryStream"}
+      ],
+      "children": [
+        "entityOrderEntry"
+      ]
+    },
+    {
+      "name": "entityOrderEntry",
+      "schemaId": "ifccad.ifcdr.entityOrderEntry.v1",
+      "payloadKey": "entityOrderEntryStream",
+      "role": "child",
+      "columns": [
+        {
+          "name": "entityId",
+          "valueType": "uint64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row",
+          "reference": {"category": "entity", "target": "entity"}
+        }
+      ],
+      "parent": "entityOrder"
+    },
+    {
+      "name": "hatchPath",
+      "schemaId": "ifccad.ifcdr.hatchPath.v1",
+      "payloadKey": "hatchPathStream",
+      "role": "child",
+      "columns": [
+        {
+          "name": "hatchId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "flags",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        }
+      ],
+      "parent": "hatch",
+      "children": [
+        "hatchLineEdge",
+        "hatchArcEdge",
+        "hatchEllipseEdge",
+        "hatchPolylineEdge"
+      ]
+    },
+    {
+      "name": "hatchLineEdge",
+      "schemaId": "ifccad.ifcdr.hatchLineEdge.v1",
+      "payloadKey": "hatchLineEdgeStream",
+      "role": "child",
+      "columns": [
+        {
+          "name": "pathId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "edgeIndex",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "x1",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "y1",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "x2",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "y2",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        }
+      ],
+      "parent": "hatchPath"
+    },
+    {
+      "name": "hatchArcEdge",
+      "schemaId": "ifccad.ifcdr.hatchArcEdge.v1",
+      "payloadKey": "hatchArcEdgeStream",
+      "role": "child",
+      "columns": [
+        {
+          "name": "pathId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "edgeIndex",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "cx",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "cy",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "radius",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "startAngle",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "endAngle",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "counterClockwise",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        }
+      ],
+      "parent": "hatchPath"
+    },
+    {
+      "name": "hatchEllipseEdge",
+      "schemaId": "ifccad.ifcdr.hatchEllipseEdge.v1",
+      "payloadKey": "hatchEllipseEdgeStream",
+      "role": "child",
+      "columns": [
+        {
+          "name": "pathId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "edgeIndex",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "cx",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "cy",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "majorX",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "majorY",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "ratio",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "startParam",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "endParam",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "counterClockwise",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        }
+      ],
+      "parent": "hatchPath"
+    },
+    {
+      "name": "hatchPolylineEdge",
+      "schemaId": "ifccad.ifcdr.hatchPolylineEdge.v1",
+      "payloadKey": "hatchPolylineEdgeStream",
+      "role": "child",
+      "columns": [
+        {
+          "name": "pathId",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "edgeIndex",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "vertexOffset",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "vertexCount",
+          "valueType": "uint32",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "closed",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "hasBulge",
+          "valueType": "boolean",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "row"
+        },
+        {
+          "name": "x",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "pool"
+        },
+        {
+          "name": "y",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "pool"
+        },
+        {
+          "name": "bulge",
+          "valueType": "float64",
+          "presence": "required",
+          "nullable": false,
+          "cardinality": "pool"
+        }
+      ],
+      "parent": "hatchPath",
+      "ranges": [
+        {
+          "offsetColumn": "vertexOffset",
+          "countColumn": "vertexCount",
+          "targetColumns": [
+            "x",
+            "y",
+            "bulge"
+          ]
+        }
+      ]
+    }
+  ]
+}

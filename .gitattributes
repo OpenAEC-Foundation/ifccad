@@ -1,0 +1,5 @@
+* text=auto
+
+schemas/**/*.json text eol=lf
+conformance/**/*.json text eol=lf
+conformance/**/blobs/* binary

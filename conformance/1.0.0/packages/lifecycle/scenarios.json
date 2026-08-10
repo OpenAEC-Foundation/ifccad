@@ -1,0 +1,12 @@
+{
+  "scenarios": [
+    {"scenarioId":"current","input":"current","expected":{"state":"current","allowedActions":["copyAsCurrent"],"diagnosticCodes":[]}},
+    {"scenarioId":"modified","input":"modified","expected":{"state":"modified","allowedActions":["restoreSource"],"diagnosticCodes":["IFCPR_PROJECTION_MODIFIED"]}},
+    {"scenarioId":"deleted","input":"deleted","expected":{"state":"deleted","allowedActions":["restoreSource"],"diagnosticCodes":["IFCPR_TARGET_DELETED"]}},
+    {"scenarioId":"dependency-invalid","input":"dependencyInvalid","expected":{"state":"dependencyInvalid","allowedActions":[],"diagnosticCodes":["IFCPR_DEPENDENCY_INVALID","IFCPR_PAYLOAD_CORRUPT"]}},
+    {"scenarioId":"unsupported-policy","input":"unsupportedPolicy","expected":{"state":"unsupportedPolicy","allowedActions":[],"diagnosticCodes":["IFCPR_POLICY_UNSUPPORTED"]}},
+    {"scenarioId":"unsupported-schema","input":"unsupportedSchema","expected":{"state":"unsupportedPolicy","allowedActions":[],"diagnosticCodes":["IFCPR_PROJECTION_SCHEMA_UNSUPPORTED"]}},
+    {"scenarioId":"corrupt","input":"corrupt","expected":{"state":"corrupt","allowedActions":[],"diagnosticCodes":["IFCPR_PAYLOAD_CORRUPT"]}},
+    {"scenarioId":"target-version-incompatible","input":"targetVersionIncompatible","expected":{"state":"dependencyInvalid","allowedActions":[],"diagnosticCodes":["IFCPR_DEPENDENCY_INVALID","IFCPR_TARGET_VERSION_INCOMPATIBLE"]}}
+  ]
+}
