@@ -19,7 +19,162 @@
   "$defs": {
     "dataNode": {
       "type": "object",
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "openaec:DrawingGeometryRepresentation"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/$defs/geometryResourceNode"
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "openaec:PreservationRepresentation"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/$defs/preservationResourceNode"
+          }
+        }
+      ],
       "additionalProperties": true
+    },
+    "geometryResourceNode": {
+      "type": "object",
+      "required": [
+        "path",
+        "type",
+        "attributes"
+      ],
+      "properties": {
+        "path": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "type": {
+          "const": "openaec:DrawingGeometryRepresentation"
+        },
+        "attributes": {
+          "type": "object",
+          "required": [
+            "geometry"
+          ],
+          "properties": {
+            "geometry": {
+              "$ref": "#/$defs/geometryDescriptor"
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "geometryDescriptor": {
+      "type": "object",
+      "required": [
+        "format",
+        "version",
+        "uri",
+        "checksum",
+        "role"
+      ],
+      "properties": {
+        "format": {
+          "const": "openaec.ifcdr"
+        },
+        "version": {
+          "const": "0.5.0"
+        },
+        "uri": {
+          "$ref": "#/$defs/packageRelativeUri"
+        },
+        "checksum": {
+          "$ref": "#/$defs/sha256Checksum"
+        },
+        "role": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      },
+      "additionalProperties": false
+    },
+    "preservationResourceNode": {
+      "type": "object",
+      "required": [
+        "path",
+        "type",
+        "attributes"
+      ],
+      "properties": {
+        "path": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "type": {
+          "const": "openaec:PreservationRepresentation"
+        },
+        "attributes": {
+          "type": "object",
+          "required": [
+            "preservation"
+          ],
+          "properties": {
+            "preservation": {
+              "$ref": "#/$defs/preservationDescriptor"
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "preservationDescriptor": {
+      "type": "object",
+      "required": [
+        "format",
+        "version",
+        "uri",
+        "checksum",
+        "sourceDocumentId",
+        "linkedDrawingResourceUris"
+      ],
+      "properties": {
+        "format": {
+          "const": "openaec.ifcpr"
+        },
+        "version": {
+          "const": "0.1.0"
+        },
+        "uri": {
+          "$ref": "#/$defs/packageRelativeUri"
+        },
+        "checksum": {
+          "$ref": "#/$defs/sha256Checksum"
+        },
+        "sourceDocumentId": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "linkedDrawingResourceUris": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/packageRelativeUri"
+          }
+        }
+      },
+      "additionalProperties": false
     },
     "nonEmptyString": {
       "type": "string",
