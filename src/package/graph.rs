@@ -195,32 +195,34 @@ fn check_target(
 ) {
     let Some(target_index) = index.get(target_path).copied() else {
         diagnostics.push(reference_diagnostic(
-            IFCCAD_PACKAGE_NODE_REFERENCE_MISSING,
             location,
             target_path,
             expected_type,
-            None,
+            ReferenceFailure::Missing,
         ));
         return;
     };
     let actual_type = data[target_index].get("type").and_then(Value::as_str);
     if actual_type != Some(expected_type) {
         diagnostics.push(reference_diagnostic(
-            IFCCAD_PACKAGE_NODE_REFERENCE_TYPE_MISMATCH,
             location,
             target_path,
             expected_type,
-            actual_type,
+            ReferenceFailure::TypeMismatch(actual_type),
         ));
     }
 }
 
+enum ReferenceFailure<'a> {
+    Missing,
+    TypeMismatch(Option<&'a str>),
+}
+
 fn reference_diagnostic(
-    code: &str,
     location: String,
     target_path: &str,
     expected_type: &str,
-    actual_type: Option<&str>,
+    failure: ReferenceFailure<'_>,
 ) -> PackageDiagnostic {
     let mut context = BTreeMap::from([
         (
@@ -232,25 +234,40 @@ fn reference_diagnostic(
             PackageDiagnosticContextValue::String(target_path.to_owned()),
         ),
     ]);
-    if let Some(actual_type) = actual_type {
-        context.insert(
-            "actualType".to_owned(),
-            PackageDiagnosticContextValue::String(actual_type.to_owned()),
-        );
-    }
+    let (code, message) = match failure {
+        ReferenceFailure::Missing => (
+            IFCCAD_PACKAGE_NODE_REFERENCE_MISSING,
+            format!("IFCX reference target {target_path:?} is missing; expected {expected_type:?}"),
+        ),
+        ReferenceFailure::TypeMismatch(actual_type) => {
+            context.insert(
+                "actualType".to_owned(),
+                actual_type.map_or(PackageDiagnosticContextValue::Null, |value| {
+                    PackageDiagnosticContextValue::String(value.to_owned())
+                }),
+            );
+            let message = actual_type.map_or_else(
+                || {
+                    format!(
+                        "IFCX reference {target_path:?} targets a node that has no string type; expected {expected_type:?}"
+                    )
+                },
+                |actual_type| {
+                    format!(
+                        "IFCX reference {target_path:?} targets {actual_type:?}, expected {expected_type:?}"
+                    )
+                },
+            );
+            (IFCCAD_PACKAGE_NODE_REFERENCE_TYPE_MISMATCH, message)
+        }
+    };
     PackageDiagnostic {
         code: code.to_owned(),
         severity: PackageDiagnosticSeverity::Error,
         resource_uri: Some(DIRECTORY_PACKAGE_ENTRYPOINT.to_owned()),
         location: Some(location),
         context,
-        message: if let Some(actual_type) = actual_type {
-            format!(
-                "IFCX reference {target_path:?} targets {actual_type:?}, expected {expected_type:?}"
-            )
-        } else {
-            format!("IFCX reference target {target_path:?} is missing; expected {expected_type:?}")
-        },
+        message,
     }
 }
 
@@ -464,5 +481,28 @@ mod tests {
                 ))
             );
         }
+    }
+
+    #[test]
+    fn existing_target_without_a_string_type_is_not_reported_as_missing() {
+        let mut ifcx = valid_ifcx_graph();
+        ifcx["data"][3]
+            .as_object_mut()
+            .expect("geometry node")
+            .remove("type");
+
+        let result = validate_ifcx_graph(&ifcx);
+        let diagnostic = result
+            .diagnostics
+            .iter()
+            .find(|item| item.location.as_deref() == Some("/data/1/children/Representation"))
+            .expect("type mismatch diagnostic");
+
+        assert_eq!(diagnostic.code, IFCCAD_PACKAGE_NODE_REFERENCE_TYPE_MISMATCH);
+        assert_eq!(
+            diagnostic.context.get("actualType"),
+            Some(&PackageDiagnosticContextValue::Null)
+        );
+        assert!(diagnostic.message.contains("has no string type"));
     }
 }
