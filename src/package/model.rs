@@ -5,8 +5,11 @@ use std::path::PathBuf;
 
 #[derive(Debug)]
 pub(crate) struct LoadedJsonResource {
+    #[cfg_attr(not(test), allow(dead_code))]
     pub(crate) uri: String,
+    #[cfg_attr(not(test), allow(dead_code))]
     pub(crate) path: PathBuf,
+    #[cfg_attr(not(test), allow(dead_code))]
     pub(crate) bytes: Vec<u8>,
     pub(crate) value: serde_json::Value,
 }
@@ -20,6 +23,7 @@ pub(crate) struct LoadedIfccadPackage {
 
 #[derive(Debug)]
 pub(crate) struct PackageLoadOutcome {
+    #[cfg_attr(not(test), allow(dead_code))]
     pub(crate) package: Option<LoadedIfccadPackage>,
     pub(crate) report: PackageValidationReport,
 }

@@ -1,6 +1,7 @@
-use super::discovery::discover_resources;
+use super::discovery::{discover_resources, ResourceKind};
 use super::loader::{DirectoryPackageLoader, PackageLoadLimits};
 use super::model::{LoadedIfccadPackage, PackageLoadOutcome};
+use super::schema::{validate_ifcpr, validate_ifcx};
 use super::{PackageOpenError, PackageValidationReport};
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
@@ -42,12 +43,26 @@ pub(crate) fn load_directory_package(
 
     let mut diagnostics = loader.into_report().into_diagnostics();
     diagnostics.extend(discovery.diagnostics);
+    let package = LoadedIfccadPackage {
+        entrypoint,
+        declarations,
+        resources,
+    };
+    diagnostics.extend(validate_ifcx(&package.entrypoint.value));
+    let mut validated_ifcpr_uris = BTreeSet::new();
+    for declaration in &package.declarations {
+        if declaration.kind != ResourceKind::Ifcpr
+            || !validated_ifcpr_uris.insert(declaration.uri.as_str())
+        {
+            continue;
+        }
+        if let Some(resource) = package.resources.get(&declaration.uri) {
+            diagnostics.extend(validate_ifcpr(&declaration.uri, &resource.value));
+        }
+    }
+
     Ok(PackageLoadOutcome {
-        package: Some(LoadedIfccadPackage {
-            entrypoint,
-            declarations,
-            resources,
-        }),
+        package: Some(package),
         report: PackageValidationReport::from_diagnostics(diagnostics),
     })
 }
@@ -65,9 +80,9 @@ mod tests {
     use crate::conformance::bundled_conformance_root;
     use crate::package::codes::{
         IFCCAD_PACKAGE_ENTRYPOINT_INVALID, IFCCAD_PACKAGE_JSON_INVALID,
-        IFCCAD_PACKAGE_RESOURCE_MISSING,
+        IFCCAD_PACKAGE_RESOURCE_MISSING, IFCCAD_PACKAGE_SCHEMA_INVALID,
     };
-    use crate::package::DIRECTORY_PACKAGE_ENTRYPOINT;
+    use crate::package::{PackageDiagnosticContextValue, DIRECTORY_PACKAGE_ENTRYPOINT};
     use std::fs;
     use std::path::{Path, PathBuf};
     use std::time::{SystemTime, UNIX_EPOCH};
@@ -178,20 +193,27 @@ mod tests {
     }
 
     #[test]
-    fn validates_a_directory_from_ifcx_discovered_resources() {
-        let root = TestDirectory::new("discovered-resources");
+    fn ifcx_schema_error_keeps_loaded_entrypoint() {
+        let root = TestDirectory::new("ifcx-schema-partial");
         fs::write(
             root.path().join(DIRECTORY_PACKAGE_ENTRYPOINT),
-            br#"{
-              "data": [{
-                "type": "openaec:DrawingGeometryRepresentation",
-                "attributes": {
-                  "geometry": { "uri": "custom-name.ifcdr.json" }
-                }
-              }]
-            }"#,
+            br#"{"data":[{"path":"layout","type":"openaec:DrawingLayout","attributes":{"name":"Model","kind":"sheet","scopeId":0},"children":{"Representation":"geometry"}}]}"#,
         )
         .expect("write entrypoint");
+
+        let outcome = load_directory_package(root.path()).expect("load directory package");
+
+        assert!(outcome.package.is_some());
+        assert!(outcome.report.iter().any(|item| {
+            item.code == IFCCAD_PACKAGE_SCHEMA_INVALID
+                && item.location.as_deref() == Some("/data/0/attributes/kind")
+        }));
+    }
+
+    #[test]
+    fn validates_a_directory_from_ifcx_discovered_resources() {
+        let root = TestDirectory::new("discovered-resources");
+        write_geometry_entrypoint(root.path(), "custom-name.ifcdr.json", &valid_checksum());
         fs::write(root.path().join("custom-name.ifcdr.json"), b"{}")
             .expect("write discovered resource");
 
@@ -204,18 +226,7 @@ mod tests {
     #[test]
     fn reports_a_resource_missing_at_its_ifcx_declaration() {
         let root = TestDirectory::new("missing-discovered-resource");
-        fs::write(
-            root.path().join(DIRECTORY_PACKAGE_ENTRYPOINT),
-            br#"{
-              "data": [{
-                "type": "openaec:DrawingGeometryRepresentation",
-                "attributes": {
-                  "geometry": { "uri": "custom-name.ifcdr.json" }
-                }
-              }]
-            }"#,
-        )
-        .expect("write entrypoint");
+        write_geometry_entrypoint(root.path(), "custom-name.ifcdr.json", &valid_checksum());
 
         let report = validate_directory_package(root.path()).expect("inspect directory package");
 
@@ -259,13 +270,9 @@ mod tests {
         let report = validate_directory_package(root.path()).expect("inspect directory package");
 
         let codes: Vec<_> = report.iter().map(|item| item.code.as_str()).collect();
-        assert_eq!(
-            codes,
-            [
-                IFCCAD_PACKAGE_ENTRYPOINT_INVALID,
-                IFCCAD_PACKAGE_JSON_INVALID
-            ]
-        );
+        assert!(codes.contains(&IFCCAD_PACKAGE_ENTRYPOINT_INVALID));
+        assert!(codes.contains(&IFCCAD_PACKAGE_JSON_INVALID));
+        assert!(codes.contains(&IFCCAD_PACKAGE_SCHEMA_INVALID));
     }
 
     #[test]
@@ -281,7 +288,7 @@ mod tests {
     }
 
     #[test]
-    fn validates_all_committed_loadable_directory_packages() {
+    fn loads_committed_bootstrap_packages_and_reports_legacy_links() {
         for case in [
             "minimal-no-preservation",
             "unrepresented-packed",
@@ -293,9 +300,29 @@ mod tests {
                 .join("packages")
                 .join("valid")
                 .join(case);
-            let report =
-                validate_directory_package(root).expect("inspect committed directory package");
-            assert!(report.is_empty(), "case {case}: {:?}", report.diagnostics());
+            let outcome = load_directory_package(root).expect("inspect committed package");
+            assert!(outcome.package.is_some(), "case {case}");
+
+            if case == "minimal-no-preservation" {
+                assert!(
+                    outcome.report.is_empty(),
+                    "case {case}: {:?}",
+                    outcome.report.diagnostics()
+                );
+                continue;
+            }
+
+            let properties: Vec<_> = outcome
+                .report
+                .iter()
+                .filter_map(|item| item.context.get("property"))
+                .collect();
+            assert!(properties.contains(&&PackageDiagnosticContextValue::String(
+                "linkedDrawingResourceIds".to_owned()
+            )));
+            assert!(properties.contains(&&PackageDiagnosticContextValue::String(
+                "linkedDrawingResourceUris".to_owned()
+            )));
         }
     }
 
@@ -305,12 +332,12 @@ mod tests {
             .join("packages")
             .join("invalid")
             .join("package-missing-resource");
-        let report = validate_directory_package(root).expect("inspect missing-resource case");
+        let outcome = load_directory_package(root).expect("inspect missing-resource case");
 
-        assert_eq!(report.len(), 1);
-        assert_eq!(
-            report.diagnostics()[0].code,
-            IFCCAD_PACKAGE_RESOURCE_MISSING
-        );
+        assert!(outcome.package.is_some());
+        assert!(outcome
+            .report
+            .iter()
+            .any(|item| item.code == IFCCAD_PACKAGE_RESOURCE_MISSING));
     }
 }

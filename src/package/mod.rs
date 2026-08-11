@@ -10,6 +10,7 @@ mod error;
 mod loader;
 mod model;
 mod path;
+mod schema;
 mod uri;
 mod validation;
 
