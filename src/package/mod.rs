@@ -7,6 +7,7 @@ mod codes;
 mod diagnostic;
 mod discovery;
 mod error;
+mod graph;
 mod loader;
 mod model;
 mod path;

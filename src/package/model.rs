@@ -19,6 +19,7 @@ pub(crate) struct LoadedIfccadPackage {
     pub(crate) entrypoint: LoadedJsonResource,
     pub(crate) declarations: Vec<ResourceDeclaration>,
     pub(crate) resources: BTreeMap<String, LoadedJsonResource>,
+    pub(crate) node_indices_by_path: BTreeMap<String, usize>,
 }
 
 #[derive(Debug)]

@@ -1,4 +1,5 @@
 use super::discovery::{discover_resources, ResourceKind};
+use super::graph::validate_ifcx_graph;
 use super::loader::{DirectoryPackageLoader, PackageLoadLimits};
 use super::model::{LoadedIfccadPackage, PackageLoadOutcome};
 use super::schema::{validate_ifcpr, validate_ifcx};
@@ -48,10 +49,11 @@ pub(crate) fn load_directory_package(
 
     let mut diagnostics = loader.into_report().into_diagnostics();
     diagnostics.extend(discovery.diagnostics);
-    let package = LoadedIfccadPackage {
+    let mut package = LoadedIfccadPackage {
         entrypoint,
         declarations,
         resources,
+        node_indices_by_path: BTreeMap::new(),
     };
     diagnostics.extend(validate_ifcx(&package.entrypoint.value));
     let mut validated_ifcpr_uris = BTreeSet::new();
@@ -66,6 +68,9 @@ pub(crate) fn load_directory_package(
         }
     }
     diagnostics.extend(verify_resource_checksums(&package));
+    let graph = validate_ifcx_graph(&package.entrypoint.value);
+    package.node_indices_by_path = graph.node_indices_by_path;
+    diagnostics.extend(graph.diagnostics);
 
     Ok(PackageLoadOutcome {
         package: Some(package),
@@ -137,8 +142,8 @@ mod tests {
     use crate::conformance::bundled_conformance_root;
     use crate::package::codes::{
         IFCCAD_PACKAGE_CHECKSUM_MISMATCH, IFCCAD_PACKAGE_ENTRYPOINT_INVALID,
-        IFCCAD_PACKAGE_JSON_INVALID, IFCCAD_PACKAGE_RESOURCE_MISSING,
-        IFCCAD_PACKAGE_SCHEMA_INVALID,
+        IFCCAD_PACKAGE_JSON_INVALID, IFCCAD_PACKAGE_NODE_PATH_DUPLICATE,
+        IFCCAD_PACKAGE_RESOURCE_MISSING, IFCCAD_PACKAGE_SCHEMA_INVALID,
     };
     use crate::package::{PackageDiagnosticContextValue, DIRECTORY_PACKAGE_ENTRYPOINT};
     use sha2::{Digest, Sha256};
@@ -324,6 +329,25 @@ mod tests {
 
         assert!(codes.contains(&IFCCAD_PACKAGE_SCHEMA_INVALID));
         assert!(!codes.contains(&IFCCAD_PACKAGE_CHECKSUM_MISMATCH));
+    }
+
+    #[test]
+    fn loaded_package_retains_the_partial_graph_index() {
+        let root = TestDirectory::new("loaded-graph-index");
+        fs::write(
+            root.path().join(DIRECTORY_PACKAGE_ENTRYPOINT),
+            br#"{"data":[{"path":"same","type":"example:First"},{"path":"same","type":"example:Second"}]}"#,
+        )
+        .expect("write entrypoint");
+
+        let outcome = load_directory_package(root.path()).expect("load package");
+        let package = outcome.package.expect("retain package");
+
+        assert_eq!(package.node_indices_by_path["same"], 0);
+        assert!(outcome
+            .report
+            .iter()
+            .any(|item| item.code == IFCCAD_PACKAGE_NODE_PATH_DUPLICATE));
     }
 
     #[test]
