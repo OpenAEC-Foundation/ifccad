@@ -2,7 +2,12 @@ use super::discovery::{discover_resources, ResourceKind};
 use super::loader::{DirectoryPackageLoader, PackageLoadLimits};
 use super::model::{LoadedIfccadPackage, PackageLoadOutcome};
 use super::schema::{validate_ifcpr, validate_ifcx};
-use super::{PackageOpenError, PackageValidationReport};
+use super::{
+    PackageDiagnostic, PackageDiagnosticContextValue, PackageDiagnosticSeverity, PackageOpenError,
+    PackageValidationReport,
+};
+use crate::package::codes::IFCCAD_PACKAGE_CHECKSUM_MISMATCH;
+use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
@@ -60,11 +65,63 @@ pub(crate) fn load_directory_package(
             diagnostics.extend(validate_ifcpr(&declaration.uri, &resource.value));
         }
     }
+    diagnostics.extend(verify_resource_checksums(&package));
 
     Ok(PackageLoadOutcome {
         package: Some(package),
         report: PackageValidationReport::from_diagnostics(diagnostics),
     })
+}
+
+fn verify_resource_checksums(package: &LoadedIfccadPackage) -> Vec<PackageDiagnostic> {
+    package
+        .declarations
+        .iter()
+        .filter_map(|declaration| {
+            let expected = declaration.checksum.as_deref()?;
+            if !is_sha256_checksum(expected) {
+                return None;
+            }
+            let resource = package.resources.get(&declaration.uri)?;
+            let actual = sha256_checksum(&resource.bytes);
+            if actual == expected {
+                return None;
+            }
+            Some(PackageDiagnostic {
+                code: IFCCAD_PACKAGE_CHECKSUM_MISMATCH.to_owned(),
+                severity: PackageDiagnosticSeverity::Error,
+                resource_uri: Some(declaration.uri.clone()),
+                location: Some(declaration.checksum_location.clone()),
+                context: BTreeMap::from([
+                    (
+                        "actualChecksum".to_owned(),
+                        PackageDiagnosticContextValue::String(actual),
+                    ),
+                    (
+                        "expectedChecksum".to_owned(),
+                        PackageDiagnosticContextValue::String(expected.to_owned()),
+                    ),
+                ]),
+                message: format!(
+                    "resource checksum does not match the exact bytes for {:?}",
+                    declaration.uri
+                ),
+            })
+        })
+        .collect()
+}
+
+fn is_sha256_checksum(value: &str) -> bool {
+    value.strip_prefix("sha256:").is_some_and(|hex| {
+        hex.len() == 64
+            && hex
+                .bytes()
+                .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+    })
+}
+
+fn sha256_checksum(bytes: &[u8]) -> String {
+    format!("sha256:{:x}", Sha256::digest(bytes))
 }
 
 #[cfg_attr(not(test), allow(dead_code))]
@@ -79,10 +136,12 @@ mod tests {
     use super::*;
     use crate::conformance::bundled_conformance_root;
     use crate::package::codes::{
-        IFCCAD_PACKAGE_ENTRYPOINT_INVALID, IFCCAD_PACKAGE_JSON_INVALID,
-        IFCCAD_PACKAGE_RESOURCE_MISSING, IFCCAD_PACKAGE_SCHEMA_INVALID,
+        IFCCAD_PACKAGE_CHECKSUM_MISMATCH, IFCCAD_PACKAGE_ENTRYPOINT_INVALID,
+        IFCCAD_PACKAGE_JSON_INVALID, IFCCAD_PACKAGE_RESOURCE_MISSING,
+        IFCCAD_PACKAGE_SCHEMA_INVALID,
     };
     use crate::package::{PackageDiagnosticContextValue, DIRECTORY_PACKAGE_ENTRYPOINT};
+    use sha2::{Digest, Sha256};
     use std::fs;
     use std::path::{Path, PathBuf};
     use std::time::{SystemTime, UNIX_EPOCH};
@@ -211,10 +270,69 @@ mod tests {
     }
 
     #[test]
+    fn checksum_uses_exact_resource_bytes() {
+        let root = TestDirectory::new("exact-checksum");
+        let bytes = b"{\r\n  \"header\": {}\r\n}\r\n";
+        let checksum = format!("sha256:{:x}", Sha256::digest(bytes));
+        write_geometry_entrypoint(root.path(), "drawing.ifcdr.json", &checksum);
+        fs::write(root.path().join("drawing.ifcdr.json"), bytes).expect("write drawing resource");
+
+        let matching = load_directory_package(root.path()).expect("load matching package");
+        assert!(!matching
+            .report
+            .iter()
+            .any(|item| item.code == IFCCAD_PACKAGE_CHECKSUM_MISMATCH));
+
+        fs::write(root.path().join("drawing.ifcdr.json"), b"{\"header\":{}}")
+            .expect("change exact resource bytes");
+        let changed = load_directory_package(root.path()).expect("load changed package");
+        let diagnostic = changed
+            .report
+            .iter()
+            .find(|item| item.code == IFCCAD_PACKAGE_CHECKSUM_MISMATCH)
+            .expect("changed exact bytes must mismatch");
+
+        assert_eq!(
+            diagnostic.location.as_deref(),
+            Some("/data/0/attributes/geometry/checksum")
+        );
+        assert_eq!(
+            diagnostic.context.get("expectedChecksum"),
+            Some(&PackageDiagnosticContextValue::String(checksum))
+        );
+        assert_eq!(
+            diagnostic.context.get("actualChecksum"),
+            Some(&PackageDiagnosticContextValue::String(format!(
+                "sha256:{:x}",
+                Sha256::digest(b"{\"header\":{}}")
+            )))
+        );
+    }
+
+    #[test]
+    fn malformed_checksum_is_not_reported_as_a_mismatch() {
+        let root = TestDirectory::new("malformed-checksum");
+        write_geometry_entrypoint(root.path(), "drawing.ifcdr.json", "sha256:ABC");
+        fs::write(root.path().join("drawing.ifcdr.json"), b"{}").expect("write drawing resource");
+
+        let outcome = load_directory_package(root.path()).expect("load package");
+        let codes: Vec<_> = outcome
+            .report
+            .iter()
+            .map(|item| item.code.as_str())
+            .collect();
+
+        assert!(codes.contains(&IFCCAD_PACKAGE_SCHEMA_INVALID));
+        assert!(!codes.contains(&IFCCAD_PACKAGE_CHECKSUM_MISMATCH));
+    }
+
+    #[test]
     fn validates_a_directory_from_ifcx_discovered_resources() {
         let root = TestDirectory::new("discovered-resources");
-        write_geometry_entrypoint(root.path(), "custom-name.ifcdr.json", &valid_checksum());
-        fs::write(root.path().join("custom-name.ifcdr.json"), b"{}")
+        let resource = b"{}";
+        let checksum = format!("sha256:{:x}", Sha256::digest(resource));
+        write_geometry_entrypoint(root.path(), "custom-name.ifcdr.json", &checksum);
+        fs::write(root.path().join("custom-name.ifcdr.json"), resource)
             .expect("write discovered resource");
 
         let report = validate_directory_package(root.path()).expect("inspect directory package");
