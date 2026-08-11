@@ -143,7 +143,8 @@ mod tests {
     use crate::package::codes::{
         IFCCAD_PACKAGE_CHECKSUM_MISMATCH, IFCCAD_PACKAGE_ENTRYPOINT_INVALID,
         IFCCAD_PACKAGE_JSON_INVALID, IFCCAD_PACKAGE_NODE_PATH_DUPLICATE,
-        IFCCAD_PACKAGE_RESOURCE_MISSING, IFCCAD_PACKAGE_SCHEMA_INVALID,
+        IFCCAD_PACKAGE_NODE_REFERENCE_MISSING, IFCCAD_PACKAGE_RESOURCE_MISSING,
+        IFCCAD_PACKAGE_SCHEMA_INVALID,
     };
     use crate::package::{PackageDiagnosticContextValue, DIRECTORY_PACKAGE_ENTRYPOINT};
     use sha2::{Digest, Sha256};
@@ -351,6 +352,99 @@ mod tests {
     }
 
     #[test]
+    fn combined_diagnostics_follow_the_report_ordering_contract() {
+        let root = TestDirectory::new("orchestration-order");
+        let checksum = valid_checksum();
+        let entrypoint = serde_json::json!({
+            "data": [
+                {
+                    "path": "drawing-set",
+                    "type": "openaec:DrawingSet",
+                    "children": {"Drawings": ["missing-drawing"]}
+                },
+                {
+                    "path": "missing-geometry",
+                    "type": "openaec:DrawingGeometryRepresentation",
+                    "attributes": {
+                        "geometry": {
+                            "format": "openaec.ifcdr",
+                            "version": "0.5.0",
+                            "uri": "z-missing.ifcdr.json",
+                            "checksum": checksum,
+                            "role": "modelspace"
+                        }
+                    }
+                },
+                {
+                    "path": "loaded-geometry",
+                    "type": "openaec:DrawingGeometryRepresentation",
+                    "attributes": {
+                        "geometry": {
+                            "format": "openaec.ifcdr",
+                            "version": "0.5.0",
+                            "uri": "a-loaded.ifcdr.json",
+                            "checksum": checksum,
+                            "role": ""
+                        }
+                    }
+                },
+                {"path": "duplicate", "type": "example:First"},
+                {"path": "duplicate", "type": "example:Second"}
+            ]
+        });
+        fs::write(
+            root.path().join(DIRECTORY_PACKAGE_ENTRYPOINT),
+            serde_json::to_vec(&entrypoint).expect("serialize entrypoint"),
+        )
+        .expect("write entrypoint");
+        fs::write(root.path().join("a-loaded.ifcdr.json"), b"{}").expect("write loaded resource");
+
+        let outcome = load_directory_package(root.path()).expect("load package");
+        let sequence: Vec<_> = outcome
+            .report
+            .iter()
+            .map(|item| {
+                (
+                    item.code.as_str(),
+                    item.resource_uri.as_deref(),
+                    item.location.as_deref(),
+                )
+            })
+            .collect();
+
+        assert_eq!(
+            sequence,
+            [
+                (
+                    IFCCAD_PACKAGE_CHECKSUM_MISMATCH,
+                    Some("a-loaded.ifcdr.json"),
+                    Some("/data/2/attributes/geometry/checksum"),
+                ),
+                (
+                    IFCCAD_PACKAGE_NODE_REFERENCE_MISSING,
+                    Some(DIRECTORY_PACKAGE_ENTRYPOINT),
+                    Some("/data/0/children/Drawings/0"),
+                ),
+                (
+                    IFCCAD_PACKAGE_SCHEMA_INVALID,
+                    Some(DIRECTORY_PACKAGE_ENTRYPOINT),
+                    Some("/data/2/attributes/geometry/role"),
+                ),
+                (
+                    IFCCAD_PACKAGE_NODE_PATH_DUPLICATE,
+                    Some(DIRECTORY_PACKAGE_ENTRYPOINT),
+                    Some("/data/4/path"),
+                ),
+                (
+                    IFCCAD_PACKAGE_RESOURCE_MISSING,
+                    Some("z-missing.ifcdr.json"),
+                    Some("/data/1/attributes/geometry/uri"),
+                ),
+            ]
+        );
+    }
+
+    #[test]
     fn validates_a_directory_from_ifcx_discovered_resources() {
         let root = TestDirectory::new("discovered-resources");
         let resource = b"{}";
@@ -443,7 +537,9 @@ mod tests {
                 .join("valid")
                 .join(case);
             let outcome = load_directory_package(root).expect("inspect committed package");
-            assert!(outcome.package.is_some(), "case {case}");
+            let package = outcome.package.as_ref().expect("retain committed package");
+            assert_eq!(package.entrypoint.uri, DIRECTORY_PACKAGE_ENTRYPOINT);
+            assert!(!package.node_indices_by_path.is_empty(), "case {case}");
 
             if case == "minimal-no-preservation" {
                 assert!(
@@ -476,7 +572,11 @@ mod tests {
             .join("package-missing-resource");
         let outcome = load_directory_package(root).expect("inspect missing-resource case");
 
-        assert!(outcome.package.is_some());
+        let package = outcome.package.as_ref().expect("retain partial package");
+        assert!(package
+            .declarations
+            .iter()
+            .any(|declaration| declaration.uri == "drawing.ifcdr.json"));
         assert!(outcome
             .report
             .iter()
