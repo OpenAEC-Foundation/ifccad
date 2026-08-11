@@ -40,6 +40,20 @@
             "properties": {"type": {"const": "openaec:DrawingLayout"}}
           },
           "then": {"$ref": "#/$defs/drawingLayoutNode"}
+        },
+        {
+          "if": {
+            "required": ["type"],
+            "properties": {"type": {"const": "openaec:Layer"}}
+          },
+          "then": {"$ref": "#/$defs/layerNode"}
+        },
+        {
+          "if": {
+            "required": ["type"],
+            "properties": {"type": {"const": "openaec:Appearance"}}
+          },
+          "then": {"$ref": "#/$defs/appearanceNode"}
         }
       ],
       "additionalProperties": true
@@ -111,6 +125,40 @@
           },
           "additionalProperties": true
         }
+      },
+      "additionalProperties": true
+    },
+    "layerNode": {
+      "type": "object",
+      "required": ["path", "type", "attributes"],
+      "properties": {
+        "path": {"$ref": "#/$defs/nonEmptyString"},
+        "type": {"const": "openaec:Layer"},
+        "attributes": {
+          "type": "object",
+          "required": ["name", "visible"],
+          "properties": {
+            "name": {"$ref": "#/$defs/nonEmptyString"},
+            "visible": {"type": "boolean"},
+            "appearance": {"$ref": "#/$defs/nodeReference"}
+          },
+          "additionalProperties": true
+        },
+        "children": {"type": "object"}
+      },
+      "additionalProperties": true
+    },
+    "appearanceNode": {
+      "type": "object",
+      "required": ["path", "type", "attributes"],
+      "properties": {
+        "path": {"$ref": "#/$defs/nonEmptyString"},
+        "type": {"const": "openaec:Appearance"},
+        "attributes": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "children": {"type": "object"}
       },
       "additionalProperties": true
     },

@@ -128,6 +128,40 @@ fn drawing_layout_node() -> Value {
     })
 }
 
+fn layer_node() -> Value {
+    json!({
+        "path": "layer-wall",
+        "type": "openaec:Layer",
+        "attributes": {
+            "name": "A-WALL",
+            "visible": true,
+            "appearance": "appearance-wall",
+            "futureAttribute": true
+        },
+        "children": {
+            "FutureRelationship": "future-node"
+        },
+        "futureNodeProperty": true
+    })
+}
+
+fn appearance_node() -> Value {
+    json!({
+        "path": "appearance-wall",
+        "type": "openaec:Appearance",
+        "attributes": {
+            "futureStyleBinding": {
+                "color": "#ffffff",
+                "opacity": 0.8
+            }
+        },
+        "children": {
+            "FutureRelationship": "future-node"
+        },
+        "futureNodeProperty": true
+    })
+}
+
 fn remove_property(value: &mut Value, pointer: &str) {
     let (parent, property) = pointer.rsplit_once('/').expect("property pointer");
     value
@@ -454,6 +488,78 @@ fn drawing_layout_requires_stable_local_properties() {
         assert!(
             !validator.is_valid(&json!({"data": [node]})),
             "accepted invalid DrawingLayout value at {pointer}"
+        );
+    }
+}
+
+#[test]
+fn drawing_core_accepts_layer_and_open_appearance_nodes() {
+    let validator = drawing_core_validator();
+    assert!(validator.is_valid(&json!({"data": [layer_node(), appearance_node()]})));
+
+    let mut empty = appearance_node();
+    empty["attributes"] = json!({});
+    assert!(validator.is_valid(&json!({"data": [empty]})));
+}
+
+#[test]
+fn layer_requires_only_name_and_visibility() {
+    let validator = drawing_core_validator();
+
+    for pointer in [
+        "/path",
+        "/attributes",
+        "/attributes/name",
+        "/attributes/visible",
+    ] {
+        let mut node = layer_node();
+        remove_property(&mut node, pointer);
+        assert!(
+            !validator.is_valid(&json!({"data": [node]})),
+            "accepted Layer without {pointer}"
+        );
+    }
+
+    for (pointer, value) in [
+        ("/path", json!("")),
+        ("/attributes/name", json!("")),
+        ("/attributes/visible", json!("true")),
+        ("/attributes/appearance", json!("")),
+        ("/attributes/appearance", json!(42)),
+        ("/children", json!([])),
+    ] {
+        let mut node = layer_node();
+        *node.pointer_mut(pointer).expect("Layer test pointer") = value;
+        assert!(
+            !validator.is_valid(&json!({"data": [node]})),
+            "accepted invalid Layer value at {pointer}"
+        );
+    }
+}
+
+#[test]
+fn appearance_requires_an_open_attributes_object() {
+    let validator = drawing_core_validator();
+
+    for pointer in ["/path", "/attributes"] {
+        let mut node = appearance_node();
+        remove_property(&mut node, pointer);
+        assert!(
+            !validator.is_valid(&json!({"data": [node]})),
+            "accepted Appearance without {pointer}"
+        );
+    }
+
+    for (pointer, value) in [
+        ("/path", json!("")),
+        ("/attributes", json!("future")),
+        ("/children", json!(false)),
+    ] {
+        let mut node = appearance_node();
+        *node.pointer_mut(pointer).expect("Appearance test pointer") = value;
+        assert!(
+            !validator.is_valid(&json!({"data": [node]})),
+            "accepted invalid Appearance value at {pointer}"
         );
     }
 }
