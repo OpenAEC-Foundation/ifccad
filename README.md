@@ -28,7 +28,8 @@ The crate currently provides:
 
 - language-neutral canonical value encoding and SHA-256 fingerprints;
 - conformance manifests, vectors, fixtures, and verification helpers;
-- the initial IFCX overlay, IFCDR registry, and IFCPR schema; and
+- versioned IFCX resource and drawing-core overlays, the IFCDR registry, and
+  the IFCPR schema; and
 - structured package diagnostics and internal directory-package foundations.
 
 The public package loader, a complete IFCCAD vocabulary within IFCX,

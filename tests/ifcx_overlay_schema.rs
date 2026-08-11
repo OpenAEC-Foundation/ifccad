@@ -1,9 +1,11 @@
+use jsonschema::Registry;
 use serde_json::{json, Value};
 use std::fs;
 use std::path::{Path, PathBuf};
 
 const RESOURCE_OVERLAY_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.1.0.json";
 const DRAWING_CORE_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-drawing-core-0.1.0.json";
+const OVERLAY_0_2_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.2.0.json";
 
 fn schema_path(file_name: &str) -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -33,6 +35,25 @@ fn drawing_core_schema() -> Value {
 fn drawing_core_validator() -> jsonschema::Validator {
     let schema = drawing_core_schema();
     jsonschema::draft202012::new(&schema).expect("compile IFCX drawing core")
+}
+
+fn composite_overlay_schema() -> Value {
+    load_schema("ifccad-overlay-0.2.0.json")
+}
+
+fn composite_overlay_validator() -> jsonschema::Validator {
+    let registry = Registry::new()
+        .add(RESOURCE_OVERLAY_ID, resource_overlay_schema())
+        .expect("add IFCX resource overlay to local registry")
+        .add(DRAWING_CORE_ID, drawing_core_schema())
+        .expect("add IFCX drawing core to local registry")
+        .prepare()
+        .expect("prepare local IFCX schema registry");
+    let schema = composite_overlay_schema();
+    jsonschema::draft202012::options()
+        .with_registry(&registry)
+        .build(&schema)
+        .expect("compile composite IFCX overlay from local registry")
 }
 
 fn checksum() -> String {
@@ -159,6 +180,23 @@ fn appearance_node() -> Value {
             "FutureRelationship": "future-node"
         },
         "futureNodeProperty": true
+    })
+}
+
+fn composite_document() -> Value {
+    json!({
+        "header": {"schemaIdentifiers": ["future-ifcx"]},
+        "futureRootProperty": true,
+        "data": [
+            drawing_set_node(),
+            drawing_node(),
+            drawing_layout_node(),
+            geometry_node(),
+            layer_node(),
+            appearance_node(),
+            preservation_node(),
+            {"type": "example:UnknownNode", "anything": true}
+        ]
     })
 }
 
@@ -562,4 +600,27 @@ fn appearance_requires_an_open_attributes_object() {
             "accepted invalid Appearance value at {pointer}"
         );
     }
+}
+
+#[test]
+fn composite_overlay_is_valid_and_compiles_offline() {
+    let schema = composite_overlay_schema();
+    assert_eq!(schema["$id"], OVERLAY_0_2_ID);
+    jsonschema::draft202012::meta::validate(&schema)
+        .expect("composite IFCX overlay must satisfy the Draft 2020-12 meta-schema");
+
+    assert!(composite_overlay_validator().is_valid(&composite_document()));
+}
+
+#[test]
+fn composite_overlay_enforces_resource_and_drawing_constraints() {
+    let validator = composite_overlay_validator();
+
+    let mut malformed_resource = composite_document();
+    malformed_resource["data"][3]["attributes"]["geometry"]["format"] = json!("example:other");
+    assert!(!validator.is_valid(&malformed_resource));
+
+    let mut malformed_drawing = composite_document();
+    malformed_drawing["data"][2]["attributes"]["kind"] = json!("sheet");
+    assert!(!validator.is_valid(&malformed_drawing));
 }
