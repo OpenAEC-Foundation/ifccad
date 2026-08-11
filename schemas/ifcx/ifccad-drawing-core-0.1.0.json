@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.ifccad.org/ifcx/ifccad-drawing-core-0.1.0.json",
+  "title": "IFCCAD IFCX Drawing Core 0.1.0",
+  "description": "Local shape constraints for the extensible IFCCAD drawing spine in IFCX.",
+  "type": "object",
+  "required": [
+    "data"
+  ],
+  "properties": {
+    "data": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/dataNode"
+      }
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "dataNode": {
+      "type": "object",
+      "allOf": [
+        {
+          "if": {
+            "required": ["type"],
+            "properties": {"type": {"const": "openaec:DrawingSet"}}
+          },
+          "then": {"$ref": "#/$defs/drawingSetNode"}
+        },
+        {
+          "if": {
+            "required": ["type"],
+            "properties": {"type": {"const": "openaec:Drawing"}}
+          },
+          "then": {"$ref": "#/$defs/drawingNode"}
+        },
+        {
+          "if": {
+            "required": ["type"],
+            "properties": {"type": {"const": "openaec:DrawingLayout"}}
+          },
+          "then": {"$ref": "#/$defs/drawingLayoutNode"}
+        }
+      ],
+      "additionalProperties": true
+    },
+    "drawingSetNode": {
+      "type": "object",
+      "required": ["path", "type", "children"],
+      "properties": {
+        "path": {"$ref": "#/$defs/nonEmptyString"},
+        "type": {"const": "openaec:DrawingSet"},
+        "attributes": {"type": "object"},
+        "children": {
+          "type": "object",
+          "required": ["Drawings"],
+          "properties": {
+            "Drawings": {"$ref": "#/$defs/nodeReferenceArray"},
+            "PreservationResources": {"$ref": "#/$defs/nodeReferenceArray"}
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "drawingNode": {
+      "type": "object",
+      "required": ["path", "type", "children"],
+      "properties": {
+        "path": {"$ref": "#/$defs/nonEmptyString"},
+        "type": {"const": "openaec:Drawing"},
+        "attributes": {"type": "object"},
+        "children": {
+          "type": "object",
+          "required": ["Representation", "Layouts"],
+          "properties": {
+            "Representation": {"$ref": "#/$defs/nodeReference"},
+            "Layouts": {
+              "allOf": [
+                {"$ref": "#/$defs/nodeReferenceArray"},
+                {"minItems": 1}
+              ]
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "drawingLayoutNode": {
+      "type": "object",
+      "required": ["path", "type", "attributes", "children"],
+      "properties": {
+        "path": {"$ref": "#/$defs/nonEmptyString"},
+        "type": {"const": "openaec:DrawingLayout"},
+        "attributes": {
+          "type": "object",
+          "required": ["name", "kind", "scopeId"],
+          "properties": {
+            "name": {"$ref": "#/$defs/nonEmptyString"},
+            "kind": {"enum": ["model", "paper"]},
+            "scopeId": {"type": "integer", "minimum": 0}
+          },
+          "additionalProperties": true
+        },
+        "children": {
+          "type": "object",
+          "required": ["Representation"],
+          "properties": {
+            "Representation": {"$ref": "#/$defs/nodeReference"}
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "nodeReference": {
+      "$ref": "#/$defs/nonEmptyString"
+    },
+    "nodeReferenceArray": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/nodeReference"}
+    },
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}
