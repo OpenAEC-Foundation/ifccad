@@ -1,34 +1,62 @@
 use super::discovery::discover_resources;
 use super::loader::{DirectoryPackageLoader, PackageLoadLimits};
+use super::model::{LoadedIfccadPackage, PackageLoadOutcome};
 use super::{PackageOpenError, PackageValidationReport};
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 // The conformance composer will become this internal orchestrator's production caller.
 #[cfg_attr(not(test), allow(dead_code))]
-pub(crate) fn validate_directory_package(
+pub(crate) fn load_directory_package(
     root: impl AsRef<Path>,
-) -> Result<PackageValidationReport, PackageOpenError> {
+) -> Result<PackageLoadOutcome, PackageOpenError> {
     let mut loader = DirectoryPackageLoader::open(root, PackageLoadLimits::default())?;
     let Some(entrypoint) = loader.load_entrypoint()? else {
-        return Ok(loader.into_report());
+        return Ok(PackageLoadOutcome {
+            package: None,
+            report: loader.into_report(),
+        });
     };
 
     let discovery = discover_resources(&entrypoint.value);
-    let mut references = discovery.references;
-    references.sort_by(|left, right| {
-        (left.uri.as_str(), left.kind, left.location.as_str()).cmp(&(
+    let mut declarations = discovery.declarations;
+    declarations.sort_by(|left, right| {
+        (left.uri.as_str(), left.kind, left.uri_location.as_str()).cmp(&(
             right.uri.as_str(),
             right.kind,
-            right.location.as_str(),
+            right.uri_location.as_str(),
         ))
     });
-    for reference in &references {
-        loader.load_json_resource(&reference.uri, Some(&reference.location))?;
+    let mut attempted_uris = BTreeSet::new();
+    let mut resources = BTreeMap::new();
+    for declaration in &declarations {
+        if !attempted_uris.insert(declaration.uri.as_str()) {
+            continue;
+        }
+        if let Some(resource) =
+            loader.load_json_resource(&declaration.uri, Some(&declaration.uri_location))?
+        {
+            resources.insert(declaration.uri.clone(), resource);
+        }
     }
 
     let mut diagnostics = loader.into_report().into_diagnostics();
     diagnostics.extend(discovery.diagnostics);
-    Ok(PackageValidationReport::from_diagnostics(diagnostics))
+    Ok(PackageLoadOutcome {
+        package: Some(LoadedIfccadPackage {
+            entrypoint,
+            declarations,
+            resources,
+        }),
+        report: PackageValidationReport::from_diagnostics(diagnostics),
+    })
+}
+
+#[cfg_attr(not(test), allow(dead_code))]
+pub(crate) fn validate_directory_package(
+    root: impl AsRef<Path>,
+) -> Result<PackageValidationReport, PackageOpenError> {
+    Ok(load_directory_package(root)?.report)
 }
 
 #[cfg(test)]
@@ -69,6 +97,84 @@ mod tests {
         fn drop(&mut self) {
             let _ = fs::remove_dir_all(&self.0);
         }
+    }
+
+    fn valid_checksum() -> String {
+        format!("sha256:{}", "a".repeat(64))
+    }
+
+    fn write_geometry_entrypoint(root: &Path, uri: &str, checksum: &str) {
+        let entrypoint = serde_json::json!({
+            "data": [{
+                "path": "geometry",
+                "type": "openaec:DrawingGeometryRepresentation",
+                "attributes": {
+                    "geometry": {
+                        "format": "openaec.ifcdr",
+                        "version": "0.5.0",
+                        "uri": uri,
+                        "checksum": checksum,
+                        "role": "modelspace"
+                    }
+                }
+            }]
+        });
+        fs::write(
+            root.join(DIRECTORY_PACKAGE_ENTRYPOINT),
+            serde_json::to_vec(&entrypoint).expect("serialize entrypoint"),
+        )
+        .expect("write entrypoint");
+    }
+
+    #[test]
+    fn load_outcome_retains_entrypoint_resources_and_exact_bytes() {
+        let root = TestDirectory::new("loaded-model");
+        let entrypoint = br#"{"data":[{"path":"geometry","type":"openaec:DrawingGeometryRepresentation","attributes":{"geometry":{"format":"openaec.ifcdr","version":"0.5.0","uri":"drawing.ifcdr.json","checksum":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","role":"modelspace"}}}]}"#;
+        let drawing = b"{\r\n  \"header\": {}\r\n}\r\n";
+        fs::write(root.path().join(DIRECTORY_PACKAGE_ENTRYPOINT), entrypoint)
+            .expect("write entrypoint");
+        fs::write(root.path().join("drawing.ifcdr.json"), drawing).expect("write drawing resource");
+
+        let outcome = load_directory_package(root.path()).expect("load directory package");
+        let package = outcome.package.expect("entrypoint produced package");
+
+        assert_eq!(package.entrypoint.bytes, entrypoint);
+        assert_eq!(package.entrypoint.value["data"][0]["path"], "geometry");
+        assert_eq!(package.declarations.len(), 1);
+        assert_eq!(package.declarations[0].uri, "drawing.ifcdr.json");
+        assert_eq!(package.resources["drawing.ifcdr.json"].bytes, drawing);
+    }
+
+    #[test]
+    fn missing_resource_keeps_partial_loaded_package() {
+        let root = TestDirectory::new("partial-missing-resource");
+        write_geometry_entrypoint(root.path(), "missing.ifcdr.json", &valid_checksum());
+
+        let outcome = load_directory_package(root.path()).expect("load directory package");
+        let package = outcome.package.expect("parsed entrypoint is retained");
+
+        assert_eq!(package.declarations[0].uri, "missing.ifcdr.json");
+        assert!(!package.resources.contains_key("missing.ifcdr.json"));
+        assert_eq!(
+            outcome.report.diagnostics()[0].code,
+            IFCCAD_PACKAGE_RESOURCE_MISSING
+        );
+    }
+
+    #[test]
+    fn malformed_entrypoint_has_no_loaded_package() {
+        let root = TestDirectory::new("malformed-entrypoint-outcome");
+        fs::write(root.path().join(DIRECTORY_PACKAGE_ENTRYPOINT), b"{")
+            .expect("write malformed entrypoint");
+
+        let outcome = load_directory_package(root.path()).expect("inspect directory package");
+
+        assert!(outcome.package.is_none());
+        assert_eq!(outcome.report.len(), 1);
+        assert_eq!(
+            outcome.report.diagnostics()[0].code,
+            IFCCAD_PACKAGE_JSON_INVALID
+        );
     }
 
     #[test]

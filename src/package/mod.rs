@@ -8,6 +8,7 @@ mod diagnostic;
 mod discovery;
 mod error;
 mod loader;
+mod model;
 mod path;
 mod uri;
 mod validation;

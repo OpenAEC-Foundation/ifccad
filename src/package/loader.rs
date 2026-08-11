@@ -3,6 +3,7 @@ use super::codes::{
     IFCCAD_PACKAGE_RESOURCE_LIMIT_EXCEEDED, IFCCAD_PACKAGE_RESOURCE_MISSING,
     IFCCAD_PACKAGE_TOTAL_LIMIT_EXCEEDED,
 };
+use super::model::LoadedJsonResource;
 use super::path::{PackagePathResolution, PackageRoot, ResolvePackagePathError};
 use super::{
     PackageDiagnostic, PackageDiagnosticContextValue, PackageDiagnosticSeverity, PackageOpenError,
@@ -12,7 +13,7 @@ use std::cmp;
 use std::collections::BTreeMap;
 use std::fs::{self, File};
 use std::io::{self, Read};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 const DEFAULT_MAX_RESOURCE_BYTES: u64 = 256 * 1024 * 1024;
 const DEFAULT_MAX_TOTAL_BYTES: u64 = 1024 * 1024 * 1024;
@@ -30,18 +31,6 @@ impl Default for PackageLoadLimits {
             max_total_bytes: DEFAULT_MAX_TOTAL_BYTES,
         }
     }
-}
-
-#[derive(Debug)]
-pub(crate) struct LoadedJsonResource {
-    // Retained for byte-exact parsing and provenance in the next internal consumer.
-    #[cfg_attr(not(test), allow(dead_code))]
-    pub(crate) uri: String,
-    #[cfg_attr(not(test), allow(dead_code))]
-    pub(crate) path: PathBuf,
-    #[cfg_attr(not(test), allow(dead_code))]
-    pub(crate) bytes: Vec<u8>,
-    pub(crate) value: serde_json::Value,
 }
 
 #[derive(Debug)]

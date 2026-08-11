@@ -9,20 +9,22 @@ pub(crate) enum ResourceKind {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct ResourceReference {
+pub(crate) struct ResourceDeclaration {
     pub(crate) kind: ResourceKind,
     pub(crate) uri: String,
-    pub(crate) location: String,
+    pub(crate) uri_location: String,
+    pub(crate) checksum: Option<String>,
+    pub(crate) checksum_location: String,
 }
 
 pub(crate) struct ResourceDiscovery {
-    pub(crate) references: Vec<ResourceReference>,
+    pub(crate) declarations: Vec<ResourceDeclaration>,
     pub(crate) diagnostics: Vec<PackageDiagnostic>,
 }
 
 pub(crate) fn discover_resources(ifcx: &serde_json::Value) -> ResourceDiscovery {
     let mut discovery = ResourceDiscovery {
-        references: Vec::new(),
+        declarations: Vec::new(),
         diagnostics: Vec::new(),
     };
     let Some(data) = ifcx.get("data").and_then(serde_json::Value::as_array) else {
@@ -36,17 +38,25 @@ pub(crate) fn discover_resources(ifcx: &serde_json::Value) -> ResourceDiscovery 
         let Some((kind, resource_name)) = recognized_resource(node) else {
             continue;
         };
-        let location = format!("/data/{index}/attributes/{resource_name}/uri");
+        let descriptor_pointer = format!("/attributes/{resource_name}");
+        let uri_location = format!("/data/{index}{descriptor_pointer}/uri");
+        let checksum_location = format!("/data/{index}{descriptor_pointer}/checksum");
         match node.pointer(&format!("/attributes/{resource_name}/uri")) {
             Some(serde_json::Value::String(uri)) => {
-                discovery.references.push(ResourceReference {
+                let checksum = node
+                    .pointer(&format!("{descriptor_pointer}/checksum"))
+                    .and_then(serde_json::Value::as_str)
+                    .map(str::to_owned);
+                discovery.declarations.push(ResourceDeclaration {
                     kind,
                     uri: uri.clone(),
-                    location,
+                    uri_location,
+                    checksum,
+                    checksum_location,
                 });
             }
             _ => discovery.diagnostics.push(invalid_entrypoint(
-                &location,
+                &uri_location,
                 "recognized IFCCAD resource URI must be a string",
             )),
         }
@@ -102,17 +112,21 @@ mod tests {
 
         assert!(discovery.diagnostics.is_empty());
         assert_eq!(
-            discovery.references,
+            discovery.declarations,
             vec![
-                ResourceReference {
+                ResourceDeclaration {
                     kind: ResourceKind::Ifcdr,
                     uri: "drawing.ifcdr.json".to_owned(),
-                    location: "/data/0/attributes/geometry/uri".to_owned(),
+                    uri_location: "/data/0/attributes/geometry/uri".to_owned(),
+                    checksum: None,
+                    checksum_location: "/data/0/attributes/geometry/checksum".to_owned(),
                 },
-                ResourceReference {
+                ResourceDeclaration {
                     kind: ResourceKind::Ifcpr,
                     uri: "preservation.ifcpr.json".to_owned(),
-                    location: "/data/1/attributes/preservation/uri".to_owned(),
+                    uri_location: "/data/1/attributes/preservation/uri".to_owned(),
+                    checksum: None,
+                    checksum_location: "/data/1/attributes/preservation/checksum".to_owned(),
                 },
             ]
         );
@@ -129,7 +143,7 @@ mod tests {
 
         let discovery = discover_resources(&ifcx);
 
-        assert!(discovery.references.is_empty());
+        assert!(discovery.declarations.is_empty());
         assert!(discovery.diagnostics.is_empty());
     }
 
@@ -146,7 +160,7 @@ mod tests {
 
         let discovery = discover_resources(&ifcx);
 
-        assert!(discovery.references.is_empty());
+        assert!(discovery.declarations.is_empty());
         assert_eq!(discovery.diagnostics.len(), 1);
         let diagnostic = &discovery.diagnostics[0];
         assert_eq!(diagnostic.code, IFCCAD_PACKAGE_ENTRYPOINT_INVALID);
@@ -170,7 +184,7 @@ mod tests {
 
         let discovery = discover_resources(&ifcx);
 
-        assert!(discovery.references.is_empty());
+        assert!(discovery.declarations.is_empty());
         assert_eq!(discovery.diagnostics.len(), 1);
         let diagnostic = &discovery.diagnostics[0];
         assert_eq!(diagnostic.code, IFCCAD_PACKAGE_ENTRYPOINT_INVALID);
@@ -185,7 +199,7 @@ mod tests {
     fn diagnoses_missing_data_array() {
         let discovery = discover_resources(&serde_json::json!({}));
 
-        assert!(discovery.references.is_empty());
+        assert!(discovery.declarations.is_empty());
         assert_eq!(discovery.diagnostics.len(), 1);
         let diagnostic = &discovery.diagnostics[0];
         assert_eq!(diagnostic.code, IFCCAD_PACKAGE_ENTRYPOINT_INVALID);
