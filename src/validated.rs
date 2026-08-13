@@ -1,3 +1,6 @@
+// This generic proof state currently has only crate-internal consumers.
+#![allow(dead_code)]
+
 pub(crate) trait ValidationTarget: Sized {
     type Context;
     type Evidence;
@@ -30,6 +33,7 @@ impl<E, D> EvidenceOutcome<E, D> {
     }
 }
 
+#[derive(Debug)]
 pub(crate) struct Validated<T: ValidationTarget> {
     loaded: T,
     evidence: T::Evidence,

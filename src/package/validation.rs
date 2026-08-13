@@ -7,6 +7,7 @@ use super::{
     PackageDiagnostic, PackageDiagnosticContextValue, PackageDiagnosticSeverity, PackageOpenError,
     PackageValidationReport,
 };
+use crate::ifcdr::{validate_ifcdr, LoadedIfcdrResource};
 use crate::package::codes::IFCCAD_PACKAGE_CHECKSUM_MISMATCH;
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
@@ -22,6 +23,7 @@ pub(crate) fn load_directory_package(
     let Some(entrypoint) = loader.load_entrypoint()? else {
         return Ok(PackageLoadOutcome {
             package: None,
+            validated_ifcdr_resources: BTreeMap::new(),
             report: loader.into_report(),
         });
     };
@@ -73,8 +75,31 @@ pub(crate) fn load_directory_package(
     package.node_indices_by_path = graph.node_indices_by_path;
     diagnostics.extend(graph.diagnostics);
 
+    let mut validated_ifcdr_resources = BTreeMap::new();
+    let mut attempted_ifcdr_uris = BTreeSet::new();
+    for declaration in &package.declarations {
+        if declaration.kind != ResourceKind::Ifcdr
+            || !attempted_ifcdr_uris.insert(declaration.uri.as_str())
+        {
+            continue;
+        }
+        let Some(source) = package.resources.get(&declaration.uri) else {
+            continue;
+        };
+        let outcome = validate_ifcdr(LoadedIfcdrResource::new(
+            declaration.uri.clone(),
+            source.clone(),
+        ));
+        let (validated, resource_diagnostics) = outcome.into_parts();
+        diagnostics.extend(resource_diagnostics);
+        if let Some(validated) = validated {
+            validated_ifcdr_resources.insert(declaration.uri.clone(), validated);
+        }
+    }
+
     Ok(PackageLoadOutcome {
         package: Some(package),
+        validated_ifcdr_resources,
         report: PackageValidationReport::from_diagnostics(diagnostics),
     })
 }
@@ -89,7 +114,7 @@ fn verify_resource_checksums(package: &LoadedIfccadPackage) -> Vec<PackageDiagno
                 return None;
             }
             let resource = package.resources.get(&declaration.uri)?;
-            let actual = sha256_checksum(&resource.bytes);
+            let actual = sha256_checksum(resource.bytes());
             if actual == expected {
                 return None;
             }
@@ -229,6 +254,50 @@ mod tests {
         assert!(Arc::ptr_eq(&source, &second));
         assert_eq!(source.bytes(), drawing);
         assert_eq!(source.value()["header"], serde_json::json!({}));
+    }
+
+    #[test]
+    fn ifcdr_valid_fixture_produces_a_shared_validated_resource() {
+        let root = bundled_conformance_root()
+            .join("packages")
+            .join("valid")
+            .join("minimal-no-preservation");
+        let outcome = load_directory_package(root).expect("load valid fixture");
+        let package = outcome.package.as_ref().expect("loaded package");
+        let validated = &outcome.validated_ifcdr_resources["drawing.ifcdr.json"];
+
+        assert!(Arc::ptr_eq(
+            validated.loaded().source(),
+            &package.resources["drawing.ifcdr.json"]
+        ));
+        assert_eq!(
+            validated.loaded().source().bytes(),
+            package.resources["drawing.ifcdr.json"].bytes()
+        );
+    }
+
+    #[test]
+    fn ifcdr_invalid_resource_remains_loaded_but_has_no_validation_proof() {
+        let root = TestDirectory::new("invalid-ifcdr-proof");
+        let bytes = br#"{"header":{"format":"openaec.ifcdr","version":"0.6.0","resourceId":"x","unit":"m","nextEntityId":1}}"#;
+        let checksum = format!("sha256:{:x}", Sha256::digest(bytes));
+        write_geometry_entrypoint(root.path(), "drawing.ifcdr.json", &checksum);
+        fs::write(root.path().join("drawing.ifcdr.json"), bytes).expect("write IFCDR");
+
+        let outcome = load_directory_package(root.path()).expect("load invalid IFCDR");
+        assert!(outcome
+            .package
+            .as_ref()
+            .unwrap()
+            .resources
+            .contains_key("drawing.ifcdr.json"));
+        assert!(!outcome
+            .validated_ifcdr_resources
+            .contains_key("drawing.ifcdr.json"));
+        assert!(outcome.report.iter().any(|item| {
+            item.code == "IFCCAD_IFCDR_VERSION_UNSUPPORTED"
+                && item.resource_uri.as_deref() == Some("drawing.ifcdr.json")
+        }));
     }
 
     #[test]
@@ -403,7 +472,16 @@ mod tests {
             serde_json::to_vec(&entrypoint).expect("serialize entrypoint"),
         )
         .expect("write entrypoint");
-        fs::write(root.path().join("a-loaded.ifcdr.json"), b"{}").expect("write loaded resource");
+        let valid_ifcdr = fs::read(
+            bundled_conformance_root()
+                .join("packages")
+                .join("valid")
+                .join("minimal-no-preservation")
+                .join("drawing.ifcdr.json"),
+        )
+        .expect("read valid IFCDR fixture");
+        fs::write(root.path().join("a-loaded.ifcdr.json"), valid_ifcdr)
+            .expect("write loaded resource");
 
         let outcome = load_directory_package(root.path()).expect("load package");
         let sequence: Vec<_> = outcome
@@ -453,10 +531,17 @@ mod tests {
     #[test]
     fn validates_a_directory_from_ifcx_discovered_resources() {
         let root = TestDirectory::new("discovered-resources");
-        let resource = b"{}";
-        let checksum = format!("sha256:{:x}", Sha256::digest(resource));
+        let resource = fs::read(
+            bundled_conformance_root()
+                .join("packages")
+                .join("valid")
+                .join("minimal-no-preservation")
+                .join("drawing.ifcdr.json"),
+        )
+        .expect("read valid IFCDR fixture");
+        let checksum = format!("sha256:{:x}", Sha256::digest(&resource));
         write_geometry_entrypoint(root.path(), "custom-name.ifcdr.json", &checksum);
-        fs::write(root.path().join("custom-name.ifcdr.json"), resource)
+        fs::write(root.path().join("custom-name.ifcdr.json"), &resource)
             .expect("write discovered resource");
 
         let report = validate_directory_package(root.path()).expect("inspect directory package");

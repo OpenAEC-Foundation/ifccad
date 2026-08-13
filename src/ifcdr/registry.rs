@@ -3,8 +3,7 @@ use serde_json::Value;
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::OnceLock;
 
-const REGISTRY_META_SCHEMA: &str =
-    include_str!("../../schemas/ifcdr/registry-meta-schema-v1.json");
+const REGISTRY_META_SCHEMA: &str = include_str!("../../schemas/ifcdr/registry-meta-schema-v1.json");
 const CANONICAL_REGISTRY: &str = include_str!("../../schemas/ifcdr/registry-0.5.0.json");
 
 #[derive(Debug, Deserialize)]
@@ -313,10 +312,7 @@ fn validate_registry_cross_references(registry: &IfcdrRegistry) -> Vec<String> {
         &mut errors,
     );
     check_unique(
-        registry
-            .tables
-            .iter()
-            .map(|table| table.schema_id.as_str()),
+        registry.tables.iter().map(|table| table.schema_id.as_str()),
         "table schema ID",
         &mut errors,
     );
@@ -447,20 +443,26 @@ fn validate_reference(
     let valid = match reference.category {
         ReferenceCategory::Entity => reference.target == "entity",
         ReferenceCategory::Ifcx => reference.target == "ifcx",
-        ReferenceCategory::TableField => reference.target.split_once('.').is_some_and(
-            |(payload, field)| {
-                registry.table_by_payload_path(payload).is_some_and(|table| {
-                    table.row_fields.iter().any(|item| item.name == field)
+        ReferenceCategory::TableField => {
+            reference
+                .target
+                .split_once('.')
+                .is_some_and(|(payload, field)| {
+                    registry
+                        .table_by_payload_path(payload)
+                        .is_some_and(|table| table.row_fields.iter().any(|item| item.name == field))
                 })
-            },
-        ),
-        ReferenceCategory::StreamColumn => reference.target.split_once('.').is_some_and(
-            |(payload, column)| {
-                registry.stream_by_payload_key(payload).is_some_and(|stream| {
-                    stream.columns.iter().any(|item| item.name == column)
+        }
+        ReferenceCategory::StreamColumn => {
+            reference
+                .target
+                .split_once('.')
+                .is_some_and(|(payload, column)| {
+                    registry
+                        .stream_by_payload_key(payload)
+                        .is_some_and(|stream| stream.columns.iter().any(|item| item.name == column))
                 })
-            },
-        ),
+        }
     };
     if !valid {
         errors.push(format!(
@@ -470,11 +472,7 @@ fn validate_reference(
     }
 }
 
-fn check_unique<'a>(
-    values: impl Iterator<Item = &'a str>,
-    label: &str,
-    errors: &mut Vec<String>,
-) {
+fn check_unique<'a>(values: impl Iterator<Item = &'a str>, label: &str, errors: &mut Vec<String>) {
     let mut seen = BTreeSet::new();
     for value in values {
         if !seen.insert(value) {
@@ -507,9 +505,7 @@ mod tests {
         assert_eq!(line.role(), StreamRole::Object);
         assert!(std::ptr::eq(
             line,
-            first
-                .stream_by_schema_id("ifccad.ifcdr.line.v2")
-                .unwrap()
+            first.stream_by_schema_id("ifccad.ifcdr.line.v2").unwrap()
         ));
         assert!(std::ptr::eq(
             line,
