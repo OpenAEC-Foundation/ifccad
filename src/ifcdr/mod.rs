@@ -8,5 +8,6 @@ mod resource;
 mod streams;
 mod validation;
 
-pub(crate) use resource::{LoadedIfcdrResource, ValidatedIfcdrResource};
+pub(crate) use entity::ScopeId;
+pub(crate) use resource::{AppearanceId, LayerId, LoadedIfcdrResource, ValidatedIfcdrResource};
 pub(crate) use validation::validate_ifcdr;

@@ -147,6 +147,20 @@ impl Validated<LoadedIfcdrResource> {
             })
     }
 
+    pub(crate) fn scope(&self, id: crate::ifcdr::entity::ScopeId) -> Option<ScopeRef<'_>> {
+        self.scopes().find(|scope| scope.id() == id)
+    }
+
+    pub(crate) fn layer_binding(&self, id: LayerId) -> Option<LayerBindingRef<'_>> {
+        self.bindings().layers().find(|binding| binding.id() == id)
+    }
+
+    pub(crate) fn appearance_binding(&self, id: AppearanceId) -> Option<AppearanceBindingRef<'_>> {
+        self.bindings()
+            .appearances()
+            .find(|binding| binding.id() == id)
+    }
+
     pub(crate) fn bindings(&self) -> IfcdrBindings<'_> {
         IfcdrBindings { resource: self }
     }
@@ -355,6 +369,27 @@ mod tests {
         assert_eq!(scopes[0].name(), "ModelSpace");
         assert_eq!(resource.bindings().layers().count(), 2);
         assert_eq!(resource.bindings().appearances().count(), 4);
+        assert_eq!(
+            resource
+                .scope(crate::ifcdr::entity::ScopeId::new(0))
+                .expect("scope")
+                .name(),
+            "ModelSpace"
+        );
+        assert_eq!(
+            resource
+                .layer_binding(LayerId::new(1))
+                .expect("layer binding")
+                .ifcx_layer(),
+            Some("layer-a-wall")
+        );
+        assert_eq!(
+            resource
+                .appearance_binding(AppearanceId::new(2))
+                .expect("appearance binding")
+                .ifcx_appearance(),
+            Some("appearance-default-solid")
+        );
         assert_eq!(
             resource
                 .unmodeled_streams()

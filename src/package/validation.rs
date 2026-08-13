@@ -96,8 +96,11 @@ pub(crate) fn load_directory_package(
         }
     }
 
-    let binding_analysis =
-        super::bindings::analyze_resource_bindings(&package, &validated_ifcdr_resources);
+    let binding_analysis = super::bindings::analyze_resource_bindings(
+        &package,
+        &graph.node_indices_by_path,
+        &validated_ifcdr_resources,
+    );
     diagnostics.extend(binding_analysis.diagnostics);
 
     let analysis = Arc::new(PackageAnalysis {
@@ -180,6 +183,7 @@ pub(crate) fn validate_directory_package(
 mod tests {
     use super::*;
     use crate::conformance::bundled_conformance_root;
+    use crate::ifcdr::{AppearanceId, LayerId, ScopeId};
     use crate::package::codes::{
         IFCCAD_PACKAGE_CHECKSUM_MISMATCH, IFCCAD_PACKAGE_ENTRYPOINT_INVALID,
         IFCCAD_PACKAGE_JSON_INVALID, IFCCAD_PACKAGE_NODE_PATH_DUPLICATE,
@@ -225,7 +229,7 @@ mod tests {
     }
 
     fn write_geometry_entrypoint(root: &Path, uri: &str, checksum: &str) {
-        let entrypoint = serde_json::json!({
+        let mut entrypoint = serde_json::json!({
             "data": [{
                 "path": "geometry",
                 "type": "openaec:DrawingGeometryRepresentation",
@@ -240,6 +244,10 @@ mod tests {
                 }
             }]
         });
+        entrypoint["data"]
+            .as_array_mut()
+            .unwrap()
+            .extend(ifcx_identity_nodes());
         fs::write(
             root.join(DIRECTORY_PACKAGE_ENTRYPOINT),
             serde_json::to_vec(&entrypoint).expect("serialize entrypoint"),
@@ -270,6 +278,59 @@ mod tests {
             serde_json::to_vec(entrypoint).expect("serialize entrypoint"),
         )
         .expect("write entrypoint");
+    }
+
+    fn read_ifcdr(root: &Path) -> serde_json::Value {
+        serde_json::from_slice(
+            &fs::read(root.join("drawing.ifcdr.json")).expect("read copied IFCDR"),
+        )
+        .expect("parse copied IFCDR")
+    }
+
+    fn write_ifcdr_and_update_checksum(
+        root: &Path,
+        entrypoint: &mut serde_json::Value,
+        ifcdr: &serde_json::Value,
+    ) {
+        let bytes = serde_json::to_vec(ifcdr).expect("serialize IFCDR");
+        fs::write(root.join("drawing.ifcdr.json"), &bytes).expect("write IFCDR");
+        entrypoint["data"][3]["attributes"]["geometry"]["checksum"] =
+            serde_json::json!(format!("sha256:{:x}", Sha256::digest(&bytes)));
+    }
+
+    fn minimal_ifcdr_bytes() -> Vec<u8> {
+        fs::read(
+            bundled_conformance_root()
+                .join("packages")
+                .join("valid")
+                .join("minimal-no-preservation")
+                .join("drawing.ifcdr.json"),
+        )
+        .expect("read valid IFCDR fixture")
+    }
+
+    fn ifcx_identity_nodes() -> Vec<serde_json::Value> {
+        let source = bundled_conformance_root()
+            .join("packages")
+            .join("valid")
+            .join("minimal-no-preservation")
+            .join(DIRECTORY_PACKAGE_ENTRYPOINT);
+        let entrypoint = serde_json::from_slice::<serde_json::Value>(
+            &fs::read(source).expect("read valid IFCX fixture"),
+        )
+        .expect("parse valid IFCX fixture");
+        entrypoint["data"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|node| {
+                matches!(
+                    node.get("type").and_then(serde_json::Value::as_str),
+                    Some("openaec:Layer" | "openaec:Appearance")
+                )
+            })
+            .cloned()
+            .collect()
     }
 
     #[test]
@@ -471,6 +532,105 @@ mod tests {
                 && diagnostic.location.as_deref()
                     == Some("/data/8/attributes/preservation/linkedDrawingResourceUris/0")
         }));
+    }
+
+    #[test]
+    fn layout_scope_must_exist_in_its_geometry_resource() {
+        let root = TestDirectory::new("missing-layout-scope");
+        let mut entrypoint = copy_minimal_package(root.path());
+        entrypoint["data"][2]["attributes"]["scopeId"] = serde_json::json!(99);
+        write_entrypoint(root.path(), &entrypoint);
+
+        let outcome = load_directory_package(root.path()).expect("load package");
+
+        assert!(outcome.validated_package.is_none());
+        assert!(outcome.report.iter().any(|diagnostic| {
+            diagnostic.code == "IFCCAD_PACKAGE_BINDING_INVALID"
+                && diagnostic.resource_uri.as_deref() == Some(DIRECTORY_PACKAGE_ENTRYPOINT)
+                && diagnostic.location.as_deref() == Some("/data/2/attributes/scopeId")
+        }));
+    }
+
+    #[test]
+    fn invalid_ifcdr_does_not_cascade_to_layout_scope_binding() {
+        let root = TestDirectory::new("invalid-ifcdr-layout-scope");
+        let mut entrypoint = copy_minimal_package(root.path());
+        let mut ifcdr = read_ifcdr(root.path());
+        ifcdr["header"]["version"] = serde_json::json!("99.0.0");
+        entrypoint["data"][2]["attributes"]["scopeId"] = serde_json::json!(99);
+        write_ifcdr_and_update_checksum(root.path(), &mut entrypoint, &ifcdr);
+        write_entrypoint(root.path(), &entrypoint);
+
+        let outcome = load_directory_package(root.path()).expect("load package");
+
+        assert!(outcome.validated_package.is_none());
+        assert!(!outcome.report.iter().any(|diagnostic| {
+            diagnostic.code == "IFCCAD_PACKAGE_BINDING_INVALID"
+                && diagnostic.location.as_deref() == Some("/data/2/attributes/scopeId")
+        }));
+    }
+
+    #[test]
+    fn ifcdr_layer_binding_requires_an_ifcx_layer_node() {
+        let root = TestDirectory::new("missing-ifcx-layer");
+        let mut entrypoint = copy_minimal_package(root.path());
+        let mut ifcdr = read_ifcdr(root.path());
+        ifcdr["layerBindings"][0]["ifcxLayer"] = serde_json::json!("missing-layer");
+        write_ifcdr_and_update_checksum(root.path(), &mut entrypoint, &ifcdr);
+        write_entrypoint(root.path(), &entrypoint);
+
+        let outcome = load_directory_package(root.path()).expect("load package");
+
+        assert!(outcome.validated_package.is_none());
+        assert!(outcome.report.iter().any(|diagnostic| {
+            diagnostic.code == "IFCCAD_PACKAGE_BINDING_INVALID"
+                && diagnostic.resource_uri.as_deref() == Some("drawing.ifcdr.json")
+                && diagnostic.location.as_deref() == Some("/layerBindings/0/ifcxLayer")
+        }));
+    }
+
+    #[test]
+    fn ifcdr_appearance_binding_requires_an_ifcx_appearance_node() {
+        let root = TestDirectory::new("wrong-ifcx-appearance-type");
+        let mut entrypoint = copy_minimal_package(root.path());
+        let mut ifcdr = read_ifcdr(root.path());
+        ifcdr["appearanceBindings"][2]["ifcxAppearance"] = serde_json::json!("layer-0");
+        write_ifcdr_and_update_checksum(root.path(), &mut entrypoint, &ifcdr);
+        write_entrypoint(root.path(), &entrypoint);
+
+        let outcome = load_directory_package(root.path()).expect("load package");
+
+        assert!(outcome.validated_package.is_none());
+        assert!(outcome.report.iter().any(|diagnostic| {
+            diagnostic.code == "IFCCAD_PACKAGE_BINDING_INVALID"
+                && diagnostic.resource_uri.as_deref() == Some("drawing.ifcdr.json")
+                && diagnostic.location.as_deref() == Some("/appearanceBindings/2/ifcxAppearance")
+        }));
+    }
+
+    #[test]
+    fn valid_package_retains_proven_layout_layer_and_appearance_bindings() {
+        let root = TestDirectory::new("proven-cross-resource-bindings");
+        let entrypoint = copy_minimal_package(root.path());
+        write_entrypoint(root.path(), &entrypoint);
+
+        let outcome = load_directory_package(root.path()).expect("load package");
+        let bindings = &outcome.analysis.as_ref().expect("analysis").bindings;
+        let layout = &bindings.layout_by_path["drawing-main-layout-model"];
+
+        assert!(outcome.validated_package.is_some());
+        assert_eq!(layout.representation_path, "representation-modelspace-main");
+        assert_eq!(layout.ifcdr_uri, "drawing.ifcdr.json");
+        assert_eq!(layout.scope_id, ScopeId::new(0));
+        assert_eq!(
+            bindings.ifcx_layer_by_ifcdr_id[&("drawing.ifcdr.json".to_owned(), LayerId::new(1))],
+            "layer-a-wall"
+        );
+        assert_eq!(
+            bindings.ifcx_appearance_by_ifcdr_id
+                [&("drawing.ifcdr.json".to_owned(), AppearanceId::new(2))],
+            "appearance-default-solid"
+        );
     }
 
     #[test]
@@ -715,7 +875,7 @@ mod tests {
     fn combined_diagnostics_follow_the_report_ordering_contract() {
         let root = TestDirectory::new("orchestration-order");
         let checksum = valid_checksum();
-        let entrypoint = serde_json::json!({
+        let mut entrypoint = serde_json::json!({
             "data": [
                 {
                     "path": "drawing-set",
@@ -752,19 +912,16 @@ mod tests {
                 {"path": "duplicate", "type": "example:Second"}
             ]
         });
+        entrypoint["data"]
+            .as_array_mut()
+            .unwrap()
+            .extend(ifcx_identity_nodes());
         fs::write(
             root.path().join(DIRECTORY_PACKAGE_ENTRYPOINT),
             serde_json::to_vec(&entrypoint).expect("serialize entrypoint"),
         )
         .expect("write entrypoint");
-        let valid_ifcdr = fs::read(
-            bundled_conformance_root()
-                .join("packages")
-                .join("valid")
-                .join("minimal-no-preservation")
-                .join("drawing.ifcdr.json"),
-        )
-        .expect("read valid IFCDR fixture");
+        let valid_ifcdr = minimal_ifcdr_bytes();
         fs::write(root.path().join("a-loaded.ifcdr.json"), valid_ifcdr)
             .expect("write loaded resource");
 
@@ -816,14 +973,7 @@ mod tests {
     #[test]
     fn validates_a_directory_from_ifcx_discovered_resources() {
         let root = TestDirectory::new("discovered-resources");
-        let resource = fs::read(
-            bundled_conformance_root()
-                .join("packages")
-                .join("valid")
-                .join("minimal-no-preservation")
-                .join("drawing.ifcdr.json"),
-        )
-        .expect("read valid IFCDR fixture");
+        let resource = minimal_ifcdr_bytes();
         let checksum = format!("sha256:{:x}", Sha256::digest(&resource));
         write_geometry_entrypoint(root.path(), "custom-name.ifcdr.json", &checksum);
         fs::write(root.path().join("custom-name.ifcdr.json"), &resource)
