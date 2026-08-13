@@ -24,6 +24,7 @@ pub(crate) fn load_directory_package(
         return Ok(PackageLoadOutcome {
             package: None,
             analysis: None,
+            validated_package: None,
             report: loader.into_report(),
         });
     };
@@ -100,10 +101,15 @@ pub(crate) fn load_directory_package(
         validated_ifcdr_resources,
     });
 
+    let report = PackageValidationReport::from_diagnostics(diagnostics);
+    let validated_package =
+        super::analysis::build_strict_proof(package.clone(), analysis.clone(), report.is_valid());
+
     Ok(PackageLoadOutcome {
         package: Some(package),
         analysis: Some(analysis),
-        report: PackageValidationReport::from_diagnostics(diagnostics),
+        validated_package,
+        report,
     })
 }
 
@@ -301,6 +307,51 @@ mod tests {
             ifcdr.loaded().source(),
             &package.resources["drawing.ifcdr.json"]
         ));
+    }
+
+    #[test]
+    fn package_analysis_valid_package_produces_an_independent_strict_proof() {
+        let proof = {
+            let root = bundled_conformance_root()
+                .join("packages")
+                .join("valid")
+                .join("minimal-no-preservation");
+            let outcome = load_directory_package(root).expect("load valid fixture");
+            let package = outcome.package.as_ref().expect("loaded package");
+            let analysis = outcome.analysis.as_ref().expect("package analysis");
+            let proof = outcome
+                .validated_package
+                .as_ref()
+                .expect("strict package proof");
+
+            assert!(Arc::ptr_eq(proof.loaded().package(), package));
+            assert!(Arc::ptr_eq(proof.evidence(), analysis));
+            outcome
+                .validated_package
+                .expect("owned strict package proof")
+        };
+
+        assert_eq!(
+            proof.loaded().package().entrypoint.value()["data"]
+                .as_array()
+                .unwrap()
+                .len(),
+            8
+        );
+    }
+
+    #[test]
+    fn package_analysis_invalid_package_retains_partial_state_without_proof() {
+        let root = bundled_conformance_root()
+            .join("packages")
+            .join("invalid")
+            .join("package-missing-resource");
+        let outcome = load_directory_package(root).expect("load invalid fixture");
+
+        assert!(outcome.package.is_some());
+        assert!(outcome.analysis.is_some());
+        assert!(outcome.validated_package.is_none());
+        assert!(!outcome.report.is_valid());
     }
 
     #[test]

@@ -3,6 +3,7 @@
 //! The directory loader remains an internal implementation detail. This module
 //! publicly exposes only the stable diagnostic vocabulary.
 
+mod analysis;
 pub(crate) mod codes;
 mod diagnostic;
 mod discovery;

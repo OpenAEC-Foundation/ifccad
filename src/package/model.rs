@@ -66,5 +66,7 @@ pub(crate) struct PackageLoadOutcome {
     pub(crate) package: Option<Arc<LoadedIfccadPackage>>,
     #[allow(dead_code)]
     pub(crate) analysis: Option<Arc<PackageAnalysis>>,
+    #[allow(dead_code)]
+    pub(crate) validated_package: Option<super::analysis::ValidatedIfccadPackage>,
     pub(crate) report: PackageValidationReport,
 }
