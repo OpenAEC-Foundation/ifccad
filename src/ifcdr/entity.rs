@@ -271,7 +271,7 @@ pub(super) fn validate_entities(
                     .and_then(Value::as_array)
                     .and_then(|items| items.get(row))
                     .and_then(Value::as_u64)
-                    .is_some_and(|owner_kind| owner_kind != 0);
+                    .is_some_and(|owner_kind| owner_kind == 1);
             if !structural_text {
                 directly_ordered.entry(scope).or_default().insert(id);
             }
@@ -299,12 +299,22 @@ pub(super) fn validate_entities(
         .and_then(Value::as_object)
         .and_then(|payload| payload.get("entityId"))
         .and_then(Value::as_array);
+    if !scope_ids.is_empty() && (order_rows.is_none() || order_entries.is_none()) {
+        diagnostics.push(diagnostic(
+            uri,
+            IFCCAD_IFCDR_ENTITY_ORDER_INVALID,
+            "/streams/entityOrderStream",
+            "every IFCDR scope requires canonical entity-order streams",
+            BTreeMap::new(),
+        ));
+    }
     if let (Some(rows), Some(entries)) = (order_rows, order_entries) {
         let scopes = rows.get("scopeId").and_then(Value::as_array);
         let offsets = rows.get("entryOffset").and_then(Value::as_array);
         let counts = rows.get("entryCount").and_then(Value::as_array);
         if let (Some(scopes), Some(offsets), Some(counts)) = (scopes, offsets, counts) {
             let mut seen_scopes = BTreeSet::new();
+            let mut expected_offset = 0usize;
             for row in 0..scopes.len().min(offsets.len()).min(counts.len()) {
                 let Some(scope) = scopes[row]
                     .as_u64()
@@ -330,6 +340,15 @@ pub(super) fn validate_entities(
                 let Some(count) = counts[row].as_u64().and_then(|v| usize::try_from(v).ok()) else {
                     continue;
                 };
+                if start != expected_offset {
+                    diagnostics.push(diagnostic(
+                        uri,
+                        IFCCAD_IFCDR_ENTITY_ORDER_INVALID,
+                        &format!("/streams/entityOrderStream/entryOffset/{row}"),
+                        "entity-order ranges must be contiguous",
+                        BTreeMap::new(),
+                    ));
+                }
                 let Some(end) = start.checked_add(count) else {
                     continue;
                 };
@@ -343,6 +362,7 @@ pub(super) fn validate_entities(
                     ));
                     continue;
                 }
+                expected_offset = end;
                 let mut ordered = Vec::with_capacity(count);
                 let mut seen_entities = BTreeSet::new();
                 for (entry_index, entry_value) in entries.iter().enumerate().take(end).skip(start) {
@@ -415,6 +435,15 @@ pub(super) fn validate_entities(
                         BTreeMap::new(),
                     ));
                 }
+            }
+            if expected_offset != entries.len() {
+                diagnostics.push(diagnostic(
+                    uri,
+                    IFCCAD_IFCDR_ENTITY_ORDER_INVALID,
+                    "/streams/entityOrderEntryStream/count",
+                    "entity-order ranges must cover the complete entry stream",
+                    BTreeMap::new(),
+                ));
             }
         }
     }
@@ -532,6 +561,43 @@ mod tests {
         assert!(missing.diagnostics().iter().any(|item| {
             item.code == "IFCCAD_IFCDR_ENTITY_ORDER_INVALID"
                 && item.location.as_deref() == Some("/streams/entityOrderEntryStream/entityId/3")
+        }));
+    }
+
+    #[test]
+    fn rejects_missing_or_noncontiguous_scope_order() {
+        let source = fixture_source();
+        let mut noncontiguous = source.value().clone();
+        noncontiguous["streams"]["entityOrderStream"]["entryOffset"][0] = serde_json::json!(1);
+        noncontiguous["streams"]["entityOrderStream"]["entryCount"][0] = serde_json::json!(3);
+        let noncontiguous = validate_value("drawing.ifcdr.json", noncontiguous);
+        assert!(noncontiguous.diagnostics().iter().any(|item| {
+            item.code == "IFCCAD_IFCDR_ENTITY_ORDER_INVALID"
+                && item.location.as_deref() == Some("/streams/entityOrderStream/entryOffset/0")
+        }));
+
+        let mut absent = source.value().clone();
+        absent["streamDirectory"]["streams"]
+            .as_array_mut()
+            .unwrap()
+            .retain(|entry| {
+                !matches!(
+                    entry["name"].as_str(),
+                    Some("entityOrder" | "entityOrderEntry")
+                )
+            });
+        absent["streams"]
+            .as_object_mut()
+            .unwrap()
+            .remove("entityOrderStream");
+        absent["streams"]
+            .as_object_mut()
+            .unwrap()
+            .remove("entityOrderEntryStream");
+        let absent = validate_value("drawing.ifcdr.json", absent);
+        assert!(absent.diagnostics().iter().any(|item| {
+            item.code == "IFCCAD_IFCDR_ENTITY_ORDER_INVALID"
+                && item.location.as_deref() == Some("/streams/entityOrderStream")
         }));
     }
 }

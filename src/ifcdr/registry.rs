@@ -293,6 +293,9 @@ pub(crate) fn canonical_registry() -> &'static IfcdrRegistry {
 
         let mut registry: IfcdrRegistry = serde_json::from_value(registry_value)
             .unwrap_or_else(|error| panic!("deserialize embedded IFCDR registry: {error}"));
+        assert_eq!(registry.schema, "./registry-meta-schema-v1.json");
+        assert_eq!(registry.registry_schema_version, "ifccad.ifcdr.registry.v1");
+        assert_eq!(registry.resource.schema_id, "ifccad.ifcdr.resource.v0.5.0");
         registry.build_indexes();
         let errors = validate_registry_cross_references(&registry);
         assert!(

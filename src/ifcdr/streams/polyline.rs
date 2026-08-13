@@ -1,26 +1,26 @@
-use super::{bool_at, payload, u32_at, u64_at};
+use super::columns::Float64Column;
+use super::store::ValidatedIfcdrStreamRef;
 use crate::ifcdr::entity::{EntityId, ScopeId};
-use crate::ifcdr::resource::{AppearanceId, LayerId, Point2, ValidatedIfcdrResource};
-use serde_json::Value;
+use crate::ifcdr::resource::{AppearanceId, LayerId, Point2};
 
 #[derive(Clone, Copy)]
 pub(crate) struct PolylineStreamView<'a> {
-    resource: &'a ValidatedIfcdrResource,
+    stream: ValidatedIfcdrStreamRef<'a>,
 }
 
 impl<'a> PolylineStreamView<'a> {
-    pub(super) fn new(resource: &'a ValidatedIfcdrResource) -> Self {
-        Self { resource }
+    pub(super) fn new(stream: ValidatedIfcdrStreamRef<'a>) -> Self {
+        Self { stream }
     }
     pub(crate) fn len(&self) -> usize {
-        self.resource.evidence().streams["polyline"].row_count
+        self.stream.len()
     }
     pub(crate) fn is_empty(&self) -> bool {
         self.len() == 0
     }
     pub(crate) fn get(&self, row: usize) -> Option<PolylineRef<'a>> {
         (row < self.len()).then_some(PolylineRef {
-            resource: self.resource,
+            stream: self.stream,
             row,
         })
     }
@@ -32,41 +32,74 @@ impl<'a> PolylineStreamView<'a> {
 
 #[derive(Clone, Copy)]
 pub(crate) struct PolylineRef<'a> {
-    resource: &'a ValidatedIfcdrResource,
+    stream: ValidatedIfcdrStreamRef<'a>,
     row: usize,
 }
 
 impl<'a> PolylineRef<'a> {
-    fn data(&self) -> &'a serde_json::Map<String, Value> {
-        payload(self.resource, "polylineStream")
-    }
     pub(crate) fn entity_id(&self) -> EntityId {
-        EntityId::new(u64_at(self.data(), "entityId", self.row)).expect("validated entity ID")
+        EntityId::new(
+            self.stream
+                .uint64("entityId")
+                .get(self.row)
+                .expect("validated entity ID"),
+        )
+        .expect("validated entity ID")
     }
     pub(crate) fn scope_id(&self) -> ScopeId {
-        ScopeId::new(u32_at(self.data(), "scopeId", self.row))
+        ScopeId::new(
+            self.stream
+                .uint32("scopeId")
+                .get(self.row)
+                .expect("validated scope ID"),
+        )
     }
     pub(crate) fn closed(&self) -> bool {
-        bool_at(self.data(), "closed", self.row, false)
+        self.stream
+            .boolean("closed")
+            .get(self.row)
+            .expect("validated closed state")
     }
     pub(crate) fn layer_id(&self) -> LayerId {
-        LayerId::new(u32_at(self.data(), "layerId", self.row))
+        LayerId::new(
+            self.stream
+                .uint32("layerId")
+                .get(self.row)
+                .expect("validated layer ID"),
+        )
     }
     pub(crate) fn appearance_id(&self) -> AppearanceId {
-        AppearanceId::new(u32_at(self.data(), "appearanceId", self.row))
+        AppearanceId::new(
+            self.stream
+                .uint32("appearanceId")
+                .get(self.row)
+                .expect("validated appearance ID"),
+        )
     }
     pub(crate) fn visible(&self) -> bool {
-        bool_at(self.data(), "visible", self.row, true)
+        self.stream
+            .boolean("visible")
+            .get(self.row)
+            .expect("validated visibility")
     }
     pub(crate) fn points(&self) -> PointIterator<'a> {
-        let data = self.data();
-        let start =
-            usize::try_from(u64_at(data, "vertexOffset", self.row)).expect("validated offset");
-        let count =
-            usize::try_from(u64_at(data, "vertexCount", self.row)).expect("validated count");
+        let start = usize::try_from(
+            self.stream
+                .uint32("vertexOffset")
+                .get(self.row)
+                .expect("validated offset"),
+        )
+        .expect("validated offset");
+        let count = usize::try_from(
+            self.stream
+                .uint32("vertexCount")
+                .get(self.row)
+                .expect("validated count"),
+        )
+        .expect("validated count");
         PointIterator {
-            x: data["x"].as_array().expect("validated x pool"),
-            y: data["y"].as_array().expect("validated y pool"),
+            x: self.stream.float64("x"),
+            y: self.stream.float64("y"),
             next: start,
             end: start + count,
         }
@@ -74,8 +107,8 @@ impl<'a> PolylineRef<'a> {
 }
 
 pub(crate) struct PointIterator<'a> {
-    x: &'a [Value],
-    y: &'a [Value],
+    x: Float64Column<'a>,
+    y: Float64Column<'a>,
     next: usize,
     end: usize,
 }
@@ -88,8 +121,8 @@ impl Iterator for PointIterator<'_> {
         let index = self.next;
         self.next += 1;
         Some(Point2::new(
-            self.x[index].as_f64().expect("validated x"),
-            self.y[index].as_f64().expect("validated y"),
+            self.x.get(index).expect("validated x"),
+            self.y.get(index).expect("validated y"),
         ))
     }
     fn size_hint(&self) -> (usize, Option<usize>) {

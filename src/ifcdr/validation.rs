@@ -83,6 +83,9 @@ pub(super) fn build_evidence(
             .diagnostics
             .extend(entity_diagnostics.iter().cloned());
     }
+    if let Some((entity_index, _)) = &entities {
+        validator.validate_registered_references(root, entity_index);
+    }
 
     match (header, bounds, validator.diagnostics.is_empty()) {
         (Some(header), Some(bounds), true) => EvidenceOutcome::success(
@@ -103,7 +106,6 @@ struct ResourceValidator<'a> {
     uri: &'a str,
     registry: &'a IfcdrRegistry,
     diagnostics: Vec<PackageDiagnostic>,
-    table_ids: BTreeMap<String, BTreeSet<u64>>,
 }
 
 impl<'a> ResourceValidator<'a> {
@@ -112,7 +114,6 @@ impl<'a> ResourceValidator<'a> {
             uri,
             registry,
             diagnostics: Vec::new(),
-            table_ids: BTreeMap::new(),
         }
     }
 
@@ -237,10 +238,6 @@ impl<'a> ResourceValidator<'a> {
                     ids: ids.clone(),
                 },
             );
-            self.table_ids.insert(
-                table.payload_path().to_owned(),
-                ids.keys().copied().collect(),
-            );
         }
         evidence
     }
@@ -268,6 +265,12 @@ impl<'a> ResourceValidator<'a> {
         let Some(payloads) = root.get("streams").and_then(Value::as_object) else {
             return BTreeMap::new();
         };
+        let directory_names = entries
+            .iter()
+            .filter_map(Value::as_object)
+            .filter_map(|entry| entry.get("name"))
+            .filter_map(Value::as_str)
+            .collect::<BTreeSet<_>>();
         let mut evidence = BTreeMap::new();
         let mut seen_names = BTreeSet::new();
         let mut claimed_payloads = BTreeSet::new();
@@ -337,18 +340,47 @@ impl<'a> ResourceValidator<'a> {
                     "stream parent does not match the registry",
                 );
             }
-            let actual_children = entry
-                .get("children")
-                .and_then(Value::as_array)
-                .map(|items| items.iter().filter_map(Value::as_str).collect::<Vec<_>>())
-                .unwrap_or_default();
-            if actual_children
-                != stream
-                    .children
-                    .iter()
-                    .map(String::as_str)
-                    .collect::<Vec<_>>()
+            if stream
+                .parent
+                .as_deref()
+                .is_some_and(|parent| !directory_names.contains(parent))
             {
+                self.error(
+                    IFCCAD_IFCDR_DIRECTORY_INVALID,
+                    &format!("{entry_pointer}/parent"),
+                    "stream parent is not present in the directory",
+                );
+            }
+            let mut actual_children = Vec::new();
+            let mut seen_children = BTreeSet::new();
+            if let Some(items) = entry.get("children").and_then(Value::as_array) {
+                for (index, item) in items.iter().enumerate() {
+                    let Some(child) = item.as_str() else {
+                        self.error(
+                            IFCCAD_IFCDR_DIRECTORY_INVALID,
+                            &format!("{entry_pointer}/children/{index}"),
+                            "stream child name must be a string",
+                        );
+                        continue;
+                    };
+                    if !seen_children.insert(child) {
+                        self.error(
+                            IFCCAD_IFCDR_DIRECTORY_INVALID,
+                            &format!("{entry_pointer}/children/{index}"),
+                            "stream child names must be unique",
+                        );
+                        continue;
+                    }
+                    actual_children.push(child);
+                }
+            }
+            let expected_children = stream
+                .children
+                .iter()
+                .map(String::as_str)
+                .filter(|child| directory_names.contains(child))
+                .collect::<Vec<_>>();
+            if actual_children != expected_children {
                 self.error(
                     IFCCAD_IFCDR_DIRECTORY_INVALID,
                     &format!("{entry_pointer}/children"),
@@ -379,7 +411,7 @@ impl<'a> ResourceValidator<'a> {
                     "stream payload count differs from directory count",
                 );
             }
-            self.validate_stream_columns(entry, payload, stream, count, key);
+            self.validate_stream_columns(root, entry, &entry_pointer, payload, stream, count);
             let registry_index = self
                 .registry
                 .streams()
@@ -413,22 +445,34 @@ impl<'a> ResourceValidator<'a> {
 
     fn validate_stream_columns(
         &mut self,
+        root: &Map<String, Value>,
         entry: &Map<String, Value>,
+        entry_pointer: &str,
         payload: &Map<String, Value>,
         stream: &super::registry::StreamSchema,
         count: usize,
-        key: &str,
     ) {
-        let listed = entry
-            .get("columns")
-            .and_then(Value::as_array)
-            .map(|items| {
-                items
-                    .iter()
-                    .filter_map(Value::as_str)
-                    .collect::<BTreeSet<_>>()
-            })
-            .unwrap_or_default();
+        let key = stream.payload_key();
+        let mut listed = BTreeSet::new();
+        if let Some(items) = entry.get("columns").and_then(Value::as_array) {
+            for (index, item) in items.iter().enumerate() {
+                let Some(column) = item.as_str() else {
+                    self.error(
+                        IFCCAD_IFCDR_DIRECTORY_INVALID,
+                        &format!("{entry_pointer}/columns/{index}"),
+                        "stream column name must be a string",
+                    );
+                    continue;
+                };
+                if !listed.insert(column) {
+                    self.error(
+                        IFCCAD_IFCDR_DIRECTORY_INVALID,
+                        &format!("{entry_pointer}/columns/{index}"),
+                        "stream column names must be unique",
+                    );
+                }
+            }
+        }
         let actual = payload
             .keys()
             .filter(|name| name.as_str() != "count")
@@ -490,33 +534,29 @@ impl<'a> ResourceValidator<'a> {
                         "stream column value has the wrong physical type",
                     );
                 }
-                if let Some(reference) = &column.reference {
-                    if reference.category == ReferenceCategory::TableField
-                        && !item.is_null()
-                        && reference
-                            .target
-                            .split_once('.')
-                            .is_some_and(|(table, field)| {
-                                field == "id"
-                                    && item.as_u64().is_some_and(|id| {
-                                        !self
-                                            .table_ids
-                                            .get(table)
-                                            .is_some_and(|ids| ids.contains(&id))
-                                    })
-                            })
-                    {
-                        self.error_with_context(
-                            IFCCAD_IFCDR_REFERENCE_MISSING,
-                            &format!("{pointer}/{index}"),
-                            "stream column references a missing table row",
-                            BTreeMap::from([(
-                                "target".to_owned(),
-                                PackageDiagnosticContextValue::String(reference.target.clone()),
-                            )]),
-                        );
-                    }
-                }
+            }
+        }
+        let mut pool_length = None;
+        for column in stream
+            .columns
+            .iter()
+            .filter(|column| column.cardinality == Cardinality::Pool)
+        {
+            let Some(length) = payload
+                .get(&column.name)
+                .and_then(Value::as_array)
+                .map(Vec::len)
+            else {
+                continue;
+            };
+            match pool_length {
+                None => pool_length = Some(length),
+                Some(expected) if expected != length => self.error(
+                    IFCCAD_IFCDR_STRUCTURE_INVALID,
+                    &format!("/streams/{}/{}", escape(key), escape(&column.name)),
+                    "pool columns in one stream must have synchronized lengths",
+                ),
+                Some(_) => {}
             }
         }
         for range in &stream.ranges {
@@ -556,6 +596,123 @@ impl<'a> ResourceValidator<'a> {
                                 escape(&range.count_column)
                             ),
                             "stream range exceeds its target column",
+                        );
+                    }
+                }
+                if let Some(target_path) = &range.target_path {
+                    let target_len = value_at_path(root, target_path).and_then(|target| {
+                        target.as_array().map(Vec::len).or_else(|| {
+                            target
+                                .as_object()
+                                .and_then(|object| object.get("count"))
+                                .and_then(Value::as_u64)
+                                .and_then(|count| usize::try_from(count).ok())
+                        })
+                    });
+                    let location = format!(
+                        "/streams/{}/{}/{row}",
+                        escape(key),
+                        escape(&range.count_column)
+                    );
+                    match target_len {
+                        Some(length) if end > length as u64 => self.error(
+                            IFCCAD_IFCDR_STRUCTURE_INVALID,
+                            &location,
+                            "stream range exceeds its external target payload",
+                        ),
+                        None if range_count > 0 => self.error(
+                            IFCCAD_IFCDR_STRUCTURE_INVALID,
+                            &location,
+                            "nonempty stream range has no external target payload",
+                        ),
+                        _ => {}
+                    }
+                }
+            }
+        }
+    }
+
+    fn validate_registered_references(
+        &mut self,
+        root: &Map<String, Value>,
+        entities: &crate::ifcdr::entity::EntityIndex,
+    ) {
+        for table in self.registry.tables() {
+            let Some(rows) = value_at_path(root, table.payload_path()).and_then(Value::as_array)
+            else {
+                continue;
+            };
+            for (row_index, row) in rows.iter().enumerate() {
+                let Some(row) = row.as_object() else { continue };
+                for field in &table.row_fields {
+                    let (Some(reference), Some(value)) =
+                        (field.reference.as_ref(), row.get(&field.name))
+                    else {
+                        continue;
+                    };
+                    if !value.is_null()
+                        && !reference_target_exists(root, self.registry, entities, reference, value)
+                    {
+                        self.error_with_context(
+                            IFCCAD_IFCDR_REFERENCE_MISSING,
+                            &format!(
+                                "{}/{}/{}",
+                                path_pointer(table.payload_path()),
+                                row_index,
+                                escape(&field.name)
+                            ),
+                            "table field references a missing target",
+                            BTreeMap::from([(
+                                "target".to_owned(),
+                                PackageDiagnosticContextValue::String(reference.target.clone()),
+                            )]),
+                        );
+                    }
+                }
+            }
+        }
+
+        let Some(payloads) = root.get("streams").and_then(Value::as_object) else {
+            return;
+        };
+        for stream in self.registry.streams() {
+            let Some(payload) = payloads
+                .get(stream.payload_key())
+                .and_then(Value::as_object)
+            else {
+                continue;
+            };
+            for column in &stream.columns {
+                let Some(reference) = &column.reference else {
+                    continue;
+                };
+                if reference.category == ReferenceCategory::Entity
+                    && stream.role() == StreamRole::Object
+                    && column.name == "entityId"
+                {
+                    continue;
+                }
+                let Some(values) = payload.get(&column.name).and_then(Value::as_array) else {
+                    continue;
+                };
+                for (row, value) in values.iter().enumerate() {
+                    if value.is_null() {
+                        continue;
+                    }
+                    if !reference_target_exists(root, self.registry, entities, reference, value) {
+                        self.error_with_context(
+                            IFCCAD_IFCDR_REFERENCE_MISSING,
+                            &format!(
+                                "/streams/{}/{}/{}",
+                                escape(stream.payload_key()),
+                                escape(&column.name),
+                                row
+                            ),
+                            "stream column references a missing target",
+                            BTreeMap::from([(
+                                "target".to_owned(),
+                                PackageDiagnosticContextValue::String(reference.target.clone()),
+                            )]),
                         );
                     }
                 }
@@ -681,6 +838,51 @@ fn role_name(role: StreamRole) -> &'static str {
     }
 }
 
+fn reference_target_exists(
+    root: &Map<String, Value>,
+    registry: &IfcdrRegistry,
+    entities: &crate::ifcdr::entity::EntityIndex,
+    reference: &super::registry::Reference,
+    value: &Value,
+) -> bool {
+    match reference.category {
+        ReferenceCategory::Ifcx => true,
+        ReferenceCategory::Entity => value
+            .as_u64()
+            .and_then(crate::ifcdr::entity::EntityId::new)
+            .is_some_and(|id| entities.get(id).is_some()),
+        ReferenceCategory::TableField => {
+            reference
+                .target
+                .split_once('.')
+                .is_some_and(|(payload_path, field)| {
+                    registry.table_by_payload_path(payload_path).is_some()
+                        && value_at_path(root, payload_path)
+                            .and_then(Value::as_array)
+                            .is_some_and(|rows| {
+                                rows.iter().any(|row| row.get(field) == Some(value))
+                            })
+                })
+        }
+        ReferenceCategory::StreamColumn => {
+            reference
+                .target
+                .split_once('.')
+                .is_some_and(|(payload_key, column)| {
+                    registry.stream_by_payload_key(payload_key).is_some()
+                        && root
+                            .get("streams")
+                            .and_then(Value::as_object)
+                            .and_then(|streams| streams.get(payload_key))
+                            .and_then(Value::as_object)
+                            .and_then(|payload| payload.get(column))
+                            .and_then(Value::as_array)
+                            .is_some_and(|values| values.contains(value))
+                })
+        }
+    }
+}
+
 fn path_pointer(path: &str) -> String {
     format!(
         "/{}",
@@ -761,6 +963,54 @@ mod tests {
     }
 
     #[test]
+    fn directory_rejects_a_non_string_column_name() {
+        let mut value = fixture_source().value().clone();
+        value["streamDirectory"]["streams"][0]["columns"]
+            .as_array_mut()
+            .unwrap()
+            .push(serde_json::json!(7));
+        let outcome = validate_value("drawing.ifcdr.json", value);
+
+        assert!(outcome.validated().is_none());
+        assert!(outcome.diagnostics().iter().any(|diagnostic| {
+            diagnostic.code == "IFCCAD_IFCDR_DIRECTORY_INVALID"
+                && diagnostic.location.as_deref() == Some("/streamDirectory/streams/0/columns/8")
+        }));
+    }
+
+    #[test]
+    fn directory_rejects_a_duplicate_column_name() {
+        let mut value = fixture_source().value().clone();
+        value["streamDirectory"]["streams"][0]["columns"]
+            .as_array_mut()
+            .unwrap()
+            .push(serde_json::json!("entityId"));
+        let outcome = validate_value("drawing.ifcdr.json", value);
+
+        assert!(outcome.validated().is_none());
+        assert!(outcome.diagnostics().iter().any(|diagnostic| {
+            diagnostic.code == "IFCCAD_IFCDR_DIRECTORY_INVALID"
+                && diagnostic.location.as_deref() == Some("/streamDirectory/streams/0/columns/8")
+        }));
+    }
+
+    #[test]
+    fn directory_rejects_a_non_string_child_name() {
+        let mut value = fixture_source().value().clone();
+        value["streamDirectory"]["streams"][2]["children"]
+            .as_array_mut()
+            .unwrap()
+            .push(serde_json::json!(7));
+        let outcome = validate_value("drawing.ifcdr.json", value);
+
+        assert!(outcome.validated().is_none());
+        assert!(outcome.diagnostics().iter().any(|diagnostic| {
+            diagnostic.code == "IFCCAD_IFCDR_DIRECTORY_INVALID"
+                && diagnostic.location.as_deref() == Some("/streamDirectory/streams/2/children/1")
+        }));
+    }
+
+    #[test]
     fn stream_rejects_a_missing_table_reference() {
         let mut value = fixture_source().value().clone();
         value["streams"]["lineStream"]["layerId"][0] = serde_json::json!(99);
@@ -783,6 +1033,66 @@ mod tests {
         assert!(outcome.diagnostics().iter().any(|diagnostic| {
             diagnostic.code == "IFCCAD_IFCDR_STRUCTURE_INVALID"
                 && diagnostic.location.as_deref() == Some("/streams/polylineStream/vertexCount/1")
+        }));
+    }
+
+    #[test]
+    fn stream_rejects_an_external_range_past_its_target_payload() {
+        let mut value = fixture_source().value().clone();
+        value["streams"]["entityOrderStream"]["entryCount"][0] = serde_json::json!(5);
+        let outcome = validate_value("drawing.ifcdr.json", value);
+
+        assert!(outcome.diagnostics().iter().any(|diagnostic| {
+            diagnostic.code == "IFCCAD_IFCDR_STRUCTURE_INVALID"
+                && diagnostic.location.as_deref() == Some("/streams/entityOrderStream/entryCount/0")
+        }));
+    }
+
+    #[test]
+    fn stream_rejects_a_nonempty_range_with_a_missing_external_target() {
+        let mut value = fixture_source().value().clone();
+        value["streamDirectory"]["streams"]
+            .as_array_mut()
+            .unwrap()
+            .retain(|entry| entry["name"] != "entityOrderEntry");
+        value["streamDirectory"]["streams"][2]["children"] = serde_json::json!([]);
+        value["streams"]
+            .as_object_mut()
+            .unwrap()
+            .remove("entityOrderEntryStream");
+        let outcome = validate_value("drawing.ifcdr.json", value);
+
+        assert!(outcome.validated().is_none());
+        assert!(outcome.diagnostics().iter().any(|diagnostic| {
+            diagnostic.code == "IFCCAD_IFCDR_STRUCTURE_INVALID"
+                && diagnostic.location.as_deref() == Some("/streams/entityOrderStream/entryCount/0")
+        }));
+    }
+
+    #[test]
+    fn table_rejects_a_missing_reference_target() {
+        let mut value = fixture_source().value().clone();
+        value["appearanceBindings"][0]["overrideId"] = serde_json::json!(99);
+        let outcome = validate_value("drawing.ifcdr.json", value);
+
+        assert!(outcome.diagnostics().iter().any(|diagnostic| {
+            diagnostic.code == "IFCCAD_IFCDR_REFERENCE_MISSING"
+                && diagnostic.location.as_deref() == Some("/appearanceBindings/0/overrideId")
+        }));
+    }
+
+    #[test]
+    fn stream_rejects_unsynchronized_pool_column_lengths() {
+        let mut value = fixture_source().value().clone();
+        value["streams"]["polylineStream"]["y"]
+            .as_array_mut()
+            .unwrap()
+            .push(serde_json::json!(40.0));
+        let outcome = validate_value("drawing.ifcdr.json", value);
+
+        assert!(outcome.diagnostics().iter().any(|diagnostic| {
+            diagnostic.code == "IFCCAD_IFCDR_STRUCTURE_INVALID"
+                && diagnostic.location.as_deref() == Some("/streams/polylineStream/y")
         }));
     }
 }

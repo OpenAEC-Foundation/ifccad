@@ -1,6 +1,6 @@
-use super::{bool_at, f64_at, payload, u32_at, u64_at};
+use super::store::ValidatedIfcdrStreamRef;
 use crate::ifcdr::entity::{EntityId, ScopeId};
-use crate::ifcdr::resource::{AppearanceId, LayerId, Point2, ValidatedIfcdrResource};
+use crate::ifcdr::resource::{AppearanceId, LayerId, Point2};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) struct Line {
@@ -39,32 +39,37 @@ impl Line {
 
 #[derive(Clone, Copy)]
 pub(crate) struct LineStreamView<'a> {
-    resource: &'a ValidatedIfcdrResource,
+    stream: ValidatedIfcdrStreamRef<'a>,
 }
 
 impl<'a> LineStreamView<'a> {
-    pub(super) fn new(resource: &'a ValidatedIfcdrResource) -> Self {
-        Self { resource }
+    pub(super) fn new(stream: ValidatedIfcdrStreamRef<'a>) -> Self {
+        Self { stream }
     }
     pub(crate) fn len(&self) -> usize {
-        self.resource.evidence().streams["line"].row_count
+        self.stream.len()
     }
     pub(crate) fn is_empty(&self) -> bool {
         self.len() == 0
     }
     pub(crate) fn get(&self, row: usize) -> Option<Line> {
-        (row < self.len()).then(|| {
-            let data = payload(self.resource, "lineStream");
-            Line {
-                entity_id: EntityId::new(u64_at(data, "entityId", row))
-                    .expect("validated entity ID"),
-                scope_id: ScopeId::new(u32_at(data, "scopeId", row)),
-                start: Point2::new(f64_at(data, "x1", row), f64_at(data, "y1", row)),
-                end: Point2::new(f64_at(data, "x2", row), f64_at(data, "y2", row)),
-                layer_id: LayerId::new(u32_at(data, "layerId", row)),
-                appearance_id: AppearanceId::new(u32_at(data, "appearanceId", row)),
-                visible: bool_at(data, "visible", row, true),
-            }
+        if row >= self.len() {
+            return None;
+        }
+        Some(Line {
+            entity_id: EntityId::new(self.stream.uint64("entityId").get(row)?)?,
+            scope_id: ScopeId::new(self.stream.uint32("scopeId").get(row)?),
+            start: Point2::new(
+                self.stream.float64("x1").get(row)?,
+                self.stream.float64("y1").get(row)?,
+            ),
+            end: Point2::new(
+                self.stream.float64("x2").get(row)?,
+                self.stream.float64("y2").get(row)?,
+            ),
+            layer_id: LayerId::new(self.stream.uint32("layerId").get(row)?),
+            appearance_id: AppearanceId::new(self.stream.uint32("appearanceId").get(row)?),
+            visible: self.stream.boolean("visible").get(row)?,
         })
     }
     pub(crate) fn iter(&self) -> impl ExactSizeIterator<Item = Line> + 'a {

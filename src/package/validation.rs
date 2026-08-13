@@ -301,6 +301,81 @@ mod tests {
     }
 
     #[test]
+    fn ifcdr_resources_validate_independently_within_one_package() {
+        let root = TestDirectory::new("independent-ifcdr-proofs");
+        let valid = fs::read(
+            bundled_conformance_root()
+                .join("packages")
+                .join("valid")
+                .join("minimal-no-preservation")
+                .join("drawing.ifcdr.json"),
+        )
+        .expect("read valid IFCDR");
+        let invalid = br#"{"header":{"format":"openaec.ifcdr","version":"0.6.0","resourceId":"x","unit":"m","nextEntityId":1}}"#;
+        let descriptor = |uri: &str, bytes: &[u8]| {
+            serde_json::json!({
+                "format": "openaec.ifcdr",
+                "version": "0.5.0",
+                "uri": uri,
+                "checksum": format!("sha256:{:x}", Sha256::digest(bytes)),
+                "role": "modelspace"
+            })
+        };
+        let entrypoint = serde_json::json!({"data": [
+            {"path": "valid", "type": "openaec:DrawingGeometryRepresentation", "attributes": {"geometry": descriptor("valid.ifcdr.json", &valid)}},
+            {"path": "invalid", "type": "openaec:DrawingGeometryRepresentation", "attributes": {"geometry": descriptor("invalid.ifcdr.json", invalid)}}
+        ]});
+        fs::write(
+            root.path().join(DIRECTORY_PACKAGE_ENTRYPOINT),
+            serde_json::to_vec(&entrypoint).unwrap(),
+        )
+        .expect("write entrypoint");
+        fs::write(root.path().join("valid.ifcdr.json"), valid).expect("write valid IFCDR");
+        fs::write(root.path().join("invalid.ifcdr.json"), invalid).expect("write invalid IFCDR");
+
+        let outcome = load_directory_package(root.path()).expect("load package");
+        let package = outcome.package.unwrap();
+        assert_eq!(package.resources.len(), 2);
+        assert!(outcome
+            .validated_ifcdr_resources
+            .contains_key("valid.ifcdr.json"));
+        assert!(!outcome
+            .validated_ifcdr_resources
+            .contains_key("invalid.ifcdr.json"));
+    }
+
+    #[test]
+    fn every_loaded_ifcdr_in_committed_valid_packages_gets_a_proof() {
+        let valid_root = bundled_conformance_root().join("packages").join("valid");
+        for entry in fs::read_dir(valid_root).expect("read valid package fixtures") {
+            let entry = entry.expect("valid package fixture entry");
+            if !entry.file_type().expect("fixture type").is_dir() {
+                continue;
+            }
+            let outcome = load_directory_package(entry.path()).expect("load valid package fixture");
+            let package = outcome.package.as_ref().expect("loaded valid package");
+            let ifcdr_uris = package
+                .declarations
+                .iter()
+                .filter(|declaration| declaration.kind == ResourceKind::Ifcdr)
+                .filter(|declaration| package.resources.contains_key(&declaration.uri))
+                .map(|declaration| declaration.uri.as_str())
+                .collect::<BTreeSet<_>>();
+            let validated_uris = outcome
+                .validated_ifcdr_resources
+                .keys()
+                .map(String::as_str)
+                .collect::<BTreeSet<_>>();
+            assert_eq!(
+                validated_uris,
+                ifcdr_uris,
+                "fixture {:?}",
+                entry.file_name()
+            );
+        }
+    }
+
+    #[test]
     fn missing_resource_keeps_partial_loaded_package() {
         let root = TestDirectory::new("partial-missing-resource");
         write_geometry_entrypoint(root.path(), "missing.ifcdr.json", &valid_checksum());
