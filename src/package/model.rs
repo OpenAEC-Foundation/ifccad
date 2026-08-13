@@ -58,6 +58,7 @@ pub(crate) struct PackageAnalysis {
     pub(crate) node_indices_by_path: BTreeMap<String, usize>,
     pub(crate) validated_ifcdr_resources:
         BTreeMap<String, Arc<crate::ifcdr::ValidatedIfcdrResource>>,
+    pub(crate) bindings: super::bindings::PackageBindings,
 }
 
 #[derive(Debug)]

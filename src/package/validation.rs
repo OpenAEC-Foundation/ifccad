@@ -96,9 +96,14 @@ pub(crate) fn load_directory_package(
         }
     }
 
+    let binding_analysis =
+        super::bindings::analyze_resource_bindings(&package, &validated_ifcdr_resources);
+    diagnostics.extend(binding_analysis.diagnostics);
+
     let analysis = Arc::new(PackageAnalysis {
         node_indices_by_path: graph.node_indices_by_path,
         validated_ifcdr_resources,
+        bindings: binding_analysis.bindings,
     });
 
     let report = PackageValidationReport::from_diagnostics(diagnostics);
@@ -242,6 +247,31 @@ mod tests {
         .expect("write entrypoint");
     }
 
+    fn copy_minimal_package(root: &Path) -> serde_json::Value {
+        let source = bundled_conformance_root()
+            .join("packages")
+            .join("valid")
+            .join("minimal-no-preservation");
+        let entrypoint = serde_json::from_slice::<serde_json::Value>(
+            &fs::read(source.join(DIRECTORY_PACKAGE_ENTRYPOINT)).expect("read minimal entrypoint"),
+        )
+        .expect("parse minimal entrypoint");
+        fs::write(
+            root.join("drawing.ifcdr.json"),
+            fs::read(source.join("drawing.ifcdr.json")).expect("read minimal IFCDR"),
+        )
+        .expect("copy minimal IFCDR");
+        entrypoint
+    }
+
+    fn write_entrypoint(root: &Path, entrypoint: &serde_json::Value) {
+        fs::write(
+            root.join(DIRECTORY_PACKAGE_ENTRYPOINT),
+            serde_json::to_vec(entrypoint).expect("serialize entrypoint"),
+        )
+        .expect("write entrypoint");
+    }
+
     #[test]
     fn load_outcome_retains_entrypoint_resources_and_exact_bytes() {
         let root = TestDirectory::new("loaded-model");
@@ -352,6 +382,95 @@ mod tests {
         assert!(outcome.analysis.is_some());
         assert!(outcome.validated_package.is_none());
         assert!(!outcome.report.is_valid());
+    }
+
+    #[test]
+    fn resource_same_kind_uri_reuses_one_ifcdr_proof_for_two_representations() {
+        let root = TestDirectory::new("shared-ifcdr-uri");
+        let mut entrypoint = copy_minimal_package(root.path());
+        let mut second = entrypoint["data"][3].clone();
+        second["path"] = serde_json::json!("representation-modelspace-copy");
+        entrypoint["data"].as_array_mut().unwrap().push(second);
+        write_entrypoint(root.path(), &entrypoint);
+
+        let outcome = load_directory_package(root.path()).expect("load shared resource package");
+        let analysis = outcome.analysis.as_ref().expect("package analysis");
+        let first = &analysis.bindings.geometry_ifcdr_by_path["representation-modelspace-main"];
+        let second = &analysis.bindings.geometry_ifcdr_by_path["representation-modelspace-copy"];
+
+        assert!(outcome.validated_package.is_some());
+        assert_eq!(analysis.validated_ifcdr_resources.len(), 1);
+        assert!(Arc::ptr_eq(first, second));
+    }
+
+    #[test]
+    fn resource_cross_kind_uri_blocks_the_strict_proof() {
+        let root = TestDirectory::new("cross-kind-uri");
+        let mut entrypoint = copy_minimal_package(root.path());
+        let geometry = entrypoint["data"][3]["attributes"]["geometry"].clone();
+        entrypoint["data"]
+            .as_array_mut()
+            .unwrap()
+            .push(serde_json::json!({
+                "path": "preservation-conflict",
+                "type": "openaec:PreservationRepresentation",
+                "attributes": {"preservation": {
+                    "format": "openaec.ifcpr",
+                    "version": "0.1.0",
+                    "uri": geometry["uri"],
+                    "checksum": geometry["checksum"],
+                    "sourceDocumentId": "source",
+                    "linkedDrawingResourceUris": ["drawing.ifcdr.json"]
+                }}
+            }));
+        write_entrypoint(root.path(), &entrypoint);
+
+        let outcome = load_directory_package(root.path()).expect("load conflicting package");
+
+        assert!(outcome.validated_package.is_none());
+        assert!(outcome.report.iter().any(|diagnostic| {
+            diagnostic.code == "IFCCAD_PACKAGE_BINDING_INVALID"
+                && diagnostic.location.as_deref() == Some("/data/8/attributes/preservation/uri")
+        }));
+    }
+
+    #[test]
+    fn preservation_link_requires_a_declared_ifcdr_uri() {
+        let root = TestDirectory::new("undeclared-preservation-link");
+        let mut entrypoint = copy_minimal_package(root.path());
+        let source = bundled_conformance_root()
+            .join("packages")
+            .join("valid")
+            .join("source-archive")
+            .join("preservation.ifcpr.json");
+        let preservation = fs::read(source).expect("read valid IFCPR");
+        fs::write(root.path().join("preservation.ifcpr.json"), &preservation)
+            .expect("copy valid IFCPR");
+        entrypoint["data"]
+            .as_array_mut()
+            .unwrap()
+            .push(serde_json::json!({
+                "path": "preservation",
+                "type": "openaec:PreservationRepresentation",
+                "attributes": {"preservation": {
+                    "format": "openaec.ifcpr",
+                    "version": "0.1.0",
+                    "uri": "preservation.ifcpr.json",
+                    "checksum": format!("sha256:{:x}", Sha256::digest(&preservation)),
+                    "sourceDocumentId": "source",
+                    "linkedDrawingResourceUris": ["undeclared.ifcdr.json"]
+                }}
+            }));
+        write_entrypoint(root.path(), &entrypoint);
+
+        let outcome = load_directory_package(root.path()).expect("load preservation package");
+
+        assert!(outcome.validated_package.is_none());
+        assert!(outcome.report.iter().any(|diagnostic| {
+            diagnostic.code == "IFCCAD_PACKAGE_BINDING_INVALID"
+                && diagnostic.location.as_deref()
+                    == Some("/data/8/attributes/preservation/linkedDrawingResourceUris/0")
+        }));
     }
 
     #[test]
