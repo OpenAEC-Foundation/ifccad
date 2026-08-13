@@ -496,6 +496,37 @@ mod tests {
     }
 
     #[test]
+    fn resource_cross_kind_diagnostic_identifies_the_later_source_declaration() {
+        let root = TestDirectory::new("cross-kind-source-order");
+        let mut entrypoint = copy_minimal_package(root.path());
+        let geometry = entrypoint["data"][3]["attributes"]["geometry"].clone();
+        entrypoint["data"].as_array_mut().unwrap().insert(
+            0,
+            serde_json::json!({
+                "path": "preservation-first",
+                "type": "openaec:PreservationRepresentation",
+                "attributes": {"preservation": {
+                    "format": "openaec.ifcpr",
+                    "version": "0.1.0",
+                    "uri": geometry["uri"],
+                    "checksum": geometry["checksum"],
+                    "sourceDocumentId": "source",
+                    "linkedDrawingResourceUris": ["drawing.ifcdr.json"]
+                }}
+            }),
+        );
+        write_entrypoint(root.path(), &entrypoint);
+
+        let outcome = load_directory_package(root.path()).expect("load conflicting package");
+
+        assert!(outcome.validated_package.is_none());
+        assert!(outcome.report.iter().any(|diagnostic| {
+            diagnostic.code == "IFCCAD_PACKAGE_BINDING_INVALID"
+                && diagnostic.location.as_deref() == Some("/data/4/attributes/geometry/uri")
+        }));
+    }
+
+    #[test]
     fn preservation_link_requires_a_declared_ifcdr_uri() {
         let root = TestDirectory::new("undeclared-preservation-link");
         let mut entrypoint = copy_minimal_package(root.path());

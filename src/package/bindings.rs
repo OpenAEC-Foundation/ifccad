@@ -274,7 +274,9 @@ fn validate_ifcx_identity(
 fn validate_unique_resource_kinds(declarations: &[ResourceDeclaration]) -> Vec<PackageDiagnostic> {
     let mut first_kinds = BTreeMap::<&str, ResourceKind>::new();
     let mut diagnostics = Vec::new();
-    for declaration in declarations {
+    let mut source_order = declarations.iter().collect::<Vec<_>>();
+    source_order.sort_by_key(|declaration| declaration_source_index(declaration));
+    for declaration in source_order {
         match first_kinds.get(declaration.uri.as_str()).copied() {
             None => {
                 first_kinds.insert(&declaration.uri, declaration.kind);
@@ -305,6 +307,15 @@ fn validate_unique_resource_kinds(declarations: &[ResourceDeclaration]) -> Vec<P
         }
     }
     diagnostics
+}
+
+fn declaration_source_index(declaration: &ResourceDeclaration) -> usize {
+    declaration
+        .uri_location
+        .strip_prefix("/data/")
+        .and_then(|suffix| suffix.split('/').next())
+        .and_then(|index| index.parse().ok())
+        .expect("resource declarations retain their IFCX data location")
 }
 
 fn kind_name(kind: ResourceKind) -> &'static str {
