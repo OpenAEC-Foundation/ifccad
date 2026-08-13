@@ -11,6 +11,7 @@ use crate::package::codes::IFCCAD_PACKAGE_CHECKSUM_MISMATCH;
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
+use std::sync::Arc;
 
 // The conformance composer will become this internal orchestrator's production caller.
 #[cfg_attr(not(test), allow(dead_code))]
@@ -43,7 +44,7 @@ pub(crate) fn load_directory_package(
         if let Some(resource) =
             loader.load_json_resource(&declaration.uri, Some(&declaration.uri_location))?
         {
-            resources.insert(declaration.uri.clone(), resource);
+            resources.insert(declaration.uri.clone(), Arc::new(resource));
         }
     }
 
@@ -150,6 +151,7 @@ mod tests {
     use sha2::{Digest, Sha256};
     use std::fs;
     use std::path::{Path, PathBuf};
+    use std::sync::Arc;
     use std::time::{SystemTime, UNIX_EPOCH};
 
     struct TestDirectory(PathBuf);
@@ -222,7 +224,11 @@ mod tests {
         assert_eq!(package.entrypoint.value["data"][0]["path"], "geometry");
         assert_eq!(package.declarations.len(), 1);
         assert_eq!(package.declarations[0].uri, "drawing.ifcdr.json");
-        assert_eq!(package.resources["drawing.ifcdr.json"].bytes, drawing);
+        let source = package.resources["drawing.ifcdr.json"].clone();
+        let second = package.resources["drawing.ifcdr.json"].clone();
+        assert!(Arc::ptr_eq(&source, &second));
+        assert_eq!(source.bytes(), drawing);
+        assert_eq!(source.value()["header"], serde_json::json!({}));
     }
 
     #[test]
