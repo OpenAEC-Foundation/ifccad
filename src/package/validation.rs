@@ -1,7 +1,7 @@
 use super::discovery::{discover_resources, ResourceKind};
 use super::graph::validate_ifcx_graph;
 use super::loader::{DirectoryPackageLoader, PackageLoadLimits};
-use super::model::{LoadedIfccadPackage, PackageLoadOutcome};
+use super::model::{LoadedIfccadPackage, PackageAnalysis, PackageLoadOutcome};
 use super::schema::{validate_ifcpr, validate_ifcx};
 use super::{
     PackageDiagnostic, PackageDiagnosticContextValue, PackageDiagnosticSeverity, PackageOpenError,
@@ -23,7 +23,7 @@ pub(crate) fn load_directory_package(
     let Some(entrypoint) = loader.load_entrypoint()? else {
         return Ok(PackageLoadOutcome {
             package: None,
-            validated_ifcdr_resources: BTreeMap::new(),
+            analysis: None,
             report: loader.into_report(),
         });
     };
@@ -52,12 +52,11 @@ pub(crate) fn load_directory_package(
 
     let mut diagnostics = loader.into_report().into_diagnostics();
     diagnostics.extend(discovery.diagnostics);
-    let mut package = LoadedIfccadPackage {
+    let package = Arc::new(LoadedIfccadPackage {
         entrypoint,
         declarations,
         resources,
-        node_indices_by_path: BTreeMap::new(),
-    };
+    });
     diagnostics.extend(validate_ifcx(&package.entrypoint.value));
     let mut validated_ifcpr_uris = BTreeSet::new();
     for declaration in &package.declarations {
@@ -72,7 +71,6 @@ pub(crate) fn load_directory_package(
     }
     diagnostics.extend(verify_resource_checksums(&package));
     let graph = validate_ifcx_graph(&package.entrypoint.value);
-    package.node_indices_by_path = graph.node_indices_by_path;
     diagnostics.extend(graph.diagnostics);
 
     let mut validated_ifcdr_resources = BTreeMap::new();
@@ -93,13 +91,18 @@ pub(crate) fn load_directory_package(
         let (validated, resource_diagnostics) = outcome.into_parts();
         diagnostics.extend(resource_diagnostics);
         if let Some(validated) = validated {
-            validated_ifcdr_resources.insert(declaration.uri.clone(), validated);
+            validated_ifcdr_resources.insert(declaration.uri.clone(), Arc::new(validated));
         }
     }
 
+    let analysis = Arc::new(PackageAnalysis {
+        node_indices_by_path: graph.node_indices_by_path,
+        validated_ifcdr_resources,
+    });
+
     Ok(PackageLoadOutcome {
         package: Some(package),
-        validated_ifcdr_resources,
+        analysis: Some(analysis),
         report: PackageValidationReport::from_diagnostics(diagnostics),
     })
 }
@@ -264,7 +267,11 @@ mod tests {
             .join("minimal-no-preservation");
         let outcome = load_directory_package(root).expect("load valid fixture");
         let package = outcome.package.as_ref().expect("loaded package");
-        let validated = &outcome.validated_ifcdr_resources["drawing.ifcdr.json"];
+        let validated = &outcome
+            .analysis
+            .as_ref()
+            .expect("package analysis")
+            .validated_ifcdr_resources["drawing.ifcdr.json"];
 
         assert!(Arc::ptr_eq(
             validated.loaded().source(),
@@ -274,6 +281,26 @@ mod tests {
             validated.loaded().source().bytes(),
             package.resources["drawing.ifcdr.json"].bytes()
         );
+    }
+
+    #[test]
+    fn package_analysis_shares_loaded_package_and_ifcdr_proof() {
+        let root = bundled_conformance_root()
+            .join("packages")
+            .join("valid")
+            .join("minimal-no-preservation");
+        let outcome = load_directory_package(root).expect("load valid fixture");
+        let package = outcome.package.as_ref().expect("loaded package");
+        let second = package.clone();
+        let analysis = outcome.analysis.as_ref().expect("package analysis");
+        let ifcdr = &analysis.validated_ifcdr_resources["drawing.ifcdr.json"];
+
+        assert!(Arc::ptr_eq(package, &second));
+        assert_eq!(analysis.node_indices_by_path["drawing-main"], 1);
+        assert!(Arc::ptr_eq(
+            ifcdr.loaded().source(),
+            &package.resources["drawing.ifcdr.json"]
+        ));
     }
 
     #[test]
@@ -292,6 +319,9 @@ mod tests {
             .resources
             .contains_key("drawing.ifcdr.json"));
         assert!(!outcome
+            .analysis
+            .as_ref()
+            .unwrap()
             .validated_ifcdr_resources
             .contains_key("drawing.ifcdr.json"));
         assert!(outcome.report.iter().any(|item| {
@@ -337,9 +367,15 @@ mod tests {
         let package = outcome.package.unwrap();
         assert_eq!(package.resources.len(), 2);
         assert!(outcome
+            .analysis
+            .as_ref()
+            .unwrap()
             .validated_ifcdr_resources
             .contains_key("valid.ifcdr.json"));
         assert!(!outcome
+            .analysis
+            .as_ref()
+            .unwrap()
             .validated_ifcdr_resources
             .contains_key("invalid.ifcdr.json"));
     }
@@ -362,6 +398,9 @@ mod tests {
                 .map(|declaration| declaration.uri.as_str())
                 .collect::<BTreeSet<_>>();
             let validated_uris = outcome
+                .analysis
+                .as_ref()
+                .expect("package analysis")
                 .validated_ifcdr_resources
                 .keys()
                 .map(String::as_str)
@@ -492,9 +531,10 @@ mod tests {
         .expect("write entrypoint");
 
         let outcome = load_directory_package(root.path()).expect("load package");
-        let package = outcome.package.expect("retain package");
+        assert!(outcome.package.is_some());
+        let analysis = outcome.analysis.as_ref().expect("package analysis");
 
-        assert_eq!(package.node_indices_by_path["same"], 0);
+        assert_eq!(analysis.node_indices_by_path["same"], 0);
         assert!(outcome
             .report
             .iter()
@@ -704,8 +744,9 @@ mod tests {
                 .join(case);
             let outcome = load_directory_package(root).expect("inspect committed package");
             let package = outcome.package.as_ref().expect("retain committed package");
+            let analysis = outcome.analysis.as_ref().expect("package analysis");
             assert_eq!(package.entrypoint.uri, DIRECTORY_PACKAGE_ENTRYPOINT);
-            assert!(!package.node_indices_by_path.is_empty(), "case {case}");
+            assert!(!analysis.node_indices_by_path.is_empty(), "case {case}");
 
             if case == "minimal-no-preservation" {
                 assert!(

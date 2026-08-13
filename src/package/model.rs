@@ -50,14 +50,21 @@ pub(crate) struct LoadedIfccadPackage {
     pub(crate) entrypoint: LoadedJsonResource,
     pub(crate) declarations: Vec<ResourceDeclaration>,
     pub(crate) resources: BTreeMap<String, Arc<LoadedJsonResource>>,
+}
+
+#[derive(Debug)]
+#[allow(dead_code)]
+pub(crate) struct PackageAnalysis {
     pub(crate) node_indices_by_path: BTreeMap<String, usize>,
+    pub(crate) validated_ifcdr_resources:
+        BTreeMap<String, Arc<crate::ifcdr::ValidatedIfcdrResource>>,
 }
 
 #[derive(Debug)]
 pub(crate) struct PackageLoadOutcome {
     #[cfg_attr(not(test), allow(dead_code))]
-    pub(crate) package: Option<LoadedIfccadPackage>,
+    pub(crate) package: Option<Arc<LoadedIfccadPackage>>,
     #[allow(dead_code)]
-    pub(crate) validated_ifcdr_resources: BTreeMap<String, crate::ifcdr::ValidatedIfcdrResource>,
+    pub(crate) analysis: Option<Arc<PackageAnalysis>>,
     pub(crate) report: PackageValidationReport,
 }
