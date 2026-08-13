@@ -12,6 +12,7 @@ mod error;
 mod graph;
 mod loader;
 mod model;
+mod navigation;
 mod path;
 mod schema;
 mod uri;
