@@ -2,11 +2,10 @@
 
 IFCCAD's model-first Python reference, format experiments, schemas, and
 cross-language conformance work were developed in the
-[IFCCAD prototype](https://github.com/OpenAEC-Foundation/IFC-CAD). The
+[IFCCAD prototype](https://github.com/OpenAEC-Foundation/ifccad-prototype). The
 reference snapshot at the Rust repository transition was
 `2404e997175eb8110e177856dbc61db1d873be96`; later prototype commits remain
-traceable in that repository. GitHub will keep this URL redirecting when the
-prototype repository receives its final `ifccad-prototype` name.
+traceable in that repository.
 
 The initial Rust implementation was developed temporarily in the
 [acadifc](https://github.com/OpenAEC-Foundation/acadifc) migration-source

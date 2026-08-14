@@ -76,7 +76,7 @@ numbered directory and frozen with the rest of that collection.
 - [`conformance`](conformance) contains versioned conformance collections.
 - [`tests`](tests) verifies the public Rust API and bundled format assets.
 
-The [Python prototype](https://github.com/OpenAEC-Foundation/IFC-CAD) remains
+The [Python prototype](https://github.com/OpenAEC-Foundation/ifccad-prototype) remains
 the model-first reference implementation and format laboratory.
 
 This primary crate deliberately does not provide `CadDocument` or DWG/DXF I/O.
