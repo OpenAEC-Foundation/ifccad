@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.3.0.json",
+  "title": "IFCCAD IFCX Overlay 0.3.0",
+  "description": "Composite IFCCAD constraints for resources, the drawing core, and typed appearances in IFCX.",
+  "allOf": [
+    {
+      "$ref": "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.1.0.json"
+    },
+    {
+      "$ref": "https://schemas.ifccad.org/ifcx/ifccad-drawing-core-0.2.0.json"
+    }
+  ]
+}

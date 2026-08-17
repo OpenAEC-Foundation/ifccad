@@ -8,27 +8,27 @@ use serde_json::Value;
 use std::collections::BTreeMap;
 
 const RESOURCE_OVERLAY_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.1.0.json";
-const DRAWING_CORE_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-drawing-core-0.1.0.json";
+const DRAWING_CORE_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-drawing-core-0.2.0.json";
 const RESOURCE_OVERLAY: &str = include_str!("../../schemas/ifcx/ifccad-overlay-0.1.0.json");
-const DRAWING_CORE: &str = include_str!("../../schemas/ifcx/ifccad-drawing-core-0.1.0.json");
-const COMPOSITE_OVERLAY: &str = include_str!("../../schemas/ifcx/ifccad-overlay-0.2.0.json");
+const DRAWING_CORE: &str = include_str!("../../schemas/ifcx/ifccad-drawing-core-0.2.0.json");
+const COMPOSITE_OVERLAY: &str = include_str!("../../schemas/ifcx/ifccad-overlay-0.3.0.json");
 const IFCPR_SCHEMA: &str = include_str!("../../schemas/ifcpr/schema-0.1.0.json");
 
 pub(crate) fn validate_ifcx(value: &Value) -> Vec<PackageDiagnostic> {
     let resource_overlay = parse_schema(RESOURCE_OVERLAY, "IFCX resource overlay 0.1.0");
-    let drawing_core = parse_schema(DRAWING_CORE, "IFCX drawing core 0.1.0");
-    let composite = parse_schema(COMPOSITE_OVERLAY, "IFCX overlay 0.2.0");
+    let drawing_core = parse_schema(DRAWING_CORE, "IFCX drawing core 0.2.0");
+    let composite = parse_schema(COMPOSITE_OVERLAY, "IFCX overlay 0.3.0");
     let registry = Registry::new()
         .add(RESOURCE_OVERLAY_ID, resource_overlay)
         .expect("register embedded IFCX resource overlay 0.1.0")
         .add(DRAWING_CORE_ID, drawing_core)
-        .expect("register embedded IFCX drawing core 0.1.0")
+        .expect("register embedded IFCX drawing core 0.2.0")
         .prepare()
         .expect("prepare embedded IFCX schema registry");
     let validator = jsonschema::draft202012::options()
         .with_registry(&registry)
         .build(&composite)
-        .expect("compile embedded IFCX overlay 0.2.0");
+        .expect("compile embedded IFCX overlay 0.3.0");
     schema_diagnostics(&validator, DIRECTORY_PACKAGE_ENTRYPOINT, value)
 }
 
@@ -158,6 +158,25 @@ mod tests {
                 && item.location.as_deref() == Some("/data/2/attributes/kind")
                 && item.context.get("keyword")
                     == Some(&PackageDiagnosticContextValue::String("enum".to_owned()))
+        }));
+    }
+
+    #[test]
+    fn embedded_ifcx_schema_rejects_an_incomplete_typed_appearance() {
+        let mut ifcx = valid_ifcx();
+        ifcx["data"].as_array_mut().unwrap().push(json!({
+            "path": "appearance-incomplete",
+            "type": "openaec:Appearance",
+            "attributes": {"name": "Incomplete"}
+        }));
+
+        let diagnostics = validate_ifcx(&ifcx);
+
+        assert!(diagnostics.iter().any(|item| {
+            item.code == IFCCAD_PACKAGE_SCHEMA_INVALID
+                && item.location.as_deref() == Some("/data/4/attributes")
+                && item.context.get("property")
+                    == Some(&PackageDiagnosticContextValue::String("color".to_owned()))
         }));
     }
 

@@ -6,6 +6,8 @@ use std::path::{Path, PathBuf};
 const RESOURCE_OVERLAY_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.1.0.json";
 const DRAWING_CORE_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-drawing-core-0.1.0.json";
 const OVERLAY_0_2_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.2.0.json";
+const DRAWING_CORE_0_2_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-drawing-core-0.2.0.json";
+const OVERLAY_0_3_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.3.0.json";
 
 fn schema_path(file_name: &str) -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -54,6 +56,33 @@ fn composite_overlay_validator() -> jsonschema::Validator {
         .with_registry(&registry)
         .build(&schema)
         .expect("compile composite IFCX overlay from local registry")
+}
+
+fn drawing_core_0_2_schema() -> Value {
+    load_schema("ifccad-drawing-core-0.2.0.json")
+}
+
+fn drawing_core_0_2_validator() -> jsonschema::Validator {
+    jsonschema::draft202012::new(&drawing_core_0_2_schema())
+        .expect("compile IFCX drawing core 0.2.0")
+}
+
+fn composite_overlay_0_3_schema() -> Value {
+    load_schema("ifccad-overlay-0.3.0.json")
+}
+
+fn composite_overlay_0_3_validator() -> jsonschema::Validator {
+    let registry = Registry::new()
+        .add(RESOURCE_OVERLAY_ID, resource_overlay_schema())
+        .expect("add IFCX resource overlay to local registry")
+        .add(DRAWING_CORE_0_2_ID, drawing_core_0_2_schema())
+        .expect("add IFCX drawing core 0.2.0 to local registry")
+        .prepare()
+        .expect("prepare local IFCX 0.3.0 schema registry");
+    jsonschema::draft202012::options()
+        .with_registry(&registry)
+        .build(&composite_overlay_0_3_schema())
+        .expect("compile composite IFCX overlay 0.3.0")
 }
 
 fn checksum() -> String {
@@ -178,6 +207,29 @@ fn appearance_node() -> Value {
         },
         "children": {
             "FutureRelationship": "future-node"
+        },
+        "futureNodeProperty": true
+    })
+}
+
+fn typed_appearance_node() -> Value {
+    json!({
+        "path": "appearance-wall",
+        "type": "openaec:Appearance",
+        "attributes": {
+            "name": "Wall",
+            "color": {
+                "mode": "explicit",
+                "value": {
+                    "rgb": [255, 0, 0],
+                    "indexedColor": {"system": "ACI", "index": 1},
+                    "namedColor": {"catalog": "RAL", "name": "Traffic red"}
+                }
+            },
+            "opacity": {"mode": "explicit", "value": 1.0},
+            "linePattern": {"mode": "explicit", "value": "continuous"},
+            "lineWeight": {"mode": "explicit", "value": 0.25},
+            "futureAppearanceProperty": true
         },
         "futureNodeProperty": true
     })
@@ -623,4 +675,73 @@ fn composite_overlay_enforces_resource_and_drawing_constraints() {
     let mut malformed_drawing = composite_document();
     malformed_drawing["data"][2]["attributes"]["kind"] = json!("sheet");
     assert!(!validator.is_valid(&malformed_drawing));
+}
+
+#[test]
+fn drawing_core_0_2_accepts_the_typed_appearance_backbone() {
+    let schema = drawing_core_0_2_schema();
+    assert_eq!(schema["$id"], DRAWING_CORE_0_2_ID);
+    jsonschema::draft202012::meta::validate(&schema)
+        .expect("IFCX drawing core 0.2.0 must satisfy the Draft 2020-12 meta-schema");
+
+    assert!(drawing_core_0_2_validator().is_valid(&json!({
+        "data": [typed_appearance_node()]
+    })));
+}
+
+#[test]
+fn drawing_core_0_2_rejects_incomplete_appearance_definitions() {
+    let validator = drawing_core_0_2_validator();
+
+    for pointer in [
+        "/attributes/name",
+        "/attributes/color",
+        "/attributes/opacity",
+        "/attributes/linePattern",
+        "/attributes/lineWeight",
+    ] {
+        let mut node = typed_appearance_node();
+        remove_property(&mut node, pointer);
+        assert!(
+            !validator.is_valid(&json!({"data": [node]})),
+            "accepted Appearance without {pointer}"
+        );
+    }
+}
+
+#[test]
+fn drawing_core_0_2_rejects_invalid_appearance_values() {
+    let validator = drawing_core_0_2_validator();
+
+    for (pointer, value) in [
+        ("/attributes/name", json!("")),
+        ("/attributes/color/mode", json!("by_layer")),
+        ("/attributes/color/value/rgb", json!([255, 0])),
+        ("/attributes/color/value/rgb", json!([256, 0, 0])),
+        ("/attributes/color/value/indexedColor/system", json!("")),
+        ("/attributes/color/value/namedColor/catalog", json!("")),
+        ("/attributes/opacity/value", json!(-0.01)),
+        ("/attributes/opacity/value", json!(1.01)),
+        ("/attributes/linePattern/value", json!("")),
+        ("/attributes/lineWeight/value", json!(-0.01)),
+    ] {
+        let mut node = typed_appearance_node();
+        *node.pointer_mut(pointer).expect("Appearance test pointer") = value;
+        assert!(
+            !validator.is_valid(&json!({"data": [node]})),
+            "accepted invalid Appearance value at {pointer}"
+        );
+    }
+}
+
+#[test]
+fn composite_overlay_0_3_combines_resources_and_typed_appearances() {
+    let schema = composite_overlay_0_3_schema();
+    assert_eq!(schema["$id"], OVERLAY_0_3_ID);
+    jsonschema::draft202012::meta::validate(&schema)
+        .expect("IFCX overlay 0.3.0 must satisfy the Draft 2020-12 meta-schema");
+
+    let mut document = composite_document();
+    document["data"][5] = typed_appearance_node();
+    assert!(composite_overlay_0_3_validator().is_valid(&document));
 }
