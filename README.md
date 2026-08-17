@@ -30,11 +30,13 @@ The crate currently provides:
 - conformance manifests, vectors, fixtures, and verification helpers;
 - versioned IFCX resource and drawing-core overlays, the IFCDR registry, and
   the IFCPR schema; and
-- structured package diagnostics and internal directory-package foundations.
+- public directory-package loading with structured diagnostics and a strict,
+  typed model for validated drawings, layouts, layers, appearances, and IFCDR
+  entities.
 
-The public package loader, a complete IFCCAD vocabulary within IFCX,
-production IFCDR codecs, the future `.ifccad` container, CAD conversion, and
-conventional IFC integration are still under development.
+A complete IFCCAD vocabulary within IFCX, production IFCDR codecs, the future
+`.ifccad` container, CAD conversion, and conventional IFC integration are
+still under development.
 
 ## Using the current API
 
@@ -44,19 +46,47 @@ ifccad = { git = "https://github.com/OpenAEC-Foundation/ifccad.git" }
 ```
 
 ```rust
-use ifccad::canonicalization::{fingerprint, CanonicalValue};
+use ifccad::package::load_directory_package;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let value = CanonicalValue::String("drawing-001".to_owned());
-    let digest = fingerprint(&value)?;
-    println!("{digest}");
+    let outcome = load_directory_package("project")?;
+
+    for diagnostic in outcome.report().iter() {
+        eprintln!("{}: {}", diagnostic.code, diagnostic.message);
+    }
+
+    let Some(package) = outcome.validated_package() else {
+        return Ok(());
+    };
+
+    for drawing in package.drawings() {
+        let entity_count = drawing
+            .layouts()
+            .map(|layout| {
+                layout
+                    .representation()
+                    .resource()
+                    .entities(layout.scope().id())
+                    .count()
+            })
+            .sum::<usize>();
+        println!(
+            "{}: {} entities",
+            drawing.path(),
+            entity_count
+        );
+    }
     Ok(())
 }
 ```
 
-The API is still evolving. Canonicalisation, conformance support, and the
-stable diagnostic vocabulary are public; directory-package loading remains
-internal until its contract is mature.
+Opening a directory is intentionally separate from obtaining a strict model.
+`PackageLoadOutcome` always retains diagnostics for an inspectable package;
+`ValidatedIfccadPackage` is available only when the schema, graph, resources,
+bindings, and supported IFCDR content satisfy the current contract. Its typed
+views do not expose raw IFCX JSON or physical IFCDR stream columns.
+
+The public API is still evolving while the format contract matures.
 
 ## Format contract and versioning
 
@@ -80,9 +110,9 @@ The [Python prototype](https://github.com/OpenAEC-Foundation/ifccad-prototype) r
 the model-first reference implementation and format laboratory.
 
 This primary crate deliberately does not provide `CadDocument` or DWG/DXF I/O.
-A future `ifccad-cad-document` companion crate will own conversion between a
-loaded IFCCAD package and the CAD runtime model while keeping this format crate
-independent of CAD codecs and geometry engines.
+A future `ifccad-convert` companion crate will own conversion between a
+validated IFCCAD package and the CAD runtime model while keeping this format
+crate independent of CAD codecs and geometry engines.
 
 See [PROVENANCE.md](PROVENANCE.md) for the history of the clean repository
 transition.
