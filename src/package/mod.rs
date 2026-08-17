@@ -4,6 +4,7 @@
 //! publicly exposes only the stable diagnostic vocabulary.
 
 mod analysis;
+mod appearance;
 mod bindings;
 pub(crate) mod codes;
 mod diagnostic;

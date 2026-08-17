@@ -161,6 +161,12 @@ impl Validated<LoadedIfcdrResource> {
             .find(|binding| binding.id() == id)
     }
 
+    pub(crate) fn appearance_override(&self, id: u32) -> Option<AppearanceOverrideRef<'_>> {
+        self.bindings()
+            .appearance_overrides()
+            .find(|appearance_override| appearance_override.id() == id)
+    }
+
     pub(crate) fn bindings(&self) -> IfcdrBindings<'_> {
         IfcdrBindings { resource: self }
     }
@@ -255,6 +261,18 @@ impl<'a> IfcdrBindings<'a> {
             row: row.as_object().expect("validated appearance row"),
         })
     }
+    pub(crate) fn appearance_overrides(
+        &self,
+    ) -> impl ExactSizeIterator<Item = AppearanceOverrideRef<'a>> {
+        rows(
+            self.resource.loaded().source().value(),
+            "appearanceOverrides",
+        )
+        .iter()
+        .map(|row| AppearanceOverrideRef {
+            row: row.as_object().expect("validated appearance override row"),
+        })
+    }
 }
 
 pub(crate) struct LayerBindingRef<'a> {
@@ -290,6 +308,34 @@ impl AppearanceBindingRef<'_> {
     }
     pub(crate) fn line_weight_mode(&self) -> u32 {
         u32_value(self.row, "lineWeightMode")
+    }
+    pub(crate) fn override_id(&self) -> Option<u32> {
+        self.row
+            .get("overrideId")
+            .and_then(Value::as_u64)
+            .and_then(|value| u32::try_from(value).ok())
+    }
+}
+
+pub(crate) struct AppearanceOverrideRef<'a> {
+    row: &'a Map<String, Value>,
+}
+
+impl AppearanceOverrideRef<'_> {
+    pub(crate) fn id(&self) -> u32 {
+        u32_value(self.row, "id")
+    }
+    pub(crate) fn color(&self) -> Option<&Value> {
+        self.row.get("color").filter(|value| !value.is_null())
+    }
+    pub(crate) fn opacity(&self) -> Option<f64> {
+        self.row.get("opacity").and_then(Value::as_f64)
+    }
+    pub(crate) fn ifcx_line_pattern(&self) -> Option<&str> {
+        self.row.get("ifcxLinePattern").and_then(Value::as_str)
+    }
+    pub(crate) fn line_weight(&self) -> Option<f64> {
+        self.row.get("lineWeight").and_then(Value::as_f64)
     }
 }
 

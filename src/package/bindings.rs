@@ -121,6 +121,14 @@ pub(super) fn analyze_resource_bindings(
         &mut result,
     );
     result
+        .diagnostics
+        .extend(super::appearance::validate_appearance_and_layer_semantics(
+            nodes,
+            node_indices_by_path,
+            validated_ifcdr_resources,
+            &result.bindings,
+        ));
+    result
 }
 
 fn validate_layout_bindings(nodes: &[Value], result: &mut BindingAnalysis) {

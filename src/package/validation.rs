@@ -640,6 +640,158 @@ mod tests {
     }
 
     #[test]
+    fn rejects_unknown_appearance_modes() {
+        for (mode_field, property) in [
+            ("colorMode", "color"),
+            ("opacityMode", "opacity"),
+            ("linePatternMode", "linePattern"),
+            ("lineWeightMode", "lineWeight"),
+        ] {
+            let root = TestDirectory::new(&format!("unknown-{property}-mode"));
+            let mut entrypoint = copy_minimal_package(root.path());
+            let mut ifcdr = read_ifcdr(root.path());
+            ifcdr["appearanceBindings"][0][mode_field] = serde_json::json!(3);
+            write_ifcdr_and_update_checksum(root.path(), &mut entrypoint, &ifcdr);
+            write_entrypoint(root.path(), &entrypoint);
+
+            let outcome = load_directory_package(root.path()).expect("load package");
+            let expected_location = format!("/appearanceBindings/0/{mode_field}");
+
+            assert!(outcome.validated_package.is_none());
+            assert!(outcome.report.iter().any(|diagnostic| {
+                diagnostic.code == "IFCCAD_PACKAGE_APPEARANCE_INVALID"
+                    && diagnostic.resource_uri.as_deref() == Some("drawing.ifcdr.json")
+                    && diagnostic.location.as_deref() == Some(expected_location.as_str())
+                    && diagnostic.context.get("property")
+                        == Some(&PackageDiagnosticContextValue::String(property.to_owned()))
+            }));
+        }
+    }
+
+    #[test]
+    fn rejects_explicit_appearance_properties_without_a_value_source() {
+        for (mode_field, property) in [
+            ("colorMode", "color"),
+            ("opacityMode", "opacity"),
+            ("linePatternMode", "linePattern"),
+            ("lineWeightMode", "lineWeight"),
+        ] {
+            let root = TestDirectory::new(&format!("unresolved-{property}-appearance"));
+            let mut entrypoint = copy_minimal_package(root.path());
+            let mut ifcdr = read_ifcdr(root.path());
+            ifcdr["appearanceBindings"][0][mode_field] = serde_json::json!(1);
+            write_ifcdr_and_update_checksum(root.path(), &mut entrypoint, &ifcdr);
+            write_entrypoint(root.path(), &entrypoint);
+
+            let outcome = load_directory_package(root.path()).expect("load package");
+            let expected_location = format!("/appearanceBindings/0/{mode_field}");
+
+            assert!(outcome.validated_package.is_none());
+            assert!(outcome.report.iter().any(|diagnostic| {
+                diagnostic.code == "IFCCAD_PACKAGE_APPEARANCE_INVALID"
+                    && diagnostic.resource_uri.as_deref() == Some("drawing.ifcdr.json")
+                    && diagnostic.location.as_deref() == Some(expected_location.as_str())
+                    && diagnostic.context.get("property")
+                        == Some(&PackageDiagnosticContextValue::String(property.to_owned()))
+            }));
+        }
+    }
+
+    #[test]
+    fn rejects_case_insensitive_duplicate_layer_names_per_resource() {
+        let root = TestDirectory::new("duplicate-layer-name");
+        let mut entrypoint = copy_minimal_package(root.path());
+        entrypoint["data"][5]["attributes"]["name"] = serde_json::json!("0");
+        write_entrypoint(root.path(), &entrypoint);
+
+        let outcome = load_directory_package(root.path()).expect("load package");
+
+        assert!(outcome.validated_package.is_none());
+        assert!(outcome.report.iter().any(|diagnostic| {
+            diagnostic.code == "IFCCAD_PACKAGE_LAYER_NAME_DUPLICATE"
+                && diagnostic.resource_uri.as_deref() == Some("drawing.ifcdr.json")
+                && diagnostic.location.as_deref() == Some("/layerBindings/1/ifcxLayer")
+        }));
+    }
+
+    #[test]
+    fn explicit_appearance_uses_a_valid_override_before_the_ifcx_default() {
+        let root = TestDirectory::new("valid-appearance-override");
+        let mut entrypoint = copy_minimal_package(root.path());
+        let mut ifcdr = read_ifcdr(root.path());
+        ifcdr["appearanceBindings"][2]["overrideId"] = serde_json::json!(9);
+        ifcdr["appearanceOverrides"] = serde_json::json!([{
+            "id": 9,
+            "color": {"rgb": [0, 255, 0]},
+            "opacity": null,
+            "ifcxLinePattern": null,
+            "lineWeight": null
+        }]);
+        write_ifcdr_and_update_checksum(root.path(), &mut entrypoint, &ifcdr);
+        write_entrypoint(root.path(), &entrypoint);
+
+        let outcome = load_directory_package(root.path()).expect("load package");
+
+        assert!(
+            outcome.validated_package.is_some(),
+            "valid override should retain strict proof: {:?}",
+            outcome.report.diagnostics()
+        );
+    }
+
+    #[test]
+    fn invalid_appearance_override_does_not_fall_back_to_the_ifcx_default() {
+        let root = TestDirectory::new("invalid-appearance-override");
+        let mut entrypoint = copy_minimal_package(root.path());
+        let mut ifcdr = read_ifcdr(root.path());
+        ifcdr["appearanceBindings"][2]["overrideId"] = serde_json::json!(9);
+        ifcdr["appearanceOverrides"] = serde_json::json!([{
+            "id": 9,
+            "color": "green",
+            "opacity": null,
+            "ifcxLinePattern": null,
+            "lineWeight": null
+        }]);
+        write_ifcdr_and_update_checksum(root.path(), &mut entrypoint, &ifcdr);
+        write_entrypoint(root.path(), &entrypoint);
+
+        let outcome = load_directory_package(root.path()).expect("load package");
+
+        assert!(outcome.validated_package.is_none());
+        assert!(outcome.report.iter().any(|diagnostic| {
+            diagnostic.code == "IFCCAD_PACKAGE_APPEARANCE_INVALID"
+                && diagnostic.resource_uri.as_deref() == Some("drawing.ifcdr.json")
+                && diagnostic.location.as_deref() == Some("/appearanceBindings/2/colorMode")
+        }));
+    }
+
+    #[test]
+    fn explicit_line_pattern_override_requires_an_existing_ifcx_identity() {
+        let root = TestDirectory::new("missing-line-pattern-identity");
+        let mut entrypoint = copy_minimal_package(root.path());
+        let mut ifcdr = read_ifcdr(root.path());
+        ifcdr["appearanceBindings"][2]["overrideId"] = serde_json::json!(9);
+        ifcdr["appearanceOverrides"] = serde_json::json!([{
+            "id": 9,
+            "color": null,
+            "opacity": null,
+            "ifcxLinePattern": "missing-line-pattern",
+            "lineWeight": null
+        }]);
+        write_ifcdr_and_update_checksum(root.path(), &mut entrypoint, &ifcdr);
+        write_entrypoint(root.path(), &entrypoint);
+
+        let outcome = load_directory_package(root.path()).expect("load package");
+
+        assert!(outcome.validated_package.is_none());
+        assert!(outcome.report.iter().any(|diagnostic| {
+            diagnostic.code == "IFCCAD_PACKAGE_APPEARANCE_INVALID"
+                && diagnostic.resource_uri.as_deref() == Some("drawing.ifcdr.json")
+                && diagnostic.location.as_deref() == Some("/appearanceBindings/2/linePatternMode")
+        }));
+    }
+
+    #[test]
     fn valid_package_retains_proven_layout_layer_and_appearance_bindings() {
         let root = TestDirectory::new("proven-cross-resource-bindings");
         let entrypoint = copy_minimal_package(root.path());
