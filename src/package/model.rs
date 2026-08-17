@@ -61,8 +61,9 @@ pub(crate) struct PackageAnalysis {
     pub(crate) bindings: super::bindings::PackageBindings,
 }
 
+/// Result of inspecting and validating an IFCCAD directory package.
 #[derive(Debug)]
-pub(crate) struct PackageLoadOutcome {
+pub struct PackageLoadOutcome {
     #[cfg_attr(not(test), allow(dead_code))]
     pub(crate) package: Option<Arc<LoadedIfccadPackage>>,
     #[allow(dead_code)]
@@ -70,4 +71,31 @@ pub(crate) struct PackageLoadOutcome {
     #[allow(dead_code)]
     pub(crate) validated_package: Option<super::analysis::ValidatedIfccadPackage>,
     pub(crate) report: PackageValidationReport,
+}
+
+impl PackageLoadOutcome {
+    /// Returns every diagnostic collected while inspecting the package.
+    pub fn report(&self) -> &PackageValidationReport {
+        &self.report
+    }
+
+    /// Returns the strict package proof when no error diagnostic was produced.
+    pub fn validated_package(&self) -> Option<&super::analysis::ValidatedIfccadPackage> {
+        self.validated_package.as_ref()
+    }
+
+    /// Consumes the outcome and returns its strict package proof, when available.
+    pub fn into_validated_package(self) -> Option<super::analysis::ValidatedIfccadPackage> {
+        self.validated_package
+    }
+
+    /// Consumes the outcome into its strict proof and complete diagnostic report.
+    pub fn into_parts(
+        self,
+    ) -> (
+        Option<super::analysis::ValidatedIfccadPackage>,
+        PackageValidationReport,
+    ) {
+        (self.validated_package, self.report)
+    }
 }

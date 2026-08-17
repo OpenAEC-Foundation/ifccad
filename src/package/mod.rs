@@ -1,7 +1,7 @@
 //! Directory-based IFCCAD package foundations.
 //!
-//! The directory loader remains an internal implementation detail. This module
-//! publicly exposes only the stable diagnostic vocabulary.
+//! Packages can be inspected for diagnostics and exposed through a strict,
+//! typed model only after all required validation succeeds.
 
 mod analysis;
 mod appearance;
@@ -19,14 +19,15 @@ mod schema;
 mod uri;
 mod validation;
 
+pub use analysis::ValidatedIfccadPackage;
 pub use diagnostic::{
     PackageDiagnostic, PackageDiagnosticContextValue, PackageDiagnosticSeverity,
     PackageValidationReport,
 };
-pub(crate) use error::PackageOpenError;
+pub use error::PackageOpenError;
 pub(crate) use model::LoadedJsonResource;
-#[cfg(test)]
-pub(crate) use validation::load_directory_package;
+pub use model::PackageLoadOutcome;
+pub use validation::load_directory_package;
 
 /// Current IFCX entrypoint inside an exploded directory package.
-pub(crate) const DIRECTORY_PACKAGE_ENTRYPOINT: &str = "package.ifcx.json";
+pub const DIRECTORY_PACKAGE_ENTRYPOINT: &str = "package.ifcx.json";

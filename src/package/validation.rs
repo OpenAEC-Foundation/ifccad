@@ -16,7 +16,7 @@ use std::sync::Arc;
 
 // The conformance composer will become this internal orchestrator's production caller.
 #[cfg_attr(not(test), allow(dead_code))]
-pub(crate) fn load_directory_package(
+pub fn load_directory_package(
     root: impl AsRef<Path>,
 ) -> Result<PackageLoadOutcome, PackageOpenError> {
     let mut loader = DirectoryPackageLoader::open(root, PackageLoadLimits::default())?;

@@ -3,7 +3,7 @@ use std::path::PathBuf;
 
 /// Failure that prevents an IFCCAD package from being inspected.
 #[derive(Debug, thiserror::Error)]
-pub(crate) enum PackageOpenError {
+pub enum PackageOpenError {
     /// The supplied package root exists but is not a directory.
     #[error("IFCCAD package root is not a directory: {path}")]
     RootNotDirectory { path: PathBuf },
