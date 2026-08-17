@@ -25,7 +25,7 @@ impl LoadedIfcdrResource {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub(crate) struct Point2 {
+pub struct Point2 {
     pub(crate) x: f64,
     pub(crate) y: f64,
 }
@@ -34,10 +34,10 @@ impl Point2 {
     pub(crate) fn new(x: f64, y: f64) -> Self {
         Self { x, y }
     }
-    pub(crate) fn x(self) -> f64 {
+    pub fn x(self) -> f64 {
         self.x
     }
-    pub(crate) fn y(self) -> f64 {
+    pub fn y(self) -> f64 {
         self.y
     }
 }
@@ -58,25 +58,25 @@ impl Bounds2d {
 }
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub(crate) struct LayerId(u32);
+pub struct LayerId(u32);
 
 impl LayerId {
     pub(crate) fn new(value: u32) -> Self {
         Self(value)
     }
-    pub(crate) fn get(self) -> u32 {
+    pub fn get(self) -> u32 {
         self.0
     }
 }
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub(crate) struct AppearanceId(u32);
+pub struct AppearanceId(u32);
 
 impl AppearanceId {
     pub(crate) fn new(value: u32) -> Self {
         Self(value)
     }
-    pub(crate) fn get(self) -> u32 {
+    pub fn get(self) -> u32 {
         self.0
     }
 }
@@ -130,6 +130,65 @@ pub(crate) struct IfcdrValidationEvidence {
 }
 
 pub(crate) type ValidatedIfcdrResource = Validated<LoadedIfcdrResource>;
+
+/// Length unit declared by a validated IFCDR resource.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum IfccadLengthUnit {
+    Unitless,
+    Millimetre,
+    Centimetre,
+    Metre,
+    Kilometre,
+    Inch,
+    Foot,
+}
+
+/// Opaque semantic view over a strictly validated IFCDR resource.
+#[derive(Clone, Copy)]
+pub struct IfcdrResourceRef<'a> {
+    resource: &'a ValidatedIfcdrResource,
+}
+
+impl<'a> IfcdrResourceRef<'a> {
+    pub(crate) fn new(resource: &'a ValidatedIfcdrResource) -> Self {
+        Self { resource }
+    }
+
+    pub fn resource_id(&self) -> &'a str {
+        self.resource.header().resource_id()
+    }
+
+    pub fn unit(&self) -> IfccadLengthUnit {
+        match self.resource.header().unit() {
+            "unitless" => IfccadLengthUnit::Unitless,
+            "mm" => IfccadLengthUnit::Millimetre,
+            "cm" => IfccadLengthUnit::Centimetre,
+            "m" => IfccadLengthUnit::Metre,
+            "km" => IfccadLengthUnit::Kilometre,
+            "in" => IfccadLengthUnit::Inch,
+            "ft" => IfccadLengthUnit::Foot,
+            _ => unreachable!("validated IFCDR length unit"),
+        }
+    }
+
+    pub fn scopes(&self) -> impl ExactSizeIterator<Item = ScopeRef<'_>> {
+        self.resource.scopes()
+    }
+
+    pub fn scope(&self, id: crate::ifcdr::entity::ScopeId) -> Option<ScopeRef<'_>> {
+        self.resource.scope(id)
+    }
+
+    pub fn entities(
+        &self,
+        scope: crate::ifcdr::entity::ScopeId,
+    ) -> crate::ifcdr::entity::EntityIterator<'_> {
+        self.resource
+            .entities()
+            .in_scope(scope)
+            .expect("validated IFCDR scope has canonical entity order")
+    }
+}
 
 impl Validated<LoadedIfcdrResource> {
     pub(crate) fn header(&self) -> &IfcdrHeader {
@@ -214,27 +273,27 @@ impl<'a> UnmodeledStreamRef<'a> {
     }
 }
 
-pub(crate) struct ScopeRef<'a> {
+pub struct ScopeRef<'a> {
     row: &'a Map<String, Value>,
 }
 
 impl ScopeRef<'_> {
-    pub(crate) fn id(&self) -> crate::ifcdr::entity::ScopeId {
+    pub fn id(&self) -> crate::ifcdr::entity::ScopeId {
         crate::ifcdr::entity::ScopeId::new(u32_value(self.row, "id"))
     }
-    pub(crate) fn name(&self) -> &str {
+    pub fn name(&self) -> &str {
         string_value(self.row, "name")
     }
-    pub(crate) fn base(&self) -> Point2 {
+    pub fn base(&self) -> Point2 {
         Point2::new(
             float_value(self.row, "baseX"),
             float_value(self.row, "baseY"),
         )
     }
-    pub(crate) fn kind(&self) -> u32 {
+    pub fn kind(&self) -> u32 {
         u32_value(self.row, "kind")
     }
-    pub(crate) fn flags(&self) -> u32 {
+    pub fn flags(&self) -> u32 {
         u32_value(self.row, "flags")
     }
 }
@@ -442,6 +501,35 @@ mod tests {
                 .map(|stream| stream.name())
                 .collect::<Vec<_>>(),
             ["entityOrder", "entityOrderEntry"]
+        );
+    }
+
+    #[test]
+    fn public_resource_view_exposes_semantic_units_and_entity_order() {
+        let outcome = validate_ifcdr(LoadedIfcdrResource::new(
+            "drawing.ifcdr.json".to_owned(),
+            fixture_source(),
+        ));
+        let resource = outcome.validated().expect("valid IFCDR");
+        let view = IfcdrResourceRef::new(resource);
+        let scope = view.scopes().next().expect("model scope");
+
+        assert_eq!(view.resource_id(), "geometry-modelspace-main");
+        assert_eq!(view.unit(), IfccadLengthUnit::Metre);
+        assert_eq!(scope.name(), "ModelSpace");
+        assert_eq!(
+            view.entities(scope.id())
+                .map(|entity| match entity {
+                    crate::ifcdr::entity::IfcdrEntityRef::Line(line) => line.entity_id().get(),
+                    crate::ifcdr::entity::IfcdrEntityRef::Polyline(polyline) => {
+                        polyline.entity_id().get()
+                    }
+                    crate::ifcdr::entity::IfcdrEntityRef::Unmodeled(entity) => {
+                        entity.entity_id().get()
+                    }
+                })
+                .collect::<Vec<_>>(),
+            [1, 2, 3, 4]
         );
     }
 }

@@ -9,7 +9,7 @@ use super::resource::{
 use crate::package::codes::{
     IFCCAD_IFCDR_DIRECTORY_INVALID, IFCCAD_IFCDR_REFERENCE_MISSING,
     IFCCAD_IFCDR_STREAM_SCHEMA_UNSUPPORTED, IFCCAD_IFCDR_STRUCTURE_INVALID,
-    IFCCAD_IFCDR_VERSION_UNSUPPORTED,
+    IFCCAD_IFCDR_UNIT_UNSUPPORTED, IFCCAD_IFCDR_VERSION_UNSUPPORTED,
 };
 use crate::package::{PackageDiagnostic, PackageDiagnosticContextValue, PackageDiagnosticSeverity};
 use crate::validated::{EvidenceOutcome, Validated, ValidationOutcome};
@@ -154,11 +154,26 @@ impl<'a> ResourceValidator<'a> {
                 "IFCDR header format must be openaec.ifcdr",
             );
         }
+        let unit = header.get("unit")?.as_str()?.to_owned();
+        if !matches!(
+            unit.as_str(),
+            "unitless" | "mm" | "cm" | "m" | "km" | "in" | "ft"
+        ) {
+            self.error_with_context(
+                IFCCAD_IFCDR_UNIT_UNSUPPORTED,
+                "/header/unit",
+                "unsupported IFCDR length unit",
+                BTreeMap::from([(
+                    "actualUnit".to_owned(),
+                    PackageDiagnosticContextValue::String(unit.clone()),
+                )]),
+            );
+        }
         Some(IfcdrHeader {
             format,
             version: header.get("version")?.as_str()?.to_owned(),
             resource_id: header.get("resourceId")?.as_str()?.to_owned(),
-            unit: header.get("unit")?.as_str()?.to_owned(),
+            unit,
             next_entity_id: as_u64(header.get("nextEntityId")?)?,
         })
     }

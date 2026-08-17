@@ -3,8 +3,10 @@ mod line;
 mod polyline;
 mod store;
 
-pub(crate) use line::{Line, LineStreamView};
-pub(crate) use polyline::{PolylineRef, PolylineStreamView};
+pub use line::Line;
+pub(crate) use line::LineStreamView;
+pub(crate) use polyline::PolylineStreamView;
+pub use polyline::{PointIterator, PolylineRef};
 
 use crate::ifcdr::resource::ValidatedIfcdrResource;
 use store::ValidatedIfcdrStreamRef;

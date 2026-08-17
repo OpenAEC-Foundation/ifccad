@@ -15,5 +15,5 @@ pub mod canonicalization;
 pub mod conformance;
 pub mod package;
 
-mod ifcdr;
+pub mod ifcdr;
 mod validated;

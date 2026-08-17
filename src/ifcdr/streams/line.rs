@@ -3,7 +3,7 @@ use crate::ifcdr::entity::{EntityId, ScopeId};
 use crate::ifcdr::resource::{AppearanceId, LayerId, Point2};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub(crate) struct Line {
+pub struct Line {
     entity_id: EntityId,
     scope_id: ScopeId,
     start: Point2,
@@ -14,25 +14,25 @@ pub(crate) struct Line {
 }
 
 impl Line {
-    pub(crate) fn entity_id(&self) -> EntityId {
+    pub fn entity_id(&self) -> EntityId {
         self.entity_id
     }
-    pub(crate) fn scope_id(&self) -> ScopeId {
+    pub fn scope_id(&self) -> ScopeId {
         self.scope_id
     }
-    pub(crate) fn start(&self) -> Point2 {
+    pub fn start(&self) -> Point2 {
         self.start
     }
-    pub(crate) fn end(&self) -> Point2 {
+    pub fn end(&self) -> Point2 {
         self.end
     }
-    pub(crate) fn layer_id(&self) -> LayerId {
+    pub fn layer_id(&self) -> LayerId {
         self.layer_id
     }
-    pub(crate) fn appearance_id(&self) -> AppearanceId {
+    pub fn appearance_id(&self) -> AppearanceId {
         self.appearance_id
     }
-    pub(crate) fn visible(&self) -> bool {
+    pub fn visible(&self) -> bool {
         self.visible
     }
 }

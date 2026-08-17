@@ -1,5 +1,5 @@
-// The IFCDR model is intentionally crate-internal until package-wide validation
-// and the first conversion experiments establish its stable consumer surface.
+//! Typed, read-only views over validated IFCDR drawing resources.
+
 #![allow(dead_code)]
 
 mod entity;
@@ -8,7 +8,8 @@ mod resource;
 mod streams;
 mod validation;
 
-pub(crate) use entity::ScopeId;
-pub(crate) use resource::ScopeRef;
-pub(crate) use resource::{AppearanceId, LayerId, LoadedIfcdrResource, ValidatedIfcdrResource};
+pub use entity::{EntityId, EntityIterator, IfcdrEntityRef, ScopeId, UnmodeledEntityRef};
+pub use resource::{AppearanceId, IfccadLengthUnit, IfcdrResourceRef, LayerId, Point2, ScopeRef};
+pub(crate) use resource::{LoadedIfcdrResource, ValidatedIfcdrResource};
+pub use streams::{Line, PointIterator, PolylineRef};
 pub(crate) use validation::validate_ifcdr;

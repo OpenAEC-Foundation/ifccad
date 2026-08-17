@@ -31,13 +31,13 @@ impl<'a> PolylineStreamView<'a> {
 }
 
 #[derive(Clone, Copy)]
-pub(crate) struct PolylineRef<'a> {
+pub struct PolylineRef<'a> {
     stream: ValidatedIfcdrStreamRef<'a>,
     row: usize,
 }
 
 impl<'a> PolylineRef<'a> {
-    pub(crate) fn entity_id(&self) -> EntityId {
+    pub fn entity_id(&self) -> EntityId {
         EntityId::new(
             self.stream
                 .uint64("entityId")
@@ -46,7 +46,7 @@ impl<'a> PolylineRef<'a> {
         )
         .expect("validated entity ID")
     }
-    pub(crate) fn scope_id(&self) -> ScopeId {
+    pub fn scope_id(&self) -> ScopeId {
         ScopeId::new(
             self.stream
                 .uint32("scopeId")
@@ -54,13 +54,13 @@ impl<'a> PolylineRef<'a> {
                 .expect("validated scope ID"),
         )
     }
-    pub(crate) fn closed(&self) -> bool {
+    pub fn closed(&self) -> bool {
         self.stream
             .boolean("closed")
             .get(self.row)
             .expect("validated closed state")
     }
-    pub(crate) fn layer_id(&self) -> LayerId {
+    pub fn layer_id(&self) -> LayerId {
         LayerId::new(
             self.stream
                 .uint32("layerId")
@@ -68,7 +68,7 @@ impl<'a> PolylineRef<'a> {
                 .expect("validated layer ID"),
         )
     }
-    pub(crate) fn appearance_id(&self) -> AppearanceId {
+    pub fn appearance_id(&self) -> AppearanceId {
         AppearanceId::new(
             self.stream
                 .uint32("appearanceId")
@@ -76,13 +76,13 @@ impl<'a> PolylineRef<'a> {
                 .expect("validated appearance ID"),
         )
     }
-    pub(crate) fn visible(&self) -> bool {
+    pub fn visible(&self) -> bool {
         self.stream
             .boolean("visible")
             .get(self.row)
             .expect("validated visibility")
     }
-    pub(crate) fn points(&self) -> PointIterator<'a> {
+    pub fn points(&self) -> PointIterator<'a> {
         let start = usize::try_from(
             self.stream
                 .uint32("vertexOffset")
@@ -106,7 +106,7 @@ impl<'a> PolylineRef<'a> {
     }
 }
 
-pub(crate) struct PointIterator<'a> {
+pub struct PointIterator<'a> {
     x: Float64Column<'a>,
     y: Float64Column<'a>,
     next: usize,

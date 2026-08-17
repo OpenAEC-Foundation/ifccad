@@ -13,27 +13,27 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::num::NonZeroU64;
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub(crate) struct EntityId(NonZeroU64);
+pub struct EntityId(NonZeroU64);
 
 impl EntityId {
     pub(crate) fn new(value: u64) -> Option<Self> {
         NonZeroU64::new(value).map(Self)
     }
 
-    pub(crate) fn get(self) -> u64 {
+    pub fn get(self) -> u64 {
         self.0.get()
     }
 }
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub(crate) struct ScopeId(u32);
+pub struct ScopeId(u32);
 
 impl ScopeId {
     pub(crate) fn new(value: u32) -> Self {
         Self(value)
     }
 
-    pub(crate) fn get(self) -> u32 {
+    pub fn get(self) -> u32 {
         self.0
     }
 }
@@ -88,7 +88,7 @@ impl<'a> IfcdrEntities<'a> {
     }
 }
 
-pub(crate) struct EntityIterator<'a> {
+pub struct EntityIterator<'a> {
     resource: &'a ValidatedIfcdrResource,
     ids: std::slice::Iter<'a, EntityId>,
 }
@@ -135,28 +135,28 @@ impl<'a> Iterator for EntityIterator<'a> {
 
 impl ExactSizeIterator for EntityIterator<'_> {}
 
-pub(crate) enum IfcdrEntityRef<'a> {
+pub enum IfcdrEntityRef<'a> {
     Line(Line),
     Polyline(PolylineRef<'a>),
     Unmodeled(UnmodeledEntityRef<'a>),
 }
 
-pub(crate) struct UnmodeledEntityRef<'a> {
+pub struct UnmodeledEntityRef<'a> {
     entity_id: EntityId,
     location: &'a EntityLocation,
 }
 
 impl UnmodeledEntityRef<'_> {
-    pub(crate) fn entity_id(&self) -> EntityId {
+    pub fn entity_id(&self) -> EntityId {
         self.entity_id
     }
-    pub(crate) fn scope_id(&self) -> ScopeId {
+    pub fn scope_id(&self) -> ScopeId {
         self.location.scope_id
     }
-    pub(crate) fn stream_name(&self) -> &str {
+    pub fn stream_name(&self) -> &str {
         &self.location.stream_name
     }
-    pub(crate) fn schema_id(&self) -> &str {
+    pub fn schema_id(&self) -> &str {
         &self.location.schema_id
     }
     pub(crate) fn row_index(&self) -> usize {

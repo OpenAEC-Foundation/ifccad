@@ -844,6 +844,25 @@ mod tests {
     }
 
     #[test]
+    fn unsupported_ifcdr_unit_blocks_the_strict_package() {
+        let root = TestDirectory::new("unsupported-ifcdr-unit");
+        let mut entrypoint = copy_minimal_package(root.path());
+        let mut ifcdr = read_ifcdr(root.path());
+        ifcdr["header"]["unit"] = serde_json::json!("parsec");
+        write_ifcdr_and_update_checksum(root.path(), &mut entrypoint, &ifcdr);
+        write_entrypoint(root.path(), &entrypoint);
+
+        let outcome = load_directory_package(root.path()).expect("load package");
+
+        assert!(outcome.validated_package.is_none());
+        assert!(outcome.report.iter().any(|diagnostic| {
+            diagnostic.code == "IFCCAD_IFCDR_UNIT_UNSUPPORTED"
+                && diagnostic.resource_uri.as_deref() == Some("drawing.ifcdr.json")
+                && diagnostic.location.as_deref() == Some("/header/unit")
+        }));
+    }
+
+    #[test]
     fn ifcdr_resources_validate_independently_within_one_package() {
         let root = TestDirectory::new("independent-ifcdr-proofs");
         let valid = fs::read(
