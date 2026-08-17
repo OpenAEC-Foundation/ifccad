@@ -6,6 +6,107 @@ use serde_json::Value;
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
+/// How one appearance property obtains its value.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum AppearanceProperty<T> {
+    ByLayer,
+    ByBlock,
+    Explicit(T),
+}
+
+/// An RGB color preserved together with optional CAD color identities.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct AppearanceColorRef<'a> {
+    value: &'a Value,
+}
+
+impl<'a> AppearanceColorRef<'a> {
+    pub(crate) fn new(value: &'a Value) -> Self {
+        Self { value }
+    }
+
+    pub fn rgb(&self) -> RgbColor {
+        let components = self.value["rgb"]
+            .as_array()
+            .expect("validated appearance RGB value");
+        RgbColor([
+            components[0].as_u64().expect("validated red component") as u8,
+            components[1].as_u64().expect("validated green component") as u8,
+            components[2].as_u64().expect("validated blue component") as u8,
+        ])
+    }
+
+    pub fn indexed(&self) -> Option<IndexedColorRef<'a>> {
+        self.value.get("indexedColor").map(IndexedColorRef::new)
+    }
+
+    pub fn named(&self) -> Option<NamedColorRef<'a>> {
+        self.value.get("namedColor").map(NamedColorRef::new)
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct RgbColor([u8; 3]);
+
+impl RgbColor {
+    pub fn components(self) -> [u8; 3] {
+        self.0
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct IndexedColorRef<'a> {
+    value: &'a Value,
+}
+
+impl<'a> IndexedColorRef<'a> {
+    fn new(value: &'a Value) -> Self {
+        Self { value }
+    }
+
+    pub fn system(&self) -> &'a str {
+        self.value["system"]
+            .as_str()
+            .expect("validated indexed-color system")
+    }
+
+    pub fn index(&self) -> u64 {
+        self.value["index"]
+            .as_u64()
+            .expect("validated indexed-color index")
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct NamedColorRef<'a> {
+    value: &'a Value,
+}
+
+impl<'a> NamedColorRef<'a> {
+    fn new(value: &'a Value) -> Self {
+        Self { value }
+    }
+
+    pub fn catalog(&self) -> &'a str {
+        self.value["catalog"]
+            .as_str()
+            .expect("validated named-color catalog")
+    }
+
+    pub fn name(&self) -> &'a str {
+        self.value["name"]
+            .as_str()
+            .expect("validated named-color name")
+    }
+}
+
+/// A line-pattern value can be a local IFCX appearance value or an IFCX identity.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum LinePatternRef<'a> {
+    Name(&'a str),
+    IfcxIdentity(&'a str),
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum AppearanceMode {
     ByLayer,

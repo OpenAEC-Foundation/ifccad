@@ -20,6 +20,10 @@ mod uri;
 mod validation;
 
 pub use analysis::ValidatedIfccadPackage;
+pub use appearance::{
+    AppearanceColorRef, AppearanceProperty, IndexedColorRef, LinePatternRef, NamedColorRef,
+    RgbColor,
+};
 pub use diagnostic::{
     PackageDiagnostic, PackageDiagnosticContextValue, PackageDiagnosticSeverity,
     PackageValidationReport,
@@ -27,6 +31,10 @@ pub use diagnostic::{
 pub use error::PackageOpenError;
 pub(crate) use model::LoadedJsonResource;
 pub use model::PackageLoadOutcome;
+pub use navigation::{
+    AppearanceRef, AppliedAppearanceRef, DrawingLayoutKind, DrawingLayoutRef, DrawingRef,
+    DrawingSetRef, GeometryRepresentationRef, LayerRef,
+};
 pub use validation::load_directory_package;
 
 /// Current IFCX entrypoint inside an exploded directory package.

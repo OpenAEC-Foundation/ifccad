@@ -1,6 +1,10 @@
+use ifccad::conformance::bundled_conformance_root;
 use ifccad::ifcdr::{
     AppearanceId, EntityId, IfccadLengthUnit, IfcdrEntityRef, IfcdrResourceRef, LayerId, Point2,
     ScopeId,
+};
+use ifccad::package::{
+    load_directory_package, AppearanceProperty, DrawingLayoutKind, LinePatternRef,
 };
 
 #[allow(dead_code)]
@@ -73,4 +77,105 @@ fn public_ifcdr_types_have_value_semantics() {
     require_eq::<ScopeId>();
     require_eq::<LayerId>();
     require_eq::<AppearanceId>();
+}
+
+#[test]
+fn validated_package_exposes_converter_inputs_without_raw_json() {
+    let root = bundled_conformance_root()
+        .join("packages")
+        .join("valid")
+        .join("minimal-no-preservation");
+    let outcome = load_directory_package(root).expect("inspect bundled package");
+    let package = outcome
+        .validated_package()
+        .expect("fixture is strictly valid");
+
+    assert_eq!(package.drawing_sets().count(), 1);
+    assert_eq!(package.drawings().count(), 1);
+    let drawing = package.drawings().next().expect("one drawing");
+    assert_eq!(drawing.path(), "drawing-main");
+
+    let representation = drawing.representation();
+    assert_eq!(representation.path(), "representation-modelspace-main");
+    assert_eq!(representation.role(), "modelspace");
+    assert_eq!(representation.uri(), "drawing.ifcdr.json");
+    assert_eq!(
+        representation.resource().resource_id(),
+        "geometry-modelspace-main"
+    );
+
+    let layout = drawing.layouts().next().expect("one layout");
+    assert_eq!(layout.name(), "Model");
+    assert_eq!(layout.kind(), DrawingLayoutKind::Model);
+    assert_eq!(layout.representation().path(), representation.path());
+    let scope = layout.scope();
+    assert_eq!(scope.name(), "ModelSpace");
+
+    assert_eq!(representation.layers().len(), 2);
+    let wall = representation
+        .layer(LayerId::from(1))
+        .expect("A-WALL layer");
+    assert_eq!(wall.name(), "A-WALL");
+    assert!(wall.visible());
+    let wall_appearance = wall.appearance().expect("layer appearance");
+    assert_eq!(wall_appearance.name(), "Dashed Red");
+
+    let default_solid = representation
+        .appearance(AppearanceId::from(2))
+        .expect("default appearance binding");
+    let AppearanceProperty::Explicit(color) = default_solid.color() else {
+        panic!("default color must be explicit");
+    };
+    assert_eq!(color.rgb().components(), [0, 0, 0]);
+    let indexed = color.indexed().expect("indexed identity");
+    assert_eq!(indexed.system(), "ACI");
+    assert_eq!(indexed.index(), 7);
+    assert_eq!(default_solid.opacity(), AppearanceProperty::Explicit(1.0));
+    assert_eq!(
+        default_solid.line_pattern(),
+        AppearanceProperty::Explicit(LinePatternRef::Name("continuous"))
+    );
+    assert_eq!(
+        default_solid.line_weight(),
+        AppearanceProperty::Explicit(0.25)
+    );
+
+    let dashed_red = representation
+        .appearance(AppearanceId::from(3))
+        .expect("red appearance binding");
+    let AppearanceProperty::Explicit(color) = dashed_red.color() else {
+        panic!("red color must be explicit");
+    };
+    assert_eq!(color.rgb().components(), [255, 0, 0]);
+    let named = color.named().expect("named identity");
+    assert_eq!(named.catalog(), "RAL");
+    assert_eq!(named.name(), "Traffic red");
+
+    let by_layer = representation
+        .appearance(AppearanceId::from(0))
+        .expect("ByLayer binding");
+    assert!(matches!(by_layer.color(), AppearanceProperty::ByLayer));
+    let by_block = representation
+        .appearance(AppearanceId::from(1))
+        .expect("ByBlock binding");
+    assert!(matches!(
+        by_block.line_weight(),
+        AppearanceProperty::ByBlock
+    ));
+
+    let projections = project_ifcdr_entities(representation.resource(), scope.id()).2;
+    assert_eq!(
+        projections
+            .iter()
+            .map(|entity| entity.entity_id.get())
+            .collect::<Vec<_>>(),
+        [1, 2, 3, 4]
+    );
+    assert_eq!(
+        representation
+            .layer(projections[1].layer_id.expect("modeled layer"))
+            .expect("resolved entity layer")
+            .name(),
+        "A-WALL"
+    );
 }

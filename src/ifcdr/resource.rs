@@ -69,6 +69,12 @@ impl LayerId {
     }
 }
 
+impl From<u32> for LayerId {
+    fn from(value: u32) -> Self {
+        Self(value)
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct AppearanceId(u32);
 
@@ -78,6 +84,12 @@ impl AppearanceId {
     }
     pub fn get(self) -> u32 {
         self.0
+    }
+}
+
+impl From<u32> for AppearanceId {
+    fn from(value: u32) -> Self {
+        Self(value)
     }
 }
 
@@ -380,17 +392,17 @@ pub(crate) struct AppearanceOverrideRef<'a> {
     row: &'a Map<String, Value>,
 }
 
-impl AppearanceOverrideRef<'_> {
+impl<'a> AppearanceOverrideRef<'a> {
     pub(crate) fn id(&self) -> u32 {
         u32_value(self.row, "id")
     }
-    pub(crate) fn color(&self) -> Option<&Value> {
+    pub(crate) fn color(&self) -> Option<&'a Value> {
         self.row.get("color").filter(|value| !value.is_null())
     }
     pub(crate) fn opacity(&self) -> Option<f64> {
         self.row.get("opacity").and_then(Value::as_f64)
     }
-    pub(crate) fn ifcx_line_pattern(&self) -> Option<&str> {
+    pub(crate) fn ifcx_line_pattern(&self) -> Option<&'a str> {
         self.row.get("ifcxLinePattern").and_then(Value::as_str)
     }
     pub(crate) fn line_weight(&self) -> Option<f64> {

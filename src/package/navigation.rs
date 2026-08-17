@@ -1,26 +1,26 @@
-// Typed package navigation remains crate-internal until conversion experiments
-// establish the stable consumer-facing surface.
-#![allow(dead_code)]
-
 use super::analysis::ValidatedIfccadPackage;
-use crate::ifcdr::{AppearanceId, LayerId, ScopeRef, ValidatedIfcdrResource};
+use super::appearance::{
+    appearance_mode, AppearanceColorRef, AppearanceMode, AppearanceProperty, LinePatternRef,
+};
+use crate::ifcdr::{AppearanceId, IfcdrResourceRef, LayerId, ScopeRef, ValidatedIfcdrResource};
 use serde_json::Value;
 
 impl ValidatedIfccadPackage {
-    pub(crate) fn drawing_sets(&self) -> impl Iterator<Item = DrawingSetRef<'_>> {
+    pub fn drawing_sets(&self) -> impl Iterator<Item = DrawingSetRef<'_>> {
         typed_nodes(self, "openaec:DrawingSet").map(|node_index| DrawingSetRef {
             package: self,
             node_index,
         })
     }
 
-    pub(crate) fn drawings(&self) -> impl Iterator<Item = DrawingRef<'_>> {
+    pub fn drawings(&self) -> impl Iterator<Item = DrawingRef<'_>> {
         typed_nodes(self, "openaec:Drawing").map(|node_index| DrawingRef {
             package: self,
             node_index,
         })
     }
 
+    #[cfg(test)]
     pub(crate) fn layouts(&self) -> impl Iterator<Item = DrawingLayoutRef<'_>> {
         typed_nodes(self, "openaec:DrawingLayout").map(|node_index| DrawingLayoutRef {
             package: self,
@@ -28,6 +28,7 @@ impl ValidatedIfccadPackage {
         })
     }
 
+    #[cfg(test)]
     pub(crate) fn geometry_representations(
         &self,
     ) -> impl Iterator<Item = GeometryRepresentationRef<'_>> {
@@ -57,6 +58,7 @@ impl ValidatedIfccadPackage {
             .map(AsRef::as_ref)
     }
 
+    #[cfg(test)]
     pub(crate) fn ifcx_node(&self, path: &str) -> Option<&Value> {
         self.evidence()
             .node_indices_by_path
@@ -86,11 +88,12 @@ impl ValidatedIfccadPackage {
             })
     }
 
-    fn layer(&self, path: &str) -> Option<LayerRef<'_>> {
+    fn layer(&self, path: &str, id: LayerId) -> Option<LayerRef<'_>> {
         self.typed_node(path, "openaec:Layer")
             .map(|node_index| LayerRef {
                 package: self,
                 node_index,
+                id,
             })
     }
 
@@ -129,17 +132,18 @@ fn typed_nodes<'a>(
 
 macro_rules! node_ref {
     ($name:ident) => {
-        pub(crate) struct $name<'a> {
+        #[derive(Clone, Copy)]
+        pub struct $name<'a> {
             package: &'a ValidatedIfccadPackage,
             node_index: usize,
         }
 
         impl<'a> $name<'a> {
-            fn node(&self) -> &'a Value {
+            pub(crate) fn node(&self) -> &'a Value {
                 &nodes(self.package)[self.node_index]
             }
 
-            pub(crate) fn path(&self) -> &str {
+            pub fn path(&self) -> &'a str {
                 self.node()["path"].as_str().expect("validated node path")
             }
         }
@@ -150,11 +154,31 @@ node_ref!(DrawingSetRef);
 node_ref!(DrawingRef);
 node_ref!(DrawingLayoutRef);
 node_ref!(GeometryRepresentationRef);
-node_ref!(LayerRef);
 node_ref!(AppearanceRef);
 
+#[derive(Clone, Copy)]
+pub struct LayerRef<'a> {
+    package: &'a ValidatedIfccadPackage,
+    node_index: usize,
+    id: LayerId,
+}
+
+impl<'a> LayerRef<'a> {
+    fn node(&self) -> &'a Value {
+        &nodes(self.package)[self.node_index]
+    }
+
+    pub fn id(&self) -> LayerId {
+        self.id
+    }
+
+    pub fn path(&self) -> &'a str {
+        self.node()["path"].as_str().expect("validated node path")
+    }
+}
+
 impl<'a> DrawingSetRef<'a> {
-    pub(crate) fn drawings(&self) -> impl Iterator<Item = DrawingRef<'a>> + 'a {
+    pub fn drawings(&self) -> impl Iterator<Item = DrawingRef<'a>> + 'a {
         let package = self.package;
         self.node()
             .pointer("/children/Drawings")
@@ -167,14 +191,15 @@ impl<'a> DrawingSetRef<'a> {
 }
 
 impl<'a> DrawingRef<'a> {
-    pub(crate) fn representation(&self) -> Option<GeometryRepresentationRef<'a>> {
+    pub fn representation(&self) -> GeometryRepresentationRef<'a> {
         self.node()
             .pointer("/children/Representation")
             .and_then(Value::as_str)
             .and_then(|path| self.package.geometry_representation(path))
+            .expect("validated drawing representation")
     }
 
-    pub(crate) fn layouts(&self) -> impl Iterator<Item = DrawingLayoutRef<'a>> + 'a {
+    pub fn layouts(&self) -> impl Iterator<Item = DrawingLayoutRef<'a>> + 'a {
         let package = self.package;
         self.node()
             .pointer("/children/Layouts")
@@ -187,87 +212,138 @@ impl<'a> DrawingRef<'a> {
 }
 
 impl<'a> DrawingLayoutRef<'a> {
-    pub(crate) fn name(&self) -> &str {
+    pub fn name(&self) -> &'a str {
         self.node()
             .pointer("/attributes/name")
             .and_then(Value::as_str)
             .expect("validated layout name")
     }
 
-    pub(crate) fn kind(&self) -> &str {
-        self.node()
+    pub fn kind(&self) -> DrawingLayoutKind {
+        match self
+            .node()
             .pointer("/attributes/kind")
             .and_then(Value::as_str)
             .expect("validated layout kind")
+        {
+            "model" => DrawingLayoutKind::Model,
+            "paper" => DrawingLayoutKind::Paper,
+            _ => unreachable!("validated drawing layout kind"),
+        }
     }
 
-    pub(crate) fn representation(&self) -> Option<GeometryRepresentationRef<'a>> {
-        self.package.geometry_representation(
-            &self
-                .package
-                .evidence()
-                .bindings
-                .layout_by_path
-                .get(self.path())?
-                .representation_path,
-        )
-    }
-
-    pub(crate) fn scope(&self) -> Option<ScopeRef<'_>> {
+    pub fn representation(&self) -> GeometryRepresentationRef<'a> {
         let binding = self
             .package
             .evidence()
             .bindings
             .layout_by_path
-            .get(self.path())?;
+            .get(self.path())
+            .expect("validated layout binding");
         self.package
-            .ifcdr_resource(&binding.ifcdr_uri)?
+            .geometry_representation(&binding.representation_path)
+            .expect("validated layout representation")
+    }
+
+    pub fn scope(&self) -> ScopeRef<'a> {
+        let binding = self
+            .package
+            .evidence()
+            .bindings
+            .layout_by_path
+            .get(self.path())
+            .expect("validated layout binding");
+        self.package
+            .ifcdr_resource(&binding.ifcdr_uri)
+            .expect("validated layout IFCDR resource")
             .scope(binding.scope_id)
+            .expect("validated layout scope")
     }
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum DrawingLayoutKind {
+    Model,
+    Paper,
+}
+
 impl<'a> GeometryRepresentationRef<'a> {
-    pub(crate) fn role(&self) -> &str {
+    pub fn role(&self) -> &'a str {
         self.node()
             .pointer("/attributes/geometry/role")
             .and_then(Value::as_str)
             .expect("validated representation role")
     }
 
-    pub(crate) fn uri(&self) -> &str {
+    pub fn uri(&self) -> &'a str {
         self.node()
             .pointer("/attributes/geometry/uri")
             .and_then(Value::as_str)
             .expect("validated representation URI")
     }
 
-    pub(crate) fn resource(&self) -> &'a ValidatedIfcdrResource {
+    fn validated_resource(&self) -> &'a ValidatedIfcdrResource {
         self.package.evidence().bindings.geometry_ifcdr_by_path[self.path()].as_ref()
     }
 
-    pub(crate) fn layer(&self, id: LayerId) -> Option<LayerRef<'a>> {
+    pub fn resource(&self) -> IfcdrResourceRef<'a> {
+        IfcdrResourceRef::new(self.validated_resource())
+    }
+
+    pub fn layers(&self) -> impl ExactSizeIterator<Item = LayerRef<'a>> + 'a {
+        let package = self.package;
+        let uri = self.uri().to_owned();
+        self.validated_resource()
+            .bindings()
+            .layers()
+            .map(move |binding| {
+                let id = binding.id();
+                let path = package
+                    .evidence()
+                    .bindings
+                    .ifcx_layer_by_ifcdr_id
+                    .get(&(uri.clone(), id))
+                    .expect("validated IFCX layer binding");
+                package.layer(path, id).expect("validated IFCX layer")
+            })
+    }
+
+    pub fn layer(&self, id: LayerId) -> Option<LayerRef<'a>> {
         let path = self
             .package
             .evidence()
             .bindings
             .ifcx_layer_by_ifcdr_id
             .get(&(self.uri().to_owned(), id))?;
-        self.package.layer(path)
+        self.package.layer(path, id)
     }
 
-    pub(crate) fn appearance(&self, id: AppearanceId) -> Option<AppearanceRef<'a>> {
-        let path = self
-            .package
-            .evidence()
-            .bindings
-            .ifcx_appearance_by_ifcdr_id
-            .get(&(self.uri().to_owned(), id))?;
-        self.package.appearance(path)
+    pub fn appearance(&self, id: AppearanceId) -> Option<AppliedAppearanceRef<'a>> {
+        self.validated_resource().appearance_binding(id)?;
+        Some(AppliedAppearanceRef {
+            package: self.package,
+            resource: self.validated_resource(),
+            id,
+        })
     }
 }
 
 impl<'a> LayerRef<'a> {
-    pub(crate) fn appearance(&self) -> Option<AppearanceRef<'a>> {
+    pub fn name(&self) -> &'a str {
+        self.node()
+            .pointer("/attributes/name")
+            .and_then(Value::as_str)
+            .expect("validated layer name")
+    }
+
+    pub fn visible(&self) -> bool {
+        self.node()
+            .pointer("/attributes/visible")
+            .and_then(Value::as_bool)
+            .expect("validated layer visibility")
+    }
+
+    pub fn appearance(&self) -> Option<AppearanceRef<'a>> {
         self.node()
             .pointer("/attributes/appearance")
             .and_then(Value::as_str)
@@ -275,9 +351,161 @@ impl<'a> LayerRef<'a> {
     }
 }
 
-impl AppearanceRef<'_> {
-    pub(crate) fn value(&self) -> &Value {
+impl<'a> AppearanceRef<'a> {
+    pub fn name(&self) -> &'a str {
         self.node()
+            .pointer("/attributes/name")
+            .and_then(Value::as_str)
+            .expect("validated appearance name")
+    }
+
+    pub fn color(&self) -> AppearanceColorRef<'a> {
+        AppearanceColorRef::new(
+            self.node()
+                .pointer("/attributes/color/value")
+                .expect("validated appearance color"),
+        )
+    }
+
+    pub fn opacity(&self) -> f64 {
+        self.node()
+            .pointer("/attributes/opacity/value")
+            .and_then(Value::as_f64)
+            .expect("validated appearance opacity")
+    }
+
+    pub fn line_pattern(&self) -> LinePatternRef<'a> {
+        LinePatternRef::Name(
+            self.node()
+                .pointer("/attributes/linePattern/value")
+                .and_then(Value::as_str)
+                .expect("validated appearance line pattern"),
+        )
+    }
+
+    pub fn line_weight(&self) -> f64 {
+        self.node()
+            .pointer("/attributes/lineWeight/value")
+            .and_then(Value::as_f64)
+            .expect("validated appearance line weight")
+    }
+}
+
+/// Resource-local appearance binding with independently inherited properties.
+#[derive(Clone, Copy)]
+pub struct AppliedAppearanceRef<'a> {
+    package: &'a ValidatedIfccadPackage,
+    resource: &'a ValidatedIfcdrResource,
+    id: AppearanceId,
+}
+
+impl<'a> AppliedAppearanceRef<'a> {
+    pub fn id(&self) -> AppearanceId {
+        self.id
+    }
+
+    pub fn ifcx_definition(&self) -> Option<AppearanceRef<'a>> {
+        self.resource
+            .appearance_binding(self.id)
+            .expect("validated appearance binding")
+            .ifcx_appearance()
+            .and_then(|path| self.package.appearance(path))
+    }
+
+    pub fn color(&self) -> AppearanceProperty<AppearanceColorRef<'_>> {
+        let binding = self
+            .resource
+            .appearance_binding(self.id)
+            .expect("validated appearance binding");
+        match appearance_mode(binding.color_mode()).expect("validated color mode") {
+            AppearanceMode::ByLayer => AppearanceProperty::ByLayer,
+            AppearanceMode::ByBlock => AppearanceProperty::ByBlock,
+            AppearanceMode::Explicit => {
+                let override_value = binding
+                    .override_id()
+                    .and_then(|id| self.resource.appearance_override(id))
+                    .and_then(|value| value.color());
+                let value = override_value.or_else(|| {
+                    self.ifcx_definition()
+                        .map(|appearance| appearance.node())
+                        .and_then(|node| node.pointer("/attributes/color/value"))
+                });
+                AppearanceProperty::Explicit(AppearanceColorRef::new(
+                    value.expect("validated explicit appearance color"),
+                ))
+            }
+        }
+    }
+
+    pub fn opacity(&self) -> AppearanceProperty<f64> {
+        let binding = self
+            .resource
+            .appearance_binding(self.id)
+            .expect("validated appearance binding");
+        match appearance_mode(binding.opacity_mode()).expect("validated opacity mode") {
+            AppearanceMode::ByLayer => AppearanceProperty::ByLayer,
+            AppearanceMode::ByBlock => AppearanceProperty::ByBlock,
+            AppearanceMode::Explicit => {
+                let override_value = binding
+                    .override_id()
+                    .and_then(|id| self.resource.appearance_override(id))
+                    .and_then(|value| value.opacity());
+                let value = override_value.or_else(|| {
+                    self.ifcx_definition()
+                        .map(|appearance| appearance.opacity())
+                });
+                AppearanceProperty::Explicit(value.expect("validated explicit appearance opacity"))
+            }
+        }
+    }
+
+    pub fn line_pattern(&self) -> AppearanceProperty<LinePatternRef<'_>> {
+        let binding = self
+            .resource
+            .appearance_binding(self.id)
+            .expect("validated appearance binding");
+        match appearance_mode(binding.line_pattern_mode()).expect("validated line-pattern mode") {
+            AppearanceMode::ByLayer => AppearanceProperty::ByLayer,
+            AppearanceMode::ByBlock => AppearanceProperty::ByBlock,
+            AppearanceMode::Explicit => {
+                let override_value = binding
+                    .override_id()
+                    .and_then(|id| self.resource.appearance_override(id))
+                    .and_then(|value| value.ifcx_line_pattern())
+                    .map(LinePatternRef::IfcxIdentity);
+                let value = override_value.or_else(|| {
+                    self.ifcx_definition()
+                        .map(|appearance| appearance.line_pattern())
+                });
+                AppearanceProperty::Explicit(
+                    value.expect("validated explicit appearance line pattern"),
+                )
+            }
+        }
+    }
+
+    pub fn line_weight(&self) -> AppearanceProperty<f64> {
+        let binding = self
+            .resource
+            .appearance_binding(self.id)
+            .expect("validated appearance binding");
+        match appearance_mode(binding.line_weight_mode()).expect("validated line-weight mode") {
+            AppearanceMode::ByLayer => AppearanceProperty::ByLayer,
+            AppearanceMode::ByBlock => AppearanceProperty::ByBlock,
+            AppearanceMode::Explicit => {
+                let override_value = binding
+                    .override_id()
+                    .and_then(|id| self.resource.appearance_override(id))
+                    .and_then(|value| value.line_weight());
+                let value = override_value.or_else(|| {
+                    self.ifcx_definition()
+                        .map(|appearance| appearance.line_weight())
+                });
+                AppearanceProperty::Explicit(
+                    value.expect("validated explicit appearance line weight"),
+                )
+            }
+        }
     }
 }
 
@@ -343,7 +571,7 @@ mod tests {
         let drawing = set.drawings().next().unwrap();
         assert_eq!(drawing.path(), "drawing-main");
         assert_eq!(
-            drawing.representation().unwrap().path(),
+            drawing.representation().path(),
             "representation-modelspace-main"
         );
         assert_eq!(drawing.layouts().count(), 1);
@@ -351,22 +579,24 @@ mod tests {
         let layout = drawing.layouts().next().unwrap();
         assert_eq!(layout.path(), "drawing-main-layout-model");
         assert_eq!(layout.name(), "Model");
-        assert_eq!(layout.kind(), "model");
-        assert_eq!(layout.scope().unwrap().name(), "ModelSpace");
+        assert_eq!(layout.kind(), DrawingLayoutKind::Model);
+        assert_eq!(layout.scope().name(), "ModelSpace");
 
-        let representation = layout.representation().unwrap();
+        let representation = layout.representation();
         assert_eq!(representation.role(), "modelspace");
         assert_eq!(representation.uri(), "drawing.ifcdr.json");
         assert_eq!(
-            representation.resource().header().resource_id(),
+            representation.resource().resource_id(),
             "geometry-modelspace-main"
         );
         let layer = representation.layer(LayerId::new(1)).unwrap();
         assert_eq!(layer.path(), "layer-a-wall");
         assert_eq!(layer.appearance().unwrap().path(), "appearance-dashed-red");
         let appearance = representation.appearance(AppearanceId::new(2)).unwrap();
-        assert_eq!(appearance.path(), "appearance-default-solid");
-        assert_eq!(appearance.value()["type"], "openaec:Appearance");
+        assert_eq!(
+            appearance.ifcx_definition().unwrap().path(),
+            "appearance-default-solid"
+        );
     }
 
     #[test]

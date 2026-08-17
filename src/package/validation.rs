@@ -737,6 +737,20 @@ mod tests {
             "valid override should retain strict proof: {:?}",
             outcome.report.diagnostics()
         );
+        let package = outcome.validated_package.as_ref().expect("strict package");
+        let representation = package.drawings().next().expect("drawing").representation();
+        let appearance = representation
+            .appearance(AppearanceId::new(2))
+            .expect("appearance binding");
+        let super::super::AppearanceProperty::Explicit(color) = appearance.color() else {
+            panic!("override remains explicit");
+        };
+        assert_eq!(color.rgb().components(), [0, 255, 0]);
+        assert_eq!(
+            appearance.opacity(),
+            super::super::AppearanceProperty::Explicit(1.0),
+            "an absent property override falls back to the IFCX definition"
+        );
     }
 
     #[test]
