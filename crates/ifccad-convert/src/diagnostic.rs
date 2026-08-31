@@ -1,4 +1,5 @@
 use ifccad::ifcdr::{AppearanceId, EntityId, LayerId};
+use std::collections::BTreeMap;
 use thiserror::Error;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -37,6 +38,88 @@ pub enum LostTransparencyMode {
     ExplicitOpaque,
 }
 
+#[derive(Default)]
+pub(crate) struct DiagnosticAccumulator {
+    unmodeled_entities: BTreeMap<String, usize>,
+    line_pattern_fallbacks: BTreeMap<(String, String), usize>,
+    line_weight_rounding: BTreeMap<(u64, u64), usize>,
+    transparency_losses: BTreeMap<LostTransparencyMode, usize>,
+    named_layer_colors: BTreeMap<(String, String, String), usize>,
+}
+
+impl DiagnosticAccumulator {
+    pub(crate) fn record_unmodeled(&mut self, schema_id: &str) {
+        *self
+            .unmodeled_entities
+            .entry(schema_id.to_owned())
+            .or_default() += 1;
+    }
+
+    pub(crate) fn record_line_pattern_fallback(&mut self, requested: &str, applied: &str) {
+        *self
+            .line_pattern_fallbacks
+            .entry((requested.to_owned(), applied.to_owned()))
+            .or_default() += 1;
+    }
+
+    pub(crate) fn record_line_weight_rounding(&mut self, requested_mm: f64, applied_mm: f64) {
+        *self
+            .line_weight_rounding
+            .entry((requested_mm.to_bits(), applied_mm.to_bits()))
+            .or_default() += 1;
+    }
+
+    pub(crate) fn record_transparency_loss(&mut self, source: LostTransparencyMode) {
+        *self.transparency_losses.entry(source).or_default() += 1;
+    }
+
+    pub(crate) fn record_named_layer_color(&mut self, layer: &str, catalog: &str, name: &str) {
+        *self
+            .named_layer_colors
+            .entry((layer.to_owned(), catalog.to_owned(), name.to_owned()))
+            .or_default() += 1;
+    }
+
+    pub(crate) fn finish(self) -> Vec<ConversionDiagnostic> {
+        let mut diagnostics = self
+            .unmodeled_entities
+            .into_iter()
+            .map(
+                |(schema_id, count)| ConversionDiagnostic::UnmodeledEntitiesSkipped {
+                    schema_id,
+                    count,
+                },
+            )
+            .collect::<Vec<_>>();
+        diagnostics.extend(self.line_pattern_fallbacks.into_iter().map(
+            |((requested, applied), count)| ConversionDiagnostic::LinePatternFallback {
+                requested,
+                applied,
+                count,
+            },
+        ));
+        diagnostics.extend(self.line_weight_rounding.into_iter().map(
+            |((requested_bits, applied_bits), count)| ConversionDiagnostic::LineWeightRounded {
+                requested_mm: f64::from_bits(requested_bits),
+                applied_mm: f64::from_bits(applied_bits),
+                count,
+            },
+        ));
+        diagnostics.extend(self.transparency_losses.into_iter().map(|(source, count)| {
+            ConversionDiagnostic::TransparencySemanticsLost { source, count }
+        }));
+        diagnostics.extend(self.named_layer_colors.into_iter().map(
+            |((layer, catalog, name), count)| ConversionDiagnostic::NamedLayerColorIdentityLost {
+                layer,
+                catalog,
+                name,
+                count,
+            },
+        ));
+        diagnostics
+    }
+}
+
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum ConversionError {
@@ -67,4 +150,52 @@ pub enum ConversionError {
     LayerInsertion { layer: String, reason: String },
     #[error("internal conversion invariant failed: {message}")]
     InternalInvariant { message: String },
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{DiagnosticAccumulator, LostTransparencyMode};
+    use crate::ConversionDiagnostic;
+
+    #[test]
+    fn accumulator_groups_occurrences_in_stable_category_order() {
+        let mut diagnostics = DiagnosticAccumulator::default();
+        diagnostics.record_unmodeled("ifccad:arc.v1");
+        diagnostics.record_unmodeled("ifccad:arc.v1");
+        diagnostics.record_line_pattern_fallback("center", "Continuous");
+        diagnostics.record_line_weight_rounding(0.19, 0.18);
+        diagnostics.record_transparency_loss(LostTransparencyMode::ByBlock);
+        diagnostics.record_named_layer_color("A-WALL", "RAL", "Traffic red");
+        diagnostics.record_named_layer_color("A-WALL", "RAL", "Traffic red");
+
+        assert_eq!(
+            diagnostics.finish(),
+            [
+                ConversionDiagnostic::UnmodeledEntitiesSkipped {
+                    schema_id: "ifccad:arc.v1".to_owned(),
+                    count: 2,
+                },
+                ConversionDiagnostic::LinePatternFallback {
+                    requested: "center".to_owned(),
+                    applied: "Continuous".to_owned(),
+                    count: 1,
+                },
+                ConversionDiagnostic::LineWeightRounded {
+                    requested_mm: 0.19,
+                    applied_mm: 0.18,
+                    count: 1,
+                },
+                ConversionDiagnostic::TransparencySemanticsLost {
+                    source: LostTransparencyMode::ByBlock,
+                    count: 1,
+                },
+                ConversionDiagnostic::NamedLayerColorIdentityLost {
+                    layer: "A-WALL".to_owned(),
+                    catalog: "RAL".to_owned(),
+                    name: "Traffic red".to_owned(),
+                    count: 2,
+                },
+            ]
+        );
+    }
 }

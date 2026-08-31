@@ -1,3 +1,4 @@
+mod appearance;
 mod diagnostic;
 mod entity_mapping;
 mod units;
