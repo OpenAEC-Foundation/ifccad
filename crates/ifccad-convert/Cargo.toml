@@ -1,0 +1,12 @@
+[package]
+name = "ifccad-convert"
+version = "0.1.0"
+edition = "2021"
+description = "Conversion between validated IFCCAD drawings and cadcodec CadDocument"
+license = "MPL-2.0"
+repository = "https://github.com/OpenAEC-Foundation/ifccad"
+
+[dependencies]
+ifccad = { path = "../.." }
+cadcodec = { package = "acadrust", git = "https://github.com/HakanSeven12/cadcodec.git", rev = "931c4ab0c590b755e280bed318a35f41c57b139f" }
+thiserror = "1.0"

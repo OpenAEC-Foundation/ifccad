@@ -11,6 +11,10 @@ readme = "README.md"
 keywords = ["cad", "ifc", "ifccad", "bim", "conformance"]
 categories = ["parser-implementations", "encoding"]
 
+[workspace]
+members = ["crates/ifccad-convert"]
+resolver = "2"
+
 [features]
 default = []
 
