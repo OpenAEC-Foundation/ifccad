@@ -1,5 +1,6 @@
 use ifccad::ifcdr::{AppearanceId, EntityId, LayerId};
 use std::collections::BTreeMap;
+use std::fmt;
 use thiserror::Error;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -29,6 +30,65 @@ pub enum ConversionDiagnostic {
         name: String,
         count: usize,
     },
+}
+
+impl fmt::Display for ConversionDiagnostic {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::UnmodeledEntitiesSkipped { schema_id, count } => {
+                let noun = if *count == 1 { "entity" } else { "entities" };
+                write!(
+                    formatter,
+                    "skipped {count} unmodeled {noun} with schema {schema_id}"
+                )
+            }
+            Self::LinePatternFallback {
+                requested,
+                applied,
+                count,
+            } => {
+                let noun = if *count == 1 { "entity" } else { "entities" };
+                write!(
+                    formatter,
+                    "replaced line pattern {requested} with {applied} on {count} {noun}"
+                )
+            }
+            Self::LineWeightRounded {
+                requested_mm,
+                applied_mm,
+                count,
+            } => {
+                let noun = if *count == 1 { "entity" } else { "entities" };
+                write!(
+                    formatter,
+                    "rounded line weight {requested_mm} mm to {applied_mm} mm on {count} {noun}"
+                )
+            }
+            Self::TransparencySemanticsLost { source, count } => {
+                let noun = if *count == 1 { "entity" } else { "entities" };
+                write!(
+                    formatter,
+                    "lost {source:?} transparency semantics on {count} {noun}"
+                )
+            }
+            Self::NamedLayerColorIdentityLost {
+                layer,
+                catalog,
+                name,
+                count,
+            } => {
+                let noun = if *count == 1 {
+                    "occurrence"
+                } else {
+                    "occurrences"
+                };
+                write!(
+                    formatter,
+                    "preserved RGB but omitted named color {catalog}/{name} from layer {layer} ({count} {noun})"
+                )
+            }
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -197,5 +257,40 @@ mod tests {
                 },
             ]
         );
+    }
+
+    #[test]
+    fn diagnostic_display_includes_the_actionable_loss_context() {
+        let diagnostic = ConversionDiagnostic::LineWeightRounded {
+            requested_mm: 0.19,
+            applied_mm: 0.18,
+            count: 2,
+        };
+
+        let message = diagnostic.to_string();
+        assert!(message.contains("0.19 mm"));
+        assert!(message.contains("0.18 mm"));
+        assert!(message.contains("2 entities"));
+    }
+
+    #[test]
+    fn diagnostic_display_uses_singular_nouns_for_one_occurrence() {
+        let entity_message = ConversionDiagnostic::TransparencySemanticsLost {
+            source: LostTransparencyMode::ExplicitOpaque,
+            count: 1,
+        }
+        .to_string();
+        assert!(entity_message.contains("1 entity"));
+        assert!(!entity_message.contains("1 entities"));
+
+        let layer_message = ConversionDiagnostic::NamedLayerColorIdentityLost {
+            layer: "A-WALL".to_owned(),
+            catalog: "RAL".to_owned(),
+            name: "Traffic red".to_owned(),
+            count: 1,
+        }
+        .to_string();
+        assert!(layer_message.contains("1 occurrence"));
+        assert!(!layer_message.contains("1 occurrences"));
     }
 }

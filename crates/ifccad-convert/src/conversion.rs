@@ -1,5 +1,6 @@
 use crate::appearance::{
     map_entity_opacity, map_explicit_color, map_layer_opacity, map_line_pattern, map_line_weight,
+    MappedColor,
 };
 use crate::diagnostic::DiagnosticAccumulator;
 use crate::units::apply_units;
@@ -24,7 +25,8 @@ pub fn convert_drawing(drawing: DrawingRef<'_>) -> Result<ConversionOutcome, Con
         });
     }
 
-    let representation = drawing.representation();
+    let layout = layouts[0];
+    let representation = layout.representation();
     let mut document = CadDocument::new();
     let mut diagnostics = DiagnosticAccumulator::default();
     apply_units(&mut document, representation.resource().unit());
@@ -56,7 +58,7 @@ pub fn convert_drawing(drawing: DrawingRef<'_>) -> Result<ConversionOutcome, Con
         }
     }
 
-    let scope_id = layouts[0].scope().id();
+    let scope_id = layout.scope().id();
     let mut entity_mapping = EntityMapping::default();
     for source in representation.resource().entities(scope_id) {
         match source {
@@ -193,12 +195,11 @@ fn convert_layer(
     target.flags.off = !source.visible();
 
     if let Some(appearance) = source.appearance() {
-        let mapped_color = map_explicit_color(appearance.color());
-        target.color = mapped_color.color;
+        let MappedColor { color, name: _ } = map_explicit_color(appearance.color());
+        target.color = color;
         if let Some(named) = appearance.color().named() {
             diagnostics.record_named_layer_color(source.name(), named.catalog(), named.name());
         }
-        let _layer_color_name_is_intentionally_diagnostic_only = mapped_color.name;
         target.line_type = map_line_pattern(
             AppearanceProperty::Explicit(appearance.line_pattern()),
             diagnostics,
