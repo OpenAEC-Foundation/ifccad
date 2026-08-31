@@ -1,5 +1,6 @@
 mod diagnostic;
 mod entity_mapping;
+mod units;
 
 pub use diagnostic::{ConversionDiagnostic, ConversionError, LostTransparencyMode};
 pub use entity_mapping::EntityMapping;
