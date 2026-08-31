@@ -1,12 +1,32 @@
 use crate::diagnostic::DiagnosticAccumulator;
 use crate::LostTransparencyMode;
-use cadcodec::{LineWeight, Transparency};
-use ifccad::package::{AppearanceProperty, LinePatternRef};
+use cadcodec::{Color, LineWeight, Transparency};
+use ifccad::package::{AppearanceColorRef, AppearanceProperty, LinePatternRef};
 
 const LINE_WEIGHTS: [i16; 24] = [
     0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40, 50, 53, 60, 70, 80, 90, 100, 106, 120, 140, 158, 200,
     211,
 ];
+
+pub(crate) struct MappedColor {
+    pub(crate) color: Color,
+    pub(crate) name: Option<String>,
+}
+
+pub(crate) fn map_explicit_color(value: AppearanceColorRef<'_>) -> MappedColor {
+    let [red, green, blue] = value.rgb().components();
+    let color = value
+        .indexed()
+        .filter(|indexed| indexed.system().eq_ignore_ascii_case("ACI"))
+        .and_then(|indexed| u8::try_from(indexed.index()).ok())
+        .filter(|index| (1..=255).contains(index))
+        .map(Color::Index)
+        .unwrap_or_else(|| Color::from_rgb(red, green, blue));
+    let name = value
+        .named()
+        .map(|named| format!("{}${}", named.catalog(), named.name()));
+    MappedColor { color, name }
+}
 
 pub(crate) fn map_line_pattern(
     property: AppearanceProperty<LinePatternRef<'_>>,
@@ -80,6 +100,10 @@ pub(crate) fn map_entity_opacity(
         }
         Explicit(opacity) => Transparency::from_percent(1.0 - opacity),
     }
+}
+
+pub(crate) fn map_layer_opacity(opacity: f64) -> Transparency {
+    Transparency::from_percent(1.0 - opacity)
 }
 
 #[cfg(test)]
