@@ -1,9 +1,15 @@
-use crate::appearance::{map_explicit_color, map_layer_opacity, map_line_pattern, map_line_weight};
+use crate::appearance::{
+    map_entity_opacity, map_explicit_color, map_layer_opacity, map_line_pattern, map_line_weight,
+};
 use crate::diagnostic::DiagnosticAccumulator;
 use crate::units::apply_units;
 use crate::{ConversionError, ConversionOutcome, EntityMapping};
-use cadcodec::{CadDocument, Layer, LineType};
-use ifccad::package::{AppearanceProperty, DrawingLayoutKind, DrawingRef, LayerRef};
+use cadcodec::entities::EntityCommon;
+use cadcodec::{CadDocument, Color, EntityType, Layer, Line, LineType, LwPolyline, Vector2};
+use ifccad::ifcdr::{AppearanceId, EntityId, IfcdrEntityRef, LayerId};
+use ifccad::package::{
+    AppearanceProperty, DrawingLayoutKind, DrawingRef, GeometryRepresentationRef, LayerRef,
+};
 
 pub fn convert_drawing(drawing: DrawingRef<'_>) -> Result<ConversionOutcome, ConversionError> {
     let layouts = drawing.layouts().collect::<Vec<_>>();
@@ -50,11 +56,132 @@ pub fn convert_drawing(drawing: DrawingRef<'_>) -> Result<ConversionOutcome, Con
         }
     }
 
+    let scope_id = layouts[0].scope().id();
+    let mut entity_mapping = EntityMapping::default();
+    for source in representation.resource().entities(scope_id) {
+        match source {
+            IfcdrEntityRef::Line(source) => {
+                let start = source.start();
+                let end = source.end();
+                let mut target =
+                    Line::from_coords(start.x(), start.y(), 0.0, end.x(), end.y(), 0.0);
+                apply_entity_common(
+                    &mut document,
+                    representation,
+                    &mut target.common,
+                    source.entity_id(),
+                    source.layer_id(),
+                    source.appearance_id(),
+                    source.visible(),
+                    &mut diagnostics,
+                )?;
+                add_and_map(
+                    &mut document,
+                    &mut entity_mapping,
+                    source.entity_id(),
+                    EntityType::Line(target),
+                )?;
+            }
+            IfcdrEntityRef::Polyline(source) => {
+                let points = source
+                    .points()
+                    .map(|point| Vector2::new(point.x(), point.y()))
+                    .collect();
+                let mut target = LwPolyline::from_points(points);
+                target.is_closed = source.closed();
+                apply_entity_common(
+                    &mut document,
+                    representation,
+                    &mut target.common,
+                    source.entity_id(),
+                    source.layer_id(),
+                    source.appearance_id(),
+                    source.visible(),
+                    &mut diagnostics,
+                )?;
+                add_and_map(
+                    &mut document,
+                    &mut entity_mapping,
+                    source.entity_id(),
+                    EntityType::LwPolyline(target),
+                )?;
+            }
+            IfcdrEntityRef::Unmodeled(source) => {
+                diagnostics.record_unmodeled(source.schema_id());
+            }
+        }
+    }
+
     Ok(ConversionOutcome::new(
         document,
         diagnostics.finish(),
-        EntityMapping::default(),
+        entity_mapping,
     ))
+}
+
+#[allow(clippy::too_many_arguments)]
+fn apply_entity_common(
+    document: &mut CadDocument,
+    representation: GeometryRepresentationRef<'_>,
+    common: &mut EntityCommon,
+    entity_id: EntityId,
+    layer_id: LayerId,
+    appearance_id: AppearanceId,
+    visible: bool,
+    diagnostics: &mut DiagnosticAccumulator,
+) -> Result<(), ConversionError> {
+    let layer = representation
+        .layer(layer_id)
+        .ok_or(ConversionError::MissingEntityLayer {
+            entity_id,
+            layer_id,
+        })?;
+    let appearance = representation.appearance(appearance_id).ok_or(
+        ConversionError::MissingEntityAppearance {
+            entity_id,
+            appearance_id,
+        },
+    )?;
+
+    common.layer = layer.name().to_owned();
+    common.invisible = !visible;
+    match appearance.color() {
+        AppearanceProperty::ByLayer => {
+            common.color = Color::ByLayer;
+            common.color_name = None;
+        }
+        AppearanceProperty::ByBlock => {
+            common.color = Color::ByBlock;
+            common.color_name = None;
+        }
+        AppearanceProperty::Explicit(color) => {
+            let mapped = map_explicit_color(color);
+            common.color = mapped.color;
+            common.color_name = mapped.name;
+        }
+    }
+    common.linetype = map_line_pattern(appearance.line_pattern(), diagnostics);
+    ensure_linetype(document, &common.linetype)?;
+    common.line_weight = map_line_weight(appearance.line_weight(), diagnostics);
+    common.transparency = map_entity_opacity(appearance.opacity(), diagnostics);
+    Ok(())
+}
+
+fn add_and_map(
+    document: &mut CadDocument,
+    mapping: &mut EntityMapping,
+    source_id: EntityId,
+    target: EntityType,
+) -> Result<(), ConversionError> {
+    let handle =
+        document
+            .add_entity(target)
+            .map_err(|source| ConversionError::CadcodecEntityInsertion {
+                entity_id: source_id,
+                source,
+            })?;
+    mapping.insert(source_id, handle);
+    Ok(())
 }
 
 fn convert_layer(

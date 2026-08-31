@@ -19,7 +19,6 @@ pub struct ConversionOutcome {
 }
 
 impl ConversionOutcome {
-    #[allow(dead_code)]
     pub(crate) fn new(
         document: CadDocument,
         diagnostics: Vec<ConversionDiagnostic>,

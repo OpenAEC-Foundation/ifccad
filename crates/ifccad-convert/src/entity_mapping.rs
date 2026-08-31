@@ -26,7 +26,6 @@ impl EntityMapping {
         self.entries.is_empty()
     }
 
-    #[allow(dead_code)]
     pub(crate) fn insert(&mut self, source: EntityId, target: Handle) {
         self.entries.insert(source, target);
     }
