@@ -48,21 +48,9 @@ pub(crate) fn discover_resources(ifcx: &serde_json::Value) -> ResourceDiscovery 
         let resource_id = match node.pointer(&format!("/attributes/{resource_name}/resourceId")) {
             Some(serde_json::Value::String(value)) => match ResourceId::new(value.clone()) {
                 Ok(resource_id) => resource_id,
-                Err(_) => {
-                    discovery.diagnostics.push(invalid_entrypoint(
-                        &resource_id_location,
-                        "recognized IFCCAD resource ID must be a non-empty string",
-                    ));
-                    continue;
-                }
+                Err(_) => continue,
             },
-            _ => {
-                discovery.diagnostics.push(invalid_entrypoint(
-                    &resource_id_location,
-                    "recognized IFCCAD resource ID must be a non-empty string",
-                ));
-                continue;
-            }
+            _ => continue,
         };
         match node.pointer(&format!("/attributes/{resource_name}/uri")) {
             Some(serde_json::Value::String(uri)) => {
@@ -263,10 +251,6 @@ mod tests {
         let discovery = discover_resources(&ifcx);
 
         assert!(discovery.declarations.is_empty());
-        assert_eq!(discovery.diagnostics.len(), 1);
-        assert_eq!(
-            discovery.diagnostics[0].location.as_deref(),
-            Some("/data/0/attributes/geometry/resourceId")
-        );
+        assert!(discovery.diagnostics.is_empty());
     }
 }

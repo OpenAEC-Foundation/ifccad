@@ -136,7 +136,7 @@
           "expected": {
             "diagnostics": [
               {
-                "code": "IFCPR_SCHEMA_INVALID",
+                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
                 "severity": "error"
               }
             ]
@@ -155,7 +155,7 @@
           "expected": {
             "diagnostics": [
               {
-                "code": "IFCPR_SCHEMA_INVALID",
+                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
                 "severity": "error"
               }
             ]
@@ -174,7 +174,7 @@
           "expected": {
             "diagnostics": [
               {
-                "code": "IFCPR_SCHEMA_INVALID",
+                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
                 "severity": "error"
               }
             ]
@@ -193,7 +193,11 @@
           "expected": {
             "diagnostics": [
               {
-                "code": "IFCPR_SCHEMA_INVALID",
+                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
+                "severity": "error"
+              },
+              {
+                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
                 "severity": "error"
               }
             ]

@@ -92,10 +92,13 @@ The public API is still evolving while the format contract matures.
 
 ## Format contract and versioning
 
-The active language-neutral schemas live in `schemas/`. The `conformance/next`
-directory, when present, tests the active contract. A numbered directory such
-as `conformance/1.0.0` is an immutable, self-contained release of fixtures,
-vectors, expected outcomes, and the schemas applicable to that collection.
+The active language-neutral schemas live in `schemas/`. The mutable
+`conformance/next` collection currently targets suite `1.1.0` and tests the
+explicit resource-identity contract: a logical resource ID is independent of
+its external URI. It remains a development candidate until it is frozen as a
+numbered release. A numbered directory such as `conformance/1.0.0` is an
+immutable, self-contained release of fixtures, vectors, expected outcomes, and
+the schemas applicable to that collection.
 
 Active schemas may move ahead of the latest released conformance collection.
 When a new collection is released, its applicable schemas are copied into the
