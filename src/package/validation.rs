@@ -8,7 +8,11 @@ use super::{
     PackageValidationReport,
 };
 use crate::ifcdr::{validate_ifcdr, LoadedIfcdrResource};
-use crate::package::codes::IFCCAD_PACKAGE_CHECKSUM_MISMATCH;
+use crate::package::codes::{
+    IFCCAD_PACKAGE_CHECKSUM_MISMATCH, IFCCAD_PACKAGE_RESOURCE_ID_DUPLICATE,
+    IFCCAD_PACKAGE_RESOURCE_ID_MISMATCH, IFCCAD_PACKAGE_TARGET_RESOURCE_MISSING,
+};
+use crate::ResourceId;
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
@@ -32,22 +36,28 @@ pub fn load_directory_package(
     let discovery = discover_resources(&entrypoint.value);
     let mut declarations = discovery.declarations;
     declarations.sort_by(|left, right| {
-        (left.uri.as_str(), left.kind, left.uri_location.as_str()).cmp(&(
-            right.uri.as_str(),
-            right.kind,
-            right.uri_location.as_str(),
-        ))
+        (
+            left.external_uri.as_str(),
+            left.kind,
+            left.external_uri_location.as_str(),
+        )
+            .cmp(&(
+                right.external_uri.as_str(),
+                right.kind,
+                right.external_uri_location.as_str(),
+            ))
     });
     let mut attempted_uris = BTreeSet::new();
     let mut resources = BTreeMap::new();
     for declaration in &declarations {
-        if !attempted_uris.insert(declaration.uri.as_str()) {
+        if !attempted_uris.insert(declaration.external_uri.as_str()) {
             continue;
         }
-        if let Some(resource) =
-            loader.load_json_resource(&declaration.uri, Some(&declaration.uri_location))?
-        {
-            resources.insert(declaration.uri.clone(), Arc::new(resource));
+        if let Some(resource) = loader.load_json_resource(
+            &declaration.external_uri,
+            Some(&declaration.external_uri_location),
+        )? {
+            resources.insert(declaration.external_uri.clone(), Arc::new(resource));
         }
     }
 
@@ -59,42 +69,109 @@ pub fn load_directory_package(
         resources,
     });
     diagnostics.extend(validate_ifcx(&package.entrypoint.value));
+    diagnostics.extend(validate_declared_resource_id_uniqueness(
+        &package.declarations,
+    ));
     let mut validated_ifcpr_uris = BTreeSet::new();
+    let mut ifcpr_resource_ids_by_uri = BTreeMap::new();
     for declaration in &package.declarations {
         if declaration.kind != ResourceKind::Ifcpr
-            || !validated_ifcpr_uris.insert(declaration.uri.as_str())
+            || !validated_ifcpr_uris.insert(declaration.external_uri.as_str())
         {
             continue;
         }
-        if let Some(resource) = package.resources.get(&declaration.uri) {
-            diagnostics.extend(validate_ifcpr(&declaration.uri, &resource.value));
+        if let Some(resource) = package.resources.get(&declaration.external_uri) {
+            let resource_diagnostics = validate_ifcpr(
+                Some(&declaration.resource_id),
+                &declaration.external_uri,
+                &resource.value,
+            );
+            if resource_diagnostics.is_empty() {
+                let content_resource_id = resource
+                    .value()
+                    .pointer("/header/resourceId")
+                    .and_then(serde_json::Value::as_str)
+                    .and_then(|value| ResourceId::new(value).ok())
+                    .expect("IFCPR 0.2.0 schema proves a non-empty header resourceId");
+                ifcpr_resource_ids_by_uri
+                    .insert(declaration.external_uri.clone(), content_resource_id);
+            }
+            diagnostics.extend(resource_diagnostics);
+        }
+    }
+    for declaration in package
+        .declarations
+        .iter()
+        .filter(|declaration| declaration.kind == ResourceKind::Ifcpr)
+    {
+        if let Some(content_resource_id) = ifcpr_resource_ids_by_uri.get(&declaration.external_uri)
+        {
+            if content_resource_id != &declaration.resource_id {
+                diagnostics.push(resource_id_mismatch_diagnostic(
+                    declaration,
+                    content_resource_id,
+                ));
+            }
         }
     }
     diagnostics.extend(verify_resource_checksums(&package));
     let graph = validate_ifcx_graph(&package.entrypoint.value);
     diagnostics.extend(graph.diagnostics);
 
-    let mut validated_ifcdr_resources = BTreeMap::new();
+    let mut validated_ifcdr_by_uri = BTreeMap::new();
     let mut attempted_ifcdr_uris = BTreeSet::new();
     for declaration in &package.declarations {
         if declaration.kind != ResourceKind::Ifcdr
-            || !attempted_ifcdr_uris.insert(declaration.uri.as_str())
+            || !attempted_ifcdr_uris.insert(declaration.external_uri.as_str())
         {
             continue;
         }
-        let Some(source) = package.resources.get(&declaration.uri) else {
+        let Some(source) = package.resources.get(&declaration.external_uri) else {
             continue;
         };
         let outcome = validate_ifcdr(LoadedIfcdrResource::new(
-            declaration.uri.clone(),
+            declaration.external_uri.clone(),
             source.clone(),
         ));
-        let (validated, resource_diagnostics) = outcome.into_parts();
+        let (validated, mut resource_diagnostics) = outcome.into_parts();
+        for diagnostic in &mut resource_diagnostics {
+            diagnostic
+                .resource_id
+                .get_or_insert_with(|| declaration.resource_id.clone());
+        }
         diagnostics.extend(resource_diagnostics);
         if let Some(validated) = validated {
-            validated_ifcdr_resources.insert(declaration.uri.clone(), Arc::new(validated));
+            validated_ifcdr_by_uri.insert(declaration.external_uri.clone(), Arc::new(validated));
         }
     }
+
+    let mut validated_ifcdr_resources = BTreeMap::new();
+    for declaration in package
+        .declarations
+        .iter()
+        .filter(|declaration| declaration.kind == ResourceKind::Ifcdr)
+    {
+        let Some(validated) = validated_ifcdr_by_uri.get(&declaration.external_uri) else {
+            continue;
+        };
+        let content_resource_id = validated.header().resource_id();
+        if content_resource_id != &declaration.resource_id {
+            diagnostics.push(resource_id_mismatch_diagnostic(
+                declaration,
+                content_resource_id,
+            ));
+            continue;
+        }
+        validated_ifcdr_resources
+            .entry(declaration.resource_id.clone())
+            .or_insert_with(|| validated.clone());
+    }
+
+    diagnostics.extend(validate_ifcpr_drawing_resource_ids(
+        &package,
+        &ifcpr_resource_ids_by_uri,
+        &validated_ifcdr_resources,
+    ));
 
     let binding_analysis = super::bindings::analyze_resource_bindings(
         &package,
@@ -121,6 +198,175 @@ pub fn load_directory_package(
     })
 }
 
+fn validate_ifcpr_drawing_resource_ids(
+    package: &LoadedIfccadPackage,
+    ifcpr_resource_ids_by_uri: &BTreeMap<String, ResourceId>,
+    validated_ifcdr_resources: &BTreeMap<ResourceId, Arc<crate::ifcdr::ValidatedIfcdrResource>>,
+) -> Vec<PackageDiagnostic> {
+    let mut diagnostics = Vec::new();
+    for (external_uri, ifcpr_resource_id) in ifcpr_resource_ids_by_uri {
+        let Some(resource) = package.resources.get(external_uri) else {
+            continue;
+        };
+        let Some(links) = resource
+            .value()
+            .get("linkedDrawingResources")
+            .and_then(serde_json::Value::as_array)
+        else {
+            continue;
+        };
+        for (index, value) in links.iter().enumerate() {
+            let Some(target_resource_id) =
+                value.as_str().and_then(|value| ResourceId::new(value).ok())
+            else {
+                continue;
+            };
+            if validated_ifcdr_resources.contains_key(&target_resource_id)
+                || ifcx_descriptor_reports_missing_target(
+                    package,
+                    external_uri,
+                    &target_resource_id,
+                )
+            {
+                continue;
+            }
+            diagnostics.push(PackageDiagnostic {
+                code: IFCCAD_PACKAGE_TARGET_RESOURCE_MISSING.to_owned(),
+                severity: PackageDiagnosticSeverity::Error,
+                resource_id: Some(ifcpr_resource_id.clone()),
+                resource_uri: Some(external_uri.clone()),
+                location: Some(format!("/linkedDrawingResources/{index}")),
+                context: BTreeMap::from([(
+                    "resourceId".to_owned(),
+                    PackageDiagnosticContextValue::String(target_resource_id.to_string()),
+                )]),
+                message: "IFCPR link does not identify a validated IFCDR resource".to_owned(),
+            });
+        }
+    }
+    diagnostics
+}
+
+fn ifcx_descriptor_reports_missing_target(
+    package: &LoadedIfccadPackage,
+    ifcpr_external_uri: &str,
+    target_resource_id: &ResourceId,
+) -> bool {
+    package
+        .entrypoint
+        .value()
+        .get("data")
+        .and_then(serde_json::Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(|node| node.pointer("/attributes/preservation"))
+        .filter(|descriptor| {
+            descriptor.get("uri").and_then(serde_json::Value::as_str) == Some(ifcpr_external_uri)
+        })
+        .filter_map(|descriptor| {
+            descriptor
+                .get("linkedDrawingResourceIds")
+                .and_then(serde_json::Value::as_array)
+        })
+        .flatten()
+        .filter_map(serde_json::Value::as_str)
+        .any(|value| value == target_resource_id.as_str())
+}
+
+fn validate_declared_resource_id_uniqueness(
+    declarations: &[super::discovery::ResourceDeclaration],
+) -> Vec<PackageDiagnostic> {
+    let mut source_order = declarations.iter().collect::<Vec<_>>();
+    source_order.sort_by_key(|declaration| declaration_source_index(declaration));
+    let mut first_by_id = BTreeMap::new();
+    let mut diagnostics = Vec::new();
+
+    for declaration in source_order {
+        let identity = (declaration.kind, declaration.external_uri.as_str());
+        match first_by_id.get(&declaration.resource_id) {
+            None => {
+                first_by_id.insert(declaration.resource_id.clone(), identity);
+            }
+            Some(first) if first == &identity => {}
+            Some((first_kind, first_uri)) => diagnostics.push(PackageDiagnostic {
+                code: IFCCAD_PACKAGE_RESOURCE_ID_DUPLICATE.to_owned(),
+                severity: PackageDiagnosticSeverity::Error,
+                resource_id: Some(declaration.resource_id.clone()),
+                resource_uri: Some(declaration.external_uri.clone()),
+                location: Some(declaration.resource_id_location.clone()),
+                context: BTreeMap::from([
+                    (
+                        "resourceId".to_owned(),
+                        PackageDiagnosticContextValue::String(declaration.resource_id.to_string()),
+                    ),
+                    (
+                        "firstKind".to_owned(),
+                        PackageDiagnosticContextValue::String(
+                            resource_kind_name(*first_kind).to_owned(),
+                        ),
+                    ),
+                    (
+                        "firstExternalUri".to_owned(),
+                        PackageDiagnosticContextValue::String((*first_uri).to_owned()),
+                    ),
+                    (
+                        "actualKind".to_owned(),
+                        PackageDiagnosticContextValue::String(
+                            resource_kind_name(declaration.kind).to_owned(),
+                        ),
+                    ),
+                    (
+                        "actualExternalUri".to_owned(),
+                        PackageDiagnosticContextValue::String(declaration.external_uri.clone()),
+                    ),
+                ]),
+                message: "one package resource ID cannot identify different resources".to_owned(),
+            }),
+        }
+    }
+    diagnostics
+}
+
+fn resource_id_mismatch_diagnostic(
+    declaration: &super::discovery::ResourceDeclaration,
+    content_resource_id: &ResourceId,
+) -> PackageDiagnostic {
+    PackageDiagnostic {
+        code: IFCCAD_PACKAGE_RESOURCE_ID_MISMATCH.to_owned(),
+        severity: PackageDiagnosticSeverity::Error,
+        resource_id: Some(declaration.resource_id.clone()),
+        resource_uri: Some(declaration.external_uri.clone()),
+        location: Some(declaration.resource_id_location.clone()),
+        context: BTreeMap::from([
+            (
+                "declaredResourceId".to_owned(),
+                PackageDiagnosticContextValue::String(declaration.resource_id.to_string()),
+            ),
+            (
+                "contentResourceId".to_owned(),
+                PackageDiagnosticContextValue::String(content_resource_id.to_string()),
+            ),
+        ]),
+        message: "IFCX resource ID does not match the referenced resource header".to_owned(),
+    }
+}
+
+fn declaration_source_index(declaration: &super::discovery::ResourceDeclaration) -> usize {
+    declaration
+        .resource_id_location
+        .strip_prefix("/data/")
+        .and_then(|suffix| suffix.split('/').next())
+        .and_then(|index| index.parse().ok())
+        .expect("resource declarations retain their IFCX data location")
+}
+
+fn resource_kind_name(kind: ResourceKind) -> &'static str {
+    match kind {
+        ResourceKind::Ifcdr => "ifcdr",
+        ResourceKind::Ifcpr => "ifcpr",
+    }
+}
+
 fn verify_resource_checksums(package: &LoadedIfccadPackage) -> Vec<PackageDiagnostic> {
     package
         .declarations
@@ -130,7 +376,7 @@ fn verify_resource_checksums(package: &LoadedIfccadPackage) -> Vec<PackageDiagno
             if !is_sha256_checksum(expected) {
                 return None;
             }
-            let resource = package.resources.get(&declaration.uri)?;
+            let resource = package.resources.get(&declaration.external_uri)?;
             let actual = sha256_checksum(resource.bytes());
             if actual == expected {
                 return None;
@@ -138,8 +384,8 @@ fn verify_resource_checksums(package: &LoadedIfccadPackage) -> Vec<PackageDiagno
             Some(PackageDiagnostic {
                 code: IFCCAD_PACKAGE_CHECKSUM_MISMATCH.to_owned(),
                 severity: PackageDiagnosticSeverity::Error,
-                resource_id: None,
-                resource_uri: Some(declaration.uri.clone()),
+                resource_id: Some(declaration.resource_id.clone()),
+                resource_uri: Some(declaration.external_uri.clone()),
                 location: Some(declaration.checksum_location.clone()),
                 context: BTreeMap::from([
                     (
@@ -153,7 +399,7 @@ fn verify_resource_checksums(package: &LoadedIfccadPackage) -> Vec<PackageDiagno
                 ]),
                 message: format!(
                     "resource checksum does not match the exact bytes for {:?}",
-                    declaration.uri
+                    declaration.external_uri
                 ),
             })
         })
@@ -229,6 +475,10 @@ mod tests {
         format!("sha256:{}", "a".repeat(64))
     }
 
+    fn resource_id(value: &str) -> ResourceId {
+        ResourceId::new(value).expect("test resource ID")
+    }
+
     fn write_geometry_entrypoint(root: &Path, uri: &str, checksum: &str) {
         let mut entrypoint = serde_json::json!({
             "data": [{
@@ -238,6 +488,7 @@ mod tests {
                     "geometry": {
                         "format": "openaec.ifcdr",
                         "version": "0.5.0",
+                        "resourceId": "geometry-modelspace-main",
                         "uri": uri,
                         "checksum": checksum,
                         "role": "modelspace"
@@ -334,10 +585,190 @@ mod tests {
             .collect()
     }
 
+    fn next_package(category: &str, name: &str) -> PathBuf {
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("conformance")
+            .join("next")
+            .join("packages")
+            .join(category)
+            .join(name)
+    }
+
+    fn copy_next_preservation_package(root: &Path) -> serde_json::Value {
+        let source = next_package("valid", "unrepresented-packed");
+        for relative in [
+            DIRECTORY_PACKAGE_ENTRYPOINT,
+            "drawing.ifcdr.json",
+            "preservation.ifcpr.json",
+        ] {
+            fs::write(
+                root.join(relative),
+                fs::read(source.join(relative)).expect("read next package resource"),
+            )
+            .expect("copy next package resource");
+        }
+        serde_json::from_slice(
+            &fs::read(root.join(DIRECTORY_PACKAGE_ENTRYPOINT)).expect("read copied IFCX"),
+        )
+        .expect("parse copied IFCX")
+    }
+
+    #[test]
+    fn external_uri_can_differ_from_resource_identity() {
+        let outcome =
+            load_directory_package(next_package("valid", "resource-id-distinct-from-uri"))
+                .expect("load resource identity package");
+
+        assert!(outcome.report().is_empty());
+        assert!(outcome.validated_package().is_some());
+    }
+
+    #[test]
+    fn descriptor_and_ifcdr_header_identity_must_match() {
+        let outcome = load_directory_package(next_package("invalid", "resource-id-mismatch"))
+            .expect("load mismatched identity package");
+        let diagnostic = outcome
+            .report()
+            .iter()
+            .find(|item| item.code == "IFCCAD_PACKAGE_RESOURCE_ID_MISMATCH")
+            .expect("resource ID mismatch diagnostic");
+
+        assert_eq!(
+            diagnostic.context.get("declaredResourceId"),
+            Some(&PackageDiagnosticContextValue::String(
+                "geometry-declared".to_owned()
+            ))
+        );
+        assert_eq!(
+            diagnostic.context.get("contentResourceId"),
+            Some(&PackageDiagnosticContextValue::String(
+                "geometry-modelspace-main".to_owned()
+            ))
+        );
+    }
+
+    #[test]
+    fn resource_identity_is_unique_across_kinds() {
+        let outcome = load_directory_package(next_package("invalid", "resource-id-duplicate"))
+            .expect("load duplicate identity package");
+
+        assert!(outcome
+            .report()
+            .iter()
+            .any(|item| item.code == "IFCCAD_PACKAGE_RESOURCE_ID_DUPLICATE"));
+        assert!(outcome.validated_package().is_none());
+    }
+
+    #[test]
+    fn preservation_links_resolve_drawing_resource_ids() {
+        let outcome = load_directory_package(next_package("valid", "unrepresented-packed"))
+            .expect("load preservation package");
+
+        assert!(outcome.report().is_empty());
+        assert!(outcome.validated_package().is_some());
+    }
+
+    #[test]
+    fn missing_preservation_link_reports_unknown_resource_id() {
+        let outcome = load_directory_package(next_package(
+            "invalid",
+            "linked-drawing-resource-id-missing",
+        ))
+        .expect("load missing preservation link package");
+
+        assert_eq!(
+            outcome
+                .report()
+                .iter()
+                .filter(|item| item.code == "IFCCAD_PACKAGE_TARGET_RESOURCE_MISSING")
+                .count(),
+            1
+        );
+    }
+
+    #[test]
+    fn descriptor_and_ifcpr_header_identity_must_match() {
+        let root = TestDirectory::new("ifcpr-resource-id-mismatch");
+        let mut entrypoint = copy_next_preservation_package(root.path());
+        entrypoint["data"][8]["attributes"]["preservation"]["resourceId"] =
+            serde_json::json!("preservation-declared");
+        write_entrypoint(root.path(), &entrypoint);
+
+        let outcome = load_directory_package(root.path()).expect("load mismatched IFCPR package");
+        assert!(outcome.report().iter().any(|item| {
+            item.code == "IFCCAD_PACKAGE_RESOURCE_ID_MISMATCH"
+                && item.context.get("contentResourceId")
+                    == Some(&PackageDiagnosticContextValue::String(
+                        "preservation-golden-source".to_owned(),
+                    ))
+        }));
+    }
+
+    #[test]
+    fn multiple_preservation_resources_with_distinct_ids_are_allowed() {
+        let root = TestDirectory::new("multiple-ifcpr-resources");
+        let mut entrypoint = copy_next_preservation_package(root.path());
+        let mut second_resource: serde_json::Value = serde_json::from_slice(
+            &fs::read(root.path().join("preservation.ifcpr.json")).expect("read first IFCPR"),
+        )
+        .expect("parse first IFCPR");
+        second_resource["header"]["resourceId"] = serde_json::json!("preservation-second");
+        let second_bytes = serde_json::to_vec(&second_resource).expect("serialize second IFCPR");
+        fs::write(
+            root.path().join("preservation-second.ifcpr.json"),
+            &second_bytes,
+        )
+        .expect("write second IFCPR");
+
+        let mut second_node = entrypoint["data"][8].clone();
+        second_node["path"] = serde_json::json!("preservation-second");
+        second_node["attributes"]["preservation"]["resourceId"] =
+            serde_json::json!("preservation-second");
+        second_node["attributes"]["preservation"]["uri"] =
+            serde_json::json!("preservation-second.ifcpr.json");
+        second_node["attributes"]["preservation"]["checksum"] =
+            serde_json::json!(format!("sha256:{:x}", Sha256::digest(&second_bytes)));
+        entrypoint["data"].as_array_mut().unwrap().push(second_node);
+        write_entrypoint(root.path(), &entrypoint);
+
+        let outcome = load_directory_package(root.path()).expect("load two IFCPR resources");
+        assert!(
+            outcome.report().is_empty(),
+            "{:?}",
+            outcome.report().diagnostics()
+        );
+        assert!(outcome.validated_package().is_some());
+    }
+
+    #[test]
+    fn ifcpr_links_must_resolve_validated_drawing_resource_ids() {
+        let root = TestDirectory::new("ifcpr-missing-drawing-resource-id");
+        let mut entrypoint = copy_next_preservation_package(root.path());
+        let ifcpr_path = root.path().join("preservation.ifcpr.json");
+        let mut ifcpr: serde_json::Value =
+            serde_json::from_slice(&fs::read(&ifcpr_path).expect("read copied IFCPR"))
+                .expect("parse copied IFCPR");
+        ifcpr["linkedDrawingResources"] = serde_json::json!(["geometry-content-missing"]);
+        let bytes = serde_json::to_vec(&ifcpr).expect("serialize changed IFCPR");
+        fs::write(&ifcpr_path, &bytes).expect("write changed IFCPR");
+        entrypoint["data"][8]["attributes"]["preservation"]["checksum"] =
+            serde_json::json!(format!("sha256:{:x}", Sha256::digest(&bytes)));
+        write_entrypoint(root.path(), &entrypoint);
+
+        let outcome = load_directory_package(root.path()).expect("load IFCPR link package");
+        assert!(outcome.report().iter().any(|item| {
+            item.code == "IFCCAD_PACKAGE_TARGET_RESOURCE_MISSING"
+                && item.resource_id.as_ref().map(ResourceId::as_str)
+                    == Some("preservation-golden-source")
+                && item.location.as_deref() == Some("/linkedDrawingResources/0")
+        }));
+        assert!(outcome.validated_package().is_none());
+    }
+
     #[test]
     fn load_outcome_retains_entrypoint_resources_and_exact_bytes() {
         let root = TestDirectory::new("loaded-model");
-        let entrypoint = br#"{"data":[{"path":"geometry","type":"openaec:DrawingGeometryRepresentation","attributes":{"geometry":{"format":"openaec.ifcdr","version":"0.5.0","uri":"drawing.ifcdr.json","checksum":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","role":"modelspace"}}}]}"#;
+        let entrypoint = br#"{"data":[{"path":"geometry","type":"openaec:DrawingGeometryRepresentation","attributes":{"geometry":{"format":"openaec.ifcdr","version":"0.5.0","resourceId":"geometry-main","uri":"drawing.ifcdr.json","checksum":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","role":"modelspace"}}}]}"#;
         let drawing = b"{\r\n  \"header\": {}\r\n}\r\n";
         fs::write(root.path().join(DIRECTORY_PACKAGE_ENTRYPOINT), entrypoint)
             .expect("write entrypoint");
@@ -349,7 +780,7 @@ mod tests {
         assert_eq!(package.entrypoint.bytes, entrypoint);
         assert_eq!(package.entrypoint.value["data"][0]["path"], "geometry");
         assert_eq!(package.declarations.len(), 1);
-        assert_eq!(package.declarations[0].uri, "drawing.ifcdr.json");
+        assert_eq!(package.declarations[0].external_uri, "drawing.ifcdr.json");
         let source = package.resources["drawing.ifcdr.json"].clone();
         let second = package.resources["drawing.ifcdr.json"].clone();
         assert!(Arc::ptr_eq(&source, &second));
@@ -369,7 +800,7 @@ mod tests {
             .analysis
             .as_ref()
             .expect("package analysis")
-            .validated_ifcdr_resources["drawing.ifcdr.json"];
+            .validated_ifcdr_resources[&resource_id("geometry-modelspace-main")];
 
         assert!(Arc::ptr_eq(
             validated.loaded().source(),
@@ -391,7 +822,7 @@ mod tests {
         let package = outcome.package.as_ref().expect("loaded package");
         let second = package.clone();
         let analysis = outcome.analysis.as_ref().expect("package analysis");
-        let ifcdr = &analysis.validated_ifcdr_resources["drawing.ifcdr.json"];
+        let ifcdr = &analysis.validated_ifcdr_resources[&resource_id("geometry-modelspace-main")];
 
         assert!(Arc::ptr_eq(package, &second));
         assert_eq!(analysis.node_indices_by_path["drawing-main"], 1);
@@ -478,11 +909,12 @@ mod tests {
                 "type": "openaec:PreservationRepresentation",
                 "attributes": {"preservation": {
                     "format": "openaec.ifcpr",
-                    "version": "0.1.0",
+                    "version": "0.2.0",
+                    "resourceId": "preservation-conflict",
                     "uri": geometry["uri"],
                     "checksum": geometry["checksum"],
                     "sourceDocumentId": "source",
-                    "linkedDrawingResourceUris": ["drawing.ifcdr.json"]
+                    "linkedDrawingResourceIds": ["geometry-modelspace-main"]
                 }}
             }));
         write_entrypoint(root.path(), &entrypoint);
@@ -508,11 +940,12 @@ mod tests {
                 "type": "openaec:PreservationRepresentation",
                 "attributes": {"preservation": {
                     "format": "openaec.ifcpr",
-                    "version": "0.1.0",
+                    "version": "0.2.0",
+                    "resourceId": "preservation-conflict",
                     "uri": geometry["uri"],
                     "checksum": geometry["checksum"],
                     "sourceDocumentId": "source",
-                    "linkedDrawingResourceUris": ["drawing.ifcdr.json"]
+                    "linkedDrawingResourceIds": ["geometry-modelspace-main"]
                 }}
             }),
         );
@@ -528,7 +961,7 @@ mod tests {
     }
 
     #[test]
-    fn preservation_link_requires_a_declared_ifcdr_uri() {
+    fn preservation_link_requires_a_validated_ifcdr_resource_id() {
         let root = TestDirectory::new("undeclared-preservation-link");
         let mut entrypoint = copy_minimal_package(root.path());
         let source = bundled_conformance_root()
@@ -547,11 +980,12 @@ mod tests {
                 "type": "openaec:PreservationRepresentation",
                 "attributes": {"preservation": {
                     "format": "openaec.ifcpr",
-                    "version": "0.1.0",
+                    "version": "0.2.0",
+                    "resourceId": "preservation-golden-source",
                     "uri": "preservation.ifcpr.json",
                     "checksum": format!("sha256:{:x}", Sha256::digest(&preservation)),
                     "sourceDocumentId": "source",
-                    "linkedDrawingResourceUris": ["undeclared.ifcdr.json"]
+                    "linkedDrawingResourceIds": ["geometry-undeclared"]
                 }}
             }));
         write_entrypoint(root.path(), &entrypoint);
@@ -560,9 +994,9 @@ mod tests {
 
         assert!(outcome.validated_package.is_none());
         assert!(outcome.report.iter().any(|diagnostic| {
-            diagnostic.code == "IFCCAD_PACKAGE_BINDING_INVALID"
+            diagnostic.code == "IFCCAD_PACKAGE_TARGET_RESOURCE_MISSING"
                 && diagnostic.location.as_deref()
-                    == Some("/data/8/attributes/preservation/linkedDrawingResourceUris/0")
+                    == Some("/data/8/attributes/preservation/linkedDrawingResourceIds/0")
         }));
     }
 
@@ -818,15 +1252,21 @@ mod tests {
 
         assert!(outcome.validated_package.is_some());
         assert_eq!(layout.representation_path, "representation-modelspace-main");
-        assert_eq!(layout.ifcdr_uri, "drawing.ifcdr.json");
+        assert_eq!(
+            layout.ifcdr_resource_id,
+            resource_id("geometry-modelspace-main")
+        );
         assert_eq!(layout.scope_id, ScopeId::new(0));
         assert_eq!(
-            bindings.ifcx_layer_by_ifcdr_id[&("drawing.ifcdr.json".to_owned(), LayerId::new(1))],
+            bindings.ifcx_layer_by_ifcdr_id
+                [&(resource_id("geometry-modelspace-main"), LayerId::new(1))],
             "layer-a-wall"
         );
         assert_eq!(
-            bindings.ifcx_appearance_by_ifcdr_id
-                [&("drawing.ifcdr.json".to_owned(), AppearanceId::new(2))],
+            bindings.ifcx_appearance_by_ifcdr_id[&(
+                resource_id("geometry-modelspace-main"),
+                AppearanceId::new(2)
+            )],
             "appearance-default-solid"
         );
     }
@@ -851,7 +1291,7 @@ mod tests {
             .as_ref()
             .unwrap()
             .validated_ifcdr_resources
-            .contains_key("drawing.ifcdr.json"));
+            .contains_key(&resource_id("x")));
         assert!(outcome.report.iter().any(|item| {
             item.code == "IFCCAD_IFCDR_VERSION_UNSUPPORTED"
                 && item.resource_uri.as_deref() == Some("drawing.ifcdr.json")
@@ -889,18 +1329,19 @@ mod tests {
         )
         .expect("read valid IFCDR");
         let invalid = br#"{"header":{"format":"openaec.ifcdr","version":"0.6.0","resourceId":"x","unit":"m","nextEntityId":1}}"#;
-        let descriptor = |uri: &str, bytes: &[u8]| {
+        let descriptor = |resource_id: &str, uri: &str, bytes: &[u8]| {
             serde_json::json!({
                 "format": "openaec.ifcdr",
                 "version": "0.5.0",
+                "resourceId": resource_id,
                 "uri": uri,
                 "checksum": format!("sha256:{:x}", Sha256::digest(bytes)),
                 "role": "modelspace"
             })
         };
         let entrypoint = serde_json::json!({"data": [
-            {"path": "valid", "type": "openaec:DrawingGeometryRepresentation", "attributes": {"geometry": descriptor("valid.ifcdr.json", &valid)}},
-            {"path": "invalid", "type": "openaec:DrawingGeometryRepresentation", "attributes": {"geometry": descriptor("invalid.ifcdr.json", invalid)}}
+            {"path": "valid", "type": "openaec:DrawingGeometryRepresentation", "attributes": {"geometry": descriptor("geometry-modelspace-main", "valid.ifcdr.json", &valid)}},
+            {"path": "invalid", "type": "openaec:DrawingGeometryRepresentation", "attributes": {"geometry": descriptor("x", "invalid.ifcdr.json", invalid)}}
         ]});
         fs::write(
             root.path().join(DIRECTORY_PACKAGE_ENTRYPOINT),
@@ -918,13 +1359,13 @@ mod tests {
             .as_ref()
             .unwrap()
             .validated_ifcdr_resources
-            .contains_key("valid.ifcdr.json"));
+            .contains_key(&resource_id("geometry-modelspace-main")));
         assert!(!outcome
             .analysis
             .as_ref()
             .unwrap()
             .validated_ifcdr_resources
-            .contains_key("invalid.ifcdr.json"));
+            .contains_key(&resource_id("x")));
     }
 
     #[test]
@@ -937,12 +1378,12 @@ mod tests {
             }
             let outcome = load_directory_package(entry.path()).expect("load valid package fixture");
             let package = outcome.package.as_ref().expect("loaded valid package");
-            let ifcdr_uris = package
+            let ifcdr_resource_ids = package
                 .declarations
                 .iter()
                 .filter(|declaration| declaration.kind == ResourceKind::Ifcdr)
-                .filter(|declaration| package.resources.contains_key(&declaration.uri))
-                .map(|declaration| declaration.uri.as_str())
+                .filter(|declaration| package.resources.contains_key(&declaration.external_uri))
+                .map(|declaration| declaration.resource_id.as_str())
                 .collect::<BTreeSet<_>>();
             let validated_uris = outcome
                 .analysis
@@ -950,11 +1391,11 @@ mod tests {
                 .expect("package analysis")
                 .validated_ifcdr_resources
                 .keys()
-                .map(String::as_str)
+                .map(ResourceId::as_str)
                 .collect::<BTreeSet<_>>();
             assert_eq!(
                 validated_uris,
-                ifcdr_uris,
+                ifcdr_resource_ids,
                 "fixture {:?}",
                 entry.file_name()
             );
@@ -969,7 +1410,7 @@ mod tests {
         let outcome = load_directory_package(root.path()).expect("load directory package");
         let package = outcome.package.expect("parsed entrypoint is retained");
 
-        assert_eq!(package.declarations[0].uri, "missing.ifcdr.json");
+        assert_eq!(package.declarations[0].external_uri, "missing.ifcdr.json");
         assert!(!package.resources.contains_key("missing.ifcdr.json"));
         assert_eq!(
             outcome.report.diagnostics()[0].code,
@@ -1106,6 +1547,7 @@ mod tests {
                         "geometry": {
                             "format": "openaec.ifcdr",
                             "version": "0.5.0",
+                            "resourceId": "geometry-missing",
                             "uri": "z-missing.ifcdr.json",
                             "checksum": checksum,
                             "role": "modelspace"
@@ -1119,6 +1561,7 @@ mod tests {
                         "geometry": {
                             "format": "openaec.ifcdr",
                             "version": "0.5.0",
+                            "resourceId": "geometry-modelspace-main",
                             "uri": "a-loaded.ifcdr.json",
                             "checksum": checksum,
                             "role": ""
@@ -1159,11 +1602,6 @@ mod tests {
             sequence,
             [
                 (
-                    IFCCAD_PACKAGE_CHECKSUM_MISMATCH,
-                    Some("a-loaded.ifcdr.json"),
-                    Some("/data/2/attributes/geometry/checksum"),
-                ),
-                (
                     IFCCAD_PACKAGE_NODE_REFERENCE_MISSING,
                     Some(DIRECTORY_PACKAGE_ENTRYPOINT),
                     Some("/data/0/children/Drawings/0"),
@@ -1182,6 +1620,11 @@ mod tests {
                     IFCCAD_PACKAGE_RESOURCE_MISSING,
                     Some("z-missing.ifcdr.json"),
                     Some("/data/1/attributes/geometry/uri"),
+                ),
+                (
+                    IFCCAD_PACKAGE_CHECKSUM_MISMATCH,
+                    Some("a-loaded.ifcdr.json"),
+                    Some("/data/2/attributes/geometry/checksum"),
                 ),
             ]
         );
@@ -1231,12 +1674,20 @@ mod tests {
               "data": [
                 {
                   "type": "openaec:DrawingGeometryRepresentation",
-                  "attributes": { "geometry": { "url": "ignored.json" } }
+                  "attributes": {
+                    "geometry": {
+                      "resourceId": "geometry-ignored",
+                      "url": "ignored.json"
+                    }
+                  }
                 },
                 {
                   "type": "openaec:PreservationRepresentation",
                   "attributes": {
-                    "preservation": { "uri": "malformed.ifcpr.json" }
+                    "preservation": {
+                      "resourceId": "preservation-malformed",
+                      "uri": "malformed.ifcpr.json"
+                    }
                   }
                 }
               ]
@@ -1267,7 +1718,7 @@ mod tests {
     }
 
     #[test]
-    fn loads_committed_bootstrap_packages_and_reports_legacy_links() {
+    fn loads_committed_active_packages_without_diagnostics() {
         for case in [
             "minimal-no-preservation",
             "unrepresented-packed",
@@ -1285,26 +1736,11 @@ mod tests {
             assert_eq!(package.entrypoint.uri, DIRECTORY_PACKAGE_ENTRYPOINT);
             assert!(!analysis.node_indices_by_path.is_empty(), "case {case}");
 
-            if case == "minimal-no-preservation" {
-                assert!(
-                    outcome.report.is_empty(),
-                    "case {case}: {:?}",
-                    outcome.report.diagnostics()
-                );
-                continue;
-            }
-
-            let properties: Vec<_> = outcome
-                .report
-                .iter()
-                .filter_map(|item| item.context.get("property"))
-                .collect();
-            assert!(properties.contains(&&PackageDiagnosticContextValue::String(
-                "linkedDrawingResourceIds".to_owned()
-            )));
-            assert!(properties.contains(&&PackageDiagnosticContextValue::String(
-                "linkedDrawingResourceUris".to_owned()
-            )));
+            assert!(
+                outcome.report.is_empty(),
+                "case {case}: {:?}",
+                outcome.report.diagnostics()
+            );
         }
     }
 
@@ -1320,7 +1756,7 @@ mod tests {
         assert!(package
             .declarations
             .iter()
-            .any(|declaration| declaration.uri == "drawing.ifcdr.json"));
+            .any(|declaration| declaration.external_uri == "drawing.ifcdr.json"));
         assert!(outcome
             .report
             .iter()

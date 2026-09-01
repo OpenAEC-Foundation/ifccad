@@ -4,7 +4,7 @@ use ifccad::conformance::{
 use std::path::Path;
 
 fn manifest(case_body: &str) -> String {
-    format!(r#"{{"suiteVersion":"1.0.0","cases":[{case_body}]}}"#)
+    format!(r#"{{"suiteVersion":"1.1.0","cases":[{case_body}]}}"#)
 }
 
 fn valid_case() -> &'static str {
@@ -16,7 +16,7 @@ fn parses_known_manifest_vocabulary() {
     let parsed = parse_conformance_manifest(&manifest(valid_case()), Path::new("manifest.json"))
         .expect("valid manifest");
 
-    assert_eq!(parsed.suite_version, "1.0.0");
+    assert_eq!(parsed.suite_version, "1.1.0");
     assert_eq!(parsed.cases.len(), 1);
     assert_eq!(parsed.cases[0].category, ConformanceCategory::Valid);
     assert_eq!(
@@ -37,7 +37,7 @@ fn rejects_unsupported_version() {
 #[test]
 fn rejects_duplicate_case_ids() {
     let source = format!(
-        r#"{{"suiteVersion":"1.0.0","cases":[{},{}]}}"#,
+        r#"{{"suiteVersion":"1.1.0","cases":[{},{}]}}"#,
         valid_case(),
         valid_case(),
     );

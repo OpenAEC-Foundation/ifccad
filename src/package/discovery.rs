@@ -1,5 +1,6 @@
 use super::codes::IFCCAD_PACKAGE_ENTRYPOINT_INVALID;
 use super::{PackageDiagnostic, PackageDiagnosticSeverity};
+use crate::ResourceId;
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -11,8 +12,10 @@ pub(crate) enum ResourceKind {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct ResourceDeclaration {
     pub(crate) kind: ResourceKind,
-    pub(crate) uri: String,
-    pub(crate) uri_location: String,
+    pub(crate) resource_id: ResourceId,
+    pub(crate) resource_id_location: String,
+    pub(crate) external_uri: String,
+    pub(crate) external_uri_location: String,
     pub(crate) checksum: Option<String>,
     pub(crate) checksum_location: String,
 }
@@ -39,8 +42,28 @@ pub(crate) fn discover_resources(ifcx: &serde_json::Value) -> ResourceDiscovery 
             continue;
         };
         let descriptor_pointer = format!("/attributes/{resource_name}");
+        let resource_id_location = format!("/data/{index}{descriptor_pointer}/resourceId");
         let uri_location = format!("/data/{index}{descriptor_pointer}/uri");
         let checksum_location = format!("/data/{index}{descriptor_pointer}/checksum");
+        let resource_id = match node.pointer(&format!("/attributes/{resource_name}/resourceId")) {
+            Some(serde_json::Value::String(value)) => match ResourceId::new(value.clone()) {
+                Ok(resource_id) => resource_id,
+                Err(_) => {
+                    discovery.diagnostics.push(invalid_entrypoint(
+                        &resource_id_location,
+                        "recognized IFCCAD resource ID must be a non-empty string",
+                    ));
+                    continue;
+                }
+            },
+            _ => {
+                discovery.diagnostics.push(invalid_entrypoint(
+                    &resource_id_location,
+                    "recognized IFCCAD resource ID must be a non-empty string",
+                ));
+                continue;
+            }
+        };
         match node.pointer(&format!("/attributes/{resource_name}/uri")) {
             Some(serde_json::Value::String(uri)) => {
                 let checksum = node
@@ -49,8 +72,10 @@ pub(crate) fn discover_resources(ifcx: &serde_json::Value) -> ResourceDiscovery 
                     .map(str::to_owned);
                 discovery.declarations.push(ResourceDeclaration {
                     kind,
-                    uri: uri.clone(),
-                    uri_location,
+                    resource_id,
+                    resource_id_location,
+                    external_uri: uri.clone(),
+                    external_uri_location: uri_location,
                     checksum,
                     checksum_location,
                 });
@@ -97,13 +122,19 @@ mod tests {
                 {
                     "type": "openaec:DrawingGeometryRepresentation",
                     "attributes": {
-                        "geometry": { "uri": "drawing.ifcdr.json" }
+                        "geometry": {
+                            "resourceId": "geometry-main",
+                            "uri": "drawing.ifcdr.json"
+                        }
                     }
                 },
                 {
                     "type": "openaec:PreservationRepresentation",
                     "attributes": {
-                        "preservation": { "uri": "preservation.ifcpr.json" }
+                        "preservation": {
+                            "resourceId": "preservation-source",
+                            "uri": "preservation.ifcpr.json"
+                        }
                     }
                 }
             ]
@@ -117,15 +148,19 @@ mod tests {
             vec![
                 ResourceDeclaration {
                     kind: ResourceKind::Ifcdr,
-                    uri: "drawing.ifcdr.json".to_owned(),
-                    uri_location: "/data/0/attributes/geometry/uri".to_owned(),
+                    resource_id: crate::ResourceId::new("geometry-main").unwrap(),
+                    resource_id_location: "/data/0/attributes/geometry/resourceId".to_owned(),
+                    external_uri: "drawing.ifcdr.json".to_owned(),
+                    external_uri_location: "/data/0/attributes/geometry/uri".to_owned(),
                     checksum: None,
                     checksum_location: "/data/0/attributes/geometry/checksum".to_owned(),
                 },
                 ResourceDeclaration {
                     kind: ResourceKind::Ifcpr,
-                    uri: "preservation.ifcpr.json".to_owned(),
-                    uri_location: "/data/1/attributes/preservation/uri".to_owned(),
+                    resource_id: crate::ResourceId::new("preservation-source").unwrap(),
+                    resource_id_location: "/data/1/attributes/preservation/resourceId".to_owned(),
+                    external_uri: "preservation.ifcpr.json".to_owned(),
+                    external_uri_location: "/data/1/attributes/preservation/uri".to_owned(),
                     checksum: None,
                     checksum_location: "/data/1/attributes/preservation/checksum".to_owned(),
                 },
@@ -154,7 +189,10 @@ mod tests {
             "data": [{
                 "type": "openaec:DrawingGeometryRepresentation",
                 "attributes": {
-                    "geometry": { "url": "drawing.ifcdr.json" }
+                    "geometry": {
+                        "resourceId": "geometry-main",
+                        "url": "drawing.ifcdr.json"
+                    }
                 }
             }]
         });
@@ -178,7 +216,10 @@ mod tests {
             "data": [{
                 "type": "openaec:PreservationRepresentation",
                 "attributes": {
-                    "preservation": { "uri": 42 }
+                    "preservation": {
+                        "resourceId": "preservation-source",
+                        "uri": 42
+                    }
                 }
             }]
         });
@@ -206,5 +247,26 @@ mod tests {
         assert_eq!(diagnostic.code, IFCCAD_PACKAGE_ENTRYPOINT_INVALID);
         assert_eq!(diagnostic.resource_uri, None);
         assert_eq!(diagnostic.location.as_deref(), Some("/data"));
+    }
+
+    #[test]
+    fn does_not_infer_missing_resource_id_from_uri() {
+        let ifcx = serde_json::json!({
+            "data": [{
+                "type": "openaec:DrawingGeometryRepresentation",
+                "attributes": {
+                    "geometry": { "uri": "drawing.ifcdr.json" }
+                }
+            }]
+        });
+
+        let discovery = discover_resources(&ifcx);
+
+        assert!(discovery.declarations.is_empty());
+        assert_eq!(discovery.diagnostics.len(), 1);
+        assert_eq!(
+            discovery.diagnostics[0].location.as_deref(),
+            Some("/data/0/attributes/geometry/resourceId")
+        );
     }
 }

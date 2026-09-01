@@ -1,5 +1,6 @@
 use super::diagnostic::PackageValidationReport;
 use super::discovery::ResourceDeclaration;
+use crate::ResourceId;
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -57,7 +58,7 @@ pub(crate) struct LoadedIfccadPackage {
 pub(crate) struct PackageAnalysis {
     pub(crate) node_indices_by_path: BTreeMap<String, usize>,
     pub(crate) validated_ifcdr_resources:
-        BTreeMap<String, Arc<crate::ifcdr::ValidatedIfcdrResource>>,
+        BTreeMap<ResourceId, Arc<crate::ifcdr::ValidatedIfcdrResource>>,
     pub(crate) bindings: super::bindings::PackageBindings,
 }
 

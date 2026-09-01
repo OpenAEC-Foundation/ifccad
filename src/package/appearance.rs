@@ -2,6 +2,7 @@ use super::bindings::PackageBindings;
 use super::codes::{IFCCAD_PACKAGE_APPEARANCE_INVALID, IFCCAD_PACKAGE_LAYER_NAME_DUPLICATE};
 use super::{PackageDiagnostic, PackageDiagnosticContextValue, PackageDiagnosticSeverity};
 use crate::ifcdr::{AppearanceId, ValidatedIfcdrResource};
+use crate::ResourceId;
 use serde_json::Value;
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -126,12 +127,14 @@ pub(crate) fn appearance_mode(value: u32) -> Option<AppearanceMode> {
 pub(crate) fn validate_appearance_and_layer_semantics(
     nodes: &[Value],
     node_indices_by_path: &BTreeMap<String, usize>,
-    resources: &BTreeMap<String, Arc<ValidatedIfcdrResource>>,
+    resources: &BTreeMap<ResourceId, Arc<ValidatedIfcdrResource>>,
     bindings: &PackageBindings,
 ) -> Vec<PackageDiagnostic> {
     let mut diagnostics = Vec::new();
-    for (uri, resource) in resources {
+    for (resource_id, resource) in resources {
+        let uri = resource.loaded().uri();
         validate_appearances(
+            resource_id,
             uri,
             resource,
             nodes,
@@ -140,6 +143,7 @@ pub(crate) fn validate_appearance_and_layer_semantics(
             &mut diagnostics,
         );
         validate_layer_names(
+            resource_id,
             uri,
             resource,
             nodes,
@@ -152,6 +156,7 @@ pub(crate) fn validate_appearance_and_layer_semantics(
 }
 
 fn validate_appearances(
+    resource_id: &ResourceId,
     uri: &str,
     resource: &ValidatedIfcdrResource,
     nodes: &[Value],
@@ -162,7 +167,7 @@ fn validate_appearances(
     for (row_index, binding) in resource.bindings().appearances().enumerate() {
         let ifcx_appearance = bindings
             .ifcx_appearance_by_ifcdr_id
-            .get(&(uri.to_owned(), binding.id()))
+            .get(&(resource_id.clone(), binding.id()))
             .and_then(|path| node_indices_by_path.get(path))
             .and_then(|index| nodes.get(*index));
         let appearance_override = binding
@@ -181,6 +186,7 @@ fn validate_appearances(
             });
         validate_property(
             uri,
+            resource_id,
             row_index,
             binding.id(),
             "color",
@@ -193,6 +199,7 @@ fn validate_appearances(
         );
         validate_property(
             uri,
+            resource_id,
             row_index,
             binding.id(),
             "opacity",
@@ -209,6 +216,7 @@ fn validate_appearances(
         );
         validate_property(
             uri,
+            resource_id,
             row_index,
             binding.id(),
             "linePattern",
@@ -221,6 +229,7 @@ fn validate_appearances(
         );
         validate_property(
             uri,
+            resource_id,
             row_index,
             binding.id(),
             "lineWeight",
@@ -241,6 +250,7 @@ fn validate_appearances(
 #[allow(clippy::too_many_arguments)]
 fn validate_property(
     uri: &str,
+    resource_id: &ResourceId,
     row_index: usize,
     binding_id: AppearanceId,
     property: &str,
@@ -254,6 +264,7 @@ fn validate_property(
     let Some(mode) = appearance_mode(raw_mode) else {
         diagnostics.push(appearance_diagnostic(
             uri,
+            resource_id,
             row_index,
             binding_id,
             property,
@@ -268,6 +279,7 @@ fn validate_property(
     {
         diagnostics.push(appearance_diagnostic(
             uri,
+            resource_id,
             row_index,
             binding_id,
             property,
@@ -278,8 +290,10 @@ fn validate_property(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn appearance_diagnostic(
     uri: &str,
+    resource_id: &ResourceId,
     row_index: usize,
     binding_id: AppearanceId,
     property: &str,
@@ -290,7 +304,7 @@ fn appearance_diagnostic(
     PackageDiagnostic {
         code: IFCCAD_PACKAGE_APPEARANCE_INVALID.to_owned(),
         severity: PackageDiagnosticSeverity::Error,
-        resource_id: None,
+        resource_id: Some(resource_id.clone()),
         resource_uri: Some(uri.to_owned()),
         location: Some(format!("/appearanceBindings/{row_index}/{mode_field}")),
         context: BTreeMap::from([
@@ -312,6 +326,7 @@ fn appearance_diagnostic(
 }
 
 fn validate_layer_names(
+    resource_id: &ResourceId,
     uri: &str,
     resource: &ValidatedIfcdrResource,
     nodes: &[Value],
@@ -323,7 +338,7 @@ fn validate_layer_names(
     for (row_index, binding) in resource.bindings().layers().enumerate() {
         let Some(path) = bindings
             .ifcx_layer_by_ifcdr_id
-            .get(&(uri.to_owned(), binding.id()))
+            .get(&(resource_id.clone(), binding.id()))
         else {
             continue;
         };
@@ -340,7 +355,7 @@ fn validate_layer_names(
             diagnostics.push(PackageDiagnostic {
                 code: IFCCAD_PACKAGE_LAYER_NAME_DUPLICATE.to_owned(),
                 severity: PackageDiagnosticSeverity::Error,
-                resource_id: None,
+                resource_id: Some(resource_id.clone()),
                 resource_uri: Some(uri.to_owned()),
                 location: Some(format!("/layerBindings/{row_index}/ifcxLayer")),
                 context: BTreeMap::from([

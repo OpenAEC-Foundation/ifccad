@@ -3,6 +3,7 @@ use super::appearance::{
     appearance_mode, AppearanceColorRef, AppearanceMode, AppearanceProperty, LinePatternRef,
 };
 use crate::ifcdr::{AppearanceId, IfcdrResourceRef, LayerId, ScopeRef, ValidatedIfcdrResource};
+use crate::ResourceId;
 use serde_json::Value;
 
 impl ValidatedIfccadPackage {
@@ -51,10 +52,13 @@ impl ValidatedIfccadPackage {
             })
     }
 
-    pub(crate) fn ifcdr_resource(&self, uri: &str) -> Option<&ValidatedIfcdrResource> {
+    pub(crate) fn ifcdr_resource(
+        &self,
+        resource_id: &ResourceId,
+    ) -> Option<&ValidatedIfcdrResource> {
         self.evidence()
             .validated_ifcdr_resources
-            .get(uri)
+            .get(resource_id)
             .map(AsRef::as_ref)
     }
 
@@ -254,7 +258,7 @@ impl<'a> DrawingLayoutRef<'a> {
             .get(self.path())
             .expect("validated layout binding");
         self.package
-            .ifcdr_resource(&binding.ifcdr_uri)
+            .ifcdr_resource(&binding.ifcdr_resource_id)
             .expect("validated layout IFCDR resource")
             .scope(binding.scope_id)
             .expect("validated layout scope")
@@ -292,7 +296,7 @@ impl<'a> GeometryRepresentationRef<'a> {
 
     pub fn layers(&self) -> impl ExactSizeIterator<Item = LayerRef<'a>> + 'a {
         let package = self.package;
-        let uri = self.uri().to_owned();
+        let resource_id = self.resource().resource_id().clone();
         self.validated_resource()
             .bindings()
             .layers()
@@ -302,7 +306,7 @@ impl<'a> GeometryRepresentationRef<'a> {
                     .evidence()
                     .bindings
                     .ifcx_layer_by_ifcdr_id
-                    .get(&(uri.clone(), id))
+                    .get(&(resource_id.clone(), id))
                     .expect("validated IFCX layer binding");
                 package.layer(path, id).expect("validated IFCX layer")
             })
@@ -314,7 +318,7 @@ impl<'a> GeometryRepresentationRef<'a> {
             .evidence()
             .bindings
             .ifcx_layer_by_ifcdr_id
-            .get(&(self.uri().to_owned(), id))?;
+            .get(&(self.resource().resource_id().clone(), id))?;
         self.package.layer(path, id)
     }
 
@@ -564,7 +568,9 @@ mod tests {
         assert_eq!(package.geometry_representations().count(), 1);
         assert!(package.ifcx_node("missing").is_none());
         assert!(package.geometry_representation("missing").is_none());
-        assert!(package.ifcdr_resource("missing.ifcdr.json").is_none());
+        assert!(package
+            .ifcdr_resource(&ResourceId::new("missing-resource").unwrap())
+            .is_none());
 
         let set = package.drawing_sets().next().unwrap();
         assert_eq!(set.path(), "drawing-set-main");

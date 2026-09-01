@@ -3,24 +3,20 @@ use super::{
     PackageDiagnostic, PackageDiagnosticContextValue, PackageDiagnosticSeverity,
     DIRECTORY_PACKAGE_ENTRYPOINT,
 };
+use crate::ResourceId;
 use jsonschema::Registry;
 use serde_json::Value;
 use std::collections::BTreeMap;
 
-const RESOURCE_OVERLAY_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.1.0.json";
 const DRAWING_CORE_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-drawing-core-0.2.0.json";
-const RESOURCE_OVERLAY: &str = include_str!("../../schemas/ifcx/ifccad-overlay-0.1.0.json");
 const DRAWING_CORE: &str = include_str!("../../schemas/ifcx/ifccad-drawing-core-0.2.0.json");
-const COMPOSITE_OVERLAY: &str = include_str!("../../schemas/ifcx/ifccad-overlay-0.3.0.json");
-const IFCPR_SCHEMA: &str = include_str!("../../schemas/ifcpr/schema-0.1.0.json");
+const COMPOSITE_OVERLAY: &str = include_str!("../../schemas/ifcx/ifccad-overlay-0.4.0.json");
+const IFCPR_SCHEMA: &str = include_str!("../../schemas/ifcpr/schema-0.2.0.json");
 
 pub(crate) fn validate_ifcx(value: &Value) -> Vec<PackageDiagnostic> {
-    let resource_overlay = parse_schema(RESOURCE_OVERLAY, "IFCX resource overlay 0.1.0");
     let drawing_core = parse_schema(DRAWING_CORE, "IFCX drawing core 0.2.0");
-    let composite = parse_schema(COMPOSITE_OVERLAY, "IFCX overlay 0.3.0");
+    let composite = parse_schema(COMPOSITE_OVERLAY, "IFCX overlay 0.4.0");
     let registry = Registry::new()
-        .add(RESOURCE_OVERLAY_ID, resource_overlay)
-        .expect("register embedded IFCX resource overlay 0.1.0")
         .add(DRAWING_CORE_ID, drawing_core)
         .expect("register embedded IFCX drawing core 0.2.0")
         .prepare()
@@ -28,15 +24,19 @@ pub(crate) fn validate_ifcx(value: &Value) -> Vec<PackageDiagnostic> {
     let validator = jsonschema::draft202012::options()
         .with_registry(&registry)
         .build(&composite)
-        .expect("compile embedded IFCX overlay 0.3.0");
-    schema_diagnostics(&validator, DIRECTORY_PACKAGE_ENTRYPOINT, value)
+        .expect("compile embedded IFCX overlay 0.4.0");
+    schema_diagnostics(&validator, None, DIRECTORY_PACKAGE_ENTRYPOINT, value)
 }
 
-pub(crate) fn validate_ifcpr(resource_uri: &str, value: &Value) -> Vec<PackageDiagnostic> {
-    let schema = parse_schema(IFCPR_SCHEMA, "IFCPR schema 0.1.0");
+pub(crate) fn validate_ifcpr(
+    resource_id: Option<&ResourceId>,
+    resource_uri: &str,
+    value: &Value,
+) -> Vec<PackageDiagnostic> {
+    let schema = parse_schema(IFCPR_SCHEMA, "IFCPR schema 0.2.0");
     let validator =
-        jsonschema::draft202012::new(&schema).expect("compile embedded IFCPR schema 0.1.0");
-    schema_diagnostics(&validator, resource_uri, value)
+        jsonschema::draft202012::new(&schema).expect("compile embedded IFCPR schema 0.2.0");
+    schema_diagnostics(&validator, resource_id, resource_uri, value)
 }
 
 fn parse_schema(source: &str, name: &str) -> Value {
@@ -45,6 +45,7 @@ fn parse_schema(source: &str, name: &str) -> Value {
 
 fn schema_diagnostics(
     validator: &jsonschema::Validator,
+    resource_id: Option<&ResourceId>,
     resource_uri: &str,
     value: &Value,
 ) -> Vec<PackageDiagnostic> {
@@ -85,7 +86,7 @@ fn schema_diagnostics(
             PackageDiagnostic {
                 code: IFCCAD_PACKAGE_SCHEMA_INVALID.to_owned(),
                 severity: PackageDiagnosticSeverity::Error,
-                resource_id: None,
+                resource_id: resource_id.cloned(),
                 resource_uri: Some(resource_uri.to_owned()),
                 location: Some(error.instance_path().to_string()),
                 context: diagnostic_context,
@@ -132,6 +133,7 @@ mod tests {
                         "geometry": {
                             "format": "openaec.ifcdr",
                             "version": "0.5.0",
+                            "resourceId": "geometry-main",
                             "uri": "drawing.ifcdr.json",
                             "checksum": format!("sha256:{}", "a".repeat(64)),
                             "role": "modelspace"
@@ -191,7 +193,7 @@ mod tests {
         let value = serde_json::from_slice(&fs::read(path).expect("read IFCPR resource"))
             .expect("parse IFCPR resource");
 
-        assert!(validate_ifcpr("preservation.ifcpr.json", &value).is_empty());
+        assert!(validate_ifcpr(None, "preservation.ifcpr.json", &value).is_empty());
     }
 
     #[test]
@@ -209,7 +211,7 @@ mod tests {
             .expect("IFCPR object")
             .remove("header");
 
-        let diagnostics = validate_ifcpr("preservation.ifcpr.json", &value);
+        let diagnostics = validate_ifcpr(None, "preservation.ifcpr.json", &value);
 
         assert!(diagnostics.iter().any(|item| {
             item.code == IFCCAD_PACKAGE_SCHEMA_INVALID

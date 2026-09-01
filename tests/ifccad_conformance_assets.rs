@@ -62,9 +62,8 @@ fn resolve_git_dir_pointer(repository: &Path, pointer: &str) -> Option<PathBuf> 
 }
 
 #[test]
-fn bundled_reference_files_are_complete_and_valid_json() {
+fn frozen_reference_files_are_complete_and_valid_json() {
     let expected_root = frozen_root();
-    assert_eq!(bundled_conformance_root(), expected_root);
 
     let files = files_below(&expected_root);
     assert_eq!(files.len(), 89, "unexpected frozen reference file count");
@@ -124,6 +123,11 @@ fn active_schemas_start_from_bundled_contract_versions() {
             "active schema differs from its 1.0.0 bootstrap source: {relative}"
         );
     }
+}
+
+#[test]
+fn bundled_reference_points_to_the_next_candidate() {
+    assert_eq!(bundled_conformance_root(), next_root());
 }
 
 #[test]

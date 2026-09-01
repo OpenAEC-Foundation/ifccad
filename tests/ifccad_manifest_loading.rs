@@ -31,7 +31,7 @@ impl Drop for TestDirectory {
 
 fn write_manifest(root: &Path, entrypoint: &str) {
     let manifest = json!({
-        "suiteVersion": "1.0.0",
+        "suiteVersion": "1.1.0",
         "cases": [{
             "caseId": "case.one",
             "category": "valid",
@@ -50,15 +50,15 @@ fn write_manifest(root: &Path, entrypoint: &str) {
 fn loads_bundled_suite_in_manifest_order() {
     let manifest = load_conformance_manifest(bundled_conformance_root())
         .expect("load bundled conformance suite");
-    assert_eq!(manifest.suite_version, "1.0.0");
-    assert_eq!(manifest.cases.len(), 20);
+    assert_eq!(manifest.suite_version, "1.1.0");
+    assert_eq!(manifest.cases.len(), 25);
     assert_eq!(
         manifest.cases.first().unwrap().case_id,
         "vector.canonicalization"
     );
     assert_eq!(
         manifest.cases.last().unwrap().case_id,
-        "invalid.projection-resource-missing"
+        "invalid.linked-drawing-resource-id-missing"
     );
 }
 
