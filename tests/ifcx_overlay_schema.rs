@@ -8,6 +8,7 @@ const DRAWING_CORE_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-drawing-co
 const OVERLAY_0_2_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.2.0.json";
 const DRAWING_CORE_0_2_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-drawing-core-0.2.0.json";
 const OVERLAY_0_3_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.3.0.json";
+const OVERLAY_0_4_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.4.0.json";
 
 fn schema_path(file_name: &str) -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -83,6 +84,22 @@ fn composite_overlay_0_3_validator() -> jsonschema::Validator {
         .with_registry(&registry)
         .build(&composite_overlay_0_3_schema())
         .expect("compile composite IFCX overlay 0.3.0")
+}
+
+fn composite_overlay_0_4_schema() -> Value {
+    load_schema("ifccad-overlay-0.4.0.json")
+}
+
+fn composite_overlay_0_4_validator() -> jsonschema::Validator {
+    let registry = Registry::new()
+        .add(DRAWING_CORE_0_2_ID, drawing_core_0_2_schema())
+        .expect("add IFCX drawing core 0.2.0 to local registry")
+        .prepare()
+        .expect("prepare local IFCX 0.4.0 schema registry");
+    jsonschema::draft202012::options()
+        .with_registry(&registry)
+        .build(&composite_overlay_0_4_schema())
+        .expect("compile composite IFCX overlay 0.4.0")
 }
 
 fn checksum() -> String {
@@ -744,4 +761,75 @@ fn composite_overlay_0_3_combines_resources_and_typed_appearances() {
     let mut document = composite_document();
     document["data"][5] = typed_appearance_node();
     assert!(composite_overlay_0_3_validator().is_valid(&document));
+}
+
+fn resource_identity_document() -> Value {
+    let mut document = composite_document();
+    document["data"][5] = typed_appearance_node();
+    document["data"][3]["attributes"]["geometry"]["resourceId"] = json!("geometry-modelspace-main");
+    document["data"][6]["attributes"]["preservation"]["resourceId"] = json!("preservation-source");
+    document["data"][6]["attributes"]["preservation"]["version"] = json!("0.2.0");
+    let descriptor = document["data"][6]["attributes"]["preservation"]
+        .as_object_mut()
+        .expect("preservation descriptor");
+    descriptor.insert(
+        "linkedDrawingResourceIds".to_owned(),
+        json!(["geometry-modelspace-main"]),
+    );
+    descriptor.remove("linkedDrawingResourceUris");
+    document
+}
+
+#[test]
+fn overlay_0_4_separates_resource_identity_from_external_uri() {
+    let schema = composite_overlay_0_4_schema();
+    assert_eq!(schema["$id"], OVERLAY_0_4_ID);
+    jsonschema::draft202012::meta::validate(&schema)
+        .expect("IFCX overlay 0.4.0 must satisfy the Draft 2020-12 meta-schema");
+
+    let validator = composite_overlay_0_4_validator();
+    let mut document = resource_identity_document();
+    let errors = validator
+        .iter_errors(&document)
+        .map(|error| error.to_string())
+        .collect::<Vec<_>>();
+    assert!(errors.is_empty(), "{errors:#?}");
+
+    document["data"][3]["attributes"]["geometry"]["uri"] = json!("renamed/location.ifcdr.json");
+    assert!(validator.is_valid(&document));
+}
+
+#[test]
+fn overlay_0_4_requires_non_empty_resource_id() {
+    let validator = composite_overlay_0_4_validator();
+
+    let mut missing = resource_identity_document();
+    missing["data"][3]["attributes"]["geometry"]
+        .as_object_mut()
+        .unwrap()
+        .remove("resourceId");
+    assert!(!validator.is_valid(&missing));
+
+    let mut empty = resource_identity_document();
+    empty["data"][6]["attributes"]["preservation"]["resourceId"] = json!("");
+    assert!(!validator.is_valid(&empty));
+}
+
+#[test]
+fn overlay_0_4_rejects_legacy_preservation_links_and_version() {
+    let validator = composite_overlay_0_4_validator();
+
+    let mut legacy_link = resource_identity_document();
+    let descriptor = legacy_link["data"][6]["attributes"]["preservation"]
+        .as_object_mut()
+        .unwrap();
+    descriptor.insert(
+        "linkedDrawingResourceUris".to_owned(),
+        json!(["resources/drawing.ifcdr.json"]),
+    );
+    assert!(!validator.is_valid(&legacy_link));
+
+    let mut legacy_version = resource_identity_document();
+    legacy_version["data"][6]["attributes"]["preservation"]["version"] = json!("0.1.0");
+    assert!(!validator.is_valid(&legacy_version));
 }
