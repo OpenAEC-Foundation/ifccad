@@ -279,11 +279,14 @@ impl<'a> GeometryRepresentationRef<'a> {
             .expect("validated representation role")
     }
 
-    pub fn uri(&self) -> &'a str {
+    pub fn resource_id(&self) -> &'a ResourceId {
+        self.validated_resource().header().resource_id()
+    }
+
+    pub fn external_uri(&self) -> Option<&'a str> {
         self.node()
             .pointer("/attributes/geometry/uri")
             .and_then(Value::as_str)
-            .expect("validated representation URI")
     }
 
     fn validated_resource(&self) -> &'a ValidatedIfcdrResource {
@@ -590,7 +593,11 @@ mod tests {
 
         let representation = layout.representation();
         assert_eq!(representation.role(), "modelspace");
-        assert_eq!(representation.uri(), "drawing.ifcdr.json");
+        assert_eq!(
+            representation.resource_id().as_str(),
+            "geometry-modelspace-main"
+        );
+        assert_eq!(representation.external_uri(), Some("drawing.ifcdr.json"));
         assert_eq!(
             representation.resource().resource_id().as_str(),
             "geometry-modelspace-main"
