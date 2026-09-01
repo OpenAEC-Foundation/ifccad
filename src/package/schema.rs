@@ -85,6 +85,7 @@ fn schema_diagnostics(
             PackageDiagnostic {
                 code: IFCCAD_PACKAGE_SCHEMA_INVALID.to_owned(),
                 severity: PackageDiagnosticSeverity::Error,
+                resource_id: None,
                 resource_uri: Some(resource_uri.to_owned()),
                 location: Some(error.instance_path().to_string()),
                 context: diagnostic_context,

@@ -1,5 +1,6 @@
 use crate::package::LoadedJsonResource;
 use crate::validated::{Validated, ValidationTarget};
+use crate::ResourceId;
 use serde_json::{Map, Value};
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -97,7 +98,7 @@ impl From<u32> for AppearanceId {
 pub(crate) struct IfcdrHeader {
     pub(crate) format: String,
     pub(crate) version: String,
-    pub(crate) resource_id: String,
+    pub(crate) resource_id: ResourceId,
     pub(crate) unit: String,
     pub(crate) next_entity_id: u64,
 }
@@ -109,7 +110,7 @@ impl IfcdrHeader {
     pub(crate) fn version(&self) -> &str {
         &self.version
     }
-    pub(crate) fn resource_id(&self) -> &str {
+    pub(crate) fn resource_id(&self) -> &ResourceId {
         &self.resource_id
     }
     pub(crate) fn unit(&self) -> &str {
@@ -166,7 +167,7 @@ impl<'a> IfcdrResourceRef<'a> {
         Self { resource }
     }
 
-    pub fn resource_id(&self) -> &'a str {
+    pub fn resource_id(&self) -> &'a ResourceId {
         self.resource.header().resource_id()
     }
 
@@ -475,7 +476,10 @@ mod tests {
 
         assert_eq!(resource.header().format(), "openaec.ifcdr");
         assert_eq!(resource.header().version(), "0.5.0");
-        assert_eq!(resource.header().resource_id(), "geometry-modelspace-main");
+        assert_eq!(
+            resource.header().resource_id().as_str(),
+            "geometry-modelspace-main"
+        );
         assert_eq!(resource.header().unit(), "m");
         assert_eq!(resource.header().next_entity_id(), 5);
         assert_eq!(resource.bounds().min(), Point2::new(0.0, 0.0));
@@ -526,7 +530,7 @@ mod tests {
         let view = IfcdrResourceRef::new(resource);
         let scope = view.scopes().next().expect("model scope");
 
-        assert_eq!(view.resource_id(), "geometry-modelspace-main");
+        assert_eq!(view.resource_id().as_str(), "geometry-modelspace-main");
         assert_eq!(view.unit(), IfccadLengthUnit::Metre);
         assert_eq!(scope.name(), "ModelSpace");
         assert_eq!(

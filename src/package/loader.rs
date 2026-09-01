@@ -287,6 +287,7 @@ impl DirectoryPackageLoader {
         self.diagnostics.push(PackageDiagnostic {
             code: code.to_owned(),
             severity: PackageDiagnosticSeverity::Error,
+            resource_id: None,
             resource_uri: resource_uri.map(str::to_owned),
             location: location.map(str::to_owned),
             context,

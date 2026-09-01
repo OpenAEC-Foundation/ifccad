@@ -290,6 +290,7 @@ fn appearance_diagnostic(
     PackageDiagnostic {
         code: IFCCAD_PACKAGE_APPEARANCE_INVALID.to_owned(),
         severity: PackageDiagnosticSeverity::Error,
+        resource_id: None,
         resource_uri: Some(uri.to_owned()),
         location: Some(format!("/appearanceBindings/{row_index}/{mode_field}")),
         context: BTreeMap::from([
@@ -339,6 +340,7 @@ fn validate_layer_names(
             diagnostics.push(PackageDiagnostic {
                 code: IFCCAD_PACKAGE_LAYER_NAME_DUPLICATE.to_owned(),
                 severity: PackageDiagnosticSeverity::Error,
+                resource_id: None,
                 resource_uri: Some(uri.to_owned()),
                 location: Some(format!("/layerBindings/{row_index}/ifcxLayer")),
                 context: BTreeMap::from([

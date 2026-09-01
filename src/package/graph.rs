@@ -47,6 +47,7 @@ fn duplicate_path_diagnostic(path: &str, first_index: usize, index: usize) -> Pa
     PackageDiagnostic {
         code: IFCCAD_PACKAGE_NODE_PATH_DUPLICATE.to_owned(),
         severity: PackageDiagnosticSeverity::Error,
+        resource_id: None,
         resource_uri: Some(DIRECTORY_PACKAGE_ENTRYPOINT.to_owned()),
         location: Some(format!("/data/{index}/path")),
         context: BTreeMap::from([
@@ -264,6 +265,7 @@ fn reference_diagnostic(
     PackageDiagnostic {
         code: code.to_owned(),
         severity: PackageDiagnosticSeverity::Error,
+        resource_id: None,
         resource_uri: Some(DIRECTORY_PACKAGE_ENTRYPOINT.to_owned()),
         location: Some(location),
         context,

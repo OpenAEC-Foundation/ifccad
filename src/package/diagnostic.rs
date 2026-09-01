@@ -1,3 +1,4 @@
+use crate::ResourceId;
 use serde::Serialize;
 use std::collections::BTreeMap;
 
@@ -35,6 +36,8 @@ pub struct PackageDiagnostic {
     pub code: String,
     /// Diagnostic severity.
     pub severity: PackageDiagnosticSeverity,
+    /// Logical package resource identity, when known.
+    pub resource_id: Option<ResourceId>,
     /// Package-relative resource URI, when the issue belongs to a resource.
     pub resource_uri: Option<String>,
     /// RFC 6901 JSON Pointer, when a location can be identified.
@@ -94,8 +97,13 @@ impl PackageValidationReport {
     }
 }
 
-fn diagnostic_sort_key(diagnostic: &PackageDiagnostic) -> (&str, &str, u8, &str, String) {
+fn diagnostic_sort_key(diagnostic: &PackageDiagnostic) -> (&str, &str, &str, u8, &str, String) {
     (
+        diagnostic
+            .resource_id
+            .as_ref()
+            .map(ResourceId::as_str)
+            .unwrap_or(""),
         diagnostic.resource_uri.as_deref().unwrap_or(""),
         diagnostic.location.as_deref().unwrap_or(""),
         severity_rank(diagnostic.severity),
@@ -127,6 +135,7 @@ mod tests {
         PackageDiagnostic {
             code: code.to_owned(),
             severity,
+            resource_id: None,
             resource_uri: resource_uri.map(str::to_owned),
             location: location.map(str::to_owned),
             context: BTreeMap::new(),
@@ -141,6 +150,7 @@ mod tests {
         PackageDiagnostic {
             code: code.to_owned(),
             severity: PackageDiagnosticSeverity::Error,
+            resource_id: None,
             resource_uri: Some("resource.json".to_owned()),
             location: Some("/value".to_owned()),
             context,
@@ -250,6 +260,40 @@ mod tests {
         ]);
 
         assert_eq!(report.diagnostics()[0].code, "Z");
+    }
+
+    #[test]
+    fn resource_id_orders_diagnostics_before_equal_source_locations() {
+        let diagnostics = vec![
+            PackageDiagnostic {
+                code: "TEST".to_owned(),
+                severity: PackageDiagnosticSeverity::Error,
+                resource_id: Some(crate::ResourceId::new("geometry-b").unwrap()),
+                resource_uri: Some("drawing.ifcdr.json".to_owned()),
+                location: None,
+                context: BTreeMap::new(),
+                message: String::new(),
+            },
+            PackageDiagnostic {
+                code: "TEST".to_owned(),
+                severity: PackageDiagnosticSeverity::Error,
+                resource_id: Some(crate::ResourceId::new("geometry-a").unwrap()),
+                resource_uri: Some("drawing.ifcdr.json".to_owned()),
+                location: None,
+                context: BTreeMap::new(),
+                message: String::new(),
+            },
+        ];
+
+        let report = PackageValidationReport::from_diagnostics(diagnostics);
+        assert_eq!(
+            report.diagnostics()[0]
+                .resource_id
+                .as_ref()
+                .unwrap()
+                .as_str(),
+            "geometry-a"
+        );
     }
 
     #[test]

@@ -256,6 +256,7 @@ fn validate_ifcx_identity(
     diagnostics.push(PackageDiagnostic {
         code: IFCCAD_PACKAGE_BINDING_INVALID.to_owned(),
         severity: PackageDiagnosticSeverity::Error,
+        resource_id: None,
         resource_uri: Some(resource_uri.to_owned()),
         location: Some(location),
         context: BTreeMap::from([
@@ -341,6 +342,7 @@ fn binding_diagnostic(
     PackageDiagnostic {
         code: IFCCAD_PACKAGE_BINDING_INVALID.to_owned(),
         severity: PackageDiagnosticSeverity::Error,
+        resource_id: None,
         resource_uri: Some(DIRECTORY_PACKAGE_ENTRYPOINT.to_owned()),
         location: Some(location),
         context,

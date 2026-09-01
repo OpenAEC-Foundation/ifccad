@@ -138,6 +138,7 @@ fn verify_resource_checksums(package: &LoadedIfccadPackage) -> Vec<PackageDiagno
             Some(PackageDiagnostic {
                 code: IFCCAD_PACKAGE_CHECKSUM_MISMATCH.to_owned(),
                 severity: PackageDiagnosticSeverity::Error,
+                resource_id: None,
                 resource_uri: Some(declaration.uri.clone()),
                 location: Some(declaration.checksum_location.clone()),
                 context: BTreeMap::from([

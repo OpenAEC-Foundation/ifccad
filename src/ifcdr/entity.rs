@@ -460,6 +460,7 @@ fn diagnostic(
     PackageDiagnostic {
         code: code.to_owned(),
         severity: PackageDiagnosticSeverity::Error,
+        resource_id: None,
         resource_uri: Some(uri.to_owned()),
         location: Some(location.to_owned()),
         context,

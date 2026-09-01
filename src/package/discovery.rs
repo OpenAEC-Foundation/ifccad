@@ -77,6 +77,7 @@ fn invalid_entrypoint(location: &str, message: &str) -> PackageDiagnostic {
     PackageDiagnostic {
         code: IFCCAD_PACKAGE_ENTRYPOINT_INVALID.to_owned(),
         severity: PackageDiagnosticSeverity::Error,
+        resource_id: None,
         resource_uri: None,
         location: Some(location.to_owned()),
         context: BTreeMap::new(),

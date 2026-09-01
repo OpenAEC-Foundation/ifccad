@@ -586,7 +586,7 @@ mod tests {
         assert_eq!(representation.role(), "modelspace");
         assert_eq!(representation.uri(), "drawing.ifcdr.json");
         assert_eq!(
-            representation.resource().resource_id(),
+            representation.resource().resource_id().as_str(),
             "geometry-modelspace-main"
         );
         let layer = representation.layer(LayerId::new(1)).unwrap();

@@ -13,6 +13,7 @@ use crate::package::codes::{
 };
 use crate::package::{PackageDiagnostic, PackageDiagnosticContextValue, PackageDiagnosticSeverity};
 use crate::validated::{EvidenceOutcome, Validated, ValidationOutcome};
+use crate::ResourceId;
 use serde_json::{Map, Value};
 use std::collections::{BTreeMap, BTreeSet};
 #[cfg(test)]
@@ -172,7 +173,7 @@ impl<'a> ResourceValidator<'a> {
         Some(IfcdrHeader {
             format,
             version: header.get("version")?.as_str()?.to_owned(),
-            resource_id: header.get("resourceId")?.as_str()?.to_owned(),
+            resource_id: ResourceId::new(header.get("resourceId")?.as_str()?).ok()?,
             unit,
             next_entity_id: as_u64(header.get("nextEntityId")?)?,
         })
@@ -800,6 +801,7 @@ impl<'a> ResourceValidator<'a> {
         self.diagnostics.push(PackageDiagnostic {
             code: code.to_owned(),
             severity: PackageDiagnosticSeverity::Error,
+            resource_id: None,
             resource_uri: Some(self.uri.to_owned()),
             location: Some(location.to_owned()),
             context,

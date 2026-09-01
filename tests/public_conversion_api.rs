@@ -6,6 +6,7 @@ use ifccad::ifcdr::{
 use ifccad::package::{
     load_directory_package, AppearanceProperty, DrawingLayoutKind, LinePatternRef,
 };
+use ifccad::ResourceId;
 
 #[allow(dead_code)]
 #[derive(Debug, PartialEq)]
@@ -23,7 +24,7 @@ struct EntityProjection {
 fn project_ifcdr_entities(
     resource: IfcdrResourceRef<'_>,
     scope_id: ScopeId,
-) -> (String, IfccadLengthUnit, Vec<EntityProjection>) {
+) -> (ResourceId, IfccadLengthUnit, Vec<EntityProjection>) {
     let projected = resource
         .entities(scope_id)
         .map(|entity| match entity {
@@ -56,11 +57,7 @@ fn project_ifcdr_entities(
             },
         })
         .collect();
-    (
-        resource.resource_id().to_owned(),
-        resource.unit(),
-        projected,
-    )
+    (resource.resource_id().clone(), resource.unit(), projected)
 }
 
 #[test]
@@ -101,7 +98,7 @@ fn validated_package_exposes_converter_inputs_without_raw_json() {
     assert_eq!(representation.uri(), "drawing.ifcdr.json");
     assert_eq!(
         representation.resource().resource_id(),
-        "geometry-modelspace-main"
+        &ResourceId::new("geometry-modelspace-main").unwrap()
     );
 
     let layout = drawing.layouts().next().expect("one layout");
