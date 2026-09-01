@@ -1,5 +1,4 @@
 use crate::diagnostic::DiagnosticAccumulator;
-use crate::LostTransparencyMode;
 use cadcodec::{Color, LineWeight, Transparency};
 use ifccad::package::{AppearanceColorRef, AppearanceProperty, LinePatternRef};
 
@@ -82,22 +81,12 @@ pub(crate) fn map_line_weight(
     }
 }
 
-pub(crate) fn map_entity_opacity(
-    property: AppearanceProperty<f64>,
-    diagnostics: &mut DiagnosticAccumulator,
-) -> Transparency {
+pub(crate) fn map_entity_opacity(property: AppearanceProperty<f64>) -> Transparency {
     use AppearanceProperty::{ByBlock, ByLayer, Explicit};
 
     match property {
         ByLayer => Transparency::BY_LAYER,
-        ByBlock => {
-            diagnostics.record_transparency_loss(LostTransparencyMode::ByBlock);
-            Transparency::OPAQUE
-        }
-        Explicit(1.0) => {
-            diagnostics.record_transparency_loss(LostTransparencyMode::ExplicitOpaque);
-            Transparency::OPAQUE
-        }
+        ByBlock => Transparency::BY_BLOCK,
         Explicit(opacity) => Transparency::from_percent(1.0 - opacity),
     }
 }
@@ -110,7 +99,7 @@ pub(crate) fn map_layer_opacity(opacity: f64) -> Transparency {
 mod tests {
     use super::{map_entity_opacity, map_line_pattern, map_line_weight};
     use crate::diagnostic::DiagnosticAccumulator;
-    use crate::{ConversionDiagnostic, LostTransparencyMode};
+    use crate::ConversionDiagnostic;
     use cadcodec::{LineWeight, Transparency};
     use ifccad::package::{AppearanceProperty, LinePatternRef};
 
@@ -188,43 +177,15 @@ mod tests {
     }
 
     #[test]
-    fn opacity_preserves_supported_values_and_groups_lost_semantics() {
+    fn opacity_preserves_inheritance_and_explicit_values() {
         use AppearanceProperty::{ByBlock, ByLayer, Explicit};
 
-        let mut diagnostics = DiagnosticAccumulator::default();
+        assert_eq!(map_entity_opacity(ByLayer), Transparency::BY_LAYER);
+        assert_eq!(map_entity_opacity(ByBlock), Transparency::BY_BLOCK);
+        assert_eq!(map_entity_opacity(Explicit(1.0)), Transparency::OPAQUE);
         assert_eq!(
-            map_entity_opacity(ByLayer, &mut diagnostics),
-            Transparency::BY_LAYER
-        );
-        assert_eq!(
-            map_entity_opacity(ByBlock, &mut diagnostics),
-            Transparency::OPAQUE
-        );
-        assert_eq!(
-            map_entity_opacity(ByBlock, &mut diagnostics),
-            Transparency::OPAQUE
-        );
-        assert_eq!(
-            map_entity_opacity(Explicit(1.0), &mut diagnostics),
-            Transparency::OPAQUE
-        );
-        assert_eq!(
-            map_entity_opacity(Explicit(0.5), &mut diagnostics).alpha(),
-            127
-        );
-
-        assert_eq!(
-            diagnostics.finish(),
-            [
-                ConversionDiagnostic::TransparencySemanticsLost {
-                    source: LostTransparencyMode::ByBlock,
-                    count: 2,
-                },
-                ConversionDiagnostic::TransparencySemanticsLost {
-                    source: LostTransparencyMode::ExplicitOpaque,
-                    count: 1,
-                },
-            ]
+            map_entity_opacity(Explicit(0.5)),
+            Transparency::Explicit(127)
         );
     }
 }

@@ -1,6 +1,8 @@
 use ifccad::conformance::bundled_conformance_root;
 use ifccad::package::load_directory_package;
-use ifccad_convert::cadcodec::{CadDocument, Color, DxfReader, DxfWriter, EntityType, LineWeight};
+use ifccad_convert::cadcodec::{
+    CadDocument, Color, DxfReader, DxfWriter, EntityType, LineWeight, Transparency,
+};
 use ifccad_convert::convert_drawing;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -14,7 +16,7 @@ struct EntityProjection {
     color_name: Option<String>,
     linetype: String,
     line_weight: LineWeight,
-    transparency_alpha: u8,
+    transparency: Transparency,
 }
 
 #[derive(Debug, PartialEq)]
@@ -57,6 +59,8 @@ fn dxf_roundtrip_preserves_supported_conversion_semantics() {
     assert!(layer_0.is_visible());
     let walls = roundtripped.layers.get("A-WALL").expect("A-WALL");
     assert_eq!(walls.color, Color::from_rgb(255, 0, 0));
+    assert_eq!(walls.color_name.as_deref(), Some("Traffic red"));
+    assert_eq!(walls.book_name.as_deref(), Some("RAL"));
     assert_eq!(walls.line_type, "Dashed");
     assert_eq!(walls.line_weight, LineWeight::W0_18);
     assert!(walls.is_visible());
@@ -91,7 +95,7 @@ fn project_entities(document: &CadDocument) -> Vec<EntityProjection> {
                 color_name: common.color_name.clone(),
                 linetype: normalize_linetype(&common.linetype).to_owned(),
                 line_weight: common.line_weight,
-                transparency_alpha: common.transparency.alpha(),
+                transparency: common.transparency,
             }
         })
         .collect()

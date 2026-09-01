@@ -165,7 +165,7 @@ fn apply_entity_common(
     common.linetype = map_line_pattern(appearance.line_pattern(), diagnostics);
     ensure_linetype(document, &common.linetype)?;
     common.line_weight = map_line_weight(appearance.line_weight(), diagnostics);
-    common.transparency = map_entity_opacity(appearance.opacity(), diagnostics);
+    common.transparency = map_entity_opacity(appearance.opacity());
     Ok(())
 }
 
@@ -195,10 +195,12 @@ fn convert_layer(
     target.flags.off = !source.visible();
 
     if let Some(appearance) = source.appearance() {
-        let MappedColor { color, name: _ } = map_explicit_color(appearance.color());
+        let source_color = appearance.color();
+        let MappedColor { color, name: _ } = map_explicit_color(source_color);
         target.color = color;
-        if let Some(named) = appearance.color().named() {
-            diagnostics.record_named_layer_color(source.name(), named.catalog(), named.name());
+        if let Some(named) = source_color.named() {
+            target.color_name = Some(named.name().to_owned());
+            target.book_name = Some(named.catalog().to_owned());
         }
         target.line_type = map_line_pattern(
             AppearanceProperty::Explicit(appearance.line_pattern()),

@@ -7,7 +7,7 @@ mod entity_mapping;
 mod units;
 
 pub use conversion::convert_drawing;
-pub use diagnostic::{ConversionDiagnostic, ConversionError, LostTransparencyMode};
+pub use diagnostic::{ConversionDiagnostic, ConversionError};
 pub use entity_mapping::EntityMapping;
 
 pub use cadcodec;

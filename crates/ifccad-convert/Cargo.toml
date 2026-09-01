@@ -8,5 +8,5 @@ repository = "https://github.com/OpenAEC-Foundation/ifccad"
 
 [dependencies]
 ifccad = { path = "../.." }
-cadcodec = { package = "acadrust", git = "https://github.com/HakanSeven12/cadcodec.git", rev = "931c4ab0c590b755e280bed318a35f41c57b139f" }
+cadcodec = { package = "acadrust", git = "https://github.com/HakanSeven12/cadcodec.git", rev = "a0f7d444f1607bc4b2c881060cbe7ea1014253cb" }
 thiserror = "1.0"

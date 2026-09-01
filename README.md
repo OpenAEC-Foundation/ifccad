@@ -29,14 +29,16 @@ The crate currently provides:
 - language-neutral canonical value encoding and SHA-256 fingerprints;
 - conformance manifests, vectors, fixtures, and verification helpers;
 - versioned IFCX resource and drawing-core overlays, the IFCDR registry, and
-  the IFCPR schema; and
+  the IFCPR schema;
 - public directory-package loading with structured diagnostics and a strict,
   typed model for validated drawings, layouts, layers, appearances, and IFCDR
-  entities.
+  entities; and
+- the `ifccad-convert` companion crate for an initial validated IFCCAD drawing
+  to cadcodec `CadDocument` conversion.
 
 A complete IFCCAD vocabulary within IFCX, production IFCDR codecs, the future
-`.ifccad` container, CAD conversion, and conventional IFC integration are
-still under development.
+`.ifccad` container, broader bidirectional CAD conversion, and conventional IFC
+integration are still under development.
 
 ## Using the current API
 
@@ -110,7 +112,7 @@ The [Python prototype](https://github.com/OpenAEC-Foundation/ifccad-prototype) r
 the model-first reference implementation and format laboratory.
 
 This primary crate deliberately does not provide `CadDocument` or DWG/DXF I/O.
-A future `ifccad-convert` companion crate will own conversion between a
+The workspace's `ifccad-convert` companion crate owns conversion between a
 validated IFCCAD package and the CAD runtime model while keeping this format
 crate independent of CAD codecs and geometry engines.
 

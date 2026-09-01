@@ -4,7 +4,7 @@ use ifccad::package::load_directory_package;
 use ifccad_convert::cadcodec::{
     Color, DxfVersion, EntityType, LineWeight, Transparency, Vector2, Vector3,
 };
-use ifccad_convert::{convert_drawing, ConversionDiagnostic, LostTransparencyMode};
+use ifccad_convert::convert_drawing;
 
 #[test]
 fn converts_minimal_model_drawing_with_layers_and_entities() {
@@ -36,19 +36,12 @@ fn converts_minimal_model_drawing_with_layers_and_entities() {
         .get("A-WALL")
         .expect("A-WALL layer");
     assert_eq!(walls.color, Color::from_rgb(255, 0, 0));
+    assert_eq!(walls.color_name.as_deref(), Some("Traffic red"));
+    assert_eq!(walls.book_name.as_deref(), Some("RAL"));
     assert_eq!(walls.line_type, "Dashed");
     assert_eq!(walls.line_weight, LineWeight::W0_18);
     assert!(walls.is_visible());
     assert!(outcome.document().line_types.contains("Dashed"));
-    assert!(outcome.diagnostics().iter().any(|item| matches!(
-        item,
-        ConversionDiagnostic::NamedLayerColorIdentityLost {
-            layer,
-            catalog,
-            name,
-            count: 1,
-        } if layer == "A-WALL" && catalog == "RAL" && name == "Traffic red"
-    )));
 
     let entities = outcome.document().entities().collect::<Vec<_>>();
     assert_eq!(entities.len(), 4);
@@ -132,11 +125,5 @@ fn converts_minimal_model_drawing_with_layers_and_entities() {
         assert!(handle.is_valid());
         assert!(outcome.document().get_entity(handle).is_some());
     }
-    assert!(outcome.diagnostics().iter().any(|item| matches!(
-        item,
-        ConversionDiagnostic::TransparencySemanticsLost {
-            source: LostTransparencyMode::ExplicitOpaque,
-            count: 1,
-        }
-    )));
+    assert!(outcome.diagnostics().is_empty());
 }
