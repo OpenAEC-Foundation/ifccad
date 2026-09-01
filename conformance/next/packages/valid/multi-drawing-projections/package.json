@@ -1,0 +1,11 @@
+{
+  "drawingResources": {
+    "drawing-b.ifcdr.json": "drawing-b.ifcdr.json",
+    "drawing.ifcdr.json": "drawing.ifcdr.json"
+  },
+  "ifcx": "package.ifcx.json",
+  "packageRoot": ".",
+  "preservationResources": {
+    "preservation.ifcpr.json": "preservation.ifcpr.json"
+  }
+}

@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://open-aec.org/ifccad/conformance/manifest-schema-v1.json",
+  "title": "IFCCAD cross-language conformance manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "suiteVersion",
+    "cases"
+  ],
+  "properties": {
+    "suiteVersion": {
+      "const": "1.1.0"
+    },
+    "cases": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/case"
+      }
+    }
+  },
+  "$defs": {
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "caseId",
+        "category",
+        "description",
+        "entrypoint",
+        "operations"
+      ],
+      "properties": {
+        "caseId": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+        },
+        "category": {
+          "enum": [
+            "valid",
+            "invalid",
+            "lifecycle",
+            "planning",
+            "vector"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "entrypoint": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/operation"
+          }
+        }
+      }
+    },
+    "operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "expected"
+      ],
+      "properties": {
+        "name": {
+          "enum": [
+            "validateSchema",
+            "validatePackage",
+            "canonicalize",
+            "fingerprint",
+            "evaluateLifecycle",
+            "planExport",
+            "extractSource",
+            "roundtripPackage"
+          ]
+        },
+        "expected": {
+          "$ref": "#/$defs/expected"
+        }
+      }
+    },
+    "expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/diagnostic"
+          }
+        },
+        "canonicalUtf8Base64": {
+          "type": "string"
+        },
+        "normalizedJson": {
+          "type": "string"
+        },
+        "fingerprint": {
+          "type": "string"
+        },
+        "lifecycleRows": {
+          "type": "array"
+        },
+        "recordActions": {
+          "type": "array"
+        },
+        "attachmentActions": {
+          "type": "array"
+        },
+        "blocked": {
+          "type": "boolean"
+        },
+        "supersededTargets": {
+          "type": "array"
+        },
+        "canonicalResourceHashes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "extractedSourceBase64": {
+          "type": "string"
+        }
+      }
+    },
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "severity"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "severity": {
+          "enum": [
+            "error",
+            "warning",
+            "info"
+          ]
+        },
+        "resourceUri": {
+          "type": "string"
+        },
+        "location": {
+          "type": "string"
+        },
+        "context": {
+          "type": "object",
+          "additionalProperties": {
+            "type": [
+              "string",
+              "integer",
+              "number",
+              "boolean",
+              "null"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

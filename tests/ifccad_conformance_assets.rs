@@ -31,6 +31,18 @@ fn active_schema_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("schemas")
 }
 
+fn frozen_root() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("conformance")
+        .join("1.0.0")
+}
+
+fn next_root() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("conformance")
+        .join("next")
+}
+
 fn repository_git_dir(repository: &Path) -> Option<PathBuf> {
     let dot_git = repository.join(".git");
     if dot_git.is_dir() {
@@ -51,12 +63,10 @@ fn resolve_git_dir_pointer(repository: &Path, pointer: &str) -> Option<PathBuf> 
 
 #[test]
 fn bundled_reference_files_are_complete_and_valid_json() {
-    let expected_root = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("conformance")
-        .join("1.0.0");
+    let expected_root = frozen_root();
     assert_eq!(bundled_conformance_root(), expected_root);
 
-    let files = files_below(&bundled_conformance_root());
+    let files = files_below(&expected_root);
     assert_eq!(files.len(), 89, "unexpected frozen reference file count");
     let json_files: Vec<_> = files
         .iter()
@@ -84,7 +94,7 @@ fn bundled_reference_files_are_complete_and_valid_json() {
 
 #[test]
 fn bundled_reference_includes_contract_schemas_and_provenance() {
-    let root = bundled_conformance_root();
+    let root = frozen_root();
     for relative in [
         "manifest.json",
         "manifest-schema-v1.json",
@@ -101,7 +111,7 @@ fn bundled_reference_includes_contract_schemas_and_provenance() {
 #[test]
 fn active_schemas_start_from_bundled_contract_versions() {
     let active = active_schema_root();
-    let bundled = bundled_conformance_root().join("schemas");
+    let bundled = frozen_root().join("schemas");
 
     for relative in [
         "ifcdr/registry-0.5.0.json",
@@ -113,6 +123,52 @@ fn active_schemas_start_from_bundled_contract_versions() {
             fs::read(bundled.join(relative)).expect("read bundled schema"),
             "active schema differs from its 1.0.0 bootstrap source: {relative}"
         );
+    }
+}
+
+#[test]
+fn next_candidate_is_self_contained_and_valid_json() {
+    let root = next_root();
+    for relative in [
+        "manifest.json",
+        "manifest-schema-v1.json",
+        "schemas/ifcx/ifccad-overlay-0.4.0.json",
+        "schemas/ifcx/ifccad-drawing-core-0.2.0.json",
+        "schemas/ifcdr/registry-0.5.0.json",
+        "schemas/ifcdr/registry-meta-schema-v1.json",
+        "schemas/ifcpr/schema-0.2.0.json",
+        "PROVENANCE.md",
+        "LICENSE",
+    ] {
+        assert!(root.join(relative).is_file(), "missing {relative}");
+    }
+
+    for relative in [
+        "ifcx/ifccad-overlay-0.4.0.json",
+        "ifcx/ifccad-drawing-core-0.2.0.json",
+        "ifcdr/registry-0.5.0.json",
+        "ifcdr/registry-meta-schema-v1.json",
+        "ifcpr/schema-0.2.0.json",
+    ] {
+        assert_eq!(
+            fs::read(active_schema_root().join(relative)).expect("read active schema"),
+            fs::read(root.join("schemas").join(relative)).expect("read candidate schema"),
+            "candidate schema differs from active contract: {relative}"
+        );
+    }
+
+    for path in files_below(&root)
+        .into_iter()
+        .filter(|path| path.extension().is_some_and(|value| value == "json"))
+    {
+        let bytes = fs::read(&path).expect("read JSON candidate asset");
+        assert!(
+            !bytes.windows(2).any(|window| window == b"\r\n"),
+            "JSON candidate does not use LF line endings: {}",
+            path.display()
+        );
+        serde_json::from_slice::<Value>(&bytes)
+            .unwrap_or_else(|error| panic!("invalid JSON {}: {error}", path.display()));
     }
 }
 

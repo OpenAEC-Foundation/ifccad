@@ -1,0 +1,9 @@
+{
+  "description": "Normalized P23 export-planning matrix for independent implementations",
+  "vectors": [
+    {"exportBasis":"modeledOnly","conflictStrategy":"preferSource","modifiedRepresented":"regenerateFromModel","deletedRepresented":"drop"},
+    {"exportBasis":"preservationAware","conflictStrategy":"preferModel","modifiedRepresented":"regenerateFromModel","deletedRepresented":"drop"},
+    {"exportBasis":"preservationAware","conflictStrategy":"preferSource","modifiedRepresented":"restoreSource","deletedRepresented":"restoreSource"},
+    {"exportBasis":"preservationAware","conflictStrategy":"fail","modifiedRepresented":"blockExport","deletedRepresented":"blockExport"}
+  ]
+}

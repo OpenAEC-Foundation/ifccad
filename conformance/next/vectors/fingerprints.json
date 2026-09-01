@@ -1,0 +1,25 @@
+{
+  "vectors": [
+    {"vectorId": "scalar.bool.true", "input": {"kind": "bool", "value": true}, "fingerprint": "sha256:e89ea334229178466a873d14c56bea013221be78be952866c5ea904bad274b87"},
+    {"vectorId": "scalar.int.one", "input": {"kind": "int", "value": "1"}, "fingerprint": "sha256:c2c264c270ac0ac5ccd68b7750a6722d04ff9c12f36d6ffdbe1ae373bc214b77"},
+    {"vectorId": "scalar.int.large", "input": {"kind": "int", "value": "18446744073709551615"}, "fingerprint": "sha256:a6612a88571a26dd1245ff2e56cc91c41c7e94ee4e974abe33be0118da7b2f04"},
+    {"vectorId": "scalar.float.one", "input": {"kind": "float", "value": "0x1.0000000000000p+0"}, "fingerprint": "sha256:8926fd71b24272bdaf81fff4e94f5bec160b00c8b650c3c846466f1293e661a7"},
+    {"vectorId": "scalar.float.negative-zero", "input": {"kind": "float", "value": "-0x0.0p+0"}, "fingerprint": "sha256:f23037df957b8244d53b88e2b5596d2f280981ae79cab72928bab9b63a70e042"},
+    {"vectorId": "scalar.string.unicode", "input": {"kind": "string", "value": "café"}, "fingerprint": "sha256:a083244af6cd7b2f27ba390c43d96a1dfd9cb5fcc93fb280275ea7d63ce05971"},
+    {
+      "vectorId": "compound.sequence",
+      "input": {"kind": "sequence", "items": [{"kind": "int", "value": "1"}, {"kind": "float", "value": "0x1.0000000000000p+0"}, {"kind": "bool", "value": true}, {"kind": "null"}]},
+      "fingerprint": "sha256:a22b5037fe83557f1970be2350bcf9d759d68ef795cb4316c04b28f1fd20c0c1"
+    },
+    {
+      "vectorId": "compound.mapping.sorted",
+      "input": {"kind": "mapping", "entries": [["z", {"kind": "int", "value": "2"}], ["a", {"kind": "string", "value": "first"}]]},
+      "fingerprint": "sha256:b2b46f8c76ba14918f7073587c97b66f95cd71625b5ac080ab6827c2cfb8f06b"
+    },
+    {
+      "vectorId": "compound.record",
+      "input": {"kind": "record", "fields": [["z", {"kind": "float", "value": "-0x0.0p+0"}], ["name", {"kind": "string", "value": "café"}], ["mode", {"kind": "enum", "value": "value"}]]},
+      "fingerprint": "sha256:2b1b1441c03ee27f3b45d9671a4c72d0358b604c73673425a95808a5d3317a3f"
+    }
+  ]
+}

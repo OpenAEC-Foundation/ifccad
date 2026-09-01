@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.ifccad.org/ifcdr/registry-meta-schema-v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "registrySchemaVersion", "ifcdrVersion", "resource", "directory", "tables", "streams"],
+  "properties": {
+    "$schema": {"type": "string"},
+    "registrySchemaVersion": {"const": "ifccad.ifcdr.registry.v1"},
+    "ifcdrVersion": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "resource": {"$ref": "#/$defs/objectSchema"},
+    "directory": {"$ref": "#/$defs/directorySchema"},
+    "tables": {"type": "array", "items": {"$ref": "#/$defs/table"}},
+    "streams": {"type": "array", "items": {"$ref": "#/$defs/stream"}}
+  },
+  "$defs": {
+    "field": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "valueType", "presence", "nullable"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "valueType": {"enum": ["boolean", "int32", "uint32", "uint64", "float64", "string", "ifcxId", "jsonValue", "object", "array"]},
+        "presence": {"enum": ["required", "optional"]},
+        "nullable": {"type": "boolean"},
+        "omissionDefault": {},
+        "fields": {"type": "array", "items": {"$ref": "#/$defs/field"}},
+        "reference": {"$ref": "#/$defs/reference"}
+      }
+    },
+    "objectSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaId", "fields"],
+      "properties": {
+        "schemaId": {"type": "string", "minLength": 1},
+        "fields": {"type": "array", "items": {"$ref": "#/$defs/field"}}
+      }
+    },
+    "directorySchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaId", "fields", "entryFields"],
+      "properties": {
+        "schemaId": {"type": "string", "minLength": 1},
+        "fields": {"type": "array", "items": {"$ref": "#/$defs/field"}},
+        "entryFields": {"type": "array", "items": {"$ref": "#/$defs/field"}}
+      }
+    },
+    "range": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["offsetColumn", "countColumn"],
+      "oneOf": [
+        {"required": ["targetColumns"]},
+        {"required": ["targetPath"]}
+      ],
+      "properties": {
+        "offsetColumn": {"type": "string", "minLength": 1},
+        "countColumn": {"type": "string", "minLength": 1},
+        "targetColumns": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "uniqueItems": true},
+        "targetPath": {"type": "string", "minLength": 1}
+      }
+    },
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["category", "target"],
+      "properties": {
+        "category": {"enum": ["entity", "ifcx", "tableField", "streamColumn"]},
+        "target": {"type": "string", "minLength": 1}
+      }
+    },
+    "column": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "valueType", "presence", "nullable", "cardinality"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "valueType": {"enum": ["boolean", "int32", "uint32", "uint64", "float64", "string", "ifcxId", "jsonValue"]},
+        "presence": {"enum": ["required", "optional"]},
+        "nullable": {"type": "boolean"},
+        "cardinality": {"enum": ["row", "pool"]},
+        "omissionDefault": {},
+        "reference": {"$ref": "#/$defs/reference"}
+      }
+    },
+    "table": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "schemaId", "payloadPath", "presence", "rowFields"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "schemaId": {"type": "string", "minLength": 1},
+        "payloadPath": {"type": "string", "minLength": 1},
+        "presence": {"enum": ["required", "optional"]},
+        "rowFields": {"type": "array", "items": {"$ref": "#/$defs/field"}}
+      }
+    },
+    "stream": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "schemaId", "payloadKey", "role", "columns"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "schemaId": {"type": "string", "minLength": 1},
+        "payloadKey": {"type": "string", "minLength": 1},
+        "role": {"enum": ["object", "child", "pool", "order"]},
+        "parent": {"type": "string", "minLength": 1},
+        "children": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+        "columns": {"type": "array", "items": {"$ref": "#/$defs/column"}, "minItems": 1},
+        "ranges": {"type": "array", "items": {"$ref": "#/$defs/range"}}
+      }
+    }
+  }
+}

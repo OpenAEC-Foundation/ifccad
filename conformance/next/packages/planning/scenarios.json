@@ -1,0 +1,12 @@
+{
+  "scenarios": [
+    {"scenarioId":"modeled-only","state":"modified","exportBasis":"modeledOnly","conflictStrategy":"preferSource","expected":{"actions":{"1":"regenerateFromModel","2":"drop"},"recordOrder":[2,1],"blocked":false,"diagnosticCodes":[]}},
+    {"scenarioId":"prefer-model","state":"modified","exportBasis":"preservationAware","conflictStrategy":"preferModel","expected":{"actions":{"1":"regenerateFromModel","2":"copyAsCurrent"},"recordOrder":[2,1],"blocked":false,"diagnosticCodes":[]}},
+    {"scenarioId":"prefer-source","state":"modified","exportBasis":"preservationAware","conflictStrategy":"preferSource","expected":{"actions":{"1":"restoreSource","2":"copyAsCurrent"},"recordOrder":[2,1],"blocked":false,"diagnosticCodes":[],"dependencyOrigins":{"2":1}}},
+    {"scenarioId":"fail","state":"modified","exportBasis":"preservationAware","conflictStrategy":"fail","expected":{"actions":{"1":"blockExport","2":"copyAsCurrent"},"recordOrder":[2,1],"blocked":true,"diagnosticCodes":["IFCPR_EXPORT_BLOCKED"]}},
+    {"scenarioId":"required-closure","state":"modified","exportBasis":"preservationAware","conflictStrategy":"preferSource","expected":{"actions":{"1":"restoreSource","2":"copyAsCurrent"},"recordOrder":[2,1],"blocked":false,"diagnosticCodes":[],"dependencyOrigins":{"2":1}}},
+    {"scenarioId":"preferred-non-closure","state":"modified","exportBasis":"preservationAware","conflictStrategy":"preferSource","preferredDependency":true,"expected":{"actions":{"1":"restoreSource","2":"copyAsCurrent"},"recordOrder":[2,1],"blocked":false,"diagnosticCodes":[]}},
+    {"scenarioId":"required-cycle","state":"modified","exportBasis":"preservationAware","conflictStrategy":"preferSource","cycle":true,"expected":{"actions":{"1":"blockExport","2":"blockExport"},"recordOrder":[2,1],"blocked":true,"diagnosticCodes":["IFCPR_EXPORT_DEPENDENCY_CYCLE"]}},
+    {"scenarioId":"attachment-reattach","state":"modified","exportBasis":"preservationAware","conflictStrategy":"preferModel","reattach":true,"expected":{"actions":{"1":"regenerateFromModel","2":"copyAsCurrent"},"recordOrder":[2,1],"blocked":false,"diagnosticCodes":[],"attachmentActions":{"1":"reattach"}}}
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "drawingResources": {
+    "drawing.ifcdr.json": "drawing.ifcdr.json"
+  },
+  "graphRules": {
+    "acyclicRoles": [
+      "hardPointer"
+    ]
+  },
+  "ifcx": "package.ifcx.json",
+  "packageRoot": ".",
+  "preservationResources": {
+    "preservation.ifcpr.json": "preservation.ifcpr.json"
+  }
+}

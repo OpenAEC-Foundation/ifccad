@@ -1,0 +1,8 @@
+{
+  "drawingResources": {
+    "resources/model.ifcdr.json": "resources/model.ifcdr.json"
+  },
+  "ifcx": "package.ifcx.json",
+  "packageRoot": ".",
+  "preservationResources": {}
+}
