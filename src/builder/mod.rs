@@ -1,8 +1,11 @@
+mod artifact;
 mod error;
 mod ifcdr;
+mod ifcx;
 mod state;
 mod types;
 
+pub use artifact::EncodedIfccadPackage;
 pub use error::BuildError;
 pub use types::{
     AppearanceColor, AppearanceDefinition, AppearanceKey, EntityAppearance, IndexedColor,
@@ -12,6 +15,8 @@ pub use types::{
 
 use crate::ifcdr::EntityId;
 use crate::package::canonical_rfc3339_utc;
+use ifcdr::encode_ifcdr;
+use ifcx::{assemble_ifcx, NodePaths, MODEL_SPACE_RESOURCE_URI};
 use state::{AppearanceEntry, BuilderState, LayerEntry, PendingEntity};
 use std::sync::atomic::{AtomicU64, Ordering};
 
@@ -63,6 +68,23 @@ impl IfccadPackageBuilder {
 
     pub fn model_space(&mut self) -> ModelSpace<'_> {
         ModelSpace { builder: self }
+    }
+
+    pub fn finish(self) -> Result<EncodedIfccadPackage, BuildError> {
+        let paths = NodePaths::for_builder(&self)?;
+        let resource = encode_ifcdr(&self, &paths.layers, &paths.appearances)?;
+        debug_assert!(resource.bounds.min.x().is_finite());
+        debug_assert!(resource.bounds.min.y().is_finite());
+        debug_assert!(resource.bounds.max.x().is_finite());
+        debug_assert!(resource.bounds.max.y().is_finite());
+        let entrypoint = assemble_ifcx(&self, &paths, &resource)?;
+        Ok(EncodedIfccadPackage::new([
+            (
+                crate::package::DIRECTORY_PACKAGE_ENTRYPOINT.to_owned(),
+                entrypoint,
+            ),
+            (MODEL_SPACE_RESOURCE_URI.to_owned(), resource.bytes),
+        ]))
     }
 }
 

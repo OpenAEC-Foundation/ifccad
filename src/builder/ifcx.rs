@@ -1,0 +1,269 @@
+use super::ifcdr::EncodedIfcdrResource;
+use super::{BuildError, IfccadPackageBuilder};
+use serde_json::{json, Map, Value};
+
+pub(crate) const MODEL_SPACE_RESOURCE_URI: &str = "resources/model-space.ifcdr.json";
+
+#[derive(Debug)]
+pub(crate) struct NodePaths {
+    pub(crate) drawing_set: String,
+    pub(crate) drawing: String,
+    pub(crate) layout: String,
+    pub(crate) representation: String,
+    pub(crate) layers: Vec<String>,
+    pub(crate) appearances: Vec<String>,
+}
+
+impl NodePaths {
+    pub(crate) fn for_builder(builder: &IfccadPackageBuilder) -> Result<Self, BuildError> {
+        let layers = numbered_paths("layer", builder.state.layers.len())?;
+        let appearances = numbered_paths("appearance", builder.state.appearances.len())?;
+        Ok(Self {
+            drawing_set: "drawing-set-0".to_owned(),
+            drawing: "drawing-0".to_owned(),
+            layout: "layout-0".to_owned(),
+            representation: "representation-0".to_owned(),
+            layers,
+            appearances,
+        })
+    }
+}
+
+pub(crate) fn assemble_ifcx(
+    builder: &IfccadPackageBuilder,
+    paths: &NodePaths,
+    resource: &EncodedIfcdrResource,
+) -> Result<Vec<u8>, BuildError> {
+    let mut data = vec![
+        json!({
+            "path": paths.drawing_set,
+            "type": "openaec:DrawingSet",
+            "children": {"Drawings": [paths.drawing.clone()]}
+        }),
+        json!({
+            "path": paths.drawing,
+            "type": "openaec:Drawing",
+            "children": {
+                "Layouts": [paths.layout.clone()],
+                "Representation": paths.representation
+            }
+        }),
+        json!({
+            "path": paths.layout,
+            "type": "openaec:DrawingLayout",
+            "attributes": {
+                "name": builder.options.model_layout_name,
+                "kind": "model",
+                "scopeId": 0
+            },
+            "children": {"Representation": paths.representation}
+        }),
+        json!({
+            "path": paths.representation,
+            "type": "openaec:DrawingGeometryRepresentation",
+            "attributes": {
+                "name": "ModelSpace",
+                "geometry": {
+                    "format": "openaec.ifcdr",
+                    "version": "0.5.0",
+                    "resourceId": resource.resource_id,
+                    "uri": MODEL_SPACE_RESOURCE_URI,
+                    "checksum": resource.checksum,
+                    "role": "modelspace"
+                }
+            }
+        }),
+    ];
+
+    data.extend(
+        builder
+            .state
+            .layers
+            .iter()
+            .zip(&paths.layers)
+            .map(|(layer, path)| {
+                let appearance_index = usize::try_from(layer.definition.appearance.local_id - 2)
+                    .expect("validated appearance key fits usize");
+                json!({
+                    "path": path,
+                    "type": "openaec:Layer",
+                    "attributes": {
+                        "name": layer.definition.name,
+                        "visible": layer.definition.visible,
+                        "appearance": paths.appearances[appearance_index]
+                    }
+                })
+            }),
+    );
+    data.extend(
+        builder
+            .state
+            .appearances
+            .iter()
+            .zip(&paths.appearances)
+            .map(|(appearance, path)| {
+                let definition = &appearance.definition;
+                let mut color = Map::new();
+                color.insert("rgb".to_owned(), json!(definition.color.rgb));
+                if let Some(indexed) = &definition.color.indexed {
+                    color.insert(
+                        "indexedColor".to_owned(),
+                        json!({"system": indexed.system, "index": indexed.index}),
+                    );
+                }
+                if let Some(named) = &definition.color.named {
+                    color.insert(
+                        "namedColor".to_owned(),
+                        json!({"catalog": named.catalog, "name": named.name}),
+                    );
+                }
+                json!({
+                    "path": path,
+                    "type": "openaec:Appearance",
+                    "attributes": {
+                        "name": definition.name,
+                        "color": {"mode": "explicit", "value": Value::Object(color)},
+                        "opacity": {"mode": "explicit", "value": definition.opacity},
+                        "linePattern": {
+                            "mode": "explicit",
+                            "value": definition.line_pattern.name
+                        },
+                        "lineWeight": {"mode": "explicit", "value": definition.line_weight}
+                    }
+                })
+            }),
+    );
+
+    serde_json::to_vec_pretty(&json!({
+        "header": {
+            "id": builder.options.package_id,
+            "ifcxVersion": "ifcx_alpha",
+            "dataVersion": builder.options.data_version,
+            "author": builder.options.author,
+            "timestamp": builder.options.timestamp
+        },
+        "imports": [],
+        "data": data
+    }))
+    .map_err(|error| BuildError::Encoding {
+        stage: "IFCX",
+        message: error.to_string(),
+    })
+}
+
+fn numbered_paths(prefix: &str, count: usize) -> Result<Vec<String>, BuildError> {
+    u32::try_from(count).map_err(|_| BuildError::RangeExhausted {
+        kind: "IFCX node path",
+    })?;
+    Ok((0..count)
+        .map(|index| format!("{prefix}-{index}"))
+        .collect())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{assemble_ifcx, NodePaths};
+    use crate::builder::ifcdr::encode_ifcdr;
+    use crate::builder::{
+        AppearanceColor, AppearanceDefinition, IfccadPackageBuilder, LayerDefinition,
+        LinePatternDefinition, PackageOptions,
+    };
+    use crate::ifcdr::IfccadLengthUnit;
+    use crate::{PackageId, ResourceId};
+    use serde_json::Value;
+
+    #[test]
+    fn assembles_minimal_drawing_graph_with_external_geometry() {
+        let mut builder = IfccadPackageBuilder::new(PackageOptions {
+            package_id: PackageId::new("building-a").unwrap(),
+            data_version: "17".to_owned(),
+            author: "Example application".to_owned(),
+            timestamp: "2026-09-03T10:00:00.125+00:00".to_owned(),
+            model_layout_name: "Model layout".to_owned(),
+            representation_resource_id: ResourceId::new("geometry-modelspace-main").unwrap(),
+            length_unit: IfccadLengthUnit::Millimetre,
+        })
+        .unwrap();
+        let style = builder
+            .appearances()
+            .add(AppearanceDefinition {
+                name: "Wall style".to_owned(),
+                color: AppearanceColor::rgb(255, 0, 0)
+                    .with_indexed("ACI", 1)
+                    .with_named("RAL", "Traffic red"),
+                opacity: 0.75,
+                line_pattern: LinePatternDefinition::named("continuous"),
+                line_weight: 0.25,
+            })
+            .unwrap();
+        builder
+            .layers()
+            .add(LayerDefinition {
+                name: "A-WALL".to_owned(),
+                visible: false,
+                appearance: style,
+            })
+            .unwrap();
+
+        let paths = NodePaths::for_builder(&builder).unwrap();
+        let resource = encode_ifcdr(&builder, &paths.layers, &paths.appearances).unwrap();
+        let bytes = assemble_ifcx(&builder, &paths, &resource).unwrap();
+        let root: Value = serde_json::from_slice(&bytes).unwrap();
+
+        assert_eq!(root["header"]["id"], "building-a");
+        assert_eq!(root["header"]["ifcxVersion"], "ifcx_alpha");
+        assert_eq!(root["header"]["dataVersion"], "17");
+        assert_eq!(root["header"]["author"], "Example application");
+        assert_eq!(root["header"]["timestamp"], "2026-09-03T10:00:00.125Z");
+        assert_eq!(root["imports"], serde_json::json!([]));
+        assert_eq!(
+            root["data"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|node| node["path"].as_str().unwrap())
+                .collect::<Vec<_>>(),
+            [
+                "drawing-set-0",
+                "drawing-0",
+                "layout-0",
+                "representation-0",
+                "layer-0",
+                "appearance-0"
+            ]
+        );
+        assert_eq!(
+            root["data"][0]["children"]["Drawings"],
+            serde_json::json!(["drawing-0"])
+        );
+        assert_eq!(
+            root["data"][1]["children"]["Layouts"],
+            serde_json::json!(["layout-0"])
+        );
+        assert_eq!(root["data"][2]["attributes"]["name"], "Model layout");
+        assert_eq!(root["data"][2]["attributes"]["kind"], "model");
+        assert_eq!(root["data"][2]["attributes"]["scopeId"], 0);
+        assert!(root["data"][1].get("name").is_none());
+        assert_eq!(root["data"][3]["attributes"]["name"], "ModelSpace");
+        let geometry = &root["data"][3]["attributes"]["geometry"];
+        assert_eq!(geometry["format"], "openaec.ifcdr");
+        assert_eq!(geometry["version"], "0.5.0");
+        assert_eq!(geometry["role"], "modelspace");
+        assert_eq!(geometry["resourceId"], "geometry-modelspace-main");
+        assert_eq!(geometry["uri"], "resources/model-space.ifcdr.json");
+        assert_eq!(geometry["checksum"], resource.checksum);
+        assert_eq!(root["data"][4]["attributes"]["appearance"], "appearance-0");
+        assert_eq!(
+            root["data"][5]["attributes"]["color"]["value"]["rgb"],
+            serde_json::json!([255, 0, 0])
+        );
+        assert_eq!(
+            root["data"][5]["attributes"]["color"]["value"]["indexedColor"]["system"],
+            "ACI"
+        );
+        assert_eq!(
+            root["data"][5]["attributes"]["color"]["value"]["namedColor"]["name"],
+            "Traffic red"
+        );
+    }
+}

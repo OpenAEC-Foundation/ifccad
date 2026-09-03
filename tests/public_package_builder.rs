@@ -343,3 +343,22 @@ fn entities_reject_invalid_geometry_without_advancing_ids() {
         .unwrap();
     assert_eq!(first_valid.get(), 1);
 }
+
+#[test]
+fn finish_produces_the_two_logical_package_files() {
+    let (builder, _, _) = builder_with_layer();
+    let encoded = builder.finish().unwrap();
+    let paths = encoded.files().map(|(path, _)| path).collect::<Vec<_>>();
+
+    assert_eq!(
+        paths,
+        ["package.ifcx.json", "resources/model-space.ifcdr.json"]
+    );
+    let entrypoint: serde_json::Value =
+        serde_json::from_slice(encoded.file("package.ifcx.json").unwrap()).unwrap();
+    let resource: serde_json::Value =
+        serde_json::from_slice(encoded.file("resources/model-space.ifcdr.json").unwrap()).unwrap();
+    assert_eq!(entrypoint["header"]["id"], "building-a");
+    assert_eq!(entrypoint["header"]["timestamp"], "2026-09-02T10:00:00Z");
+    assert_eq!(resource["header"]["resourceId"], "geometry-modelspace-main");
+}
