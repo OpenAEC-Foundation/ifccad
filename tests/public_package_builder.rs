@@ -27,6 +27,24 @@ fn appearance(name: &str) -> AppearanceDefinition {
     }
 }
 
+fn builder_with_layer() -> (
+    IfccadPackageBuilder,
+    ifccad::builder::LayerKey,
+    ifccad::builder::AppearanceKey,
+) {
+    let mut builder = IfccadPackageBuilder::new(options("2026-09-02T10:00:00Z")).unwrap();
+    let style = builder.appearances().add(appearance("Default")).unwrap();
+    let layer = builder
+        .layers()
+        .add(LayerDefinition {
+            name: "0".to_owned(),
+            visible: true,
+            appearance: style,
+        })
+        .unwrap();
+    (builder, layer, style)
+}
+
 #[test]
 fn metadata_accepts_supported_values_without_raw_json() {
     for timestamp in [
@@ -195,4 +213,133 @@ fn registries_reject_invalid_appearance_and_layer_values() {
             field: "layer_name"
         })
     ));
+}
+
+#[test]
+fn entities_receive_global_ids_in_mixed_insertion_order() {
+    let (mut builder, layer, style) = builder_with_layer();
+
+    let first = builder
+        .model_space()
+        .add_line(LineDefinition {
+            start: Point2::new(0.0, 0.0),
+            end: Point2::new(1.0, 1.0),
+            layer,
+            appearance: EntityAppearance::ByLayer,
+            visible: true,
+        })
+        .unwrap();
+    let second = builder
+        .model_space()
+        .add_polyline(PolylineDefinition {
+            points: vec![Point2::new(-2.0, 3.0), Point2::new(4.0, -5.0)],
+            closed: false,
+            layer,
+            appearance: EntityAppearance::Explicit(style),
+            visible: false,
+        })
+        .unwrap();
+    let third = builder
+        .model_space()
+        .add_line(LineDefinition {
+            start: Point2::new(2.0, 2.0),
+            end: Point2::new(3.0, 3.0),
+            layer,
+            appearance: EntityAppearance::ByBlock,
+            visible: true,
+        })
+        .unwrap();
+
+    assert_eq!([first.get(), second.get(), third.get()], [1, 2, 3]);
+}
+
+#[test]
+fn entities_reject_foreign_keys_without_advancing_ids() {
+    let (mut first, first_layer, first_style) = builder_with_layer();
+    let (mut second, second_layer, second_style) = builder_with_layer();
+
+    assert!(matches!(
+        second.model_space().add_line(LineDefinition {
+            start: Point2::new(0.0, 0.0),
+            end: Point2::new(1.0, 1.0),
+            layer: first_layer,
+            appearance: EntityAppearance::ByLayer,
+            visible: true,
+        }),
+        Err(BuildError::ForeignLayerKey)
+    ));
+    assert!(matches!(
+        second.model_space().add_line(LineDefinition {
+            start: Point2::new(0.0, 0.0),
+            end: Point2::new(1.0, 1.0),
+            layer: second_layer,
+            appearance: EntityAppearance::Explicit(first_style),
+            visible: true,
+        }),
+        Err(BuildError::ForeignAppearanceKey)
+    ));
+
+    let first_valid = second
+        .model_space()
+        .add_line(LineDefinition {
+            start: Point2::new(0.0, 0.0),
+            end: Point2::new(1.0, 1.0),
+            layer: second_layer,
+            appearance: EntityAppearance::Explicit(second_style),
+            visible: true,
+        })
+        .unwrap();
+    assert_eq!(first_valid.get(), 1);
+
+    let _ = first.model_space();
+}
+
+#[test]
+fn entities_reject_invalid_geometry_without_advancing_ids() {
+    let (mut builder, layer, _) = builder_with_layer();
+
+    assert!(matches!(
+        builder.model_space().add_line(LineDefinition {
+            start: Point2::new(f64::NAN, 0.0),
+            end: Point2::new(1.0, 1.0),
+            layer,
+            appearance: EntityAppearance::ByLayer,
+            visible: true,
+        }),
+        Err(BuildError::NonFiniteCoordinate)
+    ));
+    for points in [Vec::new(), vec![Point2::new(0.0, 0.0)]] {
+        assert!(matches!(
+            builder.model_space().add_polyline(PolylineDefinition {
+                points,
+                closed: false,
+                layer,
+                appearance: EntityAppearance::ByLayer,
+                visible: true,
+            }),
+            Err(BuildError::PolylineTooShort)
+        ));
+    }
+    assert!(matches!(
+        builder.model_space().add_polyline(PolylineDefinition {
+            points: vec![Point2::new(0.0, 0.0), Point2::new(f64::INFINITY, 1.0)],
+            closed: false,
+            layer,
+            appearance: EntityAppearance::ByLayer,
+            visible: true,
+        }),
+        Err(BuildError::NonFiniteCoordinate)
+    ));
+
+    let first_valid = builder
+        .model_space()
+        .add_line(LineDefinition {
+            start: Point2::new(0.0, 0.0),
+            end: Point2::new(1.0, 1.0),
+            layer,
+            appearance: EntityAppearance::ByLayer,
+            visible: true,
+        })
+        .unwrap();
+    assert_eq!(first_valid.get(), 1);
 }

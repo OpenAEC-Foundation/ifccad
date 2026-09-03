@@ -1,4 +1,5 @@
-use super::{AppearanceDefinition, LayerDefinition};
+use super::{AppearanceDefinition, LayerDefinition, LineDefinition, PolylineDefinition};
+use crate::ifcdr::EntityId;
 use std::collections::BTreeMap;
 
 #[derive(Debug)]
@@ -13,9 +14,30 @@ pub(crate) struct LayerEntry {
     pub(crate) definition: LayerDefinition,
 }
 
+#[derive(Debug)]
+pub(crate) enum PendingEntity {
+    Line {
+        entity_id: EntityId,
+        definition: LineDefinition,
+    },
+    Polyline {
+        entity_id: EntityId,
+        definition: PolylineDefinition,
+    },
+}
+
+impl PendingEntity {
+    pub(crate) fn entity_id(&self) -> EntityId {
+        match self {
+            Self::Line { entity_id, .. } | Self::Polyline { entity_id, .. } => *entity_id,
+        }
+    }
+}
+
 #[derive(Debug, Default)]
 pub(crate) struct BuilderState {
     pub(crate) appearances: Vec<AppearanceEntry>,
     pub(crate) layers: Vec<LayerEntry>,
     pub(crate) layer_names: BTreeMap<String, usize>,
+    pub(crate) entities: Vec<PendingEntity>,
 }

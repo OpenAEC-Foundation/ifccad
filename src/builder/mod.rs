@@ -9,8 +9,9 @@ pub use types::{
     PolylineDefinition,
 };
 
+use crate::ifcdr::EntityId;
 use crate::package::canonical_rfc3339_utc;
-use state::{AppearanceEntry, BuilderState, LayerEntry};
+use state::{AppearanceEntry, BuilderState, LayerEntry, PendingEntity};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 static NEXT_BUILDER_TOKEN: AtomicU64 = AtomicU64::new(1);
@@ -57,6 +58,10 @@ impl IfccadPackageBuilder {
 
     pub fn layers(&mut self) -> Layers<'_> {
         Layers { builder: self }
+    }
+
+    pub fn model_space(&mut self) -> ModelSpace<'_> {
+        ModelSpace { builder: self }
     }
 }
 
@@ -150,6 +155,79 @@ impl IfccadPackageBuilder {
         }
         Ok(())
     }
+
+    fn validate_layer_key(&self, key: LayerKey) -> Result<(), BuildError> {
+        let index = usize::try_from(key.local_id).ok();
+        if key.builder_token != self.token
+            || index.is_none_or(|index| index >= self.state.layers.len())
+        {
+            return Err(BuildError::ForeignLayerKey);
+        }
+        Ok(())
+    }
+
+    fn validate_entity_appearance(&self, appearance: EntityAppearance) -> Result<(), BuildError> {
+        match appearance {
+            EntityAppearance::ByLayer | EntityAppearance::ByBlock => Ok(()),
+            EntityAppearance::Explicit(key) => self.validate_appearance_key(key),
+        }
+    }
+
+    fn next_entity_id(&self) -> Result<EntityId, BuildError> {
+        let count = u64::try_from(self.state.entities.len())
+            .map_err(|_| BuildError::RangeExhausted { kind: "entity" })?;
+        let value = count
+            .checked_add(1)
+            .ok_or(BuildError::RangeExhausted { kind: "entity" })?;
+        EntityId::new(value).ok_or(BuildError::RangeExhausted { kind: "entity" })
+    }
+}
+
+pub struct ModelSpace<'a> {
+    builder: &'a mut IfccadPackageBuilder,
+}
+
+impl ModelSpace<'_> {
+    pub fn add_line(&mut self, definition: LineDefinition) -> Result<EntityId, BuildError> {
+        self.builder.validate_layer_key(definition.layer)?;
+        self.builder
+            .validate_entity_appearance(definition.appearance)?;
+        validate_points([definition.start, definition.end])?;
+        let entity_id = self.builder.next_entity_id()?;
+        self.builder.state.entities.push(PendingEntity::Line {
+            entity_id,
+            definition,
+        });
+        Ok(entity_id)
+    }
+
+    pub fn add_polyline(&mut self, definition: PolylineDefinition) -> Result<EntityId, BuildError> {
+        if definition.points.len() < 2 {
+            return Err(BuildError::PolylineTooShort);
+        }
+        self.builder.validate_layer_key(definition.layer)?;
+        self.builder
+            .validate_entity_appearance(definition.appearance)?;
+        validate_points(definition.points.iter().copied())?;
+        let entity_id = self.builder.next_entity_id()?;
+        self.builder.state.entities.push(PendingEntity::Polyline {
+            entity_id,
+            definition,
+        });
+        Ok(entity_id)
+    }
+}
+
+fn validate_points(
+    points: impl IntoIterator<Item = crate::ifcdr::Point2>,
+) -> Result<(), BuildError> {
+    if points
+        .into_iter()
+        .any(|point| !point.x().is_finite() || !point.y().is_finite())
+    {
+        return Err(BuildError::NonFiniteCoordinate);
+    }
+    Ok(())
 }
 
 fn validate_appearance(definition: &AppearanceDefinition) -> Result<(), BuildError> {
