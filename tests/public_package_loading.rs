@@ -3,6 +3,7 @@ use ifccad::package::{
     load_directory_package, PackageOpenError, PackageValidationReport, ValidatedIfccadPackage,
     DIRECTORY_PACKAGE_ENTRYPOINT,
 };
+use ifccad::PackageId;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -42,6 +43,15 @@ fn minimal_package() -> PathBuf {
 }
 
 fn assert_public_types(_package: &ValidatedIfccadPackage, _report: &PackageValidationReport) {}
+
+#[test]
+fn package_identity_is_distinct_and_preserves_caller_text() {
+    let id = PackageId::new("  package:building/main  ").expect("package ID");
+
+    assert_eq!(id.as_str(), "  package:building/main  ");
+    assert_eq!(id.to_string(), "  package:building/main  ");
+    assert_eq!(PackageId::new(""), Err(ifccad::InvalidPackageId));
+}
 
 #[test]
 fn valid_directory_exposes_a_strict_package_and_report() {

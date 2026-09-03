@@ -14,7 +14,9 @@
 pub mod canonicalization;
 pub mod conformance;
 pub mod package;
+mod package_id;
 mod resource;
+pub use package_id::{InvalidPackageId, PackageId};
 pub use resource::{InvalidResourceId, ResourceId};
 
 pub mod ifcdr;
