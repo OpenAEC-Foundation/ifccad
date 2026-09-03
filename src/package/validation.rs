@@ -1534,6 +1534,14 @@ mod tests {
         let root = TestDirectory::new("orchestration-order");
         let checksum = valid_checksum();
         let mut entrypoint = serde_json::json!({
+            "header": {
+                "id": "ifccad/tests/orchestration-order",
+                "ifcxVersion": "ifcx_alpha",
+                "dataVersion": "1",
+                "author": "ifccad tests",
+                "timestamp": "2026-09-02T10:00:00Z"
+            },
+            "imports": [],
             "data": [
                 {
                     "path": "drawing-set",

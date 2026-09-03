@@ -10,12 +10,12 @@ use std::collections::BTreeMap;
 
 const DRAWING_CORE_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-drawing-core-0.2.0.json";
 const DRAWING_CORE: &str = include_str!("../../schemas/ifcx/ifccad-drawing-core-0.2.0.json");
-const COMPOSITE_OVERLAY: &str = include_str!("../../schemas/ifcx/ifccad-overlay-0.4.0.json");
+const COMPOSITE_OVERLAY: &str = include_str!("../../schemas/ifcx/ifccad-overlay-0.5.0.json");
 const IFCPR_SCHEMA: &str = include_str!("../../schemas/ifcpr/schema-0.2.0.json");
 
 pub(crate) fn validate_ifcx(value: &Value) -> Vec<PackageDiagnostic> {
     let drawing_core = parse_schema(DRAWING_CORE, "IFCX drawing core 0.2.0");
-    let composite = parse_schema(COMPOSITE_OVERLAY, "IFCX overlay 0.4.0");
+    let composite = parse_schema(COMPOSITE_OVERLAY, "IFCX overlay 0.5.0");
     let registry = Registry::new()
         .add(DRAWING_CORE_ID, drawing_core)
         .expect("register embedded IFCX drawing core 0.2.0")
@@ -24,7 +24,7 @@ pub(crate) fn validate_ifcx(value: &Value) -> Vec<PackageDiagnostic> {
     let validator = jsonschema::draft202012::options()
         .with_registry(&registry)
         .build(&composite)
-        .expect("compile embedded IFCX overlay 0.4.0");
+        .expect("compile embedded IFCX overlay 0.5.0");
     schema_diagnostics(&validator, None, DIRECTORY_PACKAGE_ENTRYPOINT, value)
 }
 
@@ -106,6 +106,14 @@ mod tests {
 
     fn valid_ifcx() -> serde_json::Value {
         json!({
+            "header": {
+                "id": "ifccad/tests/drawing-spine",
+                "ifcxVersion": "ifcx_alpha",
+                "dataVersion": "1",
+                "author": "ifccad tests",
+                "timestamp": "2026-09-02T10:00:00Z"
+            },
+            "imports": [],
             "data": [
                 {
                     "path": "drawing-set",
@@ -147,6 +155,21 @@ mod tests {
     #[test]
     fn embedded_ifcx_schema_accepts_the_drawing_spine() {
         assert!(validate_ifcx(&valid_ifcx()).is_empty());
+    }
+
+    #[test]
+    fn embedded_ifcx_schema_requires_the_package_header() {
+        let mut ifcx = valid_ifcx();
+        ifcx.as_object_mut().unwrap().remove("header");
+
+        let diagnostics = validate_ifcx(&ifcx);
+
+        assert!(diagnostics.iter().any(|item| {
+            item.code == IFCCAD_PACKAGE_SCHEMA_INVALID
+                && item.location.as_deref() == Some("")
+                && item.context.get("property")
+                    == Some(&PackageDiagnosticContextValue::String("header".to_owned()))
+        }));
     }
 
     #[test]

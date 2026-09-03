@@ -137,6 +137,7 @@ fn next_candidate_is_self_contained_and_valid_json() {
         "manifest.json",
         "manifest-schema-v1.json",
         "schemas/ifcx/ifccad-overlay-0.4.0.json",
+        "schemas/ifcx/ifccad-overlay-0.5.0.json",
         "schemas/ifcx/ifccad-drawing-core-0.2.0.json",
         "schemas/ifcdr/registry-0.5.0.json",
         "schemas/ifcdr/registry-meta-schema-v1.json",
@@ -149,6 +150,7 @@ fn next_candidate_is_self_contained_and_valid_json() {
 
     for relative in [
         "ifcx/ifccad-overlay-0.4.0.json",
+        "ifcx/ifccad-overlay-0.5.0.json",
         "ifcx/ifccad-drawing-core-0.2.0.json",
         "ifcdr/registry-0.5.0.json",
         "ifcdr/registry-meta-schema-v1.json",
