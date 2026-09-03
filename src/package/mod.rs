@@ -30,6 +30,7 @@ pub use diagnostic::{
     PackageValidationReport,
 };
 pub use error::PackageOpenError;
+pub(crate) use header::canonical_rfc3339_utc;
 pub use header::PackageHeaderRef;
 pub(crate) use model::LoadedJsonResource;
 pub use model::PackageLoadOutcome;

@@ -33,7 +33,7 @@ pub(crate) fn analyze_package_header(value: &Value) -> PackageHeaderAnalysis {
     let timestamp = header.get("timestamp").and_then(Value::as_str);
 
     let mut diagnostics = Vec::new();
-    let timestamp_is_valid = timestamp.is_some_and(is_rfc3339_zero_offset);
+    let timestamp_is_valid = timestamp.is_some_and(|value| canonical_rfc3339_utc(value).is_some());
     if timestamp.is_some() && !timestamp_is_valid {
         diagnostics.push(PackageDiagnostic {
             code: IFCCAD_PACKAGE_TIMESTAMP_INVALID.to_owned(),
@@ -69,9 +69,19 @@ pub(crate) fn analyze_package_header(value: &Value) -> PackageHeaderAnalysis {
     }
 }
 
-fn is_rfc3339_zero_offset(value: &str) -> bool {
+pub(crate) fn canonical_rfc3339_utc(value: &str) -> Option<String> {
     let accepted_suffix = value.ends_with('Z') || value.ends_with("+00:00");
-    accepted_suffix && !value.ends_with("-00:00") && OffsetDateTime::parse(value, &Rfc3339).is_ok()
+    if !accepted_suffix
+        || value.ends_with("-00:00")
+        || OffsetDateTime::parse(value, &Rfc3339).is_err()
+    {
+        return None;
+    }
+
+    Some(match value.strip_suffix("+00:00") {
+        Some(prefix) => format!("{prefix}Z"),
+        None => value.to_owned(),
+    })
 }
 
 #[derive(Clone, Copy, Debug)]
