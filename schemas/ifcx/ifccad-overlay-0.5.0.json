@@ -1,0 +1,280 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.5.0.json",
+  "title": "IFCCAD IFCX Overlay 0.5.0",
+  "description": "Composite IFCCAD constraints for the package header, explicit resource identity, the drawing core, and typed appearances in IFCX.",
+  "type": "object",
+  "required": [
+    "header",
+    "imports",
+    "data"
+  ],
+  "properties": {
+    "header": {
+      "$ref": "#/$defs/packageHeader"
+    },
+    "imports": {
+      "type": "array"
+    },
+    "data": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/dataNode"
+      }
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "packageHeader": {
+      "type": "object",
+      "required": [
+        "id",
+        "ifcxVersion",
+        "dataVersion",
+        "author",
+        "timestamp"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "ifcxVersion": {
+          "const": "ifcx_alpha"
+        },
+        "dataVersion": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "author": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "(Z|\\+00:00)$"
+        }
+      },
+      "additionalProperties": true
+    },
+    "dataNode": {
+      "type": "object",
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "openaec:DrawingGeometryRepresentation"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/$defs/geometryResourceNode"
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "openaec:PreservationRepresentation"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/$defs/preservationResourceNode"
+          }
+        }
+      ],
+      "additionalProperties": true
+    },
+    "geometryResourceNode": {
+      "type": "object",
+      "required": [
+        "path",
+        "type",
+        "attributes"
+      ],
+      "properties": {
+        "path": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "type": {
+          "const": "openaec:DrawingGeometryRepresentation"
+        },
+        "attributes": {
+          "type": "object",
+          "required": [
+            "geometry"
+          ],
+          "properties": {
+            "geometry": {
+              "$ref": "#/$defs/geometryDescriptor"
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "geometryDescriptor": {
+      "type": "object",
+      "required": [
+        "format",
+        "version",
+        "resourceId",
+        "uri",
+        "checksum",
+        "role"
+      ],
+      "properties": {
+        "format": {
+          "const": "openaec.ifcdr"
+        },
+        "version": {
+          "const": "0.5.0"
+        },
+        "uri": {
+          "$ref": "#/$defs/packageRelativeUri"
+        },
+        "checksum": {
+          "$ref": "#/$defs/sha256Checksum"
+        },
+        "role": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "resourceId": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      },
+      "additionalProperties": false
+    },
+    "preservationResourceNode": {
+      "type": "object",
+      "required": [
+        "path",
+        "type",
+        "attributes"
+      ],
+      "properties": {
+        "path": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "type": {
+          "const": "openaec:PreservationRepresentation"
+        },
+        "attributes": {
+          "type": "object",
+          "required": [
+            "preservation"
+          ],
+          "properties": {
+            "preservation": {
+              "$ref": "#/$defs/preservationDescriptor"
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "preservationDescriptor": {
+      "type": "object",
+      "required": [
+        "format",
+        "version",
+        "resourceId",
+        "uri",
+        "checksum",
+        "sourceDocumentId",
+        "linkedDrawingResourceIds"
+      ],
+      "properties": {
+        "format": {
+          "const": "openaec.ifcpr"
+        },
+        "version": {
+          "const": "0.2.0"
+        },
+        "uri": {
+          "$ref": "#/$defs/packageRelativeUri"
+        },
+        "checksum": {
+          "$ref": "#/$defs/sha256Checksum"
+        },
+        "sourceDocumentId": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "resourceId": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "linkedDrawingResourceIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sha256Checksum": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "packageRelativeUri": {
+      "type": "string",
+      "minLength": 1,
+      "allOf": [
+        {
+          "not": {
+            "pattern": "^/"
+          }
+        },
+        {
+          "not": {
+            "pattern": "\\\\"
+          }
+        },
+        {
+          "not": {
+            "pattern": "\u0000"
+          }
+        },
+        {
+          "not": {
+            "pattern": "^[^/]*:"
+          }
+        },
+        {
+          "not": {
+            "pattern": "//"
+          }
+        },
+        {
+          "not": {
+            "pattern": "/$"
+          }
+        },
+        {
+          "not": {
+            "pattern": "(^|/)\\.{1,2}(/|$)"
+          }
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "https://schemas.ifccad.org/ifcx/ifccad-drawing-core-0.2.0.json"
+    }
+  ]
+}

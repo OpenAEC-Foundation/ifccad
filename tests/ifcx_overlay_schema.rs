@@ -9,6 +9,7 @@ const OVERLAY_0_2_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.2
 const DRAWING_CORE_0_2_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-drawing-core-0.2.0.json";
 const OVERLAY_0_3_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.3.0.json";
 const OVERLAY_0_4_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.4.0.json";
+const OVERLAY_0_5_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.5.0.json";
 
 fn schema_path(file_name: &str) -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -100,6 +101,22 @@ fn composite_overlay_0_4_validator() -> jsonschema::Validator {
         .with_registry(&registry)
         .build(&composite_overlay_0_4_schema())
         .expect("compile composite IFCX overlay 0.4.0")
+}
+
+fn composite_overlay_0_5_schema() -> Value {
+    load_schema("ifccad-overlay-0.5.0.json")
+}
+
+fn composite_overlay_0_5_validator() -> jsonschema::Validator {
+    let registry = Registry::new()
+        .add(DRAWING_CORE_0_2_ID, drawing_core_0_2_schema())
+        .expect("add IFCX drawing core 0.2.0 to local registry")
+        .prepare()
+        .expect("prepare local IFCX 0.5.0 schema registry");
+    jsonschema::draft202012::options()
+        .with_registry(&registry)
+        .build(&composite_overlay_0_5_schema())
+        .expect("compile composite IFCX overlay 0.5.0")
 }
 
 fn checksum() -> String {
@@ -780,6 +797,23 @@ fn resource_identity_document() -> Value {
     document
 }
 
+fn package_header() -> Value {
+    json!({
+        "id": "ifccad/examples/building-a",
+        "ifcxVersion": "ifcx_alpha",
+        "dataVersion": "17",
+        "author": "Example application",
+        "timestamp": "2026-09-02T10:00:00Z"
+    })
+}
+
+fn package_contract_document() -> Value {
+    let mut document = resource_identity_document();
+    document["header"] = package_header();
+    document["imports"] = json!([]);
+    document
+}
+
 #[test]
 fn overlay_0_4_separates_resource_identity_from_external_uri() {
     let schema = composite_overlay_0_4_schema();
@@ -832,4 +866,76 @@ fn overlay_0_4_rejects_legacy_preservation_links_and_version() {
     let mut legacy_version = resource_identity_document();
     legacy_version["data"][6]["attributes"]["preservation"]["version"] = json!("0.1.0");
     assert!(!validator.is_valid(&legacy_version));
+}
+
+#[test]
+fn overlay_0_5_is_valid_and_accepts_the_minimal_package_contract() {
+    let schema = composite_overlay_0_5_schema();
+    assert_eq!(schema["$id"], OVERLAY_0_5_ID);
+    jsonschema::draft202012::meta::validate(&schema)
+        .expect("IFCX overlay 0.5.0 must satisfy the Draft 2020-12 meta-schema");
+
+    assert!(composite_overlay_0_5_validator().is_valid(&package_contract_document()));
+}
+
+#[test]
+fn overlay_0_5_requires_the_envelope_and_every_minimal_header_field() {
+    let validator = composite_overlay_0_5_validator();
+
+    for property in ["header", "imports", "data"] {
+        let mut document = package_contract_document();
+        document.as_object_mut().unwrap().remove(property);
+        assert!(
+            !validator.is_valid(&document),
+            "accepted package without {property}"
+        );
+    }
+
+    for property in ["id", "ifcxVersion", "dataVersion", "author", "timestamp"] {
+        let mut document = package_contract_document();
+        document["header"].as_object_mut().unwrap().remove(property);
+        assert!(
+            !validator.is_valid(&document),
+            "accepted header without {property}"
+        );
+    }
+}
+
+#[test]
+fn overlay_0_5_rejects_invalid_minimal_header_values() {
+    let validator = composite_overlay_0_5_validator();
+
+    for (pointer, value) in [
+        ("/header/id", json!("")),
+        ("/header/ifcxVersion", json!("ifcx_future")),
+        ("/header/dataVersion", json!("")),
+        ("/header/author", json!("")),
+        ("/header/timestamp", json!("")),
+        ("/imports", json!({})),
+    ] {
+        let mut document = package_contract_document();
+        *document
+            .pointer_mut(pointer)
+            .expect("package contract pointer") = value;
+        assert!(
+            !validator.is_valid(&document),
+            "accepted invalid value at {pointer}"
+        );
+    }
+}
+
+#[test]
+fn overlay_0_5_keeps_known_envelopes_and_unknown_nodes_open() {
+    let validator = composite_overlay_0_5_validator();
+    let mut document = package_contract_document();
+    document["futureRoot"] = json!({"enabled": true});
+    document["header"]["futureHeader"] = json!([1, 2, 3]);
+    document["imports"] = json!([{"uri": "future-library.ifcx.json"}]);
+    document["data"].as_array_mut().unwrap().push(json!({
+        "path": "future-node",
+        "type": "example:FutureNode",
+        "attributes": {"future": true}
+    }));
+
+    assert!(validator.is_valid(&document));
 }
