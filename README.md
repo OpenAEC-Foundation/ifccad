@@ -28,11 +28,11 @@ The crate currently provides:
 
 - language-neutral canonical value encoding and SHA-256 fingerprints;
 - conformance manifests, vectors, fixtures, and verification helpers;
-- versioned IFCX resource and drawing-core overlays, the IFCDR registry, and
-  the IFCPR schema;
+- versioned IFCX package-header, resource, and drawing-core overlays, the IFCDR
+  registry, and the IFCPR schema;
 - public directory-package loading with structured diagnostics and a strict,
-  typed model for validated drawings, layouts, layers, appearances, and IFCDR
-  entities; and
+  typed model for validated package metadata, drawings, layouts, layers,
+  appearances, and IFCDR entities; and
 - the `ifccad-convert` companion crate for an initial validated IFCCAD drawing
   to cadcodec `CadDocument` conversion.
 
@@ -61,6 +61,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Ok(());
     };
 
+    let header = package.header();
+    println!(
+        "package {} data version {} by {} at {}",
+        header.package_id(),
+        header.data_version(),
+        header.author(),
+        header.timestamp()
+    );
+
     for drawing in package.drawings() {
         let entity_count = drawing
             .layouts()
@@ -88,17 +97,26 @@ Opening a directory is intentionally separate from obtaining a strict model.
 bindings, and supported IFCDR content satisfy the current contract. Its typed
 views do not expose raw IFCX JSON or physical IFCDR stream columns.
 
+`PackageHeaderRef` exposes the required package ID, `ifcxVersion`, mutable
+`dataVersion`, author, and the original validated timestamp. Timestamps must be
+valid RFC 3339 UTC values ending in `Z` or `+00:00`; their source spelling is
+preserved by the reader.
+
 The public API is still evolving while the format contract matures.
 
 ## Format contract and versioning
 
 The active language-neutral schemas live in `schemas/`. The mutable
 `conformance/next` collection currently targets suite `1.1.0` and tests the
-explicit resource-identity contract: a logical resource ID is independent of
-its external URI. It remains a development candidate until it is frozen as a
-numbered release. A numbered directory such as `conformance/1.0.0` is an
-immutable, self-contained release of fixtures, vectors, expected outcomes, and
-the schemas applicable to that collection.
+minimal package-header contract alongside explicit resource identity: a
+logical resource ID is independent of its external URI. IFCX overlay `0.5`
+requires the top-level `header`, `imports`, and `data` fields and the known
+header fields, while still allowing additional top-level and header fields and
+unknown IFCX node types for forward-compatible extension. It remains a
+development candidate until it is frozen as a numbered release. A numbered
+directory such as `conformance/1.0.0` is an immutable, self-contained release
+of fixtures, vectors, expected outcomes, and the schemas applicable to that
+collection.
 
 Active schemas may move ahead of the latest released conformance collection.
 When a new collection is released, its applicable schemas are copied into the
