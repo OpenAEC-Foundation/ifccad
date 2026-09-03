@@ -56,6 +56,7 @@ pub(crate) struct LoadedIfccadPackage {
 #[derive(Debug)]
 #[allow(dead_code)]
 pub(crate) struct PackageAnalysis {
+    pub(crate) header: Option<super::header::ValidatedPackageHeader>,
     pub(crate) node_indices_by_path: BTreeMap<String, usize>,
     pub(crate) validated_ifcdr_resources:
         BTreeMap<ResourceId, Arc<crate::ifcdr::ValidatedIfcdrResource>>,

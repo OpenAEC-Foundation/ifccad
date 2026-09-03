@@ -11,6 +11,7 @@ mod diagnostic;
 mod discovery;
 mod error;
 mod graph;
+mod header;
 mod loader;
 mod model;
 mod navigation;

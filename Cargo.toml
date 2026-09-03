@@ -25,6 +25,7 @@ base64 = "0.22"
 serde = { version = "1", features = ["derive", "rc"] }
 serde_json = "1"
 sha2 = "0.10"
+time = { version = "0.3", features = ["parsing"] }
 
 [dev-dependencies]
 serde_json = "1"

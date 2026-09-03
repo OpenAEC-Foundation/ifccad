@@ -69,6 +69,8 @@ pub fn load_directory_package(
         resources,
     });
     diagnostics.extend(validate_ifcx(&package.entrypoint.value));
+    let header_analysis = super::header::analyze_package_header(&package.entrypoint.value);
+    diagnostics.extend(header_analysis.diagnostics);
     diagnostics.extend(validate_declared_resource_id_uniqueness(
         &package.declarations,
     ));
@@ -181,6 +183,7 @@ pub fn load_directory_package(
     diagnostics.extend(binding_analysis.diagnostics);
 
     let analysis = Arc::new(PackageAnalysis {
+        header: header_analysis.header,
         node_indices_by_path: graph.node_indices_by_path,
         validated_ifcdr_resources,
         bindings: binding_analysis.bindings,
@@ -435,7 +438,7 @@ mod tests {
         IFCCAD_PACKAGE_CHECKSUM_MISMATCH, IFCCAD_PACKAGE_ENTRYPOINT_INVALID,
         IFCCAD_PACKAGE_JSON_INVALID, IFCCAD_PACKAGE_NODE_PATH_DUPLICATE,
         IFCCAD_PACKAGE_NODE_REFERENCE_MISSING, IFCCAD_PACKAGE_RESOURCE_MISSING,
-        IFCCAD_PACKAGE_SCHEMA_INVALID,
+        IFCCAD_PACKAGE_SCHEMA_INVALID, IFCCAD_PACKAGE_TIMESTAMP_INVALID,
     };
     use crate::package::{PackageDiagnosticContextValue, DIRECTORY_PACKAGE_ENTRYPOINT};
     use sha2::{Digest, Sha256};
@@ -481,6 +484,14 @@ mod tests {
 
     fn write_geometry_entrypoint(root: &Path, uri: &str, checksum: &str) {
         let mut entrypoint = serde_json::json!({
+            "header": {
+                "id": "ifccad/tests/generated-package",
+                "ifcxVersion": "ifcx_alpha",
+                "dataVersion": "1",
+                "author": "ifccad tests",
+                "timestamp": "2026-09-02T10:00:00Z"
+            },
+            "imports": [],
             "data": [{
                 "path": "geometry",
                 "type": "openaec:DrawingGeometryRepresentation",
@@ -611,6 +622,54 @@ mod tests {
             &fs::read(root.join(DIRECTORY_PACKAGE_ENTRYPOINT)).expect("read copied IFCX"),
         )
         .expect("parse copied IFCX")
+    }
+
+    #[test]
+    fn accepts_rfc3339_utc_timestamp_forms() {
+        for (name, timestamp) in [
+            ("timestamp-z", "2026-09-02T10:00:00Z"),
+            ("timestamp-plus-zero", "2026-09-02T10:00:00+00:00"),
+            ("timestamp-fraction", "2026-09-02T10:00:00.125Z"),
+        ] {
+            let root = TestDirectory::new(name);
+            let mut entrypoint = copy_minimal_package(root.path());
+            entrypoint["header"]["timestamp"] = serde_json::json!(timestamp);
+            write_entrypoint(root.path(), &entrypoint);
+
+            let outcome = load_directory_package(root.path()).expect("load timestamp package");
+            assert!(
+                outcome.report().is_valid(),
+                "{timestamp}: {:#?}",
+                outcome.report()
+            );
+            assert!(outcome.validated_package().is_some());
+        }
+    }
+
+    #[test]
+    fn rejects_non_utc_or_semantically_invalid_timestamps() {
+        for (name, timestamp) in [
+            ("timestamp-negative-zero", "2026-09-02T10:00:00-00:00"),
+            ("timestamp-nonzero", "2026-09-02T12:00:00+02:00"),
+            ("timestamp-impossible-date", "2026-02-30T10:00:00Z"),
+            ("timestamp-malformed", "not-a-timestamp"),
+        ] {
+            let root = TestDirectory::new(name);
+            let mut entrypoint = copy_minimal_package(root.path());
+            entrypoint["header"]["timestamp"] = serde_json::json!(timestamp);
+            write_entrypoint(root.path(), &entrypoint);
+
+            let outcome = load_directory_package(root.path()).expect("inspect timestamp package");
+            assert!(outcome.validated_package().is_none());
+            assert!(
+                outcome.report().iter().any(|diagnostic| {
+                    diagnostic.code == IFCCAD_PACKAGE_TIMESTAMP_INVALID
+                        && diagnostic.location.as_deref() == Some("/header/timestamp")
+                }),
+                "missing timestamp diagnostic for {timestamp}: {:#?}",
+                outcome.report()
+            );
+        }
     }
 
     #[test]
