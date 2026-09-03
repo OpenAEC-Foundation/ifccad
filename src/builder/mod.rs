@@ -6,7 +6,7 @@ mod state;
 mod types;
 
 pub use artifact::EncodedIfccadPackage;
-pub use error::BuildError;
+pub use error::{BuildError, PackageWriteError};
 pub use types::{
     AppearanceColor, AppearanceDefinition, AppearanceKey, EntityAppearance, IndexedColor,
     LayerDefinition, LayerKey, LineDefinition, LinePatternDefinition, NamedColor, PackageOptions,

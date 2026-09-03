@@ -27,3 +27,21 @@ pub enum BuildError {
         message: String,
     },
 }
+
+#[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
+pub enum PackageWriteError {
+    #[error("target package already exists: {path}", path = .path.display())]
+    TargetExists { path: std::path::PathBuf },
+    #[error("target package must have a final path component: {path}", path = .path.display())]
+    InvalidTarget { path: std::path::PathBuf },
+    #[error("invalid package artifact path: {path}")]
+    InvalidArtifactPath { path: String },
+    #[error("could not {operation} at {path}: {source}", path = .path.display())]
+    Io {
+        operation: &'static str,
+        path: std::path::PathBuf,
+        #[source]
+        source: std::io::Error,
+    },
+}
