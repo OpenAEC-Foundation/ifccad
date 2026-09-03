@@ -17,6 +17,16 @@ fn options(timestamp: &str) -> PackageOptions {
     }
 }
 
+fn appearance(name: &str) -> AppearanceDefinition {
+    AppearanceDefinition {
+        name: name.to_owned(),
+        color: AppearanceColor::rgb(255, 0, 0),
+        opacity: 1.0,
+        line_pattern: LinePatternDefinition::named("continuous"),
+        line_weight: 0.25,
+    }
+}
+
 #[test]
 fn metadata_accepts_supported_values_without_raw_json() {
     for timestamp in [
@@ -78,4 +88,111 @@ fn metadata_rejects_non_utc_and_malformed_timestamps() {
             Err(BuildError::InvalidTimestamp)
         ));
     }
+}
+
+#[test]
+fn registries_add_and_find_builder_scoped_definitions() {
+    let mut builder = IfccadPackageBuilder::new(options("2026-09-02T10:00:00Z")).unwrap();
+    let walls_style = builder.appearances().add(appearance("Walls")).unwrap();
+    let walls = builder
+        .layers()
+        .add(LayerDefinition {
+            name: "A-WALL".to_owned(),
+            visible: true,
+            appearance: walls_style,
+        })
+        .unwrap();
+
+    assert_eq!(builder.layers().by_name("a-wall"), Some(walls));
+    assert_eq!(builder.layers().by_name("A-WaLl"), Some(walls));
+    assert_eq!(builder.layers().by_name("missing"), None);
+}
+
+#[test]
+fn registries_reject_duplicates_and_foreign_appearance_keys_without_mutation() {
+    let mut first = IfccadPackageBuilder::new(options("2026-09-02T10:00:00Z")).unwrap();
+    let first_style = first.appearances().add(appearance("First")).unwrap();
+    first
+        .layers()
+        .add(LayerDefinition {
+            name: "A-WALL".to_owned(),
+            visible: true,
+            appearance: first_style,
+        })
+        .unwrap();
+
+    assert!(matches!(
+        first.layers().add(LayerDefinition {
+            name: "a-wall".to_owned(),
+            visible: false,
+            appearance: first_style,
+        }),
+        Err(BuildError::DuplicateLayerName { name }) if name == "a-wall"
+    ));
+    assert_eq!(first.layers().by_name("A-WALL").is_some(), true);
+
+    let mut second = IfccadPackageBuilder::new(options("2026-09-02T10:00:00Z")).unwrap();
+    assert!(matches!(
+        second.layers().add(LayerDefinition {
+            name: "foreign".to_owned(),
+            visible: true,
+            appearance: first_style,
+        }),
+        Err(BuildError::ForeignAppearanceKey)
+    ));
+    assert_eq!(second.layers().by_name("foreign"), None);
+}
+
+#[test]
+fn registries_reject_invalid_appearance_and_layer_values() {
+    let mut builder = IfccadPackageBuilder::new(options("2026-09-02T10:00:00Z")).unwrap();
+
+    for invalid in [
+        AppearanceDefinition {
+            name: String::new(),
+            ..appearance("valid")
+        },
+        AppearanceDefinition {
+            opacity: f64::NAN,
+            ..appearance("valid")
+        },
+        AppearanceDefinition {
+            opacity: 1.01,
+            ..appearance("valid")
+        },
+        AppearanceDefinition {
+            line_weight: -0.01,
+            ..appearance("valid")
+        },
+        AppearanceDefinition {
+            line_weight: f64::INFINITY,
+            ..appearance("valid")
+        },
+        AppearanceDefinition {
+            line_pattern: LinePatternDefinition::named(""),
+            ..appearance("valid")
+        },
+        AppearanceDefinition {
+            color: AppearanceColor::rgb(1, 2, 3).with_indexed("", 7),
+            ..appearance("valid")
+        },
+        AppearanceDefinition {
+            color: AppearanceColor::rgb(1, 2, 3).with_named("RAL", ""),
+            ..appearance("valid")
+        },
+    ] {
+        assert!(builder.appearances().add(invalid).is_err());
+    }
+
+    let style = builder.appearances().add(appearance("valid")).unwrap();
+    assert!(matches!(
+        builder.layers().add(LayerDefinition {
+            name: String::new(),
+            visible: true,
+            appearance: style,
+        }),
+        Err(BuildError::EmptyValue {
+            field: "layer_name"
+        })
+    ));
 }
