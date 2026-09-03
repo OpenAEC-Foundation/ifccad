@@ -1,7 +1,7 @@
 use ifccad::conformance::bundled_conformance_root;
 use ifccad::package::{
-    load_directory_package, PackageOpenError, PackageValidationReport, ValidatedIfccadPackage,
-    DIRECTORY_PACKAGE_ENTRYPOINT,
+    load_directory_package, PackageHeaderRef, PackageOpenError, PackageValidationReport,
+    ValidatedIfccadPackage, DIRECTORY_PACKAGE_ENTRYPOINT,
 };
 use ifccad::PackageId;
 use std::fs;
@@ -42,7 +42,33 @@ fn minimal_package() -> PathBuf {
         .join("minimal-no-preservation")
 }
 
-fn assert_public_types(_package: &ValidatedIfccadPackage, _report: &PackageValidationReport) {}
+fn copy_minimal_package(root: &Path) -> serde_json::Value {
+    let source = minimal_package();
+    for entry in fs::read_dir(&source).expect("read minimal package") {
+        let entry = entry.expect("minimal package entry");
+        if entry.file_type().expect("minimal entry type").is_file() {
+            fs::copy(entry.path(), root.join(entry.file_name()))
+                .expect("copy minimal package file");
+        }
+    }
+    serde_json::from_slice(
+        &fs::read(root.join(DIRECTORY_PACKAGE_ENTRYPOINT)).expect("read copied entrypoint"),
+    )
+    .expect("parse copied entrypoint")
+}
+
+fn assert_public_types(
+    package: &ValidatedIfccadPackage,
+    header: PackageHeaderRef<'_>,
+    report: &PackageValidationReport,
+) {
+    let _: &PackageId = header.package_id();
+    let _: &str = header.ifcx_version();
+    let _: &str = header.data_version();
+    let _: &str = header.author();
+    let _: &str = header.timestamp();
+    let _ = (package, report);
+}
 
 #[test]
 fn package_identity_is_distinct_and_preserves_caller_text() {
@@ -61,7 +87,16 @@ fn valid_directory_exposes_a_strict_package_and_report() {
     let package = outcome
         .validated_package()
         .expect("valid package has strict proof");
-    assert_public_types(package, outcome.report());
+    let header = package.header();
+    assert_public_types(package, header, outcome.report());
+    assert_eq!(
+        header.package_id().as_str(),
+        "ifccad/examples/golden-minimal/golden_minimal.ifcx.json"
+    );
+    assert_eq!(header.ifcx_version(), "ifcx_alpha");
+    assert_eq!(header.data_version(), "0.5.0");
+    assert_eq!(header.author(), "IFC-CAD prototype");
+    assert_eq!(header.timestamp(), "2026-07-06T00:00:00Z");
     assert_eq!(DIRECTORY_PACKAGE_ENTRYPOINT, "package.ifcx.json");
 
     assert!(load_directory_package(minimal_package())
@@ -73,6 +108,30 @@ fn valid_directory_exposes_a_strict_package_and_report() {
         .into_parts();
     assert!(package.is_some());
     assert!(report.is_valid());
+}
+
+#[test]
+fn incomplete_header_is_inspectable_without_a_strict_proof() {
+    let root = TestDirectory::new("incomplete-header");
+    let mut entrypoint = copy_minimal_package(root.path());
+    entrypoint["header"].as_object_mut().unwrap().remove("id");
+    fs::write(
+        root.path().join(DIRECTORY_PACKAGE_ENTRYPOINT),
+        serde_json::to_vec(&entrypoint).expect("serialize incomplete entrypoint"),
+    )
+    .expect("write incomplete entrypoint");
+
+    let outcome = load_directory_package(root.path()).expect("inspect incomplete header");
+
+    assert!(outcome.validated_package().is_none());
+    assert!(outcome.report().iter().any(|diagnostic| {
+        diagnostic.code == "IFCCAD_PACKAGE_SCHEMA_INVALID"
+            && diagnostic.location.as_deref() == Some("/header")
+            && diagnostic.context.get("property")
+                == Some(&ifccad::package::PackageDiagnosticContextValue::String(
+                    "id".to_owned(),
+                ))
+    }));
 }
 
 #[test]

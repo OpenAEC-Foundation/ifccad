@@ -1,3 +1,4 @@
+use super::analysis::ValidatedIfccadPackage;
 use super::codes::IFCCAD_PACKAGE_TIMESTAMP_INVALID;
 use super::{PackageDiagnostic, PackageDiagnosticSeverity, DIRECTORY_PACKAGE_ENTRYPOINT};
 use crate::PackageId;
@@ -6,7 +7,6 @@ use std::collections::BTreeMap;
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
 #[derive(Debug)]
-#[allow(dead_code)]
 pub(crate) struct ValidatedPackageHeader {
     pub(crate) package_id: PackageId,
     pub(crate) ifcx_version: String,
@@ -72,6 +72,45 @@ pub(crate) fn analyze_package_header(value: &Value) -> PackageHeaderAnalysis {
 fn is_rfc3339_zero_offset(value: &str) -> bool {
     let accepted_suffix = value.ends_with('Z') || value.ends_with("+00:00");
     accepted_suffix && !value.ends_with("-00:00") && OffsetDateTime::parse(value, &Rfc3339).is_ok()
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct PackageHeaderRef<'a> {
+    header: &'a ValidatedPackageHeader,
+}
+
+impl ValidatedIfccadPackage {
+    pub fn header(&self) -> PackageHeaderRef<'_> {
+        PackageHeaderRef {
+            header: self
+                .evidence()
+                .header
+                .as_ref()
+                .expect("strict IFCX proof includes a validated package header"),
+        }
+    }
+}
+
+impl PackageHeaderRef<'_> {
+    pub fn package_id(&self) -> &PackageId {
+        &self.header.package_id
+    }
+
+    pub fn ifcx_version(&self) -> &str {
+        &self.header.ifcx_version
+    }
+
+    pub fn data_version(&self) -> &str {
+        &self.header.data_version
+    }
+
+    pub fn author(&self) -> &str {
+        &self.header.author
+    }
+
+    pub fn timestamp(&self) -> &str {
+        &self.header.timestamp
+    }
 }
 
 #[cfg(test)]

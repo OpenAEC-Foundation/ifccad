@@ -30,6 +30,7 @@ pub use diagnostic::{
     PackageValidationReport,
 };
 pub use error::PackageOpenError;
+pub use header::PackageHeaderRef;
 pub(crate) use model::LoadedJsonResource;
 pub use model::PackageLoadOutcome;
 pub use navigation::{
