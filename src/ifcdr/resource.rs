@@ -44,16 +44,16 @@ impl Point2 {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub(crate) struct Bounds2d {
+pub struct Bounds2d {
     pub(crate) min: Point2,
     pub(crate) max: Point2,
 }
 
 impl Bounds2d {
-    pub(crate) fn min(self) -> Point2 {
+    pub fn min(self) -> Point2 {
         self.min
     }
-    pub(crate) fn max(self) -> Point2 {
+    pub fn max(self) -> Point2 {
         self.max
     }
 }
@@ -182,6 +182,10 @@ impl<'a> IfcdrResourceRef<'a> {
             "ft" => IfccadLengthUnit::Foot,
             _ => unreachable!("validated IFCDR length unit"),
         }
+    }
+
+    pub fn bounds(&self) -> Bounds2d {
+        self.resource.bounds()
     }
 
     pub fn scopes(&self) -> impl ExactSizeIterator<Item = ScopeRef<'_>> {
