@@ -32,7 +32,9 @@ The crate currently provides:
   registry, and the IFCPR schema;
 - public directory-package loading with structured diagnostics and a strict,
   typed model for validated package metadata, drawings, layouts, layers,
-  appearances, and IFCDR entities; and
+  appearances, and IFCDR entities;
+- a deterministic package builder and safe new-directory writer for one
+  model-space drawing with layers, appearances, lines, and polylines; and
 - the `ifccad-convert` companion crate for an initial validated IFCCAD drawing
   to cadcodec `CadDocument` conversion.
 
@@ -101,6 +103,59 @@ views do not expose raw IFCX JSON or physical IFCDR stream columns.
 `dataVersion`, author, and the original validated timestamp. Timestamps must be
 valid RFC 3339 UTC values ending in `Z` or `+00:00`; their source spelling is
 preserved by the reader.
+
+### Writing a directory package
+
+```rust
+use ifccad::builder::{
+    AppearanceColor, AppearanceDefinition, EntityAppearance,
+    IfccadPackageBuilder, LayerDefinition, LineDefinition,
+    LinePatternDefinition, PackageOptions,
+};
+use ifccad::ifcdr::{IfccadLengthUnit, Point2};
+use ifccad::{PackageId, ResourceId};
+
+fn write_example() -> Result<(), Box<dyn std::error::Error>> {
+    let mut builder = IfccadPackageBuilder::new(PackageOptions {
+        package_id: PackageId::new("building-a")?,
+        data_version: "1".into(),
+        author: "Example application".into(),
+        timestamp: "2026-09-03T10:00:00Z".into(),
+        model_layout_name: "Model".into(),
+        representation_resource_id: ResourceId::new("geometry-main")?,
+        length_unit: IfccadLengthUnit::Millimetre,
+    })?;
+    let style = builder.appearances().add(AppearanceDefinition {
+        name: "Wall style".into(),
+        color: AppearanceColor::rgb(255, 0, 0),
+        opacity: 1.0,
+        line_pattern: LinePatternDefinition::named("continuous"),
+        line_weight: 0.25,
+    })?;
+    let walls = builder.layers().add(LayerDefinition {
+        name: "A-WALL".into(),
+        visible: true,
+        appearance: style,
+    })?;
+    builder.model_space().add_line(LineDefinition {
+        start: Point2::new(0.0, 0.0),
+        end: Point2::new(1000.0, 0.0),
+        layer: walls,
+        appearance: EntityAppearance::ByLayer,
+        visible: true,
+    })?;
+
+    builder.finish()?.write_directory("building-a")?;
+    Ok(())
+}
+```
+
+The current writer deliberately produces one Drawing with one model layout and
+one external IFCDR resource. It supports layers, explicit appearances, lines,
+polylines, visibility, and global entity order. It does not yet write paper
+space, blocks, IFCPR, inline resources, or `.ifccad` containers, and it never
+overwrites an existing target directory. Mapping a cadcodec `CadDocument` into
+this builder remains a separate responsibility of `ifccad-convert`.
 
 The public API is still evolving while the format contract matures.
 

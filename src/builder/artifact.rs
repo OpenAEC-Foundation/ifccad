@@ -105,9 +105,12 @@ impl EncodedIfccadPackage {
     fn stage_files(&self, staging: &Path) -> Result<(), PackageWriteError> {
         for (relative, bytes) in &self.files {
             let destination = staging.join(relative);
-            let parent = destination
-                .parent()
-                .expect("validated relative artifact has a staging parent");
+            let parent =
+                destination
+                    .parent()
+                    .ok_or_else(|| PackageWriteError::InvalidArtifactPath {
+                        path: relative.clone(),
+                    })?;
             fs::create_dir_all(parent)
                 .map_err(|source| io_error("create artifact parent", parent, source))?;
             fs::write(&destination, bytes)

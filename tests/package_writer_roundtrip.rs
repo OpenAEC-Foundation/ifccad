@@ -243,3 +243,50 @@ fn writer_output_reloads_without_diagnostics_and_preserves_semantics() {
     assert!(fourth.visible());
     assert_eq!(fourth.appearance_id().get(), 3);
 }
+
+#[test]
+fn identical_input_is_byte_deterministic_across_builder_tokens() {
+    let first = representative_builder().finish().unwrap();
+    let second = representative_builder().finish().unwrap();
+
+    let first_files = first
+        .files()
+        .map(|(path, bytes)| (path.to_owned(), bytes.to_vec()))
+        .collect::<Vec<_>>();
+    let second_files = second
+        .files()
+        .map(|(path, bytes)| (path.to_owned(), bytes.to_vec()))
+        .collect::<Vec<_>>();
+    assert_eq!(first_files, second_files);
+    assert_eq!(first_files.len(), 2);
+}
+
+#[test]
+fn empty_model_space_reloads_with_zero_bounds_and_no_entities() {
+    let root = TempRoot::new();
+    let target = root.0.join("empty-project");
+    IfccadPackageBuilder::new(PackageOptions {
+        package_id: PackageId::new("empty-package").unwrap(),
+        data_version: "1".to_owned(),
+        author: "Writer integration test".to_owned(),
+        timestamp: "2026-09-03T14:15:16Z".to_owned(),
+        model_layout_name: "Model".to_owned(),
+        representation_resource_id: ResourceId::new("empty-geometry").unwrap(),
+        length_unit: IfccadLengthUnit::Unitless,
+    })
+    .unwrap()
+    .finish()
+    .unwrap()
+    .write_directory(&target)
+    .unwrap();
+
+    let loaded = load_directory_package(&target).unwrap();
+    assert!(loaded.report().is_empty(), "{:#?}", loaded.report());
+    let package = loaded.validated_package().expect("strict empty package");
+    let drawing = package.drawings().next().unwrap();
+    let layout = drawing.layouts().next().unwrap();
+    let resource = drawing.representation().resource();
+    assert_eq!(resource.bounds().min(), Point2::new(0.0, 0.0));
+    assert_eq!(resource.bounds().max(), Point2::new(0.0, 0.0));
+    assert_eq!(resource.entities(layout.scope().id()).count(), 0);
+}

@@ -147,7 +147,7 @@ fn registries_reject_duplicates_and_foreign_appearance_keys_without_mutation() {
         }),
         Err(BuildError::DuplicateLayerName { name }) if name == "a-wall"
     ));
-    assert_eq!(first.layers().by_name("A-WALL").is_some(), true);
+    assert!(first.layers().by_name("A-WALL").is_some());
 
     let mut second = IfccadPackageBuilder::new(options("2026-09-02T10:00:00Z")).unwrap();
     assert!(matches!(

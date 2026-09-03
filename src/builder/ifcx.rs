@@ -75,26 +75,38 @@ pub(crate) fn assemble_ifcx(
         }),
     ];
 
-    data.extend(
-        builder
-            .state
-            .layers
-            .iter()
-            .zip(&paths.layers)
-            .map(|(layer, path)| {
-                let appearance_index = usize::try_from(layer.definition.appearance.local_id - 2)
-                    .expect("validated appearance key fits usize");
-                json!({
-                    "path": path,
-                    "type": "openaec:Layer",
-                    "attributes": {
-                        "name": layer.definition.name,
-                        "visible": layer.definition.visible,
-                        "appearance": paths.appearances[appearance_index]
-                    }
-                })
-            }),
-    );
+    let layer_nodes = builder
+        .state
+        .layers
+        .iter()
+        .zip(&paths.layers)
+        .map(|(layer, path)| {
+            let appearance_index = layer
+                .definition
+                .appearance
+                .local_id
+                .checked_sub(2)
+                .and_then(|value| usize::try_from(value).ok())
+                .filter(|&index| index < paths.appearances.len())
+                .ok_or_else(|| BuildError::Encoding {
+                    stage: "IFCX layer",
+                    message: format!(
+                        "layer {} references an unavailable appearance",
+                        layer.definition.name
+                    ),
+                })?;
+            Ok(json!({
+                "path": path,
+                "type": "openaec:Layer",
+                "attributes": {
+                    "name": layer.definition.name,
+                    "visible": layer.definition.visible,
+                    "appearance": paths.appearances[appearance_index]
+                }
+            }))
+        })
+        .collect::<Result<Vec<_>, BuildError>>()?;
+    data.extend(layer_nodes);
     data.extend(
         builder
             .state
