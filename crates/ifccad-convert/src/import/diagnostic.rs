@@ -5,7 +5,7 @@ use thiserror::Error;
 
 #[derive(Clone, Debug, PartialEq)]
 #[non_exhaustive]
-pub enum ConversionDiagnostic {
+pub enum ImportDiagnostic {
     UnmodeledEntitiesSkipped {
         schema_id: String,
         count: usize,
@@ -22,7 +22,7 @@ pub enum ConversionDiagnostic {
     },
 }
 
-impl fmt::Display for ConversionDiagnostic {
+impl fmt::Display for ImportDiagnostic {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::UnmodeledEntitiesSkipped { schema_id, count } => {
@@ -87,26 +87,26 @@ impl DiagnosticAccumulator {
             .or_default() += 1;
     }
 
-    pub(crate) fn finish(self) -> Vec<ConversionDiagnostic> {
+    pub(crate) fn finish(self) -> Vec<ImportDiagnostic> {
         let mut diagnostics = self
             .unmodeled_entities
             .into_iter()
             .map(
-                |(schema_id, count)| ConversionDiagnostic::UnmodeledEntitiesSkipped {
+                |(schema_id, count)| ImportDiagnostic::UnmodeledEntitiesSkipped {
                     schema_id,
                     count,
                 },
             )
             .collect::<Vec<_>>();
         diagnostics.extend(self.line_pattern_fallbacks.into_iter().map(
-            |((requested, applied), count)| ConversionDiagnostic::LinePatternFallback {
+            |((requested, applied), count)| ImportDiagnostic::LinePatternFallback {
                 requested,
                 applied,
                 count,
             },
         ));
         diagnostics.extend(self.line_weight_rounding.into_iter().map(
-            |((requested_bits, applied_bits), count)| ConversionDiagnostic::LineWeightRounded {
+            |((requested_bits, applied_bits), count)| ImportDiagnostic::LineWeightRounded {
                 requested_mm: f64::from_bits(requested_bits),
                 applied_mm: f64::from_bits(applied_bits),
                 count,
@@ -118,7 +118,7 @@ impl DiagnosticAccumulator {
 
 #[derive(Debug, Error)]
 #[non_exhaustive]
-pub enum ConversionError {
+pub enum ImportError {
     #[error(
         "drawing must contain exactly one model layout (found {total_layouts} layouts, {model_layouts} model layouts)"
     )]
@@ -151,7 +151,7 @@ pub enum ConversionError {
 #[cfg(test)]
 mod tests {
     use super::DiagnosticAccumulator;
-    use crate::ConversionDiagnostic;
+    use crate::ImportDiagnostic;
 
     #[test]
     fn accumulator_groups_occurrences_in_stable_category_order() {
@@ -164,16 +164,16 @@ mod tests {
         assert_eq!(
             diagnostics.finish(),
             [
-                ConversionDiagnostic::UnmodeledEntitiesSkipped {
+                ImportDiagnostic::UnmodeledEntitiesSkipped {
                     schema_id: "ifccad:arc.v1".to_owned(),
                     count: 2,
                 },
-                ConversionDiagnostic::LinePatternFallback {
+                ImportDiagnostic::LinePatternFallback {
                     requested: "center".to_owned(),
                     applied: "Continuous".to_owned(),
                     count: 1,
                 },
-                ConversionDiagnostic::LineWeightRounded {
+                ImportDiagnostic::LineWeightRounded {
                     requested_mm: 0.19,
                     applied_mm: 0.18,
                     count: 1,
@@ -184,7 +184,7 @@ mod tests {
 
     #[test]
     fn diagnostic_display_includes_the_actionable_loss_context() {
-        let diagnostic = ConversionDiagnostic::LineWeightRounded {
+        let diagnostic = ImportDiagnostic::LineWeightRounded {
             requested_mm: 0.19,
             applied_mm: 0.18,
             count: 2,
@@ -198,7 +198,7 @@ mod tests {
 
     #[test]
     fn diagnostic_display_uses_the_singular_entity_noun() {
-        let entity_message = ConversionDiagnostic::UnmodeledEntitiesSkipped {
+        let entity_message = ImportDiagnostic::UnmodeledEntitiesSkipped {
             schema_id: "ifccad:arc.v1".to_owned(),
             count: 1,
         }

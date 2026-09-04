@@ -1,4 +1,4 @@
-use crate::diagnostic::DiagnosticAccumulator;
+use super::diagnostic::DiagnosticAccumulator;
 use cadcodec::{Color, LineWeight, Transparency};
 use ifccad::package::{AppearanceColorRef, AppearanceProperty, LinePatternRef};
 
@@ -97,9 +97,9 @@ pub(crate) fn map_layer_opacity(opacity: f64) -> Transparency {
 
 #[cfg(test)]
 mod tests {
+    use super::super::diagnostic::DiagnosticAccumulator;
     use super::{map_entity_opacity, map_line_pattern, map_line_weight};
-    use crate::diagnostic::DiagnosticAccumulator;
-    use crate::ConversionDiagnostic;
+    use crate::ImportDiagnostic;
     use cadcodec::{LineWeight, Transparency};
     use ifccad::package::{AppearanceProperty, LinePatternRef};
 
@@ -132,7 +132,7 @@ mod tests {
 
         assert_eq!(
             diagnostics.finish(),
-            [ConversionDiagnostic::LinePatternFallback {
+            [ImportDiagnostic::LinePatternFallback {
                 requested: "center".to_owned(),
                 applied: "Continuous".to_owned(),
                 count: 2,
@@ -168,7 +168,7 @@ mod tests {
 
         assert_eq!(
             diagnostics.finish(),
-            [ConversionDiagnostic::LineWeightRounded {
+            [ImportDiagnostic::LineWeightRounded {
                 requested_mm: 0.19,
                 applied_mm: 0.18,
                 count: 2,

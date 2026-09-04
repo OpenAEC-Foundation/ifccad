@@ -3,7 +3,7 @@ use ifccad::package::load_directory_package;
 use ifccad_convert::cadcodec::{
     CadDocument, Color, DxfReader, DxfWriter, EntityType, LineWeight, Transparency,
 };
-use ifccad_convert::convert_drawing;
+use ifccad_convert::drawing_to_cad_document;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -36,7 +36,7 @@ fn dxf_roundtrip_preserves_supported_conversion_semantics() {
         .validated_package()
         .expect("strictly valid package");
     let drawing = package.drawings().next().expect("one drawing");
-    let outcome = convert_drawing(drawing).expect("convert drawing");
+    let outcome = drawing_to_cad_document(drawing).expect("convert drawing");
     let expected_entities = project_entities(outcome.document());
 
     let path = TestDxf::new("minimal-conversion");

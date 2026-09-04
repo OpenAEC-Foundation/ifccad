@@ -4,7 +4,7 @@ use ifccad::package::load_directory_package;
 use ifccad_convert::cadcodec::{
     Color, DxfVersion, EntityType, LineWeight, Transparency, Vector2, Vector3,
 };
-use ifccad_convert::convert_drawing;
+use ifccad_convert::drawing_to_cad_document;
 
 #[test]
 fn converts_minimal_model_drawing_with_layers_and_entities() {
@@ -18,7 +18,7 @@ fn converts_minimal_model_drawing_with_layers_and_entities() {
         .expect("strictly valid package");
     let drawing = package.drawings().next().expect("one drawing");
 
-    let outcome = convert_drawing(drawing).expect("convert drawing layers");
+    let outcome = drawing_to_cad_document(drawing).expect("convert drawing layers");
 
     assert_eq!(outcome.document().version, DxfVersion::AC1032);
     assert_eq!(outcome.document().header.insertion_units, 6);

@@ -3,11 +3,11 @@ use ifccad::ifcdr::EntityId;
 use std::collections::BTreeMap;
 
 #[derive(Clone, Debug, Default)]
-pub struct EntityMapping {
+pub struct ImportEntityMapping {
     entries: BTreeMap<EntityId, Handle>,
 }
 
-impl EntityMapping {
+impl ImportEntityMapping {
     pub fn target_handle(&self, source: EntityId) -> Option<Handle> {
         self.entries.get(&source).copied()
     }
@@ -33,7 +33,7 @@ impl EntityMapping {
 
 #[cfg(test)]
 mod tests {
-    use super::EntityMapping;
+    use super::ImportEntityMapping;
     use cadcodec::Handle;
     use ifccad::conformance::bundled_conformance_root;
     use ifccad::ifcdr::{EntityId, IfcdrEntityRef};
@@ -42,7 +42,7 @@ mod tests {
     #[test]
     fn mapping_exposes_source_ids_in_order() {
         let ids = fixture_entity_ids();
-        let mut mapping = EntityMapping::default();
+        let mut mapping = ImportEntityMapping::default();
         mapping.insert(ids[0], Handle::new(0x20));
         mapping.insert(ids[1], Handle::new(0x21));
 

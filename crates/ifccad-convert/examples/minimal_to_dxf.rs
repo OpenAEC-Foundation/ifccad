@@ -1,7 +1,7 @@
 use ifccad::conformance::bundled_conformance_root;
 use ifccad::package::load_directory_package;
 use ifccad_convert::cadcodec::DxfWriter;
-use ifccad_convert::convert_drawing;
+use ifccad_convert::drawing_to_cad_document;
 use std::io;
 use std::path::PathBuf;
 
@@ -18,7 +18,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .drawings()
         .next()
         .ok_or_else(|| io::Error::other("bundled package contains no drawing"))?;
-    let outcome = convert_drawing(drawing)?;
+    let outcome = drawing_to_cad_document(drawing)?;
 
     for diagnostic in outcome.diagnostics() {
         eprintln!("conversion diagnostic: {diagnostic}");

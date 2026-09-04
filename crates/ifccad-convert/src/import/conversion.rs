@@ -1,10 +1,10 @@
-use crate::appearance::{
+use super::appearance::{
     map_entity_opacity, map_explicit_color, map_layer_opacity, map_line_pattern, map_line_weight,
     MappedColor,
 };
-use crate::diagnostic::DiagnosticAccumulator;
-use crate::units::apply_units;
-use crate::{ConversionError, ConversionOutcome, EntityMapping};
+use super::diagnostic::DiagnosticAccumulator;
+use super::units::apply_units;
+use crate::{ImportEntityMapping, ImportError, ImportOutcome};
 use cadcodec::entities::EntityCommon;
 use cadcodec::{CadDocument, Color, EntityType, Layer, Line, LineType, LwPolyline, Vector2};
 use ifccad::ifcdr::{AppearanceId, EntityId, IfcdrEntityRef, LayerId};
@@ -12,14 +12,14 @@ use ifccad::package::{
     AppearanceProperty, DrawingLayoutKind, DrawingRef, GeometryRepresentationRef, LayerRef,
 };
 
-pub fn convert_drawing(drawing: DrawingRef<'_>) -> Result<ConversionOutcome, ConversionError> {
+pub fn drawing_to_cad_document(drawing: DrawingRef<'_>) -> Result<ImportOutcome, ImportError> {
     let layouts = drawing.layouts().collect::<Vec<_>>();
     let model_layouts = layouts
         .iter()
         .filter(|layout| layout.kind() == DrawingLayoutKind::Model)
         .count();
     if layouts.len() != 1 || model_layouts != 1 {
-        return Err(ConversionError::UnsupportedDrawingStructure {
+        return Err(ImportError::UnsupportedDrawingStructure {
             total_layouts: layouts.len(),
             model_layouts,
         });
@@ -38,7 +38,7 @@ pub fn convert_drawing(drawing: DrawingRef<'_>) -> Result<ConversionOutcome, Con
                 document
                     .layers
                     .get_mut("0")
-                    .ok_or_else(|| ConversionError::InternalInvariant {
+                    .ok_or_else(|| ImportError::InternalInvariant {
                         message: "fresh CadDocument has no standard layer 0".to_owned(),
                     })?;
             standard.flags = target.flags;
@@ -51,7 +51,7 @@ pub fn convert_drawing(drawing: DrawingRef<'_>) -> Result<ConversionOutcome, Con
             document
                 .layers
                 .add(target)
-                .map_err(|reason| ConversionError::LayerInsertion {
+                .map_err(|reason| ImportError::LayerInsertion {
                     layer: name,
                     reason,
                 })?;
@@ -59,7 +59,7 @@ pub fn convert_drawing(drawing: DrawingRef<'_>) -> Result<ConversionOutcome, Con
     }
 
     let scope_id = layout.scope().id();
-    let mut entity_mapping = EntityMapping::default();
+    let mut entity_mapping = ImportEntityMapping::default();
     for source in representation.resource().entities(scope_id) {
         match source {
             IfcdrEntityRef::Line(source) => {
@@ -114,7 +114,7 @@ pub fn convert_drawing(drawing: DrawingRef<'_>) -> Result<ConversionOutcome, Con
         }
     }
 
-    Ok(ConversionOutcome::new(
+    Ok(ImportOutcome::new(
         document,
         diagnostics.finish(),
         entity_mapping,
@@ -131,19 +131,20 @@ fn apply_entity_common(
     appearance_id: AppearanceId,
     visible: bool,
     diagnostics: &mut DiagnosticAccumulator,
-) -> Result<(), ConversionError> {
+) -> Result<(), ImportError> {
     let layer = representation
         .layer(layer_id)
-        .ok_or(ConversionError::MissingEntityLayer {
+        .ok_or(ImportError::MissingEntityLayer {
             entity_id,
             layer_id,
         })?;
-    let appearance = representation.appearance(appearance_id).ok_or(
-        ConversionError::MissingEntityAppearance {
-            entity_id,
-            appearance_id,
-        },
-    )?;
+    let appearance =
+        representation
+            .appearance(appearance_id)
+            .ok_or(ImportError::MissingEntityAppearance {
+                entity_id,
+                appearance_id,
+            })?;
 
     common.layer = layer.name().to_owned();
     common.invisible = !visible;
@@ -171,14 +172,14 @@ fn apply_entity_common(
 
 fn add_and_map(
     document: &mut CadDocument,
-    mapping: &mut EntityMapping,
+    mapping: &mut ImportEntityMapping,
     source_id: EntityId,
     target: EntityType,
-) -> Result<(), ConversionError> {
+) -> Result<(), ImportError> {
     let handle =
         document
             .add_entity(target)
-            .map_err(|source| ConversionError::CadcodecEntityInsertion {
+            .map_err(|source| ImportError::CadcodecEntityInsertion {
                 entity_id: source_id,
                 source,
             })?;
@@ -190,7 +191,7 @@ fn convert_layer(
     document: &mut CadDocument,
     source: LayerRef<'_>,
     diagnostics: &mut DiagnosticAccumulator,
-) -> Result<Layer, ConversionError> {
+) -> Result<Layer, ImportError> {
     let mut target = Layer::new(source.name());
     target.flags.off = !source.visible();
 
@@ -217,15 +218,12 @@ fn convert_layer(
     Ok(target)
 }
 
-pub(crate) fn ensure_linetype(
-    document: &mut CadDocument,
-    name: &str,
-) -> Result<(), ConversionError> {
+pub(crate) fn ensure_linetype(document: &mut CadDocument, name: &str) -> Result<(), ImportError> {
     if name == "Dashed" && !document.line_types.contains(name) {
         document
             .line_types
             .add(LineType::dashed())
-            .map_err(|reason| ConversionError::InternalInvariant {
+            .map_err(|reason| ImportError::InternalInvariant {
                 message: format!("could not insert standard Dashed linetype: {reason}"),
             })?;
     }
