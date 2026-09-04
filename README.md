@@ -35,12 +35,13 @@ The crate currently provides:
   appearances, and IFCDR entities;
 - a deterministic package builder and safe new-directory writer for one
   model-space drawing with layers, appearances, lines, and polylines; and
-- the `ifccad-convert` companion crate for an initial validated IFCCAD drawing
-  to cadcodec `CadDocument` conversion.
+- the `ifccad-convert` companion crate for bidirectional conversion between a
+  validated IFCCAD drawing and cadcodec `CadDocument`, including deterministic
+  loss diagnostics and source-to-target entity mappings.
 
 A complete IFCCAD vocabulary within IFCX, production IFCDR codecs, the future
-`.ifccad` container, broader bidirectional CAD conversion, and conventional IFC
-integration are still under development.
+`.ifccad` container, broader native CAD entity coverage and preservation, and
+conventional IFC integration are still under development.
 
 ## Using the current API
 
@@ -155,11 +156,15 @@ fn write_example() -> Result<(), Box<dyn std::error::Error>> {
 The current writer deliberately requires exactly one Drawing with one model
 layout and one external IFCDR model-space resource. `model_layout_name` names
 that layout; it is not a drawing name. The declared length unit belongs to the
-individual IFCDR resource. The writer supports layers, explicit appearances, lines,
-polylines, visibility, and global entity order. It does not yet write paper
+individual IFCDR resource. The writer supports layers, explicit appearances,
+lines, polylines, visibility, and global entity order. It does not yet write paper
 space, blocks, IFCPR, inline resources, or `.ifccad` containers, and it never
 overwrites an existing target directory. Mapping a cadcodec `CadDocument` into
-this builder remains a separate responsibility of `ifccad-convert`.
+this builder is the responsibility of `ifccad-convert`. Its exporter currently
+supports exact finite 2D lines and straight lightweight polylines, represents
+mixed ByLayer/ByBlock/explicit appearance inheritance, and reports every
+detected unsupported source semantic according to an allow-or-reject loss
+policy.
 
 The public API is still evolving while the format contract matures.
 
@@ -197,9 +202,11 @@ The [Python prototype](https://github.com/OpenAEC-Foundation/ifccad-prototype) r
 the model-first reference implementation and format laboratory.
 
 This primary crate deliberately does not provide `CadDocument` or DWG/DXF I/O.
-The workspace's `ifccad-convert` companion crate owns conversion between a
-validated IFCCAD package and the CAD runtime model while keeping this format
-crate independent of CAD codecs and geometry engines.
+The workspace's [`ifccad-convert`](crates/ifccad-convert) companion crate owns
+import from a validated IFCCAD drawing to the CAD runtime model and export from
+`CadDocument` to an encoded IFCCAD package. Package encoding and safe directory
+storage remain separate steps, keeping this format crate independent of CAD
+codecs and geometry engines.
 
 See [PROVENANCE.md](PROVENANCE.md) for the history of the clean repository
 transition.

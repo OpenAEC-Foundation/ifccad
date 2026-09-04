@@ -60,7 +60,7 @@ pub fn write_review_artifacts(root: &Path) -> Result<()> {
         .join("packages")
         .join("valid")
         .join("minimal-no-preservation");
-    let inspected = load_directory_package(fixture_root)?;
+    let inspected = load_directory_package(&fixture_root)?;
     let package = inspected
         .validated_package()
         .ok_or("bundled fixture was not strictly valid")?;
@@ -71,9 +71,44 @@ pub fn write_review_artifacts(root: &Path) -> Result<()> {
     let document = drawing_to_cad_document(drawing)?.into_document();
     write_chain_artifacts(&root.join("minimal-no-preservation"), &document)?;
 
-    if let Some(samples) = std::env::var_os("IFCCAD_MANUAL_SAMPLES") {
+    let manual_samples = std::env::var_os("IFCCAD_MANUAL_SAMPLES");
+    if let Some(samples) = &manual_samples {
         write_manual_samples(root, Path::new(&samples))?;
     }
+    write_manifest(root, &fixture_root, manual_samples.is_some())?;
+    Ok(())
+}
+
+fn write_manifest(root: &Path, fixture_root: &Path, includes_manual_samples: bool) -> Result<()> {
+    let mut manifest = format!(
+        "# IFCCAD export chain review artifacts\n\n\
+         Paths are relative to this directory. Each `ifccad/` directory was strictly loaded before its `roundtrip.dxf` was written.\n\n\
+         ## Controlled supported chain\n\n\
+         - Start: `supported/source.dxf`\n\
+         - Intermediate: `supported/ifccad/`\n\
+         - End: `supported/roundtrip.dxf`\n\
+         - Expected loss: none (`supported/diagnostics.txt`)\n\n\
+         ## Controlled loss-heavy chain\n\n\
+         - Start: `loss-heavy/source.dxf`\n\
+         - Intermediate: `loss-heavy/ifccad/`\n\
+         - End: `loss-heavy/roundtrip.dxf`\n\
+         - Expected visible loss: one CIRCLE and one non-planar, thick LINE are skipped (`loss-heavy/diagnostics.txt`)\n\n\
+         ## IFCCAD-originated chain\n\n\
+         - Original IFCCAD: `{}`\n\
+         - Intermediate DXF: `minimal-no-preservation/source.dxf`\n\
+         - Final IFCCAD: `minimal-no-preservation/ifccad/`\n\
+         - Review DXF: `minimal-no-preservation/roundtrip.dxf`\n\
+         - Expected loss: none (`minimal-no-preservation/diagnostics.txt`)\n",
+        fixture_root.canonicalize()?.display()
+    );
+    if includes_manual_samples {
+        manifest.push_str(
+            "\n## Prototype samples\n\n\
+             - Simple: see `manual/simple/source-info.txt`; compare `manual/simple/source.dxf` with `manual/simple/roundtrip.dxf`. The LINE geometry is retained; unsupported document metadata is listed in `manual/simple/diagnostics.txt`.\n\
+             - Rich: see `manual/rich/source-info.txt`; compare `manual/rich/source.dxf` with `manual/rich/roundtrip.dxf`. CIRCLE and TEXT are skipped and a LINE loses its linetype scale; additional non-visual document data is listed in `manual/rich/diagnostics.txt`.\n",
+        );
+    }
+    fs::write(root.join("MANIFEST.md"), manifest)?;
     Ok(())
 }
 

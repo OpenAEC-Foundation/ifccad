@@ -24,6 +24,21 @@ fn artifact_writer_creates_the_reviewable_chain_files() {
 }
 
 #[test]
+fn review_artifact_writer_creates_a_chain_manifest() {
+    let root = temporary_root();
+    let artifact_root = root.join("review");
+    write_review_artifacts(&artifact_root).expect("write controlled review artifacts");
+
+    let manifest = fs::read_to_string(artifact_root.join("MANIFEST.md"))
+        .expect("read review artifact manifest");
+    assert!(manifest.contains("supported/source.dxf"));
+    assert!(manifest.contains("loss-heavy/roundtrip.dxf"));
+    assert!(manifest.contains("minimal-no-preservation/ifccad"));
+
+    fs::remove_dir_all(root).expect("remove temporary review root");
+}
+
+#[test]
 #[ignore = "writes review artifacts below target/chain-artifacts"]
 fn write_review_artifacts_for_manual_inspection() {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
