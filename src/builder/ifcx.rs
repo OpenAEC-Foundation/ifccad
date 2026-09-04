@@ -1,5 +1,5 @@
-use super::ifcdr::EncodedIfcdrResource;
 use super::{BuildError, IfccadPackageBuilder};
+use crate::ifcdr::write::EncodedIfcdrResource;
 use serde_json::{json, Map, Value};
 
 pub(crate) const MODEL_SPACE_RESOURCE_URI: &str = "resources/model-space.ifcdr.json";
@@ -174,8 +174,6 @@ fn numbered_paths(prefix: &str, count: usize) -> Result<Vec<String>, BuildError>
 
 #[cfg(test)]
 mod tests {
-    use super::{assemble_ifcx, NodePaths};
-    use crate::builder::ifcdr::encode_ifcdr;
     use crate::builder::{
         AppearanceColor, AppearanceDefinition, IfccadPackageBuilder, LayerDefinition,
         LinePatternDefinition, PackageOptions,
@@ -183,6 +181,7 @@ mod tests {
     use crate::ifcdr::IfcdrLengthUnit;
     use crate::{PackageId, ResourceId};
     use serde_json::Value;
+    use sha2::{Digest, Sha256};
 
     #[test]
     fn assembles_minimal_drawing_graph_with_external_geometry() {
@@ -217,10 +216,9 @@ mod tests {
             })
             .unwrap();
 
-        let paths = NodePaths::for_builder(&builder).unwrap();
-        let resource = encode_ifcdr(&builder, &paths.layers, &paths.appearances).unwrap();
-        let bytes = assemble_ifcx(&builder, &paths, &resource).unwrap();
-        let root: Value = serde_json::from_slice(&bytes).unwrap();
+        let package = builder.finish().unwrap();
+        let root: Value =
+            serde_json::from_slice(package.file("package.ifcx.json").unwrap()).unwrap();
 
         assert_eq!(root["header"]["id"], "building-a");
         assert_eq!(root["header"]["ifcxVersion"], "ifcx_alpha");
@@ -263,7 +261,11 @@ mod tests {
         assert_eq!(geometry["role"], "modelspace");
         assert_eq!(geometry["resourceId"], "geometry-modelspace-main");
         assert_eq!(geometry["uri"], "resources/model-space.ifcdr.json");
-        assert_eq!(geometry["checksum"], resource.checksum);
+        let ifcdr = package.file("resources/model-space.ifcdr.json").unwrap();
+        assert_eq!(
+            geometry["checksum"],
+            format!("sha256:{:x}", Sha256::digest(ifcdr))
+        );
         assert_eq!(root["data"][4]["attributes"]["appearance"], "appearance-0");
         assert_eq!(
             root["data"][5]["attributes"]["color"]["value"]["rgb"],

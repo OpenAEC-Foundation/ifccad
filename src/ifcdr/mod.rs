@@ -4,6 +4,7 @@
 
 mod read;
 mod types;
+pub(crate) mod write;
 
 pub(crate) use read::{validate_ifcdr, LoadedIfcdrResource, ValidatedIfcdrResource};
 pub use read::{

@@ -1,54 +1,49 @@
-use super::state::PendingEntity;
-use super::{BuildError, EntityAppearance, IfccadPackageBuilder};
-use crate::ifcdr::{IfcdrLengthUnit, Point2};
+use super::{IfcdrEncodeInput, IfcdrEntityInput};
+use crate::ifcdr::{Bounds2d, IfcdrLengthUnit, Point2};
 use crate::ResourceId;
 use serde_json::{json, Map, Value};
 use sha2::{Digest, Sha256};
-
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub(crate) struct EncodedBounds {
-    pub(crate) min: Point2,
-    pub(crate) max: Point2,
-}
 
 #[derive(Debug)]
 pub(crate) struct EncodedIfcdrResource {
     pub(crate) resource_id: ResourceId,
     pub(crate) bytes: Vec<u8>,
     pub(crate) checksum: String,
-    pub(crate) bounds: EncodedBounds,
+    pub(crate) bounds: Bounds2d,
 }
 
-pub(crate) fn encode_ifcdr(
-    builder: &IfccadPackageBuilder,
-    layer_paths: &[String],
-    appearance_paths: &[String],
-) -> Result<EncodedIfcdrResource, BuildError> {
-    if layer_paths.len() != builder.state.layers.len()
-        || appearance_paths.len() != builder.state.appearances.len()
-    {
-        return Err(BuildError::Encoding {
-            stage: "IFCDR",
-            message: "IFCX binding path count does not match builder state".to_owned(),
-        });
-    }
+#[derive(Debug, thiserror::Error)]
+pub(crate) enum IfcdrEncodeError {
+    #[error("{kind} ID or count range is exhausted")]
+    RangeExhausted { kind: &'static str },
+    #[error("invalid IFCDR encoder input: {message}")]
+    InvalidInput { message: String },
+    #[error("IFCDR serialization failed: {message}")]
+    Serialization { message: String },
+}
 
-    let bounds = bounds(&builder.state.entities);
-    let next_entity_id = u64::try_from(builder.state.entities.len())
+pub(crate) fn encode(
+    input: &IfcdrEncodeInput<'_>,
+) -> Result<EncodedIfcdrResource, IfcdrEncodeError> {
+    let bounds = bounds(input.entities);
+    let next_entity_id = u64::try_from(input.entities.len())
         .ok()
         .and_then(|count| count.checked_add(1))
-        .ok_or(BuildError::RangeExhausted {
+        .ok_or(IfcdrEncodeError::RangeExhausted {
             kind: "next entity",
         })?;
-    let entity_ids = builder
-        .state
+    let entity_ids = input
         .entities
         .iter()
-        .map(|entity| entity.entity_id().get())
+        .map(|entity| match entity {
+            IfcdrEntityInput::Line { entity_id, .. }
+            | IfcdrEntityInput::Polyline { entity_id, .. } => entity_id.get(),
+        })
         .collect::<Vec<_>>();
-    let entity_count = u32::try_from(entity_ids.len()).map_err(|_| BuildError::RangeExhausted {
-        kind: "entity order",
-    })?;
+    let entity_count =
+        u32::try_from(entity_ids.len()).map_err(|_| IfcdrEncodeError::RangeExhausted {
+            kind: "entity order",
+        })?;
 
     let mut appearance_bindings = vec![
         json!({
@@ -70,25 +65,21 @@ pub(crate) fn encode_ifcdr(
             "overrideId": null
         }),
     ];
-    appearance_bindings.extend(builder.state.appearances.iter().zip(appearance_paths).map(
-        |(appearance, path)| {
-            json!({
-                "id": appearance.local_id,
-                "ifcxAppearance": path,
-                "colorMode": 1,
-                "opacityMode": 1,
-                "linePatternMode": 1,
-                "lineWeightMode": 1,
-                "overrideId": null
-            })
-        },
-    ));
-    let layer_bindings = builder
-        .state
+    appearance_bindings.extend(input.appearances.iter().map(|appearance| {
+        json!({
+            "id": appearance.id.get(),
+            "ifcxAppearance": appearance.ifcx_path,
+            "colorMode": 1,
+            "opacityMode": 1,
+            "linePatternMode": 1,
+            "lineWeightMode": 1,
+            "overrideId": null
+        })
+    }));
+    let layer_bindings = input
         .layers
         .iter()
-        .zip(layer_paths)
-        .map(|(layer, path)| json!({"id": layer.local_id, "ifcxLayer": path}))
+        .map(|layer| json!({"id": layer.id.get(), "ifcxLayer": layer.ifcx_path}))
         .collect::<Vec<_>>();
 
     let mut directory_entries = Vec::new();
@@ -115,54 +106,62 @@ pub(crate) fn encode_ifcdr(
     let mut polyline_appearance_ids = Vec::new();
     let mut polyline_visible = Vec::new();
 
-    for entity in &builder.state.entities {
+    for entity in input.entities {
         match entity {
-            PendingEntity::Line {
+            IfcdrEntityInput::Line {
                 entity_id,
-                definition,
+                start,
+                end,
+                layer_id,
+                appearance_id,
+                visible,
             } => {
                 line_entity_ids.push(entity_id.get());
-                line_scope_ids.push(0);
-                line_x1.push(definition.start.x());
-                line_y1.push(definition.start.y());
-                line_x2.push(definition.end.x());
-                line_y2.push(definition.end.y());
-                line_layer_ids.push(definition.layer.local_id);
-                line_appearance_ids.push(appearance_id(definition.appearance));
-                line_visible.push(definition.visible);
+                line_scope_ids.push(input.scope.id.get());
+                line_x1.push(start.x());
+                line_y1.push(start.y());
+                line_x2.push(end.x());
+                line_y2.push(end.y());
+                line_layer_ids.push(layer_id.get());
+                line_appearance_ids.push(appearance_id.get());
+                line_visible.push(*visible);
             }
-            PendingEntity::Polyline {
+            IfcdrEntityInput::Polyline {
                 entity_id,
-                definition,
+                points,
+                closed,
+                layer_id,
+                appearance_id,
+                visible,
             } => {
-                let offset =
-                    u32::try_from(polyline_x.len()).map_err(|_| BuildError::RangeExhausted {
+                let offset = u32::try_from(polyline_x.len()).map_err(|_| {
+                    IfcdrEncodeError::RangeExhausted {
                         kind: "polyline vertex offset",
-                    })?;
-                let count = u32::try_from(definition.points.len()).map_err(|_| {
-                    BuildError::RangeExhausted {
-                        kind: "polyline vertex count",
                     }
                 })?;
+                let count =
+                    u32::try_from(points.len()).map_err(|_| IfcdrEncodeError::RangeExhausted {
+                        kind: "polyline vertex count",
+                    })?;
                 polyline_entity_ids.push(entity_id.get());
-                polyline_scope_ids.push(0);
+                polyline_scope_ids.push(input.scope.id.get());
                 polyline_offsets.push(offset);
                 polyline_counts.push(count);
-                polyline_closed.push(definition.closed);
-                for point in &definition.points {
+                polyline_closed.push(*closed);
+                for point in *points {
                     polyline_x.push(point.x());
                     polyline_y.push(point.y());
                 }
-                polyline_layer_ids.push(definition.layer.local_id);
-                polyline_appearance_ids.push(appearance_id(definition.appearance));
-                polyline_visible.push(definition.visible);
+                polyline_layer_ids.push(layer_id.get());
+                polyline_appearance_ids.push(appearance_id.get());
+                polyline_visible.push(*visible);
             }
         }
     }
 
     if !line_entity_ids.is_empty() {
         let count =
-            u32::try_from(line_entity_ids.len()).map_err(|_| BuildError::RangeExhausted {
+            u32::try_from(line_entity_ids.len()).map_err(|_| IfcdrEncodeError::RangeExhausted {
                 kind: "line row count",
             })?;
         directory_entries.push(json!({
@@ -193,10 +192,11 @@ pub(crate) fn encode_ifcdr(
     }
 
     if !polyline_entity_ids.is_empty() {
-        let count =
-            u32::try_from(polyline_entity_ids.len()).map_err(|_| BuildError::RangeExhausted {
+        let count = u32::try_from(polyline_entity_ids.len()).map_err(|_| {
+            IfcdrEncodeError::RangeExhausted {
                 kind: "polyline row count",
-            })?;
+            }
+        })?;
         directory_entries.push(json!({
             "name": "polyline",
             "schema": "ifccad.ifcdr.polyline.v2",
@@ -247,7 +247,7 @@ pub(crate) fn encode_ifcdr(
         "entityOrderStream".to_owned(),
         json!({
             "count": 1,
-            "scopeId": [0],
+            "scopeId": [input.scope.id.get()],
             "entryOffset": [0],
             "entryCount": [entity_count]
         }),
@@ -264,8 +264,8 @@ pub(crate) fn encode_ifcdr(
         "header": {
             "format": "openaec.ifcdr",
             "version": "0.5.0",
-            "resourceId": builder.options.representation_resource_id,
-            "unit": unit_name(builder.options.length_unit),
+            "resourceId": input.resource_id,
+            "unit": unit_name(input.unit),
             "nextEntityId": next_entity_id
         },
         "bounds": {
@@ -275,12 +275,12 @@ pub(crate) fn encode_ifcdr(
             "maxY": bounds.max.y()
         },
         "scopeTable": [{
-            "id": 0,
-            "kind": 0,
-            "name": "ModelSpace",
-            "baseX": 0.0,
-            "baseY": 0.0,
-            "flags": 0
+            "id": input.scope.id.get(),
+            "kind": input.scope.kind,
+            "name": input.scope.name,
+            "baseX": input.scope.base.x(),
+            "baseY": input.scope.base.y(),
+            "flags": input.scope.flags
         }],
         "appearanceBindings": appearance_bindings,
         "layerBindings": layer_bindings,
@@ -292,34 +292,26 @@ pub(crate) fn encode_ifcdr(
         },
         "streams": Value::Object(streams)
     });
-    let bytes = serde_json::to_vec_pretty(&root).map_err(|error| BuildError::Encoding {
-        stage: "IFCDR",
-        message: error.to_string(),
-    })?;
+    let bytes =
+        serde_json::to_vec_pretty(&root).map_err(|error| IfcdrEncodeError::Serialization {
+            message: error.to_string(),
+        })?;
     let checksum = format!("sha256:{:x}", Sha256::digest(&bytes));
     Ok(EncodedIfcdrResource {
-        resource_id: builder.options.representation_resource_id.clone(),
+        resource_id: input.resource_id.clone(),
         bytes,
         checksum,
         bounds,
     })
 }
 
-fn appearance_id(appearance: EntityAppearance) -> u32 {
-    match appearance {
-        EntityAppearance::ByLayer => 0,
-        EntityAppearance::ByBlock => 1,
-        EntityAppearance::Explicit(key) => key.local_id,
-    }
-}
-
-fn bounds(entities: &[PendingEntity]) -> EncodedBounds {
+fn bounds(entities: &[IfcdrEntityInput<'_>]) -> Bounds2d {
     let mut points = entities.iter().flat_map(|entity| match entity {
-        PendingEntity::Line { definition, .. } => vec![definition.start, definition.end],
-        PendingEntity::Polyline { definition, .. } => definition.points.clone(),
+        IfcdrEntityInput::Line { start, end, .. } => vec![*start, *end],
+        IfcdrEntityInput::Polyline { points, .. } => points.to_vec(),
     });
     let Some(first) = points.next() else {
-        return EncodedBounds {
+        return Bounds2d {
             min: Point2::new(0.0, 0.0),
             max: Point2::new(0.0, 0.0),
         };
@@ -334,7 +326,7 @@ fn bounds(entities: &[PendingEntity]) -> EncodedBounds {
         max_x = max_x.max(point.x());
         max_y = max_y.max(point.y());
     }
-    EncodedBounds {
+    Bounds2d {
         min: Point2::new(min_x, min_y),
         max: Point2::new(max_x, max_y),
     }
@@ -354,7 +346,6 @@ fn unit_name(unit: IfcdrLengthUnit) -> &'static str {
 
 #[cfg(test)]
 mod tests {
-    use super::encode_ifcdr;
     use crate::builder::{
         AppearanceColor, AppearanceDefinition, EntityAppearance, IfccadPackageBuilder,
         LayerDefinition, LineDefinition, LinePatternDefinition, PackageOptions, PolylineDefinition,
@@ -464,8 +455,9 @@ mod tests {
 
     #[test]
     fn encodes_empty_model_space_with_explicit_empty_order() {
-        let encoded = encode_ifcdr(&empty_builder(), &[], &[]).unwrap();
-        let root: Value = serde_json::from_slice(&encoded.bytes).unwrap();
+        let package = empty_builder().finish().unwrap();
+        let bytes = package.file("resources/model-space.ifcdr.json").unwrap();
+        let root: Value = serde_json::from_slice(bytes).unwrap();
 
         assert_eq!(root["header"]["format"], "openaec.ifcdr");
         assert_eq!(root["header"]["version"], "0.5.0");
@@ -515,17 +507,15 @@ mod tests {
 
     #[test]
     fn encodes_mixed_entities_with_typed_rows_global_order_and_bounds() {
-        let encoded = encode_ifcdr(
-            &mixed_builder(),
-            &["layer-0".to_owned(), "layer-1".to_owned()],
-            &["appearance-0".to_owned(), "appearance-1".to_owned()],
-        )
-        .unwrap();
-        let root: Value = serde_json::from_slice(&encoded.bytes).unwrap();
+        let package = mixed_builder().finish().unwrap();
+        let bytes = package.file("resources/model-space.ifcdr.json").unwrap();
+        let root: Value = serde_json::from_slice(bytes).unwrap();
 
-        assert_eq!(encoded.resource_id.as_str(), "empty-modelspace");
-        assert_eq!(encoded.bounds.min, Point2::new(-2.0, -5.0));
-        assert_eq!(encoded.bounds.max, Point2::new(10.0, 8.0));
+        assert_eq!(root["header"]["resourceId"], "empty-modelspace");
+        assert_eq!(root["bounds"]["minX"], -2.0);
+        assert_eq!(root["bounds"]["minY"], -5.0);
+        assert_eq!(root["bounds"]["maxX"], 10.0);
+        assert_eq!(root["bounds"]["maxY"], 8.0);
         assert_eq!(root["header"]["nextEntityId"], 5);
         assert_eq!(
             root["appearanceBindings"]
@@ -590,9 +580,15 @@ mod tests {
             serde_json::json!(["entityOrderEntry"])
         );
         assert_eq!(directory[3]["parent"], "entityOrder");
-        assert_eq!(
-            encoded.checksum,
-            format!("sha256:{:x}", Sha256::digest(&encoded.bytes))
-        );
+        let checksum = format!("sha256:{:x}", Sha256::digest(bytes));
+        let entrypoint = package.file("package.ifcx.json").unwrap();
+        let ifcx: Value = serde_json::from_slice(entrypoint).unwrap();
+        assert!(ifcx["data"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|node| {
+                node["attributes"]["geometry"]["checksum"].as_str() == Some(checksum.as_str())
+            }));
     }
 }

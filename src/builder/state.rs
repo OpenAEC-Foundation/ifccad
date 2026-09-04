@@ -26,14 +26,6 @@ pub(crate) enum PendingEntity {
     },
 }
 
-impl PendingEntity {
-    pub(crate) fn entity_id(&self) -> EntityId {
-        match self {
-            Self::Line { entity_id, .. } | Self::Polyline { entity_id, .. } => *entity_id,
-        }
-    }
-}
-
 #[derive(Debug, Default)]
 pub(crate) struct BuilderState {
     pub(crate) appearances: Vec<AppearanceEntry>,
