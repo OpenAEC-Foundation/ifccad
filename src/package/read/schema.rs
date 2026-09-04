@@ -9,9 +9,9 @@ use serde_json::Value;
 use std::collections::BTreeMap;
 
 const DRAWING_CORE_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-drawing-core-0.2.0.json";
-const DRAWING_CORE: &str = include_str!("../../schemas/ifcx/ifccad-drawing-core-0.2.0.json");
-const COMPOSITE_OVERLAY: &str = include_str!("../../schemas/ifcx/ifccad-overlay-0.5.0.json");
-const IFCPR_SCHEMA: &str = include_str!("../../schemas/ifcpr/schema-0.2.0.json");
+const DRAWING_CORE: &str = include_str!("../../../schemas/ifcx/ifccad-drawing-core-0.2.0.json");
+const COMPOSITE_OVERLAY: &str = include_str!("../../../schemas/ifcx/ifccad-overlay-0.5.0.json");
+const IFCPR_SCHEMA: &str = include_str!("../../../schemas/ifcpr/schema-0.2.0.json");
 
 pub(crate) fn validate_ifcx(value: &Value) -> Vec<PackageDiagnostic> {
     let drawing_core = parse_schema(DRAWING_CORE, "IFCX drawing core 0.2.0");
@@ -98,9 +98,9 @@ fn schema_diagnostics(
 
 #[cfg(test)]
 mod tests {
+    use super::super::codes::IFCCAD_PACKAGE_SCHEMA_INVALID;
     use super::*;
     use crate::conformance::bundled_conformance_root;
-    use crate::package::codes::IFCCAD_PACKAGE_SCHEMA_INVALID;
     use serde_json::json;
     use std::fs;
 

@@ -1,3 +1,7 @@
+use super::codes::{
+    IFCCAD_PACKAGE_CHECKSUM_MISMATCH, IFCCAD_PACKAGE_RESOURCE_ID_DUPLICATE,
+    IFCCAD_PACKAGE_RESOURCE_ID_MISMATCH, IFCCAD_PACKAGE_TARGET_RESOURCE_MISSING,
+};
 use super::discovery::{discover_resources, ResourceKind};
 use super::graph::validate_ifcx_graph;
 use super::loader::{DirectoryPackageLoader, PackageLoadLimits};
@@ -8,10 +12,6 @@ use super::{
     PackageValidationReport,
 };
 use crate::ifcdr::{validate_ifcdr, LoadedIfcdrResource};
-use crate::package::codes::{
-    IFCCAD_PACKAGE_CHECKSUM_MISMATCH, IFCCAD_PACKAGE_RESOURCE_ID_DUPLICATE,
-    IFCCAD_PACKAGE_RESOURCE_ID_MISMATCH, IFCCAD_PACKAGE_TARGET_RESOURCE_MISSING,
-};
 use crate::ResourceId;
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
@@ -431,15 +431,15 @@ pub(crate) fn validate_directory_package(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::conformance::bundled_conformance_root;
-    use crate::ifcdr::{AppearanceId, LayerId, ScopeId};
-    use crate::package::codes::{
+    use super::super::codes::{
         IFCCAD_PACKAGE_CHECKSUM_MISMATCH, IFCCAD_PACKAGE_ENTRYPOINT_INVALID,
         IFCCAD_PACKAGE_JSON_INVALID, IFCCAD_PACKAGE_NODE_PATH_DUPLICATE,
         IFCCAD_PACKAGE_NODE_REFERENCE_MISSING, IFCCAD_PACKAGE_RESOURCE_MISSING,
         IFCCAD_PACKAGE_SCHEMA_INVALID, IFCCAD_PACKAGE_TIMESTAMP_INVALID,
     };
+    use super::*;
+    use crate::conformance::bundled_conformance_root;
+    use crate::ifcdr::{AppearanceId, LayerId, ScopeId};
     use crate::package::{PackageDiagnosticContextValue, DIRECTORY_PACKAGE_ENTRYPOINT};
     use sha2::{Digest, Sha256};
     use std::fs;

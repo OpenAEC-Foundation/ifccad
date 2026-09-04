@@ -1,4 +1,4 @@
-use super::analysis::ValidatedIfccadPackage;
+use super::analysis::ValidatedPackage;
 use super::appearance::{
     appearance_mode, AppearanceColorRef, AppearanceMode, AppearanceProperty, LinePatternRef,
 };
@@ -6,7 +6,7 @@ use crate::ifcdr::{AppearanceId, IfcdrResourceRef, LayerId, ScopeRef, ValidatedI
 use crate::ResourceId;
 use serde_json::Value;
 
-impl ValidatedIfccadPackage {
+impl ValidatedPackage {
     pub fn drawing_sets(&self) -> impl Iterator<Item = DrawingSetRef<'_>> {
         typed_nodes(self, "openaec:DrawingSet").map(|node_index| DrawingSetRef {
             package: self,
@@ -110,7 +110,7 @@ impl ValidatedIfccadPackage {
     }
 }
 
-fn nodes(package: &ValidatedIfccadPackage) -> &[Value] {
+fn nodes(package: &ValidatedPackage) -> &[Value] {
     package
         .loaded()
         .package()
@@ -123,7 +123,7 @@ fn nodes(package: &ValidatedIfccadPackage) -> &[Value] {
 }
 
 fn typed_nodes<'a>(
-    package: &'a ValidatedIfccadPackage,
+    package: &'a ValidatedPackage,
     expected_type: &'static str,
 ) -> impl Iterator<Item = usize> + 'a {
     nodes(package)
@@ -138,7 +138,7 @@ macro_rules! node_ref {
     ($name:ident) => {
         #[derive(Clone, Copy)]
         pub struct $name<'a> {
-            package: &'a ValidatedIfccadPackage,
+            package: &'a ValidatedPackage,
             node_index: usize,
         }
 
@@ -162,7 +162,7 @@ node_ref!(AppearanceRef);
 
 #[derive(Clone, Copy)]
 pub struct LayerRef<'a> {
-    package: &'a ValidatedIfccadPackage,
+    package: &'a ValidatedPackage,
     node_index: usize,
     id: LayerId,
 }
@@ -401,7 +401,7 @@ impl<'a> AppearanceRef<'a> {
 /// Resource-local appearance binding with independently inherited properties.
 #[derive(Clone, Copy)]
 pub struct AppliedAppearanceRef<'a> {
-    package: &'a ValidatedIfccadPackage,
+    package: &'a ValidatedPackage,
     resource: &'a ValidatedIfcdrResource,
     id: AppearanceId,
 }
@@ -518,10 +518,10 @@ impl<'a> AppliedAppearanceRef<'a> {
 
 #[cfg(test)]
 mod tests {
+    use super::super::validation::load_directory_package;
+    use super::super::DIRECTORY_PACKAGE_ENTRYPOINT;
     use super::*;
     use crate::conformance::bundled_conformance_root;
-    use crate::package::validation::load_directory_package;
-    use crate::package::DIRECTORY_PACKAGE_ENTRYPOINT;
     use std::fs;
     use std::path::{Path, PathBuf};
     use std::time::{SystemTime, UNIX_EPOCH};

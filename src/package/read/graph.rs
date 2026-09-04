@@ -275,11 +275,11 @@ fn reference_diagnostic(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::package::codes::{
+    use super::super::codes::{
         IFCCAD_PACKAGE_NODE_PATH_DUPLICATE, IFCCAD_PACKAGE_NODE_REFERENCE_MISSING,
         IFCCAD_PACKAGE_NODE_REFERENCE_TYPE_MISMATCH,
     };
+    use super::*;
     use crate::package::PackageDiagnosticContextValue;
     use serde_json::json;
 

@@ -44,11 +44,11 @@ impl ValidationTarget for IfccadPackageTarget {
 
 /// Strictly validated IFCCAD package with typed, read-only navigation.
 #[derive(Debug)]
-pub struct ValidatedIfccadPackage {
+pub struct ValidatedPackage {
     proof: Validated<IfccadPackageTarget>,
 }
 
-impl ValidatedIfccadPackage {
+impl ValidatedPackage {
     pub(crate) fn loaded(&self) -> &IfccadPackageTarget {
         self.proof.loaded()
     }
@@ -62,10 +62,10 @@ pub(super) fn build_strict_proof(
     package: Arc<LoadedIfccadPackage>,
     analysis: Arc<PackageAnalysis>,
     is_valid: bool,
-) -> Option<ValidatedIfccadPackage> {
+) -> Option<ValidatedPackage> {
     let context = PackageProofContext { analysis, is_valid };
     Validated::validate(IfccadPackageTarget::new(package), &context)
         .into_parts()
         .0
-        .map(|proof| ValidatedIfccadPackage { proof })
+        .map(|proof| ValidatedPackage { proof })
 }

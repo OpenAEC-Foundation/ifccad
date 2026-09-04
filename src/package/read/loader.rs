@@ -307,13 +307,13 @@ fn context<const N: usize>(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::conformance::bundled_conformance_root;
-    use crate::package::codes::{
+    use super::super::codes::{
         IFCCAD_PACKAGE_ENTRYPOINT_MISSING, IFCCAD_PACKAGE_JSON_INVALID,
         IFCCAD_PACKAGE_PATH_INVALID, IFCCAD_PACKAGE_RESOURCE_LIMIT_EXCEEDED,
         IFCCAD_PACKAGE_RESOURCE_MISSING, IFCCAD_PACKAGE_TOTAL_LIMIT_EXCEEDED,
     };
+    use super::*;
+    use crate::conformance::bundled_conformance_root;
     use crate::package::{
         PackageDiagnosticContextValue, PackageDiagnosticSeverity, DIRECTORY_PACKAGE_ENTRYPOINT,
     };

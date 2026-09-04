@@ -30,7 +30,7 @@ pub struct PackageLoadOutcome {
     #[allow(dead_code)]
     pub(crate) analysis: Option<Arc<PackageAnalysis>>,
     #[allow(dead_code)]
-    pub(crate) validated_package: Option<super::analysis::ValidatedIfccadPackage>,
+    pub(crate) validated_package: Option<super::analysis::ValidatedPackage>,
     pub(crate) report: PackageValidationReport,
 }
 
@@ -41,12 +41,12 @@ impl PackageLoadOutcome {
     }
 
     /// Returns the strict package proof when no error diagnostic was produced.
-    pub fn validated_package(&self) -> Option<&super::analysis::ValidatedIfccadPackage> {
+    pub fn validated_package(&self) -> Option<&super::analysis::ValidatedPackage> {
         self.validated_package.as_ref()
     }
 
     /// Consumes the outcome and returns its strict package proof, when available.
-    pub fn into_validated_package(self) -> Option<super::analysis::ValidatedIfccadPackage> {
+    pub fn into_validated_package(self) -> Option<super::analysis::ValidatedPackage> {
         self.validated_package
     }
 
@@ -54,7 +54,7 @@ impl PackageLoadOutcome {
     pub fn into_parts(
         self,
     ) -> (
-        Option<super::analysis::ValidatedIfccadPackage>,
+        Option<super::analysis::ValidatedPackage>,
         PackageValidationReport,
     ) {
         (self.validated_package, self.report)

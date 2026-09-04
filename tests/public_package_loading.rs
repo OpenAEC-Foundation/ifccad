@@ -1,7 +1,7 @@
 use ifccad::conformance::bundled_conformance_root;
 use ifccad::package::{
     load_directory_package, PackageHeaderRef, PackageOpenError, PackageValidationReport,
-    ValidatedIfccadPackage, DIRECTORY_PACKAGE_ENTRYPOINT,
+    ValidatedPackage, DIRECTORY_PACKAGE_ENTRYPOINT,
 };
 use ifccad::PackageId;
 use std::fs;
@@ -58,7 +58,7 @@ fn copy_minimal_package(root: &Path) -> serde_json::Value {
 }
 
 fn assert_public_types(
-    package: &ValidatedIfccadPackage,
+    package: &ValidatedPackage,
     header: PackageHeaderRef<'_>,
     report: &PackageValidationReport,
 ) {

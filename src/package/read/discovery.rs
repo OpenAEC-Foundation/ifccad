@@ -100,8 +100,8 @@ fn invalid_entrypoint(location: &str, message: &str) -> PackageDiagnostic {
 
 #[cfg(test)]
 mod tests {
+    use super::super::codes::IFCCAD_PACKAGE_ENTRYPOINT_INVALID;
     use super::*;
-    use crate::package::codes::IFCCAD_PACKAGE_ENTRYPOINT_INVALID;
 
     #[test]
     fn discovers_drawing_and_preservation_resources() {

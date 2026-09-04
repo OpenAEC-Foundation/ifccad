@@ -1,4 +1,4 @@
-use super::analysis::ValidatedIfccadPackage;
+use super::analysis::ValidatedPackage;
 use super::codes::IFCCAD_PACKAGE_TIMESTAMP_INVALID;
 use super::{PackageDiagnostic, PackageDiagnosticSeverity, DIRECTORY_PACKAGE_ENTRYPOINT};
 use crate::PackageId;
@@ -89,7 +89,7 @@ pub struct PackageHeaderRef<'a> {
     header: &'a ValidatedPackageHeader,
 }
 
-impl ValidatedIfccadPackage {
+impl ValidatedPackage {
     pub fn header(&self) -> PackageHeaderRef<'_> {
         PackageHeaderRef {
             header: self
