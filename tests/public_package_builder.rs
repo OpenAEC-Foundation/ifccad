@@ -1,8 +1,8 @@
 use ifccad::ifcdr::{IfcdrLengthUnit, Point2};
 use ifccad::package::{
-    AppearanceColor, AppearanceDefinition, AppearanceKey, DrawingBuilder, DrawingOptions,
-    EntityAppearance, LayerDefinition, LayerKey, LineDefinition, LinePatternDefinition,
-    PackageBuildError, PackageBuilder, PackageOptions, PolylineDefinition,
+    AppearanceColor, AppearanceDefinition, AppearanceKey, AppearanceMode, DrawingBuilder,
+    DrawingOptions, EntityAppearance, LayerDefinition, LayerKey, LineDefinition,
+    LinePatternDefinition, PackageBuildError, PackageBuilder, PackageOptions, PolylineDefinition,
 };
 use ifccad::{PackageId, ResourceId};
 
@@ -83,7 +83,7 @@ fn metadata_accepts_supported_values_without_raw_json() {
 
     let _point = Point2::new(1.0, 2.0);
     let _appearance = appearance("Wall style");
-    let _entity_appearance = EntityAppearance::ByLayer;
+    let _entity_appearance = EntityAppearance::by_layer();
     let _line_type: Option<LineDefinition> = None;
     let _polyline_type: Option<PolylineDefinition> = None;
     let _layer_type: Option<LayerDefinition> = None;
@@ -258,7 +258,7 @@ fn entities_receive_global_ids_in_mixed_insertion_order() {
             start: Point2::new(0.0, 0.0),
             end: Point2::new(1.0, 1.0),
             layer,
-            appearance: EntityAppearance::ByLayer,
+            appearance: EntityAppearance::by_layer(),
             visible: true,
         })
         .unwrap();
@@ -268,7 +268,7 @@ fn entities_receive_global_ids_in_mixed_insertion_order() {
             points: vec![Point2::new(-2.0, 3.0), Point2::new(4.0, -5.0)],
             closed: false,
             layer,
-            appearance: EntityAppearance::Explicit(style),
+            appearance: EntityAppearance::explicit(style),
             visible: false,
         })
         .unwrap();
@@ -278,12 +278,125 @@ fn entities_receive_global_ids_in_mixed_insertion_order() {
             start: Point2::new(2.0, 2.0),
             end: Point2::new(3.0, 3.0),
             layer,
-            appearance: EntityAppearance::ByBlock,
+            appearance: EntityAppearance::by_block(),
             visible: true,
         })
         .unwrap();
 
     assert_eq!([first.get(), second.get(), third.get()], [1, 2, 3]);
+}
+
+#[test]
+fn entities_encode_each_appearance_inheritance_mode_independently() {
+    let mut package = PackageBuilder::new(package_options("2026-09-02T10:00:00Z")).unwrap();
+    {
+        let mut drawing = package.add_drawing(drawing_options()).unwrap();
+        let (layer, style) = add_default_layer(&mut drawing);
+
+        drawing
+            .model_space()
+            .add_line(LineDefinition {
+                start: Point2::new(0.0, 0.0),
+                end: Point2::new(1.0, 1.0),
+                layer,
+                appearance: EntityAppearance {
+                    appearance: Some(style),
+                    color_mode: AppearanceMode::ByLayer,
+                    opacity_mode: AppearanceMode::Explicit,
+                    line_pattern_mode: AppearanceMode::ByBlock,
+                    line_weight_mode: AppearanceMode::Explicit,
+                },
+                visible: true,
+            })
+            .unwrap();
+    }
+
+    let encoded = package.finish().unwrap();
+    let resource: serde_json::Value =
+        serde_json::from_slice(encoded.file("resources/model-space.ifcdr.json").unwrap()).unwrap();
+    let binding = &resource["appearanceBindings"][2];
+
+    assert_eq!(binding["id"], 2);
+    assert_eq!(binding["ifcxAppearance"], "appearance-0");
+    assert_eq!(binding["colorMode"], 0);
+    assert_eq!(binding["opacityMode"], 1);
+    assert_eq!(binding["linePatternMode"], 2);
+    assert_eq!(binding["lineWeightMode"], 1);
+}
+
+#[test]
+fn explicit_appearance_modes_require_a_definition_without_advancing_ids() {
+    let mut package = PackageBuilder::new(package_options("2026-09-02T10:00:00Z")).unwrap();
+    let mut drawing = package.add_drawing(drawing_options()).unwrap();
+    let (layer, _) = add_default_layer(&mut drawing);
+    let invalid = EntityAppearance {
+        appearance: None,
+        color_mode: AppearanceMode::ByLayer,
+        opacity_mode: AppearanceMode::Explicit,
+        line_pattern_mode: AppearanceMode::ByLayer,
+        line_weight_mode: AppearanceMode::ByLayer,
+    };
+
+    assert!(matches!(
+        drawing.model_space().add_line(LineDefinition {
+            start: Point2::new(0.0, 0.0),
+            end: Point2::new(1.0, 1.0),
+            layer,
+            appearance: invalid,
+            visible: true,
+        }),
+        Err(PackageBuildError::AppearanceDefinitionMissing)
+    ));
+    let first = drawing
+        .model_space()
+        .add_line(LineDefinition {
+            start: Point2::new(0.0, 0.0),
+            end: Point2::new(1.0, 1.0),
+            layer,
+            appearance: EntityAppearance::by_layer(),
+            visible: true,
+        })
+        .unwrap();
+
+    assert_eq!(first.get(), 1);
+}
+
+#[test]
+fn identical_mixed_appearance_bindings_are_reused() {
+    let mut package = PackageBuilder::new(package_options("2026-09-02T10:00:00Z")).unwrap();
+    {
+        let mut drawing = package.add_drawing(drawing_options()).unwrap();
+        let (layer, style) = add_default_layer(&mut drawing);
+        let mixed = EntityAppearance {
+            appearance: Some(style),
+            color_mode: AppearanceMode::ByLayer,
+            opacity_mode: AppearanceMode::Explicit,
+            line_pattern_mode: AppearanceMode::ByBlock,
+            line_weight_mode: AppearanceMode::Explicit,
+        };
+        for y in [0.0, 1.0] {
+            drawing
+                .model_space()
+                .add_line(LineDefinition {
+                    start: Point2::new(0.0, y),
+                    end: Point2::new(1.0, y),
+                    layer,
+                    appearance: mixed,
+                    visible: true,
+                })
+                .unwrap();
+        }
+    }
+
+    let encoded = package.finish().unwrap();
+    let resource: serde_json::Value =
+        serde_json::from_slice(encoded.file("resources/model-space.ifcdr.json").unwrap()).unwrap();
+
+    assert_eq!(resource["appearanceBindings"].as_array().unwrap().len(), 3);
+    assert_eq!(
+        resource["streams"]["lineStream"]["appearanceId"],
+        serde_json::json!([2, 2])
+    );
 }
 
 #[test]
@@ -301,7 +414,7 @@ fn entities_reject_foreign_keys_without_advancing_ids() {
             start: Point2::new(0.0, 0.0),
             end: Point2::new(1.0, 1.0),
             layer: first_layer,
-            appearance: EntityAppearance::ByLayer,
+            appearance: EntityAppearance::by_layer(),
             visible: true,
         }),
         Err(PackageBuildError::ForeignLayerKey)
@@ -311,7 +424,7 @@ fn entities_reject_foreign_keys_without_advancing_ids() {
             start: Point2::new(0.0, 0.0),
             end: Point2::new(1.0, 1.0),
             layer: second_layer,
-            appearance: EntityAppearance::Explicit(first_style),
+            appearance: EntityAppearance::explicit(first_style),
             visible: true,
         }),
         Err(PackageBuildError::ForeignAppearanceKey)
@@ -323,7 +436,7 @@ fn entities_reject_foreign_keys_without_advancing_ids() {
             start: Point2::new(0.0, 0.0),
             end: Point2::new(1.0, 1.0),
             layer: second_layer,
-            appearance: EntityAppearance::Explicit(second_style),
+            appearance: EntityAppearance::explicit(second_style),
             visible: true,
         })
         .unwrap();
@@ -341,7 +454,7 @@ fn entities_reject_invalid_geometry_without_advancing_ids() {
             start: Point2::new(f64::NAN, 0.0),
             end: Point2::new(1.0, 1.0),
             layer,
-            appearance: EntityAppearance::ByLayer,
+            appearance: EntityAppearance::by_layer(),
             visible: true,
         }),
         Err(PackageBuildError::NonFiniteCoordinate)
@@ -352,7 +465,7 @@ fn entities_reject_invalid_geometry_without_advancing_ids() {
                 points,
                 closed: false,
                 layer,
-                appearance: EntityAppearance::ByLayer,
+                appearance: EntityAppearance::by_layer(),
                 visible: true,
             }),
             Err(PackageBuildError::PolylineTooShort)
@@ -363,7 +476,7 @@ fn entities_reject_invalid_geometry_without_advancing_ids() {
             points: vec![Point2::new(0.0, 0.0), Point2::new(f64::INFINITY, 1.0)],
             closed: false,
             layer,
-            appearance: EntityAppearance::ByLayer,
+            appearance: EntityAppearance::by_layer(),
             visible: true,
         }),
         Err(PackageBuildError::NonFiniteCoordinate)
@@ -375,7 +488,7 @@ fn entities_reject_invalid_geometry_without_advancing_ids() {
             start: Point2::new(0.0, 0.0),
             end: Point2::new(1.0, 1.0),
             layer,
-            appearance: EntityAppearance::ByLayer,
+            appearance: EntityAppearance::by_layer(),
             visible: true,
         })
         .unwrap();

@@ -1,8 +1,9 @@
 use ifccad::ifcdr::{AppearanceId, IfcdrEntityRef, IfcdrLengthUnit, Point2};
 use ifccad::package::{
-    load_directory_package, AppearanceColor, AppearanceDefinition, AppearanceProperty,
-    DrawingLayoutKind, DrawingOptions, EntityAppearance, LayerDefinition, LineDefinition,
-    LinePatternDefinition, LinePatternRef, PackageBuilder, PackageOptions, PolylineDefinition,
+    load_directory_package, AppearanceColor, AppearanceDefinition, AppearanceMode,
+    AppearanceProperty, DrawingLayoutKind, DrawingOptions, EntityAppearance, LayerDefinition,
+    LineDefinition, LinePatternDefinition, LinePatternRef, PackageBuilder, PackageOptions,
+    PolylineDefinition,
 };
 use ifccad::{PackageId, ResourceId};
 use std::fs;
@@ -90,7 +91,7 @@ fn representative_builder() -> PackageBuilder {
             start: Point2::new(0.0, 0.0),
             end: Point2::new(10.0, 5.0),
             layer: layer_0,
-            appearance: EntityAppearance::ByLayer,
+            appearance: EntityAppearance::by_layer(),
             visible: true,
         })
         .unwrap();
@@ -100,7 +101,7 @@ fn representative_builder() -> PackageBuilder {
             points: vec![Point2::new(-2.0, 3.0), Point2::new(4.0, -5.0)],
             closed: false,
             layer: walls,
-            appearance: EntityAppearance::Explicit(solid),
+            appearance: EntityAppearance::explicit(solid),
             visible: false,
         })
         .unwrap();
@@ -110,7 +111,7 @@ fn representative_builder() -> PackageBuilder {
             start: Point2::new(1.0, 2.0),
             end: Point2::new(3.0, 4.0),
             layer: walls,
-            appearance: EntityAppearance::ByBlock,
+            appearance: EntityAppearance::by_block(),
             visible: false,
         })
         .unwrap();
@@ -124,7 +125,23 @@ fn representative_builder() -> PackageBuilder {
             ],
             closed: true,
             layer: layer_0,
-            appearance: EntityAppearance::Explicit(dashed),
+            appearance: EntityAppearance::explicit(dashed),
+            visible: true,
+        })
+        .unwrap();
+    drawing
+        .model_space()
+        .add_line(LineDefinition {
+            start: Point2::new(0.0, 1.0),
+            end: Point2::new(1.0, 2.0),
+            layer: layer_0,
+            appearance: EntityAppearance {
+                appearance: Some(dashed),
+                color_mode: AppearanceMode::ByLayer,
+                opacity_mode: AppearanceMode::Explicit,
+                line_pattern_mode: AppearanceMode::ByBlock,
+                line_weight_mode: AppearanceMode::Explicit,
+            },
             visible: true,
         })
         .unwrap();
@@ -208,10 +225,18 @@ fn writer_output_reloads_without_diagnostics_and_preserves_semantics() {
         dashed.opacity(),
         AppearanceProperty::Explicit(0.5)
     ));
+    let mixed = representation.appearance(AppearanceId::from(4)).unwrap();
+    assert!(matches!(mixed.color(), AppearanceProperty::ByLayer));
+    assert!(matches!(mixed.opacity(), AppearanceProperty::Explicit(0.5)));
+    assert!(matches!(mixed.line_pattern(), AppearanceProperty::ByBlock));
+    assert!(matches!(
+        mixed.line_weight(),
+        AppearanceProperty::Explicit(0.18)
+    ));
 
     let resource = representation.resource();
     let entities = resource.entities(layout.scope().id()).collect::<Vec<_>>();
-    assert_eq!(entities.len(), 4);
+    assert_eq!(entities.len(), 5);
     let IfcdrEntityRef::Line(first) = &entities[0] else {
         panic!("entity 1 must be a line");
     };
@@ -244,6 +269,11 @@ fn writer_output_reloads_without_diagnostics_and_preserves_semantics() {
     assert!(fourth.closed());
     assert!(fourth.visible());
     assert_eq!(fourth.appearance_id().get(), 3);
+    let IfcdrEntityRef::Line(fifth) = &entities[4] else {
+        panic!("entity 5 must be a line");
+    };
+    assert_eq!(fifth.entity_id().get(), 5);
+    assert_eq!(fifth.appearance_id().get(), 4);
 }
 
 #[test]

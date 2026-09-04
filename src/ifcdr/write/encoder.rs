@@ -69,10 +69,10 @@ pub(crate) fn encode(
         json!({
             "id": appearance.id.get(),
             "ifcxAppearance": appearance.ifcx_path,
-            "colorMode": 1,
-            "opacityMode": 1,
-            "linePatternMode": 1,
-            "lineWeightMode": 1,
+            "colorMode": appearance.color_mode,
+            "opacityMode": appearance.opacity_mode,
+            "linePatternMode": appearance.line_pattern_mode,
+            "lineWeightMode": appearance.line_weight_mode,
             "overrideId": null
         })
     }));
@@ -430,7 +430,7 @@ mod tests {
                 start: Point2::new(0.0, 0.0),
                 end: Point2::new(10.0, 5.0),
                 layer: layer_0,
-                appearance: EntityAppearance::ByLayer,
+                appearance: EntityAppearance::by_layer(),
                 visible: true,
             })
             .unwrap();
@@ -440,7 +440,7 @@ mod tests {
                 points: vec![Point2::new(-2.0, 3.0), Point2::new(4.0, -5.0)],
                 closed: false,
                 layer: layer_1,
-                appearance: EntityAppearance::Explicit(solid),
+                appearance: EntityAppearance::explicit(solid),
                 visible: false,
             })
             .unwrap();
@@ -450,7 +450,7 @@ mod tests {
                 start: Point2::new(1.0, 2.0),
                 end: Point2::new(3.0, 4.0),
                 layer: layer_1,
-                appearance: EntityAppearance::ByBlock,
+                appearance: EntityAppearance::by_block(),
                 visible: false,
             })
             .unwrap();
@@ -464,7 +464,7 @@ mod tests {
                 ],
                 closed: true,
                 layer: layer_0,
-                appearance: EntityAppearance::Explicit(dashed),
+                appearance: EntityAppearance::explicit(dashed),
                 visible: true,
             })
             .unwrap();

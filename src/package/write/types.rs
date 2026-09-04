@@ -106,10 +106,51 @@ pub struct LayerKey {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum EntityAppearance {
+pub enum AppearanceMode {
     ByLayer,
     ByBlock,
-    Explicit(AppearanceKey),
+    Explicit,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct EntityAppearance {
+    pub appearance: Option<AppearanceKey>,
+    pub color_mode: AppearanceMode,
+    pub opacity_mode: AppearanceMode,
+    pub line_pattern_mode: AppearanceMode,
+    pub line_weight_mode: AppearanceMode,
+}
+
+impl EntityAppearance {
+    pub const fn by_layer() -> Self {
+        Self {
+            appearance: None,
+            color_mode: AppearanceMode::ByLayer,
+            opacity_mode: AppearanceMode::ByLayer,
+            line_pattern_mode: AppearanceMode::ByLayer,
+            line_weight_mode: AppearanceMode::ByLayer,
+        }
+    }
+
+    pub const fn by_block() -> Self {
+        Self {
+            appearance: None,
+            color_mode: AppearanceMode::ByBlock,
+            opacity_mode: AppearanceMode::ByBlock,
+            line_pattern_mode: AppearanceMode::ByBlock,
+            line_weight_mode: AppearanceMode::ByBlock,
+        }
+    }
+
+    pub const fn explicit(appearance: AppearanceKey) -> Self {
+        Self {
+            appearance: Some(appearance),
+            color_mode: AppearanceMode::Explicit,
+            opacity_mode: AppearanceMode::Explicit,
+            line_pattern_mode: AppearanceMode::Explicit,
+            line_weight_mode: AppearanceMode::Explicit,
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]

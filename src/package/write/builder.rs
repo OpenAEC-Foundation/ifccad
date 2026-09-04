@@ -1,10 +1,12 @@
 use super::artifact::EncodedPackage;
 use super::error::PackageBuildError;
 use super::ifcx::{assemble_ifcx, NodePaths, MODEL_SPACE_RESOURCE_URI};
-use super::state::{AppearanceEntry, DrawingState, LayerEntry, PackageState, PendingEntity};
+use super::state::{
+    AppearanceBindingEntry, AppearanceEntry, DrawingState, LayerEntry, PackageState, PendingEntity,
+};
 use super::types::{
-    AppearanceDefinition, AppearanceKey, DrawingOptions, EntityAppearance, LayerDefinition,
-    LayerKey, LineDefinition, PackageOptions, PolylineDefinition,
+    AppearanceDefinition, AppearanceKey, AppearanceMode, DrawingOptions, EntityAppearance,
+    LayerDefinition, LayerKey, LineDefinition, PackageOptions, PolylineDefinition,
 };
 
 use crate::ifcdr::write::{
@@ -73,6 +75,7 @@ impl PackageBuilder {
             options,
             token,
             appearances: Vec::new(),
+            appearance_bindings: Vec::new(),
             layers: Vec::new(),
             layer_names: Default::default(),
             entities: Vec::new(),
@@ -98,39 +101,51 @@ impl PackageBuilder {
                 ifcx_path: path,
             })
             .collect::<Vec<_>>();
-        let appearances = drawing
-            .appearances
+        let appearance_bindings = drawing
+            .appearance_bindings
             .iter()
-            .zip(&paths.appearances)
-            .map(|(appearance, path)| IfcdrAppearanceBindingInput {
-                id: AppearanceId::from(appearance.local_id),
-                ifcx_path: path,
+            .map(|binding| {
+                let ifcx_path = binding
+                    .definition
+                    .appearance
+                    .map(|key| appearance_path(&paths, key))
+                    .transpose()?;
+                Ok(IfcdrAppearanceBindingInput {
+                    id: binding.id,
+                    ifcx_path,
+                    color_mode: appearance_mode(binding.definition.color_mode),
+                    opacity_mode: appearance_mode(binding.definition.opacity_mode),
+                    line_pattern_mode: appearance_mode(binding.definition.line_pattern_mode),
+                    line_weight_mode: appearance_mode(binding.definition.line_weight_mode),
+                })
             })
-            .collect::<Vec<_>>();
+            .collect::<Result<Vec<_>, PackageBuildError>>()?;
         let entities = drawing
             .entities
             .iter()
             .map(|entity| match entity {
                 PendingEntity::Line {
                     entity_id,
+                    appearance_id,
                     definition,
                 } => IfcdrEntityInput::Line {
                     entity_id: *entity_id,
                     start: definition.start,
                     end: definition.end,
                     layer_id: LayerId::from(definition.layer.local_id),
-                    appearance_id: appearance_id(definition.appearance),
+                    appearance_id: *appearance_id,
                     visible: definition.visible,
                 },
                 PendingEntity::Polyline {
                     entity_id,
+                    appearance_id,
                     definition,
                 } => IfcdrEntityInput::Polyline {
                     entity_id: *entity_id,
                     points: &definition.points,
                     closed: definition.closed,
                     layer_id: LayerId::from(definition.layer.local_id),
-                    appearance_id: appearance_id(definition.appearance),
+                    appearance_id: *appearance_id,
                     visible: definition.visible,
                 },
             })
@@ -146,7 +161,7 @@ impl PackageBuilder {
                 flags: 0,
             },
             layers: &layers,
-            appearances: &appearances,
+            appearances: &appearance_bindings,
             entities: &entities,
         };
         let resource = encode(&input).map_err(map_ifcdr_encode_error)?;
@@ -165,12 +180,24 @@ impl PackageBuilder {
     }
 }
 
-fn appearance_id(appearance: EntityAppearance) -> AppearanceId {
-    AppearanceId::from(match appearance {
-        EntityAppearance::ByLayer => 0,
-        EntityAppearance::ByBlock => 1,
-        EntityAppearance::Explicit(key) => key.local_id,
-    })
+fn appearance_path(paths: &NodePaths, key: AppearanceKey) -> Result<&str, PackageBuildError> {
+    key.local_id
+        .checked_sub(2)
+        .and_then(|value| usize::try_from(value).ok())
+        .and_then(|index| paths.appearances.get(index))
+        .map(String::as_str)
+        .ok_or_else(|| PackageBuildError::Encoding {
+            stage: "IFCDR appearance binding",
+            message: "appearance binding references an unavailable definition".to_owned(),
+        })
+}
+
+fn appearance_mode(mode: AppearanceMode) -> u32 {
+    match mode {
+        AppearanceMode::ByLayer => 0,
+        AppearanceMode::Explicit => 1,
+        AppearanceMode::ByBlock => 2,
+    }
 }
 
 fn map_ifcdr_encode_error(error: IfcdrEncodeError) -> PackageBuildError {
@@ -221,10 +248,7 @@ impl DrawingAppearances<'_> {
         let local_id = 2_u32
             .checked_add(offset)
             .ok_or(PackageBuildError::RangeExhausted { kind: "appearance" })?;
-        self.state.appearances.push(AppearanceEntry {
-            local_id,
-            definition,
-        });
+        self.state.appearances.push(AppearanceEntry { definition });
         Ok(AppearanceKey {
             builder_token: self.state.token,
             local_id,
@@ -295,14 +319,52 @@ impl DrawingState {
         Ok(())
     }
 
-    fn validate_entity_appearance(
-        &self,
+    fn resolve_entity_appearance(
+        &mut self,
         appearance: EntityAppearance,
-    ) -> Result<(), PackageBuildError> {
-        match appearance {
-            EntityAppearance::ByLayer | EntityAppearance::ByBlock => Ok(()),
-            EntityAppearance::Explicit(key) => self.validate_appearance_key(key),
+    ) -> Result<AppearanceId, PackageBuildError> {
+        let uses_explicit = [
+            appearance.color_mode,
+            appearance.opacity_mode,
+            appearance.line_pattern_mode,
+            appearance.line_weight_mode,
+        ]
+        .contains(&AppearanceMode::Explicit);
+        if uses_explicit && appearance.appearance.is_none() {
+            return Err(PackageBuildError::AppearanceDefinitionMissing);
         }
+        if let Some(key) = appearance.appearance {
+            self.validate_appearance_key(key)?;
+        }
+        if appearance == EntityAppearance::by_layer() {
+            return Ok(AppearanceId::from(0));
+        }
+        if appearance == EntityAppearance::by_block() {
+            return Ok(AppearanceId::from(1));
+        }
+        if let Some(existing) = self
+            .appearance_bindings
+            .iter()
+            .find(|entry| entry.definition == appearance)
+        {
+            return Ok(existing.id);
+        }
+        let offset = u32::try_from(self.appearance_bindings.len()).map_err(|_| {
+            PackageBuildError::RangeExhausted {
+                kind: "appearance binding",
+            }
+        })?;
+        let local_id = 2_u32
+            .checked_add(offset)
+            .ok_or(PackageBuildError::RangeExhausted {
+                kind: "appearance binding",
+            })?;
+        let id = AppearanceId::from(local_id);
+        self.appearance_bindings.push(AppearanceBindingEntry {
+            id,
+            definition: appearance,
+        });
+        Ok(id)
     }
 
     fn next_entity_id(&self) -> Result<EntityId, PackageBuildError> {
@@ -322,12 +384,14 @@ pub struct ModelSpaceBuilder<'a> {
 impl ModelSpaceBuilder<'_> {
     pub fn add_line(&mut self, definition: LineDefinition) -> Result<EntityId, PackageBuildError> {
         self.state.validate_layer_key(definition.layer)?;
-        self.state
-            .validate_entity_appearance(definition.appearance)?;
         validate_points([definition.start, definition.end])?;
+        let appearance_id = self
+            .state
+            .resolve_entity_appearance(definition.appearance)?;
         let entity_id = self.state.next_entity_id()?;
         self.state.entities.push(PendingEntity::Line {
             entity_id,
+            appearance_id,
             definition,
         });
         Ok(entity_id)
@@ -341,12 +405,14 @@ impl ModelSpaceBuilder<'_> {
             return Err(PackageBuildError::PolylineTooShort);
         }
         self.state.validate_layer_key(definition.layer)?;
-        self.state
-            .validate_entity_appearance(definition.appearance)?;
         validate_points(definition.points.iter().copied())?;
+        let appearance_id = self
+            .state
+            .resolve_entity_appearance(definition.appearance)?;
         let entity_id = self.state.next_entity_id()?;
         self.state.entities.push(PendingEntity::Polyline {
             entity_id,
+            appearance_id,
             definition,
         });
         Ok(entity_id)

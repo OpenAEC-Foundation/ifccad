@@ -24,6 +24,8 @@ pub enum PackageBuildError {
     ForeignLayerKey,
     #[error("appearance key belongs to another builder")]
     ForeignAppearanceKey,
+    #[error("an explicit appearance mode requires an appearance definition")]
+    AppearanceDefinitionMissing,
     #[error("{kind} ID or count range is exhausted")]
     RangeExhausted { kind: &'static str },
     #[error("{stage} encoding failed: {message}")]

@@ -29,7 +29,11 @@ pub(crate) struct IfcdrLayerBindingInput<'a> {
 
 pub(crate) struct IfcdrAppearanceBindingInput<'a> {
     pub id: AppearanceId,
-    pub ifcx_path: &'a str,
+    pub ifcx_path: Option<&'a str>,
+    pub color_mode: u32,
+    pub opacity_mode: u32,
+    pub line_pattern_mode: u32,
+    pub line_weight_mode: u32,
 }
 
 pub(crate) enum IfcdrEntityInput<'a> {
