@@ -1,16 +1,22 @@
-use ifccad::builder::{
-    AppearanceColor, AppearanceDefinition, BuildError, EntityAppearance, IfccadPackageBuilder,
-    LayerDefinition, LineDefinition, LinePatternDefinition, PackageOptions, PolylineDefinition,
-};
 use ifccad::ifcdr::{IfcdrLengthUnit, Point2};
+use ifccad::package::{
+    AppearanceColor, AppearanceDefinition, AppearanceKey, DrawingBuilder, DrawingOptions,
+    EntityAppearance, LayerDefinition, LayerKey, LineDefinition, LinePatternDefinition,
+    PackageBuildError, PackageBuilder, PackageOptions, PolylineDefinition,
+};
 use ifccad::{PackageId, ResourceId};
 
-fn options(timestamp: &str) -> PackageOptions {
+fn package_options(timestamp: &str) -> PackageOptions {
     PackageOptions {
         package_id: PackageId::new("building-a").unwrap(),
         data_version: "1".to_owned(),
         author: "Example application".to_owned(),
         timestamp: timestamp.to_owned(),
+    }
+}
+
+fn drawing_options() -> DrawingOptions {
+    DrawingOptions {
         model_layout_name: "Model".to_owned(),
         representation_resource_id: ResourceId::new("geometry-modelspace-main").unwrap(),
         length_unit: IfcdrLengthUnit::Millimetre,
@@ -27,14 +33,9 @@ fn appearance(name: &str) -> AppearanceDefinition {
     }
 }
 
-fn builder_with_layer() -> (
-    IfccadPackageBuilder,
-    ifccad::builder::LayerKey,
-    ifccad::builder::AppearanceKey,
-) {
-    let mut builder = IfccadPackageBuilder::new(options("2026-09-02T10:00:00Z")).unwrap();
-    let style = builder.appearances().add(appearance("Default")).unwrap();
-    let layer = builder
+fn add_default_layer(drawing: &mut DrawingBuilder<'_>) -> (LayerKey, AppearanceKey) {
+    let style = drawing.appearances().add(appearance("Default")).unwrap();
+    let layer = drawing
         .layers()
         .add(LayerDefinition {
             name: "0".to_owned(),
@@ -42,7 +43,32 @@ fn builder_with_layer() -> (
             appearance: style,
         })
         .unwrap();
-    (builder, layer, style)
+    (layer, style)
+}
+
+#[test]
+fn package_requires_exactly_one_drawing() {
+    let empty = PackageBuilder::new(package_options("2026-09-03T10:00:00Z")).unwrap();
+    assert!(matches!(
+        empty.finish(),
+        Err(PackageBuildError::DrawingMissing)
+    ));
+
+    let mut package = PackageBuilder::new(package_options("2026-09-03T10:00:00Z")).unwrap();
+    let first = package.add_drawing(drawing_options()).unwrap();
+    drop(first);
+    assert!(matches!(
+        package.add_drawing(drawing_options()),
+        Err(PackageBuildError::DrawingAlreadyDefined)
+    ));
+}
+
+#[test]
+fn drawing_facades_have_contextual_public_types() {
+    fn appearances(_: ifccad::package::DrawingAppearances<'_>) {}
+    fn layers(_: ifccad::package::DrawingLayers<'_>) {}
+    fn model_space(_: ifccad::package::ModelSpaceBuilder<'_>) {}
+    let _ = (appearances, layers, model_space);
 }
 
 #[test]
@@ -52,17 +78,12 @@ fn metadata_accepts_supported_values_without_raw_json() {
         "2026-09-02T10:00:00+00:00",
         "2026-09-02T10:00:00.125+00:00",
     ] {
-        assert!(IfccadPackageBuilder::new(options(timestamp)).is_ok());
+        let mut package = PackageBuilder::new(package_options(timestamp)).unwrap();
+        assert!(package.add_drawing(drawing_options()).is_ok());
     }
 
     let _point = Point2::new(1.0, 2.0);
-    let _appearance = AppearanceDefinition {
-        name: "Wall style".to_owned(),
-        color: AppearanceColor::rgb(255, 0, 0),
-        opacity: 1.0,
-        line_pattern: LinePatternDefinition::named("continuous"),
-        line_weight: 0.25,
-    };
+    let _appearance = appearance("Wall style");
     let _entity_appearance = EntityAppearance::ByLayer;
     let _line_type: Option<LineDefinition> = None;
     let _polyline_type: Option<PolylineDefinition> = None;
@@ -80,17 +101,24 @@ fn metadata_rejects_empty_required_strings() {
         ("author", |options: &mut PackageOptions| {
             options.author.clear()
         }),
-        ("model_layout_name", |options: &mut PackageOptions| {
-            options.model_layout_name.clear()
-        }),
     ] {
-        let mut invalid = options("2026-09-02T10:00:00Z");
+        let mut invalid = package_options("2026-09-02T10:00:00Z");
         mutate(&mut invalid);
         assert!(matches!(
-            IfccadPackageBuilder::new(invalid),
-            Err(BuildError::EmptyValue { field: actual }) if actual == field
+            PackageBuilder::new(invalid),
+            Err(PackageBuildError::EmptyValue { field: actual }) if actual == field
         ));
     }
+
+    let mut package = PackageBuilder::new(package_options("2026-09-02T10:00:00Z")).unwrap();
+    let mut invalid = drawing_options();
+    invalid.model_layout_name.clear();
+    assert!(matches!(
+        package.add_drawing(invalid),
+        Err(PackageBuildError::EmptyValue {
+            field: "model_layout_name"
+        })
+    ));
 }
 
 #[test]
@@ -102,17 +130,18 @@ fn metadata_rejects_non_utc_and_malformed_timestamps() {
         "not-a-timestamp",
     ] {
         assert!(matches!(
-            IfccadPackageBuilder::new(options(timestamp)),
-            Err(BuildError::InvalidTimestamp)
+            PackageBuilder::new(package_options(timestamp)),
+            Err(PackageBuildError::InvalidTimestamp)
         ));
     }
 }
 
 #[test]
-fn registries_add_and_find_builder_scoped_definitions() {
-    let mut builder = IfccadPackageBuilder::new(options("2026-09-02T10:00:00Z")).unwrap();
-    let walls_style = builder.appearances().add(appearance("Walls")).unwrap();
-    let walls = builder
+fn registries_add_and_find_drawing_scoped_definitions() {
+    let mut package = PackageBuilder::new(package_options("2026-09-02T10:00:00Z")).unwrap();
+    let mut drawing = package.add_drawing(drawing_options()).unwrap();
+    let walls_style = drawing.appearances().add(appearance("Walls")).unwrap();
+    let walls = drawing
         .layers()
         .add(LayerDefinition {
             name: "A-WALL".to_owned(),
@@ -121,14 +150,15 @@ fn registries_add_and_find_builder_scoped_definitions() {
         })
         .unwrap();
 
-    assert_eq!(builder.layers().by_name("a-wall"), Some(walls));
-    assert_eq!(builder.layers().by_name("A-WaLl"), Some(walls));
-    assert_eq!(builder.layers().by_name("missing"), None);
+    assert_eq!(drawing.layers().by_name("a-wall"), Some(walls));
+    assert_eq!(drawing.layers().by_name("A-WaLl"), Some(walls));
+    assert_eq!(drawing.layers().by_name("missing"), None);
 }
 
 #[test]
 fn registries_reject_duplicates_and_foreign_appearance_keys_without_mutation() {
-    let mut first = IfccadPackageBuilder::new(options("2026-09-02T10:00:00Z")).unwrap();
+    let mut first_package = PackageBuilder::new(package_options("2026-09-02T10:00:00Z")).unwrap();
+    let mut first = first_package.add_drawing(drawing_options()).unwrap();
     let first_style = first.appearances().add(appearance("First")).unwrap();
     first
         .layers()
@@ -145,25 +175,27 @@ fn registries_reject_duplicates_and_foreign_appearance_keys_without_mutation() {
             visible: false,
             appearance: first_style,
         }),
-        Err(BuildError::DuplicateLayerName { name }) if name == "a-wall"
+        Err(PackageBuildError::DuplicateLayerName { name }) if name == "a-wall"
     ));
     assert!(first.layers().by_name("A-WALL").is_some());
 
-    let mut second = IfccadPackageBuilder::new(options("2026-09-02T10:00:00Z")).unwrap();
+    let mut second_package = PackageBuilder::new(package_options("2026-09-02T10:00:00Z")).unwrap();
+    let mut second = second_package.add_drawing(drawing_options()).unwrap();
     assert!(matches!(
         second.layers().add(LayerDefinition {
             name: "foreign".to_owned(),
             visible: true,
             appearance: first_style,
         }),
-        Err(BuildError::ForeignAppearanceKey)
+        Err(PackageBuildError::ForeignAppearanceKey)
     ));
     assert_eq!(second.layers().by_name("foreign"), None);
 }
 
 #[test]
 fn registries_reject_invalid_appearance_and_layer_values() {
-    let mut builder = IfccadPackageBuilder::new(options("2026-09-02T10:00:00Z")).unwrap();
+    let mut package = PackageBuilder::new(package_options("2026-09-02T10:00:00Z")).unwrap();
+    let mut drawing = package.add_drawing(drawing_options()).unwrap();
 
     for invalid in [
         AppearanceDefinition {
@@ -199,17 +231,17 @@ fn registries_reject_invalid_appearance_and_layer_values() {
             ..appearance("valid")
         },
     ] {
-        assert!(builder.appearances().add(invalid).is_err());
+        assert!(drawing.appearances().add(invalid).is_err());
     }
 
-    let style = builder.appearances().add(appearance("valid")).unwrap();
+    let style = drawing.appearances().add(appearance("valid")).unwrap();
     assert!(matches!(
-        builder.layers().add(LayerDefinition {
+        drawing.layers().add(LayerDefinition {
             name: String::new(),
             visible: true,
             appearance: style,
         }),
-        Err(BuildError::EmptyValue {
+        Err(PackageBuildError::EmptyValue {
             field: "layer_name"
         })
     ));
@@ -217,9 +249,11 @@ fn registries_reject_invalid_appearance_and_layer_values() {
 
 #[test]
 fn entities_receive_global_ids_in_mixed_insertion_order() {
-    let (mut builder, layer, style) = builder_with_layer();
+    let mut package = PackageBuilder::new(package_options("2026-09-02T10:00:00Z")).unwrap();
+    let mut drawing = package.add_drawing(drawing_options()).unwrap();
+    let (layer, style) = add_default_layer(&mut drawing);
 
-    let first = builder
+    let first = drawing
         .model_space()
         .add_line(LineDefinition {
             start: Point2::new(0.0, 0.0),
@@ -229,7 +263,7 @@ fn entities_receive_global_ids_in_mixed_insertion_order() {
             visible: true,
         })
         .unwrap();
-    let second = builder
+    let second = drawing
         .model_space()
         .add_polyline(PolylineDefinition {
             points: vec![Point2::new(-2.0, 3.0), Point2::new(4.0, -5.0)],
@@ -239,7 +273,7 @@ fn entities_receive_global_ids_in_mixed_insertion_order() {
             visible: false,
         })
         .unwrap();
-    let third = builder
+    let third = drawing
         .model_space()
         .add_line(LineDefinition {
             start: Point2::new(2.0, 2.0),
@@ -255,8 +289,13 @@ fn entities_receive_global_ids_in_mixed_insertion_order() {
 
 #[test]
 fn entities_reject_foreign_keys_without_advancing_ids() {
-    let (mut first, first_layer, first_style) = builder_with_layer();
-    let (mut second, second_layer, second_style) = builder_with_layer();
+    let mut first_package = PackageBuilder::new(package_options("2026-09-02T10:00:00Z")).unwrap();
+    let mut first = first_package.add_drawing(drawing_options()).unwrap();
+    let (first_layer, first_style) = add_default_layer(&mut first);
+
+    let mut second_package = PackageBuilder::new(package_options("2026-09-02T10:00:00Z")).unwrap();
+    let mut second = second_package.add_drawing(drawing_options()).unwrap();
+    let (second_layer, second_style) = add_default_layer(&mut second);
 
     assert!(matches!(
         second.model_space().add_line(LineDefinition {
@@ -266,7 +305,7 @@ fn entities_reject_foreign_keys_without_advancing_ids() {
             appearance: EntityAppearance::ByLayer,
             visible: true,
         }),
-        Err(BuildError::ForeignLayerKey)
+        Err(PackageBuildError::ForeignLayerKey)
     ));
     assert!(matches!(
         second.model_space().add_line(LineDefinition {
@@ -276,7 +315,7 @@ fn entities_reject_foreign_keys_without_advancing_ids() {
             appearance: EntityAppearance::Explicit(first_style),
             visible: true,
         }),
-        Err(BuildError::ForeignAppearanceKey)
+        Err(PackageBuildError::ForeignAppearanceKey)
     ));
 
     let first_valid = second
@@ -290,48 +329,48 @@ fn entities_reject_foreign_keys_without_advancing_ids() {
         })
         .unwrap();
     assert_eq!(first_valid.get(), 1);
-
-    let _ = first.model_space();
 }
 
 #[test]
 fn entities_reject_invalid_geometry_without_advancing_ids() {
-    let (mut builder, layer, _) = builder_with_layer();
+    let mut package = PackageBuilder::new(package_options("2026-09-02T10:00:00Z")).unwrap();
+    let mut drawing = package.add_drawing(drawing_options()).unwrap();
+    let (layer, _) = add_default_layer(&mut drawing);
 
     assert!(matches!(
-        builder.model_space().add_line(LineDefinition {
+        drawing.model_space().add_line(LineDefinition {
             start: Point2::new(f64::NAN, 0.0),
             end: Point2::new(1.0, 1.0),
             layer,
             appearance: EntityAppearance::ByLayer,
             visible: true,
         }),
-        Err(BuildError::NonFiniteCoordinate)
+        Err(PackageBuildError::NonFiniteCoordinate)
     ));
     for points in [Vec::new(), vec![Point2::new(0.0, 0.0)]] {
         assert!(matches!(
-            builder.model_space().add_polyline(PolylineDefinition {
+            drawing.model_space().add_polyline(PolylineDefinition {
                 points,
                 closed: false,
                 layer,
                 appearance: EntityAppearance::ByLayer,
                 visible: true,
             }),
-            Err(BuildError::PolylineTooShort)
+            Err(PackageBuildError::PolylineTooShort)
         ));
     }
     assert!(matches!(
-        builder.model_space().add_polyline(PolylineDefinition {
+        drawing.model_space().add_polyline(PolylineDefinition {
             points: vec![Point2::new(0.0, 0.0), Point2::new(f64::INFINITY, 1.0)],
             closed: false,
             layer,
             appearance: EntityAppearance::ByLayer,
             visible: true,
         }),
-        Err(BuildError::NonFiniteCoordinate)
+        Err(PackageBuildError::NonFiniteCoordinate)
     ));
 
-    let first_valid = builder
+    let first_valid = drawing
         .model_space()
         .add_line(LineDefinition {
             start: Point2::new(0.0, 0.0),
@@ -346,8 +385,12 @@ fn entities_reject_invalid_geometry_without_advancing_ids() {
 
 #[test]
 fn finish_produces_the_two_logical_package_files() {
-    let (builder, _, _) = builder_with_layer();
-    let encoded = builder.finish().unwrap();
+    let mut package = PackageBuilder::new(package_options("2026-09-02T10:00:00Z")).unwrap();
+    let mut drawing = package.add_drawing(drawing_options()).unwrap();
+    add_default_layer(&mut drawing);
+    drop(drawing);
+
+    let encoded = package.finish().unwrap();
     let paths = encoded.files().map(|(path, _)| path).collect::<Vec<_>>();
 
     assert_eq!(

@@ -1,6 +1,10 @@
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
-pub enum BuildError {
+pub enum PackageBuildError {
+    #[error("a package requires one drawing before it can be finished")]
+    DrawingMissing,
+    #[error("this package already has a drawing")]
+    DrawingAlreadyDefined,
     #[error("{field} must not be empty")]
     EmptyValue { field: &'static str },
     #[error("timestamp must be valid RFC 3339 with Z or +00:00")]

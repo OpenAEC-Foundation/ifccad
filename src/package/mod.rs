@@ -4,6 +4,7 @@
 //! typed model only after all required validation succeeds.
 
 mod read;
+mod write;
 
 pub use crate::diagnostic::{
     PackageDiagnostic, PackageDiagnosticContextValue, PackageDiagnosticSeverity,
@@ -15,6 +16,12 @@ pub use read::{
     GeometryRepresentationRef, IndexedColorRef, LayerRef, LinePatternRef, NamedColorRef,
     PackageHeaderRef, PackageLoadOutcome, PackageOpenError, PackageValidationReport, RgbColor,
     ValidatedPackage,
+};
+pub use write::{
+    AppearanceColor, AppearanceDefinition, AppearanceKey, DrawingAppearances, DrawingBuilder,
+    DrawingLayers, DrawingOptions, EncodedPackage, EntityAppearance, LayerDefinition, LayerKey,
+    LineDefinition, LinePatternDefinition, ModelSpaceBuilder, PackageBuildError, PackageBuilder,
+    PackageOptions, PackageWriteError, PolylineDefinition,
 };
 
 /// Current IFCX entrypoint inside an exploded directory package.

@@ -1,7 +1,7 @@
-use ifccad::builder::{
-    EncodedIfccadPackage, IfccadPackageBuilder, PackageOptions, PackageWriteError,
-};
 use ifccad::ifcdr::IfcdrLengthUnit;
+use ifccad::package::{
+    DrawingOptions, EncodedPackage, PackageBuilder, PackageOptions, PackageWriteError,
+};
 use ifccad::{PackageId, ResourceId};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -34,19 +34,23 @@ impl Drop for TempRoot {
     }
 }
 
-fn encoded() -> EncodedIfccadPackage {
-    IfccadPackageBuilder::new(PackageOptions {
+fn encoded() -> EncodedPackage {
+    let mut package = PackageBuilder::new(PackageOptions {
         package_id: PackageId::new("filesystem-test").unwrap(),
         data_version: "1".to_owned(),
         author: "writer tests".to_owned(),
         timestamp: "2026-09-03T12:00:00Z".to_owned(),
-        model_layout_name: "Model".to_owned(),
-        representation_resource_id: ResourceId::new("modelspace").unwrap(),
-        length_unit: IfcdrLengthUnit::Metre,
     })
-    .unwrap()
-    .finish()
-    .unwrap()
+    .unwrap();
+    let drawing = package
+        .add_drawing(DrawingOptions {
+            model_layout_name: "Model".to_owned(),
+            representation_resource_id: ResourceId::new("modelspace").unwrap(),
+            length_unit: IfcdrLengthUnit::Metre,
+        })
+        .unwrap();
+    drop(drawing);
+    package.finish().unwrap()
 }
 
 #[test]

@@ -11,7 +11,6 @@
 #![allow(missing_docs)]
 #![warn(rustdoc::missing_crate_level_docs)]
 
-pub mod builder;
 pub mod canonicalization;
 pub mod conformance;
 mod diagnostic;

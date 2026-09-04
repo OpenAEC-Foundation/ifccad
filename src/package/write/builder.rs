@@ -1,15 +1,10 @@
-mod artifact;
-mod error;
-mod ifcx;
-mod state;
-mod types;
-
-pub use artifact::EncodedIfccadPackage;
-pub use error::{BuildError, PackageWriteError};
-pub use types::{
-    AppearanceColor, AppearanceDefinition, AppearanceKey, EntityAppearance, IndexedColor,
-    LayerDefinition, LayerKey, LineDefinition, LinePatternDefinition, NamedColor, PackageOptions,
-    PolylineDefinition,
+use super::artifact::EncodedPackage;
+use super::error::PackageBuildError;
+use super::ifcx::{assemble_ifcx, NodePaths, MODEL_SPACE_RESOURCE_URI};
+use super::state::{AppearanceEntry, DrawingState, LayerEntry, PackageState, PendingEntity};
+use super::types::{
+    AppearanceDefinition, AppearanceKey, DrawingOptions, EntityAppearance, LayerDefinition,
+    LayerKey, LineDefinition, PackageOptions, PolylineDefinition,
 };
 
 use crate::ifcdr::write::{
@@ -18,64 +13,75 @@ use crate::ifcdr::write::{
 };
 use crate::ifcdr::{AppearanceId, EntityId, LayerId, Point2, ScopeId};
 use crate::package::canonical_rfc3339_utc;
-use ifcx::{assemble_ifcx, NodePaths, MODEL_SPACE_RESOURCE_URI};
-use state::{AppearanceEntry, BuilderState, LayerEntry, PendingEntity};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 static NEXT_BUILDER_TOKEN: AtomicU64 = AtomicU64::new(1);
 
 #[derive(Debug)]
-pub struct IfccadPackageBuilder {
+pub struct PackageBuilder {
     pub(crate) options: PackageOptions,
-    pub(crate) token: u64,
-    pub(crate) state: BuilderState,
+    pub(crate) state: PackageState,
 }
 
-impl IfccadPackageBuilder {
-    pub fn new(mut options: PackageOptions) -> Result<Self, BuildError> {
+impl PackageBuilder {
+    pub fn new(mut options: PackageOptions) -> Result<Self, PackageBuildError> {
         for (field, value) in [
             ("data_version", options.data_version.as_str()),
             ("author", options.author.as_str()),
-            ("model_layout_name", options.model_layout_name.as_str()),
         ] {
             if value.is_empty() {
-                return Err(BuildError::EmptyValue { field });
+                return Err(PackageBuildError::EmptyValue { field });
             }
         }
 
         options.timestamp =
-            canonical_rfc3339_utc(&options.timestamp).ok_or(BuildError::InvalidTimestamp)?;
+            canonical_rfc3339_utc(&options.timestamp).ok_or(PackageBuildError::InvalidTimestamp)?;
+
+        Ok(Self {
+            options,
+            state: PackageState::default(),
+        })
+    }
+
+    pub fn add_drawing(
+        &mut self,
+        options: DrawingOptions,
+    ) -> Result<DrawingBuilder<'_>, PackageBuildError> {
+        if self.state.drawing.is_some() {
+            return Err(PackageBuildError::DrawingAlreadyDefined);
+        }
+        if options.model_layout_name.is_empty() {
+            return Err(PackageBuildError::EmptyValue {
+                field: "model_layout_name",
+            });
+        }
         let token = NEXT_BUILDER_TOKEN
             .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |value| {
                 value.checked_add(1)
             })
-            .map_err(|_| BuildError::RangeExhausted {
-                kind: "builder token",
+            .map_err(|_| PackageBuildError::RangeExhausted {
+                kind: "drawing token",
             })?;
-
-        Ok(Self {
+        self.state.drawing = Some(DrawingState {
             options,
             token,
-            state: BuilderState::default(),
+            appearances: Vec::new(),
+            layers: Vec::new(),
+            layer_names: Default::default(),
+            entities: Vec::new(),
+        });
+        Ok(DrawingBuilder {
+            state: self.state.drawing.as_mut().expect("drawing inserted"),
         })
     }
 
-    pub fn appearances(&mut self) -> Appearances<'_> {
-        Appearances { builder: self }
-    }
-
-    pub fn layers(&mut self) -> Layers<'_> {
-        Layers { builder: self }
-    }
-
-    pub fn model_space(&mut self) -> ModelSpace<'_> {
-        ModelSpace { builder: self }
-    }
-
-    pub fn finish(self) -> Result<EncodedIfccadPackage, BuildError> {
-        let paths = NodePaths::for_builder(&self)?;
-        let layers = self
+    pub fn finish(self) -> Result<EncodedPackage, PackageBuildError> {
+        let drawing = self
             .state
+            .drawing
+            .ok_or(PackageBuildError::DrawingMissing)?;
+        let paths = NodePaths::for_drawing(&drawing)?;
+        let layers = drawing
             .layers
             .iter()
             .zip(&paths.layers)
@@ -84,8 +90,7 @@ impl IfccadPackageBuilder {
                 ifcx_path: path,
             })
             .collect::<Vec<_>>();
-        let appearances = self
-            .state
+        let appearances = drawing
             .appearances
             .iter()
             .zip(&paths.appearances)
@@ -94,8 +99,7 @@ impl IfccadPackageBuilder {
                 ifcx_path: path,
             })
             .collect::<Vec<_>>();
-        let entities = self
-            .state
+        let entities = drawing
             .entities
             .iter()
             .map(|entity| match entity {
@@ -124,8 +128,8 @@ impl IfccadPackageBuilder {
             })
             .collect::<Vec<_>>();
         let input = IfcdrEncodeInput {
-            resource_id: &self.options.representation_resource_id,
-            unit: self.options.length_unit,
+            resource_id: &drawing.options.representation_resource_id,
+            unit: drawing.options.length_unit,
             scope: IfcdrScopeInput {
                 id: ScopeId::new(0),
                 kind: 0,
@@ -142,8 +146,8 @@ impl IfccadPackageBuilder {
         debug_assert!(resource.bounds.min().y().is_finite());
         debug_assert!(resource.bounds.max().x().is_finite());
         debug_assert!(resource.bounds.max().y().is_finite());
-        let entrypoint = assemble_ifcx(&self, &paths, &resource)?;
-        Ok(EncodedIfccadPackage::new([
+        let entrypoint = assemble_ifcx(&self.options, &drawing, &paths, &resource)?;
+        Ok(EncodedPackage::new([
             (
                 crate::package::DIRECTORY_PACKAGE_ENTRYPOINT.to_owned(),
                 entrypoint,
@@ -161,163 +165,175 @@ fn appearance_id(appearance: EntityAppearance) -> AppearanceId {
     })
 }
 
-fn map_ifcdr_encode_error(error: IfcdrEncodeError) -> BuildError {
+fn map_ifcdr_encode_error(error: IfcdrEncodeError) -> PackageBuildError {
     match error {
-        IfcdrEncodeError::RangeExhausted { kind } => BuildError::RangeExhausted { kind },
+        IfcdrEncodeError::RangeExhausted { kind } => PackageBuildError::RangeExhausted { kind },
         IfcdrEncodeError::InvalidInput { message }
-        | IfcdrEncodeError::Serialization { message } => BuildError::Encoding {
+        | IfcdrEncodeError::Serialization { message } => PackageBuildError::Encoding {
             stage: "IFCDR",
             message,
         },
     }
 }
 
-pub struct Appearances<'a> {
-    builder: &'a mut IfccadPackageBuilder,
+pub struct DrawingBuilder<'a> {
+    state: &'a mut DrawingState,
 }
 
-impl Appearances<'_> {
-    pub fn add(&mut self, definition: AppearanceDefinition) -> Result<AppearanceKey, BuildError> {
+impl DrawingBuilder<'_> {
+    pub fn appearances(&mut self) -> DrawingAppearances<'_> {
+        DrawingAppearances { state: self.state }
+    }
+
+    pub fn layers(&mut self) -> DrawingLayers<'_> {
+        DrawingLayers { state: self.state }
+    }
+
+    pub fn model_space(&mut self) -> ModelSpaceBuilder<'_> {
+        ModelSpaceBuilder { state: self.state }
+    }
+}
+
+pub struct DrawingAppearances<'a> {
+    state: &'a mut DrawingState,
+}
+
+impl DrawingAppearances<'_> {
+    pub fn add(
+        &mut self,
+        definition: AppearanceDefinition,
+    ) -> Result<AppearanceKey, PackageBuildError> {
         validate_appearance(&definition)?;
-        let offset = u32::try_from(self.builder.state.appearances.len())
-            .map_err(|_| BuildError::RangeExhausted { kind: "appearance" })?;
+        let offset = u32::try_from(self.state.appearances.len())
+            .map_err(|_| PackageBuildError::RangeExhausted { kind: "appearance" })?;
         let local_id = 2_u32
             .checked_add(offset)
-            .ok_or(BuildError::RangeExhausted { kind: "appearance" })?;
-        self.builder.state.appearances.push(AppearanceEntry {
+            .ok_or(PackageBuildError::RangeExhausted { kind: "appearance" })?;
+        self.state.appearances.push(AppearanceEntry {
             local_id,
             definition,
         });
         Ok(AppearanceKey {
-            builder_token: self.builder.token,
+            builder_token: self.state.token,
             local_id,
         })
     }
 }
 
-pub struct Layers<'a> {
-    builder: &'a mut IfccadPackageBuilder,
+pub struct DrawingLayers<'a> {
+    state: &'a mut DrawingState,
 }
 
-impl Layers<'_> {
-    pub fn add(&mut self, definition: LayerDefinition) -> Result<LayerKey, BuildError> {
+impl DrawingLayers<'_> {
+    pub fn add(&mut self, definition: LayerDefinition) -> Result<LayerKey, PackageBuildError> {
         if definition.name.is_empty() {
-            return Err(BuildError::EmptyValue {
+            return Err(PackageBuildError::EmptyValue {
                 field: "layer_name",
             });
         }
-        self.builder
-            .validate_appearance_key(definition.appearance)?;
+        self.state.validate_appearance_key(definition.appearance)?;
         let normalized_name = definition.name.to_ascii_lowercase();
-        if self
-            .builder
-            .state
-            .layer_names
-            .contains_key(&normalized_name)
-        {
-            return Err(BuildError::DuplicateLayerName {
+        if self.state.layer_names.contains_key(&normalized_name) {
+            return Err(PackageBuildError::DuplicateLayerName {
                 name: definition.name,
             });
         }
-        let local_id = u32::try_from(self.builder.state.layers.len())
-            .map_err(|_| BuildError::RangeExhausted { kind: "layer" })?;
-        let index = self.builder.state.layers.len();
-        self.builder.state.layers.push(LayerEntry {
+        let local_id = u32::try_from(self.state.layers.len())
+            .map_err(|_| PackageBuildError::RangeExhausted { kind: "layer" })?;
+        let index = self.state.layers.len();
+        self.state.layers.push(LayerEntry {
             local_id,
             definition,
         });
-        self.builder
-            .state
-            .layer_names
-            .insert(normalized_name, index);
+        self.state.layer_names.insert(normalized_name, index);
         Ok(LayerKey {
-            builder_token: self.builder.token,
+            builder_token: self.state.token,
             local_id,
         })
     }
 
     pub fn by_name(&self, name: &str) -> Option<LayerKey> {
-        let index = *self
-            .builder
-            .state
-            .layer_names
-            .get(&name.to_ascii_lowercase())?;
+        let index = *self.state.layer_names.get(&name.to_ascii_lowercase())?;
         Some(LayerKey {
-            builder_token: self.builder.token,
-            local_id: self.builder.state.layers[index].local_id,
+            builder_token: self.state.token,
+            local_id: self.state.layers[index].local_id,
         })
     }
 }
 
-impl IfccadPackageBuilder {
-    fn validate_appearance_key(&self, key: AppearanceKey) -> Result<(), BuildError> {
+impl DrawingState {
+    fn validate_appearance_key(&self, key: AppearanceKey) -> Result<(), PackageBuildError> {
         let index = key
             .local_id
             .checked_sub(2)
             .and_then(|value| usize::try_from(value).ok());
         if key.builder_token != self.token
-            || index.is_none_or(|index| index >= self.state.appearances.len())
+            || index.is_none_or(|index| index >= self.appearances.len())
         {
-            return Err(BuildError::ForeignAppearanceKey);
+            return Err(PackageBuildError::ForeignAppearanceKey);
         }
         Ok(())
     }
 
-    fn validate_layer_key(&self, key: LayerKey) -> Result<(), BuildError> {
+    fn validate_layer_key(&self, key: LayerKey) -> Result<(), PackageBuildError> {
         let index = usize::try_from(key.local_id).ok();
-        if key.builder_token != self.token
-            || index.is_none_or(|index| index >= self.state.layers.len())
-        {
-            return Err(BuildError::ForeignLayerKey);
+        if key.builder_token != self.token || index.is_none_or(|index| index >= self.layers.len()) {
+            return Err(PackageBuildError::ForeignLayerKey);
         }
         Ok(())
     }
 
-    fn validate_entity_appearance(&self, appearance: EntityAppearance) -> Result<(), BuildError> {
+    fn validate_entity_appearance(
+        &self,
+        appearance: EntityAppearance,
+    ) -> Result<(), PackageBuildError> {
         match appearance {
             EntityAppearance::ByLayer | EntityAppearance::ByBlock => Ok(()),
             EntityAppearance::Explicit(key) => self.validate_appearance_key(key),
         }
     }
 
-    fn next_entity_id(&self) -> Result<EntityId, BuildError> {
-        let count = u64::try_from(self.state.entities.len())
-            .map_err(|_| BuildError::RangeExhausted { kind: "entity" })?;
+    fn next_entity_id(&self) -> Result<EntityId, PackageBuildError> {
+        let count = u64::try_from(self.entities.len())
+            .map_err(|_| PackageBuildError::RangeExhausted { kind: "entity" })?;
         let value = count
             .checked_add(1)
-            .ok_or(BuildError::RangeExhausted { kind: "entity" })?;
-        EntityId::new(value).ok_or(BuildError::RangeExhausted { kind: "entity" })
+            .ok_or(PackageBuildError::RangeExhausted { kind: "entity" })?;
+        EntityId::new(value).ok_or(PackageBuildError::RangeExhausted { kind: "entity" })
     }
 }
 
-pub struct ModelSpace<'a> {
-    builder: &'a mut IfccadPackageBuilder,
+pub struct ModelSpaceBuilder<'a> {
+    state: &'a mut DrawingState,
 }
 
-impl ModelSpace<'_> {
-    pub fn add_line(&mut self, definition: LineDefinition) -> Result<EntityId, BuildError> {
-        self.builder.validate_layer_key(definition.layer)?;
-        self.builder
+impl ModelSpaceBuilder<'_> {
+    pub fn add_line(&mut self, definition: LineDefinition) -> Result<EntityId, PackageBuildError> {
+        self.state.validate_layer_key(definition.layer)?;
+        self.state
             .validate_entity_appearance(definition.appearance)?;
         validate_points([definition.start, definition.end])?;
-        let entity_id = self.builder.next_entity_id()?;
-        self.builder.state.entities.push(PendingEntity::Line {
+        let entity_id = self.state.next_entity_id()?;
+        self.state.entities.push(PendingEntity::Line {
             entity_id,
             definition,
         });
         Ok(entity_id)
     }
 
-    pub fn add_polyline(&mut self, definition: PolylineDefinition) -> Result<EntityId, BuildError> {
+    pub fn add_polyline(
+        &mut self,
+        definition: PolylineDefinition,
+    ) -> Result<EntityId, PackageBuildError> {
         if definition.points.len() < 2 {
-            return Err(BuildError::PolylineTooShort);
+            return Err(PackageBuildError::PolylineTooShort);
         }
-        self.builder.validate_layer_key(definition.layer)?;
-        self.builder
+        self.state.validate_layer_key(definition.layer)?;
+        self.state
             .validate_entity_appearance(definition.appearance)?;
         validate_points(definition.points.iter().copied())?;
-        let entity_id = self.builder.next_entity_id()?;
-        self.builder.state.entities.push(PendingEntity::Polyline {
+        let entity_id = self.state.next_entity_id()?;
+        self.state.entities.push(PendingEntity::Polyline {
             entity_id,
             definition,
         });
@@ -327,30 +343,30 @@ impl ModelSpace<'_> {
 
 fn validate_points(
     points: impl IntoIterator<Item = crate::ifcdr::Point2>,
-) -> Result<(), BuildError> {
+) -> Result<(), PackageBuildError> {
     if points
         .into_iter()
         .any(|point| !point.x().is_finite() || !point.y().is_finite())
     {
-        return Err(BuildError::NonFiniteCoordinate);
+        return Err(PackageBuildError::NonFiniteCoordinate);
     }
     Ok(())
 }
 
-fn validate_appearance(definition: &AppearanceDefinition) -> Result<(), BuildError> {
+fn validate_appearance(definition: &AppearanceDefinition) -> Result<(), PackageBuildError> {
     for (field, value) in [
         ("appearance_name", definition.name.as_str()),
         ("line_pattern_name", definition.line_pattern.name.as_str()),
     ] {
         if value.is_empty() {
-            return Err(BuildError::EmptyValue { field });
+            return Err(PackageBuildError::EmptyValue { field });
         }
     }
     if !definition.opacity.is_finite() || !(0.0..=1.0).contains(&definition.opacity) {
-        return Err(BuildError::InvalidOpacity);
+        return Err(PackageBuildError::InvalidOpacity);
     }
     if !definition.line_weight.is_finite() || definition.line_weight < 0.0 {
-        return Err(BuildError::InvalidLineWeight);
+        return Err(PackageBuildError::InvalidLineWeight);
     }
     if definition
         .color
@@ -358,18 +374,18 @@ fn validate_appearance(definition: &AppearanceDefinition) -> Result<(), BuildErr
         .as_ref()
         .is_some_and(|color| color.system.is_empty())
     {
-        return Err(BuildError::EmptyValue {
+        return Err(PackageBuildError::EmptyValue {
             field: "indexed_color_system",
         });
     }
     if let Some(color) = &definition.color.named {
         if color.catalog.is_empty() {
-            return Err(BuildError::EmptyValue {
+            return Err(PackageBuildError::EmptyValue {
                 field: "named_color_catalog",
             });
         }
         if color.name.is_empty() {
-            return Err(BuildError::EmptyValue {
+            return Err(PackageBuildError::EmptyValue {
                 field: "named_color_name",
             });
         }

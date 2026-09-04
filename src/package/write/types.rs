@@ -7,6 +7,10 @@ pub struct PackageOptions {
     pub data_version: String,
     pub author: String,
     pub timestamp: String,
+}
+
+#[derive(Clone, Debug)]
+pub struct DrawingOptions {
     pub model_layout_name: String,
     pub representation_resource_id: ResourceId,
     pub length_unit: IfcdrLengthUnit,

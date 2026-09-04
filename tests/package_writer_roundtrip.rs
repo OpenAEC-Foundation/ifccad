@@ -1,10 +1,8 @@
-use ifccad::builder::{
-    AppearanceColor, AppearanceDefinition, EntityAppearance, IfccadPackageBuilder, LayerDefinition,
-    LineDefinition, LinePatternDefinition, PackageOptions, PolylineDefinition,
-};
 use ifccad::ifcdr::{AppearanceId, IfcdrEntityRef, IfcdrLengthUnit, Point2};
 use ifccad::package::{
-    load_directory_package, AppearanceProperty, DrawingLayoutKind, LinePatternRef,
+    load_directory_package, AppearanceColor, AppearanceDefinition, AppearanceProperty,
+    DrawingLayoutKind, DrawingOptions, EntityAppearance, LayerDefinition, LineDefinition,
+    LinePatternDefinition, LinePatternRef, PackageBuilder, PackageOptions, PolylineDefinition,
 };
 use ifccad::{PackageId, ResourceId};
 use std::fs;
@@ -34,18 +32,22 @@ impl Drop for TempRoot {
     }
 }
 
-fn representative_builder() -> IfccadPackageBuilder {
-    let mut builder = IfccadPackageBuilder::new(PackageOptions {
+fn representative_builder() -> PackageBuilder {
+    let mut package = PackageBuilder::new(PackageOptions {
         package_id: PackageId::new("roundtrip-package").unwrap(),
         data_version: "42".to_owned(),
         author: "Writer integration test".to_owned(),
         timestamp: "2026-09-03T14:15:16.125+00:00".to_owned(),
-        model_layout_name: "Model layout".to_owned(),
-        representation_resource_id: ResourceId::new("geometry-main").unwrap(),
-        length_unit: IfcdrLengthUnit::Millimetre,
     })
     .unwrap();
-    let solid = builder
+    let mut drawing = package
+        .add_drawing(DrawingOptions {
+            model_layout_name: "Model layout".to_owned(),
+            representation_resource_id: ResourceId::new("geometry-main").unwrap(),
+            length_unit: IfcdrLengthUnit::Millimetre,
+        })
+        .unwrap();
+    let solid = drawing
         .appearances()
         .add(AppearanceDefinition {
             name: "Solid black".to_owned(),
@@ -55,7 +57,7 @@ fn representative_builder() -> IfccadPackageBuilder {
             line_weight: 0.25,
         })
         .unwrap();
-    let dashed = builder
+    let dashed = drawing
         .appearances()
         .add(AppearanceDefinition {
             name: "Dashed red".to_owned(),
@@ -65,7 +67,7 @@ fn representative_builder() -> IfccadPackageBuilder {
             line_weight: 0.18,
         })
         .unwrap();
-    let layer_0 = builder
+    let layer_0 = drawing
         .layers()
         .add(LayerDefinition {
             name: "0".to_owned(),
@@ -73,7 +75,7 @@ fn representative_builder() -> IfccadPackageBuilder {
             appearance: solid,
         })
         .unwrap();
-    let walls = builder
+    let walls = drawing
         .layers()
         .add(LayerDefinition {
             name: "A-WALL".to_owned(),
@@ -82,7 +84,7 @@ fn representative_builder() -> IfccadPackageBuilder {
         })
         .unwrap();
 
-    builder
+    drawing
         .model_space()
         .add_line(LineDefinition {
             start: Point2::new(0.0, 0.0),
@@ -92,7 +94,7 @@ fn representative_builder() -> IfccadPackageBuilder {
             visible: true,
         })
         .unwrap();
-    builder
+    drawing
         .model_space()
         .add_polyline(PolylineDefinition {
             points: vec![Point2::new(-2.0, 3.0), Point2::new(4.0, -5.0)],
@@ -102,7 +104,7 @@ fn representative_builder() -> IfccadPackageBuilder {
             visible: false,
         })
         .unwrap();
-    builder
+    drawing
         .model_space()
         .add_line(LineDefinition {
             start: Point2::new(1.0, 2.0),
@@ -112,7 +114,7 @@ fn representative_builder() -> IfccadPackageBuilder {
             visible: false,
         })
         .unwrap();
-    builder
+    drawing
         .model_space()
         .add_polyline(PolylineDefinition {
             points: vec![
@@ -126,7 +128,8 @@ fn representative_builder() -> IfccadPackageBuilder {
             visible: true,
         })
         .unwrap();
-    builder
+    drop(drawing);
+    package
 }
 
 #[test]
@@ -265,20 +268,22 @@ fn identical_input_is_byte_deterministic_across_builder_tokens() {
 fn empty_model_space_reloads_with_zero_bounds_and_no_entities() {
     let root = TempRoot::new();
     let target = root.0.join("empty-project");
-    IfccadPackageBuilder::new(PackageOptions {
+    let mut builder = PackageBuilder::new(PackageOptions {
         package_id: PackageId::new("empty-package").unwrap(),
         data_version: "1".to_owned(),
         author: "Writer integration test".to_owned(),
         timestamp: "2026-09-03T14:15:16Z".to_owned(),
-        model_layout_name: "Model".to_owned(),
-        representation_resource_id: ResourceId::new("empty-geometry").unwrap(),
-        length_unit: IfcdrLengthUnit::Unitless,
     })
-    .unwrap()
-    .finish()
-    .unwrap()
-    .write_directory(&target)
     .unwrap();
+    let drawing = builder
+        .add_drawing(DrawingOptions {
+            model_layout_name: "Model".to_owned(),
+            representation_resource_id: ResourceId::new("empty-geometry").unwrap(),
+            length_unit: IfcdrLengthUnit::Unitless,
+        })
+        .unwrap();
+    drop(drawing);
+    builder.finish().unwrap().write_directory(&target).unwrap();
 
     let loaded = load_directory_package(&target).unwrap();
     assert!(loaded.report().is_empty(), "{:#?}", loaded.report());

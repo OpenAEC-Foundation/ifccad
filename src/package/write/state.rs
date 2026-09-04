@@ -1,4 +1,6 @@
-use super::{AppearanceDefinition, LayerDefinition, LineDefinition, PolylineDefinition};
+use super::{
+    AppearanceDefinition, DrawingOptions, LayerDefinition, LineDefinition, PolylineDefinition,
+};
 use crate::ifcdr::EntityId;
 use std::collections::BTreeMap;
 
@@ -27,7 +29,14 @@ pub(crate) enum PendingEntity {
 }
 
 #[derive(Debug, Default)]
-pub(crate) struct BuilderState {
+pub(crate) struct PackageState {
+    pub(crate) drawing: Option<DrawingState>,
+}
+
+#[derive(Debug)]
+pub(crate) struct DrawingState {
+    pub(crate) options: DrawingOptions,
+    pub(crate) token: u64,
     pub(crate) appearances: Vec<AppearanceEntry>,
     pub(crate) layers: Vec<LayerEntry>,
     pub(crate) layer_names: BTreeMap<String, usize>,

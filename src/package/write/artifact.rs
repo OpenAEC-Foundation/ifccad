@@ -8,11 +8,11 @@ use std::sync::atomic::{AtomicU64, Ordering};
 static NEXT_STAGING_ID: AtomicU64 = AtomicU64::new(1);
 
 #[derive(Clone, Debug)]
-pub struct EncodedIfccadPackage {
+pub struct EncodedPackage {
     files: BTreeMap<String, Vec<u8>>,
 }
 
-impl EncodedIfccadPackage {
+impl EncodedPackage {
     pub(crate) fn new(files: impl IntoIterator<Item = (String, Vec<u8>)>) -> Self {
         Self {
             files: files.into_iter().collect(),
@@ -156,8 +156,8 @@ fn io_error(operation: &'static str, path: &Path, source: std::io::Error) -> Pac
 
 #[cfg(test)]
 mod tests {
-    use super::EncodedIfccadPackage;
-    use crate::builder::PackageWriteError;
+    use super::super::error::PackageWriteError;
+    use super::EncodedPackage;
     use std::fs;
     use std::path::PathBuf;
     use std::sync::atomic::{AtomicU64, Ordering};
@@ -179,7 +179,7 @@ mod tests {
     fn rejects_escaping_artifact_paths_before_writing() {
         let root = temp_root("path");
         let target = root.join("project");
-        let artifact = EncodedIfccadPackage::new([("../escape.json".to_owned(), vec![1])]);
+        let artifact = EncodedPackage::new([("../escape.json".to_owned(), vec![1])]);
 
         assert!(matches!(
             artifact.write_directory(&target),
@@ -194,7 +194,7 @@ mod tests {
     fn failed_staging_write_leaves_no_target_or_temporary_sibling() {
         let root = temp_root("rollback");
         let target = root.join("project");
-        let artifact = EncodedIfccadPackage::new([
+        let artifact = EncodedPackage::new([
             ("resources".to_owned(), vec![1]),
             ("resources/model.ifcdr.json".to_owned(), vec![2]),
         ]);

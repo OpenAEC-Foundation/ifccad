@@ -346,31 +346,50 @@ fn unit_name(unit: IfcdrLengthUnit) -> &'static str {
 
 #[cfg(test)]
 mod tests {
-    use crate::builder::{
-        AppearanceColor, AppearanceDefinition, EntityAppearance, IfccadPackageBuilder,
-        LayerDefinition, LineDefinition, LinePatternDefinition, PackageOptions, PolylineDefinition,
-    };
     use crate::ifcdr::{IfcdrLengthUnit, Point2};
+    use crate::package::{
+        AppearanceColor, AppearanceDefinition, DrawingOptions, EntityAppearance, LayerDefinition,
+        LineDefinition, LinePatternDefinition, PackageBuilder, PackageOptions, PolylineDefinition,
+    };
     use crate::{PackageId, ResourceId};
     use serde_json::Value;
     use sha2::{Digest, Sha256};
 
-    fn empty_builder() -> IfccadPackageBuilder {
-        IfccadPackageBuilder::new(PackageOptions {
+    fn empty_builder() -> PackageBuilder {
+        let mut package = PackageBuilder::new(PackageOptions {
             package_id: PackageId::new("empty-package").unwrap(),
             data_version: "1".to_owned(),
             author: "writer test".to_owned(),
             timestamp: "2026-09-03T10:00:00Z".to_owned(),
-            model_layout_name: "Model".to_owned(),
-            representation_resource_id: ResourceId::new("empty-modelspace").unwrap(),
-            length_unit: IfcdrLengthUnit::Millimetre,
         })
-        .unwrap()
+        .unwrap();
+        let drawing = package
+            .add_drawing(DrawingOptions {
+                model_layout_name: "Model".to_owned(),
+                representation_resource_id: ResourceId::new("empty-modelspace").unwrap(),
+                length_unit: IfcdrLengthUnit::Millimetre,
+            })
+            .unwrap();
+        drop(drawing);
+        package
     }
 
-    fn mixed_builder() -> IfccadPackageBuilder {
-        let mut builder = empty_builder();
-        let solid = builder
+    fn mixed_builder() -> PackageBuilder {
+        let mut package = PackageBuilder::new(PackageOptions {
+            package_id: PackageId::new("empty-package").unwrap(),
+            data_version: "1".to_owned(),
+            author: "writer test".to_owned(),
+            timestamp: "2026-09-03T10:00:00Z".to_owned(),
+        })
+        .unwrap();
+        let mut drawing = package
+            .add_drawing(DrawingOptions {
+                model_layout_name: "Model".to_owned(),
+                representation_resource_id: ResourceId::new("empty-modelspace").unwrap(),
+                length_unit: IfcdrLengthUnit::Millimetre,
+            })
+            .unwrap();
+        let solid = drawing
             .appearances()
             .add(AppearanceDefinition {
                 name: "Solid".to_owned(),
@@ -380,7 +399,7 @@ mod tests {
                 line_weight: 0.25,
             })
             .unwrap();
-        let dashed = builder
+        let dashed = drawing
             .appearances()
             .add(AppearanceDefinition {
                 name: "Dashed".to_owned(),
@@ -390,7 +409,7 @@ mod tests {
                 line_weight: 0.18,
             })
             .unwrap();
-        let layer_0 = builder
+        let layer_0 = drawing
             .layers()
             .add(LayerDefinition {
                 name: "0".to_owned(),
@@ -398,7 +417,7 @@ mod tests {
                 appearance: solid,
             })
             .unwrap();
-        let layer_1 = builder
+        let layer_1 = drawing
             .layers()
             .add(LayerDefinition {
                 name: "A-WALL".to_owned(),
@@ -406,7 +425,7 @@ mod tests {
                 appearance: dashed,
             })
             .unwrap();
-        builder
+        drawing
             .model_space()
             .add_line(LineDefinition {
                 start: Point2::new(0.0, 0.0),
@@ -416,7 +435,7 @@ mod tests {
                 visible: true,
             })
             .unwrap();
-        builder
+        drawing
             .model_space()
             .add_polyline(PolylineDefinition {
                 points: vec![Point2::new(-2.0, 3.0), Point2::new(4.0, -5.0)],
@@ -426,7 +445,7 @@ mod tests {
                 visible: false,
             })
             .unwrap();
-        builder
+        drawing
             .model_space()
             .add_line(LineDefinition {
                 start: Point2::new(1.0, 2.0),
@@ -436,7 +455,7 @@ mod tests {
                 visible: false,
             })
             .unwrap();
-        builder
+        drawing
             .model_space()
             .add_polyline(PolylineDefinition {
                 points: vec![
@@ -450,7 +469,8 @@ mod tests {
                 visible: true,
             })
             .unwrap();
-        builder
+        drop(drawing);
+        package
     }
 
     #[test]
@@ -583,12 +603,8 @@ mod tests {
         let checksum = format!("sha256:{:x}", Sha256::digest(bytes));
         let entrypoint = package.file("package.ifcx.json").unwrap();
         let ifcx: Value = serde_json::from_slice(entrypoint).unwrap();
-        assert!(ifcx["data"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|node| {
-                node["attributes"]["geometry"]["checksum"].as_str() == Some(checksum.as_str())
-            }));
+        assert!(ifcx["data"].as_array().unwrap().iter().any(|node| {
+            node["attributes"]["geometry"]["checksum"].as_str() == Some(checksum.as_str())
+        }));
     }
 }

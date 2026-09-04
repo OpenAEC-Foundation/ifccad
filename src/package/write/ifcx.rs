@@ -1,4 +1,6 @@
-use super::{BuildError, IfccadPackageBuilder};
+use super::error::PackageBuildError;
+use super::state::DrawingState;
+use super::types::PackageOptions;
 use crate::ifcdr::write::EncodedIfcdrResource;
 use serde_json::{json, Map, Value};
 
@@ -15,9 +17,9 @@ pub(crate) struct NodePaths {
 }
 
 impl NodePaths {
-    pub(crate) fn for_builder(builder: &IfccadPackageBuilder) -> Result<Self, BuildError> {
-        let layers = numbered_paths("layer", builder.state.layers.len())?;
-        let appearances = numbered_paths("appearance", builder.state.appearances.len())?;
+    pub(crate) fn for_drawing(drawing: &DrawingState) -> Result<Self, PackageBuildError> {
+        let layers = numbered_paths("layer", drawing.layers.len())?;
+        let appearances = numbered_paths("appearance", drawing.appearances.len())?;
         Ok(Self {
             drawing_set: "drawing-set-0".to_owned(),
             drawing: "drawing-0".to_owned(),
@@ -30,10 +32,11 @@ impl NodePaths {
 }
 
 pub(crate) fn assemble_ifcx(
-    builder: &IfccadPackageBuilder,
+    package_options: &PackageOptions,
+    drawing: &DrawingState,
     paths: &NodePaths,
     resource: &EncodedIfcdrResource,
-) -> Result<Vec<u8>, BuildError> {
+) -> Result<Vec<u8>, PackageBuildError> {
     let mut data = vec![
         json!({
             "path": paths.drawing_set,
@@ -52,7 +55,7 @@ pub(crate) fn assemble_ifcx(
             "path": paths.layout,
             "type": "openaec:DrawingLayout",
             "attributes": {
-                "name": builder.options.model_layout_name,
+                "name": drawing.options.model_layout_name,
                 "kind": "model",
                 "scopeId": 0
             },
@@ -75,8 +78,7 @@ pub(crate) fn assemble_ifcx(
         }),
     ];
 
-    let layer_nodes = builder
-        .state
+    let layer_nodes = drawing
         .layers
         .iter()
         .zip(&paths.layers)
@@ -88,7 +90,7 @@ pub(crate) fn assemble_ifcx(
                 .checked_sub(2)
                 .and_then(|value| usize::try_from(value).ok())
                 .filter(|&index| index < paths.appearances.len())
-                .ok_or_else(|| BuildError::Encoding {
+                .ok_or_else(|| PackageBuildError::Encoding {
                     stage: "IFCX layer",
                     message: format!(
                         "layer {} references an unavailable appearance",
@@ -105,11 +107,10 @@ pub(crate) fn assemble_ifcx(
                 }
             }))
         })
-        .collect::<Result<Vec<_>, BuildError>>()?;
+        .collect::<Result<Vec<_>, PackageBuildError>>()?;
     data.extend(layer_nodes);
     data.extend(
-        builder
-            .state
+        drawing
             .appearances
             .iter()
             .zip(&paths.appearances)
@@ -148,23 +149,23 @@ pub(crate) fn assemble_ifcx(
 
     serde_json::to_vec_pretty(&json!({
         "header": {
-            "id": builder.options.package_id,
+            "id": package_options.package_id,
             "ifcxVersion": "ifcx_alpha",
-            "dataVersion": builder.options.data_version,
-            "author": builder.options.author,
-            "timestamp": builder.options.timestamp
+            "dataVersion": package_options.data_version,
+            "author": package_options.author,
+            "timestamp": package_options.timestamp
         },
         "imports": [],
         "data": data
     }))
-    .map_err(|error| BuildError::Encoding {
+    .map_err(|error| PackageBuildError::Encoding {
         stage: "IFCX",
         message: error.to_string(),
     })
 }
 
-fn numbered_paths(prefix: &str, count: usize) -> Result<Vec<String>, BuildError> {
-    u32::try_from(count).map_err(|_| BuildError::RangeExhausted {
+fn numbered_paths(prefix: &str, count: usize) -> Result<Vec<String>, PackageBuildError> {
+    u32::try_from(count).map_err(|_| PackageBuildError::RangeExhausted {
         kind: "IFCX node path",
     })?;
     Ok((0..count)
@@ -174,28 +175,32 @@ fn numbered_paths(prefix: &str, count: usize) -> Result<Vec<String>, BuildError>
 
 #[cfg(test)]
 mod tests {
-    use crate::builder::{
-        AppearanceColor, AppearanceDefinition, IfccadPackageBuilder, LayerDefinition,
-        LinePatternDefinition, PackageOptions,
-    };
     use crate::ifcdr::IfcdrLengthUnit;
+    use crate::package::{
+        AppearanceColor, AppearanceDefinition, DrawingOptions, LayerDefinition,
+        LinePatternDefinition, PackageBuilder, PackageOptions,
+    };
     use crate::{PackageId, ResourceId};
     use serde_json::Value;
     use sha2::{Digest, Sha256};
 
     #[test]
     fn assembles_minimal_drawing_graph_with_external_geometry() {
-        let mut builder = IfccadPackageBuilder::new(PackageOptions {
+        let mut package = PackageBuilder::new(PackageOptions {
             package_id: PackageId::new("building-a").unwrap(),
             data_version: "17".to_owned(),
             author: "Example application".to_owned(),
             timestamp: "2026-09-03T10:00:00.125+00:00".to_owned(),
-            model_layout_name: "Model layout".to_owned(),
-            representation_resource_id: ResourceId::new("geometry-modelspace-main").unwrap(),
-            length_unit: IfcdrLengthUnit::Millimetre,
         })
         .unwrap();
-        let style = builder
+        let mut drawing = package
+            .add_drawing(DrawingOptions {
+                model_layout_name: "Model layout".to_owned(),
+                representation_resource_id: ResourceId::new("geometry-modelspace-main").unwrap(),
+                length_unit: IfcdrLengthUnit::Millimetre,
+            })
+            .unwrap();
+        let style = drawing
             .appearances()
             .add(AppearanceDefinition {
                 name: "Wall style".to_owned(),
@@ -207,7 +212,7 @@ mod tests {
                 line_weight: 0.25,
             })
             .unwrap();
-        builder
+        drawing
             .layers()
             .add(LayerDefinition {
                 name: "A-WALL".to_owned(),
@@ -216,9 +221,10 @@ mod tests {
             })
             .unwrap();
 
-        let package = builder.finish().unwrap();
+        drop(drawing);
+        let encoded = package.finish().unwrap();
         let root: Value =
-            serde_json::from_slice(package.file("package.ifcx.json").unwrap()).unwrap();
+            serde_json::from_slice(encoded.file("package.ifcx.json").unwrap()).unwrap();
 
         assert_eq!(root["header"]["id"], "building-a");
         assert_eq!(root["header"]["ifcxVersion"], "ifcx_alpha");
@@ -261,7 +267,7 @@ mod tests {
         assert_eq!(geometry["role"], "modelspace");
         assert_eq!(geometry["resourceId"], "geometry-modelspace-main");
         assert_eq!(geometry["uri"], "resources/model-space.ifcdr.json");
-        let ifcdr = package.file("resources/model-space.ifcdr.json").unwrap();
+        let ifcdr = encoded.file("resources/model-space.ifcdr.json").unwrap();
         assert_eq!(
             geometry["checksum"],
             format!("sha256:{:x}", Sha256::digest(ifcdr))
