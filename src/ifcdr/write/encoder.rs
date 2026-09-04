@@ -363,14 +363,13 @@ mod tests {
             timestamp: "2026-09-03T10:00:00Z".to_owned(),
         })
         .unwrap();
-        let drawing = package
+        package
             .add_drawing(DrawingOptions {
                 model_layout_name: "Model".to_owned(),
                 representation_resource_id: ResourceId::new("empty-modelspace").unwrap(),
                 length_unit: IfcdrLengthUnit::Millimetre,
             })
             .unwrap();
-        drop(drawing);
         package
     }
 
@@ -469,7 +468,6 @@ mod tests {
                 visible: true,
             })
             .unwrap();
-        drop(drawing);
         package
     }
 

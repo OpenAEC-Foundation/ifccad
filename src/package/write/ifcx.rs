@@ -221,7 +221,6 @@ mod tests {
             })
             .unwrap();
 
-        drop(drawing);
         let encoded = package.finish().unwrap();
         let root: Value =
             serde_json::from_slice(encoded.file("package.ifcx.json").unwrap()).unwrap();

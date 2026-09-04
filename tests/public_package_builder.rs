@@ -55,8 +55,7 @@ fn package_requires_exactly_one_drawing() {
     ));
 
     let mut package = PackageBuilder::new(package_options("2026-09-03T10:00:00Z")).unwrap();
-    let first = package.add_drawing(drawing_options()).unwrap();
-    drop(first);
+    package.add_drawing(drawing_options()).unwrap();
     assert!(matches!(
         package.add_drawing(drawing_options()),
         Err(PackageBuildError::DrawingAlreadyDefined)
@@ -388,8 +387,6 @@ fn finish_produces_the_two_logical_package_files() {
     let mut package = PackageBuilder::new(package_options("2026-09-02T10:00:00Z")).unwrap();
     let mut drawing = package.add_drawing(drawing_options()).unwrap();
     add_default_layer(&mut drawing);
-    drop(drawing);
-
     let encoded = package.finish().unwrap();
     let paths = encoded.files().map(|(path, _)| path).collect::<Vec<_>>();
 

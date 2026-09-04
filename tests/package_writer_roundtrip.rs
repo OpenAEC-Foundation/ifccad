@@ -128,7 +128,6 @@ fn representative_builder() -> PackageBuilder {
             visible: true,
         })
         .unwrap();
-    drop(drawing);
     package
 }
 
@@ -275,14 +274,13 @@ fn empty_model_space_reloads_with_zero_bounds_and_no_entities() {
         timestamp: "2026-09-03T14:15:16Z".to_owned(),
     })
     .unwrap();
-    let drawing = builder
+    builder
         .add_drawing(DrawingOptions {
             model_layout_name: "Model".to_owned(),
             representation_resource_id: ResourceId::new("empty-geometry").unwrap(),
             length_unit: IfcdrLengthUnit::Unitless,
         })
         .unwrap();
-    drop(drawing);
     builder.finish().unwrap().write_directory(&target).unwrap();
 
     let loaded = load_directory_package(&target).unwrap();
