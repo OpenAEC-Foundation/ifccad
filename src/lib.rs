@@ -4,9 +4,10 @@
 //! resources and optional IFCPR preservation resources. A package may be
 //! CAD-only or include a broader project, building, and product graph.
 //!
-//! This crate currently exposes canonicalisation, fingerprints, conformance
-//! support, and the stable package diagnostic vocabulary. Package loading and
-//! the wider format and conversion model remain under development.
+//! The public API is organised around package inspection and package creation,
+//! with shared IFCDR drawing-resource types exposed separately. Read and write
+//! implementation modules remain private so those responsibilities can evolve
+//! without becoming part of the public module structure.
 
 #![allow(missing_docs)]
 #![warn(rustdoc::missing_crate_level_docs)]

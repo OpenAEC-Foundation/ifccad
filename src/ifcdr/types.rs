@@ -100,7 +100,10 @@ impl ScopeId {
     }
 }
 
-/// Length unit declared by a validated IFCDR resource.
+/// Coordinate length unit owned and declared by an IFCDR resource.
+///
+/// It is resource metadata rather than a package- or drawing-wide setting;
+/// future packages may therefore contain resources with different units.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum IfcdrLengthUnit {
     Unitless,

@@ -8,6 +8,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 static NEXT_STAGING_ID: AtomicU64 = AtomicU64::new(1);
 
 #[derive(Clone, Debug)]
+/// Fully encoded package files awaiting publication to a directory.
 pub struct EncodedPackage {
     files: BTreeMap<String, Vec<u8>>,
 }
@@ -19,16 +20,21 @@ impl EncodedPackage {
         }
     }
 
+    /// Iterates over package-relative paths and their encoded bytes.
     pub fn files(&self) -> impl ExactSizeIterator<Item = (&str, &[u8])> {
         self.files
             .iter()
             .map(|(path, bytes)| (path.as_str(), bytes.as_slice()))
     }
 
+    /// Returns one encoded file by its package-relative path.
     pub fn file(&self, path: &str) -> Option<&[u8]> {
         self.files.get(path).map(Vec::as_slice)
     }
 
+    /// Atomically publishes the package as a new directory.
+    ///
+    /// Existing targets are never overwritten.
     pub fn write_directory(&self, target: impl AsRef<Path>) -> Result<(), PackageWriteError> {
         let target = target.as_ref();
         self.validate_artifact_paths()?;

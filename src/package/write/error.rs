@@ -1,5 +1,6 @@
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
+/// Failure while validating or encoding a package under construction.
 pub enum PackageBuildError {
     #[error("a package requires one drawing before it can be finished")]
     DrawingMissing,
@@ -34,6 +35,7 @@ pub enum PackageBuildError {
 
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
+/// Failure while publishing an encoded package directory.
 pub enum PackageWriteError {
     #[error("target package already exists: {path}", path = .path.display())]
     TargetExists { path: std::path::PathBuf },

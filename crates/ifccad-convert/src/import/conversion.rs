@@ -12,6 +12,10 @@ use ifccad::package::{
     AppearanceProperty, DrawingLayoutKind, DrawingRef, GeometryRepresentationRef, LayerRef,
 };
 
+/// Imports one validated IFCCAD drawing into a cadcodec [`CadDocument`].
+///
+/// `Import` is named from the `CadDocument` boundary: IFCCAD is the source and
+/// the returned CAD document is the destination.
 pub fn drawing_to_cad_document(drawing: DrawingRef<'_>) -> Result<ImportOutcome, ImportError> {
     let layouts = drawing.layouts().collect::<Vec<_>>();
     let model_layouts = layouts

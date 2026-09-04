@@ -95,7 +95,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 Opening a directory is intentionally separate from obtaining a strict model.
 `PackageLoadOutcome` always retains diagnostics for an inspectable package;
-`ValidatedIfccadPackage` is available only when the schema, graph, resources,
+`ValidatedPackage` is available only when the schema, graph, resources,
 bindings, and supported IFCDR content satisfy the current contract. Its typed
 views do not expose raw IFCX JSON or physical IFCDR stream columns.
 
@@ -107,37 +107,39 @@ preserved by the reader.
 ### Writing a directory package
 
 ```rust
-use ifccad::builder::{
-    AppearanceColor, AppearanceDefinition, EntityAppearance,
-    IfccadPackageBuilder, LayerDefinition, LineDefinition,
-    LinePatternDefinition, PackageOptions,
+use ifccad::ifcdr::{IfcdrLengthUnit, Point2};
+use ifccad::package::{
+    AppearanceColor, AppearanceDefinition, DrawingOptions, EntityAppearance,
+    LayerDefinition, LineDefinition, LinePatternDefinition, PackageBuilder,
+    PackageOptions,
 };
-use ifccad::ifcdr::{IfccadLengthUnit, Point2};
 use ifccad::{PackageId, ResourceId};
 
 fn write_example() -> Result<(), Box<dyn std::error::Error>> {
-    let mut builder = IfccadPackageBuilder::new(PackageOptions {
+    let mut package = PackageBuilder::new(PackageOptions {
         package_id: PackageId::new("building-a")?,
         data_version: "1".into(),
         author: "Example application".into(),
         timestamp: "2026-09-03T10:00:00Z".into(),
+    })?;
+    let mut drawing = package.add_drawing(DrawingOptions {
         model_layout_name: "Model".into(),
         representation_resource_id: ResourceId::new("geometry-main")?,
-        length_unit: IfccadLengthUnit::Millimetre,
+        length_unit: IfcdrLengthUnit::Millimetre,
     })?;
-    let style = builder.appearances().add(AppearanceDefinition {
+    let style = drawing.appearances().add(AppearanceDefinition {
         name: "Wall style".into(),
         color: AppearanceColor::rgb(255, 0, 0),
         opacity: 1.0,
         line_pattern: LinePatternDefinition::named("continuous"),
         line_weight: 0.25,
     })?;
-    let walls = builder.layers().add(LayerDefinition {
+    let walls = drawing.layers().add(LayerDefinition {
         name: "A-WALL".into(),
         visible: true,
         appearance: style,
     })?;
-    builder.model_space().add_line(LineDefinition {
+    drawing.model_space().add_line(LineDefinition {
         start: Point2::new(0.0, 0.0),
         end: Point2::new(1000.0, 0.0),
         layer: walls,
@@ -145,13 +147,15 @@ fn write_example() -> Result<(), Box<dyn std::error::Error>> {
         visible: true,
     })?;
 
-    builder.finish()?.write_directory("building-a")?;
+    package.finish()?.write_directory("building-a")?;
     Ok(())
 }
 ```
 
-The current writer deliberately produces one Drawing with one model layout and
-one external IFCDR resource. It supports layers, explicit appearances, lines,
+The current writer deliberately requires exactly one Drawing with one model
+layout and one external IFCDR model-space resource. `model_layout_name` names
+that layout; it is not a drawing name. The declared length unit belongs to the
+individual IFCDR resource. The writer supports layers, explicit appearances, lines,
 polylines, visibility, and global entity order. It does not yet write paper
 space, blocks, IFCPR, inline resources, or `.ifccad` containers, and it never
 overwrites an existing target directory. Mapping a cadcodec `CadDocument` into
@@ -179,7 +183,12 @@ numbered directory and frozen with the rest of that collection.
 
 ## Repository layout
 
-- [`src`](src) contains the Rust implementation.
+- [`src`](src) contains the Rust implementation. `package` is the public
+  package facade with private `read` and `write` implementations; `ifcdr`
+  exposes shared drawing-resource types while keeping its reader and encoder
+  implementation private. This leaves the same `types`/`read`/`write` shape
+  available for a future IFCPR implementation without exposing direction
+  modules as public API.
 - [`schemas`](schemas) contains the active language-neutral schemas.
 - [`conformance`](conformance) contains versioned conformance collections.
 - [`tests`](tests) verifies the public Rust API and bundled format assets.

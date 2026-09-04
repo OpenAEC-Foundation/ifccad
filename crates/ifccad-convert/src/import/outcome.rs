@@ -1,6 +1,10 @@
 use super::{ImportDiagnostic, ImportEntityMapping};
 use cadcodec::CadDocument;
 
+/// Result of importing an IFCCAD drawing into a cadcodec document.
+///
+/// Diagnostics and source-to-target entity mappings are retained alongside
+/// the document so callers can inspect conversion fidelity.
 pub struct ImportOutcome {
     document: CadDocument,
     diagnostics: Vec<ImportDiagnostic>,
@@ -20,22 +24,27 @@ impl ImportOutcome {
         }
     }
 
+    /// Borrows the produced CAD document.
     pub fn document(&self) -> &CadDocument {
         &self.document
     }
 
+    /// Returns non-fatal diagnostics collected during import.
     pub fn diagnostics(&self) -> &[ImportDiagnostic] {
         &self.diagnostics
     }
 
+    /// Maps IFCDR entity identifiers to their cadcodec handles.
     pub fn entity_mapping(&self) -> &ImportEntityMapping {
         &self.entity_mapping
     }
 
+    /// Consumes the outcome and returns only the CAD document.
     pub fn into_document(self) -> CadDocument {
         self.document
     }
 
+    /// Consumes the outcome and returns all three result components.
     pub fn into_parts(self) -> (CadDocument, Vec<ImportDiagnostic>, ImportEntityMapping) {
         (self.document, self.diagnostics, self.entity_mapping)
     }

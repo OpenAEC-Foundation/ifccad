@@ -8,7 +8,7 @@ The initial conversion is drawing-centric:
 
 ```rust,no_run
 use ifccad::package::load_directory_package;
-use ifccad_convert::convert_drawing;
+use ifccad_convert::drawing_to_cad_document;
 
 # fn example(package_directory: std::path::PathBuf) -> Result<(), Box<dyn std::error::Error>> {
 let inspected = load_directory_package(package_directory)?;
@@ -16,7 +16,7 @@ let package = inspected
     .validated_package()
     .ok_or("the IFCCAD package is not strictly valid")?;
 let drawing = package.drawings().next().ok_or("the package has no drawing")?;
-let outcome = convert_drawing(drawing)?;
+let outcome = drawing_to_cad_document(drawing)?;
 
 let document = outcome.document();
 for diagnostic in outcome.diagnostics() {
@@ -31,6 +31,19 @@ The crate re-exports its pinned cadcodec dependency as
 `ifccad_convert::cadcodec`. Consumers should use this re-export for
 `CadDocument`, handles, entities, and DXF/DWG writers to avoid mixing cadcodec
 revisions.
+
+The direction names describe the boundary around `CadDocument`:
+
+```text
+IFCCAD -- import --> CadDocument -- cadcodec DXF writer --> DXF
+DXF -- cadcodec DXF reader --> CadDocument -- export --> IFCCAD
+```
+
+This crate currently implements only the IFCCAD import direction. The export
+names are reserved for the inverse `CadDocument`-to-IFCCAD direction; no empty
+export API is exposed yet. A direct IFCCAD-to-DXF or IFCCAD-to-DWG converter
+can use file-format-oriented names and does not need to expose this internal
+import/export terminology.
 
 ## Current scope
 

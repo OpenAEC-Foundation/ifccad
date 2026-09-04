@@ -18,12 +18,18 @@ use std::sync::atomic::{AtomicU64, Ordering};
 static NEXT_BUILDER_TOKEN: AtomicU64 = AtomicU64::new(1);
 
 #[derive(Debug)]
+/// Builds one complete IFCCAD package.
+///
+/// The current writer requires exactly one drawing. Add it with
+/// [`PackageBuilder::add_drawing`] and finish the package only after the
+/// returned [`DrawingBuilder`] is no longer borrowed.
 pub struct PackageBuilder {
     pub(crate) options: PackageOptions,
     pub(crate) state: PackageState,
 }
 
 impl PackageBuilder {
+    /// Starts a package using its package-level identity and provenance.
     pub fn new(mut options: PackageOptions) -> Result<Self, PackageBuildError> {
         for (field, value) in [
             ("data_version", options.data_version.as_str()),
@@ -43,6 +49,7 @@ impl PackageBuilder {
         })
     }
 
+    /// Adds the package's single drawing and returns its drawing-scoped builder.
     pub fn add_drawing(
         &mut self,
         options: DrawingOptions,
@@ -75,6 +82,7 @@ impl PackageBuilder {
         })
     }
 
+    /// Validates and encodes the completed package in memory.
     pub fn finish(self) -> Result<EncodedPackage, PackageBuildError> {
         let drawing = self
             .state
@@ -176,19 +184,23 @@ fn map_ifcdr_encode_error(error: IfcdrEncodeError) -> PackageBuildError {
     }
 }
 
+/// Drawing-scoped access to appearances, layers, and model-space entities.
 pub struct DrawingBuilder<'a> {
     state: &'a mut DrawingState,
 }
 
 impl DrawingBuilder<'_> {
+    /// Opens the appearance collection for this drawing.
     pub fn appearances(&mut self) -> DrawingAppearances<'_> {
         DrawingAppearances { state: self.state }
     }
 
+    /// Opens the layer collection for this drawing.
     pub fn layers(&mut self) -> DrawingLayers<'_> {
         DrawingLayers { state: self.state }
     }
 
+    /// Opens the drawing's model-space entity collection.
     pub fn model_space(&mut self) -> ModelSpaceBuilder<'_> {
         ModelSpaceBuilder { state: self.state }
     }

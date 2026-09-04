@@ -2,6 +2,7 @@ use crate::ifcdr::{IfcdrLengthUnit, Point2};
 use crate::{PackageId, ResourceId};
 
 #[derive(Clone, Debug)]
+/// Package-level identity and provenance written to the IFCX header.
 pub struct PackageOptions {
     pub package_id: PackageId,
     pub data_version: String,
@@ -10,9 +11,13 @@ pub struct PackageOptions {
 }
 
 #[derive(Clone, Debug)]
+/// Configuration of the package's drawing and external model-space resource.
 pub struct DrawingOptions {
+    /// Name of the model layout inside the drawing, not a drawing name.
     pub model_layout_name: String,
+    /// Stable identifier assigned to the external IFCDR resource.
     pub representation_resource_id: ResourceId,
+    /// Coordinate length unit declared by that IFCDR resource.
     pub length_unit: IfcdrLengthUnit,
 }
 

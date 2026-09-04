@@ -2,6 +2,10 @@
 //!
 //! Packages can be inspected for diagnostics and exposed through a strict,
 //! typed model only after all required validation succeeds.
+//!
+//! This module is the public facade for both directions: loading an existing
+//! package and building a new one. The underlying `read` and `write` modules
+//! are deliberately private implementation details.
 
 mod read;
 mod write;
