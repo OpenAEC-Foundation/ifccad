@@ -503,27 +503,27 @@ or deduplication must not leak randomized iteration order into output.
 
 ### Controlled chain fixtures
 
-The repository owns two small, hand-auditable ASCII DXF fixtures under
-`crates/ifccad-convert/tests/fixtures/chains/`, with provenance documented in a
-README alongside them. They are authored for this project rather than copied
-from an arbitrary external drawing, avoiding licensing and reproducibility
-ambiguity.
+The automated DXF chains use programmatically constructed `CadDocument` values
+rather than checked-in, hand-authored DXF files. This gives each test exact
+control over the source semantics and expected diagnostics. The chain still
+crosses the real DXF boundary: cadcodec writes the constructed document to DXF
+bytes and reads those bytes back before IFCCAD export, and writes and reads DXF
+again after IFCCAD import.
 
-1. **`supported-model-space.dxf`.** This low-loss fixture exercises as much of
-   the first exact subset as possible:
-   model-space lines, open and closed straight lightweight polylines, declared
-   units, multiple layers including an empty layer, visibility, and mixed
-   supported appearances. The chain is `DXF -> CadDocument -> IFCCAD ->
-   CadDocument -> DXF -> CadDocument`. Semantic projections are checked at the
-   in-memory IFCCAD boundary and after cadcodec serializes and reloads the final
-   DXF. Both equal the supported source projection, and export emits no loss
-   diagnostics.
-2. **`loss-heavy.dxf`.** This deliberately includes supported geometry
-   alongside a circle/arc, a 3D or thick line, a bulged/width polyline, block
-   content and an insert, paper-space content, and unsupported semantic
+1. **Supported model-space document.** This low-loss builder exercises as much
+   of the first exact subset as possible: model-space lines, open and closed
+   straight lightweight polylines, declared units, multiple layers including an
+   empty layer, visibility, and mixed supported appearances. The chain is
+   `CadDocument -> DXF -> CadDocument -> IFCCAD -> CadDocument -> DXF ->
+   CadDocument`. Semantic projections are checked at the IFCCAD boundary and
+   after cadcodec serializes and reloads the final DXF. Both equal the supported
+   source projection, and export emits no loss diagnostics.
+2. **Loss-heavy document.** This builder deliberately combines supported
+   geometry with a circle/arc, a 3D or thick line, a bulged/width polyline,
+   block content and an insert, paper-space content, and unsupported semantic
    metadata. Under `Allow` the supported projection is emitted and the exact
    expected diagnostic set is asserted, then the emitted projection completes
-   the same serialized-DXF chain as the low-loss fixture. Under `Reject` the
+   the same serialized-DXF chain as the low-loss document. Under `Reject` the
    same complete loss set is returned with no package.
 3. **`conformance/1.0.0/packages/valid/minimal-no-preservation`.** This stable
    IFCCAD conformance package is used for the IFCCAD-originated chain because it
@@ -543,21 +543,32 @@ including when the export itself legitimately reports source loss under
 
 The automated assertions may use temporary directories, but completing the
 implementation also generates persistent, git-ignored review artifacts under
-`target/chain-artifacts/`. These are deterministic outputs of the same chain
-logic, not separate hand-edited examples:
+`target/chain-artifacts/`. The automated-document artifacts are deterministic
+outputs of the same builders used by the tests, not separate hand-edited
+examples:
 
 | Chain | Start supplied for review | Intermediate supplied for review | End supplied for review |
 | --- | --- | --- | --- |
-| Supported model space | `crates/ifccad-convert/tests/fixtures/chains/supported-model-space.dxf` | `target/chain-artifacts/supported-model-space/ifccad/` | `target/chain-artifacts/supported-model-space/roundtrip.dxf` |
-| Loss-heavy | `crates/ifccad-convert/tests/fixtures/chains/loss-heavy.dxf` | `target/chain-artifacts/loss-heavy/ifccad/` plus its export diagnostics | `target/chain-artifacts/loss-heavy/roundtrip.dxf` |
+| Supported model space | `target/chain-artifacts/supported-model-space/source.dxf` | `target/chain-artifacts/supported-model-space/ifccad/` | `target/chain-artifacts/supported-model-space/roundtrip.dxf` |
+| Loss-heavy | `target/chain-artifacts/loss-heavy/source.dxf` | `target/chain-artifacts/loss-heavy/ifccad/` plus its export diagnostics | `target/chain-artifacts/loss-heavy/roundtrip.dxf` |
 | IFCCAD-originated | `conformance/1.0.0/packages/valid/minimal-no-preservation/` | `target/chain-artifacts/minimal-no-preservation/roundtrip.dxf` | `target/chain-artifacts/minimal-no-preservation/ifccad/` |
+
+In addition, manual acceptance runs use selected real-world DXF/DWG samples
+from the local, read-only directory
+`C:/Users/bjorn/Documents/OpenAEC/IFCCAD Prototype/DXF DWG samples`. These files
+are not CI dependencies and are not copied into the repository. At least one
+simple sample and one semantically rich sample are profiled with cadcodec after
+the exporter exists; selection is based on successful decoding and the actual
+typed contents rather than the filename alone. Each accepted sample gets its own
+subdirectory under `target/chain-artifacts/manual/`, containing the generated
+IFCCAD package, returned DXF, export diagnostics, source path, and source SHA-256.
 
 After implementation and verification, the handoff gives the user clickable
 absolute paths to each start and end, to both generated IFCCAD package
-directories, and to every generated DXF. This lets the source and roundtripped
-DXFs be opened and compared independently in OCS. The handoff also states the
-expected intentional omissions in the loss-heavy end file so those omissions
-are not mistaken for regressions.
+directories, and to every generated DXF—including the selected Prototype
+samples. This lets the source and roundtripped DXFs be opened and compared
+independently in OCS. The handoff also states the expected intentional omissions
+in each lossy end file so those omissions are not mistaken for regressions.
 
 ### Regression and public API tests
 
