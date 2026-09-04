@@ -504,11 +504,13 @@ or deduplication must not leak randomized iteration order into output.
 ### Controlled chain fixtures
 
 The repository owns two small, hand-auditable ASCII DXF fixtures under
-`crates/ifccad-convert/tests/fixtures/`, with provenance documented alongside
-them. They are not copied from an arbitrary external drawing, avoiding licensing
-and reproducibility ambiguity.
+`crates/ifccad-convert/tests/fixtures/chains/`, with provenance documented in a
+README alongside them. They are authored for this project rather than copied
+from an arbitrary external drawing, avoiding licensing and reproducibility
+ambiguity.
 
-1. **Low-loss DXF.** Exercises as much of the first exact subset as possible:
+1. **`supported-model-space.dxf`.** This low-loss fixture exercises as much of
+   the first exact subset as possible:
    model-space lines, open and closed straight lightweight polylines, declared
    units, multiple layers including an empty layer, visibility, and mixed
    supported appearances. The chain is `DXF -> CadDocument -> IFCCAD ->
@@ -516,24 +518,46 @@ and reproducibility ambiguity.
    in-memory IFCCAD boundary and after cadcodec serializes and reloads the final
    DXF. Both equal the supported source projection, and export emits no loss
    diagnostics.
-2. **Loss-heavy DXF.** Deliberately includes supported geometry alongside a
-   circle/arc, a 3D or thick line, a bulged/width polyline, block content and an
-   insert, paper-space content, and unsupported semantic metadata. Under `Allow`
-   the supported projection is emitted and the exact expected diagnostic set is
-   asserted, then the emitted projection completes the same serialized-DXF chain
-   as the low-loss fixture. Under `Reject` the same complete loss set is returned
-   with no package.
-3. **IFCCAD-originated chain.** Starts with
-   `conformance/1.0.0/packages/valid/minimal-no-preservation`, imports it to a
-   `CadDocument`, serializes and reloads an intermediate DXF, exports it back to
-   IFCCAD, loads the result strictly, and compares the semantic drawing
-   projection. Source handles and physical DXF/JSON byte layout are deliberately
-   excluded from semantic equality.
+2. **`loss-heavy.dxf`.** This deliberately includes supported geometry
+   alongside a circle/arc, a 3D or thick line, a bulged/width polyline, block
+   content and an insert, paper-space content, and unsupported semantic
+   metadata. Under `Allow` the supported projection is emitted and the exact
+   expected diagnostic set is asserted, then the emitted projection completes
+   the same serialized-DXF chain as the low-loss fixture. Under `Reject` the
+   same complete loss set is returned with no package.
+3. **`conformance/1.0.0/packages/valid/minimal-no-preservation`.** This stable
+   IFCCAD conformance package is used for the IFCCAD-originated chain because it
+   already contains both lines and open/closed polylines, two layers, explicit
+   appearances, and model-space ordering without preservation data. The test
+   imports it to a `CadDocument`, serializes and reloads an intermediate DXF,
+   exports it back to IFCCAD, loads the result strictly, and compares the
+   semantic drawing projection. Source handles and physical DXF/JSON byte layout
+   are deliberately excluded from semantic equality.
 
 Every produced package is also written to a temporary directory and loaded by
 the strict package reader. It must produce zero package-validation diagnostics,
 including when the export itself legitimately reports source loss under
 `Allow`.
+
+### User-review artifacts
+
+The automated assertions may use temporary directories, but completing the
+implementation also generates persistent, git-ignored review artifacts under
+`target/chain-artifacts/`. These are deterministic outputs of the same chain
+logic, not separate hand-edited examples:
+
+| Chain | Start supplied for review | Intermediate supplied for review | End supplied for review |
+| --- | --- | --- | --- |
+| Supported model space | `crates/ifccad-convert/tests/fixtures/chains/supported-model-space.dxf` | `target/chain-artifacts/supported-model-space/ifccad/` | `target/chain-artifacts/supported-model-space/roundtrip.dxf` |
+| Loss-heavy | `crates/ifccad-convert/tests/fixtures/chains/loss-heavy.dxf` | `target/chain-artifacts/loss-heavy/ifccad/` plus its export diagnostics | `target/chain-artifacts/loss-heavy/roundtrip.dxf` |
+| IFCCAD-originated | `conformance/1.0.0/packages/valid/minimal-no-preservation/` | `target/chain-artifacts/minimal-no-preservation/roundtrip.dxf` | `target/chain-artifacts/minimal-no-preservation/ifccad/` |
+
+After implementation and verification, the handoff gives the user clickable
+absolute paths to each start and end, to both generated IFCCAD package
+directories, and to every generated DXF. This lets the source and roundtripped
+DXFs be opened and compared independently in OCS. The handoff also states the
+expected intentional omissions in the loss-heavy end file so those omissions
+are not mistaken for regressions.
 
 ### Regression and public API tests
 
