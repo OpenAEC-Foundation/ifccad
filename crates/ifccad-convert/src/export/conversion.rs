@@ -1,10 +1,11 @@
 use super::appearance::AppearanceRegistry;
+use super::entities::add_entities;
 use super::layers::add_layers;
 use super::structure::inspect_model_space;
 use super::units::map_length_unit;
 use super::{
     ExportAction, ExportDiagnostic, ExportDiagnosticSource, ExportEntityMapping, ExportError,
-    ExportOptions, ExportOutcome,
+    ExportLossPolicy, ExportOptions, ExportOutcome,
 };
 use cadcodec::CadDocument;
 use ifccad::package::{DrawingOptions, LayerKey, PackageBuilder, PackageOptions};
@@ -16,12 +17,13 @@ pub(crate) struct ExportContext {
     pub(crate) diagnostics: Vec<ExportDiagnostic>,
     pub(crate) layer_keys: BTreeMap<String, LayerKey>,
     pub(crate) appearances: AppearanceRegistry,
+    pub(crate) entity_mapping: ExportEntityMapping,
 }
 
 pub fn cad_document_to_package(
     document: &CadDocument,
     package_options: PackageOptions,
-    _export_options: ExportOptions,
+    export_options: ExportOptions,
 ) -> Result<ExportOutcome, ExportError> {
     let mut builder = PackageBuilder::new(package_options)?;
     let model_space = inspect_model_space(document)
@@ -51,12 +53,26 @@ pub fn cad_document_to_package(
             length_unit,
         })?;
         add_layers(document, &mut drawing, &mut context)?;
+        let structural_problems = add_entities(document, &model_space, &mut drawing, &mut context)?;
+        if !structural_problems.is_empty() {
+            return Err(ExportError::InvalidSourceStructure {
+                problems: structural_problems,
+            });
+        }
+    }
+
+    if export_options.loss_policy == ExportLossPolicy::Reject
+        && context.diagnostics.iter().any(ExportDiagnostic::is_loss)
+    {
+        return Err(ExportError::LossRejected {
+            diagnostics: context.diagnostics,
+        });
     }
 
     let package = builder.finish()?;
     Ok(ExportOutcome::new(
         package,
         context.diagnostics,
-        ExportEntityMapping::default(),
+        context.entity_mapping,
     ))
 }

@@ -1,6 +1,7 @@
 mod appearance;
 mod conversion;
 mod diagnostic;
+mod entities;
 mod entity_mapping;
 mod layers;
 mod options;

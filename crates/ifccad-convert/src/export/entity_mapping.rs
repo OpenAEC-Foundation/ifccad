@@ -25,4 +25,8 @@ impl ExportEntityMapping {
     pub fn is_empty(&self) -> bool {
         self.entries.is_empty()
     }
+
+    pub(crate) fn insert(&mut self, source: Handle, target: EntityId) {
+        self.entries.insert(source, target);
+    }
 }

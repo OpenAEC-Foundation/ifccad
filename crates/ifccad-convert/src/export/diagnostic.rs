@@ -53,6 +53,37 @@ pub enum ExportLossReason {
     LayerLineWeightUnsupported {
         value: i16,
     },
+    NonFiniteCoordinate,
+    NonPlanarZ,
+    NonZeroElevation,
+    NonZeroThickness,
+    UnsupportedNormal,
+    PolylineTooFewVertices {
+        count: usize,
+    },
+    PolylineBulge,
+    PolylineWidth,
+    PolylinePlinegen,
+    EntityColorUnsupported {
+        color: String,
+    },
+    EntityNamedColorUnsupported {
+        name: String,
+    },
+    EntityNamedColorWithoutExplicitColor,
+    EntityLineWeightUnsupported {
+        value: i16,
+    },
+    MissingEntityLayer {
+        name: String,
+    },
+    PaperSpaceEntity,
+    BlockOwnedEntity {
+        owner: Handle,
+    },
+    UnsupportedEntityType {
+        kind: String,
+    },
     UnsupportedSemantic {
         name: String,
     },
@@ -122,6 +153,13 @@ pub enum SourceStructureProblem {
     MultipleModelLayouts {
         model_space_block: Handle,
         count: usize,
+    },
+    EntityOwnerMissing {
+        entity: Handle,
+    },
+    EntityOwnerUnknown {
+        entity: Handle,
+        owner: Handle,
     },
     InconsistentRelationship {
         description: String,

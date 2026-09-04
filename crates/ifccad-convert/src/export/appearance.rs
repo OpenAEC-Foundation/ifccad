@@ -1,8 +1,9 @@
 use super::ExportLossReason;
+use cadcodec::entities::EntityCommon;
 use cadcodec::{Color, Layer, LineWeight, Transparency};
 use ifccad::package::{
-    AppearanceColor, AppearanceDefinition, AppearanceKey, DrawingBuilder, LinePatternDefinition,
-    PackageBuildError,
+    AppearanceColor, AppearanceDefinition, AppearanceKey, AppearanceMode, DrawingBuilder,
+    EntityAppearance, LinePatternDefinition, PackageBuildError,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -50,6 +51,50 @@ impl AppearanceRegistry {
         self.entries.push((converted.signature, key));
         Ok((key, converted.losses))
     }
+
+    pub(crate) fn add_entity_appearance(
+        &mut self,
+        drawing: &mut DrawingBuilder<'_>,
+        common: &EntityCommon,
+    ) -> Result<EntityAppearance, EntityAppearanceError> {
+        let converted = convert_entity_appearance(common)?;
+        let Some((signature, color)) = converted.definition else {
+            return Ok(EntityAppearance {
+                appearance: None,
+                color_mode: converted.color_mode,
+                opacity_mode: converted.opacity_mode,
+                line_pattern_mode: converted.line_pattern_mode,
+                line_weight_mode: converted.line_weight_mode,
+            });
+        };
+        let key = if let Some((_, key)) = self
+            .entries
+            .iter()
+            .find(|(existing, _)| existing == &signature)
+        {
+            *key
+        } else {
+            let key = drawing
+                .appearances()
+                .add(AppearanceDefinition {
+                    name: format!("CAD appearance {}", self.entries.len()),
+                    color,
+                    opacity: f64::from_bits(signature.opacity),
+                    line_pattern: LinePatternDefinition::named(signature.line_pattern.clone()),
+                    line_weight: f64::from_bits(signature.line_weight),
+                })
+                .map_err(EntityAppearanceError::Build)?;
+            self.entries.push((signature, key));
+            key
+        };
+        Ok(EntityAppearance {
+            appearance: Some(key),
+            color_mode: converted.color_mode,
+            opacity_mode: converted.opacity_mode,
+            line_pattern_mode: converted.line_pattern_mode,
+            line_weight_mode: converted.line_weight_mode,
+        })
+    }
 }
 
 struct ConvertedAppearance {
@@ -61,6 +106,133 @@ struct ConvertedAppearance {
 pub(crate) enum LayerAppearanceError {
     Loss(Vec<ExportLossReason>),
     Build(PackageBuildError),
+}
+
+pub(crate) enum EntityAppearanceError {
+    Loss(Vec<ExportLossReason>),
+    Build(PackageBuildError),
+}
+
+struct ConvertedEntityAppearance {
+    definition: Option<(AppearanceSignature, AppearanceColor)>,
+    color_mode: AppearanceMode,
+    opacity_mode: AppearanceMode,
+    line_pattern_mode: AppearanceMode,
+    line_weight_mode: AppearanceMode,
+}
+
+fn convert_entity_appearance(
+    common: &EntityCommon,
+) -> Result<ConvertedEntityAppearance, EntityAppearanceError> {
+    let mut losses = Vec::new();
+    let (color_mode, explicit_color) = match common.color {
+        Color::ByLayer => (AppearanceMode::ByLayer, None),
+        Color::ByBlock => (AppearanceMode::ByBlock, None),
+        Color::Index(index) => match common.color.rgb() {
+            Some((r, g, b)) => (
+                AppearanceMode::Explicit,
+                Some(([r, g, b], Some(u32::from(index)))),
+            ),
+            None => {
+                losses.push(ExportLossReason::EntityColorUnsupported {
+                    color: common.color.to_string(),
+                });
+                (AppearanceMode::Explicit, None)
+            }
+        },
+        Color::Rgb { r, g, b } => (AppearanceMode::Explicit, Some(([r, g, b], None))),
+        _ => {
+            losses.push(ExportLossReason::EntityColorUnsupported {
+                color: common.color.to_string(),
+            });
+            (AppearanceMode::Explicit, None)
+        }
+    };
+
+    let named = match &common.color_name {
+        None => None,
+        Some(value) => match value.split_once('$') {
+            Some((catalog, name)) if !catalog.is_empty() && !name.is_empty() => {
+                Some((catalog.to_owned(), name.to_owned()))
+            }
+            _ => {
+                losses.push(ExportLossReason::EntityNamedColorUnsupported {
+                    name: value.clone(),
+                });
+                None
+            }
+        },
+    };
+    if named.is_some() && explicit_color.is_none() {
+        losses.push(ExportLossReason::EntityNamedColorWithoutExplicitColor);
+    }
+
+    let (opacity_mode, opacity) = match common.transparency {
+        Transparency::ByLayer => (AppearanceMode::ByLayer, 1.0),
+        Transparency::ByBlock => (AppearanceMode::ByBlock, 1.0),
+        Transparency::Explicit(alpha) => (AppearanceMode::Explicit, 1.0 - f64::from(alpha) / 255.0),
+    };
+    let (line_pattern_mode, line_pattern) =
+        if common.linetype.is_empty() || common.linetype.eq_ignore_ascii_case("ByLayer") {
+            (AppearanceMode::ByLayer, "Continuous".to_owned())
+        } else if common.linetype.eq_ignore_ascii_case("ByBlock") {
+            (AppearanceMode::ByBlock, "Continuous".to_owned())
+        } else {
+            (AppearanceMode::Explicit, common.linetype.clone())
+        };
+    let (line_weight_mode, line_weight) = match common.line_weight {
+        LineWeight::ByLayer => (AppearanceMode::ByLayer, 0.25),
+        LineWeight::ByBlock => (AppearanceMode::ByBlock, 0.25),
+        LineWeight::Default => (AppearanceMode::Explicit, 0.25),
+        LineWeight::Value(value) if value >= 0 => {
+            (AppearanceMode::Explicit, f64::from(value) / 100.0)
+        }
+        _ => {
+            losses.push(ExportLossReason::EntityLineWeightUnsupported {
+                value: common.line_weight.value(),
+            });
+            (AppearanceMode::Explicit, 0.25)
+        }
+    };
+    if !losses.is_empty() {
+        return Err(EntityAppearanceError::Loss(losses));
+    }
+
+    let needs_definition = [
+        color_mode,
+        opacity_mode,
+        line_pattern_mode,
+        line_weight_mode,
+    ]
+    .contains(&AppearanceMode::Explicit);
+    let definition = needs_definition.then(|| {
+        let (rgb, indexed) = explicit_color.unwrap_or(([0, 0, 0], None));
+        let mut color = AppearanceColor::rgb(rgb[0], rgb[1], rgb[2]);
+        if let Some(index) = indexed {
+            color = color.with_indexed("ACI", index);
+        }
+        if let Some((catalog, name)) = &named {
+            color = color.with_named(catalog, name);
+        }
+        (
+            AppearanceSignature {
+                rgb,
+                indexed,
+                named,
+                opacity: opacity.to_bits(),
+                line_pattern,
+                line_weight: line_weight.to_bits(),
+            },
+            color,
+        )
+    });
+    Ok(ConvertedEntityAppearance {
+        definition,
+        color_mode,
+        opacity_mode,
+        line_pattern_mode,
+        line_weight_mode,
+    })
 }
 
 fn convert_layer_appearance(layer: &Layer) -> Result<ConvertedAppearance, LayerAppearanceError> {
