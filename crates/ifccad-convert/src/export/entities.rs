@@ -19,6 +19,7 @@ pub(crate) fn add_entities(
     let mut structural_problems = Vec::new();
     for source in document.entities() {
         let common = source.common();
+        let common_losses = common_semantic_losses(common);
         if !classify_owner(
             document,
             model_space,
@@ -26,11 +27,12 @@ pub(crate) fn add_entities(
             common,
             context,
             &mut structural_problems,
+            &common_losses,
         ) {
             continue;
         }
 
-        let geometry_losses = match source {
+        let mut geometry_losses = match source {
             EntityType::Line(line) => line_losses(line),
             EntityType::LwPolyline(polyline) => polyline_losses(polyline),
             _ => vec![ExportLossReason::UnsupportedEntityType {
@@ -38,23 +40,24 @@ pub(crate) fn add_entities(
             }],
         };
         if !geometry_losses.is_empty() {
+            geometry_losses.extend(common_losses);
             record_skipped(source, geometry_losses, context);
             continue;
         }
 
         let Some(&layer) = context.layer_keys.get(&common.layer.to_lowercase()) else {
-            record_skipped(
-                source,
-                vec![ExportLossReason::MissingEntityLayer {
-                    name: common.layer.clone(),
-                }],
-                context,
-            );
+            let mut reasons = vec![ExportLossReason::MissingEntityLayer {
+                name: common.layer.clone(),
+            }];
+            reasons.extend(common_losses);
+            record_skipped(source, reasons, context);
             continue;
         };
         let appearance = match context.appearances.add_entity_appearance(drawing, common) {
             Ok(appearance) => appearance,
             Err(EntityAppearanceError::Loss(reasons)) => {
+                let mut reasons = reasons;
+                reasons.extend(common_losses);
                 record_skipped(source, reasons, context);
                 continue;
             }
@@ -85,6 +88,14 @@ pub(crate) fn add_entities(
             _ => unreachable!("unsupported entity was classified as loss"),
         };
         context.entity_mapping.insert(common.handle, entity_id);
+        if !common_losses.is_empty() {
+            record_diagnostic(
+                source,
+                ExportAction::PartiallyExported,
+                common_losses,
+                context,
+            );
+        }
     }
     Ok(structural_problems)
 }
@@ -96,6 +107,7 @@ fn classify_owner(
     common: &EntityCommon,
     context: &mut ExportContext,
     problems: &mut Vec<SourceStructureProblem>,
+    common_losses: &[ExportLossReason],
 ) -> bool {
     if common.owner_handle == model_space.block_handle {
         return true;
@@ -105,19 +117,19 @@ fn classify_owner(
             entity: common.handle,
         });
     } else if common.owner_handle == document.header.paper_space_block_handle {
-        record_skipped(source, vec![ExportLossReason::PaperSpaceEntity], context);
+        let mut reasons = vec![ExportLossReason::PaperSpaceEntity];
+        reasons.extend_from_slice(common_losses);
+        record_skipped(source, reasons, context);
     } else if document
         .block_records
         .iter()
         .any(|record| record.handle == common.owner_handle)
     {
-        record_skipped(
-            source,
-            vec![ExportLossReason::BlockOwnedEntity {
-                owner: common.owner_handle,
-            }],
-            context,
-        );
+        let mut reasons = vec![ExportLossReason::BlockOwnedEntity {
+            owner: common.owner_handle,
+        }];
+        reasons.extend_from_slice(common_losses);
+        record_skipped(source, reasons, context);
     } else {
         problems.push(SourceStructureProblem::EntityOwnerUnknown {
             entity: common.handle,
@@ -132,14 +144,67 @@ fn record_skipped(
     reasons: Vec<ExportLossReason>,
     context: &mut ExportContext,
 ) {
+    record_diagnostic(source, ExportAction::Skipped, reasons, context);
+}
+
+fn record_diagnostic(
+    source: &EntityType,
+    action: ExportAction,
+    reasons: Vec<ExportLossReason>,
+    context: &mut ExportContext,
+) {
     context.diagnostics.push(ExportDiagnostic::loss(
         ExportDiagnosticSource::Entity {
             handle: source.common().handle,
             kind: source.as_entity().entity_type().to_owned(),
         },
-        ExportAction::Skipped,
+        action,
         reasons,
     ));
+}
+
+fn common_semantic_losses(common: &EntityCommon) -> Vec<ExportLossReason> {
+    let mut reasons = Vec::new();
+    if common.linetype_scale != 1.0 {
+        reasons.push(ExportLossReason::EntityLinetypeScale);
+    }
+    if common.linetype_handle.is_some() {
+        reasons.push(ExportLossReason::EntityLinetypeHandle);
+    }
+    if !common.extended_data.is_empty() {
+        reasons.push(ExportLossReason::EntityExtendedData);
+    }
+    if common.graphic_data.is_some() {
+        reasons.push(ExportLossReason::EntityGraphicData);
+    }
+    if !common.reactors.is_empty() {
+        reasons.push(ExportLossReason::EntityReactors);
+    }
+    if common.xdictionary_handle.is_some() {
+        reasons.push(ExportLossReason::EntityExtensionDictionary);
+    }
+    if common.color_book_handle.is_some() {
+        reasons.push(ExportLossReason::EntityColorBookReference);
+    }
+    if common.full_visual_style_handle.is_some() {
+        reasons.push(ExportLossReason::EntityFullVisualStyle);
+    }
+    if common.face_visual_style_handle.is_some() {
+        reasons.push(ExportLossReason::EntityFaceVisualStyle);
+    }
+    if common.edge_visual_style_handle.is_some() {
+        reasons.push(ExportLossReason::EntityEdgeVisualStyle);
+    }
+    if common.material_flags != 0 || common.material_handle.is_some() {
+        reasons.push(ExportLossReason::EntityMaterial);
+    }
+    if common.shadow_flags != 0 {
+        reasons.push(ExportLossReason::EntityShadowFlags);
+    }
+    if common.plotstyle_flags != 0 || common.plotstyle_handle.is_some() {
+        reasons.push(ExportLossReason::EntityPlotStyle);
+    }
+    reasons
 }
 
 fn line_losses(line: &Line) -> Vec<ExportLossReason> {

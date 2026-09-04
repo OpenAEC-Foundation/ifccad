@@ -84,6 +84,31 @@ pub enum ExportLossReason {
     UnsupportedEntityType {
         kind: String,
     },
+    EntityLinetypeScale,
+    EntityLinetypeHandle,
+    EntityExtendedData,
+    EntityGraphicData,
+    EntityReactors,
+    EntityExtensionDictionary,
+    EntityColorBookReference,
+    EntityFullVisualStyle,
+    EntityFaceVisualStyle,
+    EntityEdgeVisualStyle,
+    EntityMaterial,
+    EntityShadowFlags,
+    EntityPlotStyle,
+    UnsupportedHeaderField {
+        name: String,
+    },
+    DocumentSummaryInformation,
+    UnsupportedTableRecords {
+        kind: String,
+        count: usize,
+    },
+    UnsupportedCollection {
+        kind: String,
+        count: usize,
+    },
     UnsupportedSemantic {
         name: String,
     },

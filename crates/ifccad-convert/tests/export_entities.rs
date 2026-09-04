@@ -243,7 +243,7 @@ fn coherent_unsupported_ownership_layers_and_entity_types_are_diagnosed_skips() 
     )
     .unwrap_or_else(|error| panic!("export failed: {error}"));
     assert!(outcome.entity_mapping().is_empty());
-    assert_eq!(outcome.diagnostics().len(), 4);
+    assert_eq!(outcome.diagnostics().len(), 5);
     assert_eq!(
         outcome.diagnostics()[0].source(),
         &ExportDiagnosticSource::Entity {
@@ -292,6 +292,19 @@ fn coherent_unsupported_ownership_layers_and_entity_types_are_diagnosed_skips() 
         outcome.diagnostics()[3].reasons(),
         [ExportLossReason::UnsupportedEntityType {
             kind: "CIRCLE".to_owned(),
+        }]
+    );
+    assert_eq!(
+        outcome.diagnostics()[4].source(),
+        &ExportDiagnosticSource::Table {
+            kind: "block_records".to_owned(),
+        }
+    );
+    assert_eq!(
+        outcome.diagnostics()[4].reasons(),
+        [ExportLossReason::UnsupportedTableRecords {
+            kind: "block_records".to_owned(),
+            count: 1,
         }]
     );
 }

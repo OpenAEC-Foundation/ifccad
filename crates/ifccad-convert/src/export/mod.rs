@@ -1,5 +1,6 @@
 mod appearance;
 mod conversion;
+mod coverage;
 mod diagnostic;
 mod entities;
 mod entity_mapping;

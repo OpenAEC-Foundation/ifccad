@@ -1,4 +1,5 @@
 use super::appearance::AppearanceRegistry;
+use super::coverage::scan_document_semantics;
 use super::entities::add_entities;
 use super::layers::add_layers;
 use super::structure::inspect_model_space;
@@ -60,6 +61,8 @@ pub fn cad_document_to_package(
             });
         }
     }
+
+    scan_document_semantics(document, &mut context);
 
     if export_options.loss_policy == ExportLossPolicy::Reject
         && context.diagnostics.iter().any(ExportDiagnostic::is_loss)
