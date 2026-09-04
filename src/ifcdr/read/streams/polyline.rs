@@ -1,7 +1,6 @@
 use super::columns::Float64Column;
 use super::store::ValidatedIfcdrStreamRef;
-use crate::ifcdr::entity::{EntityId, ScopeId};
-use crate::ifcdr::resource::{AppearanceId, LayerId, Point2};
+use crate::ifcdr::{AppearanceId, EntityId, LayerId, Point2, ScopeId};
 
 #[derive(Clone, Copy)]
 pub(crate) struct PolylineStreamView<'a> {
@@ -134,8 +133,9 @@ impl ExactSizeIterator for PointIterator<'_> {}
 
 #[cfg(test)]
 mod tests {
-    use crate::ifcdr::resource::{fixture_source, LoadedIfcdrResource, Point2};
-    use crate::ifcdr::validation::validate_ifcdr;
+    use crate::ifcdr::read::resource::{fixture_source, LoadedIfcdrResource};
+    use crate::ifcdr::read::validation::validate_ifcdr;
+    use crate::ifcdr::Point2;
 
     #[test]
     fn borrows_each_polyline_point_range() {

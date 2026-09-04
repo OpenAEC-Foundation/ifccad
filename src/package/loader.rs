@@ -3,12 +3,12 @@ use super::codes::{
     IFCCAD_PACKAGE_RESOURCE_LIMIT_EXCEEDED, IFCCAD_PACKAGE_RESOURCE_MISSING,
     IFCCAD_PACKAGE_TOTAL_LIMIT_EXCEEDED,
 };
-use super::model::LoadedJsonResource;
 use super::path::{PackagePathResolution, PackageRoot, ResolvePackagePathError};
 use super::{
     PackageDiagnostic, PackageDiagnosticContextValue, PackageDiagnosticSeverity, PackageOpenError,
     PackageValidationReport, DIRECTORY_PACKAGE_ENTRYPOINT,
 };
+use crate::json_resource::LoadedJsonResource;
 use std::cmp;
 use std::collections::BTreeMap;
 use std::fs::{self, File};
@@ -226,12 +226,12 @@ impl DirectoryPackageLoader {
             }
         };
 
-        Ok(Some(LoadedJsonResource {
-            uri: uri.to_owned(),
+        Ok(Some(LoadedJsonResource::new(
+            uri.to_owned(),
             path,
             bytes,
             value,
-        }))
+        )))
     }
 
     fn push_missing(

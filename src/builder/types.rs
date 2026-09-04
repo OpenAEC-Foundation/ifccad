@@ -1,4 +1,4 @@
-use crate::ifcdr::{IfccadLengthUnit, Point2};
+use crate::ifcdr::{IfcdrLengthUnit, Point2};
 use crate::{PackageId, ResourceId};
 
 #[derive(Clone, Debug)]
@@ -9,7 +9,7 @@ pub struct PackageOptions {
     pub timestamp: String,
     pub model_layout_name: String,
     pub representation_resource_id: ResourceId,
-    pub length_unit: IfccadLengthUnit,
+    pub length_unit: IfcdrLengthUnit,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

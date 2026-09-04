@@ -1,6 +1,6 @@
 use super::state::PendingEntity;
 use super::{BuildError, EntityAppearance, IfccadPackageBuilder};
-use crate::ifcdr::{IfccadLengthUnit, Point2};
+use crate::ifcdr::{IfcdrLengthUnit, Point2};
 use crate::ResourceId;
 use serde_json::{json, Map, Value};
 use sha2::{Digest, Sha256};
@@ -340,15 +340,15 @@ fn bounds(entities: &[PendingEntity]) -> EncodedBounds {
     }
 }
 
-fn unit_name(unit: IfccadLengthUnit) -> &'static str {
+fn unit_name(unit: IfcdrLengthUnit) -> &'static str {
     match unit {
-        IfccadLengthUnit::Unitless => "unitless",
-        IfccadLengthUnit::Millimetre => "mm",
-        IfccadLengthUnit::Centimetre => "cm",
-        IfccadLengthUnit::Metre => "m",
-        IfccadLengthUnit::Kilometre => "km",
-        IfccadLengthUnit::Inch => "in",
-        IfccadLengthUnit::Foot => "ft",
+        IfcdrLengthUnit::Unitless => "unitless",
+        IfcdrLengthUnit::Millimetre => "mm",
+        IfcdrLengthUnit::Centimetre => "cm",
+        IfcdrLengthUnit::Metre => "m",
+        IfcdrLengthUnit::Kilometre => "km",
+        IfcdrLengthUnit::Inch => "in",
+        IfcdrLengthUnit::Foot => "ft",
     }
 }
 
@@ -359,7 +359,7 @@ mod tests {
         AppearanceColor, AppearanceDefinition, EntityAppearance, IfccadPackageBuilder,
         LayerDefinition, LineDefinition, LinePatternDefinition, PackageOptions, PolylineDefinition,
     };
-    use crate::ifcdr::{IfccadLengthUnit, Point2};
+    use crate::ifcdr::{IfcdrLengthUnit, Point2};
     use crate::{PackageId, ResourceId};
     use serde_json::Value;
     use sha2::{Digest, Sha256};
@@ -372,7 +372,7 @@ mod tests {
             timestamp: "2026-09-03T10:00:00Z".to_owned(),
             model_layout_name: "Model".to_owned(),
             representation_resource_id: ResourceId::new("empty-modelspace").unwrap(),
-            length_unit: IfccadLengthUnit::Millimetre,
+            length_unit: IfcdrLengthUnit::Millimetre,
         })
         .unwrap()
     }

@@ -1,50 +1,9 @@
 use super::diagnostic::PackageValidationReport;
 use super::discovery::ResourceDeclaration;
+use crate::json_resource::LoadedJsonResource;
 use crate::ResourceId;
 use std::collections::BTreeMap;
-use std::path::PathBuf;
 use std::sync::Arc;
-
-#[derive(Debug)]
-pub(crate) struct LoadedJsonResource {
-    #[cfg_attr(not(test), allow(dead_code))]
-    pub(crate) uri: String,
-    #[cfg_attr(not(test), allow(dead_code))]
-    pub(crate) path: PathBuf,
-    #[cfg_attr(not(test), allow(dead_code))]
-    pub(crate) bytes: Vec<u8>,
-    pub(crate) value: serde_json::Value,
-}
-
-impl LoadedJsonResource {
-    #[allow(dead_code)]
-    pub(crate) fn uri(&self) -> &str {
-        &self.uri
-    }
-
-    #[allow(dead_code)]
-    pub(crate) fn path(&self) -> &std::path::Path {
-        &self.path
-    }
-
-    pub(crate) fn bytes(&self) -> &[u8] {
-        &self.bytes
-    }
-
-    pub(crate) fn value(&self) -> &serde_json::Value {
-        &self.value
-    }
-
-    #[cfg(test)]
-    pub(crate) fn with_test_value(&self, value: serde_json::Value) -> Self {
-        Self {
-            uri: self.uri.clone(),
-            path: self.path.clone(),
-            bytes: serde_json::to_vec(&value).expect("serialize test JSON"),
-            value,
-        }
-    }
-}
 
 #[derive(Debug)]
 pub(crate) struct LoadedIfccadPackage {

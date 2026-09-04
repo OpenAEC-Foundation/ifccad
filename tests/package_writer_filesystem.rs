@@ -1,7 +1,7 @@
 use ifccad::builder::{
     EncodedIfccadPackage, IfccadPackageBuilder, PackageOptions, PackageWriteError,
 };
-use ifccad::ifcdr::IfccadLengthUnit;
+use ifccad::ifcdr::IfcdrLengthUnit;
 use ifccad::{PackageId, ResourceId};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -42,7 +42,7 @@ fn encoded() -> EncodedIfccadPackage {
         timestamp: "2026-09-03T12:00:00Z".to_owned(),
         model_layout_name: "Model".to_owned(),
         representation_resource_id: ResourceId::new("modelspace").unwrap(),
-        length_unit: IfccadLengthUnit::Metre,
+        length_unit: IfcdrLengthUnit::Metre,
     })
     .unwrap()
     .finish()

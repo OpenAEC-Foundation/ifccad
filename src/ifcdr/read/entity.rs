@@ -1,42 +1,18 @@
-use super::registry::{IfcdrRegistry, StreamRole};
-use super::resource::ValidatedStream;
-use crate::ifcdr::resource::{LoadedIfcdrResource, ValidatedIfcdrResource};
-use crate::ifcdr::streams::{Line, PolylineRef};
-use crate::package::codes::{
+use super::codes::{
     IFCCAD_IFCDR_ENTITY_ID_DUPLICATE, IFCCAD_IFCDR_ENTITY_ORDER_INVALID,
     IFCCAD_IFCDR_STRUCTURE_INVALID,
 };
-use crate::package::{PackageDiagnostic, PackageDiagnosticContextValue, PackageDiagnosticSeverity};
+use super::registry::{IfcdrRegistry, StreamRole};
+use super::resource::ValidatedStream;
+use super::resource::{LoadedIfcdrResource, ValidatedIfcdrResource};
+use super::streams::{Line, PolylineRef};
+use crate::diagnostic::{
+    PackageDiagnostic, PackageDiagnosticContextValue, PackageDiagnosticSeverity,
+};
+use crate::ifcdr::{EntityId, ScopeId};
 use crate::validated::Validated;
 use serde_json::{Map, Value};
 use std::collections::{BTreeMap, BTreeSet};
-use std::num::NonZeroU64;
-
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct EntityId(NonZeroU64);
-
-impl EntityId {
-    pub(crate) fn new(value: u64) -> Option<Self> {
-        NonZeroU64::new(value).map(Self)
-    }
-
-    pub fn get(self) -> u64 {
-        self.0.get()
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct ScopeId(u32);
-
-impl ScopeId {
-    pub(crate) fn new(value: u32) -> Self {
-        Self(value)
-    }
-
-    pub fn get(self) -> u32 {
-        self.0
-    }
-}
 
 #[derive(Clone, Debug)]
 pub(crate) struct EntityLocation {
@@ -474,10 +450,9 @@ fn escape(value: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    use super::super::resource::{fixture_source, LoadedIfcdrResource};
+    use super::super::validation::{validate_ifcdr, validate_value};
     use super::{EntityId, IfcdrEntityRef, ScopeId};
-    use crate::ifcdr::resource::fixture_source;
-    use crate::ifcdr::resource::LoadedIfcdrResource;
-    use crate::ifcdr::validation::{validate_ifcdr, validate_value};
 
     #[test]
     fn indexes_all_minimal_entities_in_scope_order() {

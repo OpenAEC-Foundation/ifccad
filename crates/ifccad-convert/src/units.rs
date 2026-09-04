@@ -1,8 +1,8 @@
 use cadcodec::CadDocument;
-use ifccad::ifcdr::IfccadLengthUnit;
+use ifccad::ifcdr::IfcdrLengthUnit;
 
-pub(crate) fn apply_units(document: &mut CadDocument, unit: IfccadLengthUnit) {
-    use IfccadLengthUnit::{Centimetre, Foot, Inch, Kilometre, Metre, Millimetre, Unitless};
+pub(crate) fn apply_units(document: &mut CadDocument, unit: IfcdrLengthUnit) {
+    use IfcdrLengthUnit::{Centimetre, Foot, Inch, Kilometre, Metre, Millimetre, Unitless};
 
     let (insertion_units, measurement) = match unit {
         Unitless => (0, None),
@@ -23,7 +23,7 @@ pub(crate) fn apply_units(document: &mut CadDocument, unit: IfccadLengthUnit) {
 mod tests {
     use super::apply_units;
     use cadcodec::CadDocument;
-    use ifccad::ifcdr::IfccadLengthUnit::{
+    use ifccad::ifcdr::IfcdrLengthUnit::{
         Centimetre, Foot, Inch, Kilometre, Metre, Millimetre, Unitless,
     };
 

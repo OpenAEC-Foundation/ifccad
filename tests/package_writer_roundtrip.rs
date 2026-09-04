@@ -2,7 +2,7 @@ use ifccad::builder::{
     AppearanceColor, AppearanceDefinition, EntityAppearance, IfccadPackageBuilder, LayerDefinition,
     LineDefinition, LinePatternDefinition, PackageOptions, PolylineDefinition,
 };
-use ifccad::ifcdr::{AppearanceId, IfccadLengthUnit, IfcdrEntityRef, Point2};
+use ifccad::ifcdr::{AppearanceId, IfcdrEntityRef, IfcdrLengthUnit, Point2};
 use ifccad::package::{
     load_directory_package, AppearanceProperty, DrawingLayoutKind, LinePatternRef,
 };
@@ -42,7 +42,7 @@ fn representative_builder() -> IfccadPackageBuilder {
         timestamp: "2026-09-03T14:15:16.125+00:00".to_owned(),
         model_layout_name: "Model layout".to_owned(),
         representation_resource_id: ResourceId::new("geometry-main").unwrap(),
-        length_unit: IfccadLengthUnit::Millimetre,
+        length_unit: IfcdrLengthUnit::Millimetre,
     })
     .unwrap();
     let solid = builder
@@ -170,7 +170,7 @@ fn writer_output_reloads_without_diagnostics_and_preserves_semantics() {
     );
     assert_eq!(
         representation.resource().unit(),
-        IfccadLengthUnit::Millimetre
+        IfcdrLengthUnit::Millimetre
     );
     let bounds = representation.resource().bounds();
     assert_eq!(bounds.min(), Point2::new(-2.0, -5.0));
@@ -272,7 +272,7 @@ fn empty_model_space_reloads_with_zero_bounds_and_no_entities() {
         timestamp: "2026-09-03T14:15:16Z".to_owned(),
         model_layout_name: "Model".to_owned(),
         representation_resource_id: ResourceId::new("empty-geometry").unwrap(),
-        length_unit: IfccadLengthUnit::Unitless,
+        length_unit: IfcdrLengthUnit::Unitless,
     })
     .unwrap()
     .finish()

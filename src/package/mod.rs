@@ -20,19 +20,18 @@ mod schema;
 mod uri;
 mod validation;
 
+pub use crate::diagnostic::{
+    PackageDiagnostic, PackageDiagnosticContextValue, PackageDiagnosticSeverity,
+};
 pub use analysis::ValidatedIfccadPackage;
 pub use appearance::{
     AppearanceColorRef, AppearanceProperty, IndexedColorRef, LinePatternRef, NamedColorRef,
     RgbColor,
 };
-pub use diagnostic::{
-    PackageDiagnostic, PackageDiagnosticContextValue, PackageDiagnosticSeverity,
-    PackageValidationReport,
-};
+pub use diagnostic::PackageValidationReport;
 pub use error::PackageOpenError;
 pub(crate) use header::canonical_rfc3339_utc;
 pub use header::PackageHeaderRef;
-pub(crate) use model::LoadedJsonResource;
 pub use model::PackageLoadOutcome;
 pub use navigation::{
     AppearanceRef, AppliedAppearanceRef, DrawingLayoutKind, DrawingLayoutRef, DrawingRef,

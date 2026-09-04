@@ -180,7 +180,7 @@ mod tests {
         AppearanceColor, AppearanceDefinition, IfccadPackageBuilder, LayerDefinition,
         LinePatternDefinition, PackageOptions,
     };
-    use crate::ifcdr::IfccadLengthUnit;
+    use crate::ifcdr::IfcdrLengthUnit;
     use crate::{PackageId, ResourceId};
     use serde_json::Value;
 
@@ -193,7 +193,7 @@ mod tests {
             timestamp: "2026-09-03T10:00:00.125+00:00".to_owned(),
             model_layout_name: "Model layout".to_owned(),
             representation_resource_id: ResourceId::new("geometry-modelspace-main").unwrap(),
-            length_unit: IfccadLengthUnit::Millimetre,
+            length_unit: IfcdrLengthUnit::Millimetre,
         })
         .unwrap();
         let style = builder

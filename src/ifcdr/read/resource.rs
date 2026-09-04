@@ -1,4 +1,5 @@
-use crate::package::LoadedJsonResource;
+use crate::ifcdr::{AppearanceId, Bounds2d, IfcdrLengthUnit, LayerId, Point2, ScopeId};
+use crate::json_resource::LoadedJsonResource;
 use crate::validated::{Validated, ValidationTarget};
 use crate::ResourceId;
 use serde_json::{Map, Value};
@@ -22,75 +23,6 @@ impl LoadedIfcdrResource {
 
     pub(crate) fn source(&self) -> &Arc<LoadedJsonResource> {
         &self.source
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct Point2 {
-    pub(crate) x: f64,
-    pub(crate) y: f64,
-}
-
-impl Point2 {
-    pub fn new(x: f64, y: f64) -> Self {
-        Self { x, y }
-    }
-    pub fn x(self) -> f64 {
-        self.x
-    }
-    pub fn y(self) -> f64 {
-        self.y
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct Bounds2d {
-    pub(crate) min: Point2,
-    pub(crate) max: Point2,
-}
-
-impl Bounds2d {
-    pub fn min(self) -> Point2 {
-        self.min
-    }
-    pub fn max(self) -> Point2 {
-        self.max
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct LayerId(u32);
-
-impl LayerId {
-    pub(crate) fn new(value: u32) -> Self {
-        Self(value)
-    }
-    pub fn get(self) -> u32 {
-        self.0
-    }
-}
-
-impl From<u32> for LayerId {
-    fn from(value: u32) -> Self {
-        Self(value)
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct AppearanceId(u32);
-
-impl AppearanceId {
-    pub(crate) fn new(value: u32) -> Self {
-        Self(value)
-    }
-    pub fn get(self) -> u32 {
-        self.0
-    }
-}
-
-impl From<u32> for AppearanceId {
-    fn from(value: u32) -> Self {
-        Self(value)
     }
 }
 
@@ -139,22 +71,10 @@ pub(crate) struct IfcdrValidationEvidence {
     pub(crate) bounds: Bounds2d,
     pub(crate) tables: BTreeMap<String, ValidatedTable>,
     pub(crate) streams: BTreeMap<String, ValidatedStream>,
-    pub(crate) entities: crate::ifcdr::entity::EntityIndex,
+    pub(crate) entities: super::entity::EntityIndex,
 }
 
 pub(crate) type ValidatedIfcdrResource = Validated<LoadedIfcdrResource>;
-
-/// Length unit declared by a validated IFCDR resource.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum IfccadLengthUnit {
-    Unitless,
-    Millimetre,
-    Centimetre,
-    Metre,
-    Kilometre,
-    Inch,
-    Foot,
-}
 
 /// Opaque semantic view over a strictly validated IFCDR resource.
 #[derive(Clone, Copy)]
@@ -171,15 +91,15 @@ impl<'a> IfcdrResourceRef<'a> {
         self.resource.header().resource_id()
     }
 
-    pub fn unit(&self) -> IfccadLengthUnit {
+    pub fn unit(&self) -> IfcdrLengthUnit {
         match self.resource.header().unit() {
-            "unitless" => IfccadLengthUnit::Unitless,
-            "mm" => IfccadLengthUnit::Millimetre,
-            "cm" => IfccadLengthUnit::Centimetre,
-            "m" => IfccadLengthUnit::Metre,
-            "km" => IfccadLengthUnit::Kilometre,
-            "in" => IfccadLengthUnit::Inch,
-            "ft" => IfccadLengthUnit::Foot,
+            "unitless" => IfcdrLengthUnit::Unitless,
+            "mm" => IfcdrLengthUnit::Millimetre,
+            "cm" => IfcdrLengthUnit::Centimetre,
+            "m" => IfcdrLengthUnit::Metre,
+            "km" => IfcdrLengthUnit::Kilometre,
+            "in" => IfcdrLengthUnit::Inch,
+            "ft" => IfcdrLengthUnit::Foot,
             _ => unreachable!("validated IFCDR length unit"),
         }
     }
@@ -192,14 +112,11 @@ impl<'a> IfcdrResourceRef<'a> {
         self.resource.scopes()
     }
 
-    pub fn scope(&self, id: crate::ifcdr::entity::ScopeId) -> Option<ScopeRef<'_>> {
+    pub fn scope(&self, id: ScopeId) -> Option<ScopeRef<'_>> {
         self.resource.scope(id)
     }
 
-    pub fn entities(
-        &self,
-        scope: crate::ifcdr::entity::ScopeId,
-    ) -> crate::ifcdr::entity::EntityIterator<'_> {
+    pub fn entities(&self, scope: ScopeId) -> super::entity::EntityIterator<'_> {
         self.resource
             .entities()
             .in_scope(scope)
@@ -223,7 +140,7 @@ impl Validated<LoadedIfcdrResource> {
             })
     }
 
-    pub(crate) fn scope(&self, id: crate::ifcdr::entity::ScopeId) -> Option<ScopeRef<'_>> {
+    pub(crate) fn scope(&self, id: ScopeId) -> Option<ScopeRef<'_>> {
         self.scopes().find(|scope| scope.id() == id)
     }
 
@@ -247,8 +164,8 @@ impl Validated<LoadedIfcdrResource> {
         IfcdrBindings { resource: self }
     }
 
-    pub(crate) fn streams(&self) -> crate::ifcdr::streams::IfcdrStreams<'_> {
-        crate::ifcdr::streams::IfcdrStreams::new(self)
+    pub(crate) fn streams(&self) -> super::streams::IfcdrStreams<'_> {
+        super::streams::IfcdrStreams::new(self)
     }
 
     pub(crate) fn unmodeled_streams(&self) -> impl Iterator<Item = UnmodeledStreamRef<'_>> {
@@ -258,7 +175,7 @@ impl Validated<LoadedIfcdrResource> {
             .filter(|(name, _)| name.as_str() != "line" && name.as_str() != "polyline")
             .map(|(_, stream)| {
                 let schema =
-                    &crate::ifcdr::registry::canonical_registry().streams()[stream.registry_index];
+                    &super::registry::canonical_registry().streams()[stream.registry_index];
                 UnmodeledStreamRef {
                     schema,
                     row_count: stream.row_count,
@@ -268,7 +185,7 @@ impl Validated<LoadedIfcdrResource> {
 }
 
 pub(crate) struct UnmodeledStreamRef<'a> {
-    schema: &'a crate::ifcdr::registry::StreamSchema,
+    schema: &'a super::registry::StreamSchema,
     row_count: usize,
 }
 
@@ -279,7 +196,7 @@ impl<'a> UnmodeledStreamRef<'a> {
     pub(crate) fn schema_id(&self) -> &'a str {
         self.schema.schema_id()
     }
-    pub(crate) fn role(&self) -> crate::ifcdr::registry::StreamRole {
+    pub(crate) fn role(&self) -> super::registry::StreamRole {
         self.schema.role()
     }
     pub(crate) fn len(&self) -> usize {
@@ -295,8 +212,8 @@ pub struct ScopeRef<'a> {
 }
 
 impl ScopeRef<'_> {
-    pub fn id(&self) -> crate::ifcdr::entity::ScopeId {
-        crate::ifcdr::entity::ScopeId::new(u32_value(self.row, "id"))
+    pub fn id(&self) -> ScopeId {
+        ScopeId::new(u32_value(self.row, "id"))
     }
     pub fn name(&self) -> &str {
         string_value(self.row, "name")
@@ -436,39 +353,41 @@ fn string_value<'a>(row: &'a Map<String, Value>, key: &str) -> &'a str {
 }
 
 impl ValidationTarget for LoadedIfcdrResource {
-    type Context = crate::ifcdr::registry::IfcdrRegistry;
+    type Context = super::registry::IfcdrRegistry;
     type Evidence = IfcdrValidationEvidence;
-    type Diagnostic = crate::package::PackageDiagnostic;
+    type Diagnostic = crate::diagnostic::PackageDiagnostic;
 
     fn build_evidence(
         &self,
         context: &Self::Context,
     ) -> crate::validated::EvidenceOutcome<Self::Evidence, Self::Diagnostic> {
-        crate::ifcdr::validation::build_evidence(self, context)
+        super::validation::build_evidence(self, context)
     }
 }
 
 #[cfg(test)]
 pub(crate) fn fixture_source() -> Arc<LoadedJsonResource> {
     use crate::conformance::bundled_conformance_root;
-    use crate::package::load_directory_package;
 
-    let root = bundled_conformance_root()
+    let path = bundled_conformance_root()
         .join("packages")
         .join("valid")
-        .join("minimal-no-preservation");
-    load_directory_package(root)
-        .expect("load fixture")
-        .package
-        .expect("loaded package")
-        .resources["drawing.ifcdr.json"]
-        .clone()
+        .join("minimal-no-preservation")
+        .join("drawing.ifcdr.json");
+    let bytes = std::fs::read(&path).expect("read IFCDR fixture");
+    let value = serde_json::from_slice(&bytes).expect("parse IFCDR fixture");
+    Arc::new(LoadedJsonResource::new(
+        "drawing.ifcdr.json".to_owned(),
+        path,
+        bytes,
+        value,
+    ))
 }
 
 #[cfg(test)]
 mod tests {
+    use super::super::validation::validate_ifcdr;
     use super::*;
-    use crate::ifcdr::validation::validate_ifcdr;
 
     #[test]
     fn exposes_typed_header_bounds_scopes_and_bindings() {
@@ -495,10 +414,7 @@ mod tests {
         assert_eq!(resource.bindings().layers().count(), 2);
         assert_eq!(resource.bindings().appearances().count(), 4);
         assert_eq!(
-            resource
-                .scope(crate::ifcdr::entity::ScopeId::new(0))
-                .expect("scope")
-                .name(),
+            resource.scope(ScopeId::new(0)).expect("scope").name(),
             "ModelSpace"
         );
         assert_eq!(
@@ -535,16 +451,16 @@ mod tests {
         let scope = view.scopes().next().expect("model scope");
 
         assert_eq!(view.resource_id().as_str(), "geometry-modelspace-main");
-        assert_eq!(view.unit(), IfccadLengthUnit::Metre);
+        assert_eq!(view.unit(), IfcdrLengthUnit::Metre);
         assert_eq!(scope.name(), "ModelSpace");
         assert_eq!(
             view.entities(scope.id())
                 .map(|entity| match entity {
-                    crate::ifcdr::entity::IfcdrEntityRef::Line(line) => line.entity_id().get(),
-                    crate::ifcdr::entity::IfcdrEntityRef::Polyline(polyline) => {
+                    crate::ifcdr::IfcdrEntityRef::Line(line) => line.entity_id().get(),
+                    crate::ifcdr::IfcdrEntityRef::Polyline(polyline) => {
                         polyline.entity_id().get()
                     }
-                    crate::ifcdr::entity::IfcdrEntityRef::Unmodeled(entity) => {
+                    crate::ifcdr::IfcdrEntityRef::Unmodeled(entity) => {
                         entity.entity_id().get()
                     }
                 })

@@ -3,8 +3,9 @@ use serde_json::Value;
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::OnceLock;
 
-const REGISTRY_META_SCHEMA: &str = include_str!("../../schemas/ifcdr/registry-meta-schema-v1.json");
-const CANONICAL_REGISTRY: &str = include_str!("../../schemas/ifcdr/registry-0.5.0.json");
+const REGISTRY_META_SCHEMA: &str =
+    include_str!("../../../schemas/ifcdr/registry-meta-schema-v1.json");
+const CANONICAL_REGISTRY: &str = include_str!("../../../schemas/ifcdr/registry-0.5.0.json");
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]

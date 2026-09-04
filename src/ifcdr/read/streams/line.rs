@@ -1,6 +1,5 @@
 use super::store::ValidatedIfcdrStreamRef;
-use crate::ifcdr::entity::{EntityId, ScopeId};
-use crate::ifcdr::resource::{AppearanceId, LayerId, Point2};
+use crate::ifcdr::{AppearanceId, EntityId, LayerId, Point2, ScopeId};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Line {
@@ -81,8 +80,9 @@ impl<'a> LineStreamView<'a> {
 #[cfg(test)]
 mod tests {
     use super::Line;
-    use crate::ifcdr::resource::{fixture_source, LoadedIfcdrResource, Point2};
-    use crate::ifcdr::validation::validate_ifcdr;
+    use crate::ifcdr::read::resource::{fixture_source, LoadedIfcdrResource};
+    use crate::ifcdr::read::validation::validate_ifcdr;
+    use crate::ifcdr::Point2;
 
     #[test]
     fn reads_lines_as_copied_typed_rows() {

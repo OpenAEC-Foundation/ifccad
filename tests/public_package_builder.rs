@@ -2,7 +2,7 @@ use ifccad::builder::{
     AppearanceColor, AppearanceDefinition, BuildError, EntityAppearance, IfccadPackageBuilder,
     LayerDefinition, LineDefinition, LinePatternDefinition, PackageOptions, PolylineDefinition,
 };
-use ifccad::ifcdr::{IfccadLengthUnit, Point2};
+use ifccad::ifcdr::{IfcdrLengthUnit, Point2};
 use ifccad::{PackageId, ResourceId};
 
 fn options(timestamp: &str) -> PackageOptions {
@@ -13,7 +13,7 @@ fn options(timestamp: &str) -> PackageOptions {
         timestamp: timestamp.to_owned(),
         model_layout_name: "Model".to_owned(),
         representation_resource_id: ResourceId::new("geometry-modelspace-main").unwrap(),
-        length_unit: IfccadLengthUnit::Millimetre,
+        length_unit: IfcdrLengthUnit::Millimetre,
     }
 }
 

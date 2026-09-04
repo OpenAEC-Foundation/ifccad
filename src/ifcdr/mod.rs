@@ -2,16 +2,12 @@
 
 #![allow(dead_code)]
 
-mod entity;
-mod registry;
-mod resource;
-mod streams;
-mod validation;
+mod read;
+mod types;
 
-pub use entity::{EntityId, EntityIterator, IfcdrEntityRef, ScopeId, UnmodeledEntityRef};
-pub use resource::{
-    AppearanceId, Bounds2d, IfccadLengthUnit, IfcdrResourceRef, LayerId, Point2, ScopeRef,
+pub(crate) use read::{validate_ifcdr, LoadedIfcdrResource, ValidatedIfcdrResource};
+pub use read::{
+    EntityIterator, IfcdrEntityRef, IfcdrResourceRef, Line, PointIterator, PolylineRef, ScopeRef,
+    UnmodeledEntityRef,
 };
-pub(crate) use resource::{LoadedIfcdrResource, ValidatedIfcdrResource};
-pub use streams::{Line, PointIterator, PolylineRef};
-pub(crate) use validation::validate_ifcdr;
+pub use types::{AppearanceId, Bounds2d, EntityId, IfcdrLengthUnit, LayerId, Point2, ScopeId};

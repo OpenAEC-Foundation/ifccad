@@ -1,17 +1,19 @@
+use super::codes::{
+    IFCCAD_IFCDR_DIRECTORY_INVALID, IFCCAD_IFCDR_REFERENCE_MISSING,
+    IFCCAD_IFCDR_STREAM_SCHEMA_UNSUPPORTED, IFCCAD_IFCDR_STRUCTURE_INVALID,
+    IFCCAD_IFCDR_UNIT_UNSUPPORTED, IFCCAD_IFCDR_VERSION_UNSUPPORTED,
+};
 use super::registry::{
     canonical_registry, Cardinality, FieldSchema, IfcdrRegistry, Presence, ReferenceCategory,
     StreamRole, ValueType,
 };
 use super::resource::{
-    Bounds2d, IfcdrHeader, IfcdrValidationEvidence, LoadedIfcdrResource, Point2, ValidatedStream,
-    ValidatedTable,
+    IfcdrHeader, IfcdrValidationEvidence, LoadedIfcdrResource, ValidatedStream, ValidatedTable,
 };
-use crate::package::codes::{
-    IFCCAD_IFCDR_DIRECTORY_INVALID, IFCCAD_IFCDR_REFERENCE_MISSING,
-    IFCCAD_IFCDR_STREAM_SCHEMA_UNSUPPORTED, IFCCAD_IFCDR_STRUCTURE_INVALID,
-    IFCCAD_IFCDR_UNIT_UNSUPPORTED, IFCCAD_IFCDR_VERSION_UNSUPPORTED,
+use crate::diagnostic::{
+    PackageDiagnostic, PackageDiagnosticContextValue, PackageDiagnosticSeverity,
 };
-use crate::package::{PackageDiagnostic, PackageDiagnosticContextValue, PackageDiagnosticSeverity};
+use crate::ifcdr::{Bounds2d, Point2};
 use crate::validated::{EvidenceOutcome, Validated, ValidationOutcome};
 use crate::ResourceId;
 use serde_json::{Map, Value};
@@ -651,7 +653,7 @@ impl<'a> ResourceValidator<'a> {
     fn validate_registered_references(
         &mut self,
         root: &Map<String, Value>,
-        entities: &crate::ifcdr::entity::EntityIndex,
+        entities: &super::entity::EntityIndex,
     ) {
         for table in self.registry.tables() {
             let Some(rows) = value_at_path(root, table.payload_path()).and_then(Value::as_array)
@@ -858,7 +860,7 @@ fn role_name(role: StreamRole) -> &'static str {
 fn reference_target_exists(
     root: &Map<String, Value>,
     registry: &IfcdrRegistry,
-    entities: &crate::ifcdr::entity::EntityIndex,
+    entities: &super::entity::EntityIndex,
     reference: &super::registry::Reference,
     value: &Value,
 ) -> bool {
@@ -866,7 +868,7 @@ fn reference_target_exists(
         ReferenceCategory::Ifcx => true,
         ReferenceCategory::Entity => value
             .as_u64()
-            .and_then(crate::ifcdr::entity::EntityId::new)
+            .and_then(crate::ifcdr::EntityId::new)
             .is_some_and(|id| entities.get(id).is_some()),
         ReferenceCategory::TableField => {
             reference
@@ -924,8 +926,8 @@ pub(super) fn validate_value(uri: &str, value: Value) -> ValidationOutcome<Loade
 
 #[cfg(test)]
 mod tests {
+    use super::super::resource::fixture_source;
     use super::*;
-    use crate::ifcdr::resource::fixture_source;
 
     #[test]
     fn validates_the_minimal_ifcdr_resource() {

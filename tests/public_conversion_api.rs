@@ -1,6 +1,6 @@
 use ifccad::conformance::bundled_conformance_root;
 use ifccad::ifcdr::{
-    AppearanceId, EntityId, IfccadLengthUnit, IfcdrEntityRef, IfcdrResourceRef, LayerId, Point2,
+    AppearanceId, EntityId, IfcdrEntityRef, IfcdrLengthUnit, IfcdrResourceRef, LayerId, Point2,
     ScopeId,
 };
 use ifccad::package::{
@@ -24,7 +24,7 @@ struct EntityProjection {
 fn project_ifcdr_entities(
     resource: IfcdrResourceRef<'_>,
     scope_id: ScopeId,
-) -> (ResourceId, IfccadLengthUnit, Vec<EntityProjection>) {
+) -> (ResourceId, IfcdrLengthUnit, Vec<EntityProjection>) {
     let projected = resource
         .entities(scope_id)
         .map(|entity| match entity {
@@ -58,6 +58,18 @@ fn project_ifcdr_entities(
         })
         .collect();
     (resource.resource_id().clone(), resource.unit(), projected)
+}
+
+fn require_ifcdr_unit(unit: IfcdrLengthUnit) -> IfcdrLengthUnit {
+    unit
+}
+
+#[test]
+fn public_ifcdr_unit_retains_resource_context() {
+    assert_eq!(
+        require_ifcdr_unit(IfcdrLengthUnit::Millimetre),
+        IfcdrLengthUnit::Millimetre
+    );
 }
 
 #[test]

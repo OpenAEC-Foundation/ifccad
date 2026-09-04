@@ -8,7 +8,7 @@ pub(crate) use line::LineStreamView;
 pub(crate) use polyline::PolylineStreamView;
 pub use polyline::{PointIterator, PolylineRef};
 
-use crate::ifcdr::resource::ValidatedIfcdrResource;
+use super::resource::ValidatedIfcdrResource;
 use store::ValidatedIfcdrStreamRef;
 
 pub(crate) struct IfcdrStreams<'a> {

@@ -1,5 +1,5 @@
+use super::super::resource::ValidatedIfcdrResource;
 use super::columns::{BooleanColumn, Float64Column, UInt32Column, UInt64Column};
-use crate::ifcdr::resource::ValidatedIfcdrResource;
 use serde_json::{Map, Value};
 
 #[derive(Clone, Copy)]
@@ -43,7 +43,7 @@ impl<'a> ValidatedIfcdrStreamRef<'a> {
         Float64Column::new(array(self.payload(), name))
     }
     pub(super) fn boolean(self, name: &str) -> BooleanColumn<'a> {
-        let omission_default = crate::ifcdr::registry::canonical_registry()
+        let omission_default = crate::ifcdr::read::registry::canonical_registry()
             .stream_by_name(self.stream_name)
             .and_then(|stream| stream.columns.iter().find(|column| column.name == name))
             .and_then(|column| column.omission_default.as_ref())

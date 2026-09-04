@@ -14,6 +14,8 @@
 pub mod builder;
 pub mod canonicalization;
 pub mod conformance;
+mod diagnostic;
+mod json_resource;
 pub mod package;
 mod package_id;
 mod resource;
