@@ -8,6 +8,18 @@ pub struct ExportOutcome {
 }
 
 impl ExportOutcome {
+    pub(crate) fn new(
+        package: EncodedPackage,
+        diagnostics: Vec<ExportDiagnostic>,
+        entity_mapping: ExportEntityMapping,
+    ) -> Self {
+        Self {
+            package,
+            diagnostics,
+            entity_mapping,
+        }
+    }
+
     pub fn package(&self) -> &EncodedPackage {
         &self.package
     }

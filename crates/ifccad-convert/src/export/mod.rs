@@ -1,8 +1,12 @@
+mod appearance;
 mod conversion;
 mod diagnostic;
 mod entity_mapping;
+mod layers;
 mod options;
 mod outcome;
+mod structure;
+mod units;
 
 pub use conversion::cad_document_to_package;
 pub use diagnostic::{

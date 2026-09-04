@@ -22,8 +22,44 @@ pub enum ExportAction {
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum ExportLossReason {
-    UnsupportedSemantic { name: String },
-    MissingTarget { kind: String, identifier: String },
+    UnsupportedUnit {
+        code: i16,
+    },
+    LayerLocked,
+    LayerFrozenInNewViewport,
+    LayerXrefDependent,
+    LayerNotPlottable,
+    LayerPlotStyle {
+        name: String,
+    },
+    MaterialReference {
+        handle: Handle,
+    },
+    PlotStyleReference {
+        handle: Handle,
+    },
+    XrefBlockRecordReference {
+        handle: Handle,
+    },
+    NamedColorIdentityIncomplete {
+        color_name: Option<String>,
+        book_name: Option<String>,
+    },
+    LayerColorUnsupported {
+        color: String,
+    },
+    LayerTransparencyUnsupported,
+    LayerLinePatternMissing,
+    LayerLineWeightUnsupported {
+        value: i16,
+    },
+    UnsupportedSemantic {
+        name: String,
+    },
+    MissingTarget {
+        kind: String,
+        identifier: String,
+    },
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -37,6 +73,19 @@ pub enum ExportDiagnostic {
 }
 
 impl ExportDiagnostic {
+    pub(crate) fn loss(
+        source: ExportDiagnosticSource,
+        action: ExportAction,
+        reasons: Vec<ExportLossReason>,
+    ) -> Self {
+        assert!(!reasons.is_empty(), "a loss diagnostic requires a reason");
+        Self::Loss {
+            source,
+            action,
+            reasons,
+        }
+    }
+
     pub fn source(&self) -> &ExportDiagnosticSource {
         match self {
             Self::Loss { source, .. } => source,
@@ -64,6 +113,9 @@ impl ExportDiagnostic {
 #[non_exhaustive]
 pub enum SourceStructureProblem {
     ModelSpaceBlockMissing,
+    ModelSpaceBlockRecordMissing {
+        model_space_block: Handle,
+    },
     ModelLayoutMissing {
         model_space_block: Handle,
     },
