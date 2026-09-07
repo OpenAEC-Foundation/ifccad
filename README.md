@@ -3,6 +3,13 @@
 Rust implementation and language-neutral format contract for the open IFCCAD
 exchange format.
 
+This repository develops the primary, recommended IFCCAD implementation.
+Applications can build on its Rust crates directly or through language bindings
+as those become available. The format itself remains independently
+implementable from the published schemas, registries, and conformance material;
+using this implementation is not a requirement for producing or consuming
+IFCCAD.
+
 ## What is IFCCAD?
 
 IFCCAD brings IFC-style project and building semantics together with CAD
@@ -75,14 +82,19 @@ Development follows an incremental sequence:
 1. **Working format foundation** — typed packages, validation, deterministic
    writing, and an initial bidirectional 2D CAD roundtrip are established.
 2. **Stable logical drawing-resource model** — stabilize terminology,
-   encoding-neutral boundaries, registry semantics, and resource identity.
+   encoding-neutral boundaries, language-neutral rules and conformance,
+   compatibility reporting, registry semantics, and resource identity, while
+   beginning reproducible size measurements.
 3. **Native CAD semantics and preservation** — expand geometry, layouts,
-   entities, drawing relationships, and IFCPR-backed fidelity.
+   entities, drawing relationships, and IFCPR-backed fidelity using a growing
+   corpus of representative CAD workflows, including an initial CAD-BIM link.
 4. **Scalable physical encodings and packaging** — evaluate chunking,
    compression, binary encodings, and a container using representative
    benchmarks.
-5. **Interoperability and wider IFC workflows** — grow conformance,
-   independent implementations, generated drawings, and IFC integration.
+5. **Interoperability and wider IFC workflows** — demonstrate practical
+   exchange between applications using the primary implementation, then add
+   independent validation for stable profiles and expand generated-drawing and
+   IFC integration workflows.
 
 The order expresses architectural dependencies rather than release dates.
 Milestones may overlap, but later work should not become coupled to boundaries
@@ -232,6 +244,13 @@ Active schemas may move ahead of the latest released conformance collection.
 When a new collection is released, its applicable schemas are copied into the
 numbered directory and frozen with the rest of that collection.
 
+Compatibility reporting is planned to distinguish three separate questions:
+whether a package is valid, whether an implementation supports its content for
+a stated operation, and whether that operation can transfer the relevant
+meaning without loss. The conformance collections will grow an explicit matrix
+covering readable and writable versions, understood extensions, and handling of
+unknown content; see [ROADMAP.md](ROADMAP.md) for the staged work.
+
 ## Repository layout
 
 - [`src`](src) contains the Rust implementation. `package` is the public
@@ -247,8 +266,8 @@ numbered directory and frozen with the rest of that collection.
   status; [`docs/vision.md`](docs/vision.md) describes the long-term purpose and
   design principles.
 
-The [Python prototype](https://github.com/OpenAEC-Foundation/ifccad-prototype) remains
-the model-first reference implementation and format laboratory.
+The [Python prototype](https://github.com/OpenAEC-Foundation/ifccad-prototype)
+remains a model-first prototype and format laboratory.
 
 This primary crate deliberately does not provide `CadDocument` or DWG/DXF I/O.
 The workspace's [`ifccad-convert`](crates/ifccad-convert) companion crate owns

@@ -36,6 +36,13 @@ IFCCAD is an exchange package and logical drawing model. It is intended to:
 IFCCAD is not a requirement that every drawing contain building semantics. A
 drawing set can stand on its own as CAD data inside an IFCX package.
 
+This repository develops the primary, recommended IFCCAD implementation.
+Applications can share that implementation directly or consume it through
+language bindings as those become available, providing a practical common
+interoperability layer. The published format contract remains authoritative and
+language-neutral, so other implementations and focused validators can be built
+without depending on the Rust source or a particular CAD library.
+
 ## The three-part model
 
 ### IFCX: meaning and relationships
@@ -109,6 +116,10 @@ Entities, IDs, references, scopes, units, placements, and draw order are logical
 concepts. Their meaning must not depend on JSON property names, chunk boundaries,
 file names, compression, or binary layout.
 
+These logical rules and their meaning must be stated in published schemas,
+registries, documentation, and conformance cases. An implementer should not
+need to infer the format contract by reading the primary Rust implementation.
+
 JSON is the initial reference and conformance encoding because it is transparent
 and straightforward to inspect. Compact encodings should be introduced only
 when representative benchmarks justify their complexity.
@@ -128,6 +139,15 @@ IFCCAD-owned descriptors and registered payloads have clear versioned contracts.
 Unknown extensions should be safely ignorable or preservable rather than making
 the entire package unreadable.
 
+### Compatibility is capability-specific
+
+Package validity, implementation support, and lossless transfer are separate
+claims. A valid package can contain extensions or semantics that a particular
+application cannot convert or edit. Implementations should therefore state
+which versions they read and write, which extensions and operations they
+support, and how unknown content is handled. Conformance collections should
+make those claims explicit through compatibility matrices and testable cases.
+
 ### Equivalent meaning across storage modes
 
 Inline, external, packaged, generated, and cached resources can have different
@@ -139,14 +159,19 @@ across encodings and rechunking.
 
 The mature format should be capable of efficient storage and access in the same
 practical domain as established CAD formats. Exact targets and encodings must be
-derived from reproducible measurements. Full source archives in IFCPR are
-measured separately because they intentionally add source content to the native
+derived from reproducible measurements. Measurement can begin with the initial
+JSON reference encoding and grow with the representative corpus before a
+physical encoding is selected. Full source archives in IFCPR are measured
+separately because they intentionally add source content to the native
 representation.
 
 ## What success looks like
 
-- Independent implementations can validate and exchange the same logical
-  drawing without depending on one Rust implementation or CAD library.
+- Applications using the primary implementation or its language bindings can
+  exchange the same logical drawing consistently.
+- Once profiles stabilize, independent implementations or focused validators
+  can verify the published contract without depending on the Rust source or a
+  particular CAD library.
 - CAD-only users gain an open drawing package without being forced into a BIM
   workflow.
 - BIM-aware workflows can retain meaningful links between drawings and project
@@ -156,7 +181,8 @@ representation.
 - Public semantic APIs remain stable as physical storage evolves.
 - Representative drawings can be processed and stored efficiently using
   evidence-backed encodings.
-- Versioned conformance collections make interoperability testable.
+- Versioned conformance collections and compatibility matrices make validity,
+  support, lossless transfer, and interoperability testable.
 
 ## Non-goals
 
@@ -176,4 +202,3 @@ The project develops the logical model, reference implementation, conformance
 material, conversion coverage, and physical encodings incrementally. See
 [`ROADMAP.md`](../ROADMAP.md) for the current milestone order, dependencies,
 exit criteria, and linked design issues.
-

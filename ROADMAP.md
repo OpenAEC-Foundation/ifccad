@@ -25,6 +25,8 @@ updated in the same change when milestone names, order, or intent change.
   entity families on top of storage-specific assumptions.
 - Expand and verify semantic coverage before standardizing optimized physical
   encodings.
+- Start measuring physical size early, but defer physical encoding choices
+  until the logical model and representative corpus provide enough evidence.
 - Use deterministic reference encodings and real roundtrips to validate the
   model throughout development.
 - Do not silently approximate or discard source meaning. Represent it natively,
@@ -63,10 +65,12 @@ does not imply that the logical model or physical encoding is complete.
 
 ### Outcome
 
-IFCDR has encoding-neutral logical types, validation, and public APIs. IFCX and
-Rust terminology describe an IFCDR resource as a complete drawing resource,
-independent of whether its content is JSON, inline, external, chunked, or later
-binary encoded.
+IFCDR has encoding-neutral logical types, validation, and public APIs. Its
+logical rules and their meaning are described in the published format contract
+and exercised by conformance cases, without requiring an implementer to study
+the Rust source. IFCX and Rust terminology describe an IFCDR resource as a
+complete drawing resource, independent of whether its content is JSON, inline,
+external, chunked, or later binary encoded.
 
 ### Why this precedes broader entity coverage
 
@@ -80,12 +84,39 @@ harder. The common semantic boundary should be credible before the model grows.
   decoding and encoding ([issue #7](https://github.com/OpenAEC-Foundation/ifccad/issues/7)).
 - Align IFCX, IFCDR, Rust, and documentation terminology around complete drawing
   resources ([issue #8](https://github.com/OpenAEC-Foundation/ifccad/issues/8)).
-- Add language-neutral enum constraints to the registry
+- Describe logical types, constraints, defaults, references, and invariants in
+  language-neutral contract material and make their meaning testable through
+  conformance cases. Language-neutral enum constraints in the registry are one
+  part of this broader requirement
   ([issue #5](https://github.com/OpenAEC-Foundation/ifccad/issues/5)).
 - Complete a common abstraction for logically identified external and inline
   resources ([issue #1](https://github.com/OpenAEC-Foundation/ifccad/issues/1)).
 - Preserve compatibility and deterministic output for the JSON reference
   encoding while moving JSON-specific behavior behind codec boundaries.
+- Define an explicit compatibility matrix alongside the conformance collections
+  for the primary implementation. It must state which contract and profile
+  versions the implementation can read and write, which extensions it
+  understands, and how it treats unknown content. This matrix supports the open
+  extension model and the migration work in
+  [issue #8](https://github.com/OpenAEC-Foundation/ifccad/issues/8).
+- Begin the reproducible file-size measurement experiments from
+  [issue #6](https://github.com/OpenAEC-Foundation/ifccad/issues/6) using the
+  current JSON reference encoding and available fixtures. These early results
+  establish a method and baseline; they do not select a physical encoding.
+
+### Compatibility vocabulary
+
+Compatibility must report separate, operation-specific properties:
+
+- **Valid** — the package satisfies the applicable published format contract.
+- **Supported** — the implementation understands the content required for the
+  stated read, write, conversion, or editing operation.
+- **Losslessly transferable** — the operation preserves the relevant meaning,
+  either natively or through an approved preservation mechanism.
+
+A valid package need not be fully supported, convertible, or editable by every
+implementation. Unknown content must therefore have explicit behavior rather
+than being treated as proof that the entire package is invalid.
 
 ### Exit criteria
 
@@ -93,13 +124,24 @@ harder. The common semantic boundary should be credible before the model grows.
   paths, file extensions, or chunk layout.
 - Physical codec validation and shared semantic validation are separately
   testable.
-- The logical registry distinguishes semantic constraints from JSON mappings.
+- The logical registry and associated contract material distinguish semantic
+  constraints from JSON mappings, and an implementer can determine those rules
+  and their meaning without inspecting the Rust implementation.
 - Drawing-resource terminology is consistent across active schemas, code,
   conformance material, and documentation.
 - Supported inline and external resources normalize into the same validated
   logical model.
 - Existing supported JSON packages remain covered by compatibility and
   determinism tests.
+- Conformance reporting distinguishes validity, operation support, and lossless
+  transfer, and includes an initial explicit compatibility matrix.
+- A reproducible size-measurement method and initial JSON baseline are recorded
+  without committing the format to a new physical encoding.
+
+An independent implementation is not an exit criterion for this milestone.
+The primary implementation and conformance material establish the initial
+contract; independent implementations or limited validators become an
+additional test once a profile is sufficiently stable.
 
 ## 3. Native CAD semantics and preservation
 
@@ -112,6 +154,24 @@ retaining a precise account of anything that is not yet native. CAD-only,
 BIM-aware, imported, and generated drawings use the same logical model.
 
 ### Scope
+
+#### Reference workflow and coverage corpus
+
+Use representative DXF and DWG drawings from the
+[`ifccad-prototype`](https://github.com/OpenAEC-Foundation/ifccad-prototype)
+repository to guide native CAD coverage and preservation priorities. Begin with
+the foundation-repair drawing in `DXF DWG samples/3bm` as a candidate reference
+workflow.
+
+Inventory that drawing's entities, relationships, presentation requirements,
+and source semantics. Use the inventory to define an initial practical drawing
+profile and staged roundtrip expectations. Track which content is represented
+natively, preserved through IFCPR, or reported as unsupported.
+
+Expand the reference corpus as implementation progresses to cover workflows
+and semantics beyond this initial drawing.
+
+#### Format and implementation work
 
 - Define deliberate planar and spatial geometry, coordinate-frame, placement,
   and polyline semantics
@@ -127,17 +187,30 @@ BIM-aware, imported, and generated drawings use the same logical model.
   selected source content can survive a package roundtrip.
 - Preserve optional relationships between drawing content and IFCX project or
   product semantics.
+- Add a compact CAD-BIM integration test with an IFCX product, linked drawing
+  entities, an explicit placement, and recorded BIM-model provenance. This is
+  an early vertical proof of the relationship model, not a demand for full IFC
+  interoperability.
+- Extend the size-measurement baseline as the reference corpus, native entity
+  coverage, and preservation payloads grow. Report native and preservation
+  contributions separately so later encoding decisions use representative
+  evidence.
 
 ### Exit criteria
 
 - Representative drawings with model and paper layouts pass semantic
   IFCCAD/CAD roundtrips with complete, structured loss reporting.
+- The initial foundation-repair workflow has a published coverage inventory,
+  practical drawing profile, and staged roundtrip expectations that distinguish
+  native, preserved, and unsupported content.
 - Planar and spatial geometry have explicit logical invariants independent of
   their physical encoding.
 - Irregular supported entities expose typed semantic views rather than raw
   storage payloads.
 - Preserved content is distinguishable from native content and prevents false
   loss reports when it guarantees the intended roundtrip meaning.
+- A small CAD-BIM fixture verifies product-to-drawing relationships, placement,
+  and provenance through the supported workflow.
 - The conformance suite covers the expanded native and preservation contracts.
 
 ## 4. Scalable physical encodings and packaging
@@ -152,15 +225,16 @@ by reproducible measurements rather than assumed benefits.
 
 ### Dependencies
 
-This milestone needs a stable encoding-neutral model and a representative
-corpus of regular, irregular, planar, spatial, layout, and preservation data.
+This milestone needs a stable encoding-neutral model, the measurement method
+begun in milestone 2, and the representative corpus expanded in milestone 3
+with regular, irregular, planar, spatial, layout, and preservation data.
 
 ### Scope
 
 - Separate logical streams from physical chunk boundaries
   ([issue #3](https://github.com/OpenAEC-Foundation/ifccad/issues/3)).
-- Establish reproducible component-size, performance, and memory benchmarks
-  against comparable DXF and DWG inputs
+- Extend the earlier size experiments into representative component-size,
+  performance, and memory benchmarks against comparable DXF and DWG inputs
   ([issue #6](https://github.com/OpenAEC-Foundation/ifccad/issues/6)).
 - Compare minified and compressed JSON with experimental binary column and
   typed-payload encodings.
@@ -187,14 +261,20 @@ corpus of regular, irregular, planar, spatial, layout, and preservation data.
 
 IFCCAD becomes a practical open interchange layer for CAD-only drawings,
 BIM-aware drawings, and drawings generated from IFCX or conventional IFC
-models.
+models. Applications using the same primary library or its language bindings
+can already achieve practical interoperability; independently implemented
+producers, consumers, or limited validators provide an additional test of a
+published profile once it is sufficiently stable.
 
 ### Direction
 
-- Publish stable conformance collections for independently implementable
-  profiles.
-- Validate interoperability with additional producers, consumers, and CAD/BIM
-  applications.
+- Demonstrate end-to-end interoperability between multiple applications using
+  the primary implementation or its language bindings.
+- Publish stable conformance collections and compatibility matrices for
+  independently implementable profiles.
+- Validate sufficiently stable profiles with an independent implementation or
+  a deliberately limited validator, in addition to testing more producers,
+  consumers, and CAD/BIM applications.
 - Generate drawing resources from building elements while retaining optional
   links to their source products.
 - Distinguish generated, cached, imported, and CAD-edited drawing resources so
@@ -203,7 +283,9 @@ models.
   without conflating IFC models with drawing exchange.
 
 Progress in this milestone depends on implementation experience and ecosystem
-participation rather than a fixed feature checklist.
+participation rather than a fixed feature checklist. An independent
+implementation or validator is deliberately not a prerequisite for milestone
+2; it is most useful after the logical profile it tests has stabilized.
 
 ## Maintaining this roadmap
 
