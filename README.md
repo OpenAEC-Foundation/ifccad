@@ -22,6 +22,31 @@ IFCCAD sits between IFC semantics and CAD exchange. It is not the same as
 support for conventional IFC files, though conventional IFC import and export
 can become part of the wider workflow.
 
+## Why IFCCAD?
+
+CAD drawings remain essential project deliverables, but the dominant exchange
+options leave a gap. DWG is compact and widely used but proprietary. DXF is
+documented and accessible, but verbose and governed by a single vendor. IFC is
+open and semantically rich, but a building model and a CAD drawing are different
+artifacts.
+
+CAD and BIM files are therefore often maintained side by side. When a drawing
+is generated from BIM and exported to conventional CAD, relationships to the
+products and semantics that produced it are commonly lost. At the same time,
+many valid CAD workflows do not have or need an underlying BIM model.
+
+IFCCAD addresses both cases: CAD-only drawings can stand on their own, while
+BIM-aware drawings can retain optional links into a wider IFCX project graph.
+IFCX carries meaning and relationships, IFCDR carries typed high-volume drawing
+content, and IFCPR can preserve source information that is not yet represented
+natively. Logical drawing semantics remain separate from JSON, compression,
+chunking, or a future binary encoding.
+
+The goal is an open, independently implementable and fidelity-aware drawing
+model—not a clone of DWG and not a requirement to turn every drawing into BIM.
+See the [IFCCAD vision](docs/vision.md) for the use cases, architectural model,
+design principles, and long-term success criteria.
+
 ## Current status
 
 The crate currently provides:
@@ -42,6 +67,27 @@ The crate currently provides:
 A complete IFCCAD vocabulary within IFCX, production IFCDR codecs, the future
 `.ifccad` container, broader native CAD entity coverage and preservation, and
 conventional IFC integration are still under development.
+
+## Development roadmap
+
+Development follows an incremental sequence:
+
+1. **Working format foundation** — typed packages, validation, deterministic
+   writing, and an initial bidirectional 2D CAD roundtrip are established.
+2. **Stable logical drawing-resource model** — stabilize terminology,
+   encoding-neutral boundaries, registry semantics, and resource identity.
+3. **Native CAD semantics and preservation** — expand geometry, layouts,
+   entities, drawing relationships, and IFCPR-backed fidelity.
+4. **Scalable physical encodings and packaging** — evaluate chunking,
+   compression, binary encodings, and a container using representative
+   benchmarks.
+5. **Interoperability and wider IFC workflows** — grow conformance,
+   independent implementations, generated drawings, and IFC integration.
+
+The order expresses architectural dependencies rather than release dates.
+Milestones may overlap, but later work should not become coupled to boundaries
+that earlier work still needs to resolve. See [ROADMAP.md](ROADMAP.md) for the
+authoritative status, scope, dependencies, exit criteria, and related issues.
 
 ## Using the current API
 
@@ -197,6 +243,9 @@ numbered directory and frozen with the rest of that collection.
 - [`schemas`](schemas) contains the active language-neutral schemas.
 - [`conformance`](conformance) contains versioned conformance collections.
 - [`tests`](tests) verifies the public Rust API and bundled format assets.
+- [`ROADMAP.md`](ROADMAP.md) defines development sequencing and milestone
+  status; [`docs/vision.md`](docs/vision.md) describes the long-term purpose and
+  design principles.
 
 The [Python prototype](https://github.com/OpenAEC-Foundation/ifccad-prototype) remains
 the model-first reference implementation and format laboratory.
