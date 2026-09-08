@@ -75,6 +75,13 @@ A complete IFCCAD vocabulary within IFCX, production IFCDR codecs, the future
 `.ifccad` container, broader native CAD entity coverage and preservation, and
 conventional IFC integration are still under development.
 
+The active reader and writer use the reduced IFCDR **0.6.0** contract with
+lines, straight polylines, and their supporting data. Older IFCDR versions and
+other entity schemas do not produce a strict typed package; there is no legacy
+migration path. IFCPR 0.2.0 retains its existing limited checks. See the
+[candidate compatibility matrix](conformance/next/COMPATIBILITY.md) for operation
+support and validation limits.
+
 ## Development roadmap
 
 Development follows an incremental sequence:
@@ -84,7 +91,9 @@ Development follows an incremental sequence:
 2. **Stable logical drawing-resource model** — stabilize terminology,
    encoding-neutral boundaries, language-neutral rules and conformance,
    compatibility reporting, registry semantics, and resource identity, while
-   beginning reproducible size measurements.
+   beginning reproducible size measurements. Start from a reduced line/polyline
+   contract with its supporting data; older IFCDR file compatibility is not
+   required.
 3. **Native CAD semantics and preservation** — expand geometry, layouts,
    entities, drawing relationships, and IFCPR-backed fidelity using a growing
    corpus of representative CAD workflows, including an initial CAD-BIM link.

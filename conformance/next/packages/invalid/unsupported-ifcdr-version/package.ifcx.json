@@ -4,9 +4,6 @@
       "children": {
         "Drawings": [
           "drawing-main"
-        ],
-        "PreservationResources": [
-          "preservation-golden-source"
         ]
       },
       "path": "drawing-set-main",
@@ -48,11 +45,11 @@
     {
       "attributes": {
         "geometry": {
-          "checksum": "sha256:fe92c0b20fd19256651433e49a8cd256b0d93857fe7ae3bb6fe242acbcbb0bdc",
+          "checksum": "sha256:4987ba3b0eda07da68a3ebe2b9edd2272c81eb2c823f4d8e6a31990e569f9927",
           "format": "openaec.ifcdr",
           "role": "modelspace",
           "uri": "drawing.ifcdr.json",
-          "version": "0.6.0",
+          "version": "0.5.0",
           "resourceId": "geometry-modelspace-main"
         },
         "name": "ModelSpace"
@@ -143,23 +140,6 @@
       },
       "path": "appearance-dashed-red",
       "type": "openaec:Appearance"
-    },
-    {
-      "attributes": {
-        "preservation": {
-          "checksum": "sha256:471c51f674ffad8c8410cf7e5b88e437424f1aced458a7ef6290f462ae269ec4",
-          "format": "openaec.ifcpr",
-          "linkedDrawingResourceIds": [
-            "geometry-modelspace-main"
-          ],
-          "sourceDocumentId": "golden-source-dxf",
-          "uri": "preservation.ifcpr.json",
-          "version": "0.2.0",
-          "resourceId": "preservation-golden-source"
-        }
-      },
-      "path": "preservation-golden-source",
-      "type": "openaec:PreservationRepresentation"
     }
   ],
   "header": {

@@ -158,6 +158,11 @@ fn writer_output_reloads_without_diagnostics_and_preserves_semantics() {
         .write_directory(&target)
         .unwrap();
 
+    let bytes = std::fs::read(target.join("resources/model-space.ifcdr.json")).unwrap();
+    let resource: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+    assert_eq!(resource["header"]["version"], "0.6.0");
+    assert!(resource.get("namedUcsBindings").is_none());
+    assert!(resource.get("dimensionOverrideTable").is_none());
     let loaded = load_directory_package(&target).unwrap();
     assert!(loaded.report().is_empty(), "{:#?}", loaded.report());
     let package = loaded.validated_package().expect("strict writer output");
@@ -274,6 +279,93 @@ fn writer_output_reloads_without_diagnostics_and_preserves_semantics() {
     };
     assert_eq!(fifth.entity_id().get(), 5);
     assert_eq!(fifth.appearance_id().get(), 4);
+}
+
+#[test]
+fn single_entity_families_reload_without_requiring_the_other_stream() {
+    for polyline in [false, true] {
+        let root = TempRoot::new();
+        let target = root.0.join("single-family");
+        let mut package = PackageBuilder::new(PackageOptions {
+            package_id: PackageId::new("single-family").unwrap(),
+            data_version: "1".into(),
+            author: "Test".into(),
+            timestamp: "2026-09-08T00:00:00Z".into(),
+        })
+        .unwrap();
+        let mut drawing = package
+            .add_drawing(DrawingOptions {
+                model_layout_name: "Model".into(),
+                representation_resource_id: ResourceId::new("drawing").unwrap(),
+                length_unit: IfcdrLengthUnit::Millimetre,
+            })
+            .unwrap();
+        let appearance = drawing
+            .appearances()
+            .add(AppearanceDefinition {
+                name: "Default".into(),
+                color: AppearanceColor::rgb(0, 0, 0),
+                opacity: 1.0,
+                line_pattern: LinePatternDefinition::named("continuous"),
+                line_weight: 0.25,
+            })
+            .unwrap();
+        let layer = drawing
+            .layers()
+            .add(LayerDefinition {
+                name: "0".into(),
+                visible: true,
+                appearance,
+            })
+            .unwrap();
+        let points = vec![Point2::new(1.0, 2.0), Point2::new(3.0, 4.0)];
+        if polyline {
+            drawing
+                .model_space()
+                .add_polyline(PolylineDefinition {
+                    points: points.clone(),
+                    closed: true,
+                    layer,
+                    appearance: EntityAppearance::by_layer(),
+                    visible: true,
+                })
+                .unwrap();
+        } else {
+            drawing
+                .model_space()
+                .add_line(LineDefinition {
+                    start: points[0],
+                    end: points[1],
+                    layer,
+                    appearance: EntityAppearance::by_layer(),
+                    visible: true,
+                })
+                .unwrap();
+        }
+        package.finish().unwrap().write_directory(&target).unwrap();
+        let loaded = load_directory_package(&target).unwrap();
+        assert!(loaded.report().is_empty(), "{:?}", loaded.report());
+        let drawing = loaded
+            .validated_package()
+            .unwrap()
+            .drawings()
+            .next()
+            .unwrap();
+        let layout = drawing.layouts().next().unwrap();
+        let resource = layout.representation().resource();
+        let mut entities = resource.entities(layout.scope().id());
+        match entities.next().unwrap() {
+            IfcdrEntityRef::Line(line) => {
+                assert!(!polyline);
+                assert_eq!(vec![line.start(), line.end()], points);
+            }
+            IfcdrEntityRef::Polyline(line) => {
+                assert!(polyline && line.closed());
+                assert_eq!(line.points().collect::<Vec<_>>(), points);
+            }
+        }
+        assert!(entities.next().is_none());
+    }
 }
 
 #[test]

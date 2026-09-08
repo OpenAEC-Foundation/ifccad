@@ -41,6 +41,9 @@ impl PackageLoadOutcome {
     }
 
     /// Returns the strict package proof when no error diagnostic was produced.
+    ///
+    /// Unsupported IFCDR versions or stream schemas block this view. The proof
+    /// covers the implemented checks; it is not a full IFCPR preservation proof.
     pub fn validated_package(&self) -> Option<&super::analysis::ValidatedPackage> {
         self.validated_package.as_ref()
     }

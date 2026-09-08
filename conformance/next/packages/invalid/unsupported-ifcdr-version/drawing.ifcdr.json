@@ -46,9 +46,9 @@
   "header": {
     "format": "openaec.ifcdr",
     "nextEntityId": 5,
-    "resourceId": "geometry-second",
+    "resourceId": "geometry-modelspace-main",
     "unit": "m",
-    "version": "0.6.0"
+    "version": "0.5.0"
   },
   "layerBindings": [
     {

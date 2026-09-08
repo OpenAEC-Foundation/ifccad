@@ -72,6 +72,9 @@ pub(super) fn build_evidence(
     let bounds = validator.validate_bounds(root);
     let tables = validator.validate_tables(root);
     let streams = validator.validate_directory_and_streams(root);
+    if validator.has_unsupported_streams {
+        return EvidenceOutcome::failure(validator.diagnostics);
+    }
     let entities = header.as_ref().map(|header| {
         super::entity::validate_entities(
             loaded.uri(),
@@ -109,6 +112,7 @@ struct ResourceValidator<'a> {
     uri: &'a str,
     registry: &'a IfcdrRegistry,
     diagnostics: Vec<PackageDiagnostic>,
+    has_unsupported_streams: bool,
 }
 
 impl<'a> ResourceValidator<'a> {
@@ -117,6 +121,7 @@ impl<'a> ResourceValidator<'a> {
             uri,
             registry,
             diagnostics: Vec::new(),
+            has_unsupported_streams: false,
         }
     }
 
@@ -319,28 +324,27 @@ impl<'a> ResourceValidator<'a> {
                 continue;
             }
             let Some(stream) = self.registry.stream_by_name(name) else {
-                self.error(
-                    IFCCAD_IFCDR_STREAM_SCHEMA_UNSUPPORTED,
-                    &format!("{entry_pointer}/schema"),
-                    "stream schema is not registered for IFCDR 0.5.0",
+                self.unsupported_stream(
+                    name,
+                    entry.get("schema").and_then(Value::as_str),
+                    &entry_pointer,
                 );
                 continue;
             };
             let actual_schema = entry.get("schema").and_then(Value::as_str);
             if actual_schema != Some(stream.schema_id()) {
-                let code = if actual_schema
+                if actual_schema
                     .and_then(|id| self.registry.stream_by_schema_id(id))
                     .is_none()
                 {
-                    IFCCAD_IFCDR_STREAM_SCHEMA_UNSUPPORTED
+                    self.unsupported_stream(name, actual_schema, &entry_pointer);
                 } else {
-                    IFCCAD_IFCDR_DIRECTORY_INVALID
-                };
-                self.error(
-                    code,
-                    &format!("{entry_pointer}/schema"),
-                    "stream schema does not match its registered name",
-                );
+                    self.error(
+                        IFCCAD_IFCDR_DIRECTORY_INVALID,
+                        &format!("{entry_pointer}/schema"),
+                        "stream schema does not match its registered name",
+                    );
+                }
                 continue;
             }
             if entry.get("role").and_then(Value::as_str) != Some(role_name(stream.role())) {
@@ -445,7 +449,8 @@ impl<'a> ResourceValidator<'a> {
             );
         }
         for key in payloads.keys() {
-            if !claimed_payloads.contains(key.as_str())
+            if !self.has_unsupported_streams
+                && !claimed_payloads.contains(key.as_str())
                 && self
                     .registry
                     .table_by_payload_path(&format!("streams.{key}"))
@@ -459,6 +464,29 @@ impl<'a> ResourceValidator<'a> {
             }
         }
         evidence
+    }
+
+    fn unsupported_stream(&mut self, name: &str, schema: Option<&str>, entry_pointer: &str) {
+        self.has_unsupported_streams = true;
+        let mut context = BTreeMap::from([(
+            "streamName".to_owned(),
+            PackageDiagnosticContextValue::String(name.to_owned()),
+        )]);
+        if let Some(schema) = schema {
+            context.insert(
+                "schemaId".to_owned(),
+                PackageDiagnosticContextValue::String(schema.to_owned()),
+            );
+        }
+        self.error_with_context(
+            IFCCAD_IFCDR_STREAM_SCHEMA_UNSUPPORTED,
+            &format!("{entry_pointer}/schema"),
+            &format!(
+                "stream schema is not supported by the IFCDR {} registry",
+                self.registry.ifcdr_version()
+            ),
+            context,
+        );
     }
 
     fn validate_stream_columns(
@@ -941,7 +969,7 @@ mod tests {
     #[test]
     fn envelope_rejects_an_unsupported_version_without_cascading() {
         let mut value = fixture_source().value().clone();
-        value["header"]["version"] = serde_json::json!("0.6.0");
+        value["header"]["version"] = serde_json::json!("99.0.0");
         let outcome = validate_value("drawing.ifcdr.json", value);
 
         assert!(outcome.validated().is_none());
@@ -1113,5 +1141,203 @@ mod tests {
             diagnostic.code == "IFCCAD_IFCDR_STRUCTURE_INVALID"
                 && diagnostic.location.as_deref() == Some("/streams/polylineStream/y")
         }));
+    }
+
+    #[test]
+    fn unsupported_stream_does_not_create_order_or_orphan_errors() {
+        let mut value = fixture_source().value().clone();
+        value["streamDirectory"]["streams"]
+            .as_array_mut()
+            .unwrap()
+            .push(serde_json::json!({
+                "name": "hatch", "schema": "example.hatch.v1",
+                "role": "object", "count": 1,
+                "columns": ["entityId", "scopeId"]
+            }));
+        value["streams"]["hatchStream"] = serde_json::json!({
+            "count": 1, "entityId": [5], "scopeId": [0]
+        });
+        value["header"]["nextEntityId"] = serde_json::json!(6);
+        value["streams"]["entityOrderEntryStream"]["entityId"]
+            .as_array_mut()
+            .unwrap()
+            .push(serde_json::json!(5));
+        value["streams"]["entityOrderEntryStream"]["count"] = serde_json::json!(5);
+        value["streams"]["entityOrderStream"]["entryCount"][0] = serde_json::json!(5);
+        for entry in value["streamDirectory"]["streams"].as_array_mut().unwrap() {
+            if entry["name"] == "entityOrderEntry" {
+                entry["count"] = serde_json::json!(5);
+            }
+        }
+        let outcome = validate_value("drawing.ifcdr.json", value);
+        assert!(outcome.validated().is_none());
+        assert_eq!(
+            outcome
+                .diagnostics()
+                .iter()
+                .map(|d| d.code.as_str())
+                .collect::<Vec<_>>(),
+            ["IFCCAD_IFCDR_STREAM_SCHEMA_UNSUPPORTED"]
+        );
+    }
+
+    #[test]
+    fn unsupported_line_schema_identifies_the_attempted_schema() {
+        let mut value = fixture_source().value().clone();
+        let entry = value["streamDirectory"]["streams"]
+            .as_array_mut()
+            .unwrap()
+            .iter_mut()
+            .find(|entry| entry["name"] == "line")
+            .unwrap();
+        entry["schema"] = serde_json::json!("example.line.v99");
+        let outcome = validate_value("drawing.ifcdr.json", value);
+        assert!(outcome.validated().is_none());
+        let diagnostic = outcome
+            .diagnostics()
+            .iter()
+            .find(|diagnostic| diagnostic.code == "IFCCAD_IFCDR_STREAM_SCHEMA_UNSUPPORTED")
+            .unwrap();
+        assert_eq!(
+            diagnostic.context.get("streamName"),
+            Some(&PackageDiagnosticContextValue::String("line".to_owned()))
+        );
+        assert_eq!(
+            diagnostic.context.get("schemaId"),
+            Some(&PackageDiagnosticContextValue::String(
+                "example.line.v99".to_owned()
+            ))
+        );
+    }
+
+    #[test]
+    fn removed_empty_tables_are_not_silently_accepted() {
+        for table in [
+            "textStyleBindings",
+            "dimensionStyleBindings",
+            "hatchPatternBindings",
+            "namedUcsBindings",
+            "dimensionOverrideTable",
+            "characterFormatTable",
+            "paragraphFormatTable",
+        ] {
+            let mut value = fixture_source().value().clone();
+            value[table] = serde_json::json!([]);
+            let outcome = validate_value("drawing.ifcdr.json", value);
+            assert!(outcome.validated().is_none(), "{table}");
+            let location = format!("/{table}");
+            assert!(
+                outcome.diagnostics().iter().any(|diagnostic| {
+                    diagnostic.code == "IFCCAD_IFCDR_STRUCTURE_INVALID"
+                        && diagnostic.location.as_deref() == Some(location.as_str())
+                }),
+                "{table}: {:?}",
+                outcome.diagnostics()
+            );
+        }
+    }
+
+    #[test]
+    fn orphan_payload_is_rejected_when_all_streams_are_supported() {
+        let mut value = fixture_source().value().clone();
+        value["streams"]["textRuns"] = serde_json::json!([]);
+        let outcome = validate_value("drawing.ifcdr.json", value);
+        assert!(outcome.validated().is_none());
+        assert!(outcome
+            .diagnostics()
+            .iter()
+            .any(|d| d.code == IFCCAD_IFCDR_DIRECTORY_INVALID
+                && d.location.as_deref() == Some("/streams/textRuns")));
+    }
+
+    #[test]
+    fn unsupported_stream_does_not_hide_independent_column_errors() {
+        let mut value = fixture_source().value().clone();
+        value["streamDirectory"]["streams"].as_array_mut().unwrap().push(serde_json::json!({
+            "name":"hatch", "schema":"example.hatch.v1", "role":"object", "count":0, "columns":[]
+        }));
+        value["streams"]["lineStream"]["x1"][0] = serde_json::json!("bad coordinate");
+        let outcome = validate_value("drawing.ifcdr.json", value);
+        assert!(outcome.validated().is_none());
+        assert!(outcome
+            .diagnostics()
+            .iter()
+            .any(|d| d.code == IFCCAD_IFCDR_STREAM_SCHEMA_UNSUPPORTED));
+        assert!(outcome
+            .diagnostics()
+            .iter()
+            .any(|d| d.code == IFCCAD_IFCDR_STRUCTURE_INVALID
+                && d.location.as_deref() == Some("/streams/lineStream/x1/0")));
+    }
+
+    #[test]
+    fn omitted_visibility_has_the_same_typed_meaning_as_explicit_true() {
+        use crate::ifcdr::{IfcdrEntityRef, ScopeId};
+        let mut explicit = fixture_source().value().clone();
+        for key in ["lineStream", "polylineStream"] {
+            let count = explicit["streams"][key]["count"].as_u64().unwrap() as usize;
+            explicit["streams"][key]["visible"] = serde_json::json!(vec![true; count]);
+        }
+        for entry in explicit["streamDirectory"]["streams"]
+            .as_array_mut()
+            .unwrap()
+        {
+            if entry["name"] == "line" || entry["name"] == "polyline" {
+                let columns = entry["columns"].as_array_mut().unwrap();
+                if !columns.iter().any(|column| column == "visible") {
+                    columns.push(serde_json::json!("visible"));
+                }
+            }
+        }
+        let mut omitted = explicit.clone();
+        for key in ["lineStream", "polylineStream"] {
+            omitted["streams"][key]
+                .as_object_mut()
+                .unwrap()
+                .remove("visible");
+        }
+        for entry in omitted["streamDirectory"]["streams"]
+            .as_array_mut()
+            .unwrap()
+        {
+            if entry["name"] == "line" || entry["name"] == "polyline" {
+                entry["columns"]
+                    .as_array_mut()
+                    .unwrap()
+                    .retain(|column| column != "visible");
+            }
+        }
+        let project = |value| {
+            let outcome = validate_value("drawing.ifcdr.json", value);
+            assert!(
+                outcome.diagnostics().is_empty(),
+                "{:?}",
+                outcome.diagnostics()
+            );
+            outcome
+                .validated()
+                .unwrap()
+                .entities()
+                .in_scope(ScopeId::new(0))
+                .unwrap()
+                .map(|entity| match entity {
+                    IfcdrEntityRef::Line(line) => (
+                        line.entity_id(),
+                        line.visible(),
+                        false,
+                        vec![line.start(), line.end()],
+                    ),
+                    IfcdrEntityRef::Polyline(polyline) => (
+                        polyline.entity_id(),
+                        polyline.visible(),
+                        polyline.closed(),
+                        polyline.points().collect(),
+                    ),
+                })
+                .collect::<Vec<_>>()
+        };
+        let expected = project(explicit);
+        assert!(expected.iter().all(|entity| entity.1));
+        assert_eq!(project(omitted), expected);
     }
 }

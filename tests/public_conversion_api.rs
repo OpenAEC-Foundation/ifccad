@@ -8,6 +8,27 @@ use ifccad::package::{
 };
 use ifccad::ResourceId;
 
+#[test]
+fn public_entity_api_is_exhaustive_for_the_base_profile() {
+    let loaded = load_directory_package(
+        bundled_conformance_root().join("packages/valid/minimal-no-preservation"),
+    )
+    .unwrap();
+    let package = loaded.validated_package().unwrap();
+    let drawing = package.drawings().next().unwrap();
+    let layout = drawing.layouts().next().unwrap();
+    let ids = layout
+        .representation()
+        .resource()
+        .entities(layout.scope().id())
+        .map(|entity| match entity {
+            IfcdrEntityRef::Line(line) => line.entity_id().get(),
+            IfcdrEntityRef::Polyline(polyline) => polyline.entity_id().get(),
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(ids, [1, 2, 3, 4]);
+}
+
 #[allow(dead_code)]
 #[derive(Debug, PartialEq)]
 struct EntityProjection {
@@ -17,7 +38,6 @@ struct EntityProjection {
     appearance_id: Option<AppearanceId>,
     visible: Option<bool>,
     points: Vec<Point2>,
-    unmodeled_schema: Option<String>,
 }
 
 #[allow(dead_code)]
@@ -35,7 +55,6 @@ fn project_ifcdr_entities(
                 appearance_id: Some(line.appearance_id()),
                 visible: Some(line.visible()),
                 points: vec![line.start(), line.end()],
-                unmodeled_schema: None,
             },
             IfcdrEntityRef::Polyline(polyline) => EntityProjection {
                 entity_id: polyline.entity_id(),
@@ -44,16 +63,6 @@ fn project_ifcdr_entities(
                 appearance_id: Some(polyline.appearance_id()),
                 visible: Some(polyline.visible()),
                 points: polyline.points().collect(),
-                unmodeled_schema: None,
-            },
-            IfcdrEntityRef::Unmodeled(entity) => EntityProjection {
-                entity_id: entity.entity_id(),
-                scope_id: entity.scope_id(),
-                layer_id: None,
-                appearance_id: None,
-                visible: None,
-                points: Vec::new(),
-                unmodeled_schema: Some(entity.schema_id().to_owned()),
             },
         })
         .collect();

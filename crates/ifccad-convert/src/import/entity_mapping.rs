@@ -71,7 +71,6 @@ mod tests {
             .map(|entity| match entity {
                 IfcdrEntityRef::Line(line) => line.entity_id(),
                 IfcdrEntityRef::Polyline(polyline) => polyline.entity_id(),
-                IfcdrEntityRef::Unmodeled(entity) => entity.entity_id(),
             })
             .collect()
     }

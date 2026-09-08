@@ -38,6 +38,7 @@ pub(super) fn analyze_resource_bindings(
     package: &LoadedIfccadPackage,
     node_indices_by_path: &BTreeMap<String, usize>,
     validated_ifcdr_resources: &BTreeMap<ResourceId, Arc<ValidatedIfcdrResource>>,
+    unavailable_ifcdr_resource_ids: &BTreeSet<ResourceId>,
 ) -> BindingAnalysis {
     let mut result = BindingAnalysis {
         bindings: PackageBindings::default(),
@@ -91,6 +92,9 @@ pub(super) fn analyze_resource_bindings(
                         continue;
                     };
                     if !proven_ifcdr.contains(&resource_id) {
+                        if unavailable_ifcdr_resource_ids.contains(&resource_id) {
+                            continue;
+                        }
                         result.diagnostics.push(target_resource_diagnostic(
                             format!(
                                 "/data/{node_index}/attributes/preservation/linkedDrawingResourceIds/{link_index}"

@@ -112,9 +112,6 @@ pub fn drawing_to_cad_document(drawing: DrawingRef<'_>) -> Result<ImportOutcome,
                     EntityType::LwPolyline(target),
                 )?;
             }
-            IfcdrEntityRef::Unmodeled(source) => {
-                diagnostics.record_unmodeled(source.schema_id());
-            }
         }
     }
 

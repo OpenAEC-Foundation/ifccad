@@ -97,10 +97,7 @@ impl<'a> Iterator for EntityIterator<'a> {
                     .get(location.row_index)
                     .expect("validated polyline row"),
             ),
-            _ => IfcdrEntityRef::Unmodeled(UnmodeledEntityRef {
-                entity_id: id,
-                location,
-            }),
+            _ => unreachable!("validated base-profile object stream"),
         })
     }
 
@@ -114,30 +111,6 @@ impl ExactSizeIterator for EntityIterator<'_> {}
 pub enum IfcdrEntityRef<'a> {
     Line(Line),
     Polyline(PolylineRef<'a>),
-    Unmodeled(UnmodeledEntityRef<'a>),
-}
-
-pub struct UnmodeledEntityRef<'a> {
-    entity_id: EntityId,
-    location: &'a EntityLocation,
-}
-
-impl UnmodeledEntityRef<'_> {
-    pub fn entity_id(&self) -> EntityId {
-        self.entity_id
-    }
-    pub fn scope_id(&self) -> ScopeId {
-        self.location.scope_id
-    }
-    pub fn stream_name(&self) -> &str {
-        &self.location.stream_name
-    }
-    pub fn schema_id(&self) -> &str {
-        &self.location.schema_id
-    }
-    pub(crate) fn row_index(&self) -> usize {
-        self.location.row_index
-    }
 }
 
 impl Validated<LoadedIfcdrResource> {
@@ -241,16 +214,7 @@ pub(super) fn validate_entities(
                     ]),
                 ));
             }
-            let structural_text = stream.name() == "text"
-                && payload
-                    .get("ownerKind")
-                    .and_then(Value::as_array)
-                    .and_then(|items| items.get(row))
-                    .and_then(Value::as_u64)
-                    .is_some_and(|owner_kind| owner_kind == 1);
-            if !structural_text {
-                directly_ordered.entry(scope).or_default().insert(id);
-            }
+            directly_ordered.entry(scope).or_default().insert(id);
         }
     }
 
@@ -489,7 +453,6 @@ mod tests {
             .map(|entity| match entity {
                 IfcdrEntityRef::Line(line) => ("line", line.entity_id().get()),
                 IfcdrEntityRef::Polyline(polyline) => ("polyline", polyline.entity_id().get()),
-                IfcdrEntityRef::Unmodeled(item) => ("unmodeled", item.entity_id().get()),
             })
             .collect::<Vec<_>>();
 

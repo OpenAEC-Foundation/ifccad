@@ -1,13 +1,21 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.4.0.json",
-  "title": "IFCCAD IFCX Overlay 0.4.0",
-  "description": "Composite IFCCAD constraints for explicit resource identity, the drawing core, and typed appearances in IFCX.",
+  "$id": "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.6.0.json",
+  "title": "IFCCAD IFCX Overlay 0.6.0",
+  "description": "Composite IFCCAD constraints for the package header, explicit resource identity, the drawing core, and typed appearances in IFCX.",
   "type": "object",
   "required": [
+    "header",
+    "imports",
     "data"
   ],
   "properties": {
+    "header": {
+      "$ref": "#/$defs/packageHeader"
+    },
+    "imports": {
+      "type": "array"
+    },
     "data": {
       "type": "array",
       "items": {
@@ -17,6 +25,36 @@
   },
   "additionalProperties": true,
   "$defs": {
+    "packageHeader": {
+      "type": "object",
+      "required": [
+        "id",
+        "ifcxVersion",
+        "dataVersion",
+        "author",
+        "timestamp"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "ifcxVersion": {
+          "const": "ifcx_alpha"
+        },
+        "dataVersion": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "author": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "(Z|\\+00:00)$"
+        }
+      },
+      "additionalProperties": true
+    },
     "dataNode": {
       "type": "object",
       "allOf": [
@@ -97,7 +135,7 @@
           "const": "openaec.ifcdr"
         },
         "version": {
-          "const": "0.5.0"
+          "const": "0.6.0"
         },
         "uri": {
           "$ref": "#/$defs/packageRelativeUri"

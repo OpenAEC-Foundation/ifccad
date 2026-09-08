@@ -9,6 +9,5 @@ pub(crate) mod write;
 pub(crate) use read::{validate_ifcdr, LoadedIfcdrResource, ValidatedIfcdrResource};
 pub use read::{
     EntityIterator, IfcdrEntityRef, IfcdrResourceRef, Line, PointIterator, PolylineRef, ScopeRef,
-    UnmodeledEntityRef,
 };
 pub use types::{AppearanceId, Bounds2d, EntityId, IfcdrLengthUnit, LayerId, Point2, ScopeId};

@@ -879,6 +879,35 @@ fn overlay_0_5_is_valid_and_accepts_the_minimal_package_contract() {
 }
 
 #[test]
+fn overlay_0_6_selects_the_base_profile_and_keeps_ifcx_open() {
+    let schema = load_schema("ifccad-overlay-0.6.0.json");
+    jsonschema::draft202012::meta::validate(&schema).unwrap();
+    let registry = Registry::new()
+        .add(
+            DRAWING_CORE_0_2_ID,
+            load_schema("ifccad-drawing-core-0.2.0.json"),
+        )
+        .unwrap()
+        .prepare()
+        .unwrap();
+    let validator = jsonschema::draft202012::options()
+        .with_registry(&registry)
+        .build(&schema)
+        .unwrap();
+    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("conformance/next/packages/valid/minimal-no-preservation/package.ifcx.json");
+    let mut document: Value = serde_json::from_slice(&fs::read(path).unwrap()).unwrap();
+    assert!(validator.is_valid(&document));
+    document["data"].as_array_mut().unwrap().push(
+        json!({"path":"extension", "type":"example:Extension", "attributes":{"custom":true}}),
+    );
+    document["header"]["custom"] = json!(true);
+    assert!(validator.is_valid(&document));
+    document["data"][3]["attributes"]["geometry"]["version"] = json!("0.5.0");
+    assert!(!validator.is_valid(&document));
+}
+
+#[test]
 fn overlay_0_5_requires_the_envelope_and_every_minimal_header_field() {
     let validator = composite_overlay_0_5_validator();
 

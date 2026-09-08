@@ -428,6 +428,48 @@
           "name": "validatePackage"
         }
       ]
+    },
+    {
+      "caseId": "unsupported.unsupported-ifcdr-version",
+      "category": "invalid",
+      "description": "Unsupported IFCDR 0.5.0: no legacy reader; descriptor also fails the selected 0.6.0 overlay",
+      "entrypoint": "packages/invalid/unsupported-ifcdr-version/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
+                "severity": "error"
+              },
+              {
+                "code": "IFCCAD_IFCDR_VERSION_UNSUPPORTED",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "unsupported.unsupported-ifcdr-stream",
+      "category": "invalid",
+      "description": "Unsupported IFCDR stream mixed with base entities: strict access is blocked without dependent order errors",
+      "entrypoint": "packages/invalid/unsupported-ifcdr-stream/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_STREAM_SCHEMA_UNSUPPORTED",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
     }
   ],
   "suiteVersion": "1.1.0"

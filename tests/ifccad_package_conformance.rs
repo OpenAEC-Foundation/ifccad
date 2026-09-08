@@ -36,6 +36,13 @@ fn supported_bundled_validate_package_cases_match_their_diagnostic_contract() {
             let package_root = entrypoint.parent().expect("package entrypoint parent");
             let outcome = load_directory_package(package_root)
                 .unwrap_or_else(|error| panic!("{} could not be inspected: {error}", case.case_id));
+            if case.case_id.starts_with("unsupported.") {
+                assert!(
+                    outcome.validated_package().is_none(),
+                    "{} exposed a strict view",
+                    case.case_id
+                );
+            }
             let actual = outcome
                 .report()
                 .iter()

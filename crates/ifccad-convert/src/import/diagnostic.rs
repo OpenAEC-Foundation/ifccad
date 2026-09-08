@@ -6,10 +6,6 @@ use thiserror::Error;
 #[derive(Clone, Debug, PartialEq)]
 #[non_exhaustive]
 pub enum ImportDiagnostic {
-    UnmodeledEntitiesSkipped {
-        schema_id: String,
-        count: usize,
-    },
     LinePatternFallback {
         requested: String,
         applied: String,
@@ -25,13 +21,6 @@ pub enum ImportDiagnostic {
 impl fmt::Display for ImportDiagnostic {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::UnmodeledEntitiesSkipped { schema_id, count } => {
-                let noun = if *count == 1 { "entity" } else { "entities" };
-                write!(
-                    formatter,
-                    "skipped {count} unmodeled {noun} with schema {schema_id}"
-                )
-            }
             Self::LinePatternFallback {
                 requested,
                 applied,
@@ -60,19 +49,11 @@ impl fmt::Display for ImportDiagnostic {
 
 #[derive(Default)]
 pub(crate) struct DiagnosticAccumulator {
-    unmodeled_entities: BTreeMap<String, usize>,
     line_pattern_fallbacks: BTreeMap<(String, String), usize>,
     line_weight_rounding: BTreeMap<(u64, u64), usize>,
 }
 
 impl DiagnosticAccumulator {
-    pub(crate) fn record_unmodeled(&mut self, schema_id: &str) {
-        *self
-            .unmodeled_entities
-            .entry(schema_id.to_owned())
-            .or_default() += 1;
-    }
-
     pub(crate) fn record_line_pattern_fallback(&mut self, requested: &str, applied: &str) {
         *self
             .line_pattern_fallbacks
@@ -88,16 +69,7 @@ impl DiagnosticAccumulator {
     }
 
     pub(crate) fn finish(self) -> Vec<ImportDiagnostic> {
-        let mut diagnostics = self
-            .unmodeled_entities
-            .into_iter()
-            .map(
-                |(schema_id, count)| ImportDiagnostic::UnmodeledEntitiesSkipped {
-                    schema_id,
-                    count,
-                },
-            )
-            .collect::<Vec<_>>();
+        let mut diagnostics = Vec::new();
         diagnostics.extend(self.line_pattern_fallbacks.into_iter().map(
             |((requested, applied), count)| ImportDiagnostic::LinePatternFallback {
                 requested,
@@ -156,18 +128,12 @@ mod tests {
     #[test]
     fn accumulator_groups_occurrences_in_stable_category_order() {
         let mut diagnostics = DiagnosticAccumulator::default();
-        diagnostics.record_unmodeled("ifccad:arc.v1");
-        diagnostics.record_unmodeled("ifccad:arc.v1");
         diagnostics.record_line_pattern_fallback("center", "Continuous");
         diagnostics.record_line_weight_rounding(0.19, 0.18);
 
         assert_eq!(
             diagnostics.finish(),
             [
-                ImportDiagnostic::UnmodeledEntitiesSkipped {
-                    schema_id: "ifccad:arc.v1".to_owned(),
-                    count: 2,
-                },
                 ImportDiagnostic::LinePatternFallback {
                     requested: "center".to_owned(),
                     applied: "Continuous".to_owned(),
@@ -198,12 +164,13 @@ mod tests {
 
     #[test]
     fn diagnostic_display_uses_the_singular_entity_noun() {
-        let entity_message = ImportDiagnostic::UnmodeledEntitiesSkipped {
-            schema_id: "ifccad:arc.v1".to_owned(),
+        let entity_message = ImportDiagnostic::LineWeightRounded {
+            requested_mm: 0.19,
+            applied_mm: 0.18,
             count: 1,
         }
         .to_string();
-        assert!(entity_message.contains("1 unmodeled entity"));
-        assert!(!entity_message.contains("1 unmodeled entities"));
+        assert!(entity_message.contains("1 entity"));
+        assert!(!entity_message.contains("1 entities"));
     }
 }

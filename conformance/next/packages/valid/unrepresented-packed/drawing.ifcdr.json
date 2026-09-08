@@ -43,13 +43,12 @@
     "minX": 0.0,
     "minY": 0.0
   },
-  "dimensionOverrideTable": [],
   "header": {
     "format": "openaec.ifcdr",
     "nextEntityId": 5,
     "resourceId": "geometry-modelspace-main",
     "unit": "m",
-    "version": "0.5.0"
+    "version": "0.6.0"
   },
   "layerBindings": [
     {
@@ -61,7 +60,6 @@
       "ifcxLayer": "layer-a-wall"
     }
   ],
-  "namedUcsBindings": [],
   "scopeTable": [
     {
       "baseX": 0.0,

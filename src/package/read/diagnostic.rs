@@ -20,6 +20,11 @@ impl PackageValidationReport {
     }
 
     /// Returns `true` when the report contains no error diagnostics.
+    ///
+    /// Unsupported content also produces errors. A `false` result therefore
+    /// does not establish invalidity under a contract this reader cannot assess.
+    /// A `true` result covers the implemented checks, including only the current
+    /// limited IFCPR validation, not a guarantee of lossless transfer.
     pub fn is_valid(&self) -> bool {
         !self
             .diagnostics

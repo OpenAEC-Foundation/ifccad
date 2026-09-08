@@ -45,8 +45,8 @@
   },
   "header": {
     "format": "openaec.ifcdr",
-    "nextEntityId": 5,
-    "resourceId": "geometry-second",
+    "nextEntityId": 6,
+    "resourceId": "geometry-modelspace-main",
     "unit": "m",
     "version": "0.6.0"
   },
@@ -123,29 +123,40 @@
         "columns": [
           "entityId"
         ],
-        "count": 4,
+        "count": 5,
         "name": "entityOrderEntry",
         "parent": "entityOrder",
         "role": "child",
         "schema": "ifccad.ifcdr.entityOrderEntry.v1"
+      },
+      {
+        "name": "hatch",
+        "schema": "example.hatch.v1",
+        "role": "object",
+        "count": 1,
+        "columns": [
+          "entityId",
+          "scopeId"
+        ]
       }
     ],
     "version": "ifccad.ifcdr.streamDirectory.v1"
   },
   "streams": {
     "entityOrderEntryStream": {
-      "count": 4,
+      "count": 5,
       "entityId": [
         1,
         2,
         3,
-        4
+        4,
+        5
       ]
     },
     "entityOrderStream": {
       "count": 1,
       "entryCount": [
-        4
+        5
       ],
       "entryOffset": [
         0
@@ -236,6 +247,15 @@
         10.0,
         15.0,
         10.0
+      ]
+    },
+    "hatchStream": {
+      "count": 1,
+      "entityId": [
+        5
+      ],
+      "scopeId": [
+        0
       ]
     }
   }

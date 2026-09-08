@@ -68,7 +68,7 @@ pub(crate) fn assemble_ifcx(
                 "name": "ModelSpace",
                 "geometry": {
                     "format": "openaec.ifcdr",
-                    "version": "0.5.0",
+                    "version": "0.6.0",
                     "resourceId": resource.resource_id,
                     "uri": MODEL_SPACE_RESOURCE_URI,
                     "checksum": resource.checksum,
@@ -262,7 +262,7 @@ mod tests {
         assert_eq!(root["data"][3]["attributes"]["name"], "ModelSpace");
         let geometry = &root["data"][3]["attributes"]["geometry"];
         assert_eq!(geometry["format"], "openaec.ifcdr");
-        assert_eq!(geometry["version"], "0.5.0");
+        assert_eq!(geometry["version"], "0.6.0");
         assert_eq!(geometry["role"], "modelspace");
         assert_eq!(geometry["resourceId"], "geometry-modelspace-main");
         assert_eq!(geometry["uri"], "resources/model-space.ifcdr.json");

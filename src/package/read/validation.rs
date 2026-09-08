@@ -169,16 +169,26 @@ pub fn load_directory_package(
             .or_insert_with(|| validated.clone());
     }
 
+    let unavailable_ifcdr_resource_ids = package
+        .declarations
+        .iter()
+        .filter(|declaration| declaration.kind == ResourceKind::Ifcdr)
+        .map(|declaration| declaration.resource_id.clone())
+        .filter(|id| !validated_ifcdr_resources.contains_key(id))
+        .collect::<BTreeSet<_>>();
+
     diagnostics.extend(validate_ifcpr_drawing_resource_ids(
         &package,
         &ifcpr_resource_ids_by_uri,
         &validated_ifcdr_resources,
+        &unavailable_ifcdr_resource_ids,
     ));
 
     let binding_analysis = super::bindings::analyze_resource_bindings(
         &package,
         &graph.node_indices_by_path,
         &validated_ifcdr_resources,
+        &unavailable_ifcdr_resource_ids,
     );
     diagnostics.extend(binding_analysis.diagnostics);
 
@@ -205,6 +215,7 @@ fn validate_ifcpr_drawing_resource_ids(
     package: &LoadedIfccadPackage,
     ifcpr_resource_ids_by_uri: &BTreeMap<String, ResourceId>,
     validated_ifcdr_resources: &BTreeMap<ResourceId, Arc<crate::ifcdr::ValidatedIfcdrResource>>,
+    unavailable_ifcdr_resource_ids: &BTreeSet<ResourceId>,
 ) -> Vec<PackageDiagnostic> {
     let mut diagnostics = Vec::new();
     for (external_uri, ifcpr_resource_id) in ifcpr_resource_ids_by_uri {
@@ -225,6 +236,7 @@ fn validate_ifcpr_drawing_resource_ids(
                 continue;
             };
             if validated_ifcdr_resources.contains_key(&target_resource_id)
+                || unavailable_ifcdr_resource_ids.contains(&target_resource_id)
                 || ifcx_descriptor_reports_missing_target(
                     package,
                     external_uri,
@@ -498,7 +510,7 @@ mod tests {
                 "attributes": {
                     "geometry": {
                         "format": "openaec.ifcdr",
-                        "version": "0.5.0",
+                        "version": "0.6.0",
                         "resourceId": "geometry-modelspace-main",
                         "uri": uri,
                         "checksum": checksum,
@@ -622,6 +634,52 @@ mod tests {
             &fs::read(root.join(DIRECTORY_PACKAGE_ENTRYPOINT)).expect("read copied IFCX"),
         )
         .expect("parse copied IFCX")
+    }
+
+    #[test]
+    fn unsupported_ifcdr_does_not_make_existing_preservation_targets_missing() {
+        for version in ["0.5.0", "99.0.0", "unsupported-stream"] {
+            let root = TestDirectory::new("unsupported-preservation-target");
+            let mut entrypoint = copy_next_preservation_package(root.path());
+            let mut drawing = read_ifcdr(root.path());
+            let expected_code = if version == "unsupported-stream" {
+                drawing = serde_json::from_slice(
+                    &fs::read(
+                        next_package("invalid", "unsupported-ifcdr-stream")
+                            .join("drawing.ifcdr.json"),
+                    )
+                    .unwrap(),
+                )
+                .unwrap();
+                "IFCCAD_IFCDR_STREAM_SCHEMA_UNSUPPORTED"
+            } else {
+                drawing["header"]["version"] = serde_json::json!(version);
+                entrypoint["data"][3]["attributes"]["geometry"]["version"] =
+                    serde_json::json!(version);
+                "IFCCAD_IFCDR_VERSION_UNSUPPORTED"
+            };
+            write_ifcdr_and_update_checksum(root.path(), &mut entrypoint, &drawing);
+            write_entrypoint(root.path(), &entrypoint);
+            let outcome = load_directory_package(root.path()).unwrap();
+            assert!(outcome.validated_package().is_none());
+            assert!(outcome.report().iter().any(|d| d.code == expected_code));
+            assert!(
+                !outcome
+                    .report()
+                    .iter()
+                    .any(|d| d.code == "IFCCAD_PACKAGE_TARGET_RESOURCE_MISSING"),
+                "{:?}",
+                outcome.report()
+            );
+            assert!(
+                !outcome
+                    .report()
+                    .iter()
+                    .any(|d| d.code == "IFCCAD_PACKAGE_BINDING_INVALID"),
+                "{:?}",
+                outcome.report()
+            );
+        }
     }
 
     #[test]
@@ -827,7 +885,7 @@ mod tests {
     #[test]
     fn load_outcome_retains_entrypoint_resources_and_exact_bytes() {
         let root = TestDirectory::new("loaded-model");
-        let entrypoint = br#"{"data":[{"path":"geometry","type":"openaec:DrawingGeometryRepresentation","attributes":{"geometry":{"format":"openaec.ifcdr","version":"0.5.0","resourceId":"geometry-main","uri":"drawing.ifcdr.json","checksum":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","role":"modelspace"}}}]}"#;
+        let entrypoint = br#"{"data":[{"path":"geometry","type":"openaec:DrawingGeometryRepresentation","attributes":{"geometry":{"format":"openaec.ifcdr","version":"0.6.0","resourceId":"geometry-main","uri":"drawing.ifcdr.json","checksum":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","role":"modelspace"}}}]}"#;
         let drawing = b"{\r\n  \"header\": {}\r\n}\r\n";
         fs::write(root.path().join(DIRECTORY_PACKAGE_ENTRYPOINT), entrypoint)
             .expect("write entrypoint");
@@ -1333,7 +1391,7 @@ mod tests {
     #[test]
     fn ifcdr_invalid_resource_remains_loaded_but_has_no_validation_proof() {
         let root = TestDirectory::new("invalid-ifcdr-proof");
-        let bytes = br#"{"header":{"format":"openaec.ifcdr","version":"0.6.0","resourceId":"x","unit":"m","nextEntityId":1}}"#;
+        let bytes = br#"{"header":{"format":"openaec.ifcdr","version":"99.0.0","resourceId":"x","unit":"m","nextEntityId":1}}"#;
         let checksum = format!("sha256:{:x}", Sha256::digest(bytes));
         write_geometry_entrypoint(root.path(), "drawing.ifcdr.json", &checksum);
         fs::write(root.path().join("drawing.ifcdr.json"), bytes).expect("write IFCDR");
@@ -1387,11 +1445,11 @@ mod tests {
                 .join("drawing.ifcdr.json"),
         )
         .expect("read valid IFCDR");
-        let invalid = br#"{"header":{"format":"openaec.ifcdr","version":"0.6.0","resourceId":"x","unit":"m","nextEntityId":1}}"#;
+        let invalid = br#"{"header":{"format":"openaec.ifcdr","version":"99.0.0","resourceId":"x","unit":"m","nextEntityId":1}}"#;
         let descriptor = |resource_id: &str, uri: &str, bytes: &[u8]| {
             serde_json::json!({
                 "format": "openaec.ifcdr",
-                "version": "0.5.0",
+                "version": "0.6.0",
                 "resourceId": resource_id,
                 "uri": uri,
                 "checksum": format!("sha256:{:x}", Sha256::digest(bytes)),
@@ -1613,7 +1671,7 @@ mod tests {
                     "attributes": {
                         "geometry": {
                             "format": "openaec.ifcdr",
-                            "version": "0.5.0",
+                            "version": "0.6.0",
                             "resourceId": "geometry-missing",
                             "uri": "z-missing.ifcdr.json",
                             "checksum": checksum,
@@ -1627,7 +1685,7 @@ mod tests {
                     "attributes": {
                         "geometry": {
                             "format": "openaec.ifcdr",
-                            "version": "0.5.0",
+                            "version": "0.6.0",
                             "resourceId": "geometry-modelspace-main",
                             "uri": "a-loaded.ifcdr.json",
                             "checksum": checksum,

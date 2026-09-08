@@ -263,7 +263,7 @@ pub(crate) fn encode(
     let root = json!({
         "header": {
             "format": "openaec.ifcdr",
-            "version": "0.5.0",
+            "version": "0.6.0",
             "resourceId": input.resource_id,
             "unit": unit_name(input.unit),
             "nextEntityId": next_entity_id
@@ -284,8 +284,6 @@ pub(crate) fn encode(
         }],
         "appearanceBindings": appearance_bindings,
         "layerBindings": layer_bindings,
-        "namedUcsBindings": [],
-        "dimensionOverrideTable": [],
         "streamDirectory": {
             "version": "ifccad.ifcdr.streamDirectory.v1",
             "streams": directory_entries
@@ -478,7 +476,7 @@ mod tests {
         let root: Value = serde_json::from_slice(bytes).unwrap();
 
         assert_eq!(root["header"]["format"], "openaec.ifcdr");
-        assert_eq!(root["header"]["version"], "0.5.0");
+        assert_eq!(root["header"]["version"], "0.6.0");
         assert_eq!(root["header"]["resourceId"], "empty-modelspace");
         assert_eq!(root["header"]["unit"], "mm");
         assert_eq!(root["header"]["nextEntityId"], 1);
@@ -502,8 +500,8 @@ mod tests {
         assert_eq!(root["appearanceBindings"][0]["colorMode"], 0);
         assert_eq!(root["appearanceBindings"][1]["id"], 1);
         assert_eq!(root["appearanceBindings"][1]["colorMode"], 2);
-        assert_eq!(root["dimensionOverrideTable"], serde_json::json!([]));
-        assert_eq!(root["namedUcsBindings"], serde_json::json!([]));
+        assert!(root.get("dimensionOverrideTable").is_none());
+        assert!(root.get("namedUcsBindings").is_none());
         assert!(root.get("lineStream").is_none());
         assert!(root["streams"].get("lineStream").is_none());
         assert!(root["streams"].get("polylineStream").is_none());

@@ -113,7 +113,6 @@ fn converts_minimal_model_drawing_with_layers_and_entities() {
         .map(|entity| match entity {
             IfcdrEntityRef::Line(line) => line.entity_id(),
             IfcdrEntityRef::Polyline(polyline) => polyline.entity_id(),
-            IfcdrEntityRef::Unmodeled(entity) => entity.entity_id(),
         })
         .collect::<Vec<_>>();
     assert_eq!(outcome.entity_mapping().len(), 4);

@@ -167,44 +167,6 @@ impl Validated<LoadedIfcdrResource> {
     pub(crate) fn streams(&self) -> super::streams::IfcdrStreams<'_> {
         super::streams::IfcdrStreams::new(self)
     }
-
-    pub(crate) fn unmodeled_streams(&self) -> impl Iterator<Item = UnmodeledStreamRef<'_>> {
-        self.evidence()
-            .streams
-            .iter()
-            .filter(|(name, _)| name.as_str() != "line" && name.as_str() != "polyline")
-            .map(|(_, stream)| {
-                let schema =
-                    &super::registry::canonical_registry().streams()[stream.registry_index];
-                UnmodeledStreamRef {
-                    schema,
-                    row_count: stream.row_count,
-                }
-            })
-    }
-}
-
-pub(crate) struct UnmodeledStreamRef<'a> {
-    schema: &'a super::registry::StreamSchema,
-    row_count: usize,
-}
-
-impl<'a> UnmodeledStreamRef<'a> {
-    pub(crate) fn name(&self) -> &'a str {
-        self.schema.name()
-    }
-    pub(crate) fn schema_id(&self) -> &'a str {
-        self.schema.schema_id()
-    }
-    pub(crate) fn role(&self) -> super::registry::StreamRole {
-        self.schema.role()
-    }
-    pub(crate) fn len(&self) -> usize {
-        self.row_count
-    }
-    pub(crate) fn is_empty(&self) -> bool {
-        self.row_count == 0
-    }
 }
 
 pub struct ScopeRef<'a> {
@@ -398,7 +360,7 @@ mod tests {
         let resource = outcome.validated().unwrap();
 
         assert_eq!(resource.header().format(), "openaec.ifcdr");
-        assert_eq!(resource.header().version(), "0.5.0");
+        assert_eq!(resource.header().version(), "0.6.0");
         assert_eq!(
             resource.header().resource_id().as_str(),
             "geometry-modelspace-main"
@@ -431,13 +393,6 @@ mod tests {
                 .ifcx_appearance(),
             Some("appearance-default-solid")
         );
-        assert_eq!(
-            resource
-                .unmodeled_streams()
-                .map(|stream| stream.name())
-                .collect::<Vec<_>>(),
-            ["entityOrder", "entityOrderEntry"]
-        );
     }
 
     #[test]
@@ -459,9 +414,6 @@ mod tests {
                     crate::ifcdr::IfcdrEntityRef::Line(line) => line.entity_id().get(),
                     crate::ifcdr::IfcdrEntityRef::Polyline(polyline) => {
                         polyline.entity_id().get()
-                    }
-                    crate::ifcdr::IfcdrEntityRef::Unmodeled(entity) => {
-                        entity.entity_id().get()
                     }
                 })
                 .collect::<Vec<_>>(),

@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum PackageDiagnosticSeverity {
-    /// The package violates a required rule.
+    /// A rule violation or unsupported content blocks strict validation.
     Error,
     /// The package is usable, but deserves attention.
     Warning,

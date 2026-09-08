@@ -62,6 +62,16 @@ The converter accepts only a `DrawingRef` from a strictly validated package.
 It does not load package paths or raw JSON and does not repeat package
 validation.
 
+The active package reader/writer contract is IFCDR 0.6.0. Unsupported IFCDR
+versions or entity schemas block strict loading before import; the former
+`IfcdrEntityRef::Unmodeled`, `UnmodeledEntityRef`, and
+`ImportDiagnostic::UnmodeledEntitiesSkipped` APIs have been removed. Existing
+line-pattern fallback and line-weight rounding diagnostics remain. Export
+continues to diagnose unsupported CadDocument entities and properties under
+its existing loss policy. See the
+[compatibility matrix](../../conformance/next/COMPATIBILITY.md) for the separate
+limits of reading, conversion, and IFCPR validation.
+
 Multiple layouts, paperspace export, blocks, 3D geometry, other native export
 entity kinds, and preservation transfer are deliberately deferred. The pinned
 cadcodec coverage contract is documented in

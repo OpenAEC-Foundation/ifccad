@@ -5,7 +5,7 @@ use std::sync::OnceLock;
 
 const REGISTRY_META_SCHEMA: &str =
     include_str!("../../../schemas/ifcdr/registry-meta-schema-v1.json");
-const CANONICAL_REGISTRY: &str = include_str!("../../../schemas/ifcdr/registry-0.5.0.json");
+const CANONICAL_REGISTRY: &str = include_str!("../../../schemas/ifcdr/registry-0.6.0.json");
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -296,7 +296,7 @@ pub(crate) fn canonical_registry() -> &'static IfcdrRegistry {
             .unwrap_or_else(|error| panic!("deserialize embedded IFCDR registry: {error}"));
         assert_eq!(registry.schema, "./registry-meta-schema-v1.json");
         assert_eq!(registry.registry_schema_version, "ifccad.ifcdr.registry.v1");
-        assert_eq!(registry.resource.schema_id, "ifccad.ifcdr.resource.v0.5.0");
+        assert_eq!(registry.resource.schema_id, "ifccad.ifcdr.resource.v0.6.0");
         registry.build_indexes();
         let errors = validate_registry_cross_references(&registry);
         assert!(
@@ -495,13 +495,13 @@ mod tests {
         let second = canonical_registry();
 
         assert!(std::ptr::eq(first, second));
-        assert_eq!(first.ifcdr_version(), "0.5.0");
+        assert_eq!(first.ifcdr_version(), "0.6.0");
         assert_eq!(
             first.directory().schema_id(),
             "ifccad.ifcdr.streamDirectory.v1"
         );
-        assert_eq!(first.tables().len(), 12);
-        assert_eq!(first.streams().len(), 29);
+        assert_eq!(first.tables().len(), 4);
+        assert_eq!(first.streams().len(), 4);
 
         let line = first.stream_by_name("line").expect("line registry entry");
         assert_eq!(line.schema_id(), "ifccad.ifcdr.line.v2");
@@ -522,6 +522,36 @@ mod tests {
                 .name(),
             "appearanceBinding"
         );
+    }
+
+    #[test]
+    fn active_registry_has_only_base_profile_definitions() {
+        let registry = canonical_registry();
+        assert_eq!(registry.ifcdr_version(), "0.6.0");
+        let streams = registry
+            .streams()
+            .iter()
+            .map(|stream| stream.name())
+            .collect::<BTreeSet<_>>();
+        assert_eq!(
+            streams,
+            BTreeSet::from(["line", "polyline", "entityOrder", "entityOrderEntry"])
+        );
+        let tables = registry
+            .tables()
+            .iter()
+            .map(|table| table.name())
+            .collect::<BTreeSet<_>>();
+        assert_eq!(
+            tables,
+            BTreeSet::from([
+                "scope",
+                "layerBinding",
+                "appearanceBinding",
+                "appearanceOverride"
+            ])
+        );
+        assert!(validate_registry_cross_references(registry).is_empty());
     }
 
     #[test]

@@ -80,6 +80,12 @@ harder. The common semantic boundary should be credible before the model grows.
 
 ### Scope
 
+- Begin with a reduced active IFCDR contract for lines, straight polylines,
+  and their required resource, scope, binding, appearance, and order data.
+  Remove other inherited prototype entity definitions and corresponding
+  implementation assumptions before introducing the encoding-neutral model.
+  Retain IFCPR and its existing limited checks; full preservation remains
+  milestone 3 work.
 - Separate logical IFCDR resources and semantic validation from physical JSON
   decoding and encoding ([issue #7](https://github.com/OpenAEC-Foundation/ifccad/issues/7)).
 - Align IFCX, IFCDR, Rust, and documentation terminology around complete drawing
@@ -91,8 +97,11 @@ harder. The common semantic boundary should be credible before the model grows.
   ([issue #5](https://github.com/OpenAEC-Foundation/ifccad/issues/5)).
 - Complete a common abstraction for logically identified external and inline
   resources ([issue #1](https://github.com/OpenAEC-Foundation/ifccad/issues/1)).
-- Preserve compatibility and deterministic output for the JSON reference
-  encoding while moving JSON-specific behavior behind codec boundaries.
+- Establish a new versioned JSON reference baseline for the reduced contract,
+  then preserve its supported semantics and deterministic output while moving
+  JSON-specific behavior behind codec boundaries. Reading or writing older
+  IFCDR versions is not required; renew active fixtures and report unsupported
+  versions explicitly rather than providing a migration layer.
 - Define an explicit compatibility matrix alongside the conformance collections
   for the primary implementation. It must state which contract and profile
   versions the implementation can read and write, which extensions it
@@ -131,8 +140,9 @@ than being treated as proof that the entire package is invalid.
   conformance material, and documentation.
 - Supported inline and external resources normalize into the same validated
   logical model.
-- Existing supported JSON packages remain covered by compatibility and
-  determinism tests.
+- The new supported JSON baseline remains covered by semantic roundtrip and
+  determinism tests. Compatibility reporting explicitly identifies unsupported
+  older versions; frozen conformance collections remain unchanged.
 - Conformance reporting distinguishes validity, operation support, and lossless
   transfer, and includes an initial explicit compatibility matrix.
 - A reproducible size-measurement method and initial JSON baseline are recorded
@@ -142,6 +152,12 @@ An independent implementation is not an exit criterion for this milestone.
 The primary implementation and conformance material establish the initial
 contract; independent implementations or limited validators become an
 additional test once a profile is sufficiently stable.
+
+The first implementation slice is described in the
+[base-contract design](docs/superpowers/specs/2026-09-08-ifcdr-base-contract-design.md)
+(implemented and verified; see the [compatibility matrix](conformance/next/COMPATIBILITY.md)). Reducing the contract alone does not
+complete this milestone; codec separation and the other exit criteria remain
+required.
 
 ## 3. Native CAD semantics and preservation
 
