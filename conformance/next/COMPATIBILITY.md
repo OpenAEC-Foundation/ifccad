@@ -1,8 +1,9 @@
 # IFCCAD candidate compatibility
 
 This collection is the unpublished `1.1.0` candidate. Its active drawing
-contract is IFCDR `0.6.0`, selected by IFCX overlay `0.6.0`, with drawing core
-`0.2.0`. The registry meta-schema and stream directory remain v1. IFCPR remains
+contract is IFCDR `0.7.0`, selected by IFCX overlay `0.7.0`, with drawing core
+`0.2.0`. The logical registry uses meta-schema v2; the separate JSON mapping uses
+meta-schema v1 and stream-directory v1. IFCPR remains
 `0.2.0`. Historical schemas and `conformance/1.0.0` are reference artifacts,
 not promises that the current reader supports their files.
 
@@ -12,8 +13,14 @@ The IFCDR registry contains four streams: `line`, `polyline`, `entityOrder`,
 and `entityOrderEntry`. It retains `scope`, `layerBinding`, `appearanceBinding`,
 and `appearanceOverride` tables. Lines and polylines use the existing XY
 geometry, resource units, scope membership, appearance modes, and draw order.
-Omitted visibility means `true`. Retained stream/table schema IDs and defaults
-have not changed.
+Omitted visibility means `true`. Polyline schema v3 requires at least two
+vertices. Repeated vertices and coincident line endpoints are valid; the closed
+flag is preserved independently of whether the first vertex is repeated.
+Empty resources have no bounds (JSON null); nonempty resources require finite
+bounds enclosing all geometry, including invisible entities. Conservative
+bounds are valid; lineweight and scope bases do not expand these bounds.
+Colors retain RGB and optional indexed (u64) and named metadata together. All
+stored non-null overrides are validated, including unused values.
 
 Prototype entity families, their child streams, and their exclusive support
 tables are absent from this contract. Even empty discarded support tables are
@@ -24,10 +31,10 @@ contracts after their semantics are designed and tested.
 
 | Content or operation | Primary implementation behavior |
 | --- | --- |
-| IFCDR 0.6.0 JSON with the registered content | Existing field, range, reference, identity, scope, order, unit, and package binding checks; typed lines and polylines. |
+| IFCDR 0.7.0 JSON with the registered content | Physical field/range checks in the JSON codec, shared logical geometry/reference/identity/order/bounds/appearance validation, and package binding checks; typed lines and polylines. |
 | Directory writer | One drawing, one model layout, one external IFCDR resource; deterministic new-version output. |
 | Resource access | External package-relative JSON resources. Existing scope and model/paper layout references remain readable; this change does not add inline resources or paperspace export. |
-| IFCDR 0.5.0 or another unsupported version | `IFCCAD_IFCDR_VERSION_UNSUPPORTED`; no strict typed package and no migration. |
+| IFCDR 0.6.0, 0.5.0 or another unsupported version | `IFCCAD_IFCDR_VERSION_UNSUPPORTED`; no strict typed package and no migration. |
 | Unknown stream name or schema ID | `IFCCAD_IFCDR_STREAM_SCHEMA_UNSUPPORTED` with stream/schema context when available; no strict typed package or unmodeled-entity view. |
 | Malformed supported fields or known broken references | Structural or semantic error diagnostics; no strict typed package. |
 | Unknown IFCX node types and open extension fields | Existing permitted read behavior remains; no new guarantee of conversion, editing, or lossless rewriting. |
@@ -56,7 +63,7 @@ invalidity under an unsupported contract.
 
 The manifest's `invalid` category includes the explicitly named `unsupported.*`
 cases because they cannot obtain a strict result from this reader. The old
-version case also reports that its descriptor violates the selected 0.6.0
+version case also reports that its descriptor violates the selected 0.7.0
 overlay; it is not a validation attempt against the old overlay. An unknown
 stream does not produce dependent missing-entity/order or orphan-payload
 diagnostics based on an unknown payload mapping. Independently established
@@ -93,16 +100,13 @@ IFCPR records or source payloads.
 
 ## Remaining milestone 2 work
 
-This reduced baseline is still JSON-backed. Shared logical resource types,
-semantic validation independent of JSON, bounded semantic appearance values,
-logical/physical registry separation, enum semantics, drawing-resource naming,
-inline normalization, complete operation-specific reporting, and initial size
-measurements remain outstanding.
+Reader and writer now use separate backings behind shared typed collection
+access and logical validation. The JSON codec maps the published logical
+contract to physical columns and pools. The encoder accepts validated resources
+and preserves supplied IDs, order, conservative bounds and appearance metadata.
+Builder completion validates its prepared resource, then validates the assembled
+package in memory through the production reader before returning it.
 
-The next semantic design must resolve existing reader/writer differences
-explicitly. In particular, the builder requires at least two polyline vertices;
-the current registry/reader does not express that same minimum. Bounds are
-computed by the writer but are not fully checked against geometry by the
-reader. `appearanceOverride.color` retains its JSON-valued representation and
-existing package-level interpretation. This reduction does not silently change
-those contracts. Broader entity semantics and preservation remain milestone 3.
+Drawing-resource naming, inline/external normalization, complete
+operation-specific reporting, and initial size measurements remain outstanding.
+Broader entity semantics and preservation remain milestone 3.

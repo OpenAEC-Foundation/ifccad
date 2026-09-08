@@ -1,0 +1,481 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.ifccad.org/ifcdr/json-mapping-meta-schema-v1.json",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "minLength": 1
+    },
+    "mappingSchemaVersion": {
+      "const": "ifccad.ifcdr.jsonMapping.v1"
+    },
+    "ifcdrVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "resource": {
+      "type": "object",
+      "properties": {
+        "constants": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "logical": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "payload": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "omission": {
+                    "enum": [
+                      "forbidden",
+                      "logicalDefault"
+                    ]
+                  }
+                },
+                "required": [
+                  "logical",
+                  "payload",
+                  "omission"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "logical": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "encoding": {
+                    "const": "pointPoolRange"
+                  },
+                  "offset": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "count": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "pools": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "uniqueItems": true,
+                    "minItems": 2,
+                    "maxItems": 2
+                  }
+                },
+                "required": [
+                  "logical",
+                  "encoding",
+                  "offset",
+                  "count",
+                  "pools"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "logical": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "encoding": {
+                    "const": "childRange"
+                  },
+                  "offset": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "count": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "target": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "logical",
+                  "encoding",
+                  "offset",
+                  "count",
+                  "target"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "constants",
+        "fields"
+      ],
+      "additionalProperties": false
+    },
+    "directory": {
+      "type": "object",
+      "properties": {
+        "schemaId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "payload": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "entryFields": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "optionalEntryFields": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "schemaId",
+        "payload",
+        "fields",
+        "entryFields",
+        "optionalEntryFields"
+      ],
+      "additionalProperties": false
+    },
+    "tables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "payload": {
+            "type": "string",
+            "minLength": 1
+          },
+          "omission": {
+            "enum": [
+              "forbidden",
+              "logicalDefault"
+            ]
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "logical": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "payload": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "omission": {
+                      "enum": [
+                        "forbidden",
+                        "logicalDefault"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "logical",
+                    "payload",
+                    "omission"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "logical": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "encoding": {
+                      "const": "pointPoolRange"
+                    },
+                    "offset": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "count": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "pools": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "uniqueItems": true,
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  },
+                  "required": [
+                    "logical",
+                    "encoding",
+                    "offset",
+                    "count",
+                    "pools"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "logical": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "encoding": {
+                      "const": "childRange"
+                    },
+                    "offset": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "count": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "target": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "logical",
+                    "encoding",
+                    "offset",
+                    "count",
+                    "target"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            }
+          }
+        },
+        "required": [
+          "name",
+          "payload",
+          "omission",
+          "fields"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "streams": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "payload": {
+            "type": "string",
+            "minLength": 1
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "logical": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "payload": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "omission": {
+                      "enum": [
+                        "forbidden",
+                        "logicalDefault"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "logical",
+                    "payload",
+                    "omission"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "logical": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "encoding": {
+                      "const": "pointPoolRange"
+                    },
+                    "offset": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "count": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "pools": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "uniqueItems": true,
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  },
+                  "required": [
+                    "logical",
+                    "encoding",
+                    "offset",
+                    "count",
+                    "pools"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "logical": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "encoding": {
+                      "const": "childRange"
+                    },
+                    "offset": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "count": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "target": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "logical",
+                    "encoding",
+                    "offset",
+                    "count",
+                    "target"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            }
+          }
+        },
+        "required": [
+          "name",
+          "payload",
+          "fields"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "valueMappings": {
+      "type": "object",
+      "properties": {
+        "appearanceMode": {
+          "type": "object",
+          "properties": {
+            "ByLayer": {
+              "const": 0
+            },
+            "Explicit": {
+              "const": 1
+            },
+            "ByBlock": {
+              "const": 2
+            }
+          },
+          "required": [
+            "ByLayer",
+            "Explicit",
+            "ByBlock"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "appearanceMode"
+      ],
+      "additionalProperties": false
+    },
+    "$comment": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "$schema",
+    "mappingSchemaVersion",
+    "ifcdrVersion",
+    "resource",
+    "directory",
+    "tables",
+    "streams",
+    "valueMappings"
+  ],
+  "additionalProperties": false,
+  "$comment": "Normative interpretation: ./json-mapping-v1.md"
+}

@@ -432,14 +432,15 @@ impl<'a> AppliedAppearanceRef<'a> {
                     .override_id()
                     .and_then(|id| self.resource.appearance_override(id))
                     .and_then(|value| value.color());
-                let value = override_value.or_else(|| {
-                    self.ifcx_definition()
-                        .map(|appearance| appearance.node())
-                        .and_then(|node| node.pointer("/attributes/color/value"))
-                });
-                AppearanceProperty::Explicit(AppearanceColorRef::new(
-                    value.expect("validated explicit appearance color"),
-                ))
+                let value = override_value
+                    .map(AppearanceColorRef::from_color)
+                    .or_else(|| {
+                        self.ifcx_definition()
+                            .map(|appearance| appearance.node())
+                            .and_then(|node| node.pointer("/attributes/color/value"))
+                            .map(AppearanceColorRef::new)
+                    });
+                AppearanceProperty::Explicit(value.expect("validated explicit appearance color"))
             }
         }
     }

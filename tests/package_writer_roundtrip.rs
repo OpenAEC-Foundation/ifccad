@@ -160,7 +160,7 @@ fn writer_output_reloads_without_diagnostics_and_preserves_semantics() {
 
     let bytes = std::fs::read(target.join("resources/model-space.ifcdr.json")).unwrap();
     let resource: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
-    assert_eq!(resource["header"]["version"], "0.6.0");
+    assert_eq!(resource["header"]["version"], "0.7.0");
     assert!(resource.get("namedUcsBindings").is_none());
     assert!(resource.get("dimensionOverrideTable").is_none());
     let loaded = load_directory_package(&target).unwrap();
@@ -196,7 +196,7 @@ fn writer_output_reloads_without_diagnostics_and_preserves_semantics() {
         representation.resource().unit(),
         IfcdrLengthUnit::Millimetre
     );
-    let bounds = representation.resource().bounds();
+    let bounds = representation.resource().bounds().unwrap();
     assert_eq!(bounds.min(), Point2::new(-2.0, -5.0));
     assert_eq!(bounds.max(), Point2::new(10.0, 8.0));
 
@@ -386,7 +386,7 @@ fn identical_input_is_byte_deterministic_across_builder_tokens() {
 }
 
 #[test]
-fn empty_model_space_reloads_with_zero_bounds_and_no_entities() {
+fn empty_model_space_reloads_without_bounds_or_entities() {
     let root = TempRoot::new();
     let target = root.0.join("empty-project");
     let mut builder = PackageBuilder::new(PackageOptions {
@@ -411,7 +411,6 @@ fn empty_model_space_reloads_with_zero_bounds_and_no_entities() {
     let drawing = package.drawings().next().unwrap();
     let layout = drawing.layouts().next().unwrap();
     let resource = drawing.representation().resource();
-    assert_eq!(resource.bounds().min(), Point2::new(0.0, 0.0));
-    assert_eq!(resource.bounds().max(), Point2::new(0.0, 0.0));
+    assert!(resource.bounds().is_none());
     assert_eq!(resource.entities(layout.scope().id()).count(), 0);
 }

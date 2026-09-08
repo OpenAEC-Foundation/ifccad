@@ -103,7 +103,7 @@
         "count": 2,
         "name": "polyline",
         "role": "object",
-        "schema": "ifccad.ifcdr.polyline.v2"
+        "schema": "ifccad.ifcdr.polyline.v3"
       },
       {
         "children": [

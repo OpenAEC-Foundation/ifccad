@@ -209,7 +209,7 @@ fn convert_entity_appearance(
         let (rgb, indexed) = explicit_color.unwrap_or(([0, 0, 0], None));
         let mut color = AppearanceColor::rgb(rgb[0], rgb[1], rgb[2]);
         if let Some(index) = indexed {
-            color = color.with_indexed("ACI", index);
+            color = color.with_indexed("ACI", u64::from(index));
         }
         if let Some((catalog, name)) = &named {
             color = color.with_named(catalog, name);
@@ -297,7 +297,7 @@ fn convert_layer_appearance(layer: &Layer) -> Result<ConvertedAppearance, LayerA
 
     let mut color = AppearanceColor::rgb(rgb[0], rgb[1], rgb[2]);
     if let Some(index) = indexed {
-        color = color.with_indexed("ACI", index);
+        color = color.with_indexed("ACI", u64::from(index));
     }
     if let Some((catalog, name)) = &named {
         color = color.with_named(catalog, name);

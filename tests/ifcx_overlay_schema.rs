@@ -880,7 +880,16 @@ fn overlay_0_5_is_valid_and_accepts_the_minimal_package_contract() {
 
 #[test]
 fn overlay_0_6_selects_the_base_profile_and_keeps_ifcx_open() {
-    let schema = load_schema("ifccad-overlay-0.6.0.json");
+    check_base_overlay("0.6.0");
+}
+
+#[test]
+fn overlay_0_7_selects_the_logical_profile_and_keeps_ifcx_open() {
+    check_base_overlay("0.7.0");
+}
+
+fn check_base_overlay(version: &str) {
+    let schema = load_schema(&format!("ifccad-overlay-{version}.json"));
     jsonschema::draft202012::meta::validate(&schema).unwrap();
     let registry = Registry::new()
         .add(
@@ -897,6 +906,7 @@ fn overlay_0_6_selects_the_base_profile_and_keeps_ifcx_open() {
     let path = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("conformance/next/packages/valid/minimal-no-preservation/package.ifcx.json");
     let mut document: Value = serde_json::from_slice(&fs::read(path).unwrap()).unwrap();
+    document["data"][3]["attributes"]["geometry"]["version"] = json!(version);
     assert!(validator.is_valid(&document));
     document["data"].as_array_mut().unwrap().push(
         json!({"path":"extension", "type":"example:Extension", "attributes":{"custom":true}}),

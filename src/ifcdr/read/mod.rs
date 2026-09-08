@@ -1,6 +1,6 @@
 mod codes;
+pub(crate) mod decoded;
 mod entity;
-mod registry;
 mod resource;
 mod streams;
 mod validation;

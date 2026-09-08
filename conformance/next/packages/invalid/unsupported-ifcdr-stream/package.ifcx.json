@@ -45,11 +45,11 @@
     {
       "attributes": {
         "geometry": {
-          "checksum": "sha256:a59b5cc0d0eaa219b6f201bd8f6c2ed2a299701ef8cdd1f78caf12813107fb6b",
+          "checksum": "sha256:1a00028951a5890d368c52673c658290bc7ee4f44ec9dc09a31931d15612c073",
           "format": "openaec.ifcdr",
           "role": "modelspace",
           "uri": "drawing.ifcdr.json",
-          "version": "0.6.0",
+          "version": "0.7.0",
           "resourceId": "geometry-modelspace-main"
         },
         "name": "ModelSpace"

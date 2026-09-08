@@ -7,6 +7,7 @@ mod artifact;
 mod builder;
 mod error;
 mod ifcx;
+mod prepare;
 mod state;
 mod types;
 

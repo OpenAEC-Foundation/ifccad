@@ -1,0 +1,541 @@
+{
+  "$schema": "./registry-meta-schema-v2.json",
+  "registrySchemaVersion": "ifccad.ifcdr.registry.v2",
+  "ifcdrVersion": "0.7.0",
+  "types": {
+    "entityId": {
+      "kind": "scalar",
+      "base": "uint64",
+      "minimum": 1
+    },
+    "ifcxId": {
+      "kind": "scalar",
+      "base": "string",
+      "minLength": 1
+    },
+    "unit": {
+      "kind": "enum",
+      "values": [
+        "unitless",
+        "mm",
+        "cm",
+        "m",
+        "km",
+        "in",
+        "ft"
+      ]
+    },
+    "appearanceMode": {
+      "kind": "enum",
+      "values": [
+        "ByLayer",
+        "Explicit",
+        "ByBlock"
+      ]
+    },
+    "point2": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "x",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "y",
+          "valueType": "float64",
+          "nullable": false
+        }
+      ]
+    },
+    "bounds2": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "minX",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "minY",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "maxX",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "maxY",
+          "valueType": "float64",
+          "nullable": false
+        }
+      ]
+    },
+    "vertices": {
+      "kind": "sequence",
+      "items": "point2",
+      "minItems": 2
+    },
+    "orderEntries": {
+      "kind": "sequence",
+      "items": "entityId",
+      "minItems": 0
+    },
+    "rgb": {
+      "kind": "sequence",
+      "items": "uint8",
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "indexedColor": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "system",
+          "valueType": "nonEmptyString",
+          "nullable": false
+        },
+        {
+          "name": "index",
+          "valueType": "uint64",
+          "nullable": false
+        }
+      ]
+    },
+    "namedColor": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "catalog",
+          "valueType": "nonEmptyString",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "valueType": "nonEmptyString",
+          "nullable": false
+        }
+      ]
+    },
+    "color": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "rgb",
+          "valueType": "rgb",
+          "nullable": false
+        },
+        {
+          "name": "indexedColor",
+          "valueType": "indexedColor",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "namedColor",
+          "valueType": "namedColor",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "nonEmptyString": {
+      "kind": "scalar",
+      "base": "string",
+      "minLength": 1
+    },
+    "opacity": {
+      "kind": "scalar",
+      "base": "float64",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "lineWeight": {
+      "kind": "scalar",
+      "base": "float64",
+      "minimum": 0
+    }
+  },
+  "resource": {
+    "schemaId": "ifccad.ifcdr.resource.v0.7.0",
+    "fields": [
+      {
+        "name": "resourceId",
+        "valueType": "nonEmptyString",
+        "nullable": false
+      },
+      {
+        "name": "unit",
+        "valueType": "unit",
+        "nullable": false
+      },
+      {
+        "name": "nextEntityId",
+        "valueType": "entityId",
+        "nullable": false
+      },
+      {
+        "name": "bounds",
+        "valueType": "bounds2",
+        "nullable": true
+      }
+    ]
+  },
+  "tables": [
+    {
+      "name": "appearanceBinding",
+      "schemaId": "ifccad.ifcdr.appearanceBinding.v2",
+      "default": [],
+      "fields": [
+        {
+          "name": "id",
+          "valueType": "uint32",
+          "nullable": false
+        },
+        {
+          "name": "ifcxAppearance",
+          "valueType": "ifcxId",
+          "nullable": true,
+          "reference": {
+            "category": "ifcx",
+            "target": "ifcx"
+          }
+        },
+        {
+          "name": "colorMode",
+          "valueType": "appearanceMode",
+          "nullable": false
+        },
+        {
+          "name": "opacityMode",
+          "valueType": "appearanceMode",
+          "nullable": false
+        },
+        {
+          "name": "linePatternMode",
+          "valueType": "appearanceMode",
+          "nullable": false
+        },
+        {
+          "name": "lineWeightMode",
+          "valueType": "appearanceMode",
+          "nullable": false
+        },
+        {
+          "name": "overrideId",
+          "valueType": "uint32",
+          "nullable": true,
+          "reference": {
+            "category": "tableField",
+            "target": "appearanceOverride.id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "appearanceOverride",
+      "schemaId": "ifccad.ifcdr.appearanceOverride.v2",
+      "default": [],
+      "fields": [
+        {
+          "name": "id",
+          "valueType": "uint32",
+          "nullable": false
+        },
+        {
+          "name": "color",
+          "valueType": "color",
+          "nullable": true
+        },
+        {
+          "name": "opacity",
+          "valueType": "opacity",
+          "nullable": true
+        },
+        {
+          "name": "ifcxLinePattern",
+          "valueType": "ifcxId",
+          "nullable": true,
+          "reference": {
+            "category": "ifcx",
+            "target": "ifcx"
+          }
+        },
+        {
+          "name": "lineWeight",
+          "valueType": "lineWeight",
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "name": "layerBinding",
+      "schemaId": "ifccad.ifcdr.layerBinding.v1",
+      "default": [],
+      "fields": [
+        {
+          "name": "id",
+          "valueType": "uint32",
+          "nullable": false
+        },
+        {
+          "name": "ifcxLayer",
+          "valueType": "ifcxId",
+          "nullable": false,
+          "reference": {
+            "category": "ifcx",
+            "target": "ifcx"
+          }
+        }
+      ]
+    },
+    {
+      "name": "scope",
+      "schemaId": "ifccad.ifcdr.scope.v1",
+      "default": [],
+      "fields": [
+        {
+          "name": "id",
+          "valueType": "uint32",
+          "nullable": false
+        },
+        {
+          "name": "kind",
+          "valueType": "uint32",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "valueType": "string",
+          "nullable": false
+        },
+        {
+          "name": "baseX",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "baseY",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "flags",
+          "valueType": "uint32",
+          "nullable": false
+        }
+      ]
+    }
+  ],
+  "streams": [
+    {
+      "name": "line",
+      "schemaId": "ifccad.ifcdr.line.v2",
+      "role": "object",
+      "fields": [
+        {
+          "name": "entityId",
+          "valueType": "entityId",
+          "nullable": false,
+          "reference": {
+            "category": "entity",
+            "target": "entity"
+          }
+        },
+        {
+          "name": "scopeId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "scope.id"
+          }
+        },
+        {
+          "name": "x1",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "y1",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "x2",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "y2",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "layerBinding.id"
+          }
+        },
+        {
+          "name": "appearanceId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "appearanceBinding.id"
+          }
+        },
+        {
+          "name": "visible",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "polyline",
+      "schemaId": "ifccad.ifcdr.polyline.v3",
+      "role": "object",
+      "fields": [
+        {
+          "name": "entityId",
+          "valueType": "entityId",
+          "nullable": false,
+          "reference": {
+            "category": "entity",
+            "target": "entity"
+          }
+        },
+        {
+          "name": "scopeId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "scope.id"
+          }
+        },
+        {
+          "name": "vertices",
+          "valueType": "vertices",
+          "nullable": false
+        },
+        {
+          "name": "closed",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "layerBinding.id"
+          }
+        },
+        {
+          "name": "appearanceId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "appearanceBinding.id"
+          }
+        },
+        {
+          "name": "visible",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "entityOrder",
+      "schemaId": "ifccad.ifcdr.entityOrder.v1",
+      "role": "order",
+      "fields": [
+        {
+          "name": "scopeId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "scope.id"
+          }
+        },
+        {
+          "name": "entries",
+          "valueType": "orderEntries",
+          "nullable": false,
+          "reference": {
+            "category": "streamColumn",
+            "target": "entityOrderEntry.entityId"
+          }
+        }
+      ]
+    },
+    {
+      "name": "entityOrderEntry",
+      "schemaId": "ifccad.ifcdr.entityOrderEntry.v1",
+      "role": "child",
+      "fields": [
+        {
+          "name": "entityId",
+          "valueType": "entityId",
+          "nullable": false,
+          "reference": {
+            "category": "entity",
+            "target": "entity"
+          }
+        }
+      ]
+    }
+  ],
+  "invariants": [
+    {
+      "id": "entity.identity",
+      "contract": "logical-contract-0.7.0.md#entity-identity"
+    },
+    {
+      "id": "entity.next-id",
+      "contract": "logical-contract-0.7.0.md#entity-next-id"
+    },
+    {
+      "id": "reference.local",
+      "contract": "logical-contract-0.7.0.md#reference-local"
+    },
+    {
+      "id": "order.coverage",
+      "contract": "logical-contract-0.7.0.md#order-coverage"
+    },
+    {
+      "id": "geometry.finite",
+      "contract": "logical-contract-0.7.0.md#geometry-finite"
+    },
+    {
+      "id": "polyline.vertex-count",
+      "contract": "logical-contract-0.7.0.md#polyline-vertex-count"
+    },
+    {
+      "id": "bounds.enclosure",
+      "contract": "logical-contract-0.7.0.md#bounds-enclosure"
+    },
+    {
+      "id": "appearance.values",
+      "contract": "logical-contract-0.7.0.md#appearance-values"
+    },
+    {
+      "id": "appearance.source",
+      "contract": "logical-contract-0.7.0.md#appearance-source"
+    }
+  ]
+}

@@ -15,92 +15,88 @@ pub enum AppearanceProperty<T> {
     Explicit(T),
 }
 
-/// An RGB color preserved together with optional CAD color identities.
+/// An RGB value with optional indexed and named identities.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct AppearanceColorRef<'a> {
-    value: &'a Value,
+    rgb: RgbColor,
+    indexed: Option<IndexedColorRef<'a>>,
+    named: Option<NamedColorRef<'a>>,
 }
-
 impl<'a> AppearanceColorRef<'a> {
     pub(crate) fn new(value: &'a Value) -> Self {
-        Self { value }
+        let rgb = value["rgb"].as_array().expect("validated color");
+        Self {
+            rgb: RgbColor([
+                rgb[0].as_u64().unwrap() as u8,
+                rgb[1].as_u64().unwrap() as u8,
+                rgb[2].as_u64().unwrap() as u8,
+            ]),
+            indexed: value.get("indexedColor").map(|v| IndexedColorRef {
+                system: v["system"].as_str().unwrap(),
+                index: v["index"].as_u64().unwrap(),
+            }),
+            named: value.get("namedColor").map(|v| NamedColorRef {
+                catalog: v["catalog"].as_str().unwrap(),
+                name: v["name"].as_str().unwrap(),
+            }),
+        }
     }
-
+    pub(crate) fn from_color(value: &'a crate::ifcdr::logical::IfcdrColor) -> Self {
+        Self {
+            rgb: RgbColor(value.rgb),
+            indexed: value.indexed.as_ref().map(|v| IndexedColorRef {
+                system: &v.system,
+                index: v.index,
+            }),
+            named: value.named.as_ref().map(|v| NamedColorRef {
+                catalog: &v.catalog,
+                name: &v.name,
+            }),
+        }
+    }
     pub fn rgb(&self) -> RgbColor {
-        let components = self.value["rgb"]
-            .as_array()
-            .expect("validated appearance RGB value");
-        RgbColor([
-            components[0].as_u64().expect("validated red component") as u8,
-            components[1].as_u64().expect("validated green component") as u8,
-            components[2].as_u64().expect("validated blue component") as u8,
-        ])
+        self.rgb
     }
-
     pub fn indexed(&self) -> Option<IndexedColorRef<'a>> {
-        self.value.get("indexedColor").map(IndexedColorRef::new)
+        self.indexed
     }
-
     pub fn named(&self) -> Option<NamedColorRef<'a>> {
-        self.value.get("namedColor").map(NamedColorRef::new)
+        self.named
     }
 }
-
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RgbColor([u8; 3]);
-
 impl RgbColor {
     pub fn components(self) -> [u8; 3] {
         self.0
     }
 }
-
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct IndexedColorRef<'a> {
-    value: &'a Value,
+    system: &'a str,
+    index: u64,
 }
-
 impl<'a> IndexedColorRef<'a> {
-    fn new(value: &'a Value) -> Self {
-        Self { value }
-    }
-
     pub fn system(&self) -> &'a str {
-        self.value["system"]
-            .as_str()
-            .expect("validated indexed-color system")
+        self.system
     }
-
     pub fn index(&self) -> u64 {
-        self.value["index"]
-            .as_u64()
-            .expect("validated indexed-color index")
+        self.index
     }
 }
-
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct NamedColorRef<'a> {
-    value: &'a Value,
+    catalog: &'a str,
+    name: &'a str,
 }
-
 impl<'a> NamedColorRef<'a> {
-    fn new(value: &'a Value) -> Self {
-        Self { value }
-    }
-
     pub fn catalog(&self) -> &'a str {
-        self.value["catalog"]
-            .as_str()
-            .expect("validated named-color catalog")
+        self.catalog
     }
-
     pub fn name(&self) -> &'a str {
-        self.value["name"]
-            .as_str()
-            .expect("validated named-color name")
+        self.name
     }
 }
-
 /// A line-pattern value can be a local IFCX appearance value or an IFCX identity.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum LinePatternRef<'a> {
@@ -108,21 +104,7 @@ pub enum LinePatternRef<'a> {
     IfcxIdentity(&'a str),
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub(crate) enum AppearanceMode {
-    ByLayer,
-    Explicit,
-    ByBlock,
-}
-
-pub(crate) fn appearance_mode(value: u32) -> Option<AppearanceMode> {
-    match value {
-        0 => Some(AppearanceMode::ByLayer),
-        1 => Some(AppearanceMode::Explicit),
-        2 => Some(AppearanceMode::ByBlock),
-        _ => None,
-    }
-}
+pub(crate) use crate::ifcdr::logical::{appearance_mode, AppearanceMode};
 
 pub(crate) fn validate_appearance_and_layer_semantics(
     nodes: &[Value],
@@ -164,6 +146,26 @@ fn validate_appearances(
     bindings: &PackageBindings,
     diagnostics: &mut Vec<PackageDiagnostic>,
 ) {
+    // Declared links must resolve even when no current binding selects them.
+    for (row, value) in resource.bindings().appearance_overrides().enumerate() {
+        if let Some(path) = value.ifcx_line_pattern() {
+            if !node_indices_by_path.contains_key(path) {
+                diagnostics.push(PackageDiagnostic {
+                    code: IFCCAD_PACKAGE_APPEARANCE_INVALID.to_owned(),
+                    severity: PackageDiagnosticSeverity::Error,
+                    resource_id: Some(resource_id.clone()),
+                    resource_uri: Some(uri.to_owned()),
+                    location: Some(format!("/appearanceOverrides/{row}/ifcxLinePattern")),
+                    context: BTreeMap::from([(
+                        "target".to_owned(),
+                        PackageDiagnosticContextValue::String(path.to_owned()),
+                    )]),
+                    message: "line-pattern override must reference an existing IFCX identity"
+                        .into(),
+                });
+            }
+        }
+    }
     for (row_index, binding) in resource.bindings().appearances().enumerate() {
         let ifcx_appearance = bindings
             .ifcx_appearance_by_ifcdr_id
@@ -192,7 +194,10 @@ fn validate_appearances(
             "color",
             "colorMode",
             binding.color_mode(),
-            appearance_override.as_ref().and_then(|value| value.color()),
+            appearance_override
+                .as_ref()
+                .and_then(|value| value.color())
+                .map(crate::ifcdr::logical::valid_color),
             ifcx_appearance.and_then(|node| node.pointer("/attributes/color/value")),
             valid_color,
             diagnostics,
@@ -208,8 +213,7 @@ fn validate_appearances(
             appearance_override
                 .as_ref()
                 .and_then(|value| value.opacity())
-                .map(Value::from)
-                .as_ref(),
+                .map(|_| true),
             ifcx_appearance.and_then(|node| node.pointer("/attributes/opacity/value")),
             valid_opacity,
             diagnostics,
@@ -222,7 +226,7 @@ fn validate_appearances(
             "linePattern",
             "linePatternMode",
             binding.line_pattern_mode(),
-            override_line_pattern.as_ref(),
+            override_line_pattern.as_ref().map(valid_line_pattern),
             ifcx_appearance.and_then(|node| node.pointer("/attributes/linePattern/value")),
             valid_line_pattern,
             diagnostics,
@@ -238,8 +242,7 @@ fn validate_appearances(
             appearance_override
                 .as_ref()
                 .and_then(|value| value.line_weight())
-                .map(Value::from)
-                .as_ref(),
+                .map(|_| true),
             ifcx_appearance.and_then(|node| node.pointer("/attributes/lineWeight/value")),
             valid_line_weight,
             diagnostics,
@@ -256,7 +259,7 @@ fn validate_property(
     property: &str,
     mode_field: &str,
     raw_mode: u32,
-    override_value: Option<&Value>,
+    override_value: Option<bool>,
     ifcx_value: Option<&Value>,
     value_is_valid: fn(&Value) -> bool,
     diagnostics: &mut Vec<PackageDiagnostic>,
@@ -275,7 +278,9 @@ fn validate_property(
         return;
     };
     if mode == AppearanceMode::Explicit
-        && !override_value.or(ifcx_value).is_some_and(value_is_valid)
+        && !override_value
+            .or_else(|| ifcx_value.map(value_is_valid))
+            .unwrap_or(false)
     {
         diagnostics.push(appearance_diagnostic(
             uri,
@@ -390,44 +395,14 @@ fn validate_layer_names(
 }
 
 fn valid_color(value: &Value) -> bool {
-    let Some(color) = value.as_object() else {
-        return false;
-    };
-    let valid_rgb = color
-        .get("rgb")
-        .and_then(Value::as_array)
-        .is_some_and(|rgb| {
-            rgb.len() == 3
-                && rgb
-                    .iter()
-                    .all(|component| component.as_u64().is_some_and(|component| component <= 255))
-        });
-    let valid_indexed = color.get("indexedColor").is_none_or(|indexed| {
-        indexed.as_object().is_some_and(|indexed| {
-            indexed
-                .get("system")
-                .and_then(Value::as_str)
-                .is_some_and(|value| !value.is_empty())
-                && indexed.get("index").and_then(Value::as_u64).is_some()
-        })
-    });
-    let valid_named = color.get("namedColor").is_none_or(|named| {
-        named.as_object().is_some_and(|named| {
-            ["catalog", "name"].iter().all(|key| {
-                named
-                    .get(*key)
-                    .and_then(Value::as_str)
-                    .is_some_and(|value| !value.is_empty())
-            })
-        })
-    });
-    valid_rgb && valid_indexed && valid_named
+    crate::ifcdr::codec::json::project_color(value)
+        .is_some_and(|color| crate::ifcdr::logical::valid_color(&color))
 }
 
 fn valid_opacity(value: &Value) -> bool {
     value
         .as_f64()
-        .is_some_and(|value| value.is_finite() && (0.0..=1.0).contains(&value))
+        .is_some_and(crate::ifcdr::logical::valid_opacity)
 }
 
 fn valid_line_pattern(value: &Value) -> bool {
@@ -437,5 +412,5 @@ fn valid_line_pattern(value: &Value) -> bool {
 fn valid_line_weight(value: &Value) -> bool {
     value
         .as_f64()
-        .is_some_and(|value| value.is_finite() && value >= 0.0)
+        .is_some_and(crate::ifcdr::logical::valid_line_weight)
 }

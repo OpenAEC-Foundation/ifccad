@@ -155,9 +155,15 @@ additional test once a profile is sufficiently stable.
 
 The first implementation slice is described in the
 [base-contract design](docs/superpowers/specs/2026-09-08-ifcdr-base-contract-design.md)
-(implemented and verified; see the [compatibility matrix](conformance/next/COMPATIBILITY.md)). Reducing the contract alone does not
-complete this milestone; codec separation and the other exit criteria remain
-required.
+(implemented and verified). The second slice, the
+[encoding-neutral logical model](docs/superpowers/specs/2026-09-08-ifcdr-logical-model-design.md),
+is also implemented and verified: shared semantic access and validation,
+separate reader/writer backings, logical registry and JSON mapping, and a
+validated-resource codec boundary. See the
+[compatibility matrix](conformance/next/COMPATIBILITY.md) for the active 0.7.0
+contract. Drawing-resource naming, inline/external normalization, richer
+operation-specific reporting, and initial size measurements remain required;
+this milestone is still Current.
 
 ## 3. Native CAD semantics and preservation
 

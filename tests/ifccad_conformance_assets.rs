@@ -136,10 +136,14 @@ fn next_candidate_is_self_contained_and_valid_json() {
     for relative in [
         "manifest.json",
         "manifest-schema-v1.json",
-        "schemas/ifcx/ifccad-overlay-0.6.0.json",
+        "schemas/ifcx/ifccad-overlay-0.7.0.json",
         "schemas/ifcx/ifccad-drawing-core-0.2.0.json",
-        "schemas/ifcdr/registry-0.6.0.json",
-        "schemas/ifcdr/registry-meta-schema-v1.json",
+        "schemas/ifcdr/registry-0.7.0.json",
+        "schemas/ifcdr/registry-meta-schema-v2.json",
+        "schemas/ifcdr/json-mapping-0.7.0.json",
+        "schemas/ifcdr/json-mapping-meta-schema-v1.json",
+        "schemas/ifcdr/logical-contract-0.7.0.md",
+        "schemas/ifcdr/json-mapping-v1.md",
         "schemas/ifcpr/schema-0.2.0.json",
         "PROVENANCE.md",
         "LICENSE",
@@ -148,10 +152,14 @@ fn next_candidate_is_self_contained_and_valid_json() {
     }
 
     for relative in [
-        "ifcx/ifccad-overlay-0.6.0.json",
+        "ifcx/ifccad-overlay-0.7.0.json",
         "ifcx/ifccad-drawing-core-0.2.0.json",
-        "ifcdr/registry-0.6.0.json",
-        "ifcdr/registry-meta-schema-v1.json",
+        "ifcdr/registry-0.7.0.json",
+        "ifcdr/registry-meta-schema-v2.json",
+        "ifcdr/json-mapping-0.7.0.json",
+        "ifcdr/json-mapping-meta-schema-v1.json",
+        "ifcdr/logical-contract-0.7.0.md",
+        "ifcdr/json-mapping-v1.md",
         "ifcpr/schema-0.2.0.json",
     ] {
         assert_eq!(

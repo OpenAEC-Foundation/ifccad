@@ -45,7 +45,7 @@
     {
       "attributes": {
         "geometry": {
-          "checksum": "sha256:4987ba3b0eda07da68a3ebe2b9edd2272c81eb2c823f4d8e6a31990e569f9927",
+          "checksum": "sha256:5f3e7b4f9ac2c15da75a4498c95621e608ce91ea1c5740ccfb1ee5febc5dbf59",
           "format": "openaec.ifcdr",
           "role": "modelspace",
           "uri": "drawing.ifcdr.json",

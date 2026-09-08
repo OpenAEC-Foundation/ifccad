@@ -62,7 +62,7 @@ The converter accepts only a `DrawingRef` from a strictly validated package.
 It does not load package paths or raw JSON and does not repeat package
 validation.
 
-The active package reader/writer contract is IFCDR 0.6.0. Unsupported IFCDR
+The active package reader/writer contract is IFCDR 0.7.0. Unsupported IFCDR
 versions or entity schemas block strict loading before import; the former
 `IfcdrEntityRef::Unmodeled`, `UnmodeledEntityRef`, and
 `ImportDiagnostic::UnmodeledEntitiesSkipped` APIs have been removed. Existing

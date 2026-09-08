@@ -78,7 +78,15 @@ impl From<u32> for AppearanceId {
 pub struct EntityId(NonZeroU64);
 
 impl EntityId {
-    pub(crate) fn new(value: u64) -> Option<Self> {
+    /// Constructs a nonzero entity identity. Resource validation also checks uniqueness.
+    ///
+    /// ```
+    /// use ifccad::ifcdr::EntityId;
+    /// let existing_id = EntityId::new(42).unwrap();
+    /// assert_eq!(existing_id.get(), 42);
+    /// assert!(EntityId::new(0).is_none());
+    /// ```
+    pub fn new(value: u64) -> Option<Self> {
         NonZeroU64::new(value).map(Self)
     }
 

@@ -21,50 +21,7 @@ pub struct DrawingOptions {
     pub length_unit: IfcdrLengthUnit,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct IndexedColor {
-    pub system: String,
-    pub index: u32,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct NamedColor {
-    pub catalog: String,
-    pub name: String,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct AppearanceColor {
-    pub(crate) rgb: [u8; 3],
-    pub(crate) indexed: Option<IndexedColor>,
-    pub(crate) named: Option<NamedColor>,
-}
-
-impl AppearanceColor {
-    pub fn rgb(red: u8, green: u8, blue: u8) -> Self {
-        Self {
-            rgb: [red, green, blue],
-            indexed: None,
-            named: None,
-        }
-    }
-
-    pub fn with_indexed(mut self, system: impl Into<String>, index: u32) -> Self {
-        self.indexed = Some(IndexedColor {
-            system: system.into(),
-            index,
-        });
-        self
-    }
-
-    pub fn with_named(mut self, catalog: impl Into<String>, name: impl Into<String>) -> Self {
-        self.named = Some(NamedColor {
-            catalog: catalog.into(),
-            name: name.into(),
-        });
-        self
-    }
-}
+pub use crate::ifcdr::logical::IfcdrColor as AppearanceColor;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LinePatternDefinition {
@@ -105,12 +62,7 @@ pub struct LayerKey {
     pub(crate) local_id: u32,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum AppearanceMode {
-    ByLayer,
-    ByBlock,
-    Explicit,
-}
+pub use crate::ifcdr::logical::AppearanceMode;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct EntityAppearance {

@@ -75,10 +75,12 @@ A complete IFCCAD vocabulary within IFCX, production IFCDR codecs, the future
 `.ifccad` container, broader native CAD entity coverage and preservation, and
 conventional IFC integration are still under development.
 
-The active reader and writer use the reduced IFCDR **0.6.0** contract with
+The active reader and writer use the encoding-neutral IFCDR **0.7.0** contract with
 lines, straight polylines, and their supporting data. Older IFCDR versions and
 other entity schemas do not produce a strict typed package; there is no legacy
-migration path. IFCPR 0.2.0 retains its existing limited checks. See the
+migration path. Reader and writer retain separate storage behind shared typed
+collection access and semantic validation; JSON encoding is a separate boundary.
+IFCPR 0.2.0 retains its existing limited checks. See the
 [candidate compatibility matrix](conformance/next/COMPATIBILITY.md) for operation
 support and validation limits.
 
@@ -233,6 +235,13 @@ mixed ByLayer/ByBlock/explicit appearance inheritance, and reports every
 detected unsupported source semantic according to an allow-or-reject loss
 policy.
 
+To preserve existing identities, use `add_line_with_id` or
+`add_polyline_with_id` with `EntityId::new(value)`. Automatic allocation continues
+above the greatest assigned ID and does not recycle gaps. Encoding retains IDs
+and draw order. `finish()` consumes the builder and returns an encoded package
+only after resource and package validation; final errors are available together
+in `PackageBuildError::Validation`.
+
 The public API is still evolving while the format contract matures.
 
 ## Format contract and versioning
@@ -240,7 +249,7 @@ The public API is still evolving while the format contract matures.
 The active language-neutral schemas live in `schemas/`. The mutable
 `conformance/next` collection currently targets suite `1.1.0` and tests the
 minimal package-header contract alongside explicit resource identity: a
-logical resource ID is independent of its external URI. IFCX overlay `0.5`
+logical resource ID is independent of its external URI. IFCX overlay `0.7.0`
 requires the top-level `header`, `imports`, and `data` fields and the known
 header fields, while still allowing additional top-level and header fields and
 unknown IFCX node types for forward-compatible extension. It remains a
@@ -253,7 +262,17 @@ Active schemas may move ahead of the latest released conformance collection.
 When a new collection is released, its applicable schemas are copied into the
 numbered directory and frozen with the rest of that collection.
 
-Compatibility reporting is planned to distinguish three separate questions:
+The [logical registry](schemas/ifcdr/registry-0.7.0.json),
+[normative rules](schemas/ifcdr/logical-contract-0.7.0.md), and
+[JSON mapping](schemas/ifcdr/json-mapping-0.7.0.json) define the drawing contract.
+The [mapping language](schemas/ifcdr/json-mapping-v1.md) specifies the meaning
+of its encoding forms and physical range rules.
+Polylines require at least two vertices; repeated vertices and coincident line
+endpoints are valid. Empty resources have no bounds; nonempty bounds must enclose
+all geometry, including invisible entities, and may be conservative.
+
+An initial compatibility matrix exists. Richer reporting remains planned to
+distinguish three separate questions:
 whether a package is valid, whether an implementation supports its content for
 a stated operation, and whether that operation can transfer the relevant
 meaning without loss. The conformance collections will grow an explicit matrix
@@ -264,10 +283,11 @@ unknown content; see [ROADMAP.md](ROADMAP.md) for the staged work.
 
 - [`src`](src) contains the Rust implementation. `package` is the public
   package facade with private `read` and `write` implementations; `ifcdr`
-  exposes shared drawing-resource types while keeping its reader and encoder
-  implementation private. This leaves the same `types`/`read`/`write` shape
-  available for a future IFCPR implementation without exposing direction
-  modules as public API.
+  exposes shared drawing-resource types. Its private `logical` module owns
+  semantic access and validation, `read` owns decoded storage and validated
+  views, `write` owns resource preparation, and `codec/json` owns physical
+  interpretation and encoding. `package/write` resolves package-specific
+  references and supplies owned resource data to `ifcdr/write`.
 - [`schemas`](schemas) contains the active language-neutral schemas.
 - [`conformance`](conformance) contains versioned conformance collections.
 - [`tests`](tests) verifies the public Rust API and bundled format assets.

@@ -48,7 +48,7 @@
     "nextEntityId": 6,
     "resourceId": "geometry-modelspace-main",
     "unit": "m",
-    "version": "0.6.0"
+    "version": "0.7.0"
   },
   "layerBindings": [
     {
@@ -103,7 +103,7 @@
         "count": 2,
         "name": "polyline",
         "role": "object",
-        "schema": "ifccad.ifcdr.polyline.v2"
+        "schema": "ifccad.ifcdr.polyline.v3"
       },
       {
         "children": [

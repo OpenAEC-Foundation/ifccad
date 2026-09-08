@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.6.0.json",
-  "title": "IFCCAD IFCX Overlay 0.6.0",
+  "$id": "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.7.0.json",
+  "title": "IFCCAD IFCX Overlay 0.7.0",
   "description": "Composite IFCCAD constraints for the package header, explicit resource identity, the drawing core, and typed appearances in IFCX.",
   "type": "object",
   "required": [
@@ -135,7 +135,7 @@
           "const": "openaec.ifcdr"
         },
         "version": {
-          "const": "0.6.0"
+          "const": "0.7.0"
         },
         "uri": {
           "$ref": "#/$defs/packageRelativeUri"

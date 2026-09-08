@@ -68,6 +68,13 @@ pub fn load_directory_package(
         declarations,
         resources,
     });
+    Ok(validate_loaded_package(package, diagnostics))
+}
+
+fn validate_loaded_package(
+    package: Arc<LoadedIfccadPackage>,
+    mut diagnostics: Vec<PackageDiagnostic>,
+) -> PackageLoadOutcome {
     diagnostics.extend(validate_ifcx(&package.entrypoint.value));
     let header_analysis = super::header::analyze_package_header(&package.entrypoint.value);
     diagnostics.extend(header_analysis.diagnostics);
@@ -203,12 +210,12 @@ pub fn load_directory_package(
     let validated_package =
         super::analysis::build_strict_proof(package.clone(), analysis.clone(), report.is_valid());
 
-    Ok(PackageLoadOutcome {
+    PackageLoadOutcome {
         package: Some(package),
         analysis: Some(analysis),
         validated_package,
         report,
-    })
+    }
 }
 
 fn validate_ifcpr_drawing_resource_ids(
@@ -441,6 +448,50 @@ pub(crate) fn validate_directory_package(
     Ok(load_directory_package(root)?.report)
 }
 
+pub(crate) fn validate_encoded_package(
+    encoded: &crate::package::EncodedPackage,
+) -> Vec<PackageDiagnostic> {
+    let mut resources = BTreeMap::new();
+    let mut entrypoint = None;
+    for (uri, bytes) in encoded.files() {
+        let value = match serde_json::from_slice(bytes) {
+            Ok(value) => value,
+            Err(error) => {
+                return vec![PackageDiagnostic {
+                    code: "IFCCAD_PACKAGE_JSON_INVALID".into(),
+                    severity: PackageDiagnosticSeverity::Error,
+                    resource_id: None,
+                    resource_uri: Some(uri.into()),
+                    location: None,
+                    context: BTreeMap::new(),
+                    message: error.to_string(),
+                }]
+            }
+        };
+        let resource = crate::json_resource::LoadedJsonResource::new(
+            uri.into(),
+            std::path::PathBuf::from(uri),
+            bytes.to_vec(),
+            value,
+        );
+        if uri == crate::package::DIRECTORY_PACKAGE_ENTRYPOINT {
+            entrypoint = Some(resource);
+        } else {
+            resources.insert(uri.to_owned(), Arc::new(resource));
+        }
+    }
+    let entrypoint = entrypoint.expect("builder assembles the package entrypoint");
+    let discovery = discover_resources(entrypoint.value());
+    let package = Arc::new(LoadedIfccadPackage {
+        entrypoint,
+        declarations: discovery.declarations,
+        resources,
+    });
+    validate_loaded_package(package, discovery.diagnostics)
+        .report
+        .into_diagnostics()
+}
+
 #[cfg(test)]
 mod tests {
     use super::super::codes::{
@@ -510,7 +561,7 @@ mod tests {
                 "attributes": {
                     "geometry": {
                         "format": "openaec.ifcdr",
-                        "version": "0.6.0",
+                        "version": "0.7.0",
                         "resourceId": "geometry-modelspace-main",
                         "uri": uri,
                         "checksum": checksum,
@@ -885,7 +936,7 @@ mod tests {
     #[test]
     fn load_outcome_retains_entrypoint_resources_and_exact_bytes() {
         let root = TestDirectory::new("loaded-model");
-        let entrypoint = br#"{"data":[{"path":"geometry","type":"openaec:DrawingGeometryRepresentation","attributes":{"geometry":{"format":"openaec.ifcdr","version":"0.6.0","resourceId":"geometry-main","uri":"drawing.ifcdr.json","checksum":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","role":"modelspace"}}}]}"#;
+        let entrypoint = br#"{"data":[{"path":"geometry","type":"openaec:DrawingGeometryRepresentation","attributes":{"geometry":{"format":"openaec.ifcdr","version":"0.7.0","resourceId":"geometry-main","uri":"drawing.ifcdr.json","checksum":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","role":"modelspace"}}}]}"#;
         let drawing = b"{\r\n  \"header\": {}\r\n}\r\n";
         fs::write(root.path().join(DIRECTORY_PACKAGE_ENTRYPOINT), entrypoint)
             .expect("write entrypoint");
@@ -1211,11 +1262,13 @@ mod tests {
 
             assert!(outcome.validated_package.is_none());
             assert!(outcome.report.iter().any(|diagnostic| {
-                diagnostic.code == "IFCCAD_PACKAGE_APPEARANCE_INVALID"
+                diagnostic.code == "IFCCAD_IFCDR_APPEARANCE_INVALID"
                     && diagnostic.resource_uri.as_deref() == Some("drawing.ifcdr.json")
                     && diagnostic.location.as_deref() == Some(expected_location.as_str())
-                    && diagnostic.context.get("property")
-                        == Some(&PackageDiagnosticContextValue::String(property.to_owned()))
+                    && diagnostic.context.get("logicalProperty")
+                        == Some(&PackageDiagnosticContextValue::String(
+                            mode_field.to_owned(),
+                        ))
             }));
         }
     }
@@ -1325,9 +1378,9 @@ mod tests {
 
         assert!(outcome.validated_package.is_none());
         assert!(outcome.report.iter().any(|diagnostic| {
-            diagnostic.code == "IFCCAD_PACKAGE_APPEARANCE_INVALID"
+            diagnostic.code == "IFCCAD_IFCDR_STRUCTURE_INVALID"
                 && diagnostic.resource_uri.as_deref() == Some("drawing.ifcdr.json")
-                && diagnostic.location.as_deref() == Some("/appearanceBindings/2/colorMode")
+                && diagnostic.location.as_deref() == Some("/appearanceOverrides/0/color")
         }));
     }
 
@@ -1354,6 +1407,25 @@ mod tests {
             diagnostic.code == "IFCCAD_PACKAGE_APPEARANCE_INVALID"
                 && diagnostic.resource_uri.as_deref() == Some("drawing.ifcdr.json")
                 && diagnostic.location.as_deref() == Some("/appearanceBindings/2/linePatternMode")
+        }));
+    }
+
+    #[test]
+    fn unused_line_pattern_override_requires_an_existing_ifcx_identity() {
+        let root = TestDirectory::new("unused-missing-line-pattern");
+        let mut entrypoint = copy_minimal_package(root.path());
+        let mut ifcdr = read_ifcdr(root.path());
+        ifcdr["appearanceOverrides"] = serde_json::json!([{
+            "id": 9, "color": null, "opacity": null,
+            "ifcxLinePattern": "missing-line-pattern", "lineWeight": null
+        }]);
+        write_ifcdr_and_update_checksum(root.path(), &mut entrypoint, &ifcdr);
+        write_entrypoint(root.path(), &entrypoint);
+        let outcome = load_directory_package(root.path()).unwrap();
+        assert!(outcome.validated_package.is_none());
+        assert!(outcome.report.iter().any(|d| {
+            d.code == "IFCCAD_PACKAGE_APPEARANCE_INVALID"
+                && d.location.as_deref() == Some("/appearanceOverrides/0/ifcxLinePattern")
         }));
     }
 
@@ -1449,7 +1521,7 @@ mod tests {
         let descriptor = |resource_id: &str, uri: &str, bytes: &[u8]| {
             serde_json::json!({
                 "format": "openaec.ifcdr",
-                "version": "0.6.0",
+                "version": "0.7.0",
                 "resourceId": resource_id,
                 "uri": uri,
                 "checksum": format!("sha256:{:x}", Sha256::digest(bytes)),
@@ -1671,7 +1743,7 @@ mod tests {
                     "attributes": {
                         "geometry": {
                             "format": "openaec.ifcdr",
-                            "version": "0.6.0",
+                            "version": "0.7.0",
                             "resourceId": "geometry-missing",
                             "uri": "z-missing.ifcdr.json",
                             "checksum": checksum,
@@ -1685,7 +1757,7 @@ mod tests {
                     "attributes": {
                         "geometry": {
                             "format": "openaec.ifcdr",
-                            "version": "0.6.0",
+                            "version": "0.7.0",
                             "resourceId": "geometry-modelspace-main",
                             "uri": "a-loaded.ifcdr.json",
                             "checksum": checksum,

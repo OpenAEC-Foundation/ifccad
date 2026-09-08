@@ -3,7 +3,7 @@ use super::{
     PolylineDefinition,
 };
 use crate::ifcdr::{AppearanceId, EntityId};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Debug)]
 pub(crate) struct AppearanceEntry {
@@ -50,4 +50,6 @@ pub(crate) struct DrawingState {
     pub(crate) layers: Vec<LayerEntry>,
     pub(crate) layer_names: BTreeMap<String, usize>,
     pub(crate) entities: Vec<PendingEntity>,
+    pub(crate) next_entity_id: u64,
+    pub(crate) assigned_entity_ids: BTreeSet<EntityId>,
 }

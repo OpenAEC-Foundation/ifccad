@@ -2,10 +2,16 @@
 #[non_exhaustive]
 /// Failure while validating or encoding a package under construction.
 pub enum PackageBuildError {
+    #[error("package completion failed validation")]
+    Validation {
+        diagnostics: Vec<crate::diagnostic::PackageDiagnostic>,
+    },
     #[error("a package requires one drawing before it can be finished")]
     DrawingMissing,
     #[error("this package already has a drawing")]
     DrawingAlreadyDefined,
+    #[error("entity ID already exists: {id:?}")]
+    DuplicateEntityId { id: crate::ifcdr::EntityId },
     #[error("{field} must not be empty")]
     EmptyValue { field: &'static str },
     #[error("timestamp must be valid RFC 3339 with Z or +00:00")]

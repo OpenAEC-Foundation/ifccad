@@ -1,6 +1,6 @@
 use super::artifact::EncodedPackage;
 use super::error::PackageBuildError;
-use super::ifcx::{assemble_ifcx, NodePaths, MODEL_SPACE_RESOURCE_URI};
+use super::ifcx::{assemble_ifcx, NodePaths};
 use super::state::{
     AppearanceBindingEntry, AppearanceEntry, DrawingState, LayerEntry, PackageState, PendingEntity,
 };
@@ -9,11 +9,10 @@ use super::types::{
     LayerDefinition, LayerKey, LineDefinition, PackageOptions, PolylineDefinition,
 };
 
-use crate::ifcdr::write::{
-    encode, IfcdrAppearanceBindingInput, IfcdrEncodeError, IfcdrEncodeInput, IfcdrEntityInput,
-    IfcdrLayerBindingInput, IfcdrScopeInput,
-};
-use crate::ifcdr::{AppearanceId, EntityId, LayerId, Point2, ScopeId};
+use super::prepare::prepare_drawing;
+use crate::ifcdr::codec::json::{encode_json, logical_diagnostic, IfcdrEncodeError};
+use crate::ifcdr::logical::validate_resource;
+use crate::ifcdr::{AppearanceId, EntityId};
 use crate::package::canonical_rfc3339_utc;
 use std::sync::atomic::{AtomicU64, Ordering};
 
@@ -79,6 +78,8 @@ impl PackageBuilder {
             layers: Vec::new(),
             layer_names: Default::default(),
             entities: Vec::new(),
+            next_entity_id: 1,
+            assigned_entity_ids: Default::default(),
         });
         Ok(DrawingBuilder {
             state: self.state.drawing.as_mut().expect("drawing inserted"),
@@ -87,124 +88,49 @@ impl PackageBuilder {
 
     /// Validates and encodes the completed package in memory.
     pub fn finish(self) -> Result<EncodedPackage, PackageBuildError> {
-        let drawing = self
+        let mut drawing = self
             .state
             .drawing
             .ok_or(PackageBuildError::DrawingMissing)?;
         let paths = NodePaths::for_drawing(&drawing)?;
-        let layers = drawing
-            .layers
-            .iter()
-            .zip(&paths.layers)
-            .map(|(layer, path)| IfcdrLayerBindingInput {
-                id: LayerId::from(layer.local_id),
-                ifcx_path: path,
-            })
-            .collect::<Vec<_>>();
-        let appearance_bindings = drawing
-            .appearance_bindings
-            .iter()
-            .map(|binding| {
-                let ifcx_path = binding
-                    .definition
-                    .appearance
-                    .map(|key| appearance_path(&paths, key))
-                    .transpose()?;
-                Ok(IfcdrAppearanceBindingInput {
-                    id: binding.id,
-                    ifcx_path,
-                    color_mode: appearance_mode(binding.definition.color_mode),
-                    opacity_mode: appearance_mode(binding.definition.opacity_mode),
-                    line_pattern_mode: appearance_mode(binding.definition.line_pattern_mode),
-                    line_weight_mode: appearance_mode(binding.definition.line_weight_mode),
-                })
-            })
-            .collect::<Result<Vec<_>, PackageBuildError>>()?;
-        let entities = drawing
-            .entities
-            .iter()
-            .map(|entity| match entity {
-                PendingEntity::Line {
-                    entity_id,
-                    appearance_id,
-                    definition,
-                } => IfcdrEntityInput::Line {
-                    entity_id: *entity_id,
-                    start: definition.start,
-                    end: definition.end,
-                    layer_id: LayerId::from(definition.layer.local_id),
-                    appearance_id: *appearance_id,
-                    visible: definition.visible,
-                },
-                PendingEntity::Polyline {
-                    entity_id,
-                    appearance_id,
-                    definition,
-                } => IfcdrEntityInput::Polyline {
-                    entity_id: *entity_id,
-                    points: &definition.points,
-                    closed: definition.closed,
-                    layer_id: LayerId::from(definition.layer.local_id),
-                    appearance_id: *appearance_id,
-                    visible: definition.visible,
-                },
-            })
-            .collect::<Vec<_>>();
-        let input = IfcdrEncodeInput {
-            resource_id: &drawing.options.representation_resource_id,
-            unit: drawing.options.length_unit,
-            scope: IfcdrScopeInput {
-                id: ScopeId::new(0),
-                kind: 0,
-                name: "ModelSpace",
-                base: Point2::new(0.0, 0.0),
-                flags: 0,
-            },
-            layers: &layers,
-            appearances: &appearance_bindings,
-            entities: &entities,
-        };
-        let resource = encode(&input).map_err(map_ifcdr_encode_error)?;
-        debug_assert!(resource.bounds.min().x().is_finite());
-        debug_assert!(resource.bounds.min().y().is_finite());
-        debug_assert!(resource.bounds.max().x().is_finite());
-        debug_assert!(resource.bounds.max().y().is_finite());
+        let uri = super::ifcx::MODEL_SPACE_RESOURCE_URI;
+        let prepared = prepare_drawing(&mut drawing, &paths).map_err(|errors| {
+            PackageBuildError::Validation {
+                diagnostics: errors
+                    .into_iter()
+                    .map(|d| logical_diagnostic(uri, d))
+                    .collect(),
+            }
+        })?;
+        let (proof, errors) = validate_resource(prepared).into_parts();
+        let proof = proof.ok_or_else(|| PackageBuildError::Validation {
+            diagnostics: errors
+                .into_iter()
+                .map(|d| logical_diagnostic(uri, d))
+                .collect(),
+        })?;
+        let resource = encode_json(&proof).map_err(map_ifcdr_encode_error)?;
         let entrypoint = assemble_ifcx(&self.options, &drawing, &paths, &resource)?;
-        Ok(EncodedPackage::new([
+        let package = EncodedPackage::new([
             (
                 crate::package::DIRECTORY_PACKAGE_ENTRYPOINT.to_owned(),
                 entrypoint,
             ),
-            (MODEL_SPACE_RESOURCE_URI.to_owned(), resource.bytes),
-        ]))
-    }
-}
-
-fn appearance_path(paths: &NodePaths, key: AppearanceKey) -> Result<&str, PackageBuildError> {
-    key.local_id
-        .checked_sub(2)
-        .and_then(|value| usize::try_from(value).ok())
-        .and_then(|index| paths.appearances.get(index))
-        .map(String::as_str)
-        .ok_or_else(|| PackageBuildError::Encoding {
-            stage: "IFCDR appearance binding",
-            message: "appearance binding references an unavailable definition".to_owned(),
-        })
-}
-
-fn appearance_mode(mode: AppearanceMode) -> u32 {
-    match mode {
-        AppearanceMode::ByLayer => 0,
-        AppearanceMode::Explicit => 1,
-        AppearanceMode::ByBlock => 2,
+            (uri.to_owned(), resource.bytes),
+        ]);
+        let diagnostics = crate::package::read::validate_encoded_package(&package);
+        if diagnostics.is_empty() {
+            Ok(package)
+        } else {
+            Err(PackageBuildError::Validation { diagnostics })
+        }
     }
 }
 
 fn map_ifcdr_encode_error(error: IfcdrEncodeError) -> PackageBuildError {
     match error {
         IfcdrEncodeError::RangeExhausted { kind } => PackageBuildError::RangeExhausted { kind },
-        IfcdrEncodeError::InvalidInput { message }
-        | IfcdrEncodeError::Serialization { message } => PackageBuildError::Encoding {
+        IfcdrEncodeError::Serialization { message } => PackageBuildError::Encoding {
             stage: "IFCDR",
             message,
         },
@@ -367,13 +293,25 @@ impl DrawingState {
         Ok(id)
     }
 
-    fn next_entity_id(&self) -> Result<EntityId, PackageBuildError> {
-        let count = u64::try_from(self.entities.len())
-            .map_err(|_| PackageBuildError::RangeExhausted { kind: "entity" })?;
-        let value = count
+    fn candidate_entity_id(
+        &self,
+        supplied: Option<EntityId>,
+    ) -> Result<EntityId, PackageBuildError> {
+        let id = supplied
+            .or_else(|| EntityId::new(self.next_entity_id))
+            .ok_or(PackageBuildError::RangeExhausted { kind: "entity" })?;
+        if self.assigned_entity_ids.contains(&id) {
+            return Err(PackageBuildError::DuplicateEntityId { id });
+        }
+        id.get()
             .checked_add(1)
             .ok_or(PackageBuildError::RangeExhausted { kind: "entity" })?;
-        EntityId::new(value).ok_or(PackageBuildError::RangeExhausted { kind: "entity" })
+        Ok(id)
+    }
+
+    fn record_entity_id(&mut self, id: EntityId) {
+        self.next_entity_id = self.next_entity_id.max(id.get() + 1);
+        self.assigned_entity_ids.insert(id);
     }
 }
 
@@ -383,12 +321,30 @@ pub struct ModelSpaceBuilder<'a> {
 
 impl ModelSpaceBuilder<'_> {
     pub fn add_line(&mut self, definition: LineDefinition) -> Result<EntityId, PackageBuildError> {
+        self.insert_line(None, definition)
+    }
+
+    /// Adds a line with a caller-supplied ID, advancing automatic allocation as needed.
+    pub fn add_line_with_id(
+        &mut self,
+        id: EntityId,
+        definition: LineDefinition,
+    ) -> Result<EntityId, PackageBuildError> {
+        self.insert_line(Some(id), definition)
+    }
+
+    fn insert_line(
+        &mut self,
+        supplied: Option<EntityId>,
+        definition: LineDefinition,
+    ) -> Result<EntityId, PackageBuildError> {
         self.state.validate_layer_key(definition.layer)?;
         validate_points([definition.start, definition.end])?;
+        let entity_id = self.state.candidate_entity_id(supplied)?;
         let appearance_id = self
             .state
             .resolve_entity_appearance(definition.appearance)?;
-        let entity_id = self.state.next_entity_id()?;
+        self.state.record_entity_id(entity_id);
         self.state.entities.push(PendingEntity::Line {
             entity_id,
             appearance_id,
@@ -401,15 +357,33 @@ impl ModelSpaceBuilder<'_> {
         &mut self,
         definition: PolylineDefinition,
     ) -> Result<EntityId, PackageBuildError> {
-        if definition.points.len() < 2 {
+        self.insert_polyline(None, definition)
+    }
+
+    /// Adds a polyline with a caller-supplied ID shared with the other entity kinds.
+    pub fn add_polyline_with_id(
+        &mut self,
+        id: EntityId,
+        definition: PolylineDefinition,
+    ) -> Result<EntityId, PackageBuildError> {
+        self.insert_polyline(Some(id), definition)
+    }
+
+    fn insert_polyline(
+        &mut self,
+        supplied: Option<EntityId>,
+        definition: PolylineDefinition,
+    ) -> Result<EntityId, PackageBuildError> {
+        if !crate::ifcdr::logical::valid_polyline_vertex_count(definition.points.len()) {
             return Err(PackageBuildError::PolylineTooShort);
         }
         self.state.validate_layer_key(definition.layer)?;
         validate_points(definition.points.iter().copied())?;
+        let entity_id = self.state.candidate_entity_id(supplied)?;
         let appearance_id = self
             .state
             .resolve_entity_appearance(definition.appearance)?;
-        let entity_id = self.state.next_entity_id()?;
+        self.state.record_entity_id(entity_id);
         self.state.entities.push(PendingEntity::Polyline {
             entity_id,
             appearance_id,
@@ -424,7 +398,7 @@ fn validate_points(
 ) -> Result<(), PackageBuildError> {
     if points
         .into_iter()
-        .any(|point| !point.x().is_finite() || !point.y().is_finite())
+        .any(|point| !crate::ifcdr::logical::valid_point(point))
     {
         return Err(PackageBuildError::NonFiniteCoordinate);
     }
@@ -440,10 +414,10 @@ fn validate_appearance(definition: &AppearanceDefinition) -> Result<(), PackageB
             return Err(PackageBuildError::EmptyValue { field });
         }
     }
-    if !definition.opacity.is_finite() || !(0.0..=1.0).contains(&definition.opacity) {
+    if !crate::ifcdr::logical::valid_opacity(definition.opacity) {
         return Err(PackageBuildError::InvalidOpacity);
     }
-    if !definition.line_weight.is_finite() || definition.line_weight < 0.0 {
+    if !crate::ifcdr::logical::valid_line_weight(definition.line_weight) {
         return Err(PackageBuildError::InvalidLineWeight);
     }
     if definition

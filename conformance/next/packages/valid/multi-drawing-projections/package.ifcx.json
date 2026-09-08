@@ -49,11 +49,11 @@
     {
       "attributes": {
         "geometry": {
-          "checksum": "sha256:fe92c0b20fd19256651433e49a8cd256b0d93857fe7ae3bb6fe242acbcbb0bdc",
+          "checksum": "sha256:47980a4df31d19990136d2f94ae86fa420c2a194cca06a1842562df2477e3a53",
           "format": "openaec.ifcdr",
           "role": "modelspace",
           "uri": "drawing.ifcdr.json",
-          "version": "0.6.0",
+          "version": "0.7.0",
           "resourceId": "geometry-modelspace-main"
         },
         "name": "ModelSpace"
@@ -199,11 +199,11 @@
     {
       "attributes": {
         "geometry": {
-          "checksum": "sha256:9c368f540b57f65952d5901756454ef4ebfdfd09dcc89f7a8e45e1a52f8e74b7",
+          "checksum": "sha256:7260a984eb08c3a43b5a75b4f36f767009dde184338e21b6a43be85bd84da02c",
           "format": "openaec.ifcdr",
           "role": "modelspace",
           "uri": "drawing-b.ifcdr.json",
-          "version": "0.6.0",
+          "version": "0.7.0",
           "resourceId": "geometry-second"
         },
         "name": "Second modelspace"

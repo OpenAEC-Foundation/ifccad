@@ -1,4 +1,4 @@
-use ifccad::ifcdr::{IfcdrLengthUnit, Point2};
+use ifccad::ifcdr::{EntityId, IfcdrLengthUnit, Point2};
 use ifccad::package::{
     AppearanceColor, AppearanceDefinition, AppearanceKey, AppearanceMode, DrawingBuilder,
     DrawingOptions, EntityAppearance, LayerDefinition, LayerKey, LineDefinition,
@@ -44,6 +44,83 @@ fn add_default_layer(drawing: &mut DrawingBuilder<'_>) -> (LayerKey, AppearanceK
         })
         .unwrap();
     (layer, style)
+}
+
+#[test]
+fn supplied_ids_advance_allocation_without_recycling_gaps() {
+    let mut package = PackageBuilder::new(package_options("2026-09-03T10:00:00Z")).unwrap();
+    let mut drawing = package.add_drawing(drawing_options()).unwrap();
+    let (layer, _) = add_default_layer(&mut drawing);
+    let definition = LineDefinition {
+        start: Point2::new(0., 0.),
+        end: Point2::new(1., 1.),
+        layer,
+        appearance: EntityAppearance::by_layer(),
+        visible: true,
+    };
+    let mut model = drawing.model_space();
+    assert_eq!(model.add_line(definition.clone()).unwrap().get(), 1);
+    assert_eq!(
+        model
+            .add_line_with_id(EntityId::new(10).unwrap(), definition.clone())
+            .unwrap()
+            .get(),
+        10
+    );
+    assert_eq!(model.add_line(definition.clone()).unwrap().get(), 11);
+    assert_eq!(
+        model
+            .add_line_with_id(EntityId::new(5).unwrap(), definition.clone())
+            .unwrap()
+            .get(),
+        5
+    );
+    assert!(matches!(
+        model.add_line_with_id(EntityId::new(10).unwrap(), definition.clone()),
+        Err(PackageBuildError::DuplicateEntityId { .. })
+    ));
+    assert!(matches!(
+        model.add_line_with_id(EntityId::new(u64::MAX).unwrap(), definition.clone()),
+        Err(PackageBuildError::RangeExhausted { .. })
+    ));
+    assert_eq!(model.add_line(definition).unwrap().get(), 12);
+    assert!(EntityId::new(0).is_none());
+    let encoded = package.finish().unwrap();
+    let resource: serde_json::Value =
+        serde_json::from_slice(encoded.file("resources/model-space.ifcdr.json").unwrap()).unwrap();
+    assert_eq!(resource["header"]["nextEntityId"], 13);
+    assert_eq!(
+        resource["streams"]["lineStream"]["entityId"],
+        serde_json::json!([1, 10, 11, 5, 12])
+    );
+}
+
+#[test]
+fn writer_preserves_full_width_indexed_and_named_color_together() {
+    let mut package = PackageBuilder::new(package_options("2026-09-03T10:00:00Z")).unwrap();
+    let mut drawing = package.add_drawing(drawing_options()).unwrap();
+    let mut style = appearance("Rich color");
+    style.color = AppearanceColor::rgb(1, 2, 3)
+        .with_indexed("custom", u64::MAX)
+        .with_named("catalog", "name");
+    drawing.appearances().add(style).unwrap();
+    let encoded = package.finish().unwrap();
+    let value: serde_json::Value =
+        serde_json::from_slice(encoded.file("package.ifcx.json").unwrap()).unwrap();
+    let node = value["data"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|v| v["type"] == "openaec:Appearance")
+        .unwrap();
+    assert_eq!(
+        node["attributes"]["color"]["value"]["indexedColor"]["index"].as_u64(),
+        Some(u64::MAX)
+    );
+    assert_eq!(
+        node["attributes"]["color"]["value"]["namedColor"]["name"],
+        "name"
+    );
 }
 
 #[test]

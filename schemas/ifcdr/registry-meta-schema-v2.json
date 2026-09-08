@@ -1,0 +1,345 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.ifccad.org/ifcdr/registry-meta-schema-v2.json",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "minLength": 1
+    },
+    "registrySchemaVersion": {
+      "const": "ifccad.ifcdr.registry.v2"
+    },
+    "ifcdrVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "types": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/type"
+      }
+    },
+    "resource": {
+      "type": "object",
+      "properties": {
+        "schemaId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/field"
+          }
+        }
+      },
+      "required": [
+        "schemaId",
+        "fields"
+      ],
+      "additionalProperties": false
+    },
+    "tables": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/table"
+      }
+    },
+    "streams": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/stream"
+      }
+    },
+    "invariants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "contract": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "id",
+          "contract"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "$schema",
+    "registrySchemaVersion",
+    "ifcdrVersion",
+    "types",
+    "resource",
+    "tables",
+    "streams",
+    "invariants"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "field": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "valueType": {
+          "enum": [
+            "boolean",
+            "float64",
+            "uint8",
+            "uint32",
+            "uint64",
+            "string",
+            "entityId",
+            "ifcxId",
+            "unit",
+            "appearanceMode",
+            "point2",
+            "bounds2",
+            "vertices",
+            "orderEntries",
+            "rgb",
+            "indexedColor",
+            "namedColor",
+            "color",
+            "nonEmptyString",
+            "opacity",
+            "lineWeight"
+          ]
+        },
+        "nullable": {
+          "type": "boolean"
+        },
+        "optional": {
+          "type": "boolean"
+        },
+        "default": {},
+        "reference": {
+          "$ref": "#/$defs/reference"
+        }
+      },
+      "required": [
+        "name",
+        "valueType",
+        "nullable"
+      ],
+      "additionalProperties": false
+    },
+    "reference": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "enum": [
+            "entity",
+            "ifcx",
+            "tableField",
+            "streamColumn"
+          ]
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "category",
+        "target"
+      ],
+      "additionalProperties": false
+    },
+    "type": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "scalar"
+            },
+            "base": {
+              "enum": [
+                "string",
+                "float64",
+                "uint64"
+              ]
+            },
+            "minimum": {
+              "type": "number"
+            },
+            "maximum": {
+              "type": "number"
+            },
+            "minLength": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "kind",
+            "base"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "enum"
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "kind",
+            "values"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "record"
+            },
+            "fields": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/field"
+              }
+            }
+          },
+          "required": [
+            "kind",
+            "fields"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "sequence"
+            },
+            "items": {
+              "enum": [
+                "boolean",
+                "float64",
+                "uint8",
+                "uint32",
+                "uint64",
+                "string",
+                "entityId",
+                "ifcxId",
+                "unit",
+                "appearanceMode",
+                "point2",
+                "bounds2",
+                "vertices",
+                "orderEntries",
+                "rgb",
+                "indexedColor",
+                "namedColor",
+                "color",
+                "nonEmptyString",
+                "opacity",
+                "lineWeight"
+              ]
+            },
+            "minItems": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "maxItems": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "kind",
+            "items",
+            "minItems"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "table": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "default": {
+          "const": []
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/field"
+          }
+        }
+      },
+      "required": [
+        "name",
+        "schemaId",
+        "default",
+        "fields"
+      ],
+      "additionalProperties": false
+    },
+    "stream": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "enum": [
+            "object",
+            "order",
+            "child"
+          ]
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/field"
+          }
+        }
+      },
+      "required": [
+        "name",
+        "schemaId",
+        "role",
+        "fields"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

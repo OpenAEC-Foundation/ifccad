@@ -432,7 +432,7 @@
     {
       "caseId": "unsupported.unsupported-ifcdr-version",
       "category": "invalid",
-      "description": "Unsupported IFCDR 0.5.0: no legacy reader; descriptor also fails the selected 0.6.0 overlay",
+      "description": "Unsupported IFCDR 0.5.0: no legacy reader; descriptor also fails the selected 0.7.0 overlay",
       "entrypoint": "packages/invalid/unsupported-ifcdr-version/package.json",
       "operations": [
         {
@@ -468,6 +468,115 @@
             ]
           },
           "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.polyline-too-short",
+      "category": "invalid",
+      "description": "IFCDR logical contract: polyline-too-short",
+      "entrypoint": "packages/invalid/polyline-too-short/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_POLYLINE_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.bounds-do-not-enclose",
+      "category": "invalid",
+      "description": "IFCDR logical contract: bounds-do-not-enclose",
+      "entrypoint": "packages/invalid/bounds-do-not-enclose/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_BOUNDS_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.nonempty-without-bounds",
+      "category": "invalid",
+      "description": "IFCDR logical contract: nonempty-without-bounds",
+      "entrypoint": "packages/invalid/nonempty-without-bounds/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_BOUNDS_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.unused-invalid-override",
+      "category": "invalid",
+      "description": "IFCDR logical contract: unused-invalid-override",
+      "entrypoint": "packages/invalid/unused-invalid-override/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_APPEARANCE_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.unknown-color-field",
+      "category": "invalid",
+      "description": "IFCDR logical contract: unknown-color-field",
+      "entrypoint": "packages/invalid/unknown-color-field/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_STRUCTURE_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "valid.conservative-bounds",
+      "category": "valid",
+      "description": "IFCDR logical contract: conservative-bounds",
+      "entrypoint": "packages/valid/conservative-bounds/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
         }
       ]
     }
