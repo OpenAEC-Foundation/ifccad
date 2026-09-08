@@ -45,7 +45,7 @@ fn encoded() -> EncodedPackage {
     package
         .add_drawing(DrawingOptions {
             model_layout_name: "Model".to_owned(),
-            representation_resource_id: ResourceId::new("modelspace").unwrap(),
+            representation_resource_id: ResourceId::new("drawing").unwrap(),
             length_unit: IfcdrLengthUnit::Metre,
         })
         .unwrap();
@@ -62,7 +62,7 @@ fn writes_exact_production_files_to_a_new_directory() {
     assert!(target.join("package.ifcx.json").is_file());
     assert!(target
         .join("resources")
-        .join("model-space.ifcdr.json")
+        .join("drawing.ifcdr.json")
         .is_file());
     assert!(!target.join("package.json").exists());
 }

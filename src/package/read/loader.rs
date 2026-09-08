@@ -448,7 +448,7 @@ mod tests {
         let root = TestDirectory::new("unsafe-resource");
         let mut loader = DirectoryPackageLoader::open(root.path(), limits(1024, 2048))
             .expect("open package loader");
-        let location = "/data/0/attributes/geometry/uri";
+        let location = "/data/0/attributes/resource/uri";
 
         assert!(loader
             .load_json_resource("../outside.json", Some(location))
@@ -474,7 +474,7 @@ mod tests {
         let root = TestDirectory::new("missing-resource");
         let mut loader = DirectoryPackageLoader::open(root.path(), limits(1024, 2048))
             .expect("open package loader");
-        let location = "/data/0/attributes/geometry/uri";
+        let location = "/data/0/attributes/resource/uri";
 
         assert!(loader
             .load_json_resource("missing.json", Some(location))

@@ -40,7 +40,86 @@ pub(crate) fn validate_ifcx_graph(ifcx: &Value) -> IfcxGraphValidation {
     }
 
     validate_supported_references(data, &result.node_indices_by_path, &mut result.diagnostics);
+    validate_drawing_representations(data, &result.node_indices_by_path, &mut result.diagnostics);
     result
+}
+
+fn validate_drawing_representations(
+    data: &[Value],
+    index: &BTreeMap<String, usize>,
+    diagnostics: &mut Vec<PackageDiagnostic>,
+) {
+    let typed_index = |path: &str, expected: &str| {
+        index
+            .get(path)
+            .copied()
+            .filter(|&i| data[i]["type"].as_str() == Some(expected))
+    };
+    for drawing in data {
+        if drawing["type"] != "openaec:Drawing" {
+            continue;
+        }
+        let Some(drawing_path) = drawing["path"].as_str().filter(|s| !s.is_empty()) else {
+            continue;
+        };
+        let Some(expected) = drawing
+            .pointer("/children/Representation")
+            .and_then(Value::as_str)
+        else {
+            continue;
+        };
+        if typed_index(expected, "openaec:DrawingRepresentation").is_none() {
+            continue;
+        }
+        let Some(layouts) = drawing
+            .pointer("/children/Layouts")
+            .and_then(Value::as_array)
+        else {
+            continue;
+        };
+        for layout_path in layouts.iter().filter_map(Value::as_str) {
+            let Some(i) = typed_index(layout_path, "openaec:DrawingLayout") else {
+                continue;
+            };
+            let Some(actual) = data[i]
+                .pointer("/children/Representation")
+                .and_then(Value::as_str)
+            else {
+                continue;
+            };
+            if actual == expected || typed_index(actual, "openaec:DrawingRepresentation").is_none()
+            {
+                continue;
+            }
+            diagnostics.push(PackageDiagnostic {
+                code: super::codes::IFCCAD_PACKAGE_BINDING_INVALID.to_owned(),
+                severity: PackageDiagnosticSeverity::Error,
+                resource_id: None,
+                resource_uri: Some(DIRECTORY_PACKAGE_ENTRYPOINT.to_owned()),
+                location: Some(format!("/data/{i}/children/Representation")),
+                context: BTreeMap::from([
+                    (
+                        "drawingPath".into(),
+                        PackageDiagnosticContextValue::String(drawing_path.into()),
+                    ),
+                    (
+                        "layoutPath".into(),
+                        PackageDiagnosticContextValue::String(layout_path.into()),
+                    ),
+                    (
+                        "expectedRepresentation".into(),
+                        PackageDiagnosticContextValue::String(expected.into()),
+                    ),
+                    (
+                        "actualRepresentation".into(),
+                        PackageDiagnosticContextValue::String(actual.into()),
+                    ),
+                ]),
+                message: "layout must reference the same DrawingRepresentation as its Drawing"
+                    .into(),
+            });
+        }
+    }
 }
 
 fn duplicate_path_diagnostic(path: &str, first_index: usize, index: usize) -> PackageDiagnostic {
@@ -111,7 +190,7 @@ fn validate_supported_references(
                     node,
                     node_index,
                     "/children/Representation",
-                    "openaec:DrawingGeometryRepresentation",
+                    "openaec:DrawingRepresentation",
                 );
             }
             "openaec:DrawingLayout" => check_single_ref(
@@ -121,7 +200,7 @@ fn validate_supported_references(
                 node,
                 node_index,
                 "/children/Representation",
-                "openaec:DrawingGeometryRepresentation",
+                "openaec:DrawingRepresentation",
             ),
             "openaec:Layer" => check_single_ref(
                 data,
@@ -283,6 +362,34 @@ mod tests {
     use crate::package::PackageDiagnosticContextValue;
     use serde_json::json;
 
+    #[test]
+    fn drawing_layouts_must_share_the_same_representation_node() {
+        let mut value = json!({"data": [
+            {"path":"drawing","type":"openaec:Drawing","children":{"Representation":"r1","Layouts":["model","paper"]}},
+            {"path":"model","type":"openaec:DrawingLayout","children":{"Representation":"r1"}},
+            {"path":"paper","type":"openaec:DrawingLayout","children":{"Representation":"r1"}},
+            {"path":"r1","type":"openaec:DrawingRepresentation","attributes":{"resource":{"resourceId":"same"}}},
+            {"path":"r2","type":"openaec:DrawingRepresentation","attributes":{"resource":{"resourceId":"same"}}}
+        ]});
+        assert!(validate_ifcx_graph(&value).diagnostics.is_empty());
+        value["data"][2]["children"]["Representation"] = json!("r2");
+        let errors = validate_ifcx_graph(&value).diagnostics;
+        assert_eq!(errors.len(), 1);
+        assert_eq!(errors[0].code, "IFCCAD_PACKAGE_BINDING_INVALID");
+        assert_eq!(
+            errors[0].location.as_deref(),
+            Some("/data/2/children/Representation")
+        );
+        value["data"][2]["children"]["Representation"] = json!("missing");
+        let errors = validate_ifcx_graph(&value).diagnostics;
+        assert_eq!(errors.len(), 1);
+        assert_eq!(errors[0].code, IFCCAD_PACKAGE_NODE_REFERENCE_MISSING);
+        value["data"][2]["children"]["Representation"] = json!("model");
+        let errors = validate_ifcx_graph(&value).diagnostics;
+        assert_eq!(errors.len(), 1);
+        assert_eq!(errors[0].code, IFCCAD_PACKAGE_NODE_REFERENCE_TYPE_MISMATCH);
+    }
+
     fn valid_ifcx_graph() -> serde_json::Value {
         json!({
             "data": [
@@ -298,18 +405,18 @@ mod tests {
                     "path": "drawing",
                     "type": "openaec:Drawing",
                     "children": {
-                        "Representation": "geometry",
+                        "Representation": "resource",
                         "Layouts": ["layout"]
                     }
                 },
                 {
                     "path": "layout",
                     "type": "openaec:DrawingLayout",
-                    "children": {"Representation": "geometry"}
+                    "children": {"Representation": "resource"}
                 },
                 {
-                    "path": "geometry",
-                    "type": "openaec:DrawingGeometryRepresentation"
+                    "path": "resource",
+                    "type": "openaec:DrawingRepresentation"
                 },
                 {
                     "path": "layer",
@@ -381,11 +488,11 @@ mod tests {
             ("/data/1/children/Layouts/0", "openaec:DrawingLayout"),
             (
                 "/data/1/children/Representation",
-                "openaec:DrawingGeometryRepresentation",
+                "openaec:DrawingRepresentation",
             ),
             (
                 "/data/2/children/Representation",
-                "openaec:DrawingGeometryRepresentation",
+                "openaec:DrawingRepresentation",
             ),
             ("/data/4/attributes/appearance", "openaec:Appearance"),
         ] {
@@ -437,13 +544,13 @@ mod tests {
             (
                 "/data/1/children/Representation",
                 "appearance",
-                "openaec:DrawingGeometryRepresentation",
+                "openaec:DrawingRepresentation",
                 "openaec:Appearance",
             ),
             (
                 "/data/2/children/Representation",
                 "appearance",
-                "openaec:DrawingGeometryRepresentation",
+                "openaec:DrawingRepresentation",
                 "openaec:Appearance",
             ),
             (

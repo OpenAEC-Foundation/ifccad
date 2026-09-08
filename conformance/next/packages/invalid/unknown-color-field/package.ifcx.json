@@ -22,7 +22,7 @@
         "Layouts": [
           "drawing-main-layout-model"
         ],
-        "Representation": "representation-modelspace-main"
+        "Representation": "drawing-representation-main"
       },
       "path": "drawing-main",
       "type": "openaec:Drawing"
@@ -37,25 +37,25 @@
         "tabOrder": 0
       },
       "children": {
-        "Representation": "representation-modelspace-main"
+        "Representation": "drawing-representation-main"
       },
       "path": "drawing-main-layout-model",
       "type": "openaec:DrawingLayout"
     },
     {
       "attributes": {
-        "geometry": {
-          "checksum": "sha256:17c6b88eb5ac3e2cb14ad1d9795e22a3fb2cb2cf4c961de1768db1bd9ea14ffc",
+        "resource": {
+          "checksum": "sha256:69ead104639ef40508140d5aad88efeb9efa42d9ef23d94bded54ee2c4d21a46",
           "format": "openaec.ifcdr",
-          "role": "modelspace",
+          "role": "drawing",
           "uri": "drawing.ifcdr.json",
           "version": "0.7.0",
-          "resourceId": "geometry-modelspace-main"
+          "resourceId": "drawing-main"
         },
-        "name": "ModelSpace"
+        "name": "Drawing"
       },
-      "path": "representation-modelspace-main",
-      "type": "openaec:DrawingGeometryRepresentation"
+      "path": "drawing-representation-main",
+      "type": "openaec:DrawingRepresentation"
     },
     {
       "attributes": {

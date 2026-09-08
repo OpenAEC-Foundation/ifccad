@@ -19,9 +19,9 @@ fn migrated_fixture() -> Value {
         .expect("parse IFCPR fixture");
     fixture["header"]["version"] = serde_json::json!("0.2.0");
     fixture["header"].as_object_mut().unwrap().remove("uri");
-    fixture["linkedDrawingResources"][0] = serde_json::json!("geometry-modelspace-main");
+    fixture["linkedDrawingResources"][0] = serde_json::json!("drawing-main");
     fixture["projectionBindings"][0]["modelTargets"][0]["resourceId"] =
-        serde_json::json!("geometry-modelspace-main");
+        serde_json::json!("drawing-main");
     fixture
 }
 
@@ -39,10 +39,7 @@ fn ifcpr_0_2_uses_logical_resource_ids_without_header_uri() {
         migrated["header"]["resourceId"],
         "preservation-golden-source"
     );
-    assert_eq!(
-        migrated["linkedDrawingResources"][0],
-        "geometry-modelspace-main"
-    );
+    assert_eq!(migrated["linkedDrawingResources"][0], "drawing-main");
 }
 
 #[test]

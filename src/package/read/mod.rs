@@ -30,7 +30,7 @@ pub use header::PackageHeaderRef;
 pub use model::PackageLoadOutcome;
 pub use navigation::{
     AppearanceRef, AppliedAppearanceRef, DrawingLayoutKind, DrawingLayoutRef, DrawingRef,
-    DrawingSetRef, GeometryRepresentationRef, LayerRef,
+    DrawingRepresentationRef, DrawingSetRef, LayerRef,
 };
 pub use validation::load_directory_package;
 pub(crate) use validation::validate_encoded_package;

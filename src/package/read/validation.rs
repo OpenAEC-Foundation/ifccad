@@ -556,16 +556,16 @@ mod tests {
             },
             "imports": [],
             "data": [{
-                "path": "geometry",
-                "type": "openaec:DrawingGeometryRepresentation",
+                "path": "resource",
+                "type": "openaec:DrawingRepresentation",
                 "attributes": {
-                    "geometry": {
+                    "resource": {
                         "format": "openaec.ifcdr",
                         "version": "0.7.0",
-                        "resourceId": "geometry-modelspace-main",
+                        "resourceId": "drawing-main",
                         "uri": uri,
                         "checksum": checksum,
-                        "role": "modelspace"
+                        "role": "drawing"
                     }
                 }
             }]
@@ -620,7 +620,7 @@ mod tests {
     ) {
         let bytes = serde_json::to_vec(ifcdr).expect("serialize IFCDR");
         fs::write(root.join("drawing.ifcdr.json"), &bytes).expect("write IFCDR");
-        entrypoint["data"][3]["attributes"]["geometry"]["checksum"] =
+        entrypoint["data"][3]["attributes"]["resource"]["checksum"] =
             serde_json::json!(format!("sha256:{:x}", Sha256::digest(&bytes)));
     }
 
@@ -705,7 +705,7 @@ mod tests {
                 "IFCCAD_IFCDR_STREAM_SCHEMA_UNSUPPORTED"
             } else {
                 drawing["header"]["version"] = serde_json::json!(version);
-                entrypoint["data"][3]["attributes"]["geometry"]["version"] =
+                entrypoint["data"][3]["attributes"]["resource"]["version"] =
                     serde_json::json!(version);
                 "IFCCAD_IFCDR_VERSION_UNSUPPORTED"
             };
@@ -810,7 +810,7 @@ mod tests {
         assert_eq!(
             diagnostic.context.get("contentResourceId"),
             Some(&PackageDiagnosticContextValue::String(
-                "geometry-modelspace-main".to_owned()
+                "drawing-main".to_owned()
             ))
         );
     }
@@ -936,7 +936,7 @@ mod tests {
     #[test]
     fn load_outcome_retains_entrypoint_resources_and_exact_bytes() {
         let root = TestDirectory::new("loaded-model");
-        let entrypoint = br#"{"data":[{"path":"geometry","type":"openaec:DrawingGeometryRepresentation","attributes":{"geometry":{"format":"openaec.ifcdr","version":"0.7.0","resourceId":"geometry-main","uri":"drawing.ifcdr.json","checksum":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","role":"modelspace"}}}]}"#;
+        let entrypoint = br#"{"data":[{"path":"resource","type":"openaec:DrawingRepresentation","attributes":{"resource":{"format":"openaec.ifcdr","version":"0.7.0","resourceId":"geometry-main","uri":"drawing.ifcdr.json","checksum":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","role":"drawing"}}}]}"#;
         let drawing = b"{\r\n  \"header\": {}\r\n}\r\n";
         fs::write(root.path().join(DIRECTORY_PACKAGE_ENTRYPOINT), entrypoint)
             .expect("write entrypoint");
@@ -946,7 +946,7 @@ mod tests {
         let package = outcome.package.expect("entrypoint produced package");
 
         assert_eq!(package.entrypoint.bytes, entrypoint);
-        assert_eq!(package.entrypoint.value["data"][0]["path"], "geometry");
+        assert_eq!(package.entrypoint.value["data"][0]["path"], "resource");
         assert_eq!(package.declarations.len(), 1);
         assert_eq!(package.declarations[0].external_uri, "drawing.ifcdr.json");
         let source = package.resources["drawing.ifcdr.json"].clone();
@@ -968,7 +968,7 @@ mod tests {
             .analysis
             .as_ref()
             .expect("package analysis")
-            .validated_ifcdr_resources[&resource_id("geometry-modelspace-main")];
+            .validated_ifcdr_resources[&resource_id("drawing-main")];
 
         assert!(Arc::ptr_eq(
             validated.loaded().source(),
@@ -990,7 +990,7 @@ mod tests {
         let package = outcome.package.as_ref().expect("loaded package");
         let second = package.clone();
         let analysis = outcome.analysis.as_ref().expect("package analysis");
-        let ifcdr = &analysis.validated_ifcdr_resources[&resource_id("geometry-modelspace-main")];
+        let ifcdr = &analysis.validated_ifcdr_resources[&resource_id("drawing-main")];
 
         assert!(Arc::ptr_eq(package, &second));
         assert_eq!(analysis.node_indices_by_path["drawing-main"], 1);
@@ -1050,14 +1050,14 @@ mod tests {
         let root = TestDirectory::new("shared-ifcdr-uri");
         let mut entrypoint = copy_minimal_package(root.path());
         let mut second = entrypoint["data"][3].clone();
-        second["path"] = serde_json::json!("representation-modelspace-copy");
+        second["path"] = serde_json::json!("drawing-representation-copy");
         entrypoint["data"].as_array_mut().unwrap().push(second);
         write_entrypoint(root.path(), &entrypoint);
 
         let outcome = load_directory_package(root.path()).expect("load shared resource package");
         let analysis = outcome.analysis.as_ref().expect("package analysis");
-        let first = &analysis.bindings.geometry_ifcdr_by_path["representation-modelspace-main"];
-        let second = &analysis.bindings.geometry_ifcdr_by_path["representation-modelspace-copy"];
+        let first = &analysis.bindings.drawing_ifcdr_by_path["drawing-representation-main"];
+        let second = &analysis.bindings.drawing_ifcdr_by_path["drawing-representation-copy"];
 
         assert!(outcome.validated_package.is_some());
         assert_eq!(analysis.validated_ifcdr_resources.len(), 1);
@@ -1068,7 +1068,7 @@ mod tests {
     fn resource_cross_kind_uri_blocks_the_strict_proof() {
         let root = TestDirectory::new("cross-kind-uri");
         let mut entrypoint = copy_minimal_package(root.path());
-        let geometry = entrypoint["data"][3]["attributes"]["geometry"].clone();
+        let geometry = entrypoint["data"][3]["attributes"]["resource"].clone();
         entrypoint["data"]
             .as_array_mut()
             .unwrap()
@@ -1082,7 +1082,7 @@ mod tests {
                     "uri": geometry["uri"],
                     "checksum": geometry["checksum"],
                     "sourceDocumentId": "source",
-                    "linkedDrawingResourceIds": ["geometry-modelspace-main"]
+                    "linkedDrawingResourceIds": ["drawing-main"]
                 }}
             }));
         write_entrypoint(root.path(), &entrypoint);
@@ -1100,7 +1100,7 @@ mod tests {
     fn resource_cross_kind_diagnostic_identifies_the_later_source_declaration() {
         let root = TestDirectory::new("cross-kind-source-order");
         let mut entrypoint = copy_minimal_package(root.path());
-        let geometry = entrypoint["data"][3]["attributes"]["geometry"].clone();
+        let geometry = entrypoint["data"][3]["attributes"]["resource"].clone();
         entrypoint["data"].as_array_mut().unwrap().insert(
             0,
             serde_json::json!({
@@ -1113,7 +1113,7 @@ mod tests {
                     "uri": geometry["uri"],
                     "checksum": geometry["checksum"],
                     "sourceDocumentId": "source",
-                    "linkedDrawingResourceIds": ["geometry-modelspace-main"]
+                    "linkedDrawingResourceIds": ["drawing-main"]
                 }}
             }),
         );
@@ -1124,7 +1124,7 @@ mod tests {
         assert!(outcome.validated_package.is_none());
         assert!(outcome.report.iter().any(|diagnostic| {
             diagnostic.code == "IFCCAD_PACKAGE_BINDING_INVALID"
-                && diagnostic.location.as_deref() == Some("/data/4/attributes/geometry/uri")
+                && diagnostic.location.as_deref() == Some("/data/4/attributes/resource/uri")
         }));
     }
 
@@ -1440,22 +1440,16 @@ mod tests {
         let layout = &bindings.layout_by_path["drawing-main-layout-model"];
 
         assert!(outcome.validated_package.is_some());
-        assert_eq!(layout.representation_path, "representation-modelspace-main");
-        assert_eq!(
-            layout.ifcdr_resource_id,
-            resource_id("geometry-modelspace-main")
-        );
+        assert_eq!(layout.representation_path, "drawing-representation-main");
+        assert_eq!(layout.ifcdr_resource_id, resource_id("drawing-main"));
         assert_eq!(layout.scope_id, ScopeId::new(0));
         assert_eq!(
-            bindings.ifcx_layer_by_ifcdr_id
-                [&(resource_id("geometry-modelspace-main"), LayerId::new(1))],
+            bindings.ifcx_layer_by_ifcdr_id[&(resource_id("drawing-main"), LayerId::new(1))],
             "layer-a-wall"
         );
         assert_eq!(
-            bindings.ifcx_appearance_by_ifcdr_id[&(
-                resource_id("geometry-modelspace-main"),
-                AppearanceId::new(2)
-            )],
+            bindings.ifcx_appearance_by_ifcdr_id
+                [&(resource_id("drawing-main"), AppearanceId::new(2))],
             "appearance-default-solid"
         );
     }
@@ -1525,12 +1519,12 @@ mod tests {
                 "resourceId": resource_id,
                 "uri": uri,
                 "checksum": format!("sha256:{:x}", Sha256::digest(bytes)),
-                "role": "modelspace"
+                "role": "drawing"
             })
         };
         let entrypoint = serde_json::json!({"data": [
-            {"path": "valid", "type": "openaec:DrawingGeometryRepresentation", "attributes": {"geometry": descriptor("geometry-modelspace-main", "valid.ifcdr.json", &valid)}},
-            {"path": "invalid", "type": "openaec:DrawingGeometryRepresentation", "attributes": {"geometry": descriptor("x", "invalid.ifcdr.json", invalid)}}
+            {"path": "valid", "type": "openaec:DrawingRepresentation", "attributes": {"resource": descriptor("drawing-main", "valid.ifcdr.json", &valid)}},
+            {"path": "invalid", "type": "openaec:DrawingRepresentation", "attributes": {"resource": descriptor("x", "invalid.ifcdr.json", invalid)}}
         ]});
         fs::write(
             root.path().join(DIRECTORY_PACKAGE_ENTRYPOINT),
@@ -1548,7 +1542,7 @@ mod tests {
             .as_ref()
             .unwrap()
             .validated_ifcdr_resources
-            .contains_key(&resource_id("geometry-modelspace-main")));
+            .contains_key(&resource_id("drawing-main")));
         assert!(!outcome
             .analysis
             .as_ref()
@@ -1628,7 +1622,7 @@ mod tests {
         let root = TestDirectory::new("ifcx-schema-partial");
         fs::write(
             root.path().join(DIRECTORY_PACKAGE_ENTRYPOINT),
-            br#"{"data":[{"path":"layout","type":"openaec:DrawingLayout","attributes":{"name":"Model","kind":"sheet","scopeId":0},"children":{"Representation":"geometry"}}]}"#,
+            br#"{"data":[{"path":"layout","type":"openaec:DrawingLayout","attributes":{"name":"Model","kind":"sheet","scopeId":0},"children":{"Representation":"resource"}}]}"#,
         )
         .expect("write entrypoint");
 
@@ -1666,7 +1660,7 @@ mod tests {
 
         assert_eq!(
             diagnostic.location.as_deref(),
-            Some("/data/0/attributes/geometry/checksum")
+            Some("/data/0/attributes/resource/checksum")
         );
         assert_eq!(
             diagnostic.context.get("expectedChecksum"),
@@ -1739,26 +1733,26 @@ mod tests {
                 },
                 {
                     "path": "missing-geometry",
-                    "type": "openaec:DrawingGeometryRepresentation",
+                    "type": "openaec:DrawingRepresentation",
                     "attributes": {
-                        "geometry": {
+                        "resource": {
                             "format": "openaec.ifcdr",
                             "version": "0.7.0",
                             "resourceId": "geometry-missing",
                             "uri": "z-missing.ifcdr.json",
                             "checksum": checksum,
-                            "role": "modelspace"
+                            "role": "drawing"
                         }
                     }
                 },
                 {
                     "path": "loaded-geometry",
-                    "type": "openaec:DrawingGeometryRepresentation",
+                    "type": "openaec:DrawingRepresentation",
                     "attributes": {
-                        "geometry": {
+                        "resource": {
                             "format": "openaec.ifcdr",
                             "version": "0.7.0",
-                            "resourceId": "geometry-modelspace-main",
+                            "resourceId": "drawing-main",
                             "uri": "a-loaded.ifcdr.json",
                             "checksum": checksum,
                             "role": ""
@@ -1806,7 +1800,7 @@ mod tests {
                 (
                     IFCCAD_PACKAGE_SCHEMA_INVALID,
                     Some(DIRECTORY_PACKAGE_ENTRYPOINT),
-                    Some("/data/2/attributes/geometry/role"),
+                    Some("/data/2/attributes/resource/role"),
                 ),
                 (
                     IFCCAD_PACKAGE_NODE_PATH_DUPLICATE,
@@ -1816,12 +1810,12 @@ mod tests {
                 (
                     IFCCAD_PACKAGE_RESOURCE_MISSING,
                     Some("z-missing.ifcdr.json"),
-                    Some("/data/1/attributes/geometry/uri"),
+                    Some("/data/1/attributes/resource/uri"),
                 ),
                 (
                     IFCCAD_PACKAGE_CHECKSUM_MISMATCH,
                     Some("a-loaded.ifcdr.json"),
-                    Some("/data/2/attributes/geometry/checksum"),
+                    Some("/data/2/attributes/resource/checksum"),
                 ),
             ]
         );
@@ -1858,7 +1852,7 @@ mod tests {
         );
         assert_eq!(
             diagnostic.location.as_deref(),
-            Some("/data/0/attributes/geometry/uri")
+            Some("/data/0/attributes/resource/uri")
         );
     }
 
@@ -1870,9 +1864,9 @@ mod tests {
             br#"{
               "data": [
                 {
-                  "type": "openaec:DrawingGeometryRepresentation",
+                  "type": "openaec:DrawingRepresentation",
                   "attributes": {
-                    "geometry": {
+                    "resource": {
                       "resourceId": "geometry-ignored",
                       "url": "ignored.json"
                     }

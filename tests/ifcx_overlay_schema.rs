@@ -11,6 +11,47 @@ const OVERLAY_0_3_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.3
 const OVERLAY_0_4_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.4.0.json";
 const OVERLAY_0_5_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.5.0.json";
 
+#[test]
+fn overlay_0_8_uses_a_drawing_resource_descriptor() {
+    let registry = Registry::new()
+        .add(DRAWING_CORE_0_2_ID, drawing_core_0_2_schema())
+        .unwrap()
+        .prepare()
+        .unwrap();
+    let schema = load_schema("ifccad-overlay-0.8.0.json");
+    let validator = jsonschema::draft202012::options()
+        .with_registry(&registry)
+        .build(&schema)
+        .unwrap();
+    let mut document = package_contract_document();
+    let node = &mut document["data"][3];
+    node["type"] = json!("openaec:DrawingRepresentation");
+    let mut descriptor = node["attributes"]
+        .as_object_mut()
+        .unwrap()
+        .remove("geometry")
+        .unwrap();
+    descriptor["version"] = json!("0.7.0");
+    descriptor["role"] = json!("drawing");
+    node["attributes"]["resource"] = descriptor;
+    assert!(
+        validator.is_valid(&document),
+        "{:?}",
+        validator
+            .iter_errors(&document)
+            .map(|e| e.to_string())
+            .collect::<Vec<_>>()
+    );
+    let mut wrong = document.clone();
+    wrong["data"][3]["attributes"]["resource"]["role"] = json!("modelspace");
+    assert!(!validator.is_valid(&wrong));
+    document["data"][3]["attributes"]
+        .as_object_mut()
+        .unwrap()
+        .remove("resource");
+    assert!(!validator.is_valid(&document));
+}
+
 fn schema_path(file_name: &str) -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("schemas")
@@ -906,6 +947,14 @@ fn check_base_overlay(version: &str) {
     let path = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("conformance/next/packages/valid/minimal-no-preservation/package.ifcx.json");
     let mut document: Value = serde_json::from_slice(&fs::read(path).unwrap()).unwrap();
+    document["data"][3]["type"] = json!("openaec:DrawingGeometryRepresentation");
+    let mut descriptor = document["data"][3]["attributes"]
+        .as_object_mut()
+        .unwrap()
+        .remove("resource")
+        .unwrap();
+    descriptor["role"] = json!("modelspace");
+    document["data"][3]["attributes"]["geometry"] = descriptor;
     document["data"][3]["attributes"]["geometry"]["version"] = json!(version);
     assert!(validator.is_valid(&document));
     document["data"].as_array_mut().unwrap().push(

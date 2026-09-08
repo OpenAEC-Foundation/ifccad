@@ -38,6 +38,23 @@ pub(crate) fn discover_resources(ifcx: &serde_json::Value) -> ResourceDiscovery 
     };
 
     for (index, node) in data.iter().enumerate() {
+        if node.get("type").and_then(serde_json::Value::as_str)
+            == Some("openaec:DrawingGeometryRepresentation")
+        {
+            discovery.diagnostics.push(PackageDiagnostic {
+                code: super::codes::IFCCAD_PACKAGE_VOCABULARY_UNSUPPORTED.into(),
+                severity: PackageDiagnosticSeverity::Error,
+                resource_id: None,
+                resource_uri: Some(super::DIRECTORY_PACKAGE_ENTRYPOINT.into()),
+                location: Some(format!("/data/{index}/type")),
+                context: BTreeMap::from([(
+                    "replacementType".into(),
+                    super::PackageDiagnosticContextValue::String("openaec:DrawingRepresentation".into()),
+                )]),
+                message: "retired DrawingGeometryRepresentation vocabulary is unsupported; use DrawingRepresentation with attributes.resource".into(),
+            });
+            continue;
+        }
         let Some((kind, resource_name)) = recognized_resource(node) else {
             continue;
         };
@@ -80,7 +97,7 @@ pub(crate) fn discover_resources(ifcx: &serde_json::Value) -> ResourceDiscovery 
 
 fn recognized_resource(node: &serde_json::Value) -> Option<(ResourceKind, &'static str)> {
     match node.get("type").and_then(serde_json::Value::as_str) {
-        Some("openaec:DrawingGeometryRepresentation") => Some((ResourceKind::Ifcdr, "geometry")),
+        Some("openaec:DrawingRepresentation") => Some((ResourceKind::Ifcdr, "resource")),
         Some("openaec:PreservationRepresentation") => Some((ResourceKind::Ifcpr, "preservation")),
         _ => None,
     }
@@ -104,13 +121,34 @@ mod tests {
     use super::*;
 
     #[test]
+    fn retired_vocabulary_is_explicitly_unsupported() {
+        let result = discover_resources(&serde_json::json!({"data":[{
+            "path":"retired", "type":"openaec:DrawingGeometryRepresentation"
+        }]}));
+        assert_eq!(result.diagnostics.len(), 1);
+        assert_eq!(
+            result.diagnostics[0].code,
+            "IFCCAD_PACKAGE_VOCABULARY_UNSUPPORTED"
+        );
+        assert_eq!(
+            result.diagnostics[0].location.as_deref(),
+            Some("/data/0/type")
+        );
+        assert!(
+            discover_resources(&serde_json::json!({"data":[{"type":"example:Extension"}]}))
+                .diagnostics
+                .is_empty()
+        );
+    }
+
+    #[test]
     fn discovers_drawing_and_preservation_resources() {
         let ifcx = serde_json::json!({
             "data": [
                 {
-                    "type": "openaec:DrawingGeometryRepresentation",
+                    "type": "openaec:DrawingRepresentation",
                     "attributes": {
-                        "geometry": {
+                        "resource": {
                             "resourceId": "geometry-main",
                             "uri": "drawing.ifcdr.json"
                         }
@@ -137,11 +175,11 @@ mod tests {
                 ResourceDeclaration {
                     kind: ResourceKind::Ifcdr,
                     resource_id: crate::ResourceId::new("geometry-main").unwrap(),
-                    resource_id_location: "/data/0/attributes/geometry/resourceId".to_owned(),
+                    resource_id_location: "/data/0/attributes/resource/resourceId".to_owned(),
                     external_uri: "drawing.ifcdr.json".to_owned(),
-                    external_uri_location: "/data/0/attributes/geometry/uri".to_owned(),
+                    external_uri_location: "/data/0/attributes/resource/uri".to_owned(),
                     checksum: None,
-                    checksum_location: "/data/0/attributes/geometry/checksum".to_owned(),
+                    checksum_location: "/data/0/attributes/resource/checksum".to_owned(),
                 },
                 ResourceDeclaration {
                     kind: ResourceKind::Ifcpr,
@@ -161,7 +199,7 @@ mod tests {
         let ifcx = serde_json::json!({
             "data": [{
                 "type": "example:UnrelatedNode",
-                "attributes": { "geometry": {} }
+                "attributes": { "resource": {} }
             }]
         });
 
@@ -175,9 +213,9 @@ mod tests {
     fn diagnoses_missing_uri_on_a_recognized_node() {
         let ifcx = serde_json::json!({
             "data": [{
-                "type": "openaec:DrawingGeometryRepresentation",
+                "type": "openaec:DrawingRepresentation",
                 "attributes": {
-                    "geometry": {
+                    "resource": {
                         "resourceId": "geometry-main",
                         "url": "drawing.ifcdr.json"
                     }
@@ -194,7 +232,7 @@ mod tests {
         assert_eq!(diagnostic.resource_uri, None);
         assert_eq!(
             diagnostic.location.as_deref(),
-            Some("/data/0/attributes/geometry/uri")
+            Some("/data/0/attributes/resource/uri")
         );
     }
 
@@ -241,9 +279,9 @@ mod tests {
     fn does_not_infer_missing_resource_id_from_uri() {
         let ifcx = serde_json::json!({
             "data": [{
-                "type": "openaec:DrawingGeometryRepresentation",
+                "type": "openaec:DrawingRepresentation",
                 "attributes": {
-                    "geometry": { "uri": "drawing.ifcdr.json" }
+                    "resource": { "uri": "drawing.ifcdr.json" }
                 }
             }]
         });

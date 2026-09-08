@@ -42,6 +42,37 @@ fn minimal_package() -> PathBuf {
         .join("minimal-no-preservation")
 }
 
+#[test]
+fn model_and_paper_layouts_share_the_drawing_resource() {
+    let outcome = load_directory_package(
+        bundled_conformance_root().join("packages/valid/shared-layout-representation"),
+    )
+    .expect("open shared representation fixture");
+    assert!(outcome.report().is_valid(), "{:?}", outcome.report());
+    let package = outcome.validated_package().unwrap();
+    let drawing = package.drawings().next().unwrap();
+    let representation: ifccad::package::DrawingRepresentationRef<'_> = drawing.representation();
+    assert_eq!(representation.role(), "drawing");
+    let layouts: Vec<_> = drawing.layouts().collect();
+    assert_eq!(layouts.len(), 2);
+    for (layout, expected_ids) in layouts.iter().zip([vec![1, 2, 3], vec![4]]) {
+        assert_eq!(layout.representation().path(), representation.path());
+        assert_eq!(
+            layout.representation().resource_id(),
+            representation.resource_id()
+        );
+        let ids: Vec<_> = representation
+            .resource()
+            .entities(layout.scope().id())
+            .map(|entity| match entity {
+                ifccad::ifcdr::IfcdrEntityRef::Line(line) => line.entity_id().get(),
+                ifccad::ifcdr::IfcdrEntityRef::Polyline(polyline) => polyline.entity_id().get(),
+            })
+            .collect();
+        assert_eq!(ids, expected_ids);
+    }
+}
+
 fn copy_minimal_package(root: &Path) -> serde_json::Value {
     let source = minimal_package();
     for entry in fs::read_dir(&source).expect("read minimal package") {

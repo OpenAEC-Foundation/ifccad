@@ -1,7 +1,7 @@
 # IFCCAD candidate compatibility
 
 This collection is the unpublished `1.1.0` candidate. Its active drawing
-contract is IFCDR `0.7.0`, selected by IFCX overlay `0.7.0`, with drawing core
+contract is IFCDR `0.7.0`, selected by IFCX overlay `0.8.0`, with drawing core
 `0.2.0`. The logical registry uses meta-schema v2; the separate JSON mapping uses
 meta-schema v1 and stream-directory v1. IFCPR remains
 `0.2.0`. Historical schemas and `conformance/1.0.0` are reference artifacts,
@@ -32,12 +32,14 @@ contracts after their semantics are designed and tested.
 | Content or operation | Primary implementation behavior |
 | --- | --- |
 | IFCDR 0.7.0 JSON with the registered content | Physical field/range checks in the JSON codec, shared logical geometry/reference/identity/order/bounds/appearance validation, and package binding checks; typed lines and polylines. |
+| DrawingRepresentation | `attributes.resource`, role `drawing`; a Drawing and all listed layouts reference the same representation node. Layout scope IDs resolve within that resource. |
+| Retired DrawingGeometryRepresentation | `IFCCAD_PACKAGE_VOCABULARY_UNSUPPORTED`, including unreferenced nodes; no strict package. |
 | Directory writer | One drawing, one model layout, one external IFCDR resource; deterministic new-version output. |
 | Resource access | External package-relative JSON resources. Existing scope and model/paper layout references remain readable; this change does not add inline resources or paperspace export. |
 | IFCDR 0.6.0, 0.5.0 or another unsupported version | `IFCCAD_IFCDR_VERSION_UNSUPPORTED`; no strict typed package and no migration. |
 | Unknown stream name or schema ID | `IFCCAD_IFCDR_STREAM_SCHEMA_UNSUPPORTED` with stream/schema context when available; no strict typed package or unmodeled-entity view. |
 | Malformed supported fields or known broken references | Structural or semantic error diagnostics; no strict typed package. |
-| Unknown IFCX node types and open extension fields | Existing permitted read behavior remains; no new guarantee of conversion, editing, or lossless rewriting. |
+| Unrelated unknown IFCX node types and open extension fields | Existing permitted read behavior remains; no new guarantee of conversion, editing, or lossless rewriting. |
 | IFCCAD to CadDocument | Existing drawing conversion for typed lines and polylines, layers, units, order, and supported appearance data. Existing pattern fallback and line-weight rounding diagnostics remain. |
 | CadDocument to IFCCAD | Existing exact finite 2D line and straight lightweight-polyline subset. Unsupported properties/entities are diagnosed under `Allow` or reject the export under `Reject`. No approximation or expanded native coverage. |
 | IFCPR 0.2.0 | The limited checks described below; no converter preservation transfer. |
@@ -63,7 +65,7 @@ invalidity under an unsupported contract.
 
 The manifest's `invalid` category includes the explicitly named `unsupported.*`
 cases because they cannot obtain a strict result from this reader. The old
-version case also reports that its descriptor violates the selected 0.7.0
+version case also reports that its descriptor violates the selected 0.8.0
 overlay; it is not a validation attempt against the old overlay. An unknown
 stream does not produce dependent missing-entity/order or orphan-payload
 diagnostics based on an unknown payload mapping. Independently established
@@ -107,6 +109,6 @@ and preserves supplied IDs, order, conservative bounds and appearance metadata.
 Builder completion validates its prepared resource, then validates the assembled
 package in memory through the production reader before returning it.
 
-Drawing-resource naming, inline/external normalization, complete
+Inline/external normalization, complete
 operation-specific reporting, and initial size measurements remain outstanding.
 Broader entity semantics and preservation remain milestone 3.

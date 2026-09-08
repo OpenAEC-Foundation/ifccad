@@ -158,7 +158,7 @@ fn writer_output_reloads_without_diagnostics_and_preserves_semantics() {
         .write_directory(&target)
         .unwrap();
 
-    let bytes = std::fs::read(target.join("resources/model-space.ifcdr.json")).unwrap();
+    let bytes = std::fs::read(target.join("resources/drawing.ifcdr.json")).unwrap();
     let resource: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
     assert_eq!(resource["header"]["version"], "0.7.0");
     assert!(resource.get("namedUcsBindings").is_none());
@@ -186,11 +186,11 @@ fn writer_output_reloads_without_diagnostics_and_preserves_semantics() {
 
     let representation = drawing.representation();
     assert_eq!(representation.path(), "representation-0");
-    assert_eq!(representation.role(), "modelspace");
+    assert_eq!(representation.role(), "drawing");
     assert_eq!(representation.resource_id().as_str(), "geometry-main");
     assert_eq!(
         representation.external_uri(),
-        Some("resources/model-space.ifcdr.json")
+        Some("resources/drawing.ifcdr.json")
     );
     assert_eq!(
         representation.resource().unit(),

@@ -27,7 +27,7 @@
     "version": "0.2.0"
   },
   "linkedDrawingResources": [
-    "geometry-modelspace-main"
+    "drawing-main"
   ],
   "projectionBindings": [
     {

@@ -159,9 +159,12 @@ The first implementation slice is described in the
 [encoding-neutral logical model](docs/superpowers/specs/2026-09-08-ifcdr-logical-model-design.md),
 is also implemented and verified: shared semantic access and validation,
 separate reader/writer backings, logical registry and JSON mapping, and a
-validated-resource codec boundary. See the
+validated-resource codec boundary. The third slice,
+[drawing resource terminology](docs/superpowers/specs/2026-09-08-drawing-resource-terminology-design.md),
+adds IFCX overlay 0.8.0 and consistent representation references across layouts.
+See the
 [compatibility matrix](conformance/next/COMPATIBILITY.md) for the active 0.7.0
-contract. Drawing-resource naming, inline/external normalization, richer
+contract. Inline/external normalization, richer
 operation-specific reporting, and initial size measurements remain required;
 this milestone is still Current.
 

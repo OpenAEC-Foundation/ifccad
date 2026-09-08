@@ -579,6 +579,58 @@
           }
         }
       ]
+    },
+    {
+      "caseId": "valid.shared-layout-representation",
+      "category": "valid",
+      "description": "Drawing resource contract: shared-layout-representation",
+      "entrypoint": "packages/valid/shared-layout-representation/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.layout-representation-mismatch",
+      "category": "invalid",
+      "description": "Drawing resource contract: layout-representation-mismatch",
+      "entrypoint": "packages/invalid/layout-representation-mismatch/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "unsupported.retired-representation-vocabulary",
+      "category": "invalid",
+      "description": "Drawing resource contract: retired-representation-vocabulary",
+      "entrypoint": "packages/unsupported/retired-representation-vocabulary/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_VOCABULARY_UNSUPPORTED",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
     }
   ],
   "suiteVersion": "1.1.0"

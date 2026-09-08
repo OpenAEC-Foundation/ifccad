@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.7.0.json",
-  "title": "IFCCAD IFCX Overlay 0.7.0",
+  "$id": "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.8.0.json",
+  "title": "IFCCAD IFCX Overlay 0.8.0",
   "description": "Composite IFCCAD constraints for the package header, explicit resource identity, the drawing core, and typed appearances in IFCX.",
   "type": "object",
   "required": [
@@ -65,12 +65,12 @@
             ],
             "properties": {
               "type": {
-                "const": "openaec:DrawingGeometryRepresentation"
+                "const": "openaec:DrawingRepresentation"
               }
             }
           },
           "then": {
-            "$ref": "#/$defs/geometryResourceNode"
+            "$ref": "#/$defs/drawingResourceNode"
           }
         },
         {
@@ -91,7 +91,7 @@
       ],
       "additionalProperties": true
     },
-    "geometryResourceNode": {
+    "drawingResourceNode": {
       "type": "object",
       "required": [
         "path",
@@ -103,16 +103,16 @@
           "$ref": "#/$defs/nonEmptyString"
         },
         "type": {
-          "const": "openaec:DrawingGeometryRepresentation"
+          "const": "openaec:DrawingRepresentation"
         },
         "attributes": {
           "type": "object",
           "required": [
-            "geometry"
+            "resource"
           ],
           "properties": {
-            "geometry": {
-              "$ref": "#/$defs/geometryDescriptor"
+            "resource": {
+              "$ref": "#/$defs/drawingResourceDescriptor"
             }
           },
           "additionalProperties": true
@@ -120,7 +120,7 @@
       },
       "additionalProperties": true
     },
-    "geometryDescriptor": {
+    "drawingResourceDescriptor": {
       "type": "object",
       "required": [
         "format",
@@ -144,7 +144,7 @@
           "$ref": "#/$defs/sha256Checksum"
         },
         "role": {
-          "$ref": "#/$defs/nonEmptyString"
+          "const": "drawing"
         },
         "resourceId": {
           "$ref": "#/$defs/nonEmptyString"
@@ -276,5 +276,6 @@
     {
       "$ref": "https://schemas.ifccad.org/ifcx/ifccad-drawing-core-0.2.0.json"
     }
-  ]
+  ],
+  "$comment": "Package relationship rules: ./drawing-resource-contract-0.8.0.md"
 }

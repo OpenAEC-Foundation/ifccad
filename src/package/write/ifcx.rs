@@ -4,7 +4,7 @@ use super::types::PackageOptions;
 use crate::ifcdr::codec::json::EncodedIfcdrResource;
 use serde_json::{json, Map, Value};
 
-pub(crate) const MODEL_SPACE_RESOURCE_URI: &str = "resources/model-space.ifcdr.json";
+pub(crate) const DRAWING_RESOURCE_URI: &str = "resources/drawing.ifcdr.json";
 
 #[derive(Debug)]
 pub(crate) struct NodePaths {
@@ -63,16 +63,16 @@ pub(crate) fn assemble_ifcx(
         }),
         json!({
             "path": paths.representation,
-            "type": "openaec:DrawingGeometryRepresentation",
+            "type": "openaec:DrawingRepresentation",
             "attributes": {
-                "name": "ModelSpace",
-                "geometry": {
+                "name": "Drawing",
+                "resource": {
                     "format": "openaec.ifcdr",
                     "version": "0.7.0",
                     "resourceId": resource.resource_id,
-                    "uri": MODEL_SPACE_RESOURCE_URI,
+                    "uri": DRAWING_RESOURCE_URI,
                     "checksum": resource.checksum,
-                    "role": "modelspace"
+                    "role": "drawing"
                 }
             }
         }),
@@ -185,7 +185,7 @@ mod tests {
     use sha2::{Digest, Sha256};
 
     #[test]
-    fn assembles_minimal_drawing_graph_with_external_geometry() {
+    fn assembles_minimal_drawing_graph_with_external_drawing_resource() {
         let mut package = PackageBuilder::new(PackageOptions {
             package_id: PackageId::new("building-a").unwrap(),
             data_version: "17".to_owned(),
@@ -196,7 +196,7 @@ mod tests {
         let mut drawing = package
             .add_drawing(DrawingOptions {
                 model_layout_name: "Model layout".to_owned(),
-                representation_resource_id: ResourceId::new("geometry-modelspace-main").unwrap(),
+                representation_resource_id: ResourceId::new("drawing-main").unwrap(),
                 length_unit: IfcdrLengthUnit::Millimetre,
             })
             .unwrap();
@@ -259,14 +259,14 @@ mod tests {
         assert_eq!(root["data"][2]["attributes"]["kind"], "model");
         assert_eq!(root["data"][2]["attributes"]["scopeId"], 0);
         assert!(root["data"][1].get("name").is_none());
-        assert_eq!(root["data"][3]["attributes"]["name"], "ModelSpace");
-        let geometry = &root["data"][3]["attributes"]["geometry"];
+        assert_eq!(root["data"][3]["attributes"]["name"], "Drawing");
+        let geometry = &root["data"][3]["attributes"]["resource"];
         assert_eq!(geometry["format"], "openaec.ifcdr");
         assert_eq!(geometry["version"], "0.7.0");
-        assert_eq!(geometry["role"], "modelspace");
-        assert_eq!(geometry["resourceId"], "geometry-modelspace-main");
-        assert_eq!(geometry["uri"], "resources/model-space.ifcdr.json");
-        let ifcdr = encoded.file("resources/model-space.ifcdr.json").unwrap();
+        assert_eq!(geometry["role"], "drawing");
+        assert_eq!(geometry["resourceId"], "drawing-main");
+        assert_eq!(geometry["uri"], "resources/drawing.ifcdr.json");
+        let ifcdr = encoded.file("resources/drawing.ifcdr.json").unwrap();
         assert_eq!(
             geometry["checksum"],
             format!("sha256:{:x}", Sha256::digest(ifcdr))

@@ -9,7 +9,7 @@ use cadcodec::entities::EntityCommon;
 use cadcodec::{CadDocument, Color, EntityType, Layer, Line, LineType, LwPolyline, Vector2};
 use ifccad::ifcdr::{AppearanceId, EntityId, IfcdrEntityRef, LayerId};
 use ifccad::package::{
-    AppearanceProperty, DrawingLayoutKind, DrawingRef, GeometryRepresentationRef, LayerRef,
+    AppearanceProperty, DrawingLayoutKind, DrawingRef, DrawingRepresentationRef, LayerRef,
 };
 
 /// Imports one validated IFCCAD drawing into a cadcodec [`CadDocument`].
@@ -125,7 +125,7 @@ pub fn drawing_to_cad_document(drawing: DrawingRef<'_>) -> Result<ImportOutcome,
 #[allow(clippy::too_many_arguments)]
 fn apply_entity_common(
     document: &mut CadDocument,
-    representation: GeometryRepresentationRef<'_>,
+    representation: DrawingRepresentationRef<'_>,
     common: &mut EntityCommon,
     entity_id: EntityId,
     layer_id: LayerId,

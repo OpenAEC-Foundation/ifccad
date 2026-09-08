@@ -18,7 +18,7 @@ fn package_options(timestamp: &str) -> PackageOptions {
 fn drawing_options() -> DrawingOptions {
     DrawingOptions {
         model_layout_name: "Model".to_owned(),
-        representation_resource_id: ResourceId::new("geometry-modelspace-main").unwrap(),
+        representation_resource_id: ResourceId::new("drawing-main").unwrap(),
         length_unit: IfcdrLengthUnit::Millimetre,
     }
 }
@@ -87,7 +87,7 @@ fn supplied_ids_advance_allocation_without_recycling_gaps() {
     assert!(EntityId::new(0).is_none());
     let encoded = package.finish().unwrap();
     let resource: serde_json::Value =
-        serde_json::from_slice(encoded.file("resources/model-space.ifcdr.json").unwrap()).unwrap();
+        serde_json::from_slice(encoded.file("resources/drawing.ifcdr.json").unwrap()).unwrap();
     assert_eq!(resource["header"]["nextEntityId"], 13);
     assert_eq!(
         resource["streams"]["lineStream"]["entityId"],
@@ -390,7 +390,7 @@ fn entities_encode_each_appearance_inheritance_mode_independently() {
 
     let encoded = package.finish().unwrap();
     let resource: serde_json::Value =
-        serde_json::from_slice(encoded.file("resources/model-space.ifcdr.json").unwrap()).unwrap();
+        serde_json::from_slice(encoded.file("resources/drawing.ifcdr.json").unwrap()).unwrap();
     let binding = &resource["appearanceBindings"][2];
 
     assert_eq!(binding["id"], 2);
@@ -467,7 +467,7 @@ fn identical_mixed_appearance_bindings_are_reused() {
 
     let encoded = package.finish().unwrap();
     let resource: serde_json::Value =
-        serde_json::from_slice(encoded.file("resources/model-space.ifcdr.json").unwrap()).unwrap();
+        serde_json::from_slice(encoded.file("resources/drawing.ifcdr.json").unwrap()).unwrap();
 
     assert_eq!(resource["appearanceBindings"].as_array().unwrap().len(), 3);
     assert_eq!(
@@ -580,15 +580,12 @@ fn finish_produces_the_two_logical_package_files() {
     let encoded = package.finish().unwrap();
     let paths = encoded.files().map(|(path, _)| path).collect::<Vec<_>>();
 
-    assert_eq!(
-        paths,
-        ["package.ifcx.json", "resources/model-space.ifcdr.json"]
-    );
+    assert_eq!(paths, ["package.ifcx.json", "resources/drawing.ifcdr.json"]);
     let entrypoint: serde_json::Value =
         serde_json::from_slice(encoded.file("package.ifcx.json").unwrap()).unwrap();
     let resource: serde_json::Value =
-        serde_json::from_slice(encoded.file("resources/model-space.ifcdr.json").unwrap()).unwrap();
+        serde_json::from_slice(encoded.file("resources/drawing.ifcdr.json").unwrap()).unwrap();
     assert_eq!(entrypoint["header"]["id"], "building-a");
     assert_eq!(entrypoint["header"]["timestamp"], "2026-09-02T10:00:00Z");
-    assert_eq!(resource["header"]["resourceId"], "geometry-modelspace-main");
+    assert_eq!(resource["header"]["resourceId"], "drawing-main");
 }

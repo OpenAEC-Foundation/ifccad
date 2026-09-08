@@ -16,10 +16,10 @@ pub use crate::diagnostic::{
 pub(crate) use read::canonical_rfc3339_utc;
 pub use read::{
     load_directory_package, AppearanceColorRef, AppearanceProperty, AppearanceRef,
-    AppliedAppearanceRef, DrawingLayoutKind, DrawingLayoutRef, DrawingRef, DrawingSetRef,
-    GeometryRepresentationRef, IndexedColorRef, LayerRef, LinePatternRef, NamedColorRef,
-    PackageHeaderRef, PackageLoadOutcome, PackageOpenError, PackageValidationReport, RgbColor,
-    ValidatedPackage,
+    AppliedAppearanceRef, DrawingLayoutKind, DrawingLayoutRef, DrawingRef,
+    DrawingRepresentationRef, DrawingSetRef, IndexedColorRef, LayerRef, LinePatternRef,
+    NamedColorRef, PackageHeaderRef, PackageLoadOutcome, PackageOpenError, PackageValidationReport,
+    RgbColor, ValidatedPackage,
 };
 pub use write::{
     AppearanceColor, AppearanceDefinition, AppearanceKey, AppearanceMode, DrawingAppearances,

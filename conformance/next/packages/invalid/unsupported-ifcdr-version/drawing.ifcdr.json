@@ -46,7 +46,7 @@
   "header": {
     "format": "openaec.ifcdr",
     "nextEntityId": 5,
-    "resourceId": "geometry-modelspace-main",
+    "resourceId": "drawing-main",
     "unit": "m",
     "version": "0.5.0"
   },

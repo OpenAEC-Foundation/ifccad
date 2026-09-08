@@ -10,12 +10,12 @@ use std::collections::BTreeMap;
 
 const DRAWING_CORE_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-drawing-core-0.2.0.json";
 const DRAWING_CORE: &str = include_str!("../../../schemas/ifcx/ifccad-drawing-core-0.2.0.json");
-const COMPOSITE_OVERLAY: &str = include_str!("../../../schemas/ifcx/ifccad-overlay-0.7.0.json");
+const COMPOSITE_OVERLAY: &str = include_str!("../../../schemas/ifcx/ifccad-overlay-0.8.0.json");
 const IFCPR_SCHEMA: &str = include_str!("../../../schemas/ifcpr/schema-0.2.0.json");
 
 pub(crate) fn validate_ifcx(value: &Value) -> Vec<PackageDiagnostic> {
     let drawing_core = parse_schema(DRAWING_CORE, "IFCX drawing core 0.2.0");
-    let composite = parse_schema(COMPOSITE_OVERLAY, "IFCX overlay 0.7.0");
+    let composite = parse_schema(COMPOSITE_OVERLAY, "IFCX overlay 0.8.0");
     let registry = Registry::new()
         .add(DRAWING_CORE_ID, drawing_core)
         .expect("register embedded IFCX drawing core 0.2.0")
@@ -24,7 +24,7 @@ pub(crate) fn validate_ifcx(value: &Value) -> Vec<PackageDiagnostic> {
     let validator = jsonschema::draft202012::options()
         .with_registry(&registry)
         .build(&composite)
-        .expect("compile embedded IFCX overlay 0.7.0");
+        .expect("compile embedded IFCX overlay 0.8.0");
     schema_diagnostics(&validator, None, DIRECTORY_PACKAGE_ENTRYPOINT, value)
 }
 
@@ -124,7 +124,7 @@ mod tests {
                     "path": "drawing",
                     "type": "openaec:Drawing",
                     "children": {
-                        "Representation": "geometry",
+                        "Representation": "resource",
                         "Layouts": ["layout"]
                     }
                 },
@@ -132,19 +132,19 @@ mod tests {
                     "path": "layout",
                     "type": "openaec:DrawingLayout",
                     "attributes": {"name": "Model", "kind": "model", "scopeId": 0},
-                    "children": {"Representation": "geometry"}
+                    "children": {"Representation": "resource"}
                 },
                 {
-                    "path": "geometry",
-                    "type": "openaec:DrawingGeometryRepresentation",
+                    "path": "resource",
+                    "type": "openaec:DrawingRepresentation",
                     "attributes": {
-                        "geometry": {
+                        "resource": {
                             "format": "openaec.ifcdr",
                             "version": "0.7.0",
                             "resourceId": "geometry-main",
                             "uri": "drawing.ifcdr.json",
                             "checksum": format!("sha256:{}", "a".repeat(64)),
-                            "role": "modelspace"
+                            "role": "drawing"
                         }
                     }
                 }

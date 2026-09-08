@@ -27,7 +27,7 @@
     "version": "0.2.0"
   },
   "linkedDrawingResources": [
-    "geometry-modelspace-main",
+    "drawing-main",
     "geometry-second"
   ],
   "projectionBindings": [
@@ -36,7 +36,7 @@
       "coverage": "partial",
       "modelTargets": [
         {
-          "resourceId": "geometry-modelspace-main",
+          "resourceId": "drawing-main",
           "role": "primary",
           "targetId": 1
         }

@@ -30,23 +30,23 @@ impl ValidatedPackage {
     }
 
     #[cfg(test)]
-    pub(crate) fn geometry_representations(
+    pub(crate) fn drawing_representations(
         &self,
-    ) -> impl Iterator<Item = GeometryRepresentationRef<'_>> {
-        typed_nodes(self, "openaec:DrawingGeometryRepresentation").map(|node_index| {
-            GeometryRepresentationRef {
+    ) -> impl Iterator<Item = DrawingRepresentationRef<'_>> {
+        typed_nodes(self, "openaec:DrawingRepresentation").map(|node_index| {
+            DrawingRepresentationRef {
                 package: self,
                 node_index,
             }
         })
     }
 
-    pub(crate) fn geometry_representation(
+    pub(crate) fn drawing_representation(
         &self,
         path: &str,
-    ) -> Option<GeometryRepresentationRef<'_>> {
-        self.typed_node(path, "openaec:DrawingGeometryRepresentation")
-            .map(|node_index| GeometryRepresentationRef {
+    ) -> Option<DrawingRepresentationRef<'_>> {
+        self.typed_node(path, "openaec:DrawingRepresentation")
+            .map(|node_index| DrawingRepresentationRef {
                 package: self,
                 node_index,
             })
@@ -157,7 +157,7 @@ macro_rules! node_ref {
 node_ref!(DrawingSetRef);
 node_ref!(DrawingRef);
 node_ref!(DrawingLayoutRef);
-node_ref!(GeometryRepresentationRef);
+node_ref!(DrawingRepresentationRef);
 node_ref!(AppearanceRef);
 
 #[derive(Clone, Copy)]
@@ -195,11 +195,11 @@ impl<'a> DrawingSetRef<'a> {
 }
 
 impl<'a> DrawingRef<'a> {
-    pub fn representation(&self) -> GeometryRepresentationRef<'a> {
+    pub fn representation(&self) -> DrawingRepresentationRef<'a> {
         self.node()
             .pointer("/children/Representation")
             .and_then(Value::as_str)
-            .and_then(|path| self.package.geometry_representation(path))
+            .and_then(|path| self.package.drawing_representation(path))
             .expect("validated drawing representation")
     }
 
@@ -236,7 +236,7 @@ impl<'a> DrawingLayoutRef<'a> {
         }
     }
 
-    pub fn representation(&self) -> GeometryRepresentationRef<'a> {
+    pub fn representation(&self) -> DrawingRepresentationRef<'a> {
         let binding = self
             .package
             .evidence()
@@ -245,7 +245,7 @@ impl<'a> DrawingLayoutRef<'a> {
             .get(self.path())
             .expect("validated layout binding");
         self.package
-            .geometry_representation(&binding.representation_path)
+            .drawing_representation(&binding.representation_path)
             .expect("validated layout representation")
     }
 
@@ -271,10 +271,10 @@ pub enum DrawingLayoutKind {
     Paper,
 }
 
-impl<'a> GeometryRepresentationRef<'a> {
+impl<'a> DrawingRepresentationRef<'a> {
     pub fn role(&self) -> &'a str {
         self.node()
-            .pointer("/attributes/geometry/role")
+            .pointer("/attributes/resource/role")
             .and_then(Value::as_str)
             .expect("validated representation role")
     }
@@ -285,12 +285,12 @@ impl<'a> GeometryRepresentationRef<'a> {
 
     pub fn external_uri(&self) -> Option<&'a str> {
         self.node()
-            .pointer("/attributes/geometry/uri")
+            .pointer("/attributes/resource/uri")
             .and_then(Value::as_str)
     }
 
     fn validated_resource(&self) -> &'a ValidatedIfcdrResource {
-        self.package.evidence().bindings.geometry_ifcdr_by_path[self.path()].as_ref()
+        self.package.evidence().bindings.drawing_ifcdr_by_path[self.path()].as_ref()
     }
 
     pub fn resource(&self) -> IfcdrResourceRef<'a> {
@@ -569,9 +569,9 @@ mod tests {
         assert_eq!(package.drawing_sets().count(), 1);
         assert_eq!(package.drawings().count(), 1);
         assert_eq!(package.layouts().count(), 1);
-        assert_eq!(package.geometry_representations().count(), 1);
+        assert_eq!(package.drawing_representations().count(), 1);
         assert!(package.ifcx_node("missing").is_none());
-        assert!(package.geometry_representation("missing").is_none());
+        assert!(package.drawing_representation("missing").is_none());
         assert!(package
             .ifcdr_resource(&ResourceId::new("missing-resource").unwrap())
             .is_none());
@@ -582,7 +582,7 @@ mod tests {
         assert_eq!(drawing.path(), "drawing-main");
         assert_eq!(
             drawing.representation().path(),
-            "representation-modelspace-main"
+            "drawing-representation-main"
         );
         assert_eq!(drawing.layouts().count(), 1);
 
@@ -593,15 +593,12 @@ mod tests {
         assert_eq!(layout.scope().name(), "ModelSpace");
 
         let representation = layout.representation();
-        assert_eq!(representation.role(), "modelspace");
-        assert_eq!(
-            representation.resource_id().as_str(),
-            "geometry-modelspace-main"
-        );
+        assert_eq!(representation.role(), "drawing");
+        assert_eq!(representation.resource_id().as_str(), "drawing-main");
         assert_eq!(representation.external_uri(), Some("drawing.ifcdr.json"));
         assert_eq!(
             representation.resource().resource_id().as_str(),
-            "geometry-modelspace-main"
+            "drawing-main"
         );
         let layer = representation.layer(LayerId::new(1)).unwrap();
         assert_eq!(layer.path(), "layer-a-wall");
@@ -633,7 +630,7 @@ mod tests {
             .as_ref()
             .expect("empty proof");
         assert_eq!(empty_package.drawings().count(), 0);
-        assert_eq!(empty_package.geometry_representations().count(), 0);
+        assert_eq!(empty_package.drawing_representations().count(), 0);
 
         let multiple_root = TestDirectory::new("multiple");
         let source = fixture("minimal-no-preservation");
@@ -666,9 +663,9 @@ mod tests {
         let multiple = load_directory_package(multiple_root.path()).unwrap();
         let multiple = multiple.validated_package.as_ref().expect("multiple proof");
         assert_eq!(multiple.drawings().count(), 2);
-        assert_eq!(multiple.geometry_representations().count(), 2);
+        assert_eq!(multiple.drawing_representations().count(), 2);
         assert!(multiple
-            .geometry_representation("representation-unused")
+            .drawing_representation("representation-unused")
             .is_some());
     }
 }

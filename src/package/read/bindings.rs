@@ -14,7 +14,7 @@ use std::sync::Arc;
 #[derive(Debug, Default)]
 #[allow(dead_code)]
 pub(crate) struct PackageBindings {
-    pub(crate) geometry_ifcdr_by_path: BTreeMap<String, Arc<ValidatedIfcdrResource>>,
+    pub(crate) drawing_ifcdr_by_path: BTreeMap<String, Arc<ValidatedIfcdrResource>>,
     pub(crate) preservation_ifcdr_resource_ids_by_path: BTreeMap<String, Vec<ResourceId>>,
     pub(crate) layout_by_path: BTreeMap<String, LayoutBinding>,
     pub(crate) ifcx_layer_by_ifcdr_id: BTreeMap<(ResourceId, LayerId), String>,
@@ -62,9 +62,9 @@ pub(super) fn analyze_resource_bindings(
             continue;
         };
         match node_type {
-            "openaec:DrawingGeometryRepresentation" => {
+            "openaec:DrawingRepresentation" => {
                 let Some(resource_id) = node
-                    .pointer("/attributes/geometry/resourceId")
+                    .pointer("/attributes/resource/resourceId")
                     .and_then(Value::as_str)
                     .and_then(|value| ResourceId::new(value).ok())
                 else {
@@ -73,7 +73,7 @@ pub(super) fn analyze_resource_bindings(
                 if let Some(resource) = validated_ifcdr_resources.get(&resource_id) {
                     result
                         .bindings
-                        .geometry_ifcdr_by_path
+                        .drawing_ifcdr_by_path
                         .insert(path.to_owned(), resource.clone());
                 }
             }
@@ -156,7 +156,7 @@ fn validate_layout_bindings(nodes: &[Value], result: &mut BindingAnalysis) {
         };
         let Some(resource) = result
             .bindings
-            .geometry_ifcdr_by_path
+            .drawing_ifcdr_by_path
             .get(representation_path)
         else {
             continue;

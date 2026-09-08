@@ -93,7 +93,7 @@ impl PackageBuilder {
             .drawing
             .ok_or(PackageBuildError::DrawingMissing)?;
         let paths = NodePaths::for_drawing(&drawing)?;
-        let uri = super::ifcx::MODEL_SPACE_RESOURCE_URI;
+        let uri = super::ifcx::DRAWING_RESOURCE_URI;
         let prepared = prepare_drawing(&mut drawing, &paths).map_err(|errors| {
             PackageBuildError::Validation {
                 diagnostics: errors

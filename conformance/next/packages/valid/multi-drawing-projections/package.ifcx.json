@@ -26,7 +26,7 @@
         "Layouts": [
           "drawing-main-layout-model"
         ],
-        "Representation": "representation-modelspace-main"
+        "Representation": "drawing-representation-main"
       },
       "path": "drawing-main",
       "type": "openaec:Drawing"
@@ -41,25 +41,25 @@
         "tabOrder": 0
       },
       "children": {
-        "Representation": "representation-modelspace-main"
+        "Representation": "drawing-representation-main"
       },
       "path": "drawing-main-layout-model",
       "type": "openaec:DrawingLayout"
     },
     {
       "attributes": {
-        "geometry": {
-          "checksum": "sha256:47980a4df31d19990136d2f94ae86fa420c2a194cca06a1842562df2477e3a53",
+        "resource": {
+          "checksum": "sha256:e7036d1da113d56ef799178de5be30869cf619f8e8b2fddcbaca60ba8ceaaa51",
           "format": "openaec.ifcdr",
-          "role": "modelspace",
+          "role": "drawing",
           "uri": "drawing.ifcdr.json",
           "version": "0.7.0",
-          "resourceId": "geometry-modelspace-main"
+          "resourceId": "drawing-main"
         },
-        "name": "ModelSpace"
+        "name": "Drawing"
       },
-      "path": "representation-modelspace-main",
-      "type": "openaec:DrawingGeometryRepresentation"
+      "path": "drawing-representation-main",
+      "type": "openaec:DrawingRepresentation"
     },
     {
       "attributes": {
@@ -148,10 +148,10 @@
     {
       "attributes": {
         "preservation": {
-          "checksum": "sha256:be47d217794bf05cd77660dbe1c8e898c9f045a6265f612974fbd079dad4b105",
+          "checksum": "sha256:05f5aa8bbe40fb1502d8ad869fb960787bb666d7988d5d1810991d8e0f1f7ad8",
           "format": "openaec.ifcpr",
           "linkedDrawingResourceIds": [
-            "geometry-modelspace-main",
+            "drawing-main",
             "geometry-second"
           ],
           "sourceDocumentId": "golden-source-dxf",
@@ -198,10 +198,10 @@
     },
     {
       "attributes": {
-        "geometry": {
+        "resource": {
           "checksum": "sha256:7260a984eb08c3a43b5a75b4f36f767009dde184338e21b6a43be85bd84da02c",
           "format": "openaec.ifcdr",
-          "role": "modelspace",
+          "role": "drawing",
           "uri": "drawing-b.ifcdr.json",
           "version": "0.7.0",
           "resourceId": "geometry-second"
@@ -209,7 +209,7 @@
         "name": "Second modelspace"
       },
       "path": "representation-second",
-      "type": "openaec:DrawingGeometryRepresentation"
+      "type": "openaec:DrawingRepresentation"
     }
   ],
   "header": {

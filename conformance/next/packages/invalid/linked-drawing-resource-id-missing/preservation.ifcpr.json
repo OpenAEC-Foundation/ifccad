@@ -35,7 +35,7 @@
       "coverage": "partial",
       "modelTargets": [
         {
-          "resourceId": "geometry-modelspace-main",
+          "resourceId": "drawing-main",
           "role": "primary",
           "targetId": 1
         }

@@ -62,7 +62,11 @@ The converter accepts only a `DrawingRef` from a strictly validated package.
 It does not load package paths or raw JSON and does not repeat package
 validation.
 
-The active package reader/writer contract is IFCDR 0.7.0. Unsupported IFCDR
+The active package reader/writer contract is IFCDR 0.7.0 with IFCX overlay
+0.8.0. `DrawingRepresentationRef` exposes the drawing resource through
+`representation().resource()`; model and paper layouts share their Drawing's
+representation and select scopes within it. The writer currently emits one
+model layout and `resources/drawing.ifcdr.json`. Unsupported IFCDR
 versions or entity schemas block strict loading before import; the former
 `IfcdrEntityRef::Unmodeled`, `UnmodeledEntityRef`, and
 `ImportDiagnostic::UnmodeledEntitiesSkipped` APIs have been removed. Existing

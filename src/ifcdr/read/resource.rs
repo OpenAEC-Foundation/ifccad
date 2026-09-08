@@ -261,10 +261,7 @@ mod tests {
 
         assert_eq!(resource.header().format(), "openaec.ifcdr");
         assert_eq!(resource.header().version(), "0.7.0");
-        assert_eq!(
-            resource.header().resource_id().as_str(),
-            "geometry-modelspace-main"
-        );
+        assert_eq!(resource.header().resource_id().as_str(), "drawing-main");
         assert_eq!(resource.header().unit(), "m");
         assert_eq!(resource.header().next_entity_id(), 5);
         assert_eq!(resource.bounds().unwrap().min(), Point2::new(0.0, 0.0));
@@ -305,7 +302,7 @@ mod tests {
         let view = IfcdrResourceRef::new(resource);
         let scope = view.scopes().next().expect("model scope");
 
-        assert_eq!(view.resource_id().as_str(), "geometry-modelspace-main");
+        assert_eq!(view.resource_id().as_str(), "drawing-main");
         assert_eq!(view.unit(), IfcdrLengthUnit::Metre);
         assert_eq!(scope.name(), "ModelSpace");
         assert_eq!(

@@ -25,7 +25,7 @@
         "Layouts": [
           "drawing-main-layout-model"
         ],
-        "Representation": "representation-modelspace-main"
+        "Representation": "drawing-representation-main"
       },
       "path": "drawing-main",
       "type": "openaec:Drawing"
@@ -40,25 +40,25 @@
         "tabOrder": 0
       },
       "children": {
-        "Representation": "representation-modelspace-main"
+        "Representation": "drawing-representation-main"
       },
       "path": "drawing-main-layout-model",
       "type": "openaec:DrawingLayout"
     },
     {
       "attributes": {
-        "geometry": {
-          "checksum": "sha256:47980a4df31d19990136d2f94ae86fa420c2a194cca06a1842562df2477e3a53",
+        "resource": {
+          "checksum": "sha256:e7036d1da113d56ef799178de5be30869cf619f8e8b2fddcbaca60ba8ceaaa51",
           "format": "openaec.ifcdr",
-          "role": "modelspace",
+          "role": "drawing",
           "uri": "drawing.ifcdr.json",
           "version": "0.7.0",
-          "resourceId": "geometry-modelspace-main"
+          "resourceId": "drawing-main"
         },
-        "name": "ModelSpace"
+        "name": "Drawing"
       },
-      "path": "representation-modelspace-main",
-      "type": "openaec:DrawingGeometryRepresentation"
+      "path": "drawing-representation-main",
+      "type": "openaec:DrawingRepresentation"
     },
     {
       "attributes": {
@@ -147,10 +147,10 @@
     {
       "attributes": {
         "preservation": {
-          "checksum": "sha256:ca157f01202c604c8368c95c102e2184faa558eb08ce70fefe07d7191ad79ef1",
+          "checksum": "sha256:2975388c27e5eec69ee7a31acfd16af19a27c6f5f272bb59d65dac25afb3425e",
           "format": "openaec.ifcpr",
           "linkedDrawingResourceIds": [
-            "geometry-modelspace-main"
+            "drawing-main"
           ],
           "sourceDocumentId": "golden-source-dxf",
           "uri": "preservation.ifcpr.json",

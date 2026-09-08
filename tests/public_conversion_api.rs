@@ -114,11 +114,11 @@ fn validated_package_exposes_converter_inputs_without_raw_json() {
     assert_eq!(drawing.path(), "drawing-main");
 
     let representation = drawing.representation();
-    assert_eq!(representation.path(), "representation-modelspace-main");
-    assert_eq!(representation.role(), "modelspace");
+    assert_eq!(representation.path(), "drawing-representation-main");
+    assert_eq!(representation.role(), "drawing");
     assert_eq!(
         representation.resource_id(),
-        &ResourceId::new("geometry-modelspace-main").unwrap()
+        &ResourceId::new("drawing-main").unwrap()
     );
     assert_eq!(representation.external_uri(), Some("drawing.ifcdr.json"));
     assert_eq!(

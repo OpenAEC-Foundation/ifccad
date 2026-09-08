@@ -194,7 +194,7 @@ fn write_example() -> Result<(), Box<dyn std::error::Error>> {
     })?;
     let mut drawing = package.add_drawing(DrawingOptions {
         model_layout_name: "Model".into(),
-        representation_resource_id: ResourceId::new("geometry-main")?,
+        representation_resource_id: ResourceId::new("drawing-main")?,
         length_unit: IfcdrLengthUnit::Millimetre,
     })?;
     let style = drawing.appearances().add(AppearanceDefinition {
@@ -249,7 +249,7 @@ The public API is still evolving while the format contract matures.
 The active language-neutral schemas live in `schemas/`. The mutable
 `conformance/next` collection currently targets suite `1.1.0` and tests the
 minimal package-header contract alongside explicit resource identity: a
-logical resource ID is independent of its external URI. IFCX overlay `0.7.0`
+logical resource ID is independent of its external URI. IFCX overlay `0.8.0`
 requires the top-level `header`, `imports`, and `data` fields and the known
 header fields, while still allowing additional top-level and header fields and
 unknown IFCX node types for forward-compatible extension. It remains a
@@ -257,6 +257,12 @@ development candidate until it is frozen as a numbered release. A numbered
 directory such as `conformance/1.0.0` is an immutable, self-contained release
 of fixtures, vectors, expected outcomes, and the schemas applicable to that
 collection.
+
+The [drawing resource contract](schemas/ifcx/drawing-resource-contract-0.8.0.md)
+uses `openaec:DrawingRepresentation` and `attributes.resource` with role
+`drawing`. A Drawing and all its layouts reference the same representation
+node; layouts select scopes within its IFCDR resource. The retired
+`DrawingGeometryRepresentation` vocabulary is explicitly unsupported.
 
 Active schemas may move ahead of the latest released conformance collection.
 When a new collection is released, its applicable schemas are copied into the
