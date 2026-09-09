@@ -7,11 +7,13 @@ use super::graph::validate_ifcx_graph;
 use super::loader::{DirectoryPackageLoader, PackageLoadLimits};
 use super::model::{LoadedIfccadPackage, PackageAnalysis, PackageLoadOutcome};
 use super::schema::{validate_ifcpr, validate_ifcx};
+use super::source::ResourceSourceKey;
 use super::{
     PackageDiagnostic, PackageDiagnosticContextValue, PackageDiagnosticSeverity, PackageOpenError,
     PackageValidationReport,
 };
 use crate::ifcdr::{validate_ifcdr, LoadedIfcdrResource};
+use crate::json_resource::LoadedJsonResource;
 use crate::ResourceId;
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
@@ -36,30 +38,15 @@ pub fn load_directory_package(
     let discovery = discover_resources(&entrypoint.value);
     let mut declarations = discovery.declarations;
     declarations.sort_by(|left, right| {
-        (
-            left.external_uri.as_str(),
-            left.kind,
-            left.external_uri_location.as_str(),
-        )
-            .cmp(&(
-                right.external_uri.as_str(),
-                right.kind,
-                right.external_uri_location.as_str(),
-            ))
+        (&left.source, left.kind, left.source_location.as_str()).cmp(&(
+            &right.source,
+            right.kind,
+            right.source_location.as_str(),
+        ))
     });
-    let mut attempted_uris = BTreeSet::new();
-    let mut resources = BTreeMap::new();
-    for declaration in &declarations {
-        if !attempted_uris.insert(declaration.external_uri.as_str()) {
-            continue;
-        }
-        if let Some(resource) = loader.load_json_resource(
-            &declaration.external_uri,
-            Some(&declaration.external_uri_location),
-        )? {
-            resources.insert(declaration.external_uri.clone(), Arc::new(resource));
-        }
-    }
+    let resources = resolve_resources(&entrypoint, &declarations, |uri, location| {
+        loader.load_json_resource(uri, Some(location))
+    })?;
 
     let mut diagnostics = loader.into_report().into_diagnostics();
     diagnostics.extend(discovery.diagnostics);
@@ -81,18 +68,18 @@ fn validate_loaded_package(
     diagnostics.extend(validate_declared_resource_id_uniqueness(
         &package.declarations,
     ));
-    let mut validated_ifcpr_uris = BTreeSet::new();
-    let mut ifcpr_resource_ids_by_uri = BTreeMap::new();
+    let mut validated_ifcpr_sources = BTreeSet::new();
+    let mut ifcpr_resource_ids_by_source = BTreeMap::new();
     for declaration in &package.declarations {
         if declaration.kind != ResourceKind::Ifcpr
-            || !validated_ifcpr_uris.insert(declaration.external_uri.as_str())
+            || !validated_ifcpr_sources.insert(&declaration.source)
         {
             continue;
         }
-        if let Some(resource) = package.resources.get(&declaration.external_uri) {
-            let resource_diagnostics = validate_ifcpr(
+        if let Some(resource) = package.resources.get(&declaration.source) {
+            let mut resource_diagnostics = validate_ifcpr(
                 Some(&declaration.resource_id),
-                &declaration.external_uri,
+                &declaration.source.origin().document_uri,
                 &resource.value,
             );
             if resource_diagnostics.is_empty() {
@@ -102,8 +89,11 @@ fn validate_loaded_package(
                     .and_then(serde_json::Value::as_str)
                     .and_then(|value| ResourceId::new(value).ok())
                     .expect("IFCPR 0.2.0 schema proves a non-empty header resourceId");
-                ifcpr_resource_ids_by_uri
-                    .insert(declaration.external_uri.clone(), content_resource_id);
+                ifcpr_resource_ids_by_source
+                    .insert(declaration.source.clone(), content_resource_id);
+            }
+            for diagnostic in &mut resource_diagnostics {
+                declaration.source.origin().apply(diagnostic);
             }
             diagnostics.extend(resource_diagnostics);
         }
@@ -113,8 +103,7 @@ fn validate_loaded_package(
         .iter()
         .filter(|declaration| declaration.kind == ResourceKind::Ifcpr)
     {
-        if let Some(content_resource_id) = ifcpr_resource_ids_by_uri.get(&declaration.external_uri)
-        {
+        if let Some(content_resource_id) = ifcpr_resource_ids_by_source.get(&declaration.source) {
             if content_resource_id != &declaration.resource_id {
                 diagnostics.push(resource_id_mismatch_diagnostic(
                     declaration,
@@ -127,19 +116,19 @@ fn validate_loaded_package(
     let graph = validate_ifcx_graph(&package.entrypoint.value);
     diagnostics.extend(graph.diagnostics);
 
-    let mut validated_ifcdr_by_uri = BTreeMap::new();
-    let mut attempted_ifcdr_uris = BTreeSet::new();
+    let mut validated_ifcdr_by_source = BTreeMap::new();
+    let mut attempted_ifcdr_sources = BTreeSet::new();
     for declaration in &package.declarations {
         if declaration.kind != ResourceKind::Ifcdr
-            || !attempted_ifcdr_uris.insert(declaration.external_uri.as_str())
+            || !attempted_ifcdr_sources.insert(&declaration.source)
         {
             continue;
         }
-        let Some(source) = package.resources.get(&declaration.external_uri) else {
+        let Some(source) = package.resources.get(&declaration.source) else {
             continue;
         };
         let outcome = validate_ifcdr(LoadedIfcdrResource::new(
-            declaration.external_uri.clone(),
+            declaration.source.origin().document_uri,
             source.clone(),
         ));
         let (validated, mut resource_diagnostics) = outcome.into_parts();
@@ -147,10 +136,11 @@ fn validate_loaded_package(
             diagnostic
                 .resource_id
                 .get_or_insert_with(|| declaration.resource_id.clone());
+            declaration.source.origin().apply(diagnostic);
         }
         diagnostics.extend(resource_diagnostics);
         if let Some(validated) = validated {
-            validated_ifcdr_by_uri.insert(declaration.external_uri.clone(), Arc::new(validated));
+            validated_ifcdr_by_source.insert(declaration.source.clone(), Arc::new(validated));
         }
     }
 
@@ -160,7 +150,7 @@ fn validate_loaded_package(
         .iter()
         .filter(|declaration| declaration.kind == ResourceKind::Ifcdr)
     {
-        let Some(validated) = validated_ifcdr_by_uri.get(&declaration.external_uri) else {
+        let Some(validated) = validated_ifcdr_by_source.get(&declaration.source) else {
             continue;
         };
         let content_resource_id = validated.header().resource_id();
@@ -186,7 +176,7 @@ fn validate_loaded_package(
 
     diagnostics.extend(validate_ifcpr_drawing_resource_ids(
         &package,
-        &ifcpr_resource_ids_by_uri,
+        &ifcpr_resource_ids_by_source,
         &validated_ifcdr_resources,
         &unavailable_ifcdr_resource_ids,
     ));
@@ -197,7 +187,24 @@ fn validate_loaded_package(
         &validated_ifcdr_resources,
         &unavailable_ifcdr_resource_ids,
     );
-    diagnostics.extend(binding_analysis.diagnostics);
+    let mut binding_diagnostics = binding_analysis.diagnostics;
+    for diagnostic in &mut binding_diagnostics {
+        if diagnostic
+            .location
+            .as_deref()
+            .is_some_and(|p| p.starts_with("/data/"))
+        {
+            continue;
+        }
+        if let Some(declaration) = package
+            .declarations
+            .iter()
+            .find(|d| Some(&d.resource_id) == diagnostic.resource_id.as_ref())
+        {
+            declaration.source.origin().apply(diagnostic);
+        }
+    }
+    diagnostics.extend(binding_diagnostics);
 
     let analysis = Arc::new(PackageAnalysis {
         header: header_analysis.header,
@@ -220,13 +227,13 @@ fn validate_loaded_package(
 
 fn validate_ifcpr_drawing_resource_ids(
     package: &LoadedIfccadPackage,
-    ifcpr_resource_ids_by_uri: &BTreeMap<String, ResourceId>,
+    ifcpr_resource_ids_by_source: &BTreeMap<ResourceSourceKey, ResourceId>,
     validated_ifcdr_resources: &BTreeMap<ResourceId, Arc<crate::ifcdr::ValidatedIfcdrResource>>,
     unavailable_ifcdr_resource_ids: &BTreeSet<ResourceId>,
 ) -> Vec<PackageDiagnostic> {
     let mut diagnostics = Vec::new();
-    for (external_uri, ifcpr_resource_id) in ifcpr_resource_ids_by_uri {
-        let Some(resource) = package.resources.get(external_uri) else {
+    for (source, ifcpr_resource_id) in ifcpr_resource_ids_by_source {
+        let Some(resource) = package.resources.get(source) else {
             continue;
         };
         let Some(links) = resource
@@ -244,11 +251,7 @@ fn validate_ifcpr_drawing_resource_ids(
             };
             if validated_ifcdr_resources.contains_key(&target_resource_id)
                 || unavailable_ifcdr_resource_ids.contains(&target_resource_id)
-                || ifcx_descriptor_reports_missing_target(
-                    package,
-                    external_uri,
-                    &target_resource_id,
-                )
+                || ifcx_descriptor_reports_missing_target(package, source, &target_resource_id)
             {
                 continue;
             }
@@ -256,8 +259,12 @@ fn validate_ifcpr_drawing_resource_ids(
                 code: IFCCAD_PACKAGE_TARGET_RESOURCE_MISSING.to_owned(),
                 severity: PackageDiagnosticSeverity::Error,
                 resource_id: Some(ifcpr_resource_id.clone()),
-                resource_uri: Some(external_uri.clone()),
-                location: Some(format!("/linkedDrawingResources/{index}")),
+                resource_uri: Some(source.origin().document_uri),
+                location: Some(
+                    source
+                        .origin()
+                        .locate(Some(&format!("/linkedDrawingResources/{index}"))),
+                ),
                 context: BTreeMap::from([(
                     "resourceId".to_owned(),
                     PackageDiagnosticContextValue::String(target_resource_id.to_string()),
@@ -271,20 +278,15 @@ fn validate_ifcpr_drawing_resource_ids(
 
 fn ifcx_descriptor_reports_missing_target(
     package: &LoadedIfccadPackage,
-    ifcpr_external_uri: &str,
+    source: &ResourceSourceKey,
     target_resource_id: &ResourceId,
 ) -> bool {
     package
-        .entrypoint
-        .value()
-        .get("data")
-        .and_then(serde_json::Value::as_array)
-        .into_iter()
-        .flatten()
-        .filter_map(|node| node.pointer("/attributes/preservation"))
-        .filter(|descriptor| {
-            descriptor.get("uri").and_then(serde_json::Value::as_str) == Some(ifcpr_external_uri)
-        })
+        .declarations
+        .iter()
+        .filter(|d| d.kind == ResourceKind::Ifcpr && &d.source == source)
+        .filter_map(|d| d.resource_id_location.strip_suffix("/resourceId"))
+        .filter_map(|pointer| package.entrypoint.value().pointer(pointer))
         .filter_map(|descriptor| {
             descriptor
                 .get("linkedDrawingResourceIds")
@@ -304,7 +306,7 @@ fn validate_declared_resource_id_uniqueness(
     let mut diagnostics = Vec::new();
 
     for declaration in source_order {
-        let identity = (declaration.kind, declaration.external_uri.as_str());
+        let identity = (declaration.kind, &declaration.source);
         match first_by_id.get(&declaration.resource_id) {
             None => {
                 first_by_id.insert(declaration.resource_id.clone(), identity);
@@ -314,7 +316,7 @@ fn validate_declared_resource_id_uniqueness(
                 code: IFCCAD_PACKAGE_RESOURCE_ID_DUPLICATE.to_owned(),
                 severity: PackageDiagnosticSeverity::Error,
                 resource_id: Some(declaration.resource_id.clone()),
-                resource_uri: Some(declaration.external_uri.clone()),
+                resource_uri: Some(declaration.source.origin().document_uri),
                 location: Some(declaration.resource_id_location.clone()),
                 context: BTreeMap::from([
                     (
@@ -328,8 +330,8 @@ fn validate_declared_resource_id_uniqueness(
                         ),
                     ),
                     (
-                        "firstExternalUri".to_owned(),
-                        PackageDiagnosticContextValue::String((*first_uri).to_owned()),
+                        "firstSource".to_owned(),
+                        PackageDiagnosticContextValue::String(format!("{:?}", first_uri)),
                     ),
                     (
                         "actualKind".to_owned(),
@@ -338,8 +340,8 @@ fn validate_declared_resource_id_uniqueness(
                         ),
                     ),
                     (
-                        "actualExternalUri".to_owned(),
-                        PackageDiagnosticContextValue::String(declaration.external_uri.clone()),
+                        "actualSource".to_owned(),
+                        PackageDiagnosticContextValue::String(format!("{:?}", declaration.source)),
                     ),
                 ]),
                 message: "one package resource ID cannot identify different resources".to_owned(),
@@ -357,7 +359,7 @@ fn resource_id_mismatch_diagnostic(
         code: IFCCAD_PACKAGE_RESOURCE_ID_MISMATCH.to_owned(),
         severity: PackageDiagnosticSeverity::Error,
         resource_id: Some(declaration.resource_id.clone()),
-        resource_uri: Some(declaration.external_uri.clone()),
+        resource_uri: Some(declaration.source.origin().document_uri),
         location: Some(declaration.resource_id_location.clone()),
         context: BTreeMap::from([
             (
@@ -394,12 +396,13 @@ fn verify_resource_checksums(package: &LoadedIfccadPackage) -> Vec<PackageDiagno
         .declarations
         .iter()
         .filter_map(|declaration| {
+            declaration.source.external_uri()?;
             let expected = declaration.checksum.as_deref()?;
             if !is_sha256_checksum(expected) {
                 return None;
             }
-            let resource = package.resources.get(&declaration.external_uri)?;
-            let actual = sha256_checksum(resource.bytes());
+            let resource = package.resources.get(&declaration.source)?;
+            let actual = sha256_checksum(resource.bytes()?);
             if actual == expected {
                 return None;
             }
@@ -407,7 +410,7 @@ fn verify_resource_checksums(package: &LoadedIfccadPackage) -> Vec<PackageDiagno
                 code: IFCCAD_PACKAGE_CHECKSUM_MISMATCH.to_owned(),
                 severity: PackageDiagnosticSeverity::Error,
                 resource_id: Some(declaration.resource_id.clone()),
-                resource_uri: Some(declaration.external_uri.clone()),
+                resource_uri: Some(declaration.source.origin().document_uri),
                 location: Some(declaration.checksum_location.clone()),
                 context: BTreeMap::from([
                     (
@@ -421,7 +424,7 @@ fn verify_resource_checksums(package: &LoadedIfccadPackage) -> Vec<PackageDiagno
                 ]),
                 message: format!(
                     "resource checksum does not match the exact bytes for {:?}",
-                    declaration.external_uri
+                    declaration.source
                 ),
             })
         })
@@ -477,11 +480,30 @@ pub(crate) fn validate_encoded_package(
         if uri == crate::package::DIRECTORY_PACKAGE_ENTRYPOINT {
             entrypoint = Some(resource);
         } else {
-            resources.insert(uri.to_owned(), Arc::new(resource));
+            resources.insert(uri.to_owned(), resource);
         }
     }
     let entrypoint = entrypoint.expect("builder assembles the package entrypoint");
     let discovery = discover_resources(entrypoint.value());
+    let mut missing = Vec::new();
+    let resources = resolve_resources(&entrypoint, &discovery.declarations, |uri, location| {
+        let resource = resources.remove(uri);
+        if resource.is_none() {
+            missing.push(PackageDiagnostic {
+                code: super::codes::IFCCAD_PACKAGE_RESOURCE_MISSING.into(),
+                severity: PackageDiagnosticSeverity::Error,
+                resource_id: None,
+                resource_uri: Some(uri.into()),
+                location: Some(location.into()),
+                context: BTreeMap::new(),
+                message: "encoded package resource is missing".into(),
+            });
+        }
+        Ok(resource)
+    })
+    .expect("in-memory source provider cannot fail with I/O");
+    let mut discovery = discovery;
+    discovery.diagnostics.extend(missing);
     let package = Arc::new(LoadedIfccadPackage {
         entrypoint,
         declarations: discovery.declarations,
@@ -492,8 +514,91 @@ pub(crate) fn validate_encoded_package(
         .into_diagnostics()
 }
 
+/// Resolves sources once without assigning fictitious file identities to inline values.
+fn resolve_resources(
+    entrypoint: &LoadedJsonResource,
+    declarations: &[super::discovery::ResourceDeclaration],
+    mut external: impl FnMut(&str, &str) -> Result<Option<LoadedJsonResource>, PackageOpenError>,
+) -> Result<BTreeMap<ResourceSourceKey, Arc<LoadedJsonResource>>, PackageOpenError> {
+    let mut resources = BTreeMap::new();
+    let mut attempted = BTreeSet::new();
+    for declaration in declarations {
+        if !attempted.insert(declaration.source.clone()) {
+            continue;
+        }
+        let resource = match &declaration.source {
+            ResourceSourceKey::External(uri) => external(uri, &declaration.source_location)?,
+            ResourceSourceKey::Inline {
+                document_uri,
+                pointer,
+            } => entrypoint
+                .value()
+                .pointer(pointer)
+                .map(|value| LoadedJsonResource::inline(document_uri.clone(), value.clone())),
+        };
+        if let Some(resource) = resource {
+            resources.insert(declaration.source.clone(), Arc::new(resource));
+        }
+    }
+    Ok(resources)
+}
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn inline_resolution_counts_entrypoint_bytes_once() {
+        let root = TestDirectory::new("inline-limits");
+        let mut graph = copy_minimal_package(root.path());
+        let body = serde_json::from_slice::<serde_json::Value>(
+            &fs::read(root.path().join("drawing.ifcdr.json")).unwrap(),
+        )
+        .unwrap();
+        let descriptor = graph["data"][3]["attributes"]["resource"]
+            .as_object_mut()
+            .unwrap();
+        descriptor.remove("uri");
+        descriptor.remove("checksum");
+        descriptor.insert("content".into(), body);
+        let bytes = serde_json::to_vec(&graph).unwrap();
+        fs::write(
+            root.path()
+                .join(crate::package::DIRECTORY_PACKAGE_ENTRYPOINT),
+            &bytes,
+        )
+        .unwrap();
+        let size = bytes.len() as u64;
+        let mut loader = DirectoryPackageLoader::open(
+            root.path(),
+            PackageLoadLimits {
+                max_resource_bytes: size,
+                max_total_bytes: size,
+            },
+        )
+        .unwrap();
+        let entrypoint = loader.load_entrypoint().unwrap().unwrap();
+        let discovery = discover_resources(entrypoint.value());
+        let resources = resolve_resources(&entrypoint, &discovery.declarations, |_, _| {
+            panic!("inline must not load a file")
+        })
+        .unwrap();
+        assert_eq!(resources.len(), 1);
+        assert!(resources
+            .values()
+            .all(|r| r.bytes().is_none() && r.path().is_none()));
+        assert!(loader.into_report().is_valid());
+        let mut too_small = DirectoryPackageLoader::open(
+            root.path(),
+            PackageLoadLimits {
+                max_resource_bytes: size,
+                max_total_bytes: size - 1,
+            },
+        )
+        .unwrap();
+        assert!(too_small.load_entrypoint().unwrap().is_none());
+        assert!(too_small
+            .into_report()
+            .iter()
+            .any(|d| d.code == super::super::codes::IFCCAD_PACKAGE_TOTAL_LIMIT_EXCEEDED));
+    }
     use super::super::codes::{
         IFCCAD_PACKAGE_CHECKSUM_MISMATCH, IFCCAD_PACKAGE_ENTRYPOINT_INVALID,
         IFCCAD_PACKAGE_JSON_INVALID, IFCCAD_PACKAGE_NODE_PATH_DUPLICATE,
@@ -945,14 +1050,19 @@ mod tests {
         let outcome = load_directory_package(root.path()).expect("load directory package");
         let package = outcome.package.expect("entrypoint produced package");
 
-        assert_eq!(package.entrypoint.bytes, entrypoint);
+        assert_eq!(package.entrypoint.bytes.as_deref().unwrap(), entrypoint);
         assert_eq!(package.entrypoint.value["data"][0]["path"], "resource");
         assert_eq!(package.declarations.len(), 1);
-        assert_eq!(package.declarations[0].external_uri, "drawing.ifcdr.json");
-        let source = package.resources["drawing.ifcdr.json"].clone();
-        let second = package.resources["drawing.ifcdr.json"].clone();
+        assert_eq!(
+            package.declarations[0].source.external_uri(),
+            Some("drawing.ifcdr.json")
+        );
+        let source =
+            package.resources[&ResourceSourceKey::External("drawing.ifcdr.json".into())].clone();
+        let second =
+            package.resources[&ResourceSourceKey::External("drawing.ifcdr.json".into())].clone();
         assert!(Arc::ptr_eq(&source, &second));
-        assert_eq!(source.bytes(), drawing);
+        assert_eq!(source.bytes().unwrap(), drawing);
         assert_eq!(source.value()["header"], serde_json::json!({}));
     }
 
@@ -972,11 +1082,11 @@ mod tests {
 
         assert!(Arc::ptr_eq(
             validated.loaded().source(),
-            &package.resources["drawing.ifcdr.json"]
+            &package.resources[&ResourceSourceKey::External("drawing.ifcdr.json".into())]
         ));
         assert_eq!(
             validated.loaded().source().bytes(),
-            package.resources["drawing.ifcdr.json"].bytes()
+            package.resources[&ResourceSourceKey::External("drawing.ifcdr.json".into())].bytes()
         );
     }
 
@@ -996,7 +1106,7 @@ mod tests {
         assert_eq!(analysis.node_indices_by_path["drawing-main"], 1);
         assert!(Arc::ptr_eq(
             ifcdr.loaded().source(),
-            &package.resources["drawing.ifcdr.json"]
+            &package.resources[&ResourceSourceKey::External("drawing.ifcdr.json".into())]
         ));
     }
 
@@ -1468,7 +1578,7 @@ mod tests {
             .as_ref()
             .unwrap()
             .resources
-            .contains_key("drawing.ifcdr.json"));
+            .contains_key(&ResourceSourceKey::External("drawing.ifcdr.json".into())));
         assert!(!outcome
             .analysis
             .as_ref()
@@ -1565,7 +1675,7 @@ mod tests {
                 .declarations
                 .iter()
                 .filter(|declaration| declaration.kind == ResourceKind::Ifcdr)
-                .filter(|declaration| package.resources.contains_key(&declaration.external_uri))
+                .filter(|declaration| package.resources.contains_key(&declaration.source))
                 .map(|declaration| declaration.resource_id.as_str())
                 .collect::<BTreeSet<_>>();
             let validated_uris = outcome
@@ -1593,8 +1703,13 @@ mod tests {
         let outcome = load_directory_package(root.path()).expect("load directory package");
         let package = outcome.package.expect("parsed entrypoint is retained");
 
-        assert_eq!(package.declarations[0].external_uri, "missing.ifcdr.json");
-        assert!(!package.resources.contains_key("missing.ifcdr.json"));
+        assert_eq!(
+            package.declarations[0].source.external_uri(),
+            Some("missing.ifcdr.json")
+        );
+        assert!(!package
+            .resources
+            .contains_key(&ResourceSourceKey::External("missing.ifcdr.json".into())));
         assert_eq!(
             outcome.report.diagnostics()[0].code,
             IFCCAD_PACKAGE_RESOURCE_MISSING
@@ -1947,7 +2062,7 @@ mod tests {
         assert!(package
             .declarations
             .iter()
-            .any(|declaration| declaration.external_uri == "drawing.ifcdr.json"));
+            .any(|declaration| declaration.source.external_uri() == Some("drawing.ifcdr.json")));
         assert!(outcome
             .report
             .iter()

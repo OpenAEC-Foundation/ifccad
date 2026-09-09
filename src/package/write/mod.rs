@@ -18,6 +18,6 @@ pub use builder::{
 pub use error::{PackageBuildError, PackageWriteError};
 pub use types::{
     AppearanceColor, AppearanceDefinition, AppearanceKey, AppearanceMode, DrawingOptions,
-    EntityAppearance, LayerDefinition, LayerKey, LineDefinition, LinePatternDefinition,
-    PackageOptions, PolylineDefinition,
+    DrawingResourceStorage, EntityAppearance, LayerDefinition, LayerKey, LineDefinition,
+    LinePatternDefinition, PackageOptions, PolylineDefinition,
 };

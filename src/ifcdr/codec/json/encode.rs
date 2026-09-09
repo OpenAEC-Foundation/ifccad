@@ -9,6 +9,7 @@ use sha2::{Digest, Sha256};
 pub(crate) struct EncodedIfcdrResource {
     pub resource_id: ResourceId,
     pub bytes: Vec<u8>,
+    pub value: Value,
     pub checksum: String,
 }
 #[derive(Debug, thiserror::Error)]
@@ -171,6 +172,7 @@ pub(crate) fn encode_json<R: IfcdrResourceAccess>(
         resource_id: r.resource_id().clone(),
         bytes,
         checksum,
+        value: root,
     })
 }
 pub(crate) fn color_json(c: &IfcdrColor) -> Value {

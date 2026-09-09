@@ -631,6 +631,138 @@
           }
         }
       ]
+    },
+    {
+      "caseId": "valid.inline-drawing",
+      "category": "valid",
+      "description": "Inline resource source contract: inline-drawing",
+      "entrypoint": "packages/valid/inline-drawing/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "valid.inline-both",
+      "category": "valid",
+      "description": "Inline resource source contract: inline-both",
+      "entrypoint": "packages/valid/inline-both/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "valid.inline-ifcdr-external-ifcpr",
+      "category": "valid",
+      "description": "Inline resource source contract: inline-ifcdr-external-ifcpr",
+      "entrypoint": "packages/valid/inline-ifcdr-external-ifcpr/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "valid.external-ifcdr-inline-ifcpr",
+      "category": "valid",
+      "description": "Inline resource source contract: external-ifcdr-inline-ifcpr",
+      "entrypoint": "packages/valid/external-ifcdr-inline-ifcpr/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.inline-duplicate-id",
+      "category": "invalid",
+      "description": "Inline resource source contract: inline-duplicate-id",
+      "entrypoint": "packages/invalid/inline-duplicate-id/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_RESOURCE_ID_DUPLICATE",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.inline-competing-sources",
+      "category": "invalid",
+      "description": "Inline resource source contract: inline-competing-sources",
+      "entrypoint": "packages/invalid/inline-competing-sources/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.inline-checksum",
+      "category": "invalid",
+      "description": "Inline resource source contract: inline-checksum",
+      "entrypoint": "packages/invalid/inline-checksum/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.inline-unsupported-body",
+      "category": "invalid",
+      "description": "Inline resource source contract: inline-unsupported-body",
+      "entrypoint": "packages/invalid/inline-unsupported-body/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_VERSION_UNSUPPORTED",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
     }
   ],
   "suiteVersion": "1.1.0"

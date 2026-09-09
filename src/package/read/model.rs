@@ -9,7 +9,7 @@ use std::sync::Arc;
 pub(crate) struct LoadedIfccadPackage {
     pub(crate) entrypoint: LoadedJsonResource,
     pub(crate) declarations: Vec<ResourceDeclaration>,
-    pub(crate) resources: BTreeMap<String, Arc<LoadedJsonResource>>,
+    pub(crate) resources: BTreeMap<super::source::ResourceSourceKey, Arc<LoadedJsonResource>>,
 }
 
 #[derive(Debug)]

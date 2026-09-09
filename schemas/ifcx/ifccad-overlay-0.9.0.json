@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.8.0.json",
-  "title": "IFCCAD IFCX Overlay 0.8.0",
+  "$id": "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.9.0.json",
+  "title": "IFCCAD IFCX Overlay 0.9.0",
   "description": "Composite IFCCAD constraints for the package header, explicit resource identity, the drawing core, and typed appearances in IFCX.",
   "type": "object",
   "required": [
@@ -126,8 +126,6 @@
         "format",
         "version",
         "resourceId",
-        "uri",
-        "checksum",
         "role"
       ],
       "properties": {
@@ -148,9 +146,44 @@
         },
         "resourceId": {
           "$ref": "#/$defs/nonEmptyString"
+        },
+        "content": {
+          "type": "object"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "uri",
+            "checksum"
+          ],
+          "not": {
+            "required": [
+              "content"
+            ]
+          }
+        },
+        {
+          "required": [
+            "content"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "uri"
+                ]
+              },
+              {
+                "required": [
+                  "checksum"
+                ]
+              }
+            ]
+          }
+        }
+      ]
     },
     "preservationResourceNode": {
       "type": "object",
@@ -187,8 +220,6 @@
         "format",
         "version",
         "resourceId",
-        "uri",
-        "checksum",
         "sourceDocumentId",
         "linkedDrawingResourceIds"
       ],
@@ -218,9 +249,44 @@
           "items": {
             "$ref": "#/$defs/nonEmptyString"
           }
+        },
+        "content": {
+          "type": "object"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "uri",
+            "checksum"
+          ],
+          "not": {
+            "required": [
+              "content"
+            ]
+          }
+        },
+        {
+          "required": [
+            "content"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "uri"
+                ]
+              },
+              {
+                "required": [
+                  "checksum"
+                ]
+              }
+            ]
+          }
+        }
+      ]
     },
     "nonEmptyString": {
       "type": "string",
@@ -277,5 +343,5 @@
       "$ref": "https://schemas.ifccad.org/ifcx/ifccad-drawing-core-0.2.0.json"
     }
   ],
-  "$comment": "Package relationship rules: ./drawing-resource-contract-0.8.0.md"
+  "$comment": "Normative rules: ./resource-source-contract-0.9.0.md and ./drawing-resource-contract-0.8.0.md"
 }

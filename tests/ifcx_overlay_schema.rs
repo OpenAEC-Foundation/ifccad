@@ -12,6 +12,64 @@ const OVERLAY_0_4_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.4
 const OVERLAY_0_5_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.5.0.json";
 
 #[test]
+fn overlay_0_9_requires_exactly_one_source_for_each_resource_kind() {
+    let registry = Registry::new()
+        .add(DRAWING_CORE_0_2_ID, drawing_core_0_2_schema())
+        .unwrap()
+        .prepare()
+        .unwrap();
+    let validator = jsonschema::draft202012::options()
+        .with_registry(&registry)
+        .build(&load_schema("ifccad-overlay-0.9.0.json"))
+        .unwrap();
+    for (node_type, field, metadata) in [
+        (
+            "openaec:DrawingRepresentation",
+            "resource",
+            json!({"format":"openaec.ifcdr","version":"0.7.0","resourceId":"drawing","role":"drawing"}),
+        ),
+        (
+            "openaec:PreservationRepresentation",
+            "preservation",
+            json!({"format":"openaec.ifcpr","version":"0.2.0","resourceId":"preservation","sourceDocumentId":"source","linkedDrawingResourceIds":["drawing"]}),
+        ),
+    ] {
+        for (source, valid) in [
+            (
+                json!({"uri":"r.json","checksum":format!("sha256:{}", "a".repeat(64))}),
+                true,
+            ),
+            (json!({"content":{}}), true),
+            (json!({}), false),
+            (json!({"uri":"r.json"}), false),
+            (json!({"content":{},"uri":"r.json"}), false),
+            (json!({"content":{},"checksum":null}), false),
+            (
+                json!({"content":{},"checksum":format!("sha256:{}", "a".repeat(64))}),
+                false,
+            ),
+            (json!({"content":null}), false),
+            (json!({"content":"{}"}), false),
+            (json!({"content":[]}), false),
+        ] {
+            let mut descriptor = metadata.clone();
+            descriptor
+                .as_object_mut()
+                .unwrap()
+                .extend(source.as_object().unwrap().clone());
+            let mut document = package_contract_document();
+            document["data"] =
+                json!([{"path":"r","type":node_type,"attributes":{field:descriptor}}]);
+            assert_eq!(
+                validator.is_valid(&document),
+                valid,
+                "{node_type}: {source}"
+            );
+        }
+    }
+}
+
+#[test]
 fn overlay_0_8_uses_a_drawing_resource_descriptor() {
     let registry = Registry::new()
         .add(DRAWING_CORE_0_2_ID, drawing_core_0_2_schema())

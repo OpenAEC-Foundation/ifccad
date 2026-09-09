@@ -72,6 +72,7 @@ impl PackageBuilder {
             })?;
         self.state.drawing = Some(DrawingState {
             options,
+            storage: super::DrawingResourceStorage::default(),
             token,
             appearances: Vec::new(),
             appearance_bindings: Vec::new(),
@@ -94,30 +95,43 @@ impl PackageBuilder {
             .ok_or(PackageBuildError::DrawingMissing)?;
         let paths = NodePaths::for_drawing(&drawing)?;
         let uri = super::ifcx::DRAWING_RESOURCE_URI;
+        let inline = drawing.storage == super::DrawingResourceStorage::Inline;
+        let report_logical = |d| {
+            let mut diagnostic = logical_diagnostic(
+                if inline {
+                    crate::package::DIRECTORY_PACKAGE_ENTRYPOINT
+                } else {
+                    uri
+                },
+                d,
+            );
+            if inline {
+                diagnostic.location = Some(format!(
+                    "/data/3/attributes/resource/content{}",
+                    diagnostic.location.as_deref().unwrap_or("")
+                ));
+            }
+            diagnostic
+        };
         let prepared = prepare_drawing(&mut drawing, &paths).map_err(|errors| {
             PackageBuildError::Validation {
-                diagnostics: errors
-                    .into_iter()
-                    .map(|d| logical_diagnostic(uri, d))
-                    .collect(),
+                diagnostics: errors.into_iter().map(report_logical).collect(),
             }
         })?;
         let (proof, errors) = validate_resource(prepared).into_parts();
         let proof = proof.ok_or_else(|| PackageBuildError::Validation {
-            diagnostics: errors
-                .into_iter()
-                .map(|d| logical_diagnostic(uri, d))
-                .collect(),
+            diagnostics: errors.into_iter().map(report_logical).collect(),
         })?;
         let resource = encode_json(&proof).map_err(map_ifcdr_encode_error)?;
         let entrypoint = assemble_ifcx(&self.options, &drawing, &paths, &resource)?;
-        let package = EncodedPackage::new([
-            (
-                crate::package::DIRECTORY_PACKAGE_ENTRYPOINT.to_owned(),
-                entrypoint,
-            ),
-            (uri.to_owned(), resource.bytes),
-        ]);
+        let mut files = vec![(
+            crate::package::DIRECTORY_PACKAGE_ENTRYPOINT.to_owned(),
+            entrypoint,
+        )];
+        if drawing.storage == super::DrawingResourceStorage::External {
+            files.push((uri.to_owned(), resource.bytes));
+        }
+        let package = EncodedPackage::new(files);
         let diagnostics = crate::package::read::validate_encoded_package(&package);
         if diagnostics.is_empty() {
             Ok(package)
@@ -143,6 +157,12 @@ pub struct DrawingBuilder<'a> {
 }
 
 impl DrawingBuilder<'_> {
+    /// Selects inline or external storage; new drawings default to external.
+    /// This affects package encoding, not the drawing's identity or semantics.
+    pub fn set_resource_storage(&mut self, storage: super::DrawingResourceStorage) {
+        self.state.storage = storage;
+    }
+
     /// Opens the appearance collection for this drawing.
     pub fn appearances(&mut self) -> DrawingAppearances<'_> {
         DrawingAppearances { state: self.state }

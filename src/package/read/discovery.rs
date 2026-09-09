@@ -1,4 +1,5 @@
 use super::codes::IFCCAD_PACKAGE_ENTRYPOINT_INVALID;
+use super::source::ResourceSourceKey;
 use super::{PackageDiagnostic, PackageDiagnosticSeverity};
 use crate::ResourceId;
 use std::collections::BTreeMap;
@@ -14,8 +15,8 @@ pub(crate) struct ResourceDeclaration {
     pub(crate) kind: ResourceKind,
     pub(crate) resource_id: ResourceId,
     pub(crate) resource_id_location: String,
-    pub(crate) external_uri: String,
-    pub(crate) external_uri_location: String,
+    pub(crate) source: ResourceSourceKey,
+    pub(crate) source_location: String,
     pub(crate) checksum: Option<String>,
     pub(crate) checksum_location: String,
 }
@@ -69,27 +70,42 @@ pub(crate) fn discover_resources(ifcx: &serde_json::Value) -> ResourceDiscovery 
             },
             _ => continue,
         };
-        match node.pointer(&format!("/attributes/{resource_name}/uri")) {
-            Some(serde_json::Value::String(uri)) => {
-                let checksum = node
-                    .pointer(&format!("{descriptor_pointer}/checksum"))
-                    .and_then(serde_json::Value::as_str)
-                    .map(str::to_owned);
-                discovery.declarations.push(ResourceDeclaration {
-                    kind,
-                    resource_id,
-                    resource_id_location,
-                    external_uri: uri.clone(),
-                    external_uri_location: uri_location,
-                    checksum,
-                    checksum_location,
-                });
+        let descriptor = &node["attributes"][resource_name];
+        let source = match (descriptor.get("uri"), descriptor.get("content")) {
+            (Some(serde_json::Value::String(uri)), None) => {
+                ResourceSourceKey::External(uri.clone())
             }
-            _ => discovery.diagnostics.push(invalid_entrypoint(
-                &uri_location,
-                "recognized IFCCAD resource URI must be a string",
-            )),
-        }
+            (None, Some(value)) if value.is_object() && descriptor.get("checksum").is_none() => {
+                ResourceSourceKey::Inline {
+                    document_uri: super::DIRECTORY_PACKAGE_ENTRYPOINT.into(),
+                    pointer: format!("/data/{index}{descriptor_pointer}/content"),
+                }
+            }
+            (None, None) | (Some(_), None) => {
+                discovery.diagnostics.push(invalid_entrypoint(
+                    &uri_location,
+                    "recognized IFCCAD resource requires a source",
+                ));
+                continue;
+            }
+            _ => continue,
+        };
+        let source_location = match &source {
+            ResourceSourceKey::External(_) => uri_location,
+            ResourceSourceKey::Inline { pointer, .. } => pointer.clone(),
+        };
+        discovery.declarations.push(ResourceDeclaration {
+            kind,
+            resource_id,
+            resource_id_location,
+            source,
+            source_location,
+            checksum: descriptor
+                .get("checksum")
+                .and_then(serde_json::Value::as_str)
+                .map(str::to_owned),
+            checksum_location,
+        });
     }
 
     discovery
@@ -176,8 +192,8 @@ mod tests {
                     kind: ResourceKind::Ifcdr,
                     resource_id: crate::ResourceId::new("geometry-main").unwrap(),
                     resource_id_location: "/data/0/attributes/resource/resourceId".to_owned(),
-                    external_uri: "drawing.ifcdr.json".to_owned(),
-                    external_uri_location: "/data/0/attributes/resource/uri".to_owned(),
+                    source: ResourceSourceKey::External("drawing.ifcdr.json".to_owned()),
+                    source_location: "/data/0/attributes/resource/uri".to_owned(),
                     checksum: None,
                     checksum_location: "/data/0/attributes/resource/checksum".to_owned(),
                 },
@@ -185,8 +201,8 @@ mod tests {
                     kind: ResourceKind::Ifcpr,
                     resource_id: crate::ResourceId::new("preservation-source").unwrap(),
                     resource_id_location: "/data/1/attributes/preservation/resourceId".to_owned(),
-                    external_uri: "preservation.ifcpr.json".to_owned(),
-                    external_uri_location: "/data/1/attributes/preservation/uri".to_owned(),
+                    source: ResourceSourceKey::External("preservation.ifcpr.json".to_owned()),
+                    source_location: "/data/1/attributes/preservation/uri".to_owned(),
                     checksum: None,
                     checksum_location: "/data/1/attributes/preservation/checksum".to_owned(),
                 },

@@ -23,9 +23,10 @@ pub use read::{
 };
 pub use write::{
     AppearanceColor, AppearanceDefinition, AppearanceKey, AppearanceMode, DrawingAppearances,
-    DrawingBuilder, DrawingLayers, DrawingOptions, EncodedPackage, EntityAppearance,
-    LayerDefinition, LayerKey, LineDefinition, LinePatternDefinition, ModelSpaceBuilder,
-    PackageBuildError, PackageBuilder, PackageOptions, PackageWriteError, PolylineDefinition,
+    DrawingBuilder, DrawingLayers, DrawingOptions, DrawingResourceStorage, EncodedPackage,
+    EntityAppearance, LayerDefinition, LayerKey, LineDefinition, LinePatternDefinition,
+    ModelSpaceBuilder, PackageBuildError, PackageBuilder, PackageOptions, PackageWriteError,
+    PolylineDefinition,
 };
 
 /// Current IFCX entrypoint inside an exploded directory package.

@@ -37,6 +37,16 @@ pub(crate) fn assemble_ifcx(
     paths: &NodePaths,
     resource: &EncodedIfcdrResource,
 ) -> Result<Vec<u8>, PackageBuildError> {
+    let mut descriptor = json!({
+        "format":"openaec.ifcdr", "version":"0.7.0", "resourceId":resource.resource_id, "role":"drawing"
+    });
+    match drawing.storage {
+        super::DrawingResourceStorage::External => {
+            descriptor["uri"] = json!(DRAWING_RESOURCE_URI);
+            descriptor["checksum"] = json!(resource.checksum);
+        }
+        super::DrawingResourceStorage::Inline => descriptor["content"] = resource.value.clone(),
+    }
     let mut data = vec![
         json!({
             "path": paths.drawing_set,
@@ -66,14 +76,7 @@ pub(crate) fn assemble_ifcx(
             "type": "openaec:DrawingRepresentation",
             "attributes": {
                 "name": "Drawing",
-                "resource": {
-                    "format": "openaec.ifcdr",
-                    "version": "0.7.0",
-                    "resourceId": resource.resource_id,
-                    "uri": DRAWING_RESOURCE_URI,
-                    "checksum": resource.checksum,
-                    "role": "drawing"
-                }
+                "resource": descriptor
             }
         }),
     ];

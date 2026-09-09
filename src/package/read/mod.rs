@@ -36,3 +36,5 @@ pub use validation::load_directory_package;
 pub(crate) use validation::validate_encoded_package;
 
 pub(super) use super::DIRECTORY_PACKAGE_ENTRYPOINT;
+
+pub(crate) mod source;

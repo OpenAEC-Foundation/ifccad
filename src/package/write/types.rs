@@ -11,11 +11,11 @@ pub struct PackageOptions {
 }
 
 #[derive(Clone, Debug)]
-/// Configuration of the package's drawing and external model-space resource.
+/// Configuration of the package's drawing resource.
 pub struct DrawingOptions {
     /// Name of the model layout inside the drawing, not a drawing name.
     pub model_layout_name: String,
-    /// Stable identifier assigned to the external IFCDR resource.
+    /// Stable identifier assigned to the IFCDR resource, independent of storage.
     pub representation_resource_id: ResourceId,
     /// Coordinate length unit declared by that IFCDR resource.
     pub length_unit: IfcdrLengthUnit,
@@ -121,4 +121,14 @@ pub struct PolylineDefinition {
     pub layer: LayerKey,
     pub appearance: EntityAppearance,
     pub visible: bool,
+}
+
+/// Storage form of a drawing resource in an encoded package.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub enum DrawingResourceStorage {
+    /// Write a separate IFCDR file with an exact-byte checksum.
+    #[default]
+    External,
+    /// Embed the IFCDR JSON object in the IFCX resource descriptor.
+    Inline,
 }

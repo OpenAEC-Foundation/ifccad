@@ -164,8 +164,10 @@ validated-resource codec boundary. The third slice,
 adds IFCX overlay 0.8.0 and consistent representation references across layouts.
 See the
 [compatibility matrix](conformance/next/COMPATIBILITY.md) for the active 0.7.0
-contract. Inline/external normalization, richer
-operation-specific reporting, and initial size measurements remain required;
+contract. The [inline resource implementation](docs/superpowers/specs/2026-09-09-inline-resource-design.md)
+normalizes inline and external IFCDR/IFCPR sources and adds explicit IFCDR writer
+storage selection. Richer operation-specific reporting and initial size
+measurements remain required;
 this milestone is still Current.
 
 ## 3. Native CAD semantics and preservation

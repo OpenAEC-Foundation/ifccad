@@ -1,0 +1,566 @@
+{
+  "data": [
+    {
+      "children": {
+        "Drawings": [
+          "drawing-main"
+        ],
+        "PreservationResources": [
+          "preservation-golden-source"
+        ]
+      },
+      "path": "drawing-set-main",
+      "type": "openaec:DrawingSet"
+    },
+    {
+      "attributes": {
+        "insertionBase": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "plotStyleMode": "colorDependent"
+      },
+      "children": {
+        "Layouts": [
+          "drawing-main-layout-model"
+        ],
+        "Representation": "drawing-representation-main"
+      },
+      "path": "drawing-main",
+      "type": "openaec:Drawing"
+    },
+    {
+      "attributes": {
+        "kind": "model",
+        "limitsCheckEnabled": false,
+        "name": "Model",
+        "paperSpaceLinetypeScaling": true,
+        "scopeId": 0,
+        "tabOrder": 0
+      },
+      "children": {
+        "Representation": "drawing-representation-main"
+      },
+      "path": "drawing-main-layout-model",
+      "type": "openaec:DrawingLayout"
+    },
+    {
+      "attributes": {
+        "resource": {
+          "format": "openaec.ifcdr",
+          "role": "drawing",
+          "version": "0.7.0",
+          "resourceId": "drawing-main",
+          "content": {
+            "appearanceBindings": [
+              {
+                "colorMode": 0,
+                "id": 0,
+                "ifcxAppearance": null,
+                "linePatternMode": 0,
+                "lineWeightMode": 0,
+                "opacityMode": 0,
+                "overrideId": null
+              },
+              {
+                "colorMode": 2,
+                "id": 1,
+                "ifcxAppearance": null,
+                "linePatternMode": 2,
+                "lineWeightMode": 2,
+                "opacityMode": 2,
+                "overrideId": null
+              },
+              {
+                "colorMode": 1,
+                "id": 2,
+                "ifcxAppearance": "appearance-default-solid",
+                "linePatternMode": 1,
+                "lineWeightMode": 1,
+                "opacityMode": 1,
+                "overrideId": null
+              },
+              {
+                "colorMode": 1,
+                "id": 3,
+                "ifcxAppearance": "appearance-dashed-red",
+                "linePatternMode": 1,
+                "lineWeightMode": 1,
+                "opacityMode": 1,
+                "overrideId": null
+              }
+            ],
+            "bounds": {
+              "maxX": 30.0,
+              "maxY": 15.0,
+              "minX": 0.0,
+              "minY": 0.0
+            },
+            "header": {
+              "format": "openaec.ifcdr",
+              "nextEntityId": 5,
+              "resourceId": "drawing-main",
+              "unit": "m",
+              "version": "0.7.0"
+            },
+            "layerBindings": [
+              {
+                "id": 0,
+                "ifcxLayer": "layer-0"
+              },
+              {
+                "id": 1,
+                "ifcxLayer": "layer-a-wall"
+              }
+            ],
+            "scopeTable": [
+              {
+                "baseX": 0.0,
+                "baseY": 0.0,
+                "flags": 0,
+                "id": 0,
+                "kind": 0,
+                "name": "ModelSpace"
+              }
+            ],
+            "streamDirectory": {
+              "streams": [
+                {
+                  "columns": [
+                    "entityId",
+                    "scopeId",
+                    "x1",
+                    "y1",
+                    "x2",
+                    "y2",
+                    "layerId",
+                    "appearanceId"
+                  ],
+                  "count": 2,
+                  "name": "line",
+                  "role": "object",
+                  "schema": "ifccad.ifcdr.line.v2"
+                },
+                {
+                  "columns": [
+                    "entityId",
+                    "scopeId",
+                    "vertexOffset",
+                    "vertexCount",
+                    "closed",
+                    "x",
+                    "y",
+                    "layerId",
+                    "appearanceId"
+                  ],
+                  "count": 2,
+                  "name": "polyline",
+                  "role": "object",
+                  "schema": "ifccad.ifcdr.polyline.v3"
+                },
+                {
+                  "children": [
+                    "entityOrderEntry"
+                  ],
+                  "columns": [
+                    "scopeId",
+                    "entryOffset",
+                    "entryCount"
+                  ],
+                  "count": 1,
+                  "name": "entityOrder",
+                  "role": "order",
+                  "schema": "ifccad.ifcdr.entityOrder.v1"
+                },
+                {
+                  "columns": [
+                    "entityId"
+                  ],
+                  "count": 4,
+                  "name": "entityOrderEntry",
+                  "parent": "entityOrder",
+                  "role": "child",
+                  "schema": "ifccad.ifcdr.entityOrderEntry.v1"
+                }
+              ],
+              "version": "ifccad.ifcdr.streamDirectory.v1"
+            },
+            "streams": {
+              "entityOrderEntryStream": {
+                "count": 4,
+                "entityId": [
+                  1,
+                  2,
+                  3,
+                  4
+                ]
+              },
+              "entityOrderStream": {
+                "count": 1,
+                "entryCount": [
+                  4
+                ],
+                "entryOffset": [
+                  0
+                ],
+                "scopeId": [
+                  0
+                ]
+              },
+              "lineStream": {
+                "appearanceId": [
+                  0,
+                  0
+                ],
+                "count": 2,
+                "entityId": [
+                  1,
+                  2
+                ],
+                "layerId": [
+                  0,
+                  1
+                ],
+                "scopeId": [
+                  0,
+                  0
+                ],
+                "x1": [
+                  0.0,
+                  10.0
+                ],
+                "x2": [
+                  5.0,
+                  10.0
+                ],
+                "y1": [
+                  0.0,
+                  0.0
+                ],
+                "y2": [
+                  5.0,
+                  8.0
+                ]
+              },
+              "polylineStream": {
+                "appearanceId": [
+                  0,
+                  3
+                ],
+                "closed": [
+                  true,
+                  false
+                ],
+                "count": 2,
+                "entityId": [
+                  3,
+                  4
+                ],
+                "layerId": [
+                  1,
+                  0
+                ],
+                "scopeId": [
+                  0,
+                  0
+                ],
+                "vertexCount": [
+                  4,
+                  3
+                ],
+                "vertexOffset": [
+                  0,
+                  4
+                ],
+                "x": [
+                  0.0,
+                  10.0,
+                  10.0,
+                  0.0,
+                  20.0,
+                  25.0,
+                  30.0
+                ],
+                "y": [
+                  0.0,
+                  0.0,
+                  5.0,
+                  5.0,
+                  10.0,
+                  15.0,
+                  10.0
+                ]
+              }
+            }
+          }
+        },
+        "name": "Drawing"
+      },
+      "path": "drawing-representation-main",
+      "type": "openaec:DrawingRepresentation"
+    },
+    {
+      "attributes": {
+        "appearance": "appearance-default-solid",
+        "name": "0",
+        "visible": true
+      },
+      "path": "layer-0",
+      "type": "openaec:Layer"
+    },
+    {
+      "attributes": {
+        "appearance": "appearance-dashed-red",
+        "name": "A-WALL",
+        "visible": true
+      },
+      "path": "layer-a-wall",
+      "type": "openaec:Layer"
+    },
+    {
+      "attributes": {
+        "color": {
+          "mode": "explicit",
+          "value": {
+            "indexedColor": {
+              "index": 7,
+              "system": "ACI"
+            },
+            "rgb": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "linePattern": {
+          "mode": "explicit",
+          "value": "continuous"
+        },
+        "lineWeight": {
+          "mode": "explicit",
+          "value": 0.25
+        },
+        "name": "Default Solid",
+        "opacity": {
+          "mode": "explicit",
+          "value": 1.0
+        }
+      },
+      "path": "appearance-default-solid",
+      "type": "openaec:Appearance"
+    },
+    {
+      "attributes": {
+        "color": {
+          "mode": "explicit",
+          "value": {
+            "namedColor": {
+              "catalog": "RAL",
+              "name": "Traffic red"
+            },
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        },
+        "linePattern": {
+          "mode": "explicit",
+          "value": "dashed"
+        },
+        "lineWeight": {
+          "mode": "explicit",
+          "value": 0.18
+        },
+        "name": "Dashed Red",
+        "opacity": {
+          "mode": "explicit",
+          "value": 1.0
+        }
+      },
+      "path": "appearance-dashed-red",
+      "type": "openaec:Appearance"
+    },
+    {
+      "attributes": {
+        "preservation": {
+          "format": "openaec.ifcpr",
+          "linkedDrawingResourceIds": [
+            "drawing-main"
+          ],
+          "sourceDocumentId": "golden-source-dxf",
+          "version": "0.2.0",
+          "resourceId": "preservation-golden-source",
+          "content": {
+            "blobs": [
+              {
+                "byteLength": 94,
+                "compression": "none",
+                "id": "sha256:fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044",
+                "mediaType": "application/vnd.ifccad.dxf-record-pack",
+                "sha256": "sha256:fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044",
+                "sourceEncoding": "windows-1252",
+                "uri": "blobs/fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044"
+              }
+            ],
+            "dependencyEdges": [
+              {
+                "role": "hardPointer",
+                "sourceEncodingHint": {
+                  "groupCode": 340
+                },
+                "sourceRecordId": 1,
+                "strength": "required",
+                "targetRecordId": 2
+              }
+            ],
+            "header": {
+              "format": "openaec.ifcpr",
+              "resourceId": "preservation-golden-source",
+              "version": "0.2.0"
+            },
+            "linkedDrawingResources": [
+              "drawing-main"
+            ],
+            "projectionBindings": [
+              {
+                "baselineFingerprint": "sha256:ebcb0b04b9789c6f428fe17c1e1bc22f301e062a9a8cec2f5c0653504d5039ce",
+                "coverage": "partial",
+                "modelTargets": [
+                  {
+                    "resourceId": "drawing-main",
+                    "role": "primary",
+                    "targetId": 1
+                  }
+                ],
+                "projectionId": 1,
+                "projectionSchemaId": "ifccad.projection.line.v1",
+                "sourceRecords": [
+                  {
+                    "recordId": 1,
+                    "requiredForReuse": true,
+                    "role": "primary"
+                  }
+                ],
+                "targetKind": "ifcdrEntity"
+              },
+              {
+                "baselineFingerprint": "sha256:4644d837e302561c0405b5f64695175aaa944f843b9977f52205c7a49f43450f",
+                "coverage": "partial",
+                "modelTargets": [
+                  {
+                    "role": "semantic",
+                    "targetId": "layer-0"
+                  }
+                ],
+                "projectionId": 2,
+                "projectionSchemaId": "ifccad.projection.semantic.v1",
+                "sourceRecords": [
+                  {
+                    "recordId": 1,
+                    "requiredForReuse": true,
+                    "role": "semantic"
+                  }
+                ],
+                "targetKind": "ifcxNode"
+              }
+            ],
+            "records": [
+              {
+                "payload": {
+                  "blobId": "sha256:fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044",
+                  "length": 28,
+                  "offset": 0
+                },
+                "payloadDigest": "sha256:c0385142e786d7dbc9d9630fe0a5fbf859839cbbb28206994495781b386dd107",
+                "recordId": 1,
+                "sourceEncoding": "dxfAsciiTags",
+                "sourceHandle": "2A7",
+                "sourceObjectKey": "handle:2A7",
+                "sourceOrder": 4,
+                "sourceType": "LINE",
+                "sourceVersion": "AC1032",
+                "validityPolicy": {
+                  "id": "acadifc.dxf.entityBodyTags",
+                  "parameters": {
+                    "recordBoundary": "entity"
+                  },
+                  "version": 1
+                }
+              },
+              {
+                "payload": {
+                  "blobId": "sha256:fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044",
+                  "length": 30,
+                  "offset": 28
+                },
+                "payloadDigest": "sha256:554c54cee9c69f6af972ea6633c8a390439804b70cc9377436d169547ed78cbb",
+                "recordId": 2,
+                "sourceEncoding": "dxfAsciiTags",
+                "sourceHandle": "2A8",
+                "sourceObjectKey": "handle:2A8",
+                "sourceOrder": 1,
+                "sourceType": "ACAD_PROXY_ENTITY",
+                "sourceVersion": "AC1032",
+                "validityPolicy": {
+                  "id": "acadifc.dxf.entityBodyTags",
+                  "version": 1
+                }
+              }
+            ],
+            "source": {
+              "documentId": "golden-source-dxf",
+              "format": "dxf",
+              "originalFilename": "golden_source.dxf",
+              "profile": "sourceArchive",
+              "resourceOrigin": "originalSource",
+              "version": "AC1032"
+            },
+            "sourceFile": {
+              "blobId": "sha256:fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044",
+              "digest": "sha256:fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044",
+              "length": 94,
+              "offset": 0
+            },
+            "structuredAttachments": [
+              {
+                "attachmentId": 1,
+                "kind": "xdata",
+                "metadata": {
+                  "application": "OPENAEC"
+                },
+                "parentRecordId": 1,
+                "payload": {
+                  "blobId": "sha256:fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044",
+                  "length": 36,
+                  "offset": 58
+                },
+                "payloadDigest": "sha256:326614f87637c19984211aca92124c916973258d858eacdb2e022aef1721b3ed",
+                "projectionIds": [
+                  1
+                ],
+                "validityPolicy": {
+                  "id": "acadifc.common.xdataValidity",
+                  "version": 1
+                }
+              }
+            ]
+          }
+        }
+      },
+      "path": "preservation-golden-source",
+      "type": "openaec:PreservationRepresentation"
+    }
+  ],
+  "header": {
+    "author": "IFC-CAD prototype",
+    "dataVersion": "0.5.0",
+    "id": "ifccad/examples/golden-minimal/golden_minimal.ifcx.json",
+    "ifcxVersion": "ifcx_alpha",
+    "timestamp": "2026-07-06T00:00:00Z"
+  },
+  "imports": []
+}

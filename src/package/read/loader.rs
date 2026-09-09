@@ -371,10 +371,10 @@ mod tests {
             .expect("loaded entrypoint");
 
         assert_eq!(loaded.uri, DIRECTORY_PACKAGE_ENTRYPOINT);
-        assert_eq!(loaded.bytes, original);
+        assert_eq!(loaded.bytes.as_deref().unwrap(), original);
         assert_eq!(loaded.value, json!({ "data": [] }));
         assert_eq!(
-            loaded.path,
+            loaded.path.unwrap(),
             fs::canonicalize(root.path().join(DIRECTORY_PACKAGE_ENTRYPOINT))
                 .expect("canonical entrypoint")
         );

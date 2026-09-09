@@ -282,23 +282,26 @@ fn validate_ifcx_identity(
 }
 
 fn validate_unique_resource_kinds(declarations: &[ResourceDeclaration]) -> Vec<PackageDiagnostic> {
-    let mut first_kinds = BTreeMap::<&str, ResourceKind>::new();
+    let mut first_kinds = BTreeMap::<&super::source::ResourceSourceKey, ResourceKind>::new();
     let mut diagnostics = Vec::new();
     let mut source_order = declarations.iter().collect::<Vec<_>>();
     source_order.sort_by_key(|declaration| declaration_source_index(declaration));
     for declaration in source_order {
-        match first_kinds.get(declaration.external_uri.as_str()).copied() {
+        match first_kinds.get(&declaration.source).copied() {
             None => {
-                first_kinds.insert(&declaration.external_uri, declaration.kind);
+                first_kinds.insert(&declaration.source, declaration.kind);
             }
             Some(first_kind) if first_kind != declaration.kind => {
                 diagnostics.push(binding_diagnostic(
-                    declaration.external_uri_location.clone(),
+                    declaration.source_location.clone(),
                     "one resource URI cannot be both IFCDR and IFCPR",
                     BTreeMap::from([
                         (
                             "resourceUri".to_owned(),
-                            PackageDiagnosticContextValue::String(declaration.external_uri.clone()),
+                            PackageDiagnosticContextValue::String(format!(
+                                "{:?}",
+                                declaration.source
+                            )),
                         ),
                         (
                             "firstKind".to_owned(),
@@ -321,7 +324,7 @@ fn validate_unique_resource_kinds(declarations: &[ResourceDeclaration]) -> Vec<P
 
 fn declaration_source_index(declaration: &ResourceDeclaration) -> usize {
     declaration
-        .external_uri_location
+        .source_location
         .strip_prefix("/data/")
         .and_then(|suffix| suffix.split('/').next())
         .and_then(|index| index.parse().ok())

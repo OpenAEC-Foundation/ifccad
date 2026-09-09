@@ -44,6 +44,7 @@ pub(crate) struct PackageState {
 #[derive(Debug)]
 pub(crate) struct DrawingState {
     pub(crate) options: DrawingOptions,
+    pub(crate) storage: super::DrawingResourceStorage,
     pub(crate) token: u64,
     pub(crate) appearances: Vec<AppearanceEntry>,
     pub(crate) appearance_bindings: Vec<AppearanceBindingEntry>,

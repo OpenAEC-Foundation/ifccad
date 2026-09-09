@@ -249,7 +249,7 @@ The public API is still evolving while the format contract matures.
 The active language-neutral schemas live in `schemas/`. The mutable
 `conformance/next` collection currently targets suite `1.1.0` and tests the
 minimal package-header contract alongside explicit resource identity: a
-logical resource ID is independent of its external URI. IFCX overlay `0.8.0`
+logical resource ID is independent of its external URI. IFCX overlay `0.9.0`
 requires the top-level `header`, `imports`, and `data` fields and the known
 header fields, while still allowing additional top-level and header fields and
 unknown IFCX node types for forward-compatible extension. It remains a
@@ -263,6 +263,20 @@ uses `openaec:DrawingRepresentation` and `attributes.resource` with role
 `drawing`. A Drawing and all its layouts reference the same representation
 node; layouts select scopes within its IFCDR resource. The retired
 `DrawingGeometryRepresentation` vocabulary is explicitly unsupported.
+
+The [resource source contract](schemas/ifcx/resource-source-contract-0.9.0.md)
+supports external and inline IFCDR and IFCPR. A descriptor has either `uri`
+and an exact-byte `checksum`, or a complete JSON object in `content` without
+either field. Resource IDs and logical links are unchanged by this choice.
+Inline IFCPR receives the same limited checks as external IFCPR; this does not
+add full preservation validation or conversion.
+
+The writer defaults to external IFCDR. Call
+`drawing.set_resource_storage(DrawingResourceStorage::Inline)` to embed it;
+the enum is exported from `ifccad::package`. With no other resources, the output
+contains only `package.ifcx.json`. Open it through `load_directory_package`
+on its containing directory. Inline bytes count once as part of the
+entrypoint, whose existing per-file limit applies to the combined content.
 
 Active schemas may move ahead of the latest released conformance collection.
 When a new collection is released, its applicable schemas are copied into the
