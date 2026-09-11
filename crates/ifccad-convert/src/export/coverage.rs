@@ -161,6 +161,12 @@ fn normalize_header_bookkeeping(
         };
     }
     normalize!(
+        // Geometry-derived caches are recomputed from emitted entities. Drawing
+        // limits and current defaults below remain independently meaningful.
+        model_space_extents_min,
+        model_space_extents_max,
+        paper_space_extents_min,
+        paper_space_extents_max,
         handle_seed,
         ucs_ortho_ref,
         paper_ucs_ortho_ref,

@@ -172,3 +172,15 @@ describe failed attempts, not completed transfers. Summary access does not
 rescan input, and the existing `into_parts()` tuples remain unchanged.
 Package validation and transfer fidelity are separate: even a successfully
 loaded IFCPR resource is not restored by this converter.
+
+## Controlled size and exchange checks
+
+The development example `size_baseline` compares controlled line/polyline
+drawings across external/inline IFCCAD, text DXF and normal DWG. It measures
+complete file bytes, checks exact recipe semantics and executes separate
+conversion chains with Reject. The current report uses cadcodec 0.5.4 at
+`2f2cd25832db298524fb5eb36ced5a438a877e95` with two explicit local DWG fixes;
+normal Cargo commands use the unmodified pin and still encounter the known
+DWG return-conversion failures. See the [patch setup](../../patches/cadcodec-upstream/README.md)
+and the [complete experiment report](../../docs/benchmarks/size-baseline-v1.md). Failed checks
+produce an explicitly incomplete report; they do not change converter policy.

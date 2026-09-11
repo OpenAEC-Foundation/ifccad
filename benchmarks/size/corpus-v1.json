@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "metadata": {"package_id":"size-baseline", "resource_id":"drawing", "author":"IFCCAD size baseline", "timestamp":"2026-09-11T00:00:00Z", "data_version":"1", "layout":"Model", "unit":"millimetre", "cad_version":"AC1032", "cad_dates":0},
+  "recipe": {
+    "index": "Zero-based i in insertion/drawing order; no random seed or clock.",
+    "origin": "x=(i % 100)*16, y=(i / 100)*16 with integer division.",
+    "line": "(x,y) to (x+8,y+4).",
+    "short_polyline": "(x,y),(x+8,y),(x+8,y+4),(x,y+4); open except mixed rule.",
+    "long_polyline": "For j=0..127: (x+j,y+(j % 7)); open.",
+    "fractional_line": "Start=(x+((i*37)%1024)/1024, y+((i*73)%1024)/1024); end=(start.x+8.125,start.y+4.0625). Binary fractions are exact, with no rounding.",
+    "layers": "Basic: layer 0. Mixed: layers 0,Layer-1,Layer-2,Layer-3; all visible. Layer RGB=(10,20,30), opacity=1, continuous pattern, weight=0.25 mm. Shared explicit appearance RGB=(180,40,60), opacity=1, continuous, weight=0.50 mm.",
+    "mixed": "Even i: line; odd i: short polyline. Layer=i%4. Explicit appearance when i%3=0, otherwise ByLayer for every property. Visible when i%5!=0. Polylines closed when i%4=1. Other families all visible/ByLayer. Entity IDs allocated in insertion order by PackageBuilder; compare across IFCCAD modes.",
+    "support": "One model layout. CAD default tables retained. Empty case retains layer 0. Appearance definition names are internal labels, not CAD entity semantics. All four outputs derive directly from the typed recipe. Nondefault CAD layers receive document-allocated handles; missing layer handles in converter output are allocated before CAD writing, without changing layer names or references."
+  },
+  "cases": [
+    {"id":"empty","family":"line","count":0},
+    {"id":"lines-100","family":"line","count":100},
+    {"id":"lines-10000","family":"line","count":10000},
+    {"id":"short-polylines-100","family":"short","count":100},
+    {"id":"short-polylines-10000","family":"short","count":10000},
+    {"id":"long-polylines-10","family":"long","count":10},
+    {"id":"long-polylines-1000","family":"long","count":1000},
+    {"id":"mixed-1000","family":"mixed","count":1000},
+    {"id":"fractional-lines-1000","family":"fractional","count":1000}
+  ],
+  "fixtures": [
+    {"id":"minimal-no-preservation","native":true,"files":[["package.ifcx.json","ifcx"],["drawing.ifcdr.json","ifcdr"]]},
+    {"id":"inline-drawing","native":true,"files":[["package.ifcx.json","ifcx"]]},
+    {"id":"source-archive","native":false,"files":[["package.ifcx.json","ifcx"],["drawing.ifcdr.json","ifcdr"],["preservation.ifcpr.json","ifcpr"],["blobs/fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044","blob"]]}
+  ]
+}

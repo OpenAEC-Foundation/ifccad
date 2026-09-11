@@ -1,0 +1,166 @@
+diff --git a/src/io/dwg/dwg_reader.rs b/src/io/dwg/dwg_reader.rs
+index b93a56c..80f4dbe 100644
+--- a/src/io/dwg/dwg_reader.rs
++++ b/src/io/dwg/dwg_reader.rs
+@@ -929,6 +929,23 @@ impl<R: Read + Seek> DwgReader<R> {
+         }
+         document.header.code_page =
+             crate::io::dxf::code_page::dwg_code_page_name(info.code_page).to_string();
++
++        // MEASUREMENT is stored separately from AcDb:Header. The template
++        // section is optional before R2004; retain the default when absent.
++        let has_template = info.section_locators.contains_key("AcDb:Template")
++            || info.section_descriptors.iter().any(|s| s.name == "AcDb:Template");
++        if has_template || dxf_version >= crate::types::DxfVersion::AC1018 {
++            let measurement = self.get_section_buffer("AcDb:Template", &info)
++                .and_then(|bytes| super::template::read(&bytes).map_err(DxfError::Parse));
++            match measurement {
++                Ok(value) => document.header.measurement = value,
++                Err(error) => report_read_error(
++                    &mut self.notifications, &mut diagnostics, "template-decode-failed",
++                    ReadStage::Header, Some("AcDb:Template"),
++                    format!("Failed to read template MEASUREMENT: {error}"),
++                ),
++            }
++        }
+         self.report_progress(40);
+ 
+         // 4. Read Handle Map (AcDb:Handles)
+diff --git a/src/io/dwg/dwg_writer.rs b/src/io/dwg/dwg_writer.rs
+index 5bd9fe0..cdfe7b9 100644
+--- a/src/io/dwg/dwg_writer.rs
++++ b/src/io/dwg/dwg_writer.rs
+@@ -799,7 +799,7 @@ fn write_ac15<W: Write + Seek>(
+     fhw.add_section(section_names::OBJ_FREE_SPACE, obj_free_space);
+ 
+     // ── Section: Template ──
+-    let template = build_template();
++    let template = build_template(document.header.measurement);
+     fhw.add_section(section_names::TEMPLATE, template);
+ 
+     // ── Section: AuxHeader (uses corrected HANDSEED) ──
+@@ -1010,7 +1010,7 @@ fn write_ac18<W: Write + Seek>(
+     )?;
+ 
+     // ── Section: Template ──
+-    let template = build_template();
++    let template = build_template(document.header.measurement);
+     fhw.add_section(output, section_names::TEMPLATE, &template, true, PAGE_SIZE)?;
+ 
+     // ── Section: Handles (last — needs objects data) ──
+@@ -1125,7 +1125,7 @@ fn write_ac21_impl<W: Write + Seek>(
+     fhw.add_section(output, section_names::OBJ_FREE_SPACE, &obj_free_space)?;
+ 
+     // Template
+-    let template = build_template();
++    let template = build_template(document.header.measurement);
+     fhw.add_section(output, section_names::TEMPLATE, &template)?;
+ 
+     // Handles (needs objects data for offsets)
+@@ -1212,14 +1212,9 @@ fn build_obj_free_space(
+ 
+ /// Build Template section data.
+ ///
+-/// Contains template description length (0 = no template).
+-/// AutoCAD reference files only write the 4-byte RL length with no
+-/// MEASUREMENT field when the template description is empty.
+-fn build_template() -> Vec<u8> {
+-    let mut data = Vec::with_capacity(4);
+-    // RL (raw long = 4 bytes): template description length (0)
+-    data.extend_from_slice(&0i32.to_le_bytes());
+-    data
++/// An empty description followed by the independent MEASUREMENT value.
++fn build_template(measurement: i16) -> Vec<u8> {
++    super::template::write(measurement)
+ }
+ 
+ /// Build SummaryInfo section data (AC18+ only).
+@@ -1930,9 +1925,8 @@ mod tests {
+ 
+     #[test]
+     fn test_build_template() {
+-        let t = build_template();
+-        assert_eq!(t.len(), 4);
+-        assert_eq!(i32::from_le_bytes([t[0], t[1], t[2], t[3]]), 0); // desc length (RL = 4 bytes)
++        assert_eq!(build_template(0), [0, 0, 0, 0]);
++        assert_eq!(build_template(1), [0, 0, 1, 0]);
+     }
+ 
+     #[test]
+diff --git a/src/io/dwg/mod.rs b/src/io/dwg/mod.rs
+index 906d9d3..ef22415 100644
+--- a/src/io/dwg/mod.rs
++++ b/src/io/dwg/mod.rs
+@@ -52,6 +52,7 @@ pub mod eed_codec;
+ pub(crate) mod embedded_entity;
+ pub mod file_headers;
+ mod parallel;
++mod template;
+ pub mod preview;
+ pub mod reed_solomon;
+ 
+diff --git a/src/io/dwg/template.rs b/src/io/dwg/template.rs
+new file mode 100644
+index 0000000..915abf9
+--- /dev/null
++++ b/src/io/dwg/template.rs
+@@ -0,0 +1,59 @@
++//! AcDb:Template payload (ODA DWG specification, section 22).
++//! Description length and MEASUREMENT are separate 16-bit fields.
++
++pub(crate) fn write(measurement: i16) -> Vec<u8> {
++    let mut bytes = Vec::with_capacity(4);
++    bytes.extend_from_slice(&0_i16.to_le_bytes());
++    bytes.extend_from_slice(&measurement.to_le_bytes());
++    bytes
++}
++
++pub(crate) fn read(bytes: &[u8]) -> Result<i16, String> {
++    let length = bytes
++        .get(..2)
++        .ok_or("Truncated template description length")?;
++    let length = i16::from_le_bytes([length[0], length[1]]);
++    let length = usize::try_from(length).map_err(|_| "Negative template description length")?;
++    let offset = 2 + length;
++    let value = bytes
++        .get(offset..offset + 2)
++        .ok_or("Truncated template description or MEASUREMENT")?;
++    let value = u16::from_le_bytes([value[0], value[1]]);
++    if value > 1 {
++        return Err(format!("Invalid template MEASUREMENT value {value}"));
++    }
++    Ok(value as i16)
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    #[test]
++    fn empty_description_keeps_both_measurement_values() {
++        assert_eq!(write(0), [0, 0, 0, 0]);
++        assert_eq!(write(1), [0, 0, 1, 0]);
++        assert_eq!(read(&[0, 0, 0, 0]).unwrap(), 0);
++        assert_eq!(read(&[0, 0, 1, 0]).unwrap(), 1);
++    }
++
++    #[test]
++    fn skips_encoded_description_bytes() {
++        assert_eq!(read(&[3, 0, b'A', 0xe9, b'B', 1, 0]).unwrap(), 1);
++    }
++
++    #[test]
++    fn rejects_truncated_negative_and_invalid_values() {
++        for bytes in [
++            &[][..],
++            &[0],
++            &[0, 0],
++            &[0, 0, 1],
++            &[4, 0, b'x', 1, 0],
++            &[255, 255, 0, 0],
++            &[0, 0, 2, 0],
++        ] {
++            assert!(read(bytes).is_err(), "{bytes:?}");
++        }
++    }
++}

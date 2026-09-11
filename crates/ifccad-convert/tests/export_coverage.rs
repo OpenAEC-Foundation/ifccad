@@ -1,4 +1,4 @@
-use cadcodec::{CadDocument, EntityType, Handle, Line, LineType};
+use cadcodec::{CadDocument, EntityType, Handle, Line, LineType, Vector3};
 use ifccad::package::PackageOptions;
 use ifccad::PackageId;
 use ifccad_convert::{
@@ -149,4 +149,93 @@ fn bare_header_handle_values_do_not_count_as_semantic_loss() {
     let outcome = cad_document_to_package(&document, package_options(), ExportOptions::default())
         .unwrap_or_else(|error| panic!("export failed: {error}"));
     assert!(outcome.diagnostics().is_empty());
+}
+
+#[test]
+fn cached_geometry_extents_are_not_independent_drawing_settings() {
+    let mut document = CadDocument::new();
+    document
+        .add_entity(EntityType::Line(Line::from_coords(
+            0.0, 0.0, 0.0, 10.0, 5.0, 0.0,
+        )))
+        .unwrap();
+    document.header.model_space_extents_min = Vector3::new(-100.0, -100.0, 0.0);
+    document.header.model_space_extents_max = Vector3::new(100.0, 100.0, 0.0);
+    document.header.paper_space_extents_min = Vector3::new(-1.0, -1.0, 0.0);
+    document.header.paper_space_extents_max = Vector3::new(1.0, 1.0, 0.0);
+    let outcome = cad_document_to_package(
+        &document,
+        package_options(),
+        ExportOptions {
+            loss_policy: ifccad_convert::ExportLossPolicy::Reject,
+        },
+    )
+    .unwrap();
+    assert!(outcome.diagnostics().is_empty());
+    let unique = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    let root = std::env::temp_dir().join(format!(
+        "ifccad-cached-extents-{}-{unique}",
+        std::process::id()
+    ));
+    outcome.package().write_directory(&root).unwrap();
+    let loaded = ifccad::package::load_directory_package(&root).unwrap();
+    assert!(loaded.report().is_empty());
+    let drawing = loaded
+        .validated_package()
+        .unwrap()
+        .drawings()
+        .next()
+        .unwrap();
+    let bounds = drawing.representation().resource().bounds().unwrap();
+    assert_eq!(bounds.min(), ifccad::ifcdr::Point2::new(0.0, 0.0));
+    assert_eq!(bounds.max(), ifccad::ifcdr::Point2::new(10.0, 5.0));
+}
+
+#[test]
+fn meaningful_current_defaults_and_drawing_limits_still_reject() {
+    for change in [0, 1] {
+        let mut document = CadDocument::new();
+        if change == 0 {
+            document.header.current_line_weight = 50;
+        } else {
+            document.header.model_space_limits_max.x += 100.0;
+        }
+        assert!(matches!(
+            cad_document_to_package(
+                &document,
+                package_options(),
+                ExportOptions {
+                    loss_policy: ifccad_convert::ExportLossPolicy::Reject
+                }
+            ),
+            Err(ifccad_convert::ExportError::LossRejected { .. })
+        ));
+    }
+}
+
+#[test]
+fn upstream_drawing_variables_are_reported_as_unsupported_objects() {
+    let mut document = CadDocument::new();
+    assert!(document.set_hatch_origin([12.5, -8.25]));
+    let outcome =
+        cad_document_to_package(&document, package_options(), ExportOptions::default()).unwrap();
+    assert!(outcome.diagnostics().iter().any(|diagnostic| {
+        diagnostic.reasons().iter().any(|reason| {
+            matches!(reason, ExportLossReason::UnsupportedCollection { kind, count }
+                if kind == "objects" && *count > 0)
+        })
+    }));
+    assert!(matches!(
+        cad_document_to_package(
+            &document,
+            package_options(),
+            ExportOptions {
+                loss_policy: ifccad_convert::ExportLossPolicy::Reject
+            }
+        ),
+        Err(ifccad_convert::ExportError::LossRejected { .. })
+    ));
 }

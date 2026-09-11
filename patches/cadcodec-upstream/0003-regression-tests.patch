@@ -1,0 +1,93 @@
+diff --git a/tests/serialization_stability.rs b/tests/serialization_stability.rs
+new file mode 100644
+index 0000000..0db6cbf
+--- /dev/null
++++ b/tests/serialization_stability.rs
+@@ -0,0 +1,87 @@
++use acadrust::{CadDocument, DwgReader, DwgWriter, DxfVersion, DxfWriter};
++use std::io::Cursor;
++
++#[test]
++fn dxf_objects_keep_root_first_then_ascending_handles() {
++    let document = CadDocument::new();
++    let bytes = DxfWriter::new(&document).write_to_vec().unwrap();
++    let text = String::from_utf8(bytes).unwrap();
++    let lines: Vec<_> = text.lines().collect();
++    let mut objects = false;
++    let mut handles = Vec::new();
++    for pair in lines.chunks_exact(2) {
++        if pair[0].trim() == "2" && pair[1].trim() == "OBJECTS" {
++            objects = true;
++        }
++        if objects && pair[0].trim() == "0" && pair[1].trim() == "ENDSEC" {
++            break;
++        }
++        if objects && pair[0].trim() == "5" {
++            handles.push(u64::from_str_radix(pair[1].trim(), 16).unwrap());
++        }
++    }
++    let root = document.header.named_objects_dict_handle.value();
++    let mut expected: Vec<_> = document
++        .objects
++        .keys()
++        .map(|h| h.value())
++        .filter(|h| *h != root)
++        .collect();
++    expected.sort_unstable();
++    expected.insert(0, root);
++    assert_eq!(handles, expected);
++    let reference = DxfWriter::new(&document).write_to_vec().unwrap();
++    for _ in 0..4 {
++        assert_eq!(
++            reference,
++            DxfWriter::new(&CadDocument::new()).write_to_vec().unwrap()
++        );
++    }
++}
++
++#[test]
++fn dwg_header_preserves_current_lineweight_values_and_adjacent_flags() {
++    use acadrust::io::dwg::dwg_stream_readers::header_reader::read_header;
++    use acadrust::io::dwg::dwg_stream_writers::header_writer::write_header;
++    for version in [
++        DxfVersion::AC1015,
++        DxfVersion::AC1018,
++        DxfVersion::AC1021,
++        DxfVersion::AC1032,
++    ] {
++        for weight in [
++            -3, -2, -1, 0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40, 50, 53, 60, 70, 80, 90, 100, 106,
++            120, 140, 158, 200, 211,
++        ] {
++            let mut document = CadDocument::new();
++            document.header.current_line_weight = weight;
++            document.header.end_caps = 2;
++            document.header.join_style = 1;
++            let bytes = write_header(version, &document.header, 0);
++            let read = read_header(&bytes, version, 0).unwrap();
++            assert_eq!(read.current_line_weight, weight, "{version:?}");
++            assert_eq!(read.end_caps, 2);
++            assert_eq!(read.join_style, 1);
++        }
++    }
++}
++
++#[test]
++fn dwg_preserves_measurement_independently_of_insertion_units() {
++    for version in [
++        DxfVersion::AC1015,
++        DxfVersion::AC1018,
++        DxfVersion::AC1021,
++        DxfVersion::AC1032,
++    ] {
++        for measurement in [0, 1] {
++            let mut document = CadDocument::with_version(version);
++            document.header.measurement = measurement;
++            document.header.insertion_units = 0;
++            let bytes = DwgWriter::write_to_vec(&document).unwrap();
++            let read = DwgReader::from_stream(Cursor::new(bytes)).read().unwrap();
++            assert_eq!(read.header.measurement, measurement, "{version:?}");
++            assert_eq!(read.header.insertion_units, 0);
++        }
++    }
++}

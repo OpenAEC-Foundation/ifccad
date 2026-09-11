@@ -1,0 +1,18 @@
+[package]
+name = "cadcodec-upstream-regressions"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[dependencies]
+acadrust = { path = "../../../target/cadcodec-upstream-fixes" }
+
+[[test]]
+name = "serialization_stability"
+path = "../../../target/cadcodec-upstream-fixes/tests/serialization_stability.rs"
+
+[[test]]
+name = "template_payload"
+path = "../../../target/cadcodec-upstream-fixes/src/io/dwg/template.rs"

@@ -1,0 +1,3 @@
+# Opt-in fixes on the current upstream pin; see cadcodec-upstream/README.md.
+[patch."https://github.com/HakanSeven12/cadcodec.git"]
+acadrust = { path = "target/cadcodec-upstream-fixes" }

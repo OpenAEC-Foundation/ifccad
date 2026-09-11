@@ -185,7 +185,7 @@ mod tests {
         assert_eq!(map_entity_opacity(Explicit(1.0)), Transparency::OPAQUE);
         assert_eq!(
             map_entity_opacity(Explicit(0.5)),
-            Transparency::Explicit(127)
+            Transparency::Explicit(128)
         );
     }
 }

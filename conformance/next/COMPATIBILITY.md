@@ -112,7 +112,7 @@ Passing the implemented IFCPR checks is not a full preservation-validity proof
 or a guarantee of lossless source roundtrip. The converter does not transfer
 IFCPR records or source payloads.
 
-## Remaining milestone 2 work
+## Established milestone 2 boundary
 
 Reader and writer now use separate backings behind shared typed collection
 access and logical validation. The JSON codec maps the published logical
@@ -128,6 +128,8 @@ containing document and the full content pointer. Per-file limits apply to the
 entrypoint including all inline bodies; those bytes count only once.
 
 Operation-specific reporting is implemented with optional v2 manifest
-expectations. Frozen v1 manifests retain their original shape. Initial size
-measurements remain outstanding. Broader entity semantics and preservation
-remain milestone 3.
+expectations. Frozen v1 manifests retain their original shape. The
+[initial size experiment](../../docs/benchmarks/size-baseline-v1.md) records a
+successful reproducible reference using the documented local codec fixes.
+Milestone 2 is established; upstream integration of those fixes remains codec
+maintenance. Broader entity semantics and preservation are milestone 3 work.

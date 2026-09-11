@@ -61,7 +61,7 @@ does not imply that the logical model or physical encoding is complete.
 
 ## 2. Stable logical drawing-resource model
 
-**Status: Current**
+**Status: Established** — completed 2026-09-11.
 
 ### Outcome
 
@@ -168,12 +168,49 @@ contract. The [inline resource implementation](docs/superpowers/specs/2026-09-09
 normalizes inline and external IFCDR/IFCPR sources and adds explicit IFCDR writer
 storage selection. The [reporting implementation](docs/superpowers/specs/2026-09-11-compatibility-reporting-design.md)
 adds diagnostic categories, package assessment completeness and scoped converter
-summaries, with manifest v2 expectations. Initial reproducible size measurements
-remain required; this milestone is still Current.
+summaries, with manifest v2 expectations. The
+[size and exchange experiment](docs/benchmarks/size-baseline-v1.md) consolidates
+the method, measurements and successful exchange/repeatability checks for
+cadcodec 0.5.4 at `2f2cd25` with two local DWG fixes. Compression remains an
+explanatory check until a supported production encoding can be measured.
+The successful, reproducible run with its explicitly pinned local patches is
+accepted as the initial measurement reference for this milestone. Integrating
+the two upstream DWG fixes is codec maintenance, not an unresolved logical-model
+boundary; it therefore does not block broader native semantics. This replaces
+the earlier, unnecessarily strict requirement to wait for upstream integration.
+The unmodified cadcodec pin still fails the known DWG return chains. Its
+unpatched production baseline is not claimed to pass; `baseline_accepted: false`
+in the recorded run preserves the experiment's automatic local-override gate.
+
+### Closure assessment
+
+| Exit criterion | Evidence |
+| --- | --- |
+| Encoding-neutral public semantic APIs | Typed resource/entity access and separate reader/writer backings; [logical contract tests](tests/ifcdr_logical_contract.rs). |
+| Separate physical and semantic validation | Independent [JSON codec tests](src/ifcdr/codec/json/tests.rs) and [logical validation tests](src/ifcdr/logical/tests.rs). |
+| Language-neutral semantics separate from mappings | [Logical contract](schemas/ifcdr/logical-contract-0.7.0.md), registry, JSON mapping and [mapping language](schemas/ifcdr/json-mapping-v1.md). |
+| Consistent drawing-resource terminology | [Drawing resource contract](schemas/ifcx/drawing-resource-contract-0.8.0.md), active overlay and conformance checks. |
+| Inline/external normalization | [Resource source contract](schemas/ifcx/resource-source-contract-0.9.0.md) and [inline resource tests](tests/inline_resources.rs). |
+| Supported JSON roundtrip, determinism and version handling | [Writer roundtrip tests](tests/package_writer_roundtrip.rs), active conformance and compatibility matrix; frozen collection unchanged. |
+| Validity, support and transfer distinguished | [Reporting contract](conformance/next/reporting-contract-v1.md), compatibility matrix and package/converter assessment tests. |
+| Initial reproducible size reference | [Complete experiment](docs/benchmarks/size-baseline-v1.md), both successful generations and explicit dependency provenance. |
+
+Final workspace verification: formatter and Clippy pass; 335 tests pass with
+one existing ignored test. No new encoding, migration layer, native entity
+family, full IFCPR implementation or conformance release is implied by closure.
+
+### Follow-up outside milestone 2
+
+- Integrate cadcodec fixes [#41](https://github.com/HakanSeven12/cadcodec/issues/41)
+  and [#42](https://github.com/HakanSeven12/cadcodec/issues/42), remove superseded
+  local patches, and rerun the same corpus with the shared dependency pin.
+- Expand the practical corpus and supported native semantics in milestone 3.
+- Measure production compression/other encodings when implemented; the broader
+  experiments in issue #6 remain separate.
 
 ## 3. Native CAD semantics and preservation
 
-**Status: Next**
+**Status: Current**
 
 ### Outcome
 

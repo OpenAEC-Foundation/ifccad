@@ -1,7 +1,7 @@
 # CadDocument export coverage contract
 
 This inventory is pinned to cadcodec/acadrust revision
-`a0f7d444f1607bc4b2c881060cbe7ea1014253cb`. It defines what the initial
+`2f2cd25832db298524fb5eb36ced5a438a877e95` (acadrust 0.5.4). It defines what the initial
 `CadDocument -> IFCCAD` exporter must either represent or diagnose. Updating the
 dependency requires reviewing every row. [cadcodec issue #30](https://github.com/HakanSeven12/cadcodec/issues/30)
 tracks a compiler-visible upstream semantic inventory that can replace parts of
@@ -21,7 +21,8 @@ outside that bounded guarantee.
 | `header.model_space_block_handle` and the related `Layout.block_record` | Exact/FatalIfInconsistent | The relationship selects the one model layout; null, missing, or ambiguous structure is fatal. Numeric handle replacement itself is not loss. |
 | `header.handle_seed`, table-control handles, dictionary handles, and standard-record handles | NonSemantic | Numeric serialization identity alone is ignored. Meaningful referenced content is covered at its table/object/entity source. |
 | `header.project_name` | SkippedLoss | `UnsupportedHeaderField { project_name }`. |
-| Every other `HeaderVariables` drawing setting (mode flags, precision, scales, current defaults, dimension variables, limits/extents, UCS, dates and textual metadata) | SkippedLoss | A conservative `header.other_semantics` diagnostic is emitted whenever the public header differs from the pinned fresh-document baseline after exact/nonsemantic fields are normalized. |
+| `header.model_space_extents_min/max`, `header.paper_space_extents_min/max` | NonSemantic | Cached geometry bounds may be unset, stale or recomputed by a codec. Output IFCDR bounds are calculated from emitted geometry; these caches are not independent drawing settings. Drawing limits are separate and remain diagnosed. |
+| Every other `HeaderVariables` drawing setting (mode flags, precision, scales, current defaults, dimension variables, limits, UCS, dates and textual metadata) | SkippedLoss | A conservative `header.other_semantics` diagnostic is emitted whenever the public header differs from the pinned fresh-document baseline after exact/nonsemantic fields are normalized. |
 | `summary_info` | SkippedLoss | One `DocumentSummaryInformation` diagnostic. |
 | `source_path` | NonSemantic | Host filesystem provenance is not package drawing semantics. |
 | `notifications` | NonSemantic | Parser/writer messages are operational state, not source drawing content. |
@@ -66,6 +67,17 @@ outside that bounded guarantee.
 | `has_ds_data` | NonSemantic bookkeeping | The corresponding modeler entity/geometry is independently skipped as unsupported. |
 
 ## Maintenance rule
+
+The 2026-09-11 update reviewed the public document/header, entity/common,
+table/object and appearance surfaces against the previous `a0f7d44` pin.
+Line, LwPolyline, EntityCommon and document/header fields remain unchanged.
+New spline/MTEXT fields and solid-history/hatch-context object fields fall
+under the existing unsupported entity/object categories. Serialized drawing
+variables (including current transparency and default hatch origin) use
+Dictionary/DictionaryVariable objects and are diagnosed by the objects scan;
+a regression verifies reporting and Reject for a non-default hatch origin.
+Upstream's transparency quantization now rounds the transparency byte upward
+to match the complementary packed opacity; import coverage remains bounded.
 
 The scanner uses exhaustive Rust matches where cadcodec exposes closed enums
 (`EntityType`, color/transparency/lineweight modes in the converter). Open maps

@@ -90,13 +90,12 @@ Development follows an incremental sequence:
 
 1. **Working format foundation** — typed packages, validation, deterministic
    writing, and an initial bidirectional 2D CAD roundtrip are established.
-2. **Stable logical drawing-resource model** — stabilize terminology,
-   encoding-neutral boundaries, language-neutral rules and conformance,
-   compatibility reporting, registry semantics, and resource identity, while
-   beginning reproducible size measurements. Start from a reduced line/polyline
-   contract with its supporting data; older IFCDR file compatibility is not
-   required.
-3. **Native CAD semantics and preservation** — expand geometry, layouts,
+2. **Stable logical drawing-resource model (established)** — encoding-neutral
+   boundaries, language-neutral line/polyline rules, resource identity,
+   inline/external access, compatibility reporting and initial reproducible
+   size measurements are implemented and verified. Older IFCDR file
+   compatibility is not required.
+3. **Native CAD semantics and preservation (current)** — expand geometry, layouts,
    entities, drawing relationships, and IFCPR-backed fidelity using a growing
    corpus of representative CAD workflows, including an initial CAD-BIM link.
 4. **Scalable physical encodings and packaging** — evaluate chunking,
@@ -301,7 +300,12 @@ Converter outcomes expose `transfer_assessment()` within their stated source
 scope. Export covers the pinned public CadDocument model; import still has
 documented coverage gaps. An empty diagnostic list alone does not prove lossless
 transfer. These results describe executed operations, not a preflight scan.
-Initial size measurements remain for milestone 2; see [ROADMAP.md](ROADMAP.md).
+The [size and exchange experiment](docs/benchmarks/size-baseline-v1.md)
+describes the method, successful controlled IFCCAD/DXF/DWG measurements and
+explanatory whitespace/compression checks in one report. It uses cadcodec 0.5.4
+with two local DWG fixes. This reproducible reference completes milestone 2;
+upstream integration of those codec fixes remains separate maintenance work.
+See the closure assessment and follow-up in [ROADMAP.md](ROADMAP.md).
 
 ## Repository layout
 

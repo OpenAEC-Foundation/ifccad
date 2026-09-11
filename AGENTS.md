@@ -22,6 +22,11 @@ Start with:
 - `crates/ifccad-convert/src/export/COVERAGE.md` for the pinned cadcodec export
   coverage and loss-classification contract.
 
+For measurement or encoding work, also read
+`docs/benchmarks/size-baseline-v1.md` for the controlled experiment, its limits,
+and reproduction instructions. Import changes must also consult
+`crates/ifccad-convert/src/import/COVERAGE.md`.
+
 Use the following source-of-truth order:
 
 - `schemas/` and `conformance/` define the language-neutral format contract;
@@ -35,6 +40,10 @@ status. The roadmap order expresses architectural dependencies even when
 milestones overlap. Do not couple later work to unresolved earlier boundaries.
 When proposed work crosses milestones, identify the dependency and trade-off
 explicitly.
+
+Dated specs and plans record the scope and status of their implementation
+slice. Their historical "remaining work" statements do not override the current
+roadmap or reopen completed milestones.
 
 Open GitHub issues provide roadmap and future-design context, but are not
 normative requirements. Before designing changes that affect format
@@ -51,6 +60,10 @@ Do not expand the current task merely because a related issue exists.
   drawings and cadcodec `CadDocument`.
 - Keep conversion, logical package construction, physical encoding, and
   filesystem storage as separate responsibilities.
+- Add new entity semantics to the language-neutral logical contract and shared
+  semantic validation; keep physical field/range rules in the codec mapping.
+  Exercise reader and writer backings through the shared logical access rather
+  than duplicating semantic rules in each direction.
 - Do not silently approximate or discard source semantics. Represent them,
   diagnose the loss, preserve them through an approved preservation mechanism,
   or reject structurally inconsistent input.
@@ -74,6 +87,10 @@ Do not expand the current task merely because a related issue exists.
   milestone names, order, or intent change in `ROADMAP.md`.
 - Treat generated files below `target/` as local artifacts. Do not add them to
   version control.
+- When updating cadcodec, review public-model changes against both converter
+  coverage contracts, including added fields on existing types. Keep local
+  codec patches explicit and tied to a base revision; do not edit the Cargo
+  cache or treat patched results as evidence for the unmodified dependency.
 
 ## Verification
 
@@ -95,6 +112,14 @@ New writer or converter output must be loaded through the production reader and
 pass strict package validation. Conversion tests should compare semantic
 content rather than unstable handles or serialized byte layouts, except where
 byte determinism is itself the contract under test.
+
+Rerun the controlled size/exchange experiment when changing its corpus,
+measured writer/codec behavior, relevant conversion semantics, or cadcodec pin.
+Use the documented dependency configuration and a fresh run directory; run
+different Cargo configurations sequentially because they share Cargo.lock.
+Keep one current experiment report and its corresponding detailed result JSON.
+Compression probes explain observations; add compressed output as a formal
+variant only when production encoding and readback exist.
 
 ## Repository authority
 

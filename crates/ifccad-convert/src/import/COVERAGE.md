@@ -1,7 +1,7 @@
 # Drawing-to-CadDocument assessment coverage
 
 This describes the existing importer for IFCDR 0.7.0 and cadcodec revision
-`a0f7d444f1607bc4b2c881060cbe7ea1014253cb`. It is a coverage declaration, not a
+`2f2cd25832db298524fb5eb36ced5a438a877e95`. It is a coverage declaration, not a
 preflight scan. Changes to that importer must review this declaration.
 
 The operation accepts one selected drawing with exactly one model layout.
@@ -20,7 +20,7 @@ The package graph outside that drawing and IFCPR restoration are outside scope.
 | Explicit color | ACI 1–255 preferred when supplied; otherwise RGB; named metadata mapped where supported |
 | Line pattern | Continuous/Dashed mapped; other patterns fall back with a grouped loss diagnostic |
 | Line weight | Mapped to supported CAD weights; rounding emits a grouped loss diagnostic |
-| Opacity | Converted to CAD transparency; quantization fidelity is not assessed |
+| Opacity | Converted to CAD transparency with upstream's upward byte rounding (0.5 opacity gives transparency byte 128); quantization fidelity is not assessed |
 | Color metadata and appearance identity | No comprehensive fidelity assessment; unsupported indexed systems use RGB, and layer 0 updating does not copy all named-color metadata |
 | Scope name, base and flags; drawing/layout metadata | Not comprehensively transferred or assessed |
 | Bounds, allocation watermark, resource/table identities | No reconstruction guarantee; target storage and handles differ |
