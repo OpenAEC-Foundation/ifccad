@@ -136,6 +136,8 @@ fn next_candidate_is_self_contained_and_valid_json() {
     for relative in [
         "manifest.json",
         "manifest-schema-v1.json",
+        "manifest-schema-v2.json",
+        "reporting-contract-v1.md",
         "schemas/ifcx/ifccad-overlay-0.9.0.json",
         "schemas/ifcx/drawing-resource-contract-0.8.0.md",
         "schemas/ifcx/resource-source-contract-0.9.0.md",
@@ -185,6 +187,48 @@ fn next_candidate_is_self_contained_and_valid_json() {
         );
         serde_json::from_slice::<Value>(&bytes)
             .unwrap_or_else(|error| panic!("invalid JSON {}: {error}", path.display()));
+    }
+}
+
+#[test]
+fn manifest_schemas_preserve_v1_and_validate_v2_reporting_vocabulary() {
+    for (root, version) in [(frozen_root(), 1), (next_root(), 2)] {
+        let schema: Value = serde_json::from_slice(
+            &fs::read(root.join(format!("manifest-schema-v{version}.json"))).unwrap(),
+        )
+        .unwrap();
+        let validator = jsonschema::draft202012::new(&schema).unwrap();
+        let manifest: Value =
+            serde_json::from_slice(&fs::read(root.join("manifest.json")).unwrap()).unwrap();
+        assert!(
+            validator.is_valid(&manifest),
+            "{:?}",
+            validator.iter_errors(&manifest).collect::<Vec<_>>()
+        );
+        if version == 2 {
+            for (field, invalid) in [
+                ("validity", serde_json::json!("unknown")),
+                ("completeness", serde_json::json!("maybe")),
+                (
+                    "gaps",
+                    serde_json::json!([{"resourceId":null,"resourceUri":null,"location":null,"reason":"unknown"}]),
+                ),
+            ] {
+                let mut bad = manifest.clone();
+                let expected = &mut bad["cases"][0]["operations"][0]["expected"];
+                expected["packageAssessment"] =
+                    serde_json::json!({"validity":"valid","completeness":"complete","gaps":[]});
+                expected["packageAssessment"][field] = invalid;
+                assert!(!validator.is_valid(&bad), "accepted invalid {field}");
+            }
+            let mut bad = manifest.clone();
+            bad["cases"][0]["operations"][0]["expected"]["diagnostics"] =
+                serde_json::json!([{"code":"TEST","severity":"error","category":"unknown"}]);
+            assert!(!validator.is_valid(&bad));
+            let mut bad = manifest;
+            bad.as_object_mut().unwrap().remove("manifestVersion");
+            assert!(!validator.is_valid(&bad));
+        }
     }
 }
 

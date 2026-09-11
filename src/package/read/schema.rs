@@ -25,7 +25,7 @@ pub(crate) fn validate_ifcx(value: &Value) -> Vec<PackageDiagnostic> {
         .with_registry(&registry)
         .build(&composite)
         .expect("compile embedded IFCX overlay 0.9.0");
-    schema_diagnostics(&validator, None, DIRECTORY_PACKAGE_ENTRYPOINT, value)
+    schema_diagnostics(&validator, None, DIRECTORY_PACKAGE_ENTRYPOINT, value, false)
 }
 
 pub(crate) fn validate_ifcpr(
@@ -36,7 +36,7 @@ pub(crate) fn validate_ifcpr(
     let schema = parse_schema(IFCPR_SCHEMA, "IFCPR schema 0.2.0");
     let validator =
         jsonschema::draft202012::new(&schema).expect("compile embedded IFCPR schema 0.2.0");
-    schema_diagnostics(&validator, resource_id, resource_uri, value)
+    schema_diagnostics(&validator, resource_id, resource_uri, value, true)
 }
 
 fn parse_schema(source: &str, name: &str) -> Value {
@@ -48,7 +48,13 @@ fn schema_diagnostics(
     resource_id: Option<&ResourceId>,
     resource_uri: &str,
     value: &Value,
+    preservation: bool,
 ) -> Vec<PackageDiagnostic> {
+    let unknown_preservation_profile = preservation
+        && value
+            .pointer("/header/version")
+            .and_then(Value::as_str)
+            .is_some_and(|v| v != "0.2.0");
     validator
         .iter_errors(value)
         .map(|error| {
@@ -77,6 +83,12 @@ fn schema_diagnostics(
                 }
                 _ => None,
             };
+            let pointer = error.instance_path().to_string();
+            // The resource envelope's format and identity are required by the
+            // package contract independently of preservation body versions.
+            let envelope_rule = matches!(pointer.as_str(), "/header/format" | "/header/resourceId")
+                || (pointer == "/header"
+                    && matches!(property.as_deref(), Some("format" | "resourceId")));
             if let Some(property) = property {
                 diagnostic_context.insert(
                     "property".to_owned(),
@@ -84,6 +96,15 @@ fn schema_diagnostics(
                 );
             }
             PackageDiagnostic {
+                category: if (unknown_preservation_profile && !envelope_rule)
+                    || (error.kind().keyword() == "const"
+                        && error.instance().is_string()
+                        && is_profile_selector(&pointer, preservation))
+                {
+                    super::PackageDiagnosticCategory::UnsupportedContent
+                } else {
+                    super::PackageDiagnosticCategory::ContractViolation
+                },
                 code: IFCCAD_PACKAGE_SCHEMA_INVALID.to_owned(),
                 severity: PackageDiagnosticSeverity::Error,
                 resource_id: resource_id.cloned(),
@@ -94,6 +115,17 @@ fn schema_diagnostics(
             }
         })
         .collect()
+}
+
+fn is_profile_selector(pointer: &str, preservation: bool) -> bool {
+    if preservation {
+        return pointer == "/header/version";
+    }
+    if pointer == "/header/ifcxVersion" {
+        return true;
+    }
+    let parts: Vec<_> = pointer.split('/').collect();
+    matches!(parts.as_slice(), ["", "data", index, "attributes", "resource" | "preservation", "version"] if index.parse::<usize>().is_ok())
 }
 
 #[cfg(test)]
@@ -155,6 +187,22 @@ mod tests {
     #[test]
     fn embedded_ifcx_schema_accepts_the_drawing_spine() {
         assert!(validate_ifcx(&valid_ifcx()).is_empty());
+    }
+
+    #[test]
+    fn unknown_preservation_body_rules_do_not_establish_invalidity() {
+        let value =
+            json!({"header":{"format":"openaec.ifcpr","resourceId":"p","version":"99.0.0"}});
+        let diagnostics = validate_ifcpr(None, "p.json", &value);
+        assert!(!diagnostics.is_empty());
+        assert!(diagnostics
+            .iter()
+            .all(|d| d.category == super::super::PackageDiagnosticCategory::UnsupportedContent));
+        let mut invalid_envelope = value;
+        invalid_envelope["header"]["resourceId"] = json!("");
+        assert!(validate_ifcpr(None, "p.json", &invalid_envelope)
+            .iter()
+            .any(|d| d.category == super::super::PackageDiagnosticCategory::ContractViolation));
     }
 
     #[test]

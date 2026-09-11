@@ -57,16 +57,28 @@ These are distinct claims:
 - **Support:** whether this implementation can perform the requested operation.
 - **Lossless transfer:** whether that operation retains the relevant meaning.
 
-The current report API and manifest schema do not yet encode all three as
-independent results. `PackageValidationReport::is_valid()` means that the
-implemented checks emitted no error diagnostics. Unsupported content is an
-error-level blocker for `validated_package()`; this does not establish
-invalidity under an unsupported contract.
+The [reporting contract v1](reporting-contract-v1.md) defines diagnostic
+categories and explicit assessment results. `PackageValidationReport::is_valid()`
+still means no error diagnostics. Unsupported content blocks `validated_package()`
+but does not establish invalidity under an unknown contract.
+`assessment().validity()` distinguishes `Valid`, `Invalid` and `NotFullyAssessed`;
+`completeness()` and `gaps()` preserve unassessed areas even when invalidity has
+already been proven. A successful IFCPR load currently has incomplete assessment,
+without introducing a new blocker. Permitted unrelated IFCX extensions remain
+outside the IFCCAD-owned assessment scope.
+
+Conversion outcomes expose `transfer_assessment()`. Public-CadDocument export has
+complete coverage within its pinned boundary; private/raw CAD state is excluded.
+Selected-drawing import has [documented coverage gaps](../../crates/ifccad-convert/src/import/COVERAGE.md).
+Existing loss evidence yields `LossDetected`; otherwise only complete coverage
+permits `NoLossDetected`, while incomplete coverage yields `NotFullyAssessed`.
+Failed conversions retain their existing errors; `LossRejected` produces no
+package. These summaries describe executed operations, with no preflight API.
 
 The manifest's `invalid` category includes the explicitly named `unsupported.*`
 cases because they cannot obtain a strict result from this reader. The old
-version case also reports that its descriptor violates the selected 0.9.0
-overlay; it is not a validation attempt against the old overlay. An unknown
+version case retains its fixed-version schema diagnostic as `unsupportedContent`;
+it is not proof of invalidity under the old contract. An unknown
 stream does not produce dependent missing-entity/order or orphan-payload
 diagnostics based on an unknown payload mapping. Independently established
 physical errors remain reportable. A declared but unvalidated drawing resource
@@ -115,5 +127,7 @@ contain a complete object and forbid URI/checksum fields. Errors identify the
 containing document and the full content pointer. Per-file limits apply to the
 entrypoint including all inline bodies; those bytes count only once.
 
-Complete operation-specific reporting and initial size measurements remain outstanding.
-Broader entity semantics and preservation remain milestone 3.
+Operation-specific reporting is implemented with optional v2 manifest
+expectations. Frozen v1 manifests retain their original shape. Initial size
+measurements remain outstanding. Broader entity semantics and preservation
+remain milestone 3.

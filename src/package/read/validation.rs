@@ -62,7 +62,20 @@ fn validate_loaded_package(
     package: Arc<LoadedIfccadPackage>,
     mut diagnostics: Vec<PackageDiagnostic>,
 ) -> PackageLoadOutcome {
-    diagnostics.extend(validate_ifcx(&package.entrypoint.value));
+    let mut gaps = Vec::new();
+    let schema_diagnostics = validate_ifcx(&package.entrypoint.value);
+    if schema_diagnostics
+        .iter()
+        .any(|d| d.category == super::PackageDiagnosticCategory::ContractViolation)
+    {
+        gaps.push(super::AssessmentGap {
+            resource_id: None,
+            resource_uri: Some(super::DIRECTORY_PACKAGE_ENTRYPOINT.into()),
+            location: Some(String::new()),
+            reason: super::AssessmentGapReason::ContentNotAssessable,
+        });
+    }
+    diagnostics.extend(schema_diagnostics);
     let header_analysis = super::header::analyze_package_header(&package.entrypoint.value);
     diagnostics.extend(header_analysis.diagnostics);
     diagnostics.extend(validate_declared_resource_id_uniqueness(
@@ -77,11 +90,24 @@ fn validate_loaded_package(
             continue;
         }
         if let Some(resource) = package.resources.get(&declaration.source) {
+            gaps.push(resource_gap(
+                declaration,
+                super::AssessmentGapReason::PreservationSemanticsNotAssessed,
+            ));
             let mut resource_diagnostics = validate_ifcpr(
                 Some(&declaration.resource_id),
                 &declaration.source.origin().document_uri,
                 &resource.value,
             );
+            if resource_diagnostics
+                .iter()
+                .any(|d| d.category == super::PackageDiagnosticCategory::ContractViolation)
+            {
+                gaps.push(resource_gap(
+                    declaration,
+                    super::AssessmentGapReason::ContentNotAssessable,
+                ));
+            }
             if resource_diagnostics.is_empty() {
                 let content_resource_id = resource
                     .value()
@@ -114,6 +140,9 @@ fn validate_loaded_package(
     }
     diagnostics.extend(verify_resource_checksums(&package));
     let graph = validate_ifcx_graph(&package.entrypoint.value);
+    if !graph.diagnostics.is_empty() {
+        gaps.push(package_gap());
+    }
     diagnostics.extend(graph.diagnostics);
 
     let mut validated_ifcdr_by_source = BTreeMap::new();
@@ -132,6 +161,16 @@ fn validate_loaded_package(
             source.clone(),
         ));
         let (validated, mut resource_diagnostics) = outcome.into_parts();
+        if validated.is_none()
+            && !resource_diagnostics
+                .iter()
+                .any(|d| d.category == super::PackageDiagnosticCategory::UnsupportedContent)
+        {
+            gaps.push(resource_gap(
+                declaration,
+                super::AssessmentGapReason::ContentNotAssessable,
+            ));
+        }
         for diagnostic in &mut resource_diagnostics {
             diagnostic
                 .resource_id
@@ -155,6 +194,10 @@ fn validate_loaded_package(
         };
         let content_resource_id = validated.header().resource_id();
         if content_resource_id != &declaration.resource_id {
+            gaps.push(resource_gap(
+                declaration,
+                super::AssessmentGapReason::ContentNotAssessable,
+            ));
             diagnostics.push(resource_id_mismatch_diagnostic(
                 declaration,
                 content_resource_id,
@@ -188,6 +231,12 @@ fn validate_loaded_package(
         &unavailable_ifcdr_resource_ids,
     );
     let mut binding_diagnostics = binding_analysis.diagnostics;
+    if binding_diagnostics
+        .iter()
+        .any(|d| d.code == super::codes::IFCCAD_PACKAGE_BINDING_INVALID)
+    {
+        gaps.push(package_gap());
+    }
     for diagnostic in &mut binding_diagnostics {
         if diagnostic
             .location
@@ -213,7 +262,35 @@ fn validate_loaded_package(
         bindings: binding_analysis.bindings,
     });
 
-    let report = PackageValidationReport::from_diagnostics(diagnostics);
+    gaps.extend(super::PackageAssessment::diagnostic_gaps(&diagnostics));
+    for gap in &mut gaps {
+        if gap.resource_id.is_some() {
+            continue;
+        }
+        if let Some(declaration) = package.declarations.iter().find(|d| {
+            d.source.external_uri() == gap.resource_uri.as_deref()
+                && d.source.external_uri().is_some()
+        }) {
+            gap.resource_id = Some(declaration.resource_id.clone());
+            // Loader diagnostics point at the declaring node. The gap describes
+            // the unavailable body itself, whose internal location is unknown.
+            gap.location = Some(String::new());
+        } else if gap.resource_uri.as_deref() == Some(super::DIRECTORY_PACKAGE_ENTRYPOINT) {
+            if let Some(declaration) = package.declarations.iter().find(|d| {
+                d.resource_id_location
+                    .strip_suffix("/resourceId")
+                    .is_some_and(|base| {
+                        gap.location.as_deref().is_some_and(|p| {
+                            p.strip_prefix(base)
+                                .is_some_and(|suffix| suffix.starts_with('/'))
+                        })
+                    })
+            }) {
+                gap.resource_id = Some(declaration.resource_id.clone());
+            }
+        }
+    }
+    let report = PackageValidationReport::from_assessed(diagnostics, gaps);
     let validated_package =
         super::analysis::build_strict_proof(package.clone(), analysis.clone(), report.is_valid());
 
@@ -222,6 +299,28 @@ fn validate_loaded_package(
         analysis: Some(analysis),
         validated_package,
         report,
+    }
+}
+
+fn package_gap() -> super::AssessmentGap {
+    super::AssessmentGap {
+        resource_id: None,
+        resource_uri: Some(super::DIRECTORY_PACKAGE_ENTRYPOINT.into()),
+        location: Some(String::new()),
+        reason: super::AssessmentGapReason::ContentNotAssessable,
+    }
+}
+
+fn resource_gap(
+    declaration: &super::discovery::ResourceDeclaration,
+    reason: super::AssessmentGapReason,
+) -> super::AssessmentGap {
+    let origin = declaration.source.origin();
+    super::AssessmentGap {
+        resource_id: Some(declaration.resource_id.clone()),
+        resource_uri: Some(origin.document_uri.clone()),
+        location: Some(origin.locate(None)),
+        reason,
     }
 }
 
@@ -256,6 +355,7 @@ fn validate_ifcpr_drawing_resource_ids(
                 continue;
             }
             diagnostics.push(PackageDiagnostic {
+                category: crate::diagnostic::PackageDiagnosticCategory::ContractViolation,
                 code: IFCCAD_PACKAGE_TARGET_RESOURCE_MISSING.to_owned(),
                 severity: PackageDiagnosticSeverity::Error,
                 resource_id: Some(ifcpr_resource_id.clone()),
@@ -313,6 +413,7 @@ fn validate_declared_resource_id_uniqueness(
             }
             Some(first) if first == &identity => {}
             Some((first_kind, first_uri)) => diagnostics.push(PackageDiagnostic {
+                category: crate::diagnostic::PackageDiagnosticCategory::ContractViolation,
                 code: IFCCAD_PACKAGE_RESOURCE_ID_DUPLICATE.to_owned(),
                 severity: PackageDiagnosticSeverity::Error,
                 resource_id: Some(declaration.resource_id.clone()),
@@ -356,6 +457,7 @@ fn resource_id_mismatch_diagnostic(
     content_resource_id: &ResourceId,
 ) -> PackageDiagnostic {
     PackageDiagnostic {
+        category: crate::diagnostic::PackageDiagnosticCategory::ContractViolation,
         code: IFCCAD_PACKAGE_RESOURCE_ID_MISMATCH.to_owned(),
         severity: PackageDiagnosticSeverity::Error,
         resource_id: Some(declaration.resource_id.clone()),
@@ -407,6 +509,7 @@ fn verify_resource_checksums(package: &LoadedIfccadPackage) -> Vec<PackageDiagno
                 return None;
             }
             Some(PackageDiagnostic {
+                category: crate::diagnostic::PackageDiagnosticCategory::ContractViolation,
                 code: IFCCAD_PACKAGE_CHECKSUM_MISMATCH.to_owned(),
                 severity: PackageDiagnosticSeverity::Error,
                 resource_id: Some(declaration.resource_id.clone()),
@@ -461,6 +564,7 @@ pub(crate) fn validate_encoded_package(
             Ok(value) => value,
             Err(error) => {
                 return vec![PackageDiagnostic {
+                    category: crate::diagnostic::PackageDiagnosticCategory::ContractViolation,
                     code: "IFCCAD_PACKAGE_JSON_INVALID".into(),
                     severity: PackageDiagnosticSeverity::Error,
                     resource_id: None,
@@ -490,6 +594,7 @@ pub(crate) fn validate_encoded_package(
         let resource = resources.remove(uri);
         if resource.is_none() {
             missing.push(PackageDiagnostic {
+                category: crate::diagnostic::PackageDiagnosticCategory::ExecutionBlocked,
                 code: super::codes::IFCCAD_PACKAGE_RESOURCE_MISSING.into(),
                 severity: PackageDiagnosticSeverity::Error,
                 resource_id: None,

@@ -11,15 +11,17 @@ mod read;
 mod write;
 
 pub use crate::diagnostic::{
-    PackageDiagnostic, PackageDiagnosticContextValue, PackageDiagnosticSeverity,
+    PackageDiagnostic, PackageDiagnosticCategory, PackageDiagnosticContextValue,
+    PackageDiagnosticSeverity,
 };
 pub(crate) use read::canonical_rfc3339_utc;
 pub use read::{
     load_directory_package, AppearanceColorRef, AppearanceProperty, AppearanceRef,
-    AppliedAppearanceRef, DrawingLayoutKind, DrawingLayoutRef, DrawingRef,
-    DrawingRepresentationRef, DrawingSetRef, IndexedColorRef, LayerRef, LinePatternRef,
-    NamedColorRef, PackageHeaderRef, PackageLoadOutcome, PackageOpenError, PackageValidationReport,
-    RgbColor, ValidatedPackage,
+    AppliedAppearanceRef, AssessmentCompleteness, AssessmentGap, AssessmentGapReason,
+    DrawingLayoutKind, DrawingLayoutRef, DrawingRef, DrawingRepresentationRef, DrawingSetRef,
+    IndexedColorRef, LayerRef, LinePatternRef, NamedColorRef, PackageAssessment, PackageHeaderRef,
+    PackageLoadOutcome, PackageOpenError, PackageValidationReport, PackageValidity, RgbColor,
+    ValidatedPackage,
 };
 pub use write::{
     AppearanceColor, AppearanceDefinition, AppearanceKey, AppearanceMode, DrawingAppearances,

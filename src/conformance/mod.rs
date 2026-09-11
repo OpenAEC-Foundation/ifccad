@@ -12,7 +12,8 @@ pub use error::ConformanceError;
 pub use fingerprints::verify_fingerprint_vectors;
 pub use manifest::{
     load_conformance_manifest, parse_conformance_manifest, ConformanceCase, ConformanceCategory,
-    ConformanceManifest, ConformanceOperation, ConformanceOperationName, ExpectedOutcome,
+    ConformanceManifest, ConformanceOperation, ConformanceOperationName, ExpectedAssessmentGap,
+    ExpectedOutcome, ExpectedPackageAssessment,
 };
 
 /// Version of the conformance test collection bundled with this crate.

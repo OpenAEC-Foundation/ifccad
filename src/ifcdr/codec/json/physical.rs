@@ -663,6 +663,17 @@ impl<'a> ResourceValidator<'a> {
         context: BTreeMap<String, PackageDiagnosticContextValue>,
     ) {
         self.diagnostics.push(PackageDiagnostic {
+            category: match code {
+                "IFCCAD_IFCDR_VERSION_UNSUPPORTED" | IFCCAD_IFCDR_STREAM_SCHEMA_UNSUPPORTED => {
+                    crate::diagnostic::PackageDiagnosticCategory::UnsupportedContent
+                }
+                IFCCAD_IFCDR_STRUCTURE_INVALID
+                | IFCCAD_IFCDR_DIRECTORY_INVALID
+                | "IFCCAD_IFCDR_ENTITY_ORDER_INVALID" => {
+                    crate::diagnostic::PackageDiagnosticCategory::ContractViolation
+                }
+                _ => unreachable!("unclassified physical diagnostic: {code}"),
+            },
             code: code.to_owned(),
             severity: PackageDiagnosticSeverity::Error,
             resource_id: None,

@@ -291,13 +291,17 @@ Polylines require at least two vertices; repeated vertices and coincident line
 endpoints are valid. Empty resources have no bounds; nonempty bounds must enclose
 all geometry, including invisible entities, and may be conservative.
 
-An initial compatibility matrix exists. Richer reporting remains planned to
-distinguish three separate questions:
-whether a package is valid, whether an implementation supports its content for
-a stated operation, and whether that operation can transfer the relevant
-meaning without loss. The conformance collections will grow an explicit matrix
-covering readable and writable versions, understood extensions, and handling of
-unknown content; see [ROADMAP.md](ROADMAP.md) for the staged work.
+The [compatibility matrix](conformance/next/COMPATIBILITY.md) and
+[reporting contract](conformance/next/reporting-contract-v1.md) distinguish
+contract violations, unsupported content and blocked execution.
+`outcome.report().assessment()` exposes validity, completeness and unassessed
+areas. `is_valid()` retains its meaning of no error diagnostics; packages with
+IFCPR can remain usable while reporting incomplete preservation assessment.
+Converter outcomes expose `transfer_assessment()` within their stated source
+scope. Export covers the pinned public CadDocument model; import still has
+documented coverage gaps. An empty diagnostic list alone does not prove lossless
+transfer. These results describe executed operations, not a preflight scan.
+Initial size measurements remain for milestone 2; see [ROADMAP.md](ROADMAP.md).
 
 ## Repository layout
 

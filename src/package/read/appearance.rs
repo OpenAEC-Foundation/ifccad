@@ -151,6 +151,7 @@ fn validate_appearances(
         if let Some(path) = value.ifcx_line_pattern() {
             if !node_indices_by_path.contains_key(path) {
                 diagnostics.push(PackageDiagnostic {
+                    category: crate::diagnostic::PackageDiagnosticCategory::ContractViolation,
                     code: IFCCAD_PACKAGE_APPEARANCE_INVALID.to_owned(),
                     severity: PackageDiagnosticSeverity::Error,
                     resource_id: Some(resource_id.clone()),
@@ -307,6 +308,7 @@ fn appearance_diagnostic(
     message: &str,
 ) -> PackageDiagnostic {
     PackageDiagnostic {
+        category: crate::diagnostic::PackageDiagnosticCategory::ContractViolation,
         code: IFCCAD_PACKAGE_APPEARANCE_INVALID.to_owned(),
         severity: PackageDiagnosticSeverity::Error,
         resource_id: Some(resource_id.clone()),
@@ -358,6 +360,7 @@ fn validate_layer_names(
         let normalized = name.to_lowercase();
         if let Some((first_id, first_path)) = first_by_name.get(&normalized) {
             diagnostics.push(PackageDiagnostic {
+                category: crate::diagnostic::PackageDiagnosticCategory::ContractViolation,
                 code: IFCCAD_PACKAGE_LAYER_NAME_DUPLICATE.to_owned(),
                 severity: PackageDiagnosticSeverity::Error,
                 resource_id: Some(resource_id.clone()),

@@ -28,6 +28,7 @@ pub enum ConformanceOperationName {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ConformanceManifest {
+    pub manifest_version: u32,
     pub suite_version: String,
     pub cases: Vec<ConformanceCase>,
 }
@@ -50,6 +51,7 @@ pub struct ConformanceOperation {
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ExpectedOutcome {
+    pub package_assessment: Option<ExpectedPackageAssessment>,
     #[serde(default)]
     pub diagnostics: Vec<Value>,
     pub canonical_utf8_base64: Option<String>,
@@ -64,11 +66,35 @@ pub struct ExpectedOutcome {
     pub extracted_source_base64: Option<String>,
 }
 
+/// Expected report data, not a validation proof.
+#[derive(Debug, Clone, Deserialize, serde::Serialize, PartialEq)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct ExpectedPackageAssessment {
+    pub validity: crate::package::PackageValidity,
+    pub completeness: crate::package::AssessmentCompleteness,
+    pub gaps: Vec<ExpectedAssessmentGap>,
+}
+
+#[derive(Debug, Clone, Deserialize, serde::Serialize, PartialEq)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct ExpectedAssessmentGap {
+    pub resource_id: Option<String>,
+    pub resource_uri: Option<String>,
+    pub location: Option<String>,
+    pub reason: crate::package::AssessmentGapReason,
+}
+
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct RawManifest {
+    #[serde(default = "legacy_manifest_version")]
+    manifest_version: u32,
     suite_version: String,
     cases: Vec<RawCase>,
+}
+
+fn legacy_manifest_version() -> u32 {
+    1
 }
 
 #[derive(Deserialize)]
@@ -97,7 +123,12 @@ pub fn parse_conformance_manifest(
             path: origin.to_path_buf(),
             source,
         })?;
-    if raw.suite_version != BUNDLED_CONFORMANCE_VERSION {
+    if !matches!(raw.manifest_version, 1 | 2) {
+        return Err(ConformanceError::UnsupportedManifestVersion {
+            found: raw.manifest_version,
+        });
+    }
+    if raw.suite_version != BUNDLED_CONFORMANCE_VERSION && raw.suite_version != "1.0.0" {
         return Err(ConformanceError::UnsupportedSuiteVersion {
             found: raw.suite_version,
         });
@@ -127,6 +158,31 @@ pub fn parse_conformance_manifest(
             .operations
             .into_iter()
             .map(|operation| {
+                if raw.manifest_version == 1
+                    && (operation.expected.package_assessment.is_some()
+                        || operation
+                            .expected
+                            .diagnostics
+                            .iter()
+                            .any(|d| d.get("category").is_some()))
+                {
+                    return Err(ConformanceError::ReportingFieldsRequireV2 {
+                        case_id: case.case_id.clone(),
+                    });
+                }
+                for diagnostic in &operation.expected.diagnostics {
+                    if let Some(category) = diagnostic.get("category") {
+                        serde_json::from_value::<crate::package::PackageDiagnosticCategory>(
+                            category.clone(),
+                        )
+                        .map_err(|source| {
+                            ConformanceError::MalformedJson {
+                                path: origin.to_path_buf(),
+                                source,
+                            }
+                        })?;
+                    }
+                }
                 Ok(ConformanceOperation {
                     name: parse_operation(&case.case_id, &operation.name)?,
                     expected: operation.expected,
@@ -142,6 +198,7 @@ pub fn parse_conformance_manifest(
         });
     }
     Ok(ConformanceManifest {
+        manifest_version: raw.manifest_version,
         suite_version: raw.suite_version,
         cases,
     })

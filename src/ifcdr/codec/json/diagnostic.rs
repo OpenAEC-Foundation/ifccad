@@ -37,6 +37,7 @@ pub(crate) fn logical_diagnostic(uri: &str, d: IfcdrDiagnostic) -> PackageDiagno
         format!("{base}/{}", d.property)
     };
     PackageDiagnostic {
+        category: crate::diagnostic::PackageDiagnosticCategory::ContractViolation,
         code: d.code.into(),
         severity: PackageDiagnosticSeverity::Error,
         resource_id: Some(d.resource_id),

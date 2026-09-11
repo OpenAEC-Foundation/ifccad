@@ -16,3 +16,10 @@ pub enum PackageOpenError {
         source: io::Error,
     },
 }
+
+impl PackageOpenError {
+    /// An open error blocks inspection; it does not prove a format violation.
+    pub fn category(&self) -> super::PackageDiagnosticCategory {
+        super::PackageDiagnosticCategory::ExecutionBlocked
+    }
+}

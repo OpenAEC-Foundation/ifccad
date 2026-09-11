@@ -29,6 +29,15 @@ fn flat_import_api_converts_a_validated_drawing() {
     assert_public_types(&outcome, outcome.diagnostics(), outcome.entity_mapping());
     assert_error_type(None);
     assert_eq!(outcome.document().entities().count(), 4);
+    assert_eq!(
+        outcome.transfer_assessment().conclusion(),
+        ifccad_convert::TransferConclusion::NotFullyAssessed
+    );
+    assert_eq!(
+        outcome.transfer_assessment().scope(),
+        ifccad_convert::TransferScope::SelectedDrawingToCadDocument
+    );
+    assert!(!outcome.transfer_assessment().limitations().is_empty());
 }
 
 #[test]

@@ -82,3 +82,43 @@ fn rejects_empty_operation_list() {
         Err(ConformanceError::EmptyOperations { case_id }) if case_id == "valid.one"
     ));
 }
+
+#[test]
+fn manifest_versions_are_independent_of_collection_versions() {
+    let frozen = include_str!("../conformance/1.0.0/manifest.json");
+    let parsed = parse_conformance_manifest(frozen, Path::new("frozen.json")).unwrap();
+    assert_eq!(parsed.manifest_version, 1);
+    assert_eq!(parsed.suite_version, "1.0.0");
+    let mut value: serde_json::Value = serde_json::from_str(&manifest(valid_case())).unwrap();
+    value["manifestVersion"] = 2.into();
+    value["cases"][0]["operations"][0]["expected"]["packageAssessment"] =
+        serde_json::json!({"validity":"valid","completeness":"complete","gaps":[]});
+    let parsed = parse_conformance_manifest(&value.to_string(), Path::new("v2.json")).unwrap();
+    assert_eq!(parsed.manifest_version, 2);
+    assert_eq!(
+        parsed.cases[0].operations[0]
+            .expected
+            .package_assessment
+            .as_ref()
+            .unwrap()
+            .validity,
+        ifccad::package::PackageValidity::Valid
+    );
+    value["manifestVersion"] = 3.into();
+    assert!(parse_conformance_manifest(&value.to_string(), Path::new("future.json")).is_err());
+    value.as_object_mut().unwrap().remove("manifestVersion");
+    assert!(parse_conformance_manifest(&value.to_string(), Path::new("v1.json")).is_err());
+    value["manifestVersion"] = 2.into();
+    value["cases"][0]["operations"][0]["expected"]["packageAssessment"]["validity"] =
+        "perhaps".into();
+    assert!(parse_conformance_manifest(&value.to_string(), Path::new("bad.json")).is_err());
+    value["cases"][0]["operations"][0]["expected"]
+        .as_object_mut()
+        .unwrap()
+        .remove("packageAssessment");
+    value["cases"][0]["operations"][0]["expected"]["diagnostics"] =
+        serde_json::json!([{"code":"TEST","severity":"error","category":"unclassified"}]);
+    assert!(
+        parse_conformance_manifest(&value.to_string(), Path::new("bad-category.json")).is_err()
+    );
+}

@@ -1,4 +1,8 @@
 mod analysis;
+mod assessment;
+pub use assessment::{
+    AssessmentCompleteness, AssessmentGap, AssessmentGapReason, PackageAssessment, PackageValidity,
+};
 mod appearance;
 mod bindings;
 pub(crate) mod codes;
@@ -16,7 +20,8 @@ mod uri;
 mod validation;
 
 pub(crate) use crate::diagnostic::{
-    PackageDiagnostic, PackageDiagnosticContextValue, PackageDiagnosticSeverity,
+    PackageDiagnostic, PackageDiagnosticCategory, PackageDiagnosticContextValue,
+    PackageDiagnosticSeverity,
 };
 pub use analysis::ValidatedPackage;
 pub use appearance::{

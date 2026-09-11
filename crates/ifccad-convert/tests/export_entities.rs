@@ -74,6 +74,14 @@ fn exact_model_space_lines_and_straight_lwpolylines_are_emitted_and_mapped() {
     )
     .unwrap_or_else(|error| panic!("export failed: {error}"));
     assert!(outcome.diagnostics().is_empty());
+    assert_eq!(
+        outcome.transfer_assessment().conclusion(),
+        ifccad_convert::TransferConclusion::NoLossDetected
+    );
+    assert_eq!(
+        outcome.transfer_assessment().scope(),
+        ifccad_convert::TransferScope::PublicCadDocumentToPackage
+    );
     assert_eq!(outcome.entity_mapping().len(), 2);
     assert_eq!(
         outcome

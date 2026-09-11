@@ -31,6 +31,15 @@ fn reject_returns_the_complete_same_loss_list_as_allow_and_no_package() {
     )
     .unwrap_or_else(|error| panic!("allow export failed: {error}"));
     assert_eq!(allowed.diagnostics().len(), 2);
+    assert_eq!(
+        allowed.transfer_assessment().conclusion(),
+        ifccad_convert::TransferConclusion::LossDetected
+    );
+    assert_eq!(
+        allowed.transfer_assessment().coverage(),
+        ifccad_convert::TransferCoverage::CompleteWithinScope
+    );
+    assert!(!allowed.transfer_assessment().limitations().is_empty());
 
     let error = cad_document_to_package(
         &document,

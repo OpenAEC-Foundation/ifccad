@@ -150,3 +150,25 @@ handle numbers are technical identifiers and may change; `ExportEntityMapping`
 records emitted source handles against their new IFCDR entity IDs. Semantic
 relationships carried by handles are still diagnosed when they cannot be
 represented.
+
+
+## Assessment of an executed conversion
+
+Both outcomes expose `transfer_assessment()` alongside their detailed diagnostics
+and entity mapping. `conclusion()` is `LossDetected`, `NoLossDetected` or
+`NotFullyAssessed`; `scope()`, `coverage()` and `limitations()` explain its reach.
+
+Export assesses the pinned public CadDocument model according to
+[export coverage](src/export/COVERAGE.md), excluding private runtime state and
+original raw CAD bytes. With no recorded losses, this permits `NoLossDetected`
+within that scope. Import assesses the selected drawing and currently has
+[coverage gaps](src/import/COVERAGE.md), including metadata and opacity
+quantization. Without recorded losses it returns `NotFullyAssessed`.
+
+Recorded loss takes precedence while coverage limitations remain visible.
+`Allow` still returns output with loss diagnostics; `Reject` still returns
+`LossRejected` with those diagnostics and no package. Other typed errors also
+describe failed attempts, not completed transfers. Summary access does not
+rescan input, and the existing `into_parts()` tuples remain unchanged.
+Package validation and transfer fidelity are separate: even a successfully
+loaded IFCPR resource is not restored by this converter.

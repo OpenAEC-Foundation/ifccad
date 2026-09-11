@@ -8,6 +8,7 @@ use serde_json::Value;
 
 fn error(uri: &str, location: String, code: &str, message: &str) -> PackageDiagnostic {
     PackageDiagnostic {
+        category: crate::diagnostic::PackageDiagnosticCategory::ContractViolation,
         code: code.into(),
         severity: PackageDiagnosticSeverity::Error,
         resource_id: None,

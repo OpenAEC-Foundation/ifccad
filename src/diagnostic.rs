@@ -2,6 +2,18 @@ use crate::ResourceId;
 use serde::Serialize;
 use std::collections::BTreeMap;
 
+/// Kind of evidence, independently of diagnostic severity.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum PackageDiagnosticCategory {
+    /// A rule of a known applicable contract was violated.
+    ContractViolation,
+    /// The reader does not implement the requested profile or content.
+    UnsupportedContent,
+    /// Required input or execution capacity was unavailable.
+    ExecutionBlocked,
+}
+
 /// Severity of a structured IFCCAD package diagnostic.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "lowercase")]
@@ -32,6 +44,8 @@ pub enum PackageDiagnosticContextValue {
 #[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PackageDiagnostic {
+    /// What the diagnostic establishes, independently of its severity.
+    pub category: PackageDiagnosticCategory,
     /// Stable machine-readable diagnostic code.
     pub code: String,
     /// Diagnostic severity.

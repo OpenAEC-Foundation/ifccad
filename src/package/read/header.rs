@@ -36,6 +36,7 @@ pub(crate) fn analyze_package_header(value: &Value) -> PackageHeaderAnalysis {
     let timestamp_is_valid = timestamp.is_some_and(|value| canonical_rfc3339_utc(value).is_some());
     if timestamp.is_some() && !timestamp_is_valid {
         diagnostics.push(PackageDiagnostic {
+            category: crate::diagnostic::PackageDiagnosticCategory::ContractViolation,
             code: IFCCAD_PACKAGE_TIMESTAMP_INVALID.to_owned(),
             severity: PackageDiagnosticSeverity::Error,
             resource_id: None,

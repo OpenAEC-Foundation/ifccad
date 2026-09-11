@@ -22,3 +22,5 @@ License 2.0. The adjacent `LICENSE` file contains the applicable license text.
 - Drawing terminology migration (2026-09-08): IFCX overlay and normative drawing-resource contract 0.8.0; IFCDR remains 0.7.0. Renewed representation descriptors, sample identities, linked IDs and checksums. Added shared model/paper layouts, representation mismatch and retired-vocabulary cases. Frozen collections remain unchanged.
 
 - Inline-source migration (2026-09-09): overlay and normative source contract 0.9.0, retaining drawing relationship contract 0.8.0. Added IFCDR/IFCPR source combinations, conflicting sources, inline checksum, duplicate identity and unsupported inline-body cases. Resource body contracts and frozen collections are unchanged.
+
+- Reporting update (2026-09-11): added reporting contract v1 and manifest schema v2 with optional category/assessment expectations. Existing case IDs and five deferred IFCPR checks remain; format-body schemas, frozen collections and suite version are unchanged.

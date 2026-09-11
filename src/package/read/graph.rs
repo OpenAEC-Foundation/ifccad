@@ -92,6 +92,7 @@ fn validate_drawing_representations(
                 continue;
             }
             diagnostics.push(PackageDiagnostic {
+                category: crate::diagnostic::PackageDiagnosticCategory::ContractViolation,
                 code: super::codes::IFCCAD_PACKAGE_BINDING_INVALID.to_owned(),
                 severity: PackageDiagnosticSeverity::Error,
                 resource_id: None,
@@ -124,6 +125,7 @@ fn validate_drawing_representations(
 
 fn duplicate_path_diagnostic(path: &str, first_index: usize, index: usize) -> PackageDiagnostic {
     PackageDiagnostic {
+        category: crate::diagnostic::PackageDiagnosticCategory::ContractViolation,
         code: IFCCAD_PACKAGE_NODE_PATH_DUPLICATE.to_owned(),
         severity: PackageDiagnosticSeverity::Error,
         resource_id: None,
@@ -342,6 +344,7 @@ fn reference_diagnostic(
         }
     };
     PackageDiagnostic {
+        category: crate::diagnostic::PackageDiagnosticCategory::ContractViolation,
         code: code.to_owned(),
         severity: PackageDiagnosticSeverity::Error,
         resource_id: None,

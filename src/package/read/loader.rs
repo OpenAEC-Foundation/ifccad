@@ -285,6 +285,18 @@ impl DirectoryPackageLoader {
         message: impl Into<String>,
     ) {
         self.diagnostics.push(PackageDiagnostic {
+            category: match code {
+                IFCCAD_PACKAGE_ENTRYPOINT_MISSING
+                | IFCCAD_PACKAGE_RESOURCE_MISSING
+                | IFCCAD_PACKAGE_RESOURCE_LIMIT_EXCEEDED
+                | IFCCAD_PACKAGE_TOTAL_LIMIT_EXCEEDED => {
+                    super::PackageDiagnosticCategory::ExecutionBlocked
+                }
+                IFCCAD_PACKAGE_PATH_INVALID | IFCCAD_PACKAGE_JSON_INVALID => {
+                    super::PackageDiagnosticCategory::ContractViolation
+                }
+                _ => unreachable!("unclassified loader diagnostic: {code}"),
+            },
             code: code.to_owned(),
             severity: PackageDiagnosticSeverity::Error,
             resource_id: None,
@@ -537,6 +549,14 @@ mod tests {
         let diagnostic = &report.diagnostics()[0];
         assert_eq!(diagnostic.code, IFCCAD_PACKAGE_RESOURCE_LIMIT_EXCEEDED);
         assert_eq!(
+            diagnostic.category,
+            crate::diagnostic::PackageDiagnosticCategory::ExecutionBlocked
+        );
+        assert_eq!(
+            report.assessment().gaps()[0].reason,
+            super::super::AssessmentGapReason::ExecutionLimit
+        );
+        assert_eq!(
             diagnostic.context.get("limit"),
             Some(&PackageDiagnosticContextValue::Number(2.into()))
         );
@@ -567,6 +587,14 @@ mod tests {
         assert_eq!(report.len(), 1);
         let diagnostic = &report.diagnostics()[0];
         assert_eq!(diagnostic.code, IFCCAD_PACKAGE_TOTAL_LIMIT_EXCEEDED);
+        assert_eq!(
+            diagnostic.category,
+            crate::diagnostic::PackageDiagnosticCategory::ExecutionBlocked
+        );
+        assert_eq!(
+            report.assessment().gaps()[0].reason,
+            super::super::AssessmentGapReason::ExecutionLimit
+        );
         assert_eq!(
             diagnostic.context.get("limit"),
             Some(&PackageDiagnosticContextValue::Number(3.into()))

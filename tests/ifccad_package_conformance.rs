@@ -46,11 +46,22 @@ fn supported_bundled_validate_package_cases_match_their_diagnostic_contract() {
             let actual = outcome
                 .report()
                 .iter()
-                .map(|diagnostic| {
-                    json!({
+                .enumerate()
+                .map(|(index, diagnostic)| {
+                    let mut value = json!({
                         "code": diagnostic.code,
                         "severity": severity_name(diagnostic.severity),
-                    })
+                    });
+                    if operation
+                        .expected
+                        .diagnostics
+                        .get(index)
+                        .and_then(|d| d.get("category"))
+                        .is_some()
+                    {
+                        value["category"] = serde_json::to_value(diagnostic.category).unwrap();
+                    }
+                    value
                 })
                 .collect::<Vec<Value>>();
 
@@ -59,6 +70,14 @@ fn supported_bundled_validate_package_cases_match_their_diagnostic_contract() {
                     "{}: expected {:?}, got {actual:?}",
                     case.case_id, operation.expected.diagnostics
                 ));
+            }
+            if let Some(expected) = &operation.expected.package_assessment {
+                assert_eq!(
+                    serde_json::to_value(outcome.report().assessment()).unwrap(),
+                    serde_json::to_value(expected).unwrap(),
+                    "{} assessment",
+                    case.case_id
+                );
             }
         }
     }

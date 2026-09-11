@@ -4,6 +4,10 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum ConformanceError {
+    #[error("unsupported IFCCAD conformance manifest version {found}")]
+    UnsupportedManifestVersion { found: u32 },
+    #[error("case {case_id} uses reporting fields requiring manifest version 2")]
+    ReportingFieldsRequireV2 { case_id: String },
     #[error("failed to read IFCCAD conformance file {path}: {source}")]
     Io {
         path: PathBuf,

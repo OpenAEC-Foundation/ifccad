@@ -255,6 +255,7 @@ fn validate_ifcx_identity(
         return true;
     }
     diagnostics.push(PackageDiagnostic {
+        category: crate::diagnostic::PackageDiagnosticCategory::ContractViolation,
         code: IFCCAD_PACKAGE_BINDING_INVALID.to_owned(),
         severity: PackageDiagnosticSeverity::Error,
         resource_id: None,
@@ -344,6 +345,7 @@ fn binding_diagnostic(
     context: BTreeMap<String, PackageDiagnosticContextValue>,
 ) -> PackageDiagnostic {
     PackageDiagnostic {
+        category: crate::diagnostic::PackageDiagnosticCategory::ContractViolation,
         code: IFCCAD_PACKAGE_BINDING_INVALID.to_owned(),
         severity: PackageDiagnosticSeverity::Error,
         resource_id: None,
@@ -356,6 +358,7 @@ fn binding_diagnostic(
 
 fn target_resource_diagnostic(location: String, resource_id: &ResourceId) -> PackageDiagnostic {
     PackageDiagnostic {
+        category: crate::diagnostic::PackageDiagnosticCategory::ContractViolation,
         code: IFCCAD_PACKAGE_TARGET_RESOURCE_MISSING.to_owned(),
         severity: PackageDiagnosticSeverity::Error,
         resource_id: Some(resource_id.clone()),

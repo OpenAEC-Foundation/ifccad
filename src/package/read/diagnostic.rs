@@ -1,3 +1,4 @@
+use super::{AssessmentGap, PackageAssessment};
 #[cfg(test)]
 use crate::diagnostic::PackageDiagnosticContextValue;
 use crate::diagnostic::{PackageDiagnostic, PackageDiagnosticSeverity};
@@ -10,13 +11,39 @@ use serde::Serialize;
 pub struct PackageValidationReport {
     /// Diagnostics ordered by resource, location, severity, code, and context.
     diagnostics: Vec<PackageDiagnostic>,
+    assessment: PackageAssessment,
 }
 
 impl PackageValidationReport {
-    pub(crate) fn from_diagnostics(mut diagnostics: Vec<PackageDiagnostic>) -> Self {
+    pub(crate) fn from_diagnostics(diagnostics: Vec<PackageDiagnostic>) -> Self {
+        let gaps = PackageAssessment::diagnostic_gaps(&diagnostics);
+        Self::new(diagnostics, gaps, false)
+    }
+
+    pub(super) fn from_assessed(
+        diagnostics: Vec<PackageDiagnostic>,
+        gaps: Vec<AssessmentGap>,
+    ) -> Self {
+        Self::new(diagnostics, gaps, true)
+    }
+
+    fn new(
+        mut diagnostics: Vec<PackageDiagnostic>,
+        gaps: Vec<AssessmentGap>,
+        completed: bool,
+    ) -> Self {
+        let assessment = PackageAssessment::finish(&diagnostics, gaps, completed);
         diagnostics
             .sort_by(|left, right| diagnostic_sort_key(left).cmp(&diagnostic_sort_key(right)));
-        Self { diagnostics }
+        Self {
+            diagnostics,
+            assessment,
+        }
+    }
+
+    /// Returns validity and completeness evidence, separately from `is_valid()`.
+    pub fn assessment(&self) -> &PackageAssessment {
+        &self.assessment
     }
 
     /// Returns `true` when the report contains no error diagnostics.
@@ -94,6 +121,7 @@ mod tests {
         location: Option<&str>,
     ) -> PackageDiagnostic {
         PackageDiagnostic {
+            category: crate::diagnostic::PackageDiagnosticCategory::ContractViolation,
             code: code.to_owned(),
             severity,
             resource_id: None,
@@ -109,6 +137,7 @@ mod tests {
         context: BTreeMap<String, PackageDiagnosticContextValue>,
     ) -> PackageDiagnostic {
         PackageDiagnostic {
+            category: crate::diagnostic::PackageDiagnosticCategory::ContractViolation,
             code: code.to_owned(),
             severity: PackageDiagnosticSeverity::Error,
             resource_id: None,
@@ -227,6 +256,7 @@ mod tests {
     fn resource_id_orders_diagnostics_before_equal_source_locations() {
         let diagnostics = vec![
             PackageDiagnostic {
+                category: crate::diagnostic::PackageDiagnosticCategory::ContractViolation,
                 code: "TEST".to_owned(),
                 severity: PackageDiagnosticSeverity::Error,
                 resource_id: Some(crate::ResourceId::new("geometry-b").unwrap()),
@@ -236,6 +266,7 @@ mod tests {
                 message: String::new(),
             },
             PackageDiagnostic {
+                category: crate::diagnostic::PackageDiagnosticCategory::ContractViolation,
                 code: "TEST".to_owned(),
                 severity: PackageDiagnosticSeverity::Error,
                 resource_id: Some(crate::ResourceId::new("geometry-a").unwrap()),

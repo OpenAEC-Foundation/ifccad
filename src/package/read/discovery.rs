@@ -43,6 +43,7 @@ pub(crate) fn discover_resources(ifcx: &serde_json::Value) -> ResourceDiscovery 
             == Some("openaec:DrawingGeometryRepresentation")
         {
             discovery.diagnostics.push(PackageDiagnostic {
+                category: crate::diagnostic::PackageDiagnosticCategory::UnsupportedContent,
                 code: super::codes::IFCCAD_PACKAGE_VOCABULARY_UNSUPPORTED.into(),
                 severity: PackageDiagnosticSeverity::Error,
                 resource_id: None,
@@ -121,6 +122,7 @@ fn recognized_resource(node: &serde_json::Value) -> Option<(ResourceKind, &'stat
 
 fn invalid_entrypoint(location: &str, message: &str) -> PackageDiagnostic {
     PackageDiagnostic {
+        category: crate::diagnostic::PackageDiagnosticCategory::ContractViolation,
         code: IFCCAD_PACKAGE_ENTRYPOINT_INVALID.to_owned(),
         severity: PackageDiagnosticSeverity::Error,
         resource_id: None,

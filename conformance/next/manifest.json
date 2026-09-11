@@ -64,7 +64,12 @@
       "operations": [
         {
           "expected": {
-            "diagnostics": []
+            "diagnostics": [],
+            "packageAssessment": {
+              "validity": "valid",
+              "completeness": "complete",
+              "gaps": []
+            }
           },
           "name": "validatePackage"
         }
@@ -92,7 +97,19 @@
       "operations": [
         {
           "expected": {
-            "diagnostics": []
+            "diagnostics": [],
+            "packageAssessment": {
+              "validity": "notFullyAssessed",
+              "completeness": "incomplete",
+              "gaps": [
+                {
+                  "resourceId": "preservation-golden-source",
+                  "resourceUri": "preservation.ifcpr.json",
+                  "location": "",
+                  "reason": "preservationSemanticsNotAssessed"
+                }
+              ]
+            }
           },
           "name": "validatePackage"
         }
@@ -217,9 +234,22 @@
             "diagnostics": [
               {
                 "code": "IFCCAD_PACKAGE_RESOURCE_MISSING",
-                "severity": "error"
+                "severity": "error",
+                "category": "executionBlocked"
               }
-            ]
+            ],
+            "packageAssessment": {
+              "validity": "notFullyAssessed",
+              "completeness": "incomplete",
+              "gaps": [
+                {
+                  "resourceId": "preservation-golden-source",
+                  "resourceUri": "preservation.ifcpr.json",
+                  "location": "",
+                  "reason": "unavailableInput"
+                }
+              ]
+            }
           },
           "name": "validatePackage"
         }
@@ -236,9 +266,22 @@
             "diagnostics": [
               {
                 "code": "IFCCAD_PACKAGE_CHECKSUM_MISMATCH",
-                "severity": "error"
+                "severity": "error",
+                "category": "contractViolation"
               }
-            ]
+            ],
+            "packageAssessment": {
+              "validity": "invalid",
+              "completeness": "incomplete",
+              "gaps": [
+                {
+                  "resourceId": "preservation-golden-source",
+                  "resourceUri": "preservation.ifcpr.json",
+                  "location": "",
+                  "reason": "preservationSemanticsNotAssessed"
+                }
+              ]
+            }
           },
           "name": "validatePackage"
         }
@@ -440,13 +483,33 @@
             "diagnostics": [
               {
                 "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
-                "severity": "error"
+                "severity": "error",
+                "category": "unsupportedContent"
               },
               {
                 "code": "IFCCAD_IFCDR_VERSION_UNSUPPORTED",
-                "severity": "error"
+                "severity": "error",
+                "category": "unsupportedContent"
               }
-            ]
+            ],
+            "packageAssessment": {
+              "validity": "notFullyAssessed",
+              "completeness": "incomplete",
+              "gaps": [
+                {
+                  "resourceId": "drawing-main",
+                  "resourceUri": "drawing.ifcdr.json",
+                  "location": "/header/version",
+                  "reason": "unsupportedProfile"
+                },
+                {
+                  "resourceId": "drawing-main",
+                  "resourceUri": "package.ifcx.json",
+                  "location": "/data/3/attributes/resource/version",
+                  "reason": "unsupportedProfile"
+                }
+              ]
+            }
           },
           "name": "validatePackage"
         }
@@ -463,7 +526,8 @@
             "diagnostics": [
               {
                 "code": "IFCCAD_IFCDR_STREAM_SCHEMA_UNSUPPORTED",
-                "severity": "error"
+                "severity": "error",
+                "category": "unsupportedContent"
               }
             ]
           },
@@ -625,7 +689,8 @@
             "diagnostics": [
               {
                 "code": "IFCCAD_PACKAGE_VOCABULARY_UNSUPPORTED",
-                "severity": "error"
+                "severity": "error",
+                "category": "unsupportedContent"
               }
             ]
           }
@@ -641,7 +706,12 @@
         {
           "name": "validatePackage",
           "expected": {
-            "diagnostics": []
+            "diagnostics": [],
+            "packageAssessment": {
+              "validity": "valid",
+              "completeness": "complete",
+              "gaps": []
+            }
           }
         }
       ]
@@ -757,13 +827,27 @@
             "diagnostics": [
               {
                 "code": "IFCCAD_IFCDR_VERSION_UNSUPPORTED",
-                "severity": "error"
+                "severity": "error",
+                "category": "unsupportedContent"
               }
-            ]
+            ],
+            "packageAssessment": {
+              "validity": "notFullyAssessed",
+              "completeness": "incomplete",
+              "gaps": [
+                {
+                  "resourceId": "drawing-main",
+                  "resourceUri": "package.ifcx.json",
+                  "location": "/data/3/attributes/resource/content/header/version",
+                  "reason": "unsupportedProfile"
+                }
+              ]
+            }
           }
         }
       ]
     }
   ],
-  "suiteVersion": "1.1.0"
+  "suiteVersion": "1.1.0",
+  "manifestVersion": 2
 }

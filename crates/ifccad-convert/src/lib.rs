@@ -1,7 +1,9 @@
 #![doc = include_str!("../README.md")]
 
+mod assessment;
 mod export;
 mod import;
+pub use assessment::{TransferAssessment, TransferConclusion, TransferCoverage, TransferScope};
 
 pub use cadcodec;
 /// CadDocument-to-IFCCAD export API, including loss policy, diagnostics, and
