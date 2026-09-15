@@ -27,6 +27,13 @@ For measurement or encoding work, also read
 and reproduction instructions. Import changes must also consult
 `crates/ifccad-convert/src/import/COVERAGE.md`.
 
+For performance work, also read `docs/benchmarks/placement-preparation-v1.md`
+for the current preparation measurements and practice-file inventory. Prefer
+optimizations justified by measured representative workloads. Keep synthetic
+stress cases for correctness and numerical boundaries; their cost alone does
+not establish a practical priority. Further oblique-placement tuning and shared
+placement preparation remain deferred until practice data and profiling justify them.
+
 Use the following source-of-truth order:
 
 - `schemas/` and `conformance/` define the language-neutral format contract;
@@ -50,6 +57,18 @@ normative requirements. Before designing changes that affect format
 architecture, schema evolution, physical encoding, preservation, or conversion
 coverage, review the relevant open issues and identify overlaps or conflicts.
 Do not expand the current task merely because a related issue exists.
+
+## Local Superpowers workflow documents
+
+`docs/superpowers/` stays local and outside Git. Its relevant designs and plans
+are working documents for the Superpowers workflow: consult and maintain them
+during the agent task to retain agreed decisions, execution steps and progress.
+They are not disposable merely because they are untracked.
+
+Record lasting contracts, architecture decisions and development conventions in
+the regular repository documentation as well. After a task is complete, local
+documents may be cleaned up once they contain no unique information needed for
+follow-up work. Retain designs and plans still needed by active or upcoming work.
 
 ## Architecture boundaries
 

@@ -97,6 +97,7 @@ Development follows an incremental sequence:
    compatibility is not required.
 3. **Native CAD semantics and preservation (current)** — the coordinate-frame
    slice adds XYZ lines, placed straight polylines and accuracy assessment.
+   Scope ownership, block definitions and instances are the next development slice.
    Expand layouts, entities, drawing relationships, and IFCPR-backed fidelity in architectural
    dependency order, tested against a growing corpus of representative CAD
    workflows, including an initial CAD-BIM link.

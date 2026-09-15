@@ -250,11 +250,41 @@ placed straight polylines, per-scope bounds and conversion accuracy policy.
 The [logical contract](schemas/ifcdr/logical-contract-0.8.0.md),
 [compatibility matrix](conformance/next/COMPATIBILITY.md),
 [spatial exchange tests](crates/ifccad-convert/tests/spatial_exchange.rs) and
-[performance report](docs/benchmarks/coordinate-frames-performance-v1.md)
+[current preparation measurements and practice-file inventory](docs/benchmarks/placement-preparation-v1.md)
 record the boundary and evidence. Milestone 3 remains current: blocks, further
 entity families, preservation and CAD-BIM relationships remain separate work.
 Internal design notes and implementation plans under `docs/superpowers/` are
 local-only; published contracts and this roadmap remain authoritative.
+
+The next development slice is **scope ownership, block definitions and
+instances** (B). The following dependency map carries forward the agreed
+sequencing; each slice still needs its own concrete design and roundtrip proof.
+It is a partial order, not a requirement to finish every row before the next.
+
+| Slice | Prerequisites | Boundary and practical proof |
+| --- | --- | --- |
+| A. Coordinates and basic geometry — implemented | Milestone 2 logical model | XYZ lines, placed straight polylines, per-scope bounds and conversion accuracy. |
+| B. Scopes and instances — next | A | Model/paper ownership, block definitions, instances, base points, nesting and transform composition; prove reuse without exploding blocks. |
+| C. Shared styles and inheritance | Existing appearances; B for instance-dependent inheritance | Introduce style identity and references with their consumers; prove ByLayer/ByBlock behavior through instances. |
+| D. Geometric families | A; additional references where needed | Curves, planar polyline segments and spatial polylines; prove each family independently. |
+| E. Annotation and compound entities | A and relevant B/C/D boundaries | Text, attributes, hatches and dimensions; introduce typed payloads when a concrete family needs them. |
+| F. Viewports and presentation | A/B and applicable entity/style support | Paper/model mapping, viewing, scale and clipping; prove layout roundtrips without flattening model content. |
+| P. Preservation | Existing identity/reporting and the selected family's references | Source/native correspondence, restoration eligibility and dependencies; prove one bounded preserve/restore case. |
+| I. CAD-BIM integration | A and existing identities | One product linked to drawing entities with explicit placement and provenance; no dependency on full CAD coverage. |
+
+D can advance after A without waiting for unrelated styles. C develops with its
+first consumers rather than as a speculative universal style system. F need
+not wait for every annotation family, but its test profile must state coverage.
+Design P's boundaries alongside B and prove restoration with a selected source
+case. Exercise I early enough to test placement and identity before later
+families depend on them. These dependencies do not authorize parallel agent work.
+
+For B, distinguish a rigid entity plane from instance transforms that may need
+scaling or reflection. Design base-point application, transformed instance
+bounds and viewport presentation explicitly; current scope bases remain
+metadata until a new contract defines their use. For P, define restoration
+eligibility after native edits: retaining source bytes alone does not prove
+restoration or justify suppressing loss diagnostics.
 
 #### Format and implementation work
 
