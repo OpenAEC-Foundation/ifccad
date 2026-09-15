@@ -30,8 +30,17 @@ pub struct Entity {
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "kind", rename_all = "camelCase")]
 pub enum Geometry {
-    Line { start: [f64; 2], end: [f64; 2] },
-    Polyline { points: Vec<[f64; 2]>, closed: bool },
+    Line {
+        start: [f64; 3],
+        end: [f64; 3],
+    },
+    Polyline {
+        points: Vec<[f64; 2]>,
+        closed: bool,
+        origin: [f64; 3],
+        x_axis: [f64; 3],
+        y_axis: [f64; 3],
+    },
 }
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct Appearance {
@@ -74,7 +83,14 @@ impl Appearance {
 pub fn generate(case: &Case) -> Result<Drawing, String> {
     if !matches!(
         case.family.as_str(),
-        "line" | "short" | "long" | "mixed" | "fractional"
+        "line"
+            | "short"
+            | "long"
+            | "mixed"
+            | "fractional"
+            | "spatial-line"
+            | "elevated"
+            | "tilted-shifted"
     ) {
         return Err("unknown recipe family".into());
     }
@@ -98,8 +114,10 @@ pub fn generate(case: &Case) -> Result<Drawing, String> {
         .map(|i| {
             let x = ((i % 100) * 16) as f64;
             let y = ((i / 100) * 16) as f64;
-            let polyline =
-                matches!(case.family.as_str(), "short" | "long") || (mixed && i % 2 == 1);
+            let polyline = matches!(
+                case.family.as_str(),
+                "short" | "long" | "elevated" | "tilted-shifted"
+            ) || (mixed && i % 2 == 1);
             let geometry = if polyline {
                 let points = if case.family == "long" {
                     (0..128)
@@ -111,6 +129,29 @@ pub fn generate(case: &Case) -> Result<Drawing, String> {
                 Geometry::Polyline {
                     points,
                     closed: mixed && i % 4 == 1,
+                    origin: if case.family == "tilted-shifted" {
+                        [7., 20., 30.]
+                    } else {
+                        [
+                            0.,
+                            0.,
+                            if case.family == "elevated" && i % 2 == 1 {
+                                8.
+                            } else {
+                                0.
+                            },
+                        ]
+                    },
+                    x_axis: if case.family == "tilted-shifted" {
+                        [0., 1., 0.]
+                    } else {
+                        [1., 0., 0.]
+                    },
+                    y_axis: if case.family == "tilted-shifted" {
+                        [0., 0., 1.]
+                    } else {
+                        [0., 1., 0.]
+                    },
                 }
             } else {
                 let start = if case.family == "fractional" {
@@ -126,7 +167,26 @@ pub fn generate(case: &Case) -> Result<Drawing, String> {
                 } else {
                     [x + 8., y + 4.]
                 };
-                Geometry::Line { start, end }
+                Geometry::Line {
+                    start: [
+                        start[0],
+                        start[1],
+                        if case.family == "spatial-line" {
+                            i as f64
+                        } else {
+                            0.
+                        },
+                    ],
+                    end: [
+                        end[0],
+                        end[1],
+                        if case.family == "spatial-line" {
+                            i as f64 + 4.
+                        } else {
+                            0.
+                        },
+                    ],
+                }
             };
             Entity {
                 geometry,

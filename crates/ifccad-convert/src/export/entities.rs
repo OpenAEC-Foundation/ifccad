@@ -8,18 +8,18 @@ use super::{
 use cadcodec::entities::EntityCommon;
 use cadcodec::{CadDocument, EntityType, Handle, Line, LwPolyline, Vector3};
 use ifccad::ifcdr::Point2;
-use ifccad::package::{DrawingBuilder, LineDefinition, PackageBuildError, PolylineDefinition};
+use ifccad::package::{DrawingBuilder, LineDefinition, PolylineDefinition};
 
 pub(crate) fn add_entities(
     document: &CadDocument,
     model_space: &ModelSpaceInfo<'_>,
     drawing: &mut DrawingBuilder<'_>,
     context: &mut ExportContext,
-) -> Result<Vec<SourceStructureProblem>, PackageBuildError> {
+) -> Result<Vec<SourceStructureProblem>, super::ExportError> {
     let mut structural_problems = Vec::new();
     for source in document.entities() {
         let common = source.common();
-        let common_losses = common_semantic_losses(common);
+        let mut common_losses = common_semantic_losses(common);
         if !classify_owner(
             document,
             model_space,
@@ -61,19 +61,38 @@ pub(crate) fn add_entities(
                 record_skipped(source, reasons, context);
                 continue;
             }
-            Err(EntityAppearanceError::Build(error)) => return Err(error),
+            Err(EntityAppearanceError::Build(error)) => return Err(error.into()),
         };
 
         let entity_id = match source {
             EntityType::Line(line) => drawing.model_space().add_line(LineDefinition {
-                start: Point2::new(line.start.x, line.start.y),
-                end: Point2::new(line.end.x, line.end.y),
+                start: ifccad::ifcdr::Point3::new(line.start.x, line.start.y, line.start.z),
+                end: ifccad::ifcdr::Point3::new(line.end.x, line.end.y, line.end.z),
                 layer,
                 appearance,
                 visible: !common.invisible,
             })?,
             EntityType::LwPolyline(polyline) => {
+                let (placement, bound, normal_changed) =
+                    crate::geometry::from_cad(polyline, context.geometry.as_mut().unwrap())?;
+                if bound > 0.0 {
+                    common_losses.push(ExportLossReason::GeometryRoundedWithinTolerance {
+                        max_deviation_upper_bound: bound,
+                    });
+                }
+                if normal_changed {
+                    common_losses.push(ExportLossReason::SourceNormalNormalized);
+                }
+                let count = polyline
+                    .vertices
+                    .iter()
+                    .filter(|v| v.vertex_id != 0)
+                    .count();
+                if count > 0 {
+                    common_losses.push(ExportLossReason::PolylineVertexIdentifiers { count });
+                }
                 drawing.model_space().add_polyline(PolylineDefinition {
+                    placement,
                     points: polyline
                         .vertices
                         .iter()
@@ -87,6 +106,19 @@ pub(crate) fn add_entities(
             }
             _ => unreachable!("unsupported entity was classified as loss"),
         };
+        if let EntityType::Line(line) = source {
+            context.geometry.as_mut().unwrap().record(
+                crate::ConversionEntitySource::CadEntity {
+                    handle: common.handle,
+                    kind: "LINE".into(),
+                },
+                2,
+                0.0,
+            );
+            if line.normal != Vector3::UNIT_Z {
+                common_losses.push(ExportLossReason::UnsupportedNormal);
+            }
+        }
         context.entity_mapping.insert(common.handle, entity_id);
         if !common_losses.is_empty() {
             record_diagnostic(
@@ -226,14 +258,8 @@ fn line_losses(line: &Line) -> Vec<ExportLossReason> {
     {
         reasons.push(ExportLossReason::NonFiniteCoordinate);
     }
-    if line.start.z != 0.0 || line.end.z != 0.0 {
-        reasons.push(ExportLossReason::NonPlanarZ);
-    }
     if line.thickness != 0.0 {
         reasons.push(ExportLossReason::NonZeroThickness);
-    }
-    if line.normal != Vector3::UNIT_Z {
-        reasons.push(ExportLossReason::UnsupportedNormal);
     }
     reasons
 }
@@ -267,13 +293,10 @@ fn polyline_losses(polyline: &LwPolyline) -> Vec<ExportLossReason> {
             count: polyline.vertices.len(),
         });
     }
-    if polyline.elevation != 0.0 {
-        reasons.push(ExportLossReason::NonZeroElevation);
-    }
     if polyline.thickness != 0.0 {
         reasons.push(ExportLossReason::NonZeroThickness);
     }
-    if polyline.normal != Vector3::UNIT_Z {
+    if polyline.normal.x == 0.0 && polyline.normal.y == 0.0 && polyline.normal.z == 0.0 {
         reasons.push(ExportLossReason::UnsupportedNormal);
     }
     if polyline.vertices.iter().any(|vertex| vertex.bulge != 0.0) {

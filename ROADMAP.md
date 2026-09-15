@@ -153,22 +153,16 @@ The primary implementation and conformance material establish the initial
 contract; independent implementations or limited validators become an
 additional test once a profile is sufficiently stable.
 
-The first implementation slice is described in the
-[base-contract design](docs/superpowers/specs/2026-09-08-ifcdr-base-contract-design.md)
-(implemented and verified). The second slice, the
-[encoding-neutral logical model](docs/superpowers/specs/2026-09-08-ifcdr-logical-model-design.md),
-is also implemented and verified: shared semantic access and validation,
-separate reader/writer backings, logical registry and JSON mapping, and a
-validated-resource codec boundary. The third slice,
-[drawing resource terminology](docs/superpowers/specs/2026-09-08-drawing-resource-terminology-design.md),
-adds IFCX overlay 0.8.0 and consistent representation references across layouts.
-See the
-[compatibility matrix](conformance/next/COMPATIBILITY.md) for the active 0.7.0
-contract. The [inline resource implementation](docs/superpowers/specs/2026-09-09-inline-resource-design.md)
-normalizes inline and external IFCDR/IFCPR sources and adds explicit IFCDR writer
-storage selection. The [reporting implementation](docs/superpowers/specs/2026-09-11-compatibility-reporting-design.md)
-adds diagnostic categories, package assessment completeness and scoped converter
-summaries, with manifest v2 expectations. The
+The base contract, encoding-neutral logical model and drawing-resource
+terminology are implemented and verified. Shared semantic access and validation,
+separate reader/writer backings, logical registry and JSON mapping establish the
+validated-resource codec boundary. The [compatibility matrix](conformance/next/COMPATIBILITY.md)
+describes the active contract and representation references across layouts.
+The [resource-source contract](schemas/ifcx/resource-source-contract-0.9.0.md)
+defines inline/external IFCDR and IFCPR access; the writer explicitly selects
+IFCDR storage. The [reporting contract](conformance/next/reporting-contract-v1.md)
+defines diagnostic categories, package assessment completeness and scoped
+converter summaries, with manifest v2 expectations. The
 [size and exchange experiment](docs/benchmarks/size-baseline-v1.md) consolidates
 the method, measurements and successful exchange/repeatability checks for
 cadcodec 0.5.4 at `2f2cd25` with two local DWG fixes. Compression remains an
@@ -188,7 +182,7 @@ in the recorded run preserves the experiment's automatic local-override gate.
 | --- | --- |
 | Encoding-neutral public semantic APIs | Typed resource/entity access and separate reader/writer backings; [logical contract tests](tests/ifcdr_logical_contract.rs). |
 | Separate physical and semantic validation | Independent [JSON codec tests](src/ifcdr/codec/json/tests.rs) and [logical validation tests](src/ifcdr/logical/tests.rs). |
-| Language-neutral semantics separate from mappings | [Logical contract](schemas/ifcdr/logical-contract-0.7.0.md), registry, JSON mapping and [mapping language](schemas/ifcdr/json-mapping-v1.md). |
+| Language-neutral semantics separate from mappings | [Logical contract](schemas/ifcdr/logical-contract-0.8.0.md), registry, JSON mapping and [mapping language](schemas/ifcdr/json-mapping-v2.md). |
 | Consistent drawing-resource terminology | [Drawing resource contract](schemas/ifcx/drawing-resource-contract-0.8.0.md), active overlay and conformance checks. |
 | Inline/external normalization | [Resource source contract](schemas/ifcx/resource-source-contract-0.9.0.md) and [inline resource tests](tests/inline_resources.rs). |
 | Supported JSON roundtrip, determinism and version handling | [Writer roundtrip tests](tests/package_writer_roundtrip.rs), active conformance and compatibility matrix; frozen collection unchanged. |
@@ -224,7 +218,7 @@ BIM-aware, imported, and generated drawings use the same logical model.
 
 Use representative DXF and DWG drawings from the
 [`ifccad-prototype`](https://github.com/OpenAEC-Foundation/ifccad-prototype)
-repository to guide native CAD coverage and preservation priorities. Begin with
+repository to test native CAD coverage and preservation requirements. Begin with
 the foundation-repair drawing in `DXF DWG samples/3bm` as a candidate reference
 workflow.
 
@@ -235,6 +229,32 @@ natively, preserved through IFCPR, or reported as unsupported.
 
 Expand the reference corpus as implementation progresses to cover workflows
 and semantics beyond this initial drawing.
+
+#### Development dependencies
+
+Sequence work by semantic and architectural dependencies. Entity frequency in
+the reference drawing supplies test cases and helps choose between equally
+ready extensions; it does not override those dependencies.
+
+Begin with coordinate frames, planar/spatial geometry, placement boundaries and
+bounds, proved by a small line/polyline implementation. Establish scope ownership
+and block instancing before dependent block inheritance and presentation work.
+Introduce shared styles and further entity families when their prerequisites
+are stable, without making independent geometry wait for unrelated style work.
+Define preservation identity and restoration boundaries early, then prove
+preservation incrementally. Add the CAD-BIM relationship proof once identity
+and placement are ready, without waiting for complete CAD coverage.
+
+The first coordinate-frame slice is implemented in IFCDR 0.8.0: XYZ lines,
+placed straight polylines, per-scope bounds and conversion accuracy policy.
+The [logical contract](schemas/ifcdr/logical-contract-0.8.0.md),
+[compatibility matrix](conformance/next/COMPATIBILITY.md),
+[spatial exchange tests](crates/ifccad-convert/tests/spatial_exchange.rs) and
+[performance report](docs/benchmarks/coordinate-frames-performance-v1.md)
+record the boundary and evidence. Milestone 3 remains current: blocks, further
+entity families, preservation and CAD-BIM relationships remain separate work.
+Internal design notes and implementation plans under `docs/superpowers/` are
+local-only; published contracts and this roadmap remain authoritative.
 
 #### Format and implementation work
 

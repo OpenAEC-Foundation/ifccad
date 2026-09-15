@@ -26,6 +26,7 @@ fn reject_returns_the_complete_same_loss_list_as_allow_and_no_package() {
         &document,
         package_options("allow"),
         ExportOptions {
+            geometry_tolerance: Default::default(),
             loss_policy: ExportLossPolicy::Allow,
         },
     )
@@ -45,6 +46,7 @@ fn reject_returns_the_complete_same_loss_list_as_allow_and_no_package() {
         &document,
         package_options("reject"),
         ExportOptions {
+            geometry_tolerance: Default::default(),
             loss_policy: ExportLossPolicy::Reject,
         },
     )

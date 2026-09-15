@@ -80,6 +80,7 @@ pub fn assert_export_chain(document: CadDocument, expect_loss: bool) {
         &source,
         package_options("chain"),
         ExportOptions {
+            geometry_tolerance: Default::default(),
             loss_policy: ExportLossPolicy::Allow,
         },
     )
@@ -91,6 +92,7 @@ pub fn assert_export_chain(document: CadDocument, expect_loss: bool) {
             &source,
             package_options("chain"),
             ExportOptions {
+                geometry_tolerance: Default::default(),
                 loss_policy: ExportLossPolicy::Reject,
             },
         )
@@ -233,10 +235,7 @@ fn assert_loss_heavy_diagnostics(diagnostics: &[ExportDiagnostic]) {
     assert_eq!(diagnostics[1].action(), ExportAction::Skipped);
     assert_eq!(
         diagnostics[1].reasons(),
-        [
-            ExportLossReason::NonPlanarZ,
-            ExportLossReason::NonZeroThickness,
-        ]
+        [ExportLossReason::NonZeroThickness,]
     );
 }
 

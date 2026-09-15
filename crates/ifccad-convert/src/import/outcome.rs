@@ -6,6 +6,7 @@ use cadcodec::CadDocument;
 /// Diagnostics and source-to-target entity mappings are retained alongside
 /// the document so callers can inspect conversion fidelity.
 pub struct ImportOutcome {
+    geometry_assessment: crate::ConversionGeometryAssessment,
     transfer_assessment: crate::TransferAssessment,
     document: CadDocument,
     diagnostics: Vec<ImportDiagnostic>,
@@ -13,18 +14,38 @@ pub struct ImportOutcome {
 }
 
 impl ImportOutcome {
+    pub(crate) fn with_geometry_assessment(
+        mut self,
+        value: crate::ConversionGeometryAssessment,
+    ) -> Self {
+        self.geometry_assessment = value;
+        self
+    }
+    pub fn geometry_assessment(&self) -> &crate::ConversionGeometryAssessment {
+        &self.geometry_assessment
+    }
+    pub fn into_all_parts(self) -> ImportOutcomeParts {
+        ImportOutcomeParts {
+            document: self.document,
+            diagnostics: self.diagnostics,
+            entity_mapping: self.entity_mapping,
+            transfer_assessment: self.transfer_assessment,
+            geometry_assessment: self.geometry_assessment,
+        }
+    }
+
     pub(crate) fn new(
         document: CadDocument,
         diagnostics: Vec<ImportDiagnostic>,
         entity_mapping: ImportEntityMapping,
     ) -> Self {
         Self {
-            transfer_assessment: crate::TransferAssessment::import(diagnostics.iter().any(
-                |diagnostic| match diagnostic {
-                    super::ImportDiagnostic::LinePatternFallback { .. }
-                    | super::ImportDiagnostic::LineWeightRounded { .. } => true,
-                },
-            )),
+            geometry_assessment: crate::ConversionGeometryAssessment::new(
+                crate::ConversionGeometryTolerance::default(),
+                ifccad::ifcdr::IfcdrLengthUnit::Unitless,
+            )
+            .unwrap(),
+            transfer_assessment: crate::TransferAssessment::import(!diagnostics.is_empty()),
             document,
             diagnostics,
             entity_mapping,
@@ -60,6 +81,14 @@ impl ImportOutcome {
     pub fn into_parts(self) -> (CadDocument, Vec<ImportDiagnostic>, ImportEntityMapping) {
         (self.document, self.diagnostics, self.entity_mapping)
     }
+}
+
+pub struct ImportOutcomeParts {
+    pub document: CadDocument,
+    pub diagnostics: Vec<ImportDiagnostic>,
+    pub entity_mapping: ImportEntityMapping,
+    pub transfer_assessment: crate::TransferAssessment,
+    pub geometry_assessment: crate::ConversionGeometryAssessment,
 }
 
 #[cfg(test)]

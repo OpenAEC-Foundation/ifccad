@@ -24,6 +24,8 @@ pub enum PackageBuildError {
     NonFiniteCoordinate,
     #[error("a polyline requires at least two points")]
     PolylineTooShort,
+    #[error("placed polyline coordinate is outside the finite binary64 range")]
+    PlacedCoordinateOutOfRange,
     #[error("layer name already exists (case-insensitive): {name}")]
     DuplicateLayerName { name: String },
     #[error("layer key belongs to another builder")]

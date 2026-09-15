@@ -1,4 +1,5 @@
 /target/
+/.worktrees/
 Cargo.lock
 **/*.rs.bk
 *.pdb
@@ -11,3 +12,4 @@ Cargo.lock
 
 .DS_Store
 Thumbs.db
+/docs/superpowers/

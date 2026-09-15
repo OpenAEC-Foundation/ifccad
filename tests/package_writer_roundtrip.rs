@@ -1,4 +1,4 @@
-use ifccad::ifcdr::{AppearanceId, IfcdrEntityRef, IfcdrLengthUnit, Point2};
+use ifccad::ifcdr::{AppearanceId, IfcdrEntityRef, IfcdrLengthUnit, Point2, Point3};
 use ifccad::package::{
     load_directory_package, AppearanceColor, AppearanceDefinition, AppearanceMode,
     AppearanceProperty, DrawingLayoutKind, DrawingOptions, EntityAppearance, LayerDefinition,
@@ -88,8 +88,8 @@ fn representative_builder() -> PackageBuilder {
     drawing
         .model_space()
         .add_line(LineDefinition {
-            start: Point2::new(0.0, 0.0),
-            end: Point2::new(10.0, 5.0),
+            start: ifccad::ifcdr::Point3::new(0.0, 0.0, 0.0),
+            end: ifccad::ifcdr::Point3::new(10.0, 5.0, 0.0),
             layer: layer_0,
             appearance: EntityAppearance::by_layer(),
             visible: true,
@@ -98,6 +98,7 @@ fn representative_builder() -> PackageBuilder {
     drawing
         .model_space()
         .add_polyline(PolylineDefinition {
+            placement: ifccad::ifcdr::PlanePlacement::default(),
             points: vec![Point2::new(-2.0, 3.0), Point2::new(4.0, -5.0)],
             closed: false,
             layer: walls,
@@ -108,8 +109,8 @@ fn representative_builder() -> PackageBuilder {
     drawing
         .model_space()
         .add_line(LineDefinition {
-            start: Point2::new(1.0, 2.0),
-            end: Point2::new(3.0, 4.0),
+            start: ifccad::ifcdr::Point3::new(1.0, 2.0, 0.0),
+            end: ifccad::ifcdr::Point3::new(3.0, 4.0, 0.0),
             layer: walls,
             appearance: EntityAppearance::by_block(),
             visible: false,
@@ -118,6 +119,7 @@ fn representative_builder() -> PackageBuilder {
     drawing
         .model_space()
         .add_polyline(PolylineDefinition {
+            placement: ifccad::ifcdr::PlanePlacement::default(),
             points: vec![
                 Point2::new(2.0, 2.0),
                 Point2::new(8.0, 8.0),
@@ -132,8 +134,8 @@ fn representative_builder() -> PackageBuilder {
     drawing
         .model_space()
         .add_line(LineDefinition {
-            start: Point2::new(0.0, 1.0),
-            end: Point2::new(1.0, 2.0),
+            start: ifccad::ifcdr::Point3::new(0.0, 1.0, 0.0),
+            end: ifccad::ifcdr::Point3::new(1.0, 2.0, 0.0),
             layer: layer_0,
             appearance: EntityAppearance {
                 appearance: Some(dashed),
@@ -160,7 +162,7 @@ fn writer_output_reloads_without_diagnostics_and_preserves_semantics() {
 
     let bytes = std::fs::read(target.join("resources/drawing.ifcdr.json")).unwrap();
     let resource: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
-    assert_eq!(resource["header"]["version"], "0.7.0");
+    assert_eq!(resource["header"]["version"], "0.8.0");
     assert!(resource.get("namedUcsBindings").is_none());
     assert!(resource.get("dimensionOverrideTable").is_none());
     let loaded = load_directory_package(&target).unwrap();
@@ -196,9 +198,9 @@ fn writer_output_reloads_without_diagnostics_and_preserves_semantics() {
         representation.resource().unit(),
         IfcdrLengthUnit::Millimetre
     );
-    let bounds = representation.resource().bounds().unwrap();
-    assert_eq!(bounds.min(), Point2::new(-2.0, -5.0));
-    assert_eq!(bounds.max(), Point2::new(10.0, 8.0));
+    let bounds = layout.scope().bounds().unwrap();
+    assert_eq!(bounds.min(), Point3::new(-2.0, -5.0, 0.0));
+    assert_eq!(bounds.max(), Point3::new(10.0, 8.0, 0.0));
 
     let layers = representation.layers().collect::<Vec<_>>();
     assert_eq!(layers.len(), 2);
@@ -246,8 +248,8 @@ fn writer_output_reloads_without_diagnostics_and_preserves_semantics() {
         panic!("entity 1 must be a line");
     };
     assert_eq!(first.entity_id().get(), 1);
-    assert_eq!(first.start(), Point2::new(0.0, 0.0));
-    assert_eq!(first.end(), Point2::new(10.0, 5.0));
+    assert_eq!(first.start(), Point3::new(0.0, 0.0, 0.0));
+    assert_eq!(first.end(), Point3::new(10.0, 5.0, 0.0));
     assert_eq!(first.appearance_id().get(), 0);
     assert!(first.visible());
     let IfcdrEntityRef::Polyline(second) = &entities[1] else {
@@ -255,7 +257,7 @@ fn writer_output_reloads_without_diagnostics_and_preserves_semantics() {
     };
     assert_eq!(second.entity_id().get(), 2);
     assert_eq!(
-        second.points().collect::<Vec<_>>(),
+        second.local_points().collect::<Vec<_>>(),
         [Point2::new(-2.0, 3.0), Point2::new(4.0, -5.0)]
     );
     assert!(!second.closed());
@@ -323,6 +325,7 @@ fn single_entity_families_reload_without_requiring_the_other_stream() {
             drawing
                 .model_space()
                 .add_polyline(PolylineDefinition {
+                    placement: ifccad::ifcdr::PlanePlacement::default(),
                     points: points.clone(),
                     closed: true,
                     layer,
@@ -334,8 +337,8 @@ fn single_entity_families_reload_without_requiring_the_other_stream() {
             drawing
                 .model_space()
                 .add_line(LineDefinition {
-                    start: points[0],
-                    end: points[1],
+                    start: Point3::new(points[0].x(), points[0].y(), 0.0),
+                    end: Point3::new(points[1].x(), points[1].y(), 0.0),
                     layer,
                     appearance: EntityAppearance::by_layer(),
                     visible: true,
@@ -357,11 +360,17 @@ fn single_entity_families_reload_without_requiring_the_other_stream() {
         match entities.next().unwrap() {
             IfcdrEntityRef::Line(line) => {
                 assert!(!polyline);
-                assert_eq!(vec![line.start(), line.end()], points);
+                assert_eq!(
+                    vec![line.start(), line.end()],
+                    points
+                        .iter()
+                        .map(|p| Point3::new(p.x(), p.y(), 0.0))
+                        .collect::<Vec<_>>()
+                );
             }
             IfcdrEntityRef::Polyline(line) => {
                 assert!(polyline && line.closed());
-                assert_eq!(line.points().collect::<Vec<_>>(), points);
+                assert_eq!(line.local_points().collect::<Vec<_>>(), points);
             }
         }
         assert!(entities.next().is_none());
@@ -411,6 +420,6 @@ fn empty_model_space_reloads_without_bounds_or_entities() {
     let drawing = package.drawings().next().unwrap();
     let layout = drawing.layouts().next().unwrap();
     let resource = drawing.representation().resource();
-    assert!(resource.bounds().is_none());
+    assert!(resource.scopes().next().unwrap().bounds().is_none());
     assert_eq!(resource.entities(layout.scope().id()).count(), 0);
 }

@@ -1,6 +1,6 @@
 use super::decoded::DecodedIfcdrResource;
 use crate::ifcdr::logical::*;
-use crate::ifcdr::{AppearanceId, Bounds2d, IfcdrLengthUnit, LayerId, Point2, ScopeId};
+use crate::ifcdr::{AppearanceId, Bounds3d, IfcdrLengthUnit, LayerId, Point3, ScopeId};
 use crate::json_resource::LoadedJsonResource;
 use crate::validated::{Validated, ValidationTarget};
 use crate::ResourceId;
@@ -54,7 +54,7 @@ impl<'a> IfcdrHeader<'a> {
         "openaec.ifcdr"
     }
     pub(crate) fn version(&self) -> &str {
-        "0.7.0"
+        "0.8.0"
     }
     pub(crate) fn unit(&self) -> &str {
         super::super::codec::json::unit_name(self.0.unit)
@@ -74,10 +74,6 @@ impl<'a> IfcdrResourceRef<'a> {
     pub fn unit(&self) -> IfcdrLengthUnit {
         self.resource.typed().unit
     }
-    /// Geometric bounds, absent for an empty resource.
-    pub fn bounds(&self) -> Option<Bounds2d> {
-        self.resource.bounds()
-    }
     pub fn scopes(&self) -> impl ExactSizeIterator<Item = ScopeRef<'_>> {
         self.resource.scopes()
     }
@@ -94,9 +90,6 @@ impl Validated<LoadedIfcdrResource> {
     }
     pub(crate) fn header(&self) -> IfcdrHeader<'_> {
         IfcdrHeader(self.typed())
-    }
-    pub(crate) fn bounds(&self) -> Option<Bounds2d> {
-        self.typed().bounds
     }
     pub(crate) fn scopes(&self) -> impl ExactSizeIterator<Item = ScopeRef<'_>> {
         self.typed().scopes.iter().map(|row| ScopeRef { row })
@@ -160,7 +153,10 @@ impl<'a> ScopeRef<'a> {
     pub fn name(&self) -> &str {
         &self.row.name
     }
-    pub fn base(&self) -> Point2 {
+    pub fn bounds(&self) -> Option<Bounds3d> {
+        self.row.bounds
+    }
+    pub fn base(&self) -> Point3 {
         self.row.base
     }
     pub fn kind(&self) -> u32 {
@@ -260,12 +256,18 @@ mod tests {
         let resource = outcome.validated().unwrap();
 
         assert_eq!(resource.header().format(), "openaec.ifcdr");
-        assert_eq!(resource.header().version(), "0.7.0");
+        assert_eq!(resource.header().version(), "0.8.0");
         assert_eq!(resource.header().resource_id().as_str(), "drawing-main");
         assert_eq!(resource.header().unit(), "m");
         assert_eq!(resource.header().next_entity_id(), 5);
-        assert_eq!(resource.bounds().unwrap().min(), Point2::new(0.0, 0.0));
-        assert_eq!(resource.bounds().unwrap().max(), Point2::new(30.0, 15.0));
+        assert_eq!(
+            resource.scopes().next().unwrap().bounds().unwrap().min(),
+            Point3::new(0.0, 0.0, 0.)
+        );
+        assert_eq!(
+            resource.scopes().next().unwrap().bounds().unwrap().max(),
+            Point3::new(30.0, 15.0, 0.)
+        );
         let scopes = resource.scopes().collect::<Vec<_>>();
         assert_eq!(scopes.len(), 1);
         assert_eq!(scopes[0].id().get(), 0);

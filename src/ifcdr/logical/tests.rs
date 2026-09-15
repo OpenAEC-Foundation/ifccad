@@ -1,12 +1,11 @@
 use super::*;
-use crate::ifcdr::{Bounds2d, IfcdrLengthUnit, Point2};
+use crate::ifcdr::{Bounds3d, IfcdrLengthUnit, Point2, Point3};
 use crate::ResourceId;
 
 #[derive(Debug)]
 struct TestResource {
     id: ResourceId,
     next: u64,
-    bounds: Option<Bounds2d>,
     scopes: Vec<IfcdrScope>,
     layers: Vec<IfcdrLayerBinding>,
     appearances: Vec<IfcdrAppearanceBinding>,
@@ -48,6 +47,9 @@ impl IfcdrPolylineAccess for Polyline<'_> {
     fn entity(&self) -> IfcdrEntityRow {
         self.0.entity
     }
+    fn placement(&self) -> crate::ifcdr::geometry::PlanePlacementComponents {
+        crate::ifcdr::PlanePlacement::default().components()
+    }
     fn closed(&self) -> bool {
         self.0.closed
     }
@@ -69,9 +71,6 @@ impl IfcdrResourceAccess for TestResource {
     }
     fn next_entity_id(&self) -> u64 {
         self.next
-    }
-    fn bounds(&self) -> Option<Bounds2d> {
-        self.bounds
     }
     fn scopes(&self) -> &[IfcdrScope] {
         &self.scopes
@@ -99,15 +98,15 @@ fn line_candidate() -> TestResource {
     TestResource {
         id: ResourceId::new("drawing").unwrap(),
         next: 2,
-        bounds: Some(Bounds2d {
-            min: Point2::new(0., 0.),
-            max: Point2::new(1., 1.),
-        }),
         scopes: vec![IfcdrScope {
+            bounds: Some(Bounds3d {
+                min: Point3::new(0., 0., 0.),
+                max: Point3::new(1., 1., 0.),
+            }),
             id: 0,
             kind: 0,
             name: "Model".into(),
-            base: Point2::new(0., 0.),
+            base: crate::ifcdr::Point3::new(0., 0., 0.0),
             flags: 0,
         }],
         layers: vec![IfcdrLayerBinding {
@@ -129,8 +128,8 @@ fn line_candidate() -> TestResource {
                 appearance_id: 0,
                 visible: true,
             },
-            start: Point2::new(0., 0.),
-            end: Point2::new(1., 1.),
+            start: crate::ifcdr::Point3::new(0., 0., 0.0),
+            end: crate::ifcdr::Point3::new(1., 1., 0.0),
         }],
         polylines: vec![],
         orders: vec![IfcdrScopeOrder {
@@ -155,7 +154,7 @@ fn conservative_bounds_high_water_id_and_degenerate_line_are_valid() {
 fn independent_identity_and_bounds_failures_are_collected() {
     let mut r = line_candidate();
     r.lines[0].entity.entity_id = 0;
-    r.bounds = None;
+    r.scopes[0].bounds = None;
     let errors = codes(r);
     assert!(errors.contains(&IFCCAD_IFCDR_ENTITY_ID_INVALID));
     assert!(errors.contains(&IFCCAD_IFCDR_BOUNDS_INVALID));
@@ -195,12 +194,12 @@ fn polyline_minimum_preserves_duplicate_vertices_and_closed_flag() {
 fn invisible_geometry_must_fit_bounds_and_empty_geometry_has_none() {
     let mut r = line_candidate();
     r.lines[0].entity.visible = false;
-    r.lines[0].end = Point2::new(2., 0.);
+    r.lines[0].end = Point3::new(2., 0., 0.);
     assert!(codes(r).contains(&IFCCAD_IFCDR_BOUNDS_INVALID));
     let mut r = line_candidate();
     r.lines.clear();
     r.orders[0].entities.clear();
-    r.bounds = None;
+    r.scopes[0].bounds = None;
     assert!(codes(r).is_empty());
     let mut r = line_candidate();
     r.lines.clear();
@@ -210,7 +209,7 @@ fn invisible_geometry_must_fit_bounds_and_empty_geometry_has_none() {
 #[test]
 fn invalid_geometry_does_not_cascade_to_bounds() {
     let mut r = line_candidate();
-    r.lines[0].end = Point2::new(f64::NAN, 0.);
+    r.lines[0].end = Point3::new(f64::NAN, 0., 0.);
     let errors = codes(r);
     assert!(errors.contains(&IFCCAD_IFCDR_GEOMETRY_INVALID));
     assert!(!errors.contains(&IFCCAD_IFCDR_BOUNDS_INVALID));
@@ -248,4 +247,41 @@ fn duplicate_ids_and_next_id_exhaustion_are_rejected() {
     let mut r = line_candidate();
     r.next = 1;
     assert!(codes(r).contains(&IFCCAD_IFCDR_ENTITY_ID_INVALID));
+}
+
+#[test]
+fn scope_bounds_are_independent_and_base_metadata_does_not_translate_geometry() {
+    for incorrect_second in [false, true] {
+        let mut r = line_candidate();
+        r.next = 3;
+        let mut second = r.scopes[0].clone();
+        second.id = 7;
+        second.base = Point3::new(-1000., 2000., 3000.);
+        second.bounds = Some(Bounds3d {
+            min: Point3::new(100., 0., 5.),
+            max: Point3::new(101., 0., 5.),
+        });
+        if incorrect_second {
+            second.bounds = r.scopes[0].bounds;
+        }
+        r.scopes.push(second);
+        let mut line = r.lines[0];
+        line.entity.entity_id = 2;
+        line.entity.scope_id = 7;
+        line.start = Point3::new(100., 0., 5.);
+        line.end = Point3::new(101., 0., 5.);
+        r.lines.push(line);
+        r.orders.push(IfcdrScopeOrder {
+            scope_id: 7,
+            entities: vec![2],
+        });
+        let errors = codes(r);
+        assert_eq!(
+            errors.contains(&IFCCAD_IFCDR_BOUNDS_INVALID),
+            incorrect_second
+        );
+        if !incorrect_second {
+            assert!(errors.is_empty(), "{errors:?}");
+        }
+    }
 }

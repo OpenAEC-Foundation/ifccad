@@ -191,7 +191,7 @@ fn failure(route: &Value) -> String {
 pub fn markdown(result: &Value) -> String {
     let mut out = format!("# IFCCAD JSON / DXF / DWG size baseline v1\n\n**Outcome: {}.** Repeatability: {}. Corpus: {}.\n\n",
         cell(&result["status"]), cell(&result["repeatability"]["status"]),cell(&result["corpus_scope"]));
-    out.push_str("Controlled fixtures and generated XY lines/straight polylines; millimetres, AC1032. IFCCAD is uncompressed pretty JSON, DXF is text, DWG uses its normal native compression. These ratios compare complete writer outputs, not compression algorithms or representative CAD practice.\n\n");
+    out.push_str("Controlled fixtures and generated XYZ lines/placed straight polylines; millimetres, AC1032. IFCCAD is uncompressed pretty JSON, DXF is text, DWG uses its normal native compression. These ratios compare complete writer outputs, not compression algorithms or representative CAD practice.\n\n");
     if result["provenance"]["cadcodec"]["local_override"] == true {
         out.push_str("This run uses a **local cadcodec patch candidate**. Its exact source hash is recorded in the provenance. Passing checks do not update the repository's pinned dependency or automatically accept a release baseline.\n\n");
     }
@@ -255,7 +255,7 @@ pub fn markdown(result: &Value) -> String {
             );
         }
     }
-    out.push_str("\n## Executed checks\n\nEvery passing comparison checks each entity in order, exact XY geometry, closure, layer, visibility and all four appearance modes/values, plus unit and layers including unused ones. IFCCAD storage variants additionally retain the same ordered entity IDs. CAD handles and technical default tables are outside this projection.\n\n| Case | Route | Result | First failure |\n| --- | --- | --- | --- |\n");
+    out.push_str("\n## Executed checks\n\nEvery passing comparison checks each entity in order, exact recipe XYZ geometry, closure, layer, visibility and all four appearance modes/values, plus unit and layers including unused ones. IFCCAD storage variants additionally retain the same ordered entity IDs. CAD handles and technical default tables are outside this projection.\n\n| Case | Route | Result | First failure |\n| --- | --- | --- | --- |\n");
     if let Some(cases) = result["measurements"]["cases"].as_array() {
         for case in cases {
             for mode in ["ifccad-external", "ifccad-inline", "dxf", "dwg"] {
@@ -278,7 +278,7 @@ pub fn markdown(result: &Value) -> String {
             }
         }
     }
-    out.push_str("\nThe JSON retains executed stages, import/export diagnostics and scoped assessments. Import remains NotFullyAssessed for the general converter contract even when this recipe's explicit properties match. The source-archive fixture retains preservationSemanticsNotAssessed; its accounting does not prove IFCPR fidelity. Failed stages stop dependent stages, which are not counted as executed.\n\n## Repeatability and reproduction\n\n");
+    out.push_str("\nThe JSON retains executed stages, import/export diagnostics and scoped assessments. Import retains incomplete general coverage even when this recipe's explicit properties match. Shifted native frames intentionally use Allow for the diagnosed parameterization change; numeric accuracy remains a hard gate. The source-archive fixture retains preservationSemanticsNotAssessed; its accounting does not prove IFCPR fidelity. Failed stages stop dependent stages, which are not counted as executed.\n\n## Repeatability and reproduction\n\n");
     out.push_str(&format!("Repository revision: {} (dirty: {}). Two fresh runs compare measurements and hashes of every produced artifact, including chain outputs.\n\n",cell(&result["provenance"]["repository_revision"]),result["provenance"]["repository_dirty"]));
     out.push_str(
         "| Case | Output | Same byte count | Identical files |\n| --- | --- | --- | --- |\n",

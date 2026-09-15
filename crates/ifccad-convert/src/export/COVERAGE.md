@@ -8,8 +8,9 @@ tracks a compiler-visible upstream semantic inventory that can replace parts of
 this manual audit.
 
 Statuses are `Exact`, `PartialLoss`, `SkippedLoss`, `NonSemantic`, and
-`FatalIfInconsistent`. `Reject` guarantees that every loss detectable through
-this pinned public model rejects the export. Private/raw cadcodec state is
+`FatalIfInconsistent`. `Reject` rejects detectable semantic loss within this pinned public model,
+except numerical rounding proved to stay within the configured geometric
+tolerance. Accepted rounding remains loss evidence. Private/raw cadcodec state is
 outside that bounded guarantee.
 
 ## Document and header
@@ -44,8 +45,8 @@ outside that bounded guarantee.
 
 | `EntityType` variant | Status | Contract |
 | --- | --- | --- |
-| `Line` | Exact/SkippedLoss | Exact only for finite XY endpoints, zero endpoint Z, zero thickness, and normal `(0,0,1)`. All failed predicates are bundled. |
-| `LwPolyline` | Exact/SkippedLoss | Exact only for at least two finite XY vertices, zero elevation/thickness/width/bulge, positive-unit-Z normal, and no PLINEGEN. Open/closed state and vertex order are exact. |
+| `Line` | Exact/PartialLoss/SkippedLoss | Finite XYZ endpoints are copied exactly. Non-default finite normals are partial source-property loss; geometry is retained. Unsupported thickness still skips the entity. |
+| `LwPolyline` | Exact/PartialLoss/SkippedLoss | At least two finite local XY vertices, finite elevation and a finite nonzero normal define a plane through the pinned arbitrary-axis interpretation. Local points, order and closure are retained. Normal normalization and nonzero opaque vertex IDs (including negative IDs) are partial losses. Nonzero thickness/width/bulge and PLINEGEN still skip the whole entity. Geometric rounding is assessed separately and target range/evaluation failure is fatal under both policies. |
 | `Point`, `Circle`, `Arc`, `Ellipse`, `Polyline`, `Polyline2D`, `Polyline3D`, `Text`, `MText`, `Spline`, `Helix`, `Dimension`, `Hatch`, `Solid`, `Face3D`, `Insert`, `Block`, `BlockEnd`, `Ray`, `XLine`, `Viewport`, `AttributeDefinition`, `AttributeEntity`, `Leader`, `MultiLeader`, `MLine`, `Mesh`, `RasterImage`, `Solid3D`, `Region`, `Body`, `Surface`, `Table`, `Tolerance`, `PolyfaceMesh`, `Wipeout`, `Shape`, `Underlay`, `Seqend`, `Ole2Frame`, `PolygonMesh`, `Light`, `SectionSymbol`, `ViewBorder`, `Extended`, `Unknown` | SkippedLoss | Whole entity receives `UnsupportedEntityType`; blocks are not exploded and no geometry is approximated. |
 | Model-space ownership | Exact | Entity is emitted in cadcodec storage order. |
 | Paper-space or another valid block owner | SkippedLoss | `PaperSpaceEntity` or `BlockOwnedEntity`. |
@@ -85,3 +86,22 @@ and private/raw internals are bounded by explicit collection checks and this
 matrix. New cadcodec fields or variants must update this file, tests, and the
 scanner before the pinned revision changes. Fully preserved future IFCPR content
 will cease to be package loss even when it remains non-native in IFCDR.
+
+## Coordinate-frame accuracy
+
+IFCDR 0.8.0 stores XYZ lines and local XY polylines with a complete optional
+plane placement. The converter alone interprets CAD arbitrary axes, using the
+actual axes returned by the pinned helper after robust scaled normalization.
+It never assumes repeated normalization preserves all source normal bits.
+
+`geometry_tolerance` is a hard Euclidean limit under both `Allow` and `Reject`.
+The default is exactly one micrometre for known drawing units and zero for
+unitless drawings. Explicit physical tolerances require a known unit. Unit
+conversion and squared residual comparison use exact rational values; distance
+reports give outward bounds in drawing units. Every emitted line endpoint and
+polyline vertex is covered. Failure to establish accuracy returns a typed error
+and no partial package. A numerical diagnostic within the limit is exempt from
+Reject, but `transfer_assessment()` still records `LossDetected`.
+
+The proof concerns the interpreted CadDocument geometry, not original CAD file
+bytes, cached bounds, private codec state or recovery of unsupported source data.

@@ -74,6 +74,8 @@ fn chain(root: &Path, expected: &recipe::Drawing, format: &str) -> Value {
     let mut stages = Vec::new();
     let mut metadata = json!({"loss_policy":"Reject", "source":"ifccad-external", "intermediate":format!("chain.{format}"),
         "final_package":format!("chain-{format}-ifccad")});
+    let expected_parameter_changes=expected.entities.iter().filter(|e| matches!(&e.geometry,recipe::Geometry::Polyline { origin,x_axis,.. } if *x_axis==[0.,1.,0.] && (origin[1]!=0. || origin[2]!=0.))).count();
+    metadata["import_loss_policy"] = json!("Allow");
     let mut stage = "read source IFCCAD";
     let result = (|| -> Result<()> {
         let loaded = load_directory_package(root.join("ifccad-external"))?;
@@ -90,6 +92,20 @@ fn chain(root: &Path, expected: &recipe::Drawing, format: &str) -> Value {
             .iter()
             .map(|d| format!("{d:?}"))
             .collect::<Vec<_>>());
+        let changes = imported
+            .diagnostics()
+            .iter()
+            .filter(|d| {
+                matches!(
+                    d,
+                    ifccad_convert::ImportDiagnostic::PlaneParameterizationChanged { .. }
+                )
+            })
+            .count();
+        if changes != expected_parameter_changes || imported.diagnostics().len() != changes {
+            return Err("unexpected import diagnostics for controlled recipe".into());
+        }
+        metadata["import_geometry"] = json!({"status":format!("{:?}",imported.geometry_assessment().status()),"max_deviation_upper_bound":imported.geometry_assessment().max_deviation_upper_bound(),"assessed_vertices":imported.geometry_assessment().assessed_vertices(),"resolved_tolerance_upper":imported.geometry_assessment().resolved_tolerance().upper()});
         metadata["import_assessment"] = assessment(imported.transfer_assessment());
         projection::verify(expected, &projection::cad(imported.document())?)?;
         stages.push(check(stage, Ok(())));
@@ -117,6 +133,7 @@ fn chain(root: &Path, expected: &recipe::Drawing, format: &str) -> Value {
             &read,
             adapters::options(),
             ExportOptions {
+                geometry_tolerance: Default::default(),
                 loss_policy: ExportLossPolicy::Reject,
             },
         ) {
@@ -136,6 +153,10 @@ fn chain(root: &Path, expected: &recipe::Drawing, format: &str) -> Value {
             .iter()
             .map(|d| format!("{d:?}"))
             .collect::<Vec<_>>());
+        if !exported.diagnostics().is_empty() {
+            return Err("unexpected export diagnostics for controlled recipe".into());
+        }
+        metadata["export_geometry"] = json!({"status":format!("{:?}",exported.geometry_assessment().status()),"max_deviation_upper_bound":exported.geometry_assessment().max_deviation_upper_bound(),"assessed_vertices":exported.geometry_assessment().assessed_vertices()});
         metadata["export_assessment"] = assessment(exported.transfer_assessment());
         let final_root = root.join(format!("chain-{format}-ifccad"));
         exported.package().write_directory(&final_root)?;
@@ -300,7 +321,7 @@ fn fixture(repo: &Path, inventory: &Value) -> Result<Value> {
                     ifccad::ifcdr::IfcdrEntityRef::Line(_) => lines += 1,
                     ifccad::ifcdr::IfcdrEntityRef::Polyline(p) => {
                         polylines += 1;
-                        vertices += p.points().count() as u64;
+                        vertices += p.local_points().count() as u64;
                     }
                 }
             }

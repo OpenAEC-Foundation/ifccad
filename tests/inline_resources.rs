@@ -158,7 +158,7 @@ fn inline_and_external_layouts_have_equal_semantic_content() {
                                 poly.appearance_id(),
                                 poly.visible(),
                                 poly.closed(),
-                                poly.points().collect::<Vec<_>>()
+                                poly.local_points().collect::<Vec<_>>()
                             )
                         ),
                     })
@@ -201,7 +201,7 @@ fn inline_and_external_layouts_have_equal_semantic_content() {
             (
                 resource.resource_id(),
                 resource.unit(),
-                resource.bounds(),
+                resource.scopes().map(|s| s.bounds()).collect::<Vec<_>>(),
                 scopes,
                 layers
             )

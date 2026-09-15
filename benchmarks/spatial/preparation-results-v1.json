@@ -1,0 +1,473 @@
+{
+  "date": "2026-09-15",
+  "cadcodec_revision": "2f2cd25832db298524fb5eb36ced5a438a877e95",
+  "cadcodec_patch": null,
+  "method": "Sequential before/after release binaries, two warmups and five timed iterations per operation. No concurrent build, tests or corpus sweep. Earlier concurrent exploratory run excluded. Single paired experiment; local observations, not portable guarantees.",
+  "before_binary_sha256": "2119e94bc7eb0e24771c4988a5e409314d06b1034c93bfcac4c92d0f0572848e",
+  "after_binary_sha256": "a98228c5e90d9e040b5388cf9305917473b968118491ec92f29a2da7290b6e6b",
+  "after_geometry_source_sha256": "37ef1679b09d3d0f8984bec96fa7e406dedab2e6c3fa00f2a0d557c80a6a4495",
+  "before": {
+    "cases": {
+      "identity": {
+        "cad_to_ifccad": {
+          "max_ms": 58.8337,
+          "median_ms": 58.2244,
+          "min_ms": 55.9848
+        },
+        "dwg_read": {
+          "max_ms": 14.1144,
+          "median_ms": 13.354899999999999,
+          "min_ms": 12.6594
+        },
+        "dwg_write": {
+          "max_ms": 7.2329,
+          "median_ms": 7.1075,
+          "min_ms": 6.0051000000000005
+        },
+        "dxf_read": {
+          "max_ms": 149.0679,
+          "median_ms": 146.3532,
+          "min_ms": 141.2535
+        },
+        "dxf_write": {
+          "max_ms": 8.223700000000001,
+          "median_ms": 7.7149,
+          "min_ms": 7.4174
+        },
+        "geometry": {
+          "assessed_vertices": 20000,
+          "max_deviation_upper_bound": 0.0,
+          "resolved_tolerance_upper": 1.0000000000000002e-06,
+          "rounded_entities": 0,
+          "status": "Exact"
+        },
+        "ifccad_to_cad": {
+          "max_ms": 73.0803,
+          "median_ms": 72.2012,
+          "min_ms": 70.47240000000001
+        },
+        "load_and_validate": {
+          "max_ms": 10.5598,
+          "median_ms": 10.283999999999999,
+          "min_ms": 10.2437
+        },
+        "scope_points": {
+          "max_ms": 0.7754,
+          "median_ms": 0.7706,
+          "min_ms": 0.7416
+        }
+      },
+      "large": {
+        "cad_to_ifccad": {
+          "max_ms": 262.9173,
+          "median_ms": 259.9981,
+          "min_ms": 257.14799999999997
+        },
+        "dwg_read": {
+          "max_ms": 10.6601,
+          "median_ms": 10.473899999999999,
+          "min_ms": 8.4748
+        },
+        "dwg_write": {
+          "max_ms": 6.2184,
+          "median_ms": 5.5113,
+          "min_ms": 5.3965000000000005
+        },
+        "dxf_read": {
+          "max_ms": 150.3719,
+          "median_ms": 145.6242,
+          "min_ms": 142.253
+        },
+        "dxf_write": {
+          "max_ms": 9.6231,
+          "median_ms": 9.1181,
+          "min_ms": 8.6859
+        },
+        "geometry": {
+          "assessed_vertices": 20000,
+          "max_deviation_upper_bound": 0.0,
+          "resolved_tolerance_upper": 1.0000000000000002e-06,
+          "rounded_entities": 0,
+          "status": "Exact"
+        },
+        "ifccad_to_cad": {
+          "max_ms": 392.6611,
+          "median_ms": 381.72060000000005,
+          "min_ms": 379.70759999999996
+        },
+        "load_and_validate": {
+          "max_ms": 75.8962,
+          "median_ms": 75.3948,
+          "min_ms": 75.1004
+        },
+        "scope_points": {
+          "max_ms": 54.135799999999996,
+          "median_ms": 52.3934,
+          "min_ms": 50.3288
+        }
+      },
+      "oblique": {
+        "cad_to_ifccad": {
+          "max_ms": 1155.7660999999998,
+          "median_ms": 1128.3441,
+          "min_ms": 1117.5299
+        },
+        "dwg_read": {
+          "max_ms": 12.693100000000001,
+          "median_ms": 11.8133,
+          "min_ms": 10.2569
+        },
+        "dwg_write": {
+          "max_ms": 7.900600000000001,
+          "median_ms": 7.7387999999999995,
+          "min_ms": 7.0195
+        },
+        "dxf_read": {
+          "max_ms": 145.12359999999998,
+          "median_ms": 143.2464,
+          "min_ms": 141.79
+        },
+        "dxf_write": {
+          "max_ms": 13.911700000000002,
+          "median_ms": 11.7117,
+          "min_ms": 11.581299999999999
+        },
+        "geometry": {
+          "assessed_vertices": 20000,
+          "max_deviation_upper_bound": 1.6729123829020846e-12,
+          "resolved_tolerance_upper": 1.0000000000000002e-06,
+          "rounded_entities": 10000,
+          "status": "RoundedWithinTolerance"
+        },
+        "ifccad_to_cad": {
+          "max_ms": 3087.2923,
+          "median_ms": 2482.5183,
+          "min_ms": 2102.2794999999996
+        },
+        "load_and_validate": {
+          "max_ms": 163.80010000000001,
+          "median_ms": 162.389,
+          "min_ms": 161.4251
+        },
+        "scope_points": {
+          "max_ms": 558.3367000000001,
+          "median_ms": 441.4637,
+          "min_ms": 396.5476
+        }
+      },
+      "tight": {
+        "cad_to_ifccad": {
+          "max_ms": 1510.6152000000002,
+          "median_ms": 1117.1483,
+          "min_ms": 1101.6819
+        },
+        "dwg_read": {
+          "max_ms": 14.2958,
+          "median_ms": 10.786999999999999,
+          "min_ms": 10.1682
+        },
+        "dwg_write": {
+          "max_ms": 7.4569,
+          "median_ms": 7.1861,
+          "min_ms": 6.3337
+        },
+        "dxf_read": {
+          "max_ms": 146.74380000000002,
+          "median_ms": 146.1816,
+          "min_ms": 143.27970000000002
+        },
+        "dxf_write": {
+          "max_ms": 11.5319,
+          "median_ms": 10.8913,
+          "min_ms": 10.738100000000001
+        },
+        "geometry": {
+          "assessed_vertices": 20000,
+          "max_deviation_upper_bound": 2.568386014450779e-16,
+          "resolved_tolerance_upper": 1.0000000000000002e-06,
+          "rounded_entities": 10000,
+          "status": "RoundedWithinTolerance"
+        },
+        "ifccad_to_cad": {
+          "max_ms": 4536.5244,
+          "median_ms": 2619.869,
+          "min_ms": 1934.5709
+        },
+        "load_and_validate": {
+          "max_ms": 223.37470000000002,
+          "median_ms": 221.6086,
+          "min_ms": 215.4979
+        },
+        "scope_points": {
+          "max_ms": 211.3872,
+          "median_ms": 208.2504,
+          "min_ms": 206.9295
+        }
+      }
+    },
+    "counter_note": "Production benchmark does not expose private arithmetic counters; kernel test reports those separately.",
+    "entities_per_case": 10000,
+    "exact_fallback_counts": null,
+    "measured_runs": 5,
+    "profile": "release recommended",
+    "vertices_per_case": 20000,
+    "warmup_runs": 2
+  },
+  "after": {
+    "cases": {
+      "identity": {
+        "cad_to_ifccad": {
+          "max_ms": 58.3879,
+          "median_ms": 57.1107,
+          "min_ms": 56.8469
+        },
+        "dwg_read": {
+          "max_ms": 14.4299,
+          "median_ms": 13.0428,
+          "min_ms": 11.5329
+        },
+        "dwg_write": {
+          "max_ms": 7.237699999999999,
+          "median_ms": 6.7323,
+          "min_ms": 6.0079
+        },
+        "dxf_read": {
+          "max_ms": 150.1588,
+          "median_ms": 145.9017,
+          "min_ms": 143.997
+        },
+        "dxf_write": {
+          "max_ms": 9.7495,
+          "median_ms": 7.4398,
+          "min_ms": 6.9131
+        },
+        "geometry": {
+          "assessed_vertices": 20000,
+          "max_deviation_upper_bound": 0.0,
+          "resolved_tolerance_upper": 1.0000000000000002e-06,
+          "rounded_entities": 0,
+          "status": "Exact"
+        },
+        "ifccad_to_cad": {
+          "max_ms": 41.3446,
+          "median_ms": 40.0803,
+          "min_ms": 39.651199999999996
+        },
+        "load_and_validate": {
+          "max_ms": 10.7981,
+          "median_ms": 9.8769,
+          "min_ms": 9.542200000000001
+        },
+        "scope_points": {
+          "max_ms": 0.7923,
+          "median_ms": 0.7874,
+          "min_ms": 0.7758
+        }
+      },
+      "large": {
+        "cad_to_ifccad": {
+          "max_ms": 241.1342,
+          "median_ms": 237.4814,
+          "min_ms": 235.1993
+        },
+        "dwg_read": {
+          "max_ms": 9.9879,
+          "median_ms": 9.5041,
+          "min_ms": 8.3897
+        },
+        "dwg_write": {
+          "max_ms": 6.3755,
+          "median_ms": 5.8647,
+          "min_ms": 5.5531
+        },
+        "dxf_read": {
+          "max_ms": 140.66310000000001,
+          "median_ms": 139.2994,
+          "min_ms": 135.6801
+        },
+        "dxf_write": {
+          "max_ms": 10.7329,
+          "median_ms": 8.854000000000001,
+          "min_ms": 8.5136
+        },
+        "geometry": {
+          "assessed_vertices": 20000,
+          "max_deviation_upper_bound": 0.0,
+          "resolved_tolerance_upper": 1.0000000000000002e-06,
+          "rounded_entities": 0,
+          "status": "Exact"
+        },
+        "ifccad_to_cad": {
+          "max_ms": 286.81820000000005,
+          "median_ms": 281.34340000000003,
+          "min_ms": 279.9625
+        },
+        "load_and_validate": {
+          "max_ms": 75.6117,
+          "median_ms": 74.4216,
+          "min_ms": 73.99369999999999
+        },
+        "scope_points": {
+          "max_ms": 49.494499999999995,
+          "median_ms": 48.524,
+          "min_ms": 46.7184
+        }
+      },
+      "oblique": {
+        "cad_to_ifccad": {
+          "max_ms": 1068.9676,
+          "median_ms": 1064.4812,
+          "min_ms": 1051.4216000000001
+        },
+        "dwg_read": {
+          "max_ms": 13.0227,
+          "median_ms": 11.6705,
+          "min_ms": 11.0174
+        },
+        "dwg_write": {
+          "max_ms": 6.9587,
+          "median_ms": 6.8841,
+          "min_ms": 6.6138
+        },
+        "dxf_read": {
+          "max_ms": 145.51590000000002,
+          "median_ms": 142.8201,
+          "min_ms": 137.8107
+        },
+        "dxf_write": {
+          "max_ms": 10.972900000000001,
+          "median_ms": 10.3297,
+          "min_ms": 9.9097
+        },
+        "geometry": {
+          "assessed_vertices": 20000,
+          "max_deviation_upper_bound": 1.6729123829020846e-12,
+          "resolved_tolerance_upper": 1.0000000000000002e-06,
+          "rounded_entities": 10000,
+          "status": "RoundedWithinTolerance"
+        },
+        "ifccad_to_cad": {
+          "max_ms": 2014.4134,
+          "median_ms": 1877.2277000000001,
+          "min_ms": 1792.5297
+        },
+        "load_and_validate": {
+          "max_ms": 259.2201,
+          "median_ms": 207.8143,
+          "min_ms": 166.06719999999999
+        },
+        "scope_points": {
+          "max_ms": 532.5348,
+          "median_ms": 508.28479999999996,
+          "min_ms": 474.6495
+        }
+      },
+      "tight": {
+        "cad_to_ifccad": {
+          "max_ms": 1038.354,
+          "median_ms": 1037.0334,
+          "min_ms": 1024.1204
+        },
+        "dwg_read": {
+          "max_ms": 13.3745,
+          "median_ms": 10.2876,
+          "min_ms": 9.4764
+        },
+        "dwg_write": {
+          "max_ms": 7.1202000000000005,
+          "median_ms": 6.473,
+          "min_ms": 5.9556000000000004
+        },
+        "dxf_read": {
+          "max_ms": 149.7972,
+          "median_ms": 146.4138,
+          "min_ms": 144.7621
+        },
+        "dxf_write": {
+          "max_ms": 10.677000000000001,
+          "median_ms": 10.3602,
+          "min_ms": 9.9284
+        },
+        "geometry": {
+          "assessed_vertices": 20000,
+          "max_deviation_upper_bound": 2.568386014450779e-16,
+          "resolved_tolerance_upper": 1.0000000000000002e-06,
+          "rounded_entities": 10000,
+          "status": "RoundedWithinTolerance"
+        },
+        "ifccad_to_cad": {
+          "max_ms": 1777.6788,
+          "median_ms": 1659.5692,
+          "min_ms": 1653.0960000000002
+        },
+        "load_and_validate": {
+          "max_ms": 224.02530000000002,
+          "median_ms": 213.78379999999999,
+          "min_ms": 209.8533
+        },
+        "scope_points": {
+          "max_ms": 210.4519,
+          "median_ms": 201.3594,
+          "min_ms": 198.65630000000002
+        }
+      }
+    },
+    "counter_note": "Run the opt-in spatial_production_path_counters core test on these packages for validation and point-evaluation exact fallback counts; counters are excluded from timed production builds.",
+    "entities_per_case": 10000,
+    "exact_fallback_counts": null,
+    "measured_runs": 5,
+    "profile": "release recommended",
+    "vertices_per_case": 20000,
+    "warmup_runs": 2
+  },
+  "cad_artifacts": [
+    {
+      "path": "identity.dxf",
+      "before_after_identical": true,
+      "sha256": "be9cbaa5723b89d6d2b4e3de5fc7bdc0bc6a3a7647546eae6c9e28f5c70884d7",
+      "bytes": 2270608
+    },
+    {
+      "path": "identity.dwg",
+      "before_after_identical": true,
+      "sha256": "3da63f3547b5b5e0d8daf7e02851f9a4cf472e64d9abcede3074c12b379825c5",
+      "bytes": 186378
+    },
+    {
+      "path": "oblique.dxf",
+      "before_after_identical": true,
+      "sha256": "c9a808444c2de5b3a5b234f0b92a6563f80e26ce86e78bae818e1a33fdc4777b",
+      "bytes": 3277085
+    },
+    {
+      "path": "oblique.dwg",
+      "before_after_identical": true,
+      "sha256": "eff5bfdcd4d03a5ebc1e85e1961f0f553fe0159a07b3bdb96f75ac4ba8c03b79",
+      "bytes": 209868
+    },
+    {
+      "path": "tight.dxf",
+      "before_after_identical": true,
+      "sha256": "c6e592f8b1f933eed44b2fd4cf6001271cee2afa7a8a4294a389598242c5a5e9",
+      "bytes": 3302824
+    },
+    {
+      "path": "tight.dwg",
+      "before_after_identical": true,
+      "sha256": "f6173ff7bedf5f3a48c3d43300df8979940ea14f7b86d76f6bea89fbe1ab665f",
+      "bytes": 140024
+    },
+    {
+      "path": "large.dxf",
+      "before_after_identical": true,
+      "sha256": "0635c780b8ecd597de1ae9c5a204e68fd60c155026d30c249082cc4ee514a06c",
+      "bytes": 2822824
+    },
+    {
+      "path": "large.dwg",
+      "before_after_identical": true,
+      "sha256": "94868b4e92986daa01c04cc9c1c17c96c4754ba65b6c039ee1a261ffa4ac0d03",
+      "bytes": 201508
+    }
+  ]
+}

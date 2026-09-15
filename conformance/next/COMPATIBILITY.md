@@ -1,9 +1,9 @@
 # IFCCAD candidate compatibility
 
 This collection is the unpublished `1.1.0` candidate. Its active drawing
-contract is IFCDR `0.7.0`, selected by IFCX overlay `0.9.0`, with drawing core
-`0.2.0`. The logical registry uses meta-schema v2; the separate JSON mapping uses
-meta-schema v1 and stream-directory v1. IFCPR remains
+contract is IFCDR `0.8.0`, selected by IFCX overlay `0.10.0`, with drawing core
+`0.2.0`. The logical registry uses meta-schema v3; the separate JSON mapping uses
+meta-schema v2 and stream-directory v1. IFCPR remains
 `0.2.0`. Historical schemas and `conformance/1.0.0` are reference artifacts,
 not promises that the current reader supports their files.
 
@@ -11,14 +11,18 @@ not promises that the current reader supports their files.
 
 The IFCDR registry contains four streams: `line`, `polyline`, `entityOrder`,
 and `entityOrderEntry`. It retains `scope`, `layerBinding`, `appearanceBinding`,
-and `appearanceOverride` tables. Lines and polylines use the existing XY
-geometry, resource units, scope membership, appearance modes, and draw order.
-Omitted visibility means `true`. Polyline schema v3 requires at least two
+and `appearanceOverride` tables. Lines use XYZ endpoints. Polylines use local XY points and an optional complete
+plane placement (identity when omitted). Resource units, scope membership,
+appearance modes and draw order remain.
+Omitted visibility means `true`. Polyline schema v4 requires at least two
 vertices. Repeated vertices and coincident line endpoints are valid; the closed
 flag is preserved independently of whether the first vertex is repeated.
-Empty resources have no bounds (JSON null); nonempty resources require finite
-bounds enclosing all geometry, including invisible entities. Conservative
-bounds are valid; lineweight and scope bases do not expand these bounds.
+Empty scopes have null bounds; nonempty scopes require finite XYZ bounds
+enclosing exact geometry of stored values, including invisible entities.
+Conservative bounds are valid; no positional epsilon is used. Scope bases are
+XYZ metadata and are not applied to geometry. Aggregate resource bounds are
+absent. Explicit plane objects require all nine finite values; squared axis
+length and perpendicularity use the exact binary64 threshold nearest 1e-12.
 Colors retain RGB and optional indexed (u64) and named metadata together. All
 stored non-null overrides are validated, including unused values.
 
@@ -31,17 +35,17 @@ contracts after their semantics are designed and tested.
 
 | Content or operation | Primary implementation behavior |
 | --- | --- |
-| IFCDR 0.7.0 JSON with the registered content | Physical field/range checks in the JSON codec, shared logical geometry/reference/identity/order/bounds/appearance validation, and package binding checks; typed lines and polylines. |
+| IFCDR 0.8.0 JSON with the registered content | Physical field/range checks in the JSON codec, shared logical geometry/reference/identity/order/bounds/appearance validation, and package binding checks; typed lines and polylines. |
 | DrawingRepresentation | `attributes.resource`, role `drawing`; a Drawing and all listed layouts reference the same representation node. Layout scope IDs resolve within that resource. |
 | Retired DrawingGeometryRepresentation | `IFCCAD_PACKAGE_VOCABULARY_UNSUPPORTED`, including unreferenced nodes; no strict package. |
 | Directory writer | One drawing, one model layout, one inline or external IFCDR resource; deterministic new-version output. |
 | Resource access | External package-relative or inline JSON for IFCDR and IFCPR. Both use the same content validation and identity links. No paperspace export is added. |
-| IFCDR 0.6.0, 0.5.0 or another unsupported version | `IFCCAD_IFCDR_VERSION_UNSUPPORTED`; no strict typed package and no migration. |
+| IFCDR 0.7.0, 0.6.0, 0.5.0 or another unsupported version | `IFCCAD_IFCDR_VERSION_UNSUPPORTED`; no strict typed package and no migration. |
 | Unknown stream name or schema ID | `IFCCAD_IFCDR_STREAM_SCHEMA_UNSUPPORTED` with stream/schema context when available; no strict typed package or unmodeled-entity view. |
 | Malformed supported fields or known broken references | Structural or semantic error diagnostics; no strict typed package. |
 | Unrelated unknown IFCX node types and open extension fields | Existing permitted read behavior remains; no new guarantee of conversion, editing, or lossless rewriting. |
 | IFCCAD to CadDocument | Existing drawing conversion for typed lines and polylines, layers, units, order, and supported appearance data. Existing pattern fallback and line-weight rounding diagnostics remain. |
-| CadDocument to IFCCAD | Existing exact finite 2D line and straight lightweight-polyline subset. Unsupported properties/entities are diagnosed under `Allow` or reject the export under `Reject`. No approximation or expanded native coverage. |
+| CadDocument to IFCCAD | Finite XYZ lines and placed straight lightweight polylines. Unsupported properties/entities are diagnosed under `Allow` or reject under `Reject`. Geometric accuracy is a hard limit in both policies; only proved within-limit numerical rounding is exempt from Reject. |
 | IFCPR 0.2.0 | The limited checks described below; no converter preservation transfer. |
 
 `IfcdrEntityRef::Unmodeled`, `UnmodeledEntityRef`, and
@@ -133,3 +137,17 @@ expectations. Frozen v1 manifests retain their original shape. The
 successful reproducible reference using the documented local codec fixes.
 Milestone 2 is established; upstream integration of those fixes remains codec
 maintenance. Broader entity semantics and preservation are milestone 3 work.
+
+## Coordinate-frame slice
+
+The active candidate adds line.v3, polyline.v4 and scope.v2. Missing line Z
+columns mean zero; missing placement columns or null placement entries mean
+complete identity. Explicit identity objects are logically equivalent and the
+writer omits all-default columns. Partial records and null whole columns fail
+physical validation. Invalid axes and non-enclosing bounds fail shared semantic
+validation. IFCDR 0.7.0 is unsupported, with no implicit migration.
+
+Conversion reports separate geometric accuracy from semantic fidelity. Native
+plane reparameterization and CAD source normal/vertex-ID loss remain visible.
+The default geometric limit is exactly one micrometre in known units, zero for
+unitless drawings. Geometry assessment does not close import coverage gaps.

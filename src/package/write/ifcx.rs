@@ -38,7 +38,7 @@ pub(crate) fn assemble_ifcx(
     resource: &EncodedIfcdrResource,
 ) -> Result<Vec<u8>, PackageBuildError> {
     let mut descriptor = json!({
-        "format":"openaec.ifcdr", "version":"0.7.0", "resourceId":resource.resource_id, "role":"drawing"
+        "format":"openaec.ifcdr", "version":"0.8.0", "resourceId":resource.resource_id, "role":"drawing"
     });
     match drawing.storage {
         super::DrawingResourceStorage::External => {
@@ -265,7 +265,7 @@ mod tests {
         assert_eq!(root["data"][3]["attributes"]["name"], "Drawing");
         let geometry = &root["data"][3]["attributes"]["resource"];
         assert_eq!(geometry["format"], "openaec.ifcdr");
-        assert_eq!(geometry["version"], "0.7.0");
+        assert_eq!(geometry["version"], "0.8.0");
         assert_eq!(geometry["role"], "drawing");
         assert_eq!(geometry["resourceId"], "drawing-main");
         assert_eq!(geometry["uri"], "resources/drawing.ifcdr.json");

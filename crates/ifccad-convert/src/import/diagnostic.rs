@@ -6,6 +6,14 @@ use thiserror::Error;
 #[derive(Clone, Debug, PartialEq)]
 #[non_exhaustive]
 pub enum ImportDiagnostic {
+    GeometryRoundedWithinTolerance {
+        source: crate::ConversionEntitySource,
+        max_deviation_upper_bound: f64,
+    },
+    PlaneParameterizationChanged {
+        source: crate::ConversionEntitySource,
+    },
+
     LinePatternFallback {
         requested: String,
         applied: String,
@@ -21,6 +29,8 @@ pub enum ImportDiagnostic {
 impl fmt::Display for ImportDiagnostic {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::GeometryRoundedWithinTolerance { source, max_deviation_upper_bound } => write!(formatter,"rounded geometry of {source:?} within tolerance (upper deviation {max_deviation_upper_bound})"),
+            Self::PlaneParameterizationChanged { source } => write!(formatter,"changed plane parameterization of {source:?}"),
             Self::LinePatternFallback {
                 requested,
                 applied,
@@ -49,11 +59,15 @@ impl fmt::Display for ImportDiagnostic {
 
 #[derive(Default)]
 pub(crate) struct DiagnosticAccumulator {
+    additional: Vec<ImportDiagnostic>,
     line_pattern_fallbacks: BTreeMap<(String, String), usize>,
     line_weight_rounding: BTreeMap<(u64, u64), usize>,
 }
 
 impl DiagnosticAccumulator {
+    pub(crate) fn record(&mut self, d: ImportDiagnostic) {
+        self.additional.push(d);
+    }
     pub(crate) fn record_line_pattern_fallback(&mut self, requested: &str, applied: &str) {
         *self
             .line_pattern_fallbacks
@@ -84,6 +98,7 @@ impl DiagnosticAccumulator {
                 count,
             },
         ));
+        diagnostics.extend(self.additional);
         diagnostics
     }
 }
@@ -91,6 +106,19 @@ impl DiagnosticAccumulator {
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum ImportError {
+    #[error("import loss was rejected")]
+    LossRejected { diagnostics: Vec<ImportDiagnostic> },
+    #[error(transparent)]
+    InvalidGeometryTolerance(#[from] crate::ConversionToleranceError),
+    #[error("geometry exceeds the requested tolerance: {failure:?}")]
+    GeometryToleranceExceeded {
+        failure: Box<crate::ConversionGeometryFailure>,
+    },
+    #[error("geometry accuracy could not be established: {failure:?}")]
+    GeometryAccuracyNotEstablished {
+        failure: Box<crate::ConversionGeometryFailure>,
+    },
+
     #[error(
         "drawing must contain exactly one model layout (found {total_layouts} layouts, {model_layouts} model layouts)"
     )]
@@ -118,6 +146,16 @@ pub enum ImportError {
     LayerInsertion { layer: String, reason: String },
     #[error("internal conversion invariant failed: {message}")]
     InternalInvariant { message: String },
+}
+
+impl From<Box<crate::ConversionGeometryFailure>> for ImportError {
+    fn from(failure: Box<crate::ConversionGeometryFailure>) -> Self {
+        if failure.reason == crate::ConversionGeometryFailureReason::ProvenExceedance {
+            Self::GeometryToleranceExceeded { failure }
+        } else {
+            Self::GeometryAccuracyNotEstablished { failure }
+        }
+    }
 }
 
 #[cfg(test)]

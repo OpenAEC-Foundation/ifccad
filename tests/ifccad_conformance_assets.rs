@@ -31,6 +31,60 @@ fn active_schema_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("schemas")
 }
 
+#[test]
+fn spatial_contract_and_mapping_validate_against_their_meta_schemas() {
+    let load = |name: &str| -> Value {
+        serde_json::from_slice(&fs::read(active_schema_root().join("ifcdr").join(name)).unwrap())
+            .unwrap()
+    };
+    for (schema, document) in [
+        ("registry-meta-schema-v3.json", "registry-0.8.0.json"),
+        (
+            "json-mapping-meta-schema-v2.json",
+            "json-mapping-0.8.0.json",
+        ),
+    ] {
+        let validator = jsonschema::draft202012::new(&load(schema)).unwrap();
+        let value = load(document);
+        let errors = validator
+            .iter_errors(&value)
+            .map(|e| e.to_string())
+            .collect::<Vec<_>>();
+        assert!(errors.is_empty(), "{document}: {errors:?}");
+    }
+    let validator =
+        jsonschema::draft202012::new(&load("json-mapping-meta-schema-v2.json")).unwrap();
+    let mut invalid = load("json-mapping-0.8.0.json");
+    invalid["resource"]["fields"][0]["nullEncoding"] = serde_json::json!("logicalDefault");
+    assert!(
+        !validator.is_valid(&invalid),
+        "default marker is restricted to stream columns"
+    );
+    let mut invalid = load("json-mapping-0.8.0.json");
+    invalid["tables"][0]["fields"][0]["nullEncoding"] = serde_json::json!("logicalDefault");
+    assert!(
+        !validator.is_valid(&invalid),
+        "default marker is not a table-field encoding"
+    );
+    let mut invalid = load("json-mapping-0.8.0.json");
+    let field = invalid["streams"]
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .find(|s| s["name"] == "polyline")
+        .unwrap()["fields"]
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .find(|f| f.get("encoding").is_some())
+        .unwrap();
+    field["nullEncoding"] = serde_json::json!("logicalDefault");
+    assert!(
+        !validator.is_valid(&invalid),
+        "default marker does not apply to ranges"
+    );
+}
+
 fn frozen_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("conformance")

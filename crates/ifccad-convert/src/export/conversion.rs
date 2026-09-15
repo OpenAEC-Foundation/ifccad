@@ -15,6 +15,7 @@ use std::collections::BTreeMap;
 
 #[derive(Default)]
 pub(crate) struct ExportContext {
+    pub(crate) geometry: Option<crate::ConversionGeometryAssessment>,
     pub(crate) diagnostics: Vec<ExportDiagnostic>,
     pub(crate) layer_keys: BTreeMap<String, LayerKey>,
     pub(crate) appearances: AppearanceRegistry,
@@ -35,7 +36,13 @@ pub fn cad_document_to_package(
     );
 
     let (length_unit, unit_loss) = map_length_unit(document.header.insertion_units);
-    let mut context = ExportContext::default();
+    let mut context = ExportContext {
+        geometry: Some(crate::ConversionGeometryAssessment::new(
+            export_options.geometry_tolerance,
+            length_unit,
+        )?),
+        ..Default::default()
+    };
     if let Some(reason) = unit_loss {
         context.diagnostics.push(ExportDiagnostic::loss(
             ExportDiagnosticSource::DocumentField {
@@ -65,7 +72,10 @@ pub fn cad_document_to_package(
     scan_document_semantics(document, &mut context);
 
     if export_options.loss_policy == ExportLossPolicy::Reject
-        && context.diagnostics.iter().any(ExportDiagnostic::is_loss)
+        && context
+            .diagnostics
+            .iter()
+            .any(ExportDiagnostic::blocks_reject)
     {
         return Err(ExportError::LossRejected {
             diagnostics: context.diagnostics,
@@ -73,9 +83,8 @@ pub fn cad_document_to_package(
     }
 
     let package = builder.finish()?;
-    Ok(ExportOutcome::new(
-        package,
-        context.diagnostics,
-        context.entity_mapping,
-    ))
+    Ok(
+        ExportOutcome::new(package, context.diagnostics, context.entity_mapping)
+            .with_geometry_assessment(context.geometry.unwrap()),
+    )
 }

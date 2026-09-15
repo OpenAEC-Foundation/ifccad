@@ -1,6 +1,6 @@
 use super::mapping::canonical_registry;
 use crate::ifcdr::logical::*;
-use crate::ifcdr::IfcdrLengthUnit;
+use crate::ifcdr::{Bounds3d, IfcdrLengthUnit, PlanePlacement};
 use crate::ResourceId;
 use serde_json::{json, Map, Value};
 use sha2::{Digest, Sha256};
@@ -67,8 +67,10 @@ pub(crate) fn encode_json<R: IfcdrResourceAccess>(
                     for (n, v) in [
                         ("x1", l.start.x()),
                         ("y1", l.start.y()),
+                        ("z1", l.start.z()),
                         ("x2", l.end.x()),
                         ("y2", l.end.y()),
+                        ("z2", l.end.z()),
                     ] {
                         push(&mut columns, n, v);
                     }
@@ -84,6 +86,15 @@ pub(crate) fn encode_json<R: IfcdrResourceAccess>(
                     push(&mut columns, "vertexOffset", count(offset)?);
                     push(&mut columns, "vertexCount", count(p.vertex_count())?);
                     push(&mut columns, "closed", p.closed());
+                    let frame = p.placement();
+                    let placement = if frame == PlanePlacement::default().components() {
+                        Value::Null
+                    } else {
+                        json!({"origin":{"x":frame.origin.x(),"y":frame.origin.y(),"z":frame.origin.z()},
+                        "X":{"x":frame.x.x(),"y":frame.x.y(),"z":frame.x.z()},
+                        "Y":{"x":frame.y.x(),"y":frame.y.y(),"z":frame.y.z()}})
+                    };
+                    push(&mut columns, "placement", placement);
                     offset = offset.checked_add(p.vertex_count()).ok_or(
                         IfcdrEncodeError::RangeExhausted {
                             kind: "vertex pool",
@@ -135,6 +146,19 @@ pub(crate) fn encode_json<R: IfcdrResourceAccess>(
         {
             columns.remove("visible");
         }
+        for key in ["z1", "z2", "placement"] {
+            if columns.get(key).is_some_and(|v| {
+                v.as_array().unwrap().iter().all(|v| {
+                    if key == "placement" {
+                        v.is_null()
+                    } else {
+                        v.as_f64() == Some(0.0)
+                    }
+                })
+            }) {
+                columns.remove(key);
+            }
+        }
         let names: Vec<_> = schema
             .columns
             .iter()
@@ -152,13 +176,9 @@ pub(crate) fn encode_json<R: IfcdrResourceAccess>(
         columns.insert("count".into(), json!(row_count));
         streams.insert(schema.payload_key().into(), Value::Object(columns));
     }
-    let bounds = r.bounds().map(
-        |b| json!({"minX":b.min().x(),"minY":b.min().y(),"maxX":b.max().x(),"maxY":b.max().y()}),
-    );
     let root = json!({
-        "header":{"format":"openaec.ifcdr","version":"0.7.0","resourceId":r.resource_id(),"unit":unit_name(r.unit()),"nextEntityId":r.next_entity_id()},
-        "bounds":bounds,
-        "scopeTable":r.scopes().iter().map(|s| json!({"id":s.id,"kind":s.kind,"name":s.name,"baseX":s.base.x(),"baseY":s.base.y(),"flags":s.flags})).collect::<Vec<_>>(),
+        "header":{"format":"openaec.ifcdr","version":"0.8.0","resourceId":r.resource_id(),"unit":unit_name(r.unit()),"nextEntityId":r.next_entity_id()},
+        "scopeTable":r.scopes().iter().map(|s| json!({"id":s.id,"kind":s.kind,"name":s.name,"baseX":s.base.x(),"baseY":s.base.y(),"baseZ":s.base.z(),"bounds":s.bounds.map(bounds_json),"flags":s.flags})).collect::<Vec<_>>(),
         "layerBindings":r.layers().iter().map(|l| json!({"id":l.id,"ifcxLayer":l.ifcx_layer})).collect::<Vec<_>>(),
         "appearanceBindings":r.appearances().iter().map(|a| json!({"id":a.id,"ifcxAppearance":a.ifcx_appearance,"colorMode":a.modes[0],"opacityMode":a.modes[1],"linePatternMode":a.modes[2],"lineWeightMode":a.modes[3],"overrideId":a.override_id})).collect::<Vec<_>>(),
         "appearanceOverrides":r.overrides().iter().map(|o| json!({"id":o.id,"color":o.color.as_ref().map(color_json),"opacity":o.opacity,"lineWeight":o.line_weight,"ifcxLinePattern":o.ifcx_line_pattern})).collect::<Vec<_>>(),
@@ -195,4 +215,8 @@ pub(crate) fn unit_name(unit: IfcdrLengthUnit) -> &'static str {
         IfcdrLengthUnit::Inch => "in",
         IfcdrLengthUnit::Foot => "ft",
     }
+}
+
+fn bounds_json(b: Bounds3d) -> Value {
+    json!({"minX":b.min().x(),"minY":b.min().y(),"minZ":b.min().z(),"maxX":b.max().x(),"maxY":b.max().y(),"maxZ":b.max().z()})
 }

@@ -1,6 +1,9 @@
 use crate::ifcdr::logical::{IfcdrPolylineAccess, IfcdrPolylinesAccess};
 use crate::ifcdr::read::decoded::{DecodedPolyline, DecodedPolylines, PolylineColumns};
-use crate::ifcdr::{AppearanceId, EntityId, LayerId, Point2, ScopeId};
+use crate::ifcdr::{
+    AppearanceId, EntityId, GeometryEvaluationError, LayerId, PlanePlacement, Point2, Point3,
+    ScopeId,
+};
 #[derive(Clone, Copy)]
 pub(crate) struct PolylineStreamView<'a> {
     columns: &'a PolylineColumns,
@@ -52,18 +55,33 @@ impl<'a> PolylineRef<'a> {
     pub fn closed(&self) -> bool {
         self.view.closed()
     }
-    pub fn points(&self) -> PointIterator<'a> {
-        PointIterator {
+    pub fn placement(&self) -> PlanePlacement {
+        PlanePlacement::from_validated_components(self.view.placement())
+    }
+    pub fn scope_points(&self) -> ScopePointIterator<'a> {
+        ScopePointIterator {
+            local: self.local_points(),
+            placement: self.placement(),
+        }
+    }
+    #[deprecated(
+        note = "use local_points() for local XY coordinates or scope_points() for placed XYZ coordinates"
+    )]
+    pub fn points(&self) -> LocalPointIterator<'a> {
+        self.local_points()
+    }
+    pub fn local_points(&self) -> LocalPointIterator<'a> {
+        LocalPointIterator {
             view: self.view,
             next: 0,
         }
     }
 }
-pub struct PointIterator<'a> {
+pub struct LocalPointIterator<'a> {
     view: DecodedPolyline<'a>,
     next: usize,
 }
-impl Iterator for PointIterator<'_> {
+impl Iterator for LocalPointIterator<'_> {
     type Item = Point2;
     fn next(&mut self) -> Option<Point2> {
         let p = self.view.vertex(self.next)?;
@@ -75,12 +93,66 @@ impl Iterator for PointIterator<'_> {
         (n, Some(n))
     }
 }
-impl ExactSizeIterator for PointIterator<'_> {}
+impl ExactSizeIterator for LocalPointIterator<'_> {}
+
+/// Compatibility name for the iterator over local XY points.
+pub type PointIterator<'a> = LocalPointIterator<'a>;
+pub struct ScopePointIterator<'a> {
+    local: LocalPointIterator<'a>,
+    placement: PlanePlacement,
+}
+impl Iterator for ScopePointIterator<'_> {
+    type Item = Result<Point3, GeometryEvaluationError>;
+    fn next(&mut self) -> Option<Self::Item> {
+        self.local
+            .next()
+            .map(|p| self.placement.try_to_scope_point(p))
+    }
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.local.size_hint()
+    }
+}
+impl ExactSizeIterator for ScopePointIterator<'_> {}
+
 #[cfg(test)]
 mod tests {
     use crate::ifcdr::read::resource::{fixture_source, LoadedIfcdrResource};
     use crate::ifcdr::read::validation::validate_ifcdr;
     use crate::ifcdr::Point2;
+
+    #[test]
+    fn scope_iterator_continues_after_a_vertex_evaluation_error() {
+        use super::*;
+        use crate::ifcdr::Vector3;
+        let columns = PolylineColumns {
+            offsets: vec![0],
+            counts: vec![3],
+            x: vec![0.0, 1.0, -f64::MAX],
+            y: vec![0.0; 3],
+            ..Default::default()
+        };
+        let mut points = ScopePointIterator {
+            local: LocalPointIterator {
+                view: DecodedPolyline {
+                    columns: &columns,
+                    row: 0,
+                },
+                next: 0,
+            },
+            placement: PlanePlacement::try_new(
+                Point3::new(f64::MAX, 0.0, 0.0),
+                Vector3::new(1.0, 0.0, 0.0),
+                Vector3::new(0.0, 1.0, 0.0),
+            )
+            .unwrap(),
+        };
+        assert_eq!(points.len(), 3);
+        assert_eq!(points.next().unwrap().unwrap().x(), f64::MAX);
+        assert!(points.next().unwrap().is_err());
+        assert_eq!(points.len(), 1);
+        assert_eq!(points.next().unwrap().unwrap().x(), 0.0);
+        assert!(points.next().is_none());
+    }
 
     #[test]
     fn borrows_each_polyline_point_range() {
@@ -97,7 +169,7 @@ mod tests {
         assert_eq!(first.entity_id().get(), 3);
         assert!(first.closed());
         assert_eq!(
-            first.points().collect::<Vec<_>>(),
+            first.local_points().collect::<Vec<_>>(),
             [
                 Point2::new(0.0, 0.0),
                 Point2::new(10.0, 0.0),
@@ -108,7 +180,7 @@ mod tests {
         let second = polylines.get(1).unwrap();
         assert!(!second.closed());
         assert_eq!(
-            second.points().collect::<Vec<_>>(),
+            second.local_points().collect::<Vec<_>>(),
             [
                 Point2::new(20.0, 10.0),
                 Point2::new(25.0, 15.0),

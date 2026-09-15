@@ -1,4 +1,4 @@
-use crate::ifcdr::{IfcdrLengthUnit, Point2};
+use crate::ifcdr::{IfcdrLengthUnit, PlanePlacement, Point2, Point3};
 use crate::{PackageId, ResourceId};
 
 #[derive(Clone, Debug)]
@@ -107,8 +107,8 @@ impl EntityAppearance {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct LineDefinition {
-    pub start: Point2,
-    pub end: Point2,
+    pub start: Point3,
+    pub end: Point3,
     pub layer: LayerKey,
     pub appearance: EntityAppearance,
     pub visible: bool,
@@ -117,6 +117,7 @@ pub struct LineDefinition {
 #[derive(Clone, Debug, PartialEq)]
 pub struct PolylineDefinition {
     pub points: Vec<Point2>,
+    pub placement: PlanePlacement,
     pub closed: bool,
     pub layer: LayerKey,
     pub appearance: EntityAppearance,

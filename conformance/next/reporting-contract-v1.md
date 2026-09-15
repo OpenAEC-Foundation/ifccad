@@ -135,3 +135,18 @@ and optional `category` on expected diagnostics. V1 expectations retain their
 old field projection and cannot use those v2 fields. Unknown enum values and
 manifest versions are rejected. The five deferred IFCPR package cases remain
 deferred; this change does not add a compatibility-scan operation.
+
+## Executed coordinate-frame conversion
+
+`geometry_assessment()` separately reports exact geometry or rounding proved
+within the configured limit, assessed entity/vertex counts, an outward maximum
+distance bound and its source. Distances use drawing units. Both Allow and
+Reject enforce this limit; unresolved evaluation, target range failure or an
+exceeded limit returns a typed error with no completed partial output.
+
+A successful Reject operation may still report `LossDetected` for accepted
+numerical rounding. This narrow policy exemption is not a losslessness claim.
+Plane parameterization, source normal and vertex identity losses remain
+blocking under Reject. Import retains its independent incomplete coverage.
+The existing outcome tuples stay compatible; `into_all_parts()` retains both
+transfer and geometry assessments.

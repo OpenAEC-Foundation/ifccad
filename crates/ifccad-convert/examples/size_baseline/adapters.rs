@@ -81,15 +81,26 @@ pub fn package(recipe: &Drawing, inline: bool) -> Result<EncodedPackage> {
         match &entity.geometry {
             Geometry::Line { start, end } => {
                 drawing.model_space().add_line(LineDefinition {
-                    start: Point2::new(start[0], start[1]),
-                    end: Point2::new(end[0], end[1]),
+                    start: ifccad::ifcdr::Point3::new(start[0], start[1], start[2]),
+                    end: ifccad::ifcdr::Point3::new(end[0], end[1], end[2]),
                     layer,
                     appearance,
                     visible,
                 })?;
             }
-            Geometry::Polyline { points, closed } => {
+            Geometry::Polyline {
+                points,
+                closed,
+                origin,
+                x_axis,
+                y_axis,
+            } => {
                 drawing.model_space().add_polyline(PolylineDefinition {
+                    placement: ifccad::ifcdr::PlanePlacement::try_new(
+                        ifccad::ifcdr::Point3::new(origin[0], origin[1], origin[2]),
+                        ifccad::ifcdr::Vector3::new(x_axis[0], x_axis[1], x_axis[2]),
+                        ifccad::ifcdr::Vector3::new(y_axis[0], y_axis[1], y_axis[2]),
+                    )?,
                     points: points.iter().map(|p| Point2::new(p[0], p[1])).collect(),
                     closed: *closed,
                     layer,
@@ -183,12 +194,34 @@ pub fn cad(recipe: &Drawing) -> Result<CadDocument> {
     for entity in &recipe.entities {
         let mut target = match &entity.geometry {
             Geometry::Line { start, end } => EntityType::Line(Line::from_coords(
-                start[0], start[1], 0., end[0], end[1], 0.,
+                start[0], start[1], start[2], end[0], end[1], end[2],
             )),
-            Geometry::Polyline { points, closed } => {
+            Geometry::Polyline {
+                points,
+                closed,
+                origin,
+                x_axis,
+                y_axis,
+            } => {
                 let mut polyline = LwPolyline::from_points(
                     points.iter().map(|p| Vector2::new(p[0], p[1])).collect(),
                 );
+                if *x_axis == [0., 1., 0.] && *y_axis == [0., 0., 1.] {
+                    polyline.normal = ifccad_convert::cadcodec::Vector3::UNIT_X;
+                    polyline.elevation = origin[0];
+                    for v in &mut polyline.vertices {
+                        v.location.x += origin[1];
+                        v.location.y += origin[2];
+                    }
+                } else if *x_axis == [1., 0., 0.] && *y_axis == [0., 1., 0.] {
+                    polyline.elevation = origin[2];
+                    for v in &mut polyline.vertices {
+                        v.location.x += origin[0];
+                        v.location.y += origin[1];
+                    }
+                } else {
+                    return Err("recipe has unsupported reference frame".into());
+                }
                 polyline.is_closed = *closed;
                 EntityType::LwPolyline(polyline)
             }

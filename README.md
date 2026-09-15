@@ -75,8 +75,8 @@ A complete IFCCAD vocabulary within IFCX, production IFCDR codecs, the future
 `.ifccad` container, broader native CAD entity coverage and preservation, and
 conventional IFC integration are still under development.
 
-The active reader and writer use the encoding-neutral IFCDR **0.7.0** contract with
-lines, straight polylines, and their supporting data. Older IFCDR versions and
+The active reader and writer use the encoding-neutral IFCDR **0.8.0** contract with
+XYZ lines, placed straight polylines, and per-scope XYZ bounds. Older IFCDR versions and
 other entity schemas do not produce a strict typed package; there is no legacy
 migration path. Reader and writer retain separate storage behind shared typed
 collection access and semantic validation; JSON encoding is a separate boundary.
@@ -95,9 +95,11 @@ Development follows an incremental sequence:
    inline/external access, compatibility reporting and initial reproducible
    size measurements are implemented and verified. Older IFCDR file
    compatibility is not required.
-3. **Native CAD semantics and preservation (current)** — expand geometry, layouts,
-   entities, drawing relationships, and IFCPR-backed fidelity using a growing
-   corpus of representative CAD workflows, including an initial CAD-BIM link.
+3. **Native CAD semantics and preservation (current)** — the coordinate-frame
+   slice adds XYZ lines, placed straight polylines and accuracy assessment.
+   Expand layouts, entities, drawing relationships, and IFCPR-backed fidelity in architectural
+   dependency order, tested against a growing corpus of representative CAD
+   workflows, including an initial CAD-BIM link.
 4. **Scalable physical encodings and packaging** — evaluate chunking,
    compression, binary encodings, and a container using representative
    benchmarks.
@@ -176,7 +178,7 @@ preserved by the reader.
 ### Writing a directory package
 
 ```rust
-use ifccad::ifcdr::{IfcdrLengthUnit, Point2};
+use ifccad::ifcdr::{IfcdrLengthUnit, Point3};
 use ifccad::package::{
     AppearanceColor, AppearanceDefinition, DrawingOptions, EntityAppearance,
     LayerDefinition, LineDefinition, LinePatternDefinition, PackageBuilder,
@@ -209,8 +211,8 @@ fn write_example() -> Result<(), Box<dyn std::error::Error>> {
         appearance: style,
     })?;
     drawing.model_space().add_line(LineDefinition {
-        start: Point2::new(0.0, 0.0),
-        end: Point2::new(1000.0, 0.0),
+        start: Point3::new(0.0, 0.0, 0.0),
+        end: Point3::new(1000.0, 0.0, 0.0),
         layer: walls,
         appearance: EntityAppearance::ByLayer,
         visible: true,
@@ -222,14 +224,14 @@ fn write_example() -> Result<(), Box<dyn std::error::Error>> {
 ```
 
 The current writer deliberately requires exactly one Drawing with one model
-layout and one external IFCDR model-space resource. `model_layout_name` names
+layout and one external or inline IFCDR model-space resource. `model_layout_name` names
 that layout; it is not a drawing name. The declared length unit belongs to the
 individual IFCDR resource. The writer supports layers, explicit appearances,
 lines, polylines, visibility, and global entity order. It does not yet write paper
-space, blocks, IFCPR, inline resources, or `.ifccad` containers, and it never
+space, blocks, IFCPR, or `.ifccad` containers, and it never
 overwrites an existing target directory. Mapping a cadcodec `CadDocument` into
 this builder is the responsibility of `ifccad-convert`. Its exporter currently
-supports exact finite 2D lines and straight lightweight polylines, represents
+supports finite XYZ lines and placed straight lightweight polylines, represents
 mixed ByLayer/ByBlock/explicit appearance inheritance, and reports every
 detected unsupported source semantic according to an allow-or-reject loss
 policy.
@@ -248,7 +250,7 @@ The public API is still evolving while the format contract matures.
 The active language-neutral schemas live in `schemas/`. The mutable
 `conformance/next` collection currently targets suite `1.1.0` and tests the
 minimal package-header contract alongside explicit resource identity: a
-logical resource ID is independent of its external URI. IFCX overlay `0.9.0`
+logical resource ID is independent of its external URI. IFCX overlay `0.10.0`
 requires the top-level `header`, `imports`, and `data` fields and the known
 header fields, while still allowing additional top-level and header fields and
 unknown IFCX node types for forward-compatible extension. It remains a
@@ -281,14 +283,16 @@ Active schemas may move ahead of the latest released conformance collection.
 When a new collection is released, its applicable schemas are copied into the
 numbered directory and frozen with the rest of that collection.
 
-The [logical registry](schemas/ifcdr/registry-0.7.0.json),
-[normative rules](schemas/ifcdr/logical-contract-0.7.0.md), and
-[JSON mapping](schemas/ifcdr/json-mapping-0.7.0.json) define the drawing contract.
-The [mapping language](schemas/ifcdr/json-mapping-v1.md) specifies the meaning
+The [logical registry](schemas/ifcdr/registry-0.8.0.json),
+[normative rules](schemas/ifcdr/logical-contract-0.8.0.md), and
+[JSON mapping](schemas/ifcdr/json-mapping-0.8.0.json) define the drawing contract.
+The [mapping language](schemas/ifcdr/json-mapping-v2.md) specifies the meaning
 of its encoding forms and physical range rules.
 Polylines require at least two vertices; repeated vertices and coincident line
-endpoints are valid. Empty resources have no bounds; nonempty bounds must enclose
-all geometry, including invisible entities, and may be conservative.
+endpoints are valid. Empty scopes have null bounds; nonempty scopes require finite XYZ bounds
+enclosing exact geometry of the stored values, including invisible entities.
+Conservative bounds are accepted. Polyline placement defaults as one complete
+identity frame; explicit frames supply origin and both axes in full.
 
 The [compatibility matrix](conformance/next/COMPATIBILITY.md) and
 [reporting contract](conformance/next/reporting-contract-v1.md) distinguish
@@ -297,7 +301,10 @@ contract violations, unsupported content and blocked execution.
 areas. `is_valid()` retains its meaning of no error diagnostics; packages with
 IFCPR can remain usable while reporting incomplete preservation assessment.
 Converter outcomes expose `transfer_assessment()` within their stated source
-scope. Export covers the pinned public CadDocument model; import still has
+scope. `geometry_assessment()` separately reports exact or bounded geometric
+rounding. Both loss policies enforce accuracy (default one micrometre in known
+units, exact for unitless drawings); accepted numerical rounding remains loss
+evidence. Export covers the pinned public CadDocument model; import still has
 documented coverage gaps. An empty diagnostic list alone does not prove lossless
 transfer. These results describe executed operations, not a preflight scan.
 The [size and exchange experiment](docs/benchmarks/size-baseline-v1.md)

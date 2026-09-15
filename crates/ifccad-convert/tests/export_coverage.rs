@@ -167,6 +167,7 @@ fn cached_geometry_extents_are_not_independent_drawing_settings() {
         &document,
         package_options(),
         ExportOptions {
+            geometry_tolerance: Default::default(),
             loss_policy: ifccad_convert::ExportLossPolicy::Reject,
         },
     )
@@ -189,9 +190,9 @@ fn cached_geometry_extents_are_not_independent_drawing_settings() {
         .drawings()
         .next()
         .unwrap();
-    let bounds = drawing.representation().resource().bounds().unwrap();
-    assert_eq!(bounds.min(), ifccad::ifcdr::Point2::new(0.0, 0.0));
-    assert_eq!(bounds.max(), ifccad::ifcdr::Point2::new(10.0, 5.0));
+    let bounds = drawing.layouts().next().unwrap().scope().bounds().unwrap();
+    assert_eq!(bounds.min(), ifccad::ifcdr::Point3::new(0.0, 0.0, 0.0));
+    assert_eq!(bounds.max(), ifccad::ifcdr::Point3::new(10.0, 5.0, 0.0));
 }
 
 #[test]
@@ -208,6 +209,7 @@ fn meaningful_current_defaults_and_drawing_limits_still_reject() {
                 &document,
                 package_options(),
                 ExportOptions {
+                    geometry_tolerance: Default::default(),
                     loss_policy: ifccad_convert::ExportLossPolicy::Reject
                 }
             ),
@@ -233,6 +235,7 @@ fn upstream_drawing_variables_are_reported_as_unsupported_objects() {
             &document,
             package_options(),
             ExportOptions {
+                geometry_tolerance: Default::default(),
                 loss_policy: ifccad_convert::ExportLossPolicy::Reject
             }
         ),

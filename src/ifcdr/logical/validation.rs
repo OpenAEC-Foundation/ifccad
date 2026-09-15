@@ -1,5 +1,5 @@
 use super::*;
-use crate::ifcdr::{Bounds2d, Point2};
+use crate::ifcdr::{Bounds3d, PlanePlacement, Point2, Point3};
 use crate::validated::{EvidenceOutcome, Validated, ValidationOutcome, ValidationTarget};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -114,7 +114,7 @@ fn check<R: IfcdrResourceAccess>(r: &R) -> (IfcdrEvidence, Vec<IfcdrDiagnostic>)
         ..Default::default()
     };
     for (row, scope) in r.scopes().iter().enumerate() {
-        if !valid_point(scope.base) {
+        if !valid_point3(scope.base) {
             errors.push(diagnostic(
                 r,
                 IFCCAD_IFCDR_GEOMETRY_INVALID,
@@ -293,33 +293,8 @@ fn check<R: IfcdrResourceAccess>(r: &R) -> (IfcdrEvidence, Vec<IfcdrDiagnostic>)
     if identity_valid {
         check_order(r, &evidence, &mut errors);
     }
-    match geometric_bounds(r) {
-        Err(mut geometry_errors) => errors.append(&mut geometry_errors),
-        Ok(actual) => {
-            let empty = lines.is_empty() && polylines.is_empty();
-            let valid = match (r.bounds(), actual) {
-                (None, None) => empty,
-                (Some(b), Some(a)) => {
-                    valid_point(b.min())
-                        && valid_point(b.max())
-                        && b.min().x() <= a.min().x()
-                        && b.min().y() <= a.min().y()
-                        && b.max().x() >= a.max().x()
-                        && b.max().y() >= a.max().y()
-                }
-                _ => false,
-            };
-            if !valid {
-                errors.push(diagnostic(
-                    r,
-                    IFCCAD_IFCDR_BOUNDS_INVALID,
-                    "resource",
-                    None,
-                    "bounds",
-                    "bounds must enclose all geometry, and be absent exactly for empty resources",
-                ));
-            }
-        }
+    if let Err(mut geometry_errors) = collect_geometry(r, true) {
+        errors.append(&mut geometry_errors);
     }
     (evidence, errors)
 }
@@ -436,49 +411,149 @@ fn check_order<R: IfcdrResourceAccess>(
 }
 pub(crate) fn geometric_bounds<R: IfcdrResourceAccess>(
     r: &R,
-) -> Result<Option<Bounds2d>, Vec<IfcdrDiagnostic>> {
-    let mut bounds: Option<Bounds2d> = None;
+) -> Result<BTreeMap<u32, Option<Bounds3d>>, Vec<IfcdrDiagnostic>> {
+    collect_geometry(r, false)
+}
+fn valid_bounds(b: Bounds3d) -> bool {
+    valid_point3(b.min)
+        && valid_point3(b.max)
+        && b.min
+            .components()
+            .into_iter()
+            .zip(b.max.components())
+            .all(|(a, b)| a <= b)
+}
+fn contains(outer: Bounds3d, inner: Bounds3d) -> bool {
+    outer
+        .min
+        .components()
+        .into_iter()
+        .zip(inner.min.components())
+        .all(|(a, b)| a <= b)
+        && outer
+            .max
+            .components()
+            .into_iter()
+            .zip(inner.max.components())
+            .all(|(a, b)| a >= b)
+}
+fn collect_geometry<R: IfcdrResourceAccess>(
+    r: &R,
+    verify_bounds: bool,
+) -> Result<BTreeMap<u32, Option<Bounds3d>>, Vec<IfcdrDiagnostic>> {
+    let mut bounds: BTreeMap<u32, Option<Bounds3d>> =
+        r.scopes().iter().map(|s| (s.id, None)).collect();
+    let scope_bounds: BTreeMap<_, _> = r.scopes().iter().map(|s| (s.id, s.bounds)).collect();
     let mut errors = Vec::new();
-    let mut point =
-        |value: Option<Point2>, collection: &'static str, row: usize, property: &'static str| {
-            if let Some(p) = value.filter(|p| valid_point(*p)) {
-                match &mut bounds {
-                    None => bounds = Some(Bounds2d { min: p, max: p }),
-                    Some(b) => {
-                        b.min = Point2::new(b.min.x().min(p.x()), b.min.y().min(p.y()));
-                        b.max = Point2::new(b.max.x().max(p.x()), b.max.y().max(p.y()));
-                    }
-                }
-            } else {
-                errors.push(diagnostic(
-                    r,
-                    IFCCAD_IFCDR_GEOMETRY_INVALID,
-                    collection,
-                    Some(row),
-                    property,
-                    "coordinate is non-finite or inaccessible",
-                ));
+    let mut failed_scopes = BTreeSet::new();
+    let mut add = |scope: u32, enclosure: Bounds3d, placed: Option<(PlanePlacement, Point2)>| {
+        if verify_bounds {
+            let enclosing = scope_bounds
+                .get(&scope)
+                .copied()
+                .flatten()
+                .filter(|b| valid_bounds(*b));
+            let fits = enclosing.is_some_and(|b| {
+                contains(b, enclosure) || placed.is_some_and(|(plane, p)| plane.enclosed_by(p, b))
+            });
+            if !fits {
+                failed_scopes.insert(scope);
             }
-        };
+        }
+        let b = bounds.entry(scope).or_default();
+        match b {
+            None => *b = Some(enclosure),
+            Some(b) => {
+                let lo: [f64; 3] = std::array::from_fn(|i| {
+                    b.min.components()[i].min(enclosure.min.components()[i])
+                });
+                let hi: [f64; 3] = std::array::from_fn(|i| {
+                    b.max.components()[i].max(enclosure.max.components()[i])
+                });
+                b.min = Point3::new(lo[0], lo[1], lo[2]);
+                b.max = Point3::new(hi[0], hi[1], hi[2]);
+            }
+        }
+    };
     let lines = r.lines();
     for row in 0..lines.len() {
-        match lines.get(row) {
-            Some(line) => {
-                point(Some(line.start), "line", row, "start");
-                point(Some(line.end), "line", row, "end");
+        if let Some(line) = lines.get(row) {
+            for (property, p) in [("start", line.start), ("end", line.end)] {
+                if valid_point3(p) {
+                    add(line.entity.scope_id, Bounds3d { min: p, max: p }, None);
+                } else {
+                    errors.push(diagnostic(
+                        r,
+                        IFCCAD_IFCDR_GEOMETRY_INVALID,
+                        "line",
+                        Some(row),
+                        property,
+                        "coordinate is non-finite",
+                    ));
+                }
             }
-            None => point(None, "line", row, "row"),
+        } else {
+            errors.push(diagnostic(
+                r,
+                IFCCAD_IFCDR_GEOMETRY_INVALID,
+                "line",
+                Some(row),
+                "row",
+                "line is inaccessible",
+            ));
         }
     }
     let polylines = r.polylines();
     for row in 0..polylines.len() {
-        match polylines.get(row) {
-            Some(polyline) => {
-                for i in 0..polyline.vertex_count() {
-                    point(polyline.vertex(i), "polyline", row, "vertices");
-                }
+        let Some(p) = polylines.get(row) else {
+            errors.push(diagnostic(
+                r,
+                IFCCAD_IFCDR_GEOMETRY_INVALID,
+                "polyline",
+                Some(row),
+                "row",
+                "polyline is inaccessible",
+            ));
+            continue;
+        };
+        if let Err(error) = p.placement().validate() {
+            errors.push(diagnostic(
+                r,
+                IFCCAD_IFCDR_GEOMETRY_INVALID,
+                "polyline",
+                Some(row),
+                "placement",
+                error.to_string(),
+            ));
+            continue;
+        }
+        let plane = PlanePlacement::from_validated_components(p.placement());
+        for i in 0..p.vertex_count() {
+            match p
+                .vertex(i)
+                .and_then(|point| plane.enclose_point(point).ok().map(|b| (point, b)))
+            {
+                Some((point, b)) => add(p.entity().scope_id, b, Some((plane, point))),
+                None => errors.push(diagnostic(
+                    r,
+                    IFCCAD_IFCDR_GEOMETRY_INVALID,
+                    "polyline",
+                    Some(row),
+                    "vertices",
+                    "placed coordinate is non-finite, out of range or inaccessible",
+                )),
             }
-            None => point(None, "polyline", row, "row"),
+        }
+    }
+    if errors.is_empty() && verify_bounds {
+        for (row, scope) in r.scopes().iter().enumerate() {
+            let empty = bounds.get(&scope.id).is_none_or(Option::is_none);
+            if failed_scopes.contains(&scope.id)
+                || empty != scope.bounds.is_none()
+                || scope.bounds.is_some_and(|b| !valid_bounds(b))
+            {
+                errors.push(diagnostic(r,IFCCAD_IFCDR_BOUNDS_INVALID,"scope",Some(row),"bounds","scope bounds must enclose exact geometry and be null exactly for an empty scope"));
+            }
         }
     }
     if errors.is_empty() {

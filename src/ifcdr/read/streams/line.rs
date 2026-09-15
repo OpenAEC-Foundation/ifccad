@@ -1,6 +1,6 @@
 use crate::ifcdr::logical::{IfcdrLineRow, IfcdrLinesAccess};
 use crate::ifcdr::read::decoded::{DecodedLines, LineColumns};
-use crate::ifcdr::{AppearanceId, EntityId, LayerId, Point2, ScopeId};
+use crate::ifcdr::{AppearanceId, EntityId, LayerId, Point3, ScopeId};
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Line {
     row: IfcdrLineRow,
@@ -12,10 +12,10 @@ impl Line {
     pub fn scope_id(&self) -> ScopeId {
         ScopeId::new(self.row.entity.scope_id)
     }
-    pub fn start(&self) -> Point2 {
+    pub fn start(&self) -> Point3 {
         self.row.start
     }
-    pub fn end(&self) -> Point2 {
+    pub fn end(&self) -> Point3 {
         self.row.end
     }
     pub fn layer_id(&self) -> LayerId {
@@ -55,7 +55,7 @@ mod tests {
     use super::Line;
     use crate::ifcdr::read::resource::{fixture_source, LoadedIfcdrResource};
     use crate::ifcdr::read::validation::validate_ifcdr;
-    use crate::ifcdr::Point2;
+    use crate::ifcdr::Point3;
 
     #[test]
     fn reads_lines_as_copied_typed_rows() {
@@ -72,8 +72,8 @@ mod tests {
         let rows = lines.iter().collect::<Vec<_>>();
         assert_eq!(rows[0].entity_id().get(), 1);
         assert_eq!(rows[0].scope_id().get(), 0);
-        assert_eq!(rows[0].start(), Point2::new(0.0, 0.0));
-        assert_eq!(rows[0].end(), Point2::new(5.0, 5.0));
+        assert_eq!(rows[0].start(), Point3::new(0.0, 0.0, 0.));
+        assert_eq!(rows[0].end(), Point3::new(5.0, 5.0, 0.));
         assert_eq!(rows[1].layer_id().get(), 1);
         assert_eq!(rows[0].appearance_id().get(), 0);
         assert!(rows.iter().all(Line::visible));

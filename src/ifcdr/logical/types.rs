@@ -1,11 +1,12 @@
-use crate::ifcdr::Point2;
+use crate::ifcdr::{Bounds3d, Point2, Point3};
 
 #[derive(Clone, Debug, PartialEq)]
 pub(crate) struct IfcdrScope {
     pub id: u32,
     pub kind: u32,
     pub name: String,
-    pub base: Point2,
+    pub base: Point3,
+    pub bounds: Option<Bounds3d>,
     pub flags: u32,
 }
 #[derive(Clone, Debug, PartialEq)]
@@ -88,8 +89,8 @@ pub(crate) struct IfcdrEntityRow {
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) struct IfcdrLineRow {
     pub entity: IfcdrEntityRow,
-    pub start: Point2,
-    pub end: Point2,
+    pub start: Point3,
+    pub end: Point3,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -128,6 +129,9 @@ pub(crate) fn valid_opacity(value: f64) -> bool {
 }
 pub(crate) fn valid_line_weight(value: f64) -> bool {
     value.is_finite() && value >= 0.0
+}
+pub(crate) fn valid_point3(point: Point3) -> bool {
+    point.components().into_iter().all(f64::is_finite)
 }
 pub(crate) fn valid_point(point: Point2) -> bool {
     point.x().is_finite() && point.y().is_finite()

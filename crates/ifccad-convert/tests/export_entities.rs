@@ -114,13 +114,13 @@ fn exact_model_space_lines_and_straight_lwpolylines_are_emitted_and_mapped() {
     let IfcdrEntityRef::Line(line) = entities[0] else {
         panic!("first entity must be LINE");
     };
-    assert_eq!(line.start(), Point2::new(1.0, 2.0));
-    assert_eq!(line.end(), Point2::new(3.0, 4.0));
+    assert_eq!(line.start(), ifccad::ifcdr::Point3::new(1.0, 2.0, 0.0));
+    assert_eq!(line.end(), ifccad::ifcdr::Point3::new(3.0, 4.0, 0.0));
     let IfcdrEntityRef::Polyline(polyline) = entities[1] else {
         panic!("second entity must be LWPOLYLINE");
     };
     assert_eq!(
-        polyline.points().collect::<Vec<_>>(),
+        polyline.local_points().collect::<Vec<_>>(),
         [
             Point2::new(-2.0, 3.0),
             Point2::new(4.0, -5.0),
@@ -189,9 +189,7 @@ fn inexact_geometry_is_skipped_once_with_all_reasons() {
         line.reasons(),
         [
             ExportLossReason::NonFiniteCoordinate,
-            ExportLossReason::NonPlanarZ,
             ExportLossReason::NonZeroThickness,
-            ExportLossReason::UnsupportedNormal,
         ]
     );
 
@@ -208,9 +206,7 @@ fn inexact_geometry_is_skipped_once_with_all_reasons() {
         [
             ExportLossReason::NonFiniteCoordinate,
             ExportLossReason::PolylineTooFewVertices { count: 1 },
-            ExportLossReason::NonZeroElevation,
             ExportLossReason::NonZeroThickness,
-            ExportLossReason::UnsupportedNormal,
             ExportLossReason::PolylineBulge,
             ExportLossReason::PolylineWidth,
             ExportLossReason::PolylinePlinegen,

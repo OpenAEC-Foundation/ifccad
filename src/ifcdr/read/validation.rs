@@ -419,7 +419,10 @@ mod tests {
                         polyline.entity_id(),
                         polyline.visible(),
                         polyline.closed(),
-                        polyline.points().collect(),
+                        polyline
+                            .scope_points()
+                            .collect::<Result<Vec<_>, _>>()
+                            .unwrap(),
                     ),
                 })
                 .collect::<Vec<_>>()

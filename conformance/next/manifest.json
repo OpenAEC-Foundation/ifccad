@@ -846,6 +846,253 @@
           }
         }
       ]
+    },
+    {
+      "caseId": "valid.spatial-lines",
+      "category": "valid",
+      "description": "Spatial coordinate contract: spatial-lines",
+      "entrypoint": "packages/valid/spatial-lines/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [],
+            "packageAssessment": {
+              "validity": "valid",
+              "completeness": "complete",
+              "gaps": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "valid.tilted-plane",
+      "category": "valid",
+      "description": "Spatial coordinate contract: tilted-plane",
+      "entrypoint": "packages/valid/tilted-plane/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [],
+            "packageAssessment": {
+              "validity": "valid",
+              "completeness": "complete",
+              "gaps": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "valid.mixed-plane-defaults",
+      "category": "valid",
+      "description": "Spatial coordinate contract: mixed-plane-defaults",
+      "entrypoint": "packages/valid/mixed-plane-defaults/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [],
+            "packageAssessment": {
+              "validity": "valid",
+              "completeness": "complete",
+              "gaps": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "valid.tilted-inline",
+      "category": "valid",
+      "description": "Spatial coordinate contract: tilted-inline",
+      "entrypoint": "packages/valid/tilted-inline/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [],
+            "packageAssessment": {
+              "validity": "valid",
+              "completeness": "complete",
+              "gaps": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.partial-plane",
+      "category": "invalid",
+      "description": "Spatial coordinate contract: partial-plane",
+      "entrypoint": "packages/invalid/partial-plane/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_STRUCTURE_INVALID",
+                "severity": "error",
+                "category": "contractViolation"
+              }
+            ],
+            "packageAssessment": {
+              "validity": "invalid",
+              "completeness": "incomplete",
+              "gaps": [
+                {
+                  "resourceId": "drawing-main",
+                  "resourceUri": "drawing.ifcdr.json",
+                  "location": "",
+                  "reason": "contentNotAssessable"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.nonorthogonal-plane",
+      "category": "invalid",
+      "description": "Spatial coordinate contract: nonorthogonal-plane",
+      "entrypoint": "packages/invalid/nonorthogonal-plane/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_GEOMETRY_INVALID",
+                "severity": "error",
+                "category": "contractViolation"
+              }
+            ],
+            "packageAssessment": {
+              "validity": "invalid",
+              "completeness": "incomplete",
+              "gaps": [
+                {
+                  "resourceId": "drawing-main",
+                  "resourceUri": "drawing.ifcdr.json",
+                  "location": "",
+                  "reason": "contentNotAssessable"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.null-placement-column",
+      "category": "invalid",
+      "description": "Spatial coordinate contract: null-placement-column",
+      "entrypoint": "packages/invalid/null-placement-column/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_STRUCTURE_INVALID",
+                "severity": "error",
+                "category": "contractViolation"
+              }
+            ],
+            "packageAssessment": {
+              "validity": "invalid",
+              "completeness": "incomplete",
+              "gaps": [
+                {
+                  "resourceId": "drawing-main",
+                  "resourceUri": "drawing.ifcdr.json",
+                  "location": "",
+                  "reason": "contentNotAssessable"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.scope-bound-excludes-z",
+      "category": "invalid",
+      "description": "Spatial coordinate contract: scope-bound-excludes-z",
+      "entrypoint": "packages/invalid/scope-bound-excludes-z/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_BOUNDS_INVALID",
+                "severity": "error",
+                "category": "contractViolation"
+              }
+            ],
+            "packageAssessment": {
+              "validity": "invalid",
+              "completeness": "incomplete",
+              "gaps": [
+                {
+                  "resourceId": "drawing-main",
+                  "resourceUri": "drawing.ifcdr.json",
+                  "location": "",
+                  "reason": "contentNotAssessable"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "unsupported.ifcdr-0.7.0",
+      "category": "invalid",
+      "description": "Retired IFCDR 0.7.0 has no implicit migration",
+      "entrypoint": "packages/invalid/ifcdr-0.7.0/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
+                "severity": "error",
+                "category": "unsupportedContent"
+              },
+              {
+                "code": "IFCCAD_IFCDR_VERSION_UNSUPPORTED",
+                "severity": "error",
+                "category": "unsupportedContent"
+              }
+            ],
+            "packageAssessment": {
+              "validity": "notFullyAssessed",
+              "completeness": "incomplete",
+              "gaps": [
+                {
+                  "resourceId": "drawing-main",
+                  "resourceUri": "drawing.ifcdr.json",
+                  "location": "/header/version",
+                  "reason": "unsupportedProfile"
+                },
+                {
+                  "resourceId": "drawing-main",
+                  "resourceUri": "package.ifcx.json",
+                  "location": "/data/3/attributes/resource/version",
+                  "reason": "unsupportedProfile"
+                }
+              ]
+            }
+          },
+          "name": "validatePackage"
+        }
+      ]
     }
   ],
   "suiteVersion": "1.1.0",

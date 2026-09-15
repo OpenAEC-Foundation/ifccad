@@ -6,7 +6,7 @@ use super::diagnostic::DiagnosticAccumulator;
 use super::units::apply_units;
 use crate::{ImportEntityMapping, ImportError, ImportOutcome};
 use cadcodec::entities::EntityCommon;
-use cadcodec::{CadDocument, Color, EntityType, Layer, Line, LineType, LwPolyline, Vector2};
+use cadcodec::{CadDocument, Color, EntityType, Layer, Line, LineType};
 use ifccad::ifcdr::{AppearanceId, EntityId, IfcdrEntityRef, LayerId};
 use ifccad::package::{
     AppearanceProperty, DrawingLayoutKind, DrawingRef, DrawingRepresentationRef, LayerRef,
@@ -17,6 +17,12 @@ use ifccad::package::{
 /// `Import` is named from the `CadDocument` boundary: IFCCAD is the source and
 /// the returned CAD document is the destination.
 pub fn drawing_to_cad_document(drawing: DrawingRef<'_>) -> Result<ImportOutcome, ImportError> {
+    drawing_to_cad_document_with_options(drawing, crate::ImportOptions::default())
+}
+pub fn drawing_to_cad_document_with_options(
+    drawing: DrawingRef<'_>,
+    options: crate::ImportOptions,
+) -> Result<ImportOutcome, ImportError> {
     let layouts = drawing.layouts().collect::<Vec<_>>();
     let model_layouts = layouts
         .iter()
@@ -33,6 +39,10 @@ pub fn drawing_to_cad_document(drawing: DrawingRef<'_>) -> Result<ImportOutcome,
     let representation = layout.representation();
     let mut document = CadDocument::new();
     let mut diagnostics = DiagnosticAccumulator::default();
+    let mut geometry = crate::ConversionGeometryAssessment::new(
+        options.geometry_tolerance,
+        representation.resource().unit(),
+    )?;
     apply_units(&mut document, representation.resource().unit());
 
     for source in representation.layers() {
@@ -67,10 +77,19 @@ pub fn drawing_to_cad_document(drawing: DrawingRef<'_>) -> Result<ImportOutcome,
     for source in representation.resource().entities(scope_id) {
         match source {
             IfcdrEntityRef::Line(source) => {
+                geometry.record(
+                    crate::ConversionEntitySource::IfcdrEntity {
+                        resource_id: representation.resource().resource_id().clone(),
+                        scope_id,
+                        entity_id: source.entity_id(),
+                    },
+                    2,
+                    0.0,
+                );
                 let start = source.start();
                 let end = source.end();
                 let mut target =
-                    Line::from_coords(start.x(), start.y(), 0.0, end.x(), end.y(), 0.0);
+                    Line::from_coords(start.x(), start.y(), start.z(), end.x(), end.y(), end.z());
                 apply_entity_common(
                     &mut document,
                     representation,
@@ -89,12 +108,24 @@ pub fn drawing_to_cad_document(drawing: DrawingRef<'_>) -> Result<ImportOutcome,
                 )?;
             }
             IfcdrEntityRef::Polyline(source) => {
-                let points = source
-                    .points()
-                    .map(|point| Vector2::new(point.x(), point.y()))
-                    .collect();
-                let mut target = LwPolyline::from_points(points);
-                target.is_closed = source.closed();
+                let identity = crate::ConversionEntitySource::IfcdrEntity {
+                    resource_id: representation.resource().resource_id().clone(),
+                    scope_id,
+                    entity_id: source.entity_id(),
+                };
+                let (mut target, bound, changed) =
+                    crate::geometry::to_cad(source, identity.clone(), &mut geometry)?;
+                if changed {
+                    diagnostics.record(crate::ImportDiagnostic::PlaneParameterizationChanged {
+                        source: identity.clone(),
+                    });
+                }
+                if bound > 0.0 {
+                    diagnostics.record(crate::ImportDiagnostic::GeometryRoundedWithinTolerance {
+                        source: identity,
+                        max_deviation_upper_bound: bound,
+                    });
+                }
                 apply_entity_common(
                     &mut document,
                     representation,
@@ -115,11 +146,21 @@ pub fn drawing_to_cad_document(drawing: DrawingRef<'_>) -> Result<ImportOutcome,
         }
     }
 
-    Ok(ImportOutcome::new(
-        document,
-        diagnostics.finish(),
-        entity_mapping,
-    ))
+    let diagnostics = diagnostics.finish();
+    if options.loss_policy == crate::ConversionLossPolicy::Reject
+        && diagnostics.iter().any(|d| {
+            !matches!(
+                d,
+                crate::ImportDiagnostic::GeometryRoundedWithinTolerance { .. }
+            )
+        })
+    {
+        return Err(ImportError::LossRejected { diagnostics });
+    }
+    Ok(
+        ImportOutcome::new(document, diagnostics, entity_mapping)
+            .with_geometry_assessment(geometry),
+    )
 }
 
 #[allow(clippy::too_many_arguments)]

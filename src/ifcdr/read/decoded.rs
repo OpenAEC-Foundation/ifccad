@@ -1,6 +1,8 @@
 //! Typed column backing. JSON construction belongs to the codec.
+use crate::ifcdr::geometry::PlanePlacementComponents;
 use crate::ifcdr::logical::*;
-use crate::ifcdr::{Bounds2d, IfcdrLengthUnit, Point2};
+use crate::ifcdr::PlanePlacement;
+use crate::ifcdr::{IfcdrLengthUnit, Point2, Point3};
 use crate::ResourceId;
 
 #[derive(Debug, Default)]
@@ -27,8 +29,10 @@ pub(crate) struct LineColumns {
     pub entity: EntityColumns,
     pub x1: Vec<f64>,
     pub y1: Vec<f64>,
+    pub z1: Vec<f64>,
     pub x2: Vec<f64>,
     pub y2: Vec<f64>,
+    pub z2: Vec<f64>,
 }
 #[derive(Debug, Default)]
 pub(crate) struct PolylineColumns {
@@ -36,6 +40,7 @@ pub(crate) struct PolylineColumns {
     pub offsets: Vec<usize>,
     pub counts: Vec<usize>,
     pub closed: Vec<bool>,
+    pub placements: Vec<Option<PlanePlacementComponents>>,
     pub x: Vec<f64>,
     pub y: Vec<f64>,
 }
@@ -44,7 +49,6 @@ pub(crate) struct DecodedIfcdrResource {
     pub id: ResourceId,
     pub unit: IfcdrLengthUnit,
     pub next: u64,
-    pub bounds: Option<Bounds2d>,
     pub scopes: Vec<IfcdrScope>,
     pub layers: Vec<IfcdrLayerBinding>,
     pub appearances: Vec<IfcdrAppearanceBinding>,
@@ -69,8 +73,16 @@ impl IfcdrLinesAccess for DecodedLines<'_> {
     fn get(&self, row: usize) -> Option<IfcdrLineRow> {
         Some(IfcdrLineRow {
             entity: self.0.entity.get(row)?,
-            start: Point2::new(*self.0.x1.get(row)?, *self.0.y1.get(row)?),
-            end: Point2::new(*self.0.x2.get(row)?, *self.0.y2.get(row)?),
+            start: Point3::new(
+                *self.0.x1.get(row)?,
+                *self.0.y1.get(row)?,
+                self.0.z1.get(row).copied().unwrap_or(0.0),
+            ),
+            end: Point3::new(
+                *self.0.x2.get(row)?,
+                *self.0.y2.get(row)?,
+                self.0.z2.get(row).copied().unwrap_or(0.0),
+            ),
         })
     }
 }
@@ -96,6 +108,14 @@ impl IfcdrPolylinesAccess for DecodedPolylines<'_> {
 impl IfcdrPolylineAccess for DecodedPolyline<'_> {
     fn entity(&self) -> IfcdrEntityRow {
         self.columns.entity.get(self.row).expect("checked row view")
+    }
+    fn placement(&self) -> PlanePlacementComponents {
+        self.columns
+            .placements
+            .get(self.row)
+            .copied()
+            .flatten()
+            .unwrap_or_else(|| PlanePlacement::default().components())
     }
     fn closed(&self) -> bool {
         self.columns.closed[self.row]
@@ -125,9 +145,6 @@ impl IfcdrResourceAccess for DecodedIfcdrResource {
     }
     fn next_entity_id(&self) -> u64 {
         self.next
-    }
-    fn bounds(&self) -> Option<Bounds2d> {
-        self.bounds
     }
     fn scopes(&self) -> &[IfcdrScope] {
         &self.scopes

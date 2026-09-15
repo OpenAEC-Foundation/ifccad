@@ -12,6 +12,36 @@ const OVERLAY_0_4_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.4
 const OVERLAY_0_5_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-overlay-0.5.0.json";
 
 #[test]
+fn overlay_0_10_selects_spatial_ifcdr_for_inline_and_external_resources() {
+    let registry = Registry::new()
+        .add(DRAWING_CORE_0_2_ID, drawing_core_0_2_schema())
+        .unwrap()
+        .prepare()
+        .unwrap();
+    let validator = jsonschema::draft202012::options()
+        .with_registry(&registry)
+        .build(&load_schema("ifccad-overlay-0.10.0.json"))
+        .unwrap();
+    for source in [
+        json!({"content":{}}),
+        json!({"uri":"drawing.json", "checksum":format!("sha256:{}", "a".repeat(64))}),
+    ] {
+        for (version, valid) in [("0.8.0", true), ("0.7.0", false)] {
+            let mut descriptor = json!({"format":"openaec.ifcdr", "version":version,
+                "resourceId":"drawing", "role":"drawing"});
+            descriptor
+                .as_object_mut()
+                .unwrap()
+                .extend(source.as_object().unwrap().clone());
+            let mut document = package_contract_document();
+            document["data"] = json!([{"path":"r", "type":"openaec:DrawingRepresentation",
+                "attributes":{"resource":descriptor}}]);
+            assert_eq!(validator.is_valid(&document), valid, "{version}: {source}");
+        }
+    }
+}
+
+#[test]
 fn overlay_0_9_requires_exactly_one_source_for_each_resource_kind() {
     let registry = Registry::new()
         .add(DRAWING_CORE_0_2_ID, drawing_core_0_2_schema())

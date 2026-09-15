@@ -52,8 +52,8 @@ fn supplied_ids_advance_allocation_without_recycling_gaps() {
     let mut drawing = package.add_drawing(drawing_options()).unwrap();
     let (layer, _) = add_default_layer(&mut drawing);
     let definition = LineDefinition {
-        start: Point2::new(0., 0.),
-        end: Point2::new(1., 1.),
+        start: ifccad::ifcdr::Point3::new(0., 0., 0.0),
+        end: ifccad::ifcdr::Point3::new(1., 1., 0.0),
         layer,
         appearance: EntityAppearance::by_layer(),
         visible: true,
@@ -332,8 +332,8 @@ fn entities_receive_global_ids_in_mixed_insertion_order() {
     let first = drawing
         .model_space()
         .add_line(LineDefinition {
-            start: Point2::new(0.0, 0.0),
-            end: Point2::new(1.0, 1.0),
+            start: ifccad::ifcdr::Point3::new(0.0, 0.0, 0.0),
+            end: ifccad::ifcdr::Point3::new(1.0, 1.0, 0.0),
             layer,
             appearance: EntityAppearance::by_layer(),
             visible: true,
@@ -342,6 +342,7 @@ fn entities_receive_global_ids_in_mixed_insertion_order() {
     let second = drawing
         .model_space()
         .add_polyline(PolylineDefinition {
+            placement: ifccad::ifcdr::PlanePlacement::default(),
             points: vec![Point2::new(-2.0, 3.0), Point2::new(4.0, -5.0)],
             closed: false,
             layer,
@@ -352,8 +353,8 @@ fn entities_receive_global_ids_in_mixed_insertion_order() {
     let third = drawing
         .model_space()
         .add_line(LineDefinition {
-            start: Point2::new(2.0, 2.0),
-            end: Point2::new(3.0, 3.0),
+            start: ifccad::ifcdr::Point3::new(2.0, 2.0, 0.0),
+            end: ifccad::ifcdr::Point3::new(3.0, 3.0, 0.0),
             layer,
             appearance: EntityAppearance::by_block(),
             visible: true,
@@ -373,8 +374,8 @@ fn entities_encode_each_appearance_inheritance_mode_independently() {
         drawing
             .model_space()
             .add_line(LineDefinition {
-                start: Point2::new(0.0, 0.0),
-                end: Point2::new(1.0, 1.0),
+                start: ifccad::ifcdr::Point3::new(0.0, 0.0, 0.0),
+                end: ifccad::ifcdr::Point3::new(1.0, 1.0, 0.0),
                 layer,
                 appearance: EntityAppearance {
                     appearance: Some(style),
@@ -416,8 +417,8 @@ fn explicit_appearance_modes_require_a_definition_without_advancing_ids() {
 
     assert!(matches!(
         drawing.model_space().add_line(LineDefinition {
-            start: Point2::new(0.0, 0.0),
-            end: Point2::new(1.0, 1.0),
+            start: ifccad::ifcdr::Point3::new(0.0, 0.0, 0.0),
+            end: ifccad::ifcdr::Point3::new(1.0, 1.0, 0.0),
             layer,
             appearance: invalid,
             visible: true,
@@ -427,8 +428,8 @@ fn explicit_appearance_modes_require_a_definition_without_advancing_ids() {
     let first = drawing
         .model_space()
         .add_line(LineDefinition {
-            start: Point2::new(0.0, 0.0),
-            end: Point2::new(1.0, 1.0),
+            start: ifccad::ifcdr::Point3::new(0.0, 0.0, 0.0),
+            end: ifccad::ifcdr::Point3::new(1.0, 1.0, 0.0),
             layer,
             appearance: EntityAppearance::by_layer(),
             visible: true,
@@ -455,8 +456,8 @@ fn identical_mixed_appearance_bindings_are_reused() {
             drawing
                 .model_space()
                 .add_line(LineDefinition {
-                    start: Point2::new(0.0, y),
-                    end: Point2::new(1.0, y),
+                    start: ifccad::ifcdr::Point3::new(0.0, y, 0.0),
+                    end: ifccad::ifcdr::Point3::new(1.0, y, 0.0),
                     layer,
                     appearance: mixed,
                     visible: true,
@@ -488,8 +489,8 @@ fn entities_reject_foreign_keys_without_advancing_ids() {
 
     assert!(matches!(
         second.model_space().add_line(LineDefinition {
-            start: Point2::new(0.0, 0.0),
-            end: Point2::new(1.0, 1.0),
+            start: ifccad::ifcdr::Point3::new(0.0, 0.0, 0.0),
+            end: ifccad::ifcdr::Point3::new(1.0, 1.0, 0.0),
             layer: first_layer,
             appearance: EntityAppearance::by_layer(),
             visible: true,
@@ -498,8 +499,8 @@ fn entities_reject_foreign_keys_without_advancing_ids() {
     ));
     assert!(matches!(
         second.model_space().add_line(LineDefinition {
-            start: Point2::new(0.0, 0.0),
-            end: Point2::new(1.0, 1.0),
+            start: ifccad::ifcdr::Point3::new(0.0, 0.0, 0.0),
+            end: ifccad::ifcdr::Point3::new(1.0, 1.0, 0.0),
             layer: second_layer,
             appearance: EntityAppearance::explicit(first_style),
             visible: true,
@@ -510,8 +511,8 @@ fn entities_reject_foreign_keys_without_advancing_ids() {
     let first_valid = second
         .model_space()
         .add_line(LineDefinition {
-            start: Point2::new(0.0, 0.0),
-            end: Point2::new(1.0, 1.0),
+            start: ifccad::ifcdr::Point3::new(0.0, 0.0, 0.0),
+            end: ifccad::ifcdr::Point3::new(1.0, 1.0, 0.0),
             layer: second_layer,
             appearance: EntityAppearance::explicit(second_style),
             visible: true,
@@ -528,8 +529,8 @@ fn entities_reject_invalid_geometry_without_advancing_ids() {
 
     assert!(matches!(
         drawing.model_space().add_line(LineDefinition {
-            start: Point2::new(f64::NAN, 0.0),
-            end: Point2::new(1.0, 1.0),
+            start: ifccad::ifcdr::Point3::new(f64::NAN, 0.0, 0.0),
+            end: ifccad::ifcdr::Point3::new(1.0, 1.0, 0.0),
             layer,
             appearance: EntityAppearance::by_layer(),
             visible: true,
@@ -539,6 +540,7 @@ fn entities_reject_invalid_geometry_without_advancing_ids() {
     for points in [Vec::new(), vec![Point2::new(0.0, 0.0)]] {
         assert!(matches!(
             drawing.model_space().add_polyline(PolylineDefinition {
+                placement: ifccad::ifcdr::PlanePlacement::default(),
                 points,
                 closed: false,
                 layer,
@@ -550,6 +552,7 @@ fn entities_reject_invalid_geometry_without_advancing_ids() {
     }
     assert!(matches!(
         drawing.model_space().add_polyline(PolylineDefinition {
+            placement: ifccad::ifcdr::PlanePlacement::default(),
             points: vec![Point2::new(0.0, 0.0), Point2::new(f64::INFINITY, 1.0)],
             closed: false,
             layer,
@@ -562,8 +565,8 @@ fn entities_reject_invalid_geometry_without_advancing_ids() {
     let first_valid = drawing
         .model_space()
         .add_line(LineDefinition {
-            start: Point2::new(0.0, 0.0),
-            end: Point2::new(1.0, 1.0),
+            start: ifccad::ifcdr::Point3::new(0.0, 0.0, 0.0),
+            end: ifccad::ifcdr::Point3::new(1.0, 1.0, 0.0),
             layer,
             appearance: EntityAppearance::by_layer(),
             visible: true,

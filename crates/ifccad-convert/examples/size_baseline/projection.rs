@@ -52,8 +52,8 @@ pub fn ifccad(drawing: DrawingRef<'_>) -> Result<(Drawing, Vec<u64>)> {
         let (geometry, layer, appearance, visible, id) = match entity {
             IfcdrEntityRef::Line(line) => (
                 Geometry::Line {
-                    start: [line.start().x(), line.start().y()],
-                    end: [line.end().x(), line.end().y()],
+                    start: [line.start().x(), line.start().y(), line.start().z()],
+                    end: [line.end().x(), line.end().y(), line.end().z()],
                 },
                 line.layer_id(),
                 line.appearance_id(),
@@ -62,8 +62,20 @@ pub fn ifccad(drawing: DrawingRef<'_>) -> Result<(Drawing, Vec<u64>)> {
             ),
             IfcdrEntityRef::Polyline(polyline) => (
                 Geometry::Polyline {
-                    points: polyline.points().map(|p| [p.x(), p.y()]).collect(),
+                    points: polyline.local_points().map(|p| [p.x(), p.y()]).collect(),
                     closed: polyline.closed(),
+                    origin: {
+                        let p = polyline.placement().origin();
+                        [p.x(), p.y(), p.z()]
+                    },
+                    x_axis: {
+                        let p = polyline.placement().x_axis();
+                        [p.x(), p.y(), p.z()]
+                    },
+                    y_axis: {
+                        let p = polyline.placement().y_axis();
+                        [p.x(), p.y(), p.z()]
+                    },
                 },
                 polyline.layer_id(),
                 polyline.appearance_id(),
@@ -161,25 +173,21 @@ pub fn cad(document: &CadDocument) -> Result<Drawing> {
         let common = entity.common();
         let geometry = match entity {
             EntityType::Line(line)
-                if line.start.z == 0.
-                    && line.end.z == 0.
-                    && line.thickness == 0.
+                if line.thickness == 0.
                     && line.normal.x == 0.
                     && line.normal.y == 0.
                     && line.normal.z == 1. =>
             {
                 Geometry::Line {
-                    start: [line.start.x, line.start.y],
-                    end: [line.end.x, line.end.y],
+                    start: [line.start.x, line.start.y, line.start.z],
+                    end: [line.end.x, line.end.y, line.end.z],
                 }
             }
             EntityType::LwPolyline(polyline)
-                if polyline.elevation == 0.
-                    && polyline.thickness == 0.
+                if polyline.thickness == 0.
                     && polyline.constant_width == 0.
-                    && polyline.normal.x == 0.
-                    && polyline.normal.y == 0.
-                    && polyline.normal.z == 1.
+                    && (polyline.normal == ifccad_convert::cadcodec::Vector3::UNIT_Z
+                        || polyline.normal == ifccad_convert::cadcodec::Vector3::UNIT_X)
                     && polyline
                         .vertices
                         .iter()
@@ -192,6 +200,21 @@ pub fn cad(document: &CadDocument) -> Result<Drawing> {
                         .map(|v| [v.location.x, v.location.y])
                         .collect(),
                     closed: polyline.is_closed,
+                    origin: if polyline.normal.x == 1. {
+                        [polyline.elevation, 0., 0.]
+                    } else {
+                        [0., 0., polyline.elevation]
+                    },
+                    x_axis: if polyline.normal.x == 1. {
+                        [0., 1., 0.]
+                    } else {
+                        [1., 0., 0.]
+                    },
+                    y_axis: if polyline.normal.x == 1. {
+                        [0., 0., 1.]
+                    } else {
+                        [0., 1., 0.]
+                    },
                 }
             }
             _ => {
@@ -246,10 +269,46 @@ pub fn first_difference(expected: &Value, actual: &Value, path: &str) -> Option<
         _ => Some(format!("{path}: expected {expected}, got {actual}")),
     }
 }
+// These controlled recipes use coordinate-axis frames and bounded dyadic
+// coordinates, so these additions are exact. Native parameterization is
+// deliberately compared separately from the geometric exchange projection.
+fn geometric_projection(drawing: &Drawing) -> Result<Value> {
+    let mut value = serde_json::to_value(drawing)?;
+    for (entity, original) in value["entities"]
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .zip(&drawing.entities)
+    {
+        if let Geometry::Polyline {
+            points,
+            closed,
+            origin,
+            x_axis,
+            y_axis,
+        } = &original.geometry
+        {
+            if !x_axis
+                .iter()
+                .chain(y_axis.iter())
+                .all(|v| *v == 0. || *v == 1.)
+            {
+                return Err("non-axis recipe requires exact-rational projection".into());
+            }
+            let points: Vec<[f64; 3]> = points
+                .iter()
+                .map(|p| std::array::from_fn(|i| origin[i] + p[0] * x_axis[i] + p[1] * y_axis[i]))
+                .collect();
+            entity["geometry"] =
+                serde_json::json!({"kind":"polyline","points":points,"closed":closed});
+        }
+    }
+    Ok(value)
+}
 pub fn verify(expected: &Drawing, actual: &Drawing) -> Result<()> {
     if let Some(difference) = first_difference(
-        &serde_json::to_value(expected)?,
-        &serde_json::to_value(actual)?,
+        &geometric_projection(expected)?,
+        &geometric_projection(actual)?,
         "",
     ) {
         return Err(difference.into());

@@ -37,7 +37,7 @@ struct EntityProjection {
     layer_id: Option<LayerId>,
     appearance_id: Option<AppearanceId>,
     visible: Option<bool>,
-    points: Vec<Point2>,
+    points: Vec<ifccad::ifcdr::Point3>,
 }
 
 #[allow(dead_code)]
@@ -62,7 +62,10 @@ fn project_ifcdr_entities(
                 layer_id: Some(polyline.layer_id()),
                 appearance_id: Some(polyline.appearance_id()),
                 visible: Some(polyline.visible()),
-                points: polyline.points().collect(),
+                points: polyline
+                    .scope_points()
+                    .collect::<Result<Vec<_>, _>>()
+                    .unwrap(),
             },
         })
         .collect();

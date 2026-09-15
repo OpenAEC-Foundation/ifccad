@@ -49,7 +49,7 @@ import/export terminology.
 ## Current scope
 
 - exactly one model layout on export;
-- finite planar lines and straight lightweight polylines (`z = 0`), with
+- finite XYZ lines and straight lightweight polylines in placed planes, with
   unsupported entities diagnosed rather than approximated;
 - IFCDR draw order and source-entity-to-target-handle mapping;
 - IFCDR length units;
@@ -62,8 +62,8 @@ The converter accepts only a `DrawingRef` from a strictly validated package.
 It does not load package paths or raw JSON and does not repeat package
 validation.
 
-The active package reader/writer contract is IFCDR 0.7.0 with IFCX overlay
-0.9.0. `DrawingRepresentationRef` exposes the drawing resource through
+The active package reader/writer contract is IFCDR 0.8.0 with IFCX overlay
+0.10.0. `DrawingRepresentationRef` exposes the drawing resource through
 `representation().resource()`; model and paper layouts share their Drawing's
 representation and select scopes within it. The writer currently emits one
 model layout and defaults to `resources/drawing.ifcdr.json`; callers can select
@@ -79,7 +79,7 @@ its existing loss policy. See the
 [compatibility matrix](../../conformance/next/COMPATIBILITY.md) for the separate
 limits of reading, conversion, and IFCPR validation.
 
-Multiple layouts, paperspace export, blocks, 3D geometry, other native export
+Multiple layouts, paperspace export, blocks, curved and solid geometry, other native export
 entity kinds, and preservation transfer are deliberately deferred. The pinned
 cadcodec coverage contract is documented in
 [`src/export/COVERAGE.md`](src/export/COVERAGE.md): every public source-model
@@ -116,7 +116,7 @@ for (source_handle, target_entity_id) in outcome.entity_mapping().iter() {
 let encoded_package = outcome.into_package();
 encoded_package.write_directory("drawing-export")?;
 
-// Reject performs the complete scan too, but returns no package when loss exists.
+// Reject blocks semantic loss; proven within-tolerance numerical rounding is exempt.
 let strict_metadata = PackageOptions {
     package_id: PackageId::new("strict-export")?,
     data_version: "1".into(),
@@ -128,6 +128,7 @@ let strict = cad_document_to_package(
     strict_metadata,
     ExportOptions {
         loss_policy: ExportLossPolicy::Reject,
+        ..Default::default()
     },
 );
 if let Err(ExportError::LossRejected { diagnostics }) = strict {
@@ -144,8 +145,8 @@ overwrites an existing directory, and path or filesystem failures are reported
 as `PackageWriteError`, not `ExportError`.
 
 The initial exact native export subset is one model-space drawing, the drawing
-unit, all representable layers, appearances, finite 2D `LINE` entities, and
-straight finite 2D `LWPOLYLINE` entities. Layer/entity order is stable. CAD
+unit, all representable layers, appearances, finite XYZ `LINE` entities, and
+straight finite `LWPOLYLINE` entities with CAD plane placement. Layer/entity order is stable. CAD
 handle numbers are technical identifiers and may change; `ExportEntityMapping`
 records emitted source handles against their new IFCDR entity IDs. Semantic
 relationships carried by handles are still diagnosed when they cannot be
@@ -167,11 +168,46 @@ quantization. Without recorded losses it returns `NotFullyAssessed`.
 
 Recorded loss takes precedence while coverage limitations remain visible.
 `Allow` still returns output with loss diagnostics; `Reject` still returns
-`LossRejected` with those diagnostics and no package. Other typed errors also
+`LossRejected` for blocking semantic loss. Within-tolerance numerical rounding
+is accepted by either policy, while remaining recorded as loss evidence. Other typed errors also
 describe failed attempts, not completed transfers. Summary access does not
 rescan input, and the existing `into_parts()` tuples remain unchanged.
 Package validation and transfer fidelity are separate: even a successfully
 loaded IFCPR resource is not restored by this converter.
+
+## Spatial geometry and accuracy
+
+Polyline `local_points()` returns stored XY values; `scope_points()` returns
+placed XYZ points, with one `Result` per vertex. Deprecated `points()` retains
+its local meaning. Scope coordinates do not apply scope base metadata or a
+future block/IFC transformation. `placement()` resolves omission to the complete
+identity frame. Individual origin or axis components never have defaults.
+
+Both directions expose `geometry_assessment()` and `into_all_parts()`. Accuracy
+is enforced independently of loss policy. The default is exactly 1 micrometre
+in known units and zero in unitless drawings. Explicit physical tolerances need
+known units. For example:
+
+```rust
+use ifccad_convert::{ImportOptions, ConversionGeometryTolerance, ConversionLossPolicy};
+let options = ImportOptions {
+    loss_policy: ConversionLossPolicy::Reject,
+    geometry_tolerance: ConversionGeometryTolerance::millimetres(0.001).unwrap(),
+};
+# let _ = options;
+```
+
+Pass these options to `drawing_to_cad_document_with_options`. ExportOptions has
+the same fields; `ExportLossPolicy` remains an alias of `ConversionLossPolicy`.
+Use `exact()` for zero tolerance, or `drawing_units(value)` for an explicit
+unit-relative limit. Both policies return errors when accuracy cannot be proved
+or coordinates cannot be represented; neither silently skips such geometry.
+
+A changed native plane parameterization is reported even when geometry is exact.
+Only proved within-tolerance numerical rounding is exempt from Reject, and it
+still establishes `LossDetected`. Geometry assessment does not certify metadata,
+raw CAD bytes, IFCPR restoration or downstream file-codec behavior. See both
+coverage contracts for the precise boundary.
 
 ## Controlled size and exchange checks
 

@@ -7,7 +7,9 @@ use crate::ifcdr::logical::*;
 use crate::ifcdr::write::{
     prepare_resource, IfcdrWriteEntity, IfcdrWriteInput, PreparedIfcdrResource,
 };
+#[cfg(test)]
 use crate::ifcdr::Point2;
+use crate::ifcdr::Point3;
 
 pub(crate) fn prepare_drawing(
     drawing: &mut DrawingState,
@@ -114,6 +116,7 @@ pub(crate) fn prepare_drawing(
                 },
                 closed: d.closed,
                 points: d.points,
+                placement: d.placement.components(),
             },
         })
         .collect();
@@ -125,7 +128,8 @@ pub(crate) fn prepare_drawing(
             id: 0,
             kind: 0,
             name: "ModelSpace".into(),
-            base: Point2::new(0., 0.),
+            base: Point3::new(0., 0., 0.),
+            bounds: None,
             flags: 0,
         }],
         layers,
@@ -183,8 +187,8 @@ mod tests {
             .add_line_with_id(
                 EntityId::new(10).unwrap(),
                 LineDefinition {
-                    start: Point2::new(1., 1.),
-                    end: Point2::new(1., 1.),
+                    start: crate::ifcdr::Point3::new(1., 1., 0.0),
+                    end: crate::ifcdr::Point3::new(1., 1., 0.0),
                     layer,
                     appearance: EntityAppearance::by_layer(),
                     visible: false,
@@ -195,6 +199,7 @@ mod tests {
             .add_polyline_with_id(
                 EntityId::new(5).unwrap(),
                 PolylineDefinition {
+                    placement: crate::ifcdr::PlanePlacement::default(),
                     points: vec![Point2::new(0., 0.), Point2::new(0., 0.)],
                     closed: true,
                     layer,
@@ -205,8 +210,8 @@ mod tests {
             .unwrap();
         model
             .add_line(LineDefinition {
-                start: Point2::new(-2., 3.),
-                end: Point2::new(4., 5.),
+                start: crate::ifcdr::Point3::new(-2., 3., 0.0),
+                end: crate::ifcdr::Point3::new(4., 5., 0.0),
                 layer,
                 appearance: EntityAppearance::by_block(),
                 visible: true,
@@ -280,7 +285,7 @@ mod tests {
         let paths = NodePaths::for_drawing(&drawing).unwrap();
         let prepared = prepare_drawing(&mut drawing, &paths).unwrap();
         assert!(prepared.lines().is_empty());
-        assert!(prepared.bounds().is_none());
+        assert!(prepared.scopes()[0].bounds.is_none());
         assert_eq!(prepared.next_entity_id(), 1);
         let (proof, errors) = validate_resource(prepared).into_parts();
         assert!(proof.is_some(), "{errors:?}");

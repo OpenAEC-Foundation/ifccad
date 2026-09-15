@@ -1,5 +1,6 @@
+use crate::ifcdr::geometry::PlanePlacementComponents;
 use crate::ifcdr::logical::*;
-use crate::ifcdr::{Bounds2d, IfcdrLengthUnit, Point2};
+use crate::ifcdr::{IfcdrLengthUnit, Point2};
 use crate::ResourceId;
 use std::collections::BTreeMap;
 
@@ -24,6 +25,7 @@ pub(crate) enum IfcdrWriteEntity {
         entity: IfcdrEntityRow,
         closed: bool,
         points: Vec<Point2>,
+        placement: PlanePlacementComponents,
     },
 }
 
@@ -32,7 +34,6 @@ pub(crate) enum IfcdrWriteEntity {
 #[derive(Debug)]
 pub(crate) struct PreparedIfcdrResource {
     input: IfcdrWriteInput,
-    bounds: Option<Bounds2d>,
     lines: Vec<usize>,
     polylines: Vec<usize>,
     orders: Vec<IfcdrScopeOrder>,
@@ -75,12 +76,14 @@ pub(crate) fn prepare_resource(
     }
     let mut prepared = PreparedIfcdrResource {
         input,
-        bounds: None,
         lines,
         polylines,
         orders,
     };
-    prepared.bounds = geometric_bounds(&prepared)?;
+    let bounds = geometric_bounds(&prepared)?;
+    for scope in &mut prepared.input.scopes {
+        scope.bounds = bounds.get(&scope.id).copied().flatten();
+    }
     Ok(prepared)
 }
 
@@ -90,6 +93,7 @@ pub(crate) struct PreparedPolyline<'a> {
     entity: IfcdrEntityRow,
     closed: bool,
     points: &'a [Point2],
+    placement: PlanePlacementComponents,
 }
 
 impl IfcdrLinesAccess for PreparedLines<'_> {
@@ -117,10 +121,12 @@ impl IfcdrPolylinesAccess for PreparedPolylines<'_> {
                 entity,
                 closed,
                 points,
+                placement,
             } => Some(PreparedPolyline {
                 entity: *entity,
                 closed: *closed,
                 points,
+                placement: *placement,
             }),
             _ => None,
         }
@@ -129,6 +135,9 @@ impl IfcdrPolylinesAccess for PreparedPolylines<'_> {
 impl IfcdrPolylineAccess for PreparedPolyline<'_> {
     fn entity(&self) -> IfcdrEntityRow {
         self.entity
+    }
+    fn placement(&self) -> PlanePlacementComponents {
+        self.placement
     }
     fn closed(&self) -> bool {
         self.closed
@@ -151,9 +160,6 @@ impl IfcdrResourceAccess for PreparedIfcdrResource {
     }
     fn next_entity_id(&self) -> u64 {
         self.input.next_entity_id
-    }
-    fn bounds(&self) -> Option<Bounds2d> {
-        self.bounds
     }
     fn scopes(&self) -> &[IfcdrScope] {
         &self.input.scopes

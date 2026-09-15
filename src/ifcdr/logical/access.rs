@@ -1,5 +1,5 @@
 use super::types::*;
-use crate::ifcdr::{Bounds2d, IfcdrLengthUnit, Point2};
+use crate::ifcdr::{IfcdrLengthUnit, Point2};
 use crate::ResourceId;
 
 pub(crate) trait IfcdrResourceAccess {
@@ -12,7 +12,6 @@ pub(crate) trait IfcdrResourceAccess {
     fn resource_id(&self) -> &ResourceId;
     fn unit(&self) -> IfcdrLengthUnit;
     fn next_entity_id(&self) -> u64;
-    fn bounds(&self) -> Option<Bounds2d>;
     fn scopes(&self) -> &[IfcdrScope];
     fn layers(&self) -> &[IfcdrLayerBinding];
     fn appearances(&self) -> &[IfcdrAppearanceBinding];
@@ -47,6 +46,7 @@ pub(crate) trait IfcdrPolylinesAccess {
 pub(crate) trait IfcdrPolylineAccess {
     fn entity(&self) -> IfcdrEntityRow;
     fn closed(&self) -> bool;
+    fn placement(&self) -> crate::ifcdr::geometry::PlanePlacementComponents;
     fn vertex_count(&self) -> usize;
     fn vertex(&self, index: usize) -> Option<Point2>;
 }

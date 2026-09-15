@@ -3,8 +3,115 @@ use serde_json::Value;
 use std::collections::BTreeMap;
 use std::sync::OnceLock;
 
-const LOGICAL: &str = include_str!("../../../../schemas/ifcdr/registry-0.7.0.json");
-const MAPPING: &str = include_str!("../../../../schemas/ifcdr/json-mapping-0.7.0.json");
+const LOGICAL: &str = include_str!("../../../../schemas/ifcdr/registry-0.8.0.json");
+const MAPPING: &str = include_str!("../../../../schemas/ifcdr/json-mapping-0.8.0.json");
+
+fn validate_default_markers(logical: &Value, mapping: &Value) -> Result<(), String> {
+    for stream in mapping["streams"].as_array().into_iter().flatten() {
+        for field in stream["fields"].as_array().into_iter().flatten() {
+            let Some(marker) = field.get("nullEncoding") else {
+                continue;
+            };
+            let name = field["logical"].as_str().unwrap_or("");
+            let invalid = || format!("invalid whole-default row marker for {name}");
+            if marker != "logicalDefault"
+                || field["omission"] != "logicalDefault"
+                || field.get("encoding").is_some()
+            {
+                return Err(invalid());
+            }
+            let (owner, local) = name.split_once('.').ok_or_else(invalid)?;
+            if stream["name"] != owner {
+                return Err(invalid());
+            }
+            let logical_field = logical["streams"]
+                .as_array()
+                .into_iter()
+                .flatten()
+                .find(|s| s["name"] == owner)
+                .and_then(|s| s["fields"].as_array())
+                .and_then(|fields| fields.iter().find(|f| f["name"] == local))
+                .ok_or_else(invalid)?;
+            if logical_field["nullable"] != false
+                || logical_field.get("default").is_none_or(Value::is_null)
+            {
+                return Err(invalid());
+            }
+            let kind = logical_field["valueType"].as_str().ok_or_else(invalid)?;
+            if logical["types"][kind]["kind"] == "sequence" {
+                return Err(invalid());
+            }
+        }
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod spatial_mapping_tests {
+    use super::*;
+
+    #[test]
+    fn row_default_markers_require_a_nonnullable_defaulted_logical_field() {
+        let logical: Value = serde_json::from_str(include_str!(
+            "../../../../schemas/ifcdr/registry-0.8.0.json"
+        ))
+        .unwrap();
+        let mapping: Value = serde_json::from_str(include_str!(
+            "../../../../schemas/ifcdr/json-mapping-0.8.0.json"
+        ))
+        .unwrap();
+        assert!(validate_default_markers(&logical, &mapping).is_ok());
+        for mutation in ["nullable", "no_default", "wrong_type"] {
+            let mut changed = logical.clone();
+            let field = changed["streams"]
+                .as_array_mut()
+                .unwrap()
+                .iter_mut()
+                .find(|stream| stream["name"] == "polyline")
+                .unwrap()["fields"]
+                .as_array_mut()
+                .unwrap()
+                .iter_mut()
+                .find(|field| field["name"] == "placement")
+                .unwrap();
+            match mutation {
+                "nullable" => field["nullable"] = serde_json::json!(true),
+                "no_default" => {
+                    field.as_object_mut().unwrap().remove("default");
+                }
+                _ => field["valueType"] = serde_json::json!("vertices"),
+            }
+            assert!(
+                validate_default_markers(&changed, &mapping).is_err(),
+                "{mutation}"
+            );
+        }
+        for mutation in ["omission", "unknown_logical", "range", "marker_value"] {
+            let mut changed = mapping.clone();
+            let field = changed["streams"]
+                .as_array_mut()
+                .unwrap()
+                .iter_mut()
+                .find(|stream| stream["name"] == "polyline")
+                .unwrap()["fields"]
+                .as_array_mut()
+                .unwrap()
+                .iter_mut()
+                .find(|field| field["logical"] == "polyline.placement")
+                .unwrap();
+            match mutation {
+                "omission" => field["omission"] = serde_json::json!("forbidden"),
+                "unknown_logical" => field["logical"] = serde_json::json!("polyline.unknown"),
+                "range" => field["encoding"] = serde_json::json!("pointPoolRange"),
+                _ => field["nullEncoding"] = serde_json::json!("anything"),
+            }
+            assert!(
+                validate_default_markers(&logical, &changed).is_err(),
+                "{mutation}"
+            );
+        }
+    }
+}
 
 pub(crate) fn canonical_registry() -> &'static IfcdrRegistry {
     static REGISTRY: OnceLock<IfcdrRegistry> = OnceLock::new();
@@ -56,6 +163,7 @@ fn field(logical: &Value, name: &str, kind: &str, nullable: bool, optional: bool
 
 fn materialize(logical: &Value, mapping: &Value) -> Value {
     use serde_json::json;
+    validate_default_markers(logical, mapping).expect("valid embedded whole-default markers");
     let mut header: Vec<Value> = ["format", "version"]
         .into_iter()
         .map(|name| field(logical, name, "string", false, false))
@@ -159,6 +267,7 @@ fn materialize(logical: &Value, mapping: &Value) -> Value {
                     fm["omission"] == "logicalDefault",
                 );
                 c["cardinality"] = json!("row");
+                c["nullDefault"] = json!(fm["nullEncoding"] == "logicalDefault");
                 if let Some(default) = f.get("default") {
                     c["omissionDefault"] = default.clone();
                 }
@@ -287,6 +396,10 @@ pub(crate) struct StreamSchema {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct ColumnSchema {
+    #[serde(default)]
+    pub(crate) fields: Vec<FieldSchema>,
+    #[serde(default)]
+    pub(crate) null_default: bool,
     pub(crate) name: String,
     pub(crate) value_type: ValueType,
     pub(crate) presence: Presence,

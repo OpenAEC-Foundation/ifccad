@@ -359,7 +359,11 @@ impl ModelSpaceBuilder<'_> {
         definition: LineDefinition,
     ) -> Result<EntityId, PackageBuildError> {
         self.state.validate_layer_key(definition.layer)?;
-        validate_points([definition.start, definition.end])?;
+        if !crate::ifcdr::logical::valid_point3(definition.start)
+            || !crate::ifcdr::logical::valid_point3(definition.end)
+        {
+            return Err(PackageBuildError::NonFiniteCoordinate);
+        }
         let entity_id = self.state.candidate_entity_id(supplied)?;
         let appearance_id = self
             .state
@@ -399,6 +403,12 @@ impl ModelSpaceBuilder<'_> {
         }
         self.state.validate_layer_key(definition.layer)?;
         validate_points(definition.points.iter().copied())?;
+        for point in &definition.points {
+            definition
+                .placement
+                .enclose_point(*point)
+                .map_err(|_| PackageBuildError::PlacedCoordinateOutOfRange)?;
+        }
         let entity_id = self.state.candidate_entity_id(supplied)?;
         let appearance_id = self
             .state

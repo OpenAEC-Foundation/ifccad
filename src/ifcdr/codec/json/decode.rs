@@ -1,8 +1,9 @@
 use super::physical::validate_physical;
 use crate::diagnostic::{PackageDiagnostic, PackageDiagnosticSeverity};
+use crate::ifcdr::geometry::PlanePlacementComponents;
 use crate::ifcdr::logical::*;
 use crate::ifcdr::read::decoded::*;
-use crate::ifcdr::{Bounds2d, Point2};
+use crate::ifcdr::{Bounds3d, Point3, Vector3};
 use crate::ResourceId;
 use serde_json::Value;
 
@@ -100,17 +101,25 @@ pub(crate) fn decode_json(
         id: id.unwrap(),
         unit: unit.unwrap(),
         next: value["header"]["nextEntityId"].as_u64().unwrap(),
-        bounds: (!value["bounds"].is_null()).then(|| Bounds2d {
-            min: Point2::new(num(&value["bounds"]["minX"]), num(&value["bounds"]["minY"])),
-            max: Point2::new(num(&value["bounds"]["maxX"]), num(&value["bounds"]["maxY"])),
-        }),
         scopes: rows(value, "scopeTable")
             .iter()
             .map(|v| IfcdrScope {
                 id: u32v(&v["id"]),
                 kind: u32v(&v["kind"]),
                 name: v["name"].as_str().unwrap().into(),
-                base: Point2::new(num(&v["baseX"]), num(&v["baseY"])),
+                base: Point3::new(num(&v["baseX"]), num(&v["baseY"]), num(&v["baseZ"])),
+                bounds: (!v["bounds"].is_null()).then(|| Bounds3d {
+                    min: Point3::new(
+                        num(&v["bounds"]["minX"]),
+                        num(&v["bounds"]["minY"]),
+                        num(&v["bounds"]["minZ"]),
+                    ),
+                    max: Point3::new(
+                        num(&v["bounds"]["maxX"]),
+                        num(&v["bounds"]["maxY"]),
+                        num(&v["bounds"]["maxZ"]),
+                    ),
+                }),
                 flags: u32v(&v["flags"]),
             })
             .collect(),
@@ -142,14 +151,27 @@ pub(crate) fn decode_json(
             entity: entity(l),
             x1: values(&l["x1"], num),
             y1: values(&l["y1"], num),
+            z1: values(&l["z1"], num),
             x2: values(&l["x2"], num),
             y2: values(&l["y2"], num),
+            z2: values(&l["z2"], num),
         },
         polylines: PolylineColumns {
             entity: entity(p),
             offsets: values(&p["vertexOffset"], |v| u32v(v) as usize),
             counts: values(&p["vertexCount"], |v| u32v(v) as usize),
             closed: values(&p["closed"], |v| v.as_bool().unwrap()),
+            placements: values(&p["placement"], |v| {
+                (!v.is_null()).then(|| PlanePlacementComponents {
+                    origin: Point3::new(
+                        num(&v["origin"]["x"]),
+                        num(&v["origin"]["y"]),
+                        num(&v["origin"]["z"]),
+                    ),
+                    x: Vector3::new(num(&v["X"]["x"]), num(&v["X"]["y"]), num(&v["X"]["z"])),
+                    y: Vector3::new(num(&v["Y"]["x"]), num(&v["Y"]["y"]), num(&v["Y"]["z"])),
+                })
+            }),
             x: values(&p["x"], num),
             y: values(&p["y"], num),
         },

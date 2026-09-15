@@ -19,6 +19,9 @@ resolver = "2"
 default = []
 
 [dependencies]
+num-bigint = "0.4"
+num-rational = "0.4"
+num-traits = "0.2"
 jsonschema = { version = "0.49", default-features = false }
 thiserror = "1.0"
 base64 = "0.22"

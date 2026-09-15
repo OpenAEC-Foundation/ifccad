@@ -19,9 +19,17 @@ pub enum ExportAction {
     Skipped,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 #[non_exhaustive]
 pub enum ExportLossReason {
+    GeometryRoundedWithinTolerance {
+        max_deviation_upper_bound: f64,
+    },
+    SourceNormalNormalized,
+    PolylineVertexIdentifiers {
+        count: usize,
+    },
+
     UnsupportedUnit {
         code: i16,
     },
@@ -118,7 +126,7 @@ pub enum ExportLossReason {
     },
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 #[non_exhaustive]
 pub enum ExportDiagnostic {
     Loss {
@@ -160,6 +168,11 @@ impl ExportDiagnostic {
         }
     }
 
+    pub(crate) fn blocks_reject(&self) -> bool {
+        self.reasons()
+            .iter()
+            .any(|r| !matches!(r, ExportLossReason::GeometryRoundedWithinTolerance { .. }))
+    }
     pub fn is_loss(&self) -> bool {
         true
     }

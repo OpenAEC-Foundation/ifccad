@@ -5,7 +5,6 @@ pub(crate) fn assert_resource_eq<A: IfcdrResourceAccess, B: IfcdrResourceAccess>
     assert_eq!(a.resource_id(), b.resource_id());
     assert_eq!(a.unit(), b.unit());
     assert_eq!(a.next_entity_id(), b.next_entity_id());
-    assert_eq!(a.bounds(), b.bounds());
     assert_eq!(a.scopes(), b.scopes());
     assert_eq!(a.layers(), b.layers());
     assert_eq!(a.appearances(), b.appearances());
@@ -26,6 +25,7 @@ pub(crate) fn assert_resource_eq<A: IfcdrResourceAccess, B: IfcdrResourceAccess>
         let (a, b) = (ap.get(row).unwrap(), bp.get(row).unwrap());
         assert_eq!(a.entity(), b.entity());
         assert_eq!(a.closed(), b.closed());
+        assert_eq!(a.placement(), b.placement());
         assert_eq!(a.vertex_count(), b.vertex_count());
         for vertex in 0..a.vertex_count() {
             assert_eq!(a.vertex(vertex).unwrap(), b.vertex(vertex).unwrap());

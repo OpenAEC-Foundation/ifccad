@@ -7,6 +7,9 @@ license = "MPL-2.0"
 repository = "https://github.com/OpenAEC-Foundation/ifccad"
 
 [dependencies]
+num-bigint = "0.4"
+num-rational = "0.4"
+num-traits = "0.2"
 ifccad = { path = "../.." }
 cadcodec = { package = "acadrust", git = "https://github.com/HakanSeven12/cadcodec.git", rev = "2f2cd25832db298524fb5eb36ced5a438a877e95" }
 thiserror = "1.0"

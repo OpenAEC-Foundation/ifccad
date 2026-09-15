@@ -2,14 +2,49 @@ use super::*;
 use crate::ifcdr::logical::*;
 use serde_json::{json, Value};
 
+fn spatial_fixture() -> Value {
+    let mut value = fixture();
+    value["header"]["version"] = json!("0.8.0");
+    value.as_object_mut().unwrap().remove("bounds");
+    for scope in value["scopeTable"].as_array_mut().unwrap() {
+        scope["baseZ"] = json!(0);
+        scope["bounds"] =
+            json!({"minX":-100,"minY":-100,"minZ":-100,"maxX":100,"maxY":100,"maxZ":100});
+    }
+    for entry in value["streamDirectory"]["streams"].as_array_mut().unwrap() {
+        if entry["name"] == "line" {
+            entry["schema"] = json!("ifccad.ifcdr.line.v3");
+            entry["columns"].as_array_mut().unwrap().push(json!("z1"));
+        }
+        if entry["name"] == "polyline" {
+            entry["schema"] = json!("ifccad.ifcdr.polyline.v4");
+            entry["columns"]
+                .as_array_mut()
+                .unwrap()
+                .push(json!("placement"));
+        }
+    }
+    value["streams"]["lineStream"]["z1"] = json!([4, 0]);
+    value["streams"]["polylineStream"]["placement"] = json!([null,
+        {"origin":{"x":0,"y":0,"z":5},"X":{"x":0,"y":1,"z":0},"Y":{"x":0,"y":0,"z":1}}]);
+    value
+}
+#[test]
+fn spatial_columns_and_scoped_bounds_pass_the_production_decoder() {
+    let value = spatial_fixture();
+    let decoded = decode_json("spatial.json", &value).unwrap();
+    let (proof, errors) = validate_resource(decoded).into_parts();
+    assert!(proof.is_some(), "{errors:?}");
+}
+
 fn fixture() -> Value {
     let path = crate::conformance::bundled_conformance_root()
         .join("packages/valid/minimal-no-preservation/drawing.ifcdr.json");
     let mut value: Value = serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
-    value["header"]["version"] = json!("0.7.0");
+    value["header"]["version"] = json!("0.8.0");
     for entry in value["streamDirectory"]["streams"].as_array_mut().unwrap() {
         if entry["name"] == "polyline" {
-            entry["schema"] = json!("ifccad.ifcdr.polyline.v3");
+            entry["schema"] = json!("ifccad.ifcdr.polyline.v4");
         }
     }
     value
@@ -27,7 +62,7 @@ fn decodes_typed_collections_before_shared_validation() {
 fn semantic_failures_are_reported_after_physical_decoding() {
     let mut value = fixture();
     value["streams"]["lineStream"]["entityId"][0] = json!(0);
-    value["bounds"] = Value::Null;
+    value["scopeTable"][0]["bounds"] = Value::Null;
     let decoded = decode_json("drawing.ifcdr.json", &value).unwrap();
     let (_, errors) = validate_resource(decoded).into_parts();
     assert!(errors
@@ -114,13 +149,14 @@ fn encoder_preserves_validated_identity_bounds_and_unused_overrides() {
 
 #[test]
 fn resource_encoder_preserves_multiple_scopes_and_cross_kind_order() {
-    use crate::ifcdr::{Bounds2d, Point2};
+    use crate::ifcdr::Bounds3d;
     let mut input = decode_json("drawing.ifcdr.json", &fixture()).unwrap();
     input.scopes.push(IfcdrScope {
+        bounds: None,
         id: 7,
         kind: 1,
         name: "Paper".into(),
-        base: Point2::new(1000., 2000.),
+        base: crate::ifcdr::Point3::new(1000., 2000., 0.0),
         flags: 9,
     });
     input.polylines.entity.scopes[1] = 7;
@@ -135,10 +171,11 @@ fn resource_encoder_preserves_multiple_scopes_and_cross_kind_order() {
         },
     ];
     input.next = 100;
-    input.bounds = Some(Bounds2d {
-        min: Point2::new(-100., -100.),
-        max: Point2::new(100., 100.),
+    input.scopes[0].bounds = Some(Bounds3d {
+        min: crate::ifcdr::Point3::new(-100., -100., 0.),
+        max: crate::ifcdr::Point3::new(100., 100., 0.),
     });
+    input.scopes[1].bounds = input.scopes[0].bounds;
     let (proof, errors) = validate_resource(input).into_parts();
     assert!(errors.is_empty(), "{errors:?}");
     let proof = proof.unwrap();
@@ -150,9 +187,15 @@ fn resource_encoder_preserves_multiple_scopes_and_cross_kind_order() {
     .unwrap();
     assert_eq!(output.orders[0].entities, [3, 1, 2]);
     assert_eq!(output.orders[1].entities, [4]);
-    assert_eq!(output.scopes[1].base, Point2::new(1000., 2000.));
+    assert_eq!(
+        output.scopes[1].base,
+        crate::ifcdr::Point3::new(1000., 2000., 0.)
+    );
     assert_eq!(output.scopes[1].flags, 9);
-    assert_eq!(output.bounds, proof.loaded().resource().bounds);
+    assert_eq!(
+        output.scopes[0].bounds,
+        proof.loaded().resource().scopes[0].bounds
+    );
     assert!(validate_resource(output).validated().is_some());
 }
 
@@ -186,10 +229,11 @@ fn resource_preparation_needs_only_resource_data() {
     let other_line = decoded.lines().get(1).unwrap();
     let mut scopes = decoded.scopes.clone();
     scopes.push(IfcdrScope {
+        bounds: None,
         id: 7,
         kind: 1,
         name: "Other".into(),
-        base: crate::ifcdr::Point2::new(100., 200.),
+        base: crate::ifcdr::Point3::new(100., 200., 0.),
         flags: 0,
     });
     let polyline = decoded.polylines();
@@ -208,6 +252,7 @@ fn resource_preparation_needs_only_resource_data() {
             IfcdrWriteEntity::Line(line),
             IfcdrWriteEntity::Polyline {
                 entity: poly_entity,
+                placement: polyline.placement(),
                 closed: polyline.closed(),
                 points: (0..polyline.vertex_count())
                     .map(|i| polyline.vertex(i).unwrap())
@@ -297,4 +342,70 @@ fn child_ranges_require_contiguous_complete_coverage() {
         input["streams"]["entityOrderStream"]["entryOffset"] = offsets;
         assert!(decode_json("resource.json", &input).is_err());
     }
+}
+
+#[test]
+fn spatial_marker_and_complete_frame_rules_are_physical_constraints() {
+    for bad in [
+        json!(null),
+        json!([]),
+        json!([null]),
+        json!([null, {}]),
+        json!([null,{"origin":{"x":0,"y":0},"X":{"x":1,"y":0,"z":0},"Y":{"x":0,"y":1,"z":0}}]),
+    ] {
+        let mut value = spatial_fixture();
+        value["streams"]["polylineStream"]["placement"] = bad;
+        assert!(decode_json("bad.json", &value).is_err());
+    }
+    let mut value = spatial_fixture();
+    value["streams"]["polylineStream"]["placement"][1]["unexpected"] = json!(1);
+    assert!(decode_json("bad.json", &value).is_err());
+    let mut value = spatial_fixture();
+    value["streams"]["lineStream"]["z1"][0] = Value::Null;
+    assert!(decode_json("bad.json", &value).is_err());
+    let mut value = spatial_fixture();
+    value["bounds"] = Value::Null;
+    assert!(decode_json("bad.json", &value).is_err());
+}
+#[test]
+fn frame_validity_and_exact_enclosure_are_shared_semantic_rules() {
+    let mut value = spatial_fixture();
+    value["streams"]["polylineStream"]["placement"][1]["X"]["y"] = json!(2);
+    let decoded = decode_json("bad.json", &value).unwrap();
+    let (_, errors) = validate_resource(decoded).into_parts();
+    assert!(errors
+        .iter()
+        .any(|d| d.property == "placement" && d.code == IFCCAD_IFCDR_GEOMETRY_INVALID));
+    let mut value = spatial_fixture();
+    value["scopeTable"][0]["bounds"]["maxZ"] = json!(3.0);
+    let (_, errors) = validate_resource(decode_json("bad.json", &value).unwrap()).into_parts();
+    assert!(errors
+        .iter()
+        .any(|d| d.collection == "scope" && d.code == IFCCAD_IFCDR_BOUNDS_INVALID));
+}
+#[test]
+fn explicit_identity_frames_and_zero_z_are_canonically_omitted() {
+    let mut value = spatial_fixture();
+    let identity =
+        json!({"origin":{"x":0,"y":0,"z":0},"X":{"x":1,"y":0,"z":0},"Y":{"x":0,"y":1,"z":0}});
+    value["streams"]["polylineStream"]["placement"] = json!([identity.clone(), identity]);
+    value["streams"]["lineStream"]["z1"] = json!([0, 0]);
+    let (proof, errors) =
+        validate_resource(decode_json("valid.json", &value).unwrap()).into_parts();
+    assert!(errors.is_empty());
+    let proof = proof.unwrap();
+    let encoded = encode_json(&proof).unwrap();
+    let decoded = decode_json("canonical.json", &encoded.value).unwrap();
+    crate::ifcdr::logical::test_support::assert_resource_eq(proof.loaded().resource(), &decoded);
+    let (canonical, errors) = validate_resource(decoded).into_parts();
+    assert!(errors.is_empty());
+    assert_eq!(
+        encoded.bytes,
+        encode_json(&canonical.unwrap()).unwrap().bytes
+    );
+    assert!(encoded.value["streams"]["polylineStream"]
+        .get("placement")
+        .is_none());
+    assert!(encoded.value["streams"]["lineStream"].get("z1").is_none());
+    assert!(encoded.value["streams"]["lineStream"].get("z2").is_none());
 }

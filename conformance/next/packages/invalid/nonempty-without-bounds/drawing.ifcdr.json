@@ -37,13 +37,12 @@
       "overrideId": null
     }
   ],
-  "bounds": null,
   "header": {
     "format": "openaec.ifcdr",
     "nextEntityId": 5,
     "resourceId": "drawing-main",
     "unit": "m",
-    "version": "0.7.0"
+    "version": "0.8.0"
   },
   "layerBindings": [
     {
@@ -62,7 +61,9 @@
       "flags": 0,
       "id": 0,
       "kind": 0,
-      "name": "ModelSpace"
+      "name": "ModelSpace",
+      "baseZ": 0,
+      "bounds": null
     }
   ],
   "streamDirectory": {
@@ -81,7 +82,7 @@
         "count": 2,
         "name": "line",
         "role": "object",
-        "schema": "ifccad.ifcdr.line.v2"
+        "schema": "ifccad.ifcdr.line.v3"
       },
       {
         "columns": [
@@ -98,7 +99,7 @@
         "count": 2,
         "name": "polyline",
         "role": "object",
-        "schema": "ifccad.ifcdr.polyline.v3"
+        "schema": "ifccad.ifcdr.polyline.v4"
       },
       {
         "children": [
