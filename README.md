@@ -98,6 +98,8 @@ Development follows an incremental sequence:
 3. **Native CAD semantics and preservation (current)** — the coordinate-frame
    slice adds XYZ lines, placed straight polylines and accuracy assessment.
    Scope ownership, block definitions and instances are the next development slice.
+   Shared-style work will add direct IFCX `Drawing` lists for layers and
+   appearances, retaining shared definitions and local IFCDR bindings.
    Expand layouts, entities, drawing relationships, and IFCPR-backed fidelity in architectural
    dependency order, tested against a growing corpus of representative CAD
    workflows, including an initial CAD-BIM link.
@@ -317,6 +319,12 @@ See the closure assessment and follow-up in [ROADMAP.md](ROADMAP.md).
 
 ## Repository layout
 
+- [`format-explorer`](format-explorer) is an independent educational website for exploring the
+  IFCX graph, IFCDR stream structure and IFCPR source preservation. Run it locally
+  with `cd format-explorer` and `npm start` (Node.js 22+, no dependency installation).
+  Build `cargo build -p ifccad-viewer` to open local package folders or DXF/DWG
+  with production validation and conversion reports. It explains package
+  structure and conversion coverage without rendering a CAD drawing.
 - [`src`](src) contains the Rust implementation. `package` is the public
   package facade with private `read` and `write` implementations; `ifcdr`
   exposes shared drawing-resource types. Its private `logical` module owns

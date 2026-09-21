@@ -1,0 +1,13 @@
+[package]
+name = "ifccad-viewer"
+version = "0.1.0"
+edition = "2021"
+license = "MPL-2.0"
+description = "Local application adapter for the IFCCAD structure explorer"
+
+[dependencies]
+ifccad = { path = "../.." }
+ifccad-convert = { path = "../ifccad-convert" }
+serde_json = "1"
+base64 = "0.22"
+time = { version = "0.3", features = ["formatting"] }

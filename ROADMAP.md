@@ -265,7 +265,7 @@ It is a partial order, not a requirement to finish every row before the next.
 | --- | --- | --- |
 | A. Coordinates and basic geometry — implemented | Milestone 2 logical model | XYZ lines, placed straight polylines, per-scope bounds and conversion accuracy. |
 | B. Scopes and instances — next | A | Model/paper ownership, block definitions, instances, base points, nesting and transform composition; prove reuse without exploding blocks. |
-| C. Shared styles and inheritance | Existing appearances; B for instance-dependent inheritance | Introduce style identity and references with their consumers; prove ByLayer/ByBlock behavior through instances. |
+| C. Shared styles and inheritance | Existing appearances; B for instance-dependent inheritance | Add direct drawing-level layer/appearance lists; introduce style identity and references with their consumers; prove ByLayer/ByBlock behavior through instances. |
 | D. Geometric families | A; additional references where needed | Curves, planar polyline segments and spatial polylines; prove each family independently. |
 | E. Annotation and compound entities | A and relevant B/C/D boundaries | Text, attributes, hatches and dimensions; introduce typed payloads when a concrete family needs them. |
 | F. Viewports and presentation | A/B and applicable entity/style support | Paper/model mapping, viewing, scale and clipping; prove layout roundtrips without flattening model content. |
@@ -285,6 +285,35 @@ bounds and viewport presentation explicitly; current scope bases remain
 metadata until a new contract defines their use. For P, define restoration
 eligibility after native edits: retaining source bytes alone does not prove
 restoration or justify suppressing loss diagnostics.
+
+#### Drawing-level layer and appearance collections — planned
+
+Add direct `Layers` and `Appearances` reference lists to the IFCX `Drawing`
+node's `children`. These lists make the definitions available to a drawing
+discoverable from IFCX without opening its IFCDR resource. Use direct lists,
+not separate `LayerTable` or `AppearanceTable` nodes.
+
+- Membership means available to the drawing, not necessarily used by an
+  entity; retain unused definitions as well.
+- Refer to the existing IFCX `Layer` and `Appearance` nodes. Definitions remain
+  shareable across drawings; list membership does not imply exclusive ownership
+  or duplicate the definition's values.
+- Keep each layer's reference to its default appearance. Keep resource-local
+  `layerBindings` and `appearanceBindings` in IFCDR, including per-property
+  ByLayer/ByBlock/explicit intent. The IFCX lists do not replace local bindings.
+- Define consistency rules between drawing membership, layer-default appearance
+  references and IFCDR bindings. Specify whether referenced appearances require
+  explicit membership or are included transitively, and validate the chosen
+  rule so the two representations cannot contradict each other.
+
+Coordinate drawing membership with B's ownership boundaries and implement the
+collections within C. This improves graph navigation without making independent
+geometry work depend on the style slice. The direction is agreed, but the lists
+are not part of the current format contract. Their concrete design must define
+required/optional status, versioning and compatibility, then update the active
+schemas, production reader/writer and `conformance/next`. Prove multi-drawing
+sharing, unused-definition retention and rejection of inconsistent references
+through package validation and semantic roundtrips.
 
 #### Format and implementation work
 

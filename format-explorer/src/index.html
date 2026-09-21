@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Verken hoe IFCX, IFCDR en IFCPR samen een IFCCAD-pakket vormen. Een interactieve demo met echte repositoryvoorbeelden.">
+  <meta name="theme-color" content="#36363e">
+  <title>IFCCAD — Format Explorer</title>
+  <link rel="icon" type="image/svg+xml" href="./openaec-symbol.svg">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.mjs"></script>
+</head>
+<body>
+  <a class="skip-link" href="#inspector">Ga naar geselecteerd onderdeel</a>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="IFCCAD Format Explorer"><img class="brand-mark" src="./openaec-symbol.svg" alt="" width="32" height="40"><span><span class="brand-family">OpenAEC</span><span class="brand-product">IFCCAD <span class="brand-sub">/ Format Explorer</span></span></span></a>
+    <span class="top-note">Build free. Build together.</span>
+    <button class="about-button" id="about-toggle" aria-expanded="false" aria-controls="about">Over deze demo <span aria-hidden="true">↗</span></button>
+    <button class="about-button settings-trigger" id="settings-open" aria-label="Instellingen" aria-haspopup="dialog"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m10 3-.6 2.2-2 .9L5.3 5.5 3.5 8.6 5 10.2v3.6l-1.5 1.6 1.8 3.1 2.1-.6 2 .9L10 21h4l.6-2.2 2-.9 2.1.6 1.8-3.1-1.5-1.6v-3.6l1.5-1.6-1.8-3.1-2.1.6-2-.9L14 3Z"/><circle cx="12" cy="12" r="3"/></svg><span>Instellingen</span></button>
+  </header>
+  <dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
+    <header class="settings-header"><h2 id="settings-title">Instellingen</h2><button id="settings-close" aria-label="Sluiten">×</button></header>
+    <div class="settings-layout">
+      <nav class="settings-tabs" role="tablist" aria-label="Instellingen" aria-orientation="vertical">
+        <button id="tab-general" data-settings-tab="general" role="tab" aria-selected="true" aria-controls="panel-general">Algemeen</button>
+        <button id="tab-appearance" data-settings-tab="appearance" role="tab" aria-selected="false" aria-controls="panel-appearance" tabindex="-1">Weergave</button>
+        <button id="tab-about" data-settings-tab="about" role="tab" aria-selected="false" aria-controls="panel-about" tabindex="-1">Over</button>
+      </nav>
+      <div class="settings-content">
+        <section id="panel-general" role="tabpanel" aria-labelledby="tab-general" tabindex="0"><h3>Applicatie</h3><div class="settings-row"><label for="language-preference">Taal</label><select id="language-preference"><option value="auto">Automatisch</option><option value="nl" lang="nl" data-no-i18n>Nederlands</option><option value="en" lang="en" data-no-i18n>English</option></select></div><p class="small-note">Volgt de browsertaal; Engels als terugval.</p><p class="settings-resolved" id="resolved-language"></p><p class="small-note">Taal en thema wijzigen de voorbeeldgegevens niet.</p></section>
+        <section id="panel-appearance" role="tabpanel" aria-labelledby="tab-appearance" tabindex="0" hidden><h3>Thema</h3><fieldset class="theme-options"><legend class="sr-only">Thema</legend>
+          <label class="theme-option"><input type="radio" name="appearance" value="light"><span class="theme-swatch light" aria-hidden="true"></span><strong>Licht</strong><span>Warme lichte vlakken en donkere tekst.</span></label>
+          <label class="theme-option"><input type="radio" name="appearance" value="dark"><span class="theme-swatch dark" aria-hidden="true"></span><strong>Donker</strong><span>Deep Forge met lichte tekst en amber accenten.</span></label>
+          <label class="theme-option"><input type="radio" name="appearance" value="auto"><span class="theme-swatch automatic" aria-hidden="true"></span><strong>Volg het systeem</strong><span>Past zich aan de licht/donker-instelling van je apparaat aan.</span></label>
+        </fieldset></section>
+        <section id="panel-about" role="tabpanel" aria-labelledby="tab-about" tabindex="0" hidden><h3>IFCCAD Format Explorer</h3><p class="small-note">Versie <span data-no-i18n>0.1.0</span></p><p class="small-note" data-no-i18n>IFCDR 0.8.0 · IFCPR 0.2.0</p><div id="settings-about"></div></section>
+      </div>
+    </div>
+    <footer class="settings-footer"><p id="settings-status" role="status">Wijzigingen zijn een preview tot je opslaat.</p><div><button id="settings-cancel">Annuleren</button><button id="settings-save" class="primary-button">Opslaan</button></div></footer>
+  </dialog>
+  <section id="about" class="about" hidden>
+    <div><h1>Een open formaat voor CAD</h1><p>IFCCAD wordt ontwikkeld als open alternatief voor DWG en DXF: een formaat voor het opslaan en uitwisselen van CAD-tekeningen, met een openbare specificatie die verschillende toepassingen kunnen implementeren.</p><p>Het formaat is in ontwikkeling. De ondersteuning voor CAD-entiteiten groeit stapsgewijs; deze explorer laat zien wat al werkt, wat nog ontbreekt en hoe de gegevens zijn opgebouwd.</p><p>IFCX legt relaties vast. IFCDR draagt de native tekeninhoud. IFCPR kan broninformatie bewaren die daarin nog niet volledig past.</p></div>
+    <div><p>Deze zelfstandige demo gebruikt voorbeelden uit <code>conformance/next</code>. Het conceptvoorbeeld verkent mogelijke uitbreidingen; het is geen vastgesteld formaat.</p><a href="https://github.com/OpenAEC-Foundation/ifccad" target="_blank" rel="noreferrer">Bekijk de repository ↗</a><p class="small-note">Vormgeving gebaseerd op het <a href="https://github.com/OpenAEC-Foundation/OpenAEC-style-book" target="_blank" rel="noreferrer">OpenAEC-style-book</a>. <a href="./THIRD-PARTY.txt" target="_blank">Bronnen en licenties</a>.</p></div>
+  </section>
+  <main id="app">
+    <dialog id="open-dialog" class="settings-dialog open-dialog" aria-labelledby="open-title"><header class="settings-header"><h2 id="open-title">Bestand openen</h2><button id="open-close" aria-label="Sluiten">×</button></header><div class="settings-content"><p>Open een IFCCAD-pakketmap of een DXF/DWG-bestand.</p><div class="open-actions"><button id="choose-package">IFCCAD-map kiezen</button><button id="choose-cad">DXF / DWG kiezen</button></div><p id="open-status" role="status"></p><button id="open-cancel" hidden>Annuleren</button><input id="package-input" type="file" webkitdirectory multiple hidden><input id="cad-input" type="file" accept=".dxf,.dwg" hidden></div></dialog>
+    <section class="workspace-bar" aria-label="Voorbeeld selecteren">
+      <div class="example-control"><span class="eyebrow">Verken een pakket</span><label class="sr-only" for="example">Voorbeeld</label><select id="example" disabled><option>Voorbeelden laden…</option></select></div>
+      <button id="open-files">Bestand openen</button>
+      <div class="version-info"><span class="status-dot"></span><span id="example-status">Repo-voorbeelden</span></div>
+    </section>
+    <details id="report-panel" class="report-panel" hidden><summary><span>Inlees- en validatierapport</span><button id="report-expand" aria-expanded="false" aria-controls="report-panel">Rapport vergroten</button></summary><div id="file-report"></div></details>
+    <div id="load-error" class="load-error" role="alert" hidden><h2>Het voorbeeld kon niet worden geladen</h2><p id="error-message"></p><button id="retry">Opnieuw proberen</button></div>
+    <div class="workspace" id="workspace" aria-busy="true">
+      <section class="graph-panel" aria-labelledby="graph-heading">
+        <div class="panel-heading"><div><span class="eyebrow">01 / Samenhang</span><h1 id="graph-heading">De graph van het pakket</h1></div><span class="graph-count" id="graph-count"></span></div>
+        <div class="graph-stage" id="graph-stage">
+          <svg id="graph" role="group" aria-label="Interactieve pakketgraph. Selecteer een node met Enter. Gebruik de plus- en minknoppen om relaties uit te klappen."></svg>
+          <div class="graph-hint" id="graph-hint">Klap uit met + · sleep om te bewegen</div>
+          <div class="graph-tools" aria-label="Graphweergave"><button id="zoom-out" aria-label="Uitzoomen">−</button><output id="zoom-level">100%</output><button id="zoom-in" aria-label="Inzoomen">+</button><button id="fit">Passend</button><button id="collapse">Overzicht</button></div>
+          <div class="graph-legend"><span><i class="dot ifcx"></i>IFCX</span><span><i class="dot ifcdr"></i>IFCDR</span><span><i class="dot ifcpr"></i>IFCPR</span><span class="concept-key" id="concept-key" hidden>◇ Concept</span></div>
+        </div>
+        <div class="graph-footer"><span id="example-description">Het pakket wordt geladen.</span></div>
+      </section>
+      <div id="inspector-divider" class="inspector-divider" role="separator" tabindex="0" aria-orientation="vertical" aria-label="Breedte inspectiepaneel" aria-controls="inspector" aria-valuemin="280" aria-valuemax="700" aria-valuenow="380" title="Sleep om de breedte aan te passen. Gebruik de pijltoetsen of dubbelklik om te herstellen."></div>
+      <aside id="inspector" class="inspector" aria-label="Geselecteerd onderdeel">
+        <div class="inspector-heading"><span class="eyebrow">02 / Inspecteer</span><span id="selection-domain" class="domain-pill">IFCX</span></div>
+        <div id="selection-content"><h2>Even laden…</h2></div>
+        <div id="selection-structure"></div>
+        <div id="selection-links"></div>
+        <div id="selection-data"></div>
+        <div class="inspector-status" aria-live="polite" id="selection-announcement"></div>
+      </aside>
+    </div>
+  </main>
+  <footer class="page-footer"><span>IFCCAD / Open CAD format</span><button id="support-toggle" aria-haspopup="dialog" aria-controls="support-dialog">Wat werkt al, wat is concept? <span aria-hidden="true">↗</span></button></footer>
+  <dialog id="support-dialog" class="settings-dialog support-dialog" aria-labelledby="support-title">
+    <header class="settings-header"><h2 id="support-title">Ondersteuning is expliciet</h2><button id="support-close" aria-label="Sluiten">×</button></header>
+    <section class="support" id="support">
+    <div class="support-grid"><div><span class="eyebrow">Native / IFCDR 0.8.0</span><h3>Lijnen en rechte polylijnen</h3><p>XYZ-eindpunten, lokale XY-polylijnen met een optioneel vlak, scopes, lagen, appearance-bindings en tekenvolgorde.</p></div><div><span class="eyebrow">Gedeeltelijk / IFCPR 0.2.0</span><h3>Een contract voor bronbehoud</h3><p>Schema, fixtures en beperkte lezerchecks bestaan. Volledige validatie en preserve/restore via de converter zijn nog niet beschikbaar.</p></div><div><span class="eyebrow">Concept / toekomstige families</span><h3>Aanvullende CAD-entiteiten</h3><p>Aanvullende CAD-entiteittypen vragen eigen native semantiek, registratie, validatie en conversie. De voorbeelden verkennen mogelijke uitbreidingen; de uiteindelijke uitwerking staat nog open.</p></div></div>
+    <p class="support-source">Bronnen: <code>schemas/</code>, <code>conformance/next/COMPATIBILITY.md</code>, converter coverage en <code>ROADMAP.md</code>. <a href="https://github.com/OpenAEC-Foundation/ifccad/issues/2" target="_blank" rel="noreferrer">Ontwerpcontext: typed payloads ↗</a></p>
+  </section>
+  </dialog>
+</body>
+</html>

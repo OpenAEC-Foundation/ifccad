@@ -1,0 +1,24 @@
+OpenAEC visual identity
+Source: https://github.com/OpenAEC-Foundation/OpenAEC-style-book
+Retrieved: 2026-09-21
+Design reference: brandbook/DESIGN-SYSTEM.md and the light theme in
+project-templates/Tauri+React/src/themes.css.
+Palette and type choices adapted to the independent IFCCAD structure explorer.
+
+openaec-symbol.svg is an unmodified copy of
+brandbook/assets/logo/svg/openaec-symbol-transparent.svg.
+Copyright OpenAEC Foundation; CC BY-SA 4.0. See OpenAEC-LICENSE.txt.
+https://creativecommons.org/licenses/by-sa/4.0/
+
+Fonts are unmodified copies from the same template's
+src-tauri/tenants/openaec_foundation/fonts/ directory:
+Inter Regular and SemiBold, Space Grotesk Bold, JetBrains Mono Regular.
+Each font is licensed under the SIL Open Font License 1.1.
+See Inter-OFL.txt, SpaceGrotesk-OFL.txt and JetBrainsMono-OFL.txt for
+copyright holders, reserved font names and the full respective licenses.
+License sources: https://github.com/google/fonts/tree/main/ofl/inter
+https://github.com/google/fonts/tree/main/ofl/spacegrotesk
+https://github.com/google/fonts/tree/main/ofl/jetbrainsmono
+
+These third-party licenses apply to the identified assets, not to the
+IFCCAD format or example packages.
