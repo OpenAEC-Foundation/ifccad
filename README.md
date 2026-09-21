@@ -1,5 +1,8 @@
 # IFCCAD
 
+**[Open the live Format Explorer](https://ifccad-explorer.open-aec.com/)** — explore
+the package structure, open CAD files, and inspect conversion diagnostics.
+
 Rust implementation and language-neutral format contract for the open IFCCAD
 exchange format.
 

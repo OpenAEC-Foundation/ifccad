@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
+docker exec ifccad-explorer-explorer-1 node --version
+docker exec ifccad-explorer-explorer-1 ldd --version | head -1
+docker inspect --format '{{.Config.WorkingDir}}' ifccad-explorer-explorer-1
+docker inspect --format '{{json .Config.Env}}' ifccad-explorer-explorer-1 | python3 -c 'import json,sys; print("\n".join(v for v in json.load(sys.stdin) if v.split("=",1)[0] in ("PORT", "PUBLIC_ORIGIN", "IFCCAD_VIEWER_BIN", "NODE_ENV")))'
 uname -m
 . /etc/os-release
 printf 'OS: %s %s\n' "$ID" "$VERSION_ID"
