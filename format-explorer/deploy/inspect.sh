@@ -14,6 +14,11 @@ systemctl list-unit-files --no-pager --no-legend | awk '$1 ~ /ifccad|format-expl
     readlink "/proc/$pid/cwd" || true
   fi
 done
+docker ps -a --filter name=ifccad --format '{{.ID}} {{.Names}} {{.Image}} {{.Status}}'
+for container in $(docker ps -aq --filter name=ifccad); do
+  docker inspect --format '{{json .Config.Labels}} {{json .Mounts}} {{json .NetworkSettings.Networks}}' "$container"
+  docker inspect --format 'User={{.Config.User}} Image={{.Config.Image}} Entrypoint={{json .Config.Entrypoint}} Cmd={{json .Config.Cmd}} Readonly={{.HostConfig.ReadonlyRootfs}} Memory={{.HostConfig.Memory}} NanoCpus={{.HostConfig.NanoCpus}} Security={{json .HostConfig.SecurityOpt}} Caps={{json .HostConfig.CapDrop}} Tmpfs={{json .HostConfig.Tmpfs}} Restart={{json .HostConfig.RestartPolicy}} Pids={{.HostConfig.PidsLimit}}' "$container"
+done
 ss -ltnp '( sport = :4183 )' || true
 for config in /etc/nginx/sites-enabled/*ifccad* /etc/nginx/conf.d/*ifccad*; do
   [[ -f "$config" ]] || continue
