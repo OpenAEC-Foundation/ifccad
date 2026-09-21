@@ -4,9 +4,9 @@ import {access} from 'node:fs/promises';
 import {limits} from './upload-paths.mjs';
 export const executable=process.env.IFCCAD_VIEWER_BIN||fileURLToPath(new URL('../../target/debug/ifccad-viewer'+(process.platform==='win32'?'.exe':''),import.meta.url));
 export async function workerAvailable(){try{await access(executable);return true;}catch{return false;}}
-export function runWorker({kind,input,output,signal,onProgress,cap=limits}){
+export function runWorker({kind,input,output,export:exp,signal,onProgress,cap=limits}){
  return new Promise((resolve,reject)=>{
-  const child=spawn(executable,[kind,input,...(kind==='cad'?[output]:[])],{shell:false,windowsHide:true,stdio:['ignore','pipe','pipe']});
+  const child=spawn(executable,[exp?'export-'+kind:kind,input,...(kind==='cad'?[output]:[]),...(exp?[exp.format,exp.drawing]:[])],{shell:false,windowsHide:true,stdio:['ignore','pipe','pipe']});
   let size=0,pending='',result,stderr='',failure;
   const stop=()=>{failure=Error('Job cancelled');child.kill();};signal?.addEventListener('abort',stop,{once:true});if(signal?.aborted)stop();
   const timer=setTimeout(()=>{failure=Error('Processing time limit exceeded');child.kill();},cap.timeoutMs);

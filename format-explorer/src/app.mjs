@@ -4,6 +4,7 @@ import { renderInspector } from './inspector.mjs';
 import { t, translateTree } from './i18n.mjs';
 import { initializeSettings } from './settings.mjs';
 import { initializeOpening } from './open-files.mjs';
+import { initializeExporting } from './export-files.mjs';
 import { decodeBundle } from './bundle.mjs';
 import { renderReport } from './reports.mjs';
 import { initializeWorkspace } from './workspace.mjs';
@@ -25,7 +26,7 @@ function refreshPresentation(){
 function select(id){if(id.startsWith('more:')){model.paging.materialize(id);selected=model.byId.get(id).parentId;collapsed.delete(selected);render();return;}model.paging?.materialize(id);if(!model.byId.has(id))return;for(const n of model.nodes){if(!knownNodes.has(n.id)&&model.defaultCollapsed.has(n.id))collapsed.add(n.id);knownNodes.add(n.id);}selected=id;revealNode(model,collapsed,id);render();$('inspector').scrollTop=0;graph.focus(id);}
 function toggle(id){model.paging?.expand(id);for(const n of model.nodes){if(!knownNodes.has(n.id)&&model.defaultCollapsed.has(n.id))collapsed.add(n.id);knownNodes.add(n.id);}collapsed.has(id)?collapsed.delete(id):collapsed.add(id);selected=id;render();$('inspector').scrollTop=0;}
 function showReport(){renderReport($('file-report'),result,{canNavigate:reportNavigable,diagnosticTarget:d=>{const match=d.location?.match(/^\/data\/(\d+)/),id=d.resourceId?'resource:'+d.resourceId:match?'ifcx:'+model.fixture.ifcx.data[Number(match[1])]?.path:null;return model.byId.has(id)?id:null;},selectTarget:id=>{workspaceView.focusReport(false);$('report-panel').open=false;select(id);}});}
-function openResult(value){
+function openResult(value,request){
   workspaceView.focusReport(false);
   const previous={model,collapsed,selected,knownNodes,camera:{...graph.camera},example:$('example').value,options:[...$('example').options].map(o=>({value:o.value,textContent:o.textContent,disabled:o.disabled,id:o.id})),description:$('example-description').textContent,status:$('example-status').textContent,concept:$('concept-key').hidden};
   result=value;reportNavigable=false;
@@ -33,11 +34,13 @@ function openResult(value){
     try{const fixture=decodeBundle(value.presentation);fixture.name=fixture.label=value.source.name;const next=buildModel(fixture);model=next;knownNodes=new Set();collapsed=new Set(model.defaultCollapsed);selected=model.roots[0];reportNavigable=true;document.getElementById('local-option')?.remove();const option=document.createElement('option');option.id='local-option';option.value='local';option.textContent=value.source.name;option.disabled=true;$('example').append(option);$('example').value='local';$('example-description').textContent=value.source.name;$('example-status').textContent='Geopend pakket';$('concept-key').hidden=true;render();graph.fit();}
     catch(error){value.failure={stage:'preparing',code:'VIEWER_DISPLAY_FAILED',message:error.message};reportNavigable=false;({model,collapsed,selected,knownNodes}=previous);$('example').replaceChildren(...previous.options.map(o=>Object.assign(document.createElement('option'),o)));$('example').value=previous.example;$('example-description').textContent=previous.description;$('example-status').textContent=previous.status;$('concept-key').hidden=previous.concept;if(model){render();graph.camera=previous.camera;graph.apply();}}
   }
+  if(reportNavigable)exporter.setSource(request,model.fixture);
   $('report-panel').hidden=false;$('report-panel').open=true;showReport();workspaceView.focusReport(true);translateTree(document.body);$('report-panel').scrollTop=0;
 }
 function openExample(value){const concept=value==='concept',fixture=examples.find(e=>e.name===(concept?'unrepresented-packed':value));model=buildModel(fixture,{concepts:concept});collapsed=new Set(model.defaultCollapsed);selected=model.roots.find(id=>id!=='group:definitions');
   workspaceView.focusReport(false);
   knownNodes=new Set(model.byId.keys());result=null;reportNavigable=false;$('report-panel').hidden=true;
+  exporter.setSource(concept?null:{kind:'package',name:fixture.name,files:fixture.exportFiles},fixture);
   if(concept){selected='concept:collection:circle';for(const family of ['circle','dimension']){const id='concept:collection:'+family;revealNode(model,collapsed,id);collapsed.delete(id);}}
   $('example-description').textContent=concept?'Circle en dimension: twee losse voorbeelden van extra CAD-entiteittypen.':fixture.description;
   $('example-status').textContent=concept?'Concept · nog niet ondersteund':'Actueel contract · IFCDR 0.8.0 / IFCPR 0.2.0';$('concept-key').hidden=!concept;render();translateTree(document.body);$('inspector').scrollTop=0;if(concept)graph.frame(['resource:drawing-main',selected,'concept:collection:dimension','entity:drawing-main:5','entity:drawing-main:6']);else graph.fit();
@@ -65,5 +68,6 @@ $('inspector').addEventListener('change',e=>{if(e.target.id==='native-edited')$(
 const workspaceView=initializeWorkspace(translateTree);
 $('retry').addEventListener('click',initialize);
 initializeSettings(refreshPresentation);
+const exporter=initializeExporting();
 initializeOpening({onResult:openResult});
 initialize();

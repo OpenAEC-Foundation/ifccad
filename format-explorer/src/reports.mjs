@@ -2,6 +2,33 @@ import {t,translateTree} from './i18n.mjs';
 const el=(tag,text,cls)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;};
 export function summarizeEntities(rows){const kinds=new Map();for(const row of rows){if(!kinds.has(row.kind))kinds.set(row.kind,{kind:row.kind,read:0,emitted:0,partial:0,skipped:0,unclassified:0});const k=kinds.get(row.kind);k.read++;if(['emitted','partial'].includes(row.disposition))k.emitted++;if(row.disposition!=='emitted')k[row.disposition]++;}return [...kinds.values()];}
 function paged(parent,items,render){let next=0;const list=el('div',undefined,'report-list'),more=el('button','Meer tonen');parent.append(list,more);function page(){const end=Math.min(next+50,items.length);for(;next<end;next++)list.append(render(items[next]));more.hidden=next>=items.length;translateTree(parent);}more.onclick=page;page();}
+export function renderExportReport(container,result){
+ container.replaceChildren();container.append(el('h3','Exportdiagnostiek'));
+ if(result.failure)container.append(el('p',result.failure.code+' · '+result.failure.message,'report-error'));
+ const exp=result.export;
+ if(exp?.format==='ifccad'){
+  container.append(el('p','Het pakket is gecontroleerd en ingepakt. Alle aanwezige pakketbestanden zijn inbegrepen.'));
+  container.append(el('p','Bestaande IFCPR-brondata blijft ongewijzigd in het pakket. ZIP is hier een downloadverpakking, geen vastgesteld .ifccad-containerformaat.','small-note'));
+  const details=el('details');details.append(el('summary','Validatiemeldingen'),el('pre',JSON.stringify(result.validation.report,null,2)));container.append(details);
+  if(result.validation.report.assessment.completeness!=='complete')container.append(el('p','Beoordeling onvolledig'));
+  const counts=el('p');counts.append(el('span','Tekeningen'),el('code',' '+exp.drawingCount+' · '),el('span','Bestanden'),el('code',' '+exp.fileCount));container.append(counts);
+ }else if(exp){
+  container.append(el('p',exp.assessment.conclusion==='LossDetected'?'Informatieverlies vastgesteld':'Niet volledig beoordeeld'));
+  const selected=el('p');selected.append(el('span','Tekening'),el('code',' '+exp.drawing+' · '+exp.format.toUpperCase()+' · '+exp.entityCount+' '),el('span','entiteiten'));container.append(selected);
+  container.append(el('p','IFCPR-brondata wordt niet teruggezet. De beoordeling betreft de geselecteerde native tekening, niet het volledige pakket.','small-note'));
+  container.append(el('p','Geen meldingen betekent niet dat de export verliesloos is. Metadata en sommige weergave-eigenschappen zijn nog niet volledig beoordeeld.','small-note'));
+  if(exp.fileCheck?.readable)container.append(el('p','Het geschreven bestand is opnieuw ingelezen. Dit controleert de leesbaarheid, niet het volledige behoud van alle eigenschappen.','small-note'));
+  const details=el('details');details.append(el('summary','Beoordelingsgrenzen en nauwkeurigheid'),el('pre',JSON.stringify({assessment:exp.assessment,geometry:exp.geometry,fileCheck:exp.fileCheck},null,2)));container.append(details);
+  if(exp.diagnostics.length)paged(container,exp.diagnostics,d=>{const row=el('div',undefined,'report-item');row.append(el('code',d.code),el('p',d.message));return row;});
+  else container.append(el('p','Geen afzonderlijke conversiemeldingen.'));
+ }
+ if(result.conversion?.assessment){
+  if(exp?.format==='ifccad'){container.append(el('h3','Van CAD naar IFCCAD'),el('p',result.conversion.assessment.conclusion==='LossDetected'?'Informatieverlies vastgesteld':'Niet volledig beoordeeld'));}
+  const d=el('details');d.append(el('summary','Eerdere stap: van CAD naar IFCCAD'),el('pre',JSON.stringify({assessment:result.conversion.assessment,diagnostics:result.conversion.diagnostics},null,2)));container.append(d);
+ }
+ if(result.validation&&!result.validation.strictAvailable){const d=el('details');d.open=true;d.append(el('summary','Validatiemeldingen'),el('pre',JSON.stringify(result.validation.report,null,2)));container.append(d);}
+ translateTree(container);
+}
 export function renderReport(container,result,{selectTarget=()=>{},canNavigate=false,diagnosticTarget=()=>null}={}){
  container.replaceChildren();if(!result){container.hidden=true;return;}container.hidden=false;
  container.append(el('h2',result.source.name));

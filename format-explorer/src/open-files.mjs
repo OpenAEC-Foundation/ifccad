@@ -15,7 +15,7 @@ export function initializeOpening({onResult}){
    const items=[];let name=files[0].name;
    for(const f of files){if(signal.aborted)throw new DOMException('Cancelled','AbortError');const bytes=new Uint8Array(await f.arrayBuffer());let binary='';for(let i=0;i<bytes.length;i+=16384)binary+=String.fromCharCode(...bytes.subarray(i,i+16384));const relative=kind==='package'?f.webkitRelativePath:f.name;if(kind==='package')name=relative.split('/')[0];items.push({path:kind==='package'?relative.split('/').slice(1).join('/'):relative,base64:btoa(binary)});}
    const result=await client.open({kind,name,files:items},{signal,onProgress:phase=>{status.textContent=({reading:'Bestand inlezen…',converting:'Omzetten naar IFCCAD…',validating:'Pakket controleren…',preparing:'Graph voorbereiden…'})[phase]||phase;translateTree(dialog);}});
-   if(current!==generation)return;onResult(result);dialog.close();
+   if(current!==generation)return;onResult(result,{kind,name,files:items});dialog.close();
   }catch(e){if(current===generation){status.textContent=e.name==='AbortError'?'Geannuleerd':e.message;translateTree(dialog);}}
   finally{if(current===generation){$('open-cancel').hidden=true;$('choose-package').disabled=$('choose-cad').disabled=!cap?.available;}}
  }

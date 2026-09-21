@@ -12,7 +12,9 @@ export async function readExamples() {
     const ifcx=JSON.parse(await readFile(new URL('package.ifcx.json',root),'utf8'));
     const files={},blobs={};
     for(const node of ifcx.data){const d=node.attributes?.resource||node.attributes?.preservation;if(!d)continue;let body=d.content;if(d.uri){body=JSON.parse(await readFile(new URL(d.uri,root),'utf8'));files[d.uri]=body;}for(const blob of body.blobs||[])blobs[blob.uri]=[...await readFile(new URL(blob.uri,root))];}
-    result.push({name,label,description,ifcx,files,blobs});
+    const exportFiles=[];
+    for(const path of new Set(['package.ifcx.json',...Object.keys(files),...Object.keys(blobs)]))exportFiles.push({path,base64:(await readFile(new URL(path,root))).toString('base64')});
+    result.push({name,label,description,ifcx,files,blobs,exportFiles});
   }
   return result;
 }
