@@ -11,6 +11,7 @@ export function initializeExporting(){
  function busy(value){$('export-run').disabled=value||!available||!source;$('export-drawing').disabled=$('export-format').disabled=value;$('export-cancel').hidden=!value;}
  function cancel(){generation++;controller?.abort();busy(false);}
  function status(text){$('export-status').textContent=text;translateTree(dialog);}
+ function selectionStatus(){status($('export-format').value==='ifccad'?'Klik op ‘Export maken’ om het volledige IFCCAD-pakket voor te bereiden.':'Kies een tekening en een bestandsformaat.');}
  function describe(){const whole=$('export-format').value==='ifccad';$('export-drawing-label').hidden=whole;
   $('export-source-note').textContent=whole?'Het volledige IFCCAD-pakket wordt gedownload als ZIP. Pak dit uit om de pakketmap opnieuw te openen.':source?.kind==='cad'?'De export gebruikt de native IFCCAD-inhoud. Eerder gemeld verlies bij het openen wordt niet hersteld.':'Eén geselecteerde tekening wordt geëxporteerd; andere tekeningen blijven buiten deze export.';translateTree(dialog);
  }
@@ -22,7 +23,7 @@ export function initializeExporting(){
  };
  $('export-close').onclick=()=>{cancel();dialog.close();};dialog.addEventListener('cancel',cancel);
  $('export-cancel').onclick=()=>{cancel();status('Geannuleerd');};
- for(const id of ['export-drawing','export-format'])$(id).onchange=()=>{discard();describe();status('Kies een tekening en een bestandsformaat.');};
+ for(const id of ['export-drawing','export-format'])$(id).onchange=()=>{discard();describe();selectionStatus();};
  $('export-run').onclick=async()=>{
   if(!source||!available)return;
   const current=++generation;controller?.abort();controller=new AbortController();discard();busy(true);
@@ -50,6 +51,6 @@ export function initializeExporting(){
   $('export-drawing').replaceChildren(...choices.map(d=>{const o=document.createElement('option');o.value=d.id;o.textContent=d.label;o.dataset.noI18n='';return o;}));
   $('export-open').disabled=!source||!choices.length;
   describe();
-  status('Kies een tekening en een bestandsformaat.');
+  selectionStatus();
  }};
 }

@@ -15,6 +15,7 @@ export const english = {
   'Exportdiagnostiek':'Export diagnostics',
   'entiteiten':'entities',
   'Kies een tekening en een bestandsformaat.':'Choose a drawing and file format.',
+  'Klik op ‘Export maken’ om het volledige IFCCAD-pakket voor te bereiden.':'Click “Create export” to prepare the complete IFCCAD package.',
   'De bronbestanden worden voor deze export tijdelijk naar de OpenAEC-server gestuurd.':'The source files are temporarily sent to the OpenAEC server for this export.',
   'De export wordt op deze computer verwerkt.':'The export is processed on this computer.',
   'Export voorbereiden…':'Preparing export…',
