@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {readExamples} from '../scripts/fixtures.mjs';
+import {readExamples,exampleRoot} from '../scripts/fixtures.mjs';
 import {validateUpload} from '../scripts/upload-paths.mjs';
 import {drawingChoices,downloadName} from '../src/export-files.mjs';
 import {createJobManager} from '../scripts/jobs.mjs';
@@ -10,7 +10,7 @@ test('export preserves exact example files including checksummed resources',asyn
  for(const example of await readExamples()){
   assert.ok(example.exportFiles?.length);
   for(const file of example.exportFiles){
-   const original=await readFile(new URL('../../conformance/next/packages/valid/'+example.name+'/'+file.path,import.meta.url));
+   const original=await readFile(new URL(file.path,exampleRoot(example.name)));
    assert.deepEqual(Buffer.from(file.base64,'base64'),original);
   }
  }

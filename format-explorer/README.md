@@ -1,5 +1,14 @@
 # IFCCAD Format Explorer
 
+The explorer supports IFCDR 0.9 scopes and local blocks. Model, paper and
+block-definition scopes have distinct labels. Block instances link separately
+to their owning `scopeId` and shared `definitionScopeId`; definition metadata
+and placement/rotation/scale are inspectable without expanding CAD geometry.
+The **One shared block, four placements** example is stored under
+`examples/blocks-demo` and includes rotation, mirroring and non-uniform scale.
+This is a structure explorer, not a drawing renderer; viewport and plot
+semantics are not implemented here.
+
 An independent educational demo website for exploring the **structure** of an
 IFCCAD package. The graph is the main interface; the adjacent inspector explains
 the selected object and exposes its fields and relationships. This is not a CAD

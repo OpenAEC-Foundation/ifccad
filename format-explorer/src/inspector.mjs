@@ -17,6 +17,7 @@ const description={
   'drawing-resource':'De tekeninhoud zit in typed collecties: scopes, bindings, entiteiten en tekenvolgorde. JSON-kolommen zijn een fysieke mapping van dat logische model.',
   'preservation-resource':'Bewaart broninformatie die niet volledig native is vertegenwoordigd. Records beschrijven de bron; bindings leggen de relatie naar native inhoud vast.',
   scope:'Een afzonderlijk coördinatiedomein met scope-ID, metadata en bounds. Entiteiten en tekenvolgorde horen bij een scope.',
+  'block-definition':'Een lokale blockdefinitie in deze IFCDR-resource. De scope bevat de gedeelde entiteiten; dit is geen IFCX-node.',
   collection:'Gelijksoortige entiteiten delen een typed stream. Dezelfde positie in elke eigenschapskolom vormt één rij; entityId bepaalt de identiteit.',
   entity:'Een native entiteit heeft een identiteit, scope, laag, appearance en typespecifieke betekenis. De combinatie van resource-ID en entityId identificeert haar in het pakket.',
   field:'Een uitvergroting van een typespecifiek veld binnen de entiteit. Deze node helpt de gegevens te verkennen; het is geen afzonderlijk IFCX-object of extra entiteit in het bestand.',
@@ -82,15 +83,25 @@ export function renderInspector(model,id,collapsed){
   if(node.kind==='group')html+=collectionBrowser(node,model);
   if(node.kind==='DrawingSet')details+=rawDetails('IFCX-documentheader',model.fixture.ifcx.header)+rawDetails('IFCX-imports',model.fixture.ifcx.imports);
   if(node.item){const {body:b,descriptor:d,storage,source}=node.item;html+=definitionList([['Versie',b.header.version],['resourceId',b.header.resourceId],['Opslag',storage],['Locatie',source]]);if(node.kind==='drawing-resource'){
-      html+=`<div class="structure-heading"><h3>Resourceonderdelen</h3><span>IFCDR</span></div><div class="resource-parts">${[['header','identiteit & eenheid'],['scopeTable',b.scopeTable.length+' scope(s)'],['layerBindings',b.layerBindings.length+' verwijzingen naar IFCX'],['appearanceBindings',b.appearanceBindings.length+' uiterlijk-bindings'],['streamDirectory','schema’s en streamrollen'],['streams','typed entiteitkolommen & volgorde']].map(([k,v])=>`<div><code>${k}</code><span>${escape(v)}</span></div>`).join('')}</div>`;
+      html+=`<div class="structure-heading"><h3>Resourceonderdelen</h3><span>IFCDR</span></div><div class="resource-parts">${[['header','identiteit & eenheid'],['scopeTable',b.scopeTable.length+' scope(s)'],['blockDefinitionTable',(b.blockDefinitionTable||[]).length+' definities'],['layerBindings',b.layerBindings.length+' verwijzingen naar IFCX'],['appearanceBindings',b.appearanceBindings.length+' uiterlijk-bindings'],['streamDirectory','schema’s en streamrollen'],['streams','typed entiteitkolommen & volgorde']].map(([k,v])=>`<div><code>${k}</code><span>${escape(v)}</span></div>`).join('')}</div>`;
       details+=rawDetails('Streamdirectory',b.streamDirectory)+rawDetails('Tekenvolgorde', {entityOrderStream:b.streams.entityOrderStream,entityOrderEntryStream:b.streams.entityOrderEntryStream})+rawDetails('Laag- en appearance-bindings',{layerBindings:b.layerBindings,appearanceBindings:b.appearanceBindings});
     }else{html+=definitionList([['Bron',b.source.originalFilename],['Profiel',b.source.profile],['Herkomst',b.source.resourceOrigin]]);for(const blob of b.blobs)html+=payloadStrip(node.item,blob,model);html+='<p class="small-note">Records → bindings → native inhoud. Bronbytes blijven apart van de native semantiek.</p>';}
     details+=rawDetails('Resourceverwijzing in IFCX',d);
   }
   if(node.kind==='collection')html+=collectionTable(node,model);
+  if(node.kind==='block-definition'){
+    const d=node.raw;
+    html+=definitionList([['scopeId',d.scopeId],['name',d.name],['basePoint',JSON.stringify(d.basePoint??{x:0,y:0,z:0})],['description',d.description??''],['anonymous',d.anonymous??false],['insertionUnit',d.insertionUnit??'unitless'],['explodable',d.explodable??true],['scaling',(d.scaling??0)===0?'Any':'Uniform']]);
+    html+='<p class="small-note">Ontbrekende velden tonen de logische standaardwaarde. Brongegevens hieronder blijven ongewijzigd.</p>';
+  }
   if(node.kind==='field')html+=fieldDetails(node,model);
   if(node.kind==='entity'){
     const e=node.entity;html+=definitionList([['Identiteit',`(${e.resourceId}, ${e.entityId})`],['scopeId',e.scopeId],['layerId',e.layerId],['appearanceId',e.appearanceId],['Typed inhoud',e.kind]]);
+    if(e.kind==='blockInstance'){
+      const tr=e.geometry.transform;
+      html+=definitionList([['definitionScopeId',e.geometry.definitionScopeId],['placement',JSON.stringify(tr.placement??{origin:{x:0,y:0,z:0},X:{x:1,y:0,z:0},Y:{x:0,y:1,z:0}})],['rotation (rad)',tr.rotation??0],['scale',JSON.stringify(tr.scale??{x:1,y:1,z:1})]]);
+      html+='<p class="small-note">scopeId is de plaatsingsscope; definitionScopeId verwijst naar de gedeelde inhoud. Trek eerst basePoint af, pas schaal en rotatie toe en plaats daarna in het lokale frame. Ontbrekende transformvelden tonen hun standaardwaarde.</p>';
+    }
     html+=`<div class="structure-heading"><h3>${e.concept?'Mogelijke typespecifieke velden':'Typespecifieke velden'}</h3></div><div class="field-list">${Object.entries(e.geometry).map(([k,v])=>`<button class="field-link" data-select="${escape('field:'+e.id+':'+k)}"><code>${escape(k)} <span aria-hidden="true">↗</span></code><span>${escape(k==='placement'&&v==='identity'?'Standaard XY-vlak · impliciet':preview(v))}</span></button>`).join('')}</div>`;
     if(e.kind==='dimension')html+='<p class="small-note">Regelmatige velden kunnen in kolommen. Variantgegevens kunnen een geregistreerde typed payload gebruiken. Die keuze is nog open; dit is geen willekeurig JSON-vangnet.</p>';
   }

@@ -43,7 +43,7 @@ function openExample(value){const concept=value==='concept',fixture=examples.fin
   exporter.setSource(concept?null:{kind:'package',name:fixture.name,files:fixture.exportFiles},fixture);
   if(concept){selected='concept:collection:circle';for(const family of ['circle','dimension']){const id='concept:collection:'+family;revealNode(model,collapsed,id);collapsed.delete(id);}}
   $('example-description').textContent=concept?'Circle en dimension: twee losse voorbeelden van extra CAD-entiteittypen.':fixture.description;
-  $('example-status').textContent=concept?'Concept · nog niet ondersteund':'Actueel contract · IFCDR 0.8.0 / IFCPR 0.2.0';$('concept-key').hidden=!concept;render();translateTree(document.body);$('inspector').scrollTop=0;if(concept)graph.frame(['resource:drawing-main',selected,'concept:collection:dimension','entity:drawing-main:5','entity:drawing-main:6']);else graph.fit();
+  $('example-status').textContent=concept?'Concept · nog niet ondersteund':'Actueel contract · IFCDR 0.9.0 / IFCPR 0.2.0';$('concept-key').hidden=!concept;render();translateTree(document.body);$('inspector').scrollTop=0;if(concept)graph.frame(['resource:drawing-main',selected,'concept:collection:dimension','entity:drawing-main:5','entity:drawing-main:6']);else graph.fit();
 }
 async function initialize(){
   $('load-error').hidden=true;$('workspace').setAttribute('aria-busy','true');

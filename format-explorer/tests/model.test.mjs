@@ -14,6 +14,21 @@ async function fixture(name) {
   return { name, ifcx, files, blobs: {} };
 }
 
+test('local blocks distinguish owning scope, definition scope and stored transform defaults', async () => {
+  const f=await fixture('block-empty-defaults'),before=JSON.stringify(f),m=buildModel(f);
+  const e=m.byId.get('entity:drawing-main:3');
+  assert.equal(e?.entity.kind,'blockInstance');
+  assert.equal(m.byId.get('scope:drawing-main:7').label,'Model space');
+  assert.equal(m.byId.get('scope:drawing-main:21').label,'Block definition scope');
+  assert.equal(m.byId.get('block-definition:drawing-main:21').raw.name,'Door');
+  assert.ok(m.edges.some(r=>r.source===e.id&&r.target==='scope:drawing-main:7'&&r.relation==='scopeId'));
+  assert.ok(m.edges.some(r=>r.source===e.id&&r.target==='scope:drawing-main:21'&&r.relation==='definitionScopeId'));
+  assert.deepEqual(e.entity.geometry.transform,{});
+  assert.equal(m.missing.length,0);
+  assert.ok(revealNode(m,new Set(m.defaultCollapsed),'block-definition:drawing-main:21'));
+  assert.equal(JSON.stringify(f),before);
+});
+
 test('many IFCX definitions stay bounded and can be revealed from references', async () => {
  const f=await fixture('unrepresented-packed');
  const layer=f.ifcx.data.find(n=>n.type==='openaec:Layer');

@@ -2,13 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
-import { readExamples } from '../scripts/fixtures.mjs';
+import { readExamples, exampleRoot } from '../scripts/fixtures.mjs';
 import { buildModel } from '../src/model.mjs';
 
 test('build input contains exact source documents and verified blob bytes',async()=>{
-  const fixtures=await readExamples();assert.equal(fixtures.length,4);
+  const fixtures=await readExamples();assert.equal(fixtures.length,5);
   for(const fixture of fixtures){
-    const folder=new URL(`../../conformance/next/packages/valid/${fixture.name}/`,import.meta.url);
+    const folder=exampleRoot(fixture.name);
     assert.deepEqual(fixture.ifcx,JSON.parse(await readFile(new URL('package.ifcx.json',folder),'utf8')));
     const model=buildModel(fixture);
     for(const resource of [...model.resources,...model.preservations]){

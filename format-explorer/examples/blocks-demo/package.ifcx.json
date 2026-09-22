@@ -1,0 +1,96 @@
+{
+  "data": [
+    {
+      "children": {
+        "Drawings": [
+          "drawing-0"
+        ]
+      },
+      "path": "drawing-set-0",
+      "type": "openaec:DrawingSet"
+    },
+    {
+      "children": {
+        "Layouts": [
+          "layout-0"
+        ],
+        "Representation": "representation-0"
+      },
+      "path": "drawing-0",
+      "type": "openaec:Drawing"
+    },
+    {
+      "attributes": {
+        "kind": "model",
+        "name": "Model",
+        "scopeId": 0
+      },
+      "children": {
+        "Representation": "representation-0"
+      },
+      "path": "layout-0",
+      "type": "openaec:DrawingLayout"
+    },
+    {
+      "attributes": {
+        "name": "Drawing",
+        "resource": {
+          "checksum": "sha256:15d32db2b2be40129c772beeb55c289e213595b460b9125b5248942663581401",
+          "format": "openaec.ifcdr",
+          "resourceId": "drawing-blocks-demo",
+          "role": "drawing",
+          "uri": "resources/drawing.ifcdr.json",
+          "version": "0.9.0"
+        }
+      },
+      "path": "representation-0",
+      "type": "openaec:DrawingRepresentation"
+    },
+    {
+      "attributes": {
+        "appearance": "appearance-0",
+        "name": "Symbols",
+        "visible": true
+      },
+      "path": "layer-0",
+      "type": "openaec:Layer"
+    },
+    {
+      "attributes": {
+        "color": {
+          "mode": "explicit",
+          "value": {
+            "rgb": [
+              35,
+              100,
+              210
+            ]
+          }
+        },
+        "linePattern": {
+          "mode": "explicit",
+          "value": "Continuous"
+        },
+        "lineWeight": {
+          "mode": "explicit",
+          "value": 0.25
+        },
+        "name": "Blue",
+        "opacity": {
+          "mode": "explicit",
+          "value": 1.0
+        }
+      },
+      "path": "appearance-0",
+      "type": "openaec:Appearance"
+    }
+  ],
+  "header": {
+    "author": "IFCCAD example",
+    "dataVersion": "1",
+    "id": "blocks-demo",
+    "ifcxVersion": "ifcx_alpha",
+    "timestamp": "2026-09-22T12:00:00Z"
+  },
+  "imports": []
+}

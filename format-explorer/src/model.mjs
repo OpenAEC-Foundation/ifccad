@@ -55,13 +55,19 @@ export function buildModel(fixture, { concepts = false } = {}) {
     const {body:b,resourceId:rid,id}=resource, y=byId.get(id).y;
     for(const [j,scope]of b.scopeTable.entries()) {
       const sid=`scope:${rid}:${scope.id}`;
-      add({id:sid,label:scope.name,subtitle:'scopeId '+scope.id,kind:'scope',domain:'ifcdr',resourceId:rid,x:850+j*260,y,raw:scope});
+      add({id:sid,label:['Model space','Paper space','Block definition scope'][scope.kind]??'Scope',subtitle:'scopeId '+scope.id,kind:'scope',domain:'ifcdr',resourceId:rid,x:850+j*260,y,raw:scope});
       edge(id,sid,'scopeTable',true);
     }
-    for(const [j,[streamName,kind]]of [['lineStream','line'],['polylineStream','polyline']].entries()) {
+    for(const [j,definition]of (b.blockDefinitionTable||[]).entries()) {
+      const did=`block-definition:${rid}:${definition.scopeId}`;
+      add({id:did,label:'BlockDefinition',subtitle:definition.name,kind:'block-definition',domain:'ifcdr',resourceId:rid,x:850+j*260,y:y-150,raw:definition});
+      edge(id,did,'blockDefinitionTable',true);
+      edge(did,`scope:${rid}:${definition.scopeId}`,'scopeId');
+    }
+    for(const [j,[streamName,kind]]of [['lineStream','line'],['polylineStream','polyline'],['blockInstanceStream','blockInstance']].entries()) {
       const stream=b.streams[streamName]; if(!stream)continue;
       const cid=`collection:${rid}:${kind}`;
-      add({id:cid,label:kind==='line'?'Lijnen':'Polylijnen',subtitle:stream.count+' entiteiten · '+streamName,kind:'collection',domain:'ifcdr',resourceId:rid,x:850,y:y+120+j*124,raw:stream});
+      add({id:cid,label:{line:'Lijnen',polyline:'Polylijnen',blockInstance:'Block instances'}[kind],subtitle:stream.count+' entiteiten · '+streamName,kind:'collection',domain:'ifcdr',resourceId:rid,x:850,y:y+120+j*124,raw:stream});
       edge(id,cid,streamName,true);defaultCollapsed.add(cid);
       let entitySlot=0;
       paging.register(cid,stream.entityId,(_,row)=> {
@@ -72,6 +78,9 @@ export function buildModel(fixture, { concepts = false } = {}) {
         if(kind==='line') {
           points=[[stream.x1[row],stream.y1[row],stream.z1?.[row]??0],[stream.x2[row],stream.y2[row],stream.z2?.[row]??0]];
           geometry={start:points[0],end:points[1]};
+        } else if(kind==='blockInstance') {
+          points=[];
+          geometry={definitionScopeId:stream.definitionScopeId[row],transform:stream.transform[row]};
         } else {
           const start=Number(stream.vertexOffset[row]),count=Number(stream.vertexCount[row]),placement=stream.placement?.[row];
           const local=Array.from({length:count},(_,i)=>[stream.x[start+i],stream.y[start+i]]);
@@ -83,7 +92,8 @@ export function buildModel(fixture, { concepts = false } = {}) {
         add({id:entityKey,label:kind+' #'+eid,subtitle:'scope '+entity.scopeId+' · laag '+layer.id,kind:'entity',domain:'ifcdr',resourceId:rid,x:1120+j*260,y:y+120+entitySlot++*150,raw:{entityId:eid,scopeId:entity.scopeId,layerId:layer.id,appearanceId:appearance.id,...geometry},entity});
         edge(cid,entityKey,'rij '+row,true);
         edge(entityKey,entity.layer,'layerBinding');
-        edge(`scope:${rid}:${entity.scopeId}`,entityKey,'scope');
+        edge(entityKey,`scope:${rid}:${entity.scopeId}`,'scopeId');
+        if(kind==='blockInstance')edge(entityKey,`scope:${rid}:${geometry.definitionScopeId}`,'definitionScopeId');
         if(appearance.ifcxAppearance)edge(entityKey,'ifcx:'+appearance.ifcxAppearance,'appearanceBinding');
         addEntityFields([entity],fieldContext);
       },eid=>'entity:'+rid+':'+eid);
