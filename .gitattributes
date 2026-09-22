@@ -2,4 +2,5 @@
 
 schemas/**/*.json text eol=lf
 conformance/**/*.json text eol=lf
+format-explorer/examples/**/*.json text eol=lf
 conformance/**/blobs/* binary
