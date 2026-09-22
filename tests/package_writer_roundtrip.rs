@@ -162,7 +162,7 @@ fn writer_output_reloads_without_diagnostics_and_preserves_semantics() {
 
     let bytes = std::fs::read(target.join("resources/drawing.ifcdr.json")).unwrap();
     let resource: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
-    assert_eq!(resource["header"]["version"], "0.8.0");
+    assert_eq!(resource["header"]["version"], "0.9.0");
     assert!(resource.get("namedUcsBindings").is_none());
     assert!(resource.get("dimensionOverrideTable").is_none());
     let loaded = load_directory_package(&target).unwrap();
@@ -184,7 +184,10 @@ fn writer_output_reloads_without_diagnostics_and_preserves_semantics() {
     assert_eq!(layout.name(), "Model layout");
     assert_eq!(layout.kind(), DrawingLayoutKind::Model);
     assert_eq!(layout.scope().id().get(), 0);
-    assert_eq!(layout.scope().name(), "ModelSpace");
+    assert!(matches!(
+        layout.scope(),
+        ifccad::ifcdr::ScopeRef::ModelSpace(_)
+    ));
 
     let representation = drawing.representation();
     assert_eq!(representation.path(), "representation-0");
@@ -358,6 +361,7 @@ fn single_entity_families_reload_without_requiring_the_other_stream() {
         let resource = layout.representation().resource();
         let mut entities = resource.entities(layout.scope().id());
         match entities.next().unwrap() {
+            IfcdrEntityRef::BlockInstance(_) => panic!("primitive-only roundtrip fixture"),
             IfcdrEntityRef::Line(line) => {
                 assert!(!polyline);
                 assert_eq!(

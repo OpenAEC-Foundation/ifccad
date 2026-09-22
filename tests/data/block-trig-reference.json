@@ -1,0 +1,2230 @@
+{
+  "oracle": "integer-interval-machin-taylor-v1",
+  "fractional_bits": 4096,
+  "atan_terms": 1024,
+  "trig_terms": 320,
+  "cases": [
+    {
+      "angle_bits": "0000000000000000",
+      "sin": [
+        "0000000000000000",
+        "0000000000000000"
+      ],
+      "cos": [
+        "3ff0000000000000",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "0000000000000001",
+      "sin": [
+        "0000000000000000",
+        "0000000000000001"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "0000000000000002",
+      "sin": [
+        "0000000000000001",
+        "0000000000000002"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "0000000000000003",
+      "sin": [
+        "0000000000000002",
+        "0000000000000003"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "000fffffffffffff",
+      "sin": [
+        "000ffffffffffffe",
+        "000fffffffffffff"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "0010000000000000",
+      "sin": [
+        "000fffffffffffff",
+        "0010000000000000"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "0010000000000001",
+      "sin": [
+        "0010000000000000",
+        "0010000000000001"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "01c649d613422dd2",
+      "sin": [
+        "01c649d613422dd1",
+        "01c649d613422dd2"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "0286f55ac023a85c",
+      "sin": [
+        "0286f55ac023a85b",
+        "0286f55ac023a85c"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "058027f9fd8194b4",
+      "sin": [
+        "058027f9fd8194b3",
+        "058027f9fd8194b4"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "0d6e2a84f54caa1d",
+      "sin": [
+        "0d6e2a84f54caa1c",
+        "0d6e2a84f54caa1d"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "12eed608bb8d27f9",
+      "sin": [
+        "12eed608bb8d27f8",
+        "12eed608bb8d27f9"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "13c39b641773baa7",
+      "sin": [
+        "13c39b641773baa6",
+        "13c39b641773baa7"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "1a27817d27c96178",
+      "sin": [
+        "1a27817d27c96177",
+        "1a27817d27c96178"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "1bedd96f03785664",
+      "sin": [
+        "1bedd96f03785663",
+        "1bedd96f03785664"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "1c2684a7c0b7bb09",
+      "sin": [
+        "1c2684a7c0b7bb08",
+        "1c2684a7c0b7bb09"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "1e0614bf72437acb",
+      "sin": [
+        "1e0614bf72437aca",
+        "1e0614bf72437acb"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "1ff0000000000000",
+      "sin": [
+        "1fefffffffffffff",
+        "1ff0000000000000"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "20af3fa40b4982d8",
+      "sin": [
+        "20af3fa40b4982d7",
+        "20af3fa40b4982d8"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "26aba1c93270df04",
+      "sin": [
+        "26aba1c93270df03",
+        "26aba1c93270df04"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "26e7c3ebeef83601",
+      "sin": [
+        "26e7c3ebeef83600",
+        "26e7c3ebeef83601"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "286c4b5c5f7234ef",
+      "sin": [
+        "286c4b5c5f7234ee",
+        "286c4b5c5f7234ef"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "296765f6817869b3",
+      "sin": [
+        "296765f6817869b2",
+        "296765f6817869b3"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "2a458248c5bf4a1a",
+      "sin": [
+        "2a458248c5bf4a19",
+        "2a458248c5bf4a1a"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "2d6f605f2e918dc6",
+      "sin": [
+        "2d6f605f2e918dc5",
+        "2d6f605f2e918dc6"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "2ea5abe0604e2787",
+      "sin": [
+        "2ea5abe0604e2786",
+        "2ea5abe0604e2787"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "30a73ac04bee4ab0",
+      "sin": [
+        "30a73ac04bee4aaf",
+        "30a73ac04bee4ab0"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "30eb4cfa4098aa19",
+      "sin": [
+        "30eb4cfa4098aa18",
+        "30eb4cfa4098aa19"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "344053c883c54d66",
+      "sin": [
+        "344053c883c54d65",
+        "344053c883c54d66"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "384153666d59b432",
+      "sin": [
+        "384153666d59b431",
+        "384153666d59b432"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "392d21fed9ce2fb5",
+      "sin": [
+        "392d21fed9ce2fb4",
+        "392d21fed9ce2fb5"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "3aa42026603acf5f",
+      "sin": [
+        "3aa42026603acf5e",
+        "3aa42026603acf5f"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "3ba9425f36fdd711",
+      "sin": [
+        "3ba9425f36fdd710",
+        "3ba9425f36fdd711"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "3ca23969ad33e6ea",
+      "sin": [
+        "3ca23969ad33e6e9",
+        "3ca23969ad33e6ea"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "3e50000000000000",
+      "sin": [
+        "3e4fffffffffffff",
+        "3e50000000000000"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "3ee5d92dc4563c2d",
+      "sin": [
+        "3ee5d92dc454899e",
+        "3ee5d92dc454899f"
+      ],
+      "cos": [
+        "3feffffffff88a98",
+        "3feffffffff88a99"
+      ]
+    },
+    {
+      "angle_bits": "3fdffffffffffffe",
+      "sin": [
+        "3fdeaee8744b05ee",
+        "3fdeaee8744b05ef"
+      ],
+      "cos": [
+        "3fec1528065b7d50",
+        "3fec1528065b7d51"
+      ]
+    },
+    {
+      "angle_bits": "3fdfffffffffffff",
+      "sin": [
+        "3fdeaee8744b05ef",
+        "3fdeaee8744b05f0"
+      ],
+      "cos": [
+        "3fec1528065b7d4f",
+        "3fec1528065b7d50"
+      ]
+    },
+    {
+      "angle_bits": "3fe0000000000000",
+      "sin": [
+        "3fdeaee8744b05ef",
+        "3fdeaee8744b05f0"
+      ],
+      "cos": [
+        "3fec1528065b7d4f",
+        "3fec1528065b7d50"
+      ]
+    },
+    {
+      "angle_bits": "3fe0000000000001",
+      "sin": [
+        "3fdeaee8744b05f1",
+        "3fdeaee8744b05f2"
+      ],
+      "cos": [
+        "3fec1528065b7d4f",
+        "3fec1528065b7d50"
+      ]
+    },
+    {
+      "angle_bits": "3fe0000000000002",
+      "sin": [
+        "3fdeaee8744b05f3",
+        "3fdeaee8744b05f4"
+      ],
+      "cos": [
+        "3fec1528065b7d4e",
+        "3fec1528065b7d4f"
+      ]
+    },
+    {
+      "angle_bits": "3fe6666666666664",
+      "sin": [
+        "3fe49d6e694619b6",
+        "3fe49d6e694619b7"
+      ],
+      "cos": [
+        "3fe87996529f9d93",
+        "3fe87996529f9d94"
+      ]
+    },
+    {
+      "angle_bits": "3fe6666666666665",
+      "sin": [
+        "3fe49d6e694619b7",
+        "3fe49d6e694619b8"
+      ],
+      "cos": [
+        "3fe87996529f9d93",
+        "3fe87996529f9d94"
+      ]
+    },
+    {
+      "angle_bits": "3fe6666666666666",
+      "sin": [
+        "3fe49d6e694619b8",
+        "3fe49d6e694619b9"
+      ],
+      "cos": [
+        "3fe87996529f9d92",
+        "3fe87996529f9d93"
+      ]
+    },
+    {
+      "angle_bits": "3fe6666666666667",
+      "sin": [
+        "3fe49d6e694619b8",
+        "3fe49d6e694619b9"
+      ],
+      "cos": [
+        "3fe87996529f9d91",
+        "3fe87996529f9d92"
+      ]
+    },
+    {
+      "angle_bits": "3fe6666666666668",
+      "sin": [
+        "3fe49d6e694619b9",
+        "3fe49d6e694619ba"
+      ],
+      "cos": [
+        "3fe87996529f9d91",
+        "3fe87996529f9d92"
+      ]
+    },
+    {
+      "angle_bits": "3fe921fb54442d16",
+      "sin": [
+        "3fe6a09e667f3bca",
+        "3fe6a09e667f3bcb"
+      ],
+      "cos": [
+        "3fe6a09e667f3bce",
+        "3fe6a09e667f3bcf"
+      ]
+    },
+    {
+      "angle_bits": "3fe921fb54442d17",
+      "sin": [
+        "3fe6a09e667f3bcb",
+        "3fe6a09e667f3bcc"
+      ],
+      "cos": [
+        "3fe6a09e667f3bcd",
+        "3fe6a09e667f3bce"
+      ]
+    },
+    {
+      "angle_bits": "3fe921fb54442d18",
+      "sin": [
+        "3fe6a09e667f3bcc",
+        "3fe6a09e667f3bcd"
+      ],
+      "cos": [
+        "3fe6a09e667f3bcc",
+        "3fe6a09e667f3bcd"
+      ]
+    },
+    {
+      "angle_bits": "3fe921fb54442d19",
+      "sin": [
+        "3fe6a09e667f3bcd",
+        "3fe6a09e667f3bce"
+      ],
+      "cos": [
+        "3fe6a09e667f3bcc",
+        "3fe6a09e667f3bcd"
+      ]
+    },
+    {
+      "angle_bits": "3fe921fb54442d1a",
+      "sin": [
+        "3fe6a09e667f3bcd",
+        "3fe6a09e667f3bce"
+      ],
+      "cos": [
+        "3fe6a09e667f3bcb",
+        "3fe6a09e667f3bcc"
+      ]
+    },
+    {
+      "angle_bits": "3feffffffffffffe",
+      "sin": [
+        "3feaed548f090cec",
+        "3feaed548f090ced"
+      ],
+      "cos": [
+        "3fe14a280fb5068d",
+        "3fe14a280fb5068e"
+      ]
+    },
+    {
+      "angle_bits": "3fefffffffffffff",
+      "sin": [
+        "3feaed548f090ced",
+        "3feaed548f090cee"
+      ],
+      "cos": [
+        "3fe14a280fb5068c",
+        "3fe14a280fb5068d"
+      ]
+    },
+    {
+      "angle_bits": "3ff0000000000000",
+      "sin": [
+        "3feaed548f090cee",
+        "3feaed548f090cef"
+      ],
+      "cos": [
+        "3fe14a280fb5068b",
+        "3fe14a280fb5068c"
+      ]
+    },
+    {
+      "angle_bits": "3ff0000000000001",
+      "sin": [
+        "3feaed548f090cef",
+        "3feaed548f090cf0"
+      ],
+      "cos": [
+        "3fe14a280fb50689",
+        "3fe14a280fb5068a"
+      ]
+    },
+    {
+      "angle_bits": "3ff0000000000002",
+      "sin": [
+        "3feaed548f090cf0",
+        "3feaed548f090cf1"
+      ],
+      "cos": [
+        "3fe14a280fb50688",
+        "3fe14a280fb50689"
+      ]
+    },
+    {
+      "angle_bits": "3ff921fb54442d16",
+      "sin": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ],
+      "cos": [
+        "3cc234c4c6628b80",
+        "3cc234c4c6628b81"
+      ]
+    },
+    {
+      "angle_bits": "3ff921fb54442d17",
+      "sin": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ],
+      "cos": [
+        "3cb469898cc51701",
+        "3cb469898cc51702"
+      ]
+    },
+    {
+      "angle_bits": "3ff921fb54442d18",
+      "sin": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ],
+      "cos": [
+        "3c91a62633145c06",
+        "3c91a62633145c07"
+      ]
+    },
+    {
+      "angle_bits": "3ff921fb54442d19",
+      "sin": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ],
+      "cos": [
+        "bca72cece675d1fd",
+        "bca72cece675d1fc"
+      ]
+    },
+    {
+      "angle_bits": "3ff921fb54442d1a",
+      "sin": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ],
+      "cos": [
+        "bcbb9676733ae8ff",
+        "bcbb9676733ae8fe"
+      ]
+    },
+    {
+      "angle_bits": "4000000000000000",
+      "sin": [
+        "3fed18f6ead1b445",
+        "3fed18f6ead1b446"
+      ],
+      "cos": [
+        "bfdaa22657537205",
+        "bfdaa22657537204"
+      ]
+    },
+    {
+      "angle_bits": "400921fb54442d16",
+      "sin": [
+        "3cd234c4c6628b80",
+        "3cd234c4c6628b81"
+      ],
+      "cos": [
+        "bff0000000000000",
+        "bfefffffffffffff"
+      ]
+    },
+    {
+      "angle_bits": "400921fb54442d17",
+      "sin": [
+        "3cc469898cc51701",
+        "3cc469898cc51702"
+      ],
+      "cos": [
+        "bff0000000000000",
+        "bfefffffffffffff"
+      ]
+    },
+    {
+      "angle_bits": "400921fb54442d18",
+      "sin": [
+        "3ca1a62633145c06",
+        "3ca1a62633145c07"
+      ],
+      "cos": [
+        "bff0000000000000",
+        "bfefffffffffffff"
+      ]
+    },
+    {
+      "angle_bits": "400921fb54442d19",
+      "sin": [
+        "bcb72cece675d1fd",
+        "bcb72cece675d1fc"
+      ],
+      "cos": [
+        "bff0000000000000",
+        "bfefffffffffffff"
+      ]
+    },
+    {
+      "angle_bits": "400921fb54442d1a",
+      "sin": [
+        "bccb9676733ae8ff",
+        "bccb9676733ae8fe"
+      ],
+      "cos": [
+        "bff0000000000000",
+        "bfefffffffffffff"
+      ]
+    },
+    {
+      "angle_bits": "41255fefd0689d5b",
+      "sin": [
+        "3fe5d1bbb00a21b2",
+        "3fe5d1bbb00a21b3"
+      ],
+      "cos": [
+        "bfe7685dabdb3155",
+        "bfe7685dabdb3154"
+      ]
+    },
+    {
+      "angle_bits": "4130000000000000",
+      "sin": [
+        "3fd526ccb2fc8655",
+        "3fd526ccb2fc8656"
+      ],
+      "cos": [
+        "3fee33ada92fe2ad",
+        "3fee33ada92fe2ae"
+      ]
+    },
+    {
+      "angle_bits": "413921f9c22477d2",
+      "sin": [
+        "bff0000000000000",
+        "bfefffffffffffff"
+      ],
+      "cos": [
+        "be001e38a3163f1b",
+        "be001e38a3163f1a"
+      ]
+    },
+    {
+      "angle_bits": "413921f9c22477d3",
+      "sin": [
+        "bff0000000000000",
+        "bfefffffffffffff"
+      ],
+      "cos": [
+        "bdf03c71462c7e36",
+        "bdf03c71462c7e35"
+      ]
+    },
+    {
+      "angle_bits": "413921f9c22477d4",
+      "sin": [
+        "bff0000000000000",
+        "bfefffffffffffff"
+      ],
+      "cos": [
+        "bd8e38a3163f1ab4",
+        "bd8e38a3163f1ab3"
+      ]
+    },
+    {
+      "angle_bits": "413921f9c22477d5",
+      "sin": [
+        "bff0000000000000",
+        "bfefffffffffffff"
+      ],
+      "cos": [
+        "3def871d73a70395",
+        "3def871d73a70396"
+      ]
+    },
+    {
+      "angle_bits": "413921f9c22477d6",
+      "sin": [
+        "bff0000000000000",
+        "bfefffffffffffff"
+      ],
+      "cos": [
+        "3dffc38eb9d381ca",
+        "3dffc38eb9d381cb"
+      ]
+    },
+    {
+      "angle_bits": "42f0000000000000",
+      "sin": [
+        "3fc0935354934b3d",
+        "3fc0935354934b3e"
+      ],
+      "cos": [
+        "3fefbb05dbc935f1",
+        "3fefbb05dbc935f2"
+      ]
+    },
+    {
+      "angle_bits": "4630000000000000",
+      "sin": [
+        "bfebe8ed97ac1f59",
+        "bfebe8ed97ac1f58"
+      ],
+      "cos": [
+        "3fdf4eb3ff66e36c",
+        "3fdf4eb3ff66e36d"
+      ]
+    },
+    {
+      "angle_bits": "48a7b5238e525796",
+      "sin": [
+        "bfd26e4710029688",
+        "bfd26e4710029687"
+      ],
+      "cos": [
+        "3feea4f4a14d3f45",
+        "3feea4f4a14d3f46"
+      ]
+    },
+    {
+      "angle_bits": "48e4efe5b48c5317",
+      "sin": [
+        "3fcf006afb822177",
+        "3fcf006afb822178"
+      ],
+      "cos": [
+        "bfef0c17fc977725",
+        "bfef0c17fc977724"
+      ]
+    },
+    {
+      "angle_bits": "4d284698d1353cfe",
+      "sin": [
+        "bfe71eada2fc36e9",
+        "bfe71eada2fc36e8"
+      ],
+      "cos": [
+        "3fe61fc112c8fc13",
+        "3fe61fc112c8fc14"
+      ]
+    },
+    {
+      "angle_bits": "4d435de45d8f7b02",
+      "sin": [
+        "3fc1efab7daebe3e",
+        "3fc1efab7daebe3f"
+      ],
+      "cos": [
+        "bfefaf2ca2c6b4df",
+        "bfefaf2ca2c6b4de"
+      ]
+    },
+    {
+      "angle_bits": "5064b1cc8184ec93",
+      "sin": [
+        "bfe29c1b1fe453c7",
+        "bfe29c1b1fe453c6"
+      ],
+      "cos": [
+        "bfea083ea9b23d2e",
+        "bfea083ea9b23d2d"
+      ]
+    },
+    {
+      "angle_bits": "5142a360ea94cc28",
+      "sin": [
+        "3feff84ab7b9fef9",
+        "3feff84ab7b9fefa"
+      ],
+      "cos": [
+        "3fa634a1ee7f047a",
+        "3fa634a1ee7f047b"
+      ]
+    },
+    {
+      "angle_bits": "5183662bc8ebebbc",
+      "sin": [
+        "3fe094766efff3fd",
+        "3fe094766efff3fe"
+      ],
+      "cos": [
+        "bfeb5eab1723b85a",
+        "bfeb5eab1723b859"
+      ]
+    },
+    {
+      "angle_bits": "564c8611f7161d50",
+      "sin": [
+        "3fd7aca12792dad8",
+        "3fd7aca12792dad9"
+      ],
+      "cos": [
+        "3fedbaeabbcb93b0",
+        "3fedbaeabbcb93b1"
+      ]
+    },
+    {
+      "angle_bits": "572d5b650fdfad23",
+      "sin": [
+        "3fe32552eaf36fa6",
+        "3fe32552eaf36fa7"
+      ],
+      "cos": [
+        "3fe9a3fbf1e6de7e",
+        "3fe9a3fbf1e6de7f"
+      ]
+    },
+    {
+      "angle_bits": "5b8d3f383a973beb",
+      "sin": [
+        "3fe623e5483ee1fa",
+        "3fe623e5483ee1fb"
+      ],
+      "cos": [
+        "bfe71ab661928b0e",
+        "bfe71ab661928b0d"
+      ]
+    },
+    {
+      "angle_bits": "5f8e49b75fd6b40d",
+      "sin": [
+        "3fedf3ca01cd6931",
+        "3fedf3ca01cd6932"
+      ],
+      "cos": [
+        "bfd686c20c98def7",
+        "bfd686c20c98def6"
+      ]
+    },
+    {
+      "angle_bits": "5ff0000000000000",
+      "sin": [
+        "3fefb2d203b97e5e",
+        "3fefb2d203b97e5f"
+      ],
+      "cos": [
+        "3fc187699284d0b2",
+        "3fc187699284d0b3"
+      ]
+    },
+    {
+      "angle_bits": "63869625226ace00",
+      "sin": [
+        "bfec8c9710ef8acb",
+        "bfec8c9710ef8aca"
+      ],
+      "cos": [
+        "bfdce8e97aca3410",
+        "bfdce8e97aca340f"
+      ]
+    },
+    {
+      "angle_bits": "63a065548a46040c",
+      "sin": [
+        "bfe8b336b32ff0e1",
+        "bfe8b336b32ff0e0"
+      ],
+      "cos": [
+        "bfe4583f228922a4",
+        "bfe4583f228922a3"
+      ]
+    },
+    {
+      "angle_bits": "65c48a46486070f1",
+      "sin": [
+        "bfed1eaaf3ea5943",
+        "bfed1eaaf3ea5942"
+      ],
+      "cos": [
+        "3fda892bb690f60f",
+        "3fda892bb690f610"
+      ]
+    },
+    {
+      "angle_bits": "678eb4b2df00fd2e",
+      "sin": [
+        "bfd3c548baead514",
+        "bfd3c548baead513"
+      ],
+      "cos": [
+        "bfee6f52b326f030",
+        "bfee6f52b326f02f"
+      ]
+    },
+    {
+      "angle_bits": "6ce91d71b12925cf",
+      "sin": [
+        "3feb65ba3b9e2082",
+        "3feb65ba3b9e2083"
+      ],
+      "cos": [
+        "bfe088c9a0c40c4b",
+        "bfe088c9a0c40c4a"
+      ]
+    },
+    {
+      "angle_bits": "6e6489804736cb95",
+      "sin": [
+        "bfc62a2842bcd017",
+        "bfc62a2842bcd016"
+      ],
+      "cos": [
+        "bfef843f3da32f19",
+        "bfef843f3da32f18"
+      ]
+    },
+    {
+      "angle_bits": "742b93f042fbefba",
+      "sin": [
+        "3fcfa3ae675bf676",
+        "3fcfa3ae675bf677"
+      ],
+      "cos": [
+        "bfef01cb1291f3df",
+        "bfef01cb1291f3de"
+      ]
+    },
+    {
+      "angle_bits": "75647c48d940695e",
+      "sin": [
+        "bfd56ad1d0881321",
+        "bfd56ad1d0881320"
+      ],
+      "cos": [
+        "bfee27af5b7cdab0",
+        "bfee27af5b7cdaaf"
+      ]
+    },
+    {
+      "angle_bits": "7865c3e9d5506fa5",
+      "sin": [
+        "bfee7c32f09c60a1",
+        "bfee7c32f09c60a0"
+      ],
+      "cos": [
+        "3fd3754d4b03e64f",
+        "3fd3754d4b03e650"
+      ]
+    },
+    {
+      "angle_bits": "7e70000000000000",
+      "sin": [
+        "bfc460b8ae1c886f",
+        "bfc460b8ae1c886e"
+      ],
+      "cos": [
+        "3fef9785160c8815",
+        "3fef9785160c8816"
+      ]
+    },
+    {
+      "angle_bits": "7fe0000000000000",
+      "sin": [
+        "3fe205248cbdb75f",
+        "3fe205248cbdb760"
+      ],
+      "cos": [
+        "bfea719f26c232bf",
+        "bfea719f26c232be"
+      ]
+    },
+    {
+      "angle_bits": "7feffffffffffffe",
+      "sin": [
+        "3fedaa3677c6ee8a",
+        "3fedaa3677c6ee8b"
+      ],
+      "cos": [
+        "3fd7ffdfb4c5308f",
+        "3fd7ffdfb4c53090"
+      ]
+    },
+    {
+      "angle_bits": "7fefffffffffffff",
+      "sin": [
+        "3f7452fc98b34e96",
+        "3f7452fc98b34e97"
+      ],
+      "cos": [
+        "bfefffe62ecfab76",
+        "bfefffe62ecfab75"
+      ]
+    },
+    {
+      "angle_bits": "8000000000000000",
+      "sin": [
+        "0000000000000000",
+        "0000000000000000"
+      ],
+      "cos": [
+        "3ff0000000000000",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "8000000000000001",
+      "sin": [
+        "8000000000000001",
+        "8000000000000000"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "8000000000000002",
+      "sin": [
+        "8000000000000002",
+        "8000000000000001"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "8000000000000003",
+      "sin": [
+        "8000000000000003",
+        "8000000000000002"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "800fffffffffffff",
+      "sin": [
+        "800fffffffffffff",
+        "800ffffffffffffe"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "8010000000000000",
+      "sin": [
+        "8010000000000000",
+        "800fffffffffffff"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "8010000000000001",
+      "sin": [
+        "8010000000000001",
+        "8010000000000000"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "81c649d613422dd2",
+      "sin": [
+        "81c649d613422dd2",
+        "81c649d613422dd1"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "8286f55ac023a85c",
+      "sin": [
+        "8286f55ac023a85c",
+        "8286f55ac023a85b"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "858027f9fd8194b4",
+      "sin": [
+        "858027f9fd8194b4",
+        "858027f9fd8194b3"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "8d6e2a84f54caa1d",
+      "sin": [
+        "8d6e2a84f54caa1d",
+        "8d6e2a84f54caa1c"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "92eed608bb8d27f9",
+      "sin": [
+        "92eed608bb8d27f9",
+        "92eed608bb8d27f8"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "93c39b641773baa7",
+      "sin": [
+        "93c39b641773baa7",
+        "93c39b641773baa6"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "9a27817d27c96178",
+      "sin": [
+        "9a27817d27c96178",
+        "9a27817d27c96177"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "9bedd96f03785664",
+      "sin": [
+        "9bedd96f03785664",
+        "9bedd96f03785663"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "9c2684a7c0b7bb09",
+      "sin": [
+        "9c2684a7c0b7bb09",
+        "9c2684a7c0b7bb08"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "9e0614bf72437acb",
+      "sin": [
+        "9e0614bf72437acb",
+        "9e0614bf72437aca"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "9ff0000000000000",
+      "sin": [
+        "9ff0000000000000",
+        "9fefffffffffffff"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "a0af3fa40b4982d8",
+      "sin": [
+        "a0af3fa40b4982d8",
+        "a0af3fa40b4982d7"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "a6aba1c93270df04",
+      "sin": [
+        "a6aba1c93270df04",
+        "a6aba1c93270df03"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "a6e7c3ebeef83601",
+      "sin": [
+        "a6e7c3ebeef83601",
+        "a6e7c3ebeef83600"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "a86c4b5c5f7234ef",
+      "sin": [
+        "a86c4b5c5f7234ef",
+        "a86c4b5c5f7234ee"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "a96765f6817869b3",
+      "sin": [
+        "a96765f6817869b3",
+        "a96765f6817869b2"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "aa458248c5bf4a1a",
+      "sin": [
+        "aa458248c5bf4a1a",
+        "aa458248c5bf4a19"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "ad6f605f2e918dc6",
+      "sin": [
+        "ad6f605f2e918dc6",
+        "ad6f605f2e918dc5"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "aea5abe0604e2787",
+      "sin": [
+        "aea5abe0604e2787",
+        "aea5abe0604e2786"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "b0a73ac04bee4ab0",
+      "sin": [
+        "b0a73ac04bee4ab0",
+        "b0a73ac04bee4aaf"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "b0eb4cfa4098aa19",
+      "sin": [
+        "b0eb4cfa4098aa19",
+        "b0eb4cfa4098aa18"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "b44053c883c54d66",
+      "sin": [
+        "b44053c883c54d66",
+        "b44053c883c54d65"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "b84153666d59b432",
+      "sin": [
+        "b84153666d59b432",
+        "b84153666d59b431"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "b92d21fed9ce2fb5",
+      "sin": [
+        "b92d21fed9ce2fb5",
+        "b92d21fed9ce2fb4"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "baa42026603acf5f",
+      "sin": [
+        "baa42026603acf5f",
+        "baa42026603acf5e"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "bba9425f36fdd711",
+      "sin": [
+        "bba9425f36fdd711",
+        "bba9425f36fdd710"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "bca23969ad33e6ea",
+      "sin": [
+        "bca23969ad33e6ea",
+        "bca23969ad33e6e9"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "be50000000000000",
+      "sin": [
+        "be50000000000000",
+        "be4fffffffffffff"
+      ],
+      "cos": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ]
+    },
+    {
+      "angle_bits": "bee5d92dc4563c2d",
+      "sin": [
+        "bee5d92dc454899f",
+        "bee5d92dc454899e"
+      ],
+      "cos": [
+        "3feffffffff88a98",
+        "3feffffffff88a99"
+      ]
+    },
+    {
+      "angle_bits": "bfdffffffffffffe",
+      "sin": [
+        "bfdeaee8744b05ef",
+        "bfdeaee8744b05ee"
+      ],
+      "cos": [
+        "3fec1528065b7d50",
+        "3fec1528065b7d51"
+      ]
+    },
+    {
+      "angle_bits": "bfdfffffffffffff",
+      "sin": [
+        "bfdeaee8744b05f0",
+        "bfdeaee8744b05ef"
+      ],
+      "cos": [
+        "3fec1528065b7d4f",
+        "3fec1528065b7d50"
+      ]
+    },
+    {
+      "angle_bits": "bfe0000000000000",
+      "sin": [
+        "bfdeaee8744b05f0",
+        "bfdeaee8744b05ef"
+      ],
+      "cos": [
+        "3fec1528065b7d4f",
+        "3fec1528065b7d50"
+      ]
+    },
+    {
+      "angle_bits": "bfe0000000000001",
+      "sin": [
+        "bfdeaee8744b05f2",
+        "bfdeaee8744b05f1"
+      ],
+      "cos": [
+        "3fec1528065b7d4f",
+        "3fec1528065b7d50"
+      ]
+    },
+    {
+      "angle_bits": "bfe0000000000002",
+      "sin": [
+        "bfdeaee8744b05f4",
+        "bfdeaee8744b05f3"
+      ],
+      "cos": [
+        "3fec1528065b7d4e",
+        "3fec1528065b7d4f"
+      ]
+    },
+    {
+      "angle_bits": "bfe6666666666664",
+      "sin": [
+        "bfe49d6e694619b7",
+        "bfe49d6e694619b6"
+      ],
+      "cos": [
+        "3fe87996529f9d93",
+        "3fe87996529f9d94"
+      ]
+    },
+    {
+      "angle_bits": "bfe6666666666665",
+      "sin": [
+        "bfe49d6e694619b8",
+        "bfe49d6e694619b7"
+      ],
+      "cos": [
+        "3fe87996529f9d93",
+        "3fe87996529f9d94"
+      ]
+    },
+    {
+      "angle_bits": "bfe6666666666666",
+      "sin": [
+        "bfe49d6e694619b9",
+        "bfe49d6e694619b8"
+      ],
+      "cos": [
+        "3fe87996529f9d92",
+        "3fe87996529f9d93"
+      ]
+    },
+    {
+      "angle_bits": "bfe6666666666667",
+      "sin": [
+        "bfe49d6e694619b9",
+        "bfe49d6e694619b8"
+      ],
+      "cos": [
+        "3fe87996529f9d91",
+        "3fe87996529f9d92"
+      ]
+    },
+    {
+      "angle_bits": "bfe6666666666668",
+      "sin": [
+        "bfe49d6e694619ba",
+        "bfe49d6e694619b9"
+      ],
+      "cos": [
+        "3fe87996529f9d91",
+        "3fe87996529f9d92"
+      ]
+    },
+    {
+      "angle_bits": "bfe921fb54442d16",
+      "sin": [
+        "bfe6a09e667f3bcb",
+        "bfe6a09e667f3bca"
+      ],
+      "cos": [
+        "3fe6a09e667f3bce",
+        "3fe6a09e667f3bcf"
+      ]
+    },
+    {
+      "angle_bits": "bfe921fb54442d17",
+      "sin": [
+        "bfe6a09e667f3bcc",
+        "bfe6a09e667f3bcb"
+      ],
+      "cos": [
+        "3fe6a09e667f3bcd",
+        "3fe6a09e667f3bce"
+      ]
+    },
+    {
+      "angle_bits": "bfe921fb54442d18",
+      "sin": [
+        "bfe6a09e667f3bcd",
+        "bfe6a09e667f3bcc"
+      ],
+      "cos": [
+        "3fe6a09e667f3bcc",
+        "3fe6a09e667f3bcd"
+      ]
+    },
+    {
+      "angle_bits": "bfe921fb54442d19",
+      "sin": [
+        "bfe6a09e667f3bce",
+        "bfe6a09e667f3bcd"
+      ],
+      "cos": [
+        "3fe6a09e667f3bcc",
+        "3fe6a09e667f3bcd"
+      ]
+    },
+    {
+      "angle_bits": "bfe921fb54442d1a",
+      "sin": [
+        "bfe6a09e667f3bce",
+        "bfe6a09e667f3bcd"
+      ],
+      "cos": [
+        "3fe6a09e667f3bcb",
+        "3fe6a09e667f3bcc"
+      ]
+    },
+    {
+      "angle_bits": "bfeffffffffffffe",
+      "sin": [
+        "bfeaed548f090ced",
+        "bfeaed548f090cec"
+      ],
+      "cos": [
+        "3fe14a280fb5068d",
+        "3fe14a280fb5068e"
+      ]
+    },
+    {
+      "angle_bits": "bfefffffffffffff",
+      "sin": [
+        "bfeaed548f090cee",
+        "bfeaed548f090ced"
+      ],
+      "cos": [
+        "3fe14a280fb5068c",
+        "3fe14a280fb5068d"
+      ]
+    },
+    {
+      "angle_bits": "bff0000000000000",
+      "sin": [
+        "bfeaed548f090cef",
+        "bfeaed548f090cee"
+      ],
+      "cos": [
+        "3fe14a280fb5068b",
+        "3fe14a280fb5068c"
+      ]
+    },
+    {
+      "angle_bits": "bff0000000000001",
+      "sin": [
+        "bfeaed548f090cf0",
+        "bfeaed548f090cef"
+      ],
+      "cos": [
+        "3fe14a280fb50689",
+        "3fe14a280fb5068a"
+      ]
+    },
+    {
+      "angle_bits": "bff0000000000002",
+      "sin": [
+        "bfeaed548f090cf1",
+        "bfeaed548f090cf0"
+      ],
+      "cos": [
+        "3fe14a280fb50688",
+        "3fe14a280fb50689"
+      ]
+    },
+    {
+      "angle_bits": "bff921fb54442d16",
+      "sin": [
+        "bff0000000000000",
+        "bfefffffffffffff"
+      ],
+      "cos": [
+        "3cc234c4c6628b80",
+        "3cc234c4c6628b81"
+      ]
+    },
+    {
+      "angle_bits": "bff921fb54442d17",
+      "sin": [
+        "bff0000000000000",
+        "bfefffffffffffff"
+      ],
+      "cos": [
+        "3cb469898cc51701",
+        "3cb469898cc51702"
+      ]
+    },
+    {
+      "angle_bits": "bff921fb54442d18",
+      "sin": [
+        "bff0000000000000",
+        "bfefffffffffffff"
+      ],
+      "cos": [
+        "3c91a62633145c06",
+        "3c91a62633145c07"
+      ]
+    },
+    {
+      "angle_bits": "bff921fb54442d19",
+      "sin": [
+        "bff0000000000000",
+        "bfefffffffffffff"
+      ],
+      "cos": [
+        "bca72cece675d1fd",
+        "bca72cece675d1fc"
+      ]
+    },
+    {
+      "angle_bits": "bff921fb54442d1a",
+      "sin": [
+        "bff0000000000000",
+        "bfefffffffffffff"
+      ],
+      "cos": [
+        "bcbb9676733ae8ff",
+        "bcbb9676733ae8fe"
+      ]
+    },
+    {
+      "angle_bits": "c000000000000000",
+      "sin": [
+        "bfed18f6ead1b446",
+        "bfed18f6ead1b445"
+      ],
+      "cos": [
+        "bfdaa22657537205",
+        "bfdaa22657537204"
+      ]
+    },
+    {
+      "angle_bits": "c00921fb54442d16",
+      "sin": [
+        "bcd234c4c6628b81",
+        "bcd234c4c6628b80"
+      ],
+      "cos": [
+        "bff0000000000000",
+        "bfefffffffffffff"
+      ]
+    },
+    {
+      "angle_bits": "c00921fb54442d17",
+      "sin": [
+        "bcc469898cc51702",
+        "bcc469898cc51701"
+      ],
+      "cos": [
+        "bff0000000000000",
+        "bfefffffffffffff"
+      ]
+    },
+    {
+      "angle_bits": "c00921fb54442d18",
+      "sin": [
+        "bca1a62633145c07",
+        "bca1a62633145c06"
+      ],
+      "cos": [
+        "bff0000000000000",
+        "bfefffffffffffff"
+      ]
+    },
+    {
+      "angle_bits": "c00921fb54442d19",
+      "sin": [
+        "3cb72cece675d1fc",
+        "3cb72cece675d1fd"
+      ],
+      "cos": [
+        "bff0000000000000",
+        "bfefffffffffffff"
+      ]
+    },
+    {
+      "angle_bits": "c00921fb54442d1a",
+      "sin": [
+        "3ccb9676733ae8fe",
+        "3ccb9676733ae8ff"
+      ],
+      "cos": [
+        "bff0000000000000",
+        "bfefffffffffffff"
+      ]
+    },
+    {
+      "angle_bits": "c1255fefd0689d5b",
+      "sin": [
+        "bfe5d1bbb00a21b3",
+        "bfe5d1bbb00a21b2"
+      ],
+      "cos": [
+        "bfe7685dabdb3155",
+        "bfe7685dabdb3154"
+      ]
+    },
+    {
+      "angle_bits": "c130000000000000",
+      "sin": [
+        "bfd526ccb2fc8656",
+        "bfd526ccb2fc8655"
+      ],
+      "cos": [
+        "3fee33ada92fe2ad",
+        "3fee33ada92fe2ae"
+      ]
+    },
+    {
+      "angle_bits": "c13921f9c22477d2",
+      "sin": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ],
+      "cos": [
+        "be001e38a3163f1b",
+        "be001e38a3163f1a"
+      ]
+    },
+    {
+      "angle_bits": "c13921f9c22477d3",
+      "sin": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ],
+      "cos": [
+        "bdf03c71462c7e36",
+        "bdf03c71462c7e35"
+      ]
+    },
+    {
+      "angle_bits": "c13921f9c22477d4",
+      "sin": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ],
+      "cos": [
+        "bd8e38a3163f1ab4",
+        "bd8e38a3163f1ab3"
+      ]
+    },
+    {
+      "angle_bits": "c13921f9c22477d5",
+      "sin": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ],
+      "cos": [
+        "3def871d73a70395",
+        "3def871d73a70396"
+      ]
+    },
+    {
+      "angle_bits": "c13921f9c22477d6",
+      "sin": [
+        "3fefffffffffffff",
+        "3ff0000000000000"
+      ],
+      "cos": [
+        "3dffc38eb9d381ca",
+        "3dffc38eb9d381cb"
+      ]
+    },
+    {
+      "angle_bits": "c2f0000000000000",
+      "sin": [
+        "bfc0935354934b3e",
+        "bfc0935354934b3d"
+      ],
+      "cos": [
+        "3fefbb05dbc935f1",
+        "3fefbb05dbc935f2"
+      ]
+    },
+    {
+      "angle_bits": "c630000000000000",
+      "sin": [
+        "3febe8ed97ac1f58",
+        "3febe8ed97ac1f59"
+      ],
+      "cos": [
+        "3fdf4eb3ff66e36c",
+        "3fdf4eb3ff66e36d"
+      ]
+    },
+    {
+      "angle_bits": "c8a7b5238e525796",
+      "sin": [
+        "3fd26e4710029687",
+        "3fd26e4710029688"
+      ],
+      "cos": [
+        "3feea4f4a14d3f45",
+        "3feea4f4a14d3f46"
+      ]
+    },
+    {
+      "angle_bits": "c8e4efe5b48c5317",
+      "sin": [
+        "bfcf006afb822178",
+        "bfcf006afb822177"
+      ],
+      "cos": [
+        "bfef0c17fc977725",
+        "bfef0c17fc977724"
+      ]
+    },
+    {
+      "angle_bits": "cd284698d1353cfe",
+      "sin": [
+        "3fe71eada2fc36e8",
+        "3fe71eada2fc36e9"
+      ],
+      "cos": [
+        "3fe61fc112c8fc13",
+        "3fe61fc112c8fc14"
+      ]
+    },
+    {
+      "angle_bits": "cd435de45d8f7b02",
+      "sin": [
+        "bfc1efab7daebe3f",
+        "bfc1efab7daebe3e"
+      ],
+      "cos": [
+        "bfefaf2ca2c6b4df",
+        "bfefaf2ca2c6b4de"
+      ]
+    },
+    {
+      "angle_bits": "d064b1cc8184ec93",
+      "sin": [
+        "3fe29c1b1fe453c6",
+        "3fe29c1b1fe453c7"
+      ],
+      "cos": [
+        "bfea083ea9b23d2e",
+        "bfea083ea9b23d2d"
+      ]
+    },
+    {
+      "angle_bits": "d142a360ea94cc28",
+      "sin": [
+        "bfeff84ab7b9fefa",
+        "bfeff84ab7b9fef9"
+      ],
+      "cos": [
+        "3fa634a1ee7f047a",
+        "3fa634a1ee7f047b"
+      ]
+    },
+    {
+      "angle_bits": "d183662bc8ebebbc",
+      "sin": [
+        "bfe094766efff3fe",
+        "bfe094766efff3fd"
+      ],
+      "cos": [
+        "bfeb5eab1723b85a",
+        "bfeb5eab1723b859"
+      ]
+    },
+    {
+      "angle_bits": "d64c8611f7161d50",
+      "sin": [
+        "bfd7aca12792dad9",
+        "bfd7aca12792dad8"
+      ],
+      "cos": [
+        "3fedbaeabbcb93b0",
+        "3fedbaeabbcb93b1"
+      ]
+    },
+    {
+      "angle_bits": "d72d5b650fdfad23",
+      "sin": [
+        "bfe32552eaf36fa7",
+        "bfe32552eaf36fa6"
+      ],
+      "cos": [
+        "3fe9a3fbf1e6de7e",
+        "3fe9a3fbf1e6de7f"
+      ]
+    },
+    {
+      "angle_bits": "db8d3f383a973beb",
+      "sin": [
+        "bfe623e5483ee1fb",
+        "bfe623e5483ee1fa"
+      ],
+      "cos": [
+        "bfe71ab661928b0e",
+        "bfe71ab661928b0d"
+      ]
+    },
+    {
+      "angle_bits": "df8e49b75fd6b40d",
+      "sin": [
+        "bfedf3ca01cd6932",
+        "bfedf3ca01cd6931"
+      ],
+      "cos": [
+        "bfd686c20c98def7",
+        "bfd686c20c98def6"
+      ]
+    },
+    {
+      "angle_bits": "dff0000000000000",
+      "sin": [
+        "bfefb2d203b97e5f",
+        "bfefb2d203b97e5e"
+      ],
+      "cos": [
+        "3fc187699284d0b2",
+        "3fc187699284d0b3"
+      ]
+    },
+    {
+      "angle_bits": "e3869625226ace00",
+      "sin": [
+        "3fec8c9710ef8aca",
+        "3fec8c9710ef8acb"
+      ],
+      "cos": [
+        "bfdce8e97aca3410",
+        "bfdce8e97aca340f"
+      ]
+    },
+    {
+      "angle_bits": "e3a065548a46040c",
+      "sin": [
+        "3fe8b336b32ff0e0",
+        "3fe8b336b32ff0e1"
+      ],
+      "cos": [
+        "bfe4583f228922a4",
+        "bfe4583f228922a3"
+      ]
+    },
+    {
+      "angle_bits": "e5c48a46486070f1",
+      "sin": [
+        "3fed1eaaf3ea5942",
+        "3fed1eaaf3ea5943"
+      ],
+      "cos": [
+        "3fda892bb690f60f",
+        "3fda892bb690f610"
+      ]
+    },
+    {
+      "angle_bits": "e78eb4b2df00fd2e",
+      "sin": [
+        "3fd3c548baead513",
+        "3fd3c548baead514"
+      ],
+      "cos": [
+        "bfee6f52b326f030",
+        "bfee6f52b326f02f"
+      ]
+    },
+    {
+      "angle_bits": "ece91d71b12925cf",
+      "sin": [
+        "bfeb65ba3b9e2083",
+        "bfeb65ba3b9e2082"
+      ],
+      "cos": [
+        "bfe088c9a0c40c4b",
+        "bfe088c9a0c40c4a"
+      ]
+    },
+    {
+      "angle_bits": "ee6489804736cb95",
+      "sin": [
+        "3fc62a2842bcd016",
+        "3fc62a2842bcd017"
+      ],
+      "cos": [
+        "bfef843f3da32f19",
+        "bfef843f3da32f18"
+      ]
+    },
+    {
+      "angle_bits": "f42b93f042fbefba",
+      "sin": [
+        "bfcfa3ae675bf677",
+        "bfcfa3ae675bf676"
+      ],
+      "cos": [
+        "bfef01cb1291f3df",
+        "bfef01cb1291f3de"
+      ]
+    },
+    {
+      "angle_bits": "f5647c48d940695e",
+      "sin": [
+        "3fd56ad1d0881320",
+        "3fd56ad1d0881321"
+      ],
+      "cos": [
+        "bfee27af5b7cdab0",
+        "bfee27af5b7cdaaf"
+      ]
+    },
+    {
+      "angle_bits": "f865c3e9d5506fa5",
+      "sin": [
+        "3fee7c32f09c60a0",
+        "3fee7c32f09c60a1"
+      ],
+      "cos": [
+        "3fd3754d4b03e64f",
+        "3fd3754d4b03e650"
+      ]
+    },
+    {
+      "angle_bits": "fe70000000000000",
+      "sin": [
+        "3fc460b8ae1c886e",
+        "3fc460b8ae1c886f"
+      ],
+      "cos": [
+        "3fef9785160c8815",
+        "3fef9785160c8816"
+      ]
+    },
+    {
+      "angle_bits": "ffe0000000000000",
+      "sin": [
+        "bfe205248cbdb760",
+        "bfe205248cbdb75f"
+      ],
+      "cos": [
+        "bfea719f26c232bf",
+        "bfea719f26c232be"
+      ]
+    },
+    {
+      "angle_bits": "ffeffffffffffffe",
+      "sin": [
+        "bfedaa3677c6ee8b",
+        "bfedaa3677c6ee8a"
+      ],
+      "cos": [
+        "3fd7ffdfb4c5308f",
+        "3fd7ffdfb4c53090"
+      ]
+    },
+    {
+      "angle_bits": "ffefffffffffffff",
+      "sin": [
+        "bf7452fc98b34e97",
+        "bf7452fc98b34e96"
+      ],
+      "cos": [
+        "bfefffe62ecfab76",
+        "bfefffe62ecfab75"
+      ]
+    }
+  ]
+}

@@ -319,6 +319,12 @@ fn fixture(repo: &Path, inventory: &Value) -> Result<Value> {
             for entity in resource.entities(scope.id()) {
                 match entity {
                     ifccad::ifcdr::IfcdrEntityRef::Line(_) => lines += 1,
+                    ifccad::ifcdr::IfcdrEntityRef::BlockInstance(_) => {
+                        return Err(
+                            "block geometry is outside the fixed primitive benchmark inventory"
+                                .into(),
+                        )
+                    }
                     ifccad::ifcdr::IfcdrEntityRef::Polyline(p) => {
                         polylines += 1;
                         vertices += p.local_points().count() as u64;
@@ -400,9 +406,27 @@ pub fn successful(result: &Value) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    fn readers_root() -> std::path::PathBuf {
+        use std::sync::atomic::{AtomicU64, Ordering};
+        use std::time::{SystemTime, UNIX_EPOCH};
+        static NEXT_ID: AtomicU64 = AtomicU64::new(0);
+        let tick = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        std::env::temp_dir().join(format!(
+            "ifccad-size-readers-{}-{tick}-{}",
+            std::process::id(),
+            NEXT_ID.fetch_add(1, Ordering::Relaxed)
+        ))
+    }
+    #[test]
+    fn repeated_reader_checks_use_distinct_directories() {
+        assert_ne!(readers_root(), readers_root());
+    }
     #[test]
     fn production_readers_preserve_small_mixed_drawing_and_storage_ids() {
-        let root = std::env::temp_dir().join(format!("ifccad-size-readers-{}", std::process::id()));
+        let root = readers_root();
         fresh_directory(&root).unwrap();
         let expected = recipe::generate(&recipe::Case {
             id: "test".into(),
@@ -434,6 +458,7 @@ mod tests {
             )
             .unwrap();
         }
+        fs::remove_dir_all(&root).unwrap();
     }
     #[test]
     fn a_partial_or_failed_run_cannot_pass() {

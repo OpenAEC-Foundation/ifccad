@@ -1093,6 +1093,417 @@
           "name": "validatePackage"
         }
       ]
+    },
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ],
+      "caseId": "valid.block-empty-defaults",
+      "category": "valid",
+      "entrypoint": "packages/valid/block-empty-defaults/package.json",
+      "description": "Scope/block contract: block-empty-defaults"
+    },
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ],
+      "caseId": "valid.block-negative-uniform",
+      "category": "valid",
+      "entrypoint": "packages/valid/block-negative-uniform/package.json",
+      "description": "Scope/block contract: block-negative-uniform"
+    },
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ],
+      "caseId": "valid.block-subnormal-scale",
+      "category": "valid",
+      "entrypoint": "packages/valid/block-subnormal-scale/package.json",
+      "description": "Scope/block contract: block-subnormal-scale"
+    },
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ],
+      "caseId": "valid.block-nonneutral-frame",
+      "category": "valid",
+      "entrypoint": "packages/valid/block-nonneutral-frame/package.json",
+      "description": "Scope/block contract: block-nonneutral-frame"
+    },
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ],
+      "caseId": "valid.block-conservative-bounds",
+      "category": "valid",
+      "entrypoint": "packages/valid/block-conservative-bounds/package.json",
+      "description": "Scope/block contract: block-conservative-bounds"
+    },
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "severity": "error",
+                "code": "IFCCAD_IFCDR_BLOCK_INVALID",
+                "category": "contractViolation"
+              }
+            ]
+          }
+        }
+      ],
+      "caseId": "invalid.block-zero-scale",
+      "category": "invalid",
+      "entrypoint": "packages/invalid/block-zero-scale/package.json",
+      "description": "Scope/block contract: block-zero-scale"
+    },
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "severity": "error",
+                "code": "IFCCAD_IFCDR_STRUCTURE_INVALID",
+                "category": "contractViolation"
+              }
+            ]
+          }
+        }
+      ],
+      "caseId": "invalid.block-null-scale",
+      "category": "invalid",
+      "entrypoint": "packages/invalid/block-null-scale/package.json",
+      "description": "Scope/block contract: block-null-scale"
+    },
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "severity": "error",
+                "code": "IFCCAD_IFCDR_STRUCTURE_INVALID",
+                "category": "contractViolation"
+              }
+            ]
+          }
+        }
+      ],
+      "caseId": "invalid.block-missing-transform",
+      "category": "invalid",
+      "entrypoint": "packages/invalid/block-missing-transform/package.json",
+      "description": "Scope/block contract: block-missing-transform"
+    },
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "severity": "error",
+                "code": "IFCCAD_IFCDR_STRUCTURE_INVALID",
+                "category": "contractViolation"
+              }
+            ]
+          }
+        }
+      ],
+      "caseId": "invalid.block-unknown-kind",
+      "category": "invalid",
+      "entrypoint": "packages/invalid/block-unknown-kind/package.json",
+      "description": "Scope/block contract: block-unknown-kind"
+    },
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "severity": "error",
+                "code": "IFCCAD_IFCDR_BLOCK_INVALID",
+                "category": "contractViolation"
+              }
+            ]
+          }
+        }
+      ],
+      "caseId": "invalid.block-duplicate-definition",
+      "category": "invalid",
+      "entrypoint": "packages/invalid/block-duplicate-definition/package.json",
+      "description": "Scope/block contract: block-duplicate-definition"
+    },
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "severity": "error",
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "category": "contractViolation"
+              }
+            ]
+          }
+        }
+      ],
+      "caseId": "invalid.block-layout-kind-mismatch",
+      "category": "invalid",
+      "entrypoint": "packages/invalid/block-layout-kind-mismatch/package.json",
+      "description": "Scope/block contract: block-layout-kind-mismatch"
+    },
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "severity": "error",
+                "code": "IFCCAD_IFCDR_BLOCK_INVALID",
+                "category": "contractViolation"
+              }
+            ]
+          }
+        }
+      ],
+      "caseId": "invalid.block-casefold-collision",
+      "category": "invalid",
+      "entrypoint": "packages/invalid/block-casefold-collision/package.json",
+      "description": "Scope/block contract: block-casefold-collision"
+    },
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "severity": "error",
+                "code": "IFCCAD_IFCDR_BOUNDS_INVALID",
+                "category": "contractViolation"
+              }
+            ]
+          }
+        }
+      ],
+      "caseId": "invalid.block-too-small-bounds",
+      "category": "invalid",
+      "entrypoint": "packages/invalid/block-too-small-bounds/package.json",
+      "description": "Scope/block contract: block-too-small-bounds"
+    },
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "severity": "error",
+                "code": "IFCCAD_IFCDR_BLOCK_INVALID",
+                "category": "contractViolation"
+              }
+            ]
+          }
+        }
+      ],
+      "caseId": "invalid.block-mixed-sign-uniform",
+      "category": "invalid",
+      "entrypoint": "packages/invalid/block-mixed-sign-uniform/package.json",
+      "description": "Scope/block contract: block-mixed-sign-uniform"
+    },
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "severity": "error",
+                "code": "IFCCAD_IFCDR_BLOCK_CYCLE",
+                "category": "contractViolation"
+              }
+            ]
+          }
+        }
+      ],
+      "caseId": "invalid.block-unused-cycle",
+      "category": "invalid",
+      "entrypoint": "packages/invalid/block-unused-cycle/package.json",
+      "description": "Scope/block contract: block-unused-cycle"
+    },
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "severity": "error",
+                "code": "IFCCAD_IFCDR_BLOCK_INVALID",
+                "category": "contractViolation"
+              }
+            ]
+          }
+        }
+      ],
+      "caseId": "invalid.block-missing-target",
+      "category": "invalid",
+      "entrypoint": "packages/invalid/block-missing-target/package.json",
+      "description": "Scope/block contract: block-missing-target"
+    },
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "severity": "error",
+                "code": "IFCCAD_IFCDR_BLOCK_INVALID",
+                "category": "contractViolation"
+              },
+              {
+                "severity": "error",
+                "code": "IFCCAD_IFCDR_BLOCK_INVALID",
+                "category": "contractViolation"
+              }
+            ]
+          }
+        }
+      ],
+      "caseId": "invalid.block-missing-definition",
+      "category": "invalid",
+      "entrypoint": "packages/invalid/block-missing-definition/package.json",
+      "description": "Scope/block contract: block-missing-definition"
+    },
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "severity": "error",
+                "code": "IFCCAD_IFCDR_STRUCTURE_INVALID",
+                "category": "contractViolation"
+              }
+            ]
+          }
+        }
+      ],
+      "caseId": "invalid.block-null-transform",
+      "category": "invalid",
+      "entrypoint": "packages/invalid/block-null-transform/package.json",
+      "description": "Scope/block contract: block-null-transform"
+    },
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "severity": "error",
+                "code": "IFCCAD_IFCDR_NUMERICAL_PROOF_INCOMPLETE",
+                "category": "executionBlocked"
+              }
+            ],
+            "packageAssessment": {
+              "completeness": "incomplete",
+              "validity": "notFullyAssessed",
+              "gaps": [
+                {
+                  "reason": "contentNotAssessable",
+                  "location": "",
+                  "resourceId": "drawing-main",
+                  "resourceUri": "drawing.ifcdr.json"
+                },
+                {
+                  "reason": "numericalProofIncomplete",
+                  "location": "/scopeTable/0/bounds",
+                  "resourceId": "drawing-main",
+                  "resourceUri": "drawing.ifcdr.json"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "caseId": "invalid.block-proof-gap-external",
+      "category": "invalid",
+      "entrypoint": "packages/invalid/block-proof-gap-external/package.json",
+      "description": "Scope/block contract: block-proof-gap-external"
+    },
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "severity": "error",
+                "code": "IFCCAD_IFCDR_NUMERICAL_PROOF_INCOMPLETE",
+                "category": "executionBlocked"
+              }
+            ],
+            "packageAssessment": {
+              "completeness": "incomplete",
+              "validity": "notFullyAssessed",
+              "gaps": [
+                {
+                  "reason": "contentNotAssessable",
+                  "location": "/data/3/attributes/resource/content",
+                  "resourceId": "drawing-main",
+                  "resourceUri": "package.ifcx.json"
+                },
+                {
+                  "reason": "numericalProofIncomplete",
+                  "location": "/data/3/attributes/resource/content/scopeTable/0/bounds",
+                  "resourceId": "drawing-main",
+                  "resourceUri": "package.ifcx.json"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "caseId": "invalid.block-proof-gap-inline",
+      "category": "invalid",
+      "entrypoint": "packages/invalid/block-proof-gap-inline/package.json",
+      "description": "Scope/block contract: block-proof-gap-inline"
     }
   ],
   "suiteVersion": "1.1.0",

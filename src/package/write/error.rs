@@ -2,6 +2,14 @@
 #[non_exhaustive]
 /// Failure while validating or encoding a package under construction.
 pub enum PackageBuildError {
+    #[error("block definition key belongs to another builder")]
+    ForeignBlockDefinitionKey,
+    #[error("paper scope key belongs to another builder")]
+    ForeignPaperSpaceKey,
+    #[error("block name already exists under full default case folding: {name}")]
+    DuplicateBlockName { name: String },
+    #[error("block definition requires exact signed uniform scale")]
+    NonUniformBlockScale,
     #[error("package completion failed validation")]
     Validation {
         diagnostics: Vec<crate::diagnostic::PackageDiagnostic>,

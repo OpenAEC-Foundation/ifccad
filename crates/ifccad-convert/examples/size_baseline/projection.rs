@@ -50,6 +50,9 @@ pub fn ifccad(drawing: DrawingRef<'_>) -> Result<(Drawing, Vec<u64>)> {
     let mut ids = Vec::new();
     for entity in resource.entities(layouts[0].scope().id()) {
         let (geometry, layer, appearance, visible, id) = match entity {
+            IfcdrEntityRef::BlockInstance(_) => {
+                return Err("block geometry is outside the fixed primitive benchmark corpus".into())
+            }
             IfcdrEntityRef::Line(line) => (
                 Geometry::Line {
                     start: [line.start().x(), line.start().y(), line.start().z()],

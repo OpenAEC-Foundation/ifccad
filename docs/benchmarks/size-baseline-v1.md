@@ -1,147 +1,232 @@
-# IFCCAD, DXF and DWG: controlled size and exchange experiment
+# IFCCAD JSON / DXF / DWG size baseline v1
 
-**Result, 2026-09-15 (after per-polyline preparation):** all direct readbacks and complete conversion chains pass for twelve controlled drawings, including three spatial cases. Two independent generations produce identical complete artifact inventories. [results-v1.json](../../benchmarks/size/results-v1.json) contains the matching detailed measurements and provenance.
+**Outcome: passed.** Repeatability: passed. Corpus: full-v1.
 
-## Purpose and dependency boundary
+Retained run: `scopes-blocks-verified-20260922` (2026-09-22), IFCDR 0.9.0,
+IFCX overlay 0.11.0, unmodified cadcodec revision
+`5b682ed66ea2c89be8142c8dd83d83774fc3de08`. No local dependency override was
+used; `baseline_accepted` is true. The matching detailed measurements and
+provenance are in [results-v1.json](../../benchmarks/size/results-v1.json).
 
-This experiment compares complete IFCCAD JSON packages, text DXF and native compressed DWG, and verifies the declared recipe semantics. It does not select a physical encoding or establish fidelity for arbitrary CAD drawings. Performance and numerical stress measurements are [reported separately](coordinate-frames-performance-v1.md), with the current [preparation follow-up](placement-preparation-v1.md). The preparation optimization leaves the complete artifact inventory byte-identical to the preceding coordinate-frame run.
+The [twelve-recipe corpus](../../benchmarks/size/corpus-v1.json) is unchanged in
+meaning. Its three package fixtures were migrated to the active format. This
+replaces the previous patched-pin experiment; differences from that report
+cannot be attributed solely to the block implementation because both the
+format and dependency changed. The corpus intentionally remains primitive-only:
+it measures activation overhead and existing exchange paths, not block storage
+savings. Block reuse and codec limitations are verified separately by the
+[block boundary tests](../geometry/block-cad-boundary.md).
 
-The implementation uses IFCDR 0.8.0, IFCX overlay 0.10.0 and cadcodec/acadrust 0.5.4 at `2f2cd25832db298524fb5eb36ced5a438a877e95`, with the two documented [DWG fixes and regression tests](../../patches/cadcodec-upstream/README.md). The normal dependency remains unmodified. Issues [#41](https://github.com/HakanSeven12/cadcodec/issues/41) and [#42](https://github.com/HakanSeven12/cadcodec/issues/42) track current-lineweight and MEASUREMENT behavior. The local override is recorded; `baseline_accepted` remains false because the automatic gate does not accept patched results as an unmodified upstream baseline.
+Both generations use production readers, strict final package validation and
+Reject on the CAD-to-IFCCAD return. The tilted native-plane recipe permits and
+checks exactly its expected parameterization diagnostics on import. The hard
+default accuracy limit remains exactly 0.001 mm. These axis-aligned recipes
+have zero geometric residual; oblique and amplified-error tests remain separate.
+Previous explanatory gzip/compact-JSON probes are not current formal variants
+and are not carried forward as new measurements. Performance and practice-file
+evidence remain in [placement-preparation-v1.md](placement-preparation-v1.md).
 
-A fresh unmodified-pin probe (`target/size-baseline/coordinate-frames-unpatched-probe/`, empty drawing, two generations) passes DXF and fails the DWG return conversion under Reject with `header.other_semantics`. This is retained evidence of the pinned metadata limitation, not a spatial geometry failure. The unpatched spatial exchange tests independently pass their explicitly checked geometry.
+Controlled fixtures and generated XYZ lines/placed straight polylines; millimetres, AC1032. IFCCAD is uncompressed pretty JSON, DXF is text, DWG uses its normal native compression. These ratios compare complete writer outputs, not compression algorithms or representative CAD practice.
 
-## Corpus and method
+## Observed complete-file bytes
 
-The [inventory](../../benchmarks/size/corpus-v1.json) retains the original nine recipes in meaning and adds spatial lines, mixed identity/elevated polylines, and tilted/shifted polylines. Three existing package fixtures are migrated to the active 0.8.0 contract. All generated drawings use millimetres and one model layout. Short polylines have four vertices; long ones have 128. The mixed case exercises order, layers, visibility, closure and appearance. Fractional coordinates are exact binary fractions.
+| Case | Lines | Polylines | Vertices | IFCCAD external | IFCCAD inline | DXF | DWG | External / DXF | External / DWG | Inline / DXF | Inline / DWG |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| empty | 0 | 0 | 0 | 5365 | 6932 | 46978 | 20854 | 0.114 | 0.257 | 0.148 | 0.332 |
+| lines-100 | 100 | 0 | 0 | 16908 | 27635 | 60338 | 22262 | 0.280 | 0.760 | 0.458 | 1.241 |
+| lines-10000 | 10000 | 0 | 0 | 1225267 | 2126994 | 1444626 | 168218 | 0.848 | 7.284 | 1.472 | 12.644 |
+| short-polylines-100 | 0 | 100 | 400 | 26446 | 44183 | 79398 | 22486 | 0.333 | 1.176 | 0.556 | 1.965 |
+| short-polylines-10000 | 0 | 10000 | 40000 | 2244395 | 3846132 | 3396526 | 187933 | 0.661 | 11.943 | 1.132 | 20.465 |
+| long-polylines-10 | 0 | 10 | 1280 | 41991 | 70128 | 114314 | 23830 | 0.367 | 1.762 | 0.613 | 2.943 |
+| long-polylines-1000 | 0 | 1000 | 128000 | 3899233 | 6540970 | 7026512 | 257964 | 0.555 | 15.115 | 0.931 | 25.356 |
+| mixed-1000 | 500 | 500 | 2000 | 188370 | 325457 | 312494 | 42117 | 0.603 | 4.473 | 1.041 | 7.727 |
+| fractional-lines-1000 | 1000 | 0 | 0 | 155476 | 247203 | 215872 | 47198 | 0.720 | 3.294 | 1.145 | 5.238 |
+| spatial-line-1000 | 1000 | 0 | 0 | 153329 | 265116 | 187664 | 42213 | 0.817 | 3.632 | 1.413 | 6.280 |
+| elevated-1000 | 0 | 1000 | 4000 | 384338 | 636105 | 376972 | 38917 | 1.020 | 9.876 | 1.687 | 16.345 |
+| tilted-shifted-1000 | 0 | 1000 | 4000 | 534365 | 866132 | 408112 | 38982 | 1.309 | 13.708 | 2.122 | 22.219 |
 
-| Drawing | Lines | Polylines | Polyline vertices |
-| --- | ---: | ---: | ---: |
-| empty | 0 | 0 | 0 |
-| lines-100 | 100 | 0 | 0 |
-| lines-10000 | 10,000 | 0 | 0 |
-| short-polylines-100 | 0 | 100 | 400 |
-| short-polylines-10000 | 0 | 10,000 | 40,000 |
-| long-polylines-10 | 0 | 10 | 1,280 |
-| long-polylines-1000 | 0 | 1,000 | 128,000 |
-| mixed-1000 | 500 | 500 | 2,000 |
-| fractional-lines-1000 | 1,000 | 0 | 0 |
-| spatial-line-1000 | 1,000 | 0 | 0 |
-| elevated-1000 | 0 | 1,000 | 4,000 |
-| tilted-shifted-1000 | 0 | 1,000 | 4,000 |
+## Component accounting (bytes)
 
-Each recipe independently constructs external IFCCAD, inline IFCCAD, text DXF and DWG (AC1032). CAD preparation fixes dates and allocates missing layer handles. Production readers load all outputs. Separate IFCCAD-to-DXF-to-IFCCAD and IFCCAD-to-DWG-to-IFCCAD chains use Reject on return and strict validation of the final package.
+Inline bodies count only inside IFCX. Every physical blob is counted once. Preservation-inclusive fixture totals are not a native-package estimate.
 
-IFCCAD-to-CAD uses Allow and asserts the exact expected diagnostics: none for the original nine and the spatial-line/elevated recipes, exactly 1,000 `PlaneParameterizationChanged` diagnostics for the tilted/shifted recipe. Return export has no diagnostics. Both directions retain the hard default accuracy limit, exactly 0.001 mm. Every nonempty recipe has an exact zero geometric residual in both conversions; empty input reports Empty. The tilted recipe uses an exact 90-degree frame, so this does not replace the separate oblique-rounding stress tests.
-
-Comparisons check exact recipe XYZ geometry, closure, entity order, layer, visibility, all four appearance modes/values, units and every layer, including unused layers. IFCCAD variants also preserve ordered IDs. The projection independently maps the restricted axis-aligned recipe planes into XYZ. This intentionally treats native and CAD-compatible plane parameterizations as geometrically equivalent; the separate diagnostic assertions keep parameterization loss visible. It is not a general approximate-geometry comparator. CAD handles and technical default tables are excluded. Import retains incomplete general fidelity coverage.
-
-Every physical file or blob counts once. Inline bytes count inside IFCX, not again as IFCDR. Conversion-chain files are separate from the four direct size measurements.
-
-## Size results
-
-| Drawing | External IFCCAD, bytes | Inline IFCCAD, bytes | DXF, bytes | DWG, bytes |
-| --- | ---: | ---: | ---: | ---: |
-| empty | 4,923 | 6,300 | 47,078 | 20,438 |
-| lines-100 | 16,466 | 27,003 | 60,438 | 21,846 |
-| lines-10000 | 1,224,825 | 2,126,362 | 1,444,724 | 167,417 |
-| short-polylines-100 | 26,004 | 43,551 | 79,498 | 22,070 |
-| short-polylines-10000 | 2,243,953 | 3,845,500 | 3,396,624 | 187,415 |
-| long-polylines-10 | 41,549 | 69,496 | 114,414 | 23,414 |
-| long-polylines-1000 | 3,898,791 | 6,540,338 | 7,026,611 | 256,225 |
-| mixed-1000 | 187,928 | 324,825 | 312,593 | 41,670 |
-| fractional-lines-1000 | 155,034 | 246,571 | 215,971 | 46,750 |
-| spatial-line-1000 | 152,887 | 264,484 | 187,763 | 41,669 |
-| elevated-1000 | 383,896 | 635,473 | 377,071 | 38,504 |
-| tilted-shifted-1000 | 533,923 | 865,500 | 408,211 | 38,533 |
-
-| Drawing | External / DXF | External / DWG | Inline / DXF | Inline / DWG |
-| --- | ---: | ---: | ---: | ---: |
-| empty | 0.105 | 0.241 | 0.134 | 0.308 |
-| lines-100 | 0.272 | 0.754 | 0.447 | 1.236 |
-| lines-10000 | 0.848 | 7.316 | 1.472 | 12.701 |
-| short-polylines-100 | 0.327 | 1.178 | 0.548 | 1.973 |
-| short-polylines-10000 | 0.661 | 11.973 | 1.132 | 20.519 |
-| long-polylines-10 | 0.363 | 1.775 | 0.607 | 2.968 |
-| long-polylines-1000 | 0.555 | 15.216 | 0.931 | 25.526 |
-| mixed-1000 | 0.601 | 4.510 | 1.039 | 7.795 |
-| fractional-lines-1000 | 0.718 | 3.316 | 1.142 | 5.274 |
-| spatial-line-1000 | 0.814 | 3.669 | 1.409 | 6.347 |
-| elevated-1000 | 1.018 | 9.970 | 1.685 | 16.504 |
-| tilted-shifted-1000 | 1.308 | 13.856 | 2.120 | 22.461 |
-
-For the original nine drawings, DXF and DWG output files remain byte-identical to the preceding measured reference. New IFCCAD metadata adds 24 external / 34 inline bytes for the empty case, and 86 external / 116 inline bytes for each nonempty original case. Identity placement and zero-Z columns remain omitted, so the original planar recipes incur no per-entity placement or Z-column cost.
-
-Pretty JSON is larger than DWG for the large entity/vertex cases. External IFCCAD is smaller than text DXF for the original nine recipes and spatial lines, but is larger for the elevated and tilted/shifted recipes. Explicit nine-scalar plane records and pretty-printing contribute to that difference. These observations motivate later encoding measurements, not an unmeasured placement-sharing or compression claim.
-
-### Fixture accounting
-
-| Fixture | IFCX | IFCDR | IFCPR | Blob | Total bytes |
+| Case / mode | IFCX | External IFCDR | External IFCPR | Blobs | Total |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| minimal-no-preservation | 3,467 | 4,136 | 0 | 0 | 7,603 |
-| inline-drawing | 9,929 | 0 | 0 | 0 | 9,929 |
-| source-archive | 4,119 | 4,136 | 4,269 | 94 | 12,618 |
+| empty / ifccad-external | 2057 | 3308 | 0 | 0 | 5365 |
+| empty / ifccad-inline | 6932 | 0 | 0 | 0 | 6932 |
+| lines-100 / ifccad-external | 2057 | 14851 | 0 | 0 | 16908 |
+| lines-100 / ifccad-inline | 27635 | 0 | 0 | 0 | 27635 |
+| lines-10000 / ifccad-external | 2057 | 1223210 | 0 | 0 | 1225267 |
+| lines-10000 / ifccad-inline | 2126994 | 0 | 0 | 0 | 2126994 |
+| short-polylines-100 / ifccad-external | 2057 | 24389 | 0 | 0 | 26446 |
+| short-polylines-100 / ifccad-inline | 44183 | 0 | 0 | 0 | 44183 |
+| short-polylines-10000 / ifccad-external | 2057 | 2242338 | 0 | 0 | 2244395 |
+| short-polylines-10000 / ifccad-inline | 3846132 | 0 | 0 | 0 | 3846132 |
+| long-polylines-10 / ifccad-external | 2057 | 39934 | 0 | 0 | 41991 |
+| long-polylines-10 / ifccad-inline | 70128 | 0 | 0 | 0 | 70128 |
+| long-polylines-1000 / ifccad-external | 2057 | 3897176 | 0 | 0 | 3899233 |
+| long-polylines-1000 / ifccad-inline | 6540970 | 0 | 0 | 0 | 6540970 |
+| mixed-1000 / ifccad-external | 3210 | 185160 | 0 | 0 | 188370 |
+| mixed-1000 / ifccad-inline | 325457 | 0 | 0 | 0 | 325457 |
+| fractional-lines-1000 / ifccad-external | 2057 | 153419 | 0 | 0 | 155476 |
+| fractional-lines-1000 / ifccad-inline | 247203 | 0 | 0 | 0 | 247203 |
+| spatial-line-1000 / ifccad-external | 2057 | 151272 | 0 | 0 | 153329 |
+| spatial-line-1000 / ifccad-inline | 265116 | 0 | 0 | 0 | 265116 |
+| elevated-1000 / ifccad-external | 2057 | 382281 | 0 | 0 | 384338 |
+| elevated-1000 / ifccad-inline | 636105 | 0 | 0 | 0 | 636105 |
+| tilted-shifted-1000 / ifccad-external | 2057 | 532308 | 0 | 0 | 534365 |
+| tilted-shifted-1000 / ifccad-inline | 866132 | 0 | 0 | 0 | 866132 |
+| fixture minimal-no-preservation (fixture-native) | 3467 | 4032 | 0 | 0 | 7499 |
+| fixture inline-drawing (fixture-native) | 9775 | 0 | 0 | 0 | 9775 |
+| fixture source-archive (fixture-preservation-inclusive) | 4119 | 4032 | 4269 | 94 | 12514 |
 
-The first two fixtures have complete valid assessments. Source-archive retains an incomplete preservation assessment and a shared 94-byte blob; its total is preservation-inclusive, not a native-only size.
+## Executed checks
 
-## Exchange and repeatability
+Every passing comparison checks each entity in order, exact recipe XYZ geometry, closure, layer, visibility and all four appearance modes/values, plus unit and layers including unused ones. IFCCAD storage variants additionally retain the same ordered entity IDs. CAD handles and technical default tables are outside this projection.
 
-| Check | Result in each generation |
-| --- | --- |
-| External IFCCAD strict readback | 12/12 pass |
-| Inline IFCCAD strict readback | 12/12 pass |
-| DXF production readback | 12/12 pass |
-| DWG production readback | 12/12 pass |
-| IFCCAD to DXF to IFCCAD, Reject on return | 12/12 pass |
-| IFCCAD to DWG to IFCCAD, Reject on return | 12/12 pass |
-| Expected fixture assessments | 3/3 pass |
-| Direct output hashes and sizes | All 48 identical across generations |
-| Complete generated artifact inventory | Identical across generations |
+| Case | Route | Result | First failure |
+| --- | --- | --- | --- |
+| empty | Direct ifccad-external readback | passed | — |
+| empty | Direct ifccad-inline readback | passed | — |
+| empty | Direct dxf readback | passed | — |
+| empty | Direct dwg readback | passed | — |
+| empty | IFCCAD → dxf → IFCCAD (Reject) | passed | — |
+| empty | IFCCAD → dwg → IFCCAD (Reject) | passed | — |
+| lines-100 | Direct ifccad-external readback | passed | — |
+| lines-100 | Direct ifccad-inline readback | passed | — |
+| lines-100 | Direct dxf readback | passed | — |
+| lines-100 | Direct dwg readback | passed | — |
+| lines-100 | IFCCAD → dxf → IFCCAD (Reject) | passed | — |
+| lines-100 | IFCCAD → dwg → IFCCAD (Reject) | passed | — |
+| lines-10000 | Direct ifccad-external readback | passed | — |
+| lines-10000 | Direct ifccad-inline readback | passed | — |
+| lines-10000 | Direct dxf readback | passed | — |
+| lines-10000 | Direct dwg readback | passed | — |
+| lines-10000 | IFCCAD → dxf → IFCCAD (Reject) | passed | — |
+| lines-10000 | IFCCAD → dwg → IFCCAD (Reject) | passed | — |
+| short-polylines-100 | Direct ifccad-external readback | passed | — |
+| short-polylines-100 | Direct ifccad-inline readback | passed | — |
+| short-polylines-100 | Direct dxf readback | passed | — |
+| short-polylines-100 | Direct dwg readback | passed | — |
+| short-polylines-100 | IFCCAD → dxf → IFCCAD (Reject) | passed | — |
+| short-polylines-100 | IFCCAD → dwg → IFCCAD (Reject) | passed | — |
+| short-polylines-10000 | Direct ifccad-external readback | passed | — |
+| short-polylines-10000 | Direct ifccad-inline readback | passed | — |
+| short-polylines-10000 | Direct dxf readback | passed | — |
+| short-polylines-10000 | Direct dwg readback | passed | — |
+| short-polylines-10000 | IFCCAD → dxf → IFCCAD (Reject) | passed | — |
+| short-polylines-10000 | IFCCAD → dwg → IFCCAD (Reject) | passed | — |
+| long-polylines-10 | Direct ifccad-external readback | passed | — |
+| long-polylines-10 | Direct ifccad-inline readback | passed | — |
+| long-polylines-10 | Direct dxf readback | passed | — |
+| long-polylines-10 | Direct dwg readback | passed | — |
+| long-polylines-10 | IFCCAD → dxf → IFCCAD (Reject) | passed | — |
+| long-polylines-10 | IFCCAD → dwg → IFCCAD (Reject) | passed | — |
+| long-polylines-1000 | Direct ifccad-external readback | passed | — |
+| long-polylines-1000 | Direct ifccad-inline readback | passed | — |
+| long-polylines-1000 | Direct dxf readback | passed | — |
+| long-polylines-1000 | Direct dwg readback | passed | — |
+| long-polylines-1000 | IFCCAD → dxf → IFCCAD (Reject) | passed | — |
+| long-polylines-1000 | IFCCAD → dwg → IFCCAD (Reject) | passed | — |
+| mixed-1000 | Direct ifccad-external readback | passed | — |
+| mixed-1000 | Direct ifccad-inline readback | passed | — |
+| mixed-1000 | Direct dxf readback | passed | — |
+| mixed-1000 | Direct dwg readback | passed | — |
+| mixed-1000 | IFCCAD → dxf → IFCCAD (Reject) | passed | — |
+| mixed-1000 | IFCCAD → dwg → IFCCAD (Reject) | passed | — |
+| fractional-lines-1000 | Direct ifccad-external readback | passed | — |
+| fractional-lines-1000 | Direct ifccad-inline readback | passed | — |
+| fractional-lines-1000 | Direct dxf readback | passed | — |
+| fractional-lines-1000 | Direct dwg readback | passed | — |
+| fractional-lines-1000 | IFCCAD → dxf → IFCCAD (Reject) | passed | — |
+| fractional-lines-1000 | IFCCAD → dwg → IFCCAD (Reject) | passed | — |
+| spatial-line-1000 | Direct ifccad-external readback | passed | — |
+| spatial-line-1000 | Direct ifccad-inline readback | passed | — |
+| spatial-line-1000 | Direct dxf readback | passed | — |
+| spatial-line-1000 | Direct dwg readback | passed | — |
+| spatial-line-1000 | IFCCAD → dxf → IFCCAD (Reject) | passed | — |
+| spatial-line-1000 | IFCCAD → dwg → IFCCAD (Reject) | passed | — |
+| elevated-1000 | Direct ifccad-external readback | passed | — |
+| elevated-1000 | Direct ifccad-inline readback | passed | — |
+| elevated-1000 | Direct dxf readback | passed | — |
+| elevated-1000 | Direct dwg readback | passed | — |
+| elevated-1000 | IFCCAD → dxf → IFCCAD (Reject) | passed | — |
+| elevated-1000 | IFCCAD → dwg → IFCCAD (Reject) | passed | — |
+| tilted-shifted-1000 | Direct ifccad-external readback | passed | — |
+| tilted-shifted-1000 | Direct ifccad-inline readback | passed | — |
+| tilted-shifted-1000 | Direct dxf readback | passed | — |
+| tilted-shifted-1000 | Direct dwg readback | passed | — |
+| tilted-shifted-1000 | IFCCAD → dxf → IFCCAD (Reject) | passed | — |
+| tilted-shifted-1000 | IFCCAD → dwg → IFCCAD (Reject) | passed | — |
 
-IFCDR scope bounds are derived from emitted exact geometry; cached CAD extents are not independent drawing settings. Numerical tolerance never licenses silent loss of drawing limits, source plane values, vertex IDs or other metadata. The shifted-frame diagnostic is expected and explicitly assessed.
+The JSON retains executed stages, import/export diagnostics and scoped assessments. Import retains incomplete general coverage even when this recipe's explicit properties match. Shifted native frames intentionally use Allow for the diagnosed parameterization change; numeric accuracy remains a hard gate. The source-archive fixture retains preservationSemanticsNotAssessed; its accounting does not prove IFCPR fidelity. Failed stages stop dependent stages, which are not counted as executed.
 
-## Explanatory whitespace and compression probes
+## Repeatability and reproduction
 
-These are explanatory probes, not supported encodings or formal output variants. Compact JSON reparses to the same values. Gzip uses Python level 9, mtime 0, separately per external JSON file and per complete DWG. Decompression is checked byte-for-byte; archive-container overhead is excluded.
+Repository revision: 6bbb2146d95e94ee789940c9fab8937fdc9c1fec (dirty: true). Two fresh runs compare measurements and hashes of every produced artifact, including chain outputs.
 
-| Mixed drawing | Pretty JSON bytes | Compact JSON bytes |
-| --- | ---: | ---: |
-| ifccad-external | 187,928 | 63,523 |
-| ifccad-inline | 324,825 | 63,412 |
+| Case | Output | Same byte count | Identical files |
+| --- | --- | --- | --- |
+| empty | ifccad-external | true | true |
+| empty | ifccad-inline | true | true |
+| empty | dxf | true | true |
+| empty | dwg | true | true |
+| lines-100 | ifccad-external | true | true |
+| lines-100 | ifccad-inline | true | true |
+| lines-100 | dxf | true | true |
+| lines-100 | dwg | true | true |
+| lines-10000 | ifccad-external | true | true |
+| lines-10000 | ifccad-inline | true | true |
+| lines-10000 | dxf | true | true |
+| lines-10000 | dwg | true | true |
+| short-polylines-100 | ifccad-external | true | true |
+| short-polylines-100 | ifccad-inline | true | true |
+| short-polylines-100 | dxf | true | true |
+| short-polylines-100 | dwg | true | true |
+| short-polylines-10000 | ifccad-external | true | true |
+| short-polylines-10000 | ifccad-inline | true | true |
+| short-polylines-10000 | dxf | true | true |
+| short-polylines-10000 | dwg | true | true |
+| long-polylines-10 | ifccad-external | true | true |
+| long-polylines-10 | ifccad-inline | true | true |
+| long-polylines-10 | dxf | true | true |
+| long-polylines-10 | dwg | true | true |
+| long-polylines-1000 | ifccad-external | true | true |
+| long-polylines-1000 | ifccad-inline | true | true |
+| long-polylines-1000 | dxf | true | true |
+| long-polylines-1000 | dwg | true | true |
+| mixed-1000 | ifccad-external | true | true |
+| mixed-1000 | ifccad-inline | true | true |
+| mixed-1000 | dxf | true | true |
+| mixed-1000 | dwg | true | true |
+| fractional-lines-1000 | ifccad-external | true | true |
+| fractional-lines-1000 | ifccad-inline | true | true |
+| fractional-lines-1000 | dxf | true | true |
+| fractional-lines-1000 | dwg | true | true |
+| spatial-line-1000 | ifccad-external | true | true |
+| spatial-line-1000 | ifccad-inline | true | true |
+| spatial-line-1000 | dxf | true | true |
+| spatial-line-1000 | dwg | true | true |
+| elevated-1000 | ifccad-external | true | true |
+| elevated-1000 | ifccad-inline | true | true |
+| elevated-1000 | dxf | true | true |
+| elevated-1000 | dwg | true | true |
+| tilted-shifted-1000 | ifccad-external | true | true |
+| tilted-shifted-1000 | ifccad-inline | true | true |
+| tilted-shifted-1000 | dxf | true | true |
+| tilted-shifted-1000 | dwg | true | true |
 
-| Drawing | Pretty JSON | JSON + gzip | DWG | DWG + gzip |
-| --- | ---: | ---: | ---: | ---: |
-| lines-10000 | 1,224,825 | 56,415 | 167,417 | 96,772 |
-| short-polylines-10000 | 2,243,953 | 85,290 | 187,415 | 104,867 |
-| long-polylines-1000 | 3,898,791 | 70,609 | 256,225 | 141,246 |
-| tilted-shifted-1000 | 533,923 | 12,882 | 38,533 | 27,302 |
+First measurement difference: —. First artifact difference: —.
 
-The repetitive generated corpus compresses strongly, including DWG. These probes do not predict real-project compression or the best output of either format. Production compressed readback and full package accounting are prerequisites for adding a formal compressed variant.
-
-## Reproduction and provenance
-
-Follow the [patch instructions](../../patches/cadcodec-upstream/README.md), using a fresh checkout and run name:
+Run from the repository root with a **new** run name:
 
 ```text
-cargo run --config patches/cadcodec-upstream.toml -p ifccad-convert --example size_baseline -- --run coordinate-frames-review --cargo-config patches/cadcodec-upstream.toml
+cargo run -p ifccad-convert --example size_baseline -- --run baseline-v1-review
 ```
 
-Omit `--case` for the full corpus. Existing run directories are never overwritten; failed checks retain an incomplete report and return failure. Different dependency configurations must run sequentially because they share Cargo.lock.
+Add `--case mixed-1000` for a labelled partial diagnostic run. The command returns failure for failed checks or nondeterminism, retaining its report. It never replaces an accepted baseline or overwrites an existing run.
 
-The retained run is `target/size-baseline/polyline-preparation-v1/`. It reuses
-the documented candidate checkout at `target/cadcodec-coordinate-frames` and
-local config `target/coordinate-frames-cadcodec.toml`, with the same base and
-three patches as the preceding coordinate-frame run. The dependency source hash
-is unchanged. Source manifests, the lockfile, compiler/host, dependency versions,
-corpus hashes, per-file hashes and both generations remain in the run directory.
-The complete 180-file artifact inventory and all measurements are identical to
-the preceding run; provenance records the updated IFCCAD source.
+The local run directory contains results.json, report.md, provenance.json, source-manifest.json, Cargo.lock, first/ and second/. Each case contains ifccad-external/, ifccad-inline/, drawing.dxf, drawing.dwg and separately labelled chain artifacts. Header snapshots support investigation of rejected CAD metadata. Exact dependency versions and source/lock/corpus hashes are in the JSON. Generated outputs and environment details remain below target/ and are not committed.
 
-Only this report, its matching result JSON and corpus inventory form the current curated size experiment. Generated files remain under target. Passing these controlled checks does not certify arbitrary CAD source semantics, external CAD applications, raw-file preservation or IFCPR restoration.
+## Interpretation limits
 
-## Verification
-
-After the preparation change, the workspace with the unmodified dependency
-passes formatting, Clippy with warnings denied and all 379 tests, including
-documentation tests. Three opt-in tests are excluded from the default run.
-The controlled experiment with the documented dependency patches passes both
-independent generations, all direct readbacks and strict conversion chains.
+The empty case measures fixed overhead; the two line/polyline scales expose growth, and long polylines isolate vertex-heavy storage. Inline placement changes JSON nesting and package metadata as well as the number of files. Fractional coordinates test numeric text at exact binary fractions. No result generalizes to arbitrary decimal precision, unsupported entities, external CAD applications, real-world files, runtime or memory. No size threshold or new physical encoding follows from this experiment.

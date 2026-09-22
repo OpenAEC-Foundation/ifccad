@@ -2,12 +2,130 @@ use super::*;
 use crate::ifcdr::logical::*;
 use serde_json::{json, Value};
 
+fn block_fixture() -> Value {
+    json!({
+        "header":{"format":"openaec.ifcdr","version":"0.9.0","resourceId":"blocks","unit":"m","nextEntityId":4},
+        "scopeTable":[{"id":7,"kind":0,"bounds":null},{"id":21,"kind":2,"bounds":null}],
+        "blockDefinitionTable":[{"scopeId":21,"name":"Door"}],
+        "layerBindings":[{"id":0,"ifcxLayer":"layer"}],
+        "appearanceBindings":[{"id":0,"ifcxAppearance":null,"colorMode":0,"opacityMode":0,"linePatternMode":0,"lineWeightMode":0,"overrideId":null}],
+        "streamDirectory":{"version":"ifccad.ifcdr.streamDirectory.v1","streams":[
+            {"name":"blockInstance","schema":"ifccad.ifcdr.blockInstance.v1","role":"object","count":1,"columns":["entityId","scopeId","definitionScopeId","transform","layerId","appearanceId"]},
+            {"name":"entityOrder","schema":"ifccad.ifcdr.entityOrder.v1","role":"order","count":2,"columns":["scopeId","entryOffset","entryCount"],"children":["entityOrderEntry"]},
+            {"name":"entityOrderEntry","schema":"ifccad.ifcdr.entityOrderEntry.v1","role":"child","count":1,"columns":["entityId"],"parent":"entityOrder"}
+        ]},
+        "streams":{
+            "blockInstanceStream":{"count":1,"entityId":[3],"scopeId":[7],"definitionScopeId":[21],"transform":[{}],"layerId":[0],"appearanceId":[0]},
+            "entityOrderStream":{"count":2,"scopeId":[7,21],"entryOffset":[0,1],"entryCount":[1,0]},
+            "entityOrderEntryStream":{"count":1,"entityId":[3]}
+        }
+    })
+}
+
+#[test]
+fn block_defaults_decode_without_conflating_owner_and_definition() {
+    use crate::ifcdr::{BlockScaling, BlockTransform, IfcdrLengthUnit, Point3};
+    let decoded = decode_json("blocks.json", &block_fixture()).unwrap();
+    assert_eq!(decoded.scopes[0].kind, IfcdrScopeKind::ModelSpace);
+    assert_eq!(decoded.scopes[1].kind, IfcdrScopeKind::BlockDefinition);
+    let definition = &decoded.block_definitions()[0];
+    assert_eq!(definition.scope_id, 21);
+    assert_eq!(definition.name, "Door");
+    assert_eq!(definition.description, "");
+    assert_eq!(definition.base_point, Point3::new(0., 0., 0.));
+    assert_eq!(definition.insertion_unit, IfcdrLengthUnit::Unitless);
+    assert_eq!(definition.scaling, BlockScaling::Any);
+    assert!(definition.explodable);
+    assert!(!definition.anonymous);
+    let instance = decoded.block_instances().first().unwrap();
+    assert_eq!(instance.entity.scope_id, 7);
+    assert_eq!(instance.definition_scope_id, 21);
+    assert_eq!(instance.transform, BlockTransform::default().components());
+    assert!(instance.entity.visible);
+}
+
+#[test]
+fn block_writer_and_reader_backings_preserve_distinct_owner_and_target_scopes() {
+    use crate::ifcdr::write::{prepare_resource, IfcdrWriteEntity, IfcdrWriteInput};
+    use crate::ifcdr::Point3;
+    let decoded = decode_json("blocks.json", &block_fixture()).unwrap();
+    let instance = *decoded.block_instances().first().unwrap();
+    let mut entity = instance.entity;
+    entity.entity_id = 2;
+    entity.scope_id = 21;
+    let prepared = prepare_resource(IfcdrWriteInput {
+        resource_id: decoded.id.clone(),
+        unit: decoded.unit,
+        next_entity_id: decoded.next,
+        scopes: decoded.scopes.clone(),
+        block_definitions: decoded.block_definitions.clone(),
+        layers: decoded.layers.clone(),
+        appearances: decoded.appearances.clone(),
+        overrides: decoded.overrides.clone(),
+        entities: vec![
+            IfcdrWriteEntity::BlockInstance(instance),
+            IfcdrWriteEntity::Line(IfcdrLineRow {
+                entity,
+                start: Point3::new(2., 0., 0.),
+                end: Point3::new(3., 0., 0.),
+            }),
+        ],
+    })
+    .unwrap();
+    assert_eq!(prepared.order(7), Some([3].as_slice()));
+    assert_eq!(prepared.order(21), Some([2].as_slice()));
+    let (proof, errors) = validate_resource(prepared).into_parts();
+    let proof = proof.unwrap_or_else(|| panic!("{errors:?}"));
+    let encoded = encode_json(&proof).unwrap();
+    let reloaded = decode_json(
+        "blocks.json",
+        &serde_json::from_slice(&encoded.bytes).unwrap(),
+    )
+    .unwrap();
+    crate::ifcdr::logical::test_support::assert_resource_eq(proof.loaded().resource(), &reloaded);
+    assert!(validate_resource(reloaded).validated().is_some());
+}
+
+#[test]
+fn block_physical_records_reject_null_partial_records_and_unknown_enum_codes() {
+    for (pointer, replacement) in [
+        ("/streams/blockInstanceStream/transform/0", Value::Null),
+        (
+            "/streams/blockInstanceStream/transform/0",
+            json!({"placement":{"origin":{"x":0,"y":0,"z":0}}}),
+        ),
+        (
+            "/streams/blockInstanceStream/transform/0",
+            json!({"scale":{"x":1,"y":1}}),
+        ),
+        (
+            "/streams/blockInstanceStream/transform/0",
+            json!({"rotation":null}),
+        ),
+        ("/scopeTable/0/kind", json!(3)),
+    ] {
+        let mut value = block_fixture();
+        *value.pointer_mut(pointer).unwrap() = replacement;
+        assert!(decode_json("blocks.json", &value).is_err(), "{pointer}");
+    }
+    for value in [json!(2), Value::Null] {
+        let mut input = block_fixture();
+        input["blockDefinitionTable"][0]["scaling"] = value;
+        assert!(decode_json("blocks.json", &input).is_err());
+    }
+    let mut value = block_fixture();
+    value["streams"]["blockInstanceStream"]
+        .as_object_mut()
+        .unwrap()
+        .remove("transform");
+    assert!(decode_json("blocks.json", &value).is_err());
+}
+
 fn spatial_fixture() -> Value {
     let mut value = fixture();
-    value["header"]["version"] = json!("0.8.0");
+    value["header"]["version"] = json!("0.9.0");
     value.as_object_mut().unwrap().remove("bounds");
     for scope in value["scopeTable"].as_array_mut().unwrap() {
-        scope["baseZ"] = json!(0);
         scope["bounds"] =
             json!({"minX":-100,"minY":-100,"minZ":-100,"maxX":100,"maxY":100,"maxZ":100});
     }
@@ -41,7 +159,7 @@ fn fixture() -> Value {
     let path = crate::conformance::bundled_conformance_root()
         .join("packages/valid/minimal-no-preservation/drawing.ifcdr.json");
     let mut value: Value = serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
-    value["header"]["version"] = json!("0.8.0");
+    value["header"]["version"] = json!("0.9.0");
     for entry in value["streamDirectory"]["streams"].as_array_mut().unwrap() {
         if entry["name"] == "polyline" {
             entry["schema"] = json!("ifccad.ifcdr.polyline.v4");
@@ -154,10 +272,7 @@ fn resource_encoder_preserves_multiple_scopes_and_cross_kind_order() {
     input.scopes.push(IfcdrScope {
         bounds: None,
         id: 7,
-        kind: 1,
-        name: "Paper".into(),
-        base: crate::ifcdr::Point3::new(1000., 2000., 0.0),
-        flags: 9,
+        kind: IfcdrScopeKind::PaperSpace,
     });
     input.polylines.entity.scopes[1] = 7;
     input.orders = vec![
@@ -187,11 +302,7 @@ fn resource_encoder_preserves_multiple_scopes_and_cross_kind_order() {
     .unwrap();
     assert_eq!(output.orders[0].entities, [3, 1, 2]);
     assert_eq!(output.orders[1].entities, [4]);
-    assert_eq!(
-        output.scopes[1].base,
-        crate::ifcdr::Point3::new(1000., 2000., 0.)
-    );
-    assert_eq!(output.scopes[1].flags, 9);
+    assert_eq!(output.scopes[1].kind, IfcdrScopeKind::PaperSpace);
     assert_eq!(
         output.scopes[0].bounds,
         proof.loaded().resource().scopes[0].bounds
@@ -231,16 +342,14 @@ fn resource_preparation_needs_only_resource_data() {
     scopes.push(IfcdrScope {
         bounds: None,
         id: 7,
-        kind: 1,
-        name: "Other".into(),
-        base: crate::ifcdr::Point3::new(100., 200., 0.),
-        flags: 0,
+        kind: IfcdrScopeKind::PaperSpace,
     });
     let polyline = decoded.polylines();
     let polyline = polyline.get(0).unwrap();
     let mut poly_entity = polyline.entity();
     poly_entity.scope_id = 7;
     let input = IfcdrWriteInput {
+        block_definitions: vec![],
         resource_id: decoded.id.clone(),
         unit: decoded.unit,
         next_entity_id: 100,

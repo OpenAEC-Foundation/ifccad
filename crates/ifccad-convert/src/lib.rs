@@ -21,6 +21,7 @@ pub use import::{
 };
 
 mod options;
+mod units;
 pub use options::{
     ConversionGeometryTolerance, ConversionLossPolicy, ConversionToleranceError, ImportOptions,
 };

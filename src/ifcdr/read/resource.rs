@@ -54,7 +54,7 @@ impl<'a> IfcdrHeader<'a> {
         "openaec.ifcdr"
     }
     pub(crate) fn version(&self) -> &str {
-        "0.8.0"
+        "0.9.0"
     }
     pub(crate) fn unit(&self) -> &str {
         super::super::codec::json::unit_name(self.0.unit)
@@ -92,7 +92,19 @@ impl Validated<LoadedIfcdrResource> {
         IfcdrHeader(self.typed())
     }
     pub(crate) fn scopes(&self) -> impl ExactSizeIterator<Item = ScopeRef<'_>> {
-        self.typed().scopes.iter().map(|row| ScopeRef { row })
+        self.typed().scopes.iter().map(|row| match row.kind {
+            IfcdrScopeKind::ModelSpace => ScopeRef::ModelSpace(ModelSpaceRef { row }),
+            IfcdrScopeKind::PaperSpace => ScopeRef::PaperSpace(PaperSpaceRef { row }),
+            IfcdrScopeKind::BlockDefinition => ScopeRef::BlockDefinition(BlockDefinitionRef {
+                row,
+                definition: self
+                    .typed()
+                    .block_definitions
+                    .iter()
+                    .find(|d| d.scope_id == row.id)
+                    .expect("validated definition scope"),
+            }),
+        })
     }
     pub(crate) fn scope(&self, id: ScopeId) -> Option<ScopeRef<'_>> {
         self.scopes().find(|s| s.id() == id)
@@ -143,27 +155,87 @@ impl<'a> IfcdrBindings<'a> {
             .map(|row| AppearanceOverrideRef { row })
     }
 }
-pub struct ScopeRef<'a> {
-    row: &'a IfcdrScope,
+/// A coordinate scope whose kind is explicit rather than inferred from its ID.
+#[derive(Clone, Copy, Debug)]
+pub enum ScopeRef<'a> {
+    ModelSpace(ModelSpaceRef<'a>),
+    PaperSpace(PaperSpaceRef<'a>),
+    BlockDefinition(BlockDefinitionRef<'a>),
 }
 impl<'a> ScopeRef<'a> {
+    fn row(&self) -> &'a IfcdrScope {
+        match self {
+            Self::ModelSpace(s) => s.row,
+            Self::PaperSpace(s) => s.row,
+            Self::BlockDefinition(s) => s.row,
+        }
+    }
+    pub fn id(&self) -> ScopeId {
+        ScopeId::new(self.row().id)
+    }
+    pub fn bounds(&self) -> Option<Bounds3d> {
+        self.row().bounds
+    }
+}
+#[derive(Clone, Copy, Debug)]
+pub struct ModelSpaceRef<'a> {
+    row: &'a IfcdrScope,
+}
+impl ModelSpaceRef<'_> {
     pub fn id(&self) -> ScopeId {
         ScopeId::new(self.row.id)
-    }
-    pub fn name(&self) -> &str {
-        &self.row.name
     }
     pub fn bounds(&self) -> Option<Bounds3d> {
         self.row.bounds
     }
-    pub fn base(&self) -> Point3 {
-        self.row.base
+}
+#[derive(Clone, Copy, Debug)]
+pub struct PaperSpaceRef<'a> {
+    row: &'a IfcdrScope,
+}
+impl PaperSpaceRef<'_> {
+    pub fn id(&self) -> ScopeId {
+        ScopeId::new(self.row.id)
     }
-    pub fn kind(&self) -> u32 {
-        self.row.kind
+    pub fn bounds(&self) -> Option<Bounds3d> {
+        self.row.bounds
     }
-    pub fn flags(&self) -> u32 {
-        self.row.flags
+}
+#[derive(Clone, Copy, Debug)]
+pub struct BlockDefinitionRef<'a> {
+    row: &'a IfcdrScope,
+    definition: &'a IfcdrBlockDefinition,
+}
+impl<'a> BlockDefinitionRef<'a> {
+    pub fn id(&self) -> ScopeId {
+        ScopeId::new(self.row.id)
+    }
+    pub fn scope_id(&self) -> ScopeId {
+        self.id()
+    }
+    pub fn bounds(&self) -> Option<Bounds3d> {
+        self.row.bounds
+    }
+    pub fn name(&self) -> &'a str {
+        &self.definition.name
+    }
+    pub fn base_point(&self) -> Point3 {
+        self.definition.base_point
+    }
+    pub fn description(&self) -> &'a str {
+        &self.definition.description
+    }
+    pub fn anonymous(&self) -> bool {
+        self.definition.anonymous
+    }
+    pub fn insertion_unit(&self) -> IfcdrLengthUnit {
+        self.definition.insertion_unit
+    }
+    pub fn explodable(&self) -> bool {
+        self.definition.explodable
+    }
+    pub fn scaling(&self) -> crate::ifcdr::BlockScaling {
+        self.definition.scaling
     }
 }
 pub(crate) struct LayerBindingRef<'a> {
@@ -256,7 +328,7 @@ mod tests {
         let resource = outcome.validated().unwrap();
 
         assert_eq!(resource.header().format(), "openaec.ifcdr");
-        assert_eq!(resource.header().version(), "0.8.0");
+        assert_eq!(resource.header().version(), "0.9.0");
         assert_eq!(resource.header().resource_id().as_str(), "drawing-main");
         assert_eq!(resource.header().unit(), "m");
         assert_eq!(resource.header().next_entity_id(), 5);
@@ -271,13 +343,13 @@ mod tests {
         let scopes = resource.scopes().collect::<Vec<_>>();
         assert_eq!(scopes.len(), 1);
         assert_eq!(scopes[0].id().get(), 0);
-        assert_eq!(scopes[0].name(), "ModelSpace");
+        assert!(matches!(scopes[0], ScopeRef::ModelSpace(_)));
         assert_eq!(resource.bindings().layers().count(), 2);
         assert_eq!(resource.bindings().appearances().count(), 4);
-        assert_eq!(
-            resource.scope(ScopeId::new(0)).expect("scope").name(),
-            "ModelSpace"
-        );
+        assert!(matches!(
+            resource.scope(ScopeId::new(0)).expect("scope"),
+            ScopeRef::ModelSpace(_)
+        ));
         assert_eq!(
             resource
                 .layer_binding(LayerId::new(1))
@@ -306,11 +378,13 @@ mod tests {
 
         assert_eq!(view.resource_id().as_str(), "drawing-main");
         assert_eq!(view.unit(), IfcdrLengthUnit::Metre);
-        assert_eq!(scope.name(), "ModelSpace");
+        assert!(matches!(scope, ScopeRef::ModelSpace(_)));
         assert_eq!(
             view.entities(scope.id())
                 .map(|entity| match entity {
                     crate::ifcdr::IfcdrEntityRef::Line(line) => line.entity_id().get(),
+                    crate::ifcdr::IfcdrEntityRef::BlockInstance(instance) =>
+                        instance.entity_id().get(),
                     crate::ifcdr::IfcdrEntityRef::Polyline(polyline) => {
                         polyline.entity_id().get()
                     }

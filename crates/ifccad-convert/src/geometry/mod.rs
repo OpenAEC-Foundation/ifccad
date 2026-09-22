@@ -1,3 +1,4 @@
+pub(crate) mod blocks;
 pub(crate) mod numeric;
 use cadcodec::types::Matrix3;
 use cadcodec::Vector3;
@@ -53,7 +54,7 @@ fn components(plane: PlanePlacement) -> ([f64; 3], [f64; 3], [f64; 3]) {
 fn dot(a: [f64; 3], b: [f64; 3]) -> BigRational {
     a.into_iter().zip(b).map(|(a, b)| exact(a) * exact(b)).sum()
 }
-fn stored_normal(plane: PlanePlacement) -> Option<Vector3> {
+pub(crate) fn stored_normal(plane: PlanePlacement) -> Option<Vector3> {
     let (_, x, y) = components(plane);
     let mut n = [0.0; 3];
     for (i, component) in n.iter_mut().enumerate() {

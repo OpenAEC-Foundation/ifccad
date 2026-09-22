@@ -51,6 +51,8 @@ import/export terminology.
 - exactly one model layout on export;
 - finite XYZ lines and straight lightweight polylines in placed planes, with
   unsupported entities diagnosed rather than approximated;
+- resource-local block definitions and nested ordinary instances, including
+  nonzero base points, signed scale and occurrence-space accuracy checks;
 - IFCDR draw order and source-entity-to-target-handle mapping;
 - IFCDR length units;
 - layers, visibility, color (including named layer colors), line pattern, line
@@ -62,11 +64,12 @@ The converter accepts only a `DrawingRef` from a strictly validated package.
 It does not load package paths or raw JSON and does not repeat package
 validation.
 
-The active package reader/writer contract is IFCDR 0.8.0 with IFCX overlay
-0.10.0. `DrawingRepresentationRef` exposes the drawing resource through
+The active package reader/writer contract is IFCDR 0.9.0 with IFCX overlay
+0.11.0. `DrawingRepresentationRef` exposes the drawing resource through
 `representation().resource()`; model and paper layouts share their Drawing's
-representation and select scopes within it. The writer currently emits one
-model layout and defaults to `resources/drawing.ifcdr.json`; callers can select
+representation and select scopes within it. The core writer supports minimal
+paper scopes/layouts, but CAD conversion currently selects one model layout.
+External storage defaults to `resources/drawing.ifcdr.json`; callers can select
 `DrawingResourceStorage::Inline` on the drawing builder. Validated inline and
 external drawings use the same conversion API. Inline IFCPR reading does not
 add preservation transfer to the converter. Unsupported IFCDR
@@ -79,12 +82,17 @@ its existing loss policy. See the
 [compatibility matrix](../../conformance/next/COMPATIBILITY.md) for the separate
 limits of reading, conversion, and IFCPR validation.
 
-Multiple layouts, paperspace export, blocks, curved and solid geometry, other native export
+Multiple-layout CAD conversion, paperspace export, XREFs, block arrays/attributes,
+dynamic block behavior, curved and solid geometry, other native export
 entity kinds, and preservation transfer are deliberately deferred. The pinned
 cadcodec coverage contract is documented in
 [`src/export/COVERAGE.md`](src/export/COVERAGE.md): every public source-model
 area must be represented, diagnosed, classified as non-semantic scaffolding,
 or rejected as structurally invalid.
+
+See [block codec limits](../../docs/geometry/block-cad-boundary.md) for the
+current DWG marker inconsistency, DXF description loss and tiny-scale target
+limitation. All are explicit boundaries; no heuristic repairs are applied.
 
 ## Exporting a `CadDocument`
 
@@ -214,9 +222,9 @@ coverage contracts for the precise boundary.
 The development example `size_baseline` compares controlled line/polyline
 drawings across external/inline IFCCAD, text DXF and normal DWG. It measures
 complete file bytes, checks exact recipe semantics and executes separate
-conversion chains with Reject. The current report uses cadcodec 0.5.4 at
-`2f2cd25832db298524fb5eb36ced5a438a877e95` with two explicit local DWG fixes;
-normal Cargo commands use the unmodified pin and still encounter the known
-DWG return-conversion failures. See the [patch setup](../../patches/cadcodec-upstream/README.md)
-and the [complete experiment report](../../docs/benchmarks/size-baseline-v1.md). Failed checks
+conversion chains with Reject. The current report uses the unmodified cadcodec
+revision `5b682ed66ea2c89be8142c8dd83d83774fc3de08`; the full primitive corpus and
+both repeat generations pass without a local override. This is separate from
+the block-specific DWG marker limitation. See the
+[complete experiment report](../../docs/benchmarks/size-baseline-v1.md). Failed checks
 produce an explicitly incomplete report; they do not change converter policy.

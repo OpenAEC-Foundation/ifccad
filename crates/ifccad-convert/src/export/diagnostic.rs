@@ -22,6 +22,10 @@ pub enum ExportAction {
 #[derive(Clone, Debug, PartialEq)]
 #[non_exhaustive]
 pub enum ExportLossReason {
+    BlockContentLoss {
+        definition: Handle,
+        affected_instances: Vec<Handle>,
+    },
     GeometryRoundedWithinTolerance {
         max_deviation_upper_bound: f64,
     },

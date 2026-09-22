@@ -1,9 +1,11 @@
 use super::physical::validate_physical;
 use crate::diagnostic::{PackageDiagnostic, PackageDiagnosticSeverity};
-use crate::ifcdr::geometry::PlanePlacementComponents;
+use crate::ifcdr::geometry::{BlockTransformComponents, PlanePlacementComponents};
 use crate::ifcdr::logical::*;
 use crate::ifcdr::read::decoded::*;
-use crate::ifcdr::{Bounds3d, Point3, Vector3};
+use crate::ifcdr::{
+    BlockScaling, Bounds3d, IfcdrLengthUnit, PlanePlacement, Point3, Scale3, Vector3,
+};
 use crate::ResourceId;
 use serde_json::Value;
 
@@ -77,10 +79,47 @@ pub(crate) fn decode_json(
             }
         })
         .collect();
+    let block_definitions = rows(value, "blockDefinitionTable")
+        .iter()
+        .enumerate()
+        .map(|(i, v)| {
+            let insertion_unit = v
+                .get("insertionUnit")
+                .map_or(Some(IfcdrLengthUnit::Unitless), |unit| {
+                    length_unit(unit.as_str().expect("physical unit string"))
+                });
+            if insertion_unit.is_none() {
+                errors.push(error(
+                    uri,
+                    format!("/blockDefinitionTable/{i}/insertionUnit"),
+                    "IFCCAD_IFCDR_UNIT_UNSUPPORTED",
+                    "unsupported insertion unit",
+                ));
+            }
+            IfcdrBlockDefinition {
+                scope_id: u32v(&v["scopeId"]),
+                name: v["name"].as_str().unwrap().into(),
+                base_point: v
+                    .get("basePoint")
+                    .map_or(Point3::new(0., 0., 0.), point_record),
+                description: v["description"].as_str().unwrap_or("").into(),
+                anonymous: v["anonymous"].as_bool().unwrap_or(false),
+                insertion_unit: insertion_unit.unwrap_or(IfcdrLengthUnit::Unitless),
+                explodable: v["explodable"].as_bool().unwrap_or(true),
+                scaling: match v["scaling"].as_u64().unwrap_or(0) {
+                    0 => BlockScaling::Any,
+                    1 => BlockScaling::Uniform,
+                    _ => unreachable!("physical scaling code"),
+                },
+            }
+        })
+        .collect();
     if !errors.is_empty() {
         return Err(errors);
     }
     let l = &value["streams"]["lineStream"];
+    let instances = &value["streams"]["blockInstanceStream"];
+    let instance_entities = entity(instances);
     let p = &value["streams"]["polylineStream"];
     let o = &value["streams"]["entityOrderStream"];
     let entries: Vec<u64> = values(
@@ -101,13 +140,24 @@ pub(crate) fn decode_json(
         id: id.unwrap(),
         unit: unit.unwrap(),
         next: value["header"]["nextEntityId"].as_u64().unwrap(),
+        block_definitions,
+        block_instances: (0..instance_entities.ids.len())
+            .map(|i| IfcdrBlockInstanceRow {
+                entity: instance_entities.get(i).expect("physical entity row"),
+                definition_scope_id: u32v(&instances["definitionScopeId"][i]),
+                transform: transform_record(&instances["transform"][i]),
+            })
+            .collect(),
         scopes: rows(value, "scopeTable")
             .iter()
             .map(|v| IfcdrScope {
                 id: u32v(&v["id"]),
-                kind: u32v(&v["kind"]),
-                name: v["name"].as_str().unwrap().into(),
-                base: Point3::new(num(&v["baseX"]), num(&v["baseY"]), num(&v["baseZ"])),
+                kind: match u32v(&v["kind"]) {
+                    0 => IfcdrScopeKind::ModelSpace,
+                    1 => IfcdrScopeKind::PaperSpace,
+                    2 => IfcdrScopeKind::BlockDefinition,
+                    _ => unreachable!("physical scope kind"),
+                },
                 bounds: (!v["bounds"].is_null()).then(|| Bounds3d {
                     min: Point3::new(
                         num(&v["bounds"]["minX"]),
@@ -120,7 +170,6 @@ pub(crate) fn decode_json(
                         num(&v["bounds"]["maxZ"]),
                     ),
                 }),
-                flags: u32v(&v["flags"]),
             })
             .collect(),
         layers: rows(value, "layerBindings")
@@ -176,6 +225,25 @@ pub(crate) fn decode_json(
             y: values(&p["y"], num),
         },
     })
+}
+fn point_record(v: &Value) -> Point3 {
+    Point3::new(num(&v["x"]), num(&v["y"]), num(&v["z"]))
+}
+fn transform_record(v: &Value) -> BlockTransformComponents {
+    BlockTransformComponents {
+        placement: v.get("placement").map_or_else(
+            || PlanePlacement::default().components(),
+            |p| PlanePlacementComponents {
+                origin: point_record(&p["origin"]),
+                x: Vector3::new(num(&p["X"]["x"]), num(&p["X"]["y"]), num(&p["X"]["z"])),
+                y: Vector3::new(num(&p["Y"]["x"]), num(&p["Y"]["y"]), num(&p["Y"]["z"])),
+            },
+        ),
+        rotation: v.get("rotation").map_or(0., num),
+        scale: v.get("scale").map_or_else(Scale3::default, |s| {
+            Scale3::new(num(&s["x"]), num(&s["y"]), num(&s["z"]))
+        }),
+    }
 }
 fn rows<'a>(root: &'a Value, key: &str) -> &'a [Value] {
     root[key].as_array().map(Vec::as_slice).unwrap_or(&[])

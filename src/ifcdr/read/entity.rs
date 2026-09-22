@@ -28,6 +28,9 @@ impl<'a> Iterator for EntityIterator<'a> {
             .get(id)
             .expect("validated ordered ID");
         Some(match location.kind {
+            IfcdrEntityKind::BlockInstance => IfcdrEntityRef::BlockInstance(BlockInstanceRef {
+                row: self.resource.typed().block_instances[location.row],
+            }),
             IfcdrEntityKind::Line => IfcdrEntityRef::Line(
                 self.resource
                     .streams()
@@ -54,6 +57,35 @@ impl ExactSizeIterator for EntityIterator<'_> {}
 pub enum IfcdrEntityRef<'a> {
     Line(Line),
     Polyline(PolylineRef<'a>),
+    BlockInstance(BlockInstanceRef),
+}
+/// A validated insertion row; no implicit explosion of definition geometry.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct BlockInstanceRef {
+    row: crate::ifcdr::logical::IfcdrBlockInstanceRow,
+}
+impl BlockInstanceRef {
+    pub fn entity_id(&self) -> crate::ifcdr::EntityId {
+        crate::ifcdr::EntityId::new(self.row.entity.entity_id).unwrap()
+    }
+    pub fn scope_id(&self) -> ScopeId {
+        ScopeId::new(self.row.entity.scope_id)
+    }
+    pub fn definition_scope_id(&self) -> ScopeId {
+        ScopeId::new(self.row.definition_scope_id)
+    }
+    pub fn layer_id(&self) -> crate::ifcdr::LayerId {
+        self.row.entity.layer_id.into()
+    }
+    pub fn appearance_id(&self) -> crate::ifcdr::AppearanceId {
+        self.row.entity.appearance_id.into()
+    }
+    pub fn visible(&self) -> bool {
+        self.row.entity.visible
+    }
+    pub fn transform(&self) -> crate::ifcdr::BlockTransform {
+        crate::ifcdr::BlockTransform::from_validated_components(self.row.transform)
+    }
 }
 pub(crate) struct IfcdrEntities<'a> {
     resource: &'a ValidatedIfcdrResource,
@@ -101,6 +133,9 @@ mod tests {
             .map(|entity| match entity {
                 IfcdrEntityRef::Line(line) => ("line", line.entity_id().get()),
                 IfcdrEntityRef::Polyline(polyline) => ("polyline", polyline.entity_id().get()),
+                IfcdrEntityRef::BlockInstance(instance) => {
+                    ("blockInstance", instance.entity_id().get())
+                }
             })
             .collect::<Vec<_>>();
 

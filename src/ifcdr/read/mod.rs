@@ -5,8 +5,8 @@ mod resource;
 mod streams;
 mod validation;
 
-pub use entity::{EntityIterator, IfcdrEntityRef};
-pub use resource::{IfcdrResourceRef, ScopeRef};
+pub use entity::{BlockInstanceRef, EntityIterator, IfcdrEntityRef};
+pub use resource::{BlockDefinitionRef, IfcdrResourceRef, ModelSpaceRef, PaperSpaceRef, ScopeRef};
 pub(crate) use resource::{LoadedIfcdrResource, ValidatedIfcdrResource};
 pub use streams::{Line, LocalPointIterator, PointIterator, PolylineRef, ScopePointIterator};
 pub(crate) use validation::validate_ifcdr;

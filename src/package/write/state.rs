@@ -24,12 +24,20 @@ pub(crate) struct LayerEntry {
 
 #[derive(Debug)]
 pub(crate) enum PendingEntity {
+    BlockInstance {
+        scope_id: u32,
+        entity_id: EntityId,
+        appearance_id: AppearanceId,
+        definition: super::BlockInstanceDefinition,
+    },
     Line {
+        scope_id: u32,
         entity_id: EntityId,
         appearance_id: AppearanceId,
         definition: LineDefinition,
     },
     Polyline {
+        scope_id: u32,
         entity_id: EntityId,
         appearance_id: AppearanceId,
         definition: PolylineDefinition,
@@ -43,6 +51,10 @@ pub(crate) struct PackageState {
 
 #[derive(Debug)]
 pub(crate) struct DrawingState {
+    pub(crate) scopes: Vec<crate::ifcdr::logical::IfcdrScope>,
+    pub(crate) block_definitions: Vec<crate::ifcdr::logical::IfcdrBlockDefinition>,
+    pub(crate) block_names: BTreeMap<String, u32>,
+    pub(crate) paper_layouts: Vec<(u32, String)>,
     pub(crate) options: DrawingOptions,
     pub(crate) storage: super::DrawingResourceStorage,
     pub(crate) token: u64,

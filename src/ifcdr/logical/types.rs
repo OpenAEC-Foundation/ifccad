@@ -1,13 +1,36 @@
 use crate::ifcdr::{Bounds3d, Point2, Point3};
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum IfcdrScopeKind {
+    ModelSpace,
+    PaperSpace,
+    BlockDefinition,
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub(crate) struct IfcdrScope {
     pub id: u32,
-    pub kind: u32,
-    pub name: String,
-    pub base: Point3,
+    pub kind: IfcdrScopeKind,
     pub bounds: Option<Bounds3d>,
-    pub flags: u32,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub(crate) struct IfcdrBlockDefinition {
+    pub scope_id: u32,
+    pub name: String,
+    pub base_point: Point3,
+    pub description: String,
+    pub anonymous: bool,
+    pub insertion_unit: crate::ifcdr::IfcdrLengthUnit,
+    pub explodable: bool,
+    pub scaling: crate::ifcdr::BlockScaling,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) struct IfcdrBlockInstanceRow {
+    pub entity: IfcdrEntityRow,
+    pub definition_scope_id: u32,
+    pub transform: crate::ifcdr::geometry::BlockTransformComponents,
 }
 #[derive(Clone, Debug, PartialEq)]
 pub(crate) struct IfcdrLayerBinding {
@@ -118,6 +141,24 @@ pub(crate) fn length_unit(value: &str) -> Option<crate::ifcdr::IfcdrLengthUnit> 
         "km" => Kilometre,
         "in" => Inch,
         "ft" => Foot,
+        "mi" => Mile,
+        "microin" => Microinch,
+        "mil" => Mil,
+        "yd" => Yard,
+        "angstrom" => Angstrom,
+        "nm" => Nanometre,
+        "um" => Micrometre,
+        "dm" => Decimetre,
+        "dam" => Decametre,
+        "hm" => Hectometre,
+        "Gm" => Gigametre,
+        "au" => AstronomicalUnit,
+        "ly" => LightYear,
+        "pc" => Parsec,
+        "usSurveyFoot" => UsSurveyFoot,
+        "usSurveyInch" => UsSurveyInch,
+        "usSurveyYard" => UsSurveyYard,
+        "usSurveyMile" => UsSurveyMile,
         _ => return None,
     })
 }

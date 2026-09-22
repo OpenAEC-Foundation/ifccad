@@ -6,6 +6,15 @@ pub(crate) fn assert_resource_eq<A: IfcdrResourceAccess, B: IfcdrResourceAccess>
     assert_eq!(a.unit(), b.unit());
     assert_eq!(a.next_entity_id(), b.next_entity_id());
     assert_eq!(a.scopes(), b.scopes());
+    assert_eq!(a.block_definitions(), b.block_definitions());
+    let (ai, bi) = (a.block_instances(), b.block_instances());
+    assert_eq!(ai.len(), bi.len());
+    assert_eq!(ai.is_empty(), bi.is_empty());
+    for row in 0..ai.len() {
+        assert_eq!(ai.get(row), bi.get(row));
+    }
+    assert!(ai.get(ai.len()).is_none());
+    assert!(bi.get(bi.len()).is_none());
     assert_eq!(a.layers(), b.layers());
     assert_eq!(a.appearances(), b.appearances());
     assert_eq!(a.overrides(), b.overrides());

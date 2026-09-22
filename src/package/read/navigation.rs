@@ -590,7 +590,10 @@ mod tests {
         assert_eq!(layout.path(), "drawing-main-layout-model");
         assert_eq!(layout.name(), "Model");
         assert_eq!(layout.kind(), DrawingLayoutKind::Model);
-        assert_eq!(layout.scope().name(), "ModelSpace");
+        assert!(matches!(
+            layout.scope(),
+            crate::ifcdr::ScopeRef::ModelSpace(_)
+        ));
 
         let representation = layout.representation();
         assert_eq!(representation.role(), "drawing");

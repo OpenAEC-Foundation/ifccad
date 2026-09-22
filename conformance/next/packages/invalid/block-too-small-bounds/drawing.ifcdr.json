@@ -1,0 +1,191 @@
+{
+  "header": {
+    "format": "openaec.ifcdr",
+    "version": "0.9.0",
+    "resourceId": "drawing-main",
+    "unit": "m",
+    "nextEntityId": 4
+  },
+  "scopeTable": [
+    {
+      "id": 7,
+      "kind": 0,
+      "bounds": {
+        "minY": -10,
+        "maxX": 10,
+        "maxY": 0,
+        "maxZ": 10,
+        "minZ": -10,
+        "minX": -10
+      }
+    },
+    {
+      "id": 21,
+      "kind": 2,
+      "bounds": {
+        "minY": 1,
+        "maxX": 0,
+        "maxY": 1,
+        "maxZ": 0,
+        "minZ": 0,
+        "minX": 0
+      }
+    }
+  ],
+  "blockDefinitionTable": [
+    {
+      "scopeId": 21,
+      "name": "Door"
+    }
+  ],
+  "layerBindings": [
+    {
+      "id": 0,
+      "ifcxLayer": "layer-0"
+    }
+  ],
+  "appearanceBindings": [
+    {
+      "id": 0,
+      "ifcxAppearance": null,
+      "colorMode": 0,
+      "opacityMode": 0,
+      "linePatternMode": 0,
+      "lineWeightMode": 0,
+      "overrideId": null
+    }
+  ],
+  "streamDirectory": {
+    "version": "ifccad.ifcdr.streamDirectory.v1",
+    "streams": [
+      {
+        "name": "blockInstance",
+        "schema": "ifccad.ifcdr.blockInstance.v1",
+        "role": "object",
+        "count": 1,
+        "columns": [
+          "entityId",
+          "scopeId",
+          "definitionScopeId",
+          "transform",
+          "layerId",
+          "appearanceId"
+        ]
+      },
+      {
+        "name": "entityOrder",
+        "schema": "ifccad.ifcdr.entityOrder.v1",
+        "role": "order",
+        "count": 2,
+        "columns": [
+          "scopeId",
+          "entryOffset",
+          "entryCount"
+        ],
+        "children": [
+          "entityOrderEntry"
+        ]
+      },
+      {
+        "name": "entityOrderEntry",
+        "schema": "ifccad.ifcdr.entityOrderEntry.v1",
+        "role": "child",
+        "count": 2,
+        "columns": [
+          "entityId"
+        ],
+        "parent": "entityOrder"
+      },
+      {
+        "schema": "ifccad.ifcdr.line.v3",
+        "role": "object",
+        "name": "line",
+        "columns": [
+          "entityId",
+          "scopeId",
+          "x1",
+          "y1",
+          "x2",
+          "y2",
+          "layerId",
+          "appearanceId"
+        ],
+        "count": 1
+      }
+    ]
+  },
+  "streams": {
+    "blockInstanceStream": {
+      "count": 1,
+      "entityId": [
+        3
+      ],
+      "scopeId": [
+        7
+      ],
+      "definitionScopeId": [
+        21
+      ],
+      "transform": [
+        {
+          "rotation": 0
+        }
+      ],
+      "layerId": [
+        0
+      ],
+      "appearanceId": [
+        0
+      ]
+    },
+    "entityOrderStream": {
+      "count": 2,
+      "scopeId": [
+        7,
+        21
+      ],
+      "entryOffset": [
+        0,
+        1
+      ],
+      "entryCount": [
+        1,
+        1
+      ]
+    },
+    "entityOrderEntryStream": {
+      "count": 2,
+      "entityId": [
+        3,
+        1
+      ]
+    },
+    "lineStream": {
+      "x2": [
+        0
+      ],
+      "y1": [
+        1
+      ],
+      "scopeId": [
+        21
+      ],
+      "x1": [
+        0
+      ],
+      "layerId": [
+        0
+      ],
+      "count": 1,
+      "y2": [
+        1
+      ],
+      "entityId": [
+        1
+      ],
+      "appearanceId": [
+        0
+      ]
+    }
+  }
+}

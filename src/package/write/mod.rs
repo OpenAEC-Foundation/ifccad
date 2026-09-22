@@ -14,10 +14,12 @@ mod types;
 pub use artifact::EncodedPackage;
 pub use builder::{
     DrawingAppearances, DrawingBuilder, DrawingLayers, ModelSpaceBuilder, PackageBuilder,
+    ScopeEntitiesBuilder,
 };
 pub use error::{PackageBuildError, PackageWriteError};
 pub use types::{
-    AppearanceColor, AppearanceDefinition, AppearanceKey, AppearanceMode, DrawingOptions,
-    DrawingResourceStorage, EntityAppearance, LayerDefinition, LayerKey, LineDefinition,
-    LinePatternDefinition, PackageOptions, PolylineDefinition,
+    AppearanceColor, AppearanceDefinition, AppearanceKey, AppearanceMode, BlockDefinitionKey,
+    BlockDefinitionOptions, BlockInstanceDefinition, DrawingOptions, DrawingResourceStorage,
+    EntityAppearance, LayerDefinition, LayerKey, LineDefinition, LinePatternDefinition,
+    PackageOptions, PaperSpaceKey, PolylineDefinition,
 };

@@ -1,6 +1,6 @@
 use super::mapping::canonical_registry;
 use crate::ifcdr::logical::*;
-use crate::ifcdr::{Bounds3d, IfcdrLengthUnit, PlanePlacement};
+use crate::ifcdr::{BlockScaling, Bounds3d, IfcdrLengthUnit, PlanePlacement, Scale3};
 use crate::ResourceId;
 use serde_json::{json, Map, Value};
 use sha2::{Digest, Sha256};
@@ -58,6 +58,35 @@ pub(crate) fn encode_json<R: IfcdrResourceAccess>(
             .collect();
         let row_count;
         match schema.name() {
+            "blockInstance" => {
+                let instances = r.block_instances();
+                row_count = count(instances.len())?;
+                for i in 0..instances.len() {
+                    let instance = instances.get(i).expect("validated block instance row");
+                    common(&mut columns, instance.entity);
+                    push(
+                        &mut columns,
+                        "definitionScopeId",
+                        instance.definition_scope_id,
+                    );
+                    let t = instance.transform;
+                    let mut transform = Map::new();
+                    if t.placement != PlanePlacement::default().components() {
+                        let p = t.placement;
+                        transform.insert("placement".into(),json!({"origin":{"x":p.origin.x(),"y":p.origin.y(),"z":p.origin.z()},"X":{"x":p.x.x(),"y":p.x.y(),"z":p.x.z()},"Y":{"x":p.y.x(),"y":p.y.y(),"z":p.y.z()}}));
+                    }
+                    if t.rotation != 0. {
+                        transform.insert("rotation".into(), json!(t.rotation));
+                    }
+                    if t.scale != Scale3::default() {
+                        transform.insert(
+                            "scale".into(),
+                            json!({"x":t.scale.x(),"y":t.scale.y(),"z":t.scale.z()}),
+                        );
+                    }
+                    push(&mut columns, "transform", Value::Object(transform));
+                }
+            }
             "line" => {
                 let lines = r.lines();
                 row_count = count(lines.len())?;
@@ -177,8 +206,9 @@ pub(crate) fn encode_json<R: IfcdrResourceAccess>(
         streams.insert(schema.payload_key().into(), Value::Object(columns));
     }
     let root = json!({
-        "header":{"format":"openaec.ifcdr","version":"0.8.0","resourceId":r.resource_id(),"unit":unit_name(r.unit()),"nextEntityId":r.next_entity_id()},
-        "scopeTable":r.scopes().iter().map(|s| json!({"id":s.id,"kind":s.kind,"name":s.name,"baseX":s.base.x(),"baseY":s.base.y(),"baseZ":s.base.z(),"bounds":s.bounds.map(bounds_json),"flags":s.flags})).collect::<Vec<_>>(),
+        "header":{"format":"openaec.ifcdr","version":"0.9.0","resourceId":r.resource_id(),"unit":unit_name(r.unit()),"nextEntityId":r.next_entity_id()},
+        "scopeTable":r.scopes().iter().map(|s| json!({"id":s.id,"kind":match s.kind {IfcdrScopeKind::ModelSpace=>0,IfcdrScopeKind::PaperSpace=>1,IfcdrScopeKind::BlockDefinition=>2},"bounds":s.bounds.map(bounds_json)})).collect::<Vec<_>>(),
+        "blockDefinitionTable":r.block_definitions().iter().map(|d| json!({"scopeId":d.scope_id,"name":d.name,"basePoint":{"x":d.base_point.x(),"y":d.base_point.y(),"z":d.base_point.z()},"description":d.description,"anonymous":d.anonymous,"insertionUnit":unit_name(d.insertion_unit),"explodable":d.explodable,"scaling":match d.scaling {BlockScaling::Any=>0,BlockScaling::Uniform=>1}})).collect::<Vec<_>>(),
         "layerBindings":r.layers().iter().map(|l| json!({"id":l.id,"ifcxLayer":l.ifcx_layer})).collect::<Vec<_>>(),
         "appearanceBindings":r.appearances().iter().map(|a| json!({"id":a.id,"ifcxAppearance":a.ifcx_appearance,"colorMode":a.modes[0],"opacityMode":a.modes[1],"linePatternMode":a.modes[2],"lineWeightMode":a.modes[3],"overrideId":a.override_id})).collect::<Vec<_>>(),
         "appearanceOverrides":r.overrides().iter().map(|o| json!({"id":o.id,"color":o.color.as_ref().map(color_json),"opacity":o.opacity,"lineWeight":o.line_weight,"ifcxLinePattern":o.ifcx_line_pattern})).collect::<Vec<_>>(),
@@ -214,6 +244,24 @@ pub(crate) fn unit_name(unit: IfcdrLengthUnit) -> &'static str {
         IfcdrLengthUnit::Kilometre => "km",
         IfcdrLengthUnit::Inch => "in",
         IfcdrLengthUnit::Foot => "ft",
+        IfcdrLengthUnit::Mile => "mi",
+        IfcdrLengthUnit::Microinch => "microin",
+        IfcdrLengthUnit::Mil => "mil",
+        IfcdrLengthUnit::Yard => "yd",
+        IfcdrLengthUnit::Angstrom => "angstrom",
+        IfcdrLengthUnit::Nanometre => "nm",
+        IfcdrLengthUnit::Micrometre => "um",
+        IfcdrLengthUnit::Decimetre => "dm",
+        IfcdrLengthUnit::Decametre => "dam",
+        IfcdrLengthUnit::Hectometre => "hm",
+        IfcdrLengthUnit::Gigametre => "Gm",
+        IfcdrLengthUnit::AstronomicalUnit => "au",
+        IfcdrLengthUnit::LightYear => "ly",
+        IfcdrLengthUnit::Parsec => "pc",
+        IfcdrLengthUnit::UsSurveyFoot => "usSurveyFoot",
+        IfcdrLengthUnit::UsSurveyInch => "usSurveyInch",
+        IfcdrLengthUnit::UsSurveyYard => "usSurveyYard",
+        IfcdrLengthUnit::UsSurveyMile => "usSurveyMile",
     }
 }
 

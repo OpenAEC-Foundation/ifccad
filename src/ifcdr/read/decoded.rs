@@ -50,6 +50,8 @@ pub(crate) struct DecodedIfcdrResource {
     pub unit: IfcdrLengthUnit,
     pub next: u64,
     pub scopes: Vec<IfcdrScope>,
+    pub block_definitions: Vec<IfcdrBlockDefinition>,
+    pub block_instances: Vec<IfcdrBlockInstanceRow>,
     pub layers: Vec<IfcdrLayerBinding>,
     pub appearances: Vec<IfcdrAppearanceBinding>,
     pub overrides: Vec<IfcdrAppearanceOverride>,
@@ -137,6 +139,13 @@ impl IfcdrPolylineAccess for DecodedPolyline<'_> {
 impl IfcdrResourceAccess for DecodedIfcdrResource {
     type Lines<'a> = DecodedLines<'a>;
     type Polylines<'a> = DecodedPolylines<'a>;
+    type BlockInstances<'a> = &'a [IfcdrBlockInstanceRow];
+    fn block_definitions(&self) -> &[IfcdrBlockDefinition] {
+        &self.block_definitions
+    }
+    fn block_instances(&self) -> Self::BlockInstances<'_> {
+        &self.block_instances
+    }
     fn resource_id(&self) -> &ResourceId {
         &self.id
     }

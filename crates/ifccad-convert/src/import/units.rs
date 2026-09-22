@@ -2,19 +2,8 @@ use cadcodec::CadDocument;
 use ifccad::ifcdr::IfcdrLengthUnit;
 
 pub(crate) fn apply_units(document: &mut CadDocument, unit: IfcdrLengthUnit) {
-    use IfcdrLengthUnit::{Centimetre, Foot, Inch, Kilometre, Metre, Millimetre, Unitless};
-
-    let (insertion_units, measurement) = match unit {
-        Unitless => (0, None),
-        Millimetre => (4, Some(1)),
-        Centimetre => (5, Some(1)),
-        Metre => (6, Some(1)),
-        Kilometre => (7, Some(1)),
-        Inch => (1, Some(0)),
-        Foot => (2, Some(0)),
-    };
-    document.header.insertion_units = insertion_units;
-    if let Some(measurement) = measurement {
+    document.header.insertion_units = crate::units::cad_code(unit);
+    if let Some(measurement) = crate::units::measurement(unit) {
         document.header.measurement = measurement;
     }
 }
@@ -26,6 +15,19 @@ mod tests {
     use ifccad::ifcdr::IfcdrLengthUnit::{
         Centimetre, Foot, Inch, Kilometre, Metre, Millimetre, Unitless,
     };
+    #[test]
+    fn all_cad_unit_codes_roundtrip_separately_from_measurement_metadata() {
+        for code in 0..=24 {
+            let unit = crate::units::from_cad_code(code).unwrap();
+            let mut document = CadDocument::new();
+            document.header.measurement = 1;
+            apply_units(&mut document, unit);
+            assert_eq!(document.header.insertion_units, code);
+            if crate::units::measurement(unit).is_none() {
+                assert_eq!(document.header.measurement, 1);
+            }
+        }
+    }
 
     #[test]
     fn maps_every_ifcdr_unit_to_cadcodec_header_semantics() {

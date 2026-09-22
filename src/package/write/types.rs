@@ -1,6 +1,50 @@
 use crate::ifcdr::{IfcdrLengthUnit, PlanePlacement, Point2, Point3};
 use crate::{PackageId, ResourceId};
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct BlockDefinitionKey {
+    pub(crate) builder_token: u64,
+    pub(crate) local_id: u32,
+}
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct PaperSpaceKey {
+    pub(crate) builder_token: u64,
+    pub(crate) local_id: u32,
+}
+
+/// Definition metadata belongs to the local IFCDR resource, not an IFCX node.
+#[derive(Clone, Debug, PartialEq)]
+pub struct BlockDefinitionOptions {
+    pub name: String,
+    pub base_point: Point3,
+    pub description: String,
+    pub anonymous: bool,
+    pub insertion_unit: IfcdrLengthUnit,
+    pub explodable: bool,
+    pub scaling: crate::ifcdr::BlockScaling,
+}
+impl BlockDefinitionOptions {
+    pub fn named(name: String) -> Self {
+        Self {
+            name,
+            base_point: Point3::new(0., 0., 0.),
+            description: String::new(),
+            anonymous: false,
+            insertion_unit: IfcdrLengthUnit::Unitless,
+            explodable: true,
+            scaling: crate::ifcdr::BlockScaling::Any,
+        }
+    }
+}
+#[derive(Clone, Debug, PartialEq)]
+pub struct BlockInstanceDefinition {
+    pub definition: BlockDefinitionKey,
+    pub transform: crate::ifcdr::BlockTransform,
+    pub layer: LayerKey,
+    pub appearance: EntityAppearance,
+    pub visible: bool,
+}
+
 #[derive(Clone, Debug)]
 /// Package-level identity and provenance written to the IFCX header.
 pub struct PackageOptions {

@@ -15,6 +15,9 @@ use std::collections::BTreeMap;
 
 #[derive(Default)]
 pub(crate) struct ExportContext {
+    pub(crate) block_instances: BTreeMap<cadcodec::Handle, super::blocks::ConvertedInstance>,
+    pub(crate) block_points: BTreeMap<cadcodec::Handle, Vec<crate::geometry::blocks::PairedPoint>>,
+    pub(crate) blocks: BTreeMap<cadcodec::Handle, ifccad::package::BlockDefinitionKey>,
     pub(crate) geometry: Option<crate::ConversionGeometryAssessment>,
     pub(crate) diagnostics: Vec<ExportDiagnostic>,
     pub(crate) layer_keys: BTreeMap<String, LayerKey>,
@@ -30,6 +33,11 @@ pub fn cad_document_to_package(
     let mut builder = PackageBuilder::new(package_options)?;
     let model_space = inspect_model_space(document)
         .map_err(|problems| ExportError::InvalidSourceStructure { problems })?;
+    let mut problems = super::blocks::inspect_markers(document);
+    problems.extend(super::blocks::inspect_references(document));
+    if !problems.is_empty() {
+        return Err(ExportError::InvalidSourceStructure { problems });
+    }
     debug_assert_eq!(
         model_space.block_handle,
         document.header.model_space_block_handle
@@ -61,12 +69,15 @@ pub fn cad_document_to_package(
             length_unit,
         })?;
         add_layers(document, &mut drawing, &mut context)?;
+        super::blocks::add_definitions(document, &mut drawing, &mut context)?;
         let structural_problems = add_entities(document, &model_space, &mut drawing, &mut context)?;
         if !structural_problems.is_empty() {
             return Err(ExportError::InvalidSourceStructure {
                 problems: structural_problems,
             });
         }
+        super::blocks::assess_occurrences(document, &mut context)?;
+        super::blocks::propagate_losses(document, &mut context);
     }
 
     scan_document_semantics(document, &mut context);

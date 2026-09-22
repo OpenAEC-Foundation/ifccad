@@ -9,9 +9,15 @@ pub(crate) const IFCCAD_IFCDR_GEOMETRY_INVALID: &str = "IFCCAD_IFCDR_GEOMETRY_IN
 pub(crate) const IFCCAD_IFCDR_POLYLINE_INVALID: &str = "IFCCAD_IFCDR_POLYLINE_INVALID";
 pub(crate) const IFCCAD_IFCDR_APPEARANCE_INVALID: &str = "IFCCAD_IFCDR_APPEARANCE_INVALID";
 pub(crate) const IFCCAD_IFCDR_STRUCTURE_INVALID: &str = "IFCCAD_IFCDR_STRUCTURE_INVALID";
+pub(crate) const IFCCAD_IFCDR_SCOPE_INVALID: &str = "IFCCAD_IFCDR_SCOPE_INVALID";
+pub(crate) const IFCCAD_IFCDR_BLOCK_INVALID: &str = "IFCCAD_IFCDR_BLOCK_INVALID";
+pub(crate) const IFCCAD_IFCDR_BLOCK_CYCLE: &str = "IFCCAD_IFCDR_BLOCK_CYCLE";
+pub(crate) const IFCCAD_IFCDR_NUMERICAL_PROOF_INCOMPLETE: &str =
+    "IFCCAD_IFCDR_NUMERICAL_PROOF_INCOMPLETE";
 
 #[derive(Clone, Debug)]
 pub(crate) struct IfcdrDiagnostic {
+    pub category: crate::diagnostic::PackageDiagnosticCategory,
     pub code: &'static str,
     pub resource_id: ResourceId,
     pub collection: &'static str,

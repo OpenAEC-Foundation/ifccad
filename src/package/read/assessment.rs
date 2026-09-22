@@ -27,6 +27,7 @@ pub enum AssessmentGapReason {
     UnavailableInput,
     ExecutionLimit,
     ContentNotAssessable,
+    NumericalProofIncomplete,
     PreservationSemanticsNotAssessed,
 }
 
@@ -78,6 +79,9 @@ impl PackageAssessment {
                 }
                 PackageDiagnosticCategory::ExecutionBlocked => {
                     Some(match diagnostic.code.as_str() {
+                        crate::ifcdr::logical::IFCCAD_IFCDR_NUMERICAL_PROOF_INCOMPLETE => {
+                            AssessmentGapReason::NumericalProofIncomplete
+                        }
                         super::codes::IFCCAD_PACKAGE_RESOURCE_LIMIT_EXCEEDED
                         | super::codes::IFCCAD_PACKAGE_TOTAL_LIMIT_EXCEEDED => {
                             AssessmentGapReason::ExecutionLimit

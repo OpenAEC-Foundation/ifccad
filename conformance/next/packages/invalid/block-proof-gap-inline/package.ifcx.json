@@ -1,0 +1,342 @@
+{
+  "data": [
+    {
+      "children": {
+        "Drawings": [
+          "drawing-main"
+        ]
+      },
+      "path": "drawing-set-main",
+      "type": "openaec:DrawingSet"
+    },
+    {
+      "attributes": {
+        "insertionBase": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "plotStyleMode": "colorDependent"
+      },
+      "children": {
+        "Layouts": [
+          "drawing-main-layout-model"
+        ],
+        "Representation": "drawing-representation-main"
+      },
+      "path": "drawing-main",
+      "type": "openaec:Drawing"
+    },
+    {
+      "attributes": {
+        "kind": "model",
+        "limitsCheckEnabled": false,
+        "name": "Model",
+        "paperSpaceLinetypeScaling": true,
+        "scopeId": 7,
+        "tabOrder": 0
+      },
+      "children": {
+        "Representation": "drawing-representation-main"
+      },
+      "path": "drawing-main-layout-model",
+      "type": "openaec:DrawingLayout"
+    },
+    {
+      "attributes": {
+        "resource": {
+          "format": "openaec.ifcdr",
+          "role": "drawing",
+          "version": "0.9.0",
+          "resourceId": "drawing-main",
+          "content": {
+            "header": {
+              "format": "openaec.ifcdr",
+              "version": "0.9.0",
+              "resourceId": "drawing-main",
+              "unit": "m",
+              "nextEntityId": 4
+            },
+            "scopeTable": [
+              {
+                "id": 7,
+                "kind": 0,
+                "bounds": {
+                  "minY": 0.7648421872844885,
+                  "maxX": -0.644217687237691,
+                  "maxY": 0.7648421872844885,
+                  "maxZ": 0,
+                  "minZ": 0,
+                  "minX": -0.644217687237691
+                }
+              },
+              {
+                "id": 21,
+                "kind": 2,
+                "bounds": {
+                  "minY": 1,
+                  "maxX": 0,
+                  "maxY": 1,
+                  "maxZ": 0,
+                  "minZ": 0,
+                  "minX": 0
+                }
+              }
+            ],
+            "blockDefinitionTable": [
+              {
+                "scopeId": 21,
+                "name": "Door"
+              }
+            ],
+            "layerBindings": [
+              {
+                "id": 0,
+                "ifcxLayer": "layer-0"
+              }
+            ],
+            "appearanceBindings": [
+              {
+                "id": 0,
+                "ifcxAppearance": null,
+                "colorMode": 0,
+                "opacityMode": 0,
+                "linePatternMode": 0,
+                "lineWeightMode": 0,
+                "overrideId": null
+              }
+            ],
+            "streamDirectory": {
+              "version": "ifccad.ifcdr.streamDirectory.v1",
+              "streams": [
+                {
+                  "name": "blockInstance",
+                  "schema": "ifccad.ifcdr.blockInstance.v1",
+                  "role": "object",
+                  "count": 1,
+                  "columns": [
+                    "entityId",
+                    "scopeId",
+                    "definitionScopeId",
+                    "transform",
+                    "layerId",
+                    "appearanceId"
+                  ]
+                },
+                {
+                  "name": "entityOrder",
+                  "schema": "ifccad.ifcdr.entityOrder.v1",
+                  "role": "order",
+                  "count": 2,
+                  "columns": [
+                    "scopeId",
+                    "entryOffset",
+                    "entryCount"
+                  ],
+                  "children": [
+                    "entityOrderEntry"
+                  ]
+                },
+                {
+                  "name": "entityOrderEntry",
+                  "schema": "ifccad.ifcdr.entityOrderEntry.v1",
+                  "role": "child",
+                  "count": 2,
+                  "columns": [
+                    "entityId"
+                  ],
+                  "parent": "entityOrder"
+                },
+                {
+                  "schema": "ifccad.ifcdr.line.v3",
+                  "role": "object",
+                  "name": "line",
+                  "columns": [
+                    "entityId",
+                    "scopeId",
+                    "x1",
+                    "y1",
+                    "x2",
+                    "y2",
+                    "layerId",
+                    "appearanceId"
+                  ],
+                  "count": 1
+                }
+              ]
+            },
+            "streams": {
+              "blockInstanceStream": {
+                "count": 1,
+                "entityId": [
+                  3
+                ],
+                "scopeId": [
+                  7
+                ],
+                "definitionScopeId": [
+                  21
+                ],
+                "transform": [
+                  {
+                    "rotation": 0.7
+                  }
+                ],
+                "layerId": [
+                  0
+                ],
+                "appearanceId": [
+                  0
+                ]
+              },
+              "entityOrderStream": {
+                "count": 2,
+                "scopeId": [
+                  7,
+                  21
+                ],
+                "entryOffset": [
+                  0,
+                  1
+                ],
+                "entryCount": [
+                  1,
+                  1
+                ]
+              },
+              "entityOrderEntryStream": {
+                "count": 2,
+                "entityId": [
+                  3,
+                  1
+                ]
+              },
+              "lineStream": {
+                "x2": [
+                  0
+                ],
+                "y1": [
+                  1
+                ],
+                "scopeId": [
+                  21
+                ],
+                "x1": [
+                  0
+                ],
+                "layerId": [
+                  0
+                ],
+                "count": 1,
+                "y2": [
+                  1
+                ],
+                "entityId": [
+                  1
+                ],
+                "appearanceId": [
+                  0
+                ]
+              }
+            }
+          }
+        },
+        "name": "Drawing"
+      },
+      "path": "drawing-representation-main",
+      "type": "openaec:DrawingRepresentation"
+    },
+    {
+      "attributes": {
+        "appearance": "appearance-default-solid",
+        "name": "0",
+        "visible": true
+      },
+      "path": "layer-0",
+      "type": "openaec:Layer"
+    },
+    {
+      "attributes": {
+        "appearance": "appearance-dashed-red",
+        "name": "A-WALL",
+        "visible": true
+      },
+      "path": "layer-a-wall",
+      "type": "openaec:Layer"
+    },
+    {
+      "attributes": {
+        "color": {
+          "mode": "explicit",
+          "value": {
+            "indexedColor": {
+              "index": 7,
+              "system": "ACI"
+            },
+            "rgb": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "linePattern": {
+          "mode": "explicit",
+          "value": "continuous"
+        },
+        "lineWeight": {
+          "mode": "explicit",
+          "value": 0.25
+        },
+        "name": "Default Solid",
+        "opacity": {
+          "mode": "explicit",
+          "value": 1.0
+        }
+      },
+      "path": "appearance-default-solid",
+      "type": "openaec:Appearance"
+    },
+    {
+      "attributes": {
+        "color": {
+          "mode": "explicit",
+          "value": {
+            "namedColor": {
+              "catalog": "RAL",
+              "name": "Traffic red"
+            },
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        },
+        "linePattern": {
+          "mode": "explicit",
+          "value": "dashed"
+        },
+        "lineWeight": {
+          "mode": "explicit",
+          "value": 0.18
+        },
+        "name": "Dashed Red",
+        "opacity": {
+          "mode": "explicit",
+          "value": 1.0
+        }
+      },
+      "path": "appearance-dashed-red",
+      "type": "openaec:Appearance"
+    }
+  ],
+  "header": {
+    "author": "IFC-CAD prototype",
+    "dataVersion": "0.5.0",
+    "id": "ifccad/examples/golden-minimal/golden_minimal.ifcx.json",
+    "ifcxVersion": "ifcx_alpha",
+    "timestamp": "2026-07-06T00:00:00Z"
+  },
+  "imports": []
+}

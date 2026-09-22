@@ -8,22 +8,40 @@ use ifccad_convert::*;
 use std::{
     fs,
     path::PathBuf,
+    sync::atomic::{AtomicU64, Ordering},
     time::{SystemTime, UNIX_EPOCH},
 };
 struct Temp(PathBuf);
 impl Temp {
     fn new() -> Self {
-        let p = std::env::temp_dir().join(format!(
-            "ifccad-spatial-{}-{}",
-            std::process::id(),
+        Self::at_tick(
             SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .unwrap()
-                .as_nanos()
+                .as_nanos(),
+        )
+    }
+    fn at_tick(tick: u128) -> Self {
+        static NEXT_TEMP_ID: AtomicU64 = AtomicU64::new(0);
+        let p = std::env::temp_dir().join(format!(
+            "ifccad-spatial-{}-{}-{}",
+            std::process::id(),
+            tick,
+            NEXT_TEMP_ID.fetch_add(1, Ordering::Relaxed)
         ));
         fs::create_dir(&p).unwrap();
         Self(p)
     }
+}
+#[test]
+fn temporary_directories_are_distinct_within_one_clock_tick() {
+    let tick = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    let first = Temp::at_tick(tick);
+    let second = Temp::at_tick(tick);
+    assert_ne!(first.0, second.0);
 }
 impl Drop for Temp {
     fn drop(&mut self) {
@@ -258,6 +276,7 @@ fn spatial_geometry_crosses_dxf_and_dwg_and_strict_package_readers() {
             .entities(layout.scope().id())
             .flat_map(|e| match e {
                 IfcdrEntityRef::Line(l) => vec![l.start(), l.end()],
+                IfcdrEntityRef::BlockInstance(_) => panic!("primitive-only spatial fixture"),
                 IfcdrEntityRef::Polyline(p) => {
                     p.scope_points().collect::<Result<Vec<_>, _>>().unwrap()
                 }

@@ -242,3 +242,122 @@ fn upstream_drawing_variables_are_reported_as_unsupported_objects() {
         Err(ifccad_convert::ExportError::LossRejected { .. })
     ));
 }
+
+#[test]
+fn newly_exposed_layer_description_is_reported_without_dropping_geometry() {
+    let mut document = CadDocument::new();
+    document.layers.get_mut("0").unwrap().description = "Draagconstructie".into();
+    document.add_entity(EntityType::Line(Line::new())).unwrap();
+    let outcome =
+        cad_document_to_package(&document, package_options(), ExportOptions::default()).unwrap();
+    assert_eq!(outcome.entity_mapping().len(), 1);
+    assert!(outcome.diagnostics().iter().any(|d| {
+        d.source() == &ExportDiagnosticSource::Layer { name: "0".into() }
+            && d.action() == ExportAction::PartiallyExported
+            && d.reasons()
+                .contains(&ExportLossReason::UnsupportedSemantic {
+                    name: "layer.description".into(),
+                })
+    }));
+    assert_rejected(&document);
+}
+
+#[test]
+fn newly_exposed_table_fields_are_reported_even_on_bootstrap_records() {
+    for (table, change) in [("line_types", 0), ("text_styles", 1), ("block_records", 2)] {
+        let mut document = CadDocument::new();
+        match change {
+            0 => {
+                document
+                    .line_types
+                    .get_mut("Continuous")
+                    .unwrap()
+                    .xref_block_record_handle = Handle::new(0xB01)
+            }
+            1 => {
+                document
+                    .text_styles
+                    .get_mut("Standard")
+                    .unwrap()
+                    .xref_block_record_handle = Handle::new(0xB01)
+            }
+            _ => {
+                document
+                    .block_records
+                    .get_mut("*Model_Space")
+                    .unwrap()
+                    .flags
+                    .is_xref_unloaded = true
+            }
+        }
+        let outcome =
+            cad_document_to_package(&document, package_options(), ExportOptions::default())
+                .unwrap();
+        assert!(
+            outcome.diagnostics().iter().any(|d| d.reasons().contains(
+                &ExportLossReason::UnsupportedTableRecords {
+                    kind: table.into(),
+                    count: 1
+                }
+            )),
+            "{table}"
+        );
+        assert_rejected(&document);
+    }
+}
+
+#[test]
+fn inventory_exposes_layer_extension_dictionary_relationships() {
+    let mut document = CadDocument::new();
+    let layer = document.layers.get("0").unwrap().handle;
+    document.ensure_extension_dictionary(layer);
+    let outcome =
+        cad_document_to_package(&document, package_options(), ExportOptions::default()).unwrap();
+    assert!(outcome.diagnostics().iter().any(|d| d.reasons().contains(
+        &ExportLossReason::UnsupportedCollection {
+            kind: "inventory.additional_relationships".into(),
+            count: 1
+        }
+    )));
+    assert_rejected(&document);
+}
+
+#[test]
+fn inventory_reports_extended_data_not_represented_by_the_typed_layer() {
+    let mut source = CadDocument::new();
+    source.layers.get_mut("0").unwrap().description = "Stored description".into();
+    let bytes = cadcodec::DwgWriter::write_to_vec(&source).unwrap();
+    let mut document = cadcodec::DwgReader::from_stream(std::io::Cursor::new(bytes))
+        .read()
+        .unwrap();
+    assert_eq!(
+        document.layers.get("0").unwrap().description,
+        "Stored description"
+    );
+    // The public typed field no longer accounts for the retained EED payload.
+    document.layers.get_mut("0").unwrap().description.clear();
+    let outcome =
+        cad_document_to_package(&document, package_options(), ExportOptions::default()).unwrap();
+    assert!(outcome
+        .diagnostics()
+        .iter()
+        .any(|d| d.reasons().iter().any(|r| {
+            matches!(r, ExportLossReason::UnsupportedCollection { kind, count }
+            if kind == "inventory.non_entity_extended_data" && *count > 0)
+        })));
+    assert_rejected(&document);
+}
+
+fn assert_rejected(document: &CadDocument) {
+    assert!(matches!(
+        cad_document_to_package(
+            document,
+            package_options(),
+            ExportOptions {
+                loss_policy: ifccad_convert::ExportLossPolicy::Reject,
+                ..Default::default()
+            }
+        ),
+        Err(ifccad_convert::ExportError::LossRejected { .. })
+    ));
+}

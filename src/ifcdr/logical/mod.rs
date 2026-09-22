@@ -1,4 +1,7 @@
 mod access;
+mod block_bounds;
+mod blocks;
+pub(crate) use blocks::BlockGraph;
 mod diagnostic;
 mod types;
 mod validation;

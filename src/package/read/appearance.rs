@@ -357,7 +357,7 @@ fn validate_layer_names(
         else {
             continue;
         };
-        let normalized = name.to_lowercase();
+        let normalized = crate::ifcdr::names::name_key(name);
         if let Some((first_id, first_path)) = first_by_name.get(&normalized) {
             diagnostics.push(PackageDiagnostic {
                 category: crate::diagnostic::PackageDiagnosticCategory::ContractViolation,

@@ -7,6 +7,8 @@ struct TestResource {
     id: ResourceId,
     next: u64,
     scopes: Vec<IfcdrScope>,
+    definitions: Vec<IfcdrBlockDefinition>,
+    instances: Vec<IfcdrBlockInstanceRow>,
     layers: Vec<IfcdrLayerBinding>,
     appearances: Vec<IfcdrAppearanceBinding>,
     overrides: Vec<IfcdrAppearanceOverride>,
@@ -61,6 +63,13 @@ impl IfcdrPolylineAccess for Polyline<'_> {
     }
 }
 impl IfcdrResourceAccess for TestResource {
+    type BlockInstances<'a> = &'a [IfcdrBlockInstanceRow];
+    fn block_instances(&self) -> Self::BlockInstances<'_> {
+        &self.instances
+    }
+    fn block_definitions(&self) -> &[IfcdrBlockDefinition] {
+        &self.definitions
+    }
     type Lines<'a> = Lines<'a>;
     type Polylines<'a> = Polylines<'a>;
     fn resource_id(&self) -> &ResourceId {
@@ -96,6 +105,8 @@ impl IfcdrResourceAccess for TestResource {
 }
 fn line_candidate() -> TestResource {
     TestResource {
+        definitions: vec![],
+        instances: vec![],
         id: ResourceId::new("drawing").unwrap(),
         next: 2,
         scopes: vec![IfcdrScope {
@@ -104,10 +115,7 @@ fn line_candidate() -> TestResource {
                 max: Point3::new(1., 1., 0.),
             }),
             id: 0,
-            kind: 0,
-            name: "Model".into(),
-            base: crate::ifcdr::Point3::new(0., 0., 0.0),
-            flags: 0,
+            kind: IfcdrScopeKind::ModelSpace,
         }],
         layers: vec![IfcdrLayerBinding {
             id: 0,
@@ -137,6 +145,266 @@ fn line_candidate() -> TestResource {
             entities: vec![1],
         }],
     }
+}
+
+fn block_candidate() -> TestResource {
+    let mut r = line_candidate();
+    let mut definition_scope = r.scopes[0].clone();
+    definition_scope.id = 21;
+    definition_scope.kind = IfcdrScopeKind::BlockDefinition;
+    r.scopes.push(definition_scope);
+    r.lines[0].entity.scope_id = 21;
+    r.definitions.push(IfcdrBlockDefinition {
+        scope_id: 21,
+        name: "Door".into(),
+        base_point: Point3::new(0., 0., 0.),
+        description: String::new(),
+        anonymous: false,
+        insertion_unit: IfcdrLengthUnit::Unitless,
+        explodable: true,
+        scaling: crate::ifcdr::BlockScaling::Any,
+    });
+    r.instances.push(IfcdrBlockInstanceRow {
+        entity: IfcdrEntityRow {
+            entity_id: 2,
+            scope_id: 0,
+            layer_id: 0,
+            appearance_id: 0,
+            visible: false,
+        },
+        definition_scope_id: 21,
+        transform: crate::ifcdr::BlockTransform::default().components(),
+    });
+    r.orders[0].entities = vec![2];
+    r.orders.push(IfcdrScopeOrder {
+        scope_id: 21,
+        entities: vec![1],
+    });
+    r.next = 3;
+    r
+}
+
+#[test]
+fn block_graph_validates_every_definition_and_signed_uniformity() {
+    assert!(codes(block_candidate()).is_empty());
+    for change in [
+        "zero_model",
+        "two_models",
+        "missing_definition",
+        "duplicate_definition",
+        "wrong_definition_kind",
+        "missing_target",
+        "duplicate_name",
+        "uniform_reflection",
+        "unused_cycle",
+    ] {
+        let mut r = block_candidate();
+        match change {
+            "zero_model" => r.scopes[0].kind = IfcdrScopeKind::PaperSpace,
+            "two_models" => r.scopes.push(IfcdrScope {
+                id: 99,
+                kind: IfcdrScopeKind::ModelSpace,
+                bounds: None,
+            }),
+            "missing_definition" => r.definitions.clear(),
+            "duplicate_definition" => r.definitions.push(r.definitions[0].clone()),
+            "wrong_definition_kind" => r.scopes[1].kind = IfcdrScopeKind::PaperSpace,
+            "missing_target" => r.instances[0].definition_scope_id = 99,
+            "duplicate_name" => {
+                let mut d = r.definitions[0].clone();
+                d.scope_id = 22;
+                d.name = "DOOR".into();
+                r.definitions.push(d);
+                r.scopes.push(IfcdrScope {
+                    id: 22,
+                    kind: IfcdrScopeKind::BlockDefinition,
+                    bounds: None,
+                });
+            }
+            "uniform_reflection" => {
+                r.definitions[0].scaling = crate::ifcdr::BlockScaling::Uniform;
+                r.instances[0].transform.scale = crate::ifcdr::Scale3::new(-1., 1., 1.);
+            }
+            "unused_cycle" => {
+                r.instances[0].entity.scope_id = 21;
+                r.orders[0].entities.clear();
+                r.scopes[0].bounds = None;
+                r.orders[1].entities.push(2);
+            }
+            _ => unreachable!(),
+        }
+        assert!(codes(r).iter().any(|c| c.starts_with("IFCCAD_IFCDR_BLOCK_") || *c == "IFCCAD_IFCDR_SCOPE_INVALID"),"{change}");
+    }
+}
+
+#[test]
+fn block_instance_identity_is_global_and_order_is_owned_by_inserting_scope() {
+    let mut r = block_candidate();
+    r.instances[0].entity.entity_id = 1;
+    assert!(codes(r).contains(&IFCCAD_IFCDR_ENTITY_ID_DUPLICATE));
+    let mut r = block_candidate();
+    r.orders[0].entities = vec![1];
+    r.orders[1].entities = vec![2];
+    assert!(codes(r).contains(&IFCCAD_IFCDR_ENTITY_ORDER_INVALID));
+}
+
+#[test]
+fn block_bounds_empty_instances_and_nonzero_base_follow_evaluated_geometry() {
+    let mut empty = block_candidate();
+    empty.lines.clear();
+    empty.orders[1].entities.clear();
+    for scope in &mut empty.scopes {
+        scope.bounds = None;
+    }
+    empty.instances[0].transform.placement.origin = Point3::new(100., 100., 100.);
+    assert!(codes(empty).is_empty());
+    let mut r = block_candidate();
+    let base = Point3::new(2., 0., 0.);
+    r.definitions[0].base_point = base;
+    r.lines[0].start = base;
+    r.lines[0].end = base;
+    r.scopes[1].bounds = Some(Bounds3d {
+        min: base,
+        max: base,
+    });
+    let insert = Point3::new(0., 1., 0.);
+    r.instances[0].transform.placement.origin = insert;
+    r.scopes[0].bounds = Some(Bounds3d {
+        min: insert,
+        max: insert,
+    });
+    assert!(codes(r).is_empty());
+}
+
+#[test]
+fn block_bounds_loose_definition_box_does_not_reject_fitting_leaf_geometry() {
+    let mut r = block_candidate();
+    r.instances[0].transform.rotation = 0.7;
+    let derived = geometric_bounds(&r).unwrap();
+    r.scopes[0].bounds = derived[&0];
+    let huge = Bounds3d {
+        min: Point3::new(-100., -100., -100.),
+        max: Point3::new(100., 100., 100.),
+    };
+    r.scopes[1].bounds = Some(huge);
+    let graph = BlockGraph::build(&r).unwrap();
+    let corner = graph.transform(&r, 0).unwrap().apply(huge.max).unwrap();
+    assert!(corner[2].lower > r.scopes[0].bounds.unwrap().max.z());
+    assert!(codes(r).is_empty());
+}
+
+#[test]
+fn block_bounds_distinguish_unresolved_intervals_from_proved_outside_geometry() {
+    use crate::diagnostic::PackageDiagnosticCategory;
+    let mut r = block_candidate();
+    let point = Point3::new(0., 1., 0.);
+    r.lines[0].start = point;
+    r.lines[0].end = point;
+    r.scopes[1].bounds = Some(Bounds3d {
+        min: point,
+        max: point,
+    });
+    r.instances[0].transform.rotation = 0.7;
+    let enclosure = BlockGraph::build(&r)
+        .unwrap()
+        .transform(&r, 0)
+        .unwrap()
+        .apply(point)
+        .unwrap();
+    assert!(enclosure[0].lower < enclosure[0].upper.next_down());
+    r.scopes[0].bounds = Some(Bounds3d {
+        min: Point3::new(enclosure[0].lower, enclosure[1].lower, enclosure[2].lower),
+        max: Point3::new(
+            enclosure[0].upper.next_down(),
+            enclosure[1].upper,
+            enclosure[2].upper,
+        ),
+    });
+    let (_, errors) = validate_resource(r).into_parts();
+    assert_eq!(errors.len(), 1, "{errors:?}");
+    assert_eq!(errors[0].code, IFCCAD_IFCDR_NUMERICAL_PROOF_INCOMPLETE);
+    assert_eq!(
+        errors[0].category,
+        PackageDiagnosticCategory::ExecutionBlocked
+    );
+    let mut outside = block_candidate();
+    outside.scopes[0].bounds = Some(Bounds3d {
+        min: Point3::new(-2., -2., -2.),
+        max: Point3::new(-1., -1., -1.),
+    });
+    let (_, errors) = validate_resource(outside).into_parts();
+    assert!(errors.iter().any(|d| d.code == IFCCAD_IFCDR_BOUNDS_INVALID
+        && d.category == PackageDiagnosticCategory::ContractViolation));
+    assert!(!errors
+        .iter()
+        .any(|d| d.category == PackageDiagnosticCategory::ExecutionBlocked));
+}
+
+#[test]
+fn block_graph_ten_thousand_empty_levels_are_stack_safe() {
+    let mut r = block_candidate();
+    let definition = r.definitions[0].clone();
+    let instance = r.instances[0];
+    r.definitions.clear();
+    r.instances.clear();
+    r.lines.clear();
+    r.scopes.truncate(1);
+    r.orders.clear();
+    r.scopes[0].bounds = None;
+    const DEPTH: u32 = 10_000;
+    for id in 1..=DEPTH {
+        let mut d = definition.clone();
+        d.scope_id = id;
+        d.name = format!("D{id}");
+        r.definitions.push(d);
+        r.scopes.push(IfcdrScope {
+            id,
+            kind: IfcdrScopeKind::BlockDefinition,
+            bounds: None,
+        });
+        let mut i = instance;
+        i.entity.entity_id = u64::from(id);
+        i.entity.scope_id = id - 1;
+        i.definition_scope_id = id;
+        r.instances.push(i);
+        r.orders.push(IfcdrScopeOrder {
+            scope_id: id - 1,
+            entities: vec![u64::from(id)],
+        });
+    }
+    r.orders.push(IfcdrScopeOrder {
+        scope_id: DEPTH,
+        entities: vec![],
+    });
+    r.next = u64::from(DEPTH) + 1;
+    assert!(codes(r).is_empty());
+}
+
+#[test]
+fn block_graph_shared_dag_and_full_unicode_name_rules() {
+    let mut r = block_candidate();
+    let mut other = r.instances[0];
+    other.entity.entity_id = 3;
+    r.instances.push(other);
+    r.orders[0].entities.push(3);
+    r.next = 4;
+    assert!(codes(r).is_empty());
+    let mut r = block_candidate();
+    r.definitions[0].name = "Straße".into();
+    let mut other = r.definitions[0].clone();
+    other.scope_id = 22;
+    other.name = "STRASSE".into();
+    r.definitions.push(other);
+    r.scopes.push(IfcdrScope {
+        id: 22,
+        kind: IfcdrScopeKind::BlockDefinition,
+        bounds: None,
+    });
+    r.orders.push(IfcdrScopeOrder {
+        scope_id: 22,
+        entities: vec![],
+    });
+    assert!(codes(r).contains(&IFCCAD_IFCDR_BLOCK_INVALID));
 }
 fn codes(resource: TestResource) -> Vec<&'static str> {
     let (proof, diagnostics) = validate_resource(resource).into_parts();
@@ -250,13 +518,13 @@ fn duplicate_ids_and_next_id_exhaustion_are_rejected() {
 }
 
 #[test]
-fn scope_bounds_are_independent_and_base_metadata_does_not_translate_geometry() {
+fn model_and_paper_scope_bounds_are_independent() {
     for incorrect_second in [false, true] {
         let mut r = line_candidate();
         r.next = 3;
         let mut second = r.scopes[0].clone();
         second.id = 7;
-        second.base = Point3::new(-1000., 2000., 3000.);
+        second.kind = IfcdrScopeKind::PaperSpace;
         second.bounds = Some(Bounds3d {
             min: Point3::new(100., 0., 5.),
             max: Point3::new(101., 0., 5.),

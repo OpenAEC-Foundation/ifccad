@@ -24,6 +24,7 @@ fn public_entity_api_is_exhaustive_for_the_base_profile() {
         .map(|entity| match entity {
             IfcdrEntityRef::Line(line) => line.entity_id().get(),
             IfcdrEntityRef::Polyline(polyline) => polyline.entity_id().get(),
+            IfcdrEntityRef::BlockInstance(instance) => instance.entity_id().get(),
         })
         .collect::<Vec<_>>();
     assert_eq!(ids, [1, 2, 3, 4]);
@@ -48,6 +49,7 @@ fn project_ifcdr_entities(
     let projected = resource
         .entities(scope_id)
         .map(|entity| match entity {
+            IfcdrEntityRef::BlockInstance(_) => panic!("primitive-only projection fixture"),
             IfcdrEntityRef::Line(line) => EntityProjection {
                 entity_id: line.entity_id(),
                 scope_id: line.scope_id(),
@@ -134,7 +136,7 @@ fn validated_package_exposes_converter_inputs_without_raw_json() {
     assert_eq!(layout.kind(), DrawingLayoutKind::Model);
     assert_eq!(layout.representation().path(), representation.path());
     let scope = layout.scope();
-    assert_eq!(scope.name(), "ModelSpace");
+    assert!(matches!(scope, ifccad::ifcdr::ScopeRef::ModelSpace(_)));
 
     assert_eq!(representation.layers().len(), 2);
     let wall = representation

@@ -172,9 +172,11 @@ accepted as the initial measurement reference for this milestone. Integrating
 the two upstream DWG fixes is codec maintenance, not an unresolved logical-model
 boundary; it therefore does not block broader native semantics. This replaces
 the earlier, unnecessarily strict requirement to wait for upstream integration.
-The unmodified cadcodec pin still fails the known DWG return chains. Its
-unpatched production baseline is not claimed to pass; `baseline_accepted: false`
-in the recorded run preserves the experiment's automatic local-override gate.
+The subsequent scopes/blocks run uses unmodified cadcodec `5b682ed6` and passes
+the full primitive corpus, including DWG return chains, with
+`baseline_accepted: true`. That current report replaces the historical patched
+reference without changing milestone 2's closure decision. Block-specific DWG
+marker issue #52 remains a separate, explicitly rejected boundary.
 
 ### Closure assessment
 
@@ -198,6 +200,12 @@ family, full IFCPR implementation or conformance release is implied by closure.
 - Integrate cadcodec fixes [#41](https://github.com/HakanSeven12/cadcodec/issues/41)
   and [#42](https://github.com/HakanSeven12/cadcodec/issues/42), remove superseded
   local patches, and rerun the same corpus with the shared dependency pin.
+  [IFCCAD #9](https://github.com/OpenAEC-Foundation/ifccad/issues/9) tracks the
+  unfinished pin update and semantic-inventory coverage integration. Further
+  inventory integration is deferred until the scope/block design is complete;
+  it is not a prerequisite for that design. Upstream
+  [field-level classification #50](https://github.com/HakanSeven12/cadcodec/issues/50)
+  would strengthen coverage but does not block adoption of the current inventory.
 - Expand the practical corpus and supported native semantics in milestone 3.
 - Measure production compression/other encodings when implemented; the broader
   experiments in issue #6 remain separate.
@@ -256,15 +264,16 @@ entity families, preservation and CAD-BIM relationships remain separate work.
 Internal design notes and implementation plans under `docs/superpowers/` are
 local-only; published contracts and this roadmap remain authoritative.
 
-The next development slice is **scope ownership, block definitions and
-instances** (B). The following dependency map carries forward the agreed
+The **scope ownership, local block definitions and instances** slice (B) is
+implemented in IFCDR 0.9 / IFCX overlay 0.11, with the explicit codec limitations
+recorded below. This is not completion of milestone 3. The following dependency map carries forward the agreed
 sequencing; each slice still needs its own concrete design and roundtrip proof.
 It is a partial order, not a requirement to finish every row before the next.
 
 | Slice | Prerequisites | Boundary and practical proof |
 | --- | --- | --- |
 | A. Coordinates and basic geometry — implemented | Milestone 2 logical model | XYZ lines, placed straight polylines, per-scope bounds and conversion accuracy. |
-| B. Scopes and instances — next | A | Model/paper ownership, block definitions, instances, base points, nesting and transform composition; prove reuse without exploding blocks. |
+| B. Scopes and instances — implemented | A | IFCDR 0.9/overlay 0.11 model/paper ownership, resource-local definitions and instances, signed transforms and evaluated bounds; shared-reference conversion, strict-readback and real DXF/DWG boundary tests. |
 | C. Shared styles and inheritance | Existing appearances; B for instance-dependent inheritance | Add direct drawing-level layer/appearance lists; introduce style identity and references with their consumers; prove ByLayer/ByBlock behavior through instances. |
 | D. Geometric families | A; additional references where needed | Curves, planar polyline segments and spatial polylines; prove each family independently. |
 | E. Annotation and compound entities | A and relevant B/C/D boundaries | Text, attributes, hatches and dimensions; introduce typed payloads when a concrete family needs them. |
@@ -279,10 +288,13 @@ Design P's boundaries alongside B and prove restoration with a selected source
 case. Exercise I early enough to test placement and identity before later
 families depend on them. These dependencies do not authorize parallel agent work.
 
-For B, distinguish a rigid entity plane from instance transforms that may need
-scaling or reflection. Design base-point application, transformed instance
-bounds and viewport presentation explicitly; current scope bases remain
-metadata until a new contract defines their use. For P, define restoration
+For B, the [block transform contract](docs/geometry/block-transform.md) separates
+placement, rotation and signed scale; base points belong to definitions, not
+generic scopes. Native paper scopes/layouts establish ownership only. Viewports
+and plot settings stay together in F, without changing block geometry. The
+[CAD boundary](docs/geometry/block-cad-boundary.md) records DWG marker issue #52,
+DXF description loss and scale limitations; these are not silently repaired.
+For P, define restoration
 eligibility after native edits: retaining source bytes alone does not prove
 restoration or justify suppressing loss diagnostics.
 

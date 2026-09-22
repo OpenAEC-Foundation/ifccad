@@ -39,6 +39,8 @@ Codes use the prefix shown in the first column plus the listed suffix.
 | `IFCCAD_IFCDR_` | `STRUCTURE_INVALID`, `DIRECTORY_INVALID` | `contractViolation`: known physical shape, field, directory or pool-range rule |
 | `IFCCAD_IFCDR_` | `REFERENCE_MISSING`, `ENTITY_ID_INVALID`, `ENTITY_ID_DUPLICATE`, `ENTITY_ORDER_INVALID` | `contractViolation`: known reference/identity/order rule |
 | `IFCCAD_IFCDR_` | `BOUNDS_INVALID`, `GEOMETRY_INVALID`, `POLYLINE_INVALID`, `APPEARANCE_INVALID` | `contractViolation`: known logical geometry/appearance rule |
+| `IFCCAD_IFCDR_` | `SCOPE_INVALID`, `BLOCK_INVALID`, `BLOCK_CYCLE` | `contractViolation`: scope/definition/instance constraints or a cyclic reference graph |
+| `IFCCAD_IFCDR_` | `NUMERICAL_PROOF_INCOMPLETE` | `executionBlocked`: the fixed numerical route cannot establish enclosure; this is not proof of invalid geometry |
 
 `SCHEMA_INVALID` normally reports `contractViolation`. A string-valued mismatch
 at a fixed profile selector (IFCX header version, resource descriptor version,
@@ -80,6 +82,7 @@ plus one reason:
 - `contentNotAssessable`: malformed structure or missing validation proof
   prevents dependent checks, or no completed assessment exists;
 - `preservationSemanticsNotAssessed`: current IFCPR coverage limitation.
+- `numericalProofIncomplete`: a required numerical enclosure proof was inconclusive. Validity remains `notFullyAssessed` unless an independent contract violation proves invalidity. This differs from a proved bounds violation.
 
 External content uses its resource URI and local pointer; inline content uses
 the containing document URI and full content pointer. Gaps are sorted by

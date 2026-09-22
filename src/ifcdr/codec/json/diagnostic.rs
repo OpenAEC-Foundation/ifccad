@@ -8,6 +8,8 @@ pub(crate) fn logical_diagnostic(uri: &str, d: IfcdrDiagnostic) -> PackageDiagno
     let base = match d.collection {
         "resource" => "",
         "scope" => "/scopeTable",
+        "blockDefinition" => "/blockDefinitionTable",
+        "blockInstance" => "/streams/blockInstanceStream",
         "layerBinding" => "/layerBindings",
         "appearanceBinding" => "/appearanceBindings",
         "appearanceOverride" => "/appearanceOverrides",
@@ -27,7 +29,11 @@ pub(crate) fn logical_diagnostic(uri: &str, d: IfcdrDiagnostic) -> PackageDiagno
     } else if let Some(row) = d.row {
         if matches!(
             d.collection,
-            "scope" | "layerBinding" | "appearanceBinding" | "appearanceOverride"
+            "scope"
+                | "blockDefinition"
+                | "layerBinding"
+                | "appearanceBinding"
+                | "appearanceOverride"
         ) {
             format!("{base}/{row}/{}", d.property)
         } else {
@@ -37,7 +43,7 @@ pub(crate) fn logical_diagnostic(uri: &str, d: IfcdrDiagnostic) -> PackageDiagno
         format!("{base}/{}", d.property)
     };
     PackageDiagnostic {
-        category: crate::diagnostic::PackageDiagnosticCategory::ContractViolation,
+        category: d.category,
         code: d.code.into(),
         severity: PackageDiagnosticSeverity::Error,
         resource_id: Some(d.resource_id),

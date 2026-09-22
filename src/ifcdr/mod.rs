@@ -10,13 +10,17 @@ mod types;
 pub(crate) mod write;
 
 pub use geometry::{
-    Bounds3d, CoordinateAxis, GeometryEvaluationError, PlaneAxis, PlanePlacement,
-    PlanePlacementError, PlanePlacementField, Point3, Vector3,
+    BlockTransform, BlockTransformError, Bounds3d, CoordinateAxis, GeometryEvaluationError,
+    PlaneAxis, PlanePlacement, PlanePlacementError, PlanePlacementField, Point3, Scale3, Vector3,
 };
 
 pub(crate) use read::{validate_ifcdr, LoadedIfcdrResource, ValidatedIfcdrResource};
 pub use read::{
-    EntityIterator, IfcdrEntityRef, IfcdrResourceRef, Line, LocalPointIterator, PointIterator,
-    PolylineRef, ScopePointIterator, ScopeRef,
+    BlockDefinitionRef, BlockInstanceRef, EntityIterator, IfcdrEntityRef, IfcdrResourceRef, Line,
+    LocalPointIterator, ModelSpaceRef, PaperSpaceRef, PointIterator, PolylineRef,
+    ScopePointIterator, ScopeRef,
 };
-pub use types::{AppearanceId, Bounds2d, EntityId, IfcdrLengthUnit, LayerId, Point2, ScopeId};
+pub use types::{
+    AppearanceId, BlockScaling, Bounds2d, EntityId, IfcdrLengthUnit, LayerId, Point2, ScopeId,
+};
+pub(crate) mod names;

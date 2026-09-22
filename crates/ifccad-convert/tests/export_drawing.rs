@@ -183,7 +183,7 @@ fn units_map_exactly_without_coordinate_rescaling() {
 #[test]
 fn units_report_unsupported_values_and_fall_back_to_unitless() {
     let mut document = CadDocument::new();
-    document.header.insertion_units = 3;
+    document.header.insertion_units = 25;
     let outcome = cad_document_to_package(
         &document,
         package_options("unsupported-unit"),
@@ -202,7 +202,7 @@ fn units_report_unsupported_values_and_fall_back_to_unitless() {
     assert_eq!(diagnostic.action(), ExportAction::PartiallyExported);
     assert_eq!(
         diagnostic.reasons(),
-        [ExportLossReason::UnsupportedUnit { code: 3 }]
+        [ExportLossReason::UnsupportedUnit { code: 25 }]
     );
     assert!(diagnostic.is_loss());
     assert_eq!(

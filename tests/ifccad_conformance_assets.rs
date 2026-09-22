@@ -211,6 +211,14 @@ fn next_candidate_is_self_contained_and_valid_json() {
 
     for relative in [
         "ifcx/ifccad-overlay-0.9.0.json",
+        "ifcx/ifccad-overlay-0.11.0.json",
+        "ifcx/drawing-resource-contract-0.11.0.md",
+        "ifcdr/registry-0.9.0.json",
+        "ifcdr/registry-meta-schema-v4.json",
+        "ifcdr/json-mapping-0.9.0.json",
+        "ifcdr/json-mapping-meta-schema-v3.json",
+        "ifcdr/logical-contract-0.9.0.md",
+        "ifcdr/json-mapping-v3.md",
         "ifcx/drawing-resource-contract-0.8.0.md",
         "ifcx/resource-source-contract-0.9.0.md",
         "ifcx/ifccad-drawing-core-0.2.0.json",

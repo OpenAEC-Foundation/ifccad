@@ -6,6 +6,151 @@ use ifccad::package::{
 };
 use ifccad::{PackageId, ResourceId};
 
+#[test]
+fn shared_definition_in_model_and_paper_keeps_scope_bounds_separate() {
+    use ifccad::ifcdr::{BlockTransform, Point3, Scale3, Vector3};
+    use ifccad::package::{BlockDefinitionOptions, BlockInstanceDefinition};
+    let mut package = PackageBuilder::new(package_options("2026-09-21T10:00:00Z")).unwrap();
+    let mut drawing = package.add_drawing(drawing_options()).unwrap();
+    let (layer, _) = add_default_layer(&mut drawing);
+    let mut options = BlockDefinitionOptions::named("Shared door".into());
+    options.base_point = Point3::new(2., 0., 0.);
+    options.description = "Nonzero base".into();
+    options.insertion_unit = IfcdrLengthUnit::Inch;
+    options.explodable = false;
+    let block = drawing.add_block_definition(options).unwrap();
+    let paper = drawing.add_paper_space("Sheet 1".into()).unwrap();
+    drawing
+        .block_definition(block)
+        .unwrap()
+        .add_line(LineDefinition {
+            start: Point3::new(2., 0., 0.),
+            end: Point3::new(3., 0., 0.),
+            layer,
+            appearance: EntityAppearance::by_block(),
+            visible: true,
+        })
+        .unwrap();
+    for (is_paper, x) in [(false, 100.), (true, -100.)] {
+        let instance = BlockInstanceDefinition {
+            definition: block,
+            transform: BlockTransform::from_normal(
+                Point3::new(x, 0., 0.),
+                Vector3::new(0., 0., 1.),
+                0.,
+                Scale3::default(),
+            )
+            .unwrap(),
+            layer,
+            appearance: EntityAppearance::by_layer(),
+            visible: false,
+        };
+        if is_paper {
+            drawing
+                .paper_space(paper)
+                .unwrap()
+                .add_block_instance(instance)
+                .unwrap();
+        } else {
+            drawing.model_space().add_block_instance(instance).unwrap();
+        }
+    }
+    // finish runs the production reader and strict package validator.
+    let encoded = package.finish().unwrap();
+    let value: serde_json::Value =
+        serde_json::from_slice(encoded.file("resources/drawing.ifcdr.json").unwrap()).unwrap();
+    let scopes = value["scopeTable"].as_array().unwrap();
+    let model = scopes.iter().find(|s| s["kind"] == 0).unwrap();
+    let paper = scopes.iter().find(|s| s["kind"] == 1).unwrap();
+    assert!(model["bounds"]["minX"].as_f64().unwrap() > 99.);
+    assert!(model["bounds"]["maxX"].as_f64().unwrap() < 102.);
+    assert!(paper["bounds"]["minX"].as_f64().unwrap() > -101.);
+    assert!(paper["bounds"]["maxX"].as_f64().unwrap() < -98.);
+    assert_eq!(value["blockDefinitionTable"].as_array().unwrap().len(), 1);
+    assert_eq!(value["blockDefinitionTable"][0]["insertionUnit"], "in");
+    assert_eq!(value["streams"]["blockInstanceStream"]["count"], 2);
+    assert_eq!(value["streams"]["lineStream"]["count"], 1);
+}
+
+#[test]
+fn empty_definition_instances_do_not_create_bounds() {
+    use ifccad::package::{BlockDefinitionOptions, BlockInstanceDefinition};
+    let mut package = PackageBuilder::new(package_options("2026-09-21T10:00:00Z")).unwrap();
+    let mut drawing = package.add_drawing(drawing_options()).unwrap();
+    let (layer, _) = add_default_layer(&mut drawing);
+    let block = drawing
+        .add_block_definition(BlockDefinitionOptions::named("Empty".into()))
+        .unwrap();
+    drawing
+        .model_space()
+        .add_block_instance(BlockInstanceDefinition {
+            definition: block,
+            transform: Default::default(),
+            layer,
+            appearance: EntityAppearance::by_block(),
+            visible: true,
+        })
+        .unwrap();
+    let encoded = package.finish().unwrap();
+    let value: serde_json::Value =
+        serde_json::from_slice(encoded.file("resources/drawing.ifcdr.json").unwrap()).unwrap();
+    assert!(value["scopeTable"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .all(|s| s["bounds"].is_null()));
+    assert_eq!(value["streams"]["blockInstanceStream"]["count"], 1);
+}
+
+#[test]
+fn foreign_block_and_paper_keys_do_not_allocate_entity_ids() {
+    use ifccad::package::{BlockDefinitionOptions, BlockInstanceDefinition};
+    let mut other = PackageBuilder::new(package_options("2026-09-21T10:00:00Z")).unwrap();
+    let mut other = other.add_drawing(drawing_options()).unwrap();
+    let foreign = other
+        .add_block_definition(BlockDefinitionOptions::named("Other".into()))
+        .unwrap();
+    let foreign_paper = other.add_paper_space("Other".into()).unwrap();
+    let mut package = PackageBuilder::new(package_options("2026-09-21T10:00:00Z")).unwrap();
+    let mut drawing = package.add_drawing(drawing_options()).unwrap();
+    let (layer, _) = add_default_layer(&mut drawing);
+    assert!(matches!(
+        drawing.block_definition(foreign),
+        Err(PackageBuildError::ForeignBlockDefinitionKey)
+    ));
+    assert!(matches!(
+        drawing.paper_space(foreign_paper),
+        Err(PackageBuildError::ForeignPaperSpaceKey)
+    ));
+    assert!(matches!(
+        drawing
+            .model_space()
+            .add_block_instance(BlockInstanceDefinition {
+                definition: foreign,
+                transform: Default::default(),
+                layer,
+                appearance: EntityAppearance::by_layer(),
+                visible: true
+            }),
+        Err(PackageBuildError::ForeignBlockDefinitionKey)
+    ));
+    let local = drawing
+        .add_block_definition(BlockDefinitionOptions::named("Local".into()))
+        .unwrap();
+    let id = drawing
+        .model_space()
+        .add_block_instance(BlockInstanceDefinition {
+            definition: local,
+            transform: Default::default(),
+            layer,
+            appearance: EntityAppearance::by_layer(),
+            visible: true,
+        })
+        .unwrap();
+    assert_eq!(id.get(), 1);
+    package.finish().unwrap();
+}
+
 fn package_options(timestamp: &str) -> PackageOptions {
     PackageOptions {
         package_id: PackageId::new("building-a").unwrap(),

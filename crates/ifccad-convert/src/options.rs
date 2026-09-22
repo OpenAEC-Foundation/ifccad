@@ -1,3 +1,4 @@
+use crate::units::{q, ResolvedTolerance};
 use ifccad::ifcdr::IfcdrLengthUnit;
 use num_rational::BigRational;
 use thiserror::Error;
@@ -59,27 +60,19 @@ impl ConversionGeometryTolerance {
     pub(crate) fn resolve(
         self,
         unit: IfcdrLengthUnit,
-    ) -> Result<BigRational, ConversionToleranceError> {
-        use IfcdrLengthUnit::*;
-        let q = |n: i64, d: i64| BigRational::new(n.into(), d.into());
-        let factor = match unit {
-            Unitless => None,
-            Millimetre => Some(q(1, 1000)),
-            Centimetre => Some(q(1, 100)),
-            Metre => Some(q(1, 1)),
-            Kilometre => Some(q(1000, 1)),
-            Inch => Some(q(127, 5000)),
-            Foot => Some(q(381, 1250)),
-        };
+    ) -> Result<ResolvedTolerance, ConversionToleranceError> {
         let exact = |v| BigRational::from_float(v).expect("validated tolerance");
         let physical = match self.0 {
-            ToleranceKind::DrawingUnits(v) => return Ok(exact(v)),
-            ToleranceKind::Default if factor.is_none() => return Ok(q(0, 1)),
+            ToleranceKind::DrawingUnits(v) => return Ok(ResolvedTolerance::exact(exact(v))),
+            ToleranceKind::Default if unit == IfcdrLengthUnit::Unitless => {
+                return Ok(ResolvedTolerance::exact(q(0, 1)))
+            }
             ToleranceKind::Default => q(1, 1000000),
             ToleranceKind::Metres(v) => exact(v),
             ToleranceKind::Millimetres(v) => exact(v) / q(1000, 1),
         };
-        Ok(physical / factor.ok_or(ConversionToleranceError::PhysicalUnitRequired)?)
+        ResolvedTolerance::from_metres(physical, unit)
+            .ok_or(ConversionToleranceError::PhysicalUnitRequired)
     }
 }
 /// Policy for converting one validated IFCCAD drawing into CadDocument.
@@ -105,19 +98,19 @@ mod tests {
             ConversionGeometryTolerance::default()
                 .resolve(IfcdrLengthUnit::Millimetre)
                 .unwrap(),
-            BigRational::new(1.into(), 1000.into())
+            ResolvedTolerance::exact(BigRational::new(1.into(), 1000.into()))
         );
         assert_eq!(
             ConversionGeometryTolerance::default()
                 .resolve(IfcdrLengthUnit::Inch)
                 .unwrap(),
-            BigRational::new(1.into(), 25400.into())
+            ResolvedTolerance::exact(BigRational::new(1.into(), 25400.into()))
         );
         assert_eq!(
             ConversionGeometryTolerance::default()
                 .resolve(IfcdrLengthUnit::Unitless)
                 .unwrap(),
-            BigRational::from_integer(0.into())
+            ResolvedTolerance::exact(BigRational::from_integer(0.into()))
         );
         assert_eq!(
             ConversionGeometryTolerance::metres(0.0)
@@ -129,7 +122,7 @@ mod tests {
             ConversionGeometryTolerance::exact()
                 .resolve(IfcdrLengthUnit::Unitless)
                 .unwrap(),
-            BigRational::from_integer(0.into())
+            ResolvedTolerance::exact(BigRational::from_integer(0.into()))
         );
     }
 }

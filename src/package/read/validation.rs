@@ -771,7 +771,7 @@ mod tests {
                 "attributes": {
                     "resource": {
                         "format": "openaec.ifcdr",
-                        "version": "0.8.0",
+                        "version": "0.9.0",
                         "resourceId": "drawing-main",
                         "uri": uri,
                         "checksum": checksum,
@@ -1146,7 +1146,7 @@ mod tests {
     #[test]
     fn load_outcome_retains_entrypoint_resources_and_exact_bytes() {
         let root = TestDirectory::new("loaded-model");
-        let entrypoint = br#"{"data":[{"path":"resource","type":"openaec:DrawingRepresentation","attributes":{"resource":{"format":"openaec.ifcdr","version":"0.8.0","resourceId":"geometry-main","uri":"drawing.ifcdr.json","checksum":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","role":"drawing"}}}]}"#;
+        let entrypoint = br#"{"data":[{"path":"resource","type":"openaec:DrawingRepresentation","attributes":{"resource":{"format":"openaec.ifcdr","version":"0.9.0","resourceId":"geometry-main","uri":"drawing.ifcdr.json","checksum":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","role":"drawing"}}}]}"#;
         let drawing = b"{\r\n  \"header\": {}\r\n}\r\n";
         fs::write(root.path().join(DIRECTORY_PACKAGE_ENTRYPOINT), entrypoint)
             .expect("write entrypoint");
@@ -1730,7 +1730,7 @@ mod tests {
         let descriptor = |resource_id: &str, uri: &str, bytes: &[u8]| {
             serde_json::json!({
                 "format": "openaec.ifcdr",
-                "version": "0.8.0",
+                "version": "0.9.0",
                 "resourceId": resource_id,
                 "uri": uri,
                 "checksum": format!("sha256:{:x}", Sha256::digest(bytes)),
@@ -1957,7 +1957,7 @@ mod tests {
                     "attributes": {
                         "resource": {
                             "format": "openaec.ifcdr",
-                            "version": "0.8.0",
+                            "version": "0.9.0",
                             "resourceId": "geometry-missing",
                             "uri": "z-missing.ifcdr.json",
                             "checksum": checksum,
@@ -1971,7 +1971,7 @@ mod tests {
                     "attributes": {
                         "resource": {
                             "format": "openaec.ifcdr",
-                            "version": "0.8.0",
+                            "version": "0.9.0",
                             "resourceId": "drawing-main",
                             "uri": "a-loaded.ifcdr.json",
                             "checksum": checksum,

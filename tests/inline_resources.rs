@@ -149,6 +149,7 @@ fn inline_and_external_layouts_have_equal_semantic_content() {
                     .entities(scope.id())
                     .map(|entity| match entity {
                         IfcdrEntityRef::Line(line) => format!("{:?}", line),
+                        IfcdrEntityRef::BlockInstance(instance) => format!("{:?}", instance),
                         IfcdrEntityRef::Polyline(poly) => format!(
                             "{:?}",
                             (
@@ -163,17 +164,7 @@ fn inline_and_external_layouts_have_equal_semantic_content() {
                         ),
                     })
                     .collect();
-                format!(
-                    "{:?}",
-                    (
-                        scope.id(),
-                        scope.name(),
-                        scope.base(),
-                        scope.kind(),
-                        scope.flags(),
-                        entities
-                    )
-                )
+                format!("{:?}", (scope.id(), scope, entities))
             })
             .collect();
         let layers: Vec<_> = representation

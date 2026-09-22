@@ -17,8 +17,18 @@ pub(crate) fn add_entities(
     context: &mut ExportContext,
 ) -> Result<Vec<SourceStructureProblem>, super::ExportError> {
     let mut structural_problems = Vec::new();
-    for source in document.entities() {
+    for source in super::blocks::ordered_entities(document) {
         let common = source.common();
+        if document.block_records.iter().any(|record| {
+            record.handle == common.owner_handle
+                && match source {
+                    EntityType::Block(_) => common.handle == record.block_entity_handle,
+                    EntityType::BlockEnd(_) => common.handle == record.block_end_handle,
+                    _ => false,
+                }
+        }) {
+            continue;
+        }
         let mut common_losses = common_semantic_losses(common);
         if !classify_owner(
             document,
@@ -33,6 +43,21 @@ pub(crate) fn add_entities(
         }
 
         let mut geometry_losses = match source {
+            EntityType::Insert(insert)
+                if !insert.is_minsert()
+                    && insert.row_count == 1
+                    && insert.column_count == 1
+                    && insert.row_spacing == 0.
+                    && insert.column_spacing == 0.
+                    && insert.attributes.is_empty()
+                    && insert.view_rep_handle.is_none()
+                    && document
+                        .block_records
+                        .get(&insert.block_name)
+                        .is_some_and(|record| context.blocks.contains_key(&record.handle)) =>
+            {
+                Vec::new()
+            }
             EntityType::Line(line) => line_losses(line),
             EntityType::LwPolyline(polyline) => polyline_losses(polyline),
             _ => vec![ExportLossReason::UnsupportedEntityType {
@@ -64,8 +89,44 @@ pub(crate) fn add_entities(
             Err(EntityAppearanceError::Build(error)) => return Err(error.into()),
         };
 
+        let mut target = if let Some(&definition) = context.blocks.get(&common.owner_handle) {
+            drawing.block_definition(definition)?
+        } else {
+            drawing.model_space()
+        };
         let entity_id = match source {
-            EntityType::Line(line) => drawing.model_space().add_line(LineDefinition {
+            EntityType::Insert(insert) => {
+                let record = document
+                    .block_records
+                    .get(&insert.block_name)
+                    .expect("checked definition");
+                let (transform, source_map, target_map) =
+                    crate::geometry::blocks::from_cad_instance(
+                        insert,
+                        record.base_point,
+                        context.geometry.as_ref().unwrap(),
+                    )?;
+                if crate::geometry::stored_normal(transform.placement()) != Some(insert.normal) {
+                    common_losses.push(ExportLossReason::SourceNormalNormalized);
+                }
+                let id = target.add_block_instance(ifccad::package::BlockInstanceDefinition {
+                    definition: context.blocks[&record.handle],
+                    transform,
+                    layer,
+                    appearance,
+                    visible: !common.invisible,
+                })?;
+                context.block_instances.insert(
+                    common.handle,
+                    super::blocks::ConvertedInstance {
+                        definition: record.handle,
+                        source: source_map,
+                        target: target_map,
+                    },
+                );
+                id
+            }
+            EntityType::Line(line) => target.add_line(LineDefinition {
                 start: ifccad::ifcdr::Point3::new(line.start.x, line.start.y, line.start.z),
                 end: ifccad::ifcdr::Point3::new(line.end.x, line.end.y, line.end.z),
                 layer,
@@ -83,6 +144,10 @@ pub(crate) fn add_entities(
                 if normal_changed {
                     common_losses.push(ExportLossReason::SourceNormalNormalized);
                 }
+                context.block_points.insert(
+                    common.handle,
+                    crate::geometry::blocks::polyline_pairs(polyline, placement),
+                );
                 let count = polyline
                     .vertices
                     .iter()
@@ -91,7 +156,7 @@ pub(crate) fn add_entities(
                 if count > 0 {
                     common_losses.push(ExportLossReason::PolylineVertexIdentifiers { count });
                 }
-                drawing.model_space().add_polyline(PolylineDefinition {
+                target.add_polyline(PolylineDefinition {
                     placement,
                     points: polyline
                         .vertices
@@ -107,6 +172,12 @@ pub(crate) fn add_entities(
             _ => unreachable!("unsupported entity was classified as loss"),
         };
         if let EntityType::Line(line) = source {
+            context.block_points.insert(
+                common.handle,
+                [line.start, line.end]
+                    .map(|p| crate::geometry::blocks::PairedPoint::exact([p.x, p.y, p.z]))
+                    .to_vec(),
+            );
             context.geometry.as_mut().unwrap().record(
                 crate::ConversionEntitySource::CadEntity {
                     handle: common.handle,
@@ -141,7 +212,9 @@ fn classify_owner(
     problems: &mut Vec<SourceStructureProblem>,
     common_losses: &[ExportLossReason],
 ) -> bool {
-    if common.owner_handle == model_space.block_handle {
+    if common.owner_handle == model_space.block_handle
+        || context.blocks.contains_key(&common.owner_handle)
+    {
         return true;
     }
     if common.owner_handle == Handle::NULL {

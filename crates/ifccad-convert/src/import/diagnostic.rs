@@ -6,6 +6,9 @@ use thiserror::Error;
 #[derive(Clone, Debug, PartialEq)]
 #[non_exhaustive]
 pub enum ImportDiagnostic {
+    BlockParameterizationChanged {
+        source: crate::ConversionEntitySource,
+    },
     GeometryRoundedWithinTolerance {
         source: crate::ConversionEntitySource,
         max_deviation_upper_bound: f64,
@@ -29,6 +32,7 @@ pub enum ImportDiagnostic {
 impl fmt::Display for ImportDiagnostic {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::BlockParameterizationChanged { source } => write!(formatter,"changed block parameterization of {source:?}"),
             Self::GeometryRoundedWithinTolerance { source, max_deviation_upper_bound } => write!(formatter,"rounded geometry of {source:?} within tolerance (upper deviation {max_deviation_upper_bound})"),
             Self::PlaneParameterizationChanged { source } => write!(formatter,"changed plane parameterization of {source:?}"),
             Self::LinePatternFallback {
@@ -106,6 +110,13 @@ impl DiagnosticAccumulator {
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum ImportError {
+    #[error("CAD block target limitation for {entity_id:?}: {message}")]
+    BlockTargetLimitation {
+        entity_id: Option<EntityId>,
+        message: String,
+    },
+    #[error("CAD conversion of paper scope {scope_id:?} requires the deferred layout/presentation policy")]
+    UnsupportedScope { scope_id: ifccad::ifcdr::ScopeId },
     #[error("import loss was rejected")]
     LossRejected { diagnostics: Vec<ImportDiagnostic> },
     #[error(transparent)]

@@ -23,7 +23,7 @@ struct ValidatedStream {
 pub(super) fn validate_physical(uri: &str, value: &Value) -> Vec<PackageDiagnostic> {
     let mut validator = ResourceValidator::new(uri, canonical_registry());
     if let Some(version) = value.pointer("/header/version").and_then(Value::as_str) {
-        if version != "0.8.0" {
+        if version != "0.9.0" {
             validator.error_with_context(
                 "IFCCAD_IFCDR_VERSION_UNSUPPORTED",
                 "/header/version",
@@ -35,7 +35,7 @@ pub(super) fn validate_physical(uri: &str, value: &Value) -> Vec<PackageDiagnost
                     ),
                     (
                         "supportedVersion".into(),
-                        PackageDiagnosticContextValue::String("0.8.0".into()),
+                        PackageDiagnosticContextValue::String("0.9.0".into()),
                     ),
                 ]),
             );
@@ -505,7 +505,9 @@ impl<'a> ResourceValidator<'a> {
                         &format!("{pointer}/{index}"),
                     );
                 }
-                if !valid_scalar(item, column.value_type, column.nullable) {
+                if !valid_scalar(item, column.value_type, column.nullable)
+                    || (!column.allowed_values.is_empty() && !column.allowed_values.contains(item))
+                {
                     self.error(
                         IFCCAD_IFCDR_STRUCTURE_INVALID,
                         &format!("{pointer}/{index}"),
@@ -622,7 +624,9 @@ impl<'a> ResourceValidator<'a> {
             }
             return;
         };
-        if !valid_scalar(value, field.value_type, field.nullable) {
+        if !valid_scalar(value, field.value_type, field.nullable)
+            || (!field.allowed_values.is_empty() && !field.allowed_values.contains(value))
+        {
             self.error(
                 IFCCAD_IFCDR_STRUCTURE_INVALID,
                 &location,

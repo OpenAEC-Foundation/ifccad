@@ -1,4 +1,5 @@
 mod appearance;
+mod blocks;
 mod conversion;
 mod coverage;
 mod diagnostic;

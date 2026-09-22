@@ -231,6 +231,8 @@ fn coherent_unsupported_ownership_layers_and_entity_types_are_diagnosed_skips() 
     let block_handle = Handle::new(0xF000);
     let mut block = BlockRecord::new("Detail block");
     block.handle = block_handle;
+    // Local definitions are supported; external-reference contents still skip.
+    block.flags.is_xref = true;
     document.block_records.add(block).unwrap();
     let mut block_line = Line::from_coords(0.0, 0.0, 0.0, 1.0, 1.0, 0.0);
     block_line.common.owner_handle = block_handle;

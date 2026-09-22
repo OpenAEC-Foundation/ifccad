@@ -1,16 +1,16 @@
 # IFCCAD candidate compatibility
 
 This collection is the unpublished `1.1.0` candidate. Its active drawing
-contract is IFCDR `0.8.0`, selected by IFCX overlay `0.10.0`, with drawing core
-`0.2.0`. The logical registry uses meta-schema v3; the separate JSON mapping uses
-meta-schema v2 and stream-directory v1. IFCPR remains
+contract is IFCDR `0.9.0`, selected by IFCX overlay `0.11.0`, with drawing core
+`0.2.0`. The logical registry uses meta-schema v4; the separate JSON mapping uses
+meta-schema v3 and stream-directory v1. IFCPR remains
 `0.2.0`. Historical schemas and `conformance/1.0.0` are reference artifacts,
 not promises that the current reader supports their files.
 
 ## Supported drawing content
 
-The IFCDR registry contains four streams: `line`, `polyline`, `entityOrder`,
-and `entityOrderEntry`. It retains `scope`, `layerBinding`, `appearanceBinding`,
+The IFCDR registry contains five streams: `line`, `polyline`, `blockInstance`,
+`entityOrder`, and `entityOrderEntry`. It retains `scope`, `blockDefinition`, `layerBinding`, `appearanceBinding`,
 and `appearanceOverride` tables. Lines use XYZ endpoints. Polylines use local XY points and an optional complete
 plane placement (identity when omitted). Resource units, scope membership,
 appearance modes and draw order remain.
@@ -20,7 +20,7 @@ flag is preserved independently of whether the first vertex is repeated.
 Empty scopes have null bounds; nonempty scopes require finite XYZ bounds
 enclosing exact geometry of stored values, including invisible entities.
 Conservative bounds are valid; no positional epsilon is used. Scope bases are
-XYZ metadata and are not applied to geometry. Aggregate resource bounds are
+replaced by definition base points, subtracted before instance transforms. Aggregate resource bounds are
 absent. Explicit plane objects require all nine finite values; squared axis
 length and perpendicularity use the exact binary64 threshold nearest 1e-12.
 Colors retain RGB and optional indexed (u64) and named metadata together. All
@@ -35,17 +35,17 @@ contracts after their semantics are designed and tested.
 
 | Content or operation | Primary implementation behavior |
 | --- | --- |
-| IFCDR 0.8.0 JSON with the registered content | Physical field/range checks in the JSON codec, shared logical geometry/reference/identity/order/bounds/appearance validation, and package binding checks; typed lines and polylines. |
+| IFCDR 0.9.0 JSON with the registered content | Physical field/range checks in the JSON codec, shared logical geometry/reference/identity/order/bounds/appearance validation, and package binding checks; typed lines, polylines, scopes and local blocks. |
 | DrawingRepresentation | `attributes.resource`, role `drawing`; a Drawing and all listed layouts reference the same representation node. Layout scope IDs resolve within that resource. |
 | Retired DrawingGeometryRepresentation | `IFCCAD_PACKAGE_VOCABULARY_UNSUPPORTED`, including unreferenced nodes; no strict package. |
-| Directory writer | One drawing, one model layout, one inline or external IFCDR resource; deterministic new-version output. |
+| Directory writer | One drawing, one model layout, optional minimal paper layouts and local blocks, one inline or external IFCDR resource; deterministic new-version output. |
 | Resource access | External package-relative or inline JSON for IFCDR and IFCPR. Both use the same content validation and identity links. No paperspace export is added. |
-| IFCDR 0.7.0, 0.6.0, 0.5.0 or another unsupported version | `IFCCAD_IFCDR_VERSION_UNSUPPORTED`; no strict typed package and no migration. |
+| IFCDR 0.8.0, 0.7.0, 0.6.0, 0.5.0 or another unsupported version | `IFCCAD_IFCDR_VERSION_UNSUPPORTED`; no strict typed package and no migration. |
 | Unknown stream name or schema ID | `IFCCAD_IFCDR_STREAM_SCHEMA_UNSUPPORTED` with stream/schema context when available; no strict typed package or unmodeled-entity view. |
 | Malformed supported fields or known broken references | Structural or semantic error diagnostics; no strict typed package. |
 | Unrelated unknown IFCX node types and open extension fields | Existing permitted read behavior remains; no new guarantee of conversion, editing, or lossless rewriting. |
-| IFCCAD to CadDocument | Existing drawing conversion for typed lines and polylines, layers, units, order, and supported appearance data. Existing pattern fallback and line-weight rounding diagnostics remain. |
-| CadDocument to IFCCAD | Finite XYZ lines and placed straight lightweight polylines. Unsupported properties/entities are diagnosed under `Allow` or reject under `Reject`. Geometric accuracy is a hard limit in both policies; only proved within-limit numerical rounding is exempt from Reject. |
+| IFCCAD to CadDocument | One-model-layout conversion for lines, polylines and local blocks, layers, all 25 units, scope order, and supported appearance data. Target scale changes block conversion; non-neutral block frames retain parameterization-loss evidence. |
+| CadDocument to IFCCAD | Finite XYZ lines, placed straight lightweight polylines and ordinary local blocks. Unsupported properties/entities are diagnosed under `Allow` or reject under `Reject`. Missing/cyclic block references and contradictory exposed markers are structural failures. Geometric accuracy is a hard limit in both policies; only proved within-limit numerical rounding is exempt from Reject. |
 | IFCPR 0.2.0 | The limited checks described below; no converter preservation transfer. |
 
 `IfcdrEntityRef::Unmodeled`, `UnmodeledEntityRef`, and

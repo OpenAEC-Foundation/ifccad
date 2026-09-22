@@ -5,8 +5,9 @@ use super::state::{
     AppearanceBindingEntry, AppearanceEntry, DrawingState, LayerEntry, PackageState, PendingEntity,
 };
 use super::types::{
-    AppearanceDefinition, AppearanceKey, AppearanceMode, DrawingOptions, EntityAppearance,
-    LayerDefinition, LayerKey, LineDefinition, PackageOptions, PolylineDefinition,
+    AppearanceDefinition, AppearanceKey, AppearanceMode, BlockDefinitionKey,
+    BlockDefinitionOptions, BlockInstanceDefinition, DrawingOptions, EntityAppearance,
+    LayerDefinition, LayerKey, LineDefinition, PackageOptions, PaperSpaceKey, PolylineDefinition,
 };
 
 use super::prepare::prepare_drawing;
@@ -71,6 +72,14 @@ impl PackageBuilder {
                 kind: "drawing token",
             })?;
         self.state.drawing = Some(DrawingState {
+            scopes: vec![crate::ifcdr::logical::IfcdrScope {
+                id: 0,
+                kind: crate::ifcdr::logical::IfcdrScopeKind::ModelSpace,
+                bounds: None,
+            }],
+            block_definitions: Vec::new(),
+            block_names: Default::default(),
+            paper_layouts: Vec::new(),
             options,
             storage: super::DrawingResourceStorage::default(),
             token,
@@ -107,7 +116,8 @@ impl PackageBuilder {
             );
             if inline {
                 diagnostic.location = Some(format!(
-                    "/data/3/attributes/resource/content{}",
+                    "/data/{}/attributes/resource/content{}",
+                    paths.representation_index,
                     diagnostic.location.as_deref().unwrap_or("")
                 ));
             }
@@ -175,7 +185,103 @@ impl DrawingBuilder<'_> {
 
     /// Opens the drawing's model-space entity collection.
     pub fn model_space(&mut self) -> ModelSpaceBuilder<'_> {
-        ModelSpaceBuilder { state: self.state }
+        ScopeEntitiesBuilder {
+            state: self.state,
+            scope_id: 0,
+        }
+    }
+    /// Adds metadata and an initially empty local definition scope.
+    pub fn add_block_definition(
+        &mut self,
+        options: BlockDefinitionOptions,
+    ) -> Result<BlockDefinitionKey, PackageBuildError> {
+        use crate::ifcdr::logical::{IfcdrBlockDefinition, IfcdrScope, IfcdrScopeKind};
+        if options.name.is_empty() {
+            return Err(PackageBuildError::EmptyValue {
+                field: "block_name",
+            });
+        }
+        if !crate::ifcdr::logical::valid_point3(options.base_point) {
+            return Err(PackageBuildError::NonFiniteCoordinate);
+        }
+        let name_key = crate::ifcdr::names::name_key(&options.name);
+        if self.state.block_names.contains_key(&name_key) {
+            return Err(PackageBuildError::DuplicateBlockName { name: options.name });
+        }
+        let id = u32::try_from(self.state.scopes.len())
+            .map_err(|_| PackageBuildError::RangeExhausted { kind: "scope" })?;
+        self.state.block_definitions.push(IfcdrBlockDefinition {
+            scope_id: id,
+            name: options.name,
+            base_point: options.base_point,
+            description: options.description,
+            anonymous: options.anonymous,
+            insertion_unit: options.insertion_unit,
+            explodable: options.explodable,
+            scaling: options.scaling,
+        });
+        self.state.scopes.push(IfcdrScope {
+            id,
+            kind: IfcdrScopeKind::BlockDefinition,
+            bounds: None,
+        });
+        self.state.block_names.insert(name_key, id);
+        Ok(BlockDefinitionKey {
+            builder_token: self.state.token,
+            local_id: id,
+        })
+    }
+    pub fn block_definition(
+        &mut self,
+        key: BlockDefinitionKey,
+    ) -> Result<ScopeEntitiesBuilder<'_>, PackageBuildError> {
+        self.state.validate_block_key(key)?;
+        Ok(ScopeEntitiesBuilder {
+            state: self.state,
+            scope_id: key.local_id,
+        })
+    }
+    /// Creates a native paper coordinate scope and minimal IFCX layout binding.
+    /// This does not add viewports or plot settings.
+    pub fn add_paper_space(
+        &mut self,
+        layout_name: String,
+    ) -> Result<PaperSpaceKey, PackageBuildError> {
+        if layout_name.is_empty() {
+            return Err(PackageBuildError::EmptyValue {
+                field: "layout_name",
+            });
+        }
+        let id = u32::try_from(self.state.scopes.len())
+            .map_err(|_| PackageBuildError::RangeExhausted { kind: "scope" })?;
+        self.state.scopes.push(crate::ifcdr::logical::IfcdrScope {
+            id,
+            kind: crate::ifcdr::logical::IfcdrScopeKind::PaperSpace,
+            bounds: None,
+        });
+        self.state.paper_layouts.push((id, layout_name));
+        Ok(PaperSpaceKey {
+            builder_token: self.state.token,
+            local_id: id,
+        })
+    }
+    pub fn paper_space(
+        &mut self,
+        key: PaperSpaceKey,
+    ) -> Result<ScopeEntitiesBuilder<'_>, PackageBuildError> {
+        if key.builder_token != self.state.token
+            || self
+                .state
+                .scopes
+                .get(key.local_id as usize)
+                .is_none_or(|s| s.kind != crate::ifcdr::logical::IfcdrScopeKind::PaperSpace)
+        {
+            return Err(PackageBuildError::ForeignPaperSpaceKey);
+        }
+        Ok(ScopeEntitiesBuilder {
+            state: self.state,
+            scope_id: key.local_id,
+        })
     }
 }
 
@@ -214,7 +320,7 @@ impl DrawingLayers<'_> {
             });
         }
         self.state.validate_appearance_key(definition.appearance)?;
-        let normalized_name = definition.name.to_ascii_lowercase();
+        let normalized_name = crate::ifcdr::names::name_key(&definition.name);
         if self.state.layer_names.contains_key(&normalized_name) {
             return Err(PackageBuildError::DuplicateLayerName {
                 name: definition.name,
@@ -235,7 +341,10 @@ impl DrawingLayers<'_> {
     }
 
     pub fn by_name(&self, name: &str) -> Option<LayerKey> {
-        let index = *self.state.layer_names.get(&name.to_ascii_lowercase())?;
+        let index = *self
+            .state
+            .layer_names
+            .get(&crate::ifcdr::names::name_key(name))?;
         Some(LayerKey {
             builder_token: self.state.token,
             local_id: self.state.layers[index].local_id,
@@ -244,6 +353,17 @@ impl DrawingLayers<'_> {
 }
 
 impl DrawingState {
+    fn validate_block_key(&self, key: BlockDefinitionKey) -> Result<(), PackageBuildError> {
+        if key.builder_token != self.token
+            || self
+                .scopes
+                .get(key.local_id as usize)
+                .is_none_or(|s| s.kind != crate::ifcdr::logical::IfcdrScopeKind::BlockDefinition)
+        {
+            return Err(PackageBuildError::ForeignBlockDefinitionKey);
+        }
+        Ok(())
+    }
     fn validate_appearance_key(&self, key: AppearanceKey) -> Result<(), PackageBuildError> {
         let index = key
             .local_id
@@ -335,11 +455,58 @@ impl DrawingState {
     }
 }
 
-pub struct ModelSpaceBuilder<'a> {
+pub struct ScopeEntitiesBuilder<'a> {
     state: &'a mut DrawingState,
+    scope_id: u32,
 }
+/// Model-space convenience using the same allocation and insertion rules.
+pub type ModelSpaceBuilder<'a> = ScopeEntitiesBuilder<'a>;
 
-impl ModelSpaceBuilder<'_> {
+impl ScopeEntitiesBuilder<'_> {
+    pub fn add_block_instance(
+        &mut self,
+        definition: BlockInstanceDefinition,
+    ) -> Result<EntityId, PackageBuildError> {
+        self.insert_block_instance(None, definition)
+    }
+    pub fn add_block_instance_with_id(
+        &mut self,
+        id: EntityId,
+        definition: BlockInstanceDefinition,
+    ) -> Result<EntityId, PackageBuildError> {
+        self.insert_block_instance(Some(id), definition)
+    }
+    fn insert_block_instance(
+        &mut self,
+        supplied: Option<EntityId>,
+        definition: BlockInstanceDefinition,
+    ) -> Result<EntityId, PackageBuildError> {
+        self.state.validate_block_key(definition.definition)?;
+        self.state.validate_layer_key(definition.layer)?;
+        let target = self
+            .state
+            .block_definitions
+            .iter()
+            .find(|d| d.scope_id == definition.definition.local_id)
+            .expect("builder definition key");
+        if target.scaling == crate::ifcdr::BlockScaling::Uniform
+            && !definition.transform.scale().is_uniform()
+        {
+            return Err(PackageBuildError::NonUniformBlockScale);
+        }
+        let entity_id = self.state.candidate_entity_id(supplied)?;
+        let appearance_id = self
+            .state
+            .resolve_entity_appearance(definition.appearance)?;
+        self.state.record_entity_id(entity_id);
+        self.state.entities.push(PendingEntity::BlockInstance {
+            scope_id: self.scope_id,
+            entity_id,
+            appearance_id,
+            definition,
+        });
+        Ok(entity_id)
+    }
     pub fn add_line(&mut self, definition: LineDefinition) -> Result<EntityId, PackageBuildError> {
         self.insert_line(None, definition)
     }
@@ -370,6 +537,7 @@ impl ModelSpaceBuilder<'_> {
             .resolve_entity_appearance(definition.appearance)?;
         self.state.record_entity_id(entity_id);
         self.state.entities.push(PendingEntity::Line {
+            scope_id: self.scope_id,
             entity_id,
             appearance_id,
             definition,
@@ -415,6 +583,7 @@ impl ModelSpaceBuilder<'_> {
             .resolve_entity_appearance(definition.appearance)?;
         self.state.record_entity_id(entity_id);
         self.state.entities.push(PendingEntity::Polyline {
+            scope_id: self.scope_id,
             entity_id,
             appearance_id,
             definition,

@@ -178,6 +178,22 @@ fn validate_layout_bindings(nodes: &[Value], result: &mut BindingAnalysis) {
             ));
             continue;
         }
+        let kind_matches = matches!(
+            (
+                node.pointer("/attributes/kind").and_then(Value::as_str),
+                resource.scope(scope_id)
+            ),
+            (Some("model"), Some(crate::ifcdr::ScopeRef::ModelSpace(_)))
+                | (Some("paper"), Some(crate::ifcdr::ScopeRef::PaperSpace(_)))
+        );
+        if !kind_matches {
+            result.diagnostics.push(binding_diagnostic(
+                format!("/data/{node_index}/attributes/scopeId"),
+                "layout kind must match its selected model or paper scope",
+                BTreeMap::new(),
+            ));
+            continue;
+        }
         result.bindings.layout_by_path.insert(
             path.to_owned(),
             LayoutBinding {

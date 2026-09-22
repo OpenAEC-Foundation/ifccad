@@ -45,11 +45,11 @@
     {
       "attributes": {
         "resource": {
-          "checksum": "sha256:b628b1d1df970bed248a9ecc2e4fe99fece95c32fb741e610aa9f72158d80075",
+          "checksum": "sha256:8d81f02b60d2ae45d71b537122f3980f30bb61aacd499f0813f0a967174b6291",
           "format": "openaec.ifcdr",
           "role": "drawing",
           "uri": "drawing.ifcdr.json",
-          "version": "0.8.0",
+          "version": "0.9.0",
           "resourceId": "drawing-main"
         },
         "name": "Drawing"

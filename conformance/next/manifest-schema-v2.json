@@ -249,6 +249,7 @@
             "unavailableInput",
             "executionLimit",
             "contentNotAssessable",
+            "numericalProofIncomplete",
             "preservationSemanticsNotAssessed"
           ]
         }

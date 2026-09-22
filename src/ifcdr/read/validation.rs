@@ -409,6 +409,7 @@ mod tests {
                 .in_scope(ScopeId::new(0))
                 .unwrap()
                 .map(|entity| match entity {
+                    IfcdrEntityRef::BlockInstance(_) => panic!("primitive-only fixture"),
                     IfcdrEntityRef::Line(line) => (
                         line.entity_id(),
                         line.visible(),

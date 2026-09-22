@@ -1,0 +1,131 @@
+{
+  "header": {
+    "format": "openaec.ifcdr",
+    "version": "0.9.0",
+    "resourceId": "drawing-main",
+    "unit": "m",
+    "nextEntityId": 4
+  },
+  "scopeTable": [
+    {
+      "id": 7,
+      "kind": 0,
+      "bounds": null
+    },
+    {
+      "id": 21,
+      "kind": 99,
+      "bounds": null
+    }
+  ],
+  "blockDefinitionTable": [
+    {
+      "scopeId": 21,
+      "name": "Door"
+    }
+  ],
+  "layerBindings": [
+    {
+      "id": 0,
+      "ifcxLayer": "layer-0"
+    }
+  ],
+  "appearanceBindings": [
+    {
+      "id": 0,
+      "ifcxAppearance": null,
+      "colorMode": 0,
+      "opacityMode": 0,
+      "linePatternMode": 0,
+      "lineWeightMode": 0,
+      "overrideId": null
+    }
+  ],
+  "streamDirectory": {
+    "version": "ifccad.ifcdr.streamDirectory.v1",
+    "streams": [
+      {
+        "name": "blockInstance",
+        "schema": "ifccad.ifcdr.blockInstance.v1",
+        "role": "object",
+        "count": 1,
+        "columns": [
+          "entityId",
+          "scopeId",
+          "definitionScopeId",
+          "transform",
+          "layerId",
+          "appearanceId"
+        ]
+      },
+      {
+        "name": "entityOrder",
+        "schema": "ifccad.ifcdr.entityOrder.v1",
+        "role": "order",
+        "count": 2,
+        "columns": [
+          "scopeId",
+          "entryOffset",
+          "entryCount"
+        ],
+        "children": [
+          "entityOrderEntry"
+        ]
+      },
+      {
+        "name": "entityOrderEntry",
+        "schema": "ifccad.ifcdr.entityOrderEntry.v1",
+        "role": "child",
+        "count": 1,
+        "columns": [
+          "entityId"
+        ],
+        "parent": "entityOrder"
+      }
+    ]
+  },
+  "streams": {
+    "blockInstanceStream": {
+      "count": 1,
+      "entityId": [
+        3
+      ],
+      "scopeId": [
+        7
+      ],
+      "definitionScopeId": [
+        21
+      ],
+      "transform": [
+        {}
+      ],
+      "layerId": [
+        0
+      ],
+      "appearanceId": [
+        0
+      ]
+    },
+    "entityOrderStream": {
+      "count": 2,
+      "scopeId": [
+        7,
+        21
+      ],
+      "entryOffset": [
+        0,
+        1
+      ],
+      "entryCount": [
+        1,
+        0
+      ]
+    },
+    "entityOrderEntryStream": {
+      "count": 1,
+      "entityId": [
+        3
+      ]
+    }
+  }
+}

@@ -42,7 +42,7 @@
     "nextEntityId": 5,
     "resourceId": "drawing-main",
     "unit": "m",
-    "version": "0.8.0"
+    "version": "0.9.0"
   },
   "layerBindings": [
     {
@@ -56,13 +56,8 @@
   ],
   "scopeTable": [
     {
-      "baseX": 0.0,
-      "baseY": 0.0,
-      "flags": 0,
       "id": 0,
       "kind": 0,
-      "name": "ModelSpace",
-      "baseZ": 0,
       "bounds": {
         "maxX": 30.0,
         "maxY": 15.0,
@@ -73,13 +68,8 @@
       }
     },
     {
-      "baseX": 0.0,
-      "baseY": 0.0,
-      "flags": 0,
       "id": 1,
       "kind": 1,
-      "name": "PaperSpace",
-      "baseZ": 0,
       "bounds": {
         "maxX": 30.0,
         "maxY": 15.0,

@@ -67,6 +67,9 @@ fn model_and_paper_layouts_share_the_drawing_resource() {
             .map(|entity| match entity {
                 ifccad::ifcdr::IfcdrEntityRef::Line(line) => line.entity_id().get(),
                 ifccad::ifcdr::IfcdrEntityRef::Polyline(polyline) => polyline.entity_id().get(),
+                ifccad::ifcdr::IfcdrEntityRef::BlockInstance(instance) => {
+                    instance.entity_id().get()
+                }
             })
             .collect();
         assert_eq!(ids, expected_ids);

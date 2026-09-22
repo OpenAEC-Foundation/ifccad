@@ -3,8 +3,8 @@ use serde_json::Value;
 use std::collections::BTreeMap;
 use std::sync::OnceLock;
 
-const LOGICAL: &str = include_str!("../../../../schemas/ifcdr/registry-0.8.0.json");
-const MAPPING: &str = include_str!("../../../../schemas/ifcdr/json-mapping-0.8.0.json");
+const LOGICAL: &str = include_str!("../../../../schemas/ifcdr/registry-0.9.0.json");
+const MAPPING: &str = include_str!("../../../../schemas/ifcdr/json-mapping-0.9.0.json");
 
 fn validate_default_markers(logical: &Value, mapping: &Value) -> Result<(), String> {
     for stream in mapping["streams"].as_array().into_iter().flatten() {
@@ -125,11 +125,18 @@ pub(crate) fn canonical_registry() -> &'static IfcdrRegistry {
     })
 }
 
-fn field(logical: &Value, name: &str, kind: &str, nullable: bool, optional: bool) -> Value {
+fn field(
+    logical: &Value,
+    mapping: &Value,
+    name: &str,
+    kind: &str,
+    nullable: bool,
+    optional: bool,
+) -> Value {
     use serde_json::json;
     let definition = &logical["types"][kind];
     let physical = match kind {
-        "appearanceMode" => "uint32",
+        "appearanceMode" | "scopeKind" | "blockScaling" => "uint32",
         "entityId" => "uint64",
         "nonEmptyString" | "unit" => "string",
         _ => match definition["kind"].as_str() {
@@ -140,6 +147,16 @@ fn field(logical: &Value, name: &str, kind: &str, nullable: bool, optional: bool
         },
     };
     let mut value = json!({"name": name, "valueType": physical, "nullable": nullable, "presence": if optional { "optional" } else { "required" }});
+    if matches!(kind, "scopeKind" | "blockScaling") {
+        value["allowedValues"] = Value::Array(
+            mapping["valueMappings"][kind]
+                .as_object()
+                .expect("registered enum mapping")
+                .values()
+                .cloned()
+                .collect(),
+        );
+    }
     if physical == "object" {
         value["fields"] = Value::Array(
             definition["fields"]
@@ -149,10 +166,11 @@ fn field(logical: &Value, name: &str, kind: &str, nullable: bool, optional: bool
                 .map(|f| {
                     field(
                         logical,
+                        mapping,
                         f["name"].as_str().unwrap(),
                         f["valueType"].as_str().unwrap(),
                         f["nullable"].as_bool().unwrap_or(false),
-                        f["optional"].as_bool().unwrap_or(false),
+                        f["optional"].as_bool().unwrap_or(false) || f.get("default").is_some(),
                     )
                 })
                 .collect(),
@@ -166,13 +184,14 @@ fn materialize(logical: &Value, mapping: &Value) -> Value {
     validate_default_markers(logical, mapping).expect("valid embedded whole-default markers");
     let mut header: Vec<Value> = ["format", "version"]
         .into_iter()
-        .map(|name| field(logical, name, "string", false, false))
+        .map(|name| field(logical, mapping, name, "string", false, false))
         .collect();
     let mut resource_fields = Vec::new();
     for f in logical["resource"]["fields"].as_array().unwrap() {
         let name = f["name"].as_str().unwrap();
         let value = field(
             logical,
+            mapping,
             name,
             f["valueType"].as_str().unwrap(),
             f["nullable"].as_bool().unwrap(),
@@ -204,10 +223,24 @@ fn materialize(logical: &Value, mapping: &Value) -> Value {
             .map(|f| {
                 field(
                     logical,
+                    mapping,
                     f["name"].as_str().unwrap(),
                     f["valueType"].as_str().unwrap(),
                     f["nullable"].as_bool().unwrap(),
-                    false,
+                    m["fields"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .find(|fm| {
+                            fm["logical"]
+                                == format!(
+                                    "{}.{}",
+                                    t["name"].as_str().unwrap(),
+                                    f["name"].as_str().unwrap()
+                                )
+                        })
+                        .unwrap()["omission"]
+                        == "logicalDefault",
                 )
             })
             .collect();
@@ -237,13 +270,27 @@ fn materialize(logical: &Value, mapping: &Value) -> Value {
                 .unwrap();
             if fm.get("encoding").is_some() {
                 for key in ["offset", "count"] {
-                    let mut c = field(logical, fm[key].as_str().unwrap(), "uint32", false, false);
+                    let mut c = field(
+                        logical,
+                        mapping,
+                        fm[key].as_str().unwrap(),
+                        "uint32",
+                        false,
+                        false,
+                    );
                     c["cardinality"] = json!("row");
                     columns.push(c);
                 }
                 if fm["encoding"] == "pointPoolRange" {
                     for pool in fm["pools"].as_array().unwrap() {
-                        let mut c = field(logical, pool.as_str().unwrap(), "float64", false, false);
+                        let mut c = field(
+                            logical,
+                            mapping,
+                            pool.as_str().unwrap(),
+                            "float64",
+                            false,
+                            false,
+                        );
                         c["cardinality"] = json!("pool");
                         columns.push(c);
                     }
@@ -261,6 +308,7 @@ fn materialize(logical: &Value, mapping: &Value) -> Value {
             } else {
                 let mut c = field(
                     logical,
+                    mapping,
                     fm["payload"].as_str().unwrap(),
                     f["valueType"].as_str().unwrap(),
                     f["nullable"].as_bool().unwrap(),
@@ -288,6 +336,7 @@ fn materialize(logical: &Value, mapping: &Value) -> Value {
         .map(|n| {
             field(
                 logical,
+                mapping,
                 n,
                 if n == "version" { "string" } else { "array" },
                 false,
@@ -302,6 +351,7 @@ fn materialize(logical: &Value, mapping: &Value) -> Value {
     .map(|n| {
         field(
             logical,
+            mapping,
             n,
             match n {
                 "count" => "uint32",
@@ -355,6 +405,8 @@ pub(crate) struct DirectorySchema {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct FieldSchema {
+    #[serde(default)]
+    pub(crate) allowed_values: Vec<Value>,
     pub(crate) name: String,
     pub(crate) value_type: ValueType,
     pub(crate) presence: Presence,
@@ -396,6 +448,8 @@ pub(crate) struct StreamSchema {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct ColumnSchema {
+    #[serde(default)]
+    pub(crate) allowed_values: Vec<Value>,
     #[serde(default)]
     pub(crate) fields: Vec<FieldSchema>,
     #[serde(default)]

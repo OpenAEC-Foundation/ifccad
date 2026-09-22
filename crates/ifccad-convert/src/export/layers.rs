@@ -47,6 +47,11 @@ pub(crate) fn add_layers(
 }
 
 fn append_auxiliary_losses(layer: &Layer, reasons: &mut Vec<ExportLossReason>) {
+    if !layer.description.is_empty() {
+        reasons.push(ExportLossReason::UnsupportedSemantic {
+            name: "layer.description".to_owned(),
+        });
+    }
     if layer.flags.locked {
         reasons.push(ExportLossReason::LayerLocked);
     }

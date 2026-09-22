@@ -9,7 +9,6 @@ use crate::ifcdr::write::{
 };
 #[cfg(test)]
 use crate::ifcdr::Point2;
-use crate::ifcdr::Point3;
 
 pub(crate) fn prepare_drawing(
     drawing: &mut DrawingState,
@@ -17,6 +16,7 @@ pub(crate) fn prepare_drawing(
 ) -> Result<PreparedIfcdrResource, Vec<IfcdrDiagnostic>> {
     let fail = || {
         vec![IfcdrDiagnostic {
+            category: crate::diagnostic::PackageDiagnosticCategory::ContractViolation,
             code: IFCCAD_IFCDR_REFERENCE_MISSING,
             resource_id: drawing.options.representation_resource_id.clone(),
             collection: "appearanceBinding",
@@ -87,14 +87,31 @@ pub(crate) fn prepare_drawing(
     let entities = std::mem::take(&mut drawing.entities)
         .into_iter()
         .map(|pending| match pending {
+            PendingEntity::BlockInstance {
+                scope_id,
+                entity_id,
+                appearance_id,
+                definition: d,
+            } => IfcdrWriteEntity::BlockInstance(IfcdrBlockInstanceRow {
+                entity: IfcdrEntityRow {
+                    entity_id: entity_id.get(),
+                    scope_id,
+                    layer_id: d.layer.local_id,
+                    appearance_id: appearance_id.get(),
+                    visible: d.visible,
+                },
+                definition_scope_id: d.definition.local_id,
+                transform: d.transform.components(),
+            }),
             PendingEntity::Line {
+                scope_id,
                 entity_id,
                 appearance_id,
                 definition: d,
             } => IfcdrWriteEntity::Line(IfcdrLineRow {
                 entity: IfcdrEntityRow {
                     entity_id: entity_id.get(),
-                    scope_id: 0,
+                    scope_id,
                     layer_id: d.layer.local_id,
                     appearance_id: appearance_id.get(),
                     visible: d.visible,
@@ -103,13 +120,14 @@ pub(crate) fn prepare_drawing(
                 end: d.end,
             }),
             PendingEntity::Polyline {
+                scope_id,
                 entity_id,
                 appearance_id,
                 definition: d,
             } => IfcdrWriteEntity::Polyline {
                 entity: IfcdrEntityRow {
                     entity_id: entity_id.get(),
-                    scope_id: 0,
+                    scope_id,
                     layer_id: d.layer.local_id,
                     appearance_id: appearance_id.get(),
                     visible: d.visible,
@@ -124,14 +142,8 @@ pub(crate) fn prepare_drawing(
         resource_id: drawing.options.representation_resource_id.clone(),
         unit: drawing.options.length_unit,
         next_entity_id: drawing.next_entity_id,
-        scopes: vec![IfcdrScope {
-            id: 0,
-            kind: 0,
-            name: "ModelSpace".into(),
-            base: Point3::new(0., 0., 0.),
-            bounds: None,
-            flags: 0,
-        }],
+        block_definitions: drawing.block_definitions.clone(),
+        scopes: drawing.scopes.clone(),
         layers,
         appearances,
         overrides: Vec::new(),

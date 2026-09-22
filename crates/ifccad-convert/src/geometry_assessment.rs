@@ -1,6 +1,7 @@
 #[cfg(test)]
 use crate::geometry::numeric::exact;
 use crate::geometry::numeric::{round_down, round_up};
+use crate::units::{ResolvedTolerance, ToleranceVerdict};
 use crate::{ConversionGeometryTolerance, ConversionToleranceError};
 use cadcodec::Handle;
 use ifccad::{
@@ -31,6 +32,10 @@ pub enum ConversionGeometryStatus {
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum ConversionEntitySource {
+    BlockOccurrence {
+        path: Vec<ConversionEntitySource>,
+        leaf: Box<ConversionEntitySource>,
+    },
     CadEntity {
         handle: Handle,
         kind: String,
@@ -50,6 +55,7 @@ pub enum ConversionGeometryStage {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ConversionGeometryFailureReason {
     ProvenExceedance,
+    NumericalProofIncomplete,
     CadAxisEvaluationFailed,
     TargetCoordinateOutOfRange,
     DeviationBoundOutOfRange,
@@ -69,7 +75,7 @@ pub struct ConversionGeometryAssessment {
     requested: ConversionGeometryTolerance,
     unit: IfcdrLengthUnit,
     resolved: ConversionDistanceInterval,
-    limit: BigRational,
+    limit: ResolvedTolerance,
     entities: usize,
     vertices: usize,
     rounded: usize,
@@ -83,8 +89,8 @@ impl ConversionGeometryAssessment {
     ) -> Result<Self, ConversionToleranceError> {
         let limit = requested.resolve(unit)?;
         let resolved = ConversionDistanceInterval {
-            lower: round_down(&limit).unwrap_or(f64::MAX),
-            upper: round_up(&limit).unwrap_or(f64::INFINITY),
+            lower: round_down(&limit.lower).unwrap_or(f64::MAX),
+            upper: round_up(&limit.upper).unwrap_or(f64::INFINITY),
         };
         Ok(Self {
             requested,
@@ -165,12 +171,19 @@ impl ConversionGeometryAssessment {
                 ConversionGeometryFailureReason::DeviationBoundOutOfRange,
             )
         })?;
-        if d2 > &(&self.limit * &self.limit) {
+        let verdict = self.limit.check_squared(d2);
+        if verdict != ToleranceVerdict::Within {
             let mut failure = self.failure(
                 source,
                 Some(vertex),
                 ConversionGeometryStage::DeviationAssessment,
-                ConversionGeometryFailureReason::ProvenExceedance,
+                match verdict {
+                    ToleranceVerdict::Exceeds => ConversionGeometryFailureReason::ProvenExceedance,
+                    ToleranceVerdict::Unresolved => {
+                        ConversionGeometryFailureReason::NumericalProofIncomplete
+                    }
+                    ToleranceVerdict::Within => unreachable!(),
+                },
             );
             failure.deviation = Some(ConversionDistanceInterval {
                 lower: deviation.0,
@@ -179,6 +192,32 @@ impl ConversionGeometryAssessment {
             return Err(failure);
         }
         Ok(deviation.1)
+    }
+    pub(crate) fn check_interval(
+        &self,
+        source: &ConversionEntitySource,
+        vertex: usize,
+        lower: &BigRational,
+        upper: &BigRational,
+    ) -> Result<f64, Box<ConversionGeometryFailure>> {
+        match self.check(source, vertex, upper) {
+            Ok(bound) => Ok(bound),
+            Err(mut failure) => {
+                if self.limit.check_squared(lower) != ToleranceVerdict::Exceeds {
+                    failure.reason = ConversionGeometryFailureReason::NumericalProofIncomplete;
+                }
+                if let (Some(lo), Some(hi)) = (
+                    crate::geometry::numeric::sqrt_interval(lower),
+                    crate::geometry::numeric::sqrt_interval(upper),
+                ) {
+                    failure.deviation = Some(ConversionDistanceInterval {
+                        lower: lo.0,
+                        upper: hi.1,
+                    });
+                }
+                Err(failure)
+            }
+        }
     }
     pub(crate) fn record(&mut self, source: ConversionEntitySource, count: usize, bound: f64) {
         self.entities += 1;
@@ -195,6 +234,72 @@ impl ConversionGeometryAssessment {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn interval_outcomes_distinguish_proof_gap_from_proved_exceedance() {
+        let assessment = ConversionGeometryAssessment::new(
+            ConversionGeometryTolerance::drawing_units(1.).unwrap(),
+            IfcdrLengthUnit::Metre,
+        )
+        .unwrap();
+        let source = ConversionEntitySource::CadEntity {
+            handle: Handle::NULL,
+            kind: "INSERT".into(),
+        };
+        assert!(assessment
+            .check_interval(&source, 0, &exact(0.), &exact(1.))
+            .is_ok());
+        let uncertain = assessment
+            .check_interval(&source, 1, &exact(0.5), &exact(2.))
+            .unwrap_err();
+        assert_eq!(
+            uncertain.reason,
+            ConversionGeometryFailureReason::NumericalProofIncomplete
+        );
+        let outside = assessment
+            .check_interval(&source, 2, &exact(2.), &exact(3.))
+            .unwrap_err();
+        assert_eq!(
+            outside.reason,
+            ConversionGeometryFailureReason::ProvenExceedance
+        );
+        assert!(matches!(
+            crate::ExportError::from(uncertain.clone()),
+            crate::ExportError::GeometryAccuracyNotEstablished { .. }
+        ));
+        assert!(matches!(
+            crate::ImportError::from(uncertain),
+            crate::ImportError::GeometryAccuracyNotEstablished { .. }
+        ));
+    }
+    #[test]
+    fn uncertainty_is_a_hard_accuracy_failure_in_both_conversion_directions() {
+        let mut a = ConversionGeometryAssessment::new(
+            ConversionGeometryTolerance::default(),
+            IfcdrLengthUnit::Parsec,
+        )
+        .unwrap();
+        a.limit = ResolvedTolerance {
+            lower: crate::units::q(2, 1),
+            upper: crate::units::q(3, 1),
+        };
+        let source = ConversionEntitySource::CadEntity {
+            handle: Handle::NULL,
+            kind: "LINE".into(),
+        };
+        let failure = a.check(&source, 0, &crate::units::q(5, 1)).unwrap_err();
+        assert_eq!(
+            failure.reason,
+            ConversionGeometryFailureReason::NumericalProofIncomplete
+        );
+        assert!(matches!(
+            crate::ImportError::from(failure.clone()),
+            crate::ImportError::GeometryAccuracyNotEstablished { .. }
+        ));
+        assert!(matches!(
+            crate::ExportError::from(failure),
+            crate::ExportError::GeometryAccuracyNotEstablished { .. }
+        ));
+    }
     #[test]
     fn rational_unit_limit_and_reported_distance_do_not_relax_acceptance() {
         let a = ConversionGeometryAssessment::new(

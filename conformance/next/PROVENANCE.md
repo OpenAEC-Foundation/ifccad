@@ -24,3 +24,17 @@ License 2.0. The adjacent `LICENSE` file contains the applicable license text.
 - Inline-source migration (2026-09-09): overlay and normative source contract 0.9.0, retaining drawing relationship contract 0.8.0. Added IFCDR/IFCPR source combinations, conflicting sources, inline checksum, duplicate identity and unsupported inline-body cases. Resource body contracts and frozen collections are unchanged.
 
 - Reporting update (2026-09-11): added reporting contract v1 and manifest schema v2 with optional category/assessment expectations. Existing case IDs and five deferred IFCPR checks remain; format-body schemas, frozen collections and suite version are unchanged.
+
+- Scope/block migration (2026-09-22): active IFCDR 0.9.0 and IFCX overlay 0.11.0;
+  registry meta-schema v4, mapping meta-schema v3 and mapping language v3.
+  Generic scopes now have typed ownership; local definitions and instance
+  transforms are explicit. Resource-global IDs and scope-local order remain.
+  Candidate fixtures were mechanically migrated, refreshing only previously
+  matching checksums so intentionally incorrect hashes remain incorrect.
+  Added block defaults, signed uniformity, subnormal scale, missing targets,
+  unused cycles, null transform and inline/external numerical-proof gaps.
+  Additional cases cover non-neutral frames, conservative/non-enclosing bounds,
+  missing/null/zero transform members, unknown scope kinds, full-fold name
+  collisions, duplicate definitions and layout/scope-kind mismatch.
+  Unicode 17 default full case folding C/F data and its license are pinned in
+  the schema snapshots. No numbered release was modified.

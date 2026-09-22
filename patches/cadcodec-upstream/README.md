@@ -1,10 +1,17 @@
-# Remaining fixes on the current cadcodec pin
+# Historical fixes for cadcodec revision 2f2cd258
 
-The normal dependency is upstream acadrust 0.5.4 at
+These patches and instructions are retained for reproducing the former
+measurement reference. The current converter selects unmodified revision
+`5b682ed66ea2c89be8142c8dd83d83774fc3de08`; do not apply these older-base patches
+to that revision. The [current experiment](../../docs/benchmarks/size-baseline-v1.md)
+passes without them. Retaining this historical recipe does not retire or modify
+the upstream issues.
+
+The dependency for this historical recipe is upstream acadrust 0.5.4 at
 `2f2cd25832db298524fb5eb36ced5a438a877e95`. It includes deterministic DXF object
 ordering, so no DXF implementation patch is needed.
 
-Two defects remain upstream:
+The two defects addressed by this recipe were:
 
 - [#41](https://github.com/HakanSeven12/cadcodec/issues/41): DWG current
   lineweight must encode/decode the table index, not the raw hundredths value.

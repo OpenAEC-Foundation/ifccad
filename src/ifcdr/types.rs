@@ -1,5 +1,13 @@
 use std::num::NonZeroU64;
 
+/// Constraint on the exact signed scale factors of every instance of a definition.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum BlockScaling {
+    #[default]
+    Any,
+    Uniform,
+}
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Point2 {
     pub(crate) x: f64,
@@ -121,4 +129,42 @@ pub enum IfcdrLengthUnit {
     Kilometre,
     Inch,
     Foot,
+    Mile,
+    Microinch,
+    Mil,
+    Yard,
+    Angstrom,
+    Nanometre,
+    Micrometre,
+    Decimetre,
+    Decametre,
+    Hectometre,
+    Gigametre,
+    AstronomicalUnit,
+    LightYear,
+    Parsec,
+    UsSurveyFoot,
+    UsSurveyInch,
+    UsSurveyYard,
+    UsSurveyMile,
+}
+
+#[cfg(test)]
+mod length_unit_tests {
+    #[test]
+    fn all_contract_unit_tokens_parse_and_encode_without_aliases() {
+        let registry: serde_json::Value =
+            serde_json::from_str(include_str!("../../schemas/ifcdr/registry-0.9.0.json")).unwrap();
+        let tokens = registry["types"]["unit"]["values"].as_array().unwrap();
+        assert_eq!(tokens.len(), 25);
+        for token in tokens {
+            let token = token.as_str().unwrap();
+            let unit = crate::ifcdr::logical::length_unit(token)
+                .unwrap_or_else(|| panic!("missing {token}"));
+            assert_eq!(crate::ifcdr::codec::json::unit_name(unit), token);
+        }
+        for alias in ["GM", "metre", "usSurveyfoot", "M", "µm", ""] {
+            assert!(crate::ifcdr::logical::length_unit(alias).is_none());
+        }
+    }
 }

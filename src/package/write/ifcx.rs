@@ -12,6 +12,8 @@ pub(crate) struct NodePaths {
     pub(crate) drawing: String,
     pub(crate) layout: String,
     pub(crate) representation: String,
+    pub(crate) representation_index: usize,
+    pub(crate) paper_layouts: Vec<String>,
     pub(crate) layers: Vec<String>,
     pub(crate) appearances: Vec<String>,
 }
@@ -25,6 +27,10 @@ impl NodePaths {
             drawing: "drawing-0".to_owned(),
             layout: "layout-0".to_owned(),
             representation: "representation-0".to_owned(),
+            representation_index: 3 + drawing.paper_layouts.len(),
+            paper_layouts: (0..drawing.paper_layouts.len())
+                .map(|i| format!("layout-{}", i + 1))
+                .collect(),
             layers,
             appearances,
         })
@@ -38,7 +44,7 @@ pub(crate) fn assemble_ifcx(
     resource: &EncodedIfcdrResource,
 ) -> Result<Vec<u8>, PackageBuildError> {
     let mut descriptor = json!({
-        "format":"openaec.ifcdr", "version":"0.8.0", "resourceId":resource.resource_id, "role":"drawing"
+        "format":"openaec.ifcdr", "version":"0.9.0", "resourceId":resource.resource_id, "role":"drawing"
     });
     match drawing.storage {
         super::DrawingResourceStorage::External => {
@@ -57,7 +63,7 @@ pub(crate) fn assemble_ifcx(
             "path": paths.drawing,
             "type": "openaec:Drawing",
             "children": {
-                "Layouts": [paths.layout.clone()],
+                "Layouts": std::iter::once(paths.layout.clone()).chain(paths.paper_layouts.iter().cloned()).collect::<Vec<_>>(),
                 "Representation": paths.representation
             }
         }),
@@ -71,15 +77,19 @@ pub(crate) fn assemble_ifcx(
             },
             "children": {"Representation": paths.representation}
         }),
-        json!({
-            "path": paths.representation,
-            "type": "openaec:DrawingRepresentation",
-            "attributes": {
-                "name": "Drawing",
-                "resource": descriptor
-            }
-        }),
     ];
+    for ((scope_id, name), path) in drawing.paper_layouts.iter().zip(&paths.paper_layouts) {
+        data.push(json!({"path":path,"type":"openaec:DrawingLayout","attributes":{"name":name,"kind":"paper","scopeId":scope_id},"children":{"Representation":paths.representation}}));
+    }
+    debug_assert_eq!(data.len(), paths.representation_index);
+    data.push(json!({
+        "path": paths.representation,
+        "type": "openaec:DrawingRepresentation",
+        "attributes": {
+            "name": "Drawing",
+            "resource": descriptor
+        }
+    }));
 
     let layer_nodes = drawing
         .layers
@@ -265,7 +275,7 @@ mod tests {
         assert_eq!(root["data"][3]["attributes"]["name"], "Drawing");
         let geometry = &root["data"][3]["attributes"]["resource"];
         assert_eq!(geometry["format"], "openaec.ifcdr");
-        assert_eq!(geometry["version"], "0.8.0");
+        assert_eq!(geometry["version"], "0.9.0");
         assert_eq!(geometry["role"], "drawing");
         assert_eq!(geometry["resourceId"], "drawing-main");
         assert_eq!(geometry["uri"], "resources/drawing.ifcdr.json");

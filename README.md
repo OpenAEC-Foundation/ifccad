@@ -66,7 +66,8 @@ The crate currently provides:
   typed model for validated package metadata, drawings, layouts, layers,
   appearances, and IFCDR entities;
 - a deterministic package builder and safe new-directory writer for one
-  model-space drawing with layers, appearances, lines, and polylines; and
+  drawing with model/paper scopes, local blocks, layers, appearances, lines,
+  and polylines; and
 - the `ifccad-convert` companion crate for bidirectional conversion between a
   validated IFCCAD drawing and cadcodec `CadDocument`, including deterministic
   loss diagnostics and source-to-target entity mappings.
@@ -75,8 +76,9 @@ A complete IFCCAD vocabulary within IFCX, production IFCDR codecs, the future
 `.ifccad` container, broader native CAD entity coverage and preservation, and
 conventional IFC integration are still under development.
 
-The active reader and writer use the encoding-neutral IFCDR **0.8.0** contract with
-XYZ lines, placed straight polylines, and per-scope XYZ bounds. Older IFCDR versions and
+The active reader and writer use the encoding-neutral IFCDR **0.9.0** contract with
+XYZ lines, placed straight polylines, local block definitions/instances and
+evaluated per-scope XYZ bounds. Older IFCDR versions and
 other entity schemas do not produce a strict typed package; there is no legacy
 migration path. Reader and writer retain separate storage behind shared typed
 collection access and semantic validation; JSON encoding is a separate boundary.
@@ -97,7 +99,8 @@ Development follows an incremental sequence:
    compatibility is not required.
 3. **Native CAD semantics and preservation (current)** — the coordinate-frame
    slice adds XYZ lines, placed straight polylines and accuracy assessment.
-   Scope ownership, block definitions and instances are the next development slice.
+   Scope ownership, local block definitions and instances are implemented, with
+   explicit CAD codec limitations; full layout presentation remains later work.
    Shared-style work will add direct IFCX `Drawing` lists for layers and
    appearances, retaining shared definitions and local IFCDR bindings.
    Expand layouts, entities, drawing relationships, and IFCPR-backed fidelity in architectural
@@ -227,14 +230,17 @@ fn write_example() -> Result<(), Box<dyn std::error::Error>> {
 ```
 
 The current writer deliberately requires exactly one Drawing with one model
-layout and one external or inline IFCDR model-space resource. `model_layout_name` names
+layout and one external or inline IFCDR resource, with optional minimal paper
+layouts and local block definitions. `model_layout_name` names
 that layout; it is not a drawing name. The declared length unit belongs to the
 individual IFCDR resource. The writer supports layers, explicit appearances,
-lines, polylines, visibility, and global entity order. It does not yet write paper
-space, blocks, IFCPR, or `.ifccad` containers, and it never
+lines, polylines, block instances, visibility, and per-scope entity order with
+resource-global IDs. Paper presentation/viewports/plot settings, IFCPR and
+`.ifccad` containers remain future work. It never
 overwrites an existing target directory. Mapping a cadcodec `CadDocument` into
 this builder is the responsibility of `ifccad-convert`. Its exporter currently
-supports finite XYZ lines and placed straight lightweight polylines, represents
+supports finite XYZ lines, placed straight lightweight polylines and ordinary
+local blocks, represents
 mixed ByLayer/ByBlock/explicit appearance inheritance, and reports every
 detected unsupported source semantic according to an allow-or-reject loss
 policy.
@@ -253,7 +259,7 @@ The public API is still evolving while the format contract matures.
 The active language-neutral schemas live in `schemas/`. The mutable
 `conformance/next` collection currently targets suite `1.1.0` and tests the
 minimal package-header contract alongside explicit resource identity: a
-logical resource ID is independent of its external URI. IFCX overlay `0.10.0`
+logical resource ID is independent of its external URI. IFCX overlay `0.11.0`
 requires the top-level `header`, `imports`, and `data` fields and the known
 header fields, while still allowing additional top-level and header fields and
 unknown IFCX node types for forward-compatible extension. It remains a
@@ -262,7 +268,7 @@ directory such as `conformance/1.0.0` is an immutable, self-contained release
 of fixtures, vectors, expected outcomes, and the schemas applicable to that
 collection.
 
-The [drawing resource contract](schemas/ifcx/drawing-resource-contract-0.8.0.md)
+The [drawing resource contract](schemas/ifcx/drawing-resource-contract-0.11.0.md)
 uses `openaec:DrawingRepresentation` and `attributes.resource` with role
 `drawing`. A Drawing and all its layouts reference the same representation
 node; layouts select scopes within its IFCDR resource. The retired
@@ -286,16 +292,24 @@ Active schemas may move ahead of the latest released conformance collection.
 When a new collection is released, its applicable schemas are copied into the
 numbered directory and frozen with the rest of that collection.
 
-The [logical registry](schemas/ifcdr/registry-0.8.0.json),
-[normative rules](schemas/ifcdr/logical-contract-0.8.0.md), and
-[JSON mapping](schemas/ifcdr/json-mapping-0.8.0.json) define the drawing contract.
-The [mapping language](schemas/ifcdr/json-mapping-v2.md) specifies the meaning
+The [logical registry](schemas/ifcdr/registry-0.9.0.json),
+[normative rules](schemas/ifcdr/logical-contract-0.9.0.md), and
+[JSON mapping](schemas/ifcdr/json-mapping-0.9.0.json) define the drawing contract.
+The [mapping language](schemas/ifcdr/json-mapping-v3.md) specifies the meaning
 of its encoding forms and physical range rules.
 Polylines require at least two vertices; repeated vertices and coincident line
 endpoints are valid. Empty scopes have null bounds; nonempty scopes require finite XYZ bounds
 enclosing exact geometry of the stored values, including invisible entities.
 Conservative bounds are accepted. Polyline placement defaults as one complete
 identity frame; explicit frames supply origin and both axes in full.
+
+Block definitions remain inside their IFCDR resource. An instance's `scopeId`
+selects its owner; `definitionScopeId` selects the shared contents. Base points
+are subtracted before the instance transform. Empty definitions contribute no
+geometry, and conservative bounds are accepted without warnings. An inconclusive
+numeric proof blocks strict loading without claiming the file is invalid.
+See [block transforms](docs/geometry/block-transform.md) and
+[CAD conversion limits](docs/geometry/block-cad-boundary.md).
 
 The [compatibility matrix](conformance/next/COMPATIBILITY.md) and
 [reporting contract](conformance/next/reporting-contract-v1.md) distinguish

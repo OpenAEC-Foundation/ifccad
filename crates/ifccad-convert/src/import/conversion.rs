@@ -37,6 +37,15 @@ pub fn drawing_to_cad_document_with_options(
 
     let layout = layouts[0];
     let representation = layout.representation();
+    if let Some(scope) = representation
+        .resource()
+        .scopes()
+        .find(|scope| matches!(scope, ifccad::ifcdr::ScopeRef::PaperSpace(_)))
+    {
+        return Err(ImportError::UnsupportedScope {
+            scope_id: scope.id(),
+        });
+    }
     let mut document = CadDocument::new();
     let mut diagnostics = DiagnosticAccumulator::default();
     let mut geometry = crate::ConversionGeometryAssessment::new(
@@ -73,78 +82,165 @@ pub fn drawing_to_cad_document_with_options(
     }
 
     let scope_id = layout.scope().id();
+    let owners = super::blocks::allocate(&mut document, representation.resource(), scope_id)?;
+    let mut block_instances = std::collections::BTreeMap::new();
+    let mut block_points = std::collections::BTreeMap::new();
     let mut entity_mapping = ImportEntityMapping::default();
-    for source in representation.resource().entities(scope_id) {
-        match source {
-            IfcdrEntityRef::Line(source) => {
-                geometry.record(
-                    crate::ConversionEntitySource::IfcdrEntity {
+    for (scope_id, owner) in owners {
+        for source in representation.resource().entities(scope_id) {
+            match source {
+                IfcdrEntityRef::BlockInstance(source) => {
+                    let resource = representation.resource();
+                    let Some(ifccad::ifcdr::ScopeRef::BlockDefinition(definition)) =
+                        resource.scope(source.definition_scope_id())
+                    else {
+                        return Err(ImportError::InternalInvariant {
+                            message: "validated block target missing".into(),
+                        });
+                    };
+                    let identity = crate::ConversionEntitySource::IfcdrEntity {
                         resource_id: representation.resource().resource_id().clone(),
                         scope_id,
                         entity_id: source.entity_id(),
-                    },
-                    2,
-                    0.0,
-                );
-                let start = source.start();
-                let end = source.end();
-                let mut target =
-                    Line::from_coords(start.x(), start.y(), start.z(), end.x(), end.y(), end.z());
-                apply_entity_common(
-                    &mut document,
-                    representation,
-                    &mut target.common,
-                    source.entity_id(),
-                    source.layer_id(),
-                    source.appearance_id(),
-                    source.visible(),
-                    &mut diagnostics,
-                )?;
-                add_and_map(
-                    &mut document,
-                    &mut entity_mapping,
-                    source.entity_id(),
-                    EntityType::Line(target),
-                )?;
-            }
-            IfcdrEntityRef::Polyline(source) => {
-                let identity = crate::ConversionEntitySource::IfcdrEntity {
-                    resource_id: representation.resource().resource_id().clone(),
-                    scope_id,
-                    entity_id: source.entity_id(),
-                };
-                let (mut target, bound, changed) =
-                    crate::geometry::to_cad(source, identity.clone(), &mut geometry)?;
-                if changed {
-                    diagnostics.record(crate::ImportDiagnostic::PlaneParameterizationChanged {
-                        source: identity.clone(),
-                    });
+                    };
+                    let (mut target, source_map, target_map, changed) =
+                        crate::geometry::blocks::to_cad_instance(
+                            source,
+                            definition,
+                            identity.clone(),
+                            &geometry,
+                        )?;
+                    if changed {
+                        diagnostics.record(crate::ImportDiagnostic::BlockParameterizationChanged {
+                            source: identity,
+                        });
+                    }
+                    apply_entity_common(
+                        &mut document,
+                        representation,
+                        &mut target.common,
+                        source.entity_id(),
+                        source.layer_id(),
+                        source.appearance_id(),
+                        source.visible(),
+                        &mut diagnostics,
+                    )?;
+                    target.common.owner_handle = owner;
+                    add_and_map(
+                        &mut document,
+                        &mut entity_mapping,
+                        source.entity_id(),
+                        EntityType::Insert(target),
+                    )?;
+                    block_instances.insert(
+                        source.entity_id(),
+                        super::blocks::ConvertedInstance {
+                            definition: source.definition_scope_id(),
+                            owner_scope: scope_id,
+                            source: source_map,
+                            target: target_map,
+                        },
+                    );
                 }
-                if bound > 0.0 {
-                    diagnostics.record(crate::ImportDiagnostic::GeometryRoundedWithinTolerance {
-                        source: identity,
-                        max_deviation_upper_bound: bound,
-                    });
+                IfcdrEntityRef::Line(source) => {
+                    geometry.record(
+                        crate::ConversionEntitySource::IfcdrEntity {
+                            resource_id: representation.resource().resource_id().clone(),
+                            scope_id,
+                            entity_id: source.entity_id(),
+                        },
+                        2,
+                        0.0,
+                    );
+                    let start = source.start();
+                    let end = source.end();
+                    block_points.insert(
+                        source.entity_id(),
+                        [start, end]
+                            .map(|p| {
+                                crate::geometry::blocks::PairedPoint::exact([p.x(), p.y(), p.z()])
+                            })
+                            .to_vec(),
+                    );
+                    let mut target = Line::from_coords(
+                        start.x(),
+                        start.y(),
+                        start.z(),
+                        end.x(),
+                        end.y(),
+                        end.z(),
+                    );
+                    apply_entity_common(
+                        &mut document,
+                        representation,
+                        &mut target.common,
+                        source.entity_id(),
+                        source.layer_id(),
+                        source.appearance_id(),
+                        source.visible(),
+                        &mut diagnostics,
+                    )?;
+                    target.common.owner_handle = owner;
+                    add_and_map(
+                        &mut document,
+                        &mut entity_mapping,
+                        source.entity_id(),
+                        EntityType::Line(target),
+                    )?;
                 }
-                apply_entity_common(
-                    &mut document,
-                    representation,
-                    &mut target.common,
-                    source.entity_id(),
-                    source.layer_id(),
-                    source.appearance_id(),
-                    source.visible(),
-                    &mut diagnostics,
-                )?;
-                add_and_map(
-                    &mut document,
-                    &mut entity_mapping,
-                    source.entity_id(),
-                    EntityType::LwPolyline(target),
-                )?;
+                IfcdrEntityRef::Polyline(source) => {
+                    let identity = crate::ConversionEntitySource::IfcdrEntity {
+                        resource_id: representation.resource().resource_id().clone(),
+                        scope_id,
+                        entity_id: source.entity_id(),
+                    };
+                    let (mut target, bound, changed) =
+                        crate::geometry::to_cad(source, identity.clone(), &mut geometry)?;
+                    block_points.insert(
+                        source.entity_id(),
+                        crate::geometry::blocks::import_polyline_pairs(source, &target),
+                    );
+                    if changed {
+                        diagnostics.record(crate::ImportDiagnostic::PlaneParameterizationChanged {
+                            source: identity.clone(),
+                        });
+                    }
+                    if bound > 0.0 {
+                        diagnostics.record(
+                            crate::ImportDiagnostic::GeometryRoundedWithinTolerance {
+                                source: identity,
+                                max_deviation_upper_bound: bound,
+                            },
+                        );
+                    }
+                    apply_entity_common(
+                        &mut document,
+                        representation,
+                        &mut target.common,
+                        source.entity_id(),
+                        source.layer_id(),
+                        source.appearance_id(),
+                        source.visible(),
+                        &mut diagnostics,
+                    )?;
+                    target.common.owner_handle = owner;
+                    add_and_map(
+                        &mut document,
+                        &mut entity_mapping,
+                        source.entity_id(),
+                        EntityType::LwPolyline(target),
+                    )?;
+                }
             }
         }
     }
+    super::blocks::assess_occurrences(
+        representation.resource(),
+        &block_instances,
+        &block_points,
+        &mut geometry,
+        &mut diagnostics,
+    )?;
 
     let diagnostics = diagnostics.finish();
     if options.loss_policy == crate::ConversionLossPolicy::Reject

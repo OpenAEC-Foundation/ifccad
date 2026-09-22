@@ -18,6 +18,7 @@ pub(crate) type ValidatedIfcdr<R> = Validated<IfcdrCandidate<R>>;
 pub(crate) enum IfcdrEntityKind {
     Line,
     Polyline,
+    BlockInstance,
 }
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct IfcdrEntityLocation {
@@ -51,7 +52,7 @@ pub(crate) fn validate_resource<R: IfcdrResourceAccess>(
 ) -> ValidationOutcome<IfcdrCandidate<R>> {
     Validated::validate(IfcdrCandidate(resource), &())
 }
-fn diagnostic<R: IfcdrResourceAccess>(
+pub(super) fn diagnostic<R: IfcdrResourceAccess>(
     r: &R,
     code: &'static str,
     collection: &'static str,
@@ -60,6 +61,7 @@ fn diagnostic<R: IfcdrResourceAccess>(
     message: impl Into<String>,
 ) -> IfcdrDiagnostic {
     IfcdrDiagnostic {
+        category: crate::diagnostic::PackageDiagnosticCategory::ContractViolation,
         code,
         resource_id: r.resource_id().clone(),
         collection,
@@ -113,18 +115,6 @@ fn check<R: IfcdrResourceAccess>(r: &R) -> (IfcdrEvidence, Vec<IfcdrDiagnostic>)
         ),
         ..Default::default()
     };
-    for (row, scope) in r.scopes().iter().enumerate() {
-        if !valid_point3(scope.base) {
-            errors.push(diagnostic(
-                r,
-                IFCCAD_IFCDR_GEOMETRY_INVALID,
-                "scope",
-                Some(row),
-                "base",
-                "scope base must be finite",
-            ));
-        }
-    }
     for (row, layer) in r.layers().iter().enumerate() {
         if layer.ifcx_layer.is_empty() {
             errors.push(diagnostic(
@@ -274,6 +264,29 @@ fn check<R: IfcdrResourceAccess>(r: &R) -> (IfcdrEvidence, Vec<IfcdrDiagnostic>)
             ));
         }
     }
+    let instances = r.block_instances();
+    for row in 0..instances.len() {
+        if let Some(instance) = instances.get(row) {
+            identity_valid &= entity(
+                r,
+                instance.entity,
+                IfcdrEntityKind::BlockInstance,
+                row,
+                &mut evidence,
+                &mut errors,
+            );
+        } else {
+            identity_valid = false;
+            errors.push(diagnostic(
+                r,
+                IFCCAD_IFCDR_STRUCTURE_INVALID,
+                "blockInstance",
+                Some(row),
+                "row",
+                "instance is inaccessible",
+            ));
+        }
+    }
     if r.next_entity_id() == 0
         || evidence
             .entities
@@ -309,6 +322,7 @@ fn entity<R: IfcdrResourceAccess>(
     let name = match kind {
         IfcdrEntityKind::Line => "line",
         IfcdrEntityKind::Polyline => "polyline",
+        IfcdrEntityKind::BlockInstance => "blockInstance",
     };
     let mut valid = true;
     if value.entity_id == 0 {
@@ -414,7 +428,7 @@ pub(crate) fn geometric_bounds<R: IfcdrResourceAccess>(
 ) -> Result<BTreeMap<u32, Option<Bounds3d>>, Vec<IfcdrDiagnostic>> {
     collect_geometry(r, false)
 }
-fn valid_bounds(b: Bounds3d) -> bool {
+pub(super) fn valid_bounds(b: Bounds3d) -> bool {
     valid_point3(b.min)
         && valid_point3(b.max)
         && b.min
@@ -438,6 +452,27 @@ fn contains(outer: Bounds3d, inner: Bounds3d) -> bool {
             .all(|(a, b)| a >= b)
 }
 fn collect_geometry<R: IfcdrResourceAccess>(
+    r: &R,
+    verify_bounds: bool,
+) -> Result<BTreeMap<u32, Option<Bounds3d>>, Vec<IfcdrDiagnostic>> {
+    let graph = BlockGraph::build(r);
+    let direct = collect_direct_geometry(r, false);
+    match (graph, direct) {
+        (Err(mut graph), Err(mut direct)) => {
+            graph.append(&mut direct);
+            Err(graph)
+        }
+        (Err(errors), _) | (_, Err(errors)) => Err(errors),
+        (Ok(graph), Ok(_)) => {
+            if r.block_instances().is_empty() {
+                collect_direct_geometry(r, verify_bounds)
+            } else {
+                super::block_bounds::collect(r, &graph, verify_bounds)
+            }
+        }
+    }
+}
+fn collect_direct_geometry<R: IfcdrResourceAccess>(
     r: &R,
     verify_bounds: bool,
 ) -> Result<BTreeMap<u32, Option<Bounds3d>>, Vec<IfcdrDiagnostic>> {

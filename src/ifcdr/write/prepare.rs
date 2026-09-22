@@ -12,6 +12,7 @@ pub(crate) struct IfcdrWriteInput {
     pub unit: IfcdrLengthUnit,
     pub next_entity_id: u64,
     pub scopes: Vec<IfcdrScope>,
+    pub block_definitions: Vec<IfcdrBlockDefinition>,
     pub layers: Vec<IfcdrLayerBinding>,
     pub appearances: Vec<IfcdrAppearanceBinding>,
     pub overrides: Vec<IfcdrAppearanceOverride>,
@@ -20,6 +21,7 @@ pub(crate) struct IfcdrWriteInput {
 
 #[derive(Debug)]
 pub(crate) enum IfcdrWriteEntity {
+    BlockInstance(IfcdrBlockInstanceRow),
     Line(IfcdrLineRow),
     Polyline {
         entity: IfcdrEntityRow,
@@ -36,6 +38,7 @@ pub(crate) struct PreparedIfcdrResource {
     input: IfcdrWriteInput,
     lines: Vec<usize>,
     polylines: Vec<usize>,
+    block_instances: Vec<usize>,
     orders: Vec<IfcdrScopeOrder>,
 }
 
@@ -44,6 +47,7 @@ pub(crate) fn prepare_resource(
 ) -> Result<PreparedIfcdrResource, Vec<IfcdrDiagnostic>> {
     let mut lines = Vec::new();
     let mut polylines = Vec::new();
+    let mut block_instances = Vec::new();
     let mut orders: Vec<_> = input
         .scopes
         .iter()
@@ -60,6 +64,10 @@ pub(crate) fn prepare_resource(
         .collect();
     for (index, value) in input.entities.iter().enumerate() {
         let entity = match value {
+            IfcdrWriteEntity::BlockInstance(instance) => {
+                block_instances.push(index);
+                instance.entity
+            }
             IfcdrWriteEntity::Line(line) => {
                 lines.push(index);
                 line.entity
@@ -78,6 +86,7 @@ pub(crate) fn prepare_resource(
         input,
         lines,
         polylines,
+        block_instances,
         orders,
     };
     let bounds = geometric_bounds(&prepared)?;
@@ -88,6 +97,23 @@ pub(crate) fn prepare_resource(
 }
 
 pub(crate) struct PreparedLines<'a>(&'a PreparedIfcdrResource);
+pub(crate) struct PreparedBlockInstances<'a>(&'a PreparedIfcdrResource);
+impl IfcdrBlockInstancesAccess for PreparedBlockInstances<'_> {
+    fn len(&self) -> usize {
+        self.0.block_instances.len()
+    }
+    fn get(&self, row: usize) -> Option<IfcdrBlockInstanceRow> {
+        match self
+            .0
+            .input
+            .entities
+            .get(*self.0.block_instances.get(row)?)?
+        {
+            IfcdrWriteEntity::BlockInstance(instance) => Some(*instance),
+            _ => None,
+        }
+    }
+}
 pub(crate) struct PreparedPolylines<'a>(&'a PreparedIfcdrResource);
 pub(crate) struct PreparedPolyline<'a> {
     entity: IfcdrEntityRow,
@@ -152,6 +178,13 @@ impl IfcdrPolylineAccess for PreparedPolyline<'_> {
 impl IfcdrResourceAccess for PreparedIfcdrResource {
     type Lines<'a> = PreparedLines<'a>;
     type Polylines<'a> = PreparedPolylines<'a>;
+    type BlockInstances<'a> = PreparedBlockInstances<'a>;
+    fn block_definitions(&self) -> &[IfcdrBlockDefinition] {
+        &self.input.block_definitions
+    }
+    fn block_instances(&self) -> Self::BlockInstances<'_> {
+        PreparedBlockInstances(self)
+    }
     fn resource_id(&self) -> &ResourceId {
         &self.input.resource_id
     }
