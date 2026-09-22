@@ -14,5 +14,7 @@ export function validateUpload(request,cap=limits){
  });
  if(request.kind==='package'&&!files.some(f=>f.path==='package.ifcx.json'))throw Error('Select a folder containing package.ifcx.json');
  if(request.kind==='cad'&&(files.length!==1||! /\.(dxf|dwg)$/i.test(files[0].path)))throw Error('Select one DXF or DWG file');
- return {kind:request.kind,name:String(request.name||files[0].path).slice(0,256),files};
+ const exp=request.export;
+ if(exp!==undefined&&(!exp||!['dxf','dwg','ifccad'].includes(exp.format)||(exp.format!=='ifccad'&&(typeof exp.drawing!=='string'||!exp.drawing||exp.drawing.length>1024||/[\x00-\x1f]/.test(exp.drawing)))))throw Error('Invalid export selection');
+ return {kind:request.kind,name:String(request.name||files[0].path).slice(0,256),files,...(exp?{export:{format:exp.format,drawing:exp.format==='ifccad'?'':exp.drawing}}:{})};
 }

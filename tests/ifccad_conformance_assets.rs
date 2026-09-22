@@ -336,16 +336,13 @@ fn git_attributes_preserve_reference_bytes() {
 
 #[test]
 fn resolves_linked_worktree_git_directory_pointer() {
-    let repository = Path::new("C:/workspace/ifccad");
-    let actual = resolve_git_dir_pointer(
-        repository,
-        "gitdir: C:/workspace/ifccad-meta/worktrees/fingerprints\n",
-    );
+    let repository = std::env::temp_dir().join("ifccad-worktree-test");
+    let git_dir = std::env::temp_dir().join("ifccad-meta/worktrees/fingerprints");
+    let actual = resolve_git_dir_pointer(&repository, &format!("gitdir: {}\n", git_dir.display()));
 
+    assert_eq!(actual, Some(git_dir));
     assert_eq!(
-        actual,
-        Some(PathBuf::from(
-            "C:/workspace/ifccad-meta/worktrees/fingerprints"
-        ))
+        resolve_git_dir_pointer(&repository, "gitdir: .metadata/worktree\n"),
+        Some(repository.join(".metadata/worktree"))
     );
 }

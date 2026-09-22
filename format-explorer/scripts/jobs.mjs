@@ -4,6 +4,7 @@ import path from 'node:path';
 import {randomUUID,randomBytes,timingSafeEqual} from 'node:crypto';
 import {limits,validateUpload} from './upload-paths.mjs';
 import {runWorker,workerAvailable} from './worker.mjs';
+import {packageZip} from './package-zip.mjs';
 export function createJobManager({worker=runWorker,tempRoot=tmpdir(),cap=limits,maxRetainedJobs=3}={}){
  const jobs=new Map();let active=null,closed=false;
  async function execute(job,upload){
@@ -11,10 +12,16 @@ export function createJobManager({worker=runWorker,tempRoot=tmpdir(),cap=limits,
   try{
    root=await mkdtemp(path.join(tempRoot,'ifccad-viewer-'));const input=path.join(root,'input');await mkdir(input);
    for(const f of upload.files){if(job.controller.signal.aborted)throw Error('Job cancelled');const target=path.resolve(input,f.path);if(!target.startsWith(input+path.sep))throw Error('Unsafe file path');await mkdir(path.dirname(target),{recursive:true});await writeFile(target,f.bytes,{flag:'wx'});}
-   const result=await worker({kind:upload.kind,input:upload.kind==='cad'?path.join(input,upload.files[0].path):input,output:path.join(root,'output'),signal:job.controller.signal,cap,onProgress:phase=>{job.phase=phase;}});
+   const result=await worker({kind:upload.kind,export:upload.export,input:upload.kind==='cad'?path.join(input,upload.files[0].path):input,output:path.join(root,'output'),signal:job.controller.signal,cap,onProgress:phase=>{job.phase=phase;}});
+   if(!job.controller.signal.aborted&&upload.export?.format==='ifccad'&&!result.failure&&result.export?.packageReady&&result.validation?.strictAvailable){
+    job.phase='packaging';
+    const archive=await packageZip(upload.kind==='cad'?path.join(root,'output'):input,{signal:job.controller.signal,cap});
+    result.export.fileCount=archive.fileCount;
+    result.export.download={format:'ifccad',byteLength:archive.bytes.length,base64:archive.bytes.toString('base64')};
+   }
    if(!job.controller.signal.aborted){
     const scrub=value=>typeof value==='string'?value.replaceAll(root,'[temporary package]').replaceAll(root.replaceAll('\\','/'),'[temporary package]'):Array.isArray(value)?value.map(scrub):value&&typeof value==='object'?Object.fromEntries(Object.entries(value).map(([k,v])=>[k,scrub(v)])):value;
-    for(const key of ['reader','failure','validation'])result[key]=scrub(result[key]);
+    for(const key of ['reader','failure','validation','export'])result[key]=scrub(result[key]);
     result.source.name=upload.name;job.result=result;
    }
   }catch(e){if(!job.controller.signal.aborted){job.error=root?e.message.replaceAll(root,'[temporary package]'):e.message;}}

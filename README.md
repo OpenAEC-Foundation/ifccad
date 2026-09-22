@@ -1,5 +1,8 @@
 # IFCCAD
 
+**[Open the live Format Explorer](https://ifccad-explorer.open-aec.com/)** — explore
+the package structure, open CAD files, and inspect conversion diagnostics.
+
 Rust implementation and language-neutral format contract for the open IFCCAD
 exchange format.
 
@@ -339,6 +342,8 @@ See the closure assessment and follow-up in [ROADMAP.md](ROADMAP.md).
   Build `cargo build -p ifccad-viewer` to open local package folders or DXF/DWG
   with production validation and conversion reports. It explains package
   structure and conversion coverage without rendering a CAD drawing.
+  Export selected drawings to DXF/DWG with diagnostics, or download the full
+  IFCCAD package as a ZIP containing the directory-package files.
 - [`src`](src) contains the Rust implementation. `package` is the public
   package facade with private `read` and `write` implementations; `ifcdr`
   exposes shared drawing-resource types. Its private `logical` module owns

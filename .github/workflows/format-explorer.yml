@@ -1,0 +1,105 @@
+name: Deploy format explorer
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: format-explorer-production
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    # Match the existing Node 22 / Debian 12 production container's libc.
+    container: rust:bookworm
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Install test tools
+        run: |
+          apt-get update -qq
+          apt-get install -y --no-install-recommends python3 python-is-python3
+          rustup component add rustfmt clippy
+      - name: Check Rust workspace
+        run: |
+          cargo fmt --all -- --check
+          cargo clippy --workspace --all-targets -- -D warnings
+          cargo test --workspace
+      - name: Check website and deployment recovery
+        run: |
+          bash -n format-explorer/deploy/release.sh
+          npm --prefix format-explorer test
+          npm --prefix format-explorer run build
+      - name: Build production reader
+        run: cargo build --release -p ifccad-viewer
+      - name: Assemble and exercise release
+        shell: bash
+        env:
+          PUBLIC_ORIGIN: https://ifccad-explorer.open-aec.com
+        run: |
+          set -euo pipefail
+          release="$RUNNER_TEMP/explorer-release"
+          mkdir -p "$release/deploy"
+          cp -R format-explorer/dist format-explorer/scripts "$release/"
+          cp format-explorer/deploy/container.mjs "$release/"
+          cp format-explorer/deploy/smoke.mjs "$release/deploy/"
+          cp target/release/ifccad-viewer LICENSE "$release/"
+          node -e 'require("fs").writeFileSync(process.argv[1],JSON.stringify({revision:process.env.GITHUB_SHA,builtAt:new Date().toISOString()}))' "$release/dist/version.json"
+          export IFCCAD_VIEWER_BIN="$release/ifccad-viewer"
+          node "$release/container.mjs" &
+          server=$!
+          trap 'kill "$server" 2>/dev/null || true' EXIT
+          sleep 1
+          node "$release/deploy/smoke.mjs" http://127.0.0.1:4183 "$GITHUB_SHA"
+          tar -czf "$RUNNER_TEMP/explorer.tar.gz" -C "$release" .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: explorer-release
+          path: ${{ runner.temp }}/explorer.tar.gz
+          retention-days: 7
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment:
+      name: format-explorer-production
+      url: https://ifccad-explorer.open-aec.com
+    env:
+      DEPLOY_HOST: ${{ vars.DEPLOY_HOST || '167.235.54.105' }}
+      DEPLOY_PORT: ${{ vars.DEPLOY_PORT || '22' }}
+      DEPLOY_USER: ${{ vars.DEPLOY_USER || 'root' }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          name: explorer-release
+          path: ${{ runner.temp }}
+      - uses: webfactory/ssh-agent@v0.10.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
+          log-public-key: false
+      - name: Deploy tested release with rollback
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          cat format-explorer/deploy/known_hosts >> ~/.ssh/known_hosts
+          ssh_args=(-o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15)
+          target="$DEPLOY_USER@$DEPLOY_HOST"
+          release="$GITHUB_SHA-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          checksum=$(sha256sum "$RUNNER_TEMP/explorer.tar.gz" | cut -d ' ' -f 1)
+          ssh "${ssh_args[@]}" -p "$DEPLOY_PORT" "$target" 'mkdir -p /opt/ifccad-explorer/incoming'
+          scp "${ssh_args[@]}" -P "$DEPLOY_PORT" "$RUNNER_TEMP/explorer.tar.gz" "$target:/opt/ifccad-explorer/incoming/$release.tar.gz"
+          ssh "${ssh_args[@]}" -p "$DEPLOY_PORT" "$target" "bash -s -- '$release' '$checksum'" < format-explorer/deploy/release.sh
+      - name: Verify public HTTPS website
+        run: node format-explorer/deploy/smoke.mjs https://ifccad-explorer.open-aec.com "$GITHUB_SHA" basic

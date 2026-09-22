@@ -44,9 +44,19 @@
   </section>
   <main id="app">
     <dialog id="open-dialog" class="settings-dialog open-dialog" aria-labelledby="open-title"><header class="settings-header"><h2 id="open-title">Bestand openen</h2><button id="open-close" aria-label="Sluiten">×</button></header><div class="settings-content"><p>Open een IFCCAD-pakketmap of een DXF/DWG-bestand.</p><div class="open-actions"><button id="choose-package">IFCCAD-map kiezen</button><button id="choose-cad">DXF / DWG kiezen</button></div><p id="open-status" role="status"></p><button id="open-cancel" hidden>Annuleren</button><input id="package-input" type="file" webkitdirectory multiple hidden><input id="cad-input" type="file" accept=".dxf,.dwg" hidden></div></dialog>
+    <dialog id="export-dialog" class="settings-dialog export-dialog" aria-labelledby="export-title">
+      <header class="settings-header"><h2 id="export-title">Exporteren</h2><button id="export-close" aria-label="Sluiten">×</button></header>
+      <div class="settings-content">
+        <p id="export-source-note"></p>
+        <div class="export-options"><label for="export-format">Bestandsformaat<select id="export-format"><option value="dxf">DXF</option><option value="dwg">DWG</option><option value="ifccad">IFCCAD-pakket (ZIP)</option></select></label><label for="export-drawing" id="export-drawing-label">Tekening<select id="export-drawing"></select></label></div>
+        <p id="export-status" role="status"></p><div id="export-report"></div>
+      </div>
+      <footer class="settings-footer"><button id="export-cancel" hidden>Annuleren</button><div><button id="export-run" class="primary-button">Export maken</button><a id="export-download" class="download-button" hidden download>Download</a></div></footer>
+    </dialog>
     <section class="workspace-bar" aria-label="Voorbeeld selecteren">
       <div class="example-control"><span class="eyebrow">Verken een pakket</span><label class="sr-only" for="example">Voorbeeld</label><select id="example" disabled><option>Voorbeelden laden…</option></select></div>
       <button id="open-files">Bestand openen</button>
+      <button id="export-open" disabled>Exporteren</button>
       <div class="version-info"><span class="status-dot"></span><span id="example-status">Repo-voorbeelden</span></div>
     </section>
     <details id="report-panel" class="report-panel" hidden><summary><span>Inlees- en validatierapport</span><button id="report-expand" aria-expanded="false" aria-controls="report-panel">Rapport vergroten</button></summary><div id="file-report"></div></details>
