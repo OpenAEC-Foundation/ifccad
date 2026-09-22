@@ -164,8 +164,8 @@ bytes, preserving resource checksums and complete preservation blobs.
 Exports use the same authenticated jobs, cancellation, timeouts, staging cleanup
 and result expiration as opening. Downloads are limited to 64 MiB, transferred
 inside the job result and made available as browser-local Blob URLs. Changing
-source or export options discards the previous download. Public hosting would
-process these inputs on the server; local development keeps processing on this
+source or export options discards the previous download. Public hosting
+processes these inputs on the server; local development keeps processing on this
 computer. No CAD files or uploads are retained in the repository.
 
 **IFCCAD package (ZIP)** downloads the complete strictly readable directory
@@ -183,11 +183,41 @@ finished archive. Full IFCPR semantic validation remains incomplete even though
 existing preservation files are included byte for byte. The ZIP interoperability
 test uses Python's independent standard-library reader when Python is available.
 
-## Public hosting status
+## Public hosting and automatic deployment
 
-Publication at `https://ifccad-explorer.open-aec.com` is **paused**, pending the
-administrator's DNS setup. The intended A record points to `167.235.54.105`, the
-shared OpenAEC demo server. No live deployment has been performed.
+The [live Format Explorer](https://ifccad-explorer.open-aec.com/) runs on the
+shared OpenAEC demo server, including package/DXF/DWG processing and exports.
+Every push to `main` starts the **Deploy format explorer** GitHub Actions workflow.
+It can also be started manually on `main` from the Actions tab.
+
+Before deployment, the workflow checks the Rust workspace, website tests and
+deployment recovery, builds the reader and website, and exercises package opening,
+DXF/DWG export and readback, and IFCCAD ZIP download through the real HTTP service.
+The Rust build uses Debian 12 to match the existing Node 22 production container.
+The exact tested artifact is transferred using the shared `DEPLOY_SSH_KEY` secret
+and `DEPLOY_HOST`, `DEPLOY_PORT`, `DEPLOY_USER` organization variables. The server
+SSH host key is pinned in `deploy/known_hosts`; private keys stay in Actions secrets.
+
+Releases live under `/opt/ifccad-explorer/releases/`, identified by commit and run.
+The `current` symlink selects the release. A small `deployment.yml` Compose override
+mounts it at `/app`; the original `compose.yml`, image, private network, non-root
+user, resource limits, nginx and HTTPS configuration are preserved. The original
+installation under `app/` is retained for recovery from the first deployment.
+Only the explorer container is recreated, causing a brief interruption; active
+file jobs may need to be retried. Deployments are serialized.
+
+After switching, deployment verifies the running revision, repeats the opening
+and export checks, and checks the public HTTPS revision. Failure restores the
+previous mount and recreates the previous service. A failed workflow still needs
+operator attention, especially if the server itself or rollback is unavailable.
+The deployed commit is visible at [/version.json](https://ifccad-explorer.open-aec.com/version.json).
+Old releases are retained; no automatic deletion affects recovery copies.
+
+For a manual rollback, point `current` to the desired retained release, then run
+`docker compose -p ifccad-explorer -f compose.yml -f deployment.yml up -d --no-deps --force-recreate explorer`
+from the installation directory and verify `/version.json` and `/api/capabilities`.
+To return to the original installation, use only `compose.yml` and remove the
+managed `current` link and `deployment.yml` before the next automatic deployment.
 
 Public hosting must include package/DXF/DWG processing, not only the static demo.
 `npm run serve:production` provides the prepared application service: it serves
@@ -204,11 +234,11 @@ the local development service continues to process files on the user's computer.
 Temporary inputs and outputs are removed after processing or cancellation.
 Results expire after five minutes or are removed when the client finishes.
 
-Before publication, provision an unprivileged, isolated service with memory/CPU
-limits, HTTPS proxy configuration, upload/request limits and rate limiting. The
-shared OpenAEC static-site workflow alone does not install the Rust processing
-service. Deployment automation, server installation and end-to-end public checks
-remain to be completed when publication resumes.
+The existing container runs without root privileges, with a read-only filesystem,
+bounded temporary storage, memory/CPU limits and no published ports. Nginx applies
+upload and request limits and rate limiting. The container entry point listens on
+its private network; the regular production entry point keeps its loopback binding.
+The shared OpenAEC static-site workflow alone cannot update the Rust service.
 
 For reproducible DXF/DWG smoke inputs (generated under ignored `target/`):
 

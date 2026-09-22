@@ -1,14 +1,28 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {setTimeout as delay} from 'node:timers/promises';
+import {request as httpRequest} from 'node:http';
+import {request as httpsRequest} from 'node:https';
 
 // Exercise the real HTTP service and Rust worker with public repository fixtures.
 const [base='http://127.0.0.1:4183', revision, mode='full'] = process.argv.slice(2);
 const origin='https://ifccad-explorer.open-aec.com';
 async function request(path, options={}) {
-  const response=await fetch(base+path,{...options,signal:AbortSignal.timeout(15000),headers:{Host:new URL(origin).host,Origin:origin,...options.headers}});
-  assert.equal(response.ok,true,`${path}: HTTP ${response.status}`);
-  return response;
+  // Node fetch ignores a custom Host header. The container's loopback check
+  // must send the same Host as nginx without weakening production validation.
+  const url=new URL(base+path);
+  return new Promise((resolve,reject)=>{
+    const req=(url.protocol==='https:'?httpsRequest:httpRequest)(url,{method:options.method,signal:AbortSignal.timeout(15000),headers:{Host:new URL(origin).host,Origin:origin,...options.headers}},res=>{
+      const chunks=[];
+      res.on('data',chunk=>chunks.push(chunk));res.on('error',reject);
+      res.on('end',()=>{
+        if(res.statusCode<200||res.statusCode>=300)return reject(Error(`${path}: HTTP ${res.statusCode}`));
+        const body=Buffer.concat(chunks).toString();
+        resolve({json:()=>JSON.parse(body),text:()=>body});
+      });
+    });
+    req.on('error',reject);req.end(options.body);
+  });
 }
 const version=await (await request('/version.json')).json();
 assert.equal(version.revision,revision,'Live revision must match the tested commit');
