@@ -94,6 +94,9 @@ follow-up work. Retain designs and plans still needed by active or upcoming work
 
 ## Working conventions
 
+- Create Git worktrees inside the repository-local `.worktrees/` directory by
+  default. Keep that directory ignored, and use another worktree location only
+  when the user explicitly requests it.
 - Keep work in one task by default. Do not delegate to subagents unless the
   user explicitly requests parallel work.
 - Do not use `codex/` or a redundant `ifccad/` prefix in branch names.
