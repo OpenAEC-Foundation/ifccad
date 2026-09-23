@@ -276,6 +276,17 @@ fn typed_layout_settings_roundtrip_with_independent_paper_values() {
         "{:?}",
         loaded.report()
     );
+    let validated = loaded.validated_package().unwrap();
+    let drawing = validated.drawings().next().unwrap();
+    let layouts = drawing.layouts().collect::<Vec<_>>();
+    assert_eq!(
+        layouts[1].settings().plot_settings.unwrap().area,
+        PlotArea::Layout
+    );
+    assert_eq!(
+        layouts[2].settings().plot_settings.unwrap().area,
+        PlotArea::Extents
+    );
     let entry: serde_json::Value =
         serde_json::from_slice(artifact.file("package.ifcx.json").unwrap()).unwrap();
     assert_eq!(entry["data"][1]["attributes"]["plotStyleMode"], "named");
@@ -291,6 +302,128 @@ fn typed_layout_settings_roundtrip_with_independent_paper_values() {
         entry["data"][4]["attributes"]["plotSettings"]["media"]["unit"],
         "in"
     );
+}
+
+#[test]
+fn writer_roundtrip_retains_model_limits_and_paper_window_plot_modes() {
+    use ifccad::ifcdr::{ShadedPlot, ShadedPlotMode, ShadedPlotQuality, ShadedPlotQualityMode};
+    use ifccad::package::*;
+
+    let mut package = PackageBuilder::new(PackageOptions {
+        package_id: PackageId::new("plot-modes").unwrap(),
+        data_version: "1".into(),
+        author: "test".into(),
+        timestamp: "2026-09-23T00:00:00Z".into(),
+    })
+    .unwrap();
+    let mut drawing = package
+        .add_drawing(DrawingOptions {
+            model_layout_name: "Model".into(),
+            representation_resource_id: ResourceId::new("geometry").unwrap(),
+            length_unit: IfcdrLengthUnit::Metre,
+        })
+        .unwrap();
+    let paper = drawing.add_paper_space("Window sheet".into()).unwrap();
+    let mut plot = PlotSettings {
+        media: PlotMedia {
+            unit: PlotUnit::Millimetre,
+            width: 210.0,
+            height: 297.0,
+            printable_area: PlotRect {
+                min_x: 5.0,
+                min_y: 5.0,
+                max_x: 205.0,
+                max_y: 292.0,
+            },
+            rotation: PlotRotation::None,
+            device_name: None,
+            media_name: None,
+        },
+        area: PlotArea::Limits,
+        mapping: PlotMapping {
+            scale: PlotScale::Fixed {
+                output_length: 1.0,
+                scope_length: 1.0,
+            },
+            placement: PlotPlacement::Offset {
+                reference: PlotOffsetReference::Media,
+                x: 0.0,
+                y: 0.0,
+            },
+        },
+        output: PlotOutput {
+            shaded_plot: ShadedPlot {
+                mode: ShadedPlotMode::AsDisplayed,
+                quality: ShadedPlotQuality {
+                    mode: ShadedPlotQualityMode::Normal,
+                    dpi: None,
+                },
+            },
+            apply_plot_styles: false,
+            plot_style_table_name: None,
+        },
+        options: PlotOptions {
+            plot_viewport_borders: false,
+            plot_paper_space_last: true,
+            hide_paper_space_objects: false,
+            plot_line_weights: true,
+            scale_line_weights: false,
+            plot_transparency: false,
+        },
+    };
+    drawing.set_model_layout_settings(LayoutSettings {
+        limits: Some(PlotRect {
+            min_x: 0.0,
+            min_y: 0.0,
+            max_x: 10.0,
+            max_y: 10.0,
+        }),
+        plot_settings: Some(plot.clone()),
+        ..Default::default()
+    });
+    plot.area = PlotArea::Window(PlotRect {
+        min_x: 1.0,
+        min_y: 2.0,
+        max_x: 5.0,
+        max_y: 8.0,
+    });
+    plot.mapping.scale = PlotScale::FitToArea;
+    plot.mapping.placement = PlotPlacement::Centered;
+    drawing
+        .set_paper_layout_settings(
+            paper,
+            LayoutSettings {
+                plot_settings: Some(plot),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+
+    let root = TempRoot::new();
+    package
+        .finish()
+        .unwrap()
+        .write_directory(root.0.join("package"))
+        .unwrap();
+    let outcome = load_directory_package(root.0.join("package")).unwrap();
+    let package = outcome.validated_package().expect("strict writer readback");
+    let drawing = package.drawings().next().unwrap();
+    let layouts = drawing.layouts().collect::<Vec<_>>();
+    assert_eq!(
+        layouts[0].settings().plot_settings.unwrap().area,
+        PlotArea::Limits
+    );
+    let paper_plot = layouts[1].settings().plot_settings.unwrap();
+    assert_eq!(
+        paper_plot.area,
+        PlotArea::Window(PlotRect {
+            min_x: 1.0,
+            min_y: 2.0,
+            max_x: 5.0,
+            max_y: 8.0,
+        })
+    );
+    assert_eq!(paper_plot.mapping.scale, PlotScale::FitToArea);
 }
 
 #[test]

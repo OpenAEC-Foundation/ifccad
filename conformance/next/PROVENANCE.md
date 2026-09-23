@@ -56,3 +56,14 @@ License 2.0. The adjacent `LICENSE` file contains the applicable license text.
   incomplete viewport child-partition mutations. Modified resource checksums were
   recomputed. The previous 0.9.0/0.11.0 fixtures remain for read compatibility;
   no numbered collection changed.
+
+- Layout condition completion (2026-09-23): added 38 independently named
+  candidate package cases, bringing the manifest to 125 cases. The fixtures
+  are reproducible with `scripts/generate_layout_conformance.ps1` and cover
+  unused definitions, every supported plot area, conditional media/scale
+  values, paper-scope selection, viewport ownership/view/clip/override rules,
+  complete child ranges, and omission versus null. The production package
+  reader checks each diagnostic expectation and strict-view availability;
+  focused typed-reader and writer-readback tests check retained semantics.
+  See [the condition and CAD evidence matrix](LAYOUT-MATRIX.md). This addition
+  changes no schema or numbered release.

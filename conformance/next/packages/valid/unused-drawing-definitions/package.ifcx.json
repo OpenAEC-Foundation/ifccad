@@ -1,0 +1,111 @@
+{
+  "data": [
+    {
+      "children": {
+        "Drawings": [
+          "drawing-0"
+        ]
+      },
+      "path": "drawing-set-0",
+      "type": "openaec:DrawingSet"
+    },
+    {
+      "attributes": {
+        "plotStyleMode": "colorDependent"
+      },
+      "children": {
+        "Appearances": [
+          "appearance-unused"
+        ],
+        "Layers": [
+          "layer-unused"
+        ],
+        "Layouts": [
+          "layout-0"
+        ],
+        "Representation": "representation-0"
+      },
+      "path": "drawing-0",
+      "type": "openaec:Drawing"
+    },
+    {
+      "attributes": {
+        "kind": "model",
+        "limitsChecking": false,
+        "name": "Model",
+        "paperSpaceLinetypeScaling": true,
+        "scopeId": 0
+      },
+      "children": {
+        "Representation": "representation-0"
+      },
+      "path": "layout-0",
+      "type": "openaec:DrawingLayout"
+    },
+    {
+      "attributes": {
+        "name": "Drawing",
+        "resource": {
+          "checksum": "sha256:c5d53a4bbdc4ec30a865a1b2d30829a5cf2a9f81b0093f7200eebb70fe8767ab",
+          "format": "openaec.ifcdr",
+          "resourceId": "empty-geometry",
+          "role": "drawing",
+          "uri": "resources/drawing.ifcdr.json",
+          "version": "0.10.0"
+        }
+      },
+      "path": "representation-0",
+      "type": "openaec:DrawingRepresentation"
+    },
+    {
+      "type": "openaec:Appearance",
+      "path": "appearance-unused",
+      "attributes": {
+        "color": {
+          "value": {
+            "rgb": [
+              1,
+              2,
+              3
+            ]
+          },
+          "mode": "explicit"
+        },
+        "lineWeight": {
+          "value": 0.25,
+          "mode": "explicit"
+        },
+        "name": "Unused style",
+        "linePattern": {
+          "value": "continuous",
+          "mode": "explicit"
+        },
+        "opacity": {
+          "value": 1.0,
+          "mode": "explicit"
+        }
+      }
+    },
+    {
+      "type": "openaec:Layer",
+      "path": "layer-unused",
+      "attributes": {
+        "appearance": "appearance-unused",
+        "frozenInNewViewports": false,
+        "frozen": false,
+        "visible": true,
+        "plottable": true,
+        "name": "Unused layer",
+        "locked": false
+      }
+    }
+  ],
+  "header": {
+    "author": "Writer integration test",
+    "dataVersion": "1",
+    "id": "matrix-unused-drawing-definitions",
+    "ifcxVersion": "ifcx_alpha",
+    "timestamp": "2026-09-03T14:15:16Z"
+  },
+  "imports": []
+}

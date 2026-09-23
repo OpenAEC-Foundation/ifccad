@@ -1,7 +1,10 @@
 use ifccad::conformance::{
-    bundled_conformance_root, load_conformance_manifest, ConformanceOperationName,
+    bundled_conformance_root, load_conformance_manifest, ConformanceCategory,
+    ConformanceOperationName,
 };
+use ifccad::ifcdr::{FrontClipMode, IfcdrEntityRef, ProjectionMode};
 use ifccad::package::{load_directory_package, PackageDiagnosticSeverity};
+use ifccad::package::{PlotArea, PlotRect, PlotScale};
 use serde_json::{json, Value};
 use std::collections::BTreeSet;
 
@@ -36,12 +39,18 @@ fn supported_bundled_validate_package_cases_match_their_diagnostic_contract() {
             let package_root = entrypoint.parent().expect("package entrypoint parent");
             let outcome = load_directory_package(package_root)
                 .unwrap_or_else(|error| panic!("{} could not be inspected: {error}", case.case_id));
-            if case.case_id.starts_with("unsupported.") {
-                assert!(
+            match case.category {
+                ConformanceCategory::Valid => assert!(
+                    outcome.validated_package().is_some(),
+                    "{} did not expose a strict view",
+                    case.case_id
+                ),
+                ConformanceCategory::Invalid => assert!(
                     outcome.validated_package().is_none(),
                     "{} exposed a strict view",
                     case.case_id
-                );
+                ),
+                _ => unreachable!("validatePackage has an unexpected category"),
             }
             let actual = outcome
                 .report()
@@ -99,5 +108,92 @@ fn severity_name(severity: PackageDiagnosticSeverity) -> &'static str {
         PackageDiagnosticSeverity::Error => "error",
         PackageDiagnosticSeverity::Warning => "warning",
         PackageDiagnosticSeverity::Info => "info",
+    }
+}
+
+#[test]
+fn candidate_plot_modes_have_distinct_strict_reader_values() {
+    let root = bundled_conformance_root().join("packages/valid");
+    for (name, layout_index, expected_area) in [
+        ("plot-extents", 1, PlotArea::Extents),
+        ("plot-model-limits", 0, PlotArea::Limits),
+        (
+            "plot-window-fit",
+            2,
+            PlotArea::Window(PlotRect {
+                min_x: 1.0,
+                min_y: 2.0,
+                max_x: 5.0,
+                max_y: 8.0,
+            }),
+        ),
+        ("two-paper-layouts", 1, PlotArea::Layout),
+    ] {
+        let outcome = load_directory_package(root.join(name)).expect(name);
+        let package = outcome.validated_package().expect(name);
+        let drawing = package.drawings().next().expect(name);
+        let layout = drawing.layouts().nth(layout_index).expect(name);
+        let plot = layout.settings().plot_settings.expect(name);
+        assert_eq!(plot.area, expected_area, "{name}");
+        if name == "plot-window-fit" {
+            assert_eq!(plot.mapping.scale, PlotScale::FitToArea);
+        }
+        if name == "plot-model-limits" {
+            assert_eq!(layout.settings().limits.unwrap().max_x, 10.0);
+        }
+    }
+}
+
+#[test]
+fn candidate_viewport_variants_preserve_child_and_optional_semantics() {
+    let root = bundled_conformance_root().join("packages/valid");
+    for name in [
+        "viewport-active-rectangular-clip",
+        "viewport-disabled-boundary-reference",
+        "viewport-perspective-at-camera",
+        "viewport-visible-default",
+        "viewport-omitted-lens",
+    ] {
+        let outcome = load_directory_package(root.join(name)).expect(name);
+        let package = outcome.validated_package().expect(name);
+        let drawing = package.drawings().next().expect(name);
+        let paper = drawing.layouts().nth(1).expect(name);
+        let resource = paper.representation().resource();
+        let entities = resource.entities(paper.scope().id()).collect::<Vec<_>>();
+        let IfcdrEntityRef::Viewport(first) = &entities[0] else {
+            panic!("{name}: first paper entity is not a viewport")
+        };
+        let IfcdrEntityRef::Viewport(second) = &entities[2] else {
+            panic!("{name}: third paper entity is not a viewport")
+        };
+        assert_eq!(first.layer_overrides().len(), 2, "{name}");
+        assert_eq!(second.layer_overrides().len(), 0, "{name}");
+        match name {
+            "viewport-active-rectangular-clip" => {
+                assert!(second.paper_clip().enabled);
+                assert_eq!(second.paper_clip().boundary_entity_id, Some(2));
+                assert!(matches!(&entities[1], IfcdrEntityRef::Polyline(p) if p.closed()));
+            }
+            "viewport-disabled-boundary-reference" => {
+                assert!(!second.paper_clip().enabled);
+                assert_eq!(second.paper_clip().boundary_entity_id, Some(2));
+                assert!(matches!(&entities[1], IfcdrEntityRef::Polyline(p) if !p.closed()));
+            }
+            "viewport-perspective-at-camera" => {
+                assert_eq!(first.view().projection, ProjectionMode::Perspective);
+                assert_eq!(first.view().front_clip.mode, FrontClipMode::AtCamera);
+                assert_eq!(first.view().back_clip.distance, Some(50.0));
+            }
+            "viewport-visible-default" => {
+                assert!(first.visible());
+                assert!(second.visible());
+                assert_eq!(first.plot_shading_override(), None);
+            }
+            "viewport-omitted-lens" => {
+                assert_eq!(first.view().lens_length, None);
+                assert_eq!(second.view().lens_length, Some(35.0));
+            }
+            _ => unreachable!(),
+        }
     }
 }

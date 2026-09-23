@@ -1,0 +1,254 @@
+{
+  "appearanceBindings": [
+    {
+      "colorMode": 0,
+      "id": 0,
+      "ifcxAppearance": null,
+      "linePatternMode": 0,
+      "lineWeightMode": 0,
+      "opacityMode": 0,
+      "overrideId": null
+    },
+    {
+      "colorMode": 2,
+      "id": 1,
+      "ifcxAppearance": null,
+      "linePatternMode": 2,
+      "lineWeightMode": 2,
+      "opacityMode": 2,
+      "overrideId": null
+    }
+  ],
+  "appearanceOverrides": [],
+  "blockDefinitionTable": [
+    {
+      "scopeId": 3,
+      "name": "Unused block"
+    }
+  ],
+  "header": {
+    "format": "openaec.ifcdr",
+    "nextEntityId": 1,
+    "resourceId": "geometry",
+    "unit": "m",
+    "version": "0.10.0"
+  },
+  "layerBindings": [],
+  "scopeTable": [
+    {
+      "bounds": null,
+      "id": 0,
+      "kind": 0
+    },
+    {
+      "bounds": null,
+      "id": 1,
+      "kind": 1
+    },
+    {
+      "bounds": null,
+      "id": 2,
+      "kind": 1
+    },
+    {
+      "id": 3,
+      "bounds": null,
+      "kind": 2
+    }
+  ],
+  "streamDirectory": {
+    "streams": [
+      {
+        "columns": [
+          "entityId",
+          "scopeId",
+          "x1",
+          "y1",
+          "x2",
+          "y2",
+          "layerId",
+          "appearanceId"
+        ],
+        "count": 0,
+        "name": "line",
+        "role": "object",
+        "schema": "ifccad.ifcdr.line.v3"
+      },
+      {
+        "columns": [
+          "entityId",
+          "scopeId",
+          "vertexOffset",
+          "vertexCount",
+          "x",
+          "y",
+          "closed",
+          "layerId",
+          "appearanceId"
+        ],
+        "count": 0,
+        "name": "polyline",
+        "role": "object",
+        "schema": "ifccad.ifcdr.polyline.v4"
+      },
+      {
+        "children": [
+          "entityOrderEntry"
+        ],
+        "columns": [
+          "scopeId",
+          "entryOffset",
+          "entryCount"
+        ],
+        "count": 4,
+        "name": "entityOrder",
+        "role": "order",
+        "schema": "ifccad.ifcdr.entityOrder.v1"
+      },
+      {
+        "columns": [
+          "entityId"
+        ],
+        "count": 0,
+        "name": "entityOrderEntry",
+        "parent": "entityOrder",
+        "role": "child",
+        "schema": "ifccad.ifcdr.entityOrderEntry.v1"
+      },
+      {
+        "columns": [
+          "entityId",
+          "scopeId",
+          "definitionScopeId",
+          "transform",
+          "layerId",
+          "appearanceId"
+        ],
+        "count": 0,
+        "name": "blockInstance",
+        "role": "object",
+        "schema": "ifccad.ifcdr.blockInstance.v1"
+      },
+      {
+        "children": [
+          "viewportLayerOverride"
+        ],
+        "columns": [
+          "entityId",
+          "scopeId",
+          "viewScopeId",
+          "frame",
+          "view",
+          "renderMode",
+          "viewEnabled",
+          "viewLocked",
+          "paperClip",
+          "plotShadingOverride",
+          "layerId",
+          "appearanceId",
+          "layerOverrideOffset",
+          "layerOverrideCount"
+        ],
+        "count": 0,
+        "name": "viewport",
+        "role": "object",
+        "schema": "ifccad.ifcdr.viewport.v1"
+      },
+      {
+        "columns": [
+          "layerId",
+          "frozen",
+          "appearanceOverrideId"
+        ],
+        "count": 0,
+        "name": "viewportLayerOverride",
+        "parent": "viewport",
+        "role": "child",
+        "schema": "ifccad.ifcdr.viewportLayerOverride.v1"
+      }
+    ],
+    "version": "ifccad.ifcdr.streamDirectory.v1"
+  },
+  "streams": {
+    "blockInstanceStream": {
+      "appearanceId": [],
+      "count": 0,
+      "definitionScopeId": [],
+      "entityId": [],
+      "layerId": [],
+      "scopeId": [],
+      "transform": []
+    },
+    "entityOrderEntryStream": {
+      "count": 0,
+      "entityId": []
+    },
+    "entityOrderStream": {
+      "count": 4,
+      "entryCount": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "entryOffset": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "scopeId": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    "lineStream": {
+      "appearanceId": [],
+      "count": 0,
+      "entityId": [],
+      "layerId": [],
+      "scopeId": [],
+      "x1": [],
+      "x2": [],
+      "y1": [],
+      "y2": []
+    },
+    "polylineStream": {
+      "appearanceId": [],
+      "closed": [],
+      "count": 0,
+      "entityId": [],
+      "layerId": [],
+      "scopeId": [],
+      "vertexCount": [],
+      "vertexOffset": [],
+      "x": [],
+      "y": []
+    },
+    "viewportLayerOverrideStream": {
+      "appearanceOverrideId": [],
+      "count": 0,
+      "frozen": [],
+      "layerId": []
+    },
+    "viewportStream": {
+      "appearanceId": [],
+      "count": 0,
+      "entityId": [],
+      "frame": [],
+      "layerId": [],
+      "layerOverrideCount": [],
+      "layerOverrideOffset": [],
+      "paperClip": [],
+      "plotShadingOverride": [],
+      "renderMode": [],
+      "scopeId": [],
+      "view": [],
+      "viewEnabled": [],
+      "viewLocked": [],
+      "viewScopeId": []
+    }
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "data": [
+    {
+      "children": {
+        "Drawings": [
+          "drawing-0"
+        ]
+      },
+      "path": "drawing-set-0",
+      "type": "openaec:DrawingSet"
+    },
+    {
+      "attributes": {
+        "plotStyleMode": "colorDependent"
+      },
+      "children": {
+        "Appearances": [],
+        "Layers": [],
+        "Layouts": [
+          "layout-0"
+        ],
+        "Representation": "representation-0"
+      },
+      "path": "drawing-0",
+      "type": "openaec:Drawing"
+    },
+    {
+      "attributes": {
+        "kind": "model",
+        "limitsChecking": false,
+        "name": "Model",
+        "paperSpaceLinetypeScaling": true,
+        "scopeId": 0
+      },
+      "children": {
+        "Representation": "representation-other"
+      },
+      "path": "layout-0",
+      "type": "openaec:DrawingLayout"
+    },
+    {
+      "attributes": {
+        "name": "Drawing",
+        "resource": {
+          "checksum": "sha256:c5d53a4bbdc4ec30a865a1b2d30829a5cf2a9f81b0093f7200eebb70fe8767ab",
+          "format": "openaec.ifcdr",
+          "resourceId": "empty-geometry",
+          "role": "drawing",
+          "uri": "resources/drawing.ifcdr.json",
+          "version": "0.10.0"
+        }
+      },
+      "path": "representation-0",
+      "type": "openaec:DrawingRepresentation"
+    },
+    {
+      "attributes": {
+        "name": "Drawing",
+        "resource": {
+          "checksum": "sha256:cbdc687b58c26f0808a6de9db286d034a010a4b73f8b62da80ada20e549767f7",
+          "format": "openaec.ifcdr",
+          "resourceId": "other-geometry",
+          "role": "drawing",
+          "uri": "resources/other.ifcdr.json",
+          "version": "0.10.0"
+        }
+      },
+      "path": "representation-other",
+      "type": "openaec:DrawingRepresentation"
+    }
+  ],
+  "header": {
+    "author": "Writer integration test",
+    "dataVersion": "1",
+    "id": "matrix-layout-representation-cross-resource",
+    "ifcxVersion": "ifcx_alpha",
+    "timestamp": "2026-09-03T14:15:16Z"
+  },
+  "imports": []
+}
