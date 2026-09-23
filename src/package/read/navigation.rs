@@ -195,6 +195,16 @@ impl<'a> DrawingSetRef<'a> {
 }
 
 impl<'a> DrawingRef<'a> {
+    pub fn plot_style_mode(&self) -> super::super::PlotStyleMode {
+        match self
+            .node()
+            .pointer("/attributes/plotStyleMode")
+            .and_then(Value::as_str)
+        {
+            Some("named") => super::super::PlotStyleMode::Named,
+            _ => super::super::PlotStyleMode::ColorDependent,
+        }
+    }
     pub fn representation(&self) -> DrawingRepresentationRef<'a> {
         self.node()
             .pointer("/children/Representation")
@@ -216,6 +226,118 @@ impl<'a> DrawingRef<'a> {
 }
 
 impl<'a> DrawingLayoutRef<'a> {
+    pub fn settings(&self) -> super::super::LayoutSettings {
+        use super::super::*;
+        if self.representation().resource().version() != "0.10.0" {
+            return LayoutSettings::default();
+        }
+        let attrs = &self.node()["attributes"];
+        let mut settings = LayoutSettings {
+            limits: attrs.get("limits").map(read_plot_rect),
+            limits_checking: attrs["limitsChecking"].as_bool().unwrap_or(false),
+            paper_space_linetype_scaling: attrs["paperSpaceLinetypeScaling"]
+                .as_bool()
+                .unwrap_or(true),
+            plot_settings: None,
+        };
+        let Some(plot) = attrs.get("plotSettings") else {
+            return settings;
+        };
+        let media = &plot["media"];
+        let area = &plot["area"];
+        let scale = &plot["mapping"]["scale"];
+        let placement = &plot["mapping"]["placement"];
+        let output = &plot["output"];
+        let shading = &output["shadedPlot"];
+        let quality = &shading["quality"];
+        let options = &plot["options"];
+        settings.plot_settings = Some(PlotSettings {
+            media: PlotMedia {
+                unit: match media["unit"].as_str().unwrap() {
+                    "mm" => PlotUnit::Millimetre,
+                    "in" => PlotUnit::Inch,
+                    "px" => PlotUnit::Pixel,
+                    _ => unreachable!(),
+                },
+                width: media["width"].as_f64().unwrap(),
+                height: media["height"].as_f64().unwrap(),
+                printable_area: read_plot_rect(&media["printableArea"]),
+                rotation: match media["rotation"].as_str().unwrap() {
+                    "none" => PlotRotation::None,
+                    "counterClockwise90" => PlotRotation::CounterClockwise90,
+                    "upsideDown" => PlotRotation::UpsideDown,
+                    "clockwise90" => PlotRotation::Clockwise90,
+                    _ => unreachable!(),
+                },
+                device_name: media["deviceName"].as_str().map(str::to_owned),
+                media_name: media["mediaName"].as_str().map(str::to_owned),
+            },
+            area: match area["mode"].as_str().unwrap() {
+                "Layout" => PlotArea::Layout,
+                "Extents" => PlotArea::Extents,
+                "Limits" => PlotArea::Limits,
+                "Window" => PlotArea::Window(read_plot_rect(&area["window"])),
+                _ => unreachable!(),
+            },
+            mapping: PlotMapping {
+                scale: match scale["mode"].as_str().unwrap() {
+                    "FitToArea" => PlotScale::FitToArea,
+                    "Fixed" => PlotScale::Fixed {
+                        output_length: scale["outputLength"].as_f64().unwrap(),
+                        scope_length: scale["scopeLength"].as_f64().unwrap(),
+                    },
+                    _ => unreachable!(),
+                },
+                placement: match placement["mode"].as_str().unwrap() {
+                    "Centered" => PlotPlacement::Centered,
+                    "Offset" => PlotPlacement::Offset {
+                        reference: match placement["reference"].as_str().unwrap() {
+                            "Media" => PlotOffsetReference::Media,
+                            "PrintableArea" => PlotOffsetReference::PrintableArea,
+                            _ => unreachable!(),
+                        },
+                        x: placement["x"].as_f64().unwrap(),
+                        y: placement["y"].as_f64().unwrap(),
+                    },
+                    _ => unreachable!(),
+                },
+            },
+            output: PlotOutput {
+                shaded_plot: crate::ifcdr::ShadedPlot {
+                    mode: match shading["mode"].as_str().unwrap() {
+                        "AsDisplayed" => crate::ifcdr::ShadedPlotMode::AsDisplayed,
+                        "Wireframe" => crate::ifcdr::ShadedPlotMode::Wireframe,
+                        "Hidden" => crate::ifcdr::ShadedPlotMode::Hidden,
+                        "Rendered" => crate::ifcdr::ShadedPlotMode::Rendered,
+                        _ => unreachable!(),
+                    },
+                    quality: crate::ifcdr::ShadedPlotQuality {
+                        mode: match quality["mode"].as_str().unwrap() {
+                            "Draft" => crate::ifcdr::ShadedPlotQualityMode::Draft,
+                            "Preview" => crate::ifcdr::ShadedPlotQualityMode::Preview,
+                            "Normal" => crate::ifcdr::ShadedPlotQualityMode::Normal,
+                            "Presentation" => crate::ifcdr::ShadedPlotQualityMode::Presentation,
+                            "Maximum" => crate::ifcdr::ShadedPlotQualityMode::Maximum,
+                            "Custom" => crate::ifcdr::ShadedPlotQualityMode::Custom,
+                            _ => unreachable!(),
+                        },
+                        dpi: quality["dpi"].as_u64().map(|value| value as u32),
+                    },
+                },
+                apply_plot_styles: output["applyPlotStyles"].as_bool().unwrap(),
+                plot_style_table_name: output["plotStyleTableName"].as_str().map(str::to_owned),
+            },
+            options: PlotOptions {
+                plot_viewport_borders: options["plotViewportBorders"].as_bool().unwrap(),
+                plot_paper_space_last: options["plotPaperSpaceLast"].as_bool().unwrap(),
+                hide_paper_space_objects: options["hidePaperSpaceObjects"].as_bool().unwrap(),
+                plot_line_weights: options["plotLineWeights"].as_bool().unwrap(),
+                scale_line_weights: options["scaleLineWeights"].as_bool().unwrap(),
+                plot_transparency: options["plotTransparency"].as_bool().unwrap(),
+            },
+        });
+        settings
+    }
     pub fn name(&self) -> &'a str {
         self.node()
             .pointer("/attributes/name")
@@ -262,6 +384,15 @@ impl<'a> DrawingLayoutRef<'a> {
             .expect("validated layout IFCDR resource")
             .scope(binding.scope_id)
             .expect("validated layout scope")
+    }
+}
+
+fn read_plot_rect(value: &Value) -> super::super::PlotRect {
+    super::super::PlotRect {
+        min_x: value["minX"].as_f64().unwrap(),
+        min_y: value["minY"].as_f64().unwrap(),
+        max_x: value["maxX"].as_f64().unwrap(),
+        max_y: value["maxY"].as_f64().unwrap(),
     }
 }
 
@@ -348,6 +479,36 @@ impl<'a> LayerRef<'a> {
             .pointer("/attributes/visible")
             .and_then(Value::as_bool)
             .expect("validated layer visibility")
+    }
+
+    pub fn frozen(&self) -> bool {
+        self.node()
+            .pointer("/attributes/frozen")
+            .and_then(Value::as_bool)
+            .unwrap_or(false)
+    }
+    pub fn locked(&self) -> bool {
+        self.node()
+            .pointer("/attributes/locked")
+            .and_then(Value::as_bool)
+            .unwrap_or(false)
+    }
+    pub fn plottable(&self) -> bool {
+        self.node()
+            .pointer("/attributes/plottable")
+            .and_then(Value::as_bool)
+            .unwrap_or(true)
+    }
+    pub fn frozen_in_new_viewports(&self) -> bool {
+        self.node()
+            .pointer("/attributes/frozenInNewViewports")
+            .and_then(Value::as_bool)
+            .unwrap_or(false)
+    }
+    pub fn description(&self) -> Option<&'a str> {
+        self.node()
+            .pointer("/attributes/description")
+            .and_then(Value::as_str)
     }
 
     pub fn appearance(&self) -> Option<AppearanceRef<'a>> {

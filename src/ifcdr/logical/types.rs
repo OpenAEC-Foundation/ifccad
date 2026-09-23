@@ -1,4 +1,4 @@
-use crate::ifcdr::{Bounds3d, Point2, Point3};
+use crate::ifcdr::{Bounds3d, Point2, Point3, Vector3};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum IfcdrScopeKind {
@@ -31,6 +31,125 @@ pub(crate) struct IfcdrBlockInstanceRow {
     pub entity: IfcdrEntityRow,
     pub definition_scope_id: u32,
     pub transform: crate::ifcdr::geometry::BlockTransformComponents,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct ViewportFrame {
+    pub center: Point2,
+    pub width: f64,
+    pub height: f64,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ProjectionMode {
+    Orthographic,
+    Perspective,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum FrontClipMode {
+    Disabled,
+    AtCamera,
+    AtDistance,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct FrontClip {
+    pub mode: FrontClipMode,
+    pub distance: Option<f64>,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum BackClipMode {
+    Disabled,
+    AtDistance,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct BackClip {
+    pub mode: BackClipMode,
+    pub distance: Option<f64>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct ViewDefinition {
+    pub center: Point2,
+    pub target: Point3,
+    pub direction: Vector3,
+    pub height: f64,
+    pub twist: f64,
+    pub projection: ProjectionMode,
+    pub lens_length: Option<f64>,
+    pub front_clip: FrontClip,
+    pub back_clip: BackClip,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ViewportRenderMode {
+    TwoDimensional,
+    Wireframe,
+    HiddenLine,
+    FlatShadedWithoutEdges,
+    FlatShadedWithEdges,
+    SmoothShadedWithoutEdges,
+    SmoothShadedWithEdges,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct PaperClip {
+    pub enabled: bool,
+    pub boundary_entity_id: Option<u64>,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ShadedPlotMode {
+    AsDisplayed,
+    Wireframe,
+    Hidden,
+    Rendered,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ShadedPlotQualityMode {
+    Draft,
+    Preview,
+    Normal,
+    Presentation,
+    Maximum,
+    Custom,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct ShadedPlotQuality {
+    pub mode: ShadedPlotQualityMode,
+    pub dpi: Option<u32>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct ShadedPlot {
+    pub mode: ShadedPlotMode,
+    pub quality: ShadedPlotQuality,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct ViewportLayerOverride {
+    pub layer_id: u32,
+    pub frozen: bool,
+    pub appearance_override_id: Option<u32>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub(crate) struct IfcdrViewportRow {
+    pub entity: IfcdrEntityRow,
+    pub view_scope_id: u32,
+    pub frame: ViewportFrame,
+    pub view: ViewDefinition,
+    pub render_mode: ViewportRenderMode,
+    pub view_enabled: bool,
+    pub view_locked: bool,
+    pub paper_clip: PaperClip,
+    pub plot_shading_override: Option<ShadedPlot>,
+    pub layer_overrides: Vec<ViewportLayerOverride>,
 }
 #[derive(Clone, Debug, PartialEq)]
 pub(crate) struct IfcdrLayerBinding {
@@ -75,6 +194,15 @@ pub struct IfcdrNamedColor {
 }
 
 impl IfcdrColor {
+    pub fn rgb_components(&self) -> [u8; 3] {
+        self.rgb
+    }
+    pub fn indexed(&self) -> Option<&IfcdrIndexedColor> {
+        self.indexed.as_ref()
+    }
+    pub fn named(&self) -> Option<&IfcdrNamedColor> {
+        self.named.as_ref()
+    }
     pub fn rgb(red: u8, green: u8, blue: u8) -> Self {
         Self {
             rgb: [red, green, blue],

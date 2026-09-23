@@ -121,6 +121,7 @@ pub(super) fn analyze_resource_bindings(
         validated_ifcdr_resources,
         &mut result,
     );
+    validate_drawing_membership(nodes, node_indices_by_path, &mut result);
     result
         .diagnostics
         .extend(super::appearance::validate_appearance_and_layer_semantics(
@@ -130,6 +131,297 @@ pub(super) fn analyze_resource_bindings(
             &result.bindings,
         ));
     result
+}
+
+fn validate_drawing_membership(
+    nodes: &[Value],
+    node_indices_by_path: &BTreeMap<String, usize>,
+    result: &mut BindingAnalysis,
+) {
+    for (drawing_index, drawing) in nodes.iter().enumerate() {
+        if drawing["type"] != "openaec:Drawing" {
+            continue;
+        }
+        let Some(representation_path) = drawing
+            .pointer("/children/Representation")
+            .and_then(Value::as_str)
+        else {
+            continue;
+        };
+        let Some(&representation_index) = node_indices_by_path.get(representation_path) else {
+            continue;
+        };
+        if nodes[representation_index]
+            .pointer("/attributes/resource/version")
+            .and_then(Value::as_str)
+            != Some("0.10.0")
+        {
+            continue;
+        }
+        let Some(resource) = result
+            .bindings
+            .drawing_ifcdr_by_path
+            .get(representation_path)
+        else {
+            continue;
+        };
+        let layers = drawing
+            .pointer("/children/Layers")
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+            .filter_map(Value::as_str)
+            .collect::<BTreeSet<_>>();
+        let appearances = drawing
+            .pointer("/children/Appearances")
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+            .filter_map(Value::as_str)
+            .collect::<BTreeSet<_>>();
+        let mut seen_layer_names = BTreeSet::new();
+        for (position, path) in drawing
+            .pointer("/children/Layers")
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+            .enumerate()
+        {
+            let Some(path) = path.as_str() else { continue };
+            let Some(&index) = node_indices_by_path.get(path) else {
+                continue;
+            };
+            let Some(name) = nodes[index]
+                .pointer("/attributes/name")
+                .and_then(Value::as_str)
+            else {
+                continue;
+            };
+            if !seen_layer_names.insert(crate::ifcdr::names::name_key(name)) {
+                result.diagnostics.push(binding_diagnostic(
+                    format!("/data/{drawing_index}/children/Layers/{position}"),
+                    "layer names must be unique within one Drawing",
+                    BTreeMap::new(),
+                ));
+            }
+            if let Some(appearance) = nodes[index]
+                .pointer("/attributes/appearance")
+                .and_then(Value::as_str)
+            {
+                if !appearances.contains(appearance) {
+                    result.diagnostics.push(binding_diagnostic(
+                        format!("/data/{drawing_index}/children/Appearances"),
+                        "Drawing Appearances must include each listed Layer's default appearance",
+                        BTreeMap::new(),
+                    ));
+                }
+            }
+        }
+        let mut seen_appearance_names = BTreeSet::new();
+        for (position, path) in drawing
+            .pointer("/children/Appearances")
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+            .enumerate()
+        {
+            let Some(path) = path.as_str() else { continue };
+            let Some(&index) = node_indices_by_path.get(path) else {
+                continue;
+            };
+            let Some(name) = nodes[index]
+                .pointer("/attributes/name")
+                .and_then(Value::as_str)
+            else {
+                continue;
+            };
+            if !seen_appearance_names.insert(crate::ifcdr::names::name_key(name)) {
+                result.diagnostics.push(binding_diagnostic(
+                    format!("/data/{drawing_index}/children/Appearances/{position}"),
+                    "appearance names must be unique within one Drawing",
+                    BTreeMap::new(),
+                ));
+            }
+        }
+        let mut seen_layout_names = BTreeSet::new();
+        let mut selected_scopes = BTreeSet::new();
+        let mut model_count = 0;
+        for (position, path) in drawing
+            .pointer("/children/Layouts")
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+            .enumerate()
+        {
+            let Some(path) = path.as_str() else { continue };
+            let Some(&index) = node_indices_by_path.get(path) else {
+                continue;
+            };
+            let layout = &nodes[index];
+            if let Some(name) = layout.pointer("/attributes/name").and_then(Value::as_str) {
+                if !seen_layout_names.insert(crate::ifcdr::names::name_key(name)) {
+                    result.diagnostics.push(binding_diagnostic(
+                        format!("/data/{drawing_index}/children/Layouts/{position}"),
+                        "layout names must be unique within one Drawing",
+                        BTreeMap::new(),
+                    ));
+                }
+            }
+            let kind = layout.pointer("/attributes/kind").and_then(Value::as_str);
+            if kind == Some("model") {
+                model_count += 1;
+                if position != 0 {
+                    result.diagnostics.push(binding_diagnostic(
+                        format!("/data/{drawing_index}/children/Layouts/{position}"),
+                        "model layout must be first",
+                        BTreeMap::new(),
+                    ));
+                }
+            }
+            if let Some(binding) = result.bindings.layout_by_path.get(path) {
+                if binding.representation_path == representation_path
+                    && !selected_scopes.insert(binding.scope_id.get())
+                {
+                    result.diagnostics.push(binding_diagnostic(
+                        format!("/data/{drawing_index}/children/Layouts/{position}"),
+                        "each scope must have exactly one Drawing layout",
+                        BTreeMap::new(),
+                    ));
+                }
+            }
+            if let Some(settings) = layout.pointer("/attributes/plotSettings") {
+                let area = settings.pointer("/area/mode").and_then(Value::as_str);
+                let invalid = match area {
+                    Some("Limits") => {
+                        kind != Some("model") || layout.pointer("/attributes/limits").is_none()
+                    }
+                    Some("Layout") => {
+                        kind != Some("paper")
+                            || settings
+                                .pointer("/mapping/scale/mode")
+                                .and_then(Value::as_str)
+                                != Some("Fixed")
+                            || settings
+                                .pointer("/mapping/placement/mode")
+                                .and_then(Value::as_str)
+                                != Some("Offset")
+                    }
+                    _ => false,
+                };
+                if invalid {
+                    result.diagnostics.push(binding_diagnostic(
+                        format!("/data/{index}/attributes/plotSettings/area"),
+                        "plot area is incompatible with layout kind or authored mapping",
+                        BTreeMap::new(),
+                    ));
+                }
+                let media = &settings["media"];
+                let printable = &media["printableArea"];
+                let width = media["width"].as_f64();
+                let height = media["height"].as_f64();
+                if !valid_rect(printable)
+                    || width.zip(height).is_none_or(|(w, h)| {
+                        printable["minX"].as_f64().unwrap_or(f64::INFINITY) < 0.0
+                            || printable["minY"].as_f64().unwrap_or(f64::INFINITY) < 0.0
+                            || printable["maxX"].as_f64().unwrap_or(f64::INFINITY) > w
+                            || printable["maxY"].as_f64().unwrap_or(f64::INFINITY) > h
+                    })
+                {
+                    result.diagnostics.push(binding_diagnostic(
+                        format!("/data/{index}/attributes/plotSettings/media/printableArea"),
+                        "printable area must be a nonempty rectangle inside the media",
+                        BTreeMap::new(),
+                    ));
+                }
+                if area == Some("Window") && !valid_rect(&settings["area"]["window"]) {
+                    result.diagnostics.push(binding_diagnostic(
+                        format!("/data/{index}/attributes/plotSettings/area/window"),
+                        "plot window must be a nonempty rectangle",
+                        BTreeMap::new(),
+                    ));
+                }
+            }
+            if let Some(limits) = layout.pointer("/attributes/limits") {
+                if !valid_rect(limits) {
+                    result.diagnostics.push(binding_diagnostic(
+                        format!("/data/{index}/attributes/limits"),
+                        "layout limits must be a nonempty rectangle",
+                        BTreeMap::new(),
+                    ));
+                }
+            }
+        }
+        if model_count != 1 {
+            result.diagnostics.push(binding_diagnostic(
+                format!("/data/{drawing_index}/children/Layouts"),
+                "Drawing requires exactly one model layout",
+                BTreeMap::new(),
+            ));
+        }
+        for scope in resource.scopes() {
+            if matches!(
+                scope,
+                crate::ifcdr::ScopeRef::ModelSpace(_) | crate::ifcdr::ScopeRef::PaperSpace(_)
+            ) && !selected_scopes.contains(&scope.id().get())
+            {
+                result.diagnostics.push(binding_diagnostic(
+                    format!("/data/{drawing_index}/children/Layouts"),
+                    "every model and paper scope needs one layout",
+                    BTreeMap::new(),
+                ));
+            }
+        }
+        for (row, binding) in resource.bindings().layers().enumerate() {
+            if let Some(path) = binding.ifcx_layer() {
+                if !layers.contains(path) {
+                    result.diagnostics.push(binding_diagnostic(
+                        format!("/data/{drawing_index}/children/Layers"),
+                        "Drawing Layers must list every IFCDR layer binding target",
+                        BTreeMap::from([
+                            (
+                                "bindingRow".into(),
+                                PackageDiagnosticContextValue::Number(row.into()),
+                            ),
+                            (
+                                "targetPath".into(),
+                                PackageDiagnosticContextValue::String(path.into()),
+                            ),
+                        ]),
+                    ));
+                }
+            }
+        }
+        for (row, binding) in resource.bindings().appearances().enumerate() {
+            if let Some(path) = binding.ifcx_appearance() {
+                if !appearances.contains(path) {
+                    result.diagnostics.push(binding_diagnostic(
+                        format!("/data/{drawing_index}/children/Appearances"),
+                        "Drawing Appearances must list every IFCDR appearance binding target",
+                        BTreeMap::from([
+                            (
+                                "bindingRow".into(),
+                                PackageDiagnosticContextValue::Number(row.into()),
+                            ),
+                            (
+                                "targetPath".into(),
+                                PackageDiagnosticContextValue::String(path.into()),
+                            ),
+                        ]),
+                    ));
+                }
+            }
+        }
+    }
+}
+
+fn valid_rect(rect: &Value) -> bool {
+    let Some((min_x, max_x)) = rect["minX"].as_f64().zip(rect["maxX"].as_f64()) else {
+        return false;
+    };
+    let Some((min_y, max_y)) = rect["minY"].as_f64().zip(rect["maxY"].as_f64()) else {
+        return false;
+    };
+    [min_x, max_x, min_y, max_y].into_iter().all(f64::is_finite) && min_x < max_x && min_y < max_y
 }
 
 fn validate_layout_bindings(nodes: &[Value], result: &mut BindingAnalysis) {

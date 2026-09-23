@@ -28,6 +28,9 @@ pub(crate) fn assess_occurrences(
                     IfcdrEntityRef::Line(e) => e.entity_id(),
                     IfcdrEntityRef::Polyline(e) => e.entity_id(),
                     IfcdrEntityRef::BlockInstance(e) => e.entity_id(),
+                    IfcdrEntityRef::Viewport(_) => {
+                        unreachable!("validated block scope has no viewport")
+                    }
                 };
                 if let Some(nested) = instances.get(&id) {
                     let mut path = path.clone();

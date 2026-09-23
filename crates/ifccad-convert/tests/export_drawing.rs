@@ -252,12 +252,9 @@ fn layers_preserve_order_empty_entries_visibility_and_exact_appearance() {
     assert_eq!(diagnostic.action(), ExportAction::PartiallyExported);
     assert_eq!(
         diagnostic.reasons(),
-        [
-            ExportLossReason::LayerLocked,
-            ExportLossReason::MaterialReference {
-                handle: Handle::new(0xABC),
-            },
-        ]
+        [ExportLossReason::MaterialReference {
+            handle: Handle::new(0xABC),
+        },]
     );
 
     let root = TempRoot::new("layers");
@@ -273,8 +270,10 @@ fn layers_preserve_order_empty_entries_visibility_and_exact_appearance() {
         ["0", "Empty RGB", "Off copy"]
     );
     assert!(layers[0].visible());
-    assert!(!layers[1].visible());
+    assert!(layers[1].visible());
+    assert!(layers[1].frozen());
     assert!(!layers[2].visible());
+    assert!(layers[2].locked());
 
     let indexed = layers[0].appearance().unwrap();
     assert_eq!(indexed.color().rgb().components(), [255, 0, 0]);

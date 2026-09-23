@@ -54,7 +54,7 @@ impl<'a> IfcdrHeader<'a> {
         "openaec.ifcdr"
     }
     pub(crate) fn version(&self) -> &str {
-        "0.9.0"
+        &self.0.version
     }
     pub(crate) fn unit(&self) -> &str {
         super::super::codec::json::unit_name(self.0.unit)
@@ -71,6 +71,9 @@ impl<'a> IfcdrResourceRef<'a> {
     pub fn resource_id(&self) -> &'a ResourceId {
         &self.resource.typed().id
     }
+    pub fn version(&self) -> &'a str {
+        &self.resource.typed().version
+    }
     pub fn unit(&self) -> IfcdrLengthUnit {
         self.resource.typed().unit
     }
@@ -82,6 +85,10 @@ impl<'a> IfcdrResourceRef<'a> {
     }
     pub fn entities(&self, scope: ScopeId) -> super::entity::EntityIterator<'_> {
         super::entity::EntityIterator::new(self.resource, scope)
+    }
+    /// Resolves an appearance patch referenced by a viewport layer override.
+    pub fn appearance_override(&self, id: u32) -> Option<AppearanceOverrideRef<'_>> {
+        self.resource.appearance_override(id)
     }
 }
 impl Validated<LoadedIfcdrResource> {
@@ -275,23 +282,24 @@ impl<'a> AppearanceBindingRef<'a> {
         self.row.modes[3]
     }
 }
-pub(crate) struct AppearanceOverrideRef<'a> {
+#[derive(Clone, Copy, Debug)]
+pub struct AppearanceOverrideRef<'a> {
     row: &'a IfcdrAppearanceOverride,
 }
 impl<'a> AppearanceOverrideRef<'a> {
-    pub(crate) fn id(&self) -> u32 {
+    pub fn id(&self) -> u32 {
         self.row.id
     }
-    pub(crate) fn color(&self) -> Option<&'a IfcdrColor> {
+    pub fn color(&self) -> Option<&'a IfcdrColor> {
         self.row.color.as_ref()
     }
-    pub(crate) fn opacity(&self) -> Option<f64> {
+    pub fn opacity(&self) -> Option<f64> {
         self.row.opacity
     }
-    pub(crate) fn line_weight(&self) -> Option<f64> {
+    pub fn line_weight(&self) -> Option<f64> {
         self.row.line_weight
     }
-    pub(crate) fn ifcx_line_pattern(&self) -> Option<&'a str> {
+    pub fn ifcx_line_pattern(&self) -> Option<&'a str> {
         self.row.ifcx_line_pattern.as_deref()
     }
 }
@@ -388,6 +396,7 @@ mod tests {
                     crate::ifcdr::IfcdrEntityRef::Polyline(polyline) => {
                         polyline.entity_id().get()
                     }
+                    crate::ifcdr::IfcdrEntityRef::Viewport(viewport) => viewport.entity_id().get(),
                 })
                 .collect::<Vec<_>>(),
             [1, 2, 3, 4]

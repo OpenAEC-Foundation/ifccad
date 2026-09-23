@@ -73,6 +73,11 @@ fn representative_builder() -> PackageBuilder {
         .add(LayerDefinition {
             name: "0".to_owned(),
             visible: true,
+            frozen: false,
+            locked: false,
+            plottable: true,
+            frozen_in_new_viewports: false,
+            description: None,
             appearance: solid,
         })
         .unwrap();
@@ -81,6 +86,11 @@ fn representative_builder() -> PackageBuilder {
         .add(LayerDefinition {
             name: "A-WALL".to_owned(),
             visible: false,
+            frozen: false,
+            locked: false,
+            plottable: true,
+            frozen_in_new_viewports: false,
+            description: None,
             appearance: dashed,
         })
         .unwrap();
@@ -151,6 +161,401 @@ fn representative_builder() -> PackageBuilder {
 }
 
 #[test]
+fn typed_layout_settings_roundtrip_with_independent_paper_values() {
+    use ifccad::ifcdr::{ShadedPlot, ShadedPlotMode, ShadedPlotQuality, ShadedPlotQualityMode};
+    use ifccad::package::*;
+    let mut package = PackageBuilder::new(PackageOptions {
+        package_id: PackageId::new("plot-layouts").unwrap(),
+        data_version: "1".into(),
+        author: "test".into(),
+        timestamp: "2026-09-23T00:00:00Z".into(),
+    })
+    .unwrap();
+    let mut drawing = package
+        .add_drawing(DrawingOptions {
+            model_layout_name: "Model".into(),
+            representation_resource_id: ResourceId::new("geometry").unwrap(),
+            length_unit: IfcdrLengthUnit::Metre,
+        })
+        .unwrap();
+    drawing.set_plot_style_mode(PlotStyleMode::Named);
+    let paper_a = drawing.add_paper_space("A".into()).unwrap();
+    let paper_b = drawing.add_paper_space("B".into()).unwrap();
+    let media_rect = PlotRect {
+        min_x: 5.0,
+        min_y: 5.0,
+        max_x: 205.0,
+        max_y: 292.0,
+    };
+    let settings = PlotSettings {
+        media: PlotMedia {
+            unit: PlotUnit::Millimetre,
+            width: 210.0,
+            height: 297.0,
+            printable_area: media_rect,
+            rotation: PlotRotation::None,
+            device_name: None,
+            media_name: None,
+        },
+        area: PlotArea::Layout,
+        mapping: PlotMapping {
+            scale: PlotScale::Fixed {
+                output_length: 1.0,
+                scope_length: 1.0,
+            },
+            placement: PlotPlacement::Offset {
+                reference: PlotOffsetReference::Media,
+                x: 0.0,
+                y: 0.0,
+            },
+        },
+        output: PlotOutput {
+            shaded_plot: ShadedPlot {
+                mode: ShadedPlotMode::AsDisplayed,
+                quality: ShadedPlotQuality {
+                    mode: ShadedPlotQualityMode::Normal,
+                    dpi: None,
+                },
+            },
+            apply_plot_styles: true,
+            plot_style_table_name: Some("styles.stb".into()),
+        },
+        options: PlotOptions {
+            plot_viewport_borders: false,
+            plot_paper_space_last: true,
+            hide_paper_space_objects: false,
+            plot_line_weights: true,
+            scale_line_weights: false,
+            plot_transparency: false,
+        },
+    };
+    let mut second_settings = settings.clone();
+    second_settings.media.unit = PlotUnit::Inch;
+    second_settings.media.width = 11.0;
+    second_settings.media.height = 17.0;
+    second_settings.media.printable_area = PlotRect {
+        min_x: 0.25,
+        min_y: 0.25,
+        max_x: 10.75,
+        max_y: 16.75,
+    };
+    second_settings.area = PlotArea::Extents;
+    second_settings.mapping.scale = PlotScale::FitToArea;
+    second_settings.mapping.placement = PlotPlacement::Centered;
+    second_settings.output.apply_plot_styles = false;
+    second_settings.output.plot_style_table_name = None;
+    drawing
+        .set_paper_layout_settings(
+            paper_a,
+            LayoutSettings {
+                plot_settings: Some(settings),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+    drawing
+        .set_paper_layout_settings(
+            paper_b,
+            LayoutSettings {
+                limits_checking: true,
+                plot_settings: Some(second_settings),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+    let artifact = package.finish().unwrap();
+    if let Ok(destination) = std::env::var("IFCCAD_CONFORMANCE_OUTPUT") {
+        artifact.write_directory(destination).unwrap();
+    }
+    let root = TempRoot::new();
+    let target = root.0.join("package");
+    artifact.write_directory(&target).unwrap();
+    let loaded = load_directory_package(&target).unwrap();
+    assert!(
+        loaded.validated_package().is_some(),
+        "{:?}",
+        loaded.report()
+    );
+    let entry: serde_json::Value =
+        serde_json::from_slice(artifact.file("package.ifcx.json").unwrap()).unwrap();
+    assert_eq!(entry["data"][1]["attributes"]["plotStyleMode"], "named");
+    assert_eq!(
+        entry["data"][3]["attributes"]["plotSettings"]["area"]["mode"],
+        "Layout"
+    );
+    assert_eq!(
+        entry["data"][4]["attributes"]["plotSettings"]["area"]["mode"],
+        "Extents"
+    );
+    assert_eq!(
+        entry["data"][4]["attributes"]["plotSettings"]["media"]["unit"],
+        "in"
+    );
+}
+
+#[test]
+fn writer_emits_paper_viewport_with_frozen_layer_override() {
+    use ifccad::ifcdr::*;
+    use ifccad::package::*;
+    let mut package = PackageBuilder::new(PackageOptions {
+        package_id: PackageId::new("viewport-package").unwrap(),
+        data_version: "1".into(),
+        author: "test".into(),
+        timestamp: "2026-09-23T00:00:00Z".into(),
+    })
+    .unwrap();
+    let mut drawing = package
+        .add_drawing(DrawingOptions {
+            model_layout_name: "Model".into(),
+            representation_resource_id: ResourceId::new("geometry").unwrap(),
+            length_unit: IfcdrLengthUnit::Metre,
+        })
+        .unwrap();
+    let style = drawing
+        .appearances()
+        .add(AppearanceDefinition {
+            name: "Style".into(),
+            color: AppearanceColor::rgb(1, 2, 3),
+            opacity: 1.0,
+            line_pattern: LinePatternDefinition::named("continuous"),
+            line_weight: 0.25,
+        })
+        .unwrap();
+    let layer = drawing
+        .layers()
+        .add(LayerDefinition {
+            name: "0".into(),
+            visible: true,
+            frozen: false,
+            locked: false,
+            plottable: true,
+            frozen_in_new_viewports: false,
+            description: None,
+            appearance: style,
+        })
+        .unwrap();
+    let notes_layer = drawing
+        .layers()
+        .add(LayerDefinition {
+            name: "Notes".into(),
+            visible: true,
+            frozen: false,
+            locked: false,
+            plottable: true,
+            frozen_in_new_viewports: false,
+            description: None,
+            appearance: style,
+        })
+        .unwrap();
+    let paper = drawing.add_paper_space("Sheet".into()).unwrap();
+    drawing
+        .set_paper_layout_settings(
+            paper,
+            LayoutSettings {
+                plot_settings: Some(PlotSettings {
+                    media: PlotMedia {
+                        unit: PlotUnit::Millimetre,
+                        width: 210.0,
+                        height: 297.0,
+                        printable_area: PlotRect {
+                            min_x: 5.0,
+                            min_y: 5.0,
+                            max_x: 205.0,
+                            max_y: 292.0,
+                        },
+                        rotation: PlotRotation::None,
+                        device_name: None,
+                        media_name: Some("A4".into()),
+                    },
+                    area: PlotArea::Layout,
+                    mapping: PlotMapping {
+                        scale: PlotScale::Fixed {
+                            output_length: 1.0,
+                            scope_length: 1.0,
+                        },
+                        placement: PlotPlacement::Offset {
+                            reference: PlotOffsetReference::Media,
+                            x: 0.0,
+                            y: 0.0,
+                        },
+                    },
+                    output: PlotOutput {
+                        shaded_plot: ShadedPlot {
+                            mode: ShadedPlotMode::AsDisplayed,
+                            quality: ShadedPlotQuality {
+                                mode: ShadedPlotQualityMode::Normal,
+                                dpi: None,
+                            },
+                        },
+                        apply_plot_styles: false,
+                        plot_style_table_name: None,
+                    },
+                    options: PlotOptions {
+                        plot_viewport_borders: true,
+                        plot_paper_space_last: true,
+                        hide_paper_space_objects: false,
+                        plot_line_weights: true,
+                        scale_line_weights: false,
+                        plot_transparency: false,
+                    },
+                }),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+    let definition = ViewportDefinition {
+        frame: ViewportFrame {
+            center: Point2::new(10.0, 20.0),
+            width: 4.0,
+            height: 2.0,
+        },
+        view: ViewDefinition {
+            center: Point2::new(0.0, 0.0),
+            target: Point3::new(0.0, 0.0, 0.0),
+            direction: Vector3::new(0.0, 0.0, 1.0),
+            height: 10.0,
+            twist: 0.0,
+            projection: ProjectionMode::Orthographic,
+            lens_length: Some(35.0),
+            front_clip: FrontClip {
+                mode: FrontClipMode::Disabled,
+                distance: Some(1.0),
+            },
+            back_clip: BackClip {
+                mode: BackClipMode::Disabled,
+                distance: Some(50.0),
+            },
+        },
+        render_mode: ViewportRenderMode::Wireframe,
+        view_enabled: true,
+        view_locked: true,
+        paper_clip: PaperClip {
+            enabled: false,
+            boundary_entity_id: None,
+        },
+        plot_shading_override: None,
+        layer,
+        appearance: EntityAppearance::by_layer(),
+        visible: false,
+        layer_overrides: vec![
+            ViewportLayerOverrideDefinition {
+                layer,
+                frozen: true,
+                appearance: Some(AppearancePatch {
+                    color: Some(AppearanceColor::rgb(40, 50, 60)),
+                    opacity: Some(0.5),
+                    line_pattern: None,
+                    line_weight: Some(0.35),
+                }),
+            },
+            ViewportLayerOverrideDefinition {
+                layer: notes_layer,
+                frozen: false,
+                appearance: Some(AppearancePatch {
+                    color: None,
+                    opacity: Some(0.75),
+                    line_pattern: None,
+                    line_weight: None,
+                }),
+            },
+        ],
+    };
+    let id = drawing
+        .paper_space(paper)
+        .unwrap()
+        .add_viewport(definition.clone())
+        .unwrap();
+    let boundary_id = drawing
+        .paper_space(paper)
+        .unwrap()
+        .add_polyline(PolylineDefinition {
+            points: vec![
+                Point2::new(28.5, 19.2),
+                Point2::new(31.5, 20.8),
+                Point2::new(28.5, 20.8),
+                Point2::new(31.5, 19.2),
+            ],
+            placement: PlanePlacement::default(),
+            closed: true,
+            layer,
+            appearance: EntityAppearance::by_layer(),
+            visible: true,
+        })
+        .unwrap();
+    let mut clipped = definition;
+    clipped.frame = ViewportFrame {
+        center: Point2::new(30.0, 20.0),
+        width: 4.0,
+        height: 2.0,
+    };
+    clipped.paper_clip = PaperClip {
+        enabled: true,
+        boundary_entity_id: Some(boundary_id.get()),
+    };
+    clipped.layer_overrides.clear();
+    drawing
+        .paper_space(paper)
+        .unwrap()
+        .add_viewport(clipped)
+        .unwrap();
+    let artifact = package.finish().unwrap();
+    if let Ok(destination) = std::env::var("IFCCAD_CONFORMANCE_OUTPUT") {
+        artifact.write_directory(destination).unwrap();
+    }
+    let root = TempRoot::new();
+    let target = root.0.join("package");
+    artifact.write_directory(&target).unwrap();
+    let loaded = load_directory_package(&target).unwrap();
+    let drawing = loaded
+        .validated_package()
+        .unwrap()
+        .drawings()
+        .next()
+        .unwrap();
+    let paper = drawing.layouts().nth(1).unwrap();
+    let representation = paper.representation();
+    let resource = representation.resource();
+    let entities = resource.entities(paper.scope().id()).collect::<Vec<_>>();
+    assert_eq!(entities.len(), 3);
+    let IfcdrEntityRef::Viewport(viewport) = &entities[0] else {
+        panic!("viewport expected")
+    };
+    assert_eq!(viewport.entity_id(), id);
+    assert_eq!(viewport.frame().width, 4.0);
+    assert_eq!(viewport.layer_overrides().len(), 2);
+    assert!(viewport.layer_overrides()[0].frozen);
+    assert!(!viewport.visible());
+    assert!(viewport.view_enabled());
+    assert!(viewport.view_locked());
+    assert_eq!(viewport.view().lens_length, Some(35.0));
+    assert_eq!(viewport.view().front_clip.distance, Some(1.0));
+    assert_eq!(viewport.view().back_clip.distance, Some(50.0));
+    let patch = resource
+        .appearance_override(
+            viewport.layer_overrides()[0]
+                .appearance_override_id
+                .unwrap(),
+        )
+        .unwrap();
+    assert_eq!(patch.color().unwrap().rgb_components(), [40, 50, 60]);
+    assert_eq!(patch.opacity(), Some(0.5));
+    assert_eq!(patch.line_weight(), Some(0.35));
+    let second_patch = resource
+        .appearance_override(
+            viewport.layer_overrides()[1]
+                .appearance_override_id
+                .unwrap(),
+        )
+        .unwrap();
+    assert_eq!(second_patch.color(), None);
+    assert_eq!(second_patch.opacity(), Some(0.75));
+    assert!(matches!(&entities[1], IfcdrEntityRef::Polyline(polyline) if polyline.closed()));
+    assert!(
+        matches!(&entities[2], IfcdrEntityRef::Viewport(clipped) if clipped.paper_clip().enabled && clipped.paper_clip().boundary_entity_id == Some(boundary_id.get()))
+    );
+}
+
+#[test]
 fn writer_output_reloads_without_diagnostics_and_preserves_semantics() {
     let root = TempRoot::new();
     let target = root.0.join("project");
@@ -162,7 +567,7 @@ fn writer_output_reloads_without_diagnostics_and_preserves_semantics() {
 
     let bytes = std::fs::read(target.join("resources/drawing.ifcdr.json")).unwrap();
     let resource: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
-    assert_eq!(resource["header"]["version"], "0.9.0");
+    assert_eq!(resource["header"]["version"], "0.10.0");
     assert!(resource.get("namedUcsBindings").is_none());
     assert!(resource.get("dimensionOverrideTable").is_none());
     let loaded = load_directory_package(&target).unwrap();
@@ -320,6 +725,11 @@ fn single_entity_families_reload_without_requiring_the_other_stream() {
             .add(LayerDefinition {
                 name: "0".into(),
                 visible: true,
+                frozen: false,
+                locked: false,
+                plottable: true,
+                frozen_in_new_viewports: false,
+                description: None,
                 appearance,
             })
             .unwrap();
@@ -362,6 +772,7 @@ fn single_entity_families_reload_without_requiring_the_other_stream() {
         let mut entities = resource.entities(layout.scope().id());
         match entities.next().unwrap() {
             IfcdrEntityRef::BlockInstance(_) => panic!("primitive-only roundtrip fixture"),
+            IfcdrEntityRef::Viewport(_) => panic!("primitive-only roundtrip fixture"),
             IfcdrEntityRef::Line(line) => {
                 assert!(!polyline);
                 assert_eq!(
@@ -416,7 +827,11 @@ fn empty_model_space_reloads_without_bounds_or_entities() {
             length_unit: IfcdrLengthUnit::Unitless,
         })
         .unwrap();
-    builder.finish().unwrap().write_directory(&target).unwrap();
+    let artifact = builder.finish().unwrap();
+    if let Ok(destination) = std::env::var("IFCCAD_CONFORMANCE_OUTPUT") {
+        artifact.write_directory(destination).unwrap();
+    }
+    artifact.write_directory(&target).unwrap();
 
     let loaded = load_directory_package(&target).unwrap();
     assert!(loaded.report().is_empty(), "{:#?}", loaded.report());

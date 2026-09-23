@@ -70,6 +70,7 @@ fn model_and_paper_layouts_share_the_drawing_resource() {
                 ifccad::ifcdr::IfcdrEntityRef::BlockInstance(instance) => {
                     instance.entity_id().get()
                 }
+                ifccad::ifcdr::IfcdrEntityRef::Viewport(viewport) => viewport.entity_id().get(),
             })
             .collect();
         assert_eq!(ids, expected_ids);
@@ -89,6 +90,163 @@ fn copy_minimal_package(root: &Path) -> serde_json::Value {
         &fs::read(root.join(DIRECTORY_PACKAGE_ENTRYPOINT)).expect("read copied entrypoint"),
     )
     .expect("parse copied entrypoint")
+}
+
+fn candidate_package(root: &Path) -> serde_json::Value {
+    use sha2::{Digest, Sha256};
+    let mut entrypoint = copy_minimal_package(root);
+    let resource_path = root.join("drawing.ifcdr.json");
+    let mut resource: serde_json::Value =
+        serde_json::from_slice(&fs::read(&resource_path).unwrap()).unwrap();
+    resource["header"]["version"] = serde_json::json!("0.10.0");
+    let bytes = serde_json::to_vec_pretty(&resource).unwrap();
+    fs::write(&resource_path, &bytes).unwrap();
+    entrypoint["data"][3]["attributes"]["resource"]["version"] = serde_json::json!("0.10.0");
+    entrypoint["data"][3]["attributes"]["resource"]["checksum"] =
+        serde_json::json!(format!("sha256:{:x}", Sha256::digest(&bytes)));
+    entrypoint["data"][1]["children"]["Layers"] = serde_json::json!(["layer-0", "layer-a-wall"]);
+    entrypoint["data"][1]["children"]["Appearances"] =
+        serde_json::json!(["appearance-default-solid", "appearance-dashed-red"]);
+    entrypoint["data"][2]["attributes"]
+        .as_object_mut()
+        .unwrap()
+        .remove("limitsCheckEnabled");
+    entrypoint["data"][2]["attributes"]["limitsChecking"] = serde_json::json!(false);
+    for layer_index in [4, 5] {
+        let attrs = &mut entrypoint["data"][layer_index]["attributes"];
+        attrs["frozen"] = serde_json::json!(false);
+        attrs["locked"] = serde_json::json!(false);
+        attrs["plottable"] = serde_json::json!(true);
+        attrs["frozenInNewViewports"] = serde_json::json!(false);
+    }
+    entrypoint
+}
+
+#[test]
+fn candidate_drawing_lists_close_resource_bindings() {
+    let root = TestDirectory::new("candidate-drawing-lists");
+    let mut entrypoint = candidate_package(root.path());
+    fs::write(
+        root.path().join(DIRECTORY_PACKAGE_ENTRYPOINT),
+        serde_json::to_vec(&entrypoint).unwrap(),
+    )
+    .unwrap();
+    let valid = load_directory_package(root.path()).unwrap();
+    assert!(valid.validated_package().is_some(), "{:?}", valid.report());
+
+    entrypoint["data"][1]["children"]["Layers"] = serde_json::json!(["layer-0"]);
+    fs::write(
+        root.path().join(DIRECTORY_PACKAGE_ENTRYPOINT),
+        serde_json::to_vec(&entrypoint).unwrap(),
+    )
+    .unwrap();
+    let invalid = load_directory_package(root.path()).unwrap();
+    assert!(invalid.validated_package().is_none());
+    assert!(invalid
+        .report()
+        .iter()
+        .any(|d| d.code == "IFCCAD_PACKAGE_BINDING_INVALID"));
+}
+
+#[test]
+fn two_drawings_can_share_layer_and_appearance_nodes_for_one_resource() {
+    let root = TestDirectory::new("shared-drawing-definitions");
+    let mut entrypoint = candidate_package(root.path());
+    let mut second_drawing = entrypoint["data"][1].clone();
+    second_drawing["path"] = serde_json::json!("drawing-other");
+    second_drawing["children"]["Layouts"] = serde_json::json!(["drawing-other-layout-model"]);
+    let mut second_layout = entrypoint["data"][2].clone();
+    second_layout["path"] = serde_json::json!("drawing-other-layout-model");
+    entrypoint["data"][0]["children"]["Drawings"] =
+        serde_json::json!(["drawing-main", "drawing-other"]);
+    entrypoint["data"]
+        .as_array_mut()
+        .unwrap()
+        .push(second_drawing);
+    entrypoint["data"]
+        .as_array_mut()
+        .unwrap()
+        .push(second_layout);
+    fs::write(
+        root.path().join(DIRECTORY_PACKAGE_ENTRYPOINT),
+        serde_json::to_vec(&entrypoint).unwrap(),
+    )
+    .unwrap();
+
+    let loaded = load_directory_package(root.path()).unwrap();
+    let package = loaded
+        .validated_package()
+        .unwrap_or_else(|| panic!("{:?}", loaded.report()));
+    let drawings = package.drawings().collect::<Vec<_>>();
+    assert_eq!(drawings.len(), 2);
+    for drawing in drawings {
+        assert_eq!(drawing.representation().layers().count(), 2);
+        assert_eq!(drawing.layouts().count(), 1);
+    }
+}
+
+fn candidate_plot_settings(area_mode: &str) -> serde_json::Value {
+    serde_json::json!({
+        "media":{"unit":"mm","width":210.0,"height":297.0,"printableArea":{"minX":5.0,"minY":5.0,"maxX":205.0,"maxY":292.0},"rotation":"none"},
+        "area":{"mode":area_mode},
+        "mapping":{"scale":{"mode":"Fixed","outputLength":1.0,"scopeLength":1.0},"placement":{"mode":"Offset","reference":"Media","x":0.0,"y":0.0}},
+        "output":{"shadedPlot":{"mode":"AsDisplayed","quality":{"mode":"Normal"}},"applyPlotStyles":true},
+        "options":{"plotViewportBorders":false,"plotPaperSpaceLast":true,"hidePaperSpaceObjects":false,"plotLineWeights":true,"scaleLineWeights":false,"plotTransparency":false}
+    })
+}
+
+#[test]
+fn candidate_plot_area_uses_layout_kind_and_authored_limits() {
+    let root = TestDirectory::new("candidate-plot-area");
+    let mut entrypoint = candidate_package(root.path());
+    entrypoint["data"][2]["attributes"]["plotSettings"] = candidate_plot_settings("Limits");
+    fs::write(
+        root.path().join(DIRECTORY_PACKAGE_ENTRYPOINT),
+        serde_json::to_vec(&entrypoint).unwrap(),
+    )
+    .unwrap();
+    let missing_limits = load_directory_package(root.path()).unwrap();
+    assert!(missing_limits.validated_package().is_none());
+    assert!(missing_limits
+        .report()
+        .iter()
+        .any(|d| d.code == "IFCCAD_PACKAGE_BINDING_INVALID"));
+
+    entrypoint["data"][2]["attributes"]["limits"] =
+        serde_json::json!({"minX":0.0,"minY":0.0,"maxX":100.0,"maxY":100.0});
+    fs::write(
+        root.path().join(DIRECTORY_PACKAGE_ENTRYPOINT),
+        serde_json::to_vec(&entrypoint).unwrap(),
+    )
+    .unwrap();
+    let valid = load_directory_package(root.path()).unwrap();
+    assert!(valid.validated_package().is_some(), "{:?}", valid.report());
+
+    entrypoint["data"][2]["attributes"]["plotSettings"]["area"]["mode"] =
+        serde_json::json!("Layout");
+    fs::write(
+        root.path().join(DIRECTORY_PACKAGE_ENTRYPOINT),
+        serde_json::to_vec(&entrypoint).unwrap(),
+    )
+    .unwrap();
+    assert!(load_directory_package(root.path())
+        .unwrap()
+        .validated_package()
+        .is_none());
+
+    entrypoint["data"][2]["attributes"]["plotSettings"]["area"]["mode"] =
+        serde_json::json!("Limits");
+    entrypoint["data"][2]["attributes"]["plotSettings"]["media"]["printableArea"]["maxX"] =
+        serde_json::json!(220.0);
+    fs::write(
+        root.path().join(DIRECTORY_PACKAGE_ENTRYPOINT),
+        serde_json::to_vec(&entrypoint).unwrap(),
+    )
+    .unwrap();
+    assert!(load_directory_package(root.path())
+        .unwrap()
+        .validated_package()
+        .is_none());
 }
 
 fn assert_public_types(

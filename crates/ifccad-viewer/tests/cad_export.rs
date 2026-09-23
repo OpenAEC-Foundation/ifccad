@@ -84,6 +84,13 @@ fn selected_drawing_and_failures_never_return_the_wrong_file() {
     let result = export_package(&multi, "drawing-second", "dxf");
     assert!(result["failure"].is_null(), "{result}");
     assert_eq!(result["export"]["drawing"], "drawing-second");
+    let paper = export_package(
+        &fixture("valid/shared-layout-representation"),
+        "drawing-main",
+        "dxf",
+    );
+    assert!(paper["failure"].is_null(), "{paper}");
+    assert_eq!(paper["export"]["drawing"], "drawing-main");
     for result in [
         export_package(&multi, "missing", "dxf"),
         export_package(&multi, "drawing-main", "exe"),
@@ -91,11 +98,6 @@ fn selected_drawing_and_failures_never_return_the_wrong_file() {
             &fixture("invalid/schema-wrong-scalar"),
             "drawing-main",
             "dwg",
-        ),
-        export_package(
-            &fixture("valid/shared-layout-representation"),
-            "drawing-main",
-            "dxf",
         ),
     ] {
         assert!(!result["failure"].is_null(), "{result}");

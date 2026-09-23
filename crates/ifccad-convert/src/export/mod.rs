@@ -6,6 +6,7 @@ mod diagnostic;
 mod entities;
 mod entity_mapping;
 mod layers;
+mod layouts;
 mod options;
 mod outcome;
 mod structure;

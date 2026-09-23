@@ -8,6 +8,7 @@ pub(crate) struct ScopeGeometry {
     pub lines: Vec<usize>,
     pub polylines: Vec<usize>,
     pub instances: Vec<usize>,
+    pub viewports: Vec<usize>,
 }
 
 /// All resource scopes, including unused definitions. Topological order places
@@ -116,6 +117,11 @@ impl BlockGraph {
                 }
             }
         }
+        for (row, viewport) in r.viewports().iter().enumerate() {
+            if let Some(scope) = scopes.get_mut(&viewport.entity.scope_id) {
+                scope.viewports.push(row);
+            }
+        }
         let mut remaining: BTreeMap<u32, usize> = scopes.keys().map(|id| (*id, 0)).collect();
         let mut owners: BTreeMap<u32, Vec<u32>> = BTreeMap::new();
         let instances = r.block_instances();
@@ -216,6 +222,7 @@ impl BlockGraph {
             let scope = &scopes[id];
             if !scope.lines.is_empty()
                 || !scope.polylines.is_empty()
+                || !scope.viewports.is_empty()
                 || scope
                     .instances
                     .iter()

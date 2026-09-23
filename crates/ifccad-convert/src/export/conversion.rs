@@ -2,6 +2,7 @@ use super::appearance::AppearanceRegistry;
 use super::coverage::scan_document_semantics;
 use super::entities::add_entities;
 use super::layers::add_layers;
+use super::layouts::add_layouts;
 use super::structure::inspect_model_space;
 use super::units::map_length_unit;
 use super::{
@@ -9,7 +10,7 @@ use super::{
     ExportLossPolicy, ExportOptions, ExportOutcome,
 };
 use cadcodec::CadDocument;
-use ifccad::package::{DrawingOptions, LayerKey, PackageBuilder, PackageOptions};
+use ifccad::package::{DrawingOptions, LayerKey, PackageBuilder, PackageOptions, PaperSpaceKey};
 use ifccad::ResourceId;
 use std::collections::BTreeMap;
 
@@ -21,6 +22,7 @@ pub(crate) struct ExportContext {
     pub(crate) geometry: Option<crate::ConversionGeometryAssessment>,
     pub(crate) diagnostics: Vec<ExportDiagnostic>,
     pub(crate) layer_keys: BTreeMap<String, LayerKey>,
+    pub(crate) paper_scopes: BTreeMap<cadcodec::Handle, PaperSpaceKey>,
     pub(crate) appearances: AppearanceRegistry,
     pub(crate) entity_mapping: ExportEntityMapping,
 }
@@ -68,7 +70,13 @@ pub fn cad_document_to_package(
                 .expect("constant resource ID is non-empty"),
             length_unit,
         })?;
+        drawing.set_plot_style_mode(if document.header.plotstyle_mode {
+            ifccad::package::PlotStyleMode::ColorDependent
+        } else {
+            ifccad::package::PlotStyleMode::Named
+        });
         add_layers(document, &mut drawing, &mut context)?;
+        add_layouts(document, &mut drawing, &mut context)?;
         super::blocks::add_definitions(document, &mut drawing, &mut context)?;
         let structural_problems = add_entities(document, &model_space, &mut drawing, &mut context)?;
         if !structural_problems.is_empty() {

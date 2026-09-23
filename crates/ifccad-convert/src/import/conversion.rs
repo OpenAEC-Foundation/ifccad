@@ -28,7 +28,7 @@ pub fn drawing_to_cad_document_with_options(
         .iter()
         .filter(|layout| layout.kind() == DrawingLayoutKind::Model)
         .count();
-    if layouts.len() != 1 || model_layouts != 1 {
+    if model_layouts != 1 {
         return Err(ImportError::UnsupportedDrawingStructure {
             total_layouts: layouts.len(),
             model_layouts,
@@ -37,15 +37,6 @@ pub fn drawing_to_cad_document_with_options(
 
     let layout = layouts[0];
     let representation = layout.representation();
-    if let Some(scope) = representation
-        .resource()
-        .scopes()
-        .find(|scope| matches!(scope, ifccad::ifcdr::ScopeRef::PaperSpace(_)))
-    {
-        return Err(ImportError::UnsupportedScope {
-            scope_id: scope.id(),
-        });
-    }
     let mut document = CadDocument::new();
     let mut diagnostics = DiagnosticAccumulator::default();
     let mut geometry = crate::ConversionGeometryAssessment::new(
@@ -53,6 +44,9 @@ pub fn drawing_to_cad_document_with_options(
         representation.resource().unit(),
     )?;
     apply_units(&mut document, representation.resource().unit());
+    document.header.plotstyle_mode =
+        drawing.plot_style_mode() == ifccad::package::PlotStyleMode::ColorDependent;
+    let paper_owners = super::layouts::allocate(&mut document, &layouts, &mut diagnostics)?;
 
     for source in representation.layers() {
         let target = convert_layer(&mut document, source, &mut diagnostics)?;
@@ -65,6 +59,8 @@ pub fn drawing_to_cad_document_with_options(
                         message: "fresh CadDocument has no standard layer 0".to_owned(),
                     })?;
             standard.flags = target.flags;
+            standard.is_plottable = target.is_plottable;
+            standard.description = target.description;
             standard.color = target.color;
             standard.line_type = target.line_type;
             standard.line_weight = target.line_weight;
@@ -82,13 +78,138 @@ pub fn drawing_to_cad_document_with_options(
     }
 
     let scope_id = layout.scope().id();
-    let owners = super::blocks::allocate(&mut document, representation.resource(), scope_id)?;
+    let mut owners = super::blocks::allocate(&mut document, representation.resource(), scope_id)?;
+    owners.extend(paper_owners);
     let mut block_instances = std::collections::BTreeMap::new();
     let mut block_points = std::collections::BTreeMap::new();
     let mut entity_mapping = ImportEntityMapping::default();
     for (scope_id, owner) in owners {
         for source in representation.resource().entities(scope_id) {
             match source {
+                IfcdrEntityRef::Viewport(source) => {
+                    if source.view().projection == ifccad::ifcdr::ProjectionMode::Perspective {
+                        diagnostics.record(crate::ImportDiagnostic::ViewportUnsupported {
+                            entity_id: source.entity_id(),
+                            reason: "perspective calibration requires CAD fixtures".into(),
+                        });
+                        continue;
+                    }
+                    let clip = source.paper_clip();
+                    let clip_handle = clip.boundary_entity_id.and_then(|id| {
+                        ifccad::ifcdr::EntityId::new(id)
+                            .and_then(|id| entity_mapping.target_handle(id))
+                    });
+                    if clip.enabled && clip_handle.is_none() {
+                        diagnostics.record(crate::ImportDiagnostic::ViewportUnsupported {
+                            entity_id: source.entity_id(),
+                            reason: "clip boundary could not be mapped".into(),
+                        });
+                        continue;
+                    }
+                    let frame = source.frame();
+                    let view = source.view();
+                    let mut target = cadcodec::entities::Viewport::new();
+                    target.center = cadcodec::Vector3::new(frame.center.x(), frame.center.y(), 0.0);
+                    target.width = frame.width;
+                    target.height = frame.height;
+                    target.view_center =
+                        cadcodec::Vector3::new(view.center.x(), view.center.y(), 0.0);
+                    target.view_target =
+                        cadcodec::Vector3::new(view.target.x(), view.target.y(), view.target.z());
+                    target.view_direction = cadcodec::Vector3::new(
+                        view.direction.x(),
+                        view.direction.y(),
+                        view.direction.z(),
+                    );
+                    target.view_height = view.height;
+                    target.twist_angle = view.twist;
+                    target.lens_length = view.lens_length.unwrap_or(target.lens_length);
+                    target.status.front_clipping =
+                        view.front_clip.mode != ifccad::ifcdr::FrontClipMode::Disabled;
+                    target.status.front_clip_not_at_eye =
+                        view.front_clip.mode == ifccad::ifcdr::FrontClipMode::AtDistance;
+                    target.front_clip_z = view.front_clip.distance.unwrap_or(0.0);
+                    target.status.back_clipping =
+                        view.back_clip.mode != ifccad::ifcdr::BackClipMode::Disabled;
+                    target.back_clip_z = view.back_clip.distance.unwrap_or(0.0);
+                    target.clip_boundary_handle = clip_handle.unwrap_or(cadcodec::Handle::NULL);
+                    target.status.is_on = source.view_enabled();
+                    target.status.locked = source.view_locked();
+                    target.render_mode = match source.render_mode() {
+                        ifccad::ifcdr::ViewportRenderMode::TwoDimensional => {
+                            cadcodec::entities::ViewportRenderMode::Wireframe2D
+                        }
+                        ifccad::ifcdr::ViewportRenderMode::Wireframe => {
+                            cadcodec::entities::ViewportRenderMode::Wireframe3D
+                        }
+                        ifccad::ifcdr::ViewportRenderMode::HiddenLine => {
+                            cadcodec::entities::ViewportRenderMode::HiddenLine
+                        }
+                        ifccad::ifcdr::ViewportRenderMode::FlatShadedWithoutEdges => {
+                            cadcodec::entities::ViewportRenderMode::FlatShaded
+                        }
+                        ifccad::ifcdr::ViewportRenderMode::FlatShadedWithEdges => {
+                            cadcodec::entities::ViewportRenderMode::FlatShadedWithEdges
+                        }
+                        ifccad::ifcdr::ViewportRenderMode::SmoothShadedWithoutEdges => {
+                            cadcodec::entities::ViewportRenderMode::GouraudShaded
+                        }
+                        ifccad::ifcdr::ViewportRenderMode::SmoothShadedWithEdges => {
+                            cadcodec::entities::ViewportRenderMode::GouraudShadedWithEdges
+                        }
+                    };
+                    target.id = document
+                        .entities()
+                        .filter_map(|entity| match entity {
+                            EntityType::Viewport(viewport) => Some(viewport.id),
+                            _ => None,
+                        })
+                        .max()
+                        .unwrap_or(1)
+                        .checked_add(1)
+                        .ok_or_else(|| ImportError::InternalInvariant {
+                            message: "CAD viewport ID range exhausted".into(),
+                        })?;
+                    for override_row in source.layer_overrides() {
+                        if override_row.frozen {
+                            if let Some(layer) = representation
+                                .layer(override_row.layer_id.into())
+                                .and_then(|layer| document.layers.get(layer.name()))
+                            {
+                                target.frozen_layers.push(layer.handle);
+                            }
+                        }
+                        if override_row.appearance_override_id.is_some() {
+                            diagnostics.record(crate::ImportDiagnostic::ViewportUnsupported {
+                                entity_id: source.entity_id(),
+                                reason: "viewport appearance override".into(),
+                            });
+                        }
+                    }
+                    if source.plot_shading_override().is_some() {
+                        diagnostics.record(crate::ImportDiagnostic::ViewportUnsupported {
+                            entity_id: source.entity_id(),
+                            reason: "viewport plot-shading quality override".into(),
+                        });
+                    }
+                    apply_entity_common(
+                        &mut document,
+                        representation,
+                        &mut target.common,
+                        source.entity_id(),
+                        source.layer_id(),
+                        source.appearance_id(),
+                        source.visible(),
+                        &mut diagnostics,
+                    )?;
+                    target.common.owner_handle = owner;
+                    add_and_map(
+                        &mut document,
+                        &mut entity_mapping,
+                        source.entity_id(),
+                        EntityType::Viewport(target),
+                    )?;
+                }
                 IfcdrEntityRef::BlockInstance(source) => {
                     let resource = representation.resource();
                     let Some(ifccad::ifcdr::ScopeRef::BlockDefinition(definition)) =
@@ -332,6 +453,11 @@ fn convert_layer(
 ) -> Result<Layer, ImportError> {
     let mut target = Layer::new(source.name());
     target.flags.off = !source.visible();
+    target.flags.frozen = source.frozen();
+    target.flags.locked = source.locked();
+    target.flags.frozen_in_new_viewport = source.frozen_in_new_viewports();
+    target.is_plottable = source.plottable();
+    target.description = source.description().unwrap_or("").into();
 
     if let Some(appearance) = source.appearance() {
         let source_color = appearance.color();

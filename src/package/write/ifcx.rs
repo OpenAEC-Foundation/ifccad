@@ -44,7 +44,7 @@ pub(crate) fn assemble_ifcx(
     resource: &EncodedIfcdrResource,
 ) -> Result<Vec<u8>, PackageBuildError> {
     let mut descriptor = json!({
-        "format":"openaec.ifcdr", "version":"0.9.0", "resourceId":resource.resource_id, "role":"drawing"
+        "format":"openaec.ifcdr", "version":resource.value["header"]["version"], "resourceId":resource.resource_id, "role":"drawing"
     });
     match drawing.storage {
         super::DrawingResourceStorage::External => {
@@ -62,24 +62,28 @@ pub(crate) fn assemble_ifcx(
         json!({
             "path": paths.drawing,
             "type": "openaec:Drawing",
+            "attributes": {"plotStyleMode":match drawing.plot_style_mode {super::PlotStyleMode::ColorDependent=>"colorDependent",super::PlotStyleMode::Named=>"named"}},
             "children": {
                 "Layouts": std::iter::once(paths.layout.clone()).chain(paths.paper_layouts.iter().cloned()).collect::<Vec<_>>(),
-                "Representation": paths.representation
+                "Representation": paths.representation,
+                "Layers": paths.layers,
+                "Appearances": paths.appearances
             }
         }),
         json!({
             "path": paths.layout,
             "type": "openaec:DrawingLayout",
-            "attributes": {
-                "name": drawing.options.model_layout_name,
-                "kind": "model",
-                "scopeId": 0
-            },
+            "attributes": drawing.model_layout_settings.json(&drawing.options.model_layout_name, "model", 0),
             "children": {"Representation": paths.representation}
         }),
     ];
     for ((scope_id, name), path) in drawing.paper_layouts.iter().zip(&paths.paper_layouts) {
-        data.push(json!({"path":path,"type":"openaec:DrawingLayout","attributes":{"name":name,"kind":"paper","scopeId":scope_id},"children":{"Representation":paths.representation}}));
+        let settings = drawing
+            .paper_layout_settings
+            .get(scope_id)
+            .cloned()
+            .unwrap_or_default();
+        data.push(json!({"path":path,"type":"openaec:DrawingLayout","attributes":settings.json(name, "paper", *scope_id),"children":{"Representation":paths.representation}}));
     }
     debug_assert_eq!(data.len(), paths.representation_index);
     data.push(json!({
@@ -110,15 +114,23 @@ pub(crate) fn assemble_ifcx(
                         layer.definition.name
                     ),
                 })?;
-            Ok(json!({
+            let mut node = json!({
                 "path": path,
                 "type": "openaec:Layer",
                 "attributes": {
                     "name": layer.definition.name,
                     "visible": layer.definition.visible,
+                    "frozen": layer.definition.frozen,
+                    "locked": layer.definition.locked,
+                    "plottable": layer.definition.plottable,
+                    "frozenInNewViewports": layer.definition.frozen_in_new_viewports,
                     "appearance": paths.appearances[appearance_index]
                 }
-            }))
+            });
+            if let Some(description) = &layer.definition.description {
+                node["attributes"]["description"] = json!(description);
+            }
+            Ok(node)
         })
         .collect::<Result<Vec<_>, PackageBuildError>>()?;
     data.extend(layer_nodes);
@@ -230,6 +242,11 @@ mod tests {
             .add(LayerDefinition {
                 name: "A-WALL".to_owned(),
                 visible: false,
+                frozen: false,
+                locked: false,
+                plottable: true,
+                frozen_in_new_viewports: false,
+                description: None,
                 appearance: style,
             })
             .unwrap();
@@ -275,7 +292,7 @@ mod tests {
         assert_eq!(root["data"][3]["attributes"]["name"], "Drawing");
         let geometry = &root["data"][3]["attributes"]["resource"];
         assert_eq!(geometry["format"], "openaec.ifcdr");
-        assert_eq!(geometry["version"], "0.9.0");
+        assert_eq!(geometry["version"], "0.10.0");
         assert_eq!(geometry["role"], "drawing");
         assert_eq!(geometry["resourceId"], "drawing-main");
         assert_eq!(geometry["uri"], "resources/drawing.ifcdr.json");

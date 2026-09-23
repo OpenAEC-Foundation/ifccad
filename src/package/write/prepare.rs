@@ -84,9 +84,58 @@ pub(crate) fn prepare_drawing(
             ifcx_layer: p.clone(),
         })
         .collect();
+    let mut overrides = Vec::new();
     let entities = std::mem::take(&mut drawing.entities)
         .into_iter()
         .map(|pending| match pending {
+            PendingEntity::Viewport {
+                scope_id,
+                entity_id,
+                appearance_id,
+                definition: d,
+            } => {
+                let layer_overrides = d
+                    .layer_overrides
+                    .into_iter()
+                    .map(|entry| {
+                        let appearance_override_id = entry.appearance.map(|patch| {
+                            let id = u32::try_from(overrides.len() + 1)
+                                .expect("viewport override count fits u32");
+                            overrides.push(IfcdrAppearanceOverride {
+                                id,
+                                color: patch.color,
+                                opacity: patch.opacity,
+                                ifcx_line_pattern: patch.line_pattern.map(|line| line.name),
+                                line_weight: patch.line_weight,
+                            });
+                            id
+                        });
+                        ViewportLayerOverride {
+                            layer_id: entry.layer.local_id,
+                            frozen: entry.frozen,
+                            appearance_override_id,
+                        }
+                    })
+                    .collect();
+                IfcdrWriteEntity::Viewport(IfcdrViewportRow {
+                    entity: IfcdrEntityRow {
+                        entity_id: entity_id.get(),
+                        scope_id,
+                        layer_id: d.layer.local_id,
+                        appearance_id: appearance_id.get(),
+                        visible: d.visible,
+                    },
+                    view_scope_id: 0,
+                    frame: d.frame,
+                    view: d.view,
+                    render_mode: d.render_mode,
+                    view_enabled: d.view_enabled,
+                    view_locked: d.view_locked,
+                    paper_clip: d.paper_clip,
+                    plot_shading_override: d.plot_shading_override,
+                    layer_overrides,
+                })
+            }
             PendingEntity::BlockInstance {
                 scope_id,
                 entity_id,
@@ -146,7 +195,7 @@ pub(crate) fn prepare_drawing(
         scopes: drawing.scopes.clone(),
         layers,
         appearances,
-        overrides: Vec::new(),
+        overrides,
         entities,
     })
 }
@@ -191,6 +240,11 @@ mod tests {
             .add(LayerDefinition {
                 name: "0".into(),
                 visible: true,
+                frozen: false,
+                locked: false,
+                plottable: true,
+                frozen_in_new_viewports: false,
+                description: None,
                 appearance: style,
             })
             .unwrap();

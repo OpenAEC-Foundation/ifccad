@@ -97,6 +97,11 @@ pub struct AppearanceKey {
 pub struct LayerDefinition {
     pub name: String,
     pub visible: bool,
+    pub frozen: bool,
+    pub locked: bool,
+    pub plottable: bool,
+    pub frozen_in_new_viewports: bool,
+    pub description: Option<String>,
     pub appearance: AppearanceKey,
 }
 
@@ -166,6 +171,36 @@ pub struct PolylineDefinition {
     pub layer: LayerKey,
     pub appearance: EntityAppearance,
     pub visible: bool,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct AppearancePatch {
+    pub color: Option<AppearanceColor>,
+    pub opacity: Option<f64>,
+    pub line_pattern: Option<LinePatternDefinition>,
+    pub line_weight: Option<f64>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct ViewportLayerOverrideDefinition {
+    pub layer: LayerKey,
+    pub frozen: bool,
+    pub appearance: Option<AppearancePatch>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct ViewportDefinition {
+    pub frame: crate::ifcdr::ViewportFrame,
+    pub view: crate::ifcdr::ViewDefinition,
+    pub render_mode: crate::ifcdr::ViewportRenderMode,
+    pub view_enabled: bool,
+    pub view_locked: bool,
+    pub paper_clip: crate::ifcdr::PaperClip,
+    pub plot_shading_override: Option<crate::ifcdr::ShadedPlot>,
+    pub layer: LayerKey,
+    pub appearance: EntityAppearance,
+    pub visible: bool,
+    pub layer_overrides: Vec<ViewportLayerOverrideDefinition>,
 }
 
 /// Storage form of a drawing resource in an encoded package.

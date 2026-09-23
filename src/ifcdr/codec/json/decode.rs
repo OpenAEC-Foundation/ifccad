@@ -4,7 +4,7 @@ use crate::ifcdr::geometry::{BlockTransformComponents, PlanePlacementComponents}
 use crate::ifcdr::logical::*;
 use crate::ifcdr::read::decoded::*;
 use crate::ifcdr::{
-    BlockScaling, Bounds3d, IfcdrLengthUnit, PlanePlacement, Point3, Scale3, Vector3,
+    BlockScaling, Bounds3d, IfcdrLengthUnit, PlanePlacement, Point2, Point3, Scale3, Vector3,
 };
 use crate::ResourceId;
 use serde_json::Value;
@@ -136,8 +136,24 @@ pub(crate) fn decode_json(
             }
         })
         .collect();
+    let viewport_stream = &value["streams"]["viewportStream"];
+    let override_stream = &value["streams"]["viewportLayerOverrideStream"];
+    let viewport_entities = entity(viewport_stream);
+    let viewport_overrides = (0..override_stream["count"].as_u64().unwrap_or(0) as usize)
+        .map(|i| ViewportLayerOverride {
+            layer_id: u32v(&override_stream["layerId"][i]),
+            frozen: override_stream["frozen"][i].as_bool().unwrap(),
+            appearance_override_id: override_stream["appearanceOverrideId"][i]
+                .as_u64()
+                .map(|id| id as u32),
+        })
+        .collect::<Vec<_>>();
     Ok(DecodedIfcdrResource {
         id: id.unwrap(),
+        version: value["header"]["version"]
+            .as_str()
+            .expect("physical version")
+            .into(),
         unit: unit.unwrap(),
         next: value["header"]["nextEntityId"].as_u64().unwrap(),
         block_definitions,
@@ -146,6 +162,31 @@ pub(crate) fn decode_json(
                 entity: instance_entities.get(i).expect("physical entity row"),
                 definition_scope_id: u32v(&instances["definitionScopeId"][i]),
                 transform: transform_record(&instances["transform"][i]),
+            })
+            .collect(),
+        viewports: (0..viewport_entities.ids.len())
+            .map(|i| {
+                let start = u32v(&viewport_stream["layerOverrideOffset"][i]) as usize;
+                let count = u32v(&viewport_stream["layerOverrideCount"][i]) as usize;
+                IfcdrViewportRow {
+                    entity: viewport_entities.get(i).expect("physical viewport row"),
+                    view_scope_id: u32v(&viewport_stream["viewScopeId"][i]),
+                    frame: viewport_frame_record(&viewport_stream["frame"][i]),
+                    view: view_record(&viewport_stream["view"][i]),
+                    render_mode: render_mode(u32v(&viewport_stream["renderMode"][i])),
+                    view_enabled: viewport_stream["viewEnabled"][i].as_bool().unwrap(),
+                    view_locked: viewport_stream["viewLocked"][i].as_bool().unwrap(),
+                    paper_clip: PaperClip {
+                        enabled: viewport_stream["paperClip"][i]["enabled"]
+                            .as_bool()
+                            .unwrap(),
+                        boundary_entity_id: viewport_stream["paperClip"][i]["boundaryEntityId"]
+                            .as_u64(),
+                    },
+                    plot_shading_override: (!viewport_stream["plotShadingOverride"][i].is_null())
+                        .then(|| shaded_plot_record(&viewport_stream["plotShadingOverride"][i])),
+                    layer_overrides: viewport_overrides[start..start + count].to_vec(),
+                }
             })
             .collect(),
         scopes: rows(value, "scopeTable")
@@ -225,6 +266,86 @@ pub(crate) fn decode_json(
             y: values(&p["y"], num),
         },
     })
+}
+fn point2_record(v: &Value) -> Point2 {
+    Point2::new(num(&v["x"]), num(&v["y"]))
+}
+fn vector3_record(v: &Value) -> Vector3 {
+    Vector3::new(num(&v["x"]), num(&v["y"]), num(&v["z"]))
+}
+fn viewport_frame_record(v: &Value) -> ViewportFrame {
+    ViewportFrame {
+        center: point2_record(&v["center"]),
+        width: num(&v["width"]),
+        height: num(&v["height"]),
+    }
+}
+fn view_record(v: &Value) -> ViewDefinition {
+    ViewDefinition {
+        center: point2_record(&v["center"]),
+        target: point_record(&v["target"]),
+        direction: vector3_record(&v["direction"]),
+        height: num(&v["height"]),
+        twist: num(&v["twist"]),
+        projection: match u32v(&v["projection"]) {
+            0 => ProjectionMode::Orthographic,
+            1 => ProjectionMode::Perspective,
+            _ => unreachable!("physical projection code"),
+        },
+        lens_length: v["lensLength"].as_f64(),
+        front_clip: FrontClip {
+            mode: match u32v(&v["frontClip"]["mode"]) {
+                0 => FrontClipMode::Disabled,
+                1 => FrontClipMode::AtCamera,
+                2 => FrontClipMode::AtDistance,
+                _ => unreachable!("physical front clip code"),
+            },
+            distance: v["frontClip"]["distance"].as_f64(),
+        },
+        back_clip: BackClip {
+            mode: match u32v(&v["backClip"]["mode"]) {
+                0 => BackClipMode::Disabled,
+                1 => BackClipMode::AtDistance,
+                _ => unreachable!("physical back clip code"),
+            },
+            distance: v["backClip"]["distance"].as_f64(),
+        },
+    }
+}
+fn render_mode(value: u32) -> ViewportRenderMode {
+    match value {
+        0 => ViewportRenderMode::TwoDimensional,
+        1 => ViewportRenderMode::Wireframe,
+        2 => ViewportRenderMode::HiddenLine,
+        3 => ViewportRenderMode::FlatShadedWithoutEdges,
+        4 => ViewportRenderMode::FlatShadedWithEdges,
+        5 => ViewportRenderMode::SmoothShadedWithoutEdges,
+        6 => ViewportRenderMode::SmoothShadedWithEdges,
+        _ => unreachable!("physical render code"),
+    }
+}
+fn shaded_plot_record(v: &Value) -> ShadedPlot {
+    ShadedPlot {
+        mode: match u32v(&v["mode"]) {
+            0 => ShadedPlotMode::AsDisplayed,
+            1 => ShadedPlotMode::Wireframe,
+            2 => ShadedPlotMode::Hidden,
+            3 => ShadedPlotMode::Rendered,
+            _ => unreachable!("physical shaded plot code"),
+        },
+        quality: ShadedPlotQuality {
+            mode: match u32v(&v["quality"]["mode"]) {
+                0 => ShadedPlotQualityMode::Draft,
+                1 => ShadedPlotQualityMode::Preview,
+                2 => ShadedPlotQualityMode::Normal,
+                3 => ShadedPlotQualityMode::Presentation,
+                4 => ShadedPlotQualityMode::Maximum,
+                5 => ShadedPlotQualityMode::Custom,
+                _ => unreachable!("physical shaded plot quality code"),
+            },
+            dpi: v["quality"]["dpi"].as_u64().map(|dpi| dpi as u32),
+        },
+    }
 }
 fn point_record(v: &Value) -> Point3 {
     Point3::new(num(&v["x"]), num(&v["y"]), num(&v["z"]))

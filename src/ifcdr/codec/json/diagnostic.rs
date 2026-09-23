@@ -10,6 +10,8 @@ pub(crate) fn logical_diagnostic(uri: &str, d: IfcdrDiagnostic) -> PackageDiagno
         "scope" => "/scopeTable",
         "blockDefinition" => "/blockDefinitionTable",
         "blockInstance" => "/streams/blockInstanceStream",
+        "viewport" => "/streams/viewportStream",
+        "viewportLayerOverride" => "/streams/viewportLayerOverrideStream",
         "layerBinding" => "/layerBindings",
         "appearanceBinding" => "/appearanceBindings",
         "appearanceOverride" => "/appearanceOverrides",

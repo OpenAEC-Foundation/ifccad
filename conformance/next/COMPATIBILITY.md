@@ -1,16 +1,22 @@
 # IFCCAD candidate compatibility
 
 This collection is the unpublished `1.1.0` candidate. Its active drawing
-contract is IFCDR `0.9.0`, selected by IFCX overlay `0.11.0`, with drawing core
-`0.2.0`. The logical registry uses meta-schema v4; the separate JSON mapping uses
-meta-schema v3 and stream-directory v1. IFCPR remains
+contract is IFCDR `0.10.0`, selected by IFCX overlay `0.12.0`, with drawing core
+`0.3.0`. The logical registry uses meta-schema v5; the separate JSON mapping uses
+meta-schema v4 and stream-directory v1. The reader also accepts the preceding
+IFCDR `0.9.0` / overlay `0.11.0` pair. IFCPR remains
 `0.2.0`. Historical schemas and `conformance/1.0.0` are reference artifacts,
 not promises that the current reader supports their files.
 
+The new cases cover representative layout, plot, viewport and drawing-list
+boundaries. The full per-condition conformance matrix from the local design
+is not yet materialized as separate fixtures; this candidate is not a numbered
+conformance release.
+
 ## Supported drawing content
 
-The IFCDR registry contains five streams: `line`, `polyline`, `blockInstance`,
-`entityOrder`, and `entityOrderEntry`. It retains `scope`, `blockDefinition`, `layerBinding`, `appearanceBinding`,
+The IFCDR registry contains seven streams: `line`, `polyline`, `blockInstance`,
+`viewport`, `viewportLayerOverride`, `entityOrder`, and `entityOrderEntry`. It retains `scope`, `blockDefinition`, `layerBinding`, `appearanceBinding`,
 and `appearanceOverride` tables. Lines use XYZ endpoints. Polylines use local XY points and an optional complete
 plane placement (identity when omitted). Resource units, scope membership,
 appearance modes and draw order remain.
@@ -25,6 +31,10 @@ absent. Explicit plane objects require all nine finite values; squared axis
 length and perpendicularity use the exact binary64 threshold nearest 1e-12.
 Colors retain RGB and optional indexed (u64) and named metadata together. All
 stored non-null overrides are validated, including unused values.
+Paper-space viewport rows have paper frames, model view definitions, clipping
+state and relational layer-override child ranges. Drawing membership explicitly
+lists layouts, layers and appearances. Layout plot settings are complete inline
+effective values; an absent value does not imply an invented medium.
 
 Prototype entity families, their child streams, and their exclusive support
 tables are absent from this contract. Even empty discarded support tables are
@@ -35,17 +45,17 @@ contracts after their semantics are designed and tested.
 
 | Content or operation | Primary implementation behavior |
 | --- | --- |
-| IFCDR 0.9.0 JSON with the registered content | Physical field/range checks in the JSON codec, shared logical geometry/reference/identity/order/bounds/appearance validation, and package binding checks; typed lines, polylines, scopes and local blocks. |
+| IFCDR 0.10.0 or 0.9.0 JSON with registered content | Versioned physical field/range checks in the JSON codec, shared logical geometry/reference/identity/order/bounds/appearance validation, and package binding checks; candidate adds typed viewports and plot-linked paper scopes. |
 | DrawingRepresentation | `attributes.resource`, role `drawing`; a Drawing and all listed layouts reference the same representation node. Layout scope IDs resolve within that resource. |
 | Retired DrawingGeometryRepresentation | `IFCCAD_PACKAGE_VOCABULARY_UNSUPPORTED`, including unreferenced nodes; no strict package. |
-| Directory writer | One drawing, one model layout, optional minimal paper layouts and local blocks, one inline or external IFCDR resource; deterministic new-version output. |
-| Resource access | External package-relative or inline JSON for IFCDR and IFCPR. Both use the same content validation and identity links. No paperspace export is added. |
+| Directory writer | One drawing, one model layout, optional paper layouts with independent effective plot settings, viewports and local blocks, one inline or external IFCDR resource; deterministic new-version output. |
+| Resource access | External package-relative or inline JSON for IFCDR and IFCPR. Both use the same content validation and identity links. |
 | IFCDR 0.8.0, 0.7.0, 0.6.0, 0.5.0 or another unsupported version | `IFCCAD_IFCDR_VERSION_UNSUPPORTED`; no strict typed package and no migration. |
 | Unknown stream name or schema ID | `IFCCAD_IFCDR_STREAM_SCHEMA_UNSUPPORTED` with stream/schema context when available; no strict typed package or unmodeled-entity view. |
 | Malformed supported fields or known broken references | Structural or semantic error diagnostics; no strict typed package. |
 | Unrelated unknown IFCX node types and open extension fields | Existing permitted read behavior remains; no new guarantee of conversion, editing, or lossless rewriting. |
-| IFCCAD to CadDocument | One-model-layout conversion for lines, polylines and local blocks, layers, all 25 units, scope order, and supported appearance data. Target scale changes block conversion; non-neutral block frames retain parameterization-loss evidence. |
-| CadDocument to IFCCAD | Finite XYZ lines, placed straight lightweight polylines and ordinary local blocks. Unsupported properties/entities are diagnosed under `Allow` or reject under `Reject`. Missing/cyclic block references and contradictory exposed markers are structural failures. Geometric accuracy is a hard limit in both policies; only proved within-limit numerical rounding is exempt from Reject. |
+| IFCCAD to CadDocument | Converts lines, polylines and local blocks in model and paper scopes, supported layout plot values, orthographic viewports and frozen-layer overrides. Unsupported target fields receive loss diagnostics; target scale changes block conversion. |
+| CadDocument to IFCCAD | Finite XYZ lines, placed straight lightweight polylines, ordinary local blocks, supported paper layouts, plot settings and orthographic viewports. Unsupported properties/entities are diagnosed under `Allow` or reject under `Reject`; unsupported active viewport clipping skips the viewport, while Display/NamedView omits the complete plot value. Geometric accuracy remains a hard limit. |
 | IFCPR 0.2.0 | The limited checks described below; no converter preservation transfer. |
 
 `IfcdrEntityRef::Unmodeled`, `UnmodeledEntityRef`, and

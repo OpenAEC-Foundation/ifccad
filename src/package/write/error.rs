@@ -6,6 +6,8 @@ pub enum PackageBuildError {
     ForeignBlockDefinitionKey,
     #[error("paper scope key belongs to another builder")]
     ForeignPaperSpaceKey,
+    #[error("viewport entities must be placed in PaperSpace")]
+    ViewportRequiresPaperSpace,
     #[error("block name already exists under full default case folding: {name}")]
     DuplicateBlockName { name: String },
     #[error("block definition requires exact signed uniform scale")]

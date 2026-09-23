@@ -3,6 +3,7 @@ mod blocks;
 mod conversion;
 mod diagnostic;
 mod entity_mapping;
+mod layouts;
 mod outcome;
 mod units;
 

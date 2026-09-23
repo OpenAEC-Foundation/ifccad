@@ -260,3 +260,54 @@ fn point_pool_mapping_requires_exactly_two_coordinate_columns() {
         assert!(!schema.is_valid(&mapping));
     }
 }
+
+#[test]
+fn candidate_0_10_assets_agree_and_map_complete_viewport_override_rows() {
+    let registry = asset("registry-0.10.0.json");
+    let mapping = asset("json-mapping-0.10.0.json");
+    assert!(validator("registry-meta-schema-v5.json").is_valid(&registry));
+    let mapping_schema = validator("json-mapping-meta-schema-v4.json");
+    assert!(mapping_schema.is_valid(&mapping));
+    assert!(mapping_matches(&registry, &mapping));
+    let viewport = mapping["streams"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|stream| stream["name"] == "viewport")
+        .unwrap();
+    let overrides = viewport["fields"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|field| field["logical"] == "viewport.layerOverrides")
+        .unwrap();
+    assert_eq!(overrides["targetStream"], "viewportLayerOverride");
+    assert!(overrides.get("target").is_none());
+    for mutation in ["missing_selector", "both_selectors"] {
+        let mut invalid = mapping.clone();
+        let field = invalid["streams"]
+            .as_array_mut()
+            .unwrap()
+            .iter_mut()
+            .find(|stream| stream["name"] == "viewport")
+            .unwrap()["fields"]
+            .as_array_mut()
+            .unwrap()
+            .iter_mut()
+            .find(|field| field["logical"] == "viewport.layerOverrides")
+            .unwrap();
+        if mutation == "missing_selector" {
+            field.as_object_mut().unwrap().remove("targetStream");
+        } else {
+            field["target"] = json!("viewportLayerOverride.layerId");
+        }
+        assert!(!mapping_schema.is_valid(&invalid), "{mutation}");
+    }
+    let order = mapping["streams"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|stream| stream["name"] == "entityOrder")
+        .unwrap();
+    assert_eq!(order["fields"][1]["target"], "entityOrderEntry.entityId");
+}

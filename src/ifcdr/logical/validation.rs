@@ -1,3 +1,4 @@
+use super::viewport::{check_viewport, check_viewport_boundaries, frame_bounds};
 use super::*;
 use crate::ifcdr::{Bounds3d, PlanePlacement, Point2, Point3};
 use crate::validated::{EvidenceOutcome, Validated, ValidationOutcome, ValidationTarget};
@@ -19,6 +20,7 @@ pub(crate) enum IfcdrEntityKind {
     Line,
     Polyline,
     BlockInstance,
+    Viewport,
 }
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct IfcdrEntityLocation {
@@ -287,6 +289,17 @@ fn check<R: IfcdrResourceAccess>(r: &R) -> (IfcdrEvidence, Vec<IfcdrDiagnostic>)
             ));
         }
     }
+    for (row, viewport) in r.viewports().iter().enumerate() {
+        identity_valid &= entity(
+            r,
+            viewport.entity,
+            IfcdrEntityKind::Viewport,
+            row,
+            &mut evidence,
+            &mut errors,
+        );
+        check_viewport(r, viewport, row, &evidence, &mut errors);
+    }
     if r.next_entity_id() == 0
         || evidence
             .entities
@@ -306,6 +319,7 @@ fn check<R: IfcdrResourceAccess>(r: &R) -> (IfcdrEvidence, Vec<IfcdrDiagnostic>)
     if identity_valid {
         check_order(r, &evidence, &mut errors);
     }
+    check_viewport_boundaries(r, &evidence, &mut errors);
     if let Err(mut geometry_errors) = collect_geometry(r, true) {
         errors.append(&mut geometry_errors);
     }
@@ -323,6 +337,7 @@ fn entity<R: IfcdrResourceAccess>(
         IfcdrEntityKind::Line => "line",
         IfcdrEntityKind::Polyline => "polyline",
         IfcdrEntityKind::BlockInstance => "blockInstance",
+        IfcdrEntityKind::Viewport => "viewport",
     };
     let mut valid = true;
     if value.entity_id == 0 {
@@ -578,6 +593,19 @@ fn collect_direct_geometry<R: IfcdrResourceAccess>(
                     "placed coordinate is non-finite, out of range or inaccessible",
                 )),
             }
+        }
+    }
+    for (row, viewport) in r.viewports().iter().enumerate() {
+        match frame_bounds(viewport.frame) {
+            Some(frame) => add(viewport.entity.scope_id, frame, None),
+            None => errors.push(diagnostic(
+                r,
+                IFCCAD_IFCDR_VIEWPORT_INVALID,
+                "viewport",
+                Some(row),
+                "frame",
+                "viewport frame is invalid or outside finite coordinate range",
+            )),
         }
     }
     if errors.is_empty() && verify_bounds {

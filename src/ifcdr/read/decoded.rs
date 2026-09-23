@@ -47,11 +47,13 @@ pub(crate) struct PolylineColumns {
 #[derive(Debug)]
 pub(crate) struct DecodedIfcdrResource {
     pub id: ResourceId,
+    pub version: String,
     pub unit: IfcdrLengthUnit,
     pub next: u64,
     pub scopes: Vec<IfcdrScope>,
     pub block_definitions: Vec<IfcdrBlockDefinition>,
     pub block_instances: Vec<IfcdrBlockInstanceRow>,
+    pub viewports: Vec<IfcdrViewportRow>,
     pub layers: Vec<IfcdrLayerBinding>,
     pub appearances: Vec<IfcdrAppearanceBinding>,
     pub overrides: Vec<IfcdrAppearanceOverride>,
@@ -145,6 +147,9 @@ impl IfcdrResourceAccess for DecodedIfcdrResource {
     }
     fn block_instances(&self) -> Self::BlockInstances<'_> {
         &self.block_instances
+    }
+    fn viewports(&self) -> &[IfcdrViewportRow] {
+        &self.viewports
     }
     fn resource_id(&self) -> &ResourceId {
         &self.id

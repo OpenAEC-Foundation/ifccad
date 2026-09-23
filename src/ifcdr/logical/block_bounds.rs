@@ -88,6 +88,11 @@ impl<'a, R: IfcdrResourceAccess> Geometry<'a, R> {
                     (0..p.vertex_count()).map(|i| Leaf::Placed(plane, p.vertex(i).unwrap())),
                 );
             }
+            for row in &scope.viewports {
+                if let Some(frame) = super::viewport::frame_bounds(r.viewports()[*row].frame) {
+                    points.extend([Leaf::Point(frame.min), Leaf::Point(frame.max)]);
+                }
+            }
             leaves.insert(*id, points);
         }
         let instances = r.block_instances();

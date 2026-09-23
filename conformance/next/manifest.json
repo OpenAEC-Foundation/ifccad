@@ -57,6 +57,280 @@
       ]
     },
     {
+      "caseId": "invalid.viewport-zero-height",
+      "category": "invalid",
+      "description": "Viewport frame must have positive paper height",
+      "entrypoint": "packages/invalid/viewport-zero-height/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_VIEWPORT_INVALID",
+                "severity": "error"
+              },
+              {
+                "code": "IFCCAD_IFCDR_VIEWPORT_INVALID",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.layout-fit-scale",
+      "category": "invalid",
+      "description": "Layout plot area cannot use fit-to-area scale",
+      "entrypoint": "packages/invalid/layout-fit-scale/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.duplicate-layout-name",
+      "category": "invalid",
+      "description": "Layout names must be unique under full case folding within a Drawing",
+      "entrypoint": "packages/invalid/duplicate-layout-name/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.duplicate-layer-name",
+      "category": "invalid",
+      "description": "Two layers in one Drawing cannot share a folded name",
+      "entrypoint": "packages/invalid/duplicate-layer-name/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "severity": "error"
+              },
+              {
+                "code": "IFCCAD_PACKAGE_LAYER_NAME_DUPLICATE",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.plot-custom-quality-missing-dpi",
+      "category": "invalid",
+      "description": "Custom shaded plot quality requires a concrete DPI",
+      "entrypoint": "packages/invalid/plot-custom-quality-missing-dpi/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.viewport-duplicate-layer-override",
+      "category": "invalid",
+      "description": "One viewport cannot override the same layer twice",
+      "entrypoint": "packages/invalid/viewport-duplicate-layer-override/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_VIEWPORT_INVALID",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.open-viewport-boundary",
+      "category": "invalid",
+      "description": "An active viewport clipping boundary must be a closed polyline",
+      "entrypoint": "packages/invalid/open-viewport-boundary/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_VIEWPORT_INVALID",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.drawing-list-closure",
+      "category": "invalid",
+      "description": "Drawing layer list must close the referenced IFCDR bindings",
+      "entrypoint": "packages/invalid/drawing-list-closure/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.viewport-child-range",
+      "category": "invalid",
+      "description": "Viewport override child rows must form an exact partition",
+      "entrypoint": "packages/invalid/viewport-child-range/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_VIEWPORT_RANGE_INVALID",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.layout-paper-limits",
+      "category": "invalid",
+      "description": "Paper layout cannot select model Limits plot area",
+      "entrypoint": "packages/invalid/layout-paper-limits/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "valid.empty-model-candidate",
+      "category": "valid",
+      "description": "Model-only candidate with empty drawing definition lists and no geometry",
+      "entrypoint": "packages/valid/empty-model-candidate/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [],
+            "packageAssessment": {
+              "validity": "valid",
+              "completeness": "complete",
+              "gaps": []
+            }
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "valid.two-paper-layouts",
+      "category": "valid",
+      "description": "Two ordered paper scopes retain independent media and effective plot settings without viewports",
+      "entrypoint": "packages/valid/two-paper-layouts/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [],
+            "packageAssessment": {
+              "validity": "valid",
+              "completeness": "complete",
+              "gaps": []
+            }
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "valid.shared-drawing-definitions",
+      "category": "valid",
+      "description": "Two drawings with independent layout nodes share one IFCDR resource and its layer and appearance definitions",
+      "entrypoint": "packages/valid/shared-drawing-definitions/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [],
+            "packageAssessment": {
+              "validity": "valid",
+              "completeness": "complete",
+              "gaps": []
+            }
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "valid.layout-viewport-plot",
+      "category": "valid",
+      "description": "Candidate paper with rectangular and self-intersecting active-clip viewports, dormant view values and two layer overrides",
+      "entrypoint": "packages/valid/layout-viewport-plot/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [],
+            "packageAssessment": {
+              "validity": "valid",
+              "completeness": "complete",
+              "gaps": []
+            }
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
       "caseId": "valid.minimal-no-preservation",
       "category": "valid",
       "description": "Valid package: minimal-no-preservation",

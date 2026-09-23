@@ -38,3 +38,21 @@ License 2.0. The adjacent `LICENSE` file contains the applicable license text.
   collisions, duplicate definitions and layout/scope-kind mismatch.
   Unicode 17 default full case folding C/F data and its license are pinned in
   the schema snapshots. No numbered release was modified.
+
+- Layout/viewport/plot candidate (2026-09-23): added IFCDR 0.10.0,
+  registry meta-schema v5, JSON mapping meta-schema/language v4, IFCX overlay
+  0.12.0 and drawing core 0.3.0 as immutable-by-name snapshots in this
+  unpublished collection. Added a strict writer-produced paper layout fixture
+  with complete effective plot settings, one viewport with dormant lens/clip
+  values, independent state flags, two override child rows and a second
+  viewport using an active self-intersecting straight boundary. An invalid
+  mutation opens that boundary. Further strict
+  writer output adds two paper scopes with distinct
+  media/plot settings and no viewport. Another valid case adds two drawings
+  with independent layouts sharing the same resource, Layer and Appearance
+  nodes. A model-only writer case has empty definition lists. Invalid cases
+  cover paper-Limits, plot quality and scale constraints, folded layer/layout
+  names, drawing-list closure, viewport dimensions/duplicate overrides and
+  incomplete viewport child-partition mutations. Modified resource checksums were
+  recomputed. The previous 0.9.0/0.11.0 fixtures remain for read compatibility;
+  no numbered collection changed.

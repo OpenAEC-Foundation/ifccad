@@ -70,7 +70,7 @@ The crate currently provides:
   appearances, and IFCDR entities;
 - a deterministic package builder and safe new-directory writer for one
   drawing with model/paper scopes, local blocks, layers, appearances, lines,
-  and polylines; and
+  polylines, paper viewports and effective layout plot settings; and
 - the `ifccad-convert` companion crate for bidirectional conversion between a
   validated IFCCAD drawing and cadcodec `CadDocument`, including deterministic
   loss diagnostics and source-to-target entity mappings.
@@ -79,9 +79,11 @@ A complete IFCCAD vocabulary within IFCX, production IFCDR codecs, the future
 `.ifccad` container, broader native CAD entity coverage and preservation, and
 conventional IFC integration are still under development.
 
-The active reader and writer use the encoding-neutral IFCDR **0.9.0** contract with
-XYZ lines, placed straight polylines, local block definitions/instances and
-evaluated per-scope XYZ bounds. Older IFCDR versions and
+The active writer uses the encoding-neutral IFCDR **0.10.0** contract with
+XYZ lines, placed straight polylines, local block definitions/instances,
+paper-space viewports and evaluated per-scope XYZ bounds. IFCX 0.12.0 adds
+Drawing layer/appearance membership and effective per-layout plot settings.
+The reader also accepts IFCDR 0.9.0 / IFCX 0.11.0. Earlier IFCDR versions and
 other entity schemas do not produce a strict typed package; there is no legacy
 migration path. Reader and writer retain separate storage behind shared typed
 collection access and semantic validation; JSON encoding is a separate boundary.
@@ -103,9 +105,9 @@ Development follows an incremental sequence:
 3. **Native CAD semantics and preservation (current)** — the coordinate-frame
    slice adds XYZ lines, placed straight polylines and accuracy assessment.
    Scope ownership, local block definitions and instances are implemented, with
-   explicit CAD codec limitations; full layout presentation remains later work.
-   Shared-style work will add direct IFCX `Drawing` lists for layers and
-   appearances, retaining shared definitions and local IFCDR bindings.
+   explicit CAD codec limitations. The candidate layout slice adds effective
+   plot settings, paper-space viewports and direct IFCX `Drawing` lists for
+   layers and appearances, retaining shared definitions and local IFCDR bindings.
    Expand layouts, entities, drawing relationships, and IFCPR-backed fidelity in architectural
    dependency order, tested against a growing corpus of representative CAD
    workflows, including an initial CAD-BIM link.
@@ -329,9 +331,10 @@ documented coverage gaps. An empty diagnostic list alone does not prove lossless
 transfer. These results describe executed operations, not a preflight scan.
 The [size and exchange experiment](docs/benchmarks/size-baseline-v1.md)
 describes the method, successful controlled IFCCAD/DXF/DWG measurements and
-explanatory whitespace/compression checks in one report. It uses cadcodec 0.5.4
-with two local DWG fixes. This reproducible reference completes milestone 2;
-upstream integration of those codec fixes remains separate maintenance work.
+repeatable exchange checks. The current run uses unmodified cadcodec 0.5.5
+at the pinned revision and IFCDR 0.10.0; the earlier patched-pin run remains
+historical. This reproducible method underpins milestone 2 and the new layout
+slice without claiming a representative production-size corpus.
 See the closure assessment and follow-up in [ROADMAP.md](ROADMAP.md).
 
 ## Repository layout

@@ -28,6 +28,9 @@ impl<'a> Iterator for EntityIterator<'a> {
             .get(id)
             .expect("validated ordered ID");
         Some(match location.kind {
+            IfcdrEntityKind::Viewport => IfcdrEntityRef::Viewport(ViewportRef {
+                row: &self.resource.typed().viewports[location.row],
+            }),
             IfcdrEntityKind::BlockInstance => IfcdrEntityRef::BlockInstance(BlockInstanceRef {
                 row: self.resource.typed().block_instances[location.row],
             }),
@@ -58,6 +61,55 @@ pub enum IfcdrEntityRef<'a> {
     Line(Line),
     Polyline(PolylineRef<'a>),
     BlockInstance(BlockInstanceRef),
+    Viewport(ViewportRef<'a>),
+}
+#[derive(Clone, Copy, Debug)]
+pub struct ViewportRef<'a> {
+    row: &'a crate::ifcdr::logical::IfcdrViewportRow,
+}
+impl ViewportRef<'_> {
+    pub fn entity_id(&self) -> crate::ifcdr::EntityId {
+        crate::ifcdr::EntityId::new(self.row.entity.entity_id).unwrap()
+    }
+    pub fn scope_id(&self) -> ScopeId {
+        ScopeId::new(self.row.entity.scope_id)
+    }
+    pub fn view_scope_id(&self) -> ScopeId {
+        ScopeId::new(self.row.view_scope_id)
+    }
+    pub fn layer_id(&self) -> crate::ifcdr::LayerId {
+        self.row.entity.layer_id.into()
+    }
+    pub fn appearance_id(&self) -> crate::ifcdr::AppearanceId {
+        self.row.entity.appearance_id.into()
+    }
+    pub fn visible(&self) -> bool {
+        self.row.entity.visible
+    }
+    pub fn frame(&self) -> crate::ifcdr::ViewportFrame {
+        self.row.frame
+    }
+    pub fn view(&self) -> crate::ifcdr::ViewDefinition {
+        self.row.view
+    }
+    pub fn render_mode(&self) -> crate::ifcdr::ViewportRenderMode {
+        self.row.render_mode
+    }
+    pub fn view_enabled(&self) -> bool {
+        self.row.view_enabled
+    }
+    pub fn view_locked(&self) -> bool {
+        self.row.view_locked
+    }
+    pub fn paper_clip(&self) -> crate::ifcdr::PaperClip {
+        self.row.paper_clip
+    }
+    pub fn plot_shading_override(&self) -> Option<crate::ifcdr::ShadedPlot> {
+        self.row.plot_shading_override
+    }
+    pub fn layer_overrides(&self) -> &[crate::ifcdr::ViewportLayerOverride] {
+        &self.row.layer_overrides
+    }
 }
 /// A validated insertion row; no implicit explosion of definition geometry.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -136,6 +188,7 @@ mod tests {
                 IfcdrEntityRef::BlockInstance(instance) => {
                     ("blockInstance", instance.entity_id().get())
                 }
+                IfcdrEntityRef::Viewport(viewport) => ("viewport", viewport.entity_id().get()),
             })
             .collect::<Vec<_>>();
 

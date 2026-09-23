@@ -66,6 +66,11 @@ pub fn package(recipe: &Drawing, inline: bool) -> Result<EncodedPackage> {
             drawing.layers().add(LayerDefinition {
                 name: layer.name.clone(),
                 visible: layer.visible,
+                frozen: false,
+                locked: false,
+                plottable: true,
+                frozen_in_new_viewports: false,
+                description: None,
                 appearance,
             })?,
         );

@@ -22,6 +22,7 @@ pub(crate) struct IfcdrWriteInput {
 #[derive(Debug)]
 pub(crate) enum IfcdrWriteEntity {
     BlockInstance(IfcdrBlockInstanceRow),
+    Viewport(IfcdrViewportRow),
     Line(IfcdrLineRow),
     Polyline {
         entity: IfcdrEntityRow,
@@ -39,6 +40,7 @@ pub(crate) struct PreparedIfcdrResource {
     lines: Vec<usize>,
     polylines: Vec<usize>,
     block_instances: Vec<usize>,
+    viewports: Vec<IfcdrViewportRow>,
     orders: Vec<IfcdrScopeOrder>,
 }
 
@@ -48,6 +50,7 @@ pub(crate) fn prepare_resource(
     let mut lines = Vec::new();
     let mut polylines = Vec::new();
     let mut block_instances = Vec::new();
+    let mut viewports = Vec::new();
     let mut orders: Vec<_> = input
         .scopes
         .iter()
@@ -64,6 +67,10 @@ pub(crate) fn prepare_resource(
         .collect();
     for (index, value) in input.entities.iter().enumerate() {
         let entity = match value {
+            IfcdrWriteEntity::Viewport(viewport) => {
+                viewports.push(viewport.clone());
+                viewport.entity
+            }
             IfcdrWriteEntity::BlockInstance(instance) => {
                 block_instances.push(index);
                 instance.entity
@@ -87,6 +94,7 @@ pub(crate) fn prepare_resource(
         lines,
         polylines,
         block_instances,
+        viewports,
         orders,
     };
     let bounds = geometric_bounds(&prepared)?;
@@ -184,6 +192,9 @@ impl IfcdrResourceAccess for PreparedIfcdrResource {
     }
     fn block_instances(&self) -> Self::BlockInstances<'_> {
         PreparedBlockInstances(self)
+    }
+    fn viewports(&self) -> &[IfcdrViewportRow] {
+        &self.viewports
     }
     fn resource_id(&self) -> &ResourceId {
         &self.input.resource_id

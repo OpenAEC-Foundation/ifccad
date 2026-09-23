@@ -203,6 +203,15 @@ fn next_candidate_is_self_contained_and_valid_json() {
         "schemas/ifcdr/logical-contract-0.7.0.md",
         "schemas/ifcdr/json-mapping-v1.md",
         "schemas/ifcpr/schema-0.2.0.json",
+        "schemas/ifcx/ifccad-overlay-0.12.0.json",
+        "schemas/ifcx/ifccad-drawing-core-0.3.0.json",
+        "schemas/ifcx/drawing-resource-contract-0.12.0.md",
+        "schemas/ifcdr/registry-0.10.0.json",
+        "schemas/ifcdr/registry-meta-schema-v5.json",
+        "schemas/ifcdr/json-mapping-0.10.0.json",
+        "schemas/ifcdr/json-mapping-meta-schema-v4.json",
+        "schemas/ifcdr/logical-contract-0.10.0.md",
+        "schemas/ifcdr/json-mapping-v4.md",
         "PROVENANCE.md",
         "LICENSE",
     ] {
@@ -210,6 +219,15 @@ fn next_candidate_is_self_contained_and_valid_json() {
     }
 
     for relative in [
+        "ifcx/ifccad-overlay-0.12.0.json",
+        "ifcx/ifccad-drawing-core-0.3.0.json",
+        "ifcx/drawing-resource-contract-0.12.0.md",
+        "ifcdr/registry-0.10.0.json",
+        "ifcdr/registry-meta-schema-v5.json",
+        "ifcdr/json-mapping-0.10.0.json",
+        "ifcdr/json-mapping-meta-schema-v4.json",
+        "ifcdr/logical-contract-0.10.0.md",
+        "ifcdr/json-mapping-v4.md",
         "ifcx/ifccad-overlay-0.9.0.json",
         "ifcx/ifccad-overlay-0.11.0.json",
         "ifcx/drawing-resource-contract-0.11.0.md",

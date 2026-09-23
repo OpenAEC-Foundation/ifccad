@@ -5,6 +5,8 @@ use std::sync::OnceLock;
 
 const LOGICAL: &str = include_str!("../../../../schemas/ifcdr/registry-0.9.0.json");
 const MAPPING: &str = include_str!("../../../../schemas/ifcdr/json-mapping-0.9.0.json");
+const LOGICAL_0_10: &str = include_str!("../../../../schemas/ifcdr/registry-0.10.0.json");
+const MAPPING_0_10: &str = include_str!("../../../../schemas/ifcdr/json-mapping-0.10.0.json");
 
 fn validate_default_markers(logical: &Value, mapping: &Value) -> Result<(), String> {
     for stream in mapping["streams"].as_array().into_iter().flatten() {
@@ -115,14 +117,21 @@ mod spatial_mapping_tests {
 
 pub(crate) fn canonical_registry() -> &'static IfcdrRegistry {
     static REGISTRY: OnceLock<IfcdrRegistry> = OnceLock::new();
-    REGISTRY.get_or_init(|| {
-        let logical: Value = serde_json::from_str(LOGICAL).expect("embedded logical registry");
-        let mapping: Value = serde_json::from_str(MAPPING).expect("embedded JSON mapping");
-        let mut registry: IfcdrRegistry = serde_json::from_value(materialize(&logical, &mapping))
-            .expect("physical mapping metadata");
-        registry.build_indexes();
-        registry
-    })
+    REGISTRY.get_or_init(|| build_registry(LOGICAL, MAPPING))
+}
+
+pub(crate) fn registry_0_10() -> &'static IfcdrRegistry {
+    static REGISTRY: OnceLock<IfcdrRegistry> = OnceLock::new();
+    REGISTRY.get_or_init(|| build_registry(LOGICAL_0_10, MAPPING_0_10))
+}
+
+fn build_registry(logical: &str, mapping: &str) -> IfcdrRegistry {
+    let logical: Value = serde_json::from_str(logical).expect("embedded logical registry");
+    let mapping: Value = serde_json::from_str(mapping).expect("embedded JSON mapping");
+    let mut registry: IfcdrRegistry =
+        serde_json::from_value(materialize(&logical, &mapping)).expect("physical mapping metadata");
+    registry.build_indexes();
+    registry
 }
 
 fn field(
@@ -139,6 +148,7 @@ fn field(
         "appearanceMode" | "scopeKind" | "blockScaling" => "uint32",
         "entityId" => "uint64",
         "nonEmptyString" | "unit" => "string",
+        _ if mapping["valueMappings"].get(kind).is_some() => "uint32",
         _ => match definition["kind"].as_str() {
             Some("record") => "object",
             Some("sequence") => "array",
@@ -147,7 +157,7 @@ fn field(
         },
     };
     let mut value = json!({"name": name, "valueType": physical, "nullable": nullable, "presence": if optional { "optional" } else { "required" }});
-    if matches!(kind, "scopeKind" | "blockScaling") {
+    if mapping["valueMappings"].get(kind).is_some() && kind != "appearanceMode" {
         value["allowedValues"] = Value::Array(
             mapping["valueMappings"][kind]
                 .as_object()
@@ -296,7 +306,14 @@ fn materialize(logical: &Value, mapping: &Value) -> Value {
                     }
                     ranges.push(json!({"offsetColumn":fm["offset"],"countColumn":fm["count"],"targetColumns":fm["pools"]}));
                 } else {
-                    let target_name = fm["target"].as_str().unwrap().split('.').next().unwrap();
+                    let target_name = fm["targetStream"]
+                        .as_str()
+                        .or_else(|| {
+                            fm["target"]
+                                .as_str()
+                                .and_then(|target| target.split('.').next())
+                        })
+                        .expect("child range target");
                     let target = mapping["streams"]
                         .as_array()
                         .unwrap()
@@ -328,6 +345,12 @@ fn materialize(logical: &Value, mapping: &Value) -> Value {
         }
         if s["name"] == "entityOrderEntry" {
             stream["parent"] = json!("entityOrder");
+        }
+        if s["name"] == "viewport" {
+            stream["children"] = json!(["viewportLayerOverride"]);
+        }
+        if s["name"] == "viewportLayerOverride" {
+            stream["parent"] = json!("viewport");
         }
         streams.push(stream);
     }

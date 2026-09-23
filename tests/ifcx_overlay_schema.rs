@@ -44,6 +44,65 @@ fn overlay_0_11_selects_block_candidate_and_preserves_extensions() {
 }
 
 #[test]
+fn overlay_0_12_selects_layout_candidate_and_keeps_extensions() {
+    let registry = Registry::new()
+        .add(
+            "https://schemas.ifccad.org/ifcx/ifccad-drawing-core-0.3.0.json",
+            load_schema("ifccad-drawing-core-0.3.0.json"),
+        )
+        .unwrap()
+        .prepare()
+        .unwrap();
+    let validator = jsonschema::draft202012::options()
+        .with_registry(&registry)
+        .build(&load_schema("ifccad-overlay-0.12.0.json"))
+        .unwrap();
+    let mut document = package_contract_document();
+    document["data"] = json!([
+        {"path":"drawing", "type":"openaec:Drawing", "attributes":{"plotStyleMode":"colorDependent"},
+         "children":{"Representation":"resource", "Layouts":["layout"], "Layers":[], "Appearances":[]}},
+        {"path":"layout", "type":"openaec:DrawingLayout",
+         "attributes":{"name":"Model", "kind":"model", "scopeId":0,
+                       "limitsChecking":false, "paperSpaceLinetypeScaling":false},
+         "children":{"Representation":"resource"}},
+        {"path":"resource", "type":"openaec:DrawingRepresentation",
+         "attributes":{"resource":{"format":"openaec.ifcdr", "version":"0.10.0",
+                                     "resourceId":"r", "role":"drawing", "content":{}}}},
+        {"path":"custom", "type":"vendor:Extension", "attributes":{"anything":42}}
+    ]);
+    assert!(validator.is_valid(&document));
+    let original = document.clone();
+    document["data"][0]["children"]
+        .as_object_mut()
+        .unwrap()
+        .remove("Layers");
+    assert!(!validator.is_valid(&document));
+    let mut incomplete_layer = original.clone();
+    incomplete_layer["data"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!({
+            "path":"layer", "type":"openaec:Layer",
+            "attributes":{"name":"A", "visible":true, "appearance":"appearance"}
+        }));
+    assert!(!validator.is_valid(&incomplete_layer));
+    let mut invalid_plot = original;
+    invalid_plot["data"][1]["attributes"]["plotSettings"] = json!({
+        "media":{"unit":"mm", "width":210, "height":297,
+                 "printableArea":{"minX":5,"minY":5,"maxX":205,"maxY":292},
+                 "rotation":"none"},
+        "area":{"mode":"Layout"},
+        "mapping":{"scale":{"mode":"FitToArea"}, "placement":{"mode":"Centered"}},
+        "output":{"shadedPlot":{"mode":"AsDisplayed", "quality":{"mode":"Custom", "dpi":99}},
+                  "applyPlotStyles":false},
+        "options":{"plotViewportBorders":true,"plotPaperSpaceLast":false,
+                   "hidePaperSpaceObjects":false,"plotLineWeights":true,
+                   "scaleLineWeights":false,"plotTransparency":false}
+    });
+    assert!(!validator.is_valid(&invalid_plot));
+}
+
+#[test]
 fn overlay_0_10_selects_spatial_ifcdr_for_inline_and_external_resources() {
     let registry = Registry::new()
         .add(DRAWING_CORE_0_2_ID, drawing_core_0_2_schema())

@@ -22,6 +22,118 @@ fn block_fixture() -> Value {
     })
 }
 
+fn viewport_fixture() -> Value {
+    let mut value = block_fixture();
+    value["header"]["version"] = json!("0.10.0");
+    value["header"]["nextEntityId"] = json!(5);
+    value["scopeTable"] = json!([
+        {"id":0,"kind":0,"bounds":null},
+        {"id":7,"kind":1,"bounds":{"minX":8.0,"minY":19.0,"minZ":0.0,"maxX":12.0,"maxY":21.0,"maxZ":0.0}}
+    ]);
+    value["blockDefinitionTable"] = json!([]);
+    value["appearanceOverrides"] =
+        json!([{"id":1,"color":null,"opacity":0.5,"lineWeight":null,"ifcxLinePattern":null}]);
+    value["streamDirectory"]["streams"] = json!([
+        {"name":"viewport","schema":"ifccad.ifcdr.viewport.v1","role":"object","count":1,"columns":["entityId","scopeId","viewScopeId","frame","view","renderMode","viewEnabled","viewLocked","paperClip","plotShadingOverride","layerId","appearanceId","layerOverrideOffset","layerOverrideCount"],"children":["viewportLayerOverride"]},
+        {"name":"viewportLayerOverride","schema":"ifccad.ifcdr.viewportLayerOverride.v1","role":"child","count":1,"columns":["layerId","frozen","appearanceOverrideId"],"parent":"viewport"},
+        {"name":"entityOrder","schema":"ifccad.ifcdr.entityOrder.v1","role":"order","count":2,"columns":["scopeId","entryOffset","entryCount"],"children":["entityOrderEntry"]},
+        {"name":"entityOrderEntry","schema":"ifccad.ifcdr.entityOrderEntry.v1","role":"child","count":1,"columns":["entityId"],"parent":"entityOrder"}
+    ]);
+    value["streams"] = json!({
+        "viewportStream":{"count":1,"entityId":[4],"scopeId":[7],"viewScopeId":[0],
+            "frame":[{"center":{"x":10.0,"y":20.0},"width":4.0,"height":2.0}],
+            "view":[{"center":{"x":0.0,"y":0.0},"target":{"x":0.0,"y":0.0,"z":0.0},"direction":{"x":0.0,"y":0.0,"z":1.0},"height":10.0,"twist":0.0,"projection":0,"frontClip":{"mode":0},"backClip":{"mode":0}}],
+            "renderMode":[0],"viewEnabled":[true],"viewLocked":[false],"paperClip":[{"enabled":false}],"plotShadingOverride":[null],"layerId":[0],"appearanceId":[0],"layerOverrideOffset":[0],"layerOverrideCount":[1]},
+        "viewportLayerOverrideStream":{"count":1,"layerId":[0],"frozen":[true],"appearanceOverrideId":[null]},
+        "entityOrderStream":{"count":2,"scopeId":[0,7],"entryOffset":[0,0],"entryCount":[0,1]},
+        "entityOrderEntryStream":{"count":1,"entityId":[4]}
+    });
+    value
+}
+
+#[test]
+fn viewport_0_10_physical_child_range_decodes_and_checks_partition() {
+    let value = viewport_fixture();
+    let decoded = decode_json("viewport.json", &value).expect("0.10 viewport physical resource");
+    assert_eq!(decoded.viewports().len(), 1);
+    assert_eq!(decoded.viewports()[0].layer_overrides.len(), 1);
+    let (proof, errors) = validate_resource(decoded).into_parts();
+    assert!(proof.is_some(), "{errors:?}");
+
+    let mut noncontiguous = value.clone();
+    noncontiguous["streams"]["viewportStream"]["layerOverrideOffset"][0] = json!(1);
+    let errors = decode_json("viewport.json", &noncontiguous).unwrap_err();
+    assert!(errors
+        .iter()
+        .any(|e| e.code == "IFCCAD_IFCDR_STRUCTURE_INVALID"));
+}
+
+#[test]
+fn viewport_0_10_writer_roundtrips_through_production_decoder() {
+    let decoded = decode_json("viewport.json", &viewport_fixture()).unwrap();
+    let (proof, errors) = validate_resource(decoded).into_parts();
+    let proof = proof.unwrap_or_else(|| panic!("{errors:?}"));
+    let encoded = encode_json(&proof).unwrap();
+    assert_eq!(encoded.value["header"]["version"], "0.10.0");
+    let reread = decode_json("roundtrip.json", &encoded.value).unwrap();
+    assert_eq!(reread.viewports(), proof.loaded().resource().viewports());
+}
+
+#[test]
+fn viewport_0_10_child_stream_requires_exact_nonoverlapping_coverage() {
+    let mut value = viewport_fixture();
+    let viewport = &mut value["streams"]["viewportStream"];
+    viewport["count"] = json!(2);
+    let fields = [
+        "entityId",
+        "scopeId",
+        "viewScopeId",
+        "frame",
+        "view",
+        "renderMode",
+        "viewEnabled",
+        "viewLocked",
+        "paperClip",
+        "plotShadingOverride",
+        "layerId",
+        "appearanceId",
+    ];
+    for field in fields {
+        let first = viewport[field][0].clone();
+        viewport[field].as_array_mut().unwrap().push(first);
+    }
+    viewport["entityId"] = json!([4, 5]);
+    viewport["layerOverrideOffset"] = json!([0, 0]);
+    viewport["layerOverrideCount"] = json!([0, 2]);
+    value["streams"]["viewportLayerOverrideStream"] =
+        json!({"count":2,"layerId":[0,0],"frozen":[true,false],"appearanceOverrideId":[null,1]});
+    value["streams"]["entityOrderStream"]["entryCount"] = json!([0, 2]);
+    value["streams"]["entityOrderEntryStream"] = json!({"count":2,"entityId":[4,5]});
+    value["header"]["nextEntityId"] = json!(6);
+    for entry in value["streamDirectory"]["streams"].as_array_mut().unwrap() {
+        match entry["name"].as_str().unwrap() {
+            "viewport" | "viewportLayerOverride" | "entityOrderEntry" => entry["count"] = json!(2),
+            _ => {}
+        }
+    }
+    let decoded = decode_json("two-viewports.json", &value).unwrap();
+    assert_eq!(decoded.viewports()[0].layer_overrides.len(), 0);
+    assert_eq!(decoded.viewports()[1].layer_overrides.len(), 2);
+
+    let mut overlap = value.clone();
+    overlap["streams"]["viewportStream"]["layerOverrideCount"] = json!([1, 2]);
+    assert!(decode_json("overlap.json", &overlap)
+        .unwrap_err()
+        .iter()
+        .any(|error| error.code == "IFCCAD_IFCDR_VIEWPORT_RANGE_INVALID"));
+    let mut trailing = value;
+    trailing["streams"]["viewportStream"]["layerOverrideCount"] = json!([0, 1]);
+    assert!(decode_json("trailing.json", &trailing)
+        .unwrap_err()
+        .iter()
+        .any(|error| error.code == "IFCCAD_IFCDR_VIEWPORT_RANGE_INVALID"));
+}
+
 #[test]
 fn block_defaults_decode_without_conflating_owner_and_definition() {
     use crate::ifcdr::{BlockScaling, BlockTransform, IfcdrLengthUnit, Point3};
