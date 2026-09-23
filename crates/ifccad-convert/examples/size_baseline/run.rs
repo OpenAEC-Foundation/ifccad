@@ -325,6 +325,12 @@ fn fixture(repo: &Path, inventory: &Value) -> Result<Value> {
                                 .into(),
                         )
                     }
+                    ifccad::ifcdr::IfcdrEntityRef::Viewport(_) => {
+                        return Err(
+                            "viewport geometry is outside the fixed primitive benchmark inventory"
+                                .into(),
+                        )
+                    }
                     ifccad::ifcdr::IfcdrEntityRef::Polyline(p) => {
                         polylines += 1;
                         vertices += p.local_points().count() as u64;

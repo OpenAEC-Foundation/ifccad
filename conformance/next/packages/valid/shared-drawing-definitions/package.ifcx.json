@@ -1,0 +1,223 @@
+{
+  "data": [
+    {
+      "children": {
+        "Drawings": [
+          "drawing-0",
+          "drawing-1"
+        ]
+      },
+      "path": "drawing-set-0",
+      "type": "openaec:DrawingSet"
+    },
+    {
+      "attributes": {
+        "plotStyleMode": "colorDependent"
+      },
+      "children": {
+        "Appearances": [
+          "appearance-0"
+        ],
+        "Layers": [
+          "layer-0"
+        ],
+        "Layouts": [
+          "layout-0",
+          "layout-1"
+        ],
+        "Representation": "representation-0"
+      },
+      "path": "drawing-0",
+      "type": "openaec:Drawing"
+    },
+    {
+      "attributes": {
+        "kind": "model",
+        "limitsChecking": false,
+        "name": "Model",
+        "paperSpaceLinetypeScaling": true,
+        "scopeId": 0
+      },
+      "children": {
+        "Representation": "representation-0"
+      },
+      "path": "layout-0",
+      "type": "openaec:DrawingLayout"
+    },
+    {
+      "attributes": {
+        "kind": "paper",
+        "limitsChecking": false,
+        "name": "Sheet",
+        "paperSpaceLinetypeScaling": true,
+        "plotSettings": {
+          "area": {
+            "mode": "Layout"
+          },
+          "mapping": {
+            "placement": {
+              "mode": "Offset",
+              "reference": "Media",
+              "x": 0.0,
+              "y": 0.0
+            },
+            "scale": {
+              "mode": "Fixed",
+              "outputLength": 1.0,
+              "scopeLength": 1.0
+            }
+          },
+          "media": {
+            "height": 297.0,
+            "mediaName": "A4",
+            "printableArea": {
+              "maxX": 205.0,
+              "maxY": 292.0,
+              "minX": 5.0,
+              "minY": 5.0
+            },
+            "rotation": "none",
+            "unit": "mm",
+            "width": 210.0
+          },
+          "options": {
+            "hidePaperSpaceObjects": false,
+            "plotLineWeights": true,
+            "plotPaperSpaceLast": true,
+            "plotTransparency": false,
+            "plotViewportBorders": true,
+            "scaleLineWeights": false
+          },
+          "output": {
+            "applyPlotStyles": false,
+            "shadedPlot": {
+              "mode": "AsDisplayed",
+              "quality": {
+                "mode": "Normal"
+              }
+            }
+          }
+        },
+        "scopeId": 1
+      },
+      "children": {
+        "Representation": "representation-0"
+      },
+      "path": "layout-1",
+      "type": "openaec:DrawingLayout"
+    },
+    {
+      "attributes": {
+        "plotStyleMode": "colorDependent"
+      },
+      "children": {
+        "Appearances": [
+          "appearance-0"
+        ],
+        "Layers": [
+          "layer-0"
+        ],
+        "Layouts": [
+          "layout-2",
+          "layout-3"
+        ],
+        "Representation": "representation-0"
+      },
+      "path": "drawing-1",
+      "type": "openaec:Drawing"
+    },
+    {
+      "attributes": {
+        "kind": "model",
+        "limitsChecking": false,
+        "name": "Second Model",
+        "paperSpaceLinetypeScaling": true,
+        "scopeId": 0
+      },
+      "children": {
+        "Representation": "representation-0"
+      },
+      "path": "layout-2",
+      "type": "openaec:DrawingLayout"
+    },
+    {
+      "attributes": {
+        "kind": "paper",
+        "limitsChecking": false,
+        "name": "Second Sheet",
+        "paperSpaceLinetypeScaling": true,
+        "scopeId": 1
+      },
+      "children": {
+        "Representation": "representation-0"
+      },
+      "path": "layout-3",
+      "type": "openaec:DrawingLayout"
+    },
+    {
+      "attributes": {
+        "name": "Drawing",
+        "resource": {
+          "checksum": "sha256:c385c11147b35345bc4321d1b8ab8b995a1a0714cbacf5cb7b4abef537bc88e5",
+          "format": "openaec.ifcdr",
+          "resourceId": "geometry",
+          "role": "drawing",
+          "uri": "resources/drawing.ifcdr.json",
+          "version": "0.10.0"
+        }
+      },
+      "path": "representation-0",
+      "type": "openaec:DrawingRepresentation"
+    },
+    {
+      "attributes": {
+        "appearance": "appearance-0",
+        "frozen": false,
+        "frozenInNewViewports": false,
+        "locked": false,
+        "name": "0",
+        "plottable": true,
+        "visible": true
+      },
+      "path": "layer-0",
+      "type": "openaec:Layer"
+    },
+    {
+      "attributes": {
+        "color": {
+          "mode": "explicit",
+          "value": {
+            "rgb": [
+              1,
+              2,
+              3
+            ]
+          }
+        },
+        "linePattern": {
+          "mode": "explicit",
+          "value": "continuous"
+        },
+        "lineWeight": {
+          "mode": "explicit",
+          "value": 0.25
+        },
+        "name": "Style",
+        "opacity": {
+          "mode": "explicit",
+          "value": 1.0
+        }
+      },
+      "path": "appearance-0",
+      "type": "openaec:Appearance"
+    }
+  ],
+  "header": {
+    "author": "test",
+    "dataVersion": "1",
+    "id": "viewport-package",
+    "ifcxVersion": "ifcx_alpha",
+    "timestamp": "2026-09-23T00:00:00Z"
+  },
+  "imports": []
+}

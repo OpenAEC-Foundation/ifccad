@@ -132,11 +132,16 @@ pass strict package validation. Conversion tests should compare semantic
 content rather than unstable handles or serialized byte layouts, except where
 byte determinism is itself the contract under test.
 
-Rerun the controlled size/exchange experiment when changing its corpus,
-measured writer/codec behavior, relevant conversion semantics, or cadcodec pin.
-Use the documented dependency configuration and a fresh run directory; run
-different Cargo configurations sequentially because they share Cargo.lock.
-Keep one current experiment report and its corresponding detailed result JSON.
+The controlled size/exchange experiment is not a standard completion gate.
+Rerun it when a change affects its corpus or a writer, codec, converter, or
+cadcodec dependency path actually exercised by that corpus, or when evaluating
+an explicit size/exchange hypothesis. For new semantic families absent from
+the corpus, use focused strict-readback and conversion tests; add representative
+recipes before using the experiment as evidence about those families. When a
+rerun is warranted, use the documented dependency configuration and a fresh
+run directory; run different Cargo configurations sequentially because they
+share Cargo.lock. Retain the last accepted report and its matching detailed
+result JSON until a new applicable run replaces them.
 Compression probes explain observations; add compressed output as a formal
 variant only when production encoding and readback exist.
 

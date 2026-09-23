@@ -1,0 +1,65 @@
+{
+  "data": [
+    {
+      "children": {
+        "Drawings": [
+          "drawing-0"
+        ]
+      },
+      "path": "drawing-set-0",
+      "type": "openaec:DrawingSet"
+    },
+    {
+      "attributes": {
+        "plotStyleMode": "colorDependent"
+      },
+      "children": {
+        "Appearances": [],
+        "Layers": [],
+        "Layouts": [
+          "layout-0"
+        ],
+        "Representation": "representation-0"
+      },
+      "path": "drawing-0",
+      "type": "openaec:Drawing"
+    },
+    {
+      "attributes": {
+        "kind": "model",
+        "limitsChecking": false,
+        "name": "Model",
+        "paperSpaceLinetypeScaling": true,
+        "scopeId": 0
+      },
+      "children": {
+        "Representation": "representation-0"
+      },
+      "path": "layout-0",
+      "type": "openaec:DrawingLayout"
+    },
+    {
+      "attributes": {
+        "name": "Drawing",
+        "resource": {
+          "checksum": "sha256:6b62e6c883cbfd3426d8e38d93162dbe15a9d7cf253abdd459853b8795d2f2e6",
+          "format": "openaec.ifcdr",
+          "resourceId": "empty-geometry",
+          "role": "drawing",
+          "uri": "resources/drawing.ifcdr.json",
+          "version": "0.10.0"
+        }
+      },
+      "path": "representation-0",
+      "type": "openaec:DrawingRepresentation"
+    }
+  ],
+  "header": {
+    "author": "Writer integration test",
+    "dataVersion": "1",
+    "id": "empty-package",
+    "ifcxVersion": "ifcx_alpha",
+    "timestamp": "2026-09-03T14:15:16Z"
+  },
+  "imports": []
+}

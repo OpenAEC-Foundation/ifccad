@@ -29,7 +29,12 @@ pub(crate) fn add_layers(
         append_auxiliary_losses(source, &mut reasons);
         let key = drawing.layers().add(LayerDefinition {
             name: source.name.clone(),
-            visible: !source.flags.off && !source.flags.frozen,
+            visible: !source.flags.off,
+            frozen: source.flags.frozen,
+            locked: source.flags.locked,
+            plottable: source.is_plottable,
+            frozen_in_new_viewports: source.flags.frozen_in_new_viewport,
+            description: (!source.description.is_empty()).then(|| source.description.clone()),
             appearance,
         })?;
         context.layer_keys.insert(source.name.to_lowercase(), key);
@@ -47,22 +52,8 @@ pub(crate) fn add_layers(
 }
 
 fn append_auxiliary_losses(layer: &Layer, reasons: &mut Vec<ExportLossReason>) {
-    if !layer.description.is_empty() {
-        reasons.push(ExportLossReason::UnsupportedSemantic {
-            name: "layer.description".to_owned(),
-        });
-    }
-    if layer.flags.locked {
-        reasons.push(ExportLossReason::LayerLocked);
-    }
-    if layer.flags.frozen_in_new_viewport {
-        reasons.push(ExportLossReason::LayerFrozenInNewViewport);
-    }
     if layer.flags.xref_dependent {
         reasons.push(ExportLossReason::LayerXrefDependent);
-    }
-    if !layer.is_plottable {
-        reasons.push(ExportLossReason::LayerNotPlottable);
     }
     if !layer.plot_style.is_empty() {
         reasons.push(ExportLossReason::LayerPlotStyle {

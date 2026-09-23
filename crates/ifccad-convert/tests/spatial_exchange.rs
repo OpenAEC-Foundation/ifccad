@@ -80,6 +80,11 @@ fn native(plane: PlanePlacement, points: Vec<Point2>) -> EncodedPackage {
         .add(LayerDefinition {
             name: "0".into(),
             visible: true,
+            frozen: false,
+            locked: false,
+            plottable: true,
+            frozen_in_new_viewports: false,
+            description: None,
             appearance: a,
         })
         .unwrap();
@@ -277,6 +282,7 @@ fn spatial_geometry_crosses_dxf_and_dwg_and_strict_package_readers() {
             .flat_map(|e| match e {
                 IfcdrEntityRef::Line(l) => vec![l.start(), l.end()],
                 IfcdrEntityRef::BlockInstance(_) => panic!("primitive-only spatial fixture"),
+                IfcdrEntityRef::Viewport(_) => panic!("primitive-only spatial fixture"),
                 IfcdrEntityRef::Polyline(p) => {
                     p.scope_points().collect::<Result<Vec<_>, _>>().unwrap()
                 }

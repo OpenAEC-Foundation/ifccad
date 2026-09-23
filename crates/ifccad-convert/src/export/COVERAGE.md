@@ -3,9 +3,10 @@
 This inventory is pinned to cadcodec/acadrust revision
 `5b682ed66ea2c89be8142c8dd83d83774fc3de08`. It defines what the
 `CadDocument -> IFCCAD` exporter must either represent or diagnose. Updating the
-dependency requires reviewing every row. [cadcodec issue #30](https://github.com/HakanSeven12/cadcodec/issues/30)
-tracks a compiler-visible upstream semantic inventory that can replace parts of
-this manual audit.
+dependency requires reviewing every row. The pinned cadcodec
+`semantic_inventory_v1` supplies compiler-visible *categories*, visited
+exhaustively by the exporter; field-level classification remains a manual
+contract pending [cadcodec issue #50](https://github.com/HakanSeven12/cadcodec/issues/50).
 
 Statuses are `Exact`, `PartialLoss`, `SkippedLoss`, `NonSemantic`, and
 `FatalIfInconsistent`. `Reject` rejects detectable semantic loss within this pinned public model,
@@ -42,6 +43,7 @@ inventory migration or certify fields erased before the CadDocument boundary.
 | --- | --- | --- |
 | `version`, `maintenance_version`, `dwg_source_version` | NonSemantic | Physical source-codec selection is not drawing semantics. |
 | `header.insertion_units` | Exact/PartialLoss | All 25 CAD codes 0–24 map exactly; unknown codes become `unitless` plus `UnsupportedUnit`. Coordinates are never rescaled. |
+| `header.plotstyle_mode`, `header.paper_space_linetype_scaling` | Exact | Drawing plot-style mode and each emitted layout's saved linetype-scaling intent; the latter is one CAD header value copied to every layout. |
 | `header.model_space_block_handle` and the related `Layout.block_record` | Exact/FatalIfInconsistent | The relationship selects the one model layout; null, missing, or ambiguous structure is fatal. Numeric handle replacement itself is not loss. |
 | `header.handle_seed`, table-control handles, dictionary handles, and standard-record handles | NonSemantic | Numeric serialization identity alone is ignored. Meaningful referenced content is covered at its table/object/entity source. |
 | `header.project_name` | SkippedLoss | `UnsupportedHeaderField { project_name }`. |
@@ -56,14 +58,42 @@ inventory migration or certify fields erased before the CadDocument boundary.
 
 | Source surface | Status | Export or diagnostic contract |
 | --- | --- | --- |
-| `layers` | Exact/PartialLoss/SkippedLoss | Source order and empty layers are retained. `off || frozen` maps to visibility. Exact color, opacity, linetype name, and numeric/default lineweight become a deduplicated appearance. Auxiliary flags/references are bundled as partial loss; a required unrepresentable appearance skips the layer. |
+| `layers` | Exact/PartialLoss/SkippedLoss | Source order and unused layers are retained. On/Off, global Freeze, Lock, plottability, freeze-in-new-viewports and description are distinct native fields. Exact color, opacity, linetype name, and numeric/default lineweight become a deduplicated appearance. Unsupported references retain their loss diagnostics; a required unrepresentable appearance skips the layer. |
 | Standard `Continuous`, `ByLayer`, `ByBlock`, and `Dashed` linetypes | Exact | Their names supply the initial supported appearance vocabulary. |
 | Ordinary local `block_records` | Exact/PartialLoss/FatalIfInconsistent | Definitions allocated before ordered contents; public metadata retained as above. Attribute flags, preview and insertion-count bytes are partial losses. Record handles must be distinct/non-null; references, membership and cycles are checked. Unicode-fold name collisions cannot merge or retarget definitions. |
 | Other `line_types`; `text_styles`; unsupported `block_records`; `dim_styles`; `app_ids`; `views`; `vports`; `ucss`; `vx_table` | SkippedLoss | One stable `UnsupportedTableRecords` summary per affected table. Default cadcodec bootstrap records are not reported. |
-| Default model/paper layout and bootstrap dictionaries/objects | NonSemantic until changed or referenced | Required cadcodec database scaffolding is not diagnosed merely for existing. Model layout name is exported exactly. |
-| `objects` variants `Dictionary`, `Layout`, `XRecord`, `Group`, `MLineStyle`, `ImageDefinition`, `UnderlayDefinition`, `PlotSettings`, `MultiLeaderStyle`, `TableStyle`, `TableContent`, `Scale`, `ObjectContextData`, `SortEntitiesTable`, `DictionaryVariable`, `VisualStyle`, `Material`, `ImageDefinitionReactor`, `GeoData`, `SpatialFilter`, `RasterVariables`, `BookColor`, `PlaceHolder`, `DictionaryWithDefault`, `WipeoutVariables`, `BlockVisibilityParameter`, `DynamicBlock`, `Associative`, `ClassObject`, `DataObject`, `Field`, `FieldList`, `RegisteredClass`, `DgnLineStyle`, `ProxyObject`, and `Unknown` | SkippedLoss | Added object content beyond the pinned bootstrap set produces an `objects` collection summary. Relationships exposed on entities/layers receive their more precise source-item reasons. |
+| Default model/paper layout and bootstrap dictionaries/objects | NonSemantic until changed or referenced | The untouched empty `Layout1` scaffold is omitted. Real paper layouts are emitted in tab order; model layout name is retained. |
+| `objects` variants other than mapped `Layout` | SkippedLoss | Added object content beyond the pinned bootstrap set produces an `objects` collection summary. Named reusable `PlotSettings` objects/page setups remain outside the native effective layout setting. Relationships exposed on entities/layers receive their more precise source-item reasons. |
 | `classes`, `vx_control_entries`, `block_visibility_params`, `context_scales`, `block_representations`, `fields`, `dgn_ls_definitions`, `dgn_ls_components`, `section_view_style`, `view_rep_refs`, `section_view_reps` | SkippedLoss | One stable `UnsupportedCollection` summary when non-default content exists. |
 | cadcodec caches/indexes, flat-storage bookkeeping, raw EED/ACDS payload bookkeeping, block membership caches, and next-handle allocation | NonSemantic/private boundary | Not accessible as independent public package semantics. Semantic typed content exposed elsewhere remains covered. |
+
+## Layout, plot and viewport source-field inventory
+
+This section applies to the pinned public `objects::Layout`, embedded plot
+fields and `entities::Viewport`. A valid package produced by the converter is
+strict-loaded in the converter tests; the exact profile below is narrower than
+the native IFCCAD contract. `UnsupportedSemantic` names the affected source
+field or family; `Reject` returns no package when such a loss is present.
+
+| Pinned source fields | Status | Mapping or diagnostic | Reverse test |
+| --- | --- | --- | --- |
+| `Layout.name`, `tab_order`, `block_record`, `viewport`, `viewports` | Exact/FatalIfInconsistent | Drawing layout name, list order and scope binding; a missing paper block record is structural failure. The conventional overall viewport ID 1 is scaffold, while authored paper VIEWPORT entities follow owner/order. | Paper layout and viewport roundtrip |
+| `Layout.flags` bit 2, `min_limits/max_limits`, header `paper_space_linetype_scaling` | Exact/PartialLoss | `limitsChecking`, optional authored `limits`, `paperSpaceLinetypeScaling`. Non-rectangular limits and unrelated layout flag bits diagnose loss. | Paper layout roundtrip |
+| `paper_width/height`, `plot_paper_units`, `plot_rotation`, `plot_margin_*`, `plot_printer_name`, `paper_size` | Exact/SkippedLoss | Inline `media` geometry, printable area, rotation, device/media hints. Both dimensions zero mean absent `plotSettings`; invalid positive media or margins omit the complete plot value and diagnose loss. | Millimetre A4 roundtrip |
+| `plot_type`, `plot_window_*` | Exact/SkippedLoss | Extents, Limits, Window and paper Layout map by mode. Active Display or NamedView omits all `plotSettings` with a specific loss; an invalid window does likewise. | Layout and Display tests |
+| `plot_scale_numerator/denominator`, `plot_scale_type`, `plot_origin_x/y`, `plot_flags.plot_centered` | Exact/PartialLoss/SkippedLoss | Fixed/Fit scale and centered/media-relative offset. Unsupported Layout+Fit or Layout+Centered omits the complete plot value. A standard-scale preset code is reported as lost UI metadata. | Fixed Layout scale roundtrip |
+| `shade_plot_mode/resolution/dpi`, `plot_style_sheet`, `plot_flags.plot_plot_styles` | Exact/PartialLoss | Native shading and style application/name. An active external CTB/STB table name is retained, but absent table contents produce loss. | Plot table-name and mode test |
+| `plot_flags.plot_viewport_borders/draw_viewports_first/plot_hidden/print_lineweights/scale_lineweights` | Exact | Native named `PlotOptions` fields; no single opaque flags word. | Writer and paper roundtrip |
+| `plot_flags` remaining bits, `plot_page_name`, `plot_view_name/handle`, `visual_style_handle`, `paper_image_origin_*`, insertion base/elevation/UCS, reactors/dictionary | PartialLoss | Nondefault values produce field/family `UnsupportedSemantic` diagnostics. Extent caches and derived image/scale caches are not independent effective settings. | Source-loss tests where present |
+| `Viewport.center/width/height`, `view_center/target/direction/height`, `twist_angle`, `lens_length`, `render_mode`, enabled/locked flags, front/back clip flags and distances | Exact/SkippedLoss | Native frame/view/render/clip fields. Perspective remains whole-viewport skipped pending CAD fixture calibration. Invalid geometry is not approximated. | Rectangular viewport roundtrip |
+| `Viewport.clip_boundary_handle` | Exact/SkippedLoss | A previously mapped same-paper closed straight `LwPolyline` becomes an active native `paperClip` reference. Missing, unsupported or forward references skip the entire viewport. | Closed and missing clip tests |
+| `Viewport.frozen_layers` | Exact/PartialLoss | Each resolved handle becomes a relational frozen-layer override; unknown handles receive `MissingTarget`. The pinned Viewport model has no viewport appearance-override fields. | Native writer and reverse test |
+| `Viewport` snap/grid/UCS, visual style/background/lighting and viewport plot-style fields | PartialLoss | Nondefault source state is reported, not silently replaced by a native default. | Source-loss tests where present |
+
+PageSetup objects, CTB/STB file contents, Display/NamedView state and perspective
+calibration remain deferred. A source's raw DXF plot-settings code pairs are a
+codec preservation mechanism, not evidence that all unclassified future codes
+were natively represented.
 
 ## Entity types and geometry
 
@@ -72,10 +102,11 @@ inventory migration or certify fields erased before the CadDocument boundary.
 | `Line` | Exact/PartialLoss/SkippedLoss | Finite XYZ endpoints are copied exactly. Non-default finite normals are partial source-property loss; geometry is retained. Unsupported thickness still skips the entity. |
 | `LwPolyline` | Exact/PartialLoss/SkippedLoss | At least two finite local XY vertices, finite elevation and a finite nonzero normal define a plane through the pinned arbitrary-axis interpretation. Local points, order and closure are retained. Normal normalization and nonzero opaque vertex IDs (including negative IDs) are partial losses. Nonzero thickness/width/bulge and PLINEGEN still skip the whole entity. Geometric rounding is assessed separately and target range/evaluation failure is fatal under both policies. |
 | `Insert` | Exact/PartialLoss/SkippedLoss/FatalIfInconsistent | Ordinary local references map to BlockInstance. OCS insertion coordinates map to owning-scope placement using the actual pinned CAD axes. Qualified trig intervals and exact residual propagation check each occurrence. Unsupported array/attribute/view/external variants skip as a whole; missing/cyclic targets are fatal. |
+| `Viewport` | Exact/PartialLoss/SkippedLoss | Paper-owned orthographic rectangular viewports map frame, target/direction/height/twist, render mode, enabled/locked state, front/back clip and frozen layers. A mapped earlier same-scope closed straight `LwPolyline` may be an active clip. Missing or unsupported active boundaries and perspective skip the entire viewport; deferred snap/grid/UCS and visual state are diagnosed as partial loss. Appearance overrides are not exposed by the pinned CAD Viewport model. |
 | `Block`, `BlockEnd` | NonSemantic/FatalIfInconsistent/SkippedLoss | Matching structural markers supply record scaffolding, not drawable entities. Contradictory exposed begin-marker name/owner/base is fatal; unmatched markers are unsupported entities. |
-| `Point`, `Circle`, `Arc`, `Ellipse`, `Polyline`, `Polyline2D`, `Polyline3D`, `Text`, `MText`, `Spline`, `Helix`, `Dimension`, `Hatch`, `Solid`, `Face3D`, `Ray`, `XLine`, `Viewport`, `AttributeDefinition`, `AttributeEntity`, `Leader`, `MultiLeader`, `MLine`, `Mesh`, `RasterImage`, `Solid3D`, `Region`, `Body`, `Surface`, `Table`, `Tolerance`, `PolyfaceMesh`, `Wipeout`, `Shape`, `Underlay`, `Seqend`, `Ole2Frame`, `PolygonMesh`, `Light`, `SectionSymbol`, `ViewBorder`, `Extended`, `Unknown` | SkippedLoss | Whole entity receives `UnsupportedEntityType`; no geometry is approximated. |
-| Model-space or supported definition ownership | Exact/FatalIfInconsistent | Per-owner explicit entity-handle order is retained; known-owner contents must occur exactly once with consistent membership. |
-| Paper-space or unsupported block owner | SkippedLoss | `PaperSpaceEntity` or `BlockOwnedEntity`. |
+| `Point`, `Circle`, `Arc`, `Ellipse`, `Polyline`, `Polyline2D`, `Polyline3D`, `Text`, `MText`, `Spline`, `Helix`, `Dimension`, `Hatch`, `Solid`, `Face3D`, `Ray`, `XLine`, `AttributeDefinition`, `AttributeEntity`, `Leader`, `MultiLeader`, `MLine`, `Mesh`, `RasterImage`, `Solid3D`, `Region`, `Body`, `Surface`, `Table`, `Tolerance`, `PolyfaceMesh`, `Wipeout`, `Shape`, `Underlay`, `Seqend`, `Ole2Frame`, `PolygonMesh`, `Light`, `SectionSymbol`, `ViewBorder`, `Extended`, `Unknown` | SkippedLoss | Whole entity receives `UnsupportedEntityType`; no geometry is approximated. |
+| Model, paper, or supported definition ownership | Exact/FatalIfInconsistent | Per-owner explicit entity-handle order is retained; known-owner contents must occur exactly once with consistent membership. |
+| Unsupported block owner | SkippedLoss | `BlockOwnedEntity`. |
 | Null or unknown owner | FatalIfInconsistent | All safely detectable owner problems are aggregated before return. |
 | Source handle number | NonSemantic | Replaced by a sequential IFCDR ID; `ExportEntityMapping` records the operational correspondence. |
 

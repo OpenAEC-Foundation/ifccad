@@ -42,6 +42,12 @@ pub(crate) enum PendingEntity {
         appearance_id: AppearanceId,
         definition: PolylineDefinition,
     },
+    Viewport {
+        scope_id: u32,
+        entity_id: EntityId,
+        appearance_id: AppearanceId,
+        definition: super::ViewportDefinition,
+    },
 }
 
 #[derive(Debug, Default)]
@@ -55,6 +61,9 @@ pub(crate) struct DrawingState {
     pub(crate) block_definitions: Vec<crate::ifcdr::logical::IfcdrBlockDefinition>,
     pub(crate) block_names: BTreeMap<String, u32>,
     pub(crate) paper_layouts: Vec<(u32, String)>,
+    pub(crate) model_layout_settings: super::LayoutSettings,
+    pub(crate) paper_layout_settings: BTreeMap<u32, super::LayoutSettings>,
+    pub(crate) plot_style_mode: super::PlotStyleMode,
     pub(crate) options: DrawingOptions,
     pub(crate) storage: super::DrawingResourceStorage,
     pub(crate) token: u64,

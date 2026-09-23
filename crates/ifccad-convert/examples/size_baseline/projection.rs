@@ -53,6 +53,11 @@ pub fn ifccad(drawing: DrawingRef<'_>) -> Result<(Drawing, Vec<u64>)> {
             IfcdrEntityRef::BlockInstance(_) => {
                 return Err("block geometry is outside the fixed primitive benchmark corpus".into())
             }
+            IfcdrEntityRef::Viewport(_) => {
+                return Err(
+                    "viewport geometry is outside the fixed primitive benchmark corpus".into(),
+                )
+            }
             IfcdrEntityRef::Line(line) => (
                 Geometry::Line {
                     start: [line.start().x(), line.start().y(), line.start().z()],

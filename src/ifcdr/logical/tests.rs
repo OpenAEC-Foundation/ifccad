@@ -14,6 +14,7 @@ struct TestResource {
     overrides: Vec<IfcdrAppearanceOverride>,
     lines: Vec<IfcdrLineRow>,
     polylines: Vec<TestPolyline>,
+    viewports: Vec<IfcdrViewportRow>,
     orders: Vec<IfcdrScopeOrder>,
 }
 #[derive(Debug)]
@@ -63,6 +64,9 @@ impl IfcdrPolylineAccess for Polyline<'_> {
     }
 }
 impl IfcdrResourceAccess for TestResource {
+    fn viewports(&self) -> &[IfcdrViewportRow] {
+        &self.viewports
+    }
     type BlockInstances<'a> = &'a [IfcdrBlockInstanceRow];
     fn block_instances(&self) -> Self::BlockInstances<'_> {
         &self.instances
@@ -140,6 +144,7 @@ fn line_candidate() -> TestResource {
             end: crate::ifcdr::Point3::new(1., 1., 0.0),
         }],
         polylines: vec![],
+        viewports: vec![],
         orders: vec![IfcdrScopeOrder {
             scope_id: 0,
             entities: vec![1],
@@ -182,6 +187,132 @@ fn block_candidate() -> TestResource {
     });
     r.next = 3;
     r
+}
+
+fn viewport_candidate() -> TestResource {
+    let mut r = line_candidate();
+    r.scopes.push(IfcdrScope {
+        id: 7,
+        kind: IfcdrScopeKind::PaperSpace,
+        bounds: Some(Bounds3d {
+            min: Point3::new(8.0, 19.0, 0.0),
+            max: Point3::new(12.0, 21.0, 0.0),
+        }),
+    });
+    r.viewports.push(IfcdrViewportRow {
+        entity: IfcdrEntityRow {
+            entity_id: 2,
+            scope_id: 7,
+            layer_id: 0,
+            appearance_id: 0,
+            visible: true,
+        },
+        view_scope_id: 0,
+        frame: ViewportFrame {
+            center: Point2::new(10.0, 20.0),
+            width: 4.0,
+            height: 2.0,
+        },
+        view: ViewDefinition {
+            center: Point2::new(0.0, 0.0),
+            target: Point3::new(0.0, 0.0, 0.0),
+            direction: crate::ifcdr::Vector3::new(0.0, 0.0, 1.0),
+            height: 100.0,
+            twist: 0.0,
+            projection: ProjectionMode::Orthographic,
+            lens_length: None,
+            front_clip: FrontClip {
+                mode: FrontClipMode::Disabled,
+                distance: None,
+            },
+            back_clip: BackClip {
+                mode: BackClipMode::Disabled,
+                distance: None,
+            },
+        },
+        render_mode: ViewportRenderMode::TwoDimensional,
+        view_enabled: true,
+        view_locked: false,
+        paper_clip: PaperClip {
+            enabled: false,
+            boundary_entity_id: None,
+        },
+        plot_shading_override: None,
+        layer_overrides: vec![ViewportLayerOverride {
+            layer_id: 0,
+            frozen: true,
+            appearance_override_id: None,
+        }],
+    });
+    r.orders.push(IfcdrScopeOrder {
+        scope_id: 7,
+        entities: vec![2],
+    });
+    r.next = 3;
+    r
+}
+
+#[test]
+fn paper_viewport_uses_its_frame_for_bounds_and_checks_ownership() {
+    assert!(codes(viewport_candidate()).is_empty());
+    let mut invalid = viewport_candidate();
+    invalid.viewports[0].entity.scope_id = 0;
+    assert!(codes(invalid).contains(&IFCCAD_IFCDR_VIEWPORT_INVALID));
+    let mut invalid = viewport_candidate();
+    invalid.viewports[0].view.direction = crate::ifcdr::Vector3::new(0.0, 0.0, 0.0);
+    assert!(codes(invalid).contains(&IFCCAD_IFCDR_VIEWPORT_INVALID));
+    let mut invalid = viewport_candidate();
+    invalid.viewports[0].layer_overrides[0].frozen = false;
+    assert!(codes(invalid).contains(&IFCCAD_IFCDR_VIEWPORT_INVALID));
+    let mut empty_patch = viewport_candidate();
+    empty_patch.viewports[0].layer_overrides[0].frozen = false;
+    empty_patch.viewports[0].layer_overrides[0].appearance_override_id = Some(3);
+    empty_patch.overrides.push(IfcdrAppearanceOverride {
+        id: 3,
+        color: None,
+        opacity: None,
+        ifcx_line_pattern: None,
+        line_weight: None,
+    });
+    assert!(codes(empty_patch).contains(&IFCCAD_IFCDR_VIEWPORT_INVALID));
+    let mut invalid = viewport_candidate();
+    invalid.scopes[1].bounds = Some(Bounds3d {
+        min: Point3::new(9.0, 19.0, 0.0),
+        max: Point3::new(12.0, 21.0, 0.0),
+    });
+    assert!(codes(invalid).contains(&IFCCAD_IFCDR_BOUNDS_INVALID));
+}
+
+#[test]
+fn active_viewport_clip_rejects_duplicate_geometric_vertices_even_with_signed_zero() {
+    let mut resource = viewport_candidate();
+    resource.viewports[0].frame.center = Point2::new(0.0, 0.0);
+    resource.scopes[1].bounds = Some(Bounds3d {
+        min: Point3::new(-2.0, -1.0, 0.0),
+        max: Point3::new(2.0, 1.0, 0.0),
+    });
+    resource.polylines.push(TestPolyline {
+        entity: IfcdrEntityRow {
+            entity_id: 3,
+            scope_id: 7,
+            layer_id: 0,
+            appearance_id: 0,
+            visible: false,
+        },
+        points: vec![
+            Point2::new(0.0, 0.0),
+            Point2::new(-0.0, 0.0),
+            Point2::new(1.0, 1.0),
+        ],
+        closed: true,
+    });
+    resource.viewports[0].paper_clip = PaperClip {
+        enabled: true,
+        boundary_entity_id: Some(3),
+    };
+    resource.orders[1].entities.push(3);
+    resource.next = 4;
+    assert!(codes(resource).contains(&IFCCAD_IFCDR_VIEWPORT_INVALID));
 }
 
 #[test]

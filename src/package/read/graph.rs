@@ -185,6 +185,20 @@ fn validate_supported_references(
                     "/children/Layouts",
                     "openaec:DrawingLayout",
                 );
+                for (pointer, expected) in [
+                    ("/children/Layers", "openaec:Layer"),
+                    ("/children/Appearances", "openaec:Appearance"),
+                ] {
+                    check_array_refs(
+                        data,
+                        index,
+                        diagnostics,
+                        node,
+                        node_index,
+                        pointer,
+                        expected,
+                    );
+                }
                 check_single_ref(
                     data,
                     index,

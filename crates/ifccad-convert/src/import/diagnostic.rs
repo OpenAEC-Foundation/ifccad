@@ -6,6 +6,14 @@ use thiserror::Error;
 #[derive(Clone, Debug, PartialEq)]
 #[non_exhaustive]
 pub enum ImportDiagnostic {
+    LayoutFieldUnsupported {
+        layout: String,
+        field: String,
+    },
+    ViewportUnsupported {
+        entity_id: EntityId,
+        reason: String,
+    },
     BlockParameterizationChanged {
         source: crate::ConversionEntitySource,
     },
@@ -32,6 +40,8 @@ pub enum ImportDiagnostic {
 impl fmt::Display for ImportDiagnostic {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::LayoutFieldUnsupported { layout, field } => write!(formatter, "CAD cannot represent {field} on layout {layout}"),
+            Self::ViewportUnsupported { entity_id, reason } => write!(formatter, "CAD viewport {entity_id:?} loses {reason}"),
             Self::BlockParameterizationChanged { source } => write!(formatter,"changed block parameterization of {source:?}"),
             Self::GeometryRoundedWithinTolerance { source, max_deviation_upper_bound } => write!(formatter,"rounded geometry of {source:?} within tolerance (upper deviation {max_deviation_upper_bound})"),
             Self::PlaneParameterizationChanged { source } => write!(formatter,"changed plane parameterization of {source:?}"),

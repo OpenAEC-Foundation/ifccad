@@ -23,6 +23,9 @@ pub(crate) trait IfcdrResourceAccess {
     fn lines(&self) -> Self::Lines<'_>;
     fn polylines(&self) -> Self::Polylines<'_>;
     fn block_instances(&self) -> Self::BlockInstances<'_>;
+    fn viewports(&self) -> &[IfcdrViewportRow] {
+        &[]
+    }
     fn orders(&self) -> &[IfcdrScopeOrder];
     fn order(&self, scope: u32) -> Option<&[u64]> {
         self.orders()

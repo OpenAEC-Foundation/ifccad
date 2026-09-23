@@ -1,19 +1,25 @@
 # Drawing-to-CadDocument assessment coverage
 
-This describes the existing importer for IFCDR 0.9.0 and cadcodec revision
+This describes the importer for IFCDR 0.9.0/0.10.0 and cadcodec revision
 `5b682ed66ea2c89be8142c8dd83d83774fc3de08`. It is a coverage declaration, not a
 preflight scan. Changes to that importer must review this declaration.
 
-The operation accepts one selected drawing with exactly one model layout.
-Other layout structures return `UnsupportedDrawingStructure` without an output.
-An unbound paper scope is also rejected (`UnsupportedScope`); absence of a
-layout reference is not permission to silently discard that scope.
+The operation accepts one selected drawing with exactly one model layout and
+zero or more bound paper layouts. An unbound paper scope is rejected by strict
+package validation before conversion; absence of a layout reference is not
+permission to silently discard that scope.
 The package graph outside that drawing and IFCPR restoration are outside scope.
 
 | Source content | Existing treatment and assessment |
 | --- | --- |
 | Length unit | All 25 tokens mapped to CAD codes 0–24; no coordinate rescaling |
 | Local block definitions | All definitions, including unused ones, allocated before contents; name, base point, description, anonymous flag, insertion unit, explodability and signed-uniform policy retained. Consistent structural markers are created. |
+| Drawing `plotStyleMode` | Color-dependent/named maps to cadcodec header `plotstyle_mode`; old 0.11 packages default to color-dependent. |
+| Model and paper layout names, scope binding and order | The CAD model layout and named paper layouts are allocated before scope entities. Source layout names and paper owners are retained. The fresh CAD `Layout1` scaffold may remain unused. |
+| Layout `limits`, `limitsChecking`, `paperSpaceLinetypeScaling` | Limits and flag bit 2 are mapped. Cadcodec stores PSLTSCALE once in its header; conflicting per-layout values receive `LayoutFieldUnsupported`. |
+| Effective `plotSettings.media/area/mapping/output/options` | Millimetre/inch/pixel tokens, media dimensions/margins/rotation, all four supported plot areas, fixed/fit scale, offset/center, shading, active plot-style switch/name and supported flags map to pinned `Layout` fields. Printable-area-relative offsets and plot transparency have no exact target field and receive `LayoutFieldUnsupported`. A page setup name or CTB/STB contents cannot be reconstructed from the native inline value. |
+| Paper `Viewport` frame, orthographic view, render and clip state | Mapped to a CAD VIEWPORT owned by the paper block. Perspective is skipped with `ViewportUnsupported` pending CAD fixture calibration; an unresolved active paper clip also skips the viewport. |
+| Viewport frozen layers | Each relational frozen override maps to a CAD frozen-layer handle. Pinned cadcodec has no per-viewport appearance-override slots; those report `ViewportUnsupported`. |
 | Block instances | Shared references retained without explosion; owner scopes and local child coordinates retained. Non-neutral frames are converted with explicit parameterization-loss evidence and occurrence-space accuracy checks. Setter scale changes are hard `BlockTargetLimitation`, even for empty definitions. |
 | Line endpoints | XYZ copied directly; exact geometry assessment |
 | Polyline points, plane and closed flag | Closed flag retained. Exact-compatible CAD parameterizations copy local points; other placements are transformed to the actual CAD arbitrary-axis basis and produce `PlaneParameterizationChanged`. Geometric residuals are checked independently. |
@@ -26,7 +32,7 @@ The package graph outside that drawing and IFCPR restoration are outside scope.
 | Line weight | Mapped to supported CAD weights; rounding emits a grouped loss diagnostic |
 | Opacity | Converted to CAD transparency with upstream's upward byte rounding (0.5 opacity gives transparency byte 128); quantization fidelity is not assessed |
 | Color metadata and appearance identity | No comprehensive fidelity assessment; unsupported indexed systems use RGB, and layer 0 updating does not copy all named-color metadata |
-| Drawing/layout metadata | Not comprehensively transferred or assessed; paper/layout presentation conversion remains unsupported |
+| Other drawing/layout/view state | Workspace, named view, page-setup sharing and complete native appearance overrides remain outside this slice and cannot be reconstructed without a diagnostic or a future target-model extension. |
 | Bounds, allocation watermark, resource/table identities | No reconstruction guarantee; target storage and handles differ |
 
 The importer therefore always reports `Incomplete` coverage within the selected

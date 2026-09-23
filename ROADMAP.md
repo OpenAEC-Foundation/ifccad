@@ -174,9 +174,16 @@ boundary; it therefore does not block broader native semantics. This replaces
 the earlier, unnecessarily strict requirement to wait for upstream integration.
 The subsequent scopes/blocks run uses unmodified cadcodec `5b682ed6` and passes
 the full primitive corpus, including DWG return chains, with
-`baseline_accepted: true`. That current report replaces the historical patched
+`baseline_accepted: true`. That report replaced the historical patched
 reference without changing milestone 2's closure decision. Block-specific DWG
 marker issue #52 remains a separate, explicitly rejected boundary.
+The 2026-09-23 layout/viewport candidate rerun retains the same unmodified
+cadcodec pin and corpus, updates the active 0.10.0/0.12.0 output measurements,
+and again passes full repeatability and IFCCAD/DXF/DWG exchange. Its first
+diagnostic runs caught an inert DXF layout scaffold and a redundant DWG model
+plot flag, both now fixed and regression-tested; the
+[retained report](docs/benchmarks/size-baseline-v1.md)
+replaces the earlier measurements without changing milestone 2's closure.
 
 ### Closure assessment
 
@@ -274,10 +281,10 @@ It is a partial order, not a requirement to finish every row before the next.
 | --- | --- | --- |
 | A. Coordinates and basic geometry — implemented | Milestone 2 logical model | XYZ lines, placed straight polylines, per-scope bounds and conversion accuracy. |
 | B. Scopes and instances — implemented | A | IFCDR 0.9/overlay 0.11 model/paper ownership, resource-local definitions and instances, signed transforms and evaluated bounds; shared-reference conversion, strict-readback and real DXF/DWG boundary tests. |
-| C. Shared styles and inheritance | Existing appearances; B for instance-dependent inheritance | Add direct drawing-level layer/appearance lists; introduce style identity and references with their consumers; prove ByLayer/ByBlock behavior through instances. |
+| C. Shared styles and inheritance — candidate graph lists | Existing appearances; B for instance-dependent inheritance | IFCX 0.12 adds direct drawing-level layer/appearance lists and distinct layer On/Freeze/Lock/Plot state. Effective inherited-style rendering through instances remains a separate proof. |
 | D. Geometric families | A; additional references where needed | Curves, planar polyline segments and spatial polylines; prove each family independently. |
 | E. Annotation and compound entities | A and relevant B/C/D boundaries | Text, attributes, hatches and dimensions; introduce typed payloads when a concrete family needs them. |
-| F. Viewports and presentation | A/B and applicable entity/style support | Paper/model mapping, viewing, scale and clipping; prove layout roundtrips without flattening model content. |
+| F. Viewports and presentation — candidate native profile | A/B and applicable entity/style support | IFCX effective plot values and IFCDR paper viewports/relational overrides establish paper/model mapping without flattening; broader CAD view-state and rendering equivalence remain open. |
 | P. Preservation | Existing identity/reporting and the selected family's references | Source/native correspondence, restoration eligibility and dependencies; prove one bounded preserve/restore case. |
 | I. CAD-BIM integration | A and existing identities | One product linked to drawing entities with explicit placement and provenance; no dependency on full CAD coverage. |
 
@@ -290,15 +297,15 @@ families depend on them. These dependencies do not authorize parallel agent work
 
 For B, the [block transform contract](docs/geometry/block-transform.md) separates
 placement, rotation and signed scale; base points belong to definitions, not
-generic scopes. Native paper scopes/layouts establish ownership only. Viewports
-and plot settings stay together in F, without changing block geometry. The
+generic scopes. The F candidate adds effective plot settings and viewport
+entities to native paper scopes without changing block geometry. The
 [CAD boundary](docs/geometry/block-cad-boundary.md) records DWG marker issue #52,
 DXF description loss and scale limitations; these are not silently repaired.
 For P, define restoration
 eligibility after native edits: retaining source bytes alone does not prove
 restoration or justify suppressing loss diagnostics.
 
-#### Drawing-level layer and appearance collections — planned
+#### Drawing-level layer and appearance collections — candidate implemented
 
 Add direct `Layers` and `Appearances` reference lists to the IFCX `Drawing`
 node's `children`. These lists make the definitions available to a drawing
@@ -318,14 +325,12 @@ not separate `LayerTable` or `AppearanceTable` nodes.
   explicit membership or are included transitively, and validate the chosen
   rule so the two representations cannot contradict each other.
 
-Coordinate drawing membership with B's ownership boundaries and implement the
-collections within C. This improves graph navigation without making independent
-geometry work depend on the style slice. The direction is agreed, but the lists
-are not part of the current format contract. Their concrete design must define
-required/optional status, versioning and compatibility, then update the active
-schemas, production reader/writer and `conformance/next`. Prove multi-drawing
-sharing, unused-definition retention and rejection of inconsistent references
-through package validation and semantic roundtrips.
+IFCX overlay 0.12 requires the lists and defines one-way membership closure
+against IFCDR bindings. Reader, writer and the unpublished `conformance/next`
+candidate now expose the contract. Unused definitions are valid; one definition
+may be listed by multiple Drawings. Effective ByLayer/ByBlock style resolution
+through nested instances remains a presentation-level follow-up, not an
+implicit change to block geometry or resource ownership.
 
 #### Format and implementation work
 

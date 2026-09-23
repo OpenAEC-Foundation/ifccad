@@ -185,6 +185,11 @@ fn add_default_layer(drawing: &mut DrawingBuilder<'_>) -> (LayerKey, AppearanceK
         .add(LayerDefinition {
             name: "0".to_owned(),
             visible: true,
+            frozen: false,
+            locked: false,
+            plottable: true,
+            frozen_in_new_viewports: false,
+            description: None,
             appearance: style,
         })
         .unwrap();
@@ -367,6 +372,11 @@ fn registries_add_and_find_drawing_scoped_definitions() {
         .add(LayerDefinition {
             name: "A-WALL".to_owned(),
             visible: true,
+            frozen: false,
+            locked: false,
+            plottable: true,
+            frozen_in_new_viewports: false,
+            description: None,
             appearance: walls_style,
         })
         .unwrap();
@@ -386,6 +396,11 @@ fn registries_reject_duplicates_and_foreign_appearance_keys_without_mutation() {
         .add(LayerDefinition {
             name: "A-WALL".to_owned(),
             visible: true,
+            frozen: false,
+            locked: false,
+            plottable: true,
+            frozen_in_new_viewports: false,
+            description: None,
             appearance: first_style,
         })
         .unwrap();
@@ -394,6 +409,7 @@ fn registries_reject_duplicates_and_foreign_appearance_keys_without_mutation() {
         first.layers().add(LayerDefinition {
             name: "a-wall".to_owned(),
             visible: false,
+            frozen: false, locked: false, plottable: true, frozen_in_new_viewports: false, description: None,
             appearance: first_style,
         }),
         Err(PackageBuildError::DuplicateLayerName { name }) if name == "a-wall"
@@ -406,6 +422,11 @@ fn registries_reject_duplicates_and_foreign_appearance_keys_without_mutation() {
         second.layers().add(LayerDefinition {
             name: "foreign".to_owned(),
             visible: true,
+            frozen: false,
+            locked: false,
+            plottable: true,
+            frozen_in_new_viewports: false,
+            description: None,
             appearance: first_style,
         }),
         Err(PackageBuildError::ForeignAppearanceKey)
@@ -460,6 +481,11 @@ fn registries_reject_invalid_appearance_and_layer_values() {
         drawing.layers().add(LayerDefinition {
             name: String::new(),
             visible: true,
+            frozen: false,
+            locked: false,
+            plottable: true,
+            frozen_in_new_viewports: false,
+            description: None,
             appearance: style,
         }),
         Err(PackageBuildError::EmptyValue {

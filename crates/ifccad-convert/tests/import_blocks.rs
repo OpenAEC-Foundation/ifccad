@@ -62,6 +62,11 @@ fn native_with_outer(transform: BlockTransform, empty: bool, nested: bool) -> En
         .add(LayerDefinition {
             name: "0".into(),
             visible: true,
+            frozen: false,
+            locked: false,
+            plottable: true,
+            frozen_in_new_viewports: false,
+            description: None,
             appearance,
         })
         .unwrap();
@@ -317,7 +322,7 @@ fn empty_definition_does_not_hide_target_scale_clamping() {
 }
 
 #[test]
-fn unbound_paper_scope_is_not_silently_discarded() {
+fn unbound_paper_scope_is_rejected_by_candidate_package_contract() {
     let root = Temp::new();
     let path = root.0.join("package");
     native(BlockTransform::default(), true)
@@ -360,14 +365,9 @@ fn unbound_paper_scope_is_not_silently_discarded() {
     )
     .unwrap();
     let loaded = load_directory_package(&path).unwrap();
-    let drawing = loaded
-        .validated_package()
-        .expect("unbound paper scope is valid native content")
-        .drawings()
-        .next()
-        .unwrap();
-    assert!(
-        drawing_to_cad_document(drawing).is_err(),
-        "paper scope must not disappear merely because no layout selected it"
-    );
+    assert!(loaded.validated_package().is_none());
+    assert!(loaded
+        .report()
+        .iter()
+        .any(|diagnostic| diagnostic.code == "IFCCAD_PACKAGE_BINDING_INVALID"));
 }

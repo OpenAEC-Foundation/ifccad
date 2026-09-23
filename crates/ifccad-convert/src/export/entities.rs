@@ -8,7 +8,10 @@ use super::{
 use cadcodec::entities::EntityCommon;
 use cadcodec::{CadDocument, EntityType, Handle, Line, LwPolyline, Vector3};
 use ifccad::ifcdr::Point2;
-use ifccad::package::{DrawingBuilder, LineDefinition, PolylineDefinition};
+use ifccad::package::{
+    DrawingBuilder, LineDefinition, PolylineDefinition, ViewportDefinition,
+    ViewportLayerOverrideDefinition,
+};
 
 pub(crate) fn add_entities(
     document: &CadDocument,
@@ -19,6 +22,10 @@ pub(crate) fn add_entities(
     let mut structural_problems = Vec::new();
     for source in super::blocks::ordered_entities(document) {
         let common = source.common();
+        if matches!(source, EntityType::Viewport(viewport) if viewport.id == 1 && document.objects.values().any(|object| matches!(object, cadcodec::objects::ObjectType::Layout(layout) if layout.viewport == common.handle)))
+        {
+            continue;
+        }
         if document.block_records.iter().any(|record| {
             record.handle == common.owner_handle
                 && match source {
@@ -59,6 +66,11 @@ pub(crate) fn add_entities(
                 Vec::new()
             }
             EntityType::Line(line) => line_losses(line),
+            EntityType::Viewport(viewport)
+                if context.paper_scopes.contains_key(&common.owner_handle) =>
+            {
+                viewport_losses(viewport, document, context)
+            }
             EntityType::LwPolyline(polyline) => polyline_losses(polyline),
             _ => vec![ExportLossReason::UnsupportedEntityType {
                 kind: source.as_entity().entity_type().to_owned(),
@@ -89,7 +101,9 @@ pub(crate) fn add_entities(
             Err(EntityAppearanceError::Build(error)) => return Err(error.into()),
         };
 
-        let mut target = if let Some(&definition) = context.blocks.get(&common.owner_handle) {
+        let mut target = if let Some(&paper) = context.paper_scopes.get(&common.owner_handle) {
+            drawing.paper_space(paper)?
+        } else if let Some(&definition) = context.blocks.get(&common.owner_handle) {
             drawing.block_definition(definition)?
         } else {
             drawing.model_space()
@@ -133,6 +147,110 @@ pub(crate) fn add_entities(
                 appearance,
                 visible: !common.invisible,
             })?,
+            EntityType::Viewport(viewport) => {
+                let mut overrides = Vec::new();
+                for handle in &viewport.frozen_layers {
+                    let Some(source_layer) =
+                        document.layers.iter().find(|layer| layer.handle == *handle)
+                    else {
+                        common_losses.push(ExportLossReason::MissingTarget {
+                            kind: "viewport frozen layer".into(),
+                            identifier: format!("{handle:?}"),
+                        });
+                        continue;
+                    };
+                    if let Some(&layer) = context.layer_keys.get(&source_layer.name.to_lowercase())
+                    {
+                        overrides.push(ViewportLayerOverrideDefinition {
+                            layer,
+                            frozen: true,
+                            appearance: None,
+                        });
+                    }
+                }
+                let render_mode = match viewport.render_mode {
+                    cadcodec::entities::ViewportRenderMode::Wireframe2D => {
+                        ifccad::ifcdr::ViewportRenderMode::TwoDimensional
+                    }
+                    cadcodec::entities::ViewportRenderMode::Wireframe3D => {
+                        ifccad::ifcdr::ViewportRenderMode::Wireframe
+                    }
+                    cadcodec::entities::ViewportRenderMode::HiddenLine => {
+                        ifccad::ifcdr::ViewportRenderMode::HiddenLine
+                    }
+                    cadcodec::entities::ViewportRenderMode::FlatShaded => {
+                        ifccad::ifcdr::ViewportRenderMode::FlatShadedWithoutEdges
+                    }
+                    cadcodec::entities::ViewportRenderMode::FlatShadedWithEdges => {
+                        ifccad::ifcdr::ViewportRenderMode::FlatShadedWithEdges
+                    }
+                    cadcodec::entities::ViewportRenderMode::GouraudShaded => {
+                        ifccad::ifcdr::ViewportRenderMode::SmoothShadedWithoutEdges
+                    }
+                    cadcodec::entities::ViewportRenderMode::GouraudShadedWithEdges => {
+                        ifccad::ifcdr::ViewportRenderMode::SmoothShadedWithEdges
+                    }
+                };
+                target.add_viewport(ViewportDefinition {
+                    frame: ifccad::ifcdr::ViewportFrame {
+                        center: Point2::new(viewport.center.x, viewport.center.y),
+                        width: viewport.width,
+                        height: viewport.height,
+                    },
+                    view: ifccad::ifcdr::ViewDefinition {
+                        center: Point2::new(viewport.view_center.x, viewport.view_center.y),
+                        target: ifccad::ifcdr::Point3::new(
+                            viewport.view_target.x,
+                            viewport.view_target.y,
+                            viewport.view_target.z,
+                        ),
+                        direction: ifccad::ifcdr::Vector3::new(
+                            viewport.view_direction.x,
+                            viewport.view_direction.y,
+                            viewport.view_direction.z,
+                        ),
+                        height: viewport.view_height,
+                        twist: viewport.twist_angle,
+                        projection: ifccad::ifcdr::ProjectionMode::Orthographic,
+                        lens_length: Some(viewport.lens_length),
+                        front_clip: ifccad::ifcdr::FrontClip {
+                            mode: if viewport.status.front_clipping {
+                                if viewport.status.front_clip_not_at_eye {
+                                    ifccad::ifcdr::FrontClipMode::AtDistance
+                                } else {
+                                    ifccad::ifcdr::FrontClipMode::AtCamera
+                                }
+                            } else {
+                                ifccad::ifcdr::FrontClipMode::Disabled
+                            },
+                            distance: Some(viewport.front_clip_z),
+                        },
+                        back_clip: ifccad::ifcdr::BackClip {
+                            mode: if viewport.status.back_clipping {
+                                ifccad::ifcdr::BackClipMode::AtDistance
+                            } else {
+                                ifccad::ifcdr::BackClipMode::Disabled
+                            },
+                            distance: Some(viewport.back_clip_z),
+                        },
+                    },
+                    render_mode,
+                    view_enabled: viewport.status.is_on,
+                    view_locked: viewport.status.locked,
+                    paper_clip: ifccad::ifcdr::PaperClip {
+                        enabled: viewport.clip_boundary_handle != Handle::NULL,
+                        boundary_entity_id: context
+                            .entity_mapping
+                            .target_entity_id(viewport.clip_boundary_handle)
+                            .map(ifccad::ifcdr::EntityId::get),
+                    },
+                    plot_shading_override: None,
+                    layer,
+                    appearance,
+                    visible: !common.invisible,
+                    layer_overrides: overrides,
+                })?
+            }
             EntityType::LwPolyline(polyline) => {
                 let (placement, bound, normal_changed) =
                     crate::geometry::from_cad(polyline, context.geometry.as_mut().unwrap())?;
@@ -190,6 +308,9 @@ pub(crate) fn add_entities(
                 common_losses.push(ExportLossReason::UnsupportedNormal);
             }
         }
+        if let EntityType::Viewport(viewport) = source {
+            common_losses.extend(viewport_deferred_losses(viewport));
+        }
         context.entity_mapping.insert(common.handle, entity_id);
         if !common_losses.is_empty() {
             record_diagnostic(
@@ -214,6 +335,7 @@ fn classify_owner(
 ) -> bool {
     if common.owner_handle == model_space.block_handle
         || context.blocks.contains_key(&common.owner_handle)
+        || context.paper_scopes.contains_key(&common.owner_handle)
     {
         return true;
     }
@@ -385,6 +507,125 @@ fn polyline_losses(polyline: &LwPolyline) -> Vec<ExportLossReason> {
     }
     if polyline.plinegen {
         reasons.push(ExportLossReason::PolylinePlinegen);
+    }
+    reasons
+}
+
+fn viewport_losses(
+    viewport: &cadcodec::entities::Viewport,
+    document: &CadDocument,
+    context: &ExportContext,
+) -> Vec<ExportLossReason> {
+    let mut reasons = Vec::new();
+    if viewport.status.perspective {
+        reasons.push(ExportLossReason::UnsupportedSemantic {
+            name: "perspective viewport needs CAD fixture calibration".into(),
+        });
+    }
+    if viewport.clip_boundary_handle != Handle::NULL {
+        let supported = matches!(document.get_entity(viewport.clip_boundary_handle), Some(EntityType::LwPolyline(boundary))
+            if boundary.common.owner_handle == viewport.common.owner_handle
+                && boundary.is_closed && boundary.vertices.len() >= 3
+                && boundary.vertices.iter().all(|vertex| vertex.bulge == 0.0)
+                && boundary.elevation == 0.0 && boundary.normal == Vector3::UNIT_Z)
+            && context
+                .entity_mapping
+                .target_entity_id(viewport.clip_boundary_handle)
+                .is_some();
+        if !supported {
+            reasons.push(ExportLossReason::UnsupportedSemantic {
+                name: "active viewport clip boundary".into(),
+            });
+        }
+    }
+    if viewport.center.z != 0.0 || viewport.view_center.z != 0.0 {
+        reasons.push(ExportLossReason::UnsupportedSemantic {
+            name: "viewport paper or DCS z coordinate".into(),
+        });
+    }
+    if viewport.width <= 0.0
+        || viewport.height <= 0.0
+        || viewport.view_height <= 0.0
+        || ![
+            viewport.center.x,
+            viewport.center.y,
+            viewport.width,
+            viewport.height,
+            viewport.view_center.x,
+            viewport.view_center.y,
+            viewport.view_target.x,
+            viewport.view_target.y,
+            viewport.view_target.z,
+            viewport.view_direction.x,
+            viewport.view_direction.y,
+            viewport.view_direction.z,
+            viewport.view_height,
+            viewport.twist_angle,
+            viewport.lens_length,
+            viewport.front_clip_z,
+            viewport.back_clip_z,
+        ]
+        .into_iter()
+        .all(f64::is_finite)
+    {
+        reasons.push(ExportLossReason::NonFiniteCoordinate);
+    }
+    reasons
+}
+
+fn viewport_deferred_losses(viewport: &cadcodec::entities::Viewport) -> Vec<ExportLossReason> {
+    let baseline = cadcodec::entities::Viewport::new();
+    let mut reasons = Vec::new();
+    let mut status = viewport.status;
+    status.is_on = baseline.status.is_on;
+    status.locked = baseline.status.locked;
+    status.perspective = baseline.status.perspective;
+    status.front_clipping = baseline.status.front_clipping;
+    status.back_clipping = baseline.status.back_clipping;
+    status.front_clip_not_at_eye = baseline.status.front_clip_not_at_eye;
+    if status != baseline.status
+        || viewport.snap_base != baseline.snap_base
+        || viewport.snap_spacing != baseline.snap_spacing
+        || viewport.grid_spacing != baseline.grid_spacing
+        || viewport.snap_angle != baseline.snap_angle
+        || viewport.circle_sides != baseline.circle_sides
+        || viewport.grid_flags != baseline.grid_flags
+        || viewport.grid_major != baseline.grid_major
+    {
+        reasons.push(ExportLossReason::UnsupportedSemantic {
+            name: "viewport workspace snap/grid/display state".into(),
+        });
+    }
+    if viewport.ucs_at_origin != baseline.ucs_at_origin
+        || viewport.ucs_per_viewport != baseline.ucs_per_viewport
+        || viewport.ucs_icon_visible != baseline.ucs_icon_visible
+        || viewport.ucs_origin != baseline.ucs_origin
+        || viewport.ucs_x_axis != baseline.ucs_x_axis
+        || viewport.ucs_y_axis != baseline.ucs_y_axis
+        || viewport.ucs_handle != Handle::NULL
+        || viewport.base_ucs_handle != Handle::NULL
+        || viewport.ucs_ortho_type != baseline.ucs_ortho_type
+        || viewport.elevation != baseline.elevation
+    {
+        reasons.push(ExportLossReason::UnsupportedSemantic {
+            name: "viewport UCS state".into(),
+        });
+    }
+    if !viewport.style_sheet.is_empty()
+        || viewport.shade_plot_mode != baseline.shade_plot_mode
+        || viewport.background_handle != Handle::NULL
+        || viewport.shade_plot_handle != Handle::NULL
+        || viewport.visual_style_handle != Handle::NULL
+        || viewport.sun_handle != Handle::NULL
+        || viewport.default_lighting != baseline.default_lighting
+        || viewport.default_lighting_type != baseline.default_lighting_type
+        || viewport.brightness != baseline.brightness
+        || viewport.contrast != baseline.contrast
+        || viewport.ambient_color != baseline.ambient_color
+    {
+        reasons.push(ExportLossReason::UnsupportedSemantic {
+            name: "viewport visual and plot state".into(),
+        });
     }
     reasons
 }

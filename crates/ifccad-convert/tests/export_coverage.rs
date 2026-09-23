@@ -244,22 +244,25 @@ fn upstream_drawing_variables_are_reported_as_unsupported_objects() {
 }
 
 #[test]
-fn newly_exposed_layer_description_is_reported_without_dropping_geometry() {
+fn layer_description_is_preserved_without_dropping_geometry() {
     let mut document = CadDocument::new();
     document.layers.get_mut("0").unwrap().description = "Draagconstructie".into();
     document.add_entity(EntityType::Line(Line::new())).unwrap();
     let outcome =
         cad_document_to_package(&document, package_options(), ExportOptions::default()).unwrap();
     assert_eq!(outcome.entity_mapping().len(), 1);
-    assert!(outcome.diagnostics().iter().any(|d| {
-        d.source() == &ExportDiagnosticSource::Layer { name: "0".into() }
-            && d.action() == ExportAction::PartiallyExported
-            && d.reasons()
-                .contains(&ExportLossReason::UnsupportedSemantic {
-                    name: "layer.description".into(),
-                })
-    }));
-    assert_rejected(&document);
+    assert!(!outcome
+        .diagnostics()
+        .iter()
+        .any(|d| d.source() == &ExportDiagnosticSource::Layer { name: "0".into() }));
+    let entry: serde_json::Value =
+        serde_json::from_slice(outcome.package().file("package.ifcx.json").unwrap()).unwrap();
+    assert!(entry["data"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|node| node["type"] == "openaec:Layer"
+            && node["attributes"]["description"] == "Draagconstructie"));
 }
 
 #[test]

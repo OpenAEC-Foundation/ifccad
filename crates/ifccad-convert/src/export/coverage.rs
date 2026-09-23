@@ -26,6 +26,8 @@ pub(crate) fn scan_document_semantics(document: &CadDocument, context: &mut Expo
     baseline_header.project_name.clear();
     remaining_header.insertion_units = baseline_header.insertion_units;
     remaining_header.measurement = baseline_header.measurement;
+    remaining_header.paper_space_linetype_scaling = baseline_header.paper_space_linetype_scaling;
+    remaining_header.plotstyle_mode = baseline_header.plotstyle_mode;
     normalize_header_bookkeeping(&mut remaining_header, &baseline_header);
     if remaining_header != baseline_header {
         context.diagnostics.push(ExportDiagnostic::loss(
@@ -80,6 +82,7 @@ pub(crate) fn scan_document_semantics(document: &CadDocument, context: &mut Expo
             .iter()
             .filter(|record| {
                 !context.blocks.contains_key(&record.handle)
+                    && !context.paper_scopes.contains_key(&record.handle)
                     && (baseline.block_records.get(&record.name).is_none()
                         || record.flags.is_xref_unloaded)
             })
@@ -161,7 +164,21 @@ pub(crate) fn scan_document_semantics(document: &CadDocument, context: &mut Expo
     let extra_objects = document
         .objects
         .len()
-        .saturating_sub(baseline.objects.len());
+        .saturating_sub(baseline.objects.len())
+        .saturating_sub(
+            document
+                .objects
+                .values()
+                .filter(|object| matches!(object, cadcodec::objects::ObjectType::Layout(_)))
+                .count()
+                .saturating_sub(
+                    baseline
+                        .objects
+                        .values()
+                        .filter(|object| matches!(object, cadcodec::objects::ObjectType::Layout(_)))
+                        .count(),
+                ),
+        );
     record_collection(context, "objects", extra_objects);
     scan_inventory_attachments(document, context);
 }

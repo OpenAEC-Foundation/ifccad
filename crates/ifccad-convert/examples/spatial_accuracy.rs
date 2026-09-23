@@ -48,6 +48,11 @@ fn create(name: &str) -> Result<EncodedPackage> {
     let layer = drawing.layers().add(LayerDefinition {
         name: "0".into(),
         visible: true,
+        frozen: false,
+        locked: false,
+        plottable: true,
+        frozen_in_new_viewports: false,
+        description: None,
         appearance,
     })?;
     for i in 0..10000 {

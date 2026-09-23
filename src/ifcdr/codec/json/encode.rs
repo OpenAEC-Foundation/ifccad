@@ -1,4 +1,4 @@
-use super::mapping::canonical_registry;
+use super::mapping::registry_0_10;
 use crate::ifcdr::logical::*;
 use crate::ifcdr::{BlockScaling, Bounds3d, IfcdrLengthUnit, PlanePlacement, Scale3};
 use crate::ResourceId;
@@ -47,7 +47,7 @@ pub(crate) fn encode_json<R: IfcdrResourceAccess>(
     proof: &ValidatedIfcdr<R>,
 ) -> Result<EncodedIfcdrResource, IfcdrEncodeError> {
     let r = proof.loaded().resource();
-    let registry = canonical_registry();
+    let registry = registry_0_10();
     let mut streams = Map::new();
     let mut directory = Vec::new();
     for schema in registry.streams() {
@@ -58,6 +58,66 @@ pub(crate) fn encode_json<R: IfcdrResourceAccess>(
             .collect();
         let row_count;
         match schema.name() {
+            "viewport" => {
+                row_count = count(r.viewports().len())?;
+                let mut offset = 0usize;
+                for viewport in r.viewports() {
+                    common(&mut columns, viewport.entity);
+                    push(&mut columns, "viewScopeId", viewport.view_scope_id);
+                    push(&mut columns, "frame", viewport_frame_json(viewport.frame));
+                    push(&mut columns, "view", view_json(viewport.view));
+                    push(
+                        &mut columns,
+                        "renderMode",
+                        render_mode_code(viewport.render_mode),
+                    );
+                    push(&mut columns, "viewEnabled", viewport.view_enabled);
+                    push(&mut columns, "viewLocked", viewport.view_locked);
+                    let mut clip = json!({"enabled":viewport.paper_clip.enabled});
+                    if let Some(id) = viewport.paper_clip.boundary_entity_id {
+                        clip["boundaryEntityId"] = json!(id);
+                    }
+                    push(&mut columns, "paperClip", clip);
+                    push(
+                        &mut columns,
+                        "plotShadingOverride",
+                        viewport.plot_shading_override.map(shaded_plot_json),
+                    );
+                    push(&mut columns, "layerOverrideOffset", count(offset)?);
+                    push(
+                        &mut columns,
+                        "layerOverrideCount",
+                        count(viewport.layer_overrides.len())?,
+                    );
+                    offset = offset.checked_add(viewport.layer_overrides.len()).ok_or(
+                        IfcdrEncodeError::RangeExhausted {
+                            kind: "viewport override entries",
+                        },
+                    )?;
+                    count(offset)?;
+                }
+            }
+            "viewportLayerOverride" => {
+                let mut length = 0usize;
+                for viewport in r.viewports() {
+                    length = length.checked_add(viewport.layer_overrides.len()).ok_or(
+                        IfcdrEncodeError::RangeExhausted {
+                            kind: "viewport override entries",
+                        },
+                    )?;
+                    count(length)?;
+                    for entry in &viewport.layer_overrides {
+                        push(&mut columns, "layerId", entry.layer_id);
+                        push(&mut columns, "frozen", entry.frozen);
+                        push(
+                            &mut columns,
+                            "appearanceOverrideId",
+                            entry.appearance_override_id,
+                        );
+                    }
+                }
+                row_count = count(length)?;
+            }
             "blockInstance" => {
                 let instances = r.block_instances();
                 row_count = count(instances.len())?;
@@ -206,7 +266,7 @@ pub(crate) fn encode_json<R: IfcdrResourceAccess>(
         streams.insert(schema.payload_key().into(), Value::Object(columns));
     }
     let root = json!({
-        "header":{"format":"openaec.ifcdr","version":"0.9.0","resourceId":r.resource_id(),"unit":unit_name(r.unit()),"nextEntityId":r.next_entity_id()},
+        "header":{"format":"openaec.ifcdr","version":registry.ifcdr_version(),"resourceId":r.resource_id(),"unit":unit_name(r.unit()),"nextEntityId":r.next_entity_id()},
         "scopeTable":r.scopes().iter().map(|s| json!({"id":s.id,"kind":match s.kind {IfcdrScopeKind::ModelSpace=>0,IfcdrScopeKind::PaperSpace=>1,IfcdrScopeKind::BlockDefinition=>2},"bounds":s.bounds.map(bounds_json)})).collect::<Vec<_>>(),
         "blockDefinitionTable":r.block_definitions().iter().map(|d| json!({"scopeId":d.scope_id,"name":d.name,"basePoint":{"x":d.base_point.x(),"y":d.base_point.y(),"z":d.base_point.z()},"description":d.description,"anonymous":d.anonymous,"insertionUnit":unit_name(d.insertion_unit),"explodable":d.explodable,"scaling":match d.scaling {BlockScaling::Any=>0,BlockScaling::Uniform=>1}})).collect::<Vec<_>>(),
         "layerBindings":r.layers().iter().map(|l| json!({"id":l.id,"ifcxLayer":l.ifcx_layer})).collect::<Vec<_>>(),
@@ -224,6 +284,58 @@ pub(crate) fn encode_json<R: IfcdrResourceAccess>(
         checksum,
         value: root,
     })
+}
+fn point2_json(point: crate::ifcdr::Point2) -> Value {
+    json!({"x":point.x(),"y":point.y()})
+}
+fn point3_json(point: crate::ifcdr::Point3) -> Value {
+    json!({"x":point.x(),"y":point.y(),"z":point.z()})
+}
+fn vector3_json(vector: crate::ifcdr::Vector3) -> Value {
+    json!({"x":vector.x(),"y":vector.y(),"z":vector.z()})
+}
+fn viewport_frame_json(frame: ViewportFrame) -> Value {
+    json!({"center":point2_json(frame.center),"width":frame.width,"height":frame.height})
+}
+fn view_json(view: ViewDefinition) -> Value {
+    let mut front = json!({"mode":match view.front_clip.mode {FrontClipMode::Disabled=>0,FrontClipMode::AtCamera=>1,FrontClipMode::AtDistance=>2}});
+    if let Some(distance) = view.front_clip.distance {
+        front["distance"] = json!(distance);
+    }
+    let mut back = json!({"mode":match view.back_clip.mode {BackClipMode::Disabled=>0,BackClipMode::AtDistance=>1}});
+    if let Some(distance) = view.back_clip.distance {
+        back["distance"] = json!(distance);
+    }
+    let mut value = json!({
+        "center":point2_json(view.center),"target":point3_json(view.target),"direction":vector3_json(view.direction),
+        "height":view.height,"twist":view.twist,"projection":match view.projection {ProjectionMode::Orthographic=>0,ProjectionMode::Perspective=>1},
+        "frontClip":front,"backClip":back
+    });
+    if let Some(length) = view.lens_length {
+        value["lensLength"] = json!(length);
+    }
+    value
+}
+fn render_mode_code(mode: ViewportRenderMode) -> u32 {
+    match mode {
+        ViewportRenderMode::TwoDimensional => 0,
+        ViewportRenderMode::Wireframe => 1,
+        ViewportRenderMode::HiddenLine => 2,
+        ViewportRenderMode::FlatShadedWithoutEdges => 3,
+        ViewportRenderMode::FlatShadedWithEdges => 4,
+        ViewportRenderMode::SmoothShadedWithoutEdges => 5,
+        ViewportRenderMode::SmoothShadedWithEdges => 6,
+    }
+}
+fn shaded_plot_json(shading: ShadedPlot) -> Value {
+    let mut quality = json!({"mode":match shading.quality.mode {
+        ShadedPlotQualityMode::Draft=>0,ShadedPlotQualityMode::Preview=>1,ShadedPlotQualityMode::Normal=>2,
+        ShadedPlotQualityMode::Presentation=>3,ShadedPlotQualityMode::Maximum=>4,ShadedPlotQualityMode::Custom=>5,
+    }});
+    if let Some(dpi) = shading.quality.dpi {
+        quality["dpi"] = json!(dpi);
+    }
+    json!({"mode":match shading.mode {ShadedPlotMode::AsDisplayed=>0,ShadedPlotMode::Wireframe=>1,ShadedPlotMode::Hidden=>2,ShadedPlotMode::Rendered=>3},"quality":quality})
 }
 pub(crate) fn color_json(c: &IfcdrColor) -> Value {
     let mut value = json!({"rgb":c.rgb});

@@ -175,6 +175,7 @@ fn mixed_definition_order_and_negative_uniformity_survive_strict_readback() {
                 "insert"
             }
             IfcdrEntityRef::Line(_) => "line",
+            IfcdrEntityRef::Viewport(_) => "viewport",
         })
         .collect();
     assert_eq!(kinds, ["polyline", "insert", "line"]);

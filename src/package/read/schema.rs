@@ -11,20 +11,42 @@ use std::collections::BTreeMap;
 const DRAWING_CORE_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-drawing-core-0.2.0.json";
 const DRAWING_CORE: &str = include_str!("../../../schemas/ifcx/ifccad-drawing-core-0.2.0.json");
 const COMPOSITE_OVERLAY: &str = include_str!("../../../schemas/ifcx/ifccad-overlay-0.11.0.json");
+const DRAWING_CORE_0_3_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-drawing-core-0.3.0.json";
+const DRAWING_CORE_0_3: &str = include_str!("../../../schemas/ifcx/ifccad-drawing-core-0.3.0.json");
+const COMPOSITE_OVERLAY_0_12: &str =
+    include_str!("../../../schemas/ifcx/ifccad-overlay-0.12.0.json");
 const IFCPR_SCHEMA: &str = include_str!("../../../schemas/ifcpr/schema-0.2.0.json");
 
 pub(crate) fn validate_ifcx(value: &Value) -> Vec<PackageDiagnostic> {
-    let drawing_core = parse_schema(DRAWING_CORE, "IFCX drawing core 0.2.0");
-    let composite = parse_schema(COMPOSITE_OVERLAY, "IFCX overlay 0.11.0");
+    let candidate = value["data"].as_array().is_some_and(|nodes| {
+        nodes.iter().any(|node| {
+            node.pointer("/attributes/resource/version")
+                .and_then(Value::as_str)
+                == Some("0.10.0")
+                && node["type"] == "openaec:DrawingRepresentation"
+        })
+    });
+    let (core_source, core_id, overlay_source, label) = if candidate {
+        (
+            DRAWING_CORE_0_3,
+            DRAWING_CORE_0_3_ID,
+            COMPOSITE_OVERLAY_0_12,
+            "0.12.0",
+        )
+    } else {
+        (DRAWING_CORE, DRAWING_CORE_ID, COMPOSITE_OVERLAY, "0.11.0")
+    };
+    let drawing_core = parse_schema(core_source, "IFCX drawing core");
+    let composite = parse_schema(overlay_source, "IFCX overlay");
     let registry = Registry::new()
-        .add(DRAWING_CORE_ID, drawing_core)
-        .expect("register embedded IFCX drawing core 0.2.0")
+        .add(core_id, drawing_core)
+        .expect("register embedded IFCX drawing core")
         .prepare()
         .expect("prepare embedded IFCX schema registry");
     let validator = jsonschema::draft202012::options()
         .with_registry(&registry)
         .build(&composite)
-        .expect("compile embedded IFCX overlay 0.11.0");
+        .unwrap_or_else(|error| panic!("compile embedded IFCX overlay {label}: {error}"));
     schema_diagnostics(&validator, None, DIRECTORY_PACKAGE_ENTRYPOINT, value, false)
 }
 

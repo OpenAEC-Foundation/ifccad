@@ -1,5 +1,6 @@
 use super::mapping::{
-    canonical_registry, Cardinality, FieldSchema, IfcdrRegistry, Presence, StreamRole, ValueType,
+    canonical_registry, registry_0_10, Cardinality, FieldSchema, IfcdrRegistry, Presence,
+    StreamRole, ValueType,
 };
 use crate::diagnostic::{
     PackageDiagnostic, PackageDiagnosticContextValue, PackageDiagnosticSeverity,
@@ -9,6 +10,7 @@ use serde_json::{Map, Value};
 use std::collections::{BTreeMap, BTreeSet};
 const IFCCAD_IFCDR_DIRECTORY_INVALID: &str = "IFCCAD_IFCDR_DIRECTORY_INVALID";
 const IFCCAD_IFCDR_STREAM_SCHEMA_UNSUPPORTED: &str = "IFCCAD_IFCDR_STREAM_SCHEMA_UNSUPPORTED";
+const IFCCAD_IFCDR_VIEWPORT_RANGE_INVALID: &str = "IFCCAD_IFCDR_VIEWPORT_RANGE_INVALID";
 #[derive(Debug)]
 struct ValidatedTable {
     row_count: usize,
@@ -21,9 +23,14 @@ struct ValidatedStream {
 }
 
 pub(super) fn validate_physical(uri: &str, value: &Value) -> Vec<PackageDiagnostic> {
-    let mut validator = ResourceValidator::new(uri, canonical_registry());
-    if let Some(version) = value.pointer("/header/version").and_then(Value::as_str) {
-        if version != "0.9.0" {
+    let version = value.pointer("/header/version").and_then(Value::as_str);
+    let registry = match version {
+        Some("0.10.0") => registry_0_10(),
+        _ => canonical_registry(),
+    };
+    let mut validator = ResourceValidator::new(uri, registry);
+    if let Some(version) = version {
+        if !matches!(version, "0.9.0" | "0.10.0") {
             validator.error_with_context(
                 "IFCCAD_IFCDR_VERSION_UNSUPPORTED",
                 "/header/version",
@@ -35,7 +42,7 @@ pub(super) fn validate_physical(uri: &str, value: &Value) -> Vec<PackageDiagnost
                     ),
                     (
                         "supportedVersion".into(),
-                        PackageDiagnosticContextValue::String("0.9.0".into()),
+                        PackageDiagnosticContextValue::String("0.9.0, 0.10.0".into()),
                     ),
                 ]),
             );
@@ -87,6 +94,37 @@ pub(super) fn validate_physical(uri: &str, value: &Value) -> Vec<PackageDiagnost
                 "/streams/entityOrderEntryStream/count",
                 "order ranges must cover the complete entry stream",
             );
+        }
+        if version == Some("0.10.0") {
+            let viewport = &value["streams"]["viewportStream"];
+            let overrides = &value["streams"]["viewportLayerOverrideStream"];
+            if !viewport.is_null() && !overrides.is_null() {
+                let mut offset = 0u64;
+                for (row, start) in viewport["layerOverrideOffset"]
+                    .as_array()
+                    .into_iter()
+                    .flatten()
+                    .enumerate()
+                {
+                    if start.as_u64() != Some(offset) {
+                        validator.error(
+                            IFCCAD_IFCDR_VIEWPORT_RANGE_INVALID,
+                            &format!("/streams/viewportStream/layerOverrideOffset/{row}"),
+                            "override ranges must be contiguous from zero",
+                        );
+                    }
+                    offset += viewport["layerOverrideCount"][row]
+                        .as_u64()
+                        .expect("physical count");
+                }
+                if offset != overrides["count"].as_u64().unwrap_or(0) {
+                    validator.error(
+                        IFCCAD_IFCDR_VIEWPORT_RANGE_INVALID,
+                        "/streams/viewportLayerOverrideStream/count",
+                        "override ranges must cover the complete child stream",
+                    );
+                }
+            }
         }
     }
     validator.diagnostics
@@ -683,6 +721,7 @@ impl<'a> ResourceValidator<'a> {
                 }
                 IFCCAD_IFCDR_STRUCTURE_INVALID
                 | IFCCAD_IFCDR_DIRECTORY_INVALID
+                | IFCCAD_IFCDR_VIEWPORT_RANGE_INVALID
                 | "IFCCAD_IFCDR_ENTITY_ORDER_INVALID" => {
                     crate::diagnostic::PackageDiagnosticCategory::ContractViolation
                 }

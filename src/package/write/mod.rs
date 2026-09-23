@@ -7,6 +7,7 @@ mod artifact;
 mod builder;
 mod error;
 mod ifcx;
+mod layout;
 mod prepare;
 mod state;
 mod types;
@@ -17,9 +18,14 @@ pub use builder::{
     ScopeEntitiesBuilder,
 };
 pub use error::{PackageBuildError, PackageWriteError};
+pub use layout::{
+    LayoutSettings, PlotArea, PlotMapping, PlotMedia, PlotOffsetReference, PlotOptions, PlotOutput,
+    PlotPlacement, PlotRect, PlotRotation, PlotScale, PlotSettings, PlotStyleMode, PlotUnit,
+};
 pub use types::{
-    AppearanceColor, AppearanceDefinition, AppearanceKey, AppearanceMode, BlockDefinitionKey,
-    BlockDefinitionOptions, BlockInstanceDefinition, DrawingOptions, DrawingResourceStorage,
-    EntityAppearance, LayerDefinition, LayerKey, LineDefinition, LinePatternDefinition,
-    PackageOptions, PaperSpaceKey, PolylineDefinition,
+    AppearanceColor, AppearanceDefinition, AppearanceKey, AppearanceMode, AppearancePatch,
+    BlockDefinitionKey, BlockDefinitionOptions, BlockInstanceDefinition, DrawingOptions,
+    DrawingResourceStorage, EntityAppearance, LayerDefinition, LayerKey, LineDefinition,
+    LinePatternDefinition, PackageOptions, PaperSpaceKey, PolylineDefinition, ViewportDefinition,
+    ViewportLayerOverrideDefinition,
 };

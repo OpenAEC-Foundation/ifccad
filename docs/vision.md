@@ -67,6 +67,12 @@ can use relational columns, while irregular entity families may use registered,
 versioned typed payloads. These are logical choices; they do not prescribe JSON
 arrays, chunks, or a binary layout.
 
+For a columnar mapping, independently selected stable scalars normally get
+separate columns. Keep a value together when its members are one semantic unit
+usually consumed together, as with placement. Repeated per-entity children
+belong in relational rows and ranges, as viewport layer overrides do. This is
+a design convention, not a requirement that every IFCDR encoding be columnar.
+
 IFCDR is not required to become a universal standalone CAD file. Its primary
 role is to provide drawing content referenced by the IFCX graph.
 

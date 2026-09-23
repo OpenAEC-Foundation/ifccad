@@ -410,6 +410,7 @@ mod tests {
                 .unwrap()
                 .map(|entity| match entity {
                     IfcdrEntityRef::BlockInstance(_) => panic!("primitive-only fixture"),
+                    IfcdrEntityRef::Viewport(_) => panic!("primitive-only fixture"),
                     IfcdrEntityRef::Line(line) => (
                         line.entity_id(),
                         line.visible(),

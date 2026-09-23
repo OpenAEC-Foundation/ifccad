@@ -8,6 +8,7 @@ use super::types::{
     AppearanceDefinition, AppearanceKey, AppearanceMode, BlockDefinitionKey,
     BlockDefinitionOptions, BlockInstanceDefinition, DrawingOptions, EntityAppearance,
     LayerDefinition, LayerKey, LineDefinition, PackageOptions, PaperSpaceKey, PolylineDefinition,
+    ViewportDefinition,
 };
 
 use super::prepare::prepare_drawing;
@@ -80,6 +81,9 @@ impl PackageBuilder {
             block_definitions: Vec::new(),
             block_names: Default::default(),
             paper_layouts: Vec::new(),
+            model_layout_settings: super::LayoutSettings::default(),
+            paper_layout_settings: Default::default(),
+            plot_style_mode: super::PlotStyleMode::ColorDependent,
             options,
             storage: super::DrawingResourceStorage::default(),
             token,
@@ -167,6 +171,23 @@ pub struct DrawingBuilder<'a> {
 }
 
 impl DrawingBuilder<'_> {
+    pub fn set_plot_style_mode(&mut self, mode: super::PlotStyleMode) {
+        self.state.plot_style_mode = mode;
+    }
+    pub fn set_model_layout_settings(&mut self, settings: super::LayoutSettings) {
+        self.state.model_layout_settings = settings;
+    }
+    pub fn set_paper_layout_settings(
+        &mut self,
+        key: PaperSpaceKey,
+        settings: super::LayoutSettings,
+    ) -> Result<(), PackageBuildError> {
+        self.state.validate_paper_key(key)?;
+        self.state
+            .paper_layout_settings
+            .insert(key.local_id, settings);
+        Ok(())
+    }
     /// Selects inline or external storage; new drawings default to external.
     /// This affects package encoding, not the drawing's identity or semantics.
     pub fn set_resource_storage(&mut self, storage: super::DrawingResourceStorage) {
@@ -269,15 +290,7 @@ impl DrawingBuilder<'_> {
         &mut self,
         key: PaperSpaceKey,
     ) -> Result<ScopeEntitiesBuilder<'_>, PackageBuildError> {
-        if key.builder_token != self.state.token
-            || self
-                .state
-                .scopes
-                .get(key.local_id as usize)
-                .is_none_or(|s| s.kind != crate::ifcdr::logical::IfcdrScopeKind::PaperSpace)
-        {
-            return Err(PackageBuildError::ForeignPaperSpaceKey);
-        }
+        self.state.validate_paper_key(key)?;
         Ok(ScopeEntitiesBuilder {
             state: self.state,
             scope_id: key.local_id,
@@ -353,6 +366,17 @@ impl DrawingLayers<'_> {
 }
 
 impl DrawingState {
+    fn validate_paper_key(&self, key: PaperSpaceKey) -> Result<(), PackageBuildError> {
+        if key.builder_token != self.token
+            || self
+                .scopes
+                .get(key.local_id as usize)
+                .is_none_or(|scope| scope.kind != crate::ifcdr::logical::IfcdrScopeKind::PaperSpace)
+        {
+            return Err(PackageBuildError::ForeignPaperSpaceKey);
+        }
+        Ok(())
+    }
     fn validate_block_key(&self, key: BlockDefinitionKey) -> Result<(), PackageBuildError> {
         if key.builder_token != self.token
             || self
@@ -463,6 +487,49 @@ pub struct ScopeEntitiesBuilder<'a> {
 pub type ModelSpaceBuilder<'a> = ScopeEntitiesBuilder<'a>;
 
 impl ScopeEntitiesBuilder<'_> {
+    pub fn add_viewport(
+        &mut self,
+        definition: ViewportDefinition,
+    ) -> Result<EntityId, PackageBuildError> {
+        if self
+            .state
+            .scopes
+            .get(self.scope_id as usize)
+            .is_none_or(|scope| scope.kind != crate::ifcdr::logical::IfcdrScopeKind::PaperSpace)
+        {
+            return Err(PackageBuildError::ViewportRequiresPaperSpace);
+        }
+        self.state.validate_layer_key(definition.layer)?;
+        for override_row in &definition.layer_overrides {
+            self.state.validate_layer_key(override_row.layer)?;
+            if let Some(patch) = &override_row.appearance {
+                if patch
+                    .opacity
+                    .is_some_and(|value| !value.is_finite() || !(0.0..=1.0).contains(&value))
+                {
+                    return Err(PackageBuildError::InvalidOpacity);
+                }
+                if patch
+                    .line_weight
+                    .is_some_and(|value| !value.is_finite() || value < 0.0)
+                {
+                    return Err(PackageBuildError::InvalidLineWeight);
+                }
+            }
+        }
+        let entity_id = self.state.candidate_entity_id(None)?;
+        let appearance_id = self
+            .state
+            .resolve_entity_appearance(definition.appearance)?;
+        self.state.record_entity_id(entity_id);
+        self.state.entities.push(PendingEntity::Viewport {
+            scope_id: self.scope_id,
+            entity_id,
+            appearance_id,
+            definition,
+        });
+        Ok(entity_id)
+    }
     pub fn add_block_instance(
         &mut self,
         definition: BlockInstanceDefinition,

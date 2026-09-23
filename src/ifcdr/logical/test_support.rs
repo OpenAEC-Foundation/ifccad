@@ -7,6 +7,7 @@ pub(crate) fn assert_resource_eq<A: IfcdrResourceAccess, B: IfcdrResourceAccess>
     assert_eq!(a.next_entity_id(), b.next_entity_id());
     assert_eq!(a.scopes(), b.scopes());
     assert_eq!(a.block_definitions(), b.block_definitions());
+    assert_eq!(a.viewports(), b.viewports());
     let (ai, bi) = (a.block_instances(), b.block_instances());
     assert_eq!(ai.len(), bi.len());
     assert_eq!(ai.is_empty(), bi.is_empty());

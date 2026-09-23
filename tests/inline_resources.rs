@@ -150,6 +150,7 @@ fn inline_and_external_layouts_have_equal_semantic_content() {
                     .map(|entity| match entity {
                         IfcdrEntityRef::Line(line) => format!("{:?}", line),
                         IfcdrEntityRef::BlockInstance(instance) => format!("{:?}", instance),
+                        IfcdrEntityRef::Viewport(viewport) => format!("{:?}", viewport),
                         IfcdrEntityRef::Polyline(poly) => format!(
                             "{:?}",
                             (

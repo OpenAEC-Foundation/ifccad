@@ -215,7 +215,7 @@ fn inexact_geometry_is_skipped_once_with_all_reasons() {
 }
 
 #[test]
-fn coherent_unsupported_ownership_layers_and_entity_types_are_diagnosed_skips() {
+fn paper_ownership_is_retained_while_unsupported_layers_and_types_are_skipped() {
     let mut document = CadDocument::new();
 
     let mut missing_layer = Line::from_coords(0.0, 0.0, 0.0, 1.0, 1.0, 0.0);
@@ -248,8 +248,11 @@ fn coherent_unsupported_ownership_layers_and_entity_types_are_diagnosed_skips() 
         ExportOptions::default(),
     )
     .unwrap_or_else(|error| panic!("export failed: {error}"));
-    assert!(outcome.entity_mapping().is_empty());
-    assert_eq!(outcome.diagnostics().len(), 5);
+    assert!(outcome
+        .entity_mapping()
+        .target_entity_id(paper_handle)
+        .is_some());
+    assert_eq!(outcome.diagnostics().len(), 4);
     assert_eq!(
         outcome.diagnostics()[0].source(),
         &ExportDiagnosticSource::Entity {
@@ -266,48 +269,37 @@ fn coherent_unsupported_ownership_layers_and_entity_types_are_diagnosed_skips() 
     assert_eq!(
         outcome.diagnostics()[1].source(),
         &ExportDiagnosticSource::Entity {
-            handle: paper_handle,
-            kind: "LINE".to_owned(),
-        }
-    );
-    assert_eq!(
-        outcome.diagnostics()[1].reasons(),
-        [ExportLossReason::PaperSpaceEntity]
-    );
-    assert_eq!(
-        outcome.diagnostics()[2].source(),
-        &ExportDiagnosticSource::Entity {
             handle: block_line_handle,
             kind: "LINE".to_owned(),
         }
     );
     assert_eq!(
-        outcome.diagnostics()[2].reasons(),
+        outcome.diagnostics()[1].reasons(),
         [ExportLossReason::BlockOwnedEntity {
             owner: block_handle,
         }]
     );
     assert_eq!(
-        outcome.diagnostics()[3].source(),
+        outcome.diagnostics()[2].source(),
         &ExportDiagnosticSource::Entity {
             handle: circle_handle,
             kind: "CIRCLE".to_owned(),
         }
     );
     assert_eq!(
-        outcome.diagnostics()[3].reasons(),
+        outcome.diagnostics()[2].reasons(),
         [ExportLossReason::UnsupportedEntityType {
             kind: "CIRCLE".to_owned(),
         }]
     );
     assert_eq!(
-        outcome.diagnostics()[4].source(),
+        outcome.diagnostics()[3].source(),
         &ExportDiagnosticSource::Table {
             kind: "block_records".to_owned(),
         }
     );
     assert_eq!(
-        outcome.diagnostics()[4].reasons(),
+        outcome.diagnostics()[3].reasons(),
         [ExportLossReason::UnsupportedTableRecords {
             kind: "block_records".to_owned(),
             count: 1,
