@@ -203,9 +203,11 @@ shared OpenAEC demo server, including package/DXF/DWG processing and exports.
 Every push to `main` starts the **Deploy format explorer** GitHub Actions workflow.
 It can also be started manually on `main` from the Actions tab.
 
-Before deployment, the workflow checks the Rust workspace, website tests and
-deployment recovery, builds the reader and website, and exercises package opening,
-DXF/DWG export and readback, and IFCCAD ZIP download through the real HTTP service.
+Before deployment, the workflow checks the Rust workspace in parallel with
+building and testing the website and production reader. Both jobs must succeed.
+Both jobs cache Rust dependencies for later runs. The build job exercises package
+opening, DXF/DWG export and readback, and IFCCAD ZIP download through the real
+HTTP service.
 The Rust build uses Debian 12 to match the existing Node 22 production container.
 The exact tested artifact is transferred using the shared `DEPLOY_SSH_KEY` secret
 and `DEPLOY_HOST`, `DEPLOY_PORT`, `DEPLOY_USER` organization variables. The server

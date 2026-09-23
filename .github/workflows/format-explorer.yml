@@ -13,6 +13,28 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  checks:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    container: rust:bookworm
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Rust check tools
+        run: |
+          apt-get update -qq
+          apt-get install -y --no-install-recommends zstd
+          rustup component add rustfmt clippy
+      - name: Cache Rust check dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          cache-bin: 'false'
+      - name: Check Rust workspace
+        run: |
+          cargo fmt --all -- --check
+          cargo clippy --workspace --all-targets -- -D warnings
+          cargo test --workspace
+
   build:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
@@ -24,16 +46,14 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: '22'
-      - name: Install test tools
+      - name: Install website test tools
         run: |
           apt-get update -qq
-          apt-get install -y --no-install-recommends python3 python-is-python3
-          rustup component add rustfmt clippy
-      - name: Check Rust workspace
-        run: |
-          cargo fmt --all -- --check
-          cargo clippy --workspace --all-targets -- -D warnings
-          cargo test --workspace
+          apt-get install -y --no-install-recommends python3 python-is-python3 zstd
+      - name: Cache Rust build dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          cache-bin: 'false'
       - name: Check website and deployment recovery
         run: |
           bash -n format-explorer/deploy/release.sh
@@ -68,7 +88,7 @@ jobs:
           retention-days: 7
 
   deploy:
-    needs: build
+    needs: [checks, build]
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     environment:
