@@ -30,6 +30,58 @@ const description={
   'concept-style':'Een mogelijke gedeelde maatstijl met een eigen IFCX-identiteit. Welke eigenschappen en overervingsregels hierbij horen is nog te ontwerpen.',
 };
 
+// Keep this inventory aligned with the registry's object streams. A test fails
+// when a new native family is registered without its own explanation.
+export const entityDescriptions={
+  line:'Een lijn tussen twee XYZ-eindpunten binnen haar scope.',
+  polyline:'Een polylijn van geordende lokale XY-punten. closed bepaalt of zij sluit; placement bepaalt haar ligging in XYZ.',
+  blockInstance:'Een block instance plaatst een gedeelde blockdefinitie met een eigen positie, rotatie en schaal.',
+};
+
+export const collectionDescriptions={
+  line:'Lijnen staan samen in de typed lineStream. Elke lijn neemt één positie in alle eigenschapskolommen in: entityId, scopeId, twee XYZ-eindpunten, layerId en appearanceId. De rij-index is niet de identiteit; entityId is dat binnen de resource.',
+  polyline:'Polylijnen staan samen in polylineStream. Elke rij heeft een entityId en gebruikt vertexOffset en vertexCount om haar lokale XY-punten uit de gedeelde x/y-pools te kiezen. closed en een eventuele placement staan in dezelfde rij.',
+  blockInstance:'Block instances staan samen in blockInstanceStream. Elke rij verwijst via definitionScopeId naar gedeelde blockinhoud en bewaart een eigen transform voor plaatsing, rotatie en schaal.',
+};
+
+const placementAxes={
+  origin:'De oorsprong van het lokale vlak in XYZ. Zij staat in placement.origin, of volgt uit de logische standaardwaarde als placement ontbreekt.',
+  X:'De lokale X-as geeft de richting van toenemende x aan. Deze vector staat in placement.X, of volgt uit de logische standaardwaarde.',
+  Y:'De lokale Y-as geeft de richting van toenemende y aan. Deze vector staat in placement.Y, of volgt uit de logische standaardwaarde.',
+};
+
+const blockPlacementAxes={
+  origin:'De oorsprong van de blockplaatsing in XYZ. Zij staat in transform.placement.origin, of volgt uit de logische standaardwaarde als placement ontbreekt.',
+  X:'De lokale X-as van de blockplaatsing. Deze vector staat in transform.placement.X, of volgt uit de logische standaardwaarde.',
+  Y:'De lokale Y-as van de blockplaatsing. Deze vector staat in transform.placement.Y, of volgt uit de logische standaardwaarde.',
+};
+
+export const fieldDescriptions={
+  line:{
+    start:'Het beginpunt van de lijn in XYZ binnen haar scope. De waarden komen uit x1, y1 en z1 van dezelfde rij in lineStream; ontbrekende z1 is 0.',
+    end:'Het eindpunt van de lijn in XYZ binnen haar scope. De waarden komen uit x2, y2 en z2 van dezelfde rij in lineStream; ontbrekende z2 is 0.',
+  },
+  polyline:{
+    vertices:'De geordende lokale XY-punten van de polylijn. vertexOffset en vertexCount wijzen naar haar bereik in de gedeelde x- en y-puntenpools van polylineStream.',
+    'vertices.*':'Dit lokaal XY-hoekpunt staat op deze positie in de gedeelde x/y-puntenpools. De veldnode is een uitsplitsing in de viewer, geen afzonderlijk entiteitsrecord.',
+    closed:'Als closed waar is, wordt het laatste punt met het eerste verbonden. De waarde staat per rij in de closed-kolom van polylineStream.',
+    placement:'Deze plaatsing zet lokale XY-punten om naar XYZ met een oorsprong en twee assen. Zij staat per rij in de placement-kolom van polylineStream; zonder waarde geldt het standaard XY-vlak.',
+    'placement.origin':placementAxes.origin,
+    'placement.X':placementAxes.X,
+    'placement.Y':placementAxes.Y,
+  },
+  blockInstance:{
+    definitionScopeId:'Verwijst naar de scope met de gedeelde blockdefinitie. definitionScopeId staat per instantie in blockInstanceStream; de geometrie wordt niet gekopieerd.',
+    transform:'De plaatsing, rotatie en schaal van deze block instance. transform staat per instantie in blockInstanceStream; ontbrekende onderdelen gebruiken logische standaardwaarden.',
+    'transform.placement':'De oorsprong en lokale X- en Y-as van deze blockplaatsing. Deze waarden staan in transform.placement; ontbrekende onderdelen volgen de logische standaardwaarden.',
+    'transform.placement.origin':blockPlacementAxes.origin,
+    'transform.placement.X':blockPlacementAxes.X,
+    'transform.placement.Y':blockPlacementAxes.Y,
+    'transform.rotation':'De rotatie in radialen binnen de lokale plaatsing. Zij staat in transform.rotation; zonder waarde is de rotatie 0.',
+    'transform.scale':'De schaal per as van deze block instance. Zij staat in transform.scale; zonder waarde is elke schaalfactor 1. Een negatieve factor spiegelt de definitie.',
+  },
+};
+
 function collectionTable(node,model){
   if(node.concept)return `<div class="structure-note">Een afzonderlijke voorbeeldcollectie voor <code>${escape(node.family)}</code>. Circle en dimension zijn twee willekeurige voorbeelden van extra CAD-entiteittypen. Ieder type vraagt een eigen semantisch contract; de uiteindelijke streamindeling staat nog open.</div>${definitionList([['Basisvelden','entityId · scopeId · layerId · appearanceId'],[node.family,node.family==='circle'?'centrum · straal · vlak':'maatsoort · definitiepunten · maatlijnpositie · stijlref']])}`;
   return columnTable(node,model);
@@ -75,6 +127,12 @@ export function renderInspector(model,id,collapsed){
   const content=document.getElementById('selection-content'),structure=document.getElementById('selection-structure'),links=document.getElementById('selection-links'),data=document.getElementById('selection-data'),domain=document.getElementById('selection-domain');
   domain.textContent=node.domain.toUpperCase();domain.className='domain-pill '+node.domain;
   let desc=Object.hasOwn(description,node.kind)?description[node.kind]:'Een IFCX-node in de semantische graph.';
+  if(node.kind==='collection'&&!node.concept)desc=collectionDescriptions[node.id.split(':').at(-1)]||desc;
+  if(node.kind==='entity'&&!node.concept)desc=entityDescriptions[node.entity?.kind]||desc;
+  if(node.kind==='field'&&!node.concept){
+    const owner=model.byId.get(node.ownerId)?.entity,path=node.fieldPath.map(part=>/^\d+$/.test(part)?'*':part).join('.');
+    desc=fieldDescriptions[owner?.kind]?.[path]||desc;
+  }
   if(node.concept&&node.kind==='collection')desc='Een mogelijke eigen typed collectie voor dit entiteittype. Andere CAD-entiteittypen kunnen op dezelfde manier hun eigen plaats krijgen; deze voorbeelden zijn geen uitputtende lijst.';
   if(node.entity?.kind==='circle')desc='Een mogelijke native circle bewaart centrum, straal en vlak als betekenis. Deze informatie kan in een eigen typed collectie passen; veldnamen en schema zijn hier illustratief.';
   if(node.entity?.kind==='dimension')desc='Een mogelijke native dimension bewaart maatsoort, definitiepunten, maatlijnpositie en stijl. Alleen afgeleide lijnen en tekst bewaren zou de maatbetekenis verliezen.';

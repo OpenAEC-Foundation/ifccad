@@ -53,6 +53,10 @@ as a separate JSON resource.
 ## Explore
 
 - Select a graph node to see its explanation, fields and incoming/outgoing links.
+- Native line, polyline and block instance nodes briefly explain their meaning.
+  Their collection nodes explain IFCDR stream storage; field nodes explain each
+  value and its stored columns. Adding another registered native object family
+  requires matching inspector explanations and translations.
 - Layers and appearances are real IFCX nodes inside the common IFCX region.
   The viewer adds no artificial definitions node to their relationships.
 - Use the adjacent `+` / `−` controls to expand or collapse structure. Shared
