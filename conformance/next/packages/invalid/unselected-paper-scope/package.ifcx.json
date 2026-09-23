@@ -1,0 +1,184 @@
+{
+  "data": [
+    {
+      "children": {
+        "Drawings": [
+          "drawing-0"
+        ]
+      },
+      "path": "drawing-set-0",
+      "type": "openaec:DrawingSet"
+    },
+    {
+      "attributes": {
+        "plotStyleMode": "named"
+      },
+      "children": {
+        "Appearances": [],
+        "Layers": [],
+        "Layouts": [
+          "layout-0",
+          "layout-1"
+        ],
+        "Representation": "representation-0"
+      },
+      "path": "drawing-0",
+      "type": "openaec:Drawing"
+    },
+    {
+      "attributes": {
+        "kind": "model",
+        "limitsChecking": false,
+        "name": "Model",
+        "paperSpaceLinetypeScaling": true,
+        "scopeId": 0
+      },
+      "children": {
+        "Representation": "representation-0"
+      },
+      "path": "layout-0",
+      "type": "openaec:DrawingLayout"
+    },
+    {
+      "attributes": {
+        "kind": "paper",
+        "limitsChecking": false,
+        "name": "A",
+        "paperSpaceLinetypeScaling": true,
+        "plotSettings": {
+          "area": {
+            "mode": "Layout"
+          },
+          "mapping": {
+            "placement": {
+              "mode": "Offset",
+              "reference": "Media",
+              "x": 0.0,
+              "y": 0.0
+            },
+            "scale": {
+              "mode": "Fixed",
+              "outputLength": 1.0,
+              "scopeLength": 1.0
+            }
+          },
+          "media": {
+            "height": 297.0,
+            "printableArea": {
+              "maxX": 205.0,
+              "maxY": 292.0,
+              "minX": 5.0,
+              "minY": 5.0
+            },
+            "rotation": "none",
+            "unit": "mm",
+            "width": 210.0
+          },
+          "options": {
+            "hidePaperSpaceObjects": false,
+            "plotLineWeights": true,
+            "plotPaperSpaceLast": true,
+            "plotTransparency": false,
+            "plotViewportBorders": false,
+            "scaleLineWeights": false
+          },
+          "output": {
+            "applyPlotStyles": true,
+            "plotStyleTableName": "styles.stb",
+            "shadedPlot": {
+              "mode": "AsDisplayed",
+              "quality": {
+                "mode": "Normal"
+              }
+            }
+          }
+        },
+        "scopeId": 1
+      },
+      "children": {
+        "Representation": "representation-0"
+      },
+      "path": "layout-1",
+      "type": "openaec:DrawingLayout"
+    },
+    {
+      "attributes": {
+        "kind": "paper",
+        "limitsChecking": true,
+        "name": "B",
+        "paperSpaceLinetypeScaling": true,
+        "plotSettings": {
+          "area": {
+            "mode": "Extents"
+          },
+          "mapping": {
+            "placement": {
+              "mode": "Centered"
+            },
+            "scale": {
+              "mode": "FitToArea"
+            }
+          },
+          "media": {
+            "height": 17.0,
+            "printableArea": {
+              "maxX": 10.75,
+              "maxY": 16.75,
+              "minX": 0.25,
+              "minY": 0.25
+            },
+            "rotation": "none",
+            "unit": "in",
+            "width": 11.0
+          },
+          "options": {
+            "hidePaperSpaceObjects": false,
+            "plotLineWeights": true,
+            "plotPaperSpaceLast": true,
+            "plotTransparency": false,
+            "plotViewportBorders": false,
+            "scaleLineWeights": false
+          },
+          "output": {
+            "applyPlotStyles": false,
+            "shadedPlot": {
+              "mode": "AsDisplayed",
+              "quality": {
+                "mode": "Normal"
+              }
+            }
+          }
+        },
+        "scopeId": 2
+      },
+      "children": {
+        "Representation": "representation-0"
+      },
+      "path": "layout-2",
+      "type": "openaec:DrawingLayout"
+    },
+    {
+      "attributes": {
+        "name": "Drawing",
+        "resource": {
+          "checksum": "sha256:926f5d269064a4452026f01ac3b7c6c58692ab527504dbeadd416c7f4dc804b9",
+          "format": "openaec.ifcdr",
+          "resourceId": "geometry",
+          "role": "drawing",
+          "uri": "resources/drawing.ifcdr.json",
+          "version": "0.10.0"
+        }
+      },
+      "path": "representation-0",
+      "type": "openaec:DrawingRepresentation"
+    }
+  ],
+  "header": {
+    "author": "test",
+    "dataVersion": "1",
+    "id": "matrix-unselected-paper-scope",
+    "ifcxVersion": "ifcx_alpha",
+    "timestamp": "2026-09-23T00:00:00Z"
+  },
+  "imports": []
+}

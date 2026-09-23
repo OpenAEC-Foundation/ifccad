@@ -8,10 +8,12 @@ IFCDR `0.9.0` / overlay `0.11.0` pair. IFCPR remains
 `0.2.0`. Historical schemas and `conformance/1.0.0` are reference artifacts,
 not promises that the current reader supports their files.
 
-The new cases cover representative layout, plot, viewport and drawing-list
-boundaries. The full per-condition conformance matrix from the local design
-is not yet materialized as separate fixtures; this candidate is not a numbered
-conformance release.
+The approved layout/plot/viewport condition matrix is materialized as named
+positive and negative cases in this candidate, with production-reader outcomes
+and writer readback. See the [layout condition and CAD evidence matrix](LAYOUT-MATRIX.md)
+for exact case IDs and the CAD behaviors that are still unproved. This candidate
+is not a numbered conformance release. The separate IFCPR semantic deferrals
+below still apply.
 
 ## Supported drawing content
 
