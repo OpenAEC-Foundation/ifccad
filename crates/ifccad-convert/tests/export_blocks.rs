@@ -54,6 +54,18 @@ fn dynamic_visibility_data_remains_explicit_loss_not_supported_behavior() {
             ..Default::default()
         },
     );
+    document.objects.insert(
+        handle,
+        cadcodec::objects::ObjectType::Unknown {
+            type_name: "BLOCKVISIBILITYPARAMETER".into(),
+            handle,
+            owner: cadcodec::Handle::NULL,
+            raw_dxf_codes: None,
+            raw_dwg_data: None,
+            raw_dwg_handle_bits: 0,
+            raw_dwg_version: None,
+        },
+    );
     document
         .add_entity(EntityType::Insert(cadcodec::entities::Insert::new(
             "Door",
@@ -61,7 +73,7 @@ fn dynamic_visibility_data_remains_explicit_loss_not_supported_behavior() {
         )))
         .unwrap();
     let result = cad_document_to_package(&document, options(), ExportOptions::default()).unwrap();
-    assert!(result.diagnostics().iter().flat_map(|d| d.reasons()).any(|r| matches!(r,ifccad_convert::ExportLossReason::UnsupportedCollection {kind,..} if kind=="block_visibility_params")));
+    assert_eq!(result.diagnostics().iter().flat_map(|d| d.reasons()).filter(|r| matches!(r,ifccad_convert::ExportLossReason::UnsupportedCollection {kind,..} if kind=="objects")).count(), 1);
     assert!(matches!(
         cad_document_to_package(
             &document,

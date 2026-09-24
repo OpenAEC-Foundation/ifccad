@@ -4,9 +4,13 @@ This inventory is pinned to cadcodec/acadrust revision
 `5b682ed66ea2c89be8142c8dd83d83774fc3de08`. It defines what the
 `CadDocument -> IFCCAD` exporter must either represent or diagnose. Updating the
 dependency requires reviewing every row. The pinned cadcodec
-`semantic_inventory_v1` supplies compiler-visible *categories*, visited
-exhaustively by the exporter; field-level classification remains a manual
-contract pending [cadcodec issue #50](https://github.com/HakanSeven12/cadcodec/issues/50).
+`semantic_inventory_v1` is the export coverage traversal: its categories are
+matched exhaustively, while existing typed exporters own field and geometry
+checks. Default table, class and object content is compared by semantic role
+and payload, rather than only collection length. The pinned fresh-document and
+DWG-read bootstrap forms account for codec-created standard scaffolding.
+Field-level classification remains a manual contract pending
+[cadcodec issue #50](https://github.com/HakanSeven12/cadcodec/issues/50).
 
 Statuses are `Exact`, `PartialLoss`, `SkippedLoss`, `NonSemantic`, and
 `FatalIfInconsistent`. `Reject` rejects detectable semantic loss within this pinned public model,
@@ -36,8 +40,8 @@ and `BlockContentLoss` identifies affected instances. Arrays (including nondefau
 1x1 spacing), attributes and view-representation inserts are omitted as whole
 unsupported entities, not emitted as ordinary instances. Dynamic behavior and
 external references remain unsupported; their exposed attachments/collections
-retain the existing loss diagnostics. This does not resume the parked exhaustive
-inventory migration or certify fields erased before the CadDocument boundary.
+retain the existing loss diagnostics through their canonical inventory objects.
+This does not certify fields erased before the CadDocument boundary.
 
 | Source surface | Status | Export or diagnostic contract |
 | --- | --- | --- |
@@ -59,12 +63,13 @@ inventory migration or certify fields erased before the CadDocument boundary.
 | Source surface | Status | Export or diagnostic contract |
 | --- | --- | --- |
 | `layers` | Exact/PartialLoss/SkippedLoss | Source order and unused layers are retained. On/Off, global Freeze, Lock, plottability, freeze-in-new-viewports and description are distinct native fields. Exact color, opacity, linetype name, and numeric/default lineweight become a deduplicated appearance. Unsupported references retain their loss diagnostics; a required unrepresentable appearance skips the layer. |
-| Standard `Continuous`, `ByLayer`, `ByBlock`, and `Dashed` linetypes | Exact | Their names supply the initial supported appearance vocabulary. |
+| Standard `Continuous`, `ByLayer`, `ByBlock`, and `Dashed` linetypes | Exact | Their standard definitions supply the initial supported appearance vocabulary. A modified definition, including an altered on-demand `Dashed`, is diagnosed rather than accepted by name alone. |
 | Ordinary local `block_records` | Exact/PartialLoss/FatalIfInconsistent | Definitions allocated before ordered contents; public metadata retained as above. Attribute flags, preview and insertion-count bytes are partial losses. Record handles must be distinct/non-null; references, membership and cycles are checked. Unicode-fold name collisions cannot merge or retarget definitions. |
-| Other `line_types`; `text_styles`; unsupported `block_records`; `dim_styles`; `app_ids`; `views`; `vports`; `ucss`; `vx_table` | SkippedLoss | One stable `UnsupportedTableRecords` summary per affected table. Default cadcodec bootstrap records are not reported. |
+| Other `line_types`; `text_styles`; unsupported `block_records`; `dim_styles`; `app_ids`; `views`; `vports`; `ucss`; `vx_table` | SkippedLoss | One stable `UnsupportedTableRecords` summary per affected table. Default cadcodec bootstrap records are not reported; a changed or extra duplicate bootstrap record is reported even when the usual name is present. |
 | Default model/paper layout and bootstrap dictionaries/objects | NonSemantic until changed or referenced | The untouched empty `Layout1` scaffold is omitted. Real paper layouts are emitted in tab order; model layout name is retained. |
-| `objects` variants other than mapped `Layout` | SkippedLoss | Added object content beyond the pinned bootstrap set produces an `objects` collection summary. Named reusable `PlotSettings` objects/page setups remain outside the native effective layout setting. Relationships exposed on entities/layers receive their more precise source-item reasons. |
-| `classes`, `vx_control_entries`, `block_visibility_params`, `context_scales`, `block_representations`, `fields`, `dgn_ls_definitions`, `dgn_ls_components`, `section_view_style`, `view_rep_refs`, `section_view_reps` | SkippedLoss | One stable `UnsupportedCollection` summary when non-default content exists. |
+| `objects` variants other than mapped `Layout` | SkippedLoss | Added or semantically changed objects contribute to one `objects` collection summary. Pinned bootstrap roles are matched through dictionary references, so a numeric handle change alone is not loss. Named reusable `PlotSettings` objects/page setups remain outside the native effective layout setting. Relationships exposed on entities/layers receive their more precise source-item reasons. |
+| `classes` | SkippedLoss | One `UnsupportedCollection` summary for added, changed or extra duplicate class definitions; fresh and DWG-read standard class metadata are baseline scaffolding. |
+| `vx_control_entries`, `block_visibility_params`, `context_scales`, `block_representations`, `fields`, `dgn_ls_definitions`, `dgn_ls_components`, `section_view_style`, `view_rep_refs`, `section_view_reps` | NonSemantic duplicate view | The V1 inventory omits these decoded side views. Their backing table, entity or object content is classified once at its canonical inventory part; an unattached side-view map entry alone is not a drawing component. |
 | cadcodec caches/indexes, flat-storage bookkeeping, raw EED/ACDS payload bookkeeping, block membership caches, and next-handle allocation | NonSemantic/private boundary | Not accessible as independent public package semantics. Semantic typed content exposed elsewhere remains covered. |
 
 ## Layout, plot and viewport source-field inventory
@@ -137,9 +142,12 @@ a regression verifies reporting and Reject for a non-default hatch origin.
 Upstream's transparency quantization now rounds the transparency byte upward
 to match the complementary packed opacity; import coverage remains bounded.
 
-The scanner uses exhaustive Rust matches where cadcodec exposes closed enums
-(`EntityType`, color/transparency/lineweight modes in the converter). Open maps
-and private/raw internals are bounded by explicit collection checks and this
+The scanner uses an exhaustive `SemanticPartV1` match for source categories,
+and exhaustive Rust matches where cadcodec exposes closed enums (`EntityType`,
+color/transparency/lineweight modes in the converter). Relationships and
+non-entity EED retain separate inventory summaries only when a typed source
+diagnostic does not already own their meaning. Open maps and private/raw
+internals remain bounded by the inventory contract and this manual field
 matrix. New cadcodec fields or variants must update this file, tests, and the
 scanner before the pinned revision changes. Fully preserved future IFCPR content
 will cease to be package loss even when it remains non-native in IFCDR.
