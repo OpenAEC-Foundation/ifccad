@@ -5,8 +5,14 @@ use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
 #[derive(Default)]
 pub(crate) struct ScopeGeometry {
+    pub points: Vec<usize>,
+    pub circles: Vec<usize>,
+    pub arcs: Vec<usize>,
+    pub ellipses: Vec<usize>,
+    pub ellipse_arcs: Vec<usize>,
     pub lines: Vec<usize>,
     pub polylines: Vec<usize>,
+    pub spatial_polylines: Vec<usize>,
     pub instances: Vec<usize>,
     pub viewports: Vec<usize>,
 }
@@ -101,6 +107,31 @@ impl BlockGraph {
                 ));
             }
         }
+        for (row, point) in r.points().iter().enumerate() {
+            if let Some(scope) = scopes.get_mut(&point.entity.scope_id) {
+                scope.points.push(row);
+            }
+        }
+        for (row, circle) in r.circles().iter().enumerate() {
+            if let Some(scope) = scopes.get_mut(&circle.entity.scope_id) {
+                scope.circles.push(row);
+            }
+        }
+        for (row, arc) in r.arcs().iter().enumerate() {
+            if let Some(scope) = scopes.get_mut(&arc.entity.scope_id) {
+                scope.arcs.push(row);
+            }
+        }
+        for (row, ellipse) in r.ellipses().iter().enumerate() {
+            if let Some(scope) = scopes.get_mut(&ellipse.entity.scope_id) {
+                scope.ellipses.push(row);
+            }
+        }
+        for (row, arc) in r.ellipse_arcs().iter().enumerate() {
+            if let Some(scope) = scopes.get_mut(&arc.entity.scope_id) {
+                scope.ellipse_arcs.push(row);
+            }
+        }
         let lines = r.lines();
         for row in 0..lines.len() {
             if let Some(line) = lines.get(row) {
@@ -115,6 +146,11 @@ impl BlockGraph {
                 if let Some(scope) = scopes.get_mut(&polyline.entity().scope_id) {
                     scope.polylines.push(row);
                 }
+            }
+        }
+        for (row, polyline) in r.spatial_polylines().iter().enumerate() {
+            if let Some(scope) = scopes.get_mut(&polyline.entity.scope_id) {
+                scope.spatial_polylines.push(row);
             }
         }
         for (row, viewport) in r.viewports().iter().enumerate() {
@@ -222,6 +258,7 @@ impl BlockGraph {
             let scope = &scopes[id];
             if !scope.lines.is_empty()
                 || !scope.polylines.is_empty()
+                || !scope.spatial_polylines.is_empty()
                 || !scope.viewports.is_empty()
                 || scope
                     .instances

@@ -22,9 +22,10 @@ pub use logical::{
 pub use logical::{IfcdrColor, IfcdrIndexedColor, IfcdrNamedColor};
 pub(crate) use read::{validate_ifcdr, LoadedIfcdrResource, ValidatedIfcdrResource};
 pub use read::{
-    AppearanceOverrideRef, BlockDefinitionRef, BlockInstanceRef, EntityIterator, IfcdrEntityRef,
-    IfcdrResourceRef, Line, LocalPointIterator, ModelSpaceRef, PaperSpaceRef, PointIterator,
-    PolylineRef, ScopePointIterator, ScopeRef, ViewportRef,
+    AppearanceOverrideRef, ArcRef, BlockDefinitionRef, BlockInstanceRef, CircleRef, EllipseArcRef,
+    EllipseRef, EntityIterator, IfcdrEntityRef, IfcdrResourceRef, Line, LocalPointIterator,
+    ModelSpaceRef, PaperSpaceRef, PlanarPolylineRef, PointIterator, PointRef, ScopePointIterator,
+    ScopeRef, SpatialPolylineRef, ViewportRef,
 };
 pub use types::{
     AppearanceId, BlockScaling, Bounds2d, EntityId, IfcdrLengthUnit, LayerId, Point2, ScopeId,

@@ -93,6 +93,7 @@ fn nested_shared_definition_loss_reaches_every_affected_instance() {
     let owner = document.block_records.get("Door").unwrap().handle;
     let mut circle = cadcodec::Circle::new();
     circle.common.owner_handle = owner;
+    circle.thickness = 1.0;
     document.add_entity(EntityType::Circle(circle)).unwrap();
     let mut outer = BlockRecord::new("Outer");
     outer.handle = document.allocate_handle();
@@ -181,7 +182,13 @@ fn mixed_definition_order_and_negative_uniformity_survive_strict_readback() {
     let kinds: Vec<_> = resource
         .entities(scope)
         .map(|entity| match entity {
-            IfcdrEntityRef::Polyline(_) => "polyline",
+            IfcdrEntityRef::Point(_) => "point",
+            IfcdrEntityRef::Circle(_) => "circle",
+            IfcdrEntityRef::Arc(_) => "arc",
+            IfcdrEntityRef::Ellipse(_) => "ellipse",
+            IfcdrEntityRef::EllipseArc(_) => "ellipseArc",
+            IfcdrEntityRef::PlanarPolyline(_) => "polyline",
+            IfcdrEntityRef::SpatialPolyline(_) => "spatialPolyline",
             IfcdrEntityRef::BlockInstance(i) => {
                 assert_eq!(i.transform().scale().x(), -2.);
                 "insert"
@@ -413,6 +420,7 @@ fn partial_definition_loss_identifies_affected_instances() {
     let owner = document.block_records.get("Door").unwrap().handle;
     let mut circle = cadcodec::Circle::new();
     circle.common.owner_handle = owner;
+    circle.thickness = 1.0;
     document.add_entity(EntityType::Circle(circle)).unwrap();
     let instance = document
         .add_entity(EntityType::Insert(cadcodec::entities::Insert::new(

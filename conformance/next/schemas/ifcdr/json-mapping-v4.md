@@ -2,7 +2,8 @@
 
 This document normatively defines `ifccad.ifcdr.jsonMapping.v4`. It applies to
 mapping documents using that identifier, including
-[the IFCDR 0.10.0 mapping](json-mapping-0.10.0.json). The
+[the IFCDR 0.10.0 mapping](json-mapping-0.10.0.json) and
+[the IFCDR 0.11.0 mapping](json-mapping-0.11.0.json). The
 [meta-schema](json-mapping-meta-schema-v4.json) checks the structure of a mapping
 document; this document defines its interpretation. MUST, MUST NOT and MAY
 express requirements and permitted choices.
@@ -75,6 +76,26 @@ members are invalid. Canonical writing omits all-identity columns and uses null
 for identity rows in mixed columns. The default is a complete logical frame,
 not a collection of independently optional components.
 
+The 0.11.0 mapping additionally uses whole-default row markers for
+`point.placement`, `circle.placement`, `arc.placement`, `ellipse.placement`
+and `ellipseArc.placement`. For Point, Circle, Arc, Ellipse, EllipseArc and
+planar polyline placement columns in that
+version, a non-null object may contain only a complete three-coordinate
+`origin`; this resolves X and Y to exactly `(1,0,0)` and `(0,1,0)` in the
+owning scope. An object may instead contain `origin`, X and Y in full.
+One axis without the other is invalid. The origin-only physical form is used
+only when the stored axes equal the standard axes exactly; nearly standard
+axes remain explicit. Block-instance transform placements retain their
+independent encoding rules. The logical placement remains a complete frame
+regardless of its physical form.
+
+Circle and Arc each have a distinct object stream. Both require a finite
+`radius` column; Arc additionally requires finite `startParameter` and
+`sweepParameter` columns. Positive radius and partial nonzero sweep are logical
+semantic rules checked after decoding, not physical column rules.
+Ellipse and EllipseArc each require `semiMajorRadius` and `semiMinorRadius`;
+EllipseArc also requires finite `startParameter` and `sweepParameter` columns.
+
 Line z1 and z2 independently use ordinary omission with default zero. Present
 Z columns contain a finite number for each row, including numeric zero; null
 entries are invalid. Canonical writing omits a Z column only if every value is
@@ -127,6 +148,11 @@ and `pools: ["x", "y"]`. For example:
 
 The first sequence is `(0,0), (10,0), (10,10)`; the second is
 `(20,20), (30,20)`. This is a fragment, not a complete IFCDR stream.
+
+The 0.11.0 `planarPolyline` mapping adds a third `bulge` pool. Omitted
+`bulge` means zero for every physical vertex; an explicit pool has the same
+length as `x` and `y`. The 0.11.0 `spatialPolyline` mapping instead uses
+`pools: ["x", "y", "z"]`. It has no placement or bulges.
 
 Ranges MAY overlap, be shared, or occur in a different physical order from
 their parent rows. Pool points MAY remain unselected. For example offsets

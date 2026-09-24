@@ -75,6 +75,22 @@ pub fn cad_document_to_package(
         } else {
             ifccad::package::PlotStyleMode::Named
         });
+        if let Some(point_display) = crate::point_display::from_cad(
+            document.header.point_display_mode,
+            document.header.point_display_size,
+        ) {
+            drawing.set_point_display(point_display)?;
+        } else {
+            context.diagnostics.push(ExportDiagnostic::loss(
+                ExportDiagnosticSource::DocumentField {
+                    name: "header.point_display".to_owned(),
+                },
+                ExportAction::Skipped,
+                vec![super::ExportLossReason::UnsupportedHeaderField {
+                    name: "point_display".to_owned(),
+                }],
+            ));
+        }
         add_layers(document, &mut drawing, &mut context)?;
         add_layouts(document, &mut drawing, &mut context)?;
         super::blocks::add_definitions(document, &mut drawing, &mut context)?;

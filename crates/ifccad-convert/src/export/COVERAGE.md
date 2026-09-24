@@ -48,6 +48,7 @@ This does not certify fields erased before the CadDocument boundary.
 | `version`, `maintenance_version`, `dwg_source_version` | NonSemantic | Physical source-codec selection is not drawing semantics. |
 | `header.insertion_units` | Exact/PartialLoss | All 25 CAD codes 0–24 map exactly; unknown codes become `unitless` plus `UnsupportedUnit`. Coordinates are never rescaled. |
 | `header.plotstyle_mode`, `header.paper_space_linetype_scaling` | Exact | Drawing plot-style mode and each emitted layout's saved linetype-scaling intent; the latter is one CAD header value copied to every layout. |
+| `header.point_display_mode`, `header.point_display_size` | Exact/SkippedLoss | Supported PDMODE glyph/enclosure bits and finite PDSIZE values map to grouped `Drawing.attributes.pointDisplay`; PDSIZE zero remains distinct from explicit negative five percent. Unsupported bits or nonfinite size skip the setting with `UnsupportedHeaderField { point_display }`. |
 | `header.model_space_block_handle` and the related `Layout.block_record` | Exact/FatalIfInconsistent | The relationship selects the one model layout; null, missing, or ambiguous structure is fatal. Numeric handle replacement itself is not loss. |
 | `header.handle_seed`, table-control handles, dictionary handles, and standard-record handles | NonSemantic | Numeric serialization identity alone is ignored. Meaningful referenced content is covered at its table/object/entity source. |
 | `header.project_name` | SkippedLoss | `UnsupportedHeaderField { project_name }`. |
@@ -104,12 +105,17 @@ were natively represented.
 
 | `EntityType` variant | Status | Contract |
 | --- | --- | --- |
+| `Point` | Exact/PartialLoss/SkippedLoss | Finite WCS location, normal and X-axis angle map to an oriented IFCDR Point placement. Normalization is diagnosed; nonzero thickness or an invalid frame skips the entity. Point size/form come from the drawing header. |
+| `Circle`, `Arc` | Exact/PartialLoss/SkippedLoss | Finite OCS centre, positive radius and valid normal map through the pinned arbitrary-axis frame. Arc start/end angles map to start plus positive sweep; zero/full/multiple-turn sweeps, invalid frames and nonzero thickness skip the entity. Normalization is diagnosed. |
+| `Ellipse` | Exact/PartialLoss/SkippedLoss | Finite WCS centre and major-axis vector, valid normal and minor/major ratio map to Ellipse or EllipseArc according to exact full versus partial parameter span. Nearly full spans remain EllipseArc; invalid frame, ratio or span skips the entity. |
 | `Line` | Exact/PartialLoss/SkippedLoss | Finite XYZ endpoints are copied exactly. Non-default finite normals are partial source-property loss; geometry is retained. Unsupported thickness still skips the entity. |
-| `LwPolyline` | Exact/PartialLoss/SkippedLoss | At least two finite local XY vertices, finite elevation and a finite nonzero normal define a plane through the pinned arbitrary-axis interpretation. Local points, order and closure are retained. Normal normalization and nonzero opaque vertex IDs (including negative IDs) are partial losses. Nonzero thickness/width/bulge and PLINEGEN still skip the whole entity. Geometric rounding is assessed separately and target range/evaluation failure is fatal under both policies. |
+| `LwPolyline` | Exact/PartialLoss/SkippedLoss | At least two finite local XY vertices, finite elevation and a finite nonzero normal define a plane through the pinned arbitrary-axis interpretation. Vertices, signed bulges including a dormant final open bulge, order and closure map to PlanarPolyline. Width-only sources retain the zero-width centre path under Allow with `PolylineWidth` partial loss; Reject refuses the loss. Nonzero thickness, PLINEGEN and invalid curved segments skip the whole entity. Normal normalization and opaque vertex IDs are diagnosed. |
+| `Polyline2D` | Exact/PartialLoss/SkippedLoss | Ordinary planar vertices and bulges map to PlanarPolyline using the same OCS preparation. Width-only sources follow the centre-path partial-loss policy. Fit/spline-fit, nonzero vertex Z and unsupported flags or thickness skip the whole entity. |
+| `Polyline`, `Polyline3D` | Exact/SkippedLoss | Ordinary finite straight XYZ vertices and closure map to SpatialPolyline. Fit/spline-fit, mesh/polyface and unsupported vertex/source properties skip the whole entity. The export result preserves no source-specific 3D polyline variant identity. |
 | `Insert` | Exact/PartialLoss/SkippedLoss/FatalIfInconsistent | Ordinary local references map to BlockInstance. OCS insertion coordinates map to owning-scope placement using the actual pinned CAD axes. Qualified trig intervals and exact residual propagation check each occurrence. Unsupported array/attribute/view/external variants skip as a whole; missing/cyclic targets are fatal. |
 | `Viewport` | Exact/PartialLoss/SkippedLoss | Paper-owned orthographic rectangular viewports map frame, target/direction/height/twist, render mode, enabled/locked state, front/back clip and frozen layers. A mapped earlier same-scope closed straight `LwPolyline` may be an active clip. Missing or unsupported active boundaries and perspective skip the entire viewport; deferred snap/grid/UCS and visual state are diagnosed as partial loss. Appearance overrides are not exposed by the pinned CAD Viewport model. |
 | `Block`, `BlockEnd` | NonSemantic/FatalIfInconsistent/SkippedLoss | Matching structural markers supply record scaffolding, not drawable entities. Contradictory exposed begin-marker name/owner/base is fatal; unmatched markers are unsupported entities. |
-| `Point`, `Circle`, `Arc`, `Ellipse`, `Polyline`, `Polyline2D`, `Polyline3D`, `Text`, `MText`, `Spline`, `Helix`, `Dimension`, `Hatch`, `Solid`, `Face3D`, `Ray`, `XLine`, `AttributeDefinition`, `AttributeEntity`, `Leader`, `MultiLeader`, `MLine`, `Mesh`, `RasterImage`, `Solid3D`, `Region`, `Body`, `Surface`, `Table`, `Tolerance`, `PolyfaceMesh`, `Wipeout`, `Shape`, `Underlay`, `Seqend`, `Ole2Frame`, `PolygonMesh`, `Light`, `SectionSymbol`, `ViewBorder`, `Extended`, `Unknown` | SkippedLoss | Whole entity receives `UnsupportedEntityType`; no geometry is approximated. |
+| `Text`, `MText`, `Spline`, `Helix`, `Dimension`, `Hatch`, `Solid`, `Face3D`, `Ray`, `XLine`, `AttributeDefinition`, `AttributeEntity`, `Leader`, `MultiLeader`, `MLine`, `Mesh`, `RasterImage`, `Solid3D`, `Region`, `Body`, `Surface`, `Table`, `Tolerance`, `PolyfaceMesh`, `Wipeout`, `Shape`, `Underlay`, `Seqend`, `Ole2Frame`, `PolygonMesh`, `Light`, `SectionSymbol`, `ViewBorder`, `Extended`, `Unknown` | SkippedLoss | Whole entity receives `UnsupportedEntityType`; no geometry is approximated. |
 | Model, paper, or supported definition ownership | Exact/FatalIfInconsistent | Per-owner explicit entity-handle order is retained; known-owner contents must occur exactly once with consistent membership. |
 | Unsupported block owner | SkippedLoss | `BlockOwnedEntity`. |
 | Null or unknown owner | FatalIfInconsistent | All safely detectable owner problems are aggregated before return. |
@@ -154,7 +160,8 @@ will cease to be package loss even when it remains non-native in IFCDR.
 
 ## Coordinate-frame accuracy
 
-IFCDR 0.8.0 stores XYZ lines and local XY polylines with a complete optional
+IFCDR 0.11.0 stores XYZ lines, spatial XYZ polylines and planar XY polylines
+with an optional whole
 plane placement. The converter alone interprets CAD arbitrary axes, using the
 actual axes returned by the pinned helper after robust scaled normalization.
 It never assumes repeated normalization preserves all source normal bits.
@@ -163,8 +170,8 @@ It never assumes repeated normalization preserves all source normal bits.
 The default is exactly one micrometre for known drawing units and zero for
 unitless drawings. Explicit physical tolerances require a known unit. Unit
 conversion and squared residual comparison use exact rational values; distance
-reports give outward bounds in drawing units. Every emitted line endpoint and
-polyline vertex is covered. Failure to establish accuracy returns a typed error
+reports give outward bounds in drawing units. Every emitted line endpoint,
+polyline vertex and active bulged-segment midpoint is covered. Failure to establish accuracy returns a typed error
 and no partial package. A numerical diagnostic within the limit is exempt from
 Reject, but `transfer_assessment()` still records `LossDetected`.
 

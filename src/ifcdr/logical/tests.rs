@@ -62,6 +62,9 @@ impl IfcdrPolylineAccess for Polyline<'_> {
     fn vertex(&self, i: usize) -> Option<Point2> {
         self.0.points.get(i).copied()
     }
+    fn bulge(&self, index: usize) -> Option<f64> {
+        self.0.points.get(index).map(|_| 0.0)
+    }
 }
 impl IfcdrResourceAccess for TestResource {
     fn viewports(&self) -> &[IfcdrViewportRow] {

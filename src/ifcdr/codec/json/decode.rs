@@ -118,9 +118,25 @@ pub(crate) fn decode_json(
         return Err(errors);
     }
     let l = &value["streams"]["lineStream"];
+    let point_stream = &value["streams"]["pointStream"];
+    let point_entities = entity(point_stream);
+    let circle_stream = &value["streams"]["circleStream"];
+    let circle_entities = entity(circle_stream);
+    let arc_stream = &value["streams"]["arcStream"];
+    let arc_entities = entity(arc_stream);
+    let ellipse_stream = &value["streams"]["ellipseStream"];
+    let ellipse_entities = entity(ellipse_stream);
+    let ellipse_arc_stream = &value["streams"]["ellipseArcStream"];
+    let ellipse_arc_entities = entity(ellipse_arc_stream);
     let instances = &value["streams"]["blockInstanceStream"];
     let instance_entities = entity(instances);
-    let p = &value["streams"]["polylineStream"];
+    let p = if value["header"]["version"] == "0.11.0" {
+        &value["streams"]["planarPolylineStream"]
+    } else {
+        &value["streams"]["polylineStream"]
+    };
+    let spatial = &value["streams"]["spatialPolylineStream"];
+    let spatial_entities = entity(spatial);
     let o = &value["streams"]["entityOrderStream"];
     let entries: Vec<u64> = values(
         &value["streams"]["entityOrderEntryStream"]["entityId"],
@@ -237,6 +253,48 @@ pub(crate) fn decode_json(
             .collect(),
         overrides,
         orders,
+        points: (0..point_stream["count"].as_u64().unwrap_or(0) as usize)
+            .map(|row| IfcdrPointRow {
+                entity: point_entities.get(row).expect("physical point row"),
+                placement: placement_row(point_stream, row),
+            })
+            .collect(),
+        circles: (0..circle_stream["count"].as_u64().unwrap_or(0) as usize)
+            .map(|row| IfcdrCircleRow {
+                entity: circle_entities.get(row).expect("physical circle row"),
+                placement: placement_row(circle_stream, row),
+                radius: num(&circle_stream["radius"][row]),
+            })
+            .collect(),
+        arcs: (0..arc_stream["count"].as_u64().unwrap_or(0) as usize)
+            .map(|row| IfcdrArcRow {
+                entity: arc_entities.get(row).expect("physical arc row"),
+                placement: placement_row(arc_stream, row),
+                radius: num(&arc_stream["radius"][row]),
+                start_parameter: num(&arc_stream["startParameter"][row]),
+                sweep_parameter: num(&arc_stream["sweepParameter"][row]),
+            })
+            .collect(),
+        ellipses: (0..ellipse_stream["count"].as_u64().unwrap_or(0) as usize)
+            .map(|row| IfcdrEllipseRow {
+                entity: ellipse_entities.get(row).expect("physical ellipse row"),
+                placement: placement_row(ellipse_stream, row),
+                semi_major_radius: num(&ellipse_stream["semiMajorRadius"][row]),
+                semi_minor_radius: num(&ellipse_stream["semiMinorRadius"][row]),
+            })
+            .collect(),
+        ellipse_arcs: (0..ellipse_arc_stream["count"].as_u64().unwrap_or(0) as usize)
+            .map(|row| IfcdrEllipseArcRow {
+                entity: ellipse_arc_entities
+                    .get(row)
+                    .expect("physical elliptic arc row"),
+                placement: placement_row(ellipse_arc_stream, row),
+                semi_major_radius: num(&ellipse_arc_stream["semiMajorRadius"][row]),
+                semi_minor_radius: num(&ellipse_arc_stream["semiMinorRadius"][row]),
+                start_parameter: num(&ellipse_arc_stream["startParameter"][row]),
+                sweep_parameter: num(&ellipse_arc_stream["sweepParameter"][row]),
+            })
+            .collect(),
         lines: LineColumns {
             entity: entity(l),
             x1: values(&l["x1"], num),
@@ -258,13 +316,45 @@ pub(crate) fn decode_json(
                         num(&v["origin"]["y"]),
                         num(&v["origin"]["z"]),
                     ),
-                    x: Vector3::new(num(&v["X"]["x"]), num(&v["X"]["y"]), num(&v["X"]["z"])),
-                    y: Vector3::new(num(&v["Y"]["x"]), num(&v["Y"]["y"]), num(&v["Y"]["z"])),
+                    x: if v.get("X").is_some() {
+                        Vector3::new(num(&v["X"]["x"]), num(&v["X"]["y"]), num(&v["X"]["z"]))
+                    } else {
+                        Vector3::new(1.0, 0.0, 0.0)
+                    },
+                    y: if v.get("Y").is_some() {
+                        Vector3::new(num(&v["Y"]["x"]), num(&v["Y"]["y"]), num(&v["Y"]["z"]))
+                    } else {
+                        Vector3::new(0.0, 1.0, 0.0)
+                    },
                 })
             }),
             x: values(&p["x"], num),
             y: values(&p["y"], num),
+            bulge: values(&p["bulge"], num),
         },
+        spatial_polylines: (0..spatial["count"].as_u64().unwrap_or(0) as usize)
+            .map(|row| {
+                let offset = u32v(&spatial["vertexOffset"][row]) as usize;
+                let count = u32v(&spatial["vertexCount"][row]) as usize;
+                IfcdrSpatialPolylineRow {
+                    entity: spatial_entities
+                        .get(row)
+                        .expect("physical spatial polyline row"),
+                    closed: spatial["closed"][row]
+                        .as_bool()
+                        .expect("physical closed flag"),
+                    points: (offset..offset + count)
+                        .map(|index| {
+                            Point3::new(
+                                num(&spatial["x"][index]),
+                                num(&spatial["y"][index]),
+                                num(&spatial["z"][index]),
+                            )
+                        })
+                        .collect(),
+                }
+            })
+            .collect(),
     })
 }
 fn point2_record(v: &Value) -> Point2 {
@@ -349,6 +439,19 @@ fn shaded_plot_record(v: &Value) -> ShadedPlot {
 }
 fn point_record(v: &Value) -> Point3 {
     Point3::new(num(&v["x"]), num(&v["y"]), num(&v["z"]))
+}
+fn placement_row(stream: &Value, row: usize) -> PlanePlacementComponents {
+    let p = &stream["placement"][row];
+    if p.is_null() {
+        return PlanePlacement::default().components();
+    }
+    PlanePlacementComponents {
+        origin: point_record(&p["origin"]),
+        x: p.get("X")
+            .map_or(Vector3::new(1.0, 0.0, 0.0), vector3_record),
+        y: p.get("Y")
+            .map_or(Vector3::new(0.0, 1.0, 0.0), vector3_record),
+    }
 }
 fn transform_record(v: &Value) -> BlockTransformComponents {
     BlockTransformComponents {

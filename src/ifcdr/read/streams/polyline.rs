@@ -18,25 +18,25 @@ impl<'a> PolylineStreamView<'a> {
     pub(crate) fn is_empty(&self) -> bool {
         self.len() == 0
     }
-    pub(crate) fn get(&self, row: usize) -> Option<PolylineRef<'a>> {
+    pub(crate) fn get(&self, row: usize) -> Option<PlanarPolylineRef<'a>> {
         DecodedPolylines(self.columns).get(row)?;
-        Some(PolylineRef {
+        Some(PlanarPolylineRef {
             view: DecodedPolyline {
                 columns: self.columns,
                 row,
             },
         })
     }
-    pub(crate) fn iter(&self) -> impl ExactSizeIterator<Item = PolylineRef<'a>> + 'a {
+    pub(crate) fn iter(&self) -> impl ExactSizeIterator<Item = PlanarPolylineRef<'a>> + 'a {
         let view = *self;
         (0..self.len()).map(move |i| view.get(i).unwrap())
     }
 }
 #[derive(Clone, Copy)]
-pub struct PolylineRef<'a> {
+pub struct PlanarPolylineRef<'a> {
     view: DecodedPolyline<'a>,
 }
-impl<'a> PolylineRef<'a> {
+impl<'a> PlanarPolylineRef<'a> {
     pub fn entity_id(&self) -> EntityId {
         EntityId::new(self.view.entity().entity_id).unwrap()
     }
@@ -75,6 +75,13 @@ impl<'a> PolylineRef<'a> {
             view: self.view,
             next: 0,
         }
+    }
+    pub fn bulge(&self, vertex_index: usize) -> Option<f64> {
+        self.view.bulge(vertex_index)
+    }
+    pub fn bulges(&self) -> impl ExactSizeIterator<Item = f64> + 'a {
+        let view = self.view;
+        (0..view.vertex_count()).map(move |i| view.bulge(i).expect("validated bulge"))
     }
 }
 pub struct LocalPointIterator<'a> {

@@ -42,12 +42,12 @@
       "attributes": {
         "name": "Drawing",
         "resource": {
-          "checksum": "sha256:c5d53a4bbdc4ec30a865a1b2d30829a5cf2a9f81b0093f7200eebb70fe8767ab",
+          "checksum": "sha256:493229f685c5ba0238120a979af883c3de5a5249fedf4717061c154a14217390",
           "format": "openaec.ifcdr",
           "resourceId": "empty-geometry",
           "role": "drawing",
           "uri": "resources/drawing.ifcdr.json",
-          "version": "0.10.0"
+          "version": "0.11.0"
         }
       },
       "path": "representation-0",
@@ -57,12 +57,12 @@
       "attributes": {
         "name": "Drawing",
         "resource": {
-          "checksum": "sha256:cbdc687b58c26f0808a6de9db286d034a010a4b73f8b62da80ada20e549767f7",
+          "checksum": "sha256:ef14e7ac90bfe27651b902a6e2f9a967f389e5900ca1de4f0530bde55b6b8b70",
           "format": "openaec.ifcdr",
           "resourceId": "other-geometry",
           "role": "drawing",
           "uri": "resources/other.ifcdr.json",
-          "version": "0.10.0"
+          "version": "0.11.0"
         }
       },
       "path": "representation-other",

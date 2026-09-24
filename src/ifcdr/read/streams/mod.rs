@@ -4,7 +4,7 @@ mod polyline;
 pub use line::Line;
 pub(crate) use line::LineStreamView;
 pub(crate) use polyline::PolylineStreamView;
-pub use polyline::{LocalPointIterator, PointIterator, PolylineRef, ScopePointIterator};
+pub use polyline::{LocalPointIterator, PlanarPolylineRef, PointIterator, ScopePointIterator};
 
 use super::resource::ValidatedIfcdrResource;
 

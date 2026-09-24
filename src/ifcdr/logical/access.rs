@@ -21,7 +21,25 @@ pub(crate) trait IfcdrResourceAccess {
     fn appearances(&self) -> &[IfcdrAppearanceBinding];
     fn overrides(&self) -> &[IfcdrAppearanceOverride];
     fn lines(&self) -> Self::Lines<'_>;
+    fn points(&self) -> &[IfcdrPointRow] {
+        &[]
+    }
+    fn circles(&self) -> &[IfcdrCircleRow] {
+        &[]
+    }
+    fn arcs(&self) -> &[IfcdrArcRow] {
+        &[]
+    }
+    fn ellipses(&self) -> &[IfcdrEllipseRow] {
+        &[]
+    }
+    fn ellipse_arcs(&self) -> &[IfcdrEllipseArcRow] {
+        &[]
+    }
     fn polylines(&self) -> Self::Polylines<'_>;
+    fn spatial_polylines(&self) -> &[IfcdrSpatialPolylineRow] {
+        &[]
+    }
     fn block_instances(&self) -> Self::BlockInstances<'_>;
     fn viewports(&self) -> &[IfcdrViewportRow] {
         &[]
@@ -72,4 +90,5 @@ pub(crate) trait IfcdrPolylineAccess {
     fn placement(&self) -> crate::ifcdr::geometry::PlanePlacementComponents;
     fn vertex_count(&self) -> usize;
     fn vertex(&self, index: usize) -> Option<Point2>;
+    fn bulge(&self, index: usize) -> Option<f64>;
 }

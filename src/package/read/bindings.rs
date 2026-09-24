@@ -154,7 +154,7 @@ fn validate_drawing_membership(
         if nodes[representation_index]
             .pointer("/attributes/resource/version")
             .and_then(Value::as_str)
-            != Some("0.10.0")
+            .is_none_or(|version| !matches!(version, "0.10.0" | "0.11.0"))
         {
             continue;
         }

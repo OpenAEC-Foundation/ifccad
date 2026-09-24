@@ -324,7 +324,8 @@ pub(crate) fn polyline_pairs(
 ) -> Vec<PairedPoint> {
     let basis = super::cad_plane(poly.normal).expect("validated CAD polyline axes");
     let (o, x, y) = super::components(plane);
-    poly.vertices
+    let mut pairs = poly
+        .vertices
         .iter()
         .map(|vertex| {
             let a = exact(vertex.location.x);
@@ -337,7 +338,32 @@ pub(crate) fn polyline_pairs(
             let target = std::array::from_fn(|i| exact(o[i]) + exact(x[i]) * &a + exact(y[i]) * &b);
             PairedPoint::new(source, target)
         })
-        .collect()
+        .collect::<Vec<_>>();
+    let count = if poly.is_closed {
+        poly.vertices.len()
+    } else {
+        poly.vertices.len().saturating_sub(1)
+    };
+    for index in 0..count {
+        let start = &poly.vertices[index];
+        if start.bulge == 0.0 {
+            continue;
+        }
+        let end = &poly.vertices[(index + 1) % poly.vertices.len()];
+        let [a, b] = super::bulge_midpoint(
+            [start.location.x, start.location.y],
+            [end.location.x, end.location.y],
+            start.bulge,
+        );
+        let source = std::array::from_fn(|i| {
+            exact(basis.u[i]) * &a
+                + exact(basis.v[i]) * &b
+                + exact(basis.n[i]) * exact(poly.elevation)
+        });
+        let target = std::array::from_fn(|i| exact(o[i]) + exact(x[i]) * &a + exact(y[i]) * &b);
+        pairs.push(PairedPoint::new(source, target));
+    }
+    pairs
 }
 
 pub(crate) fn to_cad_instance(
@@ -422,12 +448,12 @@ pub(crate) fn to_cad_instance(
 }
 
 pub(crate) fn import_polyline_pairs(
-    native: ifccad::ifcdr::PolylineRef,
+    native: ifccad::ifcdr::PlanarPolylineRef,
     target: &cadcodec::LwPolyline,
 ) -> Vec<PairedPoint> {
     let (o, u, v) = super::components(native.placement());
     let basis = super::cad_plane(target.normal).expect("constructed CAD axes");
-    native
+    let mut pairs = native
         .local_points()
         .zip(&target.vertices)
         .map(|(point, vertex)| {
@@ -441,7 +467,34 @@ pub(crate) fn import_polyline_pairs(
             });
             PairedPoint::new(source, target)
         })
-        .collect()
+        .collect::<Vec<_>>();
+    let local = native.local_points().collect::<Vec<_>>();
+    let count = if native.closed() {
+        local.len()
+    } else {
+        local.len().saturating_sub(1)
+    };
+    for index in 0..count {
+        let bulge = native.bulge(index).expect("validated bulge");
+        if bulge == 0.0 {
+            continue;
+        }
+        let start = local[index];
+        let end = local[(index + 1) % local.len()];
+        let [a, b] = super::bulge_midpoint([start.x(), start.y()], [end.x(), end.y()], bulge);
+        let source = std::array::from_fn(|i| exact(o[i]) + exact(u[i]) * &a + exact(v[i]) * &b);
+        let cad_start = target.vertices[index].location;
+        let cad_end = target.vertices[(index + 1) % target.vertices.len()].location;
+        let [c, d] =
+            super::bulge_midpoint([cad_start.x, cad_start.y], [cad_end.x, cad_end.y], bulge);
+        let target_point = std::array::from_fn(|i| {
+            exact(basis.u[i]) * &c
+                + exact(basis.v[i]) * &d
+                + exact(basis.n[i]) * exact(target.elevation)
+        });
+        pairs.push(PairedPoint::new(source, target_point));
+    }
+    pairs
 }
 
 #[cfg(test)]

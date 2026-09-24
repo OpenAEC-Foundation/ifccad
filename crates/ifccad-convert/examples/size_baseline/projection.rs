@@ -50,6 +50,25 @@ pub fn ifccad(drawing: DrawingRef<'_>) -> Result<(Drawing, Vec<u64>)> {
     let mut ids = Vec::new();
     for entity in resource.entities(layouts[0].scope().id()) {
         let (geometry, layer, appearance, visible, id) = match entity {
+            IfcdrEntityRef::Point(_) => {
+                return Err("point geometry is outside the fixed primitive benchmark corpus".into())
+            }
+            IfcdrEntityRef::SpatialPolyline(_) => {
+                return Err(
+                    "spatial polyline geometry is outside the fixed primitive benchmark corpus"
+                        .into(),
+                )
+            }
+            IfcdrEntityRef::Circle(_) | IfcdrEntityRef::Arc(_) => {
+                return Err(
+                    "circular geometry is outside the fixed primitive benchmark corpus".into(),
+                )
+            }
+            IfcdrEntityRef::Ellipse(_) | IfcdrEntityRef::EllipseArc(_) => {
+                return Err(
+                    "elliptic geometry is outside the fixed primitive benchmark corpus".into(),
+                )
+            }
             IfcdrEntityRef::BlockInstance(_) => {
                 return Err("block geometry is outside the fixed primitive benchmark corpus".into())
             }
@@ -68,7 +87,7 @@ pub fn ifccad(drawing: DrawingRef<'_>) -> Result<(Drawing, Vec<u64>)> {
                 line.visible(),
                 line.entity_id().get(),
             ),
-            IfcdrEntityRef::Polyline(polyline) => (
+            IfcdrEntityRef::PlanarPolyline(polyline) => (
                 Geometry::Polyline {
                     points: polyline.local_points().map(|p| [p.x(), p.y()]).collect(),
                     closed: polyline.closed(),

@@ -69,12 +69,12 @@ fn viewport_0_10_physical_child_range_decodes_and_checks_partition() {
 }
 
 #[test]
-fn viewport_0_10_writer_roundtrips_through_production_decoder() {
+fn viewport_writer_roundtrips_through_production_decoder() {
     let decoded = decode_json("viewport.json", &viewport_fixture()).unwrap();
     let (proof, errors) = validate_resource(decoded).into_parts();
     let proof = proof.unwrap_or_else(|| panic!("{errors:?}"));
     let encoded = encode_json(&proof).unwrap();
-    assert_eq!(encoded.value["header"]["version"], "0.10.0");
+    assert_eq!(encoded.value["header"]["version"], "0.11.0");
     let reread = decode_json("roundtrip.json", &encoded.value).unwrap();
     assert_eq!(reread.viewports(), proof.loaded().resource().viewports());
 }
@@ -235,7 +235,6 @@ fn block_physical_records_reject_null_partial_records_and_unknown_enum_codes() {
 
 fn spatial_fixture() -> Value {
     let mut value = fixture();
-    value["header"]["version"] = json!("0.9.0");
     value.as_object_mut().unwrap().remove("bounds");
     for scope in value["scopeTable"].as_array_mut().unwrap() {
         scope["bounds"] =
@@ -246,8 +245,8 @@ fn spatial_fixture() -> Value {
             entry["schema"] = json!("ifccad.ifcdr.line.v3");
             entry["columns"].as_array_mut().unwrap().push(json!("z1"));
         }
-        if entry["name"] == "polyline" {
-            entry["schema"] = json!("ifccad.ifcdr.polyline.v4");
+        if entry["name"] == "planarPolyline" {
+            entry["schema"] = json!("ifccad.ifcdr.planarPolyline.v1");
             entry["columns"]
                 .as_array_mut()
                 .unwrap()
@@ -255,7 +254,7 @@ fn spatial_fixture() -> Value {
         }
     }
     value["streams"]["lineStream"]["z1"] = json!([4, 0]);
-    value["streams"]["polylineStream"]["placement"] = json!([null,
+    value["streams"]["planarPolylineStream"]["placement"] = json!([null,
         {"origin":{"x":0,"y":0,"z":5},"X":{"x":0,"y":1,"z":0},"Y":{"x":0,"y":0,"z":1}}]);
     value
 }
@@ -270,13 +269,7 @@ fn spatial_columns_and_scoped_bounds_pass_the_production_decoder() {
 fn fixture() -> Value {
     let path = crate::conformance::bundled_conformance_root()
         .join("packages/valid/minimal-no-preservation/drawing.ifcdr.json");
-    let mut value: Value = serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
-    value["header"]["version"] = json!("0.9.0");
-    for entry in value["streamDirectory"]["streams"].as_array_mut().unwrap() {
-        if entry["name"] == "polyline" {
-            entry["schema"] = json!("ifccad.ifcdr.polyline.v4");
-        }
-    }
+    let value: Value = serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
     value
 }
 #[test]
@@ -306,7 +299,7 @@ fn broken_packing_does_not_produce_a_candidate() {
     value["streams"]["lineStream"]["x1"] = json!([]);
     assert!(decode_json("drawing.ifcdr.json", &value).is_err());
     let mut value = fixture();
-    value["streams"]["polylineStream"]["vertexOffset"][0] = json!(u32::MAX);
+    value["streams"]["planarPolylineStream"]["vertexOffset"][0] = json!(u32::MAX);
     assert!(decode_json("drawing.ifcdr.json", &value).is_err());
 }
 #[test]
@@ -471,10 +464,13 @@ fn resource_preparation_needs_only_resource_data() {
         overrides: decoded.overrides.clone(),
         entities: vec![
             IfcdrWriteEntity::Line(line),
-            IfcdrWriteEntity::Polyline {
+            IfcdrWriteEntity::PlanarPolyline {
                 entity: poly_entity,
                 placement: polyline.placement(),
                 closed: polyline.closed(),
+                bulges: (0..polyline.vertex_count())
+                    .map(|i| polyline.bulge(i).unwrap())
+                    .collect(),
                 points: (0..polyline.vertex_count())
                     .map(|i| polyline.vertex(i).unwrap())
                     .collect(),
@@ -503,10 +499,10 @@ fn resource_preparation_needs_only_resource_data() {
 #[test]
 fn point_pool_ranges_allow_sharing_and_unused_points() {
     let mut input = fixture();
-    input["streams"]["polylineStream"]["vertexOffset"] = json!([1, 1]);
-    input["streams"]["polylineStream"]["vertexCount"] = json!([2, 3]);
+    input["streams"]["planarPolylineStream"]["vertexOffset"] = json!([1, 1]);
+    input["streams"]["planarPolylineStream"]["vertexCount"] = json!([2, 3]);
     // Unselected points are storage only, even when outside declared bounds.
-    input["streams"]["polylineStream"]["x"][6] = json!(10000.);
+    input["streams"]["planarPolylineStream"]["x"][6] = json!(10000.);
     let decoded = decode_json("resource.json", &input).unwrap();
     let polylines = decoded.polylines();
     assert_eq!(
@@ -535,7 +531,7 @@ fn point_pool_range_rejects_invalid_lengths_and_indices() {
         ("y", json!([0.])),
     ] {
         let mut input = fixture();
-        input["streams"]["polylineStream"][field] = value;
+        input["streams"]["planarPolylineStream"][field] = value;
         assert!(decode_json("resource.json", &input).is_err(), "{field}");
     }
 }
@@ -575,11 +571,11 @@ fn spatial_marker_and_complete_frame_rules_are_physical_constraints() {
         json!([null,{"origin":{"x":0,"y":0},"X":{"x":1,"y":0,"z":0},"Y":{"x":0,"y":1,"z":0}}]),
     ] {
         let mut value = spatial_fixture();
-        value["streams"]["polylineStream"]["placement"] = bad;
+        value["streams"]["planarPolylineStream"]["placement"] = bad;
         assert!(decode_json("bad.json", &value).is_err());
     }
     let mut value = spatial_fixture();
-    value["streams"]["polylineStream"]["placement"][1]["unexpected"] = json!(1);
+    value["streams"]["planarPolylineStream"]["placement"][1]["unexpected"] = json!(1);
     assert!(decode_json("bad.json", &value).is_err());
     let mut value = spatial_fixture();
     value["streams"]["lineStream"]["z1"][0] = Value::Null;
@@ -591,7 +587,7 @@ fn spatial_marker_and_complete_frame_rules_are_physical_constraints() {
 #[test]
 fn frame_validity_and_exact_enclosure_are_shared_semantic_rules() {
     let mut value = spatial_fixture();
-    value["streams"]["polylineStream"]["placement"][1]["X"]["y"] = json!(2);
+    value["streams"]["planarPolylineStream"]["placement"][1]["X"]["y"] = json!(2);
     let decoded = decode_json("bad.json", &value).unwrap();
     let (_, errors) = validate_resource(decoded).into_parts();
     assert!(errors
@@ -609,7 +605,7 @@ fn explicit_identity_frames_and_zero_z_are_canonically_omitted() {
     let mut value = spatial_fixture();
     let identity =
         json!({"origin":{"x":0,"y":0,"z":0},"X":{"x":1,"y":0,"z":0},"Y":{"x":0,"y":1,"z":0}});
-    value["streams"]["polylineStream"]["placement"] = json!([identity.clone(), identity]);
+    value["streams"]["planarPolylineStream"]["placement"] = json!([identity.clone(), identity]);
     value["streams"]["lineStream"]["z1"] = json!([0, 0]);
     let (proof, errors) =
         validate_resource(decode_json("valid.json", &value).unwrap()).into_parts();
@@ -624,9 +620,108 @@ fn explicit_identity_frames_and_zero_z_are_canonically_omitted() {
         encoded.bytes,
         encode_json(&canonical.unwrap()).unwrap().bytes
     );
-    assert!(encoded.value["streams"]["polylineStream"]
+    assert!(encoded.value["streams"]["planarPolylineStream"]
         .get("placement")
         .is_none());
     assert!(encoded.value["streams"]["lineStream"].get("z1").is_none());
     assert!(encoded.value["streams"]["lineStream"].get("z2").is_none());
+}
+
+#[test]
+fn origin_only_placement_preserves_scope_position_and_standard_axes() {
+    let mut value = spatial_fixture();
+    value["header"]["version"] = json!("0.11.0");
+    value["streams"]["planarPolylineStream"]["placement"][1] =
+        json!({"origin":{"x":4.0,"y":5.0,"z":6.0}});
+    let decoded = decode_json("origin-only.json", &value).unwrap();
+    let polylines = decoded.polylines();
+    let polyline = polylines.get(1).unwrap();
+    let placement = polyline.placement();
+    assert_eq!(placement.origin.x(), 4.0);
+    assert_eq!(placement.origin.y(), 5.0);
+    assert_eq!(placement.origin.z(), 6.0);
+    assert_eq!(placement.x.x(), 1.0);
+    assert_eq!(placement.x.y(), 0.0);
+    assert_eq!(placement.y.x(), 0.0);
+    assert_eq!(placement.y.y(), 1.0);
+}
+
+#[test]
+fn origin_only_placement_rejects_partial_axis_pair() {
+    let mut value = spatial_fixture();
+    value["header"]["version"] = json!("0.11.0");
+    value["streams"]["planarPolylineStream"]["placement"][1] = json!({
+        "origin":{"x":4.0,"y":5.0,"z":6.0},
+        "X":{"x":1.0,"y":0.0,"z":0.0}
+    });
+    let errors = decode_json("partial-axes.json", &value).unwrap_err();
+    assert!(errors.iter().any(|error| {
+        error.location.as_deref() == Some("/streams/planarPolylineStream/placement/1")
+            && error.code == "IFCCAD_IFCDR_STRUCTURE_INVALID"
+    }));
+}
+
+#[test]
+fn origin_only_encoding_does_not_change_block_transform_placement() {
+    let mut value = block_fixture();
+    value["header"]["version"] = json!("0.11.0");
+    value["streams"]["blockInstanceStream"]["transform"][0]["placement"] =
+        json!({"origin":{"x":4.0,"y":5.0,"z":6.0}});
+    assert!(decode_json("block-origin-only.json", &value).is_err());
+}
+
+#[test]
+fn writer_uses_origin_only_placement_for_exact_standard_axes() {
+    let mut value = spatial_fixture();
+    value["header"]["version"] = json!("0.11.0");
+    value["streams"]["planarPolylineStream"]["placement"][1] =
+        json!({"origin":{"x":4.0,"y":5.0,"z":6.0}});
+    let decoded = decode_json("writer-origin.json", &value).unwrap();
+    let (proof, errors) = validate_resource(decoded).into_parts();
+    let proof = proof.unwrap_or_else(|| panic!("{errors:?}"));
+    let encoded = encode_json(&proof).unwrap();
+    assert_eq!(encoded.value["header"]["version"], "0.11.0");
+    assert_eq!(
+        encoded.value["streams"]["planarPolylineStream"]["placement"][1],
+        json!({"origin":{"x":4.0,"y":5.0,"z":6.0}})
+    );
+    assert!(decode_json("writer-origin-roundtrip.json", &encoded.value).is_ok());
+}
+
+#[test]
+fn point_stream_has_distinct_identity_and_origin() {
+    let mut value = spatial_fixture();
+    value["header"]["version"] = json!("0.11.0");
+    value["header"]["nextEntityId"] = json!(6);
+    value["streamDirectory"]["streams"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!({
+            "name":"point", "schema":"ifccad.ifcdr.point.v1", "role":"object", "count":1,
+            "columns":["entityId","scopeId","placement","layerId","appearanceId"]
+        }));
+    value["streams"]["pointStream"] = json!({
+        "count":1,"entityId":[5],"scopeId":[0],
+        "placement":[{"origin":{"x":4.0,"y":5.0,"z":6.0}}],
+        "layerId":[0],"appearanceId":[0]
+    });
+    value["streams"]["entityOrderStream"]["entryCount"][0] = json!(5);
+    value["streams"]["entityOrderEntryStream"]["count"] = json!(5);
+    value["streams"]["entityOrderEntryStream"]["entityId"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!(5));
+    for entry in value["streamDirectory"]["streams"].as_array_mut().unwrap() {
+        if entry["name"] == "entityOrderEntry" {
+            entry["count"] = json!(5);
+        }
+    }
+    let decoded = decode_json("point.json", &value).unwrap();
+    assert_eq!(decoded.points().len(), 1);
+    assert_eq!(decoded.points()[0].placement.origin.x(), 4.0);
+    assert_eq!(decoded.points()[0].placement.origin.z(), 6.0);
+    let (proof, errors) = validate_resource(decoded).into_parts();
+    assert!(proof.is_some(), "{errors:?}");
+    let encoded = encode_json(&proof.unwrap()).unwrap();
+    assert!(decode_json("point-roundtrip.json", &encoded.value).is_ok());
 }

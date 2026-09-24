@@ -30,6 +30,17 @@ fn box_intervals(b: Bounds3d) -> [Interval; 3] {
         upper: b.max.components()[i],
     })
 }
+fn box_corners(bounds: Bounds3d) -> impl Iterator<Item = Leaf> {
+    let lo = bounds.min.components();
+    let hi = bounds.max.components();
+    (0..8).map(move |mask| {
+        Leaf::Point(Point3::new(
+            if mask & 1 == 0 { lo[0] } else { hi[0] },
+            if mask & 2 == 0 { lo[1] } else { hi[1] },
+            if mask & 4 == 0 { lo[2] } else { hi[2] },
+        ))
+    })
+}
 fn contains(b: Bounds3d, p: [Interval; 3]) -> bool {
     p.into_iter()
         .enumerate()
@@ -77,6 +88,49 @@ impl<'a, R: IfcdrResourceAccess> Geometry<'a, R> {
         let mut leaves = BTreeMap::new();
         for (id, scope) in &graph.scopes {
             let mut points = Vec::new();
+            for row in &scope.points {
+                points.push(Leaf::Point(r.points()[*row].placement.origin));
+            }
+            for row in &scope.circles {
+                let circle = r.circles()[*row];
+                if let Some(bounds) =
+                    crate::ifcdr::geometry::circular_bounds(circle.placement, circle.radius, None)
+                {
+                    points.extend(box_corners(bounds));
+                }
+            }
+            for row in &scope.arcs {
+                let arc = r.arcs()[*row];
+                if let Some(bounds) = crate::ifcdr::geometry::circular_bounds(
+                    arc.placement,
+                    arc.radius,
+                    Some((arc.start_parameter, arc.sweep_parameter)),
+                ) {
+                    points.extend(box_corners(bounds));
+                }
+            }
+            for row in &scope.ellipses {
+                let ellipse = r.ellipses()[*row];
+                if let Some(bounds) = crate::ifcdr::geometry::elliptic_bounds(
+                    ellipse.placement,
+                    ellipse.semi_major_radius,
+                    ellipse.semi_minor_radius,
+                    None,
+                ) {
+                    points.extend(box_corners(bounds));
+                }
+            }
+            for row in &scope.ellipse_arcs {
+                let arc = r.ellipse_arcs()[*row];
+                if let Some(bounds) = crate::ifcdr::geometry::elliptic_bounds(
+                    arc.placement,
+                    arc.semi_major_radius,
+                    arc.semi_minor_radius,
+                    Some((arc.start_parameter, arc.sweep_parameter)),
+                ) {
+                    points.extend(box_corners(bounds));
+                }
+            }
             for row in &scope.lines {
                 let line = lines.get(*row).unwrap();
                 points.extend([Leaf::Point(line.start), Leaf::Point(line.end)]);
@@ -86,6 +140,35 @@ impl<'a, R: IfcdrResourceAccess> Geometry<'a, R> {
                 let plane = PlanePlacement::from_validated_components(p.placement());
                 points.extend(
                     (0..p.vertex_count()).map(|i| Leaf::Placed(plane, p.vertex(i).unwrap())),
+                );
+                for index in 0..p.vertex_count() {
+                    if index + 1 == p.vertex_count() && !p.closed() {
+                        continue;
+                    }
+                    let bulge = p.bulge(index).unwrap();
+                    if bulge == 0.0 {
+                        continue;
+                    }
+                    if let Some(bounds) = crate::ifcdr::geometry::bulge_segment_bounds(
+                        p.vertex(index).unwrap(),
+                        p.vertex((index + 1) % p.vertex_count()).unwrap(),
+                        bulge,
+                    ) {
+                        for x in [bounds.min().x(), bounds.max().x()] {
+                            for y in [bounds.min().y(), bounds.max().y()] {
+                                points.push(Leaf::Placed(plane, Point2::new(x, y)));
+                            }
+                        }
+                    }
+                }
+            }
+            for row in &scope.spatial_polylines {
+                points.extend(
+                    r.spatial_polylines()[*row]
+                        .points
+                        .iter()
+                        .copied()
+                        .map(Leaf::Point),
                 );
             }
             for row in &scope.viewports {

@@ -2,19 +2,19 @@
   "baseline_accepted": true,
   "corpus_inventory_sha256": "c1b1d8e1eea776aa0ad0bb775db45bedd6c9e5bc1c9d6c117ba4e00483528fee",
   "corpus_scope": "full-v1",
-  "corpus_sha256": "20439c3f26554f5de9c0d1dd606a4c11772fc2bd43aa1fc7edb9a6d03337752c",
+  "corpus_sha256": "40c79ec0538c3a9326319407ecd6e2ce21ab204c34150219dfe6ceeb640d71fe",
   "first_artifacts": [
     {
       "bytes": 2451,
       "path": "elevated-1000/chain-dwg-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "b0e75f2280e1bf20c470e6198a6606de792453de2c2aee35102aaf47c428349f"
+      "sha256": "86637e327ea34c08a48a02125944d5795ab37d4e2d77885974488ae908258ddd"
     },
     {
-      "bytes": 383694,
+      "bytes": 291844,
       "path": "elevated-1000/chain-dwg-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "c30e3c9786a2d3c49298cd38659de6a87577facdac0ad0d1989de8d9a35076c5"
+      "sha256": "d1621767f97182a955180bf4d754773d40a001d8bef16968a29e23f845b3b8bd"
     },
     {
       "bytes": 9393,
@@ -32,13 +32,13 @@
       "bytes": 2451,
       "path": "elevated-1000/chain-dxf-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "b0e75f2280e1bf20c470e6198a6606de792453de2c2aee35102aaf47c428349f"
+      "sha256": "86637e327ea34c08a48a02125944d5795ab37d4e2d77885974488ae908258ddd"
     },
     {
-      "bytes": 383694,
+      "bytes": 291844,
       "path": "elevated-1000/chain-dxf-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "c30e3c9786a2d3c49298cd38659de6a87577facdac0ad0d1989de8d9a35076c5"
+      "sha256": "d1621767f97182a955180bf4d754773d40a001d8bef16968a29e23f845b3b8bd"
     },
     {
       "bytes": 9398,
@@ -80,31 +80,31 @@
       "bytes": 2435,
       "path": "elevated-1000/ifccad-external/package.ifcx.json",
       "role": "artifact",
-      "sha256": "84103779862f1d5f10d8d789f9b6dfd42897c1ea7ff898a85431ad3e3f4c4427"
+      "sha256": "0f394ad331f521ac9587909cb176d51714fe3a940a9ddbe344c9641a1033163d"
     },
     {
-      "bytes": 383689,
+      "bytes": 291839,
       "path": "elevated-1000/ifccad-external/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "d9f34284b75e7afbe54fab330b4ec892923e3e1ebc5373dd9353eb7ea157a2a3"
+      "sha256": "83bee73d54c1a1dc18af8161a40fda6798e593547793739821902307630d7c42"
     },
     {
-      "bytes": 638491,
+      "bytes": 498101,
       "path": "elevated-1000/ifccad-inline/package.ifcx.json",
       "role": "artifact",
-      "sha256": "87439c6c8c259212ff114b7341e23fccb7932d75d890bb2d2361801833fc6638"
+      "sha256": "e161debc662fda3056346035091f095cab9a6d801df2df006fcff63fc558bd94"
     },
     {
       "bytes": 2451,
       "path": "empty/chain-dwg-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "dfca73cdad8b9037faabf6a47ce94690cdce58621de218cde038c3c378264d0b"
+      "sha256": "e528b777dace9173e2f38753ab9b93d53da2439b562c1490980074e20f965786"
     },
     {
-      "bytes": 4721,
+      "bytes": 7871,
       "path": "empty/chain-dwg-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "bcc188cbd7f4fd0ee0c5b22061923655fa18d8ca2b3d06ad02aa5a4f30c26811"
+      "sha256": "19b841a787197a33c1cd967bfec97b9de7be58c5f3ff429ff984b532ec5ebe08"
     },
     {
       "bytes": 9395,
@@ -122,13 +122,13 @@
       "bytes": 2451,
       "path": "empty/chain-dxf-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "dfca73cdad8b9037faabf6a47ce94690cdce58621de218cde038c3c378264d0b"
+      "sha256": "e528b777dace9173e2f38753ab9b93d53da2439b562c1490980074e20f965786"
     },
     {
-      "bytes": 4721,
+      "bytes": 7871,
       "path": "empty/chain-dxf-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "bcc188cbd7f4fd0ee0c5b22061923655fa18d8ca2b3d06ad02aa5a4f30c26811"
+      "sha256": "19b841a787197a33c1cd967bfec97b9de7be58c5f3ff429ff984b532ec5ebe08"
     },
     {
       "bytes": 9396,
@@ -170,31 +170,31 @@
       "bytes": 2435,
       "path": "empty/ifccad-external/package.ifcx.json",
       "role": "artifact",
-      "sha256": "69f7debf1a4fb537d153c5aee17c493e2e8b009cf967f9fca8d5a99e40c3897d"
+      "sha256": "d439f2365f6e55033ea97fc605ddb20a715cc621bbb86f1e605284a6bbcb69ee"
     },
     {
-      "bytes": 4716,
+      "bytes": 7866,
       "path": "empty/ifccad-external/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "31f6122095160a545c4b729b5ff2ee2151c6f9245054bdb686f35079be9c9101"
+      "sha256": "2128f37a852c8de5813d4e240e3d19e15d7562dce243e9c50f19a020fdc196af"
     },
     {
-      "bytes": 9318,
+      "bytes": 13928,
       "path": "empty/ifccad-inline/package.ifcx.json",
       "role": "artifact",
-      "sha256": "e0aaf7bfbf60064ddbf413139ed8cb9aaad6560ec6fe172364d25b67f5ce51cf"
+      "sha256": "63433865bd49d7d571e5e1572a939dce46865fcda2ce08704b66266c3a148911"
     },
     {
       "bytes": 2451,
       "path": "fractional-lines-1000/chain-dwg-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "672bdc8ba3d3b59818f46a1839f56ca6c9607715f8e248a47994a861ce56b0b2"
+      "sha256": "310a0a365e23c69ff9505973281e9d060d971aca8499aac0da2f46edd9c54f2c"
     },
     {
-      "bytes": 154832,
+      "bytes": 157982,
       "path": "fractional-lines-1000/chain-dwg-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "ebca3bd0ceb7ed059610b17965152348689818ff6c71def0a2402e7c510c398f"
+      "sha256": "6c4d9511d35fd25bcc8e82c31c60f6e3e79d1c47f3d423bc4f6ece746cb7ad0d"
     },
     {
       "bytes": 9411,
@@ -212,13 +212,13 @@
       "bytes": 2451,
       "path": "fractional-lines-1000/chain-dxf-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "672bdc8ba3d3b59818f46a1839f56ca6c9607715f8e248a47994a861ce56b0b2"
+      "sha256": "310a0a365e23c69ff9505973281e9d060d971aca8499aac0da2f46edd9c54f2c"
     },
     {
-      "bytes": 154832,
+      "bytes": 157982,
       "path": "fractional-lines-1000/chain-dxf-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "ebca3bd0ceb7ed059610b17965152348689818ff6c71def0a2402e7c510c398f"
+      "sha256": "6c4d9511d35fd25bcc8e82c31c60f6e3e79d1c47f3d423bc4f6ece746cb7ad0d"
     },
     {
       "bytes": 9398,
@@ -260,31 +260,31 @@
       "bytes": 2435,
       "path": "fractional-lines-1000/ifccad-external/package.ifcx.json",
       "role": "artifact",
-      "sha256": "f78242dbe964a48f1c64640c4d11ee306674695d2295347835b3bf82c6bdd7c2"
+      "sha256": "bde51962407cf2f82ebdab509c44106e0a4580dc4fee24903240b677ad80d73c"
     },
     {
-      "bytes": 154827,
+      "bytes": 157977,
       "path": "fractional-lines-1000/ifccad-external/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "bb17459296852e1d08ffe3023e949ded3c82722d1065392b6f32e940db1487aa"
+      "sha256": "b94186d87bbe37ef03078c9d4a6453f7f1fc2f272f354dcdbe6fb4c2799449fd"
     },
     {
-      "bytes": 249589,
+      "bytes": 254199,
       "path": "fractional-lines-1000/ifccad-inline/package.ifcx.json",
       "role": "artifact",
-      "sha256": "c98875ae3a67011e8d2ece688c83580edb343d225980a8eaa9efcec66c05200e"
+      "sha256": "878f938fbce562951189306f4f3629776bd929adcefcafaba86cd71dd1483a9f"
     },
     {
       "bytes": 2451,
       "path": "lines-100/chain-dwg-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "c3d36fc664d2806ddc7f09bd82e143ae2920a80f25e32a1d2561e1d2b240e080"
+      "sha256": "64f440f69905a66a85785e67fee3f4dcbfdfa7692652c555cb00f32fefd92c61"
     },
     {
-      "bytes": 16264,
+      "bytes": 19414,
       "path": "lines-100/chain-dwg-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "3de139f36872d9b643452ae2e7ec90ad90a30a862203e5b23ece134bb0c5f087"
+      "sha256": "1cf11501a1b649d0bf7bcb665b47710f827ace7eff1a5c657d9ce0d0ee29bbe1"
     },
     {
       "bytes": 9390,
@@ -302,13 +302,13 @@
       "bytes": 2451,
       "path": "lines-100/chain-dxf-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "c3d36fc664d2806ddc7f09bd82e143ae2920a80f25e32a1d2561e1d2b240e080"
+      "sha256": "64f440f69905a66a85785e67fee3f4dcbfdfa7692652c555cb00f32fefd92c61"
     },
     {
-      "bytes": 16264,
+      "bytes": 19414,
       "path": "lines-100/chain-dxf-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "3de139f36872d9b643452ae2e7ec90ad90a30a862203e5b23ece134bb0c5f087"
+      "sha256": "1cf11501a1b649d0bf7bcb665b47710f827ace7eff1a5c657d9ce0d0ee29bbe1"
     },
     {
       "bytes": 9397,
@@ -350,31 +350,31 @@
       "bytes": 2435,
       "path": "lines-100/ifccad-external/package.ifcx.json",
       "role": "artifact",
-      "sha256": "191f90b31a5a3378a9cab937a049449164c61597905ccb5f68688083bd0e8ef3"
+      "sha256": "b35745f8a79f14e0995d576da5689507866b7c06186f17e3446c12e4876d209e"
     },
     {
-      "bytes": 16259,
+      "bytes": 19409,
       "path": "lines-100/ifccad-external/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "df2caa1608d6291f245428489f73c812211b2045362779b63ef4217ed2ae4172"
+      "sha256": "0cb6e92c691a8bfc753e8d7de56e14353e17509c0fd88e84f6722942605a679c"
     },
     {
-      "bytes": 30021,
+      "bytes": 34631,
       "path": "lines-100/ifccad-inline/package.ifcx.json",
       "role": "artifact",
-      "sha256": "bb2cf7050a752ffd865f59dacaa424484db218d58811a98cc53f1f3302a4537c"
+      "sha256": "be6e214187b8011fcc8c49e1c32c980639f484787531f259986b9812ade5d3d0"
     },
     {
       "bytes": 2451,
       "path": "lines-10000/chain-dwg-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "0845d590a036d62120a68bbf5945ba0edcb16eb51c055b40e3a07256df778ee9"
+      "sha256": "8cec2234b1dc753862050ed666c4c0fe61daac349820e189a7b0f7bb943bea52"
     },
     {
-      "bytes": 1224623,
+      "bytes": 1227773,
       "path": "lines-10000/chain-dwg-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "132d6383192b1b653826fadb26de5535f65ffe08d7f1a956e5259d1903cb20db"
+      "sha256": "683d04acd8f5198068f89bff33b2986b68270023534a4b22b8835f778426b8e0"
     },
     {
       "bytes": 9395,
@@ -392,13 +392,13 @@
       "bytes": 2451,
       "path": "lines-10000/chain-dxf-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "0845d590a036d62120a68bbf5945ba0edcb16eb51c055b40e3a07256df778ee9"
+      "sha256": "8cec2234b1dc753862050ed666c4c0fe61daac349820e189a7b0f7bb943bea52"
     },
     {
-      "bytes": 1224623,
+      "bytes": 1227773,
       "path": "lines-10000/chain-dxf-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "132d6383192b1b653826fadb26de5535f65ffe08d7f1a956e5259d1903cb20db"
+      "sha256": "683d04acd8f5198068f89bff33b2986b68270023534a4b22b8835f778426b8e0"
     },
     {
       "bytes": 9399,
@@ -440,31 +440,31 @@
       "bytes": 2435,
       "path": "lines-10000/ifccad-external/package.ifcx.json",
       "role": "artifact",
-      "sha256": "d913508152e24a0fe3964edcfc9892ec84b2139d034726d94a893cbba2aa4b98"
+      "sha256": "8e36e6097131e6b922ded2823d597cf633883a246e3065e0e0763f7434e6791f"
     },
     {
-      "bytes": 1224618,
+      "bytes": 1227768,
       "path": "lines-10000/ifccad-external/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "674db27a5fa6dc88f3552c3657517085fcce65b35f688bb36e2846e8faadbb4f"
+      "sha256": "f1da796b1192519fc062e587f57c8b4ee0b37b7723f4023dbae91389a0853301"
     },
     {
-      "bytes": 2129380,
+      "bytes": 2133990,
       "path": "lines-10000/ifccad-inline/package.ifcx.json",
       "role": "artifact",
-      "sha256": "7a83d80c4df82f37c3d7ee9da0755fcf44c6e753c9908387b6285d6ca170c19f"
+      "sha256": "8cc8bf9b135f757146be64e9b2ebe156e9bac203fc5592fe2ae1aeb3bbe7df24"
     },
     {
       "bytes": 2451,
       "path": "long-polylines-10/chain-dwg-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "15fee9152d5bdbec19899ec798cfdbaf40a826a79364a2c9ac9b0f4bdce7c647"
+      "sha256": "392c20574db213f5224a7df8e272fd4e4d98f9f6f87176ea0fe86f600d3ee0b2"
     },
     {
-      "bytes": 41347,
+      "bytes": 44497,
       "path": "long-polylines-10/chain-dwg-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "43bdab2af1c21b15f499710b3ca46a21aa7bbc37a9843d43c6fd5152247c17df"
+      "sha256": "81e1dbdfaa455e6b0077f537632956de7f058acbf894db15b97d693ccd15fd4b"
     },
     {
       "bytes": 9388,
@@ -482,13 +482,13 @@
       "bytes": 2451,
       "path": "long-polylines-10/chain-dxf-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "15fee9152d5bdbec19899ec798cfdbaf40a826a79364a2c9ac9b0f4bdce7c647"
+      "sha256": "392c20574db213f5224a7df8e272fd4e4d98f9f6f87176ea0fe86f600d3ee0b2"
     },
     {
-      "bytes": 41347,
+      "bytes": 44497,
       "path": "long-polylines-10/chain-dxf-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "43bdab2af1c21b15f499710b3ca46a21aa7bbc37a9843d43c6fd5152247c17df"
+      "sha256": "81e1dbdfaa455e6b0077f537632956de7f058acbf894db15b97d693ccd15fd4b"
     },
     {
       "bytes": 9396,
@@ -530,31 +530,31 @@
       "bytes": 2435,
       "path": "long-polylines-10/ifccad-external/package.ifcx.json",
       "role": "artifact",
-      "sha256": "516a0de93e42b47e3ab8d9802ea92b121533b1e88e5b5937b01a3ad8ec7ce7e0"
+      "sha256": "e846bb518fa50cc7854ce336e7574692a240802da7ddfb51e5902f89e4cfc2d3"
     },
     {
-      "bytes": 41342,
+      "bytes": 44492,
       "path": "long-polylines-10/ifccad-external/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "8f6d698a45f3d9ca35a5a52e703459e395400853114b68e0227d2e235d1061a1"
+      "sha256": "e427ba24c4bfea67aa88188d4e706d4ca7dd08def0a4131c5d34652cbb644ae5"
     },
     {
-      "bytes": 72514,
+      "bytes": 77124,
       "path": "long-polylines-10/ifccad-inline/package.ifcx.json",
       "role": "artifact",
-      "sha256": "ddd2af2f974e28f148962d1cd3ee3aea70fddc0bc86d4e8d731f573f9c03f821"
+      "sha256": "761dfed0177248bf09e3f62cc44aef84c1788f20e3555ba47e31b07033b2b6ff"
     },
     {
       "bytes": 2451,
       "path": "long-polylines-1000/chain-dwg-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "535c684693cefc91da80852a1e81c5bea209618a8037d061593ab94b9a6b7888"
+      "sha256": "eb3624410ac7e4c61b4c01e505189e1847beea29908ea8d71e787615f4847aaf"
     },
     {
-      "bytes": 3898589,
+      "bytes": 3901739,
       "path": "long-polylines-1000/chain-dwg-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "5c2da90b56ba52e5ae8306d410132f1fffa2e435cc336ff32b666dd1dd261e21"
+      "sha256": "463fbd5eae32791b02caec7fbc9f543fd257072b53ec28be4e6db09e32c9a775"
     },
     {
       "bytes": 9393,
@@ -572,13 +572,13 @@
       "bytes": 2451,
       "path": "long-polylines-1000/chain-dxf-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "535c684693cefc91da80852a1e81c5bea209618a8037d061593ab94b9a6b7888"
+      "sha256": "eb3624410ac7e4c61b4c01e505189e1847beea29908ea8d71e787615f4847aaf"
     },
     {
-      "bytes": 3898589,
+      "bytes": 3901739,
       "path": "long-polylines-1000/chain-dxf-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "5c2da90b56ba52e5ae8306d410132f1fffa2e435cc336ff32b666dd1dd261e21"
+      "sha256": "463fbd5eae32791b02caec7fbc9f543fd257072b53ec28be4e6db09e32c9a775"
     },
     {
       "bytes": 9398,
@@ -620,31 +620,31 @@
       "bytes": 2435,
       "path": "long-polylines-1000/ifccad-external/package.ifcx.json",
       "role": "artifact",
-      "sha256": "4ad7895cbfc81cdd20c0a75f501f1b1d8b0286d5c967807db6cd022d4e0ba2e8"
+      "sha256": "53ce85918e22611538da9b7beb6484274c5dc31a30e94f85eef5ec22df23e4fe"
     },
     {
-      "bytes": 3898584,
+      "bytes": 3901734,
       "path": "long-polylines-1000/ifccad-external/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "212e21e8c93f794efed9e663b2ee458c894d644616d815ddc9c0f5d7eab5ca45"
+      "sha256": "4238591434b84902108e8c3331df6e03a427bbc54517c1e8e46a84d975a91326"
     },
     {
-      "bytes": 6543356,
+      "bytes": 6547966,
       "path": "long-polylines-1000/ifccad-inline/package.ifcx.json",
       "role": "artifact",
-      "sha256": "9b7bfa3fd1ffbf51c7889ced8370fbf406acce0c8d9f44a53c79adf80568c60f"
+      "sha256": "76278ca39aef62013bdb7c354cf7e19478ad312fd01549e6bf0304694aec8acb"
     },
     {
       "bytes": 4049,
       "path": "mixed-1000/chain-dwg-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "de4779b2e88d8f8564de7aafdd7c1284abfbecf0bc041d5a33f62f98a5e583f7"
+      "sha256": "072c8768e3e84abb9e97dea4b529a628a33b8d7ea5755ad9da23b261ee69b8f5"
     },
     {
-      "bytes": 186573,
+      "bytes": 189723,
       "path": "mixed-1000/chain-dwg-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "b7579889e206f56f11bcded77a0a052dd9f49be4127eb44b0b9042739d2214ea"
+      "sha256": "393c31dd079cd5f289b739285fdc5080e4caeb76c2513147db546392108def28"
     },
     {
       "bytes": 9393,
@@ -662,13 +662,13 @@
       "bytes": 4049,
       "path": "mixed-1000/chain-dxf-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "de4779b2e88d8f8564de7aafdd7c1284abfbecf0bc041d5a33f62f98a5e583f7"
+      "sha256": "072c8768e3e84abb9e97dea4b529a628a33b8d7ea5755ad9da23b261ee69b8f5"
     },
     {
-      "bytes": 186573,
+      "bytes": 189723,
       "path": "mixed-1000/chain-dxf-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "b7579889e206f56f11bcded77a0a052dd9f49be4127eb44b0b9042739d2214ea"
+      "sha256": "393c31dd079cd5f289b739285fdc5080e4caeb76c2513147db546392108def28"
     },
     {
       "bytes": 9398,
@@ -710,31 +710,31 @@
       "bytes": 4025,
       "path": "mixed-1000/ifccad-external/package.ifcx.json",
       "role": "artifact",
-      "sha256": "b882e7498ee972a2836994dc58cc273afb89bae4a1a237ee2362c7b6d618d8dd"
+      "sha256": "870c0127c37ac7bea1ab36f4e5c5cbfae5d347452ec9b160873b4f46b86c8258"
     },
     {
-      "bytes": 186568,
+      "bytes": 189718,
       "path": "mixed-1000/ifccad-external/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "4d5731130516957c30762bd84480186d7981c34196412fa57dd33bb2384b9ca1"
+      "sha256": "dcfc4a7f27b6010d395b1e4f7fd319d87dfdbc10ffd0dbb8d7b5b3c04e6d3133"
     },
     {
-      "bytes": 328280,
+      "bytes": 332890,
       "path": "mixed-1000/ifccad-inline/package.ifcx.json",
       "role": "artifact",
-      "sha256": "74a36303f91ee54c2e2d57544b9cc6637140e7e9c86f1f747f50232531d596e3"
+      "sha256": "4fc97e50d89191ce56e0d31ce572f343105d37dcc80c44bf6dfe14a6e1f2393a"
     },
     {
       "bytes": 2451,
       "path": "short-polylines-100/chain-dwg-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "00c22e1403981a40aebed2fdcce800d06c9eb39fb41794cdd41b4409e491efa8"
+      "sha256": "1197ca309d4023df465ee12bb6ef336941f8b177ed84ce2b6328d5372e45f555"
     },
     {
-      "bytes": 25802,
+      "bytes": 28952,
       "path": "short-polylines-100/chain-dwg-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "6947e144b2a0a284034cd6f6965ac54b1d9351e2c90839d5908b2b013331659d"
+      "sha256": "abfc85d0f9494b668b8390600e73e193af2037b396a95b4eb58c3146e3f0424f"
     },
     {
       "bytes": 9390,
@@ -752,13 +752,13 @@
       "bytes": 2451,
       "path": "short-polylines-100/chain-dxf-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "00c22e1403981a40aebed2fdcce800d06c9eb39fb41794cdd41b4409e491efa8"
+      "sha256": "1197ca309d4023df465ee12bb6ef336941f8b177ed84ce2b6328d5372e45f555"
     },
     {
-      "bytes": 25802,
+      "bytes": 28952,
       "path": "short-polylines-100/chain-dxf-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "6947e144b2a0a284034cd6f6965ac54b1d9351e2c90839d5908b2b013331659d"
+      "sha256": "abfc85d0f9494b668b8390600e73e193af2037b396a95b4eb58c3146e3f0424f"
     },
     {
       "bytes": 9397,
@@ -800,31 +800,31 @@
       "bytes": 2435,
       "path": "short-polylines-100/ifccad-external/package.ifcx.json",
       "role": "artifact",
-      "sha256": "a28c9feefda91114027956538d44f0c5255783718edb54956cdf64ee9c651388"
+      "sha256": "8b5012d5c2ada9ac01891903e7cc8d3cfdccd0e14d7fafa66630845175952949"
     },
     {
-      "bytes": 25797,
+      "bytes": 28947,
       "path": "short-polylines-100/ifccad-external/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "b172ab55235a52f619d7d2e3ff2970ff856067d04b8a27de46498e1e111690ef"
+      "sha256": "66ec65bafd821198e74fe8e5dde470b66e1844e194a17956e0b112289a5c03d8"
     },
     {
-      "bytes": 46569,
+      "bytes": 51179,
       "path": "short-polylines-100/ifccad-inline/package.ifcx.json",
       "role": "artifact",
-      "sha256": "8b65dce9b3b2885abb85dc98eb0f316f8aeaf8e6eb6c96c900fe0b542479252f"
+      "sha256": "e8a75b67ade41763e544f6dfb3d4c19db7bc416ffc61511d844a444c39291ffc"
     },
     {
       "bytes": 2451,
       "path": "short-polylines-10000/chain-dwg-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "adcce0053c985307230de83fdc1bca0cde87de1bd17db33bf0b63b73ffcd12ed"
+      "sha256": "6179396d85c99c8f4c73e0a8d92928fee005180d131855d09770495786af1439"
     },
     {
-      "bytes": 2243751,
+      "bytes": 2246901,
       "path": "short-polylines-10000/chain-dwg-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "fb67bebc7d4cb37d6695d940a99359dca5ac478a5ca93863f6d4f0f873b480cd"
+      "sha256": "1aeecbcc44463dbd175e8bd1d9c9aaff0df77bb5de21e2a9a36ae0ebbdce4c10"
     },
     {
       "bytes": 9395,
@@ -842,13 +842,13 @@
       "bytes": 2451,
       "path": "short-polylines-10000/chain-dxf-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "adcce0053c985307230de83fdc1bca0cde87de1bd17db33bf0b63b73ffcd12ed"
+      "sha256": "6179396d85c99c8f4c73e0a8d92928fee005180d131855d09770495786af1439"
     },
     {
-      "bytes": 2243751,
+      "bytes": 2246901,
       "path": "short-polylines-10000/chain-dxf-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "fb67bebc7d4cb37d6695d940a99359dca5ac478a5ca93863f6d4f0f873b480cd"
+      "sha256": "1aeecbcc44463dbd175e8bd1d9c9aaff0df77bb5de21e2a9a36ae0ebbdce4c10"
     },
     {
       "bytes": 9399,
@@ -890,31 +890,31 @@
       "bytes": 2435,
       "path": "short-polylines-10000/ifccad-external/package.ifcx.json",
       "role": "artifact",
-      "sha256": "8337f5d510dcb2b563e440d12b4fe68aed6dc255b27f7f0bb388192dfd927511"
+      "sha256": "7d758574f3c8a03ec2e49ff1f78de87679ad7640e9c88150849105ce6711f632"
     },
     {
-      "bytes": 2243746,
+      "bytes": 2246896,
       "path": "short-polylines-10000/ifccad-external/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "6302ced97022530d319ba68473f6822ba14f30a109cb41fbbb9eba3283620ce8"
+      "sha256": "393969c7034eb7cc7472db1b1ed371498c606cd90bbcb026ebab8eb989b7a540"
     },
     {
-      "bytes": 3848518,
+      "bytes": 3853128,
       "path": "short-polylines-10000/ifccad-inline/package.ifcx.json",
       "role": "artifact",
-      "sha256": "534fee022eed6c5044bd40e7e66ebe6d54543abacb0fe09f3e8bddfbb6e870e1"
+      "sha256": "7ab331f02148b0f4ad6e769c189f492f40111925386e0472404dad48d206b5d3"
     },
     {
       "bytes": 2451,
       "path": "spatial-line-1000/chain-dwg-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "f677850cba5af7190441550e88cb7d0379ec5842918cf27d2c3f7a66650ac651"
+      "sha256": "23679c1b86e8cff1ff721c6494d9f9298197ccabda68f52cb9ed270f0d7c20f5"
     },
     {
-      "bytes": 152685,
+      "bytes": 155835,
       "path": "spatial-line-1000/chain-dwg-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "742d457962815935dbe052222b0a980841f9e7d6e8cf378130bb70a97b71a437"
+      "sha256": "115e64a25dbd168c58a237b78480b56346721a268204ca74e93b778e4d176373"
     },
     {
       "bytes": 9396,
@@ -932,13 +932,13 @@
       "bytes": 2451,
       "path": "spatial-line-1000/chain-dxf-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "f677850cba5af7190441550e88cb7d0379ec5842918cf27d2c3f7a66650ac651"
+      "sha256": "23679c1b86e8cff1ff721c6494d9f9298197ccabda68f52cb9ed270f0d7c20f5"
     },
     {
-      "bytes": 152685,
+      "bytes": 155835,
       "path": "spatial-line-1000/chain-dxf-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "742d457962815935dbe052222b0a980841f9e7d6e8cf378130bb70a97b71a437"
+      "sha256": "115e64a25dbd168c58a237b78480b56346721a268204ca74e93b778e4d176373"
     },
     {
       "bytes": 9398,
@@ -980,31 +980,31 @@
       "bytes": 2435,
       "path": "spatial-line-1000/ifccad-external/package.ifcx.json",
       "role": "artifact",
-      "sha256": "662d63e0b311504064c65e9882369722d557baf27edd2b7397895f0487a13c11"
+      "sha256": "77388ce51f1eed3386bb4b49b2352ffa4b5bca9bfb3e9f1c720850f205fa4425"
     },
     {
-      "bytes": 152680,
+      "bytes": 155830,
       "path": "spatial-line-1000/ifccad-external/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "9785442456c56aeb49776dbd565d9b881492d5d6014a9e720bef84fde847c961"
+      "sha256": "741332d1a61662439117ebbae07d61de700279569edb7ce34a952c45bd32ca99"
     },
     {
-      "bytes": 267502,
+      "bytes": 272112,
       "path": "spatial-line-1000/ifccad-inline/package.ifcx.json",
       "role": "artifact",
-      "sha256": "18a5e9d0dfea240ab4960c530602d363c78d1aa6ce7321accf52b3c2de5a711e"
+      "sha256": "fcf7160d47366655b6d6116a9822de56efe314d910dcb3a41fcbe2ac2de67579"
     },
     {
       "bytes": 2451,
       "path": "tilted-shifted-1000/chain-dwg-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "38d24e97f44f2855e74ad89a586184979dcb4f9493d1aab8a4e17aee216d297a"
+      "sha256": "949c77727cc213b68a7c97ed061bf910a1c84c0ca11be2970e558888ab80181a"
     },
     {
-      "bytes": 532836,
+      "bytes": 535986,
       "path": "tilted-shifted-1000/chain-dwg-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "a2ee4dc6df8674d7517824b6064147196e211981bafd461365eb42ca371f3a49"
+      "sha256": "bacd5e27b371fa6e0dafe430e6da93ec92ea89dde959aa8fe749670f48b5bb6e"
     },
     {
       "bytes": 9395,
@@ -1022,13 +1022,13 @@
       "bytes": 2451,
       "path": "tilted-shifted-1000/chain-dxf-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "38d24e97f44f2855e74ad89a586184979dcb4f9493d1aab8a4e17aee216d297a"
+      "sha256": "949c77727cc213b68a7c97ed061bf910a1c84c0ca11be2970e558888ab80181a"
     },
     {
-      "bytes": 532836,
+      "bytes": 535986,
       "path": "tilted-shifted-1000/chain-dxf-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "a2ee4dc6df8674d7517824b6064147196e211981bafd461365eb42ca371f3a49"
+      "sha256": "bacd5e27b371fa6e0dafe430e6da93ec92ea89dde959aa8fe749670f48b5bb6e"
     },
     {
       "bytes": 9398,
@@ -1070,19 +1070,19 @@
       "bytes": 2435,
       "path": "tilted-shifted-1000/ifccad-external/package.ifcx.json",
       "role": "artifact",
-      "sha256": "329b0c4e25a3e0f5549abbf6c958af1b6d8fa97be42b923dd48452b54a38d752"
+      "sha256": "6fcbc56a4ca02b93d75eae6d6f7cadc8e33c51aabf64fb45aa9f342eed4fe2e1"
     },
     {
-      "bytes": 533716,
+      "bytes": 536866,
       "path": "tilted-shifted-1000/ifccad-external/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "e2830da393d16ca8766f912698f98d1f012812f487c1e744e38a1751aeabf66a"
+      "sha256": "352bd142660f7867ed291459e480e17d35661f1f607f28b4ea02ed1198d5e531"
     },
     {
-      "bytes": 868518,
+      "bytes": 873128,
       "path": "tilted-shifted-1000/ifccad-inline/package.ifcx.json",
       "role": "artifact",
-      "sha256": "a619b80d106223e6ec7d3e5f8fce28e91d1c7f1d7cc54a46b7819c64e8373c1f"
+      "sha256": "1029c36f75f42d09dfe7a94715aaa078bee6d97870e1a3cfbd432702db329278"
     }
   ],
   "measurements": {
@@ -1291,10 +1291,10 @@
             "bytes": {
               "blob": 0,
               "cad": 0,
-              "ifcdr": 4716,
+              "ifcdr": 7866,
               "ifcpr": 0,
               "ifcx": 2435,
-              "total": 7151
+              "total": 10301
             },
             "bytes_per_entity": null,
             "files": [
@@ -1302,18 +1302,18 @@
                 "bytes": 2435,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "69f7debf1a4fb537d153c5aee17c493e2e8b009cf967f9fca8d5a99e40c3897d"
+                "sha256": "d439f2365f6e55033ea97fc605ddb20a715cc621bbb86f1e605284a6bbcb69ee"
               },
               {
-                "bytes": 4716,
+                "bytes": 7866,
                 "path": "resources/drawing.ifcdr.json",
                 "role": "ifcdr",
-                "sha256": "31f6122095160a545c4b729b5ff2ee2151c6f9245054bdb686f35079be9c9101"
+                "sha256": "2128f37a852c8de5813d4e240e3d19e15d7562dce243e9c50f19a020fdc196af"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 0.34290783542725617,
-            "ratio_to_dxf": 0.15222018817318744,
+            "ratio_to_dwg": 0.4939579936702791,
+            "ratio_to_dxf": 0.2192728511218017,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -1331,21 +1331,21 @@
               "cad": 0,
               "ifcdr": 0,
               "ifcpr": 0,
-              "ifcx": 9318,
-              "total": 9318
+              "ifcx": 13928,
+              "total": 13928
             },
             "bytes_per_entity": null,
             "files": [
               {
-                "bytes": 9318,
+                "bytes": 13928,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "e0aaf7bfbf60064ddbf413139ed8cb9aaad6560ec6fe172364d25b67f5ce51cf"
+                "sha256": "63433865bd49d7d571e5e1572a939dce46865fcda2ce08704b66266c3a148911"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 0.44682075381221825,
-            "ratio_to_dxf": 0.1983481629699008,
+            "ratio_to_dwg": 0.6678814615901026,
+            "ratio_to_dxf": 0.2964792030312061,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -1558,29 +1558,29 @@
             "bytes": {
               "blob": 0,
               "cad": 0,
-              "ifcdr": 16259,
+              "ifcdr": 19409,
               "ifcpr": 0,
               "ifcx": 2435,
-              "total": 18694
+              "total": 21844
             },
-            "bytes_per_entity": 186.94,
+            "bytes_per_entity": 218.44,
             "files": [
               {
                 "bytes": 2435,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "191f90b31a5a3378a9cab937a049449164c61597905ccb5f68688083bd0e8ef3"
+                "sha256": "b35745f8a79f14e0995d576da5689507866b7c06186f17e3446c12e4876d209e"
               },
               {
-                "bytes": 16259,
+                "bytes": 19409,
                 "path": "resources/drawing.ifcdr.json",
                 "role": "ifcdr",
-                "sha256": "df2caa1608d6291f245428489f73c812211b2045362779b63ef4217ed2ae4172"
+                "sha256": "0cb6e92c691a8bfc753e8d7de56e14353e17509c0fd88e84f6722942605a679c"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 0.8397268888689247,
-            "ratio_to_dxf": 0.3098213397858729,
+            "ratio_to_dwg": 0.9812236097385679,
+            "ratio_to_dxf": 0.36202724651131957,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -1598,21 +1598,21 @@
               "cad": 0,
               "ifcdr": 0,
               "ifcpr": 0,
-              "ifcx": 30021,
-              "total": 30021
+              "ifcx": 34631,
+              "total": 34631
             },
-            "bytes_per_entity": 300.21,
+            "bytes_per_entity": 346.31,
             "files": [
               {
-                "bytes": 30021,
+                "bytes": 34631,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "bb2cf7050a752ffd865f59dacaa424484db218d58811a98cc53f1f3302a4537c"
+                "sha256": "be6e214187b8011fcc8c49e1c32c980639f484787531f259986b9812ade5d3d0"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 1.3485311292785913,
-            "ratio_to_dxf": 0.49754715104909014,
+            "ratio_to_dwg": 1.5556104572814662,
+            "ratio_to_dxf": 0.5739500812091882,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -1825,29 +1825,29 @@
             "bytes": {
               "blob": 0,
               "cad": 0,
-              "ifcdr": 1224618,
+              "ifcdr": 1227768,
               "ifcpr": 0,
               "ifcx": 2435,
-              "total": 1227053
+              "total": 1230203
             },
-            "bytes_per_entity": 122.7053,
+            "bytes_per_entity": 123.0203,
             "files": [
               {
                 "bytes": 2435,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "d913508152e24a0fe3964edcfc9892ec84b2139d034726d94a893cbba2aa4b98"
+                "sha256": "8e36e6097131e6b922ded2823d597cf633883a246e3065e0e0763f7434e6791f"
               },
               {
-                "bytes": 1224618,
+                "bytes": 1227768,
                 "path": "resources/drawing.ifcdr.json",
                 "role": "ifcdr",
-                "sha256": "674db27a5fa6dc88f3552c3657517085fcce65b35f688bb36e2846e8faadbb4f"
+                "sha256": "f1da796b1192519fc062e587f57c8b4ee0b37b7723f4023dbae91389a0853301"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 7.294421524450415,
-            "ratio_to_dxf": 0.8493914687953837,
+            "ratio_to_dwg": 7.313147225623893,
+            "ratio_to_dxf": 0.8515719639546845,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -1865,21 +1865,21 @@
               "cad": 0,
               "ifcdr": 0,
               "ifcpr": 0,
-              "ifcx": 2129380,
-              "total": 2129380
+              "ifcx": 2133990,
+              "total": 2133990
             },
-            "bytes_per_entity": 212.938,
+            "bytes_per_entity": 213.399,
             "files": [
               {
-                "bytes": 2129380,
+                "bytes": 2133990,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "7a83d80c4df82f37c3d7ee9da0755fcf44c6e753c9908387b6285d6ca170c19f"
+                "sha256": "8cc8bf9b135f757146be64e9b2ebe156e9bac203fc5592fe2ae1aeb3bbe7df24"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 12.658455099929853,
-            "ratio_to_dxf": 1.4740008832735947,
+            "ratio_to_dwg": 12.68586001498056,
+            "ratio_to_dxf": 1.4771920206337141,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -2092,29 +2092,29 @@
             "bytes": {
               "blob": 0,
               "cad": 0,
-              "ifcdr": 25797,
+              "ifcdr": 28947,
               "ifcpr": 0,
               "ifcx": 2435,
-              "total": 28232
+              "total": 31382
             },
-            "bytes_per_entity": 282.32,
+            "bytes_per_entity": 313.82,
             "files": [
               {
                 "bytes": 2435,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "a28c9feefda91114027956538d44f0c5255783718edb54956cdf64ee9c651388"
+                "sha256": "8b5012d5c2ada9ac01891903e7cc8d3cfdccd0e14d7fafa66630845175952949"
               },
               {
-                "bytes": 25797,
+                "bytes": 28947,
                 "path": "resources/drawing.ifcdr.json",
                 "role": "ifcdr",
-                "sha256": "b172ab55235a52f619d7d2e3ff2970ff856067d04b8a27de46498e1e111690ef"
+                "sha256": "66ec65bafd821198e74fe8e5dde470b66e1844e194a17956e0b112289a5c03d8"
               }
             ],
-            "ifcdr_bytes_per_polyline_vertex": 64.4925,
-            "ratio_to_dwg": 1.255536778439918,
-            "ratio_to_dxf": 0.3555757071966548,
+            "ifcdr_bytes_per_polyline_vertex": 72.3675,
+            "ratio_to_dwg": 1.3956239437872453,
+            "ratio_to_dxf": 0.39524925061084665,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -2132,21 +2132,21 @@
               "cad": 0,
               "ifcdr": 0,
               "ifcpr": 0,
-              "ifcx": 46569,
-              "total": 46569
+              "ifcx": 51179,
+              "total": 51179
             },
-            "bytes_per_entity": 465.69,
+            "bytes_per_entity": 511.79,
             "files": [
               {
-                "bytes": 46569,
+                "bytes": 51179,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "8b65dce9b3b2885abb85dc98eb0f316f8aeaf8e6eb6c96c900fe0b542479252f"
+                "sha256": "e8a75b67ade41763e544f6dfb3d4c19db7bc416ffc61511d844a444c39291ffc"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 2.0710219692252956,
-            "ratio_to_dxf": 0.5865261089699992,
+            "ratio_to_dwg": 2.2760384239082097,
+            "ratio_to_dxf": 0.6445880248872767,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -2359,29 +2359,29 @@
             "bytes": {
               "blob": 0,
               "cad": 0,
-              "ifcdr": 2243746,
+              "ifcdr": 2246896,
               "ifcpr": 0,
               "ifcx": 2435,
-              "total": 2246181
+              "total": 2249331
             },
-            "bytes_per_entity": 224.6181,
+            "bytes_per_entity": 224.9331,
             "files": [
               {
                 "bytes": 2435,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "8337f5d510dcb2b563e440d12b4fe68aed6dc255b27f7f0bb388192dfd927511"
+                "sha256": "7d758574f3c8a03ec2e49ff1f78de87679ad7640e9c88150849105ce6711f632"
               },
               {
-                "bytes": 2243746,
+                "bytes": 2246896,
                 "path": "resources/drawing.ifcdr.json",
                 "role": "ifcdr",
-                "sha256": "6302ced97022530d319ba68473f6822ba14f30a109cb41fbbb9eba3283620ce8"
+                "sha256": "393969c7034eb7cc7472db1b1ed371498c606cd90bbcb026ebab8eb989b7a540"
               }
             ],
-            "ifcdr_bytes_per_polyline_vertex": 56.09365,
-            "ratio_to_dwg": 11.952030776925819,
-            "ratio_to_dxf": 0.6613171811433212,
+            "ifcdr_bytes_per_polyline_vertex": 56.1724,
+            "ratio_to_dwg": 11.968792069514135,
+            "ratio_to_dxf": 0.662244599334732,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -2399,21 +2399,21 @@
               "cad": 0,
               "ifcdr": 0,
               "ifcpr": 0,
-              "ifcx": 3848518,
-              "total": 3848518
+              "ifcx": 3853128,
+              "total": 3853128
             },
-            "bytes_per_entity": 384.8518,
+            "bytes_per_entity": 385.3128,
             "files": [
               {
-                "bytes": 3848518,
+                "bytes": 3853128,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "534fee022eed6c5044bd40e7e66ebe6d54543abacb0fe09f3e8bddfbb6e870e1"
+                "sha256": "7ab331f02148b0f4ad6e769c189f492f40111925386e0472404dad48d206b5d3"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 20.478138485524095,
-            "ratio_to_dxf": 1.1330747946578357,
+            "ratio_to_dwg": 20.502668504200965,
+            "ratio_to_dxf": 1.1344320638205037,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -2626,29 +2626,29 @@
             "bytes": {
               "blob": 0,
               "cad": 0,
-              "ifcdr": 41342,
+              "ifcdr": 44492,
               "ifcpr": 0,
               "ifcx": 2435,
-              "total": 43777
+              "total": 46927
             },
-            "bytes_per_entity": 4377.7,
+            "bytes_per_entity": 4692.7,
             "files": [
               {
                 "bytes": 2435,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "516a0de93e42b47e3ab8d9802ea92b121533b1e88e5b5937b01a3ad8ec7ce7e0"
+                "sha256": "e846bb518fa50cc7854ce336e7574692a240802da7ddfb51e5902f89e4cfc2d3"
               },
               {
-                "bytes": 41342,
+                "bytes": 44492,
                 "path": "resources/drawing.ifcdr.json",
                 "role": "ifcdr",
-                "sha256": "8f6d698a45f3d9ca35a5a52e703459e395400853114b68e0227d2e235d1061a1"
+                "sha256": "e427ba24c4bfea67aa88188d4e706d4ca7dd08def0a4131c5d34652cbb644ae5"
               }
             ],
-            "ifcdr_bytes_per_polyline_vertex": 32.2984375,
-            "ratio_to_dwg": 1.837054133445237,
-            "ratio_to_dxf": 0.38295396889269906,
+            "ifcdr_bytes_per_polyline_vertex": 34.759375,
+            "ratio_to_dwg": 1.9692404532102392,
+            "ratio_to_dxf": 0.41050964886190666,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -2666,21 +2666,21 @@
               "cad": 0,
               "ifcdr": 0,
               "ifcpr": 0,
-              "ifcx": 72514,
-              "total": 72514
+              "ifcx": 77124,
+              "total": 77124
             },
-            "bytes_per_entity": 7251.4,
+            "bytes_per_entity": 7712.4,
             "files": [
               {
-                "bytes": 72514,
+                "bytes": 77124,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "ddd2af2f974e28f148962d1cd3ee3aea70fddc0bc86d4e8d731f573f9c03f821"
+                "sha256": "761dfed0177248bf09e3f62cc44aef84c1788f20e3555ba47e31b07033b2b6ff"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 3.042971044901385,
-            "ratio_to_dxf": 0.6343405007260703,
+            "ratio_to_dwg": 3.2364246747796894,
+            "ratio_to_dxf": 0.6746680196651329,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -2893,29 +2893,29 @@
             "bytes": {
               "blob": 0,
               "cad": 0,
-              "ifcdr": 3898584,
+              "ifcdr": 3901734,
               "ifcpr": 0,
               "ifcx": 2435,
-              "total": 3901019
+              "total": 3904169
             },
-            "bytes_per_entity": 3901.019,
+            "bytes_per_entity": 3904.169,
             "files": [
               {
                 "bytes": 2435,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "4ad7895cbfc81cdd20c0a75f501f1b1d8b0286d5c967807db6cd022d4e0ba2e8"
+                "sha256": "53ce85918e22611538da9b7beb6484274c5dc31a30e94f85eef5ec22df23e4fe"
               },
               {
-                "bytes": 3898584,
+                "bytes": 3901734,
                 "path": "resources/drawing.ifcdr.json",
                 "role": "ifcdr",
-                "sha256": "212e21e8c93f794efed9e663b2ee458c894d644616d815ddc9c0f5d7eab5ca45"
+                "sha256": "4238591434b84902108e8c3331df6e03a427bbc54517c1e8e46a84d975a91326"
               }
             ],
-            "ifcdr_bytes_per_polyline_vertex": 30.4576875,
-            "ratio_to_dwg": 15.122338775953233,
-            "ratio_to_dxf": 0.5551857023797867,
+            "ifcdr_bytes_per_polyline_vertex": 30.482296875,
+            "ratio_to_dwg": 15.134549782140144,
+            "ratio_to_dxf": 0.5556340044676505,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -2933,21 +2933,21 @@
               "cad": 0,
               "ifcdr": 0,
               "ifcpr": 0,
-              "ifcx": 6543356,
-              "total": 6543356
+              "ifcx": 6547966,
+              "total": 6547966
             },
-            "bytes_per_entity": 6543.356,
+            "bytes_per_entity": 6547.966,
             "files": [
               {
-                "bytes": 6543356,
+                "bytes": 6547966,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "9b7bfa3fd1ffbf51c7889ced8370fbf406acce0c8d9f44a53c79adf80568c60f"
+                "sha256": "76278ca39aef62013bdb7c354cf7e19478ad312fd01549e6bf0304694aec8acb"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 25.365384317191545,
-            "ratio_to_dxf": 0.9312381449003432,
+            "ratio_to_dwg": 25.38325502783334,
+            "ratio_to_dxf": 0.9318942314479788,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -3160,29 +3160,29 @@
             "bytes": {
               "blob": 0,
               "cad": 0,
-              "ifcdr": 186568,
+              "ifcdr": 189718,
               "ifcpr": 0,
               "ifcx": 4025,
-              "total": 190593
+              "total": 193743
             },
-            "bytes_per_entity": 190.593,
+            "bytes_per_entity": 193.743,
             "files": [
               {
                 "bytes": 4025,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "b882e7498ee972a2836994dc58cc273afb89bae4a1a237ee2362c7b6d618d8dd"
+                "sha256": "870c0127c37ac7bea1ab36f4e5c5cbfae5d347452ec9b160873b4f46b86c8258"
               },
               {
-                "bytes": 186568,
+                "bytes": 189718,
                 "path": "resources/drawing.ifcdr.json",
                 "role": "ifcdr",
-                "sha256": "4d5731130516957c30762bd84480186d7981c34196412fa57dd33bb2384b9ca1"
+                "sha256": "dcfc4a7f27b6010d395b1e4f7fd319d87dfdbc10ffd0dbb8d7b5b3c04e6d3133"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 4.525322316404302,
-            "ratio_to_dxf": 0.6099093102587569,
+            "ratio_to_dwg": 4.600113968231356,
+            "ratio_to_dxf": 0.619989503798473,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -3200,21 +3200,21 @@
               "cad": 0,
               "ifcdr": 0,
               "ifcpr": 0,
-              "ifcx": 328280,
-              "total": 328280
+              "ifcx": 332890,
+              "total": 332890
             },
-            "bytes_per_entity": 328.28,
+            "bytes_per_entity": 332.89,
             "files": [
               {
-                "bytes": 328280,
+                "bytes": 332890,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "74a36303f91ee54c2e2d57544b9cc6637140e7e9c86f1f747f50232531d596e3"
+                "sha256": "4fc97e50d89191ce56e0d31ce572f343105d37dcc80c44bf6dfe14a6e1f2393a"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 7.794477289455564,
-            "ratio_to_dxf": 1.0505161699104624,
+            "ratio_to_dwg": 7.903934278319919,
+            "ratio_to_dxf": 1.0652684531543006,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -3427,29 +3427,29 @@
             "bytes": {
               "blob": 0,
               "cad": 0,
-              "ifcdr": 154827,
+              "ifcdr": 157977,
               "ifcpr": 0,
               "ifcx": 2435,
-              "total": 157262
+              "total": 160412
             },
-            "bytes_per_entity": 157.262,
+            "bytes_per_entity": 160.412,
             "files": [
               {
                 "bytes": 2435,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "f78242dbe964a48f1c64640c4d11ee306674695d2295347835b3bf82c6bdd7c2"
+                "sha256": "bde51962407cf2f82ebdab509c44106e0a4580dc4fee24903240b677ad80d73c"
               },
               {
-                "bytes": 154827,
+                "bytes": 157977,
                 "path": "resources/drawing.ifcdr.json",
                 "role": "ifcdr",
-                "sha256": "bb17459296852e1d08ffe3023e949ded3c82722d1065392b6f32e940db1487aa"
+                "sha256": "b94186d87bbe37ef03078c9d4a6453f7f1fc2f272f354dcdbe6fb4c2799449fd"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 3.331963218780457,
-            "ratio_to_dxf": 0.7284965164541951,
+            "ratio_to_dwg": 3.3987033348870717,
+            "ratio_to_dxf": 0.7430884968870441,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -3467,21 +3467,21 @@
               "cad": 0,
               "ifcdr": 0,
               "ifcpr": 0,
-              "ifcx": 249589,
-              "total": 249589
+              "ifcx": 254199,
+              "total": 254199
             },
-            "bytes_per_entity": 249.589,
+            "bytes_per_entity": 254.199,
             "files": [
               {
-                "bytes": 249589,
+                "bytes": 254199,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "c98875ae3a67011e8d2ece688c83580edb343d225980a8eaa9efcec66c05200e"
+                "sha256": "878f938fbce562951189306f4f3629776bd929adcefcafaba86cd71dd1483a9f"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 5.288126615534557,
-            "ratio_to_dxf": 1.1561897791283724,
+            "ratio_to_dwg": 5.385800245773126,
+            "ratio_to_dxf": 1.1775450266824785,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -3694,29 +3694,29 @@
             "bytes": {
               "blob": 0,
               "cad": 0,
-              "ifcdr": 152680,
+              "ifcdr": 155830,
               "ifcpr": 0,
               "ifcx": 2435,
-              "total": 155115
+              "total": 158265
             },
-            "bytes_per_entity": 155.115,
+            "bytes_per_entity": 158.265,
             "files": [
               {
                 "bytes": 2435,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "662d63e0b311504064c65e9882369722d557baf27edd2b7397895f0487a13c11"
+                "sha256": "77388ce51f1eed3386bb4b49b2352ffa4b5bca9bfb3e9f1c720850f205fa4425"
               },
               {
-                "bytes": 152680,
+                "bytes": 155830,
                 "path": "resources/drawing.ifcdr.json",
                 "role": "ifcdr",
-                "sha256": "9785442456c56aeb49776dbd565d9b881492d5d6014a9e720bef84fde847c961"
+                "sha256": "741332d1a61662439117ebbae07d61de700279569edb7ce34a952c45bd32ca99"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 3.6745789211854167,
-            "ratio_to_dxf": 0.8265570381106658,
+            "ratio_to_dwg": 3.74920048326345,
+            "ratio_to_dxf": 0.8433423565521357,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -3734,21 +3734,21 @@
               "cad": 0,
               "ifcdr": 0,
               "ifcpr": 0,
-              "ifcx": 267502,
-              "total": 267502
+              "ifcx": 272112,
+              "total": 272112
             },
-            "bytes_per_entity": 267.502,
+            "bytes_per_entity": 272.112,
             "files": [
               {
-                "bytes": 267502,
+                "bytes": 272112,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "18a5e9d0dfea240ab4960c530602d363c78d1aa6ce7321accf52b3c2de5a711e"
+                "sha256": "fcf7160d47366655b6d6116a9822de56efe314d910dcb3a41fcbe2ac2de67579"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 6.336957809205695,
-            "ratio_to_dxf": 1.425430556739705,
+            "ratio_to_dwg": 6.446165873072276,
+            "ratio_to_dxf": 1.4499957370619831,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -3961,29 +3961,29 @@
             "bytes": {
               "blob": 0,
               "cad": 0,
-              "ifcdr": 383689,
+              "ifcdr": 291839,
               "ifcpr": 0,
               "ifcx": 2435,
-              "total": 386124
+              "total": 294274
             },
-            "bytes_per_entity": 386.124,
+            "bytes_per_entity": 294.274,
             "files": [
               {
                 "bytes": 2435,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "84103779862f1d5f10d8d789f9b6dfd42897c1ea7ff898a85431ad3e3f4c4427"
+                "sha256": "0f394ad331f521ac9587909cb176d51714fe3a940a9ddbe344c9641a1033163d"
               },
               {
-                "bytes": 383689,
+                "bytes": 291839,
                 "path": "resources/drawing.ifcdr.json",
                 "role": "ifcdr",
-                "sha256": "d9f34284b75e7afbe54fab330b4ec892923e3e1ebc5373dd9353eb7ea157a2a3"
+                "sha256": "83bee73d54c1a1dc18af8161a40fda6798e593547793739821902307630d7c42"
               }
             ],
-            "ifcdr_bytes_per_polyline_vertex": 95.92225,
-            "ratio_to_dwg": 9.921730863118945,
-            "ratio_to_dxf": 1.024277665184682,
+            "ifcdr_bytes_per_polyline_vertex": 72.95975,
+            "ratio_to_dwg": 7.561579772335997,
+            "ratio_to_dxf": 0.7806256167566822,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -4001,21 +4001,21 @@
               "cad": 0,
               "ifcdr": 0,
               "ifcpr": 0,
-              "ifcx": 638491,
-              "total": 638491
+              "ifcx": 498101,
+              "total": 498101
             },
-            "bytes_per_entity": 638.491,
+            "bytes_per_entity": 498.101,
             "files": [
               {
-                "bytes": 638491,
+                "bytes": 498101,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "87439c6c8c259212ff114b7341e23fccb7932d75d890bb2d2361801833fc6638"
+                "sha256": "e161debc662fda3056346035091f095cab9a6d801df2df006fcff63fc558bd94"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 16.40648045841149,
-            "ratio_to_dxf": 1.69373587428244,
+            "ratio_to_dwg": 12.79905953696328,
+            "ratio_to_dxf": 1.3213209469138292,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -6230,29 +6230,29 @@
             "bytes": {
               "blob": 0,
               "cad": 0,
-              "ifcdr": 533716,
+              "ifcdr": 536866,
               "ifcpr": 0,
               "ifcx": 2435,
-              "total": 536151
+              "total": 539301
             },
-            "bytes_per_entity": 536.151,
+            "bytes_per_entity": 539.301,
             "files": [
               {
                 "bytes": 2435,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "329b0c4e25a3e0f5549abbf6c958af1b6d8fa97be42b923dd48452b54a38d752"
+                "sha256": "6fcbc56a4ca02b93d75eae6d6f7cadc8e33c51aabf64fb45aa9f342eed4fe2e1"
               },
               {
-                "bytes": 533716,
+                "bytes": 536866,
                 "path": "resources/drawing.ifcdr.json",
                 "role": "ifcdr",
-                "sha256": "e2830da393d16ca8766f912698f98d1f012812f487c1e744e38a1751aeabf66a"
+                "sha256": "352bd142660f7867ed291459e480e17d35661f1f607f28b4ea02ed1198d5e531"
               }
             ],
-            "ifcdr_bytes_per_polyline_vertex": 133.429,
-            "ratio_to_dwg": 13.753809450515623,
-            "ratio_to_dxf": 1.3137349551103619,
+            "ifcdr_bytes_per_polyline_vertex": 134.2165,
+            "ratio_to_dwg": 13.834615976604587,
+            "ratio_to_dxf": 1.3214534245501235,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -6270,21 +6270,21 @@
               "cad": 0,
               "ifcdr": 0,
               "ifcpr": 0,
-              "ifcx": 868518,
-              "total": 868518
+              "ifcx": 873128,
+              "total": 873128
             },
-            "bytes_per_entity": 868.518,
+            "bytes_per_entity": 873.128,
             "files": [
               {
-                "bytes": 868518,
+                "bytes": 873128,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "a619b80d106223e6ec7d3e5f8fce28e91d1c7f1d7cc54a46b7819c64e8373c1f"
+                "sha256": "1029c36f75f42d09dfe7a94715aaa078bee6d97870e1a3cfbd432702db329278"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 22.279975373249194,
-            "ratio_to_dxf": 2.1281363939310776,
+            "ratio_to_dwg": 22.398235082858754,
+            "ratio_to_dxf": 2.139432312698475,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -6304,12 +6304,12 @@
         "bytes": {
           "blob": 0,
           "cad": 0,
-          "ifcdr": 4032,
+          "ifcdr": 4051,
           "ifcpr": 0,
-          "ifcx": 3467,
-          "total": 7499
+          "ifcx": 3858,
+          "total": 7909
         },
-        "bytes_per_entity": 1874.75,
+        "bytes_per_entity": 1977.25,
         "counts": {
           "drawings": 1,
           "lines": 2,
@@ -6319,16 +6319,16 @@
         },
         "files": [
           {
-            "bytes": 4032,
+            "bytes": 4051,
             "path": "drawing.ifcdr.json",
             "role": "ifcdr",
-            "sha256": "343f60228160021e91eec9a6372a2bbb8895a8c4afd78b09d3a288318c63957c"
+            "sha256": "fb616aa5f16f03145a6cc82321a5c44ec2ca41400a5d9646d371f8a285a312bd"
           },
           {
-            "bytes": 3467,
+            "bytes": 3858,
             "path": "package.ifcx.json",
             "role": "ifcx",
-            "sha256": "9cdee4e1d39caa7d9f95a1dabb98f0db2a39eb4799d5534ffffdb7f6c3681d70"
+            "sha256": "67f8ceb581f30c532a5198455d46481c29993844a06c5bad6c45a1029385d35c"
           }
         ],
         "id": "minimal-no-preservation",
@@ -6347,10 +6347,10 @@
           "cad": 0,
           "ifcdr": 0,
           "ifcpr": 0,
-          "ifcx": 9775,
-          "total": 9775
+          "ifcx": 10185,
+          "total": 10185
         },
-        "bytes_per_entity": 2443.75,
+        "bytes_per_entity": 2546.25,
         "counts": {
           "drawings": 1,
           "lines": 2,
@@ -6360,10 +6360,10 @@
         },
         "files": [
           {
-            "bytes": 9775,
+            "bytes": 10185,
             "path": "package.ifcx.json",
             "role": "ifcx",
-            "sha256": "0ca68c01340658ca5946e2ebb544bc9358a2d4eb16e97f1be2a8c044683573b5"
+            "sha256": "b0d0b5961864d8750ebefb28d28ac20d3cf1eb870540a6e19f2796ad0ed714be"
           }
         ],
         "id": "inline-drawing",
@@ -6387,10 +6387,10 @@
         "bytes": {
           "blob": 94,
           "cad": 0,
-          "ifcdr": 4032,
+          "ifcdr": 4051,
           "ifcpr": 4269,
-          "ifcx": 4119,
-          "total": 12514
+          "ifcx": 4510,
+          "total": 12924
         },
         "bytes_per_entity": null,
         "counts": {
@@ -6408,16 +6408,16 @@
             "sha256": "fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044"
           },
           {
-            "bytes": 4032,
+            "bytes": 4051,
             "path": "drawing.ifcdr.json",
             "role": "ifcdr",
-            "sha256": "343f60228160021e91eec9a6372a2bbb8895a8c4afd78b09d3a288318c63957c"
+            "sha256": "fb616aa5f16f03145a6cc82321a5c44ec2ca41400a5d9646d371f8a285a312bd"
           },
           {
-            "bytes": 4119,
+            "bytes": 4510,
             "path": "package.ifcx.json",
             "role": "ifcx",
-            "sha256": "f26cc4c91853b74b0ae6bfa16bc959470139b0ff57db046cb3b45f917c072aa1"
+            "sha256": "2e6d372d89eb0037007d081d1aab1ae5a881e9322325aa83bb0997fc8c2487b0"
           },
           {
             "bytes": 4269,
@@ -7137,9 +7137,9 @@
       }
     ],
     "repository_dirty": true,
-    "repository_revision": "eca18ddead8766889a7ee76cf2554caa5b5cd8d9",
+    "repository_revision": "b7b2c7b581f9cd9a25d5419d78fb5640cc2ee190",
     "rustc": "rustc 1.98.0 (88d9e12ae 2026-08-18)\nbinary: rustc\ncommit-hash: 88d9e12ae178fab0fb5cc050a94da85685d449ea\ncommit-date: 2026-08-18\nhost: x86_64-pc-windows-msvc\nrelease: 1.98.0\nLLVM version: 22.1.8",
-    "source_manifest_sha256": "031292f65525c372e69087785e1e1712a79200d3272ae34e6412ea704d627352",
+    "source_manifest_sha256": "a7d2af3cd43d2e4e352a29aca6f830fe99055136a20527b0141a20821d2a5e48",
     "writers": {
       "dwg": "cadcodec normal AC1032, native compression",
       "dxf": "cadcodec text AC1032",
@@ -7152,17 +7152,17 @@
       {
         "case": "empty",
         "files_identical": true,
-        "first_bytes": 7151,
+        "first_bytes": 10301,
         "mode": "ifccad-external",
-        "second_bytes": 7151,
+        "second_bytes": 10301,
         "sizes_equal": true
       },
       {
         "case": "empty",
         "files_identical": true,
-        "first_bytes": 9318,
+        "first_bytes": 13928,
         "mode": "ifccad-inline",
-        "second_bytes": 9318,
+        "second_bytes": 13928,
         "sizes_equal": true
       },
       {
@@ -7184,17 +7184,17 @@
       {
         "case": "lines-100",
         "files_identical": true,
-        "first_bytes": 18694,
+        "first_bytes": 21844,
         "mode": "ifccad-external",
-        "second_bytes": 18694,
+        "second_bytes": 21844,
         "sizes_equal": true
       },
       {
         "case": "lines-100",
         "files_identical": true,
-        "first_bytes": 30021,
+        "first_bytes": 34631,
         "mode": "ifccad-inline",
-        "second_bytes": 30021,
+        "second_bytes": 34631,
         "sizes_equal": true
       },
       {
@@ -7216,17 +7216,17 @@
       {
         "case": "lines-10000",
         "files_identical": true,
-        "first_bytes": 1227053,
+        "first_bytes": 1230203,
         "mode": "ifccad-external",
-        "second_bytes": 1227053,
+        "second_bytes": 1230203,
         "sizes_equal": true
       },
       {
         "case": "lines-10000",
         "files_identical": true,
-        "first_bytes": 2129380,
+        "first_bytes": 2133990,
         "mode": "ifccad-inline",
-        "second_bytes": 2129380,
+        "second_bytes": 2133990,
         "sizes_equal": true
       },
       {
@@ -7248,17 +7248,17 @@
       {
         "case": "short-polylines-100",
         "files_identical": true,
-        "first_bytes": 28232,
+        "first_bytes": 31382,
         "mode": "ifccad-external",
-        "second_bytes": 28232,
+        "second_bytes": 31382,
         "sizes_equal": true
       },
       {
         "case": "short-polylines-100",
         "files_identical": true,
-        "first_bytes": 46569,
+        "first_bytes": 51179,
         "mode": "ifccad-inline",
-        "second_bytes": 46569,
+        "second_bytes": 51179,
         "sizes_equal": true
       },
       {
@@ -7280,17 +7280,17 @@
       {
         "case": "short-polylines-10000",
         "files_identical": true,
-        "first_bytes": 2246181,
+        "first_bytes": 2249331,
         "mode": "ifccad-external",
-        "second_bytes": 2246181,
+        "second_bytes": 2249331,
         "sizes_equal": true
       },
       {
         "case": "short-polylines-10000",
         "files_identical": true,
-        "first_bytes": 3848518,
+        "first_bytes": 3853128,
         "mode": "ifccad-inline",
-        "second_bytes": 3848518,
+        "second_bytes": 3853128,
         "sizes_equal": true
       },
       {
@@ -7312,17 +7312,17 @@
       {
         "case": "long-polylines-10",
         "files_identical": true,
-        "first_bytes": 43777,
+        "first_bytes": 46927,
         "mode": "ifccad-external",
-        "second_bytes": 43777,
+        "second_bytes": 46927,
         "sizes_equal": true
       },
       {
         "case": "long-polylines-10",
         "files_identical": true,
-        "first_bytes": 72514,
+        "first_bytes": 77124,
         "mode": "ifccad-inline",
-        "second_bytes": 72514,
+        "second_bytes": 77124,
         "sizes_equal": true
       },
       {
@@ -7344,17 +7344,17 @@
       {
         "case": "long-polylines-1000",
         "files_identical": true,
-        "first_bytes": 3901019,
+        "first_bytes": 3904169,
         "mode": "ifccad-external",
-        "second_bytes": 3901019,
+        "second_bytes": 3904169,
         "sizes_equal": true
       },
       {
         "case": "long-polylines-1000",
         "files_identical": true,
-        "first_bytes": 6543356,
+        "first_bytes": 6547966,
         "mode": "ifccad-inline",
-        "second_bytes": 6543356,
+        "second_bytes": 6547966,
         "sizes_equal": true
       },
       {
@@ -7376,17 +7376,17 @@
       {
         "case": "mixed-1000",
         "files_identical": true,
-        "first_bytes": 190593,
+        "first_bytes": 193743,
         "mode": "ifccad-external",
-        "second_bytes": 190593,
+        "second_bytes": 193743,
         "sizes_equal": true
       },
       {
         "case": "mixed-1000",
         "files_identical": true,
-        "first_bytes": 328280,
+        "first_bytes": 332890,
         "mode": "ifccad-inline",
-        "second_bytes": 328280,
+        "second_bytes": 332890,
         "sizes_equal": true
       },
       {
@@ -7408,17 +7408,17 @@
       {
         "case": "fractional-lines-1000",
         "files_identical": true,
-        "first_bytes": 157262,
+        "first_bytes": 160412,
         "mode": "ifccad-external",
-        "second_bytes": 157262,
+        "second_bytes": 160412,
         "sizes_equal": true
       },
       {
         "case": "fractional-lines-1000",
         "files_identical": true,
-        "first_bytes": 249589,
+        "first_bytes": 254199,
         "mode": "ifccad-inline",
-        "second_bytes": 249589,
+        "second_bytes": 254199,
         "sizes_equal": true
       },
       {
@@ -7440,17 +7440,17 @@
       {
         "case": "spatial-line-1000",
         "files_identical": true,
-        "first_bytes": 155115,
+        "first_bytes": 158265,
         "mode": "ifccad-external",
-        "second_bytes": 155115,
+        "second_bytes": 158265,
         "sizes_equal": true
       },
       {
         "case": "spatial-line-1000",
         "files_identical": true,
-        "first_bytes": 267502,
+        "first_bytes": 272112,
         "mode": "ifccad-inline",
-        "second_bytes": 267502,
+        "second_bytes": 272112,
         "sizes_equal": true
       },
       {
@@ -7472,17 +7472,17 @@
       {
         "case": "elevated-1000",
         "files_identical": true,
-        "first_bytes": 386124,
+        "first_bytes": 294274,
         "mode": "ifccad-external",
-        "second_bytes": 386124,
+        "second_bytes": 294274,
         "sizes_equal": true
       },
       {
         "case": "elevated-1000",
         "files_identical": true,
-        "first_bytes": 638491,
+        "first_bytes": 498101,
         "mode": "ifccad-inline",
-        "second_bytes": 638491,
+        "second_bytes": 498101,
         "sizes_equal": true
       },
       {
@@ -7504,17 +7504,17 @@
       {
         "case": "tilted-shifted-1000",
         "files_identical": true,
-        "first_bytes": 536151,
+        "first_bytes": 539301,
         "mode": "ifccad-external",
-        "second_bytes": 536151,
+        "second_bytes": 539301,
         "sizes_equal": true
       },
       {
         "case": "tilted-shifted-1000",
         "files_identical": true,
-        "first_bytes": 868518,
+        "first_bytes": 873128,
         "mode": "ifccad-inline",
-        "second_bytes": 868518,
+        "second_bytes": 873128,
         "sizes_equal": true
       },
       {
@@ -7542,13 +7542,13 @@
       "bytes": 2451,
       "path": "elevated-1000/chain-dwg-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "b0e75f2280e1bf20c470e6198a6606de792453de2c2aee35102aaf47c428349f"
+      "sha256": "86637e327ea34c08a48a02125944d5795ab37d4e2d77885974488ae908258ddd"
     },
     {
-      "bytes": 383694,
+      "bytes": 291844,
       "path": "elevated-1000/chain-dwg-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "c30e3c9786a2d3c49298cd38659de6a87577facdac0ad0d1989de8d9a35076c5"
+      "sha256": "d1621767f97182a955180bf4d754773d40a001d8bef16968a29e23f845b3b8bd"
     },
     {
       "bytes": 9393,
@@ -7566,13 +7566,13 @@
       "bytes": 2451,
       "path": "elevated-1000/chain-dxf-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "b0e75f2280e1bf20c470e6198a6606de792453de2c2aee35102aaf47c428349f"
+      "sha256": "86637e327ea34c08a48a02125944d5795ab37d4e2d77885974488ae908258ddd"
     },
     {
-      "bytes": 383694,
+      "bytes": 291844,
       "path": "elevated-1000/chain-dxf-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "c30e3c9786a2d3c49298cd38659de6a87577facdac0ad0d1989de8d9a35076c5"
+      "sha256": "d1621767f97182a955180bf4d754773d40a001d8bef16968a29e23f845b3b8bd"
     },
     {
       "bytes": 9398,
@@ -7614,31 +7614,31 @@
       "bytes": 2435,
       "path": "elevated-1000/ifccad-external/package.ifcx.json",
       "role": "artifact",
-      "sha256": "84103779862f1d5f10d8d789f9b6dfd42897c1ea7ff898a85431ad3e3f4c4427"
+      "sha256": "0f394ad331f521ac9587909cb176d51714fe3a940a9ddbe344c9641a1033163d"
     },
     {
-      "bytes": 383689,
+      "bytes": 291839,
       "path": "elevated-1000/ifccad-external/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "d9f34284b75e7afbe54fab330b4ec892923e3e1ebc5373dd9353eb7ea157a2a3"
+      "sha256": "83bee73d54c1a1dc18af8161a40fda6798e593547793739821902307630d7c42"
     },
     {
-      "bytes": 638491,
+      "bytes": 498101,
       "path": "elevated-1000/ifccad-inline/package.ifcx.json",
       "role": "artifact",
-      "sha256": "87439c6c8c259212ff114b7341e23fccb7932d75d890bb2d2361801833fc6638"
+      "sha256": "e161debc662fda3056346035091f095cab9a6d801df2df006fcff63fc558bd94"
     },
     {
       "bytes": 2451,
       "path": "empty/chain-dwg-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "dfca73cdad8b9037faabf6a47ce94690cdce58621de218cde038c3c378264d0b"
+      "sha256": "e528b777dace9173e2f38753ab9b93d53da2439b562c1490980074e20f965786"
     },
     {
-      "bytes": 4721,
+      "bytes": 7871,
       "path": "empty/chain-dwg-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "bcc188cbd7f4fd0ee0c5b22061923655fa18d8ca2b3d06ad02aa5a4f30c26811"
+      "sha256": "19b841a787197a33c1cd967bfec97b9de7be58c5f3ff429ff984b532ec5ebe08"
     },
     {
       "bytes": 9395,
@@ -7656,13 +7656,13 @@
       "bytes": 2451,
       "path": "empty/chain-dxf-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "dfca73cdad8b9037faabf6a47ce94690cdce58621de218cde038c3c378264d0b"
+      "sha256": "e528b777dace9173e2f38753ab9b93d53da2439b562c1490980074e20f965786"
     },
     {
-      "bytes": 4721,
+      "bytes": 7871,
       "path": "empty/chain-dxf-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "bcc188cbd7f4fd0ee0c5b22061923655fa18d8ca2b3d06ad02aa5a4f30c26811"
+      "sha256": "19b841a787197a33c1cd967bfec97b9de7be58c5f3ff429ff984b532ec5ebe08"
     },
     {
       "bytes": 9396,
@@ -7704,31 +7704,31 @@
       "bytes": 2435,
       "path": "empty/ifccad-external/package.ifcx.json",
       "role": "artifact",
-      "sha256": "69f7debf1a4fb537d153c5aee17c493e2e8b009cf967f9fca8d5a99e40c3897d"
+      "sha256": "d439f2365f6e55033ea97fc605ddb20a715cc621bbb86f1e605284a6bbcb69ee"
     },
     {
-      "bytes": 4716,
+      "bytes": 7866,
       "path": "empty/ifccad-external/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "31f6122095160a545c4b729b5ff2ee2151c6f9245054bdb686f35079be9c9101"
+      "sha256": "2128f37a852c8de5813d4e240e3d19e15d7562dce243e9c50f19a020fdc196af"
     },
     {
-      "bytes": 9318,
+      "bytes": 13928,
       "path": "empty/ifccad-inline/package.ifcx.json",
       "role": "artifact",
-      "sha256": "e0aaf7bfbf60064ddbf413139ed8cb9aaad6560ec6fe172364d25b67f5ce51cf"
+      "sha256": "63433865bd49d7d571e5e1572a939dce46865fcda2ce08704b66266c3a148911"
     },
     {
       "bytes": 2451,
       "path": "fractional-lines-1000/chain-dwg-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "672bdc8ba3d3b59818f46a1839f56ca6c9607715f8e248a47994a861ce56b0b2"
+      "sha256": "310a0a365e23c69ff9505973281e9d060d971aca8499aac0da2f46edd9c54f2c"
     },
     {
-      "bytes": 154832,
+      "bytes": 157982,
       "path": "fractional-lines-1000/chain-dwg-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "ebca3bd0ceb7ed059610b17965152348689818ff6c71def0a2402e7c510c398f"
+      "sha256": "6c4d9511d35fd25bcc8e82c31c60f6e3e79d1c47f3d423bc4f6ece746cb7ad0d"
     },
     {
       "bytes": 9411,
@@ -7746,13 +7746,13 @@
       "bytes": 2451,
       "path": "fractional-lines-1000/chain-dxf-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "672bdc8ba3d3b59818f46a1839f56ca6c9607715f8e248a47994a861ce56b0b2"
+      "sha256": "310a0a365e23c69ff9505973281e9d060d971aca8499aac0da2f46edd9c54f2c"
     },
     {
-      "bytes": 154832,
+      "bytes": 157982,
       "path": "fractional-lines-1000/chain-dxf-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "ebca3bd0ceb7ed059610b17965152348689818ff6c71def0a2402e7c510c398f"
+      "sha256": "6c4d9511d35fd25bcc8e82c31c60f6e3e79d1c47f3d423bc4f6ece746cb7ad0d"
     },
     {
       "bytes": 9398,
@@ -7794,31 +7794,31 @@
       "bytes": 2435,
       "path": "fractional-lines-1000/ifccad-external/package.ifcx.json",
       "role": "artifact",
-      "sha256": "f78242dbe964a48f1c64640c4d11ee306674695d2295347835b3bf82c6bdd7c2"
+      "sha256": "bde51962407cf2f82ebdab509c44106e0a4580dc4fee24903240b677ad80d73c"
     },
     {
-      "bytes": 154827,
+      "bytes": 157977,
       "path": "fractional-lines-1000/ifccad-external/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "bb17459296852e1d08ffe3023e949ded3c82722d1065392b6f32e940db1487aa"
+      "sha256": "b94186d87bbe37ef03078c9d4a6453f7f1fc2f272f354dcdbe6fb4c2799449fd"
     },
     {
-      "bytes": 249589,
+      "bytes": 254199,
       "path": "fractional-lines-1000/ifccad-inline/package.ifcx.json",
       "role": "artifact",
-      "sha256": "c98875ae3a67011e8d2ece688c83580edb343d225980a8eaa9efcec66c05200e"
+      "sha256": "878f938fbce562951189306f4f3629776bd929adcefcafaba86cd71dd1483a9f"
     },
     {
       "bytes": 2451,
       "path": "lines-100/chain-dwg-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "c3d36fc664d2806ddc7f09bd82e143ae2920a80f25e32a1d2561e1d2b240e080"
+      "sha256": "64f440f69905a66a85785e67fee3f4dcbfdfa7692652c555cb00f32fefd92c61"
     },
     {
-      "bytes": 16264,
+      "bytes": 19414,
       "path": "lines-100/chain-dwg-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "3de139f36872d9b643452ae2e7ec90ad90a30a862203e5b23ece134bb0c5f087"
+      "sha256": "1cf11501a1b649d0bf7bcb665b47710f827ace7eff1a5c657d9ce0d0ee29bbe1"
     },
     {
       "bytes": 9390,
@@ -7836,13 +7836,13 @@
       "bytes": 2451,
       "path": "lines-100/chain-dxf-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "c3d36fc664d2806ddc7f09bd82e143ae2920a80f25e32a1d2561e1d2b240e080"
+      "sha256": "64f440f69905a66a85785e67fee3f4dcbfdfa7692652c555cb00f32fefd92c61"
     },
     {
-      "bytes": 16264,
+      "bytes": 19414,
       "path": "lines-100/chain-dxf-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "3de139f36872d9b643452ae2e7ec90ad90a30a862203e5b23ece134bb0c5f087"
+      "sha256": "1cf11501a1b649d0bf7bcb665b47710f827ace7eff1a5c657d9ce0d0ee29bbe1"
     },
     {
       "bytes": 9397,
@@ -7884,31 +7884,31 @@
       "bytes": 2435,
       "path": "lines-100/ifccad-external/package.ifcx.json",
       "role": "artifact",
-      "sha256": "191f90b31a5a3378a9cab937a049449164c61597905ccb5f68688083bd0e8ef3"
+      "sha256": "b35745f8a79f14e0995d576da5689507866b7c06186f17e3446c12e4876d209e"
     },
     {
-      "bytes": 16259,
+      "bytes": 19409,
       "path": "lines-100/ifccad-external/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "df2caa1608d6291f245428489f73c812211b2045362779b63ef4217ed2ae4172"
+      "sha256": "0cb6e92c691a8bfc753e8d7de56e14353e17509c0fd88e84f6722942605a679c"
     },
     {
-      "bytes": 30021,
+      "bytes": 34631,
       "path": "lines-100/ifccad-inline/package.ifcx.json",
       "role": "artifact",
-      "sha256": "bb2cf7050a752ffd865f59dacaa424484db218d58811a98cc53f1f3302a4537c"
+      "sha256": "be6e214187b8011fcc8c49e1c32c980639f484787531f259986b9812ade5d3d0"
     },
     {
       "bytes": 2451,
       "path": "lines-10000/chain-dwg-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "0845d590a036d62120a68bbf5945ba0edcb16eb51c055b40e3a07256df778ee9"
+      "sha256": "8cec2234b1dc753862050ed666c4c0fe61daac349820e189a7b0f7bb943bea52"
     },
     {
-      "bytes": 1224623,
+      "bytes": 1227773,
       "path": "lines-10000/chain-dwg-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "132d6383192b1b653826fadb26de5535f65ffe08d7f1a956e5259d1903cb20db"
+      "sha256": "683d04acd8f5198068f89bff33b2986b68270023534a4b22b8835f778426b8e0"
     },
     {
       "bytes": 9395,
@@ -7926,13 +7926,13 @@
       "bytes": 2451,
       "path": "lines-10000/chain-dxf-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "0845d590a036d62120a68bbf5945ba0edcb16eb51c055b40e3a07256df778ee9"
+      "sha256": "8cec2234b1dc753862050ed666c4c0fe61daac349820e189a7b0f7bb943bea52"
     },
     {
-      "bytes": 1224623,
+      "bytes": 1227773,
       "path": "lines-10000/chain-dxf-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "132d6383192b1b653826fadb26de5535f65ffe08d7f1a956e5259d1903cb20db"
+      "sha256": "683d04acd8f5198068f89bff33b2986b68270023534a4b22b8835f778426b8e0"
     },
     {
       "bytes": 9399,
@@ -7974,31 +7974,31 @@
       "bytes": 2435,
       "path": "lines-10000/ifccad-external/package.ifcx.json",
       "role": "artifact",
-      "sha256": "d913508152e24a0fe3964edcfc9892ec84b2139d034726d94a893cbba2aa4b98"
+      "sha256": "8e36e6097131e6b922ded2823d597cf633883a246e3065e0e0763f7434e6791f"
     },
     {
-      "bytes": 1224618,
+      "bytes": 1227768,
       "path": "lines-10000/ifccad-external/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "674db27a5fa6dc88f3552c3657517085fcce65b35f688bb36e2846e8faadbb4f"
+      "sha256": "f1da796b1192519fc062e587f57c8b4ee0b37b7723f4023dbae91389a0853301"
     },
     {
-      "bytes": 2129380,
+      "bytes": 2133990,
       "path": "lines-10000/ifccad-inline/package.ifcx.json",
       "role": "artifact",
-      "sha256": "7a83d80c4df82f37c3d7ee9da0755fcf44c6e753c9908387b6285d6ca170c19f"
+      "sha256": "8cc8bf9b135f757146be64e9b2ebe156e9bac203fc5592fe2ae1aeb3bbe7df24"
     },
     {
       "bytes": 2451,
       "path": "long-polylines-10/chain-dwg-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "15fee9152d5bdbec19899ec798cfdbaf40a826a79364a2c9ac9b0f4bdce7c647"
+      "sha256": "392c20574db213f5224a7df8e272fd4e4d98f9f6f87176ea0fe86f600d3ee0b2"
     },
     {
-      "bytes": 41347,
+      "bytes": 44497,
       "path": "long-polylines-10/chain-dwg-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "43bdab2af1c21b15f499710b3ca46a21aa7bbc37a9843d43c6fd5152247c17df"
+      "sha256": "81e1dbdfaa455e6b0077f537632956de7f058acbf894db15b97d693ccd15fd4b"
     },
     {
       "bytes": 9388,
@@ -8016,13 +8016,13 @@
       "bytes": 2451,
       "path": "long-polylines-10/chain-dxf-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "15fee9152d5bdbec19899ec798cfdbaf40a826a79364a2c9ac9b0f4bdce7c647"
+      "sha256": "392c20574db213f5224a7df8e272fd4e4d98f9f6f87176ea0fe86f600d3ee0b2"
     },
     {
-      "bytes": 41347,
+      "bytes": 44497,
       "path": "long-polylines-10/chain-dxf-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "43bdab2af1c21b15f499710b3ca46a21aa7bbc37a9843d43c6fd5152247c17df"
+      "sha256": "81e1dbdfaa455e6b0077f537632956de7f058acbf894db15b97d693ccd15fd4b"
     },
     {
       "bytes": 9396,
@@ -8064,31 +8064,31 @@
       "bytes": 2435,
       "path": "long-polylines-10/ifccad-external/package.ifcx.json",
       "role": "artifact",
-      "sha256": "516a0de93e42b47e3ab8d9802ea92b121533b1e88e5b5937b01a3ad8ec7ce7e0"
+      "sha256": "e846bb518fa50cc7854ce336e7574692a240802da7ddfb51e5902f89e4cfc2d3"
     },
     {
-      "bytes": 41342,
+      "bytes": 44492,
       "path": "long-polylines-10/ifccad-external/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "8f6d698a45f3d9ca35a5a52e703459e395400853114b68e0227d2e235d1061a1"
+      "sha256": "e427ba24c4bfea67aa88188d4e706d4ca7dd08def0a4131c5d34652cbb644ae5"
     },
     {
-      "bytes": 72514,
+      "bytes": 77124,
       "path": "long-polylines-10/ifccad-inline/package.ifcx.json",
       "role": "artifact",
-      "sha256": "ddd2af2f974e28f148962d1cd3ee3aea70fddc0bc86d4e8d731f573f9c03f821"
+      "sha256": "761dfed0177248bf09e3f62cc44aef84c1788f20e3555ba47e31b07033b2b6ff"
     },
     {
       "bytes": 2451,
       "path": "long-polylines-1000/chain-dwg-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "535c684693cefc91da80852a1e81c5bea209618a8037d061593ab94b9a6b7888"
+      "sha256": "eb3624410ac7e4c61b4c01e505189e1847beea29908ea8d71e787615f4847aaf"
     },
     {
-      "bytes": 3898589,
+      "bytes": 3901739,
       "path": "long-polylines-1000/chain-dwg-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "5c2da90b56ba52e5ae8306d410132f1fffa2e435cc336ff32b666dd1dd261e21"
+      "sha256": "463fbd5eae32791b02caec7fbc9f543fd257072b53ec28be4e6db09e32c9a775"
     },
     {
       "bytes": 9393,
@@ -8106,13 +8106,13 @@
       "bytes": 2451,
       "path": "long-polylines-1000/chain-dxf-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "535c684693cefc91da80852a1e81c5bea209618a8037d061593ab94b9a6b7888"
+      "sha256": "eb3624410ac7e4c61b4c01e505189e1847beea29908ea8d71e787615f4847aaf"
     },
     {
-      "bytes": 3898589,
+      "bytes": 3901739,
       "path": "long-polylines-1000/chain-dxf-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "5c2da90b56ba52e5ae8306d410132f1fffa2e435cc336ff32b666dd1dd261e21"
+      "sha256": "463fbd5eae32791b02caec7fbc9f543fd257072b53ec28be4e6db09e32c9a775"
     },
     {
       "bytes": 9398,
@@ -8154,31 +8154,31 @@
       "bytes": 2435,
       "path": "long-polylines-1000/ifccad-external/package.ifcx.json",
       "role": "artifact",
-      "sha256": "4ad7895cbfc81cdd20c0a75f501f1b1d8b0286d5c967807db6cd022d4e0ba2e8"
+      "sha256": "53ce85918e22611538da9b7beb6484274c5dc31a30e94f85eef5ec22df23e4fe"
     },
     {
-      "bytes": 3898584,
+      "bytes": 3901734,
       "path": "long-polylines-1000/ifccad-external/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "212e21e8c93f794efed9e663b2ee458c894d644616d815ddc9c0f5d7eab5ca45"
+      "sha256": "4238591434b84902108e8c3331df6e03a427bbc54517c1e8e46a84d975a91326"
     },
     {
-      "bytes": 6543356,
+      "bytes": 6547966,
       "path": "long-polylines-1000/ifccad-inline/package.ifcx.json",
       "role": "artifact",
-      "sha256": "9b7bfa3fd1ffbf51c7889ced8370fbf406acce0c8d9f44a53c79adf80568c60f"
+      "sha256": "76278ca39aef62013bdb7c354cf7e19478ad312fd01549e6bf0304694aec8acb"
     },
     {
       "bytes": 4049,
       "path": "mixed-1000/chain-dwg-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "de4779b2e88d8f8564de7aafdd7c1284abfbecf0bc041d5a33f62f98a5e583f7"
+      "sha256": "072c8768e3e84abb9e97dea4b529a628a33b8d7ea5755ad9da23b261ee69b8f5"
     },
     {
-      "bytes": 186573,
+      "bytes": 189723,
       "path": "mixed-1000/chain-dwg-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "b7579889e206f56f11bcded77a0a052dd9f49be4127eb44b0b9042739d2214ea"
+      "sha256": "393c31dd079cd5f289b739285fdc5080e4caeb76c2513147db546392108def28"
     },
     {
       "bytes": 9393,
@@ -8196,13 +8196,13 @@
       "bytes": 4049,
       "path": "mixed-1000/chain-dxf-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "de4779b2e88d8f8564de7aafdd7c1284abfbecf0bc041d5a33f62f98a5e583f7"
+      "sha256": "072c8768e3e84abb9e97dea4b529a628a33b8d7ea5755ad9da23b261ee69b8f5"
     },
     {
-      "bytes": 186573,
+      "bytes": 189723,
       "path": "mixed-1000/chain-dxf-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "b7579889e206f56f11bcded77a0a052dd9f49be4127eb44b0b9042739d2214ea"
+      "sha256": "393c31dd079cd5f289b739285fdc5080e4caeb76c2513147db546392108def28"
     },
     {
       "bytes": 9398,
@@ -8244,31 +8244,31 @@
       "bytes": 4025,
       "path": "mixed-1000/ifccad-external/package.ifcx.json",
       "role": "artifact",
-      "sha256": "b882e7498ee972a2836994dc58cc273afb89bae4a1a237ee2362c7b6d618d8dd"
+      "sha256": "870c0127c37ac7bea1ab36f4e5c5cbfae5d347452ec9b160873b4f46b86c8258"
     },
     {
-      "bytes": 186568,
+      "bytes": 189718,
       "path": "mixed-1000/ifccad-external/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "4d5731130516957c30762bd84480186d7981c34196412fa57dd33bb2384b9ca1"
+      "sha256": "dcfc4a7f27b6010d395b1e4f7fd319d87dfdbc10ffd0dbb8d7b5b3c04e6d3133"
     },
     {
-      "bytes": 328280,
+      "bytes": 332890,
       "path": "mixed-1000/ifccad-inline/package.ifcx.json",
       "role": "artifact",
-      "sha256": "74a36303f91ee54c2e2d57544b9cc6637140e7e9c86f1f747f50232531d596e3"
+      "sha256": "4fc97e50d89191ce56e0d31ce572f343105d37dcc80c44bf6dfe14a6e1f2393a"
     },
     {
       "bytes": 2451,
       "path": "short-polylines-100/chain-dwg-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "00c22e1403981a40aebed2fdcce800d06c9eb39fb41794cdd41b4409e491efa8"
+      "sha256": "1197ca309d4023df465ee12bb6ef336941f8b177ed84ce2b6328d5372e45f555"
     },
     {
-      "bytes": 25802,
+      "bytes": 28952,
       "path": "short-polylines-100/chain-dwg-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "6947e144b2a0a284034cd6f6965ac54b1d9351e2c90839d5908b2b013331659d"
+      "sha256": "abfc85d0f9494b668b8390600e73e193af2037b396a95b4eb58c3146e3f0424f"
     },
     {
       "bytes": 9390,
@@ -8286,13 +8286,13 @@
       "bytes": 2451,
       "path": "short-polylines-100/chain-dxf-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "00c22e1403981a40aebed2fdcce800d06c9eb39fb41794cdd41b4409e491efa8"
+      "sha256": "1197ca309d4023df465ee12bb6ef336941f8b177ed84ce2b6328d5372e45f555"
     },
     {
-      "bytes": 25802,
+      "bytes": 28952,
       "path": "short-polylines-100/chain-dxf-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "6947e144b2a0a284034cd6f6965ac54b1d9351e2c90839d5908b2b013331659d"
+      "sha256": "abfc85d0f9494b668b8390600e73e193af2037b396a95b4eb58c3146e3f0424f"
     },
     {
       "bytes": 9397,
@@ -8334,31 +8334,31 @@
       "bytes": 2435,
       "path": "short-polylines-100/ifccad-external/package.ifcx.json",
       "role": "artifact",
-      "sha256": "a28c9feefda91114027956538d44f0c5255783718edb54956cdf64ee9c651388"
+      "sha256": "8b5012d5c2ada9ac01891903e7cc8d3cfdccd0e14d7fafa66630845175952949"
     },
     {
-      "bytes": 25797,
+      "bytes": 28947,
       "path": "short-polylines-100/ifccad-external/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "b172ab55235a52f619d7d2e3ff2970ff856067d04b8a27de46498e1e111690ef"
+      "sha256": "66ec65bafd821198e74fe8e5dde470b66e1844e194a17956e0b112289a5c03d8"
     },
     {
-      "bytes": 46569,
+      "bytes": 51179,
       "path": "short-polylines-100/ifccad-inline/package.ifcx.json",
       "role": "artifact",
-      "sha256": "8b65dce9b3b2885abb85dc98eb0f316f8aeaf8e6eb6c96c900fe0b542479252f"
+      "sha256": "e8a75b67ade41763e544f6dfb3d4c19db7bc416ffc61511d844a444c39291ffc"
     },
     {
       "bytes": 2451,
       "path": "short-polylines-10000/chain-dwg-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "adcce0053c985307230de83fdc1bca0cde87de1bd17db33bf0b63b73ffcd12ed"
+      "sha256": "6179396d85c99c8f4c73e0a8d92928fee005180d131855d09770495786af1439"
     },
     {
-      "bytes": 2243751,
+      "bytes": 2246901,
       "path": "short-polylines-10000/chain-dwg-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "fb67bebc7d4cb37d6695d940a99359dca5ac478a5ca93863f6d4f0f873b480cd"
+      "sha256": "1aeecbcc44463dbd175e8bd1d9c9aaff0df77bb5de21e2a9a36ae0ebbdce4c10"
     },
     {
       "bytes": 9395,
@@ -8376,13 +8376,13 @@
       "bytes": 2451,
       "path": "short-polylines-10000/chain-dxf-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "adcce0053c985307230de83fdc1bca0cde87de1bd17db33bf0b63b73ffcd12ed"
+      "sha256": "6179396d85c99c8f4c73e0a8d92928fee005180d131855d09770495786af1439"
     },
     {
-      "bytes": 2243751,
+      "bytes": 2246901,
       "path": "short-polylines-10000/chain-dxf-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "fb67bebc7d4cb37d6695d940a99359dca5ac478a5ca93863f6d4f0f873b480cd"
+      "sha256": "1aeecbcc44463dbd175e8bd1d9c9aaff0df77bb5de21e2a9a36ae0ebbdce4c10"
     },
     {
       "bytes": 9399,
@@ -8424,31 +8424,31 @@
       "bytes": 2435,
       "path": "short-polylines-10000/ifccad-external/package.ifcx.json",
       "role": "artifact",
-      "sha256": "8337f5d510dcb2b563e440d12b4fe68aed6dc255b27f7f0bb388192dfd927511"
+      "sha256": "7d758574f3c8a03ec2e49ff1f78de87679ad7640e9c88150849105ce6711f632"
     },
     {
-      "bytes": 2243746,
+      "bytes": 2246896,
       "path": "short-polylines-10000/ifccad-external/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "6302ced97022530d319ba68473f6822ba14f30a109cb41fbbb9eba3283620ce8"
+      "sha256": "393969c7034eb7cc7472db1b1ed371498c606cd90bbcb026ebab8eb989b7a540"
     },
     {
-      "bytes": 3848518,
+      "bytes": 3853128,
       "path": "short-polylines-10000/ifccad-inline/package.ifcx.json",
       "role": "artifact",
-      "sha256": "534fee022eed6c5044bd40e7e66ebe6d54543abacb0fe09f3e8bddfbb6e870e1"
+      "sha256": "7ab331f02148b0f4ad6e769c189f492f40111925386e0472404dad48d206b5d3"
     },
     {
       "bytes": 2451,
       "path": "spatial-line-1000/chain-dwg-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "f677850cba5af7190441550e88cb7d0379ec5842918cf27d2c3f7a66650ac651"
+      "sha256": "23679c1b86e8cff1ff721c6494d9f9298197ccabda68f52cb9ed270f0d7c20f5"
     },
     {
-      "bytes": 152685,
+      "bytes": 155835,
       "path": "spatial-line-1000/chain-dwg-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "742d457962815935dbe052222b0a980841f9e7d6e8cf378130bb70a97b71a437"
+      "sha256": "115e64a25dbd168c58a237b78480b56346721a268204ca74e93b778e4d176373"
     },
     {
       "bytes": 9396,
@@ -8466,13 +8466,13 @@
       "bytes": 2451,
       "path": "spatial-line-1000/chain-dxf-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "f677850cba5af7190441550e88cb7d0379ec5842918cf27d2c3f7a66650ac651"
+      "sha256": "23679c1b86e8cff1ff721c6494d9f9298197ccabda68f52cb9ed270f0d7c20f5"
     },
     {
-      "bytes": 152685,
+      "bytes": 155835,
       "path": "spatial-line-1000/chain-dxf-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "742d457962815935dbe052222b0a980841f9e7d6e8cf378130bb70a97b71a437"
+      "sha256": "115e64a25dbd168c58a237b78480b56346721a268204ca74e93b778e4d176373"
     },
     {
       "bytes": 9398,
@@ -8514,31 +8514,31 @@
       "bytes": 2435,
       "path": "spatial-line-1000/ifccad-external/package.ifcx.json",
       "role": "artifact",
-      "sha256": "662d63e0b311504064c65e9882369722d557baf27edd2b7397895f0487a13c11"
+      "sha256": "77388ce51f1eed3386bb4b49b2352ffa4b5bca9bfb3e9f1c720850f205fa4425"
     },
     {
-      "bytes": 152680,
+      "bytes": 155830,
       "path": "spatial-line-1000/ifccad-external/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "9785442456c56aeb49776dbd565d9b881492d5d6014a9e720bef84fde847c961"
+      "sha256": "741332d1a61662439117ebbae07d61de700279569edb7ce34a952c45bd32ca99"
     },
     {
-      "bytes": 267502,
+      "bytes": 272112,
       "path": "spatial-line-1000/ifccad-inline/package.ifcx.json",
       "role": "artifact",
-      "sha256": "18a5e9d0dfea240ab4960c530602d363c78d1aa6ce7321accf52b3c2de5a711e"
+      "sha256": "fcf7160d47366655b6d6116a9822de56efe314d910dcb3a41fcbe2ac2de67579"
     },
     {
       "bytes": 2451,
       "path": "tilted-shifted-1000/chain-dwg-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "38d24e97f44f2855e74ad89a586184979dcb4f9493d1aab8a4e17aee216d297a"
+      "sha256": "949c77727cc213b68a7c97ed061bf910a1c84c0ca11be2970e558888ab80181a"
     },
     {
-      "bytes": 532836,
+      "bytes": 535986,
       "path": "tilted-shifted-1000/chain-dwg-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "a2ee4dc6df8674d7517824b6064147196e211981bafd461365eb42ca371f3a49"
+      "sha256": "bacd5e27b371fa6e0dafe430e6da93ec92ea89dde959aa8fe749670f48b5bb6e"
     },
     {
       "bytes": 9395,
@@ -8556,13 +8556,13 @@
       "bytes": 2451,
       "path": "tilted-shifted-1000/chain-dxf-ifccad/package.ifcx.json",
       "role": "artifact",
-      "sha256": "38d24e97f44f2855e74ad89a586184979dcb4f9493d1aab8a4e17aee216d297a"
+      "sha256": "949c77727cc213b68a7c97ed061bf910a1c84c0ca11be2970e558888ab80181a"
     },
     {
-      "bytes": 532836,
+      "bytes": 535986,
       "path": "tilted-shifted-1000/chain-dxf-ifccad/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "a2ee4dc6df8674d7517824b6064147196e211981bafd461365eb42ca371f3a49"
+      "sha256": "bacd5e27b371fa6e0dafe430e6da93ec92ea89dde959aa8fe749670f48b5bb6e"
     },
     {
       "bytes": 9398,
@@ -8604,19 +8604,19 @@
       "bytes": 2435,
       "path": "tilted-shifted-1000/ifccad-external/package.ifcx.json",
       "role": "artifact",
-      "sha256": "329b0c4e25a3e0f5549abbf6c958af1b6d8fa97be42b923dd48452b54a38d752"
+      "sha256": "6fcbc56a4ca02b93d75eae6d6f7cadc8e33c51aabf64fb45aa9f342eed4fe2e1"
     },
     {
-      "bytes": 533716,
+      "bytes": 536866,
       "path": "tilted-shifted-1000/ifccad-external/resources/drawing.ifcdr.json",
       "role": "artifact",
-      "sha256": "e2830da393d16ca8766f912698f98d1f012812f487c1e744e38a1751aeabf66a"
+      "sha256": "352bd142660f7867ed291459e480e17d35661f1f607f28b4ea02ed1198d5e531"
     },
     {
-      "bytes": 868518,
+      "bytes": 873128,
       "path": "tilted-shifted-1000/ifccad-inline/package.ifcx.json",
       "role": "artifact",
-      "sha256": "a619b80d106223e6ec7d3e5f8fce28e91d1c7f1d7cc54a46b7819c64e8373c1f"
+      "sha256": "1029c36f75f42d09dfe7a94715aaa078bee6d97870e1a3cfbd432702db329278"
     }
   ],
   "second_measurements": {
@@ -8825,10 +8825,10 @@
             "bytes": {
               "blob": 0,
               "cad": 0,
-              "ifcdr": 4716,
+              "ifcdr": 7866,
               "ifcpr": 0,
               "ifcx": 2435,
-              "total": 7151
+              "total": 10301
             },
             "bytes_per_entity": null,
             "files": [
@@ -8836,18 +8836,18 @@
                 "bytes": 2435,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "69f7debf1a4fb537d153c5aee17c493e2e8b009cf967f9fca8d5a99e40c3897d"
+                "sha256": "d439f2365f6e55033ea97fc605ddb20a715cc621bbb86f1e605284a6bbcb69ee"
               },
               {
-                "bytes": 4716,
+                "bytes": 7866,
                 "path": "resources/drawing.ifcdr.json",
                 "role": "ifcdr",
-                "sha256": "31f6122095160a545c4b729b5ff2ee2151c6f9245054bdb686f35079be9c9101"
+                "sha256": "2128f37a852c8de5813d4e240e3d19e15d7562dce243e9c50f19a020fdc196af"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 0.34290783542725617,
-            "ratio_to_dxf": 0.15222018817318744,
+            "ratio_to_dwg": 0.4939579936702791,
+            "ratio_to_dxf": 0.2192728511218017,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -8865,21 +8865,21 @@
               "cad": 0,
               "ifcdr": 0,
               "ifcpr": 0,
-              "ifcx": 9318,
-              "total": 9318
+              "ifcx": 13928,
+              "total": 13928
             },
             "bytes_per_entity": null,
             "files": [
               {
-                "bytes": 9318,
+                "bytes": 13928,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "e0aaf7bfbf60064ddbf413139ed8cb9aaad6560ec6fe172364d25b67f5ce51cf"
+                "sha256": "63433865bd49d7d571e5e1572a939dce46865fcda2ce08704b66266c3a148911"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 0.44682075381221825,
-            "ratio_to_dxf": 0.1983481629699008,
+            "ratio_to_dwg": 0.6678814615901026,
+            "ratio_to_dxf": 0.2964792030312061,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -9092,29 +9092,29 @@
             "bytes": {
               "blob": 0,
               "cad": 0,
-              "ifcdr": 16259,
+              "ifcdr": 19409,
               "ifcpr": 0,
               "ifcx": 2435,
-              "total": 18694
+              "total": 21844
             },
-            "bytes_per_entity": 186.94,
+            "bytes_per_entity": 218.44,
             "files": [
               {
                 "bytes": 2435,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "191f90b31a5a3378a9cab937a049449164c61597905ccb5f68688083bd0e8ef3"
+                "sha256": "b35745f8a79f14e0995d576da5689507866b7c06186f17e3446c12e4876d209e"
               },
               {
-                "bytes": 16259,
+                "bytes": 19409,
                 "path": "resources/drawing.ifcdr.json",
                 "role": "ifcdr",
-                "sha256": "df2caa1608d6291f245428489f73c812211b2045362779b63ef4217ed2ae4172"
+                "sha256": "0cb6e92c691a8bfc753e8d7de56e14353e17509c0fd88e84f6722942605a679c"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 0.8397268888689247,
-            "ratio_to_dxf": 0.3098213397858729,
+            "ratio_to_dwg": 0.9812236097385679,
+            "ratio_to_dxf": 0.36202724651131957,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -9132,21 +9132,21 @@
               "cad": 0,
               "ifcdr": 0,
               "ifcpr": 0,
-              "ifcx": 30021,
-              "total": 30021
+              "ifcx": 34631,
+              "total": 34631
             },
-            "bytes_per_entity": 300.21,
+            "bytes_per_entity": 346.31,
             "files": [
               {
-                "bytes": 30021,
+                "bytes": 34631,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "bb2cf7050a752ffd865f59dacaa424484db218d58811a98cc53f1f3302a4537c"
+                "sha256": "be6e214187b8011fcc8c49e1c32c980639f484787531f259986b9812ade5d3d0"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 1.3485311292785913,
-            "ratio_to_dxf": 0.49754715104909014,
+            "ratio_to_dwg": 1.5556104572814662,
+            "ratio_to_dxf": 0.5739500812091882,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -9359,29 +9359,29 @@
             "bytes": {
               "blob": 0,
               "cad": 0,
-              "ifcdr": 1224618,
+              "ifcdr": 1227768,
               "ifcpr": 0,
               "ifcx": 2435,
-              "total": 1227053
+              "total": 1230203
             },
-            "bytes_per_entity": 122.7053,
+            "bytes_per_entity": 123.0203,
             "files": [
               {
                 "bytes": 2435,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "d913508152e24a0fe3964edcfc9892ec84b2139d034726d94a893cbba2aa4b98"
+                "sha256": "8e36e6097131e6b922ded2823d597cf633883a246e3065e0e0763f7434e6791f"
               },
               {
-                "bytes": 1224618,
+                "bytes": 1227768,
                 "path": "resources/drawing.ifcdr.json",
                 "role": "ifcdr",
-                "sha256": "674db27a5fa6dc88f3552c3657517085fcce65b35f688bb36e2846e8faadbb4f"
+                "sha256": "f1da796b1192519fc062e587f57c8b4ee0b37b7723f4023dbae91389a0853301"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 7.294421524450415,
-            "ratio_to_dxf": 0.8493914687953837,
+            "ratio_to_dwg": 7.313147225623893,
+            "ratio_to_dxf": 0.8515719639546845,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -9399,21 +9399,21 @@
               "cad": 0,
               "ifcdr": 0,
               "ifcpr": 0,
-              "ifcx": 2129380,
-              "total": 2129380
+              "ifcx": 2133990,
+              "total": 2133990
             },
-            "bytes_per_entity": 212.938,
+            "bytes_per_entity": 213.399,
             "files": [
               {
-                "bytes": 2129380,
+                "bytes": 2133990,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "7a83d80c4df82f37c3d7ee9da0755fcf44c6e753c9908387b6285d6ca170c19f"
+                "sha256": "8cc8bf9b135f757146be64e9b2ebe156e9bac203fc5592fe2ae1aeb3bbe7df24"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 12.658455099929853,
-            "ratio_to_dxf": 1.4740008832735947,
+            "ratio_to_dwg": 12.68586001498056,
+            "ratio_to_dxf": 1.4771920206337141,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -9626,29 +9626,29 @@
             "bytes": {
               "blob": 0,
               "cad": 0,
-              "ifcdr": 25797,
+              "ifcdr": 28947,
               "ifcpr": 0,
               "ifcx": 2435,
-              "total": 28232
+              "total": 31382
             },
-            "bytes_per_entity": 282.32,
+            "bytes_per_entity": 313.82,
             "files": [
               {
                 "bytes": 2435,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "a28c9feefda91114027956538d44f0c5255783718edb54956cdf64ee9c651388"
+                "sha256": "8b5012d5c2ada9ac01891903e7cc8d3cfdccd0e14d7fafa66630845175952949"
               },
               {
-                "bytes": 25797,
+                "bytes": 28947,
                 "path": "resources/drawing.ifcdr.json",
                 "role": "ifcdr",
-                "sha256": "b172ab55235a52f619d7d2e3ff2970ff856067d04b8a27de46498e1e111690ef"
+                "sha256": "66ec65bafd821198e74fe8e5dde470b66e1844e194a17956e0b112289a5c03d8"
               }
             ],
-            "ifcdr_bytes_per_polyline_vertex": 64.4925,
-            "ratio_to_dwg": 1.255536778439918,
-            "ratio_to_dxf": 0.3555757071966548,
+            "ifcdr_bytes_per_polyline_vertex": 72.3675,
+            "ratio_to_dwg": 1.3956239437872453,
+            "ratio_to_dxf": 0.39524925061084665,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -9666,21 +9666,21 @@
               "cad": 0,
               "ifcdr": 0,
               "ifcpr": 0,
-              "ifcx": 46569,
-              "total": 46569
+              "ifcx": 51179,
+              "total": 51179
             },
-            "bytes_per_entity": 465.69,
+            "bytes_per_entity": 511.79,
             "files": [
               {
-                "bytes": 46569,
+                "bytes": 51179,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "8b65dce9b3b2885abb85dc98eb0f316f8aeaf8e6eb6c96c900fe0b542479252f"
+                "sha256": "e8a75b67ade41763e544f6dfb3d4c19db7bc416ffc61511d844a444c39291ffc"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 2.0710219692252956,
-            "ratio_to_dxf": 0.5865261089699992,
+            "ratio_to_dwg": 2.2760384239082097,
+            "ratio_to_dxf": 0.6445880248872767,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -9893,29 +9893,29 @@
             "bytes": {
               "blob": 0,
               "cad": 0,
-              "ifcdr": 2243746,
+              "ifcdr": 2246896,
               "ifcpr": 0,
               "ifcx": 2435,
-              "total": 2246181
+              "total": 2249331
             },
-            "bytes_per_entity": 224.6181,
+            "bytes_per_entity": 224.9331,
             "files": [
               {
                 "bytes": 2435,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "8337f5d510dcb2b563e440d12b4fe68aed6dc255b27f7f0bb388192dfd927511"
+                "sha256": "7d758574f3c8a03ec2e49ff1f78de87679ad7640e9c88150849105ce6711f632"
               },
               {
-                "bytes": 2243746,
+                "bytes": 2246896,
                 "path": "resources/drawing.ifcdr.json",
                 "role": "ifcdr",
-                "sha256": "6302ced97022530d319ba68473f6822ba14f30a109cb41fbbb9eba3283620ce8"
+                "sha256": "393969c7034eb7cc7472db1b1ed371498c606cd90bbcb026ebab8eb989b7a540"
               }
             ],
-            "ifcdr_bytes_per_polyline_vertex": 56.09365,
-            "ratio_to_dwg": 11.952030776925819,
-            "ratio_to_dxf": 0.6613171811433212,
+            "ifcdr_bytes_per_polyline_vertex": 56.1724,
+            "ratio_to_dwg": 11.968792069514135,
+            "ratio_to_dxf": 0.662244599334732,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -9933,21 +9933,21 @@
               "cad": 0,
               "ifcdr": 0,
               "ifcpr": 0,
-              "ifcx": 3848518,
-              "total": 3848518
+              "ifcx": 3853128,
+              "total": 3853128
             },
-            "bytes_per_entity": 384.8518,
+            "bytes_per_entity": 385.3128,
             "files": [
               {
-                "bytes": 3848518,
+                "bytes": 3853128,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "534fee022eed6c5044bd40e7e66ebe6d54543abacb0fe09f3e8bddfbb6e870e1"
+                "sha256": "7ab331f02148b0f4ad6e769c189f492f40111925386e0472404dad48d206b5d3"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 20.478138485524095,
-            "ratio_to_dxf": 1.1330747946578357,
+            "ratio_to_dwg": 20.502668504200965,
+            "ratio_to_dxf": 1.1344320638205037,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -10160,29 +10160,29 @@
             "bytes": {
               "blob": 0,
               "cad": 0,
-              "ifcdr": 41342,
+              "ifcdr": 44492,
               "ifcpr": 0,
               "ifcx": 2435,
-              "total": 43777
+              "total": 46927
             },
-            "bytes_per_entity": 4377.7,
+            "bytes_per_entity": 4692.7,
             "files": [
               {
                 "bytes": 2435,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "516a0de93e42b47e3ab8d9802ea92b121533b1e88e5b5937b01a3ad8ec7ce7e0"
+                "sha256": "e846bb518fa50cc7854ce336e7574692a240802da7ddfb51e5902f89e4cfc2d3"
               },
               {
-                "bytes": 41342,
+                "bytes": 44492,
                 "path": "resources/drawing.ifcdr.json",
                 "role": "ifcdr",
-                "sha256": "8f6d698a45f3d9ca35a5a52e703459e395400853114b68e0227d2e235d1061a1"
+                "sha256": "e427ba24c4bfea67aa88188d4e706d4ca7dd08def0a4131c5d34652cbb644ae5"
               }
             ],
-            "ifcdr_bytes_per_polyline_vertex": 32.2984375,
-            "ratio_to_dwg": 1.837054133445237,
-            "ratio_to_dxf": 0.38295396889269906,
+            "ifcdr_bytes_per_polyline_vertex": 34.759375,
+            "ratio_to_dwg": 1.9692404532102392,
+            "ratio_to_dxf": 0.41050964886190666,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -10200,21 +10200,21 @@
               "cad": 0,
               "ifcdr": 0,
               "ifcpr": 0,
-              "ifcx": 72514,
-              "total": 72514
+              "ifcx": 77124,
+              "total": 77124
             },
-            "bytes_per_entity": 7251.4,
+            "bytes_per_entity": 7712.4,
             "files": [
               {
-                "bytes": 72514,
+                "bytes": 77124,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "ddd2af2f974e28f148962d1cd3ee3aea70fddc0bc86d4e8d731f573f9c03f821"
+                "sha256": "761dfed0177248bf09e3f62cc44aef84c1788f20e3555ba47e31b07033b2b6ff"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 3.042971044901385,
-            "ratio_to_dxf": 0.6343405007260703,
+            "ratio_to_dwg": 3.2364246747796894,
+            "ratio_to_dxf": 0.6746680196651329,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -10427,29 +10427,29 @@
             "bytes": {
               "blob": 0,
               "cad": 0,
-              "ifcdr": 3898584,
+              "ifcdr": 3901734,
               "ifcpr": 0,
               "ifcx": 2435,
-              "total": 3901019
+              "total": 3904169
             },
-            "bytes_per_entity": 3901.019,
+            "bytes_per_entity": 3904.169,
             "files": [
               {
                 "bytes": 2435,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "4ad7895cbfc81cdd20c0a75f501f1b1d8b0286d5c967807db6cd022d4e0ba2e8"
+                "sha256": "53ce85918e22611538da9b7beb6484274c5dc31a30e94f85eef5ec22df23e4fe"
               },
               {
-                "bytes": 3898584,
+                "bytes": 3901734,
                 "path": "resources/drawing.ifcdr.json",
                 "role": "ifcdr",
-                "sha256": "212e21e8c93f794efed9e663b2ee458c894d644616d815ddc9c0f5d7eab5ca45"
+                "sha256": "4238591434b84902108e8c3331df6e03a427bbc54517c1e8e46a84d975a91326"
               }
             ],
-            "ifcdr_bytes_per_polyline_vertex": 30.4576875,
-            "ratio_to_dwg": 15.122338775953233,
-            "ratio_to_dxf": 0.5551857023797867,
+            "ifcdr_bytes_per_polyline_vertex": 30.482296875,
+            "ratio_to_dwg": 15.134549782140144,
+            "ratio_to_dxf": 0.5556340044676505,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -10467,21 +10467,21 @@
               "cad": 0,
               "ifcdr": 0,
               "ifcpr": 0,
-              "ifcx": 6543356,
-              "total": 6543356
+              "ifcx": 6547966,
+              "total": 6547966
             },
-            "bytes_per_entity": 6543.356,
+            "bytes_per_entity": 6547.966,
             "files": [
               {
-                "bytes": 6543356,
+                "bytes": 6547966,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "9b7bfa3fd1ffbf51c7889ced8370fbf406acce0c8d9f44a53c79adf80568c60f"
+                "sha256": "76278ca39aef62013bdb7c354cf7e19478ad312fd01549e6bf0304694aec8acb"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 25.365384317191545,
-            "ratio_to_dxf": 0.9312381449003432,
+            "ratio_to_dwg": 25.38325502783334,
+            "ratio_to_dxf": 0.9318942314479788,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -10694,29 +10694,29 @@
             "bytes": {
               "blob": 0,
               "cad": 0,
-              "ifcdr": 186568,
+              "ifcdr": 189718,
               "ifcpr": 0,
               "ifcx": 4025,
-              "total": 190593
+              "total": 193743
             },
-            "bytes_per_entity": 190.593,
+            "bytes_per_entity": 193.743,
             "files": [
               {
                 "bytes": 4025,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "b882e7498ee972a2836994dc58cc273afb89bae4a1a237ee2362c7b6d618d8dd"
+                "sha256": "870c0127c37ac7bea1ab36f4e5c5cbfae5d347452ec9b160873b4f46b86c8258"
               },
               {
-                "bytes": 186568,
+                "bytes": 189718,
                 "path": "resources/drawing.ifcdr.json",
                 "role": "ifcdr",
-                "sha256": "4d5731130516957c30762bd84480186d7981c34196412fa57dd33bb2384b9ca1"
+                "sha256": "dcfc4a7f27b6010d395b1e4f7fd319d87dfdbc10ffd0dbb8d7b5b3c04e6d3133"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 4.525322316404302,
-            "ratio_to_dxf": 0.6099093102587569,
+            "ratio_to_dwg": 4.600113968231356,
+            "ratio_to_dxf": 0.619989503798473,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -10734,21 +10734,21 @@
               "cad": 0,
               "ifcdr": 0,
               "ifcpr": 0,
-              "ifcx": 328280,
-              "total": 328280
+              "ifcx": 332890,
+              "total": 332890
             },
-            "bytes_per_entity": 328.28,
+            "bytes_per_entity": 332.89,
             "files": [
               {
-                "bytes": 328280,
+                "bytes": 332890,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "74a36303f91ee54c2e2d57544b9cc6637140e7e9c86f1f747f50232531d596e3"
+                "sha256": "4fc97e50d89191ce56e0d31ce572f343105d37dcc80c44bf6dfe14a6e1f2393a"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 7.794477289455564,
-            "ratio_to_dxf": 1.0505161699104624,
+            "ratio_to_dwg": 7.903934278319919,
+            "ratio_to_dxf": 1.0652684531543006,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -10961,29 +10961,29 @@
             "bytes": {
               "blob": 0,
               "cad": 0,
-              "ifcdr": 154827,
+              "ifcdr": 157977,
               "ifcpr": 0,
               "ifcx": 2435,
-              "total": 157262
+              "total": 160412
             },
-            "bytes_per_entity": 157.262,
+            "bytes_per_entity": 160.412,
             "files": [
               {
                 "bytes": 2435,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "f78242dbe964a48f1c64640c4d11ee306674695d2295347835b3bf82c6bdd7c2"
+                "sha256": "bde51962407cf2f82ebdab509c44106e0a4580dc4fee24903240b677ad80d73c"
               },
               {
-                "bytes": 154827,
+                "bytes": 157977,
                 "path": "resources/drawing.ifcdr.json",
                 "role": "ifcdr",
-                "sha256": "bb17459296852e1d08ffe3023e949ded3c82722d1065392b6f32e940db1487aa"
+                "sha256": "b94186d87bbe37ef03078c9d4a6453f7f1fc2f272f354dcdbe6fb4c2799449fd"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 3.331963218780457,
-            "ratio_to_dxf": 0.7284965164541951,
+            "ratio_to_dwg": 3.3987033348870717,
+            "ratio_to_dxf": 0.7430884968870441,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -11001,21 +11001,21 @@
               "cad": 0,
               "ifcdr": 0,
               "ifcpr": 0,
-              "ifcx": 249589,
-              "total": 249589
+              "ifcx": 254199,
+              "total": 254199
             },
-            "bytes_per_entity": 249.589,
+            "bytes_per_entity": 254.199,
             "files": [
               {
-                "bytes": 249589,
+                "bytes": 254199,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "c98875ae3a67011e8d2ece688c83580edb343d225980a8eaa9efcec66c05200e"
+                "sha256": "878f938fbce562951189306f4f3629776bd929adcefcafaba86cd71dd1483a9f"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 5.288126615534557,
-            "ratio_to_dxf": 1.1561897791283724,
+            "ratio_to_dwg": 5.385800245773126,
+            "ratio_to_dxf": 1.1775450266824785,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -11228,29 +11228,29 @@
             "bytes": {
               "blob": 0,
               "cad": 0,
-              "ifcdr": 152680,
+              "ifcdr": 155830,
               "ifcpr": 0,
               "ifcx": 2435,
-              "total": 155115
+              "total": 158265
             },
-            "bytes_per_entity": 155.115,
+            "bytes_per_entity": 158.265,
             "files": [
               {
                 "bytes": 2435,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "662d63e0b311504064c65e9882369722d557baf27edd2b7397895f0487a13c11"
+                "sha256": "77388ce51f1eed3386bb4b49b2352ffa4b5bca9bfb3e9f1c720850f205fa4425"
               },
               {
-                "bytes": 152680,
+                "bytes": 155830,
                 "path": "resources/drawing.ifcdr.json",
                 "role": "ifcdr",
-                "sha256": "9785442456c56aeb49776dbd565d9b881492d5d6014a9e720bef84fde847c961"
+                "sha256": "741332d1a61662439117ebbae07d61de700279569edb7ce34a952c45bd32ca99"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 3.6745789211854167,
-            "ratio_to_dxf": 0.8265570381106658,
+            "ratio_to_dwg": 3.74920048326345,
+            "ratio_to_dxf": 0.8433423565521357,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -11268,21 +11268,21 @@
               "cad": 0,
               "ifcdr": 0,
               "ifcpr": 0,
-              "ifcx": 267502,
-              "total": 267502
+              "ifcx": 272112,
+              "total": 272112
             },
-            "bytes_per_entity": 267.502,
+            "bytes_per_entity": 272.112,
             "files": [
               {
-                "bytes": 267502,
+                "bytes": 272112,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "18a5e9d0dfea240ab4960c530602d363c78d1aa6ce7321accf52b3c2de5a711e"
+                "sha256": "fcf7160d47366655b6d6116a9822de56efe314d910dcb3a41fcbe2ac2de67579"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 6.336957809205695,
-            "ratio_to_dxf": 1.425430556739705,
+            "ratio_to_dwg": 6.446165873072276,
+            "ratio_to_dxf": 1.4499957370619831,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -11495,29 +11495,29 @@
             "bytes": {
               "blob": 0,
               "cad": 0,
-              "ifcdr": 383689,
+              "ifcdr": 291839,
               "ifcpr": 0,
               "ifcx": 2435,
-              "total": 386124
+              "total": 294274
             },
-            "bytes_per_entity": 386.124,
+            "bytes_per_entity": 294.274,
             "files": [
               {
                 "bytes": 2435,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "84103779862f1d5f10d8d789f9b6dfd42897c1ea7ff898a85431ad3e3f4c4427"
+                "sha256": "0f394ad331f521ac9587909cb176d51714fe3a940a9ddbe344c9641a1033163d"
               },
               {
-                "bytes": 383689,
+                "bytes": 291839,
                 "path": "resources/drawing.ifcdr.json",
                 "role": "ifcdr",
-                "sha256": "d9f34284b75e7afbe54fab330b4ec892923e3e1ebc5373dd9353eb7ea157a2a3"
+                "sha256": "83bee73d54c1a1dc18af8161a40fda6798e593547793739821902307630d7c42"
               }
             ],
-            "ifcdr_bytes_per_polyline_vertex": 95.92225,
-            "ratio_to_dwg": 9.921730863118945,
-            "ratio_to_dxf": 1.024277665184682,
+            "ifcdr_bytes_per_polyline_vertex": 72.95975,
+            "ratio_to_dwg": 7.561579772335997,
+            "ratio_to_dxf": 0.7806256167566822,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -11535,21 +11535,21 @@
               "cad": 0,
               "ifcdr": 0,
               "ifcpr": 0,
-              "ifcx": 638491,
-              "total": 638491
+              "ifcx": 498101,
+              "total": 498101
             },
-            "bytes_per_entity": 638.491,
+            "bytes_per_entity": 498.101,
             "files": [
               {
-                "bytes": 638491,
+                "bytes": 498101,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "87439c6c8c259212ff114b7341e23fccb7932d75d890bb2d2361801833fc6638"
+                "sha256": "e161debc662fda3056346035091f095cab9a6d801df2df006fcff63fc558bd94"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 16.40648045841149,
-            "ratio_to_dxf": 1.69373587428244,
+            "ratio_to_dwg": 12.79905953696328,
+            "ratio_to_dxf": 1.3213209469138292,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -13764,29 +13764,29 @@
             "bytes": {
               "blob": 0,
               "cad": 0,
-              "ifcdr": 533716,
+              "ifcdr": 536866,
               "ifcpr": 0,
               "ifcx": 2435,
-              "total": 536151
+              "total": 539301
             },
-            "bytes_per_entity": 536.151,
+            "bytes_per_entity": 539.301,
             "files": [
               {
                 "bytes": 2435,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "329b0c4e25a3e0f5549abbf6c958af1b6d8fa97be42b923dd48452b54a38d752"
+                "sha256": "6fcbc56a4ca02b93d75eae6d6f7cadc8e33c51aabf64fb45aa9f342eed4fe2e1"
               },
               {
-                "bytes": 533716,
+                "bytes": 536866,
                 "path": "resources/drawing.ifcdr.json",
                 "role": "ifcdr",
-                "sha256": "e2830da393d16ca8766f912698f98d1f012812f487c1e744e38a1751aeabf66a"
+                "sha256": "352bd142660f7867ed291459e480e17d35661f1f607f28b4ea02ed1198d5e531"
               }
             ],
-            "ifcdr_bytes_per_polyline_vertex": 133.429,
-            "ratio_to_dwg": 13.753809450515623,
-            "ratio_to_dxf": 1.3137349551103619,
+            "ifcdr_bytes_per_polyline_vertex": 134.2165,
+            "ratio_to_dwg": 13.834615976604587,
+            "ratio_to_dxf": 1.3214534245501235,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -13804,21 +13804,21 @@
               "cad": 0,
               "ifcdr": 0,
               "ifcpr": 0,
-              "ifcx": 868518,
-              "total": 868518
+              "ifcx": 873128,
+              "total": 873128
             },
-            "bytes_per_entity": 868.518,
+            "bytes_per_entity": 873.128,
             "files": [
               {
-                "bytes": 868518,
+                "bytes": 873128,
                 "path": "package.ifcx.json",
                 "role": "ifcx",
-                "sha256": "a619b80d106223e6ec7d3e5f8fce28e91d1c7f1d7cc54a46b7819c64e8373c1f"
+                "sha256": "1029c36f75f42d09dfe7a94715aaa078bee6d97870e1a3cfbd432702db329278"
               }
             ],
             "ifcdr_bytes_per_polyline_vertex": null,
-            "ratio_to_dwg": 22.279975373249194,
-            "ratio_to_dxf": 2.1281363939310776,
+            "ratio_to_dwg": 22.398235082858754,
+            "ratio_to_dxf": 2.139432312698475,
             "status": "passed",
             "validation": {
               "stage": "production readback and exact recipe comparison",
@@ -13838,12 +13838,12 @@
         "bytes": {
           "blob": 0,
           "cad": 0,
-          "ifcdr": 4032,
+          "ifcdr": 4051,
           "ifcpr": 0,
-          "ifcx": 3467,
-          "total": 7499
+          "ifcx": 3858,
+          "total": 7909
         },
-        "bytes_per_entity": 1874.75,
+        "bytes_per_entity": 1977.25,
         "counts": {
           "drawings": 1,
           "lines": 2,
@@ -13853,16 +13853,16 @@
         },
         "files": [
           {
-            "bytes": 4032,
+            "bytes": 4051,
             "path": "drawing.ifcdr.json",
             "role": "ifcdr",
-            "sha256": "343f60228160021e91eec9a6372a2bbb8895a8c4afd78b09d3a288318c63957c"
+            "sha256": "fb616aa5f16f03145a6cc82321a5c44ec2ca41400a5d9646d371f8a285a312bd"
           },
           {
-            "bytes": 3467,
+            "bytes": 3858,
             "path": "package.ifcx.json",
             "role": "ifcx",
-            "sha256": "9cdee4e1d39caa7d9f95a1dabb98f0db2a39eb4799d5534ffffdb7f6c3681d70"
+            "sha256": "67f8ceb581f30c532a5198455d46481c29993844a06c5bad6c45a1029385d35c"
           }
         ],
         "id": "minimal-no-preservation",
@@ -13881,10 +13881,10 @@
           "cad": 0,
           "ifcdr": 0,
           "ifcpr": 0,
-          "ifcx": 9775,
-          "total": 9775
+          "ifcx": 10185,
+          "total": 10185
         },
-        "bytes_per_entity": 2443.75,
+        "bytes_per_entity": 2546.25,
         "counts": {
           "drawings": 1,
           "lines": 2,
@@ -13894,10 +13894,10 @@
         },
         "files": [
           {
-            "bytes": 9775,
+            "bytes": 10185,
             "path": "package.ifcx.json",
             "role": "ifcx",
-            "sha256": "0ca68c01340658ca5946e2ebb544bc9358a2d4eb16e97f1be2a8c044683573b5"
+            "sha256": "b0d0b5961864d8750ebefb28d28ac20d3cf1eb870540a6e19f2796ad0ed714be"
           }
         ],
         "id": "inline-drawing",
@@ -13921,10 +13921,10 @@
         "bytes": {
           "blob": 94,
           "cad": 0,
-          "ifcdr": 4032,
+          "ifcdr": 4051,
           "ifcpr": 4269,
-          "ifcx": 4119,
-          "total": 12514
+          "ifcx": 4510,
+          "total": 12924
         },
         "bytes_per_entity": null,
         "counts": {
@@ -13942,16 +13942,16 @@
             "sha256": "fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044"
           },
           {
-            "bytes": 4032,
+            "bytes": 4051,
             "path": "drawing.ifcdr.json",
             "role": "ifcdr",
-            "sha256": "343f60228160021e91eec9a6372a2bbb8895a8c4afd78b09d3a288318c63957c"
+            "sha256": "fb616aa5f16f03145a6cc82321a5c44ec2ca41400a5d9646d371f8a285a312bd"
           },
           {
-            "bytes": 4119,
+            "bytes": 4510,
             "path": "package.ifcx.json",
             "role": "ifcx",
-            "sha256": "f26cc4c91853b74b0ae6bfa16bc959470139b0ff57db046cb3b45f917c072aa1"
+            "sha256": "2e6d372d89eb0037007d081d1aab1ae5a881e9322325aa83bb0997fc8c2487b0"
           },
           {
             "bytes": 4269,

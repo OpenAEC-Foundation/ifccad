@@ -3,7 +3,7 @@ use ifccad::ifcdr::{IfcdrLengthUnit, Point2};
 use ifccad::package::{
     AppearanceColor, AppearanceDefinition, DrawingOptions, DrawingResourceStorage, EncodedPackage,
     EntityAppearance, LayerDefinition, LineDefinition, LinePatternDefinition, PackageBuilder,
-    PackageOptions, PolylineDefinition,
+    PackageOptions, PlanarPolylineDefinition,
 };
 use ifccad::{PackageId, ResourceId};
 use ifccad_convert::cadcodec::{
@@ -100,18 +100,21 @@ pub fn package(recipe: &Drawing, inline: bool) -> Result<EncodedPackage> {
                 x_axis,
                 y_axis,
             } => {
-                drawing.model_space().add_polyline(PolylineDefinition {
-                    placement: ifccad::ifcdr::PlanePlacement::try_new(
-                        ifccad::ifcdr::Point3::new(origin[0], origin[1], origin[2]),
-                        ifccad::ifcdr::Vector3::new(x_axis[0], x_axis[1], x_axis[2]),
-                        ifccad::ifcdr::Vector3::new(y_axis[0], y_axis[1], y_axis[2]),
-                    )?,
-                    points: points.iter().map(|p| Point2::new(p[0], p[1])).collect(),
-                    closed: *closed,
-                    layer,
-                    appearance,
-                    visible,
-                })?;
+                drawing
+                    .model_space()
+                    .add_planar_polyline(PlanarPolylineDefinition {
+                        placement: ifccad::ifcdr::PlanePlacement::try_new(
+                            ifccad::ifcdr::Point3::new(origin[0], origin[1], origin[2]),
+                            ifccad::ifcdr::Vector3::new(x_axis[0], x_axis[1], x_axis[2]),
+                            ifccad::ifcdr::Vector3::new(y_axis[0], y_axis[1], y_axis[2]),
+                        )?,
+                        bulges: Vec::new(),
+                        points: points.iter().map(|p| Point2::new(p[0], p[1])).collect(),
+                        closed: *closed,
+                        layer,
+                        appearance,
+                        visible,
+                    })?;
             }
         }
     }

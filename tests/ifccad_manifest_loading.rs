@@ -53,14 +53,14 @@ fn loads_bundled_suite_in_manifest_order() {
     let manifest = load_conformance_manifest(bundled_conformance_root())
         .expect("load bundled conformance suite");
     assert_eq!(manifest.suite_version, "1.1.0");
-    assert_eq!(manifest.cases.len(), 127);
+    assert_eq!(manifest.cases.len(), 137);
     assert_eq!(
         manifest.cases.first().unwrap().case_id,
-        "vector.canonicalization"
+        "invalid.arc-zero-sweep"
     );
     assert_eq!(
         manifest.cases.last().unwrap().case_id,
-        "invalid.layout-paper-kind-mismatch"
+        "vector.fingerprints"
     );
 }
 
@@ -102,7 +102,7 @@ fn candidate_package_drawings_use_the_current_ifcdr_version() {
                 continue;
             }
             assert_eq!(
-                resource["version"], "0.10.0",
+                resource["version"], "0.11.0",
                 "{} has an obsolete drawing descriptor",
                 case.case_id
             );
@@ -122,7 +122,7 @@ fn candidate_package_drawings_use_the_current_ifcdr_version() {
                 .filter(|_| case.case_id != "invalid.inline-unsupported-body")
             {
                 assert_eq!(
-                    version, "0.10.0",
+                    version, "0.11.0",
                     "{} has an obsolete drawing header",
                     case.case_id
                 );
@@ -146,7 +146,7 @@ fn candidate_package_drawings_use_the_current_ifcdr_version() {
                     if drawing["header"]["format"] == "openaec.ifcdr" {
                         assert_eq!(
                             drawing["header"]["version"],
-                            "0.10.0",
+                            "0.11.0",
                             "{} has an obsolete IFCDR file: {}",
                             case.case_id,
                             path.display()

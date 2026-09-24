@@ -111,8 +111,14 @@ fn converts_minimal_model_drawing_with_layers_and_entities() {
         .resource()
         .entities(layout.scope().id())
         .map(|entity| match entity {
+            IfcdrEntityRef::Point(point) => point.entity_id(),
+            IfcdrEntityRef::Circle(circle) => circle.entity_id(),
+            IfcdrEntityRef::Arc(arc) => arc.entity_id(),
+            IfcdrEntityRef::Ellipse(ellipse) => ellipse.entity_id(),
+            IfcdrEntityRef::EllipseArc(arc) => arc.entity_id(),
             IfcdrEntityRef::Line(line) => line.entity_id(),
-            IfcdrEntityRef::Polyline(polyline) => polyline.entity_id(),
+            IfcdrEntityRef::PlanarPolyline(polyline) => polyline.entity_id(),
+            IfcdrEntityRef::SpatialPolyline(polyline) => polyline.entity_id(),
             IfcdrEntityRef::BlockInstance(instance) => instance.entity_id(),
             IfcdrEntityRef::Viewport(viewport) => viewport.entity_id(),
         })

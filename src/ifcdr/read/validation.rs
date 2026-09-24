@@ -161,13 +161,14 @@ mod tests {
     #[test]
     fn stream_rejects_a_pool_range_past_the_column_end() {
         let mut value = fixture_source().value().clone();
-        value["streams"]["polylineStream"]["vertexCount"][1] = serde_json::json!(4);
+        value["streams"]["planarPolylineStream"]["vertexCount"][1] = serde_json::json!(4);
         let outcome = validate_value("drawing.ifcdr.json", value);
 
         assert!(outcome.validated().is_none());
         assert!(outcome.diagnostics().iter().any(|diagnostic| {
             diagnostic.code == "IFCCAD_IFCDR_STRUCTURE_INVALID"
-                && diagnostic.location.as_deref() == Some("/streams/polylineStream/vertexCount/1")
+                && diagnostic.location.as_deref()
+                    == Some("/streams/planarPolylineStream/vertexCount/1")
         }));
     }
 
@@ -219,7 +220,7 @@ mod tests {
     #[test]
     fn stream_rejects_unsynchronized_pool_column_lengths() {
         let mut value = fixture_source().value().clone();
-        value["streams"]["polylineStream"]["y"]
+        value["streams"]["planarPolylineStream"]["y"]
             .as_array_mut()
             .unwrap()
             .push(serde_json::json!(40.0));
@@ -227,7 +228,7 @@ mod tests {
 
         assert!(outcome.diagnostics().iter().any(|diagnostic| {
             diagnostic.code == "IFCCAD_IFCDR_STRUCTURE_INVALID"
-                && diagnostic.location.as_deref() == Some("/streams/polylineStream/y")
+                && diagnostic.location.as_deref() == Some("/streams/planarPolylineStream/y")
         }));
     }
 
@@ -362,7 +363,7 @@ mod tests {
     fn omitted_visibility_has_the_same_typed_meaning_as_explicit_true() {
         use crate::ifcdr::{IfcdrEntityRef, ScopeId};
         let mut explicit = fixture_source().value().clone();
-        for key in ["lineStream", "polylineStream"] {
+        for key in ["lineStream", "planarPolylineStream"] {
             let count = explicit["streams"][key]["count"].as_u64().unwrap() as usize;
             explicit["streams"][key]["visible"] = serde_json::json!(vec![true; count]);
         }
@@ -370,7 +371,7 @@ mod tests {
             .as_array_mut()
             .unwrap()
         {
-            if entry["name"] == "line" || entry["name"] == "polyline" {
+            if entry["name"] == "line" || entry["name"] == "planarPolyline" {
                 let columns = entry["columns"].as_array_mut().unwrap();
                 if !columns.iter().any(|column| column == "visible") {
                     columns.push(serde_json::json!("visible"));
@@ -378,7 +379,7 @@ mod tests {
             }
         }
         let mut omitted = explicit.clone();
-        for key in ["lineStream", "polylineStream"] {
+        for key in ["lineStream", "planarPolylineStream"] {
             omitted["streams"][key]
                 .as_object_mut()
                 .unwrap()
@@ -388,7 +389,7 @@ mod tests {
             .as_array_mut()
             .unwrap()
         {
-            if entry["name"] == "line" || entry["name"] == "polyline" {
+            if entry["name"] == "line" || entry["name"] == "planarPolyline" {
                 entry["columns"]
                     .as_array_mut()
                     .unwrap()
@@ -409,6 +410,18 @@ mod tests {
                 .in_scope(ScopeId::new(0))
                 .unwrap()
                 .map(|entity| match entity {
+                    IfcdrEntityRef::Point(point) => (
+                        point.entity_id(),
+                        point.visible(),
+                        false,
+                        vec![point.position()],
+                    ),
+                    IfcdrEntityRef::Circle(_) | IfcdrEntityRef::Arc(_) => {
+                        panic!("line or polyline fixture")
+                    }
+                    IfcdrEntityRef::Ellipse(_) | IfcdrEntityRef::EllipseArc(_) => {
+                        panic!("line or polyline fixture")
+                    }
                     IfcdrEntityRef::BlockInstance(_) => panic!("primitive-only fixture"),
                     IfcdrEntityRef::Viewport(_) => panic!("primitive-only fixture"),
                     IfcdrEntityRef::Line(line) => (
@@ -417,7 +430,7 @@ mod tests {
                         false,
                         vec![line.start(), line.end()],
                     ),
-                    IfcdrEntityRef::Polyline(polyline) => (
+                    IfcdrEntityRef::PlanarPolyline(polyline) => (
                         polyline.entity_id(),
                         polyline.visible(),
                         polyline.closed(),
@@ -426,6 +439,7 @@ mod tests {
                             .collect::<Result<Vec<_>, _>>()
                             .unwrap(),
                     ),
+                    IfcdrEntityRef::SpatialPolyline(_) => panic!("line or planar polyline fixture"),
                 })
                 .collect::<Vec<_>>()
         };

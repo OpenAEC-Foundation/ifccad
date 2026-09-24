@@ -54,7 +54,7 @@
         "resource": {
           "format": "openaec.ifcdr",
           "role": "drawing",
-          "version": "0.10.0",
+          "version": "0.11.0",
           "resourceId": "drawing-main",
           "content": {
             "appearanceBindings": [
@@ -159,7 +159,7 @@
                     "appearanceId"
                   ],
                   "count": 2,
-                  "name": "polyline",
+                  "name": "planarPolyline",
                   "role": "object",
                   "schema": "ifccad.ifcdr.polyline.v3"
                 },
@@ -247,7 +247,7 @@
                   8.0
                 ]
               },
-              "polylineStream": {
+              "planarPolylineStream": {
                 "appearanceId": [
                   0,
                   3

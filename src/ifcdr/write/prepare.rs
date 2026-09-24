@@ -21,15 +21,22 @@ pub(crate) struct IfcdrWriteInput {
 
 #[derive(Debug)]
 pub(crate) enum IfcdrWriteEntity {
+    Point(IfcdrPointRow),
+    Circle(IfcdrCircleRow),
+    Arc(IfcdrArcRow),
+    Ellipse(IfcdrEllipseRow),
+    EllipseArc(IfcdrEllipseArcRow),
     BlockInstance(IfcdrBlockInstanceRow),
     Viewport(IfcdrViewportRow),
     Line(IfcdrLineRow),
-    Polyline {
+    PlanarPolyline {
         entity: IfcdrEntityRow,
         closed: bool,
         points: Vec<Point2>,
+        bulges: Vec<f64>,
         placement: PlanePlacementComponents,
     },
+    SpatialPolyline(IfcdrSpatialPolylineRow),
 }
 
 /// Writer backing with per-kind indexes over owned entities. This is a
@@ -37,8 +44,14 @@ pub(crate) enum IfcdrWriteEntity {
 #[derive(Debug)]
 pub(crate) struct PreparedIfcdrResource {
     input: IfcdrWriteInput,
+    points: Vec<IfcdrPointRow>,
+    circles: Vec<IfcdrCircleRow>,
+    arcs: Vec<IfcdrArcRow>,
+    ellipses: Vec<IfcdrEllipseRow>,
+    ellipse_arcs: Vec<IfcdrEllipseArcRow>,
     lines: Vec<usize>,
     polylines: Vec<usize>,
+    spatial_polylines: Vec<IfcdrSpatialPolylineRow>,
     block_instances: Vec<usize>,
     viewports: Vec<IfcdrViewportRow>,
     orders: Vec<IfcdrScopeOrder>,
@@ -47,8 +60,14 @@ pub(crate) struct PreparedIfcdrResource {
 pub(crate) fn prepare_resource(
     input: IfcdrWriteInput,
 ) -> Result<PreparedIfcdrResource, Vec<IfcdrDiagnostic>> {
+    let mut points = Vec::new();
+    let mut circles = Vec::new();
+    let mut arcs = Vec::new();
+    let mut ellipses = Vec::new();
+    let mut ellipse_arcs = Vec::new();
     let mut lines = Vec::new();
     let mut polylines = Vec::new();
+    let mut spatial_polylines = Vec::new();
     let mut block_instances = Vec::new();
     let mut viewports = Vec::new();
     let mut orders: Vec<_> = input
@@ -67,6 +86,26 @@ pub(crate) fn prepare_resource(
         .collect();
     for (index, value) in input.entities.iter().enumerate() {
         let entity = match value {
+            IfcdrWriteEntity::Point(point) => {
+                points.push(*point);
+                point.entity
+            }
+            IfcdrWriteEntity::Circle(circle) => {
+                circles.push(*circle);
+                circle.entity
+            }
+            IfcdrWriteEntity::Arc(arc) => {
+                arcs.push(*arc);
+                arc.entity
+            }
+            IfcdrWriteEntity::Ellipse(ellipse) => {
+                ellipses.push(*ellipse);
+                ellipse.entity
+            }
+            IfcdrWriteEntity::EllipseArc(arc) => {
+                ellipse_arcs.push(*arc);
+                arc.entity
+            }
             IfcdrWriteEntity::Viewport(viewport) => {
                 viewports.push(viewport.clone());
                 viewport.entity
@@ -79,9 +118,13 @@ pub(crate) fn prepare_resource(
                 lines.push(index);
                 line.entity
             }
-            IfcdrWriteEntity::Polyline { entity, .. } => {
+            IfcdrWriteEntity::PlanarPolyline { entity, .. } => {
                 polylines.push(index);
                 *entity
+            }
+            IfcdrWriteEntity::SpatialPolyline(polyline) => {
+                spatial_polylines.push(polyline.clone());
+                polyline.entity
             }
         };
         if let Some(&row) = scope_rows.get(&entity.scope_id) {
@@ -91,8 +134,14 @@ pub(crate) fn prepare_resource(
     }
     let mut prepared = PreparedIfcdrResource {
         input,
+        points,
+        circles,
+        arcs,
+        ellipses,
+        ellipse_arcs,
         lines,
         polylines,
+        spatial_polylines,
         block_instances,
         viewports,
         orders,
@@ -127,6 +176,7 @@ pub(crate) struct PreparedPolyline<'a> {
     entity: IfcdrEntityRow,
     closed: bool,
     points: &'a [Point2],
+    bulges: &'a [f64],
     placement: PlanePlacementComponents,
 }
 
@@ -151,15 +201,17 @@ impl IfcdrPolylinesAccess for PreparedPolylines<'_> {
     }
     fn get(&self, row: usize) -> Option<PreparedPolyline<'_>> {
         match self.0.input.entities.get(*self.0.polylines.get(row)?)? {
-            IfcdrWriteEntity::Polyline {
+            IfcdrWriteEntity::PlanarPolyline {
                 entity,
                 closed,
                 points,
+                bulges,
                 placement,
             } => Some(PreparedPolyline {
                 entity: *entity,
                 closed: *closed,
                 points,
+                bulges,
                 placement: *placement,
             }),
             _ => None,
@@ -181,6 +233,9 @@ impl IfcdrPolylineAccess for PreparedPolyline<'_> {
     }
     fn vertex(&self, index: usize) -> Option<Point2> {
         self.points.get(index).copied()
+    }
+    fn bulge(&self, index: usize) -> Option<f64> {
+        self.bulges.get(index).copied()
     }
 }
 impl IfcdrResourceAccess for PreparedIfcdrResource {
@@ -220,8 +275,26 @@ impl IfcdrResourceAccess for PreparedIfcdrResource {
     fn lines(&self) -> PreparedLines<'_> {
         PreparedLines(self)
     }
+    fn points(&self) -> &[IfcdrPointRow] {
+        &self.points
+    }
+    fn circles(&self) -> &[IfcdrCircleRow] {
+        &self.circles
+    }
+    fn arcs(&self) -> &[IfcdrArcRow] {
+        &self.arcs
+    }
+    fn ellipses(&self) -> &[IfcdrEllipseRow] {
+        &self.ellipses
+    }
+    fn ellipse_arcs(&self) -> &[IfcdrEllipseArcRow] {
+        &self.ellipse_arcs
+    }
     fn polylines(&self) -> PreparedPolylines<'_> {
         PreparedPolylines(self)
+    }
+    fn spatial_polylines(&self) -> &[IfcdrSpatialPolylineRow] {
+        &self.spatial_polylines
     }
     fn orders(&self) -> &[IfcdrScopeOrder] {
         &self.orders

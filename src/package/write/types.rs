@@ -2,6 +2,93 @@ use crate::ifcdr::{IfcdrLengthUnit, PlanePlacement, Point2, Point3};
 use crate::{PackageId, ResourceId};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum PointGlyph {
+    Dot,
+    Hidden,
+    Plus,
+    Cross,
+    ShortLine,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum PointSize {
+    DefaultFivePercent,
+    Absolute(f64),
+    ViewportPercent(f64),
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct PointDisplay {
+    pub glyph: PointGlyph,
+    pub circle: bool,
+    pub square: bool,
+    pub size: PointSize,
+}
+
+impl Default for PointDisplay {
+    fn default() -> Self {
+        Self {
+            glyph: PointGlyph::Dot,
+            circle: false,
+            square: false,
+            size: PointSize::DefaultFivePercent,
+        }
+    }
+}
+
+impl PointDisplay {
+    pub(crate) fn valid(self) -> bool {
+        match self.size {
+            PointSize::DefaultFivePercent => true,
+            PointSize::Absolute(value) | PointSize::ViewportPercent(value) => {
+                value.is_finite() && value > 0.0
+            }
+        }
+    }
+    pub(crate) fn json(self) -> serde_json::Value {
+        use serde_json::json;
+        let glyph = match self.glyph {
+            PointGlyph::Dot => "dot",
+            PointGlyph::Hidden => "hidden",
+            PointGlyph::Plus => "plus",
+            PointGlyph::Cross => "cross",
+            PointGlyph::ShortLine => "shortLine",
+        };
+        let size = match self.size {
+            PointSize::DefaultFivePercent => json!({"kind":"defaultFivePercent"}),
+            PointSize::Absolute(value) => json!({"kind":"absolute","value":value}),
+            PointSize::ViewportPercent(value) => json!({"kind":"viewportPercent","value":value}),
+        };
+        json!({"form":{"glyph":glyph,"circle":self.circle,"square":self.square},"size":size})
+    }
+    pub(crate) fn from_json(value: &serde_json::Value) -> Option<Self> {
+        let glyph = match value.pointer("/form/glyph")?.as_str()? {
+            "dot" => PointGlyph::Dot,
+            "hidden" => PointGlyph::Hidden,
+            "plus" => PointGlyph::Plus,
+            "cross" => PointGlyph::Cross,
+            "shortLine" => PointGlyph::ShortLine,
+            _ => return None,
+        };
+        let size = match value.pointer("/size/kind")?.as_str()? {
+            "defaultFivePercent" => PointSize::DefaultFivePercent,
+            "absolute" => PointSize::Absolute(value.pointer("/size/value")?.as_f64()?),
+            "viewportPercent" => {
+                PointSize::ViewportPercent(value.pointer("/size/value")?.as_f64()?)
+            }
+            _ => return None,
+        };
+        let display = Self {
+            glyph,
+            circle: value.pointer("/form/circle")?.as_bool()?,
+            square: value.pointer("/form/square")?.as_bool()?,
+            size,
+        };
+        display.valid().then_some(display)
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct BlockDefinitionKey {
     pub(crate) builder_token: u64,
     pub(crate) local_id: u32,
@@ -164,9 +251,69 @@ pub struct LineDefinition {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct PolylineDefinition {
-    pub points: Vec<Point2>,
+pub struct PointDefinition {
     pub placement: PlanePlacement,
+    pub layer: LayerKey,
+    pub appearance: EntityAppearance,
+    pub visible: bool,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct CircleDefinition {
+    pub placement: PlanePlacement,
+    pub radius: f64,
+    pub layer: LayerKey,
+    pub appearance: EntityAppearance,
+    pub visible: bool,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct ArcDefinition {
+    pub placement: PlanePlacement,
+    pub radius: f64,
+    pub start_parameter: f64,
+    pub sweep_parameter: f64,
+    pub layer: LayerKey,
+    pub appearance: EntityAppearance,
+    pub visible: bool,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct EllipseDefinition {
+    pub placement: PlanePlacement,
+    pub semi_major_radius: f64,
+    pub semi_minor_radius: f64,
+    pub layer: LayerKey,
+    pub appearance: EntityAppearance,
+    pub visible: bool,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct EllipseArcDefinition {
+    pub placement: PlanePlacement,
+    pub semi_major_radius: f64,
+    pub semi_minor_radius: f64,
+    pub start_parameter: f64,
+    pub sweep_parameter: f64,
+    pub layer: LayerKey,
+    pub appearance: EntityAppearance,
+    pub visible: bool,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct PlanarPolylineDefinition {
+    pub points: Vec<Point2>,
+    pub bulges: Vec<f64>,
+    pub placement: PlanePlacement,
+    pub closed: bool,
+    pub layer: LayerKey,
+    pub appearance: EntityAppearance,
+    pub visible: bool,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct SpatialPolylineDefinition {
+    pub points: Vec<crate::ifcdr::Point3>,
     pub closed: bool,
     pub layer: LayerKey,
     pub appearance: EntityAppearance,

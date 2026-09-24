@@ -202,7 +202,7 @@ pub(super) fn check_viewport_boundaries<R: IfcdrResourceAccess>(
         if !viewport.paper_clip.enabled {
             continue;
         }
-        if !matches!(location.kind, IfcdrEntityKind::Polyline) {
+        if !matches!(location.kind, IfcdrEntityKind::PlanarPolyline) {
             errors.push(diagnostic(
                 r,
                 IFCCAD_IFCDR_VIEWPORT_INVALID,

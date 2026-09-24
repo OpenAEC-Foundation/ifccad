@@ -1,6 +1,6 @@
 # Drawing-to-CadDocument assessment coverage
 
-This describes the importer for IFCDR 0.9.0/0.10.0 and cadcodec revision
+This describes the importer for IFCDR 0.9.0/0.10.0/0.11.0 and cadcodec revision
 `5b682ed66ea2c89be8142c8dd83d83774fc3de08`. It is a coverage declaration, not a
 preflight scan. Changes to that importer must review this declaration.
 
@@ -15,6 +15,7 @@ The package graph outside that drawing and IFCPR restoration are outside scope.
 | Length unit | All 25 tokens mapped to CAD codes 0–24; no coordinate rescaling |
 | Local block definitions | All definitions, including unused ones, allocated before contents; name, base point, description, anonymous flag, insertion unit, explodability and signed-uniform policy retained. Consistent structural markers are created. |
 | Drawing `plotStyleMode` | Color-dependent/named maps to cadcodec header `plotstyle_mode`; old 0.11 packages default to color-dependent. |
+| Drawing `pointDisplay` | Glyph/enclosure and tagged size map to cadcodec header PDMODE/PDSIZE. Absent display uses dot and CAD default five-percent size. |
 | Model and paper layout names, scope binding and order | The CAD model layout and named paper layouts are allocated before scope entities. Source layout names and paper owners are retained. The fresh CAD `Layout1` scaffold may remain unused. |
 | Layout `limits`, `limitsChecking`, `paperSpaceLinetypeScaling` | Limits and flag bit 2 are mapped. Cadcodec stores PSLTSCALE once in its header; conflicting per-layout values receive `LayoutFieldUnsupported`. |
 | Effective `plotSettings.media/area/mapping/output/options` | Millimetre/inch/pixel tokens, media dimensions/margins/rotation, all four supported plot areas, fixed/fit scale, offset/center, shading, active plot-style switch/name and supported flags map to pinned `Layout` fields. Printable-area-relative offsets and plot transparency have no exact target field and receive `LayoutFieldUnsupported`. A page setup name or CTB/STB contents cannot be reconstructed from the native inline value. |
@@ -22,7 +23,11 @@ The package graph outside that drawing and IFCPR restoration are outside scope.
 | Viewport frozen layers | Each relational frozen override maps to a CAD frozen-layer handle. Pinned cadcodec has no per-viewport appearance-override slots; those report `ViewportUnsupported`. |
 | Block instances | Shared references retained without explosion; owner scopes and local child coordinates retained. Non-neutral frames are converted with explicit parameterization-loss evidence and occurrence-space accuracy checks. Setter scale changes are hard `BlockTargetLimitation`, even for empty definitions. |
 | Line endpoints | XYZ copied directly; exact geometry assessment |
-| Polyline points, plane and closed flag | Closed flag retained. Exact-compatible CAD parameterizations copy local points; other placements are transformed to the actual CAD arbitrary-axis basis and produce `PlaneParameterizationChanged`. Geometric residuals are checked independently. |
+| Point placement | Origin becomes CAD WCS location; stored normal and X/Y orientation determine CAD normal and X-axis marker angle. The geometric position is assessed independently of presentation. |
+| Circle and Arc | Centre is projected into CAD OCS using the selected arbitrary-axis frame. Positive Arc sweep maps directly; negative sweep flips the CAD normal and reparameterizes start angle so directed traversal is retained. Start/interior/end sample residuals are checked. |
+| Ellipse and EllipseArc | Centre and major-axis vector map to CAD WCS, minor/major radii to CAD ratio. A negative EllipseArc sweep flips the CAD normal and negates the start parameter to preserve traversal. Full/partial kind maps to CAD Ellipse parameters; representative sample residuals are checked. |
+| PlanarPolyline vertices, bulges, plane and closed flag | Closed flag and every bulge, including the final dormant bulge of an open polyline, map to CAD LwPolyline. Exact-compatible CAD parameterizations copy local points; other placements are transformed to the actual CAD arbitrary-axis basis and produce `PlaneParameterizationChanged`. Vertex and active curved-segment midpoint residuals are checked independently. |
+| SpatialPolyline XYZ vertices and closure | Directly maps to CAD Polyline3D with unchanged coordinates and closure. Source variant identity and unsupported CAD-only fit/mesh properties are not synthesized. |
 | Entity order | Inserted in each scope's logical order |
 | Entity identity | New target handles; source-ID mapping retained in outcome |
 | Layer reference, name, visibility | Mapped to CAD layer; entity visibility copied |
@@ -63,7 +68,8 @@ Within-limit numeric rounding is the only exemption from `Reject`. A native
 shifted or rotated frame can preserve geometry exactly and still be rejected
 for parameterization loss. Numeric-only acceptance retains loss evidence.
 
-`geometry_assessment()` covers emitted line endpoints and polyline vertices,
+`geometry_assessment()` covers emitted line endpoints, polyline vertices and
+the exact-rational midpoint of every active bulged segment,
 including each evaluated block occurrence and nested outer-scale amplification;
 for supported straight segments their affine residual also bounds the interior.
 It does not certify subsequent DXF/DWG writer behavior. `into_all_parts()` keeps

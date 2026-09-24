@@ -57,6 +57,9 @@ fn options() -> PackageOptions {
     }
 }
 fn native(plane: PlanePlacement, points: Vec<Point2>) -> EncodedPackage {
+    native_bulges(plane, points, Vec::new())
+}
+fn native_bulges(plane: PlanePlacement, points: Vec<Point2>, bulges: Vec<f64>) -> EncodedPackage {
     let mut b = PackageBuilder::new(options()).unwrap();
     let mut d = b
         .add_drawing(DrawingOptions {
@@ -98,7 +101,8 @@ fn native(plane: PlanePlacement, points: Vec<Point2>) -> EncodedPackage {
         })
         .unwrap();
     d.model_space()
-        .add_polyline(PolylineDefinition {
+        .add_planar_polyline(PlanarPolylineDefinition {
+            bulges,
             points,
             placement: plane,
             closed: false,
@@ -108,6 +112,149 @@ fn native(plane: PlanePlacement, points: Vec<Point2>) -> EncodedPackage {
         })
         .unwrap();
     b.finish().unwrap()
+}
+
+#[test]
+fn negative_oblique_arc_keeps_directed_samples_through_cad() {
+    let root = Temp::new();
+    let placement = PlanePlacement::try_new(
+        Point3::new(2.0, 3.0, 4.0),
+        Vector3::new(0.0, 1.0, 0.0),
+        Vector3::new(0.0, 0.0, 1.0),
+    )
+    .unwrap();
+    let mut builder = PackageBuilder::new(options()).unwrap();
+    let mut drawing = builder
+        .add_drawing(DrawingOptions {
+            model_layout_name: "Model".into(),
+            representation_resource_id: ResourceId::new("drawing").unwrap(),
+            length_unit: IfcdrLengthUnit::Metre,
+        })
+        .unwrap();
+    let appearance = drawing
+        .appearances()
+        .add(AppearanceDefinition {
+            name: "Default".into(),
+            color: AppearanceColor::rgb(0, 0, 0),
+            opacity: 1.0,
+            line_pattern: LinePatternDefinition::named("Continuous"),
+            line_weight: 0.25,
+        })
+        .unwrap();
+    let layer = drawing
+        .layers()
+        .add(LayerDefinition {
+            name: "0".into(),
+            visible: true,
+            frozen: false,
+            locked: false,
+            plottable: true,
+            frozen_in_new_viewports: false,
+            description: None,
+            appearance,
+        })
+        .unwrap();
+    drawing
+        .model_space()
+        .add_arc(ArcDefinition {
+            placement,
+            radius: 2.0,
+            start_parameter: 0.3,
+            sweep_parameter: -1.7,
+            layer,
+            appearance: EntityAppearance::by_layer(),
+            visible: true,
+        })
+        .unwrap();
+    drawing
+        .model_space()
+        .add_ellipse_arc(EllipseArcDefinition {
+            placement,
+            semi_major_radius: 3.0,
+            semi_minor_radius: 1.0,
+            start_parameter: 0.4,
+            sweep_parameter: -1.2,
+            layer,
+            appearance: EntityAppearance::by_layer(),
+            visible: true,
+        })
+        .unwrap();
+    let encoded = builder.finish().unwrap();
+    let target = root.0.join("negative-arc");
+    encoded.write_directory(&target).unwrap();
+    let loaded = load_directory_package(&target).unwrap();
+    assert!(loaded.report().is_empty(), "{:#?}", loaded.report());
+    let package = loaded.validated_package().unwrap();
+    let drawing = package.drawings().next().unwrap();
+    let imported = drawing_to_cad_document(drawing).unwrap();
+    let cad_arc = imported
+        .document()
+        .entities()
+        .find_map(|entity| match entity {
+            EntityType::Arc(arc) => Some(arc),
+            _ => None,
+        })
+        .unwrap();
+    for fraction in [0.0, 0.3, 0.7, 1.0] {
+        let angle: f64 = 0.3 - 1.7 * fraction;
+        let source = placement
+            .try_to_scope_point(Point2::new(2.0 * angle.cos(), 2.0 * angle.sin()))
+            .unwrap();
+        let cad =
+            cad_arc.point_at_angle_wcs(cad_arc.start_angle + cad_arc.sweep_angle() * fraction);
+        let error = (source.x() - cad.x)
+            .hypot(source.y() - cad.y)
+            .hypot(source.z() - cad.z);
+        assert!(error < 1e-12, "fraction {fraction}: {error}");
+    }
+    let cad_ellipse = imported
+        .document()
+        .entities()
+        .find_map(|entity| match entity {
+            EntityType::Ellipse(ellipse) => Some(ellipse),
+            _ => None,
+        })
+        .unwrap();
+    let major = cad_ellipse.major_axis;
+    let length = major.x.hypot(major.y).hypot(major.z);
+    let normal = cad_ellipse.normal;
+    let minor = cadcodec::Vector3::new(
+        normal.y * major.z - normal.z * major.y,
+        normal.z * major.x - normal.x * major.z,
+        normal.x * major.y - normal.y * major.x,
+    );
+    for fraction in [0.0, 0.3, 0.7, 1.0] {
+        let angle: f64 = 0.4 - 1.2 * fraction;
+        let source = placement
+            .try_to_scope_point(Point2::new(3.0 * angle.cos(), angle.sin()))
+            .unwrap();
+        let cad_angle = cad_ellipse.start_parameter + fraction * 1.2;
+        let cad = cadcodec::Vector3::new(
+            cad_ellipse.center.x + major.x * cad_angle.cos() + minor.x / length * cad_angle.sin(),
+            cad_ellipse.center.y + major.y * cad_angle.cos() + minor.y / length * cad_angle.sin(),
+            cad_ellipse.center.z + major.z * cad_angle.cos() + minor.z / length * cad_angle.sin(),
+        );
+        let error = (source.x() - cad.x)
+            .hypot(source.y() - cad.y)
+            .hypot(source.z() - cad.z);
+        assert!(error < 1e-12, "elliptic fraction {fraction}: {error}");
+    }
+    let exported =
+        cad_document_to_package(imported.document(), options(), ExportOptions::default()).unwrap();
+    let target = root.0.join("arc-reexport");
+    exported.package().write_directory(&target).unwrap();
+    let loaded = load_directory_package(&target).unwrap();
+    assert!(loaded.report().is_empty(), "{:#?}", loaded.report());
+    let package = loaded.validated_package().unwrap();
+    let drawing = package.drawings().next().unwrap();
+    let scope = drawing.layouts().next().unwrap().scope().id();
+    let resource = drawing.representation().resource();
+    let mut entities = resource.entities(scope);
+    assert!(matches!(entities.next().unwrap(), IfcdrEntityRef::Arc(_)));
+    assert!(matches!(
+        entities.next().unwrap(),
+        IfcdrEntityRef::EllipseArc(_)
+    ));
 }
 #[test]
 fn native_shift_and_rotation_preserve_geometry_but_reject_parameter_loss() {
@@ -171,6 +318,53 @@ fn native_shift_and_rotation_preserve_geometry_but_reject_parameter_loss() {
     assert_eq!(
         parts.transfer_assessment.conclusion(),
         TransferConclusion::LossDetected
+    );
+}
+#[test]
+fn rotated_native_bulge_checks_interior_and_preserves_dormant_value() {
+    let root = Temp::new();
+    let plane = PlanePlacement::try_new(
+        Point3::new(10.0, 20.0, 5.0),
+        Vector3::new(0.0, 1.0, 0.0),
+        Vector3::new(-1.0, 0.0, 0.0),
+    )
+    .unwrap();
+    native_bulges(
+        plane,
+        vec![Point2::new(0.0, 0.0), Point2::new(2.0, 0.0)],
+        vec![1.0, -0.5],
+    )
+    .write_directory(root.0.join("bulged"))
+    .unwrap();
+    let loaded = load_directory_package(root.0.join("bulged")).unwrap();
+    assert!(loaded.report().is_empty(), "{:#?}", loaded.report());
+    let drawing = loaded
+        .validated_package()
+        .unwrap()
+        .drawings()
+        .next()
+        .unwrap();
+    let imported = drawing_to_cad_document(drawing).unwrap();
+    assert_eq!(
+        imported.geometry_assessment().status(),
+        ConversionGeometryStatus::Exact
+    );
+    assert_eq!(imported.geometry_assessment().assessed_vertices(), 5);
+    let polyline = imported
+        .document()
+        .entities()
+        .find_map(|entity| match entity {
+            EntityType::LwPolyline(polyline) => Some(polyline),
+            _ => None,
+        })
+        .unwrap();
+    assert_eq!(
+        polyline
+            .vertices
+            .iter()
+            .map(|v| v.bulge)
+            .collect::<Vec<_>>(),
+        [1.0, -0.5]
     );
 }
 #[test]
@@ -244,6 +438,8 @@ fn spatial_geometry_crosses_dxf_and_dwg_and_strict_package_readers() {
         .add_entity(EntityType::Line(Line::from_coords(1., 2., 3., 4., 5., 6.)))
         .unwrap();
     let mut poly = LwPolyline::from_points(vec![Vector2::new(2., 3.), Vector2::new(4., 5.)]);
+    poly.vertices[0].bulge = 0.5;
+    poly.vertices[1].bulge = -0.25;
     poly.normal = cadcodec::Vector3::UNIT_X;
     poly.elevation = 7.;
     document.add_entity(EntityType::LwPolyline(poly)).unwrap();
@@ -280,12 +476,20 @@ fn spatial_geometry_crosses_dxf_and_dwg_and_strict_package_readers() {
             .resource()
             .entities(layout.scope().id())
             .flat_map(|e| match e {
+                IfcdrEntityRef::Point(point) => vec![point.position()],
+                IfcdrEntityRef::Circle(_) | IfcdrEntityRef::Arc(_) => {
+                    panic!("line and polyline fixture")
+                }
+                IfcdrEntityRef::Ellipse(_) | IfcdrEntityRef::EllipseArc(_) => {
+                    panic!("line and polyline fixture")
+                }
                 IfcdrEntityRef::Line(l) => vec![l.start(), l.end()],
                 IfcdrEntityRef::BlockInstance(_) => panic!("primitive-only spatial fixture"),
                 IfcdrEntityRef::Viewport(_) => panic!("primitive-only spatial fixture"),
-                IfcdrEntityRef::Polyline(p) => {
+                IfcdrEntityRef::PlanarPolyline(p) => {
                     p.scope_points().collect::<Result<Vec<_>, _>>().unwrap()
                 }
+                IfcdrEntityRef::SpatialPolyline(_) => panic!("line and planar polyline fixture"),
             })
             .collect::<Vec<_>>();
         assert_eq!(
@@ -315,6 +519,14 @@ fn spatial_geometry_crosses_dxf_and_dwg_and_strict_package_readers() {
             .unwrap();
         assert_eq!(back_poly.normal, cadcodec::Vector3::UNIT_X);
         assert_eq!(back_poly.elevation, 7.);
+        assert_eq!(
+            back_poly
+                .vertices
+                .iter()
+                .map(|v| v.bulge)
+                .collect::<Vec<_>>(),
+            [0.5, -0.25]
+        );
         let final_path = root.0.join(format!("returned.{format}"));
         if format == "dxf" {
             DxfWriter::new(back.document())
@@ -344,6 +556,14 @@ fn spatial_geometry_crosses_dxf_and_dwg_and_strict_package_readers() {
             .unwrap();
         assert_eq!(returned_poly.normal, back_poly.normal);
         assert_eq!(returned_poly.elevation, back_poly.elevation);
+        assert_eq!(
+            returned_poly
+                .vertices
+                .iter()
+                .map(|v| v.bulge)
+                .collect::<Vec<_>>(),
+            [0.5, -0.25]
+        );
         assert_eq!(
             returned_poly
                 .vertices
@@ -537,7 +757,7 @@ fn native_shifted_plane_crosses_both_file_codecs_with_explicit_parameter_loss() 
         let poly = resource
             .entities(layout.scope().id())
             .find_map(|e| {
-                if let IfcdrEntityRef::Polyline(p) = e {
+                if let IfcdrEntityRef::PlanarPolyline(p) = e {
                     Some(p)
                 } else {
                     None

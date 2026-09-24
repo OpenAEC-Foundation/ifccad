@@ -119,7 +119,7 @@ fn native_package_download_validates_all_drawings_without_cad_conversion() {
 }
 
 #[test]
-fn cad_source_export_uses_native_content_and_retains_opening_losses() {
+fn cad_source_export_uses_native_content_with_circle() {
     let root = std::env::temp_dir().join(format!("explorer-export-cad-{}", std::process::id()));
     std::fs::create_dir_all(&root).unwrap();
     let mut doc = CadDocument::new();
@@ -130,19 +130,19 @@ fn cad_source_export_uses_native_content_and_retains_opening_losses() {
     std::fs::write(&source, DxfWriter::new(&doc).write_to_vec().unwrap()).unwrap();
     let result = export_cad(&source, &root.join("native"), "drawing-0", "dwg");
     assert!(result["failure"].is_null(), "{result}");
-    assert_eq!(result["export"]["entityCount"], 1);
+    assert_eq!(result["export"]["entityCount"], 2);
     assert!(result["conversion"]["entities"]
         .as_array()
         .unwrap()
         .iter()
-        .any(|entity| entity["kind"] == "CIRCLE" && entity["disposition"] == "skipped"));
+        .any(|entity| entity["kind"] == "CIRCLE" && entity["disposition"] != "skipped"));
     let bytes = STANDARD
         .decode(result["export"]["download"]["base64"].as_str().unwrap())
         .unwrap();
     let restored = DwgReader::from_stream(std::io::Cursor::new(bytes))
         .read()
         .unwrap();
-    assert_eq!(restored.entities().count(), 1);
+    assert_eq!(restored.entities().count(), 2);
     assert!(matches!(
         restored.entities().next().unwrap(),
         EntityType::Line(_)

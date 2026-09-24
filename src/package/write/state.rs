@@ -1,6 +1,7 @@
 use super::{
-    AppearanceDefinition, DrawingOptions, EntityAppearance, LayerDefinition, LineDefinition,
-    PolylineDefinition,
+    AppearanceDefinition, ArcDefinition, CircleDefinition, DrawingOptions, EllipseArcDefinition,
+    EllipseDefinition, EntityAppearance, LayerDefinition, LineDefinition, PlanarPolylineDefinition,
+    PointDefinition, SpatialPolylineDefinition,
 };
 use crate::ifcdr::{AppearanceId, EntityId};
 use std::collections::{BTreeMap, BTreeSet};
@@ -24,6 +25,36 @@ pub(crate) struct LayerEntry {
 
 #[derive(Debug)]
 pub(crate) enum PendingEntity {
+    Point {
+        scope_id: u32,
+        entity_id: EntityId,
+        appearance_id: AppearanceId,
+        definition: PointDefinition,
+    },
+    Circle {
+        scope_id: u32,
+        entity_id: EntityId,
+        appearance_id: AppearanceId,
+        definition: CircleDefinition,
+    },
+    Arc {
+        scope_id: u32,
+        entity_id: EntityId,
+        appearance_id: AppearanceId,
+        definition: ArcDefinition,
+    },
+    Ellipse {
+        scope_id: u32,
+        entity_id: EntityId,
+        appearance_id: AppearanceId,
+        definition: EllipseDefinition,
+    },
+    EllipseArc {
+        scope_id: u32,
+        entity_id: EntityId,
+        appearance_id: AppearanceId,
+        definition: EllipseArcDefinition,
+    },
     BlockInstance {
         scope_id: u32,
         entity_id: EntityId,
@@ -36,11 +67,17 @@ pub(crate) enum PendingEntity {
         appearance_id: AppearanceId,
         definition: LineDefinition,
     },
-    Polyline {
+    PlanarPolyline {
         scope_id: u32,
         entity_id: EntityId,
         appearance_id: AppearanceId,
-        definition: PolylineDefinition,
+        definition: PlanarPolylineDefinition,
+    },
+    SpatialPolyline {
+        scope_id: u32,
+        entity_id: EntityId,
+        appearance_id: AppearanceId,
+        definition: SpatialPolylineDefinition,
     },
     Viewport {
         scope_id: u32,
@@ -64,6 +101,7 @@ pub(crate) struct DrawingState {
     pub(crate) model_layout_settings: super::LayoutSettings,
     pub(crate) paper_layout_settings: BTreeMap<u32, super::LayoutSettings>,
     pub(crate) plot_style_mode: super::PlotStyleMode,
+    pub(crate) point_display: super::PointDisplay,
     pub(crate) options: DrawingOptions,
     pub(crate) storage: super::DrawingResourceStorage,
     pub(crate) token: u64,

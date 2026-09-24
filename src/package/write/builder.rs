@@ -5,10 +5,11 @@ use super::state::{
     AppearanceBindingEntry, AppearanceEntry, DrawingState, LayerEntry, PackageState, PendingEntity,
 };
 use super::types::{
-    AppearanceDefinition, AppearanceKey, AppearanceMode, BlockDefinitionKey,
-    BlockDefinitionOptions, BlockInstanceDefinition, DrawingOptions, EntityAppearance,
-    LayerDefinition, LayerKey, LineDefinition, PackageOptions, PaperSpaceKey, PolylineDefinition,
-    ViewportDefinition,
+    AppearanceDefinition, AppearanceKey, AppearanceMode, ArcDefinition, BlockDefinitionKey,
+    BlockDefinitionOptions, BlockInstanceDefinition, CircleDefinition, DrawingOptions,
+    EllipseArcDefinition, EllipseDefinition, EntityAppearance, LayerDefinition, LayerKey,
+    LineDefinition, PackageOptions, PaperSpaceKey, PlanarPolylineDefinition, PointDefinition,
+    SpatialPolylineDefinition, ViewportDefinition,
 };
 
 use super::prepare::prepare_drawing;
@@ -84,6 +85,7 @@ impl PackageBuilder {
             model_layout_settings: super::LayoutSettings::default(),
             paper_layout_settings: Default::default(),
             plot_style_mode: super::PlotStyleMode::ColorDependent,
+            point_display: super::PointDisplay::default(),
             options,
             storage: super::DrawingResourceStorage::default(),
             token,
@@ -171,6 +173,16 @@ pub struct DrawingBuilder<'a> {
 }
 
 impl DrawingBuilder<'_> {
+    pub fn set_point_display(
+        &mut self,
+        display: super::PointDisplay,
+    ) -> Result<(), PackageBuildError> {
+        if !display.valid() {
+            return Err(PackageBuildError::InvalidPointDisplay);
+        }
+        self.state.point_display = display;
+        Ok(())
+    }
     pub fn set_plot_style_mode(&mut self, mode: super::PlotStyleMode) {
         self.state.plot_style_mode = mode;
     }
@@ -612,18 +624,282 @@ impl ScopeEntitiesBuilder<'_> {
         Ok(entity_id)
     }
 
-    pub fn add_polyline(
+    pub fn add_point(
         &mut self,
-        definition: PolylineDefinition,
+        definition: PointDefinition,
+    ) -> Result<EntityId, PackageBuildError> {
+        self.insert_point(None, definition)
+    }
+
+    pub fn add_point_with_id(
+        &mut self,
+        id: EntityId,
+        definition: PointDefinition,
+    ) -> Result<EntityId, PackageBuildError> {
+        self.insert_point(Some(id), definition)
+    }
+
+    fn insert_point(
+        &mut self,
+        supplied: Option<EntityId>,
+        definition: PointDefinition,
+    ) -> Result<EntityId, PackageBuildError> {
+        self.state.validate_layer_key(definition.layer)?;
+        let entity_id = self.state.candidate_entity_id(supplied)?;
+        let appearance_id = self
+            .state
+            .resolve_entity_appearance(definition.appearance)?;
+        self.state.record_entity_id(entity_id);
+        self.state.entities.push(PendingEntity::Point {
+            scope_id: self.scope_id,
+            entity_id,
+            appearance_id,
+            definition,
+        });
+        Ok(entity_id)
+    }
+
+    pub fn add_circle(
+        &mut self,
+        definition: CircleDefinition,
+    ) -> Result<EntityId, PackageBuildError> {
+        self.insert_circle(None, definition)
+    }
+
+    pub fn add_circle_with_id(
+        &mut self,
+        id: EntityId,
+        definition: CircleDefinition,
+    ) -> Result<EntityId, PackageBuildError> {
+        self.insert_circle(Some(id), definition)
+    }
+
+    fn insert_circle(
+        &mut self,
+        supplied: Option<EntityId>,
+        definition: CircleDefinition,
+    ) -> Result<EntityId, PackageBuildError> {
+        self.state.validate_layer_key(definition.layer)?;
+        if crate::ifcdr::geometry::circular_bounds(
+            definition.placement.components(),
+            definition.radius,
+            None,
+        )
+        .is_none()
+        {
+            return Err(PackageBuildError::InvalidCircularGeometry);
+        }
+        let entity_id = self.state.candidate_entity_id(supplied)?;
+        let appearance_id = self
+            .state
+            .resolve_entity_appearance(definition.appearance)?;
+        self.state.record_entity_id(entity_id);
+        self.state.entities.push(PendingEntity::Circle {
+            scope_id: self.scope_id,
+            entity_id,
+            appearance_id,
+            definition,
+        });
+        Ok(entity_id)
+    }
+
+    pub fn add_arc(&mut self, definition: ArcDefinition) -> Result<EntityId, PackageBuildError> {
+        self.insert_arc(None, definition)
+    }
+
+    pub fn add_arc_with_id(
+        &mut self,
+        id: EntityId,
+        definition: ArcDefinition,
+    ) -> Result<EntityId, PackageBuildError> {
+        self.insert_arc(Some(id), definition)
+    }
+
+    fn insert_arc(
+        &mut self,
+        supplied: Option<EntityId>,
+        definition: ArcDefinition,
+    ) -> Result<EntityId, PackageBuildError> {
+        self.state.validate_layer_key(definition.layer)?;
+        if !definition.start_parameter.is_finite()
+            || !definition.sweep_parameter.is_finite()
+            || definition.sweep_parameter == 0.0
+            || definition.sweep_parameter.abs() >= std::f64::consts::TAU
+        {
+            return Err(PackageBuildError::InvalidArcSweep);
+        }
+        if crate::ifcdr::geometry::circular_bounds(
+            definition.placement.components(),
+            definition.radius,
+            Some((definition.start_parameter, definition.sweep_parameter)),
+        )
+        .is_none()
+        {
+            return Err(PackageBuildError::InvalidCircularGeometry);
+        }
+        let entity_id = self.state.candidate_entity_id(supplied)?;
+        let appearance_id = self
+            .state
+            .resolve_entity_appearance(definition.appearance)?;
+        self.state.record_entity_id(entity_id);
+        self.state.entities.push(PendingEntity::Arc {
+            scope_id: self.scope_id,
+            entity_id,
+            appearance_id,
+            definition,
+        });
+        Ok(entity_id)
+    }
+
+    pub fn add_ellipse(
+        &mut self,
+        definition: EllipseDefinition,
+    ) -> Result<EntityId, PackageBuildError> {
+        self.insert_ellipse(None, definition)
+    }
+    pub fn add_ellipse_with_id(
+        &mut self,
+        id: EntityId,
+        definition: EllipseDefinition,
+    ) -> Result<EntityId, PackageBuildError> {
+        self.insert_ellipse(Some(id), definition)
+    }
+    fn insert_ellipse(
+        &mut self,
+        supplied: Option<EntityId>,
+        definition: EllipseDefinition,
+    ) -> Result<EntityId, PackageBuildError> {
+        self.state.validate_layer_key(definition.layer)?;
+        if crate::ifcdr::geometry::elliptic_bounds(
+            definition.placement.components(),
+            definition.semi_major_radius,
+            definition.semi_minor_radius,
+            None,
+        )
+        .is_none()
+        {
+            return Err(PackageBuildError::InvalidEllipticGeometry);
+        }
+        let entity_id = self.state.candidate_entity_id(supplied)?;
+        let appearance_id = self
+            .state
+            .resolve_entity_appearance(definition.appearance)?;
+        self.state.record_entity_id(entity_id);
+        self.state.entities.push(PendingEntity::Ellipse {
+            scope_id: self.scope_id,
+            entity_id,
+            appearance_id,
+            definition,
+        });
+        Ok(entity_id)
+    }
+    pub fn add_ellipse_arc(
+        &mut self,
+        definition: EllipseArcDefinition,
+    ) -> Result<EntityId, PackageBuildError> {
+        self.insert_ellipse_arc(None, definition)
+    }
+    pub fn add_ellipse_arc_with_id(
+        &mut self,
+        id: EntityId,
+        definition: EllipseArcDefinition,
+    ) -> Result<EntityId, PackageBuildError> {
+        self.insert_ellipse_arc(Some(id), definition)
+    }
+    fn insert_ellipse_arc(
+        &mut self,
+        supplied: Option<EntityId>,
+        definition: EllipseArcDefinition,
+    ) -> Result<EntityId, PackageBuildError> {
+        self.state.validate_layer_key(definition.layer)?;
+        if !definition.start_parameter.is_finite()
+            || !definition.sweep_parameter.is_finite()
+            || definition.sweep_parameter == 0.0
+            || definition.sweep_parameter.abs() >= std::f64::consts::TAU
+        {
+            return Err(PackageBuildError::InvalidArcSweep);
+        }
+        if crate::ifcdr::geometry::elliptic_bounds(
+            definition.placement.components(),
+            definition.semi_major_radius,
+            definition.semi_minor_radius,
+            Some((definition.start_parameter, definition.sweep_parameter)),
+        )
+        .is_none()
+        {
+            return Err(PackageBuildError::InvalidEllipticGeometry);
+        }
+        let entity_id = self.state.candidate_entity_id(supplied)?;
+        let appearance_id = self
+            .state
+            .resolve_entity_appearance(definition.appearance)?;
+        self.state.record_entity_id(entity_id);
+        self.state.entities.push(PendingEntity::EllipseArc {
+            scope_id: self.scope_id,
+            entity_id,
+            appearance_id,
+            definition,
+        });
+        Ok(entity_id)
+    }
+
+    pub fn add_planar_polyline(
+        &mut self,
+        definition: PlanarPolylineDefinition,
     ) -> Result<EntityId, PackageBuildError> {
         self.insert_polyline(None, definition)
     }
 
-    /// Adds a polyline with a caller-supplied ID shared with the other entity kinds.
-    pub fn add_polyline_with_id(
+    pub fn add_spatial_polyline(
+        &mut self,
+        definition: SpatialPolylineDefinition,
+    ) -> Result<EntityId, PackageBuildError> {
+        self.insert_spatial_polyline(None, definition)
+    }
+
+    pub fn add_spatial_polyline_with_id(
         &mut self,
         id: EntityId,
-        definition: PolylineDefinition,
+        definition: SpatialPolylineDefinition,
+    ) -> Result<EntityId, PackageBuildError> {
+        self.insert_spatial_polyline(Some(id), definition)
+    }
+
+    fn insert_spatial_polyline(
+        &mut self,
+        supplied: Option<EntityId>,
+        definition: SpatialPolylineDefinition,
+    ) -> Result<EntityId, PackageBuildError> {
+        if !crate::ifcdr::logical::valid_polyline_vertex_count(definition.points.len()) {
+            return Err(PackageBuildError::PolylineTooShort);
+        }
+        if !definition
+            .points
+            .iter()
+            .all(|point| crate::ifcdr::logical::valid_point3(*point))
+        {
+            return Err(PackageBuildError::NonFiniteCoordinate);
+        }
+        self.state.validate_layer_key(definition.layer)?;
+        let entity_id = self.state.candidate_entity_id(supplied)?;
+        let appearance_id = self
+            .state
+            .resolve_entity_appearance(definition.appearance)?;
+        self.state.record_entity_id(entity_id);
+        self.state.entities.push(PendingEntity::SpatialPolyline {
+            scope_id: self.scope_id,
+            entity_id,
+            appearance_id,
+            definition,
+        });
+        Ok(entity_id)
+    }
+
+    /// Adds a polyline with a caller-supplied ID shared with the other entity kinds.
+    pub fn add_planar_polyline_with_id(
+        &mut self,
+        id: EntityId,
+        definition: PlanarPolylineDefinition,
     ) -> Result<EntityId, PackageBuildError> {
         self.insert_polyline(Some(id), definition)
     }
@@ -631,10 +907,18 @@ impl ScopeEntitiesBuilder<'_> {
     fn insert_polyline(
         &mut self,
         supplied: Option<EntityId>,
-        definition: PolylineDefinition,
+        mut definition: PlanarPolylineDefinition,
     ) -> Result<EntityId, PackageBuildError> {
         if !crate::ifcdr::logical::valid_polyline_vertex_count(definition.points.len()) {
             return Err(PackageBuildError::PolylineTooShort);
+        }
+        if definition.bulges.is_empty() {
+            definition.bulges.resize(definition.points.len(), 0.0);
+        }
+        if definition.bulges.len() != definition.points.len()
+            || !definition.bulges.iter().all(|value| value.is_finite())
+        {
+            return Err(PackageBuildError::InvalidPolylineBulges);
         }
         self.state.validate_layer_key(definition.layer)?;
         validate_points(definition.points.iter().copied())?;
@@ -649,7 +933,7 @@ impl ScopeEntitiesBuilder<'_> {
             .state
             .resolve_entity_appearance(definition.appearance)?;
         self.state.record_entity_id(entity_id);
-        self.state.entities.push(PendingEntity::Polyline {
+        self.state.entities.push(PendingEntity::PlanarPolyline {
             scope_id: self.scope_id,
             entity_id,
             appearance_id,

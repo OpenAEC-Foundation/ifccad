@@ -299,7 +299,7 @@ mod tests {
                 .resource()
                 .entities(layout.scope().id())
             {
-                if let IfcdrEntityRef::Polyline(poly) = entity {
+                if let IfcdrEntityRef::PlanarPolyline(poly) = entity {
                     for point in poly.scope_points() {
                         point.unwrap();
                         count += 1;

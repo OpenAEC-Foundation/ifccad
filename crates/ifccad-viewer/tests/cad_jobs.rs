@@ -1,7 +1,7 @@
 use ifccad_convert::cadcodec::{CadDocument, Circle, DwgWriter, DxfWriter, EntityType, Line};
 use ifccad_viewer::inspect_cad;
 #[test]
-fn both_cad_readers_emit_validated_output_and_loss_evidence() {
+fn both_cad_readers_emit_validated_output_and_partial_loss_evidence() {
     for format in ["dxf", "dwg"] {
         let root = std::env::temp_dir().join(format!(
             "ifccad-viewer-test-{}-{format}",
@@ -27,10 +27,10 @@ fn both_cad_readers_emit_validated_output_and_loss_evidence() {
         let rows = r["conversion"]["entities"].as_array().unwrap();
         assert!(
             rows.iter()
-                .any(|e| e["kind"] == "CIRCLE" && e["disposition"] == "skipped"),
+                .any(|e| e["kind"] == "CIRCLE" && e["disposition"] == "emitted"),
             "{r}"
         );
-        assert_eq!(rows.iter().filter(|e| !e["target"].is_null()).count(), 2);
+        assert_eq!(rows.iter().filter(|e| !e["target"].is_null()).count(), 3);
         assert!(rows.iter().any(|e| e["disposition"] == "partial"));
         std::fs::remove_dir_all(root).unwrap();
     }

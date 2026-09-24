@@ -148,10 +148,18 @@ fn inline_and_external_layouts_have_equal_semantic_content() {
                 let entities: Vec<_> = resource
                     .entities(scope.id())
                     .map(|entity| match entity {
+                        IfcdrEntityRef::Point(point) => format!("{:?}", point),
+                        IfcdrEntityRef::Circle(circle) => format!("{:?}", circle),
+                        IfcdrEntityRef::Arc(arc) => format!("{:?}", arc),
+                        IfcdrEntityRef::Ellipse(ellipse) => format!("{:?}", ellipse),
+                        IfcdrEntityRef::EllipseArc(arc) => format!("{:?}", arc),
                         IfcdrEntityRef::Line(line) => format!("{:?}", line),
                         IfcdrEntityRef::BlockInstance(instance) => format!("{:?}", instance),
                         IfcdrEntityRef::Viewport(viewport) => format!("{:?}", viewport),
-                        IfcdrEntityRef::Polyline(poly) => format!(
+                        IfcdrEntityRef::SpatialPolyline(polyline) => {
+                            format!("{:?}", (polyline.entity_id(), polyline.points()))
+                        }
+                        IfcdrEntityRef::PlanarPolyline(poly) => format!(
                             "{:?}",
                             (
                                 poly.entity_id(),

@@ -17,8 +17,14 @@ impl<R> IfcdrCandidate<R> {
 pub(crate) type ValidatedIfcdr<R> = Validated<IfcdrCandidate<R>>;
 #[derive(Clone, Copy, Debug)]
 pub(crate) enum IfcdrEntityKind {
+    Point,
+    Circle,
+    Arc,
+    Ellipse,
+    EllipseArc,
     Line,
-    Polyline,
+    PlanarPolyline,
+    SpatialPolyline,
     BlockInstance,
     Viewport,
 }
@@ -210,6 +216,56 @@ fn check<R: IfcdrResourceAccess>(r: &R) -> (IfcdrEvidence, Vec<IfcdrDiagnostic>)
         }
     }
     let mut identity_valid = true;
+    for (row, point) in r.points().iter().enumerate() {
+        identity_valid &= entity(
+            r,
+            point.entity,
+            IfcdrEntityKind::Point,
+            row,
+            &mut evidence,
+            &mut errors,
+        );
+    }
+    for (row, circle) in r.circles().iter().enumerate() {
+        identity_valid &= entity(
+            r,
+            circle.entity,
+            IfcdrEntityKind::Circle,
+            row,
+            &mut evidence,
+            &mut errors,
+        );
+    }
+    for (row, arc) in r.arcs().iter().enumerate() {
+        identity_valid &= entity(
+            r,
+            arc.entity,
+            IfcdrEntityKind::Arc,
+            row,
+            &mut evidence,
+            &mut errors,
+        );
+    }
+    for (row, ellipse) in r.ellipses().iter().enumerate() {
+        identity_valid &= entity(
+            r,
+            ellipse.entity,
+            IfcdrEntityKind::Ellipse,
+            row,
+            &mut evidence,
+            &mut errors,
+        );
+    }
+    for (row, arc) in r.ellipse_arcs().iter().enumerate() {
+        identity_valid &= entity(
+            r,
+            arc.entity,
+            IfcdrEntityKind::EllipseArc,
+            row,
+            &mut evidence,
+            &mut errors,
+        );
+    }
     let lines = r.lines();
     for row in 0..lines.len() {
         if let Some(line) = lines.get(row) {
@@ -239,7 +295,7 @@ fn check<R: IfcdrResourceAccess>(r: &R) -> (IfcdrEvidence, Vec<IfcdrDiagnostic>)
             identity_valid &= entity(
                 r,
                 polyline.entity(),
-                IfcdrEntityKind::Polyline,
+                IfcdrEntityKind::PlanarPolyline,
                 row,
                 &mut evidence,
                 &mut errors,
@@ -248,21 +304,59 @@ fn check<R: IfcdrResourceAccess>(r: &R) -> (IfcdrEvidence, Vec<IfcdrDiagnostic>)
                 errors.push(diagnostic(
                     r,
                     IFCCAD_IFCDR_POLYLINE_INVALID,
-                    "polyline",
+                    "planarPolyline",
                     Some(row),
                     "vertices",
                     "polyline requires at least two vertices",
                 ));
+            }
+            for index in 0..polyline.vertex_count() {
+                let bulge = polyline.bulge(index);
+                let invalid = bulge.is_none_or(|value| !value.is_finite())
+                    || (bulge.is_some_and(|value| value != 0.0)
+                        && (index + 1 < polyline.vertex_count() || polyline.closed())
+                        && polyline.vertex(index)
+                            == polyline.vertex((index + 1) % polyline.vertex_count()));
+                if invalid {
+                    errors.push(diagnostic(
+                        r,
+                        IFCCAD_IFCDR_POLYLINE_INVALID,
+                        "planarPolyline",
+                        Some(row),
+                        "vertices",
+                        "bulge must be finite and a curved segment needs distinct endpoints",
+                    ));
+                }
             }
         } else {
             identity_valid = false;
             errors.push(diagnostic(
                 r,
                 IFCCAD_IFCDR_STRUCTURE_INVALID,
-                "polyline",
+                "planarPolyline",
                 Some(row),
                 "row",
                 "polyline row is inaccessible",
+            ));
+        }
+    }
+    for (row, polyline) in r.spatial_polylines().iter().enumerate() {
+        identity_valid &= entity(
+            r,
+            polyline.entity,
+            IfcdrEntityKind::SpatialPolyline,
+            row,
+            &mut evidence,
+            &mut errors,
+        );
+        if !valid_polyline_vertex_count(polyline.points.len()) {
+            errors.push(diagnostic(
+                r,
+                IFCCAD_IFCDR_POLYLINE_INVALID,
+                "spatialPolyline",
+                Some(row),
+                "vertices",
+                "spatial polyline requires at least two vertices",
             ));
         }
     }
@@ -334,8 +428,14 @@ fn entity<R: IfcdrResourceAccess>(
     errors: &mut Vec<IfcdrDiagnostic>,
 ) -> bool {
     let name = match kind {
+        IfcdrEntityKind::Point => "point",
+        IfcdrEntityKind::Circle => "circle",
+        IfcdrEntityKind::Arc => "arc",
+        IfcdrEntityKind::Ellipse => "ellipse",
+        IfcdrEntityKind::EllipseArc => "ellipseArc",
         IfcdrEntityKind::Line => "line",
-        IfcdrEntityKind::Polyline => "polyline",
+        IfcdrEntityKind::PlanarPolyline => "planarPolyline",
+        IfcdrEntityKind::SpatialPolyline => "spatialPolyline",
         IfcdrEntityKind::BlockInstance => "blockInstance",
         IfcdrEntityKind::Viewport => "viewport",
     };
@@ -525,6 +625,73 @@ fn collect_direct_geometry<R: IfcdrResourceAccess>(
             }
         }
     };
+    for (row, point) in r.points().iter().enumerate() {
+        if let Err(error) = point.placement.validate() {
+            errors.push(diagnostic(
+                r,
+                IFCCAD_IFCDR_GEOMETRY_INVALID,
+                "point",
+                Some(row),
+                "placement",
+                error.to_string(),
+            ));
+            continue;
+        }
+        let position = point.placement.origin;
+        add(
+            point.entity.scope_id,
+            Bounds3d {
+                min: position,
+                max: position,
+            },
+            None,
+        );
+    }
+    for (row, circle) in r.circles().iter().enumerate() {
+        match crate::ifcdr::geometry::circular_bounds(circle.placement, circle.radius, None) {
+            Some(enclosure) => add(circle.entity.scope_id, enclosure, None),
+            None => errors.push(diagnostic(
+                r,
+                IFCCAD_IFCDR_GEOMETRY_INVALID,
+                "circle",
+                Some(row),
+                "geometry",
+                "circle requires a valid placement and finite positive radius",
+            )),
+        }
+    }
+    for (row, arc) in r.arcs().iter().enumerate() {
+        match crate::ifcdr::geometry::circular_bounds(arc.placement, arc.radius, Some((arc.start_parameter, arc.sweep_parameter))) {
+            Some(enclosure) => add(arc.entity.scope_id, enclosure, None),
+            None => errors.push(diagnostic(r, IFCCAD_IFCDR_GEOMETRY_INVALID, "arc", Some(row), "geometry", "arc requires a valid placement, finite positive radius, finite start and nonzero sweep below a full turn")),
+        }
+    }
+    for (row, ellipse) in r.ellipses().iter().enumerate() {
+        match crate::ifcdr::geometry::elliptic_bounds(
+            ellipse.placement,
+            ellipse.semi_major_radius,
+            ellipse.semi_minor_radius,
+            None,
+        ) {
+            Some(enclosure) => add(ellipse.entity.scope_id, enclosure, None),
+            None => errors.push(diagnostic(
+                r,
+                IFCCAD_IFCDR_GEOMETRY_INVALID,
+                "ellipse",
+                Some(row),
+                "geometry",
+                "ellipse requires a valid placement and finite ordered positive semiaxes",
+            )),
+        }
+    }
+    for (row, arc) in r.ellipse_arcs().iter().enumerate() {
+        match crate::ifcdr::geometry::elliptic_bounds(arc.placement, arc.semi_major_radius,
+            arc.semi_minor_radius, Some((arc.start_parameter, arc.sweep_parameter))) {
+            Some(enclosure) => add(arc.entity.scope_id, enclosure, None),
+            None => errors.push(diagnostic(r, IFCCAD_IFCDR_GEOMETRY_INVALID, "ellipseArc", Some(row), "geometry",
+                "elliptic arc requires valid ordered semiaxes, finite start and nonzero sweep below a full turn")),
+        }
+    }
     let lines = r.lines();
     for row in 0..lines.len() {
         if let Some(line) = lines.get(row) {
@@ -559,7 +726,7 @@ fn collect_direct_geometry<R: IfcdrResourceAccess>(
             errors.push(diagnostic(
                 r,
                 IFCCAD_IFCDR_GEOMETRY_INVALID,
-                "polyline",
+                "planarPolyline",
                 Some(row),
                 "row",
                 "polyline is inaccessible",
@@ -570,7 +737,7 @@ fn collect_direct_geometry<R: IfcdrResourceAccess>(
             errors.push(diagnostic(
                 r,
                 IFCCAD_IFCDR_GEOMETRY_INVALID,
-                "polyline",
+                "planarPolyline",
                 Some(row),
                 "placement",
                 error.to_string(),
@@ -587,11 +754,77 @@ fn collect_direct_geometry<R: IfcdrResourceAccess>(
                 None => errors.push(diagnostic(
                     r,
                     IFCCAD_IFCDR_GEOMETRY_INVALID,
-                    "polyline",
+                    "planarPolyline",
                     Some(row),
                     "vertices",
                     "placed coordinate is non-finite, out of range or inaccessible",
                 )),
+            }
+        }
+        for index in 0..p.vertex_count() {
+            if index + 1 == p.vertex_count() && !p.closed() {
+                continue;
+            }
+            let Some((start, end, bulge)) = p
+                .vertex(index)
+                .zip(p.vertex((index + 1) % p.vertex_count()))
+                .and_then(|(a, b)| p.bulge(index).map(|bulge| (a, b, bulge)))
+            else {
+                continue;
+            };
+            if bulge == 0.0 {
+                continue;
+            }
+            let Some(local) = crate::ifcdr::geometry::bulge_segment_bounds(start, end, bulge)
+            else {
+                errors.push(diagnostic(
+                    r,
+                    IFCCAD_IFCDR_GEOMETRY_INVALID,
+                    "planarPolyline",
+                    Some(row),
+                    "vertices",
+                    "curved segment bounds cannot be evaluated",
+                ));
+                continue;
+            };
+            for x in [local.min().x(), local.max().x()] {
+                for y in [local.min().y(), local.max().y()] {
+                    let point = Point2::new(x, y);
+                    match plane.enclose_point(point) {
+                        Ok(bounds) => add(p.entity().scope_id, bounds, Some((plane, point))),
+                        Err(_) => errors.push(diagnostic(
+                            r,
+                            IFCCAD_IFCDR_GEOMETRY_INVALID,
+                            "planarPolyline",
+                            Some(row),
+                            "vertices",
+                            "curved segment is outside finite range",
+                        )),
+                    }
+                }
+            }
+        }
+    }
+    for (row, polyline) in r.spatial_polylines().iter().enumerate() {
+        for point in &polyline.points {
+            if valid_point3(*point) {
+                add(
+                    polyline.entity.scope_id,
+                    Bounds3d {
+                        min: *point,
+                        max: *point,
+                    },
+                    None,
+                );
+            } else {
+                errors.push(diagnostic(
+                    r,
+                    IFCCAD_IFCDR_GEOMETRY_INVALID,
+                    "spatialPolyline",
+                    Some(row),
+                    "vertices",
+                    "coordinate is non-finite",
+                ));
             }
         }
     }

@@ -54,12 +54,12 @@
         "resource": {
           "format": "openaec.ifcdr",
           "role": "drawing",
-          "version": "0.10.0",
+          "version": "0.11.0",
           "resourceId": "drawing-main",
           "content": {
             "header": {
               "format": "openaec.ifcdr",
-              "version": "0.10.0",
+              "version": "0.11.0",
               "resourceId": "drawing-main",
               "unit": "m",
               "nextEntityId": 4

@@ -17,6 +17,8 @@ pub(crate) fn logical_diagnostic(uri: &str, d: IfcdrDiagnostic) -> PackageDiagno
         "appearanceOverride" => "/appearanceOverrides",
         "line" => "/streams/lineStream",
         "polyline" => "/streams/polylineStream",
+        "planarPolyline" => "/streams/planarPolylineStream",
+        "spatialPolyline" => "/streams/spatialPolylineStream",
         "entityOrder" => "/streams/entityOrderStream",
         "entityOrderEntry" => "/streams/entityOrderEntryStream",
         _ => "",

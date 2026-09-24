@@ -15,9 +15,9 @@ fn package_options(label: &str) -> PackageOptions {
 #[test]
 fn reject_returns_the_complete_same_loss_list_as_allow_and_no_package() {
     let mut document = CadDocument::new();
-    document
-        .add_entity(EntityType::Circle(Circle::new()))
-        .unwrap();
+    let mut circle = Circle::new();
+    circle.thickness = 1.0;
+    document.add_entity(EntityType::Circle(circle)).unwrap();
     let mut nonplanar = Line::from_coords(0.0, 0.0, 2.0, 1.0, 1.0, 3.0);
     nonplanar.thickness = 1.0;
     document.add_entity(EntityType::Line(nonplanar)).unwrap();

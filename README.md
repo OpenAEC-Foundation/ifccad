@@ -79,9 +79,10 @@ A complete IFCCAD vocabulary within IFCX, production IFCDR codecs, the future
 `.ifccad` container, broader native CAD entity coverage and preservation, and
 conventional IFC integration are still under development.
 
-The active writer uses the encoding-neutral IFCDR **0.10.0** contract with
-XYZ lines, placed straight polylines, local block definitions/instances,
-paper-space viewports and evaluated per-scope XYZ bounds. IFCX 0.12.0 adds
+The active writer uses the encoding-neutral IFCDR **0.11.0** contract with
+XYZ lines, points, circular and elliptic curves, planar polylines with bulges,
+spatial polylines, local block definitions/instances, paper-space viewports
+and evaluated per-scope XYZ bounds. IFCX 0.13.0 adds
 Drawing layer/appearance membership and effective per-layout plot settings.
 The reader also accepts IFCDR 0.9.0 / IFCX 0.11.0. Earlier IFCDR versions and
 other entity schemas do not produce a strict typed package; there is no legacy
@@ -104,7 +105,9 @@ Development follows an incremental sequence:
    compatibility is not required.
 3. **Native CAD semantics and preservation (current)** — the coordinate-frame
    slice adds XYZ lines, placed straight polylines and accuracy assessment.
-   Scope ownership, local block definitions and instances are implemented, with
+   The candidate geometric-family slice adds points, circular and elliptic
+   curves, planar bulges and spatial polylines. Scope ownership, local block
+   definitions and instances are implemented, with
    explicit CAD codec limitations. The candidate layout slice adds effective
    plot settings, paper-space viewports and direct IFCX `Drawing` lists for
    layers and appearances, retaining shared definitions and local IFCDR bindings.
@@ -239,19 +242,21 @@ layout and one external or inline IFCDR resource, with optional minimal paper
 layouts and local block definitions. `model_layout_name` names
 that layout; it is not a drawing name. The declared length unit belongs to the
 individual IFCDR resource. The writer supports layers, explicit appearances,
-lines, polylines, block instances, visibility, and per-scope entity order with
+points, circular and elliptic curves, lines, planar and spatial polylines,
+block instances, visibility, and per-scope entity order with
 resource-global IDs. Paper presentation/viewports/plot settings, IFCPR and
 `.ifccad` containers remain future work. It never
 overwrites an existing target directory. Mapping a cadcodec `CadDocument` into
 this builder is the responsibility of `ifccad-convert`. Its exporter currently
-supports finite XYZ lines, placed straight lightweight polylines and ordinary
+supports finite XYZ lines, Point, Circle, Arc, Ellipse, EllipseArc, planar
+polylines with bulges, spatial polylines and ordinary
 local blocks, represents
 mixed ByLayer/ByBlock/explicit appearance inheritance, and reports every
 detected unsupported source semantic according to an allow-or-reject loss
 policy.
 
-To preserve existing identities, use `add_line_with_id` or
-`add_polyline_with_id` with `EntityId::new(value)`. Automatic allocation continues
+To preserve existing identities, use the relevant `add_*_with_id` method with
+`EntityId::new(value)`. Automatic allocation continues
 above the greatest assigned ID and does not recycle gaps. Encoding retains IDs
 and draw order. `finish()` consumes the builder and returns an encoded package
 only after resource and package validation; final errors are available together
@@ -264,17 +269,17 @@ The public API is still evolving while the format contract matures.
 The active language-neutral schemas live in `schemas/`. The mutable
 `conformance/next` collection currently targets suite `1.1.0` and tests the
 minimal package-header contract alongside explicit resource identity: a
-logical resource ID is independent of its external URI. IFCX overlay `0.12.0`
+logical resource ID is independent of its external URI. IFCX overlay `0.13.0`
 requires the top-level `header`, `imports`, and `data` fields and the known
 header fields, while still allowing additional top-level and header fields and
 unknown IFCX node types for forward-compatible extension. It remains a
 development candidate until it is frozen as a numbered release. A numbered
 directory such as `conformance/1.0.0` is an immutable, self-contained release
 of fixtures, vectors, expected outcomes, and the schemas applicable to that
-collection. Ordinary candidate package cases now use IFCDR `0.10.0`; explicit
+collection. Ordinary candidate package cases now use IFCDR `0.11.0`; explicit
 unsupported-version probes remain separate.
 
-The [drawing resource contract](schemas/ifcx/drawing-resource-contract-0.12.0.md)
+The [drawing resource contract](schemas/ifcx/drawing-resource-contract-0.13.0.md)
 uses `openaec:DrawingRepresentation` and `attributes.resource` with role
 `drawing`. A Drawing and all its layouts reference the same representation
 node; layouts select scopes within its IFCDR resource. The retired
@@ -298,12 +303,14 @@ Active schemas may move ahead of the latest released conformance collection.
 When a new collection is released, its applicable schemas are copied into the
 numbered directory and frozen with the rest of that collection.
 
-The [logical registry](schemas/ifcdr/registry-0.10.0.json),
-[normative rules](schemas/ifcdr/logical-contract-0.10.0.md), and
-[JSON mapping](schemas/ifcdr/json-mapping-0.10.0.json) define the drawing contract.
+The [logical registry](schemas/ifcdr/registry-0.11.0.json),
+[normative rules](schemas/ifcdr/logical-contract-0.11.0.md), and
+[JSON mapping](schemas/ifcdr/json-mapping-0.11.0.json) define the drawing contract.
 The [mapping language](schemas/ifcdr/json-mapping-v4.md) specifies the meaning
 of its encoding forms and physical range rules.
-Polylines require at least two vertices; repeated vertices and coincident line
+Both polyline families require at least two vertices. PlanarPolyline retains
+signed bulges, including the dormant last bulge of an open polyline;
+SpatialPolyline stores XYZ vertices without placement. Repeated vertices and coincident line
 endpoints are valid. Empty scopes have null bounds; nonempty scopes require finite XYZ bounds
 enclosing exact geometry of the stored values, including invisible entities.
 Conservative bounds are accepted. Polyline placement defaults as one complete
@@ -333,7 +340,7 @@ transfer. These results describe executed operations, not a preflight scan.
 The [size and exchange experiment](docs/benchmarks/size-baseline-v1.md)
 describes the method, successful controlled IFCCAD/DXF/DWG measurements and
 repeatable exchange checks. The current run uses unmodified cadcodec 0.5.5
-at the pinned revision and IFCDR 0.10.0; the earlier patched-pin run remains
+at the pinned revision and IFCDR 0.11.0; the earlier patched-pin run remains
 historical. This reproducible method underpins milestone 2 and the new layout
 slice without claiming a representative production-size corpus.
 See the closure assessment and follow-up in [ROADMAP.md](ROADMAP.md).

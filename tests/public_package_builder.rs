@@ -2,7 +2,8 @@ use ifccad::ifcdr::{EntityId, IfcdrLengthUnit, Point2};
 use ifccad::package::{
     AppearanceColor, AppearanceDefinition, AppearanceKey, AppearanceMode, DrawingBuilder,
     DrawingOptions, EntityAppearance, LayerDefinition, LayerKey, LineDefinition,
-    LinePatternDefinition, PackageBuildError, PackageBuilder, PackageOptions, PolylineDefinition,
+    LinePatternDefinition, PackageBuildError, PackageBuilder, PackageOptions,
+    PlanarPolylineDefinition,
 };
 use ifccad::{PackageId, ResourceId};
 
@@ -312,7 +313,7 @@ fn metadata_accepts_supported_values_without_raw_json() {
     let _appearance = appearance("Wall style");
     let _entity_appearance = EntityAppearance::by_layer();
     let _line_type: Option<LineDefinition> = None;
-    let _polyline_type: Option<PolylineDefinition> = None;
+    let _polyline_type: Option<PlanarPolylineDefinition> = None;
     let _layer_type: Option<LayerDefinition> = None;
 }
 
@@ -512,8 +513,9 @@ fn entities_receive_global_ids_in_mixed_insertion_order() {
         .unwrap();
     let second = drawing
         .model_space()
-        .add_polyline(PolylineDefinition {
+        .add_planar_polyline(PlanarPolylineDefinition {
             placement: ifccad::ifcdr::PlanePlacement::default(),
+            bulges: Vec::new(),
             points: vec![Point2::new(-2.0, 3.0), Point2::new(4.0, -5.0)],
             closed: false,
             layer,
@@ -710,26 +712,32 @@ fn entities_reject_invalid_geometry_without_advancing_ids() {
     ));
     for points in [Vec::new(), vec![Point2::new(0.0, 0.0)]] {
         assert!(matches!(
-            drawing.model_space().add_polyline(PolylineDefinition {
+            drawing
+                .model_space()
+                .add_planar_polyline(PlanarPolylineDefinition {
+                    placement: ifccad::ifcdr::PlanePlacement::default(),
+                    bulges: Vec::new(),
+                    points,
+                    closed: false,
+                    layer,
+                    appearance: EntityAppearance::by_layer(),
+                    visible: true,
+                }),
+            Err(PackageBuildError::PolylineTooShort)
+        ));
+    }
+    assert!(matches!(
+        drawing
+            .model_space()
+            .add_planar_polyline(PlanarPolylineDefinition {
                 placement: ifccad::ifcdr::PlanePlacement::default(),
-                points,
+                bulges: Vec::new(),
+                points: vec![Point2::new(0.0, 0.0), Point2::new(f64::INFINITY, 1.0)],
                 closed: false,
                 layer,
                 appearance: EntityAppearance::by_layer(),
                 visible: true,
             }),
-            Err(PackageBuildError::PolylineTooShort)
-        ));
-    }
-    assert!(matches!(
-        drawing.model_space().add_polyline(PolylineDefinition {
-            placement: ifccad::ifcdr::PlanePlacement::default(),
-            points: vec![Point2::new(0.0, 0.0), Point2::new(f64::INFINITY, 1.0)],
-            closed: false,
-            layer,
-            appearance: EntityAppearance::by_layer(),
-            visible: true,
-        }),
         Err(PackageBuildError::NonFiniteCoordinate)
     ));
 

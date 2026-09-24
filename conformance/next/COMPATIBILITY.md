@@ -1,10 +1,11 @@
 # IFCCAD candidate compatibility
 
 This collection is the unpublished `1.1.0` candidate. Its active drawing
-contract is IFCDR `0.10.0`, selected by IFCX overlay `0.12.0`, with drawing core
+contract is IFCDR `0.11.0`, selected by IFCX overlay `0.13.0`, with drawing core
 `0.3.0`. The logical registry uses meta-schema v5; the separate JSON mapping uses
 meta-schema v4 and stream-directory v1. The reader also accepts the preceding
-IFCDR `0.9.0` / overlay `0.11.0` pair. IFCPR remains
+IFCDR `0.9.0` / overlay `0.11.0` and IFCDR `0.10.0` / overlay
+`0.12.0` pairs. IFCPR remains
 `0.2.0`. Historical schemas and `conformance/1.0.0` are reference artifacts,
 not promises that the current reader supports their files.
 
@@ -15,21 +16,23 @@ for exact case IDs and the CAD behaviors that are still unproved. This candidate
 is not a numbered conformance release. The separate IFCPR semantic deferrals
 below still apply.
 
-The candidate's ordinary package fixtures use IFCDR `0.10.0`. Two explicit
+The candidate's ordinary package fixtures use IFCDR `0.11.0`. Two explicit
 unsupported-version probes retain `0.5.0` and `0.7.0`, and an invalid inline
 body deliberately declares `999.0.0`. Retaining reader support for `0.9.0`
 does not make it the candidate fixture baseline.
 
 ## Supported drawing content
 
-The IFCDR registry contains seven streams: `line`, `polyline`, `blockInstance`,
-`viewport`, `viewportLayerOverride`, `entityOrder`, and `entityOrderEntry`. It retains `scope`, `blockDefinition`, `layerBinding`, `appearanceBinding`,
-and `appearanceOverride` tables. Lines use XYZ endpoints. Polylines use local XY points and an optional complete
-plane placement (identity when omitted). Resource units, scope membership,
-appearance modes and draw order remain.
-Omitted visibility means `true`. Polyline schema v4 requires at least two
-vertices. Repeated vertices and coincident line endpoints are valid; the closed
-flag is preserved independently of whether the first vertex is repeated.
+The registry contains Point, Circle, Arc, Ellipse, EllipseArc, Line,
+PlanarPolyline and SpatialPolyline object streams, plus block instances,
+viewports, layer overrides and entity-order streams. It retains scope,
+definition, layer and appearance tables. Lines and spatial polylines use XYZ
+coordinates. Planar polylines use local XY vertices with one signed bulge per
+vertex and a plane placement. An open polyline retains its dormant final bulge.
+All four circular/elliptic kinds use a centered placement; partial kinds add
+start and signed sweep. An origin-only placement encodes standard world X/Y
+axes. Omitted visibility means `true`. Both polyline families require at least
+two vertices and preserve the closed flag independently of duplicate endpoints.
 Empty scopes have null bounds; nonempty scopes require finite XYZ bounds
 enclosing exact geometry of stored values, including invisible entities.
 Conservative bounds are valid; no positional epsilon is used. Scope bases are
@@ -52,7 +55,7 @@ contracts after their semantics are designed and tested.
 
 | Content or operation | Primary implementation behavior |
 | --- | --- |
-| IFCDR 0.10.0 or 0.9.0 JSON with registered content | Versioned physical field/range checks in the JSON codec, shared logical geometry/reference/identity/order/bounds/appearance validation, and package binding checks; candidate adds typed viewports and plot-linked paper scopes. |
+| IFCDR 0.11.0, 0.10.0 or 0.9.0 JSON with registered content | Versioned physical field/range checks in the JSON codec, shared logical geometry/reference/identity/order/bounds/appearance validation, and package binding checks. |
 | DrawingRepresentation | `attributes.resource`, role `drawing`; a Drawing and all listed layouts reference the same representation node. Layout scope IDs resolve within that resource. |
 | Retired DrawingGeometryRepresentation | `IFCCAD_PACKAGE_VOCABULARY_UNSUPPORTED`, including unreferenced nodes; no strict package. |
 | Directory writer | One drawing, one model layout, optional paper layouts with independent effective plot settings, viewports and local blocks, one inline or external IFCDR resource; deterministic new-version output. |

@@ -152,6 +152,91 @@ pub(crate) fn prepare_drawing(
                 definition_scope_id: d.definition.local_id,
                 transform: d.transform.components(),
             }),
+            PendingEntity::Point {
+                scope_id,
+                entity_id,
+                appearance_id,
+                definition: d,
+            } => IfcdrWriteEntity::Point(IfcdrPointRow {
+                entity: IfcdrEntityRow {
+                    entity_id: entity_id.get(),
+                    scope_id,
+                    layer_id: d.layer.local_id,
+                    appearance_id: appearance_id.get(),
+                    visible: d.visible,
+                },
+                placement: d.placement.components(),
+            }),
+            PendingEntity::Circle {
+                scope_id,
+                entity_id,
+                appearance_id,
+                definition: d,
+            } => IfcdrWriteEntity::Circle(IfcdrCircleRow {
+                entity: IfcdrEntityRow {
+                    entity_id: entity_id.get(),
+                    scope_id,
+                    layer_id: d.layer.local_id,
+                    appearance_id: appearance_id.get(),
+                    visible: d.visible,
+                },
+                placement: d.placement.components(),
+                radius: d.radius,
+            }),
+            PendingEntity::Arc {
+                scope_id,
+                entity_id,
+                appearance_id,
+                definition: d,
+            } => IfcdrWriteEntity::Arc(IfcdrArcRow {
+                entity: IfcdrEntityRow {
+                    entity_id: entity_id.get(),
+                    scope_id,
+                    layer_id: d.layer.local_id,
+                    appearance_id: appearance_id.get(),
+                    visible: d.visible,
+                },
+                placement: d.placement.components(),
+                radius: d.radius,
+                start_parameter: d.start_parameter,
+                sweep_parameter: d.sweep_parameter,
+            }),
+            PendingEntity::Ellipse {
+                scope_id,
+                entity_id,
+                appearance_id,
+                definition: d,
+            } => IfcdrWriteEntity::Ellipse(IfcdrEllipseRow {
+                entity: IfcdrEntityRow {
+                    entity_id: entity_id.get(),
+                    scope_id,
+                    layer_id: d.layer.local_id,
+                    appearance_id: appearance_id.get(),
+                    visible: d.visible,
+                },
+                placement: d.placement.components(),
+                semi_major_radius: d.semi_major_radius,
+                semi_minor_radius: d.semi_minor_radius,
+            }),
+            PendingEntity::EllipseArc {
+                scope_id,
+                entity_id,
+                appearance_id,
+                definition: d,
+            } => IfcdrWriteEntity::EllipseArc(IfcdrEllipseArcRow {
+                entity: IfcdrEntityRow {
+                    entity_id: entity_id.get(),
+                    scope_id,
+                    layer_id: d.layer.local_id,
+                    appearance_id: appearance_id.get(),
+                    visible: d.visible,
+                },
+                placement: d.placement.components(),
+                semi_major_radius: d.semi_major_radius,
+                semi_minor_radius: d.semi_minor_radius,
+                start_parameter: d.start_parameter,
+                sweep_parameter: d.sweep_parameter,
+            }),
             PendingEntity::Line {
                 scope_id,
                 entity_id,
@@ -168,12 +253,12 @@ pub(crate) fn prepare_drawing(
                 start: d.start,
                 end: d.end,
             }),
-            PendingEntity::Polyline {
+            PendingEntity::PlanarPolyline {
                 scope_id,
                 entity_id,
                 appearance_id,
                 definition: d,
-            } => IfcdrWriteEntity::Polyline {
+            } => IfcdrWriteEntity::PlanarPolyline {
                 entity: IfcdrEntityRow {
                     entity_id: entity_id.get(),
                     scope_id,
@@ -183,8 +268,25 @@ pub(crate) fn prepare_drawing(
                 },
                 closed: d.closed,
                 points: d.points,
+                bulges: d.bulges,
                 placement: d.placement.components(),
             },
+            PendingEntity::SpatialPolyline {
+                scope_id,
+                entity_id,
+                appearance_id,
+                definition: d,
+            } => IfcdrWriteEntity::SpatialPolyline(IfcdrSpatialPolylineRow {
+                entity: IfcdrEntityRow {
+                    entity_id: entity_id.get(),
+                    scope_id,
+                    layer_id: d.layer.local_id,
+                    appearance_id: appearance_id.get(),
+                    visible: d.visible,
+                },
+                closed: d.closed,
+                points: d.points,
+            }),
         })
         .collect();
     prepare_resource(IfcdrWriteInput {
@@ -262,10 +364,11 @@ mod tests {
             )
             .unwrap();
         model
-            .add_polyline_with_id(
+            .add_planar_polyline_with_id(
                 EntityId::new(5).unwrap(),
-                PolylineDefinition {
+                PlanarPolylineDefinition {
                     placement: crate::ifcdr::PlanePlacement::default(),
+                    bulges: Vec::new(),
                     points: vec![Point2::new(0., 0.), Point2::new(0., 0.)],
                     closed: true,
                     layer,
@@ -316,7 +419,7 @@ mod tests {
         if let PendingEntity::Line { definition, .. } = &mut state.entities[0] {
             definition.layer.local_id = 998;
         }
-        if let PendingEntity::Polyline { appearance_id, .. } = &mut state.entities[1] {
+        if let PendingEntity::PlanarPolyline { appearance_id, .. } = &mut state.entities[1] {
             *appearance_id = crate::ifcdr::AppearanceId::new(999);
         }
         let Err(crate::package::PackageBuildError::Validation { diagnostics }) = builder.finish()
@@ -326,9 +429,12 @@ mod tests {
         assert!(diagnostics
             .iter()
             .any(|d| d.location.as_deref() == Some("/streams/lineStream/layerId/0")));
-        assert!(diagnostics
-            .iter()
-            .any(|d| d.location.as_deref() == Some("/streams/polylineStream/appearanceId/0")));
+        assert!(
+            diagnostics
+                .iter()
+                .any(|d| d.location.as_deref()
+                    == Some("/streams/planarPolylineStream/appearanceId/0"))
+        );
     }
 
     #[test]

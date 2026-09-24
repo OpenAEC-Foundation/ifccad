@@ -1,5 +1,5 @@
 use super::resource::{LoadedIfcdrResource, ValidatedIfcdrResource};
-use super::streams::{Line, PolylineRef};
+use super::streams::{Line, PlanarPolylineRef};
 use crate::ifcdr::logical::{IfcdrEntityKind, IfcdrResourceAccess};
 use crate::ifcdr::ScopeId;
 use crate::validated::Validated;
@@ -28,6 +28,21 @@ impl<'a> Iterator for EntityIterator<'a> {
             .get(id)
             .expect("validated ordered ID");
         Some(match location.kind {
+            IfcdrEntityKind::Point => IfcdrEntityRef::Point(PointRef {
+                row: &self.resource.typed().points[location.row],
+            }),
+            IfcdrEntityKind::Circle => IfcdrEntityRef::Circle(CircleRef {
+                row: &self.resource.typed().circles[location.row],
+            }),
+            IfcdrEntityKind::Arc => IfcdrEntityRef::Arc(ArcRef {
+                row: &self.resource.typed().arcs[location.row],
+            }),
+            IfcdrEntityKind::Ellipse => IfcdrEntityRef::Ellipse(EllipseRef {
+                row: &self.resource.typed().ellipses[location.row],
+            }),
+            IfcdrEntityKind::EllipseArc => IfcdrEntityRef::EllipseArc(EllipseArcRef {
+                row: &self.resource.typed().ellipse_arcs[location.row],
+            }),
             IfcdrEntityKind::Viewport => IfcdrEntityRef::Viewport(ViewportRef {
                 row: &self.resource.typed().viewports[location.row],
             }),
@@ -42,7 +57,7 @@ impl<'a> Iterator for EntityIterator<'a> {
                     .get(location.row)
                     .expect("validated line"),
             ),
-            IfcdrEntityKind::Polyline => IfcdrEntityRef::Polyline(
+            IfcdrEntityKind::PlanarPolyline => IfcdrEntityRef::PlanarPolyline(
                 self.resource
                     .streams()
                     .polylines()
@@ -50,6 +65,11 @@ impl<'a> Iterator for EntityIterator<'a> {
                     .get(location.row)
                     .expect("validated polyline"),
             ),
+            IfcdrEntityKind::SpatialPolyline => {
+                IfcdrEntityRef::SpatialPolyline(SpatialPolylineRef {
+                    row: &self.resource.typed().spatial_polylines[location.row],
+                })
+            }
         })
     }
     fn size_hint(&self) -> (usize, Option<usize>) {
@@ -58,11 +78,198 @@ impl<'a> Iterator for EntityIterator<'a> {
 }
 impl ExactSizeIterator for EntityIterator<'_> {}
 pub enum IfcdrEntityRef<'a> {
+    Point(PointRef<'a>),
+    Circle(CircleRef<'a>),
+    Arc(ArcRef<'a>),
+    Ellipse(EllipseRef<'a>),
+    EllipseArc(EllipseArcRef<'a>),
     Line(Line),
-    Polyline(PolylineRef<'a>),
+    PlanarPolyline(PlanarPolylineRef<'a>),
+    SpatialPolyline(SpatialPolylineRef<'a>),
     BlockInstance(BlockInstanceRef),
     Viewport(ViewportRef<'a>),
 }
+#[derive(Clone, Copy, Debug)]
+pub struct SpatialPolylineRef<'a> {
+    row: &'a crate::ifcdr::logical::IfcdrSpatialPolylineRow,
+}
+impl SpatialPolylineRef<'_> {
+    pub fn entity_id(&self) -> crate::ifcdr::EntityId {
+        crate::ifcdr::EntityId::new(self.row.entity.entity_id).unwrap()
+    }
+    pub fn scope_id(&self) -> ScopeId {
+        ScopeId::new(self.row.entity.scope_id)
+    }
+    pub fn layer_id(&self) -> crate::ifcdr::LayerId {
+        self.row.entity.layer_id.into()
+    }
+    pub fn appearance_id(&self) -> crate::ifcdr::AppearanceId {
+        self.row.entity.appearance_id.into()
+    }
+    pub fn visible(&self) -> bool {
+        self.row.entity.visible
+    }
+    pub fn closed(&self) -> bool {
+        self.row.closed
+    }
+    pub fn points(&self) -> &[crate::ifcdr::Point3] {
+        &self.row.points
+    }
+}
+#[derive(Clone, Copy, Debug)]
+pub struct PointRef<'a> {
+    row: &'a crate::ifcdr::logical::IfcdrPointRow,
+}
+impl PointRef<'_> {
+    pub fn entity_id(&self) -> crate::ifcdr::EntityId {
+        crate::ifcdr::EntityId::new(self.row.entity.entity_id).unwrap()
+    }
+    pub fn scope_id(&self) -> ScopeId {
+        ScopeId::new(self.row.entity.scope_id)
+    }
+    pub fn layer_id(&self) -> crate::ifcdr::LayerId {
+        self.row.entity.layer_id.into()
+    }
+    pub fn appearance_id(&self) -> crate::ifcdr::AppearanceId {
+        self.row.entity.appearance_id.into()
+    }
+    pub fn visible(&self) -> bool {
+        self.row.entity.visible
+    }
+    pub fn placement(&self) -> crate::ifcdr::PlanePlacement {
+        crate::ifcdr::PlanePlacement::from_validated_components(self.row.placement)
+    }
+    pub fn position(&self) -> crate::ifcdr::Point3 {
+        self.row.placement.origin
+    }
+}
+#[derive(Clone, Copy, Debug)]
+pub struct CircleRef<'a> {
+    row: &'a crate::ifcdr::logical::IfcdrCircleRow,
+}
+impl CircleRef<'_> {
+    pub fn entity_id(&self) -> crate::ifcdr::EntityId {
+        crate::ifcdr::EntityId::new(self.row.entity.entity_id).unwrap()
+    }
+    pub fn scope_id(&self) -> ScopeId {
+        ScopeId::new(self.row.entity.scope_id)
+    }
+    pub fn layer_id(&self) -> crate::ifcdr::LayerId {
+        self.row.entity.layer_id.into()
+    }
+    pub fn appearance_id(&self) -> crate::ifcdr::AppearanceId {
+        self.row.entity.appearance_id.into()
+    }
+    pub fn visible(&self) -> bool {
+        self.row.entity.visible
+    }
+    pub fn placement(&self) -> crate::ifcdr::PlanePlacement {
+        crate::ifcdr::PlanePlacement::from_validated_components(self.row.placement)
+    }
+    pub fn radius(&self) -> f64 {
+        self.row.radius
+    }
+}
+#[derive(Clone, Copy, Debug)]
+pub struct ArcRef<'a> {
+    row: &'a crate::ifcdr::logical::IfcdrArcRow,
+}
+impl ArcRef<'_> {
+    pub fn entity_id(&self) -> crate::ifcdr::EntityId {
+        crate::ifcdr::EntityId::new(self.row.entity.entity_id).unwrap()
+    }
+    pub fn scope_id(&self) -> ScopeId {
+        ScopeId::new(self.row.entity.scope_id)
+    }
+    pub fn layer_id(&self) -> crate::ifcdr::LayerId {
+        self.row.entity.layer_id.into()
+    }
+    pub fn appearance_id(&self) -> crate::ifcdr::AppearanceId {
+        self.row.entity.appearance_id.into()
+    }
+    pub fn visible(&self) -> bool {
+        self.row.entity.visible
+    }
+    pub fn placement(&self) -> crate::ifcdr::PlanePlacement {
+        crate::ifcdr::PlanePlacement::from_validated_components(self.row.placement)
+    }
+    pub fn radius(&self) -> f64 {
+        self.row.radius
+    }
+    pub fn start_parameter(&self) -> f64 {
+        self.row.start_parameter
+    }
+    pub fn sweep_parameter(&self) -> f64 {
+        self.row.sweep_parameter
+    }
+}
+#[derive(Clone, Copy, Debug)]
+pub struct EllipseRef<'a> {
+    row: &'a crate::ifcdr::logical::IfcdrEllipseRow,
+}
+impl EllipseRef<'_> {
+    pub fn entity_id(&self) -> crate::ifcdr::EntityId {
+        crate::ifcdr::EntityId::new(self.row.entity.entity_id).unwrap()
+    }
+    pub fn scope_id(&self) -> ScopeId {
+        ScopeId::new(self.row.entity.scope_id)
+    }
+    pub fn layer_id(&self) -> crate::ifcdr::LayerId {
+        self.row.entity.layer_id.into()
+    }
+    pub fn appearance_id(&self) -> crate::ifcdr::AppearanceId {
+        self.row.entity.appearance_id.into()
+    }
+    pub fn visible(&self) -> bool {
+        self.row.entity.visible
+    }
+    pub fn placement(&self) -> crate::ifcdr::PlanePlacement {
+        crate::ifcdr::PlanePlacement::from_validated_components(self.row.placement)
+    }
+    pub fn semi_major_radius(&self) -> f64 {
+        self.row.semi_major_radius
+    }
+    pub fn semi_minor_radius(&self) -> f64 {
+        self.row.semi_minor_radius
+    }
+}
+#[derive(Clone, Copy, Debug)]
+pub struct EllipseArcRef<'a> {
+    row: &'a crate::ifcdr::logical::IfcdrEllipseArcRow,
+}
+impl EllipseArcRef<'_> {
+    pub fn entity_id(&self) -> crate::ifcdr::EntityId {
+        crate::ifcdr::EntityId::new(self.row.entity.entity_id).unwrap()
+    }
+    pub fn scope_id(&self) -> ScopeId {
+        ScopeId::new(self.row.entity.scope_id)
+    }
+    pub fn layer_id(&self) -> crate::ifcdr::LayerId {
+        self.row.entity.layer_id.into()
+    }
+    pub fn appearance_id(&self) -> crate::ifcdr::AppearanceId {
+        self.row.entity.appearance_id.into()
+    }
+    pub fn visible(&self) -> bool {
+        self.row.entity.visible
+    }
+    pub fn placement(&self) -> crate::ifcdr::PlanePlacement {
+        crate::ifcdr::PlanePlacement::from_validated_components(self.row.placement)
+    }
+    pub fn semi_major_radius(&self) -> f64 {
+        self.row.semi_major_radius
+    }
+    pub fn semi_minor_radius(&self) -> f64 {
+        self.row.semi_minor_radius
+    }
+    pub fn start_parameter(&self) -> f64 {
+        self.row.start_parameter
+    }
+    pub fn sweep_parameter(&self) -> f64 {
+        self.row.sweep_parameter
+    }
+}
+
 #[derive(Clone, Copy, Debug)]
 pub struct ViewportRef<'a> {
     row: &'a crate::ifcdr::logical::IfcdrViewportRow,
@@ -183,8 +390,18 @@ mod tests {
             .in_scope(ScopeId::new(0))
             .unwrap()
             .map(|entity| match entity {
+                IfcdrEntityRef::Point(point) => ("point", point.entity_id().get()),
+                IfcdrEntityRef::Circle(circle) => ("circle", circle.entity_id().get()),
+                IfcdrEntityRef::Arc(arc) => ("arc", arc.entity_id().get()),
+                IfcdrEntityRef::Ellipse(ellipse) => ("ellipse", ellipse.entity_id().get()),
+                IfcdrEntityRef::EllipseArc(arc) => ("ellipseArc", arc.entity_id().get()),
                 IfcdrEntityRef::Line(line) => ("line", line.entity_id().get()),
-                IfcdrEntityRef::Polyline(polyline) => ("polyline", polyline.entity_id().get()),
+                IfcdrEntityRef::PlanarPolyline(polyline) => {
+                    ("polyline", polyline.entity_id().get())
+                }
+                IfcdrEntityRef::SpatialPolyline(polyline) => {
+                    ("spatialPolyline", polyline.entity_id().get())
+                }
                 IfcdrEntityRef::BlockInstance(instance) => {
                     ("blockInstance", instance.entity_id().get())
                 }
@@ -211,11 +428,11 @@ mod tests {
         }));
 
         let mut duplicate = source.value().clone();
-        duplicate["streams"]["polylineStream"]["entityId"][0] = serde_json::json!(1);
+        duplicate["streams"]["planarPolylineStream"]["entityId"][0] = serde_json::json!(1);
         let duplicate = validate_value("drawing.ifcdr.json", duplicate);
         assert!(duplicate.diagnostics().iter().any(|item| {
             item.code == "IFCCAD_IFCDR_ENTITY_ID_DUPLICATE"
-                && item.location.as_deref() == Some("/streams/polylineStream/entityId/0")
+                && item.location.as_deref() == Some("/streams/planarPolylineStream/entityId/0")
         }));
     }
 

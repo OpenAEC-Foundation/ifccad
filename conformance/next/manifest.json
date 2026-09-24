@@ -1,1243 +1,10 @@
 {
   "cases": [
     {
-      "caseId": "vector.canonicalization",
-      "category": "vector",
-      "description": "Typed canonical projection byte vectors",
-      "entrypoint": "vectors/canonicalization.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": []
-          },
-          "name": "canonicalize"
-        }
-      ]
-    },
-    {
-      "caseId": "vector.fingerprints",
-      "category": "vector",
-      "description": "Typed canonical projection fingerprint vectors",
-      "entrypoint": "vectors/fingerprints.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": []
-          },
-          "name": "fingerprint"
-        }
-      ]
-    },
-    {
-      "caseId": "lifecycle.reference",
-      "category": "lifecycle",
-      "description": "Preservation lifecycle reference scenarios",
-      "entrypoint": "packages/lifecycle/scenarios.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": []
-          },
-          "name": "evaluateLifecycle"
-        }
-      ]
-    },
-    {
-      "caseId": "planning.reference",
-      "category": "planning",
-      "description": "Preservation export-planning reference scenarios",
-      "entrypoint": "packages/planning/scenarios.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": []
-          },
-          "name": "planExport"
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.viewport-zero-height",
+      "caseId": "invalid.arc-zero-sweep",
       "category": "invalid",
-      "description": "Viewport frame must have positive paper height",
-      "entrypoint": "packages/invalid/viewport-zero-height/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_IFCDR_VIEWPORT_INVALID",
-                "severity": "error"
-              },
-              {
-                "code": "IFCCAD_IFCDR_VIEWPORT_INVALID",
-                "severity": "error"
-              }
-            ]
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.layout-fit-scale",
-      "category": "invalid",
-      "description": "Layout plot area cannot use fit-to-area scale",
-      "entrypoint": "packages/invalid/layout-fit-scale/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
-                "severity": "error"
-              }
-            ]
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.duplicate-layout-name",
-      "category": "invalid",
-      "description": "Layout names must be unique under full case folding within a Drawing",
-      "entrypoint": "packages/invalid/duplicate-layout-name/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
-                "severity": "error"
-              }
-            ]
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.duplicate-layer-name",
-      "category": "invalid",
-      "description": "Two layers in one Drawing cannot share a folded name",
-      "entrypoint": "packages/invalid/duplicate-layer-name/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
-                "severity": "error"
-              },
-              {
-                "code": "IFCCAD_PACKAGE_LAYER_NAME_DUPLICATE",
-                "severity": "error"
-              }
-            ]
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.plot-custom-quality-missing-dpi",
-      "category": "invalid",
-      "description": "Custom shaded plot quality requires a concrete DPI",
-      "entrypoint": "packages/invalid/plot-custom-quality-missing-dpi/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
-                "severity": "error"
-              }
-            ]
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.viewport-duplicate-layer-override",
-      "category": "invalid",
-      "description": "One viewport cannot override the same layer twice",
-      "entrypoint": "packages/invalid/viewport-duplicate-layer-override/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_IFCDR_VIEWPORT_INVALID",
-                "severity": "error"
-              }
-            ]
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.open-viewport-boundary",
-      "category": "invalid",
-      "description": "An active viewport clipping boundary must be a closed polyline",
-      "entrypoint": "packages/invalid/open-viewport-boundary/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_IFCDR_VIEWPORT_INVALID",
-                "severity": "error"
-              }
-            ]
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.drawing-list-closure",
-      "category": "invalid",
-      "description": "Drawing layer list must close the referenced IFCDR bindings",
-      "entrypoint": "packages/invalid/drawing-list-closure/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
-                "severity": "error"
-              }
-            ]
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.viewport-child-range",
-      "category": "invalid",
-      "description": "Viewport override child rows must form an exact partition",
-      "entrypoint": "packages/invalid/viewport-child-range/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_IFCDR_VIEWPORT_RANGE_INVALID",
-                "severity": "error"
-              }
-            ]
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.layout-paper-limits",
-      "category": "invalid",
-      "description": "Paper layout cannot select model Limits plot area",
-      "entrypoint": "packages/invalid/layout-paper-limits/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
-                "severity": "error"
-              }
-            ]
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "valid.empty-model-candidate",
-      "category": "valid",
-      "description": "Model-only candidate with empty drawing definition lists and no geometry",
-      "entrypoint": "packages/valid/empty-model-candidate/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [],
-            "packageAssessment": {
-              "validity": "valid",
-              "completeness": "complete",
-              "gaps": []
-            }
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "valid.two-paper-layouts",
-      "category": "valid",
-      "description": "Two ordered paper scopes retain independent media and effective plot settings without viewports",
-      "entrypoint": "packages/valid/two-paper-layouts/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [],
-            "packageAssessment": {
-              "validity": "valid",
-              "completeness": "complete",
-              "gaps": []
-            }
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "valid.shared-drawing-definitions",
-      "category": "valid",
-      "description": "Two drawings with independent layout nodes share one IFCDR resource and its layer and appearance definitions",
-      "entrypoint": "packages/valid/shared-drawing-definitions/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [],
-            "packageAssessment": {
-              "validity": "valid",
-              "completeness": "complete",
-              "gaps": []
-            }
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "valid.layout-viewport-plot",
-      "category": "valid",
-      "description": "Candidate paper with rectangular and self-intersecting active-clip viewports, dormant view values and two layer overrides",
-      "entrypoint": "packages/valid/layout-viewport-plot/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [],
-            "packageAssessment": {
-              "validity": "valid",
-              "completeness": "complete",
-              "gaps": []
-            }
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "valid.minimal-no-preservation",
-      "category": "valid",
-      "description": "Valid package: minimal-no-preservation",
-      "entrypoint": "packages/valid/minimal-no-preservation/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [],
-            "packageAssessment": {
-              "validity": "valid",
-              "completeness": "complete",
-              "gaps": []
-            }
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "valid.unrepresented-packed",
-      "category": "valid",
-      "description": "Valid package: unrepresented-packed",
-      "entrypoint": "packages/valid/unrepresented-packed/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": []
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "valid.source-archive",
-      "category": "valid",
-      "description": "Valid package: source-archive",
-      "entrypoint": "packages/valid/source-archive/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [],
-            "packageAssessment": {
-              "validity": "notFullyAssessed",
-              "completeness": "incomplete",
-              "gaps": [
-                {
-                  "resourceId": "preservation-golden-source",
-                  "resourceUri": "preservation.ifcpr.json",
-                  "location": "",
-                  "reason": "preservationSemanticsNotAssessed"
-                }
-              ]
-            }
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "valid.generated-snapshot",
-      "category": "valid",
-      "description": "Valid package: generated-snapshot",
-      "entrypoint": "packages/valid/generated-snapshot/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": []
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "valid.multi-drawing-projections",
-      "category": "valid",
-      "description": "Valid package: multi-drawing-projections",
-      "entrypoint": "packages/valid/multi-drawing-projections/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": []
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.schema-wrong-scalar",
-      "category": "invalid",
-      "description": "Invalid package: schema-wrong-scalar",
-      "entrypoint": "packages/invalid/schema-wrong-scalar/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
-                "severity": "error"
-              }
-            ]
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.schema-unknown-field",
-      "category": "invalid",
-      "description": "Invalid package: schema-unknown-field",
-      "entrypoint": "packages/invalid/schema-unknown-field/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
-                "severity": "error"
-              }
-            ]
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.schema-unknown-origin",
-      "category": "invalid",
-      "description": "Invalid package: schema-unknown-origin",
-      "entrypoint": "packages/invalid/schema-unknown-origin/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
-                "severity": "error"
-              }
-            ]
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.generated-source-archive",
-      "category": "invalid",
-      "description": "Invalid package: generated-source-archive",
-      "entrypoint": "packages/invalid/generated-source-archive/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
-                "severity": "error"
-              },
-              {
-                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
-                "severity": "error"
-              }
-            ]
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.package-missing-resource",
-      "category": "invalid",
-      "description": "Invalid package: package-missing-resource",
-      "entrypoint": "packages/invalid/package-missing-resource/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_PACKAGE_RESOURCE_MISSING",
-                "severity": "error",
-                "category": "executionBlocked"
-              }
-            ],
-            "packageAssessment": {
-              "validity": "notFullyAssessed",
-              "completeness": "incomplete",
-              "gaps": [
-                {
-                  "resourceId": "preservation-golden-source",
-                  "resourceUri": "preservation.ifcpr.json",
-                  "location": "",
-                  "reason": "unavailableInput"
-                }
-              ]
-            }
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.package-checksum-mismatch",
-      "category": "invalid",
-      "description": "Invalid package: package-checksum-mismatch",
-      "entrypoint": "packages/invalid/package-checksum-mismatch/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_PACKAGE_CHECKSUM_MISMATCH",
-                "severity": "error",
-                "category": "contractViolation"
-              }
-            ],
-            "packageAssessment": {
-              "validity": "invalid",
-              "completeness": "incomplete",
-              "gaps": [
-                {
-                  "resourceId": "preservation-golden-source",
-                  "resourceUri": "preservation.ifcpr.json",
-                  "location": "",
-                  "reason": "preservationSemanticsNotAssessed"
-                }
-              ]
-            }
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.blob-digest-mismatch",
-      "category": "invalid",
-      "description": "Invalid package: blob-digest-mismatch",
-      "entrypoint": "packages/invalid/blob-digest-mismatch/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCPR_BLOB_DIGEST_MISMATCH",
-                "severity": "error"
-              }
-            ]
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.payload-range-invalid",
-      "category": "invalid",
-      "description": "Invalid package: payload-range-invalid",
-      "entrypoint": "packages/invalid/payload-range-invalid/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCPR_PAYLOAD_RANGE_INVALID",
-                "severity": "error"
-              }
-            ]
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.record-reference-missing",
-      "category": "invalid",
-      "description": "Invalid package: record-reference-missing",
-      "entrypoint": "packages/invalid/record-reference-missing/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCPR_RECORD_REFERENCE_MISSING",
-                "severity": "error"
-              }
-            ]
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.dependency-cycle",
-      "category": "invalid",
-      "description": "Invalid package: dependency-cycle",
-      "entrypoint": "packages/invalid/dependency-cycle/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCPR_DEPENDENCY_CYCLE",
-                "severity": "error"
-              }
-            ]
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.projection-resource-missing",
-      "category": "invalid",
-      "description": "Invalid package: projection-resource-missing",
-      "entrypoint": "packages/invalid/projection-resource-missing/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_PACKAGE_TARGET_RESOURCE_MISSING",
-                "severity": "error"
-              }
-            ]
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "valid.resource-id-distinct-from-uri",
-      "category": "valid",
-      "description": "Valid package: logical resource identity differs from external URI",
-      "entrypoint": "packages/valid/resource-id-distinct-from-uri/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": []
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.resource-id-missing",
-      "category": "invalid",
-      "description": "Invalid package: geometry descriptor omits resourceId",
-      "entrypoint": "packages/invalid/resource-id-missing/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
-                "severity": "error"
-              }
-            ]
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.resource-id-duplicate",
-      "category": "invalid",
-      "description": "Invalid package: IFCDR and IFCPR reuse one package resource ID",
-      "entrypoint": "packages/invalid/resource-id-duplicate/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_PACKAGE_RESOURCE_ID_DUPLICATE",
-                "severity": "error"
-              }
-            ]
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.resource-id-mismatch",
-      "category": "invalid",
-      "description": "Invalid package: IFCX descriptor and IFCDR header IDs differ",
-      "entrypoint": "packages/invalid/resource-id-mismatch/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_PACKAGE_RESOURCE_ID_MISMATCH",
-                "severity": "error"
-              }
-            ]
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.linked-drawing-resource-id-missing",
-      "category": "invalid",
-      "description": "Invalid package: preservation links an unknown drawing resource ID",
-      "entrypoint": "packages/invalid/linked-drawing-resource-id-missing/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_PACKAGE_TARGET_RESOURCE_MISSING",
-                "severity": "error"
-              }
-            ]
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "unsupported.unsupported-ifcdr-version",
-      "category": "invalid",
-      "description": "Unsupported IFCDR 0.5.0: no legacy reader; descriptor also fails the selected 0.7.0 overlay",
-      "entrypoint": "packages/invalid/unsupported-ifcdr-version/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
-                "severity": "error",
-                "category": "unsupportedContent"
-              },
-              {
-                "code": "IFCCAD_IFCDR_VERSION_UNSUPPORTED",
-                "severity": "error",
-                "category": "unsupportedContent"
-              }
-            ],
-            "packageAssessment": {
-              "validity": "notFullyAssessed",
-              "completeness": "incomplete",
-              "gaps": [
-                {
-                  "resourceId": "drawing-main",
-                  "resourceUri": "drawing.ifcdr.json",
-                  "location": "/header/version",
-                  "reason": "unsupportedProfile"
-                },
-                {
-                  "resourceId": "drawing-main",
-                  "resourceUri": "package.ifcx.json",
-                  "location": "/data/3/attributes/resource/version",
-                  "reason": "unsupportedProfile"
-                }
-              ]
-            }
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "unsupported.unsupported-ifcdr-stream",
-      "category": "invalid",
-      "description": "Unsupported IFCDR stream mixed with base entities: strict access is blocked without dependent order errors",
-      "entrypoint": "packages/invalid/unsupported-ifcdr-stream/package.json",
-      "operations": [
-        {
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_IFCDR_STREAM_SCHEMA_UNSUPPORTED",
-                "severity": "error",
-                "category": "unsupportedContent"
-              }
-            ]
-          },
-          "name": "validatePackage"
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.polyline-too-short",
-      "category": "invalid",
-      "description": "IFCDR logical contract: polyline-too-short",
-      "entrypoint": "packages/invalid/polyline-too-short/package.json",
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_IFCDR_POLYLINE_INVALID",
-                "severity": "error"
-              }
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.bounds-do-not-enclose",
-      "category": "invalid",
-      "description": "IFCDR logical contract: bounds-do-not-enclose",
-      "entrypoint": "packages/invalid/bounds-do-not-enclose/package.json",
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_IFCDR_BOUNDS_INVALID",
-                "severity": "error"
-              }
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.nonempty-without-bounds",
-      "category": "invalid",
-      "description": "IFCDR logical contract: nonempty-without-bounds",
-      "entrypoint": "packages/invalid/nonempty-without-bounds/package.json",
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_IFCDR_BOUNDS_INVALID",
-                "severity": "error"
-              }
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.unused-invalid-override",
-      "category": "invalid",
-      "description": "IFCDR logical contract: unused-invalid-override",
-      "entrypoint": "packages/invalid/unused-invalid-override/package.json",
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_IFCDR_APPEARANCE_INVALID",
-                "severity": "error"
-              }
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.unknown-color-field",
-      "category": "invalid",
-      "description": "IFCDR logical contract: unknown-color-field",
-      "entrypoint": "packages/invalid/unknown-color-field/package.json",
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_IFCDR_STRUCTURE_INVALID",
-                "severity": "error"
-              }
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "caseId": "valid.conservative-bounds",
-      "category": "valid",
-      "description": "IFCDR logical contract: conservative-bounds",
-      "entrypoint": "packages/valid/conservative-bounds/package.json",
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": []
-          }
-        }
-      ]
-    },
-    {
-      "caseId": "valid.shared-layout-representation",
-      "category": "valid",
-      "description": "Drawing resource contract: shared-layout-representation",
-      "entrypoint": "packages/valid/shared-layout-representation/package.json",
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": []
-          }
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.layout-representation-mismatch",
-      "category": "invalid",
-      "description": "Drawing resource contract: layout-representation-mismatch",
-      "entrypoint": "packages/invalid/layout-representation-mismatch/package.json",
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
-                "severity": "error"
-              },
-              {
-                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
-                "severity": "error"
-              }
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "caseId": "unsupported.retired-representation-vocabulary",
-      "category": "invalid",
-      "description": "Drawing resource contract: retired-representation-vocabulary",
-      "entrypoint": "packages/unsupported/retired-representation-vocabulary/package.json",
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_PACKAGE_VOCABULARY_UNSUPPORTED",
-                "severity": "error",
-                "category": "unsupportedContent"
-              }
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "caseId": "valid.inline-drawing",
-      "category": "valid",
-      "description": "Inline resource source contract: inline-drawing",
-      "entrypoint": "packages/valid/inline-drawing/package.json",
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": [],
-            "packageAssessment": {
-              "validity": "valid",
-              "completeness": "complete",
-              "gaps": []
-            }
-          }
-        }
-      ]
-    },
-    {
-      "caseId": "valid.inline-both",
-      "category": "valid",
-      "description": "Inline resource source contract: inline-both",
-      "entrypoint": "packages/valid/inline-both/package.json",
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": []
-          }
-        }
-      ]
-    },
-    {
-      "caseId": "valid.inline-ifcdr-external-ifcpr",
-      "category": "valid",
-      "description": "Inline resource source contract: inline-ifcdr-external-ifcpr",
-      "entrypoint": "packages/valid/inline-ifcdr-external-ifcpr/package.json",
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": []
-          }
-        }
-      ]
-    },
-    {
-      "caseId": "valid.external-ifcdr-inline-ifcpr",
-      "category": "valid",
-      "description": "Inline resource source contract: external-ifcdr-inline-ifcpr",
-      "entrypoint": "packages/valid/external-ifcdr-inline-ifcpr/package.json",
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": []
-          }
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.inline-duplicate-id",
-      "category": "invalid",
-      "description": "Inline resource source contract: inline-duplicate-id",
-      "entrypoint": "packages/invalid/inline-duplicate-id/package.json",
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_PACKAGE_RESOURCE_ID_DUPLICATE",
-                "severity": "error"
-              }
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.inline-competing-sources",
-      "category": "invalid",
-      "description": "Inline resource source contract: inline-competing-sources",
-      "entrypoint": "packages/invalid/inline-competing-sources/package.json",
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
-                "severity": "error"
-              }
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.inline-checksum",
-      "category": "invalid",
-      "description": "Inline resource source contract: inline-checksum",
-      "entrypoint": "packages/invalid/inline-checksum/package.json",
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
-                "severity": "error"
-              }
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.inline-unsupported-body",
-      "category": "invalid",
-      "description": "Inline resource source contract: inline-unsupported-body",
-      "entrypoint": "packages/invalid/inline-unsupported-body/package.json",
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_IFCDR_VERSION_UNSUPPORTED",
-                "severity": "error",
-                "category": "unsupportedContent"
-              }
-            ],
-            "packageAssessment": {
-              "validity": "notFullyAssessed",
-              "completeness": "incomplete",
-              "gaps": [
-                {
-                  "resourceId": "drawing-main",
-                  "resourceUri": "package.ifcx.json",
-                  "location": "/data/3/attributes/resource/content/header/version",
-                  "reason": "unsupportedProfile"
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "caseId": "valid.spatial-lines",
-      "category": "valid",
-      "description": "Spatial coordinate contract: spatial-lines",
-      "entrypoint": "packages/valid/spatial-lines/package.json",
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": [],
-            "packageAssessment": {
-              "validity": "valid",
-              "completeness": "complete",
-              "gaps": []
-            }
-          }
-        }
-      ]
-    },
-    {
-      "caseId": "valid.tilted-plane",
-      "category": "valid",
-      "description": "Spatial coordinate contract: tilted-plane",
-      "entrypoint": "packages/valid/tilted-plane/package.json",
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": [],
-            "packageAssessment": {
-              "validity": "valid",
-              "completeness": "complete",
-              "gaps": []
-            }
-          }
-        }
-      ]
-    },
-    {
-      "caseId": "valid.mixed-plane-defaults",
-      "category": "valid",
-      "description": "Spatial coordinate contract: mixed-plane-defaults",
-      "entrypoint": "packages/valid/mixed-plane-defaults/package.json",
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": [],
-            "packageAssessment": {
-              "validity": "valid",
-              "completeness": "complete",
-              "gaps": []
-            }
-          }
-        }
-      ]
-    },
-    {
-      "caseId": "valid.tilted-inline",
-      "category": "valid",
-      "description": "Spatial coordinate contract: tilted-inline",
-      "entrypoint": "packages/valid/tilted-inline/package.json",
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": [],
-            "packageAssessment": {
-              "validity": "valid",
-              "completeness": "complete",
-              "gaps": []
-            }
-          }
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.partial-plane",
-      "category": "invalid",
-      "description": "Spatial coordinate contract: partial-plane",
-      "entrypoint": "packages/invalid/partial-plane/package.json",
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_IFCDR_STRUCTURE_INVALID",
-                "severity": "error",
-                "category": "contractViolation"
-              }
-            ],
-            "packageAssessment": {
-              "validity": "invalid",
-              "completeness": "incomplete",
-              "gaps": [
-                {
-                  "resourceId": "drawing-main",
-                  "resourceUri": "drawing.ifcdr.json",
-                  "location": "",
-                  "reason": "contentNotAssessable"
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.nonorthogonal-plane",
-      "category": "invalid",
-      "description": "Spatial coordinate contract: nonorthogonal-plane",
-      "entrypoint": "packages/invalid/nonorthogonal-plane/package.json",
+      "description": "Arc with a zero sweep",
+      "entrypoint": "packages/invalid/arc-zero-sweep/package.json",
       "operations": [
         {
           "name": "validatePackage",
@@ -1266,181 +33,23 @@
       ]
     },
     {
-      "caseId": "invalid.null-placement-column",
+      "caseId": "invalid.blob-digest-mismatch",
       "category": "invalid",
-      "description": "Spatial coordinate contract: null-placement-column",
-      "entrypoint": "packages/invalid/null-placement-column/package.json",
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_IFCDR_STRUCTURE_INVALID",
-                "severity": "error",
-                "category": "contractViolation"
-              }
-            ],
-            "packageAssessment": {
-              "validity": "invalid",
-              "completeness": "incomplete",
-              "gaps": [
-                {
-                  "resourceId": "drawing-main",
-                  "resourceUri": "drawing.ifcdr.json",
-                  "location": "",
-                  "reason": "contentNotAssessable"
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "caseId": "invalid.scope-bound-excludes-z",
-      "category": "invalid",
-      "description": "Spatial coordinate contract: scope-bound-excludes-z",
-      "entrypoint": "packages/invalid/scope-bound-excludes-z/package.json",
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": [
-              {
-                "code": "IFCCAD_IFCDR_BOUNDS_INVALID",
-                "severity": "error",
-                "category": "contractViolation"
-              }
-            ],
-            "packageAssessment": {
-              "validity": "invalid",
-              "completeness": "incomplete",
-              "gaps": [
-                {
-                  "resourceId": "drawing-main",
-                  "resourceUri": "drawing.ifcdr.json",
-                  "location": "",
-                  "reason": "contentNotAssessable"
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "caseId": "unsupported.ifcdr-0.7.0",
-      "category": "invalid",
-      "description": "Retired IFCDR 0.7.0 has no implicit migration",
-      "entrypoint": "packages/invalid/ifcdr-0.7.0/package.json",
+      "description": "Invalid package: blob-digest-mismatch",
+      "entrypoint": "packages/invalid/blob-digest-mismatch/package.json",
       "operations": [
         {
           "expected": {
             "diagnostics": [
               {
-                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
-                "severity": "error",
-                "category": "unsupportedContent"
-              },
-              {
-                "code": "IFCCAD_IFCDR_VERSION_UNSUPPORTED",
-                "severity": "error",
-                "category": "unsupportedContent"
+                "code": "IFCPR_BLOB_DIGEST_MISMATCH",
+                "severity": "error"
               }
-            ],
-            "packageAssessment": {
-              "validity": "notFullyAssessed",
-              "completeness": "incomplete",
-              "gaps": [
-                {
-                  "resourceId": "drawing-main",
-                  "resourceUri": "drawing.ifcdr.json",
-                  "location": "/header/version",
-                  "reason": "unsupportedProfile"
-                },
-                {
-                  "resourceId": "drawing-main",
-                  "resourceUri": "package.ifcx.json",
-                  "location": "/data/3/attributes/resource/version",
-                  "reason": "unsupportedProfile"
-                }
-              ]
-            }
+            ]
           },
           "name": "validatePackage"
         }
       ]
-    },
-    {
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": []
-          }
-        }
-      ],
-      "caseId": "valid.block-empty-defaults",
-      "category": "valid",
-      "entrypoint": "packages/valid/block-empty-defaults/package.json",
-      "description": "Scope/block contract: block-empty-defaults"
-    },
-    {
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": []
-          }
-        }
-      ],
-      "caseId": "valid.block-negative-uniform",
-      "category": "valid",
-      "entrypoint": "packages/valid/block-negative-uniform/package.json",
-      "description": "Scope/block contract: block-negative-uniform"
-    },
-    {
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": []
-          }
-        }
-      ],
-      "caseId": "valid.block-subnormal-scale",
-      "category": "valid",
-      "entrypoint": "packages/valid/block-subnormal-scale/package.json",
-      "description": "Scope/block contract: block-subnormal-scale"
-    },
-    {
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": []
-          }
-        }
-      ],
-      "caseId": "valid.block-nonneutral-frame",
-      "category": "valid",
-      "entrypoint": "packages/valid/block-nonneutral-frame/package.json",
-      "description": "Scope/block contract: block-nonneutral-frame"
-    },
-    {
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": []
-          }
-        }
-      ],
-      "caseId": "valid.block-conservative-bounds",
-      "category": "valid",
-      "entrypoint": "packages/valid/block-conservative-bounds/package.json",
-      "description": "Scope/block contract: block-conservative-bounds"
     },
     {
       "operations": [
@@ -1457,70 +66,10 @@
           }
         }
       ],
-      "caseId": "invalid.block-zero-scale",
+      "caseId": "invalid.block-casefold-collision",
       "category": "invalid",
-      "entrypoint": "packages/invalid/block-zero-scale/package.json",
-      "description": "Scope/block contract: block-zero-scale"
-    },
-    {
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": [
-              {
-                "severity": "error",
-                "code": "IFCCAD_IFCDR_STRUCTURE_INVALID",
-                "category": "contractViolation"
-              }
-            ]
-          }
-        }
-      ],
-      "caseId": "invalid.block-null-scale",
-      "category": "invalid",
-      "entrypoint": "packages/invalid/block-null-scale/package.json",
-      "description": "Scope/block contract: block-null-scale"
-    },
-    {
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": [
-              {
-                "severity": "error",
-                "code": "IFCCAD_IFCDR_STRUCTURE_INVALID",
-                "category": "contractViolation"
-              }
-            ]
-          }
-        }
-      ],
-      "caseId": "invalid.block-missing-transform",
-      "category": "invalid",
-      "entrypoint": "packages/invalid/block-missing-transform/package.json",
-      "description": "Scope/block contract: block-missing-transform"
-    },
-    {
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": [
-              {
-                "severity": "error",
-                "code": "IFCCAD_IFCDR_STRUCTURE_INVALID",
-                "category": "contractViolation"
-              }
-            ]
-          }
-        }
-      ],
-      "caseId": "invalid.block-unknown-kind",
-      "category": "invalid",
-      "entrypoint": "packages/invalid/block-unknown-kind/package.json",
-      "description": "Scope/block contract: block-unknown-kind"
+      "entrypoint": "packages/invalid/block-casefold-collision/package.json",
+      "description": "Scope/block contract: block-casefold-collision"
     },
     {
       "operations": [
@@ -1577,42 +126,7 @@
                 "severity": "error",
                 "code": "IFCCAD_IFCDR_BLOCK_INVALID",
                 "category": "contractViolation"
-              }
-            ]
-          }
-        }
-      ],
-      "caseId": "invalid.block-casefold-collision",
-      "category": "invalid",
-      "entrypoint": "packages/invalid/block-casefold-collision/package.json",
-      "description": "Scope/block contract: block-casefold-collision"
-    },
-    {
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": [
-              {
-                "severity": "error",
-                "code": "IFCCAD_IFCDR_BOUNDS_INVALID",
-                "category": "contractViolation"
-              }
-            ]
-          }
-        }
-      ],
-      "caseId": "invalid.block-too-small-bounds",
-      "category": "invalid",
-      "entrypoint": "packages/invalid/block-too-small-bounds/package.json",
-      "description": "Scope/block contract: block-too-small-bounds"
-    },
-    {
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": [
+              },
               {
                 "severity": "error",
                 "code": "IFCCAD_IFCDR_BLOCK_INVALID",
@@ -1622,30 +136,10 @@
           }
         }
       ],
-      "caseId": "invalid.block-mixed-sign-uniform",
+      "caseId": "invalid.block-missing-definition",
       "category": "invalid",
-      "entrypoint": "packages/invalid/block-mixed-sign-uniform/package.json",
-      "description": "Scope/block contract: block-mixed-sign-uniform"
-    },
-    {
-      "operations": [
-        {
-          "name": "validatePackage",
-          "expected": {
-            "diagnostics": [
-              {
-                "severity": "error",
-                "code": "IFCCAD_IFCDR_BLOCK_CYCLE",
-                "category": "contractViolation"
-              }
-            ]
-          }
-        }
-      ],
-      "caseId": "invalid.block-unused-cycle",
-      "category": "invalid",
-      "entrypoint": "packages/invalid/block-unused-cycle/package.json",
-      "description": "Scope/block contract: block-unused-cycle"
+      "entrypoint": "packages/invalid/block-missing-definition/package.json",
+      "description": "Scope/block contract: block-missing-definition"
     },
     {
       "operations": [
@@ -1675,9 +169,24 @@
             "diagnostics": [
               {
                 "severity": "error",
-                "code": "IFCCAD_IFCDR_BLOCK_INVALID",
+                "code": "IFCCAD_IFCDR_STRUCTURE_INVALID",
                 "category": "contractViolation"
-              },
+              }
+            ]
+          }
+        }
+      ],
+      "caseId": "invalid.block-missing-transform",
+      "category": "invalid",
+      "entrypoint": "packages/invalid/block-missing-transform/package.json",
+      "description": "Scope/block contract: block-missing-transform"
+    },
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
               {
                 "severity": "error",
                 "code": "IFCCAD_IFCDR_BLOCK_INVALID",
@@ -1687,10 +196,30 @@
           }
         }
       ],
-      "caseId": "invalid.block-missing-definition",
+      "caseId": "invalid.block-mixed-sign-uniform",
       "category": "invalid",
-      "entrypoint": "packages/invalid/block-missing-definition/package.json",
-      "description": "Scope/block contract: block-missing-definition"
+      "entrypoint": "packages/invalid/block-mixed-sign-uniform/package.json",
+      "description": "Scope/block contract: block-mixed-sign-uniform"
+    },
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "severity": "error",
+                "code": "IFCCAD_IFCDR_STRUCTURE_INVALID",
+                "category": "contractViolation"
+              }
+            ]
+          }
+        }
+      ],
+      "caseId": "invalid.block-null-scale",
+      "category": "invalid",
+      "entrypoint": "packages/invalid/block-null-scale/package.json",
+      "description": "Scope/block contract: block-null-scale"
     },
     {
       "operations": [
@@ -1788,46 +317,2430 @@
       "entrypoint": "packages/invalid/block-proof-gap-inline/package.json",
       "description": "Scope/block contract: block-proof-gap-inline"
     },
-    {"caseId":"valid.unused-drawing-definitions","category":"valid","description":"Unused Layer and Appearance nodes remain valid in a model-only Drawing","entrypoint":"packages/valid/unused-drawing-definitions/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[]}}]},
-    {"caseId":"valid.plot-extents","category":"valid","description":"Model Extents area with fixed plot scale","entrypoint":"packages/valid/plot-extents/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[]}}]},
-    {"caseId":"valid.plot-model-limits","category":"valid","description":"Model Limits area with authored limits","entrypoint":"packages/valid/plot-model-limits/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[]}}]},
-    {"caseId":"valid.plot-window-fit","category":"valid","description":"Paper Window area with FitToArea scale","entrypoint":"packages/valid/plot-window-fit/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[]}}]},
-    {"caseId":"valid.viewport-active-rectangular-clip","category":"valid","description":"Active separate closed rectangular paper clip","entrypoint":"packages/valid/viewport-active-rectangular-clip/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[]}}]},
-    {"caseId":"valid.viewport-disabled-boundary-reference","category":"valid","description":"Disabled clip retains a resolvable dormant boundary","entrypoint":"packages/valid/viewport-disabled-boundary-reference/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[]}}]},
-    {"caseId":"valid.viewport-perspective-at-camera","category":"valid","description":"Native perspective view with AtCamera front clipping and dormant back distance","entrypoint":"packages/valid/viewport-perspective-at-camera/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[]}}]},
-    {"caseId":"valid.viewport-visible-default","category":"valid","description":"Omitted visible column resolves to true while nullable shading remains null","entrypoint":"packages/valid/viewport-visible-default/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[]}}]},
-    {"caseId":"invalid.missing-model-layout-selection","category":"invalid","description":"Drawing must select its ModelSpace first","entrypoint":"packages/invalid/missing-model-layout-selection/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[{"code":"IFCCAD_PACKAGE_BINDING_INVALID","severity":"error"},{"code":"IFCCAD_PACKAGE_BINDING_INVALID","severity":"error"}]}}]},
-    {"caseId":"invalid.unselected-paper-scope","category":"invalid","description":"Each paper scope requires one listed paper layout","entrypoint":"packages/invalid/unselected-paper-scope/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[{"code":"IFCCAD_PACKAGE_BINDING_INVALID","severity":"error"}]}}]},
-    {"caseId":"invalid.duplicate-paper-scope-selection","category":"invalid","description":"Two paper layouts cannot select one paper scope","entrypoint":"packages/invalid/duplicate-paper-scope-selection/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[{"code":"IFCCAD_PACKAGE_BINDING_INVALID","severity":"error"},{"code":"IFCCAD_PACKAGE_BINDING_INVALID","severity":"error"}]}}]},
-    {"caseId":"invalid.drawing-appearance-list-closure","category":"invalid","description":"Drawing appearance list must include a listed layer default","entrypoint":"packages/invalid/drawing-appearance-list-closure/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[{"code":"IFCCAD_PACKAGE_BINDING_INVALID","severity":"error"}]}}]},
-    {"caseId":"invalid.layout-scope-missing","category":"invalid","description":"A layout scope reference must resolve in its representation resource","entrypoint":"packages/invalid/layout-scope-missing/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[{"code":"IFCCAD_PACKAGE_BINDING_INVALID","severity":"error"},{"code":"IFCCAD_PACKAGE_BINDING_INVALID","severity":"error"}]}}]},
-    {"caseId":"invalid.viewport-model-owner","category":"invalid","description":"Viewport owner must be PaperSpace","entrypoint":"packages/invalid/viewport-model-owner/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[{"code":"IFCCAD_IFCDR_VIEWPORT_INVALID","severity":"error"}]}}]},
-    {"caseId":"invalid.viewport-wrong-view-scope","category":"invalid","description":"Viewport viewScopeId must select ModelSpace","entrypoint":"packages/invalid/viewport-wrong-view-scope/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[{"code":"IFCCAD_IFCDR_VIEWPORT_INVALID","severity":"error"}]}}]},
-    {"caseId":"invalid.viewport-zero-view-height","category":"invalid","description":"Viewport model view height must be positive","entrypoint":"packages/invalid/viewport-zero-view-height/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[{"code":"IFCCAD_IFCDR_VIEWPORT_INVALID","severity":"error"}]}}]},
-    {"caseId":"invalid.viewport-reversed-clip-planes","category":"invalid","description":"Active back plane must lie behind active front plane","entrypoint":"packages/invalid/viewport-reversed-clip-planes/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[{"code":"IFCCAD_IFCDR_VIEWPORT_INVALID","severity":"error"}]}}]},
-    {"caseId":"invalid.viewport-unresolved-boundary","category":"invalid","description":"Active clip boundary reference must resolve","entrypoint":"packages/invalid/viewport-unresolved-boundary/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[{"code":"IFCCAD_IFCDR_VIEWPORT_INVALID","severity":"error"}]}}]},
-    {"caseId":"invalid.viewport-shared-boundary","category":"invalid","description":"One boundary may not be claimed by two viewports","entrypoint":"packages/invalid/viewport-shared-boundary/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[{"code":"IFCCAD_IFCDR_VIEWPORT_INVALID","severity":"error"}]}}]},
-    {"caseId":"invalid.viewport-boundary-outside-frame","category":"invalid","description":"Active boundary vertices must fit the paper frame","entrypoint":"packages/invalid/viewport-boundary-outside-frame/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[{"code":"IFCCAD_IFCDR_VIEWPORT_INVALID","severity":"error"}]}}]},
-    {"caseId":"invalid.viewport-noop-override","category":"invalid","description":"False freeze with no appearance patch is a no-op override","entrypoint":"packages/invalid/viewport-noop-override/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[{"code":"IFCCAD_IFCDR_VIEWPORT_INVALID","severity":"error"}]}}]},
-    {"caseId":"invalid.viewport-child-overlap","category":"invalid","description":"Viewport child ranges must not overlap","entrypoint":"packages/invalid/viewport-child-overlap/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[{"code":"IFCCAD_IFCDR_VIEWPORT_RANGE_INVALID","severity":"error"}]}}]},
-    {"caseId":"invalid.viewport-child-orphan","category":"invalid","description":"Viewport child rows must not remain unselected","entrypoint":"packages/invalid/viewport-child-orphan/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[{"code":"IFCCAD_IFCDR_VIEWPORT_RANGE_INVALID","severity":"error"}]}}]},
-    {"caseId":"invalid.plot-media-margin-invalid","category":"invalid","description":"Printable media area must lie inside positive media dimensions","entrypoint":"packages/invalid/plot-media-margin-invalid/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[{"code":"IFCCAD_PACKAGE_BINDING_INVALID","severity":"error"}]}}]},
-    {"caseId":"invalid.plot-window-degenerate","category":"invalid","description":"Plot Window must have positive width and height","entrypoint":"packages/invalid/plot-window-degenerate/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[{"code":"IFCCAD_PACKAGE_BINDING_INVALID","severity":"error"}]}}]},
-    {"caseId":"invalid.plot-model-limits-missing","category":"invalid","description":"Model Limits plot area requires authored limits","entrypoint":"packages/invalid/plot-model-limits-missing/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[{"code":"IFCCAD_PACKAGE_BINDING_INVALID","severity":"error"}]}}]},
-    {"caseId":"invalid.plot-layout-centered","category":"invalid","description":"Paper Layout area cannot use Centered placement","entrypoint":"packages/invalid/plot-layout-centered/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[{"code":"IFCCAD_PACKAGE_BINDING_INVALID","severity":"error"}]}}]},
-    {"caseId":"invalid.plot-fixed-zero","category":"invalid","description":"Fixed plot scale lengths must be positive","entrypoint":"packages/invalid/plot-fixed-zero/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[{"code":"IFCCAD_PACKAGE_SCHEMA_INVALID","severity":"error"}]}}]},
-    {"caseId":"invalid.plot-custom-quality-extra-dpi","category":"invalid","description":"Non-Custom plot quality must not carry DPI","entrypoint":"packages/invalid/plot-custom-quality-extra-dpi/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[{"code":"IFCCAD_PACKAGE_SCHEMA_INVALID","severity":"error"}]}}]},
-    {"caseId":"invalid.viewport-null-visible","category":"invalid","description":"Present null is not the defaultable viewport visible column","entrypoint":"packages/invalid/viewport-null-visible/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[{"code":"IFCCAD_IFCDR_STRUCTURE_INVALID","severity":"error"}]}}]},
-    {"caseId":"valid.viewport-omitted-lens","category":"valid","description":"Orthographic view may omit an optional dormant lens","entrypoint":"packages/valid/viewport-omitted-lens/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[]}}]},
-    {"caseId":"valid.viewport-zero-orthographic-lens","category":"valid","description":"Orthographic view may retain a zero dormant lens length","entrypoint":"packages/valid/viewport-zero-orthographic-lens/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[]}}]},
-    {"caseId":"invalid.viewport-null-lens","category":"invalid","description":"Present null lens is not optional-field omission","entrypoint":"packages/invalid/viewport-null-lens/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[{"code":"IFCCAD_IFCDR_STRUCTURE_INVALID","severity":"error"}]}}]},
-    {"caseId":"invalid.viewport-missing-shading-column","category":"invalid","description":"Required nullable plotShadingOverride column cannot be absent","entrypoint":"packages/invalid/viewport-missing-shading-column/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[{"code":"IFCCAD_IFCDR_STRUCTURE_INVALID","severity":"error"}]}}]},
-    {"caseId":"invalid.viewport-missing-child-range","category":"invalid","description":"Viewport override child range columns cannot be absent","entrypoint":"packages/invalid/viewport-missing-child-range/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[{"code":"IFCCAD_IFCDR_STRUCTURE_INVALID","severity":"error"}]}}]},
-    {"caseId":"invalid.viewport-zero-direction","category":"invalid","description":"Viewport camera direction must be nonzero","entrypoint":"packages/invalid/viewport-zero-direction/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[{"code":"IFCCAD_IFCDR_VIEWPORT_INVALID","severity":"error"}]}}]},
-    {"caseId":"invalid.viewport-perspective-missing-lens","category":"invalid","description":"Perspective view requires a positive lens length","entrypoint":"packages/invalid/viewport-perspective-missing-lens/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[{"code":"IFCCAD_IFCDR_VIEWPORT_INVALID","severity":"error"}]}}]},
-    {"caseId":"invalid.viewport-perspective-zero-lens","category":"invalid","description":"Perspective view rejects a zero lens length","entrypoint":"packages/invalid/viewport-perspective-zero-lens/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[{"code":"IFCCAD_IFCDR_VIEWPORT_INVALID","severity":"error"}]}}]},
-    {"caseId":"invalid.layout-representation-cross-resource","category":"invalid","description":"Candidate layout must select its Drawing representation, not another valid resource","entrypoint":"packages/invalid/layout-representation-cross-resource/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[{"code":"IFCCAD_PACKAGE_BINDING_INVALID","severity":"error"},{"code":"IFCCAD_PACKAGE_BINDING_INVALID","severity":"error"}]}}]},
-    {"caseId":"invalid.layout-paper-kind-mismatch","category":"invalid","description":"Candidate Paper layout cannot select a BlockDefinition scope","entrypoint":"packages/invalid/layout-paper-kind-mismatch/package.json","operations":[{"name":"validatePackage","expected":{"diagnostics":[{"code":"IFCCAD_PACKAGE_BINDING_INVALID","severity":"error"},{"code":"IFCCAD_PACKAGE_BINDING_INVALID","severity":"error"}]}}]}
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "severity": "error",
+                "code": "IFCCAD_IFCDR_BOUNDS_INVALID",
+                "category": "contractViolation"
+              }
+            ]
+          }
+        }
+      ],
+      "caseId": "invalid.block-too-small-bounds",
+      "category": "invalid",
+      "entrypoint": "packages/invalid/block-too-small-bounds/package.json",
+      "description": "Scope/block contract: block-too-small-bounds"
+    },
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "severity": "error",
+                "code": "IFCCAD_IFCDR_STRUCTURE_INVALID",
+                "category": "contractViolation"
+              }
+            ]
+          }
+        }
+      ],
+      "caseId": "invalid.block-unknown-kind",
+      "category": "invalid",
+      "entrypoint": "packages/invalid/block-unknown-kind/package.json",
+      "description": "Scope/block contract: block-unknown-kind"
+    },
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "severity": "error",
+                "code": "IFCCAD_IFCDR_BLOCK_CYCLE",
+                "category": "contractViolation"
+              }
+            ]
+          }
+        }
+      ],
+      "caseId": "invalid.block-unused-cycle",
+      "category": "invalid",
+      "entrypoint": "packages/invalid/block-unused-cycle/package.json",
+      "description": "Scope/block contract: block-unused-cycle"
+    },
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "severity": "error",
+                "code": "IFCCAD_IFCDR_BLOCK_INVALID",
+                "category": "contractViolation"
+              }
+            ]
+          }
+        }
+      ],
+      "caseId": "invalid.block-zero-scale",
+      "category": "invalid",
+      "entrypoint": "packages/invalid/block-zero-scale/package.json",
+      "description": "Scope/block contract: block-zero-scale"
+    },
+    {
+      "caseId": "invalid.bounds-do-not-enclose",
+      "category": "invalid",
+      "description": "IFCDR logical contract: bounds-do-not-enclose",
+      "entrypoint": "packages/invalid/bounds-do-not-enclose/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_BOUNDS_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.dependency-cycle",
+      "category": "invalid",
+      "description": "Invalid package: dependency-cycle",
+      "entrypoint": "packages/invalid/dependency-cycle/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCPR_DEPENDENCY_CYCLE",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.drawing-appearance-list-closure",
+      "category": "invalid",
+      "description": "Drawing appearance list must include a listed layer default",
+      "entrypoint": "packages/invalid/drawing-appearance-list-closure/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.drawing-list-closure",
+      "category": "invalid",
+      "description": "Drawing layer list must close the referenced IFCDR bindings",
+      "entrypoint": "packages/invalid/drawing-list-closure/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.duplicate-layer-name",
+      "category": "invalid",
+      "description": "Two layers in one Drawing cannot share a folded name",
+      "entrypoint": "packages/invalid/duplicate-layer-name/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "severity": "error"
+              },
+              {
+                "code": "IFCCAD_PACKAGE_LAYER_NAME_DUPLICATE",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.duplicate-layout-name",
+      "category": "invalid",
+      "description": "Layout names must be unique under full case folding within a Drawing",
+      "entrypoint": "packages/invalid/duplicate-layout-name/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.duplicate-paper-scope-selection",
+      "category": "invalid",
+      "description": "Two paper layouts cannot select one paper scope",
+      "entrypoint": "packages/invalid/duplicate-paper-scope-selection/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "severity": "error"
+              },
+              {
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.ellipse-inverted-axes",
+      "category": "invalid",
+      "description": "Ellipse with minor radius larger than major radius",
+      "entrypoint": "packages/invalid/ellipse-inverted-axes/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_GEOMETRY_INVALID",
+                "severity": "error",
+                "category": "contractViolation"
+              }
+            ],
+            "packageAssessment": {
+              "validity": "invalid",
+              "completeness": "incomplete",
+              "gaps": [
+                {
+                  "resourceId": "drawing-main",
+                  "resourceUri": "drawing.ifcdr.json",
+                  "location": "",
+                  "reason": "contentNotAssessable"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.generated-source-archive",
+      "category": "invalid",
+      "description": "Invalid package: generated-source-archive",
+      "entrypoint": "packages/invalid/generated-source-archive/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
+                "severity": "error"
+              },
+              {
+                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.inline-checksum",
+      "category": "invalid",
+      "description": "Inline resource source contract: inline-checksum",
+      "entrypoint": "packages/invalid/inline-checksum/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.inline-competing-sources",
+      "category": "invalid",
+      "description": "Inline resource source contract: inline-competing-sources",
+      "entrypoint": "packages/invalid/inline-competing-sources/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.inline-duplicate-id",
+      "category": "invalid",
+      "description": "Inline resource source contract: inline-duplicate-id",
+      "entrypoint": "packages/invalid/inline-duplicate-id/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_RESOURCE_ID_DUPLICATE",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.inline-unsupported-body",
+      "category": "invalid",
+      "description": "Inline resource source contract: inline-unsupported-body",
+      "entrypoint": "packages/invalid/inline-unsupported-body/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_VERSION_UNSUPPORTED",
+                "severity": "error",
+                "category": "unsupportedContent"
+              }
+            ],
+            "packageAssessment": {
+              "validity": "notFullyAssessed",
+              "completeness": "incomplete",
+              "gaps": [
+                {
+                  "resourceId": "drawing-main",
+                  "resourceUri": "package.ifcx.json",
+                  "location": "/data/3/attributes/resource/content/header/version",
+                  "reason": "unsupportedProfile"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.layout-fit-scale",
+      "category": "invalid",
+      "description": "Layout plot area cannot use fit-to-area scale",
+      "entrypoint": "packages/invalid/layout-fit-scale/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.layout-paper-kind-mismatch",
+      "category": "invalid",
+      "description": "Candidate Paper layout cannot select a BlockDefinition scope",
+      "entrypoint": "packages/invalid/layout-paper-kind-mismatch/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "severity": "error"
+              },
+              {
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.layout-paper-limits",
+      "category": "invalid",
+      "description": "Paper layout cannot select model Limits plot area",
+      "entrypoint": "packages/invalid/layout-paper-limits/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.layout-representation-cross-resource",
+      "category": "invalid",
+      "description": "Candidate layout must select its Drawing representation, not another valid resource",
+      "entrypoint": "packages/invalid/layout-representation-cross-resource/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "severity": "error"
+              },
+              {
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.layout-representation-mismatch",
+      "category": "invalid",
+      "description": "Drawing resource contract: layout-representation-mismatch",
+      "entrypoint": "packages/invalid/layout-representation-mismatch/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "severity": "error"
+              },
+              {
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.layout-scope-missing",
+      "category": "invalid",
+      "description": "A layout scope reference must resolve in its representation resource",
+      "entrypoint": "packages/invalid/layout-scope-missing/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "severity": "error"
+              },
+              {
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.linked-drawing-resource-id-missing",
+      "category": "invalid",
+      "description": "Invalid package: preservation links an unknown drawing resource ID",
+      "entrypoint": "packages/invalid/linked-drawing-resource-id-missing/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_TARGET_RESOURCE_MISSING",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.missing-model-layout-selection",
+      "category": "invalid",
+      "description": "Drawing must select its ModelSpace first",
+      "entrypoint": "packages/invalid/missing-model-layout-selection/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "severity": "error"
+              },
+              {
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.nonempty-without-bounds",
+      "category": "invalid",
+      "description": "IFCDR logical contract: nonempty-without-bounds",
+      "entrypoint": "packages/invalid/nonempty-without-bounds/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_BOUNDS_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.nonorthogonal-plane",
+      "category": "invalid",
+      "description": "Spatial coordinate contract: nonorthogonal-plane",
+      "entrypoint": "packages/invalid/nonorthogonal-plane/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_GEOMETRY_INVALID",
+                "severity": "error",
+                "category": "contractViolation"
+              }
+            ],
+            "packageAssessment": {
+              "validity": "invalid",
+              "completeness": "incomplete",
+              "gaps": [
+                {
+                  "resourceId": "drawing-main",
+                  "resourceUri": "drawing.ifcdr.json",
+                  "location": "",
+                  "reason": "contentNotAssessable"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.null-placement-column",
+      "category": "invalid",
+      "description": "Spatial coordinate contract: null-placement-column",
+      "entrypoint": "packages/invalid/null-placement-column/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_STRUCTURE_INVALID",
+                "severity": "error",
+                "category": "contractViolation"
+              }
+            ],
+            "packageAssessment": {
+              "validity": "invalid",
+              "completeness": "incomplete",
+              "gaps": [
+                {
+                  "resourceId": "drawing-main",
+                  "resourceUri": "drawing.ifcdr.json",
+                  "location": "",
+                  "reason": "contentNotAssessable"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.open-viewport-boundary",
+      "category": "invalid",
+      "description": "An active viewport clipping boundary must be a closed polyline",
+      "entrypoint": "packages/invalid/open-viewport-boundary/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_VIEWPORT_INVALID",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.package-checksum-mismatch",
+      "category": "invalid",
+      "description": "Invalid package: package-checksum-mismatch",
+      "entrypoint": "packages/invalid/package-checksum-mismatch/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_CHECKSUM_MISMATCH",
+                "severity": "error",
+                "category": "contractViolation"
+              }
+            ],
+            "packageAssessment": {
+              "validity": "invalid",
+              "completeness": "incomplete",
+              "gaps": [
+                {
+                  "resourceId": "preservation-golden-source",
+                  "resourceUri": "preservation.ifcpr.json",
+                  "location": "",
+                  "reason": "preservationSemanticsNotAssessed"
+                }
+              ]
+            }
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.package-missing-resource",
+      "category": "invalid",
+      "description": "Invalid package: package-missing-resource",
+      "entrypoint": "packages/invalid/package-missing-resource/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_RESOURCE_MISSING",
+                "severity": "error",
+                "category": "executionBlocked"
+              }
+            ],
+            "packageAssessment": {
+              "validity": "notFullyAssessed",
+              "completeness": "incomplete",
+              "gaps": [
+                {
+                  "resourceId": "preservation-golden-source",
+                  "resourceUri": "preservation.ifcpr.json",
+                  "location": "",
+                  "reason": "unavailableInput"
+                }
+              ]
+            }
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.partial-plane",
+      "category": "invalid",
+      "description": "Spatial coordinate contract: partial-plane",
+      "entrypoint": "packages/invalid/partial-plane/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_STRUCTURE_INVALID",
+                "severity": "error",
+                "category": "contractViolation"
+              }
+            ],
+            "packageAssessment": {
+              "validity": "invalid",
+              "completeness": "incomplete",
+              "gaps": [
+                {
+                  "resourceId": "drawing-main",
+                  "resourceUri": "drawing.ifcdr.json",
+                  "location": "",
+                  "reason": "contentNotAssessable"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.payload-range-invalid",
+      "category": "invalid",
+      "description": "Invalid package: payload-range-invalid",
+      "entrypoint": "packages/invalid/payload-range-invalid/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCPR_PAYLOAD_RANGE_INVALID",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.planar-bulged-zero-length",
+      "category": "invalid",
+      "description": "planar bulged zero length",
+      "entrypoint": "packages/invalid/planar-bulged-zero-length/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_GEOMETRY_INVALID",
+                "severity": "error"
+              },
+              {
+                "code": "IFCCAD_IFCDR_POLYLINE_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.plot-custom-quality-extra-dpi",
+      "category": "invalid",
+      "description": "Non-Custom plot quality must not carry DPI",
+      "entrypoint": "packages/invalid/plot-custom-quality-extra-dpi/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.plot-custom-quality-missing-dpi",
+      "category": "invalid",
+      "description": "Custom shaded plot quality requires a concrete DPI",
+      "entrypoint": "packages/invalid/plot-custom-quality-missing-dpi/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.plot-fixed-zero",
+      "category": "invalid",
+      "description": "Fixed plot scale lengths must be positive",
+      "entrypoint": "packages/invalid/plot-fixed-zero/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.plot-layout-centered",
+      "category": "invalid",
+      "description": "Paper Layout area cannot use Centered placement",
+      "entrypoint": "packages/invalid/plot-layout-centered/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.plot-media-margin-invalid",
+      "category": "invalid",
+      "description": "Printable media area must lie inside positive media dimensions",
+      "entrypoint": "packages/invalid/plot-media-margin-invalid/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.plot-model-limits-missing",
+      "category": "invalid",
+      "description": "Model Limits plot area requires authored limits",
+      "entrypoint": "packages/invalid/plot-model-limits-missing/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.plot-window-degenerate",
+      "category": "invalid",
+      "description": "Plot Window must have positive width and height",
+      "entrypoint": "packages/invalid/plot-window-degenerate/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.point-partial-axes",
+      "category": "invalid",
+      "description": "Point placement with only one explicit axis",
+      "entrypoint": "packages/invalid/point-partial-axes/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_STRUCTURE_INVALID",
+                "severity": "error",
+                "category": "contractViolation"
+              }
+            ],
+            "packageAssessment": {
+              "validity": "invalid",
+              "completeness": "incomplete",
+              "gaps": [
+                {
+                  "resourceId": "drawing-main",
+                  "resourceUri": "drawing.ifcdr.json",
+                  "location": "",
+                  "reason": "contentNotAssessable"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.polyline-too-short",
+      "category": "invalid",
+      "description": "IFCDR logical contract: polyline-too-short",
+      "entrypoint": "packages/invalid/polyline-too-short/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_POLYLINE_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.projection-resource-missing",
+      "category": "invalid",
+      "description": "Invalid package: projection-resource-missing",
+      "entrypoint": "packages/invalid/projection-resource-missing/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_TARGET_RESOURCE_MISSING",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.record-reference-missing",
+      "category": "invalid",
+      "description": "Invalid package: record-reference-missing",
+      "entrypoint": "packages/invalid/record-reference-missing/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCPR_RECORD_REFERENCE_MISSING",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.resource-id-duplicate",
+      "category": "invalid",
+      "description": "Invalid package: IFCDR and IFCPR reuse one package resource ID",
+      "entrypoint": "packages/invalid/resource-id-duplicate/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_RESOURCE_ID_DUPLICATE",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.resource-id-mismatch",
+      "category": "invalid",
+      "description": "Invalid package: IFCX descriptor and IFCDR header IDs differ",
+      "entrypoint": "packages/invalid/resource-id-mismatch/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_RESOURCE_ID_MISMATCH",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.resource-id-missing",
+      "category": "invalid",
+      "description": "Invalid package: geometry descriptor omits resourceId",
+      "entrypoint": "packages/invalid/resource-id-missing/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.schema-unknown-field",
+      "category": "invalid",
+      "description": "Invalid package: schema-unknown-field",
+      "entrypoint": "packages/invalid/schema-unknown-field/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.schema-unknown-origin",
+      "category": "invalid",
+      "description": "Invalid package: schema-unknown-origin",
+      "entrypoint": "packages/invalid/schema-unknown-origin/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.schema-wrong-scalar",
+      "category": "invalid",
+      "description": "Invalid package: schema-wrong-scalar",
+      "entrypoint": "packages/invalid/schema-wrong-scalar/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.scope-bound-excludes-z",
+      "category": "invalid",
+      "description": "Spatial coordinate contract: scope-bound-excludes-z",
+      "entrypoint": "packages/invalid/scope-bound-excludes-z/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_BOUNDS_INVALID",
+                "severity": "error",
+                "category": "contractViolation"
+              }
+            ],
+            "packageAssessment": {
+              "validity": "invalid",
+              "completeness": "incomplete",
+              "gaps": [
+                {
+                  "resourceId": "drawing-main",
+                  "resourceUri": "drawing.ifcdr.json",
+                  "location": "",
+                  "reason": "contentNotAssessable"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.spatial-polyline-too-short",
+      "category": "invalid",
+      "description": "spatial polyline too short",
+      "entrypoint": "packages/invalid/spatial-polyline-too-short/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_POLYLINE_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.unknown-color-field",
+      "category": "invalid",
+      "description": "IFCDR logical contract: unknown-color-field",
+      "entrypoint": "packages/invalid/unknown-color-field/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_STRUCTURE_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.unselected-paper-scope",
+      "category": "invalid",
+      "description": "Each paper scope requires one listed paper layout",
+      "entrypoint": "packages/invalid/unselected-paper-scope/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.unused-invalid-override",
+      "category": "invalid",
+      "description": "IFCDR logical contract: unused-invalid-override",
+      "entrypoint": "packages/invalid/unused-invalid-override/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_APPEARANCE_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.viewport-boundary-outside-frame",
+      "category": "invalid",
+      "description": "Active boundary vertices must fit the paper frame",
+      "entrypoint": "packages/invalid/viewport-boundary-outside-frame/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_VIEWPORT_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.viewport-child-orphan",
+      "category": "invalid",
+      "description": "Viewport child rows must not remain unselected",
+      "entrypoint": "packages/invalid/viewport-child-orphan/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_VIEWPORT_RANGE_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.viewport-child-overlap",
+      "category": "invalid",
+      "description": "Viewport child ranges must not overlap",
+      "entrypoint": "packages/invalid/viewport-child-overlap/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_VIEWPORT_RANGE_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.viewport-child-range",
+      "category": "invalid",
+      "description": "Viewport override child rows must form an exact partition",
+      "entrypoint": "packages/invalid/viewport-child-range/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_VIEWPORT_RANGE_INVALID",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.viewport-duplicate-layer-override",
+      "category": "invalid",
+      "description": "One viewport cannot override the same layer twice",
+      "entrypoint": "packages/invalid/viewport-duplicate-layer-override/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_VIEWPORT_INVALID",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.viewport-missing-child-range",
+      "category": "invalid",
+      "description": "Viewport override child range columns cannot be absent",
+      "entrypoint": "packages/invalid/viewport-missing-child-range/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_STRUCTURE_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.viewport-missing-shading-column",
+      "category": "invalid",
+      "description": "Required nullable plotShadingOverride column cannot be absent",
+      "entrypoint": "packages/invalid/viewport-missing-shading-column/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_STRUCTURE_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.viewport-model-owner",
+      "category": "invalid",
+      "description": "Viewport owner must be PaperSpace",
+      "entrypoint": "packages/invalid/viewport-model-owner/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_VIEWPORT_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.viewport-noop-override",
+      "category": "invalid",
+      "description": "False freeze with no appearance patch is a no-op override",
+      "entrypoint": "packages/invalid/viewport-noop-override/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_VIEWPORT_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.viewport-null-lens",
+      "category": "invalid",
+      "description": "Present null lens is not optional-field omission",
+      "entrypoint": "packages/invalid/viewport-null-lens/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_STRUCTURE_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.viewport-null-visible",
+      "category": "invalid",
+      "description": "Present null is not the defaultable viewport visible column",
+      "entrypoint": "packages/invalid/viewport-null-visible/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_STRUCTURE_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.viewport-perspective-missing-lens",
+      "category": "invalid",
+      "description": "Perspective view requires a positive lens length",
+      "entrypoint": "packages/invalid/viewport-perspective-missing-lens/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_VIEWPORT_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.viewport-perspective-zero-lens",
+      "category": "invalid",
+      "description": "Perspective view rejects a zero lens length",
+      "entrypoint": "packages/invalid/viewport-perspective-zero-lens/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_VIEWPORT_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.viewport-reversed-clip-planes",
+      "category": "invalid",
+      "description": "Active back plane must lie behind active front plane",
+      "entrypoint": "packages/invalid/viewport-reversed-clip-planes/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_VIEWPORT_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.viewport-shared-boundary",
+      "category": "invalid",
+      "description": "One boundary may not be claimed by two viewports",
+      "entrypoint": "packages/invalid/viewport-shared-boundary/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_VIEWPORT_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.viewport-unresolved-boundary",
+      "category": "invalid",
+      "description": "Active clip boundary reference must resolve",
+      "entrypoint": "packages/invalid/viewport-unresolved-boundary/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_VIEWPORT_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.viewport-wrong-view-scope",
+      "category": "invalid",
+      "description": "Viewport viewScopeId must select ModelSpace",
+      "entrypoint": "packages/invalid/viewport-wrong-view-scope/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_VIEWPORT_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.viewport-zero-direction",
+      "category": "invalid",
+      "description": "Viewport camera direction must be nonzero",
+      "entrypoint": "packages/invalid/viewport-zero-direction/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_VIEWPORT_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.viewport-zero-height",
+      "category": "invalid",
+      "description": "Viewport frame must have positive paper height",
+      "entrypoint": "packages/invalid/viewport-zero-height/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_VIEWPORT_INVALID",
+                "severity": "error"
+              },
+              {
+                "code": "IFCCAD_IFCDR_VIEWPORT_INVALID",
+                "severity": "error"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.viewport-zero-view-height",
+      "category": "invalid",
+      "description": "Viewport model view height must be positive",
+      "entrypoint": "packages/invalid/viewport-zero-view-height/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_VIEWPORT_INVALID",
+                "severity": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "lifecycle.reference",
+      "category": "lifecycle",
+      "description": "Preservation lifecycle reference scenarios",
+      "entrypoint": "packages/lifecycle/scenarios.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": []
+          },
+          "name": "evaluateLifecycle"
+        }
+      ]
+    },
+    {
+      "caseId": "planning.reference",
+      "category": "planning",
+      "description": "Preservation export-planning reference scenarios",
+      "entrypoint": "packages/planning/scenarios.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": []
+          },
+          "name": "planExport"
+        }
+      ]
+    },
+    {
+      "caseId": "unsupported.ifcdr-0.7.0",
+      "category": "invalid",
+      "description": "Retired IFCDR 0.7.0 has no implicit migration",
+      "entrypoint": "packages/invalid/ifcdr-0.7.0/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
+                "severity": "error",
+                "category": "unsupportedContent"
+              },
+              {
+                "code": "IFCCAD_IFCDR_VERSION_UNSUPPORTED",
+                "severity": "error",
+                "category": "unsupportedContent"
+              }
+            ],
+            "packageAssessment": {
+              "validity": "notFullyAssessed",
+              "completeness": "incomplete",
+              "gaps": [
+                {
+                  "resourceId": "drawing-main",
+                  "resourceUri": "drawing.ifcdr.json",
+                  "location": "/header/version",
+                  "reason": "unsupportedProfile"
+                },
+                {
+                  "resourceId": "drawing-main",
+                  "resourceUri": "package.ifcx.json",
+                  "location": "/data/3/attributes/resource/version",
+                  "reason": "unsupportedProfile"
+                }
+              ]
+            }
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "unsupported.retired-representation-vocabulary",
+      "category": "invalid",
+      "description": "Drawing resource contract: retired-representation-vocabulary",
+      "entrypoint": "packages/unsupported/retired-representation-vocabulary/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_VOCABULARY_UNSUPPORTED",
+                "severity": "error",
+                "category": "unsupportedContent"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "unsupported.unsupported-ifcdr-stream",
+      "category": "invalid",
+      "description": "Unsupported IFCDR stream mixed with base entities: strict access is blocked without dependent order errors",
+      "entrypoint": "packages/invalid/unsupported-ifcdr-stream/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_STREAM_SCHEMA_UNSUPPORTED",
+                "severity": "error",
+                "category": "unsupportedContent"
+              }
+            ]
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "unsupported.unsupported-ifcdr-version",
+      "category": "invalid",
+      "description": "Unsupported IFCDR 0.5.0: no legacy reader; descriptor also fails the selected 0.7.0 overlay",
+      "entrypoint": "packages/invalid/unsupported-ifcdr-version/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_PACKAGE_SCHEMA_INVALID",
+                "severity": "error",
+                "category": "unsupportedContent"
+              },
+              {
+                "code": "IFCCAD_IFCDR_VERSION_UNSUPPORTED",
+                "severity": "error",
+                "category": "unsupportedContent"
+              }
+            ],
+            "packageAssessment": {
+              "validity": "notFullyAssessed",
+              "completeness": "incomplete",
+              "gaps": [
+                {
+                  "resourceId": "drawing-main",
+                  "resourceUri": "drawing.ifcdr.json",
+                  "location": "/header/version",
+                  "reason": "unsupportedProfile"
+                },
+                {
+                  "resourceId": "drawing-main",
+                  "resourceUri": "package.ifcx.json",
+                  "location": "/data/3/attributes/resource/version",
+                  "reason": "unsupportedProfile"
+                }
+              ]
+            }
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ],
+      "caseId": "valid.block-conservative-bounds",
+      "category": "valid",
+      "entrypoint": "packages/valid/block-conservative-bounds/package.json",
+      "description": "Scope/block contract: block-conservative-bounds"
+    },
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ],
+      "caseId": "valid.block-empty-defaults",
+      "category": "valid",
+      "entrypoint": "packages/valid/block-empty-defaults/package.json",
+      "description": "Scope/block contract: block-empty-defaults"
+    },
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ],
+      "caseId": "valid.block-negative-uniform",
+      "category": "valid",
+      "entrypoint": "packages/valid/block-negative-uniform/package.json",
+      "description": "Scope/block contract: block-negative-uniform"
+    },
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ],
+      "caseId": "valid.block-nonneutral-frame",
+      "category": "valid",
+      "entrypoint": "packages/valid/block-nonneutral-frame/package.json",
+      "description": "Scope/block contract: block-nonneutral-frame"
+    },
+    {
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ],
+      "caseId": "valid.block-subnormal-scale",
+      "category": "valid",
+      "entrypoint": "packages/valid/block-subnormal-scale/package.json",
+      "description": "Scope/block contract: block-subnormal-scale"
+    },
+    {
+      "category": "valid",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [],
+            "packageAssessment": {
+              "completeness": "complete",
+              "gaps": [],
+              "validity": "valid"
+            }
+          },
+          "name": "validatePackage"
+        }
+      ],
+      "caseId": "valid.circle-arc",
+      "entrypoint": "packages/valid/circle-arc/package.json",
+      "description": "Circle and signed Arc in an origin-only placement"
+    },
+    {
+      "caseId": "valid.conservative-bounds",
+      "category": "valid",
+      "description": "IFCDR logical contract: conservative-bounds",
+      "entrypoint": "packages/valid/conservative-bounds/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ]
+    },
+    {
+      "category": "valid",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [],
+            "packageAssessment": {
+              "completeness": "complete",
+              "gaps": [],
+              "validity": "valid"
+            }
+          },
+          "name": "validatePackage"
+        }
+      ],
+      "caseId": "valid.ellipse-family",
+      "entrypoint": "packages/valid/ellipse-family/package.json",
+      "description": "Ellipse and signed EllipseArc with origin-only placements"
+    },
+    {
+      "caseId": "valid.empty-model-candidate",
+      "category": "valid",
+      "description": "Model-only candidate with empty drawing definition lists and no geometry",
+      "entrypoint": "packages/valid/empty-model-candidate/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [],
+            "packageAssessment": {
+              "validity": "valid",
+              "completeness": "complete",
+              "gaps": []
+            }
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "valid.external-ifcdr-inline-ifcpr",
+      "category": "valid",
+      "description": "Inline resource source contract: external-ifcdr-inline-ifcpr",
+      "entrypoint": "packages/valid/external-ifcdr-inline-ifcpr/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "valid.generated-snapshot",
+      "category": "valid",
+      "description": "Valid package: generated-snapshot",
+      "entrypoint": "packages/valid/generated-snapshot/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": []
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "valid.inline-both",
+      "category": "valid",
+      "description": "Inline resource source contract: inline-both",
+      "entrypoint": "packages/valid/inline-both/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "valid.inline-drawing",
+      "category": "valid",
+      "description": "Inline resource source contract: inline-drawing",
+      "entrypoint": "packages/valid/inline-drawing/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [],
+            "packageAssessment": {
+              "validity": "valid",
+              "completeness": "complete",
+              "gaps": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "valid.inline-ifcdr-external-ifcpr",
+      "category": "valid",
+      "description": "Inline resource source contract: inline-ifcdr-external-ifcpr",
+      "entrypoint": "packages/valid/inline-ifcdr-external-ifcpr/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "valid.layout-viewport-plot",
+      "category": "valid",
+      "description": "Candidate paper with rectangular and self-intersecting active-clip viewports, dormant view values and two layer overrides",
+      "entrypoint": "packages/valid/layout-viewport-plot/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [],
+            "packageAssessment": {
+              "validity": "valid",
+              "completeness": "complete",
+              "gaps": []
+            }
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "valid.minimal-no-preservation",
+      "category": "valid",
+      "description": "Valid package: minimal-no-preservation",
+      "entrypoint": "packages/valid/minimal-no-preservation/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [],
+            "packageAssessment": {
+              "validity": "valid",
+              "completeness": "complete",
+              "gaps": []
+            }
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "valid.mixed-plane-defaults",
+      "category": "valid",
+      "description": "Spatial coordinate contract: mixed-plane-defaults",
+      "entrypoint": "packages/valid/mixed-plane-defaults/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [],
+            "packageAssessment": {
+              "validity": "valid",
+              "completeness": "complete",
+              "gaps": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "valid.multi-drawing-projections",
+      "category": "valid",
+      "description": "Valid package: multi-drawing-projections",
+      "entrypoint": "packages/valid/multi-drawing-projections/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": []
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "valid.planar-bulges",
+      "category": "valid",
+      "description": "planar bulges",
+      "entrypoint": "packages/valid/planar-bulges/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "valid.plot-extents",
+      "category": "valid",
+      "description": "Model Extents area with fixed plot scale",
+      "entrypoint": "packages/valid/plot-extents/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "valid.plot-model-limits",
+      "category": "valid",
+      "description": "Model Limits area with authored limits",
+      "entrypoint": "packages/valid/plot-model-limits/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "valid.plot-window-fit",
+      "category": "valid",
+      "description": "Paper Window area with FitToArea scale",
+      "entrypoint": "packages/valid/plot-window-fit/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ]
+    },
+    {
+      "category": "valid",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [],
+            "packageAssessment": {
+              "completeness": "complete",
+              "gaps": [],
+              "validity": "valid"
+            }
+          },
+          "name": "validatePackage"
+        }
+      ],
+      "caseId": "valid.point-origin-display",
+      "entrypoint": "packages/valid/point-origin-display/package.json",
+      "description": "Point with origin-only placement and drawing-wide display"
+    },
+    {
+      "caseId": "valid.resource-id-distinct-from-uri",
+      "category": "valid",
+      "description": "Valid package: logical resource identity differs from external URI",
+      "entrypoint": "packages/valid/resource-id-distinct-from-uri/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": []
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "valid.shared-drawing-definitions",
+      "category": "valid",
+      "description": "Two drawings with independent layout nodes share one IFCDR resource and its layer and appearance definitions",
+      "entrypoint": "packages/valid/shared-drawing-definitions/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [],
+            "packageAssessment": {
+              "validity": "valid",
+              "completeness": "complete",
+              "gaps": []
+            }
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "valid.shared-layout-representation",
+      "category": "valid",
+      "description": "Drawing resource contract: shared-layout-representation",
+      "entrypoint": "packages/valid/shared-layout-representation/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "valid.source-archive",
+      "category": "valid",
+      "description": "Valid package: source-archive",
+      "entrypoint": "packages/valid/source-archive/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [],
+            "packageAssessment": {
+              "validity": "notFullyAssessed",
+              "completeness": "incomplete",
+              "gaps": [
+                {
+                  "resourceId": "preservation-golden-source",
+                  "resourceUri": "preservation.ifcpr.json",
+                  "location": "",
+                  "reason": "preservationSemanticsNotAssessed"
+                }
+              ]
+            }
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "valid.spatial-lines",
+      "category": "valid",
+      "description": "Spatial coordinate contract: spatial-lines",
+      "entrypoint": "packages/valid/spatial-lines/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [],
+            "packageAssessment": {
+              "validity": "valid",
+              "completeness": "complete",
+              "gaps": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "valid.spatial-polyline",
+      "category": "valid",
+      "description": "spatial polyline",
+      "entrypoint": "packages/valid/spatial-polyline/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "valid.tilted-inline",
+      "category": "valid",
+      "description": "Spatial coordinate contract: tilted-inline",
+      "entrypoint": "packages/valid/tilted-inline/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [],
+            "packageAssessment": {
+              "validity": "valid",
+              "completeness": "complete",
+              "gaps": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "valid.tilted-plane",
+      "category": "valid",
+      "description": "Spatial coordinate contract: tilted-plane",
+      "entrypoint": "packages/valid/tilted-plane/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [],
+            "packageAssessment": {
+              "validity": "valid",
+              "completeness": "complete",
+              "gaps": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "valid.two-paper-layouts",
+      "category": "valid",
+      "description": "Two ordered paper scopes retain independent media and effective plot settings without viewports",
+      "entrypoint": "packages/valid/two-paper-layouts/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": [],
+            "packageAssessment": {
+              "validity": "valid",
+              "completeness": "complete",
+              "gaps": []
+            }
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "valid.unrepresented-packed",
+      "category": "valid",
+      "description": "Valid package: unrepresented-packed",
+      "entrypoint": "packages/valid/unrepresented-packed/package.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": []
+          },
+          "name": "validatePackage"
+        }
+      ]
+    },
+    {
+      "caseId": "valid.unused-drawing-definitions",
+      "category": "valid",
+      "description": "Unused Layer and Appearance nodes remain valid in a model-only Drawing",
+      "entrypoint": "packages/valid/unused-drawing-definitions/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "valid.viewport-active-rectangular-clip",
+      "category": "valid",
+      "description": "Active separate closed rectangular paper clip",
+      "entrypoint": "packages/valid/viewport-active-rectangular-clip/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "valid.viewport-disabled-boundary-reference",
+      "category": "valid",
+      "description": "Disabled clip retains a resolvable dormant boundary",
+      "entrypoint": "packages/valid/viewport-disabled-boundary-reference/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "valid.viewport-omitted-lens",
+      "category": "valid",
+      "description": "Orthographic view may omit an optional dormant lens",
+      "entrypoint": "packages/valid/viewport-omitted-lens/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "valid.viewport-perspective-at-camera",
+      "category": "valid",
+      "description": "Native perspective view with AtCamera front clipping and dormant back distance",
+      "entrypoint": "packages/valid/viewport-perspective-at-camera/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "valid.viewport-visible-default",
+      "category": "valid",
+      "description": "Omitted visible column resolves to true while nullable shading remains null",
+      "entrypoint": "packages/valid/viewport-visible-default/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "valid.viewport-zero-orthographic-lens",
+      "category": "valid",
+      "description": "Orthographic view may retain a zero dormant lens length",
+      "entrypoint": "packages/valid/viewport-zero-orthographic-lens/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "vector.canonicalization",
+      "category": "vector",
+      "description": "Typed canonical projection byte vectors",
+      "entrypoint": "vectors/canonicalization.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": []
+          },
+          "name": "canonicalize"
+        }
+      ]
+    },
+    {
+      "caseId": "vector.fingerprints",
+      "category": "vector",
+      "description": "Typed canonical projection fingerprint vectors",
+      "entrypoint": "vectors/fingerprints.json",
+      "operations": [
+        {
+          "expected": {
+            "diagnostics": []
+          },
+          "name": "fingerprint"
+        }
+      ]
+    }
   ],
   "suiteVersion": "1.1.0",
   "manifestVersion": 2

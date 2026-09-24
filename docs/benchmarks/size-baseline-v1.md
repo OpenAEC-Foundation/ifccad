@@ -2,28 +2,26 @@
 
 **Outcome: passed.** Repeatability: passed. Corpus: full-v1.
 
-Retained run: `issue-9-inventory-final-20260924` (2026-09-24), IFCDR
-0.10.0, IFCX overlay 0.12.0, unmodified cadcodec revision
+Retained run: `geometry-families-proof-20260924` (2026-09-24), IFCDR
+0.11.0, IFCX overlay 0.13.0, unmodified cadcodec revision
 `5b682ed66ea2c89be8142c8dd83d83774fc3de08`. No local dependency
 override was used; `baseline_accepted` is true. The matching detailed
 measurements and provenance are in [results-v1.json](../../benchmarks/size/results-v1.json).
-The inventory-led converter coverage passed the full exchange and repeatability
-checks. Every artifact hash and measurement matches the previous accepted
-`layouts-viewports-final-fixed-20260923` run; only source provenance changed.
-The unchanged primitive corpus measures candidate activation overhead and
-existing exchange paths, not the compression benefit of repeated blocks or
-viewports. An earlier run exposed inert DXF `Layout1` scaffold handling; a
-subsequent run caught a redundant DWG model-layout flag. Both have regression
-tests. This fresh full run passes after both corrections.
+The full direct-readback, IFCCAD/DXF/DWG exchange and two-run repeatability
+checks passed. Relative to the previous accepted 0.10.0/0.12.0 run, eleven
+of twelve IFCCAD cases grew by 3,150 external or 4,610 inline bytes from the
+larger schema and package metadata. The elevated-polyline case instead shrank
+by 91,850 external or 140,390 inline bytes because its axis-aligned placements
+now use the origin-only encoding. All DXF and DWG output sizes were unchanged.
+The corpus has straight lines and polylines but no Point, Circle,
+Arc, Ellipse, EllipseArc, bulged polyline or SpatialPolyline recipes.
 
-This report is a snapshot of the recorded primitive corpus, not a general
-completion gate for later features. Rerun the full experiment only when the
-corpus or one of its exercised writer, codec, conversion or cadcodec dependency
-paths changes, or to evaluate an explicit size/exchange question. For blocks,
-viewports, plot settings and other absent families, use focused strict-readback
-and CAD roundtrip tests; first add representative recipes before drawing
-size/exchange conclusions about them. Keep the last accepted report and its
-matching result JSON until an applicable run replaces them.
+This report is a snapshot of the recorded primitive corpus. Rerun the full
+experiment when an exercised writer, codec, converter, cadcodec dependency or
+corpus recipe changes. For families absent from the corpus, use focused strict
+readback and CAD conversion tests, then add representative recipes before
+drawing size or exchange conclusions about those families. Keep the last
+accepted report and matching result JSON until an applicable run replaces them.
 
 Controlled fixtures and generated XYZ lines/placed straight polylines; millimetres, AC1032. IFCCAD is uncompressed pretty JSON, DXF is text, DWG uses its normal native compression. These ratios compare complete writer outputs, not compression algorithms or representative CAD practice.
 
@@ -31,18 +29,18 @@ Controlled fixtures and generated XYZ lines/placed straight polylines; millimetr
 
 | Case | Lines | Polylines | Vertices | IFCCAD external | IFCCAD inline | DXF | DWG | External / DXF | External / DWG | Inline / DXF | Inline / DWG |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| empty | 0 | 0 | 0 | 7151 | 9318 | 46978 | 20854 | 0.152 | 0.343 | 0.198 | 0.447 |
-| lines-100 | 100 | 0 | 0 | 18694 | 30021 | 60338 | 22262 | 0.310 | 0.840 | 0.498 | 1.349 |
-| lines-10000 | 10000 | 0 | 0 | 1227053 | 2129380 | 1444626 | 168218 | 0.849 | 7.294 | 1.474 | 12.658 |
-| short-polylines-100 | 0 | 100 | 400 | 28232 | 46569 | 79398 | 22486 | 0.356 | 1.256 | 0.587 | 2.071 |
-| short-polylines-10000 | 0 | 10000 | 40000 | 2246181 | 3848518 | 3396526 | 187933 | 0.661 | 11.952 | 1.133 | 20.478 |
-| long-polylines-10 | 0 | 10 | 1280 | 43777 | 72514 | 114314 | 23830 | 0.383 | 1.837 | 0.634 | 3.043 |
-| long-polylines-1000 | 0 | 1000 | 128000 | 3901019 | 6543356 | 7026512 | 257964 | 0.555 | 15.122 | 0.931 | 25.365 |
-| mixed-1000 | 500 | 500 | 2000 | 190593 | 328280 | 312494 | 42117 | 0.610 | 4.525 | 1.051 | 7.794 |
-| fractional-lines-1000 | 1000 | 0 | 0 | 157262 | 249589 | 215872 | 47198 | 0.728 | 3.332 | 1.156 | 5.288 |
-| spatial-line-1000 | 1000 | 0 | 0 | 155115 | 267502 | 187664 | 42213 | 0.827 | 3.675 | 1.425 | 6.337 |
-| elevated-1000 | 0 | 1000 | 4000 | 386124 | 638491 | 376972 | 38917 | 1.024 | 9.922 | 1.694 | 16.406 |
-| tilted-shifted-1000 | 0 | 1000 | 4000 | 536151 | 868518 | 408112 | 38982 | 1.314 | 13.754 | 2.128 | 22.280 |
+| empty | 0 | 0 | 0 | 10301 | 13928 | 46978 | 20854 | 0.219 | 0.494 | 0.296 | 0.668 |
+| lines-100 | 100 | 0 | 0 | 21844 | 34631 | 60338 | 22262 | 0.362 | 0.981 | 0.574 | 1.556 |
+| lines-10000 | 10000 | 0 | 0 | 1230203 | 2133990 | 1444626 | 168218 | 0.852 | 7.313 | 1.477 | 12.686 |
+| short-polylines-100 | 0 | 100 | 400 | 31382 | 51179 | 79398 | 22486 | 0.395 | 1.396 | 0.645 | 2.276 |
+| short-polylines-10000 | 0 | 10000 | 40000 | 2249331 | 3853128 | 3396526 | 187933 | 0.662 | 11.969 | 1.134 | 20.503 |
+| long-polylines-10 | 0 | 10 | 1280 | 46927 | 77124 | 114314 | 23830 | 0.411 | 1.969 | 0.675 | 3.236 |
+| long-polylines-1000 | 0 | 1000 | 128000 | 3904169 | 6547966 | 7026512 | 257964 | 0.556 | 15.135 | 0.932 | 25.383 |
+| mixed-1000 | 500 | 500 | 2000 | 193743 | 332890 | 312494 | 42117 | 0.620 | 4.600 | 1.065 | 7.904 |
+| fractional-lines-1000 | 1000 | 0 | 0 | 160412 | 254199 | 215872 | 47198 | 0.743 | 3.399 | 1.178 | 5.386 |
+| spatial-line-1000 | 1000 | 0 | 0 | 158265 | 272112 | 187664 | 42213 | 0.843 | 3.749 | 1.450 | 6.446 |
+| elevated-1000 | 0 | 1000 | 4000 | 294274 | 498101 | 376972 | 38917 | 0.781 | 7.562 | 1.321 | 12.799 |
+| tilted-shifted-1000 | 0 | 1000 | 4000 | 539301 | 873128 | 408112 | 38982 | 1.321 | 13.835 | 2.139 | 22.398 |
 
 ## Component accounting (bytes)
 
@@ -50,33 +48,33 @@ Inline bodies count only inside IFCX. Every physical blob is counted once. Prese
 
 | Case / mode | IFCX | External IFCDR | External IFCPR | Blobs | Total |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| empty / ifccad-external | 2435 | 4716 | 0 | 0 | 7151 |
-| empty / ifccad-inline | 9318 | 0 | 0 | 0 | 9318 |
-| lines-100 / ifccad-external | 2435 | 16259 | 0 | 0 | 18694 |
-| lines-100 / ifccad-inline | 30021 | 0 | 0 | 0 | 30021 |
-| lines-10000 / ifccad-external | 2435 | 1224618 | 0 | 0 | 1227053 |
-| lines-10000 / ifccad-inline | 2129380 | 0 | 0 | 0 | 2129380 |
-| short-polylines-100 / ifccad-external | 2435 | 25797 | 0 | 0 | 28232 |
-| short-polylines-100 / ifccad-inline | 46569 | 0 | 0 | 0 | 46569 |
-| short-polylines-10000 / ifccad-external | 2435 | 2243746 | 0 | 0 | 2246181 |
-| short-polylines-10000 / ifccad-inline | 3848518 | 0 | 0 | 0 | 3848518 |
-| long-polylines-10 / ifccad-external | 2435 | 41342 | 0 | 0 | 43777 |
-| long-polylines-10 / ifccad-inline | 72514 | 0 | 0 | 0 | 72514 |
-| long-polylines-1000 / ifccad-external | 2435 | 3898584 | 0 | 0 | 3901019 |
-| long-polylines-1000 / ifccad-inline | 6543356 | 0 | 0 | 0 | 6543356 |
-| mixed-1000 / ifccad-external | 4025 | 186568 | 0 | 0 | 190593 |
-| mixed-1000 / ifccad-inline | 328280 | 0 | 0 | 0 | 328280 |
-| fractional-lines-1000 / ifccad-external | 2435 | 154827 | 0 | 0 | 157262 |
-| fractional-lines-1000 / ifccad-inline | 249589 | 0 | 0 | 0 | 249589 |
-| spatial-line-1000 / ifccad-external | 2435 | 152680 | 0 | 0 | 155115 |
-| spatial-line-1000 / ifccad-inline | 267502 | 0 | 0 | 0 | 267502 |
-| elevated-1000 / ifccad-external | 2435 | 383689 | 0 | 0 | 386124 |
-| elevated-1000 / ifccad-inline | 638491 | 0 | 0 | 0 | 638491 |
-| tilted-shifted-1000 / ifccad-external | 2435 | 533716 | 0 | 0 | 536151 |
-| tilted-shifted-1000 / ifccad-inline | 868518 | 0 | 0 | 0 | 868518 |
-| fixture minimal-no-preservation (fixture-native) | 3467 | 4032 | 0 | 0 | 7499 |
-| fixture inline-drawing (fixture-native) | 9775 | 0 | 0 | 0 | 9775 |
-| fixture source-archive (fixture-preservation-inclusive) | 4119 | 4032 | 4269 | 94 | 12514 |
+| empty / ifccad-external | 2435 | 7866 | 0 | 0 | 10301 |
+| empty / ifccad-inline | 13928 | 0 | 0 | 0 | 13928 |
+| lines-100 / ifccad-external | 2435 | 19409 | 0 | 0 | 21844 |
+| lines-100 / ifccad-inline | 34631 | 0 | 0 | 0 | 34631 |
+| lines-10000 / ifccad-external | 2435 | 1227768 | 0 | 0 | 1230203 |
+| lines-10000 / ifccad-inline | 2133990 | 0 | 0 | 0 | 2133990 |
+| short-polylines-100 / ifccad-external | 2435 | 28947 | 0 | 0 | 31382 |
+| short-polylines-100 / ifccad-inline | 51179 | 0 | 0 | 0 | 51179 |
+| short-polylines-10000 / ifccad-external | 2435 | 2246896 | 0 | 0 | 2249331 |
+| short-polylines-10000 / ifccad-inline | 3853128 | 0 | 0 | 0 | 3853128 |
+| long-polylines-10 / ifccad-external | 2435 | 44492 | 0 | 0 | 46927 |
+| long-polylines-10 / ifccad-inline | 77124 | 0 | 0 | 0 | 77124 |
+| long-polylines-1000 / ifccad-external | 2435 | 3901734 | 0 | 0 | 3904169 |
+| long-polylines-1000 / ifccad-inline | 6547966 | 0 | 0 | 0 | 6547966 |
+| mixed-1000 / ifccad-external | 4025 | 189718 | 0 | 0 | 193743 |
+| mixed-1000 / ifccad-inline | 332890 | 0 | 0 | 0 | 332890 |
+| fractional-lines-1000 / ifccad-external | 2435 | 157977 | 0 | 0 | 160412 |
+| fractional-lines-1000 / ifccad-inline | 254199 | 0 | 0 | 0 | 254199 |
+| spatial-line-1000 / ifccad-external | 2435 | 155830 | 0 | 0 | 158265 |
+| spatial-line-1000 / ifccad-inline | 272112 | 0 | 0 | 0 | 272112 |
+| elevated-1000 / ifccad-external | 2435 | 291839 | 0 | 0 | 294274 |
+| elevated-1000 / ifccad-inline | 498101 | 0 | 0 | 0 | 498101 |
+| tilted-shifted-1000 / ifccad-external | 2435 | 536866 | 0 | 0 | 539301 |
+| tilted-shifted-1000 / ifccad-inline | 873128 | 0 | 0 | 0 | 873128 |
+| fixture minimal-no-preservation (fixture-native) | 3858 | 4051 | 0 | 0 | 7909 |
+| fixture inline-drawing (fixture-native) | 10185 | 0 | 0 | 0 | 10185 |
+| fixture source-archive (fixture-preservation-inclusive) | 4510 | 4051 | 4269 | 94 | 12924 |
 
 ## Executed checks
 
@@ -161,7 +159,7 @@ The JSON retains executed stages, import/export diagnostics and scoped assessmen
 
 ## Repeatability and reproduction
 
-Repository revision: eca18ddead8766889a7ee76cf2554caa5b5cd8d9 (dirty: true). Two fresh runs compare measurements and hashes of every produced artifact, including chain outputs.
+Repository revision: b7b2c7b581f9cd9a25d5419d78fb5640cc2ee190 (dirty: true). Two fresh runs compare measurements and hashes of every produced artifact, including chain outputs.
 
 | Case | Output | Same byte count | Identical files |
 | --- | --- | --- | --- |

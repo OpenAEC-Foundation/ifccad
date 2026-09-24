@@ -1,6 +1,6 @@
 use super::mapping::{
-    canonical_registry, registry_0_10, Cardinality, FieldSchema, IfcdrRegistry, Presence,
-    StreamRole, ValueType,
+    canonical_registry, registry_0_10, registry_0_11, Cardinality, FieldSchema, IfcdrRegistry,
+    Presence, StreamRole, ValueType,
 };
 use crate::diagnostic::{
     PackageDiagnostic, PackageDiagnosticContextValue, PackageDiagnosticSeverity,
@@ -26,11 +26,12 @@ pub(super) fn validate_physical(uri: &str, value: &Value) -> Vec<PackageDiagnost
     let version = value.pointer("/header/version").and_then(Value::as_str);
     let registry = match version {
         Some("0.10.0") => registry_0_10(),
+        Some("0.11.0") => registry_0_11(),
         _ => canonical_registry(),
     };
     let mut validator = ResourceValidator::new(uri, registry);
     if let Some(version) = version {
-        if !matches!(version, "0.9.0" | "0.10.0") {
+        if !matches!(version, "0.9.0" | "0.10.0" | "0.11.0") {
             validator.error_with_context(
                 "IFCCAD_IFCDR_VERSION_UNSUPPORTED",
                 "/header/version",
@@ -42,7 +43,7 @@ pub(super) fn validate_physical(uri: &str, value: &Value) -> Vec<PackageDiagnost
                     ),
                     (
                         "supportedVersion".into(),
-                        PackageDiagnosticContextValue::String("0.9.0, 0.10.0".into()),
+                        PackageDiagnosticContextValue::String("0.9.0, 0.10.0, 0.11.0".into()),
                     ),
                 ]),
             );
@@ -95,7 +96,7 @@ pub(super) fn validate_physical(uri: &str, value: &Value) -> Vec<PackageDiagnost
                 "order ranges must cover the complete entry stream",
             );
         }
-        if version == Some("0.10.0") {
+        if matches!(version, Some("0.10.0" | "0.11.0")) {
             let viewport = &value["streams"]["viewportStream"];
             let overrides = &value["streams"]["viewportLayerOverrideStream"];
             if !viewport.is_null() && !overrides.is_null() {
@@ -542,6 +543,16 @@ impl<'a> ResourceValidator<'a> {
                         &column.fields,
                         &format!("{pointer}/{index}"),
                     );
+                    if self.registry.ifcdr_version() == "0.11.0"
+                        && column.name == "placement"
+                        && object.contains_key("X") != object.contains_key("Y")
+                    {
+                        self.error(
+                            IFCCAD_IFCDR_STRUCTURE_INVALID,
+                            &format!("{pointer}/{index}"),
+                            "placement axes must both be present or both omitted",
+                        );
+                    }
                 }
                 if !valid_scalar(item, column.value_type, column.nullable)
                     || (!column.allowed_values.is_empty() && !column.allowed_values.contains(item))

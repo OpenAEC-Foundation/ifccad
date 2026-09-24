@@ -42,7 +42,7 @@
     "nextEntityId": 5,
     "resourceId": "geometry-second",
     "unit": "m",
-    "version": "0.10.0"
+    "version": "0.11.0"
   },
   "layerBindings": [
     {
@@ -99,9 +99,9 @@
           "appearanceId"
         ],
         "count": 2,
-        "name": "polyline",
+        "name": "planarPolyline",
         "role": "object",
-        "schema": "ifccad.ifcdr.polyline.v4"
+        "schema": "ifccad.ifcdr.planarPolyline.v1"
       },
       {
         "children": [
@@ -187,7 +187,7 @@
         8.0
       ]
     },
-    "polylineStream": {
+    "planarPolylineStream": {
       "appearanceId": [
         0,
         3

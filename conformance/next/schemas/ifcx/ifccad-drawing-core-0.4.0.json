@@ -1,0 +1,379 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.ifccad.org/ifcx/ifccad-drawing-core-0.4.0.json",
+  "title": "IFCCAD IFCX Drawing Core 0.4.0",
+  "description": "Local shape constraints for the extensible IFCCAD drawing spine and typed appearance backbone in IFCX.",
+  "type": "object",
+  "required": [
+    "data"
+  ],
+  "properties": {
+    "data": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/dataNode"
+      }
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "dataNode": {
+      "type": "object",
+      "allOf": [
+        {
+          "if": {
+            "required": ["type"],
+            "properties": {"type": {"const": "openaec:DrawingSet"}}
+          },
+          "then": {"$ref": "#/$defs/drawingSetNode"}
+        },
+        {
+          "if": {
+            "required": ["type"],
+            "properties": {"type": {"const": "openaec:Drawing"}}
+          },
+          "then": {"$ref": "#/$defs/drawingNode"}
+        },
+        {
+          "if": {
+            "required": ["type"],
+            "properties": {"type": {"const": "openaec:DrawingLayout"}}
+          },
+          "then": {"$ref": "#/$defs/drawingLayoutNode"}
+        },
+        {
+          "if": {
+            "required": ["type"],
+            "properties": {"type": {"const": "openaec:Layer"}}
+          },
+          "then": {"$ref": "#/$defs/layerNode"}
+        },
+        {
+          "if": {
+            "required": ["type"],
+            "properties": {"type": {"const": "openaec:Appearance"}}
+          },
+          "then": {"$ref": "#/$defs/appearanceNode"}
+        }
+      ],
+      "additionalProperties": true
+    },
+    "drawingSetNode": {
+      "type": "object",
+      "required": ["path", "type", "children"],
+      "properties": {
+        "path": {"$ref": "#/$defs/nonEmptyString"},
+        "type": {"const": "openaec:DrawingSet"},
+        "attributes": {"type": "object"},
+        "children": {
+          "type": "object",
+          "required": ["Drawings"],
+          "properties": {
+            "Drawings": {"$ref": "#/$defs/nodeReferenceArray"},
+            "PreservationResources": {"$ref": "#/$defs/nodeReferenceArray"}
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "drawingNode": {
+      "type": "object",
+      "required": ["path", "type", "attributes", "children"],
+      "properties": {
+        "path": {"$ref": "#/$defs/nonEmptyString"},
+        "type": {"const": "openaec:Drawing"},
+        "attributes": {
+          "type": "object",
+          "required": ["plotStyleMode"],
+          "properties": {"plotStyleMode": {"enum": ["colorDependent", "named"]}, "pointDisplay": {"$ref": "#/$defs/pointDisplay"}},
+          "additionalProperties": true
+        },
+        "children": {
+          "type": "object",
+          "required": ["Representation", "Layouts", "Layers", "Appearances"],
+          "properties": {
+            "Representation": {"$ref": "#/$defs/nodeReference"},
+            "Layouts": {
+              "allOf": [
+                {"$ref": "#/$defs/nodeReferenceArray"},
+                {"minItems": 1}
+              ]
+            },
+            "Layers": {"$ref": "#/$defs/nodeReferenceArray"},
+            "Appearances": {"$ref": "#/$defs/nodeReferenceArray"}
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "drawingLayoutNode": {
+      "type": "object",
+      "required": ["path", "type", "attributes", "children"],
+      "properties": {
+        "path": {"$ref": "#/$defs/nonEmptyString"},
+        "type": {"const": "openaec:DrawingLayout"},
+        "attributes": {
+          "type": "object",
+          "required": ["name", "kind", "scopeId", "limitsChecking", "paperSpaceLinetypeScaling"],
+          "properties": {
+            "name": {"$ref": "#/$defs/nonEmptyString"},
+            "kind": {"enum": ["model", "paper"]},
+            "scopeId": {"type": "integer", "minimum": 0},
+            "limits": {"$ref": "#/$defs/rect2"},
+            "limitsChecking": {"type": "boolean"},
+            "paperSpaceLinetypeScaling": {"type": "boolean"},
+            "plotSettings": {"$ref": "#/$defs/plotSettings"}
+          },
+          "additionalProperties": true
+        },
+        "children": {
+          "type": "object",
+          "required": ["Representation"],
+          "properties": {
+            "Representation": {"$ref": "#/$defs/nodeReference"}
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "layerNode": {
+      "type": "object",
+      "required": ["path", "type", "attributes"],
+      "properties": {
+        "path": {"$ref": "#/$defs/nonEmptyString"},
+        "type": {"const": "openaec:Layer"},
+        "attributes": {
+          "type": "object",
+          "required": ["name", "visible", "frozen", "locked", "plottable", "frozenInNewViewports"],
+          "properties": {
+            "name": {"$ref": "#/$defs/nonEmptyString"},
+            "visible": {"type": "boolean"},
+            "frozen": {"type": "boolean"},
+            "locked": {"type": "boolean"},
+            "plottable": {"type": "boolean"},
+            "frozenInNewViewports": {"type": "boolean"},
+            "description": {"type": "string"},
+            "appearance": {"$ref": "#/$defs/nodeReference"}
+          },
+          "additionalProperties": true
+        },
+        "children": {"type": "object"}
+      },
+      "additionalProperties": true
+    },
+    "appearanceNode": {
+      "type": "object",
+      "required": ["path", "type", "attributes"],
+      "properties": {
+        "path": {"$ref": "#/$defs/nonEmptyString"},
+        "type": {"const": "openaec:Appearance"},
+        "attributes": {
+          "type": "object",
+          "required": ["name", "color", "opacity", "linePattern", "lineWeight"],
+          "properties": {
+            "name": {"$ref": "#/$defs/nonEmptyString"},
+            "color": {"$ref": "#/$defs/explicitColor"},
+            "opacity": {"$ref": "#/$defs/explicitOpacity"},
+            "linePattern": {"$ref": "#/$defs/explicitLinePattern"},
+            "lineWeight": {"$ref": "#/$defs/explicitLineWeight"}
+          },
+          "additionalProperties": true
+        },
+        "children": {"type": "object"}
+      },
+      "additionalProperties": true
+    },
+    "explicitColor": {
+      "type": "object",
+      "required": ["mode", "value"],
+      "properties": {
+        "mode": {"const": "explicit"},
+        "value": {
+          "type": "object",
+          "required": ["rgb"],
+          "properties": {
+            "rgb": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": {"type": "integer", "minimum": 0, "maximum": 255}
+            },
+            "indexedColor": {
+              "type": "object",
+              "required": ["system", "index"],
+              "properties": {
+                "system": {"$ref": "#/$defs/nonEmptyString"},
+                "index": {"type": "integer", "minimum": 0}
+              },
+              "additionalProperties": true
+            },
+            "namedColor": {
+              "type": "object",
+              "required": ["catalog", "name"],
+              "properties": {
+                "catalog": {"$ref": "#/$defs/nonEmptyString"},
+                "name": {"$ref": "#/$defs/nonEmptyString"}
+              },
+              "additionalProperties": true
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "explicitOpacity": {
+      "type": "object",
+      "required": ["mode", "value"],
+      "properties": {
+        "mode": {"const": "explicit"},
+        "value": {"type": "number", "minimum": 0, "maximum": 1}
+      },
+      "additionalProperties": true
+    },
+    "explicitLinePattern": {
+      "type": "object",
+      "required": ["mode", "value"],
+      "properties": {
+        "mode": {"const": "explicit"},
+        "value": {"$ref": "#/$defs/nonEmptyString"}
+      },
+      "additionalProperties": true
+    },
+    "explicitLineWeight": {
+      "type": "object",
+      "required": ["mode", "value"],
+      "properties": {
+        "mode": {"const": "explicit"},
+        "value": {"type": "number", "minimum": 0}
+      },
+      "additionalProperties": true
+    },
+    "rect2": {
+      "type": "object",
+      "required": ["minX", "minY", "maxX", "maxY"],
+      "properties": {
+        "minX": {"type": "number"}, "minY": {"type": "number"},
+        "maxX": {"type": "number"}, "maxY": {"type": "number"}
+      },
+      "additionalProperties": false
+    },
+    "plotSettings": {
+      "type": "object",
+      "required": ["media", "area", "mapping", "output", "options"],
+      "properties": {
+        "media": {"$ref": "#/$defs/plotMedia"},
+        "area": {"$ref": "#/$defs/plotArea"},
+        "mapping": {"$ref": "#/$defs/plotMapping"},
+        "output": {"$ref": "#/$defs/plotOutput"},
+        "options": {"$ref": "#/$defs/plotOptions"}
+      },
+      "additionalProperties": false
+    },
+    "plotMedia": {
+      "type": "object",
+      "required": ["unit", "width", "height", "printableArea", "rotation"],
+      "properties": {
+        "unit": {"enum": ["mm", "in", "px"]},
+        "width": {"type": "number", "exclusiveMinimum": 0},
+        "height": {"type": "number", "exclusiveMinimum": 0},
+        "printableArea": {"$ref": "#/$defs/rect2"},
+        "rotation": {"enum": ["none", "counterClockwise90", "upsideDown", "clockwise90"]},
+        "deviceName": {"$ref": "#/$defs/nonEmptyString"},
+        "mediaName": {"$ref": "#/$defs/nonEmptyString"}
+      },
+      "additionalProperties": false
+    },
+    "plotArea": {
+      "oneOf": [
+        {"type": "object", "required": ["mode"], "properties": {"mode": {"enum": ["Layout", "Extents", "Limits"]}}, "additionalProperties": false},
+        {"type": "object", "required": ["mode", "window"], "properties": {"mode": {"const": "Window"}, "window": {"$ref": "#/$defs/rect2"}}, "additionalProperties": false}
+      ]
+    },
+    "plotMapping": {
+      "type": "object", "required": ["scale", "placement"],
+      "properties": {"scale": {"$ref": "#/$defs/plotScale"}, "placement": {"$ref": "#/$defs/plotPlacement"}},
+      "additionalProperties": false
+    },
+    "plotScale": {
+      "oneOf": [
+        {"type": "object", "required": ["mode", "outputLength", "scopeLength"], "properties": {"mode": {"const": "Fixed"}, "outputLength": {"type": "number", "exclusiveMinimum": 0}, "scopeLength": {"type": "number", "exclusiveMinimum": 0}}, "additionalProperties": false},
+        {"type": "object", "required": ["mode"], "properties": {"mode": {"const": "FitToArea"}}, "additionalProperties": false}
+      ]
+    },
+    "plotPlacement": {
+      "oneOf": [
+        {"type": "object", "required": ["mode"], "properties": {"mode": {"const": "Centered"}}, "additionalProperties": false},
+        {"type": "object", "required": ["mode", "reference", "x", "y"], "properties": {"mode": {"const": "Offset"}, "reference": {"enum": ["Media", "PrintableArea"]}, "x": {"type": "number"}, "y": {"type": "number"}}, "additionalProperties": false}
+      ]
+    },
+    "plotOutput": {
+      "type": "object", "required": ["shadedPlot", "applyPlotStyles"],
+      "properties": {"shadedPlot": {"$ref": "#/$defs/shadedPlot"}, "applyPlotStyles": {"type": "boolean"}, "plotStyleTableName": {"$ref": "#/$defs/nonEmptyString"}},
+      "additionalProperties": false
+    },
+    "shadedPlot": {
+      "type": "object", "required": ["mode", "quality"],
+      "properties": {"mode": {"enum": ["AsDisplayed", "Wireframe", "Hidden", "Rendered"]}, "quality": {"$ref": "#/$defs/shadedPlotQuality"}},
+      "additionalProperties": false
+    },
+    "shadedPlotQuality": {
+      "oneOf": [
+        {"type": "object", "required": ["mode"], "properties": {"mode": {"enum": ["Draft", "Preview", "Normal", "Presentation", "Maximum"]}}, "additionalProperties": false},
+        {"type": "object", "required": ["mode", "dpi"], "properties": {"mode": {"const": "Custom"}, "dpi": {"type": "integer", "minimum": 100, "maximum": 32767}}, "additionalProperties": false}
+      ]
+    },
+    "plotOptions": {
+      "type": "object",
+      "required": ["plotViewportBorders", "plotPaperSpaceLast", "hidePaperSpaceObjects", "plotLineWeights", "scaleLineWeights", "plotTransparency"],
+      "properties": {
+        "plotViewportBorders": {"type": "boolean"},
+        "plotPaperSpaceLast": {"type": "boolean"},
+        "hidePaperSpaceObjects": {"type": "boolean"},
+        "plotLineWeights": {"type": "boolean"},
+        "scaleLineWeights": {"type": "boolean"},
+        "plotTransparency": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "pointDisplay": {
+      "type": "object",
+      "required": ["form", "size"],
+      "properties": {
+        "form": {
+          "type": "object",
+          "required": ["glyph", "circle", "square"],
+          "properties": {
+            "glyph": {"enum": ["dot", "hidden", "plus", "cross", "shortLine"]},
+            "circle": {"type": "boolean"},
+            "square": {"type": "boolean"}
+          },
+          "additionalProperties": false
+        },
+        "size": {
+          "oneOf": [
+            {"type":"object","required":["kind"],"properties":{"kind":{"const":"defaultFivePercent"}},"additionalProperties":false},
+            {"type":"object","required":["kind","value"],"properties":{"kind":{"const":"absolute"},"value":{"type":"number","exclusiveMinimum":0}},"additionalProperties":false},
+            {"type":"object","required":["kind","value"],"properties":{"kind":{"const":"viewportPercent"},"value":{"type":"number","exclusiveMinimum":0}},"additionalProperties":false}
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "nodeReference": {
+      "$ref": "#/$defs/nonEmptyString"
+    },
+    "nodeReferenceArray": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/nodeReference"}
+    },
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

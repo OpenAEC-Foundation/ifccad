@@ -1,12 +1,25 @@
 pub(crate) mod blocks;
+pub(crate) mod circular;
 pub(crate) mod numeric;
 use cadcodec::types::Matrix3;
 use cadcodec::Vector3;
+use num_rational::BigRational;
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct CadPlane {
     pub u: [f64; 3],
     pub v: [f64; 3],
     pub n: [f64; 3],
+}
+
+pub(crate) fn bulge_midpoint(start: [f64; 2], end: [f64; 2], bulge: f64) -> [BigRational; 2] {
+    let [x0, y0] = start.map(numeric::exact);
+    let [x1, y1] = end.map(numeric::exact);
+    let b = numeric::exact(bulge);
+    let two = numeric::exact(2.0);
+    [
+        (&x0 + &x1 + &b * (&y1 - &y0)) / &two,
+        (&y0 + &y1 - &b * (&x1 - &x0)) / &two,
+    ]
 }
 fn normalized(v: Vector3) -> Option<Vector3> {
     if ![v.x, v.y, v.z].into_iter().all(f64::is_finite) {
@@ -32,13 +45,53 @@ pub(crate) fn cad_plane(normal: Vector3) -> Option<CadPlane> {
     Some(p)
 }
 
+/// Builds a right-handed in-plane pair from two independent source directions.
+/// This is opt-in conversion preparation; it never repairs an IFCDR frame on read.
+pub(crate) fn orthonormal_pair(x: Vector3, y: Vector3) -> Option<(Vector3, Vector3)> {
+    let x = normalized(x)?;
+    let y = normalized(y)?;
+    let parallel = x.x * y.x + x.y * y.y + x.z * y.z;
+    let residual = Vector3::new(
+        y.x - parallel * x.x,
+        y.y - parallel * x.y,
+        y.z - parallel * x.z,
+    );
+    let length =
+        (residual.x * residual.x + residual.y * residual.y + residual.z * residual.z).sqrt();
+    if length <= 1e-12 {
+        return None;
+    }
+    let y = normalized(residual)?;
+    PlanePlacement::try_new(
+        Point3::new(0.0, 0.0, 0.0),
+        cv([x.x, x.y, x.z]),
+        cv([y.x, y.y, y.z]),
+    )
+    .ok()?;
+    Some((x, y))
+}
+
+#[cfg(test)]
+mod frame_helper_tests {
+    use super::*;
+
+    #[test]
+    fn orthonormal_pair_handles_skewed_finite_inputs_and_rejects_collinearity() {
+        let (x, y) =
+            orthonormal_pair(Vector3::new(2.0, 0.0, 0.0), Vector3::new(1.0, 3.0, 0.0)).unwrap();
+        assert_eq!(x, Vector3::UNIT_X);
+        assert_eq!(y, Vector3::UNIT_Y);
+        assert!(orthonormal_pair(Vector3::UNIT_X, Vector3::new(1.0, 1e-14, 0.0)).is_none());
+        assert!(orthonormal_pair(Vector3::ZERO, Vector3::UNIT_Y).is_none());
+    }
+}
+
 use crate::{
     ConversionEntitySource, ConversionGeometryAssessment, ConversionGeometryFailure,
     ConversionGeometryFailureReason as Reason, ConversionGeometryStage as Stage,
 };
 use cadcodec::{LwPolyline, Vector2};
-use ifccad::ifcdr::{PlanePlacement, Point3, PolylineRef};
-use num_rational::BigRational;
+use ifccad::ifcdr::{PlanarPolylineRef, PlanePlacement, Point3};
 use numeric::{exact, round_nearest};
 fn cv(v: [f64; 3]) -> ifccad::ifcdr::Vector3 {
     ifccad::ifcdr::Vector3::new(v[0], v[1], v[2])
@@ -173,11 +226,22 @@ pub(crate) fn from_cad(
         .sum();
     let bound = assessment.check(&source, 0, &d2)?;
     let normal_changed = stored_normal(plane) != Some(poly.normal);
-    assessment.record(source, poly.vertices.len(), bound);
+    let active = if poly.is_closed {
+        poly.vertices.len()
+    } else {
+        poly.vertices.len().saturating_sub(1)
+    };
+    let curved = poly
+        .vertices
+        .iter()
+        .take(active)
+        .filter(|vertex| vertex.bulge != 0.0)
+        .count();
+    assessment.record(source, poly.vertices.len() + curved, bound);
     Ok((plane, bound, normal_changed))
 }
 pub(crate) fn to_cad(
-    poly: PolylineRef<'_>,
+    poly: PlanarPolylineRef<'_>,
     source: ConversionEntitySource,
     assessment: &mut ConversionGeometryAssessment,
 ) -> Result<(LwPolyline, f64, bool), Box<ConversionGeometryFailure>> {
@@ -229,8 +293,47 @@ pub(crate) fn to_cad(
         }
         points.push(Vector2::new(uv[0], uv[1]));
     }
-    assessment.record(source, points.len(), maximum);
+    let local = poly.local_points().collect::<Vec<_>>();
+    let segment_count = if poly.closed() {
+        local.len()
+    } else {
+        local.len().saturating_sub(1)
+    };
+    let mut interior_count = 0;
+    for index in 0..segment_count {
+        let bulge = poly.bulge(index).expect("validated bulge");
+        if bulge == 0.0 {
+            continue;
+        }
+        let next = (index + 1) % local.len();
+        let [a, b] = bulge_midpoint(
+            [local[index].x(), local[index].y()],
+            [local[next].x(), local[next].y()],
+            bulge,
+        );
+        let [c, d] = bulge_midpoint(
+            [points[index].x, points[index].y],
+            [points[next].x, points[next].y],
+            bulge,
+        );
+        let d2: BigRational = (0..3)
+            .map(|axis| {
+                let source_value = exact(o[axis]) + exact(x[axis]) * &a + exact(y[axis]) * &b;
+                let target_value = exact(basis.u[axis]) * &c
+                    + exact(basis.v[axis]) * &d
+                    + exact(basis.n[axis]) * exact(elevation);
+                let error = source_value - target_value;
+                &error * &error
+            })
+            .sum();
+        maximum = maximum.max(assessment.check(&source, local.len() + index, &d2)?);
+        interior_count += 1;
+    }
+    assessment.record(source, points.len() + interior_count, maximum);
     let mut target = LwPolyline::from_points(points);
+    for (index, vertex) in target.vertices.iter_mut().enumerate() {
+        vertex.bulge = poly.bulge(index).expect("validated polyline bulge");
+    }
     target.normal = normal;
     target.elevation = elevation;
     target.is_closed = poly.closed();
@@ -240,6 +343,21 @@ pub(crate) fn to_cad(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn bulge_midpoint_follows_signed_curvature() {
+        assert_eq!(
+            bulge_midpoint([0.0, 0.0], [2.0, 0.0], 1.0),
+            [exact(1.0), exact(-1.0)]
+        );
+        assert_eq!(
+            bulge_midpoint([0.0, 0.0], [2.0, 0.0], -1.0),
+            [exact(1.0), exact(1.0)]
+        );
+        assert_eq!(
+            bulge_midpoint([0.0, 0.0], [2.0, 0.0], 2.0),
+            [exact(1.0), exact(-2.0)]
+        );
+    }
     #[test]
     fn prepared_projection_rounds_once_and_measures_the_unrounded_residual() {
         let basis = CadPlane {

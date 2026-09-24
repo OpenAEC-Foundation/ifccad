@@ -160,12 +160,12 @@
       "attributes": {
         "name": "Drawing",
         "resource": {
-          "checksum": "sha256:e08054b11d5b59f69829a3ea60a2896c577dfb27476667a9d8a65ca9bfe40b99",
+          "checksum": "sha256:234f0180ad67827f688a63d7a4b213fc97bc9de26f4b63516f201af066f82257",
           "format": "openaec.ifcdr",
           "resourceId": "geometry",
           "role": "drawing",
           "uri": "resources/drawing.ifcdr.json",
-          "version": "0.10.0"
+          "version": "0.11.0"
         }
       },
       "path": "representation-0",

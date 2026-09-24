@@ -57,9 +57,11 @@ pub fn supported_model_space_document() -> CadDocument {
 
 pub fn loss_heavy_document() -> CadDocument {
     let mut document = supported_model_space_document();
+    let mut circle = Circle::new();
+    circle.thickness = 1.0;
     document
-        .add_entity(EntityType::Circle(Circle::new()))
-        .expect("add unsupported circle");
+        .add_entity(EntityType::Circle(circle))
+        .expect("add thick circle");
     let mut nonplanar = Line::from_coords(0.0, 0.0, 2.0, 1.0, 1.0, 3.0);
     nonplanar.thickness = 1.0;
     document
@@ -228,9 +230,7 @@ fn assert_loss_heavy_diagnostics(diagnostics: &[ExportDiagnostic]) {
     assert_eq!(diagnostics[0].action(), ExportAction::Skipped);
     assert_eq!(
         diagnostics[0].reasons(),
-        [ExportLossReason::UnsupportedEntityType {
-            kind: "CIRCLE".to_owned(),
-        }]
+        [ExportLossReason::NonZeroThickness]
     );
     assert_eq!(diagnostics[1].action(), ExportAction::Skipped);
     assert_eq!(

@@ -1,9 +1,11 @@
 use ifccad::ifcdr::{AppearanceId, IfcdrEntityRef, IfcdrLengthUnit, Point2, Point3};
 use ifccad::package::{
     load_directory_package, AppearanceColor, AppearanceDefinition, AppearanceMode,
-    AppearanceProperty, DrawingLayoutKind, DrawingOptions, EntityAppearance, LayerDefinition,
-    LineDefinition, LinePatternDefinition, LinePatternRef, PackageBuilder, PackageOptions,
-    PolylineDefinition,
+    AppearanceProperty, ArcDefinition, CircleDefinition, DrawingLayoutKind, DrawingOptions,
+    EllipseArcDefinition, EllipseDefinition, EntityAppearance, LayerDefinition, LineDefinition,
+    LinePatternDefinition, LinePatternRef, PackageBuilder, PackageOptions,
+    PlanarPolylineDefinition, PointDefinition, PointDisplay, PointGlyph, PointSize,
+    SpatialPolylineDefinition,
 };
 use ifccad::{PackageId, ResourceId};
 use std::fs;
@@ -11,6 +13,349 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 static NEXT_TEMP: AtomicU64 = AtomicU64::new(1);
+
+#[test]
+fn spatial_polyline_roundtrips_with_xyz_and_closure() {
+    let root = TempRoot::new();
+    let mut package = PackageBuilder::new(PackageOptions {
+        package_id: PackageId::new("spatial-polyline-package").unwrap(),
+        data_version: "1".into(),
+        author: "test".into(),
+        timestamp: "2026-09-24T10:00:00Z".into(),
+    })
+    .unwrap();
+    let mut drawing = package
+        .add_drawing(DrawingOptions {
+            model_layout_name: "Model".into(),
+            representation_resource_id: ResourceId::new("spatial-polyline-drawing").unwrap(),
+            length_unit: IfcdrLengthUnit::Millimetre,
+        })
+        .unwrap();
+    let appearance = drawing
+        .appearances()
+        .add(AppearanceDefinition {
+            name: "Black".into(),
+            color: AppearanceColor::rgb(0, 0, 0),
+            opacity: 1.0,
+            line_pattern: LinePatternDefinition::named("continuous"),
+            line_weight: 0.0,
+        })
+        .unwrap();
+    let layer = drawing
+        .layers()
+        .add(LayerDefinition {
+            name: "0".into(),
+            visible: true,
+            frozen: false,
+            locked: false,
+            plottable: true,
+            frozen_in_new_viewports: false,
+            description: None,
+            appearance,
+        })
+        .unwrap();
+    let points = vec![
+        Point3::new(1.0, 2.0, 3.0),
+        Point3::new(4.0, 5.0, -6.0),
+        Point3::new(7.0, 8.0, 9.0),
+    ];
+    drawing
+        .model_space()
+        .add_spatial_polyline(SpatialPolylineDefinition {
+            points: points.clone(),
+            closed: true,
+            layer,
+            appearance: EntityAppearance::by_layer(),
+            visible: true,
+        })
+        .unwrap();
+    let target = root.0.join("spatial-polyline-package");
+    package.finish().unwrap().write_directory(&target).unwrap();
+    let loaded = load_directory_package(&target).unwrap();
+    assert!(loaded.report().is_empty(), "{:#?}", loaded.report());
+    let drawing = loaded
+        .validated_package()
+        .unwrap()
+        .drawings()
+        .next()
+        .unwrap();
+    let layout = drawing.layouts().next().unwrap();
+    let resource = drawing.representation().resource();
+    let entity = resource.entities(layout.scope().id()).next().unwrap();
+    let IfcdrEntityRef::SpatialPolyline(polyline) = entity else {
+        panic!("spatial polyline")
+    };
+    assert_eq!(polyline.points(), points);
+    assert!(polyline.closed());
+    let bounds = layout.scope().bounds().unwrap();
+    assert_eq!(bounds.min(), Point3::new(1.0, 2.0, -6.0));
+    assert_eq!(bounds.max(), Point3::new(7.0, 8.0, 9.0));
+}
+
+#[test]
+fn circular_family_retains_kinds_and_signed_sweep_through_strict_readback() {
+    let root = TempRoot::new();
+    let mut package = PackageBuilder::new(PackageOptions {
+        package_id: PackageId::new("circle-arc-package").unwrap(),
+        data_version: "1".into(),
+        author: "test".into(),
+        timestamp: "2026-09-24T10:00:00Z".into(),
+    })
+    .unwrap();
+    let mut drawing = package
+        .add_drawing(DrawingOptions {
+            model_layout_name: "Model".into(),
+            representation_resource_id: ResourceId::new("circle-arc-drawing").unwrap(),
+            length_unit: IfcdrLengthUnit::Millimetre,
+        })
+        .unwrap();
+    let appearance = drawing
+        .appearances()
+        .add(AppearanceDefinition {
+            name: "Black".into(),
+            color: AppearanceColor::rgb(0, 0, 0),
+            opacity: 1.0,
+            line_pattern: LinePatternDefinition::named("continuous"),
+            line_weight: 0.0,
+        })
+        .unwrap();
+    let layer = drawing
+        .layers()
+        .add(LayerDefinition {
+            name: "0".into(),
+            visible: true,
+            frozen: false,
+            locked: false,
+            plottable: true,
+            frozen_in_new_viewports: false,
+            description: None,
+            appearance,
+        })
+        .unwrap();
+    let placement = ifccad::ifcdr::PlanePlacement::try_new(
+        Point3::new(4.0, 5.0, 6.0),
+        ifccad::ifcdr::Vector3::new(1.0, 0.0, 0.0),
+        ifccad::ifcdr::Vector3::new(0.0, 1.0, 0.0),
+    )
+    .unwrap();
+    drawing
+        .model_space()
+        .add_circle(CircleDefinition {
+            placement,
+            radius: 3.0,
+            layer,
+            appearance: EntityAppearance::by_layer(),
+            visible: true,
+        })
+        .unwrap();
+    drawing
+        .model_space()
+        .add_arc(ArcDefinition {
+            placement,
+            radius: 2.0,
+            start_parameter: 0.25,
+            sweep_parameter: -std::f64::consts::PI,
+            layer,
+            appearance: EntityAppearance::by_layer(),
+            visible: true,
+        })
+        .unwrap();
+    let target = root.0.join("circle-arc-package");
+    package.finish().unwrap().write_directory(&target).unwrap();
+    let loaded = load_directory_package(&target).unwrap();
+    assert!(loaded.report().is_empty(), "{:#?}", loaded.report());
+    let package = loaded.validated_package().unwrap();
+    let drawing = package
+        .drawing_sets()
+        .next()
+        .unwrap()
+        .drawings()
+        .next()
+        .unwrap();
+    let layout = drawing.layouts().next().unwrap();
+    let resource = drawing.representation().resource();
+    let mut entities = resource.entities(layout.scope().id());
+    assert!(
+        matches!(entities.next().unwrap(), IfcdrEntityRef::Circle(circle) if circle.radius() == 3.0)
+    );
+    assert!(
+        matches!(entities.next().unwrap(), IfcdrEntityRef::Arc(arc) if arc.radius() == 2.0 && arc.sweep_parameter() == -std::f64::consts::PI)
+    );
+}
+
+#[test]
+fn elliptic_family_retains_equal_radii_and_nearly_full_arc_identity() {
+    let root = TempRoot::new();
+    let mut package = PackageBuilder::new(PackageOptions {
+        package_id: PackageId::new("ellipse-package").unwrap(),
+        data_version: "1".into(),
+        author: "test".into(),
+        timestamp: "2026-09-24T10:00:00Z".into(),
+    })
+    .unwrap();
+    let mut drawing = package
+        .add_drawing(DrawingOptions {
+            model_layout_name: "Model".into(),
+            representation_resource_id: ResourceId::new("ellipse-drawing").unwrap(),
+            length_unit: IfcdrLengthUnit::Millimetre,
+        })
+        .unwrap();
+    let appearance = drawing
+        .appearances()
+        .add(AppearanceDefinition {
+            name: "Black".into(),
+            color: AppearanceColor::rgb(0, 0, 0),
+            opacity: 1.0,
+            line_pattern: LinePatternDefinition::named("continuous"),
+            line_weight: 0.0,
+        })
+        .unwrap();
+    let layer = drawing
+        .layers()
+        .add(LayerDefinition {
+            name: "0".into(),
+            visible: true,
+            frozen: false,
+            locked: false,
+            plottable: true,
+            frozen_in_new_viewports: false,
+            description: None,
+            appearance,
+        })
+        .unwrap();
+    let placement = ifccad::ifcdr::PlanePlacement::default();
+    drawing
+        .model_space()
+        .add_ellipse(EllipseDefinition {
+            placement,
+            semi_major_radius: 2.0,
+            semi_minor_radius: 2.0,
+            layer,
+            appearance: EntityAppearance::by_layer(),
+            visible: true,
+        })
+        .unwrap();
+    drawing
+        .model_space()
+        .add_ellipse_arc(EllipseArcDefinition {
+            placement,
+            semi_major_radius: 3.0,
+            semi_minor_radius: 1.0,
+            start_parameter: 0.0,
+            sweep_parameter: std::f64::consts::TAU.next_down(),
+            layer,
+            appearance: EntityAppearance::by_layer(),
+            visible: true,
+        })
+        .unwrap();
+    let target = root.0.join("ellipse-package");
+    package.finish().unwrap().write_directory(&target).unwrap();
+    let loaded = load_directory_package(&target).unwrap();
+    assert!(loaded.report().is_empty(), "{:#?}", loaded.report());
+    let package = loaded.validated_package().unwrap();
+    let drawing = package.drawings().next().unwrap();
+    let scope = drawing.layouts().next().unwrap().scope().id();
+    let resource = drawing.representation().resource();
+    let mut entities = resource.entities(scope);
+    assert!(
+        matches!(entities.next().unwrap(), IfcdrEntityRef::Ellipse(ellipse) if ellipse.semi_minor_radius() == 2.0)
+    );
+    assert!(
+        matches!(entities.next().unwrap(), IfcdrEntityRef::EllipseArc(arc) if arc.sweep_parameter() == std::f64::consts::TAU.next_down())
+    );
+}
+
+#[test]
+fn point_builder_writes_a_distinct_strict_readable_entity() {
+    let root = TempRoot::new();
+    let mut package = PackageBuilder::new(PackageOptions {
+        package_id: PackageId::new("point-package").unwrap(),
+        data_version: "1".into(),
+        author: "test".into(),
+        timestamp: "2026-09-24T10:00:00Z".into(),
+    })
+    .unwrap();
+    let mut drawing = package
+        .add_drawing(DrawingOptions {
+            model_layout_name: "Model".into(),
+            representation_resource_id: ResourceId::new("point-drawing").unwrap(),
+            length_unit: IfcdrLengthUnit::Millimetre,
+        })
+        .unwrap();
+    drawing
+        .set_point_display(PointDisplay {
+            glyph: PointGlyph::Plus,
+            circle: true,
+            square: false,
+            size: PointSize::ViewportPercent(5.0),
+        })
+        .unwrap();
+    let appearance = drawing
+        .appearances()
+        .add(AppearanceDefinition {
+            name: "Black".into(),
+            color: AppearanceColor::rgb(0, 0, 0),
+            opacity: 1.0,
+            line_pattern: LinePatternDefinition::named("continuous"),
+            line_weight: 0.0,
+        })
+        .unwrap();
+    let layer = drawing
+        .layers()
+        .add(LayerDefinition {
+            name: "0".into(),
+            visible: true,
+            frozen: false,
+            locked: false,
+            plottable: true,
+            frozen_in_new_viewports: false,
+            description: None,
+            appearance,
+        })
+        .unwrap();
+    let placement = ifccad::ifcdr::PlanePlacement::try_new(
+        Point3::new(4.0, 5.0, 6.0),
+        ifccad::ifcdr::Vector3::new(1.0, 0.0, 0.0),
+        ifccad::ifcdr::Vector3::new(0.0, 1.0, 0.0),
+    )
+    .unwrap();
+    drawing
+        .model_space()
+        .add_point(PointDefinition {
+            placement,
+            layer,
+            appearance: EntityAppearance::by_layer(),
+            visible: true,
+        })
+        .unwrap();
+    let target = root.0.join("point-package");
+    package.finish().unwrap().write_directory(&target).unwrap();
+    let loaded = load_directory_package(&target).unwrap();
+    assert!(loaded.report().is_empty(), "{:#?}", loaded.report());
+    let package = loaded.validated_package().unwrap();
+    let drawing = package
+        .drawing_sets()
+        .next()
+        .unwrap()
+        .drawings()
+        .next()
+        .unwrap();
+    assert_eq!(
+        drawing.point_display(),
+        PointDisplay {
+            glyph: PointGlyph::Plus,
+            circle: true,
+            square: false,
+            size: PointSize::ViewportPercent(5.0),
+        }
+    );
+    let layout = drawing.layouts().next().unwrap();
+    let resource = drawing.representation().resource();
+    let entity = resource.entities(layout.scope().id()).next().unwrap();
+    assert!(
+        matches!(entity, IfcdrEntityRef::Point(point) if point.position() == Point3::new(4.0, 5.0, 6.0))
+    );
+}
 
 struct TempRoot(PathBuf);
 
@@ -107,8 +452,9 @@ fn representative_builder() -> PackageBuilder {
         .unwrap();
     drawing
         .model_space()
-        .add_polyline(PolylineDefinition {
+        .add_planar_polyline(PlanarPolylineDefinition {
             placement: ifccad::ifcdr::PlanePlacement::default(),
+            bulges: vec![0.0, 0.5],
             points: vec![Point2::new(-2.0, 3.0), Point2::new(4.0, -5.0)],
             closed: false,
             layer: walls,
@@ -128,8 +474,9 @@ fn representative_builder() -> PackageBuilder {
         .unwrap();
     drawing
         .model_space()
-        .add_polyline(PolylineDefinition {
+        .add_planar_polyline(PlanarPolylineDefinition {
             placement: ifccad::ifcdr::PlanePlacement::default(),
+            bulges: vec![0.0, 0.0, 0.25],
             points: vec![
                 Point2::new(2.0, 2.0),
                 Point2::new(8.0, 8.0),
@@ -601,7 +948,9 @@ fn writer_emits_paper_viewport_with_frozen_layer_override() {
     let boundary_id = drawing
         .paper_space(paper)
         .unwrap()
-        .add_polyline(PolylineDefinition {
+        .add_planar_polyline(PlanarPolylineDefinition {
+            bulges: Vec::new(),
+
             points: vec![
                 Point2::new(28.5, 19.2),
                 Point2::new(31.5, 20.8),
@@ -682,7 +1031,7 @@ fn writer_emits_paper_viewport_with_frozen_layer_override() {
         .unwrap();
     assert_eq!(second_patch.color(), None);
     assert_eq!(second_patch.opacity(), Some(0.75));
-    assert!(matches!(&entities[1], IfcdrEntityRef::Polyline(polyline) if polyline.closed()));
+    assert!(matches!(&entities[1], IfcdrEntityRef::PlanarPolyline(polyline) if polyline.closed()));
     assert!(
         matches!(&entities[2], IfcdrEntityRef::Viewport(clipped) if clipped.paper_clip().enabled && clipped.paper_clip().boundary_entity_id == Some(boundary_id.get()))
     );
@@ -700,7 +1049,7 @@ fn writer_output_reloads_without_diagnostics_and_preserves_semantics() {
 
     let bytes = std::fs::read(target.join("resources/drawing.ifcdr.json")).unwrap();
     let resource: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
-    assert_eq!(resource["header"]["version"], "0.10.0");
+    assert_eq!(resource["header"]["version"], "0.11.0");
     assert!(resource.get("namedUcsBindings").is_none());
     assert!(resource.get("dimensionOverrideTable").is_none());
     let loaded = load_directory_package(&target).unwrap();
@@ -793,7 +1142,7 @@ fn writer_output_reloads_without_diagnostics_and_preserves_semantics() {
     assert_eq!(first.end(), Point3::new(10.0, 5.0, 0.0));
     assert_eq!(first.appearance_id().get(), 0);
     assert!(first.visible());
-    let IfcdrEntityRef::Polyline(second) = &entities[1] else {
+    let IfcdrEntityRef::PlanarPolyline(second) = &entities[1] else {
         panic!("entity 2 must be a polyline");
     };
     assert_eq!(second.entity_id().get(), 2);
@@ -802,6 +1151,7 @@ fn writer_output_reloads_without_diagnostics_and_preserves_semantics() {
         [Point2::new(-2.0, 3.0), Point2::new(4.0, -5.0)]
     );
     assert!(!second.closed());
+    assert_eq!(second.bulges().collect::<Vec<_>>(), [0.0, 0.5]);
     assert!(!second.visible());
     assert_eq!(second.appearance_id().get(), 2);
     let IfcdrEntityRef::Line(third) = &entities[2] else {
@@ -810,11 +1160,12 @@ fn writer_output_reloads_without_diagnostics_and_preserves_semantics() {
     assert_eq!(third.entity_id().get(), 3);
     assert_eq!(third.appearance_id().get(), 1);
     assert!(!third.visible());
-    let IfcdrEntityRef::Polyline(fourth) = &entities[3] else {
+    let IfcdrEntityRef::PlanarPolyline(fourth) = &entities[3] else {
         panic!("entity 4 must be a polyline");
     };
     assert_eq!(fourth.entity_id().get(), 4);
     assert!(fourth.closed());
+    assert_eq!(fourth.bulges().collect::<Vec<_>>(), [0.0, 0.0, 0.25]);
     assert!(fourth.visible());
     assert_eq!(fourth.appearance_id().get(), 3);
     let IfcdrEntityRef::Line(fifth) = &entities[4] else {
@@ -870,8 +1221,9 @@ fn single_entity_families_reload_without_requiring_the_other_stream() {
         if polyline {
             drawing
                 .model_space()
-                .add_polyline(PolylineDefinition {
+                .add_planar_polyline(PlanarPolylineDefinition {
                     placement: ifccad::ifcdr::PlanePlacement::default(),
+                    bulges: Vec::new(),
                     points: points.clone(),
                     closed: true,
                     layer,
@@ -904,8 +1256,16 @@ fn single_entity_families_reload_without_requiring_the_other_stream() {
         let resource = layout.representation().resource();
         let mut entities = resource.entities(layout.scope().id());
         match entities.next().unwrap() {
+            IfcdrEntityRef::Point(_) => panic!("line or polyline fixture"),
+            IfcdrEntityRef::Circle(_) | IfcdrEntityRef::Arc(_) => {
+                panic!("line or polyline fixture")
+            }
+            IfcdrEntityRef::Ellipse(_) | IfcdrEntityRef::EllipseArc(_) => {
+                panic!("line or polyline fixture")
+            }
             IfcdrEntityRef::BlockInstance(_) => panic!("primitive-only roundtrip fixture"),
             IfcdrEntityRef::Viewport(_) => panic!("primitive-only roundtrip fixture"),
+            IfcdrEntityRef::SpatialPolyline(_) => panic!("primitive-only roundtrip fixture"),
             IfcdrEntityRef::Line(line) => {
                 assert!(!polyline);
                 assert_eq!(
@@ -916,7 +1276,7 @@ fn single_entity_families_reload_without_requiring_the_other_stream() {
                         .collect::<Vec<_>>()
                 );
             }
-            IfcdrEntityRef::Polyline(line) => {
+            IfcdrEntityRef::PlanarPolyline(line) => {
                 assert!(polyline && line.closed());
                 assert_eq!(line.local_points().collect::<Vec<_>>(), points);
             }

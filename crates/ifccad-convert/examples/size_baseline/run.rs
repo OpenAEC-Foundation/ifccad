@@ -318,6 +318,29 @@ fn fixture(repo: &Path, inventory: &Value) -> Result<Value> {
             scopes += 1;
             for entity in resource.entities(scope.id()) {
                 match entity {
+                    ifccad::ifcdr::IfcdrEntityRef::Point(_) => {
+                        return Err(
+                            "point geometry is outside the fixed primitive benchmark inventory"
+                                .into(),
+                        )
+                    }
+                    ifccad::ifcdr::IfcdrEntityRef::SpatialPolyline(_) => {
+                        return Err("spatial polyline geometry is outside the fixed primitive benchmark inventory".into())
+                    }
+                    ifccad::ifcdr::IfcdrEntityRef::Circle(_)
+                    | ifccad::ifcdr::IfcdrEntityRef::Arc(_) => {
+                        return Err(
+                            "circular geometry is outside the fixed primitive benchmark inventory"
+                                .into(),
+                        )
+                    }
+                    ifccad::ifcdr::IfcdrEntityRef::Ellipse(_)
+                    | ifccad::ifcdr::IfcdrEntityRef::EllipseArc(_) => {
+                        return Err(
+                            "elliptic geometry is outside the fixed primitive benchmark inventory"
+                                .into(),
+                        )
+                    }
                     ifccad::ifcdr::IfcdrEntityRef::Line(_) => lines += 1,
                     ifccad::ifcdr::IfcdrEntityRef::BlockInstance(_) => {
                         return Err(
@@ -331,7 +354,7 @@ fn fixture(repo: &Path, inventory: &Value) -> Result<Value> {
                                 .into(),
                         )
                     }
-                    ifccad::ifcdr::IfcdrEntityRef::Polyline(p) => {
+                    ifccad::ifcdr::IfcdrEntityRef::PlanarPolyline(p) => {
                         polylines += 1;
                         vertices += p.local_points().count() as u64;
                     }

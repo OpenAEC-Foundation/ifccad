@@ -185,11 +185,13 @@ loaded IFCPR resource is not restored by this converter.
 
 ## Spatial geometry and accuracy
 
-Polyline `local_points()` returns stored XY values; `scope_points()` returns
+PlanarPolyline `local_points()` returns stored XY values; `scope_points()` returns
 placed XYZ points, with one `Result` per vertex. Deprecated `points()` retains
 its local meaning. Scope coordinates do not apply scope base metadata or a
 future block/IFC transformation. `placement()` resolves omission to the complete
-identity frame. Individual origin or axis components never have defaults.
+identity frame. The origin-only encoding supplies the standard X/Y axes as a
+pair; an explicit frame supplies both axes. Individual axis components never
+have defaults.
 
 Both directions expose `geometry_assessment()` and `into_all_parts()`. Accuracy
 is enforced independently of loss policy. The default is exactly 1 micrometre

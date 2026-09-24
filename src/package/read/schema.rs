@@ -15,18 +15,31 @@ const DRAWING_CORE_0_3_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-drawin
 const DRAWING_CORE_0_3: &str = include_str!("../../../schemas/ifcx/ifccad-drawing-core-0.3.0.json");
 const COMPOSITE_OVERLAY_0_12: &str =
     include_str!("../../../schemas/ifcx/ifccad-overlay-0.12.0.json");
+const COMPOSITE_OVERLAY_0_13: &str =
+    include_str!("../../../schemas/ifcx/ifccad-overlay-0.13.0.json");
+const DRAWING_CORE_0_4_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-drawing-core-0.4.0.json";
+const DRAWING_CORE_0_4: &str = include_str!("../../../schemas/ifcx/ifccad-drawing-core-0.4.0.json");
 const IFCPR_SCHEMA: &str = include_str!("../../../schemas/ifcpr/schema-0.2.0.json");
 
 pub(crate) fn validate_ifcx(value: &Value) -> Vec<PackageDiagnostic> {
-    let candidate = value["data"].as_array().is_some_and(|nodes| {
-        nodes.iter().any(|node| {
-            node.pointer("/attributes/resource/version")
-                .and_then(Value::as_str)
-                == Some("0.10.0")
-                && node["type"] == "openaec:DrawingRepresentation"
+    let drawing_version = value["data"].as_array().and_then(|nodes| {
+        nodes.iter().find_map(|node| {
+            (node["type"] == "openaec:DrawingRepresentation")
+                .then(|| {
+                    node.pointer("/attributes/resource/version")
+                        .and_then(Value::as_str)
+                })
+                .flatten()
         })
     });
-    let (core_source, core_id, overlay_source, label) = if candidate {
+    let (core_source, core_id, overlay_source, label) = if drawing_version == Some("0.11.0") {
+        (
+            DRAWING_CORE_0_4,
+            DRAWING_CORE_0_4_ID,
+            COMPOSITE_OVERLAY_0_13,
+            "0.13.0",
+        )
+    } else if drawing_version == Some("0.10.0") {
         (
             DRAWING_CORE_0_3,
             DRAWING_CORE_0_3_ID,

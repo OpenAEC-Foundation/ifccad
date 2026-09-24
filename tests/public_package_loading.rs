@@ -65,8 +65,18 @@ fn model_and_paper_layouts_share_the_drawing_resource() {
             .resource()
             .entities(layout.scope().id())
             .map(|entity| match entity {
+                ifccad::ifcdr::IfcdrEntityRef::Point(point) => point.entity_id().get(),
+                ifccad::ifcdr::IfcdrEntityRef::Circle(circle) => circle.entity_id().get(),
+                ifccad::ifcdr::IfcdrEntityRef::Arc(arc) => arc.entity_id().get(),
+                ifccad::ifcdr::IfcdrEntityRef::Ellipse(ellipse) => ellipse.entity_id().get(),
+                ifccad::ifcdr::IfcdrEntityRef::EllipseArc(arc) => arc.entity_id().get(),
                 ifccad::ifcdr::IfcdrEntityRef::Line(line) => line.entity_id().get(),
-                ifccad::ifcdr::IfcdrEntityRef::Polyline(polyline) => polyline.entity_id().get(),
+                ifccad::ifcdr::IfcdrEntityRef::PlanarPolyline(polyline) => {
+                    polyline.entity_id().get()
+                }
+                ifccad::ifcdr::IfcdrEntityRef::SpatialPolyline(polyline) => {
+                    polyline.entity_id().get()
+                }
                 ifccad::ifcdr::IfcdrEntityRef::BlockInstance(instance) => {
                     instance.entity_id().get()
                 }
@@ -98,10 +108,10 @@ fn candidate_package(root: &Path) -> serde_json::Value {
     let resource_path = root.join("drawing.ifcdr.json");
     let mut resource: serde_json::Value =
         serde_json::from_slice(&fs::read(&resource_path).unwrap()).unwrap();
-    resource["header"]["version"] = serde_json::json!("0.10.0");
+    resource["header"]["version"] = serde_json::json!("0.11.0");
     let bytes = serde_json::to_vec_pretty(&resource).unwrap();
     fs::write(&resource_path, &bytes).unwrap();
-    entrypoint["data"][3]["attributes"]["resource"]["version"] = serde_json::json!("0.10.0");
+    entrypoint["data"][3]["attributes"]["resource"]["version"] = serde_json::json!("0.11.0");
     entrypoint["data"][3]["attributes"]["resource"]["checksum"] =
         serde_json::json!(format!("sha256:{:x}", Sha256::digest(&bytes)));
     entrypoint["data"][1]["children"]["Layers"] = serde_json::json!(["layer-0", "layer-a-wall"]);

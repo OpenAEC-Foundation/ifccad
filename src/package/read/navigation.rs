@@ -195,6 +195,12 @@ impl<'a> DrawingSetRef<'a> {
 }
 
 impl<'a> DrawingRef<'a> {
+    pub fn point_display(&self) -> super::super::PointDisplay {
+        self.node()
+            .pointer("/attributes/pointDisplay")
+            .and_then(super::super::PointDisplay::from_json)
+            .unwrap_or_default()
+    }
     pub fn plot_style_mode(&self) -> super::super::PlotStyleMode {
         match self
             .node()
@@ -228,7 +234,10 @@ impl<'a> DrawingRef<'a> {
 impl<'a> DrawingLayoutRef<'a> {
     pub fn settings(&self) -> super::super::LayoutSettings {
         use super::super::*;
-        if self.representation().resource().version() != "0.10.0" {
+        if !matches!(
+            self.representation().resource().version(),
+            "0.10.0" | "0.11.0"
+        ) {
             return LayoutSettings::default();
         }
         let attrs = &self.node()["attributes"];

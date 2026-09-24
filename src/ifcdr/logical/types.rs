@@ -244,6 +244,53 @@ pub(crate) struct IfcdrLineRow {
     pub end: Point3,
 }
 
+#[derive(Clone, Debug, PartialEq)]
+pub(crate) struct IfcdrSpatialPolylineRow {
+    pub entity: IfcdrEntityRow,
+    pub closed: bool,
+    pub points: Vec<Point3>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) struct IfcdrPointRow {
+    pub entity: IfcdrEntityRow,
+    pub placement: crate::ifcdr::geometry::PlanePlacementComponents,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) struct IfcdrCircleRow {
+    pub entity: IfcdrEntityRow,
+    pub placement: crate::ifcdr::geometry::PlanePlacementComponents,
+    pub radius: f64,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) struct IfcdrArcRow {
+    pub entity: IfcdrEntityRow,
+    pub placement: crate::ifcdr::geometry::PlanePlacementComponents,
+    pub radius: f64,
+    pub start_parameter: f64,
+    pub sweep_parameter: f64,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) struct IfcdrEllipseRow {
+    pub entity: IfcdrEntityRow,
+    pub placement: crate::ifcdr::geometry::PlanePlacementComponents,
+    pub semi_major_radius: f64,
+    pub semi_minor_radius: f64,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) struct IfcdrEllipseArcRow {
+    pub entity: IfcdrEntityRow,
+    pub placement: crate::ifcdr::geometry::PlanePlacementComponents,
+    pub semi_major_radius: f64,
+    pub semi_minor_radius: f64,
+    pub start_parameter: f64,
+    pub sweep_parameter: f64,
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum AppearanceMode {
     ByLayer,

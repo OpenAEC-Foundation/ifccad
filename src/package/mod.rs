@@ -25,11 +25,13 @@ pub use read::{
 };
 pub use write::{
     AppearanceColor, AppearanceDefinition, AppearanceKey, AppearanceMode, AppearancePatch,
-    BlockDefinitionKey, BlockDefinitionOptions, BlockInstanceDefinition, DrawingAppearances,
-    DrawingBuilder, DrawingLayers, DrawingOptions, DrawingResourceStorage, EncodedPackage,
+    ArcDefinition, BlockDefinitionKey, BlockDefinitionOptions, BlockInstanceDefinition,
+    CircleDefinition, DrawingAppearances, DrawingBuilder, DrawingLayers, DrawingOptions,
+    DrawingResourceStorage, EllipseArcDefinition, EllipseDefinition, EncodedPackage,
     EntityAppearance, LayerDefinition, LayerKey, LineDefinition, LinePatternDefinition,
     ModelSpaceBuilder, PackageBuildError, PackageBuilder, PackageOptions, PackageWriteError,
-    PaperSpaceKey, PolylineDefinition, ScopeEntitiesBuilder, ViewportDefinition,
+    PaperSpaceKey, PlanarPolylineDefinition, PointDefinition, PointDisplay, PointGlyph, PointSize,
+    ScopeEntitiesBuilder, SpatialPolylineDefinition, ViewportDefinition,
     ViewportLayerOverrideDefinition,
 };
 pub use write::{

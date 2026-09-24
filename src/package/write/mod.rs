@@ -24,8 +24,10 @@ pub use layout::{
 };
 pub use types::{
     AppearanceColor, AppearanceDefinition, AppearanceKey, AppearanceMode, AppearancePatch,
-    BlockDefinitionKey, BlockDefinitionOptions, BlockInstanceDefinition, DrawingOptions,
-    DrawingResourceStorage, EntityAppearance, LayerDefinition, LayerKey, LineDefinition,
-    LinePatternDefinition, PackageOptions, PaperSpaceKey, PolylineDefinition, ViewportDefinition,
-    ViewportLayerOverrideDefinition,
+    ArcDefinition, BlockDefinitionKey, BlockDefinitionOptions, BlockInstanceDefinition,
+    CircleDefinition, DrawingOptions, DrawingResourceStorage, EllipseArcDefinition,
+    EllipseDefinition, EntityAppearance, LayerDefinition, LayerKey, LineDefinition,
+    LinePatternDefinition, PackageOptions, PaperSpaceKey, PlanarPolylineDefinition,
+    PointDefinition, PointDisplay, PointGlyph, PointSize, SpatialPolylineDefinition,
+    ViewportDefinition, ViewportLayerOverrideDefinition,
 };

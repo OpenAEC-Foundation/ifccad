@@ -25,8 +25,14 @@ pub(crate) fn assess_occurrences(
         while let Some((scope, path)) = stack.pop() {
             for entity in resource.entities(scope) {
                 let id = match entity {
+                    IfcdrEntityRef::Point(e) => e.entity_id(),
+                    IfcdrEntityRef::Circle(e) => e.entity_id(),
+                    IfcdrEntityRef::Arc(e) => e.entity_id(),
+                    IfcdrEntityRef::Ellipse(e) => e.entity_id(),
+                    IfcdrEntityRef::EllipseArc(e) => e.entity_id(),
                     IfcdrEntityRef::Line(e) => e.entity_id(),
-                    IfcdrEntityRef::Polyline(e) => e.entity_id(),
+                    IfcdrEntityRef::PlanarPolyline(e) => e.entity_id(),
+                    IfcdrEntityRef::SpatialPolyline(e) => e.entity_id(),
                     IfcdrEntityRef::BlockInstance(e) => e.entity_id(),
                     IfcdrEntityRef::Viewport(_) => {
                         unreachable!("validated block scope has no viewport")

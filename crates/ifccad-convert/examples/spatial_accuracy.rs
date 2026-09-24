@@ -57,14 +57,18 @@ fn create(name: &str) -> Result<EncodedPackage> {
     })?;
     for i in 0..10000 {
         let x = if name == "tight" { 0. } else { i as f64 };
-        drawing.model_space().add_polyline(PolylineDefinition {
-            points: vec![Point2::new(x, 0.), Point2::new(x + 1., 1.)],
-            placement: plane,
-            closed: false,
-            layer,
-            appearance: EntityAppearance::by_layer(),
-            visible: true,
-        })?;
+        drawing
+            .model_space()
+            .add_planar_polyline(PlanarPolylineDefinition {
+                bulges: Vec::new(),
+
+                points: vec![Point2::new(x, 0.), Point2::new(x + 1., 1.)],
+                placement: plane,
+                closed: false,
+                layer,
+                appearance: EntityAppearance::by_layer(),
+                visible: true,
+            })?;
     }
     Ok(package.finish()?)
 }
@@ -87,7 +91,7 @@ fn tighten(root: &Path) -> Result<()> {
     use sha2::{Digest, Sha256};
     let path = root.join("resources/drawing.ifcdr.json");
     let mut v: Value = serde_json::from_slice(&fs::read(&path)?)?;
-    let frame = &v["streams"]["polylineStream"]["placement"][0];
+    let frame = &v["streams"]["planarPolylineStream"]["placement"][0];
     let exact = |v: f64| BigRational::from_float(v).unwrap();
     let mut bound = json!({});
     for axis in ["x", "y", "z"] {
@@ -165,7 +169,7 @@ fn main() -> Result<()> {
                 .resource()
                 .entities(layout.scope().id())
             {
-                if let IfcdrEntityRef::Polyline(p) = e {
+                if let IfcdrEntityRef::PlanarPolyline(p) = e {
                     for point in p.scope_points() {
                         black_box(point?);
                         count += 1;

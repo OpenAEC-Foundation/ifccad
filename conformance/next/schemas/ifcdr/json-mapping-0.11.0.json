@@ -1,0 +1,829 @@
+{
+  "$schema": "./json-mapping-meta-schema-v4.json",
+  "mappingSchemaVersion": "ifccad.ifcdr.jsonMapping.v4",
+  "ifcdrVersion": "0.11.0",
+  "resource": {
+    "constants": {
+      "header.format": "openaec.ifcdr",
+      "header.version": "0.11.0"
+    },
+    "fields": [
+      {
+        "logical": "resource.resourceId",
+        "payload": "header.resourceId",
+        "omission": "forbidden"
+      },
+      {
+        "logical": "resource.unit",
+        "payload": "header.unit",
+        "omission": "forbidden"
+      },
+      {
+        "logical": "resource.nextEntityId",
+        "payload": "header.nextEntityId",
+        "omission": "forbidden"
+      }
+    ]
+  },
+  "directory": {
+    "schemaId": "ifccad.ifcdr.streamDirectory.v1",
+    "payload": "streamDirectory",
+    "fields": [
+      "version",
+      "streams"
+    ],
+    "entryFields": [
+      "name",
+      "schema",
+      "role",
+      "count",
+      "columns"
+    ],
+    "optionalEntryFields": [
+      "parent",
+      "children"
+    ]
+  },
+  "tables": [
+    {
+      "name": "appearanceBinding",
+      "payload": "appearanceBindings",
+      "omission": "logicalDefault",
+      "fields": [
+        {
+          "logical": "appearanceBinding.id",
+          "payload": "id",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "appearanceBinding.ifcxAppearance",
+          "payload": "ifcxAppearance",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "appearanceBinding.colorMode",
+          "payload": "colorMode",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "appearanceBinding.opacityMode",
+          "payload": "opacityMode",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "appearanceBinding.linePatternMode",
+          "payload": "linePatternMode",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "appearanceBinding.lineWeightMode",
+          "payload": "lineWeightMode",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "appearanceBinding.overrideId",
+          "payload": "overrideId",
+          "omission": "forbidden"
+        }
+      ]
+    },
+    {
+      "name": "appearanceOverride",
+      "payload": "appearanceOverrides",
+      "omission": "logicalDefault",
+      "fields": [
+        {
+          "logical": "appearanceOverride.id",
+          "payload": "id",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "appearanceOverride.color",
+          "payload": "color",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "appearanceOverride.opacity",
+          "payload": "opacity",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "appearanceOverride.ifcxLinePattern",
+          "payload": "ifcxLinePattern",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "appearanceOverride.lineWeight",
+          "payload": "lineWeight",
+          "omission": "forbidden"
+        }
+      ]
+    },
+    {
+      "name": "layerBinding",
+      "payload": "layerBindings",
+      "omission": "logicalDefault",
+      "fields": [
+        {
+          "logical": "layerBinding.id",
+          "payload": "id",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "layerBinding.ifcxLayer",
+          "payload": "ifcxLayer",
+          "omission": "forbidden"
+        }
+      ]
+    },
+    {
+      "name": "scope",
+      "payload": "scopeTable",
+      "omission": "forbidden",
+      "fields": [
+        {
+          "logical": "scope.id",
+          "payload": "id",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "scope.kind",
+          "payload": "kind",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "scope.bounds",
+          "payload": "bounds",
+          "omission": "forbidden"
+        }
+      ]
+    },
+    {
+      "name": "blockDefinition",
+      "payload": "blockDefinitionTable",
+      "omission": "logicalDefault",
+      "fields": [
+        {
+          "logical": "blockDefinition.scopeId",
+          "payload": "scopeId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "blockDefinition.name",
+          "payload": "name",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "blockDefinition.basePoint",
+          "payload": "basePoint",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "blockDefinition.description",
+          "payload": "description",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "blockDefinition.anonymous",
+          "payload": "anonymous",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "blockDefinition.insertionUnit",
+          "payload": "insertionUnit",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "blockDefinition.explodable",
+          "payload": "explodable",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "blockDefinition.scaling",
+          "payload": "scaling",
+          "omission": "logicalDefault"
+        }
+      ]
+    }
+  ],
+  "streams": [
+    {
+      "name": "point",
+      "payload": "streams.pointStream",
+      "fields": [
+        {
+          "logical": "point.entityId",
+          "payload": "entityId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "point.scopeId",
+          "payload": "scopeId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "point.placement",
+          "payload": "placement",
+          "omission": "logicalDefault",
+          "nullEncoding": "logicalDefault"
+        },
+        {
+          "logical": "point.layerId",
+          "payload": "layerId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "point.appearanceId",
+          "payload": "appearanceId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "point.visible",
+          "payload": "visible",
+          "omission": "logicalDefault"
+        }
+      ]
+    },
+    {
+      "name": "line",
+      "payload": "streams.lineStream",
+      "fields": [
+        {
+          "logical": "line.entityId",
+          "payload": "entityId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "line.scopeId",
+          "payload": "scopeId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "line.x1",
+          "payload": "x1",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "line.y1",
+          "payload": "y1",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "line.x2",
+          "payload": "x2",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "line.y2",
+          "payload": "y2",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "line.layerId",
+          "payload": "layerId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "line.appearanceId",
+          "payload": "appearanceId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "line.visible",
+          "payload": "visible",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "line.z1",
+          "payload": "z1",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "line.z2",
+          "payload": "z2",
+          "omission": "logicalDefault"
+        }
+      ]
+    },
+    {
+      "name": "planarPolyline",
+      "payload": "streams.planarPolylineStream",
+      "fields": [
+        {
+          "logical": "planarPolyline.entityId",
+          "payload": "entityId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "planarPolyline.scopeId",
+          "payload": "scopeId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "planarPolyline.vertices",
+          "encoding": "pointPoolRange",
+          "offset": "vertexOffset",
+          "count": "vertexCount",
+          "pools": [
+            "x",
+            "y",
+            "bulge"
+          ]
+        },
+        {
+          "logical": "planarPolyline.closed",
+          "payload": "closed",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "planarPolyline.layerId",
+          "payload": "layerId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "planarPolyline.appearanceId",
+          "payload": "appearanceId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "planarPolyline.visible",
+          "payload": "visible",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "planarPolyline.placement",
+          "payload": "placement",
+          "omission": "logicalDefault",
+          "nullEncoding": "logicalDefault"
+        }
+      ]
+    },
+    {
+      "name": "spatialPolyline",
+      "payload": "streams.spatialPolylineStream",
+      "fields": [
+        {
+          "logical": "spatialPolyline.entityId",
+          "payload": "entityId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "spatialPolyline.scopeId",
+          "payload": "scopeId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "spatialPolyline.vertices",
+          "encoding": "pointPoolRange",
+          "offset": "vertexOffset",
+          "count": "vertexCount",
+          "pools": [
+            "x",
+            "y",
+            "z"
+          ]
+        },
+        {
+          "logical": "spatialPolyline.closed",
+          "payload": "closed",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "spatialPolyline.layerId",
+          "payload": "layerId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "spatialPolyline.appearanceId",
+          "payload": "appearanceId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "spatialPolyline.visible",
+          "payload": "visible",
+          "omission": "logicalDefault"
+        }
+      ]
+    },
+    {
+      "name": "entityOrder",
+      "payload": "streams.entityOrderStream",
+      "fields": [
+        {
+          "logical": "entityOrder.scopeId",
+          "payload": "scopeId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "entityOrder.entries",
+          "encoding": "childRange",
+          "offset": "entryOffset",
+          "count": "entryCount",
+          "target": "entityOrderEntry.entityId"
+        }
+      ]
+    },
+    {
+      "name": "entityOrderEntry",
+      "payload": "streams.entityOrderEntryStream",
+      "fields": [
+        {
+          "logical": "entityOrderEntry.entityId",
+          "payload": "entityId",
+          "omission": "forbidden"
+        }
+      ]
+    },
+    {
+      "name": "blockInstance",
+      "payload": "streams.blockInstanceStream",
+      "fields": [
+        {
+          "logical": "blockInstance.entityId",
+          "payload": "entityId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "blockInstance.scopeId",
+          "payload": "scopeId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "blockInstance.definitionScopeId",
+          "payload": "definitionScopeId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "blockInstance.transform",
+          "payload": "transform",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "blockInstance.layerId",
+          "payload": "layerId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "blockInstance.appearanceId",
+          "payload": "appearanceId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "blockInstance.visible",
+          "payload": "visible",
+          "omission": "logicalDefault"
+        }
+      ]
+    },
+    {
+      "name": "viewport",
+      "payload": "streams.viewportStream",
+      "fields": [
+        {
+          "logical": "viewport.entityId",
+          "payload": "entityId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "viewport.scopeId",
+          "payload": "scopeId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "viewport.viewScopeId",
+          "payload": "viewScopeId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "viewport.frame",
+          "payload": "frame",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "viewport.view",
+          "payload": "view",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "viewport.renderMode",
+          "payload": "renderMode",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "viewport.viewEnabled",
+          "payload": "viewEnabled",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "viewport.viewLocked",
+          "payload": "viewLocked",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "viewport.paperClip",
+          "payload": "paperClip",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "viewport.plotShadingOverride",
+          "payload": "plotShadingOverride",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "viewport.layerId",
+          "payload": "layerId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "viewport.appearanceId",
+          "payload": "appearanceId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "viewport.visible",
+          "payload": "visible",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "viewport.layerOverrides",
+          "encoding": "childRange",
+          "offset": "layerOverrideOffset",
+          "count": "layerOverrideCount",
+          "targetStream": "viewportLayerOverride"
+        }
+      ]
+    },
+    {
+      "name": "viewportLayerOverride",
+      "payload": "streams.viewportLayerOverrideStream",
+      "fields": [
+        {
+          "logical": "viewportLayerOverride.layerId",
+          "payload": "layerId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "viewportLayerOverride.frozen",
+          "payload": "frozen",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "viewportLayerOverride.appearanceOverrideId",
+          "payload": "appearanceOverrideId",
+          "omission": "forbidden"
+        }
+      ]
+    },
+    {
+      "name": "circle",
+      "payload": "streams.circleStream",
+      "fields": [
+        {
+          "logical": "circle.entityId",
+          "payload": "entityId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "circle.scopeId",
+          "payload": "scopeId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "circle.placement",
+          "payload": "placement",
+          "omission": "logicalDefault",
+          "nullEncoding": "logicalDefault"
+        },
+        {
+          "logical": "circle.radius",
+          "payload": "radius",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "circle.layerId",
+          "payload": "layerId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "circle.appearanceId",
+          "payload": "appearanceId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "circle.visible",
+          "payload": "visible",
+          "omission": "logicalDefault"
+        }
+      ]
+    },
+    {
+      "name": "arc",
+      "payload": "streams.arcStream",
+      "fields": [
+        {
+          "logical": "arc.entityId",
+          "payload": "entityId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "arc.scopeId",
+          "payload": "scopeId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "arc.placement",
+          "payload": "placement",
+          "omission": "logicalDefault",
+          "nullEncoding": "logicalDefault"
+        },
+        {
+          "logical": "arc.radius",
+          "payload": "radius",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "arc.startParameter",
+          "payload": "startParameter",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "arc.sweepParameter",
+          "payload": "sweepParameter",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "arc.layerId",
+          "payload": "layerId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "arc.appearanceId",
+          "payload": "appearanceId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "arc.visible",
+          "payload": "visible",
+          "omission": "logicalDefault"
+        }
+      ]
+    },
+    {
+      "name": "ellipse",
+      "payload": "streams.ellipseStream",
+      "fields": [
+        {
+          "logical": "ellipse.entityId",
+          "payload": "entityId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "ellipse.scopeId",
+          "payload": "scopeId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "ellipse.placement",
+          "payload": "placement",
+          "omission": "logicalDefault",
+          "nullEncoding": "logicalDefault"
+        },
+        {
+          "logical": "ellipse.semiMajorRadius",
+          "payload": "semiMajorRadius",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "ellipse.semiMinorRadius",
+          "payload": "semiMinorRadius",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "ellipse.layerId",
+          "payload": "layerId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "ellipse.appearanceId",
+          "payload": "appearanceId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "ellipse.visible",
+          "payload": "visible",
+          "omission": "logicalDefault"
+        }
+      ]
+    },
+    {
+      "name": "ellipseArc",
+      "payload": "streams.ellipseArcStream",
+      "fields": [
+        {
+          "logical": "ellipseArc.entityId",
+          "payload": "entityId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "ellipseArc.scopeId",
+          "payload": "scopeId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "ellipseArc.placement",
+          "payload": "placement",
+          "omission": "logicalDefault",
+          "nullEncoding": "logicalDefault"
+        },
+        {
+          "logical": "ellipseArc.semiMajorRadius",
+          "payload": "semiMajorRadius",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "ellipseArc.semiMinorRadius",
+          "payload": "semiMinorRadius",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "ellipseArc.startParameter",
+          "payload": "startParameter",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "ellipseArc.sweepParameter",
+          "payload": "sweepParameter",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "ellipseArc.layerId",
+          "payload": "layerId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "ellipseArc.appearanceId",
+          "payload": "appearanceId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "ellipseArc.visible",
+          "payload": "visible",
+          "omission": "logicalDefault"
+        }
+      ]
+    }
+  ],
+  "valueMappings": {
+    "appearanceMode": {
+      "ByLayer": 0,
+      "Explicit": 1,
+      "ByBlock": 2
+    },
+    "scopeKind": {
+      "ModelSpace": 0,
+      "PaperSpace": 1,
+      "BlockDefinition": 2
+    },
+    "blockScaling": {
+      "Any": 0,
+      "Uniform": 1
+    },
+    "projectionMode": {
+      "Orthographic": 0,
+      "Perspective": 1
+    },
+    "frontClipMode": {
+      "Disabled": 0,
+      "AtCamera": 1,
+      "AtDistance": 2
+    },
+    "backClipMode": {
+      "Disabled": 0,
+      "AtDistance": 1
+    },
+    "viewportRenderMode": {
+      "TwoDimensional": 0,
+      "Wireframe": 1,
+      "HiddenLine": 2,
+      "FlatShadedWithoutEdges": 3,
+      "FlatShadedWithEdges": 4,
+      "SmoothShadedWithoutEdges": 5,
+      "SmoothShadedWithEdges": 6
+    },
+    "shadedPlotMode": {
+      "AsDisplayed": 0,
+      "Wireframe": 1,
+      "Hidden": 2,
+      "Rendered": 3
+    },
+    "shadedPlotQualityMode": {
+      "Draft": 0,
+      "Preview": 1,
+      "Normal": 2,
+      "Presentation": 3,
+      "Maximum": 4,
+      "Custom": 5
+    }
+  },
+  "$comment": "Normative interpretation: ./json-mapping-v4.md"
+}

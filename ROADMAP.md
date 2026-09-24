@@ -184,6 +184,15 @@ diagnostic runs caught an inert DXF layout scaffold and a redundant DWG model
 plot flag, both now fixed and regression-tested; the
 [retained report](docs/benchmarks/size-baseline-v1.md)
 replaces the earlier measurements without changing milestone 2's closure.
+The 2026-09-24 geometry-family candidate rerun advances the primitive corpus
+to IFCDR 0.11.0 / IFCX overlay 0.13.0 on the same unmodified cadcodec pin.
+Full readback, IFCCAD/DXF/DWG exchange and repeatability pass. The origin-only
+placement form reduces the elevated-polyline case; the larger schema adds a
+fixed package cost to the other eleven cases. New curved and spatial families
+are verified by focused strict-readback and conversion tests, since they are
+not yet represented by corpus recipes. The
+[retained report](docs/benchmarks/size-baseline-v1.md) records the measured
+scope and replaces the prior active result.
 
 ### Closure assessment
 
@@ -281,7 +290,7 @@ It is a partial order, not a requirement to finish every row before the next.
 | A. Coordinates and basic geometry — implemented | Milestone 2 logical model | XYZ lines, placed straight polylines, per-scope bounds and conversion accuracy. |
 | B. Scopes and instances — implemented | A | IFCDR 0.9/overlay 0.11 model/paper ownership, resource-local definitions and instances, signed transforms and evaluated bounds; shared-reference conversion, strict-readback and real DXF/DWG boundary tests. |
 | C. Shared styles and inheritance — candidate graph lists | Existing appearances; B for instance-dependent inheritance | IFCX 0.12 adds direct drawing-level layer/appearance lists and distinct layer On/Freeze/Lock/Plot state. Effective inherited-style rendering through instances remains a separate proof. |
-| D. Geometric families | A; additional references where needed | Curves, planar polyline segments and spatial polylines; prove each family independently. |
+| D. Geometric families — candidate implementation | A; additional references where needed | IFCDR 0.11 / IFCX 0.13 adds Point, Circle, Arc, Ellipse, EllipseArc, bulged PlanarPolyline and straight SpatialPolyline, each with strict readback and conversion tests. Width and fit curves remain diagnosed source losses. |
 | E. Annotation and compound entities | A and relevant B/C/D boundaries | Text, attributes, hatches and dimensions; introduce typed payloads when a concrete family needs them. |
 | F. Viewports and presentation — candidate native profile | A/B and applicable entity/style support | IFCX effective plot values and IFCDR paper viewports/relational overrides establish paper/model mapping without flattening; broader CAD view-state and rendering equivalence remain open. |
 | P. Preservation | Existing identity/reporting and the selected family's references | Source/native correspondence, restoration eligibility and dependencies; prove one bounded preserve/restore case. |

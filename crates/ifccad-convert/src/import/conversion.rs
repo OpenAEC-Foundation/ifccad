@@ -46,6 +46,10 @@ pub fn drawing_to_cad_document_with_options(
     apply_units(&mut document, representation.resource().unit());
     document.header.plotstyle_mode =
         drawing.plot_style_mode() == ifccad::package::PlotStyleMode::ColorDependent;
+    (
+        document.header.point_display_mode,
+        document.header.point_display_size,
+    ) = crate::point_display::to_cad(drawing.point_display());
     let paper_owners = super::layouts::allocate(&mut document, &layouts, &mut diagnostics)?;
 
     for source in representation.layers() {
@@ -263,6 +267,348 @@ pub fn drawing_to_cad_document_with_options(
                         },
                     );
                 }
+                IfcdrEntityRef::Point(source) => {
+                    let identity = crate::ConversionEntitySource::IfcdrEntity {
+                        resource_id: representation.resource().resource_id().clone(),
+                        scope_id,
+                        entity_id: source.entity_id(),
+                    };
+                    let position = source.position();
+                    geometry.record(identity, 1, 0.0);
+                    block_points.insert(
+                        source.entity_id(),
+                        vec![crate::geometry::blocks::PairedPoint::exact([
+                            position.x(),
+                            position.y(),
+                            position.z(),
+                        ])],
+                    );
+                    let plane = source.placement();
+                    let normal = crate::geometry::stored_normal(plane).ok_or_else(|| {
+                        ImportError::InternalInvariant {
+                            message: "point placement normal cannot be evaluated".into(),
+                        }
+                    })?;
+                    let basis = crate::geometry::cad_plane(normal).ok_or_else(|| {
+                        ImportError::InternalInvariant {
+                            message: "CAD point frame cannot be evaluated".into(),
+                        }
+                    })?;
+                    let x = plane.x_axis();
+                    let dot = |axis: [f64; 3]| x.x() * axis[0] + x.y() * axis[1] + x.z() * axis[2];
+                    let mut target = cadcodec::entities::Point::at(cadcodec::Vector3::new(
+                        position.x(),
+                        position.y(),
+                        position.z(),
+                    ));
+                    target.normal = normal;
+                    target.x_axis_angle = dot(basis.v).atan2(dot(basis.u));
+                    apply_entity_common(
+                        &mut document,
+                        representation,
+                        &mut target.common,
+                        source.entity_id(),
+                        source.layer_id(),
+                        source.appearance_id(),
+                        source.visible(),
+                        &mut diagnostics,
+                    )?;
+                    target.common.owner_handle = owner;
+                    add_and_map(
+                        &mut document,
+                        &mut entity_mapping,
+                        source.entity_id(),
+                        EntityType::Point(target),
+                    )?;
+                }
+                IfcdrEntityRef::Circle(source) => {
+                    let identity = crate::ConversionEntitySource::IfcdrEntity {
+                        resource_id: representation.resource().resource_id().clone(),
+                        scope_id,
+                        entity_id: source.entity_id(),
+                    };
+                    let (center, normal, angle) =
+                        crate::geometry::circular::to_cad_ocs(source.placement(), false)
+                            .ok_or_else(|| {
+                                geometry.failure(
+                                    &identity,
+                                    None,
+                                    crate::ConversionGeometryStage::TargetConstruction,
+                                    crate::ConversionGeometryFailureReason::CadAxisEvaluationFailed,
+                                )
+                            })?;
+                    let mut target = cadcodec::Circle::from_center_radius(center, source.radius());
+                    target.normal = normal;
+                    let samples = crate::geometry::circular::circle_sample_pairs(
+                        source.placement(),
+                        source.radius(),
+                        angle,
+                        &target,
+                    )?;
+                    let mut maximum = 0.0_f64;
+                    let points = samples
+                        .into_iter()
+                        .enumerate()
+                        .map(|(index, (point, squared))| {
+                            maximum = maximum.max(geometry.check(&identity, index, &squared)?);
+                            Ok(point)
+                        })
+                        .collect::<Result<Vec<_>, Box<crate::ConversionGeometryFailure>>>()?;
+                    geometry.record(identity.clone(), points.len(), maximum);
+                    if maximum > 0.0 {
+                        diagnostics.record(
+                            crate::ImportDiagnostic::GeometryRoundedWithinTolerance {
+                                source: identity,
+                                max_deviation_upper_bound: maximum,
+                            },
+                        );
+                    }
+                    block_points.insert(source.entity_id(), points);
+                    apply_entity_common(
+                        &mut document,
+                        representation,
+                        &mut target.common,
+                        source.entity_id(),
+                        source.layer_id(),
+                        source.appearance_id(),
+                        source.visible(),
+                        &mut diagnostics,
+                    )?;
+                    target.common.owner_handle = owner;
+                    add_and_map(
+                        &mut document,
+                        &mut entity_mapping,
+                        source.entity_id(),
+                        EntityType::Circle(target),
+                    )?;
+                }
+                IfcdrEntityRef::Arc(source) => {
+                    let identity = crate::ConversionEntitySource::IfcdrEntity {
+                        resource_id: representation.resource().resource_id().clone(),
+                        scope_id,
+                        entity_id: source.entity_id(),
+                    };
+                    let sweep = source.sweep_parameter();
+                    let (center, normal, frame_angle) =
+                        crate::geometry::circular::to_cad_ocs(source.placement(), sweep < 0.0)
+                            .ok_or_else(|| {
+                                geometry.failure(
+                                    &identity,
+                                    None,
+                                    crate::ConversionGeometryStage::TargetConstruction,
+                                    crate::ConversionGeometryFailureReason::CadAxisEvaluationFailed,
+                                )
+                            })?;
+                    let start = frame_angle
+                        + if sweep < 0.0 {
+                            -source.start_parameter()
+                        } else {
+                            source.start_parameter()
+                        };
+                    let mut target = cadcodec::Arc::from_center_radius_angles(
+                        center,
+                        source.radius(),
+                        start,
+                        start + sweep.abs(),
+                    );
+                    target.normal = normal;
+                    let samples = crate::geometry::circular::arc_sample_pairs(
+                        source.placement(),
+                        source.radius(),
+                        source.start_parameter(),
+                        sweep,
+                        &target,
+                    )?;
+                    let mut maximum = 0.0_f64;
+                    let points = samples
+                        .into_iter()
+                        .enumerate()
+                        .map(|(index, (point, squared))| {
+                            maximum = maximum.max(geometry.check(&identity, index, &squared)?);
+                            Ok(point)
+                        })
+                        .collect::<Result<Vec<_>, Box<crate::ConversionGeometryFailure>>>()?;
+                    geometry.record(identity.clone(), points.len(), maximum);
+                    if maximum > 0.0 {
+                        diagnostics.record(
+                            crate::ImportDiagnostic::GeometryRoundedWithinTolerance {
+                                source: identity,
+                                max_deviation_upper_bound: maximum,
+                            },
+                        );
+                    }
+                    block_points.insert(source.entity_id(), points);
+                    apply_entity_common(
+                        &mut document,
+                        representation,
+                        &mut target.common,
+                        source.entity_id(),
+                        source.layer_id(),
+                        source.appearance_id(),
+                        source.visible(),
+                        &mut diagnostics,
+                    )?;
+                    target.common.owner_handle = owner;
+                    add_and_map(
+                        &mut document,
+                        &mut entity_mapping,
+                        source.entity_id(),
+                        EntityType::Arc(target),
+                    )?;
+                }
+                IfcdrEntityRef::Ellipse(source) => {
+                    let identity = crate::ConversionEntitySource::IfcdrEntity {
+                        resource_id: representation.resource().resource_id().clone(),
+                        scope_id,
+                        entity_id: source.entity_id(),
+                    };
+                    let mut target = crate::geometry::circular::to_cad_ellipse(
+                        source.placement(),
+                        source.semi_major_radius(),
+                        source.semi_minor_radius(),
+                        false,
+                    )
+                    .ok_or_else(|| {
+                        geometry.failure(
+                            &identity,
+                            None,
+                            crate::ConversionGeometryStage::TargetConstruction,
+                            crate::ConversionGeometryFailureReason::CadAxisEvaluationFailed,
+                        )
+                    })?;
+                    let samples = crate::geometry::circular::ellipse_sample_pairs(
+                        source.placement(),
+                        source.semi_major_radius(),
+                        source.semi_minor_radius(),
+                        0.0,
+                        std::f64::consts::TAU,
+                        &target,
+                    )
+                    .ok_or_else(|| {
+                        geometry.failure(
+                            &identity,
+                            None,
+                            crate::ConversionGeometryStage::TargetConstruction,
+                            crate::ConversionGeometryFailureReason::TargetCoordinateOutOfRange,
+                        )
+                    })?;
+                    let mut maximum = 0.0_f64;
+                    let points = samples
+                        .into_iter()
+                        .enumerate()
+                        .map(|(index, (point, squared))| {
+                            maximum = maximum.max(geometry.check(&identity, index, &squared)?);
+                            Ok(point)
+                        })
+                        .collect::<Result<Vec<_>, Box<crate::ConversionGeometryFailure>>>()?;
+                    geometry.record(identity.clone(), points.len(), maximum);
+                    if maximum > 0.0 {
+                        diagnostics.record(
+                            crate::ImportDiagnostic::GeometryRoundedWithinTolerance {
+                                source: identity,
+                                max_deviation_upper_bound: maximum,
+                            },
+                        );
+                    }
+                    block_points.insert(source.entity_id(), points);
+                    apply_entity_common(
+                        &mut document,
+                        representation,
+                        &mut target.common,
+                        source.entity_id(),
+                        source.layer_id(),
+                        source.appearance_id(),
+                        source.visible(),
+                        &mut diagnostics,
+                    )?;
+                    target.common.owner_handle = owner;
+                    add_and_map(
+                        &mut document,
+                        &mut entity_mapping,
+                        source.entity_id(),
+                        EntityType::Ellipse(target),
+                    )?;
+                }
+                IfcdrEntityRef::EllipseArc(source) => {
+                    let identity = crate::ConversionEntitySource::IfcdrEntity {
+                        resource_id: representation.resource().resource_id().clone(),
+                        scope_id,
+                        entity_id: source.entity_id(),
+                    };
+                    let sweep = source.sweep_parameter();
+                    let mut target = crate::geometry::circular::to_cad_ellipse(
+                        source.placement(),
+                        source.semi_major_radius(),
+                        source.semi_minor_radius(),
+                        sweep < 0.0,
+                    )
+                    .ok_or_else(|| {
+                        geometry.failure(
+                            &identity,
+                            None,
+                            crate::ConversionGeometryStage::TargetConstruction,
+                            crate::ConversionGeometryFailureReason::CadAxisEvaluationFailed,
+                        )
+                    })?;
+                    target.start_parameter = if sweep < 0.0 {
+                        -source.start_parameter()
+                    } else {
+                        source.start_parameter()
+                    };
+                    target.end_parameter = target.start_parameter + sweep.abs();
+                    let samples = crate::geometry::circular::ellipse_sample_pairs(
+                        source.placement(),
+                        source.semi_major_radius(),
+                        source.semi_minor_radius(),
+                        source.start_parameter(),
+                        sweep,
+                        &target,
+                    )
+                    .ok_or_else(|| {
+                        geometry.failure(
+                            &identity,
+                            None,
+                            crate::ConversionGeometryStage::TargetConstruction,
+                            crate::ConversionGeometryFailureReason::TargetCoordinateOutOfRange,
+                        )
+                    })?;
+                    let mut maximum = 0.0_f64;
+                    let points = samples
+                        .into_iter()
+                        .enumerate()
+                        .map(|(index, (point, squared))| {
+                            maximum = maximum.max(geometry.check(&identity, index, &squared)?);
+                            Ok(point)
+                        })
+                        .collect::<Result<Vec<_>, Box<crate::ConversionGeometryFailure>>>()?;
+                    geometry.record(identity.clone(), points.len(), maximum);
+                    if maximum > 0.0 {
+                        diagnostics.record(
+                            crate::ImportDiagnostic::GeometryRoundedWithinTolerance {
+                                source: identity,
+                                max_deviation_upper_bound: maximum,
+                            },
+                        );
+                    }
+                    block_points.insert(source.entity_id(), points);
+                    apply_entity_common(
+                        &mut document,
+                        representation,
+                        &mut target.common,
+                        source.entity_id(),
+                        source.layer_id(),
+                        source.appearance_id(),
+                        source.visible(),
+                        &mut diagnostics,
+                    )?;
+                    target.common.owner_handle = owner;
+                    add_and_map(
+                        &mut document,
+                        &mut entity_mapping,
+                        source.entity_id(),
+                        EntityType::Ellipse(target),
+                    )?;
+                }
                 IfcdrEntityRef::Line(source) => {
                     geometry.record(
                         crate::ConversionEntitySource::IfcdrEntity {
@@ -309,7 +655,7 @@ pub fn drawing_to_cad_document_with_options(
                         EntityType::Line(target),
                     )?;
                 }
-                IfcdrEntityRef::Polyline(source) => {
+                IfcdrEntityRef::PlanarPolyline(source) => {
                     let identity = crate::ConversionEntitySource::IfcdrEntity {
                         resource_id: representation.resource().resource_id().clone(),
                         scope_id,
@@ -350,6 +696,49 @@ pub fn drawing_to_cad_document_with_options(
                         &mut entity_mapping,
                         source.entity_id(),
                         EntityType::LwPolyline(target),
+                    )?;
+                }
+                IfcdrEntityRef::SpatialPolyline(source) => {
+                    let identity = crate::ConversionEntitySource::IfcdrEntity {
+                        resource_id: representation.resource().resource_id().clone(),
+                        scope_id,
+                        entity_id: source.entity_id(),
+                    };
+                    let mut target = cadcodec::entities::Polyline3D::from_points(
+                        source
+                            .points()
+                            .iter()
+                            .map(|p| cadcodec::Vector3::new(p.x(), p.y(), p.z()))
+                            .collect(),
+                    );
+                    target.flags.closed = source.closed();
+                    block_points.insert(
+                        source.entity_id(),
+                        source
+                            .points()
+                            .iter()
+                            .map(|p| {
+                                crate::geometry::blocks::PairedPoint::exact([p.x(), p.y(), p.z()])
+                            })
+                            .collect(),
+                    );
+                    geometry.record(identity, source.points().len(), 0.0);
+                    apply_entity_common(
+                        &mut document,
+                        representation,
+                        &mut target.common,
+                        source.entity_id(),
+                        source.layer_id(),
+                        source.appearance_id(),
+                        source.visible(),
+                        &mut diagnostics,
+                    )?;
+                    target.common.owner_handle = owner;
+                    add_and_map(
+                        &mut document,
+                        &mut entity_mapping,
+                        source.entity_id(),
+                        EntityType::Polyline3D(target),
                     )?;
                 }
             }

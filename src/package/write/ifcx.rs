@@ -77,6 +77,9 @@ pub(crate) fn assemble_ifcx(
             "children": {"Representation": paths.representation}
         }),
     ];
+    if drawing.point_display != super::PointDisplay::default() {
+        data[1]["attributes"]["pointDisplay"] = drawing.point_display.json();
+    }
     for ((scope_id, name), path) in drawing.paper_layouts.iter().zip(&paths.paper_layouts) {
         let settings = drawing
             .paper_layout_settings
@@ -292,7 +295,7 @@ mod tests {
         assert_eq!(root["data"][3]["attributes"]["name"], "Drawing");
         let geometry = &root["data"][3]["attributes"]["resource"];
         assert_eq!(geometry["format"], "openaec.ifcdr");
-        assert_eq!(geometry["version"], "0.10.0");
+        assert_eq!(geometry["version"], "0.11.0");
         assert_eq!(geometry["role"], "drawing");
         assert_eq!(geometry["resourceId"], "drawing-main");
         assert_eq!(geometry["uri"], "resources/drawing.ifcdr.json");

@@ -226,6 +226,8 @@ fn scan_header(
     remaining.measurement = original.measurement;
     remaining.paper_space_linetype_scaling = original.paper_space_linetype_scaling;
     remaining.plotstyle_mode = original.plotstyle_mode;
+    remaining.point_display_mode = original.point_display_mode;
+    remaining.point_display_size = original.point_display_size;
     normalize_header_bookkeeping(&mut remaining, &original);
     if remaining != original {
         context.diagnostics.push(ExportDiagnostic::loss(

@@ -7,6 +7,8 @@ const LOGICAL: &str = include_str!("../../../../schemas/ifcdr/registry-0.9.0.jso
 const MAPPING: &str = include_str!("../../../../schemas/ifcdr/json-mapping-0.9.0.json");
 const LOGICAL_0_10: &str = include_str!("../../../../schemas/ifcdr/registry-0.10.0.json");
 const MAPPING_0_10: &str = include_str!("../../../../schemas/ifcdr/json-mapping-0.10.0.json");
+const LOGICAL_0_11: &str = include_str!("../../../../schemas/ifcdr/registry-0.11.0.json");
+const MAPPING_0_11: &str = include_str!("../../../../schemas/ifcdr/json-mapping-0.11.0.json");
 
 fn validate_default_markers(logical: &Value, mapping: &Value) -> Result<(), String> {
     for stream in mapping["streams"].as_array().into_iter().flatten() {
@@ -123,6 +125,11 @@ pub(crate) fn canonical_registry() -> &'static IfcdrRegistry {
 pub(crate) fn registry_0_10() -> &'static IfcdrRegistry {
     static REGISTRY: OnceLock<IfcdrRegistry> = OnceLock::new();
     REGISTRY.get_or_init(|| build_registry(LOGICAL_0_10, MAPPING_0_10))
+}
+
+pub(crate) fn registry_0_11() -> &'static IfcdrRegistry {
+    static REGISTRY: OnceLock<IfcdrRegistry> = OnceLock::new();
+    REGISTRY.get_or_init(|| build_registry(LOGICAL_0_11, MAPPING_0_11))
 }
 
 fn build_registry(logical: &str, mapping: &str) -> IfcdrRegistry {
@@ -301,6 +308,12 @@ fn materialize(logical: &Value, mapping: &Value) -> Value {
                             false,
                             false,
                         );
+                        if mapping["ifcdrVersion"] == "0.11.0"
+                            && s["name"] == "planarPolyline"
+                            && pool == "bulge"
+                        {
+                            c["presence"] = json!("optional");
+                        }
                         c["cardinality"] = json!("pool");
                         columns.push(c);
                     }
@@ -331,6 +344,13 @@ fn materialize(logical: &Value, mapping: &Value) -> Value {
                     f["nullable"].as_bool().unwrap(),
                     fm["omission"] == "logicalDefault",
                 );
+                if f["valueType"] == "planePlacement" && mapping["ifcdrVersion"] == "0.11.0" {
+                    for axis in c["fields"].as_array_mut().unwrap() {
+                        if matches!(axis["name"].as_str(), Some("X" | "Y")) {
+                            axis["presence"] = json!("optional");
+                        }
+                    }
+                }
                 c["cardinality"] = json!("row");
                 c["nullDefault"] = json!(fm["nullEncoding"] == "logicalDefault");
                 if let Some(default) = f.get("default") {

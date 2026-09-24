@@ -417,7 +417,7 @@ fn closed_straight_clip_boundary_is_preserved() {
     let resource = paper.representation().resource();
     let entities = resource.entities(paper.scope().id()).collect::<Vec<_>>();
     assert!(
-        matches!(entities.as_slice(), [IfcdrEntityRef::Polyline(_), IfcdrEntityRef::Viewport(viewport)] if viewport.paper_clip().enabled && viewport.paper_clip().boundary_entity_id.is_some())
+        matches!(entities.as_slice(), [IfcdrEntityRef::PlanarPolyline(_), IfcdrEntityRef::Viewport(viewport)] if viewport.paper_clip().enabled && viewport.paper_clip().boundary_entity_id.is_some())
     );
     let imported = drawing_to_cad_document(drawing).unwrap();
     let viewport = imported

@@ -43,6 +43,7 @@ pub(crate) struct PolylineColumns {
     pub placements: Vec<Option<PlanePlacementComponents>>,
     pub x: Vec<f64>,
     pub y: Vec<f64>,
+    pub bulge: Vec<f64>,
 }
 #[derive(Debug)]
 pub(crate) struct DecodedIfcdrResource {
@@ -59,7 +60,13 @@ pub(crate) struct DecodedIfcdrResource {
     pub overrides: Vec<IfcdrAppearanceOverride>,
     pub orders: Vec<IfcdrScopeOrder>,
     pub lines: LineColumns,
+    pub points: Vec<IfcdrPointRow>,
+    pub circles: Vec<IfcdrCircleRow>,
+    pub arcs: Vec<IfcdrArcRow>,
+    pub ellipses: Vec<IfcdrEllipseRow>,
+    pub ellipse_arcs: Vec<IfcdrEllipseArcRow>,
     pub polylines: PolylineColumns,
+    pub spatial_polylines: Vec<IfcdrSpatialPolylineRow>,
 }
 #[derive(Clone, Copy)]
 pub(crate) struct DecodedLines<'a>(pub &'a LineColumns);
@@ -137,6 +144,17 @@ impl IfcdrPolylineAccess for DecodedPolyline<'_> {
             *self.columns.y.get(i)?,
         ))
     }
+    fn bulge(&self, index: usize) -> Option<f64> {
+        if index >= self.vertex_count() {
+            return None;
+        }
+        let i = self.columns.offsets[self.row].checked_add(index)?;
+        if self.columns.bulge.is_empty() {
+            Some(0.0)
+        } else {
+            self.columns.bulge.get(i).copied()
+        }
+    }
 }
 impl IfcdrResourceAccess for DecodedIfcdrResource {
     type Lines<'a> = DecodedLines<'a>;
@@ -175,8 +193,26 @@ impl IfcdrResourceAccess for DecodedIfcdrResource {
     fn lines(&self) -> DecodedLines<'_> {
         DecodedLines(&self.lines)
     }
+    fn points(&self) -> &[IfcdrPointRow] {
+        &self.points
+    }
+    fn circles(&self) -> &[IfcdrCircleRow] {
+        &self.circles
+    }
+    fn arcs(&self) -> &[IfcdrArcRow] {
+        &self.arcs
+    }
+    fn ellipses(&self) -> &[IfcdrEllipseRow] {
+        &self.ellipses
+    }
+    fn ellipse_arcs(&self) -> &[IfcdrEllipseArcRow] {
+        &self.ellipse_arcs
+    }
     fn polylines(&self) -> DecodedPolylines<'_> {
         DecodedPolylines(&self.polylines)
+    }
+    fn spatial_polylines(&self) -> &[IfcdrSpatialPolylineRow] {
+        &self.spatial_polylines
     }
     fn orders(&self) -> &[IfcdrScopeOrder] {
         &self.orders

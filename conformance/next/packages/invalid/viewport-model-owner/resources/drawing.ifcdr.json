@@ -47,7 +47,7 @@
     "nextEntityId": 4,
     "resourceId": "geometry",
     "unit": "m",
-    "version": "0.10.0"
+    "version": "0.11.0"
   },
   "layerBindings": [
     {
@@ -116,9 +116,9 @@
           "appearanceId"
         ],
         "count": 1,
-        "name": "polyline",
+        "name": "planarPolyline",
         "role": "object",
-        "schema": "ifccad.ifcdr.polyline.v4"
+        "schema": "ifccad.ifcdr.planarPolyline.v1"
       },
       {
         "children": [
@@ -243,7 +243,7 @@
       "y1": [],
       "y2": []
     },
-    "polylineStream": {
+    "planarPolylineStream": {
       "appearanceId": [
         0
       ],

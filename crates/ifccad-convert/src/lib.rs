@@ -28,4 +28,5 @@ pub use options::{
 
 mod geometry;
 mod geometry_assessment;
+mod point_display;
 pub use geometry_assessment::*;

@@ -1,7 +1,11 @@
 mod block;
+mod bulge;
+mod circular;
 pub(crate) mod numeric;
 mod placement;
 mod trig;
+pub(crate) use bulge::bulge_segment_bounds;
+pub(crate) use circular::{circular_bounds, elliptic_bounds};
 pub(crate) use placement::PlanePlacementComponents;
 mod values;
 

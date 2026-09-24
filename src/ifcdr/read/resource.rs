@@ -336,7 +336,7 @@ mod tests {
         let resource = outcome.validated().unwrap();
 
         assert_eq!(resource.header().format(), "openaec.ifcdr");
-        assert_eq!(resource.header().version(), "0.10.0");
+        assert_eq!(resource.header().version(), "0.11.0");
         assert_eq!(resource.header().resource_id().as_str(), "drawing-main");
         assert_eq!(resource.header().unit(), "m");
         assert_eq!(resource.header().next_entity_id(), 5);
@@ -390,12 +390,19 @@ mod tests {
         assert_eq!(
             view.entities(scope.id())
                 .map(|entity| match entity {
+                    crate::ifcdr::IfcdrEntityRef::Point(point) => point.entity_id().get(),
+                    crate::ifcdr::IfcdrEntityRef::Circle(circle) => circle.entity_id().get(),
+                    crate::ifcdr::IfcdrEntityRef::Arc(arc) => arc.entity_id().get(),
+                    crate::ifcdr::IfcdrEntityRef::Ellipse(ellipse) => ellipse.entity_id().get(),
+                    crate::ifcdr::IfcdrEntityRef::EllipseArc(arc) => arc.entity_id().get(),
                     crate::ifcdr::IfcdrEntityRef::Line(line) => line.entity_id().get(),
                     crate::ifcdr::IfcdrEntityRef::BlockInstance(instance) =>
                         instance.entity_id().get(),
-                    crate::ifcdr::IfcdrEntityRef::Polyline(polyline) => {
+                    crate::ifcdr::IfcdrEntityRef::PlanarPolyline(polyline) => {
                         polyline.entity_id().get()
                     }
+                    crate::ifcdr::IfcdrEntityRef::SpatialPolyline(polyline) =>
+                        polyline.entity_id().get(),
                     crate::ifcdr::IfcdrEntityRef::Viewport(viewport) => viewport.entity_id().get(),
                 })
                 .collect::<Vec<_>>(),

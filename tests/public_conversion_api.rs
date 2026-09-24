@@ -22,8 +22,14 @@ fn public_entity_api_is_exhaustive_for_the_base_profile() {
         .resource()
         .entities(layout.scope().id())
         .map(|entity| match entity {
+            IfcdrEntityRef::Point(point) => point.entity_id().get(),
+            IfcdrEntityRef::Circle(circle) => circle.entity_id().get(),
+            IfcdrEntityRef::Arc(arc) => arc.entity_id().get(),
+            IfcdrEntityRef::Ellipse(ellipse) => ellipse.entity_id().get(),
+            IfcdrEntityRef::EllipseArc(arc) => arc.entity_id().get(),
             IfcdrEntityRef::Line(line) => line.entity_id().get(),
-            IfcdrEntityRef::Polyline(polyline) => polyline.entity_id().get(),
+            IfcdrEntityRef::PlanarPolyline(polyline) => polyline.entity_id().get(),
+            IfcdrEntityRef::SpatialPolyline(polyline) => polyline.entity_id().get(),
             IfcdrEntityRef::BlockInstance(instance) => instance.entity_id().get(),
             IfcdrEntityRef::Viewport(viewport) => viewport.entity_id().get(),
         })
@@ -50,8 +56,23 @@ fn project_ifcdr_entities(
     let projected = resource
         .entities(scope_id)
         .map(|entity| match entity {
+            IfcdrEntityRef::Point(point) => EntityProjection {
+                entity_id: point.entity_id(),
+                scope_id: point.scope_id(),
+                layer_id: Some(point.layer_id()),
+                appearance_id: Some(point.appearance_id()),
+                visible: Some(point.visible()),
+                points: vec![point.position()],
+            },
+            IfcdrEntityRef::Circle(_) | IfcdrEntityRef::Arc(_) => {
+                panic!("line or polyline projection fixture")
+            }
+            IfcdrEntityRef::Ellipse(_) | IfcdrEntityRef::EllipseArc(_) => {
+                panic!("line or polyline projection fixture")
+            }
             IfcdrEntityRef::BlockInstance(_) => panic!("primitive-only projection fixture"),
             IfcdrEntityRef::Viewport(_) => panic!("primitive-only projection fixture"),
+            IfcdrEntityRef::SpatialPolyline(_) => panic!("primitive-only projection fixture"),
             IfcdrEntityRef::Line(line) => EntityProjection {
                 entity_id: line.entity_id(),
                 scope_id: line.scope_id(),
@@ -60,7 +81,7 @@ fn project_ifcdr_entities(
                 visible: Some(line.visible()),
                 points: vec![line.start(), line.end()],
             },
-            IfcdrEntityRef::Polyline(polyline) => EntityProjection {
+            IfcdrEntityRef::PlanarPolyline(polyline) => EntityProjection {
                 entity_id: polyline.entity_id(),
                 scope_id: polyline.scope_id(),
                 layer_id: Some(polyline.layer_id()),

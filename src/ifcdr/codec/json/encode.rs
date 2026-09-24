@@ -1,4 +1,4 @@
-use super::mapping::registry_0_10;
+use super::mapping::registry_0_11;
 use crate::ifcdr::logical::*;
 use crate::ifcdr::{BlockScaling, Bounds3d, IfcdrLengthUnit, PlanePlacement, Scale3};
 use crate::ResourceId;
@@ -47,7 +47,7 @@ pub(crate) fn encode_json<R: IfcdrResourceAccess>(
     proof: &ValidatedIfcdr<R>,
 ) -> Result<EncodedIfcdrResource, IfcdrEncodeError> {
     let r = proof.loaded().resource();
-    let registry = registry_0_10();
+    let registry = registry_0_11();
     let mut streams = Map::new();
     let mut directory = Vec::new();
     for schema in registry.streams() {
@@ -58,6 +58,51 @@ pub(crate) fn encode_json<R: IfcdrResourceAccess>(
             .collect();
         let row_count;
         match schema.name() {
+            "point" => {
+                row_count = count(r.points().len())?;
+                for point in r.points() {
+                    common(&mut columns, point.entity);
+                    push(&mut columns, "placement", placement_json(point.placement));
+                }
+            }
+            "circle" => {
+                row_count = count(r.circles().len())?;
+                for circle in r.circles() {
+                    common(&mut columns, circle.entity);
+                    push(&mut columns, "placement", placement_json(circle.placement));
+                    push(&mut columns, "radius", circle.radius);
+                }
+            }
+            "arc" => {
+                row_count = count(r.arcs().len())?;
+                for arc in r.arcs() {
+                    common(&mut columns, arc.entity);
+                    push(&mut columns, "placement", placement_json(arc.placement));
+                    push(&mut columns, "radius", arc.radius);
+                    push(&mut columns, "startParameter", arc.start_parameter);
+                    push(&mut columns, "sweepParameter", arc.sweep_parameter);
+                }
+            }
+            "ellipse" => {
+                row_count = count(r.ellipses().len())?;
+                for ellipse in r.ellipses() {
+                    common(&mut columns, ellipse.entity);
+                    push(&mut columns, "placement", placement_json(ellipse.placement));
+                    push(&mut columns, "semiMajorRadius", ellipse.semi_major_radius);
+                    push(&mut columns, "semiMinorRadius", ellipse.semi_minor_radius);
+                }
+            }
+            "ellipseArc" => {
+                row_count = count(r.ellipse_arcs().len())?;
+                for arc in r.ellipse_arcs() {
+                    common(&mut columns, arc.entity);
+                    push(&mut columns, "placement", placement_json(arc.placement));
+                    push(&mut columns, "semiMajorRadius", arc.semi_major_radius);
+                    push(&mut columns, "semiMinorRadius", arc.semi_minor_radius);
+                    push(&mut columns, "startParameter", arc.start_parameter);
+                    push(&mut columns, "sweepParameter", arc.sweep_parameter);
+                }
+            }
             "viewport" => {
                 row_count = count(r.viewports().len())?;
                 let mut offset = 0usize;
@@ -165,7 +210,7 @@ pub(crate) fn encode_json<R: IfcdrResourceAccess>(
                     }
                 }
             }
-            "polyline" => {
+            "planarPolyline" => {
                 let polylines = r.polylines();
                 row_count = count(polylines.len())?;
                 let mut offset = 0usize;
@@ -178,6 +223,10 @@ pub(crate) fn encode_json<R: IfcdrResourceAccess>(
                     let frame = p.placement();
                     let placement = if frame == PlanePlacement::default().components() {
                         Value::Null
+                    } else if frame.x == PlanePlacement::default().components().x
+                        && frame.y == PlanePlacement::default().components().y
+                    {
+                        json!({"origin":{"x":frame.origin.x(),"y":frame.origin.y(),"z":frame.origin.z()}})
                     } else {
                         json!({"origin":{"x":frame.origin.x(),"y":frame.origin.y(),"z":frame.origin.z()},
                         "X":{"x":frame.x.x(),"y":frame.x.y(),"z":frame.x.z()},
@@ -194,6 +243,32 @@ pub(crate) fn encode_json<R: IfcdrResourceAccess>(
                         let point = p.vertex(j).expect("validated vertex");
                         push(&mut columns, "x", point.x());
                         push(&mut columns, "y", point.y());
+                        push(
+                            &mut columns,
+                            "bulge",
+                            p.bulge(j).expect("validated vertex bulge"),
+                        );
+                    }
+                }
+            }
+            "spatialPolyline" => {
+                row_count = count(r.spatial_polylines().len())?;
+                let mut offset = 0usize;
+                for polyline in r.spatial_polylines() {
+                    common(&mut columns, polyline.entity);
+                    push(&mut columns, "vertexOffset", count(offset)?);
+                    push(&mut columns, "vertexCount", count(polyline.points.len())?);
+                    push(&mut columns, "closed", polyline.closed);
+                    offset = offset.checked_add(polyline.points.len()).ok_or(
+                        IfcdrEncodeError::RangeExhausted {
+                            kind: "vertex pool",
+                        },
+                    )?;
+                    count(offset)?;
+                    for point in &polyline.points {
+                        push(&mut columns, "x", point.x());
+                        push(&mut columns, "y", point.y());
+                        push(&mut columns, "z", point.z());
                     }
                 }
             }
@@ -235,7 +310,7 @@ pub(crate) fn encode_json<R: IfcdrResourceAccess>(
         {
             columns.remove("visible");
         }
-        for key in ["z1", "z2", "placement"] {
+        for key in ["z1", "z2", "placement", "bulge"] {
             if columns.get(key).is_some_and(|v| {
                 v.as_array().unwrap().iter().all(|v| {
                     if key == "placement" {
@@ -290,6 +365,17 @@ fn point2_json(point: crate::ifcdr::Point2) -> Value {
 }
 fn point3_json(point: crate::ifcdr::Point3) -> Value {
     json!({"x":point.x(),"y":point.y(),"z":point.z()})
+}
+fn placement_json(frame: crate::ifcdr::geometry::PlanePlacementComponents) -> Value {
+    let standard = PlanePlacement::default().components();
+    if frame == standard {
+        Value::Null
+    } else if frame.x == standard.x && frame.y == standard.y {
+        json!({"origin":point3_json(frame.origin)})
+    } else {
+        json!({"origin":point3_json(frame.origin),
+               "X":vector3_json(frame.x),"Y":vector3_json(frame.y)})
+    }
 }
 fn vector3_json(vector: crate::ifcdr::Vector3) -> Value {
     json!({"x":vector.x(),"y":vector.y(),"z":vector.z()})

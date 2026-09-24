@@ -73,7 +73,6 @@ pub enum ExportLossReason {
     PolylineTooFewVertices {
         count: usize,
     },
-    PolylineBulge,
     PolylineWidth,
     PolylinePlinegen,
     EntityColorUnsupported {

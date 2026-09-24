@@ -6,11 +6,14 @@ use super::{
     SourceStructureProblem,
 };
 use cadcodec::entities::EntityCommon;
-use cadcodec::{CadDocument, EntityType, Handle, Line, LwPolyline, Vector3};
+use cadcodec::{
+    Arc, CadDocument, Circle, Ellipse, EntityType, Handle, Line, LwPolyline, Point, Vector3,
+};
 use ifccad::ifcdr::Point2;
 use ifccad::package::{
-    DrawingBuilder, LineDefinition, PolylineDefinition, ViewportDefinition,
-    ViewportLayerOverrideDefinition,
+    ArcDefinition, CircleDefinition, DrawingBuilder, EllipseArcDefinition, EllipseDefinition,
+    LineDefinition, PlanarPolylineDefinition, PointDefinition, SpatialPolylineDefinition,
+    ViewportDefinition, ViewportLayerOverrideDefinition,
 };
 
 pub(crate) fn add_entities(
@@ -37,6 +40,35 @@ pub(crate) fn add_entities(
             continue;
         }
         let mut common_losses = common_semantic_losses(common);
+        if let EntityType::LwPolyline(polyline) = source {
+            if polyline.constant_width != 0.0
+                || polyline
+                    .vertices
+                    .iter()
+                    .any(|vertex| vertex.start_width != 0.0 || vertex.end_width != 0.0)
+            {
+                common_losses.push(ExportLossReason::PolylineWidth);
+            }
+        }
+        if let EntityType::Polyline2D(polyline) = source {
+            if polyline.start_width != 0.0
+                || polyline.end_width != 0.0
+                || polyline
+                    .vertices
+                    .iter()
+                    .any(|vertex| vertex.start_width != 0.0 || vertex.end_width != 0.0)
+            {
+                common_losses.push(ExportLossReason::PolylineWidth);
+            }
+            let count = polyline
+                .vertices
+                .iter()
+                .filter(|vertex| vertex.id != 0)
+                .count();
+            if count > 0 {
+                common_losses.push(ExportLossReason::PolylineVertexIdentifiers { count });
+            }
+        }
         if !classify_owner(
             document,
             model_space,
@@ -66,12 +98,19 @@ pub(crate) fn add_entities(
                 Vec::new()
             }
             EntityType::Line(line) => line_losses(line),
+            EntityType::Point(point) => point_losses(point),
+            EntityType::Circle(circle) => circle_losses(circle),
+            EntityType::Arc(arc) => arc_losses(arc),
+            EntityType::Ellipse(ellipse) => ellipse_losses(ellipse),
             EntityType::Viewport(viewport)
                 if context.paper_scopes.contains_key(&common.owner_handle) =>
             {
                 viewport_losses(viewport, document, context)
             }
             EntityType::LwPolyline(polyline) => polyline_losses(polyline),
+            EntityType::Polyline2D(polyline) => polyline2d_losses(polyline),
+            EntityType::Polyline(polyline) => generic_polyline_losses(polyline),
+            EntityType::Polyline3D(polyline) => polyline3d_losses(polyline),
             _ => vec![ExportLossReason::UnsupportedEntityType {
                 kind: source.as_entity().entity_type().to_owned(),
             }],
@@ -139,6 +178,225 @@ pub(crate) fn add_entities(
                     },
                 );
                 id
+            }
+            EntityType::Point(point) => {
+                let basis = crate::geometry::cad_plane(point.normal)
+                    .expect("point normal classified before conversion");
+                let (sine, cosine) = point.x_axis_angle.sin_cos();
+                let rotated = |u: [f64; 3], v: [f64; 3], a: f64, b: f64| {
+                    cadcodec::Vector3::new(
+                        a * u[0] + b * v[0],
+                        a * u[1] + b * v[1],
+                        a * u[2] + b * v[2],
+                    )
+                };
+                let (x, y) = crate::geometry::orthonormal_pair(
+                    rotated(basis.u, basis.v, cosine, sine),
+                    rotated(basis.u, basis.v, -sine, cosine),
+                )
+                .expect("finite independent CAD point axes classified before conversion");
+                let placement = ifccad::ifcdr::PlanePlacement::try_new(
+                    ifccad::ifcdr::Point3::new(
+                        point.location.x,
+                        point.location.y,
+                        point.location.z,
+                    ),
+                    ifccad::ifcdr::Vector3::new(x.x, x.y, x.z),
+                    ifccad::ifcdr::Vector3::new(y.x, y.y, y.z),
+                )
+                .expect("finite CAD point frame classified before conversion");
+                context.block_points.insert(
+                    common.handle,
+                    vec![crate::geometry::blocks::PairedPoint::exact([
+                        point.location.x,
+                        point.location.y,
+                        point.location.z,
+                    ])],
+                );
+                context.geometry.as_mut().unwrap().record(
+                    crate::ConversionEntitySource::CadEntity {
+                        handle: common.handle,
+                        kind: "POINT".into(),
+                    },
+                    1,
+                    0.0,
+                );
+                if crate::geometry::stored_normal(placement) != Some(point.normal) {
+                    common_losses.push(ExportLossReason::SourceNormalNormalized);
+                }
+                target.add_point(PointDefinition {
+                    placement,
+                    layer,
+                    appearance,
+                    visible: !common.invisible,
+                })?
+            }
+            EntityType::Circle(circle) => {
+                let placement =
+                    crate::geometry::circular::from_cad_ocs(circle.center, circle.normal)
+                        .expect("classified CAD circle frame");
+                let identity = crate::ConversionEntitySource::CadEntity {
+                    handle: common.handle,
+                    kind: "CIRCLE".into(),
+                };
+                let geometry = context.geometry.as_mut().unwrap();
+                let samples =
+                    crate::geometry::circular::export_circle_sample_pairs(circle, placement)
+                        .ok_or_else(|| {
+                            geometry.failure(
+                                &identity,
+                                None,
+                                crate::ConversionGeometryStage::TargetConstruction,
+                                crate::ConversionGeometryFailureReason::TargetCoordinateOutOfRange,
+                            )
+                        })?;
+                let mut maximum = 0.0_f64;
+                let points = samples
+                    .into_iter()
+                    .enumerate()
+                    .map(|(index, (point, squared))| {
+                        maximum = maximum.max(geometry.check(&identity, index, &squared)?);
+                        Ok(point)
+                    })
+                    .collect::<Result<Vec<_>, Box<crate::ConversionGeometryFailure>>>()?;
+                geometry.record(identity, points.len(), maximum);
+                context.block_points.insert(common.handle, points);
+                if maximum > 0.0 {
+                    common_losses.push(ExportLossReason::GeometryRoundedWithinTolerance {
+                        max_deviation_upper_bound: maximum,
+                    });
+                }
+                if crate::geometry::stored_normal(placement) != Some(circle.normal) {
+                    common_losses.push(ExportLossReason::SourceNormalNormalized);
+                }
+                target.add_circle(CircleDefinition {
+                    placement,
+                    radius: circle.radius,
+                    layer,
+                    appearance,
+                    visible: !common.invisible,
+                })?
+            }
+            EntityType::Arc(arc) => {
+                let placement = crate::geometry::circular::from_cad_ocs(arc.center, arc.normal)
+                    .expect("classified CAD arc frame");
+                let sweep = (arc.end_angle - arc.start_angle).rem_euclid(std::f64::consts::TAU);
+                let identity = crate::ConversionEntitySource::CadEntity {
+                    handle: common.handle,
+                    kind: "ARC".into(),
+                };
+                let geometry = context.geometry.as_mut().unwrap();
+                let samples =
+                    crate::geometry::circular::export_arc_sample_pairs(arc, placement, sweep)
+                        .ok_or_else(|| {
+                            geometry.failure(
+                                &identity,
+                                None,
+                                crate::ConversionGeometryStage::TargetConstruction,
+                                crate::ConversionGeometryFailureReason::TargetCoordinateOutOfRange,
+                            )
+                        })?;
+                let mut maximum = 0.0_f64;
+                let points = samples
+                    .into_iter()
+                    .enumerate()
+                    .map(|(index, (point, squared))| {
+                        maximum = maximum.max(geometry.check(&identity, index, &squared)?);
+                        Ok(point)
+                    })
+                    .collect::<Result<Vec<_>, Box<crate::ConversionGeometryFailure>>>()?;
+                geometry.record(identity, points.len(), maximum);
+                context.block_points.insert(common.handle, points);
+                if maximum > 0.0 {
+                    common_losses.push(ExportLossReason::GeometryRoundedWithinTolerance {
+                        max_deviation_upper_bound: maximum,
+                    });
+                }
+                if crate::geometry::stored_normal(placement) != Some(arc.normal) {
+                    common_losses.push(ExportLossReason::SourceNormalNormalized);
+                }
+                target.add_arc(ArcDefinition {
+                    placement,
+                    radius: arc.radius,
+                    start_parameter: arc.start_angle,
+                    sweep_parameter: sweep,
+                    layer,
+                    appearance,
+                    visible: !common.invisible,
+                })?
+            }
+            EntityType::Ellipse(ellipse) => {
+                let (placement, major, minor) =
+                    crate::geometry::circular::from_cad_ellipse(ellipse)
+                        .expect("classified CAD ellipse frame");
+                let difference = ellipse.end_parameter - ellipse.start_parameter;
+                let full = difference == std::f64::consts::TAU;
+                let sweep = if full {
+                    difference
+                } else {
+                    difference.rem_euclid(std::f64::consts::TAU)
+                };
+                let identity = crate::ConversionEntitySource::CadEntity {
+                    handle: common.handle,
+                    kind: "ELLIPSE".into(),
+                };
+                let geometry = context.geometry.as_mut().unwrap();
+                let samples = crate::geometry::circular::export_ellipse_sample_pairs(
+                    ellipse,
+                    placement,
+                    major,
+                    minor,
+                    ellipse.start_parameter,
+                    sweep,
+                )
+                .ok_or_else(|| {
+                    geometry.failure(
+                        &identity,
+                        None,
+                        crate::ConversionGeometryStage::TargetConstruction,
+                        crate::ConversionGeometryFailureReason::TargetCoordinateOutOfRange,
+                    )
+                })?;
+                let mut maximum = 0.0_f64;
+                let points = samples
+                    .into_iter()
+                    .enumerate()
+                    .map(|(index, (point, squared))| {
+                        maximum = maximum.max(geometry.check(&identity, index, &squared)?);
+                        Ok(point)
+                    })
+                    .collect::<Result<Vec<_>, Box<crate::ConversionGeometryFailure>>>()?;
+                geometry.record(identity, points.len(), maximum);
+                context.block_points.insert(common.handle, points);
+                if maximum > 0.0 {
+                    common_losses.push(ExportLossReason::GeometryRoundedWithinTolerance {
+                        max_deviation_upper_bound: maximum,
+                    });
+                }
+                if crate::geometry::stored_normal(placement) != Some(ellipse.normal) {
+                    common_losses.push(ExportLossReason::SourceNormalNormalized);
+                }
+                if full {
+                    target.add_ellipse(EllipseDefinition {
+                        placement,
+                        semi_major_radius: major,
+                        semi_minor_radius: minor,
+                        layer,
+                        appearance,
+                        visible: !common.invisible,
+                    })?
+                } else {
+                    target.add_ellipse_arc(EllipseArcDefinition {
+                        placement,
+                        semi_major_radius: major,
+                        semi_minor_radius: minor,
+                        start_parameter: ellipse.start_parameter,
+                        sweep_parameter: sweep,
+                        layer,
+                        appearance,
+                        visible: !common.invisible,
+                    })?
+                }
             }
             EntityType::Line(line) => target.add_line(LineDefinition {
                 start: ifccad::ifcdr::Point3::new(line.start.x, line.start.y, line.start.z),
@@ -274,14 +532,133 @@ pub(crate) fn add_entities(
                 if count > 0 {
                     common_losses.push(ExportLossReason::PolylineVertexIdentifiers { count });
                 }
-                target.add_polyline(PolylineDefinition {
+                target.add_planar_polyline(PlanarPolylineDefinition {
                     placement,
+                    bulges: polyline
+                        .vertices
+                        .iter()
+                        .map(|vertex| vertex.bulge)
+                        .collect(),
                     points: polyline
                         .vertices
                         .iter()
                         .map(|vertex| Point2::new(vertex.location.x, vertex.location.y))
                         .collect(),
                     closed: polyline.is_closed,
+                    layer,
+                    appearance,
+                    visible: !common.invisible,
+                })?
+            }
+            EntityType::Polyline2D(polyline) => {
+                let lw = lw_from_polyline2d(polyline);
+                let (placement, bound, normal_changed) =
+                    crate::geometry::from_cad(&lw, context.geometry.as_mut().unwrap())?;
+                if bound > 0.0 {
+                    common_losses.push(ExportLossReason::GeometryRoundedWithinTolerance {
+                        max_deviation_upper_bound: bound,
+                    });
+                }
+                if normal_changed {
+                    common_losses.push(ExportLossReason::SourceNormalNormalized);
+                }
+                context.block_points.insert(
+                    common.handle,
+                    crate::geometry::blocks::polyline_pairs(&lw, placement),
+                );
+                target.add_planar_polyline(PlanarPolylineDefinition {
+                    placement,
+                    points: lw
+                        .vertices
+                        .iter()
+                        .map(|vertex| Point2::new(vertex.location.x, vertex.location.y))
+                        .collect(),
+                    bulges: lw.vertices.iter().map(|vertex| vertex.bulge).collect(),
+                    closed: polyline.flags.is_closed(),
+                    layer,
+                    appearance,
+                    visible: !common.invisible,
+                })?
+            }
+            EntityType::Polyline(polyline) => {
+                let points = polyline
+                    .vertices
+                    .iter()
+                    .map(|vertex| {
+                        ifccad::ifcdr::Point3::new(
+                            vertex.location.x,
+                            vertex.location.y,
+                            vertex.location.z,
+                        )
+                    })
+                    .collect::<Vec<_>>();
+                context.block_points.insert(
+                    common.handle,
+                    polyline
+                        .vertices
+                        .iter()
+                        .map(|vertex| {
+                            crate::geometry::blocks::PairedPoint::exact([
+                                vertex.location.x,
+                                vertex.location.y,
+                                vertex.location.z,
+                            ])
+                        })
+                        .collect(),
+                );
+                context.geometry.as_mut().unwrap().record(
+                    crate::ConversionEntitySource::CadEntity {
+                        handle: common.handle,
+                        kind: "POLYLINE".into(),
+                    },
+                    points.len(),
+                    0.0,
+                );
+                target.add_spatial_polyline(SpatialPolylineDefinition {
+                    points,
+                    closed: polyline.flags.is_closed(),
+                    layer,
+                    appearance,
+                    visible: !common.invisible,
+                })?
+            }
+            EntityType::Polyline3D(polyline) => {
+                let points = polyline
+                    .vertices
+                    .iter()
+                    .map(|vertex| {
+                        ifccad::ifcdr::Point3::new(
+                            vertex.position.x,
+                            vertex.position.y,
+                            vertex.position.z,
+                        )
+                    })
+                    .collect::<Vec<_>>();
+                context.block_points.insert(
+                    common.handle,
+                    polyline
+                        .vertices
+                        .iter()
+                        .map(|vertex| {
+                            crate::geometry::blocks::PairedPoint::exact([
+                                vertex.position.x,
+                                vertex.position.y,
+                                vertex.position.z,
+                            ])
+                        })
+                        .collect(),
+                );
+                context.geometry.as_mut().unwrap().record(
+                    crate::ConversionEntitySource::CadEntity {
+                        handle: common.handle,
+                        kind: "POLYLINE".into(),
+                    },
+                    points.len(),
+                    0.0,
+                );
+                target.add_spatial_polyline(SpatialPolylineDefinition {
+                    points,
+                    closed: polyline.flags.closed,
                     layer,
                     appearance,
                     visible: !common.invisible,
@@ -459,6 +836,146 @@ fn line_losses(line: &Line) -> Vec<ExportLossReason> {
     reasons
 }
 
+fn point_losses(point: &Point) -> Vec<ExportLossReason> {
+    let mut reasons = Vec::new();
+    if ![
+        point.location.x,
+        point.location.y,
+        point.location.z,
+        point.normal.x,
+        point.normal.y,
+        point.normal.z,
+        point.thickness,
+        point.x_axis_angle,
+    ]
+    .into_iter()
+    .all(f64::is_finite)
+    {
+        reasons.push(ExportLossReason::NonFiniteCoordinate);
+    }
+    if point.thickness != 0.0 {
+        reasons.push(ExportLossReason::NonZeroThickness);
+    }
+    if crate::geometry::cad_plane(point.normal).is_none() {
+        reasons.push(ExportLossReason::UnsupportedNormal);
+    }
+    reasons
+}
+
+fn circle_losses(circle: &Circle) -> Vec<ExportLossReason> {
+    let mut reasons = Vec::new();
+    if ![
+        circle.center.x,
+        circle.center.y,
+        circle.center.z,
+        circle.normal.x,
+        circle.normal.y,
+        circle.normal.z,
+        circle.radius,
+        circle.thickness,
+    ]
+    .into_iter()
+    .all(f64::is_finite)
+    {
+        reasons.push(ExportLossReason::NonFiniteCoordinate);
+    }
+    if circle.thickness != 0.0 {
+        reasons.push(ExportLossReason::NonZeroThickness);
+    }
+    if circle.radius <= 0.0 {
+        reasons.push(ExportLossReason::UnsupportedSemantic {
+            name: "circle radius".into(),
+        });
+    }
+    if crate::geometry::circular::from_cad_ocs(circle.center, circle.normal).is_none() {
+        reasons.push(ExportLossReason::UnsupportedNormal);
+    }
+    reasons
+}
+
+fn arc_losses(arc: &Arc) -> Vec<ExportLossReason> {
+    let mut reasons = Vec::new();
+    if ![
+        arc.center.x,
+        arc.center.y,
+        arc.center.z,
+        arc.normal.x,
+        arc.normal.y,
+        arc.normal.z,
+        arc.radius,
+        arc.thickness,
+        arc.start_angle,
+        arc.end_angle,
+    ]
+    .into_iter()
+    .all(f64::is_finite)
+    {
+        reasons.push(ExportLossReason::NonFiniteCoordinate);
+    }
+    if arc.thickness != 0.0 {
+        reasons.push(ExportLossReason::NonZeroThickness);
+    }
+    if arc.radius <= 0.0 {
+        reasons.push(ExportLossReason::UnsupportedSemantic {
+            name: "arc radius".into(),
+        });
+    }
+    let difference = arc.end_angle - arc.start_angle;
+    let sweep = difference.rem_euclid(std::f64::consts::TAU);
+    if !difference.is_finite()
+        || difference.abs() >= std::f64::consts::TAU
+        || sweep == 0.0
+        || sweep >= std::f64::consts::TAU
+    {
+        reasons.push(ExportLossReason::UnsupportedSemantic {
+            name: "arc sweep".into(),
+        });
+    }
+    if crate::geometry::circular::from_cad_ocs(arc.center, arc.normal).is_none() {
+        reasons.push(ExportLossReason::UnsupportedNormal);
+    }
+    reasons
+}
+
+fn ellipse_losses(ellipse: &Ellipse) -> Vec<ExportLossReason> {
+    let mut reasons = Vec::new();
+    if ![
+        ellipse.center.x,
+        ellipse.center.y,
+        ellipse.center.z,
+        ellipse.major_axis.x,
+        ellipse.major_axis.y,
+        ellipse.major_axis.z,
+        ellipse.minor_axis_ratio,
+        ellipse.start_parameter,
+        ellipse.end_parameter,
+        ellipse.normal.x,
+        ellipse.normal.y,
+        ellipse.normal.z,
+    ]
+    .into_iter()
+    .all(f64::is_finite)
+    {
+        reasons.push(ExportLossReason::NonFiniteCoordinate);
+    }
+    if crate::geometry::circular::from_cad_ellipse(ellipse).is_none() {
+        reasons.push(ExportLossReason::UnsupportedSemantic {
+            name: "ellipse frame or axis ratio".into(),
+        });
+    }
+    let difference = ellipse.end_parameter - ellipse.start_parameter;
+    let sweep = difference.rem_euclid(std::f64::consts::TAU);
+    if !difference.is_finite()
+        || difference.abs() > std::f64::consts::TAU
+        || (difference != std::f64::consts::TAU && sweep == 0.0)
+    {
+        reasons.push(ExportLossReason::UnsupportedSemantic {
+            name: "ellipse parameter sweep".into(),
+        });
+    }
+    reasons
+}
+
 fn polyline_losses(polyline: &LwPolyline) -> Vec<ExportLossReason> {
     let mut reasons = Vec::new();
     let finite = [
@@ -494,19 +1011,199 @@ fn polyline_losses(polyline: &LwPolyline) -> Vec<ExportLossReason> {
     if polyline.normal.x == 0.0 && polyline.normal.y == 0.0 && polyline.normal.z == 0.0 {
         reasons.push(ExportLossReason::UnsupportedNormal);
     }
-    if polyline.vertices.iter().any(|vertex| vertex.bulge != 0.0) {
-        reasons.push(ExportLossReason::PolylineBulge);
-    }
-    if polyline.constant_width != 0.0
-        || polyline
-            .vertices
-            .iter()
-            .any(|vertex| vertex.start_width != 0.0 || vertex.end_width != 0.0)
-    {
-        reasons.push(ExportLossReason::PolylineWidth);
+    let count = if polyline.is_closed {
+        polyline.vertices.len()
+    } else {
+        polyline.vertices.len().saturating_sub(1)
+    };
+    for index in 0..count {
+        let start = &polyline.vertices[index];
+        let end = &polyline.vertices[(index + 1) % polyline.vertices.len()];
+        if start.bulge != 0.0 && start.location == end.location {
+            reasons.push(ExportLossReason::UnsupportedSemantic {
+                name: "bulged zero-length polyline segment".into(),
+            });
+            break;
+        }
     }
     if polyline.plinegen {
         reasons.push(ExportLossReason::PolylinePlinegen);
+    }
+    reasons
+}
+
+fn lw_from_polyline2d(polyline: &cadcodec::entities::Polyline2D) -> LwPolyline {
+    let mut lw = LwPolyline::from_points(
+        polyline
+            .vertices
+            .iter()
+            .map(|vertex| cadcodec::Vector2::new(vertex.location.x, vertex.location.y))
+            .collect(),
+    );
+    lw.is_closed = polyline.flags.is_closed();
+    lw.elevation = polyline.elevation;
+    lw.normal = polyline.normal;
+    for (target, source) in lw.vertices.iter_mut().zip(&polyline.vertices) {
+        target.bulge = source.bulge;
+    }
+    lw
+}
+
+fn polyline2d_losses(polyline: &cadcodec::entities::Polyline2D) -> Vec<ExportLossReason> {
+    let lw = lw_from_polyline2d(polyline);
+    let mut reasons = polyline_losses(&lw);
+    if ![
+        polyline.start_width,
+        polyline.end_width,
+        polyline.thickness,
+        polyline.elevation,
+    ]
+    .into_iter()
+    .all(f64::is_finite)
+        || polyline.vertices.iter().any(|vertex| {
+            ![
+                vertex.location.x,
+                vertex.location.y,
+                vertex.location.z,
+                vertex.start_width,
+                vertex.end_width,
+                vertex.bulge,
+                vertex.curve_tangent,
+            ]
+            .into_iter()
+            .all(f64::is_finite)
+        })
+    {
+        reasons.push(ExportLossReason::NonFiniteCoordinate);
+    }
+    if polyline.thickness != 0.0 {
+        reasons.push(ExportLossReason::NonZeroThickness);
+    }
+    if polyline.flags.bits() & (2 | 4) != 0
+        || polyline.smooth_surface != cadcodec::entities::SmoothSurfaceType::None
+        || polyline.vertices.iter().any(|vertex| {
+            vertex.flags.bits() & (1 | 2 | 8 | 16) != 0 || vertex.curve_tangent != 0.0
+        })
+    {
+        reasons.push(ExportLossReason::UnsupportedSemantic {
+            name: "polyline fit curve".into(),
+        });
+    }
+    if polyline.flags.bits() & (8 | 16 | 32 | 64) != 0 {
+        reasons.push(ExportLossReason::UnsupportedSemantic {
+            name: "polyline mesh or 3D flags".into(),
+        });
+    }
+    if polyline.flags.bits() & 128 != 0 {
+        reasons.push(ExportLossReason::PolylinePlinegen);
+    }
+    if polyline.flags.bits() & !0xff != 0 {
+        reasons.push(ExportLossReason::UnsupportedSemantic {
+            name: "polyline flags".into(),
+        });
+    }
+    if polyline
+        .vertices
+        .iter()
+        .any(|vertex| vertex.flags.bits() & !(1 | 2 | 8 | 16) != 0)
+    {
+        reasons.push(ExportLossReason::UnsupportedSemantic {
+            name: "2D polyline vertex flags".into(),
+        });
+    }
+    if polyline
+        .vertices
+        .iter()
+        .any(|vertex| vertex.location.z != 0.0)
+    {
+        reasons.push(ExportLossReason::UnsupportedSemantic {
+            name: "2D polyline vertex elevation".into(),
+        });
+    }
+    reasons
+}
+
+fn spatial_polyline_losses(
+    points: impl IntoIterator<Item = Vector3>,
+    flags: u16,
+) -> Vec<ExportLossReason> {
+    let points = points.into_iter().collect::<Vec<_>>();
+    let mut reasons = Vec::new();
+    if points.len() < 2 {
+        reasons.push(ExportLossReason::PolylineTooFewVertices {
+            count: points.len(),
+        });
+    }
+    if points
+        .iter()
+        .any(|point| ![point.x, point.y, point.z].into_iter().all(f64::is_finite))
+    {
+        reasons.push(ExportLossReason::NonFiniteCoordinate);
+    }
+    if flags & (2 | 4) != 0 {
+        reasons.push(ExportLossReason::UnsupportedSemantic {
+            name: "polyline fit curve".into(),
+        });
+    }
+    if flags & (16 | 32 | 64) != 0 {
+        reasons.push(ExportLossReason::UnsupportedSemantic {
+            name: "polyline mesh".into(),
+        });
+    }
+    if flags & !(1 | 8) != 0 && flags & !(1 | 8 | 2 | 4 | 16 | 32 | 64) != 0 {
+        reasons.push(ExportLossReason::UnsupportedSemantic {
+            name: "polyline flags".into(),
+        });
+    }
+    reasons
+}
+
+fn generic_polyline_losses(polyline: &cadcodec::entities::Polyline) -> Vec<ExportLossReason> {
+    let mut reasons = spatial_polyline_losses(
+        polyline.vertices.iter().map(|vertex| vertex.location),
+        polyline.flags.bits(),
+    );
+    if polyline
+        .vertices
+        .iter()
+        .any(|vertex| vertex.flags.bits() != 0)
+    {
+        reasons.push(ExportLossReason::UnsupportedSemantic {
+            name: "3D polyline vertex flags".into(),
+        });
+    }
+    reasons
+}
+
+fn polyline3d_losses(polyline: &cadcodec::entities::Polyline3D) -> Vec<ExportLossReason> {
+    let mut reasons = spatial_polyline_losses(
+        polyline.vertices.iter().map(|vertex| vertex.position),
+        polyline.flags.to_bits() as u16,
+    );
+    if polyline.default_start_width != 0.0 || polyline.default_end_width != 0.0 {
+        reasons.push(ExportLossReason::PolylineWidth);
+    }
+    if !polyline.flags.is_3d
+        || polyline.elevation != 0.0
+        || polyline.normal != Vector3::UNIT_Z
+        || polyline.mesh_m_count != 0
+        || polyline.mesh_n_count != 0
+        || polyline.smooth_m_density != 0
+        || polyline.smooth_n_density != 0
+        || polyline.smooth_type != cadcodec::entities::polyline3d::SmoothSurfaceType::None
+    {
+        reasons.push(ExportLossReason::UnsupportedSemantic {
+            name: "3D polyline source properties".into(),
+        });
+    }
+    if polyline
+        .vertices
+        .iter()
+        .any(|vertex| vertex.flags != 32 || vertex.handle != Handle::NULL || vertex.layer != "0")
+    {
+        reasons.push(ExportLossReason::UnsupportedSemantic {
+            name: "3D polyline vertex properties".into(),
+        });
     }
     reasons
 }

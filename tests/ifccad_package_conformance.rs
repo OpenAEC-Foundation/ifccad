@@ -42,8 +42,9 @@ fn supported_bundled_validate_package_cases_match_their_diagnostic_contract() {
             match case.category {
                 ConformanceCategory::Valid => assert!(
                     outcome.validated_package().is_some(),
-                    "{} did not expose a strict view",
-                    case.case_id
+                    "{} did not expose a strict view: {:#?}",
+                    case.case_id,
+                    outcome.report()
                 ),
                 ConformanceCategory::Invalid => assert!(
                     outcome.validated_package().is_none(),
@@ -172,12 +173,12 @@ fn candidate_viewport_variants_preserve_child_and_optional_semantics() {
             "viewport-active-rectangular-clip" => {
                 assert!(second.paper_clip().enabled);
                 assert_eq!(second.paper_clip().boundary_entity_id, Some(2));
-                assert!(matches!(&entities[1], IfcdrEntityRef::Polyline(p) if p.closed()));
+                assert!(matches!(&entities[1], IfcdrEntityRef::PlanarPolyline(p) if p.closed()));
             }
             "viewport-disabled-boundary-reference" => {
                 assert!(!second.paper_clip().enabled);
                 assert_eq!(second.paper_clip().boundary_entity_id, Some(2));
-                assert!(matches!(&entities[1], IfcdrEntityRef::Polyline(p) if !p.closed()));
+                assert!(matches!(&entities[1], IfcdrEntityRef::PlanarPolyline(p) if !p.closed()));
             }
             "viewport-perspective-at-camera" => {
                 assert_eq!(first.view().projection, ProjectionMode::Perspective);

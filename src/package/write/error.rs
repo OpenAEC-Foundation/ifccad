@@ -30,10 +30,20 @@ pub enum PackageBuildError {
     InvalidOpacity,
     #[error("line weight must be finite and non-negative")]
     InvalidLineWeight,
+    #[error("point display size must be finite and positive")]
+    InvalidPointDisplay,
+    #[error("circle or arc requires a finite positive radius and finite bounds")]
+    InvalidCircularGeometry,
+    #[error("arc requires a finite start and nonzero signed sweep below a full turn")]
+    InvalidArcSweep,
+    #[error("ellipse requires finite ordered positive semiaxes and finite bounds")]
+    InvalidEllipticGeometry,
     #[error("coordinate values must be finite")]
     NonFiniteCoordinate,
     #[error("a polyline requires at least two points")]
     PolylineTooShort,
+    #[error("planar polyline requires one finite bulge per vertex")]
+    InvalidPolylineBulges,
     #[error("placed polyline coordinate is outside the finite binary64 range")]
     PlacedCoordinateOutOfRange,
     #[error("layer name already exists (case-insensitive): {name}")]
