@@ -23,7 +23,15 @@
           "drawing-main-layout-model",
           "drawing-main-layout-paper"
         ],
-        "Representation": "drawing-representation-main"
+        "Representation": "drawing-representation-main",
+        "Layers": [
+          "layer-0",
+          "layer-a-wall"
+        ],
+        "Appearances": [
+          "appearance-default-solid",
+          "appearance-dashed-red"
+        ]
       },
       "path": "drawing-main",
       "type": "openaec:Drawing"
@@ -31,11 +39,10 @@
     {
       "attributes": {
         "kind": "model",
-        "limitsCheckEnabled": false,
         "name": "Model",
         "paperSpaceLinetypeScaling": true,
         "scopeId": 0,
-        "tabOrder": 0
+        "limitsChecking": false
       },
       "children": {
         "Representation": "drawing-representation-main"
@@ -46,11 +53,11 @@
     {
       "attributes": {
         "resource": {
-          "checksum": "sha256:70ba4dccbad4226cc96138e51d41011d0aac1385a531fbcd25f5da3f07681d41",
+          "checksum": "sha256:6777a8f2958867ffe596e410186b37bf29475027e593203cfa80a1c3bd876e14",
           "format": "openaec.ifcdr",
           "role": "drawing",
           "uri": "drawing.ifcdr.json",
-          "version": "0.9.0",
+          "version": "0.10.0",
           "resourceId": "drawing-main"
         },
         "name": "Drawing"
@@ -62,7 +69,11 @@
       "attributes": {
         "appearance": "appearance-default-solid",
         "name": "0",
-        "visible": true
+        "visible": true,
+        "frozen": false,
+        "locked": false,
+        "plottable": true,
+        "frozenInNewViewports": false
       },
       "path": "layer-0",
       "type": "openaec:Layer"
@@ -71,7 +82,11 @@
       "attributes": {
         "appearance": "appearance-dashed-red",
         "name": "A-WALL",
-        "visible": true
+        "visible": true,
+        "frozen": false,
+        "locked": false,
+        "plottable": true,
+        "frozenInNewViewports": false
       },
       "path": "layer-a-wall",
       "type": "openaec:Layer"
@@ -145,11 +160,10 @@
     {
       "attributes": {
         "kind": "paper",
-        "limitsCheckEnabled": false,
         "name": "Sheet 1",
         "paperSpaceLinetypeScaling": true,
         "scopeId": 1,
-        "tabOrder": 1
+        "limitsChecking": false
       },
       "children": {
         "Representation": "drawing-representation-main"

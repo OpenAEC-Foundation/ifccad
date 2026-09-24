@@ -15,6 +15,11 @@ for exact case IDs and the CAD behaviors that are still unproved. This candidate
 is not a numbered conformance release. The separate IFCPR semantic deferrals
 below still apply.
 
+The candidate's ordinary package fixtures use IFCDR `0.10.0`. Two explicit
+unsupported-version probes retain `0.5.0` and `0.7.0`, and an invalid inline
+body deliberately declares `999.0.0`. Retaining reader support for `0.9.0`
+does not make it the candidate fixture baseline.
+
 ## Supported drawing content
 
 The IFCDR registry contains seven streams: `line`, `polyline`, `blockInstance`,
