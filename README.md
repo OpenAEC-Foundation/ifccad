@@ -264,16 +264,17 @@ The public API is still evolving while the format contract matures.
 The active language-neutral schemas live in `schemas/`. The mutable
 `conformance/next` collection currently targets suite `1.1.0` and tests the
 minimal package-header contract alongside explicit resource identity: a
-logical resource ID is independent of its external URI. IFCX overlay `0.11.0`
+logical resource ID is independent of its external URI. IFCX overlay `0.12.0`
 requires the top-level `header`, `imports`, and `data` fields and the known
 header fields, while still allowing additional top-level and header fields and
 unknown IFCX node types for forward-compatible extension. It remains a
 development candidate until it is frozen as a numbered release. A numbered
 directory such as `conformance/1.0.0` is an immutable, self-contained release
 of fixtures, vectors, expected outcomes, and the schemas applicable to that
-collection.
+collection. Ordinary candidate package cases now use IFCDR `0.10.0`; explicit
+unsupported-version probes remain separate.
 
-The [drawing resource contract](schemas/ifcx/drawing-resource-contract-0.11.0.md)
+The [drawing resource contract](schemas/ifcx/drawing-resource-contract-0.12.0.md)
 uses `openaec:DrawingRepresentation` and `attributes.resource` with role
 `drawing`. A Drawing and all its layouts reference the same representation
 node; layouts select scopes within its IFCDR resource. The retired
@@ -297,10 +298,10 @@ Active schemas may move ahead of the latest released conformance collection.
 When a new collection is released, its applicable schemas are copied into the
 numbered directory and frozen with the rest of that collection.
 
-The [logical registry](schemas/ifcdr/registry-0.9.0.json),
-[normative rules](schemas/ifcdr/logical-contract-0.9.0.md), and
-[JSON mapping](schemas/ifcdr/json-mapping-0.9.0.json) define the drawing contract.
-The [mapping language](schemas/ifcdr/json-mapping-v3.md) specifies the meaning
+The [logical registry](schemas/ifcdr/registry-0.10.0.json),
+[normative rules](schemas/ifcdr/logical-contract-0.10.0.md), and
+[JSON mapping](schemas/ifcdr/json-mapping-0.10.0.json) define the drawing contract.
+The [mapping language](schemas/ifcdr/json-mapping-v4.md) specifies the meaning
 of its encoding forms and physical range rules.
 Polylines require at least two vertices; repeated vertices and coincident line
 endpoints are valid. Empty scopes have null bounds; nonempty scopes require finite XYZ bounds

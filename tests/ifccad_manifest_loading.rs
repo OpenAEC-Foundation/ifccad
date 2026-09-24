@@ -1,5 +1,7 @@
-use ifccad::conformance::{bundled_conformance_root, load_conformance_manifest, ConformanceError};
-use serde_json::json;
+use ifccad::conformance::{
+    bundled_conformance_root, load_conformance_manifest, ConformanceError, ConformanceOperationName,
+};
+use serde_json::{json, Value};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -60,6 +62,100 @@ fn loads_bundled_suite_in_manifest_order() {
         manifest.cases.last().unwrap().case_id,
         "invalid.layout-paper-kind-mismatch"
     );
+}
+
+#[test]
+fn candidate_package_drawings_use_the_current_ifcdr_version() {
+    let root = bundled_conformance_root();
+    let manifest = load_conformance_manifest(&root).expect("load bundled conformance suite");
+    for case in manifest.cases {
+        if !case
+            .operations
+            .iter()
+            .any(|operation| operation.name == ConformanceOperationName::ValidatePackage)
+            || matches!(
+                case.case_id.as_str(),
+                "unsupported.unsupported-ifcdr-version" | "unsupported.ifcdr-0.7.0"
+            )
+        {
+            continue;
+        }
+
+        let package_dir = root
+            .join(&case.entrypoint)
+            .parent()
+            .expect("package entrypoint parent")
+            .to_path_buf();
+        let index: Value = serde_json::from_slice(
+            &fs::read(package_dir.join("package.json")).expect("package index"),
+        )
+        .expect("parse package index");
+        let ifcx: Value = serde_json::from_slice(
+            &fs::read(package_dir.join(index["ifcx"].as_str().expect("IFCX path")))
+                .expect("IFCX document"),
+        )
+        .expect("parse IFCX document");
+
+        for node in ifcx["data"].as_array().expect("IFCX graph") {
+            let resource = &node["attributes"]["resource"];
+            if resource["format"] != "openaec.ifcdr" {
+                continue;
+            }
+            assert_eq!(
+                resource["version"], "0.10.0",
+                "{} has an obsolete drawing descriptor",
+                case.case_id
+            );
+            let drawing = if let Some(content) = resource.get("content") {
+                Some(content.clone())
+            } else if let Some(uri) = resource["uri"].as_str() {
+                let path = package_dir.join(uri);
+                fs::read(path)
+                    .ok()
+                    .and_then(|bytes| serde_json::from_slice::<Value>(&bytes).ok())
+            } else {
+                None
+            };
+            if let Some(version) = drawing
+                .as_ref()
+                .and_then(|value| value["header"]["version"].as_str())
+                .filter(|_| case.case_id != "invalid.inline-unsupported-body")
+            {
+                assert_eq!(
+                    version, "0.10.0",
+                    "{} has an obsolete drawing header",
+                    case.case_id
+                );
+            }
+        }
+
+        let mut directories = vec![package_dir];
+        while let Some(directory) = directories.pop() {
+            for entry in fs::read_dir(directory).expect("package directory") {
+                let path = entry.expect("package entry").path();
+                if path.is_dir() {
+                    directories.push(path);
+                } else if path
+                    .file_name()
+                    .and_then(|name| name.to_str())
+                    .is_some_and(|name| name.ends_with(".ifcdr.json"))
+                {
+                    let drawing: Value =
+                        serde_json::from_slice(&fs::read(&path).expect("IFCDR file"))
+                            .expect("parse IFCDR file");
+                    if drawing["header"]["format"] == "openaec.ifcdr" {
+                        assert_eq!(
+                            drawing["header"]["version"],
+                            "0.10.0",
+                            "{} has an obsolete IFCDR file: {}",
+                            case.case_id,
+                            path.display()
+                        );
+                    }
+                }
+            }
+        }
+    }
 }
 
 #[test]

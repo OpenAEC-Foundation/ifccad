@@ -54,8 +54,8 @@ License 2.0. The adjacent `LICENSE` file contains the applicable license text.
   cover paper-Limits, plot quality and scale constraints, folded layer/layout
   names, drawing-list closure, viewport dimensions/duplicate overrides and
   incomplete viewport child-partition mutations. Modified resource checksums were
-  recomputed. The previous 0.9.0/0.11.0 fixtures remain for read compatibility;
-  no numbered collection changed.
+  recomputed. At that stage, the previous 0.9.0/0.11.0 fixtures remained for read
+  compatibility; no numbered collection changed.
 
 - Layout condition completion (2026-09-23): added 38 independently named
   candidate package cases, bringing the manifest to 125 cases. The fixtures
@@ -67,3 +67,13 @@ License 2.0. The adjacent `LICENSE` file contains the applicable license text.
   focused typed-reader and writer-readback tests check retained semantics.
   See [the condition and CAD evidence matrix](LAYOUT-MATRIX.md). This addition
   changes no schema or numbered release.
+
+- Current-version fixture migration (2026-09-24): migrated the 67 remaining
+  IFCDR 0.9.0 package cases to 0.10.0, including the required IFCX Drawing
+  layer/appearance lists, renamed layout limits flag, and independent Layer
+  state. Matching external checksums were refreshed; deliberately incorrect
+  checksums retain their negative-test meaning. Two earlier layout-binding
+  negatives now expect the additional uncovered-scope error of the active
+  contract. Explicit 0.5.0/0.7.0 unsupported-version probes and the invalid
+  999.0.0 inline body remain intentional. The reader's separate 0.9.0 support,
+  schema snapshots, and numbered conformance releases were not changed.

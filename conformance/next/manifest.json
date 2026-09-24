@@ -945,6 +945,10 @@
               {
                 "code": "IFCCAD_PACKAGE_BINDING_INVALID",
                 "severity": "error"
+              },
+              {
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "severity": "error"
               }
             ]
           }
@@ -1544,6 +1548,11 @@
           "name": "validatePackage",
           "expected": {
             "diagnostics": [
+              {
+                "severity": "error",
+                "code": "IFCCAD_PACKAGE_BINDING_INVALID",
+                "category": "contractViolation"
+              },
               {
                 "severity": "error",
                 "code": "IFCCAD_PACKAGE_BINDING_INVALID",

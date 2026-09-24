@@ -22,7 +22,15 @@
         "Layouts": [
           "drawing-main-layout-model"
         ],
-        "Representation": "drawing-representation-main"
+        "Representation": "drawing-representation-main",
+        "Layers": [
+          "layer-0",
+          "layer-a-wall"
+        ],
+        "Appearances": [
+          "appearance-default-solid",
+          "appearance-dashed-red"
+        ]
       },
       "path": "drawing-main",
       "type": "openaec:Drawing"
@@ -30,11 +38,10 @@
     {
       "attributes": {
         "kind": "model",
-        "limitsCheckEnabled": false,
         "name": "Model",
         "paperSpaceLinetypeScaling": true,
         "scopeId": 7,
-        "tabOrder": 0
+        "limitsChecking": false
       },
       "children": {
         "Representation": "drawing-representation-main"
@@ -45,11 +52,11 @@
     {
       "attributes": {
         "resource": {
-          "checksum": "sha256:cfd0ee6d1fe7b3a027ad716d7c5ec9f422dd590dfad7056b91e306f1aa696180",
+          "checksum": "sha256:5e3c080f8ee326af1ccc6195a3663ce1b9a12894ab8c380921096986e480ff6f",
           "format": "openaec.ifcdr",
           "role": "drawing",
           "uri": "drawing.ifcdr.json",
-          "version": "0.9.0",
+          "version": "0.10.0",
           "resourceId": "drawing-main"
         },
         "name": "Drawing"
@@ -61,7 +68,11 @@
       "attributes": {
         "appearance": "appearance-default-solid",
         "name": "0",
-        "visible": true
+        "visible": true,
+        "frozen": false,
+        "locked": false,
+        "plottable": true,
+        "frozenInNewViewports": false
       },
       "path": "layer-0",
       "type": "openaec:Layer"
@@ -70,7 +81,11 @@
       "attributes": {
         "appearance": "appearance-dashed-red",
         "name": "A-WALL",
-        "visible": true
+        "visible": true,
+        "frozen": false,
+        "locked": false,
+        "plottable": true,
+        "frozenInNewViewports": false
       },
       "path": "layer-a-wall",
       "type": "openaec:Layer"
