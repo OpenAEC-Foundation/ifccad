@@ -198,6 +198,42 @@ fn exports_a_rectangular_orthographic_paper_viewport() {
 }
 
 #[test]
+fn exports_zero_dormant_lens_on_orthographic_viewport() {
+    let mut document = CadDocument::new();
+    document.add_layout("Zero lens").unwrap();
+    let mut viewport = Viewport::new();
+    viewport.id = 2;
+    viewport.lens_length = 0.0;
+    document
+        .add_entity_to_layout(EntityType::Viewport(viewport), "Zero lens")
+        .unwrap();
+
+    let exported = cad_document_to_package(&document, options(), ExportOptions::default()).unwrap();
+    let root = std::env::temp_dir().join(format!("ifccad-zero-lens-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&root);
+    exported.package().write_directory(&root).unwrap();
+    let loaded = load_directory_package(&root).unwrap();
+    let drawing = loaded
+        .validated_package()
+        .unwrap()
+        .drawings()
+        .next()
+        .unwrap();
+    let paper = drawing
+        .layouts()
+        .find(|layout| layout.name() == "Zero lens")
+        .unwrap();
+    let resource = paper.representation().resource();
+    let entities = resource.entities(paper.scope().id()).collect::<Vec<_>>();
+    assert!(
+        matches!(entities.as_slice(), [IfcdrEntityRef::Viewport(viewport)]
+        if viewport.view().projection == ifccad::ifcdr::ProjectionMode::Orthographic
+            && viewport.view().lens_length == Some(0.0))
+    );
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+#[test]
 fn deferred_display_area_omits_complete_plot_settings_under_allow_and_rejects() {
     let mut document = CadDocument::new();
     let handle = document.add_layout("Display sheet").unwrap();

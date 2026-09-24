@@ -26,6 +26,7 @@ $cases = @(
     @('valid', 'viewport-perspective-at-camera', 'layout-viewport-plot'),
     @('valid', 'viewport-visible-default', 'layout-viewport-plot'),
     @('valid', 'viewport-omitted-lens', 'layout-viewport-plot'),
+    @('valid', 'viewport-zero-orthographic-lens', 'layout-viewport-plot'),
     @('invalid', 'missing-model-layout-selection', 'two-paper-layouts'),
     @('invalid', 'unselected-paper-scope', 'two-paper-layouts'),
     @('invalid', 'duplicate-paper-scope-selection', 'two-paper-layouts'),
@@ -53,6 +54,7 @@ $cases = @(
     @('invalid', 'viewport-missing-child-range', 'layout-viewport-plot'),
     @('invalid', 'viewport-zero-direction', 'layout-viewport-plot'),
     @('invalid', 'viewport-perspective-missing-lens', 'layout-viewport-plot'),
+    @('invalid', 'viewport-perspective-zero-lens', 'layout-viewport-plot'),
     @('invalid', 'layout-representation-cross-resource', 'empty-model-candidate'),
     @('invalid', 'layout-paper-kind-mismatch', 'two-paper-layouts')
 )
@@ -127,6 +129,7 @@ foreach ($case in $cases) {
             $directory.columns = @($directory.columns | Where-Object { $_ -ne 'visible' })
         }
         'viewport-omitted-lens' { $viewports.view[0].Remove('lensLength') }
+        'viewport-zero-orthographic-lens' { $viewports.view[0].lensLength = 0.0 }
         'missing-model-layout-selection' {
             $drawing.children.Layouts = @('layout-1','layout-2')
         }
@@ -197,6 +200,10 @@ foreach ($case in $cases) {
         'viewport-perspective-missing-lens' {
             $viewports.view[0].projection = 1
             $viewports.view[0].Remove('lensLength')
+        }
+        'viewport-perspective-zero-lens' {
+            $viewports.view[0].projection = 1
+            $viewports.view[0].lensLength = 0.0
         }
         'layout-representation-cross-resource' {
             $otherResource = Clone-Value $resource

@@ -336,8 +336,10 @@ are finite and strictly positive. View center is Point2 in model view/DCS
 coordinates; target is Point3 in model coordinates; direction is a finite,
 nonzero target-to-camera Vector3 whose magnitude is retained; view height is
 finite and positive; twist is finite radians. Lens length is finite and
-positive when present and required in Perspective, optional dormant state in
-Orthographic. The camera is `target + direction`. No separate FOV, camera
+nonnegative when present in Orthographic, where zero is permitted as dormant
+CAD state. Perspective requires a finite, strictly positive lens length.
+The lens may be omitted only in Orthographic. The camera is
+`target + direction`. No separate FOV, camera
 position or derived custom scale is stored. `paperHeight / viewHeight` is the
 derived orthographic height ratio, before plot mapping.
 

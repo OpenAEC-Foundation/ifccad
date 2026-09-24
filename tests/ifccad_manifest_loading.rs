@@ -53,7 +53,7 @@ fn loads_bundled_suite_in_manifest_order() {
     let manifest = load_conformance_manifest(bundled_conformance_root())
         .expect("load bundled conformance suite");
     assert_eq!(manifest.suite_version, "1.1.0");
-    assert_eq!(manifest.cases.len(), 125);
+    assert_eq!(manifest.cases.len(), 127);
     assert_eq!(
         manifest.cases.first().unwrap().case_id,
         "vector.canonicalization"

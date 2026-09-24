@@ -77,3 +77,10 @@ License 2.0. The adjacent `LICENSE` file contains the applicable license text.
   contract. Explicit 0.5.0/0.7.0 unsupported-version probes and the invalid
   999.0.0 inline body remain intentional. The reader's separate 0.9.0 support,
   schema snapshots, and numbered conformance releases were not changed.
+
+- Orthographic lens boundary (2026-09-24): added a valid package with an
+  explicitly stored zero lens length and an invalid perspective package with
+  the same value. These two generated candidate cases distinguish dormant CAD
+  state from an active perspective lens. The production reader and a focused
+  synthetic `CadDocument` export test exercise the boundary without embedding
+  the funderingsherstel drawing or modifying a numbered collection.
