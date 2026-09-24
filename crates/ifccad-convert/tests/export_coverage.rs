@@ -1,3 +1,4 @@
+use cadcodec::{classes::DxfClassCollection, objects::ObjectType};
 use cadcodec::{CadDocument, EntityType, Handle, Line, LineType, Vector3};
 use ifccad::package::PackageOptions;
 use ifccad::PackageId;
@@ -70,18 +71,24 @@ fn supported_entity_common_semantics_are_emitted_and_attached_semantics_are_repo
             ExportLossReason::EntityPlotStyle,
         ]
     );
+    assert!(!outcome.diagnostics().iter().any(|diagnostic| {
+        diagnostic.reasons().iter().any(|reason| {
+            matches!(
+                reason,
+                ExportLossReason::UnsupportedCollection { kind, .. }
+                if kind == "inventory.additional_relationships"
+            )
+        })
+    }));
 }
 
 #[test]
-fn document_tables_metadata_and_public_side_views_are_covered_deterministically() {
+fn document_tables_and_metadata_are_covered_deterministically() {
     let mut document = CadDocument::new();
     document.header.project_name = "IFCCAD pilot".to_owned();
     document.header.text_height = 9.0;
     document.summary_info.title = "Coverage drawing".to_owned();
     document.line_types.add(LineType::new("CUSTOM")).unwrap();
-    document
-        .context_scales
-        .insert(Handle::new(0x901), Handle::new(0x902));
 
     let outcome = cad_document_to_package(&document, package_options(), ExportOptions::default())
         .unwrap_or_else(|error| panic!("export failed: {error}"));
@@ -121,16 +128,6 @@ fn document_tables_metadata_and_public_side_views_are_covered_deterministically(
                 },
                 vec![ExportLossReason::UnsupportedTableRecords {
                     kind: "line_types".to_owned(),
-                    count: 1,
-                }],
-            ),
-            (
-                ExportDiagnosticSource::Collection {
-                    kind: "context_scales".to_owned(),
-                    count: 1,
-                },
-                vec![ExportLossReason::UnsupportedCollection {
-                    kind: "context_scales".to_owned(),
                     count: 1,
                 }],
             ),
@@ -363,4 +360,222 @@ fn assert_rejected(document: &CadDocument) {
         ),
         Err(ifccad_convert::ExportError::LossRejected { .. })
     ));
+}
+
+#[test]
+fn changed_bootstrap_content_is_not_hidden_by_unchanged_collection_lengths() {
+    let mut document = CadDocument::new();
+    document.dim_styles.get_mut("Standard").unwrap().dimdle = 2.5;
+    let group_dictionary = document
+        .objects
+        .get_mut(&document.header.acad_group_dict_handle)
+        .unwrap();
+    let ObjectType::Dictionary(group_dictionary) = group_dictionary else {
+        panic!("bootstrap group dictionary")
+    };
+    group_dictionary.duplicate_cloning = 2;
+
+    let mut classes = DxfClassCollection::new();
+    for mut class in document.classes.iter().cloned() {
+        if class.dxf_name == "LAYOUT" {
+            class.application_name = "Changed application".into();
+        }
+        classes.push_preserving(class);
+    }
+    document.classes = classes;
+
+    let outcome =
+        cad_document_to_package(&document, package_options(), ExportOptions::default()).unwrap();
+    for (kind, count) in [("dim_styles", 1), ("objects", 1), ("classes", 1)] {
+        assert!(
+            outcome
+                .diagnostics()
+                .iter()
+                .any(
+                    |diagnostic| diagnostic.reasons().iter().any(|reason| match reason {
+                        ExportLossReason::UnsupportedTableRecords {
+                            kind: actual,
+                            count: n,
+                        }
+                        | ExportLossReason::UnsupportedCollection {
+                            kind: actual,
+                            count: n,
+                        } => actual == kind && *n == count,
+                        _ => false,
+                    })
+                ),
+            "missing {kind} loss: {:?}",
+            outcome.diagnostics()
+        );
+    }
+    assert_rejected(&document);
+}
+
+#[test]
+fn decoded_side_view_does_not_create_independent_semantic_loss() {
+    let mut document = CadDocument::new();
+    document
+        .context_scales
+        .insert(Handle::new(0x901), Handle::new(0x902));
+    let outcome =
+        cad_document_to_package(&document, package_options(), ExportOptions::default()).unwrap();
+    assert!(outcome.diagnostics().is_empty());
+}
+
+#[test]
+fn renumbered_bootstrap_dictionary_is_still_the_same_scaffold() {
+    let mut document = CadDocument::new();
+    let old_handle = document.header.acad_group_dict_handle;
+    let new_handle = document.allocate_handle();
+    let mut group = document.objects.remove(&old_handle).unwrap();
+    let ObjectType::Dictionary(dictionary) = &mut group else {
+        panic!("bootstrap group dictionary")
+    };
+    dictionary.handle = new_handle;
+    document.objects.insert(new_handle, group);
+    document.header.acad_group_dict_handle = new_handle;
+    let ObjectType::Dictionary(root) = document
+        .objects
+        .get_mut(&document.header.named_objects_dict_handle)
+        .unwrap()
+    else {
+        panic!("bootstrap root dictionary")
+    };
+    let entry = root
+        .entries
+        .iter_mut()
+        .find(|(key, _)| key == "ACAD_GROUP")
+        .unwrap();
+    entry.1 = new_handle;
+
+    let outcome =
+        cad_document_to_package(&document, package_options(), ExportOptions::default()).unwrap();
+    assert!(
+        outcome.diagnostics().is_empty(),
+        "{:?}",
+        outcome.diagnostics()
+    );
+}
+
+#[test]
+fn resolved_entity_reactor_to_table_record_is_reported_once() {
+    let mut document = CadDocument::new();
+    let layer_handle = document.layers.get("0").unwrap().handle;
+    let entity_handle = document.add_entity(EntityType::Line(Line::new())).unwrap();
+    document
+        .get_entity_mut(entity_handle)
+        .unwrap()
+        .common_mut()
+        .reactors
+        .push(layer_handle);
+
+    let outcome =
+        cad_document_to_package(&document, package_options(), ExportOptions::default()).unwrap();
+    assert!(outcome.diagnostics().iter().any(|diagnostic| {
+        diagnostic
+            .reasons()
+            .contains(&ExportLossReason::EntityReactors)
+    }));
+    assert!(!outcome.diagnostics().iter().any(|diagnostic| {
+        diagnostic.reasons().iter().any(|reason| {
+            matches!(
+                reason,
+                ExportLossReason::UnsupportedCollection { kind, .. }
+                if kind == "inventory.additional_relationships"
+            )
+        })
+    }));
+}
+
+#[test]
+fn duplicate_standard_class_is_additional_source_content() {
+    let mut document = CadDocument::new();
+    let standard = document.classes.get_by_name("LAYOUT").unwrap().clone();
+    document.classes.push_preserving(standard);
+    let outcome =
+        cad_document_to_package(&document, package_options(), ExportOptions::default()).unwrap();
+    assert!(outcome
+        .diagnostics()
+        .iter()
+        .any(|diagnostic| diagnostic.reasons().contains(
+            &ExportLossReason::UnsupportedCollection {
+                kind: "classes".into(),
+                count: 1,
+            }
+        )));
+    assert_rejected(&document);
+}
+
+#[test]
+fn duplicate_standard_table_record_is_additional_source_content() {
+    let mut document = CadDocument::new();
+    let mut standard = document.dim_styles.get("Standard").unwrap().clone();
+    standard.handle = document.allocate_handle();
+    document.dim_styles.add_allow_duplicate(standard);
+    let outcome =
+        cad_document_to_package(&document, package_options(), ExportOptions::default()).unwrap();
+    assert!(outcome
+        .diagnostics()
+        .iter()
+        .any(|diagnostic| diagnostic.reasons().contains(
+            &ExportLossReason::UnsupportedTableRecords {
+                kind: "dim_styles".into(),
+                count: 1,
+            }
+        )));
+    assert_rejected(&document);
+}
+
+#[test]
+fn modified_dashed_linetype_definition_is_not_hidden_by_its_supported_name() {
+    let mut document = CadDocument::new();
+    let mut dashed = LineType::dashed();
+    dashed.handle = document.allocate_handle();
+    dashed.description = "Custom dash sequence".into();
+    document.line_types.add(dashed).unwrap();
+    let outcome =
+        cad_document_to_package(&document, package_options(), ExportOptions::default()).unwrap();
+    assert!(outcome
+        .diagnostics()
+        .iter()
+        .any(|diagnostic| diagnostic.reasons().contains(
+            &ExportLossReason::UnsupportedTableRecords {
+                kind: "line_types".into(),
+                count: 1,
+            }
+        )));
+    assert_rejected(&document);
+}
+
+#[test]
+fn extra_layout_dictionary_alias_is_not_treated_as_an_exported_layout() {
+    let mut document = CadDocument::new();
+    let layout_handle = document
+        .objects
+        .iter()
+        .find_map(|(handle, object)| match object {
+            ObjectType::Layout(layout) if layout.name == "Layout1" => Some(*handle),
+            _ => None,
+        })
+        .unwrap();
+    let ObjectType::Dictionary(dictionary) = document
+        .objects
+        .get_mut(&document.header.acad_layout_dict_handle)
+        .unwrap()
+    else {
+        panic!("layout dictionary")
+    };
+    dictionary.add_entry("Alias", layout_handle);
+    let outcome =
+        cad_document_to_package(&document, package_options(), ExportOptions::default()).unwrap();
+    assert!(outcome
+        .diagnostics()
+        .iter()
+        .any(|diagnostic| diagnostic.reasons().contains(
+            &ExportLossReason::UnsupportedCollection {
+                kind: "objects".into(),
+                count: 1,
+            }
+        )));
+    assert_rejected(&document);
 }

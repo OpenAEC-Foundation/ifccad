@@ -204,13 +204,12 @@ family, full IFCPR implementation or conformance release is implied by closure.
 
 ### Follow-up outside milestone 2
 
-- Integrate cadcodec fixes [#41](https://github.com/HakanSeven12/cadcodec/issues/41)
-  and [#42](https://github.com/HakanSeven12/cadcodec/issues/42), remove superseded
-  local patches, and rerun the same corpus with the shared dependency pin.
+- The cadcodec fixes tracked by [#41](https://github.com/HakanSeven12/cadcodec/issues/41)
+  and [#42](https://github.com/HakanSeven12/cadcodec/issues/42) are used through
+  the unmodified shared `5b682ed` pin; the full corpus passes. Older local
+  patches remain only as a historical reproduction recipe.
   [IFCCAD #9](https://github.com/OpenAEC-Foundation/ifccad/issues/9) tracks the
-  unfinished pin update and semantic-inventory coverage integration. Further
-  inventory integration is deferred until the scope/block design is complete;
-  it is not a prerequisite for that design. Upstream
+  subsequent semantic-inventory coverage integration. Upstream
   [field-level classification #50](https://github.com/HakanSeven12/cadcodec/issues/50)
   would strengthen coverage but does not block adoption of the current inventory.
 - Expand the practical corpus and supported native semantics in milestone 3.

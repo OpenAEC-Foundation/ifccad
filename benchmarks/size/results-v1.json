@@ -7137,9 +7137,9 @@
       }
     ],
     "repository_dirty": true,
-    "repository_revision": "cdea51a3f71f75af520bbcadd97d2282a4c2a8c7",
+    "repository_revision": "eca18ddead8766889a7ee76cf2554caa5b5cd8d9",
     "rustc": "rustc 1.98.0 (88d9e12ae 2026-08-18)\nbinary: rustc\ncommit-hash: 88d9e12ae178fab0fb5cc050a94da85685d449ea\ncommit-date: 2026-08-18\nhost: x86_64-pc-windows-msvc\nrelease: 1.98.0\nLLVM version: 22.1.8",
-    "source_manifest_sha256": "198d0bd671209fced8afe91bc1e0e85de73dbe4ac00de777144f01f863b5e5ee",
+    "source_manifest_sha256": "031292f65525c372e69087785e1e1712a79200d3272ae34e6412ea704d627352",
     "writers": {
       "dwg": "cadcodec normal AC1032, native compression",
       "dxf": "cadcodec text AC1032",

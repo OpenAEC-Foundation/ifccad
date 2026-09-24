@@ -2,11 +2,14 @@
 
 **Outcome: passed.** Repeatability: passed. Corpus: full-v1.
 
-Retained run: `layouts-viewports-final-fixed-20260923` (2026-09-23), IFCDR
+Retained run: `issue-9-inventory-final-20260924` (2026-09-24), IFCDR
 0.10.0, IFCX overlay 0.12.0, unmodified cadcodec revision
 `5b682ed66ea2c89be8142c8dd83d83774fc3de08`. No local dependency
 override was used; `baseline_accepted` is true. The matching detailed
 measurements and provenance are in [results-v1.json](../../benchmarks/size/results-v1.json).
+The inventory-led converter coverage passed the full exchange and repeatability
+checks. Every artifact hash and measurement matches the previous accepted
+`layouts-viewports-final-fixed-20260923` run; only source provenance changed.
 The unchanged primitive corpus measures candidate activation overhead and
 existing exchange paths, not the compression benefit of repeated blocks or
 viewports. An earlier run exposed inert DXF `Layout1` scaffold handling; a
@@ -158,7 +161,7 @@ The JSON retains executed stages, import/export diagnostics and scoped assessmen
 
 ## Repeatability and reproduction
 
-Repository revision: cdea51a3f71f75af520bbcadd97d2282a4c2a8c7 (dirty: true). Two fresh runs compare measurements and hashes of every produced artifact, including chain outputs.
+Repository revision: eca18ddead8766889a7ee76cf2554caa5b5cd8d9 (dirty: true). Two fresh runs compare measurements and hashes of every produced artifact, including chain outputs.
 
 | Case | Output | Same byte count | Identical files |
 | --- | --- | --- | --- |
