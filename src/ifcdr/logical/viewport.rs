@@ -85,12 +85,17 @@ pub(super) fn check_viewport<R: IfcdrResourceAccess>(
             "view values must be finite, with nonzero direction and positive height",
         );
     }
-    if view
-        .lens_length
-        .is_some_and(|lens| !lens.is_finite() || lens <= 0.0)
-        || (view.projection == ProjectionMode::Perspective && view.lens_length.is_none())
-    {
-        reject("view", "perspective requires a positive finite lens length");
+    let valid_lens = match (view.projection, view.lens_length) {
+        (ProjectionMode::Orthographic, None) => true,
+        (ProjectionMode::Orthographic, Some(lens)) => lens.is_finite() && lens >= 0.0,
+        (ProjectionMode::Perspective, Some(lens)) => lens.is_finite() && lens > 0.0,
+        (ProjectionMode::Perspective, None) => false,
+    };
+    if !valid_lens {
+        reject(
+            "view",
+            "lens length must be finite and nonnegative in Orthographic, positive in Perspective",
+        );
     }
     let front = view.front_clip;
     let back = view.back_clip;
