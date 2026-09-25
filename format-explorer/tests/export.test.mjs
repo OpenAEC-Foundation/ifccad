@@ -27,7 +27,7 @@ test('job manager forwards export selection and cleans source staging before ret
  try{
   const {id}=manager.create({kind:'cad',name:'source.dwg',files:[{path:'source.dwg',base64:'YWJj'}],export:{format:'dxf',drawing:'drawing-0'}});
   while(manager.get(id).status==='running')await new Promise(r=>setTimeout(r,5));
-  assert.deepEqual(options.export,{format:'dxf',drawing:'drawing-0'});
+  assert.deepEqual(options.export,{format:'dxf',drawing:'drawing-0',version:'AC1032'});
   assert.equal(manager.get(id).result.export.download.base64,'YWJj');
   await assert.rejects(readFile(options.input),{code:'ENOENT'});
   manager.cancel(id);assert.equal(manager.get(id),null);
@@ -35,7 +35,14 @@ test('job manager forwards export selection and cleans source staging before ret
 });
 test('export options survive validation and reject unexpected format or drawing',()=>{
  const request={kind:'package',files:[{path:'package.ifcx.json',base64:'e30='}],export:{format:'dwg',drawing:'drawing-main'}};
- assert.deepEqual(validateUpload(request).export,request.export);
+ assert.deepEqual(validateUpload(request).export,{...request.export,version:'AC1032'});
  assert.equal(validateUpload({...request,export:{format:'ifccad'}}).export.format,'ifccad');
  for(const value of [{format:'exe',drawing:'x'},{format:'dxf',drawing:''},{format:'dxf',drawing:12}])assert.throws(()=>validateUpload({...request,export:value}));
+});
+test('CAD export defaults to 2018 and keeps a supported target version',()=>{
+ const request={kind:'package',files:[{path:'package.ifcx.json',base64:'e30='}],export:{format:'dwg',drawing:'drawing-main'}};
+ assert.equal(validateUpload(request).export.version,'AC1032');
+ assert.equal(validateUpload({...request,export:{...request.export,version:'AC1021'}}).export.version,'AC1021');
+ for(const version of ['AC1009','Unknown',''])assert.throws(()=>validateUpload({...request,export:{...request.export,version}}));
+ assert.throws(()=>validateUpload({...request,export:{format:'ifccad',version:'AC1032'}}));
 });

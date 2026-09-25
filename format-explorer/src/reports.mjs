@@ -15,6 +15,7 @@ export function renderExportReport(container,result){
  }else if(exp){
   container.append(el('p',exp.assessment.conclusion==='LossDetected'?'Informatieverlies vastgesteld':'Niet volledig beoordeeld'));
   const selected=el('p');selected.append(el('span','Tekening'),el('code',' '+exp.drawing+' · '+exp.format.toUpperCase()+' · '+exp.entityCount+' '),el('span','entiteiten'));container.append(selected);
+  if(exp.effectiveVersion)container.append(el('p','CAD-versie: '+exp.effectiveVersion));
   container.append(el('p','IFCPR-brondata wordt niet teruggezet. De beoordeling betreft de geselecteerde native tekening, niet het volledige pakket.','small-note'));
   container.append(el('p','Geen meldingen betekent niet dat de export verliesloos is. Metadata en sommige weergave-eigenschappen zijn nog niet volledig beoordeeld.','small-note'));
   if(exp.fileCheck?.readable)container.append(el('p','Het geschreven bestand is opnieuw ingelezen. Dit controleert de leesbaarheid, niet het volledige behoud van alle eigenschappen.','small-note'));

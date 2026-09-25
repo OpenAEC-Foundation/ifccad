@@ -27,3 +27,24 @@ test('block demo preserves shared geometry, signed scales and inspectable defaul
   }finally{globalThis.document=previous;}
   assert.equal(JSON.stringify(f),before);
 });
+
+test('high-degree nodes can browse every inspector relation',async()=>{
+  const fixture=(await readExamples()).find(f=>f.name==='blocks-demo'),model=buildModel(fixture);
+  const id='resource:drawing-blocks-demo',elements=new Map(),previous=globalThis.document;
+  for(let i=0;i<135;i++){const target='test:reference:'+i;model.byId.set(target,{id:target,label:'Target '+i});model.edges.push({source:id,target,relation:'testReference'});}
+  globalThis.document={getElementById:key=>{if(!elements.has(key))elements.set(key,{});return elements.get(key);}};
+  try{
+    renderInspector(model,id,new Set());
+    let html=elements.get('selection-links').innerHTML;
+    const relationCount=model.edges.filter(e=>e.source===id||e.target===id).length;
+    assert.match(html,new RegExp(`Verbindingen <span class="relation-count">${relationCount}<\\/span>`));
+    assert.match(html,/data-page-id="relations:resource:drawing-blocks-demo"/);
+    assert.match(html,/Target 0/);
+    assert.doesNotMatch(html,/Target 134/);
+    model.inspectorPages.set('relations:'+id,7);
+    renderInspector(model,id,new Set());
+    html=elements.get('selection-links').innerHTML;
+    assert.match(html,/Target 134/);
+    assert.doesNotMatch(html,/Target 0/);
+  }finally{globalThis.document=previous;}
+});

@@ -3,7 +3,7 @@ mod cad;
 mod cad_export;
 mod package;
 pub use cad::inspect_cad;
-pub use cad_export::{export_cad, export_package};
+pub use cad_export::{export_cad, export_cad_versioned, export_package, export_package_versioned};
 pub use package::inspect_package;
 use serde_json::{json, Value};
 use std::path::Path;

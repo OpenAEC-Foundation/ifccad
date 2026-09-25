@@ -18,7 +18,7 @@ async function request(path, options={}) {
       res.on('end',()=>{
         if(res.statusCode<200||res.statusCode>=300)return reject(Error(`${path}: HTTP ${res.statusCode}`));
         const body=Buffer.concat(chunks).toString();
-        resolve({json:()=>JSON.parse(body),text:()=>body});
+        resolve({headers:res.headers,json:()=>JSON.parse(body),text:()=>body});
       });
     });
     req.on('error',reject);req.end(options.body);
@@ -32,7 +32,17 @@ assert.equal(capabilities.processing,'server');
 const html=await (await request('/')).text();
 assert.match(html,/id="export-format"/);
 assert.ok(html.indexOf('id="export-format"')<html.indexOf('id="export-drawing"'));
+assert.match(html,/id="preview-open"/);
 if(mode==='full') {
+  const ocsHtml=await (await request('/ocs/app/index.html')).text();
+  assert.match(ocsHtml,/ocs-bridge\.mjs/);
+  const wasm=ocsHtml.match(/\/ocs\/app\/([^'"\s]+\.wasm)/);
+  assert.ok(wasm,'Open CAD Studio WASM reference is missing');
+  const wasmHead=await request('/ocs/app/'+wasm[1],{method:'HEAD'});
+  assert.equal(wasmHead.headers['content-type'],'application/wasm');
+  assert.equal(wasmHead.headers['x-frame-options'],'SAMEORIGIN');
+  const workerHead=await request('/ocs/app/worker_pkg/ocs_web_worker_bg.wasm',{method:'HEAD'});
+  assert.equal(workerHead.headers['content-type'],'application/wasm');
   const examples=JSON.parse(await readFile(new URL('../dist/examples.json',import.meta.url),'utf8'));
   const example=examples.find(value=>value.name==='unrepresented-packed');
   const source={kind:'package',name:'Deployment smoke test',files:example.exportFiles};
@@ -56,14 +66,14 @@ if(mode==='full') {
   }
   await job(source);
   for(const format of ['dxf','dwg','ifccad']) {
-    const result=await job({...source,export:{format,drawing:'drawing-main'}});
+    const result=await job({...source,export:format==='ifccad'?{format}:{format,drawing:'drawing-main',version:'AC1027'}});
     const download=result.export?.download;
     assert.equal(download?.format,format);
     const bytes=Buffer.from(download.base64,'base64');
     assert.equal(bytes.length,download.byteLength);
     assert.ok(bytes.length>100);
     if(format==='ifccad')assert.equal(bytes.subarray(0,2).toString(),'PK');
-    else await job({kind:'cad',name:'Deployment readback',files:[{path:'readback.'+format,base64:download.base64}]});
+    else{assert.equal(result.export.effectiveVersion,'AC1027');await job({kind:'cad',name:'Deployment readback',files:[{path:'readback.'+format,base64:download.base64}]});}
     console.log(`Verified ${format} export${format==='ifccad'?'':' and CAD reopening'}`);
   }
 }

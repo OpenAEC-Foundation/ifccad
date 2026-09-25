@@ -58,9 +58,11 @@ code{font-family:var(--font-code);font-size:13px;overflow-wrap:anywhere}
 .graph-stage>svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
 .graph-stage>svg:active{cursor:grabbing}
 .graph-hint{position:absolute;top:14px;left:20px;right:20px;pointer-events:none;font-size:12px;color:#62626c}
-.graph-tools{position:absolute;bottom:18px;right:18px;display:flex;gap:1px;align-items:center;border:1px solid var(--line);border-radius:8px;background:var(--surface);box-shadow:0 3px 12px #36363e10}
-.graph-tools button{border:0;border-radius:0;background:none;font-size:13px;padding:9px 10px}
+.graph-reference-summary{position:absolute;top:12px;right:18px;max-width:48%;padding:4px 8px;border:1px solid var(--line);border-radius:4px;background:var(--surface);color:var(--muted);font-size:11px;pointer-events:none}
+.graph-tools{position:absolute;bottom:18px;right:18px;display:flex;gap:1px;align-items:center;max-width:calc(100% - 36px);overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface);box-shadow:0 3px 12px #36363e10}
+.graph-tools button{border:0;border-radius:0;background:none;font-size:13px;padding:9px 10px;white-space:nowrap;flex-shrink:0}
 .graph-tools button:hover{background:#fff7ed}
+.graph-tools button[aria-pressed=true]{background:var(--d-soft);color:var(--ink);font-weight:700}
 .graph-tools output{font-size:12px;min-width:39px;text-align:center;font-variant-numeric:tabular-nums}
 .graph-legend{position:absolute;bottom:24px;left:20px;display:flex;gap:15px;font-size:12px;pointer-events:none}
 .graph-legend span{display:flex;align-items:center;gap:6px}
@@ -340,3 +342,20 @@ code{font-family:var(--font-code);font-size:13px;overflow-wrap:anywhere}
  .graph-legend{top:8px;bottom:auto}
  .graph-tools{bottom:8px}
 }
+
+.cad-preview{display:flex;flex-direction:column;flex:1;min-width:0;min-height:0;margin:0 24px;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.preview-heading{padding:10px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:16px}
+.preview-heading h1{margin-top:2px}
+.preview-controls{display:flex;align-items:end;gap:14px;padding:10px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.preview-controls label{display:flex;flex-direction:column;gap:4px;min-width:130px;font-size:12px;color:var(--muted)}
+.preview-controls select{font-size:13px;color:var(--ink)}
+.preview-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,320px);flex:1;min-height:0;min-width:0}
+.preview-canvas{position:relative;min-width:0;min-height:0;background:#1e1e1e;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+.preview-frame{position:absolute;inset:0}
+.preview-frame iframe{width:100%;height:100%;border:0;display:block}
+#preview-viewer-status,#preview-retry{position:relative;z-index:1;background:#2a2a32;color:#fafaf9;padding:8px 12px;border-radius:6px;max-width:80%;text-align:center;font-size:13px}
+#preview-retry{border:1px solid #71717a}
+.preview-details{min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;padding:18px;border-left:1px solid var(--line)}
+.preview-details h2{font-size:20px}.preview-details>p{font-size:13px;line-height:1.5}.preview-details .download-button{margin-top:12px}
+.preview-details #preview-report{margin-top:18px;font-size:13px}.preview-details #preview-report h3{margin-top:12px}.preview-details #preview-report details{margin-top:12px}.preview-details #preview-report pre{overflow:auto;max-height:220px}
+@media(max-width:760px){.cad-preview{margin:0 10px}.preview-body{grid-template-columns:1fr;grid-template-rows:minmax(200px,1fr) minmax(110px,26dvh)}.preview-details{border-left:0;border-top:1px solid var(--line);padding:10px 14px}.preview-controls{gap:8px;padding:8px 12px}.preview-controls label{min-width:95px;flex:1}.preview-heading{padding:8px 12px}}

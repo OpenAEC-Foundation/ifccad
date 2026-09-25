@@ -1,4 +1,5 @@
 /dist/
+/ocs-build/
 /.sites-runtime/
 /test-results/
 /node_modules/

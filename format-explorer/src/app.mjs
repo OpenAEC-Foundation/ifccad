@@ -5,13 +5,14 @@ import { t, translateTree } from './i18n.mjs';
 import { initializeSettings } from './settings.mjs';
 import { initializeOpening } from './open-files.mjs';
 import { initializeExporting } from './export-files.mjs';
+import { initializeCadPreview } from './cad-preview.mjs';
 import { decodeBundle } from './bundle.mjs';
 import { renderReport } from './reports.mjs';
 import { initializeWorkspace } from './workspace.mjs';
 const $=id=>document.getElementById(id);
 let examples=[],model,collapsed=new Set(),selected='';
 let result=null,reportNavigable=false,knownNodes=new Set();
-const graph=new PackageGraph($('graph'),{select,toggle,zoomChanged:n=>$('zoom-level').textContent=n+'%',countChanged:(n,total)=>$('graph-count').textContent=n+' / '+total+' nodes'});
+const graph=new PackageGraph($('graph'),{select,toggle,zoomChanged:n=>$('zoom-level').textContent=n+'%',countChanged:(n,total)=>$('graph-count').textContent=n+' / '+total+' nodes',referenceCountChanged:n=>{const summary=$('graph-reference-summary');summary.hidden=n===0;summary.textContent=n?t(`${n} meer relaties in inspecteur`):'';}});
 function render(){for(const n of model.nodes){if(!knownNodes.has(n.id)&&model.defaultCollapsed.has(n.id))collapsed.add(n.id);knownNodes.add(n.id);}graph.render(model,collapsed,selected);renderInspector(model,selected,collapsed);translateTree($('inspector'));}
 function refreshPresentation(){
   if(model){
@@ -34,16 +35,19 @@ function openResult(value,request){
     try{const fixture=decodeBundle(value.presentation);fixture.name=fixture.label=value.source.name;const next=buildModel(fixture);model=next;knownNodes=new Set();collapsed=new Set(model.defaultCollapsed);selected=model.roots[0];reportNavigable=true;document.getElementById('local-option')?.remove();const option=document.createElement('option');option.id='local-option';option.value='local';option.textContent=value.source.name;option.disabled=true;$('example').append(option);$('example').value='local';$('example-description').textContent=value.source.name;$('example-status').textContent='Geopend pakket';$('concept-key').hidden=true;render();graph.fit();}
     catch(error){value.failure={stage:'preparing',code:'VIEWER_DISPLAY_FAILED',message:error.message};reportNavigable=false;({model,collapsed,selected,knownNodes}=previous);$('example').replaceChildren(...previous.options.map(o=>Object.assign(document.createElement('option'),o)));$('example').value=previous.example;$('example-description').textContent=previous.description;$('example-status').textContent=previous.status;$('concept-key').hidden=previous.concept;if(model){render();graph.camera=previous.camera;graph.apply();}}
   }
-  if(reportNavigable)exporter.setSource(request,model.fixture);
+  if(reportNavigable){exporter.setSource(request,model.fixture);preview.setSource(request,model.fixture,request.kind==='cad'?{name:request.files[0].path,base64:request.files[0].base64}:null);}
+  else preview.clear();
   $('report-panel').hidden=false;$('report-panel').open=true;showReport();workspaceView.focusReport(true);translateTree(document.body);$('report-panel').scrollTop=0;
 }
 function openExample(value){const concept=value==='concept',fixture=examples.find(e=>e.name===(concept?'unrepresented-packed':value));model=buildModel(fixture,{concepts:concept});collapsed=new Set(model.defaultCollapsed);selected=model.roots.find(id=>id!=='group:definitions');
   workspaceView.focusReport(false);
   knownNodes=new Set(model.byId.keys());result=null;reportNavigable=false;$('report-panel').hidden=true;
   exporter.setSource(concept?null:{kind:'package',name:fixture.name,files:fixture.exportFiles},fixture);
-  if(concept){selected='concept:collection:circle';for(const family of ['circle','dimension']){const id='concept:collection:'+family;revealNode(model,collapsed,id);collapsed.delete(id);}}
-  $('example-description').textContent=concept?'Circle en dimension: twee losse voorbeelden van extra CAD-entiteittypen.':fixture.description;
-  $('example-status').textContent=concept?'Concept · nog niet ondersteund':'Actueel contract · IFCDR 0.9.0 / IFCPR 0.2.0';$('concept-key').hidden=!concept;render();translateTree(document.body);$('inspector').scrollTop=0;if(concept)graph.frame(['resource:drawing-main',selected,'concept:collection:dimension','entity:drawing-main:5','entity:drawing-main:6']);else graph.fit();
+  preview.setSource(concept?null:{kind:'package',name:fixture.name,files:fixture.exportFiles},fixture);
+  if(concept){selected='concept:collection:dimension';revealNode(model,collapsed,selected);collapsed.delete(selected);}
+  $('example-description').textContent=concept?'Dimension als voorbeeld van een verdere CAD-entiteit.':fixture.description;
+  const version=fixture.ifcx.data.find(n=>n.attributes?.resource?.format==='openaec.ifcdr')?.attributes.resource.version;
+  $('example-status').textContent=concept?'Concept · nog niet ondersteund':`IFCDR ${version} / IFCPR 0.2.0`;$('concept-key').hidden=!concept;render();translateTree(document.body);$('inspector').scrollTop=0;if(concept)graph.frame(['resource:drawing-main',selected,'entity:drawing-main:6']);else graph.fit();
 }
 async function initialize(){
   $('load-error').hidden=true;$('workspace').setAttribute('aria-busy','true');
@@ -54,6 +58,7 @@ async function initialize(){
 }
 $('example').addEventListener('change',e=>{try{openExample(e.target.value);}catch(error){$('load-error').hidden=false;$('error-message').textContent=error.message;}});
 $('zoom-in').addEventListener('click',()=>graph.zoom(1.2));$('zoom-out').addEventListener('click',()=>graph.zoom(1/1.2));$('fit').addEventListener('click',()=>graph.fit());$('collapse').addEventListener('click',()=>{collapsed=new Set(model.defaultCollapsed);selected=model.roots.find(id=>id!=='group:definitions');render();graph.fit();});
+$('graph-relations').addEventListener('click',e=>{graph.referenceMode=graph.referenceMode==='focus'?'all':'focus';e.currentTarget.setAttribute('aria-pressed',graph.referenceMode==='all');render();});
 function changePage(target,page){
  if(!Number.isFinite(page))return;
  const scroll=$('inspector').scrollTop,id=target.dataset.pageId,kind=target.dataset.pageKind;
@@ -69,5 +74,7 @@ const workspaceView=initializeWorkspace(translateTree);
 $('retry').addEventListener('click',initialize);
 initializeSettings(refreshPresentation);
 const exporter=initializeExporting();
+const preview=initializeCadPreview();
+$('preview-open').addEventListener('click',()=>{workspaceView.focusReport(false);$('report-panel').open=false;});
 initializeOpening({onResult:openResult});
 initialize();

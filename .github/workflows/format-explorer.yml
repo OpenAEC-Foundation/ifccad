@@ -13,6 +13,61 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  ocs:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          repository: HakanSeven12/OpenCADStudio
+          ref: 0d023d267bc5b7afeca3b54e98875b0efd4f3926
+          path: ocs-upstream
+      - uses: actions/cache@v4
+        id: web-cache
+        with:
+          path: ocs-upstream/dist/app
+          key: ocs-web-v2026.38-0d023d2-linux-trunk
+      - uses: dtolnay/rust-toolchain@stable
+        if: steps.web-cache.outputs.cache-hit != 'true'
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+        if: steps.web-cache.outputs.cache-hit != 'true'
+        with:
+          workspaces: ocs-upstream
+      - uses: taiki-e/install-action@v2
+        if: steps.web-cache.outputs.cache-hit != 'true'
+        with:
+          tool: trunk
+      - name: Read pinned wasm-bindgen version
+        if: steps.web-cache.outputs.cache-hit != 'true'
+        id: wasm-bindgen-version
+        working-directory: ocs-upstream
+        run: |
+          VERSION=$(sed -n '/name = "wasm-bindgen"/{n;s/version = "\(.*\)"/\1/p;q;}' Cargo.lock)
+          test -n "$VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      - uses: taiki-e/install-action@v2
+        if: steps.web-cache.outputs.cache-hit != 'true'
+        with:
+          tool: wasm-bindgen@${{ steps.wasm-bindgen-version.outputs.version }}
+      - name: Build pinned web viewer
+        if: steps.web-cache.outputs.cache-hit != 'true'
+        working-directory: ocs-upstream
+        run: trunk build --locked --release --public-url /ocs/app/ --dist dist/app --html-output index.html web-app.html
+      - name: Complete the self-hosted viewer bundle
+        run: |
+          test -s ocs-upstream/dist/app/index.html
+          test -n "$(find ocs-upstream/dist/app -name '*.wasm' -print -quit)"
+          cp ocs-upstream/LICENSE ocs-upstream/dist/app/LICENSE
+          printf '[]\n' > ocs-upstream/dist/app/supporters.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ocs-web-v2026.38
+          path: ocs-upstream/dist/app/
+          retention-days: 7
+
   checks:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
@@ -37,12 +92,17 @@ jobs:
 
   build:
     if: github.ref == 'refs/heads/main'
+    needs: [ocs]
     runs-on: ubuntu-24.04
     # Match the existing Node 22 / Debian 12 production container's libc.
     container: rust:bookworm
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          name: ocs-web-v2026.38
+          path: format-explorer/ocs-build
       - uses: actions/setup-node@v5
         with:
           node-version: '22'
@@ -56,6 +116,8 @@ jobs:
           cache-bin: 'false'
       - name: Check website and deployment recovery
         run: |
+          test -s format-explorer/ocs-build/index.html
+          test -n "$(find format-explorer/ocs-build -name '*.wasm' -print -quit)"
           bash -n format-explorer/deploy/release.sh
           npm --prefix format-explorer test
           npm --prefix format-explorer run build

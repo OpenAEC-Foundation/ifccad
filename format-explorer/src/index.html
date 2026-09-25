@@ -33,7 +33,7 @@
           <label class="theme-option"><input type="radio" name="appearance" value="dark"><span class="theme-swatch dark" aria-hidden="true"></span><strong>Donker</strong><span>Deep Forge met lichte tekst en amber accenten.</span></label>
           <label class="theme-option"><input type="radio" name="appearance" value="auto"><span class="theme-swatch automatic" aria-hidden="true"></span><strong>Volg het systeem</strong><span>Past zich aan de licht/donker-instelling van je apparaat aan.</span></label>
         </fieldset></section>
-        <section id="panel-about" role="tabpanel" aria-labelledby="tab-about" tabindex="0" hidden><h3>IFCCAD Format Explorer</h3><p class="small-note">Versie <span data-no-i18n>0.1.0</span></p><p class="small-note" data-no-i18n>IFCDR 0.9.0 · IFCPR 0.2.0</p><div id="settings-about"></div></section>
+        <section id="panel-about" role="tabpanel" aria-labelledby="tab-about" tabindex="0" hidden><h3>IFCCAD Format Explorer</h3><p class="small-note">Versie <span data-no-i18n>0.1.0</span></p><p class="small-note" data-no-i18n>IFCX 0.13.0 · IFCDR 0.11.0 · IFCPR 0.2.0</p><div id="settings-about"></div></section>
       </div>
     </div>
     <footer class="settings-footer"><p id="settings-status" role="status">Wijzigingen zijn een preview tot je opslaat.</p><div><button id="settings-cancel">Annuleren</button><button id="settings-save" class="primary-button">Opslaan</button></div></footer>
@@ -48,7 +48,7 @@
       <header class="settings-header"><h2 id="export-title">Exporteren</h2><button id="export-close" aria-label="Sluiten">×</button></header>
       <div class="settings-content">
         <p id="export-source-note"></p>
-        <div class="export-options"><label for="export-format">Bestandsformaat<select id="export-format"><option value="dxf">DXF</option><option value="dwg">DWG</option><option value="ifccad">IFCCAD-pakket (ZIP)</option></select></label><label for="export-drawing" id="export-drawing-label">Tekening<select id="export-drawing"></select></label></div>
+        <div class="export-options"><label for="export-format">Bestandsformaat<select id="export-format"><option value="dxf">DXF</option><option value="dwg">DWG</option><option value="ifccad">IFCCAD-pakket (ZIP)</option></select></label><label for="export-drawing" id="export-drawing-label">Tekening<select id="export-drawing"></select></label><label for="export-version" id="export-version-label">CAD-versie<select id="export-version"></select></label></div>
         <p id="export-status" role="status"></p><div id="export-report"></div>
       </div>
       <footer class="settings-footer"><button id="export-cancel" hidden>Annuleren</button><div><button id="export-run" class="primary-button">Export maken</button><a id="export-download" class="download-button" hidden download>Download</a></div></footer>
@@ -57,6 +57,7 @@
       <div class="example-control"><span class="eyebrow">Verken een pakket</span><label class="sr-only" for="example">Voorbeeld</label><select id="example" disabled><option>Voorbeelden laden…</option></select></div>
       <button id="open-files">Bestand openen</button>
       <button id="export-open" disabled>Exporteren</button>
+      <button id="preview-open" disabled>Tekening bekijken</button>
       <div class="version-info"><span class="status-dot"></span><span id="example-status">Repo-voorbeelden</span></div>
     </section>
     <details id="report-panel" class="report-panel" hidden><summary><span>Inlees- en validatierapport</span><button id="report-expand" aria-expanded="false" aria-controls="report-panel">Rapport vergroten</button></summary><div id="file-report"></div></details>
@@ -66,8 +67,9 @@
         <div class="panel-heading"><div><span class="eyebrow">01 / Samenhang</span><h1 id="graph-heading">De graph van het pakket</h1></div><span class="graph-count" id="graph-count"></span></div>
         <div class="graph-stage" id="graph-stage">
           <svg id="graph" role="group" aria-label="Interactieve pakketgraph. Selecteer een node met Enter. Gebruik de plus- en minknoppen om relaties uit te klappen."></svg>
-          <div class="graph-hint" id="graph-hint">Klap uit met + · sleep om te bewegen</div>
-          <div class="graph-tools" aria-label="Graphweergave"><button id="zoom-out" aria-label="Uitzoomen">−</button><output id="zoom-level">100%</output><button id="zoom-in" aria-label="Inzoomen">+</button><button id="fit">Passend</button><button id="collapse">Overzicht</button></div>
+          <div class="graph-hint" id="graph-hint">Klap uit met + · selecteer voor verwijzingen · sleep om te bewegen</div>
+          <span class="graph-reference-summary" id="graph-reference-summary" role="status" hidden></span>
+          <div class="graph-tools" aria-label="Graphweergave"><button id="zoom-out" aria-label="Uitzoomen">−</button><output id="zoom-level">100%</output><button id="zoom-in" aria-label="Inzoomen">+</button><button id="fit">Passend</button><button id="collapse">Overzicht</button><button id="graph-relations" aria-pressed="false" title="Toon ook verwijzingen tussen alle zichtbare nodes">Alle relaties</button></div>
           <div class="graph-legend"><span><i class="dot ifcx"></i>IFCX</span><span><i class="dot ifcdr"></i>IFCDR</span><span><i class="dot ifcpr"></i>IFCPR</span><span class="concept-key" id="concept-key" hidden>◇ Concept</span></div>
         </div>
         <div class="graph-footer"><span id="example-description">Het pakket wordt geladen.</span></div>
@@ -82,12 +84,17 @@
         <div class="inspector-status" aria-live="polite" id="selection-announcement"></div>
       </aside>
     </div>
+    <section id="cad-preview" class="cad-preview" aria-label="CAD-preview" hidden>
+      <header class="preview-heading"><div><span class="eyebrow">03 / CAD-preview</span><h1>Tekening bekijken</h1></div><button id="preview-close">Structuur</button></header>
+      <div class="preview-controls"><label for="preview-drawing">Tekening<select id="preview-drawing"></select></label><label for="preview-format">Tussenformaat<select id="preview-format"><option value="dxf">DXF</option><option value="dwg">DWG</option></select></label><label for="preview-version">CAD-versie<select id="preview-version"></select></label></div>
+      <div class="preview-body"><div class="preview-canvas"><div id="preview-frame" class="preview-frame"></div><p id="preview-viewer-status" role="status">Open CAD Studio wordt voorbereid…</p><button id="preview-retry" hidden>Opnieuw proberen</button></div><aside class="preview-details" aria-label="Roundtriprapport"><h2>Via IFCCAD</h2><p id="preview-status" role="status"></p><a id="preview-download" class="download-button" hidden download>Download CAD</a><div id="preview-report"></div></aside></div>
+    </section>
   </main>
   <footer class="page-footer"><span>IFCCAD / Open CAD format</span><button id="support-toggle" aria-haspopup="dialog" aria-controls="support-dialog">Wat werkt al, wat is concept? <span aria-hidden="true">↗</span></button></footer>
   <dialog id="support-dialog" class="settings-dialog support-dialog" aria-labelledby="support-title">
     <header class="settings-header"><h2 id="support-title">Ondersteuning is expliciet</h2><button id="support-close" aria-label="Sluiten">×</button></header>
     <section class="support" id="support">
-    <div class="support-grid"><div><span class="eyebrow">Native / IFCDR 0.9.0</span><h3>Lijnen, polylijnen en lokale blocks</h3><p>XYZ-lijnen, vlakgeplaatste polylijnen, model/paper-scopes en gedeelde blockdefinities met plaatsing, rotatie en schaal.</p></div><div><span class="eyebrow">Gedeeltelijk / IFCPR 0.2.0</span><h3>Een contract voor bronbehoud</h3><p>Schema, fixtures en beperkte lezerchecks bestaan. Volledige validatie en preserve/restore via de converter zijn nog niet beschikbaar.</p></div><div><span class="eyebrow">Concept / toekomstige families</span><h3>Aanvullende CAD-entiteiten</h3><p>Aanvullende CAD-entiteittypen vragen eigen native semantiek, registratie, validatie en conversie. De voorbeelden verkennen mogelijke uitbreidingen; de uiteindelijke uitwerking staat nog open.</p></div></div>
+    <div class="support-grid"><div><span class="eyebrow">Native / IFCDR 0.11.0</span><h3>Punten, lijnen, polylijnen, curves, blocks en viewports</h3><p>Vlakke en ruimtelijke polylijnen, cirkels, bogen, ellipsen en punten hebben eigen streams. Model- en paper-layouts, blocks en plotinstellingen blijven onderdeel van het contract. DXF/DWG-conversie meldt per bronveld waar informatie verloren gaat.</p></div><div><span class="eyebrow">Gedeeltelijk / IFCPR 0.2.0</span><h3>Een contract voor bronbehoud</h3><p>Schema, fixtures en beperkte lezerchecks bestaan. Volledige validatie en preserve/restore via de converter zijn nog niet beschikbaar.</p></div><div><span class="eyebrow">Concept / toekomstige families</span><h3>Aanvullende CAD-entiteiten</h3><p>Een dimension illustreert een mogelijke verdere CAD-entiteit. Dit voorbeeld is geen vastgesteld schema of ondersteunde conversie.</p></div></div>
     <p class="support-source">Bronnen: <code>schemas/</code>, <code>conformance/next/COMPATIBILITY.md</code>, converter coverage en <code>ROADMAP.md</code>. <a href="https://github.com/OpenAEC-Foundation/ifccad/issues/2" target="_blank" rel="noreferrer">Ontwerpcontext: typed payloads ↗</a></p>
   </section>
   </dialog>

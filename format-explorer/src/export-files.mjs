@@ -1,18 +1,20 @@
 import {createJobClient} from './job-client.mjs';
 import {renderExportReport} from './reports.mjs';
 import {translateTree} from './i18n.mjs';
+import {cadVersions,defaultCadVersion} from './cad-formats.mjs';
 
 export function drawingChoices(fixture){return (fixture?.ifcx?.data||[]).filter(n=>n.type==='openaec:Drawing').map(n=>({id:n.path,label:n.attributes?.name||n.path}));}
 export function downloadName(name,format){return (String(name).replace(/\.(dxf|dwg|ifccad|zip)$/i,'').replace(/[^\p{L}\p{N}._ -]/gu,'_').slice(0,110)||'drawing')+'-ifccad.'+(format==='ifccad'?'zip':format);}
 export function initializeExporting(){
  const $=id=>document.getElementById(id),dialog=$('export-dialog'),client=createJobClient();
+ $('export-version').replaceChildren(...cadVersions.map(([code,year])=>{const option=document.createElement('option');option.value=code;option.textContent=year;return option;}));$('export-version').value=defaultCadVersion;
  let source=null,controller,generation=0,objectUrl=null,available=false;
  function discard(){if(objectUrl)URL.revokeObjectURL(objectUrl);objectUrl=null;$('export-download').hidden=true;$('export-report').replaceChildren();}
- function busy(value){$('export-run').disabled=value||!available||!source;$('export-drawing').disabled=$('export-format').disabled=value;$('export-cancel').hidden=!value;}
+ function busy(value){$('export-run').disabled=value||!available||!source;$('export-drawing').disabled=$('export-format').disabled=$('export-version').disabled=value;$('export-cancel').hidden=!value;}
  function cancel(){generation++;controller?.abort();busy(false);}
  function status(text){$('export-status').textContent=text;translateTree(dialog);}
  function selectionStatus(){status($('export-format').value==='ifccad'?'Klik op ‘Export maken’ om het volledige IFCCAD-pakket voor te bereiden.':'Kies een tekening en een bestandsformaat.');}
- function describe(){const whole=$('export-format').value==='ifccad';$('export-drawing-label').hidden=whole;
+ function describe(){const whole=$('export-format').value==='ifccad';$('export-drawing-label').hidden=whole;$('export-version-label').hidden=whole;
   $('export-source-note').textContent=whole?'Het volledige IFCCAD-pakket wordt gedownload als ZIP. Pak dit uit om de pakketmap opnieuw te openen.':source?.kind==='cad'?'De export gebruikt de native IFCCAD-inhoud. Eerder gemeld verlies bij het openen wordt niet hersteld.':'Eén geselecteerde tekening wordt geëxporteerd; andere tekeningen blijven buiten deze export.';translateTree(dialog);
  }
  $('export-open').onclick=async()=>{
@@ -23,14 +25,14 @@ export function initializeExporting(){
  };
  $('export-close').onclick=()=>{cancel();dialog.close();};dialog.addEventListener('cancel',cancel);
  $('export-cancel').onclick=()=>{cancel();status('Geannuleerd');};
- for(const id of ['export-drawing','export-format'])$(id).onchange=()=>{discard();describe();selectionStatus();};
+ for(const id of ['export-drawing','export-format','export-version'])$(id).onchange=()=>{discard();describe();selectionStatus();};
  $('export-run').onclick=async()=>{
   if(!source||!available)return;
   const current=++generation;controller?.abort();controller=new AbortController();discard();busy(true);
-  const selectedSource=source,format=$('export-format').value,drawing=$('export-drawing').value;
+  const selectedSource=source,format=$('export-format').value,drawing=$('export-drawing').value,version=$('export-version').value;
   status('Export voorbereiden…');
   try{
-   const result=await client.open({...selectedSource,export:{format,drawing}},{signal:controller.signal,onProgress:phase=>{
+   const result=await client.open({...selectedSource,export:format==='ifccad'?{format}:{format,drawing,version}},{signal:controller.signal,onProgress:phase=>{
     if(current===generation)status(({reading:'Bestand inlezen…',converting:'Omzetten naar IFCCAD…',validating:'Pakket controleren…',exporting:'Omzetten naar CAD…',writing:'CAD-bestand schrijven…',checking:'Exportbestand teruglezen…',packaging:'Pakket inpakken…'})[phase]||phase);
    }});
    if(current!==generation)return;
