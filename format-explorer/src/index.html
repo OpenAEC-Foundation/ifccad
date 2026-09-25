@@ -43,7 +43,23 @@
     <div><p>Deze zelfstandige demo gebruikt voorbeelden uit <code>conformance/next</code>. Het conceptvoorbeeld verkent mogelijke uitbreidingen; het is geen vastgesteld formaat.</p><a href="https://github.com/OpenAEC-Foundation/ifccad" target="_blank" rel="noreferrer">Bekijk de repository ↗</a><p class="small-note">Vormgeving gebaseerd op het <a href="https://github.com/OpenAEC-Foundation/OpenAEC-style-book" target="_blank" rel="noreferrer">OpenAEC-style-book</a>. <a href="./THIRD-PARTY.txt" target="_blank">Bronnen en licenties</a>.</p></div>
   </section>
   <main id="app">
-    <dialog id="open-dialog" class="settings-dialog open-dialog" aria-labelledby="open-title"><header class="settings-header"><h2 id="open-title">Bestand openen</h2><button id="open-close" aria-label="Sluiten">×</button></header><div class="settings-content"><p>Open een IFCCAD-pakketmap of een DXF/DWG-bestand.</p><div class="open-actions"><button id="choose-package">IFCCAD-map kiezen</button><button id="choose-cad">DXF / DWG kiezen</button></div><p id="open-status" role="status"></p><button id="open-cancel" hidden>Annuleren</button><input id="package-input" type="file" webkitdirectory multiple hidden><input id="cad-input" type="file" accept=".dxf,.dwg" hidden></div></dialog>
+    <dialog id="open-dialog" class="settings-dialog open-dialog" aria-labelledby="open-title">
+      <header class="settings-header"><h2 id="open-title">Bestand openen</h2><button id="open-close" aria-label="Sluiten">×</button></header>
+      <div class="settings-content">
+        <p>Open een IFCCAD-pakketmap of een DXF/DWG-bestand.</p>
+        <div class="open-actions"><button id="choose-package">IFCCAD-map kiezen</button><button id="choose-cad">DXF / DWG kiezen</button></div>
+        <p id="open-status" role="status"></p><button id="open-cancel" hidden>Annuleren</button>
+        <details id="open-fallback" class="open-fallback">
+          <summary>Andere verwerking kiezen</summary>
+          <fieldset class="open-processing-options">
+            <legend>Verwerking</legend>
+            <label><input type="radio" name="open-processing" value="browser" checked><span>In deze browser · geen upload</span></label>
+            <label><input type="radio" name="open-processing" value="server"><span>Via OpenAEC-server · upload</span></label>
+          </fieldset>
+        </details>
+        <input id="package-input" type="file" webkitdirectory multiple hidden><input id="cad-input" type="file" accept=".dxf,.dwg" hidden>
+      </div>
+    </dialog>
     <dialog id="export-dialog" class="settings-dialog export-dialog" aria-labelledby="export-title">
       <header class="settings-header"><h2 id="export-title">Exporteren</h2><button id="export-close" aria-label="Sluiten">×</button></header>
       <div class="settings-content">

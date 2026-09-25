@@ -1,6 +1,7 @@
 use base64::{engine::general_purpose::STANDARD, Engine};
 use serde_json::{json, Value};
 use std::{
+    collections::BTreeMap,
     collections::BTreeSet,
     fs,
     io::Read,
@@ -23,6 +24,72 @@ fn safe(root: &Path, uri: &str) -> Result<PathBuf, Error> {
         return Err("Preview escapes package".into());
     }
     Ok(path)
+}
+
+fn memory_file<'a>(files: &'a BTreeMap<String, Vec<u8>>, uri: &str) -> Result<&'a [u8], Error> {
+    if uri.is_empty()
+        || uri.contains(['\\', ':', '\0', '%'])
+        || uri.starts_with('/')
+        || uri.split('/').any(|segment| {
+            segment.is_empty() || segment == "." || segment == ".." || segment.ends_with(['.', ' '])
+        })
+    {
+        return Err("Unsafe package-relative preview path".into());
+    }
+    Ok(files.get(uri).ok_or("Preview file is missing")?.as_slice())
+}
+
+/// Build the existing bounded presentation shape from in-memory package files.
+pub(crate) fn collect_files(name: &str, files: &BTreeMap<String, Vec<u8>>) -> Result<Value, Error> {
+    let text = std::str::from_utf8(memory_file(files, "package.ifcx.json")?)?.to_owned();
+    let ifcx: Value = serde_json::from_str(&text)?;
+    let mut documents = vec![json!({"path":"package.ifcx.json","text":text})];
+    let mut blobs = vec![];
+    let mut warnings = vec![];
+    let mut seen = BTreeSet::new();
+    let mut seen_blobs = BTreeSet::new();
+    if let Some(nodes) = ifcx["data"].as_array() {
+        for node in nodes {
+            for key in ["resource", "preservation"] {
+                let expected = if key == "resource" {
+                    "openaec:DrawingRepresentation"
+                } else {
+                    "openaec:PreservationRepresentation"
+                };
+                if node["type"].as_str() != Some(expected) {
+                    continue;
+                }
+                let descriptor = &node["attributes"][key];
+                if descriptor.is_null() {
+                    continue;
+                }
+                let body = if let Some(uri) = descriptor["uri"].as_str() {
+                    let text = std::str::from_utf8(memory_file(files, uri)?)?.to_owned();
+                    let body: Value = serde_json::from_str(&text)?;
+                    if seen.insert(uri.to_owned()) {
+                        documents.push(json!({"path":uri,"text":text}));
+                    }
+                    body
+                } else {
+                    descriptor["content"].clone()
+                };
+                if let Some(items) = body["blobs"].as_array() {
+                    for blob in items {
+                        if let Some(uri) = blob["uri"].as_str() {
+                            if !seen_blobs.insert(uri.to_owned()) {
+                                continue;
+                            }
+                            match memory_file(files, uri) {
+                                Ok(bytes) => blobs.push(json!({"path":uri,"byteLength":bytes.len(),"previewBase64":STANDARD.encode(&bytes[..bytes.len().min(4096)])})),
+                                Err(_) => warnings.push(json!({"code":"BLOB_PREVIEW_UNAVAILABLE","resourceId":descriptor["resourceId"],"message":format!("Preview unavailable: {uri}")})),
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Ok(json!({"name":name,"documents":documents,"blobs":blobs,"warnings":warnings}))
 }
 pub fn collect(root: &Path) -> Result<Value, Error> {
     let text = fs::read_to_string(root.join("package.ifcx.json"))?;

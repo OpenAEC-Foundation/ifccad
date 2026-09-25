@@ -1,5 +1,6 @@
 /dist/
 /ocs-build/
+/wasm-build/
 /.sites-runtime/
 /test-results/
 /node_modules/

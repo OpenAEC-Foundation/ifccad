@@ -33,6 +33,12 @@ const html=await (await request('/')).text();
 assert.match(html,/id="export-format"/);
 assert.ok(html.indexOf('id="export-format"')<html.indexOf('id="export-drawing"'));
 assert.match(html,/id="preview-open"/);
+assert.match(html,/id="open-fallback"/);
+assert.match(html,/name="open-processing"/);
+const processorHead=await request('/wasm/ifccad_browser_bg.wasm',{method:'HEAD'});
+assert.equal(processorHead.headers['content-type'],'application/wasm');
+const processorScript=await (await request('/wasm/ifccad_browser.js')).text();
+assert.match(processorScript,/open_cad/);
 if(mode==='full') {
   const ocsHtml=await (await request('/ocs/app/index.html')).text();
   assert.match(ocsHtml,/ocs-bridge\.mjs/);

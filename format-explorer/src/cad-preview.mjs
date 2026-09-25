@@ -1,7 +1,7 @@
 import {drawingChoices} from './export-files.mjs';
 import {downloadName} from './export-files.mjs';
 import {cadVersions,defaultCadVersion,supportsCadVersion} from './cad-formats.mjs';
-import {createJobClient} from './job-client.mjs';
+import {createFileClient,encodeBase64} from './browser-client.mjs';
 import {createOcsSession} from './ocs-messages.mjs';
 import {renderExportReport} from './reports.mjs';
 import {translateTree} from './i18n.mjs';
@@ -24,7 +24,7 @@ export function createCadPreviewController({openExport,openSession,onUpdate=()=>
   const active=await sessionPromise;
   if(current!==generation||!active)return null;
   state.viewerReady=true;state.viewerError='';notify();
-  if(state.original&&!originalOpened){await active.openOriginal(state.original.base64,state.original.name);originalOpened=true;}
+  if(state.original&&!originalOpened){await active.openOriginal(state.original.base64??encodeBase64(state.original.bytes),state.original.name);originalOpened=true;}
   return active;
  }
  async function run(){
@@ -65,7 +65,7 @@ export function createCadPreviewController({openExport,openSession,onUpdate=()=>
 }
 
 export function initializeCadPreview(){
- const $=id=>document.getElementById(id),client=createJobClient(),mount=$('preview-frame');
+ const $=id=>document.getElementById(id),client=createFileClient(),mount=$('preview-frame');
  let objectUrl=null,lastDownload=null;
  $('preview-version').replaceChildren(...cadVersions.map(([code,year])=>{const option=document.createElement('option');option.value=code;option.textContent=year;return option;}));
  async function openSession(){

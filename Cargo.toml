@@ -12,7 +12,7 @@ keywords = ["cad", "ifc", "ifccad", "bim", "conformance"]
 categories = ["parser-implementations", "encoding"]
 
 [workspace]
-members = ["crates/ifccad-convert", "crates/ifccad-viewer"]
+members = ["crates/ifccad-convert", "crates/ifccad-viewer", "crates/ifccad-browser"]
 resolver = "2"
 
 [features]

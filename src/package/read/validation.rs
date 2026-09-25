@@ -4,7 +4,7 @@ use super::codes::{
 };
 use super::discovery::{discover_resources, ResourceKind};
 use super::graph::validate_ifcx_graph;
-use super::loader::{DirectoryPackageLoader, PackageLoadLimits};
+use super::loader::{DirectoryPackageLoader, MemoryPackageLoader, PackageLoadLimits};
 use super::model::{LoadedIfccadPackage, PackageAnalysis, PackageLoadOutcome};
 use super::schema::{validate_ifcpr, validate_ifcx};
 use super::source::ResourceSourceKey;
@@ -56,6 +56,44 @@ pub fn load_directory_package(
         resources,
     });
     Ok(validate_loaded_package(package, diagnostics))
+}
+
+/// Inspect an unpacked package supplied as package-relative paths and bytes.
+/// Uses the same schema and semantic validation as directory loading, without
+/// requiring a filesystem (for example in a browser WebAssembly worker).
+pub fn load_package_files(files: &BTreeMap<String, Vec<u8>>) -> PackageLoadOutcome {
+    let mut loader = MemoryPackageLoader::new(files, PackageLoadLimits::default());
+    let Some(entrypoint) = loader.load_entrypoint() else {
+        return PackageLoadOutcome {
+            package: None,
+            analysis: None,
+            validated_package: None,
+            report: loader.into_report(),
+        };
+    };
+    let discovery = discover_resources(&entrypoint.value);
+    let mut declarations = discovery.declarations;
+    declarations.sort_by(|left, right| {
+        (&left.source, left.kind, left.source_location.as_str()).cmp(&(
+            &right.source,
+            right.kind,
+            right.source_location.as_str(),
+        ))
+    });
+    let resources = resolve_resources(&entrypoint, &declarations, |uri, location| {
+        Ok(loader.load_json_resource(uri, Some(location)))
+    })
+    .expect("memory package lookup cannot fail with I/O");
+    let mut diagnostics = loader.into_report().into_diagnostics();
+    diagnostics.extend(discovery.diagnostics);
+    validate_loaded_package(
+        Arc::new(LoadedIfccadPackage {
+            entrypoint,
+            declarations,
+            resources,
+        }),
+        diagnostics,
+    )
 }
 
 fn validate_loaded_package(

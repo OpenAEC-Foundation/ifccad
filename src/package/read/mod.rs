@@ -37,8 +37,8 @@ pub use navigation::{
     AppearanceRef, AppliedAppearanceRef, DrawingLayoutKind, DrawingLayoutRef, DrawingRef,
     DrawingRepresentationRef, DrawingSetRef, LayerRef,
 };
-pub use validation::load_directory_package;
 pub(crate) use validation::validate_encoded_package;
+pub use validation::{load_directory_package, load_package_files};
 
 pub(super) use super::DIRECTORY_PACKAGE_ENTRYPOINT;
 

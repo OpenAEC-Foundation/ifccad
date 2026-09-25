@@ -2,9 +2,12 @@ mod bundle;
 mod cad;
 mod cad_export;
 mod package;
-pub use cad::inspect_cad;
-pub use cad_export::{export_cad, export_cad_versioned, export_package, export_package_versioned};
-pub use package::inspect_package;
+pub use cad::{inspect_cad, inspect_cad_bytes};
+pub use cad_export::{
+    export_cad, export_cad_versioned, export_package, export_package_files,
+    export_package_versioned,
+};
+pub use package::{inspect_package, inspect_package_files};
 use serde_json::{json, Value};
 use std::path::Path;
 pub fn result(path: &Path, format: &str) -> Value {

@@ -21,14 +21,23 @@ An independent educational demo website for exploring the **structure** of an
 IFCCAD package. The graph is the main interface; the adjacent inspector explains
 the selected object and exposes its fields and relationships. An optional drawing
 preview embeds Open CAD Studio; it does not change the IFCCAD graph or add a
-second CAD renderer. Local file opening delegates validation and CAD conversion
-to the repository's production Rust libraries.
+second CAD renderer. File opening runs the repository's production Rust libraries
+in browser WebAssembly by default, with an explicit server option.
 
 ## Run locally
 
-Requires Node.js 22 or newer. No dependency installation is needed.
+Requires Node.js 22 or newer. Build the browser processor with `wasm-pack` and
+the `wasm32-unknown-unknown` Rust target from the repository root:
 
-For local package/DXF/DWG opening, first build the reader from the repository root:
+```sh
+wasm-pack build crates/ifccad-browser --target web --out-dir ../../format-explorer/wasm-build --release
+```
+
+The ignored `format-explorer/wasm-build/` is copied into the local and production
+website builds. Rebuild it after changing the core, converter or viewer Rust code.
+
+For the optional server processing route, build the native reader from the
+repository root:
 
 ```sh
 cargo build -p ifccad-viewer
@@ -73,11 +82,11 @@ npm test
 npm run build
 ```
 
-The build creates `dist/` and copies a locally available Open CAD Studio bundle
-under `dist/ocs/app/`. The graph itself does not need Rust, cadcodec, an
-application backend, external font services or a CDN. File opening and preview
-exports do need the processing service. Production serves the viewer on the
-explorer origin; no drawing bytes are sent to a separate viewer host. Opening
+The build creates `dist/`, copies the browser processor under `dist/wasm/` and
+copies a locally available Open CAD Studio bundle under `dist/ocs/app/`. The graph
+examples themselves need no backend. Opening and export use the browser processor
+by default; the server remains an explicit fallback. Production serves the viewer
+on the explorer origin; no drawing bytes go to a separate viewer host. Opening
 `index.html` directly with `file://` is not supported because examples are loaded
 as a separate JSON resource.
 
@@ -161,12 +170,16 @@ restores the graph and inspector; “Expand report” temporarily hides them aga
 Following a report's node link restores the graph and selects the target. Graph
 state and inspector width are retained while switching views.
 
-## Open your own files locally
+## Open your own files
 
 Choose **Open file**, then an IFCCAD folder containing `package.ifcx.json`, or
-one DXF/DWG file. Files are sent only to the loopback development service on
-your computer. Selected inputs are staged temporarily; originals are unchanged.
-The application removes staged/generated files after processing or cancellation.
+one DXF/DWG file. **In this browser** is the default: the bytes remain in the
+browser, and a Web Worker runs the Rust reader, validator and converter through
+WebAssembly. Cancellation stops that worker; originals are unchanged. Expand
+**Choose another processing method** to use **Via OpenAEC server** as an explicit
+alternative, including for files that exceed
+the browser's available memory. That route uploads over HTTPS and removes staged
+inputs and outputs after processing or cancellation.
 It does not support a ZIP or finalized `.ifccad` container.
 
 The package report keeps validity, completeness, supported strict loading,
@@ -176,16 +189,18 @@ remain **not fully assessed**. A failed opening leaves the previous graph visibl
 and says so explicitly.
 
 DXF/DWG is read by the pinned cadcodec reader, converted with the existing
-Allow policy, written temporarily and loaded through the production package
-reader. The report lists emitted, partially emitted, skipped and unclassified
+Allow policy and loaded through the production package reader in memory. The
+report lists emitted, partially emitted, skipped and unclassified
 source entities, with source-to-target graph links. Partial entities are included
 in emitted totals. Document/layer/table/object losses remain visible separately.
 These counts describe the public model returned by the reader; they are not a
 percentage of original-file fidelity. Unsupported CAD content is not automatically
 preserved in IFCPR. Parser and conversion failures retain their own stage.
 
-Initial viewer limits: 1000 files, 64 MiB combined input, one active job and 120
-seconds processing time. Results expire after five minutes. Large entity, point,
+Viewer limits: 1000 files and 64 MiB combined input. The browser uses one active
+worker; its peak memory is substantially higher than source size because conversion
+and the graph presentation are held in memory. The server route has a 120-second
+processing limit and its results expire after five minutes. Large entity, point,
 layer, appearance and preservation collections show at most 10 members per graph
 window. Paging replaces the visible members rather than continually adding nodes.
 Large IFCX definition collections use explicitly labelled presentation groups;
@@ -202,8 +217,8 @@ These are display limits, not validation rules. Large
 integer identities remain exact across the browser boundary; original JSON text
 is retained separately from its presentation model.
 
-The standalone static build keeps repository examples and settings. File opening
-requires the processing service; it is not a browser-only Rust/WASM implementation.
+The standalone static build supports file opening and export when its bundled
+browser WASM is present. The server option requires the processing service.
 
 ## Preview in Open CAD Studio
 
@@ -247,19 +262,19 @@ equivalence of every field. Conversion, writing and readback failures are report
 separately and offer no download.
 
 The browser keeps the original selected input bytes in memory until another source
-is opened or the page closes. For export it submits them again to the same processing
-service; CAD inputs pass through native IFCCAD before producing the download.
+is opened or the page closes. Export runs in another browser worker by default; the
+explicit server route submits the bytes again. CAD inputs pass through native
+IFCCAD before producing the download.
 This never downloads the original CAD file under an export label. The initial
 opening report remains unchanged; export has its own report and includes the
 preceding CAD-to-IFCCAD assessment when relevant. Example exports use exact fixture
 bytes, preserving resource checksums and complete preservation blobs.
 
-Exports use the same authenticated jobs, cancellation, timeouts, staging cleanup
-and result expiration as opening. Downloads are limited to 64 MiB, transferred
-inside the job result and made available as browser-local Blob URLs. Changing
-source or export options discards the previous download. Public hosting
-processes these inputs on the server; local development keeps processing on this
-computer. No CAD files or uploads are retained in the repository.
+The server option uses authenticated jobs, cancellation, timeouts, staging cleanup
+and result expiration. Browser processing stays local to the browser; cancellation
+terminates its worker. Downloads are limited to 64 MiB and made available as
+browser-local Blob URLs. Changing source or export options discards the previous
+download. No CAD files or uploads are retained in the repository.
 
 **IFCCAD package (ZIP)** downloads the complete strictly readable directory
 package, including all drawings, external resources and existing IFCPR blobs.
@@ -283,12 +298,22 @@ shared OpenAEC demo server, including package/DXF/DWG processing and exports.
 Every push to `main` starts the **Deploy format explorer** GitHub Actions workflow.
 It can also be started manually on `main` from the Actions tab.
 
-Before deployment, the workflow checks the Rust workspace, builds the pinned
-Open CAD Studio web bundle, and builds/tests the website and production reader.
-The viewer bundle is cached by source revision and served from the same origin;
-the production build fails if its WebAssembly is missing. The build job exercises
+Before deployment, the workflow checks the Rust workspace, builds and exercises
+the IFCCAD browser WASM, builds the pinned Open CAD Studio web bundle, and
+builds/tests the website and production reader.
+The Open CAD Studio bundle is cached by source revision and served from the same
+origin; the production build fails if either WebAssembly bundle is missing. The
+browser WASM smoke test opens a package, exports DXF and reimports it. The build job exercises
 package opening, versioned DXF/DWG export and readback, IFCCAD ZIP download,
 and the viewer asset path through the real HTTP service.
+The workflow restores the pinned Open CAD Studio bundle before checking out or
+building its source. Browser WASM and the native reader have separate caches keyed
+by the Rust manifests, source and embedded schemas. A website-only change reuses
+all three outputs, while the site tests, assembled-release smoke check and public
+revision verification still run. Passing Rust workspace checks are cached by
+their own source and fixture key, so they also skip compilation after a website-only
+edit. A first run, cache eviction, Rust/schema change or deliberate cache-key
+revision builds or checks the affected output again.
 The Rust build uses Debian 12 to match the existing Node 22 production container.
 The exact tested artifact is transferred using the shared `DEPLOY_SSH_KEY` secret
 and `DEPLOY_HOST`, `DEPLOY_PORT`, `DEPLOY_USER` organization variables. The server
@@ -315,7 +340,8 @@ from the installation directory and verify `/version.json` and `/api/capabilitie
 To return to the original installation, use only `compose.yml` and remove the
 managed `current` link and `deployment.yml` before the next automatic deployment.
 
-Public hosting must include package/DXF/DWG processing, not only the static demo.
+Public hosting includes browser package/DXF/DWG processing in its static assets.
+The server option requires the companion service:
 `npm run serve:production` provides the prepared application service: it serves
 `dist/` without development rebuilding or live reload and binds to loopback on
 port 4183 (override with `PORT`). Set `PUBLIC_ORIGIN` to the exact HTTPS origin
@@ -325,8 +351,7 @@ the original Host header.
 
 The service enforces the configured origin for uploads and cancellation, requires
 a separate secret token for each job, and limits concurrent processing and retained
-results. The browser explains that public uploads are processed on the server;
-the local development service continues to process files on the user's computer.
+results. The UI labels this route as an upload; browser processing makes no upload.
 Temporary inputs and outputs are removed after processing or cancellation.
 Results expire after five minutes or are removed when the client finishes.
 

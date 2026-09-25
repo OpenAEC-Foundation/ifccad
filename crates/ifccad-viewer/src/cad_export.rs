@@ -1,13 +1,13 @@
 //! Application export: validated IFCCAD drawing -> CAD document -> downloadable file.
 use crate::{fail, inspect_cad, progress, result};
 use base64::{engine::general_purpose::STANDARD, Engine};
-use ifccad::package::load_directory_package;
+use ifccad::package::{load_directory_package, load_package_files, PackageLoadOutcome};
 use ifccad_convert::{
     cadcodec::{DwgReader, DwgWriter, DxfReader, DxfVersion, DxfWriter},
     drawing_to_cad_document, ImportDiagnostic,
 };
 use serde_json::{json, Value};
-use std::{io::Cursor, path::Path};
+use std::{collections::BTreeMap, io::Cursor, path::Path};
 
 /// Export one drawing from a freshly validated package, retaining scoped diagnostics.
 pub fn export_package(root: &Path, drawing_path: &str, format: &str) -> Value {
@@ -22,6 +22,36 @@ pub fn export_package_versioned(
     version: &str,
 ) -> Value {
     let mut r = result(root, "package");
+    let loaded = match load_directory_package(root) {
+        Ok(loaded) => loaded,
+        Err(e) => {
+            fail(&mut r, "reading", "PACKAGE_OPEN_FAILED", e);
+            return r;
+        }
+    };
+    export_loaded_package(r, loaded, drawing_path, format, version)
+}
+
+/// Export from a byte-backed package using the same validated drawing path.
+pub fn export_package_files(
+    name: &str,
+    files: &BTreeMap<String, Vec<u8>>,
+    drawing_path: &str,
+    format: &str,
+    version: &str,
+) -> Value {
+    let mut r = result(Path::new(name), "package");
+    r["source"]["name"] = json!(name);
+    export_loaded_package(r, load_package_files(files), drawing_path, format, version)
+}
+
+fn export_loaded_package(
+    mut r: Value,
+    loaded: PackageLoadOutcome,
+    drawing_path: &str,
+    format: &str,
+    version: &str,
+) -> Value {
     r["export"] = Value::Null;
     if !matches!(format, "dxf" | "dwg" | "ifccad") {
         fail(
@@ -54,13 +84,6 @@ pub fn export_package_versioned(
         }
     };
     progress("validating");
-    let loaded = match load_directory_package(root) {
-        Ok(loaded) => loaded,
-        Err(e) => {
-            fail(&mut r, "reading", "PACKAGE_OPEN_FAILED", e);
-            return r;
-        }
-    };
     r["validation"] =
         json!({"strictAvailable":loaded.validated_package().is_some(),"report":loaded.report()});
     let Some(package) = loaded.validated_package() else {

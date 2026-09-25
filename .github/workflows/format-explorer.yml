@@ -13,21 +13,60 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  browser-wasm:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/cache@v4
+        id: browser-cache
+        with:
+          path: format-explorer/wasm-build
+          key: ifccad-browser-wasm-ubuntu24-v1-${{ hashFiles('Cargo.toml', 'crates/**/Cargo.toml', 'src/**/*.rs', 'crates/**/src/**/*.rs', 'schemas/**', 'crates/ifccad-convert/README.md') }}
+      - uses: dtolnay/rust-toolchain@stable
+        if: steps.browser-cache.outputs.cache-hit != 'true'
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+        if: steps.browser-cache.outputs.cache-hit != 'true'
+      - uses: taiki-e/install-action@v2
+        if: steps.browser-cache.outputs.cache-hit != 'true'
+        with:
+          tool: wasm-pack
+      - name: Build browser processor
+        if: steps.browser-cache.outputs.cache-hit != 'true'
+        run: wasm-pack build crates/ifccad-browser --target web --out-dir ../../format-explorer/wasm-build --release
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Verify browser processor
+        run: |
+          test -s format-explorer/wasm-build/ifccad_browser.js
+          test -s format-explorer/wasm-build/ifccad_browser_bg.wasm
+          node format-explorer/tests/wasm-smoke.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ifccad-browser-wasm
+          path: format-explorer/wasm-build/
+          retention-days: 7
+
   ocs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 75
     steps:
-      - uses: actions/checkout@v5
-        with:
-          repository: HakanSeven12/OpenCADStudio
-          ref: 0d023d267bc5b7afeca3b54e98875b0efd4f3926
-          path: ocs-upstream
       - uses: actions/cache@v4
         id: web-cache
         with:
           path: ocs-upstream/dist/app
           key: ocs-web-v2026.38-0d023d2-linux-trunk
+      - uses: actions/checkout@v5
+        if: steps.web-cache.outputs.cache-hit != 'true'
+        with:
+          repository: HakanSeven12/OpenCADStudio
+          ref: 0d023d267bc5b7afeca3b54e98875b0efd4f3926
+          path: ocs-upstream
       - uses: dtolnay/rust-toolchain@stable
         if: steps.web-cache.outputs.cache-hit != 'true'
         with:
@@ -57,11 +96,16 @@ jobs:
         working-directory: ocs-upstream
         run: trunk build --locked --release --public-url /ocs/app/ --dist dist/app --html-output index.html web-app.html
       - name: Complete the self-hosted viewer bundle
+        if: steps.web-cache.outputs.cache-hit != 'true'
+        run: |
+          cp ocs-upstream/LICENSE ocs-upstream/dist/app/LICENSE
+          printf '[]\n' > ocs-upstream/dist/app/supporters.json
+      - name: Verify reused or built viewer
         run: |
           test -s ocs-upstream/dist/app/index.html
           test -n "$(find ocs-upstream/dist/app -name '*.wasm' -print -quit)"
-          cp ocs-upstream/LICENSE ocs-upstream/dist/app/LICENSE
-          printf '[]\n' > ocs-upstream/dist/app/supporters.json
+          test -s ocs-upstream/dist/app/LICENSE
+          test -s ocs-upstream/dist/app/supporters.json
       - uses: actions/upload-artifact@v4
         with:
           name: ocs-web-v2026.38
@@ -75,24 +119,38 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
-      - name: Install Rust check tools
+      - name: Install cache tool
         run: |
           apt-get update -qq
           apt-get install -y --no-install-recommends zstd
-          rustup component add rustfmt clippy
+      - uses: actions/cache@v4
+        id: rust-checks-cache
+        with:
+          path: target/explorer-rust-checks-passed
+          key: ifccad-rust-checks-debian12-v1-${{ hashFiles('Cargo.toml', 'crates/**', 'src/**', 'tests/**', 'schemas/**', 'conformance/**', 'format-explorer/examples/**') }}
+      - name: Install Rust check tools
+        if: steps.rust-checks-cache.outputs.cache-hit != 'true'
+        run: rustup component add rustfmt clippy
       - name: Cache Rust check dependencies
+        if: steps.rust-checks-cache.outputs.cache-hit != 'true'
         uses: Swatinem/rust-cache@v2
         with:
           cache-bin: 'false'
       - name: Check Rust workspace
+        if: steps.rust-checks-cache.outputs.cache-hit != 'true'
         run: |
           cargo fmt --all -- --check
           cargo clippy --workspace --all-targets -- -D warnings
           cargo test --workspace
+      - name: Record passing Rust checks
+        if: steps.rust-checks-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p target
+          printf '%s\n' "$GITHUB_SHA" > target/explorer-rust-checks-passed
 
   build:
     if: github.ref == 'refs/heads/main'
-    needs: [ocs]
+    needs: [ocs, browser-wasm]
     runs-on: ubuntu-24.04
     # Match the existing Node 22 / Debian 12 production container's libc.
     container: rust:bookworm
@@ -103,6 +161,10 @@ jobs:
         with:
           name: ocs-web-v2026.38
           path: format-explorer/ocs-build
+      - uses: actions/download-artifact@v4
+        with:
+          name: ifccad-browser-wasm
+          path: format-explorer/wasm-build
       - uses: actions/setup-node@v5
         with:
           node-version: '22'
@@ -110,7 +172,13 @@ jobs:
         run: |
           apt-get update -qq
           apt-get install -y --no-install-recommends python3 python-is-python3 zstd
+      - uses: actions/cache@v4
+        id: reader-cache
+        with:
+          path: target/release/ifccad-viewer
+          key: ifccad-reader-debian12-v1-${{ hashFiles('Cargo.toml', 'crates/**/Cargo.toml', 'src/**/*.rs', 'crates/**/src/**/*.rs', 'schemas/**', 'crates/ifccad-convert/README.md') }}
       - name: Cache Rust build dependencies
+        if: steps.reader-cache.outputs.cache-hit != 'true'
         uses: Swatinem/rust-cache@v2
         with:
           cache-bin: 'false'
@@ -118,11 +186,16 @@ jobs:
         run: |
           test -s format-explorer/ocs-build/index.html
           test -n "$(find format-explorer/ocs-build -name '*.wasm' -print -quit)"
+          test -s format-explorer/wasm-build/ifccad_browser_bg.wasm
           bash -n format-explorer/deploy/release.sh
           npm --prefix format-explorer test
           npm --prefix format-explorer run build
+          test -s format-explorer/dist/wasm/ifccad_browser_bg.wasm
       - name: Build production reader
+        if: steps.reader-cache.outputs.cache-hit != 'true'
         run: cargo build --release -p ifccad-viewer
+      - name: Verify production reader
+        run: test -x target/release/ifccad-viewer
       - name: Assemble and exercise release
         shell: bash
         env:
@@ -130,8 +203,9 @@ jobs:
         run: |
           set -euo pipefail
           release="$RUNNER_TEMP/explorer-release"
-          mkdir -p "$release/deploy"
+          mkdir -p "$release/deploy" "$release/src"
           cp -R format-explorer/dist format-explorer/scripts "$release/"
+          cp format-explorer/src/cad-formats.mjs "$release/src/"
           cp format-explorer/deploy/container.mjs "$release/"
           cp format-explorer/deploy/smoke.mjs "$release/deploy/"
           cp target/release/ifccad-viewer LICENSE "$release/"

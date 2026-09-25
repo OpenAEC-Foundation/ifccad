@@ -1,4 +1,4 @@
-import {createJobClient} from './job-client.mjs';
+import {createFileClient} from './browser-client.mjs';
 import {renderExportReport} from './reports.mjs';
 import {translateTree} from './i18n.mjs';
 import {cadVersions,defaultCadVersion} from './cad-formats.mjs';
@@ -6,7 +6,7 @@ import {cadVersions,defaultCadVersion} from './cad-formats.mjs';
 export function drawingChoices(fixture){return (fixture?.ifcx?.data||[]).filter(n=>n.type==='openaec:Drawing').map(n=>({id:n.path,label:n.attributes?.name||n.path}));}
 export function downloadName(name,format){return (String(name).replace(/\.(dxf|dwg|ifccad|zip)$/i,'').replace(/[^\p{L}\p{N}._ -]/gu,'_').slice(0,110)||'drawing')+'-ifccad.'+(format==='ifccad'?'zip':format);}
 export function initializeExporting(){
- const $=id=>document.getElementById(id),dialog=$('export-dialog'),client=createJobClient();
+ const $=id=>document.getElementById(id),dialog=$('export-dialog'),client=createFileClient();
  $('export-version').replaceChildren(...cadVersions.map(([code,year])=>{const option=document.createElement('option');option.value=code;option.textContent=year;return option;}));$('export-version').value=defaultCadVersion;
  let source=null,controller,generation=0,objectUrl=null,available=false;
  function discard(){if(objectUrl)URL.revokeObjectURL(objectUrl);objectUrl=null;$('export-download').hidden=true;$('export-report').replaceChildren();}
@@ -19,8 +19,8 @@ export function initializeExporting(){
  }
  $('export-open').onclick=async()=>{
   if(!source)return;dialog.showModal();const current=++generation;available=false;busy(false);status('Bestandslezer controleren…');
-  try{const cap=await client.capabilities();if(current!==generation)return;available=cap.available;
-   status(!available?'De bestandslezer is tijdelijk niet beschikbaar. Probeer het later opnieuw.':cap.processing==='server'?'De bronbestanden worden voor deze export tijdelijk naar de OpenAEC-server gestuurd.':'De export wordt op deze computer verwerkt.');busy(false);
+  try{const cap=await client.capabilities(source.processing);if(current!==generation)return;available=cap.available;
+   status(!available?'De bestandslezer is tijdelijk niet beschikbaar. Probeer het later opnieuw.':cap.processing==='server'?'De bronbestanden worden voor deze export tijdelijk naar de OpenAEC-server gestuurd.':'De export wordt in deze browser verwerkt.');busy(false);
   }catch{if(current===generation)status('De bestandslezer is niet bereikbaar. Probeer het later opnieuw of start de lokale ontwikkelserver.');}
  };
  $('export-close').onclick=()=>{cancel();dialog.close();};dialog.addEventListener('cancel',cancel);
