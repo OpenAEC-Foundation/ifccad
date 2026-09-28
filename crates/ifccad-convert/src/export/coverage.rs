@@ -228,6 +228,13 @@ fn scan_header(
     remaining.plotstyle_mode = original.plotstyle_mode;
     remaining.point_display_mode = original.point_display_mode;
     remaining.point_display_size = original.point_display_size;
+    if !context.mapped_workspace_vports.is_empty() {
+        remaining.current_layer_name = original.current_layer_name.clone();
+        remaining.model_space_ucs_name = original.model_space_ucs_name.clone();
+        remaining.model_space_ucs_origin = original.model_space_ucs_origin;
+        remaining.model_space_ucs_x_axis = original.model_space_ucs_x_axis;
+        remaining.model_space_ucs_y_axis = original.model_space_ucs_y_axis;
+    }
     normalize_header_bookkeeping(&mut remaining, &original);
     if remaining != original {
         context.diagnostics.push(ExportDiagnostic::loss(
@@ -328,9 +335,63 @@ fn unsupported_table_record(
         }
         SemanticTableRecordV1::View(record) => changed!(record, baseline.views).then_some("views"),
         SemanticTableRecordV1::VPort(record) => {
-            changed!(record, baseline.vports).then_some("vports")
+            if context.mapped_workspace_vports.contains(&record.handle) {
+                let original = baseline
+                    .vports
+                    .get(&record.name)
+                    .cloned()
+                    .unwrap_or_else(cadcodec::VPort::active);
+                let mut residual = record.clone();
+                residual.handle = original.handle;
+                residual.lower_left = original.lower_left;
+                residual.upper_right = original.upper_right;
+                residual.view_center = original.view_center;
+                residual.snap_base = original.snap_base;
+                residual.snap_spacing = original.snap_spacing;
+                residual.grid_spacing = original.grid_spacing;
+                residual.view_direction = original.view_direction;
+                residual.view_target = original.view_target;
+                residual.view_height = original.view_height;
+                residual.aspect_ratio = original.aspect_ratio;
+                residual.lens_length = original.lens_length;
+                residual.view_twist = original.view_twist;
+                residual.front_clip = original.front_clip;
+                residual.back_clip = original.back_clip;
+                residual.grid_on = original.grid_on;
+                residual.snap_on = original.snap_on;
+                residual.snap_style = original.snap_style;
+                residual.snap_isopair = original.snap_isopair;
+                residual.snap_rotation = original.snap_rotation;
+                residual.render_mode = original.render_mode;
+                residual.perspective = original.perspective;
+                residual.front_clipping = original.front_clipping;
+                residual.back_clipping = original.back_clipping;
+                residual.front_clip_at_eye = original.front_clip_at_eye;
+                residual.ucs_per_viewport = original.ucs_per_viewport;
+                residual.ucs_origin = original.ucs_origin;
+                residual.ucs_x_axis = original.ucs_x_axis;
+                residual.ucs_y_axis = original.ucs_y_axis;
+                residual.grid_flags = original.grid_flags;
+                residual.grid_major = original.grid_major;
+                residual.named_ucs_handle = original.named_ucs_handle;
+                (residual != original).then_some("vports")
+            } else {
+                changed!(record, baseline.vports).then_some("vports")
+            }
         }
-        SemanticTableRecordV1::Ucs(record) => changed!(record, baseline.ucss).then_some("ucss"),
+        SemanticTableRecordV1::Ucs(record) => {
+            if context.mapped_workspace_ucss.contains(&record.handle) {
+                let mut residual = record.clone();
+                residual.origin = cadcodec::Vector3::ZERO;
+                residual.x_axis = cadcodec::Vector3::UNIT_X;
+                residual.y_axis = cadcodec::Vector3::UNIT_Y;
+                residual.elevation = 0.0;
+                residual.handle = cadcodec::Handle::NULL;
+                (residual != cadcodec::Ucs::new(&record.name)).then_some("ucss")
+            } else {
+                changed!(record, baseline.ucss).then_some("ucss")
+            }
+        }
         SemanticTableRecordV1::Vx(record) => {
             changed!(record, baseline.vx_table).then_some("vx_table")
         }

@@ -14,6 +14,9 @@ pub enum ImportDiagnostic {
         entity_id: EntityId,
         reason: String,
     },
+    WorkspaceUnsupported {
+        reason: String,
+    },
     BlockParameterizationChanged {
         source: crate::ConversionEntitySource,
     },
@@ -42,6 +45,7 @@ impl fmt::Display for ImportDiagnostic {
         match self {
             Self::LayoutFieldUnsupported { layout, field } => write!(formatter, "CAD cannot represent {field} on layout {layout}"),
             Self::ViewportUnsupported { entity_id, reason } => write!(formatter, "CAD viewport {entity_id:?} loses {reason}"),
+            Self::WorkspaceUnsupported { reason } => write!(formatter, "CAD workspace loses {reason}"),
             Self::BlockParameterizationChanged { source } => write!(formatter,"changed block parameterization of {source:?}"),
             Self::GeometryRoundedWithinTolerance { source, max_deviation_upper_bound } => write!(formatter,"rounded geometry of {source:?} within tolerance (upper deviation {max_deviation_upper_bound})"),
             Self::PlaneParameterizationChanged { source } => write!(formatter,"changed plane parameterization of {source:?}"),

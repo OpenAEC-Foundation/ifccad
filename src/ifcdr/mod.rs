@@ -9,15 +9,22 @@ mod read;
 mod types;
 pub(crate) mod write;
 
+#[allow(deprecated)]
 pub use geometry::{
-    BlockTransform, BlockTransformError, Bounds3d, CoordinateAxis, GeometryEvaluationError,
-    PlaneAxis, PlanePlacement, PlanePlacementError, PlanePlacementField, Point3, Scale3, Vector3,
+    BlockTransform, BlockTransformError, Bounds3d, CoordinateAxis, CoordinateFrame3,
+    GeometryEvaluationError, PlaneAxis, PlanePlacement, PlanePlacementError, PlanePlacementField,
+    Point3, Scale3, Vector3,
 };
 
 pub use logical::{
     BackClip, BackClipMode, FrontClip, FrontClipMode, PaperClip, ProjectionMode, ShadedPlot,
     ShadedPlotMode, ShadedPlotQuality, ShadedPlotQualityMode, ViewDefinition, ViewportFrame,
     ViewportLayerOverride, ViewportRenderMode,
+};
+pub use logical::{
+    DrawingViewState, IfcdrWorkspace, IsometricPlane, ModelWindow, NormalizedRect2,
+    PaperActiveContext, PaperCanvas, UcsDefinition, UcsSelection, ViewportWorkspace, WorkspaceGrid,
+    WorkspaceGridStyle, WorkspaceSnap, WorkspaceSnapStyle,
 };
 pub use logical::{IfcdrColor, IfcdrIndexedColor, IfcdrNamedColor};
 pub(crate) use read::{validate_ifcdr, LoadedIfcdrResource, ValidatedIfcdrResource};

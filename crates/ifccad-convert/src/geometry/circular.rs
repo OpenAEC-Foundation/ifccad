@@ -3,7 +3,7 @@ use super::numeric::exact;
 use super::{cad_plane, orthonormal_pair, stored_normal};
 use crate::ImportError;
 use cadcodec::Vector3;
-use ifccad::ifcdr::{PlanePlacement, Point3};
+use ifccad::ifcdr::{CoordinateFrame3, Point3};
 use num_rational::BigRational;
 
 fn dot(a: [f64; 3], b: [f64; 3]) -> f64 {
@@ -22,7 +22,7 @@ fn ifc_vec3(a: [f64; 3]) -> ifccad::ifcdr::Vector3 {
     ifccad::ifcdr::Vector3::new(a[0], a[1], a[2])
 }
 
-pub(crate) fn from_cad_ocs(center: Vector3, normal: Vector3) -> Option<PlanePlacement> {
+pub(crate) fn from_cad_ocs(center: Vector3, normal: Vector3) -> Option<CoordinateFrame3> {
     let basis = cad_plane(normal)?;
     let origin = add3(
         scaled(basis.u, center.x),
@@ -32,7 +32,7 @@ pub(crate) fn from_cad_ocs(center: Vector3, normal: Vector3) -> Option<PlanePlac
     if !origin.into_iter().all(f64::is_finite) {
         return None;
     }
-    PlanePlacement::try_new(
+    CoordinateFrame3::try_new(
         Point3::new(origin[0], origin[1], origin[2]),
         ifc_vec3(basis.u),
         ifc_vec3(basis.v),
@@ -41,7 +41,7 @@ pub(crate) fn from_cad_ocs(center: Vector3, normal: Vector3) -> Option<PlanePlac
 }
 
 pub(crate) fn to_cad_ocs(
-    placement: PlanePlacement,
+    placement: CoordinateFrame3,
     reverse: bool,
 ) -> Option<(Vector3, Vector3, f64)> {
     let mut normal = stored_normal(placement)?;
@@ -87,7 +87,7 @@ fn paired_export(source: Vector3, target: Point3) -> (PairedPoint, BigRational) 
         .sum();
     (PairedPoint::new(source, target), squared)
 }
-fn source_point(plane: PlanePlacement, radius: f64, angle: f64) -> Result<Point3, ImportError> {
+fn source_point(plane: CoordinateFrame3, radius: f64, angle: f64) -> Result<Point3, ImportError> {
     plane
         .try_to_scope_point(ifccad::ifcdr::Point2::new(
             radius * angle.cos(),
@@ -98,7 +98,7 @@ fn source_point(plane: PlanePlacement, radius: f64, angle: f64) -> Result<Point3
         })
 }
 pub(crate) fn circle_sample_pairs(
-    plane: PlanePlacement,
+    plane: CoordinateFrame3,
     radius: f64,
     phase: f64,
     target: &cadcodec::Circle,
@@ -119,7 +119,7 @@ pub(crate) fn circle_sample_pairs(
     .collect()
 }
 pub(crate) fn arc_sample_pairs(
-    plane: PlanePlacement,
+    plane: CoordinateFrame3,
     radius: f64,
     start: f64,
     sweep: f64,
@@ -136,7 +136,7 @@ pub(crate) fn arc_sample_pairs(
 }
 pub(crate) fn export_circle_sample_pairs(
     source: &cadcodec::Circle,
-    plane: PlanePlacement,
+    plane: CoordinateFrame3,
 ) -> Option<Vec<(PairedPoint, BigRational)>> {
     [
         0.0,
@@ -158,7 +158,7 @@ pub(crate) fn export_circle_sample_pairs(
 }
 pub(crate) fn export_arc_sample_pairs(
     source: &cadcodec::Arc,
-    plane: PlanePlacement,
+    plane: CoordinateFrame3,
     sweep: f64,
 ) -> Option<Vec<(PairedPoint, BigRational)>> {
     [0.0, 0.5, 1.0]
@@ -176,7 +176,7 @@ pub(crate) fn export_arc_sample_pairs(
         .collect()
 }
 
-pub(crate) fn from_cad_ellipse(source: &cadcodec::Ellipse) -> Option<(PlanePlacement, f64, f64)> {
+pub(crate) fn from_cad_ellipse(source: &cadcodec::Ellipse) -> Option<(CoordinateFrame3, f64, f64)> {
     let basis = cad_plane(source.normal)?;
     let a = source.major_axis;
     let scale = a.x.abs().max(a.y.abs()).max(a.z.abs());
@@ -203,7 +203,7 @@ pub(crate) fn from_cad_ellipse(source: &cadcodec::Ellipse) -> Option<(PlanePlace
         return None;
     }
     let center = source.center;
-    let placement = PlanePlacement::try_new(
+    let placement = CoordinateFrame3::try_new(
         Point3::new(center.x, center.y, center.z),
         ifccad::ifcdr::Vector3::new(x.x, x.y, x.z),
         ifccad::ifcdr::Vector3::new(y.x, y.y, y.z),
@@ -213,7 +213,7 @@ pub(crate) fn from_cad_ellipse(source: &cadcodec::Ellipse) -> Option<(PlanePlace
 }
 
 pub(crate) fn to_cad_ellipse(
-    placement: PlanePlacement,
+    placement: CoordinateFrame3,
     major: f64,
     minor: f64,
     reverse: bool,
@@ -251,7 +251,7 @@ fn ellipse_point(source: &cadcodec::Ellipse, angle: f64) -> Option<Vector3> {
 }
 
 pub(crate) fn ellipse_sample_pairs(
-    plane: PlanePlacement,
+    plane: CoordinateFrame3,
     major: f64,
     minor: f64,
     start: f64,
@@ -276,7 +276,7 @@ pub(crate) fn ellipse_sample_pairs(
 
 pub(crate) fn export_ellipse_sample_pairs(
     source: &cadcodec::Ellipse,
-    plane: PlanePlacement,
+    plane: CoordinateFrame3,
     major: f64,
     minor: f64,
     start: f64,
@@ -302,7 +302,7 @@ mod tests {
     use super::*;
     #[test]
     fn flipped_arc_frame_keeps_start_point_and_reverses_orientation() {
-        let placement = PlanePlacement::default();
+        let placement = CoordinateFrame3::default();
         let (_, normal, angle) = to_cad_ocs(placement, true).unwrap();
         let basis = cad_plane(normal).unwrap();
         let start = add3(

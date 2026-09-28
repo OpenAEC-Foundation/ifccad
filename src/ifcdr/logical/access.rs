@@ -3,6 +3,9 @@ use crate::ifcdr::{IfcdrLengthUnit, Point2};
 use crate::ResourceId;
 
 pub(crate) trait IfcdrResourceAccess {
+    fn workspace(&self) -> Option<&super::workspace::IfcdrWorkspace> {
+        None
+    }
     type Lines<'a>: IfcdrLinesAccess
     where
         Self: 'a;

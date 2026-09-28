@@ -1,7 +1,7 @@
 use crate::ifcdr::logical::{IfcdrPolylineAccess, IfcdrPolylinesAccess};
 use crate::ifcdr::read::decoded::{DecodedPolyline, DecodedPolylines, PolylineColumns};
 use crate::ifcdr::{
-    AppearanceId, EntityId, GeometryEvaluationError, LayerId, PlanePlacement, Point2, Point3,
+    AppearanceId, CoordinateFrame3, EntityId, GeometryEvaluationError, LayerId, Point2, Point3,
     ScopeId,
 };
 #[derive(Clone, Copy)]
@@ -55,8 +55,8 @@ impl<'a> PlanarPolylineRef<'a> {
     pub fn closed(&self) -> bool {
         self.view.closed()
     }
-    pub fn placement(&self) -> PlanePlacement {
-        PlanePlacement::from_validated_components(self.view.placement())
+    pub fn placement(&self) -> CoordinateFrame3 {
+        CoordinateFrame3::from_validated_components(self.view.placement())
     }
     pub fn scope_points(&self) -> ScopePointIterator<'a> {
         ScopePointIterator {
@@ -106,7 +106,7 @@ impl ExactSizeIterator for LocalPointIterator<'_> {}
 pub type PointIterator<'a> = LocalPointIterator<'a>;
 pub struct ScopePointIterator<'a> {
     local: LocalPointIterator<'a>,
-    placement: PlanePlacement,
+    placement: CoordinateFrame3,
 }
 impl Iterator for ScopePointIterator<'_> {
     type Item = Result<Point3, GeometryEvaluationError>;
@@ -146,7 +146,7 @@ mod tests {
                 },
                 next: 0,
             },
-            placement: PlanePlacement::try_new(
+            placement: CoordinateFrame3::try_new(
                 Point3::new(f64::MAX, 0.0, 0.0),
                 Vector3::new(1.0, 0.0, 0.0),
                 Vector3::new(0.0, 1.0, 0.0),

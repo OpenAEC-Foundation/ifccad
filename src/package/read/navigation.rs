@@ -7,6 +7,15 @@ use crate::ResourceId;
 use serde_json::Value;
 
 impl ValidatedPackage {
+    /// The one saved package resume state, when present.
+    pub fn workspace(&self) -> Option<PackageWorkspaceRef<'_>> {
+        typed_nodes(self, "openaec:PackageWorkspaceState")
+            .next()
+            .map(|node_index| PackageWorkspaceRef {
+                package: self,
+                node_index,
+            })
+    }
     pub fn drawing_sets(&self) -> impl Iterator<Item = DrawingSetRef<'_>> {
         typed_nodes(self, "openaec:DrawingSet").map(|node_index| DrawingSetRef {
             package: self,
@@ -159,6 +168,25 @@ node_ref!(DrawingRef);
 node_ref!(DrawingLayoutRef);
 node_ref!(DrawingRepresentationRef);
 node_ref!(AppearanceRef);
+node_ref!(PackageWorkspaceRef);
+
+impl<'a> PackageWorkspaceRef<'a> {
+    pub fn active_drawing(&self) -> DrawingRef<'a> {
+        self.node()
+            .pointer("/attributes/activeDrawing")
+            .and_then(Value::as_str)
+            .and_then(|path| self.package.drawing(path))
+            .expect("validated active drawing")
+    }
+
+    pub fn active_layout(&self) -> DrawingLayoutRef<'a> {
+        self.node()
+            .pointer("/attributes/activeLayout")
+            .and_then(Value::as_str)
+            .and_then(|path| self.package.layout(path))
+            .expect("validated active layout")
+    }
+}
 
 #[derive(Clone, Copy)]
 pub struct LayerRef<'a> {
@@ -195,6 +223,20 @@ impl<'a> DrawingSetRef<'a> {
 }
 
 impl<'a> DrawingRef<'a> {
+    /// IFCX path of the current Layer, including a selected Layer without an IFCDR binding.
+    pub fn current_layer_path(&self) -> Option<&'a str> {
+        self.node()
+            .pointer("/attributes/workspaceState/currentLayer")
+            .and_then(Value::as_str)
+    }
+    /// IFCX name of the current Layer, including a Layer with no IFCDR binding.
+    pub fn current_layer_name(&self) -> Option<&'a str> {
+        let path = self.current_layer_path()?;
+        let index = self.package.typed_node(path, "openaec:Layer")?;
+        nodes(self.package)[index]
+            .pointer("/attributes/name")
+            .and_then(Value::as_str)
+    }
     pub fn point_display(&self) -> super::super::PointDisplay {
         self.node()
             .pointer("/attributes/pointDisplay")
@@ -236,7 +278,7 @@ impl<'a> DrawingLayoutRef<'a> {
         use super::super::*;
         if !matches!(
             self.representation().resource().version(),
-            "0.10.0" | "0.11.0"
+            "0.10.0" | "0.11.0" | "0.12.0"
         ) {
             return LayoutSettings::default();
         }

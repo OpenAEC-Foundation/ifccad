@@ -136,7 +136,7 @@ fn native_with_outer(transform: BlockTransform, empty: bool, nested: bool) -> En
 
 #[test]
 fn nearly_orthonormal_frame_error_is_checked_after_outer_scaling() {
-    let placement = ifccad::ifcdr::PlanePlacement::try_new(
+    let placement = ifccad::ifcdr::CoordinateFrame3::try_new(
         Point3::new(0., 0., 0.),
         Vector3::new(1. + 2e-13, 0., 0.),
         Vector3::new(0., 1., 0.),
@@ -189,7 +189,7 @@ fn nearly_orthonormal_frame_error_is_checked_after_outer_scaling() {
 fn nonneutral_frame_imports_with_explicit_parameterization_evidence() {
     let root = Temp::new();
     let path = root.0.join("package");
-    let placement = ifccad::ifcdr::PlanePlacement::try_new(
+    let placement = ifccad::ifcdr::CoordinateFrame3::try_new(
         Point3::new(10., 20., 30.),
         Vector3::new(0., 1., 0.),
         Vector3::new(-1., 0., 0.),

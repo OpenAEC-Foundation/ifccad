@@ -4,7 +4,7 @@ use crate::ifcdr::geometry::{BlockTransformComponents, PlanePlacementComponents}
 use crate::ifcdr::logical::*;
 use crate::ifcdr::read::decoded::*;
 use crate::ifcdr::{
-    BlockScaling, Bounds3d, IfcdrLengthUnit, PlanePlacement, Point2, Point3, Scale3, Vector3,
+    BlockScaling, Bounds3d, CoordinateFrame3, IfcdrLengthUnit, Point2, Point3, Scale3, Vector3,
 };
 use crate::ResourceId;
 use serde_json::Value;
@@ -52,6 +52,11 @@ pub(crate) fn decode_json(
             "unsupported length unit",
         ));
     }
+    let workspace = if value["header"]["version"] == "0.12.0" {
+        Some(super::workspace::decode_workspace(uri, value).map_err(|error| vec![*error])?)
+    } else {
+        None
+    };
     let overrides = rows(value, "appearanceOverrides")
         .iter()
         .enumerate()
@@ -130,7 +135,10 @@ pub(crate) fn decode_json(
     let ellipse_arc_entities = entity(ellipse_arc_stream);
     let instances = &value["streams"]["blockInstanceStream"];
     let instance_entities = entity(instances);
-    let p = if value["header"]["version"] == "0.11.0" {
+    let p = if matches!(
+        value["header"]["version"].as_str(),
+        Some("0.11.0" | "0.12.0")
+    ) {
         &value["streams"]["planarPolylineStream"]
     } else {
         &value["streams"]["polylineStream"]
@@ -166,6 +174,7 @@ pub(crate) fn decode_json(
         .collect::<Vec<_>>();
     Ok(DecodedIfcdrResource {
         id: id.unwrap(),
+        workspace,
         version: value["header"]["version"]
             .as_str()
             .expect("physical version")
@@ -357,10 +366,10 @@ pub(crate) fn decode_json(
             .collect(),
     })
 }
-fn point2_record(v: &Value) -> Point2 {
+pub(super) fn point2_record(v: &Value) -> Point2 {
     Point2::new(num(&v["x"]), num(&v["y"]))
 }
-fn vector3_record(v: &Value) -> Vector3 {
+pub(super) fn vector3_record(v: &Value) -> Vector3 {
     Vector3::new(num(&v["x"]), num(&v["y"]), num(&v["z"]))
 }
 fn viewport_frame_record(v: &Value) -> ViewportFrame {
@@ -370,7 +379,7 @@ fn viewport_frame_record(v: &Value) -> ViewportFrame {
         height: num(&v["height"]),
     }
 }
-fn view_record(v: &Value) -> ViewDefinition {
+pub(super) fn view_record(v: &Value) -> ViewDefinition {
     ViewDefinition {
         center: point2_record(&v["center"]),
         target: point_record(&v["target"]),
@@ -402,7 +411,7 @@ fn view_record(v: &Value) -> ViewDefinition {
         },
     }
 }
-fn render_mode(value: u32) -> ViewportRenderMode {
+pub(super) fn render_mode(value: u32) -> ViewportRenderMode {
     match value {
         0 => ViewportRenderMode::TwoDimensional,
         1 => ViewportRenderMode::Wireframe,
@@ -437,13 +446,13 @@ fn shaded_plot_record(v: &Value) -> ShadedPlot {
         },
     }
 }
-fn point_record(v: &Value) -> Point3 {
+pub(super) fn point_record(v: &Value) -> Point3 {
     Point3::new(num(&v["x"]), num(&v["y"]), num(&v["z"]))
 }
 fn placement_row(stream: &Value, row: usize) -> PlanePlacementComponents {
     let p = &stream["placement"][row];
     if p.is_null() {
-        return PlanePlacement::default().components();
+        return CoordinateFrame3::default().components();
     }
     PlanePlacementComponents {
         origin: point_record(&p["origin"]),
@@ -456,7 +465,7 @@ fn placement_row(stream: &Value, row: usize) -> PlanePlacementComponents {
 fn transform_record(v: &Value) -> BlockTransformComponents {
     BlockTransformComponents {
         placement: v.get("placement").map_or_else(
-            || PlanePlacement::default().components(),
+            || CoordinateFrame3::default().components(),
             |p| PlanePlacementComponents {
                 origin: point_record(&p["origin"]),
                 x: Vector3::new(num(&p["X"]["x"]), num(&p["X"]["y"]), num(&p["X"]["z"])),
@@ -469,7 +478,7 @@ fn transform_record(v: &Value) -> BlockTransformComponents {
         }),
     }
 }
-fn rows<'a>(root: &'a Value, key: &str) -> &'a [Value] {
+pub(super) fn rows<'a>(root: &'a Value, key: &str) -> &'a [Value] {
     root[key].as_array().map(Vec::as_slice).unwrap_or(&[])
 }
 fn values<T>(value: &Value, convert: impl Fn(&Value) -> T) -> Vec<T> {
@@ -480,10 +489,10 @@ fn values<T>(value: &Value, convert: impl Fn(&Value) -> T) -> Vec<T> {
         .map(convert)
         .collect()
 }
-fn num(value: &Value) -> f64 {
+pub(super) fn num(value: &Value) -> f64 {
     value.as_f64().expect("physical number")
 }
-fn u32v(value: &Value) -> u32 {
+pub(super) fn u32v(value: &Value) -> u32 {
     u32::try_from(value.as_u64().expect("physical unsigned integer")).expect("physical u32")
 }
 fn entity(value: &Value) -> EntityColumns {

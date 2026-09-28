@@ -1923,6 +1923,86 @@
       ]
     },
     {
+      "caseId": "invalid.workspace-active-ucs-conflict",
+      "category": "invalid",
+      "description": "Workspace state: workspace active ucs conflict",
+      "entrypoint": "packages/invalid/workspace-active-ucs-conflict/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_WORKSPACE_INVALID",
+                "severity": "error",
+                "category": "contractViolation"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.workspace-duplicate-ucs-name",
+      "category": "invalid",
+      "description": "Workspace state: workspace duplicate ucs name",
+      "entrypoint": "packages/invalid/workspace-duplicate-ucs-name/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_WORKSPACE_INVALID",
+                "severity": "error",
+                "category": "contractViolation"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.workspace-stale-ucs",
+      "category": "invalid",
+      "description": "Workspace state: workspace stale ucs",
+      "entrypoint": "packages/invalid/workspace-stale-ucs/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_WORKSPACE_INVALID",
+                "severity": "error",
+                "category": "contractViolation"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "invalid.workspace-stale-viewport",
+      "category": "invalid",
+      "description": "Workspace state: workspace stale viewport",
+      "entrypoint": "packages/invalid/workspace-stale-viewport/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": [
+              {
+                "code": "IFCCAD_IFCDR_REFERENCE_MISSING",
+                "severity": "error",
+                "category": "contractViolation"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
       "caseId": "lifecycle.reference",
       "category": "lifecycle",
       "description": "Preservation lifecycle reference scenarios",
@@ -2704,6 +2784,34 @@
       "category": "valid",
       "description": "Orthographic view may retain a zero dormant lens length",
       "entrypoint": "packages/valid/viewport-zero-orthographic-lens/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "valid.workspace-model",
+      "category": "valid",
+      "description": "Workspace state: workspace model",
+      "entrypoint": "packages/valid/workspace-model/package.json",
+      "operations": [
+        {
+          "name": "validatePackage",
+          "expected": {
+            "diagnostics": []
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "valid.workspace-paper",
+      "category": "valid",
+      "description": "Workspace state: workspace paper",
+      "entrypoint": "packages/valid/workspace-paper/package.json",
       "operations": [
         {
           "name": "validatePackage",

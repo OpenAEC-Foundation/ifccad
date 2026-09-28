@@ -103,11 +103,11 @@ fn coordinate(origin: f64, ax: f64, by: f64, angle: f64) -> Option<f64> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ifcdr::{PlanePlacement, Vector3};
+    use crate::ifcdr::{CoordinateFrame3, Vector3};
 
     #[test]
     fn arc_bounds_include_interior_extremum_and_respect_direction() {
-        let frame = PlanePlacement::default().components();
+        let frame = CoordinateFrame3::default().components();
         let positive = circular_bounds(frame, 2.0, Some((0.1, 3.0))).unwrap();
         assert!(positive.max.y() >= 2.0);
         let negative = circular_bounds(frame, 2.0, Some((0.1, -3.0))).unwrap();
@@ -123,7 +123,7 @@ mod tests {
 
     #[test]
     fn circle_bounds_include_oblique_axis_projection() {
-        let frame = PlanePlacement::try_new(
+        let frame = CoordinateFrame3::try_new(
             Point3::new(5.0, 6.0, 7.0),
             Vector3::new(1.0, 0.0, 0.0),
             Vector3::new(0.0, 0.0, 1.0),
@@ -137,7 +137,7 @@ mod tests {
 
     #[test]
     fn ellipse_keeps_equal_axes_and_rejects_inverted_axes() {
-        let frame = PlanePlacement::default().components();
+        let frame = CoordinateFrame3::default().components();
         assert!(elliptic_bounds(frame, 2.0, 2.0, None).is_some());
         assert!(elliptic_bounds(frame, 1.0, 2.0, None).is_none());
         assert!(elliptic_bounds(frame, 2.0, 0.0, None).is_none());

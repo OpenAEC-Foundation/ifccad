@@ -52,11 +52,11 @@
     {
       "attributes": {
         "resource": {
-          "checksum": "sha256:6f3d65b172dda2b8c96a431cc06d0388389347425da679a2616b6ce14f4a1508",
+          "checksum": "sha256:831fa673aa5c04af39d5952e84964a2bd97db92f596fb8b0bb81ba463e0736c4",
           "format": "openaec.ifcdr",
           "role": "drawing",
           "uri": "drawing.ifcdr.json",
-          "version": "0.11.0",
+          "version": "0.12.0",
           "resourceId": "drawing-main"
         },
         "name": "Drawing"
@@ -162,7 +162,8 @@
     "dataVersion": "0.5.0",
     "id": "ifccad/examples/golden-minimal/golden_minimal.ifcx.json",
     "ifcxVersion": "ifcx_alpha",
-    "timestamp": "2026-07-06T00:00:00Z"
+    "timestamp": "2026-07-06T00:00:00Z",
+    "ifccadSchemaVersion": "0.14.0"
   },
   "imports": []
 }

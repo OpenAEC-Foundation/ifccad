@@ -1035,6 +1035,62 @@ fn package_contract_document() -> Value {
 }
 
 #[test]
+fn workspace_0_14_overlay_requires_explicit_version_and_complete_selection() {
+    let registry = Registry::new()
+        .add(
+            "https://schemas.ifccad.org/ifcx/ifccad-drawing-core-0.5.0.json",
+            load_schema("ifccad-drawing-core-0.5.0.json"),
+        )
+        .unwrap()
+        .prepare()
+        .unwrap();
+    let schema = load_schema("ifccad-overlay-0.14.0.json");
+    jsonschema::draft202012::meta::validate(&schema).unwrap();
+    let validator = jsonschema::draft202012::options()
+        .with_registry(&registry)
+        .build(&schema)
+        .unwrap();
+    let mut document = package_contract_document();
+    document["header"]["ifccadSchemaVersion"] = json!("0.14.0");
+    document["data"] = json!([
+        {"path":"resume", "type":"openaec:PackageWorkspaceState",
+         "attributes":{"activeDrawing":"drawing", "activeLayout":"model"}},
+        {"path":"drawing", "type":"openaec:Drawing",
+         "attributes":{"plotStyleMode":"colorDependent", "workspaceState":{"currentLayer":"layer"}},
+         "children":{"Representation":"resource", "Layouts":["model"], "Layers":["layer"], "Appearances":[]}},
+        {"path":"model", "type":"openaec:DrawingLayout",
+         "attributes":{"name":"Model", "kind":"model", "scopeId":0,
+                       "limitsChecking":false, "paperSpaceLinetypeScaling":false},
+         "children":{"Representation":"resource"}},
+        {"path":"resource", "type":"openaec:DrawingRepresentation",
+         "attributes":{"resource":{"format":"openaec.ifcdr", "version":"0.12.0",
+                                     "resourceId":"r", "role":"drawing", "content":{}}}},
+        {"path":"layer", "type":"openaec:Layer",
+         "attributes":{"name":"0", "visible":true, "frozen":false,
+                       "locked":false, "plottable":true, "frozenInNewViewports":false}}
+    ]);
+    assert!(validator.is_valid(&document));
+    let mut missing = document.clone();
+    missing["header"]
+        .as_object_mut()
+        .unwrap()
+        .remove("ifccadSchemaVersion");
+    assert!(!validator.is_valid(&missing));
+    let mut missing = document.clone();
+    missing["data"][0]["attributes"]
+        .as_object_mut()
+        .unwrap()
+        .remove("activeLayout");
+    assert!(!validator.is_valid(&missing));
+    let mut missing = document;
+    missing["data"][1]["attributes"]["workspaceState"]
+        .as_object_mut()
+        .unwrap()
+        .remove("currentLayer");
+    assert!(!validator.is_valid(&missing));
+}
+
+#[test]
 fn overlay_0_4_separates_resource_identity_from_external_uri() {
     let schema = composite_overlay_0_4_schema();
     assert_eq!(schema["$id"], OVERLAY_0_4_ID);

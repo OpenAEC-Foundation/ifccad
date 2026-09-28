@@ -1,6 +1,7 @@
 use super::viewport::{check_viewport, check_viewport_boundaries, frame_bounds};
+use super::workspace::check_workspace;
 use super::*;
-use crate::ifcdr::{Bounds3d, PlanePlacement, Point2, Point3};
+use crate::ifcdr::{Bounds3d, CoordinateFrame3, Point2, Point3};
 use crate::validated::{EvidenceOutcome, Validated, ValidationOutcome, ValidationTarget};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -414,6 +415,7 @@ fn check<R: IfcdrResourceAccess>(r: &R) -> (IfcdrEvidence, Vec<IfcdrDiagnostic>)
         check_order(r, &evidence, &mut errors);
     }
     check_viewport_boundaries(r, &evidence, &mut errors);
+    check_workspace(r, &evidence, &mut errors);
     if let Err(mut geometry_errors) = collect_geometry(r, true) {
         errors.append(&mut geometry_errors);
     }
@@ -596,7 +598,7 @@ fn collect_direct_geometry<R: IfcdrResourceAccess>(
     let scope_bounds: BTreeMap<_, _> = r.scopes().iter().map(|s| (s.id, s.bounds)).collect();
     let mut errors = Vec::new();
     let mut failed_scopes = BTreeSet::new();
-    let mut add = |scope: u32, enclosure: Bounds3d, placed: Option<(PlanePlacement, Point2)>| {
+    let mut add = |scope: u32, enclosure: Bounds3d, placed: Option<(CoordinateFrame3, Point2)>| {
         if verify_bounds {
             let enclosing = scope_bounds
                 .get(&scope)
@@ -744,7 +746,7 @@ fn collect_direct_geometry<R: IfcdrResourceAccess>(
             ));
             continue;
         }
-        let plane = PlanePlacement::from_validated_components(p.placement());
+        let plane = CoordinateFrame3::from_validated_components(p.placement());
         for i in 0..p.vertex_count() {
             match p
                 .vertex(i)

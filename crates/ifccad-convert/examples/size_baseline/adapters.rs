@@ -103,7 +103,7 @@ pub fn package(recipe: &Drawing, inline: bool) -> Result<EncodedPackage> {
                 drawing
                     .model_space()
                     .add_planar_polyline(PlanarPolylineDefinition {
-                        placement: ifccad::ifcdr::PlanePlacement::try_new(
+                        placement: ifccad::ifcdr::CoordinateFrame3::try_new(
                             ifccad::ifcdr::Point3::new(origin[0], origin[1], origin[2]),
                             ifccad::ifcdr::Vector3::new(x_axis[0], x_axis[1], x_axis[2]),
                             ifccad::ifcdr::Vector3::new(y_axis[0], y_axis[1], y_axis[2]),

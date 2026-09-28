@@ -8,10 +8,8 @@ limitations and reproduction instructions.
 - [results-v1.json](results-v1.json): the successful full-corpus run, both
   generations, per-file accounting/hashes, stage results and provenance.
 
-The reported DWG writer includes the two
-[local fixes](../../patches/cadcodec-upstream/README.md). The result retains
-`baseline_accepted: false`, preserving the automatic gate for local overrides.
-The documented patched run is accepted as milestone 2's scoped initial
-measurement reference. A passing unpatched upstream baseline remains separate
-codec maintenance. Generated files, lockfiles and diagnostic development runs
-remain below `target/`.
+The retained result uses the pinned unmodified cadcodec dependency and has
+`baseline_accepted: true`. Earlier runs with
+[local fixes](../../patches/cadcodec-upstream/README.md) remain historical.
+Generated files, lockfiles and diagnostic development runs remain below
+`target/`.

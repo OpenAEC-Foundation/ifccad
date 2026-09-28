@@ -70,7 +70,8 @@ The crate currently provides:
   appearances, and IFCDR entities;
 - a deterministic package builder and safe new-directory writer for one
   drawing with model/paper scopes, local blocks, layers, appearances, lines,
-  polylines, paper viewports and effective layout plot settings; and
+  polylines, paper viewports, effective layout plot settings and optional shared
+  workspace state; and
 - the `ifccad-convert` companion crate for bidirectional conversion between a
   validated IFCCAD drawing and cadcodec `CadDocument`, including deterministic
   loss diagnostics and source-to-target entity mappings.
@@ -79,13 +80,18 @@ A complete IFCCAD vocabulary within IFCX, production IFCDR codecs, the future
 `.ifccad` container, broader native CAD entity coverage and preservation, and
 conventional IFC integration are still under development.
 
-The active writer uses the encoding-neutral IFCDR **0.11.0** contract with
+The writer uses the encoding-neutral IFCDR **0.12.0** contract with
 XYZ lines, points, circular and elliptic curves, planar polylines with bulges,
 spatial polylines, local block definitions/instances, paper-space viewports
-and evaluated per-scope XYZ bounds. IFCX 0.13.0 adds
+and evaluated per-scope XYZ bounds. IFCX **0.14.0** adds
 Drawing layer/appearance membership and effective per-layout plot settings.
-The reader also accepts IFCDR 0.9.0 / IFCX 0.11.0. Earlier IFCDR versions and
-other entity schemas do not produce a strict typed package; there is no legacy
+The optional workspace state carries one shared active drawing/layout,
+current layer, model/paper view contexts, grid, grid snap and UCS selections.
+CAD conversion currently transfers supported model VPORT and UCS state;
+paper editor state has explicit loss diagnostics.
+The reader also accepts IFCDR 0.11.0 / IFCX 0.13.0, IFCDR 0.10.0 / IFCX 0.12.0,
+and IFCDR 0.9.0 / IFCX 0.11.0. Older IFCDR versions and other entity schemas
+do not produce a strict typed package; there is no legacy
 migration path. Reader and writer retain separate storage behind shared typed
 collection access and semantic validation; JSON encoding is a separate boundary.
 IFCPR 0.2.0 retains its existing limited checks. See the
@@ -269,21 +275,24 @@ The public API is still evolving while the format contract matures.
 The active language-neutral schemas live in `schemas/`. The mutable
 `conformance/next` collection currently targets suite `1.1.0` and tests the
 minimal package-header contract alongside explicit resource identity: a
-logical resource ID is independent of its external URI. IFCX overlay `0.13.0`
+logical resource ID is independent of its external URI. IFCX overlay `0.14.0`
 requires the top-level `header`, `imports`, and `data` fields and the known
 header fields, while still allowing additional top-level and header fields and
 unknown IFCX node types for forward-compatible extension. It remains a
 development candidate until it is frozen as a numbered release. A numbered
 directory such as `conformance/1.0.0` is an immutable, self-contained release
 of fixtures, vectors, expected outcomes, and the schemas applicable to that
-collection. Ordinary candidate package cases now use IFCDR `0.11.0`; explicit
-unsupported-version probes remain separate.
+collection. Candidate package cases use IFCDR `0.12.0` with the explicit IFCX
+`0.14.0` marker, whether or not workspace state is present.
+Unsupported-version probes remain separate.
 
-The [drawing resource contract](schemas/ifcx/drawing-resource-contract-0.13.0.md)
+The [drawing resource contract](schemas/ifcx/drawing-resource-contract-0.14.0.md)
 uses `openaec:DrawingRepresentation` and `attributes.resource` with role
 `drawing`. A Drawing and all its layouts reference the same representation
 node; layouts select scopes within its IFCDR resource. The retired
 `DrawingGeometryRepresentation` vocabulary is explicitly unsupported.
+The workspace extension selects the package resume context in IFCX and stores drawing-local coordinate
+state in IFCDR.
 
 The [resource source contract](schemas/ifcx/resource-source-contract-0.9.0.md)
 supports external and inline IFCDR and IFCPR. A descriptor has either `uri`
@@ -303,9 +312,11 @@ Active schemas may move ahead of the latest released conformance collection.
 When a new collection is released, its applicable schemas are copied into the
 numbered directory and frozen with the rest of that collection.
 
-The [logical registry](schemas/ifcdr/registry-0.11.0.json),
-[normative rules](schemas/ifcdr/logical-contract-0.11.0.md), and
-[JSON mapping](schemas/ifcdr/json-mapping-0.11.0.json) define the drawing contract.
+The [logical registry](schemas/ifcdr/registry-0.12.0.json),
+[normative rules](schemas/ifcdr/logical-contract-0.12.0.md), and
+[JSON mapping](schemas/ifcdr/json-mapping-0.12.0.json) define the drawing contract.
+The 0.12.0 logical contract includes workspace records and names the geometric frame
+`CoordinateFrame3`; older resources retain their original spelling.
 The [mapping language](schemas/ifcdr/json-mapping-v4.md) specifies the meaning
 of its encoding forms and physical range rules.
 Both polyline families require at least two vertices. PlanarPolyline retains
@@ -340,9 +351,11 @@ transfer. These results describe executed operations, not a preflight scan.
 The [size and exchange experiment](docs/benchmarks/size-baseline-v1.md)
 describes the method, successful controlled IFCCAD/DXF/DWG measurements and
 repeatable exchange checks. The current run uses unmodified cadcodec 0.5.5
-at the pinned revision and IFCDR 0.11.0; the earlier patched-pin run remains
-historical. This reproducible method underpins milestone 2 and the new layout
-slice without claiming a representative production-size corpus.
+at the pinned revision and IFCDR 0.12.0; the earlier patched-pin run remains
+historical. The retained 2026-09-28 run checks the changed converter path, but
+its direct writer recipes contain no workspace state. This reproducible method
+underpins milestone 2 and the layout slice without claiming a representative
+production-size corpus.
 See the closure assessment and follow-up in [ROADMAP.md](ROADMAP.md).
 
 ## Repository layout

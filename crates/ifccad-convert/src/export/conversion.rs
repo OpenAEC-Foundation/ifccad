@@ -25,6 +25,8 @@ pub(crate) struct ExportContext {
     pub(crate) paper_scopes: BTreeMap<cadcodec::Handle, PaperSpaceKey>,
     pub(crate) appearances: AppearanceRegistry,
     pub(crate) entity_mapping: ExportEntityMapping,
+    pub(crate) mapped_workspace_vports: std::collections::BTreeSet<cadcodec::Handle>,
+    pub(crate) mapped_workspace_ucss: std::collections::BTreeSet<cadcodec::Handle>,
 }
 
 pub fn cad_document_to_package(
@@ -102,6 +104,7 @@ pub fn cad_document_to_package(
         }
         super::blocks::assess_occurrences(document, &mut context)?;
         super::blocks::propagate_losses(document, &mut context);
+        super::workspace::add_workspace(document, &mut drawing, &mut context)?;
     }
 
     scan_document_semantics(document, &mut context);

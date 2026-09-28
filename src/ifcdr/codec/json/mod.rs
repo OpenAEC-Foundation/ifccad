@@ -3,6 +3,7 @@ mod diagnostic;
 mod encode;
 mod mapping;
 mod physical;
+mod workspace;
 pub(crate) use decode::color as project_color;
 pub(crate) use decode::decode_json;
 pub(crate) use diagnostic::logical_diagnostic;

@@ -2,13 +2,13 @@ use super::validation::diagnostic;
 use super::*;
 use crate::diagnostic::PackageDiagnosticCategory;
 use crate::ifcdr::geometry::{numeric::Interval, PreparedBlockTransform};
-use crate::ifcdr::{BlockTransform, Bounds3d, PlanePlacement, Point2, Point3};
+use crate::ifcdr::{BlockTransform, Bounds3d, CoordinateFrame3, Point2, Point3};
 use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Clone, Copy)]
 enum Leaf {
     Point(Point3),
-    Placed(PlanePlacement, Point2),
+    Placed(CoordinateFrame3, Point2),
 }
 impl Leaf {
     fn enclosure(self) -> Option<[Interval; 3]> {
@@ -137,7 +137,7 @@ impl<'a, R: IfcdrResourceAccess> Geometry<'a, R> {
             }
             for row in &scope.polylines {
                 let p = polylines.get(*row).unwrap();
-                let plane = PlanePlacement::from_validated_components(p.placement());
+                let plane = CoordinateFrame3::from_validated_components(p.placement());
                 points.extend(
                     (0..p.vertex_count()).map(|i| Leaf::Placed(plane, p.vertex(i).unwrap())),
                 );

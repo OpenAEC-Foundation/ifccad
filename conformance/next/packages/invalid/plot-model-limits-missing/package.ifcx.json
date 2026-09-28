@@ -210,12 +210,12 @@
       "attributes": {
         "name": "Drawing",
         "resource": {
-          "checksum": "sha256:0b47b3ff2d90f1d979fac8e1d8b5ba5094be8b45c35abe754fa94c8fe6c179a5",
+          "checksum": "sha256:123a246c7c568a630cf5f3775d2bed98a289b096580594fc2ce88cb94f128955",
           "format": "openaec.ifcdr",
           "resourceId": "geometry",
           "role": "drawing",
           "uri": "resources/drawing.ifcdr.json",
-          "version": "0.11.0"
+          "version": "0.12.0"
         }
       },
       "path": "representation-0",
@@ -227,7 +227,8 @@
     "dataVersion": "1",
     "id": "matrix-plot-model-limits-missing",
     "ifcxVersion": "ifcx_alpha",
-    "timestamp": "2026-09-23T00:00:00Z"
+    "timestamp": "2026-09-23T00:00:00Z",
+    "ifccadSchemaVersion": "0.14.0"
   },
   "imports": []
 }

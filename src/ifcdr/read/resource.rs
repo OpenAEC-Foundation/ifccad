@@ -65,6 +65,9 @@ pub struct IfcdrResourceRef<'a> {
     resource: &'a ValidatedIfcdrResource,
 }
 impl<'a> IfcdrResourceRef<'a> {
+    pub fn workspace(&self) -> Option<&'a IfcdrWorkspace> {
+        self.resource.typed().workspace.as_ref()
+    }
     pub(crate) fn new(resource: &'a ValidatedIfcdrResource) -> Self {
         Self { resource }
     }
@@ -336,7 +339,7 @@ mod tests {
         let resource = outcome.validated().unwrap();
 
         assert_eq!(resource.header().format(), "openaec.ifcdr");
-        assert_eq!(resource.header().version(), "0.11.0");
+        assert_eq!(resource.header().version(), "0.12.0");
         assert_eq!(resource.header().resource_id().as_str(), "drawing-main");
         assert_eq!(resource.header().unit(), "m");
         assert_eq!(resource.header().next_entity_id(), 5);

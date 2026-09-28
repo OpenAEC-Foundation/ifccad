@@ -514,7 +514,7 @@ fn entities_receive_global_ids_in_mixed_insertion_order() {
     let second = drawing
         .model_space()
         .add_planar_polyline(PlanarPolylineDefinition {
-            placement: ifccad::ifcdr::PlanePlacement::default(),
+            placement: ifccad::ifcdr::CoordinateFrame3::default(),
             bulges: Vec::new(),
             points: vec![Point2::new(-2.0, 3.0), Point2::new(4.0, -5.0)],
             closed: false,
@@ -715,7 +715,7 @@ fn entities_reject_invalid_geometry_without_advancing_ids() {
             drawing
                 .model_space()
                 .add_planar_polyline(PlanarPolylineDefinition {
-                    placement: ifccad::ifcdr::PlanePlacement::default(),
+                    placement: ifccad::ifcdr::CoordinateFrame3::default(),
                     bulges: Vec::new(),
                     points,
                     closed: false,
@@ -730,7 +730,7 @@ fn entities_reject_invalid_geometry_without_advancing_ids() {
         drawing
             .model_space()
             .add_planar_polyline(PlanarPolylineDefinition {
-                placement: ifccad::ifcdr::PlanePlacement::default(),
+                placement: ifccad::ifcdr::CoordinateFrame3::default(),
                 bulges: Vec::new(),
                 points: vec![Point2::new(0.0, 0.0), Point2::new(f64::INFINITY, 1.0)],
                 closed: false,

@@ -1,6 +1,6 @@
-use super::mapping::registry_0_11;
+use super::mapping::registry_0_12;
 use crate::ifcdr::logical::*;
-use crate::ifcdr::{BlockScaling, Bounds3d, IfcdrLengthUnit, PlanePlacement, Scale3};
+use crate::ifcdr::{BlockScaling, Bounds3d, CoordinateFrame3, IfcdrLengthUnit, Scale3};
 use crate::ResourceId;
 use serde_json::{json, Map, Value};
 use sha2::{Digest, Sha256};
@@ -47,7 +47,7 @@ pub(crate) fn encode_json<R: IfcdrResourceAccess>(
     proof: &ValidatedIfcdr<R>,
 ) -> Result<EncodedIfcdrResource, IfcdrEncodeError> {
     let r = proof.loaded().resource();
-    let registry = registry_0_11();
+    let registry = registry_0_12();
     let mut streams = Map::new();
     let mut directory = Vec::new();
     for schema in registry.streams() {
@@ -176,7 +176,7 @@ pub(crate) fn encode_json<R: IfcdrResourceAccess>(
                     );
                     let t = instance.transform;
                     let mut transform = Map::new();
-                    if t.placement != PlanePlacement::default().components() {
+                    if t.placement != CoordinateFrame3::default().components() {
                         let p = t.placement;
                         transform.insert("placement".into(),json!({"origin":{"x":p.origin.x(),"y":p.origin.y(),"z":p.origin.z()},"X":{"x":p.x.x(),"y":p.x.y(),"z":p.x.z()},"Y":{"x":p.y.x(),"y":p.y.y(),"z":p.y.z()}}));
                     }
@@ -221,10 +221,10 @@ pub(crate) fn encode_json<R: IfcdrResourceAccess>(
                     push(&mut columns, "vertexCount", count(p.vertex_count())?);
                     push(&mut columns, "closed", p.closed());
                     let frame = p.placement();
-                    let placement = if frame == PlanePlacement::default().components() {
+                    let placement = if frame == CoordinateFrame3::default().components() {
                         Value::Null
-                    } else if frame.x == PlanePlacement::default().components().x
-                        && frame.y == PlanePlacement::default().components().y
+                    } else if frame.x == CoordinateFrame3::default().components().x
+                        && frame.y == CoordinateFrame3::default().components().y
                     {
                         json!({"origin":{"x":frame.origin.x(),"y":frame.origin.y(),"z":frame.origin.z()}})
                     } else {
@@ -340,7 +340,7 @@ pub(crate) fn encode_json<R: IfcdrResourceAccess>(
         columns.insert("count".into(), json!(row_count));
         streams.insert(schema.payload_key().into(), Value::Object(columns));
     }
-    let root = json!({
+    let mut root = json!({
         "header":{"format":"openaec.ifcdr","version":registry.ifcdr_version(),"resourceId":r.resource_id(),"unit":unit_name(r.unit()),"nextEntityId":r.next_entity_id()},
         "scopeTable":r.scopes().iter().map(|s| json!({"id":s.id,"kind":match s.kind {IfcdrScopeKind::ModelSpace=>0,IfcdrScopeKind::PaperSpace=>1,IfcdrScopeKind::BlockDefinition=>2},"bounds":s.bounds.map(bounds_json)})).collect::<Vec<_>>(),
         "blockDefinitionTable":r.block_definitions().iter().map(|d| json!({"scopeId":d.scope_id,"name":d.name,"basePoint":{"x":d.base_point.x(),"y":d.base_point.y(),"z":d.base_point.z()},"description":d.description,"anonymous":d.anonymous,"insertionUnit":unit_name(d.insertion_unit),"explodable":d.explodable,"scaling":match d.scaling {BlockScaling::Any=>0,BlockScaling::Uniform=>1}})).collect::<Vec<_>>(),
@@ -349,6 +349,9 @@ pub(crate) fn encode_json<R: IfcdrResourceAccess>(
         "appearanceOverrides":r.overrides().iter().map(|o| json!({"id":o.id,"color":o.color.as_ref().map(color_json),"opacity":o.opacity,"lineWeight":o.line_weight,"ifcxLinePattern":o.ifcx_line_pattern})).collect::<Vec<_>>(),
         "streamDirectory":{"version":"ifccad.ifcdr.streamDirectory.v1","streams":directory},"streams":streams
     });
+    if let Some(workspace) = r.workspace() {
+        super::workspace::encode_workspace(&mut root, workspace);
+    }
     let bytes = serde_json::to_vec_pretty(&root).map_err(|e| IfcdrEncodeError::Serialization {
         message: e.to_string(),
     })?;
@@ -360,14 +363,14 @@ pub(crate) fn encode_json<R: IfcdrResourceAccess>(
         value: root,
     })
 }
-fn point2_json(point: crate::ifcdr::Point2) -> Value {
+pub(super) fn point2_json(point: crate::ifcdr::Point2) -> Value {
     json!({"x":point.x(),"y":point.y()})
 }
-fn point3_json(point: crate::ifcdr::Point3) -> Value {
+pub(super) fn point3_json(point: crate::ifcdr::Point3) -> Value {
     json!({"x":point.x(),"y":point.y(),"z":point.z()})
 }
 fn placement_json(frame: crate::ifcdr::geometry::PlanePlacementComponents) -> Value {
-    let standard = PlanePlacement::default().components();
+    let standard = CoordinateFrame3::default().components();
     if frame == standard {
         Value::Null
     } else if frame.x == standard.x && frame.y == standard.y {
@@ -377,13 +380,13 @@ fn placement_json(frame: crate::ifcdr::geometry::PlanePlacementComponents) -> Va
                "X":vector3_json(frame.x),"Y":vector3_json(frame.y)})
     }
 }
-fn vector3_json(vector: crate::ifcdr::Vector3) -> Value {
+pub(super) fn vector3_json(vector: crate::ifcdr::Vector3) -> Value {
     json!({"x":vector.x(),"y":vector.y(),"z":vector.z()})
 }
 fn viewport_frame_json(frame: ViewportFrame) -> Value {
     json!({"center":point2_json(frame.center),"width":frame.width,"height":frame.height})
 }
-fn view_json(view: ViewDefinition) -> Value {
+pub(super) fn view_json(view: ViewDefinition) -> Value {
     let mut front = json!({"mode":match view.front_clip.mode {FrontClipMode::Disabled=>0,FrontClipMode::AtCamera=>1,FrontClipMode::AtDistance=>2}});
     if let Some(distance) = view.front_clip.distance {
         front["distance"] = json!(distance);
@@ -402,7 +405,7 @@ fn view_json(view: ViewDefinition) -> Value {
     }
     value
 }
-fn render_mode_code(mode: ViewportRenderMode) -> u32 {
+pub(super) fn render_mode_code(mode: ViewportRenderMode) -> u32 {
     match mode {
         ViewportRenderMode::TwoDimensional => 0,
         ViewportRenderMode::Wireframe => 1,

@@ -195,7 +195,7 @@ pub(crate) fn add_entities(
                     rotated(basis.u, basis.v, -sine, cosine),
                 )
                 .expect("finite independent CAD point axes classified before conversion");
-                let placement = ifccad::ifcdr::PlanePlacement::try_new(
+                let placement = ifccad::ifcdr::CoordinateFrame3::try_new(
                     ifccad::ifcdr::Point3::new(
                         point.location.x,
                         point.location.y,

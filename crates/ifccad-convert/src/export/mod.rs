@@ -11,6 +11,7 @@ mod options;
 mod outcome;
 mod structure;
 mod units;
+mod workspace;
 
 pub use conversion::cad_document_to_package;
 pub use diagnostic::{

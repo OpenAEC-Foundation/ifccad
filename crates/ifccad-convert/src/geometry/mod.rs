@@ -41,7 +41,7 @@ pub(crate) fn cad_plane(normal: Vector3) -> Option<CadPlane> {
         v: [m[0][1], m[1][1], m[2][1]],
         n: [m[0][2], m[1][2], m[2][2]],
     };
-    PlanePlacement::try_new(Point3::new(0., 0., 0.), cv(p.u), cv(p.v)).ok()?;
+    CoordinateFrame3::try_new(Point3::new(0., 0., 0.), cv(p.u), cv(p.v)).ok()?;
     Some(p)
 }
 
@@ -62,7 +62,7 @@ pub(crate) fn orthonormal_pair(x: Vector3, y: Vector3) -> Option<(Vector3, Vecto
         return None;
     }
     let y = normalized(residual)?;
-    PlanePlacement::try_new(
+    CoordinateFrame3::try_new(
         Point3::new(0.0, 0.0, 0.0),
         cv([x.x, x.y, x.z]),
         cv([y.x, y.y, y.z]),
@@ -91,12 +91,12 @@ use crate::{
     ConversionGeometryFailureReason as Reason, ConversionGeometryStage as Stage,
 };
 use cadcodec::{LwPolyline, Vector2};
-use ifccad::ifcdr::{PlanarPolylineRef, PlanePlacement, Point3};
+use ifccad::ifcdr::{CoordinateFrame3, PlanarPolylineRef, Point3};
 use numeric::{exact, round_nearest};
 fn cv(v: [f64; 3]) -> ifccad::ifcdr::Vector3 {
     ifccad::ifcdr::Vector3::new(v[0], v[1], v[2])
 }
-fn components(plane: PlanePlacement) -> ([f64; 3], [f64; 3], [f64; 3]) {
+fn components(plane: CoordinateFrame3) -> ([f64; 3], [f64; 3], [f64; 3]) {
     let (o, x, y) = (plane.origin(), plane.x_axis(), plane.y_axis());
     (
         [o.x(), o.y(), o.z()],
@@ -107,7 +107,7 @@ fn components(plane: PlanePlacement) -> ([f64; 3], [f64; 3], [f64; 3]) {
 fn dot(a: [f64; 3], b: [f64; 3]) -> BigRational {
     a.into_iter().zip(b).map(|(a, b)| exact(a) * exact(b)).sum()
 }
-pub(crate) fn stored_normal(plane: PlanePlacement) -> Option<Vector3> {
+pub(crate) fn stored_normal(plane: CoordinateFrame3) -> Option<Vector3> {
     let (_, x, y) = components(plane);
     let mut n = [0.0; 3];
     for (i, component) in n.iter_mut().enumerate() {
@@ -174,7 +174,7 @@ impl PreparedProjection {
 pub(crate) fn from_cad(
     poly: &LwPolyline,
     assessment: &mut ConversionGeometryAssessment,
-) -> Result<(PlanePlacement, f64, bool), Box<ConversionGeometryFailure>> {
+) -> Result<(CoordinateFrame3, f64, bool), Box<ConversionGeometryFailure>> {
     let source = ConversionEntitySource::CadEntity {
         handle: poly.common.handle,
         kind: "LWPOLYLINE".into(),
@@ -191,7 +191,7 @@ pub(crate) fn from_cad(
             )
         })?;
     }
-    let plane = PlanePlacement::try_new(Point3::new(o[0], o[1], o[2]), cv(basis.u), cv(basis.v))
+    let plane = CoordinateFrame3::try_new(Point3::new(o[0], o[1], o[2]), cv(basis.u), cv(basis.v))
         .map_err(|_| fail(Stage::SourceEvaluation, Reason::CadAxisEvaluationFailed))?;
     // The validated frame bounds each direction component near one. Ordinary
     // magnitudes are provably in range; only extreme inputs need exact point

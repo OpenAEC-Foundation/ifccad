@@ -58,7 +58,7 @@ impl PlanePlacementComponents {
                 }
             }
         }
-        if self == PlanePlacement::default().components() {
+        if self == CoordinateFrame3::default().components() {
             return Ok(());
         }
         let tolerance = exact(f64::from_bits(0x3d719799812dea11));
@@ -77,7 +77,7 @@ impl PlanePlacementComponents {
     }
 }
 
-/// An immutable complete planar placement, validated without normalizing its axes.
+/// An immutable 3D coordinate frame, validated without normalizing its axes.
 ///
 /// The default is the complete XY placement at the origin. Explicit placements
 /// require an origin and both directions; validation never fills components in.
@@ -86,8 +86,8 @@ impl PlanePlacementComponents {
 /// without applying a scope base or any IFCX placement.
 ///
 /// ```
-/// use ifccad::ifcdr::{PlanePlacement, Point2, Point3, Vector3};
-/// let plane = PlanePlacement::try_new(
+/// use ifccad::ifcdr::{CoordinateFrame3, Point2, Point3, Vector3};
+/// let plane = CoordinateFrame3::try_new(
 ///     Point3::new(10.0, 20.0, 30.0),
 ///     Vector3::new(0.0, 1.0, 0.0),
 ///     Vector3::new(-1.0, 0.0, 0.0),
@@ -97,9 +97,13 @@ impl PlanePlacementComponents {
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub struct PlanePlacement(PlanePlacementComponents);
+pub struct CoordinateFrame3(PlanePlacementComponents);
 
-impl Default for PlanePlacement {
+/// Compatibility name for `CoordinateFrame3`.
+#[deprecated(since = "0.1.0", note = "use CoordinateFrame3")]
+pub type PlanePlacement = CoordinateFrame3;
+
+impl Default for CoordinateFrame3 {
     fn default() -> Self {
         Self(PlanePlacementComponents {
             origin: Point3::new(0.0, 0.0, 0.0),
@@ -109,7 +113,7 @@ impl Default for PlanePlacement {
     }
 }
 
-impl PlanePlacement {
+impl CoordinateFrame3 {
     pub(crate) fn from_validated_components(value: PlanePlacementComponents) -> Self {
         Self(value)
     }
@@ -223,11 +227,27 @@ mod tests {
     use super::*;
 
     #[test]
+    #[allow(deprecated)]
+    fn coordinate_frame3_preserves_oblique_axes_and_legacy_alias() {
+        let x = Vector3::new(0.0, 1.0, 0.0);
+        let y = Vector3::new(0.0, 0.0, 1.0);
+        let frame = CoordinateFrame3::try_new(Point3::new(3.0, 4.0, 5.0), x, y).unwrap();
+        let old: PlanePlacement = frame;
+        assert_eq!(old.origin(), Point3::new(3.0, 4.0, 5.0));
+        assert_eq!(frame.x_axis(), x);
+        assert_eq!(frame.y_axis(), y);
+        assert_eq!(
+            CoordinateFrame3::try_new(Point3::new(0.0, 0.0, 0.0), x, x),
+            Err(PlanePlacementError::AxesNotPerpendicular)
+        );
+    }
+
+    #[test]
     fn varied_points_and_accepted_skew_have_exact_enclosures() {
         let origin = Point3::new(13.25, -97.625, 41.0);
         let x = Vector3::new(1.0, 0.0, 0.0);
         let y = Vector3::new(1e-13, 1.0, 0.0);
-        let plane = PlanePlacement::try_new(origin, x, y).unwrap();
+        let plane = CoordinateFrame3::try_new(origin, x, y).unwrap();
         assert_eq!(plane.origin(), origin);
         assert_eq!(plane.x_axis(), x);
         assert_eq!(plane.y_axis(), y);
@@ -260,7 +280,7 @@ mod tests {
         for length in [1.0 - 6e-13, 1.0 - 4e-13, 1.0, 1.0 + 4e-13, 1.0 + 6e-13] {
             let expected = (exact(length) * exact(length) - exact(1.0)).abs()
                 <= exact(f64::from_bits(0x3d719799812dea11));
-            let result = PlanePlacement::try_new(
+            let result = CoordinateFrame3::try_new(
                 Point3::new(0.0, 0.0, 0.0),
                 Vector3::new(length, 0.0, 0.0),
                 Vector3::new(0.0, 1.0, 0.0),
@@ -324,7 +344,7 @@ mod tests {
         use super::super::numeric::metrics;
         use std::{hint::black_box, time::Instant};
         let half = 0.5_f64.sqrt();
-        let oblique = PlanePlacement::try_new(
+        let oblique = CoordinateFrame3::try_new(
             Point3::new(123.4, -567.8, 90.1),
             Vector3::new(half, half, 0.0),
             Vector3::new(0.0, 0.0, 1.0),
@@ -334,7 +354,7 @@ mod tests {
             .map(|i| Point2::new(i as f64 * 0.17, i as f64 * -0.31))
             .collect();
         for (name, plane) in [
-            ("identity", PlanePlacement::default()),
+            ("identity", CoordinateFrame3::default()),
             ("oblique", oblique),
         ] {
             for _ in 0..2 {
@@ -369,7 +389,7 @@ mod tests {
     fn perpendicularity_boundary_is_inclusive_and_preserves_axes() {
         let tau = f64::from_bits(0x3d719799812dea11);
         let make = |s| {
-            PlanePlacement::try_new(
+            CoordinateFrame3::try_new(
                 Point3::new(0.0, 0.0, 0.0),
                 Vector3::new(1.0, 0.0, 0.0),
                 Vector3::new(s, 1.0, 0.0),
@@ -389,18 +409,18 @@ mod tests {
         let x = Vector3::new(1.0, 0.0, 0.0);
         let y = Vector3::new(0.0, 1.0, 0.0);
         assert!(matches!(
-            PlanePlacement::try_new(Point3::new(f64::NAN, 0.0, 0.0), x, y),
+            CoordinateFrame3::try_new(Point3::new(f64::NAN, 0.0, 0.0), x, y),
             Err(PlanePlacementError::NonFiniteComponent {
                 field: PlanePlacementField::Origin,
                 ..
             })
         ));
         assert_eq!(
-            PlanePlacement::try_new(o, Vector3::new(2.0, 0.0, 0.0), y),
+            CoordinateFrame3::try_new(o, Vector3::new(2.0, 0.0, 0.0), y),
             Err(PlanePlacementError::AxisLengthOutsideTolerance { axis: PlaneAxis::X })
         );
         assert_eq!(
-            PlanePlacement::try_new(o, x, Vector3::new(0.0, 0.0, 0.0)),
+            CoordinateFrame3::try_new(o, x, Vector3::new(0.0, 0.0, 0.0)),
             Err(PlanePlacementError::AxisLengthOutsideTolerance { axis: PlaneAxis::Y })
         );
     }
@@ -409,10 +429,10 @@ mod tests {
     fn maps_rotated_translated_points_and_identity() {
         let p = Point2::new(2.0, 3.0);
         assert_eq!(
-            PlanePlacement::default().try_to_scope_point(p),
+            CoordinateFrame3::default().try_to_scope_point(p),
             Ok(Point3::new(2.0, 3.0, 0.0))
         );
-        let plane = PlanePlacement::try_new(
+        let plane = CoordinateFrame3::try_new(
             Point3::new(10.0, 20.0, 30.0),
             Vector3::new(0.0, 1.0, 0.0),
             Vector3::new(-1.0, 0.0, 0.0),
@@ -430,7 +450,7 @@ mod tests {
     #[test]
     fn exact_evaluation_survives_intermediate_cancellation() {
         let half = 0.5_f64.sqrt();
-        let plane = PlanePlacement::try_new(
+        let plane = CoordinateFrame3::try_new(
             Point3::new(f64::MAX, 0.0, 0.0),
             Vector3::new(half, half, 0.0),
             Vector3::new(-half, half, 0.0),
@@ -447,7 +467,7 @@ mod tests {
 
     #[test]
     fn tight_bounds_enclose_exact_geometry_not_rounded_point() {
-        let plane = PlanePlacement::try_new(
+        let plane = CoordinateFrame3::try_new(
             Point3::new(1.0, 0.0, 0.0),
             Vector3::new(1.0, 0.0, 0.0),
             Vector3::new(0.0, 1.0, 0.0),
@@ -477,7 +497,7 @@ mod tests {
 
     #[test]
     fn exact_out_of_range_and_nonfinite_input_are_explicit() {
-        let plane = PlanePlacement::try_new(
+        let plane = CoordinateFrame3::try_new(
             Point3::new(f64::MAX, 0.0, 0.0),
             Vector3::new(1.0, 0.0, 0.0),
             Vector3::new(0.0, 1.0, 0.0),

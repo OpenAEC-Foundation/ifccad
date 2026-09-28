@@ -110,12 +110,12 @@
       "attributes": {
         "name": "Drawing",
         "resource": {
-          "checksum": "sha256:74430bb47f860c6adca853a09694f58cfa0d984f649c9224255e132edbc5cdfa",
+          "checksum": "sha256:fd496cf5cede6b7c63b8f653b6736c0f241c32879891664e6aad0ad38ee76a92",
           "format": "openaec.ifcdr",
           "resourceId": "geometry",
           "role": "drawing",
           "uri": "resources/drawing.ifcdr.json",
-          "version": "0.11.0"
+          "version": "0.12.0"
         }
       },
       "path": "representation-0",
@@ -182,7 +182,8 @@
     "dataVersion": "1",
     "id": "matrix-viewport-perspective-at-camera",
     "ifcxVersion": "ifcx_alpha",
-    "timestamp": "2026-09-23T00:00:00Z"
+    "timestamp": "2026-09-23T00:00:00Z",
+    "ifccadSchemaVersion": "0.14.0"
   },
   "imports": []
 }

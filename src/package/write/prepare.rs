@@ -291,6 +291,10 @@ pub(crate) fn prepare_drawing(
         .collect();
     prepare_resource(IfcdrWriteInput {
         resource_id: drawing.options.representation_resource_id.clone(),
+        workspace: drawing
+            .workspace_selection
+            .as_ref()
+            .map(|s| s.workspace.clone()),
         unit: drawing.options.length_unit,
         next_entity_id: drawing.next_entity_id,
         block_definitions: drawing.block_definitions.clone(),
@@ -367,7 +371,7 @@ mod tests {
             .add_planar_polyline_with_id(
                 EntityId::new(5).unwrap(),
                 PlanarPolylineDefinition {
-                    placement: crate::ifcdr::PlanePlacement::default(),
+                    placement: crate::ifcdr::CoordinateFrame3::default(),
                     bulges: Vec::new(),
                     points: vec![Point2::new(0., 0.), Point2::new(0., 0.)],
                     closed: true,

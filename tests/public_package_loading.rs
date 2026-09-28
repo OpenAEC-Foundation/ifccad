@@ -105,6 +105,10 @@ fn copy_minimal_package(root: &Path) -> serde_json::Value {
 fn candidate_package(root: &Path) -> serde_json::Value {
     use sha2::{Digest, Sha256};
     let mut entrypoint = copy_minimal_package(root);
+    entrypoint["header"]
+        .as_object_mut()
+        .unwrap()
+        .remove("ifccadSchemaVersion");
     let resource_path = root.join("drawing.ifcdr.json");
     let mut resource: serde_json::Value =
         serde_json::from_slice(&fs::read(&resource_path).unwrap()).unwrap();
@@ -130,6 +134,103 @@ fn candidate_package(root: &Path) -> serde_json::Value {
         attrs["frozenInNewViewports"] = serde_json::json!(false);
     }
     entrypoint
+}
+
+fn workspace_package(root: &Path) -> serde_json::Value {
+    use serde_json::json;
+    use sha2::{Digest, Sha256};
+    let mut entrypoint = candidate_package(root);
+    let resource_path = root.join("drawing.ifcdr.json");
+    let mut resource: serde_json::Value =
+        serde_json::from_slice(&fs::read(&resource_path).unwrap()).unwrap();
+    resource["header"]["version"] = json!("0.12.0");
+    let world = json!({"kind":0});
+    let grid = json!({"enabled":false,"spacing":{"x":0.0,"y":10.0},
+        "style":0,"majorLineFrequency":5,"beyondLimits":false,
+        "adaptive":false,"subdivision":false,"followsWorkplane":true});
+    let snap = json!({"enabled":true,"base":{"x":0.0,"y":0.0},
+        "spacing":{"x":0.5,"y":0.5},"angle":0.0,"style":0,"isometricPlane":1});
+    let view = json!({"center":{"x":0.0,"y":0.0},"target":{"x":0.0,"y":0.0,"z":0.0},
+        "direction":{"x":0.0,"y":0.0,"z":1.0},"height":100.0,"twist":0.0,
+        "projection":0,"frontClip":{"mode":0},"backClip":{"mode":0}});
+    resource["drawingViewState"] = json!({"currentModelUcs":world,"activeModelWindowId":1});
+    resource["modelWindowTable"] = json!([{"modelWindowId":1,
+        "rectangle":{"minX":0.0,"minY":0.0,"maxX":1.0,"maxY":1.0},
+        "view":view,"aspectRatio":1.0,"renderMode":0,"grid":grid,"snap":snap,
+        "storedUcs":world,"useStoredUcs":true}]);
+    let bytes = serde_json::to_vec_pretty(&resource).unwrap();
+    fs::write(&resource_path, &bytes).unwrap();
+    entrypoint["header"]["ifccadSchemaVersion"] = json!("0.14.0");
+    entrypoint["data"][3]["attributes"]["resource"]["version"] = json!("0.12.0");
+    entrypoint["data"][3]["attributes"]["resource"]["checksum"] =
+        json!(format!("sha256:{:x}", Sha256::digest(&bytes)));
+    entrypoint["data"][1]["attributes"]["workspaceState"] = json!({"currentLayer":"layer-0"});
+    let drawing_path = entrypoint["data"][1]["path"].clone();
+    let layout_path = entrypoint["data"][2]["path"].clone();
+    entrypoint["data"].as_array_mut().unwrap().push(json!({
+        "path":"workspace","type":"openaec:PackageWorkspaceState",
+        "attributes":{"activeDrawing":drawing_path,"activeLayout":layout_path}
+    }));
+    entrypoint
+}
+
+#[test]
+fn workspace_selected_model_requires_matching_resource_context() {
+    use sha2::{Digest, Sha256};
+    let root = TestDirectory::new("workspace-selected-model");
+    let mut entrypoint = workspace_package(root.path());
+    fs::write(
+        root.path().join(DIRECTORY_PACKAGE_ENTRYPOINT),
+        serde_json::to_vec(&entrypoint).unwrap(),
+    )
+    .unwrap();
+    let valid = load_directory_package(root.path()).unwrap();
+    assert!(valid.validated_package().is_some(), "{:?}", valid.report());
+    let resume = valid.validated_package().unwrap().workspace().unwrap();
+    assert_eq!(
+        resume.active_layout().kind(),
+        ifccad::package::DrawingLayoutKind::Model
+    );
+    assert_eq!(
+        resume.active_drawing().current_layer_path(),
+        Some("layer-0")
+    );
+    assert_eq!(
+        resume
+            .active_layout()
+            .representation()
+            .resource()
+            .workspace()
+            .unwrap()
+            .model_windows
+            .len(),
+        1
+    );
+
+    let path = root.path().join("drawing.ifcdr.json");
+    let mut resource: serde_json::Value =
+        serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    resource.as_object_mut().unwrap().remove("drawingViewState");
+    resource.as_object_mut().unwrap().remove("modelWindowTable");
+    let bytes = serde_json::to_vec_pretty(&resource).unwrap();
+    fs::write(&path, &bytes).unwrap();
+    entrypoint["data"][3]["attributes"]["resource"]["checksum"] =
+        serde_json::json!(format!("sha256:{:x}", Sha256::digest(&bytes)));
+    fs::write(
+        root.path().join(DIRECTORY_PACKAGE_ENTRYPOINT),
+        serde_json::to_vec(&entrypoint).unwrap(),
+    )
+    .unwrap();
+    let invalid = load_directory_package(root.path()).unwrap();
+    assert!(invalid.validated_package().is_none());
+    assert!(
+        invalid
+            .report()
+            .iter()
+            .any(|d| d.code == "IFCCAD_PACKAGE_BINDING_INVALID" && d.message.contains("workspace")),
+        "{:?}",
+        invalid.report()
+    );
 }
 
 #[test]

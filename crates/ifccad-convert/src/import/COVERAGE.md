@@ -1,6 +1,6 @@
 # Drawing-to-CadDocument assessment coverage
 
-This describes the importer for IFCDR 0.9.0/0.10.0/0.11.0 and cadcodec revision
+This describes the importer for IFCDR 0.9.0/0.10.0/0.11.0/0.12.0 and cadcodec revision
 `5b682ed66ea2c89be8142c8dd83d83774fc3de08`. It is a coverage declaration, not a
 preflight scan. Changes to that importer must review this declaration.
 
@@ -21,6 +21,9 @@ The package graph outside that drawing and IFCPR restoration are outside scope.
 | Effective `plotSettings.media/area/mapping/output/options` | Millimetre/inch/pixel tokens, media dimensions/margins/rotation, all four supported plot areas, fixed/fit scale, offset/center, shading, active plot-style switch/name and supported flags map to pinned `Layout` fields. Printable-area-relative offsets and plot transparency have no exact target field and receive `LayoutFieldUnsupported`. A page setup name or CTB/STB contents cannot be reconstructed from the native inline value. |
 | Paper `Viewport` frame, orthographic view, render and clip state | Mapped to a CAD VIEWPORT owned by the paper block. Perspective is skipped with `ViewportUnsupported` pending CAD fixture calibration; an unresolved active paper clip also skips the viewport. |
 | Viewport frozen layers | Each relational frozen override maps to a CAD frozen-layer handle. Pinned cadcodec has no per-viewport appearance-override slots; those report `ViewportUnsupported`. |
+| Drawing workspace current Layer | A bound IFCX Layer becomes the CAD header current Layer. A selected Layer without an IFCDR binding is created by name as a CAD Layer and becomes current; its appearance currently produces `WorkspaceUnsupported`. |
+| Named UCS and model workspace | Named UCS definitions become CAD UCS table entries, including unused ones. Current World/named/unnamed model UCS and ordered model windows map to the header and active VPORT records, including dormant grid/snap values. CAD handles are newly allocated. Grid dot style or an out-of-range major frequency receives `WorkspaceUnsupported`. |
+| Paper workspace | Paper canvas and per-viewport grid/snap/UCS state are diagnosed as `WorkspaceUnsupported`; the pinned CAD target does not expose an unambiguous selected tab/canvas state through this converter. |
 | Block instances | Shared references retained without explosion; owner scopes and local child coordinates retained. Non-neutral frames are converted with explicit parameterization-loss evidence and occurrence-space accuracy checks. Setter scale changes are hard `BlockTargetLimitation`, even for empty definitions. |
 | Line endpoints | XYZ copied directly; exact geometry assessment |
 | Point placement | Origin becomes CAD WCS location; stored normal and X/Y orientation determine CAD normal and X-axis marker angle. The geometric position is assessed independently of presentation. |
@@ -37,7 +40,7 @@ The package graph outside that drawing and IFCPR restoration are outside scope.
 | Line weight | Mapped to supported CAD weights; rounding emits a grouped loss diagnostic |
 | Opacity | Converted to CAD transparency with upstream's upward byte rounding (0.5 opacity gives transparency byte 128); quantization fidelity is not assessed |
 | Color metadata and appearance identity | No comprehensive fidelity assessment; unsupported indexed systems use RGB, and layer 0 updating does not copy all named-color metadata |
-| Other drawing/layout/view state | Workspace, named view, page-setup sharing and complete native appearance overrides remain outside this slice and cannot be reconstructed without a diagnostic or a future target-model extension. |
+| Other drawing/layout/view state | Named views, page-setup sharing and complete native appearance overrides remain outside this slice and cannot be reconstructed without a diagnostic or a future target-model extension. |
 | Bounds, allocation watermark, resource/table identities | No reconstruction guarantee; target storage and handles differ |
 
 The importer therefore always reports `Incomplete` coverage within the selected

@@ -52,6 +52,57 @@ fn viewport_fixture() -> Value {
 }
 
 #[test]
+fn workspace_0_12_physical_roundtrip_keeps_unused_ucs_and_dormant_grid() {
+    let mut value = viewport_fixture();
+    value["header"]["version"] = json!("0.12.0");
+    let frame = json!({"origin":{"x":1.0,"y":4.0,"z":2.0},
+        "X":{"x":1.0,"y":0.0,"z":0.0},"Y":{"x":0.0,"y":1.0,"z":0.0}});
+    let grid = json!({"enabled":false,"spacing":{"x":0.0,"y":10.0},"style":0,
+        "majorLineFrequency":5,"beyondLimits":false,"adaptive":false,
+        "subdivision":false,"followsWorkplane":true});
+    let snap = json!({"enabled":false,"base":{"x":0.0,"y":0.0},
+        "spacing":{"x":0.5,"y":0.5},"angle":0.0,"style":0,"isometricPlane":1});
+    let view = value["streams"]["viewportStream"]["view"][0].clone();
+    value["drawingViewState"] = json!({"currentModelUcs":{"kind":2,"frame":frame},
+        "activeModelWindowId":1});
+    value["ucsDefinitionTable"] = json!([{"ucsId":7,"name":"MOVED_ORIGIN",
+        "frame":frame,"elevation":0.0}]);
+    value["modelWindowTable"] = json!([{"modelWindowId":1,
+        "rectangle":{"minX":0.0,"minY":0.0,"maxX":1.0,"maxY":1.0},
+        "view":view,"aspectRatio":1.0,"renderMode":0,"grid":grid,"snap":snap,
+        "storedUcs":{"kind":2,"frame":frame},"useStoredUcs":true}]);
+    let decoded = decode_json("workspace.json", &value).expect("0.12 physical resource");
+    let workspace = decoded.workspace().expect("decoded workspace");
+    assert_eq!(workspace.ucs_definitions[0].name, "MOVED_ORIGIN");
+    assert_eq!(workspace.model_windows[0].grid.spacing.x(), 0.0);
+    let (proof, errors) = validate_resource(decoded).into_parts();
+    let proof = proof.unwrap_or_else(|| panic!("{errors:?}"));
+    let encoded = encode_json(&proof).unwrap();
+    assert_eq!(encoded.value["header"]["version"], "0.12.0");
+    let reread = decode_json("workspace-roundtrip.json", &encoded.value).unwrap();
+    assert_eq!(reread.workspace(), proof.loaded().resource().workspace());
+}
+
+#[test]
+fn workspace_0_12_rejects_malformed_choice_and_scalar_shape() {
+    let mut value = viewport_fixture();
+    value["header"]["version"] = json!("0.12.0");
+    value["drawingViewState"] = json!({"currentModelUcs":{"kind":0,"ucsId":7},
+        "activeModelWindowId":1});
+    let errors = decode_json("bad-workspace.json", &value).unwrap_err();
+    assert!(errors
+        .iter()
+        .any(|e| e.code == "IFCCAD_IFCDR_STRUCTURE_INVALID"));
+
+    value["drawingViewState"]["currentModelUcs"] = json!({"kind":0});
+    value["drawingViewState"]["activeModelWindowId"] = json!("one");
+    let errors = decode_json("bad-workspace.json", &value).unwrap_err();
+    assert!(errors
+        .iter()
+        .any(|e| e.code == "IFCCAD_IFCDR_STRUCTURE_INVALID"));
+}
+
+#[test]
 fn viewport_0_10_physical_child_range_decodes_and_checks_partition() {
     let value = viewport_fixture();
     let decoded = decode_json("viewport.json", &value).expect("0.10 viewport physical resource");
@@ -74,7 +125,7 @@ fn viewport_writer_roundtrips_through_production_decoder() {
     let (proof, errors) = validate_resource(decoded).into_parts();
     let proof = proof.unwrap_or_else(|| panic!("{errors:?}"));
     let encoded = encode_json(&proof).unwrap();
-    assert_eq!(encoded.value["header"]["version"], "0.11.0");
+    assert_eq!(encoded.value["header"]["version"], "0.12.0");
     let reread = decode_json("roundtrip.json", &encoded.value).unwrap();
     assert_eq!(reread.viewports(), proof.loaded().resource().viewports());
 }
@@ -167,6 +218,7 @@ fn block_writer_and_reader_backings_preserve_distinct_owner_and_target_scopes() 
     entity.scope_id = 21;
     let prepared = prepare_resource(IfcdrWriteInput {
         resource_id: decoded.id.clone(),
+        workspace: None,
         unit: decoded.unit,
         next_entity_id: decoded.next,
         scopes: decoded.scopes.clone(),
@@ -454,6 +506,7 @@ fn resource_preparation_needs_only_resource_data() {
     let mut poly_entity = polyline.entity();
     poly_entity.scope_id = 7;
     let input = IfcdrWriteInput {
+        workspace: None,
         block_definitions: vec![],
         resource_id: decoded.id.clone(),
         unit: decoded.unit,
@@ -680,7 +733,7 @@ fn writer_uses_origin_only_placement_for_exact_standard_axes() {
     let (proof, errors) = validate_resource(decoded).into_parts();
     let proof = proof.unwrap_or_else(|| panic!("{errors:?}"));
     let encoded = encode_json(&proof).unwrap();
-    assert_eq!(encoded.value["header"]["version"], "0.11.0");
+    assert_eq!(encoded.value["header"]["version"], "0.12.0");
     assert_eq!(
         encoded.value["streams"]["planarPolylineStream"]["placement"][1],
         json!({"origin":{"x":4.0,"y":5.0,"z":6.0}})

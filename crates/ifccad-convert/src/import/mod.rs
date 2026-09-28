@@ -6,6 +6,7 @@ mod entity_mapping;
 mod layouts;
 mod outcome;
 mod units;
+mod workspace;
 
 pub use conversion::{drawing_to_cad_document, drawing_to_cad_document_with_options};
 pub use diagnostic::{ImportDiagnostic, ImportError};

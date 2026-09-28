@@ -80,6 +80,16 @@ pub(crate) fn assemble_ifcx(
     if drawing.point_display != super::PointDisplay::default() {
         data[1]["attributes"]["pointDisplay"] = drawing.point_display.json();
     }
+    if let Some(selection) = &drawing.workspace_selection {
+        let layer_path = paths
+            .layers
+            .get(selection.current_layer_id as usize)
+            .ok_or_else(|| PackageBuildError::Encoding {
+                stage: "IFCX workspace",
+                message: "current Layer is unavailable".into(),
+            })?;
+        data[1]["attributes"]["workspaceState"] = json!({"currentLayer":layer_path});
+    }
     for ((scope_id, name), path) in drawing.paper_layouts.iter().zip(&paths.paper_layouts) {
         let settings = drawing
             .paper_layout_settings
@@ -175,7 +185,26 @@ pub(crate) fn assemble_ifcx(
             }),
     );
 
-    serde_json::to_vec_pretty(&json!({
+    if let Some(selection) = &drawing.workspace_selection {
+        let active_layout = if let Some(scope_id) = selection.active_paper_scope_id {
+            let position = drawing
+                .paper_layouts
+                .iter()
+                .position(|(id, _)| *id == scope_id)
+                .ok_or_else(|| PackageBuildError::Encoding {
+                    stage: "IFCX workspace",
+                    message: "active paper layout is unavailable".into(),
+                })?;
+            &paths.paper_layouts[position]
+        } else {
+            &paths.layout
+        };
+        data.push(
+            json!({"path":"workspace-state-0","type":"openaec:PackageWorkspaceState",
+            "attributes":{"activeDrawing":paths.drawing,"activeLayout":active_layout}}),
+        );
+    }
+    let mut document = json!({
         "header": {
             "id": package_options.package_id,
             "ifcxVersion": "ifcx_alpha",
@@ -185,8 +214,9 @@ pub(crate) fn assemble_ifcx(
         },
         "imports": [],
         "data": data
-    }))
-    .map_err(|error| PackageBuildError::Encoding {
+    });
+    document["header"]["ifccadSchemaVersion"] = json!("0.14.0");
+    serde_json::to_vec_pretty(&document).map_err(|error| PackageBuildError::Encoding {
         stage: "IFCX",
         message: error.to_string(),
     })
@@ -294,8 +324,9 @@ mod tests {
         assert!(root["data"][1].get("name").is_none());
         assert_eq!(root["data"][3]["attributes"]["name"], "Drawing");
         let geometry = &root["data"][3]["attributes"]["resource"];
+        assert_eq!(root["header"]["ifccadSchemaVersion"], "0.14.0");
         assert_eq!(geometry["format"], "openaec.ifcdr");
-        assert_eq!(geometry["version"], "0.11.0");
+        assert_eq!(geometry["version"], "0.12.0");
         assert_eq!(geometry["role"], "drawing");
         assert_eq!(geometry["resourceId"], "drawing-main");
         assert_eq!(geometry["uri"], "resources/drawing.ifcdr.json");

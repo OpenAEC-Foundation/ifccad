@@ -1,7 +1,7 @@
 use cadcodec::{
     CadDocument, DwgReader, DwgWriter, DxfReader, DxfWriter, EntityType, Line, LwPolyline, Vector2,
 };
-use ifccad::ifcdr::{IfcdrEntityRef, IfcdrLengthUnit, PlanePlacement, Point2, Point3, Vector3};
+use ifccad::ifcdr::{CoordinateFrame3, IfcdrEntityRef, IfcdrLengthUnit, Point2, Point3, Vector3};
 use ifccad::package::*;
 use ifccad::{PackageId, ResourceId};
 use ifccad_convert::*;
@@ -56,10 +56,10 @@ fn options() -> PackageOptions {
         timestamp: "2026-09-15T00:00:00Z".into(),
     }
 }
-fn native(plane: PlanePlacement, points: Vec<Point2>) -> EncodedPackage {
+fn native(plane: CoordinateFrame3, points: Vec<Point2>) -> EncodedPackage {
     native_bulges(plane, points, Vec::new())
 }
-fn native_bulges(plane: PlanePlacement, points: Vec<Point2>, bulges: Vec<f64>) -> EncodedPackage {
+fn native_bulges(plane: CoordinateFrame3, points: Vec<Point2>, bulges: Vec<f64>) -> EncodedPackage {
     let mut b = PackageBuilder::new(options()).unwrap();
     let mut d = b
         .add_drawing(DrawingOptions {
@@ -117,7 +117,7 @@ fn native_bulges(plane: PlanePlacement, points: Vec<Point2>, bulges: Vec<f64>) -
 #[test]
 fn negative_oblique_arc_keeps_directed_samples_through_cad() {
     let root = Temp::new();
-    let placement = PlanePlacement::try_new(
+    let placement = CoordinateFrame3::try_new(
         Point3::new(2.0, 3.0, 4.0),
         Vector3::new(0.0, 1.0, 0.0),
         Vector3::new(0.0, 0.0, 1.0),
@@ -259,7 +259,7 @@ fn negative_oblique_arc_keeps_directed_samples_through_cad() {
 #[test]
 fn native_shift_and_rotation_preserve_geometry_but_reject_parameter_loss() {
     let root = Temp::new();
-    let plane = PlanePlacement::try_new(
+    let plane = CoordinateFrame3::try_new(
         Point3::new(10., 20., 5.),
         Vector3::new(0., 1., 0.),
         Vector3::new(-1., 0., 0.),
@@ -323,7 +323,7 @@ fn native_shift_and_rotation_preserve_geometry_but_reject_parameter_loss() {
 #[test]
 fn rotated_native_bulge_checks_interior_and_preserves_dormant_value() {
     let root = Temp::new();
-    let plane = PlanePlacement::try_new(
+    let plane = CoordinateFrame3::try_new(
         Point3::new(10.0, 20.0, 5.0),
         Vector3::new(0.0, 1.0, 0.0),
         Vector3::new(-1.0, 0.0, 0.0),
@@ -668,7 +668,7 @@ fn reject_accepts_proven_numeric_rounding_and_retains_loss_evidence() {
 #[test]
 fn import_accuracy_failure_precedes_loss_policy_for_native_oblique_frame() {
     let h = 0.5_f64.sqrt();
-    let plane = PlanePlacement::try_new(
+    let plane = CoordinateFrame3::try_new(
         Point3::new(0.1, 0.2, 0.3),
         Vector3::new(h, h, 0.),
         Vector3::new(0., 0., 1.),
@@ -702,7 +702,7 @@ fn import_accuracy_failure_precedes_loss_policy_for_native_oblique_frame() {
 #[test]
 fn native_shifted_plane_crosses_both_file_codecs_with_explicit_parameter_loss() {
     let root = Temp::new();
-    let plane = PlanePlacement::try_new(
+    let plane = CoordinateFrame3::try_new(
         Point3::new(7., 20., 30.),
         Vector3::new(0., 1., 0.),
         Vector3::new(0., 0., 1.),

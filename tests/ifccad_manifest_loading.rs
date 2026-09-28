@@ -53,7 +53,7 @@ fn loads_bundled_suite_in_manifest_order() {
     let manifest = load_conformance_manifest(bundled_conformance_root())
         .expect("load bundled conformance suite");
     assert_eq!(manifest.suite_version, "1.1.0");
-    assert_eq!(manifest.cases.len(), 137);
+    assert_eq!(manifest.cases.len(), 143);
     assert_eq!(
         manifest.cases.first().unwrap().case_id,
         "invalid.arc-zero-sweep"
@@ -69,6 +69,7 @@ fn candidate_package_drawings_use_the_current_ifcdr_version() {
     let root = bundled_conformance_root();
     let manifest = load_conformance_manifest(&root).expect("load bundled conformance suite");
     for case in manifest.cases {
+        let expected_version = "0.12.0";
         if !case
             .operations
             .iter()
@@ -95,6 +96,11 @@ fn candidate_package_drawings_use_the_current_ifcdr_version() {
                 .expect("IFCX document"),
         )
         .expect("parse IFCX document");
+        assert_eq!(
+            ifcx["header"]["ifccadSchemaVersion"], "0.14.0",
+            "{} lacks the current IFCX overlay marker",
+            case.case_id
+        );
 
         for node in ifcx["data"].as_array().expect("IFCX graph") {
             let resource = &node["attributes"]["resource"];
@@ -102,7 +108,7 @@ fn candidate_package_drawings_use_the_current_ifcdr_version() {
                 continue;
             }
             assert_eq!(
-                resource["version"], "0.11.0",
+                resource["version"], expected_version,
                 "{} has an obsolete drawing descriptor",
                 case.case_id
             );
@@ -122,7 +128,7 @@ fn candidate_package_drawings_use_the_current_ifcdr_version() {
                 .filter(|_| case.case_id != "invalid.inline-unsupported-body")
             {
                 assert_eq!(
-                    version, "0.11.0",
+                    version, expected_version,
                     "{} has an obsolete drawing header",
                     case.case_id
                 );
@@ -146,7 +152,7 @@ fn candidate_package_drawings_use_the_current_ifcdr_version() {
                     if drawing["header"]["format"] == "openaec.ifcdr" {
                         assert_eq!(
                             drawing["header"]["version"],
-                            "0.11.0",
+                            expected_version,
                             "{} has an obsolete IFCDR file: {}",
                             case.case_id,
                             path.display()

@@ -110,12 +110,12 @@
       "attributes": {
         "name": "Drawing",
         "resource": {
-          "checksum": "sha256:3ab6bafd6020ba1402e2c41ae279c107abdfa73fd9acc1c0326701ddd186c5a3",
+          "checksum": "sha256:b582fc7a976bf47c16882a60a76a9bbd7a25e72aa06aedeeda9c430d6cd674f8",
           "format": "openaec.ifcdr",
           "resourceId": "geometry",
           "role": "drawing",
           "uri": "resources/drawing.ifcdr.json",
-          "version": "0.11.0"
+          "version": "0.12.0"
         }
       },
       "path": "representation-0",
@@ -182,7 +182,8 @@
     "dataVersion": "1",
     "id": "viewport-package",
     "ifcxVersion": "ifcx_alpha",
-    "timestamp": "2026-09-23T00:00:00Z"
+    "timestamp": "2026-09-23T00:00:00Z",
+    "ifccadSchemaVersion": "0.14.0"
   },
   "imports": []
 }

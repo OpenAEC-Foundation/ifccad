@@ -110,12 +110,12 @@
       "attributes": {
         "name": "Drawing",
         "resource": {
-          "checksum": "sha256:20578438178e7e10272db1f80c8485e334007e4307881e5a8cbd037ccb7a3879",
+          "checksum": "sha256:f62c606e8f92d16fdbbd7fe44bdc01168e3ed963dc44afc2c82af73527d2e1c0",
           "format": "openaec.ifcdr",
           "resourceId": "geometry",
           "role": "drawing",
           "uri": "resources/drawing.ifcdr.json",
-          "version": "0.11.0"
+          "version": "0.12.0"
         }
       },
       "path": "representation-0",
@@ -182,7 +182,8 @@
     "dataVersion": "1",
     "id": "matrix-viewport-boundary-outside-frame",
     "ifcxVersion": "ifcx_alpha",
-    "timestamp": "2026-09-23T00:00:00Z"
+    "timestamp": "2026-09-23T00:00:00Z",
+    "ifccadSchemaVersion": "0.14.0"
   },
   "imports": []
 }

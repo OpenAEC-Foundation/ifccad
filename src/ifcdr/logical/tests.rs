@@ -16,6 +16,7 @@ struct TestResource {
     polylines: Vec<TestPolyline>,
     viewports: Vec<IfcdrViewportRow>,
     orders: Vec<IfcdrScopeOrder>,
+    workspace: Option<IfcdrWorkspace>,
 }
 #[derive(Debug)]
 struct TestPolyline {
@@ -51,7 +52,7 @@ impl IfcdrPolylineAccess for Polyline<'_> {
         self.0.entity
     }
     fn placement(&self) -> crate::ifcdr::geometry::PlanePlacementComponents {
-        crate::ifcdr::PlanePlacement::default().components()
+        crate::ifcdr::CoordinateFrame3::default().components()
     }
     fn closed(&self) -> bool {
         self.0.closed
@@ -67,6 +68,9 @@ impl IfcdrPolylineAccess for Polyline<'_> {
     }
 }
 impl IfcdrResourceAccess for TestResource {
+    fn workspace(&self) -> Option<&IfcdrWorkspace> {
+        self.workspace.as_ref()
+    }
     fn viewports(&self) -> &[IfcdrViewportRow] {
         &self.viewports
     }
@@ -112,6 +116,7 @@ impl IfcdrResourceAccess for TestResource {
 }
 fn line_candidate() -> TestResource {
     TestResource {
+        workspace: None,
         definitions: vec![],
         instances: vec![],
         id: ResourceId::new("drawing").unwrap(),
@@ -153,6 +158,208 @@ fn line_candidate() -> TestResource {
             entities: vec![1],
         }],
     }
+}
+
+fn workspace_candidate() -> TestResource {
+    let mut candidate = line_candidate();
+    let grid = WorkspaceGrid {
+        enabled: false,
+        spacing: Point2::new(0.0, 10.0),
+        style: WorkspaceGridStyle::Lines,
+        major_line_frequency: 5,
+        beyond_limits: false,
+        adaptive: false,
+        subdivision: false,
+        follows_workplane: true,
+    };
+    let snap = WorkspaceSnap {
+        enabled: false,
+        base: Point2::new(0.0, 0.0),
+        spacing: Point2::new(0.5, 0.5),
+        angle: 0.0,
+        style: WorkspaceSnapStyle::Rectangular,
+        isometric_plane: IsometricPlane::Top,
+    };
+    let view = ViewDefinition {
+        center: Point2::new(0.0, 0.0),
+        target: Point3::new(0.0, 0.0, 0.0),
+        direction: crate::ifcdr::Vector3::new(0.0, 0.0, 1.0),
+        height: 100.0,
+        twist: 0.0,
+        projection: ProjectionMode::Orthographic,
+        lens_length: None,
+        front_clip: FrontClip {
+            mode: FrontClipMode::Disabled,
+            distance: None,
+        },
+        back_clip: BackClip {
+            mode: BackClipMode::Disabled,
+            distance: None,
+        },
+    };
+    let frame = crate::ifcdr::CoordinateFrame3::try_new(
+        Point3::new(1.0, 4.0, 2.0),
+        crate::ifcdr::Vector3::new(1.0, 0.0, 0.0),
+        crate::ifcdr::Vector3::new(0.0, 1.0, 0.0),
+    )
+    .unwrap();
+    let window = |id, min_x, max_x, ucs| ModelWindow {
+        model_window_id: id,
+        rectangle: NormalizedRect2 {
+            min_x,
+            min_y: 0.0,
+            max_x,
+            max_y: 1.0,
+        },
+        view,
+        aspect_ratio: 1.0,
+        render_mode: ViewportRenderMode::TwoDimensional,
+        grid,
+        snap,
+        stored_ucs: ucs,
+        use_stored_ucs: true,
+    };
+    candidate.workspace = Some(IfcdrWorkspace {
+        drawing_view_state: Some(DrawingViewState {
+            current_model_ucs: UcsSelection::Unnamed { frame },
+            active_model_window_id: 1,
+        }),
+        ucs_definitions: vec![UcsDefinition {
+            ucs_id: 7,
+            name: "MOVED_ORIGIN".into(),
+            frame,
+            elevation: 0.0,
+        }],
+        model_windows: vec![
+            window(1, 0.0, 0.5, UcsSelection::Unnamed { frame }),
+            window(2, 0.5, 1.0, UcsSelection::World),
+        ],
+        paper_canvases: vec![],
+        viewport_workspaces: vec![],
+    });
+    candidate
+}
+
+#[test]
+fn workspace_model_windows_keep_dormant_values_and_validate_active_ucs() {
+    let (proof, errors) = validate_resource(workspace_candidate()).into_parts();
+    assert!(proof.is_some(), "{errors:?}");
+}
+
+#[test]
+fn workspace_rejects_stale_ucs_duplicate_names_bad_intervals_and_active_conflicts() {
+    for (name, mutate) in [
+        (
+            "stale UCS",
+            Box::new(|w: &mut IfcdrWorkspace| {
+                w.model_windows[0].stored_ucs = UcsSelection::Named { ucs_id: 99 };
+            }) as Box<dyn Fn(&mut IfcdrWorkspace)>,
+        ),
+        (
+            "duplicate name",
+            Box::new(|w: &mut IfcdrWorkspace| {
+                let mut other = w.ucs_definitions[0].clone();
+                other.ucs_id = 8;
+                other.name = "moved_origin".into();
+                w.ucs_definitions.push(other);
+            }),
+        ),
+        (
+            "zero snap",
+            Box::new(|w: &mut IfcdrWorkspace| {
+                w.model_windows[1].snap.spacing = Point2::new(0.0, 1.0);
+            }),
+        ),
+        (
+            "negative grid",
+            Box::new(|w: &mut IfcdrWorkspace| {
+                w.model_windows[1].grid.spacing = Point2::new(-1.0, 1.0);
+            }),
+        ),
+        (
+            "rectangle",
+            Box::new(|w: &mut IfcdrWorkspace| {
+                w.model_windows[1].rectangle.max_x = 1.1;
+            }),
+        ),
+        (
+            "active UCS",
+            Box::new(|w: &mut IfcdrWorkspace| {
+                w.drawing_view_state.as_mut().unwrap().current_model_ucs = UcsSelection::World;
+            }),
+        ),
+    ] {
+        let mut candidate = workspace_candidate();
+        mutate(candidate.workspace.as_mut().unwrap());
+        let (proof, errors) = validate_resource(candidate).into_parts();
+        assert!(proof.is_none(), "{name}");
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.code == IFCCAD_IFCDR_WORKSPACE_INVALID),
+            "{name}: {errors:?}"
+        );
+    }
+}
+
+#[test]
+fn workspace_paper_context_requires_a_viewport_in_its_own_scope() {
+    let mut resource = viewport_candidate();
+    let model = workspace_candidate();
+    let model_workspace = model.workspace.unwrap();
+    let grid = model_workspace.model_windows[0].grid;
+    let snap = model_workspace.model_windows[0].snap;
+    let view = model_workspace.model_windows[0].view;
+    resource.workspace = Some(IfcdrWorkspace {
+        drawing_view_state: None,
+        ucs_definitions: model_workspace.ucs_definitions,
+        model_windows: vec![],
+        paper_canvases: vec![PaperCanvas {
+            scope_id: 7,
+            view,
+            grid,
+            snap,
+            stored_ucs: UcsSelection::World,
+            current_ucs: UcsSelection::World,
+            active_context: PaperActiveContext::Viewport {
+                viewport_entity_id: 2,
+            },
+        }],
+        viewport_workspaces: vec![ViewportWorkspace {
+            viewport_entity_id: 2,
+            grid,
+            snap,
+            stored_ucs: UcsSelection::World,
+            use_stored_ucs: true,
+        }],
+    });
+    assert!(codes(resource).is_empty());
+
+    let mut stale = viewport_candidate();
+    let mut state = workspace_candidate().workspace.unwrap();
+    state.drawing_view_state = None;
+    state.model_windows.clear();
+    state.paper_canvases = vec![PaperCanvas {
+        scope_id: 7,
+        view,
+        grid,
+        snap,
+        stored_ucs: UcsSelection::World,
+        current_ucs: UcsSelection::World,
+        active_context: PaperActiveContext::Viewport {
+            viewport_entity_id: 2,
+        },
+    }];
+    state.viewport_workspaces = vec![ViewportWorkspace {
+        viewport_entity_id: 2,
+        grid,
+        snap,
+        stored_ucs: UcsSelection::World,
+        use_stored_ucs: true,
+    }];
+    stale.viewports[0].entity.scope_id = 0;
+    stale.workspace = Some(state);
+    assert!(codes(stale).contains(&IFCCAD_IFCDR_REFERENCE_MISSING));
 }
 
 fn block_candidate() -> TestResource {

@@ -136,8 +136,8 @@ impl PointRef<'_> {
     pub fn visible(&self) -> bool {
         self.row.entity.visible
     }
-    pub fn placement(&self) -> crate::ifcdr::PlanePlacement {
-        crate::ifcdr::PlanePlacement::from_validated_components(self.row.placement)
+    pub fn placement(&self) -> crate::ifcdr::CoordinateFrame3 {
+        crate::ifcdr::CoordinateFrame3::from_validated_components(self.row.placement)
     }
     pub fn position(&self) -> crate::ifcdr::Point3 {
         self.row.placement.origin
@@ -163,8 +163,8 @@ impl CircleRef<'_> {
     pub fn visible(&self) -> bool {
         self.row.entity.visible
     }
-    pub fn placement(&self) -> crate::ifcdr::PlanePlacement {
-        crate::ifcdr::PlanePlacement::from_validated_components(self.row.placement)
+    pub fn placement(&self) -> crate::ifcdr::CoordinateFrame3 {
+        crate::ifcdr::CoordinateFrame3::from_validated_components(self.row.placement)
     }
     pub fn radius(&self) -> f64 {
         self.row.radius
@@ -190,8 +190,8 @@ impl ArcRef<'_> {
     pub fn visible(&self) -> bool {
         self.row.entity.visible
     }
-    pub fn placement(&self) -> crate::ifcdr::PlanePlacement {
-        crate::ifcdr::PlanePlacement::from_validated_components(self.row.placement)
+    pub fn placement(&self) -> crate::ifcdr::CoordinateFrame3 {
+        crate::ifcdr::CoordinateFrame3::from_validated_components(self.row.placement)
     }
     pub fn radius(&self) -> f64 {
         self.row.radius
@@ -223,8 +223,8 @@ impl EllipseRef<'_> {
     pub fn visible(&self) -> bool {
         self.row.entity.visible
     }
-    pub fn placement(&self) -> crate::ifcdr::PlanePlacement {
-        crate::ifcdr::PlanePlacement::from_validated_components(self.row.placement)
+    pub fn placement(&self) -> crate::ifcdr::CoordinateFrame3 {
+        crate::ifcdr::CoordinateFrame3::from_validated_components(self.row.placement)
     }
     pub fn semi_major_radius(&self) -> f64 {
         self.row.semi_major_radius
@@ -253,8 +253,8 @@ impl EllipseArcRef<'_> {
     pub fn visible(&self) -> bool {
         self.row.entity.visible
     }
-    pub fn placement(&self) -> crate::ifcdr::PlanePlacement {
-        crate::ifcdr::PlanePlacement::from_validated_components(self.row.placement)
+    pub fn placement(&self) -> crate::ifcdr::CoordinateFrame3 {
+        crate::ifcdr::CoordinateFrame3::from_validated_components(self.row.placement)
     }
     pub fn semi_major_radius(&self) -> f64 {
         self.row.semi_major_radius

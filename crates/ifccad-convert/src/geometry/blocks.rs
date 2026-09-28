@@ -241,7 +241,7 @@ pub(crate) fn from_cad_instance(
         ConversionEntitySource, ConversionGeometryFailureReason as Reason,
         ConversionGeometryStage as Stage,
     };
-    use ifccad::ifcdr::{BlockTransform, PlanePlacement, Point3, Scale3, Vector3};
+    use ifccad::ifcdr::{BlockTransform, CoordinateFrame3, Point3, Scale3, Vector3};
     let source = ConversionEntitySource::CadEntity {
         handle: insert.common.handle,
         kind: "INSERT".into(),
@@ -287,7 +287,7 @@ pub(crate) fn from_cad_instance(
             )
         })?;
     }
-    let plane = PlanePlacement::try_new(
+    let plane = CoordinateFrame3::try_new(
         Point3::new(rounded[0], rounded[1], rounded[2]),
         Vector3::new(m[0][0], m[1][0], m[2][0]),
         Vector3::new(m[0][1], m[1][1], m[2][1]),
@@ -320,7 +320,7 @@ pub(crate) fn from_cad_instance(
 
 pub(crate) fn polyline_pairs(
     poly: &cadcodec::LwPolyline,
-    plane: ifccad::ifcdr::PlanePlacement,
+    plane: ifccad::ifcdr::CoordinateFrame3,
 ) -> Vec<PairedPoint> {
     let basis = super::cad_plane(poly.normal).expect("validated CAD polyline axes");
     let (o, x, y) = super::components(plane);

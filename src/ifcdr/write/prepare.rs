@@ -9,6 +9,7 @@ use std::collections::BTreeMap;
 #[derive(Debug)]
 pub(crate) struct IfcdrWriteInput {
     pub resource_id: ResourceId,
+    pub workspace: Option<IfcdrWorkspace>,
     pub unit: IfcdrLengthUnit,
     pub next_entity_id: u64,
     pub scopes: Vec<IfcdrScope>,
@@ -239,6 +240,9 @@ impl IfcdrPolylineAccess for PreparedPolyline<'_> {
     }
 }
 impl IfcdrResourceAccess for PreparedIfcdrResource {
+    fn workspace(&self) -> Option<&IfcdrWorkspace> {
+        self.input.workspace.as_ref()
+    }
     type Lines<'a> = PreparedLines<'a>;
     type Polylines<'a> = PreparedPolylines<'a>;
     type BlockInstances<'a> = PreparedBlockInstances<'a>;

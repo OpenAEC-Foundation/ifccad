@@ -94,6 +94,7 @@ pub(crate) struct PackageState {
 
 #[derive(Debug)]
 pub(crate) struct DrawingState {
+    pub(crate) workspace_selection: Option<WorkspaceSelection>,
     pub(crate) scopes: Vec<crate::ifcdr::logical::IfcdrScope>,
     pub(crate) block_definitions: Vec<crate::ifcdr::logical::IfcdrBlockDefinition>,
     pub(crate) block_names: BTreeMap<String, u32>,
@@ -112,4 +113,11 @@ pub(crate) struct DrawingState {
     pub(crate) entities: Vec<PendingEntity>,
     pub(crate) next_entity_id: u64,
     pub(crate) assigned_entity_ids: BTreeSet<EntityId>,
+}
+
+#[derive(Debug)]
+pub(crate) struct WorkspaceSelection {
+    pub(crate) workspace: crate::ifcdr::IfcdrWorkspace,
+    pub(crate) current_layer_id: u32,
+    pub(crate) active_paper_scope_id: Option<u32>,
 }

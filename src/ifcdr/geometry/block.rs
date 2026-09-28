@@ -1,7 +1,7 @@
 use super::numeric::Interval;
 use super::placement::PlanePlacementComponents;
 use super::trig::sin_cos_interval;
-use super::{CoordinateAxis, PlanePlacement, PlanePlacementError, Point3, Vector3};
+use super::{CoordinateAxis, CoordinateFrame3, PlanePlacementError, Point3, Vector3};
 use thiserror::Error;
 
 /// Three signed scale factors. [`BlockTransform::try_new`] validates them.
@@ -103,7 +103,7 @@ pub struct BlockTransform(BlockTransformComponents);
 impl Default for BlockTransform {
     fn default() -> Self {
         Self(BlockTransformComponents {
-            placement: PlanePlacement::default().components(),
+            placement: CoordinateFrame3::default().components(),
             rotation: 0.,
             scale: Scale3::default(),
         })
@@ -112,7 +112,7 @@ impl Default for BlockTransform {
 
 impl BlockTransform {
     pub fn try_new(
-        placement: PlanePlacement,
+        placement: CoordinateFrame3,
         rotation: f64,
         scale: Scale3,
     ) -> Result<Self, BlockTransformError> {
@@ -124,8 +124,8 @@ impl BlockTransform {
         value.validate()?;
         Ok(Self(value))
     }
-    pub fn placement(self) -> PlanePlacement {
-        PlanePlacement::from_validated_components(self.0.placement)
+    pub fn placement(self) -> CoordinateFrame3 {
+        CoordinateFrame3::from_validated_components(self.0.placement)
     }
     pub fn rotation(self) -> f64 {
         self.0.rotation
@@ -165,7 +165,7 @@ impl BlockTransform {
             n[2] * x[0] - n[0] * x[2],
             n[0] * x[1] - n[1] * x[0],
         ];
-        let placement = PlanePlacement::try_new(
+        let placement = CoordinateFrame3::try_new(
             origin,
             Vector3::new(x[0], x[1], x[2]),
             Vector3::new(y[0], y[1], y[2]),
@@ -267,13 +267,13 @@ impl PreparedBlockTransform {
 mod tests {
     use super::*;
     use crate::ifcdr::geometry::numeric::{exact, Interval};
-    use crate::ifcdr::{CoordinateAxis, PlanePlacement, Point3, Vector3};
+    use crate::ifcdr::{CoordinateAxis, CoordinateFrame3, Point3, Vector3};
 
     fn origin() -> Point3 {
         Point3::new(0., 0., 0.)
     }
-    fn frame(o: Point3, u: Vector3, v: Vector3) -> PlanePlacement {
-        PlanePlacement::try_new(o, u, v).unwrap()
+    fn frame(o: Point3, u: Vector3, v: Vector3) -> CoordinateFrame3 {
+        CoordinateFrame3::try_new(o, u, v).unwrap()
     }
     fn encloses(actual: [Interval; 3], expected: [f64; 3]) {
         for (a, e) in actual.into_iter().zip(expected) {
@@ -301,7 +301,7 @@ mod tests {
     #[test]
     fn identity_is_exact_even_at_finite_range_edges() {
         let transform = BlockTransform::default();
-        assert_eq!(transform.placement(), PlanePlacement::default());
+        assert_eq!(transform.placement(), CoordinateFrame3::default());
         assert_eq!(transform.rotation(), 0.);
         assert_eq!(transform.scale(), Scale3::new(1., 1., 1.));
         let p = Point3::new(f64::MAX, -f64::MAX, f64::from_bits(1));
@@ -320,7 +320,7 @@ mod tests {
         for x in [f64::from_bits(1), -f64::from_bits(1)] {
             let scale = Scale3::new(x, x, x);
             assert_eq!([scale.x(), scale.y(), scale.z()], [x; 3]);
-            assert!(BlockTransform::try_new(PlanePlacement::default(), 0., scale).is_ok());
+            assert!(BlockTransform::try_new(CoordinateFrame3::default(), 0., scale).is_ok());
         }
     }
 
@@ -328,7 +328,7 @@ mod tests {
     fn invalid_rotation_and_each_invalid_scale_component_are_diagnosed() {
         for value in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
             assert_eq!(
-                BlockTransform::try_new(PlanePlacement::default(), value, Scale3::default()),
+                BlockTransform::try_new(CoordinateFrame3::default(), value, Scale3::default()),
                 Err(BlockTransformError::NonFiniteRotation)
             );
         }
@@ -343,7 +343,7 @@ mod tests {
                 };
                 assert_eq!(
                     BlockTransform::try_new(
-                        PlanePlacement::default(),
+                        CoordinateFrame3::default(),
                         0.,
                         Scale3::new(xyz[0], xyz[1], xyz[2])
                     ),
@@ -410,13 +410,13 @@ mod tests {
     #[test]
     fn nested_nonuniform_transforms_keep_shear_without_decomposition() {
         let inner = BlockTransform::try_new(
-            PlanePlacement::default(),
+            CoordinateFrame3::default(),
             std::f64::consts::FRAC_PI_4,
             Scale3::new(2., 1., 1.),
         )
         .unwrap();
         let outer = BlockTransform::try_new(
-            PlanePlacement::default(),
+            CoordinateFrame3::default(),
             -std::f64::consts::FRAC_PI_4,
             Scale3::new(3., 1., 1.),
         )
@@ -439,7 +439,7 @@ mod tests {
     #[test]
     fn underflow_encloses_and_overflow_is_a_proof_gap() {
         let tiny = f64::from_bits(1);
-        let t = BlockTransform::try_new(PlanePlacement::default(), 0., Scale3::new(tiny, 1., 1.))
+        let t = BlockTransform::try_new(CoordinateFrame3::default(), 0., Scale3::new(tiny, 1., 1.))
             .unwrap();
         let x = PreparedBlockTransform::new(t, origin())
             .unwrap()
@@ -447,7 +447,7 @@ mod tests {
             .unwrap()[0];
         let true_x = exact(tiny) * exact(0.5);
         assert!(exact(x.lower) <= true_x && true_x <= exact(x.upper));
-        let t = BlockTransform::try_new(PlanePlacement::default(), 0., Scale3::new(2., 1., 1.))
+        let t = BlockTransform::try_new(CoordinateFrame3::default(), 0., Scale3::new(2., 1., 1.))
             .unwrap();
         assert!(PreparedBlockTransform::new(t, origin())
             .unwrap()

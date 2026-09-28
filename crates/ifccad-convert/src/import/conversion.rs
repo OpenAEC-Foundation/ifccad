@@ -752,6 +752,8 @@ pub fn drawing_to_cad_document_with_options(
         &mut diagnostics,
     )?;
 
+    super::workspace::apply(drawing, &mut document, &mut diagnostics);
+
     let diagnostics = diagnostics.finish();
     if options.loss_policy == crate::ConversionLossPolicy::Reject
         && diagnostics.iter().any(|d| {

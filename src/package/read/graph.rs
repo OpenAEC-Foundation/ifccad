@@ -40,6 +40,7 @@ pub(crate) fn validate_ifcx_graph(ifcx: &Value) -> IfcxGraphValidation {
     }
 
     validate_supported_references(data, &result.node_indices_by_path, &mut result.diagnostics);
+    validate_workspace_references(data, &result.node_indices_by_path, &mut result.diagnostics);
     validate_drawing_representations(data, &result.node_indices_by_path, &mut result.diagnostics);
     result
 }
@@ -229,6 +230,149 @@ fn validate_supported_references(
             ),
             _ => {}
         }
+    }
+}
+
+fn workspace_error(diagnostics: &mut Vec<PackageDiagnostic>, location: String, message: &str) {
+    diagnostics.push(PackageDiagnostic {
+        category: crate::diagnostic::PackageDiagnosticCategory::ContractViolation,
+        code: super::codes::IFCCAD_PACKAGE_BINDING_INVALID.to_owned(),
+        severity: PackageDiagnosticSeverity::Error,
+        resource_id: None,
+        resource_uri: Some(DIRECTORY_PACKAGE_ENTRYPOINT.to_owned()),
+        location: Some(location),
+        context: BTreeMap::new(),
+        message: message.into(),
+    });
+}
+
+fn validate_workspace_references(
+    data: &[Value],
+    index: &BTreeMap<String, usize>,
+    diagnostics: &mut Vec<PackageDiagnostic>,
+) {
+    let mut resume_seen = false;
+    for (i, node) in data.iter().enumerate() {
+        if node["type"] == "openaec:Drawing" {
+            if let Some(layer_path) = node
+                .pointer("/attributes/workspaceState/currentLayer")
+                .and_then(Value::as_str)
+            {
+                let listed = node
+                    .pointer("/children/Layers")
+                    .and_then(Value::as_array)
+                    .is_some_and(|layers| {
+                        layers.iter().any(|path| path.as_str() == Some(layer_path))
+                    });
+                let typed = index
+                    .get(layer_path)
+                    .is_some_and(|&j| data[j]["type"] == "openaec:Layer");
+                if !listed || !typed {
+                    workspace_error(
+                        diagnostics,
+                        format!("/data/{i}/attributes/workspaceState/currentLayer"),
+                        "current Layer must be listed by this Drawing",
+                    );
+                }
+            }
+        }
+        if node["type"] != "openaec:PackageWorkspaceState" {
+            continue;
+        }
+        if resume_seen {
+            workspace_error(
+                diagnostics,
+                format!("/data/{i}"),
+                "only one package workspace state is allowed",
+            );
+        }
+        resume_seen = true;
+        let drawing_path = node
+            .pointer("/attributes/activeDrawing")
+            .and_then(Value::as_str);
+        let layout_path = node
+            .pointer("/attributes/activeLayout")
+            .and_then(Value::as_str);
+        let drawing = drawing_path
+            .and_then(|p| index.get(p).map(|&j| &data[j]))
+            .filter(|n| n["type"] == "openaec:Drawing");
+        if drawing.is_none() {
+            workspace_error(
+                diagnostics,
+                format!("/data/{i}/attributes/activeDrawing"),
+                "active Drawing is missing or has the wrong type",
+            );
+        }
+        let layout = layout_path
+            .and_then(|p| index.get(p).map(|&j| &data[j]))
+            .filter(|n| n["type"] == "openaec:DrawingLayout");
+        let member = drawing.zip(layout_path).is_some_and(|(drawing, path)| {
+            drawing
+                .pointer("/children/Layouts")
+                .and_then(Value::as_array)
+                .is_some_and(|layouts| layouts.iter().any(|p| p.as_str() == Some(path)))
+        });
+        if layout.is_none() || !member {
+            workspace_error(
+                diagnostics,
+                format!("/data/{i}/attributes/activeLayout"),
+                "active Layout must belong to the active Drawing",
+            );
+        }
+        if let (Some(drawing), Some(layout)) = (drawing, layout) {
+            if drawing.pointer("/children/Representation")
+                != layout.pointer("/children/Representation")
+            {
+                workspace_error(
+                    diagnostics,
+                    format!("/data/{i}/attributes/activeLayout"),
+                    "active Layout must use the active Drawing's representation",
+                );
+            }
+            if drawing
+                .pointer("/attributes/workspaceState/currentLayer")
+                .is_none()
+            {
+                workspace_error(
+                    diagnostics,
+                    format!("/data/{i}/attributes/activeDrawing"),
+                    "active Drawing requires a current Layer",
+                );
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod workspace_tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn workspace_references_stay_within_selected_drawing() {
+        let mut document = json!({"data":[
+            {"path":"resume","type":"openaec:PackageWorkspaceState",
+             "attributes":{"activeDrawing":"drawing","activeLayout":"foreign-layout"}},
+            {"path":"drawing","type":"openaec:Drawing",
+             "attributes":{"workspaceState":{"currentLayer":"foreign-layer"}},
+             "children":{"Representation":"resource","Layouts":["model"],"Layers":["layer"],"Appearances":[]}},
+            {"path":"model","type":"openaec:DrawingLayout","children":{"Representation":"resource"}},
+            {"path":"foreign-layout","type":"openaec:DrawingLayout","children":{"Representation":"resource"}},
+            {"path":"layer","type":"openaec:Layer"},
+            {"path":"foreign-layer","type":"openaec:Layer"},
+            {"path":"resource","type":"openaec:DrawingRepresentation"}
+        ]});
+        let result = validate_ifcx_graph(&document);
+        assert!(result
+            .diagnostics
+            .iter()
+            .any(|d| d.location.as_deref() == Some("/data/0/attributes/activeLayout")));
+        assert!(result.diagnostics.iter().any(
+            |d| d.location.as_deref() == Some("/data/1/attributes/workspaceState/currentLayer")
+        ));
+        document["data"][0]["attributes"]["activeLayout"] = json!("model");
+        document["data"][1]["attributes"]["workspaceState"]["currentLayer"] = json!("layer");
+        assert!(validate_ifcx_graph(&document).diagnostics.is_empty());
     }
 }
 

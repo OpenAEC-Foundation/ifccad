@@ -6,6 +6,7 @@ mod diagnostic;
 mod types;
 mod validation;
 mod viewport;
+mod workspace;
 
 pub(crate) use access::*;
 pub(crate) use diagnostic::*;
@@ -17,6 +18,11 @@ pub use types::{
     ViewportLayerOverride, ViewportRenderMode,
 };
 pub(crate) use validation::*;
+pub use workspace::{
+    DrawingViewState, IfcdrWorkspace, IsometricPlane, ModelWindow, NormalizedRect2,
+    PaperActiveContext, PaperCanvas, UcsDefinition, UcsSelection, ViewportWorkspace, WorkspaceGrid,
+    WorkspaceGridStyle, WorkspaceSnap, WorkspaceSnapStyle,
+};
 
 #[cfg(test)]
 pub(crate) mod test_support;

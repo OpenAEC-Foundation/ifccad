@@ -2,26 +2,7 @@
 
 **Outcome: passed.** Repeatability: passed. Corpus: full-v1.
 
-Retained run: `geometry-families-proof-20260924` (2026-09-24), IFCDR
-0.11.0, IFCX overlay 0.13.0, unmodified cadcodec revision
-`5b682ed66ea2c89be8142c8dd83d83774fc3de08`. No local dependency
-override was used; `baseline_accepted` is true. The matching detailed
-measurements and provenance are in [results-v1.json](../../benchmarks/size/results-v1.json).
-The full direct-readback, IFCCAD/DXF/DWG exchange and two-run repeatability
-checks passed. Relative to the previous accepted 0.10.0/0.12.0 run, eleven
-of twelve IFCCAD cases grew by 3,150 external or 4,610 inline bytes from the
-larger schema and package metadata. The elevated-polyline case instead shrank
-by 91,850 external or 140,390 inline bytes because its axis-aligned placements
-now use the origin-only encoding. All DXF and DWG output sizes were unchanged.
-The corpus has straight lines and polylines but no Point, Circle,
-Arc, Ellipse, EllipseArc, bulged polyline or SpatialPolyline recipes.
-
-This report is a snapshot of the recorded primitive corpus. Rerun the full
-experiment when an exercised writer, codec, converter, cadcodec dependency or
-corpus recipe changes. For families absent from the corpus, use focused strict
-readback and CAD conversion tests, then add representative recipes before
-drawing size or exchange conclusions about those families. Keep the last
-accepted report and matching result JSON until an applicable run replaces them.
+Retained run: `workspace-state-current-20260928` (2026-09-28), unmodified cadcodec revision `5b682ed66ea2c89be8142c8dd83d83774fc3de08`. No local dependency override was used. The matching detailed measurements and provenance are in [results-v1.json](../../benchmarks/size/results-v1.json). Direct IFCCAD writer recipes use IFCDR 0.12.0 / IFCX 0.14.0, while the corpus has no authored workspace state. These sizes therefore measure the new package baseline, but not the additional cost of workspace records.
 
 Controlled fixtures and generated XYZ lines/placed straight polylines; millimetres, AC1032. IFCCAD is uncompressed pretty JSON, DXF is text, DWG uses its normal native compression. These ratios compare complete writer outputs, not compression algorithms or representative CAD practice.
 
@@ -29,18 +10,18 @@ Controlled fixtures and generated XYZ lines/placed straight polylines; millimetr
 
 | Case | Lines | Polylines | Vertices | IFCCAD external | IFCCAD inline | DXF | DWG | External / DXF | External / DWG | Inline / DXF | Inline / DWG |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| empty | 0 | 0 | 0 | 10301 | 13928 | 46978 | 20854 | 0.219 | 0.494 | 0.296 | 0.668 |
-| lines-100 | 100 | 0 | 0 | 21844 | 34631 | 60338 | 22262 | 0.362 | 0.981 | 0.574 | 1.556 |
-| lines-10000 | 10000 | 0 | 0 | 1230203 | 2133990 | 1444626 | 168218 | 0.852 | 7.313 | 1.477 | 12.686 |
-| short-polylines-100 | 0 | 100 | 400 | 31382 | 51179 | 79398 | 22486 | 0.395 | 1.396 | 0.645 | 2.276 |
-| short-polylines-10000 | 0 | 10000 | 40000 | 2249331 | 3853128 | 3396526 | 187933 | 0.662 | 11.969 | 1.134 | 20.503 |
-| long-polylines-10 | 0 | 10 | 1280 | 46927 | 77124 | 114314 | 23830 | 0.411 | 1.969 | 0.675 | 3.236 |
-| long-polylines-1000 | 0 | 1000 | 128000 | 3904169 | 6547966 | 7026512 | 257964 | 0.556 | 15.135 | 0.932 | 25.383 |
-| mixed-1000 | 500 | 500 | 2000 | 193743 | 332890 | 312494 | 42117 | 0.620 | 4.600 | 1.065 | 7.904 |
-| fractional-lines-1000 | 1000 | 0 | 0 | 160412 | 254199 | 215872 | 47198 | 0.743 | 3.399 | 1.178 | 5.386 |
-| spatial-line-1000 | 1000 | 0 | 0 | 158265 | 272112 | 187664 | 42213 | 0.843 | 3.749 | 1.450 | 6.446 |
-| elevated-1000 | 0 | 1000 | 4000 | 294274 | 498101 | 376972 | 38917 | 0.781 | 7.562 | 1.321 | 12.799 |
-| tilted-shifted-1000 | 0 | 1000 | 4000 | 539301 | 873128 | 408112 | 38982 | 1.321 | 13.835 | 2.139 | 22.398 |
+| empty | 0 | 0 | 0 | 10338 | 13965 | 46978 | 20854 | 0.220 | 0.496 | 0.297 | 0.670 |
+| lines-100 | 100 | 0 | 0 | 21881 | 34668 | 60338 | 22262 | 0.363 | 0.983 | 0.575 | 1.557 |
+| lines-10000 | 10000 | 0 | 0 | 1230240 | 2134027 | 1444626 | 168218 | 0.852 | 7.313 | 1.477 | 12.686 |
+| short-polylines-100 | 0 | 100 | 400 | 31419 | 51216 | 79398 | 22486 | 0.396 | 1.397 | 0.645 | 2.278 |
+| short-polylines-10000 | 0 | 10000 | 40000 | 2249368 | 3853165 | 3396526 | 187933 | 0.662 | 11.969 | 1.134 | 20.503 |
+| long-polylines-10 | 0 | 10 | 1280 | 46964 | 77161 | 114314 | 23830 | 0.411 | 1.971 | 0.675 | 3.238 |
+| long-polylines-1000 | 0 | 1000 | 128000 | 3904206 | 6548003 | 7026512 | 257964 | 0.556 | 15.135 | 0.932 | 25.383 |
+| mixed-1000 | 500 | 500 | 2000 | 193780 | 332927 | 312494 | 42117 | 0.620 | 4.601 | 1.065 | 7.905 |
+| fractional-lines-1000 | 1000 | 0 | 0 | 160449 | 254236 | 215872 | 47198 | 0.743 | 3.399 | 1.178 | 5.387 |
+| spatial-line-1000 | 1000 | 0 | 0 | 158302 | 272149 | 187664 | 42213 | 0.844 | 3.750 | 1.450 | 6.447 |
+| elevated-1000 | 0 | 1000 | 4000 | 294311 | 498138 | 376972 | 38917 | 0.781 | 7.563 | 1.321 | 12.800 |
+| tilted-shifted-1000 | 0 | 1000 | 4000 | 539338 | 873165 | 408112 | 38982 | 1.322 | 13.836 | 2.140 | 22.399 |
 
 ## Component accounting (bytes)
 
@@ -48,33 +29,33 @@ Inline bodies count only inside IFCX. Every physical blob is counted once. Prese
 
 | Case / mode | IFCX | External IFCDR | External IFCPR | Blobs | Total |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| empty / ifccad-external | 2435 | 7866 | 0 | 0 | 10301 |
-| empty / ifccad-inline | 13928 | 0 | 0 | 0 | 13928 |
-| lines-100 / ifccad-external | 2435 | 19409 | 0 | 0 | 21844 |
-| lines-100 / ifccad-inline | 34631 | 0 | 0 | 0 | 34631 |
-| lines-10000 / ifccad-external | 2435 | 1227768 | 0 | 0 | 1230203 |
-| lines-10000 / ifccad-inline | 2133990 | 0 | 0 | 0 | 2133990 |
-| short-polylines-100 / ifccad-external | 2435 | 28947 | 0 | 0 | 31382 |
-| short-polylines-100 / ifccad-inline | 51179 | 0 | 0 | 0 | 51179 |
-| short-polylines-10000 / ifccad-external | 2435 | 2246896 | 0 | 0 | 2249331 |
-| short-polylines-10000 / ifccad-inline | 3853128 | 0 | 0 | 0 | 3853128 |
-| long-polylines-10 / ifccad-external | 2435 | 44492 | 0 | 0 | 46927 |
-| long-polylines-10 / ifccad-inline | 77124 | 0 | 0 | 0 | 77124 |
-| long-polylines-1000 / ifccad-external | 2435 | 3901734 | 0 | 0 | 3904169 |
-| long-polylines-1000 / ifccad-inline | 6547966 | 0 | 0 | 0 | 6547966 |
-| mixed-1000 / ifccad-external | 4025 | 189718 | 0 | 0 | 193743 |
-| mixed-1000 / ifccad-inline | 332890 | 0 | 0 | 0 | 332890 |
-| fractional-lines-1000 / ifccad-external | 2435 | 157977 | 0 | 0 | 160412 |
-| fractional-lines-1000 / ifccad-inline | 254199 | 0 | 0 | 0 | 254199 |
-| spatial-line-1000 / ifccad-external | 2435 | 155830 | 0 | 0 | 158265 |
-| spatial-line-1000 / ifccad-inline | 272112 | 0 | 0 | 0 | 272112 |
-| elevated-1000 / ifccad-external | 2435 | 291839 | 0 | 0 | 294274 |
-| elevated-1000 / ifccad-inline | 498101 | 0 | 0 | 0 | 498101 |
-| tilted-shifted-1000 / ifccad-external | 2435 | 536866 | 0 | 0 | 539301 |
-| tilted-shifted-1000 / ifccad-inline | 873128 | 0 | 0 | 0 | 873128 |
-| fixture minimal-no-preservation (fixture-native) | 3858 | 4051 | 0 | 0 | 7909 |
-| fixture inline-drawing (fixture-native) | 10185 | 0 | 0 | 0 | 10185 |
-| fixture source-archive (fixture-preservation-inclusive) | 4510 | 4051 | 4269 | 94 | 12924 |
+| empty / ifccad-external | 2472 | 7866 | 0 | 0 | 10338 |
+| empty / ifccad-inline | 13965 | 0 | 0 | 0 | 13965 |
+| lines-100 / ifccad-external | 2472 | 19409 | 0 | 0 | 21881 |
+| lines-100 / ifccad-inline | 34668 | 0 | 0 | 0 | 34668 |
+| lines-10000 / ifccad-external | 2472 | 1227768 | 0 | 0 | 1230240 |
+| lines-10000 / ifccad-inline | 2134027 | 0 | 0 | 0 | 2134027 |
+| short-polylines-100 / ifccad-external | 2472 | 28947 | 0 | 0 | 31419 |
+| short-polylines-100 / ifccad-inline | 51216 | 0 | 0 | 0 | 51216 |
+| short-polylines-10000 / ifccad-external | 2472 | 2246896 | 0 | 0 | 2249368 |
+| short-polylines-10000 / ifccad-inline | 3853165 | 0 | 0 | 0 | 3853165 |
+| long-polylines-10 / ifccad-external | 2472 | 44492 | 0 | 0 | 46964 |
+| long-polylines-10 / ifccad-inline | 77161 | 0 | 0 | 0 | 77161 |
+| long-polylines-1000 / ifccad-external | 2472 | 3901734 | 0 | 0 | 3904206 |
+| long-polylines-1000 / ifccad-inline | 6548003 | 0 | 0 | 0 | 6548003 |
+| mixed-1000 / ifccad-external | 4062 | 189718 | 0 | 0 | 193780 |
+| mixed-1000 / ifccad-inline | 332927 | 0 | 0 | 0 | 332927 |
+| fractional-lines-1000 / ifccad-external | 2472 | 157977 | 0 | 0 | 160449 |
+| fractional-lines-1000 / ifccad-inline | 254236 | 0 | 0 | 0 | 254236 |
+| spatial-line-1000 / ifccad-external | 2472 | 155830 | 0 | 0 | 158302 |
+| spatial-line-1000 / ifccad-inline | 272149 | 0 | 0 | 0 | 272149 |
+| elevated-1000 / ifccad-external | 2472 | 291839 | 0 | 0 | 294311 |
+| elevated-1000 / ifccad-inline | 498138 | 0 | 0 | 0 | 498138 |
+| tilted-shifted-1000 / ifccad-external | 2472 | 536866 | 0 | 0 | 539338 |
+| tilted-shifted-1000 / ifccad-inline | 873165 | 0 | 0 | 0 | 873165 |
+| fixture minimal-no-preservation (fixture-native) | 3895 | 4051 | 0 | 0 | 7946 |
+| fixture inline-drawing (fixture-native) | 10222 | 0 | 0 | 0 | 10222 |
+| fixture source-archive (fixture-preservation-inclusive) | 4547 | 4051 | 4269 | 94 | 12961 |
 
 ## Executed checks
 
@@ -159,7 +140,7 @@ The JSON retains executed stages, import/export diagnostics and scoped assessmen
 
 ## Repeatability and reproduction
 
-Repository revision: b7b2c7b581f9cd9a25d5419d78fb5640cc2ee190 (dirty: true). Two fresh runs compare measurements and hashes of every produced artifact, including chain outputs.
+Repository revision: 2d5176a44883e9eda9c16e65756a69d758cd8aaa (dirty: true). Two fresh runs compare measurements and hashes of every produced artifact, including chain outputs.
 
 | Case | Output | Same byte count | Identical files |
 | --- | --- | --- | --- |

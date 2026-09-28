@@ -3,6 +3,7 @@ use super::error::PackageBuildError;
 use super::ifcx::{assemble_ifcx, NodePaths};
 use super::state::{
     AppearanceBindingEntry, AppearanceEntry, DrawingState, LayerEntry, PackageState, PendingEntity,
+    WorkspaceSelection,
 };
 use super::types::{
     AppearanceDefinition, AppearanceKey, AppearanceMode, ArcDefinition, BlockDefinitionKey,
@@ -74,6 +75,7 @@ impl PackageBuilder {
                 kind: "drawing token",
             })?;
         self.state.drawing = Some(DrawingState {
+            workspace_selection: None,
             scopes: vec![crate::ifcdr::logical::IfcdrScope {
                 id: 0,
                 kind: crate::ifcdr::logical::IfcdrScopeKind::ModelSpace,
@@ -173,6 +175,25 @@ pub struct DrawingBuilder<'a> {
 }
 
 impl DrawingBuilder<'_> {
+    /// Saves one shared resume state. `None` selects the model layout;
+    /// a paper key selects its paper layout.
+    pub fn set_workspace_state(
+        &mut self,
+        workspace: crate::ifcdr::IfcdrWorkspace,
+        current_layer: LayerKey,
+        active_paper_space: Option<PaperSpaceKey>,
+    ) -> Result<(), PackageBuildError> {
+        self.state.validate_layer_key(current_layer)?;
+        if let Some(key) = active_paper_space {
+            self.state.validate_paper_key(key)?;
+        }
+        self.state.workspace_selection = Some(WorkspaceSelection {
+            workspace,
+            current_layer_id: current_layer.local_id,
+            active_paper_scope_id: active_paper_space.map(|key| key.local_id),
+        });
+        Ok(())
+    }
     pub fn set_point_display(
         &mut self,
         display: super::PointDisplay,

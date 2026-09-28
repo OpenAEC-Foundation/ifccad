@@ -1,7 +1,7 @@
 use super::validation::{diagnostic, IfcdrEntityKind, IfcdrEvidence};
 use super::*;
 use crate::ifcdr::geometry::numeric::{exact, round_down, round_up};
-use crate::ifcdr::{Bounds3d, PlanePlacement, Point3};
+use crate::ifcdr::{Bounds3d, CoordinateFrame3, Point3};
 use std::collections::BTreeSet;
 
 pub(super) fn frame_bounds(frame: ViewportFrame) -> Option<Bounds3d> {
@@ -237,7 +237,7 @@ pub(super) fn check_viewport_boundaries<R: IfcdrResourceAccess>(
             ));
             continue;
         }
-        let plane = PlanePlacement::from_validated_components(placement);
+        let plane = CoordinateFrame3::from_validated_components(placement);
         let mut distinct = BTreeSet::new();
         let mut enclosed = true;
         for vertex in 0..polyline.vertex_count() {

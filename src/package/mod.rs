@@ -20,8 +20,8 @@ pub use read::{
     AppliedAppearanceRef, AssessmentCompleteness, AssessmentGap, AssessmentGapReason,
     DrawingLayoutKind, DrawingLayoutRef, DrawingRef, DrawingRepresentationRef, DrawingSetRef,
     IndexedColorRef, LayerRef, LinePatternRef, NamedColorRef, PackageAssessment, PackageHeaderRef,
-    PackageLoadOutcome, PackageOpenError, PackageValidationReport, PackageValidity, RgbColor,
-    ValidatedPackage,
+    PackageLoadOutcome, PackageOpenError, PackageValidationReport, PackageValidity,
+    PackageWorkspaceRef, RgbColor, ValidatedPackage,
 };
 pub use write::{
     AppearanceColor, AppearanceDefinition, AppearanceKey, AppearanceMode, AppearancePatch,

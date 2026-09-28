@@ -1,9 +1,11 @@
 # IFCCAD candidate compatibility
 
-This collection is the unpublished `1.1.0` candidate. Its active drawing
-contract is IFCDR `0.11.0`, selected by IFCX overlay `0.13.0`, with drawing core
-`0.3.0`. The logical registry uses meta-schema v5; the separate JSON mapping uses
-meta-schema v4 and stream-directory v1. The reader also accepts the preceding
+This collection is the unpublished `1.1.0` candidate. Its package fixtures
+use IFCDR `0.12.0`, IFCX overlay `0.14.0`, drawing core `0.5.0`, registry
+meta-schema v6 and JSON mapping meta-schema v5. Workspace state is optional.
+The reader retains IFCDR `0.11.0` / IFCX overlay `0.13.0` support; both use
+stream-directory v1.
+The reader also accepts the preceding
 IFCDR `0.9.0` / overlay `0.11.0` and IFCDR `0.10.0` / overlay
 `0.12.0` pairs. IFCPR remains
 `0.2.0`. Historical schemas and `conformance/1.0.0` are reference artifacts,
@@ -16,7 +18,9 @@ for exact case IDs and the CAD behaviors that are still unproved. This candidate
 is not a numbered conformance release. The separate IFCPR semantic deferrals
 below still apply.
 
-The candidate's ordinary package fixtures use IFCDR `0.11.0`. Two explicit
+The candidate's package fixtures use IFCDR `0.12.0` with an explicit IFCX
+`ifccadSchemaVersion` marker, including packages without workspace state.
+Two explicit
 unsupported-version probes retain `0.5.0` and `0.7.0`, and an invalid inline
 body deliberately declares `999.0.0`. Retaining reader support for `0.9.0`
 does not make it the candidate fixture baseline.
@@ -56,6 +60,7 @@ contracts after their semantics are designed and tested.
 | Content or operation | Primary implementation behavior |
 | --- | --- |
 | IFCDR 0.11.0, 0.10.0 or 0.9.0 JSON with registered content | Versioned physical field/range checks in the JSON codec, shared logical geometry/reference/identity/order/bounds/appearance validation, and package binding checks. |
+| IFCDR 0.12.0 with IFCX overlay 0.14.0 | One optional shared package resume node selects a Drawing/Layout. The selected Drawing names its current IFCX Layer; IFCDR stores model windows, paper canvases, paper viewport workspace rows and reusable named UCS definitions. Strict validation checks local references, active contexts and UCS consistency. |
 | DrawingRepresentation | `attributes.resource`, role `drawing`; a Drawing and all listed layouts reference the same representation node. Layout scope IDs resolve within that resource. |
 | Retired DrawingGeometryRepresentation | `IFCCAD_PACKAGE_VOCABULARY_UNSUPPORTED`, including unreferenced nodes; no strict package. |
 | Directory writer | One drawing, one model layout, optional paper layouts with independent effective plot settings, viewports and local blocks, one inline or external IFCDR resource; deterministic new-version output. |
@@ -65,7 +70,9 @@ contracts after their semantics are designed and tested.
 | Malformed supported fields or known broken references | Structural or semantic error diagnostics; no strict typed package. |
 | Unrelated unknown IFCX node types and open extension fields | Existing permitted read behavior remains; no new guarantee of conversion, editing, or lossless rewriting. |
 | IFCCAD to CadDocument | Converts lines, polylines and local blocks in model and paper scopes, supported layout plot values, orthographic viewports and frozen-layer overrides. Unsupported target fields receive loss diagnostics; target scale changes block conversion. |
+| IFCCAD workspace to CadDocument | Converts current bound layer, named UCS definitions, current model UCS and model VPORT view/grid/grid-snap state. Paper canvas and viewport workspace state currently produce `WorkspaceUnsupported`. |
 | CadDocument to IFCCAD | Finite XYZ lines, placed straight lightweight polylines, ordinary local blocks, supported paper layouts, plot settings and orthographic viewports. Unsupported properties/entities are diagnosed under `Allow` or reject under `Reject`; unsupported active viewport clipping skips the viewport, while Display/NamedView omits the complete plot value. Geometric accuracy remains a hard limit. |
+| CadDocument workspace to IFCCAD | Transfers the active model VPORT list, current layer, named UCS definitions, current model UCS and view/grid/grid-snap values. cadcodec does not expose an unambiguous active tiled window or paper tab; those cases retain loss diagnostics. Source state without a valid target representation is diagnosed. |
 | IFCPR 0.2.0 | The limited checks described below; no converter preservation transfer. |
 
 `IfcdrEntityRef::Unmodeled`, `UnmodeledEntityRef`, and

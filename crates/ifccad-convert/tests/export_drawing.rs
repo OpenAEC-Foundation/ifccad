@@ -65,6 +65,152 @@ fn exported_unit(document: &CadDocument, label: &str) -> IfcdrLengthUnit {
 }
 
 #[test]
+fn exports_active_model_view_and_unused_named_ucs() {
+    use cadcodec::{Ucs, Vector2, Vector3};
+    use ifccad::ifcdr::{Point2, UcsSelection};
+    let mut document = CadDocument::new();
+    let origin = Vector3::new(1.0, 4.0, 2.0);
+    document.header.model_space_ucs_origin = origin;
+    let mut unused =
+        Ucs::from_origin_axes("MOVED_ORIGIN", origin, Vector3::UNIT_X, Vector3::UNIT_Y);
+    unused.handle = document.allocate_handle();
+    document.ucss.add(unused).unwrap();
+    let active = document.vports.get_mut("*Active").unwrap();
+    active.view_height = 42.0;
+    active.grid_spacing = Vector2::new(0.0, 8.0);
+    active.snap_spacing = Vector2::new(0.5, 0.25);
+    active.snap_on = true;
+    active.ucs_origin = origin;
+    let outcome = cad_document_to_package(
+        &document,
+        package_options("workspace-model"),
+        ExportOptions::default(),
+    )
+    .unwrap();
+    let root = TempRoot::new("workspace-model");
+    let target = root.0.join("package");
+    outcome.package().write_directory(&target).unwrap();
+    let loaded = load_directory_package(target).unwrap();
+    let package = loaded
+        .validated_package()
+        .unwrap_or_else(|| panic!("{:?}", loaded.report()));
+    let resume = package.workspace().unwrap();
+    let state = resume
+        .active_layout()
+        .representation()
+        .resource()
+        .workspace()
+        .unwrap();
+    assert_eq!(state.ucs_definitions[0].name, "MOVED_ORIGIN");
+    assert_eq!(state.model_windows[0].view.height, 42.0);
+    assert_eq!(state.model_windows[0].grid.spacing, Point2::new(0.0, 8.0));
+    assert_eq!(state.model_windows[0].snap.spacing, Point2::new(0.5, 0.25));
+    assert!(state.model_windows[0].snap.enabled);
+    assert!(matches!(
+        state.drawing_view_state.unwrap().current_model_ucs,
+        UcsSelection::Unnamed { .. }
+    ));
+    let imported = ifccad_convert::drawing_to_cad_document(resume.active_drawing()).unwrap();
+    let cad = imported.document();
+    assert_eq!(cad.header.model_space_ucs_origin, origin);
+    assert_eq!(cad.ucss.get("MOVED_ORIGIN").unwrap().origin, origin);
+    let active = cad.vports.get("*Active").unwrap();
+    assert_eq!(active.view_height, 42.0);
+    assert_eq!(active.grid_spacing, Vector2::new(0.0, 8.0));
+    assert_eq!(active.snap_spacing, Vector2::new(0.5, 0.25));
+}
+
+#[test]
+fn unsupported_orthographic_ucs_is_reported_and_reject_policy_blocks_export() {
+    use cadcodec::{Ucs, Vector3};
+    let mut document = CadDocument::new();
+    let mut ucs = Ucs::from_origin_axes(
+        "ORTHO",
+        Vector3::new(1.0, 2.0, 3.0),
+        Vector3::UNIT_X,
+        Vector3::UNIT_Y,
+    );
+    ucs.handle = document.allocate_handle();
+    ucs.ortho_type = 1;
+    document.ucss.add(ucs).unwrap();
+    let allowed = cad_document_to_package(
+        &document,
+        package_options("orthographic-ucs-allow"),
+        ExportOptions::default(),
+    )
+    .unwrap();
+    assert!(allowed.diagnostics().iter().any(|diagnostic| matches!(
+        diagnostic,
+        ifccad_convert::ExportDiagnostic::Loss { reasons, .. }
+        if reasons.iter().any(|reason| matches!(reason,
+            ExportLossReason::UnsupportedSemantic { name }
+            if name.contains("orthographic")
+        ))
+    )));
+    let rejected = cad_document_to_package(
+        &document,
+        package_options("orthographic-ucs-reject"),
+        ExportOptions {
+            loss_policy: ifccad_convert::ExportLossPolicy::Reject,
+            ..ExportOptions::default()
+        },
+    )
+    .err()
+    .expect("Reject must refuse orthographic UCS loss");
+    assert!(matches!(rejected, ExportError::LossRejected { .. }));
+}
+
+#[test]
+fn tiled_vports_keep_both_views_and_diagnose_ambiguous_ucs_activation() {
+    use cadcodec::{VPort, Vector2, Vector3};
+    let mut document = CadDocument::new();
+    document.header.model_space_ucs_origin = Vector3::new(1.0, 4.0, 2.0);
+    let first = document.vports.get_mut("*Active").unwrap();
+    first.upper_right = Vector2::new(0.5, 1.0);
+    let mut second = VPort::active();
+    second.handle = document.allocate_handle();
+    second.lower_left = Vector2::new(0.5, 0.0);
+    second.view_height = 50.0;
+    document.vports.add_allow_duplicate(second);
+    let outcome = cad_document_to_package(
+        &document,
+        package_options("tiled-ucs"),
+        ExportOptions::default(),
+    )
+    .unwrap();
+    assert!(outcome
+        .diagnostics()
+        .iter()
+        .any(|d| format!("{d:?}").contains("active tiled VPORT")));
+    assert!(outcome
+        .diagnostics()
+        .iter()
+        .any(|d| format!("{d:?}").contains("differs from header current UCS")));
+    let root = TempRoot::new("tiled-ucs");
+    let path = root.0.join("package");
+    outcome.package().write_directory(&path).unwrap();
+    let loaded = load_directory_package(path).unwrap();
+    let package = loaded
+        .validated_package()
+        .unwrap_or_else(|| panic!("{:?}", loaded.report()));
+    let workspace = package
+        .workspace()
+        .unwrap()
+        .active_layout()
+        .representation()
+        .resource()
+        .workspace()
+        .unwrap();
+    assert_eq!(workspace.model_windows.len(), 2);
+    assert_eq!(workspace.model_windows[1].view.height, 50.0);
+    assert!(!workspace.model_windows[0].use_stored_ucs);
+    assert!(matches!(
+        workspace.drawing_view_state.unwrap().current_model_ucs,
+        ifccad::ifcdr::UcsSelection::Unnamed { .. }
+    ));
+}
+
+#[test]
 fn structure_requires_one_layout_related_to_the_model_space_block() {
     let mut missing_block = CadDocument::new();
     let model_space = missing_block.header.model_space_block_handle;

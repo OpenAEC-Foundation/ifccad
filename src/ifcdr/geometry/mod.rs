@@ -12,7 +12,9 @@ mod values;
 pub use block::{BlockTransform, BlockTransformError, Scale3};
 pub(crate) use block::{BlockTransformComponents, PreparedBlockTransform};
 
+#[allow(deprecated)]
 pub use placement::{
-    GeometryEvaluationError, PlaneAxis, PlanePlacement, PlanePlacementError, PlanePlacementField,
+    CoordinateFrame3, GeometryEvaluationError, PlaneAxis, PlanePlacement, PlanePlacementError,
+    PlanePlacementField,
 };
 pub use values::{Bounds3d, CoordinateAxis, Point3, Vector3};

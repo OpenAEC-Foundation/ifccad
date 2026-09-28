@@ -41,6 +41,28 @@ fn flat_import_api_converts_a_validated_drawing() {
 }
 
 #[test]
+fn unused_current_ifcx_layer_is_selected_with_an_explicit_appearance_gap() {
+    let loaded =
+        load_directory_package(bundled_conformance_root().join("packages/valid/workspace-model"))
+            .unwrap();
+    let drawing = loaded
+        .validated_package()
+        .unwrap()
+        .workspace()
+        .unwrap()
+        .active_drawing();
+    assert_eq!(drawing.current_layer_name(), Some("Unused"));
+    let outcome = drawing_to_cad_document(drawing).unwrap();
+    assert_eq!(outcome.document().header.current_layer_name, "Unused");
+    assert!(outcome.document().layers.get("Unused").is_some());
+    assert!(outcome.diagnostics().iter().any(|diagnostic| matches!(
+        diagnostic,
+        ImportDiagnostic::WorkspaceUnsupported { reason }
+        if reason.contains("appearance")
+    )));
+}
+
+#[test]
 fn inline_drawing_import_preserves_the_same_cad_content() {
     let import = |name| {
         let loaded =

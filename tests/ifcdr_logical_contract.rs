@@ -311,3 +311,55 @@ fn candidate_0_10_assets_agree_and_map_complete_viewport_override_rows() {
         .unwrap();
     assert_eq!(order["fields"][1]["target"], "entityOrderEntry.entityId");
 }
+
+#[test]
+fn workspace_0_12_contract_has_separate_view_and_ucs_records() {
+    let registry = asset("registry-0.12.0.json");
+    let mapping = asset("json-mapping-0.12.0.json");
+    assert!(validator("registry-meta-schema-v6.json").is_valid(&registry));
+    let errors: Vec<_> = validator("json-mapping-meta-schema-v5.json")
+        .iter_errors(&mapping)
+        .map(|error| error.to_string())
+        .collect();
+    assert!(errors.is_empty(), "{errors:?}");
+    assert!(mapping_matches(&registry, &mapping));
+    assert_eq!(registry["ifcdrVersion"], "0.12.0");
+    assert!(registry["types"].get("coordinateFrame3").is_some());
+    assert!(registry["types"].get("planePlacement").is_none());
+    assert!(registry["types"].get("ucsSelection").is_some());
+    assert!(registry["resource"]["fields"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|f| f["name"] == "drawingViewState"));
+    for name in [
+        "ucsDefinition",
+        "modelWindow",
+        "paperCanvas",
+        "viewportWorkspace",
+    ] {
+        assert!(
+            registry["tables"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|t| t["name"] == name),
+            "{name}"
+        );
+    }
+    for name in [
+        "ucsDefinitionTable",
+        "modelWindowTable",
+        "paperCanvasTable",
+        "viewportWorkspaceTable",
+    ] {
+        assert!(
+            mapping["tables"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|t| t["payload"] == name),
+            "{name}"
+        );
+    }
+}

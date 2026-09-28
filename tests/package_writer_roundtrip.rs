@@ -15,6 +15,148 @@ use std::sync::atomic::{AtomicU64, Ordering};
 static NEXT_TEMP: AtomicU64 = AtomicU64::new(1);
 
 #[test]
+fn workspace_builder_roundtrips_active_model_and_unused_named_ucs() {
+    use ifccad::ifcdr::{
+        BackClip, BackClipMode, CoordinateFrame3, DrawingViewState, FrontClip, FrontClipMode,
+        IfcdrWorkspace, IsometricPlane, ModelWindow, NormalizedRect2, ProjectionMode,
+        UcsDefinition, UcsSelection, Vector3, ViewDefinition, ViewportRenderMode, WorkspaceGrid,
+        WorkspaceGridStyle, WorkspaceSnap, WorkspaceSnapStyle,
+    };
+    let root = TempRoot::new();
+    let mut package = PackageBuilder::new(PackageOptions {
+        package_id: PackageId::new("workspace-package").unwrap(),
+        data_version: "1".into(),
+        author: "test".into(),
+        timestamp: "2026-09-25T10:00:00Z".into(),
+    })
+    .unwrap();
+    let mut drawing = package
+        .add_drawing(DrawingOptions {
+            model_layout_name: "Model".into(),
+            representation_resource_id: ResourceId::new("workspace-drawing").unwrap(),
+            length_unit: IfcdrLengthUnit::Millimetre,
+        })
+        .unwrap();
+    let appearance = drawing
+        .appearances()
+        .add(AppearanceDefinition {
+            name: "Black".into(),
+            color: AppearanceColor::rgb(0, 0, 0),
+            opacity: 1.0,
+            line_pattern: LinePatternDefinition::named("continuous"),
+            line_weight: 0.0,
+        })
+        .unwrap();
+    let layer = drawing
+        .layers()
+        .add(LayerDefinition {
+            name: "0".into(),
+            visible: true,
+            frozen: false,
+            locked: false,
+            plottable: true,
+            frozen_in_new_viewports: false,
+            description: None,
+            appearance,
+        })
+        .unwrap();
+    let frame = CoordinateFrame3::try_new(
+        Point3::new(1.0, 4.0, 2.0),
+        Vector3::new(1.0, 0.0, 0.0),
+        Vector3::new(0.0, 1.0, 0.0),
+    )
+    .unwrap();
+    let grid = WorkspaceGrid {
+        enabled: false,
+        spacing: Point2::new(0.0, 10.0),
+        style: WorkspaceGridStyle::Lines,
+        major_line_frequency: 5,
+        beyond_limits: false,
+        adaptive: false,
+        subdivision: false,
+        follows_workplane: true,
+    };
+    let snap = WorkspaceSnap {
+        enabled: true,
+        base: Point2::new(0.0, 0.0),
+        spacing: Point2::new(0.5, 0.5),
+        angle: 0.0,
+        style: WorkspaceSnapStyle::Rectangular,
+        isometric_plane: IsometricPlane::Top,
+    };
+    let view = ViewDefinition {
+        center: Point2::new(0.0, 0.0),
+        target: Point3::new(0.0, 0.0, 0.0),
+        direction: Vector3::new(0.0, 0.0, 1.0),
+        height: 100.0,
+        twist: 0.0,
+        projection: ProjectionMode::Orthographic,
+        lens_length: None,
+        front_clip: FrontClip {
+            mode: FrontClipMode::Disabled,
+            distance: None,
+        },
+        back_clip: BackClip {
+            mode: BackClipMode::Disabled,
+            distance: None,
+        },
+    };
+    let workspace = IfcdrWorkspace {
+        drawing_view_state: Some(DrawingViewState {
+            current_model_ucs: UcsSelection::Unnamed { frame },
+            active_model_window_id: 1,
+        }),
+        ucs_definitions: vec![UcsDefinition {
+            ucs_id: 7,
+            name: "MOVED_ORIGIN".into(),
+            frame,
+            elevation: 0.0,
+        }],
+        model_windows: vec![ModelWindow {
+            model_window_id: 1,
+            rectangle: NormalizedRect2 {
+                min_x: 0.0,
+                min_y: 0.0,
+                max_x: 1.0,
+                max_y: 1.0,
+            },
+            view,
+            aspect_ratio: 1.0,
+            render_mode: ViewportRenderMode::TwoDimensional,
+            grid,
+            snap,
+            stored_ucs: UcsSelection::Unnamed { frame },
+            use_stored_ucs: true,
+        }],
+        paper_canvases: vec![],
+        viewport_workspaces: vec![],
+    };
+    drawing
+        .set_workspace_state(workspace.clone(), layer, None)
+        .unwrap();
+    let target = root.0.join("workspace-package");
+    package.finish().unwrap().write_directory(&target).unwrap();
+    let loaded = load_directory_package(&target).unwrap();
+    let resume = loaded
+        .validated_package()
+        .unwrap_or_else(|| panic!("{:?}", loaded.report()))
+        .workspace()
+        .unwrap();
+    assert_eq!(
+        resume.active_drawing().current_layer_path(),
+        Some("layer-0")
+    );
+    assert_eq!(
+        resume
+            .active_layout()
+            .representation()
+            .resource()
+            .workspace(),
+        Some(&workspace)
+    );
+}
+
+#[test]
 fn spatial_polyline_roundtrips_with_xyz_and_closure() {
     let root = TempRoot::new();
     let mut package = PackageBuilder::new(PackageOptions {
@@ -132,7 +274,7 @@ fn circular_family_retains_kinds_and_signed_sweep_through_strict_readback() {
             appearance,
         })
         .unwrap();
-    let placement = ifccad::ifcdr::PlanePlacement::try_new(
+    let placement = ifccad::ifcdr::CoordinateFrame3::try_new(
         Point3::new(4.0, 5.0, 6.0),
         ifccad::ifcdr::Vector3::new(1.0, 0.0, 0.0),
         ifccad::ifcdr::Vector3::new(0.0, 1.0, 0.0),
@@ -223,7 +365,7 @@ fn elliptic_family_retains_equal_radii_and_nearly_full_arc_identity() {
             appearance,
         })
         .unwrap();
-    let placement = ifccad::ifcdr::PlanePlacement::default();
+    let placement = ifccad::ifcdr::CoordinateFrame3::default();
     drawing
         .model_space()
         .add_ellipse(EllipseDefinition {
@@ -313,7 +455,7 @@ fn point_builder_writes_a_distinct_strict_readable_entity() {
             appearance,
         })
         .unwrap();
-    let placement = ifccad::ifcdr::PlanePlacement::try_new(
+    let placement = ifccad::ifcdr::CoordinateFrame3::try_new(
         Point3::new(4.0, 5.0, 6.0),
         ifccad::ifcdr::Vector3::new(1.0, 0.0, 0.0),
         ifccad::ifcdr::Vector3::new(0.0, 1.0, 0.0),
@@ -453,7 +595,7 @@ fn representative_builder() -> PackageBuilder {
     drawing
         .model_space()
         .add_planar_polyline(PlanarPolylineDefinition {
-            placement: ifccad::ifcdr::PlanePlacement::default(),
+            placement: ifccad::ifcdr::CoordinateFrame3::default(),
             bulges: vec![0.0, 0.5],
             points: vec![Point2::new(-2.0, 3.0), Point2::new(4.0, -5.0)],
             closed: false,
@@ -475,7 +617,7 @@ fn representative_builder() -> PackageBuilder {
     drawing
         .model_space()
         .add_planar_polyline(PlanarPolylineDefinition {
-            placement: ifccad::ifcdr::PlanePlacement::default(),
+            placement: ifccad::ifcdr::CoordinateFrame3::default(),
             bulges: vec![0.0, 0.0, 0.25],
             points: vec![
                 Point2::new(2.0, 2.0),
@@ -957,7 +1099,7 @@ fn writer_emits_paper_viewport_with_frozen_layer_override() {
                 Point2::new(28.5, 20.8),
                 Point2::new(31.5, 19.2),
             ],
-            placement: PlanePlacement::default(),
+            placement: CoordinateFrame3::default(),
             closed: true,
             layer,
             appearance: EntityAppearance::by_layer(),
@@ -1049,7 +1191,10 @@ fn writer_output_reloads_without_diagnostics_and_preserves_semantics() {
 
     let bytes = std::fs::read(target.join("resources/drawing.ifcdr.json")).unwrap();
     let resource: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
-    assert_eq!(resource["header"]["version"], "0.11.0");
+    assert_eq!(resource["header"]["version"], "0.12.0");
+    let ifcx_bytes = std::fs::read(target.join("package.ifcx.json")).unwrap();
+    let ifcx: serde_json::Value = serde_json::from_slice(&ifcx_bytes).unwrap();
+    assert_eq!(ifcx["header"]["ifccadSchemaVersion"], "0.14.0");
     assert!(resource.get("namedUcsBindings").is_none());
     assert!(resource.get("dimensionOverrideTable").is_none());
     let loaded = load_directory_package(&target).unwrap();
@@ -1222,7 +1367,7 @@ fn single_entity_families_reload_without_requiring_the_other_stream() {
             drawing
                 .model_space()
                 .add_planar_polyline(PlanarPolylineDefinition {
-                    placement: ifccad::ifcdr::PlanePlacement::default(),
+                    placement: ifccad::ifcdr::CoordinateFrame3::default(),
                     bulges: Vec::new(),
                     points: points.clone(),
                     closed: true,

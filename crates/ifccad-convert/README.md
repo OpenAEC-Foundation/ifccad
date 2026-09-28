@@ -64,8 +64,8 @@ The converter accepts only a `DrawingRef` from a strictly validated package.
 It does not load package paths or raw JSON and does not repeat package
 validation.
 
-The active package reader/writer contract is IFCDR 0.9.0 with IFCX overlay
-0.11.0. `DrawingRepresentationRef` exposes the drawing resource through
+The writer emits IFCDR 0.12.0 with IFCX overlay 0.14.0; the reader also accepts
+earlier supported contract pairs. `DrawingRepresentationRef` exposes the drawing resource through
 `representation().resource()`; model and paper layouts share their Drawing's
 representation and select scopes within it. The core writer supports minimal
 paper scopes/layouts, but CAD conversion currently selects one model layout.

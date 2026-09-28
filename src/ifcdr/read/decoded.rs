@@ -1,7 +1,7 @@
 //! Typed column backing. JSON construction belongs to the codec.
 use crate::ifcdr::geometry::PlanePlacementComponents;
 use crate::ifcdr::logical::*;
-use crate::ifcdr::PlanePlacement;
+use crate::ifcdr::CoordinateFrame3;
 use crate::ifcdr::{IfcdrLengthUnit, Point2, Point3};
 use crate::ResourceId;
 
@@ -49,6 +49,7 @@ pub(crate) struct PolylineColumns {
 pub(crate) struct DecodedIfcdrResource {
     pub id: ResourceId,
     pub version: String,
+    pub workspace: Option<IfcdrWorkspace>,
     pub unit: IfcdrLengthUnit,
     pub next: u64,
     pub scopes: Vec<IfcdrScope>,
@@ -126,7 +127,7 @@ impl IfcdrPolylineAccess for DecodedPolyline<'_> {
             .get(self.row)
             .copied()
             .flatten()
-            .unwrap_or_else(|| PlanePlacement::default().components())
+            .unwrap_or_else(|| CoordinateFrame3::default().components())
     }
     fn closed(&self) -> bool {
         self.columns.closed[self.row]
@@ -157,6 +158,9 @@ impl IfcdrPolylineAccess for DecodedPolyline<'_> {
     }
 }
 impl IfcdrResourceAccess for DecodedIfcdrResource {
+    fn workspace(&self) -> Option<&IfcdrWorkspace> {
+        self.workspace.as_ref()
+    }
     type Lines<'a> = DecodedLines<'a>;
     type Polylines<'a> = DecodedPolylines<'a>;
     type BlockInstances<'a> = &'a [IfcdrBlockInstanceRow];

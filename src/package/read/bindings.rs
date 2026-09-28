@@ -122,6 +122,7 @@ pub(super) fn analyze_resource_bindings(
         &mut result,
     );
     validate_drawing_membership(nodes, node_indices_by_path, &mut result);
+    validate_workspace_context(nodes, node_indices_by_path, &mut result);
     result
         .diagnostics
         .extend(super::appearance::validate_appearance_and_layer_semantics(
@@ -131,6 +132,70 @@ pub(super) fn analyze_resource_bindings(
             &result.bindings,
         ));
     result
+}
+
+fn validate_workspace_context(
+    nodes: &[Value],
+    index: &BTreeMap<String, usize>,
+    result: &mut BindingAnalysis,
+) {
+    for (row, state) in nodes.iter().enumerate() {
+        if state["type"] != "openaec:PackageWorkspaceState" {
+            continue;
+        }
+        let Some(drawing_path) = state
+            .pointer("/attributes/activeDrawing")
+            .and_then(Value::as_str)
+        else {
+            continue;
+        };
+        let Some(layout_path) = state
+            .pointer("/attributes/activeLayout")
+            .and_then(Value::as_str)
+        else {
+            continue;
+        };
+        let Some(&drawing_row) = index.get(drawing_path) else {
+            continue;
+        };
+        let Some(&layout_row) = index.get(layout_path) else {
+            continue;
+        };
+        let drawing = &nodes[drawing_row];
+        let layout = &nodes[layout_row];
+        if drawing["type"] != "openaec:Drawing" || layout["type"] != "openaec:DrawingLayout" {
+            continue;
+        }
+        let Some(representation) = drawing
+            .pointer("/children/Representation")
+            .and_then(Value::as_str)
+        else {
+            continue;
+        };
+        let Some(resource) = result.bindings.drawing_ifcdr_by_path.get(representation) else {
+            continue;
+        };
+        let workspace = resource.typed().workspace.as_ref();
+        let selected = match layout.pointer("/attributes/kind").and_then(Value::as_str) {
+            Some("model") => workspace.is_some_and(|w| w.drawing_view_state.is_some()),
+            Some("paper") => layout
+                .pointer("/attributes/scopeId")
+                .and_then(Value::as_u64)
+                .is_some_and(|id| {
+                    workspace.is_some_and(|w| {
+                        w.paper_canvases.iter().any(|c| u64::from(c.scope_id) == id)
+                    })
+                }),
+            _ => false,
+        };
+        if !selected {
+            result.diagnostics.push(binding_diagnostic(
+                format!("/data/{row}/attributes/activeLayout"),
+                "selected layout requires a matching IFCDR workspace context",
+                BTreeMap::new(),
+            ));
+        }
+    }
 }
 
 fn validate_drawing_membership(
@@ -154,7 +219,7 @@ fn validate_drawing_membership(
         if nodes[representation_index]
             .pointer("/attributes/resource/version")
             .and_then(Value::as_str)
-            .is_none_or(|version| !matches!(version, "0.10.0" | "0.11.0"))
+            .is_none_or(|version| !matches!(version, "0.10.0" | "0.11.0" | "0.12.0"))
         {
             continue;
         }

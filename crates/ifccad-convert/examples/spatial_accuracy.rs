@@ -1,5 +1,5 @@
 //! Reproducible production-path timings; run with --release -- OUTPUT_DIRECTORY.
-use ifccad::ifcdr::{IfcdrEntityRef, IfcdrLengthUnit, PlanePlacement, Point2, Point3, Vector3};
+use ifccad::ifcdr::{CoordinateFrame3, IfcdrEntityRef, IfcdrLengthUnit, Point2, Point3, Vector3};
 use ifccad::package::*;
 use ifccad::{PackageId, ResourceId};
 use ifccad_convert::cadcodec::{DwgReader, DwgWriter, DxfReader, DxfWriter};
@@ -20,13 +20,13 @@ fn options() -> PackageOptions {
 fn create(name: &str) -> Result<EncodedPackage> {
     let half = 0.5_f64.sqrt();
     let plane = match name {
-        "identity" => PlanePlacement::default(),
-        "large" => PlanePlacement::try_new(
+        "identity" => CoordinateFrame3::default(),
+        "large" => CoordinateFrame3::try_new(
             Point3::new(1e12, -1e12, 1e12),
             Vector3::new(1., 0., 0.),
             Vector3::new(0., 1., 0.),
         )?,
-        _ => PlanePlacement::try_new(
+        _ => CoordinateFrame3::try_new(
             Point3::new(0.1, 0.2, 0.3),
             Vector3::new(half, half, 0.),
             Vector3::new(0., 0., 1.),

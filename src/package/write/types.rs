@@ -1,4 +1,4 @@
-use crate::ifcdr::{IfcdrLengthUnit, PlanePlacement, Point2, Point3};
+use crate::ifcdr::{CoordinateFrame3, IfcdrLengthUnit, Point2, Point3};
 use crate::{PackageId, ResourceId};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -252,7 +252,7 @@ pub struct LineDefinition {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct PointDefinition {
-    pub placement: PlanePlacement,
+    pub placement: CoordinateFrame3,
     pub layer: LayerKey,
     pub appearance: EntityAppearance,
     pub visible: bool,
@@ -260,7 +260,7 @@ pub struct PointDefinition {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct CircleDefinition {
-    pub placement: PlanePlacement,
+    pub placement: CoordinateFrame3,
     pub radius: f64,
     pub layer: LayerKey,
     pub appearance: EntityAppearance,
@@ -269,7 +269,7 @@ pub struct CircleDefinition {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ArcDefinition {
-    pub placement: PlanePlacement,
+    pub placement: CoordinateFrame3,
     pub radius: f64,
     pub start_parameter: f64,
     pub sweep_parameter: f64,
@@ -280,7 +280,7 @@ pub struct ArcDefinition {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct EllipseDefinition {
-    pub placement: PlanePlacement,
+    pub placement: CoordinateFrame3,
     pub semi_major_radius: f64,
     pub semi_minor_radius: f64,
     pub layer: LayerKey,
@@ -290,7 +290,7 @@ pub struct EllipseDefinition {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct EllipseArcDefinition {
-    pub placement: PlanePlacement,
+    pub placement: CoordinateFrame3,
     pub semi_major_radius: f64,
     pub semi_minor_radius: f64,
     pub start_parameter: f64,
@@ -304,7 +304,7 @@ pub struct EllipseArcDefinition {
 pub struct PlanarPolylineDefinition {
     pub points: Vec<Point2>,
     pub bulges: Vec<f64>,
-    pub placement: PlanePlacement,
+    pub placement: CoordinateFrame3,
     pub closed: bool,
     pub layer: LayerKey,
     pub appearance: EntityAppearance,

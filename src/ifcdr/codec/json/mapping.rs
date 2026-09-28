@@ -9,6 +9,8 @@ const LOGICAL_0_10: &str = include_str!("../../../../schemas/ifcdr/registry-0.10
 const MAPPING_0_10: &str = include_str!("../../../../schemas/ifcdr/json-mapping-0.10.0.json");
 const LOGICAL_0_11: &str = include_str!("../../../../schemas/ifcdr/registry-0.11.0.json");
 const MAPPING_0_11: &str = include_str!("../../../../schemas/ifcdr/json-mapping-0.11.0.json");
+const LOGICAL_0_12: &str = include_str!("../../../../schemas/ifcdr/registry-0.12.0.json");
+const MAPPING_0_12: &str = include_str!("../../../../schemas/ifcdr/json-mapping-0.12.0.json");
 
 fn validate_default_markers(logical: &Value, mapping: &Value) -> Result<(), String> {
     for stream in mapping["streams"].as_array().into_iter().flatten() {
@@ -132,6 +134,11 @@ pub(crate) fn registry_0_11() -> &'static IfcdrRegistry {
     REGISTRY.get_or_init(|| build_registry(LOGICAL_0_11, MAPPING_0_11))
 }
 
+pub(crate) fn registry_0_12() -> &'static IfcdrRegistry {
+    static REGISTRY: OnceLock<IfcdrRegistry> = OnceLock::new();
+    REGISTRY.get_or_init(|| build_registry(LOGICAL_0_12, MAPPING_0_12))
+}
+
 fn build_registry(logical: &str, mapping: &str) -> IfcdrRegistry {
     let logical: Value = serde_json::from_str(logical).expect("embedded logical registry");
     let mapping: Value = serde_json::from_str(mapping).expect("embedded JSON mapping");
@@ -212,9 +219,9 @@ fn materialize(logical: &Value, mapping: &Value) -> Value {
             name,
             f["valueType"].as_str().unwrap(),
             f["nullable"].as_bool().unwrap(),
-            false,
+            f["optional"].as_bool().unwrap_or(false),
         );
-        if name == "bounds" {
+        if matches!(name, "bounds" | "drawingViewState") {
             resource_fields.push(value);
         } else {
             header.push(value);
@@ -308,7 +315,7 @@ fn materialize(logical: &Value, mapping: &Value) -> Value {
                             false,
                             false,
                         );
-                        if mapping["ifcdrVersion"] == "0.11.0"
+                        if matches!(mapping["ifcdrVersion"].as_str(), Some("0.11.0" | "0.12.0"))
                             && s["name"] == "planarPolyline"
                             && pool == "bulge"
                         {
@@ -344,7 +351,11 @@ fn materialize(logical: &Value, mapping: &Value) -> Value {
                     f["nullable"].as_bool().unwrap(),
                     fm["omission"] == "logicalDefault",
                 );
-                if f["valueType"] == "planePlacement" && mapping["ifcdrVersion"] == "0.11.0" {
+                if matches!(
+                    f["valueType"].as_str(),
+                    Some("planePlacement" | "coordinateFrame3")
+                ) && matches!(mapping["ifcdrVersion"].as_str(), Some("0.11.0" | "0.12.0"))
+                {
                     for axis in c["fields"].as_array_mut().unwrap() {
                         if matches!(axis["name"].as_str(), Some("X" | "Y")) {
                             axis["presence"] = json!("optional");

@@ -19,9 +19,29 @@ const COMPOSITE_OVERLAY_0_13: &str =
     include_str!("../../../schemas/ifcx/ifccad-overlay-0.13.0.json");
 const DRAWING_CORE_0_4_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-drawing-core-0.4.0.json";
 const DRAWING_CORE_0_4: &str = include_str!("../../../schemas/ifcx/ifccad-drawing-core-0.4.0.json");
+const DRAWING_CORE_0_5_ID: &str = "https://schemas.ifccad.org/ifcx/ifccad-drawing-core-0.5.0.json";
+const DRAWING_CORE_0_5: &str = include_str!("../../../schemas/ifcx/ifccad-drawing-core-0.5.0.json");
+const COMPOSITE_OVERLAY_0_14: &str =
+    include_str!("../../../schemas/ifcx/ifccad-overlay-0.14.0.json");
 const IFCPR_SCHEMA: &str = include_str!("../../../schemas/ifcpr/schema-0.2.0.json");
 
 pub(crate) fn validate_ifcx(value: &Value) -> Vec<PackageDiagnostic> {
+    let marker_value = value.pointer("/header/ifccadSchemaVersion");
+    if let Some(marker) = marker_value {
+        if marker.as_str() != Some("0.14.0") {
+            return vec![PackageDiagnostic {
+                category: crate::diagnostic::PackageDiagnosticCategory::ContractViolation,
+                code: IFCCAD_PACKAGE_SCHEMA_INVALID.to_owned(),
+                severity: PackageDiagnosticSeverity::Error,
+                resource_id: None,
+                resource_uri: Some(DIRECTORY_PACKAGE_ENTRYPOINT.to_owned()),
+                location: Some("/header/ifccadSchemaVersion".to_owned()),
+                context: BTreeMap::new(),
+                message: format!("unsupported IFCCAD schema version {marker}"),
+            }];
+        }
+    }
+    let marker = marker_value.and_then(Value::as_str);
     let drawing_version = value["data"].as_array().and_then(|nodes| {
         nodes.iter().find_map(|node| {
             (node["type"] == "openaec:DrawingRepresentation")
@@ -32,7 +52,14 @@ pub(crate) fn validate_ifcx(value: &Value) -> Vec<PackageDiagnostic> {
                 .flatten()
         })
     });
-    let (core_source, core_id, overlay_source, label) = if drawing_version == Some("0.11.0") {
+    let (core_source, core_id, overlay_source, label) = if marker == Some("0.14.0") {
+        (
+            DRAWING_CORE_0_5,
+            DRAWING_CORE_0_5_ID,
+            COMPOSITE_OVERLAY_0_14,
+            "0.14.0",
+        )
+    } else if drawing_version == Some("0.11.0") {
         (
             DRAWING_CORE_0_4,
             DRAWING_CORE_0_4_ID,
@@ -152,6 +179,22 @@ fn schema_diagnostics(
         .collect()
 }
 
+#[cfg(test)]
+mod workspace_marker_tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn unsupported_explicit_workspace_schema_marker_is_rejected() {
+        let value = json!({"header": {"ifccadSchemaVersion": "0.99.0"}, "data": []});
+        let diagnostics = validate_ifcx(&value);
+        assert!(diagnostics.iter().any(|d| {
+            d.code == IFCCAD_PACKAGE_SCHEMA_INVALID
+                && d.location.as_deref() == Some("/header/ifccadSchemaVersion")
+        }));
+    }
+}
+
 fn is_profile_selector(pointer: &str, preservation: bool) -> bool {
     if preservation {
         return pointer == "/header/version";
@@ -222,6 +265,37 @@ mod tests {
     #[test]
     fn embedded_ifcx_schema_accepts_the_drawing_spine() {
         assert!(validate_ifcx(&valid_ifcx()).is_empty());
+    }
+
+    #[test]
+    fn workspace_marker_selects_overlay_0_14_independent_of_resource_order() {
+        let mut ifcx = valid_ifcx();
+        ifcx["header"]["ifccadSchemaVersion"] = json!("0.14.0");
+        ifcx["data"][1]["attributes"] = json!({"plotStyleMode":"colorDependent",
+            "workspaceState":{"currentLayer":"layer"}});
+        ifcx["data"][1]["children"]["Layers"] = json!(["layer"]);
+        ifcx["data"][1]["children"]["Appearances"] = json!([]);
+        ifcx["data"][2]["attributes"]["limitsChecking"] = json!(false);
+        ifcx["data"][2]["attributes"]["paperSpaceLinetypeScaling"] = json!(false);
+        ifcx["data"][3]["attributes"]["resource"]["version"] = json!("0.12.0");
+        ifcx["data"]
+            .as_array_mut()
+            .unwrap()
+            .push(json!({"path":"layer",
+            "type":"openaec:Layer","attributes":{"name":"0","visible":true,
+                "frozen":false,"locked":false,"plottable":true,
+                "frozenInNewViewports":false}}));
+        ifcx["data"]
+            .as_array_mut()
+            .unwrap()
+            .push(json!({"path":"resume",
+            "type":"openaec:PackageWorkspaceState",
+            "attributes":{"activeDrawing":"drawing","activeLayout":"layout"}}));
+        assert!(
+            validate_ifcx(&ifcx).is_empty(),
+            "{:?}",
+            validate_ifcx(&ifcx)
+        );
     }
 
     #[test]
