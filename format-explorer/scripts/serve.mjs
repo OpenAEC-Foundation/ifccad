@@ -10,7 +10,7 @@ await build();
 const root=fileURLToPath(output),port=Number(process.env.PORT||4173);
 const clients=new Set();
 const reloadScript='<script>const changes=new EventSource("./__viewer_events");changes.addEventListener("change",()=>location.reload());</script>';
-const types={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.ttf':'font/ttf','.txt':'text/plain; charset=utf-8'};
+const types={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.ttf':'font/ttf','.woff':'font/woff','.woff2':'font/woff2','.wasm':'application/wasm','.png':'image/png','.ico':'image/x-icon','.txt':'text/plain; charset=utf-8'};
 const server=createServer(async(req,res)=>{
   try{
     if(await api.handle(req,res))return;

@@ -6438,7 +6438,7 @@
       "local_override": false,
       "source": "git+https://github.com/HakanSeven12/cadcodec.git?rev=5b682ed66ea2c89be8142c8dd83d83774fc3de08#5b682ed66ea2c89be8142c8dd83d83774fc3de08"
     },
-    "cargo_lock_sha256": "6ec42142c1096b51245278a08df863d4600eaa244afa46c441c87dcd01687b8d",
+    "cargo_lock_sha256": "0683360bd3520214a8f89a7263fc91e42b5a4721686278c8d8dac6359bafdbe1",
     "dependencies": [
       {
         "name": "acadrust",
@@ -6504,6 +6504,11 @@
         "name": "borrow-or-share",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
         "version": "0.2.4"
+      },
+      {
+        "name": "bumpalo",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "version": "3.20.3"
       },
       {
         "name": "bytecount",
@@ -6626,6 +6631,21 @@
         "version": "0.15.4"
       },
       {
+        "name": "futures-core",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "version": "0.3.34"
+      },
+      {
+        "name": "futures-task",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "version": "0.3.34"
+      },
+      {
+        "name": "futures-util",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "version": "0.3.34"
+      },
+      {
         "name": "generic-array",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
         "version": "0.14.7"
@@ -6696,6 +6716,11 @@
         "version": "0.1.0"
       },
       {
+        "name": "ifccad-browser",
+        "source": null,
+        "version": "0.1.0"
+      },
+      {
         "name": "ifccad-convert",
         "source": null,
         "version": "0.1.0"
@@ -6714,6 +6739,11 @@
         "name": "itoa",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
         "version": "1.0.18"
+      },
+      {
+        "name": "js-sys",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "version": "0.3.105"
       },
       {
         "name": "jsonschema",
@@ -6861,6 +6891,11 @@
         "version": "2.3.2"
       },
       {
+        "name": "pin-project-lite",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "version": "0.2.17"
+      },
+      {
         "name": "potential_utf",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
         "version": "0.1.6"
@@ -6971,6 +7006,11 @@
         "version": "0.1.5"
       },
       {
+        "name": "slab",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "version": "0.4.12"
+      },
+      {
         "name": "smallvec",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
         "version": "1.16.1"
@@ -7071,6 +7111,26 @@
         "version": "0.8.0"
       },
       {
+        "name": "wasm-bindgen",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "version": "0.2.128"
+      },
+      {
+        "name": "wasm-bindgen-macro",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "version": "0.2.128"
+      },
+      {
+        "name": "wasm-bindgen-macro-support",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "version": "0.2.128"
+      },
+      {
+        "name": "wasm-bindgen-shared",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "version": "0.2.128"
+      },
+      {
         "name": "web-time",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
         "version": "1.1.0"
@@ -7137,9 +7197,9 @@
       }
     ],
     "repository_dirty": true,
-    "repository_revision": "2d5176a44883e9eda9c16e65756a69d758cd8aaa",
+    "repository_revision": "f81f8ac1f6abab6055c40874c6a466a97d5b8778",
     "rustc": "rustc 1.98.0 (88d9e12ae 2026-08-18)\nbinary: rustc\ncommit-hash: 88d9e12ae178fab0fb5cc050a94da85685d449ea\ncommit-date: 2026-08-18\nhost: x86_64-pc-windows-msvc\nrelease: 1.98.0\nLLVM version: 22.1.8",
-    "source_manifest_sha256": "82097f99259b304c782937d149a794f328d0d5bf8ceaad6cf6b70179a373524e",
+    "source_manifest_sha256": "dbe298f691b239aa07c31f4920224c58da8d4d2c1c67eb6b64badc9e4ed551c8",
     "writers": {
       "dwg": "cadcodec normal AC1032, native compression",
       "dxf": "cadcodec text AC1032",

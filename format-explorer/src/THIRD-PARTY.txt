@@ -22,3 +22,10 @@ https://github.com/google/fonts/tree/main/ofl/jetbrainsmono
 
 These third-party licenses apply to the identified assets, not to the
 IFCCAD format or example packages.
+
+The optional /ocs/app/ viewer is Open CAD Studio v2026.38, source revision
+0d023d267bc5b7afeca3b54e98875b0efd4f3926:
+https://github.com/HakanSeven12/OpenCADStudio/tree/0d023d267bc5b7afeca3b54e98875b0efd4f3926
+Open CAD Studio is licensed under GPL-3.0. Its unmodified upstream LICENSE
+is distributed next to the built viewer assets at /ocs/app/LICENSE. The
+IFCCAD message bridge is authored in this repository and loaded separately.

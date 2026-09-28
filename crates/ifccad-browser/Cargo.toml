@@ -1,0 +1,14 @@
+[package]
+name = "ifccad-browser"
+version = "0.1.0"
+edition = "2021"
+license = "MPL-2.0"
+description = "Byte-oriented WebAssembly adapter for the IFCCAD Format Explorer"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+ifccad-viewer = { path = "../ifccad-viewer" }
+js-sys = "0.3"
+wasm-bindgen = "0.2"

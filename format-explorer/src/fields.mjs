@@ -6,7 +6,7 @@ export function isVector(value) {
 
 export function fieldSummary(value) {
   if (isVector(value)) return '(' + (Array.isArray(value) ? value : [value.x,value.y,value.z]).join(', ') + ')';
-  if (Array.isArray(value)) return value.length + ' punten';
+  if (Array.isArray(value)) return value.length + (value.length>0&&value.every(isVector)?' punten':' items');
   if (value && typeof value === 'object') return Object.keys(value).join(' · ');
   if (typeof value === 'string' && value.length > 28) return 'Verwijzing';
   return String(value);
@@ -17,7 +17,7 @@ export function addEntityFields(entities, {add, edge, byId, defaultCollapsed,reg
     defaultCollapsed.add(entity.id);
     function visit(parentId, key, value, path, index, implicit = false) {
       const parent = byId.get(parentId), id = `field:${entity.id}:${path.join('.')}`;
-      const label = /^\d+$/.test(key) ? `punt ${key}` : key;
+      const label = /^\d+$/.test(key) ? `${path[0]==='vertices'?'punt':'item'} ${key}` : key;
       const field = add({id, label, subtitle:implicit && path.length === 1 ? 'Standaard XY-vlak · impliciet' : fieldSummary(value),
         kind:'field', domain:'ifcdr', concept:Boolean(entity.concept), ownerId:entity.id,
         parentId, fieldPath:path, fieldIndex:index, implicit, resourceId:entity.resourceId,

@@ -17,7 +17,7 @@ export function pager(id,w,kind='inspector'){
 }
 export function columnTable(node,model){
  const stream=node.raw,columns=Object.keys(stream).filter(k=>k!=='count');
- const pools=columns.filter(k=>['x','y'].includes(k)&&Object.hasOwn(stream,'vertexOffset'));
+ const pools=columns.filter(k=>['x','y','z','bulge'].includes(k)&&Object.hasOwn(stream,'vertexOffset')&&Object.hasOwn(stream,'vertexCount'));
  function section(keys,key,total,title,shared=false){
   if(!keys.length)return '';
   const w=shared?collectionWindow(model,node.id):pageWindow(model,key,total),indexes=Array.from({length:w.end-w.start},(_,i)=>w.start+i);
@@ -28,13 +28,13 @@ export function columnTable(node,model){
  }
  return section(columns.filter(k=>!pools.includes(k)),node.id,stream.count,'Kolomstructuur',true)+
   section(pools,node.id+':pool',Math.max(0,...pools.map(k=>stream[k].length)),'Puntenpool')+
-  (pools.length?'<p class="small-note">vertexOffset en vertexCount kiezen een bereik in de gedeelde x/y-puntenpool.</p>':'');
+  (pools.length?`<p class="small-note">vertexOffset en vertexCount kiezen een bereik in de gedeelde ${pools.filter(k=>k!=='bulge').join('/')}-puntenpool.${pools.includes('bulge')?' De bulge-kolom volgt dezelfde vertexindex.':''}</p>`:'');
 }
 export function collectionBrowser(node,model){
  const c=model.paging.collections.get(node.id);if(!c)return '';
  const w=collectionWindow(model,node.id);
  return `<div class="relation-list collection-list">${c.items.slice(w.start,w.end).map((item,i)=>{
-  const id=c.idFor(item,w.start+i),label=model.byId.get(id)?.subtitle||item.attributes?.name||item.path||item.sourceType||id;
+  const id=c.idFor(item,w.start+i),label=model.byId.get(id)?.subtitle||item.attributes?.name||item.name||(item.kind!==undefined&&item.id!==undefined?`scopeId ${item.id}`:null)||item.path||item.sourceType||id;
   return `<button class="relation" data-select="${escape(id)}"><span><small>${w.start+i}</small>${escape(label)}</span><i aria-hidden="true">↗</i></button>`;
  }).join('')}</div>`;
 }

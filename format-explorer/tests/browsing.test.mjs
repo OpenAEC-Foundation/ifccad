@@ -36,3 +36,20 @@ test('polyline pools have separate pages from entity columns',()=>{
  assert.ok(html.includes('>199</span>'));assert.ok(html.includes('>-199</span>'));
  assert.ok(html.includes('data-page-id="poly:pool"'));
 });
+
+test('a three-coordinate vertex pool stays separate from object rows',()=>{
+ const node={id:'future-path',resourceId:'r',raw:{count:1,entityId:['1'],vertexOffset:[0],vertexCount:[20],x:Array.from({length:20},(_,i)=>i),y:Array.from({length:20},(_,i)=>i+100),z:Array.from({length:20},(_,i)=>i+200)}};
+ const html=columnTable(node,modelFor(node));
+ assert.match(html,/Puntenpool.*<code>x<\/code>.*<code>y<\/code>.*<code>z<\/code>/s);
+ assert.match(html,/gedeelde x\/y\/z-puntenpool/);
+});
+
+test('planar bulges share the selected vertex window',()=>{
+ const node={id:'planar',resourceId:'r',raw:{count:1,entityId:['1'],vertexOffset:[0],vertexCount:[20],x:Array.from({length:20},(_,i)=>i),y:Array.from({length:20},(_,i)=>-i),bulge:Array.from({length:20},(_,i)=>i/10)}};
+ const model=modelFor(node);model.inspectorPages=new Map([['planar:pool',1]]);
+ const html=columnTable(node,model);
+ assert.match(html,/Puntenpool.*<code>x<\/code>.*<code>y<\/code>.*<code>bulge<\/code>/s);
+ assert.match(html,/data-page-id="planar:pool"/);
+ assert.match(html,/1\.9/);
+ assert.doesNotMatch(html,/<code>bulge<\/code>[\s\S]*title="0"/);
+});

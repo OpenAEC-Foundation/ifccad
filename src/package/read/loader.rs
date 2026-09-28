@@ -4,6 +4,7 @@ use super::codes::{
     IFCCAD_PACKAGE_TOTAL_LIMIT_EXCEEDED,
 };
 use super::path::{PackagePathResolution, PackageRoot, ResolvePackagePathError};
+use super::uri::validate_package_uri;
 use super::{
     PackageDiagnostic, PackageDiagnosticContextValue, PackageDiagnosticSeverity, PackageOpenError,
     PackageValidationReport, DIRECTORY_PACKAGE_ENTRYPOINT,
@@ -14,6 +15,7 @@ use std::collections::BTreeMap;
 use std::fs::{self, File};
 use std::io::{self, Read};
 use std::path::Path;
+use std::path::PathBuf;
 
 const DEFAULT_MAX_RESOURCE_BYTES: u64 = 256 * 1024 * 1024;
 const DEFAULT_MAX_TOTAL_BYTES: u64 = 1024 * 1024 * 1024;
@@ -284,27 +286,190 @@ impl DirectoryPackageLoader {
         context: BTreeMap<String, PackageDiagnosticContextValue>,
         message: impl Into<String>,
     ) {
-        self.diagnostics.push(PackageDiagnostic {
-            category: match code {
-                IFCCAD_PACKAGE_ENTRYPOINT_MISSING
-                | IFCCAD_PACKAGE_RESOURCE_MISSING
-                | IFCCAD_PACKAGE_RESOURCE_LIMIT_EXCEEDED
-                | IFCCAD_PACKAGE_TOTAL_LIMIT_EXCEEDED => {
-                    super::PackageDiagnosticCategory::ExecutionBlocked
-                }
-                IFCCAD_PACKAGE_PATH_INVALID | IFCCAD_PACKAGE_JSON_INVALID => {
-                    super::PackageDiagnosticCategory::ContractViolation
-                }
-                _ => unreachable!("unclassified loader diagnostic: {code}"),
-            },
-            code: code.to_owned(),
-            severity: PackageDiagnosticSeverity::Error,
-            resource_id: None,
-            resource_uri: resource_uri.map(str::to_owned),
-            location: location.map(str::to_owned),
-            context,
-            message: message.into(),
-        });
+        self.diagnostics
+            .push(loader_error(code, resource_uri, location, context, message));
+    }
+}
+
+fn loader_error(
+    code: &'static str,
+    resource_uri: Option<&str>,
+    location: Option<&str>,
+    context: BTreeMap<String, PackageDiagnosticContextValue>,
+    message: impl Into<String>,
+) -> PackageDiagnostic {
+    PackageDiagnostic {
+        category: match code {
+            IFCCAD_PACKAGE_ENTRYPOINT_MISSING
+            | IFCCAD_PACKAGE_RESOURCE_MISSING
+            | IFCCAD_PACKAGE_RESOURCE_LIMIT_EXCEEDED
+            | IFCCAD_PACKAGE_TOTAL_LIMIT_EXCEEDED => {
+                super::PackageDiagnosticCategory::ExecutionBlocked
+            }
+            IFCCAD_PACKAGE_PATH_INVALID | IFCCAD_PACKAGE_JSON_INVALID => {
+                super::PackageDiagnosticCategory::ContractViolation
+            }
+            _ => unreachable!("unclassified loader diagnostic: {code}"),
+        },
+        code: code.to_owned(),
+        severity: PackageDiagnosticSeverity::Error,
+        resource_id: None,
+        resource_uri: resource_uri.map(str::to_owned),
+        location: location.map(str::to_owned),
+        context,
+        message: message.into(),
+    }
+}
+
+/// A byte-backed source with the same resource limits and diagnostics as a
+/// directory source. Only referenced resources are parsed.
+pub(crate) struct MemoryPackageLoader<'a> {
+    files: &'a BTreeMap<String, Vec<u8>>,
+    limits: PackageLoadLimits,
+    loaded_bytes: u64,
+    diagnostics: Vec<PackageDiagnostic>,
+}
+
+impl<'a> MemoryPackageLoader<'a> {
+    pub(crate) fn new(files: &'a BTreeMap<String, Vec<u8>>, limits: PackageLoadLimits) -> Self {
+        Self {
+            files,
+            limits,
+            loaded_bytes: 0,
+            diagnostics: Vec::new(),
+        }
+    }
+
+    pub(crate) fn load_entrypoint(&mut self) -> Option<LoadedJsonResource> {
+        self.load_json(
+            DIRECTORY_PACKAGE_ENTRYPOINT,
+            None,
+            IFCCAD_PACKAGE_ENTRYPOINT_MISSING,
+        )
+    }
+
+    pub(crate) fn load_json_resource(
+        &mut self,
+        uri: &str,
+        location: Option<&str>,
+    ) -> Option<LoadedJsonResource> {
+        self.load_json(uri, location, IFCCAD_PACKAGE_RESOURCE_MISSING)
+    }
+
+    pub(crate) fn into_report(self) -> PackageValidationReport {
+        PackageValidationReport::from_diagnostics(self.diagnostics)
+    }
+
+    fn load_json(
+        &mut self,
+        uri: &str,
+        location: Option<&str>,
+        missing_code: &'static str,
+    ) -> Option<LoadedJsonResource> {
+        if validate_package_uri(uri).is_err() {
+            self.diagnostics.push(loader_error(
+                IFCCAD_PACKAGE_PATH_INVALID,
+                None,
+                location,
+                context([(
+                    "invalidUri",
+                    PackageDiagnosticContextValue::String(uri.to_owned()),
+                )]),
+                format!("invalid package resource path {uri:?}"),
+            ));
+            return None;
+        }
+        let Some(bytes) = self.files.get(uri) else {
+            self.diagnostics.push(loader_error(
+                missing_code,
+                Some(uri),
+                location,
+                context([(
+                    "missingUri",
+                    PackageDiagnosticContextValue::String(uri.to_owned()),
+                )]),
+                format!("package resource {uri} cannot be loaded: file is missing"),
+            ));
+            return None;
+        };
+        let size = u64::try_from(bytes.len()).unwrap_or(u64::MAX);
+        if size > self.limits.max_resource_bytes {
+            self.push_limit(
+                IFCCAD_PACKAGE_RESOURCE_LIMIT_EXCEEDED,
+                uri,
+                location,
+                self.limits.max_resource_bytes,
+                size,
+            );
+            return None;
+        }
+        let total = self.loaded_bytes.saturating_add(size);
+        if total > self.limits.max_total_bytes {
+            self.push_limit(
+                IFCCAD_PACKAGE_TOTAL_LIMIT_EXCEEDED,
+                uri,
+                location,
+                self.limits.max_total_bytes,
+                total,
+            );
+            return None;
+        }
+        self.loaded_bytes = total;
+        let value = match serde_json::from_slice(bytes) {
+            Ok(value) => value,
+            Err(error) => {
+                self.diagnostics.push(loader_error(
+                    IFCCAD_PACKAGE_JSON_INVALID,
+                    Some(uri),
+                    location,
+                    context([
+                        (
+                            "column",
+                            PackageDiagnosticContextValue::Number(
+                                u64::try_from(error.column()).unwrap_or(u64::MAX).into(),
+                            ),
+                        ),
+                        (
+                            "line",
+                            PackageDiagnosticContextValue::Number(
+                                u64::try_from(error.line()).unwrap_or(u64::MAX).into(),
+                            ),
+                        ),
+                    ]),
+                    format!("invalid JSON in package resource {uri}"),
+                ));
+                return None;
+            }
+        };
+        Some(LoadedJsonResource::new(
+            uri.to_owned(),
+            PathBuf::from(uri),
+            bytes.clone(),
+            value,
+        ))
+    }
+
+    fn push_limit(
+        &mut self,
+        code: &'static str,
+        uri: &str,
+        location: Option<&str>,
+        limit: u64,
+        observed: u64,
+    ) {
+        self.diagnostics.push(loader_error(
+            code,
+            Some(uri),
+            location,
+            context([
+                ("limit", PackageDiagnosticContextValue::Number(limit.into())),
+                (
+                    "observedBytes",
+                    PackageDiagnosticContextValue::Number(observed.into()),
+                ),
+            ]),
+            format!("package resource {uri} exceeds a byte limit"),
+        ));
     }
 }
 

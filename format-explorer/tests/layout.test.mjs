@@ -1,6 +1,30 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { placeLabel, placeDetailNode, overlaps, wrapText } from '../src/layout.mjs';
+import { placeLabel, placeDetailNode, overlaps, routeEdge, wrapText } from '../src/layout.mjs';
+
+test('a reference between nearly aligned nodes stays in their vertical gap', () => {
+  const line={x:850,y:320,width:260,height:100};
+  const scope={x:830,y:170,width:260,height:100};
+  const route=routeEdge(line,scope);
+  assert.equal(route.kind,'vertical');
+  assert.deepEqual(route.start,{x:980,y:320});
+  assert.deepEqual(route.end,{x:960,y:270});
+  assert.ok(!route.path.includes(' 135'), 'the edge must not detour above the scope');
+});
+
+test('a target entirely to the left still uses the outer return corridor', () => {
+  const route=routeEdge({x:850,y:320,width:260,height:100},{x:400,y:170,width:260,height:100});
+  assert.equal(route.kind,'backward');
+  assert.deepEqual(route.start,{x:850,y:370});
+  assert.deepEqual(route.end,{x:660,y:220});
+});
+
+test('a short vertical reference may put its caption in the clear node gap', () => {
+  const occupied=[{x:126,y:96,width:282,height:101},{x:144,y:221,width:282,height:101}];
+  const label=placeLabel([{x:278,y:209}],75,24,occupied,0);
+  assert.ok(label.y>=197&&label.y+label.height<=221);
+  assert.ok(occupied.every(node=>!overlaps(label,node)));
+});
 
 test('new field nodes find space without moving reserved nodes', () => {
   const occupied = [{x:450,y:100,width:260,height:110},{x:450,y:250,width:260,height:110}];

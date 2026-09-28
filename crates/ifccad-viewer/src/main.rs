@@ -1,4 +1,6 @@
-use ifccad_viewer::{export_cad, export_package, inspect_cad, inspect_package, progress};
+use ifccad_viewer::{
+    export_cad_versioned, export_package_versioned, inspect_cad, inspect_package, progress,
+};
 use serde_json::json;
 use std::path::Path;
 fn main() {
@@ -10,16 +12,18 @@ fn main() {
             inspect_package(Path::new(&args[2]))
         }
         Some("cad") if args.len() == 4 => inspect_cad(Path::new(&args[2]), Path::new(&args[3])),
-        Some("export-package") if args.len() == 5 => export_package(
+        Some("export-package") if matches!(args.len(), 5 | 6) => export_package_versioned(
             Path::new(&args[2]),
             &args[4].to_string_lossy(),
             &args[3].to_string_lossy(),
+            args.get(5).and_then(|s| s.to_str()).unwrap_or("AC1032"),
         ),
-        Some("export-cad") if args.len() == 6 => export_cad(
+        Some("export-cad") if matches!(args.len(), 6 | 7) => export_cad_versioned(
             Path::new(&args[2]),
             Path::new(&args[3]),
             &args[5].to_string_lossy(),
             &args[4].to_string_lossy(),
+            args.get(6).and_then(|s| s.to_str()).unwrap_or("AC1032"),
         ),
         _ => {
             eprintln!("Usage: ifccad-viewer package DIRECTORY | cad INPUT OUTPUT_DIRECTORY");

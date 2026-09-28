@@ -2,7 +2,7 @@ use base64::{engine::general_purpose::STANDARD, Engine};
 use ifccad_convert::cadcodec::{
     CadDocument, Circle, DwgReader, DxfReader, DxfWriter, EntityType, Line,
 };
-use ifccad_viewer::{export_cad, export_package, inspect_cad};
+use ifccad_viewer::{export_cad, export_package, export_package_versioned, inspect_cad};
 use std::path::PathBuf;
 
 fn fixture(name: &str) -> PathBuf {
@@ -183,4 +183,43 @@ fn line_pattern_loss_remains_visible_in_export_diagnostics() {
         .iter()
         .any(|d| d["code"] == "LinePatternFallback"));
     std::fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn requested_cad_versions_are_encoded_and_read_back_exactly() {
+    for format in ["dxf", "dwg"] {
+        for version in ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"] {
+            let result = export_package_versioned(
+                &fixture("valid/unrepresented-packed"),
+                "drawing-main",
+                format,
+                version,
+            );
+            assert!(result["failure"].is_null(), "{format} {version}: {result}");
+            assert_eq!(result["export"]["requestedVersion"], version);
+            assert_eq!(result["export"]["effectiveVersion"], version);
+            let bytes = STANDARD
+                .decode(result["export"]["download"]["base64"].as_str().unwrap())
+                .unwrap();
+            let doc = if format == "dxf" {
+                DxfReader::from_reader(std::io::Cursor::new(bytes))
+                    .unwrap()
+                    .read()
+                    .unwrap()
+            } else {
+                DwgReader::from_stream(std::io::Cursor::new(bytes))
+                    .read()
+                    .unwrap()
+            };
+            assert_eq!(doc.version.as_str(), version);
+        }
+    }
+    let rejected = export_package_versioned(
+        &fixture("valid/unrepresented-packed"),
+        "drawing-main",
+        "dxf",
+        "AC1009",
+    );
+    assert!(!rejected["failure"].is_null());
+    assert!(rejected["export"]["download"].is_null());
 }

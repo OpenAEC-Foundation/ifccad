@@ -14,6 +14,54 @@ async function fixture(name) {
   return { name, ifcx, files, blobs: {} };
 }
 
+test('paper layouts connect to their IFCDR scopes and viewport references stay distinct', async () => {
+  const f=await fixture('layout-viewport-plot'),before=JSON.stringify(f),m=buildModel(f);
+  const paper='ifcx:layout-1',model='ifcx:layout-0';
+  assert.ok(m.byId.get(paper).y>m.byId.get(model).y);
+  assert.ok(m.byId.get('ifcx:layer-0').y>m.byId.get(paper).y);
+  assert.ok(m.edges.some(e=>e.source===paper&&e.target==='scope:geometry:1'&&e.relation==='scopeId'));
+  assert.ok(m.edges.some(e=>e.source===model&&e.target==='scope:geometry:0'&&e.relation==='scopeId'));
+  assert.equal(m.byId.get(paper).raw.attributes.plotSettings.media.mediaName,'A4');
+  const collection=m.byId.get('collection:geometry:viewport');
+  assert.equal(collection.raw.count,2);
+  assert.equal(m.byId.has('collection:geometry:line'),false);
+  assert.equal(m.byId.has('collection:geometry:blockInstance'),false);
+  assert.equal(m.byId.get('entity:geometry:1').entity.kind,'viewport');
+  assert.equal(m.byId.get('entity:geometry:3').entity.geometry.paperClip.boundaryEntityId,2);
+  assert.ok(m.edges.some(e=>e.source==='entity:geometry:1'&&e.target==='scope:geometry:0'&&e.relation==='viewScopeId'));
+  assert.ok(m.edges.some(e=>e.source==='entity:geometry:3'&&e.target==='entity:geometry:2'&&e.relation==='paperClip.boundaryEntityId'));
+  assert.deepEqual(m.byId.get('entity:geometry:1').entity.geometry.layerOverrides,[
+    {layerId:0,frozen:true,appearanceOverrideId:1},
+    {layerId:1,frozen:false,appearanceOverrideId:2},
+  ]);
+  assert.equal(m.missing.length,0);
+  assert.equal(JSON.stringify(f),before);
+});
+
+test('a newly declared object stream is browsable without a family-specific adapter', async () => {
+  // Presentation-only probe: the current production reader does not claim this stream.
+  const f=await fixture('unrepresented-packed'),body=f.files['drawing.ifcdr.json'];
+  const count=12,ids=Array.from({length:count},(_,i)=>100+i);
+  body.streamDirectory.streams.push({name:'futureShape',schema:'example.futureShape.v1',role:'object',count,columns:['entityId','scopeId','radius','placement','layerId','appearanceId']});
+  body.streams.futureShapeStream={count,entityId:ids,scopeId:ids.map(()=>0),radius:ids.map((_,i)=>i+1),placement:ids.map((_,i)=>({origin:{x:i,y:0,z:0}})),layerId:ids.map(()=>0),appearanceId:ids.map(()=>0)};
+  const before=JSON.stringify(f),model=buildModel(f),collection='collection:drawing-main:futureShape',last='entity:drawing-main:111';
+  assert.ok(model.byId.has(collection));
+  assert.equal(model.byId.get(collection).raw.count,count);
+  assert.ok(model.paging.has(last));
+  assert.equal(model.byId.has(last),false);
+  const collapsed=new Set(model.defaultCollapsed);
+  assert.ok(revealNode(model,collapsed,last));
+  assert.equal(model.byId.get(last).entity.kind,'futureShape');
+  assert.deepEqual(model.byId.get(last).entity.geometry,{radius:12,placement:{origin:{x:11,y:0,z:0}}});
+  assert.equal(model.byId.get('field:'+last+':radius').raw,12);
+  assert.ok(model.edges.some(e=>e.source===last&&e.target==='scope:drawing-main:0'&&e.relation==='scopeId'));
+  assert.ok(model.edges.some(e=>e.source===last&&e.target==='ifcx:layer-0'&&e.relation==='layerBinding'));
+  assert.ok(visibleGraph(model,collapsed).nodes.some(n=>n.id===last));
+  assert.ok(visibleGraph(model,collapsed).nodes.filter(n=>n.kind==='entity'&&n.entity?.kind==='futureShape').length<=10);
+  assert.equal(model.missing.length,0);
+  assert.equal(JSON.stringify(f),before);
+});
+
 test('local blocks distinguish owning scope, definition scope and stored transform defaults', async () => {
   const f=await fixture('block-empty-defaults'),before=JSON.stringify(f),m=buildModel(f);
   const e=m.byId.get('entity:drawing-main:3');
@@ -47,6 +95,50 @@ test('many IFCX definitions stay bounded and can be revealed from references', a
   assert.ok(shown.filter(n=>n.kind==='Appearance').length<=10);
  }
  assert.equal(JSON.stringify(f),original);
+});
+
+test('large block tables stay paged and reveal a referenced scope and definition', async () => {
+ const f=await fixture('block-empty-defaults');
+ const drawing=f.files['drawing.ifcdr.json'];
+ const scope=drawing.scopeTable.find(item=>item.kind===2);
+ const definition=drawing.blockDefinitionTable[0];
+ for(let i=0;i<35;i++){
+  drawing.scopeTable.push({...scope,id:100+i});
+  drawing.blockDefinitionTable.push({...definition,scopeId:100+i,name:`Block ${i}`});
+ }
+ const before=JSON.stringify(f),model=buildModel(f),collapsed=new Set(model.defaultCollapsed);
+ const scopes='view:ifcdr:drawing-main:scopeTable',definitions='view:ifcdr:drawing-main:blockDefinitionTable';
+ assert.ok(model.byId.has(scopes));
+ assert.ok(model.byId.has(definitions));
+ assert.ok(collapsed.has(scopes)&&collapsed.has(definitions));
+ assert.equal(visibleGraph(model,collapsed).nodes.filter(n=>n.kind==='scope'||n.kind==='block-definition').length,0);
+ assert.equal(model.missing.length,0);
+ assert.equal(model.edges.filter(e=>e.relation==='scopeId'&&e.source.startsWith('block-definition:')).length,drawing.blockDefinitionTable.length);
+ assert.ok(revealNode(model,collapsed,'block-definition:drawing-main:134'));
+ assert.ok(revealNode(model,collapsed,'scope:drawing-main:134'));
+ const shown=visibleGraph(model,collapsed).nodes;
+ assert.ok(shown.some(n=>n.id==='block-definition:drawing-main:134'));
+ assert.ok(shown.some(n=>n.id==='scope:drawing-main:134'));
+ assert.ok(shown.filter(n=>n.kind==='scope').length<=10);
+ assert.ok(shown.filter(n=>n.kind==='block-definition').length<=10);
+ assert.ok(model.edges.some(e=>e.source==='block-definition:drawing-main:134'&&e.target==='scope:drawing-main:134'&&e.relation==='scopeId'));
+ assert.equal(JSON.stringify(f),before);
+});
+
+test('focus view keeps package structure and resource bridges while bounding references', async () => {
+ const {graphConnections}=await import('../src/model.mjs');
+ assert.equal(typeof graphConnections,'function');
+ const structural={source:'resource:main',target:'view:scopes',relation:'scopeTable',structural:true};
+ const bridge={source:'resource:preservation',target:'resource:main',relation:'linkedDrawingResources',structural:false};
+ const references=Array.from({length:15},(_,i)=>({source:`entity:${i}`,target:'ifcx:layer',relation:'layerBinding',structural:false}));
+ const visible={edges:[structural,bridge,...references]};
+ const overview=graphConnections(visible,'resource:main');
+ assert.deepEqual(overview.edges,[structural,bridge]);
+ const focused=graphConnections(visible,'ifcx:layer');
+ assert.deepEqual(focused.edges.slice(0,2),[structural,bridge]);
+ assert.equal(focused.edges.length,10);
+ assert.equal(focused.hiddenReferences,7);
+ assert.deepEqual(graphConnections(visible,'ifcx:layer','all').edges,visible.edges);
 });
 
 test('external and inline resources retain identical resource-qualified entity identities', async () => {
@@ -90,7 +182,7 @@ test('concept entities and preservation are separate from unchanged native fixtu
   const before = JSON.stringify(f);
   const model = buildModel(f, { concepts: true });
   assert.equal(model.entities.filter(e => !e.concept).length, 4);
-  assert.deepEqual(model.entities.filter(e => e.concept).map(e => e.kind), ['circle','dimension']);
+  assert.deepEqual(model.entities.filter(e => e.concept).map(e => e.kind), ['dimension']);
   assert.ok(model.nodes.some(n => n.kind === 'concept-record' && n.concept));
   for(const record of model.nodes.filter(n=>n.kind==='concept-record')) {
     assert.ok(model.edges.some(e=>e.target===record.id&&e.structural&&model.byId.get(e.source).domain==='ifcpr'));
@@ -98,11 +190,11 @@ test('concept entities and preservation are separate from unchanged native fixtu
   assert.equal(JSON.stringify(f), before);
 });
 
-test('illustrative CAD families each have an independent IFCDR collection', async () => {
+test('illustrative dimension remains separate from native IFCDR collections', async () => {
   const model = buildModel(await fixture('unrepresented-packed'), {concepts:true});
   const collections = model.nodes.filter(n => n.concept && n.kind === 'collection');
-  assert.equal(collections.length, 2);
-  for (const family of ['circle', 'dimension']) {
+  assert.equal(collections.length, 1);
+  for (const family of ['dimension']) {
     const collection = collections.find(n => n.family === family);
     assert.ok(collection);
     assert.ok(model.edges.some(e => e.structural && e.source === 'resource:drawing-main' && e.target === collection.id));
@@ -143,12 +235,85 @@ test('implicit placement and concept fields stay distinct from stored native dat
   assert.deepEqual(placement.raw, {origin:{x:0,y:0,z:0},X:{x:1,y:0,z:0},Y:{x:0,y:1,z:0}});
 });
 
-test('layers and appearances are real visible IFCX roots, without a fabricated group', async () => {
+test('layers and appearances are real Drawing children, without a fabricated group', async () => {
   const model=buildModel(await fixture('unrepresented-packed'));
   assert.equal(model.byId.has('group:definitions'),false);
+  assert.ok(!model.roots.includes('ifcx:layer-0'));
+  assert.ok(!model.roots.includes('ifcx:appearance-default-solid'));
   const visible=visibleGraph(model,new Set(model.defaultCollapsed));
   assert.ok(visible.nodes.some(n=>n.id==='ifcx:appearance-default-solid'));
+  assert.ok(visible.edges.some(e=>e.source==='ifcx:drawing-main'&&e.target==='ifcx:layer-0'&&e.relation==='Layers'&&e.structural));
+  assert.ok(visible.edges.some(e=>e.source==='ifcx:drawing-main'&&e.target==='ifcx:appearance-default-solid'&&e.relation==='Appearances'&&e.structural));
   assert.ok(visible.edges.some(e=>e.source==='ifcx:layer-0'&&e.target==='ifcx:appearance-default-solid'));
+});
+
+test('a compact plane placement uses its default axes without rewriting stored fields',async()=>{
+ const f=await fixture('tilted-plane'),stream=f.files['drawing.ifcdr.json'].streams.planarPolylineStream;
+ stream.placement[0]={origin:{x:2,y:3,z:4}};
+ const model=buildModel(f),entity=model.byId.get('entity:drawing-main:3').entity;
+ assert.deepEqual(entity.points[0],[2,3,4]);
+ assert.deepEqual(entity.points[1],[12,3,4]);
+ assert.deepEqual(entity.geometry.placement,{origin:{x:2,y:3,z:4}});
+});
+
+test('IFCDR 0.11 geometry families expose exact rows and vertex pools',async()=>{
+ const curves=buildModel(await fixture('ellipse-family'));
+ for(const kind of ['point','circle','arc','ellipse','ellipseArc'])assert.ok(curves.byId.has('collection:drawing-main:'+kind));
+ assert.deepEqual(curves.byId.get('entity:drawing-main:5').entity.geometry.placement.origin,{z:6,x:4,y:5});
+ assert.equal(curves.byId.get('entity:drawing-main:7').entity.geometry.sweepParameter,-Math.PI/2);
+ assert.equal(curves.byId.get('field:entity:drawing-main:9:semiMajorRadius').raw,2);
+ const planar=buildModel(await fixture('planar-bulges')).byId.get('entity:drawing-main:3').entity;
+ assert.deepEqual(planar.geometry.bulges,[1,0,0,0]);
+ const spatial=buildModel(await fixture('spatial-polyline')).byId.get('entity:drawing-main:5').entity;
+ assert.deepEqual(spatial.geometry.vertices,[[2,3,1],[6,7,5]]);
+ assert.deepEqual(spatial.points,spatial.geometry.vertices);
+ assert.equal(spatial.geometry.placement,undefined);
+});
+
+test('drawing-listed definitions follow Drawing expansion while an older shape remains standalone', async () => {
+  const current=buildModel(await fixture('layout-viewport-plot'));
+  for(const id of ['ifcx:layer-0','ifcx:layer-1','ifcx:appearance-0'])assert.ok(!current.roots.includes(id));
+  assert.ok(current.edges.some(e=>e.source==='ifcx:drawing-0'&&e.target==='ifcx:layer-0'&&e.relation==='Layers'&&e.structural));
+  assert.ok(current.edges.some(e=>e.source==='ifcx:drawing-0'&&e.target==='ifcx:appearance-0'&&e.relation==='Appearances'&&e.structural));
+  const collapsed=new Set(current.defaultCollapsed);
+  collapsed.add('ifcx:drawing-0');
+  const hidden=visibleGraph(current,collapsed);
+  assert.ok(!hidden.nodes.some(n=>n.id==='ifcx:layer-0'||n.id==='ifcx:appearance-0'));
+  collapsed.delete('ifcx:drawing-0');
+  const shown=visibleGraph(current,collapsed);
+  assert.ok(shown.edges.some(e=>e.source==='ifcx:drawing-0'&&e.target==='ifcx:layer-0'));
+  assert.ok(shown.edges.some(e=>e.source==='ifcx:drawing-0'&&e.target==='ifcx:appearance-0'));
+  const oldSource=await fixture('unrepresented-packed');
+  const oldDrawing=oldSource.ifcx.data.find(n=>n.type==='openaec:Drawing');
+  delete oldDrawing.children.Layers;
+  delete oldDrawing.children.Appearances;
+  const legacy=buildModel(oldSource);
+  assert.ok(legacy.roots.includes('ifcx:layer-0'));
+  assert.ok(!legacy.edges.some(e=>e.source==='ifcx:drawing-main'&&e.relation==='Layers'));
+});
+
+test('large drawing-listed layer collections page beneath their drawing', async () => {
+  const f=await fixture('layout-viewport-plot');
+  const drawing=f.ifcx.data.find(n=>n.type==='openaec:Drawing');
+  const source=f.ifcx.data.find(n=>n.path==='layer-0');
+  for(let i=0;i<12;i++){
+    const path='extra-layer-'+i;
+    f.ifcx.data.push({...source,path,attributes:{...source.attributes,name:'Extra '+i}});
+    drawing.children.Layers.push(path);
+  }
+  const model=buildModel(f),group='view:definitions:Layer';
+  assert.ok(model.byId.has(group));
+  assert.ok(!model.roots.includes(group));
+  assert.ok(model.edges.some(e=>e.source==='ifcx:drawing-0'&&e.target===group&&e.structural));
+  const collapsed=new Set(model.defaultCollapsed);collapsed.add('ifcx:drawing-0');
+  assert.ok(!visibleGraph(model,collapsed).nodes.some(n=>n.id===group));
+  collapsed.delete('ifcx:drawing-0');
+  assert.ok(visibleGraph(model,collapsed).nodes.some(n=>n.id===group));
+  assert.ok(revealNode(model,collapsed,'ifcx:extra-layer-11'));
+  assert.ok(visibleGraph(model,collapsed).nodes.some(n=>n.id==='ifcx:extra-layer-11'));
+  assert.ok(model.edges.some(e=>e.source==='ifcx:drawing-0'&&e.target==='ifcx:extra-layer-11'&&e.relation==='Layers'&&!e.structural));
+  collapsed.add(group);
+  assert.ok(!visibleGraph(model,collapsed).nodes.some(n=>n.id==='ifcx:extra-layer-11'));
 });
 
 test('actual model keeps a large stream lazy and navigates a distant identity',async()=>{

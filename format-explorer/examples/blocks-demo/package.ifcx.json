@@ -10,11 +10,20 @@
       "type": "openaec:DrawingSet"
     },
     {
+      "attributes": {
+        "plotStyleMode": "colorDependent"
+      },
       "children": {
         "Layouts": [
           "layout-0"
         ],
-        "Representation": "representation-0"
+        "Representation": "representation-0",
+        "Layers": [
+          "layer-0"
+        ],
+        "Appearances": [
+          "appearance-0"
+        ]
       },
       "path": "drawing-0",
       "type": "openaec:Drawing"
@@ -23,7 +32,9 @@
       "attributes": {
         "kind": "model",
         "name": "Model",
-        "scopeId": 0
+        "scopeId": 0,
+        "limitsChecking": false,
+        "paperSpaceLinetypeScaling": true
       },
       "children": {
         "Representation": "representation-0"
@@ -35,12 +46,12 @@
       "attributes": {
         "name": "Drawing",
         "resource": {
-          "checksum": "sha256:15d32db2b2be40129c772beeb55c289e213595b460b9125b5248942663581401",
+          "checksum": "sha256:6535a5d88a7435e521df891441642e5185e6bab6566db4c5debb60f467a81e2b",
           "format": "openaec.ifcdr",
           "resourceId": "drawing-blocks-demo",
           "role": "drawing",
           "uri": "resources/drawing.ifcdr.json",
-          "version": "0.9.0"
+          "version": "0.10.0"
         }
       },
       "path": "representation-0",
@@ -50,7 +61,11 @@
       "attributes": {
         "appearance": "appearance-0",
         "name": "Symbols",
-        "visible": true
+        "visible": true,
+        "frozen": false,
+        "locked": false,
+        "plottable": true,
+        "frozenInNewViewports": false
       },
       "path": "layer-0",
       "type": "openaec:Layer"

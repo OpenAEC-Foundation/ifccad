@@ -2,7 +2,7 @@
 
 **Outcome: passed.** Repeatability: passed. Corpus: full-v1.
 
-Retained run: `workspace-state-current-20260928` (2026-09-28), unmodified cadcodec revision `5b682ed66ea2c89be8142c8dd83d83774fc3de08`. No local dependency override was used. The matching detailed measurements and provenance are in [results-v1.json](../../benchmarks/size/results-v1.json). Direct IFCCAD writer recipes use IFCDR 0.12.0 / IFCX 0.14.0, while the corpus has no authored workspace state. These sizes therefore measure the new package baseline, but not the additional cost of workspace records.
+Retained run: `workspace-state-merged-20260928` (2026-09-28), unmodified cadcodec revision `5b682ed66ea2c89be8142c8dd83d83774fc3de08`. No local dependency override was used. The matching detailed measurements and provenance are in [results-v1.json](../../benchmarks/size/results-v1.json). Direct IFCCAD writer recipes use IFCDR 0.12.0 / IFCX 0.14.0, while the corpus has no authored workspace state. These sizes therefore measure the new package baseline, but not the additional cost of workspace records.
 
 Controlled fixtures and generated XYZ lines/placed straight polylines; millimetres, AC1032. IFCCAD is uncompressed pretty JSON, DXF is text, DWG uses its normal native compression. These ratios compare complete writer outputs, not compression algorithms or representative CAD practice.
 
@@ -140,7 +140,7 @@ The JSON retains executed stages, import/export diagnostics and scoped assessmen
 
 ## Repeatability and reproduction
 
-Repository revision: 2d5176a44883e9eda9c16e65756a69d758cd8aaa (dirty: true). Two fresh runs compare measurements and hashes of every produced artifact, including chain outputs.
+Repository revision: f81f8ac1f6abab6055c40874c6a466a97d5b8778 (dirty: true). Two fresh runs compare measurements and hashes of every produced artifact, including chain outputs.
 
 | Case | Output | Same byte count | Identical files |
 | --- | --- | --- | --- |

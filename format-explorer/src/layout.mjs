@@ -4,6 +4,27 @@ export function overlaps(a, b, gap = 0) {
     && a.y < b.y + b.height + gap && a.y + a.height + gap > b.y;
 }
 
+export function routeEdge(a,b){
+  const overlapX=Math.min(a.x+a.width,b.x+b.width)-Math.max(a.x,b.x);
+  const separatedY=a.y+a.height<=b.y||b.y+b.height<=a.y;
+  if(separatedY&&overlapX>=Math.min(a.width,b.width)/2){
+    const downward=b.y>a.y;
+    const start={x:a.x+a.width/2,y:a.y+(downward?a.height:0)};
+    const end={x:b.x+b.width/2,y:b.y+(downward?0:b.height)};
+    const middle=(start.y+end.y)/2;
+    return {kind:'vertical',start,end,path:`M${start.x} ${start.y} C${start.x} ${middle},${end.x} ${middle},${end.x} ${end.y}`};
+  }
+  const backward=b.x<a.x;
+  const start={x:backward?a.x:a.x+a.width,y:a.y+a.height/2};
+  const end={x:backward?b.x+b.width:b.x,y:b.y+b.height/2};
+  if(backward){
+    const routeY=Math.min(a.y,b.y)-35;
+    return {kind:'backward',start,end,path:`M${start.x} ${start.y} C${start.x-30} ${start.y},${start.x-30} ${routeY},${start.x-50} ${routeY} L${end.x+50} ${routeY} C${end.x+30} ${routeY},${end.x+30} ${end.y},${end.x} ${end.y}`};
+  }
+  const middle=(start.x+end.x)/2;
+  return {kind:'forward',start,end,path:`M${start.x} ${start.y} C${middle} ${start.y},${middle} ${end.y},${end.x} ${end.y}`};
+}
+
 // New detail nodes find space without moving any already visible graph nodes.
 export function placeDetailNode(preferred, occupied) {
   const box = {...preferred};
@@ -29,8 +50,8 @@ export function wrapText(value, maxWidth, measure) {
   return lines;
 }
 
-export function placeLabel(points, width, height, occupied) {
-  const free = box => occupied.every(other => !overlaps(box, other, 6));
+export function placeLabel(points, width, height, occupied, clearance=6) {
+  const free = box => occupied.every(other => !overlaps(box, other, clearance));
   const candidates = [];
   // Keep the caption on its connection whenever possible. Compare all nearby
   // candidates before accepting an offset; first-free searches can jump to a

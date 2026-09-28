@@ -1,12 +1,12 @@
-import { visibleGraph } from './model.mjs';
-import { placeLabel, placeDetailNode, wrapText } from './layout.mjs';
+import { graphConnections, visibleGraph } from './model.mjs';
+import { placeLabel, placeDetailNode, routeEdge, wrapText } from './layout.mjs';
 import { t } from './i18n.mjs';
 const NS='http://www.w3.org/2000/svg',WIDTH=260;
 const element=(tag,attrs={})=>{const e=document.createElementNS(NS,tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);return e;};
 const text=(parent,value,x,y,cls)=>{const e=element('text',{x,y,class:cls});e.textContent=t(value);parent.append(e);return e;};
 export class PackageGraph {
-  constructor(svg,{select,toggle,zoomChanged,countChanged}){
-    this.svg=svg;this.callbacks={select,toggle,zoomChanged,countChanged};this.camera={x:20,y:30,k:1};this.drag=null;
+  constructor(svg,{select,toggle,zoomChanged,countChanged,referenceCountChanged}){
+    this.svg=svg;this.callbacks={select,toggle,zoomChanged,countChanged,referenceCountChanged};this.camera={x:20,y:30,k:1};this.drag=null;this.referenceMode='focus';
     svg.addEventListener('click',e=>{if(this.moved)return;const toggleEl=e.target.closest('[data-toggle]'),node=e.target.closest('[data-node]');if(toggleEl)toggle(toggleEl.dataset.toggle);else if(node)select(node.dataset.node);});
     svg.addEventListener('keydown',e=>{if(e.key!=='Enter'&&e.key!==' ')return;const target=e.target.closest('[data-toggle],[data-node]');if(target){e.preventDefault();const attribute=target.hasAttribute('data-toggle')?'data-toggle':'data-node',id=target.getAttribute(attribute);attribute==='data-toggle'?toggle(id):select(id);svg.querySelector('['+attribute+'="'+CSS.escape(id)+'"]')?.focus({preventScroll:true});}});
     svg.addEventListener('pointerdown',e=>{if(e.target.closest('[data-node],[data-toggle]')||e.button!==0)return;this.drag={x:e.clientX,y:e.clientY,cx:this.camera.x,cy:this.camera.y};this.moved=false;svg.setPointerCapture(e.pointerId);});
@@ -18,7 +18,7 @@ export class PackageGraph {
   }
   render(model,collapsed,selected){
     if(this.model!==model){this.detailPositions=new Map();this.staticPositions=new Map();}
-    this.model=model;this.collapsed=collapsed;this.selected=selected;const visible=visibleGraph(model,collapsed);this.visible=visible;
+    this.model=model;this.collapsed=collapsed;this.selected=selected;const visible=visibleGraph(model,collapsed),connections=graphConnections(visible,selected,this.referenceMode);this.visible=visible;
     this.svg.replaceChildren();const defs=element('defs');const marker=element('marker',{id:'edge-arrow',viewBox:'0 0 10 10',refX:9,refY:5,markerWidth:5,markerHeight:5,orient:'auto-start-reverse'});marker.append(element('path',{d:'M0,0 L10,5 L0,10 Z',fill:'#a1a1aa'}));defs.append(marker);this.svg.append(defs);
     this.layer=element('g');this.svg.append(this.layer);
     // Measure actual rendered fonts, including fallback fonts. Keep format data
@@ -60,15 +60,11 @@ export class PackageGraph {
     }
     const occupied=boxes.map(n=>({x:n.x-4,y:n.y-4,width:n.width+22,height:n.height+8}));
     const labels=[];
-    const connected=new Set(model.edges.filter(e=>e.source===selected||e.target===selected));
-    for(const edge of visible.edges){const a=this.boxes.get(edge.source),b=this.boxes.get(edge.target);let sx=a.x+WIDTH,sy=a.y+a.height/2,tx=b.x,ty=b.y+b.height/2;
-      if(a.x===b.x){sx=a.x+WIDTH/2;tx=b.x+WIDTH/2;sy=a.y+(b.y>a.y?a.height:0);ty=b.y+(b.y>a.y?0:b.height);}
-      const vertical=a.x===b.x;const middle=vertical?(sy+ty)/2:(sx+tx)/2;
-      const backward=b.x<a.x,routeY=Math.min(a.y,b.y)-35;
-      if(backward){sx=a.x;tx=b.x+WIDTH;}
-      const d=backward?`M${sx} ${sy} C${sx-30} ${sy},${sx-30} ${routeY},${sx-50} ${routeY} L${tx+50} ${routeY} C${tx+30} ${routeY},${tx+30} ${ty},${tx} ${ty}`:vertical?`M${sx} ${sy} C${sx} ${middle},${tx} ${middle},${tx} ${ty}`:`M${sx} ${sy} C${middle} ${sy},${middle} ${ty},${tx} ${ty}`;
-      const path=element('path',{d,class:'edge'+(!edge.structural?' reference':'')+(connected.has(edge)?' connected':''),'marker-end':'url(#edge-arrow)'});this.layer.append(path);
-      if(edge.structural||connected.has(edge))labels.push({edge,path,connected:connected.has(edge)});
+    const connected=new Set(connections.edges.filter(e=>e.source===selected||e.target===selected));
+    for(const edge of connections.edges){const a=this.boxes.get(edge.source),b=this.boxes.get(edge.target);
+      const route=routeEdge(a,b);
+      const path=element('path',{d:route.path,class:'edge'+(!edge.structural?' reference':'')+(connected.has(edge)?' connected':''),'marker-end':'url(#edge-arrow)'});this.layer.append(path);
+      if(!edge.compact&&(edge.structural||connected.has(edge)))labels.push({edge,path,connected:connected.has(edge),clearance:route.kind==='vertical'&&!edge.structural?0:6});
     }
     const leaders=element('g');this.layer.append(leaders);
     for(const node of boxes){const group=element('g',{class:'node '+node.domain+(node.concept?' concept':'')+(node.id===selected?' selected':''),transform:`translate(${node.x} ${node.y})`});
@@ -86,7 +82,7 @@ export class PackageGraph {
     this.labelBoxes=[];
     // Structural captions retain priority when selecting additional references.
     labels.sort((a,b)=>Number(b.edge.structural)-Number(a.edge.structural));
-    for(const {edge,path,connected:isConnected} of labels){
+    for(const {edge,path,connected:isConnected,clearance} of labels){
       const group=element('g',{class:'edge-caption'+(isConnected?' connected':'')});this.layer.append(group);
       const label=text(group,'',0,0,'edge-label');
       const lines=wrapText(t(edge.relation),132,value=>{label.textContent=value;return label.getComputedTextLength();});
@@ -96,7 +92,7 @@ export class PackageGraph {
       const length=path.getTotalLength();
       // Prefer the destination side, after sibling connections have diverged.
       const points=[.88,.8,.7,.6,.5,.35].map(t=>path.getPointAtLength(length*t));
-      const box=placeLabel(points,bounds.width+14,bounds.height+10,occupied);
+      const box=placeLabel(points,bounds.width+14,bounds.height+10,occupied,clearance);
       occupied.push(box);this.labelBoxes.push(box);
       const cx=box.x+box.width/2,cy=box.y+box.height/2;
       if(Math.hypot(cx-box.anchor.x,cy-box.anchor.y)>32){
@@ -106,7 +102,7 @@ export class PackageGraph {
       const background=element('rect',{x:box.x,y:box.y,width:box.width,height:box.height,rx:4,class:'label-background'});
       group.insertBefore(background,label);label.setAttribute('transform',`translate(${box.x+7-bounds.x} ${box.y+5-bounds.y})`);
     }
-    this.callbacks.countChanged?.(visible.nodes.length,model.nodes.length);this.apply();
+    this.callbacks.countChanged?.(visible.nodes.length,model.nodes.length);this.callbacks.referenceCountChanged?.(connections.hiddenReferences);this.apply();
   }
   apply(){this.layer?.setAttribute('transform',`translate(${this.camera.x} ${this.camera.y}) scale(${this.camera.k})`);this.callbacks.zoomChanged?.(Math.round(this.camera.k*100));}
   zoom(factor,x=this.svg.clientWidth/2,y=this.svg.clientHeight/2){const old=this.camera.k,next=Math.max(.25,Math.min(2,old*factor));this.camera.x=x-(x-this.camera.x)*next/old;this.camera.y=y-(y-this.camera.y)*next/old;this.camera.k=next;this.apply();}

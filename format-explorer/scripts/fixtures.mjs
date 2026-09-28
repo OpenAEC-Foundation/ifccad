@@ -1,10 +1,14 @@
 import { readFile } from 'node:fs/promises';
 export const examples = [
   ['unrepresented-packed','Een tekening met bronbehoud','Lijnen, polylijnen en bewaarde bronrecords.'],
-  ['multi-drawing-projections','Twee tekeningen, één bron','Entiteit-ID’s zijn uniek binnen hun eigen resource.'],
-  ['inline-both','Resources binnen IFCX','Dezelfde inhoud, nu ingebed in het graphdocument.'],
   ['tilted-plane','Een polylijn in een vlak','Lokale XY-punten krijgen een plaats in XYZ.'],
+  ['planar-bulges','Gebogen polylijnsegmenten','Bulges bewaren cirkelbogen binnen een vlakke polylijn.'],
+  ['spatial-polyline','Een ruimtelijke polylijn','XYZ-vertices vormen een polylijn zonder vlakplaatsing.'],
+  ['ellipse-family','Punten en ronde curves','Punt, cirkel, boog, ellips en ellipsboog als afzonderlijke typed streams.'],
   ['blocks-demo','Een gedeeld block, vier plaatsingen','Een Arrow-definitie met rotatie, spiegeling en niet-uniforme schaal.'],
+  ['shared-drawing-definitions','Gedeelde definities tussen tekeningen','Twee tekeningen delen hun lagen en appearances via dezelfde IFCX-nodes.'],
+  ['layout-viewport-plot','Een paperspace met viewports','Een model-layout, een paper-layout, plotinstellingen en viewportafwijkingen.'],
+  ['inline-both','Resources binnen IFCX','IFCDR en IFCPR zijn ingebed in het IFCX-document.'],
 ];
 export const exampleRoot=name=>new URL(name==='blocks-demo'?'../examples/blocks-demo/':`../../conformance/next/packages/valid/${name}/`,import.meta.url);
 export async function readExamples() {
