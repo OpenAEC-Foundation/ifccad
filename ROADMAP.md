@@ -176,7 +176,8 @@ The subsequent scopes/blocks run uses unmodified cadcodec `5b682ed6` and passes
 the full primitive corpus, including DWG return chains, with
 `baseline_accepted: true`. That report replaced the historical patched
 reference without changing milestone 2's closure decision. Block-specific DWG
-marker issue #52 remains a separate, explicitly rejected boundary.
+marker issue #52 and anonymous-name issue #55 remain separate, explicitly
+rejected boundaries on the pinned reader.
 The 2026-09-23 layout/viewport candidate rerun retains the same unmodified
 cadcodec pin and corpus, updates the active 0.10.0/0.12.0 output measurements,
 and again passes full repeatability and IFCCAD/DXF/DWG exchange. Its first
@@ -217,9 +218,9 @@ family, full IFCPR implementation or conformance release is implied by closure.
   and [#42](https://github.com/HakanSeven12/cadcodec/issues/42) are used through
   the unmodified shared `5b682ed` pin; the full corpus passes. Older local
   patches remain only as a historical reproduction recipe.
-  [IFCCAD #9](https://github.com/OpenAEC-Foundation/ifccad/issues/9) tracks the
-  subsequent semantic-inventory coverage integration. Upstream
-  [field-level classification #50](https://github.com/HakanSeven12/cadcodec/issues/50)
+  The semantic-inventory coverage integration tracked by
+  [IFCCAD #9](https://github.com/OpenAEC-Foundation/ifccad/issues/9) is complete.
+  Upstream [field-level classification #50](https://github.com/HakanSeven12/cadcodec/issues/50)
   would strengthen coverage but does not block adoption of the current inventory.
 - Expand the practical corpus and supported native semantics in milestone 3.
 - Measure production compression/other encodings when implemented; the broader
@@ -308,7 +309,8 @@ placement, rotation and signed scale; base points belong to definitions, not
 generic scopes. The F candidate adds effective plot settings and viewport
 entities to native paper scopes without changing block geometry. The
 [CAD boundary](docs/geometry/block-cad-boundary.md) records DWG marker issue #52,
-DXF description loss and scale limitations; these are not silently repaired.
+anonymous-name issue #55, DXF description loss and scale limitations; these
+are not silently repaired.
 For P, define restoration
 eligibility after native edits: retaining source bytes alone does not prove
 restoration or justify suppressing loss diagnostics.
@@ -342,8 +344,9 @@ implicit change to block geometry or resource ownership.
 
 #### Format and implementation work
 
-- Define deliberate planar and spatial geometry, coordinate-frame, placement,
-  and polyline semantics
+- Complete the remaining planar and spatial geometry design, particularly
+  spline semantics and source-detail preservation boundaries, building on
+  implemented coordinate frames, placements and both polyline families
   ([issue #4](https://github.com/OpenAEC-Foundation/ifccad/issues/4)).
 - Represent model space and paper spaces as scopes of a complete drawing
   resource.

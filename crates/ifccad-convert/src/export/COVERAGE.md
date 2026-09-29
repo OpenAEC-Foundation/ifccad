@@ -28,8 +28,13 @@ unit, explodability and signed-uniform scaling policy; supported primitive
 contents remain in their definition scope without base-point pretranslation.
 External definitions remain unsupported. Present begin markers are checked
 against their records, and missing INSERT targets and cycles are fatal under
-both loss policies. The known DWG marker inconsistency is diagnosed with a
-reference to cadcodec #52; absent DXF markers are allowed.
+both loss policies. The pinned DWG reader can expose contradictory marker
+metadata: a nonzero base point appears as zero in the marker
+([cadcodec #52](https://github.com/HakanSeven12/opencadcodec/issues/52)), and
+an anonymous record name can be misnumbered after a null `BLOCK_CONTROL` slot
+([cadcodec #55](https://github.com/HakanSeven12/opencadcodec/issues/55)). Both
+remain fatal source-structure diagnostics in IFCCAD; absent DXF markers are
+allowed.
 
 Ordinary instances retain references, placement, rotation, signed scale and
 visibility without explosion. Nested occurrence-space assessment includes outer

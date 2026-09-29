@@ -20,6 +20,15 @@ scales `(2,3,-4)` or `(-2,-2,-2)`.
   structural marker entities. Do not claim nonzero-base DWG export is qualified
   under the marker-consistency check until this discrepancy is resolved.
   Tracked upstream as [cadcodec #52](https://github.com/HakanSeven12/cadcodec/issues/52).
+- In `sample_AC1032.dwg`, a null `BLOCK_CONTROL` slot at index 24 precedes an
+  anonymous record at index 25 (handle 3673, raw name `*U`). Its linked BLOCK
+  marker (handle 3674) explicitly names `*U25`, but the pinned DWG reader
+  exposes the record as `*U24`: `anonymous_block_names` filters unresolved
+  slots before numbering. Numbering first corrected this sample in an
+  instrumented copy, but that experiment does not establish a general fix.
+  The converter retains its fatal marker-name consistency check rather than
+  exporting a reconstructed name known to be wrong. Tracked upstream as
+  [cadcodec #55](https://github.com/HakanSeven12/opencadcodec/issues/55).
 - The DXF BLOCKS writer emits the record base point but omits description
   group 4. Its roundtrip therefore loses `BlockRecord.description`; DWG
   preserves it in the same case. A separate entity-marker writer does emit
@@ -50,8 +59,9 @@ inconsistency and DXF absence; explodable and uniform-scaling flags roundtrip.
 ## Converter policy and exchange evidence
 
 The converter rejects contradictory present marker name/owner/base-point data
-as `InvalidSourceStructure` under both loss policies. Absence is allowed; a
-zero marker is not guessed to mean absent. Native-to-CAD conversion constructs
+as `InvalidSourceStructure` under both loss policies, including the #55 DWG
+reader mismatch. Absence is allowed; a zero marker is not guessed to mean
+absent. Native-to-CAD conversion constructs
 consistent records and markers. `block_exchange` exercises production package
 readback and the actual codecs: DXF with nonzero base and DWG with zero base
 return successfully; DWG with nonzero base is explicitly rejected on return
