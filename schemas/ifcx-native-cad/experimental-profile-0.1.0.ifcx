@@ -1,0 +1,347 @@
+{
+  "header": {
+    "id": "urn:example:ifccad:experimental-cad:0.1.0",
+    "ifcxVersion": "ifcx_alpha",
+    "dataVersion": "0.1.0",
+    "author": "OpenAEC",
+    "timestamp": "2026-09-29T00:00:00Z"
+  },
+  "imports": [],
+  "schemas": {
+    "ifccad::drawing": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "profileVersion": {
+              "dataType": "String"
+            },
+            "lengthUnit": {
+              "dataType": "String"
+            }
+          }
+        }
+      }
+    },
+    "ifccad::layout": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "kind": {
+              "dataType": "Enum",
+              "enumRestrictions": {
+                "options": [
+                  "Model"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "ifccad::layer": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "name": {
+              "dataType": "String"
+            },
+            "appearance": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "color": {
+                    "dataType": "String"
+                  },
+                  "opacity": {
+                    "dataType": "Real"
+                  },
+                  "linePattern": {
+                    "dataType": "String"
+                  },
+                  "lineWeight": {
+                    "dataType": "Real"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ifccad::blockDefinition": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "name": {
+              "dataType": "String"
+            },
+            "basePoint": {
+              "dataType": "Array",
+              "arrayRestrictions": {
+                "min": 3,
+                "max": 3,
+                "value": {
+                  "dataType": "Real"
+                }
+              }
+            },
+            "insertionUnit": {
+              "dataType": "String"
+            }
+          }
+        }
+      }
+    },
+    "ifccad::entity": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "layer": {
+              "dataType": "Reference"
+            },
+            "appearance": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "color": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "mode": {
+                          "dataType": "Enum",
+                          "enumRestrictions": {
+                            "options": [
+                              "ByLayer",
+                              "ByBlock",
+                              "Explicit"
+                            ]
+                          }
+                        },
+                        "value": {
+                          "dataType": "String",
+                          "optional": true
+                        }
+                      }
+                    }
+                  },
+                  "opacity": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "mode": {
+                          "dataType": "Enum",
+                          "enumRestrictions": {
+                            "options": [
+                              "ByLayer",
+                              "ByBlock",
+                              "Explicit"
+                            ]
+                          }
+                        },
+                        "value": {
+                          "dataType": "Real",
+                          "optional": true
+                        }
+                      }
+                    }
+                  },
+                  "linePattern": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "mode": {
+                          "dataType": "Enum",
+                          "enumRestrictions": {
+                            "options": [
+                              "ByLayer",
+                              "ByBlock",
+                              "Explicit"
+                            ]
+                          }
+                        },
+                        "value": {
+                          "dataType": "String",
+                          "optional": true
+                        }
+                      }
+                    }
+                  },
+                  "lineWeight": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "mode": {
+                          "dataType": "Enum",
+                          "enumRestrictions": {
+                            "options": [
+                              "ByLayer",
+                              "ByBlock",
+                              "Explicit"
+                            ]
+                          }
+                        },
+                        "value": {
+                          "dataType": "Real",
+                          "optional": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ifccad::geom::lineSegment": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "start": {
+              "dataType": "Array",
+              "arrayRestrictions": {
+                "min": 3,
+                "max": 3,
+                "value": {
+                  "dataType": "Real"
+                }
+              }
+            },
+            "end": {
+              "dataType": "Array",
+              "arrayRestrictions": {
+                "min": 3,
+                "max": 3,
+                "value": {
+                  "dataType": "Real"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ifccad::geom::planarPolyline": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "vertices": {
+              "dataType": "Array",
+              "arrayRestrictions": {
+                "min": 2,
+                "value": {
+                  "dataType": "Array",
+                  "arrayRestrictions": {
+                    "min": 2,
+                    "max": 2,
+                    "value": {
+                      "dataType": "Real"
+                    }
+                  }
+                }
+              }
+            },
+            "closed": {
+              "dataType": "Boolean"
+            }
+          }
+        }
+      }
+    },
+    "ifccad::geom::circle": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "radius": {
+              "dataType": "Real"
+            }
+          }
+        }
+      }
+    },
+    "ifccad::geom::placement": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "origin": {
+              "dataType": "Array",
+              "arrayRestrictions": {
+                "min": 3,
+                "max": 3,
+                "value": {
+                  "dataType": "Real"
+                }
+              }
+            },
+            "xAxis": {
+              "dataType": "Array",
+              "arrayRestrictions": {
+                "min": 3,
+                "max": 3,
+                "value": {
+                  "dataType": "Real"
+                }
+              }
+            },
+            "yAxis": {
+              "dataType": "Array",
+              "arrayRestrictions": {
+                "min": 3,
+                "max": 3,
+                "value": {
+                  "dataType": "Real"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ifccad::blockInstance": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "definition": {
+              "dataType": "Reference"
+            },
+            "transform": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "placement": {
+                    "dataType": "Object"
+                  },
+                  "rotation": {
+                    "dataType": "Real"
+                  },
+                  "scale": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 3,
+                      "max": 3,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "data": []
+}

@@ -1,0 +1,33 @@
+# IFCX-native CAD node experiment
+
+Status: experimental branch `explore-ifcx-native-model`, 2026-09-29. This is an opt-in IFCX alpha drawing with a separate versioned schema module, with no change to the released IFCCAD package or IFCDR encodings. The [contract](../../schemas/ifcx-native-cad/experimental-contract-0.1.0.md), [schema module](../../schemas/ifcx-native-cad/experimental-profile-0.1.0.ifcx), [drawing fixture](../../examples/ifcx-native-cad/hello-cad.ifcx), and [strict-readback tests](../../tests/experimental_ifcx_native.rs) form the reproducible result.
+
+## Finding
+
+**IFCX nodes are a plausible authoritative representation for the tested CAD subset.** Every independent entity has an addressable path, ordinary IFCX `children` establish ownership, numeric child keys convey drawing order, and direct attributes retain precise geometry, unit, layer and appearance modes. One block definition serves two differently placed and styled instances without cloning its entity nodes or using `inherits`. A foreign IFCX node can reference a CAD entity. The generic IFCX graph remains extensible while a strict CAD-profile reader catches the conditional rules that IFCX's current per-attribute schemas cannot express alone.
+
+The proof also shows that a CAD profile remains necessary even if a shared IFCX geometry vocabulary emerges: IFCX alpha does not prescribe CAD draw order, unique layout/block ownership, layer-0 behavior, ByLayer/ByBlock resolution, or an exact mapping of all CAD primitives. Those rules are explicit here rather than presumed to come from `inherits`. The size and parsing cost of one node per entity deserve a broader controlled comparison before choosing a production physical encoding.
+
+| Criterion | Observed result | Evidence / limit |
+| --- | --- | --- |
+| Identity and composition | Passed for the proof | Paths survive ordered readback; disjoint fragments compose, duplicate JSON keys and conflicting fragments fail. |
+| CAD meaning | Passed for tested primitives | Strict writer readback retains drawing unit, XYZ values, placement, line, planar polyline, circle, scope order, layers, four appearance modes and values. |
+| Reuse and occurrence | Passed for one level | One definition, two distinct instance transforms/styles; layer named `0`, ByLayer and ByBlock resolve per property without rewriting stored modes. Nested visual resolution remains untested and explicitly unsupported by the resolver. |
+| IFCX integration | Passed locally | Unknown nodes and non-CAD attributes survive loading; another node may refer to a CAD path. The one versioned CAD schema import resolves offline; general or remote import resolution is not implemented. |
+| Validation | Passed for tested failures | Missing placement, duplicate ownership, child-key gap, invalid unit, unsupported geometry, missing schema and unused definition cycle fail. The reader is strict for this bounded profile, not a full IFCX validator. |
+| Geometry alignment | Documented, not established by interchange | Local circle aims at IFC4 analytic circle semantics; finite line segment differs from unbounded `IfcLine`; polyline bulges and widths have no tested mapping. |
+| CAD coverage | Partial | Model layout only; no paper layouts, viewports, annotation, custom line patterns, indexed colors, hatch, spline, DWG/DXF conversion, or preservation. |
+
+The [upstream IFCX alpha TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp) currently models a node as a path plus optional `children`, `inherits`, and `attributes`, with `schemas` describing individual attribute values. This prototype uses that shape and reads repeated path fragments. Its compact path convention and numeric child keys are local profile choices while IFCX path conventions and graph semantics evolve. The schema import uses `urn:example`, a registered namespace for experiments; it is not a production publication address. The upstream examples are preliminary; compatibility with a later IFCX release requires renewed validation.
+
+## Physical encoding observations
+
+The pretty-printed drawing fixture is **7,885 bytes** and imports the reusable **9,569-byte** schema module; counting both files once gives **17,454 bytes**. A separate synthetic drawing with 1,000 ordered XYZ lines was **737,240 bytes**, or **746,809 bytes** with the same schema module counted once; one debug-build strict read of the drawing took **29 ms** on this machine in a single run. The reader resolves the known versioned schema from its bundled definitions; that timing excludes filesystem or network schema loading. These are exploratory observations, not benchmark distributions or product thresholds. The writer itself also strict-reads before returning.
+
+The existing [IFCCAD/DXF/DWG size baseline](../benchmarks/size-baseline-v1.md) measures different controlled recipes, millimetres and different drawing metadata. It cannot be directly divided into the figures above to claim a fair ratio. In particular, the mixed fixture includes block and circle semantics absent from the baseline corpus. A later matched experiment should generate the same typed recipe through every writer, strict-read each output, include full package overhead, compare pretty and compact JSON, and apply identical stated compression settings to each complete file. DWG's native compression must be labelled separately. Compressed bytes alone do not prove a usable encoding.
+
+[CBOR (RFC 8949)](https://www.rfc-editor.org/rfc/rfc8949.html) could encode this same logical IFCX object/map/array graph with binary numbers and shorter structural overhead. No CBOR writer, reader, schema-version behavior, or strict readback is implemented here. It is therefore only a candidate physical encoding, not a supported IFCX CAD variant. A production choice needs a decoder and the same semantic validation, deterministic mapping rules, complete-file measurements and exact readback before comparing it with compressed JSON, DXF and DWG.
+
+## Recommendation
+
+Continue the IFCX-native model as an experiment, especially for addressable CAD entities linked to BIM/project data. Keep the profile explicit and versioned, and do not promote this alpha shape to the current IFCCAD package contract yet. Next decisive work is representative CAD coverage (paper layouts, nested blocks, more curves and appearance forms), an independent implementation of the profile, and a semantically matched size/CPU study. If buildingSMART publishes exact IFCX geometry attributes, replace local geometry keys selectively where their units, placement and roundtrip meaning agree; preserve CAD-specific role, layer, order and appearance semantics in a CAD profile.

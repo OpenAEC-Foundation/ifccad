@@ -22,5 +22,6 @@ mod resource;
 pub use package_id::{InvalidPackageId, PackageId};
 pub use resource::{InvalidResourceId, ResourceId};
 
+pub mod experimental_ifcx;
 pub mod ifcdr;
 mod validated;

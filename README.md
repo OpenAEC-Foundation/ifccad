@@ -390,6 +390,12 @@ no build or test process is using the affected worktrees.
   interpretation and encoding. `package/write` resolves package-specific
   references and supplies owned resource data to `ifcdr/write`.
 - [`schemas`](schemas) contains the active language-neutral schemas.
+- [`src/experimental_ifcx`](src/experimental_ifcx) is an opt-in IFCX-native CAD
+  proof with its own [experimental contract](schemas/ifcx-native-cad/experimental-contract-0.1.0.md),
+  [schema module](schemas/ifcx-native-cad/experimental-profile-0.1.0.ifcx),
+  [sample drawing](examples/ifcx-native-cad/hello-cad.ifcx), and
+  [evaluation](docs/experiments/ifcx-native-cad.md). It does not change the
+  released IFCCAD package contract.
 - [`conformance`](conformance) contains versioned conformance collections.
 - [`tests`](tests) verifies the public Rust API and bundled format assets.
 - [`ROADMAP.md`](ROADMAP.md) defines development sequencing and milestone
