@@ -15,6 +15,7 @@ pub(crate) fn assess_occurrences(
     resource: IfcdrResourceRef,
     instances: &BTreeMap<ifccad::ifcdr::EntityId, ConvertedInstance>,
     points: &BTreeMap<ifccad::ifcdr::EntityId, Vec<crate::geometry::blocks::PairedPoint>>,
+    curves: &BTreeMap<ifccad::ifcdr::EntityId, crate::geometry::blocks::PairedCurve>,
     geometry: &mut crate::ConversionGeometryAssessment,
     diagnostics: &mut super::diagnostic::DiagnosticAccumulator,
 ) -> Result<(), ImportError> {
@@ -68,6 +69,14 @@ pub(crate) fn assess_occurrences(
                         let (lower, upper) = point.squared_deviation();
                         maximum =
                             maximum.max(geometry.check_interval(&source, index, &lower, &upper)?);
+                    }
+                    if let Some(curve) = curves.get(&id) {
+                        let mut curve = curve.clone();
+                        for id in path.iter().rev() {
+                            let pair = &instances[id];
+                            curve.apply(&pair.source, &pair.target);
+                        }
+                        maximum = maximum.max(geometry.check_curve(&source, &curve)?);
                     }
                     geometry.record(source.clone(), points.len(), maximum);
                     if maximum > 0. {

@@ -2,11 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
-import { readExamples, exampleRoot } from '../scripts/fixtures.mjs';
+import { readExamples, exampleRoot, examples } from '../scripts/fixtures.mjs';
 import { buildModel } from '../src/model.mjs';
 
 test('build input contains exact source documents and verified blob bytes',async()=>{
-  const fixtures=await readExamples();assert.equal(fixtures.length,9);
+  const fixtures=await readExamples();assert.equal(fixtures.length,examples.length);
   for(const fixture of fixtures){
     const folder=exampleRoot(fixture.name);
     assert.deepEqual(fixture.ifcx,JSON.parse(await readFile(new URL('package.ifcx.json',folder),'utf8')));
@@ -44,11 +44,27 @@ test('curated examples cover the current package structures',async()=>{
         assert.ok(Array.isArray(node.children.Appearances),fixture.name+' lacks Drawing.Appearances');
       }
       if(node.attributes?.resource?.format==='openaec.ifcdr'){
-        const version=fixture.name==='blocks-demo'?'0.10.0':'0.11.0';
+        const version=fixture.name==='blocks-demo'?'0.10.0':'0.12.0';
         assert.equal(node.attributes.resource.version,version,fixture.name);
         const body=node.attributes.resource.content??fixture.files[node.attributes.resource.uri];
         assert.equal(body.header.version,version,fixture.name);
       }
     }
+  }
+});
+
+test('current workspace packages are sourced from conformance and available for processing',async()=>{
+  const fixtures=await readExamples();
+  for(const name of ['workspace-model','workspace-paper']){
+    const fixture=fixtures.find(item=>item.name===name);
+    assert.ok(fixture,name+' is not in the example selector');
+    assert.equal(fixture.previewOnly,undefined);
+    assert.equal(exampleRoot(name).href,new URL(`../../conformance/next/packages/valid/${name}/`,import.meta.url).href);
+    assert.equal(fixture.ifcx.header.ifccadSchemaVersion,'0.14.0');
+    assert.ok(fixture.ifcx.data.some(node=>node.type==='openaec:PackageWorkspaceState'));
+    const model=buildModel(fixture);
+    assert.equal(model.missing.length,0);
+    assert.ok(model.nodes.some(node=>node.kind==='workspace-group'));
+    assert.ok(model.resources.some(resource=>resource.body.header.version==='0.12.0'));
   }
 });

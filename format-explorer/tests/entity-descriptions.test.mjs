@@ -102,7 +102,7 @@ test('native field nodes describe meaning and stored columns',async()=>{
 });
 
 test('every current registered native object stream has a translated explanation',async()=>{
- const registry=JSON.parse(await readFile(new URL('../../schemas/ifcdr/registry-0.11.0.json',import.meta.url),'utf8'));
+ const registry=JSON.parse(await readFile(new URL('../../schemas/ifcdr/registry-0.12.0.json',import.meta.url),'utf8'));
  const families=registry.streams.filter(stream=>stream.role==='object').map(stream=>stream.name);
  for(const descriptions of [entityDescriptions,collectionDescriptions,fieldDescriptions]){
   for(const family of families)assert.ok(Object.hasOwn(descriptions,family),family+' needs an explanation');

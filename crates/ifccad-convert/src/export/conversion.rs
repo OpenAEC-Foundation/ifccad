@@ -1,9 +1,10 @@
 use super::appearance::AppearanceRegistry;
+use super::blocks::with_recovered_anonymous_block_name;
 use super::coverage::scan_document_semantics;
 use super::entities::add_entities;
 use super::layers::add_layers;
 use super::layouts::add_layouts;
-use super::structure::inspect_model_space;
+use super::structure::{inspect_model_space, with_recovered_model_space_handle};
 use super::units::map_length_unit;
 use super::{
     ExportAction, ExportDiagnostic, ExportDiagnosticSource, ExportEntityMapping, ExportError,
@@ -18,6 +19,7 @@ use std::collections::BTreeMap;
 pub(crate) struct ExportContext {
     pub(crate) block_instances: BTreeMap<cadcodec::Handle, super::blocks::ConvertedInstance>,
     pub(crate) block_points: BTreeMap<cadcodec::Handle, Vec<crate::geometry::blocks::PairedPoint>>,
+    pub(crate) block_curves: BTreeMap<cadcodec::Handle, crate::geometry::blocks::PairedCurve>,
     pub(crate) blocks: BTreeMap<cadcodec::Handle, ifccad::package::BlockDefinitionKey>,
     pub(crate) geometry: Option<crate::ConversionGeometryAssessment>,
     pub(crate) diagnostics: Vec<ExportDiagnostic>,
@@ -34,6 +36,9 @@ pub fn cad_document_to_package(
     package_options: PackageOptions,
     export_options: ExportOptions,
 ) -> Result<ExportOutcome, ExportError> {
+    let recovered_header = with_recovered_model_space_handle(document);
+    let recovered_blocks = with_recovered_anonymous_block_name(recovered_header.as_ref());
+    let document = recovered_blocks.as_ref();
     let mut builder = PackageBuilder::new(package_options)?;
     let model_space = inspect_model_space(document)
         .map_err(|problems| ExportError::InvalidSourceStructure { problems })?;

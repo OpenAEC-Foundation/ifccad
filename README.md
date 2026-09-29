@@ -87,8 +87,13 @@ and evaluated per-scope XYZ bounds. IFCX **0.14.0** adds
 Drawing layer/appearance membership and effective per-layout plot settings.
 The optional workspace state carries one shared active drawing/layout,
 current layer, model/paper view contexts, grid, grid snap and UCS selections.
-CAD conversion currently transfers supported model VPORT and UCS state;
-paper editor state has explicit loss diagnostics.
+CAD conversion transfers supported model VPORT and UCS state and paper canvas
+views, grid, snap and stored UCS. A paper layout with no overall viewport keeps
+that absence through export and import; layout limits do not create an editor
+canvas. An active paper tab is restored when its header block identifies an
+exported layout with a recoverable canvas; ambiguous viewport identities remain
+unresolved and retain explicit loss diagnostics. Authored paper viewport
+workspace state is diagnosed separately.
 The reader also accepts IFCDR 0.11.0 / IFCX 0.13.0, IFCDR 0.10.0 / IFCX 0.12.0,
 and IFCDR 0.9.0 / IFCX 0.11.0. Older IFCDR versions and other entity schemas
 do not produce a strict typed package; there is no legacy

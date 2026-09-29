@@ -28,13 +28,15 @@ unit, explodability and signed-uniform scaling policy; supported primitive
 contents remain in their definition scope without base-point pretranslation.
 External definitions remain unsupported. Present begin markers are checked
 against their records, and missing INSERT targets and cycles are fatal under
-both loss policies. The pinned DWG reader can expose contradictory marker
-metadata: a nonzero base point appears as zero in the marker
-([cadcodec #52](https://github.com/HakanSeven12/opencadcodec/issues/52)), and
-an anonymous record name can be misnumbered after a null `BLOCK_CONTROL` slot
-([cadcodec #55](https://github.com/HakanSeven12/opencadcodec/issues/55)). Both
-remain fatal source-structure diagnostics in IFCCAD; absent DXF markers are
-allowed.
+both loss policies. The pinned DWG reader can expose a zero marker base point
+for a nonzero block base point ([cadcodec #52](https://github.com/HakanSeven12/opencadcodec/issues/52));
+this remains fatal. Absent DXF markers are allowed. The pinned DWG
+reader can shift one anonymous `*U` record name by one BLOCK_CONTROL ordinal
+([cadcodec #55](https://github.com/HakanSeven12/opencadcodec/issues/55)). When
+exactly one record has an explicit begin-marker name one ordinal higher, with
+matching owner/base point, no name collision, and no INSERT already targeting
+the corrected name, export corrects the record and its reader-derived INSERT
+names on a copy. Other marker conflicts remain fatal.
 
 Ordinary instances retain references, placement, rotation, signed scale and
 visibility without explosion. Nested occurrence-space assessment includes outer
@@ -54,12 +56,12 @@ This does not certify fields erased before the CadDocument boundary.
 | `header.insertion_units` | Exact/PartialLoss | All 25 CAD codes 0–24 map exactly; unknown codes become `unitless` plus `UnsupportedUnit`. Coordinates are never rescaled. |
 | `header.plotstyle_mode`, `header.paper_space_linetype_scaling` | Exact | Drawing plot-style mode and each emitted layout's saved linetype-scaling intent; the latter is one CAD header value copied to every layout. |
 | `header.point_display_mode`, `header.point_display_size` | Exact/SkippedLoss | Supported PDMODE glyph/enclosure bits and finite PDSIZE values map to grouped `Drawing.attributes.pointDisplay`; PDSIZE zero remains distinct from explicit negative five percent. Unsupported bits or nonfinite size skip the setting with `UnsupportedHeaderField { point_display }`. |
-| `header.model_space_block_handle` and the related `Layout.block_record` | Exact/FatalIfInconsistent | The relationship selects the one model layout; null, missing, or ambiguous structure is fatal. Numeric handle replacement itself is not loss. |
+| `header.model_space_block_handle` and the related `Layout.block_record` | Exact/FatalIfInconsistent | The relationship selects the one model layout. A stale nonnull header handle with no block-record target is corrected only when the named `*Model_Space` block record and exactly one layout agree on another handle; this covers a pinned DXF-reader handle-repair defect without changing the caller's document. Null, missing, or ambiguous structure remains fatal. Numeric handle replacement itself is not loss. |
 | `header.handle_seed`, table-control handles, dictionary handles, and standard-record handles | NonSemantic | Numeric serialization identity alone is ignored. Meaningful referenced content is covered at its table/object/entity source. |
 | `header.project_name` | SkippedLoss | `UnsupportedHeaderField { project_name }`. |
 | `header.model_space_extents_min/max`, `header.paper_space_extents_min/max` | NonSemantic | Cached geometry bounds may be unset, stale or recomputed by a codec. Output IFCDR bounds are calculated from emitted geometry; these caches are not independent drawing settings. Drawing limits are separate and remain diagnosed. |
-| `header.current_layer_name`, `model_space_ucs_name/origin/x_axis/y_axis` | Exact/SkippedLoss | On a model-space source with a mapped active VPORT, the current Layer and named/unnamed/World UCS become drawing workspace state. Missing target Layer/UCS or an invalid frame is diagnosed. |
-| `header.show_model_space` | Exact/SkippedLoss | Model space selects the model layout. A paper tab cannot be identified from this pinned public model; a paper-active source receives loss evidence. |
+| `header.current_layer_name`, `model_space_ucs_name/origin/x_axis/y_axis` | Exact/SkippedLoss | With a mapped active VPORT, the current Layer and named/unnamed/World UCS become drawing workspace state. Missing target Layer/UCS or an invalid frame is diagnosed. |
+| `header.show_model_space`, `paper_space_block_handle` | Exact/SkippedLoss | Model space selects the model layout. For paper space, a matching exported layout with a recoverable paper canvas becomes active. An absent or unresolved block or canvas receives loss evidence and falls back to the model layout, keeping the package valid. A viewport-free paper layout remains without a canvas even when it has valid layout limits. Zeroed viewport IDs remain unresolved rather than guessed. |
 | Every other `HeaderVariables` drawing setting (mode flags, precision, scales, other current defaults, dimension variables, limits, dates and textual metadata) | SkippedLoss | A conservative `header.other_semantics` diagnostic is emitted whenever the public header differs from the pinned fresh-document baseline after mapped/nonsemantic fields are normalized. |
 | `summary_info` | SkippedLoss | One `DocumentSummaryInformation` diagnostic. |
 | `source_path` | NonSemantic | Host filesystem provenance is not package drawing semantics. |
@@ -91,9 +93,9 @@ field or family; `Reject` returns no package when such a loss is present.
 
 | Pinned source fields | Status | Mapping or diagnostic | Reverse test |
 | --- | --- | --- | --- |
-| `Layout.name`, `tab_order`, `block_record`, `viewport`, `viewports` | Exact/FatalIfInconsistent | Drawing layout name, list order and scope binding; a missing paper block record is structural failure. The conventional overall viewport ID 1 is scaffold, while authored paper VIEWPORT entities follow owner/order. | Paper layout and viewport roundtrip |
+| `Layout.name`, `tab_order`, `block_record`, `viewport`, `viewports` | Exact/PartialLoss/FatalIfInconsistent | Drawing layout name, list order and scope binding; a missing paper block record is structural failure. The unique overall viewport ID 1 owned by the paper block supplies the canvas even if the `Layout.viewport` link is missing. A layout with no owned VIEWPORT and no viewport link exports no paper canvas. Authored paper VIEWPORT entities follow owner/order. | Paper canvas and viewport roundtrip |
 | `Layout.flags` bit 2, `min_limits/max_limits`, header `paper_space_linetype_scaling` | Exact/PartialLoss | `limitsChecking`, optional authored `limits`, `paperSpaceLinetypeScaling`. Non-rectangular limits and unrelated layout flag bits diagnose loss. | Paper layout roundtrip |
-| `paper_width/height`, `plot_paper_units`, `plot_rotation`, `plot_margin_*`, `plot_printer_name`, `paper_size` | Exact/SkippedLoss | Inline `media` geometry, printable area, rotation, device/media hints. Both dimensions zero mean absent `plotSettings`; invalid positive media or margins omit the complete plot value and diagnose loss. | Millimetre A4 roundtrip |
+| `paper_width/height`, `plot_paper_units`, `plot_rotation`, `plot_margin_*`, `plot_printer_name`, `paper_size` | Exact/SkippedLoss | Inline `media` geometry, printable area, rotation, device/media hints. Padded raw ASCII DXF plot integer codes are parsed on an export copy to compensate for the pinned cadcodec reader. Both dimensions zero mean absent `plotSettings`; invalid positive media or margins omit the complete plot value and diagnose loss. | Millimetre A4 and padded DXF plot roundtrip |
 | `plot_type`, `plot_window_*` | Exact/SkippedLoss | Extents, Limits, Window and paper Layout map by mode. Active Display or NamedView omits all `plotSettings` with a specific loss; an invalid window does likewise. | Layout and Display tests |
 | `plot_scale_numerator/denominator`, `plot_scale_type`, `plot_origin_x/y`, `plot_flags.plot_centered` | Exact/PartialLoss/SkippedLoss | Fixed/Fit scale and centered/media-relative offset. Unsupported Layout+Fit or Layout+Centered omits the complete plot value. A standard-scale preset code is reported as lost UI metadata. | Fixed Layout scale roundtrip |
 | `shade_plot_mode/resolution/dpi`, `plot_style_sheet`, `plot_flags.plot_plot_styles` | Exact/PartialLoss | Native shading and style application/name. An active external CTB/STB table name is retained, but absent table contents produce loss. | Plot table-name and mode test |
@@ -102,7 +104,8 @@ field or family; `Reject` returns no package when such a loss is present.
 | `Viewport.center/width/height`, `view_center/target/direction/height`, `twist_angle`, `lens_length`, `render_mode`, enabled/locked flags, front/back clip flags and distances | Exact/SkippedLoss | Native frame/view/render/clip fields, including a stored zero dormant lens in Orthographic. Perspective remains whole-viewport skipped pending CAD fixture calibration. Invalid geometry is not approximated. | Rectangular and zero-lens viewport readback |
 | `Viewport.clip_boundary_handle` | Exact/SkippedLoss | A previously mapped same-paper closed straight `LwPolyline` becomes an active native `paperClip` reference. Missing, unsupported or forward references skip the entire viewport. | Closed and missing clip tests |
 | `Viewport.frozen_layers` | Exact/PartialLoss | Each resolved handle becomes a relational frozen-layer override; unknown handles receive `MissingTarget`. The pinned Viewport model has no viewport appearance-override fields. | Native writer and reverse test |
-| Paper `Viewport` snap/grid/UCS, visual style/background/lighting and viewport plot-style fields | PartialLoss | Nondefault source state is reported. Paper canvas view and active paper tab are not exposed unambiguously by pinned cadcodec, so paper viewport workspace rows are not asserted natively by this converter. | Source-loss tests where present |
+| Overall paper `Viewport` ID 1 view/grid/snap/UCS | Exact/PartialLoss | View center, target, direction, height, twist, clip, grid, snap and stored UCS become a `paperCanvas` workspace row. A nondefault screen-sized frame and nonpositive disabled snap spacing are diagnosed as loss; the latter is normalized to positive defaults required by IFCDR. The active viewport context remains unavailable. DWG reader output with zeroed viewport IDs cannot reliably identify the overall viewport and receives explicit loss evidence. | Paper canvas roundtrip and active-tab recovery test |
+| Authored paper `Viewport` snap/grid/UCS, visual style/background/lighting and viewport plot-style fields | PartialLoss | Nondefault source state is reported. Per-viewport workspace rows are not asserted natively by this converter. | Source-loss tests where present |
 
 PageSetup objects, CTB/STB file contents, Display/NamedView state and perspective
 calibration remain deferred. A source's raw DXF plot-settings code pairs are a
@@ -114,8 +117,8 @@ were natively represented.
 | `EntityType` variant | Status | Contract |
 | --- | --- | --- |
 | `Point` | Exact/PartialLoss/SkippedLoss | Finite WCS location, normal and X-axis angle map to an oriented IFCDR Point placement. Normalization is diagnosed; nonzero thickness or an invalid frame skips the entity. Point size/form come from the drawing header. |
-| `Circle`, `Arc` | Exact/PartialLoss/SkippedLoss | Finite OCS centre, positive radius and valid normal map through the pinned arbitrary-axis frame. Arc start/end angles map to start plus positive sweep; zero/full/multiple-turn sweeps, invalid frames and nonzero thickness skip the entity. Normalization is diagnosed. |
-| `Ellipse` | Exact/PartialLoss/SkippedLoss | Finite WCS centre and major-axis vector, valid normal and minor/major ratio map to Ellipse or EllipseArc according to exact full versus partial parameter span. Nearly full spans remain EllipseArc; invalid frame, ratio or span skips the entity. |
+| `Circle`, `Arc` | Exact/PartialLoss/SkippedLoss | Finite OCS centre, positive radius and valid normal map through the pinned arbitrary-axis frame. Arc start/end angles map to start plus positive sweep; zero/full/multiple-turn sweeps, invalid frames and nonzero thickness skip the entity. Normalization is diagnosed. Sample residuals locate proven errors; a conservative centre-and-axis bound covers the entire parameter-matched curve and stored sweep rounding. |
+| `Ellipse` | Exact/PartialLoss/SkippedLoss | Finite WCS centre and major-axis vector, valid normal and minor/major ratio map to Ellipse or EllipseArc according to exact full versus partial parameter span. Nearly full spans remain EllipseArc; invalid frame, ratio or span skips the entity. The entire parameter-matched curve is bounded in addition to representative samples. |
 | `Line` | Exact/PartialLoss/SkippedLoss | Finite XYZ endpoints are copied exactly. Non-default finite normals are partial source-property loss; geometry is retained. Unsupported thickness still skips the entity. |
 | `LwPolyline` | Exact/PartialLoss/SkippedLoss | At least two finite local XY vertices, finite elevation and a finite nonzero normal define a plane through the pinned arbitrary-axis interpretation. Vertices, signed bulges including a dormant final open bulge, order and closure map to PlanarPolyline. Width-only sources retain the zero-width centre path under Allow with `PolylineWidth` partial loss; Reject refuses the loss. Nonzero thickness, PLINEGEN and invalid curved segments skip the whole entity. Normal normalization and opaque vertex IDs are diagnosed. |
 | `Polyline2D` | Exact/PartialLoss/SkippedLoss | Ordinary planar vertices and bulges map to PlanarPolyline using the same OCS preparation. Width-only sources follow the centre-path partial-loss policy. Fit/spline-fit, nonzero vertex Z and unsupported flags or thickness skip the whole entity. |
@@ -182,6 +185,13 @@ reports give outward bounds in drawing units. Every emitted line endpoint,
 polyline vertex and active bulged-segment midpoint is covered. Failure to establish accuracy returns a typed error
 and no partial package. A numerical diagnostic within the limit is exempt from
 Reject, but `transfer_assessment()` still records `LossDetected`.
+
+Circle, Arc, Ellipse and EllipseArc use a conservative full-curve bound from
+centre and axis-vector residuals, with qualified phase intervals and a stored
+sweep-rounding allowance. The same bound is propagated through each nested block
+occurrence. If it exceeds tolerance while no sample proves an exceedance, the
+converter refines equal angular subintervals through at most 32 pieces. Any
+remaining uncertainty is reported as `NumericalProofIncomplete`.
 
 The proof concerns the interpreted CadDocument geometry, not original CAD file
 bytes, cached bounds, private codec state or recovery of unsupported source data.

@@ -5,24 +5,24 @@ use num_rational::BigRational as Q;
 use num_traits::{Signed, Zero};
 
 #[derive(Clone, Debug)]
-struct Range {
+pub(crate) struct Range {
     lo: Q,
     hi: Q,
 }
 impl Range {
-    fn point(value: Q) -> Self {
+    pub(crate) fn point(value: Q) -> Self {
         Self {
             lo: value.clone(),
             hi: value,
         }
     }
-    fn add(&self, rhs: &Self) -> Self {
+    pub(crate) fn add(&self, rhs: &Self) -> Self {
         Self {
             lo: &self.lo + &rhs.lo,
             hi: &self.hi + &rhs.hi,
         }
     }
-    fn scale(&self, value: &Q) -> Self {
+    pub(crate) fn scale(&self, value: &Q) -> Self {
         if value.is_negative() {
             Self {
                 lo: &self.hi * value,
@@ -35,7 +35,7 @@ impl Range {
             }
         }
     }
-    fn mul(&self, rhs: &Self) -> Self {
+    pub(crate) fn mul(&self, rhs: &Self) -> Self {
         let values = [
             &self.lo * &rhs.lo,
             &self.lo * &rhs.hi,
@@ -62,7 +62,7 @@ impl Range {
 /// Same pinned backend and two-neighbour enclosure as the core; exact rational
 /// interval arithmetic here prevents accumulation of arithmetic enclosure error.
 /// See docs/geometry/block-trigonometry.md for qualification and assumptions.
-fn trig(angle: f64) -> (Range, Range) {
+pub(crate) fn trig(angle: f64) -> (Range, Range) {
     if angle == 0. {
         return (Range::point(Q::zero()), Range::point(exact(1.)));
     }
@@ -548,5 +548,212 @@ mod tests {
         let (lower, upper) = point.squared_deviation();
         assert_eq!(lower, exact(0.));
         assert_eq!(upper, exact(0.));
+    }
+
+    #[test]
+    fn whole_ellipse_bound_detects_minor_axis_error_missed_at_major_endpoints() {
+        let mut curve = PairedCurve::from_exact_axes(
+            [0., 0., 0.],
+            [1., 0., 0.],
+            [0., 1.1, 0.],
+            [0., 0., 0.],
+            [1., 0., 0.],
+            [0., 1., 0.],
+        );
+        let (_, local_upper) = curve.squared_deviation().unwrap();
+        assert!(local_upper >= exact(0.01));
+
+        let mut scale = EvaluatedBlock::identity();
+        scale.cosine[1][1] = exact(10.);
+        curve.apply(&scale, &scale);
+        let (_, occurrence_upper) = curve.squared_deviation().unwrap();
+        assert!(occurrence_upper >= exact(1.));
+    }
+
+    #[test]
+    fn curve_bound_includes_rounded_stored_sweep() {
+        let curve = PairedCurve::from_exact_axes(
+            [0., 0., 0.],
+            [2., 0., 0.],
+            [0., 2., 0.],
+            [0., 0., 0.],
+            [2., 0., 0.],
+            [0., 2., 0.],
+        )
+        .with_angular_drift(exact(0.1));
+        let (_, upper) = curve.squared_deviation().unwrap();
+        assert!(upper >= exact(0.04));
+    }
+
+    #[test]
+    fn subdividing_a_short_arc_tightens_the_full_circle_bound() {
+        let curve = PairedCurve::from_exact_axes(
+            [0., 0., 0.],
+            [1., 0., 0.],
+            [0., 1., 0.],
+            [0., 0., 0.],
+            [1., 0., 0.],
+            [0., 0., 0.],
+        )
+        .with_span(0.001);
+        let (_, coarse) = curve.squared_deviation().unwrap();
+        let (_, refined) = curve.refined_squared_deviation(2).unwrap();
+        assert!(coarse > exact(0.9));
+        assert!(refined < exact(0.0004));
+    }
+}
+
+#[derive(Clone)]
+struct PairedVector {
+    target: [Range; 3],
+    residual: [Range; 3],
+}
+impl PairedVector {
+    fn new(source: [Range; 3], target: [Range; 3]) -> Self {
+        let residual = std::array::from_fn(|i| source[i].add(&target[i].scale(&exact(-1.))));
+        Self { target, residual }
+    }
+    fn apply(&mut self, source: &EvaluatedBlock, target: &EvaluatedBlock) {
+        let (ss, sc) = trig(source.rotation);
+        let (ts, tc) = trig(target.rotation);
+        let residual = std::array::from_fn(|i| {
+            let mut result = Range::point(Q::zero());
+            for j in 0..3 {
+                result = result.add(&source.difference(target, i, j).mul(&self.target[j]));
+                result = result.add(&source.coefficient(i, j, &ss, &sc).mul(&self.residual[j]));
+            }
+            result
+        });
+        let mapped_target = std::array::from_fn(|i| {
+            let mut result = Range::point(Q::zero());
+            for j in 0..3 {
+                result = result.add(&target.coefficient(i, j, &ts, &tc).mul(&self.target[j]));
+            }
+            result
+        });
+        self.target = mapped_target;
+        self.residual = residual;
+    }
+    fn upper_squared(&self) -> Q {
+        self.residual.iter().map(|range| range.squared().1).sum()
+    }
+    fn source_upper_squared(&self) -> Q {
+        self.target
+            .iter()
+            .zip(&self.residual)
+            .map(|(target, residual)| target.add(residual).squared().1)
+            .sum()
+    }
+    fn target_upper_squared(&self) -> Q {
+        self.target.iter().map(|range| range.squared().1).sum()
+    }
+}
+
+/// A parameter-matched curve pair: centre plus cosine and sine axis vectors.
+#[derive(Clone)]
+pub(crate) struct PairedCurve {
+    center: PairedPoint,
+    cosine: PairedVector,
+    sine: PairedVector,
+    angular_drift: Q,
+    span: f64,
+}
+impl PairedCurve {
+    pub(crate) fn new(
+        source_center: [Q; 3],
+        source_axes: [[Range; 3]; 2],
+        target_center: [Q; 3],
+        target_axes: [[Range; 3]; 2],
+    ) -> Self {
+        let [source_cosine, source_sine] = source_axes;
+        let [target_cosine, target_sine] = target_axes;
+        Self {
+            center: PairedPoint::new(source_center, target_center),
+            cosine: PairedVector::new(source_cosine, target_cosine),
+            sine: PairedVector::new(source_sine, target_sine),
+            angular_drift: Q::zero(),
+            span: std::f64::consts::TAU,
+        }
+    }
+    pub(crate) fn with_span(mut self, span: f64) -> Self {
+        debug_assert!(span.is_finite() && span > 0.0 && span <= std::f64::consts::TAU);
+        self.span = span;
+        self
+    }
+    pub(crate) fn with_angular_drift(mut self, drift: Q) -> Self {
+        debug_assert!(!drift.is_negative());
+        self.angular_drift = drift;
+        self
+    }
+    #[cfg(test)]
+    fn from_exact_axes(
+        source_center: [f64; 3],
+        source_cosine: [f64; 3],
+        source_sine: [f64; 3],
+        target_center: [f64; 3],
+        target_cosine: [f64; 3],
+        target_sine: [f64; 3],
+    ) -> Self {
+        let ranged = |axis: [f64; 3]| axis.map(|v| Range::point(exact(v)));
+        Self::new(
+            source_center.map(exact),
+            [ranged(source_cosine), ranged(source_sine)],
+            target_center.map(exact),
+            [ranged(target_cosine), ranged(target_sine)],
+        )
+    }
+    pub(crate) fn apply(&mut self, source: &EvaluatedBlock, target: &EvaluatedBlock) {
+        self.center.apply(source, target);
+        self.cosine.apply(source, target);
+        self.sine.apply(source, target);
+    }
+    pub(crate) fn squared_deviation(&self) -> Option<(Q, Q)> {
+        let axis_squared = self.cosine.upper_squared() + self.sine.upper_squared();
+        let center_squared = self.center.squared_deviation().1;
+        let center_upper = super::numeric::sqrt_interval(&center_squared)?.1;
+        let axis_upper = super::numeric::sqrt_interval(&axis_squared)?.1;
+        let drift_upper = self.angular_drift_upper()?;
+        let upper = exact(center_upper) + exact(axis_upper) + drift_upper;
+        Some((Q::zero(), &upper * &upper))
+    }
+    fn angular_drift_upper(&self) -> Option<Q> {
+        if self.angular_drift.is_zero() {
+            return Some(Q::zero());
+        }
+        let source_size = self.cosine.source_upper_squared() + self.sine.source_upper_squared();
+        let target_size = self.cosine.target_upper_squared() + self.sine.target_upper_squared();
+        let derivative_upper = super::numeric::sqrt_interval(&source_size.max(target_size))?.1;
+        Some(&self.angular_drift * exact(derivative_upper))
+    }
+    /// Midpoint/Lipschitz enclosure of each equal angular subinterval.
+    pub(crate) fn refined_squared_deviation(&self, segments: usize) -> Option<(Q, Q)> {
+        debug_assert!(segments > 0);
+        let axis_squared = self.cosine.upper_squared() + self.sine.upper_squared();
+        let derivative_upper = exact(super::numeric::sqrt_interval(&axis_squared)?.1);
+        let drift_upper = self.angular_drift_upper()?;
+        let span = exact(self.span);
+        let denominator = Q::from_integer(segments.into());
+        let mut maximum = Q::zero();
+        for index in 0..segments {
+            let low = &span * Q::from_integer(index.into()) / &denominator;
+            let high = &span * Q::from_integer((index + 1).into()) / &denominator;
+            let middle = super::numeric::round_nearest(&((&low + &high) / exact(2.0))).ok()?;
+            let middle_q = exact(middle);
+            let radius = (&middle_q - &low).abs().max((&high - &middle_q).abs());
+            let (sin, cos) = trig(middle);
+            let mid_squared: Q = (0..3)
+                .map(|i| {
+                    self.center.residual[i]
+                        .add(&self.cosine.residual[i].mul(&cos))
+                        .add(&self.sine.residual[i].mul(&sin))
+                        .squared()
+                        .1
+                })
+                .sum();
+            let midpoint_upper = exact(super::numeric::sqrt_interval(&mid_squared)?.1);
+            let bound = midpoint_upper + &radius * &derivative_upper + &drift_upper;
+            maximum = maximum.max(&bound * &bound);
+        }
+        Some((Q::zero(), maximum))
     }
 }

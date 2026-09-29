@@ -23,12 +23,12 @@ The package graph outside that drawing and IFCPR restoration are outside scope.
 | Viewport frozen layers | Each relational frozen override maps to a CAD frozen-layer handle. Pinned cadcodec has no per-viewport appearance-override slots; those report `ViewportUnsupported`. |
 | Drawing workspace current Layer | A bound IFCX Layer becomes the CAD header current Layer. A selected Layer without an IFCDR binding is created by name as a CAD Layer and becomes current; its appearance currently produces `WorkspaceUnsupported`. |
 | Named UCS and model workspace | Named UCS definitions become CAD UCS table entries, including unused ones. Current World/named/unnamed model UCS and ordered model windows map to the header and active VPORT records, including dormant grid/snap values. CAD handles are newly allocated. Grid dot style or an out-of-range major frequency receives `WorkspaceUnsupported`. |
-| Paper workspace | Paper canvas and per-viewport grid/snap/UCS state are diagnosed as `WorkspaceUnsupported`; the pinned CAD target does not expose an unambiguous selected tab/canvas state through this converter. |
+| Paper workspace | A present paper canvas view, grid, snap and stored UCS map to the layout's conventional overall VIEWPORT ID 1. The importer creates that viewport for a reused `Layout1` scaffold before authored viewports. Without a paper canvas, the importer removes cadcodec's newly allocated overall viewport scaffold so the layout remains viewport-free. A canvas's screen-sized frame and active viewport context are not reconstructed. Per-viewport workspace state is diagnosed as `WorkspaceUnsupported`. A saved active paper layout selects the CAD paper-space header block and clears `show_model_space`. |
 | Block instances | Shared references retained without explosion; owner scopes and local child coordinates retained. Non-neutral frames are converted with explicit parameterization-loss evidence and occurrence-space accuracy checks. Setter scale changes are hard `BlockTargetLimitation`, even for empty definitions. |
 | Line endpoints | XYZ copied directly; exact geometry assessment |
 | Point placement | Origin becomes CAD WCS location; stored normal and X/Y orientation determine CAD normal and X-axis marker angle. The geometric position is assessed independently of presentation. |
-| Circle and Arc | Centre is projected into CAD OCS using the selected arbitrary-axis frame. Positive Arc sweep maps directly; negative sweep flips the CAD normal and reparameterizes start angle so directed traversal is retained. Start/interior/end sample residuals are checked. |
-| Ellipse and EllipseArc | Centre and major-axis vector map to CAD WCS, minor/major radii to CAD ratio. A negative EllipseArc sweep flips the CAD normal and negates the start parameter to preserve traversal. Full/partial kind maps to CAD Ellipse parameters; representative sample residuals are checked. |
+| Circle and Arc | Centre is projected into CAD OCS using the selected arbitrary-axis frame. Positive Arc sweep maps directly; negative sweep flips the CAD normal and reparameterizes start angle so directed traversal is retained. Sample residuals locate proven errors; a conservative centre-and-axis bound also covers the entire parameter-matched curve and stored sweep rounding. |
+| Ellipse and EllipseArc | Centre and major-axis vector map to CAD WCS, minor/major radii to CAD ratio. A negative EllipseArc sweep flips the CAD normal and negates the start parameter to preserve traversal. Full/partial kind maps to CAD Ellipse parameters; sample residuals and the entire parameter-matched curve are assessed separately. |
 | PlanarPolyline vertices, bulges, plane and closed flag | Closed flag and every bulge, including the final dormant bulge of an open polyline, map to CAD LwPolyline. Exact-compatible CAD parameterizations copy local points; other placements are transformed to the actual CAD arbitrary-axis basis and produce `PlaneParameterizationChanged`. Vertex and active curved-segment midpoint residuals are checked independently. |
 | SpatialPolyline XYZ vertices and closure | Directly maps to CAD Polyline3D with unchanged coordinates and closure. Source variant identity and unsupported CAD-only fit/mesh properties are not synthesized. |
 | Entity order | Inserted in each scope's logical order |
@@ -75,6 +75,14 @@ for parameterization loss. Numeric-only acceptance retains loss evidence.
 the exact-rational midpoint of every active bulged segment,
 including each evaluated block occurrence and nested outer-scale amplification;
 for supported straight segments their affine residual also bounds the interior.
+Circle, Arc, Ellipse and EllipseArc additionally receive a conservative bound
+from the centre and both axis-vector residuals. Qualified trigonometric
+intervals cover phase changes; stored start/end parameter rounding contributes
+an angular-drift bound. Affine propagation applies the same bound to each nested
+block occurrence. If the full-circle bound exceeds tolerance, equal angular
+subintervals are refined through at most 32 pieces. A remaining bound above
+tolerance without a sampled exceedance is reported as an incomplete numerical
+proof, not as a proven error.
 It does not certify subsequent DXF/DWG writer behavior. `into_all_parts()` keeps
 both assessments; legacy `into_parts()` retains its original tuple shape.
 

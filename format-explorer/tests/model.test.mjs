@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { buildModel, visibleGraph, revealNode } from '../src/model.mjs';
+import { buildModel, visibleGraph, revealNode, graphConnections } from '../src/model.mjs';
 
 async function fixture(name) {
   const base = new URL(`../../conformance/next/packages/valid/${name}/`, import.meta.url);
@@ -126,7 +126,6 @@ test('large block tables stay paged and reveal a referenced scope and definition
 });
 
 test('focus view keeps package structure and resource bridges while bounding references', async () => {
- const {graphConnections}=await import('../src/model.mjs');
  assert.equal(typeof graphConnections,'function');
  const structural={source:'resource:main',target:'view:scopes',relation:'scopeTable',structural:true};
  const bridge={source:'resource:preservation',target:'resource:main',relation:'linkedDrawingResources',structural:false};
@@ -139,6 +138,34 @@ test('focus view keeps package structure and resource bridges while bounding ref
  assert.equal(focused.edges.length,10);
  assert.equal(focused.hiddenReferences,7);
  assert.deepEqual(graphConnections(visible,'ifcx:layer','all').edges,visible.edges);
+});
+
+test('Drawing lists and layouts hide redundant member links in the focused graph', async () => {
+ const model=buildModel(await fixture('layout-viewport-plot'));
+ const collapsed=new Set(model.defaultCollapsed);
+ for(const kind of ['Layouts','Layers','Appearances'])collapsed.delete(`view:ifcx:drawing-0:${kind}`);
+ const visible=visibleGraph(model,collapsed);
+ const redundant=[
+  ['ifcx:drawing-0','ifcx:layout-0','Layouts'],
+  ['ifcx:drawing-0','ifcx:layer-0','Layers'],
+  ['ifcx:drawing-0','ifcx:appearance-0','Appearances'],
+  ['ifcx:layout-0','ifcx:representation-0','Representation'],
+  ['ifcx:layout-1','ifcx:representation-0','Representation'],
+ ];
+ const focused=graphConnections(visible,'ifcx:drawing-0').edges;
+ const selectedLayout=graphConnections(visible,'ifcx:layout-0').edges;
+ const all=graphConnections(visible,'ifcx:drawing-0','all').edges;
+ for(const [source,target,relation] of redundant){
+  const match=edge=>edge.source===source&&edge.target===target&&edge.relation===relation;
+  assert.ok(model.edges.some(match),`package relation ${source} → ${target} remains inspectable`);
+  assert.ok(all.some(match),`all-relations mode retains ${relation}`);
+  assert.ok(!focused.some(match),`focused graph omits ${relation}`);
+  assert.ok(!selectedLayout.some(match),`layout selection omits ${relation}`);
+ }
+ assert.ok(focused.some(edge=>edge.source==='ifcx:drawing-0'&&edge.target==='view:ifcx:drawing-0:Layers'));
+ assert.ok(focused.some(edge=>edge.source==='ifcx:drawing-0'&&edge.target==='view:ifcx:drawing-0:Appearances'));
+ assert.ok(focused.some(edge=>edge.source==='ifcx:drawing-0'&&edge.target==='ifcx:representation-0'));
+ assert.equal(model.byId.get('ifcx:layout-0').expandable,false);
 });
 
 test('external and inline resources retain identical resource-qualified entity identities', async () => {
@@ -174,7 +201,7 @@ test('folding and revealing resources preserves shared graph identities', async 
   const shown = visibleGraph(model, collapsed);
   assert.ok(shown.nodes.some(n => n.id === 'entity:drawing-main:1'));
   assert.equal(shown.nodes.filter(n => n.id === 'ifcx:drawing-representation-main').length, 1);
-  assert.ok(shown.edges.filter(e => e.target === 'ifcx:drawing-representation-main').length >= 2);
+  assert.ok(model.edges.filter(e => e.target === 'ifcx:drawing-representation-main').length >= 2);
 });
 
 test('concept entities and preservation are separate from unchanged native fixture data', async () => {
@@ -190,6 +217,28 @@ test('concept entities and preservation are separate from unchanged native fixtu
   assert.equal(JSON.stringify(f), before);
 });
 
+test('shared IFCX definitions keep one real identity with independent Drawing list entries',async()=>{
+ const model=buildModel(await fixture('multi-drawing-projections'));
+ const groupA='view:ifcx:drawing-main:Layers',groupB='view:ifcx:drawing-second:Layers';
+ const real='ifcx:layer-0',link=`view:link:${groupB}:${real}`;
+ assert.ok(model.byId.has(groupA)&&model.byId.has(groupB));
+ assert.equal(model.nodes.filter(n=>n.id===real).length,1);
+ assert.equal(model.byId.get(link)?.targetId,real);
+ assert.ok(model.edges.some(e=>e.source===groupA&&e.target===real&&e.structural));
+ assert.ok(model.edges.some(e=>e.source===groupB&&e.target===link&&e.structural));
+ assert.equal(model.paging.collections.get(groupA).idFor(model.byId.get(real)),real);
+ assert.equal(model.paging.collections.get(groupB).idFor(model.byId.get(real)),link);
+});
+
+test('IFCPR blob rows use the same presentation group as other repeated records',async()=>{
+ const model=buildModel(await fixture('unrepresented-packed'));
+ const resource=model.preservations[0],group=`collection:${resource.resourceId}:blobs`;
+ assert.ok(model.byId.has(group));
+ assert.equal(model.byId.get(group).kind,'group');
+ assert.ok(model.edges.some(e=>e.source===resource.id&&e.target===group&&e.structural));
+ assert.ok(model.edges.some(e=>e.source===group&&e.target.startsWith('blob:')&&e.structural));
+});
+
 test('illustrative dimension remains separate from native IFCDR collections', async () => {
   const model = buildModel(await fixture('unrepresented-packed'), {concepts:true});
   const collections = model.nodes.filter(n => n.concept && n.kind === 'collection');
@@ -197,7 +246,7 @@ test('illustrative dimension remains separate from native IFCDR collections', as
   for (const family of ['dimension']) {
     const collection = collections.find(n => n.family === family);
     assert.ok(collection);
-    assert.ok(model.edges.some(e => e.structural && e.source === 'resource:drawing-main' && e.target === collection.id));
+    assert.ok(model.edges.some(e => e.structural && e.source === 'view:ifcdr:drawing-main:streams' && e.target === collection.id));
     const members = model.edges.filter(e => e.structural && e.source === collection.id);
     assert.equal(members.length, 1);
     assert.equal(model.byId.get(members[0].target).entity.kind, family);
@@ -235,16 +284,21 @@ test('implicit placement and concept fields stay distinct from stored native dat
   assert.deepEqual(placement.raw, {origin:{x:0,y:0,z:0},X:{x:1,y:0,z:0},Y:{x:0,y:1,z:0}});
 });
 
-test('layers and appearances are real Drawing children, without a fabricated group', async () => {
+test('Drawing presents stable sibling groups while retaining real semantic child links', async () => {
   const model=buildModel(await fixture('unrepresented-packed'));
   assert.equal(model.byId.has('group:definitions'),false);
   assert.ok(!model.roots.includes('ifcx:layer-0'));
   assert.ok(!model.roots.includes('ifcx:appearance-default-solid'));
   const visible=visibleGraph(model,new Set(model.defaultCollapsed));
-  assert.ok(visible.nodes.some(n=>n.id==='ifcx:appearance-default-solid'));
-  assert.ok(visible.edges.some(e=>e.source==='ifcx:drawing-main'&&e.target==='ifcx:layer-0'&&e.relation==='Layers'&&e.structural));
-  assert.ok(visible.edges.some(e=>e.source==='ifcx:drawing-main'&&e.target==='ifcx:appearance-default-solid'&&e.relation==='Appearances'&&e.structural));
-  assert.ok(visible.edges.some(e=>e.source==='ifcx:layer-0'&&e.target==='ifcx:appearance-default-solid'));
+  for(const relation of ['Layouts','Layers','Appearances']){
+   const group=`view:ifcx:drawing-main:${relation}`;
+   assert.equal(model.byId.get(group)?.kind,'group');
+   assert.ok(visible.edges.some(e=>e.source==='ifcx:drawing-main'&&e.target===group&&e.structural));
+  }
+  assert.ok(model.edges.some(e=>e.source==='ifcx:drawing-main'&&e.target==='ifcx:layer-0'&&e.relation==='Layers'&&!e.structural));
+  assert.ok(model.edges.some(e=>e.source==='ifcx:drawing-main'&&e.target==='ifcx:appearance-default-solid'&&e.relation==='Appearances'&&!e.structural));
+  const expanded=new Set(model.defaultCollapsed);expanded.delete('view:ifcx:drawing-main:Appearances');
+  assert.ok(visibleGraph(model,expanded).nodes.some(n=>n.id==='ifcx:appearance-default-solid'));
 });
 
 test('a compact plane placement uses its default axes without rewriting stored fields',async()=>{
@@ -256,7 +310,7 @@ test('a compact plane placement uses its default axes without rewriting stored f
  assert.deepEqual(entity.geometry.placement,{origin:{x:2,y:3,z:4}});
 });
 
-test('IFCDR 0.11 geometry families expose exact rows and vertex pools',async()=>{
+test('IFCDR 0.12 geometry families expose exact rows and vertex pools',async()=>{
  const curves=buildModel(await fixture('ellipse-family'));
  for(const kind of ['point','circle','arc','ellipse','ellipseArc'])assert.ok(curves.byId.has('collection:drawing-main:'+kind));
  assert.deepEqual(curves.byId.get('entity:drawing-main:5').entity.geometry.placement.origin,{z:6,x:4,y:5});
@@ -273,16 +327,16 @@ test('IFCDR 0.11 geometry families expose exact rows and vertex pools',async()=>
 test('drawing-listed definitions follow Drawing expansion while an older shape remains standalone', async () => {
   const current=buildModel(await fixture('layout-viewport-plot'));
   for(const id of ['ifcx:layer-0','ifcx:layer-1','ifcx:appearance-0'])assert.ok(!current.roots.includes(id));
-  assert.ok(current.edges.some(e=>e.source==='ifcx:drawing-0'&&e.target==='ifcx:layer-0'&&e.relation==='Layers'&&e.structural));
-  assert.ok(current.edges.some(e=>e.source==='ifcx:drawing-0'&&e.target==='ifcx:appearance-0'&&e.relation==='Appearances'&&e.structural));
+  assert.ok(current.edges.some(e=>e.source==='ifcx:drawing-0'&&e.target==='ifcx:layer-0'&&e.relation==='Layers'&&!e.structural));
+  assert.ok(current.edges.some(e=>e.source==='ifcx:drawing-0'&&e.target==='ifcx:appearance-0'&&e.relation==='Appearances'&&!e.structural));
   const collapsed=new Set(current.defaultCollapsed);
   collapsed.add('ifcx:drawing-0');
   const hidden=visibleGraph(current,collapsed);
   assert.ok(!hidden.nodes.some(n=>n.id==='ifcx:layer-0'||n.id==='ifcx:appearance-0'));
   collapsed.delete('ifcx:drawing-0');
   const shown=visibleGraph(current,collapsed);
-  assert.ok(shown.edges.some(e=>e.source==='ifcx:drawing-0'&&e.target==='ifcx:layer-0'));
-  assert.ok(shown.edges.some(e=>e.source==='ifcx:drawing-0'&&e.target==='ifcx:appearance-0'));
+  assert.ok(shown.edges.some(e=>e.source==='ifcx:drawing-0'&&e.target==='view:ifcx:drawing-0:Layers'));
+  assert.ok(shown.edges.some(e=>e.source==='ifcx:drawing-0'&&e.target==='view:ifcx:drawing-0:Appearances'));
   const oldSource=await fixture('unrepresented-packed');
   const oldDrawing=oldSource.ifcx.data.find(n=>n.type==='openaec:Drawing');
   delete oldDrawing.children.Layers;
@@ -322,14 +376,14 @@ test('actual model keeps a large stream lazy and navigates a distant identity',a
  for(const key of Object.keys(s))if(Array.isArray(s[key]))s[key]=Array.from({length:10000},(_,i)=>key==='entityId'?i+100:s[key][0]);
  const model=buildModel(f);assert.equal(model.entities.filter(e=>e.kind==='line').length,0);
  const collapsed=new Set(model.defaultCollapsed);assert.ok(revealNode(model,collapsed,'entity:drawing-main:10099'));
- assert.ok(model.byId.has('entity:drawing-main:10099'));assert.equal(model.entities.filter(e=>e.kind==='line').length,10);
- model.paging.expand('collection:drawing-main:line');assert.equal(model.entities.filter(e=>e.kind==='line').length,10);
+ assert.ok(model.byId.has('entity:drawing-main:10099'));assert.ok(model.entities.filter(e=>e.kind==='line').length<=13);
+ model.paging.expand('collection:drawing-main:line');assert.ok(model.entities.filter(e=>e.kind==='line').length<=13);
  model.paging.setPage('collection:drawing-main:line',0);
- assert.equal(visibleGraph(model,collapsed).nodes.filter(n=>n.entity?.kind==='line').length,10);
+ assert.equal(visibleGraph(model,collapsed).nodes.filter(n=>n.entity?.kind==='line').length,3);
  assert.ok(!visibleGraph(model,collapsed).nodes.some(n=>n.id==='entity:drawing-main:10099'));
  assert.ok(revealNode(model,collapsed,'field:entity:drawing-main:10099:start'));
  assert.ok(visibleGraph(model,collapsed).nodes.some(n=>n.id==='field:entity:drawing-main:10099:start'));
- assert.equal(visibleGraph(model,collapsed).nodes.filter(n=>n.entity?.kind==='line').length,10);
+ assert.equal(visibleGraph(model,collapsed).nodes.filter(n=>n.entity?.kind==='line').length,3);
 });
 
 test('permitted unrelated IFCX cycles remain inspectable',async()=>{

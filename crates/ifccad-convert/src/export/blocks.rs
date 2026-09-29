@@ -6,11 +6,82 @@ use super::{
 use cadcodec::objects::ObjectType;
 use cadcodec::{CadDocument, EntityType, Handle};
 use ifccad::ifcdr::{BlockScaling, Point3};
+use std::borrow::Cow;
 
 pub(crate) struct ConvertedInstance {
     pub definition: Handle,
     pub source: crate::geometry::blocks::EvaluatedBlock,
     pub target: crate::geometry::blocks::EvaluatedBlock,
+}
+
+/// Recover the one-slot anonymous-name shift observed in the pinned DWG
+/// reader. The begin marker stores the explicit name; the record and INSERT
+/// names were both derived from the same shifted BLOCK_CONTROL ordinal.
+pub(crate) fn with_recovered_anonymous_block_name(document: &CadDocument) -> Cow<'_, CadDocument> {
+    let mut candidate = None;
+    for record in document.block_records.iter() {
+        let Some(EntityType::Block(marker)) = document.get_entity(record.block_entity_handle)
+        else {
+            continue;
+        };
+        if marker.name == record.name {
+            continue;
+        }
+        let Some(ordinal) = record
+            .name
+            .strip_prefix("*U")
+            .and_then(|suffix| suffix.parse::<u32>().ok())
+        else {
+            return Cow::Borrowed(document);
+        };
+        if !record.flags.anonymous
+            || record.flags.is_xref
+            || record.flags.is_xref_overlay
+            || record.flags.is_external
+            || record.flags.is_xref_unloaded
+            || !record.xref_path.is_empty()
+            || format!("*U{ordinal}") != record.name
+            || ordinal
+                .checked_add(1)
+                .is_none_or(|next| marker.name != format!("*U{next}"))
+            || marker.common.handle != record.block_entity_handle
+            || marker.common.owner_handle != record.handle
+            || marker.base_point != record.base_point
+            || document.block_records.contains(&marker.name)
+            || candidate.is_some()
+        {
+            return Cow::Borrowed(document);
+        }
+        candidate = Some((record.name.as_str(), marker.name.as_str()));
+    }
+    let Some((old_name, new_name)) = candidate else {
+        return Cow::Borrowed(document);
+    };
+    if document.entities().any(|entity| {
+        matches!(entity, EntityType::Insert(insert) if insert.block_name.eq_ignore_ascii_case(new_name))
+    }) {
+        return Cow::Borrowed(document);
+    }
+    let insert_handles: Vec<_> = document
+        .entities()
+        .filter_map(|entity| match entity {
+            EntityType::Insert(insert) if insert.block_name.eq_ignore_ascii_case(old_name) => {
+                Some(insert.common.handle)
+            }
+            _ => None,
+        })
+        .collect();
+    let mut recovered = document.clone();
+    if recovered.block_records.rename(old_name, new_name).is_err() {
+        return Cow::Borrowed(document);
+    }
+    for handle in insert_handles {
+        let Some(EntityType::Insert(insert)) = recovered.get_entity_mut(handle) else {
+            return Cow::Borrowed(document);
+        };
+        insert.block_name = new_name.to_owned();
+    }
+    Cow::Owned(recovered)
 }
 
 pub(crate) fn propagate_losses(document: &CadDocument, context: &mut ExportContext) {
@@ -123,6 +194,20 @@ pub(crate) fn assess_occurrences(
                                 .as_ref()
                                 .unwrap()
                                 .check_interval(&source, index, &lower, &upper)?,
+                        );
+                    }
+                    if let Some(curve) = context.block_curves.get(&handle) {
+                        let mut curve = curve.clone();
+                        for handle in path.iter().rev() {
+                            let pair = &context.block_instances[handle];
+                            curve.apply(&pair.source, &pair.target);
+                        }
+                        maximum = maximum.max(
+                            context
+                                .geometry
+                                .as_ref()
+                                .unwrap()
+                                .check_curve(&source, &curve)?,
                         );
                     }
                     context

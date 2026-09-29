@@ -276,6 +276,59 @@ fn structure_requires_one_layout_related_to_the_model_space_block() {
 }
 
 #[test]
+fn stale_header_handle_recovers_from_unique_model_block_and_layout() {
+    let mut document = CadDocument::new();
+    let actual = document.header.model_space_block_handle;
+    document.header.model_space_block_handle = Handle::new(0xffff);
+    let outcome = cad_document_to_package(
+        &document,
+        package_options("stale-model-header"),
+        ExportOptions::default(),
+    )
+    .expect("unique model block and layout should recover a stale header handle");
+    let root = TempRoot::new("stale-model-header");
+    let package_root = root.0.join("package");
+    outcome.package().write_directory(&package_root).unwrap();
+    let loaded = load_directory_package(package_root).unwrap();
+    let drawing = loaded
+        .validated_package()
+        .unwrap()
+        .drawings()
+        .next()
+        .unwrap();
+    assert_eq!(drawing.layouts().next().unwrap().name(), "Model");
+    assert_eq!(
+        document.block_records.get("*Model_Space").unwrap().handle,
+        actual
+    );
+    assert_eq!(
+        document.header.model_space_block_handle,
+        Handle::new(0xffff)
+    );
+}
+
+#[test]
+fn stale_header_with_ambiguous_model_layout_still_fails() {
+    let mut document = CadDocument::new();
+    let actual = document.header.model_space_block_handle;
+    let mut duplicate = Layout::new("Another model layout");
+    duplicate.handle = Handle::new(0xfffe);
+    duplicate.block_record = actual;
+    document
+        .objects
+        .insert(duplicate.handle, ObjectType::Layout(duplicate));
+    document.header.model_space_block_handle = Handle::new(0xffff);
+    assert!(matches!(
+        cad_document_to_package(
+            &document,
+            package_options("ambiguous-model-header"),
+            ExportOptions::default(),
+        ),
+        Err(ExportError::InvalidSourceStructure { .. })
+    ));
+}
+
+#[test]
 fn structure_copies_the_related_model_layout_name_exactly() {
     let mut document = CadDocument::new();
     let model_space = document.header.model_space_block_handle;

@@ -25,7 +25,7 @@ pub(crate) fn add_entities(
     let mut structural_problems = Vec::new();
     for source in super::blocks::ordered_entities(document) {
         let common = source.common();
-        if matches!(source, EntityType::Viewport(viewport) if viewport.id == 1 && document.objects.values().any(|object| matches!(object, cadcodec::objects::ObjectType::Layout(layout) if layout.viewport == common.handle)))
+        if matches!(source, EntityType::Viewport(viewport) if viewport.id == 1 && document.objects.values().any(|object| matches!(object, cadcodec::objects::ObjectType::Layout(layout) if super::layouts::overall_viewport_handle(document, layout) == Some(common.handle))))
         {
             continue;
         }
@@ -259,8 +259,19 @@ pub(crate) fn add_entities(
                         Ok(point)
                     })
                     .collect::<Result<Vec<_>, Box<crate::ConversionGeometryFailure>>>()?;
+                let curve = crate::geometry::circular::export_circle_curve(circle, placement)
+                    .ok_or_else(|| {
+                        geometry.failure(
+                            &identity,
+                            None,
+                            crate::ConversionGeometryStage::DeviationAssessment,
+                            crate::ConversionGeometryFailureReason::DeviationBoundOutOfRange,
+                        )
+                    })?;
+                maximum = maximum.max(geometry.check_curve(&identity, &curve)?);
                 geometry.record(identity, points.len(), maximum);
                 context.block_points.insert(common.handle, points);
+                context.block_curves.insert(common.handle, curve);
                 if maximum > 0.0 {
                     common_losses.push(ExportLossReason::GeometryRoundedWithinTolerance {
                         max_deviation_upper_bound: maximum,
@@ -305,8 +316,19 @@ pub(crate) fn add_entities(
                         Ok(point)
                     })
                     .collect::<Result<Vec<_>, Box<crate::ConversionGeometryFailure>>>()?;
+                let curve = crate::geometry::circular::export_arc_curve(arc, placement, sweep)
+                    .ok_or_else(|| {
+                        geometry.failure(
+                            &identity,
+                            None,
+                            crate::ConversionGeometryStage::DeviationAssessment,
+                            crate::ConversionGeometryFailureReason::DeviationBoundOutOfRange,
+                        )
+                    })?;
+                maximum = maximum.max(geometry.check_curve(&identity, &curve)?);
                 geometry.record(identity, points.len(), maximum);
                 context.block_points.insert(common.handle, points);
+                context.block_curves.insert(common.handle, curve);
                 if maximum > 0.0 {
                     common_losses.push(ExportLossReason::GeometryRoundedWithinTolerance {
                         max_deviation_upper_bound: maximum,
@@ -366,8 +388,21 @@ pub(crate) fn add_entities(
                         Ok(point)
                     })
                     .collect::<Result<Vec<_>, Box<crate::ConversionGeometryFailure>>>()?;
+                let curve = crate::geometry::circular::export_ellipse_curve(
+                    ellipse, placement, major, minor, sweep,
+                )
+                .ok_or_else(|| {
+                    geometry.failure(
+                        &identity,
+                        None,
+                        crate::ConversionGeometryStage::DeviationAssessment,
+                        crate::ConversionGeometryFailureReason::DeviationBoundOutOfRange,
+                    )
+                })?;
+                maximum = maximum.max(geometry.check_curve(&identity, &curve)?);
                 geometry.record(identity, points.len(), maximum);
                 context.block_points.insert(common.handle, points);
+                context.block_curves.insert(common.handle, curve);
                 if maximum > 0.0 {
                     common_losses.push(ExportLossReason::GeometryRoundedWithinTolerance {
                         max_deviation_upper_bound: maximum,

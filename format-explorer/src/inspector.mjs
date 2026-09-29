@@ -1,5 +1,6 @@
 import { isVector, fieldSummary } from './fields.mjs';
-import { columnTable, collectionBrowser, graphPager, pageWindow, pager, collectionWindow } from './browsing.mjs';
+import { columnTable, collectionBrowser, graphPager, pageWindow, pager, collectionWindow, inspectorWindow, inspectorScroller } from './browsing.mjs';
+import { workspaceSummary } from './workspace-state.mjs';
 const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const sumBytes=(a,b)=>{try{return (BigInt(a)+BigInt(b)).toString();}catch{return '?';}};
 const preview=value=>fieldSummary(value);
@@ -8,12 +9,19 @@ const definitionList=rows=>'<dl class="meta-list">'+rows.map(([k,v])=>`<dt>${esc
 const description={
   DrawingSet:'Het vertrekpunt van dit CAD-pakket. Verbindt tekeningen en optionele preservation-resources. Een gebouwmodel is hiervoor niet vereist.',
   Drawing:'De semantische identiteit van een tekening. Verwijst naar layouts en één gedeelde DrawingRepresentation.',
+  PackageWorkspaceState:'Bewaart welke tekening en layout actief waren toen het pakket werd opgeslagen. Deze IFCX-node is een afzonderlijke pakketstatus, geen extra tekening.',
   DrawingLayout:'Een layout selecteert via scopeId een model- of paperspace-scope in IFCDR. Een paper-layout kan eigen effectieve plotinstellingen bevatten; beide gebruiken de DrawingRepresentation van de tekening.',
   DrawingRepresentation:'De brug van de IFCX-graph naar de tekenresource. De resource-ID is de identiteit; de URI is alleen de opslaglocatie.',
   PreservationRepresentation:'De IFCX-verwijzing naar bronbehoud. Verbindt een brondocument en tekenresources met een IFCPR-resource.',
   Layer:'Een gedeelde semantische laagdefinitie in IFCX. IFCDR-entiteiten verwijzen via een compacte layerBinding naar deze node.',
   Appearance:'Een gedeelde definitie van kleur, lijnpatroon, lijndikte en opacity. De eigenschappen kunnen elk een eigen overervingsmodus hebben.',
   group:'Deze groep organiseert de weergave. Het is geen extra node of container in het bestandsformaat.',
+  'workspace-group':'Deze weergavegroep bundelt optionele werkruimtestatus in IFCDR. De status beschrijft de editor; zij voegt geen tekengeometrie toe.',
+  'drawing-view-state':'De actuele modelwerkruimte: welk modelvenster actief is en welke UCS daarin geselecteerd is. Dit is opgeslagen editorstatus.',
+  'ucs-definition':'Een benoemd gebruikerscoördinatenstelsel met een frame en hoogte. Een UCS verandert de opgeslagen geometrie niet.',
+  'model-window':'Een modelvenster bewaart zicht, kader, grid, snap en UCS voor de editor. Het is geen CAD-entiteit of geometriescope.',
+  'paper-canvas':'De editorstatus van één paperspace-scope: zicht, grid, snap, UCS en actieve canvas- of viewportcontext.',
+  'viewport-workspace':'Editorinstellingen voor een bestaande paperspace-viewport. De viewport-entiteit zelf blijft in viewportStream.',
   'drawing-resource':'De tekeninhoud zit in typed collecties: scopes, bindings, entiteiten en tekenvolgorde. JSON-kolommen zijn een fysieke mapping van dat logische model.',
   'preservation-resource':'Bewaart broninformatie die niet volledig native is vertegenwoordigd. Records beschrijven de bron; bindings leggen de relatie naar native inhoud vast.',
   scope:'Een afzonderlijk coördinatiedomein met scope-ID, metadata en bounds. Entiteiten en tekenvolgorde horen bij een scope.',
@@ -141,6 +149,28 @@ const newStreamDescriptions={
   entity:'Dit object toont zijn opgeslagen velden en verwijzingen. Een typespecifieke uitleg volgt zodra het contract voor dit type is vastgesteld.',
   field:'Deze opgeslagen veldwaarde wordt zonder vastgestelde typespecifieke betekenis getoond.',
 };
+const workspaceKinds=new Set(['drawing-view-state','ucs-definition','model-window','paper-canvas','viewport-workspace']);
+const workspaceFieldDescriptions={
+ ucsId:'De stabiele ID van deze benoemde UCS binnen de tekenresource.',
+ name:'De naam waarmee deze UCS in de editor wordt aangeboden.',
+ frame:'De oorsprong en lokale assen van het gebruikerscoördinatenstelsel.',
+ elevation:'De opgeslagen hoogte van dit gebruikerscoördinatenstelsel.',
+ modelWindowId:'De ID van dit modelvenster binnen de tekenresource.',
+ activeModelWindowId:'Het modelvenster dat bij het opslaan actief was.',
+ rectangle:'De positie en afmetingen van het modelvenster in de editor.',
+ view:'Het bewaarde zicht van dit venster of canvas.',
+ aspectRatio:'De breedte-hoogteverhouding van het venster.',
+ renderMode:'De bewaarde weergavemodus van het venster.',
+ grid:'Instellingen voor het zichtbare hulpraster in de editor.',
+ snap:'Instellingen voor het raster waarop de cursor kan vastklikken.',
+ storedUcs:'De UCS-selectie die bij dit venster of deze viewport is bewaard.',
+ currentUcs:'De UCS-selectie die op dit canvas actief was.',
+ currentModelUcs:'De UCS-selectie die in modelspace actief was.',
+ useStoredUcs:'Bepaalt of de opgeslagen UCS van deze werkruimte wordt toegepast.',
+ scopeId:'De paperspace-scope waartoe dit canvas behoort.',
+ viewportEntityId:'De ID van de bestaande viewport-entiteit waarvoor deze editorstatus geldt.',
+ activeContext:'Geeft aan of het canvas of een viewport actief was.',
+};
 
 function collectionTable(node,model){
   if(node.concept)return `<div class="structure-note">Een illustratieve collectie voor <code>${escape(node.family)}</code>. Voor dit entiteittype zijn semantiek en streamindeling nog niet vastgesteld.</div>${definitionList([['Basisvelden','entityId · scopeId · layerId · appearanceId'],[node.family,'maatsoort · definitiepunten · maatlijnpositie · stijlref']])}`;
@@ -158,21 +188,21 @@ function fieldDetails(node,model){
   const vector=v=>Array.isArray(v)?v:[v.x,v.y,v.z];
   const tuple=v=>'('+vector(v).join(', ')+')';
   let html=`<button class="relation field-owner" data-select="${escape(owner.id)}"><span><small>Onderdeel van</small>${escape(owner.label)} · ${escape(owner.resourceId)}</span><i aria-hidden="true">↗</i></button>`;
-  html+=definitionList([['Veldpad',node.fieldPath.join('.')],['Herkomst',node.concept?'Illustratief concept':node.implicit?'Standaardwaarde · niet opgeslagen':'Entiteitdata uit het pakket']]);
+  html+=definitionList([['Veldpad',node.fieldPath.join('.')],['Herkomst',node.concept?'Illustratief concept':node.implicit?'Standaardwaarde · niet opgeslagen':workspaceKinds.has(owner.kind)?'Werkruimtestatus uit het pakket':'Entiteitdata uit het pakket']]);
   if(node.implicit)html+='<p class="structure-note">Deze rij heeft geen expliciete placement. De viewer toont daarom het standaard XY-vlak: oorsprong (0, 0, 0), X = (1, 0, 0), Y = (0, 1, 0). Er wordt geen placement aan het bronbestand toegevoegd.</p>';
   if(isVector(value))html+=definitionList(vector(value).map((v,i)=>[['x','y','z'][i],v]));
   else if(value===null||typeof value!=='object')html+=`<div class="field-value"><code>${escape(JSON.stringify(value))}</code></div>`;
   else if(Array.isArray(value)){
-    const shared=collectionWindow(model,node.id),w=shared||pageWindow(model,node.id+':points',value.length);
+    const shared=collectionWindow(model,node.id),w=shared||inspectorWindow(model,node.id+':points',value.length);
     const points=node.fieldPath[0]==='vertices';
-    html+=`<div class="structure-heading"><h3>${points?'Punten in volgorde':'Items in volgorde'}</h3><span>${value.length} ${points?'punten':'items'}</span></div>${shared?'':pager(node.id+':points',w)}<div class="relation-list collection-list">${value.slice(w.start,w.end).map((v,i)=>`<button class="relation" data-select="${escape(node.id+'.'+(w.start+i))}"><span><small>${points?'punt':'item'} ${w.start+i}</small><code>${escape(points?tuple(v):JSON.stringify(v))}</code></span><i aria-hidden="true">↗</i></button>`).join('')}</div>`;
+    html+=`<div class="structure-heading"><h3>${points?'Punten in volgorde':'Items in volgorde'}</h3><span>${value.length} ${points?'punten':'items'}</span></div>${shared?'':inspectorScroller(node.id+':points',w)}<div class="relation-list collection-list">${value.slice(w.start,w.end).map((v,i)=>`<button class="relation" data-select="${escape(node.id+'.'+(w.start+i))}"><span><small>${points?'punt':'item'} ${w.start+i}</small><code>${escape(points?tuple(v):JSON.stringify(v))}</code></span><i aria-hidden="true">↗</i></button>`).join('')}</div>`;
   }
   const top=node.fieldPath[0];
   if((top==='placement'||top==='plane')&&node.fieldPath.length===2){
     const meaning={origin:'De oorsprong O: het nulpunt van het lokale vlak in XYZ.',X:'De lokale X-as: de richting waarin de lokale x-coördinaat toeneemt.',Y:'De lokale Y-as: de richting waarin de lokale y-coördinaat toeneemt.'};
     if(meaning[node.label])html+=`<p class="structure-note">${meaning[node.label]}</p>`;
   }
-  if(top==='placement'&&node.fieldPath.length===1&&['polyline','planarPolyline'].includes(entity.kind)&&value?.origin&&value?.X&&value?.Y){
+  if(top==='placement'&&node.fieldPath.length===1&&['polyline','planarPolyline'].includes(entity?.kind)&&value?.origin&&value?.X&&value?.Y){
     const p=value;
     html+=`<div class="structure-heading"><h3>Van lokaal XY naar XYZ</h3></div><div class="placement-formula"><code>P = O + x · X + y · Y</code></div><div class="placement-axes">${[['origin','O · oorsprong'],['X','X · lokale x-as'],['Y','Y · lokale y-as']].map(([k,label])=>`<button class="relation" data-select="${escape(node.id+'.'+k)}"><span><small>${label}</small><code>${escape(tuple(p[k]))}</code></span><i aria-hidden="true">↗</i></button>`).join('')}</div>`;
     html+=`<table class="stream-table placement-table"><thead><tr><th>Punt</th><th>Lokaal (x, y)</th><th>XYZ</th></tr></thead><tbody>${entity.geometry.vertices.slice(0,50).map((v,i)=>`<tr><td>${i}</td><td><code>${escape(tuple(v))}</code></td><td><code>${escape(tuple(entity.points[i]))}</code></td></tr>`).join('')}</tbody></table>`;
@@ -190,11 +220,15 @@ export function renderInspector(model,id,collapsed){
   let desc=Object.hasOwn(description,node.kind)?description[node.kind]:'Een IFCX-node in de semantische graph.';
   if(node.id.startsWith('view:ifcdr:')&&node.id.endsWith(':scopeTable'))desc='De scopeTable bevat de coördinatiedomeinen van deze tekenresource. Deze groep bladert door de tabel en is geen extra node in het bestandsformaat.';
   if(node.id.startsWith('view:ifcdr:')&&node.id.endsWith(':blockDefinitionTable'))desc='De blockDefinitionTable bevat gedeelde blockdefinities. Elke definitie verwijst via scopeId naar de scope met haar inhoud. Deze groep is alleen onderdeel van de weergave.';
+  const workspaceTables={ucsDefinitionTable:'Benoemde UCS-definities in deze tekenresource. De groep bladert door de tabel; iedere rij heeft een eigen UCS-ID.',modelWindowTable:'Modelvensters van de editor. De groep bladert door de tabel; vensters zijn geen tekenentiteiten.',paperCanvasTable:'Een editorcanvas per paperspace-scope. De groep bladert door de tabel en voegt geen nieuwe scope toe.',viewportWorkspaceTable:'Optionele editorstatus per bestaande viewport-entiteit. De groep bladert door de tabel.'};
+  for(const [table,meaning] of Object.entries(workspaceTables))if(node.id.startsWith('view:ifcdr:')&&node.id.endsWith(':'+table))desc=meaning;
   if(node.kind==='collection'&&!node.concept)desc=collectionDescriptions[node.id.split(':').at(-1)]||newStreamDescriptions.collection;
   if(node.kind==='entity'&&!node.concept)desc=entityDescriptions[node.entity?.kind]||newStreamDescriptions.entity;
   if(node.kind==='field'&&!node.concept){
-    const owner=model.byId.get(node.ownerId)?.entity,path=node.fieldPath.map(part=>/^\d+$/.test(part)?'*':part).join('.');
-    desc=fieldDescriptions[owner?.kind]?.[path]||newStreamDescriptions.field;
+    const owner=model.byId.get(node.ownerId),path=node.fieldPath.map(part=>/^\d+$/.test(part)?'*':part).join('.');
+    desc=workspaceKinds.has(owner?.kind)
+      ? workspaceFieldDescriptions[path]||workspaceFieldDescriptions[node.fieldPath[0]]||'Dit opgeslagen veld beschrijft de editorstatus van de werkruimte.'
+      : fieldDescriptions[owner?.entity?.kind]?.[path]||newStreamDescriptions.field;
   }
   if(node.concept&&node.kind==='collection')desc='Een mogelijke eigen typed collectie voor dit entiteittype. Andere CAD-entiteittypen kunnen op dezelfde manier hun eigen plaats krijgen; deze voorbeelden zijn geen uitputtende lijst.';
   if(node.concept&&node.entity?.kind==='dimension')desc='Een mogelijke native dimension bewaart maatsoort, definitiepunten, maatlijnpositie en stijl. Alleen afgeleide lijnen en tekst bewaren zou de maatbetekenis verliezen.';
@@ -204,7 +238,14 @@ export function renderInspector(model,id,collapsed){
   if(node.kind==='DrawingSet')details+=rawDetails('IFCX-documentheader',model.fixture.ifcx.header)+rawDetails('IFCX-imports',model.fixture.ifcx.imports);
   if(node.kind==='Drawing'){
     html+=definitionList([['plotStyleMode',node.raw.attributes?.plotStyleMode??'—']]);
+    if(node.raw.attributes?.workspaceState)html+=definitionList([['Huidige laag',node.raw.attributes.workspaceState.currentLayer]]);
     if(!Object.hasOwn(node.raw.children||{},'Layers')&&!Object.hasOwn(node.raw.children||{},'Appearances'))html+='<p class="structure-note">Deze tekening gebruikt een ouder pakketcontract. Layers en Appearances staan daarin niet als children van Drawing; de graph toont alleen relaties die in IFCX zijn opgeslagen.</p>';
+  }
+  if(node.kind==='PackageWorkspaceState')html+=definitionList([['Actieve tekening',node.raw.attributes?.activeDrawing??'—'],['Actieve layout',node.raw.attributes?.activeLayout??'—']]);
+  if(workspaceKinds.has(node.kind)){
+    const body=model.resources.find(resource=>resource.resourceId===node.resourceId)?.body;
+    html+=definitionList(workspaceSummary(node,body||{}));
+    html+=`<div class="structure-heading"><h3>Opgeslagen velden</h3></div><div class="field-list">${Object.entries(node.raw).map(([key,value])=>`<button class="field-link" data-select="${escape('field:'+node.id+':'+key)}"><code>${escape(key)} <span aria-hidden="true">↗</span></code><span>${escape(preview(value))}</span></button>`).join('')}</div>`;
   }
   if(node.kind==='DrawingLayout'){
     const a=node.raw.attributes||{};
@@ -212,7 +253,10 @@ export function renderInspector(model,id,collapsed){
     if(a.plotSettings){html+='<div class="structure-heading"><h3>Effectieve plotinstellingen</h3></div><p class="small-note">Inline waarde van deze layout; geen aparte IFCX-node.</p>';for(const key of ['media','area','mapping','output','options'])if(a.plotSettings[key])html+=rawDetails(key,a.plotSettings[key]);}
   }
   if(node.item){const {body:b,descriptor:d,storage,source}=node.item;html+=definitionList([['Versie',b.header.version],['resourceId',b.header.resourceId],['Opslag',storage],['Locatie',source]]);if(node.kind==='drawing-resource'){
-      html+=`<div class="structure-heading"><h3>Resourceonderdelen</h3><span>IFCDR</span></div><div class="resource-parts">${[['header','identiteit & eenheid'],['scopeTable',b.scopeTable.length+' scope(s)'],['blockDefinitionTable',(b.blockDefinitionTable||[]).length+' definities'],['layerBindings',b.layerBindings.length+' verwijzingen naar IFCX'],['appearanceBindings',b.appearanceBindings.length+' uiterlijk-bindings'],['streamDirectory','schema’s en streamrollen'],['streams','typed entiteitkolommen & volgorde']].map(([k,v])=>`<div><code>${k}</code><span>${escape(v)}</span></div>`).join('')}</div>`;
+      const parts=[['header','identiteit & eenheid'],['scopeTable',b.scopeTable.length+' scope(s)'],['blockDefinitionTable',(b.blockDefinitionTable||[]).length+' definities'],['layerBindings',b.layerBindings.length+' verwijzingen naar IFCX'],['appearanceBindings',b.appearanceBindings.length+' uiterlijk-bindings'],['streamDirectory','schema’s en streamrollen'],['streams','typed entiteitkolommen & volgorde']];
+      if(b.drawingViewState)parts.push(['drawingViewState','actueel modelvenster en UCS']);
+      for(const table of ['ucsDefinitionTable','modelWindowTable','paperCanvasTable','viewportWorkspaceTable'])if(b[table]?.length)parts.push([table,b[table].length+' items']);
+      html+=`<div class="structure-heading"><h3>Resourceonderdelen</h3><span>IFCDR</span></div><div class="resource-parts">${parts.map(([k,v])=>`<div><code>${k}</code><span>${escape(v)}</span></div>`).join('')}</div>`;
       details+=rawDetails('Streamdirectory',b.streamDirectory)+rawDetails('Tekenvolgorde', {entityOrderStream:b.streams.entityOrderStream,entityOrderEntryStream:b.streams.entityOrderEntryStream})+rawDetails('Laag- en appearance-bindings',{layerBindings:b.layerBindings,appearanceBindings:b.appearanceBindings,appearanceOverrides:b.appearanceOverrides});
     }else{html+=definitionList([['Bron',b.source.originalFilename],['Profiel',b.source.profile],['Herkomst',b.source.resourceOrigin]]);for(const blob of b.blobs)html+=payloadStrip(node.item,blob,model);html+='<p class="small-note">Records → bindings → native inhoud. Bronbytes blijven apart van de native semantiek.</p>';}
     details+=rawDetails('Resourceverwijzing in IFCX',d);

@@ -1,4 +1,4 @@
-import { buildModel, revealNode } from './model.mjs';
+import { buildModel, revealNode, prepareWorkspaceExample } from './model.mjs';
 import { PackageGraph } from './graph.mjs';
 import { renderInspector } from './inspector.mjs';
 import { t, translateTree } from './i18n.mjs';
@@ -9,10 +9,12 @@ import { initializeCadPreview } from './cad-preview.mjs';
 import { decodeBundle } from './bundle.mjs';
 import { renderReport } from './reports.mjs';
 import { initializeWorkspace } from './workspace.mjs';
+import { createReportView } from './report-view.mjs';
+import { expandExclusiveStream } from './graph-navigation.mjs';
 const $=id=>document.getElementById(id);
 let examples=[],model,collapsed=new Set(),selected='';
 let result=null,reportNavigable=false,knownNodes=new Set();
-const graph=new PackageGraph($('graph'),{select,toggle,zoomChanged:n=>$('zoom-level').textContent=n+'%',countChanged:(n,total)=>$('graph-count').textContent=n+' / '+total+' nodes',referenceCountChanged:n=>{const summary=$('graph-reference-summary');summary.hidden=n===0;summary.textContent=n?t(`${n} meer relaties in inspecteur`):'';}});
+const graph=new PackageGraph($('graph'),{select,toggle,scrollCollection,zoomChanged:n=>$('zoom-level').textContent=n+'%',countChanged:(n,total)=>$('graph-count').textContent=n+' / '+total+' nodes',referenceCountChanged:n=>{const summary=$('graph-reference-summary');summary.hidden=n===0;summary.textContent=n?t(`${n} meer relaties in inspecteur`):'';}});
 function render(){for(const n of model.nodes){if(!knownNodes.has(n.id)&&model.defaultCollapsed.has(n.id))collapsed.add(n.id);knownNodes.add(n.id);}graph.render(model,collapsed,selected);renderInspector(model,selected,collapsed);translateTree($('inspector'));}
 function refreshPresentation(){
   if(model){
@@ -24,30 +26,36 @@ function refreshPresentation(){
   translateTree(document.body);
   if(result)showReport();
 }
-function select(id){if(id.startsWith('more:')){model.paging.materialize(id);selected=model.byId.get(id).parentId;collapsed.delete(selected);render();return;}model.paging?.materialize(id);if(!model.byId.has(id))return;for(const n of model.nodes){if(!knownNodes.has(n.id)&&model.defaultCollapsed.has(n.id))collapsed.add(n.id);knownNodes.add(n.id);}selected=id;revealNode(model,collapsed,id);render();$('inspector').scrollTop=0;graph.focus(id);}
-function toggle(id){model.paging?.expand(id);for(const n of model.nodes){if(!knownNodes.has(n.id)&&model.defaultCollapsed.has(n.id))collapsed.add(n.id);knownNodes.add(n.id);}collapsed.has(id)?collapsed.delete(id):collapsed.add(id);selected=id;render();$('inspector').scrollTop=0;}
-function showReport(){renderReport($('file-report'),result,{canNavigate:reportNavigable,diagnosticTarget:d=>{const match=d.location?.match(/^\/data\/(\d+)/),id=d.resourceId?'resource:'+d.resourceId:match?'ifcx:'+model.fixture.ifcx.data[Number(match[1])]?.path:null;return model.byId.has(id)?id:null;},selectTarget:id=>{workspaceView.focusReport(false);$('report-panel').open=false;select(id);}});}
+function select(id){if(id.startsWith('more:')){model.paging.materialize(id);selected=model.byId.get(id).parentId;collapsed.delete(selected);render();return;}id=model.byId.get(id)?.targetId||id;model.paging?.materialize(id);if(!model.byId.has(id))return;for(const n of model.nodes){if(!knownNodes.has(n.id)&&model.defaultCollapsed.has(n.id))collapsed.add(n.id);knownNodes.add(n.id);}selected=id;revealNode(model,collapsed,id);render();$('inspector').scrollTop=0;graph.focus(id);}
+function toggle(id){model.paging?.expand(id);for(const n of model.nodes){if(!knownNodes.has(n.id)&&model.defaultCollapsed.has(n.id))collapsed.add(n.id);knownNodes.add(n.id);}const opening=collapsed.has(id);if(opening){selected=expandExclusiveStream(model,collapsed,id,selected);collapsed.delete(id);}else collapsed.add(id);selected=id;render();$('inspector').scrollTop=0;opening?graph.focusBranch(id):graph.focus(id);}
+function showReport(){renderReport($('file-report'),result,{canNavigate:reportNavigable,diagnosticTarget:d=>{const match=d.location?.match(/^\/data\/(\d+)/),id=d.resourceId?'resource:'+d.resourceId:match?'ifcx:'+model.fixture.ifcx.data[Number(match[1])]?.path:null;return model.byId.has(id)?id:null;},selectTarget:id=>{reportView.close(false);preview.hide();select(id);}});}
 function openResult(value,request){
-  workspaceView.focusReport(false);
+  reportView.close(false);
   const previous={model,collapsed,selected,knownNodes,camera:{...graph.camera},example:$('example').value,options:[...$('example').options].map(o=>({value:o.value,textContent:o.textContent,disabled:o.disabled,id:o.id})),description:$('example-description').textContent,status:$('example-status').textContent,concept:$('concept-key').hidden};
   result=value;reportNavigable=false;
   if(value.presentation&&value.validation?.strictAvailable){
     try{const fixture=decodeBundle(value.presentation);fixture.name=fixture.label=value.source.name;const next=buildModel(fixture);model=next;knownNodes=new Set();collapsed=new Set(model.defaultCollapsed);selected=model.roots[0];reportNavigable=true;document.getElementById('local-option')?.remove();const option=document.createElement('option');option.id='local-option';option.value='local';option.textContent=value.source.name;option.disabled=true;$('example').append(option);$('example').value='local';$('example-description').textContent=value.source.name;$('example-status').textContent='Geopend pakket';$('concept-key').hidden=true;render();graph.fit();}
     catch(error){value.failure={stage:'preparing',code:'VIEWER_DISPLAY_FAILED',message:error.message};reportNavigable=false;({model,collapsed,selected,knownNodes}=previous);$('example').replaceChildren(...previous.options.map(o=>Object.assign(document.createElement('option'),o)));$('example').value=previous.example;$('example-description').textContent=previous.description;$('example-status').textContent=previous.status;$('concept-key').hidden=previous.concept;if(model){render();graph.camera=previous.camera;graph.apply();}}
   }
-  if(reportNavigable){exporter.setSource(request,model.fixture);preview.setSource(request,model.fixture,request.kind==='cad'?{name:request.files[0].path,bytes:request.files[0].bytes,base64:request.files[0].base64}:null);}
+  const original=request.kind==='cad'&&request.files[0]?{name:request.files[0].path,bytes:request.files[0].bytes,base64:request.files[0].base64}:null;
+  if(reportNavigable){exporter.setSource(request,model.fixture);preview.setSource(request,model.fixture,original);}
+  else if(original)preview.setSource(request,null,original,value.failure?.message);
   else preview.clear();
-  $('report-panel').hidden=false;$('report-panel').open=true;showReport();workspaceView.focusReport(true);translateTree(document.body);$('report-panel').scrollTop=0;
+  reportView.setAvailable(true);showReport();translateTree(document.body);
+  queueMicrotask(()=>reportView.show());
 }
 function openExample(value){const concept=value==='concept',fixture=examples.find(e=>e.name===(concept?'unrepresented-packed':value));model=buildModel(fixture,{concepts:concept});collapsed=new Set(model.defaultCollapsed);selected=model.roots.find(id=>id!=='group:definitions');
-  workspaceView.focusReport(false);
-  knownNodes=new Set(model.byId.keys());result=null;reportNavigable=false;$('report-panel').hidden=true;
-  exporter.setSource(concept?null:{kind:'package',name:fixture.name,files:fixture.exportFiles},fixture);
-  preview.setSource(concept?null:{kind:'package',name:fixture.name,files:fixture.exportFiles},fixture);
+  knownNodes=new Set(model.byId.keys());result=null;reportNavigable=false;reportView.setAvailable(false);
+  const supportedSource=concept?null:{kind:'package',name:fixture.name,files:fixture.exportFiles};
+  exporter.setSource(supportedSource,fixture);
+  preview.setSource(supportedSource,fixture);
   if(concept){selected='concept:collection:dimension';revealNode(model,collapsed,selected);collapsed.delete(selected);}
+  const workspaceFocus=['workspace-model','workspace-paper'].includes(fixture.name)?prepareWorkspaceExample(model,collapsed):null;
+  if(workspaceFocus)selected=workspaceFocus.selected;
   $('example-description').textContent=concept?'Dimension als voorbeeld van een verdere CAD-entiteit.':fixture.description;
   const version=fixture.ifcx.data.find(n=>n.attributes?.resource?.format==='openaec.ifcdr')?.attributes.resource.version;
-  $('example-status').textContent=concept?'Concept · nog niet ondersteund':`IFCDR ${version} / IFCPR 0.2.0`;$('concept-key').hidden=!concept;render();translateTree(document.body);$('inspector').scrollTop=0;if(concept)graph.frame(['resource:drawing-main',selected,'entity:drawing-main:6']);else graph.fit();
+  const preservation=fixture.ifcx.data.some(n=>n.type==='openaec:PreservationRepresentation');
+  $('example-status').textContent=concept?'Concept · nog niet ondersteund':`IFCDR ${version}${preservation?' / IFCPR 0.2.0':''}`;$('concept-key').hidden=!concept;render();translateTree(document.body);$('inspector').scrollTop=0;if(concept)graph.frame(['resource:drawing-main',selected,'entity:drawing-main:6']);else if(workspaceFocus)graph.frame(workspaceFocus.frame);else graph.fit();
 }
 async function initialize(){
   $('load-error').hidden=true;$('workspace').setAttribute('aria-busy','true');
@@ -67,14 +75,21 @@ function changePage(target,page){
  render();$('inspector').scrollTop=scroll;
  $('inspector').querySelector(`${target.tagName==='INPUT'?'input':'button'}[data-page-id="${CSS.escape(id)}"][data-page-kind="${kind}"]${target.tagName==='INPUT'?'':`[data-page="${page}"]`}`)?.focus({preventScroll:true});
 }
-$('inspector').addEventListener('click',e=>{const page=e.target.closest('button[data-page-id]');if(page){if(page.hasAttribute('data-page-go')){const input=page.closest('nav').querySelector('input');changePage(input,Number(input.value)-1);}else changePage(page,Number(page.dataset.page));return;}const target=e.target.closest('[data-select],[data-toggle]');if(!target)return;target.dataset.select?select(target.dataset.select):toggle(target.dataset.toggle);});
+function scrollCollection(id,delta){if(!model?.paging?.scrollGraph(id,delta))return;const scroll=$('inspector').scrollTop;render();$('inspector').scrollTop=scroll;}
+function scrollInspector(id,delta){model.inspectorStarts??=new Map();const scroll=$('inspector').scrollTop;model.inspectorStarts.set(id,Math.max(0,(model.inspectorStarts.get(id)||0)+Math.trunc(delta)));render();$('inspector').scrollTop=scroll;}
+$('inspector').addEventListener('click',e=>{const local=e.target.closest('button[data-inspector-scroll-id]');if(local){scrollInspector(local.dataset.inspectorScrollId,Number(local.dataset.scrollStep));return;}const step=e.target.closest('button[data-scroll-id]');if(step){scrollCollection(step.dataset.scrollId,Number(step.dataset.scrollStep));return;}const page=e.target.closest('button[data-page-id]');if(page){if(page.hasAttribute('data-page-go')){const input=page.closest('nav').querySelector('input');changePage(input,Number(input.value)-1);}else changePage(page,Number(page.dataset.page));return;}const target=e.target.closest('[data-select],[data-toggle]');if(!target)return;target.dataset.select?select(target.dataset.select):toggle(target.dataset.toggle);});
+$('inspector').addEventListener('change',e=>{if(e.target.matches('input[type=range][data-scroll-id]')){const id=e.target.dataset.scrollId;scrollCollection(id,Number(e.target.value)-model.paging.graphWindow(id).start);}else if(e.target.matches('input[type=range][data-inspector-scroll-id]')){const id=e.target.dataset.inspectorScrollId;scrollInspector(id,Number(e.target.value)-(model.inspectorStarts?.get(id)||0));}});
 $('inspector').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches('input[data-page-id]')){e.preventDefault();changePage(e.target,Number(e.target.value)-1);}});
 $('inspector').addEventListener('change',e=>{if(e.target.id==='native-edited')$('reuse-result').textContent=t(e.target.checked?'De native gegevens zijn gewijzigd. Herstelbeleid, baseline en afhankelijkheden moeten opnieuw worden beoordeeld. Bewaarde bytes mogen niet blind worden teruggeplaatst.':'Brondata hergebruiken vereist een passende baseline, geldig herstelbeleid en gecontroleerde afhankelijkheden.');});
-const workspaceView=initializeWorkspace(translateTree);
+initializeWorkspace();
 $('retry').addEventListener('click',initialize);
 initializeSettings(refreshPresentation);
 const exporter=initializeExporting();
 const preview=initializeCadPreview();
-$('preview-open').addEventListener('click',()=>{workspaceView.focusReport(false);$('report-panel').open=false;});
+const reportView=createReportView({
+ dialog:$('report-dialog'),openButton:$('report-open'),closeButton:$('report-close'),continueButton:$('report-continue'),scrollArea:$('file-report'),
+ focusWorkspace:()=>$(preview.state.visible?'preview-open':'graph-heading').focus({preventScroll:true}),
+ beforeShow:()=>{$('report-continue').textContent=preview.state.visible?'Naar tekening':'Naar graph';translateTree($('report-dialog'));},
+});
 initializeOpening({onResult:openResult});
 initialize();

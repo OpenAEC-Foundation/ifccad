@@ -26,8 +26,9 @@ scales `(2,3,-4)` or `(-2,-2,-2)`.
   exposes the record as `*U24`: `anonymous_block_names` filters unresolved
   slots before numbering. Numbering first corrected this sample in an
   instrumented copy, but that experiment does not establish a general fix.
-  The converter retains its fatal marker-name consistency check rather than
-  exporting a reconstructed name known to be wrong. Tracked upstream as
+  The converter repairs this narrow case on an export copy only when the
+  explicit marker name, owner, base point, ordinal and uniqueness checks agree;
+  other conflicts remain fatal. Tracked upstream as
   [cadcodec #55](https://github.com/HakanSeven12/opencadcodec/issues/55).
 - The DXF BLOCKS writer emits the record base point but omits description
   group 4. Its roundtrip therefore loses `BlockRecord.description`; DWG
@@ -59,9 +60,13 @@ inconsistency and DXF absence; explodable and uniform-scaling flags roundtrip.
 ## Converter policy and exchange evidence
 
 The converter rejects contradictory present marker name/owner/base-point data
-as `InvalidSourceStructure` under both loss policies, including the #55 DWG
-reader mismatch. Absence is allowed; a zero marker is not guessed to mean
-absent. Native-to-CAD conversion constructs
+as `InvalidSourceStructure` under both loss policies, except the single-slot
+anonymous `*U` name shift from [cadcodec #55](https://github.com/HakanSeven12/opencadcodec/issues/55).
+That repair uses the explicit begin-marker name to correct the record and its
+reader-derived INSERT names on an export copy only when owner, base point,
+ordinal, and uniqueness checks all agree. A collision or any other name
+conflict remains fatal. Marker absence is allowed; a zero marker is not guessed
+to mean absent. Native-to-CAD conversion constructs
 consistent records and markers. `block_exchange` exercises production package
 readback and the actual codecs: DXF with nonzero base and DWG with zero base
 return successfully; DWG with nonzero base is explicitly rejected on return

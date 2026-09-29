@@ -1,8 +1,20 @@
 # IFCCAD Format Explorer
 
-The explorer supports the current IFCDR 0.11 structure, including points,
+The explorer supports the current IFCDR 0.12 structure, including points,
 planar and spatial polylines, circles, arcs, ellipses and ellipse arcs. It also
 shows scopes, local blocks and paper-space viewports.
+It also presents the optional workspace-state contract on `main`: an IFCX package resume
+node, a Drawing's current Layer reference, and IFCDR drawing view state, UCS
+definitions, model windows, paper canvases and viewport editor state. These
+appear as collapsed, paged branches with references back to native scopes and
+viewport entities. Workspace records expose their stored fields as expandable
+child nodes, including nested UCS frames and view, grid and snap settings.
+**Model workspace with UCS** and **Paper-space workspace** come directly from
+the current valid conformance packages. They can be strictly loaded, explored,
+previewed through CAD conversion, and exported to DXF, DWG or an IFCCAD package
+ZIP. CAD export reports workspace settings it cannot transfer; the package ZIP
+retains the original source files.
+
 Model, paper and block-definition scopes have distinct labels. Layouts link to
 their selected scope, while viewport entities link separately to their owning
 paper scope and viewed model scope. Inline plot settings, viewport frames and
@@ -93,7 +105,7 @@ as a separate JSON resource.
 ## Explore
 
 - Select a graph node to see its explanation, fields and incoming/outgoing links.
-- Native entity nodes briefly explain their meaning, including the IFCDR 0.11
+- Native entity nodes briefly explain their meaning, including the IFCDR 0.12
   point, curved-entity and two polyline families.
   Their collection nodes explain IFCDR stream storage; field nodes explain each
   value and its stored columns. Adding another registered native object family
@@ -102,11 +114,11 @@ as a separate JSON resource.
   Until a family has its own explorer explanation, the inspector shows its
   stored rows, fields and references as a structural preview, without assigning
   geometric meaning or claiming converter support. Shared x/y and x/y/z vertex
-  pools are paged separately from their entity rows. This does not bypass the
+  pools scroll separately from their entity rows. This does not bypass the
   package reader's validation or add support for an unfinished format contract.
 - Current IFCX packages list available Layers and Appearances as direct Drawing
-  children. Their nodes follow Drawing expansion; a single drawing with more
-  than 10 definitions uses an explicitly labelled display group for paging.
+  children. The graph places Layouts, Layers, Appearances and Representation in
+  sibling branches; presentation-only groups keep the repeated lists compact.
   The current examples all use this structure. Older IFCDR 0.9 / IFCX 0.11
   packages opened by the user can lack these lists; their definitions remain
   independent in the graph. The viewer does not invent missing IFCX links.
@@ -118,11 +130,20 @@ as a separate JSON resource.
   stay visible, while layer, appearance, scope, block-definition and preservation
   references appear when an endpoint is selected. Up to eight selected references
   are drawn; the inspector pages through the loaded relations and indicates their
-  count. “Alle relaties” restores every connection between visible nodes.
-- IFCDR resources with more than 10 scopes or block definitions present their
-  tables as paged display groups. These groups and their `item` links do not
-  add nodes or relationships to the IFCCAD package. Each graph page shows up to
-  10 members; selecting an item in the inspector reveals its page.
+  count. Direct Drawing links to individual Layouts, Layers and Appearances,
+  repeated Layout-to-Representation links, and the package state's active-layout
+  link stay in the inspector instead of cluttering this focused view. “Alle
+  relaties” restores every connection between visible nodes. Cross-references
+  choose a short clear corridor around the visible node cards, rather than a
+  fixed return loop above their source and target.
+- PackageWorkspaceState is placed beside DrawingSet as separate package-wide
+  status. Its active-drawing reference uses the open gap between the cards.
+- IFCDR resources show scopes, block definitions and streams in separate display
+  groups. These groups and their `item` links do not add nodes or relationships
+  to the IFCCAD package. Each expanded group shows up to three items; from the
+  fourth item onward it gains its own scroll control. The inspector and graph
+  share that scroll position. Expanding an entity stream folds other entity
+  streams within the same resource while keeping their collection nodes visible.
 - Follow any inspector relationship to reveal and select the linked graph node.
 - Drag the graph background to pan; use the wheel or buttons to zoom. “Passend”
   fits visible nodes; “Overzicht” restores the initial collapsed view.
@@ -165,10 +186,11 @@ About includes application and contract versions, repository links and licenses.
 
 “What works already, what is concept?” opens a modal with independently scrolling
 content, a close button and Escape support. Closing restores focus to its button.
-New reading/validation reports open in the full available work area. “Show graph”
-restores the graph and inspector; “Expand report” temporarily hides them again.
-Following a report's node link restores the graph and selects the target. Graph
-state and inspector width are retained while switching views.
+New reading/validation reports open in a large modal with independent scrolling.
+The close button, Escape and “Go to graph” (or “Go to drawing”) return to the
+full-height workspace. The **Report** button reopens the last report without
+taking space when it is closed. Following a report's node link closes the modal
+and selects that graph node. Graph state and inspector width are retained.
 
 ## Open your own files
 
@@ -201,14 +223,15 @@ Viewer limits: 1000 files and 64 MiB combined input. The browser uses one active
 worker; its peak memory is substantially higher than source size because conversion
 and the graph presentation are held in memory. The server route has a 120-second
 processing limit and its results expire after five minutes. Large entity, point,
-layer, appearance and preservation collections show at most 10 members per graph
-window. Paging replaces the visible members rather than continually adding nodes.
+layer, appearance and preservation collections show at most three members per graph
+window. Scrolling replaces the visible members rather than continually adding nodes.
 Large IFCX definition collections use explicitly labelled presentation groups;
 these are not `LayerTable`/`AppearanceTable` nodes or new format relationships.
-Inspector columns and lists share the graph's 10-item window and a single
-previous/next and direct-page control. Entity columns share their index range
-and horizontal scroll position; polyline x/y pools browse their own 10-value
-range because pool indexes differ from entity rows. Compact cells visually
+Inspector columns and graph lists share one three-item scroll position, without
+visible pages of ten. Scroll controls appear only for lists with four or more
+items. Entity columns share their index range and horizontal scroll position;
+polyline x/y pools have an independent three-value scroll position because
+pool indexes differ from entity rows. Compact cells visually
 truncate long values; hovering shows the full scalar value without rounding.
 Selecting an
 item reveals its graph window and ancestors, preserving zoom. Source JSON
@@ -398,9 +421,9 @@ and must not be described as supported conversion or approved schema design.
 Field names and graph relationships for concepts are illustrative. No schema or
 conformance collection is changed by this demo.
 
-The active native reference is IFCDR 0.11.0: XYZ lines, points, planar and
+The active native reference is IFCDR 0.12.0: XYZ lines, points, planar and
 spatial polylines, circular and elliptical entities, local blocks and
-paper-space viewports. IFCPR 0.2.0 schema and
+paper-space viewports, plus optional workspace state. IFCPR 0.2.0 schema and
 fixtures exist, but production checks are limited;
 full preservation validation and converter preservation transfer are not complete.
 See `../conformance/next/COMPATIBILITY.md`, the converter coverage contracts and

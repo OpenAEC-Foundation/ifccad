@@ -58,8 +58,9 @@ pub(crate) fn add_layouts(
                 }],
             });
         }
-        diagnose_layout_extras(layout, context);
-        let settings = settings_from_cad(layout, model, document, context);
+        let normalized = normalized_plot_integers(layout);
+        diagnose_layout_extras(&normalized, context);
+        let settings = settings_from_cad(&normalized, model, document, context);
         if model {
             drawing.set_model_layout_settings(settings);
         } else {
@@ -69,6 +70,78 @@ pub(crate) fn add_layouts(
         }
     }
     Ok(())
+}
+
+pub(crate) fn overall_viewport_handle(document: &CadDocument, layout: &Layout) -> Option<Handle> {
+    if matches!(document.get_entity(layout.viewport), Some(cadcodec::EntityType::Viewport(viewport)) if viewport.id == 1 && viewport.common.owner_handle == layout.block_record)
+    {
+        return Some(layout.viewport);
+    }
+    let mut candidates = document.entities().filter_map(|entity| match entity {
+        cadcodec::EntityType::Viewport(viewport)
+            if viewport.id == 1 && viewport.common.owner_handle == layout.block_record =>
+        {
+            Some(viewport.common.handle)
+        }
+        _ => None,
+    });
+    let candidate = candidates.next()?;
+    candidates.next().is_none().then_some(candidate)
+}
+
+// cadcodec currently leaves padded ASCII DXF integer plot codes at their
+// defaults. Reapply only successfully parsed raw values to the export copy.
+fn normalized_plot_integers(layout: &Layout) -> Layout {
+    let mut normalized = layout.clone();
+    if let Some(codes) = &layout.raw_plot_settings_codes {
+        for (code, value) in codes {
+            let value = value.trim();
+            match *code {
+                70 => {
+                    if let Ok(bits) = value.parse::<i32>() {
+                        normalized.plot_flags = cadcodec::objects::PlotFlags::from_bits(bits);
+                    }
+                }
+                72 => {
+                    if let Ok(parsed) = value.parse() {
+                        normalized.plot_paper_units = parsed;
+                    }
+                }
+                73 => {
+                    if let Ok(parsed) = value.parse() {
+                        normalized.plot_rotation = parsed;
+                    }
+                }
+                74 => {
+                    if let Ok(parsed) = value.parse() {
+                        normalized.plot_type = parsed;
+                    }
+                }
+                75 => {
+                    if let Ok(parsed) = value.parse() {
+                        normalized.plot_scale_type = parsed;
+                    }
+                }
+                76 => {
+                    if let Ok(parsed) = value.parse() {
+                        normalized.shade_plot_mode = parsed;
+                    }
+                }
+                77 => {
+                    if let Ok(parsed) = value.parse() {
+                        normalized.shade_plot_resolution = parsed;
+                    }
+                }
+                78 => {
+                    if let Ok(parsed) = value.parse() {
+                        normalized.shade_plot_dpi = parsed;
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+    normalized
 }
 
 fn is_untouched_scaffold(layout: &Layout, document: &CadDocument) -> bool {

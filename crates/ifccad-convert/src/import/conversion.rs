@@ -51,6 +51,14 @@ pub fn drawing_to_cad_document_with_options(
         document.header.point_display_size,
     ) = crate::point_display::to_cad(drawing.point_display());
     let paper_owners = super::layouts::allocate(&mut document, &layouts, &mut diagnostics)?;
+    if let Some(active) = drawing.active_layout() {
+        if active.kind() == DrawingLayoutKind::Paper {
+            document.header.show_model_space = false;
+            if let Some(&block) = paper_owners.get(&active.scope().id()) {
+                document.header.paper_space_block_handle = block;
+            }
+        }
+    }
 
     for source in representation.layers() {
         let target = convert_layer(&mut document, source, &mut diagnostics)?;
@@ -86,6 +94,7 @@ pub fn drawing_to_cad_document_with_options(
     owners.extend(paper_owners);
     let mut block_instances = std::collections::BTreeMap::new();
     let mut block_points = std::collections::BTreeMap::new();
+    let mut block_curves = std::collections::BTreeMap::new();
     let mut entity_mapping = ImportEntityMapping::default();
     for (scope_id, owner) in owners {
         for source in representation.resource().entities(scope_id) {
@@ -354,6 +363,21 @@ pub fn drawing_to_cad_document_with_options(
                             Ok(point)
                         })
                         .collect::<Result<Vec<_>, Box<crate::ConversionGeometryFailure>>>()?;
+                    let curve = crate::geometry::circular::import_circle_curve(
+                        source.placement(),
+                        source.radius(),
+                        angle,
+                        &target,
+                    )
+                    .ok_or_else(|| {
+                        geometry.failure(
+                            &identity,
+                            None,
+                            crate::ConversionGeometryStage::DeviationAssessment,
+                            crate::ConversionGeometryFailureReason::DeviationBoundOutOfRange,
+                        )
+                    })?;
+                    maximum = maximum.max(geometry.check_curve(&identity, &curve)?);
                     geometry.record(identity.clone(), points.len(), maximum);
                     if maximum > 0.0 {
                         diagnostics.record(
@@ -364,6 +388,7 @@ pub fn drawing_to_cad_document_with_options(
                         );
                     }
                     block_points.insert(source.entity_id(), points);
+                    block_curves.insert(source.entity_id(), curve);
                     apply_entity_common(
                         &mut document,
                         representation,
@@ -428,6 +453,22 @@ pub fn drawing_to_cad_document_with_options(
                             Ok(point)
                         })
                         .collect::<Result<Vec<_>, Box<crate::ConversionGeometryFailure>>>()?;
+                    let curve = crate::geometry::circular::import_arc_curve(
+                        source.placement(),
+                        source.radius(),
+                        source.start_parameter(),
+                        sweep,
+                        &target,
+                    )
+                    .ok_or_else(|| {
+                        geometry.failure(
+                            &identity,
+                            None,
+                            crate::ConversionGeometryStage::DeviationAssessment,
+                            crate::ConversionGeometryFailureReason::DeviationBoundOutOfRange,
+                        )
+                    })?;
+                    maximum = maximum.max(geometry.check_curve(&identity, &curve)?);
                     geometry.record(identity.clone(), points.len(), maximum);
                     if maximum > 0.0 {
                         diagnostics.record(
@@ -438,6 +479,7 @@ pub fn drawing_to_cad_document_with_options(
                         );
                     }
                     block_points.insert(source.entity_id(), points);
+                    block_curves.insert(source.entity_id(), curve);
                     apply_entity_common(
                         &mut document,
                         representation,
@@ -501,6 +543,23 @@ pub fn drawing_to_cad_document_with_options(
                             Ok(point)
                         })
                         .collect::<Result<Vec<_>, Box<crate::ConversionGeometryFailure>>>()?;
+                    let curve = crate::geometry::circular::import_ellipse_curve(
+                        source.placement(),
+                        source.semi_major_radius(),
+                        source.semi_minor_radius(),
+                        0.0,
+                        std::f64::consts::TAU,
+                        &target,
+                    )
+                    .ok_or_else(|| {
+                        geometry.failure(
+                            &identity,
+                            None,
+                            crate::ConversionGeometryStage::DeviationAssessment,
+                            crate::ConversionGeometryFailureReason::DeviationBoundOutOfRange,
+                        )
+                    })?;
+                    maximum = maximum.max(geometry.check_curve(&identity, &curve)?);
                     geometry.record(identity.clone(), points.len(), maximum);
                     if maximum > 0.0 {
                         diagnostics.record(
@@ -511,6 +570,7 @@ pub fn drawing_to_cad_document_with_options(
                         );
                     }
                     block_points.insert(source.entity_id(), points);
+                    block_curves.insert(source.entity_id(), curve);
                     apply_entity_common(
                         &mut document,
                         representation,
@@ -581,6 +641,23 @@ pub fn drawing_to_cad_document_with_options(
                             Ok(point)
                         })
                         .collect::<Result<Vec<_>, Box<crate::ConversionGeometryFailure>>>()?;
+                    let curve = crate::geometry::circular::import_ellipse_curve(
+                        source.placement(),
+                        source.semi_major_radius(),
+                        source.semi_minor_radius(),
+                        source.start_parameter(),
+                        sweep,
+                        &target,
+                    )
+                    .ok_or_else(|| {
+                        geometry.failure(
+                            &identity,
+                            None,
+                            crate::ConversionGeometryStage::DeviationAssessment,
+                            crate::ConversionGeometryFailureReason::DeviationBoundOutOfRange,
+                        )
+                    })?;
+                    maximum = maximum.max(geometry.check_curve(&identity, &curve)?);
                     geometry.record(identity.clone(), points.len(), maximum);
                     if maximum > 0.0 {
                         diagnostics.record(
@@ -591,6 +668,7 @@ pub fn drawing_to_cad_document_with_options(
                         );
                     }
                     block_points.insert(source.entity_id(), points);
+                    block_curves.insert(source.entity_id(), curve);
                     apply_entity_common(
                         &mut document,
                         representation,
@@ -748,6 +826,7 @@ pub fn drawing_to_cad_document_with_options(
         representation.resource(),
         &block_instances,
         &block_points,
+        &block_curves,
         &mut geometry,
         &mut diagnostics,
     )?;

@@ -8,9 +8,11 @@ export const examples = [
   ['blocks-demo','Een gedeeld block, vier plaatsingen','Een Arrow-definitie met rotatie, spiegeling en niet-uniforme schaal.'],
   ['shared-drawing-definitions','Gedeelde definities tussen tekeningen','Twee tekeningen delen hun lagen en appearances via dezelfde IFCX-nodes.'],
   ['layout-viewport-plot','Een paperspace met viewports','Een model-layout, een paper-layout, plotinstellingen en viewportafwijkingen.'],
+  ['workspace-model','Modelwerkruimte met UCS','Een actief modelvenster, een benoemde UCS-definitie, een actuele naamloze UCS en de huidige laag.'],
+  ['workspace-paper','Paperspace-werkruimte','Een actief paper-viewport met eigen grid-, snap- en UCS-status.'],
   ['inline-both','Resources binnen IFCX','IFCDR en IFCPR zijn ingebed in het IFCX-document.'],
 ];
-export const exampleRoot=name=>new URL(name==='blocks-demo'?'../examples/blocks-demo/':`../../conformance/next/packages/valid/${name}/`,import.meta.url);
+export const exampleRoot=name=>new URL(name==='blocks-demo'?`../examples/${name}/`:`../../conformance/next/packages/valid/${name}/`,import.meta.url);
 export async function readExamples() {
   const result=[];
   for(const [name,label,description]of examples){

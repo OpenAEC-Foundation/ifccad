@@ -19,6 +19,56 @@ test('a target entirely to the left still uses the outer return corridor', () =>
   assert.deepEqual(route.end,{x:660,y:220});
 });
 
+test('the IFCPR-to-IFCDR resource link uses the open gap between both cards', () => {
+  const ifcpr={x:850,y:100,width:260,height:100};
+  const ifcdr={x:400,y:390,width:260,height:100};
+  const route=routeEdge(ifcpr,ifcdr,'linkedDrawingResources');
+  assert.equal(route.kind,'resource-bridge');
+  assert.deepEqual(route.start,{x:850,y:150});
+  assert.deepEqual(route.end,{x:660,y:440});
+  assert.ok(!route.path.includes(' 65'), 'the resource link must not detour above IFCPR');
+});
+
+test('workspace activeDrawing reference crosses the short side gap', () => {
+  const workspace={x:600,y:120,width:260,height:90};
+  const drawing={x:200,y:255,width:260,height:90};
+  const route=routeEdge(workspace,drawing,'activeDrawing');
+  assert.equal(route.kind,'workspace-bridge');
+  assert.deepEqual(route.start,{x:600,y:165});
+  assert.deepEqual(route.end,{x:460,y:300});
+  assert.ok(!route.path.includes(' 85'), 'the reference must not loop above DrawingSet');
+});
+
+test('a Drawing reference descends through the free lane beside its layer list', () => {
+  const drawing={x:200,y:255,width:260,height:90};
+  const target={x:50,y:838,width:260,height:90};
+  const obstacles=[
+    {x:50,y:385,width:260,height:90},
+    {x:350,y:385,width:260,height:90},
+    {x:50,y:548,width:260,height:90},
+    {x:50,y:693,width:260,height:90},
+  ];
+  const route=routeEdge(drawing,target,'workspaceState.currentLayer',obstacles);
+  assert.equal(route.kind,'clear-corridor');
+  assert.deepEqual(route.points,[{x:330,y:345},{x:330,y:883},{x:310,y:883}]);
+});
+
+test('a blocked direct reference finds a short corridor around the obstruction', () => {
+  const source={x:0,y:0,width:100,height:100},target={x:400,y:0,width:100,height:100};
+  const blocker={x:200,y:-50,width:100,height:200};
+  const route=routeEdge(source,target,'testReference',[blocker]);
+  assert.equal(route.kind,'clear-corridor');
+  assert.ok(route.points.some(point=>point.y<-65||point.y>165));
+  assert.ok(route.points.every(point=>point.x>=-18&&point.x<=518));
+});
+
+test('an unobstructed backward reference does not take the old outer loop', () => {
+  const source={x:400,y:100,width:100,height:100},target={x:100,y:350,width:100,height:100};
+  const route=routeEdge(source,target,'testReference',[]);
+  assert.equal(route.kind,'clear-corridor');
+  assert.ok(route.points.every(point=>point.y>=100&&point.y<=450));
+});
+
 test('a short vertical reference may put its caption in the clear node gap', () => {
   const occupied=[{x:126,y:96,width:282,height:101},{x:144,y:221,width:282,height:101}];
   const label=placeLabel([{x:278,y:209}],75,24,occupied,0);

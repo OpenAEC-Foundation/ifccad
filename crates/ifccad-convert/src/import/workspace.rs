@@ -1,9 +1,11 @@
 use super::diagnostic::DiagnosticAccumulator;
 use crate::ImportDiagnostic;
+use cadcodec::entities::EntityType;
+use cadcodec::objects::ObjectType;
 use cadcodec::{CadDocument, Handle, Ucs, VPort, Vector2, Vector3};
 use ifccad::ifcdr::{
-    BackClipMode, CoordinateFrame3, FrontClipMode, IsometricPlane, ModelWindow, ProjectionMode,
-    UcsSelection, ViewportRenderMode, WorkspaceGridStyle, WorkspaceSnapStyle,
+    BackClipMode, CoordinateFrame3, FrontClipMode, IsometricPlane, ModelWindow, PaperCanvas,
+    ProjectionMode, UcsSelection, ViewportRenderMode, WorkspaceGridStyle, WorkspaceSnapStyle,
 };
 use ifccad::package::DrawingRef;
 use std::collections::BTreeMap;
@@ -116,6 +118,64 @@ fn apply_window(
     target.ucs_per_viewport = source.use_stored_ucs;
 }
 
+fn apply_canvas(
+    target: &mut cadcodec::entities::Viewport,
+    source: &PaperCanvas,
+    definitions: &BTreeMap<u32, (String, Handle, CoordinateFrame3)>,
+    diagnostics: &mut DiagnosticAccumulator,
+) {
+    target.view_center = Vector3::new(source.view.center.x(), source.view.center.y(), 0.0);
+    let point = source.view.target;
+    let direction = source.view.direction;
+    target.view_target = cad_vector([point.x(), point.y(), point.z()]);
+    target.view_direction = cad_vector([direction.x(), direction.y(), direction.z()]);
+    target.view_height = source.view.height;
+    target.twist_angle = source.view.twist;
+    target.lens_length = source.view.lens_length.unwrap_or(50.0);
+    target.status.front_clipping = source.view.front_clip.mode != FrontClipMode::Disabled;
+    target.status.front_clip_not_at_eye = source.view.front_clip.mode == FrontClipMode::AtDistance;
+    target.front_clip_z = source.view.front_clip.distance.unwrap_or(0.0);
+    target.status.back_clipping = source.view.back_clip.mode != BackClipMode::Disabled;
+    target.back_clip_z = source.view.back_clip.distance.unwrap_or(0.0);
+    target.status.grid_on = source.grid.enabled;
+    target.grid_spacing = Vector3::new(source.grid.spacing.x(), source.grid.spacing.y(), 0.0);
+    target.grid_major = match i16::try_from(source.grid.major_line_frequency) {
+        Ok(value) => value,
+        Err(_) => {
+            diagnostics.record(ImportDiagnostic::WorkspaceUnsupported {
+                reason: "paper grid major frequency exceeds CAD range".into(),
+            });
+            5
+        }
+    };
+    target.grid_flags = cadcodec::entities::GridFlags {
+        beyond_limits: source.grid.beyond_limits,
+        adaptive: source.grid.adaptive,
+        subdivision: source.grid.subdivision,
+        follow_dynamic: source.grid.follows_workplane,
+    };
+    if source.grid.style != WorkspaceGridStyle::Lines {
+        diagnostics.record(ImportDiagnostic::WorkspaceUnsupported {
+            reason: "paper dot grid style".into(),
+        });
+    }
+    target.status.snap_on = source.snap.enabled;
+    target.snap_base = Vector3::new(source.snap.base.x(), source.snap.base.y(), 0.0);
+    target.snap_spacing = Vector3::new(source.snap.spacing.x(), source.snap.spacing.y(), 0.0);
+    target.snap_angle = source.snap.angle;
+    target.status.isometric_snap = source.snap.style == WorkspaceSnapStyle::Isometric;
+    target.status.iso_pair_top = source.snap.isometric_plane == IsometricPlane::Top;
+    target.status.iso_pair_right = source.snap.isometric_plane == IsometricPlane::Right;
+    let (_, handle, frame) = selection(source.stored_ucs, definitions);
+    target.ucs_handle = handle;
+    assign_frame(
+        &mut target.ucs_origin,
+        &mut target.ucs_x_axis,
+        &mut target.ucs_y_axis,
+        frame,
+    );
+}
+
 pub(crate) fn apply(
     drawing: DrawingRef<'_>,
     document: &mut CadDocument,
@@ -190,9 +250,36 @@ pub(crate) fn apply(
             document.vports.add_allow_duplicate(target);
         }
     }
-    if !workspace.paper_canvases.is_empty() || !workspace.viewport_workspaces.is_empty() {
+    for source in &workspace.paper_canvases {
+        if source.active_context != ifccad::ifcdr::PaperActiveContext::Canvas {
+            diagnostics.record(ImportDiagnostic::WorkspaceUnsupported {
+                reason: "active paper viewport context".into(),
+            });
+        }
+        let Some(layout_name) = drawing
+            .layouts()
+            .find(|layout| layout.scope().id().get() == source.scope_id)
+            .map(|layout| layout.name().to_owned())
+        else {
+            continue;
+        };
+        let Some(viewport_handle) = document.objects.values().find_map(|object| match object {
+            ObjectType::Layout(layout) if layout.name == layout_name => Some(layout.viewport),
+            _ => None,
+        }) else {
+            continue;
+        };
+        if let Some(EntityType::Viewport(target)) = document.get_entity_mut(viewport_handle) {
+            apply_canvas(target, source, &definitions, diagnostics);
+        } else {
+            diagnostics.record(ImportDiagnostic::WorkspaceUnsupported {
+                reason: format!("paper canvas for {layout_name} has no CAD viewport"),
+            });
+        }
+    }
+    if !workspace.viewport_workspaces.is_empty() {
         diagnostics.record(ImportDiagnostic::WorkspaceUnsupported {
-            reason: "paper canvas and paper viewport workspace state".into(),
+            reason: "paper viewport workspace state".into(),
         });
     }
 }

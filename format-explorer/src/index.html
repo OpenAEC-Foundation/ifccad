@@ -33,14 +33,14 @@
           <label class="theme-option"><input type="radio" name="appearance" value="dark"><span class="theme-swatch dark" aria-hidden="true"></span><strong>Donker</strong><span>Deep Forge met lichte tekst en amber accenten.</span></label>
           <label class="theme-option"><input type="radio" name="appearance" value="auto"><span class="theme-swatch automatic" aria-hidden="true"></span><strong>Volg het systeem</strong><span>Past zich aan de licht/donker-instelling van je apparaat aan.</span></label>
         </fieldset></section>
-        <section id="panel-about" role="tabpanel" aria-labelledby="tab-about" tabindex="0" hidden><h3>IFCCAD Format Explorer</h3><p class="small-note">Versie <span data-no-i18n>0.1.0</span></p><p class="small-note" data-no-i18n>IFCX 0.13.0 · IFCDR 0.11.0 · IFCPR 0.2.0</p><div id="settings-about"></div></section>
+        <section id="panel-about" role="tabpanel" aria-labelledby="tab-about" tabindex="0" hidden><h3>IFCCAD Format Explorer</h3><p class="small-note">Versie <span data-no-i18n>0.1.0</span></p><p class="small-note">Browserlezer: <span data-no-i18n>IFCX 0.14.0 · IFCDR 0.12.0 · IFCPR 0.2.0</span></p><p class="small-note">Werkruimtestatus kan worden ingelezen, onderzocht en naar CAD geëxporteerd. Niet overgedragen editorinstellingen staan in het exportrapport.</p><div id="settings-about"></div></section>
       </div>
     </div>
     <footer class="settings-footer"><p id="settings-status" role="status">Wijzigingen zijn een preview tot je opslaat.</p><div><button id="settings-cancel">Annuleren</button><button id="settings-save" class="primary-button">Opslaan</button></div></footer>
   </dialog>
   <section id="about" class="about" hidden>
     <div><h1>Een open formaat voor CAD</h1><p>IFCCAD wordt ontwikkeld als open alternatief voor DWG en DXF: een formaat voor het opslaan en uitwisselen van CAD-tekeningen, met een openbare specificatie die verschillende toepassingen kunnen implementeren.</p><p>Het formaat is in ontwikkeling. De ondersteuning voor CAD-entiteiten groeit stapsgewijs; deze explorer laat zien wat al werkt, wat nog ontbreekt en hoe de gegevens zijn opgebouwd.</p><p>IFCX legt relaties vast. IFCDR draagt de native tekeninhoud. IFCPR kan broninformatie bewaren die daarin nog niet volledig past.</p></div>
-    <div><p>Deze zelfstandige demo gebruikt voorbeelden uit <code>conformance/next</code>. Het conceptvoorbeeld verkent mogelijke uitbreidingen; het is geen vastgesteld formaat.</p><a href="https://github.com/OpenAEC-Foundation/ifccad" target="_blank" rel="noreferrer">Bekijk de repository ↗</a><p class="small-note">Vormgeving gebaseerd op het <a href="https://github.com/OpenAEC-Foundation/OpenAEC-style-book" target="_blank" rel="noreferrer">OpenAEC-style-book</a>. <a href="./THIRD-PARTY.txt" target="_blank">Bronnen en licenties</a>.</p></div>
+    <div><p>Deze zelfstandige demo gebruikt voorbeelden uit <code>conformance/next</code>. Ook de werkruimtestatusvoorbeelden komen rechtstreeks uit die collectie en kunnen worden ingelezen en geëxporteerd. Het conceptvoorbeeld verkent mogelijke uitbreidingen; het is geen vastgesteld formaat.</p><a href="https://github.com/OpenAEC-Foundation/ifccad" target="_blank" rel="noreferrer">Bekijk de repository ↗</a><p class="small-note">Vormgeving gebaseerd op het <a href="https://github.com/OpenAEC-Foundation/OpenAEC-style-book" target="_blank" rel="noreferrer">OpenAEC-style-book</a>. <a href="./THIRD-PARTY.txt" target="_blank">Bronnen en licenties</a>.</p></div>
   </section>
   <main id="app">
     <dialog id="open-dialog" class="settings-dialog open-dialog" aria-labelledby="open-title">
@@ -72,15 +72,20 @@
     <section class="workspace-bar" aria-label="Voorbeeld selecteren">
       <div class="example-control"><span class="eyebrow">Verken een pakket</span><label class="sr-only" for="example">Voorbeeld</label><select id="example" disabled><option>Voorbeelden laden…</option></select></div>
       <button id="open-files">Bestand openen</button>
+      <button id="report-open" aria-haspopup="dialog" aria-controls="report-dialog" hidden>Rapport</button>
       <button id="export-open" disabled>Exporteren</button>
       <button id="preview-open" disabled>Tekening bekijken</button>
       <div class="version-info"><span class="status-dot"></span><span id="example-status">Repo-voorbeelden</span></div>
     </section>
-    <details id="report-panel" class="report-panel" hidden><summary><span>Inlees- en validatierapport</span><button id="report-expand" aria-expanded="false" aria-controls="report-panel">Rapport vergroten</button></summary><div id="file-report"></div></details>
+    <dialog id="report-dialog" class="settings-dialog report-dialog" aria-labelledby="report-title">
+      <header class="settings-header"><h2 id="report-title">Inlees- en validatierapport</h2><button id="report-close" aria-label="Sluiten">×</button></header>
+      <div id="file-report" class="report-content"></div>
+      <footer class="settings-footer"><button id="report-continue" class="primary-button">Naar graph</button></footer>
+    </dialog>
     <div id="load-error" class="load-error" role="alert" hidden><h2>Het voorbeeld kon niet worden geladen</h2><p id="error-message"></p><button id="retry">Opnieuw proberen</button></div>
     <div class="workspace" id="workspace" aria-busy="true">
       <section class="graph-panel" aria-labelledby="graph-heading">
-        <div class="panel-heading"><div><span class="eyebrow">01 / Samenhang</span><h1 id="graph-heading">De graph van het pakket</h1></div><span class="graph-count" id="graph-count"></span></div>
+        <div class="panel-heading"><div><span class="eyebrow">01 / Samenhang</span><h1 id="graph-heading" tabindex="-1">De graph van het pakket</h1></div><span class="graph-count" id="graph-count"></span></div>
         <div class="graph-stage" id="graph-stage">
           <svg id="graph" role="group" aria-label="Interactieve pakketgraph. Selecteer een node met Enter. Gebruik de plus- en minknoppen om relaties uit te klappen."></svg>
           <div class="graph-hint" id="graph-hint">Klap uit met + · selecteer voor verwijzingen · sleep om te bewegen</div>
@@ -101,8 +106,8 @@
       </aside>
     </div>
     <section id="cad-preview" class="cad-preview" aria-label="CAD-preview" hidden>
-      <header class="preview-heading"><div><span class="eyebrow">03 / CAD-preview</span><h1>Tekening bekijken</h1></div><button id="preview-close">Structuur</button></header>
-      <div class="preview-controls"><label for="preview-drawing">Tekening<select id="preview-drawing"></select></label><label for="preview-format">Tussenformaat<select id="preview-format"><option value="dxf">DXF</option><option value="dwg">DWG</option></select></label><label for="preview-version">CAD-versie<select id="preview-version"></select></label></div>
+      <header class="preview-heading"><div><span class="eyebrow">03 / CAD-preview</span><h1>Tekening bekijken</h1></div></header>
+      <div id="preview-controls" class="preview-controls"><label for="preview-drawing">Tekening<select id="preview-drawing"></select></label><label for="preview-format">Tussenformaat<select id="preview-format"><option value="dxf">DXF</option><option value="dwg">DWG</option></select></label><label for="preview-version">CAD-versie<select id="preview-version"></select></label></div>
       <div class="preview-body"><div class="preview-canvas"><div id="preview-frame" class="preview-frame"></div><p id="preview-viewer-status" role="status">Open CAD Studio wordt voorbereid…</p><button id="preview-retry" hidden>Opnieuw proberen</button></div><aside class="preview-details" aria-label="Roundtriprapport"><h2>Via IFCCAD</h2><p id="preview-status" role="status"></p><a id="preview-download" class="download-button" hidden download>Download CAD</a><div id="preview-report"></div></aside></div>
     </section>
   </main>
@@ -110,7 +115,7 @@
   <dialog id="support-dialog" class="settings-dialog support-dialog" aria-labelledby="support-title">
     <header class="settings-header"><h2 id="support-title">Ondersteuning is expliciet</h2><button id="support-close" aria-label="Sluiten">×</button></header>
     <section class="support" id="support">
-    <div class="support-grid"><div><span class="eyebrow">Native / IFCDR 0.11.0</span><h3>Punten, lijnen, polylijnen, curves, blocks en viewports</h3><p>Vlakke en ruimtelijke polylijnen, cirkels, bogen, ellipsen en punten hebben eigen streams. Model- en paper-layouts, blocks en plotinstellingen blijven onderdeel van het contract. DXF/DWG-conversie meldt per bronveld waar informatie verloren gaat.</p></div><div><span class="eyebrow">Gedeeltelijk / IFCPR 0.2.0</span><h3>Een contract voor bronbehoud</h3><p>Schema, fixtures en beperkte lezerchecks bestaan. Volledige validatie en preserve/restore via de converter zijn nog niet beschikbaar.</p></div><div><span class="eyebrow">Concept / toekomstige families</span><h3>Aanvullende CAD-entiteiten</h3><p>Een dimension illustreert een mogelijke verdere CAD-entiteit. Dit voorbeeld is geen vastgesteld schema of ondersteunde conversie.</p></div></div>
+    <div class="support-grid"><div><span class="eyebrow">Native / IFCDR 0.12.0</span><h3>Punten, lijnen, polylijnen, curves, blocks en viewports</h3><p>Vlakke en ruimtelijke polylijnen, cirkels, bogen, ellipsen en punten hebben eigen streams. Model- en paper-layouts, blocks en plotinstellingen blijven onderdeel van het contract. DXF/DWG-conversie meldt per bronveld waar informatie verloren gaat.</p></div><div><span class="eyebrow">Native / IFCDR 0.12.0</span><h3>Werkruimtestatus</h3><p>De pakketvoorbeelden tonen actieve tekening, layout, laag, UCS, modelvensters en paperspace-status. Inlezen, validatie en export gebruiken de huidige lezer; CAD-conversie draagt ondersteunde modelstatus over en meldt verlies van niet-overgedragen editorstatus.</p></div><div><span class="eyebrow">Gedeeltelijk / IFCPR 0.2.0</span><h3>Een contract voor bronbehoud</h3><p>Schema, fixtures en beperkte lezerchecks bestaan. Volledige validatie en preserve/restore via de converter zijn nog niet beschikbaar.</p></div><div><span class="eyebrow">Concept / toekomstige families</span><h3>Aanvullende CAD-entiteiten</h3><p>Een dimension illustreert een mogelijke verdere CAD-entiteit. Dit voorbeeld is geen vastgesteld schema of ondersteunde conversie.</p></div></div>
     <p class="support-source">Bronnen: <code>schemas/</code>, <code>conformance/next/COMPATIBILITY.md</code>, converter coverage en <code>ROADMAP.md</code>. <a href="https://github.com/OpenAEC-Foundation/ifccad/issues/2" target="_blank" rel="noreferrer">Ontwerpcontext: typed payloads ↗</a></p>
   </section>
   </dialog>

@@ -98,6 +98,12 @@ pub struct PaperSpaceKey {
     pub(crate) builder_token: u64,
     pub(crate) local_id: u32,
 }
+impl PaperSpaceKey {
+    /// Local IFCDR scope selected by this paper space.
+    pub fn scope_id(self) -> u32 {
+        self.local_id
+    }
+}
 
 /// Definition metadata belongs to the local IFCDR resource, not an IFCX node.
 #[derive(Clone, Debug, PartialEq)]
