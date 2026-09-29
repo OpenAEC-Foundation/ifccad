@@ -1,5 +1,5 @@
-use ifccad::conformance::bundled_conformance_root;
-use ifccad::package::load_directory_package;
+use ocdraw::conformance::bundled_conformance_root;
+use ocdraw::package::load_directory_package;
 use serde_json::Value;
 use std::{
     fs,
@@ -131,12 +131,12 @@ fn inline_body_errors_point_inside_the_containing_document() {
 
 #[test]
 fn inline_and_external_layouts_have_equal_semantic_content() {
-    use ifccad::ifcdr::IfcdrEntityRef;
+    use ocdraw::ifcdr::IfcdrEntityRef;
     let fixture = Fixture::new("shared-layout-representation");
     let external = load_directory_package(&fixture.0).unwrap();
     fixture.inline("resource");
     let inline = load_directory_package(&fixture.0).unwrap();
-    let snapshot = |package: &ifccad::package::ValidatedPackage| {
+    let snapshot = |package: &ocdraw::package::ValidatedPackage| {
         let drawing = package.drawings().next().unwrap();
         let representation = drawing.representation();
         let resource = representation.resource();
@@ -303,8 +303,8 @@ fn ambiguous_sources_do_not_attempt_to_load_the_external_alternative() {
 
 #[test]
 fn writer_selects_inline_storage_without_changing_default_external_output() {
-    use ifccad::package::{DrawingOptions, DrawingResourceStorage, PackageBuilder, PackageOptions};
-    use ifccad::{PackageId, ResourceId};
+    use ocdraw::package::{DrawingOptions, DrawingResourceStorage, PackageBuilder, PackageOptions};
+    use ocdraw::{PackageId, ResourceId};
     let encode = |storage| {
         let mut builder = PackageBuilder::new(PackageOptions {
             package_id: PackageId::new("package").unwrap(),
@@ -317,7 +317,7 @@ fn writer_selects_inline_storage_without_changing_default_external_output() {
             .add_drawing(DrawingOptions {
                 model_layout_name: "Model".into(),
                 representation_resource_id: ResourceId::new("geometry:arbitrary/id").unwrap(),
-                length_unit: ifccad::ifcdr::IfcdrLengthUnit::Metre,
+                length_unit: ocdraw::ifcdr::IfcdrLengthUnit::Metre,
             })
             .unwrap();
         if let Some(storage) = storage {

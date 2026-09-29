@@ -1,5 +1,5 @@
-use ifccad::canonicalization::{fingerprint, fingerprint_typed_value, CanonicalValue};
-use ifccad::conformance::{bundled_conformance_root, verify_fingerprint_vectors};
+use ocdraw::canonicalization::{fingerprint, fingerprint_typed_value, CanonicalValue};
+use ocdraw::conformance::{bundled_conformance_root, verify_fingerprint_vectors};
 use serde_json::json;
 
 #[test]

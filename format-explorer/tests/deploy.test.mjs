@@ -14,7 +14,7 @@ for(const previous of [false,true])for(const fail of [false,true])test(`deployme
     await writeFile(path.join(root,'compose.yml'),'services: {}\n');
     await writeFile(path.join(root,'payload/dist/version.json'),JSON.stringify({revision}));
     await writeFile(path.join(root,'payload/container.mjs'),'');
-    await writeFile(path.join(root,'payload/ifccad-viewer'),'reader');
+    await writeFile(path.join(root,'payload/ocdraw-viewer'),'reader');
     await writeFile(path.join(root,'bin/docker'),`#!/bin/bash\nprintf '%s\\n' "$*" >> "$IFCCAD_DEPLOY_ROOT/calls"\nif [[ "$*" == *' exec '* || "$1" == exec ]]; then exit ${fail?1:0}; fi\n`,{mode:0o755});
     await writeFile(path.join(root,'bin/curl'),'#!/bin/bash\ncat "$IFCCAD_DEPLOY_ROOT/payload/dist/version.json"\n',{mode:0o755});
     if(previous) {

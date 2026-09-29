@@ -1,4 +1,4 @@
-use ifccad::conformance::{
+use ocdraw::conformance::{
     parse_conformance_manifest, ConformanceCategory, ConformanceError, ConformanceOperationName,
 };
 use std::path::Path;
@@ -102,7 +102,7 @@ fn manifest_versions_are_independent_of_collection_versions() {
             .as_ref()
             .unwrap()
             .validity,
-        ifccad::package::PackageValidity::Valid
+        ocdraw::package::PackageValidity::Valid
     );
     value["manifestVersion"] = 3.into();
     assert!(parse_conformance_manifest(&value.to_string(), Path::new("future.json")).is_err());

@@ -273,7 +273,7 @@ The first coordinate-frame slice is implemented in IFCDR 0.8.0: XYZ lines,
 placed straight polylines, per-scope bounds and conversion accuracy policy.
 The [logical contract](schemas/ifcdr/logical-contract-0.8.0.md),
 [compatibility matrix](conformance/next/COMPATIBILITY.md),
-[spatial exchange tests](crates/ifccad-convert/tests/spatial_exchange.rs) and
+[spatial exchange tests](crates/ocdraw-convert/tests/spatial_exchange.rs) and
 [current preparation measurements and practice-file inventory](docs/benchmarks/placement-preparation-v1.md)
 record the boundary and evidence. Milestone 3 remains current: blocks, further
 entity families, preservation and CAD-BIM relationships remain separate work.

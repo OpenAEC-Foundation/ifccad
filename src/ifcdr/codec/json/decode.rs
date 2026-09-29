@@ -1,6 +1,6 @@
 use super::physical::validate_physical;
 use crate::diagnostic::{PackageDiagnostic, PackageDiagnosticSeverity};
-use crate::ifcdr::geometry::{BlockTransformComponents, PlanePlacementComponents};
+use crate::ifcdr::geometry::{BlockTransformComponents, CoordinateFrameComponents};
 use crate::ifcdr::logical::*;
 use crate::ifcdr::read::decoded::*;
 use crate::ifcdr::{
@@ -319,7 +319,7 @@ pub(crate) fn decode_json(
             counts: values(&p["vertexCount"], |v| u32v(v) as usize),
             closed: values(&p["closed"], |v| v.as_bool().unwrap()),
             placements: values(&p["placement"], |v| {
-                (!v.is_null()).then(|| PlanePlacementComponents {
+                (!v.is_null()).then(|| CoordinateFrameComponents {
                     origin: Point3::new(
                         num(&v["origin"]["x"]),
                         num(&v["origin"]["y"]),
@@ -449,12 +449,12 @@ fn shaded_plot_record(v: &Value) -> ShadedPlot {
 pub(super) fn point_record(v: &Value) -> Point3 {
     Point3::new(num(&v["x"]), num(&v["y"]), num(&v["z"]))
 }
-fn placement_row(stream: &Value, row: usize) -> PlanePlacementComponents {
+fn placement_row(stream: &Value, row: usize) -> CoordinateFrameComponents {
     let p = &stream["placement"][row];
     if p.is_null() {
         return CoordinateFrame3::default().components();
     }
-    PlanePlacementComponents {
+    CoordinateFrameComponents {
         origin: point_record(&p["origin"]),
         x: p.get("X")
             .map_or(Vector3::new(1.0, 0.0, 0.0), vector3_record),
@@ -466,7 +466,7 @@ fn transform_record(v: &Value) -> BlockTransformComponents {
     BlockTransformComponents {
         placement: v.get("placement").map_or_else(
             || CoordinateFrame3::default().components(),
-            |p| PlanePlacementComponents {
+            |p| CoordinateFrameComponents {
                 origin: point_record(&p["origin"]),
                 x: Vector3::new(num(&p["X"]["x"]), num(&p["X"]["y"]), num(&p["X"]["z"])),
                 y: Vector3::new(num(&p["Y"]["x"]), num(&p["Y"]["y"]), num(&p["Y"]["z"])),

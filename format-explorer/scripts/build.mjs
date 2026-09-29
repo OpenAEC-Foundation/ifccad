@@ -10,9 +10,9 @@ export async function build({outputRoot=output,ocsRoot=new URL('../ocs-build/',i
   await writeFile(path.join(destination,'examples.json'),JSON.stringify(await readExamples()));
   const wasmRoot=new URL('../wasm-build/',import.meta.url),wasmTarget=path.join(destination,'wasm');
   await rm(wasmTarget,{recursive:true,force:true});
-  if(await access(new URL('ifccad_browser_bg.wasm',wasmRoot)).then(()=>true,()=>false)){
+  if(await access(new URL('ocdraw_browser_bg.wasm',wasmRoot)).then(()=>true,()=>false)){
     await mkdir(wasmTarget,{recursive:true});
-    for(const name of ['ifccad_browser.js','ifccad_browser_bg.wasm'])await copyFile(new URL(name,wasmRoot),path.join(wasmTarget,name));
+    for(const name of ['ocdraw_browser.js','ocdraw_browser_bg.wasm'])await copyFile(new URL(name,wasmRoot),path.join(wasmTarget,name));
     await copyFile(new URL('../../LICENSE',import.meta.url),path.join(wasmTarget,'LICENSE'));
   }
   const bundle=ocsRoot instanceof URL?fileURLToPath(ocsRoot):path.resolve(ocsRoot);

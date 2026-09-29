@@ -1,10 +1,10 @@
-use ifccad::conformance::{
+use ocdraw::conformance::{
     bundled_conformance_root, load_conformance_manifest, ConformanceCategory,
     ConformanceOperationName,
 };
-use ifccad::ifcdr::{FrontClipMode, IfcdrEntityRef, ProjectionMode};
-use ifccad::package::{load_directory_package, PackageDiagnosticSeverity};
-use ifccad::package::{PlotArea, PlotRect, PlotScale};
+use ocdraw::ifcdr::{FrontClipMode, IfcdrEntityRef, ProjectionMode};
+use ocdraw::package::{load_directory_package, PackageDiagnosticSeverity};
+use ocdraw::package::{PlotArea, PlotRect, PlotScale};
 use serde_json::{json, Value};
 use std::collections::BTreeSet;
 

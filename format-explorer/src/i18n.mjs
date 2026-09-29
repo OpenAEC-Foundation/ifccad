@@ -191,7 +191,7 @@ export const english = {
   'Bestandsverwerking is niet beschikbaar':'File processing is unavailable',
   'IFCCAD-map kiezen':'Choose IFCCAD folder','DXF / DWG kiezen':'Choose DXF / DWG','Lokale lezer controleren…':'Checking local reader…',
   'Bestanden blijven op deze computer. Maximaal 64 MiB en 1000 bestanden.':'Files stay on this computer. Maximum 64 MiB and 1000 files.',
-  'Start de lokale lezer met cargo build -p ifccad-viewer.':'Build the local reader with cargo build -p ifccad-viewer.',
+  'Start de lokale lezer met cargo build -p ocdraw-viewer.':'Build the local reader with cargo build -p ocdraw-viewer.',
   'Bestanden openen vereist de lokale ontwikkelserver.':'Opening files requires the local development server.',
   'Bestandslimiet overschreden':'File limit exceeded','Geannuleerd':'Cancelled','Bestanden voorbereiden…':'Preparing files…',
   'Bestand inlezen…':'Reading file…','Omzetten naar IFCCAD…':'Converting to IFCCAD…','Pakket controleren…':'Validating package…','Graph voorbereiden…':'Preparing graph…',

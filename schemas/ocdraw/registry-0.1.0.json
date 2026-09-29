@@ -1,0 +1,2993 @@
+{
+  "$schema": "./registry-meta-schema-v1.json",
+  "registrySchemaVersion": "ocdraw.registry.v1",
+  "types": {
+    "entityId": {
+      "kind": "scalar",
+      "base": "uint64",
+      "minimum": 1
+    },
+    "unit": {
+      "kind": "enum",
+      "values": [
+        "unitless",
+        "in",
+        "ft",
+        "mi",
+        "mm",
+        "cm",
+        "m",
+        "km",
+        "microin",
+        "mil",
+        "yd",
+        "angstrom",
+        "nm",
+        "um",
+        "dm",
+        "dam",
+        "hm",
+        "Gm",
+        "au",
+        "ly",
+        "pc",
+        "usSurveyFoot",
+        "usSurveyInch",
+        "usSurveyYard",
+        "usSurveyMile"
+      ]
+    },
+    "appearanceMode": {
+      "kind": "enum",
+      "values": [
+        "ByLayer",
+        "Explicit",
+        "ByBlock"
+      ]
+    },
+    "point2": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "x",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "y",
+          "valueType": "float64",
+          "nullable": false
+        }
+      ]
+    },
+    "vertices": {
+      "kind": "sequence",
+      "items": "planarVertex",
+      "minItems": 2
+    },
+    "spatialVertices": {
+      "kind": "sequence",
+      "items": "point3",
+      "minItems": 2
+    },
+    "orderEntries": {
+      "kind": "sequence",
+      "items": "entityId",
+      "minItems": 0
+    },
+    "rgb": {
+      "kind": "sequence",
+      "items": "uint8",
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "indexedColor": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "system",
+          "valueType": "nonEmptyString",
+          "nullable": false
+        },
+        {
+          "name": "index",
+          "valueType": "uint64",
+          "nullable": false
+        }
+      ]
+    },
+    "namedColor": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "catalog",
+          "valueType": "nonEmptyString",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "valueType": "nonEmptyString",
+          "nullable": false
+        }
+      ]
+    },
+    "color": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "rgb",
+          "valueType": "rgb",
+          "nullable": false
+        },
+        {
+          "name": "indexedColor",
+          "valueType": "indexedColor",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "namedColor",
+          "valueType": "namedColor",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "nonEmptyString": {
+      "kind": "scalar",
+      "base": "string",
+      "minLength": 1
+    },
+    "opacity": {
+      "kind": "scalar",
+      "base": "float64",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "lineWeight": {
+      "kind": "scalar",
+      "base": "float64",
+      "minimum": 0
+    },
+    "point3": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "x",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "y",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "z",
+          "valueType": "float64",
+          "nullable": false
+        }
+      ]
+    },
+    "vector3": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "x",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "y",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "z",
+          "valueType": "float64",
+          "nullable": false
+        }
+      ]
+    },
+    "bounds3": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "minX",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "minY",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "minZ",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "maxX",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "maxY",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "maxZ",
+          "valueType": "float64",
+          "nullable": false
+        }
+      ]
+    },
+    "scopeKind": {
+      "kind": "enum",
+      "values": [
+        "ModelSpace",
+        "PaperSpace",
+        "BlockDefinition"
+      ]
+    },
+    "blockScaling": {
+      "kind": "enum",
+      "values": [
+        "Any",
+        "Uniform"
+      ]
+    },
+    "scale3": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "x",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "y",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "z",
+          "valueType": "float64",
+          "nullable": false
+        }
+      ]
+    },
+    "blockTransform": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "placement",
+          "valueType": "coordinateFrame3",
+          "nullable": false,
+          "default": {
+            "origin": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "X": {
+              "x": 1,
+              "y": 0,
+              "z": 0
+            },
+            "Y": {
+              "x": 0,
+              "y": 1,
+              "z": 0
+            }
+          }
+        },
+        {
+          "name": "rotation",
+          "valueType": "float64",
+          "nullable": false,
+          "default": 0
+        },
+        {
+          "name": "scale",
+          "valueType": "scale3",
+          "nullable": false,
+          "default": {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          }
+        }
+      ]
+    },
+    "viewportFrame": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "center",
+          "valueType": "point2",
+          "nullable": false
+        },
+        {
+          "name": "width",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "height",
+          "valueType": "float64",
+          "nullable": false
+        }
+      ]
+    },
+    "frontClipMode": {
+      "kind": "enum",
+      "values": [
+        "Disabled",
+        "AtCamera",
+        "AtDistance"
+      ]
+    },
+    "frontClip": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "mode",
+          "valueType": "frontClipMode",
+          "nullable": false
+        },
+        {
+          "name": "distance",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "backClipMode": {
+      "kind": "enum",
+      "values": [
+        "Disabled",
+        "AtDistance"
+      ]
+    },
+    "backClip": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "mode",
+          "valueType": "backClipMode",
+          "nullable": false
+        },
+        {
+          "name": "distance",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "projectionMode": {
+      "kind": "enum",
+      "values": [
+        "Orthographic",
+        "Perspective"
+      ]
+    },
+    "viewDefinition": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "center",
+          "valueType": "point2",
+          "nullable": false
+        },
+        {
+          "name": "target",
+          "valueType": "point3",
+          "nullable": false
+        },
+        {
+          "name": "direction",
+          "valueType": "vector3",
+          "nullable": false
+        },
+        {
+          "name": "height",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "twist",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "projection",
+          "valueType": "projectionMode",
+          "nullable": false
+        },
+        {
+          "name": "lensLength",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "frontClip",
+          "valueType": "frontClip",
+          "nullable": false
+        },
+        {
+          "name": "backClip",
+          "valueType": "backClip",
+          "nullable": false
+        }
+      ]
+    },
+    "viewportRenderMode": {
+      "kind": "enum",
+      "values": [
+        "TwoDimensional",
+        "Wireframe",
+        "HiddenLine",
+        "FlatShadedWithoutEdges",
+        "FlatShadedWithEdges",
+        "SmoothShadedWithoutEdges",
+        "SmoothShadedWithEdges"
+      ]
+    },
+    "paperClip": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "enabled",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "boundaryEntityId",
+          "valueType": "entityId",
+          "nullable": false,
+          "optional": true,
+          "reference": {
+            "category": "entity",
+            "target": "entity"
+          }
+        }
+      ]
+    },
+    "shadedPlotMode": {
+      "kind": "enum",
+      "values": [
+        "AsDisplayed",
+        "Wireframe",
+        "Hidden",
+        "Rendered"
+      ]
+    },
+    "shadedPlotQualityMode": {
+      "kind": "enum",
+      "values": [
+        "Draft",
+        "Preview",
+        "Normal",
+        "Presentation",
+        "Maximum",
+        "Custom"
+      ]
+    },
+    "shadedPlotQuality": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "mode",
+          "valueType": "shadedPlotQualityMode",
+          "nullable": false
+        },
+        {
+          "name": "dpi",
+          "valueType": "uint32",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "shadedPlot": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "mode",
+          "valueType": "shadedPlotMode",
+          "nullable": false
+        },
+        {
+          "name": "quality",
+          "valueType": "shadedPlotQuality",
+          "nullable": false
+        }
+      ]
+    },
+    "viewportLayerOverride": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "layer.id"
+          }
+        },
+        {
+          "name": "frozen",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "color",
+          "valueType": "color",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "opacity",
+          "valueType": "opacity",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "linePattern",
+          "valueType": "linePattern",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "lineWeight",
+          "valueType": "lineWeight",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "viewportLayerOverrides": {
+      "kind": "sequence",
+      "items": "viewportLayerOverride",
+      "minItems": 0
+    },
+    "planarVertex": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "x",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "y",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "bulge",
+          "valueType": "float64",
+          "nullable": false,
+          "default": 0
+        }
+      ]
+    },
+    "coordinateFrame3": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "origin",
+          "valueType": "point3",
+          "nullable": false
+        },
+        {
+          "name": "X",
+          "valueType": "vector3",
+          "nullable": false
+        },
+        {
+          "name": "Y",
+          "valueType": "vector3",
+          "nullable": false
+        }
+      ]
+    },
+    "ucsChoiceKind": {
+      "kind": "enum",
+      "values": [
+        "World",
+        "Named",
+        "Unnamed"
+      ]
+    },
+    "ucsSelection": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "ucsChoiceKind",
+          "nullable": false
+        },
+        {
+          "name": "ucsId",
+          "valueType": "uint32",
+          "nullable": false,
+          "optional": true,
+          "reference": {
+            "category": "tableField",
+            "target": "ucsDefinition.ucsId"
+          }
+        },
+        {
+          "name": "frame",
+          "valueType": "coordinateFrame3",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "normalizedRect2": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "minX",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "minY",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "maxX",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "maxY",
+          "valueType": "float64",
+          "nullable": false
+        }
+      ]
+    },
+    "gridStyle": {
+      "kind": "enum",
+      "values": [
+        "Lines",
+        "Dots"
+      ]
+    },
+    "gridSettings": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "enabled",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "spacing",
+          "valueType": "point2",
+          "nullable": false
+        },
+        {
+          "name": "style",
+          "valueType": "gridStyle",
+          "nullable": false
+        },
+        {
+          "name": "majorLineFrequency",
+          "valueType": "uint32",
+          "nullable": false
+        },
+        {
+          "name": "beyondLimits",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "adaptive",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "subdivision",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "followsWorkplane",
+          "valueType": "boolean",
+          "nullable": false
+        }
+      ]
+    },
+    "snapStyle": {
+      "kind": "enum",
+      "values": [
+        "Rectangular",
+        "Isometric"
+      ]
+    },
+    "isometricPlane": {
+      "kind": "enum",
+      "values": [
+        "Left",
+        "Top",
+        "Right"
+      ]
+    },
+    "snapSettings": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "enabled",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "base",
+          "valueType": "point2",
+          "nullable": false
+        },
+        {
+          "name": "spacing",
+          "valueType": "point2",
+          "nullable": false
+        },
+        {
+          "name": "angle",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "style",
+          "valueType": "snapStyle",
+          "nullable": false
+        },
+        {
+          "name": "isometricPlane",
+          "valueType": "isometricPlane",
+          "nullable": false
+        }
+      ]
+    },
+    "paperActiveKind": {
+      "kind": "enum",
+      "values": [
+        "Canvas",
+        "Viewport"
+      ]
+    },
+    "paperActiveContext": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "paperActiveKind",
+          "nullable": false
+        },
+        {
+          "name": "viewportEntityId",
+          "valueType": "entityId",
+          "nullable": false,
+          "optional": true,
+          "reference": {
+            "category": "entity",
+            "target": "entity"
+          }
+        }
+      ]
+    },
+    "drawingViewState": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "currentModelUcs",
+          "valueType": "ucsSelection",
+          "nullable": false
+        },
+        {
+          "name": "activeModelWindowId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "modelWindow.modelWindowId"
+          }
+        }
+      ]
+    },
+    "plotStyleMode": {
+      "kind": "enum",
+      "values": [
+        "colorDependent",
+        "named"
+      ]
+    },
+    "layoutKind": {
+      "kind": "enum",
+      "values": [
+        "model",
+        "paper"
+      ]
+    },
+    "linePattern": {
+      "kind": "enum",
+      "values": [
+        "Continuous"
+      ]
+    },
+    "drawingWorkspaceState": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "currentLayerId",
+          "valueType": "uint32",
+          "nullable": false,
+          "optional": true,
+          "reference": {
+            "category": "tableField",
+            "target": "layer.id"
+          }
+        },
+        {
+          "name": "activeLayoutId",
+          "valueType": "uint32",
+          "nullable": false,
+          "optional": true,
+          "reference": {
+            "category": "tableField",
+            "target": "layout.id"
+          }
+        }
+      ]
+    },
+    "plotRect": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "minX",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "minY",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "maxX",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "maxY",
+          "valueType": "float64",
+          "nullable": false
+        }
+      ]
+    },
+    "plotUnit": {
+      "kind": "enum",
+      "values": [
+        "mm",
+        "in",
+        "px"
+      ]
+    },
+    "plotRotation": {
+      "kind": "enum",
+      "values": [
+        "none",
+        "counterClockwise90",
+        "upsideDown",
+        "clockwise90"
+      ]
+    },
+    "plotMedia": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "unit",
+          "valueType": "plotUnit",
+          "nullable": false
+        },
+        {
+          "name": "width",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "height",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "printableArea",
+          "valueType": "plotRect",
+          "nullable": false
+        },
+        {
+          "name": "rotation",
+          "valueType": "plotRotation",
+          "nullable": false
+        },
+        {
+          "name": "deviceName",
+          "valueType": "string",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "mediaName",
+          "valueType": "string",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "plotAreaMode": {
+      "kind": "enum",
+      "values": [
+        "Layout",
+        "Extents",
+        "Limits",
+        "Window"
+      ]
+    },
+    "plotArea": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "mode",
+          "valueType": "plotAreaMode",
+          "nullable": false
+        },
+        {
+          "name": "window",
+          "valueType": "plotRect",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "plotScaleMode": {
+      "kind": "enum",
+      "values": [
+        "Fixed",
+        "FitToArea"
+      ]
+    },
+    "plotScale": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "mode",
+          "valueType": "plotScaleMode",
+          "nullable": false
+        },
+        {
+          "name": "outputLength",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "scopeLength",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "plotPlacementMode": {
+      "kind": "enum",
+      "values": [
+        "Centered",
+        "Offset"
+      ]
+    },
+    "plotOffsetReference": {
+      "kind": "enum",
+      "values": [
+        "Media",
+        "PrintableArea"
+      ]
+    },
+    "plotPlacement": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "mode",
+          "valueType": "plotPlacementMode",
+          "nullable": false
+        },
+        {
+          "name": "reference",
+          "valueType": "plotOffsetReference",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "x",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "y",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "plotMapping": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "scale",
+          "valueType": "plotScale",
+          "nullable": false
+        },
+        {
+          "name": "placement",
+          "valueType": "plotPlacement",
+          "nullable": false
+        }
+      ]
+    },
+    "plotOutput": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "shadedPlot",
+          "valueType": "shadedPlot",
+          "nullable": false
+        },
+        {
+          "name": "applyPlotStyles",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "plotStyleTableName",
+          "valueType": "string",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "plotOptions": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "plotViewportBorders",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "plotPaperSpaceLast",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "hidePaperSpaceObjects",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "plotLineWeights",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "scaleLineWeights",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "plotTransparency",
+          "valueType": "boolean",
+          "nullable": false
+        }
+      ]
+    },
+    "plotSettings": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "media",
+          "valueType": "plotMedia",
+          "nullable": false
+        },
+        {
+          "name": "area",
+          "valueType": "plotArea",
+          "nullable": false
+        },
+        {
+          "name": "mapping",
+          "valueType": "plotMapping",
+          "nullable": false
+        },
+        {
+          "name": "output",
+          "valueType": "plotOutput",
+          "nullable": false
+        },
+        {
+          "name": "options",
+          "valueType": "plotOptions",
+          "nullable": false
+        }
+      ]
+    },
+    "pointGlyph": {
+      "kind": "enum",
+      "values": [
+        "dot",
+        "hidden",
+        "plus",
+        "cross",
+        "shortLine"
+      ]
+    },
+    "pointForm": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "glyph",
+          "valueType": "pointGlyph",
+          "nullable": false
+        },
+        {
+          "name": "circle",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "square",
+          "valueType": "boolean",
+          "nullable": false
+        }
+      ]
+    },
+    "pointSizeKind": {
+      "kind": "enum",
+      "values": [
+        "defaultFivePercent",
+        "absolute",
+        "viewportPercent"
+      ]
+    },
+    "pointSize": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "pointSizeKind",
+          "nullable": false
+        },
+        {
+          "name": "value",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "pointDisplay": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "form",
+          "valueType": "pointForm",
+          "nullable": false
+        },
+        {
+          "name": "size",
+          "valueType": "pointSize",
+          "nullable": false
+        }
+      ]
+    }
+  },
+  "resource": {
+    "schemaId": "ocdraw.document.v1",
+    "fields": [
+      {
+        "name": "drawingId",
+        "valueType": "nonEmptyString",
+        "nullable": false
+      },
+      {
+        "name": "unit",
+        "valueType": "unit",
+        "nullable": false
+      },
+      {
+        "name": "nextEntityId",
+        "valueType": "entityId",
+        "nullable": false
+      },
+      {
+        "name": "nextLayerId",
+        "valueType": "uint32",
+        "nullable": false
+      },
+      {
+        "name": "nextLayoutId",
+        "valueType": "uint32",
+        "nullable": false
+      },
+      {
+        "name": "plotStyleMode",
+        "valueType": "plotStyleMode",
+        "nullable": false,
+        "default": "colorDependent"
+      },
+      {
+        "name": "pointDisplay",
+        "valueType": "pointDisplay",
+        "nullable": false,
+        "optional": true
+      },
+      {
+        "name": "drawingWorkspaceState",
+        "valueType": "drawingWorkspaceState",
+        "nullable": false,
+        "optional": true
+      },
+      {
+        "name": "drawingViewState",
+        "valueType": "drawingViewState",
+        "nullable": false,
+        "optional": true
+      }
+    ]
+  },
+  "tables": [
+    {
+      "name": "layer",
+      "schemaId": "ocdraw.layer.v1",
+      "default": [],
+      "fields": [
+        {
+          "name": "id",
+          "valueType": "uint32",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "valueType": "nonEmptyString",
+          "nullable": false
+        },
+        {
+          "name": "visible",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "frozen",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "locked",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "plottable",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "frozenInNewViewports",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "description",
+          "valueType": "string",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "color",
+          "valueType": "color",
+          "nullable": false
+        },
+        {
+          "name": "opacity",
+          "valueType": "opacity",
+          "nullable": false
+        },
+        {
+          "name": "linePattern",
+          "valueType": "linePattern",
+          "nullable": false
+        },
+        {
+          "name": "lineWeight",
+          "valueType": "lineWeight",
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "name": "layout",
+      "schemaId": "ocdraw.layout.v1",
+      "default": [],
+      "fields": [
+        {
+          "name": "id",
+          "valueType": "uint32",
+          "nullable": false
+        },
+        {
+          "name": "scopeId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "scope.id"
+          }
+        },
+        {
+          "name": "kind",
+          "valueType": "layoutKind",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "valueType": "nonEmptyString",
+          "nullable": false
+        },
+        {
+          "name": "tabIndex",
+          "valueType": "uint32",
+          "nullable": false
+        },
+        {
+          "name": "limits",
+          "valueType": "plotRect",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "limitsChecking",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": false
+        },
+        {
+          "name": "paperSpaceLinetypeScaling",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": true
+        },
+        {
+          "name": "plotSettings",
+          "valueType": "plotSettings",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "scope",
+      "schemaId": "ocdraw.scope.v3",
+      "default": [],
+      "fields": [
+        {
+          "name": "id",
+          "valueType": "uint32",
+          "nullable": false
+        },
+        {
+          "name": "kind",
+          "valueType": "scopeKind",
+          "nullable": false
+        },
+        {
+          "name": "bounds",
+          "valueType": "bounds3",
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "name": "blockDefinition",
+      "schemaId": "ocdraw.blockDefinition.v1",
+      "default": [],
+      "fields": [
+        {
+          "name": "scopeId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "scope.id"
+          }
+        },
+        {
+          "name": "name",
+          "valueType": "nonEmptyString",
+          "nullable": false
+        },
+        {
+          "name": "basePoint",
+          "valueType": "point3",
+          "nullable": false,
+          "default": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        },
+        {
+          "name": "description",
+          "valueType": "string",
+          "nullable": false,
+          "default": ""
+        },
+        {
+          "name": "anonymous",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": false
+        },
+        {
+          "name": "insertionUnit",
+          "valueType": "unit",
+          "nullable": false,
+          "default": "unitless"
+        },
+        {
+          "name": "explodable",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": true
+        },
+        {
+          "name": "scaling",
+          "valueType": "blockScaling",
+          "nullable": false,
+          "default": "Any"
+        }
+      ]
+    },
+    {
+      "name": "ucsDefinition",
+      "schemaId": "ocdraw.ucsDefinition.v1",
+      "default": [],
+      "fields": [
+        {
+          "name": "ucsId",
+          "valueType": "uint32",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "valueType": "nonEmptyString",
+          "nullable": false
+        },
+        {
+          "name": "frame",
+          "valueType": "coordinateFrame3",
+          "nullable": false
+        },
+        {
+          "name": "elevation",
+          "valueType": "float64",
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "name": "modelWindow",
+      "schemaId": "ocdraw.modelWindow.v1",
+      "default": [],
+      "fields": [
+        {
+          "name": "modelWindowId",
+          "valueType": "uint32",
+          "nullable": false
+        },
+        {
+          "name": "rectangle",
+          "valueType": "normalizedRect2",
+          "nullable": false
+        },
+        {
+          "name": "view",
+          "valueType": "viewDefinition",
+          "nullable": false
+        },
+        {
+          "name": "aspectRatio",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "renderMode",
+          "valueType": "viewportRenderMode",
+          "nullable": false
+        },
+        {
+          "name": "grid",
+          "valueType": "gridSettings",
+          "nullable": false
+        },
+        {
+          "name": "snap",
+          "valueType": "snapSettings",
+          "nullable": false
+        },
+        {
+          "name": "storedUcs",
+          "valueType": "ucsSelection",
+          "nullable": false
+        },
+        {
+          "name": "useStoredUcs",
+          "valueType": "boolean",
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "name": "paperCanvas",
+      "schemaId": "ocdraw.paperCanvas.v1",
+      "default": [],
+      "fields": [
+        {
+          "name": "scopeId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "scope.id"
+          }
+        },
+        {
+          "name": "view",
+          "valueType": "viewDefinition",
+          "nullable": false
+        },
+        {
+          "name": "grid",
+          "valueType": "gridSettings",
+          "nullable": false
+        },
+        {
+          "name": "snap",
+          "valueType": "snapSettings",
+          "nullable": false
+        },
+        {
+          "name": "storedUcs",
+          "valueType": "ucsSelection",
+          "nullable": false
+        },
+        {
+          "name": "currentUcs",
+          "valueType": "ucsSelection",
+          "nullable": false
+        },
+        {
+          "name": "activeContext",
+          "valueType": "paperActiveContext",
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "name": "viewportWorkspace",
+      "schemaId": "ocdraw.viewportWorkspace.v1",
+      "default": [],
+      "fields": [
+        {
+          "name": "viewportEntityId",
+          "valueType": "entityId",
+          "nullable": false,
+          "reference": {
+            "category": "entity",
+            "target": "entity"
+          }
+        },
+        {
+          "name": "grid",
+          "valueType": "gridSettings",
+          "nullable": false
+        },
+        {
+          "name": "snap",
+          "valueType": "snapSettings",
+          "nullable": false
+        },
+        {
+          "name": "storedUcs",
+          "valueType": "ucsSelection",
+          "nullable": false
+        },
+        {
+          "name": "useStoredUcs",
+          "valueType": "boolean",
+          "nullable": false
+        }
+      ]
+    }
+  ],
+  "streams": [
+    {
+      "name": "point",
+      "schemaId": "ocdraw.point.v1",
+      "role": "object",
+      "fields": [
+        {
+          "name": "entityId",
+          "valueType": "entityId",
+          "nullable": false,
+          "reference": {
+            "category": "entity",
+            "target": "entity"
+          }
+        },
+        {
+          "name": "scopeId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "scope.id"
+          }
+        },
+        {
+          "name": "placement",
+          "valueType": "coordinateFrame3",
+          "nullable": false,
+          "default": {
+            "origin": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "X": {
+              "x": 1,
+              "y": 0,
+              "z": 0
+            },
+            "Y": {
+              "x": 0,
+              "y": 1,
+              "z": 0
+            }
+          }
+        },
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "layer.id"
+          }
+        },
+        {
+          "name": "colorMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "color",
+          "valueType": "color",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "opacityMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "opacity",
+          "valueType": "opacity",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "linePatternMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "linePattern",
+          "valueType": "linePattern",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "lineWeightMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "lineWeight",
+          "valueType": "lineWeight",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "visible",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "line",
+      "schemaId": "ocdraw.line.v3",
+      "role": "object",
+      "fields": [
+        {
+          "name": "entityId",
+          "valueType": "entityId",
+          "nullable": false,
+          "reference": {
+            "category": "entity",
+            "target": "entity"
+          }
+        },
+        {
+          "name": "scopeId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "scope.id"
+          }
+        },
+        {
+          "name": "x1",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "y1",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "z1",
+          "valueType": "float64",
+          "nullable": false,
+          "default": 0
+        },
+        {
+          "name": "x2",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "y2",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "z2",
+          "valueType": "float64",
+          "nullable": false,
+          "default": 0
+        },
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "layer.id"
+          }
+        },
+        {
+          "name": "colorMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "color",
+          "valueType": "color",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "opacityMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "opacity",
+          "valueType": "opacity",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "linePatternMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "linePattern",
+          "valueType": "linePattern",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "lineWeightMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "lineWeight",
+          "valueType": "lineWeight",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "visible",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "planarPolyline",
+      "schemaId": "ocdraw.planarPolyline.v1",
+      "role": "object",
+      "fields": [
+        {
+          "name": "entityId",
+          "valueType": "entityId",
+          "nullable": false,
+          "reference": {
+            "category": "entity",
+            "target": "entity"
+          }
+        },
+        {
+          "name": "scopeId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "scope.id"
+          }
+        },
+        {
+          "name": "vertices",
+          "valueType": "vertices",
+          "nullable": false
+        },
+        {
+          "name": "closed",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "layer.id"
+          }
+        },
+        {
+          "name": "colorMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "color",
+          "valueType": "color",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "opacityMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "opacity",
+          "valueType": "opacity",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "linePatternMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "linePattern",
+          "valueType": "linePattern",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "lineWeightMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "lineWeight",
+          "valueType": "lineWeight",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "visible",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": true
+        },
+        {
+          "name": "placement",
+          "valueType": "coordinateFrame3",
+          "nullable": false,
+          "default": {
+            "origin": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "X": {
+              "x": 1,
+              "y": 0,
+              "z": 0
+            },
+            "Y": {
+              "x": 0,
+              "y": 1,
+              "z": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "spatialPolyline",
+      "schemaId": "ocdraw.spatialPolyline.v1",
+      "role": "object",
+      "fields": [
+        {
+          "name": "entityId",
+          "valueType": "entityId",
+          "nullable": false,
+          "reference": {
+            "category": "entity",
+            "target": "entity"
+          }
+        },
+        {
+          "name": "scopeId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "scope.id"
+          }
+        },
+        {
+          "name": "vertices",
+          "valueType": "spatialVertices",
+          "nullable": false
+        },
+        {
+          "name": "closed",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "layer.id"
+          }
+        },
+        {
+          "name": "colorMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "color",
+          "valueType": "color",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "opacityMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "opacity",
+          "valueType": "opacity",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "linePatternMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "linePattern",
+          "valueType": "linePattern",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "lineWeightMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "lineWeight",
+          "valueType": "lineWeight",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "visible",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "entityOrder",
+      "schemaId": "ocdraw.entityOrder.v1",
+      "role": "order",
+      "fields": [
+        {
+          "name": "scopeId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "scope.id"
+          }
+        },
+        {
+          "name": "entries",
+          "valueType": "orderEntries",
+          "nullable": false,
+          "reference": {
+            "category": "streamColumn",
+            "target": "entityOrderEntry.entityId"
+          }
+        }
+      ]
+    },
+    {
+      "name": "entityOrderEntry",
+      "schemaId": "ocdraw.entityOrderEntry.v1",
+      "role": "child",
+      "fields": [
+        {
+          "name": "entityId",
+          "valueType": "entityId",
+          "nullable": false,
+          "reference": {
+            "category": "entity",
+            "target": "entity"
+          }
+        }
+      ]
+    },
+    {
+      "name": "blockInstance",
+      "schemaId": "ocdraw.blockInstance.v1",
+      "role": "object",
+      "fields": [
+        {
+          "name": "entityId",
+          "valueType": "entityId",
+          "nullable": false,
+          "reference": {
+            "category": "entity",
+            "target": "entity"
+          }
+        },
+        {
+          "name": "scopeId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "scope.id"
+          }
+        },
+        {
+          "name": "definitionScopeId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "blockDefinition.scopeId"
+          }
+        },
+        {
+          "name": "transform",
+          "valueType": "blockTransform",
+          "nullable": false
+        },
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "layer.id"
+          }
+        },
+        {
+          "name": "colorMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "color",
+          "valueType": "color",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "opacityMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "opacity",
+          "valueType": "opacity",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "linePatternMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "linePattern",
+          "valueType": "linePattern",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "lineWeightMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "lineWeight",
+          "valueType": "lineWeight",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "visible",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "viewport",
+      "schemaId": "ocdraw.viewport.v1",
+      "role": "object",
+      "fields": [
+        {
+          "name": "entityId",
+          "valueType": "entityId",
+          "nullable": false,
+          "reference": {
+            "category": "entity",
+            "target": "entity"
+          }
+        },
+        {
+          "name": "scopeId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "scope.id"
+          }
+        },
+        {
+          "name": "viewScopeId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "scope.id"
+          }
+        },
+        {
+          "name": "frame",
+          "valueType": "viewportFrame",
+          "nullable": false
+        },
+        {
+          "name": "view",
+          "valueType": "viewDefinition",
+          "nullable": false
+        },
+        {
+          "name": "renderMode",
+          "valueType": "viewportRenderMode",
+          "nullable": false
+        },
+        {
+          "name": "viewEnabled",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "viewLocked",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "paperClip",
+          "valueType": "paperClip",
+          "nullable": false
+        },
+        {
+          "name": "plotShadingOverride",
+          "valueType": "shadedPlot",
+          "nullable": true
+        },
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "layer.id"
+          }
+        },
+        {
+          "name": "colorMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "color",
+          "valueType": "color",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "opacityMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "opacity",
+          "valueType": "opacity",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "linePatternMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "linePattern",
+          "valueType": "linePattern",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "lineWeightMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "lineWeight",
+          "valueType": "lineWeight",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "visible",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": true
+        },
+        {
+          "name": "layerOverrides",
+          "valueType": "viewportLayerOverrides",
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "name": "viewportLayerOverride",
+      "schemaId": "ocdraw.viewportLayerOverride.v1",
+      "role": "child",
+      "fields": [
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "layer.id"
+          }
+        },
+        {
+          "name": "frozen",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "color",
+          "valueType": "color",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "opacity",
+          "valueType": "opacity",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "linePattern",
+          "valueType": "linePattern",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "lineWeight",
+          "valueType": "lineWeight",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "circle",
+      "schemaId": "ocdraw.circle.v1",
+      "role": "object",
+      "fields": [
+        {
+          "name": "entityId",
+          "valueType": "entityId",
+          "nullable": false,
+          "reference": {
+            "category": "entity",
+            "target": "entity"
+          }
+        },
+        {
+          "name": "scopeId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "scope.id"
+          }
+        },
+        {
+          "name": "placement",
+          "valueType": "coordinateFrame3",
+          "nullable": false,
+          "default": {
+            "origin": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "X": {
+              "x": 1,
+              "y": 0,
+              "z": 0
+            },
+            "Y": {
+              "x": 0,
+              "y": 1,
+              "z": 0
+            }
+          }
+        },
+        {
+          "name": "radius",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "layer.id"
+          }
+        },
+        {
+          "name": "colorMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "color",
+          "valueType": "color",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "opacityMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "opacity",
+          "valueType": "opacity",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "linePatternMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "linePattern",
+          "valueType": "linePattern",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "lineWeightMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "lineWeight",
+          "valueType": "lineWeight",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "visible",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "arc",
+      "schemaId": "ocdraw.arc.v1",
+      "role": "object",
+      "fields": [
+        {
+          "name": "entityId",
+          "valueType": "entityId",
+          "nullable": false,
+          "reference": {
+            "category": "entity",
+            "target": "entity"
+          }
+        },
+        {
+          "name": "scopeId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "scope.id"
+          }
+        },
+        {
+          "name": "placement",
+          "valueType": "coordinateFrame3",
+          "nullable": false,
+          "default": {
+            "origin": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "X": {
+              "x": 1,
+              "y": 0,
+              "z": 0
+            },
+            "Y": {
+              "x": 0,
+              "y": 1,
+              "z": 0
+            }
+          }
+        },
+        {
+          "name": "radius",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "startParameter",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "sweepParameter",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "layer.id"
+          }
+        },
+        {
+          "name": "colorMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "color",
+          "valueType": "color",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "opacityMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "opacity",
+          "valueType": "opacity",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "linePatternMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "linePattern",
+          "valueType": "linePattern",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "lineWeightMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "lineWeight",
+          "valueType": "lineWeight",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "visible",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "ellipse",
+      "schemaId": "ocdraw.ellipse.v1",
+      "role": "object",
+      "fields": [
+        {
+          "name": "entityId",
+          "valueType": "entityId",
+          "nullable": false,
+          "reference": {
+            "category": "entity",
+            "target": "entity"
+          }
+        },
+        {
+          "name": "scopeId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "scope.id"
+          }
+        },
+        {
+          "name": "placement",
+          "valueType": "coordinateFrame3",
+          "nullable": false,
+          "default": {
+            "origin": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "X": {
+              "x": 1,
+              "y": 0,
+              "z": 0
+            },
+            "Y": {
+              "x": 0,
+              "y": 1,
+              "z": 0
+            }
+          }
+        },
+        {
+          "name": "semiMajorRadius",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "semiMinorRadius",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "layer.id"
+          }
+        },
+        {
+          "name": "colorMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "color",
+          "valueType": "color",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "opacityMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "opacity",
+          "valueType": "opacity",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "linePatternMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "linePattern",
+          "valueType": "linePattern",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "lineWeightMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "lineWeight",
+          "valueType": "lineWeight",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "visible",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "ellipseArc",
+      "schemaId": "ocdraw.ellipseArc.v1",
+      "role": "object",
+      "fields": [
+        {
+          "name": "entityId",
+          "valueType": "entityId",
+          "nullable": false,
+          "reference": {
+            "category": "entity",
+            "target": "entity"
+          }
+        },
+        {
+          "name": "scopeId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "scope.id"
+          }
+        },
+        {
+          "name": "placement",
+          "valueType": "coordinateFrame3",
+          "nullable": false,
+          "default": {
+            "origin": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "X": {
+              "x": 1,
+              "y": 0,
+              "z": 0
+            },
+            "Y": {
+              "x": 0,
+              "y": 1,
+              "z": 0
+            }
+          }
+        },
+        {
+          "name": "semiMajorRadius",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "semiMinorRadius",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "startParameter",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "sweepParameter",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "layer.id"
+          }
+        },
+        {
+          "name": "colorMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "color",
+          "valueType": "color",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "opacityMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "opacity",
+          "valueType": "opacity",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "linePatternMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "linePattern",
+          "valueType": "linePattern",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "lineWeightMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "lineWeight",
+          "valueType": "lineWeight",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "visible",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": true
+        }
+      ]
+    }
+  ],
+  "invariants": [
+    {
+      "id": "entity.identity",
+      "contract": "logical-contract-0.9.0.md#entity-identity"
+    },
+    {
+      "id": "entity.next-id",
+      "contract": "logical-contract-0.9.0.md#entity-next-id"
+    },
+    {
+      "id": "reference.local",
+      "contract": "logical-contract-0.9.0.md#reference-local"
+    },
+    {
+      "id": "order.coverage",
+      "contract": "logical-contract-0.9.0.md#order-coverage"
+    },
+    {
+      "id": "geometry.finite",
+      "contract": "logical-contract-0.9.0.md#geometry-finite"
+    },
+    {
+      "id": "polyline.vertex-count",
+      "contract": "logical-contract-0.9.0.md#polyline-vertex-count"
+    },
+    {
+      "id": "bounds.enclosure",
+      "contract": "logical-contract-0.9.0.md#bounds-enclosure"
+    },
+    {
+      "id": "appearance.values",
+      "contract": "logical-contract-0.9.0.md#appearance-values"
+    },
+    {
+      "id": "appearance.source",
+      "contract": "logical-contract-0.9.0.md#appearance-source"
+    },
+    {
+      "id": "plane.frame",
+      "contract": "logical-contract-0.9.0.md#plane-frame"
+    },
+    {
+      "id": "scope.kinds",
+      "contract": "logical-contract-0.9.0.md#scope-kinds"
+    },
+    {
+      "id": "block.definitions",
+      "contract": "logical-contract-0.9.0.md#block-definitions"
+    },
+    {
+      "id": "block.transforms",
+      "contract": "logical-contract-0.9.0.md#block-transforms"
+    },
+    {
+      "id": "block.graph",
+      "contract": "logical-contract-0.9.0.md#block-graph"
+    },
+    {
+      "id": "name.uniqueness",
+      "contract": "logical-contract-0.9.0.md#name-uniqueness"
+    },
+    {
+      "id": "unit.meaning",
+      "contract": "logical-contract-0.9.0.md#unit-meaning"
+    },
+    {
+      "id": "viewport.owner",
+      "contract": "logical-contract-0.11.0.md#viewport-entities"
+    },
+    {
+      "id": "viewport.view",
+      "contract": "logical-contract-0.11.0.md#viewport-entities"
+    },
+    {
+      "id": "viewport.clip",
+      "contract": "logical-contract-0.11.0.md#viewport-entities"
+    },
+    {
+      "id": "viewport.overrides",
+      "contract": "logical-contract-0.11.0.md#viewport-entities"
+    },
+    {
+      "id": "workspace.local-references",
+      "contract": "logical-contract-0.12.0.md#workspace-references"
+    },
+    {
+      "id": "workspace.values",
+      "contract": "logical-contract-0.12.0.md#workspace-values"
+    },
+    {
+      "id": "workspace.activation",
+      "contract": "logical-contract-0.12.0.md#workspace-activation"
+    }
+  ],
+  "ocdrawVersion": "0.1.0"
+}

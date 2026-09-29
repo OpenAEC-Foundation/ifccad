@@ -1,16 +1,16 @@
-use ifccad::ifcdr::{EntityId, IfcdrLengthUnit, Point2};
-use ifccad::package::{
+use ocdraw::ifcdr::{EntityId, IfcdrLengthUnit, Point2};
+use ocdraw::package::{
     AppearanceColor, AppearanceDefinition, AppearanceKey, AppearanceMode, DrawingBuilder,
     DrawingOptions, EntityAppearance, LayerDefinition, LayerKey, LineDefinition,
     LinePatternDefinition, PackageBuildError, PackageBuilder, PackageOptions,
     PlanarPolylineDefinition,
 };
-use ifccad::{PackageId, ResourceId};
+use ocdraw::{PackageId, ResourceId};
 
 #[test]
 fn shared_definition_in_model_and_paper_keeps_scope_bounds_separate() {
-    use ifccad::ifcdr::{BlockTransform, Point3, Scale3, Vector3};
-    use ifccad::package::{BlockDefinitionOptions, BlockInstanceDefinition};
+    use ocdraw::ifcdr::{BlockTransform, Point3, Scale3, Vector3};
+    use ocdraw::package::{BlockDefinitionOptions, BlockInstanceDefinition};
     let mut package = PackageBuilder::new(package_options("2026-09-21T10:00:00Z")).unwrap();
     let mut drawing = package.add_drawing(drawing_options()).unwrap();
     let (layer, _) = add_default_layer(&mut drawing);
@@ -75,7 +75,7 @@ fn shared_definition_in_model_and_paper_keeps_scope_bounds_separate() {
 
 #[test]
 fn empty_definition_instances_do_not_create_bounds() {
-    use ifccad::package::{BlockDefinitionOptions, BlockInstanceDefinition};
+    use ocdraw::package::{BlockDefinitionOptions, BlockInstanceDefinition};
     let mut package = PackageBuilder::new(package_options("2026-09-21T10:00:00Z")).unwrap();
     let mut drawing = package.add_drawing(drawing_options()).unwrap();
     let (layer, _) = add_default_layer(&mut drawing);
@@ -105,7 +105,7 @@ fn empty_definition_instances_do_not_create_bounds() {
 
 #[test]
 fn foreign_block_and_paper_keys_do_not_allocate_entity_ids() {
-    use ifccad::package::{BlockDefinitionOptions, BlockInstanceDefinition};
+    use ocdraw::package::{BlockDefinitionOptions, BlockInstanceDefinition};
     let mut other = PackageBuilder::new(package_options("2026-09-21T10:00:00Z")).unwrap();
     let mut other = other.add_drawing(drawing_options()).unwrap();
     let foreign = other
@@ -203,8 +203,8 @@ fn supplied_ids_advance_allocation_without_recycling_gaps() {
     let mut drawing = package.add_drawing(drawing_options()).unwrap();
     let (layer, _) = add_default_layer(&mut drawing);
     let definition = LineDefinition {
-        start: ifccad::ifcdr::Point3::new(0., 0., 0.0),
-        end: ifccad::ifcdr::Point3::new(1., 1., 0.0),
+        start: ocdraw::ifcdr::Point3::new(0., 0., 0.0),
+        end: ocdraw::ifcdr::Point3::new(1., 1., 0.0),
         layer,
         appearance: EntityAppearance::by_layer(),
         visible: true,
@@ -292,9 +292,9 @@ fn package_requires_exactly_one_drawing() {
 
 #[test]
 fn drawing_facades_have_contextual_public_types() {
-    fn appearances(_: ifccad::package::DrawingAppearances<'_>) {}
-    fn layers(_: ifccad::package::DrawingLayers<'_>) {}
-    fn model_space(_: ifccad::package::ModelSpaceBuilder<'_>) {}
+    fn appearances(_: ocdraw::package::DrawingAppearances<'_>) {}
+    fn layers(_: ocdraw::package::DrawingLayers<'_>) {}
+    fn model_space(_: ocdraw::package::ModelSpaceBuilder<'_>) {}
     let _ = (appearances, layers, model_space);
 }
 
@@ -504,8 +504,8 @@ fn entities_receive_global_ids_in_mixed_insertion_order() {
     let first = drawing
         .model_space()
         .add_line(LineDefinition {
-            start: ifccad::ifcdr::Point3::new(0.0, 0.0, 0.0),
-            end: ifccad::ifcdr::Point3::new(1.0, 1.0, 0.0),
+            start: ocdraw::ifcdr::Point3::new(0.0, 0.0, 0.0),
+            end: ocdraw::ifcdr::Point3::new(1.0, 1.0, 0.0),
             layer,
             appearance: EntityAppearance::by_layer(),
             visible: true,
@@ -514,7 +514,7 @@ fn entities_receive_global_ids_in_mixed_insertion_order() {
     let second = drawing
         .model_space()
         .add_planar_polyline(PlanarPolylineDefinition {
-            placement: ifccad::ifcdr::CoordinateFrame3::default(),
+            placement: ocdraw::ifcdr::CoordinateFrame3::default(),
             bulges: Vec::new(),
             points: vec![Point2::new(-2.0, 3.0), Point2::new(4.0, -5.0)],
             closed: false,
@@ -526,8 +526,8 @@ fn entities_receive_global_ids_in_mixed_insertion_order() {
     let third = drawing
         .model_space()
         .add_line(LineDefinition {
-            start: ifccad::ifcdr::Point3::new(2.0, 2.0, 0.0),
-            end: ifccad::ifcdr::Point3::new(3.0, 3.0, 0.0),
+            start: ocdraw::ifcdr::Point3::new(2.0, 2.0, 0.0),
+            end: ocdraw::ifcdr::Point3::new(3.0, 3.0, 0.0),
             layer,
             appearance: EntityAppearance::by_block(),
             visible: true,
@@ -547,8 +547,8 @@ fn entities_encode_each_appearance_inheritance_mode_independently() {
         drawing
             .model_space()
             .add_line(LineDefinition {
-                start: ifccad::ifcdr::Point3::new(0.0, 0.0, 0.0),
-                end: ifccad::ifcdr::Point3::new(1.0, 1.0, 0.0),
+                start: ocdraw::ifcdr::Point3::new(0.0, 0.0, 0.0),
+                end: ocdraw::ifcdr::Point3::new(1.0, 1.0, 0.0),
                 layer,
                 appearance: EntityAppearance {
                     appearance: Some(style),
@@ -590,8 +590,8 @@ fn explicit_appearance_modes_require_a_definition_without_advancing_ids() {
 
     assert!(matches!(
         drawing.model_space().add_line(LineDefinition {
-            start: ifccad::ifcdr::Point3::new(0.0, 0.0, 0.0),
-            end: ifccad::ifcdr::Point3::new(1.0, 1.0, 0.0),
+            start: ocdraw::ifcdr::Point3::new(0.0, 0.0, 0.0),
+            end: ocdraw::ifcdr::Point3::new(1.0, 1.0, 0.0),
             layer,
             appearance: invalid,
             visible: true,
@@ -601,8 +601,8 @@ fn explicit_appearance_modes_require_a_definition_without_advancing_ids() {
     let first = drawing
         .model_space()
         .add_line(LineDefinition {
-            start: ifccad::ifcdr::Point3::new(0.0, 0.0, 0.0),
-            end: ifccad::ifcdr::Point3::new(1.0, 1.0, 0.0),
+            start: ocdraw::ifcdr::Point3::new(0.0, 0.0, 0.0),
+            end: ocdraw::ifcdr::Point3::new(1.0, 1.0, 0.0),
             layer,
             appearance: EntityAppearance::by_layer(),
             visible: true,
@@ -629,8 +629,8 @@ fn identical_mixed_appearance_bindings_are_reused() {
             drawing
                 .model_space()
                 .add_line(LineDefinition {
-                    start: ifccad::ifcdr::Point3::new(0.0, y, 0.0),
-                    end: ifccad::ifcdr::Point3::new(1.0, y, 0.0),
+                    start: ocdraw::ifcdr::Point3::new(0.0, y, 0.0),
+                    end: ocdraw::ifcdr::Point3::new(1.0, y, 0.0),
                     layer,
                     appearance: mixed,
                     visible: true,
@@ -662,8 +662,8 @@ fn entities_reject_foreign_keys_without_advancing_ids() {
 
     assert!(matches!(
         second.model_space().add_line(LineDefinition {
-            start: ifccad::ifcdr::Point3::new(0.0, 0.0, 0.0),
-            end: ifccad::ifcdr::Point3::new(1.0, 1.0, 0.0),
+            start: ocdraw::ifcdr::Point3::new(0.0, 0.0, 0.0),
+            end: ocdraw::ifcdr::Point3::new(1.0, 1.0, 0.0),
             layer: first_layer,
             appearance: EntityAppearance::by_layer(),
             visible: true,
@@ -672,8 +672,8 @@ fn entities_reject_foreign_keys_without_advancing_ids() {
     ));
     assert!(matches!(
         second.model_space().add_line(LineDefinition {
-            start: ifccad::ifcdr::Point3::new(0.0, 0.0, 0.0),
-            end: ifccad::ifcdr::Point3::new(1.0, 1.0, 0.0),
+            start: ocdraw::ifcdr::Point3::new(0.0, 0.0, 0.0),
+            end: ocdraw::ifcdr::Point3::new(1.0, 1.0, 0.0),
             layer: second_layer,
             appearance: EntityAppearance::explicit(first_style),
             visible: true,
@@ -684,8 +684,8 @@ fn entities_reject_foreign_keys_without_advancing_ids() {
     let first_valid = second
         .model_space()
         .add_line(LineDefinition {
-            start: ifccad::ifcdr::Point3::new(0.0, 0.0, 0.0),
-            end: ifccad::ifcdr::Point3::new(1.0, 1.0, 0.0),
+            start: ocdraw::ifcdr::Point3::new(0.0, 0.0, 0.0),
+            end: ocdraw::ifcdr::Point3::new(1.0, 1.0, 0.0),
             layer: second_layer,
             appearance: EntityAppearance::explicit(second_style),
             visible: true,
@@ -702,8 +702,8 @@ fn entities_reject_invalid_geometry_without_advancing_ids() {
 
     assert!(matches!(
         drawing.model_space().add_line(LineDefinition {
-            start: ifccad::ifcdr::Point3::new(f64::NAN, 0.0, 0.0),
-            end: ifccad::ifcdr::Point3::new(1.0, 1.0, 0.0),
+            start: ocdraw::ifcdr::Point3::new(f64::NAN, 0.0, 0.0),
+            end: ocdraw::ifcdr::Point3::new(1.0, 1.0, 0.0),
             layer,
             appearance: EntityAppearance::by_layer(),
             visible: true,
@@ -715,7 +715,7 @@ fn entities_reject_invalid_geometry_without_advancing_ids() {
             drawing
                 .model_space()
                 .add_planar_polyline(PlanarPolylineDefinition {
-                    placement: ifccad::ifcdr::CoordinateFrame3::default(),
+                    placement: ocdraw::ifcdr::CoordinateFrame3::default(),
                     bulges: Vec::new(),
                     points,
                     closed: false,
@@ -730,7 +730,7 @@ fn entities_reject_invalid_geometry_without_advancing_ids() {
         drawing
             .model_space()
             .add_planar_polyline(PlanarPolylineDefinition {
-                placement: ifccad::ifcdr::CoordinateFrame3::default(),
+                placement: ocdraw::ifcdr::CoordinateFrame3::default(),
                 bulges: Vec::new(),
                 points: vec![Point2::new(0.0, 0.0), Point2::new(f64::INFINITY, 1.0)],
                 closed: false,
@@ -744,8 +744,8 @@ fn entities_reject_invalid_geometry_without_advancing_ids() {
     let first_valid = drawing
         .model_space()
         .add_line(LineDefinition {
-            start: ifccad::ifcdr::Point3::new(0.0, 0.0, 0.0),
-            end: ifccad::ifcdr::Point3::new(1.0, 1.0, 0.0),
+            start: ocdraw::ifcdr::Point3::new(0.0, 0.0, 0.0),
+            end: ocdraw::ifcdr::Point3::new(1.0, 1.0, 0.0),
             layer,
             appearance: EntityAppearance::by_layer(),
             visible: true,

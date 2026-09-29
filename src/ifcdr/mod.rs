@@ -3,19 +3,19 @@
 #![allow(dead_code)]
 
 pub(crate) mod codec;
-pub(crate) mod geometry;
+pub(crate) use crate::drawing::geometry;
 pub(crate) mod logical;
 mod read;
-mod types;
+use crate::drawing::types;
 pub(crate) mod write;
 
-#[allow(deprecated)]
 pub use geometry::{
     BlockTransform, BlockTransformError, Bounds3d, CoordinateAxis, CoordinateFrame3,
-    GeometryEvaluationError, PlaneAxis, PlanePlacement, PlanePlacementError, PlanePlacementField,
-    Point3, Scale3, Vector3,
+    CoordinateFrameError, CoordinateFrameField, GeometryEvaluationError, PlaneAxis, Point3, Scale3,
+    Vector3,
 };
 
+pub(crate) use crate::drawing::names;
 pub use logical::{
     BackClip, BackClipMode, FrontClip, FrontClipMode, PaperClip, ProjectionMode, ShadedPlot,
     ShadedPlotMode, ShadedPlotQuality, ShadedPlotQualityMode, ViewDefinition, ViewportFrame,
@@ -37,4 +37,3 @@ pub use read::{
 pub use types::{
     AppearanceId, BlockScaling, Bounds2d, EntityId, IfcdrLengthUnit, LayerId, Point2, ScopeId,
 };
-pub(crate) mod names;

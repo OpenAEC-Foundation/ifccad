@@ -198,7 +198,7 @@ First measurement difference: —. First artifact difference: —.
 Run from the repository root with a **new** run name:
 
 ```text
-cargo run -p ifccad-convert --example size_baseline -- --run baseline-v1-review
+cargo run -p ocdraw-convert --example size_baseline -- --run baseline-v1-review
 ```
 
 Add `--case mixed-1000` for a labelled partial diagnostic run. The command returns failure for failed checks or nondeterminism, retaining its report. It never replaces an accepted baseline or overwrites an existing run.

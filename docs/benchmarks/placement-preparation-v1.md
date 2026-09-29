@@ -100,10 +100,10 @@ when actual workloads and profiling show enough remaining preparation cost.
 
 ## Reproduction
 
-Build `cargo build -p ifccad-convert --example placement_inventory`, then run
+Build `cargo build -p ocdraw-convert --example placement_inventory`, then run
 `placement_inventory INPUT OUTPUT_JSON` for each original file. Exclude
 `converted/`; record relative paths and file SHA-256 values. The recorded sweep
 used separate processes with a 30-second reader timeout; none timed out. The
-[example](../../crates/ifccad-convert/examples/placement_inventory.rs) counts
+[example](../../crates/ocdraw-convert/examples/placement_inventory.rs) counts
 raw normal/elevation tuples by exact equality, treating signed zeros as equal.
 No source CAD files are copied into this repository.

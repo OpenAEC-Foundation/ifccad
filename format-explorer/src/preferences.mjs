@@ -1,4 +1,4 @@
-export const preferenceKey = 'ifccad-viewer.settings.v1';
+export const preferenceKey = 'ocdraw-viewer.settings.v1';
 const normalized = value => ({
   language:['auto','nl','en'].includes(value?.language)?value.language:'auto',
   appearance:['auto','light','dark'].includes(value?.appearance)?value.appearance:'auto',

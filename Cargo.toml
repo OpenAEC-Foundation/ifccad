@@ -1,18 +1,18 @@
 [package]
-name = "ifccad"
+name = "ocdraw"
 version = "0.1.0"
 edition = "2021"
-description = "Rust implementation and language-neutral format contract for IFCCAD"
+description = "Open CAD Drawing information model and exchange format"
 license = "MPL-2.0"
 repository = "https://github.com/OpenAEC-Foundation/ifccad"
 homepage = "https://github.com/OpenAEC-Foundation/ifccad"
-documentation = "https://docs.rs/ifccad"
+documentation = "https://docs.rs/ocdraw"
 readme = "README.md"
-keywords = ["cad", "ifc", "ifccad", "bim", "conformance"]
+keywords = ["cad", "drawing", "ocdraw", "exchange", "conformance"]
 categories = ["parser-implementations", "encoding"]
 
 [workspace]
-members = ["crates/ifccad-convert", "crates/ifccad-viewer", "crates/ifccad-browser"]
+members = ["crates/ocdraw-convert", "crates/ocdraw-viewer", "crates/ocdraw-browser"]
 resolver = "2"
 
 [features]

@@ -3,7 +3,7 @@ set -euo pipefail
 docker exec ifccad-explorer-explorer-1 node --version
 docker exec ifccad-explorer-explorer-1 ldd --version | head -1
 docker inspect --format '{{.Config.WorkingDir}}' ifccad-explorer-explorer-1
-docker inspect --format '{{json .Config.Env}}' ifccad-explorer-explorer-1 | python3 -c 'import json,sys; print("\n".join(v for v in json.load(sys.stdin) if v.split("=",1)[0] in ("PORT", "PUBLIC_ORIGIN", "IFCCAD_VIEWER_BIN", "NODE_ENV")))'
+docker inspect --format '{{json .Config.Env}}' ifccad-explorer-explorer-1 | python3 -c 'import json,sys; print("\n".join(v for v in json.load(sys.stdin) if v.split("=",1)[0] in ("PORT", "PUBLIC_ORIGIN", "OCDRAW_VIEWER_BIN", "NODE_ENV")))'
 uname -m
 . /etc/os-release
 printf 'OS: %s %s\n' "$ID" "$VERSION_ID"
@@ -11,7 +11,7 @@ command -v node || true
 node --version || true
 systemctl list-unit-files --no-pager --no-legend | awk '$1 ~ /ifccad|format-explorer/ {print $1}' | while read -r unit; do
   systemctl show "$unit" --property=Id,FragmentPath,WorkingDirectory,User,Group,ActiveState,SubState,MainPID
-  systemctl cat "$unit" | grep -E '^(WorkingDirectory|ExecStart|User|Group|ProtectSystem|ProtectHome|PrivateTmp|MemoryMax|CPUQuota|ReadWritePaths|NoNewPrivileges|Environment=(PORT|PUBLIC_ORIGIN|IFCCAD_VIEWER_BIN|NODE_ENV))=' || true
+  systemctl cat "$unit" | grep -E '^(WorkingDirectory|ExecStart|User|Group|ProtectSystem|ProtectHome|PrivateTmp|MemoryMax|CPUQuota|ReadWritePaths|NoNewPrivileges|Environment=(PORT|PUBLIC_ORIGIN|OCDRAW_VIEWER_BIN|NODE_ENV))=' || true
   pid=$(systemctl show "$unit" --property=MainPID --value)
   if [[ "$pid" =~ ^[1-9][0-9]*$ ]]; then
     readlink "/proc/$pid/exe" || true

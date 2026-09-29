@@ -1,5 +1,5 @@
-use ifccad::canonicalization::{canonicalize, canonicalize_typed_value, CanonicalValue};
-use ifccad::conformance::{bundled_conformance_root, verify_canonicalization_vectors};
+use ocdraw::canonicalization::{canonicalize, canonicalize_typed_value, CanonicalValue};
+use ocdraw::conformance::{bundled_conformance_root, verify_canonicalization_vectors};
 use serde_json::json;
 
 #[test]

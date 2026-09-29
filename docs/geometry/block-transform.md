@@ -1,6 +1,6 @@
 # Native block transform foundation
 
-`BlockTransform` retains a validated `PlanePlacement`, a separate finite angle
+`BlockTransform` retains a validated `CoordinateFrame3`, a separate finite angle
 in radians and three finite, nonzero signed scale factors. It does not retain an
 affine matrix or replace its inputs with a normalized representation.
 `Scale3::is_uniform` compares the three signed values exactly; a mixed-sign

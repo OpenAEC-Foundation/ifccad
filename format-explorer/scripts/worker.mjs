@@ -2,7 +2,7 @@ import {spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {access} from 'node:fs/promises';
 import {limits} from './upload-paths.mjs';
-export const executable=process.env.IFCCAD_VIEWER_BIN||fileURLToPath(new URL('../../target/debug/ifccad-viewer'+(process.platform==='win32'?'.exe':''),import.meta.url));
+export const executable=process.env.OCDRAW_VIEWER_BIN||fileURLToPath(new URL('../../target/debug/ocdraw-viewer'+(process.platform==='win32'?'.exe':''),import.meta.url));
 export async function workerAvailable(){try{await access(executable);return true;}catch{return false;}}
 export function runWorker({kind,input,output,export:exp,signal,onProgress,cap=limits}){
  return new Promise((resolve,reject)=>{

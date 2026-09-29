@@ -23,7 +23,7 @@ jobs:
         id: browser-cache
         with:
           path: format-explorer/wasm-build
-          key: ifccad-browser-wasm-ubuntu24-v1-${{ hashFiles('Cargo.toml', 'crates/**/Cargo.toml', 'src/**/*.rs', 'crates/**/src/**/*.rs', 'schemas/**', 'crates/ifccad-convert/README.md') }}
+          key: ocdraw-browser-wasm-ubuntu24-v1-${{ hashFiles('Cargo.toml', 'crates/**/Cargo.toml', 'src/**/*.rs', 'crates/**/src/**/*.rs', 'schemas/**', 'crates/ocdraw-convert/README.md') }}
       - uses: dtolnay/rust-toolchain@stable
         if: steps.browser-cache.outputs.cache-hit != 'true'
         with:
@@ -36,18 +36,18 @@ jobs:
           tool: wasm-pack
       - name: Build browser processor
         if: steps.browser-cache.outputs.cache-hit != 'true'
-        run: wasm-pack build crates/ifccad-browser --target web --out-dir ../../format-explorer/wasm-build --release
+        run: wasm-pack build crates/ocdraw-browser --target web --out-dir ../../format-explorer/wasm-build --release
       - uses: actions/setup-node@v5
         with:
           node-version: '22'
       - name: Verify browser processor
         run: |
-          test -s format-explorer/wasm-build/ifccad_browser.js
-          test -s format-explorer/wasm-build/ifccad_browser_bg.wasm
+          test -s format-explorer/wasm-build/ocdraw_browser.js
+          test -s format-explorer/wasm-build/ocdraw_browser_bg.wasm
           node format-explorer/tests/wasm-smoke.mjs
       - uses: actions/upload-artifact@v4
         with:
-          name: ifccad-browser-wasm
+          name: ocdraw-browser-wasm
           path: format-explorer/wasm-build/
           retention-days: 7
 
@@ -163,7 +163,7 @@ jobs:
           path: format-explorer/ocs-build
       - uses: actions/download-artifact@v4
         with:
-          name: ifccad-browser-wasm
+          name: ocdraw-browser-wasm
           path: format-explorer/wasm-build
       - uses: actions/setup-node@v5
         with:
@@ -175,8 +175,8 @@ jobs:
       - uses: actions/cache@v4
         id: reader-cache
         with:
-          path: target/release/ifccad-viewer
-          key: ifccad-reader-debian12-v1-${{ hashFiles('Cargo.toml', 'crates/**/Cargo.toml', 'src/**/*.rs', 'crates/**/src/**/*.rs', 'schemas/**', 'crates/ifccad-convert/README.md') }}
+          path: target/release/ocdraw-viewer
+          key: ifccad-reader-debian12-v1-${{ hashFiles('Cargo.toml', 'crates/**/Cargo.toml', 'src/**/*.rs', 'crates/**/src/**/*.rs', 'schemas/**', 'crates/ocdraw-convert/README.md') }}
       - name: Cache Rust build dependencies
         if: steps.reader-cache.outputs.cache-hit != 'true'
         uses: Swatinem/rust-cache@v2
@@ -186,16 +186,16 @@ jobs:
         run: |
           test -s format-explorer/ocs-build/index.html
           test -n "$(find format-explorer/ocs-build -name '*.wasm' -print -quit)"
-          test -s format-explorer/wasm-build/ifccad_browser_bg.wasm
+          test -s format-explorer/wasm-build/ocdraw_browser_bg.wasm
           bash -n format-explorer/deploy/release.sh
           npm --prefix format-explorer test
           npm --prefix format-explorer run build
-          test -s format-explorer/dist/wasm/ifccad_browser_bg.wasm
+          test -s format-explorer/dist/wasm/ocdraw_browser_bg.wasm
       - name: Build production reader
         if: steps.reader-cache.outputs.cache-hit != 'true'
-        run: cargo build --release -p ifccad-viewer
+        run: cargo build --release -p ocdraw-viewer
       - name: Verify production reader
-        run: test -x target/release/ifccad-viewer
+        run: test -x target/release/ocdraw-viewer
       - name: Assemble and exercise release
         shell: bash
         env:
@@ -208,9 +208,9 @@ jobs:
           cp format-explorer/src/cad-formats.mjs "$release/src/"
           cp format-explorer/deploy/container.mjs "$release/"
           cp format-explorer/deploy/smoke.mjs "$release/deploy/"
-          cp target/release/ifccad-viewer LICENSE "$release/"
+          cp target/release/ocdraw-viewer LICENSE "$release/"
           node -e 'require("fs").writeFileSync(process.argv[1],JSON.stringify({revision:process.env.GITHUB_SHA,builtAt:new Date().toISOString()}))' "$release/dist/version.json"
-          export IFCCAD_VIEWER_BIN="$release/ifccad-viewer"
+          export OCDRAW_VIEWER_BIN="$release/ocdraw-viewer"
           node "$release/container.mjs" &
           server=$!
           trap 'kill "$server" 2>/dev/null || true' EXIT

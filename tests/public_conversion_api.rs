@@ -1,12 +1,12 @@
-use ifccad::conformance::bundled_conformance_root;
-use ifccad::ifcdr::{
+use ocdraw::conformance::bundled_conformance_root;
+use ocdraw::ifcdr::{
     AppearanceId, EntityId, IfcdrEntityRef, IfcdrLengthUnit, IfcdrResourceRef, LayerId, Point2,
     ScopeId,
 };
-use ifccad::package::{
+use ocdraw::package::{
     load_directory_package, AppearanceProperty, DrawingLayoutKind, LinePatternRef,
 };
-use ifccad::ResourceId;
+use ocdraw::ResourceId;
 
 #[test]
 fn public_entity_api_is_exhaustive_for_the_base_profile() {
@@ -45,7 +45,7 @@ struct EntityProjection {
     layer_id: Option<LayerId>,
     appearance_id: Option<AppearanceId>,
     visible: Option<bool>,
-    points: Vec<ifccad::ifcdr::Point3>,
+    points: Vec<ocdraw::ifcdr::Point3>,
 }
 
 #[allow(dead_code)]
@@ -159,7 +159,7 @@ fn validated_package_exposes_converter_inputs_without_raw_json() {
     assert_eq!(layout.kind(), DrawingLayoutKind::Model);
     assert_eq!(layout.representation().path(), representation.path());
     let scope = layout.scope();
-    assert!(matches!(scope, ifccad::ifcdr::ScopeRef::ModelSpace(_)));
+    assert!(matches!(scope, ocdraw::ifcdr::ScopeRef::ModelSpace(_)));
 
     assert_eq!(representation.layers().len(), 2);
     let wall = representation

@@ -1,0 +1,133 @@
+use super::appearance::AppearanceRegistry;
+use super::blocks::with_recovered_anonymous_block_name;
+use super::coverage::scan_document_semantics;
+use super::entities::add_entities;
+use super::layers::add_layers;
+use super::layouts::add_layouts;
+use super::structure::{inspect_model_space, with_recovered_model_space_handle};
+use super::units::map_length_unit;
+use super::{
+    ExportAction, ExportDiagnostic, ExportDiagnosticSource, ExportEntityMapping, ExportError,
+    ExportLossPolicy, ExportOptions, ExportOutcome,
+};
+use cadcodec::CadDocument;
+use ocdraw::package::{DrawingOptions, LayerKey, PackageBuilder, PackageOptions, PaperSpaceKey};
+use ocdraw::ResourceId;
+use std::collections::BTreeMap;
+
+#[derive(Default)]
+pub(crate) struct ExportContext {
+    pub(crate) block_instances: BTreeMap<cadcodec::Handle, super::blocks::ConvertedInstance>,
+    pub(crate) block_points: BTreeMap<cadcodec::Handle, Vec<crate::geometry::blocks::PairedPoint>>,
+    pub(crate) block_curves: BTreeMap<cadcodec::Handle, crate::geometry::blocks::PairedCurve>,
+    pub(crate) blocks: BTreeMap<cadcodec::Handle, ocdraw::package::BlockDefinitionKey>,
+    pub(crate) geometry: Option<crate::ConversionGeometryAssessment>,
+    pub(crate) diagnostics: Vec<ExportDiagnostic>,
+    pub(crate) layer_keys: BTreeMap<String, LayerKey>,
+    pub(crate) paper_scopes: BTreeMap<cadcodec::Handle, PaperSpaceKey>,
+    pub(crate) appearances: AppearanceRegistry,
+    pub(crate) entity_mapping: ExportEntityMapping,
+    pub(crate) mapped_workspace_vports: std::collections::BTreeSet<cadcodec::Handle>,
+    pub(crate) mapped_workspace_ucss: std::collections::BTreeSet<cadcodec::Handle>,
+}
+
+pub fn cad_document_to_package(
+    document: &CadDocument,
+    package_options: PackageOptions,
+    export_options: ExportOptions,
+) -> Result<ExportOutcome, ExportError> {
+    let recovered_header = with_recovered_model_space_handle(document);
+    let recovered_blocks = with_recovered_anonymous_block_name(recovered_header.as_ref());
+    let document = recovered_blocks.as_ref();
+    let mut builder = PackageBuilder::new(package_options)?;
+    let model_space = inspect_model_space(document)
+        .map_err(|problems| ExportError::InvalidSourceStructure { problems })?;
+    let mut problems = super::blocks::inspect_markers(document);
+    problems.extend(super::blocks::inspect_references(document));
+    if !problems.is_empty() {
+        return Err(ExportError::InvalidSourceStructure { problems });
+    }
+    debug_assert_eq!(
+        model_space.block_handle,
+        document.header.model_space_block_handle
+    );
+
+    let (length_unit, unit_loss) = map_length_unit(document.header.insertion_units);
+    let mut context = ExportContext {
+        geometry: Some(crate::ConversionGeometryAssessment::new(
+            export_options.geometry_tolerance,
+            length_unit,
+        )?),
+        ..Default::default()
+    };
+    if let Some(reason) = unit_loss {
+        context.diagnostics.push(ExportDiagnostic::loss(
+            ExportDiagnosticSource::DocumentField {
+                name: "header.insertion_units".to_owned(),
+            },
+            ExportAction::PartiallyExported,
+            vec![reason],
+        ));
+    }
+
+    {
+        let mut drawing = builder.add_drawing(DrawingOptions {
+            model_layout_name: model_space.layout_name.to_owned(),
+            representation_resource_id: ResourceId::new("drawing-main")
+                .expect("constant resource ID is non-empty"),
+            length_unit,
+        })?;
+        drawing.set_plot_style_mode(if document.header.plotstyle_mode {
+            ocdraw::package::PlotStyleMode::ColorDependent
+        } else {
+            ocdraw::package::PlotStyleMode::Named
+        });
+        if let Some(point_display) = crate::point_display::from_cad(
+            document.header.point_display_mode,
+            document.header.point_display_size,
+        ) {
+            drawing.set_point_display(point_display)?;
+        } else {
+            context.diagnostics.push(ExportDiagnostic::loss(
+                ExportDiagnosticSource::DocumentField {
+                    name: "header.point_display".to_owned(),
+                },
+                ExportAction::Skipped,
+                vec![super::ExportLossReason::UnsupportedHeaderField {
+                    name: "point_display".to_owned(),
+                }],
+            ));
+        }
+        add_layers(document, &mut drawing, &mut context)?;
+        add_layouts(document, &mut drawing, &mut context)?;
+        super::blocks::add_definitions(document, &mut drawing, &mut context)?;
+        let structural_problems = add_entities(document, &model_space, &mut drawing, &mut context)?;
+        if !structural_problems.is_empty() {
+            return Err(ExportError::InvalidSourceStructure {
+                problems: structural_problems,
+            });
+        }
+        super::blocks::assess_occurrences(document, &mut context)?;
+        super::blocks::propagate_losses(document, &mut context);
+        super::workspace::add_workspace(document, &mut drawing, &mut context)?;
+    }
+
+    scan_document_semantics(document, &mut context);
+
+    if export_options.loss_policy == ExportLossPolicy::Reject
+        && context
+            .diagnostics
+            .iter()
+            .any(ExportDiagnostic::blocks_reject)
+    {
+        return Err(ExportError::LossRejected {
+            diagnostics: context.diagnostics,
+        });
+    }
+
+    let package = builder.finish()?;
+    Ok(
+        ExportOutcome::new(package, context.diagnostics, context.entity_mapping)
+            .with_geometry_assessment(context.geometry.unwrap()),
+    )
+}

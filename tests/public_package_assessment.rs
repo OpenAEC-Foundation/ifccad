@@ -1,5 +1,5 @@
-use ifccad::conformance::bundled_conformance_root;
-use ifccad::package::{
+use ocdraw::conformance::bundled_conformance_root;
+use ocdraw::package::{
     load_directory_package, AssessmentCompleteness, AssessmentGapReason, PackageDiagnosticCategory,
     PackageValidationReport, PackageValidity,
 };
@@ -110,7 +110,7 @@ impl Drop for Fixture {
     }
 }
 
-fn assert_blocked(outcome: &ifccad::package::PackageLoadOutcome, validity: PackageValidity) {
+fn assert_blocked(outcome: &ocdraw::package::PackageLoadOutcome, validity: PackageValidity) {
     assert!(!outcome.report().is_valid());
     assert!(outcome.validated_package().is_none());
     assert_eq!(

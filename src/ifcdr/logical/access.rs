@@ -90,7 +90,7 @@ pub(crate) trait IfcdrPolylinesAccess {
 pub(crate) trait IfcdrPolylineAccess {
     fn entity(&self) -> IfcdrEntityRow;
     fn closed(&self) -> bool;
-    fn placement(&self) -> crate::ifcdr::geometry::PlanePlacementComponents;
+    fn placement(&self) -> crate::ifcdr::geometry::CoordinateFrameComponents;
     fn vertex_count(&self) -> usize;
     fn vertex(&self, index: usize) -> Option<Point2>;
     fn bulge(&self, index: usize) -> Option<f64>;

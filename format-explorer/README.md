@@ -42,7 +42,7 @@ Requires Node.js 22 or newer. Build the browser processor with `wasm-pack` and
 the `wasm32-unknown-unknown` Rust target from the repository root:
 
 ```sh
-wasm-pack build crates/ifccad-browser --target web --out-dir ../../format-explorer/wasm-build --release
+wasm-pack build crates/ocdraw-browser --target web --out-dir ../../format-explorer/wasm-build --release
 ```
 
 The ignored `format-explorer/wasm-build/` is copied into the local and production
@@ -52,20 +52,20 @@ For the optional server processing route, build the native reader from the
 repository root:
 
 ```sh
-cargo build -p ifccad-viewer
+cargo build -p ocdraw-viewer
 ```
 
 Rebuild it after changing Rust code. Examples also work without this executable.
 
 For large CAD files, use an optimized reader. The debug reader can exceed the
 local two-minute processing limit on files such as the 33 MB `test.dxf` practice
-file. From the repository root, run `cargo build --release -p ifccad-viewer`.
-Then set `IFCCAD_VIEWER_BIN` to the resulting `target/release/ifccad-viewer`
+file. From the repository root, run `cargo build --release -p ocdraw-viewer`.
+Then set `OCDRAW_VIEWER_BIN` to the resulting `target/release/ocdraw-viewer`
 executable before starting the explorer. In PowerShell, after entering
 `format-explorer`:
 
 ```powershell
-$env:IFCCAD_VIEWER_BIN = (Resolve-Path ..\target\release\ifccad-viewer.exe).Path
+$env:OCDRAW_VIEWER_BIN = (Resolve-Path ..\target\release\ocdraw-viewer.exe).Path
 npm start
 ```
 
@@ -368,7 +368,7 @@ The server option requires the companion service:
 `npm run serve:production` provides the prepared application service: it serves
 `dist/` without development rebuilding or live reload and binds to loopback on
 port 4183 (override with `PORT`). Set `PUBLIC_ORIGIN` to the exact HTTPS origin
-and `IFCCAD_VIEWER_BIN` to the production reader executable. Build the website
+and `OCDRAW_VIEWER_BIN` to the production reader executable. Build the website
 and reader before starting it. A reverse proxy must terminate HTTPS and preserve
 the original Host header.
 
@@ -387,7 +387,7 @@ The shared OpenAEC static-site workflow alone cannot update the Rust service.
 For reproducible DXF/DWG smoke inputs (generated under ignored `target/`):
 
 ```sh
-cargo run -p ifccad-viewer --example viewer_inputs -- target/viewer-inputs
+cargo run -p ocdraw-viewer --example viewer_inputs -- target/viewer-inputs
 ```
 
 ## Examples and boundaries
@@ -451,7 +451,7 @@ Unresolved, unassessed preservation links are not invented as valid targets.
 - `src/index.html`, `src/styles.css`: independent page shell and presentation.
 - `scripts/`: fixture extraction, static build and loopback development server.
 - `scripts/package-zip.mjs`: bounded ZIP download packaging with exact input bytes.
-- `../crates/ifccad-viewer/`: application adapter for the production reader and converter.
+- `../crates/ocdraw-viewer/`: application adapter for the production reader and converter.
 - `tests/`: focused model and build-contract tests using the Node test runner.
 
 Generated output and local review artifacts stay outside version control.

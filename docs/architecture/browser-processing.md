@@ -5,8 +5,8 @@ CAD codec for its two processing routes. Browser processing is the default. The
 user can explicitly choose the OpenAEC server when browser memory or performance
 is insufficient. Repository examples still render without opening a user file.
 
-`ifccad-browser` is a thin WebAssembly binding over byte-oriented functions in
-`ifccad-viewer`. The core package loader accepts a map of relative package paths
+`ocdraw-browser` is a thin WebAssembly binding over byte-oriented functions in
+`ocdraw-viewer`. The core package loader accepts a map of relative package paths
 and bytes, applies the same contract validation as directory loading, and does
 not depend on cadcodec. The converter and CAD codec remain in their existing
 companion crates. No browser-specific approximation of the format is introduced.

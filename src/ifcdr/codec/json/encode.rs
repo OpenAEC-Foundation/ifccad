@@ -369,7 +369,7 @@ pub(super) fn point2_json(point: crate::ifcdr::Point2) -> Value {
 pub(super) fn point3_json(point: crate::ifcdr::Point3) -> Value {
     json!({"x":point.x(),"y":point.y(),"z":point.z()})
 }
-fn placement_json(frame: crate::ifcdr::geometry::PlanePlacementComponents) -> Value {
+fn placement_json(frame: crate::ifcdr::geometry::CoordinateFrameComponents) -> Value {
     let standard = CoordinateFrame3::default().components();
     if frame == standard {
         Value::Null

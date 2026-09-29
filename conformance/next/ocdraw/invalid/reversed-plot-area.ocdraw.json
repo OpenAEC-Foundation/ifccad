@@ -1,0 +1,36 @@
+{
+  "header": {
+    "format": "open_cad_drawing",
+    "version": "0.1.0",
+    "drawingId": "reversed-plot-area",
+    "unit": "unitless",
+    "nextEntityId": 1,
+    "nextLayerId": 0,
+    "nextLayoutId": 1
+  },
+  "layouts": [{
+    "id": 0,
+    "scopeId": 0,
+    "kind": "model",
+    "name": "Model",
+    "tabIndex": 0,
+    "plotSettings": {
+      "media": {
+        "unit": "mm", "width": 210, "height": 297,
+        "printableArea": {"minX": 205, "minY": 5, "maxX": 5, "maxY": 292},
+        "rotation": "none"
+      },
+      "area": {"mode": "Extents"},
+      "mapping": {"scale": {"mode": "FitToArea"}, "placement": {"mode": "Centered"}},
+      "output": {"shadedPlot": {"mode": "AsDisplayed", "quality": {"mode": "Normal"}}, "applyPlotStyles": false},
+      "options": {
+        "plotViewportBorders": false, "plotPaperSpaceLast": false,
+        "hidePaperSpaceObjects": false, "plotLineWeights": true,
+        "scaleLineWeights": false, "plotTransparency": false
+      }
+    }
+  }],
+  "scopes": [{"id": 0, "kind": 0, "bounds": null}],
+  "streamDirectory": {"version": "ocdraw.streamDirectory.v1", "streams": []},
+  "streams": {}
+}

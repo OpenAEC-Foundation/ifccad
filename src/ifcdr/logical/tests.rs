@@ -51,7 +51,7 @@ impl IfcdrPolylineAccess for Polyline<'_> {
     fn entity(&self) -> IfcdrEntityRow {
         self.0.entity
     }
-    fn placement(&self) -> crate::ifcdr::geometry::PlanePlacementComponents {
+    fn placement(&self) -> crate::ifcdr::geometry::CoordinateFrameComponents {
         crate::ifcdr::CoordinateFrame3::default().components()
     }
     fn closed(&self) -> bool {

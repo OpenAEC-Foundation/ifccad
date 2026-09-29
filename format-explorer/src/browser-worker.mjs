@@ -48,7 +48,7 @@ export function processBrowserRequest(request,wasm,onProgress=()=>{}){
 
 let wasmPromise;
 async function loadWasm(){
- wasmPromise??=import('./wasm/ifccad_browser.js').then(async module=>{await module.default(new URL('./wasm/ifccad_browser_bg.wasm',import.meta.url));return module;});
+ wasmPromise??=import('./wasm/ocdraw_browser.js').then(async module=>{await module.default(new URL('./wasm/ocdraw_browser_bg.wasm',import.meta.url));return module;});
  return wasmPromise;
 }
 if(typeof self!=='undefined'&&typeof self.postMessage==='function'){

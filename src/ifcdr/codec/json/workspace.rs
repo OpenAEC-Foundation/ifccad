@@ -3,7 +3,7 @@ use super::decode::{
 };
 use super::encode::{point2_json, point3_json, render_mode_code, vector3_json, view_json};
 use crate::diagnostic::{PackageDiagnostic, PackageDiagnosticCategory, PackageDiagnosticSeverity};
-use crate::ifcdr::geometry::PlanePlacementComponents;
+use crate::ifcdr::geometry::CoordinateFrameComponents;
 use crate::ifcdr::logical::*;
 use crate::ifcdr::CoordinateFrame3;
 use serde_json::{json, Value};
@@ -22,7 +22,7 @@ fn malformed(uri: &str, path: &str, message: &str) -> Box<PackageDiagnostic> {
 }
 
 fn frame(v: &Value) -> CoordinateFrame3 {
-    CoordinateFrame3::from_validated_components(PlanePlacementComponents {
+    CoordinateFrame3::from_validated_components(CoordinateFrameComponents {
         origin: point_record(&v["origin"]),
         x: vector3_record(&v["X"]),
         y: vector3_record(&v["Y"]),

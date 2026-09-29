@@ -72,7 +72,7 @@ The crate currently provides:
   drawing with model/paper scopes, local blocks, layers, appearances, lines,
   polylines, paper viewports, effective layout plot settings and optional shared
   workspace state; and
-- the `ifccad-convert` companion crate for bidirectional conversion between a
+- the `ocdraw-convert` companion crate for bidirectional conversion between a
   validated IFCCAD drawing and cadcodec `CadDocument`, including deterministic
   loss diagnostics and source-to-target entity mappings.
 
@@ -146,7 +146,7 @@ ifccad = { git = "https://github.com/OpenAEC-Foundation/ifccad.git" }
 ```
 
 ```rust
-use ifccad::package::load_directory_package;
+use ocdraw::package::load_directory_package;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let outcome = load_directory_package("project")?;
@@ -203,13 +203,13 @@ preserved by the reader.
 ### Writing a directory package
 
 ```rust
-use ifccad::ifcdr::{IfcdrLengthUnit, Point3};
-use ifccad::package::{
+use ocdraw::ifcdr::{IfcdrLengthUnit, Point3};
+use ocdraw::package::{
     AppearanceColor, AppearanceDefinition, DrawingOptions, EntityAppearance,
     LayerDefinition, LineDefinition, LinePatternDefinition, PackageBuilder,
     PackageOptions,
 };
-use ifccad::{PackageId, ResourceId};
+use ocdraw::{PackageId, ResourceId};
 
 fn write_example() -> Result<(), Box<dyn std::error::Error>> {
     let mut package = PackageBuilder::new(PackageOptions {
@@ -258,7 +258,7 @@ block instances, visibility, and per-scope entity order with
 resource-global IDs. Paper presentation/viewports/plot settings, IFCPR and
 `.ifccad` containers remain future work. It never
 overwrites an existing target directory. Mapping a cadcodec `CadDocument` into
-this builder is the responsibility of `ifccad-convert`. Its exporter currently
+this builder is the responsibility of `ocdraw-convert`. Its exporter currently
 supports finite XYZ lines, Point, Circle, Arc, Ellipse, EllipseArc, planar
 polylines with bulges, spatial polylines and ordinary
 local blocks, represents
@@ -308,7 +308,7 @@ add full preservation validation or conversion.
 
 The writer defaults to external IFCDR. Call
 `drawing.set_resource_storage(DrawingResourceStorage::Inline)` to embed it;
-the enum is exported from `ifccad::package`. With no other resources, the output
+the enum is exported from `ocdraw::package`. With no other resources, the output
 contains only `package.ifcx.json`. Open it through `load_directory_package`
 on its containing directory. Inline bytes count once as part of the
 entrypoint, whose existing per-file limit applies to the combined content.
@@ -368,12 +368,15 @@ See the closure assessment and follow-up in [ROADMAP.md](ROADMAP.md).
 - [`format-explorer`](format-explorer) is an independent educational website for exploring the
   IFCX graph, IFCDR stream structure and IFCPR source preservation. Run it locally
   with `cd format-explorer` and `npm start` (Node.js 22+, no dependency installation).
-  Build `cargo build -p ifccad-viewer` to open local package folders or DXF/DWG
+  Build `cargo build -p ocdraw-viewer` to open local package folders or DXF/DWG
   with production validation and conversion reports. It explains package
   structure and conversion coverage without rendering a CAD drawing.
   Export selected drawings to DXF/DWG with diagnostics, or download the full
   IFCCAD package as a ZIP containing the directory-package files.
-- [`src`](src) contains the Rust implementation. `package` is the public
+- [`src/ocdraw`](src/ocdraw) contains the standalone OCDraw reader, writer,
+  logical model and validation, exposed as `ocdraw::drawing`. During the
+  transition, [`src/package`](src/package) and [`src/ifcdr`](src/ifcdr)
+  contain the older IFCCAD package path. `package` is the public
   package facade with private `read` and `write` implementations; `ifcdr`
   exposes shared drawing-resource types. Its private `logical` module owns
   semantic access and validation, `read` owns decoded storage and validated
@@ -381,7 +384,9 @@ See the closure assessment and follow-up in [ROADMAP.md](ROADMAP.md).
   interpretation and encoding. `package/write` resolves package-specific
   references and supplies owned resource data to `ifcdr/write`.
 - [`schemas`](schemas) contains the active language-neutral schemas.
-- [`conformance`](conformance) contains versioned conformance collections.
+- [`conformance/next/ocdraw`](conformance/next/ocdraw) contains standalone
+  OCDraw candidate cases; [`conformance`](conformance) also contains the older
+  package collections and their immutable numbered releases.
 - [`tests`](tests) verifies the public Rust API and bundled format assets.
 - [`ROADMAP.md`](ROADMAP.md) defines development sequencing and milestone
   status; [`docs/vision.md`](docs/vision.md) describes the long-term purpose and
@@ -391,7 +396,7 @@ The [Python prototype](https://github.com/OpenAEC-Foundation/ifccad-prototype)
 remains a model-first prototype and format laboratory.
 
 This primary crate deliberately does not provide `CadDocument` or DWG/DXF I/O.
-The workspace's [`ifccad-convert`](crates/ifccad-convert) companion crate owns
+The workspace's [`ocdraw-convert`](crates/ocdraw-convert) companion crate owns
 import from a validated IFCCAD drawing to the CAD runtime model and export from
 `CadDocument` to an encoded IFCCAD package. Package encoding and safe directory
 storage remain separate steps, keeping this format crate independent of CAD

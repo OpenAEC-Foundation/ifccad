@@ -254,20 +254,20 @@ pub(crate) struct IfcdrSpatialPolylineRow {
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) struct IfcdrPointRow {
     pub entity: IfcdrEntityRow,
-    pub placement: crate::ifcdr::geometry::PlanePlacementComponents,
+    pub placement: crate::ifcdr::geometry::CoordinateFrameComponents,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) struct IfcdrCircleRow {
     pub entity: IfcdrEntityRow,
-    pub placement: crate::ifcdr::geometry::PlanePlacementComponents,
+    pub placement: crate::ifcdr::geometry::CoordinateFrameComponents,
     pub radius: f64,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) struct IfcdrArcRow {
     pub entity: IfcdrEntityRow,
-    pub placement: crate::ifcdr::geometry::PlanePlacementComponents,
+    pub placement: crate::ifcdr::geometry::CoordinateFrameComponents,
     pub radius: f64,
     pub start_parameter: f64,
     pub sweep_parameter: f64,
@@ -276,7 +276,7 @@ pub(crate) struct IfcdrArcRow {
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) struct IfcdrEllipseRow {
     pub entity: IfcdrEntityRow,
-    pub placement: crate::ifcdr::geometry::PlanePlacementComponents,
+    pub placement: crate::ifcdr::geometry::CoordinateFrameComponents,
     pub semi_major_radius: f64,
     pub semi_minor_radius: f64,
 }
@@ -284,7 +284,7 @@ pub(crate) struct IfcdrEllipseRow {
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) struct IfcdrEllipseArcRow {
     pub entity: IfcdrEntityRow,
-    pub placement: crate::ifcdr::geometry::PlanePlacementComponents,
+    pub placement: crate::ifcdr::geometry::CoordinateFrameComponents,
     pub semi_major_radius: f64,
     pub semi_minor_radius: f64,
     pub start_parameter: f64,
@@ -358,4 +358,25 @@ pub(crate) fn valid_color(color: &IfcdrColor) -> bool {
             .named
             .as_ref()
             .is_none_or(|v| !v.catalog.is_empty() && !v.name.is_empty())
+}
+
+#[cfg(test)]
+mod length_unit_tests {
+    #[test]
+    fn all_contract_unit_tokens_parse_and_encode_without_aliases() {
+        let registry: serde_json::Value =
+            serde_json::from_str(include_str!("../../../schemas/ifcdr/registry-0.9.0.json"))
+                .unwrap();
+        let tokens = registry["types"]["unit"]["values"].as_array().unwrap();
+        assert_eq!(tokens.len(), 25);
+        for token in tokens {
+            let token = token.as_str().unwrap();
+            let unit = crate::ifcdr::logical::length_unit(token)
+                .unwrap_or_else(|| panic!("missing {token}"));
+            assert_eq!(crate::ifcdr::codec::json::unit_name(unit), token);
+        }
+        for alias in ["GM", "metre", "usSurveyfoot", "M", "µm", ""] {
+            assert!(crate::ifcdr::logical::length_unit(alias).is_none());
+        }
+    }
 }

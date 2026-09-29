@@ -1,9 +1,9 @@
-use ifccad::conformance::bundled_conformance_root;
-use ifccad::package::{
+use ocdraw::conformance::bundled_conformance_root;
+use ocdraw::package::{
     load_directory_package, PackageHeaderRef, PackageOpenError, PackageValidationReport,
     ValidatedPackage, DIRECTORY_PACKAGE_ENTRYPOINT,
 };
-use ifccad::PackageId;
+use ocdraw::PackageId;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -51,7 +51,7 @@ fn model_and_paper_layouts_share_the_drawing_resource() {
     assert!(outcome.report().is_valid(), "{:?}", outcome.report());
     let package = outcome.validated_package().unwrap();
     let drawing = package.drawings().next().unwrap();
-    let representation: ifccad::package::DrawingRepresentationRef<'_> = drawing.representation();
+    let representation: ocdraw::package::DrawingRepresentationRef<'_> = drawing.representation();
     assert_eq!(representation.role(), "drawing");
     let layouts: Vec<_> = drawing.layouts().collect();
     assert_eq!(layouts.len(), 2);
@@ -65,22 +65,22 @@ fn model_and_paper_layouts_share_the_drawing_resource() {
             .resource()
             .entities(layout.scope().id())
             .map(|entity| match entity {
-                ifccad::ifcdr::IfcdrEntityRef::Point(point) => point.entity_id().get(),
-                ifccad::ifcdr::IfcdrEntityRef::Circle(circle) => circle.entity_id().get(),
-                ifccad::ifcdr::IfcdrEntityRef::Arc(arc) => arc.entity_id().get(),
-                ifccad::ifcdr::IfcdrEntityRef::Ellipse(ellipse) => ellipse.entity_id().get(),
-                ifccad::ifcdr::IfcdrEntityRef::EllipseArc(arc) => arc.entity_id().get(),
-                ifccad::ifcdr::IfcdrEntityRef::Line(line) => line.entity_id().get(),
-                ifccad::ifcdr::IfcdrEntityRef::PlanarPolyline(polyline) => {
+                ocdraw::ifcdr::IfcdrEntityRef::Point(point) => point.entity_id().get(),
+                ocdraw::ifcdr::IfcdrEntityRef::Circle(circle) => circle.entity_id().get(),
+                ocdraw::ifcdr::IfcdrEntityRef::Arc(arc) => arc.entity_id().get(),
+                ocdraw::ifcdr::IfcdrEntityRef::Ellipse(ellipse) => ellipse.entity_id().get(),
+                ocdraw::ifcdr::IfcdrEntityRef::EllipseArc(arc) => arc.entity_id().get(),
+                ocdraw::ifcdr::IfcdrEntityRef::Line(line) => line.entity_id().get(),
+                ocdraw::ifcdr::IfcdrEntityRef::PlanarPolyline(polyline) => {
                     polyline.entity_id().get()
                 }
-                ifccad::ifcdr::IfcdrEntityRef::SpatialPolyline(polyline) => {
+                ocdraw::ifcdr::IfcdrEntityRef::SpatialPolyline(polyline) => {
                     polyline.entity_id().get()
                 }
-                ifccad::ifcdr::IfcdrEntityRef::BlockInstance(instance) => {
+                ocdraw::ifcdr::IfcdrEntityRef::BlockInstance(instance) => {
                     instance.entity_id().get()
                 }
-                ifccad::ifcdr::IfcdrEntityRef::Viewport(viewport) => viewport.entity_id().get(),
+                ocdraw::ifcdr::IfcdrEntityRef::Viewport(viewport) => viewport.entity_id().get(),
             })
             .collect();
         assert_eq!(ids, expected_ids);
@@ -189,7 +189,7 @@ fn workspace_selected_model_requires_matching_resource_context() {
     let resume = valid.validated_package().unwrap().workspace().unwrap();
     assert_eq!(
         resume.active_layout().kind(),
-        ifccad::package::DrawingLayoutKind::Model
+        ocdraw::package::DrawingLayoutKind::Model
     );
     assert_eq!(
         resume.active_drawing().current_layer_path(),
@@ -379,7 +379,7 @@ fn package_identity_is_distinct_and_preserves_caller_text() {
 
     assert_eq!(id.as_str(), "  package:building/main  ");
     assert_eq!(id.to_string(), "  package:building/main  ");
-    assert_eq!(PackageId::new(""), Err(ifccad::InvalidPackageId));
+    assert_eq!(PackageId::new(""), Err(ocdraw::InvalidPackageId));
 }
 
 #[test]
@@ -431,7 +431,7 @@ fn incomplete_header_is_inspectable_without_a_strict_proof() {
         diagnostic.code == "IFCCAD_PACKAGE_SCHEMA_INVALID"
             && diagnostic.location.as_deref() == Some("/header")
             && diagnostic.context.get("property")
-                == Some(&ifccad::package::PackageDiagnosticContextValue::String(
+                == Some(&ocdraw::package::PackageDiagnosticContextValue::String(
                     "id".to_owned(),
                 ))
     }));

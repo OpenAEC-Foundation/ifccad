@@ -63,7 +63,7 @@ Storage-level placement sharing remains a separate encoding choice.
 From the repository root, select a fresh output directory:
 
 ```text
-cargo run -p ifccad-convert --example spatial_accuracy --release -- target/spatial-accuracy-review
+cargo run -p ocdraw-convert --example spatial_accuracy --release -- target/spatial-accuracy-review
 ```
 
 Set `IFCCAD_SPATIAL_MEASUREMENT_ROOT` to that generated directory, then run:
@@ -74,6 +74,6 @@ cargo test -p ifccad --lib spatial_production_path_counters -- --ignored --nocap
 
 Counters are operation counts, collected separately from release timing. The complete local run is `target/spatial-accuracy-v2/`, with `results.json`, `core-counters.json`, source packages and generated CAD files. The earlier incomplete v1 run is retained: its tight-case checksum updater inserted null attributes on unrelated IFCX nodes. The reader correctly rejected that malformed input. The updater was corrected to touch only existing resource descriptors, without changing validation or bounds rules.
 
-The [measurement example](../../crates/ifccad-convert/examples/spatial_accuracy.rs) contains the recipes and independent rational construction of tight bounds. Machine load and compiler settings affect times; results are not portable performance guarantees.
+The [measurement example](../../crates/ocdraw-convert/examples/spatial_accuracy.rs) contains the recipes and independent rational construction of tight bounds. Machine load and compiler settings affect times; results are not portable performance guarantees.
 
 Measured toolchain: Rust 1.98.0, x86_64-pc-windows-msvc, release opt-level 3, LTO enabled, one codegen unit.

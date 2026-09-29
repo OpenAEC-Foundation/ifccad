@@ -1,5 +1,5 @@
-use ifccad::ifcdr::{AppearanceId, IfcdrEntityRef, IfcdrLengthUnit, Point2, Point3};
-use ifccad::package::{
+use ocdraw::ifcdr::{AppearanceId, IfcdrEntityRef, IfcdrLengthUnit, Point2, Point3};
+use ocdraw::package::{
     load_directory_package, AppearanceColor, AppearanceDefinition, AppearanceMode,
     AppearanceProperty, ArcDefinition, CircleDefinition, DrawingLayoutKind, DrawingOptions,
     EllipseArcDefinition, EllipseDefinition, EntityAppearance, LayerDefinition, LineDefinition,
@@ -7,7 +7,7 @@ use ifccad::package::{
     PlanarPolylineDefinition, PointDefinition, PointDisplay, PointGlyph, PointSize,
     SpatialPolylineDefinition,
 };
-use ifccad::{PackageId, ResourceId};
+use ocdraw::{PackageId, ResourceId};
 use std::fs;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -16,7 +16,7 @@ static NEXT_TEMP: AtomicU64 = AtomicU64::new(1);
 
 #[test]
 fn workspace_builder_roundtrips_active_model_and_unused_named_ucs() {
-    use ifccad::ifcdr::{
+    use ocdraw::ifcdr::{
         BackClip, BackClipMode, CoordinateFrame3, DrawingViewState, FrontClip, FrontClipMode,
         IfcdrWorkspace, IsometricPlane, ModelWindow, NormalizedRect2, ProjectionMode,
         UcsDefinition, UcsSelection, Vector3, ViewDefinition, ViewportRenderMode, WorkspaceGrid,
@@ -274,10 +274,10 @@ fn circular_family_retains_kinds_and_signed_sweep_through_strict_readback() {
             appearance,
         })
         .unwrap();
-    let placement = ifccad::ifcdr::CoordinateFrame3::try_new(
+    let placement = ocdraw::ifcdr::CoordinateFrame3::try_new(
         Point3::new(4.0, 5.0, 6.0),
-        ifccad::ifcdr::Vector3::new(1.0, 0.0, 0.0),
-        ifccad::ifcdr::Vector3::new(0.0, 1.0, 0.0),
+        ocdraw::ifcdr::Vector3::new(1.0, 0.0, 0.0),
+        ocdraw::ifcdr::Vector3::new(0.0, 1.0, 0.0),
     )
     .unwrap();
     drawing
@@ -365,7 +365,7 @@ fn elliptic_family_retains_equal_radii_and_nearly_full_arc_identity() {
             appearance,
         })
         .unwrap();
-    let placement = ifccad::ifcdr::CoordinateFrame3::default();
+    let placement = ocdraw::ifcdr::CoordinateFrame3::default();
     drawing
         .model_space()
         .add_ellipse(EllipseDefinition {
@@ -455,10 +455,10 @@ fn point_builder_writes_a_distinct_strict_readable_entity() {
             appearance,
         })
         .unwrap();
-    let placement = ifccad::ifcdr::CoordinateFrame3::try_new(
+    let placement = ocdraw::ifcdr::CoordinateFrame3::try_new(
         Point3::new(4.0, 5.0, 6.0),
-        ifccad::ifcdr::Vector3::new(1.0, 0.0, 0.0),
-        ifccad::ifcdr::Vector3::new(0.0, 1.0, 0.0),
+        ocdraw::ifcdr::Vector3::new(1.0, 0.0, 0.0),
+        ocdraw::ifcdr::Vector3::new(0.0, 1.0, 0.0),
     )
     .unwrap();
     drawing
@@ -585,8 +585,8 @@ fn representative_builder() -> PackageBuilder {
     drawing
         .model_space()
         .add_line(LineDefinition {
-            start: ifccad::ifcdr::Point3::new(0.0, 0.0, 0.0),
-            end: ifccad::ifcdr::Point3::new(10.0, 5.0, 0.0),
+            start: ocdraw::ifcdr::Point3::new(0.0, 0.0, 0.0),
+            end: ocdraw::ifcdr::Point3::new(10.0, 5.0, 0.0),
             layer: layer_0,
             appearance: EntityAppearance::by_layer(),
             visible: true,
@@ -595,7 +595,7 @@ fn representative_builder() -> PackageBuilder {
     drawing
         .model_space()
         .add_planar_polyline(PlanarPolylineDefinition {
-            placement: ifccad::ifcdr::CoordinateFrame3::default(),
+            placement: ocdraw::ifcdr::CoordinateFrame3::default(),
             bulges: vec![0.0, 0.5],
             points: vec![Point2::new(-2.0, 3.0), Point2::new(4.0, -5.0)],
             closed: false,
@@ -607,8 +607,8 @@ fn representative_builder() -> PackageBuilder {
     drawing
         .model_space()
         .add_line(LineDefinition {
-            start: ifccad::ifcdr::Point3::new(1.0, 2.0, 0.0),
-            end: ifccad::ifcdr::Point3::new(3.0, 4.0, 0.0),
+            start: ocdraw::ifcdr::Point3::new(1.0, 2.0, 0.0),
+            end: ocdraw::ifcdr::Point3::new(3.0, 4.0, 0.0),
             layer: walls,
             appearance: EntityAppearance::by_block(),
             visible: false,
@@ -617,7 +617,7 @@ fn representative_builder() -> PackageBuilder {
     drawing
         .model_space()
         .add_planar_polyline(PlanarPolylineDefinition {
-            placement: ifccad::ifcdr::CoordinateFrame3::default(),
+            placement: ocdraw::ifcdr::CoordinateFrame3::default(),
             bulges: vec![0.0, 0.0, 0.25],
             points: vec![
                 Point2::new(2.0, 2.0),
@@ -633,8 +633,8 @@ fn representative_builder() -> PackageBuilder {
     drawing
         .model_space()
         .add_line(LineDefinition {
-            start: ifccad::ifcdr::Point3::new(0.0, 1.0, 0.0),
-            end: ifccad::ifcdr::Point3::new(1.0, 2.0, 0.0),
+            start: ocdraw::ifcdr::Point3::new(0.0, 1.0, 0.0),
+            end: ocdraw::ifcdr::Point3::new(1.0, 2.0, 0.0),
             layer: layer_0,
             appearance: EntityAppearance {
                 appearance: Some(dashed),
@@ -651,8 +651,8 @@ fn representative_builder() -> PackageBuilder {
 
 #[test]
 fn typed_layout_settings_roundtrip_with_independent_paper_values() {
-    use ifccad::ifcdr::{ShadedPlot, ShadedPlotMode, ShadedPlotQuality, ShadedPlotQualityMode};
-    use ifccad::package::*;
+    use ocdraw::ifcdr::{ShadedPlot, ShadedPlotMode, ShadedPlotQuality, ShadedPlotQualityMode};
+    use ocdraw::package::*;
     let mut package = PackageBuilder::new(PackageOptions {
         package_id: PackageId::new("plot-layouts").unwrap(),
         data_version: "1".into(),
@@ -795,8 +795,8 @@ fn typed_layout_settings_roundtrip_with_independent_paper_values() {
 
 #[test]
 fn writer_roundtrip_retains_model_limits_and_paper_window_plot_modes() {
-    use ifccad::ifcdr::{ShadedPlot, ShadedPlotMode, ShadedPlotQuality, ShadedPlotQualityMode};
-    use ifccad::package::*;
+    use ocdraw::ifcdr::{ShadedPlot, ShadedPlotMode, ShadedPlotQuality, ShadedPlotQualityMode};
+    use ocdraw::package::*;
 
     let mut package = PackageBuilder::new(PackageOptions {
         package_id: PackageId::new("plot-modes").unwrap(),
@@ -917,8 +917,8 @@ fn writer_roundtrip_retains_model_limits_and_paper_window_plot_modes() {
 
 #[test]
 fn writer_emits_paper_viewport_with_frozen_layer_override() {
-    use ifccad::ifcdr::*;
-    use ifccad::package::*;
+    use ocdraw::ifcdr::*;
+    use ocdraw::package::*;
     let mut package = PackageBuilder::new(PackageOptions {
         package_id: PackageId::new("viewport-package").unwrap(),
         data_version: "1".into(),
@@ -1218,7 +1218,7 @@ fn writer_output_reloads_without_diagnostics_and_preserves_semantics() {
     assert_eq!(layout.scope().id().get(), 0);
     assert!(matches!(
         layout.scope(),
-        ifccad::ifcdr::ScopeRef::ModelSpace(_)
+        ocdraw::ifcdr::ScopeRef::ModelSpace(_)
     ));
 
     let representation = drawing.representation();
@@ -1367,7 +1367,7 @@ fn single_entity_families_reload_without_requiring_the_other_stream() {
             drawing
                 .model_space()
                 .add_planar_polyline(PlanarPolylineDefinition {
-                    placement: ifccad::ifcdr::CoordinateFrame3::default(),
+                    placement: ocdraw::ifcdr::CoordinateFrame3::default(),
                     bulges: Vec::new(),
                     points: points.clone(),
                     closed: true,

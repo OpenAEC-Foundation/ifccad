@@ -1,0 +1,42 @@
+#![doc = include_str!("../README.md")]
+
+mod assessment;
+mod direct;
+mod direct_layout;
+mod export;
+mod import;
+pub use assessment::{TransferAssessment, TransferConclusion, TransferCoverage, TransferScope};
+pub use direct::{
+    cad_document_to_drawing, cad_document_to_drawing_with_id, DirectExportError,
+    DirectExportOutcome,
+};
+mod direct_import;
+pub use direct_import::{
+    ocdraw_to_cad_document, DirectImportDiagnostic, DirectImportError, DirectImportOutcome,
+};
+
+pub use cadcodec;
+/// CadDocument-to-IFCCAD export API, including loss policy, diagnostics, and
+/// source-handle-to-IFCDR-ID mappings.
+pub use export::{
+    cad_document_to_package, ExportAction, ExportDiagnostic, ExportDiagnosticSource,
+    ExportEntityMapping, ExportError, ExportLossPolicy, ExportLossReason, ExportOptions,
+    ExportOutcome, ExportOutcomeParts, SourceStructureProblem,
+};
+/// Validated-IFCCAD-to-CadDocument import API, including diagnostics and
+/// source-ID-to-target-handle mappings.
+pub use import::{
+    drawing_to_cad_document, drawing_to_cad_document_with_options, ImportDiagnostic,
+    ImportEntityMapping, ImportError, ImportOutcome, ImportOutcomeParts,
+};
+
+mod options;
+mod units;
+pub use options::{
+    ConversionGeometryTolerance, ConversionLossPolicy, ConversionToleranceError, ImportOptions,
+};
+
+mod geometry;
+mod geometry_assessment;
+mod point_display;
+pub use geometry_assessment::*;

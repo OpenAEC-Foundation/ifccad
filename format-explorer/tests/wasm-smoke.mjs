@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {initSync,open_cad,open_package,export_package} from '../wasm-build/ifccad_browser.js';
+import {initSync,open_cad,open_package,export_package} from '../wasm-build/ocdraw_browser.js';
 import {processBrowserRequest} from '../src/browser-worker.mjs';
 import {decodeBundle} from '../src/bundle.mjs';
 import {buildModel} from '../src/model.mjs';
 
-initSync({module:await readFile(new URL('../wasm-build/ifccad_browser_bg.wasm',import.meta.url))});
+initSync({module:await readFile(new URL('../wasm-build/ocdraw_browser_bg.wasm',import.meta.url))});
 const paths=['package.ifcx.json','resources/drawing.ifcdr.json'];
 const contents=await Promise.all(paths.map(path=>readFile(new URL(`../examples/blocks-demo/${path}`,import.meta.url))));
 const packageResult=JSON.parse(open_package('blocks-demo',paths,contents));

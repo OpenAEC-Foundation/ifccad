@@ -15,6 +15,8 @@
 pub mod canonicalization;
 pub mod conformance;
 mod diagnostic;
+#[path = "ocdraw/mod.rs"]
+pub mod drawing;
 mod json_resource;
 pub mod package;
 mod package_id;

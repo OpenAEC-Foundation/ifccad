@@ -1,4 +1,4 @@
-use crate::ifcdr::geometry::PlanePlacementComponents;
+use crate::ifcdr::geometry::CoordinateFrameComponents;
 use crate::ifcdr::logical::*;
 use crate::ifcdr::{IfcdrLengthUnit, Point2};
 use crate::ResourceId;
@@ -35,7 +35,7 @@ pub(crate) enum IfcdrWriteEntity {
         closed: bool,
         points: Vec<Point2>,
         bulges: Vec<f64>,
-        placement: PlanePlacementComponents,
+        placement: CoordinateFrameComponents,
     },
     SpatialPolyline(IfcdrSpatialPolylineRow),
 }
@@ -178,7 +178,7 @@ pub(crate) struct PreparedPolyline<'a> {
     closed: bool,
     points: &'a [Point2],
     bulges: &'a [f64],
-    placement: PlanePlacementComponents,
+    placement: CoordinateFrameComponents,
 }
 
 impl IfcdrLinesAccess for PreparedLines<'_> {
@@ -223,7 +223,7 @@ impl IfcdrPolylineAccess for PreparedPolyline<'_> {
     fn entity(&self) -> IfcdrEntityRow {
         self.entity
     }
-    fn placement(&self) -> PlanePlacementComponents {
+    fn placement(&self) -> CoordinateFrameComponents {
         self.placement
     }
     fn closed(&self) -> bool {

@@ -1,5 +1,5 @@
 //! Typed column backing. JSON construction belongs to the codec.
-use crate::ifcdr::geometry::PlanePlacementComponents;
+use crate::ifcdr::geometry::CoordinateFrameComponents;
 use crate::ifcdr::logical::*;
 use crate::ifcdr::CoordinateFrame3;
 use crate::ifcdr::{IfcdrLengthUnit, Point2, Point3};
@@ -40,7 +40,7 @@ pub(crate) struct PolylineColumns {
     pub offsets: Vec<usize>,
     pub counts: Vec<usize>,
     pub closed: Vec<bool>,
-    pub placements: Vec<Option<PlanePlacementComponents>>,
+    pub placements: Vec<Option<CoordinateFrameComponents>>,
     pub x: Vec<f64>,
     pub y: Vec<f64>,
     pub bulge: Vec<f64>,
@@ -121,7 +121,7 @@ impl IfcdrPolylineAccess for DecodedPolyline<'_> {
     fn entity(&self) -> IfcdrEntityRow {
         self.columns.entity.get(self.row).expect("checked row view")
     }
-    fn placement(&self) -> PlanePlacementComponents {
+    fn placement(&self) -> CoordinateFrameComponents {
         self.columns
             .placements
             .get(self.row)

@@ -10,7 +10,7 @@ export function createJobManager({worker=runWorker,tempRoot=tmpdir(),cap=limits,
  async function execute(job,upload){
   let root;
   try{
-   root=await mkdtemp(path.join(tempRoot,'ifccad-viewer-'));const input=path.join(root,'input');await mkdir(input);
+   root=await mkdtemp(path.join(tempRoot,'ocdraw-viewer-'));const input=path.join(root,'input');await mkdir(input);
    for(const f of upload.files){if(job.controller.signal.aborted)throw Error('Job cancelled');const target=path.resolve(input,f.path);if(!target.startsWith(input+path.sep))throw Error('Unsafe file path');await mkdir(path.dirname(target),{recursive:true});await writeFile(target,f.bytes,{flag:'wx'});}
    const result=await worker({kind:upload.kind,export:upload.export,input:upload.kind==='cad'?path.join(input,upload.files[0].path):input,output:path.join(root,'output'),signal:job.controller.signal,cap,onProgress:phase=>{job.phase=phase;}});
    if(!job.controller.signal.aborted&&upload.export?.format==='ifccad'&&!result.failure&&result.export?.packageReady&&result.validation?.strictAvailable){
@@ -26,7 +26,7 @@ export function createJobManager({worker=runWorker,tempRoot=tmpdir(),cap=limits,
    }
   }catch(e){if(!job.controller.signal.aborted){job.error=root?e.message.replaceAll(root,'[temporary package]'):e.message;}}
   finally{
-   if(root){try{const resolved=path.resolve(root);if(path.dirname(resolved)!==path.resolve(tempRoot)||!path.basename(resolved).startsWith('ifccad-viewer-'))throw Error('Unsafe cleanup target');await rm(resolved,{recursive:true,force:true,maxRetries:3,retryDelay:100});}catch{job.error='Temporary file cleanup failed';job.result=undefined;}}
+   if(root){try{const resolved=path.resolve(root);if(path.dirname(resolved)!==path.resolve(tempRoot)||!path.basename(resolved).startsWith('ocdraw-viewer-'))throw Error('Unsafe cleanup target');await rm(resolved,{recursive:true,force:true,maxRetries:3,retryDelay:100});}catch{job.error='Temporary file cleanup failed';job.result=undefined;}}
    if(active===job.id)active=null;
    if(!job.controller.signal.aborted)job.status=job.error?'failed':'complete';else jobs.delete(job.id);
    job.expires=Date.now()+cap.ttlMs;
@@ -55,7 +55,7 @@ export function createJobHandler({manager=createJobManager(),available=workerAva
    if((req.headers.origin&&req.headers.origin!==origin)||(!['GET','HEAD'].includes(req.method)&&req.headers.origin!==origin))throw Object.assign(Error('Invalid origin'),{status:403});
    if(req.method==='GET'&&req.url==='/api/capabilities'){send(res,200,{available:await available(),processing:publicOrigin?'server':'local',limits,formats:['package','dxf','dwg']});return true;}
    if(req.method==='POST'&&req.url==='/api/jobs'){
-    if(!await available())throw Object.assign(Error('Build the local reader: cargo build -p ifccad-viewer'),{status:503});
+    if(!await available())throw Object.assign(Error('Build the local reader: cargo build -p ocdraw-viewer'),{status:503});
     if(uploading||manager.busy)throw Object.assign(Error('Service busy; please try again shortly'),{status:429});
     if(!/^application\/json(?:;|$)/i.test(req.headers['content-type']||''))throw Object.assign(Error('Expected application/json'),{status:415});
     if(Number(req.headers['content-length'])>limits.requestBytes)throw Object.assign(Error('Upload size limit exceeded'),{status:413});

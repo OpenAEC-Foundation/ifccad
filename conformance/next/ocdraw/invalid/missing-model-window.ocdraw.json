@@ -1,0 +1,16 @@
+{
+  "header": {
+    "format": "open_cad_drawing",
+    "version": "0.1.0",
+    "drawingId": "missing-model-window",
+    "unit": "unitless",
+    "nextEntityId": 1,
+    "nextLayerId": 0,
+    "nextLayoutId": 1
+  },
+  "layouts": [{"id": 0, "scopeId": 0, "kind": "model", "name": "Model", "tabIndex": 0}],
+  "scopes": [{"id": 0, "kind": 0, "bounds": null}],
+  "drawingViewState": {"currentModelUcs": {"kind": "World"}, "activeModelWindowId": 3},
+  "streamDirectory": {"version": "ocdraw.streamDirectory.v1", "streams": []},
+  "streams": {}
+}

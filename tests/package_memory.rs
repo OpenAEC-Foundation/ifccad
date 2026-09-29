@@ -1,4 +1,4 @@
-use ifccad::package::{load_directory_package, load_package_files};
+use ocdraw::package::{load_directory_package, load_package_files};
 use std::{collections::BTreeMap, fs, path::Path};
 
 #[test]
