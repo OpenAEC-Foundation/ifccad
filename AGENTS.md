@@ -97,6 +97,16 @@ follow-up work. Retain designs and plans still needed by active or upcoming work
 - Create Git worktrees inside the repository-local `.worktrees/` directory by
   default. Keep that directory ignored, and use another worktree location only
   when the user explicitly requests it.
+- After a task is integrated, run `pwsh -NoProfile -File scripts/cleanup_local.ps1`
+  to review all local worktrees and build caches. Report worktrees that may be
+  stale but cannot be removed safely, including the exact blockers and last
+  commit date, so the user can decide what to do with them. Do not silently
+  leave blocked worktrees behind or infer inactivity from commit age alone.
+- Remove only explicitly selected, merged worktrees after checking that no
+  ongoing work or process needs them. The cleanup script requires `-Apply`
+  and `-RemoveWorktree <name>`; it never forces removal of local changes or
+  unknown ignored content. Preserve active worktrees even when Git considers
+  them technically removable.
 - Keep work in one task by default. Do not delegate to subagents unless the
   user explicitly requests parallel work.
 - Do not use `codex/` or a redundant `ifccad/` prefix in branch names.
@@ -108,7 +118,12 @@ follow-up work. Retain designs and plans still needed by active or upcoming work
 - Keep the shorter roadmap summary in `README.md` synchronized whenever
   milestone names, order, or intent change in `ROADMAP.md`.
 - Treat generated files below `target/` as local artifacts. Do not add them to
-  version control.
+  version control. Put source material, issue attachments, and lasting design
+  notes outside `target/`; retain accepted benchmark reports and matching
+  detailed results as documented. The cleanup script removes only recognized
+  build-cache entries with `-Apply -CleanBuildCache` and reports other `target/`
+  content for review. Run cache cleanup only when no build or test process is
+  using those directories.
 - When updating cadcodec, review public-model changes against both converter
   coverage contracts, including added fields on existing types. Keep local
   codec patches explicit and tied to a base revision; do not edit the Cargo

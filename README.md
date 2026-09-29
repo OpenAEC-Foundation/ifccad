@@ -365,6 +365,15 @@ See the closure assessment and follow-up in [ROADMAP.md](ROADMAP.md).
 
 ## Repository layout
 
+For local maintenance, run `pwsh -NoProfile -File scripts/cleanup_local.ps1`.
+It previews every extra worktree, names blockers such as local edits or commits
+not yet in `main`, and lists `target/` content outside the recognized build
+cache. Removal requires an explicit choice: use `-Apply -RemoveWorktree <name>`
+for a selected worktree or `-Apply -CleanBuildCache` for recognized Cargo cache
+entries. Select worktrees only after checking that they are no longer in use;
+the script always retains unfamiliar files for review. Run cache cleanup when
+no build or test process is using the affected worktrees.
+
 - [`format-explorer`](format-explorer) is an independent educational website for exploring the
   IFCX graph, IFCDR stream structure and IFCPR source preservation. Run it locally
   with `cd format-explorer` and `npm start` (Node.js 22+, no dependency installation).
