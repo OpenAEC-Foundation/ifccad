@@ -1,10 +1,46 @@
 use super::SourceStructureProblem;
 use cadcodec::objects::ObjectType;
 use cadcodec::{CadDocument, Handle};
+use std::borrow::Cow;
 
 pub(crate) struct ModelSpaceInfo<'a> {
     pub(crate) block_handle: Handle,
     pub(crate) layout_name: &'a str,
+}
+
+/// Recover a stale header cache left by the pinned DXF reader when its
+/// post-read default-handle repair changes the header but not the authored
+/// model block record. The block and exactly one layout must agree first.
+pub(crate) fn with_recovered_model_space_handle(document: &CadDocument) -> Cow<'_, CadDocument> {
+    let header_handle = document.header.model_space_block_handle;
+    if header_handle == Handle::NULL
+        || document
+            .block_records
+            .iter()
+            .any(|record| record.handle == header_handle)
+    {
+        return Cow::Borrowed(document);
+    }
+    let Some(record) = document.block_records.get("*Model_Space") else {
+        return Cow::Borrowed(document);
+    };
+    let layouts = document
+        .objects
+        .values()
+        .filter_map(|object| match object {
+            ObjectType::Layout(layout) if layout.block_record == record.handle => Some(layout),
+            _ => None,
+        })
+        .collect::<Vec<_>>();
+    if record.handle == Handle::NULL
+        || layouts.len() != 1
+        || (record.layout != Handle::NULL && record.layout != layouts[0].handle)
+    {
+        return Cow::Borrowed(document);
+    }
+    let mut recovered = document.clone();
+    recovered.header.model_space_block_handle = record.handle;
+    Cow::Owned(recovered)
 }
 
 pub(crate) fn inspect_model_space(

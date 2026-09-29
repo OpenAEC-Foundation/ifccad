@@ -223,6 +223,11 @@ impl<'a> DrawingSetRef<'a> {
 }
 
 impl<'a> DrawingRef<'a> {
+    /// The saved active layout when this drawing owns the shared resume state.
+    pub fn active_layout(&self) -> Option<DrawingLayoutRef<'a>> {
+        let workspace = self.package.workspace()?;
+        (workspace.active_drawing().path() == self.path()).then(|| workspace.active_layout())
+    }
     /// IFCX path of the current Layer, including a selected Layer without an IFCDR binding.
     pub fn current_layer_path(&self) -> Option<&'a str> {
         self.node()

@@ -219,6 +219,51 @@ impl ConversionGeometryAssessment {
             }
         }
     }
+    pub(crate) fn check_curve_bound(
+        &self,
+        source: &ConversionEntitySource,
+        lower: &BigRational,
+        upper: &BigRational,
+    ) -> Result<f64, Box<ConversionGeometryFailure>> {
+        self.check_interval(source, 0, lower, upper)
+            .map_err(|mut failure| {
+                failure.vertex_index = None;
+                failure
+            })
+    }
+    pub(crate) fn check_curve(
+        &self,
+        source: &ConversionEntitySource,
+        curve: &crate::geometry::blocks::PairedCurve,
+    ) -> Result<f64, Box<ConversionGeometryFailure>> {
+        let bound = |interval: Option<(BigRational, BigRational)>| {
+            interval.ok_or_else(|| {
+                self.failure(
+                    source,
+                    None,
+                    ConversionGeometryStage::DeviationAssessment,
+                    ConversionGeometryFailureReason::DeviationBoundOutOfRange,
+                )
+            })
+        };
+        let (lower, upper) = bound(curve.squared_deviation())?;
+        match self.check_curve_bound(source, &lower, &upper) {
+            Ok(value) => Ok(value),
+            Err(mut failure)
+                if failure.reason == ConversionGeometryFailureReason::NumericalProofIncomplete =>
+            {
+                for segments in [2, 4, 8, 16, 32] {
+                    let (lower, upper) = bound(curve.refined_squared_deviation(segments))?;
+                    match self.check_curve_bound(source, &lower, &upper) {
+                        Ok(value) => return Ok(value),
+                        Err(next) => failure = next,
+                    }
+                }
+                Err(failure)
+            }
+            Err(failure) => Err(failure),
+        }
+    }
     pub(crate) fn record(&mut self, source: ConversionEntitySource, count: usize, bound: f64) {
         self.entities += 1;
         self.vertices += count;

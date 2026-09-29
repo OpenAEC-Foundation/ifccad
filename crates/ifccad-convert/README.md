@@ -92,7 +92,9 @@ or rejected as structurally invalid.
 
 See [block codec limits](../../docs/geometry/block-cad-boundary.md) for the
 current DWG marker inconsistency, DXF description loss and tiny-scale target
-limitation. All are explicit boundaries; no heuristic repairs are applied.
+limitation. Export includes narrowly guarded repairs for the pinned readers'
+stale DXF model-space handle and shifted anonymous DWG block name; unresolved
+or ambiguous structural conflicts still fail.
 
 ## Exporting a `CadDocument`
 
@@ -212,6 +214,10 @@ the same fields; `ExportLossPolicy` remains an alias of `ConversionLossPolicy`.
 Use `exact()` for zero tolerance, or `drawing_units(value)` for an explicit
 unit-relative limit. Both policies return errors when accuracy cannot be proved
 or coordinates cannot be represented; neither silently skips such geometry.
+Circles, arcs and ellipses use conservative bounds over their complete curves,
+including nested block occurrences. If the first bound is too broad, the
+converter refines angular subintervals before reporting an incomplete numerical
+proof rather than a measured exceedance.
 
 A changed native plane parameterization is reported even when geometry is exact.
 Only proved within-tolerance numerical rounding is exempt from Reject, and it

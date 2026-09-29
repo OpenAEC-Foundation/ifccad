@@ -20,6 +20,398 @@ fn options() -> PackageOptions {
 }
 
 #[test]
+fn paper_canvas_views_survive_strict_package_and_cad_roundtrip() {
+    let mut source = CadDocument::new();
+    let mut first_canvas = Viewport::new();
+    first_canvas.id = 1;
+    first_canvas.view_center = cadcodec::Vector3::new(7.5, 4.0, 0.0);
+    first_canvas.view_height = 9.0;
+    source
+        .add_entity_to_layout(EntityType::Viewport(first_canvas), "Layout1")
+        .unwrap();
+    let mut authored = Viewport::new();
+    authored.id = 2;
+    source
+        .add_entity_to_layout(EntityType::Viewport(authored), "Layout1")
+        .unwrap();
+    let second = source.add_layout("Layout2").unwrap();
+    let ObjectType::Layout(second_layout) = source.objects.get(&second).unwrap() else {
+        panic!()
+    };
+    let second_canvas = second_layout.viewport;
+    let EntityType::Viewport(second_view) = source.get_entity_mut(second_canvas).unwrap() else {
+        panic!()
+    };
+    second_view.view_center = cadcodec::Vector3::new(12.0, 6.0, 0.0);
+    second_view.view_height = 11.0;
+
+    let exported = cad_document_to_package(&source, options(), ExportOptions::default()).unwrap();
+    let root = std::env::temp_dir().join(format!("ifccad-paper-canvas-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&root);
+    exported.package().write_directory(&root).unwrap();
+    let loaded = load_directory_package(&root).unwrap();
+    let drawing = loaded
+        .validated_package()
+        .unwrap()
+        .drawings()
+        .next()
+        .unwrap();
+    let workspace = drawing.representation().resource().workspace().unwrap();
+    assert_eq!(workspace.paper_canvases.len(), 2);
+    let imported = drawing_to_cad_document(drawing).unwrap();
+    for (name, center_x, height) in [("Layout1", 7.5, 9.0), ("Layout2", 12.0, 11.0)] {
+        let layout = imported
+            .document()
+            .objects
+            .values()
+            .find_map(|object| match object {
+                ObjectType::Layout(layout) if layout.name == name => Some(layout),
+                _ => None,
+            })
+            .unwrap();
+        let EntityType::Viewport(canvas) = imported.document().get_entity(layout.viewport).unwrap()
+        else {
+            panic!()
+        };
+        assert_eq!(canvas.id, 1, "{name}");
+        assert_eq!(canvas.view_center.x, center_x, "{name}");
+        assert_eq!(canvas.view_height, height, "{name}");
+    }
+    assert!(imported
+        .document()
+        .entities()
+        .any(|entity| matches!(entity, EntityType::Viewport(viewport) if viewport.id == 2)));
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+#[test]
+fn inactive_model_tab_does_not_discard_paper_canvas_view() {
+    let mut source = CadDocument::new();
+    source.header.show_model_space = false;
+    let sheet = source.add_layout("Sheet").unwrap();
+    let ObjectType::Layout(layout) = source.objects.get(&sheet).unwrap() else {
+        panic!()
+    };
+    let canvas_handle = layout.viewport;
+    let EntityType::Viewport(canvas) = source.get_entity_mut(canvas_handle).unwrap() else {
+        panic!()
+    };
+    canvas.view_height = 8.5;
+    let exported = cad_document_to_package(&source, options(), ExportOptions::default()).unwrap();
+    let root = std::env::temp_dir().join(format!("ifccad-paper-tab-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&root);
+    exported.package().write_directory(&root).unwrap();
+    let loaded = load_directory_package(&root).unwrap();
+    let drawing = loaded
+        .validated_package()
+        .unwrap()
+        .drawings()
+        .next()
+        .unwrap();
+    let canvas = &drawing
+        .representation()
+        .resource()
+        .workspace()
+        .unwrap()
+        .paper_canvases[0];
+    assert_eq!(canvas.view.height, 8.5);
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+#[test]
+fn active_paper_layout_and_unlinked_overall_viewport_roundtrip() {
+    let mut source = CadDocument::new();
+    source.header.show_model_space = false;
+    let layout_handle = source
+        .objects
+        .iter()
+        .find_map(|(&handle, object)| match object {
+            ObjectType::Layout(layout) if layout.name == "Layout1" => Some(handle),
+            _ => None,
+        })
+        .unwrap();
+    let ObjectType::Layout(layout) = source.objects.get(&layout_handle).unwrap() else {
+        panic!()
+    };
+    source.header.paper_space_block_handle = layout.block_record;
+    let mut overall = Viewport::new();
+    overall.id = 1;
+    overall.view_center = cadcodec::Vector3::new(6.0, 4.5, 0.0);
+    overall.view_height = 12.0;
+    overall.snap_spacing = cadcodec::Vector3::ZERO;
+    source
+        .add_entity_to_layout(EntityType::Viewport(overall), "Layout1")
+        .unwrap();
+    let mut model_window = Viewport::new();
+    model_window.id = 2;
+    source
+        .add_entity_to_layout(EntityType::Viewport(model_window), "Layout1")
+        .unwrap();
+    let Some(ObjectType::Layout(layout)) = source.objects.get_mut(&layout_handle) else {
+        panic!()
+    };
+    layout.viewport = cadcodec::Handle::NULL;
+    assert!(
+        matches!(source.objects.get(&layout_handle), Some(ObjectType::Layout(layout)) if layout.viewport == cadcodec::Handle::NULL)
+    );
+
+    let exported = cad_document_to_package(&source, options(), ExportOptions::default()).unwrap();
+    let root = std::env::temp_dir().join(format!("ifccad-active-paper-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&root);
+    exported.package().write_directory(&root).unwrap();
+    let loaded = load_directory_package(&root).unwrap();
+    let package = loaded
+        .validated_package()
+        .unwrap_or_else(|| panic!("{:?}", loaded.report()));
+    let resume = package.workspace().unwrap();
+    assert_eq!(resume.active_layout().name(), "Layout1");
+    let drawing = resume.active_drawing();
+    let workspace = drawing.representation().resource().workspace().unwrap();
+    assert_eq!(workspace.paper_canvases.len(), 1);
+    assert_eq!(workspace.paper_canvases[0].view.height, 12.0);
+    let imported = drawing_to_cad_document(drawing).unwrap();
+    assert!(!imported.document().header.show_model_space);
+    let canvas_count = imported
+        .document()
+        .entities()
+        .filter(|entity| matches!(entity, EntityType::Viewport(viewport) if viewport.id == 1))
+        .count();
+    assert_eq!(canvas_count, 1);
+    let model_count = imported
+        .document()
+        .entities()
+        .filter(|entity| matches!(entity, EntityType::Viewport(viewport) if viewport.id > 1))
+        .count();
+    assert_eq!(model_count, 1);
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+#[test]
+fn zeroed_paper_viewport_id_reports_unresolved_canvas() {
+    let mut source = CadDocument::new();
+    source.header.show_model_space = false;
+    let mut viewport = Viewport::new();
+    viewport.id = 0;
+    source
+        .add_entity_to_layout(EntityType::Viewport(viewport), "Layout1")
+        .unwrap();
+    let layout = source
+        .objects
+        .values_mut()
+        .find_map(|object| match object {
+            ObjectType::Layout(layout) if layout.name == "Layout1" => Some(layout),
+            _ => None,
+        })
+        .unwrap();
+    layout.min_limits = (0.0, 0.0);
+    layout.max_limits = (12.0, 9.0);
+    let exported = cad_document_to_package(&source, options(), ExportOptions::default()).unwrap();
+    assert!(exported
+        .diagnostics()
+        .iter()
+        .any(|diagnostic| format!("{diagnostic:?}")
+            .contains("paper overall viewport identity unavailable")));
+    assert!(exported
+        .diagnostics()
+        .iter()
+        .any(|diagnostic| format!("{diagnostic:?}")
+            .contains("active paper layout has no recoverable canvas")));
+    let root = std::env::temp_dir().join(format!("ifccad-zeroed-paper-id-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&root);
+    exported.package().write_directory(&root).unwrap();
+    let loaded = load_directory_package(&root).unwrap();
+    let package = loaded
+        .validated_package()
+        .unwrap_or_else(|| panic!("{:?}", loaded.report()));
+    assert_eq!(package.workspace().unwrap().active_layout().name(), "Model");
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+#[test]
+fn viewport_free_paper_layout_stays_viewport_free_after_dxf_and_dwg_roundtrip() {
+    let mut source = CadDocument::new();
+    let mut first_canvas = Viewport::new();
+    first_canvas.id = 1;
+    source
+        .add_entity_to_layout(EntityType::Viewport(first_canvas), "Layout1")
+        .unwrap();
+    let handle = source.add_layout("Layout2").unwrap();
+    let ObjectType::Layout(layout) = source.objects.get_mut(&handle).unwrap() else {
+        panic!()
+    };
+    let canvas_handle = layout.viewport;
+    layout.viewport = cadcodec::Handle::NULL;
+    layout.viewports.clear();
+    layout.min_limits = (0.0, 0.0);
+    layout.max_limits = (12.0, 9.0);
+    let layout2_block = layout.block_record;
+    source.header.show_model_space = false;
+    source.header.paper_space_block_handle = source
+        .objects
+        .values()
+        .find_map(|object| match object {
+            ObjectType::Layout(layout) if layout.name == "Layout1" => Some(layout.block_record),
+            _ => None,
+        })
+        .unwrap();
+    source
+        .block_records
+        .iter_mut()
+        .find(|record| record.handle == layout2_block)
+        .unwrap()
+        .entity_handles
+        .retain(|handle| *handle != canvas_handle);
+    source.remove_entity(canvas_handle);
+    let exported = cad_document_to_package(&source, options(), ExportOptions::default()).unwrap();
+    let root =
+        std::env::temp_dir().join(format!("ifccad-layout-limits-view-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&root);
+    exported.package().write_directory(&root).unwrap();
+    let loaded = load_directory_package(&root).unwrap();
+    let package = loaded
+        .validated_package()
+        .unwrap_or_else(|| panic!("{:?}", loaded.report()));
+    assert_eq!(
+        package.workspace().unwrap().active_layout().name(),
+        "Layout1"
+    );
+    let drawing = package.drawings().next().unwrap();
+    let layout2_scope_id = drawing
+        .layouts()
+        .find(|layout| layout.name() == "Layout2")
+        .unwrap()
+        .scope()
+        .id()
+        .get() as u32;
+    assert!(!drawing
+        .representation()
+        .resource()
+        .workspace()
+        .unwrap()
+        .paper_canvases
+        .iter()
+        .any(|canvas| canvas.scope_id == layout2_scope_id));
+    let imported = drawing_to_cad_document(drawing).unwrap();
+    let layout = imported
+        .document()
+        .objects
+        .values()
+        .find_map(|object| match object {
+            ObjectType::Layout(layout) if layout.name == "Layout2" => Some(layout),
+            _ => None,
+        })
+        .unwrap();
+    assert_eq!(layout.viewport, cadcodec::Handle::NULL);
+    assert!(!imported.document().entities().any(|entity| matches!(entity, EntityType::Viewport(viewport) if viewport.common.owner_handle == layout.block_record)));
+    let dxf = root.with_extension("dxf");
+    cadcodec::DxfWriter::new(imported.document())
+        .write_to_file(&dxf)
+        .unwrap();
+    let reread = cadcodec::DxfReader::from_file(&dxf)
+        .unwrap()
+        .read()
+        .unwrap();
+    let layout = reread
+        .objects
+        .values()
+        .find_map(|object| match object {
+            ObjectType::Layout(layout) if layout.name == "Layout2" => Some(layout),
+            _ => None,
+        })
+        .unwrap();
+    assert_eq!(layout.viewport, cadcodec::Handle::NULL);
+    assert!(!reread.entities().any(|entity| matches!(entity, EntityType::Viewport(viewport) if viewport.common.owner_handle == layout.block_record)));
+    let dwg = root.with_extension("dwg");
+    std::fs::write(
+        &dwg,
+        cadcodec::DwgWriter::write_to_vec(imported.document()).unwrap(),
+    )
+    .unwrap();
+    let reread = cadcodec::DwgReader::from_file(&dwg)
+        .unwrap()
+        .read()
+        .unwrap();
+    let layout = reread
+        .objects
+        .values()
+        .find_map(|object| match object {
+            ObjectType::Layout(layout) if layout.name == "Layout2" => Some(layout),
+            _ => None,
+        })
+        .unwrap();
+    assert_eq!(layout.viewport, cadcodec::Handle::NULL);
+    assert!(!reread.entities().any(|entity| matches!(entity, EntityType::Viewport(viewport) if viewport.common.owner_handle == layout.block_record)));
+    let _ = std::fs::remove_file(&dxf);
+    let _ = std::fs::remove_file(&dwg);
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+#[test]
+fn padded_dxf_plot_integer_values_keep_paper_rotation() {
+    let mut source = CadDocument::new();
+    let handle = source.add_layout("Rotated sheet").unwrap();
+    let ObjectType::Layout(layout) = source.objects.get_mut(&handle).unwrap() else {
+        panic!()
+    };
+    layout.paper_width = 215.9;
+    layout.paper_height = 279.4;
+    layout.raw_plot_settings_codes = Some(vec![
+        (72, "     0".into()),
+        (73, "     1".into()),
+        (74, "     5".into()),
+        (75, "    16".into()),
+    ]);
+    let exported = cad_document_to_package(&source, options(), ExportOptions::default()).unwrap();
+    let root = std::env::temp_dir().join(format!("ifccad-plot-rotation-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&root);
+    exported.package().write_directory(&root).unwrap();
+    let loaded = load_directory_package(&root).unwrap();
+    let drawing = loaded
+        .validated_package()
+        .unwrap()
+        .drawings()
+        .next()
+        .unwrap();
+    let imported = drawing_to_cad_document(drawing).unwrap();
+    let layout = imported
+        .document()
+        .objects
+        .values()
+        .find_map(|object| match object {
+            ObjectType::Layout(layout) if layout.name == "Rotated sheet" => Some(layout),
+            _ => None,
+        })
+        .unwrap();
+    assert_eq!(layout.paper_width, 215.9);
+    assert_eq!(layout.paper_height, 279.4);
+    assert_eq!(layout.plot_rotation, 1);
+    let dxf = root.with_extension("dxf");
+    cadcodec::DxfWriter::new(imported.document())
+        .write_to_file(&dxf)
+        .unwrap();
+    let reread = cadcodec::DxfReader::from_file(&dxf)
+        .unwrap()
+        .read()
+        .unwrap();
+    let written = reread
+        .objects
+        .values()
+        .find_map(|object| match object {
+            ObjectType::Layout(layout) if layout.name == "Rotated sheet" => Some(layout),
+            _ => None,
+        })
+        .unwrap();
+    assert!(written
+        .raw_plot_settings_codes
+        .as_ref()
+        .unwrap()
+        .iter()
+        .any(|(code, value)| *code == 73 && value.trim() == "1"));
+    let _ = std::fs::remove_file(&dxf);
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+#[test]
 fn dxf_roundtripped_empty_default_layout_remains_scaffolding() {
     let source = CadDocument::new();
     let path =

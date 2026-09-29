@@ -50,8 +50,13 @@ inconsistency and DXF absence; explodable and uniform-scaling flags roundtrip.
 ## Converter policy and exchange evidence
 
 The converter rejects contradictory present marker name/owner/base-point data
-as `InvalidSourceStructure` under both loss policies. Absence is allowed; a
-zero marker is not guessed to mean absent. Native-to-CAD conversion constructs
+as `InvalidSourceStructure` under both loss policies, except the single-slot
+anonymous `*U` name shift from [cadcodec #55](https://github.com/HakanSeven12/opencadcodec/issues/55).
+That repair uses the explicit begin-marker name to correct the record and its
+reader-derived INSERT names on an export copy only when owner, base point,
+ordinal, and uniqueness checks all agree. A collision or any other name
+conflict remains fatal. Marker absence is allowed; a zero marker is not guessed
+to mean absent. Native-to-CAD conversion constructs
 consistent records and markers. `block_exchange` exercises production package
 readback and the actual codecs: DXF with nonzero base and DWG with zero base
 return successfully; DWG with nonzero base is explicitly rejected on return

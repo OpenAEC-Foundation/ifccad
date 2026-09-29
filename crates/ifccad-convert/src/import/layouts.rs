@@ -1,5 +1,6 @@
 use super::diagnostic::DiagnosticAccumulator;
 use crate::{ImportDiagnostic, ImportError};
+use cadcodec::entities::{EntityType, Viewport};
 use cadcodec::objects::{Layout, ObjectType};
 use cadcodec::{CadDocument, Handle};
 use ifccad::ifcdr::{ScopeId, ShadedPlotMode, ShadedPlotQualityMode};
@@ -27,6 +28,33 @@ pub(crate) fn allocate(
         } else {
             document.add_layout(source.name()).map_err(|error| ImportError::InternalInvariant { message: format!("could not create paper layout: {error}") })?
         };
+        if !model {
+            let has_canvas =
+                source
+                    .representation()
+                    .resource()
+                    .workspace()
+                    .is_some_and(|workspace| {
+                        workspace
+                            .paper_canvases
+                            .iter()
+                            .any(|canvas| canvas.scope_id == source.scope().id().get())
+                    });
+            if has_canvas {
+                if matches!(document.objects.get(&handle), Some(ObjectType::Layout(layout)) if layout.viewport == Handle::NULL)
+                {
+                    let mut canvas = Viewport::new();
+                    canvas.id = 1;
+                    document
+                        .add_entity_to_layout(EntityType::Viewport(canvas), source.name())
+                        .map_err(|error| ImportError::InternalInvariant {
+                            message: format!("could not create paper canvas viewport: {error}"),
+                        })?;
+                }
+            } else {
+                remove_scaffold_canvas(document, handle)?;
+            }
+        }
         let ObjectType::Layout(target) =
             document.objects.get_mut(&handle).expect("allocated layout")
         else {
@@ -63,6 +91,51 @@ pub(crate) fn allocate(
         }
     }
     Ok(owners)
+}
+
+fn remove_scaffold_canvas(
+    document: &mut CadDocument,
+    layout_handle: Handle,
+) -> Result<(), ImportError> {
+    let Some(ObjectType::Layout(layout)) = document.objects.get(&layout_handle) else {
+        return Err(ImportError::InternalInvariant {
+            message: "allocated paper layout is unavailable".into(),
+        });
+    };
+    let canvas_handle = layout.viewport;
+    if canvas_handle == Handle::NULL {
+        return Ok(());
+    }
+    let block_handle = layout.block_record;
+    if !matches!(document.get_entity(canvas_handle), Some(EntityType::Viewport(viewport)) if viewport.id == 1 && viewport.common.owner_handle == block_handle)
+        || document
+            .block_records
+            .iter()
+            .all(|record| record.handle != block_handle)
+    {
+        return Err(ImportError::InternalInvariant {
+            message: "paper layout scaffold canvas is inconsistent".into(),
+        });
+    }
+    document
+        .remove_entity(canvas_handle)
+        .ok_or_else(|| ImportError::InternalInvariant {
+            message: "paper layout scaffold canvas disappeared".into(),
+        })?;
+    let Some(ObjectType::Layout(layout)) = document.objects.get_mut(&layout_handle) else {
+        unreachable!()
+    };
+    layout.viewport = Handle::NULL;
+    layout.viewports.retain(|handle| *handle != canvas_handle);
+    let record = document
+        .block_records
+        .iter_mut()
+        .find(|record| record.handle == block_handle)
+        .expect("validated paper block");
+    record
+        .entity_handles
+        .retain(|handle| *handle != canvas_handle);
+    Ok(())
 }
 
 fn apply_settings(

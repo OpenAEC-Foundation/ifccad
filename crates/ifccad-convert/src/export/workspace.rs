@@ -2,13 +2,15 @@ use super::conversion::ExportContext;
 use super::{
     ExportAction, ExportDiagnostic, ExportDiagnosticSource, ExportError, ExportLossReason,
 };
+use cadcodec::entities::EntityType;
+use cadcodec::objects::ObjectType;
 use cadcodec::tables::VPort;
 use cadcodec::{CadDocument, Handle};
 use ifccad::ifcdr::{
     BackClip, BackClipMode, CoordinateFrame3, DrawingViewState, FrontClip, FrontClipMode,
-    IfcdrWorkspace, IsometricPlane, ModelWindow, NormalizedRect2, Point2, Point3, ProjectionMode,
-    UcsDefinition, UcsSelection, Vector3, ViewDefinition, ViewportRenderMode, WorkspaceGrid,
-    WorkspaceGridStyle, WorkspaceSnap, WorkspaceSnapStyle,
+    IfcdrWorkspace, IsometricPlane, ModelWindow, NormalizedRect2, PaperActiveContext, PaperCanvas,
+    Point2, Point3, ProjectionMode, UcsDefinition, UcsSelection, Vector3, ViewDefinition,
+    ViewportRenderMode, WorkspaceGrid, WorkspaceGridStyle, WorkspaceSnap, WorkspaceSnapStyle,
 };
 use ifccad::package::DrawingBuilder;
 use std::collections::BTreeMap;
@@ -170,15 +172,129 @@ fn model_window(vport: &VPort, id: u32, stored_ucs: UcsSelection) -> Option<Mode
     })
 }
 
+fn paper_canvas(
+    viewport: &cadcodec::entities::Viewport,
+    scope_id: u32,
+    handles: &BTreeMap<Handle, u32>,
+) -> Option<PaperCanvas> {
+    if viewport.id != 1 || viewport.status.perspective {
+        return None;
+    }
+    if viewport.status.snap_on && (viewport.snap_spacing.x <= 0.0 || viewport.snap_spacing.y <= 0.0)
+    {
+        return None;
+    }
+    let stored_ucs = if viewport.ucs_handle != Handle::NULL {
+        UcsSelection::Named {
+            ucs_id: *handles.get(&viewport.ucs_handle)?,
+        }
+    } else {
+        source_ucs(
+            "",
+            viewport.ucs_origin,
+            viewport.ucs_x_axis,
+            viewport.ucs_y_axis,
+            &BTreeMap::new(),
+        )?
+    };
+    let grid = WorkspaceGrid {
+        enabled: viewport.status.grid_on,
+        spacing: Point2::new(viewport.grid_spacing.x, viewport.grid_spacing.y),
+        style: WorkspaceGridStyle::Lines,
+        major_line_frequency: u32::try_from(viewport.grid_major).ok()?,
+        beyond_limits: viewport.grid_flags.beyond_limits,
+        adaptive: viewport.grid_flags.adaptive,
+        subdivision: viewport.grid_flags.subdivision,
+        follows_workplane: viewport.grid_flags.follow_dynamic,
+    };
+    let snap = WorkspaceSnap {
+        enabled: viewport.status.snap_on,
+        base: Point2::new(viewport.snap_base.x, viewport.snap_base.y),
+        spacing: Point2::new(
+            if viewport.snap_spacing.x > 0.0 {
+                viewport.snap_spacing.x
+            } else {
+                1.0
+            },
+            if viewport.snap_spacing.y > 0.0 {
+                viewport.snap_spacing.y
+            } else {
+                1.0
+            },
+        ),
+        angle: viewport.snap_angle,
+        style: if viewport.status.isometric_snap {
+            WorkspaceSnapStyle::Isometric
+        } else {
+            WorkspaceSnapStyle::Rectangular
+        },
+        isometric_plane: if viewport.status.iso_pair_right {
+            IsometricPlane::Right
+        } else if viewport.status.iso_pair_top {
+            IsometricPlane::Top
+        } else {
+            IsometricPlane::Left
+        },
+    };
+    Some(PaperCanvas {
+        scope_id,
+        view: ViewDefinition {
+            center: Point2::new(viewport.view_center.x, viewport.view_center.y),
+            target: point3(viewport.view_target),
+            direction: vector3(viewport.view_direction),
+            height: viewport.view_height,
+            twist: viewport.twist_angle,
+            projection: ProjectionMode::Orthographic,
+            lens_length: Some(viewport.lens_length),
+            front_clip: FrontClip {
+                mode: if viewport.status.front_clipping {
+                    if viewport.status.front_clip_not_at_eye {
+                        FrontClipMode::AtDistance
+                    } else {
+                        FrontClipMode::AtCamera
+                    }
+                } else {
+                    FrontClipMode::Disabled
+                },
+                distance: Some(viewport.front_clip_z),
+            },
+            back_clip: BackClip {
+                mode: if viewport.status.back_clipping {
+                    BackClipMode::AtDistance
+                } else {
+                    BackClipMode::Disabled
+                },
+                distance: Some(viewport.back_clip_z),
+            },
+        },
+        grid,
+        snap,
+        stored_ucs,
+        current_ucs: stored_ucs,
+        active_context: PaperActiveContext::Canvas,
+    })
+}
+
 pub(crate) fn add_workspace(
     document: &CadDocument,
     drawing: &mut DrawingBuilder<'_>,
     context: &mut ExportContext,
 ) -> Result<(), ExportError> {
-    if !document.header.show_model_space {
-        loss(context, "active paper layout is not exposed by cadcodec");
-        return Ok(());
-    }
+    let active_paper_space = if document.header.show_model_space {
+        None
+    } else {
+        let selected = context
+            .paper_scopes
+            .get(&document.header.paper_space_block_handle)
+            .copied();
+        if selected.is_none() {
+            loss(
+                context,
+                "active paper layout cannot be resolved from header paper-space block",
+            );
+        }
+        selected
+    };
     let current_layer = match context
         .layer_keys
         .get(&document.header.current_layer_name.to_lowercase())
@@ -276,7 +392,74 @@ pub(crate) fn add_workspace(
         current_model_ucs,
         active_model_window_id,
     });
-    drawing.set_workspace_state(workspace, current_layer, None)?;
+    for layout in document.objects.values().filter_map(|object| match object {
+        ObjectType::Layout(layout) => Some(layout),
+        _ => None,
+    }) {
+        let Some(scope) = context.paper_scopes.get(&layout.block_record).copied() else {
+            continue;
+        };
+        let Some(handle) = super::layouts::overall_viewport_handle(document, layout) else {
+            let owned_viewports: Vec<_> = document
+                .entities()
+                .filter_map(|entity| match entity {
+                    EntityType::Viewport(viewport)
+                        if viewport.common.owner_handle == layout.block_record =>
+                    {
+                        Some(viewport)
+                    }
+                    _ => None,
+                })
+                .collect();
+            if !owned_viewports.is_empty()
+                || layout.viewport != Handle::NULL
+                || !layout.viewports.is_empty()
+            {
+                if owned_viewports.iter().any(|viewport| viewport.id == 0) {
+                    loss(
+                        context,
+                        "paper overall viewport identity unavailable (zero viewport IDs)",
+                    );
+                } else {
+                    loss(context, "paper overall viewport identity unavailable");
+                }
+                continue;
+            }
+            continue;
+        };
+        let Some(EntityType::Viewport(viewport)) = document.get_entity(handle) else {
+            continue;
+        };
+        let default_frame = cadcodec::entities::Viewport::new();
+        if !viewport.status.snap_on
+            && (viewport.snap_spacing.x <= 0.0 || viewport.snap_spacing.y <= 0.0)
+        {
+            loss(
+                context,
+                "disabled paper snap spacing normalized to valid defaults",
+            );
+        }
+        if viewport.center != default_frame.center
+            || viewport.width != default_frame.width
+            || viewport.height != default_frame.height
+        {
+            loss(context, "paper canvas screen frame");
+        }
+        match paper_canvas(viewport, scope.scope_id(), &handles) {
+            Some(canvas) => workspace.paper_canvases.push(canvas),
+            None => loss(context, "paper layout overall VIEWPORT view/grid/snap/UCS"),
+        }
+    }
+    let active_paper_space = active_paper_space.filter(|key| {
+        workspace
+            .paper_canvases
+            .iter()
+            .any(|canvas| canvas.scope_id == key.scope_id())
+    });
+    if !document.header.show_model_space && active_paper_space.is_none() {
+        loss(context, "active paper layout has no recoverable canvas");
+    }
+    drawing.set_workspace_state(workspace, current_layer, active_paper_space)?;
     context.mapped_workspace_ucss.extend(mapped_ucss);
     context.mapped_workspace_vports.extend(mapped_vports);
     Ok(())

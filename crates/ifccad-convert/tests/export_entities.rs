@@ -6,8 +6,10 @@ use ifccad::ifcdr::{AppearanceId, IfcdrEntityRef, Point2, Point3};
 use ifccad::package::{load_directory_package, AppearanceProperty, PackageOptions};
 use ifccad::PackageId;
 use ifccad_convert::{
-    cad_document_to_package, drawing_to_cad_document, ExportAction, ExportDiagnosticSource,
-    ExportError, ExportLossPolicy, ExportLossReason, ExportOptions, SourceStructureProblem,
+    cad_document_to_package, drawing_to_cad_document, drawing_to_cad_document_with_options,
+    ConversionGeometryTolerance, ExportAction, ExportDiagnosticSource, ExportError,
+    ExportLossPolicy, ExportLossReason, ExportOptions, ImportError, ImportOptions,
+    SourceStructureProblem,
 };
 use std::fs;
 use std::path::PathBuf;
@@ -89,7 +91,7 @@ fn cad_point_exports_as_distinct_ifcdr_point() {
     assert!(
         matches!(entity, IfcdrEntityRef::Point(point) if point.position() == ifccad::ifcdr::Point3::new(4.0, 5.0, 6.0))
     );
-    let imported = ifccad_convert::drawing_to_cad_document(drawing).unwrap();
+    let imported = drawing_to_cad_document(drawing).unwrap();
     assert_eq!(imported.document().header.point_display_mode, 34);
     assert_eq!(imported.document().header.point_display_size, -5.0);
     assert!(imported.document().entities().any(|entity| {
@@ -135,7 +137,18 @@ fn cad_circle_and_arc_keep_entity_kind_and_oblique_plane() {
     let entities: Vec<_> = resource.entities(scope).collect();
     assert!(matches!(entities[0], IfcdrEntityRef::Circle(circle) if circle.radius() == 5.0));
     assert!(matches!(entities[1], IfcdrEntityRef::Arc(arc) if arc.sweep_parameter() == 2.0));
-    let imported = ifccad_convert::drawing_to_cad_document(drawing).unwrap();
+    assert!(matches!(
+        drawing_to_cad_document(drawing),
+        Err(ImportError::GeometryAccuracyNotEstablished { .. })
+    ));
+    let imported = drawing_to_cad_document_with_options(
+        drawing,
+        ImportOptions {
+            geometry_tolerance: ConversionGeometryTolerance::drawing_units(1e-12).unwrap(),
+            ..ImportOptions::default()
+        },
+    )
+    .unwrap();
     assert!(imported
         .document()
         .entities()

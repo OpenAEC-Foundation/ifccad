@@ -289,6 +289,94 @@ fn duplicate_record_handles_never_disguise_a_definition_as_model_space() {
     }
 }
 
+#[test]
+fn anonymous_block_uses_explicit_marker_name_and_retargets_reader_named_insert() {
+    let mut document = definition(Some(Vector3::new(2., 0., 0.)));
+    let marker_handle = document
+        .block_records
+        .get("Door")
+        .unwrap()
+        .block_entity_handle;
+    document.block_records.rename("Door", "*U24").unwrap();
+    document
+        .block_records
+        .get_mut("*U24")
+        .unwrap()
+        .flags
+        .anonymous = true;
+    let Some(EntityType::Block(marker)) = document.get_entity_mut(marker_handle) else {
+        panic!("expected BLOCK begin marker");
+    };
+    marker.name = "*U25".into();
+    document
+        .add_entity(EntityType::Insert(cadcodec::entities::Insert::new(
+            "*U24",
+            Vector3::ZERO,
+        )))
+        .unwrap();
+
+    let outcome = cad_document_to_package(&document, options(), ExportOptions::default())
+        .expect("unique explicit anonymous name should recover");
+    assert!(document.block_records.get("*U24").is_some());
+    assert!(document.block_records.get("*U25").is_none());
+    assert!(document
+        .entities()
+        .any(|entity| matches!(entity, EntityType::Insert(insert) if insert.block_name == "*U24")));
+    let path = std::env::temp_dir().join(format!(
+        "ifccad-anonymous-block-{}-{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    outcome.package().write_directory(&path).unwrap();
+    let loaded = ifccad::package::load_directory_package(&path).unwrap();
+    assert!(loaded.report().is_empty());
+    let drawing = loaded
+        .validated_package()
+        .unwrap()
+        .drawings()
+        .next()
+        .unwrap();
+    let imported = ifccad_convert::drawing_to_cad_document(drawing).unwrap();
+    assert!(imported.document().block_records.get("*U25").is_some());
+    assert!(imported.document().block_records.get("*U24").is_none());
+    assert!(imported
+        .document()
+        .entities()
+        .any(|entity| matches!(entity, EntityType::Insert(insert) if insert.block_name == "*U25")));
+    std::fs::remove_dir_all(path).unwrap();
+}
+
+#[test]
+fn anonymous_marker_name_collision_remains_structural_error() {
+    let mut document = definition(Some(Vector3::new(2., 0., 0.)));
+    let marker_handle = document
+        .block_records
+        .get("Door")
+        .unwrap()
+        .block_entity_handle;
+    document.block_records.rename("Door", "*U24").unwrap();
+    document
+        .block_records
+        .get_mut("*U24")
+        .unwrap()
+        .flags
+        .anonymous = true;
+    let Some(EntityType::Block(marker)) = document.get_entity_mut(marker_handle) else {
+        panic!("expected BLOCK begin marker");
+    };
+    marker.name = "*U25".into();
+    let mut other = BlockRecord::new("*U25");
+    other.handle = document.allocate_handle();
+    document.block_records.add(other).unwrap();
+    assert!(matches!(
+        cad_document_to_package(&document, options(), ExportOptions::default()),
+        Err(ExportError::InvalidSourceStructure { .. })
+    ));
+}
+
 fn definition(marker_base: Option<Vector3>) -> CadDocument {
     let mut document = CadDocument::new();
     let mut record = BlockRecord::new("Door");
