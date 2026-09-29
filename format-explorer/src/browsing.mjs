@@ -8,7 +8,22 @@ export function pageWindow(model,id,total,size=10){
 }
 export function collectionWindow(model,id){
  const c=model.paging.collections.get(id);if(!c)return null;
- return {page:Math.floor(c.start/c.pageSize),pages:Math.max(1,Math.ceil(c.items.length/c.pageSize)),start:c.start,end:c.end||Math.min(c.pageSize,c.items.length),total:c.items.length};
+ return model.paging.graphWindow(id);
+}
+export function inspectorWindow(model,id,total){
+ model.inspectorStarts??=new Map();
+ const start=Math.max(0,Math.min(model.inspectorStarts.get(id)||0,Math.max(0,total-3)));
+ return {start,end:Math.min(start+3,total),total};
+}
+export function collectionScroller(id,w){
+ if(!w||w.total<=3)return '';
+ const attrs=`data-scroll-id="${escape(id)}"`,last=Math.max(0,w.total-3);
+ return `<nav class="collection-pager" aria-label="Bladeren door verzameling"><button ${attrs} data-scroll-step="-1" ${w.start===0?'disabled':''} aria-label="Vorig item">↑</button><span class="page-range" data-no-i18n>${w.start+1}–${w.end} / ${w.total}</span><input type="range" min="0" max="${last}" value="${w.start}" ${attrs} aria-label="Scroll door items"><button ${attrs} data-scroll-step="1" ${w.start===last?'disabled':''} aria-label="Volgend item">↓</button></nav>`;
+}
+export function inspectorScroller(id,w){
+ if(!w||w.total<=3)return '';
+ const attrs=`data-inspector-scroll-id="${escape(id)}"`,last=w.total-3;
+ return `<nav class="collection-pager" aria-label="Bladeren door lijst"><button ${attrs} data-scroll-step="-1" ${w.start===0?'disabled':''} aria-label="Vorig item">↑</button><span class="page-range" data-no-i18n>${w.start+1}–${w.end} / ${w.total}</span><input type="range" min="0" max="${last}" value="${w.start}" ${attrs} aria-label="Scroll door lijst"><button ${attrs} data-scroll-step="1" ${w.start===last?'disabled':''} aria-label="Volgend item">↓</button></nav>`;
 }
 export function pager(id,w,kind='inspector'){
  if(w.pages<=1)return '';
@@ -20,8 +35,8 @@ export function columnTable(node,model){
  const pools=columns.filter(k=>['x','y','z','bulge'].includes(k)&&Object.hasOwn(stream,'vertexOffset')&&Object.hasOwn(stream,'vertexCount'));
  function section(keys,key,total,title,shared=false){
   if(!keys.length)return '';
-  const w=shared?collectionWindow(model,node.id):pageWindow(model,key,total),indexes=Array.from({length:w.end-w.start},(_,i)=>w.start+i);
-  return `<div class="structure-heading"><h3>${title}</h3><span>${total} rijen</span></div>${pager(key,w,shared?'graph':'inspector')}${shared&&total>10?'<p class="small-note">Graph en kolommen tonen dezelfde 10 items per pagina.</p>':''}<div class="column-map" tabindex="0" role="region" aria-label="Kolomstructuur"><div class="column-row"><code>index</code><div class="column-values">${indexes.map(i=>`<span class="column-cell column-index">${i}</span>`).join('')}</div></div>${keys.map(k=>`<div class="column-row"><code>${escape(k)}</code><div class="column-values">${Array.isArray(stream[k])?stream[k].slice(w.start,w.end).map(v=>{
+  const w=shared?collectionWindow(model,node.id):inspectorWindow(model,key,total),indexes=Array.from({length:w.end-w.start},(_,i)=>w.start+i);
+  return `<div class="structure-heading"><h3>${title}</h3><span>${total} rijen</span></div>${shared?collectionScroller(node.id,w):inspectorScroller(key,w)}<div class="column-map" tabindex="0" role="region" aria-label="Kolomstructuur"><div class="column-row"><code>index</code><div class="column-values">${indexes.map(i=>`<span class="column-cell column-index">${i}</span>`).join('')}</div></div>${keys.map(k=>`<div class="column-row"><code>${escape(k)}</code><div class="column-values">${Array.isArray(stream[k])?stream[k].slice(w.start,w.end).map(v=>{
    const value=typeof v==='object'?JSON.stringify(v):String(v),short=value.slice(0,160)+(value.length>160?'…':'');
    return `<span class="column-cell${k==='entityId'?' id-cell':''}" title="${escape(value.slice(0,2000))}">${k==='entityId'?`<button data-select="${escape('entity:'+node.resourceId+':'+v)}" aria-label="Bekijk entiteit ${escape(v)}">${escape(value)}</button>`:escape(short)}</span>`;
   }).join(''):escape(stream[k])}</div></div>`).join('')}</div>`;
@@ -39,6 +54,6 @@ export function collectionBrowser(node,model){
  }).join('')}</div>`;
 }
 export function graphPager(node,model){
- const c=model.paging.collections.get(node.id);if(!c||c.items.length<=c.pageSize)return '';
- return '<div class="structure-heading"><h3>Items in de graph</h3></div>'+pager(node.id,collectionWindow(model,node.id),'graph');
+ const c=model.paging.collections.get(node.id);if(!c||c.items.length<=3)return '';
+ return '<div class="structure-heading"><h3>Items in de graph en kolommen</h3></div>'+collectionScroller(node.id,collectionWindow(model,node.id));
 }

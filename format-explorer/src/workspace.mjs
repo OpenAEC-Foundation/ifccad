@@ -4,7 +4,7 @@ export function inspectorWidth(width, requested=380){
  return Math.round(Math.max(min,Math.min(max,requested)));
 }
 
-export function initializeWorkspace(refreshText=()=>{}){
+export function initializeWorkspace(){
  const workspace=document.getElementById('workspace'),divider=document.getElementById('inspector-divider');
  let preferred=380,drag=null;
  function apply(){
@@ -37,15 +37,4 @@ export function initializeWorkspace(refreshText=()=>{}){
  document.getElementById('support-close').addEventListener('click',()=>dialog.close());
  dialog.addEventListener('close',()=>trigger.focus({preventScroll:true}));
  dialog.addEventListener('click',e=>{const r=dialog.getBoundingClientRect();if(e.target===dialog&&(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom))dialog.close();});
- const report=document.getElementById('report-panel'),reportExpand=document.getElementById('report-expand');
- function focusReport(expanded){
-  document.getElementById('app').classList.toggle('report-focused',expanded);
-  reportExpand.setAttribute('aria-expanded',String(expanded));
-  reportExpand.replaceChildren(document.createTextNode(expanded?'Graph tonen':'Rapport vergroten'));
-  if(expanded)report.open=true;
-  refreshText(reportExpand);
- }
- reportExpand.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();focusReport(!document.getElementById('app').classList.contains('report-focused'));});
- report.addEventListener('toggle',()=>{if(!report.open)focusReport(false);});
- return {focusReport};
 }

@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {createCadPreviewController} from '../src/cad-preview.mjs';
+import * as cadPreview from '../src/cad-preview.mjs';
+const {createCadPreviewController,canOpenPreview}=cadPreview;
 
 const fixture={ifcx:{data:[{type:'openaec:Drawing',path:'drawing-main',attributes:{name:'Model'}}]}};
 const download=(format='dxf',version='AC1032')=>({failure:null,export:{format,effectiveVersion:version,download:{format,base64:'YQ==',byteLength:1}}});
@@ -42,12 +43,36 @@ test('failed export leaves the original open and exposes diagnostics',async()=>{
  await controller.show();assert.deepEqual(calls,['original']);assert.equal(controller.state.result,failed);
 });
 
+test('failed CAD conversion still opens the original without requesting a roundtrip',async()=>{
+ const opened=[];
+ const controller=createCadPreviewController({openExport:async()=>{throw Error('Roundtrip must not start');},openSession:async()=>({openOriginal:async(base64,name)=>opened.push([base64,name]),replaceGenerated:async()=>{throw Error('No generated file');},close(){}})});
+ controller.setSource({kind:'cad',name:'plan.dxf',files:[{path:'plan.dxf',base64:'YQ=='}]},null,{name:'plan.dxf',base64:'YQ=='},'Conversion failed');
+ assert.equal(canOpenPreview(controller.state),true);
+ await controller.show();
+ assert.deepEqual(opened,[['YQ==','plan.dxf']]);
+ assert.equal(controller.state.busy,false);
+ assert.equal(controller.state.error,'Conversion failed');
+ assert.equal(controller.state.result,null);
+});
+
 test('returning to the same preview reuses its generated file and document tab',async()=>{
  let exports=0,opens=0;
  const controller=createCadPreviewController({openExport:async()=>{exports++;return download();},openSession:async()=>({openOriginal:async()=>{},replaceGenerated:async()=>{opens++;},close(){}})});
  controller.setSource({kind:'package',name:'sample',files:[]},fixture,null);
  await controller.show();controller.hide();await controller.show();
  assert.equal(exports,1);assert.equal(opens,1);
+});
+
+test('the same navigation control switches between drawing and graph',async()=>{
+ const previewNavigation=cadPreview.previewNavigation;
+ assert.equal(typeof previewNavigation,'function');
+ const controller=createCadPreviewController({openExport:async()=>download(),openSession:async()=>({openOriginal:async()=>{},replaceGenerated:async()=>{},close(){}})});
+ controller.setSource({kind:'package',name:'sample',files:[]},fixture);
+ assert.deepEqual(previewNavigation(controller.state),{label:'Tekening bekijken',disabled:false});
+ await controller.show();
+ assert.deepEqual(previewNavigation(controller.state),{label:'Graph bekijken',disabled:false});
+ controller.hide();
+ assert.deepEqual(previewNavigation(controller.state),{label:'Tekening bekijken',disabled:false});
 });
 
 test('a viewer finishing after a source change is discarded',async()=>{
@@ -66,7 +91,7 @@ test('a viewer finishing after a source change is discarded',async()=>{
  assert.equal(oldClosed,true);assert.deepEqual(generated,['new']);
 });
 
-test('preview controls expose drawing, format, version and a return to structure',async()=>{
+test('preview controls expose drawing, format and version',async()=>{
  const html=await readFile(new URL('../src/index.html',import.meta.url),'utf8');
- for(const id of ['preview-open','preview-close','preview-drawing','preview-format','preview-version','preview-frame','preview-report','preview-download'])assert.match(html,new RegExp(`id="${id}"`));
+ for(const id of ['preview-open','preview-drawing','preview-format','preview-version','preview-frame','preview-report','preview-download'])assert.match(html,new RegExp(`id="${id}"`));
 });

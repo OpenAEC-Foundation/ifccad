@@ -1,6 +1,7 @@
 /** Read-only view model for curated repository examples, not a package validator. */
 import { addEntityFields } from './fields.mjs';
 import { createCollections } from './collections.mjs';
+import { addWorkspaceState } from './workspace-state.mjs';
 const commonEntityColumns=new Set(['count','entityId','scopeId','layerId','appearanceId','visible']);
 const defaultPlane={origin:{x:0,y:0,z:0},X:{x:1,y:0,z:0},Y:{x:0,y:1,z:0}};
 function storedEntityFields(stream,row){
@@ -18,6 +19,7 @@ export function buildModel(fixture, { concepts = false } = {}) {
   const paging=createCollections({add,edge,byId,defaultCollapsed});
   const fieldContext={add,edge,byId,defaultCollapsed,register:paging.register};
   const drawings = fixture.ifcx.data.filter(n => n.type === 'openaec:Drawing');
+  if(drawings.length>1)for(const drawing of drawings)defaultCollapsed.add('ifcx:'+drawing.path);
   const offsets=[];let drawingsHeight=0;
   for(const drawing of drawings){offsets.push(drawingsHeight);drawingsHeight+=Math.max(460,310+(drawing.children?.Layouts?.length||1)*150);}
   const definitionsY = 100 + drawingsHeight;
@@ -44,7 +46,7 @@ export function buildModel(fixture, { concepts = false } = {}) {
     let i=drawings.findIndex(d => d.path===raw.path || d.children?.Representation===raw.path || d.children?.Layouts?.includes(raw.path));
     i=Math.max(0,i);
     const drawingY=offsets[i]||0,layoutIndex=Math.max(0,drawings[i]?.children?.Layouts?.indexOf(raw.path)??0);
-    const positions={DrawingSet:[40,50],Drawing:[40,215+drawingY],DrawingLayout:[40,365+drawingY+layoutIndex*150],DrawingRepresentation:[310,290+drawingY],PreservationRepresentation:[310,50],Layer:[40,definitionsY+layerIndex*150],Appearance:[310,definitionsY+appearanceIndex*150]};
+    const positions={DrawingSet:[40,50],Drawing:[40,215+drawingY],DrawingLayout:[40,365+drawingY+layoutIndex*150],DrawingRepresentation:[310,290+drawingY],PreservationRepresentation:[310,50],PackageWorkspaceState:[40,-150],Layer:[40,definitionsY+layerIndex*150],Appearance:[310,definitionsY+appearanceIndex*150]};
     if(kind==='Layer')layerIndex++;
     if(kind==='Appearance')appearanceIndex++;
     const [x,y]=Object.hasOwn(positions,kind)?positions[kind]:[40,definitionsY+230];
@@ -55,6 +57,8 @@ export function buildModel(fixture, { concepts = false } = {}) {
       edge(n.id,'ifcx:'+path,relation,!pagedMembership);
     }
     if(raw.attributes?.appearance)edge(n.id,'ifcx:'+raw.attributes.appearance,'appearance');
+    if(kind==='PackageWorkspaceState')for(const relation of ['activeDrawing','activeLayout'])if(raw.attributes?.[relation])edge(n.id,'ifcx:'+raw.attributes[relation],relation);
+    if(kind==='Drawing'&&raw.attributes?.workspaceState?.currentLayer)edge(n.id,'ifcx:'+raw.attributes.workspaceState.currentLayer,'workspaceState.currentLayer');
     for(const key of ['resource','preservation']) {
       if(key==='resource'?kind!=='DrawingRepresentation':kind!=='PreservationRepresentation')continue;
       const descriptor=raw.attributes?.[key];if(!descriptor)continue;
@@ -78,7 +82,7 @@ export function buildModel(fixture, { concepts = false } = {}) {
   for(const resource of resources) {
     const {body:b,resourceId:rid,id}=resource, y=byId.get(id).y;
     const table=(name,items,label,atY,idFor,create)=>{
-      if(items.length<=paging.pageSize){items.forEach((item,i)=>create(item,i,id,false));return;}
+      if(!items.length)return;
       const groupId=`view:ifcdr:${rid}:${name}`;
       add({id:groupId,label,subtitle:items.length+' items',kind:'group',domain:'ifcdr',resourceId:rid,x:850,y:atY,raw:null});
       edge(id,groupId,name,true);defaultCollapsed.add(groupId);
@@ -90,12 +94,11 @@ export function buildModel(fixture, { concepts = false } = {}) {
       edge(parent,sid,compact?'item':'scopeTable',true,false,compact);
     });
     const definitions=b.blockDefinitionTable||[];
-    if(definitions.length>paging.pageSize)for(const definition of definitions)edge(`block-definition:${rid}:${definition.scopeId}`,`scope:${rid}:${definition.scopeId}`,'scopeId');
+    for(const definition of definitions)edge(`block-definition:${rid}:${definition.scopeId}`,`scope:${rid}:${definition.scopeId}`,'scopeId');
     table('blockDefinitionTable',definitions,'Blockdefinities',y-150,definition=>`block-definition:${rid}:${definition.scopeId}`,(definition,j,parent,compact)=>{
       const did=`block-definition:${rid}:${definition.scopeId}`;
       add({id:did,label:'BlockDefinition',subtitle:definition.name,kind:'block-definition',domain:'ifcdr',resourceId:rid,x:850+j*260,y:y-150,raw:definition});
       edge(parent,did,compact?'item':'blockDefinitionTable',true,false,compact);
-      if(!compact)edge(did,`scope:${rid}:${definition.scopeId}`,'scopeId');
     });
     const objectStreams=b.streamDirectory.streams.filter(entry=>entry.role==='object'&&b.streams[entry.name+'Stream']?.count>0);
     for(const [j,entry]of objectStreams.entries()) {
@@ -139,7 +142,7 @@ export function buildModel(fixture, { concepts = false } = {}) {
         const entity={id:entityKey,entityId:eid,resourceId:rid,kind,points,closed:['polyline','planarPolyline','spatialPolyline'].includes(kind)&&stream.closed[row],layer:'ifcx:'+layer.ifcxLayer,layerId:layer.id,appearanceId:appearance.id,appearance,scopeId:stream.scopeId[row],visible:stream.visible?.[row]??true,geometry,row,stream:streamName};
         entities.push(entity);
         add({id:entityKey,label:kind+' #'+eid,subtitle:'scope '+entity.scopeId+' · laag '+layer.id,kind:'entity',domain:'ifcdr',resourceId:rid,x:1120+j*260,y:y+120+entitySlot++*150,raw:{entityId:eid,scopeId:entity.scopeId,layerId:layer.id,appearanceId:appearance.id,...geometry},entity});
-        edge(cid,entityKey,'rij '+row,true);
+        edge(cid,entityKey,'rij '+row,true,false,true);
         edge(entityKey,entity.layer,'layerBinding');
         edge(entityKey,`scope:${rid}:${entity.scopeId}`,'scopeId');
         if(kind==='blockInstance')edge(entityKey,`scope:${rid}:${geometry.definitionScopeId}`,'definitionScopeId');
@@ -151,11 +154,12 @@ export function buildModel(fixture, { concepts = false } = {}) {
         addEntityFields([entity],fieldContext);
       },eid=>'entity:'+rid+':'+eid);
     }
+    addWorkspaceState({...resource,y},{add,edge,byId,paging,defaultCollapsed});
   }
   for(const preservation of preservations) {
     const {body:b,resourceId:rid,id}=preservation;
     const register=(name,items,create,idFor)=>{
-      if(items.length<=paging.pageSize){items.forEach(create);return;}
+      if(!items.length)return;
       const cid=`collection:${rid}:${name}`,parent=byId.get(id);
       add({id:cid,label:name,subtitle:items.length+' records',kind:'group',domain:'ifcpr',resourceId:rid,x:parent.x+270,y:parent.y+['records','projectionBindings','structuredAttachments'].indexOf(name)*170,raw:null});
       edge(id,cid,name,true);defaultCollapsed.add(cid);
@@ -175,12 +179,12 @@ export function buildModel(fixture, { concepts = false } = {}) {
       for(const r of binding.sourceRecords)edge(`record:${rid}:${r.recordId}`,key,'sourceRecord');
       for(const t of binding.modelTargets)edge(key,binding.targetKind==='ifcdrEntity'?`entity:${t.resourceId}:${t.targetId}`:binding.targetKind==='ifcxNode'?'ifcx:'+t.targetId:'resource:'+t.targetId,'modelTarget');
     },binding=>`projection:${rid}:${binding.projectionId}`);
-    for(const [i,blob]of b.blobs.entries()) {
+    register('blobs',b.blobs,(blob,i)=> {
       const key=`blob:${rid}:${blob.id}`;
       add({id:key,label:'Bronblob',subtitle:blob.byteLength+' bytes · '+blob.compression,kind:'blob',domain:'ifcpr',x:1410,y:-220+i*112,raw:blob,preservation});
       edge(id,key,'blobs',true);
       for(const r of b.records)if(r.payload?.blobId===blob.id)edge(`record:${rid}:${r.recordId}`,key,'payload · bytebereik');
-    }
+    },blob=>`blob:${rid}:${blob.id}`);
     for(const d of b.dependencyEdges)edge(`record:${rid}:${d.sourceRecordId}`,`record:${rid}:${d.targetRecordId}`,d.role+' · '+d.strength);
     register('structuredAttachments',b.structuredAttachments,(a,i)=> {
       const key=`attachment:${rid}:${a.attachmentId}`;
@@ -206,6 +210,59 @@ export function buildModel(fixture, { concepts = false } = {}) {
     roots.push('concept:dimension-style');edge(dimension.id,'concept:dimension-style','styleRef',false,true);
   }
   addEntityFields(entities.filter(e=>e.concept),fieldContext);
+  // Display groups make repeated branches predictable without changing IFCX.
+  const definitionOwners=new Set();
+  for(const drawing of drawings){
+    const owner='ifcx:'+drawing.path,base=byId.get(owner);
+    for(const [slot,relation] of ['Layouts','Layers','Appearances'].entries()){
+      const paths=drawing.children?.[relation];if(!Array.isArray(paths)||!paths.length)continue;
+      const kind=relation==='Layers'?'Layer':'Appearance';
+      if(relation!=='Layouts'&&pagedDefinitions.has(kind))continue;
+      const id=`view:ifcx:${drawing.path}:${relation}`;
+      add({id,label:relation==='Layers'?'Lagen':relation,subtitle:paths.length+' '+(paths.length===1?'item':'items'),kind:'group',domain:'ifcx',x:base.x+slot*270,y:base.y+155,raw:null});
+      edge(owner,id,relation,true,false,true);defaultCollapsed.add(id);
+      const records=paths.map(path=>byId.get('ifcx:'+path)).filter(Boolean);
+      const displayIds=new Map();
+      for(const record of records){
+        const link=edges.find(e=>e.source===owner&&e.target===record.id&&e.relation===relation&&e.structural);
+        if(link)link.structural=false;
+        const shared=definitionOwners.has(record.id),displayId=shared?`view:link:${id}:${record.id}`:record.id;
+        if(shared){
+          add({id:displayId,label:record.label,subtitle:'Gedeelde IFCX-node · '+record.subtitle,kind:'reference-link',domain:'ifcx',targetId:record.id,x:base.x+slot*270,y:base.y+310,raw:null});
+          edge(displayId,record.id,'dezelfde IFCX-node');
+        }else definitionOwners.add(record.id);
+        displayIds.set(record.id,displayId);
+        edge(id,displayId,'item',true,false,true);
+      }
+      paging.register(id,records,()=>{},record=>displayIds.get(record.id));
+    }
+  }
+  // Other display groups use the same window, including stream and workspace lists.
+  for(const resource of resources){
+    const children=edges.filter(e=>e.source===resource.id&&e.structural&&byId.get(e.target)?.kind==='collection').map(e=>byId.get(e.target));
+    if(!children.length)continue;
+    const id=`view:ifcdr:${resource.resourceId}:streams`,parent=byId.get(resource.id);
+    add({id,label:'Streams',subtitle:children.length+' typen',kind:'group',domain:'ifcdr',resourceId:resource.resourceId,x:parent.x+270,y:parent.y+180,raw:null});
+    edge(resource.id,id,'streams',true,false,true);defaultCollapsed.add(id);
+    for(const child of children){const link=edges.find(e=>e.source===resource.id&&e.target===child.id&&e.structural);link.structural=false;edge(id,child.id,'item',true,false,true);}
+    paging.register(id,children,()=>{},child=>child.id);
+  }
+  for(const group of nodes.filter(n=>['group','workspace-group'].includes(n.kind)&&!paging.collections.has(n.id))){
+    const children=edges.filter(e=>e.source===group.id&&e.structural).map(e=>byId.get(e.target)).filter(Boolean);
+    if(children.length>3)paging.register(group.id,children,()=>{},child=>child.id);
+  }
+  // Keep the real IFCX links for inspection, but use the list branches and the
+  // Drawing's shared representation as the focused graph's visible structure.
+  const drawingRepresentations=new Set(edges.filter(e=>byId.get(e.source)?.kind==='Drawing'&&e.relation==='Representation').map(e=>e.target));
+  for(const link of edges){
+    const sourceKind=byId.get(link.source)?.kind;
+    if(sourceKind==='Drawing'&&['Layouts','Layers','Appearances'].includes(link.relation)&&link.target.startsWith('ifcx:'))link.quiet=true;
+    if(sourceKind==='PackageWorkspaceState'&&link.relation==='activeLayout')link.quiet=true;
+    if(sourceKind==='DrawingLayout'&&link.relation==='Representation'&&drawingRepresentations.has(link.target)){
+      link.structural=false;
+      link.quiet=true;
+    }
+  }
   for(const n of nodes)n.expandable=n.expandable||edges.some(e=>e.structural&&e.source===n.id);
   const missing=edges.filter(e=>(!byId.has(e.source)&&!paging.has(e.source))||(!byId.has(e.target)&&!paging.has(e.target)));
   // Unassessed preservation/extension links may have no available target.
@@ -220,6 +277,7 @@ export function graphConnections(visible,selected,mode='focus',limit=8){
   if(mode==='all')return {edges:visible.edges,hiddenReferences:0};
   const kept=[],focused=[];
   for(const edge of visible.edges){
+    if(edge.quiet)continue;
     if(edge.structural||edge.relation==='linkedDrawingResources')kept.push(edge);
     else if(edge.source===selected||edge.target===selected)focused.push(edge);
   }
@@ -229,7 +287,7 @@ export function graphConnections(visible,selected,mode='focus',limit=8){
 export function visibleGraph(model, collapsed) {
   const visible=new Set(),adj=new Map();
   for(const e of model.edges)if(e.structural){if(!adj.has(e.source))adj.set(e.source,[]);adj.get(e.source).push(e.target);}
-  const stack=[...model.roots];while(stack.length){const id=stack.pop();if(visible.has(id)||!model.byId.has(id)||!model.paging.isVisible(id))continue;visible.add(id);if(!collapsed.has(id))stack.push(...(adj.get(id)||[]));}
+  const stack=[...model.roots];while(stack.length){const id=stack.pop();if(visible.has(id)||!model.byId.has(id)||!model.paging.isGraphVisible(id)||model.byId.get(id).kind==='more')continue;visible.add(id);if(!collapsed.has(id))stack.push(...(adj.get(id)||[]));}
   return {nodes:model.nodes.filter(n=>visible.has(n.id)),edges:model.edges.filter(e=>visible.has(e.source)&&visible.has(e.target))};
 }
 
@@ -239,4 +297,13 @@ export function revealNode(model, collapsed, id) {
   for(const e of model.edges)if(e.structural){if(!adj.has(e.source))adj.set(e.source,[]);adj.get(e.source).push(e.target);}
   for(let i=0;i<queue.length;i++){const node=queue[i];if(node===id){let parent=parents.get(node);while(parent!==null){model.paging.materialize(parent);collapsed.delete(parent);parent=parents.get(parent);}return true;}for(const next of adj.get(node)||[])if(!parents.has(next)){parents.set(next,node);queue.push(next);}}
   return false;
+}
+
+export function prepareWorkspaceExample(model,collapsed){
+  const group=model.nodes.find(node=>node.kind==='workspace-group');
+  if(!group)return null;
+  revealNode(model,collapsed,group.id);
+  collapsed.delete(group.id);
+  const child=model.edges.find(edge=>edge.source===group.id&&edge.structural)?.target;
+  return {selected:group.id,frame:[group.id,child].filter(Boolean)};
 }

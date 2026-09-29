@@ -6,18 +6,21 @@ import {createOcsSession} from './ocs-messages.mjs';
 import {renderExportReport} from './reports.mjs';
 import {translateTree} from './i18n.mjs';
 
+export const canOpenPreview=state=>Boolean(state.source&&(state.drawing||state.original));
+export const previewNavigation=state=>({label:state.visible?'Graph bekijken':'Tekening bekijken',disabled:!state.visible&&!canOpenPreview(state)});
+
 export function createCadPreviewController({openExport,openSession,onUpdate=()=>{}}){
- const state={source:null,drawings:[],drawing:'',format:'dxf',version:defaultCadVersion,original:null,visible:false,busy:false,result:null,error:'',viewerError:'',viewerReady:false,download:null};
+ const state={source:null,drawings:[],drawing:'',format:'dxf',version:defaultCadVersion,original:null,unavailableReason:'',visible:false,busy:false,result:null,error:'',viewerError:'',viewerReady:false,download:null};
  let generation=0,sourceEpoch=0,controller=null,session=null,sessionPromise=null,originalOpened=false,displayedKey=null;
  const cache=new Map();
  const notify=()=>onUpdate({...state});
  function invalidate(){generation++;controller?.abort();controller=null;state.busy=false;state.result=null;state.download=null;state.error='';notify();}
- function clear(){invalidate();sourceEpoch++;session?.close?.();session=null;sessionPromise=null;originalOpened=false;displayedKey=null;cache.clear();state.source=null;state.drawings=[];state.drawing='';state.original=null;state.visible=false;state.viewerError='';state.viewerReady=false;notify();}
- function setSource(source,fixture,original=null){
+ function clear(){invalidate();sourceEpoch++;session?.close?.();session=null;sessionPromise=null;originalOpened=false;displayedKey=null;cache.clear();state.source=null;state.drawings=[];state.drawing='';state.original=null;state.unavailableReason='';state.visible=false;state.viewerError='';state.viewerReady=false;notify();}
+ function setSource(source,fixture,original=null,unavailableReason=''){
   clear();if(!source)return;
   state.source=source;state.drawings=drawingChoices(fixture);state.drawing=state.drawings[0]?.id||'';
   state.format=source.kind==='cad'&&/\.dwg$/i.test(original?.name||source.name)?'dwg':'dxf';
-  state.version=defaultCadVersion;state.original=original;notify();
+  state.version=defaultCadVersion;state.original=original;state.unavailableReason=unavailableReason;notify();
  }
  async function ensureSession(current){
   if(!sessionPromise){const epoch=sourceEpoch;sessionPromise=Promise.resolve().then(openSession).then(value=>{if(epoch!==sourceEpoch){value.close?.();return null;}session=value;return value;});}
@@ -28,12 +31,13 @@ export function createCadPreviewController({openExport,openSession,onUpdate=()=>
   return active;
  }
  async function run(){
-  if(!state.visible||!state.source||!state.drawing)return;
+  if(!state.visible||!canOpenPreview(state))return;
   invalidate();const current=generation;controller=new AbortController();const signal=controller.signal;
   state.busy=true;notify();
   let active=null;
   try{active=await ensureSession(current);}catch(error){if(current===generation){state.viewerError=error.message;state.viewerReady=false;sessionPromise=null;notify();}}
   if(current!==generation)return;
+  if(!state.drawing){state.error=state.unavailableReason||'Conversie naar IFCCAD is mislukt. Alleen het oorspronkelijke CAD-bestand is beschikbaar.';state.busy=false;notify();return;}
   const key=JSON.stringify([state.drawing,state.format,state.version]);
   try{
    const request={...state.source,export:{format:state.format,drawing:state.drawing,version:state.version}};
@@ -76,9 +80,11 @@ export function initializeCadPreview(){
   try{await session.ready;return session;}catch(error){session.close();iframe.remove();throw error;}
  }
  function update(state){
-  $('preview-open').disabled=!state.source||!state.drawings.length;
+  const navigation=previewNavigation(state);
+  $('preview-open').disabled=navigation.disabled;
+  $('preview-open').textContent=navigation.label;
   $('workspace').hidden=state.visible;$('cad-preview').hidden=!state.visible;
-  $('preview-open').hidden=state.visible;
+  $('preview-controls').hidden=!state.drawing;
   $('preview-drawing').replaceChildren(...state.drawings.map(d=>{const option=document.createElement('option');option.value=d.id;option.textContent=d.label;option.dataset.noI18n='';return option;}));
   $('preview-drawing').value=state.drawing;$('preview-format').value=state.format;$('preview-version').value=state.version;
   $('preview-viewer-status').hidden=state.viewerReady&&!state.viewerError;
@@ -94,8 +100,7 @@ export function initializeCadPreview(){
   translateTree($('cad-preview'));translateTree($('preview-open'));
  }
  const controller=createCadPreviewController({openExport:(request,options)=>client.open(request,options),openSession,onUpdate:update});
- $('preview-open').addEventListener('click',()=>controller.show());
- $('preview-close').addEventListener('click',()=>{controller.hide();$('preview-open').focus({preventScroll:true});});
+ $('preview-open').addEventListener('click',()=>controller.state.visible?controller.hide():controller.show());
  $('preview-retry').addEventListener('click',()=>controller.retryViewer());
  for(const id of ['preview-drawing','preview-format','preview-version'])$(id).addEventListener('change',()=>controller.select({drawing:$('preview-drawing').value,format:$('preview-format').value,version:$('preview-version').value}));
  return {setSource:controller.setSource,clear:controller.clear,hide:controller.hide,state:controller.state};
