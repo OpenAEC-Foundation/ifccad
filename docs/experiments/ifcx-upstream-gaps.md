@@ -15,10 +15,10 @@ Each entry records: **current IFCX surface**, **our tested rule**, **open questi
 ## G2 — Ordered relationships through `children` (`Candidate`)
 
 - **Current IFCX surface:** `children` is a keyed record of references or `null`; the TypeSpec does not give its keys a general ordering meaning.
-- **Our tested rule:** Layout and block-definition children named `"0"`, `"1"`, etc. are contiguous and define CAD draw order. Exactly one layout or block definition owns each drawable entity. JSON object member order is irrelevant.
+- **Our tested rule:** Model-layout, Paper-layout and block-definition children named `"0"`, `"1"`, etc. are contiguous and define CAD draw order separately per scope. Exactly one layout or block definition owns each drawable entity. JSON object member order is irrelevant; drawing children do not define layout-tab order.
 - **Open question:** Should IFCX offer an explicit ordered relationship, or should ordering remain a profile convention? If a generic mechanism is added, how are insertion, removal, and concurrent edits handled without renumbering every later relation?
 - **Broader use:** Order of assembly steps, presentation items, ordered spatial sections, and other graph traversals where order changes meaning. CAD draw order and single ownership remain profile-specific.
-- **Evidence:** [profile ownership and order](../../schemas/ifcx-native-cad/experimental-contract-0.1.0.md#scope-and-order), [nested-block fixture](../../examples/ifcx-native-cad/hello-nested-blocks.ifcx), [strict order tests](../../tests/experimental_ifcx_native.rs), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp).
+- **Evidence:** [profile ownership and order](../../schemas/ifcx-native-cad/experimental-contract-0.1.0.md#scope-and-order), [nested-block fixture](../../examples/ifcx-native-cad/hello-nested-blocks.ifcx), [paper-layout fixture](../../examples/ifcx-native-cad/hello-paper-layouts.ifcx), [strict order tests](../../tests/experimental_ifcx_native.rs), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp).
 
 ## G3 — Composition of repeated path fragments (`Interoperability risk`)
 
@@ -31,7 +31,7 @@ Each entry records: **current IFCX surface**, **our tested rule**, **open questi
 ## G4 — Node profiles and cross-attribute requirements (`Candidate`)
 
 - **Current IFCX surface:** `schemas` describes individual attribute values. The alpha TypeSpec does not provide a normative way to say that a node with one role must also have specified attributes, exactly one of several payloads, and valid references. [Issue #72](https://github.com/buildingSMART/IFC5-development/issues/72) discusses how class properties could be described, but does not establish this validation contract.
-- **Our tested rule:** An owned drawable must have `ifccad::entity` and exactly one supported geometry payload. A circle also needs placement. References, ownership, draw order and appearance modes are checked by the strict profile reader.
+- **Our tested rule:** An owned drawable must have `ifccad::entity` and exactly one supported geometry payload. A circle also needs placement. A Paper layout requires name, positive dimensions and a physical paper unit, while Model has no paper metadata. Exactly one Model layout is required; Paper layouts are optional. These conditional value and graph requirements, references, ownership, draw order and appearance modes are checked by the strict profile reader.
 - **Open question:** Is there a reusable IFCX profile or node-type mechanism for required attribute sets, alternatives, reference targets and cardinalities? How does it coexist with unknown extension attributes?
 - **Broader use:** Independent validation of domain-specific nodes, including building elements, infrastructure and linked observations. The CAD primitive set and its exact geometry rules remain profile-specific.
 - **Evidence:** [profile validation](../../schemas/ifcx-native-cad/experimental-contract-0.1.0.md), [strict reader and tests](../../tests/experimental_ifcx_native.rs), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp).
@@ -39,7 +39,7 @@ Each entry records: **current IFCX surface**, **our tested rule**, **open questi
 ## G5 — Versioned schema imports and reproducible resolution (`Candidate`)
 
 - **Current IFCX surface:** `imports` contains a URI and optional `integrity`, but the TypeSpec does not define a complete resolver, version policy, or offline behavior.
-- **Our tested rule:** The drawing imports `urn:example:ifccad:0.1.0`; the reader resolves only this bundled immutable schema module offline. Missing definitions fail. The `example` namespace is temporary.
+- **Our tested rule:** The drawing imports `urn:example:ifccad:0.1.0`; the reader resolves only its bundled experimental schema module offline. Missing definitions fail. The `example` namespace and version are provisional: schema meaning currently follows the reader revision, without an immutable-publication promise.
 - **Open question:** How are imports located, verified, cached and kept stable across versions? Can a file carry both an immutable schema identity and a resolvable location without assuming network access?
 - **Broader use:** Reproducible exchange and validation of any domain extension, especially archived models and disconnected workflows.
 - **Evidence:** [profile import rule](../../schemas/ifcx-native-cad/experimental-contract-0.1.0.md#file-and-identity), [schema module](../../schemas/ifcx-native-cad/experimental-profile-0.1.0.ifcx), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp).
@@ -54,12 +54,12 @@ Each entry records: **current IFCX surface**, **our tested rule**, **open questi
 
 ## Profile choices to keep separate
 
-`ifccad::geom::*`, layer 0, ByLayer/ByBlock/explicit appearance, block transforms, drawing units, and the right-handed local XYZ convention are currently CAD-profile semantics. They demonstrate the need for reusable geometry and unit vocabulary, but do not by themselves justify changing IFCX core. Compare their meaning with published IFCX geometry definitions when available. The [IFCCAD benchmark issue #6](https://github.com/OpenAEC-Foundation/ifccad/issues/6) overlaps future physical-encoding comparisons; it does not settle this node-model experiment. CBOR is only a proposed probe, not a feature used by the current reader or writer.
+`ifccad::geom::*`, layer 0, ByLayer/ByBlock/explicit appearance, block transforms, drawing and paper units, Paper layout metadata, and the right-handed local XYZ convention are currently CAD-profile semantics. Shared block coordinates use drawing units, while direct paper coordinates use the paper unit; instance scale explicitly includes any conversion. These choices demonstrate the need for reusable geometry and unit vocabulary, but do not by themselves justify changing IFCX core. Compare their meaning with published IFCX geometry definitions when available. The [IFCCAD benchmark issue #6](https://github.com/OpenAEC-Foundation/ifccad/issues/6) overlaps future physical-encoding comparisons; it does not settle this node-model experiment. CBOR is only a proposed probe, not a feature used by the current reader or writer.
 
 ## Suggested order of investigation
 
 1. Follow up the [completed G1/G3 composition probe](ifcx-composition-probe.md) with a full upstream expansion check for G2 using the current unwrapped CAD paths. The TypeSpec still requires old-style brackets while the issue discussion recommends removing them; record actual implementation differences before drafting an upstream proposal.
-2. The nested-block fixture now covers two definition levels with layer 0 and ByBlock modes. Add a paper layout to test whether G2 and G4 also work across multiple layout scopes. Compare semantic readback, not just JSON shape.
+2. Nested blocks and two Paper layouts now have semantic readback evidence for G2/G4, including distinct units, shared definitions, draw order and rejected duplicate ownership. Extend this to a paper viewport referencing model space before claiming complete layout exchange; define its view, clipping and scale semantics explicitly.
 3. Test one non-CAD reference to a local CAD path across a second IFCX document. This turns the broader G1 motivation into evidence and exposes import/identity requirements in G5.
 4. Only after the semantic model survives these cases, compare matched JSON, compressed JSON, and an implemented binary candidate. Keep the physical-encoding work aligned with [IFCCAD issue #6](https://github.com/OpenAEC-Foundation/ifccad/issues/6).
 

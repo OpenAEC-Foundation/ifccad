@@ -4,6 +4,7 @@ use super::{
 };
 use serde::Serialize;
 use serde_json::{json, Map, Value};
+use std::collections::BTreeSet;
 
 // Struct field order is the presentation order in the example and writer output.
 #[derive(Serialize)]
@@ -85,6 +86,17 @@ fn numbered_children(entities: &[IfcxCadEntity], prefix: &str) -> Map<String, Va
 
 /// Serialize an IFCX alpha drawing with the versioned CAD schema import and strict-read it.
 pub fn write_native_cad_ifcx(document: &IfcxCadDocument) -> Result<Vec<u8>, IfcxCadReport> {
+    let mut layout_ids = BTreeSet::from([document.model.id]);
+    let mut paper_layouts: Vec<_> = document.paper_layouts.iter().collect();
+    paper_layouts.sort_by_key(|layout| layout.id);
+    for layout in &paper_layouts {
+        if !layout_ids.insert(layout.id) {
+            return Err(IfcxCadReport::one(format!(
+                "duplicate layout ID {}",
+                layout.id
+            )));
+        }
+    }
     let prefix = format!("/cad/d{}", document.drawing_id);
     let mut drawing_children = Map::new();
     drawing_children.insert(
@@ -92,6 +104,12 @@ pub fn write_native_cad_ifcx(document: &IfcxCadDocument) -> Result<Vec<u8>, Ifcx
         json!(format!("{prefix}/layout/{}", document.model.id)),
     );
     let mut data = Vec::new();
+    for layout in &paper_layouts {
+        drawing_children.insert(
+            format!("paper{}", layout.id),
+            json!(format!("{prefix}/layout/{}", layout.id)),
+        );
+    }
     for layer in &document.layers {
         drawing_children.insert(
             format!("layer{}", layer.id),
@@ -116,6 +134,15 @@ pub fn write_native_cad_ifcx(document: &IfcxCadDocument) -> Result<Vec<u8>, Ifcx
         children: Some(numbered_children(&document.model.entities, &prefix)),
         attributes: attrs(json!({"ifccad::layout":{"kind":"Model"}})),
     });
+    for layout in &paper_layouts {
+        data.push(NodeOut {
+            path: format!("{prefix}/layout/{}", layout.id),
+            children: Some(numbered_children(&layout.entities, &prefix)),
+            attributes: attrs(
+                json!({"ifccad::layout":{"kind":"Paper","name":layout.name,"paper":layout.paper}}),
+            ),
+        });
+    }
     for layer in &document.layers {
         data.push(NodeOut {
             path: format!("{prefix}/layer/{}", layer.id),
@@ -136,6 +163,11 @@ pub fn write_native_cad_ifcx(document: &IfcxCadDocument) -> Result<Vec<u8>, Ifcx
         .model
         .entities
         .iter()
+        .chain(
+            paper_layouts
+                .iter()
+                .flat_map(|layout| layout.entities.iter()),
+        )
         .chain(document.blocks.iter().flat_map(|b| b.entities.iter()))
     {
         data.push(entity_node(entity, &prefix));
@@ -155,7 +187,9 @@ pub fn write_native_cad_ifcx(document: &IfcxCadDocument) -> Result<Vec<u8>, Ifcx
     let bytes = serde_json::to_vec_pretty(&result)
         .map_err(|e| IfcxCadReport::one(format!("IFCX serialization failed: {e}")))?;
     let loaded = read_native_cad_ifcx(&bytes)?;
-    if loaded.document() != document {
+    let mut expected = document.clone();
+    expected.paper_layouts.sort_by_key(|layout| layout.id);
+    if loaded.document() != &expected {
         return Err(IfcxCadReport::one(
             "strict IFCX readback changed CAD semantics",
         ));

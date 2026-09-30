@@ -192,6 +192,7 @@ fn fixture_document() -> IfcxCadDocument {
         },
         drawing_id: 1,
         length_unit: "cm".into(),
+        paper_layouts: Vec::new(),
         layers: vec![
             IfcxCadLayer {
                 id: 0,
@@ -416,6 +417,171 @@ fn nested_block_definition_cycle_is_rejected() {
         .errors
         .iter()
         .any(|error| error.contains("cycle")));
+}
+
+fn paper_layout_file() -> Value {
+    let mut value: Value =
+        serde_json::from_slice(&write_native_cad_ifcx(&nested_document()).unwrap()).unwrap();
+    value["data"][0]["children"]["paper2"] = json!("/cad/d1/layout/2");
+    value["data"][0]["children"]["paper3"] = json!("/cad/d1/layout/3");
+    value["data"].as_array_mut().unwrap().extend([
+        json!({"path":"/cad/d1/layout/2","children":{"0":"/cad/d1/e201","1":"/cad/d1/e202"},"attributes":{"ifccad::layout":{"kind":"Paper","name":"A3","paper":{"width":297.0,"height":420.0,"lengthUnit":"mm"}}}}),
+        json!({"path":"/cad/d1/layout/3","children":{"0":"/cad/d1/e203"},"attributes":{"ifccad::layout":{"kind":"Paper","name":"Letter","paper":{"width":8.5,"height":11.0,"lengthUnit":"in"}},"example::note":"retained"}}),
+        json!({"path":"/cad/d1/e201","attributes":{"ifccad::entity":{"layer":"/cad/d1/layer/1","appearance":{"color":{"mode":"ByLayer"},"opacity":{"mode":"ByLayer"},"linePattern":{"mode":"ByLayer"},"lineWeight":{"mode":"ByLayer"}}},"ifccad::geom::lineSegment":{"start":[10,10,0],"end":[287,10,0]}}}),
+        json!({"path":"/cad/d1/e202","attributes":{"ifccad::entity":{"layer":"/cad/d1/layer/2","appearance":{"color":{"mode":"Explicit","value":"#ff00ff"},"opacity":{"mode":"ByLayer"},"linePattern":{"mode":"ByLayer"},"lineWeight":{"mode":"ByLayer"}}},"ifccad::blockInstance":{"definition":"/cad/d1/block/2","transform":{"placement":{"origin":[20,20,0],"xAxis":[1,0,0],"yAxis":[0,1,0]},"rotation":0,"scale":[10,10,10]}}}}),
+        json!({"path":"/cad/d1/e203","attributes":{"ifccad::entity":{"layer":"/cad/d1/layer/1","appearance":{"color":{"mode":"ByLayer"},"opacity":{"mode":"ByLayer"},"linePattern":{"mode":"ByLayer"},"lineWeight":{"mode":"ByLayer"}}},"ifccad::geom::circle":{"radius":0.5},"ifccad::geom::placement":{"origin":[1,1,0],"xAxis":[1,0,0],"yAxis":[0,1,0]}}}),
+    ]);
+    value
+}
+
+#[test]
+fn paper_layouts_accept_distinct_units_and_shared_block_definitions() {
+    let loaded = read(&paper_layout_file()).unwrap();
+    assert_eq!(loaded.document().length_unit, "cm");
+    assert_eq!(loaded.document().model.entities.len(), 5);
+    assert_eq!(loaded.document().blocks.len(), 2);
+    let paper = &loaded.document().paper_layouts;
+    assert_eq!(paper.len(), 2);
+    assert_eq!((paper[0].id, paper[0].name.as_str()), (2, "A3"));
+    assert_eq!(
+        (paper[0].paper.width, paper[0].paper.height),
+        (297.0, 420.0)
+    );
+    assert_eq!(paper[0].paper.length_unit, "mm");
+    assert_eq!(paper[1].paper.length_unit, "in");
+    assert_eq!(
+        paper[0].entities.iter().map(|e| e.id).collect::<Vec<_>>(),
+        vec![201, 202]
+    );
+    assert_eq!(paper[1].entities[0].id, 203);
+    let IfcxCadEntityKind::BlockInstance {
+        definition_id,
+        transform,
+    } = &paper[0].entities[1].kind
+    else {
+        panic!("paper block instance")
+    };
+    assert_eq!(*definition_id, 2);
+    assert_eq!(transform.scale, [10.0; 3]);
+    assert_eq!(transform.placement.origin, [20.0, 20.0, 0.0]);
+    let raw_paper = loaded.raw_ifcx()["data"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|n| n["path"] == "/cad/d1/layout/3")
+        .unwrap();
+    assert_eq!(raw_paper["attributes"]["example::note"], "retained");
+}
+
+#[test]
+fn writer_roundtrips_paper_layouts_without_unit_conversion() {
+    let document = read(&paper_layout_file()).unwrap().document().clone();
+    let bytes = write_native_cad_ifcx(&document).unwrap();
+    assert_paths_first(&bytes);
+    assert_eq!(read_native_cad_ifcx(&bytes).unwrap().document(), &document);
+    let mut reversed = document.clone();
+    reversed.paper_layouts.reverse();
+    assert_eq!(write_native_cad_ifcx(&reversed).unwrap(), bytes);
+    if std::env::var_os("GENERATE_IFCX_PAPER_FIXTURE").is_some() {
+        std::fs::write("examples/ifcx-native-cad/hello-paper-layouts.ifcx", bytes).unwrap();
+    }
+}
+
+#[test]
+fn paper_layout_fixture_is_strictly_readable() {
+    let fixture = include_bytes!("../examples/ifcx-native-cad/hello-paper-layouts.ifcx");
+    assert_paths_first(fixture);
+    let expected = read(&paper_layout_file()).unwrap().document().clone();
+    assert_eq!(read_native_cad_ifcx(fixture).unwrap().document(), &expected);
+}
+
+#[test]
+fn paper_layouts_allow_empty_scopes_but_require_one_model() {
+    let mut value = paper_layout_file();
+    value["data"]
+        .as_array_mut()
+        .unwrap()
+        .retain(|node| node["path"] != "/cad/d1/e203");
+    let paper = value["data"]
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .find(|n| n["path"] == "/cad/d1/layout/3")
+        .unwrap();
+    paper["children"] = json!({});
+    assert!(read(&value).unwrap().document().paper_layouts[1]
+        .entities
+        .is_empty());
+    value["data"][1]["attributes"]["ifccad::layout"] =
+        json!({"kind":"Paper","name":"Extra","paper":{"width":1,"height":1,"lengthUnit":"mm"}});
+    assert!(read(&value).unwrap_err().errors[0].contains("missing Model"));
+    let mut value = paper_layout_file();
+    let paper = value["data"]
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .find(|n| n["path"] == "/cad/d1/layout/3")
+        .unwrap();
+    paper["attributes"]["ifccad::layout"] = json!({"kind":"Model"});
+    assert!(read(&value).unwrap_err().errors[0].contains("exactly one Model"));
+}
+
+#[test]
+fn paper_layouts_require_metadata_and_one_owner() {
+    for (field, replacement) in [
+        ("name", json!("  ")),
+        ("paper", json!(null)),
+        ("paper", json!({"width":0,"height":420,"lengthUnit":"mm"})),
+        ("paper", json!({"width":297,"height":-1,"lengthUnit":"mm"})),
+        (
+            "paper",
+            json!({"width":297,"height":420,"lengthUnit":"unitless"}),
+        ),
+        (
+            "paper",
+            json!({"width":297,"height":420,"lengthUnit":"unknown"}),
+        ),
+        ("kind", json!("Unknown")),
+    ] {
+        let mut value = paper_layout_file();
+        // Locate by identity so this test does not depend on writer node order.
+        let node = value["data"]
+            .as_array_mut()
+            .unwrap()
+            .iter_mut()
+            .find(|node| node["path"] == "/cad/d1/layout/2")
+            .unwrap();
+        node["attributes"]["ifccad::layout"][field] = replacement;
+        assert!(read(&value).is_err(), "invalid paper {field}");
+    }
+    let mut value = paper_layout_file();
+    value["data"][0]["children"]
+        .as_object_mut()
+        .unwrap()
+        .remove("paper2");
+    assert!(read(&value).is_err());
+    let mut value = paper_layout_file();
+    let node = value["data"]
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .find(|n| n["path"] == "/cad/d1/layout/2")
+        .unwrap();
+    node["children"]["0"] = json!("/cad/d1/e101");
+    assert!(read(&value).is_err());
+    let mut value = paper_layout_file();
+    value["data"][1]["attributes"]["ifccad::layout"]["paper"] =
+        json!({"width":297,"height":420,"lengthUnit":"mm"});
+    assert!(read(&value).is_err());
+}
+
+#[test]
+fn writer_rejects_duplicate_layout_ids() {
+    let mut document = read(&paper_layout_file()).unwrap().document().clone();
+    document.paper_layouts[0].id = document.model.id;
+    assert!(write_native_cad_ifcx(&document).is_err());
+    document.paper_layouts[0].id = document.paper_layouts[1].id;
+    assert!(write_native_cad_ifcx(&document).is_err());
 }
 
 #[test]

@@ -32,8 +32,24 @@
               "dataType": "Enum",
               "enumRestrictions": {
                 "options": [
-                  "Model"
+                  "Model",
+                  "Paper"
                 ]
+              }
+            },
+            "name": {
+              "dataType": "String",
+              "optional": true
+            },
+            "paper": {
+              "dataType": "Object",
+              "optional": true,
+              "objectRestrictions": {
+                "values": {
+                  "width": { "dataType": "Real" },
+                  "height": { "dataType": "Real" },
+                  "lengthUnit": { "dataType": "String" }
+                }
               }
             }
           }

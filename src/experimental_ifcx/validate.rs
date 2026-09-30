@@ -13,6 +13,8 @@ struct DrawingValue {
 #[derive(Deserialize)]
 struct LayoutValue {
     kind: String,
+    name: Option<String>,
+    paper: Option<IfcxCadPaperSize>,
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -444,6 +446,7 @@ pub(super) fn validate(raw: Value) -> Result<ValidatedIfcxCad, IfcxCadReport> {
     let mut layers = Vec::new();
     let mut block_paths = BTreeMap::new();
     let mut model_path = None;
+    let mut paper_paths = BTreeMap::new();
     for (path, node) in &nodes {
         if attr(node, "ifccad::layer").is_some() {
             let id = numbered(path, &format!("{prefix}/layer/"))?;
@@ -464,12 +467,44 @@ pub(super) fn validate(raw: Value) -> Result<ValidatedIfcxCad, IfcxCadReport> {
         }
         if attr(node, "ifccad::layout").is_some() {
             let layout: LayoutValue = required(node, "ifccad::layout")?;
-            if layout.kind != "Model" || model_path.replace(path.clone()).is_some() {
-                return Err(problem(
-                    "expected exactly one Model layout; paper layouts unsupported",
-                ));
+            let id = numbered(path, &format!("{prefix}/layout/"))?;
+            match layout.kind.as_str() {
+                "Model" => {
+                    if layout.name.is_some() || layout.paper.is_some() {
+                        return Err(problem(format!("{path} Model layout has paper metadata")));
+                    }
+                    if model_path.replace(path.clone()).is_some() {
+                        return Err(problem("expected exactly one Model layout"));
+                    }
+                }
+                "Paper" => {
+                    let name = layout
+                        .name
+                        .filter(|name| !name.trim().is_empty())
+                        .ok_or_else(|| problem(format!("{path} Paper layout needs a name")))?;
+                    let paper = layout.paper.ok_or_else(|| {
+                        problem(format!(
+                            "{path} Paper layout needs paper dimensions and unit"
+                        ))
+                    })?;
+                    if !paper.width.is_finite()
+                        || paper.width <= 0.0
+                        || !paper.height.is_finite()
+                        || paper.height <= 0.0
+                        || !unit(&paper.length_unit)
+                        || paper.length_unit == "unitless"
+                    {
+                        return Err(problem(format!("{path} invalid paper dimensions or unit")));
+                    }
+                    paper_paths.insert(id, (path.clone(), name, paper));
+                }
+                _ => {
+                    return Err(problem(format!(
+                        "{path} unsupported layout kind {}",
+                        layout.kind
+                    )))
+                }
             }
-            numbered(path, &format!("{prefix}/layout/"))?;
         }
     }
     let model_path = model_path.ok_or_else(|| problem("missing Model layout"))?;
@@ -484,6 +519,7 @@ pub(super) fn validate(raw: Value) -> Result<ValidatedIfcxCad, IfcxCadReport> {
         .keys()
         .chain(block_paths.keys())
         .chain(std::iter::once(&model_path))
+        .chain(paper_paths.values().map(|(path, _, _)| path))
     {
         if !declared.contains(path.as_str()) {
             return Err(problem(format!("drawing does not reference {path}")));
@@ -511,6 +547,15 @@ pub(super) fn validate(raw: Value) -> Result<ValidatedIfcxCad, IfcxCadReport> {
         id: numbered(&model_path, &format!("{prefix}/layout/"))?,
         entities: parse_owner(&model_path)?,
     };
+    let mut paper_layouts = Vec::new();
+    for (id, (path, name, paper)) in paper_paths {
+        paper_layouts.push(IfcxCadPaperLayout {
+            id,
+            name,
+            paper,
+            entities: parse_owner(&path)?,
+        });
+    }
     let mut blocks = Vec::new();
     for (path, id) in &block_paths {
         let node = nodes[path];
@@ -546,6 +591,7 @@ pub(super) fn validate(raw: Value) -> Result<ValidatedIfcxCad, IfcxCadReport> {
             length_unit: drawing.length_unit,
             layers,
             model,
+            paper_layouts,
             blocks,
         },
     })
