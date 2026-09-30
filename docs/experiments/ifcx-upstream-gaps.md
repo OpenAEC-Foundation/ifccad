@@ -18,7 +18,7 @@ Each entry records: **current IFCX surface**, **our tested rule**, **open questi
 - **Our tested rule:** Layout and block-definition children named `"0"`, `"1"`, etc. are contiguous and define CAD draw order. Exactly one layout or block definition owns each drawable entity. JSON object member order is irrelevant.
 - **Open question:** Should IFCX offer an explicit ordered relationship, or should ordering remain a profile convention? If a generic mechanism is added, how are insertion, removal, and concurrent edits handled without renumbering every later relation?
 - **Broader use:** Order of assembly steps, presentation items, ordered spatial sections, and other graph traversals where order changes meaning. CAD draw order and single ownership remain profile-specific.
-- **Evidence:** [profile ownership and order](../../schemas/ifcx-native-cad/experimental-contract-0.1.0.md#scope-and-order), [strict order test](../../tests/experimental_ifcx_native.rs), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp).
+- **Evidence:** [profile ownership and order](../../schemas/ifcx-native-cad/experimental-contract-0.1.0.md#scope-and-order), [nested-block fixture](../../examples/ifcx-native-cad/hello-nested-blocks.ifcx), [strict order tests](../../tests/experimental_ifcx_native.rs), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp).
 
 ## G3 — Composition of repeated path fragments (`Interoperability risk`)
 
@@ -59,7 +59,7 @@ Each entry records: **current IFCX surface**, **our tested rule**, **open questi
 ## Suggested order of investigation
 
 1. Follow up the [completed G1/G3 composition probe](ifcx-composition-probe.md) by checking whether any path convention satisfies both the current TypeSpec and composer, then perform a full upstream expansion check for G2. Record actual differences before drafting an upstream proposal.
-2. Extend the fixture with nested blocks using layer 0 and ByBlock, then a paper layout, to test whether G2 and G4 still work under realistic reuse and multiple scopes. Compare semantic readback, not just JSON shape.
+2. The nested-block fixture now covers two definition levels with layer 0 and ByBlock modes. Add a paper layout to test whether G2 and G4 also work across multiple layout scopes. Compare semantic readback, not just JSON shape.
 3. Test one non-CAD reference to a local CAD path across a second IFCX document. This turns the broader G1 motivation into evidence and exposes import/identity requirements in G5.
 4. Only after the semantic model survives these cases, compare matched JSON, compressed JSON, and an implemented binary candidate. Keep the physical-encoding work aligned with [IFCCAD issue #6](https://github.com/OpenAEC-Foundation/ifccad/issues/6).
 

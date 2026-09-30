@@ -123,14 +123,6 @@ pub struct ValidatedIfcxCad {
     pub(crate) document: IfcxCadDocument,
 }
 
-#[derive(Clone, Debug, PartialEq)]
-pub struct IfcxCadResolvedAppearance {
-    pub color: String,
-    pub opacity: f64,
-    pub line_pattern: String,
-    pub line_weight: f64,
-}
-
 impl ValidatedIfcxCad {
     pub fn document(&self) -> &IfcxCadDocument {
         &self.document

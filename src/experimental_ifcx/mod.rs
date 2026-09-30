@@ -1,7 +1,6 @@
 //! Experimental IFCX-native CAD profile. This module does not alter the
 //! released IFCCAD package formats.
 
-mod appearance;
 mod model;
 mod parse;
 mod validate;

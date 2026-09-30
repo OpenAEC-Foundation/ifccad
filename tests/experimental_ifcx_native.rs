@@ -152,33 +152,6 @@ fn profile_rejects_duplicate_owner() {
         .any(|e| e.contains("owner")));
 }
 
-#[test]
-fn appearance_layer_zero_and_byblock_are_resolved_per_property() {
-    use ocdraw::experimental_ifcx::IfcxCadResolvedAppearance;
-    let mut value = base();
-    value["data"][0]["children"]["layer1"] = json!("</cad/d1/layer/1>");
-    value["data"][0]["children"]["block1"] = json!("</cad/d1/block/1>");
-    value["data"][2]["attributes"]["ifccad::layer"]["appearance"]["color"] = json!("#ff0000");
-    value["data"][2]["attributes"]["ifccad::layer"]["appearance"]["lineWeight"] = json!(0.1);
-    value["data"].as_array_mut().unwrap().push(json!({"path":"</cad/d1/layer/1>","attributes":{"ifccad::layer":{"name":"Walls","appearance":{"color":"#00ff00","opacity":0.8,"linePattern":"Continuous","lineWeight":0.5}}}}));
-    value["data"].as_array_mut().unwrap().push(json!({"path":"</cad/d1/block/1>","children":{"0":"</cad/d1/e3>"},"attributes":{"ifccad::blockDefinition":{"name":"Mark","basePoint":[0,0,0],"insertionUnit":"mm"}}}));
-    value["data"].as_array_mut().unwrap().push(json!({"path":"</cad/d1/e3>","attributes":{"ifccad::entity":{"layer":"</cad/d1/layer/0>","appearance":{"color":{"mode":"ByBlock"},"opacity":{"mode":"ByLayer"},"linePattern":{"mode":"ByLayer"},"lineWeight":{"mode":"ByLayer"}}},"ifccad::geom::lineSegment":{"start":[0,0,0],"end":[1,0,0]}}}));
-    value["data"][1]["children"]["2"] = json!("</cad/d1/e4>");
-    value["data"].as_array_mut().unwrap().push(json!({"path":"</cad/d1/e4>","attributes":{"ifccad::entity":{"layer":"</cad/d1/layer/1>","appearance":{"color":{"mode":"Explicit","value":"#0000ff"},"opacity":{"mode":"ByLayer"},"linePattern":{"mode":"ByLayer"},"lineWeight":{"mode":"ByLayer"}}},"ifccad::blockInstance":{"definition":"</cad/d1/block/1>","transform":{"placement":{"origin":[0,0,0],"xAxis":[1,0,0],"yAxis":[0,1,0]},"rotation":0,"scale":[1,1,1]}}}}));
-    let loaded = read(&value).unwrap();
-    assert_eq!(
-        loaded
-            .effective_appearance("</cad/d1/e3>", &["</cad/d1/e4>"])
-            .unwrap(),
-        IfcxCadResolvedAppearance {
-            color: "#0000ff".into(),
-            opacity: 0.8,
-            line_pattern: "Continuous".into(),
-            line_weight: 0.5
-        }
-    );
-}
-
 fn fixture_document() -> IfcxCadDocument {
     let by_layer = IfcxCadEntityAppearance {
         color: IfcxCadMode::ByLayer,
@@ -305,6 +278,144 @@ fn fixture_document() -> IfcxCadDocument {
             }],
         }],
     }
+}
+
+fn nested_document() -> IfcxCadDocument {
+    let mut document = fixture_document();
+    let placement = IfcxCadPlacement {
+        origin: [5.0, 0.0, 0.0],
+        x_axis: [1.0, 0.0, 0.0],
+        y_axis: [0.0, 1.0, 0.0],
+    };
+    document.blocks.push(IfcxCadBlockDefinition {
+        id: 2,
+        name: "Nested marker".into(),
+        base_point: [0.0, 0.0, 0.0],
+        insertion_unit: "mm".into(),
+        entities: vec![
+            IfcxCadEntity {
+                id: 101,
+                layer_id: 0,
+                appearance: IfcxCadEntityAppearance {
+                    color: IfcxCadMode::ByBlock,
+                    opacity: IfcxCadMode::Explicit(0.6),
+                    line_pattern: IfcxCadMode::ByLayer,
+                    line_weight: IfcxCadMode::ByLayer,
+                },
+                kind: IfcxCadEntityKind::BlockInstance {
+                    definition_id: 1,
+                    transform: IfcxCadBlockTransform {
+                        placement,
+                        rotation: 0.0,
+                        scale: [1.0, 1.0, 1.0],
+                    },
+                },
+            },
+            IfcxCadEntity {
+                id: 102,
+                layer_id: 1,
+                appearance: IfcxCadEntityAppearance {
+                    color: IfcxCadMode::ByLayer,
+                    opacity: IfcxCadMode::ByLayer,
+                    line_pattern: IfcxCadMode::ByLayer,
+                    line_weight: IfcxCadMode::ByLayer,
+                },
+                kind: IfcxCadEntityKind::LineSegment {
+                    start: [0.0, 0.0, 0.0],
+                    end: [0.0, 1.0, 0.0],
+                },
+            },
+        ],
+    });
+    for entity in &mut document.model.entities {
+        if let IfcxCadEntityKind::BlockInstance { definition_id, .. } = &mut entity.kind {
+            *definition_id = 2;
+        }
+    }
+    document
+}
+
+#[test]
+fn nested_blocks_keep_shared_definitions_order_and_stored_appearance() {
+    let document = nested_document();
+    let fixture = include_bytes!("../examples/ifcx-native-cad/hello-nested-blocks.ifcx");
+    assert_paths_first(fixture);
+    assert_eq!(read_native_cad_ifcx(fixture).unwrap().document(), &document);
+    let bytes = write_native_cad_ifcx(&document).unwrap();
+    let loaded = read_native_cad_ifcx(&bytes).unwrap();
+    assert_eq!(loaded.document(), &document);
+    assert_eq!(
+        loaded.document().blocks[1]
+            .entities
+            .iter()
+            .map(|entity| entity.id)
+            .collect::<Vec<_>>(),
+        vec![101, 102]
+    );
+    let nodes = loaded.raw_ifcx()["data"].as_array().unwrap();
+    let outer = nodes
+        .iter()
+        .find(|node| node["path"] == "</cad/d1/block/2>")
+        .unwrap();
+    assert_eq!(outer["children"]["0"], "</cad/d1/e101>");
+    assert_eq!(outer["children"]["1"], "</cad/d1/e102>");
+    let inner_instance = nodes
+        .iter()
+        .find(|node| node["path"] == "</cad/d1/e101>")
+        .unwrap();
+    assert_eq!(
+        inner_instance["attributes"]["ifccad::blockInstance"]["definition"],
+        "</cad/d1/block/1>"
+    );
+    assert_eq!(
+        inner_instance["attributes"]["ifccad::entity"]["appearance"]["color"]["mode"],
+        "ByBlock"
+    );
+    assert_eq!(
+        inner_instance["attributes"]["ifccad::entity"]["appearance"]["opacity"],
+        json!({"mode":"Explicit","value":0.6})
+    );
+    let inner_line = nodes
+        .iter()
+        .find(|node| node["path"] == "</cad/d1/e100>")
+        .unwrap();
+    assert_eq!(
+        inner_line["attributes"]["ifccad::entity"]["layer"],
+        "</cad/d1/layer/0>"
+    );
+    assert_eq!(
+        inner_line["attributes"]["ifccad::entity"]["appearance"]["color"]["mode"],
+        "ByBlock"
+    );
+    for id in [90, 91] {
+        let outer_instance = nodes
+            .iter()
+            .find(|node| node["path"] == format!("</cad/d1/e{id}>").as_str())
+            .unwrap();
+        assert_eq!(
+            outer_instance["attributes"]["ifccad::blockInstance"]["definition"],
+            "</cad/d1/block/2>"
+        );
+    }
+    if std::env::var_os("GENERATE_IFCX_NESTED_FIXTURE").is_some() {
+        std::fs::write("examples/ifcx-native-cad/hello-nested-blocks.ifcx", &bytes).unwrap();
+    }
+}
+
+#[test]
+fn nested_block_definition_cycle_is_rejected() {
+    let mut document = nested_document();
+    let mut back_reference = document.blocks[1].entities[0].clone();
+    back_reference.id = 103;
+    if let IfcxCadEntityKind::BlockInstance { definition_id, .. } = &mut back_reference.kind {
+        *definition_id = 2;
+    }
+    document.blocks[0].entities.push(back_reference);
+    assert!(write_native_cad_ifcx(&document)
+        .unwrap_err()
+        .errors
+        .iter()
+        .any(|error| error.contains("cycle")));
 }
 
 #[test]
