@@ -186,4 +186,38 @@ mod tests {
             .iter()
             .any(|message| message.contains("conflict")));
     }
+
+    #[test]
+    fn parse_conflicting_child_fragments_are_an_error() {
+        let source = br#"{"data":[{"path":"node1","children":{"one":"node2"}},{"path":"node1","children":{"one":"node3"}}]}"#;
+        let error = compose(source).expect_err("conflicting children must fail");
+        assert!(error
+            .errors
+            .iter()
+            .any(|message| message.contains("conflict")));
+    }
+
+    #[test]
+    fn parse_identical_fragments_are_harmless() {
+        let source = br#"{"data":[{"path":"node1","attributes":{"test::a":"A"}},{"path":"node1","attributes":{"test::a":"A"}}]}"#;
+        let result = compose(source).expect("identical fragments must compose");
+        assert_eq!(result["data"].as_array().unwrap().len(), 1);
+        assert_eq!(result["data"][0]["attributes"]["test::a"], "A");
+    }
+
+    #[test]
+    fn parse_null_overrides_are_conflicts() {
+        for field in ["children", "inherits", "attributes"] {
+            let mut first = json!({"path": "node1"});
+            first[field] = json!({"key": "A"});
+            let mut second = json!({"path": "node1"});
+            second[field] = json!({"key": null});
+            let source = serde_json::to_vec(&json!({"data": [first, second]})).unwrap();
+            let error = compose(&source).expect_err("null override must fail");
+            assert!(error
+                .errors
+                .iter()
+                .any(|message| message.contains("conflict")));
+        }
+    }
 }
