@@ -8,7 +8,7 @@
   },
   "imports": [
     {
-      "uri": "urn:example:ifccad:experimental-cad:0.1.0"
+      "uri": "urn:example:ifccad:0.1.0"
     }
   ],
   "schemas": {},

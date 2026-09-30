@@ -1,6 +1,6 @@
 # IFCX-native CAD node experiment
 
-Status: experimental branch `explore-ifcx-native-model`, 2026-09-29. This is an opt-in IFCX alpha drawing with a separate versioned schema module, with no change to the released IFCCAD package or IFCDR encodings. The [contract](../../schemas/ifcx-native-cad/experimental-contract-0.1.0.md), [schema module](../../schemas/ifcx-native-cad/experimental-profile-0.1.0.ifcx), [drawing fixture](../../examples/ifcx-native-cad/hello-cad.ifcx), and [strict-readback tests](../../tests/experimental_ifcx_native.rs) form the reproducible result.
+Status: experimental profile, 2026-09-30. This is an opt-in IFCX alpha drawing with a separate versioned schema module, with no change to the released IFCCAD package or IFCDR encodings. The [contract](../../schemas/ifcx-native-cad/experimental-contract-0.1.0.md), [schema module](../../schemas/ifcx-native-cad/experimental-profile-0.1.0.ifcx), [drawing fixture](../../examples/ifcx-native-cad/hello-cad.ifcx), and [strict-readback tests](../../tests/experimental_ifcx_native.rs) form the reproducible result.
 
 ## Finding
 
@@ -22,7 +22,7 @@ The [upstream IFCX alpha TypeSpec](https://github.com/buildingSMART/IFC5-develop
 
 ## Physical encoding observations
 
-The pretty-printed drawing fixture is **7,885 bytes** and imports the reusable **9,569-byte** schema module; counting both files once gives **17,454 bytes**. A separate synthetic drawing with 1,000 ordered XYZ lines was **737,240 bytes**, or **746,809 bytes** with the same schema module counted once; one debug-build strict read of the drawing took **29 ms** on this machine in a single run. The reader resolves the known versioned schema from its bundled definitions; that timing excludes filesystem or network schema loading. These are exploratory observations, not benchmark distributions or product thresholds. The writer itself also strict-reads before returning.
+The pretty-printed drawing fixture is **7,868 bytes** and imports the reusable **9,552-byte** schema module; counting both files once gives **17,420 bytes**. A separate synthetic drawing with 1,000 ordered XYZ lines was **737,223 bytes**, or **746,775 bytes** with the same schema module counted once; one debug-build strict read of the drawing took **28 ms** on this machine in a single run. The reader resolves the known versioned schema from its bundled definitions; that timing excludes filesystem or network schema loading. These are exploratory observations, not benchmark distributions or product thresholds. The writer itself also strict-reads before returning.
 
 The existing [IFCCAD/DXF/DWG size baseline](../benchmarks/size-baseline-v1.md) measures different controlled recipes, millimetres and different drawing metadata. It cannot be directly divided into the figures above to claim a fair ratio. In particular, the mixed fixture includes block and circle semantics absent from the baseline corpus. A later matched experiment should generate the same typed recipe through every writer, strict-read each output, include full package overhead, compare pretty and compact JSON, and apply identical stated compression settings to each complete file. DWG's native compression must be labelled separately. Compressed bytes alone do not prove a usable encoding.
 

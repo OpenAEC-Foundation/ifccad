@@ -230,10 +230,7 @@ fn roundtrip_complete_example_and_determinism() {
     assert_paths_first(&bytes);
     let file: Value = serde_json::from_slice(&bytes).unwrap();
     assert!(file["schemas"].as_object().unwrap().is_empty());
-    assert_eq!(
-        file["imports"][0]["uri"],
-        "urn:example:ifccad:experimental-cad:0.1.0"
-    );
+    assert_eq!(file["imports"][0]["uri"], "urn:example:ifccad:0.1.0");
     assert_eq!(read_native_cad_ifcx(&bytes).unwrap().document(), &document);
     assert_eq!(write_native_cad_ifcx(&document).unwrap(), bytes);
     if std::env::var_os("GENERATE_IFCX_FIXTURE").is_some() {
@@ -369,7 +366,7 @@ fn fixture_is_a_complete_strictly_readable_ifcx_file() {
 fn profile_imported_schema_resolves_offline_and_missing_import_fails() {
     let mut value = base();
     value["schemas"] = json!({});
-    value["imports"] = json!([{"uri":"urn:example:ifccad:experimental-cad:0.1.0"}]);
+    value["imports"] = json!([{"uri":"urn:example:ifccad:0.1.0"}]);
     assert_eq!(read(&value).unwrap().document().model.entities.len(), 2);
     value["imports"] = json!([]);
     assert!(read(&value)

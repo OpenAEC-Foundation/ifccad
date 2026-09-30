@@ -1,6 +1,6 @@
 {
   "header": {
-    "id": "urn:example:ifccad:experimental-cad:0.1.0",
+    "id": "urn:example:ifccad:0.1.0",
     "ifcxVersion": "ifcx_alpha",
     "dataVersion": "0.1.0",
     "author": "OpenAEC",

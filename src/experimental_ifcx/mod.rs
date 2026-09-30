@@ -7,7 +7,7 @@ mod parse;
 mod validate;
 mod write;
 
-pub(crate) const PROFILE_URI: &str = "urn:example:ifccad:experimental-cad:0.1.0";
+pub(crate) const PROFILE_URI: &str = "urn:example:ifccad:0.1.0";
 
 pub use model::*;
 pub use write::write_native_cad_ifcx;
