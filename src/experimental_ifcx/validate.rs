@@ -59,19 +59,14 @@ fn attr<'a>(node: &'a Value, key: &str) -> Option<&'a Value> {
     node.get("attributes")?.get(key)
 }
 fn required<T: for<'de> Deserialize<'de>>(node: &Value, key: &str) -> Result<T, IfcxCadReport> {
-    let path = node["path"].as_str().unwrap_or("<unknown>");
+    let path = node["path"].as_str().unwrap_or("(unknown path)");
     let value = attr(node, key).ok_or_else(|| problem(format!("{path} missing {key}")))?;
     serde_json::from_value(value.clone()).map_err(|e| problem(format!("{path} invalid {key}: {e}")))
 }
 fn numbered(path: &str, prefix: &str) -> Result<u64, IfcxCadReport> {
     let suffix = path
         .strip_prefix(prefix)
-        .and_then(|v| v.strip_suffix('>'))
-        .ok_or_else(|| {
-            problem(format!(
-                "invalid CAD path {path}; expected {prefix}<number>>"
-            ))
-        })?;
+        .ok_or_else(|| problem(format!("invalid CAD path {path}; expected {prefix}N")))?;
     let number = suffix
         .parse::<u64>()
         .map_err(|_| problem(format!("invalid CAD path {path}")))?;
@@ -81,7 +76,7 @@ fn numbered(path: &str, prefix: &str) -> Result<u64, IfcxCadReport> {
     Ok(number)
 }
 fn drawing_prefix(id: u64) -> String {
-    format!("</cad/d{id}")
+    format!("/cad/d{id}")
 }
 fn node_map(raw: &Value) -> Result<BTreeMap<String, &Value>, IfcxCadReport> {
     let mut nodes = BTreeMap::new();
@@ -100,7 +95,7 @@ fn node_map(raw: &Value) -> Result<BTreeMap<String, &Value>, IfcxCadReport> {
     Ok(nodes)
 }
 fn children(node: &Value) -> Result<Vec<String>, IfcxCadReport> {
-    let path = node["path"].as_str().unwrap_or("<unknown>");
+    let path = node["path"].as_str().unwrap_or("(unknown path)");
     let mut ordered = BTreeMap::<usize, String>::new();
     if let Some(children) = node.get("children") {
         for (key, value) in children
@@ -436,7 +431,7 @@ pub(super) fn validate(raw: Value) -> Result<ValidatedIfcxCad, IfcxCadReport> {
         return Err(problem("expected exactly one CAD drawing"));
     }
     let (drawing_path, drawing_node) = drawings[0];
-    let drawing_id = numbered(drawing_path, "</cad/d")?;
+    let drawing_id = numbered(drawing_path, "/cad/d")?;
     let prefix = drawing_prefix(drawing_id);
     let drawing: DrawingValue = required(drawing_node, "ifccad::drawing")?;
     if drawing.profile_version != "0.1.0" {

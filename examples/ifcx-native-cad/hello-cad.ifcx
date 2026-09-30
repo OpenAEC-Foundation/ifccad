@@ -14,13 +14,13 @@
   "schemas": {},
   "data": [
     {
-      "path": "</cad/d1>",
+      "path": "/cad/d1",
       "children": {
-        "block1": "</cad/d1/block/1>",
-        "layer0": "</cad/d1/layer/0>",
-        "layer1": "</cad/d1/layer/1>",
-        "layer2": "</cad/d1/layer/2>",
-        "model": "</cad/d1/layout/1>"
+        "block1": "/cad/d1/block/1",
+        "layer0": "/cad/d1/layer/0",
+        "layer1": "/cad/d1/layer/1",
+        "layer2": "/cad/d1/layer/2",
+        "model": "/cad/d1/layout/1"
       },
       "attributes": {
         "ifccad::drawing": {
@@ -30,13 +30,13 @@
       }
     },
     {
-      "path": "</cad/d1/layout/1>",
+      "path": "/cad/d1/layout/1",
       "children": {
-        "0": "</cad/d1/e42>",
-        "1": "</cad/d1/e7>",
-        "2": "</cad/d1/e90>",
-        "3": "</cad/d1/e9>",
-        "4": "</cad/d1/e91>"
+        "0": "/cad/d1/e42",
+        "1": "/cad/d1/e7",
+        "2": "/cad/d1/e90",
+        "3": "/cad/d1/e9",
+        "4": "/cad/d1/e91"
       },
       "attributes": {
         "ifccad::layout": {
@@ -45,7 +45,7 @@
       }
     },
     {
-      "path": "</cad/d1/layer/0>",
+      "path": "/cad/d1/layer/0",
       "attributes": {
         "ifccad::layer": {
           "appearance": {
@@ -59,7 +59,7 @@
       }
     },
     {
-      "path": "</cad/d1/layer/1>",
+      "path": "/cad/d1/layer/1",
       "attributes": {
         "ifccad::layer": {
           "appearance": {
@@ -73,7 +73,7 @@
       }
     },
     {
-      "path": "</cad/d1/layer/2>",
+      "path": "/cad/d1/layer/2",
       "attributes": {
         "ifccad::layer": {
           "appearance": {
@@ -87,9 +87,9 @@
       }
     },
     {
-      "path": "</cad/d1/block/1>",
+      "path": "/cad/d1/block/1",
       "children": {
-        "0": "</cad/d1/e100>"
+        "0": "/cad/d1/e100"
       },
       "attributes": {
         "ifccad::blockDefinition": {
@@ -104,7 +104,7 @@
       }
     },
     {
-      "path": "</cad/d1/e42>",
+      "path": "/cad/d1/e42",
       "attributes": {
         "ifccad::entity": {
           "appearance": {
@@ -121,7 +121,7 @@
               "mode": "ByLayer"
             }
           },
-          "layer": "</cad/d1/layer/1>"
+          "layer": "/cad/d1/layer/1"
         },
         "ifccad::geom::lineSegment": {
           "end": [
@@ -138,7 +138,7 @@
       }
     },
     {
-      "path": "</cad/d1/e7>",
+      "path": "/cad/d1/e7",
       "attributes": {
         "ifccad::entity": {
           "appearance": {
@@ -155,7 +155,7 @@
               "mode": "ByLayer"
             }
           },
-          "layer": "</cad/d1/layer/1>"
+          "layer": "/cad/d1/layer/1"
         },
         "ifccad::geom::placement": {
           "origin": [
@@ -194,10 +194,10 @@
       }
     },
     {
-      "path": "</cad/d1/e90>",
+      "path": "/cad/d1/e90",
       "attributes": {
         "ifccad::blockInstance": {
-          "definition": "</cad/d1/block/1>",
+          "definition": "/cad/d1/block/1",
           "transform": {
             "placement": {
               "origin": [
@@ -240,12 +240,12 @@
               "mode": "ByLayer"
             }
           },
-          "layer": "</cad/d1/layer/2>"
+          "layer": "/cad/d1/layer/2"
         }
       }
     },
     {
-      "path": "</cad/d1/e9>",
+      "path": "/cad/d1/e9",
       "attributes": {
         "ifccad::entity": {
           "appearance": {
@@ -262,7 +262,7 @@
               "mode": "ByLayer"
             }
           },
-          "layer": "</cad/d1/layer/2>"
+          "layer": "/cad/d1/layer/2"
         },
         "ifccad::geom::circle": {
           "radius": 3.0
@@ -287,10 +287,10 @@
       }
     },
     {
-      "path": "</cad/d1/e91>",
+      "path": "/cad/d1/e91",
       "attributes": {
         "ifccad::blockInstance": {
-          "definition": "</cad/d1/block/1>",
+          "definition": "/cad/d1/block/1",
           "transform": {
             "placement": {
               "origin": [
@@ -333,12 +333,12 @@
               "mode": "ByLayer"
             }
           },
-          "layer": "</cad/d1/layer/2>"
+          "layer": "/cad/d1/layer/2"
         }
       }
     },
     {
-      "path": "</cad/d1/e100>",
+      "path": "/cad/d1/e100",
       "attributes": {
         "ifccad::entity": {
           "appearance": {
@@ -355,7 +355,7 @@
               "mode": "ByLayer"
             }
           },
-          "layer": "</cad/d1/layer/0>"
+          "layer": "/cad/d1/layer/0"
         },
         "ifccad::geom::lineSegment": {
           "end": [

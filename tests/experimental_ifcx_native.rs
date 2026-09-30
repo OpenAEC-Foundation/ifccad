@@ -6,11 +6,11 @@ fn base() -> Value {
     let mut value = json!({
         "header": {"id":"demo", "ifcxVersion":"ifcx_alpha", "dataVersion":"0.1", "author":"test", "timestamp":"2026-09-29T00:00:00Z"},
         "imports": [], "schemas": {}, "data": [
-            {"path":"</cad/d1>","children":{"model":"</cad/d1/layout/1>","layer0":"</cad/d1/layer/0>"},"attributes":{"ifccad::drawing":{"profileVersion":"0.1.0","lengthUnit":"mm"}}},
-            {"path":"</cad/d1/layout/1>","children":{"0":"</cad/d1/e2>","1":"</cad/d1/e1>"},"attributes":{"ifccad::layout":{"kind":"Model"}}},
-            {"path":"</cad/d1/layer/0>","attributes":{"ifccad::layer":{"name":"0","appearance":{"color":"#ffffff","opacity":1.0,"linePattern":"Continuous","lineWeight":0.25}}}},
-            {"path":"</cad/d1/e1>","attributes":{"ifccad::entity":{"layer":"</cad/d1/layer/0>","appearance":{"color":{"mode":"ByLayer"},"opacity":{"mode":"ByLayer"},"linePattern":{"mode":"ByLayer"},"lineWeight":{"mode":"ByLayer"}}},"ifccad::geom::circle":{"radius":2.0},"ifccad::geom::placement":{"origin":[0,0,0],"xAxis":[1,0,0],"yAxis":[0,1,0]}}},
-            {"path":"</cad/d1/e2>","attributes":{"ifccad::entity":{"layer":"</cad/d1/layer/0>","appearance":{"color":{"mode":"ByLayer"},"opacity":{"mode":"ByLayer"},"linePattern":{"mode":"ByLayer"},"lineWeight":{"mode":"ByLayer"}}},"ifccad::geom::lineSegment":{"start":[0,0,0],"end":[1,0,0]}}}
+            {"path":"/cad/d1","children":{"model":"/cad/d1/layout/1","layer0":"/cad/d1/layer/0"},"attributes":{"ifccad::drawing":{"profileVersion":"0.1.0","lengthUnit":"mm"}}},
+            {"path":"/cad/d1/layout/1","children":{"0":"/cad/d1/e2","1":"/cad/d1/e1"},"attributes":{"ifccad::layout":{"kind":"Model"}}},
+            {"path":"/cad/d1/layer/0","attributes":{"ifccad::layer":{"name":"0","appearance":{"color":"#ffffff","opacity":1.0,"linePattern":"Continuous","lineWeight":0.25}}}},
+            {"path":"/cad/d1/e1","attributes":{"ifccad::entity":{"layer":"/cad/d1/layer/0","appearance":{"color":{"mode":"ByLayer"},"opacity":{"mode":"ByLayer"},"linePattern":{"mode":"ByLayer"},"lineWeight":{"mode":"ByLayer"}}},"ifccad::geom::circle":{"radius":2.0},"ifccad::geom::placement":{"origin":[0,0,0],"xAxis":[1,0,0],"yAxis":[0,1,0]}}},
+            {"path":"/cad/d1/e2","attributes":{"ifccad::entity":{"layer":"/cad/d1/layer/0","appearance":{"color":{"mode":"ByLayer"},"opacity":{"mode":"ByLayer"},"linePattern":{"mode":"ByLayer"},"lineWeight":{"mode":"ByLayer"}}},"ifccad::geom::lineSegment":{"start":[0,0,0],"end":[1,0,0]}}}
         ]
     });
     let module: Value = serde_json::from_str(include_str!(
@@ -46,12 +46,12 @@ fn profile_order_is_numeric_child_order() {
 fn profile_uses_later_geometry_and_order_fragments() {
     let mut value = base();
     value["data"].as_array_mut().unwrap().push(json!({
-        "path": "</cad/d1/e1>",
+        "path": "/cad/d1/e1",
         "attributes": {"ifccad::geom::circle": {"radius": 5.0}}
     }));
     value["data"].as_array_mut().unwrap().push(json!({
-        "path": "</cad/d1/layout/1>",
-        "children": {"0": "</cad/d1/e1>", "1": "</cad/d1/e2>"}
+        "path": "/cad/d1/layout/1",
+        "children": {"0": "/cad/d1/e1", "1": "/cad/d1/e2"}
     }));
     let loaded = read(&value).unwrap();
     assert_eq!(
@@ -74,7 +74,7 @@ fn profile_uses_later_geometry_and_order_fragments() {
 fn reader_policy_can_reject_the_same_cad_overwrite() {
     let mut value = base();
     value["data"].as_array_mut().unwrap().push(json!({
-        "path": "</cad/d1/e1>",
+        "path": "/cad/d1/e1",
         "attributes": {"ifccad::geom::circle": {"radius": 5.0}}
     }));
     let bytes = serde_json::to_vec(&value).unwrap();
@@ -87,7 +87,7 @@ fn reader_policy_can_reject_the_same_cad_overwrite() {
             .unwrap_err()
             .errors
             .iter()
-            .any(|e| e.contains("conflict at </cad/d1/e1>/attributes/ifccad::geom::circle"))
+            .any(|e| e.contains("conflict at /cad/d1/e1/attributes/ifccad::geom::circle"))
     );
 }
 
@@ -95,7 +95,7 @@ fn reader_policy_can_reject_the_same_cad_overwrite() {
 fn profile_validates_after_later_geometry_fragment() {
     let mut value = base();
     value["data"].as_array_mut().unwrap().push(json!({
-        "path": "</cad/d1/e1>",
+        "path": "/cad/d1/e1",
         "attributes": {"ifccad::geom::circle": {"radius": -1.0}}
     }));
     assert!(read(&value)
@@ -111,17 +111,17 @@ fn profile_keeps_later_foreign_attribute_fragment() {
     value["data"]
         .as_array_mut()
         .unwrap()
-        .push(json!({"path":"</project/site>","attributes":{"example::tag":"before"}}));
+        .push(json!({"path":"/project/site","attributes":{"example::tag":"before"}}));
     value["data"]
         .as_array_mut()
         .unwrap()
-        .push(json!({"path":"</project/site>","attributes":{"example::tag":"after"}}));
+        .push(json!({"path":"/project/site","attributes":{"example::tag":"after"}}));
     let loaded = read(&value).unwrap();
     let foreign = loaded.raw_ifcx()["data"]
         .as_array()
         .unwrap()
         .iter()
-        .find(|node| node["path"] == "</project/site>")
+        .find(|node| node["path"] == "/project/site")
         .unwrap();
     assert_eq!(foreign["attributes"]["example::tag"], "after");
 }
@@ -143,8 +143,8 @@ fn profile_circle_requires_placement() {
 #[test]
 fn profile_rejects_duplicate_owner() {
     let mut value = base();
-    value["data"][0]["children"]["block1"] = json!("</cad/d1/block/1>");
-    value["data"].as_array_mut().unwrap().push(json!({"path":"</cad/d1/block/1>","children":{"0":"</cad/d1/e1>"},"attributes":{"ifccad::blockDefinition":{"name":"B","basePoint":[0,0,0],"insertionUnit":"mm"}}}));
+    value["data"][0]["children"]["block1"] = json!("/cad/d1/block/1");
+    value["data"].as_array_mut().unwrap().push(json!({"path":"/cad/d1/block/1","children":{"0":"/cad/d1/e1"},"attributes":{"ifccad::blockDefinition":{"name":"B","basePoint":[0,0,0],"insertionUnit":"mm"}}}));
     assert!(read(&value)
         .unwrap_err()
         .errors
@@ -355,17 +355,17 @@ fn nested_blocks_keep_shared_definitions_order_and_stored_appearance() {
     let nodes = loaded.raw_ifcx()["data"].as_array().unwrap();
     let outer = nodes
         .iter()
-        .find(|node| node["path"] == "</cad/d1/block/2>")
+        .find(|node| node["path"] == "/cad/d1/block/2")
         .unwrap();
-    assert_eq!(outer["children"]["0"], "</cad/d1/e101>");
-    assert_eq!(outer["children"]["1"], "</cad/d1/e102>");
+    assert_eq!(outer["children"]["0"], "/cad/d1/e101");
+    assert_eq!(outer["children"]["1"], "/cad/d1/e102");
     let inner_instance = nodes
         .iter()
-        .find(|node| node["path"] == "</cad/d1/e101>")
+        .find(|node| node["path"] == "/cad/d1/e101")
         .unwrap();
     assert_eq!(
         inner_instance["attributes"]["ifccad::blockInstance"]["definition"],
-        "</cad/d1/block/1>"
+        "/cad/d1/block/1"
     );
     assert_eq!(
         inner_instance["attributes"]["ifccad::entity"]["appearance"]["color"]["mode"],
@@ -377,11 +377,11 @@ fn nested_blocks_keep_shared_definitions_order_and_stored_appearance() {
     );
     let inner_line = nodes
         .iter()
-        .find(|node| node["path"] == "</cad/d1/e100>")
+        .find(|node| node["path"] == "/cad/d1/e100")
         .unwrap();
     assert_eq!(
         inner_line["attributes"]["ifccad::entity"]["layer"],
-        "</cad/d1/layer/0>"
+        "/cad/d1/layer/0"
     );
     assert_eq!(
         inner_line["attributes"]["ifccad::entity"]["appearance"]["color"]["mode"],
@@ -390,11 +390,11 @@ fn nested_blocks_keep_shared_definitions_order_and_stored_appearance() {
     for id in [90, 91] {
         let outer_instance = nodes
             .iter()
-            .find(|node| node["path"] == format!("</cad/d1/e{id}>").as_str())
+            .find(|node| node["path"] == format!("/cad/d1/e{id}").as_str())
             .unwrap();
         assert_eq!(
             outer_instance["attributes"]["ifccad::blockInstance"]["definition"],
-            "</cad/d1/block/2>"
+            "/cad/d1/block/2"
         );
     }
     if std::env::var_os("GENERATE_IFCX_NESTED_FIXTURE").is_some() {
@@ -433,6 +433,27 @@ fn roundtrip_complete_example_and_determinism() {
     }
 }
 
+#[test]
+fn writer_uses_unwrapped_cad_paths_and_references() {
+    let bytes = write_native_cad_ifcx(&fixture_document()).unwrap();
+    assert!(!bytes.windows(2).any(|pair| pair == b"</"));
+    let file: Value = serde_json::from_slice(&bytes).unwrap();
+    assert_eq!(file["data"][0]["path"], "/cad/d1");
+    assert_eq!(file["data"][0]["children"]["model"], "/cad/d1/layout/1");
+    assert_eq!(file["data"][1]["children"]["2"], "/cad/d1/e90");
+}
+
+#[test]
+fn profile_rejects_usd_wrapped_cad_path() {
+    let mut value = base();
+    value["data"][0]["path"] = json!("</cad/d1>");
+    assert!(read(&value)
+        .unwrap_err()
+        .errors
+        .iter()
+        .any(|error| error.contains("invalid CAD path")));
+}
+
 fn assert_paths_first(bytes: &[u8]) {
     let source = std::str::from_utf8(bytes).unwrap();
     let data = source.split("\"data\": [").nth(1).unwrap();
@@ -463,9 +484,9 @@ fn profile_rejects_child_gap_and_unused_block_cycle() {
         .iter()
         .any(|e| e.contains("gap")));
     let mut value = base();
-    value["data"][0]["children"]["block1"] = json!("</cad/d1/block/1>");
-    value["data"].as_array_mut().unwrap().push(json!({"path":"</cad/d1/block/1>","children":{"0":"</cad/d1/e3>"},"attributes":{"ifccad::blockDefinition":{"name":"Loop","basePoint":[0,0,0],"insertionUnit":"mm"}}}));
-    value["data"].as_array_mut().unwrap().push(json!({"path":"</cad/d1/e3>","attributes":{"ifccad::entity":{"layer":"</cad/d1/layer/0>","appearance":{"color":{"mode":"ByLayer"},"opacity":{"mode":"ByLayer"},"linePattern":{"mode":"ByLayer"},"lineWeight":{"mode":"ByLayer"}}},"ifccad::blockInstance":{"definition":"</cad/d1/block/1>","transform":{"placement":{"origin":[0,0,0],"xAxis":[1,0,0],"yAxis":[0,1,0]},"rotation":0,"scale":[1,1,1]}}}}));
+    value["data"][0]["children"]["block1"] = json!("/cad/d1/block/1");
+    value["data"].as_array_mut().unwrap().push(json!({"path":"/cad/d1/block/1","children":{"0":"/cad/d1/e3"},"attributes":{"ifccad::blockDefinition":{"name":"Loop","basePoint":[0,0,0],"insertionUnit":"mm"}}}));
+    value["data"].as_array_mut().unwrap().push(json!({"path":"/cad/d1/e3","attributes":{"ifccad::entity":{"layer":"/cad/d1/layer/0","appearance":{"color":{"mode":"ByLayer"},"opacity":{"mode":"ByLayer"},"linePattern":{"mode":"ByLayer"},"lineWeight":{"mode":"ByLayer"}}},"ifccad::blockInstance":{"definition":"/cad/d1/block/1","transform":{"placement":{"origin":[0,0,0],"xAxis":[1,0,0],"yAxis":[0,1,0]},"rotation":0,"scale":[1,1,1]}}}}));
     assert!(read(&value)
         .unwrap_err()
         .errors
@@ -476,7 +497,7 @@ fn profile_rejects_child_gap_and_unused_block_cycle() {
 #[test]
 fn profile_schema_and_extensions() {
     let mut value = base();
-    value["data"].as_array_mut().unwrap().push(json!({"path":"</project/site>","children":{"cad":"</cad/d1/e1>"},"attributes":{"example::tag":{"value":"kept"}}}));
+    value["data"].as_array_mut().unwrap().push(json!({"path":"/project/site","children":{"cad":"/cad/d1/e1"},"attributes":{"example::tag":{"value":"kept"}}}));
     value["data"][3]["attributes"]["example::entityNote"] = json!(42);
     let loaded = read(&value).unwrap();
     assert_eq!(loaded.raw_ifcx()["data"].as_array().unwrap().len(), 6);

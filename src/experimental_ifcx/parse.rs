@@ -191,7 +191,7 @@ mod tests {
 
     #[test]
     fn parse_disjoint_fragments_compose() {
-        let source = br#"{"header":{},"imports":[],"schemas":{},"data":[{"path":"</cad/d1/e1>","attributes":{"ifccad::entity":{"layer":"L"}}},{"path":"</cad/d1/e1>","attributes":{"ifccad::geom::circle":{"radius":2}}}]}"#;
+        let source = br#"{"header":{},"imports":[],"schemas":{},"data":[{"path":"/cad/d1/e1","attributes":{"ifccad::entity":{"layer":"L"}}},{"path":"/cad/d1/e1","attributes":{"ifccad::geom::circle":{"radius":2}}}]}"#;
         let result = compose(source, IfcxCompositionPolicy::LaterWins)
             .expect("disjoint fragments must compose");
         let nodes = result["data"].as_array().expect("data array");
@@ -205,7 +205,7 @@ mod tests {
 
     #[test]
     fn parse_duplicate_json_child_key_is_an_error() {
-        let source = br#"{"data":[{"path":"</cad/d1/layout/1>","children":{"0":"</cad/d1/e1>","0":"</cad/d1/e2>"}}]}"#;
+        let source = br#"{"data":[{"path":"/cad/d1/layout/1","children":{"0":"/cad/d1/e1","0":"/cad/d1/e2"}}]}"#;
         let error = compose(source, IfcxCompositionPolicy::LaterWins)
             .expect_err("duplicate object key must fail");
         assert!(error
@@ -216,7 +216,7 @@ mod tests {
 
     #[test]
     fn parse_later_attribute_fragment_wins() {
-        let source = br#"{"data":[{"path":"</cad/d1/e1>","attributes":{"ifccad::geom::circle":{"radius":2}}},{"path":"</cad/d1/e1>","attributes":{"ifccad::geom::circle":{"radius":3}}}]}"#;
+        let source = br#"{"data":[{"path":"/cad/d1/e1","attributes":{"ifccad::geom::circle":{"radius":2}}},{"path":"/cad/d1/e1","attributes":{"ifccad::geom::circle":{"radius":3}}}]}"#;
         let result =
             compose(source, IfcxCompositionPolicy::LaterWins).expect("later fragment must win");
         assert_eq!(result["data"].as_array().unwrap().len(), 1);

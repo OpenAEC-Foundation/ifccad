@@ -38,7 +38,7 @@ fn attrs(value: Value) -> Map<String, Value> {
 
 fn entity_node(entity: &IfcxCadEntity, prefix: &str) -> NodeOut {
     let mut attrs = Map::new();
-    attrs.insert("ifccad::entity".into(), json!({"layer":format!("{prefix}/layer/{}>",entity.layer_id),"appearance":entity.appearance}));
+    attrs.insert("ifccad::entity".into(), json!({"layer":format!("{prefix}/layer/{}",entity.layer_id),"appearance":entity.appearance}));
     match &entity.kind {
         IfcxCadEntityKind::LineSegment { start, end } => {
             attrs.insert(
@@ -65,11 +65,11 @@ fn entity_node(entity: &IfcxCadEntity, prefix: &str) -> NodeOut {
             definition_id,
             transform,
         } => {
-            attrs.insert("ifccad::blockInstance".into(), json!({"definition":format!("{prefix}/block/{definition_id}>"),"transform":transform}));
+            attrs.insert("ifccad::blockInstance".into(), json!({"definition":format!("{prefix}/block/{definition_id}"),"transform":transform}));
         }
     }
     NodeOut {
-        path: format!("{prefix}/e{}>", entity.id),
+        path: format!("{prefix}/e{}", entity.id),
         children: None,
         attributes: attrs,
     }
@@ -79,46 +79,46 @@ fn numbered_children(entities: &[IfcxCadEntity], prefix: &str) -> Map<String, Va
     entities
         .iter()
         .enumerate()
-        .map(|(i, e)| (i.to_string(), json!(format!("{prefix}/e{}>", e.id))))
+        .map(|(i, e)| (i.to_string(), json!(format!("{prefix}/e{}", e.id))))
         .collect()
 }
 
 /// Serialize an IFCX alpha drawing with the versioned CAD schema import and strict-read it.
 pub fn write_native_cad_ifcx(document: &IfcxCadDocument) -> Result<Vec<u8>, IfcxCadReport> {
-    let prefix = format!("</cad/d{}", document.drawing_id);
+    let prefix = format!("/cad/d{}", document.drawing_id);
     let mut drawing_children = Map::new();
     drawing_children.insert(
         "model".into(),
-        json!(format!("{prefix}/layout/{}>", document.model.id)),
+        json!(format!("{prefix}/layout/{}", document.model.id)),
     );
     let mut data = Vec::new();
     for layer in &document.layers {
         drawing_children.insert(
             format!("layer{}", layer.id),
-            json!(format!("{prefix}/layer/{}>", layer.id)),
+            json!(format!("{prefix}/layer/{}", layer.id)),
         );
     }
     for block in &document.blocks {
         drawing_children.insert(
             format!("block{}", block.id),
-            json!(format!("{prefix}/block/{}>", block.id)),
+            json!(format!("{prefix}/block/{}", block.id)),
         );
     }
     data.push(NodeOut {
-        path: format!("{prefix}>"),
+        path: prefix.clone(),
         children: Some(drawing_children),
         attributes: attrs(
             json!({"ifccad::drawing":{"profileVersion":"0.1.0","lengthUnit":document.length_unit}}),
         ),
     });
     data.push(NodeOut {
-        path: format!("{prefix}/layout/{}>", document.model.id),
+        path: format!("{prefix}/layout/{}", document.model.id),
         children: Some(numbered_children(&document.model.entities, &prefix)),
         attributes: attrs(json!({"ifccad::layout":{"kind":"Model"}})),
     });
     for layer in &document.layers {
         data.push(NodeOut {
-            path: format!("{prefix}/layer/{}>", layer.id),
+            path: format!("{prefix}/layer/{}", layer.id),
             children: None,
             attributes: attrs(
                 json!({"ifccad::layer":{"name":layer.name,"appearance":layer.appearance}}),
@@ -127,7 +127,7 @@ pub fn write_native_cad_ifcx(document: &IfcxCadDocument) -> Result<Vec<u8>, Ifcx
     }
     for block in &document.blocks {
         data.push(NodeOut {
-            path: format!("{prefix}/block/{}>",block.id),
+            path: format!("{prefix}/block/{}",block.id),
             children: Some(numbered_children(&block.entities,&prefix)),
             attributes: attrs(json!({"ifccad::blockDefinition":{"name":block.name,"basePoint":block.base_point,"insertionUnit":block.insertion_unit}})),
         });
