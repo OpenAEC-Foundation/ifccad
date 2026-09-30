@@ -43,6 +43,90 @@ fn profile_order_is_numeric_child_order() {
 }
 
 #[test]
+fn profile_uses_later_geometry_and_order_fragments() {
+    let mut value = base();
+    value["data"].as_array_mut().unwrap().push(json!({
+        "path": "</cad/d1/e1>",
+        "attributes": {"ifccad::geom::circle": {"radius": 5.0}}
+    }));
+    value["data"].as_array_mut().unwrap().push(json!({
+        "path": "</cad/d1/layout/1>",
+        "children": {"0": "</cad/d1/e1>", "1": "</cad/d1/e2>"}
+    }));
+    let loaded = read(&value).unwrap();
+    assert_eq!(
+        loaded
+            .document()
+            .model
+            .entities
+            .iter()
+            .map(|e| e.id)
+            .collect::<Vec<_>>(),
+        vec![1, 2]
+    );
+    assert!(matches!(
+        loaded.document().model.entities[0].kind,
+        IfcxCadEntityKind::Circle { radius: 5.0, .. }
+    ));
+}
+
+#[test]
+fn reader_policy_can_reject_the_same_cad_overwrite() {
+    let mut value = base();
+    value["data"].as_array_mut().unwrap().push(json!({
+        "path": "</cad/d1/e1>",
+        "attributes": {"ifccad::geom::circle": {"radius": 5.0}}
+    }));
+    let bytes = serde_json::to_vec(&value).unwrap();
+    let default = read_native_cad_ifcx(&bytes).unwrap();
+    let explicit_later =
+        read_native_cad_ifcx_with_policy(&bytes, IfcxCompositionPolicy::LaterWins).unwrap();
+    assert_eq!(default.document(), explicit_later.document());
+    assert!(
+        read_native_cad_ifcx_with_policy(&bytes, IfcxCompositionPolicy::RejectConflicts)
+            .unwrap_err()
+            .errors
+            .iter()
+            .any(|e| e.contains("conflict at </cad/d1/e1>/attributes/ifccad::geom::circle"))
+    );
+}
+
+#[test]
+fn profile_validates_after_later_geometry_fragment() {
+    let mut value = base();
+    value["data"].as_array_mut().unwrap().push(json!({
+        "path": "</cad/d1/e1>",
+        "attributes": {"ifccad::geom::circle": {"radius": -1.0}}
+    }));
+    assert!(read(&value)
+        .unwrap_err()
+        .errors
+        .iter()
+        .any(|e| e.contains("invalid circle radius")));
+}
+
+#[test]
+fn profile_keeps_later_foreign_attribute_fragment() {
+    let mut value = base();
+    value["data"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!({"path":"</project/site>","attributes":{"example::tag":"before"}}));
+    value["data"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!({"path":"</project/site>","attributes":{"example::tag":"after"}}));
+    let loaded = read(&value).unwrap();
+    let foreign = loaded.raw_ifcx()["data"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|node| node["path"] == "</project/site>")
+        .unwrap();
+    assert_eq!(foreign["attributes"]["example::tag"], "after");
+}
+
+#[test]
 fn profile_circle_requires_placement() {
     let mut value = base();
     value["data"][3]["attributes"]

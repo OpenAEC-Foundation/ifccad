@@ -1,4 +1,4 @@
-use super::IfcxCadReport;
+use super::{IfcxCadReport, IfcxCompositionPolicy};
 use serde::de::{self, MapAccess, SeqAccess, Visitor};
 use serde::Deserialize;
 use serde_json::{Map, Number, Value};
@@ -80,7 +80,7 @@ impl<'de> Deserialize<'de> for UniqueValue {
     }
 }
 
-pub(super) fn compose(bytes: &[u8]) -> Result<Value, IfcxCadReport> {
+pub(super) fn compose(bytes: &[u8], policy: IfcxCompositionPolicy) -> Result<Value, IfcxCadReport> {
     let mut deserializer = serde_json::Deserializer::from_slice(bytes);
     let mut root = UniqueValue::deserialize(&mut deserializer)
         .map_err(|error| IfcxCadReport::one(format!("invalid IFCX JSON: {error}")))?
@@ -101,17 +101,30 @@ pub(super) fn compose(bytes: &[u8]) -> Result<Value, IfcxCadReport> {
             .ok_or_else(|| IfcxCadReport::one("IFCX node path must be a string"))?
             .to_owned();
         if let Some(index) = indices.get(&path).copied() {
-            merge_node(&mut composed[index], node, &path)?;
+            merge_node(&mut composed[index], node, policy, &path)?;
         } else {
-            indices.insert(path, composed.len());
-            composed.push(node);
+            indices.insert(path.clone(), composed.len());
+            if policy == IfcxCompositionPolicy::RejectConflicts {
+                composed.push(node);
+            } else {
+                let mut initial = Map::new();
+                initial.insert("path".to_owned(), Value::String(path.clone()));
+                let mut result = Value::Object(initial);
+                merge_node(&mut result, node, policy, &path)?;
+                composed.push(result);
+            }
         }
     }
     *data = composed;
     Ok(root)
 }
 
-fn merge_node(existing: &mut Value, additional: Value, path: &str) -> Result<(), IfcxCadReport> {
+fn merge_node(
+    existing: &mut Value,
+    additional: Value,
+    policy: IfcxCompositionPolicy,
+    path: &str,
+) -> Result<(), IfcxCadReport> {
     let target = existing
         .as_object_mut()
         .ok_or_else(|| IfcxCadReport::one("IFCX node must be an object"))?;
@@ -122,29 +135,50 @@ fn merge_node(existing: &mut Value, additional: Value, path: &str) -> Result<(),
         if field == "path" {
             continue;
         }
-        if let Some(present) = target.get_mut(field) {
-            if let (Some(present_fields), Some(new_fields)) =
-                (present.as_object_mut(), value.as_object())
-            {
-                for (key, new_value) in new_fields {
-                    match present_fields.get(key) {
-                        Some(old_value) if old_value != new_value => {
-                            return Err(IfcxCadReport::one(format!(
-                                "conflict at {path}/{field}/{key}"
-                            )));
+        if policy == IfcxCompositionPolicy::RejectConflicts {
+            if let Some(present) = target.get_mut(field) {
+                if let (Some(present_fields), Some(new_fields)) =
+                    (present.as_object_mut(), value.as_object())
+                {
+                    for (key, new_value) in new_fields {
+                        match present_fields.get(key) {
+                            Some(old_value) if old_value != new_value => {
+                                return Err(IfcxCadReport::one(format!(
+                                    "conflict at {path}/{field}/{key}"
+                                )));
+                            }
+                            Some(_) => {}
+                            None => {
+                                present_fields.insert(key.to_owned(), new_value.clone());
+                            }
                         }
-                        Some(_) => {}
-                        None => {
+                    }
+                } else if present != value {
+                    return Err(IfcxCadReport::one(format!("conflict at {path}/{field}")));
+                }
+            } else {
+                target.insert(field.to_owned(), value.clone());
+            }
+            continue;
+        }
+        if matches!(field.as_str(), "children" | "inherits" | "attributes") {
+            if let Some(new_fields) = value.as_object() {
+                let present = target
+                    .entry(field.to_owned())
+                    .or_insert_with(|| Value::Object(Map::new()));
+                if let Some(present_fields) = present.as_object_mut() {
+                    for (key, new_value) in new_fields {
+                        if field == "inherits" && new_value.is_null() {
+                            present_fields.remove(key);
+                        } else {
                             present_fields.insert(key.to_owned(), new_value.clone());
                         }
                     }
+                    continue;
                 }
-            } else if present != value {
-                return Err(IfcxCadReport::one(format!("conflict at {path}/{field}")));
             }
-        } else {
-            target.insert(field.to_owned(), value.clone());
         }
+        target.insert(field.to_owned(), value.clone());
     }
     Ok(())
 }
@@ -152,12 +186,14 @@ fn merge_node(existing: &mut Value, additional: Value, path: &str) -> Result<(),
 #[cfg(test)]
 mod tests {
     use super::compose;
+    use crate::experimental_ifcx::IfcxCompositionPolicy;
     use serde_json::json;
 
     #[test]
     fn parse_disjoint_fragments_compose() {
         let source = br#"{"header":{},"imports":[],"schemas":{},"data":[{"path":"</cad/d1/e1>","attributes":{"ifccad::entity":{"layer":"L"}}},{"path":"</cad/d1/e1>","attributes":{"ifccad::geom::circle":{"radius":2}}}]}"#;
-        let result = compose(source).expect("disjoint fragments must compose");
+        let result = compose(source, IfcxCompositionPolicy::LaterWins)
+            .expect("disjoint fragments must compose");
         let nodes = result["data"].as_array().expect("data array");
         assert_eq!(nodes.len(), 1);
         assert_eq!(
@@ -170,7 +206,8 @@ mod tests {
     #[test]
     fn parse_duplicate_json_child_key_is_an_error() {
         let source = br#"{"data":[{"path":"</cad/d1/layout/1>","children":{"0":"</cad/d1/e1>","0":"</cad/d1/e2>"}}]}"#;
-        let error = compose(source).expect_err("duplicate object key must fail");
+        let error = compose(source, IfcxCompositionPolicy::LaterWins)
+            .expect_err("duplicate object key must fail");
         assert!(error
             .errors
             .iter()
@@ -178,46 +215,65 @@ mod tests {
     }
 
     #[test]
-    fn parse_conflicting_fragments_are_an_error() {
+    fn parse_later_attribute_fragment_wins() {
         let source = br#"{"data":[{"path":"</cad/d1/e1>","attributes":{"ifccad::geom::circle":{"radius":2}}},{"path":"</cad/d1/e1>","attributes":{"ifccad::geom::circle":{"radius":3}}}]}"#;
-        let error = compose(source).expect_err("conflicting fragments must fail");
-        assert!(error
-            .errors
-            .iter()
-            .any(|message| message.contains("conflict")));
+        let result =
+            compose(source, IfcxCompositionPolicy::LaterWins).expect("later fragment must win");
+        assert_eq!(result["data"].as_array().unwrap().len(), 1);
+        assert_eq!(
+            result["data"][0]["attributes"]["ifccad::geom::circle"],
+            json!({"radius": 3})
+        );
     }
 
     #[test]
-    fn parse_conflicting_child_fragments_are_an_error() {
+    fn parse_later_child_fragment_wins() {
         let source = br#"{"data":[{"path":"node1","children":{"one":"node2"}},{"path":"node1","children":{"one":"node3"}}]}"#;
-        let error = compose(source).expect_err("conflicting children must fail");
-        assert!(error
-            .errors
-            .iter()
-            .any(|message| message.contains("conflict")));
+        let result =
+            compose(source, IfcxCompositionPolicy::LaterWins).expect("later child must win");
+        assert_eq!(result["data"][0]["children"]["one"], "node3");
     }
 
     #[test]
     fn parse_identical_fragments_are_harmless() {
         let source = br#"{"data":[{"path":"node1","attributes":{"test::a":"A"}},{"path":"node1","attributes":{"test::a":"A"}}]}"#;
-        let result = compose(source).expect("identical fragments must compose");
+        let result = compose(source, IfcxCompositionPolicy::LaterWins)
+            .expect("identical fragments must compose");
         assert_eq!(result["data"].as_array().unwrap().len(), 1);
         assert_eq!(result["data"][0]["attributes"]["test::a"], "A");
     }
 
     #[test]
-    fn parse_null_overrides_are_conflicts() {
+    fn parse_null_markers_follow_current_upstream_flattening() {
         for field in ["children", "inherits", "attributes"] {
             let mut first = json!({"path": "node1"});
             first[field] = json!({"key": "A"});
             let mut second = json!({"path": "node1"});
             second[field] = json!({"key": null});
             let source = serde_json::to_vec(&json!({"data": [first, second]})).unwrap();
-            let error = compose(&source).expect_err("null override must fail");
-            assert!(error
-                .errors
-                .iter()
-                .any(|message| message.contains("conflict")));
+            let result = compose(&source, IfcxCompositionPolicy::LaterWins)
+                .expect("null marker must compose");
+            if field == "inherits" {
+                assert!(result["data"][0][field].get("key").is_none());
+            } else {
+                assert!(result["data"][0][field]["key"].is_null());
+            }
         }
+    }
+
+    #[test]
+    fn strict_policy_accepts_disjoint_and_equal_fragments_but_rejects_overwrites() {
+        let source = br#"{"data":[{"path":"node1","attributes":{"test::a":"A"}},{"path":"node1","attributes":{"test::a":"A","test::b":"B"}}]}"#;
+        let result = compose(source, IfcxCompositionPolicy::RejectConflicts)
+            .expect("disjoint and identical keys must compose");
+        assert_eq!(result["data"][0]["attributes"]["test::b"], "B");
+
+        let conflicting = br#"{"data":[{"path":"node1","attributes":{"test::a":"A"}},{"path":"node1","attributes":{"test::a":"B"}}]}"#;
+        let error = compose(conflicting, IfcxCompositionPolicy::RejectConflicts)
+            .expect_err("strict mode must reject overwrite");
+        assert!(error
+            .errors
+            .iter()
+            .any(|e| e.contains("conflict at node1/attributes/test::a")));
     }
 }
