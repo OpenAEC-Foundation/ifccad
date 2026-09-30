@@ -394,7 +394,6 @@ no build or test process is using the affected worktrees.
   proof with its own [experimental contract](schemas/ifcx-native-cad/experimental-contract-0.1.0.md),
   [schema module](schemas/ifcx-native-cad/experimental-profile-0.1.0.ifcx),
   [sample drawing](examples/ifcx-native-cad/hello-cad.ifcx),
-  [self-contained sample](examples/ifcx-native-cad/hello-cad-inline.ifcx),
   [evaluation](docs/experiments/ifcx-native-cad.md), and
   [upstream gap register](docs/experiments/ifcx-upstream-gaps.md). It does not change the
   released IFCCAD package contract.

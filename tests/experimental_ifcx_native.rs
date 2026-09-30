@@ -447,28 +447,6 @@ fn fixture_is_a_complete_strictly_readable_ifcx_file() {
 }
 
 #[test]
-fn inline_fixture_contains_the_same_drawing_and_all_local_schemas() {
-    let bytes = include_bytes!("../examples/ifcx-native-cad/hello-cad-inline.ifcx");
-    assert_paths_first(bytes);
-    let inline: Value = serde_json::from_slice(bytes).unwrap();
-    let original: Value =
-        serde_json::from_slice(include_bytes!("../examples/ifcx-native-cad/hello-cad.ifcx"))
-            .unwrap();
-    let module: Value = serde_json::from_str(include_str!(
-        "../schemas/ifcx-native-cad/experimental-profile-0.1.0.ifcx"
-    ))
-    .unwrap();
-    assert_eq!(inline["header"], original["header"]);
-    assert_eq!(inline["data"], original["data"]);
-    assert_eq!(inline["imports"], json!([]));
-    assert_eq!(inline["schemas"], module["schemas"]);
-    assert_eq!(
-        read_native_cad_ifcx(bytes).unwrap().document(),
-        &fixture_document()
-    );
-}
-
-#[test]
 fn profile_imported_schema_resolves_offline_and_missing_import_fails() {
     let mut value = base();
     value["schemas"] = json!({});
