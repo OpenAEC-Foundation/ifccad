@@ -76,3 +76,16 @@ cargo test --workspace
 Controlled measurements have separate reproduction instructions under
 `docs/benchmarks`; historical IFCCAD ratios do not measure standalone OCDraw.
 Licensed under [MPL-2.0](LICENSE).
+
+
+## IFCX-native experiment and local maintenance
+
+The initial independent proof already on main remains available in
+`src/experimental_ifcx`, with its [experimental contract](schemas/ifcx-native-cad/experimental-contract-0.1.0.md),
+[sample](examples/ifcx-native-cad/hello-cad.ifcx) and
+[evaluation](docs/experiments/ifcx-native-cad.md). The expanded experiment and
+browser support are the next planned integration.
+
+Run `pwsh -NoProfile -File scripts/cleanup_local.ps1` to audit local worktrees
+and build caches. Removal requires an explicitly selected, unused worktree;
+the script retains local changes and unfamiliar files for review.
