@@ -12,9 +12,10 @@ fn supported_entity_common_semantics_are_emitted_and_attached_semantics_are_repo
             0.0, 0.0, 0.0, 1.0, 1.0, 0.0,
         )))
         .unwrap();
+    let bylayer = document.line_types.get("ByLayer").unwrap().handle;
     let common = document.get_entity_mut(handle).unwrap().common_mut();
     common.linetype_scale = 2.0;
-    common.linetype_handle = Some(Handle::new(0x801));
+    common.linetype_handle = Some(bylayer);
     common.graphic_data = Some(vec![1, 2, 3]);
     common.reactors.push(Handle::new(0x802));
     common.xdictionary_handle = Some(Handle::new(0x803));
@@ -46,8 +47,6 @@ fn supported_entity_common_semantics_are_emitted_and_attached_semantics_are_repo
     assert_eq!(
         diagnostic.reasons(),
         [
-            ExportLossReason::EntityLinetypeScale,
-            ExportLossReason::EntityLinetypeHandle,
             ExportLossReason::EntityGraphicData,
             ExportLossReason::EntityReactors,
             ExportLossReason::EntityExtensionDictionary,
@@ -110,15 +109,6 @@ fn document_tables_and_metadata_are_covered_deterministically() {
                     name: "summary_info".to_owned(),
                 },
                 vec![ExportLossReason::DocumentSummaryInformation],
-            ),
-            (
-                ExportDiagnosticSource::Table {
-                    kind: "line_types".to_owned(),
-                },
-                vec![ExportLossReason::UnsupportedTableRecords {
-                    kind: "line_types".to_owned(),
-                    count: 1,
-                }],
             ),
         ]
     );
@@ -255,12 +245,16 @@ fn newly_exposed_table_fields_are_reported_even_on_bootstrap_records() {
         }
         let outcome = cad_document_to_drawing(&document, ExportOptions::default()).unwrap();
         assert!(
-            outcome.diagnostics().iter().any(|d| d.reasons().contains(
-                &ExportLossReason::UnsupportedTableRecords {
-                    kind: table.into(),
-                    count: 1
-                }
-            )),
+            outcome.diagnostics().iter().any(|d| (table == "line_types"
+                && d.reasons()
+                    .contains(&ExportLossReason::UnsupportedSemantic {
+                        name: "line pattern xref provenance".into()
+                    }))
+                || d.reasons()
+                    .contains(&ExportLossReason::UnsupportedTableRecords {
+                        kind: table.into(),
+                        count: 1
+                    })),
             "{table}"
         );
         assert_rejected(&document);
@@ -484,18 +478,21 @@ fn modified_dashed_linetype_definition_is_not_hidden_by_its_supported_name() {
     let mut dashed = LineType::dashed();
     dashed.handle = document.allocate_handle();
     dashed.description = "Custom dash sequence".into();
+    dashed.elements[0].length = 2.0;
+    dashed.pattern_length = 2.25;
     document.line_types.add(dashed).unwrap();
     let outcome = cad_document_to_drawing(&document, ExportOptions::default()).unwrap();
-    assert!(outcome
-        .diagnostics()
+    assert!(outcome.diagnostics().is_empty());
+    let read = ocdraw::ocdraw::load_drawing_bytes(outcome.drawing().bytes());
+    let pattern = read
+        .validated_drawing()
+        .unwrap()
+        .line_patterns()
         .iter()
-        .any(|diagnostic| diagnostic.reasons().contains(
-            &ExportLossReason::UnsupportedTableRecords {
-                kind: "line_types".into(),
-                count: 1,
-            }
-        )));
-    assert_rejected(&document);
+        .find(|p| p.name == "Dashed")
+        .unwrap();
+    assert_eq!(pattern.description.as_deref(), Some("Custom dash sequence"));
+    assert_eq!(pattern.pattern, vec![2.0, -0.25]);
 }
 
 #[test]

@@ -152,6 +152,8 @@ pub fn cad_document_to_drawing_with_id(
     }
     let mut drawing =
         DrawingBuilder::new(DrawingOptions::new(drawing_id, unit.unwrap_or("unitless")))?;
+    let patterns =
+        super::line_pattern::export_line_patterns(document, &mut drawing, &mut diagnostics)?;
     let mut ucs_names = BTreeMap::new();
     let mut ucs_handles = BTreeMap::new();
     for source in document.ucss.iter() {
@@ -346,7 +348,7 @@ pub fn cad_document_to_drawing_with_id(
 
     let mut layer_ids = BTreeMap::new();
     for layer in document.layers.iter() {
-        match direct_layer(layer) {
+        match direct_layer(layer, patterns.layer(&layer.line_type)?) {
             Ok((definition, reasons)) => {
                 let id = drawing.add_layer(definition)?;
                 layer_ids.insert(layer.name.to_lowercase(), id);
@@ -587,7 +589,10 @@ pub fn cad_document_to_drawing_with_id(
                 name: common.layer.clone(),
             });
         }
-        let appearance = match direct_entity(common) {
+        let appearance = match direct_entity(
+            common,
+            patterns.resolve(&common.linetype, common.linetype_handle)?,
+        ) {
             Ok(value) => Some(value),
             Err(losses) => {
                 reasons.extend(losses);

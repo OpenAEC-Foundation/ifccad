@@ -115,6 +115,40 @@
       "path": "invalid/missing-viewport-clip.ocdraw.json",
       "status": "invalid",
       "diagnostic": "VIEWPORT_CLIP"
+    },
+    {
+      "path": "valid/named-line-patterns.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "invalid/missing-line-pattern.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "LINE_PATTERN_REFERENCE"
+    },
+    {
+      "path": "invalid/zero-line-pattern.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "LINE_PATTERN_VALUE"
+    },
+    {
+      "path": "invalid/duplicate-line-pattern-name.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "LINE_PATTERN_IDENTITY"
+    },
+    {
+      "path": "invalid/line-pattern-watermark.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "LINE_PATTERN_WATERMARK"
+    },
+    {
+      "path": "invalid/reserved-line-pattern-name.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "LINE_PATTERN_VALUE"
+    },
+    {
+      "path": "invalid/zero-line-pattern-scale.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "SCHEMA"
     }
   ]
 }

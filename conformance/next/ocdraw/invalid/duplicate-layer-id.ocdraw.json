@@ -6,7 +6,8 @@
     "unit": "unitless",
     "nextEntityId": 1,
     "nextLayerId": 1,
-    "nextLayoutId": 1
+    "nextLayoutId": 1,
+    "nextLinePatternId": 1
   },
   "layouts": [
     {
@@ -43,8 +44,8 @@
         ]
       },
       "opacity": 1,
-      "linePattern": "Continuous",
-      "lineWeight": 0.25
+      "lineWeight": 0.25,
+      "linePatternId": 0
     },
     {
       "id": 0,
@@ -62,8 +63,15 @@
         ]
       },
       "opacity": 1,
-      "linePattern": "Continuous",
-      "lineWeight": 0.25
+      "lineWeight": 0.25,
+      "linePatternId": 0
+    }
+  ],
+  "linePatterns": [
+    {
+      "id": 0,
+      "name": "Continuous",
+      "pattern": []
     }
   ]
 }

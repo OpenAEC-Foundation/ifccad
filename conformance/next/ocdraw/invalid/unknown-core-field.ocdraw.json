@@ -6,7 +6,8 @@
     "unit": "unitless",
     "nextEntityId": 1,
     "nextLayerId": 0,
-    "nextLayoutId": 1
+    "nextLayoutId": 1,
+    "nextLinePatternId": 1
   },
   "layouts": [
     {
@@ -26,5 +27,12 @@
     }
   ],
   "streams": {},
-  "inventedCoreField": true
+  "inventedCoreField": true,
+  "linePatterns": [
+    {
+      "id": 0,
+      "name": "Continuous",
+      "pattern": []
+    }
+  ]
 }

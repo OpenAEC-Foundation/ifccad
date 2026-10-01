@@ -82,12 +82,19 @@ fn direct_import_preserves_paper_scope_and_mixed_appearance_modes() {
         LineDefinition, RgbColor,
     };
     let mut builder = DrawingBuilder::new(DrawingOptions::new("paper", "mm")).unwrap();
+    builder.ensure_continuous_line_pattern().unwrap();
     let layer = builder
-        .add_layer(LayerDefinition::new("0", RgbColor::new(255, 255, 255)))
+        .add_layer(LayerDefinition::new(
+            "0",
+            RgbColor::new(255, 255, 255),
+            ocdraw::ocdraw::LinePatternId(0),
+        ))
         .unwrap();
     let paper = builder.add_paper_layout("Sheet").unwrap();
     let mut line = LineDefinition::new(layer, [0.0, 0.0, 0.0], [2.0, 3.0, 0.0]).in_scope(paper);
     line.appearance = EntityAppearance {
+        line_pattern_scale: 1.0,
+
         color: AppearanceSelection::ByBlock,
         opacity: AppearanceSelection::Explicit(0.5),
         line_pattern: AppearanceSelection::ByLayer,
@@ -377,8 +384,13 @@ fn rotated_point_frame_is_mapped_in_direct_import() {
         DrawingBuilder, DrawingOptions, LayerDefinition, PointDefinition, RgbColor,
     };
     let mut builder = DrawingBuilder::new(DrawingOptions::new("rotated", "mm")).unwrap();
+    builder.ensure_continuous_line_pattern().unwrap();
     let layer = builder
-        .add_layer(LayerDefinition::new("0", RgbColor::new(0, 0, 0)))
+        .add_layer(LayerDefinition::new(
+            "0",
+            RgbColor::new(0, 0, 0),
+            ocdraw::ocdraw::LinePatternId(0),
+        ))
         .unwrap();
     builder
         .add_point(PointDefinition::new(layer, [1.0, 2.0, 0.0]))
@@ -629,8 +641,13 @@ fn standalone_import_enforces_unitless_exactness_and_explicit_tolerance() {
         ConversionGeometryTolerance, ConversionToleranceError, DirectImportError,
     };
     let mut builder = DrawingBuilder::new(DrawingOptions::new("unitless", "unitless")).unwrap();
+    builder.ensure_continuous_line_pattern().unwrap();
     let layer = builder
-        .add_layer(LayerDefinition::new("0", RgbColor::new(255, 255, 255)))
+        .add_layer(LayerDefinition::new(
+            "0",
+            RgbColor::new(255, 255, 255),
+            ocdraw::ocdraw::LinePatternId(0),
+        ))
         .unwrap();
     let frame = CoordinateFrame3::try_new(
         Point3::new(9007199254740992.0, 0.0, 0.0),
@@ -643,6 +660,8 @@ fn standalone_import_enforces_unitless_exactness_and_explicit_tolerance() {
             0,
             layer,
             DrawingGeometry::PlanarPolyline {
+                line_pattern_generation: ocdraw::ocdraw::LinePatternGeneration::PerSegment,
+
                 placement: frame,
                 vertices: vec![[1.0, 0.0, 0.0], [3.0, 2.0, 0.0]],
                 closed: false,
@@ -697,8 +716,13 @@ fn standalone_checks_scaled_block_occurrences_against_the_same_tolerance() {
     use ocdraw_convert::{ConversionEntitySource, ConversionGeometryTolerance, DirectImportError};
     let mut builder =
         DrawingBuilder::new(DrawingOptions::new("amplification", "unitless")).unwrap();
+    builder.ensure_continuous_line_pattern().unwrap();
     let layer = builder
-        .add_layer(LayerDefinition::new("0", RgbColor::new(255, 255, 255)))
+        .add_layer(LayerDefinition::new(
+            "0",
+            RgbColor::new(255, 255, 255),
+            ocdraw::ocdraw::LinePatternId(0),
+        ))
         .unwrap();
     let block = builder
         .add_block_definition(BlockDefinition::new("Shared"))
@@ -714,6 +738,8 @@ fn standalone_checks_scaled_block_occurrences_against_the_same_tolerance() {
             block,
             layer,
             DrawingGeometry::PlanarPolyline {
+                line_pattern_generation: ocdraw::ocdraw::LinePatternGeneration::PerSegment,
+
                 placement: frame,
                 vertices: vec![[1.0, 0.0, 0.0], [3.0, 2.0, 0.0]],
                 closed: false,
@@ -994,8 +1020,8 @@ fn continuous_linetype_names_use_cad_case_insensitive_semantics() {
     );
     let readback = load_drawing_bytes(exported.drawing().bytes());
     assert_eq!(
-        readback.validated_drawing().unwrap().typed_layers()[0].line_pattern,
-        "Continuous"
+        readback.validated_drawing().unwrap().typed_layers()[0].line_pattern_id,
+        ocdraw::ocdraw::LinePatternId(0)
     );
 }
 
@@ -1110,8 +1136,13 @@ fn paper_layouts_match_the_source_without_bootstrap_layouts() {
         vec!["Sheet", "Layout1"],
     ] {
         let mut builder = DrawingBuilder::new(DrawingOptions::new("layouts", "mm")).unwrap();
+        builder.ensure_continuous_line_pattern().unwrap();
         let layer = builder
-            .add_layer(LayerDefinition::new("0", RgbColor::new(255, 255, 255)))
+            .add_layer(LayerDefinition::new(
+                "0",
+                RgbColor::new(255, 255, 255),
+                ocdraw::ocdraw::LinePatternId(0),
+            ))
             .unwrap();
         builder
             .add_line(LineDefinition::new(

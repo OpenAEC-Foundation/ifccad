@@ -1,5 +1,7 @@
 mod decode_appearance;
 mod decode_geometry;
+mod decode_line_pattern;
+pub(crate) use decode_line_pattern::decode_line_patterns;
 mod decode_layer;
 mod decode_layout;
 mod decode_model;

@@ -6,16 +6,16 @@
       {
         "artifacts": [
           {
-            "bytes": 20790,
+            "bytes": 20757,
             "path": "chain.dwg",
             "role": "artifact",
-            "sha256": "90087ee608e1f45a0c6a8acd1de615d35df693ff0e8a0969827a591656c1d389"
+            "sha256": "61cfe410dc001535cf06a51b691f2162f0e75556f819afb156a6e8dc4b464df6"
           },
           {
-            "bytes": 46282,
+            "bytes": 46273,
             "path": "chain.dxf",
             "role": "artifact",
-            "sha256": "99e38af6314e28bae24695ff419e67b55bc0352663871dbdbf610a3d7797cddf"
+            "sha256": "f5846a26862ec15d980e5b61113acf282fb513f20a05f95fa90009832352c2ef"
           },
           {
             "bytes": 20854,
@@ -30,22 +30,22 @@
             "sha256": "5e3d03c012e75c876e8cafb79167b4e52b1ff30c714077e732d49ed2ffd219e1"
           },
           {
-            "bytes": 826,
+            "bytes": 945,
             "path": "drawing.ocdraw.json",
             "role": "artifact",
-            "sha256": "c512d94f6dbd55675cc6b75c3dd7a34d8ff404207487711158c937832c6494dc"
+            "sha256": "549a43001ab2eb96c099ec3cc1e4c4a780d857c336b1a854987e67d6af20efc5"
           },
           {
-            "bytes": 2658,
+            "bytes": 2777,
             "path": "returned-dwg.ocdraw.json",
             "role": "artifact",
-            "sha256": "9adfc8e0b06e0239996f1bf0c9ab973b0e054b7d005cb5cf9456535a3ffc9e4a"
+            "sha256": "07d7ec041e7cd66e55d72caa2ee9982bbe6fd937efcb0adb598a26b0d8eb57d2"
           },
           {
-            "bytes": 2658,
+            "bytes": 2777,
             "path": "returned-dxf.ocdraw.json",
             "role": "artifact",
-            "sha256": "9adfc8e0b06e0239996f1bf0c9ab973b0e054b7d005cb5cf9456535a3ffc9e4a"
+            "sha256": "07d7ec041e7cd66e55d72caa2ee9982bbe6fd937efcb0adb598a26b0d8eb57d2"
           }
         ],
         "chains": {
@@ -77,8 +77,8 @@
             "sha256": "5e3d03c012e75c876e8cafb79167b4e52b1ff30c714077e732d49ed2ffd219e1"
           },
           "ocdraw": {
-            "bytes": 826,
-            "sha256": "c512d94f6dbd55675cc6b75c3dd7a34d8ff404207487711158c937832c6494dc"
+            "bytes": 945,
+            "sha256": "549a43001ab2eb96c099ec3cc1e4c4a780d857c336b1a854987e67d6af20efc5"
           }
         },
         "status": "passed"
@@ -86,16 +86,16 @@
       {
         "artifacts": [
           {
-            "bytes": 22198,
+            "bytes": 22166,
             "path": "chain.dwg",
             "role": "artifact",
-            "sha256": "2fc7871f4dddb0dcf74cb88468a34e17786820870c0969669b5f34f4b872b632"
+            "sha256": "18ad226455c19eecff9b429902157b589b6f2ca97e25890a1adef14f43350aa3"
           },
           {
-            "bytes": 59642,
+            "bytes": 59633,
             "path": "chain.dxf",
             "role": "artifact",
-            "sha256": "345b87628797c644e0ba12b82f713f8b681e5cf596784eb48ce182e74d91ae1c"
+            "sha256": "1119cf1784723790133cbdf7e536db06d58e04e37abb16caa8963e385182574d"
           },
           {
             "bytes": 22262,
@@ -110,22 +110,22 @@
             "sha256": "cc4ebb06e3c0ae63cdeb8b5a19a51227c0f2960c759935bca2893a6b2b93e126"
           },
           {
-            "bytes": 27815,
+            "bytes": 29272,
             "path": "drawing.ocdraw.json",
             "role": "artifact",
-            "sha256": "2f5217bb0389e3cddb05780c0035b4c3ec425744a6b03415cf69e65758ba5bbc"
+            "sha256": "3e5cfb06e3d83466b440093801554d58dcb275cf39d593da514ccaed13fd7b4c"
           },
           {
-            "bytes": 29647,
+            "bytes": 31104,
             "path": "returned-dwg.ocdraw.json",
             "role": "artifact",
-            "sha256": "317bed383cb09cf5279684743062bcb7cc73152152645b56e06e00afc6d21f96"
+            "sha256": "c487eed5fc7633edcb84e6edb76e27bf3b23407a9419bfe071b2ba51b2f519e2"
           },
           {
-            "bytes": 29647,
+            "bytes": 31104,
             "path": "returned-dxf.ocdraw.json",
             "role": "artifact",
-            "sha256": "317bed383cb09cf5279684743062bcb7cc73152152645b56e06e00afc6d21f96"
+            "sha256": "c487eed5fc7633edcb84e6edb76e27bf3b23407a9419bfe071b2ba51b2f519e2"
           }
         ],
         "chains": {
@@ -258,8 +258,8 @@
             "sha256": "cc4ebb06e3c0ae63cdeb8b5a19a51227c0f2960c759935bca2893a6b2b93e126"
           },
           "ocdraw": {
-            "bytes": 27815,
-            "sha256": "2f5217bb0389e3cddb05780c0035b4c3ec425744a6b03415cf69e65758ba5bbc"
+            "bytes": 29272,
+            "sha256": "3e5cfb06e3d83466b440093801554d58dcb275cf39d593da514ccaed13fd7b4c"
           }
         },
         "status": "passed"
@@ -267,16 +267,16 @@
       {
         "artifacts": [
           {
-            "bytes": 168455,
+            "bytes": 168423,
             "path": "chain.dwg",
             "role": "artifact",
-            "sha256": "974d1f7aea3630446cd9b464259d91123642279466e5b4c2dbfeb468f6cae6a2"
+            "sha256": "3526aa05dabbbc446467368005a9b8d74db4c16db8ae6d7e29cefffb232fc978"
           },
           {
-            "bytes": 1443932,
+            "bytes": 1443923,
             "path": "chain.dxf",
             "role": "artifact",
-            "sha256": "51148dc492a231de127feb624afd9499b5d31309cb36aa94d4567d8b43ef066b"
+            "sha256": "f076f14f0056f3351b4f2561e19449a4cd23d29344329743eaae658c7a7eef80"
           },
           {
             "bytes": 168218,
@@ -291,22 +291,22 @@
             "sha256": "4d5476063b54cd7957a65637eca833c2bfcbaab0f49ff9230da038c066b24fd2"
           },
           {
-            "bytes": 2721166,
+            "bytes": 2851323,
             "path": "drawing.ocdraw.json",
             "role": "artifact",
-            "sha256": "808698256daa314e2b8d05fb2fd923dc2c3fbe302cdfad9fa5638e899ce3e8bc"
+            "sha256": "c259e38f68a3e2053a6f3e2020aa96a4dbcdbca335f99b88f159886352563683"
           },
           {
-            "bytes": 2722998,
+            "bytes": 2853155,
             "path": "returned-dwg.ocdraw.json",
             "role": "artifact",
-            "sha256": "6ce22435f694b272d735cc588c47cfd6f7217a8e23211d068b69f8592d0a81ab"
+            "sha256": "e1bfd704f7f4427215ba2fe76723fe3a343233fadf23dad372d5b81658966017"
           },
           {
-            "bytes": 2722998,
+            "bytes": 2853155,
             "path": "returned-dxf.ocdraw.json",
             "role": "artifact",
-            "sha256": "6ce22435f694b272d735cc588c47cfd6f7217a8e23211d068b69f8592d0a81ab"
+            "sha256": "e1bfd704f7f4427215ba2fe76723fe3a343233fadf23dad372d5b81658966017"
           }
         ],
         "chains": {
@@ -10339,8 +10339,8 @@
             "sha256": "4d5476063b54cd7957a65637eca833c2bfcbaab0f49ff9230da038c066b24fd2"
           },
           "ocdraw": {
-            "bytes": 2721166,
-            "sha256": "808698256daa314e2b8d05fb2fd923dc2c3fbe302cdfad9fa5638e899ce3e8bc"
+            "bytes": 2851323,
+            "sha256": "c259e38f68a3e2053a6f3e2020aa96a4dbcdbca335f99b88f159886352563683"
           }
         },
         "status": "passed"
@@ -10348,16 +10348,16 @@
       {
         "artifacts": [
           {
-            "bytes": 22422,
+            "bytes": 22390,
             "path": "chain.dwg",
             "role": "artifact",
-            "sha256": "dbd50e738190a913ecd657a88133b7317dbbc2d027ef64fca9cb77c4d105da74"
+            "sha256": "eed38aed980a2e207490381f016d8f770a4258cca99dc9b5f1768f54aab1dbf0"
           },
           {
-            "bytes": 78702,
+            "bytes": 78693,
             "path": "chain.dxf",
             "role": "artifact",
-            "sha256": "a8cfd6fb07fd8c775fd9bb0e4f96cef510459db7787e37ce807933af30053e61"
+            "sha256": "25b8a98e144fd9ff68fbbf22fa23168e238a5546663d7e1b1d07663d8c57bb8c"
           },
           {
             "bytes": 22486,
@@ -10372,22 +10372,22 @@
             "sha256": "5769c560769f33d07deeb281291637347e59b48eeda928a82e5620f497e91887"
           },
           {
-            "bytes": 39981,
+            "bytes": 43679,
             "path": "drawing.ocdraw.json",
             "role": "artifact",
-            "sha256": "6594210ab28ef6ec9e4ae4df4414577084b6ae231503c488e41b2b47ae907e67"
+            "sha256": "0309042fa26757eda31e9fe8ad92a3db5929c5cfc80d9b1c6238625dcff5ebce"
           },
           {
-            "bytes": 41813,
+            "bytes": 45511,
             "path": "returned-dwg.ocdraw.json",
             "role": "artifact",
-            "sha256": "0bfbf9c6656c7600ba6c2910941095139f8d648ab879e5fc2781b094c2bb62a4"
+            "sha256": "52ca5404585ef9a5436df7831835b8e022690b12641625741a76ff1271a7b5d4"
           },
           {
-            "bytes": 41813,
+            "bytes": 45511,
             "path": "returned-dxf.ocdraw.json",
             "role": "artifact",
-            "sha256": "0bfbf9c6656c7600ba6c2910941095139f8d648ab879e5fc2781b094c2bb62a4"
+            "sha256": "52ca5404585ef9a5436df7831835b8e022690b12641625741a76ff1271a7b5d4"
           }
         ],
         "chains": {
@@ -10520,8 +10520,8 @@
             "sha256": "5769c560769f33d07deeb281291637347e59b48eeda928a82e5620f497e91887"
           },
           "ocdraw": {
-            "bytes": 39981,
-            "sha256": "6594210ab28ef6ec9e4ae4df4414577084b6ae231503c488e41b2b47ae907e67"
+            "bytes": 43679,
+            "sha256": "0309042fa26757eda31e9fe8ad92a3db5929c5cfc80d9b1c6238625dcff5ebce"
           }
         },
         "status": "passed"
@@ -10529,16 +10529,16 @@
       {
         "artifacts": [
           {
-            "bytes": 187419,
+            "bytes": 187416,
             "path": "chain.dwg",
             "role": "artifact",
-            "sha256": "c33d22888b57dbc8a4a9d785eee1c43fdd055f5c3b76a6bb688d375d06b3dff0"
+            "sha256": "a7d41ce3833a7a0440a9934e63c097646fac0f330c80aaf7cbf5f414b55fd9a2"
           },
           {
-            "bytes": 3395832,
+            "bytes": 3395823,
             "path": "chain.dxf",
             "role": "artifact",
-            "sha256": "fb29157c2a0755b9715d5279a6bf5df6d62838d551e7c22e8a915782294e37c7"
+            "sha256": "f40fca6f737218ccb1fb8558c384760152e54f2de7d16f3fd2c37287f09da8f1"
           },
           {
             "bytes": 187933,
@@ -10553,22 +10553,22 @@
             "sha256": "e02b6f5ce386bd7e044c2247b6ea27088c6cd94947d32b236905c3d493983ba9"
           },
           {
-            "bytes": 4000322,
+            "bytes": 4350520,
             "path": "drawing.ocdraw.json",
             "role": "artifact",
-            "sha256": "6b4cc0c02a96af658d8edd1683ef56c5f468806fd3152636295305f50e47bea4"
+            "sha256": "64f5cce367489ed61c450ccd93cf6d0f56c5f8f1d66fe31d4fa8ea3db8f3a0ad"
           },
           {
-            "bytes": 4002154,
+            "bytes": 4352352,
             "path": "returned-dwg.ocdraw.json",
             "role": "artifact",
-            "sha256": "82bb61823484266200ffaa9a50f038fe630d863a00bb0ee2c7739f199fc5ec65"
+            "sha256": "20d44837b26c59a1115ca20da21d9c448fa4fd54d8073c47e469b1e5ff15e501"
           },
           {
-            "bytes": 4002154,
+            "bytes": 4352352,
             "path": "returned-dxf.ocdraw.json",
             "role": "artifact",
-            "sha256": "82bb61823484266200ffaa9a50f038fe630d863a00bb0ee2c7739f199fc5ec65"
+            "sha256": "20d44837b26c59a1115ca20da21d9c448fa4fd54d8073c47e469b1e5ff15e501"
           }
         ],
         "chains": {
@@ -20601,8 +20601,8 @@
             "sha256": "e02b6f5ce386bd7e044c2247b6ea27088c6cd94947d32b236905c3d493983ba9"
           },
           "ocdraw": {
-            "bytes": 4000322,
-            "sha256": "6b4cc0c02a96af658d8edd1683ef56c5f468806fd3152636295305f50e47bea4"
+            "bytes": 4350520,
+            "sha256": "64f5cce367489ed61c450ccd93cf6d0f56c5f8f1d66fe31d4fa8ea3db8f3a0ad"
           }
         },
         "status": "passed"
@@ -20610,16 +20610,16 @@
       {
         "artifacts": [
           {
-            "bytes": 23766,
+            "bytes": 23734,
             "path": "chain.dwg",
             "role": "artifact",
-            "sha256": "a7b38d9780bfc10f1c0547d309bd75cf1719f4110a6c39b344037bb40d54b530"
+            "sha256": "daaecf3a53331f258ce3787ca3ad814632980178fd52b9537732ec81f7d6ba62"
           },
           {
-            "bytes": 113618,
+            "bytes": 113609,
             "path": "chain.dxf",
             "role": "artifact",
-            "sha256": "048e5c8a9708f58961dd15daa80d9a03d985a72ff5cbb638c80d601a2ab361f7"
+            "sha256": "c707e00ada412fd079f0181c5c2aa32d1e38b2ced185040e69db62469042b2c4"
           },
           {
             "bytes": 23830,
@@ -20634,22 +20634,22 @@
             "sha256": "5315e81c9c4d0ab777f3e98909c623bcd871e9086d03bc0b9d2480d47e76de36"
           },
           {
-            "bytes": 55810,
+            "bytes": 56358,
             "path": "drawing.ocdraw.json",
             "role": "artifact",
-            "sha256": "dd165dbf72ab732f0c1ae2c14a6c23a79982b239384de701d86c076e6f1a7016"
+            "sha256": "56060d0feb9fbf4c3516a68e9bf2c6495c98703eb5a8ba04e04aef254cc48e9b"
           },
           {
-            "bytes": 57642,
+            "bytes": 58190,
             "path": "returned-dwg.ocdraw.json",
             "role": "artifact",
-            "sha256": "7cd471ea3292350ec2d3893bb50ea2d7d09666ba7e0a15904f59e535caade203"
+            "sha256": "a203a9294022e98ebcc2e64573400bbf3c49570c8bc1a18ffdfdaba0b8eeedc7"
           },
           {
-            "bytes": 57642,
+            "bytes": 58190,
             "path": "returned-dxf.ocdraw.json",
             "role": "artifact",
-            "sha256": "7cd471ea3292350ec2d3893bb50ea2d7d09666ba7e0a15904f59e535caade203"
+            "sha256": "a203a9294022e98ebcc2e64573400bbf3c49570c8bc1a18ffdfdaba0b8eeedc7"
           }
         ],
         "chains": {
@@ -20692,8 +20692,8 @@
             "sha256": "5315e81c9c4d0ab777f3e98909c623bcd871e9086d03bc0b9d2480d47e76de36"
           },
           "ocdraw": {
-            "bytes": 55810,
-            "sha256": "dd165dbf72ab732f0c1ae2c14a6c23a79982b239384de701d86c076e6f1a7016"
+            "bytes": 56358,
+            "sha256": "56060d0feb9fbf4c3516a68e9bf2c6495c98703eb5a8ba04e04aef254cc48e9b"
           }
         },
         "status": "passed"
@@ -20701,16 +20701,16 @@
       {
         "artifacts": [
           {
-            "bytes": 256611,
+            "bytes": 256428,
             "path": "chain.dwg",
             "role": "artifact",
-            "sha256": "82cb9b8091b3fe35603c4883bb09f9ff27249026a74535add9f4e59b20040bde"
+            "sha256": "4c537b92925ea891e3566aad93dde21084a89e2aa2b86033d2a29b7b2d60c535"
           },
           {
-            "bytes": 7025817,
+            "bytes": 7025808,
             "path": "chain.dxf",
             "role": "artifact",
-            "sha256": "5fe53a15082e5c96a59aee748c1218bdbe50bb29dc13b4baebcf8376a65eea1e"
+            "sha256": "bc85f54705de92b1d42b628ccda0ecce91b5119414f2a59a22ac06dee250b372"
           },
           {
             "bytes": 257964,
@@ -20725,22 +20725,22 @@
             "sha256": "7025dca878191836df969d9a7a083387a81a74c084a61bc3dbbbb251b00e50a4"
           },
           {
-            "bytes": 5683164,
+            "bytes": 5718362,
             "path": "drawing.ocdraw.json",
             "role": "artifact",
-            "sha256": "3ae8a96cf6d67b226ebdab03723827d46d374127e707acc263e937eda0b8b11e"
+            "sha256": "980e1d9f822ee8e1b979be663c9e7dce0d10f132e40e636ac5a90b2e3ffe1f86"
           },
           {
-            "bytes": 5684996,
+            "bytes": 5720194,
             "path": "returned-dwg.ocdraw.json",
             "role": "artifact",
-            "sha256": "90418838fc43c0c502350942dda277f8ee62dbfb3d308361bb6a4b21661a8fc5"
+            "sha256": "f044d2f1198f4976217bc08448fff902823feec834d19b7d445961fc2ba02dbe"
           },
           {
-            "bytes": 5684996,
+            "bytes": 5720194,
             "path": "returned-dxf.ocdraw.json",
             "role": "artifact",
-            "sha256": "90418838fc43c0c502350942dda277f8ee62dbfb3d308361bb6a4b21661a8fc5"
+            "sha256": "f044d2f1198f4976217bc08448fff902823feec834d19b7d445961fc2ba02dbe"
           }
         ],
         "chains": {
@@ -21773,8 +21773,8 @@
             "sha256": "7025dca878191836df969d9a7a083387a81a74c084a61bc3dbbbb251b00e50a4"
           },
           "ocdraw": {
-            "bytes": 5683164,
-            "sha256": "3ae8a96cf6d67b226ebdab03723827d46d374127e707acc263e937eda0b8b11e"
+            "bytes": 5718362,
+            "sha256": "980e1d9f822ee8e1b979be663c9e7dce0d10f132e40e636ac5a90b2e3ffe1f86"
           }
         },
         "status": "passed"
@@ -21782,16 +21782,16 @@
       {
         "artifacts": [
           {
-            "bytes": 41734,
+            "bytes": 42149,
             "path": "chain.dwg",
             "role": "artifact",
-            "sha256": "faca6bd38338017327d7b6d68bc764c34c583eb278b7c75e68bcf991ddbdc781"
+            "sha256": "0eb15163fb382da4f7ced328576d9f8388286f17eeb635dede019f79b59a691e"
           },
           {
-            "bytes": 311799,
+            "bytes": 311790,
             "path": "chain.dxf",
             "role": "artifact",
-            "sha256": "3d11f7bd812f54485da7fd79109fab6e1087c6e7e78181653f91313ad55c22d2"
+            "sha256": "4ef25a4d62debbe041517d3e4721d7b39a1ca2df02bfd272a45bf0965837db97"
           },
           {
             "bytes": 42117,
@@ -21806,22 +21806,22 @@
             "sha256": "85385cae3ddda2e8382529eb65679285eb1bf7c64850adbd51dedcf4f30d58d8"
           },
           {
-            "bytes": 365282,
+            "bytes": 385817,
             "path": "drawing.ocdraw.json",
             "role": "artifact",
-            "sha256": "f4c6281a088d1ccfe8033af423908220570a6a1ffb70dcb802ea0611a3c772d8"
+            "sha256": "d58f9155eb0b5a52a07fabf3bce946d0746f971cce143d1382653d7783b0ab16"
           },
           {
-            "bytes": 367114,
+            "bytes": 387649,
             "path": "returned-dwg.ocdraw.json",
             "role": "artifact",
-            "sha256": "aad37c8b45f6a2850d5573991c55edb9fb24b52a88d7d3d4e48515a8a1a0dd9d"
+            "sha256": "7f66e06cb671767b8d707a94dd3b9f3531cce7d68305960641e0c40347b1e2ec"
           },
           {
-            "bytes": 367114,
+            "bytes": 387649,
             "path": "returned-dxf.ocdraw.json",
             "role": "artifact",
-            "sha256": "aad37c8b45f6a2850d5573991c55edb9fb24b52a88d7d3d4e48515a8a1a0dd9d"
+            "sha256": "7f66e06cb671767b8d707a94dd3b9f3531cce7d68305960641e0c40347b1e2ec"
           }
         ],
         "chains": {
@@ -22854,8 +22854,8 @@
             "sha256": "85385cae3ddda2e8382529eb65679285eb1bf7c64850adbd51dedcf4f30d58d8"
           },
           "ocdraw": {
-            "bytes": 365282,
-            "sha256": "f4c6281a088d1ccfe8033af423908220570a6a1ffb70dcb802ea0611a3c772d8"
+            "bytes": 385817,
+            "sha256": "d58f9155eb0b5a52a07fabf3bce946d0746f971cce143d1382653d7783b0ab16"
           }
         },
         "status": "passed"
@@ -22866,13 +22866,13 @@
             "bytes": 47135,
             "path": "chain.dwg",
             "role": "artifact",
-            "sha256": "e6bf173e64a39655a7c8e20fdc28feb61942e431e064fbfe00466dadfd5c389f"
+            "sha256": "a1ec59419146ccc8c8d3639338f10ccfe9ec5eb543170ddbffdd4d9243cadcbb"
           },
           {
-            "bytes": 215177,
+            "bytes": 215168,
             "path": "chain.dxf",
             "role": "artifact",
-            "sha256": "b6cc9ee0408aa358b8115c04ee04f5bed85ed38482b970b40523f28f0843b9d5"
+            "sha256": "9d74b7ab5600c2531ab1454a5741e9192dd7e8a3bd32a5f347d8af688b8db1c1"
           },
           {
             "bytes": 47198,
@@ -22887,22 +22887,22 @@
             "sha256": "5dc9679417ab2a5a9c96701d253490094d0a247935fe209f1c0071ecc0616483"
           },
           {
-            "bytes": 301379,
+            "bytes": 314536,
             "path": "drawing.ocdraw.json",
             "role": "artifact",
-            "sha256": "2c04702031c960ee814eacfc9ad0ac665e4d1fe262dd69be4b327614a577682e"
+            "sha256": "9abcce6d374e9a905e1fca0365b4d24810278c7b3b33eda198899694d54457fc"
           },
           {
-            "bytes": 303211,
+            "bytes": 316368,
             "path": "returned-dwg.ocdraw.json",
             "role": "artifact",
-            "sha256": "fe312b3dbf59cfe95d0adce88b0f27bcf1d0abd00973192e0b148d69ccd36a54"
+            "sha256": "1e347d682cb8b21e2ed8d9e3dc501ecbb0e642d8eeeb8b0140d2eee73c03474c"
           },
           {
-            "bytes": 303211,
+            "bytes": 316368,
             "path": "returned-dxf.ocdraw.json",
             "role": "artifact",
-            "sha256": "fe312b3dbf59cfe95d0adce88b0f27bcf1d0abd00973192e0b148d69ccd36a54"
+            "sha256": "1e347d682cb8b21e2ed8d9e3dc501ecbb0e642d8eeeb8b0140d2eee73c03474c"
           }
         ],
         "chains": {
@@ -23935,8 +23935,8 @@
             "sha256": "5dc9679417ab2a5a9c96701d253490094d0a247935fe209f1c0071ecc0616483"
           },
           "ocdraw": {
-            "bytes": 301379,
-            "sha256": "2c04702031c960ee814eacfc9ad0ac665e4d1fe262dd69be4b327614a577682e"
+            "bytes": 314536,
+            "sha256": "9abcce6d374e9a905e1fca0365b4d24810278c7b3b33eda198899694d54457fc"
           }
         },
         "status": "passed"
@@ -23944,16 +23944,16 @@
       {
         "artifacts": [
           {
-            "bytes": 42182,
+            "bytes": 42149,
             "path": "chain.dwg",
             "role": "artifact",
-            "sha256": "b9e3d328393bab5f8a1f5460205924054c611a2722c3c5e0086a5996cddfd472"
+            "sha256": "c60806c1b47238d9d046d256ff995fd8966b4906cc1023d3e26f89e21a4a1400"
           },
           {
-            "bytes": 186969,
+            "bytes": 186960,
             "path": "chain.dxf",
             "role": "artifact",
-            "sha256": "a4573ce177a25926384bc0ccd32d54318ab7885cfa5adb49be0998758e8198a0"
+            "sha256": "5162b58fdaea4066b2d95b2417e44f993a1642794c6a8efb9c491bb93b33cf89"
           },
           {
             "bytes": 42213,
@@ -23968,22 +23968,22 @@
             "sha256": "5256c6a730fdc7b234c11e1df1de7a250c86733961cbd79c12e70e7f4d9e1642"
           },
           {
-            "bytes": 273156,
+            "bytes": 286313,
             "path": "drawing.ocdraw.json",
             "role": "artifact",
-            "sha256": "d702566ff9220fba16409be08acba07a71cc0f54276fe840aab20a61a36295c0"
+            "sha256": "8af6b7d590123b90323cab265f0cffafa542ce9052743acb0f5763abffd53029"
           },
           {
-            "bytes": 274988,
+            "bytes": 288145,
             "path": "returned-dwg.ocdraw.json",
             "role": "artifact",
-            "sha256": "49c93ba574d995b02574115bf4b9068460e5ed4a9d75cca29446cdcfe58c93ba"
+            "sha256": "20c8678754a4fb5991e1f68668af1e559d3794d799277c8636ee56c80391359f"
           },
           {
-            "bytes": 274988,
+            "bytes": 288145,
             "path": "returned-dxf.ocdraw.json",
             "role": "artifact",
-            "sha256": "49c93ba574d995b02574115bf4b9068460e5ed4a9d75cca29446cdcfe58c93ba"
+            "sha256": "20c8678754a4fb5991e1f68668af1e559d3794d799277c8636ee56c80391359f"
           }
         ],
         "chains": {
@@ -25016,8 +25016,8 @@
             "sha256": "5256c6a730fdc7b234c11e1df1de7a250c86733961cbd79c12e70e7f4d9e1642"
           },
           "ocdraw": {
-            "bytes": 273156,
-            "sha256": "d702566ff9220fba16409be08acba07a71cc0f54276fe840aab20a61a36295c0"
+            "bytes": 286313,
+            "sha256": "8af6b7d590123b90323cab265f0cffafa542ce9052743acb0f5763abffd53029"
           }
         },
         "status": "passed"
@@ -25025,16 +25025,16 @@
       {
         "artifacts": [
           {
-            "bytes": 38979,
+            "bytes": 38949,
             "path": "chain.dwg",
             "role": "artifact",
-            "sha256": "67f22a4157968de4849429a267765a6b13b60e055c7e6087154820f68a256c06"
+            "sha256": "c5c48a231ef9c023fbc2c15fcb15bf549e964eb5b16464724291f6639e05de79"
           },
           {
-            "bytes": 376277,
+            "bytes": 376268,
             "path": "chain.dxf",
             "role": "artifact",
-            "sha256": "bb7b04c5aaac5d9fc2741d044d6b5c13345298d5bad152db599d1b929eb19890"
+            "sha256": "d9eea469494599e6cf1556110fe1d79d718bb57d0e8e56258e4ca104abb2fad7"
           },
           {
             "bytes": 38917,
@@ -25049,22 +25049,22 @@
             "sha256": "02afe52528610f369ea44292ffba6c60784e1ddbf5f7b625e334ad808361b4f4"
           },
           {
-            "bytes": 704246,
+            "bytes": 739444,
             "path": "drawing.ocdraw.json",
             "role": "artifact",
-            "sha256": "7902e65f5605ec41588654175d5615d394cdb764d2b20ce5729670b444a0722f"
+            "sha256": "e0cc71f5ceda0dc291e74e8b7830699646a8109843a8f307b4bcfad8bf9e4cd6"
           },
           {
-            "bytes": 706078,
+            "bytes": 741276,
             "path": "returned-dwg.ocdraw.json",
             "role": "artifact",
-            "sha256": "da8077fa9ac799190d25db9915db29d52aa37d3d4d9fbcf071acfff4e66a660a"
+            "sha256": "ccdcd6b1696da0edcd81e1714efb229f49ba03898a25f84cfd0e329c0978368c"
           },
           {
-            "bytes": 706078,
+            "bytes": 741276,
             "path": "returned-dxf.ocdraw.json",
             "role": "artifact",
-            "sha256": "da8077fa9ac799190d25db9915db29d52aa37d3d4d9fbcf071acfff4e66a660a"
+            "sha256": "ccdcd6b1696da0edcd81e1714efb229f49ba03898a25f84cfd0e329c0978368c"
           }
         ],
         "chains": {
@@ -26097,8 +26097,8 @@
             "sha256": "02afe52528610f369ea44292ffba6c60784e1ddbf5f7b625e334ad808361b4f4"
           },
           "ocdraw": {
-            "bytes": 704246,
-            "sha256": "7902e65f5605ec41588654175d5615d394cdb764d2b20ce5729670b444a0722f"
+            "bytes": 739444,
+            "sha256": "e0cc71f5ceda0dc291e74e8b7830699646a8109843a8f307b4bcfad8bf9e4cd6"
           }
         },
         "status": "passed"
@@ -26106,16 +26106,16 @@
       {
         "artifacts": [
           {
-            "bytes": 38950,
+            "bytes": 38918,
             "path": "chain.dwg",
             "role": "artifact",
-            "sha256": "eecdda218d6e27d89957a3962cb48c6080ddee45fb644627d8ad9025be17363e"
+            "sha256": "b2af5f2ce8fb346982107e232e2792eed197e73947ed6118fc7bc3c17bad44bb"
           },
           {
-            "bytes": 407417,
+            "bytes": 407408,
             "path": "chain.dxf",
             "role": "artifact",
-            "sha256": "def3c2a8ffd9a3c5582e86d1b7faacf00bd1232d9632b0afb300d703212802ff"
+            "sha256": "8cf96d4cd0825bd4d6bc014ab8541c058a12b196b7eb0990e171b0ea25fcdf93"
           },
           {
             "bytes": 38982,
@@ -26130,22 +26130,22 @@
             "sha256": "e3837765d8c1f390eb93cf36b6ccae63f0d01ae310d5d241dc157ca7901c1616"
           },
           {
-            "bytes": 706273,
+            "bytes": 741471,
             "path": "drawing.ocdraw.json",
             "role": "artifact",
-            "sha256": "bc5dd48ffd26228f63d667899a8f310c2413e20b1532075bbd43fbca62b60d0e"
+            "sha256": "e7fc9cd036b0d533d6a79a7bb61eaf1c96fb683537099ce57b1a5c7620f39a24"
           },
           {
-            "bytes": 707220,
+            "bytes": 742418,
             "path": "returned-dwg.ocdraw.json",
             "role": "artifact",
-            "sha256": "f7f2a137ef283c9b646cd0cc39b0d42a63bb605b3dc85e0adcd9f8baa1548c29"
+            "sha256": "2d506c599a989f96aee7ff5fa0aed32f414345398ddf56e454b3141aa9c10206"
           },
           {
-            "bytes": 707220,
+            "bytes": 742418,
             "path": "returned-dxf.ocdraw.json",
             "role": "artifact",
-            "sha256": "f7f2a137ef283c9b646cd0cc39b0d42a63bb605b3dc85e0adcd9f8baa1548c29"
+            "sha256": "2d506c599a989f96aee7ff5fa0aed32f414345398ddf56e454b3141aa9c10206"
           }
         ],
         "chains": {
@@ -37180,8 +37180,8 @@
             "sha256": "e3837765d8c1f390eb93cf36b6ccae63f0d01ae310d5d241dc157ca7901c1616"
           },
           "ocdraw": {
-            "bytes": 706273,
-            "sha256": "bc5dd48ffd26228f63d667899a8f310c2413e20b1532075bbd43fbca62b60d0e"
+            "bytes": 741471,
+            "sha256": "e7fc9cd036b0d533d6a79a7bb61eaf1c96fb683537099ce57b1a5c7620f39a24"
           }
         },
         "status": "passed"
@@ -37193,803 +37193,8 @@
       "local_override": false,
       "source": "git+https://github.com/HakanSeven12/cadcodec.git?rev=5b682ed66ea2c89be8142c8dd83d83774fc3de08#5b682ed66ea2c89be8142c8dd83d83774fc3de08"
     },
-    "cargo_lock_sha256": "0871ff181c41e246d6af81b339b84c508b5dbbf7bb734cbabe4d548ba79b950e",
-    "deleted_source_paths": [
-      "conformance/next/COMPATIBILITY.md",
-      "conformance/next/LAYOUT-MATRIX.md",
-      "conformance/next/PROVENANCE.md",
-      "conformance/next/manifest-schema-v1.json",
-      "conformance/next/manifest-schema-v2.json",
-      "conformance/next/manifest.json",
-      "conformance/next/packages/invalid/arc-zero-sweep/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/arc-zero-sweep/package.ifcx.json",
-      "conformance/next/packages/invalid/arc-zero-sweep/package.json",
-      "conformance/next/packages/invalid/blob-digest-mismatch/blobs/ad2a0ef9947741aa9e2c0c636db31f8ad0b3d28bc44824e0a6ba31b65f2c7186",
-      "conformance/next/packages/invalid/blob-digest-mismatch/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/blob-digest-mismatch/package.ifcx.json",
-      "conformance/next/packages/invalid/blob-digest-mismatch/package.json",
-      "conformance/next/packages/invalid/blob-digest-mismatch/preservation.ifcpr.json",
-      "conformance/next/packages/invalid/block-casefold-collision/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/block-casefold-collision/package.ifcx.json",
-      "conformance/next/packages/invalid/block-casefold-collision/package.json",
-      "conformance/next/packages/invalid/block-duplicate-definition/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/block-duplicate-definition/package.ifcx.json",
-      "conformance/next/packages/invalid/block-duplicate-definition/package.json",
-      "conformance/next/packages/invalid/block-layout-kind-mismatch/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/block-layout-kind-mismatch/package.ifcx.json",
-      "conformance/next/packages/invalid/block-layout-kind-mismatch/package.json",
-      "conformance/next/packages/invalid/block-missing-definition/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/block-missing-definition/package.ifcx.json",
-      "conformance/next/packages/invalid/block-missing-definition/package.json",
-      "conformance/next/packages/invalid/block-missing-target/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/block-missing-target/package.ifcx.json",
-      "conformance/next/packages/invalid/block-missing-target/package.json",
-      "conformance/next/packages/invalid/block-missing-transform/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/block-missing-transform/package.ifcx.json",
-      "conformance/next/packages/invalid/block-missing-transform/package.json",
-      "conformance/next/packages/invalid/block-mixed-sign-uniform/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/block-mixed-sign-uniform/package.ifcx.json",
-      "conformance/next/packages/invalid/block-mixed-sign-uniform/package.json",
-      "conformance/next/packages/invalid/block-null-scale/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/block-null-scale/package.ifcx.json",
-      "conformance/next/packages/invalid/block-null-scale/package.json",
-      "conformance/next/packages/invalid/block-null-transform/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/block-null-transform/package.ifcx.json",
-      "conformance/next/packages/invalid/block-null-transform/package.json",
-      "conformance/next/packages/invalid/block-proof-gap-external/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/block-proof-gap-external/package.ifcx.json",
-      "conformance/next/packages/invalid/block-proof-gap-external/package.json",
-      "conformance/next/packages/invalid/block-proof-gap-inline/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/block-proof-gap-inline/package.ifcx.json",
-      "conformance/next/packages/invalid/block-proof-gap-inline/package.json",
-      "conformance/next/packages/invalid/block-too-small-bounds/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/block-too-small-bounds/package.ifcx.json",
-      "conformance/next/packages/invalid/block-too-small-bounds/package.json",
-      "conformance/next/packages/invalid/block-unknown-kind/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/block-unknown-kind/package.ifcx.json",
-      "conformance/next/packages/invalid/block-unknown-kind/package.json",
-      "conformance/next/packages/invalid/block-unused-cycle/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/block-unused-cycle/package.ifcx.json",
-      "conformance/next/packages/invalid/block-unused-cycle/package.json",
-      "conformance/next/packages/invalid/block-zero-scale/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/block-zero-scale/package.ifcx.json",
-      "conformance/next/packages/invalid/block-zero-scale/package.json",
-      "conformance/next/packages/invalid/bounds-do-not-enclose/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/bounds-do-not-enclose/package.ifcx.json",
-      "conformance/next/packages/invalid/bounds-do-not-enclose/package.json",
-      "conformance/next/packages/invalid/dependency-cycle/blobs/fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044",
-      "conformance/next/packages/invalid/dependency-cycle/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/dependency-cycle/package.ifcx.json",
-      "conformance/next/packages/invalid/dependency-cycle/package.json",
-      "conformance/next/packages/invalid/dependency-cycle/preservation.ifcpr.json",
-      "conformance/next/packages/invalid/drawing-appearance-list-closure/package.ifcx.json",
-      "conformance/next/packages/invalid/drawing-appearance-list-closure/package.json",
-      "conformance/next/packages/invalid/drawing-appearance-list-closure/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/drawing-list-closure/package.ifcx.json",
-      "conformance/next/packages/invalid/drawing-list-closure/package.json",
-      "conformance/next/packages/invalid/drawing-list-closure/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/duplicate-layer-name/package.ifcx.json",
-      "conformance/next/packages/invalid/duplicate-layer-name/package.json",
-      "conformance/next/packages/invalid/duplicate-layer-name/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/duplicate-layout-name/package.ifcx.json",
-      "conformance/next/packages/invalid/duplicate-layout-name/package.json",
-      "conformance/next/packages/invalid/duplicate-layout-name/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/duplicate-paper-scope-selection/package.ifcx.json",
-      "conformance/next/packages/invalid/duplicate-paper-scope-selection/package.json",
-      "conformance/next/packages/invalid/duplicate-paper-scope-selection/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/ellipse-inverted-axes/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/ellipse-inverted-axes/package.ifcx.json",
-      "conformance/next/packages/invalid/ellipse-inverted-axes/package.json",
-      "conformance/next/packages/invalid/generated-source-archive/blobs/fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044",
-      "conformance/next/packages/invalid/generated-source-archive/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/generated-source-archive/package.ifcx.json",
-      "conformance/next/packages/invalid/generated-source-archive/package.json",
-      "conformance/next/packages/invalid/generated-source-archive/preservation.ifcpr.json",
-      "conformance/next/packages/invalid/ifcdr-0.7.0/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/ifcdr-0.7.0/package.ifcx.json",
-      "conformance/next/packages/invalid/ifcdr-0.7.0/package.json",
-      "conformance/next/packages/invalid/inline-checksum/package.ifcx.json",
-      "conformance/next/packages/invalid/inline-checksum/package.json",
-      "conformance/next/packages/invalid/inline-competing-sources/package.ifcx.json",
-      "conformance/next/packages/invalid/inline-competing-sources/package.json",
-      "conformance/next/packages/invalid/inline-duplicate-id/package.ifcx.json",
-      "conformance/next/packages/invalid/inline-duplicate-id/package.json",
-      "conformance/next/packages/invalid/inline-unsupported-body/package.ifcx.json",
-      "conformance/next/packages/invalid/inline-unsupported-body/package.json",
-      "conformance/next/packages/invalid/layout-fit-scale/package.ifcx.json",
-      "conformance/next/packages/invalid/layout-fit-scale/package.json",
-      "conformance/next/packages/invalid/layout-fit-scale/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/layout-paper-kind-mismatch/package.ifcx.json",
-      "conformance/next/packages/invalid/layout-paper-kind-mismatch/package.json",
-      "conformance/next/packages/invalid/layout-paper-kind-mismatch/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/layout-paper-limits/package.ifcx.json",
-      "conformance/next/packages/invalid/layout-paper-limits/package.json",
-      "conformance/next/packages/invalid/layout-paper-limits/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/layout-representation-cross-resource/package.ifcx.json",
-      "conformance/next/packages/invalid/layout-representation-cross-resource/package.json",
-      "conformance/next/packages/invalid/layout-representation-cross-resource/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/layout-representation-cross-resource/resources/other.ifcdr.json",
-      "conformance/next/packages/invalid/layout-representation-mismatch/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/layout-representation-mismatch/package.ifcx.json",
-      "conformance/next/packages/invalid/layout-representation-mismatch/package.json",
-      "conformance/next/packages/invalid/layout-scope-missing/package.ifcx.json",
-      "conformance/next/packages/invalid/layout-scope-missing/package.json",
-      "conformance/next/packages/invalid/layout-scope-missing/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/linked-drawing-resource-id-missing/blobs/fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044",
-      "conformance/next/packages/invalid/linked-drawing-resource-id-missing/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/linked-drawing-resource-id-missing/package.ifcx.json",
-      "conformance/next/packages/invalid/linked-drawing-resource-id-missing/package.json",
-      "conformance/next/packages/invalid/linked-drawing-resource-id-missing/preservation.ifcpr.json",
-      "conformance/next/packages/invalid/missing-model-layout-selection/package.ifcx.json",
-      "conformance/next/packages/invalid/missing-model-layout-selection/package.json",
-      "conformance/next/packages/invalid/missing-model-layout-selection/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/nonempty-without-bounds/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/nonempty-without-bounds/package.ifcx.json",
-      "conformance/next/packages/invalid/nonempty-without-bounds/package.json",
-      "conformance/next/packages/invalid/nonorthogonal-plane/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/nonorthogonal-plane/package.ifcx.json",
-      "conformance/next/packages/invalid/nonorthogonal-plane/package.json",
-      "conformance/next/packages/invalid/null-placement-column/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/null-placement-column/package.ifcx.json",
-      "conformance/next/packages/invalid/null-placement-column/package.json",
-      "conformance/next/packages/invalid/open-viewport-boundary/package.ifcx.json",
-      "conformance/next/packages/invalid/open-viewport-boundary/package.json",
-      "conformance/next/packages/invalid/open-viewport-boundary/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/package-checksum-mismatch/blobs/fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044",
-      "conformance/next/packages/invalid/package-checksum-mismatch/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/package-checksum-mismatch/package.ifcx.json",
-      "conformance/next/packages/invalid/package-checksum-mismatch/package.json",
-      "conformance/next/packages/invalid/package-checksum-mismatch/preservation.ifcpr.json",
-      "conformance/next/packages/invalid/package-missing-resource/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/package-missing-resource/package.ifcx.json",
-      "conformance/next/packages/invalid/package-missing-resource/package.json",
-      "conformance/next/packages/invalid/partial-plane/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/partial-plane/package.ifcx.json",
-      "conformance/next/packages/invalid/partial-plane/package.json",
-      "conformance/next/packages/invalid/payload-range-invalid/blobs/fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044",
-      "conformance/next/packages/invalid/payload-range-invalid/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/payload-range-invalid/package.ifcx.json",
-      "conformance/next/packages/invalid/payload-range-invalid/package.json",
-      "conformance/next/packages/invalid/payload-range-invalid/preservation.ifcpr.json",
-      "conformance/next/packages/invalid/planar-bulged-zero-length/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/planar-bulged-zero-length/package.ifcx.json",
-      "conformance/next/packages/invalid/planar-bulged-zero-length/package.json",
-      "conformance/next/packages/invalid/plot-custom-quality-extra-dpi/package.ifcx.json",
-      "conformance/next/packages/invalid/plot-custom-quality-extra-dpi/package.json",
-      "conformance/next/packages/invalid/plot-custom-quality-extra-dpi/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/plot-custom-quality-missing-dpi/package.ifcx.json",
-      "conformance/next/packages/invalid/plot-custom-quality-missing-dpi/package.json",
-      "conformance/next/packages/invalid/plot-custom-quality-missing-dpi/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/plot-fixed-zero/package.ifcx.json",
-      "conformance/next/packages/invalid/plot-fixed-zero/package.json",
-      "conformance/next/packages/invalid/plot-fixed-zero/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/plot-layout-centered/package.ifcx.json",
-      "conformance/next/packages/invalid/plot-layout-centered/package.json",
-      "conformance/next/packages/invalid/plot-layout-centered/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/plot-media-margin-invalid/package.ifcx.json",
-      "conformance/next/packages/invalid/plot-media-margin-invalid/package.json",
-      "conformance/next/packages/invalid/plot-media-margin-invalid/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/plot-model-limits-missing/package.ifcx.json",
-      "conformance/next/packages/invalid/plot-model-limits-missing/package.json",
-      "conformance/next/packages/invalid/plot-model-limits-missing/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/plot-window-degenerate/package.ifcx.json",
-      "conformance/next/packages/invalid/plot-window-degenerate/package.json",
-      "conformance/next/packages/invalid/plot-window-degenerate/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/point-partial-axes/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/point-partial-axes/package.ifcx.json",
-      "conformance/next/packages/invalid/point-partial-axes/package.json",
-      "conformance/next/packages/invalid/polyline-too-short/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/polyline-too-short/package.ifcx.json",
-      "conformance/next/packages/invalid/polyline-too-short/package.json",
-      "conformance/next/packages/invalid/projection-resource-missing/blobs/fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044",
-      "conformance/next/packages/invalid/projection-resource-missing/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/projection-resource-missing/package.ifcx.json",
-      "conformance/next/packages/invalid/projection-resource-missing/package.json",
-      "conformance/next/packages/invalid/projection-resource-missing/preservation.ifcpr.json",
-      "conformance/next/packages/invalid/record-reference-missing/blobs/fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044",
-      "conformance/next/packages/invalid/record-reference-missing/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/record-reference-missing/package.ifcx.json",
-      "conformance/next/packages/invalid/record-reference-missing/package.json",
-      "conformance/next/packages/invalid/record-reference-missing/preservation.ifcpr.json",
-      "conformance/next/packages/invalid/resource-id-duplicate/blobs/fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044",
-      "conformance/next/packages/invalid/resource-id-duplicate/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/resource-id-duplicate/package.ifcx.json",
-      "conformance/next/packages/invalid/resource-id-duplicate/package.json",
-      "conformance/next/packages/invalid/resource-id-duplicate/preservation.ifcpr.json",
-      "conformance/next/packages/invalid/resource-id-mismatch/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/resource-id-mismatch/package.ifcx.json",
-      "conformance/next/packages/invalid/resource-id-mismatch/package.json",
-      "conformance/next/packages/invalid/resource-id-missing/package.ifcx.json",
-      "conformance/next/packages/invalid/resource-id-missing/package.json",
-      "conformance/next/packages/invalid/resource-id-missing/resources/model.ifcdr.json",
-      "conformance/next/packages/invalid/schema-unknown-field/blobs/fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044",
-      "conformance/next/packages/invalid/schema-unknown-field/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/schema-unknown-field/package.ifcx.json",
-      "conformance/next/packages/invalid/schema-unknown-field/package.json",
-      "conformance/next/packages/invalid/schema-unknown-field/preservation.ifcpr.json",
-      "conformance/next/packages/invalid/schema-unknown-origin/blobs/fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044",
-      "conformance/next/packages/invalid/schema-unknown-origin/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/schema-unknown-origin/package.ifcx.json",
-      "conformance/next/packages/invalid/schema-unknown-origin/package.json",
-      "conformance/next/packages/invalid/schema-unknown-origin/preservation.ifcpr.json",
-      "conformance/next/packages/invalid/schema-wrong-scalar/blobs/fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044",
-      "conformance/next/packages/invalid/schema-wrong-scalar/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/schema-wrong-scalar/package.ifcx.json",
-      "conformance/next/packages/invalid/schema-wrong-scalar/package.json",
-      "conformance/next/packages/invalid/schema-wrong-scalar/preservation.ifcpr.json",
-      "conformance/next/packages/invalid/scope-bound-excludes-z/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/scope-bound-excludes-z/package.ifcx.json",
-      "conformance/next/packages/invalid/scope-bound-excludes-z/package.json",
-      "conformance/next/packages/invalid/spatial-polyline-too-short/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/spatial-polyline-too-short/package.ifcx.json",
-      "conformance/next/packages/invalid/spatial-polyline-too-short/package.json",
-      "conformance/next/packages/invalid/unknown-color-field/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/unknown-color-field/package.ifcx.json",
-      "conformance/next/packages/invalid/unknown-color-field/package.json",
-      "conformance/next/packages/invalid/unselected-paper-scope/package.ifcx.json",
-      "conformance/next/packages/invalid/unselected-paper-scope/package.json",
-      "conformance/next/packages/invalid/unselected-paper-scope/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/unsupported-ifcdr-stream/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/unsupported-ifcdr-stream/package.ifcx.json",
-      "conformance/next/packages/invalid/unsupported-ifcdr-stream/package.json",
-      "conformance/next/packages/invalid/unsupported-ifcdr-version/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/unsupported-ifcdr-version/package.ifcx.json",
-      "conformance/next/packages/invalid/unsupported-ifcdr-version/package.json",
-      "conformance/next/packages/invalid/unused-invalid-override/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/unused-invalid-override/package.ifcx.json",
-      "conformance/next/packages/invalid/unused-invalid-override/package.json",
-      "conformance/next/packages/invalid/viewport-boundary-outside-frame/package.ifcx.json",
-      "conformance/next/packages/invalid/viewport-boundary-outside-frame/package.json",
-      "conformance/next/packages/invalid/viewport-boundary-outside-frame/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/viewport-child-orphan/package.ifcx.json",
-      "conformance/next/packages/invalid/viewport-child-orphan/package.json",
-      "conformance/next/packages/invalid/viewport-child-orphan/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/viewport-child-overlap/package.ifcx.json",
-      "conformance/next/packages/invalid/viewport-child-overlap/package.json",
-      "conformance/next/packages/invalid/viewport-child-overlap/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/viewport-child-range/package.ifcx.json",
-      "conformance/next/packages/invalid/viewport-child-range/package.json",
-      "conformance/next/packages/invalid/viewport-child-range/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/viewport-duplicate-layer-override/package.ifcx.json",
-      "conformance/next/packages/invalid/viewport-duplicate-layer-override/package.json",
-      "conformance/next/packages/invalid/viewport-duplicate-layer-override/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/viewport-missing-child-range/package.ifcx.json",
-      "conformance/next/packages/invalid/viewport-missing-child-range/package.json",
-      "conformance/next/packages/invalid/viewport-missing-child-range/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/viewport-missing-shading-column/package.ifcx.json",
-      "conformance/next/packages/invalid/viewport-missing-shading-column/package.json",
-      "conformance/next/packages/invalid/viewport-missing-shading-column/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/viewport-model-owner/package.ifcx.json",
-      "conformance/next/packages/invalid/viewport-model-owner/package.json",
-      "conformance/next/packages/invalid/viewport-model-owner/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/viewport-noop-override/package.ifcx.json",
-      "conformance/next/packages/invalid/viewport-noop-override/package.json",
-      "conformance/next/packages/invalid/viewport-noop-override/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/viewport-null-lens/package.ifcx.json",
-      "conformance/next/packages/invalid/viewport-null-lens/package.json",
-      "conformance/next/packages/invalid/viewport-null-lens/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/viewport-null-visible/package.ifcx.json",
-      "conformance/next/packages/invalid/viewport-null-visible/package.json",
-      "conformance/next/packages/invalid/viewport-null-visible/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/viewport-perspective-missing-lens/package.ifcx.json",
-      "conformance/next/packages/invalid/viewport-perspective-missing-lens/package.json",
-      "conformance/next/packages/invalid/viewport-perspective-missing-lens/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/viewport-perspective-zero-lens/package.ifcx.json",
-      "conformance/next/packages/invalid/viewport-perspective-zero-lens/package.json",
-      "conformance/next/packages/invalid/viewport-perspective-zero-lens/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/viewport-reversed-clip-planes/package.ifcx.json",
-      "conformance/next/packages/invalid/viewport-reversed-clip-planes/package.json",
-      "conformance/next/packages/invalid/viewport-reversed-clip-planes/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/viewport-shared-boundary/package.ifcx.json",
-      "conformance/next/packages/invalid/viewport-shared-boundary/package.json",
-      "conformance/next/packages/invalid/viewport-shared-boundary/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/viewport-unresolved-boundary/package.ifcx.json",
-      "conformance/next/packages/invalid/viewport-unresolved-boundary/package.json",
-      "conformance/next/packages/invalid/viewport-unresolved-boundary/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/viewport-wrong-view-scope/package.ifcx.json",
-      "conformance/next/packages/invalid/viewport-wrong-view-scope/package.json",
-      "conformance/next/packages/invalid/viewport-wrong-view-scope/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/viewport-zero-direction/package.ifcx.json",
-      "conformance/next/packages/invalid/viewport-zero-direction/package.json",
-      "conformance/next/packages/invalid/viewport-zero-direction/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/viewport-zero-height/package.ifcx.json",
-      "conformance/next/packages/invalid/viewport-zero-height/package.json",
-      "conformance/next/packages/invalid/viewport-zero-height/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/viewport-zero-view-height/package.ifcx.json",
-      "conformance/next/packages/invalid/viewport-zero-view-height/package.json",
-      "conformance/next/packages/invalid/viewport-zero-view-height/resources/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/workspace-active-ucs-conflict/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/workspace-active-ucs-conflict/package.ifcx.json",
-      "conformance/next/packages/invalid/workspace-active-ucs-conflict/package.json",
-      "conformance/next/packages/invalid/workspace-duplicate-ucs-name/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/workspace-duplicate-ucs-name/package.ifcx.json",
-      "conformance/next/packages/invalid/workspace-duplicate-ucs-name/package.json",
-      "conformance/next/packages/invalid/workspace-stale-ucs/drawing.ifcdr.json",
-      "conformance/next/packages/invalid/workspace-stale-ucs/package.ifcx.json",
-      "conformance/next/packages/invalid/workspace-stale-ucs/package.json",
-      "conformance/next/packages/invalid/workspace-stale-viewport/package.ifcx.json",
-      "conformance/next/packages/invalid/workspace-stale-viewport/package.json",
-      "conformance/next/packages/invalid/workspace-stale-viewport/resources/drawing.ifcdr.json",
-      "conformance/next/packages/lifecycle/scenarios.json",
-      "conformance/next/packages/planning/scenarios.json",
-      "conformance/next/packages/unsupported/retired-representation-vocabulary/drawing.ifcdr.json",
-      "conformance/next/packages/unsupported/retired-representation-vocabulary/package.ifcx.json",
-      "conformance/next/packages/unsupported/retired-representation-vocabulary/package.json",
-      "conformance/next/packages/valid/block-conservative-bounds/drawing.ifcdr.json",
-      "conformance/next/packages/valid/block-conservative-bounds/package.ifcx.json",
-      "conformance/next/packages/valid/block-conservative-bounds/package.json",
-      "conformance/next/packages/valid/block-empty-defaults/drawing.ifcdr.json",
-      "conformance/next/packages/valid/block-empty-defaults/package.ifcx.json",
-      "conformance/next/packages/valid/block-empty-defaults/package.json",
-      "conformance/next/packages/valid/block-negative-uniform/drawing.ifcdr.json",
-      "conformance/next/packages/valid/block-negative-uniform/package.ifcx.json",
-      "conformance/next/packages/valid/block-negative-uniform/package.json",
-      "conformance/next/packages/valid/block-nonneutral-frame/drawing.ifcdr.json",
-      "conformance/next/packages/valid/block-nonneutral-frame/package.ifcx.json",
-      "conformance/next/packages/valid/block-nonneutral-frame/package.json",
-      "conformance/next/packages/valid/block-subnormal-scale/drawing.ifcdr.json",
-      "conformance/next/packages/valid/block-subnormal-scale/package.ifcx.json",
-      "conformance/next/packages/valid/block-subnormal-scale/package.json",
-      "conformance/next/packages/valid/circle-arc/drawing.ifcdr.json",
-      "conformance/next/packages/valid/circle-arc/package.ifcx.json",
-      "conformance/next/packages/valid/circle-arc/package.json",
-      "conformance/next/packages/valid/conservative-bounds/drawing.ifcdr.json",
-      "conformance/next/packages/valid/conservative-bounds/package.ifcx.json",
-      "conformance/next/packages/valid/conservative-bounds/package.json",
-      "conformance/next/packages/valid/ellipse-family/drawing.ifcdr.json",
-      "conformance/next/packages/valid/ellipse-family/package.ifcx.json",
-      "conformance/next/packages/valid/ellipse-family/package.json",
-      "conformance/next/packages/valid/empty-model-candidate/package.ifcx.json",
-      "conformance/next/packages/valid/empty-model-candidate/package.json",
-      "conformance/next/packages/valid/empty-model-candidate/resources/drawing.ifcdr.json",
-      "conformance/next/packages/valid/external-ifcdr-inline-ifcpr/blobs/fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044",
-      "conformance/next/packages/valid/external-ifcdr-inline-ifcpr/drawing.ifcdr.json",
-      "conformance/next/packages/valid/external-ifcdr-inline-ifcpr/package.ifcx.json",
-      "conformance/next/packages/valid/external-ifcdr-inline-ifcpr/package.json",
-      "conformance/next/packages/valid/generated-snapshot/blobs/fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044",
-      "conformance/next/packages/valid/generated-snapshot/drawing.ifcdr.json",
-      "conformance/next/packages/valid/generated-snapshot/package.ifcx.json",
-      "conformance/next/packages/valid/generated-snapshot/package.json",
-      "conformance/next/packages/valid/generated-snapshot/preservation.ifcpr.json",
-      "conformance/next/packages/valid/inline-both/blobs/fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044",
-      "conformance/next/packages/valid/inline-both/package.ifcx.json",
-      "conformance/next/packages/valid/inline-both/package.json",
-      "conformance/next/packages/valid/inline-drawing/package.ifcx.json",
-      "conformance/next/packages/valid/inline-drawing/package.json",
-      "conformance/next/packages/valid/inline-ifcdr-external-ifcpr/blobs/fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044",
-      "conformance/next/packages/valid/inline-ifcdr-external-ifcpr/package.ifcx.json",
-      "conformance/next/packages/valid/inline-ifcdr-external-ifcpr/package.json",
-      "conformance/next/packages/valid/inline-ifcdr-external-ifcpr/preservation.ifcpr.json",
-      "conformance/next/packages/valid/layout-viewport-plot/package.ifcx.json",
-      "conformance/next/packages/valid/layout-viewport-plot/package.json",
-      "conformance/next/packages/valid/layout-viewport-plot/resources/drawing.ifcdr.json",
-      "conformance/next/packages/valid/minimal-no-preservation/drawing.ifcdr.json",
-      "conformance/next/packages/valid/minimal-no-preservation/package.ifcx.json",
-      "conformance/next/packages/valid/minimal-no-preservation/package.json",
-      "conformance/next/packages/valid/mixed-plane-defaults/drawing.ifcdr.json",
-      "conformance/next/packages/valid/mixed-plane-defaults/package.ifcx.json",
-      "conformance/next/packages/valid/mixed-plane-defaults/package.json",
-      "conformance/next/packages/valid/multi-drawing-projections/blobs/fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044",
-      "conformance/next/packages/valid/multi-drawing-projections/drawing-b.ifcdr.json",
-      "conformance/next/packages/valid/multi-drawing-projections/drawing.ifcdr.json",
-      "conformance/next/packages/valid/multi-drawing-projections/package.ifcx.json",
-      "conformance/next/packages/valid/multi-drawing-projections/package.json",
-      "conformance/next/packages/valid/multi-drawing-projections/preservation.ifcpr.json",
-      "conformance/next/packages/valid/planar-bulges/drawing.ifcdr.json",
-      "conformance/next/packages/valid/planar-bulges/package.ifcx.json",
-      "conformance/next/packages/valid/planar-bulges/package.json",
-      "conformance/next/packages/valid/plot-extents/package.ifcx.json",
-      "conformance/next/packages/valid/plot-extents/package.json",
-      "conformance/next/packages/valid/plot-extents/resources/drawing.ifcdr.json",
-      "conformance/next/packages/valid/plot-model-limits/package.ifcx.json",
-      "conformance/next/packages/valid/plot-model-limits/package.json",
-      "conformance/next/packages/valid/plot-model-limits/resources/drawing.ifcdr.json",
-      "conformance/next/packages/valid/plot-window-fit/package.ifcx.json",
-      "conformance/next/packages/valid/plot-window-fit/package.json",
-      "conformance/next/packages/valid/plot-window-fit/resources/drawing.ifcdr.json",
-      "conformance/next/packages/valid/point-origin-display/drawing.ifcdr.json",
-      "conformance/next/packages/valid/point-origin-display/package.ifcx.json",
-      "conformance/next/packages/valid/point-origin-display/package.json",
-      "conformance/next/packages/valid/resource-id-distinct-from-uri/package.ifcx.json",
-      "conformance/next/packages/valid/resource-id-distinct-from-uri/package.json",
-      "conformance/next/packages/valid/resource-id-distinct-from-uri/resources/model.ifcdr.json",
-      "conformance/next/packages/valid/shared-drawing-definitions/package.ifcx.json",
-      "conformance/next/packages/valid/shared-drawing-definitions/package.json",
-      "conformance/next/packages/valid/shared-drawing-definitions/resources/drawing.ifcdr.json",
-      "conformance/next/packages/valid/shared-layout-representation/drawing.ifcdr.json",
-      "conformance/next/packages/valid/shared-layout-representation/package.ifcx.json",
-      "conformance/next/packages/valid/shared-layout-representation/package.json",
-      "conformance/next/packages/valid/source-archive/blobs/fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044",
-      "conformance/next/packages/valid/source-archive/drawing.ifcdr.json",
-      "conformance/next/packages/valid/source-archive/package.ifcx.json",
-      "conformance/next/packages/valid/source-archive/package.json",
-      "conformance/next/packages/valid/source-archive/preservation.ifcpr.json",
-      "conformance/next/packages/valid/spatial-lines/drawing.ifcdr.json",
-      "conformance/next/packages/valid/spatial-lines/package.ifcx.json",
-      "conformance/next/packages/valid/spatial-lines/package.json",
-      "conformance/next/packages/valid/spatial-polyline/drawing.ifcdr.json",
-      "conformance/next/packages/valid/spatial-polyline/package.ifcx.json",
-      "conformance/next/packages/valid/spatial-polyline/package.json",
-      "conformance/next/packages/valid/tilted-inline/package.ifcx.json",
-      "conformance/next/packages/valid/tilted-inline/package.json",
-      "conformance/next/packages/valid/tilted-plane/drawing.ifcdr.json",
-      "conformance/next/packages/valid/tilted-plane/package.ifcx.json",
-      "conformance/next/packages/valid/tilted-plane/package.json",
-      "conformance/next/packages/valid/two-paper-layouts/package.ifcx.json",
-      "conformance/next/packages/valid/two-paper-layouts/package.json",
-      "conformance/next/packages/valid/two-paper-layouts/resources/drawing.ifcdr.json",
-      "conformance/next/packages/valid/unrepresented-packed/blobs/fb357f76fddbb1178d0ebb2a6497d9c4929e7b04088729548c03ec578567f044",
-      "conformance/next/packages/valid/unrepresented-packed/drawing.ifcdr.json",
-      "conformance/next/packages/valid/unrepresented-packed/package.ifcx.json",
-      "conformance/next/packages/valid/unrepresented-packed/package.json",
-      "conformance/next/packages/valid/unrepresented-packed/preservation.ifcpr.json",
-      "conformance/next/packages/valid/unused-drawing-definitions/package.ifcx.json",
-      "conformance/next/packages/valid/unused-drawing-definitions/package.json",
-      "conformance/next/packages/valid/unused-drawing-definitions/resources/drawing.ifcdr.json",
-      "conformance/next/packages/valid/viewport-active-rectangular-clip/package.ifcx.json",
-      "conformance/next/packages/valid/viewport-active-rectangular-clip/package.json",
-      "conformance/next/packages/valid/viewport-active-rectangular-clip/resources/drawing.ifcdr.json",
-      "conformance/next/packages/valid/viewport-disabled-boundary-reference/package.ifcx.json",
-      "conformance/next/packages/valid/viewport-disabled-boundary-reference/package.json",
-      "conformance/next/packages/valid/viewport-disabled-boundary-reference/resources/drawing.ifcdr.json",
-      "conformance/next/packages/valid/viewport-omitted-lens/package.ifcx.json",
-      "conformance/next/packages/valid/viewport-omitted-lens/package.json",
-      "conformance/next/packages/valid/viewport-omitted-lens/resources/drawing.ifcdr.json",
-      "conformance/next/packages/valid/viewport-perspective-at-camera/package.ifcx.json",
-      "conformance/next/packages/valid/viewport-perspective-at-camera/package.json",
-      "conformance/next/packages/valid/viewport-perspective-at-camera/resources/drawing.ifcdr.json",
-      "conformance/next/packages/valid/viewport-visible-default/package.ifcx.json",
-      "conformance/next/packages/valid/viewport-visible-default/package.json",
-      "conformance/next/packages/valid/viewport-visible-default/resources/drawing.ifcdr.json",
-      "conformance/next/packages/valid/viewport-zero-orthographic-lens/package.ifcx.json",
-      "conformance/next/packages/valid/viewport-zero-orthographic-lens/package.json",
-      "conformance/next/packages/valid/viewport-zero-orthographic-lens/resources/drawing.ifcdr.json",
-      "conformance/next/packages/valid/workspace-model/drawing.ifcdr.json",
-      "conformance/next/packages/valid/workspace-model/package.ifcx.json",
-      "conformance/next/packages/valid/workspace-model/package.json",
-      "conformance/next/packages/valid/workspace-paper/package.ifcx.json",
-      "conformance/next/packages/valid/workspace-paper/package.json",
-      "conformance/next/packages/valid/workspace-paper/resources/drawing.ifcdr.json",
-      "conformance/next/reporting-contract-v1.md",
-      "conformance/next/schemas/ifcdr/json-mapping-0.10.0.json",
-      "conformance/next/schemas/ifcdr/json-mapping-0.11.0.json",
-      "conformance/next/schemas/ifcdr/json-mapping-0.12.0.json",
-      "conformance/next/schemas/ifcdr/json-mapping-0.7.0.json",
-      "conformance/next/schemas/ifcdr/json-mapping-0.8.0.json",
-      "conformance/next/schemas/ifcdr/json-mapping-0.9.0.json",
-      "conformance/next/schemas/ifcdr/json-mapping-meta-schema-v1.json",
-      "conformance/next/schemas/ifcdr/json-mapping-meta-schema-v2.json",
-      "conformance/next/schemas/ifcdr/json-mapping-meta-schema-v3.json",
-      "conformance/next/schemas/ifcdr/json-mapping-meta-schema-v4.json",
-      "conformance/next/schemas/ifcdr/json-mapping-meta-schema-v5.json",
-      "conformance/next/schemas/ifcdr/json-mapping-v1.md",
-      "conformance/next/schemas/ifcdr/json-mapping-v2.md",
-      "conformance/next/schemas/ifcdr/json-mapping-v3.md",
-      "conformance/next/schemas/ifcdr/json-mapping-v4.md",
-      "conformance/next/schemas/ifcdr/logical-contract-0.10.0.md",
-      "conformance/next/schemas/ifcdr/logical-contract-0.11.0.md",
-      "conformance/next/schemas/ifcdr/logical-contract-0.12.0.md",
-      "conformance/next/schemas/ifcdr/logical-contract-0.7.0.md",
-      "conformance/next/schemas/ifcdr/logical-contract-0.8.0.md",
-      "conformance/next/schemas/ifcdr/logical-contract-0.9.0.md",
-      "conformance/next/schemas/ifcdr/registry-0.10.0.json",
-      "conformance/next/schemas/ifcdr/registry-0.11.0.json",
-      "conformance/next/schemas/ifcdr/registry-0.12.0.json",
-      "conformance/next/schemas/ifcdr/registry-0.7.0.json",
-      "conformance/next/schemas/ifcdr/registry-0.8.0.json",
-      "conformance/next/schemas/ifcdr/registry-0.9.0.json",
-      "conformance/next/schemas/ifcdr/registry-meta-schema-v2.json",
-      "conformance/next/schemas/ifcdr/registry-meta-schema-v3.json",
-      "conformance/next/schemas/ifcdr/registry-meta-schema-v4.json",
-      "conformance/next/schemas/ifcdr/registry-meta-schema-v5.json",
-      "conformance/next/schemas/ifcdr/registry-meta-schema-v6.json",
-      "conformance/next/schemas/ifcdr/unicode/CaseFolding-17.0.0.txt",
-      "conformance/next/schemas/ifcdr/unicode/LICENSE.txt",
-      "conformance/next/schemas/ifcdr/unicode/README.md",
-      "conformance/next/schemas/ifcpr/schema-0.2.0.json",
-      "conformance/next/schemas/ifcx/drawing-resource-contract-0.11.0.md",
-      "conformance/next/schemas/ifcx/drawing-resource-contract-0.12.0.md",
-      "conformance/next/schemas/ifcx/drawing-resource-contract-0.13.0.md",
-      "conformance/next/schemas/ifcx/drawing-resource-contract-0.14.0.md",
-      "conformance/next/schemas/ifcx/drawing-resource-contract-0.8.0.md",
-      "conformance/next/schemas/ifcx/ifccad-drawing-core-0.2.0.json",
-      "conformance/next/schemas/ifcx/ifccad-drawing-core-0.3.0.json",
-      "conformance/next/schemas/ifcx/ifccad-drawing-core-0.4.0.json",
-      "conformance/next/schemas/ifcx/ifccad-drawing-core-0.5.0.json",
-      "conformance/next/schemas/ifcx/ifccad-overlay-0.10.0.json",
-      "conformance/next/schemas/ifcx/ifccad-overlay-0.11.0.json",
-      "conformance/next/schemas/ifcx/ifccad-overlay-0.12.0.json",
-      "conformance/next/schemas/ifcx/ifccad-overlay-0.13.0.json",
-      "conformance/next/schemas/ifcx/ifccad-overlay-0.14.0.json",
-      "conformance/next/schemas/ifcx/ifccad-overlay-0.9.0.json",
-      "conformance/next/schemas/ifcx/resource-source-contract-0.9.0.md",
-      "conformance/next/vectors/canonicalization.json",
-      "conformance/next/vectors/export-plans.json",
-      "conformance/next/vectors/fingerprints.json",
-      "crates/ocdraw-convert/src/assessment.rs",
-      "crates/ocdraw-convert/src/direct.rs",
-      "crates/ocdraw-convert/src/direct_import.rs",
-      "crates/ocdraw-convert/src/direct_layout.rs",
-      "crates/ocdraw-convert/src/export/COVERAGE.md",
-      "crates/ocdraw-convert/src/export/appearance.rs",
-      "crates/ocdraw-convert/src/export/blocks.rs",
-      "crates/ocdraw-convert/src/export/conversion.rs",
-      "crates/ocdraw-convert/src/export/coverage.rs",
-      "crates/ocdraw-convert/src/export/diagnostic.rs",
-      "crates/ocdraw-convert/src/export/entities.rs",
-      "crates/ocdraw-convert/src/export/entity_mapping.rs",
-      "crates/ocdraw-convert/src/export/layers.rs",
-      "crates/ocdraw-convert/src/export/layouts.rs",
-      "crates/ocdraw-convert/src/export/mod.rs",
-      "crates/ocdraw-convert/src/export/options.rs",
-      "crates/ocdraw-convert/src/export/outcome.rs",
-      "crates/ocdraw-convert/src/export/structure.rs",
-      "crates/ocdraw-convert/src/export/units.rs",
-      "crates/ocdraw-convert/src/export/workspace.rs",
-      "crates/ocdraw-convert/src/import/COVERAGE.md",
-      "crates/ocdraw-convert/src/import/appearance.rs",
-      "crates/ocdraw-convert/src/import/blocks.rs",
-      "crates/ocdraw-convert/src/import/conversion.rs",
-      "crates/ocdraw-convert/src/import/diagnostic.rs",
-      "crates/ocdraw-convert/src/import/entity_mapping.rs",
-      "crates/ocdraw-convert/src/import/layouts.rs",
-      "crates/ocdraw-convert/src/import/mod.rs",
-      "crates/ocdraw-convert/src/import/outcome.rs",
-      "crates/ocdraw-convert/src/import/units.rs",
-      "crates/ocdraw-convert/src/import/workspace.rs",
-      "crates/ocdraw-convert/tests/block_exchange.rs",
-      "crates/ocdraw-convert/tests/direct_drawing.rs",
-      "crates/ocdraw-convert/tests/dxf_roundtrip.rs",
-      "crates/ocdraw-convert/tests/export_chain_artifacts.rs",
-      "crates/ocdraw-convert/tests/export_chains.rs",
-      "crates/ocdraw-convert/tests/export_drawing.rs",
-      "crates/ocdraw-convert/tests/export_entities.rs",
-      "crates/ocdraw-convert/tests/export_layouts.rs",
-      "crates/ocdraw-convert/tests/export_loss_policy.rs",
-      "crates/ocdraw-convert/tests/import_blocks.rs",
-      "crates/ocdraw-convert/tests/minimal_conversion.rs",
-      "crates/ocdraw-convert/tests/public_export_api.rs",
-      "crates/ocdraw-convert/tests/public_import_api.rs",
-      "crates/ocdraw-convert/tests/spatial_exchange.rs",
-      "crates/ocdraw-convert/tests/support/artifacts.rs",
-      "crates/ocdraw-convert/tests/support/documents.rs",
-      "crates/ocdraw-convert/tests/support/mod.rs",
-      "crates/ocdraw-viewer/src/bundle.rs",
-      "crates/ocdraw-viewer/src/cad.rs",
-      "crates/ocdraw-viewer/src/cad_export.rs",
-      "crates/ocdraw-viewer/src/drawing.rs",
-      "crates/ocdraw-viewer/src/package.rs",
-      "crates/ocdraw-viewer/tests/cad_export.rs",
-      "crates/ocdraw-viewer/tests/cad_jobs.rs",
-      "crates/ocdraw-viewer/tests/memory.rs",
-      "crates/ocdraw-viewer/tests/package_jobs.rs",
-      "format-explorer/examples/blocks-demo/package.ifcx.json",
-      "format-explorer/examples/blocks-demo/resources/drawing.ifcdr.json",
-      "format-explorer/scripts/fixtures.mjs",
-      "format-explorer/scripts/package-zip.mjs",
-      "format-explorer/src/Inter-OFL.txt",
-      "format-explorer/src/Inter-Regular.ttf",
-      "format-explorer/src/Inter-SemiBold.ttf",
-      "format-explorer/src/JetBrainsMono-OFL.txt",
-      "format-explorer/src/JetBrainsMono-Regular.ttf",
-      "format-explorer/src/OpenAEC-LICENSE.txt",
-      "format-explorer/src/SpaceGrotesk-Bold.ttf",
-      "format-explorer/src/SpaceGrotesk-OFL.txt",
-      "format-explorer/src/THIRD-PARTY.txt",
-      "format-explorer/src/browser-zip.mjs",
-      "format-explorer/src/browsing.mjs",
-      "format-explorer/src/bundle.mjs",
-      "format-explorer/src/cad-preview.mjs",
-      "format-explorer/src/collections.mjs",
-      "format-explorer/src/export-files.mjs",
-      "format-explorer/src/family-layout.mjs",
-      "format-explorer/src/fields.mjs",
-      "format-explorer/src/graph-navigation.mjs",
-      "format-explorer/src/graph.mjs",
-      "format-explorer/src/i18n.mjs",
-      "format-explorer/src/inspector.mjs",
-      "format-explorer/src/layout.mjs",
-      "format-explorer/src/model.mjs",
-      "format-explorer/src/ocs-bridge.mjs",
-      "format-explorer/src/ocs-messages.mjs",
-      "format-explorer/src/open-files.mjs",
-      "format-explorer/src/preferences.mjs",
-      "format-explorer/src/report-view.mjs",
-      "format-explorer/src/reports.mjs",
-      "format-explorer/src/settings.mjs",
-      "format-explorer/src/workspace-state.mjs",
-      "format-explorer/src/workspace.mjs",
-      "format-explorer/tests/blocks.test.mjs",
-      "format-explorer/tests/browser-zip.test.mjs",
-      "format-explorer/tests/browsing.test.mjs",
-      "format-explorer/tests/bundle.test.mjs",
-      "format-explorer/tests/cad-preview.test.mjs",
-      "format-explorer/tests/collections.test.mjs",
-      "format-explorer/tests/deploy.test.mjs",
-      "format-explorer/tests/entity-descriptions.test.mjs",
-      "format-explorer/tests/export.test.mjs",
-      "format-explorer/tests/family-layout.test.mjs",
-      "format-explorer/tests/fixtures.test.mjs",
-      "format-explorer/tests/graph-navigation.test.mjs",
-      "format-explorer/tests/layout.test.mjs",
-      "format-explorer/tests/model.test.mjs",
-      "format-explorer/tests/ocs-assets.test.mjs",
-      "format-explorer/tests/ocs-bridge.test.mjs",
-      "format-explorer/tests/ocs-messages.test.mjs",
-      "format-explorer/tests/package-zip.test.mjs",
-      "format-explorer/tests/preferences.test.mjs",
-      "format-explorer/tests/report-view.test.mjs",
-      "format-explorer/tests/reports.test.mjs",
-      "format-explorer/tests/wasm-smoke.mjs",
-      "format-explorer/tests/workspace-state.test.mjs",
-      "schemas/ifcdr/json-mapping-0.10.0.json",
-      "schemas/ifcdr/json-mapping-0.11.0.json",
-      "schemas/ifcdr/json-mapping-0.12.0.json",
-      "schemas/ifcdr/json-mapping-0.7.0.json",
-      "schemas/ifcdr/json-mapping-0.8.0.json",
-      "schemas/ifcdr/json-mapping-0.9.0.json",
-      "schemas/ifcdr/json-mapping-meta-schema-v1.json",
-      "schemas/ifcdr/json-mapping-meta-schema-v2.json",
-      "schemas/ifcdr/json-mapping-meta-schema-v3.json",
-      "schemas/ifcdr/json-mapping-meta-schema-v4.json",
-      "schemas/ifcdr/json-mapping-meta-schema-v5.json",
-      "schemas/ifcdr/json-mapping-v1.md",
-      "schemas/ifcdr/json-mapping-v2.md",
-      "schemas/ifcdr/json-mapping-v3.md",
-      "schemas/ifcdr/json-mapping-v4.md",
-      "schemas/ifcdr/logical-contract-0.10.0.md",
-      "schemas/ifcdr/logical-contract-0.11.0.md",
-      "schemas/ifcdr/logical-contract-0.12.0.md",
-      "schemas/ifcdr/logical-contract-0.7.0.md",
-      "schemas/ifcdr/logical-contract-0.8.0.md",
-      "schemas/ifcdr/logical-contract-0.9.0.md",
-      "schemas/ifcdr/registry-0.10.0.json",
-      "schemas/ifcdr/registry-0.11.0.json",
-      "schemas/ifcdr/registry-0.12.0.json",
-      "schemas/ifcdr/registry-0.5.0.json",
-      "schemas/ifcdr/registry-0.6.0.json",
-      "schemas/ifcdr/registry-0.7.0.json",
-      "schemas/ifcdr/registry-0.8.0.json",
-      "schemas/ifcdr/registry-0.9.0.json",
-      "schemas/ifcdr/registry-meta-schema-v1.json",
-      "schemas/ifcdr/registry-meta-schema-v2.json",
-      "schemas/ifcdr/registry-meta-schema-v3.json",
-      "schemas/ifcdr/registry-meta-schema-v4.json",
-      "schemas/ifcdr/registry-meta-schema-v5.json",
-      "schemas/ifcdr/registry-meta-schema-v6.json",
-      "schemas/ifcdr/unicode/CaseFolding-17.0.0.txt",
-      "schemas/ifcdr/unicode/LICENSE.txt",
-      "schemas/ifcdr/unicode/README.md",
-      "schemas/ifcpr/schema-0.1.0.json",
-      "schemas/ifcpr/schema-0.2.0.json",
-      "schemas/ifcx/drawing-resource-contract-0.11.0.md",
-      "schemas/ifcx/drawing-resource-contract-0.12.0.md",
-      "schemas/ifcx/drawing-resource-contract-0.13.0.md",
-      "schemas/ifcx/drawing-resource-contract-0.14.0.md",
-      "schemas/ifcx/drawing-resource-contract-0.8.0.md",
-      "schemas/ifcx/ifccad-drawing-core-0.1.0.json",
-      "schemas/ifcx/ifccad-drawing-core-0.2.0.json",
-      "schemas/ifcx/ifccad-drawing-core-0.3.0.json",
-      "schemas/ifcx/ifccad-drawing-core-0.4.0.json",
-      "schemas/ifcx/ifccad-drawing-core-0.5.0.json",
-      "schemas/ifcx/ifccad-overlay-0.1.0.json",
-      "schemas/ifcx/ifccad-overlay-0.10.0.json",
-      "schemas/ifcx/ifccad-overlay-0.11.0.json",
-      "schemas/ifcx/ifccad-overlay-0.12.0.json",
-      "schemas/ifcx/ifccad-overlay-0.13.0.json",
-      "schemas/ifcx/ifccad-overlay-0.14.0.json",
-      "schemas/ifcx/ifccad-overlay-0.2.0.json",
-      "schemas/ifcx/ifccad-overlay-0.3.0.json",
-      "schemas/ifcx/ifccad-overlay-0.4.0.json",
-      "schemas/ifcx/ifccad-overlay-0.5.0.json",
-      "schemas/ifcx/ifccad-overlay-0.6.0.json",
-      "schemas/ifcx/ifccad-overlay-0.7.0.json",
-      "schemas/ifcx/ifccad-overlay-0.8.0.json",
-      "schemas/ifcx/ifccad-overlay-0.9.0.json",
-      "schemas/ifcx/resource-source-contract-0.9.0.md",
-      "scripts/generate_block_conformance.ps1",
-      "scripts/generate_layout_conformance.ps1",
-      "scripts/migrate_current_conformance_fixtures.ps1",
-      "scripts/migrate_scopes_blocks_fixtures.ps1",
-      "src/canonicalization/error.rs",
-      "src/canonicalization/fingerprint.rs",
-      "src/canonicalization/mod.rs",
-      "src/canonicalization/typed.rs",
-      "src/canonicalization/value.rs",
-      "src/conformance/canonicalization.rs",
-      "src/conformance/error.rs",
-      "src/conformance/fingerprints.rs",
-      "src/conformance/manifest.rs",
-      "src/conformance/mod.rs",
-      "src/diagnostic.rs",
-      "src/ifcdr/codec/json/decode.rs",
-      "src/ifcdr/codec/json/diagnostic.rs",
-      "src/ifcdr/codec/json/encode.rs",
-      "src/ifcdr/codec/json/mapping.rs",
-      "src/ifcdr/codec/json/mod.rs",
-      "src/ifcdr/codec/json/physical.rs",
-      "src/ifcdr/codec/json/tests.rs",
-      "src/ifcdr/codec/json/workspace.rs",
-      "src/ifcdr/codec/mod.rs",
-      "src/ifcdr/logical/access.rs",
-      "src/ifcdr/logical/block_bounds.rs",
-      "src/ifcdr/logical/blocks.rs",
-      "src/ifcdr/logical/diagnostic.rs",
-      "src/ifcdr/logical/mod.rs",
-      "src/ifcdr/logical/test_support.rs",
-      "src/ifcdr/logical/tests.rs",
-      "src/ifcdr/logical/types.rs",
-      "src/ifcdr/logical/validation.rs",
-      "src/ifcdr/logical/viewport.rs",
-      "src/ifcdr/logical/workspace.rs",
-      "src/ifcdr/mod.rs",
-      "src/ifcdr/read/codes.rs",
-      "src/ifcdr/read/decoded.rs",
-      "src/ifcdr/read/entity.rs",
-      "src/ifcdr/read/mod.rs",
-      "src/ifcdr/read/resource.rs",
-      "src/ifcdr/read/streams/line.rs",
-      "src/ifcdr/read/streams/mod.rs",
-      "src/ifcdr/read/streams/polyline.rs",
-      "src/ifcdr/read/validation.rs",
-      "src/ifcdr/write/mod.rs",
-      "src/ifcdr/write/prepare.rs",
-      "src/json_resource.rs",
-      "src/ocdraw/validate.rs",
-      "src/ocdraw/validate/geometry.rs",
-      "src/ocdraw/validate/streams.rs",
-      "src/package/mod.rs",
-      "src/package/read/analysis.rs",
-      "src/package/read/appearance.rs",
-      "src/package/read/assessment.rs",
-      "src/package/read/bindings.rs",
-      "src/package/read/codes.rs",
-      "src/package/read/diagnostic.rs",
-      "src/package/read/discovery.rs",
-      "src/package/read/error.rs",
-      "src/package/read/graph.rs",
-      "src/package/read/header.rs",
-      "src/package/read/loader.rs",
-      "src/package/read/mod.rs",
-      "src/package/read/model.rs",
-      "src/package/read/navigation.rs",
-      "src/package/read/path.rs",
-      "src/package/read/schema.rs",
-      "src/package/read/source.rs",
-      "src/package/read/uri.rs",
-      "src/package/read/validation.rs",
-      "src/package/write/artifact.rs",
-      "src/package/write/builder.rs",
-      "src/package/write/error.rs",
-      "src/package/write/ifcx.rs",
-      "src/package/write/layout.rs",
-      "src/package/write/mod.rs",
-      "src/package/write/prepare.rs",
-      "src/package/write/state.rs",
-      "src/package/write/types.rs",
-      "src/package_id.rs",
-      "src/resource.rs",
-      "src/validated.rs",
-      "tests/drawing_reader.rs",
-      "tests/drawing_writer.rs",
-      "tests/ifccad_canonicalization.rs",
-      "tests/ifccad_conformance_assets.rs",
-      "tests/ifccad_fingerprints.rs",
-      "tests/ifccad_manifest_loading.rs",
-      "tests/ifccad_manifest_parsing.rs",
-      "tests/ifccad_package_conformance.rs",
-      "tests/ifcdr_logical_contract.rs",
-      "tests/ifcpr_schema.rs",
-      "tests/ifcx_overlay_schema.rs",
-      "tests/inline_resources.rs",
-      "tests/package_memory.rs",
-      "tests/package_writer_filesystem.rs",
-      "tests/package_writer_roundtrip.rs",
-      "tests/public_conversion_api.rs",
-      "tests/public_package_assessment.rs",
-      "tests/public_package_builder.rs",
-      "tests/public_package_loading.rs"
-    ],
+    "cargo_lock_sha256": "2a252a859ff388bc5c6d34006dd3d0a78707ae89e017910d25b3815d9e13426d",
+    "deleted_source_paths": [],
     "dependencies": [
       {
         "name": "acadrust",
@@ -38748,9 +37953,9 @@
       }
     ],
     "repository_dirty": true,
-    "repository_revision": "10c71b795968e05029eda830ed553b1a65fef485",
+    "repository_revision": "f3b06ad284ad4b94343bff72e4428970f0f70ef1",
     "rustc": "rustc 1.98.0 (88d9e12ae 2026-08-18)\nbinary: rustc\ncommit-hash: 88d9e12ae178fab0fb5cc050a94da85685d449ea\ncommit-date: 2026-08-18\nhost: x86_64-pc-windows-msvc\nrelease: 1.98.0\nLLVM version: 22.1.8",
-    "source_manifest_sha256": "e20a9a004c6a651d43db7503c3fc444f993daec854335ae4a9e75d892af00af8",
+    "source_manifest_sha256": "23c2a0c4330995a8cd34220fa8662e4b8e8d8964d3fb0f54caa34c201b8b70b0",
     "writers": {
       "dwg": "cadcodec normal AC1032, native compression",
       "dxf": "cadcodec text AC1032",

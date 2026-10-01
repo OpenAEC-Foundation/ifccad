@@ -21,7 +21,8 @@
         "unit",
         "nextEntityId",
         "nextLayerId",
-        "nextLayoutId"
+        "nextLayoutId",
+        "nextLinePatternId"
       ],
       "properties": {
         "format": {
@@ -75,6 +76,11 @@
         "nextLayoutId": {
           "type": "integer",
           "minimum": 1,
+          "maximum": 4294967295
+        },
+        "nextLinePatternId": {
+          "type": "integer",
+          "minimum": 0,
           "maximum": 4294967295
         }
       }
@@ -366,21 +372,6 @@
                 "maximum": 4294967295
               }
             },
-            "linePattern": {
-              "type": "array",
-              "items": {
-                "oneOf": [
-                  {
-                    "enum": [
-                      "Continuous"
-                    ]
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              }
-            },
             "linePatternMode": {
               "type": "array",
               "items": {
@@ -526,6 +517,35 @@
               "items": {
                 "type": "boolean"
               }
+            },
+            "linePatternId": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 4294967295
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "linePatternScale": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
             }
           }
         },
@@ -630,21 +650,6 @@
                 "maximum": 4294967295
               }
             },
-            "linePattern": {
-              "type": "array",
-              "items": {
-                "oneOf": [
-                  {
-                    "enum": [
-                      "Continuous"
-                    ]
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              }
-            },
             "linePatternMode": {
               "type": "array",
               "items": {
@@ -744,6 +749,35 @@
               "type": "array",
               "items": {
                 "type": "number"
+              }
+            },
+            "linePatternId": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 4294967295
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "linePatternScale": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             }
           }
@@ -861,21 +895,6 @@
                 "maximum": 4294967295
               }
             },
-            "linePattern": {
-              "type": "array",
-              "items": {
-                "oneOf": [
-                  {
-                    "enum": [
-                      "Continuous"
-                    ]
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              }
-            },
             "linePatternMode": {
               "type": "array",
               "items": {
@@ -1047,6 +1066,51 @@
               "items": {
                 "type": "number"
               }
+            },
+            "linePatternId": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 4294967295
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "linePatternScale": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "linePatternGeneration": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "perSegment",
+                      "continuous"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
             }
           }
         },
@@ -1157,21 +1221,6 @@
                 "maximum": 4294967295
               }
             },
-            "linePattern": {
-              "type": "array",
-              "items": {
-                "oneOf": [
-                  {
-                    "enum": [
-                      "Continuous"
-                    ]
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              }
-            },
             "linePatternMode": {
               "type": "array",
               "items": {
@@ -1267,6 +1316,51 @@
               "type": "array",
               "items": {
                 "type": "number"
+              }
+            },
+            "linePatternId": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 4294967295
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "linePatternScale": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "linePatternGeneration": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "perSegment",
+                      "continuous"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             }
           }
@@ -1378,21 +1472,6 @@
                 "type": "integer",
                 "minimum": 0,
                 "maximum": 4294967295
-              }
-            },
-            "linePattern": {
-              "type": "array",
-              "items": {
-                "oneOf": [
-                  {
-                    "enum": [
-                      "Continuous"
-                    ]
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
               }
             },
             "linePatternMode": {
@@ -1563,6 +1642,35 @@
               "items": {
                 "type": "boolean"
               }
+            },
+            "linePatternId": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 4294967295
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "linePatternScale": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
             }
           }
         },
@@ -1715,21 +1823,6 @@
               "items": {
                 "type": "integer",
                 "minimum": 0
-              }
-            },
-            "linePattern": {
-              "type": "array",
-              "items": {
-                "oneOf": [
-                  {
-                    "enum": [
-                      "Continuous"
-                    ]
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
               }
             },
             "linePatternMode": {
@@ -2028,6 +2121,35 @@
               "items": {
                 "type": "boolean"
               }
+            },
+            "linePatternId": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 4294967295
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "linePatternScale": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
             }
           }
         },
@@ -2121,21 +2243,6 @@
                 "maximum": 4294967295
               }
             },
-            "linePattern": {
-              "type": "array",
-              "items": {
-                "oneOf": [
-                  {
-                    "enum": [
-                      "Continuous"
-                    ]
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              }
-            },
             "lineWeight": {
               "type": "array",
               "items": {
@@ -2158,6 +2265,21 @@
                     "type": "number",
                     "minimum": 0,
                     "maximum": 1
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "linePatternId": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 4294967295
                   },
                   {
                     "type": "null"
@@ -2268,21 +2390,6 @@
                 "maximum": 4294967295
               }
             },
-            "linePattern": {
-              "type": "array",
-              "items": {
-                "oneOf": [
-                  {
-                    "enum": [
-                      "Continuous"
-                    ]
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              }
-            },
             "linePatternMode": {
               "type": "array",
               "items": {
@@ -2433,6 +2540,35 @@
               "type": "array",
               "items": {
                 "type": "boolean"
+              }
+            },
+            "linePatternId": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 4294967295
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "linePatternScale": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             }
           }
@@ -2538,21 +2674,6 @@
                 "maximum": 4294967295
               }
             },
-            "linePattern": {
-              "type": "array",
-              "items": {
-                "oneOf": [
-                  {
-                    "enum": [
-                      "Continuous"
-                    ]
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              }
-            },
             "linePatternMode": {
               "type": "array",
               "items": {
@@ -2716,6 +2837,35 @@
               "items": {
                 "type": "boolean"
               }
+            },
+            "linePatternId": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 4294967295
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "linePatternScale": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
             }
           }
         },
@@ -2818,21 +2968,6 @@
                 "type": "integer",
                 "minimum": 0,
                 "maximum": 4294967295
-              }
-            },
-            "linePattern": {
-              "type": "array",
-              "items": {
-                "oneOf": [
-                  {
-                    "enum": [
-                      "Continuous"
-                    ]
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
               }
             },
             "linePatternMode": {
@@ -2992,6 +3127,35 @@
               "items": {
                 "type": "boolean"
               }
+            },
+            "linePatternId": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 4294967295
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "linePatternScale": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
             }
           }
         },
@@ -3094,21 +3258,6 @@
                 "type": "integer",
                 "minimum": 0,
                 "maximum": 4294967295
-              }
-            },
-            "linePattern": {
-              "type": "array",
-              "items": {
-                "oneOf": [
-                  {
-                    "enum": [
-                      "Continuous"
-                    ]
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
               }
             },
             "linePatternMode": {
@@ -3280,10 +3429,76 @@
               "items": {
                 "type": "boolean"
               }
+            },
+            "linePatternId": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 4294967295
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "linePatternScale": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
             }
           }
         }
       }
+    },
+    "linePatterns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "pattern"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4294967295
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string"
+          },
+          "pattern": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    },
+    "linePatternScale": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "default": 1
     }
   },
   "$defs": {
@@ -3843,7 +4058,7 @@
         "frozenInNewViewports",
         "color",
         "opacity",
-        "linePattern",
+        "linePatternId",
         "lineWeight"
       ],
       "properties": {
@@ -3882,12 +4097,14 @@
           "minimum": 0,
           "maximum": 1
         },
-        "linePattern": {
-          "const": "Continuous"
-        },
         "lineWeight": {
           "type": "number",
           "minimum": 0
+        },
+        "linePatternId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
         }
       }
     },

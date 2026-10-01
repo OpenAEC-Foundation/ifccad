@@ -31,6 +31,9 @@ pub use logical::{
 };
 pub use logical::{DrawingGeometricEntity, EntityGeometry as DrawingGeometry};
 pub use logical::{
+    DrawingLinePattern, LinePatternDefinition, LinePatternGeneration, LinePatternId,
+};
+pub use logical::{
     DrawingPaperClip, DrawingViewport, DrawingViewportFrame, DrawingViewportLayerOverride,
 };
 pub use plot::{

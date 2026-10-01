@@ -6,7 +6,8 @@
     "unit": "unitless",
     "nextEntityId": 8,
     "nextLayerId": 1,
-    "nextLayoutId": 2
+    "nextLayoutId": 2,
+    "nextLinePatternId": 1
   },
   "layouts": [
     {
@@ -177,13 +178,13 @@
       "frozen": false,
       "frozenInNewViewports": false,
       "id": 0,
-      "linePattern": "Continuous",
       "lineWeight": 0.25,
       "locked": false,
       "name": "0",
       "opacity": 1.0,
       "plottable": true,
-      "visible": true
+      "visible": true,
+      "linePatternId": 0
     }
   ],
   "blockDefinitions": [
@@ -198,6 +199,13 @@
     {
       "scopeId": 4,
       "name": "Empty"
+    }
+  ],
+  "linePatterns": [
+    {
+      "id": 0,
+      "name": "Continuous",
+      "pattern": []
     }
   ]
 }

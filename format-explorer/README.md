@@ -40,8 +40,12 @@ from the opening report. The original can still be viewed if conversion fails.
 Hiding the preview keeps its document session; opening a new source or explicitly
 restarting the viewer replaces the session.
 
-Open CAD Studio reads the generated CAD bytes. Viewing a
-similar drawing does not prove lossless conversion. The two converters retain their own coverage contracts and diagnostics.
+Open CAD Studio reads the generated CAD bytes, not OCDraw or IFCX directly. Viewing a
+similar drawing does not prove lossless conversion. Named simple line patterns,
+local references and scales are inspectable and exported. Complex text/shape
+patterns use a diagnosed named continuous fallback. Spatial pattern generation
+has a known limitation in the pinned DWG codec; see the converter coverage.
+The two converters retain their own coverage contracts and diagnostics.
 
 The pinned viewer bundle must be in the ignored `ocs-build/` directory. Pin:
 Open CAD Studio v2026.38, commit `0d023d267bc5b7afeca3b54e98875b0efd4f3926`.

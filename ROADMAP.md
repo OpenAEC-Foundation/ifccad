@@ -32,17 +32,22 @@ expresses architectural dependencies; it is not a release calendar.
 Future preservation and external semantic links (including IFC) require their
 own concrete designs. They may later use extension points within OCDraw;
 there is no current preservation resource or generic extension protocol to
-standardize ahead of a use case. IFCX integration can remain an independent
-experimental development in this repository. The planned next integration brings
-the existing CAD-native-in-IFCX experimental branch onto main. Its browser
-inspection route is implemented on that branch: native IFCX-CAD opening, graph
-inspection and direct DXF/DWG roundtrip alongside OCDraw. Both developments may coexist on main for the duration of the
-experiment, with separate contracts and no IFCX dependency for OCDraw. This
-follow-up is not implemented by the standalone OCDraw integration. The experimental
-branch now includes named simple line patterns, pattern scales and planar-polyline
-generation with strict readback and pinned DXF/DWG tests. Complex text/shape
-patterns remain a diagnosed whole-definition fallback under Allow; this does not
-freeze IFCX-CAD compatibility or expand the standalone OCDraw contract.
+standardize ahead of a use case.
+
+## Independent IFCX-CAD experiment - integrated
+
+The CAD-native-in-IFCX implementation and browser inspection route coexist on
+main with standalone OCDraw. Native IFCX-CAD opening, composed graph inspection
+and direct DXF/DWG roundtrip use their own model, schemas, validation and
+converter. OCDraw opening does not require an IFCX file or package.
+The experiment includes line, circle, planar polyline and local block geometry,
+native Model/Paper layouts, named simple line patterns, scales and polyline
+pattern generation, with strict readback and pinned DXF/DWG tests.
+Allow/Reject conversion policies expose or reject supported loss classifications.
+Authored paperspace, viewport and plot conversion remain deferred; complex
+text/shape patterns use a diagnosed whole-definition fallback under Allow.
+This integration does not freeze IFCX-CAD compatibility or expand the standalone
+OCDraw contract. Later IFCX-CAD coverage remains an independent follow-up.
 
 ## Later semantic coverage and exchange
 
@@ -50,6 +55,14 @@ Expand supported CAD entity families and authored drawing semantics with
 language-neutral rules, shared validation, production readback and actual
 DXF/DWG tests. Diagnose losses and target restrictions. Review conversion
 coverage whenever the pinned CAD codec public model changes.
+
+The named simple line-pattern slice adds drawing-local definitions (including
+Continuous), local references, global/entity scale and polyline generation.
+Unused definitions survive. Complex text/shape definitions retain their named
+identity and references with an explicitly diagnosed continuous fallback under
+Allow; Reject refuses that loss. Native text/shapes, external assets, current
+creation defaults and model-tab annotation scaling remain later work. This is
+semantic expansion of the provisional contract, not its publication.
 
 ## Later physical encodings and performance
 

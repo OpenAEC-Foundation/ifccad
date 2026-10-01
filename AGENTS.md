@@ -7,9 +7,9 @@ information model and exchange format for standalone CAD drawings. The repositor
 keeps its experimental IFCCAD name. Active code and schemas no longer require an
 IFCX package or IFCDR/IFCPR resources. Initial OCDraw 0.1.0 remains provisional.
 
-During the experiment, main may also contain an independent CAD-native-in-IFCX
-implementation under the IFCCAD name. Integrating the existing experimental
-branch and adding its browser inspection route are planned follow-up work.
+During the experiment, main also contains the independent IFCX-CAD model under
+`src/ifcx_cad`, conversion under `crates/ifcx-cad-convert`, and a separate browser
+inspection/conversion route alongside OCDraw.
 Keep its model, schemas, validation and conversion routes clearly separate from
 standalone OCDraw. IFCX must not become a requirement for opening OCDraw.
 Retiring the old package architecture does not retire this independent experiment.

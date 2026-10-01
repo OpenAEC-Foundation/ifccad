@@ -535,10 +535,14 @@
           "optional": true
         },
         {
-          "name": "linePattern",
-          "valueType": "linePattern",
+          "name": "linePatternId",
+          "valueType": "uint32",
           "nullable": false,
-          "optional": true
+          "optional": true,
+          "reference": {
+            "category": "tableField",
+            "target": "linePattern.id"
+          }
         },
         {
           "name": "lineWeight",
@@ -816,10 +820,9 @@
       ]
     },
     "linePattern": {
-      "kind": "enum",
-      "values": [
-        "Continuous"
-      ]
+      "kind": "sequence",
+      "items": "float64",
+      "minItems": 0
     },
     "drawingWorkspaceState": {
       "kind": "record",
@@ -1200,6 +1203,13 @@
       "kind": "sequence",
       "items": "entityId",
       "minItems": 0
+    },
+    "linePatternGeneration": {
+      "kind": "enum",
+      "values": [
+        "perSegment",
+        "continuous"
+      ]
     }
   },
   "resource": {
@@ -1253,6 +1263,17 @@
         "valueType": "drawingViewState",
         "nullable": false,
         "optional": true
+      },
+      {
+        "name": "nextLinePatternId",
+        "valueType": "uint32",
+        "nullable": false
+      },
+      {
+        "name": "linePatternScale",
+        "valueType": "float64",
+        "nullable": false,
+        "default": 1
       }
     ]
   },
@@ -1314,9 +1335,13 @@
           "nullable": false
         },
         {
-          "name": "linePattern",
-          "valueType": "linePattern",
-          "nullable": false
+          "name": "linePatternId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "linePattern.id"
+          }
         },
         {
           "name": "lineWeight",
@@ -1637,6 +1662,34 @@
           "nullable": false
         }
       ]
+    },
+    {
+      "name": "linePattern",
+      "schemaId": "ocdraw.linePattern.v1",
+      "default": [],
+      "fields": [
+        {
+          "name": "id",
+          "valueType": "uint32",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "valueType": "nonEmptyString",
+          "nullable": false
+        },
+        {
+          "name": "description",
+          "valueType": "string",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "pattern",
+          "valueType": "linePattern",
+          "nullable": false
+        }
+      ]
     }
   ],
   "streams": [
@@ -1716,10 +1769,14 @@
           "default": "ByLayer"
         },
         {
-          "name": "linePattern",
-          "valueType": "linePattern",
+          "name": "linePatternId",
+          "valueType": "uint32",
           "nullable": false,
-          "optional": true
+          "optional": true,
+          "reference": {
+            "category": "tableField",
+            "target": "linePattern.id"
+          }
         },
         {
           "name": "lineWeightMode",
@@ -1738,6 +1795,12 @@
           "valueType": "boolean",
           "nullable": false,
           "default": true
+        },
+        {
+          "name": "linePatternScale",
+          "valueType": "float64",
+          "nullable": false,
+          "default": 1
         }
       ]
     },
@@ -1827,10 +1890,14 @@
           "default": "ByLayer"
         },
         {
-          "name": "linePattern",
-          "valueType": "linePattern",
+          "name": "linePatternId",
+          "valueType": "uint32",
           "nullable": false,
-          "optional": true
+          "optional": true,
+          "reference": {
+            "category": "tableField",
+            "target": "linePattern.id"
+          }
         },
         {
           "name": "lineWeightMode",
@@ -1849,6 +1916,12 @@
           "valueType": "boolean",
           "nullable": false,
           "default": true
+        },
+        {
+          "name": "linePatternScale",
+          "valueType": "float64",
+          "nullable": false,
+          "default": 1
         }
       ]
     },
@@ -1916,10 +1989,14 @@
           "default": "ByLayer"
         },
         {
-          "name": "linePattern",
-          "valueType": "linePattern",
+          "name": "linePatternId",
+          "valueType": "uint32",
           "nullable": false,
-          "optional": true
+          "optional": true,
+          "reference": {
+            "category": "tableField",
+            "target": "linePattern.id"
+          }
         },
         {
           "name": "lineWeightMode",
@@ -1960,6 +2037,18 @@
               "z": 0
             }
           }
+        },
+        {
+          "name": "linePatternScale",
+          "valueType": "float64",
+          "nullable": false,
+          "default": 1
+        },
+        {
+          "name": "linePatternGeneration",
+          "valueType": "linePatternGeneration",
+          "nullable": false,
+          "default": "perSegment"
         }
       ]
     },
@@ -2027,10 +2116,14 @@
           "default": "ByLayer"
         },
         {
-          "name": "linePattern",
-          "valueType": "linePattern",
+          "name": "linePatternId",
+          "valueType": "uint32",
           "nullable": false,
-          "optional": true
+          "optional": true,
+          "reference": {
+            "category": "tableField",
+            "target": "linePattern.id"
+          }
         },
         {
           "name": "lineWeightMode",
@@ -2049,6 +2142,18 @@
           "valueType": "boolean",
           "nullable": false,
           "default": true
+        },
+        {
+          "name": "linePatternScale",
+          "valueType": "float64",
+          "nullable": false,
+          "default": 1
+        },
+        {
+          "name": "linePatternGeneration",
+          "valueType": "linePatternGeneration",
+          "nullable": false,
+          "default": "perSegment"
         }
       ]
     },
@@ -2120,10 +2225,14 @@
           "default": "ByLayer"
         },
         {
-          "name": "linePattern",
-          "valueType": "linePattern",
+          "name": "linePatternId",
+          "valueType": "uint32",
           "nullable": false,
-          "optional": true
+          "optional": true,
+          "reference": {
+            "category": "tableField",
+            "target": "linePattern.id"
+          }
         },
         {
           "name": "lineWeightMode",
@@ -2142,6 +2251,12 @@
           "valueType": "boolean",
           "nullable": false,
           "default": true
+        },
+        {
+          "name": "linePatternScale",
+          "valueType": "float64",
+          "nullable": false,
+          "default": 1
         }
       ]
     },
@@ -2243,10 +2358,14 @@
           "default": "ByLayer"
         },
         {
-          "name": "linePattern",
-          "valueType": "linePattern",
+          "name": "linePatternId",
+          "valueType": "uint32",
           "nullable": false,
-          "optional": true
+          "optional": true,
+          "reference": {
+            "category": "tableField",
+            "target": "linePattern.id"
+          }
         },
         {
           "name": "lineWeightMode",
@@ -2270,6 +2389,12 @@
           "name": "layerOverrides",
           "valueType": "viewportLayerOverrides",
           "nullable": false
+        },
+        {
+          "name": "linePatternScale",
+          "valueType": "float64",
+          "nullable": false,
+          "default": 1
         }
       ]
     },
@@ -2305,10 +2430,14 @@
           "optional": true
         },
         {
-          "name": "linePattern",
-          "valueType": "linePattern",
+          "name": "linePatternId",
+          "valueType": "uint32",
           "nullable": false,
-          "optional": true
+          "optional": true,
+          "reference": {
+            "category": "tableField",
+            "target": "linePattern.id"
+          }
         },
         {
           "name": "lineWeight",
@@ -2399,10 +2528,14 @@
           "default": "ByLayer"
         },
         {
-          "name": "linePattern",
-          "valueType": "linePattern",
+          "name": "linePatternId",
+          "valueType": "uint32",
           "nullable": false,
-          "optional": true
+          "optional": true,
+          "reference": {
+            "category": "tableField",
+            "target": "linePattern.id"
+          }
         },
         {
           "name": "lineWeightMode",
@@ -2421,6 +2554,12 @@
           "valueType": "boolean",
           "nullable": false,
           "default": true
+        },
+        {
+          "name": "linePatternScale",
+          "valueType": "float64",
+          "nullable": false,
+          "default": 1
         }
       ]
     },
@@ -2515,10 +2654,14 @@
           "default": "ByLayer"
         },
         {
-          "name": "linePattern",
-          "valueType": "linePattern",
+          "name": "linePatternId",
+          "valueType": "uint32",
           "nullable": false,
-          "optional": true
+          "optional": true,
+          "reference": {
+            "category": "tableField",
+            "target": "linePattern.id"
+          }
         },
         {
           "name": "lineWeightMode",
@@ -2537,6 +2680,12 @@
           "valueType": "boolean",
           "nullable": false,
           "default": true
+        },
+        {
+          "name": "linePatternScale",
+          "valueType": "float64",
+          "nullable": false,
+          "default": 1
         }
       ]
     },
@@ -2626,10 +2775,14 @@
           "default": "ByLayer"
         },
         {
-          "name": "linePattern",
-          "valueType": "linePattern",
+          "name": "linePatternId",
+          "valueType": "uint32",
           "nullable": false,
-          "optional": true
+          "optional": true,
+          "reference": {
+            "category": "tableField",
+            "target": "linePattern.id"
+          }
         },
         {
           "name": "lineWeightMode",
@@ -2648,6 +2801,12 @@
           "valueType": "boolean",
           "nullable": false,
           "default": true
+        },
+        {
+          "name": "linePatternScale",
+          "valueType": "float64",
+          "nullable": false,
+          "default": 1
         }
       ]
     },
@@ -2747,10 +2906,14 @@
           "default": "ByLayer"
         },
         {
-          "name": "linePattern",
-          "valueType": "linePattern",
+          "name": "linePatternId",
+          "valueType": "uint32",
           "nullable": false,
-          "optional": true
+          "optional": true,
+          "reference": {
+            "category": "tableField",
+            "target": "linePattern.id"
+          }
         },
         {
           "name": "lineWeightMode",
@@ -2769,6 +2932,12 @@
           "valueType": "boolean",
           "nullable": false,
           "default": true
+        },
+        {
+          "name": "linePatternScale",
+          "valueType": "float64",
+          "nullable": false,
+          "default": 1
         }
       ]
     }
@@ -2865,6 +3034,10 @@
     {
       "id": "workspace.activation",
       "contract": "logical-contract-0.1.0.md#view-and-workspace-validation"
+    },
+    {
+      "id": "ocdraw.linePatterns",
+      "contract": "logical-contract-0.1.0.md#named-line-patterns"
     }
   ],
   "ocdrawVersion": "0.1.0"

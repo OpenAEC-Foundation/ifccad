@@ -291,6 +291,7 @@ pub(super) fn from_cad(
             prepared.normal = poly.normal;
             prepared.elevation = poly.elevation;
             prepared.is_closed = poly.flags.is_closed();
+            prepared.plinegen = poly.flags.bits() & 128 != 0;
             for (a, b) in prepared.vertices.iter_mut().zip(&poly.vertices) {
                 a.bulge = b.bulge;
             }
@@ -304,6 +305,12 @@ pub(super) fn from_cad(
                 .collect::<Vec<_>>();
             state.exact(key, vertices.iter().copied());
             DrawingGeometry::SpatialPolyline {
+                line_pattern_generation: if poly.flags.to_bits() & 128 != 0 {
+                    ocdraw::ocdraw::LinePatternGeneration::Continuous
+                } else {
+                    ocdraw::ocdraw::LinePatternGeneration::PerSegment
+                },
+
                 vertices,
                 closed: poly.flags.closed,
             }
@@ -316,6 +323,12 @@ pub(super) fn from_cad(
                 .collect::<Vec<_>>();
             state.exact(key, vertices.iter().copied());
             DrawingGeometry::SpatialPolyline {
+                line_pattern_generation: if poly.flags.bits() & 128 != 0 {
+                    ocdraw::ocdraw::LinePatternGeneration::Continuous
+                } else {
+                    ocdraw::ocdraw::LinePatternGeneration::PerSegment
+                },
+
                 vertices,
                 closed: poly.flags.is_closed(),
             }
@@ -359,6 +372,12 @@ fn planar_from_cad(
         .points
         .insert(key, geometry::blocks::polyline_pairs(poly, placement));
     Ok(DrawingGeometry::PlanarPolyline {
+        line_pattern_generation: if poly.plinegen {
+            ocdraw::ocdraw::LinePatternGeneration::Continuous
+        } else {
+            ocdraw::ocdraw::LinePatternGeneration::PerSegment
+        },
+
         placement,
         vertices: poly
             .vertices
@@ -508,19 +527,26 @@ pub(super) fn to_cad(
             placement,
             vertices,
             closed,
+            line_pattern_generation,
         } => {
             let native = *placement;
-            let (target, bound, parameterization) =
+            let (mut target, bound, parameterization) =
                 geometry::to_cad_parts(native, vertices, *closed, identity, &mut state.assessment)?;
             maximum = bound;
             changed = parameterization;
+            target.plinegen =
+                *line_pattern_generation == ocdraw::ocdraw::LinePatternGeneration::Continuous;
             state.points.insert(
                 key,
                 geometry::blocks::import_polyline_parts(native, vertices, *closed, &target),
             );
             EntityType::LwPolyline(target)
         }
-        DrawingGeometry::SpatialPolyline { vertices, closed } => {
+        DrawingGeometry::SpatialPolyline {
+            vertices,
+            closed,
+            line_pattern_generation,
+        } => {
             let mut target = cadcodec::entities::Polyline3D::from_points(
                 vertices
                     .iter()
@@ -528,6 +554,8 @@ pub(super) fn to_cad(
                     .collect(),
             );
             target.flags.closed = *closed;
+            target.flags.linetype_continuous =
+                *line_pattern_generation == ocdraw::ocdraw::LinePatternGeneration::Continuous;
             state.exact(key, vertices.iter().copied());
             EntityType::Polyline3D(target)
         }
@@ -545,6 +573,7 @@ pub(super) fn to_cad(
                     &state.assessment,
                 )?;
             changed = parameterization;
+
             state.instances.insert(
                 key,
                 Instance {

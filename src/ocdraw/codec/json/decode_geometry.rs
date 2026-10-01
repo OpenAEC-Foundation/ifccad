@@ -101,9 +101,18 @@ fn geometry(stream: &Value, kind: &str, row: usize) -> Option<EntityGeometry> {
                     placement: placement(column(stream, "placement", row))?,
                     vertices,
                     closed,
+                    line_pattern_generation: crate::ocdraw::LinePatternGeneration::from_token(
+                        stream["linePatternGeneration"][row].as_str(),
+                    ),
                 }
             } else {
-                EntityGeometry::SpatialPolyline { vertices, closed }
+                EntityGeometry::SpatialPolyline {
+                    vertices,
+                    closed,
+                    line_pattern_generation: crate::ocdraw::LinePatternGeneration::from_token(
+                        stream["linePatternGeneration"][row].as_str(),
+                    ),
+                }
             }
         }
         "blockInstance" => {

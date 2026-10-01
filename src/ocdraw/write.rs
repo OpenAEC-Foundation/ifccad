@@ -61,12 +61,16 @@ pub struct LayerDefinition {
     pub frozen_in_new_viewports: bool,
     pub color: DrawingColor,
     pub opacity: f64,
-    pub line_pattern: String,
+    pub line_pattern_id: super::LinePatternId,
     pub line_weight: f64,
 }
 
 impl LayerDefinition {
-    pub fn new(name: impl Into<String>, color: impl Into<DrawingColor>) -> Self {
+    pub fn new(
+        name: impl Into<String>,
+        color: impl Into<DrawingColor>,
+        line_pattern_id: super::LinePatternId,
+    ) -> Self {
         Self {
             name: name.into(),
             description: None,
@@ -77,7 +81,7 @@ impl LayerDefinition {
             frozen_in_new_viewports: false,
             color: color.into(),
             opacity: 1.0,
-            line_pattern: "Continuous".into(),
+            line_pattern_id,
             line_weight: 0.25,
         }
     }
@@ -200,6 +204,7 @@ pub struct PlanarPolylineDefinition {
     pub layer_id: u32,
     pub vertices: Vec<[f64; 3]>,
     pub closed: bool,
+    pub line_pattern_generation: super::LinePatternGeneration,
     pub appearance: EntityAppearance,
     pub visible: bool,
 }
@@ -211,6 +216,7 @@ impl PlanarPolylineDefinition {
             layer_id,
             vertices,
             closed,
+            line_pattern_generation: super::LinePatternGeneration::PerSegment,
             appearance: EntityAppearance::default(),
             visible: true,
         }
@@ -228,6 +234,7 @@ pub struct SpatialPolylineDefinition {
     pub layer_id: u32,
     pub vertices: Vec<[f64; 3]>,
     pub closed: bool,
+    pub line_pattern_generation: super::LinePatternGeneration,
     pub appearance: EntityAppearance,
     pub visible: bool,
 }
@@ -239,6 +246,7 @@ impl SpatialPolylineDefinition {
             layer_id,
             vertices,
             closed,
+            line_pattern_generation: super::LinePatternGeneration::PerSegment,
             appearance: EntityAppearance::default(),
             visible: true,
         }
@@ -432,6 +440,8 @@ impl EncodedDrawing {
 pub struct DrawingBuilder {
     pub(crate) options: DrawingOptions,
     pub(crate) model_layout_name: String,
+    pub(crate) line_patterns: Vec<super::LinePatternDefinition>,
+    pub(crate) line_pattern_scale: f64,
     pub(crate) layers: Vec<LayerDefinition>,
     pub(crate) objects: Vec<DrawingEntityRecord>,
     pub(crate) scope_entities: std::collections::BTreeMap<u32, Vec<u64>>,
@@ -581,6 +591,60 @@ impl DrawingBuilder {
                 .unwrap_or_default();
         }
         Ok(DrawingModel {
+            line_patterns: self
+                .line_patterns
+                .iter()
+                .enumerate()
+                .map(|(i, p)| super::DrawingLinePattern {
+                    id: super::LinePatternId(i as u32),
+                    name: p.name.clone(),
+                    description: p.description.clone(),
+                    pattern: p.pattern.clone(),
+                })
+                .collect(),
+            next_line_pattern_id: u32::try_from(self.line_patterns.len())
+                .map_err(|_| DrawingBuildError::IdExhausted)?,
+            line_pattern_refs: self
+                .layers
+                .iter()
+                .enumerate()
+                .map(|(i, l)| (l.line_pattern_id, format!("/layers/{i}/linePatternId")))
+                .chain(
+                    self.objects
+                        .iter()
+                        .map(|o| (&o.appearance, o.id))
+                        .chain(self.viewports.iter().map(|o| (&o.appearance, o.id)))
+                        .filter_map(|(a, id)| match a.line_pattern {
+                            AppearanceSelection::Explicit(p) => {
+                                Some((p, format!("/entities/{id}/linePatternId")))
+                            }
+                            _ => None,
+                        }),
+                )
+                .chain(self.viewports.iter().flat_map(|v| {
+                    v.layer_overrides.iter().filter_map(|o| {
+                        o.line_pattern_id
+                            .map(|p| (p, format!("/viewports/{}/overrides", v.id)))
+                    })
+                }))
+                .collect(),
+            line_pattern_scales: std::iter::once((
+                self.line_pattern_scale,
+                "/linePatternScale".into(),
+            ))
+            .chain(
+                self.objects
+                    .iter()
+                    .map(|o| (&o.appearance, o.id))
+                    .chain(self.viewports.iter().map(|o| (&o.appearance, o.id)))
+                    .map(|(a, id)| {
+                        (
+                            a.line_pattern_scale,
+                            format!("/entities/{id}/linePatternScale"),
+                        )
+                    }),
+            )
+            .collect(),
             next_entity_id: self.next_entity_id,
             next_layer_id: layer_count,
             next_layout_id: layout_count,
@@ -625,6 +689,8 @@ impl DrawingBuilder {
         Ok(Self {
             options,
             model_layout_name: "Model".into(),
+            line_patterns: Vec::new(),
+            line_pattern_scale: 1.0,
             layers: Vec::new(),
             objects: Vec::new(),
             scope_entities: Default::default(),
@@ -734,6 +800,65 @@ impl DrawingBuilder {
         Ok(())
     }
 
+    /// Allocates a local ID after validating the definition and folded name.
+    pub fn add_line_pattern(
+        &mut self,
+        definition: super::LinePatternDefinition,
+    ) -> Result<super::LinePatternId, DrawingBuildError> {
+        let id =
+            u32::try_from(self.line_patterns.len()).map_err(|_| DrawingBuildError::IdExhausted)?;
+        id.checked_add(1).ok_or(DrawingBuildError::IdExhausted)?;
+        let row = super::DrawingLinePattern {
+            id: super::LinePatternId(id),
+            name: definition.name.clone(),
+            description: definition.description.clone(),
+            pattern: definition.pattern.clone(),
+        };
+        let errors = super::logical::line_pattern_validation::validate_line_patterns(
+            &[row],
+            id + 1,
+            &[],
+            &[],
+        );
+        if !errors.is_empty()
+            || self.line_patterns.iter().any(|p| {
+                super::names::name_key(&p.name) == super::names::name_key(&definition.name)
+            })
+        {
+            return Err(DrawingBuildError::Invalid(
+                "invalid line pattern definition".into(),
+            ));
+        }
+        self.line_patterns.push(definition);
+        Ok(super::LinePatternId(id))
+    }
+    /// Reuses or creates the named empty Continuous definition; its ID is not fixed.
+    pub fn ensure_continuous_line_pattern(
+        &mut self,
+    ) -> Result<super::LinePatternId, DrawingBuildError> {
+        if let Some(i) = self
+            .line_patterns
+            .iter()
+            .position(|p| super::names::name_key(&p.name) == super::names::name_key("Continuous"))
+        {
+            return Ok(super::LinePatternId(i as u32));
+        }
+        self.add_line_pattern(super::LinePatternDefinition {
+            name: "Continuous".into(),
+            description: None,
+            pattern: vec![],
+        })
+    }
+    /// Sets a finite positive drawing scale without changing definition lengths.
+    pub fn set_line_pattern_scale(&mut self, scale: f64) -> Result<(), DrawingBuildError> {
+        if !scale.is_finite() || scale <= 0.0 {
+            return Err(DrawingBuildError::Invalid(
+                "invalid line pattern scale".into(),
+            ));
+        }
+        self.line_pattern_scale = scale;
+        Ok(())
+    }
     pub fn add_layer(&mut self, layer: LayerDefinition) -> Result<u32, DrawingBuildError> {
         let id = u32::try_from(self.layers.len()).map_err(|_| DrawingBuildError::IdExhausted)?;
         self.layers.push(layer);
@@ -979,6 +1104,7 @@ impl DrawingBuilder {
                     placement: crate::ocdraw::CoordinateFrame3::default(),
                     vertices: polyline.vertices,
                     closed: polyline.closed,
+                    line_pattern_generation: polyline.line_pattern_generation,
                 },
                 min,
                 max,
@@ -1020,6 +1146,7 @@ impl DrawingBuilder {
                 geometry: EntityGeometry::SpatialPolyline {
                     vertices: polyline.vertices,
                     closed: polyline.closed,
+                    line_pattern_generation: polyline.line_pattern_generation,
                 },
                 min,
                 max,
@@ -1311,10 +1438,12 @@ mod ownership_tests {
     use super::*;
     fn model() -> DrawingModel {
         let mut builder = DrawingBuilder::new(DrawingOptions::new("owners", "mm")).unwrap();
+        builder.ensure_continuous_line_pattern().unwrap();
         let layer = builder
             .add_layer(LayerDefinition::new(
                 "0",
                 super::super::RgbColor::new(255, 255, 255),
+                crate::ocdraw::LinePatternId(0),
             ))
             .unwrap();
         builder.add_paper_layout("Sheet").unwrap();

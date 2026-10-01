@@ -6,7 +6,8 @@
     "nextLayerId": 1,
     "nextLayoutId": 1,
     "unit": "mm",
-    "version": "0.1.0"
+    "version": "0.1.0",
+    "nextLinePatternId": 1
   },
   "layers": [
     {
@@ -20,13 +21,13 @@
       "frozen": false,
       "frozenInNewViewports": false,
       "id": 0,
-      "linePattern": "Continuous",
       "lineWeight": 0.25,
       "locked": false,
       "name": "0",
       "opacity": 1.0,
       "plottable": true,
-      "visible": true
+      "visible": true,
+      "linePatternId": 0
     }
   ],
   "layouts": [
@@ -117,5 +118,12 @@
         6.125
       ]
     }
-  }
+  },
+  "linePatterns": [
+    {
+      "id": 0,
+      "name": "Continuous",
+      "pattern": []
+    }
+  ]
 }

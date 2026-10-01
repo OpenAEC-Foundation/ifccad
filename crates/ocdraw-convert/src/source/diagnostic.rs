@@ -22,6 +22,11 @@ pub enum ExportAction {
 #[derive(Clone, Debug, PartialEq)]
 #[non_exhaustive]
 pub enum ExportLossReason {
+    ComplexLinePatternFallback {
+        name: String,
+        text: bool,
+        shapes: bool,
+    },
     BlockContentLoss {
         definition: Handle,
         affected_instances: Vec<Handle>,

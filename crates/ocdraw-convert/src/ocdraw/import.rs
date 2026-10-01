@@ -91,6 +91,7 @@ pub fn ocdraw_to_cad_document(
     options: ImportOptions,
 ) -> Result<DirectImportOutcome, DirectImportError> {
     let mut document = CadDocument::new();
+    let patterns = super::line_pattern::import_line_patterns(drawing, &mut document)?;
     for source in drawing.ucs_definitions() {
         let mut target = cadcodec::Ucs::new(&source.definition.name);
         target.handle = document.allocate_handle();
@@ -161,7 +162,7 @@ pub fn ocdraw_to_cad_document(
         target.book_name = catalog;
         target.color_name = color_name;
         target.transparency = Transparency::from_percent(1.0 - source.opacity);
-        target.line_type = source.line_pattern.clone();
+        target.line_type = patterns[&source.line_pattern_id].0.clone();
         target.line_weight = line_weight(
             source.line_weight,
             &format!("/layers/{index}/lineWeight"),
@@ -359,6 +360,7 @@ pub fn ocdraw_to_cad_document(
         drawing,
         &mut document,
         &entities::TargetIndex {
+            patterns: &patterns,
             layers: &layer_names,
             layouts: &scope_layouts,
             block_handles: &block_handles,

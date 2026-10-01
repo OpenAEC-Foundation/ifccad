@@ -32,10 +32,12 @@ pub enum EntityGeometry {
         placement: CoordinateFrame3,
         vertices: Vec<[f64; 3]>,
         closed: bool,
+        line_pattern_generation: super::LinePatternGeneration,
     },
     SpatialPolyline {
         vertices: Vec<[f64; 3]>,
         closed: bool,
+        line_pattern_generation: super::LinePatternGeneration,
     },
     BlockInstance {
         definition_scope_id: u32,

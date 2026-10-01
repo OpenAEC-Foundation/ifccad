@@ -14,6 +14,8 @@ pub(crate) struct DrawingDocument {
     pub plot_style_mode: PlotStyleMode,
     pub geometric_entities: Vec<DrawingGeometricEntity>,
     pub viewports: Vec<DrawingViewport>,
+    pub line_patterns: Vec<super::DrawingLinePattern>,
+    pub line_pattern_scale: f64,
     pub layers: Vec<DrawingLayer>,
     pub layouts: Vec<DrawingLayout>,
     pub ucs_definitions: Vec<DrawingUcsDefinition>,

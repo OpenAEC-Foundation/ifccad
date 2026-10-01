@@ -17,8 +17,12 @@ fn override_row(stream: &Value, row: usize) -> Option<DrawingViewportLayerOverri
         frozen: column(stream, "frozen", row)?.as_bool()?,
         color: optional("color").map(color).transpose_option()?,
         opacity: optional("opacity").map(Value::as_f64).transpose_option()?,
-        line_pattern: optional("linePattern")
-            .map(|value| value.as_str().map(str::to_owned))
+        line_pattern_id: optional("linePatternId")
+            .map(|value| {
+                value
+                    .as_u64()
+                    .map(|id| crate::ocdraw::LinePatternId(id as u32))
+            })
             .transpose_option()?,
         line_weight: optional("lineWeight")
             .map(Value::as_f64)

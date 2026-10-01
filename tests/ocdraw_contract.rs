@@ -114,7 +114,7 @@ fn ocdraw_registry_owns_layers_layouts_and_entity_appearance() {
         "frozenInNewViewports",
         "color",
         "opacity",
-        "linePattern",
+        "linePatternId",
         "lineWeight",
     ] {
         assert!(layers.contains(&name), "missing Layer field {name}");
@@ -141,7 +141,7 @@ fn ocdraw_registry_owns_layers_layouts_and_entity_appearance() {
         "opacityMode",
         "opacity",
         "linePatternMode",
-        "linePattern",
+        "linePatternId",
         "lineWeightMode",
         "lineWeight",
     ] {

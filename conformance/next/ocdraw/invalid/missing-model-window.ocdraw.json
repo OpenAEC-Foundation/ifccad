@@ -6,7 +6,8 @@
     "unit": "unitless",
     "nextEntityId": 1,
     "nextLayerId": 0,
-    "nextLayoutId": 1
+    "nextLayoutId": 1,
+    "nextLinePatternId": 1
   },
   "layouts": [
     {
@@ -31,5 +32,12 @@
     },
     "activeModelWindowId": 3
   },
-  "streams": {}
+  "streams": {},
+  "linePatterns": [
+    {
+      "id": 0,
+      "name": "Continuous",
+      "pattern": []
+    }
+  ]
 }

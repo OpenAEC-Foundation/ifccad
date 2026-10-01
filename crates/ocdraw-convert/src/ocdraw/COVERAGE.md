@@ -45,6 +45,30 @@ in `ocdraw_conversion` records both behavior and this remaining boundary.
 
 Fractional and negative XY/XYZ polyline coordinates pass strict native
 production readback and direct conversion. Fractional planar polylines also
-have actual DXF/DWG readback. Source 3D polyline vertex handles/properties
-remain subject to the existing source classification; ordinary codec-created
-non-null vertex identities can trigger that explicit skip diagnostic.
+have actual DXF/DWG readback. Ordinary codec-created 3D vertex handles and empty/default vertex layers are
+accepted as scaffolding; semantic vertex properties retain their source classification.
+
+## Named line patterns
+
+Drawing-local definitions retain name, description, ordered simple lengths and
+unused records. Layers, explicit entities and native viewport overrides refer to
+local IDs; ByLayer/ByBlock remain modes. Drawing/entity scales and planar/spatial
+generation flags survive supported CAD conversion. The core has no CAD dependency.
+
+Text and shapes are not natively represented. Allow replaces the complete complex
+pattern with an empty sequence, preserving named identity and references, and
+reports one ComplexLinePatternFallback per definition (including unused ones).
+Reject returns no drawing. No source restoration is implied by the retained name.
+Broken references and invalid simple definitions are errors under both policies.
+
+The CAD importer retains the fresh document's Continuous scaffold when the source
+has no such named definition. Consequently CAD return conversion can add that
+unused target-required definition. ByLayer/ByBlock scaffolding never becomes
+ordinary OCDraw definitions. Real DXF/DWG tests cover custom fractional patterns,
+named empty fallback, scales and continuous planar generation. Spatial generation
+is retained in direct CAD conversion and DXF. The pinned DWG codec writes only the
+closed bit for Polyline3D and loses continuous spatial generation; the physical
+exchange test records this boundary. The inspector DWG download adds an explicit
+DWG_SPATIAL_PATTERN_GENERATION_LOSS diagnostic per affected entity; direct
+CadDocument conversion retains the flag. These tests do not
+certify text/font/shape dependencies or every CAD viewport/annotation behavior.

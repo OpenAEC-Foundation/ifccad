@@ -6,7 +6,8 @@
     "unit": "unitless",
     "nextEntityId": 1,
     "nextLayerId": 0,
-    "nextLayoutId": 1
+    "nextLayoutId": 1,
+    "nextLinePatternId": 0
   },
   "layouts": [
     {

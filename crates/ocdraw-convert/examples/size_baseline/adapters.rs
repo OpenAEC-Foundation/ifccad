@@ -18,6 +18,7 @@ fn selection<T: Clone>(value: &Property<T>) -> AppearanceSelection<T> {
 }
 fn native_appearance(value: &Appearance) -> EntityAppearance {
     EntityAppearance {
+        line_pattern_scale: 1.0,
         color: match &value.color {
             Property::ByLayer => AppearanceSelection::ByLayer,
             Property::ByBlock => AppearanceSelection::ByBlock,
@@ -28,21 +29,28 @@ fn native_appearance(value: &Appearance) -> EntityAppearance {
         opacity: selection(&value.opacity),
         line_pattern: match &value.pattern {
             Property::Explicit(v) if v.eq_ignore_ascii_case("continuous") => {
-                AppearanceSelection::Explicit("Continuous".into())
+                AppearanceSelection::Explicit(ocdraw::ocdraw::LinePatternId(0))
             }
-            other => selection(other),
+            Property::ByLayer => AppearanceSelection::ByLayer,
+            Property::ByBlock => AppearanceSelection::ByBlock,
+            Property::Explicit(_) => panic!("benchmark only covers Continuous"),
         },
         line_weight: selection(&value.weight),
     }
 }
 pub fn drawing(recipe: &Drawing) -> Result<EncodedDrawing> {
     let mut builder = DrawingBuilder::new(DrawingOptions::new("size-baseline", "mm"))?;
+    builder.ensure_continuous_line_pattern().unwrap();
     let mut layers = std::collections::BTreeMap::new();
     for source in &recipe.layers {
         let Property::Explicit([r, g, b]) = source.appearance.color else {
             return Err("recipe layer color must be explicit".into());
         };
-        let mut layer = LayerDefinition::new(&source.name, DrawingColor::rgb(r, g, b));
+        let mut layer = LayerDefinition::new(
+            &source.name,
+            DrawingColor::rgb(r, g, b),
+            ocdraw::ocdraw::LinePatternId(0),
+        );
         layer.visible = source.visible;
         let Property::Explicit(weight) = source.appearance.weight else {
             return Err("recipe layer weight must be explicit".into());
@@ -67,6 +75,8 @@ pub fn drawing(recipe: &Drawing) -> Result<EncodedDrawing> {
                 x_axis,
                 y_axis,
             } => DrawingGeometry::PlanarPolyline {
+                line_pattern_generation: ocdraw::ocdraw::LinePatternGeneration::PerSegment,
+
                 placement: CoordinateFrame3::try_new(
                     Point3::new(origin[0], origin[1], origin[2]),
                     Vector3::new(x_axis[0], x_axis[1], x_axis[2]),

@@ -3,6 +3,7 @@ mod export;
 mod geometry;
 mod import;
 mod layout;
+mod line_pattern;
 mod point_display;
 mod viewport;
 mod workspace;

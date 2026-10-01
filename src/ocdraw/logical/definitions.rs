@@ -13,7 +13,7 @@ pub struct DrawingLayer {
     pub frozen_in_new_viewports: bool,
     pub color: DrawingColor,
     pub opacity: f64,
-    pub line_pattern: String,
+    pub line_pattern_id: super::LinePatternId,
     pub line_weight: f64,
 }
 

@@ -5,7 +5,7 @@ drawings. This experimental repository keeps the IFCCAD name and develops
 standalone OCDraw.
 
 A drawing contains typed geometric entities, layers, layouts, entity appearance
-choices, shared block definitions, and drawing-bound state. It opens without
+choices, named simple line patterns, shared block definitions, and drawing-bound state. It opens without
 IFCX. The JSON format marker is `open_cad_drawing`. The initial 0.1.0 contract
 and entity schema v1 are provisional until contract completion and verification.
 
@@ -31,6 +31,9 @@ Current geometry includes XYZ lines, oriented points, placed circles/arcs and
 ellipses, planar polylines with bulges, direct XYZ spatial polylines, and local
 shared block instances. Layouts, appearances, plot state, named/current UCS,
 model windows, paper canvases and paper viewports have typed records.
+Named simple patterns retain their definitions, unused records, local references,
+scale and polyline generation. Complex text/shape patterns become named continuous
+patterns with loss evidence under Allow; Reject refuses this fallback.
 Unsupported conversion semantics are diagnosed or rejected. Numerical accuracy
 has a hard unit-aware tolerance, including nested block occurrences. See
 [converter coverage](crates/ocdraw-convert/src/ocdraw/COVERAGE.md) for limits.
@@ -45,12 +48,12 @@ conformance and the standalone primitive exchange experiment pass. Recording
 [ROADMAP.md](ROADMAP.md) defines sequencing and exit criteria.
 
 Preservation and external semantic links such as IFC associations are future
-concrete designs; no generic extension protocol is standardized now. IFCX
-integration is also planned as an independent CAD-native experiment on main
-while that experiment runs. The next integration will bring the existing
-experimental branch and its browser inspection route alongside OCDraw, with
-clearly separate models and contracts. Old IFCX/IFCDR/IFCPR readers,
-writers and active schemas are retired. Numbered conformance is immutable;
+concrete designs; no generic extension protocol is standardized now.
+IFCX-CAD is integrated on main as an independent experiment alongside OCDraw,
+with separate models, schemas, validation and direct conversion routes.
+The explorer opens either native format and converts DWG/DXF through the chosen
+route. This integration does not freeze the experimental IFCX-CAD contract.
+Old package IFCX/IFCDR/IFCPR readers, writers and active schemas are retired. Numbered conformance is immutable;
 [historical design](docs/legacy-ifccad.md) and Git history retain its context.
 
 ## Using the implementation
@@ -89,8 +92,8 @@ cadcodec `CadDocument`, including named simple line patterns, scales and polylin
 pattern generation. See the [line-pattern sample](examples/ifcx-native-cad/hello-line-patterns.ifcx). Geometry validation and length-unit tokens reuse OCDraw;
 the two drawing models, schemas and encoding routes remain separate. The
 [Open CAD Drawing explorer](format-explorer/README.md) now opens IFCX-CAD and
-roundtrips through DXF/DWG using its own converter. Integration onto main remains
-a follow-up step.
+roundtrips through DXF/DWG using its own converter. Paper layouts can be stored
+natively; authored paperspace and viewport conversion remain deferred.
 
 Run `pwsh -NoProfile -File scripts/cleanup_local.ps1` to audit local worktrees
 and build caches. Removal requires an explicitly selected, unused worktree;

@@ -25,13 +25,20 @@ fn create(name: &str) -> Result<EncodedDrawing> {
         )?,
     };
     let mut drawing = DrawingBuilder::new(DrawingOptions::new("spatial-performance", "m"))?;
-    let layer = drawing.add_layer(LayerDefinition::new("0", DrawingColor::rgb(0, 0, 0)))?;
+    drawing.ensure_continuous_line_pattern().unwrap();
+    let layer = drawing.add_layer(LayerDefinition::new(
+        "0",
+        DrawingColor::rgb(0, 0, 0),
+        ocdraw::ocdraw::LinePatternId(0),
+    ))?;
     for i in 0..10000 {
         let x = if name == "tight" { 0. } else { i as f64 };
         drawing.add_geometric_entity(GeometricEntityDefinition::new(
             0,
             layer,
             DrawingGeometry::PlanarPolyline {
+                line_pattern_generation: ocdraw::ocdraw::LinePatternGeneration::PerSegment,
+
                 placement: plane,
                 vertices: vec![[x, 0., 0.], [x + 1., 1., 0.]],
                 closed: false,

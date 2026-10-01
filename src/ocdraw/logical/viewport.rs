@@ -22,7 +22,7 @@ pub struct DrawingViewportLayerOverride {
     pub frozen: bool,
     pub color: Option<DrawingColor>,
     pub opacity: Option<f64>,
-    pub line_pattern: Option<String>,
+    pub line_pattern_id: Option<super::LinePatternId>,
     pub line_weight: Option<f64>,
 }
 

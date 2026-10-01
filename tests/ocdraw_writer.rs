@@ -10,8 +10,13 @@ fn general_geometry_writer_preserves_placed_polyline_and_signed_block_transform(
         GeometricEntityDefinition, Point3, Scale3, Vector3,
     };
     let mut builder = DrawingBuilder::new(DrawingOptions::new("placed", "mm")).unwrap();
+    builder.ensure_continuous_line_pattern().unwrap();
     let layer = builder
-        .add_layer(LayerDefinition::new("0", RgbColor::new(255, 255, 255)))
+        .add_layer(LayerDefinition::new(
+            "0",
+            RgbColor::new(255, 255, 255),
+            ocdraw::ocdraw::LinePatternId(0),
+        ))
         .unwrap();
     let block = builder
         .add_block_definition(BlockDefinition::new("Shared"))
@@ -23,6 +28,8 @@ fn general_geometry_writer_preserves_placed_polyline_and_signed_block_transform(
     )
     .unwrap();
     let line = DrawingGeometry::PlanarPolyline {
+        line_pattern_generation: ocdraw::ocdraw::LinePatternGeneration::PerSegment,
+
         placement: frame,
         vertices: vec![[0.0, 0.0, 0.25], [2.0, 3.0, 0.0]],
         closed: false,
@@ -73,11 +80,18 @@ fn empty_and_populated_drawings_round_trip_through_the_production_reader() {
     assert!(read.validated_drawing().unwrap().typed_layers().is_empty());
 
     let mut builder = DrawingBuilder::new(DrawingOptions::new("line-drawing", "mm")).unwrap();
+    builder.ensure_continuous_line_pattern().unwrap();
     let layer_id = builder
-        .add_layer(LayerDefinition::new("Red", RgbColor::new(255, 0, 0)))
+        .add_layer(LayerDefinition::new(
+            "Red",
+            RgbColor::new(255, 0, 0),
+            ocdraw::ocdraw::LinePatternId(0),
+        ))
         .unwrap();
     let mut line = LineDefinition::new(layer_id, [0.0, 0.0, 0.0], [2.0, 2.0, 0.0]);
     line.appearance = EntityAppearance {
+        line_pattern_scale: 1.0,
+
         color: AppearanceSelection::ByLayer,
         opacity: AppearanceSelection::Explicit(0.5),
         line_pattern: AppearanceSelection::ByBlock,
@@ -126,8 +140,13 @@ fn empty_and_populated_drawings_round_trip_through_the_production_reader() {
 fn block_definition_and_instance_keep_distinct_owner_scopes() {
     use ocdraw::ocdraw::BlockInstanceDefinition;
     let mut builder = DrawingBuilder::new(DrawingOptions::new("blocks", "mm")).unwrap();
+    builder.ensure_continuous_line_pattern().unwrap();
     let layer = builder
-        .add_layer(LayerDefinition::new("0", RgbColor::new(0, 0, 0)))
+        .add_layer(LayerDefinition::new(
+            "0",
+            RgbColor::new(0, 0, 0),
+            ocdraw::ocdraw::LinePatternId(0),
+        ))
         .unwrap();
     let block_scope = builder.add_block_definition("Door").unwrap();
     let source = builder
@@ -177,8 +196,13 @@ fn block_definition_and_instance_keep_distinct_owner_scopes() {
 fn block_base_point_moves_definition_geometry_into_instance_scope() {
     use ocdraw::ocdraw::{BlockDefinition, BlockInstanceDefinition};
     let mut builder = DrawingBuilder::new(DrawingOptions::new("base", "mm")).unwrap();
+    builder.ensure_continuous_line_pattern().unwrap();
     let layer = builder
-        .add_layer(LayerDefinition::new("0", RgbColor::new(0, 0, 0)))
+        .add_layer(LayerDefinition::new(
+            "0",
+            RgbColor::new(0, 0, 0),
+            ocdraw::ocdraw::LinePatternId(0),
+        ))
         .unwrap();
     let mut definition = BlockDefinition::new("Offset");
     definition.base_point = [2.0, 0.0, 0.0];
@@ -199,8 +223,13 @@ fn block_base_point_moves_definition_geometry_into_instance_scope() {
 fn arc_is_written_with_scoped_bounds_and_strict_readback() {
     use ocdraw::ocdraw::ArcDefinition;
     let mut builder = DrawingBuilder::new(DrawingOptions::new("arc", "mm")).unwrap();
+    builder.ensure_continuous_line_pattern().unwrap();
     let layer = builder
-        .add_layer(LayerDefinition::new("0", RgbColor::new(0, 0, 0)))
+        .add_layer(LayerDefinition::new(
+            "0",
+            RgbColor::new(0, 0, 0),
+            ocdraw::ocdraw::LinePatternId(0),
+        ))
         .unwrap();
     let id = builder
         .add_arc(ArcDefinition::new(
@@ -229,8 +258,13 @@ fn arc_is_written_with_scoped_bounds_and_strict_readback() {
 fn full_and_partial_ellipses_have_typed_streams() {
     use ocdraw::ocdraw::EllipseDefinition;
     let mut builder = DrawingBuilder::new(DrawingOptions::new("ellipses", "mm")).unwrap();
+    builder.ensure_continuous_line_pattern().unwrap();
     let layer = builder
-        .add_layer(LayerDefinition::new("0", RgbColor::new(0, 0, 0)))
+        .add_layer(LayerDefinition::new(
+            "0",
+            RgbColor::new(0, 0, 0),
+            ocdraw::ocdraw::LinePatternId(0),
+        ))
         .unwrap();
     builder
         .add_ellipse(EllipseDefinition::new(
@@ -264,8 +298,13 @@ fn full_and_partial_ellipses_have_typed_streams() {
 fn planar_and_spatial_polylines_write_pooled_vertices() {
     use ocdraw::ocdraw::{PlanarPolylineDefinition, SpatialPolylineDefinition};
     let mut builder = DrawingBuilder::new(DrawingOptions::new("polylines", "mm")).unwrap();
+    builder.ensure_continuous_line_pattern().unwrap();
     let layer = builder
-        .add_layer(LayerDefinition::new("0", RgbColor::new(0, 0, 0)))
+        .add_layer(LayerDefinition::new(
+            "0",
+            RgbColor::new(0, 0, 0),
+            ocdraw::ocdraw::LinePatternId(0),
+        ))
         .unwrap();
     builder
         .add_planar_polyline(PlanarPolylineDefinition::new(
@@ -312,7 +351,7 @@ fn planar_and_spatial_polylines_write_pooled_vertices() {
         .iter()
         .any(|entity| matches!(
             entity.geometry(),
-            ocdraw::ocdraw::DrawingGeometry::SpatialPolyline { vertices, closed: false }
+            ocdraw::ocdraw::DrawingGeometry::SpatialPolyline { vertices, closed: false , ..}
                 if vertices == &vec![[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
         )));
     let mut invalid = value.clone();
@@ -328,20 +367,38 @@ fn planar_and_spatial_polylines_write_pooled_vertices() {
 #[test]
 fn writer_and_reader_share_logical_definition_rules() {
     let mut builder = DrawingBuilder::new(DrawingOptions::new("logical", "mm")).unwrap();
+    builder.ensure_continuous_line_pattern().unwrap();
     builder
-        .add_layer(LayerDefinition::new("Walls", RgbColor::new(0, 0, 0)))
+        .add_layer(LayerDefinition::new(
+            "Walls",
+            RgbColor::new(0, 0, 0),
+            ocdraw::ocdraw::LinePatternId(0),
+        ))
         .unwrap();
     builder
-        .add_layer(LayerDefinition::new("walls", RgbColor::new(0, 0, 0)))
+        .add_layer(LayerDefinition::new(
+            "walls",
+            RgbColor::new(0, 0, 0),
+            ocdraw::ocdraw::LinePatternId(0),
+        ))
         .unwrap();
     assert!(builder.finish().is_err());
 
     let mut builder = DrawingBuilder::new(DrawingOptions::new("logical", "mm")).unwrap();
+    builder.ensure_continuous_line_pattern().unwrap();
     builder
-        .add_layer(LayerDefinition::new("Walls", RgbColor::new(0, 0, 0)))
+        .add_layer(LayerDefinition::new(
+            "Walls",
+            RgbColor::new(0, 0, 0),
+            ocdraw::ocdraw::LinePatternId(0),
+        ))
         .unwrap();
     builder
-        .add_layer(LayerDefinition::new("Roof", RgbColor::new(0, 0, 0)))
+        .add_layer(LayerDefinition::new(
+            "Roof",
+            RgbColor::new(0, 0, 0),
+            ocdraw::ocdraw::LinePatternId(0),
+        ))
         .unwrap();
     let encoded = builder.finish().unwrap();
     let mut value: serde_json::Value = serde_json::from_slice(encoded.bytes()).unwrap();
@@ -358,6 +415,7 @@ fn writer_and_reader_share_logical_definition_rules() {
 fn point_display_is_drawing_local_and_roundtrips() {
     use ocdraw::ocdraw::{PointDisplay, PointGlyph, PointSize};
     let mut builder = DrawingBuilder::new(DrawingOptions::new("point-display", "mm")).unwrap();
+    builder.ensure_continuous_line_pattern().unwrap();
     builder
         .set_point_display(PointDisplay {
             glyph: PointGlyph::Cross,
@@ -393,6 +451,7 @@ fn point_display_is_drawing_local_and_roundtrips() {
 fn layout_limits_and_scaling_are_stored_in_the_layout() {
     use ocdraw::ocdraw::{LayoutRect, LayoutSettings};
     let mut builder = DrawingBuilder::new(DrawingOptions::new("layout-settings", "mm")).unwrap();
+    builder.ensure_continuous_line_pattern().unwrap();
     let paper = builder.add_paper_layout("Sheet").unwrap();
     builder
         .set_layout_settings(
@@ -432,6 +491,7 @@ fn layout_plot_settings_roundtrip_through_production_reader() {
         ShadedPlotQuality, ShadedPlotQualityMode,
     };
     let mut builder = DrawingBuilder::new(DrawingOptions::new("plot", "mm")).unwrap();
+    builder.ensure_continuous_line_pattern().unwrap();
     let paper = builder.add_paper_layout("Sheet").unwrap();
     let settings = PlotSettings {
         media: PlotMedia {
@@ -506,6 +566,7 @@ fn layout_plot_settings_roundtrip_through_production_reader() {
 fn unused_named_ucs_definition_is_drawing_local() {
     use ocdraw::ocdraw::{CoordinateFrame3, Point3, UcsDefinition, Vector3};
     let mut builder = DrawingBuilder::new(DrawingOptions::new("ucs", "mm")).unwrap();
+    builder.ensure_continuous_line_pattern().unwrap();
     let frame = CoordinateFrame3::try_new(
         Point3::new(1.0, 2.0, 3.0),
         Vector3::new(1.0, 0.0, 0.0),
@@ -539,8 +600,13 @@ fn unused_named_ucs_definition_is_drawing_local() {
 #[test]
 fn paper_layout_and_drawing_workspace_are_local() {
     let mut builder = DrawingBuilder::new(DrawingOptions::new("paper-drawing", "mm")).unwrap();
+    builder.ensure_continuous_line_pattern().unwrap();
     let unused_layer = builder
-        .add_layer(LayerDefinition::new("Unused", RgbColor::new(0, 0, 0)))
+        .add_layer(LayerDefinition::new(
+            "Unused",
+            RgbColor::new(0, 0, 0),
+            ocdraw::ocdraw::LinePatternId(0),
+        ))
         .unwrap();
     let paper = builder.add_paper_layout("A1").unwrap();
     builder.set_current_layer(unused_layer);
@@ -580,10 +646,12 @@ fn paper_layout_and_drawing_workspace_are_local() {
 fn authored_color_metadata_survives_readback() {
     use ocdraw::ocdraw::DrawingColor;
     let mut builder = DrawingBuilder::new(DrawingOptions::new("indexed", "mm")).unwrap();
+    builder.ensure_continuous_line_pattern().unwrap();
     let layer = builder
         .add_layer(LayerDefinition::new(
             "A",
             DrawingColor::rgb(255, 0, 0).with_indexed("ACI", 1),
+            ocdraw::ocdraw::LinePatternId(0),
         ))
         .unwrap();
     let mut line = LineDefinition::new(layer, [0.0, 0.0, 0.0], [1.0, 1.0, 0.0]);
@@ -628,6 +696,7 @@ fn writing_a_drawing_refuses_to_replace_an_existing_file() {
 #[test]
 fn named_plot_style_mode_is_explicit() {
     let mut builder = DrawingBuilder::new(DrawingOptions::new("plot", "unitless")).unwrap();
+    builder.ensure_continuous_line_pattern().unwrap();
     builder.set_plot_style_mode(ocdraw::ocdraw::PlotStyleMode::Named);
     let encoded = builder.finish().unwrap();
     let read = load_drawing_bytes(encoded.bytes());
@@ -644,8 +713,13 @@ fn named_plot_style_mode_is_explicit() {
 fn point_and_circle_share_entity_ids_and_draw_order_with_lines() {
     use ocdraw::ocdraw::{CircleDefinition, DrawingGeometry, PointDefinition};
     let mut builder = DrawingBuilder::new(DrawingOptions::new("mixed", "mm")).unwrap();
+    builder.ensure_continuous_line_pattern().unwrap();
     let layer = builder
-        .add_layer(LayerDefinition::new("0", RgbColor::new(255, 255, 255)))
+        .add_layer(LayerDefinition::new(
+            "0",
+            RgbColor::new(255, 255, 255),
+            ocdraw::ocdraw::LinePatternId(0),
+        ))
         .unwrap();
     assert_eq!(
         builder
@@ -696,8 +770,13 @@ fn transformed_block_bounds_enclose_occurrences_and_reject_false_parent_bounds()
         GeometricEntityDefinition, Scale3,
     };
     let mut drawing = DrawingBuilder::new(DrawingOptions::new("bounds", "mm")).unwrap();
+    drawing.ensure_continuous_line_pattern().unwrap();
     let layer = drawing
-        .add_layer(LayerDefinition::new("0", RgbColor::new(255, 255, 255)))
+        .add_layer(LayerDefinition::new(
+            "0",
+            RgbColor::new(255, 255, 255),
+            ocdraw::ocdraw::LinePatternId(0),
+        ))
         .unwrap();
     let block = drawing
         .add_block_definition(BlockDefinition::new("Shared"))
@@ -750,8 +829,13 @@ fn typed_saved_state_and_paper_viewport_have_production_readback() {
         Point2, Point3, Vector3, ViewportDefinition,
     };
     let mut builder = DrawingBuilder::new(DrawingOptions::new("workspace", "mm")).unwrap();
+    builder.ensure_continuous_line_pattern().unwrap();
     let layer = builder
-        .add_layer(LayerDefinition::new("0", RgbColor::new(255, 255, 255)))
+        .add_layer(LayerDefinition::new(
+            "0",
+            RgbColor::new(255, 255, 255),
+            ocdraw::ocdraw::LinePatternId(0),
+        ))
         .unwrap();
     let paper = builder.add_paper_layout("Sheet").unwrap();
     let view = DrawingView {
@@ -848,8 +932,13 @@ fn optional_placement_columns_preserve_every_row_regardless_of_first_row() {
     for reverse in [false, true] {
         let mut builder =
             DrawingBuilder::new(DrawingOptions::new("mixed-placements", "mm")).unwrap();
+        builder.ensure_continuous_line_pattern().unwrap();
         let layer = builder
-            .add_layer(LayerDefinition::new("0", RgbColor::new(0, 0, 0)))
+            .add_layer(LayerDefinition::new(
+                "0",
+                RgbColor::new(0, 0, 0),
+                ocdraw::ocdraw::LinePatternId(0),
+            ))
             .unwrap();
         let frames = if reverse {
             [placed, CoordinateFrame3::default()]
@@ -877,6 +966,8 @@ fn optional_placement_columns_preserve_every_row_regardless_of_first_row() {
                     arc: None,
                 },
                 DrawingGeometry::PlanarPolyline {
+                    line_pattern_generation: ocdraw::ocdraw::LinePatternGeneration::PerSegment,
+
                     placement,
                     vertices: vec![[0., 0., 0.], [1., 1., 0.]],
                     closed: false,
@@ -912,8 +1003,13 @@ fn optional_placement_columns_preserve_every_row_regardless_of_first_row() {
 #[test]
 fn scopes_store_authoritative_ordered_ownership_without_duplicate_columns() {
     let mut builder = DrawingBuilder::new(DrawingOptions::new("owners", "mm")).unwrap();
+    builder.ensure_continuous_line_pattern().unwrap();
     let layer = builder
-        .add_layer(LayerDefinition::new("0", RgbColor::new(255, 255, 255)))
+        .add_layer(LayerDefinition::new(
+            "0",
+            RgbColor::new(255, 255, 255),
+            ocdraw::ocdraw::LinePatternId(0),
+        ))
         .unwrap();
     let a = builder
         .add_line(LineDefinition::new(layer, [0.0; 3], [1.0; 3]))
@@ -943,19 +1039,28 @@ fn polyline_pools_accept_fractional_and_negative_coordinates() {
     use ocdraw::ocdraw::{CoordinateFrame3, DrawingGeometry, GeometricEntityDefinition};
     for geometry in [
         DrawingGeometry::PlanarPolyline {
+            line_pattern_generation: ocdraw::ocdraw::LinePatternGeneration::PerSegment,
+
             placement: CoordinateFrame3::default(),
             vertices: vec![[-1.25, 2.5, 0.125], [3.75, -4.5, 0.0]],
             closed: false,
         },
         DrawingGeometry::SpatialPolyline {
+            line_pattern_generation: ocdraw::ocdraw::LinePatternGeneration::PerSegment,
+
             vertices: vec![[-1.25, 2.5, -3.75], [4.5, -5.25, 6.125]],
             closed: false,
         },
     ] {
         let mut builder =
             DrawingBuilder::new(DrawingOptions::new("fractional-polyline", "mm")).unwrap();
+        builder.ensure_continuous_line_pattern().unwrap();
         let layer = builder
-            .add_layer(LayerDefinition::new("0", RgbColor::new(255, 255, 255)))
+            .add_layer(LayerDefinition::new(
+                "0",
+                RgbColor::new(255, 255, 255),
+                ocdraw::ocdraw::LinePatternId(0),
+            ))
             .unwrap();
         builder
             .add_geometric_entity(GeometricEntityDefinition::new(0, layer, geometry.clone()))

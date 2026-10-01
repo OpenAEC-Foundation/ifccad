@@ -16,7 +16,6 @@ pub(crate) struct AppearanceSignature {
     pub(crate) indexed: Option<u32>,
     pub(crate) named: Option<(String, String)>,
     pub(crate) opacity: u64,
-    pub(crate) line_pattern: String,
     pub(crate) line_weight: u64,
 }
 
@@ -38,7 +37,6 @@ pub(crate) struct ConvertedEntityAppearance {
     pub(crate) definition: Option<(AppearanceSignature, AppearanceColor)>,
     pub(crate) color_mode: AppearanceMode,
     pub(crate) opacity_mode: AppearanceMode,
-    pub(crate) line_pattern_mode: AppearanceMode,
     pub(crate) line_weight_mode: AppearanceMode,
 }
 
@@ -93,14 +91,6 @@ pub(crate) fn convert_entity_appearance(
         Transparency::ByBlock => (AppearanceMode::ByBlock, 1.0),
         Transparency::Explicit(alpha) => (AppearanceMode::Explicit, 1.0 - f64::from(alpha) / 255.0),
     };
-    let (line_pattern_mode, line_pattern) =
-        if common.linetype.is_empty() || common.linetype.eq_ignore_ascii_case("ByLayer") {
-            (AppearanceMode::ByLayer, "Continuous".to_owned())
-        } else if common.linetype.eq_ignore_ascii_case("ByBlock") {
-            (AppearanceMode::ByBlock, "Continuous".to_owned())
-        } else {
-            (AppearanceMode::Explicit, common.linetype.clone())
-        };
     let (line_weight_mode, line_weight) = match common.line_weight {
         LineWeight::ByLayer => (AppearanceMode::ByLayer, 0.25),
         LineWeight::ByBlock => (AppearanceMode::ByBlock, 0.25),
@@ -119,13 +109,8 @@ pub(crate) fn convert_entity_appearance(
         return Err(EntityAppearanceError::Loss(losses));
     }
 
-    let needs_definition = [
-        color_mode,
-        opacity_mode,
-        line_pattern_mode,
-        line_weight_mode,
-    ]
-    .contains(&AppearanceMode::Explicit);
+    let needs_definition =
+        [color_mode, opacity_mode, line_weight_mode].contains(&AppearanceMode::Explicit);
     let definition = needs_definition.then(|| {
         let (rgb, indexed) = explicit_color.unwrap_or(([0, 0, 0], None));
         let mut color = AppearanceColor::rgb(rgb[0], rgb[1], rgb[2]);
@@ -141,7 +126,6 @@ pub(crate) fn convert_entity_appearance(
                 indexed,
                 named,
                 opacity: opacity.to_bits(),
-                line_pattern,
                 line_weight: line_weight.to_bits(),
             },
             color,
@@ -151,7 +135,6 @@ pub(crate) fn convert_entity_appearance(
         definition,
         color_mode,
         opacity_mode,
-        line_pattern_mode,
         line_weight_mode,
     })
 }
@@ -231,7 +214,6 @@ pub(crate) fn convert_layer_appearance(
             indexed,
             named,
             opacity: opacity.to_bits(),
-            line_pattern: layer.line_type.clone(),
             line_weight: line_weight.to_bits(),
         },
         color,

@@ -36,6 +36,7 @@ pub(super) fn color(
 }
 
 fn apply_common(
+    patterns: &crate::ocdraw::line_pattern::ImportLinePatternMap,
     appearance: &EntityAppearance,
     visible: bool,
     common: &mut cadcodec::entities::EntityCommon,
@@ -61,10 +62,15 @@ fn apply_common(
         AppearanceSelection::ByBlock => Transparency::ByBlock,
         AppearanceSelection::Explicit(value) => Transparency::from_percent(1.0 - value),
     };
+    common.linetype_scale = appearance.line_pattern_scale;
+    common.linetype_handle = match appearance.line_pattern {
+        AppearanceSelection::Explicit(id) => Some(patterns[&id].1),
+        _ => None,
+    };
     common.linetype = match &appearance.line_pattern {
         AppearanceSelection::ByLayer => String::new(),
         AppearanceSelection::ByBlock => "ByBlock".into(),
-        AppearanceSelection::Explicit(value) => value.clone(),
+        AppearanceSelection::Explicit(value) => patterns[value].0.clone(),
     };
     common.line_weight = match appearance.line_weight {
         AppearanceSelection::ByLayer => LineWeight::ByLayer,
@@ -74,6 +80,7 @@ fn apply_common(
 }
 
 pub(super) struct TargetIndex<'a> {
+    pub patterns: &'a crate::ocdraw::line_pattern::ImportLinePatternMap,
     pub layers: &'a BTreeMap<u64, String>,
     pub layouts: &'a BTreeMap<u64, Option<String>>,
     pub block_handles: &'a BTreeMap<u64, Handle>,
@@ -87,6 +94,7 @@ pub(super) fn append_entities(
     diagnostics: &mut Vec<DirectImportDiagnostic>,
 ) -> Result<BTreeMap<u64, Handle>, DirectImportError> {
     let TargetIndex {
+        patterns,
         layers: layer_names,
         layouts: scope_layouts,
         block_handles,
@@ -156,6 +164,7 @@ pub(super) fn append_entities(
             };
         let layer_name = &layer_names[&u64::from(layer_id)];
         apply_common(
+            patterns,
             appearance,
             visible,
             entity.common_mut(),
