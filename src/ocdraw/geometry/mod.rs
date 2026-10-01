@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 mod block;
 mod bulge;
 mod circular;
@@ -9,8 +11,8 @@ pub(crate) use circular::{circular_bounds, elliptic_bounds};
 pub(crate) use placement::CoordinateFrameComponents;
 mod values;
 
+pub(crate) use block::PreparedBlockTransform;
 pub use block::{BlockTransform, BlockTransformError, Scale3};
-pub(crate) use block::{BlockTransformComponents, PreparedBlockTransform};
 
 pub use placement::{
     CoordinateFrame3, CoordinateFrameError, CoordinateFrameField, GeometryEvaluationError,

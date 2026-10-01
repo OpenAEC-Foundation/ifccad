@@ -6,10 +6,7 @@ use crate::{ConversionGeometryTolerance, ConversionToleranceError};
 use cadcodec::Handle;
 use num_rational::BigRational;
 use num_traits::Zero;
-use ocdraw::{
-    ifcdr::{EntityId, IfcdrLengthUnit, ScopeId},
-    ResourceId,
-};
+use ocdraw::ocdraw::DrawingLengthUnit;
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct ConversionDistanceInterval {
     pub(crate) lower: f64,
@@ -40,10 +37,9 @@ pub enum ConversionEntitySource {
         handle: Handle,
         kind: String,
     },
-    IfcdrEntity {
-        resource_id: ResourceId,
-        scope_id: ScopeId,
-        entity_id: EntityId,
+    DrawingEntity {
+        scope_id: u32,
+        entity_id: u64,
     },
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -73,7 +69,7 @@ pub struct ConversionGeometryFailure {
 #[derive(Clone, Debug, PartialEq)]
 pub struct ConversionGeometryAssessment {
     requested: ConversionGeometryTolerance,
-    unit: IfcdrLengthUnit,
+    unit: DrawingLengthUnit,
     resolved: ConversionDistanceInterval,
     limit: ResolvedTolerance,
     entities: usize,
@@ -85,7 +81,7 @@ pub struct ConversionGeometryAssessment {
 impl ConversionGeometryAssessment {
     pub(crate) fn new(
         requested: ConversionGeometryTolerance,
-        unit: IfcdrLengthUnit,
+        unit: DrawingLengthUnit,
     ) -> Result<Self, ConversionToleranceError> {
         let limit = requested.resolve(unit)?;
         let resolved = ConversionDistanceInterval {
@@ -107,7 +103,7 @@ impl ConversionGeometryAssessment {
     pub fn requested_tolerance(&self) -> ConversionGeometryTolerance {
         self.requested
     }
-    pub fn drawing_unit(&self) -> IfcdrLengthUnit {
+    pub fn drawing_unit(&self) -> DrawingLengthUnit {
         self.unit
     }
     pub fn resolved_tolerance(&self) -> ConversionDistanceInterval {
@@ -283,7 +279,7 @@ mod tests {
     fn interval_outcomes_distinguish_proof_gap_from_proved_exceedance() {
         let assessment = ConversionGeometryAssessment::new(
             ConversionGeometryTolerance::drawing_units(1.).unwrap(),
-            IfcdrLengthUnit::Metre,
+            DrawingLengthUnit::Metre,
         )
         .unwrap();
         let source = ConversionEntitySource::CadEntity {
@@ -308,19 +304,19 @@ mod tests {
             ConversionGeometryFailureReason::ProvenExceedance
         );
         assert!(matches!(
-            crate::ExportError::from(uncertain.clone()),
-            crate::ExportError::GeometryAccuracyNotEstablished { .. }
+            crate::DirectExportError::from(uncertain.clone()),
+            crate::DirectExportError::Geometry(..)
         ));
         assert!(matches!(
-            crate::ImportError::from(uncertain),
-            crate::ImportError::GeometryAccuracyNotEstablished { .. }
+            crate::DirectImportError::from(uncertain),
+            crate::DirectImportError::Geometry(..)
         ));
     }
     #[test]
     fn uncertainty_is_a_hard_accuracy_failure_in_both_conversion_directions() {
         let mut a = ConversionGeometryAssessment::new(
             ConversionGeometryTolerance::default(),
-            IfcdrLengthUnit::Parsec,
+            DrawingLengthUnit::Parsec,
         )
         .unwrap();
         a.limit = ResolvedTolerance {
@@ -337,19 +333,19 @@ mod tests {
             ConversionGeometryFailureReason::NumericalProofIncomplete
         );
         assert!(matches!(
-            crate::ImportError::from(failure.clone()),
-            crate::ImportError::GeometryAccuracyNotEstablished { .. }
+            crate::DirectImportError::from(failure.clone()),
+            crate::DirectImportError::Geometry(..)
         ));
         assert!(matches!(
-            crate::ExportError::from(failure),
-            crate::ExportError::GeometryAccuracyNotEstablished { .. }
+            crate::DirectExportError::from(failure),
+            crate::DirectExportError::Geometry(..)
         ));
     }
     #[test]
     fn rational_unit_limit_and_reported_distance_do_not_relax_acceptance() {
         let a = ConversionGeometryAssessment::new(
             ConversionGeometryTolerance::default(),
-            IfcdrLengthUnit::Inch,
+            DrawingLengthUnit::Inch,
         )
         .unwrap();
         let source = ConversionEntitySource::CadEntity {
@@ -375,7 +371,7 @@ mod tests {
     fn exact_euclidean_tolerance_is_inclusive() {
         let a = ConversionGeometryAssessment::new(
             ConversionGeometryTolerance::drawing_units(1.0).unwrap(),
-            IfcdrLengthUnit::Unitless,
+            DrawingLengthUnit::Unitless,
         )
         .unwrap();
         let source = ConversionEntitySource::CadEntity {
@@ -389,7 +385,7 @@ mod tests {
             .is_err());
         let zero = ConversionGeometryAssessment::new(
             ConversionGeometryTolerance::exact(),
-            IfcdrLengthUnit::Unitless,
+            DrawingLengthUnit::Unitless,
         )
         .unwrap();
         assert_eq!(zero.check(&source, 0, &exact(0.0)).unwrap(), 0.0);

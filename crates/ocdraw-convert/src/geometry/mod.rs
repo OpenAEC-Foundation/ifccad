@@ -46,7 +46,7 @@ pub(crate) fn cad_plane(normal: Vector3) -> Option<CadPlane> {
 }
 
 /// Builds a right-handed in-plane pair from two independent source directions.
-/// This is opt-in conversion preparation; it never repairs an IFCDR frame on read.
+/// This is opt-in conversion preparation; it never repairs an OCDraw frame on read.
 pub(crate) fn orthonormal_pair(x: Vector3, y: Vector3) -> Option<(Vector3, Vector3)> {
     let x = normalized(x)?;
     let y = normalized(y)?;
@@ -92,9 +92,9 @@ use crate::{
 };
 use cadcodec::{LwPolyline, Vector2};
 use numeric::{exact, round_nearest};
-use ocdraw::ifcdr::{CoordinateFrame3, PlanarPolylineRef, Point3};
-fn cv(v: [f64; 3]) -> ocdraw::ifcdr::Vector3 {
-    ocdraw::ifcdr::Vector3::new(v[0], v[1], v[2])
+use ocdraw::ocdraw::{CoordinateFrame3, Point3};
+fn cv(v: [f64; 3]) -> ocdraw::ocdraw::Vector3 {
+    ocdraw::ocdraw::Vector3::new(v[0], v[1], v[2])
 }
 fn components(plane: CoordinateFrame3) -> ([f64; 3], [f64; 3], [f64; 3]) {
     let (o, x, y) = (plane.origin(), plane.x_axis(), plane.y_axis());
@@ -203,7 +203,7 @@ pub(crate) fn from_cad(
             || vertex.location.y.abs() > f64::MAX / 8.0
         {
             plane
-                .try_to_scope_point(ocdraw::ifcdr::Point2::new(
+                .try_to_scope_point(ocdraw::ocdraw::Point2::new(
                     vertex.location.x,
                     vertex.location.y,
                 ))
@@ -240,12 +240,13 @@ pub(crate) fn from_cad(
     assessment.record(source, poly.vertices.len() + curved, bound);
     Ok((plane, bound, normal_changed))
 }
-pub(crate) fn to_cad(
-    poly: PlanarPolylineRef<'_>,
+pub(crate) fn to_cad_parts(
+    plane: CoordinateFrame3,
+    vertices: &[[f64; 3]],
+    closed: bool,
     source: ConversionEntitySource,
     assessment: &mut ConversionGeometryAssessment,
 ) -> Result<(LwPolyline, f64, bool), Box<ConversionGeometryFailure>> {
-    let plane = poly.placement();
     let (o, x, y) = components(plane);
     let normal = stored_normal(plane).ok_or_else(|| {
         assessment.failure(
@@ -275,10 +276,10 @@ pub(crate) fn to_cad(
         && y == basis.v
         && (0..3).all(|i| exact(o[i]) == exact(elevation) * exact(basis.n[i]));
     let prepared = (!direct).then(|| PreparedProjection::new(o, x, y, basis, elevation));
-    let mut points = Vec::with_capacity(poly.local_points().len());
+    let mut points = Vec::with_capacity(vertices.len());
     let mut maximum = 0.0_f64;
-    for (index, p) in poly.local_points().enumerate() {
-        let mut uv = [p.x(), p.y()];
+    for (index, p) in vertices.iter().enumerate() {
+        let mut uv = [p[0], p[1]];
         if let Some(prepared) = &prepared {
             let (projected, d2) = prepared.project(uv).map_err(|_| {
                 assessment.failure(
@@ -293,22 +294,22 @@ pub(crate) fn to_cad(
         }
         points.push(Vector2::new(uv[0], uv[1]));
     }
-    let local = poly.local_points().collect::<Vec<_>>();
-    let segment_count = if poly.closed() {
+    let local = vertices;
+    let segment_count = if closed {
         local.len()
     } else {
         local.len().saturating_sub(1)
     };
     let mut interior_count = 0;
     for index in 0..segment_count {
-        let bulge = poly.bulge(index).expect("validated bulge");
+        let bulge = vertices[index][2];
         if bulge == 0.0 {
             continue;
         }
         let next = (index + 1) % local.len();
         let [a, b] = bulge_midpoint(
-            [local[index].x(), local[index].y()],
-            [local[next].x(), local[next].y()],
+            [local[index][0], local[index][1]],
+            [local[next][0], local[next][1]],
             bulge,
         );
         let [c, d] = bulge_midpoint(
@@ -332,11 +333,11 @@ pub(crate) fn to_cad(
     assessment.record(source, points.len() + interior_count, maximum);
     let mut target = LwPolyline::from_points(points);
     for (index, vertex) in target.vertices.iter_mut().enumerate() {
-        vertex.bulge = poly.bulge(index).expect("validated polyline bulge");
+        vertex.bulge = vertices[index][2];
     }
     target.normal = normal;
     target.elevation = elevation;
-    target.is_closed = poly.closed();
+    target.is_closed = closed;
     Ok((target, maximum, !direct))
 }
 

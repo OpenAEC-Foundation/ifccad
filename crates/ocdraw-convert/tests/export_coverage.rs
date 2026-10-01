@@ -1,19 +1,8 @@
 use cadcodec::{classes::DxfClassCollection, objects::ObjectType};
 use cadcodec::{CadDocument, EntityType, Handle, Line, LineType, Vector3};
-use ocdraw::package::PackageOptions;
-use ocdraw::PackageId;
 use ocdraw_convert::{
-    cad_document_to_package, ExportAction, ExportDiagnosticSource, ExportLossReason, ExportOptions,
+    cad_document_to_drawing, ExportAction, ExportDiagnosticSource, ExportLossReason, ExportOptions,
 };
-
-fn package_options() -> PackageOptions {
-    PackageOptions {
-        package_id: PackageId::new("coverage-test").unwrap(),
-        data_version: "1".to_owned(),
-        author: "Coverage test".to_owned(),
-        timestamp: "2026-09-04T10:00:00Z".to_owned(),
-    }
-}
 
 #[test]
 fn supported_entity_common_semantics_are_emitted_and_attached_semantics_are_reported() {
@@ -39,7 +28,7 @@ fn supported_entity_common_semantics_are_emitted_and_attached_semantics_are_repo
     common.plotstyle_flags = 3;
     common.plotstyle_handle = Some(Handle::new(0x809));
 
-    let outcome = cad_document_to_package(&document, package_options(), ExportOptions::default())
+    let outcome = cad_document_to_drawing(&document, ExportOptions::default())
         .unwrap_or_else(|error| panic!("export failed: {error}"));
     assert_eq!(outcome.entity_mapping().len(), 1);
     let diagnostic = outcome
@@ -90,7 +79,7 @@ fn document_tables_and_metadata_are_covered_deterministically() {
     document.summary_info.title = "Coverage drawing".to_owned();
     document.line_types.add(LineType::new("CUSTOM")).unwrap();
 
-    let outcome = cad_document_to_package(&document, package_options(), ExportOptions::default())
+    let outcome = cad_document_to_drawing(&document, ExportOptions::default())
         .unwrap_or_else(|error| panic!("export failed: {error}"));
     let projected = outcome
         .diagnostics()
@@ -143,7 +132,7 @@ fn bare_header_handle_values_do_not_count_as_semantic_loss() {
     document.header.named_objects_dict_handle = Handle::new(0xA02);
     document.header.current_layer_handle = Handle::new(0xA03);
 
-    let outcome = cad_document_to_package(&document, package_options(), ExportOptions::default())
+    let outcome = cad_document_to_drawing(&document, ExportOptions::default())
         .unwrap_or_else(|error| panic!("export failed: {error}"));
     assert!(outcome.diagnostics().is_empty());
 }
@@ -160,9 +149,8 @@ fn cached_geometry_extents_are_not_independent_drawing_settings() {
     document.header.model_space_extents_max = Vector3::new(100.0, 100.0, 0.0);
     document.header.paper_space_extents_min = Vector3::new(-1.0, -1.0, 0.0);
     document.header.paper_space_extents_max = Vector3::new(1.0, 1.0, 0.0);
-    let outcome = cad_document_to_package(
+    let outcome = cad_document_to_drawing(
         &document,
-        package_options(),
         ExportOptions {
             geometry_tolerance: Default::default(),
             loss_policy: ocdraw_convert::ExportLossPolicy::Reject,
@@ -170,57 +158,35 @@ fn cached_geometry_extents_are_not_independent_drawing_settings() {
     )
     .unwrap();
     assert!(outcome.diagnostics().is_empty());
-    let unique = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
-        .as_nanos();
-    let root = std::env::temp_dir().join(format!(
-        "ifccad-cached-extents-{}-{unique}",
-        std::process::id()
-    ));
-    outcome.package().write_directory(&root).unwrap();
-    let loaded = ocdraw::package::load_directory_package(&root).unwrap();
-    assert!(loaded.report().is_empty());
-    let drawing = loaded
-        .validated_package()
-        .unwrap()
-        .drawings()
-        .next()
+    let loaded = ocdraw::ocdraw::load_drawing_bytes(outcome.drawing().bytes());
+    let bounds = loaded.validated_drawing().unwrap().scopes()[0]
+        .bounds
         .unwrap();
-    let bounds = drawing.layouts().next().unwrap().scope().bounds().unwrap();
-    assert_eq!(bounds.min(), ocdraw::ifcdr::Point3::new(0.0, 0.0, 0.0));
-    assert_eq!(bounds.max(), ocdraw::ifcdr::Point3::new(10.0, 5.0, 0.0));
+    assert_eq!(bounds.min(), ocdraw::ocdraw::Point3::new(0., 0., 0.));
+    assert_eq!(bounds.max(), ocdraw::ocdraw::Point3::new(10., 5., 0.));
 }
 
 #[test]
-fn meaningful_current_defaults_and_drawing_limits_still_reject() {
-    for change in [0, 1] {
-        let mut document = CadDocument::new();
-        if change == 0 {
-            document.header.current_line_weight = 50;
-        } else {
-            document.header.model_space_limits_max.x += 100.0;
-        }
-        assert!(matches!(
-            cad_document_to_package(
-                &document,
-                package_options(),
-                ExportOptions {
-                    geometry_tolerance: Default::default(),
-                    loss_policy: ocdraw_convert::ExportLossPolicy::Reject
-                }
-            ),
-            Err(ocdraw_convert::ExportError::LossRejected { .. })
-        ));
-    }
+fn meaningful_unsupported_current_defaults_still_reject() {
+    let mut document = CadDocument::new();
+    document.header.current_line_weight = 50;
+    assert!(matches!(
+        cad_document_to_drawing(
+            &document,
+            ExportOptions {
+                loss_policy: ocdraw_convert::ExportLossPolicy::Reject,
+                ..Default::default()
+            }
+        ),
+        Err(ocdraw_convert::DirectExportError::LossRejected { .. })
+    ));
 }
 
 #[test]
 fn upstream_drawing_variables_are_reported_as_unsupported_objects() {
     let mut document = CadDocument::new();
     assert!(document.set_hatch_origin([12.5, -8.25]));
-    let outcome =
-        cad_document_to_package(&document, package_options(), ExportOptions::default()).unwrap();
+    let outcome = cad_document_to_drawing(&document, ExportOptions::default()).unwrap();
     assert!(outcome.diagnostics().iter().any(|diagnostic| {
         diagnostic.reasons().iter().any(|reason| {
             matches!(reason, ExportLossReason::UnsupportedCollection { kind, count }
@@ -228,15 +194,14 @@ fn upstream_drawing_variables_are_reported_as_unsupported_objects() {
         })
     }));
     assert!(matches!(
-        cad_document_to_package(
+        cad_document_to_drawing(
             &document,
-            package_options(),
             ExportOptions {
                 geometry_tolerance: Default::default(),
                 loss_policy: ocdraw_convert::ExportLossPolicy::Reject
             }
         ),
-        Err(ocdraw_convert::ExportError::LossRejected { .. })
+        Err(ocdraw_convert::DirectExportError::LossRejected { .. })
     ));
 }
 
@@ -245,21 +210,19 @@ fn layer_description_is_preserved_without_dropping_geometry() {
     let mut document = CadDocument::new();
     document.layers.get_mut("0").unwrap().description = "Draagconstructie".into();
     document.add_entity(EntityType::Line(Line::new())).unwrap();
-    let outcome =
-        cad_document_to_package(&document, package_options(), ExportOptions::default()).unwrap();
+    let outcome = cad_document_to_drawing(&document, ExportOptions::default()).unwrap();
     assert_eq!(outcome.entity_mapping().len(), 1);
     assert!(!outcome
         .diagnostics()
         .iter()
         .any(|d| d.source() == &ExportDiagnosticSource::Layer { name: "0".into() }));
-    let entry: serde_json::Value =
-        serde_json::from_slice(outcome.package().file("package.ifcx.json").unwrap()).unwrap();
-    assert!(entry["data"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .any(|node| node["type"] == "openaec:Layer"
-            && node["attributes"]["description"] == "Draagconstructie"));
+    let loaded = ocdraw::ocdraw::load_drawing_bytes(outcome.drawing().bytes());
+    assert_eq!(
+        loaded.validated_drawing().unwrap().typed_layers()[0]
+            .description
+            .as_deref(),
+        Some("Draagconstructie")
+    );
 }
 
 #[test]
@@ -290,9 +253,7 @@ fn newly_exposed_table_fields_are_reported_even_on_bootstrap_records() {
                     .is_xref_unloaded = true
             }
         }
-        let outcome =
-            cad_document_to_package(&document, package_options(), ExportOptions::default())
-                .unwrap();
+        let outcome = cad_document_to_drawing(&document, ExportOptions::default()).unwrap();
         assert!(
             outcome.diagnostics().iter().any(|d| d.reasons().contains(
                 &ExportLossReason::UnsupportedTableRecords {
@@ -311,8 +272,7 @@ fn inventory_exposes_layer_extension_dictionary_relationships() {
     let mut document = CadDocument::new();
     let layer = document.layers.get("0").unwrap().handle;
     document.ensure_extension_dictionary(layer);
-    let outcome =
-        cad_document_to_package(&document, package_options(), ExportOptions::default()).unwrap();
+    let outcome = cad_document_to_drawing(&document, ExportOptions::default()).unwrap();
     assert!(outcome.diagnostics().iter().any(|d| d.reasons().contains(
         &ExportLossReason::UnsupportedCollection {
             kind: "inventory.additional_relationships".into(),
@@ -336,8 +296,7 @@ fn inventory_reports_extended_data_not_represented_by_the_typed_layer() {
     );
     // The public typed field no longer accounts for the retained EED payload.
     document.layers.get_mut("0").unwrap().description.clear();
-    let outcome =
-        cad_document_to_package(&document, package_options(), ExportOptions::default()).unwrap();
+    let outcome = cad_document_to_drawing(&document, ExportOptions::default()).unwrap();
     assert!(outcome
         .diagnostics()
         .iter()
@@ -350,15 +309,14 @@ fn inventory_reports_extended_data_not_represented_by_the_typed_layer() {
 
 fn assert_rejected(document: &CadDocument) {
     assert!(matches!(
-        cad_document_to_package(
+        cad_document_to_drawing(
             document,
-            package_options(),
             ExportOptions {
                 loss_policy: ocdraw_convert::ExportLossPolicy::Reject,
                 ..Default::default()
             }
         ),
-        Err(ocdraw_convert::ExportError::LossRejected { .. })
+        Err(ocdraw_convert::DirectExportError::LossRejected { .. })
     ));
 }
 
@@ -384,8 +342,7 @@ fn changed_bootstrap_content_is_not_hidden_by_unchanged_collection_lengths() {
     }
     document.classes = classes;
 
-    let outcome =
-        cad_document_to_package(&document, package_options(), ExportOptions::default()).unwrap();
+    let outcome = cad_document_to_drawing(&document, ExportOptions::default()).unwrap();
     for (kind, count) in [("dim_styles", 1), ("objects", 1), ("classes", 1)] {
         assert!(
             outcome
@@ -417,8 +374,7 @@ fn decoded_side_view_does_not_create_independent_semantic_loss() {
     document
         .context_scales
         .insert(Handle::new(0x901), Handle::new(0x902));
-    let outcome =
-        cad_document_to_package(&document, package_options(), ExportOptions::default()).unwrap();
+    let outcome = cad_document_to_drawing(&document, ExportOptions::default()).unwrap();
     assert!(outcome.diagnostics().is_empty());
 }
 
@@ -448,8 +404,7 @@ fn renumbered_bootstrap_dictionary_is_still_the_same_scaffold() {
         .unwrap();
     entry.1 = new_handle;
 
-    let outcome =
-        cad_document_to_package(&document, package_options(), ExportOptions::default()).unwrap();
+    let outcome = cad_document_to_drawing(&document, ExportOptions::default()).unwrap();
     assert!(
         outcome.diagnostics().is_empty(),
         "{:?}",
@@ -469,8 +424,7 @@ fn resolved_entity_reactor_to_table_record_is_reported_once() {
         .reactors
         .push(layer_handle);
 
-    let outcome =
-        cad_document_to_package(&document, package_options(), ExportOptions::default()).unwrap();
+    let outcome = cad_document_to_drawing(&document, ExportOptions::default()).unwrap();
     assert!(outcome.diagnostics().iter().any(|diagnostic| {
         diagnostic
             .reasons()
@@ -492,8 +446,7 @@ fn duplicate_standard_class_is_additional_source_content() {
     let mut document = CadDocument::new();
     let standard = document.classes.get_by_name("LAYOUT").unwrap().clone();
     document.classes.push_preserving(standard);
-    let outcome =
-        cad_document_to_package(&document, package_options(), ExportOptions::default()).unwrap();
+    let outcome = cad_document_to_drawing(&document, ExportOptions::default()).unwrap();
     assert!(outcome
         .diagnostics()
         .iter()
@@ -512,8 +465,7 @@ fn duplicate_standard_table_record_is_additional_source_content() {
     let mut standard = document.dim_styles.get("Standard").unwrap().clone();
     standard.handle = document.allocate_handle();
     document.dim_styles.add_allow_duplicate(standard);
-    let outcome =
-        cad_document_to_package(&document, package_options(), ExportOptions::default()).unwrap();
+    let outcome = cad_document_to_drawing(&document, ExportOptions::default()).unwrap();
     assert!(outcome
         .diagnostics()
         .iter()
@@ -533,8 +485,7 @@ fn modified_dashed_linetype_definition_is_not_hidden_by_its_supported_name() {
     dashed.handle = document.allocate_handle();
     dashed.description = "Custom dash sequence".into();
     document.line_types.add(dashed).unwrap();
-    let outcome =
-        cad_document_to_package(&document, package_options(), ExportOptions::default()).unwrap();
+    let outcome = cad_document_to_drawing(&document, ExportOptions::default()).unwrap();
     assert!(outcome
         .diagnostics()
         .iter()
@@ -566,8 +517,7 @@ fn extra_layout_dictionary_alias_is_not_treated_as_an_exported_layout() {
         panic!("layout dictionary")
     };
     dictionary.add_entry("Alias", layout_handle);
-    let outcome =
-        cad_document_to_package(&document, package_options(), ExportOptions::default()).unwrap();
+    let outcome = cad_document_to_drawing(&document, ExportOptions::default()).unwrap();
     assert!(outcome
         .diagnostics()
         .iter()

@@ -1,124 +1,87 @@
 use super::recipe::{Appearance, Drawing, Geometry, Property};
-use ocdraw::ifcdr::{IfcdrLengthUnit, Point2};
-use ocdraw::package::{
-    AppearanceColor, AppearanceDefinition, DrawingOptions, DrawingResourceStorage, EncodedPackage,
-    EntityAppearance, LayerDefinition, LineDefinition, LinePatternDefinition, PackageBuilder,
-    PackageOptions, PlanarPolylineDefinition,
+use ocdraw::ocdraw::{
+    AppearanceSelection, CoordinateFrame3, DrawingBuilder, DrawingColor, DrawingGeometry,
+    DrawingOptions, EncodedDrawing, EntityAppearance, GeometricEntityDefinition, LayerDefinition,
+    Point3, Vector3,
 };
-use ocdraw::{PackageId, ResourceId};
 use ocdraw_convert::cadcodec::{
     CadDocument, Color, DxfVersion, EntityType, Layer, Line, LineWeight, LwPolyline, Transparency,
     Vector2,
 };
-
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
-
-pub fn options() -> PackageOptions {
-    PackageOptions {
-        package_id: PackageId::new("size-baseline").unwrap(),
-        data_version: "1".into(),
-        author: "IFCCAD size baseline".into(),
-        timestamp: "2026-09-11T00:00:00Z".into(),
+fn selection<T: Clone>(value: &Property<T>) -> AppearanceSelection<T> {
+    match value {
+        Property::ByLayer => AppearanceSelection::ByLayer,
+        Property::ByBlock => AppearanceSelection::ByBlock,
+        Property::Explicit(v) => AppearanceSelection::Explicit(v.clone()),
     }
 }
-
-fn definition(alternate: bool) -> AppearanceDefinition {
-    let color = if alternate {
-        [180, 40, 60]
-    } else {
-        [10, 20, 30]
-    };
-    AppearanceDefinition {
-        name: if alternate { "Explicit" } else { "Layer" }.into(),
-        color: AppearanceColor::rgb(color[0], color[1], color[2]),
-        opacity: 1.0,
-        line_pattern: LinePatternDefinition::named("continuous"),
-        line_weight: if alternate { 0.5 } else { 0.25 },
+fn native_appearance(value: &Appearance) -> EntityAppearance {
+    EntityAppearance {
+        color: match &value.color {
+            Property::ByLayer => AppearanceSelection::ByLayer,
+            Property::ByBlock => AppearanceSelection::ByBlock,
+            Property::Explicit([r, g, b]) => {
+                AppearanceSelection::Explicit(DrawingColor::rgb(*r, *g, *b))
+            }
+        },
+        opacity: selection(&value.opacity),
+        line_pattern: match &value.pattern {
+            Property::Explicit(v) if v.eq_ignore_ascii_case("continuous") => {
+                AppearanceSelection::Explicit("Continuous".into())
+            }
+            other => selection(other),
+        },
+        line_weight: selection(&value.weight),
     }
 }
-
-pub fn package(recipe: &Drawing, inline: bool) -> Result<EncodedPackage> {
-    let mut package = PackageBuilder::new(options())?;
-    let mut drawing = package.add_drawing(DrawingOptions {
-        model_layout_name: "Model".into(),
-        representation_resource_id: ResourceId::new("drawing")?,
-        length_unit: IfcdrLengthUnit::Millimetre,
-    })?;
-    drawing.set_resource_storage(if inline {
-        DrawingResourceStorage::Inline
-    } else {
-        DrawingResourceStorage::External
-    });
-    let appearance = drawing.appearances().add(definition(false))?;
-    let explicit = if recipe
-        .entities
-        .iter()
-        .any(|e| matches!(e.appearance.color, Property::Explicit(_)))
-    {
-        Some(drawing.appearances().add(definition(true))?)
-    } else {
-        None
-    };
+pub fn drawing(recipe: &Drawing) -> Result<EncodedDrawing> {
+    let mut builder = DrawingBuilder::new(DrawingOptions::new("size-baseline", "mm"))?;
     let mut layers = std::collections::BTreeMap::new();
-    for layer in &recipe.layers {
-        layers.insert(
-            layer.name.clone(),
-            drawing.layers().add(LayerDefinition {
-                name: layer.name.clone(),
-                visible: layer.visible,
-                frozen: false,
-                locked: false,
-                plottable: true,
-                frozen_in_new_viewports: false,
-                description: None,
-                appearance,
-            })?,
-        );
+    for source in &recipe.layers {
+        let Property::Explicit([r, g, b]) = source.appearance.color else {
+            return Err("recipe layer color must be explicit".into());
+        };
+        let mut layer = LayerDefinition::new(&source.name, DrawingColor::rgb(r, g, b));
+        layer.visible = source.visible;
+        let Property::Explicit(weight) = source.appearance.weight else {
+            return Err("recipe layer weight must be explicit".into());
+        };
+        layer.line_weight = weight;
+        let Property::Explicit(opacity) = source.appearance.opacity else {
+            return Err("recipe layer opacity must be explicit".into());
+        };
+        layer.opacity = opacity;
+        layers.insert(source.name.clone(), builder.add_layer(layer)?);
     }
     for entity in &recipe.entities {
-        let layer = layers[&entity.layer];
-        let appearance = if matches!(entity.appearance.color, Property::ByLayer) {
-            EntityAppearance::by_layer()
-        } else {
-            EntityAppearance::explicit(explicit.ok_or("missing recipe appearance")?)
-        };
-        let visible = entity.visible;
-        match &entity.geometry {
-            Geometry::Line { start, end } => {
-                drawing.model_space().add_line(LineDefinition {
-                    start: ocdraw::ifcdr::Point3::new(start[0], start[1], start[2]),
-                    end: ocdraw::ifcdr::Point3::new(end[0], end[1], end[2]),
-                    layer,
-                    appearance,
-                    visible,
-                })?;
-            }
+        let geometry = match &entity.geometry {
+            Geometry::Line { start, end } => DrawingGeometry::Line {
+                start: *start,
+                end: *end,
+            },
             Geometry::Polyline {
                 points,
                 closed,
                 origin,
                 x_axis,
                 y_axis,
-            } => {
-                drawing
-                    .model_space()
-                    .add_planar_polyline(PlanarPolylineDefinition {
-                        placement: ocdraw::ifcdr::CoordinateFrame3::try_new(
-                            ocdraw::ifcdr::Point3::new(origin[0], origin[1], origin[2]),
-                            ocdraw::ifcdr::Vector3::new(x_axis[0], x_axis[1], x_axis[2]),
-                            ocdraw::ifcdr::Vector3::new(y_axis[0], y_axis[1], y_axis[2]),
-                        )?,
-                        bulges: Vec::new(),
-                        points: points.iter().map(|p| Point2::new(p[0], p[1])).collect(),
-                        closed: *closed,
-                        layer,
-                        appearance,
-                        visible,
-                    })?;
-            }
-        }
+            } => DrawingGeometry::PlanarPolyline {
+                placement: CoordinateFrame3::try_new(
+                    Point3::new(origin[0], origin[1], origin[2]),
+                    Vector3::new(x_axis[0], x_axis[1], x_axis[2]),
+                    Vector3::new(y_axis[0], y_axis[1], y_axis[2]),
+                )?,
+                vertices: points.iter().map(|p| [p[0], p[1], 0.]).collect(),
+                closed: *closed,
+            },
+        };
+        let mut record = GeometricEntityDefinition::new(0, layers[&entity.layer], geometry);
+        record.visible = entity.visible;
+        record.appearance = native_appearance(&entity.appearance);
+        builder.add_geometric_entity(record)?;
     }
-    Ok(package.finish()?)
+    Ok(builder.finish()?)
 }
 
 pub fn fix_cad_metadata(document: &mut CadDocument) {

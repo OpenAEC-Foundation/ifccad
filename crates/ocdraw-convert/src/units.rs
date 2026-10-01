@@ -1,47 +1,47 @@
 use num_rational::BigRational;
-use ocdraw::ifcdr::IfcdrLengthUnit;
+use ocdraw::ocdraw::DrawingLengthUnit;
 
 // CAD's integer codes belong to this adapter, not to core enum discriminants.
-const CAD_UNITS: [IfcdrLengthUnit; 25] = [
-    IfcdrLengthUnit::Unitless,
-    IfcdrLengthUnit::Inch,
-    IfcdrLengthUnit::Foot,
-    IfcdrLengthUnit::Mile,
-    IfcdrLengthUnit::Millimetre,
-    IfcdrLengthUnit::Centimetre,
-    IfcdrLengthUnit::Metre,
-    IfcdrLengthUnit::Kilometre,
-    IfcdrLengthUnit::Microinch,
-    IfcdrLengthUnit::Mil,
-    IfcdrLengthUnit::Yard,
-    IfcdrLengthUnit::Angstrom,
-    IfcdrLengthUnit::Nanometre,
-    IfcdrLengthUnit::Micrometre,
-    IfcdrLengthUnit::Decimetre,
-    IfcdrLengthUnit::Decametre,
-    IfcdrLengthUnit::Hectometre,
-    IfcdrLengthUnit::Gigametre,
-    IfcdrLengthUnit::AstronomicalUnit,
-    IfcdrLengthUnit::LightYear,
-    IfcdrLengthUnit::Parsec,
-    IfcdrLengthUnit::UsSurveyFoot,
-    IfcdrLengthUnit::UsSurveyInch,
-    IfcdrLengthUnit::UsSurveyYard,
-    IfcdrLengthUnit::UsSurveyMile,
+const CAD_UNITS: [DrawingLengthUnit; 25] = [
+    DrawingLengthUnit::Unitless,
+    DrawingLengthUnit::Inch,
+    DrawingLengthUnit::Foot,
+    DrawingLengthUnit::Mile,
+    DrawingLengthUnit::Millimetre,
+    DrawingLengthUnit::Centimetre,
+    DrawingLengthUnit::Metre,
+    DrawingLengthUnit::Kilometre,
+    DrawingLengthUnit::Microinch,
+    DrawingLengthUnit::Mil,
+    DrawingLengthUnit::Yard,
+    DrawingLengthUnit::Angstrom,
+    DrawingLengthUnit::Nanometre,
+    DrawingLengthUnit::Micrometre,
+    DrawingLengthUnit::Decimetre,
+    DrawingLengthUnit::Decametre,
+    DrawingLengthUnit::Hectometre,
+    DrawingLengthUnit::Gigametre,
+    DrawingLengthUnit::AstronomicalUnit,
+    DrawingLengthUnit::LightYear,
+    DrawingLengthUnit::Parsec,
+    DrawingLengthUnit::UsSurveyFoot,
+    DrawingLengthUnit::UsSurveyInch,
+    DrawingLengthUnit::UsSurveyYard,
+    DrawingLengthUnit::UsSurveyMile,
 ];
-pub(crate) fn from_cad_code(code: i16) -> Option<IfcdrLengthUnit> {
+pub(crate) fn from_cad_code(code: i16) -> Option<DrawingLengthUnit> {
     usize::try_from(code)
         .ok()
         .and_then(|code| CAD_UNITS.get(code).copied())
 }
-pub(crate) fn cad_code(unit: IfcdrLengthUnit) -> i16 {
+pub(crate) fn cad_code(unit: DrawingLengthUnit) -> i16 {
     CAD_UNITS
         .iter()
         .position(|u| *u == unit)
         .expect("complete unit domain") as i16
 }
-pub(crate) fn measurement(unit: IfcdrLengthUnit) -> Option<i16> {
-    use IfcdrLengthUnit::*;
+pub(crate) fn measurement(unit: DrawingLengthUnit) -> Option<i16> {
+    use DrawingLengthUnit::*;
     match unit {
         Unitless | AstronomicalUnit | LightYear | Parsec => None,
         Inch | Foot | Mile | Microinch | Mil | Yard | UsSurveyFoot | UsSurveyInch
@@ -80,8 +80,8 @@ impl ResolvedTolerance {
             ToleranceVerdict::Unresolved
         }
     }
-    pub(crate) fn from_metres(t: BigRational, unit: IfcdrLengthUnit) -> Option<Self> {
-        use IfcdrLengthUnit::*;
+    pub(crate) fn from_metres(t: BigRational, unit: DrawingLengthUnit) -> Option<Self> {
+        use DrawingLengthUnit::*;
         if unit == Parsec {
             let k = q(648000, 1) * q(149597870700, 1);
             let lower = BigRational::from_float(f64::from_bits(0x400921fb54442d18)).unwrap();
@@ -171,7 +171,7 @@ mod tests {
         let pi_upper = q(16, 1) * b - q(4, 1) * c;
         let interval = ResolvedTolerance::from_metres(
             q(648000, 1) * q(149597870700, 1),
-            IfcdrLengthUnit::Parsec,
+            DrawingLengthUnit::Parsec,
         )
         .unwrap();
         assert!(interval.lower < pi_lower && pi_lower < pi_upper && pi_upper < interval.upper);
@@ -179,7 +179,7 @@ mod tests {
 
     #[test]
     fn exact_factors_and_cad_codes_cover_all_units() {
-        use IfcdrLengthUnit::*;
+        use DrawingLengthUnit::*;
         let cases = [
             (Inch, 1, 127, 5000),
             (Foot, 2, 381, 1250),
@@ -235,7 +235,7 @@ mod tests {
                 T::drawing_units(2.).unwrap().resolve(unit).unwrap(),
                 ResolvedTolerance::exact(q(2, 1))
             );
-            if unit == IfcdrLengthUnit::Unitless {
+            if unit == DrawingLengthUnit::Unitless {
                 assert!(T::metres(0.).unwrap().resolve(unit).is_err());
                 assert!(T::millimetres(1.).unwrap().resolve(unit).is_err());
                 assert_eq!(

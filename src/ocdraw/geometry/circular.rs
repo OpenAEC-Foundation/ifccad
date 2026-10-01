@@ -1,5 +1,5 @@
 use super::CoordinateFrameComponents;
-use crate::drawing::{Bounds3d, Point3};
+use crate::ocdraw::{Bounds3d, Point3};
 
 /// Conservative scope-axis bounds of a circle or directed circular arc.
 pub(crate) fn circular_bounds(
@@ -103,7 +103,7 @@ fn coordinate(origin: f64, ax: f64, by: f64, angle: f64) -> Option<f64> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::drawing::{CoordinateFrame3, Vector3};
+    use crate::ocdraw::{CoordinateFrame3, Vector3};
 
     #[test]
     fn arc_bounds_include_interior_extremum_and_respect_direction() {

@@ -21,13 +21,10 @@
     {
       "id": 0,
       "kind": 0,
-      "bounds": null
+      "bounds": null,
+      "entities": []
     }
   ],
-  "streamDirectory": {
-    "version": "ocdraw.streamDirectory.v1",
-    "streams": []
-  },
   "streams": {},
   "layers": [
     {

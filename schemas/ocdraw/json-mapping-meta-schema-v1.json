@@ -144,51 +144,6 @@
       ],
       "additionalProperties": false
     },
-    "directory": {
-      "type": "object",
-      "properties": {
-        "schemaId": {
-          "type": "string",
-          "minLength": 1
-        },
-        "payload": {
-          "type": "string",
-          "minLength": 1
-        },
-        "fields": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1
-          },
-          "uniqueItems": true
-        },
-        "entryFields": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1
-          },
-          "uniqueItems": true
-        },
-        "optionalEntryFields": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1
-          },
-          "uniqueItems": true
-        }
-      },
-      "required": [
-        "schemaId",
-        "payload",
-        "fields",
-        "entryFields",
-        "optionalEntryFields"
-      ],
-      "additionalProperties": false
-    },
     "tables": {
       "type": "array",
       "items": {
@@ -648,7 +603,6 @@
     "mappingSchemaVersion",
     "ocdrawVersion",
     "resource",
-    "directory",
     "tables",
     "streams",
     "valueMappings"

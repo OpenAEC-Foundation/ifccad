@@ -1,0 +1,120 @@
+{
+  "ocdrawVersion": "0.1.0",
+  "cases": [
+    {
+      "path": "valid/empty.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "valid/fractional-polylines.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "valid/placed-geometry.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "valid/ordered-scopes.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "invalid/scope-missing-entity.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "ENTITY_REFERENCE"
+    },
+    {
+      "path": "invalid/scope-duplicate-entity.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "ENTITY_OWNERSHIP"
+    },
+    {
+      "path": "invalid/scope-multiple-owners.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "ENTITY_OWNERSHIP"
+    },
+    {
+      "path": "invalid/scope-orphan-entity.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "ENTITY_OWNERSHIP"
+    },
+    {
+      "path": "invalid/scope-block-self-ownership.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "BLOCK_CYCLE"
+    },
+    {
+      "path": "invalid/obsolete-entity-owner.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "SCHEMA"
+    },
+    {
+      "path": "invalid/obsolete-order-stream.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "SCHEMA"
+    },
+    {
+      "path": "invalid/scope-missing-list.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "SCHEMA"
+    },
+    {
+      "path": "invalid/obsolete-stream-directory.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "SCHEMA"
+    },
+    {
+      "path": "invalid/unknown-core-field.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "SCHEMA"
+    },
+    {
+      "path": "invalid/duplicate-layer-id.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "DUPLICATE_ID"
+    },
+    {
+      "path": "invalid/model-layout-paper-scope.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "LAYOUT_SCOPE"
+    },
+    {
+      "path": "invalid/reversed-plot-area.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "PLOT_RECT"
+    },
+    {
+      "path": "invalid/missing-model-window.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "MODEL_WINDOW_REF"
+    },
+    {
+      "path": "invalid/degenerate-ucs-frame.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "UCS_FRAME"
+    },
+    {
+      "path": "invalid/transformed-block-bounds.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "BLOCK_BOUNDS"
+    },
+    {
+      "path": "invalid/nonuniform-block-scale.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "BLOCK_SCALE"
+    },
+    {
+      "path": "valid/paper-viewport.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "invalid/zero-view-direction.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "VIEWPORT_VIEW"
+    },
+    {
+      "path": "invalid/missing-viewport-clip.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "VIEWPORT_CLIP"
+    }
+  ]
+}

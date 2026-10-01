@@ -13,3 +13,12 @@ The retained result uses the pinned unmodified cadcodec dependency and has
 [local fixes](../../patches/cadcodec-upstream/README.md) remain historical.
 Generated files, lockfiles and diagnostic development runs remain below
 `target/`.
+
+Standalone OCDraw reuses only the primitive recipes and has its own
+[experiment](../../docs/benchmarks/ocdraw-size-exchange-v1.md). The historical
+package report/results above remain accepted evidence for their old configuration.
+
+- [ocdraw-results-v1.json](ocdraw-results-v1.json): accepted standalone primitive
+  run after the polyline coordinate and paper-layout fixes, with ordered
+  ownership and no stream directory, including both
+  generations and matching source/dependency provenance.

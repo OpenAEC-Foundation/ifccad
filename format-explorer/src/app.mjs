@@ -1,95 +1,26 @@
-import { buildModel, revealNode, prepareWorkspaceExample } from './model.mjs';
-import { PackageGraph } from './graph.mjs';
-import { renderInspector } from './inspector.mjs';
-import { t, translateTree } from './i18n.mjs';
-import { initializeSettings } from './settings.mjs';
-import { initializeOpening } from './open-files.mjs';
-import { initializeExporting } from './export-files.mjs';
-import { initializeCadPreview } from './cad-preview.mjs';
-import { decodeBundle } from './bundle.mjs';
-import { renderReport } from './reports.mjs';
-import { initializeWorkspace } from './workspace.mjs';
-import { createReportView } from './report-view.mjs';
-import { expandExclusiveStream } from './graph-navigation.mjs';
-const $=id=>document.getElementById(id);
-let examples=[],model,collapsed=new Set(),selected='';
-let result=null,reportNavigable=false,knownNodes=new Set();
-const graph=new PackageGraph($('graph'),{select,toggle,scrollCollection,zoomChanged:n=>$('zoom-level').textContent=n+'%',countChanged:(n,total)=>$('graph-count').textContent=n+' / '+total+' nodes',referenceCountChanged:n=>{const summary=$('graph-reference-summary');summary.hidden=n===0;summary.textContent=n?t(`${n} meer relaties in inspecteur`):'';}});
-function render(){for(const n of model.nodes){if(!knownNodes.has(n.id)&&model.defaultCollapsed.has(n.id))collapsed.add(n.id);knownNodes.add(n.id);}graph.render(model,collapsed,selected);renderInspector(model,selected,collapsed);translateTree($('inspector'));}
-function refreshPresentation(){
-  if(model){
-    const scroll=$('inspector').scrollTop,details=[...$('inspector').querySelectorAll('details')].map(d=>d.open),edited=$('native-edited')?.checked;
-    render();[...$('inspector').querySelectorAll('details')].forEach((d,i)=>{if(details[i]!==undefined)d.open=details[i];});
-    if(edited&&$('native-edited')){$('native-edited').checked=true;$('native-edited').dispatchEvent(new Event('change',{bubbles:true}));}
-    $('inspector').scrollTop=scroll;
-  }
-  translateTree(document.body);
-  if(result)showReport();
+import {createFileClient,decodeBase64} from './browser-client.mjs';
+import {initializeCadPreview} from './cad-preview.mjs';
+const $=id=>document.getElementById(id),client=createFileClient(),preview=initializeCadPreview();let source,controller;
+function show(result){
+ $('drawing').hidden=false;$('name').textContent=result.source?.name||source.name;
+ $('report').textContent=JSON.stringify({reader:result.reader,conversion:result.conversion,validation:result.validation,failure:result.failure,export:result.export?{format:result.export.format,diagnostics:result.export.diagnostics}:undefined},null,2);
+ $('records').textContent=JSON.stringify(result.presentation,null,2)||'Geen gevalideerde tekeninginformatie.';
+ $('export').disabled=!result.validation?.strictAvailable||!!result.failure;$('cad-download').disabled=$('export').disabled;
+ $('status').textContent=result.failure?.message|| (result.validation?.strictAvailable?'Tekening gecontroleerd.':'De tekening kon niet worden gevalideerd.');
 }
-function select(id){if(id.startsWith('more:')){model.paging.materialize(id);selected=model.byId.get(id).parentId;collapsed.delete(selected);render();return;}id=model.byId.get(id)?.targetId||id;model.paging?.materialize(id);if(!model.byId.has(id))return;for(const n of model.nodes){if(!knownNodes.has(n.id)&&model.defaultCollapsed.has(n.id))collapsed.add(n.id);knownNodes.add(n.id);}selected=id;revealNode(model,collapsed,id);render();$('inspector').scrollTop=0;graph.focus(id);}
-function toggle(id){model.paging?.expand(id);for(const n of model.nodes){if(!knownNodes.has(n.id)&&model.defaultCollapsed.has(n.id))collapsed.add(n.id);knownNodes.add(n.id);}const opening=collapsed.has(id);if(opening){selected=expandExclusiveStream(model,collapsed,id,selected);collapsed.delete(id);}else collapsed.add(id);selected=id;render();$('inspector').scrollTop=0;opening?graph.focusBranch(id):graph.focus(id);}
-function showReport(){renderReport($('file-report'),result,{canNavigate:reportNavigable,diagnosticTarget:d=>{const match=d.location?.match(/^\/data\/(\d+)/),id=d.resourceId?'resource:'+d.resourceId:match?'ifcx:'+model.fixture.ifcx.data[Number(match[1])]?.path:null;return model.byId.has(id)?id:null;},selectTarget:id=>{reportView.close(false);preview.hide();select(id);}});}
-function openResult(value,request){
-  reportView.close(false);
-  const previous={model,collapsed,selected,knownNodes,camera:{...graph.camera},example:$('example').value,options:[...$('example').options].map(o=>({value:o.value,textContent:o.textContent,disabled:o.disabled,id:o.id})),description:$('example-description').textContent,status:$('example-status').textContent,concept:$('concept-key').hidden};
-  result=value;reportNavigable=false;
-  if(value.presentation&&value.validation?.strictAvailable){
-    try{const fixture=decodeBundle(value.presentation);fixture.name=fixture.label=value.source.name;const next=buildModel(fixture);model=next;knownNodes=new Set();collapsed=new Set(model.defaultCollapsed);selected=model.roots[0];reportNavigable=true;document.getElementById('local-option')?.remove();const option=document.createElement('option');option.id='local-option';option.value='local';option.textContent=value.source.name;option.disabled=true;$('example').append(option);$('example').value='local';$('example-description').textContent=value.source.name;$('example-status').textContent='Geopend pakket';$('concept-key').hidden=true;render();graph.fit();}
-    catch(error){value.failure={stage:'preparing',code:'VIEWER_DISPLAY_FAILED',message:error.message};reportNavigable=false;({model,collapsed,selected,knownNodes}=previous);$('example').replaceChildren(...previous.options.map(o=>Object.assign(document.createElement('option'),o)));$('example').value=previous.example;$('example-description').textContent=previous.description;$('example-status').textContent=previous.status;$('concept-key').hidden=previous.concept;if(model){render();graph.camera=previous.camera;graph.apply();}}
-  }
-  const original=request.kind==='cad'&&request.files[0]?{name:request.files[0].path,bytes:request.files[0].bytes,base64:request.files[0].base64}:null;
-  if(reportNavigable){exporter.setSource(request,model.fixture);preview.setSource(request,model.fixture,original);}
-  else if(original)preview.setSource(request,null,original,value.failure?.message);
-  else preview.clear();
-  reportView.setAvailable(true);showReport();translateTree(document.body);
-  queueMicrotask(()=>reportView.show());
+async function run(operation){
+ if(!source)return;controller=new AbortController();$('open').disabled=true;$('cancel').disabled=false;$('export').disabled=true;$('cad-download').disabled=true;
+ try{const result=await client.open({...source,...(operation?{export:operation}:{})},{signal:controller.signal,onProgress:phase=>$('status').textContent=phase});show(result);if(!operation)preview.setSource({...source},!!result.validation?.strictAvailable&&!result.failure);
+  if(operation&&result.export?.download&&!result.failure){const file=result.export.download,url=URL.createObjectURL(new Blob([decodeBase64(file.base64)])),link=document.createElement('a');link.href=url;link.download=file.fileName||source.name+'.'+operation.format;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+ }catch(e){$('status').textContent=e.name==='AbortError'?'Geannuleerd.':e.message;if(!operation&&e.name!=='AbortError')preview.setSource({...source},false);}finally{controller=null;$('open').disabled=false;$('cancel').disabled=true;}
 }
-function openExample(value){const concept=value==='concept',fixture=examples.find(e=>e.name===(concept?'unrepresented-packed':value));model=buildModel(fixture,{concepts:concept});collapsed=new Set(model.defaultCollapsed);selected=model.roots.find(id=>id!=='group:definitions');
-  knownNodes=new Set(model.byId.keys());result=null;reportNavigable=false;reportView.setAvailable(false);
-  const supportedSource=concept?null:{kind:'package',name:fixture.name,files:fixture.exportFiles};
-  exporter.setSource(supportedSource,fixture);
-  preview.setSource(supportedSource,fixture);
-  if(concept){selected='concept:collection:dimension';revealNode(model,collapsed,selected);collapsed.delete(selected);}
-  const workspaceFocus=['workspace-model','workspace-paper'].includes(fixture.name)?prepareWorkspaceExample(model,collapsed):null;
-  if(workspaceFocus)selected=workspaceFocus.selected;
-  $('example-description').textContent=concept?'Dimension als voorbeeld van een verdere CAD-entiteit.':fixture.description;
-  const version=fixture.ifcx.data.find(n=>n.attributes?.resource?.format==='openaec.ifcdr')?.attributes.resource.version;
-  const preservation=fixture.ifcx.data.some(n=>n.type==='openaec:PreservationRepresentation');
-  $('example-status').textContent=concept?'Concept · nog niet ondersteund':`IFCDR ${version}${preservation?' / IFCPR 0.2.0':''}`;$('concept-key').hidden=!concept;render();translateTree(document.body);$('inspector').scrollTop=0;if(concept)graph.frame(['resource:drawing-main',selected,'entity:drawing-main:6']);else if(workspaceFocus)graph.frame(workspaceFocus.frame);else graph.fit();
-}
-async function initialize(){
-  $('load-error').hidden=true;$('workspace').setAttribute('aria-busy','true');
-  try{const response=await fetch('./examples.json');if(!response.ok)throw new Error('Voorbeelddata ontbreekt (HTTP '+response.status+').');examples=await response.json();if(!Array.isArray(examples)||!examples.length)throw new Error('Geen voorbeelden beschikbaar.');
-    $('example').replaceChildren(...examples.map(e=>{const o=document.createElement('option');o.value=e.name;o.textContent=e.label;return o;}));const option=document.createElement('option');option.value='concept';option.textContent='Concept · extra CAD-entiteittypen';$('example').append(option);$('example').disabled=false;
-    openExample(examples[0].name);$('workspace').setAttribute('aria-busy','false');
-  }catch(error){$('load-error').hidden=false;$('error-message').textContent=t(error.message)+' '+t('Start de demo via de lokale server of serveer de gebouwde website.');$('workspace').setAttribute('aria-busy','false');translateTree(document.body);}
-}
-$('example').addEventListener('change',e=>{try{openExample(e.target.value);}catch(error){$('load-error').hidden=false;$('error-message').textContent=error.message;}});
-$('zoom-in').addEventListener('click',()=>graph.zoom(1.2));$('zoom-out').addEventListener('click',()=>graph.zoom(1/1.2));$('fit').addEventListener('click',()=>graph.fit());$('collapse').addEventListener('click',()=>{collapsed=new Set(model.defaultCollapsed);selected=model.roots.find(id=>id!=='group:definitions');render();graph.fit();});
-$('graph-relations').addEventListener('click',e=>{graph.referenceMode=graph.referenceMode==='focus'?'all':'focus';e.currentTarget.setAttribute('aria-pressed',graph.referenceMode==='all');render();});
-function changePage(target,page){
- if(!Number.isFinite(page))return;
- const scroll=$('inspector').scrollTop,id=target.dataset.pageId,kind=target.dataset.pageKind;
- if(kind==='graph'){model.paging.setPage(id,page);collapsed.delete(id);}
- else{model.inspectorPages??=new Map();model.inspectorPages.set(id,Math.max(0,Math.floor(page)));}
- render();$('inspector').scrollTop=scroll;
- $('inspector').querySelector(`${target.tagName==='INPUT'?'input':'button'}[data-page-id="${CSS.escape(id)}"][data-page-kind="${kind}"]${target.tagName==='INPUT'?'':`[data-page="${page}"]`}`)?.focus({preventScroll:true});
-}
-function scrollCollection(id,delta){if(!model?.paging?.scrollGraph(id,delta))return;const scroll=$('inspector').scrollTop;render();$('inspector').scrollTop=scroll;}
-function scrollInspector(id,delta){model.inspectorStarts??=new Map();const scroll=$('inspector').scrollTop;model.inspectorStarts.set(id,Math.max(0,(model.inspectorStarts.get(id)||0)+Math.trunc(delta)));render();$('inspector').scrollTop=scroll;}
-$('inspector').addEventListener('click',e=>{const local=e.target.closest('button[data-inspector-scroll-id]');if(local){scrollInspector(local.dataset.inspectorScrollId,Number(local.dataset.scrollStep));return;}const step=e.target.closest('button[data-scroll-id]');if(step){scrollCollection(step.dataset.scrollId,Number(step.dataset.scrollStep));return;}const page=e.target.closest('button[data-page-id]');if(page){if(page.hasAttribute('data-page-go')){const input=page.closest('nav').querySelector('input');changePage(input,Number(input.value)-1);}else changePage(page,Number(page.dataset.page));return;}const target=e.target.closest('[data-select],[data-toggle]');if(!target)return;target.dataset.select?select(target.dataset.select):toggle(target.dataset.toggle);});
-$('inspector').addEventListener('change',e=>{if(e.target.matches('input[type=range][data-scroll-id]')){const id=e.target.dataset.scrollId;scrollCollection(id,Number(e.target.value)-model.paging.graphWindow(id).start);}else if(e.target.matches('input[type=range][data-inspector-scroll-id]')){const id=e.target.dataset.inspectorScrollId;scrollInspector(id,Number(e.target.value)-(model.inspectorStarts?.get(id)||0));}});
-$('inspector').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches('input[data-page-id]')){e.preventDefault();changePage(e.target,Number(e.target.value)-1);}});
-$('inspector').addEventListener('change',e=>{if(e.target.id==='native-edited')$('reuse-result').textContent=t(e.target.checked?'De native gegevens zijn gewijzigd. Herstelbeleid, baseline en afhankelijkheden moeten opnieuw worden beoordeeld. Bewaarde bytes mogen niet blind worden teruggeplaatst.':'Brondata hergebruiken vereist een passende baseline, geldig herstelbeleid en gecontroleerde afhankelijkheden.');});
-initializeWorkspace();
-$('retry').addEventListener('click',initialize);
-initializeSettings(refreshPresentation);
-const exporter=initializeExporting();
-const preview=initializeCadPreview();
-const reportView=createReportView({
- dialog:$('report-dialog'),openButton:$('report-open'),closeButton:$('report-close'),continueButton:$('report-continue'),scrollArea:$('file-report'),
- focusWorkspace:()=>$(preview.state.visible?'preview-open':'graph-heading').focus({preventScroll:true}),
- beforeShow:()=>{$('report-continue').textContent=preview.state.visible?'Naar tekening':'Naar graph';translateTree($('report-dialog'));},
-});
-initializeOpening({onResult:openResult});
-initialize();
+$('open').onclick=async()=>{
+ source=undefined;preview.clear();$('export').disabled=true;$('cad-download').disabled=true;$('drawing').hidden=true;
+ const file=$('file').files[0];if(!file){$('status').textContent='Kies eerst een bestand.';return;}if(file.size>64*1024*1024){$('status').textContent='Dit bestand is groter dan 64 MiB.';return;}
+ $('open').disabled=true;$('status').textContent='Bestand lezen…';
+ try{source={kind:/\.(dxf|dwg)$/i.test(file.name)?'cad':'drawing',name:file.name,files:[{path:file.name,bytes:await file.arrayBuffer()}]};}
+ catch(e){$('status').textContent='Het bestand kon niet worden gelezen. Sluit het eventueel in het andere programma en kies het opnieuw. '+e.message;return;}
+ finally{$('open').disabled=false;}
+ await run();
+};
+$('export').onclick=()=>run({format:'ocdraw'});$('cad-download').onclick=()=>run({format:$('preview-format').value,version:$('preview-version').value});$('cancel').onclick=()=>controller?.abort();

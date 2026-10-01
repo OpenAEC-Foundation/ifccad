@@ -19,9 +19,8 @@ mkdir -p "$root/releases"
 mkdir "$release"
 tar --extract --gzip --file "$archive" --directory "$release" --no-same-owner --no-same-permissions
 python3 -c 'import json,sys; assert json.load(open(sys.argv[1]))["revision"] == sys.argv[2]' "$release/dist/version.json" "$revision"
-[[ -f "$release/container.mjs" && -f "$release/ocdraw-viewer" ]]
+[[ -f "$release/container.mjs" && -f "$release/dist/wasm/ocdraw_browser_bg.wasm" ]]
 chmod -R a+rX "$release"
-chmod 755 "$release/ocdraw-viewer"
 
 previous=''
 managed=false

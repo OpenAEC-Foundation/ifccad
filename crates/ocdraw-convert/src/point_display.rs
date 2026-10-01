@@ -1,26 +1,4 @@
-use ocdraw::package::{PointDisplay, PointGlyph, PointSize};
-
-pub(crate) fn direct_from_cad(mode: i16, size: f64) -> Option<ocdraw::drawing::PointDisplay> {
-    let legacy = from_cad(mode, size)?;
-    let glyph = match legacy.glyph {
-        PointGlyph::Dot => ocdraw::drawing::PointGlyph::Dot,
-        PointGlyph::Hidden => ocdraw::drawing::PointGlyph::Hidden,
-        PointGlyph::Plus => ocdraw::drawing::PointGlyph::Plus,
-        PointGlyph::Cross => ocdraw::drawing::PointGlyph::Cross,
-        PointGlyph::ShortLine => ocdraw::drawing::PointGlyph::ShortLine,
-    };
-    let size = match legacy.size {
-        PointSize::DefaultFivePercent => ocdraw::drawing::PointSize::DefaultFivePercent,
-        PointSize::Absolute(value) => ocdraw::drawing::PointSize::Absolute(value),
-        PointSize::ViewportPercent(value) => ocdraw::drawing::PointSize::ViewportPercent(value),
-    };
-    Some(ocdraw::drawing::PointDisplay {
-        glyph,
-        circle: legacy.circle,
-        square: legacy.square,
-        size,
-    })
-}
+use ocdraw::ocdraw::{PointDisplay, PointGlyph, PointSize};
 
 pub(crate) fn from_cad(mode: i16, size: f64) -> Option<PointDisplay> {
     if mode < 0 || mode & !0x67 != 0 || mode & 7 > 4 || !size.is_finite() {

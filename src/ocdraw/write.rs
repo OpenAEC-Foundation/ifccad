@@ -1,10 +1,12 @@
+mod state;
 use super::logical::{
-    AppearanceMode as LogicalAppearanceMode, AppearancePair,
-    BlockDefinition as LogicalBlockDefinition, DrawingModel, Entity as LogicalEntity,
-    Layout as LogicalLayout, NamedId, Scope, ScopeKind, ScopeOrder,
+    AppearanceMode as LogicalAppearanceMode, AppearancePair, AppearanceSelection,
+    BlockDefinition as LogicalBlockDefinition, DrawingColor, DrawingEntityRecord, DrawingModel,
+    Entity as LogicalEntity, EntityAppearance, EntityGeometry, Layout as LogicalLayout, NamedId,
+    NamedUcs, Scope, ScopeKind,
 };
 use super::{load_drawing_bytes, DrawingLoadStatus, LayoutSettings, PointDisplay, UcsDefinition};
-use serde_json::{json, Map, Value};
+pub use state::{DrawingSavedState, ViewportDefinition};
 use std::path::Path;
 
 #[derive(Clone, Debug)]
@@ -35,44 +37,6 @@ pub struct RgbColor(pub [u8; 3]);
 impl RgbColor {
     pub fn new(red: u8, green: u8, blue: u8) -> Self {
         Self([red, green, blue])
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct DrawingColor {
-    pub rgb: [u8; 3],
-    pub indexed: Option<(String, u64)>,
-    pub named: Option<(String, String)>,
-}
-
-impl DrawingColor {
-    pub fn rgb(red: u8, green: u8, blue: u8) -> Self {
-        Self {
-            rgb: [red, green, blue],
-            indexed: None,
-            named: None,
-        }
-    }
-
-    pub fn with_indexed(mut self, system: impl Into<String>, index: u64) -> Self {
-        self.indexed = Some((system.into(), index));
-        self
-    }
-
-    pub fn with_named(mut self, catalog: impl Into<String>, name: impl Into<String>) -> Self {
-        self.named = Some((catalog.into(), name.into()));
-        self
-    }
-
-    fn to_json(&self) -> Value {
-        let mut value = json!({"rgb": self.rgb});
-        if let Some((system, index)) = &self.indexed {
-            value["indexedColor"] = json!({"system": system, "index": index});
-        }
-        if let Some((catalog, name)) = &self.named {
-            value["namedColor"] = json!({"catalog": catalog, "name": name});
-        }
-        value
     }
 }
 
@@ -119,32 +83,6 @@ impl LayerDefinition {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
-pub enum AppearanceSelection<T> {
-    ByLayer,
-    ByBlock,
-    Explicit(T),
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub struct EntityAppearance {
-    pub color: AppearanceSelection<DrawingColor>,
-    pub opacity: AppearanceSelection<f64>,
-    pub line_pattern: AppearanceSelection<String>,
-    pub line_weight: AppearanceSelection<f64>,
-}
-
-impl Default for EntityAppearance {
-    fn default() -> Self {
-        Self {
-            color: AppearanceSelection::ByLayer,
-            opacity: AppearanceSelection::ByLayer,
-            line_pattern: AppearanceSelection::ByLayer,
-            line_weight: AppearanceSelection::ByLayer,
-        }
-    }
-}
-
 #[derive(Clone, Debug)]
 pub struct LineDefinition {
     pub scope_id: u32,
@@ -153,6 +91,27 @@ pub struct LineDefinition {
     pub end: [f64; 3],
     pub appearance: EntityAppearance,
     pub visible: bool,
+}
+
+#[derive(Clone, Debug)]
+pub struct GeometricEntityDefinition {
+    pub scope_id: u32,
+    pub layer_id: u32,
+    pub geometry: EntityGeometry,
+    pub appearance: EntityAppearance,
+    pub visible: bool,
+}
+
+impl GeometricEntityDefinition {
+    pub fn new(scope_id: u32, layer_id: u32, geometry: EntityGeometry) -> Self {
+        Self {
+            scope_id,
+            layer_id,
+            geometry,
+            appearance: EntityAppearance::default(),
+            visible: true,
+        }
+    }
 }
 
 impl LineDefinition {
@@ -434,18 +393,6 @@ impl CircleDefinition {
     }
 }
 
-struct ObjectRow {
-    id: u64,
-    kind: &'static str,
-    scope_id: u32,
-    layer_id: u32,
-    appearance: EntityAppearance,
-    visible: bool,
-    fields: Map<String, Value>,
-    min: [f64; 3],
-    max: [f64; 3],
-}
-
 #[derive(Debug, thiserror::Error)]
 pub enum DrawingBuildError {
     #[error("drawing content is invalid: {0}")]
@@ -483,19 +430,22 @@ impl EncodedDrawing {
 }
 
 pub struct DrawingBuilder {
-    options: DrawingOptions,
-    model_layout_name: String,
-    layers: Vec<LayerDefinition>,
-    objects: Vec<ObjectRow>,
-    next_entity_id: u64,
-    paper_layouts: Vec<String>,
-    layout_settings: Vec<LayoutSettings>,
-    block_definitions: Vec<BlockDefinition>,
-    current_layer: Option<u32>,
-    active_layout: Option<u32>,
-    plot_style_mode: PlotStyleMode,
-    point_display: Option<PointDisplay>,
-    ucs_definitions: Vec<UcsDefinition>,
+    pub(crate) options: DrawingOptions,
+    pub(crate) model_layout_name: String,
+    pub(crate) layers: Vec<LayerDefinition>,
+    pub(crate) objects: Vec<DrawingEntityRecord>,
+    pub(crate) scope_entities: std::collections::BTreeMap<u32, Vec<u64>>,
+    pub(crate) next_entity_id: u64,
+    pub(crate) paper_layouts: Vec<String>,
+    pub(crate) layout_settings: Vec<LayoutSettings>,
+    pub(crate) block_definitions: Vec<BlockDefinition>,
+    pub(crate) current_layer: Option<u32>,
+    pub(crate) active_layout: Option<u32>,
+    pub(crate) plot_style_mode: PlotStyleMode,
+    pub(crate) point_display: Option<PointDisplay>,
+    pub(crate) ucs_definitions: Vec<UcsDefinition>,
+    pub(crate) viewports: Vec<super::logical::DrawingViewport>,
+    pub(crate) saved_state: DrawingSavedState,
 }
 
 impl DrawingBuilder {
@@ -535,9 +485,11 @@ impl DrawingBuilder {
             }),
         }];
         let mut scopes = vec![Scope {
+            entities: Vec::new(),
             id: 0,
             kind: ScopeKind::Model,
             has_bounds: None,
+            bounds: None,
         }];
         for (index, name) in self.paper_layouts.iter().enumerate() {
             let id = u32::try_from(index + 1).map_err(|_| DrawingBuildError::IdExhausted)?;
@@ -559,9 +511,11 @@ impl DrawingBuilder {
                 ),
             });
             scopes.push(Scope {
+                entities: Vec::new(),
                 id,
                 kind: ScopeKind::Paper,
                 has_bounds: None,
+                bounds: None,
             });
         }
         let mut blocks = Vec::new();
@@ -573,28 +527,31 @@ impl DrawingBuilder {
                 .and_then(|id| u32::try_from(id).ok())
                 .ok_or(DrawingBuildError::IdExhausted)?;
             scopes.push(Scope {
+                entities: Vec::new(),
                 id,
                 kind: ScopeKind::Block,
                 has_bounds: None,
+                bounds: None,
             });
             blocks.push(LogicalBlockDefinition {
                 scope_id: id,
                 name: definition.name.clone(),
             });
         }
-        let entities = self
+        let mut entities: Vec<LogicalEntity> = self
             .objects
             .iter()
             .enumerate()
             .map(|(index, row)| LogicalEntity {
                 id: row.id,
-                scope_id: row.scope_id,
                 layer_id: row.layer_id,
-                definition_scope_id: row
-                    .fields
-                    .get("definitionScopeId")
-                    .and_then(Value::as_u64)
-                    .map(|id| id as u32),
+                definition_scope_id: match row.geometry {
+                    EntityGeometry::BlockInstance {
+                        definition_scope_id,
+                        ..
+                    } => Some(definition_scope_id),
+                    _ => None,
+                },
                 appearance: [
                     logical_pair(&row.appearance.color),
                     logical_pair(&row.appearance.opacity),
@@ -604,22 +561,25 @@ impl DrawingBuilder {
                 location: format!("/entities/{index}"),
             })
             .collect();
-        let orders = scopes
-            .iter()
-            .filter_map(|scope| {
-                let ids = self
-                    .objects
-                    .iter()
-                    .filter(|row| row.scope_id == scope.id)
-                    .map(|row| row.id)
-                    .collect::<Vec<_>>();
-                (!ids.is_empty()).then(|| ScopeOrder {
-                    scope_id: scope.id,
-                    entities: ids,
-                    location: format!("/scope/{}/entities", scope.id),
-                })
-            })
-            .collect();
+        entities.extend(self.viewports.iter().map(|row| LogicalEntity {
+            id: row.id,
+            layer_id: row.layer_id,
+            definition_scope_id: None,
+            appearance: [
+                logical_pair(&row.appearance.color),
+                logical_pair(&row.appearance.opacity),
+                logical_pair(&row.appearance.line_pattern),
+                logical_pair(&row.appearance.line_weight),
+            ],
+            location: format!("/entities/{}", row.id),
+        }));
+        for scope in &mut scopes {
+            scope.entities = self
+                .scope_entities
+                .get(&scope.id)
+                .cloned()
+                .unwrap_or_default();
+        }
         Ok(DrawingModel {
             next_entity_id: self.next_entity_id,
             next_layer_id: layer_count,
@@ -629,20 +589,28 @@ impl DrawingBuilder {
             scopes,
             blocks,
             entities,
-            orders,
             current_layer_id: self.current_layer,
             active_layout_id: self.active_layout,
             ucs_definitions: self
                 .ucs_definitions
                 .iter()
                 .enumerate()
-                .map(|(id, ucs)| NamedId {
+                .map(|(id, ucs)| NamedUcs {
                     id: id as u32,
                     name: ucs.name.clone(),
+                    frame: Some(ucs.frame),
                 })
                 .collect(),
-            model_window_ids: Vec::new(),
-            active_model_window_id: None,
+            model_window_ids: self
+                .saved_state
+                .model_windows
+                .iter()
+                .map(|w| w.id)
+                .collect(),
+            active_model_window_id: self
+                .saved_state
+                .view_state
+                .map(|s| s.active_model_window_id),
             named_ucs_refs: Vec::new(),
             ucs_choices: Vec::new(),
         })
@@ -659,6 +627,7 @@ impl DrawingBuilder {
             model_layout_name: "Model".into(),
             layers: Vec::new(),
             objects: Vec::new(),
+            scope_entities: Default::default(),
             next_entity_id: 1,
             paper_layouts: Vec::new(),
             layout_settings: vec![LayoutSettings::default()],
@@ -668,6 +637,8 @@ impl DrawingBuilder {
             plot_style_mode: PlotStyleMode::ColorDependent,
             point_display: None,
             ucs_definitions: Vec::new(),
+            viewports: Vec::new(),
+            saved_state: DrawingSavedState::default(),
         })
     }
 
@@ -723,16 +694,13 @@ impl DrawingBuilder {
         layout_id: u32,
         settings: LayoutSettings,
     ) -> Result<(), DrawingBuildError> {
-        if settings
-            .limits
-            .is_some_and(|limits| limits.to_json().is_none())
-        {
+        if settings.limits.is_some_and(|limits| !limits.is_valid()) {
             return Err(DrawingBuildError::Invalid("invalid layout limits".into()));
         }
         if settings
             .plot_settings
             .as_ref()
-            .is_some_and(|plot| plot.to_json().is_none())
+            .is_some_and(|plot| !plot.is_valid())
         {
             return Err(DrawingBuildError::Invalid("invalid plot settings".into()));
         }
@@ -757,7 +725,7 @@ impl DrawingBuilder {
     }
 
     pub fn set_point_display(&mut self, display: PointDisplay) -> Result<(), DrawingBuildError> {
-        if display.to_json().is_none() {
+        if !display.is_valid() {
             return Err(DrawingBuildError::Invalid(
                 "invalid point display size".into(),
             ));
@@ -773,109 +741,146 @@ impl DrawingBuilder {
     }
 
     pub fn add_line(&mut self, line: LineDefinition) -> Result<u64, DrawingBuildError> {
-        let mut fields = Map::new();
-        for (name, value) in [
-            ("x1", line.start[0]),
-            ("y1", line.start[1]),
-            ("z1", line.start[2]),
-            ("x2", line.end[0]),
-            ("y2", line.end[1]),
-            ("z2", line.end[2]),
-        ] {
-            fields.insert(name.into(), json!(value));
-        }
         let min = std::array::from_fn(|axis| line.start[axis].min(line.end[axis]));
         let max = std::array::from_fn(|axis| line.start[axis].max(line.end[axis]));
-        self.add_object(ObjectRow {
-            id: 0,
-            kind: "line",
-            scope_id: line.scope_id,
-            layer_id: line.layer_id,
-            appearance: line.appearance,
-            visible: line.visible,
-            fields,
-            min,
-            max,
-        })
+        self.add_object(
+            line.scope_id,
+            DrawingEntityRecord {
+                id: 0,
+                kind: "line",
+                layer_id: line.layer_id,
+                appearance: line.appearance,
+                visible: line.visible,
+                geometry: EntityGeometry::Line {
+                    start: line.start,
+                    end: line.end,
+                },
+                min,
+                max,
+            },
+        )
+    }
+
+    pub fn add_geometric_entity(
+        &mut self,
+        entity: GeometricEntityDefinition,
+    ) -> Result<u64, DrawingBuildError> {
+        let kind = match &entity.geometry {
+            EntityGeometry::Line { .. } => "line",
+            EntityGeometry::Point { .. } => "point",
+            EntityGeometry::Circle { .. } => "circle",
+            EntityGeometry::Arc { .. } => "arc",
+            EntityGeometry::Ellipse { arc: None, .. } => "ellipse",
+            EntityGeometry::Ellipse { arc: Some(_), .. } => "ellipseArc",
+            EntityGeometry::PlanarPolyline { .. } => "planarPolyline",
+            EntityGeometry::SpatialPolyline { .. } => "spatialPolyline",
+            EntityGeometry::BlockInstance { .. } => "blockInstance",
+        };
+        let (min, max) = match &entity.geometry {
+            EntityGeometry::BlockInstance { transform, .. } => {
+                let origin = transform.placement().origin().components();
+                (origin, origin)
+            }
+            geometry => super::logical::enclosure(geometry)
+                .ok_or_else(|| DrawingBuildError::Invalid("invalid entity geometry".into()))?,
+        };
+        self.add_object(
+            entity.scope_id,
+            DrawingEntityRecord {
+                id: 0,
+                kind,
+                layer_id: entity.layer_id,
+                appearance: entity.appearance,
+                visible: entity.visible,
+                geometry: entity.geometry,
+                min,
+                max,
+            },
+        )
     }
 
     pub fn add_point(&mut self, point: PointDefinition) -> Result<u64, DrawingBuildError> {
-        let mut fields = Map::new();
-        fields.insert("placement".into(), placement(point.position));
-        self.add_object(ObjectRow {
-            id: 0,
-            kind: "point",
-            scope_id: point.scope_id,
-            layer_id: point.layer_id,
-            appearance: point.appearance,
-            visible: point.visible,
-            fields,
-            min: point.position,
-            max: point.position,
-        })
+        let placement = frame_at(point.position)?;
+        self.add_object(
+            point.scope_id,
+            DrawingEntityRecord {
+                id: 0,
+                kind: "point",
+                layer_id: point.layer_id,
+                appearance: point.appearance,
+                visible: point.visible,
+                geometry: EntityGeometry::Point { placement },
+                min: point.position,
+                max: point.position,
+            },
+        )
     }
 
     pub fn add_circle(&mut self, circle: CircleDefinition) -> Result<u64, DrawingBuildError> {
-        let frame = crate::drawing::CoordinateFrame3::try_new(
-            crate::drawing::Point3::new(circle.center[0], circle.center[1], circle.center[2]),
-            crate::drawing::Vector3::new(1.0, 0.0, 0.0),
-            crate::drawing::Vector3::new(0.0, 1.0, 0.0),
+        let frame = crate::ocdraw::CoordinateFrame3::try_new(
+            crate::ocdraw::Point3::new(circle.center[0], circle.center[1], circle.center[2]),
+            crate::ocdraw::Vector3::new(1.0, 0.0, 0.0),
+            crate::ocdraw::Vector3::new(0.0, 1.0, 0.0),
         )
         .map_err(|error| DrawingBuildError::Invalid(error.to_string()))?;
         let enclosure =
-            crate::drawing::geometry::circular_bounds(frame.components(), circle.radius, None)
+            crate::ocdraw::geometry::circular_bounds(frame.components(), circle.radius, None)
                 .ok_or_else(|| {
                     DrawingBuildError::Invalid(
                         "circle requires finite positive radius and valid placement".into(),
                     )
                 })?;
-        let mut fields = Map::new();
-        fields.insert("placement".into(), placement(circle.center));
-        fields.insert("radius".into(), json!(circle.radius));
         let min = enclosure.min().components();
         let max = enclosure.max().components();
-        self.add_object(ObjectRow {
-            id: 0,
-            kind: "circle",
-            scope_id: circle.scope_id,
-            layer_id: circle.layer_id,
-            appearance: circle.appearance,
-            visible: circle.visible,
-            fields,
-            min,
-            max,
-        })
+        self.add_object(
+            circle.scope_id,
+            DrawingEntityRecord {
+                id: 0,
+                kind: "circle",
+                layer_id: circle.layer_id,
+                appearance: circle.appearance,
+                visible: circle.visible,
+                geometry: EntityGeometry::Circle {
+                    placement: frame,
+                    radius: circle.radius,
+                },
+                min,
+                max,
+            },
+        )
     }
 
     pub fn add_arc(&mut self, arc: ArcDefinition) -> Result<u64, DrawingBuildError> {
-        let frame = crate::drawing::CoordinateFrame3::try_new(
-            crate::drawing::Point3::new(arc.center[0], arc.center[1], arc.center[2]),
-            crate::drawing::Vector3::new(1.0, 0.0, 0.0),
-            crate::drawing::Vector3::new(0.0, 1.0, 0.0),
+        let frame = crate::ocdraw::CoordinateFrame3::try_new(
+            crate::ocdraw::Point3::new(arc.center[0], arc.center[1], arc.center[2]),
+            crate::ocdraw::Vector3::new(1.0, 0.0, 0.0),
+            crate::ocdraw::Vector3::new(0.0, 1.0, 0.0),
         )
         .map_err(|error| DrawingBuildError::Invalid(error.to_string()))?;
-        let enclosure = crate::drawing::geometry::circular_bounds(
+        let enclosure = crate::ocdraw::geometry::circular_bounds(
             frame.components(),
             arc.radius,
             Some((arc.start_parameter, arc.sweep_parameter)),
         )
         .ok_or_else(|| DrawingBuildError::Invalid("invalid arc geometry".into()))?;
-        let mut fields = Map::new();
-        fields.insert("placement".into(), placement(arc.center));
-        fields.insert("radius".into(), json!(arc.radius));
-        fields.insert("startParameter".into(), json!(arc.start_parameter));
-        fields.insert("sweepParameter".into(), json!(arc.sweep_parameter));
-        self.add_object(ObjectRow {
-            id: 0,
-            kind: "arc",
-            scope_id: arc.scope_id,
-            layer_id: arc.layer_id,
-            appearance: arc.appearance,
-            visible: arc.visible,
-            fields,
-            min: enclosure.min().components(),
-            max: enclosure.max().components(),
-        })
+        self.add_object(
+            arc.scope_id,
+            DrawingEntityRecord {
+                id: 0,
+                kind: "arc",
+                layer_id: arc.layer_id,
+                appearance: arc.appearance,
+                visible: arc.visible,
+                geometry: EntityGeometry::Arc {
+                    placement: frame,
+                    radius: arc.radius,
+                    start_parameter: arc.start_parameter,
+                    sweep_parameter: arc.sweep_parameter,
+                },
+                min: enclosure.min().components(),
+                max: enclosure.max().components(),
+            },
+        )
     }
 
     pub fn add_ellipse(&mut self, ellipse: EllipseDefinition) -> Result<u64, DrawingBuildError> {
@@ -899,52 +904,46 @@ impl DrawingBuilder {
                 "ellipse arc requires a sweep; full ellipse forbids one".into(),
             ));
         }
-        let frame = crate::drawing::CoordinateFrame3::try_new(
-            crate::drawing::Point3::new(ellipse.center[0], ellipse.center[1], ellipse.center[2]),
-            crate::drawing::Vector3::new(ellipse.x_axis[0], ellipse.x_axis[1], ellipse.x_axis[2]),
-            crate::drawing::Vector3::new(ellipse.y_axis[0], ellipse.y_axis[1], ellipse.y_axis[2]),
+        let frame = crate::ocdraw::CoordinateFrame3::try_new(
+            crate::ocdraw::Point3::new(ellipse.center[0], ellipse.center[1], ellipse.center[2]),
+            crate::ocdraw::Vector3::new(ellipse.x_axis[0], ellipse.x_axis[1], ellipse.x_axis[2]),
+            crate::ocdraw::Vector3::new(ellipse.y_axis[0], ellipse.y_axis[1], ellipse.y_axis[2]),
         )
         .map_err(|error| DrawingBuildError::Invalid(error.to_string()))?;
-        let enclosure = crate::drawing::geometry::elliptic_bounds(
+        let enclosure = crate::ocdraw::geometry::elliptic_bounds(
             frame.components(),
             ellipse.semi_major_radius,
             ellipse.semi_minor_radius,
             ellipse.arc,
         )
         .ok_or_else(|| DrawingBuildError::Invalid("invalid ellipse geometry".into()))?;
-        let mut fields = Map::new();
-        fields.insert(
-            "placement".into(),
-            placement_axes(ellipse.center, ellipse.x_axis, ellipse.y_axis),
-        );
-        fields.insert("semiMajorRadius".into(), json!(ellipse.semi_major_radius));
-        fields.insert("semiMinorRadius".into(), json!(ellipse.semi_minor_radius));
-        if let Some((start, sweep)) = ellipse.arc {
-            fields.insert("startParameter".into(), json!(start));
-            fields.insert("sweepParameter".into(), json!(sweep));
-        }
-        self.add_object(ObjectRow {
-            id: 0,
-            kind: if partial { "ellipseArc" } else { "ellipse" },
-            scope_id: ellipse.scope_id,
-            layer_id: ellipse.layer_id,
-            appearance: ellipse.appearance,
-            visible: ellipse.visible,
-            fields,
-            min: enclosure.min().components(),
-            max: enclosure.max().components(),
-        })
+        self.add_object(
+            ellipse.scope_id,
+            DrawingEntityRecord {
+                id: 0,
+                kind: if partial { "ellipseArc" } else { "ellipse" },
+                layer_id: ellipse.layer_id,
+                appearance: ellipse.appearance,
+                visible: ellipse.visible,
+                geometry: EntityGeometry::Ellipse {
+                    placement: frame,
+                    semi_major_radius: ellipse.semi_major_radius,
+                    semi_minor_radius: ellipse.semi_minor_radius,
+                    arc: ellipse.arc,
+                },
+                min: enclosure.min().components(),
+                max: enclosure.max().components(),
+            },
+        )
     }
 
     pub fn add_planar_polyline(
         &mut self,
         polyline: PlanarPolylineDefinition,
     ) -> Result<u64, DrawingBuildError> {
-        if polyline.vertices.len() < 2
-            || (!polyline.closed && polyline.vertices.last().is_some_and(|v| v[2] != 0.0))
-        {
+        if polyline.vertices.len() < 2 {
             return Err(DrawingBuildError::Invalid(
-                "planar polyline needs two vertices and no trailing open bulge".into(),
+                "planar polyline needs two vertices".into(),
             ));
         }
         let mut min = [f64::INFINITY, f64::INFINITY, 0.0];
@@ -957,9 +956,9 @@ impl DrawingBuilder {
         for index in 0..segments {
             let from = polyline.vertices[index];
             let to = polyline.vertices[(index + 1) % polyline.vertices.len()];
-            let bounds = crate::drawing::geometry::bulge_segment_bounds(
-                crate::drawing::Point2::new(from[0], from[1]),
-                crate::drawing::Point2::new(to[0], to[1]),
+            let bounds = crate::ocdraw::geometry::bulge_segment_bounds(
+                crate::ocdraw::Point2::new(from[0], from[1]),
+                crate::ocdraw::Point2::new(to[0], to[1]),
                 from[2],
             )
             .ok_or_else(|| DrawingBuildError::Invalid("invalid polyline segment".into()))?;
@@ -968,31 +967,23 @@ impl DrawingBuilder {
             max[0] = max[0].max(bounds.max().x());
             max[1] = max[1].max(bounds.max().y());
         }
-        let mut fields = Map::new();
-        fields.insert("closed".into(), json!(polyline.closed));
-        fields.insert(
-            "x".into(),
-            json!(polyline.vertices.iter().map(|v| v[0]).collect::<Vec<_>>()),
-        );
-        fields.insert(
-            "y".into(),
-            json!(polyline.vertices.iter().map(|v| v[1]).collect::<Vec<_>>()),
-        );
-        fields.insert(
-            "bulge".into(),
-            json!(polyline.vertices.iter().map(|v| v[2]).collect::<Vec<_>>()),
-        );
-        self.add_object(ObjectRow {
-            id: 0,
-            kind: "planarPolyline",
-            scope_id: polyline.scope_id,
-            layer_id: polyline.layer_id,
-            appearance: polyline.appearance,
-            visible: polyline.visible,
-            fields,
-            min,
-            max,
-        })
+        self.add_object(
+            polyline.scope_id,
+            DrawingEntityRecord {
+                id: 0,
+                kind: "planarPolyline",
+                layer_id: polyline.layer_id,
+                appearance: polyline.appearance,
+                visible: polyline.visible,
+                geometry: EntityGeometry::PlanarPolyline {
+                    placement: crate::ocdraw::CoordinateFrame3::default(),
+                    vertices: polyline.vertices,
+                    closed: polyline.closed,
+                },
+                min,
+                max,
+            },
+        )
     }
 
     pub fn add_spatial_polyline(
@@ -1018,273 +1009,169 @@ impl DrawingBuilder {
                 max[axis] = max[axis].max(vertex[axis]);
             }
         }
-        let mut fields = Map::new();
-        fields.insert("closed".into(), json!(polyline.closed));
-        for (axis, name) in ["x", "y", "z"].into_iter().enumerate() {
-            fields.insert(
-                name.into(),
-                json!(polyline
-                    .vertices
-                    .iter()
-                    .map(|v| v[axis])
-                    .collect::<Vec<_>>()),
-            );
-        }
-        self.add_object(ObjectRow {
-            id: 0,
-            kind: "spatialPolyline",
-            scope_id: polyline.scope_id,
-            layer_id: polyline.layer_id,
-            appearance: polyline.appearance,
-            visible: polyline.visible,
-            fields,
-            min,
-            max,
-        })
+        self.add_object(
+            polyline.scope_id,
+            DrawingEntityRecord {
+                id: 0,
+                kind: "spatialPolyline",
+                layer_id: polyline.layer_id,
+                appearance: polyline.appearance,
+                visible: polyline.visible,
+                geometry: EntityGeometry::SpatialPolyline {
+                    vertices: polyline.vertices,
+                    closed: polyline.closed,
+                },
+                min,
+                max,
+            },
+        )
     }
 
     pub fn add_block_instance(
         &mut self,
         instance: BlockInstanceDefinition,
     ) -> Result<u64, DrawingBuildError> {
-        let mut fields = Map::new();
-        fields.insert(
-            "definitionScopeId".into(),
-            json!(instance.definition_scope_id),
-        );
-        fields.insert(
-            "transform".into(),
-            json!({"placement": placement(instance.origin)}),
-        );
-        self.add_object(ObjectRow {
-            id: 0,
-            kind: "blockInstance",
-            scope_id: instance.scope_id,
-            layer_id: instance.layer_id,
-            appearance: instance.appearance,
-            visible: instance.visible,
-            fields,
-            min: instance.origin,
-            max: instance.origin,
-        })
+        let transform = crate::ocdraw::BlockTransform::try_new(
+            frame_at(instance.origin)?,
+            0.0,
+            crate::ocdraw::Scale3::default(),
+        )
+        .map_err(|error| DrawingBuildError::Invalid(error.to_string()))?;
+        self.add_object(
+            instance.scope_id,
+            DrawingEntityRecord {
+                id: 0,
+                kind: "blockInstance",
+                layer_id: instance.layer_id,
+                appearance: instance.appearance,
+                visible: instance.visible,
+                geometry: EntityGeometry::BlockInstance {
+                    definition_scope_id: instance.definition_scope_id,
+                    transform,
+                },
+                min: instance.origin,
+                max: instance.origin,
+            },
+        )
     }
 
-    fn add_object(&mut self, mut row: ObjectRow) -> Result<u64, DrawingBuildError> {
+    fn add_object(
+        &mut self,
+        scope_id: u32,
+        mut row: DrawingEntityRecord,
+    ) -> Result<u64, DrawingBuildError> {
         let id = self.next_entity_id;
         self.next_entity_id = id.checked_add(1).ok_or(DrawingBuildError::IdExhausted)?;
         row.id = id;
+        self.scope_entities.entry(scope_id).or_default().push(id);
         self.objects.push(row);
         Ok(id)
     }
 
     pub fn finish(self) -> Result<EncodedDrawing, DrawingBuildError> {
-        let logical = self.logical_model()?;
+        let mut logical = self.logical_model()?;
         if let Some(error) = logical.validate().into_iter().next() {
             return Err(DrawingBuildError::Invalid(format!(
                 "{}: {}",
                 error.location, error.message
             )));
         }
-        let layer_values = self
-            .layers
-            .iter()
-            .enumerate()
-            .map(|(id, layer)| {
-                let mut value = json!({
-                    "id": id, "name": layer.name, "visible": layer.visible, "frozen": layer.frozen,
-                    "locked": layer.locked, "plottable": layer.plottable,
-                    "frozenInNewViewports": layer.frozen_in_new_viewports,
-                    "color": layer.color.to_json(), "opacity": layer.opacity,
-                    "linePattern": layer.line_pattern, "lineWeight": layer.line_weight,
-                });
-                if let Some(description) = &layer.description {
-                    value["description"] = json!(description);
-                }
-                value
-            })
-            .collect::<Vec<_>>();
         let total_scopes = self.paper_layouts.len() + self.block_definitions.len() + 1;
         let first_block_scope = self.paper_layouts.len() + 1;
         let mut cache = vec![None; total_scopes];
         let mut visiting = vec![false; total_scopes];
-        let bounds = (0..total_scopes)
+        let objects_by_id = self
+            .objects
+            .iter()
+            .map(|row| (row.id, row))
+            .collect::<std::collections::BTreeMap<_, _>>();
+        let mut bounds = (0..total_scopes)
             .map(|scope| {
                 resolve_scope_bounds(
                     scope,
                     first_block_scope,
                     &self.block_definitions,
-                    &self.objects,
+                    &objects_by_id,
+                    &self.scope_entities,
                     &mut cache,
                     &mut visiting,
                 )
             })
             .collect::<Result<Vec<_>, _>>()?;
-        let bounds_json = |bounds: Option<([f64; 3], [f64; 3])>| {
-            bounds.map(|(min,max)| json!({"minX":min[0],"minY":min[1],"minZ":min[2],"maxX":max[0],"maxY":max[1],"maxZ":max[2]}))
-        };
-        let mut layouts = vec![
-            json!({"id":0,"scopeId":0,"kind":"model","name":self.model_layout_name,"tabIndex":0}),
-        ];
-        let mut scopes = vec![json!({"id":0,"kind":0,"bounds":bounds_json(bounds[0])})];
-        for (index, name) in self.paper_layouts.iter().enumerate() {
-            let id = index + 1;
-            layouts.push(json!({"id":id,"scopeId":id,"kind":"paper","name":name,"tabIndex":id}));
-            scopes.push(json!({"id":id,"kind":1,"bounds":bounds_json(bounds[id])}));
-        }
-        for (index, layout) in layouts.iter_mut().enumerate() {
-            let settings = &self.layout_settings[index];
-            if let Some(limits) = settings.limits {
-                layout["limits"] = limits.to_json().expect("validated limits");
-            }
-            if settings.limits_checking {
-                layout["limitsChecking"] = json!(true);
-            }
-            if !settings.paper_space_linetype_scaling {
-                layout["paperSpaceLinetypeScaling"] = json!(false);
-            }
-            if let Some(plot) = &settings.plot_settings {
-                layout["plotSettings"] = plot.to_json().expect("validated plot settings");
-            }
-        }
-        let block_definitions = self
-            .block_definitions
+        let owners = self
+            .scope_entities
             .iter()
-            .enumerate()
-            .map(|(index, definition)| {
-                let id = first_block_scope + index;
-                scopes.push(json!({"id":id,"kind":2,"bounds":bounds_json(bounds[id])}));
-                let mut item = json!({"scopeId":id,"name":definition.name});
-                if definition.base_point != [0.0; 3] {
-                    item["basePoint"] = json!({"x": definition.base_point[0], "y": definition.base_point[1], "z": definition.base_point[2]});
+            .flat_map(|(scope, ids)| ids.iter().map(move |id| (*id, *scope)))
+            .collect::<std::collections::BTreeMap<_, _>>();
+        for viewport in &self.viewports {
+            let index = owners[&viewport.id] as usize;
+            let Some(scope) = bounds.get_mut(index) else {
+                return Err(DrawingBuildError::Invalid(
+                    "viewport owner scope does not exist".into(),
+                ));
+            };
+            let frame = super::logical::viewport_bounds(viewport.frame)
+                .ok_or_else(|| DrawingBuildError::Invalid("invalid viewport frame".into()))?;
+            let min = frame.min().components();
+            let max = frame.max().components();
+            match scope {
+                Some((lower, upper)) => {
+                    for i in 0..3 {
+                        lower[i] = lower[i].min(min[i]);
+                        upper[i] = upper[i].max(max[i]);
+                    }
                 }
-                if !definition.description.is_empty() {
-                    item["description"] = json!(definition.description);
-                }
-                if definition.anonymous {
-                    item["anonymous"] = json!(true);
-                }
-                if definition.insertion_unit != "unitless" {
-                    item["insertionUnit"] = json!(definition.insertion_unit);
-                }
-                if !definition.explodable {
-                    item["explodable"] = json!(false);
-                }
-                if definition.uniform_scaling {
-                    item["scaling"] = json!("Uniform");
-                }
-                item
+                None => *scope = Some((min, max)),
+            }
+        }
+        for (scope, bounds) in logical.scopes.iter_mut().zip(&bounds) {
+            scope.has_bounds = Some(bounds.is_some());
+            scope.bounds = bounds.map(|(min, max)| crate::ocdraw::Bounds3d {
+                min: crate::ocdraw::Point3::new(min[0], min[1], min[2]),
+                max: crate::ocdraw::Point3::new(max[0], max[1], max[2]),
+            });
+        }
+        if let Some(error) = logical.validate().into_iter().next() {
+            return Err(DrawingBuildError::Invalid(format!(
+                "{}: {}",
+                error.location, error.message
+            )));
+        }
+        let geometric_entities = self
+            .objects
+            .iter()
+            .map(|row| super::logical::DrawingGeometricEntity {
+                id: row.id,
+                layer_id: row.layer_id,
+                visible: row.visible,
+                appearance: row.appearance.clone(),
+                geometry: row.geometry.clone(),
             })
             .collect::<Vec<_>>();
-        let mut value = json!({
-            "header": {"format":"open_cad_drawing", "version":"0.1.0", "drawingId": self.options.drawing_id,
-                "unit": self.options.unit, "nextEntityId": self.next_entity_id,
-                "nextLayerId": self.layers.len(), "nextLayoutId": layouts.len()},
-            "layouts": layouts,
-            "scopes": scopes,
-            "streamDirectory": {"version":"ocdraw.streamDirectory.v1","streams":[]},
-            "streams": {}
-        });
-        if !layer_values.is_empty() {
-            value["layers"] = json!(layer_values);
+        let scopes = logical
+            .scopes
+            .iter()
+            .map(|scope| super::logical::DrawingScope {
+                id: scope.id,
+                kind: match scope.kind {
+                    super::logical::ScopeKind::Model => super::logical::DrawingScopeKind::Model,
+                    super::logical::ScopeKind::Paper => super::logical::DrawingScopeKind::Paper,
+                    super::logical::ScopeKind::Block => super::logical::DrawingScopeKind::Block,
+                },
+                bounds: scope.bounds,
+                entities: scope.entities.clone(),
+            })
+            .collect::<Vec<_>>();
+        if let Some(error) = super::logical::validate_geometry_bounds(&geometric_entities, &scopes)
+            .into_iter()
+            .next()
+        {
+            return Err(DrawingBuildError::Invalid(format!(
+                "{}: {}",
+                error.location, error.message
+            )));
         }
-        if !block_definitions.is_empty() {
-            value["blockDefinitions"] = json!(block_definitions);
-        }
-        if !self.ucs_definitions.is_empty() {
-            value["ucsDefinitions"] = Value::Array(
-                self.ucs_definitions
-                    .iter()
-                    .enumerate()
-                    .map(|(id, ucs)| ucs.to_json(id as u32))
-                    .collect(),
-            );
-        }
-        if self.plot_style_mode == PlotStyleMode::Named {
-            value["plotStyleMode"] = json!("named");
-        }
-        if let Some(display) = self.point_display {
-            value["pointDisplay"] = display.to_json().expect("validated display");
-        }
-        let mut workspace = Map::new();
-        if let Some(id) = self.current_layer {
-            workspace.insert("currentLayerId".into(), json!(id));
-        }
-        if let Some(id) = self.active_layout {
-            workspace.insert("activeLayoutId".into(), json!(id));
-        }
-        if !workspace.is_empty() {
-            value["drawingWorkspaceState"] = Value::Object(workspace);
-        }
-        if !self.objects.is_empty() {
-            let mut groups = std::collections::BTreeMap::<&str, Vec<&ObjectRow>>::new();
-            for object in &self.objects {
-                groups.entry(object.kind).or_default().push(object);
-            }
-            let mut directory = Vec::new();
-            for (kind, rows) in groups {
-                let columns = if matches!(kind, "planarPolyline" | "spatialPolyline") {
-                    polyline_columns(&rows, kind)
-                } else {
-                    object_columns(&rows)
-                };
-                let names = columns
-                    .keys()
-                    .filter(|name| *name != "count")
-                    .cloned()
-                    .collect::<Vec<_>>();
-                let (payload, schema) = match kind {
-                    "line" => ("lineStream", "ocdraw.line.v3"),
-                    "point" => ("pointStream", "ocdraw.point.v1"),
-                    "circle" => ("circleStream", "ocdraw.circle.v1"),
-                    "arc" => ("arcStream", "ocdraw.arc.v1"),
-                    "ellipse" => ("ellipseStream", "ocdraw.ellipse.v1"),
-                    "ellipseArc" => ("ellipseArcStream", "ocdraw.ellipseArc.v1"),
-                    "planarPolyline" => ("planarPolylineStream", "ocdraw.planarPolyline.v1"),
-                    "spatialPolyline" => ("spatialPolylineStream", "ocdraw.spatialPolyline.v1"),
-                    "blockInstance" => ("blockInstanceStream", "ocdraw.blockInstance.v1"),
-                    _ => unreachable!("only typed object kinds enter the builder"),
-                };
-                value["streams"][payload] = Value::Object(columns);
-                directory.push(json!({
-                    "name":kind, "schema":schema, "role":"object", "count":rows.len(), "columns":names
-                }));
-            }
-            let mut order_scopes = Vec::new();
-            let mut order_offsets = Vec::new();
-            let mut order_counts = Vec::new();
-            let mut order_entries = Vec::new();
-            for scope_id in 0..bounds.len() {
-                let ids = self
-                    .objects
-                    .iter()
-                    .filter(|object| object.scope_id as usize == scope_id)
-                    .map(|object| object.id)
-                    .collect::<Vec<_>>();
-                if !ids.is_empty() {
-                    order_scopes.push(scope_id);
-                    order_offsets.push(order_entries.len());
-                    order_counts.push(ids.len());
-                    order_entries.extend(ids);
-                }
-            }
-            directory.push(json!({
-                "name":"entityOrder", "schema":"ocdraw.entityOrder.v1", "role":"order", "count":order_scopes.len(),
-                "columns":["scopeId","entryOffset","entryCount"], "children":["entityOrderEntry"]
-            }));
-            directory.push(json!({
-                "name":"entityOrderEntry", "schema":"ocdraw.entityOrderEntry.v1", "role":"child", "count":self.objects.len(),
-                "columns":["entityId"], "parent":"entityOrder"
-            }));
-            value["streamDirectory"]["streams"] = Value::Array(directory);
-            value["streams"]["entityOrderStream"] = json!({
-                "count":order_scopes.len(), "scopeId":order_scopes,
-                "entryOffset":order_offsets, "entryCount":order_counts
-            });
-            value["streams"]["entityOrderEntryStream"] = json!({
-                "count":self.objects.len(), "entityId":order_entries
-            });
-        }
-        let bytes = serde_json::to_vec_pretty(&value)?;
+        let bytes = super::codec::json::encode_document_bytes(&self, &bounds)?;
         let read = load_drawing_bytes(&bytes);
         if read.status() != DrawingLoadStatus::Valid {
             return Err(DrawingBuildError::Invalid(format!(
@@ -1302,7 +1189,8 @@ fn resolve_scope_bounds(
     scope: usize,
     first_block_scope: usize,
     definitions: &[BlockDefinition],
-    objects: &[ObjectRow],
+    objects: &std::collections::BTreeMap<u64, &DrawingEntityRecord>,
+    scope_entities: &std::collections::BTreeMap<u32, Vec<u64>>,
     cache: &mut [Option<ScopeBounds>],
     visiting: &mut [bool],
 ) -> Result<ScopeBounds, DrawingBuildError> {
@@ -1317,17 +1205,20 @@ fn resolve_scope_bounds(
     }
     visiting[scope] = true;
     let mut bounds: ScopeBounds = None;
-    for object in objects
-        .iter()
-        .filter(|object| object.scope_id as usize == scope)
+    for object in scope_entities
+        .get(&(scope as u32))
+        .into_iter()
+        .flatten()
+        .filter_map(|id| objects.get(id))
     {
         let (min, max) = if object.kind == "blockInstance" {
-            let definition = object.fields["definitionScopeId"]
-                .as_u64()
-                .and_then(|id| usize::try_from(id).ok())
-                .ok_or_else(|| {
-                    DrawingBuildError::Invalid("invalid block definition reference".into())
-                })?;
+            let definition = match object.geometry {
+                EntityGeometry::BlockInstance {
+                    definition_scope_id,
+                    ..
+                } => definition_scope_id as usize,
+                _ => unreachable!("block instance kind and geometry agree"),
+            };
             if definition < first_block_scope || definition >= cache.len() {
                 return Err(DrawingBuildError::Invalid(
                     "block instance references a non-block scope".into(),
@@ -1338,18 +1229,31 @@ fn resolve_scope_bounds(
                 first_block_scope,
                 definitions,
                 objects,
+                scope_entities,
                 cache,
                 visiting,
             )?;
             if let Some((min, max)) = definition_bounds {
-                let mut shifted_min = [0.0; 3];
-                let mut shifted_max = [0.0; 3];
+                let transform = match object.geometry {
+                    EntityGeometry::BlockInstance { transform, .. } => transform,
+                    _ => unreachable!("block instance geometry"),
+                };
                 let base = definitions[definition - first_block_scope].base_point;
-                for axis in 0..3 {
-                    shifted_min[axis] = min[axis] - base[axis] + object.min[axis];
-                    shifted_max[axis] = max[axis] - base[axis] + object.min[axis];
-                }
-                (shifted_min, shifted_max)
+                let prepared = super::geometry::PreparedBlockTransform::new(
+                    transform,
+                    super::Point3::new(base[0], base[1], base[2]),
+                )
+                .ok_or_else(|| {
+                    DrawingBuildError::Invalid("block transform cannot be evaluated".into())
+                })?;
+                let local = std::array::from_fn(|axis| super::geometry::numeric::Interval {
+                    lower: min[axis],
+                    upper: max[axis],
+                });
+                let projected = prepared.apply_intervals(local).ok_or_else(|| {
+                    DrawingBuildError::Invalid("block bounds are out of range".into())
+                })?;
+                (projected.map(|v| v.lower), projected.map(|v| v.upper))
             } else {
                 (object.min, object.max)
             }
@@ -1376,24 +1280,6 @@ fn resolve_scope_bounds(
     Ok(bounds)
 }
 
-fn mode<T>(selection: &AppearanceSelection<T>) -> &'static str {
-    match selection {
-        AppearanceSelection::ByLayer => "ByLayer",
-        AppearanceSelection::ByBlock => "ByBlock",
-        AppearanceSelection::Explicit(_) => "Explicit",
-    }
-}
-
-fn appearance_value<T>(
-    selection: &AppearanceSelection<T>,
-    encode: impl FnOnce(&T) -> Value,
-) -> Value {
-    match selection {
-        AppearanceSelection::Explicit(value) => encode(value),
-        _ => Value::Null,
-    }
-}
-
 fn logical_pair<T>(selection: &AppearanceSelection<T>) -> AppearancePair {
     match selection {
         AppearanceSelection::ByLayer => AppearancePair {
@@ -1411,100 +1297,58 @@ fn logical_pair<T>(selection: &AppearanceSelection<T>) -> AppearancePair {
     }
 }
 
-fn placement(origin: [f64; 3]) -> Value {
-    placement_axes(origin, [1.0, 0.0, 0.0], [0.0, 1.0, 0.0])
+fn frame_at(origin: [f64; 3]) -> Result<crate::ocdraw::CoordinateFrame3, DrawingBuildError> {
+    crate::ocdraw::CoordinateFrame3::try_new(
+        crate::ocdraw::Point3::new(origin[0], origin[1], origin[2]),
+        crate::ocdraw::Vector3::new(1.0, 0.0, 0.0),
+        crate::ocdraw::Vector3::new(0.0, 1.0, 0.0),
+    )
+    .map_err(|error| DrawingBuildError::Invalid(error.to_string()))
 }
 
-fn placement_axes(origin: [f64; 3], x: [f64; 3], y: [f64; 3]) -> Value {
-    json!({"origin":{"x":origin[0],"y":origin[1],"z":origin[2]},
-        "X":{"x":x[0],"y":x[1],"z":x[2]},"Y":{"x":y[0],"y":y[1],"z":y[2]}})
-}
-
-fn object_columns(rows: &[&ObjectRow]) -> Map<String, Value> {
-    let mut columns = Map::new();
-    columns.insert("count".into(), json!(rows.len()));
-    let common = [
-        ("entityId", rows.iter().map(|row| json!(row.id)).collect()),
-        (
-            "scopeId",
-            rows.iter().map(|row| json!(row.scope_id)).collect(),
-        ),
-        (
-            "layerId",
-            rows.iter().map(|row| json!(row.layer_id)).collect(),
-        ),
-        (
-            "visible",
-            rows.iter().map(|row| json!(row.visible)).collect(),
-        ),
-    ];
-    for (name, values) in common {
-        columns.insert(name.into(), Value::Array(values));
+#[cfg(test)]
+mod ownership_tests {
+    use super::*;
+    fn model() -> DrawingModel {
+        let mut builder = DrawingBuilder::new(DrawingOptions::new("owners", "mm")).unwrap();
+        let layer = builder
+            .add_layer(LayerDefinition::new(
+                "0",
+                super::super::RgbColor::new(255, 255, 255),
+            ))
+            .unwrap();
+        builder.add_paper_layout("Sheet").unwrap();
+        builder
+            .add_line(LineDefinition::new(layer, [0.; 3], [1.; 3]))
+            .unwrap();
+        builder.logical_model().unwrap()
     }
-    for name in rows[0].fields.keys() {
-        columns.insert(
-            name.clone(),
-            Value::Array(rows.iter().map(|row| row.fields[name].clone()).collect()),
-        );
-    }
-    for property in ["color", "opacity", "linePattern", "lineWeight"] {
-        let mode_name = format!("{property}Mode");
-        let modes = rows
+    #[test]
+    fn shared_validation_checks_membership_without_an_encoding_backing() {
+        assert!(model().validate().is_empty());
+        let mut duplicate = model();
+        duplicate.scopes[0].entities.push(1);
+        assert!(duplicate
+            .validate()
             .iter()
-            .map(|row| match property {
-                "color" => mode(&row.appearance.color),
-                "opacity" => mode(&row.appearance.opacity),
-                "linePattern" => mode(&row.appearance.line_pattern),
-                "lineWeight" => mode(&row.appearance.line_weight),
-                _ => unreachable!(),
-            })
-            .map(|mode| json!(mode))
-            .collect();
-        columns.insert(mode_name, Value::Array(modes));
-        let values = rows
+            .any(|e| e.code == "ENTITY_OWNERSHIP" && e.location == "/scopes/0/entities/1"));
+        let mut multiple = model();
+        multiple.scopes[1].entities.push(1);
+        assert!(multiple
+            .validate()
             .iter()
-            .map(|row| match property {
-                "color" => appearance_value(&row.appearance.color, DrawingColor::to_json),
-                "opacity" => appearance_value(&row.appearance.opacity, |value| json!(value)),
-                "linePattern" => {
-                    appearance_value(&row.appearance.line_pattern, |value| json!(value))
-                }
-                "lineWeight" => appearance_value(&row.appearance.line_weight, |value| json!(value)),
-                _ => unreachable!(),
-            })
-            .collect();
-        columns.insert(property.into(), Value::Array(values));
-    }
-    columns
-}
-
-fn polyline_columns(rows: &[&ObjectRow], kind: &str) -> Map<String, Value> {
-    let mut columns = object_columns(rows);
-    let pools = if kind == "planarPolyline" {
-        &["x", "y", "bulge"][..]
-    } else {
-        &["x", "y", "z"][..]
-    };
-    let mut offsets = Vec::new();
-    let mut counts = Vec::new();
-    let mut next = 0usize;
-    for row in rows {
-        let count = row.fields["x"].as_array().expect("writer vertices").len();
-        offsets.push(next);
-        counts.push(count);
-        next += count;
-    }
-    columns.insert("vertexOffset".into(), json!(offsets));
-    columns.insert("vertexCount".into(), json!(counts));
-    for &pool in pools {
-        let nested = columns.remove(pool).expect("writer pool");
-        let flat = nested
-            .as_array()
-            .expect("writer rows")
+            .any(|e| e.code == "ENTITY_OWNERSHIP"));
+        let mut missing = model();
+        missing.scopes[0].entities.push(99);
+        assert!(missing
+            .validate()
             .iter()
-            .flat_map(|row| row.as_array().expect("writer pool row").iter().cloned())
-            .collect::<Vec<_>>();
-        columns.insert(pool.into(), Value::Array(flat));
+            .any(|e| e.code == "ENTITY_REFERENCE"));
+        let mut orphan = model();
+        orphan.scopes[0].entities.clear();
+        assert!(orphan
+            .validate()
+            .iter()
+            .any(|e| e.code == "ENTITY_OWNERSHIP"));
     }
-    columns
 }

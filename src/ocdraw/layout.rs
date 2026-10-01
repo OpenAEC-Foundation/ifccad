@@ -1,7 +1,6 @@
 //! Layout settings stored with one drawing.
 
 use super::PlotSettings;
-use serde_json::{json, Value};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct LayoutRect {
@@ -12,16 +11,12 @@ pub struct LayoutRect {
 }
 
 impl LayoutRect {
-    pub(crate) fn to_json(self) -> Option<Value> {
-        if ![self.min_x, self.min_y, self.max_x, self.max_y]
+    pub(crate) fn is_valid(self) -> bool {
+        [self.min_x, self.min_y, self.max_x, self.max_y]
             .into_iter()
             .all(f64::is_finite)
-            || self.min_x > self.max_x
-            || self.min_y > self.max_y
-        {
-            return None;
-        }
-        Some(json!({"minX":self.min_x,"minY":self.min_y,"maxX":self.max_x,"maxY":self.max_y}))
+            && self.min_x <= self.max_x
+            && self.min_y <= self.max_y
     }
 }
 

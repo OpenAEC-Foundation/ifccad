@@ -88,7 +88,7 @@ impl BlockTransformComponents {
 /// never normalizes an angle or frame; very small nonzero scales are valid.
 ///
 /// ```
-/// use ocdraw::drawing::{BlockTransform, Point3, Vector3, Scale3};
+/// use ocdraw::ocdraw::{BlockTransform, Point3, Vector3, Scale3};
 /// let insert = BlockTransform::from_normal(
 ///     Point3::new(10., 20., 0.), Vector3::new(0., 0., 1.),
 ///     std::f64::consts::FRAC_PI_2, Scale3::new(2., 2., 2.),
@@ -267,8 +267,8 @@ impl PreparedBlockTransform {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::drawing::geometry::numeric::{exact, Interval};
-    use crate::drawing::{CoordinateAxis, CoordinateFrame3, Point3, Vector3};
+    use crate::ocdraw::geometry::numeric::{exact, Interval};
+    use crate::ocdraw::{CoordinateAxis, CoordinateFrame3, Point3, Vector3};
 
     fn origin() -> Point3 {
         Point3::new(0., 0., 0.)
@@ -533,7 +533,7 @@ mod tests {
             Vector3::new(-1., 0., 0.),
         );
         let local_bounds = local_plane
-            .enclose_point(crate::drawing::Point2::new(2., 3.))
+            .enclose_point(crate::ocdraw::Point2::new(2., 3.))
             .unwrap();
         let local = std::array::from_fn(|i| Interval {
             lower: local_bounds.min().components()[i],

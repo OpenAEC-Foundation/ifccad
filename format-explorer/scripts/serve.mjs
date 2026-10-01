@@ -4,8 +4,6 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { watch } from 'node:fs';
 import { build, output } from './build.mjs';
-import { createJobHandler } from './jobs.mjs';
-const api=createJobHandler();
 await build();
 const root=fileURLToPath(output),port=Number(process.env.PORT||4173);
 const clients=new Set();
@@ -13,7 +11,6 @@ const reloadScript='<script>const changes=new EventSource("./__viewer_events");c
 const types={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.ttf':'font/ttf','.woff':'font/woff','.woff2':'font/woff2','.wasm':'application/wasm','.png':'image/png','.ico':'image/x-icon','.txt':'text/plain; charset=utf-8'};
 const server=createServer(async(req,res)=>{
   try{
-    if(await api.handle(req,res))return;
     const url=new URL(req.url,'http://localhost');
     if(url.pathname==='/__viewer_events'){
       res.writeHead(200,{'Content-Type':'text/event-stream','Cache-Control':'no-cache','Connection':'keep-alive'});
@@ -28,8 +25,8 @@ const server=createServer(async(req,res)=>{
 });
 server.on('error',error=>{console.error(error.code==='EADDRINUSE'?`Port ${port} is in use. Choose another PORT.`:error);process.exit(1);});
 server.requestTimeout=120000;
-server.listen(port,'127.0.0.1',()=>console.log(`IFCCAD viewer ready at http://127.0.0.1:${port}`));
-for(const signal of ['SIGINT','SIGTERM'])process.on(signal,async()=>{server.close();await api.manager.close();process.exit(0);});
+server.listen(port,'127.0.0.1',()=>console.log(`OCDraw inspector ready at http://127.0.0.1:${port}`));
+for(const signal of ['SIGINT','SIGTERM'])process.on(signal,async()=>{server.close();process.exit(0);});
 let timer,building=false,pending=false;
 async function rebuild(){
   if(building){pending=true;return;}

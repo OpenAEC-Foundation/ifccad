@@ -1,23 +1,15 @@
 //! Reproducible production-path timings; run with --release -- OUTPUT_DIRECTORY.
 use num_rational::BigRational;
 use num_traits::ToPrimitive;
-use ocdraw::ifcdr::{CoordinateFrame3, IfcdrEntityRef, IfcdrLengthUnit, Point2, Point3, Vector3};
-use ocdraw::package::*;
-use ocdraw::{PackageId, ResourceId};
+use ocdraw::ocdraw::*;
 use ocdraw_convert::cadcodec::{DwgReader, DwgWriter, DxfReader, DxfWriter};
-use ocdraw_convert::{cad_document_to_package, drawing_to_cad_document, ExportOptions};
+use ocdraw_convert::{
+    cad_document_to_drawing, ocdraw_to_cad_document, ExportOptions, ImportOptions,
+};
 use serde_json::{json, Value};
 use std::{fs, hint::black_box, path::Path, time::Instant};
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
-fn options() -> PackageOptions {
-    PackageOptions {
-        package_id: PackageId::new("spatial-performance").unwrap(),
-        data_version: "1".into(),
-        author: "Spatial performance measurement".into(),
-        timestamp: "2026-09-15T00:00:00Z".into(),
-    }
-}
-fn create(name: &str) -> Result<EncodedPackage> {
+fn create(name: &str) -> Result<EncodedDrawing> {
     let half = 0.5_f64.sqrt();
     let plane = match name {
         "identity" => CoordinateFrame3::default(),
@@ -32,45 +24,21 @@ fn create(name: &str) -> Result<EncodedPackage> {
             Vector3::new(0., 0., 1.),
         )?,
     };
-    let mut package = PackageBuilder::new(options())?;
-    let mut drawing = package.add_drawing(DrawingOptions {
-        model_layout_name: "Model".into(),
-        representation_resource_id: ResourceId::new("drawing")?,
-        length_unit: IfcdrLengthUnit::Metre,
-    })?;
-    let appearance = drawing.appearances().add(AppearanceDefinition {
-        name: "Default".into(),
-        color: AppearanceColor::rgb(0, 0, 0),
-        opacity: 1.,
-        line_pattern: LinePatternDefinition::named("Continuous"),
-        line_weight: 0.25,
-    })?;
-    let layer = drawing.layers().add(LayerDefinition {
-        name: "0".into(),
-        visible: true,
-        frozen: false,
-        locked: false,
-        plottable: true,
-        frozen_in_new_viewports: false,
-        description: None,
-        appearance,
-    })?;
+    let mut drawing = DrawingBuilder::new(DrawingOptions::new("spatial-performance", "m"))?;
+    let layer = drawing.add_layer(LayerDefinition::new("0", DrawingColor::rgb(0, 0, 0)))?;
     for i in 0..10000 {
         let x = if name == "tight" { 0. } else { i as f64 };
-        drawing
-            .model_space()
-            .add_planar_polyline(PlanarPolylineDefinition {
-                bulges: Vec::new(),
-
-                points: vec![Point2::new(x, 0.), Point2::new(x + 1., 1.)],
+        drawing.add_geometric_entity(GeometricEntityDefinition::new(
+            0,
+            layer,
+            DrawingGeometry::PlanarPolyline {
                 placement: plane,
+                vertices: vec![[x, 0., 0.], [x + 1., 1., 0.]],
                 closed: false,
-                layer,
-                appearance: EntityAppearance::by_layer(),
-                visible: true,
-            })?;
+            },
+        ))?;
     }
-    Ok(package.finish()?)
+    Ok(drawing.finish()?)
 }
 fn measure(mut operation: impl FnMut() -> Result<()>) -> Result<Value> {
     for _ in 0..2 {
@@ -88,8 +56,7 @@ fn measure(mut operation: impl FnMut() -> Result<()>) -> Result<Value> {
 // The tight case consists of identical segments. Construct directed bounds
 // independently from the exact affine values, outside the timed validation.
 fn tighten(root: &Path) -> Result<()> {
-    use sha2::{Digest, Sha256};
-    let path = root.join("resources/drawing.ifcdr.json");
+    let path = root.to_path_buf();
     let mut v: Value = serde_json::from_slice(&fs::read(&path)?)?;
     let frame = &v["streams"]["planarPolylineStream"]["placement"][0];
     let exact = |v: f64| BigRational::from_float(v).unwrap();
@@ -116,20 +83,9 @@ fn tighten(root: &Path) -> Result<()> {
             bound[format!("{prefix}{}", axis.to_uppercase())] = json!(n);
         }
     }
-    v["scopeTable"][0]["bounds"] = bound;
+    v["scopes"][0]["bounds"] = bound;
     let bytes = serde_json::to_vec_pretty(&v)?;
     fs::write(path, &bytes)?;
-    let path = root.join("package.ifcx.json");
-    let mut v: Value = serde_json::from_slice(&fs::read(&path)?)?;
-    for node in v["data"].as_array_mut().unwrap() {
-        if let Some(r) = node
-            .get_mut("attributes")
-            .and_then(|a| a.get_mut("resource"))
-        {
-            r["checksum"] = json!(format!("sha256:{:x}", Sha256::digest(&bytes)));
-        }
-    }
-    fs::write(path, serde_json::to_vec_pretty(&v)?)?;
     Ok(())
 }
 fn main() -> Result<()> {
@@ -138,40 +94,37 @@ fn main() -> Result<()> {
         .ok_or("provide a fresh output directory")?;
     let root = Path::new(&arg);
     fs::create_dir(root)?;
-    let mut report = json!({"entities_per_case":10000,"vertices_per_case":20000,"warmup_runs":2,"measured_runs":5,"profile":"release recommended","exact_fallback_counts":null,"counter_note":"Run the opt-in spatial_production_path_counters core test on these packages for validation and point-evaluation exact fallback counts; counters are excluded from timed production builds.","cases":{}});
+    let mut report = json!({"entities_per_case":10000,"vertices_per_case":20000,"warmup_runs":2,"measured_runs":5,"profile":"release recommended","exact_fallback_counts":null,"counter_note":"This standalone production-path measurement does not instrument exact fallback counts.","cases":{}});
     for name in ["identity", "oblique", "tight", "large"] {
-        let path = root.join(name);
-        create(name)?.write_directory(&path)?;
+        let path = root.join(format!("{name}.ocdraw.json"));
+        create(name)?.write_file(&path)?;
         if name == "tight" {
             tighten(&path)?;
         }
         let mut result = json!({});
         result["load_and_validate"] = measure(|| {
-            let loaded = load_directory_package(&path)?;
-            if loaded.validated_package().is_none() {
-                return Err(format!("{:?}", loaded.report()).into());
+            let loaded = load_drawing_file(&path)?;
+            if loaded.validated_drawing().is_none() {
+                return Err(format!("{:?}", loaded.diagnostics()).into());
             }
             black_box(loaded);
             Ok(())
         })?;
-        let loaded = load_directory_package(&path)?;
+        let loaded = load_drawing_file(&path)?;
         let drawing = loaded
-            .validated_package()
-            .ok_or("invalid measured drawing")?
-            .drawings()
-            .next()
-            .unwrap();
-        let layout = drawing.layouts().next().unwrap();
+            .validated_drawing()
+            .ok_or("invalid measured drawing")?;
         result["scope_points"] = measure(|| {
             let mut count = 0;
-            for e in layout
-                .representation()
-                .resource()
-                .entities(layout.scope().id())
-            {
-                if let IfcdrEntityRef::PlanarPolyline(p) = e {
-                    for point in p.scope_points() {
-                        black_box(point?);
+            for e in drawing.geometric_entities() {
+                if let DrawingGeometry::PlanarPolyline {
+                    placement,
+                    vertices,
+                    ..
+                } = e.geometry()
+                {
+                    for p in vertices {
+                        black_box(placement.try_to_scope_point(Point2::new(p[0], p[1]))?);
                         count += 1;
                     }
                 }
@@ -179,17 +132,16 @@ fn main() -> Result<()> {
             assert_eq!(count, 20000);
             Ok(())
         })?;
-        result["ifccad_to_cad"] = measure(|| {
-            black_box(drawing_to_cad_document(drawing)?);
+        result["ocdraw_to_cad"] = measure(|| {
+            black_box(ocdraw_to_cad_document(drawing, ImportOptions::default())?);
             Ok(())
         })?;
-        let imported = drawing_to_cad_document(drawing)?;
+        let imported = ocdraw_to_cad_document(drawing, ImportOptions::default())?;
         let assessment = imported.geometry_assessment();
         result["geometry"] = json!({"status":format!("{:?}",assessment.status()),"max_deviation_upper_bound":assessment.max_deviation_upper_bound(),"resolved_tolerance_upper":assessment.resolved_tolerance().upper(),"assessed_vertices":assessment.assessed_vertices(),"rounded_entities":assessment.rounded_entities()});
-        result["cad_to_ifccad"] = measure(|| {
-            black_box(cad_document_to_package(
+        result["cad_to_ocdraw"] = measure(|| {
+            black_box(cad_document_to_drawing(
                 imported.document(),
-                options(),
                 ExportOptions::default(),
             )?);
             Ok(())

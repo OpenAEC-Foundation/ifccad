@@ -1,6 +1,6 @@
 use crate::units::{q, ResolvedTolerance};
 use num_rational::BigRational;
-use ocdraw::ifcdr::IfcdrLengthUnit;
+use ocdraw::ocdraw::DrawingLengthUnit;
 use thiserror::Error;
 /// Controls semantic loss acceptance. Proven within-tolerance numerical rounding
 /// is accepted by both policies, while remaining loss evidence.
@@ -59,12 +59,12 @@ impl ConversionGeometryTolerance {
     }
     pub(crate) fn resolve(
         self,
-        unit: IfcdrLengthUnit,
+        unit: DrawingLengthUnit,
     ) -> Result<ResolvedTolerance, ConversionToleranceError> {
         let exact = |v| BigRational::from_float(v).expect("validated tolerance");
         let physical = match self.0 {
             ToleranceKind::DrawingUnits(v) => return Ok(ResolvedTolerance::exact(exact(v))),
-            ToleranceKind::Default if unit == IfcdrLengthUnit::Unitless => {
+            ToleranceKind::Default if unit == DrawingLengthUnit::Unitless => {
                 return Ok(ResolvedTolerance::exact(q(0, 1)))
             }
             ToleranceKind::Default => q(1, 1000000),
@@ -96,33 +96,40 @@ mod tests {
         }
         assert_eq!(
             ConversionGeometryTolerance::default()
-                .resolve(IfcdrLengthUnit::Millimetre)
+                .resolve(DrawingLengthUnit::Millimetre)
                 .unwrap(),
             ResolvedTolerance::exact(BigRational::new(1.into(), 1000.into()))
         );
         assert_eq!(
             ConversionGeometryTolerance::default()
-                .resolve(IfcdrLengthUnit::Inch)
+                .resolve(DrawingLengthUnit::Inch)
                 .unwrap(),
             ResolvedTolerance::exact(BigRational::new(1.into(), 25400.into()))
         );
         assert_eq!(
             ConversionGeometryTolerance::default()
-                .resolve(IfcdrLengthUnit::Unitless)
+                .resolve(DrawingLengthUnit::Unitless)
                 .unwrap(),
             ResolvedTolerance::exact(BigRational::from_integer(0.into()))
         );
         assert_eq!(
             ConversionGeometryTolerance::metres(0.0)
                 .unwrap()
-                .resolve(IfcdrLengthUnit::Unitless),
+                .resolve(DrawingLengthUnit::Unitless),
             Err(ConversionToleranceError::PhysicalUnitRequired)
         );
         assert_eq!(
             ConversionGeometryTolerance::exact()
-                .resolve(IfcdrLengthUnit::Unitless)
+                .resolve(DrawingLengthUnit::Unitless)
                 .unwrap(),
             ResolvedTolerance::exact(BigRational::from_integer(0.into()))
         );
     }
+}
+
+pub use ConversionLossPolicy as ExportLossPolicy;
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct ExportOptions {
+    pub loss_policy: ExportLossPolicy,
+    pub geometry_tolerance: ConversionGeometryTolerance,
 }

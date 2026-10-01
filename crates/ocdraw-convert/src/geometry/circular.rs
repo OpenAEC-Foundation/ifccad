@@ -1,11 +1,11 @@
 use super::blocks::{trig, PairedCurve, PairedPoint, Range};
 use super::numeric::exact;
 use super::{cad_plane, orthonormal_pair, stored_normal};
-use crate::ImportError;
+use crate::DirectImportError;
 use cadcodec::Vector3;
 use num_rational::BigRational;
 use num_traits::Signed;
-use ocdraw::ifcdr::{CoordinateFrame3, Point3};
+use ocdraw::ocdraw::{CoordinateFrame3, Point3};
 
 type CurveComponents = ([BigRational; 3], [[Range; 3]; 2]);
 
@@ -234,8 +234,8 @@ fn scaled(a: [f64; 3], value: f64) -> [f64; 3] {
 fn vec3(a: [f64; 3]) -> Vector3 {
     Vector3::new(a[0], a[1], a[2])
 }
-fn ifc_vec3(a: [f64; 3]) -> ocdraw::ifcdr::Vector3 {
-    ocdraw::ifcdr::Vector3::new(a[0], a[1], a[2])
+fn ifc_vec3(a: [f64; 3]) -> ocdraw::ocdraw::Vector3 {
+    ocdraw::ocdraw::Vector3::new(a[0], a[1], a[2])
 }
 
 pub(crate) fn from_cad_ocs(center: Vector3, normal: Vector3) -> Option<CoordinateFrame3> {
@@ -303,22 +303,24 @@ fn paired_export(source: Vector3, target: Point3) -> (PairedPoint, BigRational) 
         .sum();
     (PairedPoint::new(source, target), squared)
 }
-fn source_point(plane: CoordinateFrame3, radius: f64, angle: f64) -> Result<Point3, ImportError> {
+fn source_point(
+    plane: CoordinateFrame3,
+    radius: f64,
+    angle: f64,
+) -> Result<Point3, DirectImportError> {
     plane
-        .try_to_scope_point(ocdraw::ifcdr::Point2::new(
+        .try_to_scope_point(ocdraw::ocdraw::Point2::new(
             radius * angle.cos(),
             radius * angle.sin(),
         ))
-        .map_err(|_| ImportError::InternalInvariant {
-            message: "validated curve sample exceeds finite range".into(),
-        })
+        .map_err(|_| DirectImportError::Cad("validated curve sample exceeds finite range".into()))
 }
 pub(crate) fn circle_sample_pairs(
     plane: CoordinateFrame3,
     radius: f64,
     phase: f64,
     target: &cadcodec::Circle,
-) -> Result<Vec<(PairedPoint, BigRational)>, ImportError> {
+) -> Result<Vec<(PairedPoint, BigRational)>, DirectImportError> {
     [
         0.0,
         std::f64::consts::FRAC_PI_2,
@@ -340,7 +342,7 @@ pub(crate) fn arc_sample_pairs(
     start: f64,
     sweep: f64,
     target: &cadcodec::Arc,
-) -> Result<Vec<(PairedPoint, BigRational)>, ImportError> {
+) -> Result<Vec<(PairedPoint, BigRational)>, DirectImportError> {
     [0.0, 0.5, 1.0]
         .into_iter()
         .map(|fraction| {
@@ -363,7 +365,7 @@ pub(crate) fn export_circle_sample_pairs(
     .into_iter()
     .map(|angle| {
         let target = plane
-            .try_to_scope_point(ocdraw::ifcdr::Point2::new(
+            .try_to_scope_point(ocdraw::ocdraw::Point2::new(
                 source.radius * angle.cos(),
                 source.radius * angle.sin(),
             ))
@@ -382,7 +384,7 @@ pub(crate) fn export_arc_sample_pairs(
         .map(|fraction| {
             let angle = source.start_angle + fraction * sweep;
             let target = plane
-                .try_to_scope_point(ocdraw::ifcdr::Point2::new(
+                .try_to_scope_point(ocdraw::ocdraw::Point2::new(
                     source.radius * angle.cos(),
                     source.radius * angle.sin(),
                 ))
@@ -421,8 +423,8 @@ pub(crate) fn from_cad_ellipse(source: &cadcodec::Ellipse) -> Option<(Coordinate
     let center = source.center;
     let placement = CoordinateFrame3::try_new(
         Point3::new(center.x, center.y, center.z),
-        ocdraw::ifcdr::Vector3::new(x.x, x.y, x.z),
-        ocdraw::ifcdr::Vector3::new(y.x, y.y, y.z),
+        ocdraw::ocdraw::Vector3::new(x.x, x.y, x.z),
+        ocdraw::ocdraw::Vector3::new(y.x, y.y, y.z),
     )
     .ok()?;
     Some((placement, length, minor))
@@ -480,7 +482,7 @@ pub(crate) fn ellipse_sample_pairs(
             let source_angle = start + fraction * sweep;
             let target_angle = target.start_parameter + fraction * sweep.abs();
             let source = plane
-                .try_to_scope_point(ocdraw::ifcdr::Point2::new(
+                .try_to_scope_point(ocdraw::ocdraw::Point2::new(
                     major * source_angle.cos(),
                     minor * source_angle.sin(),
                 ))
@@ -503,7 +505,7 @@ pub(crate) fn export_ellipse_sample_pairs(
         .map(|fraction| {
             let angle = start + fraction * sweep;
             let target = plane
-                .try_to_scope_point(ocdraw::ifcdr::Point2::new(
+                .try_to_scope_point(ocdraw::ocdraw::Point2::new(
                     major * angle.cos(),
                     minor * angle.sin(),
                 ))

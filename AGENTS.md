@@ -2,30 +2,35 @@
 
 ## Project context
 
-IFCCAD is an open exchange format that combines IFC-style project and building
-semantics with CAD drawings in an IFCX-based package architecture.
+This repository develops Open CAD Drawing (OCDraw), an open, application-independent
+information model and exchange format for standalone CAD drawings. The repository
+keeps its experimental IFCCAD name. Active code and schemas no longer require an
+IFCX package or IFCDR/IFCPR resources. Initial OCDraw 0.1.0 remains provisional.
 
-An IFCCAD package contains an IFCX semantic graph, one or more IFCDR drawing
-resources, and optionally IFCPR resources for source information that cannot
-yet be represented natively without loss.
+During the experiment, main may also contain an independent CAD-native-in-IFCX
+implementation under the IFCCAD name. Integrating the existing experimental
+branch and adding its browser inspection route are planned follow-up work.
+Keep its model, schemas, validation and conversion routes clearly separate from
+standalone OCDraw. IFCX must not become a requirement for opening OCDraw.
+Retiring the old package architecture does not retire this independent experiment.
 
 Start with:
 
-- `README.md` for the project purpose, package architecture, current
+- `README.md` for the project purpose, drawing architecture, current
   capabilities, roadmap summary, and repository layout;
 - `ROADMAP.md` for authoritative development sequencing, milestone status,
   dependencies, and exit criteria;
 - `docs/vision.md` for long-term use cases, design principles, and success
   criteria;
-- `crates/ifccad-convert/README.md` for conversion terminology and the boundary
-  between IFCCAD and cadcodec `CadDocument`;
-- `crates/ifccad-convert/src/export/COVERAGE.md` for the pinned cadcodec export
+- `crates/ocdraw-convert/README.md` for conversion terminology and the boundary
+  between OCDraw and cadcodec `CadDocument`;
+- `crates/ocdraw-convert/src/source/COVERAGE.md` for the pinned cadcodec export
   coverage and loss-classification contract.
 
 For measurement or encoding work, also read
-`docs/benchmarks/size-baseline-v1.md` for the controlled experiment, its limits,
+`docs/benchmarks/ocdraw-size-exchange-v1.md` for the standalone controlled experiment, its limits,
 and reproduction instructions. Import changes must also consult
-`crates/ifccad-convert/src/import/COVERAGE.md`.
+`crates/ocdraw-convert/src/ocdraw/IMPORT-COVERAGE.md`.
 
 For performance work, also read `docs/benchmarks/placement-preparation-v1.md`
 for the current preparation measurements and practice-file inventory. Prefer
@@ -72,10 +77,10 @@ follow-up work. Retain designs and plans still needed by active or upcoming work
 
 ## Architecture boundaries
 
-- The core `ifccad` crate owns the format model, package validation, package
-  construction, IFCDR encoding, and directory-package storage.
+- The core `ocdraw` crate owns the drawing model, shared validation, typed
+  construction, encoding, and standalone file storage.
 - The core crate must remain independent of cadcodec and other CAD runtimes.
-- The `ifccad-convert` companion crate owns conversion between validated IFCCAD
+- The `ocdraw-convert` companion crate owns conversion between validated OCDraw
   drawings and cadcodec `CadDocument`.
 - Keep conversion, logical package construction, physical encoding, and
   filesystem storage as separate responsibilities.
@@ -86,8 +91,8 @@ follow-up work. Retain designs and plans still needed by active or upcoming work
 - Do not silently approximate or discard source semantics. Represent them,
   diagnose the loss, preserve them through an approved preservation mechanism,
   or reject structurally inconsistent input.
-- Keep IFCX extension points open where the schemas intentionally permit
-  additional fields or unknown node types.
+- Unknown core fields are rejected. Future preservation or external semantic
+  links need a concrete approved extension design before implementation.
 - Numbered conformance collections are immutable. Develop contract changes in
   the active schemas and `conformance/next`; never modify a released collection
   in place.
@@ -131,7 +136,7 @@ When editing public Rust documentation or examples, use
 `cargo test --doc --workspace` as a focused intermediate check.
 
 New writer or converter output must be loaded through the production reader and
-pass strict package validation. Conversion tests should compare semantic
+pass strict drawing validation. Conversion tests should compare semantic
 content rather than unstable handles or serialized byte layouts, except where
 byte determinism is itself the contract under test.
 

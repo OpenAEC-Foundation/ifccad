@@ -1,7 +1,5 @@
 //! Drawing-local point display setting.
 
-use serde_json::{json, Value};
-
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum PointGlyph {
     Dot,
@@ -38,24 +36,12 @@ impl Default for PointDisplay {
 }
 
 impl PointDisplay {
-    pub(crate) fn to_json(self) -> Option<Value> {
-        let glyph = match self.glyph {
-            PointGlyph::Dot => "dot",
-            PointGlyph::Hidden => "hidden",
-            PointGlyph::Plus => "plus",
-            PointGlyph::Cross => "cross",
-            PointGlyph::ShortLine => "shortLine",
-        };
-        let size = match self.size {
-            PointSize::DefaultFivePercent => json!({"kind":"defaultFivePercent"}),
-            PointSize::Absolute(value) if value.is_finite() && value > 0.0 => {
-                json!({"kind":"absolute","value":value})
+    pub(crate) fn is_valid(self) -> bool {
+        match self.size {
+            PointSize::DefaultFivePercent => true,
+            PointSize::Absolute(value) | PointSize::ViewportPercent(value) => {
+                value.is_finite() && value > 0.0
             }
-            PointSize::ViewportPercent(value) if value.is_finite() && value > 0.0 => {
-                json!({"kind":"viewportPercent","value":value})
-            }
-            _ => return None,
-        };
-        Some(json!({"form":{"glyph":glyph,"circle":self.circle,"square":self.square},"size":size}))
+        }
     }
 }

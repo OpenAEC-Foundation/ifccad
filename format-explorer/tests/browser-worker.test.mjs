@@ -1,24 +1,7 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
+import test from 'node:test';import assert from 'node:assert/strict';
 import {processBrowserRequest} from '../src/browser-worker.mjs';
-
 const bytes=new TextEncoder().encode('demo').buffer;
-test('CAD opening calls the WASM reader with local bytes',()=>{
- let passed;
- const wasm={open_cad(...args){passed=args;return JSON.stringify({validation:{strictAvailable:true}});}};
- const result=processBrowserRequest({kind:'cad',name:'a.dxf',files:[{path:'a.dxf',bytes}]},wasm);
- assert.equal(result.validation.strictAvailable,true);
- assert.equal(passed[1],'dxf');assert.deepEqual([...passed[2]],[...new Uint8Array(bytes)]);
-});
-
-test('CAD export uses the converted package and retains import diagnostics',()=>{
- let packagePaths;
- const wasm={
-  open_cad(){return JSON.stringify({source:{name:'a.dxf'},reader:{status:'ok'},conversion:{assessment:{conclusion:'LossDetected'}},validation:{strictAvailable:true},presentation:{documents:[{path:'package.ifcx.json',text:'{}'}]}});},
-  export_package(name,paths){packagePaths=paths;return JSON.stringify({validation:{strictAvailable:true},export:{fileCheck:{readable:true}}});}
- };
- const result=processBrowserRequest({kind:'cad',name:'a.dxf',files:[{path:'a.dxf',bytes}],export:{format:'dxf',drawing:'drawing-0',version:'AC1032'}},wasm);
- assert.deepEqual(packagePaths,['package.ifcx.json']);
- assert.equal(result.conversion.assessment.conclusion,'LossDetected');
- assert.equal(result.export.fileCheck.readable,true);
-});
+test('standalone opening uses one local file, without a package entry',()=>{let received;const wasm={open_drawing(...args){received=args;return '{"validation":{"strictAvailable":true},"presentation":{"entityId":9007199254740993}}';}};const result=processBrowserRequest({kind:'drawing',name:'demo',files:[{path:'demo.ocdraw.json',bytes}]},wasm);assert.equal(received[0],'demo');assert.equal(result.presentation.entityId,'9007199254740993');});
+test('CAD conversion supplies checked standalone bytes to CAD export',()=>{let received;const wasm={convert_cad_to_drawing(){return JSON.stringify({source:{format:'dxf'},conversion:{diagnostics:['loss']},validation:{strictAvailable:true},export:{download:{base64:'e30='}}});},export_drawing(...args){received=args;return '{"validation":{"strictAvailable":true},"export":{"format":"dwg"}}';}};const result=processBrowserRequest({kind:'cad',name:'a.dxf',files:[{path:'a.dxf',bytes}],export:{format:'dwg',version:'AC1032'}},wasm);assert.equal(new TextDecoder().decode(received[1]),'{}');assert.equal(received[2],'dwg');assert.deepEqual(result.conversion.diagnostics,['loss']);});
+test('failed validation never supplies downloadable bytes',()=>{const wasm={open_drawing(){return '{"validation":{"strictAvailable":false}}';},export_drawing(){throw Error('must not export');}};const result=processBrowserRequest({kind:'drawing',files:[{path:'a.ocdraw.json',bytes}],export:{format:'dxf'}},wasm);assert.equal(result.export,undefined);});
+test('retired package selections and unsafe paths are rejected',()=>{for(const request of [{kind:'package',files:[{path:'package.ifcx.json',bytes}]},{kind:'drawing',files:[{path:'../a.ocdraw.json',bytes}]},{kind:'drawing',files:[{path:'a.ocdraw.json',bytes},{path:'b.ocdraw.json',bytes}]}])assert.throws(()=>processBrowserRequest(request,{}));});

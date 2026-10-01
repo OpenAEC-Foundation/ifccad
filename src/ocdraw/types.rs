@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use std::num::NonZeroU64;
 
 /// Constraint on the exact signed scale factors of every instance of a definition.
@@ -64,32 +66,13 @@ impl From<u32> for LayerId {
 }
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct AppearanceId(u32);
-
-impl AppearanceId {
-    pub(crate) fn new(value: u32) -> Self {
-        Self(value)
-    }
-
-    pub fn get(self) -> u32 {
-        self.0
-    }
-}
-
-impl From<u32> for AppearanceId {
-    fn from(value: u32) -> Self {
-        Self(value)
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct EntityId(NonZeroU64);
 
 impl EntityId {
     /// Constructs a nonzero entity identity. Resource validation also checks uniqueness.
     ///
     /// ```
-    /// use ocdraw::drawing::EntityId;
+    /// use ocdraw::ocdraw::EntityId;
     /// let existing_id = EntityId::new(42).unwrap();
     /// assert_eq!(existing_id.get(), 42);
     /// assert!(EntityId::new(0).is_none());
@@ -116,12 +99,11 @@ impl ScopeId {
     }
 }
 
-/// Coordinate length unit owned and declared by an IFCDR resource.
+/// Coordinate length unit owned and declared by an OCDraw drawing.
 ///
-/// It is resource metadata rather than a package- or drawing-wide setting;
-/// future packages may therefore contain resources with different units.
+/// Coordinates use this drawing-wide length unit; no conversion is implied.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum IfcdrLengthUnit {
+pub enum DrawingLengthUnit {
     Unitless,
     Millimetre,
     Centimetre,

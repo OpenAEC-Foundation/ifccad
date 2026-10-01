@@ -1,6 +1,5 @@
 //! Effective plot settings embedded in a Layout.
 use super::LayoutRect;
-use serde_json::{json, Value};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ShadedPlotMode {
@@ -109,12 +108,12 @@ pub struct PlotSettings {
     pub options: PlotOptions,
 }
 impl PlotSettings {
-    pub(crate) fn to_json(&self) -> Option<Value> {
+    pub(crate) fn is_valid(&self) -> bool {
         if !self.media.width.is_finite()
             || self.media.width <= 0.0
             || !self.media.height.is_finite()
             || self.media.height <= 0.0
-            || self.media.printable_area.to_json().is_none()
+            || !self.media.printable_area.is_valid()
             || self
                 .media
                 .device_name
@@ -127,10 +126,12 @@ impl PlotSettings {
                 .as_ref()
                 .is_some_and(String::is_empty)
         {
-            return None;
+            return false;
         }
         if let PlotArea::Window(rect) = self.area {
-            rect.to_json()?;
+            if !rect.is_valid() {
+                return false;
+            }
         }
         if let PlotScale::Fixed {
             output_length,
@@ -142,12 +143,12 @@ impl PlotSettings {
                 || !scope_length.is_finite()
                 || scope_length <= 0.0
             {
-                return None;
+                return false;
             }
         }
         if let PlotPlacement::Offset { x, y, .. } = self.mapping.placement {
             if !x.is_finite() || !y.is_finite() {
-                return None;
+                return false;
             }
         }
         match (
@@ -155,62 +156,10 @@ impl PlotSettings {
             self.output.shaded_plot.quality.dpi,
         ) {
             (ShadedPlotQualityMode::Custom, Some(100..=32767)) => {}
-            (ShadedPlotQualityMode::Custom, _) => return None,
-            (_, Some(_)) => return None,
+            (ShadedPlotQualityMode::Custom, _) => return false,
+            (_, Some(_)) => return false,
             (_, None) => {}
         }
-        let unit = match self.media.unit {
-            PlotUnit::Millimetre => "mm",
-            PlotUnit::Inch => "in",
-            PlotUnit::Pixel => "px",
-        };
-        let rotation = match self.media.rotation {
-            PlotRotation::None => "none",
-            PlotRotation::CounterClockwise90 => "counterClockwise90",
-            PlotRotation::UpsideDown => "upsideDown",
-            PlotRotation::Clockwise90 => "clockwise90",
-        };
-        let mut media = json!({"unit":unit,"width":self.media.width,"height":self.media.height,"printableArea":self.media.printable_area.to_json().expect("valid layout rectangle"),"rotation":rotation});
-        if let Some(name) = &self.media.device_name {
-            media["deviceName"] = json!(name);
-        }
-        if let Some(name) = &self.media.media_name {
-            media["mediaName"] = json!(name);
-        }
-        let area = match self.area {
-            PlotArea::Layout => json!({"mode":"Layout"}),
-            PlotArea::Extents => json!({"mode":"Extents"}),
-            PlotArea::Limits => json!({"mode":"Limits"}),
-            PlotArea::Window(rect) => {
-                json!({"mode":"Window","window":rect.to_json().expect("valid layout rectangle")})
-            }
-        };
-        let scale = match self.mapping.scale {
-            PlotScale::Fixed {
-                output_length,
-                scope_length,
-            } => json!({"mode":"Fixed","outputLength":output_length,"scopeLength":scope_length}),
-            PlotScale::FitToArea => json!({"mode":"FitToArea"}),
-        };
-        let placement = match self.mapping.placement {
-            PlotPlacement::Centered => json!({"mode":"Centered"}),
-            PlotPlacement::Offset { reference, x, y } => {
-                json!({"mode":"Offset","reference":match reference {PlotOffsetReference::Media=>"Media",PlotOffsetReference::PrintableArea=>"PrintableArea"},"x":x,"y":y})
-            }
-        };
-        let shading = self.output.shaded_plot;
-        let mut quality = json!({"mode":match shading.quality.mode {ShadedPlotQualityMode::Draft=>"Draft",ShadedPlotQualityMode::Preview=>"Preview",ShadedPlotQualityMode::Normal=>"Normal",ShadedPlotQualityMode::Presentation=>"Presentation",ShadedPlotQualityMode::Maximum=>"Maximum",ShadedPlotQualityMode::Custom=>"Custom"}});
-        if let Some(dpi) = shading.quality.dpi {
-            quality["dpi"] = json!(dpi);
-        }
-        let mut output = json!({"shadedPlot":{"mode":match shading.mode {ShadedPlotMode::AsDisplayed=>"AsDisplayed",ShadedPlotMode::Wireframe=>"Wireframe",ShadedPlotMode::Hidden=>"Hidden",ShadedPlotMode::Rendered=>"Rendered"},"quality":quality},"applyPlotStyles":self.output.apply_plot_styles});
-        if let Some(name) = &self.output.plot_style_table_name {
-            output["plotStyleTableName"] = json!(name);
-        }
-        let o = self.options;
-        Some(
-            json!({"media":media,"area":area,"mapping":{"scale":scale,"placement":placement},"output":output,
-            "options":{"plotViewportBorders":o.plot_viewport_borders,"plotPaperSpaceLast":o.plot_paper_space_last,"hidePaperSpaceObjects":o.hide_paper_space_objects,"plotLineWeights":o.plot_line_weights,"scaleLineWeights":o.scale_line_weights,"plotTransparency":o.plot_transparency}}),
-        )
+        true
     }
 }

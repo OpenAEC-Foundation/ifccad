@@ -8,16 +8,46 @@
     "nextLayerId": 0,
     "nextLayoutId": 1
   },
-  "layouts": [{"id": 0, "scopeId": 0, "kind": "model", "name": "Model", "tabIndex": 0}],
-  "scopes": [{"id": 0, "kind": 0, "bounds": null}],
-  "ucsDefinitions": [{
-    "ucsId": 0, "name": "Grid A", "elevation": 0,
-    "frame": {
-      "origin": {"x": 0, "y": 0, "z": 0},
-      "X": {"x": 1, "y": 0, "z": 0},
-      "Y": {"x": 1, "y": 0, "z": 0}
+  "layouts": [
+    {
+      "id": 0,
+      "scopeId": 0,
+      "kind": "model",
+      "name": "Model",
+      "tabIndex": 0
     }
-  }],
-  "streamDirectory": {"version": "ocdraw.streamDirectory.v1", "streams": []},
+  ],
+  "scopes": [
+    {
+      "id": 0,
+      "kind": 0,
+      "bounds": null,
+      "entities": []
+    }
+  ],
+  "ucsDefinitions": [
+    {
+      "ucsId": 0,
+      "name": "Grid A",
+      "elevation": 0,
+      "frame": {
+        "origin": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "X": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        },
+        "Y": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        }
+      }
+    }
+  ],
   "streams": {}
 }

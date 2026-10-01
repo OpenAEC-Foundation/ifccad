@@ -107,7 +107,7 @@
             "point2",
             "bounds2",
             "vertices",
-            "orderEntries",
+            "entityIdList",
             "rgb",
             "indexedColor",
             "namedColor",
@@ -118,7 +118,6 @@
             "point3",
             "vector3",
             "bounds3",
-            "planePlacement",
             "scopeKind",
             "blockScaling",
             "scale3",
@@ -309,7 +308,7 @@
                 "point2",
                 "bounds2",
                 "vertices",
-                "orderEntries",
+                "entityIdList",
                 "rgb",
                 "indexedColor",
                 "namedColor",
@@ -320,7 +319,6 @@
                 "point3",
                 "vector3",
                 "bounds3",
-                "planePlacement",
                 "scopeKind",
                 "blockScaling",
                 "scale3",
@@ -441,7 +439,6 @@
         "role": {
           "enum": [
             "object",
-            "order",
             "child"
           ]
         },

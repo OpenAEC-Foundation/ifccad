@@ -1,6 +1,6 @@
 use super::numeric::{exact, round_down, round_nearest, round_up, Interval};
 use super::values::{Bounds3d, CoordinateAxis, Point3, Vector3};
-use crate::drawing::Point2;
+use crate::ocdraw::Point2;
 use num_rational::BigRational;
 use num_traits::Signed;
 use thiserror::Error;
@@ -83,10 +83,10 @@ impl CoordinateFrameComponents {
 /// require an origin and both directions; validation never fills components in.
 /// Axis squared lengths and their dot product are tested exactly against the
 /// binary64 value nearest to `1e-12`. Evaluation returns owning-scope coordinates,
-/// without applying a scope base or any IFCX placement.
+/// without applying a scope base or any external semantic placement.
 ///
 /// ```
-/// use ocdraw::drawing::{CoordinateFrame3, Point2, Point3, Vector3};
+/// use ocdraw::ocdraw::{CoordinateFrame3, Point2, Point3, Vector3};
 /// let plane = CoordinateFrame3::try_new(
 ///     Point3::new(10.0, 20.0, 30.0),
 ///     Vector3::new(0.0, 1.0, 0.0),

@@ -127,7 +127,7 @@ jobs:
         id: rust-checks-cache
         with:
           path: target/explorer-rust-checks-passed
-          key: ifccad-rust-checks-debian12-v1-${{ hashFiles('Cargo.toml', 'crates/**', 'src/**', 'tests/**', 'schemas/**', 'conformance/**', 'format-explorer/examples/**') }}
+          key: ocdraw-rust-checks-debian12-v1-${{ hashFiles('Cargo.toml', 'crates/**', 'src/**', 'tests/**', 'schemas/**', 'conformance/**', 'format-explorer/examples/**') }}
       - name: Install Rust check tools
         if: steps.rust-checks-cache.outputs.cache-hit != 'true'
         run: rustup component add rustfmt clippy
@@ -172,16 +172,6 @@ jobs:
         run: |
           apt-get update -qq
           apt-get install -y --no-install-recommends python3 python-is-python3 zstd
-      - uses: actions/cache@v4
-        id: reader-cache
-        with:
-          path: target/release/ocdraw-viewer
-          key: ifccad-reader-debian12-v1-${{ hashFiles('Cargo.toml', 'crates/**/Cargo.toml', 'src/**/*.rs', 'crates/**/src/**/*.rs', 'schemas/**', 'crates/ocdraw-convert/README.md') }}
-      - name: Cache Rust build dependencies
-        if: steps.reader-cache.outputs.cache-hit != 'true'
-        uses: Swatinem/rust-cache@v2
-        with:
-          cache-bin: 'false'
       - name: Check website and deployment recovery
         run: |
           test -s format-explorer/ocs-build/index.html
@@ -191,11 +181,8 @@ jobs:
           npm --prefix format-explorer test
           npm --prefix format-explorer run build
           test -s format-explorer/dist/wasm/ocdraw_browser_bg.wasm
-      - name: Build production reader
-        if: steps.reader-cache.outputs.cache-hit != 'true'
-        run: cargo build --release -p ocdraw-viewer
-      - name: Verify production reader
-        run: test -x target/release/ocdraw-viewer
+          test -s format-explorer/dist/ocs/app/index.html
+          test -s format-explorer/dist/ocs/app/LICENSE
       - name: Assemble and exercise release
         shell: bash
         env:
@@ -208,9 +195,8 @@ jobs:
           cp format-explorer/src/cad-formats.mjs "$release/src/"
           cp format-explorer/deploy/container.mjs "$release/"
           cp format-explorer/deploy/smoke.mjs "$release/deploy/"
-          cp target/release/ocdraw-viewer LICENSE "$release/"
+          cp LICENSE "$release/"
           node -e 'require("fs").writeFileSync(process.argv[1],JSON.stringify({revision:process.env.GITHUB_SHA,builtAt:new Date().toISOString()}))' "$release/dist/version.json"
-          export OCDRAW_VIEWER_BIN="$release/ocdraw-viewer"
           node "$release/container.mjs" &
           server=$!
           trap 'kill "$server" 2>/dev/null || true' EXIT

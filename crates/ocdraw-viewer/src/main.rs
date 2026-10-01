@@ -1,38 +1,69 @@
 use ocdraw_viewer::{
-    export_cad_versioned, export_package_versioned, inspect_cad, inspect_drawing, inspect_package,
-    progress,
+    export_drawing_bytes, inspect_cad_as_drawing_bytes, inspect_drawing, progress,
 };
 use serde_json::json;
 use std::path::Path;
 fn main() {
-    let args: Vec<_> = std::env::args_os().collect();
+    let args = std::env::args().collect::<Vec<_>>();
     progress("reading");
-    let result = match args.get(1).and_then(|a| a.to_str()) {
-        Some("drawing") if args.len() == 3 => {
-            progress("validating");
-            inspect_drawing(Path::new(&args[2]))
+    let result = match args.get(1).map(String::as_str) {
+        Some("drawing") if args.len() == 3 => inspect_drawing(Path::new(&args[2])),
+        Some("cad") if args.len() == 3 => {
+            let path = Path::new(&args[2]);
+            let format = path
+                .extension()
+                .and_then(|e| e.to_str())
+                .unwrap_or("")
+                .to_ascii_lowercase();
+            match std::fs::read(path) {
+                Ok(bytes) => inspect_cad_as_drawing_bytes(&args[2], &format, &bytes),
+                Err(e) => {
+                    let mut r = ocdraw_viewer::result(path, &format);
+                    ocdraw_viewer::fail(&mut r, "reading", "CAD_OPEN_FAILED", e);
+                    r
+                }
+            }
         }
-        Some("package") if args.len() == 3 => {
-            progress("validating");
-            inspect_package(Path::new(&args[2]))
+        Some("export-cad") if matches!(args.len(), 4 | 5) => {
+            let path = Path::new(&args[2]);
+            let format = path
+                .extension()
+                .and_then(|e| e.to_str())
+                .unwrap_or("")
+                .to_ascii_lowercase();
+            match std::fs::read(path) {
+                Ok(bytes) => ocdraw_viewer::export_cad_bytes(
+                    &args[2],
+                    &format,
+                    &bytes,
+                    &args[3],
+                    args.get(4).map(String::as_str).unwrap_or("AC1032"),
+                ),
+                Err(e) => {
+                    let mut r = ocdraw_viewer::result(path, &format);
+                    ocdraw_viewer::fail(&mut r, "reading", "CAD_OPEN_FAILED", e);
+                    r
+                }
+            }
         }
-        Some("cad") if args.len() == 4 => inspect_cad(Path::new(&args[2]), Path::new(&args[3])),
-        Some("export-package") if matches!(args.len(), 5 | 6) => export_package_versioned(
-            Path::new(&args[2]),
-            &args[4].to_string_lossy(),
-            &args[3].to_string_lossy(),
-            args.get(5).and_then(|s| s.to_str()).unwrap_or("AC1032"),
-        ),
-        Some("export-cad") if matches!(args.len(), 6 | 7) => export_cad_versioned(
-            Path::new(&args[2]),
-            Path::new(&args[3]),
-            &args[5].to_string_lossy(),
-            &args[4].to_string_lossy(),
-            args.get(6).and_then(|s| s.to_str()).unwrap_or("AC1032"),
-        ),
+        Some("export-drawing") if matches!(args.len(), 4 | 5) => {
+            let path = Path::new(&args[2]);
+            match std::fs::read(path) {
+                Ok(bytes) => export_drawing_bytes(
+                    &args[2],
+                    &bytes,
+                    &args[3],
+                    args.get(4).map(String::as_str).unwrap_or("AC1032"),
+                ),
+                Err(e) => {
+                    let mut r = ocdraw_viewer::result(path, "ocdraw");
+                    ocdraw_viewer::fail(&mut r, "reading", "DRAWING_OPEN_FAILED", e);
+                    r
+                }
+            }
+        }
         _ => {
-            eprintln!("Usage: ocdraw-viewer drawing FILE | package DIRECTORY | cad INPUT OUTPUT_DIRECTORY");
-            eprintln!("       ocdraw-viewer export-package DIRECTORY FORMAT DRAWING | export-cad INPUT OUTPUT_DIRECTORY FORMAT DRAWING");
+            eprintln!("Usage: ocdraw-viewer drawing FILE | cad FILE | export-drawing FILE FORMAT [VERSION]");
             std::process::exit(2)
         }
     };

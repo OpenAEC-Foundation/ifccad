@@ -1,4 +1,39 @@
+mod block_validation;
+pub(crate) use block_validation::validate_blocks;
+mod appearance;
+mod definitions;
+mod document;
+mod geometry;
+mod geometry_validation;
 mod model;
 mod validation;
+mod view_state;
+mod viewport;
 
+pub use appearance::{AppearanceSelection, DrawingColor, EntityAppearance};
+pub use definitions::{
+    DrawingBlockDefinition, DrawingLayer, DrawingLayout, DrawingLayoutKind, DrawingScope,
+    DrawingScopeKind, DrawingUcsDefinition, DrawingWorkspaceState,
+};
+pub(crate) use document::DrawingDocument;
+pub(crate) use geometry::DrawingEntityRecord;
+pub use geometry::{DrawingGeometricEntity, EntityGeometry};
+pub(crate) use geometry_validation::{
+    enclosure, validate_geometry_bounds, validate_viewport_bounds,
+};
 pub(crate) use model::*;
+pub use view_state::{
+    DrawingClip, DrawingClipMode, DrawingGrid, DrawingGridStyle, DrawingIsometricPlane,
+    DrawingModelWindow, DrawingPaperCanvas, DrawingPaperContext, DrawingProjection,
+    DrawingRenderMode, DrawingSnap, DrawingSnapStyle, DrawingUcsSelection, DrawingView,
+    DrawingViewState, DrawingViewportWorkspace,
+};
+pub use viewport::{
+    DrawingPaperClip, DrawingViewport, DrawingViewportFrame, DrawingViewportLayerOverride,
+};
+
+pub(crate) use definitions::owner_index;
+
+mod state_validation;
+pub(crate) use geometry_validation::viewport_bounds;
+pub(crate) use state_validation::validate_state;

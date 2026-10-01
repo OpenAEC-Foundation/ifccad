@@ -1,5 +1,7 @@
 # IFCCAD JSON / DXF / DWG size baseline v1
 
+> Historical IFCCAD package experiment. Its reader/schema configuration is retained in Git history. The active standalone experiment is [OCDraw size and exchange](ocdraw-size-exchange-v1.md); package ratios do not measure the new format.
+
 **Outcome: passed.** Repeatability: passed. Corpus: full-v1.
 
 Retained run: `workspace-state-merged-20260928` (2026-09-28), unmodified cadcodec revision `5b682ed66ea2c89be8142c8dd83d83774fc3de08`. No local dependency override was used. The matching detailed measurements and provenance are in [results-v1.json](../../benchmarks/size/results-v1.json). Direct IFCCAD writer recipes use IFCDR 0.12.0 / IFCX 0.14.0, while the corpus has no authored workspace state. These sizes therefore measure the new package baseline, but not the additional cost of workspace records.

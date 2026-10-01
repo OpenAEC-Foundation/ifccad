@@ -1,4 +1,4 @@
-export const ocsChannel='ifccad-ocs';
+export const ocsChannel='ocdraw-ocs';
 export function createOcsSession(iframe,token,{host=window,origin=location.origin,timeoutMs=120000}={}){
  let closed=false,serial=0,queue=Promise.resolve(),readyResolve,readyReject;
  const pending=new Map();
@@ -53,7 +53,7 @@ export function createOcsControl(api,{delay=ms=>new Promise(resolve=>setTimeout(
   for(let attempt=0;attempt<=maxBusyRetries;attempt++){
    const state=await raw({op:'state'});
    if(!state.ok)throw Error(state.error||'Open CAD Studio state unavailable');
-   const requestId='ifccad-'+Date.now()+'-'+(++serial);
+   const requestId='ocdraw-'+Date.now()+'-'+(++serial);
    const payload={...request,request_id:requestId,revision:state.revision};
    if(request.op!=='open'&&payload.document_id===undefined)payload.document_id=state.document_id;
    let reply=await raw(payload);

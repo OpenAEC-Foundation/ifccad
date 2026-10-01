@@ -8,7 +8,6 @@
     "header",
     "layouts",
     "scopes",
-    "streamDirectory",
     "streams"
   ],
   "properties": {
@@ -262,87 +261,6 @@
         "$ref": "#/$defs/viewportWorkspace"
       }
     },
-    "streamDirectory": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "version",
-        "streams"
-      ],
-      "properties": {
-        "version": {
-          "const": "ocdraw.streamDirectory.v1"
-        },
-        "streams": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "name",
-              "schema",
-              "role",
-              "count",
-              "columns"
-            ],
-            "properties": {
-              "name": {
-                "enum": [
-                  "point",
-                  "line",
-                  "planarPolyline",
-                  "spatialPolyline",
-                  "entityOrder",
-                  "entityOrderEntry",
-                  "blockInstance",
-                  "viewport",
-                  "viewportLayerOverride",
-                  "circle",
-                  "arc",
-                  "ellipse",
-                  "ellipseArc"
-                ]
-              },
-              "schema": {
-                "type": "string",
-                "minLength": 1
-              },
-              "role": {
-                "enum": [
-                  "object",
-                  "order",
-                  "child"
-                ]
-              },
-              "count": {
-                "type": "integer",
-                "minimum": 0
-              },
-              "columns": {
-                "type": "array",
-                "uniqueItems": true,
-                "items": {
-                  "type": "string",
-                  "minLength": 1
-                }
-              },
-              "parent": {
-                "type": "string",
-                "minLength": 1
-              },
-              "children": {
-                "type": "array",
-                "uniqueItems": true,
-                "items": {
-                  "type": "string",
-                  "minLength": 1
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "streams": {
       "type": "object",
       "additionalProperties": false,
@@ -525,83 +443,82 @@
             "placement": {
               "type": "array",
               "items": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                  "origin",
-                  "X",
-                  "Y"
-                ],
-                "properties": {
-                  "origin": {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "required": [
-                      "x",
-                      "y",
-                      "z"
-                    ],
-                    "properties": {
-                      "x": {
-                        "type": "number"
-                      },
-                      "y": {
-                        "type": "number"
-                      },
-                      "z": {
-                        "type": "number"
-                      }
-                    }
+                "oneOf": [
+                  {
+                    "type": "null"
                   },
-                  "X": {
+                  {
                     "type": "object",
                     "additionalProperties": false,
                     "required": [
-                      "x",
-                      "y",
-                      "z"
+                      "origin",
+                      "X",
+                      "Y"
                     ],
                     "properties": {
-                      "x": {
-                        "type": "number"
+                      "origin": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "x",
+                          "y",
+                          "z"
+                        ],
+                        "properties": {
+                          "x": {
+                            "type": "number"
+                          },
+                          "y": {
+                            "type": "number"
+                          },
+                          "z": {
+                            "type": "number"
+                          }
+                        }
                       },
-                      "y": {
-                        "type": "number"
+                      "X": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "x",
+                          "y",
+                          "z"
+                        ],
+                        "properties": {
+                          "x": {
+                            "type": "number"
+                          },
+                          "y": {
+                            "type": "number"
+                          },
+                          "z": {
+                            "type": "number"
+                          }
+                        }
                       },
-                      "z": {
-                        "type": "number"
-                      }
-                    }
-                  },
-                  "Y": {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "required": [
-                      "x",
-                      "y",
-                      "z"
-                    ],
-                    "properties": {
-                      "x": {
-                        "type": "number"
-                      },
-                      "y": {
-                        "type": "number"
-                      },
-                      "z": {
-                        "type": "number"
+                      "Y": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "x",
+                          "y",
+                          "z"
+                        ],
+                        "properties": {
+                          "x": {
+                            "type": "number"
+                          },
+                          "y": {
+                            "type": "number"
+                          },
+                          "z": {
+                            "type": "number"
+                          }
+                        }
                       }
                     }
                   }
-                }
-              }
-            },
-            "scopeId": {
-              "type": "array",
-              "items": {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 4294967295
+                ]
               }
             },
             "visible": {
@@ -785,14 +702,6 @@
                   "Explicit",
                   "ByBlock"
                 ]
-              }
-            },
-            "scopeId": {
-              "type": "array",
-              "items": {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 4294967295
               }
             },
             "visible": {
@@ -1029,83 +938,82 @@
             "placement": {
               "type": "array",
               "items": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                  "origin",
-                  "X",
-                  "Y"
-                ],
-                "properties": {
-                  "origin": {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "required": [
-                      "x",
-                      "y",
-                      "z"
-                    ],
-                    "properties": {
-                      "x": {
-                        "type": "number"
-                      },
-                      "y": {
-                        "type": "number"
-                      },
-                      "z": {
-                        "type": "number"
-                      }
-                    }
+                "oneOf": [
+                  {
+                    "type": "null"
                   },
-                  "X": {
+                  {
                     "type": "object",
                     "additionalProperties": false,
                     "required": [
-                      "x",
-                      "y",
-                      "z"
+                      "origin",
+                      "X",
+                      "Y"
                     ],
                     "properties": {
-                      "x": {
-                        "type": "number"
+                      "origin": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "x",
+                          "y",
+                          "z"
+                        ],
+                        "properties": {
+                          "x": {
+                            "type": "number"
+                          },
+                          "y": {
+                            "type": "number"
+                          },
+                          "z": {
+                            "type": "number"
+                          }
+                        }
                       },
-                      "y": {
-                        "type": "number"
+                      "X": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "x",
+                          "y",
+                          "z"
+                        ],
+                        "properties": {
+                          "x": {
+                            "type": "number"
+                          },
+                          "y": {
+                            "type": "number"
+                          },
+                          "z": {
+                            "type": "number"
+                          }
+                        }
                       },
-                      "z": {
-                        "type": "number"
-                      }
-                    }
-                  },
-                  "Y": {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "required": [
-                      "x",
-                      "y",
-                      "z"
-                    ],
-                    "properties": {
-                      "x": {
-                        "type": "number"
-                      },
-                      "y": {
-                        "type": "number"
-                      },
-                      "z": {
-                        "type": "number"
+                      "Y": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "x",
+                          "y",
+                          "z"
+                        ],
+                        "properties": {
+                          "x": {
+                            "type": "number"
+                          },
+                          "y": {
+                            "type": "number"
+                          },
+                          "z": {
+                            "type": "number"
+                          }
+                        }
                       }
                     }
                   }
-                }
-              }
-            },
-            "scopeId": {
-              "type": "array",
-              "items": {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 4294967295
+                ]
               }
             },
             "vertexCount": {
@@ -1131,15 +1039,13 @@
             "x": {
               "type": "array",
               "items": {
-                "type": "integer",
-                "minimum": 0
+                "type": "number"
               }
             },
             "y": {
               "type": "array",
               "items": {
-                "type": "integer",
-                "minimum": 0
+                "type": "number"
               }
             }
           }
@@ -1325,14 +1231,6 @@
                 ]
               }
             },
-            "scopeId": {
-              "type": "array",
-              "items": {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 4294967295
-              }
-            },
             "vertexCount": {
               "type": "array",
               "items": {
@@ -1356,77 +1254,19 @@
             "x": {
               "type": "array",
               "items": {
-                "type": "integer",
-                "minimum": 0
+                "type": "number"
               }
             },
             "y": {
               "type": "array",
               "items": {
-                "type": "integer",
-                "minimum": 0
+                "type": "number"
               }
             },
             "z": {
               "type": "array",
               "items": {
-                "type": "integer",
-                "minimum": 0
-              }
-            }
-          }
-        },
-        "entityOrderStream": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "count"
-          ],
-          "properties": {
-            "count": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "entryCount": {
-              "type": "array",
-              "items": {
-                "type": "integer",
-                "minimum": 0
-              }
-            },
-            "entryOffset": {
-              "type": "array",
-              "items": {
-                "type": "integer",
-                "minimum": 0
-              }
-            },
-            "scopeId": {
-              "type": "array",
-              "items": {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 4294967295
-              }
-            }
-          }
-        },
-        "entityOrderEntryStream": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "count"
-          ],
-          "properties": {
-            "count": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "entityId": {
-              "type": "array",
-              "items": {
-                "type": "integer",
-                "minimum": 1
+                "type": "number"
               }
             }
           }
@@ -1612,14 +1452,6 @@
                   "Explicit",
                   "ByBlock"
                 ]
-              }
-            },
-            "scopeId": {
-              "type": "array",
-              "items": {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 4294967295
               }
             },
             "transform": {
@@ -2042,14 +1874,6 @@
                   "SmoothShadedWithoutEdges",
                   "SmoothShadedWithEdges"
                 ]
-              }
-            },
-            "scopeId": {
-              "type": "array",
-              "items": {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 4294967295
               }
             },
             "view": {
@@ -2521,89 +2345,88 @@
             "placement": {
               "type": "array",
               "items": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                  "origin",
-                  "X",
-                  "Y"
-                ],
-                "properties": {
-                  "origin": {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "required": [
-                      "x",
-                      "y",
-                      "z"
-                    ],
-                    "properties": {
-                      "x": {
-                        "type": "number"
-                      },
-                      "y": {
-                        "type": "number"
-                      },
-                      "z": {
-                        "type": "number"
-                      }
-                    }
+                "oneOf": [
+                  {
+                    "type": "null"
                   },
-                  "X": {
+                  {
                     "type": "object",
                     "additionalProperties": false,
                     "required": [
-                      "x",
-                      "y",
-                      "z"
+                      "origin",
+                      "X",
+                      "Y"
                     ],
                     "properties": {
-                      "x": {
-                        "type": "number"
+                      "origin": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "x",
+                          "y",
+                          "z"
+                        ],
+                        "properties": {
+                          "x": {
+                            "type": "number"
+                          },
+                          "y": {
+                            "type": "number"
+                          },
+                          "z": {
+                            "type": "number"
+                          }
+                        }
                       },
-                      "y": {
-                        "type": "number"
+                      "X": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "x",
+                          "y",
+                          "z"
+                        ],
+                        "properties": {
+                          "x": {
+                            "type": "number"
+                          },
+                          "y": {
+                            "type": "number"
+                          },
+                          "z": {
+                            "type": "number"
+                          }
+                        }
                       },
-                      "z": {
-                        "type": "number"
-                      }
-                    }
-                  },
-                  "Y": {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "required": [
-                      "x",
-                      "y",
-                      "z"
-                    ],
-                    "properties": {
-                      "x": {
-                        "type": "number"
-                      },
-                      "y": {
-                        "type": "number"
-                      },
-                      "z": {
-                        "type": "number"
+                      "Y": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "x",
+                          "y",
+                          "z"
+                        ],
+                        "properties": {
+                          "x": {
+                            "type": "number"
+                          },
+                          "y": {
+                            "type": "number"
+                          },
+                          "z": {
+                            "type": "number"
+                          }
+                        }
                       }
                     }
                   }
-                }
+                ]
               }
             },
             "radius": {
               "type": "array",
               "items": {
                 "type": "number"
-              }
-            },
-            "scopeId": {
-              "type": "array",
-              "items": {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 4294967295
               }
             },
             "visible": {
@@ -2792,89 +2615,88 @@
             "placement": {
               "type": "array",
               "items": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                  "origin",
-                  "X",
-                  "Y"
-                ],
-                "properties": {
-                  "origin": {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "required": [
-                      "x",
-                      "y",
-                      "z"
-                    ],
-                    "properties": {
-                      "x": {
-                        "type": "number"
-                      },
-                      "y": {
-                        "type": "number"
-                      },
-                      "z": {
-                        "type": "number"
-                      }
-                    }
+                "oneOf": [
+                  {
+                    "type": "null"
                   },
-                  "X": {
+                  {
                     "type": "object",
                     "additionalProperties": false,
                     "required": [
-                      "x",
-                      "y",
-                      "z"
+                      "origin",
+                      "X",
+                      "Y"
                     ],
                     "properties": {
-                      "x": {
-                        "type": "number"
+                      "origin": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "x",
+                          "y",
+                          "z"
+                        ],
+                        "properties": {
+                          "x": {
+                            "type": "number"
+                          },
+                          "y": {
+                            "type": "number"
+                          },
+                          "z": {
+                            "type": "number"
+                          }
+                        }
                       },
-                      "y": {
-                        "type": "number"
+                      "X": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "x",
+                          "y",
+                          "z"
+                        ],
+                        "properties": {
+                          "x": {
+                            "type": "number"
+                          },
+                          "y": {
+                            "type": "number"
+                          },
+                          "z": {
+                            "type": "number"
+                          }
+                        }
                       },
-                      "z": {
-                        "type": "number"
-                      }
-                    }
-                  },
-                  "Y": {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "required": [
-                      "x",
-                      "y",
-                      "z"
-                    ],
-                    "properties": {
-                      "x": {
-                        "type": "number"
-                      },
-                      "y": {
-                        "type": "number"
-                      },
-                      "z": {
-                        "type": "number"
+                      "Y": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "x",
+                          "y",
+                          "z"
+                        ],
+                        "properties": {
+                          "x": {
+                            "type": "number"
+                          },
+                          "y": {
+                            "type": "number"
+                          },
+                          "z": {
+                            "type": "number"
+                          }
+                        }
                       }
                     }
                   }
-                }
+                ]
               }
             },
             "radius": {
               "type": "array",
               "items": {
                 "type": "number"
-              }
-            },
-            "scopeId": {
-              "type": "array",
-              "items": {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 4294967295
               }
             },
             "startParameter": {
@@ -3075,83 +2897,82 @@
             "placement": {
               "type": "array",
               "items": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                  "origin",
-                  "X",
-                  "Y"
-                ],
-                "properties": {
-                  "origin": {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "required": [
-                      "x",
-                      "y",
-                      "z"
-                    ],
-                    "properties": {
-                      "x": {
-                        "type": "number"
-                      },
-                      "y": {
-                        "type": "number"
-                      },
-                      "z": {
-                        "type": "number"
-                      }
-                    }
+                "oneOf": [
+                  {
+                    "type": "null"
                   },
-                  "X": {
+                  {
                     "type": "object",
                     "additionalProperties": false,
                     "required": [
-                      "x",
-                      "y",
-                      "z"
+                      "origin",
+                      "X",
+                      "Y"
                     ],
                     "properties": {
-                      "x": {
-                        "type": "number"
+                      "origin": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "x",
+                          "y",
+                          "z"
+                        ],
+                        "properties": {
+                          "x": {
+                            "type": "number"
+                          },
+                          "y": {
+                            "type": "number"
+                          },
+                          "z": {
+                            "type": "number"
+                          }
+                        }
                       },
-                      "y": {
-                        "type": "number"
+                      "X": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "x",
+                          "y",
+                          "z"
+                        ],
+                        "properties": {
+                          "x": {
+                            "type": "number"
+                          },
+                          "y": {
+                            "type": "number"
+                          },
+                          "z": {
+                            "type": "number"
+                          }
+                        }
                       },
-                      "z": {
-                        "type": "number"
-                      }
-                    }
-                  },
-                  "Y": {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "required": [
-                      "x",
-                      "y",
-                      "z"
-                    ],
-                    "properties": {
-                      "x": {
-                        "type": "number"
-                      },
-                      "y": {
-                        "type": "number"
-                      },
-                      "z": {
-                        "type": "number"
+                      "Y": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "x",
+                          "y",
+                          "z"
+                        ],
+                        "properties": {
+                          "x": {
+                            "type": "number"
+                          },
+                          "y": {
+                            "type": "number"
+                          },
+                          "z": {
+                            "type": "number"
+                          }
+                        }
                       }
                     }
                   }
-                }
-              }
-            },
-            "scopeId": {
-              "type": "array",
-              "items": {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 4294967295
+                ]
               }
             },
             "semiMajorRadius": {
@@ -3352,83 +3173,82 @@
             "placement": {
               "type": "array",
               "items": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                  "origin",
-                  "X",
-                  "Y"
-                ],
-                "properties": {
-                  "origin": {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "required": [
-                      "x",
-                      "y",
-                      "z"
-                    ],
-                    "properties": {
-                      "x": {
-                        "type": "number"
-                      },
-                      "y": {
-                        "type": "number"
-                      },
-                      "z": {
-                        "type": "number"
-                      }
-                    }
+                "oneOf": [
+                  {
+                    "type": "null"
                   },
-                  "X": {
+                  {
                     "type": "object",
                     "additionalProperties": false,
                     "required": [
-                      "x",
-                      "y",
-                      "z"
+                      "origin",
+                      "X",
+                      "Y"
                     ],
                     "properties": {
-                      "x": {
-                        "type": "number"
+                      "origin": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "x",
+                          "y",
+                          "z"
+                        ],
+                        "properties": {
+                          "x": {
+                            "type": "number"
+                          },
+                          "y": {
+                            "type": "number"
+                          },
+                          "z": {
+                            "type": "number"
+                          }
+                        }
                       },
-                      "y": {
-                        "type": "number"
+                      "X": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "x",
+                          "y",
+                          "z"
+                        ],
+                        "properties": {
+                          "x": {
+                            "type": "number"
+                          },
+                          "y": {
+                            "type": "number"
+                          },
+                          "z": {
+                            "type": "number"
+                          }
+                        }
                       },
-                      "z": {
-                        "type": "number"
-                      }
-                    }
-                  },
-                  "Y": {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "required": [
-                      "x",
-                      "y",
-                      "z"
-                    ],
-                    "properties": {
-                      "x": {
-                        "type": "number"
-                      },
-                      "y": {
-                        "type": "number"
-                      },
-                      "z": {
-                        "type": "number"
+                      "Y": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "x",
+                          "y",
+                          "z"
+                        ],
+                        "properties": {
+                          "x": {
+                            "type": "number"
+                          },
+                          "y": {
+                            "type": "number"
+                          },
+                          "z": {
+                            "type": "number"
+                          }
+                        }
                       }
                     }
                   }
-                }
-              }
-            },
-            "scopeId": {
-              "type": "array",
-              "items": {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 4294967295
+                ]
               }
             },
             "semiMajorRadius": {
@@ -4128,7 +3948,8 @@
       "required": [
         "id",
         "kind",
-        "bounds"
+        "bounds",
+        "entities"
       ],
       "properties": {
         "id": {
@@ -4152,6 +3973,14 @@
               "$ref": "#/$defs/bounds"
             }
           ]
+        },
+        "entities": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 18446744073709551615
+          }
         }
       }
     },

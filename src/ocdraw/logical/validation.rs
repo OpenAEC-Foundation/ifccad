@@ -1,5 +1,5 @@
 use super::model::*;
-use crate::drawing::names::name_key;
+use crate::ocdraw::names::name_key;
 use std::collections::{BTreeMap, BTreeSet};
 
 fn error(
@@ -55,6 +55,21 @@ impl DrawingModel {
         let layout_ids = named_ids(&layout_names, "layouts", &mut errors);
         let mut scope_kinds = BTreeMap::new();
         for (index, scope) in self.scopes.iter().enumerate() {
+            if let Some(bounds) = scope.bounds {
+                let min = bounds.min().components();
+                let max = bounds.max().components();
+                if min
+                    .into_iter()
+                    .zip(max)
+                    .any(|(min, max)| !min.is_finite() || !max.is_finite() || min > max)
+                {
+                    errors.push(error(
+                        "SCOPE_BOUNDS",
+                        format!("/scopes/{index}/bounds"),
+                        "scope minimum exceeds maximum or is non-finite",
+                    ));
+                }
+            }
             if scope_kinds.insert(scope.id, scope.kind).is_some() {
                 errors.push(error(
                     "DUPLICATE_ID",
@@ -201,7 +216,24 @@ impl DrawingModel {
                 ));
             }
         }
-        let ucs_ids = named_ids(&self.ucs_definitions, "ucsDefinitions", &mut errors);
+        let ucs_names = self
+            .ucs_definitions
+            .iter()
+            .map(|definition| NamedId {
+                id: definition.id,
+                name: definition.name.clone(),
+            })
+            .collect::<Vec<_>>();
+        let ucs_ids = named_ids(&ucs_names, "ucsDefinitions", &mut errors);
+        for (index, definition) in self.ucs_definitions.iter().enumerate() {
+            if definition.frame.is_none() {
+                errors.push(error(
+                    "UCS_FRAME",
+                    format!("/ucsDefinitions/{index}/frame"),
+                    "UCS frame is invalid",
+                ));
+            }
+        }
         let mut model_window_ids = BTreeSet::new();
         for (index, id) in self.model_window_ids.iter().enumerate() {
             if !model_window_ids.insert(*id) {
@@ -242,22 +274,20 @@ impl DrawingModel {
                 ));
             }
         }
-        let mut entity_scopes = BTreeMap::new();
-        let mut block_edges = BTreeMap::<u32, Vec<u32>>::new();
+        let mut entity_ids = BTreeSet::new();
         for entity in &self.entities {
-            if entity.id == 0 || entity_scopes.insert(entity.id, entity.scope_id).is_some() {
+            if entity.id == 0 || !entity_ids.insert(entity.id) {
                 errors.push(error(
                     "ENTITY_ID",
                     &entity.location,
                     "entity ID must be nonzero and unique",
                 ));
             }
-            if !layer_ids.contains(&entity.layer_id) || !scope_kinds.contains_key(&entity.scope_id)
-            {
+            if !layer_ids.contains(&entity.layer_id) {
                 errors.push(error(
                     "ENTITY_REF",
                     &entity.location,
-                    "entity Layer or scope does not resolve",
+                    "entity Layer does not resolve",
                 ));
             }
             for pair in &entity.appearance {
@@ -269,6 +299,46 @@ impl DrawingModel {
                     ));
                 }
             }
+        }
+        let mut owners = BTreeMap::new();
+        for (index, scope) in self.scopes.iter().enumerate() {
+            for (position, id) in scope.entities.iter().enumerate() {
+                let location = format!("/scopes/{index}/entities/{position}");
+                if !entity_ids.contains(id) {
+                    errors.push(error(
+                        "ENTITY_REFERENCE",
+                        &location,
+                        "scope entry does not resolve to an entity",
+                    ));
+                }
+                if owners.insert(*id, scope.id).is_some() {
+                    errors.push(error(
+                        "ENTITY_OWNERSHIP",
+                        &location,
+                        "entity must occur exactly once in exactly one scope list",
+                    ));
+                }
+            }
+            if scope
+                .has_bounds
+                .is_some_and(|has_bounds| has_bounds == scope.entities.is_empty())
+            {
+                errors.push(error(
+                    "SCOPE_BOUNDS",
+                    format!("/scopes/{index}/bounds"),
+                    "empty scope needs null bounds; nonempty scope needs bounds",
+                ));
+            }
+        }
+        let mut block_edges = BTreeMap::<u32, Vec<u32>>::new();
+        for entity in &self.entities {
+            if !owners.contains_key(&entity.id) {
+                errors.push(error(
+                    "ENTITY_OWNERSHIP",
+                    &entity.location,
+                    "entity has no owner in the scope lists",
+                ));
+            }
             if let Some(target) = entity.definition_scope_id {
                 if scope_kinds.get(&target) != Some(&ScopeKind::Block) {
                     errors.push(error(
@@ -276,13 +346,13 @@ impl DrawingModel {
                         &entity.location,
                         "block instance must reference a block-definition scope",
                     ));
-                } else {
-                    block_edges.entry(entity.scope_id).or_default().push(target);
+                } else if let Some(owner) = owners.get(&entity.id) {
+                    block_edges.entry(*owner).or_default().push(target);
                 }
             }
         }
-        if entity_scopes
-            .keys()
+        if entity_ids
+            .iter()
             .next_back()
             .is_some_and(|id| self.next_entity_id <= *id)
         {
@@ -290,45 +360,6 @@ impl DrawingModel {
                 "ID_WATERMARK",
                 "/header/nextEntityId",
                 "ID watermark must exceed allocated entities",
-            ));
-        }
-        for (index, scope) in self.scopes.iter().enumerate() {
-            if let Some(has_bounds) = scope.has_bounds {
-                let has_entities = entity_scopes.values().any(|owner| *owner == scope.id);
-                if has_bounds != has_entities {
-                    errors.push(error(
-                        "SCOPE_BOUNDS",
-                        format!("/scopes/{index}/bounds"),
-                        "empty scope needs null bounds; nonempty scope needs bounds",
-                    ));
-                }
-            }
-        }
-        let mut seen_scopes = BTreeSet::new();
-        let mut ordered = BTreeSet::new();
-        for order in &self.orders {
-            if !scope_kinds.contains_key(&order.scope_id) || !seen_scopes.insert(order.scope_id) {
-                errors.push(error(
-                    "ENTITY_ORDER",
-                    &order.location,
-                    "order scope must resolve uniquely",
-                ));
-            }
-            for id in &order.entities {
-                if !ordered.insert(*id) || entity_scopes.get(id) != Some(&order.scope_id) {
-                    errors.push(error(
-                        "ENTITY_ORDER",
-                        &order.location,
-                        "order contains a duplicate or an entity from another scope",
-                    ));
-                }
-            }
-        }
-        if ordered.len() != entity_scopes.len() {
-            errors.push(error(
-                "ENTITY_ORDER",
-                "/streams/entityOrderEntryStream",
-                "every entity must occur in draw order",
             ));
         }
         let mut indegree = scope_kinds

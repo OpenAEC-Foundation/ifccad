@@ -174,3 +174,102 @@ fn minimal_empty_drawing_matches_its_document_schema() {
     other_version["header"]["version"] = json!("0.2.0");
     assert!(!validator.is_valid(&other_version));
 }
+
+#[test]
+fn explicit_null_defaults_in_mapping_are_accepted_by_the_document_schema() {
+    let mapping = read_json("schemas/ocdraw/json-mapping-0.1.0.json");
+    let schema = read_json("schemas/ocdraw/schema-0.1.0.json");
+    for stream in mapping["streams"].as_array().unwrap() {
+        let payload = stream["payload"]
+            .as_str()
+            .unwrap()
+            .strip_prefix("streams.")
+            .unwrap();
+        for field in stream["fields"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|f| f["nullEncoding"] == "logicalDefault")
+        {
+            let column = field["payload"].as_str().unwrap();
+            let mut shape = schema["properties"]["streams"]["properties"][payload]["properties"]
+                [column]["items"]
+                .clone();
+            shape["$defs"] = schema["$defs"].clone();
+            assert!(
+                jsonschema::draft202012::new(&shape)
+                    .unwrap()
+                    .is_valid(&Value::Null),
+                "{payload}.{column}: mapping permits null but schema rejects it"
+            );
+        }
+    }
+}
+
+#[test]
+fn format_assets_use_portable_utf8_lf_and_current_logical_rule_links() {
+    fn check_json(dir: &Path) {
+        for entry in std::fs::read_dir(dir).unwrap() {
+            let path = entry.unwrap().path();
+            if path.is_dir() {
+                check_json(&path);
+            } else if path.extension().is_some_and(|e| e == "json") {
+                let bytes = std::fs::read(&path).unwrap();
+                assert!(!bytes.starts_with(&[0xef, 0xbb, 0xbf]));
+                assert!(!bytes.contains(&b'\r'), "{}", path.display());
+                let _: Value = serde_json::from_slice(&bytes).unwrap();
+            }
+        }
+    }
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    check_json(&root.join("schemas/ocdraw"));
+    check_json(&root.join("conformance/next/ocdraw"));
+    let contract =
+        std::fs::read_to_string(root.join("schemas/ocdraw/logical-contract-0.1.0.md")).unwrap();
+    let headings = contract
+        .lines()
+        .filter_map(|l| l.strip_prefix("## "))
+        .map(|h| h.to_ascii_lowercase().replace(",", "").replace(' ', "-"))
+        .collect::<BTreeSet<_>>();
+    for invariant in read_json("schemas/ocdraw/registry-0.1.0.json")["invariants"]
+        .as_array()
+        .unwrap()
+    {
+        let link = invariant["contract"].as_str().unwrap();
+        let (file, anchor) = link.split_once('#').unwrap();
+        assert_eq!(file, "logical-contract-0.1.0.md");
+        assert!(headings.contains(anchor), "{link}");
+    }
+}
+
+#[test]
+fn polyline_coordinate_pools_are_signed_numbers_and_ranges_are_unsigned_integers() {
+    let schema = read_json("schemas/ocdraw/schema-0.1.0.json");
+    let mapping = read_json("schemas/ocdraw/json-mapping-0.1.0.json");
+    for stream in mapping["streams"].as_array().unwrap() {
+        for field in stream["fields"].as_array().unwrap() {
+            if field["encoding"] != "pointPoolRange" {
+                continue;
+            }
+            let name = stream["payload"]
+                .as_str()
+                .unwrap()
+                .strip_prefix("streams.")
+                .unwrap();
+            let properties = &schema["properties"]["streams"]["properties"][name]["properties"];
+            for pool in field["pools"].as_array().unwrap() {
+                let pool = pool.as_str().unwrap();
+                assert_eq!(properties[pool]["items"]["type"], "number", "{name}.{pool}");
+                assert!(
+                    properties[pool]["items"].get("minimum").is_none(),
+                    "{name}.{pool}"
+                );
+            }
+            for key in ["offset", "count"] {
+                let column = field[key].as_str().unwrap();
+                assert_eq!(properties[column]["items"]["type"], "integer");
+                assert_eq!(properties[column]["items"]["minimum"], 0);
+            }
+        }
+    }
+}

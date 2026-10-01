@@ -85,7 +85,7 @@ pub(crate) struct EvaluatedBlock {
     pub constant: [[Q; 3]; 3],
 }
 impl EvaluatedBlock {
-    pub fn native(transform: ocdraw::ifcdr::BlockTransform, base: [f64; 3]) -> Self {
+    pub fn native(transform: ocdraw::ocdraw::BlockTransform, base: [f64; 3]) -> Self {
         let (o, u, v) = super::components(transform.placement());
         let u = u.map(exact);
         let v = v.map(exact);
@@ -231,7 +231,7 @@ pub(crate) fn from_cad_instance(
     assessment: &crate::ConversionGeometryAssessment,
 ) -> Result<
     (
-        ocdraw::ifcdr::BlockTransform,
+        ocdraw::ocdraw::BlockTransform,
         EvaluatedBlock,
         EvaluatedBlock,
     ),
@@ -241,7 +241,7 @@ pub(crate) fn from_cad_instance(
         ConversionEntitySource, ConversionGeometryFailureReason as Reason,
         ConversionGeometryStage as Stage,
     };
-    use ocdraw::ifcdr::{BlockTransform, CoordinateFrame3, Point3, Scale3, Vector3};
+    use ocdraw::ocdraw::{BlockTransform, CoordinateFrame3, Point3, Scale3, Vector3};
     let source = ConversionEntitySource::CadEntity {
         handle: insert.common.handle,
         kind: "INSERT".into(),
@@ -320,7 +320,7 @@ pub(crate) fn from_cad_instance(
 
 pub(crate) fn polyline_pairs(
     poly: &cadcodec::LwPolyline,
-    plane: ocdraw::ifcdr::CoordinateFrame3,
+    plane: ocdraw::ocdraw::CoordinateFrame3,
 ) -> Vec<PairedPoint> {
     let basis = super::cad_plane(poly.normal).expect("validated CAD polyline axes");
     let (o, x, y) = super::components(plane);
@@ -366,9 +366,10 @@ pub(crate) fn polyline_pairs(
     pairs
 }
 
-pub(crate) fn to_cad_instance(
-    native: ocdraw::ifcdr::BlockInstanceRef,
-    definition: ocdraw::ifcdr::BlockDefinitionRef,
+pub(crate) fn to_cad_instance_parts(
+    transform: ocdraw::ocdraw::BlockTransform,
+    name: &str,
+    base: [f64; 3],
     source: crate::ConversionEntitySource,
     assessment: &crate::ConversionGeometryAssessment,
 ) -> Result<
@@ -378,10 +379,9 @@ pub(crate) fn to_cad_instance(
         EvaluatedBlock,
         bool,
     ),
-    crate::ImportError,
+    crate::DirectImportError,
 > {
     use crate::{ConversionGeometryFailureReason as Reason, ConversionGeometryStage as Stage};
-    let transform = native.transform();
     let plane = transform.placement();
     let fail = || {
         assessment.failure(
@@ -418,7 +418,7 @@ pub(crate) fn to_cad_instance(
         0.
     };
     let mut target = cadcodec::entities::Insert::new(
-        definition.name(),
+        name,
         cadcodec::Vector3::new(position[0], position[1], position[2]),
     );
     target.normal = normal;
@@ -431,13 +431,12 @@ pub(crate) fn to_cad_instance(
     target.set_y_scale(scale.y());
     target.set_z_scale(scale.z());
     if [target.x_scale(), target.y_scale(), target.z_scale()] != [scale.x(), scale.y(), scale.z()] {
-        return Err(crate::ImportError::BlockTargetLimitation { entity_id:Some(native.entity_id()),message:format!("CAD scale setters changed {:?} to {:?}; values below magnitude 1e-12 cannot be represented by this codec API",[scale.x(),scale.y(),scale.z()],[target.x_scale(),target.y_scale(),target.z_scale()]) });
+        return Err(crate::DirectImportError::Cad(format!("CAD scale setters changed {:?} to {:?}; values below magnitude 1e-12 cannot be represented by this codec API",[scale.x(),scale.y(),scale.z()],[target.x_scale(),target.y_scale(),target.z_scale()])));
     }
-    let base = definition.base_point();
-    let source_map = EvaluatedBlock::native(transform, [base.x(), base.y(), base.z()]);
+    let source_map = EvaluatedBlock::native(transform, base);
     let (_, target_map, _) = from_cad_instance(
         &target,
-        cadcodec::Vector3::new(base.x(), base.y(), base.z()),
+        cadcodec::Vector3::new(base[0], base[1], base[2]),
         assessment,
     )
     .map_err(|mut failure| {
@@ -447,18 +446,20 @@ pub(crate) fn to_cad_instance(
     Ok((target, source_map, target_map, changed))
 }
 
-pub(crate) fn import_polyline_pairs(
-    native: ocdraw::ifcdr::PlanarPolylineRef,
+pub(crate) fn import_polyline_parts(
+    placement: ocdraw::ocdraw::CoordinateFrame3,
+    vertices: &[[f64; 3]],
+    closed: bool,
     target: &cadcodec::LwPolyline,
 ) -> Vec<PairedPoint> {
-    let (o, u, v) = super::components(native.placement());
+    let (o, u, v) = super::components(placement);
     let basis = super::cad_plane(target.normal).expect("constructed CAD axes");
-    let mut pairs = native
-        .local_points()
+    let mut pairs = vertices
+        .iter()
         .zip(&target.vertices)
         .map(|(point, vertex)| {
             let source = std::array::from_fn(|i| {
-                exact(o[i]) + exact(u[i]) * exact(point.x()) + exact(v[i]) * exact(point.y())
+                exact(o[i]) + exact(u[i]) * exact(point[0]) + exact(v[i]) * exact(point[1])
             });
             let target = std::array::from_fn(|i| {
                 exact(basis.u[i]) * exact(vertex.location.x)
@@ -468,20 +469,20 @@ pub(crate) fn import_polyline_pairs(
             PairedPoint::new(source, target)
         })
         .collect::<Vec<_>>();
-    let local = native.local_points().collect::<Vec<_>>();
-    let count = if native.closed() {
+    let local = vertices;
+    let count = if closed {
         local.len()
     } else {
         local.len().saturating_sub(1)
     };
     for index in 0..count {
-        let bulge = native.bulge(index).expect("validated bulge");
+        let bulge = vertices[index][2];
         if bulge == 0.0 {
             continue;
         }
         let start = local[index];
         let end = local[(index + 1) % local.len()];
-        let [a, b] = super::bulge_midpoint([start.x(), start.y()], [end.x(), end.y()], bulge);
+        let [a, b] = super::bulge_midpoint([start[0], start[1]], [end[0], end[1]], bulge);
         let source = std::array::from_fn(|i| exact(o[i]) + exact(u[i]) * &a + exact(v[i]) * &b);
         let cad_start = target.vertices[index].location;
         let cad_end = target.vertices[(index + 1) % target.vertices.len()].location;

@@ -1,136 +1,89 @@
 use super::adapters::Result;
 use super::recipe::{Appearance, Drawing, Entity, Geometry, Layer, Property};
-use ocdraw::ifcdr::{IfcdrEntityRef, IfcdrLengthUnit};
-use ocdraw::package::{AppearanceProperty, DrawingLayoutKind, DrawingRef, LinePatternRef};
+use ocdraw::ocdraw::{AppearanceSelection, DrawingGeometry, ValidatedDrawing};
 use ocdraw_convert::cadcodec::{CadDocument, Color, EntityType, LineWeight, Transparency};
 use serde_json::Value;
-
-fn property<T, U>(source: AppearanceProperty<T>, explicit: impl FnOnce(T) -> U) -> Property<U> {
-    match source {
-        AppearanceProperty::ByLayer => Property::ByLayer,
-        AppearanceProperty::ByBlock => Property::ByBlock,
-        AppearanceProperty::Explicit(value) => Property::Explicit(explicit(value)),
+fn property<T, U>(value: &AppearanceSelection<T>, convert: impl FnOnce(&T) -> U) -> Property<U> {
+    match value {
+        AppearanceSelection::ByLayer => Property::ByLayer,
+        AppearanceSelection::ByBlock => Property::ByBlock,
+        AppearanceSelection::Explicit(v) => Property::Explicit(convert(v)),
     }
 }
-fn pattern(pattern: LinePatternRef<'_>) -> String {
-    match pattern {
-        LinePatternRef::Name(name) => name.to_ascii_lowercase(),
-        LinePatternRef::IfcxIdentity(id) => format!("ifcx:{id}"),
+pub fn ocdraw(drawing: &ValidatedDrawing) -> Result<(Drawing, Vec<u64>)> {
+    if drawing.unit() != "mm" || drawing.scopes().len() != 1 || drawing.typed_layouts().len() != 1 {
+        return Err("expected one millimetre model scope/layout".into());
     }
-}
-
-pub fn ifccad(drawing: DrawingRef<'_>) -> Result<(Drawing, Vec<u64>)> {
-    let representation = drawing.representation();
-    let resource = representation.resource();
-    if resource.unit() != IfcdrLengthUnit::Millimetre {
-        return Err("unit is not millimetre".into());
-    }
-    let layouts: Vec<_> = drawing.layouts().collect();
-    if layouts.len() != 1 || resource.scopes().len() != 1 {
-        return Err("expected one layout and scope".into());
-    }
-    if layouts[0].kind() != DrawingLayoutKind::Model {
-        return Err("expected model layout".into());
-    }
-    let mut layers = Vec::new();
-    for layer in representation.layers() {
-        let a = layer.appearance().ok_or("layer appearance missing")?;
-        layers.push(Layer {
-            name: layer.name().into(),
-            visible: layer.visible(),
+    let mut layers = drawing
+        .typed_layers()
+        .iter()
+        .map(|l| Layer {
+            name: l.name.clone(),
+            visible: l.visible,
             appearance: Appearance {
-                color: Property::Explicit(a.color().rgb().components()),
-                opacity: Property::Explicit(a.opacity()),
-                pattern: Property::Explicit(pattern(a.line_pattern())),
-                weight: Property::Explicit(a.line_weight()),
+                color: Property::Explicit(l.color.rgb),
+                opacity: Property::Explicit(l.opacity),
+                pattern: Property::Explicit(l.line_pattern.to_ascii_lowercase()),
+                weight: Property::Explicit(l.line_weight),
             },
-        });
-    }
+        })
+        .collect::<Vec<_>>();
+    layers.sort_by(|a, b| a.name.cmp(&b.name));
+    let by_id = drawing
+        .geometric_entities()
+        .iter()
+        .map(|e| (e.id(), e))
+        .collect::<std::collections::BTreeMap<_, _>>();
     let mut entities = Vec::new();
     let mut ids = Vec::new();
-    for entity in resource.entities(layouts[0].scope().id()) {
-        let (geometry, layer, appearance, visible, id) = match entity {
-            IfcdrEntityRef::Point(_) => {
-                return Err("point geometry is outside the fixed primitive benchmark corpus".into())
-            }
-            IfcdrEntityRef::SpatialPolyline(_) => {
-                return Err(
-                    "spatial polyline geometry is outside the fixed primitive benchmark corpus"
-                        .into(),
-                )
-            }
-            IfcdrEntityRef::Circle(_) | IfcdrEntityRef::Arc(_) => {
-                return Err(
-                    "circular geometry is outside the fixed primitive benchmark corpus".into(),
-                )
-            }
-            IfcdrEntityRef::Ellipse(_) | IfcdrEntityRef::EllipseArc(_) => {
-                return Err(
-                    "elliptic geometry is outside the fixed primitive benchmark corpus".into(),
-                )
-            }
-            IfcdrEntityRef::BlockInstance(_) => {
-                return Err("block geometry is outside the fixed primitive benchmark corpus".into())
-            }
-            IfcdrEntityRef::Viewport(_) => {
-                return Err(
-                    "viewport geometry is outside the fixed primitive benchmark corpus".into(),
-                )
-            }
-            IfcdrEntityRef::Line(line) => (
-                Geometry::Line {
-                    start: [line.start().x(), line.start().y(), line.start().z()],
-                    end: [line.end().x(), line.end().y(), line.end().z()],
-                },
-                line.layer_id(),
-                line.appearance_id(),
-                line.visible(),
-                line.entity_id().get(),
-            ),
-            IfcdrEntityRef::PlanarPolyline(polyline) => (
+    for id in &drawing.scopes()[0].entities {
+        let e = by_id[id];
+        let geometry = match e.geometry() {
+            DrawingGeometry::Line { start, end } => Geometry::Line {
+                start: *start,
+                end: *end,
+            },
+            DrawingGeometry::PlanarPolyline {
+                placement,
+                vertices,
+                closed,
+            } => {
+                if vertices.iter().any(|v| v[2] != 0.) {
+                    return Err("bulge outside primitive corpus".into());
+                }
+                let o = placement.origin();
+                let x = placement.x_axis();
+                let y = placement.y_axis();
                 Geometry::Polyline {
-                    points: polyline.local_points().map(|p| [p.x(), p.y()]).collect(),
-                    closed: polyline.closed(),
-                    origin: {
-                        let p = polyline.placement().origin();
-                        [p.x(), p.y(), p.z()]
-                    },
-                    x_axis: {
-                        let p = polyline.placement().x_axis();
-                        [p.x(), p.y(), p.z()]
-                    },
-                    y_axis: {
-                        let p = polyline.placement().y_axis();
-                        [p.x(), p.y(), p.z()]
-                    },
-                },
-                polyline.layer_id(),
-                polyline.appearance_id(),
-                polyline.visible(),
-                polyline.entity_id().get(),
-            ),
+                    points: vertices.iter().map(|v| [v[0], v[1]]).collect(),
+                    closed: *closed,
+                    origin: [o.x(), o.y(), o.z()],
+                    x_axis: [x.x(), x.y(), x.z()],
+                    y_axis: [y.x(), y.y(), y.z()],
+                }
+            }
+            _ => return Err("entity outside primitive corpus".into()),
         };
-        let a = representation
-            .appearance(appearance)
-            .ok_or("entity appearance missing")?;
+        let a = e.appearance();
         entities.push(Entity {
             geometry,
-            layer: representation
-                .layer(layer)
-                .ok_or("entity layer missing")?
-                .name()
-                .into(),
-            visible,
+            layer: drawing
+                .typed_layers()
+                .iter()
+                .find(|l| l.id == e.layer_id())
+                .ok_or("layer missing")?
+                .name
+                .clone(),
+            visible: e.visible(),
             appearance: Appearance {
-                color: property(a.color(), |c| c.rgb().components()),
-                opacity: property(a.opacity(), |o| o),
-                pattern: property(a.line_pattern(), pattern),
-                weight: property(a.line_weight(), |w| w),
+                color: property(&a.color, |c| c.rgb),
+                opacity: property(&a.opacity, |v| *v),
+                pattern: property(&a.line_pattern, |s| s.to_ascii_lowercase()),
+                weight: property(&a.line_weight, |v| *v),
             },
         });
-        ids.push(id);
+        ids.push(*id);
     }
-    layers.sort_by(|a, b| a.name.cmp(&b.name));
     Ok((
         Drawing {
             unit: "millimetre",

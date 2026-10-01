@@ -1,63 +1,32 @@
-import {encodeBase64} from './browser-client.mjs';
-import {validPackagePath,zipBrowserFiles} from './browser-zip.mjs';
-
-function validatedFiles(request){
- if(!['cad','package'].includes(request.kind)||!Array.isArray(request.files)||!request.files.length||request.files.length>1000)throw Error('Invalid file selection');
- let total=0;const seen=new Set();
- for(const file of request.files){
-  if(!validPackagePath(file.path))throw Error('Unsafe file path');
-  const key=file.path.toLowerCase();if(seen.has(key))throw Error('Duplicate file path');seen.add(key);
-  if(!(file.bytes instanceof ArrayBuffer))throw Error('File bytes are missing');
-  total+=file.bytes.byteLength;if(total>64*1024*1024)throw Error('File size limit exceeded');
- }
- if(request.kind==='cad'&&(request.files.length!==1||! /\.(dxf|dwg)$/i.test(request.files[0].path)))throw Error('Select one DXF or DWG file');
- if(request.kind==='package'&&!request.files.some(file=>file.path==='package.ifcx.json'))throw Error('Select a folder containing package.ifcx.json');
- return request.files.map(file=>({path:file.path,bytes:new Uint8Array(file.bytes)}));
+import {parsePresentationJson} from './presentation-json.mjs';
+import {encodeBase64,decodeBase64} from './browser-client.mjs';
+import {supportsCadVersion,defaultCadVersion} from './cad-formats.mjs';
+function selectedFile(request){
+ if(!request||!['cad','drawing'].includes(request.kind)||!Array.isArray(request.files)||request.files.length!==1)throw Error('Select one drawing');
+ const file=request.files[0];
+ if(typeof file.path!=='string'||!file.path||/[\\:%\x00-\x1f<>"|?*]/.test(file.path)||file.path.startsWith('/')||file.path.split('/').some(p=>!p||p==='.'||p==='..'))throw Error('Unsafe file path');
+ if(!(file.bytes instanceof ArrayBuffer))throw Error('File bytes are missing');
+ if(file.bytes.byteLength>64*1024*1024)throw Error('File size limit exceeded');
+ if(request.kind==='cad'&&!/\.(dxf|dwg)$/i.test(file.path))throw Error('Select one DXF or DWG file');
+ if(request.kind==='drawing'&&!/\.ocdraw(?:\.json)?$/i.test(file.path))throw Error('Select an OCDraw file');
+ return {...file,bytes:new Uint8Array(file.bytes)};
 }
-
-/** The worker's synchronous core; exported so transport decisions can be tested. */
 export function processBrowserRequest(request,wasm,onProgress=()=>{}){
- const selected=validatedFiles(request);
- const operation=request.export;
- let files=selected,opening=null;
- if(request.kind==='cad'){
-  onProgress('converting');
-  const format=/\.dwg$/i.test(selected[0].path)?'dwg':'dxf';
-  opening=JSON.parse(wasm.open_cad(request.name,format,selected[0].bytes,new Date().toISOString()));
-  if(!operation)return opening;
-  if(opening.failure||!opening.validation?.strictAvailable)return opening;
-  onProgress('converting');
-  files=opening.presentation.documents.map(document=>({path:document.path,bytes:new TextEncoder().encode(document.text)}));
+ const file=selectedFile(request),operation=request.export;
+ if(operation&&(!['ocdraw','dxf','dwg'].includes(operation.format)||(operation.format!=='ocdraw'&&!supportsCadVersion(operation.version??defaultCadVersion))))throw Error('Invalid export selection');
+ onProgress(request.kind==='cad'?'converting':'validating');
+ const opening=parsePresentationJson(request.kind==='cad'?wasm.convert_cad_to_drawing(request.name,/\.dwg$/i.test(file.path)?'dwg':'dxf',file.bytes):wasm.open_drawing(request.name,file.bytes));
+ if(!operation||opening.failure||!opening.validation?.strictAvailable)return opening;
+ if(operation.format==='ocdraw'){
+  if(request.kind==='drawing')opening.export={format:'ocdraw',download:{format:'ocdraw',fileName:file.path.split('/').at(-1),byteLength:file.bytes.length,base64:encodeBase64(file.bytes)}};
+  return opening;
  }
- if(!operation){
-  onProgress('validating');
-  return JSON.parse(wasm.open_package(request.name,files.map(file=>file.path),files.map(file=>file.bytes)));
- }
- if(!['dxf','dwg','ifccad'].includes(operation.format))throw Error('Invalid export format');
+ const drawing=request.kind==='cad'?decodeBase64(opening.export.download.base64):file.bytes;
  onProgress('exporting');
- const result=JSON.parse(wasm.export_package(request.name,files.map(file=>file.path),files.map(file=>file.bytes),operation.drawing||'',operation.format,operation.version||'AC1032'));
- if(opening){result.source=opening.source;result.reader=opening.reader;result.conversion=opening.conversion;}
- if(operation.format==='ifccad'&&!result.failure&&result.validation?.strictAvailable&&result.export?.packageReady){
-  onProgress('packaging');
-  const archive=zipBrowserFiles(files);
-  result.export.fileCount=files.length;
-  result.export.download={format:'ifccad',byteLength:archive.length,base64:encodeBase64(archive)};
- }
+ const result=parsePresentationJson(wasm.export_drawing(request.name,drawing,operation.format,operation.version??defaultCadVersion));
+ if(request.kind==='cad'){result.source=opening.source;result.reader=opening.reader;result.conversion=opening.conversion;}
  return result;
 }
-
 let wasmPromise;
-async function loadWasm(){
- wasmPromise??=import('./wasm/ocdraw_browser.js').then(async module=>{await module.default(new URL('./wasm/ocdraw_browser_bg.wasm',import.meta.url));return module;});
- return wasmPromise;
-}
-if(typeof self!=='undefined'&&typeof self.postMessage==='function'){
- self.onmessage=async event=>{
-  try{
-   self.postMessage({type:'progress',phase:'preparing'});
-   const wasm=await loadWasm();
-   const result=processBrowserRequest(event.data.request,wasm,phase=>self.postMessage({type:'progress',phase}));
-   self.postMessage({type:'result',result});
-  }catch(error){self.postMessage({type:'error',message:error.message||String(error)});}
- };
-}
+async function loadWasm(){wasmPromise??=import('./wasm/ocdraw_browser.js').then(async module=>{await module.default(new URL('./wasm/ocdraw_browser_bg.wasm',import.meta.url));return module;});return wasmPromise;}
+if(typeof self!=='undefined'&&typeof self.postMessage==='function')self.onmessage=async event=>{try{self.postMessage({type:'progress',phase:'preparing'});const result=processBrowserRequest(event.data.request,await loadWasm(),phase=>self.postMessage({type:'progress',phase}));self.postMessage({type:'result',result});}catch(e){self.postMessage({type:'error',message:e.message||String(e)});}};

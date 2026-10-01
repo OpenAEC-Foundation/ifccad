@@ -1,10 +1,12 @@
 {
-  "name": "ifccad-format-explorer",
+  "name": "ocdraw-inspector",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Independent educational IFCCAD graph explorer",
-  "engines": { "node": ">=22" },
+  "description": "Standalone Open CAD Drawing information inspector",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "start": "node scripts/serve.mjs",
     "dev": "node scripts/serve.mjs",

@@ -1,46 +1,19 @@
-use ocdraw::conformance::bundled_conformance_root;
-use ocdraw::package::load_directory_package;
+//! Convert one validated standalone drawing to DXF.
+use ocdraw::ocdraw::load_drawing_file;
 use ocdraw_convert::cadcodec::DxfWriter;
-use ocdraw_convert::drawing_to_cad_document;
-use std::io;
-use std::path::PathBuf;
-
+use ocdraw_convert::{ocdraw_to_cad_document, ImportOptions};
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let root = bundled_conformance_root()
-        .join("packages")
-        .join("valid")
-        .join("minimal-no-preservation");
-    let inspected = load_directory_package(root)?;
-    let package = inspected
-        .validated_package()
-        .ok_or_else(|| io::Error::other("bundled package is not strictly valid"))?;
-    let drawing = package
-        .drawings()
-        .next()
-        .ok_or_else(|| io::Error::other("bundled package contains no drawing"))?;
-    let outcome = drawing_to_cad_document(drawing)?;
-
-    for diagnostic in outcome.diagnostics() {
-        eprintln!("conversion diagnostic: {diagnostic}");
+    let mut args = std::env::args_os().skip(1);
+    let input = args.next().ok_or("provide INPUT.ocdraw.json OUTPUT.dxf")?;
+    let output = args.next().ok_or("provide OUTPUT.dxf")?;
+    let loaded = load_drawing_file(input)?;
+    let drawing = loaded
+        .validated_drawing()
+        .ok_or_else(|| format!("invalid drawing: {:?}", loaded.diagnostics()))?;
+    let converted = ocdraw_to_cad_document(drawing, ImportOptions::default())?;
+    for d in converted.diagnostics() {
+        eprintln!("{}: {}", d.code, d.message);
     }
-
-    let target = std::env::var_os("CARGO_TARGET_DIR")
-        .map(PathBuf::from)
-        .unwrap_or_else(|| {
-            PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-                .join("../..")
-                .join("target")
-        });
-    let output = target
-        .join("manual")
-        .join("ocdraw-convert")
-        .join("minimal-no-preservation.dxf");
-    std::fs::create_dir_all(
-        output
-            .parent()
-            .ok_or_else(|| io::Error::other("DXF output has no parent directory"))?,
-    )?;
-    DxfWriter::new(outcome.document()).write_to_file(&output)?;
-    println!("{}", output.canonicalize()?.display());
+    DxfWriter::new(converted.document()).write_to_file(output)?;
     Ok(())
 }

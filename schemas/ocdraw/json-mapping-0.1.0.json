@@ -54,25 +54,6 @@
       }
     ]
   },
-  "directory": {
-    "schemaId": "ocdraw.streamDirectory.v1",
-    "payload": "streamDirectory",
-    "fields": [
-      "version",
-      "streams"
-    ],
-    "entryFields": [
-      "name",
-      "schema",
-      "role",
-      "count",
-      "columns"
-    ],
-    "optionalEntryFields": [
-      "parent",
-      "children"
-    ]
-  },
   "tables": [
     {
       "name": "layer",
@@ -211,6 +192,11 @@
         {
           "logical": "scope.bounds",
           "payload": "bounds",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "scope.entities",
+          "payload": "entities",
           "omission": "forbidden"
         }
       ]
@@ -427,11 +413,6 @@
           "omission": "forbidden"
         },
         {
-          "logical": "point.scopeId",
-          "payload": "scopeId",
-          "omission": "forbidden"
-        },
-        {
           "logical": "point.placement",
           "payload": "placement",
           "omission": "logicalDefault",
@@ -496,11 +477,6 @@
         {
           "logical": "line.entityId",
           "payload": "entityId",
-          "omission": "forbidden"
-        },
-        {
-          "logical": "line.scopeId",
-          "payload": "scopeId",
           "omission": "forbidden"
         },
         {
@@ -595,11 +571,6 @@
           "omission": "forbidden"
         },
         {
-          "logical": "planarPolyline.scopeId",
-          "payload": "scopeId",
-          "omission": "forbidden"
-        },
-        {
           "logical": "planarPolyline.vertices",
           "encoding": "pointPoolRange",
           "offset": "vertexOffset",
@@ -683,11 +654,6 @@
           "omission": "forbidden"
         },
         {
-          "logical": "spatialPolyline.scopeId",
-          "payload": "scopeId",
-          "omission": "forbidden"
-        },
-        {
           "logical": "spatialPolyline.vertices",
           "encoding": "pointPoolRange",
           "offset": "vertexOffset",
@@ -756,46 +722,12 @@
       ]
     },
     {
-      "name": "entityOrder",
-      "payload": "streams.entityOrderStream",
-      "fields": [
-        {
-          "logical": "entityOrder.scopeId",
-          "payload": "scopeId",
-          "omission": "forbidden"
-        },
-        {
-          "logical": "entityOrder.entries",
-          "encoding": "childRange",
-          "offset": "entryOffset",
-          "count": "entryCount",
-          "target": "entityOrderEntry.entityId"
-        }
-      ]
-    },
-    {
-      "name": "entityOrderEntry",
-      "payload": "streams.entityOrderEntryStream",
-      "fields": [
-        {
-          "logical": "entityOrderEntry.entityId",
-          "payload": "entityId",
-          "omission": "forbidden"
-        }
-      ]
-    },
-    {
       "name": "blockInstance",
       "payload": "streams.blockInstanceStream",
       "fields": [
         {
           "logical": "blockInstance.entityId",
           "payload": "entityId",
-          "omission": "forbidden"
-        },
-        {
-          "logical": "blockInstance.scopeId",
-          "payload": "scopeId",
           "omission": "forbidden"
         },
         {
@@ -867,11 +799,6 @@
         {
           "logical": "viewport.entityId",
           "payload": "entityId",
-          "omission": "forbidden"
-        },
-        {
-          "logical": "viewport.scopeId",
-          "payload": "scopeId",
           "omission": "forbidden"
         },
         {
@@ -1019,11 +946,6 @@
           "omission": "forbidden"
         },
         {
-          "logical": "circle.scopeId",
-          "payload": "scopeId",
-          "omission": "forbidden"
-        },
-        {
           "logical": "circle.placement",
           "payload": "placement",
           "omission": "logicalDefault",
@@ -1093,11 +1015,6 @@
         {
           "logical": "arc.entityId",
           "payload": "entityId",
-          "omission": "forbidden"
-        },
-        {
-          "logical": "arc.scopeId",
-          "payload": "scopeId",
           "omission": "forbidden"
         },
         {
@@ -1183,11 +1100,6 @@
           "omission": "forbidden"
         },
         {
-          "logical": "ellipse.scopeId",
-          "payload": "scopeId",
-          "omission": "forbidden"
-        },
-        {
           "logical": "ellipse.placement",
           "payload": "placement",
           "omission": "logicalDefault",
@@ -1262,11 +1174,6 @@
         {
           "logical": "ellipseArc.entityId",
           "payload": "entityId",
-          "omission": "forbidden"
-        },
-        {
-          "logical": "ellipseArc.scopeId",
-          "payload": "scopeId",
           "omission": "forbidden"
         },
         {

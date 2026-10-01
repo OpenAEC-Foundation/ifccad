@@ -1,0 +1,203 @@
+{
+  "header": {
+    "format": "open_cad_drawing",
+    "version": "0.1.0",
+    "drawingId": "ordered-scopes",
+    "unit": "unitless",
+    "nextEntityId": 8,
+    "nextLayerId": 1,
+    "nextLayoutId": 2
+  },
+  "layouts": [
+    {
+      "id": 0,
+      "scopeId": 0,
+      "kind": "model",
+      "name": "Model",
+      "tabIndex": 0
+    },
+    {
+      "id": 1,
+      "scopeId": 1,
+      "kind": "paper",
+      "name": "Sheet",
+      "tabIndex": 1
+    }
+  ],
+  "scopes": [
+    {
+      "id": 0,
+      "kind": 0,
+      "entities": [
+        4,
+        1,
+        6
+      ],
+      "bounds": {
+        "minX": -100,
+        "minY": -100,
+        "minZ": -100,
+        "maxX": 100,
+        "maxY": 100,
+        "maxZ": 100
+      }
+    },
+    {
+      "id": 1,
+      "kind": 1,
+      "entities": [
+        2,
+        7
+      ],
+      "bounds": {
+        "minX": -100,
+        "minY": -100,
+        "minZ": -100,
+        "maxX": 100,
+        "maxY": 100,
+        "maxZ": 100
+      }
+    },
+    {
+      "id": 2,
+      "kind": 2,
+      "entities": [
+        3
+      ],
+      "bounds": {
+        "minX": -100,
+        "minY": -100,
+        "minZ": -100,
+        "maxX": 100,
+        "maxY": 100,
+        "maxZ": 100
+      }
+    },
+    {
+      "id": 3,
+      "kind": 2,
+      "entities": [
+        5
+      ],
+      "bounds": {
+        "minX": -100,
+        "minY": -100,
+        "minZ": -100,
+        "maxX": 100,
+        "maxY": 100,
+        "maxZ": 100
+      }
+    },
+    {
+      "id": 4,
+      "kind": 2,
+      "entities": [],
+      "bounds": null
+    }
+  ],
+  "streams": {
+    "lineStream": {
+      "count": 4,
+      "entityId": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "layerId": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "x1": [
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "y1": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "x2": [
+        2.0,
+        3.0,
+        4.0,
+        5.0
+      ],
+      "y2": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "blockInstanceStream": {
+      "count": 3,
+      "entityId": [
+        5,
+        6,
+        7
+      ],
+      "layerId": [
+        0,
+        0,
+        0
+      ],
+      "definitionScopeId": [
+        2,
+        3,
+        2
+      ],
+      "transform": [
+        {},
+        {},
+        {}
+      ]
+    },
+    "entityOrderEntryStream": {
+      "count": 1,
+      "entityId": [
+        1
+      ]
+    }
+  },
+  "layers": [
+    {
+      "color": {
+        "rgb": [
+          255,
+          255,
+          255
+        ]
+      },
+      "frozen": false,
+      "frozenInNewViewports": false,
+      "id": 0,
+      "linePattern": "Continuous",
+      "lineWeight": 0.25,
+      "locked": false,
+      "name": "0",
+      "opacity": 1.0,
+      "plottable": true,
+      "visible": true
+    }
+  ],
+  "blockDefinitions": [
+    {
+      "scopeId": 2,
+      "name": "Leaf"
+    },
+    {
+      "scopeId": 3,
+      "name": "Nested"
+    },
+    {
+      "scopeId": 4,
+      "name": "Empty"
+    }
+  ]
+}
