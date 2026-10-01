@@ -1,6 +1,8 @@
 //! Experimental direct conversion of a bounded IFCX-CAD subset.
 //!
-//! Unsupported semantic content is rejected; no partial drawing is returned.
+//! Default conversion allows partial output with located loss diagnostics.
+//! Explicit [`IfcxCadLossPolicy::Reject`] refuses diagnosed semantic losses.
+//! Structural and numeric failures remain errors under both policies.
 //! The core reader owns IFCX composition and profile validation.
 //!
 //! ```
@@ -19,9 +21,11 @@ mod appearance;
 mod blocks;
 mod from_cad;
 mod geometry;
+mod loss;
 mod outcome;
+mod patterns;
 mod source;
 mod to_cad;
-pub use from_cad::cad_document_to_ifcx_cad;
+pub use from_cad::{cad_document_to_ifcx_cad, cad_document_to_ifcx_cad_with_options};
 pub use outcome::*;
-pub use to_cad::ifcx_cad_to_cad_document;
+pub use to_cad::{ifcx_cad_to_cad_document, ifcx_cad_to_cad_document_with_options};

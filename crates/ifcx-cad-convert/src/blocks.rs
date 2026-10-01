@@ -65,19 +65,23 @@ pub(crate) fn from_insert(
     id: u64,
     loc: &str,
     issues: &mut Vec<IfcxCadDiagnostic>,
-) -> IfcxCadEntityKind {
+) -> Option<IfcxCadEntityKind> {
     let mut expected = cadcodec::entities::Insert::new(&i.block_name, i.insert_point);
     expected.set_x_scale(i.x_scale());
     expected.set_y_scale(i.y_scale());
     expected.set_z_scale(i.z_scale());
     expected.rotation = i.rotation;
+    let before = issues.len();
     crate::source::residual(i, &expected, &["common"], loc, issues);
-    IfcxCadEntityKind::BlockInstance {
+    if issues.len() != before {
+        return None;
+    }
+    Some(IfcxCadEntityKind::BlockInstance {
         definition_id: id,
         transform: IfcxCadBlockTransform {
             placement: crate::geometry::xy(crate::geometry::p(i.insert_point)),
             rotation: i.rotation,
             scale: [i.x_scale(), i.y_scale(), i.z_scale()],
         },
-    }
+    })
 }

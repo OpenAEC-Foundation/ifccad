@@ -1,6 +1,30 @@
 #![allow(dead_code)]
 use ocdraw::ifcx_cad::*;
 
+/// The original exact-subset tests continue to exercise explicit rejection.
+pub fn to_cad(
+    source: &ValidatedIfcxCad,
+) -> Result<ifcx_cad_convert::IfcxCadToCadOutcome, ifcx_cad_convert::IfcxCadConversionError> {
+    ifcx_cad_convert::ifcx_cad_to_cad_document_with_options(
+        source,
+        ifcx_cad_convert::IfcxCadConversionOptions {
+            loss_policy: ifcx_cad_convert::IfcxCadLossPolicy::Reject,
+        },
+    )
+}
+pub fn from_cad(
+    source: &cadcodec::CadDocument,
+    metadata: ifcx_cad_convert::IfcxCadTargetMetadata,
+) -> Result<ifcx_cad_convert::CadToIfcxCadOutcome, ifcx_cad_convert::IfcxCadConversionError> {
+    ifcx_cad_convert::cad_document_to_ifcx_cad_with_options(
+        source,
+        metadata,
+        ifcx_cad_convert::IfcxCadConversionOptions {
+            loss_policy: ifcx_cad_convert::IfcxCadLossPolicy::Reject,
+        },
+    )
+}
+
 pub fn metadata() -> ifcx_cad_convert::IfcxCadTargetMetadata {
     ifcx_cad_convert::IfcxCadTargetMetadata {
         header: header(),
@@ -17,6 +41,13 @@ pub fn header() -> IfcxCadHeader {
 }
 pub fn empty() -> IfcxCadDocument {
     IfcxCadDocument {
+        line_patterns: vec![IfcxCadLinePattern {
+            id: IfcxCadLinePatternId(0),
+            name: "Continuous".into(),
+            description: Some("Solid line".into()),
+            pattern: vec![],
+        }],
+        line_pattern_scale: 1.,
         header: header(),
         drawing_id: 1,
         length_unit: "mm".into(),
@@ -36,7 +67,7 @@ pub fn layer(id: u64, name: &str) -> IfcxCadLayer {
         appearance: IfcxCadLayerAppearance {
             color: "#FFFFFF".into(),
             opacity: 1.,
-            line_pattern: "Continuous".into(),
+            line_pattern: IfcxCadLinePatternId(0),
             line_weight: 0.25,
         },
     }
@@ -48,7 +79,7 @@ pub fn modes() -> IfcxCadEntityAppearance {
     IfcxCadEntityAppearance {
         color: IfcxCadMode::ByLayer,
         opacity: IfcxCadMode::ByBlock,
-        line_pattern: IfcxCadMode::Explicit("Continuous".into()),
+        line_pattern: IfcxCadMode::Explicit(IfcxCadLinePatternId(0)),
         line_weight: IfcxCadMode::Explicit(0.25),
     }
 }
@@ -64,6 +95,7 @@ pub fn primitives() -> IfcxCadDocument {
     doc.length_unit = "cm".into();
     doc.model.entities = vec![
         IfcxCadEntity {
+            line_pattern_scale: 1.,
             id: 90,
             layer_id: 4,
             appearance: modes(),
@@ -73,6 +105,7 @@ pub fn primitives() -> IfcxCadDocument {
             },
         },
         IfcxCadEntity {
+            line_pattern_scale: 1.,
             id: 2,
             layer_id: 0,
             appearance: IfcxCadEntityAppearance {
@@ -82,12 +115,14 @@ pub fn primitives() -> IfcxCadDocument {
                 line_weight: IfcxCadMode::ByBlock,
             },
             kind: IfcxCadEntityKind::PlanarPolyline {
+                line_pattern_generation: IfcxCadLinePatternGeneration::PerSegment,
                 vertices: vec![[0., 0.], [2., 0.], [2., 4.]],
                 closed: true,
                 placement: placement([8., 16., 3.]),
             },
         },
         IfcxCadEntity {
+            line_pattern_scale: 1.,
             id: 41,
             layer_id: 4,
             appearance: IfcxCadEntityAppearance {
@@ -129,6 +164,7 @@ pub fn nested(base: [f64; 3]) -> IfcxCadDocument {
             entities: vec![
                 instance(15, 3, [0.; 3]),
                 IfcxCadEntity {
+                    line_pattern_scale: 1.,
                     id: 80,
                     ..primitives().model.entities[0].clone()
                 },
@@ -156,6 +192,7 @@ pub fn nested(base: [f64; 3]) -> IfcxCadDocument {
 }
 pub fn instance(id: u64, definition_id: u64, origin: [f64; 3]) -> IfcxCadEntity {
     IfcxCadEntity {
+        line_pattern_scale: 1.,
         id,
         layer_id: 0,
         appearance: modes(),

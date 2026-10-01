@@ -85,9 +85,12 @@ The independent IFCX-CAD proof is available in
 [sample](examples/ifcx-native-cad/hello-cad.ifcx) and
 [evaluation](docs/experiments/ifcx-native-cad.md). Its direct
 [converter](crates/ifcx-cad-convert/README.md) connects the supported subset to
-cadcodec `CadDocument`. Geometry validation and length-unit tokens reuse OCDraw;
-the two drawing models, schemas and encoding routes remain separate. Browser
-support and integration onto main are follow-up work.
+cadcodec `CadDocument`, including named simple line patterns, scales and polyline
+pattern generation. See the [line-pattern sample](examples/ifcx-native-cad/hello-line-patterns.ifcx). Geometry validation and length-unit tokens reuse OCDraw;
+the two drawing models, schemas and encoding routes remain separate. The
+[Open CAD Drawing explorer](format-explorer/README.md) now opens IFCX-CAD and
+roundtrips through DXF/DWG using its own converter. Integration onto main remains
+a follow-up step.
 
 Run `pwsh -NoProfile -File scripts/cleanup_local.ps1` to audit local worktrees
 and build caches. Removal requires an explicitly selected, unused worktree;

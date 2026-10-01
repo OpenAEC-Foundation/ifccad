@@ -5,12 +5,15 @@
 
 mod model;
 mod parse;
+mod patterns;
 mod validate;
+mod wire;
 mod write;
 
 pub(crate) const PROFILE_URI: &str = "urn:example:ifccad:0.1.0";
 
 pub use model::*;
+pub use patterns::validate_ifcx_cad_line_patterns;
 pub use write::write_native_cad_ifcx;
 
 /// How repeated IFCX node paths are composed before CAD validation.

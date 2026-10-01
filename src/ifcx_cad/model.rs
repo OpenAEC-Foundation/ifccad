@@ -17,6 +17,8 @@ pub struct IfcxCadDocument {
     pub header: IfcxCadHeader,
     pub drawing_id: u64,
     pub length_unit: String,
+    pub line_patterns: Vec<IfcxCadLinePattern>,
+    pub line_pattern_scale: f64,
     pub layers: Vec<IfcxCadLayer>,
     pub model: IfcxCadLayout,
     /// Paper scopes form an unordered set; readback returns them in increasing ID order.
@@ -36,7 +38,7 @@ pub struct IfcxCadLayer {
 pub struct IfcxCadLayerAppearance {
     pub color: String,
     pub opacity: f64,
-    pub line_pattern: String,
+    pub line_pattern: IfcxCadLinePatternId,
     pub line_weight: f64,
 }
 
@@ -87,7 +89,7 @@ pub enum IfcxCadMode<T> {
 pub struct IfcxCadEntityAppearance {
     pub color: IfcxCadMode<String>,
     pub opacity: IfcxCadMode<f64>,
-    pub line_pattern: IfcxCadMode<String>,
+    pub line_pattern: IfcxCadMode<IfcxCadLinePatternId>,
     pub line_weight: IfcxCadMode<f64>,
 }
 
@@ -96,6 +98,7 @@ pub struct IfcxCadEntity {
     pub id: u64,
     pub layer_id: u64,
     pub appearance: IfcxCadEntityAppearance,
+    pub line_pattern_scale: f64,
     pub kind: IfcxCadEntityKind,
 }
 
@@ -125,6 +128,7 @@ pub enum IfcxCadEntityKind {
         vertices: Vec<[f64; 2]>,
         closed: bool,
         placement: IfcxCadPlacement,
+        line_pattern_generation: IfcxCadLinePatternGeneration,
     },
     Circle {
         radius: f64,
@@ -134,6 +138,27 @@ pub enum IfcxCadEntityKind {
         definition_id: u64,
         transform: IfcxCadBlockTransform,
     },
+}
+
+/// Drawing-local pattern identity; its complete IFCX path is the wire reference.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct IfcxCadLinePatternId(pub u64);
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct IfcxCadLinePattern {
+    pub id: IfcxCadLinePatternId,
+    pub name: String,
+    pub description: Option<String>,
+    pub pattern: Vec<f64>,
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum IfcxCadLinePatternGeneration {
+    #[default]
+    PerSegment,
+    Continuous,
 }
 
 /// The validated CAD projection and the composed IFCX graph, including extensions.

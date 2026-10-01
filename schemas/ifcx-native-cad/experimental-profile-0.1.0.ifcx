@@ -18,6 +18,10 @@
             },
             "lengthUnit": {
               "dataType": "String"
+            },
+            "linePatternScale": {
+              "dataType": "Real",
+              "optional": true
             }
           }
         }
@@ -46,9 +50,15 @@
               "optional": true,
               "objectRestrictions": {
                 "values": {
-                  "width": { "dataType": "Real" },
-                  "height": { "dataType": "Real" },
-                  "lengthUnit": { "dataType": "String" }
+                  "width": {
+                    "dataType": "Real"
+                  },
+                  "height": {
+                    "dataType": "Real"
+                  },
+                  "lengthUnit": {
+                    "dataType": "String"
+                  }
                 }
               }
             }
@@ -210,6 +220,10 @@
                   }
                 }
               }
+            },
+            "linePatternScale": {
+              "dataType": "Real",
+              "optional": true
             }
           }
         }
@@ -267,6 +281,16 @@
             },
             "closed": {
               "dataType": "Boolean"
+            },
+            "linePatternGeneration": {
+              "dataType": "Enum",
+              "optional": true,
+              "enumRestrictions": {
+                "options": [
+                  "perSegment",
+                  "continuous"
+                ]
+              }
             }
           }
         }
@@ -351,6 +375,30 @@
                       }
                     }
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ifccad::linePattern": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "name": {
+              "dataType": "String"
+            },
+            "description": {
+              "dataType": "String",
+              "optional": true
+            },
+            "pattern": {
+              "dataType": "Array",
+              "arrayRestrictions": {
+                "value": {
+                  "dataType": "Real"
                 }
               }
             }

@@ -64,3 +64,19 @@ Each entry records: **current IFCX surface**, **our tested rule**, **open questi
 4. Only after the semantic model survives these cases, compare matched JSON, compressed JSON, and an implemented binary candidate. Keep the physical-encoding work aligned with [IFCCAD issue #6](https://github.com/OpenAEC-Foundation/ifccad/issues/6).
 
 Before contacting buildingSMART, split each candidate into a minimal domain-neutral question, a reproducible IFCX example, observed upstream behavior, and an IFCCAD use case. Link any resulting upstream issue or decision back to its G-number.
+
+## Line-pattern evidence (2026-10-01)
+
+- G1: drawing-local `/cad/dN/linePattern/N` string references resolve to named
+  definitions, including unused definitions, without UUIDs or duplicated IDs.
+  Target role and drawing scope remain profile checks, not IFCX guarantees.
+- G3: a later `ifccad::linePattern` attribute replaces the entire earlier object
+  and ordered element array. Tested composition does not append array elements.
+- G4: the schema describes an object/real array; the reader separately enforces
+  target roles, drawing membership, folded name uniqueness, signed-length rules,
+  positive scale/defaults and mode-dependent references. No unadopted reference
+  datatype or node-profile syntax is introduced.
+
+Evidence: [line-pattern tests](../../tests/ifcx_line_patterns.rs),
+[conversion tests](../../crates/ifcx-cad-convert/tests/line_patterns.rs) and
+[profile contract](../../schemas/ifcx-native-cad/experimental-contract-0.1.0.md#named-line-patterns).

@@ -8,11 +8,13 @@ fn base() -> Value {
         "imports": [], "schemas": {}, "data": [
             {"path":"/cad/d1","children":{"model":"/cad/d1/layout/1","layer0":"/cad/d1/layer/0"},"attributes":{"ifccad::drawing":{"profileVersion":"0.1.0","lengthUnit":"mm"}}},
             {"path":"/cad/d1/layout/1","children":{"0":"/cad/d1/e2","1":"/cad/d1/e1"},"attributes":{"ifccad::layout":{"kind":"Model"}}},
-            {"path":"/cad/d1/layer/0","attributes":{"ifccad::layer":{"name":"0","appearance":{"color":"#ffffff","opacity":1.0,"linePattern":"Continuous","lineWeight":0.25}}}},
+            {"path":"/cad/d1/layer/0","attributes":{"ifccad::layer":{"name":"0","appearance":{"color":"#ffffff","opacity":1.0,"linePattern":"/cad/d1/linePattern/0","lineWeight":0.25}}}},
             {"path":"/cad/d1/e1","attributes":{"ifccad::entity":{"layer":"/cad/d1/layer/0","appearance":{"color":{"mode":"ByLayer"},"opacity":{"mode":"ByLayer"},"linePattern":{"mode":"ByLayer"},"lineWeight":{"mode":"ByLayer"}}},"ifccad::geom::circle":{"radius":2.0},"ifccad::geom::placement":{"origin":[0,0,0],"xAxis":[1,0,0],"yAxis":[0,1,0]}}},
             {"path":"/cad/d1/e2","attributes":{"ifccad::entity":{"layer":"/cad/d1/layer/0","appearance":{"color":{"mode":"ByLayer"},"opacity":{"mode":"ByLayer"},"linePattern":{"mode":"ByLayer"},"lineWeight":{"mode":"ByLayer"}}},"ifccad::geom::lineSegment":{"start":[0,0,0],"end":[1,0,0]}}}
         ]
     });
+    value["data"][0]["children"]["linePattern0"] = json!("/cad/d1/linePattern/0");
+    value["data"].as_array_mut().unwrap().push(json!({"path":"/cad/d1/linePattern/0","attributes":{"ifccad::linePattern":{"name":"Continuous","pattern":[]}}}));
     let module: Value = serde_json::from_str(include_str!(
         "../schemas/ifcx-native-cad/experimental-profile-0.1.0.ifcx"
     ))
@@ -165,6 +167,7 @@ fn fixture_document() -> IfcxCadDocument {
         y_axis: [0.0, 1.0, 0.0],
     };
     let instance = |id, x, color: &str| IfcxCadEntity {
+        line_pattern_scale: 1.,
         id,
         layer_id: 2,
         appearance: IfcxCadEntityAppearance {
@@ -184,6 +187,13 @@ fn fixture_document() -> IfcxCadDocument {
         },
     };
     IfcxCadDocument {
+        line_patterns: vec![IfcxCadLinePattern {
+            id: IfcxCadLinePatternId(0),
+            name: "Continuous".into(),
+            description: None,
+            pattern: vec![],
+        }],
+        line_pattern_scale: 1.,
         header: IfcxCadHeader {
             id: "ifccad-experimental-hello".into(),
             data_version: "0.1.0".into(),
@@ -200,7 +210,7 @@ fn fixture_document() -> IfcxCadDocument {
                 appearance: IfcxCadLayerAppearance {
                     color: "#ffffff".into(),
                     opacity: 1.0,
-                    line_pattern: "Continuous".into(),
+                    line_pattern: IfcxCadLinePatternId(0),
                     line_weight: 0.1,
                 },
             },
@@ -210,7 +220,7 @@ fn fixture_document() -> IfcxCadDocument {
                 appearance: IfcxCadLayerAppearance {
                     color: "#00ff00".into(),
                     opacity: 0.8,
-                    line_pattern: "Continuous".into(),
+                    line_pattern: IfcxCadLinePatternId(0),
                     line_weight: 0.25,
                 },
             },
@@ -220,7 +230,7 @@ fn fixture_document() -> IfcxCadDocument {
                 appearance: IfcxCadLayerAppearance {
                     color: "#ff0000".into(),
                     opacity: 1.0,
-                    line_pattern: "Continuous".into(),
+                    line_pattern: IfcxCadLinePatternId(0),
                     line_weight: 0.35,
                 },
             },
@@ -229,6 +239,7 @@ fn fixture_document() -> IfcxCadDocument {
             id: 1,
             entities: vec![
                 IfcxCadEntity {
+                    line_pattern_scale: 1.,
                     id: 42,
                     layer_id: 1,
                     appearance: by_layer.clone(),
@@ -238,10 +249,12 @@ fn fixture_document() -> IfcxCadDocument {
                     },
                 },
                 IfcxCadEntity {
+                    line_pattern_scale: 1.,
                     id: 7,
                     layer_id: 1,
                     appearance: by_layer.clone(),
                     kind: IfcxCadEntityKind::PlanarPolyline {
+                        line_pattern_generation: IfcxCadLinePatternGeneration::PerSegment,
                         vertices: vec![[0.0, 0.0], [2.0, 0.0], [2.0, 3.0]],
                         closed: false,
                         placement: placement.clone(),
@@ -249,6 +262,7 @@ fn fixture_document() -> IfcxCadDocument {
                 },
                 instance(90, 20.0, "#0000ff"),
                 IfcxCadEntity {
+                    line_pattern_scale: 1.,
                     id: 9,
                     layer_id: 2,
                     appearance: by_layer.clone(),
@@ -266,6 +280,7 @@ fn fixture_document() -> IfcxCadDocument {
             base_point: [2.0, 0.0, 0.0],
             insertion_unit: "cm".into(),
             entities: vec![IfcxCadEntity {
+                line_pattern_scale: 1.,
                 id: 100,
                 layer_id: 0,
                 appearance: IfcxCadEntityAppearance {
@@ -295,6 +310,7 @@ fn nested_document() -> IfcxCadDocument {
         insertion_unit: "mm".into(),
         entities: vec![
             IfcxCadEntity {
+                line_pattern_scale: 1.,
                 id: 101,
                 layer_id: 0,
                 appearance: IfcxCadEntityAppearance {
@@ -313,6 +329,7 @@ fn nested_document() -> IfcxCadDocument {
                 },
             },
             IfcxCadEntity {
+                line_pattern_scale: 1.,
                 id: 102,
                 layer_id: 1,
                 appearance: IfcxCadEntityAppearance {
@@ -666,7 +683,7 @@ fn profile_schema_and_extensions() {
     value["data"].as_array_mut().unwrap().push(json!({"path":"/project/site","children":{"cad":"/cad/d1/e1"},"attributes":{"example::tag":{"value":"kept"}}}));
     value["data"][3]["attributes"]["example::entityNote"] = json!(42);
     let loaded = read(&value).unwrap();
-    assert_eq!(loaded.raw_ifcx()["data"].as_array().unwrap().len(), 6);
+    assert_eq!(loaded.raw_ifcx()["data"].as_array().unwrap().len(), 7);
     assert_eq!(
         loaded.raw_ifcx()["data"][3]["attributes"]["example::entityNote"],
         42
@@ -763,6 +780,7 @@ fn exploratory_line_count_probe() {
     let mut document = fixture_document();
     document.model.entities = (1..=1000)
         .map(|id| IfcxCadEntity {
+            line_pattern_scale: 1.,
             id,
             layer_id: 1,
             appearance: IfcxCadEntityAppearance {

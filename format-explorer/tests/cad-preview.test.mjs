@@ -25,6 +25,11 @@ test('an OCDraw source opens only generated CAD',async()=>{
  await controller.select({format:'dwg'});await controller.show();
  assert.deepEqual(calls.map(c=>c[0]),['generated']);
 });
+test('an IFCX source opens generated CAD with the IFCX roundtrip label',async()=>{
+ const {calls,controller}=setup();controller.setSource({...source,kind:'ifcx',name:'hello.ifcx'},true);
+ await controller.select({format:'dwg'});await controller.show();
+ assert.deepEqual(calls.map(c=>c[0]),['generated']);assert.match(calls[0][2],/via-ifcx/);
+});
 test('changing source cancels export and ignores late results',async()=>{
  let finish,signal;const {calls,controller}=setup((r,o)=>{signal=o.signal;return new Promise(resolve=>{finish=resolve;});});
  controller.setSource(source,true);const pending=controller.show();

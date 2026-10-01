@@ -1,9 +1,13 @@
-use crate::outcome::diagnostic;
+use crate::outcome::{diagnostic, modification};
 use crate::IfcxCadDiagnostic;
 use cadcodec::entities::EntityCommon;
 use cadcodec::{Color, Layer, LineWeight, Transparency};
-use ocdraw::ifcx_cad::IfcxCadLayerAppearance;
-use ocdraw::ifcx_cad::{IfcxCadEntityAppearance, IfcxCadMode};
+use ocdraw::ifcx_cad::{IfcxCadEntityAppearance, IfcxCadLayerAppearance, IfcxCadMode};
+
+const WEIGHTS: [i16; 24] = [
+    0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40, 50, 53, 60, 70, 80, 90, 100, 106, 120, 140, 158, 200,
+    211,
+];
 
 pub(crate) fn color(value: &str) -> Color {
     Color::from_rgb(
@@ -12,8 +16,83 @@ pub(crate) fn color(value: &str) -> Color {
         u8::from_str_radix(&value[5..7], 16).unwrap(),
     )
 }
+pub(crate) fn weight(value: f64) -> Option<LineWeight> {
+    WEIGHTS
+        .into_iter()
+        .find(|v| f64::from(*v) / 100. == value)
+        .map(LineWeight::Value)
+}
+pub(crate) fn opacity(value: f64) -> Option<Transparency> {
+    (0..=255)
+        .find(|a| 1. - f64::from(*a) / 255. == value)
+        .map(Transparency::Explicit)
+}
+fn cad_weight(value: f64, loc: &str, issues: &mut Vec<IfcxCadDiagnostic>) -> LineWeight {
+    if let Some(w) = weight(value) {
+        return w;
+    }
+    let nearest = WEIGHTS
+        .into_iter()
+        .min_by(|a, b| {
+            (f64::from(*a) / 100. - value)
+                .abs()
+                .total_cmp(&(f64::from(*b) / 100. - value).abs())
+        })
+        .unwrap();
+    issues.push(modification(
+        "appearance",
+        format!("{loc}.line_weight"),
+        format!(
+            "line weight {value} mm rounded to {} mm",
+            f64::from(nearest) / 100.
+        ),
+    ));
+    LineWeight::Value(nearest)
+}
+fn cad_opacity(value: f64, loc: &str, issues: &mut Vec<IfcxCadDiagnostic>) -> Transparency {
+    if let Some(t) = opacity(value) {
+        return t;
+    }
+    let nearest = (0u8..=255)
+        .min_by(|a, b| {
+            ((1. - f64::from(*a) / 255.) - value)
+                .abs()
+                .total_cmp(&((1. - f64::from(*b) / 255.) - value).abs())
+                .then_with(|| b.cmp(a))
+        })
+        .unwrap();
+    issues.push(modification(
+        "appearance",
+        format!("{loc}.opacity"),
+        format!(
+            "opacity {value} quantized to {} (transparency byte {nearest})",
+            1. - f64::from(nearest) / 255.
+        ),
+    ));
+    Transparency::Explicit(nearest)
+}
+fn source_color(value: Color, loc: &str, issues: &mut Vec<IfcxCadDiagnostic>) -> String {
+    let (r, g, b) = value.rgb().unwrap_or((255, 255, 255));
+    let target = format!("#{r:02X}{g:02X}{b:02X}");
+    if !matches!(value, Color::Rgb { .. }) {
+        issues.push(modification("appearance",format!("{loc}.color"),format!("color {value:?} mapped to {target}; indexed/inherited/none identity is not retained")));
+    }
+    target
+}
+fn source_weight(value: LineWeight, loc: &str, issues: &mut Vec<IfcxCadDiagnostic>) -> f64 {
+    match value {
+        LineWeight::Value(v) if v >= 0 => cad_weight(f64::from(v) / 100., loc, issues)
+            .millimeters()
+            .unwrap(),
+        _ => {
+            issues.push(modification("appearance",format!("{loc}.line_weight"),format!("weight {value:?} replaced with explicit 0.25 mm; no drawing-default weight is available in this profile")));
+            0.25
+        }
+    }
+}
 pub(crate) fn to_common(
     a: &IfcxCadEntityAppearance,
+    pattern: Option<(String, cadcodec::Handle)>,
     layer: &str,
     loc: &str,
     issues: &mut Vec<IfcxCadDiagnostic>,
@@ -28,45 +107,24 @@ pub(crate) fn to_common(
     c.transparency = match a.opacity {
         ByLayer => Transparency::ByLayer,
         ByBlock => Transparency::ByBlock,
-        Explicit(v) => opacity(v).unwrap_or_else(|| {
-            issues.push(diagnostic(
-                "appearance",
-                loc,
-                "opacity is not exactly representable",
-            ));
-            Transparency::OPAQUE
-        }),
+        Explicit(v) => cad_opacity(v, loc, issues),
     };
     c.line_weight = match a.line_weight {
         ByLayer => LineWeight::ByLayer,
         ByBlock => LineWeight::ByBlock,
-        Explicit(v) => weight(v).unwrap_or_else(|| {
-            issues.push(diagnostic(
-                "appearance",
-                loc,
-                "line weight is not exactly representable",
-            ));
-            LineWeight::Value(25)
-        }),
+        Explicit(v) => cad_weight(v, loc, issues),
     };
     c.linetype = match &a.line_pattern {
         ByLayer => String::new(),
         ByBlock => "ByBlock".into(),
-        Explicit(v) => {
-            if v != "Continuous" {
-                issues.push(diagnostic(
-                    "appearance",
-                    loc,
-                    "only Continuous is supported",
-                ));
-            }
-            v.clone()
-        }
+        Explicit(_) => pattern.as_ref().unwrap().0.clone(),
     };
+    c.linetype_handle = pattern.map(|p| p.1);
     c
 }
 pub(crate) fn from_common(
     c: &EntityCommon,
+    patterns: &crate::patterns::SourcePatterns,
     loc: &str,
     issues: &mut Vec<IfcxCadDiagnostic>,
 ) -> IfcxCadEntityAppearance {
@@ -74,14 +132,7 @@ pub(crate) fn from_common(
     let color = match c.color {
         Color::ByLayer => ByLayer,
         Color::ByBlock => ByBlock,
-        v => Explicit(rgb(v).unwrap_or_else(|| {
-            issues.push(diagnostic(
-                "appearance",
-                loc,
-                "indexed color identity is unsupported",
-            ));
-            "#FFFFFF".into()
-        })),
+        v => Explicit(source_color(v, loc, issues)),
     };
     let opacity = match c.transparency {
         Transparency::ByLayer => ByLayer,
@@ -91,34 +142,10 @@ pub(crate) fn from_common(
     let line_weight = match c.line_weight {
         LineWeight::ByLayer => ByLayer,
         LineWeight::ByBlock => ByBlock,
-        LineWeight::Value(v) if weight(f64::from(v) / 100.).is_some() => {
-            Explicit(f64::from(v) / 100.)
-        }
-        _ => {
-            issues.push(diagnostic(
-                "appearance",
-                loc,
-                "default or unsupported line weight",
-            ));
-            Explicit(0.25)
-        }
+        v => Explicit(source_weight(v, loc, issues)),
     };
-    let line_pattern = if c.linetype.is_empty() || c.linetype.eq_ignore_ascii_case("ByLayer") {
-        ByLayer
-    } else if c.linetype.eq_ignore_ascii_case("ByBlock") {
-        ByBlock
-    } else {
-        if c.linetype != "Continuous" {
-            issues.push(diagnostic(
-                "appearance",
-                loc,
-                "only Continuous is supported",
-            ));
-        }
-        Explicit(c.linetype.clone())
-    };
-    // Compare skipped-serde fields as well. Only mapped values, identity and
-    // storage caches are reset; authored common semantics remain detectable.
+    let line_pattern = patterns.entity(c);
+    // Typed comparison also covers public fields skipped by serde.
     let mut r = c.clone();
     let b = EntityCommon::new();
     r.handle = b.handle;
@@ -129,15 +156,12 @@ pub(crate) fn from_common(
     r.linetype = b.linetype.clone();
     r.transparency = b.transparency;
     r.linetype_handle = None;
+    r.linetype_scale = b.linetype_scale;
     r.entity_mode = None;
     r.raw_record = None;
     r.has_ds_data = false;
     if r != b {
-        issues.push(diagnostic(
-            "entity-common",
-            loc,
-            "unsupported common properties (including XDATA, style, visibility or material)",
-        ));
+        issues.push(diagnostic("entity-common",loc,"unsupported common properties omitted (including XDATA, style, visibility or material)"));
     }
     IfcxCadEntityAppearance {
         color,
@@ -146,107 +170,44 @@ pub(crate) fn from_common(
         line_weight,
     }
 }
-pub(crate) fn rgb(value: Color) -> Option<String> {
-    match value {
-        Color::Rgb { r, g, b } => Some(format!("#{r:02X}{g:02X}{b:02X}")),
-        _ => None,
-    }
-}
-pub(crate) fn opacity(value: f64) -> Option<Transparency> {
-    // Select a byte by its decoded value; the codec's percent constructor can
-    // otherwise ceil a value one byte further because of floating-point error.
-    (0..=255)
-        .find(|a| 1. - f64::from(*a) / 255. == value)
-        .map(Transparency::Explicit)
-}
-pub(crate) fn weight(value: f64) -> Option<LineWeight> {
-    [
-        0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40, 50, 53, 60, 70, 80, 90, 100, 106, 120, 140, 158,
-        200, 211,
-    ]
-    .into_iter()
-    .find(|v| f64::from(*v) / 100. == value)
-    .map(LineWeight::Value)
-}
 pub(crate) fn to_layer(
     name: &str,
     a: &IfcxCadLayerAppearance,
-    location: &str,
+    pattern_name: &str,
+    loc: &str,
     issues: &mut Vec<IfcxCadDiagnostic>,
 ) -> Layer {
     let mut layer = Layer::new(name);
     layer.color = color(&a.color);
-    match opacity(a.opacity) {
-        Some(t) => layer.transparency = t,
-        None => issues.push(diagnostic(
-            "appearance",
-            location,
-            "opacity is not an exactly representable CAD byte",
-        )),
-    }
-    match weight(a.line_weight) {
-        Some(w) => layer.line_weight = w,
-        None => issues.push(diagnostic(
-            "appearance",
-            location,
-            "line weight is not a supported CAD hundredth-mm value",
-        )),
-    }
-    if a.line_pattern != "Continuous" {
-        issues.push(diagnostic(
-            "appearance",
-            location,
-            "only Continuous is supported",
-        ));
-    }
+    layer.transparency = cad_opacity(a.opacity, loc, issues);
+    layer.line_weight = cad_weight(a.line_weight, loc, issues);
+    layer.line_type = pattern_name.into();
     layer
 }
 pub(crate) fn from_layer(
     layer: &Layer,
+    patterns: &crate::patterns::SourcePatterns,
     issues: &mut Vec<IfcxCadDiagnostic>,
 ) -> IfcxCadLayerAppearance {
     let loc = format!("layer/{}", layer.name);
-    let color = rgb(layer.color).unwrap_or_else(|| {
-        issues.push(diagnostic(
-            "appearance",
-            &loc,
-            "indexed or inherited layer color is not represented",
-        ));
-        "#FFFFFF".into()
-    });
+    let color = source_color(layer.color, &loc, issues);
     let opacity = match layer.transparency {
         Transparency::Explicit(a) => 1. - f64::from(a) / 255.,
-        _ => {
-            issues.push(diagnostic(
+        v => {
+            issues.push(modification(
                 "appearance",
-                &loc,
-                "inherited layer opacity is unsupported",
+                format!("{loc}.opacity"),
+                format!("layer opacity {v:?} replaced with explicit 1"),
             ));
             1.
         }
     };
-    let line_weight = match layer.line_weight {
-        LineWeight::Value(v) if weight(f64::from(v) / 100.).is_some() => f64::from(v) / 100.,
-        _ => {
-            issues.push(diagnostic(
-                "appearance",
-                &loc,
-                "default/inherited or invalid layer weight is unsupported",
-            ));
-            0.25
-        }
-    };
-    if layer.line_type != "Continuous" {
-        issues.push(diagnostic(
-            "appearance",
-            &loc,
-            "only Continuous is supported",
-        ));
-    }
+    let line_weight = source_weight(layer.line_weight, &loc, issues);
+    let line_pattern = patterns.layer(&layer.line_type);
     IfcxCadLayerAppearance {
         color,
         opacity,
         line_weight,
-        line_pattern: layer.line_type.clone(),
+        line_pattern,
     }
 }

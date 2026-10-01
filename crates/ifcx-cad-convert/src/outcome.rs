@@ -2,6 +2,29 @@ use cadcodec::{CadDocument, Handle};
 use ocdraw::ifcx_cad::{IfcxCadHeader, ValidatedIfcxCad};
 use std::collections::BTreeMap;
 
+/// Acceptance of diagnosed semantic losses. Structural and numeric failures
+/// remain errors under both policies.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum IfcxCadLossPolicy {
+    #[default]
+    Allow,
+    Reject,
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct IfcxCadConversionOptions {
+    pub loss_policy: IfcxCadLossPolicy,
+}
+
+/// What happened to the located source information.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum IfcxCadDiagnosticAction {
+    Omitted,
+    Modified,
+    /// A uniquely established structural cache repair, without semantic loss.
+    Recovery,
+}
+
 /// Explicit target identity and provenance, supplied by the caller.
 #[derive(Clone, Debug)]
 pub struct IfcxCadTargetMetadata {
@@ -15,6 +38,13 @@ pub struct IfcxCadDiagnostic {
     pub code: &'static str,
     pub location: String,
     pub message: String,
+    pub action: IfcxCadDiagnosticAction,
+}
+
+impl IfcxCadDiagnostic {
+    pub fn is_loss(&self) -> bool {
+        self.action != IfcxCadDiagnosticAction::Recovery
+    }
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -51,6 +81,7 @@ impl IfcxCadIdentityMap {
 
 #[derive(Clone, Debug, Default)]
 pub struct IfcxCadMappings {
+    pub line_patterns: IfcxCadIdentityMap,
     pub layouts: IfcxCadIdentityMap,
     pub layers: IfcxCadIdentityMap,
     pub blocks: IfcxCadIdentityMap,
@@ -105,7 +136,33 @@ pub(crate) fn diagnostic(
         code,
         location: location.into(),
         message: message.into(),
+        action: IfcxCadDiagnosticAction::Omitted,
     }
+}
+
+pub(crate) fn modification(
+    code: &'static str,
+    location: impl Into<String>,
+    message: impl Into<String>,
+) -> IfcxCadDiagnostic {
+    let mut d = diagnostic(code, location, message);
+    d.action = IfcxCadDiagnosticAction::Modified;
+    d
+}
+
+pub(crate) fn enforce_policy(
+    options: IfcxCadConversionOptions,
+    issues: &[IfcxCadDiagnostic],
+) -> Result<(), IfcxCadConversionError> {
+    if issues
+        .iter()
+        .any(|d| matches!(d.code, "rounding" | "scale-clamped" | "precision"))
+        || (options.loss_policy == IfcxCadLossPolicy::Reject
+            && issues.iter().any(IfcxCadDiagnostic::is_loss))
+    {
+        return Err(IfcxCadConversionError::Unsupported(issues.to_vec()));
+    }
+    Ok(())
 }
 pub(crate) const UNITS: [&str; 25] = [
     "unitless",

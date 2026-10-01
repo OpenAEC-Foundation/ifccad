@@ -39,7 +39,7 @@ fn attrs(value: Value) -> Map<String, Value> {
 
 fn entity_node(entity: &IfcxCadEntity, prefix: &str) -> NodeOut {
     let mut attrs = Map::new();
-    attrs.insert("ifccad::entity".into(), json!({"layer":format!("{prefix}/layer/{}",entity.layer_id),"appearance":entity.appearance}));
+    attrs.insert("ifccad::entity".into(), json!({"layer":format!("{prefix}/layer/{}",entity.layer_id),"appearance":super::wire::entity(&entity.appearance,prefix),"linePatternScale":entity.line_pattern_scale}));
     match &entity.kind {
         IfcxCadEntityKind::LineSegment { start, end } => {
             attrs.insert(
@@ -51,10 +51,11 @@ fn entity_node(entity: &IfcxCadEntity, prefix: &str) -> NodeOut {
             vertices,
             closed,
             placement,
+            line_pattern_generation,
         } => {
             attrs.insert(
                 "ifccad::geom::planarPolyline".into(),
-                json!({"vertices":vertices,"closed":closed}),
+                json!({"vertices":vertices,"closed":closed,"linePatternGeneration":line_pattern_generation}),
             );
             attrs.insert("ifccad::geom::placement".into(), json!(placement));
         }
@@ -97,6 +98,7 @@ pub fn write_native_cad_ifcx(document: &IfcxCadDocument) -> Result<Vec<u8>, Ifcx
             )));
         }
     }
+    super::validate_ifcx_cad_line_patterns(&document.line_patterns)?;
     let prefix = format!("/cad/d{}", document.drawing_id);
     let mut drawing_children = Map::new();
     drawing_children.insert(
@@ -116,6 +118,12 @@ pub fn write_native_cad_ifcx(document: &IfcxCadDocument) -> Result<Vec<u8>, Ifcx
             json!(format!("{prefix}/layer/{}", layer.id)),
         );
     }
+    for p in &document.line_patterns {
+        drawing_children.insert(
+            format!("linePattern{}", p.id.0),
+            json!(format!("{prefix}/linePattern/{}", p.id.0)),
+        );
+    }
     for block in &document.blocks {
         drawing_children.insert(
             format!("block{}", block.id),
@@ -126,7 +134,7 @@ pub fn write_native_cad_ifcx(document: &IfcxCadDocument) -> Result<Vec<u8>, Ifcx
         path: prefix.clone(),
         children: Some(drawing_children),
         attributes: attrs(
-            json!({"ifccad::drawing":{"profileVersion":"0.1.0","lengthUnit":document.length_unit}}),
+            json!({"ifccad::drawing":{"profileVersion":"0.1.0","lengthUnit":document.length_unit,"linePatternScale":document.line_pattern_scale}}),
         ),
     });
     data.push(NodeOut {
@@ -143,12 +151,23 @@ pub fn write_native_cad_ifcx(document: &IfcxCadDocument) -> Result<Vec<u8>, Ifcx
             ),
         });
     }
+    for p in &document.line_patterns {
+        let mut value = json!({"name":p.name,"pattern":p.pattern});
+        if let Some(description) = &p.description {
+            value["description"] = json!(description);
+        }
+        data.push(NodeOut {
+            path: format!("{prefix}/linePattern/{}", p.id.0),
+            children: None,
+            attributes: attrs(json!({"ifccad::linePattern":value})),
+        });
+    }
     for layer in &document.layers {
         data.push(NodeOut {
             path: format!("{prefix}/layer/{}", layer.id),
             children: None,
             attributes: attrs(
-                json!({"ifccad::layer":{"name":layer.name,"appearance":layer.appearance}}),
+                json!({"ifccad::layer":{"name":layer.name,"appearance":super::wire::layer(&layer.appearance,&prefix)}}),
             ),
         });
     }
@@ -188,6 +207,7 @@ pub fn write_native_cad_ifcx(document: &IfcxCadDocument) -> Result<Vec<u8>, Ifcx
         .map_err(|e| IfcxCadReport::one(format!("IFCX serialization failed: {e}")))?;
     let loaded = read_native_cad_ifcx(&bytes)?;
     let mut expected = document.clone();
+    expected.line_patterns.sort_by_key(|p| p.id.0.to_string());
     expected.paper_layouts.sort_by_key(|layout| layout.id);
     if loaded.document() != &expected {
         return Err(IfcxCadReport::one(

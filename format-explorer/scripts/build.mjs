@@ -7,6 +7,7 @@ export async function build({outputRoot=output,ocsRoot=new URL('../ocs-build/',i
  for(const name of await readdir(new URL('../src/',import.meta.url)))if(/\.(html|css|mjs|svg|ttf|txt)$/.test(name))await copyFile(new URL('../src/'+name,import.meta.url),path.join(destination,name));
  await mkdir(path.join(destination,'examples'),{recursive:true});
  await copyFile(new URL('../../conformance/next/ocdraw/valid/ordered-scopes.ocdraw.json',import.meta.url),path.join(destination,'examples','ordered-scopes.ocdraw.json'));
+ await copyFile(new URL('../../examples/ifcx-native-cad/hello-line-patterns.ifcx',import.meta.url),path.join(destination,'examples','hello-line-patterns.ifcx'));
  await rm(path.join(destination,'job-client.mjs'),{force:true});
  const wasmRoot=new URL('../wasm-build/',import.meta.url),wasmTarget=path.join(destination,'wasm');
  if(!wasmTarget.startsWith(path.resolve(destination)+path.sep))throw Error('Output escapes build directory');

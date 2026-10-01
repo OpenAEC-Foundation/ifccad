@@ -3,7 +3,7 @@ use base64::{engine::general_purpose::STANDARD, Engine};
 use ocdraw::ocdraw::{
     load_drawing_bytes, load_drawing_file, DrawingLoadOutcome, DrawingLoadStatus,
 };
-use ocdraw_convert::cadcodec::{DwgReader, DwgWriter, DxfReader, DxfVersion, DxfWriter};
+use ocdraw_convert::cadcodec::{DwgReader, DxfReader};
 use ocdraw_convert::{
     cad_document_to_drawing, ocdraw_to_cad_document, ExportOptions, ImportOptions,
 };
@@ -12,6 +12,16 @@ use std::io::Cursor;
 use std::path::Path;
 
 pub fn inspect_drawing(path: &Path) -> Value {
+    if crate::ifcx::is_ifcx_name(&path.to_string_lossy()) {
+        return match std::fs::read(path) {
+            Ok(bytes) => crate::ifcx::inspect_ifcx_bytes(&path.to_string_lossy(), &bytes),
+            Err(error) => {
+                let mut output = result(path, "ifcx");
+                fail(&mut output, "reading", "IFCX_OPEN_FAILED", error);
+                output
+            }
+        };
+    }
     let mut output = result(path, "ocdraw");
     match load_drawing_file(path) {
         Ok(drawing) => present(&mut output, drawing),
@@ -21,6 +31,9 @@ pub fn inspect_drawing(path: &Path) -> Value {
 }
 
 pub fn inspect_drawing_bytes(name: &str, bytes: &[u8]) -> Value {
+    if crate::ifcx::is_ifcx_name(name) {
+        return crate::ifcx::inspect_ifcx_bytes(name, bytes);
+    }
     let mut output = result(Path::new(name), "ocdraw");
     present(&mut output, load_drawing_bytes(bytes));
     output
@@ -105,6 +118,9 @@ pub fn inspect_cad_as_drawing_bytes(name: &str, format: &str, bytes: &[u8]) -> V
 }
 
 pub fn export_drawing_bytes(name: &str, bytes: &[u8], format: &str, version: &str) -> Value {
+    if crate::ifcx::is_ifcx_name(name) {
+        return crate::ifcx::export_ifcx_bytes(name, bytes, format, version);
+    }
     let mut output = inspect_drawing_bytes(name, bytes);
     if output["validation"]["strictAvailable"] != true {
         fail(
@@ -119,30 +135,8 @@ pub fn export_drawing_bytes(name: &str, bytes: &[u8], format: &str, version: &st
         output["export"] = json!({"format":"ocdraw","download":{"format":"ocdraw","fileName":format!("{}.ocdraw.json",Path::new(name).file_stem().unwrap_or_default().to_string_lossy()),"byteLength":bytes.len(),"base64":STANDARD.encode(bytes)}});
         return output;
     }
-    let cad_version = match version {
-        "AC1015" => DxfVersion::AC1015,
-        "AC1018" => DxfVersion::AC1018,
-        "AC1021" => DxfVersion::AC1021,
-        "AC1024" => DxfVersion::AC1024,
-        "AC1027" => DxfVersion::AC1027,
-        "AC1032" => DxfVersion::AC1032,
-        _ => {
-            fail(
-                &mut output,
-                "exporting",
-                "INVALID_CAD_VERSION",
-                "Choose a supported CAD version",
-            );
-            return output;
-        }
-    };
-    if !matches!(format, "dxf" | "dwg") {
-        fail(
-            &mut output,
-            "exporting",
-            "INVALID_EXPORT_FORMAT",
-            "Choose DXF or DWG",
-        );
+    if let Err((code, message)) = crate::cad::selection(format, version) {
+        fail(&mut output, "exporting", code, message);
         return output;
     }
     let read = load_drawing_bytes(bytes);
@@ -164,58 +158,15 @@ pub fn export_drawing_bytes(name: &str, bytes: &[u8], format: &str, version: &st
             })
         })
         .collect::<Vec<_>>();
-    let mut cad = converted.into_document();
-    cad.version = cad_version;
-    progress("writing");
-    let result = if format == "dxf" {
-        DxfWriter::new(&cad).write_to_vec()
-    } else {
-        DwgWriter::write_to_vec(&cad)
-    };
-    let written = match result {
-        Ok(bytes) => bytes,
-        Err(error) => {
-            fail(&mut output, "writing", "CAD_WRITE_FAILED", error);
-            return output;
-        }
-    };
-    if written.len() > 64 * 1024 * 1024 {
-        fail(
-            &mut output,
-            "writing",
-            "EXPORT_SIZE_LIMIT",
-            "Generated CAD file exceeds the 64 MiB download limit",
-        );
-        return output;
-    }
-    progress("checking");
-    let checked = if format == "dxf" {
-        DxfReader::from_reader(Cursor::new(written.clone())).and_then(|reader| reader.read())
-    } else {
-        DwgReader::from_stream(Cursor::new(written.clone())).read()
-    };
-    match checked {
-        Ok(readback) if readback.version == cad_version => {}
-        Ok(readback) => {
-            fail(
-                &mut output,
-                "checking",
-                "CAD_VERSION_MISMATCH",
-                format!("requested {version}, written {}", readback.version.as_str()),
-            );
-            return output;
-        }
-        Err(error) => {
-            fail(&mut output, "checking", "CAD_READBACK_FAILED", error);
-            return output;
-        }
-    }
-    output["export"] = json!({
-        "format":format, "requestedVersion":version, "diagnostics":diagnostics,
-        "download":{"format":format,"fileName":format!("{}.{}", Path::new(name).file_stem().unwrap_or_default().to_string_lossy(), format),
-            "byteLength":written.len(),"base64":STANDARD.encode(written)}
-    });
-    output
+    crate::cad::export(
+        output,
+        converted.into_document(),
+        name,
+        format,
+        version,
+        diagnostics,
+        |_| Ok(Value::Null),
+    )
 }
 
 fn present(output: &mut Value, outcome: DrawingLoadOutcome) {

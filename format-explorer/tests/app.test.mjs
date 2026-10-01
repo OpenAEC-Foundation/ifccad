@@ -39,3 +39,38 @@ test('CAD download uses the shared preview choice while OCDraw download is indep
  assert.deepEqual(links.map(link=>[link.download,link.clicked]),[['drawing.dwg',true],['drawing.ocdraw',true]]);
  for(const blob of blobs)assert.deepEqual([...new Uint8Array(await blob.arrayBuffer())],[1,2]);
 });
+
+test('the current drawing explorer opens IFCX and downloads its native format',async()=>{
+ const elements=new Map(),requests=[];
+ const element=id=>{if(!elements.has(id))elements.set(id,{disabled:false,textContent:'',hidden:true,value:''});return elements.get(id);};
+ const client={async open(request){requests.push(request);return {validation:{strictAvailable:true},presentation:{format:'ifcx'}};}};
+ const code=(await readFile(new URL('../src/app.mjs',import.meta.url),'utf8')).replace(/^import .*;\r?\n/gm,'');
+ vm.runInNewContext(code,{document:{getElementById:element},createFileClient:()=>client,initializeCadPreview:()=>({clear(){},setSource(){}}),AbortController});
+ element('file').files=[{name:'hello.ifcx',size:1,arrayBuffer:async()=>new ArrayBuffer(1)}];
+ await element('open').onclick();await element('export').onclick();
+ assert.equal(requests[0].kind,'ifcx');assert.equal(requests[1].export.format,'ifcx');
+ assert.match(element('export').textContent,/IFCX/);assert.match(element('content-title').textContent,/IFCX/);
+ element('file').files=[{name:'returned.dxf',size:1,arrayBuffer:async()=>new ArrayBuffer(1)}];await element('open').onclick();assert.equal(requests[2].drawingFormat,'ifcx');
+});
+
+test('only a selected DWG or DXF offers conversion with its actual format name',async()=>{
+ const elements=new Map(),requests=[];
+ const element=id=>{if(!elements.has(id))elements.set(id,{disabled:false,textContent:'',hidden:false,value:''});return elements.get(id);};
+ const code=(await readFile(new URL('../src/app.mjs',import.meta.url),'utf8')).replace(/^import .*;\r?\n/gm,'');
+ vm.runInNewContext(code,{document:{getElementById:element},createFileClient:()=>({async open(request){requests.push(request);return {validation:{strictAvailable:true}};}}),initializeCadPreview:()=>({clear(){},setSource(){}}),AbortController});
+ assert.equal(element('drawing-format-control').hidden,true);
+ for(const [name,label] of [['drawing.DWG','DWG omzetten naar'],['drawing.dxf','DXF omzetten naar'],['hello.ifcx',null],['hello.ifcx.json',null],['drawing.ocdraw',null],['drawing.ocdraw.json',null]]){
+  element('file').files=[{name,size:1,arrayBuffer:async()=>new ArrayBuffer(1)}];
+  await element('file').onchange();
+  assert.equal(element('drawing-format-control').hidden,label===null,name);
+  if(label)assert.equal(element('drawing-format-label').textContent,label);
+  assert.equal(element('drawing-format').disabled,label===null);
+  assert.equal(element('export').disabled,true);
+  await element('open').onclick();
+  assert.equal(element('drawing-format-control').hidden,label===null,name);
+ }
+ element('file').files=[];await element('file').onchange();
+ assert.equal(element('drawing-format-control').hidden,true);
+ assert.equal(element('export').disabled,true);
+ assert.equal(requests.length,6);
+});

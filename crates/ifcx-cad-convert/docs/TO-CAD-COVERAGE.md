@@ -1,17 +1,20 @@
 # IFCX-CAD → CadDocument coverage
 
 Profile `urn:example:ifccad:0.1.0`; cadcodec revision
-`5b682ed66ea2c89be8142c8dd83d83774fc3de08`. Unsupported content prevents output.
+`5b682ed66ea2c89be8142c8dd83d83774fc3de08`. Default Allow returns supported content
+with losses; explicit Reject refuses diagnosed omissions or modifications.
 
 | Source | Treatment |
 | --- | --- |
 | Composition/profile rules | Core reader composes first, default LaterWins; converter accepts validated projection |
 | Header/drawing/node identity | Source remains intact; mappings report identities; reverse header/drawing ID is caller supplied |
 | Drawing unit | Map all 25 declared tokens to CAD code, without scaling coordinates |
+| Line patterns | Allocate all native named simple/empty definitions, including unused; preserve names/descriptions/lengths; retain required missing Continuous target scaffold with Modified evidence |
+| Pattern scale/generation | Drawing/entity scales to header/common fields; planar polyline perSegment/continuous to plinegen |
 | Model | Default Model layout, ordered backing block membership |
-| Paper | Located diagnostic, reject |
-| Layers | Retain names, unused declarations and concrete appearance; require source layer 0 |
-| Layer/entity appearance | True RGB, Continuous, supported hundredth-mm weight, exact decoded opacity byte; preserve independent inherited/explicit modes on entities |
+| Paper | Omit each layout and its entities with located diagnostics |
+| Layers | Retain names, unused declarations and concrete appearance; synthesize missing CAD layer 0 with diagnosed explicit fallback |
+| Layer/entity appearance | True RGB, resolved named patterns, supported hundredth-mm weight, exact decoded opacity byte; preserve independent inherited/explicit modes on entities |
 | Lines | Direct finite XYZ endpoints |
 | Circles | Radius and origin retained; standard XY basis only |
 | Polylines | Ordered straight vertices/closure; exact BigRational check on translated XY sums; Z becomes elevation |
@@ -19,17 +22,32 @@ Profile `urn:example:ifccad:0.1.0`; cadcodec revision
 | Instances | Standard XY placement, rotation and signed scales; compare setter getters to requested scales even for empty targets |
 | Draw order | Owner vector order, independent of ID numbering |
 | Invalid ownership/frames/cycles | Core validation; invalid projections never reach conversion |
-| Incompatible names | CAD construction error/reserved-block diagnostic; no guessing |
-| Other IFCX graph/envelope information | Canonical-envelope difference diagnostic, reject; includes extra schemas/imports/relations |
+| Incompatible names | Reserved/anonymous definitions and referring inserts omitted with diagnostics; other construction errors remain fatal |
+| Other IFCX graph/envelope information | Canonical-envelope loss diagnostic; includes extra schemas/imports/relations; source graph remains intact |
 
 Polyline local-origin decomposition is canonicalized without changing its exact
 path. Oblique parameterization and certified numerical tolerances are deferred.
 The target starts with pinned default table/layout/style infrastructure, including
 empty Paper scaffold; that does not assert conversion of Paper semantics or CAD
-workspace settings. No ByLayer/ByBlock resolution, preservation or approximation
-is implemented. Failure returns all diagnostics collected before the failed
-boundary, never a successful partially mapped document.
+workspace settings. ByLayer/ByBlock modes are not resolved. Unsupported geometric
+parameterization omits the whole entity. Normal local definitions can retain
+partial contents, with a loss diagnostic on each affected instance, propagated
+through nesting. Only emitted objects receive mappings.
 
-Evidence: `tests/conversion.rs`, `tests/blocks.rs`, `tests/exchange.rs`.
+Nonstandard weights are quantized to the nearest supported CAD entry (ties
+prefer the lower entry), opacity to the nearest decoded byte (ties prefer higher
+transparency). Each adaptation
+has Modified evidence. Missing layer 0 is white/opaque/Continuous/0.25 mm with no
+source mapping. Reject refuses all these losses. No source preservation is
+implemented.
+
+Both policies reject translated-coordinate rounding, integer-to-binary64
+geometry/pattern/scale projection and setter scale clamping, including empty definitions.
+Structural failures remain errors. Failure returns collected diagnostics before
+the failed boundary. Diagnostics cover conversion to CadDocument; external
+DXF/DWG codecs require independent semantic readback and can introduce additional
+angle rounding during degree/radian encoding.
+
+Evidence: `tests/conversion.rs`, `tests/blocks.rs`, `tests/exchange.rs`, `tests/line_patterns.rs`.
 Real DXF/DWG tests use the same primitive corpus and strict IFCX readback;
 DWG nonzero-base marker conflicts are expected rejected transfers.

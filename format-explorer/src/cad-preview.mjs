@@ -2,6 +2,9 @@ import {createFileClient,encodeBase64} from './browser-client.mjs';
 import {createOcsSession} from './ocs-messages.mjs';
 import {supportsCadVersion,defaultCadVersion} from './cad-formats.mjs';
 
+function drawingFormat(source){return source?.kind==='ifcx'||source?.drawingFormat==='ifcx'?'ifcx':'ocdraw';}
+function drawingLabel(source){return drawingFormat(source)==='ifcx'?'IFCX-CAD':'OCDraw';}
+
 export function createCadPreviewController({openExport,openSession,onUpdate=()=>{}}){
  const state={source:null,valid:false,visible:false,busy:false,format:'dxf',version:defaultCadVersion,result:null,download:null,error:'',viewerError:'',viewerReady:false};
  let generation=0,epoch=0,controller=null,session=null,sessionPromise=null,originalOpened=false,displayedKey=null;
@@ -23,7 +26,7 @@ export function createCadPreviewController({openExport,openSession,onUpdate=()=>
   let active=null;
   try{active=await ensureSession(current);}catch(error){if(current===generation){state.viewerError=error.message;state.viewerReady=false;resetSession();notify();}}
   if(current!==generation)return;
-  if(!state.valid){state.error='Conversie naar OCDraw is niet beschikbaar. Alleen het oorspronkelijke CAD-bestand kan worden bekeken.';state.busy=false;notify();return;}
+  if(!state.valid){state.error=`Conversie naar ${drawingLabel(state.source)} is niet beschikbaar. Alleen het oorspronkelijke CAD-bestand kan worden bekeken.`;state.busy=false;notify();return;}
   const key=JSON.stringify([state.format,state.version]);
   try{
    const result=cache.get(key)??await openExport({...state.source,export:{format:state.format,version:state.version}},{signal});
@@ -35,7 +38,7 @@ export function createCadPreviewController({openExport,openSession,onUpdate=()=>
    if(file.format!==state.format||result.export.requestedVersion!==state.version||atob(file.base64).length!==file.byteLength)throw Error('Het CAD-bestand komt niet overeen met de gekozen uitvoer.');
    state.download=file;
    if(file.base64.length<=24*1024*1024){cache.set(key,result);while(cache.size>2)cache.delete(cache.keys().next().value);}
-   if(active&&displayedKey!==key){await active.replaceGenerated(file.base64,`via-ocdraw-${state.version}.${state.format}`);if(current!==generation)return;displayedKey=key;}
+   if(active&&displayedKey!==key){await active.replaceGenerated(file.base64,`via-${drawingFormat(state.source)}-${state.version}.${state.format}`);if(current!==generation)return;displayedKey=key;}
   }catch(error){if(current===generation&&!signal.aborted)state.error=error.message;}
   finally{if(current===generation){state.busy=false;notify();}}
  }
@@ -61,7 +64,8 @@ export function initializeCadPreview(){
   $('cad-preview').hidden=!state.visible;$('preview-format').value=state.format;$('preview-version').value=state.version;
   $('cad-controls').hidden=!state.source;$('cad-download').disabled=state.busy||!state.valid;
   $('preview-format').disabled=state.busy;$('preview-version').disabled=state.busy;$('preview-fullscreen').disabled=!state.viewerReady;
-  $('preview-status').textContent=state.busy?'Tekening wordt voorbereid…':state.error||'Resultaat via OCDraw gereed. Raadpleeg de conversiemeldingen voor informatieverlies.';
+  $('preview-status').textContent=state.busy?'Tekening wordt voorbereid…':state.error||`Resultaat via ${drawingLabel(state.source)} gereed. Raadpleeg de conversiemeldingen voor informatieverlies.`;
+  $('preview-source-info').textContent=state.source?.kind==='cad'?`Open CAD Studio toont het oorspronkelijke CAD-bestand en het resultaat via ${drawingLabel(state.source)} als afzonderlijke documenten.`:`Open CAD Studio toont het DXF/DWG-resultaat via ${drawingLabel(state.source)}.`;
   $('preview-viewer-status').textContent=state.viewerError||(!state.viewerReady?'Open CAD Studio wordt voorbereid…':'');
   $('preview-retry').hidden=!state.viewerError;
   $('preview-report').textContent=state.result?JSON.stringify({conversion:state.result.conversion,export:state.result.export?{diagnostics:state.result.export.diagnostics,fileCheck:state.result.export.fileCheck}:undefined,failure:state.result.failure},null,2):'';

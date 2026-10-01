@@ -1,6 +1,6 @@
 {
   "header": {
-    "id": "ifccad-experimental-hello",
+    "id": "hello-line-patterns",
     "ifcxVersion": "ifcx_alpha",
     "dataVersion": "0.1.0",
     "author": "OpenAEC",
@@ -17,17 +17,19 @@
       "path": "/cad/d1",
       "children": {
         "block1": "/cad/d1/block/1",
-        "block2": "/cad/d1/block/2",
         "layer0": "/cad/d1/layer/0",
         "layer1": "/cad/d1/layer/1",
         "layer2": "/cad/d1/layer/2",
         "model": "/cad/d1/layout/1",
-        "linePattern0": "/cad/d1/linePattern/0"
+        "linePattern0": "/cad/d1/linePattern/0",
+        "linePattern7": "/cad/d1/linePattern/7",
+        "linePattern8": "/cad/d1/linePattern/8"
       },
       "attributes": {
         "ifccad::drawing": {
           "lengthUnit": "cm",
-          "profileVersion": "0.1.0"
+          "profileVersion": "0.1.0",
+          "linePatternScale": 2.0
         }
       }
     },
@@ -36,6 +38,30 @@
       "attributes": {
         "ifccad::linePattern": {
           "name": "Continuous",
+          "pattern": []
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/linePattern/7",
+      "attributes": {
+        "ifccad::linePattern": {
+          "name": "DashDot",
+          "description": "Fractional stroke, gap and dot",
+          "pattern": [
+            0.5,
+            -0.25,
+            0,
+            -0.25
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/linePattern/8",
+      "attributes": {
+        "ifccad::linePattern": {
+          "name": "UnusedSolid",
           "pattern": []
         }
       }
@@ -75,7 +101,7 @@
         "ifccad::layer": {
           "appearance": {
             "color": "#00ff00",
-            "linePattern": "/cad/d1/linePattern/0",
+            "linePattern": "/cad/d1/linePattern/7",
             "lineWeight": 0.25,
             "opacity": 0.8
           },
@@ -115,24 +141,6 @@
       }
     },
     {
-      "path": "/cad/d1/block/2",
-      "children": {
-        "0": "/cad/d1/e101",
-        "1": "/cad/d1/e102"
-      },
-      "attributes": {
-        "ifccad::blockDefinition": {
-          "basePoint": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "insertionUnit": "mm",
-          "name": "Nested marker"
-        }
-      }
-    },
-    {
       "path": "/cad/d1/e42",
       "attributes": {
         "ifccad::entity": {
@@ -141,7 +149,8 @@
               "mode": "ByLayer"
             },
             "linePattern": {
-              "mode": "ByLayer"
+              "mode": "Explicit",
+              "value": "/cad/d1/linePattern/7"
             },
             "lineWeight": {
               "mode": "ByLayer"
@@ -150,7 +159,8 @@
               "mode": "ByLayer"
             }
           },
-          "layer": "/cad/d1/layer/1"
+          "layer": "/cad/d1/layer/1",
+          "linePatternScale": 0.5
         },
         "ifccad::geom::lineSegment": {
           "end": [
@@ -218,7 +228,8 @@
               2.0,
               3.0
             ]
-          ]
+          ],
+          "linePatternGeneration": "continuous"
         }
       }
     },
@@ -226,7 +237,7 @@
       "path": "/cad/d1/e90",
       "attributes": {
         "ifccad::blockInstance": {
-          "definition": "/cad/d1/block/2",
+          "definition": "/cad/d1/block/1",
           "transform": {
             "placement": {
               "origin": [
@@ -319,7 +330,7 @@
       "path": "/cad/d1/e91",
       "attributes": {
         "ifccad::blockInstance": {
-          "definition": "/cad/d1/block/2",
+          "definition": "/cad/d1/block/1",
           "transform": {
             "placement": {
               "origin": [
@@ -394,91 +405,6 @@
           ],
           "start": [
             2.0,
-            0.0,
-            0.0
-          ]
-        }
-      }
-    },
-    {
-      "path": "/cad/d1/e101",
-      "attributes": {
-        "ifccad::blockInstance": {
-          "definition": "/cad/d1/block/1",
-          "transform": {
-            "placement": {
-              "origin": [
-                5.0,
-                0.0,
-                0.0
-              ],
-              "xAxis": [
-                1.0,
-                0.0,
-                0.0
-              ],
-              "yAxis": [
-                0.0,
-                1.0,
-                0.0
-              ]
-            },
-            "rotation": 0.0,
-            "scale": [
-              1.0,
-              1.0,
-              1.0
-            ]
-          }
-        },
-        "ifccad::entity": {
-          "appearance": {
-            "color": {
-              "mode": "ByBlock"
-            },
-            "linePattern": {
-              "mode": "ByLayer"
-            },
-            "lineWeight": {
-              "mode": "ByLayer"
-            },
-            "opacity": {
-              "mode": "Explicit",
-              "value": 0.6
-            }
-          },
-          "layer": "/cad/d1/layer/0"
-        }
-      }
-    },
-    {
-      "path": "/cad/d1/e102",
-      "attributes": {
-        "ifccad::entity": {
-          "appearance": {
-            "color": {
-              "mode": "ByLayer"
-            },
-            "linePattern": {
-              "mode": "ByLayer"
-            },
-            "lineWeight": {
-              "mode": "ByLayer"
-            },
-            "opacity": {
-              "mode": "ByLayer"
-            }
-          },
-          "layer": "/cad/d1/layer/1"
-        },
-        "ifccad::geom::lineSegment": {
-          "end": [
-            0.0,
-            1.0,
-            0.0
-          ],
-          "start": [
-            0.0,
             0.0,
             0.0
           ]

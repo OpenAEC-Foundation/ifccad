@@ -34,10 +34,15 @@ own concrete designs. They may later use extension points within OCDraw;
 there is no current preservation resource or generic extension protocol to
 standardize ahead of a use case. IFCX integration can remain an independent
 experimental development in this repository. The planned next integration brings
-the existing CAD-native-in-IFCX experimental branch onto main and adds its browser
-inspection route. Both developments may coexist on main for the duration of the
+the existing CAD-native-in-IFCX experimental branch onto main. Its browser
+inspection route is implemented on that branch: native IFCX-CAD opening, graph
+inspection and direct DXF/DWG roundtrip alongside OCDraw. Both developments may coexist on main for the duration of the
 experiment, with separate contracts and no IFCX dependency for OCDraw. This
-follow-up is not implemented by the standalone OCDraw integration.
+follow-up is not implemented by the standalone OCDraw integration. The experimental
+branch now includes named simple line patterns, pattern scales and planar-polyline
+generation with strict readback and pinned DXF/DWG tests. Complex text/shape
+patterns remain a diagnosed whole-definition fallback under Allow; this does not
+freeze IFCX-CAD compatibility or expand the standalone OCDraw contract.
 
 ## Later semantic coverage and exchange
 

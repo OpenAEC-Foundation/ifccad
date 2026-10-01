@@ -14,3 +14,18 @@ pub fn convert_cad_to_drawing(name: &str, format: &str, bytes: &[u8]) -> String 
 pub fn export_drawing(name: &str, bytes: &[u8], format: &str, version: &str) -> String {
     ocdraw_viewer::export_drawing_bytes(name, bytes, format, version).to_string()
 }
+
+#[wasm_bindgen]
+pub fn open_ifcx(name: &str, bytes: &[u8]) -> String {
+    ocdraw_viewer::inspect_ifcx_bytes(name, bytes).to_string()
+}
+
+#[wasm_bindgen]
+pub fn convert_cad_to_ifcx(name: &str, format: &str, bytes: &[u8], timestamp: &str) -> String {
+    ocdraw_viewer::inspect_cad_as_ifcx_bytes(name, format, bytes, timestamp).to_string()
+}
+
+#[wasm_bindgen]
+pub fn export_ifcx(name: &str, bytes: &[u8], format: &str, version: &str) -> String {
+    ocdraw_viewer::export_ifcx_bytes(name, bytes, format, version).to_string()
+}

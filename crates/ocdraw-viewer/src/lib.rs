@@ -1,4 +1,7 @@
+mod cad;
+mod ifcx;
 mod ocdraw;
+pub use ifcx::{export_ifcx_bytes, inspect_cad_as_ifcx_bytes, inspect_ifcx_bytes};
 pub use ocdraw::{
     export_cad_bytes, export_drawing_bytes, inspect_cad_as_drawing_bytes, inspect_drawing,
     inspect_drawing_bytes,

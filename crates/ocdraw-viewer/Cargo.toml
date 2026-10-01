@@ -8,6 +8,7 @@ description = "Local application adapter for Open CAD Drawing"
 [dependencies]
 ocdraw = { path = "../.." }
 ocdraw-convert = { path = "../ocdraw-convert" }
+ifcx-cad-convert = { path = "../ifcx-cad-convert" }
 serde_json = "1"
 base64 = "0.22"
 time = { version = "0.3", features = ["formatting"] }

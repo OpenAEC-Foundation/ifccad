@@ -8,15 +8,25 @@ pub fn cad_document_to_ifcx_cad(
     source: &CadDocument,
     metadata: IfcxCadTargetMetadata,
 ) -> Result<CadToIfcxCadOutcome, IfcxCadConversionError> {
+    cad_document_to_ifcx_cad_with_options(source, metadata, IfcxCadConversionOptions::default())
+}
+
+/// Convert supported content with explicit semantic loss acceptance.
+pub fn cad_document_to_ifcx_cad_with_options(
+    source: &CadDocument,
+    metadata: IfcxCadTargetMetadata,
+    options: IfcxCadConversionOptions,
+) -> Result<CadToIfcxCadOutcome, IfcxCadConversionError> {
     let info = crate::source::inspect(source)?;
     let mut issues = info.issues;
+    let (mut line_patterns, patterns) = crate::patterns::from_cad(source, &mut issues)?;
     let length_unit = UNITS
         .get(source.header.insertion_units as usize)
         .unwrap_or_else(|| {
-            issues.push(diagnostic(
+            issues.push(crate::outcome::modification(
                 "units",
                 "header.insertion_units",
-                "unknown CAD unit code",
+                "unknown CAD unit code replaced with unitless; coordinates are not scaled",
             ));
             &"unitless"
         })
@@ -32,43 +42,48 @@ pub fn cad_document_to_ifcx_cad(
             IfcxCadLayer {
                 id: i as u64,
                 name: l.name.clone(),
-                appearance: crate::appearance::from_layer(l, &mut issues),
+                appearance: crate::appearance::from_layer(l, &patterns, &mut issues),
             }
         })
         .collect();
-    for (i, h) in info.blocks.iter().enumerate() {
+    let supported: Vec<_> = info.blocks.iter().copied().filter(|h| {
+        let b = source.block_records.iter().find(|b| b.handle == *h).unwrap();
+        let dynamic = source.objects.values().any(|o| matches!(o, cadcodec::objects::ObjectType::DynamicBlock(d) if d.owner == *h));
+        let supported = !b.name.starts_with('*') && !b.is_anonymous()
+            && !b.flags.is_xref && !b.flags.is_xref_overlay && !b.flags.is_external
+            && !b.flags.is_xref_unloaded && b.xref_path.is_empty() && !dynamic;
+        if !supported {
+            issues.push(diagnostic("block-skipped", format!("block/{}", b.name), "anonymous, external or dynamic block definition omitted, together with referring instances"));
+        }
+        supported
+    }).collect();
+    for (i, h) in supported.iter().enumerate() {
         mappings.blocks.insert(i as u64 + 1, *h);
     }
     let mut next_id = 1;
     let entities = convert_entities(
         source,
+        &patterns,
         &info.entities,
         &mut next_id,
         &mut mappings,
         &mut issues,
     );
     let mut blocks = Vec::new();
-    for h in &info.blocks {
+    for h in &supported {
         let b = source
             .block_records
             .iter()
             .find(|b| b.handle == *h)
             .unwrap();
         let unit = UNITS.get(b.units as usize).unwrap_or_else(|| {
-            issues.push(diagnostic(
+            issues.push(crate::outcome::modification(
                 "units",
                 format!("block/{}", b.name),
-                "unknown insertion unit",
+                "unknown block insertion unit replaced with unitless; coordinates are not scaled",
             ));
             &"unitless"
         });
-        if b.is_anonymous() {
-            issues.push(diagnostic(
-                "block-name",
-                format!("block/{}", b.name),
-                "anonymous block semantics are unsupported",
-            ));
-        }
         blocks.push(IfcxCadBlockDefinition {
             id: mappings.blocks.ifcx_id(*h).unwrap(),
             name: b.name.clone(),
@@ -76,6 +91,7 @@ pub fn cad_document_to_ifcx_cad(
             insertion_unit: unit.to_string(),
             entities: convert_entities(
                 source,
+                &patterns,
                 &b.entity_handles,
                 &mut next_id,
                 &mut mappings,
@@ -86,13 +102,20 @@ pub fn cad_document_to_ifcx_cad(
     // The current core projection enumerates dictionary paths lexicographically.
     layers.sort_by_key(|l| l.id.to_string());
     blocks.sort_by_key(|b| b.id.to_string());
-    if !issues.is_empty() {
-        return Err(IfcxCadConversionError::Unsupported(issues));
+    for p in &line_patterns {
+        mappings
+            .line_patterns
+            .insert(p.id.0, source.line_types.get(&p.name).unwrap().handle);
     }
+    line_patterns.sort_by_key(|p| p.id.0.to_string());
+    crate::loss::from_cad(source, &info.blocks, &info.entities, &mut issues);
+    crate::outcome::enforce_policy(options, &issues)?;
     let drawing = IfcxCadDocument {
         header: metadata.header,
         drawing_id: metadata.drawing_id,
         length_unit,
+        line_patterns,
+        line_pattern_scale: source.header.linetype_scale,
         layers,
         model: IfcxCadLayout { id: 1, entities },
         paper_layouts: vec![],
@@ -105,12 +128,13 @@ pub fn cad_document_to_ifcx_cad(
     Ok(CadToIfcxCadOutcome {
         validated,
         bytes,
-        diagnostics: info.recoveries,
+        diagnostics: issues.into_iter().chain(info.recoveries).collect(),
         mappings,
     })
 }
 fn convert_entities(
     source: &CadDocument,
+    patterns: &crate::patterns::SourcePatterns,
     handles: &[cadcodec::Handle],
     next_id: &mut u64,
     mappings: &mut IfcxCadMappings,
@@ -120,30 +144,33 @@ fn convert_entities(
     for h in handles {
         let e = source.get_entity(*h).expect("inspected entity");
         let loc = format!("entity/{h}");
-        let appearance = crate::appearance::from_common(e.common(), &loc, issues);
+        let appearance = crate::appearance::from_common(e.common(), patterns, &loc, issues);
         let kind = match e {
-            cadcodec::EntityType::Insert(i) => Some(crate::blocks::from_insert(
-                i,
-                mappings
-                    .blocks
-                    .ifcx_id(
-                        source
-                            .block_records
-                            .get(&i.block_name)
-                            .expect("inspected target")
-                            .handle,
-                    )
-                    .expect("local target"),
-                &loc,
-                issues,
-            )),
+            cadcodec::EntityType::Insert(i) => mappings
+                .blocks
+                .ifcx_id(
+                    source
+                        .block_records
+                        .get(&i.block_name)
+                        .expect("inspected target")
+                        .handle,
+                )
+                .and_then(|id| crate::blocks::from_insert(i, id, &loc, issues)),
             e => crate::geometry::from_entity(e, &loc, issues),
         };
+        if kind.is_none() {
+            issues.push(diagnostic(
+                "entity-skipped",
+                &loc,
+                "whole entity omitted; unsupported geometry or entity family",
+            ));
+        }
         if let Some(kind) = kind {
             let id = *next_id;
             *next_id += 1;
             mappings.entities.insert(id, *h);
             entities.push(IfcxCadEntity {
+                line_pattern_scale: e.common().linetype_scale,
                 id,
                 layer_id: mappings
                     .layers

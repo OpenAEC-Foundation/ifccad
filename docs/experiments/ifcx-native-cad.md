@@ -11,7 +11,9 @@ now maps the validated projection directly to/from cadcodec, without an IFCDR
 intermediate. Its bounded Model subset covers lines, circles, straight polylines,
 units, layers, stored appearance and shared/nested local blocks. Exact XY
 translation and CAD setter checks reject rounding/clamping. Extra source fields
-and foreign IFCX information are diagnosed; no successful partial drawing is returned.
+and foreign IFCX information are diagnosed. Default Allow returns a supported
+subset with explicit loss evidence; Reject refuses diagnosed semantic losses.
+Structural and numeric precision failures remain errors under both policies.
 
 In-memory tests retain owner order, unused declarations, signed nonuniform block
 scale, rotation/base/unit and large u64 identity mappings. Every generated IFCX
@@ -24,9 +26,40 @@ entity iterator hides these structural markers.
 
 The direction-specific coverage contracts record default scaffold handling and
 unsupported semantics. Paper conversion, oblique parameterization, broader
-CAD/source preservation, viewer integration and optimized encoding remain
+CAD/source preservation and optimized encoding remain
 deferred. These probes support suitability of the tested IFCX-CAD subset;
 they provide no broad losslessness, size or performance claim.
+
+### Partial practice conversion (2026-10-01)
+
+Default Allow was applied independently to the DWG and DXF funderingsherstel
+practice drawing identified in the
+[placement inventory](../benchmarks/placement-preparation-v1.md). Source hashes
+remain DWG `24c225ffffae53f779646f824f4230799cbf39c475c0eb14f365997a453301b5`
+and DXF `054317ae053be20d9c0f9c8650b5070f76826a7eede9690cd9c572700ea6149c`.
+Each route went through the production IFCX writer/reader, then CadDocument,
+the pinned DXF writer/reader and the production IFCX writer/reader again.
+
+Both retained 21 layers, 127 local definitions, 1,574 LINE, 207 CIRCLE,
+164 INSERT and three LWPOLYLINE entities across Model and definitions. Text,
+dimensions, hatches, arcs, images, viewports and Paper content were omitted
+with evidence. Those three Model polylines now retain nondefault `plinegen` as continuous
+pattern generation. Seven named patterns (including Continuous), signed lengths,
+unused definitions, drawing/entity scales and name-based references survive
+the final DXF readback. One finite declared period disagreement in the DXF
+source Hidden definition is diagnosed and derived from its elements. Appearance
+adaptations, unsupported metadata and partial nested definitions were also diagnosed. This is a partial drawing,
+not a source-preserving or complete presentation of the original sheet.
+
+Semantic comparisons cover geometry, units, layer names/appearance, entity modes,
+named block targets/base/unit and owner order, pattern definitions/lengths/scales
+and polyline generation, excluding regenerated IDs.
+The external DXF codec introduces one additional binary64-step rotation change
+at Model entity index 778 (absolute error `2.220446049250313e-16` radians) in each
+route. The probe records it separately and verifies that it exactly matches the
+pinned degree/radian conversion. All other compared semantics agree; this is
+not an exact numerical DXF roundtrip. No tolerance is added to the converter.
+Generated files and detailed reports remain local artifacts outside Git.
 
 ### IFCX-native representation
 
@@ -43,7 +76,7 @@ The proof also shows that a CAD profile remains necessary even if a shared IFCX 
 | IFCX integration | Passed locally | Unknown nodes and non-CAD attributes survive loading; another node may refer to a CAD path. The one versioned CAD schema import resolves offline; general or remote import resolution is not implemented. |
 | Validation | Passed for tested failures | Missing placement, duplicate ownership, child-key gap, invalid unit, unsupported geometry, missing schema and unused definition cycle fail. The reader is strict for this bounded profile, not a full IFCX validator. |
 | Geometry alignment | Documented, not established by interchange | Local circle aims at IFC4 analytic circle semantics; finite line segment differs from unbounded `IfcLine`; polyline bulges and widths have no tested mapping. |
-| CAD coverage | Partial | Model and Paper layouts with sheet dimensions and units; no viewports, plot settings, annotation, custom line patterns, indexed colors, hatch, spline, DWG/DXF conversion, or preservation. |
+| CAD coverage | Partial | Core supports Model and Paper layouts with sheet dimensions and units; the converter covers a bounded Model subset through DWG/DXF. Viewports, plot settings, annotation, complex text/shape line patterns, indexed color identity, hatch, spline and preservation remain outside this experiment. |
 
 The [upstream IFCX alpha TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp) currently models a node as a path plus optional `children`, `inherits`, and `attributes`, with `schemas` describing individual attribute values. This prototype uses that shape and reads repeated path fragments. Its compact path convention and numeric child keys are local profile choices while IFCX path conventions and graph semantics evolve. The [upstream gap register](ifcx-upstream-gaps.md) records these and other assumptions, their broader uses, and relevant buildingSMART issues. A [composition probe](ifcx-composition-probe.md) found that the original reader rejected conflicts that the upstream composer resolved with the later value; the current reader follows that observed direction. The 0.1.0 identifier remains provisional, without a compatibility promise during this alpha experiment. The probe also found that the then-current slash-containing paths did not appear as roots in the upstream composer. The current paths omit the earlier angle brackets but still contain `/`; upstream expansion needs a fresh check. The schema import uses `urn:example`, a registered namespace for experiments; it is not a production publication address. The upstream examples are preliminary; compatibility with a later IFCX release requires renewed validation.
 
@@ -59,8 +92,10 @@ registry. IFCX nodes, composition, schema imports and CAD profile rules remain
 independent of OCDraw's logical drawing model and JSON codec. The converter
 maps directly to cadcodec, without passing through an OCDraw drawing.
 
-The existing strict conversion policy is retained for this mechanical migration.
-Partial conversion with explicit loss evidence is a proposed next change. No
+The mechanical migration retained strict conversion. A subsequent independent
+Allow/Reject implementation now supports partial conversion, whole-entity
+omission, explicit appearance adaptations and nested block loss propagation.
+It does not depend on `ocdraw-convert` or extract a shared conversion crate. No
 profile version increase, browser route or new physical encoding is introduced.
 
 ## Physical encoding observations
@@ -73,4 +108,37 @@ The existing [IFCCAD/DXF/DWG size baseline](../benchmarks/size-baseline-v1.md) m
 
 ## Recommendation
 
-Continue the IFCX-native model as an experiment, especially for addressable CAD entities linked to BIM/project data. Keep the profile explicit and provisional alongside the independent OCDraw contract. Next decisive work is partial conversion with loss evidence, representative CAD coverage (viewports, more curves and appearance forms), an independent implementation of the profile, and a semantically matched size/CPU study. If buildingSMART publishes exact IFCX geometry attributes, replace local geometry keys selectively where their units, placement and roundtrip meaning agree; preserve CAD-specific role, layer, order and appearance semantics in a CAD profile.
+Continue the IFCX-native model as an experiment, especially for addressable CAD entities linked to BIM/project data. Keep the profile explicit and provisional alongside the independent OCDraw contract. Next decisive work is representative CAD coverage (viewports, more curves and appearance forms), an independent implementation of the profile, and a semantically matched size/CPU study. If buildingSMART publishes exact IFCX geometry attributes, replace local geometry keys selectively where their units, placement and roundtrip meaning agree; preserve CAD-specific role, layer, order and appearance semantics in a CAD profile.
+
+### Named line-pattern slice (2026-10-01)
+
+The profile now stores drawing-owned `ifccad::linePattern` nodes with u64 path
+identities, names, optional descriptions and signed-length arrays. Layers and
+explicit entities refer to paths; ByLayer/ByBlock remain modes. Scales default
+to 1 and planar polyline generation defaults to perSegment. These are explicit
+CAD profile rules; G1/G3/G4 track path resolution, fragment replacement and
+cross-node validation assumptions. The experimental schema URI/version remains
+0.1.0 without a compatibility promise. Existing examples were migrated.
+
+Core tests cover Unicode case folding, missing/wrong references, ownership,
+reserved names, invalid lengths/scales, whole-pattern fragment replacement and
+u64 IDs. Converter tests exercise simple fractional/dot patterns, unused named
+empty definitions, both real DXF/DWG routes, exact numeric/default handling and
+complex text/shape fallback. Allow replaces each entire complex definition with
+an empty named pattern and diagnoses it once; Reject refuses those losses.
+The model stores intent and does not resolve appearance or render patterns.
+The standalone OCDraw contract/converter remains unchanged.
+
+### Open CAD Drawing explorer route (2026-10-01)
+
+The existing explorer now opens `.ifcx`/`.ifcx.json`, presents composed IFCX nodes
+and graph information, downloads original IFCX bytes and previews/exports the
+CAD projection. CAD input can choose OCDraw or direct IFCX-CAD. This uses the
+existing independent reader/converter; shared adapter code only writes/checks
+physical CAD files. Actual CAD readback must convert to strict-readable IFCX
+before a download is exposed. The known nonzero DWG base/marker conflict blocks
+that transfer without repair. Original graph inspection/native download retain
+foreign information; CAD projection diagnoses omissions. Browser processing,
+size limits and cancellation remain active. Viewer/WASM tests cover both native
+routes and named-pattern DXF/DWG roundtrips; no general IFCX renderer or exact
+external-codec numeric fidelity is claimed. Deployment is a separate action.

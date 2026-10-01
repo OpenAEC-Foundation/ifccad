@@ -6,8 +6,8 @@ use ocdraw::ifcx_cad::*;
 #[test]
 fn empty_roundtrip_keeps_unit_and_unused_layer() {
     let source = validated(&empty());
-    let cad = ifcx_cad_to_cad_document(&source).unwrap();
-    let result = cad_document_to_ifcx_cad(cad.document(), metadata()).unwrap();
+    let cad = to_cad(&source).unwrap();
+    let result = from_cad(cad.document(), metadata()).unwrap();
     let doc = result.validated_ifcx().document();
     assert_eq!(doc.header, header());
     assert_eq!(doc.drawing_id, 7);
@@ -26,13 +26,13 @@ fn empty_roundtrip_keeps_unit_and_unused_layer() {
 #[test]
 fn authored_paper_is_rejected_but_default_scaffold_is_not() {
     let mut c = cad();
-    cad_document_to_ifcx_cad(&c, metadata()).unwrap();
+    from_cad(&c, metadata()).unwrap();
     c.add_paper_space_entity(cadcodec::EntityType::Line(cadcodec::Line::from_coords(
         0., 0., 0., 1., 0., 0.,
     )))
     .unwrap();
     assert!(
-        matches!(cad_document_to_ifcx_cad(&c,metadata()),Err(IfcxCadConversionError::Unsupported(d)) if d.iter().any(|d|d.code=="paper"))
+        matches!(from_cad(&c,metadata()),Err(IfcxCadConversionError::Unsupported(d)) if d.iter().any(|d|d.code=="paper"))
     );
 }
 #[test]
@@ -50,7 +50,7 @@ fn ambiguous_model_owner_is_fatal() {
     c.objects
         .insert(l.handle, cadcodec::objects::ObjectType::Layout(l));
     assert!(matches!(
-        cad_document_to_ifcx_cad(&c, metadata()),
+        from_cad(&c, metadata()),
         Err(IfcxCadConversionError::InvalidStructure(_))
     ));
 }
@@ -63,7 +63,7 @@ fn invalid_source_references_are_fatal() {
         .entity_handles
         .push(cadcodec::Handle::new(99999));
     assert!(matches!(
-        cad_document_to_ifcx_cad(&c, metadata()),
+        from_cad(&c, metadata()),
         Err(IfcxCadConversionError::InvalidStructure(_))
     ));
 }
@@ -77,14 +77,14 @@ fn foreign_ifcx_information_is_identified() {
         .push(serde_json::json!({"path":"foreign","attributes":{"test::unknown":42}}));
     let source = read_native_cad_ifcx(&serde_json::to_vec(&value).unwrap()).unwrap();
     assert!(
-        matches!(ifcx_cad_to_cad_document(&source),Err(IfcxCadConversionError::Unsupported(d)) if d.iter().any(|d|d.code=="foreign-ifcx"))
+        matches!(to_cad(&source),Err(IfcxCadConversionError::Unsupported(d)) if d.iter().any(|d|d.code=="foreign-ifcx"))
     );
 }
 #[test]
 fn primitive_roundtrip_keeps_order_and_modes() {
     let source = primitives();
-    let cad = ifcx_cad_to_cad_document(&validated(&source)).unwrap();
-    let back = cad_document_to_ifcx_cad(cad.document(), metadata()).unwrap();
+    let cad = to_cad(&validated(&source)).unwrap();
+    let back = from_cad(cad.document(), metadata()).unwrap();
     let out = back.validated_ifcx().document();
     assert_eq!(out.length_unit, "cm");
     for (s, t) in source.model.entities.iter().zip(&out.model.entities) {
@@ -100,6 +100,7 @@ fn primitive_roundtrip_keeps_order_and_modes() {
         vertices,
         closed,
         placement,
+        ..
     } = &out.model.entities[1].kind
     else {
         panic!()
@@ -111,17 +112,14 @@ fn primitive_roundtrip_keeps_order_and_modes() {
 
 #[test]
 fn supported_entity_with_thickness_or_xdata_is_rejected() {
-    let mut c = ifcx_cad_to_cad_document(&validated(&primitives()))
-        .unwrap()
-        .into_document();
+    let mut c = to_cad(&validated(&primitives())).unwrap().into_document();
     let h = c.block_records.get("*Model_Space").unwrap().entity_handles[0];
     let cadcodec::EntityType::Line(l) = c.get_entity_mut(h).unwrap() else {
         panic!()
     };
     l.thickness = 2.;
     l.common.color_name = Some("book$name".into());
-    let Err(IfcxCadConversionError::Unsupported(d)) = cad_document_to_ifcx_cad(&c, metadata())
-    else {
+    let Err(IfcxCadConversionError::Unsupported(d)) = from_cad(&c, metadata()) else {
         panic!()
     };
     assert!(d.iter().any(|d| d.location.ends_with("thickness")));
@@ -140,15 +138,13 @@ fn supported_entity_with_thickness_or_xdata_is_rejected() {
         .extended_data
         .add_record(x);
     assert!(
-        matches!(cad_document_to_ifcx_cad(&c,metadata()),Err(IfcxCadConversionError::Unsupported(d)) if d.iter().any(|d|d.code=="entity-common"))
+        matches!(from_cad(&c,metadata()),Err(IfcxCadConversionError::Unsupported(d)) if d.iter().any(|d|d.code=="entity-common"))
     );
 }
 #[test]
 fn bulged_or_wide_polyline_is_rejected() {
     for width in [false, true] {
-        let mut c = ifcx_cad_to_cad_document(&validated(&primitives()))
-            .unwrap()
-            .into_document();
+        let mut c = to_cad(&validated(&primitives())).unwrap().into_document();
         let h = c.block_records.get("*Model_Space").unwrap().entity_handles[1];
         let cadcodec::EntityType::LwPolyline(l) = c.get_entity_mut(h).unwrap() else {
             panic!()
@@ -159,7 +155,7 @@ fn bulged_or_wide_polyline_is_rejected() {
             l.vertices[0].bulge = 0.5;
         }
         assert!(matches!(
-            cad_document_to_ifcx_cad(&c, metadata()),
+            from_cad(&c, metadata()),
             Err(IfcxCadConversionError::Unsupported(_))
         ));
     }
@@ -173,7 +169,7 @@ fn unsupported_placement_is_located() {
     placement.x_axis = [0., 1., 0.];
     placement.y_axis = [-1., 0., 0.];
     assert!(
-        matches!(ifcx_cad_to_cad_document(&validated(&d)),Err(IfcxCadConversionError::Unsupported(i)) if i.iter().any(|d|d.code=="placement" && d.location=="entity/41"))
+        matches!(to_cad(&validated(&d)),Err(IfcxCadConversionError::Unsupported(i)) if i.iter().any(|d|d.code=="placement" && d.location=="entity/41"))
     );
 }
 #[test]
@@ -182,13 +178,13 @@ fn nonrepresentable_appearance_is_rejected() {
         let mut d = empty();
         d.layers[0].appearance.opacity = value;
         assert!(
-            matches!(ifcx_cad_to_cad_document(&validated(&d)),Err(IfcxCadConversionError::Unsupported(i)) if i.iter().any(|d|d.code=="appearance"))
+            matches!(to_cad(&validated(&d)),Err(IfcxCadConversionError::Unsupported(i)) if i.iter().any(|d|d.code=="appearance"))
         );
     }
     let mut c = cad();
     c.layers.get_mut("Notes").unwrap().description = "authored metadata".into();
     assert!(
-        matches!(cad_document_to_ifcx_cad(&c,metadata()),Err(IfcxCadConversionError::Unsupported(i)) if i.iter().any(|d|d.location=="layer/Notes.description"))
+        matches!(from_cad(&c,metadata()),Err(IfcxCadConversionError::Unsupported(i)) if i.iter().any(|d|d.location=="layer/Notes.description"))
     );
 }
 #[test]
@@ -205,7 +201,7 @@ fn rounding_is_not_silently_accepted() {
     placement.origin[0] = 1e20;
     vertices[0][0] = 1.;
     assert!(
-        matches!(ifcx_cad_to_cad_document(&validated(&d)),Err(IfcxCadConversionError::Unsupported(i)) if i.iter().any(|d|d.code=="rounding"))
+        matches!(to_cad(&validated(&d)),Err(IfcxCadConversionError::Unsupported(i)) if i.iter().any(|d|d.code=="rounding"))
     );
 }
 #[test]
@@ -215,14 +211,14 @@ fn overall_viewport_scaffold_is_checked_by_role_and_values() {
     viewport.id = 1;
     c.add_entity_to_layout(cadcodec::EntityType::Viewport(viewport), "Layout1")
         .unwrap();
-    cad_document_to_ifcx_cad(&c, metadata()).unwrap();
+    from_cad(&c, metadata()).unwrap();
     let h = c.block_records.get("*Paper_Space").unwrap().entity_handles[0];
     let cadcodec::EntityType::Viewport(v) = c.get_entity_mut(h).unwrap() else {
         panic!()
     };
     v.width = 321.;
     assert!(
-        matches!(cad_document_to_ifcx_cad(&c,metadata()),Err(IfcxCadConversionError::Unsupported(i)) if i.iter().any(|d|d.code=="paper"))
+        matches!(from_cad(&c,metadata()),Err(IfcxCadConversionError::Unsupported(i)) if i.iter().any(|d|d.code=="paper"))
     );
 }
 #[test]
@@ -230,7 +226,7 @@ fn layout_record_metadata_and_dangling_layout_links_are_not_dropped() {
     let mut c = cad();
     c.block_records.get_mut("*Model_Space").unwrap().base_point = cadcodec::Vector3::UNIT_X;
     assert!(matches!(
-        cad_document_to_ifcx_cad(&c, metadata()),
+        from_cad(&c, metadata()),
         Err(IfcxCadConversionError::Unsupported(_))
     ));
     let mut c = cad();
@@ -244,7 +240,7 @@ fn layout_record_metadata_and_dangling_layout_links_are_not_dropped() {
         .unwrap();
     layout.viewport = cadcodec::Handle::new(99999);
     assert!(matches!(
-        cad_document_to_ifcx_cad(&c, metadata()),
+        from_cad(&c, metadata()),
         Err(IfcxCadConversionError::InvalidStructure(_))
     ));
 }
@@ -281,10 +277,10 @@ fn all_unit_codes_and_many_unused_definitions_strict_read_back() {
     for (code, unit) in units.iter().enumerate() {
         let mut source = empty();
         source.length_unit = unit.to_string();
-        let cad = ifcx_cad_to_cad_document(&validated(&source)).unwrap();
+        let cad = to_cad(&validated(&source)).unwrap();
         assert_eq!(cad.document().header.insertion_units, code as i16);
         assert_eq!(
-            cad_document_to_ifcx_cad(cad.document(), metadata())
+            from_cad(cad.document(), metadata())
                 .unwrap()
                 .validated_ifcx()
                 .document()
@@ -303,7 +299,7 @@ fn all_unit_codes_and_many_unused_definitions_strict_read_back() {
         block.handle = c.allocate_handle();
         c.block_records.add(block).unwrap();
     }
-    let result = cad_document_to_ifcx_cad(&c, metadata()).unwrap();
+    let result = from_cad(&c, metadata()).unwrap();
     assert_eq!(result.validated_ifcx().document().blocks.len(), 12);
     assert_eq!(result.validated_ifcx().document().layers.len(), 14);
 }
@@ -312,12 +308,12 @@ fn missing_layer_zero_and_authored_header_are_diagnosed() {
     let mut d = empty();
     d.layers.remove(0);
     assert!(
-        matches!(ifcx_cad_to_cad_document(&validated(&d)),Err(IfcxCadConversionError::Unsupported(i)) if i.iter().any(|d|d.code=="layer-0"))
+        matches!(to_cad(&validated(&d)),Err(IfcxCadConversionError::Unsupported(i)) if i.iter().any(|d|d.code=="layer-0"))
     );
     let mut c = cad();
     c.header.project_name = "authored project".into();
     assert!(
-        matches!(cad_document_to_ifcx_cad(&c,metadata()),Err(IfcxCadConversionError::Unsupported(i)) if i.iter().any(|d|d.location=="header.project_name"))
+        matches!(from_cad(&c,metadata()),Err(IfcxCadConversionError::Unsupported(i)) if i.iter().any(|d|d.location=="header.project_name"))
     );
 }
 
@@ -325,14 +321,14 @@ fn missing_layer_zero_and_authored_header_are_diagnosed() {
 fn stale_model_cache_requires_unique_agreement() {
     let mut c = cad();
     c.header.model_space_block_handle = cadcodec::Handle::new(99999);
-    let out = cad_document_to_ifcx_cad(&c, metadata()).unwrap();
+    let out = from_cad(&c, metadata()).unwrap();
     assert!(out
         .diagnostics()
         .iter()
         .any(|d| d.code == "model-cache-recovered"));
     c.header.model_space_block_handle = c.header.paper_space_block_handle;
     assert!(matches!(
-        cad_document_to_ifcx_cad(&c, metadata()),
+        from_cad(&c, metadata()),
         Err(IfcxCadConversionError::InvalidStructure(_))
     ));
 }
@@ -348,7 +344,7 @@ fn equivalent_integer_geometry_is_not_foreign_information() {
         .unwrap();
     line["attributes"]["ifccad::geom::lineSegment"]["start"] = serde_json::json!([1, 2, 3]);
     let source = read_native_cad_ifcx(&serde_json::to_vec(&value).unwrap()).unwrap();
-    ifcx_cad_to_cad_document(&source).unwrap();
+    to_cad(&source).unwrap();
     let line = value["data"]
         .as_array_mut()
         .unwrap()
@@ -359,6 +355,6 @@ fn equivalent_integer_geometry_is_not_foreign_information() {
         serde_json::json!(9007199254740993_u64);
     let source = read_native_cad_ifcx(&serde_json::to_vec(&value).unwrap()).unwrap();
     assert!(
-        matches!(ifcx_cad_to_cad_document(&source),Err(IfcxCadConversionError::Unsupported(i)) if i.iter().any(|d|d.code=="foreign-ifcx"))
+        matches!(to_cad(&source),Err(IfcxCadConversionError::Unsupported(i)) if i.iter().any(|d|d.code=="foreign-ifcx"))
     );
 }

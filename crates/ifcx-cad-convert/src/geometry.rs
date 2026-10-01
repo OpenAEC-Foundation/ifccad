@@ -44,7 +44,8 @@ pub(crate) fn to_entity(
     loc: &str,
     issues: &mut Vec<IfcxCadDiagnostic>,
 ) -> Option<EntityType> {
-    Some(match kind {
+    let before = issues.len();
+    let result = match kind {
         IfcxCadEntityKind::LineSegment { start, end } => {
             EntityType::Line(cadcodec::Line::from_points(v(*start), v(*end)))
         }
@@ -59,6 +60,7 @@ pub(crate) fn to_entity(
             vertices,
             closed,
             placement,
+            line_pattern_generation,
         } => {
             canonical(placement, loc, issues);
             let vertices = vertices
@@ -73,13 +75,15 @@ pub(crate) fn to_entity(
             let mut poly = cadcodec::entities::LwPolyline::from_points(vertices);
             poly.elevation = placement.origin[2];
             poly.is_closed = *closed;
+            poly.plinegen = *line_pattern_generation == IfcxCadLinePatternGeneration::Continuous;
             EntityType::LwPolyline(poly)
         }
         IfcxCadEntityKind::BlockInstance { .. } => {
             issues.push(diagnostic("blocks", loc, "block conversion pending"));
             return None;
         }
-    })
+    };
+    (issues.len() == before).then_some(result)
 }
 pub(crate) fn from_entity(
     entity: &EntityType,
@@ -87,7 +91,8 @@ pub(crate) fn from_entity(
     issues: &mut Vec<IfcxCadDiagnostic>,
 ) -> Option<IfcxCadEntityKind> {
     let unsupported = |issues: &mut Vec<_>, msg| issues.push(diagnostic("geometry", loc, msg));
-    Some(match entity {
+    let before = issues.len();
+    let result = match entity {
         EntityType::Line(l) => {
             crate::source::residual(
                 l,
@@ -118,7 +123,7 @@ pub(crate) fn from_entity(
             crate::source::residual(
                 l,
                 &cadcodec::entities::LwPolyline::new(),
-                &["common", "vertices", "is_closed", "elevation"],
+                &["common", "vertices", "is_closed", "elevation", "plinegen"],
                 loc,
                 issues,
             );
@@ -132,6 +137,11 @@ pub(crate) fn from_entity(
                 );
             }
             IfcxCadEntityKind::PlanarPolyline {
+                line_pattern_generation: if l.plinegen {
+                    IfcxCadLinePatternGeneration::Continuous
+                } else {
+                    IfcxCadLinePatternGeneration::PerSegment
+                },
                 vertices: l
                     .vertices
                     .iter()
@@ -145,5 +155,58 @@ pub(crate) fn from_entity(
             unsupported(issues, "unsupported entity family");
             return None;
         }
-    })
+    };
+    (issues.len() == before).then_some(result)
+}
+
+/// Invalid scalars in known geometry remain errors even when another field
+/// would cause the entire entity to be skipped.
+pub(crate) fn validate_source(entity: &EntityType) -> Result<(), crate::IfcxCadConversionError> {
+    let finite = |v: Vector3| p(v).iter().all(|n| n.is_finite());
+    let valid = match entity {
+        EntityType::Line(l) => {
+            finite(l.start) && finite(l.end) && finite(l.normal) && l.thickness.is_finite()
+        }
+        EntityType::Circle(c) => {
+            finite(c.center)
+                && finite(c.normal)
+                && c.radius.is_finite()
+                && c.radius > 0.
+                && c.thickness.is_finite()
+        }
+        EntityType::LwPolyline(l) => {
+            finite(l.normal)
+                && l.elevation.is_finite()
+                && l.thickness.is_finite()
+                && l.constant_width.is_finite()
+                && l.vertices.len() >= 2
+                && l.vertices.iter().all(|v| {
+                    [
+                        v.location.x,
+                        v.location.y,
+                        v.bulge,
+                        v.start_width,
+                        v.end_width,
+                    ]
+                    .iter()
+                    .all(|n| n.is_finite())
+                })
+        }
+        EntityType::Insert(i) => {
+            finite(i.insert_point)
+                && finite(i.normal)
+                && i.rotation.is_finite()
+                && [i.x_scale(), i.y_scale(), i.z_scale()]
+                    .iter()
+                    .all(|s| s.is_finite() && *s != 0.)
+        }
+        _ => true,
+    };
+    if !valid {
+        return Err(crate::IfcxCadConversionError::InvalidStructure(format!(
+            "invalid geometry scalars at entity/{}",
+            entity.common().handle
+        )));
+    }
+    Ok(())
 }

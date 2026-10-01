@@ -6,8 +6,8 @@ use ocdraw::ifcx_cad::*;
 #[test]
 fn nested_blocks_keep_shared_targets_and_order() {
     let source = nested([1., 2., 0.]);
-    let cad = ifcx_cad_to_cad_document(&validated(&source)).unwrap();
-    let back = cad_document_to_ifcx_cad(cad.document(), metadata()).unwrap();
+    let cad = to_cad(&validated(&source)).unwrap();
+    let back = from_cad(cad.document(), metadata()).unwrap();
     let target = back.validated_ifcx().document();
     assert_eq!(source.blocks.len(), target.blocks.len());
     for b in &source.blocks {
@@ -65,12 +65,12 @@ fn tiny_scale_clamping_is_rejected_for_empty_block() {
     };
     transform.scale[0] = 1e-14;
     assert!(
-        matches!(ifcx_cad_to_cad_document(&validated(&d)),Err(IfcxCadConversionError::Unsupported(i)) if i.iter().any(|d|d.code=="scale-clamped"))
+        matches!(to_cad(&validated(&d)),Err(IfcxCadConversionError::Unsupported(i)) if i.iter().any(|d|d.code=="scale-clamped"))
     );
 }
 #[test]
 fn invalid_block_graphs_are_fatal_even_when_unused() {
-    let c = ifcx_cad_to_cad_document(&validated(&nested([0.; 3])))
+    let c = to_cad(&validated(&nested([0.; 3])))
         .unwrap()
         .into_document();
     let mut missing = c.clone();
@@ -84,20 +84,18 @@ fn invalid_block_graphs_are_fatal_even_when_unused() {
     };
     i.block_name = "Missing".into();
     assert!(matches!(
-        cad_document_to_ifcx_cad(&missing, metadata()),
+        from_cad(&missing, metadata()),
         Err(IfcxCadConversionError::InvalidStructure(_))
     ));
     // Test the cycle independently of model occurrences.
     let mut d = nested([0.; 3]);
     d.model.entities.clear();
-    let mut cycle = ifcx_cad_to_cad_document(&validated(&d))
-        .unwrap()
-        .into_document();
+    let mut cycle = to_cad(&validated(&d)).unwrap().into_document();
     let mut i = cadcodec::entities::Insert::new("Outer", cadcodec::Vector3::ZERO);
     i.common.owner_handle = cycle.block_records.get("Inner").unwrap().handle;
     cycle.add_entity(cadcodec::EntityType::Insert(i)).unwrap();
     assert!(matches!(
-        cad_document_to_ifcx_cad(&cycle, metadata()),
+        from_cad(&cycle, metadata()),
         Err(IfcxCadConversionError::InvalidStructure(_))
     ));
     let mut owners = c.clone();
@@ -109,7 +107,7 @@ fn invalid_block_graphs_are_fatal_even_when_unused() {
         .entity_handles
         .push(h);
     assert!(matches!(
-        cad_document_to_ifcx_cad(&owners, metadata()),
+        from_cad(&owners, metadata()),
         Err(IfcxCadConversionError::InvalidStructure(_))
     ));
     let mut names = c.clone();
@@ -117,14 +115,14 @@ fn invalid_block_graphs_are_fatal_even_when_unused() {
     b.handle = names.allocate_handle();
     names.block_records.add_allow_duplicate(b);
     assert!(matches!(
-        cad_document_to_ifcx_cad(&names, metadata()),
+        from_cad(&names, metadata()),
         Err(IfcxCadConversionError::InvalidStructure(_))
     ));
 }
 #[test]
 fn arrays_attributes_and_block_metadata_are_diagnosed() {
     for field in 0..5 {
-        let mut c = ifcx_cad_to_cad_document(&validated(&nested([0.; 3])))
+        let mut c = to_cad(&validated(&nested([0.; 3])))
             .unwrap()
             .into_document();
         let h = c.block_records.get("*Model_Space").unwrap().entity_handles[0];
@@ -160,7 +158,7 @@ fn arrays_attributes_and_block_metadata_are_diagnosed() {
             }
         }
         assert!(matches!(
-            cad_document_to_ifcx_cad(&c, metadata()),
+            from_cad(&c, metadata()),
             Err(IfcxCadConversionError::Unsupported(_))
         ));
     }
@@ -168,7 +166,7 @@ fn arrays_attributes_and_block_metadata_are_diagnosed() {
 #[test]
 fn large_ids_and_renumbered_handles_keep_relations() {
     let d = nested([0.; 3]);
-    let original = ifcx_cad_to_cad_document(&validated(&d)).unwrap();
+    let original = to_cad(&validated(&d)).unwrap();
     let mut c = original.document().clone();
     let owner = c.header.model_space_block_handle;
     // Rebuild model entities under unrelated large handles in the same order.
@@ -190,7 +188,7 @@ fn large_ids_and_renumbered_handles_keep_relations() {
         e.common_mut().owner_handle = owner;
         c.add_entity(e).unwrap();
     }
-    let back = cad_document_to_ifcx_cad(&c, metadata()).unwrap();
+    let back = from_cad(&c, metadata()).unwrap();
     assert!(original
         .mappings()
         .entities

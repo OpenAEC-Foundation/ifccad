@@ -20,12 +20,22 @@
         "layer0": "/cad/d1/layer/0",
         "layer1": "/cad/d1/layer/1",
         "layer2": "/cad/d1/layer/2",
-        "model": "/cad/d1/layout/1"
+        "model": "/cad/d1/layout/1",
+        "linePattern0": "/cad/d1/linePattern/0"
       },
       "attributes": {
         "ifccad::drawing": {
           "lengthUnit": "cm",
           "profileVersion": "0.1.0"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/linePattern/0",
+      "attributes": {
+        "ifccad::linePattern": {
+          "name": "Continuous",
+          "pattern": []
         }
       }
     },
@@ -50,7 +60,7 @@
         "ifccad::layer": {
           "appearance": {
             "color": "#ffffff",
-            "linePattern": "Continuous",
+            "linePattern": "/cad/d1/linePattern/0",
             "lineWeight": 0.1,
             "opacity": 1.0
           },
@@ -64,7 +74,7 @@
         "ifccad::layer": {
           "appearance": {
             "color": "#00ff00",
-            "linePattern": "Continuous",
+            "linePattern": "/cad/d1/linePattern/0",
             "lineWeight": 0.25,
             "opacity": 0.8
           },
@@ -78,7 +88,7 @@
         "ifccad::layer": {
           "appearance": {
             "color": "#ff0000",
-            "linePattern": "Continuous",
+            "linePattern": "/cad/d1/linePattern/0",
             "lineWeight": 0.35,
             "opacity": 1.0
           },

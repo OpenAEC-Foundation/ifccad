@@ -9,6 +9,8 @@ use std::collections::{BTreeMap, BTreeSet};
 struct DrawingValue {
     profile_version: String,
     length_unit: String,
+    #[serde(default = "super::patterns::one")]
+    line_pattern_scale: f64,
 }
 #[derive(Deserialize)]
 struct LayoutValue {
@@ -20,7 +22,7 @@ struct LayoutValue {
 #[serde(rename_all = "camelCase")]
 struct LayerValue {
     name: String,
-    appearance: IfcxCadLayerAppearance,
+    appearance: super::wire::LayerAppearance,
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -30,9 +32,12 @@ struct DefinitionValue {
     insertion_unit: String,
 }
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct EntityValue {
+    #[serde(default = "super::patterns::one")]
+    line_pattern_scale: f64,
     layer: String,
-    appearance: IfcxCadEntityAppearance,
+    appearance: super::wire::EntityAppearance,
 }
 #[derive(Deserialize)]
 struct LineValue {
@@ -40,7 +45,10 @@ struct LineValue {
     end: [f64; 3],
 }
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct PolylineValue {
+    #[serde(default)]
+    line_pattern_generation: IfcxCadLinePatternGeneration,
     vertices: Vec<[f64; 2]>,
     closed: bool,
 }
@@ -161,11 +169,10 @@ fn unit(token: &str) -> bool {
 fn color(value: &str) -> bool {
     value.len() == 7 && value.starts_with('#') && value[1..].bytes().all(|b| b.is_ascii_hexdigit())
 }
-fn appearance(layer: &IfcxCadLayerAppearance, context: &str) -> Result<(), IfcxCadReport> {
+fn appearance_check(layer: &IfcxCadLayerAppearance, context: &str) -> Result<(), IfcxCadReport> {
     if !color(&layer.color)
         || !layer.opacity.is_finite()
         || !(0.0..=1.0).contains(&layer.opacity)
-        || layer.line_pattern != "Continuous"
         || !layer.line_weight.is_finite()
         || layer.line_weight < 0.0
     {
@@ -176,7 +183,6 @@ fn appearance(layer: &IfcxCadLayerAppearance, context: &str) -> Result<(), IfcxC
 fn entity_appearance(a: &IfcxCadEntityAppearance, context: &str) -> Result<(), IfcxCadReport> {
     if matches!(&a.color, IfcxCadMode::Explicit(v) if !color(v))
         || matches!(&a.opacity, IfcxCadMode::Explicit(v) if !v.is_finite() || !(0.0..=1.0).contains(v))
-        || matches!(&a.line_pattern, IfcxCadMode::Explicit(v) if v != "Continuous")
         || matches!(&a.line_weight, IfcxCadMode::Explicit(v) if !v.is_finite() || *v < 0.0)
     {
         return Err(problem(format!("{context} invalid entity appearance")));
@@ -188,6 +194,7 @@ fn entity(
     prefix: &str,
     layer_paths: &BTreeMap<String, u64>,
     block_paths: &BTreeMap<String, u64>,
+    pattern_paths: &BTreeMap<String, IfcxCadLinePatternId>,
 ) -> Result<IfcxCadEntity, IfcxCadReport> {
     let path = node["path"].as_str().unwrap();
     let id = numbered(path, &format!("{prefix}/e"))?;
@@ -219,7 +226,9 @@ fn entity(
     let layer_id = *layer_paths
         .get(&value.layer)
         .ok_or_else(|| problem(format!("{path} unresolved layer {}", value.layer)))?;
-    entity_appearance(&value.appearance, path)?;
+    let appearance = value.appearance.typed(pattern_paths)?;
+    entity_appearance(&appearance, path)?;
+    super::patterns::scale(value.line_pattern_scale, path)?;
     let attrs = node
         .get("attributes")
         .and_then(Value::as_object)
@@ -264,6 +273,7 @@ fn entity(
             let frame: IfcxCadPlacement = required(node, "ifccad::geom::placement")?;
             placement(&frame, path)?;
             IfcxCadEntityKind::PlanarPolyline {
+                line_pattern_generation: poly.line_pattern_generation,
                 vertices: poly.vertices,
                 closed: poly.closed,
                 placement: frame,
@@ -309,7 +319,8 @@ fn entity(
     Ok(IfcxCadEntity {
         id,
         layer_id,
-        appearance: value.appearance,
+        appearance,
+        line_pattern_scale: value.line_pattern_scale,
         kind,
     })
 }
@@ -429,6 +440,30 @@ pub(super) fn validate(raw: Value) -> Result<ValidatedIfcxCad, IfcxCadReport> {
     if !unit(&drawing.length_unit) {
         return Err(problem("invalid drawing length unit"));
     }
+    super::patterns::scale(drawing.line_pattern_scale, drawing_path)?;
+    let mut pattern_paths = BTreeMap::new();
+    let mut line_patterns = Vec::new();
+    for (path, node) in &nodes {
+        if let Some(value) = attr(node, "ifccad::linePattern") {
+            #[derive(Deserialize)]
+            struct Definition {
+                name: String,
+                description: Option<String>,
+                pattern: Vec<f64>,
+            }
+            let value: Definition = serde_json::from_value(value.clone())
+                .map_err(|e| problem(format!("{path} invalid line pattern: {e}")))?;
+            let id = IfcxCadLinePatternId(numbered(path, &format!("{prefix}/linePattern/"))?);
+            pattern_paths.insert(path.clone(), id);
+            line_patterns.push(IfcxCadLinePattern {
+                id,
+                name: value.name,
+                description: value.description,
+                pattern: value.pattern,
+            });
+        }
+    }
+    validate_ifcx_cad_line_patterns(&line_patterns)?;
     let mut layer_paths = BTreeMap::new();
     let mut layers = Vec::new();
     let mut block_paths = BTreeMap::new();
@@ -441,12 +476,13 @@ pub(super) fn validate(raw: Value) -> Result<ValidatedIfcxCad, IfcxCadReport> {
             if value.name.is_empty() {
                 return Err(problem(format!("{path} empty layer name")));
             }
-            appearance(&value.appearance, path)?;
+            let appearance = value.appearance.typed(&pattern_paths)?;
+            appearance_check(&appearance, path)?;
             layer_paths.insert(path.clone(), id);
             layers.push(IfcxCadLayer {
                 id,
                 name: value.name,
-                appearance: value.appearance,
+                appearance,
             });
         }
         if attr(node, "ifccad::blockDefinition").is_some() {
@@ -505,6 +541,7 @@ pub(super) fn validate(raw: Value) -> Result<ValidatedIfcxCad, IfcxCadReport> {
     for path in layer_paths
         .keys()
         .chain(block_paths.keys())
+        .chain(pattern_paths.keys())
         .chain(std::iter::once(&model_path))
         .chain(paper_paths.values().map(|(path, _, _)| path))
     {
@@ -526,7 +563,7 @@ pub(super) fn validate(raw: Value) -> Result<ValidatedIfcxCad, IfcxCadReport> {
                 let child = nodes
                     .get(target)
                     .ok_or_else(|| problem(format!("{path} missing child {target}")))?;
-                entity(child, &prefix, &layer_paths, &block_paths)
+                entity(child, &prefix, &layer_paths, &block_paths, &pattern_paths)
             })
             .collect()
     };
@@ -576,6 +613,8 @@ pub(super) fn validate(raw: Value) -> Result<ValidatedIfcxCad, IfcxCadReport> {
             header,
             drawing_id,
             length_unit: drawing.length_unit,
+            line_patterns,
+            line_pattern_scale: drawing.line_pattern_scale,
             layers,
             model,
             paper_layouts,

@@ -315,6 +315,12 @@ pub(crate) fn inspect(doc: &CadDocument) -> Result<Inspection, Error> {
         visit(*h, doc, &mut BTreeSet::new(), &mut done)?;
     }
     scan(doc, &mut issues)?;
+    for e in doc.entities() {
+        crate::geometry::validate_source(e)?;
+    }
+    for recovery in &mut recoveries {
+        recovery.action = crate::IfcxCadDiagnosticAction::Recovery;
+    }
     Ok(Inspection {
         model_layout: layouts[0].handle,
         entities: model.entity_handles.clone(),
@@ -382,6 +388,7 @@ fn scan(doc: &CadDocument, issues: &mut Vec<IfcxCadDiagnostic>) -> Result<(), Er
             &baseline.header,
             &[
                 "insertion_units",
+                "linetype_scale",
                 "model_space_extents_min",
                 "model_space_extents_max",
                 "paper_space_extents_min",
@@ -480,7 +487,7 @@ fn scan(doc: &CadDocument, issues: &mut Vec<IfcxCadDiagnostic>) -> Result<(), Er
                         issues,
                     );
                 }
-                SemanticTableRecordV1::LineType(r) => table!(r, baseline.line_types),
+                SemanticTableRecordV1::LineType(_) => {} // handled by checked native pattern conversion
                 SemanticTableRecordV1::TextStyle(r) => table!(r, baseline.text_styles),
                 SemanticTableRecordV1::DimStyle(r) => table!(r, baseline.dim_styles),
                 SemanticTableRecordV1::AppId(r) => table!(r, baseline.app_ids),
