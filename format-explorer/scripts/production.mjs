@@ -7,7 +7,7 @@ import path from 'node:path';
 export function productionServer({publicOrigin=process.env.PUBLIC_ORIGIN,root=fileURLToPath(new URL('../dist/',import.meta.url))}={}){
  if(!publicOrigin)throw Error('PUBLIC_ORIGIN is required');
  const origin=new URL(publicOrigin),base=path.resolve(root);
- const types={'.html':'text/html; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.ttf':'font/ttf','.woff':'font/woff','.woff2':'font/woff2','.wasm':'application/wasm','.png':'image/png','.ico':'image/x-icon','.txt':'text/plain; charset=utf-8'};
+ const types={'.html':'text/html; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.ifcx':'application/json; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.ttf':'font/ttf','.woff':'font/woff','.woff2':'font/woff2','.wasm':'application/wasm','.png':'image/png','.ico':'image/x-icon','.txt':'text/plain; charset=utf-8'};
  const server=createServer(async(req,res)=>{
   res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Cache-Control','no-store');
   res.setHeader('Referrer-Policy','no-referrer');res.setHeader('X-Frame-Options','DENY');

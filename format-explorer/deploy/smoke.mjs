@@ -37,6 +37,9 @@ assert.equal(processorHead.headers['content-type'],'application/wasm');
 const processorScript=await (await request('/wasm/ocdraw_browser.js')).text();
 assert.match(processorScript,/convert_cad_to_drawing/);
 assert.match(processorScript,/open_drawing/);
+for(const api of ['open_ifcx','convert_cad_to_ifcx','export_ifcx'])assert.ok(processorScript.includes(`export function ${api}(`),`Missing IFCX API: ${api}`);
+const ifcxExampleHead=await request('/examples/hello-line-patterns.ifcx',{method:'HEAD'});
+assert.match(ifcxExampleHead.headers['content-type'],/^application\/json/);
 if(mode==='full') {
   const ocsHtml=await (await request('/ocs/app/index.html')).text();
   assert.match(ocsHtml,/ocs-bridge\.mjs/);

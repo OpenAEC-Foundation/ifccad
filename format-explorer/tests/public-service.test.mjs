@@ -9,6 +9,7 @@ import {productionServer} from '../scripts/production.mjs';
 test('public website serves static files and exposes no processing API',async()=>{
  const root=await mkdtemp(path.join(tmpdir(),'ocdraw-static-test-'));
  await writeFile(path.join(root,'index.html'),'<title>Inspector</title>');
+ await writeFile(path.join(root,'example.ifcx'),'{}');
  const service=productionServer({root,publicOrigin:'https://ifccad-explorer.open-aec.com'});
  await new Promise(resolve=>service.server.listen(0,'127.0.0.1',resolve));
  const base='http://127.0.0.1:'+service.server.address().port;
@@ -19,6 +20,8 @@ test('public website serves static files and exposes no processing API',async()=
  try{
   assert.equal((await fetch(base+'/')).status,403);
   assert.equal(await request('/'),200);
+  assert.equal(await request('/example.ifcx'),200);
+  assert.equal(await request('/example.ifcx','HEAD'),200);
   assert.equal(await request('/%2e%2e%2foutside.json'),404);
   assert.equal(await request('/api/capabilities'),404);
   assert.equal(await request('/api/jobs'),404);
