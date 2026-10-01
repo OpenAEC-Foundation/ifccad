@@ -1,5 +1,5 @@
-use ocdraw::experimental_ifcx::read_native_cad_ifcx;
-use ocdraw::experimental_ifcx::*;
+use ocdraw::ifcx_cad::read_native_cad_ifcx;
+use ocdraw::ifcx_cad::*;
 use serde_json::{json, Value};
 
 fn base() -> Value {
@@ -23,7 +23,7 @@ fn base() -> Value {
 
 fn read(
     value: &Value,
-) -> Result<ocdraw::experimental_ifcx::ValidatedIfcxCad, ocdraw::experimental_ifcx::IfcxCadReport> {
+) -> Result<ocdraw::ifcx_cad::ValidatedIfcxCad, ocdraw::ifcx_cad::IfcxCadReport> {
     read_native_cad_ifcx(&serde_json::to_vec(value).unwrap())
 }
 

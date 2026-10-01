@@ -1,8 +1,34 @@
 # IFCX-native CAD node experiment
 
-Status: experimental profile, 2026-09-30. This is an opt-in IFCX alpha drawing with a separate provisional schema module, with no change to the released IFCCAD package or IFCDR encodings. The [contract](../../schemas/ifcx-native-cad/experimental-contract-0.1.0.md), [schema module](../../schemas/ifcx-native-cad/experimental-profile-0.1.0.ifcx), [drawing fixture](../../examples/ifcx-native-cad/hello-cad.ifcx), [nested-block fixture](../../examples/ifcx-native-cad/hello-nested-blocks.ifcx), [paper-layout fixture](../../examples/ifcx-native-cad/hello-paper-layouts.ifcx), and [strict-readback tests](../../tests/experimental_ifcx_native.rs) form the reproducible result.
+Status: experimental profile, 2026-10-01. This is an opt-in IFCX alpha drawing with a separate provisional schema module, independent of the standalone OCDraw contract. Historical released IFCCAD conformance collections remain unchanged. The [contract](../../schemas/ifcx-native-cad/experimental-contract-0.1.0.md), [schema module](../../schemas/ifcx-native-cad/experimental-profile-0.1.0.ifcx), [drawing fixture](../../examples/ifcx-native-cad/hello-cad.ifcx), [nested-block fixture](../../examples/ifcx-native-cad/hello-nested-blocks.ifcx), [paper-layout fixture](../../examples/ifcx-native-cad/hello-paper-layouts.ifcx), and [strict-readback tests](../../tests/experimental_ifcx_native.rs) form the reproducible result.
 
 ## Finding
+
+### Direct conversion proof (2026-10-01)
+
+The experimental [IFCX-CAD converter](../../crates/ifcx-cad-convert/README.md)
+now maps the validated projection directly to/from cadcodec, without an IFCDR
+intermediate. Its bounded Model subset covers lines, circles, straight polylines,
+units, layers, stored appearance and shared/nested local blocks. Exact XY
+translation and CAD setter checks reject rounding/clamping. Extra source fields
+and foreign IFCX information are diagnosed; no successful partial drawing is returned.
+
+In-memory tests retain owner order, unused declarations, signed nonuniform block
+scale, rotation/base/unit and large u64 identity mappings. Every generated IFCX
+passes the production writer/reader. The same primitive corpus passes semantic
+exchange through unmodified pinned cadcodec DXF and DWG (AC1032). Nested blocks
+with nonzero base pass DXF; zero-base nested blocks pass DWG. Nonzero DWG block
+base is explicitly rejected because the pinned public BLOCK marker disagrees
+with its BlockRecord. Full inventory traversal is required: the ordinary CAD
+entity iterator hides these structural markers.
+
+The direction-specific coverage contracts record default scaffold handling and
+unsupported semantics. Paper conversion, oblique parameterization, broader
+CAD/source preservation, viewer integration and optimized encoding remain
+deferred. These probes support suitability of the tested IFCX-CAD subset;
+they provide no broad losslessness, size or performance claim.
+
+### IFCX-native representation
 
 **IFCX nodes are a plausible authoritative representation for the tested CAD subset.** Every independent entity has an addressable path, ordinary IFCX `children` establish ownership, numeric child keys convey drawing order, and direct attributes retain precise geometry, unit, layer and appearance modes. One block definition serves two differently placed and styled instances without cloning its entity nodes or using `inherits`. A foreign IFCX node can reference a CAD entity. The generic IFCX graph remains extensible while a strict CAD-profile reader catches the conditional rules that IFCX's current per-attribute schemas cannot express alone.
 
@@ -23,6 +49,20 @@ The [upstream IFCX alpha TypeSpec](https://github.com/buildingSMART/IFC5-develop
 
 In a 2026-09-30 viewer check, a temporary copy of the then-current bracketed fixture with the profile schemas inlined and no imports loaded but showed only the artificial `root` in the model tree. Replacing all node paths and references with temporary slashless aliases made the tree visible, matching the earlier composer probe. Those aliases violated the local CAD profile; the viewer still gave limited insight into the CAD content. The two temporary files were removed after this check. This is a historical viewer interoperability finding, not a failed strict CAD readback of the current fixture.
 
+## OCDraw migration (2026-10-01)
+
+The experiment now builds on the standalone OCDraw repository layout. Core IFCX
+code is in `src/ifcx_cad`, exported as `ocdraw::ifcx_cad`; its separate converter
+is in `crates/ifcx-cad-convert`. Geometric frame/transform validation uses
+OCDraw's shared types and length-unit validation reads OCDraw's bundled logical
+registry. IFCX nodes, composition, schema imports and CAD profile rules remain
+independent of OCDraw's logical drawing model and JSON codec. The converter
+maps directly to cadcodec, without passing through an OCDraw drawing.
+
+The existing strict conversion policy is retained for this mechanical migration.
+Partial conversion with explicit loss evidence is a proposed next change. No
+profile version increase, browser route or new physical encoding is introduced.
+
 ## Physical encoding observations
 
 Before adding paper metadata to the schema, the pretty-printed drawing fixture was **7,806 bytes** and imported the reusable **9,552-byte** schema module; counting both files once gave **17,358 bytes**. A separate synthetic drawing with 1,000 ordered XYZ lines was **731,205 bytes**, or **740,757 bytes** with that schema module counted once; one debug-build strict read of the drawing took **34 ms** on this machine in a single run. These are historical exploratory observations using the unwrapped path convention; the current schema module is larger after adding Paper layouts. The reader resolves the known experimental schema from its bundled definitions; that timing excludes filesystem or network schema loading. These are not benchmark distributions or product thresholds. The writer itself also strict-reads before returning.
@@ -33,4 +73,4 @@ The existing [IFCCAD/DXF/DWG size baseline](../benchmarks/size-baseline-v1.md) m
 
 ## Recommendation
 
-Continue the IFCX-native model as an experiment, especially for addressable CAD entities linked to BIM/project data. Keep the profile explicit and provisional, and do not promote this alpha shape to the current IFCCAD package contract yet. Next decisive work is representative CAD coverage (viewports, more curves and appearance forms), an independent implementation of the profile, and a semantically matched size/CPU study. If buildingSMART publishes exact IFCX geometry attributes, replace local geometry keys selectively where their units, placement and roundtrip meaning agree; preserve CAD-specific role, layer, order and appearance semantics in a CAD profile.
+Continue the IFCX-native model as an experiment, especially for addressable CAD entities linked to BIM/project data. Keep the profile explicit and provisional alongside the independent OCDraw contract. Next decisive work is partial conversion with loss evidence, representative CAD coverage (viewports, more curves and appearance forms), an independent implementation of the profile, and a semantically matched size/CPU study. If buildingSMART publishes exact IFCX geometry attributes, replace local geometry keys selectively where their units, placement and roundtrip meaning agree; preserve CAD-specific role, layer, order and appearance semantics in a CAD profile.

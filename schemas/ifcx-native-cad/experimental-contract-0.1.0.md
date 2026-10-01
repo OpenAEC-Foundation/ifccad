@@ -1,6 +1,6 @@
 # Experimental IFCX-native CAD profile 0.1.0
 
-This is an opt-in, standalone IFCX alpha experiment. It does not change any released IFCCAD package, IFCDR resource, or conformance collection. Generic IFCX content may coexist with these CAD nodes. A reader claiming this CAD profile must enforce the rules below after composing fragments for equal paths.
+This is an opt-in, standalone IFCX alpha experiment, independent of the OCDraw drawing contract. Released historical IFCCAD conformance collections remain unchanged. Generic IFCX content may coexist with these CAD nodes. A reader claiming this CAD profile must enforce the rules below after composing fragments for equal paths.
 
 ## File and identity
 
@@ -28,10 +28,10 @@ The drawing has named `children` referring to exactly one Model layout, zero or 
 | `ifccad::geom::lineSegment` | `start` and `end` XYZ; finite segment, unlike unbounded IFC4 `IfcLine` |
 | `ifccad::geom::planarPolyline` | at least two XY `vertices`, `closed`, plus `ifccad::geom::placement` |
 | `ifccad::geom::circle` | positive finite `radius`, plus `ifccad::geom::placement` |
-| `ifccad::geom::placement` | finite XYZ `origin`, `xAxis`, `yAxis`; valid orthonormal right-handed frame under the shared IFCDR geometric predicate |
+| `ifccad::geom::placement` | finite XYZ `origin`, `xAxis`, `yAxis`; valid orthonormal right-handed frame under the shared OCDraw geometric predicate |
 | `ifccad::blockInstance` | definition path and transform with placement, finite rotation in radians, nonzero finite XYZ scale |
 
-Every owned drawable has `ifccad::entity` and exactly one of the four drawable payload attributes. Unsupported `ifccad::geom::*` payloads fail explicitly. An independently used `ifccad::geom::circle` on a non-CAD IFCX node is not thereby a CAD entity. Coordinates use a fixed right-handed local XYZ convention; there is no implicit world alignment. The 25 length-unit tokens match the current IFCDR registry. Model and block-definition coordinates, including definition base points, use the drawing's length unit. Paper layouts require positive finite width and height and a physical `paper.lengthUnit` from that registry (`unitless` is disallowed). Direct paper entities, their geometry sizes and placement origins use that paper unit. Width and height specify sheet extents from the paper XY origin; this proof imposes no clipping or requirement that entities lie inside the sheet.
+Every owned drawable has `ifccad::entity` and exactly one of the four drawable payload attributes. Unsupported `ifccad::geom::*` payloads fail explicitly. An independently used `ifccad::geom::circle` on a non-CAD IFCX node is not thereby a CAD entity. Coordinates use a fixed right-handed local XYZ convention; there is no implicit world alignment. The 25 length-unit tokens match the current OCDraw registry. Model and block-definition coordinates, including definition base points, use the drawing's length unit. Paper layouts require positive finite width and height and a physical `paper.lengthUnit` from that registry (`unitless` is disallowed). Direct paper entities, their geometry sizes and placement origins use that paper unit. Width and height specify sheet extents from the paper XY origin; this proof imposes no clipping or requirement that entities lie inside the sheet.
 
 A block definition's insertion unit records intent but does not silently scale coordinates. Transform evaluation subtracts the definition base point, applies stored scale and rotation, then applies placement. For a paper-owned instance, its scale maps drawing-coordinate numbers into paper-coordinate numbers; any unit conversion must be included explicitly. For example, the [paper-layout fixture](../../examples/ifcx-native-cad/hello-paper-layouts.ifcx) has centimetre model/block coordinates and an A3 sheet in millimetres, with a paper instance scale of `[10, 10, 10]`. A nested instance inside a definition stays in drawing units. Reading and writing never evaluate these transforms or normalize their values.
 
@@ -45,4 +45,4 @@ The stored modes retain ordinary CAD intent per occurrence: Explicit supplies it
 
 ## Prototype boundary
 
-The strict reader and writer are in `src/experimental_ifcx/`. The writer strict-reads its own output and compares the typed CAD meaning. It emits JSON only. The existing IFCCAD package reader does not validate this standalone experiment. Viewports, plot settings, paper-to-model viewing transforms, annotation, indexed colors, custom line patterns, effective appearance evaluation, and DWG/DXF conversion are outside this version.
+The strict reader and writer are in `src/ifcx_cad/`, exported as `ocdraw::ifcx_cad`. The writer strict-reads its own output and compares the typed CAD meaning. It emits JSON only. The standalone OCDraw reader validates a different contract. A separate `ifcx-cad-convert` companion provides a bounded direct mapping to cadcodec `CadDocument`; its direction-specific coverage documents define conversion limits. Viewports, plot settings, paper-to-model viewing transforms, annotation, indexed colors, custom line patterns and effective appearance evaluation are outside this profile version.

@@ -186,7 +186,7 @@ fn merge_node(
 #[cfg(test)]
 mod tests {
     use super::compose;
-    use crate::experimental_ifcx::IfcxCompositionPolicy;
+    use crate::ifcx_cad::IfcxCompositionPolicy;
     use serde_json::json;
 
     #[test]

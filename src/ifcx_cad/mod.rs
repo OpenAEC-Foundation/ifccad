@@ -1,5 +1,7 @@
-//! Experimental IFCX-native CAD profile. This module does not alter the
-//! released IFCCAD package formats.
+//! Experimental IFCX-native CAD profile, independent of standalone OCDraw.
+//!
+//! The formats share geometric validation types and the OCDraw unit registry.
+//! IFCX composition, nodes, schema imports and CAD attributes stay in this module.
 
 mod model;
 mod parse;

@@ -142,34 +142,21 @@ fn placement(value: &IfcxCadPlacement, context: &str) -> Result<CoordinateFrame3
         .map_err(|e| problem(format!("{context} invalid placement: {e}")))
 }
 fn unit(token: &str) -> bool {
-    matches!(
-        token,
-        "unitless"
-            | "mm"
-            | "cm"
-            | "m"
-            | "km"
-            | "in"
-            | "ft"
-            | "mi"
-            | "microin"
-            | "mil"
-            | "yd"
-            | "angstrom"
-            | "nm"
-            | "um"
-            | "dm"
-            | "dam"
-            | "hm"
-            | "Gm"
-            | "au"
-            | "ly"
-            | "pc"
-            | "usSurveyFoot"
-            | "usSurveyInch"
-            | "usSurveyYard"
-            | "usSurveyMile"
-    )
+    static UNITS: std::sync::OnceLock<Vec<String>> = std::sync::OnceLock::new();
+    UNITS
+        .get_or_init(|| {
+            let registry: Value =
+                serde_json::from_str(include_str!("../../schemas/ocdraw/registry-0.1.0.json"))
+                    .expect("bundled OCDraw registry");
+            registry["types"]["unit"]["values"]
+                .as_array()
+                .expect("OCDraw unit registry")
+                .iter()
+                .map(|value| value.as_str().expect("unit token").to_owned())
+                .collect()
+        })
+        .iter()
+        .any(|unit| unit == token)
 }
 fn color(value: &str) -> bool {
     value.len() == 7 && value.starts_with('#') && value[1..].bytes().all(|b| b.is_ascii_hexdigit())

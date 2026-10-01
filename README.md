@@ -80,11 +80,14 @@ Licensed under [MPL-2.0](LICENSE).
 
 ## IFCX-native experiment and local maintenance
 
-The initial independent proof already on main remains available in
-`src/experimental_ifcx`, with its [experimental contract](schemas/ifcx-native-cad/experimental-contract-0.1.0.md),
+The independent IFCX-CAD proof is available in
+`src/ifcx_cad`, with its [experimental contract](schemas/ifcx-native-cad/experimental-contract-0.1.0.md),
 [sample](examples/ifcx-native-cad/hello-cad.ifcx) and
-[evaluation](docs/experiments/ifcx-native-cad.md). The expanded experiment and
-browser support are the next planned integration.
+[evaluation](docs/experiments/ifcx-native-cad.md). Its direct
+[converter](crates/ifcx-cad-convert/README.md) connects the supported subset to
+cadcodec `CadDocument`. Geometry validation and length-unit tokens reuse OCDraw;
+the two drawing models, schemas and encoding routes remain separate. Browser
+support and integration onto main are follow-up work.
 
 Run `pwsh -NoProfile -File scripts/cleanup_local.ps1` to audit local worktrees
 and build caches. Removal requires an explicitly selected, unused worktree;

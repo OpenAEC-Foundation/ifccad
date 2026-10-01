@@ -5,5 +5,5 @@
 //! mapping. CAD conversion lives in the companion `ocdraw-convert` crate.
 #![allow(missing_docs)]
 #![warn(rustdoc::missing_crate_level_docs)]
-pub mod experimental_ifcx;
+pub mod ifcx_cad;
 pub mod ocdraw;
