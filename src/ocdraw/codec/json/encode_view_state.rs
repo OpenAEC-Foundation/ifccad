@@ -95,8 +95,8 @@ pub(super) fn encode_viewports(root: &mut Value, rows: &[DrawingViewport]) {
             if let Some(opacity) = entry.opacity {
                 item["opacity"] = json!(opacity);
             }
-            if let Some(pattern) = &entry.line_pattern {
-                item["linePattern"] = json!(pattern);
+            if let Some(pattern) = &entry.line_pattern_id {
+                item["linePatternId"] = json!(pattern);
             }
             if let Some(weight) = entry.line_weight {
                 item["lineWeight"] = json!(weight);
@@ -128,7 +128,7 @@ pub(super) fn encode_viewports(root: &mut Value, rows: &[DrawingViewport]) {
             "frozen",
             "color",
             "opacity",
-            "linePattern",
+            "linePatternId",
             "lineWeight",
         ];
         let mut columns = serde_json::Map::new();

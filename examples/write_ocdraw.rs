@@ -10,7 +10,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .nth(1)
         .ok_or("usage: write_ocdraw <new-output.ocdraw.json>")?;
     let mut drawing = DrawingBuilder::new(DrawingOptions::new("placed-geometry", "mm"))?;
-    let layer = drawing.add_layer(LayerDefinition::new("0", RgbColor::new(255, 255, 255)))?;
+    let continuous = drawing.ensure_continuous_line_pattern()?;
+    let layer = drawing.add_layer(LayerDefinition::new(
+        "0",
+        RgbColor::new(255, 255, 255),
+        continuous,
+    ))?;
     let block = drawing.add_block_definition(BlockDefinition::new("Shared"))?;
     drawing
         .add_line(LineDefinition::new(layer, [0.0, 0.0, 0.0], [4.0, 3.0, 2.0]).in_scope(block))?;
@@ -23,6 +28,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         block,
         layer,
         DrawingGeometry::PlanarPolyline {
+            line_pattern_generation: ocdraw::ocdraw::LinePatternGeneration::PerSegment,
             placement,
             vertices: vec![[0.0, 0.0, 0.25], [2.0, 3.0, -0.5]],
             closed: false,

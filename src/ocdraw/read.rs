@@ -34,6 +34,12 @@ pub struct ValidatedDrawing {
 }
 
 impl ValidatedDrawing {
+    pub fn line_patterns(&self) -> &[super::DrawingLinePattern] {
+        &self.document.line_patterns
+    }
+    pub fn line_pattern_scale(&self) -> f64 {
+        self.document.line_pattern_scale
+    }
     /// Returns the owner derived from the ordered scope lists.
     pub fn owner_scope_id(&self, entity_id: u64) -> Option<u32> {
         self.owners.get(&entity_id).copied()
@@ -289,6 +295,8 @@ pub fn load_drawing_bytes(bytes: &[u8]) -> DrawingLoadOutcome {
     };
     let (drawing_id, unit, plot_style_mode) = encoding.header();
     let document = DrawingDocument {
+        line_patterns: super::codec::json::decode_line_patterns(value),
+        line_pattern_scale: value["linePatternScale"].as_f64().unwrap_or(1.0),
         drawing_id,
         unit,
         plot_style_mode,

@@ -46,6 +46,14 @@ language-neutral rules, shared validation, production readback and actual
 DXF/DWG tests. Diagnose losses and target restrictions. Review conversion
 coverage whenever the pinned CAD codec public model changes.
 
+The named simple line-pattern slice adds drawing-local definitions (including
+Continuous), local references, global/entity scale and polyline generation.
+Unused definitions survive. Complex text/shape definitions retain their named
+identity and references with an explicitly diagnosed continuous fallback under
+Allow; Reject refuses that loss. Native text/shapes, external assets, current
+creation defaults and model-tab annotation scaling remain later work. This is
+semantic expansion of the provisional contract, not its publication.
+
 ## Later physical encodings and performance
 
 Logical semantics remain independent of streams' physical packing, compression

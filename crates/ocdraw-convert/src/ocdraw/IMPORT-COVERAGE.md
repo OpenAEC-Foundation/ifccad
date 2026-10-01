@@ -31,7 +31,7 @@ reported separately; unknown target semantics are diagnosed.
 | Layer reference, name, visibility | Mapped to CAD layer; entity visibility copied |
 | ByLayer / ByBlock appearance | Modes mapped for color, opacity, pattern and weight |
 | Explicit color | ACI 1â€“255 preferred when supplied; otherwise RGB; named metadata mapped where supported |
-| Line pattern | Continuous mapped; other patterns are outside the current OCDraw contract |
+| Line pattern | Every local named simple definition, including unused and named empty records, allocated before layers/entities; reference modes and global/entity scales retained. Polyline generation maps to CAD flags. |
 | Line weight | Mapped to supported CAD weights; rounding emits a grouped loss diagnostic |
 | Opacity | Converted to CAD transparency with upstream's upward byte rounding (0.5 opacity gives transparency byte 128); quantization fidelity is not assessed |
 | Color metadata and appearance identity | No comprehensive fidelity assessment; unsupported indexed systems use RGB, and unsupported target color metadata is diagnosed |

@@ -174,7 +174,8 @@
             "pointForm",
             "pointGlyph",
             "pointSize",
-            "pointSizeKind"
+            "pointSizeKind",
+            "linePatternGeneration"
           ]
         },
         "nullable": {
@@ -375,7 +376,8 @@
                 "pointForm",
                 "pointGlyph",
                 "pointSize",
-                "pointSizeKind"
+                "pointSizeKind",
+                "linePatternGeneration"
               ]
             },
             "minItems": {

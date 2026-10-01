@@ -6,7 +6,9 @@ use crate::ocdraw::{Bounds3d, Point3};
 use serde_json::Value;
 
 fn appearance_pair(stream: &Value, property: &str, row: usize) -> AppearancePair {
-    let mode = match stream[format!("{property}Mode")][row].as_str() {
+    let mode = match stream[format!("{}Mode", property.strip_suffix("Id").unwrap_or(property))][row]
+        .as_str()
+    {
         Some("ByBlock") => AppearanceMode::ByBlock,
         Some("Explicit") => AppearanceMode::Explicit,
         _ => AppearanceMode::ByLayer,
@@ -197,13 +199,64 @@ pub(crate) fn decode_model(value: &Value) -> DrawingModel {
                 definition_scope_id: stream["definitionScopeId"][row]
                     .as_u64()
                     .map(|id| id as u32),
-                appearance: ["color", "opacity", "linePattern", "lineWeight"]
+                appearance: ["color", "opacity", "linePatternId", "lineWeight"]
                     .map(|property| appearance_pair(stream, property, row)),
                 location: format!("/streams/{payload}/entityId/{row}"),
             });
         }
     }
     DrawingModel {
+        line_patterns: super::decode_line_patterns(value),
+        next_line_pattern_id: value["header"]["nextLinePatternId"]
+            .as_u64()
+            .expect("schema watermark") as u32,
+        line_pattern_refs: {
+            let mut refs = Vec::new();
+            for (i, row) in value["layers"].as_array().into_iter().flatten().enumerate() {
+                refs.push((
+                    crate::ocdraw::LinePatternId(
+                        row["linePatternId"].as_u64().expect("schema pattern ID") as u32,
+                    ),
+                    format!("/layers/{i}/linePatternId"),
+                ));
+            }
+            for (name, stream) in value["streams"].as_object().into_iter().flatten() {
+                for (i, id) in stream["linePatternId"]
+                    .as_array()
+                    .into_iter()
+                    .flatten()
+                    .enumerate()
+                {
+                    if let Some(id) = id.as_u64() {
+                        refs.push((
+                            crate::ocdraw::LinePatternId(id as u32),
+                            format!("/streams/{name}/linePatternId/{i}"),
+                        ));
+                    }
+                }
+            }
+            refs
+        },
+        line_pattern_scales: {
+            let mut scales = vec![(
+                value["linePatternScale"].as_f64().unwrap_or(1.0),
+                "/linePatternScale".into(),
+            )];
+            for (name, stream) in value["streams"].as_object().into_iter().flatten() {
+                for (i, v) in stream["linePatternScale"]
+                    .as_array()
+                    .into_iter()
+                    .flatten()
+                    .enumerate()
+                {
+                    scales.push((
+                        v.as_f64().unwrap_or(1.0),
+                        format!("/streams/{name}/linePatternScale/{i}"),
+                    ));
+                }
+            }
+            scales
+        },
         next_entity_id: value["header"]["nextEntityId"]
             .as_u64()
             .expect("schema watermark"),

@@ -55,13 +55,16 @@ used as standalone OCDraw measurements.
 
 ## Accepted initial JSON measurement
 
-Run `ocdraw-polyline-layout-fixes-20261001c`, measured on 2026-10-01:
+Run `ocdraw-line-patterns-20261001`, measured on 2026-10-01:
 all 12 primitive cases passed production readback and semantic exchange;
 both fresh generations passed repeatability. The pinned cadcodec dependency
 was unmodified. This evidence covers the final ordered-ownership JSON mapping
-without a stream directory, with signed/fractional polyline coordinate pools
-and source-driven paper layouts. This replaces the applicable standalone
-measurement from 2026-09-30; the historical package baseline is unchanged.
+without a stream directory, with signed/fractional polyline coordinate pools,
+source-driven paper layouts and explicit drawing-local line-pattern definitions.
+This replaces the previous applicable standalone measurement from 2026-10-01;
+the historical package baseline is unchanged. Custom and complex line patterns
+are absent from this fixed corpus and use focused strict-readback/conversion
+tests; these measurements do not certify those families.
 
 [Matching detailed results](../../benchmarks/size/ocdraw-results-v1.json)
 contain the dirty working-tree source manifest, dependency provenance,
@@ -70,18 +73,18 @@ is still a candidate; this measurement does not publish a supported version.
 
 | Case | OCDraw bytes | DXF bytes | DWG bytes |
 | --- | ---: | ---: | ---: |
-| empty | 826 | 46978 | 20854 |
-| lines-100 | 27815 | 60338 | 22262 |
-| lines-10000 | 2721166 | 1444626 | 168218 |
-| short-polylines-100 | 39981 | 79398 | 22486 |
-| short-polylines-10000 | 4000322 | 3396526 | 187933 |
-| long-polylines-10 | 55810 | 114314 | 23830 |
-| long-polylines-1000 | 5683164 | 7026512 | 257964 |
-| mixed-1000 | 365282 | 312494 | 42117 |
-| fractional-lines-1000 | 301379 | 215872 | 47198 |
-| spatial-line-1000 | 273156 | 187664 | 42213 |
-| elevated-1000 | 704246 | 376972 | 38917 |
-| tilted-shifted-1000 | 706273 | 408112 | 38982 |
+| empty | 945 | 46978 | 20854 |
+| lines-100 | 29272 | 60338 | 22262 |
+| lines-10000 | 2851323 | 1444626 | 168218 |
+| short-polylines-100 | 43679 | 79398 | 22486 |
+| short-polylines-10000 | 4350520 | 3396526 | 187933 |
+| long-polylines-10 | 56358 | 114314 | 23830 |
+| long-polylines-1000 | 5718362 | 7026512 | 257964 |
+| mixed-1000 | 385817 | 312494 | 42117 |
+| fractional-lines-1000 | 314536 | 215872 | 47198 |
+| spatial-line-1000 | 286313 | 187664 | 42213 |
+| elevated-1000 | 739444 | 376972 | 38917 |
+| tilted-shifted-1000 | 741471 | 408112 | 38982 |
 
 Larger line/short-polyline recipes have more pretty-JSON bytes than text DXF;
 other primitive recipes differ. Compressed DWG is smaller in every measured
@@ -89,3 +92,11 @@ case. These observations apply only to this fixed corpus and these emitted
 representations. Layout, block and viewport exchange uses the focused tests,
 including explicit rejection of known inconsistent DWG block markers; those
 families are not evidence supplied by this table.
+
+Relative to the prior applicable run, DXF/DWG byte counts are unchanged.
+OCDraw pretty JSON includes the new pattern table, allocation watermark and
+explicit default scale/generation columns; those fields account for the increase.
+
+The retained provenance identifies the measured working tree. The subsequent
+inspector diagnostic for DWG spatial pattern generation is outside this corpus
+and does not change its core writer/converter paths or emitted artifacts.

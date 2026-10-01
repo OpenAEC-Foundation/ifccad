@@ -23,7 +23,15 @@ pub fn ocdraw(drawing: &ValidatedDrawing) -> Result<(Drawing, Vec<u64>)> {
             appearance: Appearance {
                 color: Property::Explicit(l.color.rgb),
                 opacity: Property::Explicit(l.opacity),
-                pattern: Property::Explicit(l.line_pattern.to_ascii_lowercase()),
+                pattern: Property::Explicit(
+                    drawing
+                        .line_patterns()
+                        .iter()
+                        .find(|p| p.id == l.line_pattern_id)
+                        .expect("validated pattern ID")
+                        .name
+                        .to_ascii_lowercase(),
+                ),
                 weight: Property::Explicit(l.line_weight),
             },
         })
@@ -47,6 +55,7 @@ pub fn ocdraw(drawing: &ValidatedDrawing) -> Result<(Drawing, Vec<u64>)> {
                 placement,
                 vertices,
                 closed,
+                ..
             } => {
                 if vertices.iter().any(|v| v[2] != 0.) {
                     return Err("bulge outside primitive corpus".into());
@@ -78,7 +87,15 @@ pub fn ocdraw(drawing: &ValidatedDrawing) -> Result<(Drawing, Vec<u64>)> {
             appearance: Appearance {
                 color: property(&a.color, |c| c.rgb),
                 opacity: property(&a.opacity, |v| *v),
-                pattern: property(&a.line_pattern, |s| s.to_ascii_lowercase()),
+                pattern: property(&a.line_pattern, |id| {
+                    drawing
+                        .line_patterns()
+                        .iter()
+                        .find(|p| p.id == *id)
+                        .expect("validated pattern ID")
+                        .name
+                        .to_ascii_lowercase()
+                }),
                 weight: property(&a.line_weight, |v| *v),
             },
         });

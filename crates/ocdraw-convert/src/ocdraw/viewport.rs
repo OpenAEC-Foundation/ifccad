@@ -227,7 +227,7 @@ pub(super) fn from_cad(
                 frozen: true,
                 color: None,
                 opacity: None,
-                line_pattern: None,
+                line_pattern_id: None,
                 line_weight: None,
             });
         } else {
@@ -325,7 +325,7 @@ pub(super) fn to_cad(
         }
         if entry.color.is_some()
             || entry.opacity.is_some()
-            || entry.line_pattern.is_some()
+            || entry.line_pattern_id.is_some()
             || entry.line_weight.is_some()
         {
             diagnostics.push(super::import::diagnostic(

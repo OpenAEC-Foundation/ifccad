@@ -1,0 +1,159 @@
+{
+  "header": {
+    "drawingId": "named-line-patterns",
+    "format": "open_cad_drawing",
+    "nextEntityId": 3,
+    "nextLayerId": 1,
+    "nextLayoutId": 1,
+    "unit": "mm",
+    "version": "0.1.0",
+    "nextLinePatternId": 3
+  },
+  "layers": [
+    {
+      "color": {
+        "rgb": [
+          255,
+          255,
+          255
+        ]
+      },
+      "frozen": false,
+      "frozenInNewViewports": false,
+      "id": 0,
+      "lineWeight": 0.25,
+      "locked": false,
+      "name": "0",
+      "opacity": 1.0,
+      "plottable": true,
+      "visible": true,
+      "linePatternId": 1
+    }
+  ],
+  "layouts": [
+    {
+      "id": 0,
+      "kind": "model",
+      "name": "Model",
+      "scopeId": 0,
+      "tabIndex": 0
+    }
+  ],
+  "scopes": [
+    {
+      "id": 0,
+      "kind": 0,
+      "entities": [
+        1,
+        2
+      ],
+      "bounds": {
+        "minX": -10,
+        "minY": -10,
+        "minZ": -10,
+        "maxX": 10,
+        "maxY": 10,
+        "maxZ": 10
+      }
+    }
+  ],
+  "streams": {
+    "planarPolylineStream": {
+      "count": 1,
+      "entityId": [
+        1
+      ],
+      "layerId": [
+        0
+      ],
+      "closed": [
+        false
+      ],
+      "vertexOffset": [
+        0
+      ],
+      "vertexCount": [
+        2
+      ],
+      "x": [
+        -1.25,
+        3.75
+      ],
+      "y": [
+        2.5,
+        -4.5
+      ],
+      "bulge": [
+        0.125,
+        0
+      ],
+      "linePatternGeneration": [
+        "continuous"
+      ],
+      "linePatternScale": [
+        0.5
+      ]
+    },
+    "spatialPolylineStream": {
+      "count": 1,
+      "entityId": [
+        2
+      ],
+      "layerId": [
+        0
+      ],
+      "closed": [
+        false
+      ],
+      "vertexOffset": [
+        0
+      ],
+      "vertexCount": [
+        2
+      ],
+      "x": [
+        -1.25,
+        4.5
+      ],
+      "y": [
+        2.5,
+        -5.25
+      ],
+      "z": [
+        -3.75,
+        6.125
+      ],
+      "linePatternGeneration": [
+        "continuous"
+      ],
+      "linePatternScale": [
+        0.5
+      ]
+    }
+  },
+  "linePatterns": [
+    {
+      "id": 0,
+      "name": "Continuous",
+      "pattern": []
+    },
+    {
+      "id": 1,
+      "name": "DashDot",
+      "description": "Streep-punt",
+      "pattern": [
+        6,
+        -2,
+        0,
+        -2
+      ]
+    },
+    {
+      "id": 2,
+      "name": "ByBlock",
+      "description": "Gasleiding",
+      "pattern": []
+    }
+  ],
+  "linePatternScale": 2
+}

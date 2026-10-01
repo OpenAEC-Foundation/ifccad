@@ -157,6 +157,7 @@ fn leaf_points(geometry: &EntityGeometry) -> Option<Vec<[Interval; 3]>> {
             placement,
             vertices,
             closed,
+            ..
         } => {
             let mut local = vertices
                 .iter()

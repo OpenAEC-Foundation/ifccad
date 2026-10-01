@@ -1,5 +1,8 @@
 mod block_validation;
 pub(crate) use block_validation::validate_blocks;
+mod line_pattern;
+pub(crate) mod line_pattern_validation;
+pub use line_pattern::*;
 mod appearance;
 mod definitions;
 mod document;

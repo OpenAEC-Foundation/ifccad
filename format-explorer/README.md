@@ -39,8 +39,10 @@ Hiding the preview keeps its document session; opening a new source or explicitl
 restarting the viewer replaces the session.
 
 Open CAD Studio reads the generated CAD bytes, not OCDraw directly. Viewing a
-similar drawing does not prove lossless conversion. Linetype coverage remains
-limited to Continuous on this branch; native custom definitions are deferred.
+similar drawing does not prove lossless conversion. Named simple line patterns,
+local references and scales are inspectable and exported. Complex text/shape
+patterns use a diagnosed named continuous fallback. Spatial pattern generation
+has a known limitation in the pinned DWG codec; see the converter coverage.
 
 The pinned viewer bundle must be in the ignored `ocs-build/` directory. Pin:
 Open CAD Studio v2026.38, commit `0d023d267bc5b7afeca3b54e98875b0efd4f3926`.

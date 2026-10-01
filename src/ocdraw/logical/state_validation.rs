@@ -114,6 +114,7 @@ pub(crate) fn validate_state(document: &DrawingDocument) -> Vec<LogicalError> {
                         placement,
                         vertices,
                         closed,
+                        ..
                     } = entity.geometry()
                     else {
                         return false;
@@ -161,7 +162,7 @@ pub(crate) fn validate_state(document: &DrawingDocument) -> Vec<LogicalError> {
             if !override_row.frozen
                 && override_row.color.is_none()
                 && override_row.opacity.is_none()
-                && override_row.line_pattern.is_none()
+                && override_row.line_pattern_id.is_none()
                 && override_row.line_weight.is_none()
             {
                 errors.push(error(

@@ -155,7 +155,7 @@ pub fn export_drawing_bytes(name: &str, bytes: &[u8], format: &str, version: &st
             return output;
         }
     };
-    let diagnostics = converted
+    let mut diagnostics = converted
         .diagnostics()
         .iter()
         .map(|item| {
@@ -164,6 +164,23 @@ pub fn export_drawing_bytes(name: &str, bytes: &[u8], format: &str, version: &st
             })
         })
         .collect::<Vec<_>>();
+    if format == "dwg" {
+        for entity in drawing.geometric_entities() {
+            if matches!(
+                entity.geometry(),
+                ocdraw::ocdraw::DrawingGeometry::SpatialPolyline {
+                    line_pattern_generation: ocdraw::ocdraw::LinePatternGeneration::Continuous,
+                    ..
+                }
+            ) {
+                diagnostics.push(json!({
+                    "code":"DWG_SPATIAL_PATTERN_GENERATION_LOSS",
+                    "location":format!("/entities/{}", entity.id()),
+                    "message":"The DWG writer restarts the line pattern on each spatial polyline segment; DXF preserves continuous generation"
+                }));
+            }
+        }
+    }
     let mut cad = converted.into_document();
     cad.version = cad_version;
     progress("writing");
@@ -244,6 +261,8 @@ fn present(output: &mut Value, outcome: DrawingLoadOutcome) {
             "drawingId": drawing.drawing_id(),
             "unit": value["header"]["unit"],
             "plotStyleMode": drawing.plot_style_mode(),
+            "linePatterns": drawing.line_patterns().iter().map(|p|json!({"id":p.id,"name":p.name,"description":p.description,"pattern":p.pattern})).collect::<Vec<_>>(),
+            "linePatternScale": drawing.line_pattern_scale(),
             "layers": value["layers"].as_array().cloned().unwrap_or_default(),
             "layouts": value["layouts"],
             "scopes": value["scopes"],

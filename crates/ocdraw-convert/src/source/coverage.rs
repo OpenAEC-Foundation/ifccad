@@ -225,6 +225,7 @@ fn scan_header(
     remaining.insertion_units = original.insertion_units;
     remaining.measurement = original.measurement;
     remaining.paper_space_linetype_scaling = original.paper_space_linetype_scaling;
+    remaining.linetype_scale = original.linetype_scale;
     remaining.plotstyle_mode = original.plotstyle_mode;
     remaining.point_display_mode = original.point_display_mode;
     remaining.point_display_size = original.point_display_size;
@@ -285,26 +286,7 @@ fn unsupported_table_record(
     }
     match record {
         SemanticTableRecordV1::Layer(_) => None,
-        SemanticTableRecordV1::LineType(record) => {
-            let supported = matches!(
-                record.name.as_str(),
-                "Continuous" | "ByLayer" | "ByBlock" | "Dashed"
-            );
-            let changed_dashed =
-                if record.name == "Dashed" && baseline.line_types.get(&record.name).is_none() {
-                    let mut candidate = record.clone();
-                    candidate.handle = cadcodec::Handle::NULL;
-                    candidate != cadcodec::LineType::dashed()
-                } else {
-                    false
-                };
-            (record.xref_block_record_handle != cadcodec::Handle::NULL
-                || !supported
-                || changed_dashed
-                || (baseline.line_types.get(&record.name).is_some()
-                    && changed!(record, baseline.line_types)))
-            .then_some("line_types")
-        }
+        SemanticTableRecordV1::LineType(_) => None,
         SemanticTableRecordV1::TextStyle(record) => {
             changed!(record, baseline.text_styles).then_some("text_styles")
         }

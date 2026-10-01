@@ -21,7 +21,7 @@ pub(crate) fn encode_document(
                 "locked": layer.locked, "plottable": layer.plottable,
                 "frozenInNewViewports": layer.frozen_in_new_viewports,
                 "color": encode_color(&layer.color), "opacity": layer.opacity,
-                "linePattern": layer.line_pattern, "lineWeight": layer.line_weight,
+                "linePatternId": layer.line_pattern_id, "lineWeight": layer.line_weight,
             });
             if let Some(description) = &layer.description {
                 value["description"] = json!(description);
@@ -88,11 +88,28 @@ pub(crate) fn encode_document(
     let mut value = json!({
         "header": {"format":"open_cad_drawing", "version":"0.1.0", "drawingId": builder.options.drawing_id,
             "unit": builder.options.unit, "nextEntityId": builder.next_entity_id,
-            "nextLayerId": builder.layers.len(), "nextLayoutId": layouts.len()},
+            "nextLinePatternId": builder.line_patterns.len(), "nextLayerId": builder.layers.len(), "nextLayoutId": layouts.len()},
         "layouts": layouts,
         "scopes": scopes,
         "streams": {}
     });
+    if !builder.line_patterns.is_empty() {
+        value["linePatterns"] = json!(builder
+            .line_patterns
+            .iter()
+            .enumerate()
+            .map(|(id, row)| {
+                let mut v = json!({"id":id,"name":row.name,"pattern":row.pattern});
+                if let Some(d) = &row.description {
+                    v["description"] = json!(d);
+                }
+                v
+            })
+            .collect::<Vec<_>>());
+    }
+    if builder.line_pattern_scale != 1.0 {
+        value["linePatternScale"] = json!(builder.line_pattern_scale);
+    }
     if !layer_values.is_empty() {
         value["layers"] = json!(layer_values);
     }

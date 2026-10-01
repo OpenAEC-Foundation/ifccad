@@ -42,7 +42,12 @@ fn named_ids(
 
 impl DrawingModel {
     pub(crate) fn validate(&self) -> Vec<LogicalError> {
-        let mut errors = Vec::new();
+        let mut errors = super::line_pattern_validation::validate_line_patterns(
+            &self.line_patterns,
+            self.next_line_pattern_id,
+            &self.line_pattern_refs,
+            &self.line_pattern_scales,
+        );
         let layer_ids = named_ids(&self.layers, "layers", &mut errors);
         let layout_names = self
             .layouts

@@ -1,15 +1,10 @@
 use super::ExportLossReason;
 use cadcodec::entities::EntityCommon;
-use cadcodec::{Arc, Circle, Ellipse, Handle, Line, LwPolyline, Point, Vector3};
+use cadcodec::{Arc, Circle, Ellipse, Line, LwPolyline, Point, Vector3};
 
 pub(crate) fn common_semantic_losses(common: &EntityCommon) -> Vec<ExportLossReason> {
     let mut reasons = Vec::new();
-    if common.linetype_scale != 1.0 {
-        reasons.push(ExportLossReason::EntityLinetypeScale);
-    }
-    if common.linetype_handle.is_some() {
-        reasons.push(ExportLossReason::EntityLinetypeHandle);
-    }
+
     if !common.extended_data.is_empty() {
         reasons.push(ExportLossReason::EntityExtendedData);
     }
@@ -261,9 +256,7 @@ pub(crate) fn polyline_losses(polyline: &LwPolyline) -> Vec<ExportLossReason> {
             break;
         }
     }
-    if polyline.plinegen {
-        reasons.push(ExportLossReason::PolylinePlinegen);
-    }
+
     reasons
 }
 
@@ -331,9 +324,7 @@ pub(crate) fn polyline2d_losses(
             name: "polyline mesh or 3D flags".into(),
         });
     }
-    if polyline.flags.bits() & 128 != 0 {
-        reasons.push(ExportLossReason::PolylinePlinegen);
-    }
+
     if polyline.flags.bits() & !0xff != 0 {
         reasons.push(ExportLossReason::UnsupportedSemantic {
             name: "polyline flags".into(),
@@ -387,7 +378,7 @@ fn spatial_polyline_losses(
             name: "polyline mesh".into(),
         });
     }
-    if flags & !(1 | 8) != 0 && flags & !(1 | 8 | 2 | 4 | 16 | 32 | 64) != 0 {
+    if flags & !(1 | 8 | 128) != 0 && flags & !(1 | 8 | 2 | 4 | 16 | 32 | 64 | 128) != 0 {
         reasons.push(ExportLossReason::UnsupportedSemantic {
             name: "polyline flags".into(),
         });
@@ -440,7 +431,9 @@ pub(crate) fn polyline3d_losses(
     if polyline
         .vertices
         .iter()
-        .any(|vertex| vertex.flags != 32 || vertex.handle != Handle::NULL || vertex.layer != "0")
+        // Readers allocate ordinary VERTEX handles; those record identities do
+        // not change the spatial path or introduce an unsupported property.
+        .any(|vertex| vertex.flags != 32 || (!vertex.layer.is_empty() && vertex.layer != "0"))
     {
         reasons.push(ExportLossReason::UnsupportedSemantic {
             name: "3D polyline vertex properties".into(),

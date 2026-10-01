@@ -51,6 +51,16 @@
         "logical": "resource.drawingViewState",
         "payload": "drawingViewState",
         "omission": "logicalDefault"
+      },
+      {
+        "logical": "resource.nextLinePatternId",
+        "payload": "header.nextLinePatternId",
+        "omission": "forbidden"
+      },
+      {
+        "logical": "resource.linePatternScale",
+        "payload": "linePatternScale",
+        "omission": "logicalDefault"
       }
     ]
   },
@@ -111,8 +121,8 @@
           "omission": "forbidden"
         },
         {
-          "logical": "layer.linePattern",
-          "payload": "linePattern",
+          "logical": "layer.linePatternId",
+          "payload": "linePatternId",
           "omission": "forbidden"
         },
         {
@@ -400,6 +410,33 @@
           "omission": "forbidden"
         }
       ]
+    },
+    {
+      "name": "linePattern",
+      "payload": "linePatterns",
+      "omission": "logicalDefault",
+      "fields": [
+        {
+          "logical": "linePattern.id",
+          "payload": "id",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "linePattern.name",
+          "payload": "name",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "linePattern.description",
+          "payload": "description",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "linePattern.pattern",
+          "payload": "pattern",
+          "omission": "forbidden"
+        }
+      ]
     }
   ],
   "streams": [
@@ -449,8 +486,8 @@
           "omission": "logicalDefault"
         },
         {
-          "logical": "point.linePattern",
-          "payload": "linePattern",
+          "logical": "point.linePatternId",
+          "payload": "linePatternId",
           "omission": "logicalDefault"
         },
         {
@@ -466,6 +503,11 @@
         {
           "logical": "point.visible",
           "payload": "visible",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "point.linePatternScale",
+          "payload": "linePatternScale",
           "omission": "logicalDefault"
         }
       ]
@@ -530,8 +572,8 @@
           "omission": "logicalDefault"
         },
         {
-          "logical": "line.linePattern",
-          "payload": "linePattern",
+          "logical": "line.linePatternId",
+          "payload": "linePatternId",
           "omission": "logicalDefault"
         },
         {
@@ -557,6 +599,11 @@
         {
           "logical": "line.z2",
           "payload": "z2",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "line.linePatternScale",
+          "payload": "linePatternScale",
           "omission": "logicalDefault"
         }
       ]
@@ -617,8 +664,8 @@
           "omission": "logicalDefault"
         },
         {
-          "logical": "planarPolyline.linePattern",
-          "payload": "linePattern",
+          "logical": "planarPolyline.linePatternId",
+          "payload": "linePatternId",
           "omission": "logicalDefault"
         },
         {
@@ -641,6 +688,16 @@
           "payload": "placement",
           "omission": "logicalDefault",
           "nullEncoding": "logicalDefault"
+        },
+        {
+          "logical": "planarPolyline.linePatternScale",
+          "payload": "linePatternScale",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "planarPolyline.linePatternGeneration",
+          "payload": "linePatternGeneration",
+          "omission": "logicalDefault"
         }
       ]
     },
@@ -700,8 +757,8 @@
           "omission": "logicalDefault"
         },
         {
-          "logical": "spatialPolyline.linePattern",
-          "payload": "linePattern",
+          "logical": "spatialPolyline.linePatternId",
+          "payload": "linePatternId",
           "omission": "logicalDefault"
         },
         {
@@ -717,6 +774,16 @@
         {
           "logical": "spatialPolyline.visible",
           "payload": "visible",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "spatialPolyline.linePatternScale",
+          "payload": "linePatternScale",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "spatialPolyline.linePatternGeneration",
+          "payload": "linePatternGeneration",
           "omission": "logicalDefault"
         }
       ]
@@ -771,8 +838,8 @@
           "omission": "logicalDefault"
         },
         {
-          "logical": "blockInstance.linePattern",
-          "payload": "linePattern",
+          "logical": "blockInstance.linePatternId",
+          "payload": "linePatternId",
           "omission": "logicalDefault"
         },
         {
@@ -788,6 +855,11 @@
         {
           "logical": "blockInstance.visible",
           "payload": "visible",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "blockInstance.linePatternScale",
+          "payload": "linePatternScale",
           "omission": "logicalDefault"
         }
       ]
@@ -872,8 +944,8 @@
           "omission": "logicalDefault"
         },
         {
-          "logical": "viewport.linePattern",
-          "payload": "linePattern",
+          "logical": "viewport.linePatternId",
+          "payload": "linePatternId",
           "omission": "logicalDefault"
         },
         {
@@ -897,6 +969,11 @@
           "offset": "layerOverrideOffset",
           "count": "layerOverrideCount",
           "targetStream": "viewportLayerOverride"
+        },
+        {
+          "logical": "viewport.linePatternScale",
+          "payload": "linePatternScale",
+          "omission": "logicalDefault"
         }
       ]
     },
@@ -925,8 +1002,8 @@
           "omission": "logicalDefault"
         },
         {
-          "logical": "viewportLayerOverride.linePattern",
-          "payload": "linePattern",
+          "logical": "viewportLayerOverride.linePatternId",
+          "payload": "linePatternId",
           "omission": "logicalDefault"
         },
         {
@@ -987,8 +1064,8 @@
           "omission": "logicalDefault"
         },
         {
-          "logical": "circle.linePattern",
-          "payload": "linePattern",
+          "logical": "circle.linePatternId",
+          "payload": "linePatternId",
           "omission": "logicalDefault"
         },
         {
@@ -1004,6 +1081,11 @@
         {
           "logical": "circle.visible",
           "payload": "visible",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "circle.linePatternScale",
+          "payload": "linePatternScale",
           "omission": "logicalDefault"
         }
       ]
@@ -1069,8 +1151,8 @@
           "omission": "logicalDefault"
         },
         {
-          "logical": "arc.linePattern",
-          "payload": "linePattern",
+          "logical": "arc.linePatternId",
+          "payload": "linePatternId",
           "omission": "logicalDefault"
         },
         {
@@ -1086,6 +1168,11 @@
         {
           "logical": "arc.visible",
           "payload": "visible",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "arc.linePatternScale",
+          "payload": "linePatternScale",
           "omission": "logicalDefault"
         }
       ]
@@ -1146,8 +1233,8 @@
           "omission": "logicalDefault"
         },
         {
-          "logical": "ellipse.linePattern",
-          "payload": "linePattern",
+          "logical": "ellipse.linePatternId",
+          "payload": "linePatternId",
           "omission": "logicalDefault"
         },
         {
@@ -1163,6 +1250,11 @@
         {
           "logical": "ellipse.visible",
           "payload": "visible",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "ellipse.linePatternScale",
+          "payload": "linePatternScale",
           "omission": "logicalDefault"
         }
       ]
@@ -1233,8 +1325,8 @@
           "omission": "logicalDefault"
         },
         {
-          "logical": "ellipseArc.linePattern",
-          "payload": "linePattern",
+          "logical": "ellipseArc.linePatternId",
+          "payload": "linePatternId",
           "omission": "logicalDefault"
         },
         {
@@ -1250,6 +1342,11 @@
         {
           "logical": "ellipseArc.visible",
           "payload": "visible",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "ellipseArc.linePatternScale",
+          "payload": "linePatternScale",
           "omission": "logicalDefault"
         }
       ]

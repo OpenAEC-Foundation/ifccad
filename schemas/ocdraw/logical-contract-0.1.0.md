@@ -15,7 +15,7 @@ until OCDraw 0.1.0 is fixed as the first supported version.
 
 `header.format` is `open_cad_drawing` and `header.version` is `0.1.0`.
 `drawingId` is a stable, nonempty drawing identity independent of file path. The
-unit is explicit; `unitless` is valid. `nextEntityId`, `nextLayerId`, and
+unit is explicit; `unitless` is valid. `nextEntityId`, `nextLayerId`, `nextLinePatternId`, and
 `nextLayoutId` are greater than every currently allocated ID of their kind.
 Allocation advances the watermark, including when the last allocated item is
 later deleted. Entity IDs are nonzero 64-bit integers; Layer and Layout IDs are
@@ -82,14 +82,57 @@ other modes forbid that value. The pairs may use different modes on one entity.
 The symbolic modes remain stored even when the current effective rendering
 matches another entity. A Layer's defaults are explicit values, not another
 identified appearance object. There is no Appearance ID or appearance-binding
-table. The initial native built-in line pattern is `Continuous`; other pattern
-definitions require an additional native contract rather than an unresolved
-name.
+table. Line pattern values are typed local definition IDs, not unresolved names.
+`Continuous` is a named empty definition, without a fixed ID.
 
 A viewport's per-Layer override record may independently override color,
 opacity, line pattern, and line weight with explicit values. Missing override
 fields retain the Layer's defaults. It refers directly to a Layer ID and has
 no appearance-override ID. Its frozen flag remains independent.
+
+## Named line patterns
+
+`linePatterns` is a drawing-local definition table. Each record has a unique
+unsigned 32-bit `id` (zero is valid), a nonempty unique `name`, optional
+`description`, and required ordered `pattern` sequence. Names use the pinned
+Unicode full case fold. Unused records and differently named empty records are
+retained. Omission of the table means no definitions; readers synthesize none.
+`header.nextLinePatternId` is greater than every allocated pattern ID and is not
+reduced when deleting a record. No ID is implied by a table position or CAD handle.
+
+Positive finite pattern numbers are strokes, negative numbers are gaps, and zero
+is a dot, in drawing units. An empty pattern is continuous. A nonempty pattern
+has at least two entries, a nonnegative first entry, and a finite positive sum
+of absolute lengths. Preserve entry order and values without merging elements.
+The name `Continuous`, under the same case fold, requires an empty sequence;
+`ByLayer` and `ByBlock` are reserved selection names and cannot name definitions.
+
+Simple patterns use A-type endpoint alignment: open lines/arcs begin and end
+with a stroke, adjusting endpoint strokes as needed; a path too short for a
+pattern may appear continuous. Closed curves have no open endpoint. This contract
+does not introduce a selectable alternative alignment or phase.
+
+Layers require `linePatternId`. Entities retain `linePatternMode` (omission means
+`ByLayer`) and a nullable `linePatternId`: `Explicit` requires a resolving local
+ID; inherited modes forbid a nonnull ID. Viewport layer overrides may have an
+explicit pattern ID; absence retains the layer value. All references are local.
+
+Drawing and entity `linePatternScale` are finite positive values, default 1.
+Base lengths are multiplied by drawing and entity scale without rewriting shared
+definitions. Entity scale is independent of inheritance mode. Layout paper-space
+scaling retains its existing meaning. Model-tab annotation scaling and current
+creation defaults are outside this native slice.
+
+Planar and spatial polylines have `linePatternGeneration`: `perSegment` (default)
+restarts the pattern on each edge; `continuous` traverses the path across vertices,
+including a closed path's closing edge. This changes appearance, not geometry or
+bounds. No text or shape payloads are supported in native patterns.
+
+The JSON table is an array of records; pattern numbers are signed JSON numbers.
+Entity properties retain column arrays with nulls for absent explicit IDs.
+Missing scale/generation columns select logical defaults. Old string-valued
+`linePattern` fields are unknown core fields and rejected in this provisional
+contract. See the versioned registry and JSON mapping for all field shapes.
 
 ## Workspace and external meaning
 

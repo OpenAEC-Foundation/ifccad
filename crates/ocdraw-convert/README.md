@@ -38,10 +38,15 @@ separate application responsibility.
 The standalone route supports modelspace, paperspace, shared local blocks,
 lines, oriented points, placed circles/arcs/ellipses, placed planar polylines
 including bulges, direct XYZ spatial polylines, signed block transforms, layers,
-appearance choices, layouts/plot settings, named UCS definitions, current UCS,
+appearance choices, named simple line patterns and scales, layouts/plot settings, named UCS definitions, current UCS,
 model windows, paper canvases and paper viewports. Source order is retained
 across supported entity families. An open polyline's dormant final bulge is
 stored without treating it as an active segment.
+
+Complex text/shape line patterns retain their names, descriptions and local
+references but become continuous under Allow, with one loss diagnostic per
+definition. Reject refuses this fallback, including unused complex definitions.
+Simple unused records, entity scales and polyline generation are retained.
 
 Conversion diagnoses unsupported source properties and target limitations;
 `Reject` rejects semantic loss. Numerical accuracy is a separate hard limit.

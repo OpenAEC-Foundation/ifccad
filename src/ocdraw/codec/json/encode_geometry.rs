@@ -84,11 +84,16 @@ fn encode_geometry_fields(geometry: &EntityGeometry) -> Map<String, Value> {
             placement,
             vertices,
             closed,
+            line_pattern_generation,
         } => {
             if *placement != crate::ocdraw::CoordinateFrame3::default() {
                 fields.insert("placement".into(), placement_frame(*placement));
             }
             fields.insert("closed".into(), json!(closed));
+            fields.insert(
+                "linePatternGeneration".into(),
+                json!(line_pattern_generation.token()),
+            );
             for (axis, name) in ["x", "y", "bulge"].into_iter().enumerate() {
                 fields.insert(
                     name.into(),
@@ -96,8 +101,16 @@ fn encode_geometry_fields(geometry: &EntityGeometry) -> Map<String, Value> {
                 );
             }
         }
-        EntityGeometry::SpatialPolyline { vertices, closed } => {
+        EntityGeometry::SpatialPolyline {
+            vertices,
+            closed,
+            line_pattern_generation,
+        } => {
             fields.insert("closed".into(), json!(closed));
+            fields.insert(
+                "linePatternGeneration".into(),
+                json!(line_pattern_generation.token()),
+            );
             for (axis, name) in ["x", "y", "z"].into_iter().enumerate() {
                 fields.insert(
                     name.into(),
@@ -211,6 +224,13 @@ pub(super) fn appearance_columns(
     columns: &mut Map<String, Value>,
     appearances: &[&crate::ocdraw::EntityAppearance],
 ) {
+    columns.insert(
+        "linePatternScale".into(),
+        json!(appearances
+            .iter()
+            .map(|row| row.line_pattern_scale)
+            .collect::<Vec<_>>()),
+    );
     for property in ["color", "opacity", "linePattern", "lineWeight"] {
         let mode_name = format!("{property}Mode");
         let modes = appearances
@@ -235,6 +255,14 @@ pub(super) fn appearance_columns(
                 _ => unreachable!(),
             })
             .collect();
-        columns.insert(property.into(), Value::Array(values));
+        columns.insert(
+            if property == "linePattern" {
+                "linePatternId"
+            } else {
+                property
+            }
+            .into(),
+            Value::Array(values),
+        );
     }
 }

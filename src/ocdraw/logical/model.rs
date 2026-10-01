@@ -85,6 +85,10 @@ pub(crate) struct AppearancePair {
 
 #[derive(Clone, Debug)]
 pub(crate) struct DrawingModel {
+    pub line_patterns: Vec<super::DrawingLinePattern>,
+    pub next_line_pattern_id: u32,
+    pub line_pattern_refs: Vec<(super::LinePatternId, String)>,
+    pub line_pattern_scales: Vec<(f64, String)>,
     pub next_entity_id: u64,
     pub next_layer_id: u32,
     pub next_layout_id: u32,

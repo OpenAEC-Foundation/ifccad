@@ -24,7 +24,9 @@ pub(crate) fn decode_layers(value: &Value) -> Option<Vec<DrawingLayer>> {
                         frozen_in_new_viewports: row.get("frozenInNewViewports")?.as_bool()?,
                         color: color(row.get("color")?)?,
                         opacity: row.get("opacity")?.as_f64()?,
-                        line_pattern: row.get("linePattern")?.as_str()?.to_owned(),
+                        line_pattern_id: crate::ocdraw::LinePatternId(
+                            row.get("linePatternId")?.as_u64()? as u32,
+                        ),
                         line_weight: row.get("lineWeight")?.as_f64()?,
                     })
                 })

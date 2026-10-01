@@ -53,6 +53,7 @@ pub(crate) fn enclosure(geometry: &EntityGeometry) -> Option<([f64; 3], [f64; 3]
             placement,
             vertices,
             closed,
+            ..
         } => {
             if vertices.len() < 2 {
                 return None;

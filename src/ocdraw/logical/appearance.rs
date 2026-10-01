@@ -38,7 +38,8 @@ pub enum AppearanceSelection<T> {
 pub struct EntityAppearance {
     pub color: AppearanceSelection<DrawingColor>,
     pub opacity: AppearanceSelection<f64>,
-    pub line_pattern: AppearanceSelection<String>,
+    pub line_pattern: AppearanceSelection<super::LinePatternId>,
+    pub line_pattern_scale: f64,
     pub line_weight: AppearanceSelection<f64>,
 }
 
@@ -48,6 +49,7 @@ impl Default for EntityAppearance {
             color: AppearanceSelection::ByLayer,
             opacity: AppearanceSelection::ByLayer,
             line_pattern: AppearanceSelection::ByLayer,
+            line_pattern_scale: 1.0,
             line_weight: AppearanceSelection::ByLayer,
         }
     }

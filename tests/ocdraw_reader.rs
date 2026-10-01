@@ -14,13 +14,15 @@ fn load(value: &Value) -> ocdraw::ocdraw::DrawingLoadOutcome {
 
 fn with_line() -> Value {
     let mut value = fixture();
+    value["linePatterns"] = json!([{"id":0,"name":"Continuous","pattern":[]}]);
+    value["header"]["nextLinePatternId"] = json!(1);
     value["header"]["nextEntityId"] = json!(2);
     value["header"]["nextLayerId"] = json!(1);
     value["layers"] = json!([{
         "id": 0, "name": "0", "visible": true, "frozen": false, "locked": false,
         "plottable": true, "frozenInNewViewports": false,
         "color": {"rgb": [255, 255, 255]}, "opacity": 1.0,
-        "linePattern": "Continuous", "lineWeight": 0.25
+        "linePatternId": 0, "lineWeight": 0.25
     }]);
     value["scopes"][0]["bounds"] = json!({
         "minX": 0.0, "minY": 0.0, "minZ": 0.0,
@@ -190,6 +192,8 @@ fn drawing_view_state_decodes_to_typed_workspace_records() {
 
 fn with_viewport() -> Value {
     let mut value = fixture();
+    value["linePatterns"] = json!([{"id":0,"name":"Continuous","pattern":[]}]);
+    value["header"]["nextLinePatternId"] = json!(1);
     value["header"]["nextEntityId"] = json!(2);
     value["header"]["nextLayerId"] = json!(1);
     value["header"]["nextLayoutId"] = json!(2);
@@ -197,7 +201,7 @@ fn with_viewport() -> Value {
         "id":0,"name":"0","visible":true,"frozen":false,"locked":false,
         "plottable":true,"frozenInNewViewports":false,
         "color":{"rgb":[255,255,255]},"opacity":1.0,
-        "linePattern":"Continuous","lineWeight":0.25
+        "linePatternId":0,"lineWeight":0.25
     }]);
     value["layouts"].as_array_mut().unwrap().push(json!({
         "id":1,"scopeId":1,"kind":"paper","name":"Sheet","tabIndex":1
@@ -222,6 +226,27 @@ fn with_viewport() -> Value {
         }
     });
     value
+}
+
+#[test]
+fn clip_boundary_pattern_generation_does_not_change_clip_geometry() {
+    let mut value = with_viewport();
+    value["header"]["nextEntityId"] = json!(3);
+    value["scopes"][1]["entities"] = json!([1, 2]);
+    value["streams"]["viewportStream"]["paperClip"][0] =
+        json!({"enabled":true,"boundaryEntityId":2});
+    value["streams"]["planarPolylineStream"] = json!({
+        "count":1,"entityId":[2],"layerId":[0],"closed":[true],
+        "linePatternGeneration":["continuous"],"vertexOffset":[0],"vertexCount":[3],
+        "x":[0.0,1.0,0.0],"y":[0.0,0.0,1.0],"bulge":[0.0,0.0,0.0]
+    });
+    let loaded = load(&value);
+    assert_eq!(
+        loaded.status(),
+        DrawingLoadStatus::Valid,
+        "{:?}",
+        loaded.diagnostics()
+    );
 }
 
 #[test]
@@ -290,10 +315,10 @@ fn invalid_local_ids_and_appearance_are_rejected() {
     value["layers"] = json!([
         {"id": 0, "name": "A", "visible": true, "frozen": false, "locked": false,
          "plottable": true, "frozenInNewViewports": false, "color": {"rgb": [255,255,255]},
-         "opacity": 1.0, "linePattern": "Continuous", "lineWeight": 0.25},
+         "opacity": 1.0, "linePatternId": 0, "lineWeight": 0.25},
         {"id": 0, "name": "B", "visible": true, "frozen": false, "locked": false,
          "plottable": true, "frozenInNewViewports": false, "color": {"rgb": [255,255,255]},
-         "opacity": 1.0, "linePattern": "Continuous", "lineWeight": 0.25}
+         "opacity": 1.0, "linePatternId": 0, "lineWeight": 0.25}
     ]);
     value["header"]["nextLayerId"] = json!(1);
     assert_eq!(load(&value).status(), DrawingLoadStatus::Invalid);
@@ -415,8 +440,13 @@ fn polyline_pool_ranges_and_scope_bounds_are_checked() {
     };
     let mut builder =
         DrawingBuilder::new(DrawingOptions::new("polyline-validation", "mm")).unwrap();
+    builder.ensure_continuous_line_pattern().unwrap();
     let layer = builder
-        .add_layer(LayerDefinition::new("0", RgbColor::new(0, 0, 0)))
+        .add_layer(LayerDefinition::new(
+            "0",
+            RgbColor::new(0, 0, 0),
+            ocdraw::ocdraw::LinePatternId(0),
+        ))
         .unwrap();
     builder
         .add_planar_polyline(PlanarPolylineDefinition::new(
@@ -445,8 +475,13 @@ fn point_and_circle_geometry_is_validated_against_scope_bounds() {
         RgbColor,
     };
     let mut builder = DrawingBuilder::new(DrawingOptions::new("geometry", "mm")).unwrap();
+    builder.ensure_continuous_line_pattern().unwrap();
     let layer = builder
-        .add_layer(LayerDefinition::new("0", RgbColor::new(0, 0, 0)))
+        .add_layer(LayerDefinition::new(
+            "0",
+            RgbColor::new(0, 0, 0),
+            ocdraw::ocdraw::LinePatternId(0),
+        ))
         .unwrap();
     builder
         .add_point(PointDefinition::new(layer, [4.0, 5.0, 0.0]))
@@ -472,8 +507,13 @@ fn block_instance_definition_reference_must_target_a_block_scope() {
         BlockInstanceDefinition, DrawingBuilder, DrawingOptions, LayerDefinition, RgbColor,
     };
     let mut builder = DrawingBuilder::new(DrawingOptions::new("blocks", "mm")).unwrap();
+    builder.ensure_continuous_line_pattern().unwrap();
     let layer = builder
-        .add_layer(LayerDefinition::new("0", RgbColor::new(0, 0, 0)))
+        .add_layer(LayerDefinition::new(
+            "0",
+            RgbColor::new(0, 0, 0),
+            ocdraw::ocdraw::LinePatternId(0),
+        ))
         .unwrap();
     let block = builder.add_block_definition("B").unwrap();
     builder
@@ -491,8 +531,13 @@ fn arc_sweep_and_bounds_are_validated() {
         ArcDefinition, DrawingBuilder, DrawingOptions, LayerDefinition, RgbColor,
     };
     let mut builder = DrawingBuilder::new(DrawingOptions::new("arc", "mm")).unwrap();
+    builder.ensure_continuous_line_pattern().unwrap();
     let layer = builder
-        .add_layer(LayerDefinition::new("0", RgbColor::new(0, 0, 0)))
+        .add_layer(LayerDefinition::new(
+            "0",
+            RgbColor::new(0, 0, 0),
+            ocdraw::ocdraw::LinePatternId(0),
+        ))
         .unwrap();
     builder
         .add_arc(ArcDefinition::new(
@@ -518,8 +563,13 @@ fn ellipse_axes_and_radii_are_validated() {
         DrawingBuilder, DrawingOptions, EllipseDefinition, LayerDefinition, RgbColor,
     };
     let mut builder = DrawingBuilder::new(DrawingOptions::new("ellipse", "mm")).unwrap();
+    builder.ensure_continuous_line_pattern().unwrap();
     let layer = builder
-        .add_layer(LayerDefinition::new("0", RgbColor::new(0, 0, 0)))
+        .add_layer(LayerDefinition::new(
+            "0",
+            RgbColor::new(0, 0, 0),
+            ocdraw::ocdraw::LinePatternId(0),
+        ))
         .unwrap();
     builder
         .add_ellipse(EllipseDefinition::new(

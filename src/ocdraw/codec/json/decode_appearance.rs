@@ -38,7 +38,7 @@ fn selection<T>(
     property: &str,
     parse: impl Fn(&Value) -> Option<T>,
 ) -> Option<AppearanceSelection<T>> {
-    let mode_name = format!("{property}Mode");
+    let mode_name = format!("{}Mode", property.strip_suffix("Id").unwrap_or(property));
     let mode = column(stream, &mode_name, row)
         .and_then(Value::as_str)
         .unwrap_or("ByLayer");
@@ -54,9 +54,14 @@ pub(super) fn appearance(stream: &Value, row: usize) -> Option<EntityAppearance>
     Some(EntityAppearance {
         color: selection(stream, row, "color", color)?,
         opacity: selection(stream, row, "opacity", Value::as_f64)?,
-        line_pattern: selection(stream, row, "linePattern", |value| {
-            value.as_str().map(str::to_owned)
+        line_pattern: selection(stream, row, "linePatternId", |value| {
+            value
+                .as_u64()
+                .map(|id| crate::ocdraw::LinePatternId(id as u32))
         })?,
+        line_pattern_scale: column(stream, "linePatternScale", row)
+            .and_then(Value::as_f64)
+            .unwrap_or(1.0),
         line_weight: selection(stream, row, "lineWeight", Value::as_f64)?,
     })
 }
