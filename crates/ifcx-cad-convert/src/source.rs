@@ -14,8 +14,15 @@ pub(crate) struct Inspection {
     pub model_layout: Handle,
     pub entities: Vec<Handle>,
     pub blocks: Vec<Handle>,
+    pub papers: Vec<InspectedPaperLayout>,
     pub issues: Vec<IfcxCadDiagnostic>,
     pub recoveries: Vec<IfcxCadDiagnostic>,
+}
+pub(crate) struct InspectedPaperLayout {
+    pub layout_handle: Handle,
+    pub block_handle: Handle,
+    pub tab_index: u32,
+    pub entity_handles: Vec<Handle>,
 }
 
 pub(crate) fn same_graph(a: &Value, b: &Value) -> bool {
@@ -173,6 +180,10 @@ pub(crate) fn inspect(doc: &CadDocument) -> Result<Inspection, Error> {
     let mut names = BTreeSet::new();
     let mut issues = vec![];
     let mut blocks = vec![];
+    let mut layout_blocks = BTreeSet::new();
+    let mut layout_tabs = BTreeSet::new();
+    let mut layout_names = BTreeSet::new();
+    let mut paper_sources = Vec::new();
     for object in doc.objects.values() {
         if let ObjectType::Layout(l) = object {
             let record = doc
@@ -182,6 +193,29 @@ pub(crate) fn inspect(doc: &CadDocument) -> Result<Inspection, Error> {
                 .ok_or_else(|| invalid("layout references missing block"))?;
             if !record.layout.is_null() && record.layout != l.handle {
                 return Err(invalid("layout/block link disagrees"));
+            }
+            if (!record.is_model_space() && !record.is_paper_space())
+                || !layout_blocks.insert(record.handle)
+            {
+                return Err(invalid("each layout needs a unique Model/Paper block"));
+            }
+            if l.tab_order < 0
+                || !layout_tabs.insert(l.tab_order)
+                || (record.is_model_space() && l.tab_order != 0)
+            {
+                return Err(invalid("ambiguous or invalid layout tab order"));
+            }
+            if !layout_names.insert(l.name.to_uppercase()) {
+                return Err(invalid("ambiguous duplicate layout name"));
+            }
+            if !matches!(doc.objects.get(&doc.header.acad_layout_dict_handle),Some(ObjectType::Dictionary(d)) if l.owner==d.handle && d.entries.iter().filter(|(name,h)| name==&l.name && *h==l.handle).count()==1)
+            {
+                return Err(invalid(
+                    "layout dictionary membership or ownership disagrees",
+                ));
+            }
+            if record.is_paper_space() {
+                paper_sources.push(l);
             }
             for h in l
                 .viewports
@@ -209,6 +243,9 @@ pub(crate) fn inspect(doc: &CadDocument) -> Result<Inspection, Error> {
         }
     }
     for b in doc.block_records.iter() {
+        if b.is_paper_space() && !layout_blocks.contains(&b.handle) {
+            return Err(invalid("Paper block needs exactly one layout"));
+        }
         if !names.insert(b.name.to_uppercase()) {
             return Err(invalid("ambiguous duplicate block name"));
         }
@@ -231,11 +268,14 @@ pub(crate) fn inspect(doc: &CadDocument) -> Result<Inspection, Error> {
             if doc.layers.get(&e.common().layer).is_none() {
                 return Err(invalid("entity references missing layer"));
             }
-            if b.is_paper_space() && !overall_scaffold(doc, e) {
+            if b.is_paper_space()
+                && matches!(e, EntityType::Viewport(_))
+                && !overall_scaffold(doc, e)
+            {
                 issues.push(diagnostic(
                     "paper",
                     format!("entity/{h}"),
-                    "authored Paper content is deferred",
+                    "authored Paper viewport/canvas state is deferred",
                 ));
             }
         }
@@ -252,7 +292,15 @@ pub(crate) fn inspect(doc: &CadDocument) -> Result<Inspection, Error> {
                     || marker.name != b.name
                     || marker.base_point != b.base_point
                 {
-                    return Err(invalid("BLOCK marker conflicts with block record"));
+                    return Err(invalid(&format!(
+                        "BLOCK marker {} ({:?}, {:?}) conflicts with block record {} ({:?}, {:?})",
+                        marker.common.handle,
+                        marker.name,
+                        marker.base_point,
+                        b.block_entity_handle,
+                        b.name,
+                        b.base_point
+                    )));
                 }
                 residual(
                     marker,
@@ -311,8 +359,46 @@ pub(crate) fn inspect(doc: &CadDocument) -> Result<Inspection, Error> {
         Ok(())
     }
     let mut done = BTreeSet::new();
-    for h in blocks.iter().chain(std::iter::once(&model.handle)) {
+    for h in blocks
+        .iter()
+        .chain(std::iter::once(&model.handle))
+        .chain(paper_sources.iter().map(|l| &l.block_record))
+    {
         visit(*h, doc, &mut BTreeSet::new(), &mut done)?;
+    }
+    paper_sources.sort_by_key(|l| l.tab_order);
+    let mut papers = Vec::new();
+    for layout in paper_sources {
+        let block = doc
+            .block_records
+            .iter()
+            .find(|b| b.handle == layout.block_record)
+            .unwrap();
+        if untouched_paper(doc, layout) {
+            continue;
+        }
+        let tab_index =
+            u32::try_from(papers.len() + 1).map_err(|_| invalid("too many paper layouts"))?;
+        if i64::from(layout.tab_order) != i64::from(tab_index) {
+            let mut recovery = diagnostic(
+                "layout-tabs-normalized",
+                format!("layout/{}.tabOrder", layout.name),
+                "source tab gaps normalized without changing relative order",
+            );
+            recovery.action = crate::IfcxCadDiagnosticAction::Recovery;
+            recoveries.push(recovery);
+        }
+        papers.push(InspectedPaperLayout {
+            layout_handle: layout.handle,
+            block_handle: layout.block_record,
+            tab_index,
+            entity_handles: block
+                .entity_handles
+                .iter()
+                .filter(|h| !overall_scaffold(doc, doc.get_entity(**h).unwrap()))
+                .copied()
+                .collect(),
+        });
     }
     scan(doc, &mut issues)?;
     for e in doc.entities() {
@@ -325,6 +411,7 @@ pub(crate) fn inspect(doc: &CadDocument) -> Result<Inspection, Error> {
         model_layout: layouts[0].handle,
         entities: model.entity_handles.clone(),
         blocks,
+        papers,
         issues,
         recoveries,
     })
@@ -349,16 +436,54 @@ fn overall_scaffold(doc: &CadDocument, e: &EntityType) -> bool {
     let EntityType::Viewport(v) = e else {
         return false;
     };
-    if v.id!=1 || !doc.objects.values().any(|o|matches!(o,ObjectType::Layout(l) if l.name=="Layout1" && l.block_record==v.common.owner_handle && l.viewport==v.common.handle && (l.viewports.is_empty() || l.viewports==[v.common.handle]))) {return false;}
+    // DWG does not store DXF viewport numbers; the pinned reader assigns them
+    // only to the active sheet. Its unnumbered overall viewport is identified
+    // by the layout link and the same complete default-state comparison.
+    if !(v.id==1 || (doc.dwg_source_version.is_some() && v.id==0)) || !doc.objects.values().any(|o|matches!(o,ObjectType::Layout(l) if l.block_record==v.common.owner_handle && l.viewport==v.common.handle && doc.block_records.iter().any(|b|b.handle==l.block_record && b.is_paper_space()))) {return false;}
     let mut a = v.clone();
     let mut b = opencadcodec::entities::Viewport::new();
     b.id = 1;
+    a.id = b.id;
     a.common.handle = b.common.handle;
     a.common.owner_handle = b.common.owner_handle;
     a.common.entity_mode = b.common.entity_mode;
     a.common.raw_record = None;
     a.common.linetype_handle = None;
     a == b
+}
+
+fn untouched_paper(doc: &CadDocument, layout: &opencadcodec::objects::Layout) -> bool {
+    // Only the initial runtime sheet is scaffold; extra empty sheets are authored.
+    if layout.name != "Layout1" {
+        return false;
+    }
+    let fresh = CadDocument::new();
+    let Some(ObjectType::Layout(b)) = fresh
+        .objects
+        .values()
+        .find(|o| matches!(o,ObjectType::Layout(l) if l.name=="Layout1"))
+    else {
+        return false;
+    };
+    let mut a = layout.clone();
+    a.handle = b.handle;
+    a.owner = b.owner;
+    a.block_record = b.block_record;
+    a.viewport = b.viewport;
+    a.viewports = b.viewports.clone();
+    a.min_extents = b.min_extents;
+    a.max_extents = b.max_extents;
+    a.raw_plot_settings_codes = None;
+    a == *b
+        && doc
+            .block_records
+            .iter()
+            .find(|r| r.handle == layout.block_record)
+            .is_some_and(|r| {
+                r.entity_handles
+                    .iter()
+                    .all(|h| doc.get_entity(*h).is_some_and(|e| overall_scaffold(doc, e)))
+            })
 }
 
 fn scan(doc: &CadDocument, issues: &mut Vec<IfcxCadDiagnostic>) -> Result<(), Error> {
@@ -516,7 +641,9 @@ fn scan(doc: &CadDocument, issues: &mut Vec<IfcxCadDiagnostic>) -> Result<(), Er
                 ObjectType::Layout(b) if b.name == l.name => Some(b),
                 _ => None,
             });
-            if let Some(b) = expected {
+            let default = opencadcodec::objects::Layout::new(&l.name);
+            let b = expected.unwrap_or(&default);
+            {
                 let mut actual = l.clone();
                 // The DXF writer derives this role bit from the Model layout
                 // name. Ownership was already checked; the bit adds no setting.
@@ -528,27 +655,20 @@ fn scan(doc: &CadDocument, issues: &mut Vec<IfcxCadDiagnostic>) -> Result<(), Er
                 {
                     actual.plot_flags.model_type = b.plot_flags.model_type;
                 }
+                let paper = doc.block_records.iter().any(|record|record.is_paper_space() && record.handle==l.block_record);
+                let mut ignored=vec!["handle","owner","block_record","viewport","viewports","min_extents","max_extents"];
+                if paper {
+                    // Unit/mapping support is classified separately, including unknown physical intent.
+                    ignored.extend(["name","tab_order","paper_width","paper_height","plot_paper_units","plot_scale_type","plot_scale_numerator","plot_scale_denominator","plot_scale_factor"]);
+                    actual.plot_flags.use_standard_scale=b.plot_flags.use_standard_scale;
+                }
                 residual(
                     &actual,
                     b,
-                    &[
-                        "handle",
-                        "owner",
-                        "block_record",
-                        "viewport",
-                        "viewports",
-                        "min_extents",
-                        "max_extents",
-                    ],
+                    &ignored,
                     &format!("layout/{}", l.name),
                     issues,
                 );
-            } else {
-                issues.push(diagnostic(
-                    "paper",
-                    format!("layout/{}", l.name),
-                    "non-scaffold layout",
-                ));
             }
         }
         SemanticPartV1::Object(SemanticObjectV1::Typed(o)) => {
@@ -741,12 +861,17 @@ fn scaffold_object(
     match (o, b) {
         (ObjectType::Dictionary(a), ObjectType::Dictionary(b)) => {
             let mut a = a.clone();
+            let mut b = b.clone();
+            if h == doc.header.acad_layout_dict_handle {
+                a.entries.retain(|(name,h)|!matches!(doc.objects.get(h),Some(ObjectType::Layout(l)) if l.name==*name));
+                b.entries.retain(|(_,h)|matches!(base.objects.get(h),Some(o) if !matches!(o,ObjectType::Layout(_))));
+            }
             a.handle = mapped(a.handle);
             a.owner = mapped(a.owner);
             for (_, h) in &mut a.entries {
                 *h = mapped(*h);
             }
-            a == *b
+            a == b
         }
         (ObjectType::DictionaryWithDefault(a), ObjectType::DictionaryWithDefault(b)) => {
             let mut a = a.clone();

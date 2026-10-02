@@ -496,7 +496,7 @@ fn common_metadata_loss_keeps_geometry_and_marks_nested_occurrences() {
 }
 
 #[test]
-fn missing_layer_zero_and_paper_have_explicit_loss_evidence() {
+fn missing_layer_zero_has_loss_evidence_while_paper_geometry_is_retained() {
     let mut d = empty();
     d.id_counters.next_entity_id = 46;
     d.id_counters.next_layout_id = 9;
@@ -506,17 +506,19 @@ fn missing_layer_zero_and_paper_have_explicit_loss_evidence() {
     d.paper_layouts.push(IfcxCadPaperLayout {
         id: 8,
         name: "Sheet".into(),
-        paper: IfcxCadPaperSize {
+        tab_index: 1,
+        length_unit: "mm".into(),
+        paper: Some(IfcxCadPaperSize {
             width: 297.,
             height: 210.,
             length_unit: "mm".into(),
-        },
+        }),
         entities: vec![e],
     });
     let source = validated(&d);
     let out = ifcx_cad_source_to_cad_document(&source, Default::default()).unwrap();
-    assert!(out.mappings().entities.cad_handle(45).is_none());
-    assert!(out.mappings().layouts.cad_handle(8).is_none());
+    assert!(out.mappings().entities.cad_handle(45).is_some());
+    assert!(out.mappings().layouts.cad_handle(8).is_some());
     let layer = out.document().layers.get("0").unwrap();
     assert_eq!(
         layer.color,
@@ -531,10 +533,7 @@ fn missing_layer_zero_and_paper_have_explicit_loss_evidence() {
         .diagnostics()
         .iter()
         .any(|d| d.code == "layer-0" && d.action == IfcxCadDiagnosticAction::Modified));
-    assert!(out
-        .diagnostics()
-        .iter()
-        .any(|d| d.code == "paper" && d.action == IfcxCadDiagnosticAction::Omitted));
+    assert!(out.diagnostics().iter().all(|d| d.code != "paper"));
     assert!(ifcx_cad_source_to_cad_document(
         &source,
         IfcxCadToCadOptions {
@@ -549,11 +548,11 @@ fn missing_layer_zero_and_paper_have_explicit_loss_evidence() {
         ))
         .unwrap();
     let out = cad_document_to_encoded_ifcx_cad(&c, metadata(), Default::default()).unwrap();
-    assert!(out.mappings().entities.ifcx_id(h).is_none());
+    assert!(out.mappings().entities.ifcx_id(h).is_some());
     assert!(out
         .diagnostics()
         .iter()
-        .any(|d| d.code == "paper" && d.location == format!("entity/{h}")));
+        .all(|d| d.code != "paper" || d.location != format!("entity/{h}")));
 }
 
 #[test]

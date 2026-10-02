@@ -58,7 +58,8 @@
       },
       "attributes": {
         "ifccad::layout": {
-          "kind": "Model"
+          "kind": "Model",
+          "tabIndex": 0
         }
       }
     },
@@ -76,7 +77,9 @@
             "height": 420.0,
             "lengthUnit": "mm",
             "width": 297.0
-          }
+          },
+          "tabIndex": 1,
+          "lengthUnit": "mm"
         }
       }
     },
@@ -93,7 +96,9 @@
             "height": 11.0,
             "lengthUnit": "in",
             "width": 8.5
-          }
+          },
+          "tabIndex": 2,
+          "lengthUnit": "in"
         }
       }
     },

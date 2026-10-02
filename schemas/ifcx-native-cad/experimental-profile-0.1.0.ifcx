@@ -76,6 +76,13 @@
                   }
                 }
               }
+            },
+            "tabIndex": {
+              "dataType": "Integer"
+            },
+            "lengthUnit": {
+              "dataType": "String",
+              "optional": true
             }
           }
         }

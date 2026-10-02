@@ -84,23 +84,26 @@ pub(crate) fn from_cad(
     doc: &opencadcodec::CadDocument,
     blocks: &[opencadcodec::Handle],
     model: &[opencadcodec::Handle],
+    papers: &[&[opencadcodec::Handle]],
     issues: &mut Vec<IfcxCadDiagnostic>,
 ) {
     let mut defs = Vec::new();
     let mut instances = Vec::new();
-    let owners = std::iter::once((None, model)).chain(blocks.iter().map(|h| {
-        let b = doc.block_records.iter().find(|b| b.handle == *h).unwrap();
-        defs.push(Definition {
-            id: h.value(),
-            location: format!("block/{}", b.name),
-            entities: b
-                .entity_handles
-                .iter()
-                .map(|h| format!("entity/{h}"))
-                .collect(),
-        });
-        (Some(h.value()), b.entity_handles.as_slice())
-    }));
+    let owners = std::iter::once((None, model))
+        .chain(papers.iter().map(|entities| (None, *entities)))
+        .chain(blocks.iter().map(|h| {
+            let b = doc.block_records.iter().find(|b| b.handle == *h).unwrap();
+            defs.push(Definition {
+                id: h.value(),
+                location: format!("block/{}", b.name),
+                entities: b
+                    .entity_handles
+                    .iter()
+                    .map(|h| format!("entity/{h}"))
+                    .collect(),
+            });
+            (Some(h.value()), b.entity_handles.as_slice())
+        }));
     for (owner, entities) in owners {
         for h in entities {
             if let Some(opencadcodec::EntityType::Insert(i)) = doc.get_entity(*h) {
@@ -130,11 +133,18 @@ pub(crate) fn to_cad(doc: &ocdraw::ifcx_cad::IfcxCadDocument, issues: &mut Vec<I
         })
         .collect();
     let mut instances = Vec::new();
-    for (owner, entities) in std::iter::once((None, doc.model.entities.as_slice())).chain(
-        doc.blocks
-            .iter()
-            .map(|b| (Some(b.id), b.entities.as_slice())),
-    ) {
+    for (owner, entities) in std::iter::once((None, doc.model.entities.as_slice()))
+        .chain(
+            doc.paper_layouts
+                .iter()
+                .map(|p| (None, p.entities.as_slice())),
+        )
+        .chain(
+            doc.blocks
+                .iter()
+                .map(|b| (Some(b.id), b.entities.as_slice())),
+        )
+    {
         for e in entities {
             if let ocdraw::ifcx_cad::IfcxCadEntityKind::BlockInstance { definition_id, .. } = e.kind
             {

@@ -75,6 +75,7 @@ pub fn empty() -> IfcxCadDocument {
         layers: vec![layer(0, "0"), layer(4, "Notes")],
         model: IfcxCadLayout {
             id: 1,
+            tab_index: 0,
             entities: vec![],
         },
         paper_layouts: vec![],

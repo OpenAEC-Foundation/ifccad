@@ -45,7 +45,9 @@ fn verify_readback(bytes: &[u8], document: &IfcxCadDocument) -> Result<(), IfcxC
     expected.layers.sort_by_key(|layer| layer.id.to_string());
     expected.blocks.sort_by_key(|block| block.id.to_string());
     expected.line_patterns.sort_by_key(|p| p.id.0.to_string());
-    expected.paper_layouts.sort_by_key(|layout| layout.id);
+    expected
+        .paper_layouts
+        .sort_by_key(|layout| layout.tab_index);
     if loaded.document() != &expected {
         return Err(IfcxCadEncodeError::SemanticMismatch(IfcxCadReport::one(
             "strict IFCX readback changed CAD semantics",

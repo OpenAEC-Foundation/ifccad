@@ -216,9 +216,11 @@ fn invalid_typed_documents_fail_without_encoding() {
         d.layers[0].appearance.color = "red".into()
     });
     add("layer name", |d| d.layers[0].name.clear());
-    add("paper dimensions", |d| d.paper_layouts[0].paper.width = -1.);
+    add("paper dimensions", |d| {
+        d.paper_layouts[0].paper.as_mut().unwrap().width = -1.
+    });
     add("paper unit", |d| {
-        d.paper_layouts[0].paper.length_unit = "unitless".into()
+        d.paper_layouts[0].paper.as_mut().unwrap().length_unit = "unitless".into()
     });
     add("paper name", |d| d.paper_layouts[0].name = " ".into());
     add("block unit", |d| {

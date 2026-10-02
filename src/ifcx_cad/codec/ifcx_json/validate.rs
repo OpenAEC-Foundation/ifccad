@@ -17,9 +17,12 @@ struct DrawingValue {
     line_pattern_scale: f64,
 }
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct LayoutValue {
     kind: String,
+    tab_index: u32,
     name: Option<String>,
+    length_unit: Option<String>,
     paper: Option<IfcxCadPaperSize>,
 }
 #[derive(Deserialize)]
@@ -354,7 +357,10 @@ pub(crate) fn project(raw: &Value) -> Result<IfcxCadDocument, IfcxCadReport> {
             let id = numbered(path, &format!("{prefix}/layout/"))?;
             match layout.kind.as_str() {
                 "Model" => {
-                    if layout.name.is_some() || layout.paper.is_some() {
+                    if ["name", "paper", "lengthUnit"].iter().any(|key| {
+                        attr(node, "ifccad::layout").is_some_and(|v| v.get(key).is_some())
+                    }) || layout.tab_index != 0
+                    {
                         return Err(problem(format!("{path} Model layout has paper metadata")));
                     }
                     if model_path.replace(path.clone()).is_some() {
@@ -365,12 +371,27 @@ pub(crate) fn project(raw: &Value) -> Result<IfcxCadDocument, IfcxCadReport> {
                     let name = layout
                         .name
                         .ok_or_else(|| problem(format!("{path} Paper layout needs a name")))?;
-                    let paper = layout.paper.ok_or_else(|| {
-                        problem(format!(
-                            "{path} Paper layout needs paper dimensions and unit"
-                        ))
+                    let length_unit = layout.length_unit.ok_or_else(|| {
+                        problem(format!("{path} Paper layout needs a coordinate unit"))
                     })?;
-                    paper_paths.insert(id, (path.clone(), name, paper));
+                    if attr(node, "ifccad::layout")
+                        .and_then(|v| v.get("paper"))
+                        .is_some_and(Value::is_null)
+                    {
+                        return Err(problem(format!(
+                            "{path} paper must be omitted or a complete medium"
+                        )));
+                    }
+                    paper_paths.insert(
+                        id,
+                        (
+                            path.clone(),
+                            name,
+                            layout.tab_index,
+                            length_unit,
+                            layout.paper,
+                        ),
+                    );
                 }
                 _ => {
                     return Err(problem(format!(
@@ -394,7 +415,7 @@ pub(crate) fn project(raw: &Value) -> Result<IfcxCadDocument, IfcxCadReport> {
         .chain(block_paths.keys())
         .chain(pattern_paths.keys())
         .chain(std::iter::once(&model_path))
-        .chain(paper_paths.values().map(|(path, _, _)| path))
+        .chain(paper_paths.values().map(|(path, ..)| path))
     {
         if !declared.contains(path.as_str()) {
             return Err(problem(format!("drawing does not reference {path}")));
@@ -420,17 +441,21 @@ pub(crate) fn project(raw: &Value) -> Result<IfcxCadDocument, IfcxCadReport> {
     };
     let model = IfcxCadLayout {
         id: numbered(&model_path, &format!("{prefix}/layout/"))?,
+        tab_index: 0,
         entities: parse_owner(&model_path)?,
     };
     let mut paper_layouts = Vec::new();
-    for (id, (path, name, paper)) in paper_paths {
+    for (id, (path, name, tab_index, length_unit, paper)) in paper_paths {
         paper_layouts.push(IfcxCadPaperLayout {
             id,
             name,
+            tab_index,
+            length_unit,
             paper,
             entities: parse_owner(&path)?,
         });
     }
+    paper_layouts.sort_by_key(|layout| layout.tab_index);
     let mut blocks = Vec::new();
     for (path, id) in &block_paths {
         let node = nodes[path];

@@ -40,6 +40,7 @@ mod blocks;
 mod diagnostics;
 mod from_cad;
 mod geometry;
+mod layouts;
 mod loss;
 mod options;
 mod outcome;

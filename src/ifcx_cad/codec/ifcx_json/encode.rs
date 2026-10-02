@@ -86,7 +86,7 @@ fn numbered_children(entities: &[IfcxCadEntity], prefix: &str) -> Map<String, Va
 /// document and are not merged into the output.
 pub(crate) fn encode_bytes(document: &IfcxCadDocument) -> Result<Vec<u8>, serde_json::Error> {
     let mut paper_layouts: Vec<_> = document.paper_layouts.iter().collect();
-    paper_layouts.sort_by_key(|layout| layout.id);
+    paper_layouts.sort_by_key(|layout| layout.tab_index);
     let prefix = format!("/cad/d{}", document.drawing_id);
     let mut drawing_children = Map::new();
     drawing_children.insert(
@@ -134,15 +134,19 @@ pub(crate) fn encode_bytes(document: &IfcxCadDocument) -> Result<Vec<u8>, serde_
     data.push(NodeOut {
         path: format!("{prefix}/layout/{}", document.model.id),
         children: Some(numbered_children(&document.model.entities, &prefix)),
-        attributes: attrs(json!({"ifccad::layout":{"kind":"Model"}})),
+        attributes: attrs(
+            json!({"ifccad::layout":{"kind":"Model","tabIndex":document.model.tab_index}}),
+        ),
     });
     for layout in &paper_layouts {
+        let mut value = json!({"kind":"Paper","name":layout.name,"tabIndex":layout.tab_index,"lengthUnit":layout.length_unit});
+        if let Some(paper) = &layout.paper {
+            value["paper"] = json!(paper);
+        }
         data.push(NodeOut {
             path: format!("{prefix}/layout/{}", layout.id),
             children: Some(numbered_children(&layout.entities, &prefix)),
-            attributes: attrs(
-                json!({"ifccad::layout":{"kind":"Paper","name":layout.name,"paper":layout.paper}}),
-            ),
+            attributes: attrs(json!({"ifccad::layout":value})),
         });
     }
     for p in &document.line_patterns {

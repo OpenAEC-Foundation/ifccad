@@ -20,6 +20,24 @@
 //! # Ok(())
 //! # }
 //! ```
+//!
+//! Add an empty, unsized sheet without inventing a physical paper format:
+//! ```
+//! use ocdraw::ifcx_cad::{load_ifcx_cad_bytes, encode_ifcx_cad_document,
+//!     IfcxCadPaperLayout};
+//! # fn add_sheet(bytes: &[u8]) -> Result<(), Box<dyn std::error::Error>> {
+//! let mut document = load_ifcx_cad_bytes(bytes, Default::default())?.into_document();
+//! let id = document.id_counters.allocate_layout_id()?;
+//! let tab_index = u32::try_from(document.paper_layouts.len() + 1)?;
+//! document.paper_layouts.push(IfcxCadPaperLayout {
+//!     id, name: "New sheet".into(), tab_index,
+//!     length_unit: "unitless".into(), paper: None, entities: vec![],
+//! });
+//! let encoded = encode_ifcx_cad_document(&document)?;
+//! # let _ = encoded;
+//! # Ok(())
+//! # }
+//! ```
 
 mod codec;
 mod encode;

@@ -24,7 +24,7 @@ pub struct IfcxCadDocument {
     pub line_pattern_scale: f64,
     pub layers: Vec<IfcxCadLayer>,
     pub model: IfcxCadLayout,
-    /// Paper scopes form an unordered set; readback returns them in increasing ID order.
+    /// Collection position is incidental; tab_index defines layout-tab order.
     pub paper_layouts: Vec<IfcxCadPaperLayout>,
     pub blocks: Vec<IfcxCadBlockDefinition>,
 }
@@ -48,6 +48,7 @@ pub struct IfcxCadLayerAppearance {
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfcxCadLayout {
     pub id: u64,
+    pub tab_index: u32,
     /// Vector position is the CAD draw order.
     pub entities: Vec<IfcxCadEntity>,
 }
@@ -56,14 +57,17 @@ pub struct IfcxCadLayout {
 pub struct IfcxCadPaperLayout {
     pub id: u64,
     pub name: String,
-    pub paper: IfcxCadPaperSize,
+    pub tab_index: u32,
+    /// Coordinate unit, independently of an optional physical medium.
+    pub length_unit: String,
+    pub paper: Option<IfcxCadPaperSize>,
     /// Vector position is this paper layout's CAD draw order.
     pub entities: Vec<IfcxCadEntity>,
 }
 
-/// Sheet dimensions and the coordinate unit of direct paper-layout entities.
+/// Physical sheet dimensions, independently of the Paper coordinate unit.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct IfcxCadPaperSize {
     pub width: f64,
     pub height: f64,

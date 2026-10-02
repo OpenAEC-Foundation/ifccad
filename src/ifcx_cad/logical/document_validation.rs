@@ -32,19 +32,38 @@ pub fn validate_ifcx_cad_document(document: &IfcxCadDocument) -> Result<(), Ifcx
         pattern_reference(layer.appearance.line_pattern, &patterns, &path)?;
     }
     let mut layouts = BTreeSet::from([document.model.id]);
+    if document.model.tab_index != 0 {
+        return Err(problem("Model layout tab index must be zero"));
+    }
+    let mut tabs = BTreeSet::from([0]);
+    let mut layout_names = BTreeSet::from([crate::ocdraw::names::name_key("Model")]);
     for paper in &document.paper_layouts {
         let path = format!("{prefix}/layout/{}", paper.id);
         unique(&mut layouts, paper.id, &path)?;
-        if paper.name.trim().is_empty() {
-            return Err(problem(format!("{path} Paper layout needs a name")));
-        }
-        if !paper.paper.width.is_finite()
-            || paper.paper.width <= 0.
-            || !paper.paper.height.is_finite()
-            || paper.paper.height <= 0.
-            || !unit(&paper.paper.length_unit)
-            || paper.paper.length_unit == "unitless"
+        if paper.name.trim().is_empty()
+            || !layout_names.insert(crate::ocdraw::names::name_key(&paper.name))
         {
+            return Err(problem(format!(
+                "{path} Paper layout needs a unique nonblank name"
+            )));
+        }
+        if paper.tab_index == 0
+            || !tabs.insert(paper.tab_index)
+            || paper.tab_index as usize > document.paper_layouts.len()
+        {
+            return Err(problem(format!("{path} invalid or duplicate tab index")));
+        }
+        if !unit(&paper.length_unit) {
+            return Err(problem(format!("{path} invalid coordinate unit")));
+        }
+        if paper.paper.as_ref().is_some_and(|media| {
+            !media.width.is_finite()
+                || media.width <= 0.
+                || !media.height.is_finite()
+                || media.height <= 0.
+                || !unit(&media.length_unit)
+                || media.length_unit == "unitless"
+        }) {
             return Err(problem(format!("{path} invalid paper dimensions or unit")));
         }
     }

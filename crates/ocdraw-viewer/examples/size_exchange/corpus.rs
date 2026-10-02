@@ -115,6 +115,7 @@ pub fn generate(case: &Case) -> Result<CadDocument> {
         layers: vec![layer(1, "0"), layer(2, "Details")],
         model: IfcxCadLayout {
             id: 1,
+            tab_index: 0,
             entities: vec![],
         },
         paper_layouts: vec![],

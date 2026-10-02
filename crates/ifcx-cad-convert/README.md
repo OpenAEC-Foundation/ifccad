@@ -84,7 +84,7 @@ repair. Other owners, values, applications and undecodable payloads remain losse
 
 ## Supported slice
 
-- One Model layout, 25 length-unit tokens, unused layers and definitions.
+- One Model layout and multiple Paper layouts with explicit tab order, optional physical media, unused layers and definitions. Native coordinate units support all 25 tokens; CAD Paper export supports unitless, inch and millimetre coordinates.
 - XYZ lines, standard-XY circles and straight planar polylines. Polyline XY
   translation folds into vertices only for exact finite binary64 sums; Z becomes
   elevation. Position/path/plane survive, local-origin decomposition does not.
@@ -96,8 +96,7 @@ repair. Other owners, values, applications and undecodable payloads remain losse
   order; standard-XY insert placement, rotation and signed nonuniform scale.
   CAD setter changes, including the tiny-scale clamp, cause rejection.
 
-Under Allow, incompatible geometry is omitted as a whole entity. Paper layouts
-and their entities are omitted. Ordinary local definitions retain supported
+Under Allow, incompatible geometry is omitted as a whole entity. Paper layouts with unsupported target coordinate units and their entities are omitted with located evidence. Ordinary local definitions retain supported
 content; every instance of a partial definition receives a loss diagnostic,
 including through nested blocks. Anonymous/reserved names, XREF/external flags
 and directly owned dynamic-block objects cause definition omission; referring
@@ -197,3 +196,25 @@ to [explicit local codec repairs](../../patches/opencadcodec-viewports/README.md
 The earlier exchange table retains its stated historical dependency provenance.
 This configuration does not adopt the separate IFCX-CAD viewport implementation.
 See the [2026-10-05 dependency audit](../../docs/geometry/opencadcodec-update-2026-10-05.md).
+## Paper layout conversion boundary
+
+Native Paper names use full Unicode case folding; target CAD lookup additionally
+rejects uppercase collisions before allocation. Source tabs must be distinct and
+nonnegative, with Model at zero. Gaps normalize to contiguous Paper tabs with a
+Recovery diagnostic, preserving relative order. Native IDs and watermarks are
+independent of tab order. Only the fully default initial Layout1 scaffold is
+excluded; additional empty sheets remain authored.
+
+CAD paper dimensions are always millimetres. Positive finite dimensions map to
+an optional medium; invalid or partial dimensions omit only that medium with
+loss evidence. Explicit fixed 1:1 inch/mm mappings establish Paper coordinate
+units. Fully unconfigured unsized defaults are unitless; other authored mappings
+retain numeric coordinates as unitless with a loss diagnostic. Media never
+establish coordinate units and block instances are never implicitly rescaled.
+
+Native media convert through exact rational millimetre factors. Any binary64
+rounding is fatal under both policies (5 inches maps exactly to 127 mm; 1 inch
+cannot exactly map to binary64 25.4 mm). Unsupported factors such as parsecs omit
+only media under Allow. Printer/media names, margins, rotation, plot limits,
+canvas/viewports and workspace state remain deferred losses. Definition-content
+losses propagate to Paper instances through shared and nested definitions.

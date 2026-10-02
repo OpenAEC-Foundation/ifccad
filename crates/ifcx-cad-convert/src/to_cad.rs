@@ -57,20 +57,6 @@ fn convert_document(
             )));
         }
     }
-    for paper in &drawing.paper_layouts {
-        issues.push(diagnostic(
-            "paper",
-            format!("layout/{}", paper.id),
-            "Paper layout and its entities omitted; conversion is deferred",
-        ));
-        for e in &paper.entities {
-            issues.push(diagnostic(
-                "entity-skipped",
-                format!("entity/{}", e.id),
-                "entity omitted with its unsupported Paper layout",
-            ));
-        }
-    }
     if !drawing.layers.iter().any(|l| l.name == "0") {
         issues.push(crate::diagnostics::modification(
             "layer-0",
@@ -151,12 +137,36 @@ fn convert_document(
         .cloned()
         .collect();
     crate::blocks::allocate(&mut document, &supported, &mut mappings)?;
-    for (owner, entities) in std::iter::once(("*Model_Space", drawing.model.entities.as_slice()))
-        .chain(
-            supported
-                .iter()
-                .map(|b| (b.name.as_str(), b.entities.as_slice())),
-        )
+    let paper_owners = crate::layouts::allocate(
+        &mut document,
+        &drawing.paper_layouts,
+        &mut mappings,
+        &mut issues,
+    )?;
+    let model_owner = document.header.model_space_block_handle;
+    let block_owners: Vec<_> = supported
+        .iter()
+        .map(|b| {
+            (
+                mappings.blocks.cad_handle(b.id).expect("allocated block"),
+                b.entities.as_slice(),
+            )
+        })
+        .collect();
+    for (owner, entities) in std::iter::once((model_owner, drawing.model.entities.as_slice()))
+        .chain(paper_owners.iter().map(|(id, owner)| {
+            (
+                *owner,
+                drawing
+                    .paper_layouts
+                    .iter()
+                    .find(|p| p.id == *id)
+                    .expect("allocated layout")
+                    .entities
+                    .as_slice(),
+            )
+        }))
+        .chain(block_owners)
     {
         for e in entities {
             let loc = format!("entity/{}", e.id);
@@ -206,11 +216,7 @@ fn convert_document(
             }
             if let Some(mut target) = target {
                 *target.common_mut() = common;
-                target.common_mut().owner_handle = document
-                    .block_records
-                    .get(owner)
-                    .expect("allocated owner")
-                    .handle;
+                target.common_mut().owner_handle = owner;
                 let h = document
                     .add_entity(target)
                     .map_err(|e| IfcxCadConversionError::CadConstruction(e.to_string()))?;

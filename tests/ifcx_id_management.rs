@@ -225,6 +225,7 @@ fn deleted_definitions_do_not_reset_their_watermarks() {
     assert_eq!(id, 100);
     layout.paper_layouts.push(IfcxCadPaperLayout {
         id,
+        tab_index: 3,
         name: "Unused".into(),
         entities: vec![],
         ..layout.paper_layouts[0].clone()

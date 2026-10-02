@@ -65,7 +65,7 @@ the current IFCX CAD profile, and requires strict production-reader readback
 with semantic equivalence, returning `EncodedIfcxCad`. Its `bytes()` and
 `into_bytes()` accessors expose the encoding; `write_file()` creates a new file
 and refuses to overwrite an existing one. Existing paths, uint64 values, ordered entities and supported native
-Paper semantics are retained. Definition collections retain their existing
+Paper semantics are retained. Paper collections normalize by explicit tab index, independently of IDs; Model is tab 0 and Paper tabs are contiguous from 1. Paper coordinate units are distinct from optional physical medium units. Missing metadata in older experimental files is rejected; examples are migrated directly without a version layer. Definition collections retain their existing
 unordered/readback normalization rules.
 
 Encoding creates a **new CAD-profile file** with its normal schema import.
@@ -104,10 +104,8 @@ rounds during projection remains detectable there even when the projected f64
 value alone looks valid. Full-width allocation integers remain exact in typed
 state and native output.
 
-Conversion coverage, source recoveries, appearance adaptations and mappings
-remain unchanged. Fresh CAD imports allocate fresh native IDs; a CAD-runtime
-roundtrip does not preserve native allocation history automatically. Authored
-Paper CAD conversion remains deferred, with located loss diagnostics.
+The paperspace slice extends conversion coverage; existing source recoveries and appearance adaptations remain in force. Fresh CAD imports allocate fresh native IDs; a CAD-runtime
+roundtrip does not preserve native allocation history automatically. Multiple authored Paper layouts, supported geometry, tab order and optional media convert. Authored viewport/view state and full plot settings remain deferred, with located loss diagnostics.
 
 ## Typed failures
 

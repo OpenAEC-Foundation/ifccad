@@ -32,7 +32,7 @@ fresh CAD import assigns new IDs and watermarks with explicit outcome mappings.
 | Line patterns | Allocate all native named simple/empty definitions, including unused; preserve names/descriptions/lengths; retain required missing Continuous target scaffold with Modified evidence |
 | Pattern scale/generation | Drawing/entity scales to header/common fields; planar polyline perSegment/continuous to plinegen |
 | Model | Default Model layout, ordered backing block membership |
-| Paper | Omit each layout and its entities with located diagnostics |
+| Paper | Allocate layouts in tab order, optional media and ordered backing block contents; unitless/in/mm coordinates supported. Other coordinate units omit the entire layout with located evidence. CAD-name collisions and indices exceeding i16 are fatal |
 | Layers | Retain names, unused declarations and concrete appearance; synthesize missing CAD layer 0 with diagnosed explicit fallback; reject collisions under opencadcodec's normalized name lookup, including multiple layers named 0, before CAD allocation under both policies |
 | Layer/entity appearance | True RGB, resolved named patterns, supported hundredth-mm weight, exact decoded opacity byte; preserve independent inherited/explicit modes on entities |
 | Lines | Direct finite XYZ endpoints |
@@ -48,8 +48,7 @@ fresh CAD import assigns new IDs and watermarks with explicit outcome mappings.
 Polyline local-origin decomposition is canonicalized without changing its exact
 path. Oblique parameterization and certified numerical tolerances are deferred.
 The target starts with pinned default table/layout/style infrastructure, including
-empty Paper scaffold; that does not assert conversion of Paper semantics or CAD
-workspace settings. ByLayer/ByBlock modes are not resolved. Unsupported geometric
+empty Paper scaffold when no authored Paper is emitted. The first authored sheet reuses this owner. Explicit owned BLOCK/ENDBLK markers preserve secondary Paper ownership through DWG; default overall viewports remain runtime infrastructure. CAD workspace settings are deferred. ByLayer/ByBlock modes are not resolved. Unsupported geometric
 parameterization omits the whole entity. Normal local definitions can retain
 partial contents, with a loss diagnostic on each affected instance, propagated
 through nesting. Only emitted objects receive mappings.
@@ -77,3 +76,25 @@ in [patches/opencadcodec-viewports](../../../patches/opencadcodec-viewports/READ
 This changes the shared dependency configuration, not this route's native entity
 coverage. The [2026-10-05 audit](../../../docs/geometry/opencadcodec-update-2026-10-05.md)
 records the public-model delta and separates patched from upstream evidence.
+## Paper layout conversion boundary
+
+Native Paper names use full Unicode case folding; target CAD lookup additionally
+rejects uppercase collisions before allocation. Source tabs must be distinct and
+nonnegative, with Model at zero. Gaps normalize to contiguous Paper tabs with a
+Recovery diagnostic, preserving relative order. Native IDs and watermarks are
+independent of tab order. Only the fully default initial Layout1 scaffold is
+excluded; additional empty sheets remain authored.
+
+CAD paper dimensions are always millimetres. Positive finite dimensions map to
+an optional medium; invalid or partial dimensions omit only that medium with
+loss evidence. Explicit fixed 1:1 inch/mm mappings establish Paper coordinate
+units. Fully unconfigured unsized defaults are unitless; other authored mappings
+retain numeric coordinates as unitless with a loss diagnostic. Media never
+establish coordinate units and block instances are never implicitly rescaled.
+
+Native media convert through exact rational millimetre factors. Any binary64
+rounding is fatal under both policies (5 inches maps exactly to 127 mm; 1 inch
+cannot exactly map to binary64 25.4 mm). Unsupported factors such as parsecs omit
+only media under Allow. Printer/media names, margins, rotation, plot limits,
+canvas/viewports and workspace state remain deferred losses. Definition-content
+losses propagate to Paper instances through shared and nested definitions.

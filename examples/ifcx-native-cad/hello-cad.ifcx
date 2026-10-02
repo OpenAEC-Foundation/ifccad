@@ -55,7 +55,8 @@
       },
       "attributes": {
         "ifccad::layout": {
-          "kind": "Model"
+          "kind": "Model",
+          "tabIndex": 0
         }
       }
     },

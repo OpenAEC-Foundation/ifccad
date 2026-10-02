@@ -112,6 +112,34 @@ pub fn cad_document_to_ifcx_cad_document(
         });
     }
     // The current core projection enumerates dictionary paths lexicographically.
+    let mut paper_layouts = Vec::new();
+    for paper in &info.papers {
+        let opencadcodec::objects::ObjectType::Layout(layout) =
+            &source.objects[&paper.layout_handle]
+        else {
+            unreachable!("inspected layout")
+        };
+        debug_assert_eq!(layout.block_record, paper.block_handle);
+        let id = ids.allocate_layout_id().map_err(allocation_error)?;
+        mappings.layouts.insert(id, paper.layout_handle);
+        let (length_unit, medium) = crate::layouts::from_cad(layout, &mut issues);
+        let entities = convert_entities(
+            source,
+            &patterns,
+            &paper.entity_handles,
+            &mut ids,
+            &mut mappings,
+            &mut issues,
+        )?;
+        paper_layouts.push(IfcxCadPaperLayout {
+            id,
+            name: layout.name.clone(),
+            tab_index: paper.tab_index,
+            length_unit,
+            paper: medium,
+            entities,
+        });
+    }
     layers.sort_by_key(|l| l.id.to_string());
     blocks.sort_by_key(|b| b.id.to_string());
     for p in &line_patterns {
@@ -120,7 +148,17 @@ pub fn cad_document_to_ifcx_cad_document(
             .insert(p.id.0, source.line_types.get(&p.name).unwrap().handle);
     }
     line_patterns.sort_by_key(|p| p.id.0.to_string());
-    crate::loss::from_cad(source, &info.blocks, &info.entities, &mut issues);
+    crate::loss::from_cad(
+        source,
+        &info.blocks,
+        &info.entities,
+        &info
+            .papers
+            .iter()
+            .map(|p| p.entity_handles.as_slice())
+            .collect::<Vec<_>>(),
+        &mut issues,
+    );
     crate::diagnostics::enforce_policy(options.loss_policy, &issues)?;
     let drawing = IfcxCadDocument {
         header: metadata.header,
@@ -132,9 +170,10 @@ pub fn cad_document_to_ifcx_cad_document(
         layers,
         model: IfcxCadLayout {
             id: model_id,
+            tab_index: 0,
             entities,
         },
-        paper_layouts: vec![],
+        paper_layouts,
         blocks,
     };
     validate_ifcx_cad_document(&drawing).map_err(IfcxCadConversionError::CoreValidation)?;

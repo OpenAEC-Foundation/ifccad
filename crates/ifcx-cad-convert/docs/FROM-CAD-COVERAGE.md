@@ -42,7 +42,7 @@ Reimporting CAD does not restore a previous IFCX-CAD allocation history.
 | TextStyle/DimStyle/AppId/View/VPort/Ucs/Vx | Only default records, record handles normalized; additional/changed records diagnosed |
 | Classes | Default definitions only; normalize derived numbering/instance counts and version metadata |
 | Entities | Supported fields below; every other family diagnosed. Full inventory includes structural markers hidden by `entities()` |
-| Layout objects | Unique consistent Model link; pinned Model/Layout1 fields only. Validate viewport references; exclude derived extents and structural handles. Modified plot/UCS/layout fields or additional layouts diagnosed |
+| Layout objects | Unique bidirectional Model/Paper block links and ACAD_LAYOUT dictionary membership; names and tab order mapped. Media dimensions are millimetres, independently of plot units; optional media and bounded inch/mm coordinate mappings retained. Validate viewport references; exclude derived extents and structural handles. Other plot/UCS/layout fields diagnosed |
 | Other typed/unsupported objects | Compare pinned scaffold by named dictionary roles and typed values; additional/modified/unsupported objects diagnosed |
 | Summary/Preview | Changed summary or any preview diagnosed |
 | Relationships | Entity/marker/Layout ownership and typed drawing references remain structural checks. Unresolved ownership of omitted non-Layout objects is located loss, including object kind and owner handle. Reactors/extension dictionaries, including unresolved endpoints, are diagnosed losses rather than global structural failures |
@@ -56,10 +56,9 @@ authored style fields remain compared. Source identity/reference collisions fail
 The Model layout's `plot_flags.model_type` is also derived role bookkeeping:
 the DXF writer sets it from the Model name. Other plot flags remain diagnosed.
 
-An overall viewport is excluded only for the Layout1-linked ID-1 viewport with
+An overall viewport is excluded only for a Paper-layout-linked ID-1 viewport with
 all constructor-default values apart from verified owner/identity/storage fields.
-Authored view settings or dimensions fail that classification. Other Paper
-entities and extra layouts are omitted with diagnostics under Allow.
+Authored view settings or dimensions fail that classification. The pinned DWG reader leaves non-active viewport numbers at zero; a linked, otherwise fully default viewport is also scaffold in that backing. Authored viewports are omitted with diagnostics; supported Paper entities and extra empty or populated layouts are retained.
 This comparison includes the newly exposed `Viewport.off_screen`; true prevents
 the viewport from being silently classified as default scaffold.
 
@@ -139,3 +138,25 @@ in [patches/opencadcodec-viewports](../../../patches/opencadcodec-viewports/READ
 This changes the shared dependency configuration, not this route's native entity
 coverage. The [2026-10-05 audit](../../../docs/geometry/opencadcodec-update-2026-10-05.md)
 records the public-model delta and separates patched from upstream evidence.
+## Paper layout conversion boundary
+
+Native Paper names use full Unicode case folding; target CAD lookup additionally
+rejects uppercase collisions before allocation. Source tabs must be distinct and
+nonnegative, with Model at zero. Gaps normalize to contiguous Paper tabs with a
+Recovery diagnostic, preserving relative order. Native IDs and watermarks are
+independent of tab order. Only the fully default initial Layout1 scaffold is
+excluded; additional empty sheets remain authored.
+
+CAD paper dimensions are always millimetres. Positive finite dimensions map to
+an optional medium; invalid or partial dimensions omit only that medium with
+loss evidence. Explicit fixed 1:1 inch/mm mappings establish Paper coordinate
+units. Fully unconfigured unsized defaults are unitless; other authored mappings
+retain numeric coordinates as unitless with a loss diagnostic. Media never
+establish coordinate units and block instances are never implicitly rescaled.
+
+Native media convert through exact rational millimetre factors. Any binary64
+rounding is fatal under both policies (5 inches maps exactly to 127 mm; 1 inch
+cannot exactly map to binary64 25.4 mm). Unsupported factors such as parsecs omit
+only media under Allow. Printer/media names, margins, rotation, plot limits,
+canvas/viewports and workspace state remain deferred losses. Definition-content
+losses propagate to Paper instances through shared and nested definitions.

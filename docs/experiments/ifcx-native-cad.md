@@ -31,7 +31,7 @@ reader defect is resolved. Full inventory traversal is required: the ordinary CA
 entity iterator hides these structural markers.
 
 The direction-specific coverage contracts record default scaffold handling and
-unsupported semantics. Paper conversion, oblique parameterization, broader
+unsupported semantics. Authored viewport/full plot conversion, oblique parameterization, broader
 CAD/source preservation and optimized encoding remain
 deferred. These probes support suitability of the tested IFCX-CAD subset;
 they provide no broad losslessness, size or performance claim.
@@ -82,7 +82,7 @@ The proof also shows that a CAD profile remains necessary even if a shared IFCX 
 | IFCX integration | Passed locally | Unknown nodes and non-CAD attributes survive loading; another node may refer to a CAD path. The one versioned CAD schema import resolves offline; general or remote import resolution is not implemented. |
 | Validation | Passed for tested failures | Missing placement, duplicate ownership, child-key gap, invalid unit, unsupported geometry, missing schema and unused definition cycle fail. The reader is strict for this bounded profile, not a full IFCX validator. |
 | Geometry alignment | Documented, not established by interchange | Local circle aims at IFC4 analytic circle semantics; finite line segment differs from unbounded `IfcLine`; polyline bulges and widths have no tested mapping. |
-| CAD coverage | Partial | Core supports Model and Paper layouts with sheet dimensions and units; the converter covers a bounded Model subset through DWG/DXF. Viewports, plot settings, annotation, complex text/shape line patterns, indexed color identity, hatch, spline and preservation remain outside this experiment. |
+| CAD coverage | Partial | Core supports Model and Paper layouts with explicit tab order, separate coordinate units and optional physical media; the converter covers their bounded geometry subset through DWG/DXF. Viewports, plot settings, annotation, complex text/shape line patterns, indexed color identity, hatch, spline and preservation remain outside this experiment. |
 
 The [upstream IFCX alpha TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp) currently models a node as a path plus optional `children`, `inherits`, and `attributes`, with `schemas` describing individual attribute values. This prototype uses that shape and reads repeated path fragments. Its compact path convention and numeric child keys are local profile choices while IFCX path conventions and graph semantics evolve. The [upstream gap register](ifcx-upstream-gaps.md) records these and other assumptions, their broader uses, and relevant buildingSMART issues. A [composition probe](ifcx-composition-probe.md) found that the original reader rejected conflicts that the upstream composer resolved with the later value; the current reader follows that observed direction. The 0.1.0 identifier remains provisional, without a compatibility promise during this alpha experiment. The probe also found that the then-current slash-containing paths did not appear as roots in the upstream composer. The current paths omit the earlier angle brackets but still contain `/`; upstream expansion needs a fresh check. The schema import uses `urn:example`, a registered namespace for experiments; it is not a production publication address. The upstream examples are preliminary; compatibility with a later IFCX release requires renewed validation.
 

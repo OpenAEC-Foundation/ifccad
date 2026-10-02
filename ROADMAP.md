@@ -63,12 +63,12 @@ The experiment includes line, circle, planar polyline and local block geometry,
 native Model/Paper layouts, named simple line patterns, scales and polyline
 pattern generation, with strict readback and pinned DXF/DWG tests.
 Allow/Reject conversion policies expose or reject supported loss classifications.
-Authored paperspace, viewport and plot conversion remain deferred; complex
+Model and multiple Paper layouts now convert with explicit tab order, optional physical media and separate coordinate units. Authored viewport and full plot conversion remain deferred; complex
 text/shape patterns use a diagnosed whole-definition fallback under Allow.
 This integration does not freeze IFCX-CAD compatibility or expand the standalone
 OCDraw contract. Continued IFCX-CAD development expands drawing semantics and
 conversion coverage in bounded slices, including later text, annotations and
-authored paper/view/plot state. Its long-term direction is a CAD drawing module
+authored view/plot state. Its long-term direction is a CAD drawing module
 that can participate in the evolving IFCX ecosystem. IFC object associations,
 source-graph writeback and collaborative updates require concrete future designs.
 

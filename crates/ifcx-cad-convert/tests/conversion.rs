@@ -72,16 +72,27 @@ fn empty_roundtrip_keeps_unit_and_unused_layer() {
 }
 
 #[test]
-fn authored_paper_is_rejected_but_default_scaffold_is_not() {
+fn authored_unsized_paper_is_retained_and_default_scaffold_is_not() {
     let mut c = cad();
     from_cad(&c, metadata()).unwrap();
     c.add_paper_space_entity(opencadcodec::EntityType::Line(
         opencadcodec::Line::from_coords(0., 0., 0., 1., 0., 0.),
     ))
     .unwrap();
-    assert!(
-        matches!(from_cad(&c,metadata()),Err(IfcxCadConversionError::Unsupported(d)) if d.iter().any(|d|d.code=="paper"))
+    let restored = from_cad(&c, metadata()).unwrap();
+    assert_eq!(
+        restored.validated_source().document().paper_layouts.len(),
+        1
     );
+    assert_eq!(
+        restored.validated_source().document().paper_layouts[0]
+            .entities
+            .len(),
+        1
+    );
+    assert!(restored.validated_source().document().paper_layouts[0]
+        .paper
+        .is_none());
 }
 #[test]
 fn ambiguous_model_owner_is_fatal() {
