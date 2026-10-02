@@ -3,6 +3,28 @@ use serde_json::{json, Value};
 
 const HELLO: &[u8] = include_bytes!("../examples/ifcx-native-cad/hello-cad.ifcx");
 
+#[test]
+fn encoder_validation_retains_original_report() {
+    use std::error::Error;
+
+    let mut document = load_ifcx_cad_bytes(HELLO, Default::default())
+        .unwrap()
+        .into_document();
+    document.header.id.clear();
+    let expected = validate_ifcx_cad_document(&document).unwrap_err();
+    assert_eq!(expected.errors, ["incomplete IFCX header"]);
+    let error = encode_ifcx_cad_document(&document).unwrap_err();
+    let IfcxCadEncodeError::InvalidDocument(report) = &error else {
+        panic!("expected logical validation phase");
+    };
+    assert_eq!(report, &expected);
+    assert_eq!(error.report(), Some(&expected));
+    assert_eq!(
+        error.source().unwrap().downcast_ref::<IfcxCadReport>(),
+        Some(&expected)
+    );
+}
+
 fn foreign_source() -> Vec<u8> {
     let mut source: Value = serde_json::from_slice(HELLO).unwrap();
     source["imports"]

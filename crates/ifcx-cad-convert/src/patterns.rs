@@ -153,7 +153,7 @@ pub(crate) fn from_cad(
         }
         let id = ids
             .allocate_line_pattern_id()
-            .map_err(|error| IfcxCadConversionError::CoreValidation(error.to_string()))?;
+            .map_err(IfcxCadConversionError::IdAllocation)?;
         definitions.push(IfcxCadLinePattern {
             id,
             name: p.name.clone(),
@@ -231,4 +231,33 @@ pub(crate) fn target(
             .clone(),
         h,
     )
+}
+
+#[cfg(test)]
+mod error_tests {
+    use super::*;
+    use std::error::Error;
+
+    #[test]
+    fn pattern_allocation_exhaustion_retains_domain_and_source() {
+        let mut ids = IfcxCadIdCounters {
+            next_line_pattern_id: u64::MAX,
+            ..Default::default()
+        };
+        let error = from_cad(&CadDocument::new(), &mut ids, &mut Vec::new())
+            .err()
+            .expect("exhausted pattern IDs");
+        let IfcxCadConversionError::IdAllocation(source) = &error else {
+            panic!("expected typed pattern allocation failure");
+        };
+        assert_eq!(source.domain, IfcxCadIdDomain::LinePattern);
+        assert_eq!(
+            error
+                .source()
+                .unwrap()
+                .downcast_ref::<IfcxCadIdAllocationError>(),
+            Some(source)
+        );
+        assert_eq!(ids.next_line_pattern_id, u64::MAX);
+    }
 }

@@ -7,6 +7,13 @@ production loading. Coverage, loss acceptance, recoveries and fresh ID
 allocation are shared. Encoding creates a new CAD-profile file; no source graph
 writeback is performed.
 
+Logical document validation returns `CoreValidation(IfcxCadReport)`; encoded
+routes retain core encoder phases in `CoreEncoding(IfcxCadEncodeError)`.
+Their additional production load returns `CoreReadback(IfcxCadReadError)`.
+Checked allocation exhaustion returns `IdAllocation(IfcxCadIdAllocationError)`
+with the affected domain. Payloads and error sources remain typed; these
+categories do not change Allow/Reject or the supported source subset.
+
 Pinned semantic inventory V1, opencadcodec
 `fe69506cb99dea6f4c4a73b690a27fdf04403ea0`. Exhaustive matches classify every
 inventory category. Serde residual checks cover fields plus typed comparisons

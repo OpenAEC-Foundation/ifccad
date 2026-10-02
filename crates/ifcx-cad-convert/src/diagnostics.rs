@@ -1,4 +1,7 @@
 use crate::IfcxCadLossPolicy;
+use ocdraw::ifcx_cad::{
+    IfcxCadEncodeError, IfcxCadIdAllocationError, IfcxCadReadError, IfcxCadReport,
+};
 /// What happened to the located source information.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum IfcxCadDiagnosticAction {
@@ -23,6 +26,7 @@ impl IfcxCadDiagnostic {
     }
 }
 
+/// Conversion failure retaining the core phase and original typed cause.
 #[derive(Debug, thiserror::Error)]
 pub enum IfcxCadConversionError {
     #[error("invalid CAD structure: {0}")]
@@ -30,7 +34,13 @@ pub enum IfcxCadConversionError {
     #[error("unsupported conversion content: {0:?}")]
     Unsupported(Vec<IfcxCadDiagnostic>),
     #[error("IFCX-CAD validation failed: {0}")]
-    CoreValidation(String),
+    CoreValidation(#[source] IfcxCadReport),
+    #[error("IFCX-CAD encoding failed: {0}")]
+    CoreEncoding(#[from] IfcxCadEncodeError),
+    #[error("IFCX-CAD readback failed: {0}")]
+    CoreReadback(#[source] IfcxCadReadError),
+    #[error("IFCX-CAD ID allocation failed: {0}")]
+    IdAllocation(#[from] IfcxCadIdAllocationError),
     #[error("CAD construction failed: {0}")]
     CadConstruction(String),
 }

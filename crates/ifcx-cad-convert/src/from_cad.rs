@@ -12,9 +12,9 @@ pub fn cad_document_to_encoded_ifcx_cad(
 ) -> Result<CadToEncodedIfcxCadOutcome, IfcxCadConversionError> {
     let logical = cad_document_to_ifcx_cad_document(source, metadata, options)?;
     let encoded = encode_ifcx_cad_document(&logical.document)
-        .map_err(|e| IfcxCadConversionError::CoreValidation(format!("{e:?}")))?;
+        .map_err(IfcxCadConversionError::CoreEncoding)?;
     let validated = load_ifcx_cad_bytes(encoded.bytes(), Default::default())
-        .map_err(|e| IfcxCadConversionError::CoreValidation(format!("{e:?}")))?;
+        .map_err(IfcxCadConversionError::CoreReadback)?;
     Ok(CadToEncodedIfcxCadOutcome {
         validated,
         encoded,
@@ -137,8 +137,7 @@ pub fn cad_document_to_ifcx_cad_document(
         paper_layouts: vec![],
         blocks,
     };
-    validate_ifcx_cad_document(&drawing)
-        .map_err(|e| IfcxCadConversionError::CoreValidation(format!("{e:?}")))?;
+    validate_ifcx_cad_document(&drawing).map_err(IfcxCadConversionError::CoreValidation)?;
     Ok(CadToIfcxCadDocumentOutcome {
         document: drawing,
         diagnostics: issues.into_iter().chain(info.recoveries).collect(),
@@ -146,7 +145,7 @@ pub fn cad_document_to_ifcx_cad_document(
     })
 }
 fn allocation_error(error: IfcxCadIdAllocationError) -> IfcxCadConversionError {
-    IfcxCadConversionError::CoreValidation(error.to_string())
+    IfcxCadConversionError::IdAllocation(error)
 }
 
 fn convert_entities(
@@ -204,4 +203,40 @@ fn convert_entities(
         }
     }
     Ok(entities)
+}
+
+#[cfg(test)]
+mod error_tests {
+    use super::*;
+    use std::error::Error;
+
+    #[test]
+    fn allocation_exhaustion_retains_domain_and_source() {
+        let mut ids = IfcxCadIdCounters {
+            next_entity_id: u64::MAX,
+            next_layer_id: u64::MAX,
+            next_layout_id: u64::MAX,
+            next_block_id: u64::MAX,
+            next_line_pattern_id: u64::MAX,
+        };
+        for (result, domain) in [
+            (ids.allocate_entity_id(), IfcxCadIdDomain::Entity),
+            (ids.allocate_layer_id(), IfcxCadIdDomain::Layer),
+            (ids.allocate_layout_id(), IfcxCadIdDomain::Layout),
+            (ids.allocate_block_id(), IfcxCadIdDomain::Block),
+        ] {
+            let error = allocation_error(result.unwrap_err());
+            let IfcxCadConversionError::IdAllocation(source) = &error else {
+                panic!("expected typed allocation failure");
+            };
+            assert_eq!(source.domain, domain);
+            assert_eq!(
+                error
+                    .source()
+                    .unwrap()
+                    .downcast_ref::<IfcxCadIdAllocationError>(),
+                Some(source)
+            );
+        }
+    }
 }

@@ -8,6 +8,12 @@ Those additional diagnostics and their Allow/Reject enforcement remain intact;
 applications assessing a full IFCX source must use the loaded-source routes.
 Original input bytes and composed graph remain immutable in `LoadedIfcxGraph`.
 
+Invalid logical input returns `CoreValidation(IfcxCadReport)` with its original
+diagnostics. The loaded-source route's canonical encoder failures return
+`CoreEncoding(IfcxCadEncodeError)`, retaining validation, serialization,
+production-readback and semantic-mismatch phases. Error sources remain typed;
+this changes Rust error handling, not graph-aware loss or precision assessment.
+
 Profile `urn:example:ifccad:0.1.0`; opencadcodec revision
 `fe69506cb99dea6f4c4a73b690a27fdf04403ea0`. Default Allow returns supported content
 with losses; explicit Reject refuses diagnosed omissions or modifications.

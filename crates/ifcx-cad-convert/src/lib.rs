@@ -17,7 +17,7 @@
 //! let logical = cad_document_to_ifcx_cad_document(source, metadata, Default::default())?;
 //! let cad = ifcx_cad_document_to_cad_document(logical.document(), Default::default())?;
 //! let bytes = encode_ifcx_cad_document(logical.document())
-//!     .map_err(|e| IfcxCadConversionError::CoreValidation(format!("{e:?}")))?;
+//!     .map_err(IfcxCadConversionError::CoreEncoding)?;
 //! # let _ = (cad, bytes);
 //! # Ok(())
 //! # }

@@ -99,6 +99,8 @@ fn logical_and_encoded_imports_have_equivalent_documents_diagnostics_and_mapping
 
 #[test]
 fn invalid_direct_document_never_reaches_cad_construction() {
+    use std::error::Error;
+
     for policy in [IfcxCadLossPolicy::Allow, IfcxCadLossPolicy::Reject] {
         for change in 0..3 {
             let mut document = primitives();
@@ -110,23 +112,94 @@ fn invalid_direct_document_never_reaches_cad_construction() {
                     .entities
                     .push(document.model.entities[0].clone()),
             }
-            assert!(matches!(
-                ifcx_cad_document_to_cad_document(
-                    &document,
-                    IfcxCadToCadOptions {
-                        loss_policy: (options(policy)).loss_policy
-                    }
-                ),
-                Err(IfcxCadConversionError::CoreValidation(_))
-            ));
+            let expected = validate_ifcx_cad_document(&document).unwrap_err();
+            let error = ifcx_cad_document_to_cad_document(
+                &document,
+                IfcxCadToCadOptions {
+                    loss_policy: policy,
+                },
+            )
+            .err()
+            .expect("invalid document");
+            let IfcxCadConversionError::CoreValidation(report) = &error else {
+                panic!("expected logical validation phase");
+            };
+            assert_eq!(report, &expected);
+            assert_eq!(
+                error.source().unwrap().downcast_ref::<IfcxCadReport>(),
+                Some(&expected)
+            );
         }
         let mut bad_metadata = metadata();
         bad_metadata.header.id.clear();
-        assert!(matches!(
-            cad_document_to_ifcx_cad_document(&cad(), bad_metadata, options(policy)),
-            Err(IfcxCadConversionError::CoreValidation(_))
-        ));
+        for error in [
+            cad_document_to_ifcx_cad_document(&cad(), bad_metadata.clone(), options(policy))
+                .err()
+                .expect("invalid metadata"),
+            cad_document_to_encoded_ifcx_cad(&cad(), bad_metadata.clone(), options(policy))
+                .err()
+                .expect("invalid metadata"),
+        ] {
+            let IfcxCadConversionError::CoreValidation(report) = &error else {
+                panic!("metadata validation precedes encoding");
+            };
+            assert_eq!(report.errors, ["incomplete IFCX header"]);
+            assert_eq!(
+                error.source().unwrap().downcast_ref::<IfcxCadReport>(),
+                Some(report)
+            );
+        }
     }
+}
+
+#[test]
+fn conversion_wrappers_retain_phase_and_source() {
+    use std::error::Error;
+
+    let report = IfcxCadReport {
+        errors: vec!["first failure".into(), "second failure".into()],
+    };
+    let validation = IfcxCadConversionError::CoreValidation(report.clone());
+    assert_eq!(
+        validation.source().unwrap().downcast_ref::<IfcxCadReport>(),
+        Some(&report)
+    );
+    let readback = IfcxCadConversionError::CoreReadback(IfcxCadReadError::from(report.clone()));
+    let source = readback
+        .source()
+        .unwrap()
+        .downcast_ref::<IfcxCadReadError>()
+        .unwrap();
+    assert_eq!(source.report(), &report);
+    assert_eq!(
+        source.source().unwrap().downcast_ref::<IfcxCadReport>(),
+        Some(&report)
+    );
+    assert!(matches!(
+        validation,
+        IfcxCadConversionError::CoreValidation(_)
+    ));
+    assert!(matches!(readback, IfcxCadConversionError::CoreReadback(_)));
+
+    let encoding = IfcxCadConversionError::CoreEncoding(IfcxCadEncodeError::Readback(
+        IfcxCadReadError::from(report.clone()),
+    ));
+    let source = encoding
+        .source()
+        .unwrap()
+        .downcast_ref::<IfcxCadEncodeError>()
+        .unwrap();
+    assert!(matches!(source, IfcxCadEncodeError::Readback(_)));
+    assert_eq!(source.report(), Some(&report));
+    let reader = source
+        .source()
+        .unwrap()
+        .downcast_ref::<IfcxCadReadError>()
+        .unwrap();
+    assert_eq!(
+        reader.source().unwrap().downcast_ref::<IfcxCadReport>(),
+        Some(&report)
+    );
 }
 
 #[test]

@@ -109,6 +109,23 @@ remain unchanged. Fresh CAD imports allocate fresh native IDs; a CAD-runtime
 roundtrip does not preserve native allocation history automatically. Authored
 Paper CAD conversion remains deferred, with located loss diagnostics.
 
+## Typed failures
+
+`IfcxCadReport` retains the full ordered diagnostic list. `IfcxCadReadError`
+exposes it through `report()` and `std::error::Error::source()`.
+`IfcxCadEncodeError` distinguishes logical `InvalidDocument`, JSON
+`Serialization`, production-reader `Readback` and valid-reader
+`SemanticMismatch` failures. Every variant retains its original typed cause;
+`report()` remains available when the phase has a validation report.
+
+Conversion distinguishes `CoreValidation(IfcxCadReport)`,
+`CoreEncoding(IfcxCadEncodeError)`, `CoreReadback(IfcxCadReadError)` and
+`IdAllocation(IfcxCadIdAllocationError)`. Validation applies to logical input;
+encoding includes its own strict readback; conversion readback identifies the
+additional production load after encoding. Matching variants or following
+`source()` avoids parsing presentation strings. Existing loss policies and
+native file semantics are unchanged.
+
 ## Deferred source writeback
 
 Updating the original IFCX graph from an edited CAD projection requires a later

@@ -12,8 +12,8 @@ pub fn ifcx_cad_source_to_cad_document(
     options: IfcxCadToCadOptions,
 ) -> Result<IfcxCadToCadOutcome, IfcxCadConversionError> {
     let drawing = source.document();
-    let canonical = encode_ifcx_cad_document(drawing)
-        .map_err(|e| IfcxCadConversionError::CoreValidation(format!("{e:?}")))?;
+    let canonical =
+        encode_ifcx_cad_document(drawing).map_err(IfcxCadConversionError::CoreEncoding)?;
     let canonical: serde_json::Value =
         serde_json::from_slice(canonical.bytes()).expect("writer JSON");
     let mut issues = Vec::new();
@@ -36,8 +36,7 @@ pub fn ifcx_cad_document_to_cad_document(
     source: &IfcxCadDocument,
     options: IfcxCadToCadOptions,
 ) -> Result<IfcxCadToCadOutcome, IfcxCadConversionError> {
-    validate_ifcx_cad_document(source)
-        .map_err(|e| IfcxCadConversionError::CoreValidation(format!("{e:?}")))?;
+    validate_ifcx_cad_document(source).map_err(IfcxCadConversionError::CoreValidation)?;
     convert_document(source, options, Vec::new())
 }
 

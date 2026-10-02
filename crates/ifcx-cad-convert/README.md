@@ -7,8 +7,8 @@ package, block explosion or appearance resolver is used.
 This incomplete adapter defaults to **Allow**: supported content is returned
 with located diagnostics for omissions and modifications. **Reject** refuses
 any diagnosed semantic loss. Errors distinguish invalid structure, unsupported
-content, core validation and CAD construction. It makes no losslessness claim
-for arbitrary CAD files or IFCX graphs.
+content, core validation, encoding, output readback, ID allocation and CAD
+construction. It makes no losslessness claim for arbitrary CAD files or IFCX graphs.
 
 ## API
 
@@ -47,6 +47,18 @@ fn convert(source: &ValidatedIfcxCad, metadata: IfcxCadTargetMetadata)
 
 Target header and drawing ID are caller supplied. Outcomes expose diagnostics
 and mappings; CAD outcomes also offer `into_document()`.
+
+The experimental Rust API retains typed failure payloads:
+`CoreValidation(IfcxCadReport)` replaces `CoreValidation(String)`;
+`CoreEncoding(IfcxCadEncodeError)` distinguishes invalid input, serialization,
+production-readback rejection and semantic readback mismatch;
+`CoreReadback(IfcxCadReadError)` covers the converter's additional production load;
+and `IdAllocation(IfcxCadIdAllocationError)` identifies the exhausted domain.
+All four expose their underlying error through `std::error::Error::source()`.
+The reader error retains its report through both `report()` and `source()`.
+Update Rust error matches; native files and conversion policies are unchanged.
+Diagnostic strings remain available for presentation.
+
 Use `IfcxCadToCadOptions { loss_policy: IfcxCadLossPolicy::Reject }` for
 source/document-to-CAD conversion and `CadToIfcxCadOptions` with the same
 policy for conversion from CAD. These are distinct direction-specific types. `IfcxCadDiagnosticAction` distinguishes `Omitted`, `Modified` and

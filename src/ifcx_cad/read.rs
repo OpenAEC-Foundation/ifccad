@@ -30,7 +30,7 @@ pub struct IfcxCadReadOptions {
     pub composition_policy: IfcxCompositionPolicy,
 }
 #[derive(Clone, Debug, thiserror::Error)]
-#[error(transparent)]
+#[error("{0}")]
 pub struct IfcxCadReadError(#[from] IfcxCadReport);
 impl IfcxCadReadError {
     pub fn report(&self) -> &IfcxCadReport {
