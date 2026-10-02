@@ -1,9 +1,22 @@
-# OCDraw development roadmap
+# OCDraw and IFCX-CAD development roadmap
 
 This document is authoritative for development sequencing and milestone status
 in this repository. Schemas and conformance define the format contract;
 Rust code and tests define implementation behavior. README summarizes this
 sequence and must be updated with it.
+
+## Parallel development tracks
+
+This repository actively develops standalone OCDraw and the independent
+IFCX-CAD profile. The initial OCDraw sequence below retains its architectural
+dependencies and completion criteria. IFCX-CAD has its own provisional contract
+and coverage progression; either route can continue independently.
+
+Consider CAD semantics together, with reference drawings and validation evidence
+reused where applicable. Each model, schema, reader, writer and conversion route
+keeps its own contract. New support is verified separately; feature parity is
+not assumed or required before either route can progress. OCDraw opening remains
+independent of IFCX.
 
 ## Initial OCDraw contract
 
@@ -40,7 +53,7 @@ own concrete designs. They may later use extension points within OCDraw;
 there is no current preservation resource or generic extension protocol to
 standardize ahead of a use case.
 
-## Independent IFCX-CAD experiment - integrated
+## IFCX-CAD development track
 
 The CAD-native-in-IFCX implementation and browser inspection route coexist on
 main with standalone OCDraw. Native IFCX-CAD opening, composed graph inspection
@@ -53,7 +66,11 @@ Allow/Reject conversion policies expose or reject supported loss classifications
 Authored paperspace, viewport and plot conversion remain deferred; complex
 text/shape patterns use a diagnosed whole-definition fallback under Allow.
 This integration does not freeze IFCX-CAD compatibility or expand the standalone
-OCDraw contract. Later IFCX-CAD coverage remains an independent follow-up.
+OCDraw contract. Continued IFCX-CAD development expands drawing semantics and
+conversion coverage in bounded slices, including later text, annotations and
+authored paper/view/plot state. Its long-term direction is a CAD drawing module
+that can participate in the evolving IFCX ecosystem. IFC object associations,
+source-graph writeback and collaborative updates require concrete future designs.
 
 ## Later semantic coverage and exchange
 
@@ -61,6 +78,10 @@ Expand supported CAD entity families and authored drawing semantics with
 language-neutral rules, shared validation, production readback and actual
 DXF/DWG tests. Diagnose losses and target restrictions. Review conversion
 coverage whenever the pinned CAD codec public model changes.
+
+Consider the meaning and reference cases of new CAD features across both tracks,
+then implement each format's explicit mapping and coverage. Keep unsupported
+families and numerical policies visible in the separate converter contracts.
 
 The named simple line-pattern slice adds drawing-local definitions (including
 Continuous), local references, global/entity scale and polyline generation.
@@ -79,6 +100,14 @@ encoding may use shared buffers/ranges without changing ownership meaning.
 Historical package benchmarks remain retained evidence for their old corpus;
 the [standalone OCDraw report](docs/benchmarks/ocdraw-size-exchange-v1.md)
 records its own applicable results.
+
+Compact, directly openable storage is an adoption goal for both tracks. Compare
+size, full/partial opening time and peak/resident memory on representative
+drawings before selecting binary storage, integrated compression or indexed
+chunks. OCDraw can explore its own storage choices; IFCX-CAD storage experiments
+must identify compatibility boundaries and coordinate with evolving IFCX
+technology. Current JSON/gzip probes do not establish native compressed formats
+or future IFCX capabilities.
 
 ## Verification and freeze criteria
 

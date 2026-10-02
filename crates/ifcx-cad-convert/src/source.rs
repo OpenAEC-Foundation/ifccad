@@ -625,16 +625,40 @@ fn scan(doc: &CadDocument, issues: &mut Vec<IfcxCadDiagnostic>) -> Result<(), Er
                 ));
             }
         }
-        SemanticPartV1::NonEntityExtendedData { .. } => issues.push(diagnostic(
-            "xdata",
-            "inventory",
-            "non-entity extended data is unsupported",
-        )),
+        SemanticPartV1::NonEntityExtendedData { owner, application, values } => {
+            // The codec retains this layer opacity encoding as EED after DWG
+            // readback. Accept only an exact duplicate of the mapped typed value.
+            let duplicate = layer_transparency_duplicate(
+                owner, application.map(|a| a.name.as_str()), values.as_deref(),
+            );
+            if !duplicate {
+                issues.push(diagnostic(
+                    "xdata", "inventory", "non-entity extended data is unsupported",
+                ));
+            }
+        }
     });
     if let Some(problem) = unresolved {
         return Err(Error::InvalidStructure(problem));
     }
     Ok(())
+}
+
+fn layer_transparency_duplicate(
+    owner: SemanticReferenceV1<'_>,
+    application: Option<&str>,
+    values: Option<&[opencadcodec::xdata::XDataValue]>,
+) -> bool {
+    match (owner, application, values) {
+        (
+            SemanticReferenceV1::Resolved(SemanticNodeV1::TableRecord(
+                SemanticTableRecordV1::Layer(layer),
+            )),
+            Some("AcCmTransparency"),
+            Some([opencadcodec::xdata::XDataValue::Integer32(value)]),
+        ) => layer.transparency.is_explicit() && *value == layer.transparency.to_dxf_value(),
+        _ => false,
+    }
 }
 
 fn relationship_source(
@@ -772,5 +796,58 @@ fn scaffold_object(
             a == *b
         }
         _ => o == b,
+    }
+}
+
+#[cfg(test)]
+mod transparency_tests {
+    use super::*;
+    use opencadcodec::xdata::XDataValue;
+
+    #[test]
+    fn transparency_encoding_requires_exact_owner_application_and_payload() {
+        let mut layer = opencadcodec::tables::Layer::new("example");
+        layer.transparency = opencadcodec::Transparency::Explicit(128);
+        let owner = SemanticReferenceV1::Resolved(SemanticNodeV1::TableRecord(
+            SemanticTableRecordV1::Layer(&layer),
+        ));
+        let valid = [XDataValue::Integer32(33_554_559)];
+        assert!(layer_transparency_duplicate(
+            owner,
+            Some("AcCmTransparency"),
+            Some(&valid)
+        ));
+        for payload in [
+            None,
+            Some(vec![]),
+            Some(vec![XDataValue::Integer32(33_554_483)]),
+            Some(vec![XDataValue::String("33554559".into())]),
+            Some(vec![valid[0].clone(), XDataValue::Integer32(1)]),
+            // The DWG packed flag is not the canonical layer XDATA flag.
+            Some(vec![XDataValue::Integer32(50_331_775)]),
+        ] {
+            assert!(!layer_transparency_duplicate(
+                owner,
+                Some("AcCmTransparency"),
+                payload.as_deref()
+            ));
+        }
+        for application in [None, Some("ACAD"), Some("accmtransparency")] {
+            assert!(!layer_transparency_duplicate(
+                owner,
+                application,
+                Some(&valid)
+            ));
+        }
+        for wrong_owner in [
+            SemanticReferenceV1::Unresolved,
+            SemanticReferenceV1::Resolved(SemanticNodeV1::Document),
+        ] {
+            assert!(!layer_transparency_duplicate(
+                wrong_owner,
+                Some("AcCmTransparency"),
+                Some(&valid)
+            ));
+        }
     }
 }

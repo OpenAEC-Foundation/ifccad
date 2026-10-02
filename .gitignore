@@ -14,3 +14,5 @@ Cargo.lock
 Thumbs.db
 /docs/superpowers/
 /.superpowers/
+
+__pycache__/

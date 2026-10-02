@@ -12,3 +12,10 @@ ifcx-cad-convert = { path = "../ifcx-cad-convert" }
 serde_json = "1"
 base64 = "0.22"
 time = { version = "0.3", features = ["formatting"] }
+
+[dev-dependencies]
+serde = { version = "1", features = ["derive"] }
+
+[[example]]
+name = "size_exchange"
+test = true

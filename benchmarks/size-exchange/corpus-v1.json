@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "unit": "mm",
+  "cases": [
+    { "id": "empty", "family": "line", "count": 0 },
+    { "id": "lines-100", "family": "line", "count": 100 },
+    { "id": "lines-10000", "family": "line", "count": 10000 },
+    { "id": "fractional-lines-1000", "family": "fractional", "count": 1000 },
+    { "id": "straight-polylines-100", "family": "polyline", "count": 100 },
+    { "id": "straight-polylines-10000", "family": "polyline", "count": 10000 },
+    { "id": "circles-1000", "family": "circle", "count": 1000 },
+    { "id": "nested-shared-blocks", "family": "blocks", "count": 3 },
+    { "id": "named-line-patterns", "family": "patterns", "count": 128 }
+  ]
+}

@@ -3,8 +3,10 @@
 The current application opens one standalone OCDraw or experimental IFCX-CAD
 file, or converts one DXF/DWG file to the selected drawing format. It displays
 validated records and diagnostics and can download the selected native format,
-DXF or DWG. Drawing preview embeds Open CAD Studio. The former
-IFCX package explorer is retired on this branch.
+DXF or DWG. Drawing preview embeds Open CAD Studio. The selectable routes support
+parallel OCDraw and IFCX-CAD development, with their own models, validation and
+coverage. Support in one route does not imply support in the other. The former
+IFCX package explorer is retired.
 
 All inspection and conversion runs in the browser through WebAssembly. Selected
 files stay on the device; the website exposes no upload or native processing API.

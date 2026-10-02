@@ -1,12 +1,22 @@
-# Open CAD Drawing (OCDraw)
+# OCDraw and IFCX-CAD
 
 **Website: [Open CAD Drawing explorer](https://ifccad-explorer.open-aec.com)**
 
-An open, application-independent information model and exchange format for CAD
-drawings. This experimental repository keeps the IFCCAD name and develops
-standalone OCDraw.
+Two experimental, open drawing formats developed in parallel within OpenAEC.
+This repository keeps its historical IFCCAD name.
 
-A drawing contains typed geometric entities, layers, layouts, entity appearance
+| Format | Direction | Contract and implementation |
+| --- | --- | --- |
+| **OCDraw** | A standalone, application-independent CAD drawing model, with direct control over storage and performance | [Contract](schemas/ocdraw), [core](src/ocdraw), [CAD conversion](crates/ocdraw-convert/README.md) |
+| **IFCX-CAD** | A CAD drawing profile using IFCX structure and composition, exploring a place for drawings in the evolving IFCX ecosystem | [Experimental contract](schemas/ifcx-native-cad/experimental-contract-0.1.0.md), [core](src/ifcx_cad), [CAD conversion](crates/ifcx-cad-convert/README.md) |
+
+Both routes develop typed drawing content, strict validation and explicit CAD
+conversion diagnostics. Their models, schemas and encoding routes stay separate.
+OCDraw opens independently of IFCX. Current capabilities differ; support in one
+route does not establish support in the other. IFCX-CAD is a provisional profile,
+not an official buildingSMART CAD standard.
+
+An OCDraw drawing contains typed geometric entities, layers, layouts, entity appearance
 choices, named simple line patterns, shared block definitions, and drawing-bound state. It opens without
 IFCX. The JSON format marker is `open_cad_drawing`. The initial 0.1.0 contract
 and entity schema v1 are provisional until contract completion and verification.
@@ -19,14 +29,17 @@ and entity schema v1 are provisional until contract completion and verification.
 - `src/ocdraw/logical`: typed model and shared semantic validation.
 - `src/ocdraw/codec/json`: physical fields, column packing, decoding and encoding.
 - `src/ocdraw/read.rs`, `build.rs`, `build/`: validated access and typed construction.
+- `src/ifcx_cad` and `schemas/ifcx-native-cad`: separate IFCX-CAD model,
+  source graph, validation, profile and encoding.
 - Both cores separate `encode.rs` orchestration, `codec/` physical mapping and
   `storage.rs` file IO; see [API conventions and migration](docs/model-io-conventions.md).
 - `crates/ocdraw-convert`: conversion between OCDraw and pinned opencadcodec
   `CadDocument`; DXF/DWG IO remains a CAD codec responsibility. Both converters
   use pinned upstream opencadcodec under its upstream name.
+- `crates/ifcx-cad-convert`: the independent IFCX-CAD conversion route.
 - `crates/ocdraw-viewer`, `crates/ocdraw-browser`: file inspection/conversion
   adapters. The inspector presents data and can embed Open CAD Studio to view
-  original CAD and generated CAD via OCDraw; see [website](format-explorer/README.md).
+  original CAD and generated CAD through either route; see [website](format-explorer/README.md).
 
 Reader and writer use shared logical validation. Generated outputs are loaded
 through the production reader. CAD conversion consumes typed drawing values,
@@ -47,7 +60,25 @@ scale and polyline generation. Complex text/shape patterns become named continuo
 patterns with loss evidence under Allow; Reject refuses this fallback.
 Unsupported conversion semantics are diagnosed or rejected. Numerical accuracy
 has a hard unit-aware tolerance, including nested block occurrences. See
-[converter coverage](crates/ocdraw-convert/docs/COVERAGE.md) for limits.
+[export coverage](crates/ocdraw-convert/docs/FROM-CAD-COVERAGE.md) and
+[import coverage](crates/ocdraw-convert/docs/TO-CAD-COVERAGE.md) for limits.
+
+## Parallel development
+
+OCDraw and IFCX-CAD are active development tracks. CAD semantics are considered
+together and implemented against each format's own contract. Reference drawings,
+strict readback and comparable retained-content measurements inform both tracks.
+Each route can expand at its own pace while keeping coverage differences visible.
+
+OCDraw focuses on standalone CAD functionality and measured storage/performance
+improvements. IFCX-CAD explores drawing integration with IFCX identity,
+relationships and composition. Future IFC associations, incremental collaboration
+and efficient IFCX storage require concrete designs and upstream coordination;
+they are not current capability claims.
+
+Compact, directly openable files are an adoption goal for both routes. Physical
+encoding choices follow measured size, opening time and memory use. Binary storage
+and compression per part remain options to investigate, not selected contracts.
 
 ## Development sequence
 
@@ -91,10 +122,14 @@ cargo test --workspace
 
 Controlled measurements have separate reproduction instructions under
 `docs/benchmarks`; historical IFCCAD ratios do not measure standalone OCDraw.
+The repeatable [four-format experiment](benchmarks/size-exchange/README.md)
+compares OCDraw, IFCX-CAD, DXF and DWG with identical retained content. See the
+[synthetic/foundation report](docs/benchmarks/common-subset-size-exchange-v1.md)
+and [large DXF report](docs/benchmarks/common-subset-test-dxf-v1.md).
 Licensed under [MPL-2.0](LICENSE).
 
 
-## IFCX-native experiment and local maintenance
+## IFCX-CAD capabilities and resources
 
 The independent IFCX-CAD proof is available in
 `src/ifcx_cad`, with its [experimental contract](schemas/ifcx-native-cad/experimental-contract-0.1.0.md),
@@ -107,6 +142,8 @@ the two drawing models, schemas and encoding routes remain separate. The
 [Open CAD Drawing explorer](format-explorer/README.md) now opens IFCX-CAD and
 roundtrips through DXF/DWG using its own converter. Paper layouts can be stored
 natively; authored paperspace and viewport conversion remain deferred.
+
+## Local maintenance
 
 Run `pwsh -NoProfile -File scripts/cleanup_local.ps1` to audit local worktrees
 and build caches. Removal requires an explicitly selected, unused worktree;

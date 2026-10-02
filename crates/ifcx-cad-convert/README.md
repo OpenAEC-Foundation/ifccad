@@ -65,6 +65,11 @@ IDs, including legacy numeric zero, and advanced watermarks; deletion never
 resets them. Reimporting DWG/DXF creates a new allocation history, and conversion
 mappings do not themselves persist that history inside the CAD file.
 
+The source inventory accepts a layer's canonical `AcCmTransparency` XDATA only
+when its single Integer32 exactly duplicates the mapped explicit layer transparency.
+This is an alternate encoding of supported opacity, with no source mutation or
+repair. Other owners, values, applications and undecodable payloads remain losses.
+
 ## Supported slice
 
 - One Model layout, 25 length-unit tokens, unused layers and definitions.
