@@ -53,16 +53,24 @@ the historical package baseline. The historical accepted
 [results](../../benchmarks/size/results-v1.json) remain retained and must not be
 used as standalone OCDraw measurements.
 
-## Accepted initial JSON measurement
+## Accepted current JSON measurement
 
-Run `opencadcodec-update-20261002-140309`, measured on 2026-10-02:
+Run `model-io-followup-20261002`, measured on 2026-10-02:
 all 12 primitive cases passed production readback and semantic exchange;
 both fresh generations passed repeatability. The pinned opencadcodec dependency
-was unmodified, with no local override. This evidence exercises the complete
-`OcdrawDocument` builder, shared validator, common encoder and logical CAD
-conversion wrappers. Native OCDraw byte counts and hashes are identical to the
-previously accepted `ocdraw-document-counts-20261002-112932` run. Actual CAD
-representations changed with the dependency update.
+was unmodified, with no local override. This evidence exercises the harmonized
+`OcdrawBuilder`, complete logical document, shared validator, common encoder,
+logical CAD conversion and encoded/source convenience routes.
+
+All measured results, including native OCDraw, DXF and DWG byte counts and
+hashes, are identical to the preceding accepted
+`model-io-harmonization-20261002` run, which also matched the preceding
+`opencadcodec-update-20261002-140309` run. This final follow-up moves shared unit
+mapping into `units` and aligns encoded-value traits, retaining the exact unit
+values/order and byte-equality contract. The harmonization changes Rust API
+names and module responsibilities, not the emitted representations or this
+corpus's semantic exchange. The detailed provenance uses the upstream dependency
+key `opencadcodec`; preceding reports used the local alias `cadcodec`.
 
 This replaces the prior applicable standalone measurement from 2026-10-02;
 the historical package baseline is unchanged. Custom/complex line patterns,
@@ -100,10 +108,12 @@ representations. Layout, block and viewport exchange uses the focused tests,
 including explicit rejection of known inconsistent DWG block markers; those
 families are not evidence supplied by this table.
 
-Relative to the prior applicable run, direct OCDraw bytes/hashes are unchanged.
-Direct DXF is 129 bytes larger in each case; direct DWG is 64 bytes larger except
-short-polylines-10000, which is 96 bytes larger. CAD hashes change, but semantic
-readback and repeatability pass. These are observed complete-file differences,
+In the preceding dependency-update run, direct OCDraw bytes/hashes were unchanged
+relative to `ocdraw-document-counts-20261002-112932`. That update made direct DXF
+129 bytes larger in each case and direct DWG 64 bytes larger except
+short-polylines-10000, which is 96 bytes larger. CAD hashes changed in that update; semantic
+readback and repeatability passed. The current harmonization run retains those
+updated CAD hashes exactly. These are observed complete-file differences,
 not compression or runtime-performance conclusions. The retained provenance
 identifies the uncommitted source manifest and renamed dependency at its exact
 revision. Historical package and placement evidence retains its original pins.

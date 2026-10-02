@@ -1,9 +1,9 @@
 use crate::{
-    outcome::{diagnostic, modification},
+    diagnostics::{diagnostic, modification},
     *,
 };
-use cadcodec::{CadDocument, Handle, LineType};
 use ocdraw::ifcx_cad::*;
+use opencadcodec::{CadDocument, Handle, LineType};
 use std::collections::{BTreeMap, BTreeSet};
 
 pub(crate) struct SourcePatterns {
@@ -27,7 +27,7 @@ impl SourcePatterns {
         let name = if name.is_empty() { "ByLayer" } else { name };
         let (id, h) = self
             .records
-            .get(&cadcodec::tables::normalize_name(name))
+            .get(&opencadcodec::tables::normalize_name(name))
             .ok_or_else(|| invalid(format!("missing line pattern {name}")))?;
         if handle.is_some_and(|v| !v.is_null() && v != *h) {
             return Err(invalid(format!(
@@ -43,7 +43,7 @@ impl SourcePatterns {
     }
     pub(crate) fn entity(
         &self,
-        c: &cadcodec::entities::EntityCommon,
+        c: &opencadcodec::entities::EntityCommon,
     ) -> IfcxCadMode<IfcxCadLinePatternId> {
         if c.linetype.is_empty() || c.linetype.eq_ignore_ascii_case("ByLayer") {
             IfcxCadMode::ByLayer
@@ -68,7 +68,7 @@ pub(crate) fn from_cad(
     let mut definitions = Vec::new();
     let mut records = BTreeMap::new();
     for p in doc.line_types.iter() {
-        let key = cadcodec::tables::normalize_name(&p.name);
+        let key = opencadcodec::tables::normalize_name(&p.name);
         if records.contains_key(&key) {
             return Err(invalid("duplicate line pattern lookup name"));
         }
@@ -125,8 +125,8 @@ pub(crate) fn from_cad(
             for e in &p.elements {
                 if let Some(c) = &e.complex {
                     kinds.insert(match c.content {
-                        cadcodec::tables::LineTypeComplexContent::Text { .. } => "text",
-                        cadcodec::tables::LineTypeComplexContent::Shape { .. } => "shape",
+                        opencadcodec::tables::LineTypeComplexContent::Text { .. } => "text",
+                        opencadcodec::tables::LineTypeComplexContent::Shape { .. } => "shape",
                     });
                 }
             }
@@ -184,7 +184,7 @@ pub(crate) fn allocate(
 ) -> Result<(), IfcxCadConversionError> {
     let mut keys = BTreeSet::new();
     for p in defs {
-        if !keys.insert(cadcodec::tables::normalize_name(&p.name)) {
+        if !keys.insert(opencadcodec::tables::normalize_name(&p.name)) {
             return Err(invalid("target line pattern lookup collision"));
         }
     }
@@ -202,7 +202,7 @@ pub(crate) fn allocate(
         record.elements = p
             .pattern
             .iter()
-            .map(|&length| cadcodec::tables::LineTypeElement {
+            .map(|&length| opencadcodec::tables::LineTypeElement {
                 length,
                 complex: None,
             })

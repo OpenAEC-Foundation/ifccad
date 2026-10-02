@@ -1,7 +1,8 @@
-use crate::outcome::{diagnostic, unit_code};
+use crate::diagnostics::diagnostic;
+use crate::units::unit_code;
 use crate::*;
-use cadcodec::{BlockRecord, CadDocument, EntityType};
 use ocdraw::ifcx_cad::*;
+use opencadcodec::{BlockRecord, CadDocument, EntityType};
 
 pub(crate) fn allocate(
     doc: &mut CadDocument,
@@ -22,10 +23,10 @@ pub(crate) fn allocate(
         b.block_end_handle = doc.allocate_handle();
         b.base_point = crate::geometry::v(def.base_point);
         b.units = unit_code(&def.insertion_unit);
-        let mut start = cadcodec::entities::Block::new(&def.name, b.base_point);
+        let mut start = opencadcodec::entities::Block::new(&def.name, b.base_point);
         start.common.handle = b.block_entity_handle;
         start.common.owner_handle = b.handle;
-        let mut end = cadcodec::entities::BlockEnd::new();
+        let mut end = opencadcodec::entities::BlockEnd::new();
         end.common.handle = b.block_end_handle;
         end.common.owner_handle = b.handle;
         map.blocks.insert(def.id, b.handle);
@@ -46,7 +47,7 @@ pub(crate) fn to_insert(
     issues: &mut Vec<IfcxCadDiagnostic>,
 ) -> EntityType {
     crate::geometry::canonical(&t.placement, loc, issues);
-    let mut i = cadcodec::entities::Insert::new(name, crate::geometry::v(t.placement.origin));
+    let mut i = opencadcodec::entities::Insert::new(name, crate::geometry::v(t.placement.origin));
     i.rotation = t.rotation;
     i.set_x_scale(t.scale[0]);
     i.set_y_scale(t.scale[1]);
@@ -61,12 +62,12 @@ pub(crate) fn to_insert(
     EntityType::Insert(i)
 }
 pub(crate) fn from_insert(
-    i: &cadcodec::entities::Insert,
+    i: &opencadcodec::entities::Insert,
     id: u64,
     loc: &str,
     issues: &mut Vec<IfcxCadDiagnostic>,
 ) -> Option<IfcxCadEntityKind> {
-    let mut expected = cadcodec::entities::Insert::new(&i.block_name, i.insert_point);
+    let mut expected = opencadcodec::entities::Insert::new(&i.block_name, i.insert_point);
     expected.set_x_scale(i.x_scale());
     expected.set_y_scale(i.y_scale());
     expected.set_z_scale(i.z_scale());

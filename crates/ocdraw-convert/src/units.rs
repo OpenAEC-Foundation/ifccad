@@ -1,6 +1,34 @@
 use num_rational::BigRational;
 use ocdraw::ocdraw::DrawingLengthUnit;
 
+pub(crate) const UNIT_TOKENS: [&str; 25] = [
+    "unitless",
+    "in",
+    "ft",
+    "mi",
+    "mm",
+    "cm",
+    "m",
+    "km",
+    "microin",
+    "mil",
+    "yd",
+    "angstrom",
+    "nm",
+    "um",
+    "dm",
+    "dam",
+    "hm",
+    "Gm",
+    "au",
+    "ly",
+    "pc",
+    "usSurveyFoot",
+    "usSurveyInch",
+    "usSurveyYard",
+    "usSurveyMile",
+];
+
 // CAD's integer codes belong to this adapter, not to core enum discriminants.
 const CAD_UNITS: [DrawingLengthUnit; 25] = [
     DrawingLengthUnit::Unitless,
@@ -225,7 +253,7 @@ mod tests {
 
     #[test]
     fn default_and_explicit_tolerances_keep_unitless_and_physical_policies_distinct() {
-        use crate::ConversionGeometryTolerance as T;
+        use crate::OcdrawGeometryTolerance as T;
         for unit in CAD_UNITS {
             assert_eq!(
                 T::exact().resolve(unit).unwrap(),

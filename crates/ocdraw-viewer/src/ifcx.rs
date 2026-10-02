@@ -1,8 +1,9 @@
 use crate::{cad, fail, progress, result};
 use ifcx_cad_convert::{
-    cad_document_to_ifcx_cad, ifcx_cad_to_cad_document, IfcxCadDiagnostic, IfcxCadTargetMetadata,
+    cad_document_to_encoded_ifcx_cad, ifcx_cad_source_to_cad_document, IfcxCadDiagnostic,
+    IfcxCadTargetMetadata,
 };
-use ocdraw::ifcx_cad::{read_native_cad_ifcx, IfcxCadHeader, ValidatedIfcxCad};
+use ocdraw::ifcx_cad::{load_ifcx_cad_bytes, IfcxCadHeader, ValidatedIfcxCad};
 use serde_json::{json, Value};
 use std::path::Path;
 
@@ -33,15 +34,15 @@ fn present(output: &mut Value, drawing: &ValidatedIfcxCad) {
 /// Inspect the experimental IFCX-CAD profile after production composition/validation.
 pub fn inspect_ifcx_bytes(name: &str, bytes: &[u8]) -> Value {
     let mut output = result(Path::new(name), "ifcx");
-    match read_native_cad_ifcx(bytes) {
+    match load_ifcx_cad_bytes(bytes, Default::default()) {
         Ok(drawing) => present(&mut output, &drawing),
         Err(report) => {
-            output["validation"] = json!({"strictAvailable":false,"status":"invalid","diagnostics":report.errors.iter().map(|e|json!({"code":"IFCX_PROFILE","message":e})).collect::<Vec<_>>()});
+            output["validation"] = json!({"strictAvailable":false,"status":"invalid","diagnostics":report.report().errors.iter().map(|e|json!({"code":"IFCX_PROFILE","message":e})).collect::<Vec<_>>()});
             fail(
                 &mut output,
                 "validating",
                 "IFCX_PROFILE_INVALID",
-                report.errors.join("; "),
+                report.report().errors.join("; "),
             );
         }
     }
@@ -72,7 +73,7 @@ pub fn inspect_cad_as_ifcx_bytes(name: &str, format: &str, bytes: &[u8], timesta
         },
     };
     progress("converting");
-    let converted = match cad_document_to_ifcx_cad(&cad, metadata) {
+    let converted = match cad_document_to_encoded_ifcx_cad(&cad, metadata, Default::default()) {
         Ok(v) => v,
         Err(error) => {
             fail(&mut output, "converting", "IFCX_CONVERSION_FAILED", error);
@@ -80,8 +81,8 @@ pub fn inspect_cad_as_ifcx_bytes(name: &str, format: &str, bytes: &[u8], timesta
         }
     };
     output["conversion"] = json!({"format":"ifcx","diagnostics":diagnostics(converted.diagnostics()),"entityCount":converted.mappings().entities.iter().count()});
-    present(&mut output, converted.validated_ifcx());
-    cad::download(&mut output, name, "ifcx", converted.ifcx_bytes());
+    present(&mut output, converted.validated_source());
+    cad::download(&mut output, name, "ifcx", converted.encoded().bytes());
     output
 }
 /// Preserve original IFCX on native download; project supported content for CAD.
@@ -98,9 +99,9 @@ pub fn export_ifcx_bytes(name: &str, bytes: &[u8], format: &str, version: &str) 
         fail(&mut output, "exporting", code, message);
         return output;
     }
-    let drawing = read_native_cad_ifcx(bytes).expect("strict status checked");
+    let drawing = load_ifcx_cad_bytes(bytes, Default::default()).expect("strict status checked");
     progress("converting");
-    let converted = match ifcx_cad_to_cad_document(&drawing) {
+    let converted = match ifcx_cad_source_to_cad_document(&drawing, Default::default()) {
         Ok(v) => v,
         Err(error) => {
             fail(&mut output, "converting", "CAD_CONVERSION_FAILED", error);
@@ -120,9 +121,10 @@ pub fn export_ifcx_bytes(name: &str, bytes: &[u8], format: &str, version: &str) 
         version,
         issues,
         move |readback| {
-            let restored =
-                cad_document_to_ifcx_cad(readback, metadata).map_err(|e| e.to_string())?;
-            read_native_cad_ifcx(restored.ifcx_bytes()).map_err(|e| e.errors.join("; "))?;
+            let restored = cad_document_to_encoded_ifcx_cad(readback, metadata, Default::default())
+                .map_err(|e| e.to_string())?;
+            load_ifcx_cad_bytes(restored.encoded().bytes(), Default::default())
+                .map_err(|e| e.report().errors.join("; "))?;
             Ok(
                 json!({"cadReadback":true,"ifcxStrictReadback":true,"diagnostics":diagnostics(restored.diagnostics())}),
             )

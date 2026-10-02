@@ -12,10 +12,10 @@
 //!     ifcx_cad_document_to_cad_document, IfcxCadTargetMetadata,
 //!     IfcxCadConversionError};
 //! use ocdraw::ifcx_cad::encode_ifcx_cad_document;
-//! # fn convert(source: &cadcodec::CadDocument, metadata: IfcxCadTargetMetadata)
+//! # fn convert(source: &opencadcodec::CadDocument, metadata: IfcxCadTargetMetadata)
 //! # -> Result<(), IfcxCadConversionError> {
-//! let logical = cad_document_to_ifcx_cad_document(source, metadata)?;
-//! let cad = ifcx_cad_document_to_cad_document(logical.document())?;
+//! let logical = cad_document_to_ifcx_cad_document(source, metadata, Default::default())?;
+//! let cad = ifcx_cad_document_to_cad_document(logical.document(), Default::default())?;
 //! let bytes = encode_ifcx_cad_document(logical.document())
 //!     .map_err(|e| IfcxCadConversionError::CoreValidation(format!("{e:?}")))?;
 //! # let _ = (cad, bytes);
@@ -25,31 +25,31 @@
 //!
 //! ```
 //! use ocdraw::ifcx_cad::ValidatedIfcxCad;
-//! use ifcx_cad_convert::{ifcx_cad_to_cad_document, cad_document_to_ifcx_cad,
+//! use ifcx_cad_convert::{ifcx_cad_source_to_cad_document, cad_document_to_encoded_ifcx_cad,
 //!     IfcxCadTargetMetadata, IfcxCadConversionError};
 //! # fn convert(source: &ValidatedIfcxCad, metadata: IfcxCadTargetMetadata)
 //! # -> Result<Vec<u8>, IfcxCadConversionError> {
-//! let cad = ifcx_cad_to_cad_document(source)?;
-//! let back = cad_document_to_ifcx_cad(cad.document(), metadata)?;
+//! let cad = ifcx_cad_source_to_cad_document(source, Default::default())?;
+//! let back = cad_document_to_encoded_ifcx_cad(cad.document(), metadata, Default::default())?;
 //! // Emitted bytes have passed the production IFCX-CAD reader.
-//! Ok(back.ifcx_bytes().to_vec())
+//! Ok(back.encoded().bytes().to_vec())
 //! # }
 //! ```
 mod appearance;
 mod blocks;
+mod diagnostics;
 mod from_cad;
 mod geometry;
 mod loss;
+mod options;
 mod outcome;
 mod patterns;
 mod source;
 mod to_cad;
-pub use from_cad::{
-    cad_document_to_ifcx_cad, cad_document_to_ifcx_cad_document,
-    cad_document_to_ifcx_cad_document_with_options, cad_document_to_ifcx_cad_with_options,
-};
+mod units;
+pub use diagnostics::{IfcxCadConversionError, IfcxCadDiagnostic, IfcxCadDiagnosticAction};
+pub use from_cad::{cad_document_to_encoded_ifcx_cad, cad_document_to_ifcx_cad_document};
+pub use opencadcodec;
+pub use options::*;
 pub use outcome::*;
-pub use to_cad::{
-    ifcx_cad_document_to_cad_document, ifcx_cad_document_to_cad_document_with_options,
-    ifcx_cad_to_cad_document, ifcx_cad_to_cad_document_with_options,
-};
+pub use to_cad::{ifcx_cad_document_to_cad_document, ifcx_cad_source_to_cad_document};

@@ -10,30 +10,29 @@ use super::logical::{
     DrawingUcsDefinition, DrawingWorkspaceState,
 };
 use super::{PlotStyleMode, PointDisplay};
-use std::path::Path;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum DrawingLoadStatus {
+pub enum OcdrawReadStatus {
     Valid,
     Invalid,
     UnsupportedVersion,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct DrawingDiagnostic {
+pub struct OcdrawDiagnostic {
     pub code: &'static str,
     pub location: String,
     pub message: String,
 }
 
 #[derive(Clone, Debug)]
-pub struct ValidatedDrawing {
+pub struct ValidatedOcdraw {
     encoding: JsonEncodedDrawing,
     document: OcdrawDocument,
     owners: std::collections::BTreeMap<u64, u32>,
 }
 
-impl ValidatedDrawing {
+impl ValidatedOcdraw {
     /// Borrows validated logical content without exposing mutable access.
     pub fn document(&self) -> &OcdrawDocument {
         &self.document
@@ -139,72 +138,47 @@ impl ValidatedDrawing {
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct DrawingLoadOutcome {
-    status: DrawingLoadStatus,
-    diagnostics: Vec<DrawingDiagnostic>,
-    drawing: Option<ValidatedDrawing>,
+/// Invalid bytes never expose a logical drawing; all reader evidence is retained.
+#[derive(Clone, Debug, thiserror::Error)]
+pub enum OcdrawReadError {
+    #[error("invalid OCDraw drawing")]
+    Invalid { diagnostics: Vec<OcdrawDiagnostic> },
+    #[error("unsupported OCDraw version")]
+    UnsupportedVersion { diagnostics: Vec<OcdrawDiagnostic> },
 }
-
-impl DrawingLoadOutcome {
-    /// Extracts validated content without cloning it.
-    pub fn into_validated_drawing(self) -> Option<ValidatedDrawing> {
-        self.drawing
+impl OcdrawReadError {
+    pub fn diagnostics(&self) -> &[OcdrawDiagnostic] {
+        match self {
+            Self::Invalid { diagnostics } | Self::UnsupportedVersion { diagnostics } => diagnostics,
+        }
     }
-    pub fn status(&self) -> DrawingLoadStatus {
-        self.status
-    }
-
-    pub fn diagnostics(&self) -> &[DrawingDiagnostic] {
-        &self.diagnostics
-    }
-
-    pub fn validated_drawing(&self) -> Option<&ValidatedDrawing> {
-        self.drawing.as_ref()
+    pub fn status(&self) -> OcdrawReadStatus {
+        match self {
+            Self::Invalid { .. } => OcdrawReadStatus::Invalid,
+            Self::UnsupportedVersion { .. } => OcdrawReadStatus::UnsupportedVersion,
+        }
     }
 }
-
-#[derive(Debug, thiserror::Error)]
-pub enum DrawingOpenError {
-    #[error("could not read drawing: {0}")]
-    Io(#[from] std::io::Error),
-}
-
-pub fn load_drawing_file(path: impl AsRef<Path>) -> Result<DrawingLoadOutcome, DrawingOpenError> {
-    Ok(load_drawing_bytes(&std::fs::read(path)?))
-}
-
 pub(crate) fn diagnostic(
     code: &'static str,
     location: impl Into<String>,
     message: impl Into<String>,
-) -> DrawingDiagnostic {
-    DrawingDiagnostic {
+) -> OcdrawDiagnostic {
+    OcdrawDiagnostic {
         code,
         location: location.into(),
         message: message.into(),
     }
 }
 
-fn invalid(diagnostics: Vec<DrawingDiagnostic>) -> DrawingLoadOutcome {
-    DrawingLoadOutcome {
-        status: DrawingLoadStatus::Invalid,
-        diagnostics,
-        drawing: None,
-    }
+fn invalid(diagnostics: Vec<OcdrawDiagnostic>) -> Result<ValidatedOcdraw, OcdrawReadError> {
+    Err(OcdrawReadError::Invalid { diagnostics })
 }
-
-pub fn load_drawing_bytes(bytes: &[u8]) -> DrawingLoadOutcome {
-    let encoding = match parse_document(bytes) {
-        Ok(encoding) => encoding,
-        Err((status, diagnostics)) => {
-            return DrawingLoadOutcome {
-                status,
-                diagnostics,
-                drawing: None,
-            }
-        }
-    };
+pub fn load_ocdraw_bytes(bytes: &[u8]) -> Result<ValidatedOcdraw, OcdrawReadError> {
+    let encoding = parse_document(bytes).map_err(|(status, diagnostics)| match status {
+        OcdrawReadStatus::UnsupportedVersion => OcdrawReadError::UnsupportedVersion { diagnostics },
+        _ => OcdrawReadError::Invalid { diagnostics },
+    })?;
     let value = encoding.value();
     let mut diagnostics = Vec::new();
     super::codec::json::validate_physical(value, &mut diagnostics);
@@ -314,19 +288,15 @@ pub fn load_drawing_bytes(bytes: &[u8]) -> DrawingLoadOutcome {
         paper_canvases: view_state.paper_canvases,
         viewport_workspaces: view_state.viewport_workspaces,
     };
-    if let Err(error) = super::validate_document(&document) {
+    if let Err(error) = super::validate_ocdraw_document(&document) {
         diagnostics.extend(error.into_diagnostics());
     }
     if !diagnostics.is_empty() {
         return invalid(diagnostics);
     }
-    DrawingLoadOutcome {
-        status: DrawingLoadStatus::Valid,
-        diagnostics,
-        drawing: Some(ValidatedDrawing {
-            owners: super::logical::owner_index(&document.scopes),
-            encoding,
-            document,
-        }),
-    }
+    Ok(ValidatedOcdraw {
+        owners: super::logical::owner_index(&document.scopes),
+        encoding,
+        document,
+    })
 }

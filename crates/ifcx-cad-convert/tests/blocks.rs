@@ -8,7 +8,7 @@ fn nested_blocks_keep_shared_targets_and_order() {
     let source = nested([1., 2., 0.]);
     let cad = to_cad(&validated(&source)).unwrap();
     let back = from_cad(cad.document(), metadata()).unwrap();
-    let target = back.validated_ifcx().document();
+    let target = back.validated_source().document();
     assert_eq!(source.blocks.len(), target.blocks.len());
     for b in &source.blocks {
         let h = cad.mappings().blocks.cad_handle(b.id).unwrap();
@@ -27,7 +27,7 @@ fn compare(
     a: &[IfcxCadEntity],
     b: &[IfcxCadEntity],
     cad: &IfcxCadToCadOutcome,
-    back: &CadToIfcxCadOutcome,
+    back: &CadToEncodedIfcxCadOutcome,
 ) {
     for (a, b) in a.iter().zip(b) {
         assert_eq!(
@@ -84,7 +84,7 @@ fn invalid_block_graphs_are_fatal_even_when_unused() {
         .get("*Model_Space")
         .unwrap()
         .entity_handles[0];
-    let cadcodec::EntityType::Insert(i) = missing.get_entity_mut(h).unwrap() else {
+    let opencadcodec::EntityType::Insert(i) = missing.get_entity_mut(h).unwrap() else {
         panic!()
     };
     i.block_name = "Missing".into();
@@ -96,9 +96,11 @@ fn invalid_block_graphs_are_fatal_even_when_unused() {
     let mut d = nested([0.; 3]);
     d.model.entities.clear();
     let mut cycle = to_cad(&validated(&d)).unwrap().into_document();
-    let mut i = cadcodec::entities::Insert::new("Outer", cadcodec::Vector3::ZERO);
+    let mut i = opencadcodec::entities::Insert::new("Outer", opencadcodec::Vector3::ZERO);
     i.common.owner_handle = cycle.block_records.get("Inner").unwrap().handle;
-    cycle.add_entity(cadcodec::EntityType::Insert(i)).unwrap();
+    cycle
+        .add_entity(opencadcodec::EntityType::Insert(i))
+        .unwrap();
     assert!(matches!(
         from_cad(&cycle, metadata()),
         Err(IfcxCadConversionError::InvalidStructure(_))
@@ -132,19 +134,20 @@ fn arrays_attributes_and_block_metadata_are_diagnosed() {
             .into_document();
         let h = c.block_records.get("*Model_Space").unwrap().entity_handles[0];
         if field < 2 {
-            let cadcodec::EntityType::Insert(i) = c.get_entity_mut(h).unwrap() else {
+            let opencadcodec::EntityType::Insert(i) = c.get_entity_mut(h).unwrap() else {
                 panic!()
             };
             if field == 0 {
                 i.row_count = 2;
             } else {
-                i.attributes.push(cadcodec::entities::AttributeEntity::new(
-                    "tag".into(),
-                    "value".into(),
-                ));
+                i.attributes
+                    .push(opencadcodec::entities::AttributeEntity::new(
+                        "tag".into(),
+                        "value".into(),
+                    ));
             }
         } else if field == 4 {
-            let mut dynamic = cadcodec::objects::DynamicBlockObject::new(
+            let mut dynamic = opencadcodec::objects::DynamicBlockObject::new(
                 "BLOCKVISIBILITYPARAMETER",
                 "AcDbBlockVisibilityParameter",
             );
@@ -152,7 +155,7 @@ fn arrays_attributes_and_block_metadata_are_diagnosed() {
             dynamic.owner = c.block_records.get("Inner").unwrap().handle;
             c.objects.insert(
                 dynamic.handle,
-                cadcodec::objects::ObjectType::DynamicBlock(dynamic),
+                opencadcodec::objects::ObjectType::DynamicBlock(dynamic),
             );
         } else {
             let b = c.block_records.get_mut("Inner").unwrap();
@@ -189,7 +192,7 @@ fn large_ids_and_renumbered_handles_keep_relations() {
     for h in handles {
         let mut e = c.get_entity(h).unwrap().clone();
         c.remove_entity(h);
-        e.common_mut().handle = cadcodec::Handle::new(h.value() + 9007199254740993);
+        e.common_mut().handle = opencadcodec::Handle::new(h.value() + 9007199254740993);
         e.common_mut().owner_handle = owner;
         c.add_entity(e).unwrap();
     }
@@ -199,7 +202,7 @@ fn large_ids_and_renumbered_handles_keep_relations() {
         .entities
         .cad_handle(9007199254740993)
         .is_some());
-    let entities = &back.validated_ifcx().document().model.entities;
+    let entities = &back.validated_source().document().model.entities;
     assert_eq!(entities.len(), 2);
     for e in entities {
         let h = back.mappings().entities.cad_handle(e.id).unwrap();

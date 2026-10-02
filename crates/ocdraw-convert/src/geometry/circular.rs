@@ -1,11 +1,11 @@
 use super::blocks::{trig, PairedCurve, PairedPoint, Range};
 use super::numeric::exact;
 use super::{cad_plane, orthonormal_pair, stored_normal};
-use crate::DirectImportError;
-use cadcodec::Vector3;
+use crate::OcdrawToCadError;
 use num_rational::BigRational;
 use num_traits::Signed;
 use ocdraw::ocdraw::{CoordinateFrame3, Point3};
+use opencadcodec::Vector3;
 
 type CurveComponents = ([BigRational; 3], [[Range; 3]; 2]);
 
@@ -50,7 +50,7 @@ fn cad_circular_components(
     start: f64,
     direction: f64,
 ) -> Option<CurveComponents> {
-    let basis = cadcodec::types::Matrix3::arbitrary_axis(normal);
+    let basis = opencadcodec::types::Matrix3::arbitrary_axis(normal);
     let world_center = basis * center;
     if ![world_center.x, world_center.y, world_center.z]
         .into_iter()
@@ -68,7 +68,7 @@ fn cad_circular_components(
 }
 
 fn cad_ellipse_components(
-    ellipse: &cadcodec::Ellipse,
+    ellipse: &opencadcodec::Ellipse,
     start: f64,
     direction: f64,
 ) -> Option<CurveComponents> {
@@ -114,7 +114,7 @@ pub(crate) fn import_circle_curve(
     plane: CoordinateFrame3,
     radius: f64,
     phase: f64,
-    target: &cadcodec::Circle,
+    target: &opencadcodec::Circle,
 ) -> Option<PairedCurve> {
     Some(pair_components(
         native_components(plane, radius, radius, 0.0, 1.0),
@@ -127,7 +127,7 @@ pub(crate) fn import_arc_curve(
     radius: f64,
     start: f64,
     sweep: f64,
-    target: &cadcodec::Arc,
+    target: &opencadcodec::Arc,
 ) -> Option<PairedCurve> {
     let drift = (exact(target.end_angle) - exact(target.start_angle) - exact(sweep.abs())).abs();
     Some(
@@ -152,7 +152,7 @@ pub(crate) fn import_ellipse_curve(
     minor: f64,
     start: f64,
     sweep: f64,
-    target: &cadcodec::Ellipse,
+    target: &opencadcodec::Ellipse,
 ) -> Option<PairedCurve> {
     let drift =
         (exact(target.end_parameter) - exact(target.start_parameter) - exact(sweep.abs())).abs();
@@ -167,7 +167,7 @@ pub(crate) fn import_ellipse_curve(
 }
 
 pub(crate) fn export_circle_curve(
-    source: &cadcodec::Circle,
+    source: &opencadcodec::Circle,
     plane: CoordinateFrame3,
 ) -> Option<PairedCurve> {
     Some(pair_components(
@@ -177,7 +177,7 @@ pub(crate) fn export_circle_curve(
 }
 
 pub(crate) fn export_arc_curve(
-    source: &cadcodec::Arc,
+    source: &opencadcodec::Arc,
     plane: CoordinateFrame3,
     sweep: f64,
 ) -> Option<PairedCurve> {
@@ -199,7 +199,7 @@ pub(crate) fn export_arc_curve(
 }
 
 pub(crate) fn export_ellipse_curve(
-    source: &cadcodec::Ellipse,
+    source: &opencadcodec::Ellipse,
     plane: CoordinateFrame3,
     major: f64,
     minor: f64,
@@ -307,20 +307,20 @@ fn source_point(
     plane: CoordinateFrame3,
     radius: f64,
     angle: f64,
-) -> Result<Point3, DirectImportError> {
+) -> Result<Point3, OcdrawToCadError> {
     plane
         .try_to_scope_point(ocdraw::ocdraw::Point2::new(
             radius * angle.cos(),
             radius * angle.sin(),
         ))
-        .map_err(|_| DirectImportError::Cad("validated curve sample exceeds finite range".into()))
+        .map_err(|_| OcdrawToCadError::Cad("validated curve sample exceeds finite range".into()))
 }
 pub(crate) fn circle_sample_pairs(
     plane: CoordinateFrame3,
     radius: f64,
     phase: f64,
-    target: &cadcodec::Circle,
-) -> Result<Vec<(PairedPoint, BigRational)>, DirectImportError> {
+    target: &opencadcodec::Circle,
+) -> Result<Vec<(PairedPoint, BigRational)>, OcdrawToCadError> {
     [
         0.0,
         std::f64::consts::FRAC_PI_2,
@@ -341,8 +341,8 @@ pub(crate) fn arc_sample_pairs(
     radius: f64,
     start: f64,
     sweep: f64,
-    target: &cadcodec::Arc,
-) -> Result<Vec<(PairedPoint, BigRational)>, DirectImportError> {
+    target: &opencadcodec::Arc,
+) -> Result<Vec<(PairedPoint, BigRational)>, OcdrawToCadError> {
     [0.0, 0.5, 1.0]
         .into_iter()
         .map(|fraction| {
@@ -353,7 +353,7 @@ pub(crate) fn arc_sample_pairs(
         .collect()
 }
 pub(crate) fn export_circle_sample_pairs(
-    source: &cadcodec::Circle,
+    source: &opencadcodec::Circle,
     plane: CoordinateFrame3,
 ) -> Option<Vec<(PairedPoint, BigRational)>> {
     [
@@ -375,7 +375,7 @@ pub(crate) fn export_circle_sample_pairs(
     .collect()
 }
 pub(crate) fn export_arc_sample_pairs(
-    source: &cadcodec::Arc,
+    source: &opencadcodec::Arc,
     plane: CoordinateFrame3,
     sweep: f64,
 ) -> Option<Vec<(PairedPoint, BigRational)>> {
@@ -394,7 +394,9 @@ pub(crate) fn export_arc_sample_pairs(
         .collect()
 }
 
-pub(crate) fn from_cad_ellipse(source: &cadcodec::Ellipse) -> Option<(CoordinateFrame3, f64, f64)> {
+pub(crate) fn from_cad_ellipse(
+    source: &opencadcodec::Ellipse,
+) -> Option<(CoordinateFrame3, f64, f64)> {
     let basis = cad_plane(source.normal)?;
     let a = source.major_axis;
     let scale = a.x.abs().max(a.y.abs()).max(a.z.abs());
@@ -435,7 +437,7 @@ pub(crate) fn to_cad_ellipse(
     major: f64,
     minor: f64,
     reverse: bool,
-) -> Option<cadcodec::Ellipse> {
+) -> Option<opencadcodec::Ellipse> {
     let mut normal = stored_normal(placement)?;
     if reverse {
         normal = Vector3::new(-normal.x, -normal.y, -normal.z);
@@ -443,7 +445,7 @@ pub(crate) fn to_cad_ellipse(
     let x = placement.x_axis();
     let axis = Vector3::new(major * x.x(), major * x.y(), major * x.z());
     let center = placement.origin();
-    let mut target = cadcodec::Ellipse::from_center_axes(
+    let mut target = opencadcodec::Ellipse::from_center_axes(
         Vector3::new(center.x(), center.y(), center.z()),
         axis,
         minor / major,
@@ -452,7 +454,7 @@ pub(crate) fn to_cad_ellipse(
     Some(target)
 }
 
-fn ellipse_point(source: &cadcodec::Ellipse, angle: f64) -> Option<Vector3> {
+fn ellipse_point(source: &opencadcodec::Ellipse, angle: f64) -> Option<Vector3> {
     let basis = cad_plane(source.normal)?;
     let axis = source.major_axis;
     let length = axis.x.hypot(axis.y).hypot(axis.z);
@@ -474,7 +476,7 @@ pub(crate) fn ellipse_sample_pairs(
     minor: f64,
     start: f64,
     sweep: f64,
-    target: &cadcodec::Ellipse,
+    target: &opencadcodec::Ellipse,
 ) -> Option<Vec<(PairedPoint, BigRational)>> {
     [0.0, 0.5, 1.0]
         .into_iter()
@@ -493,7 +495,7 @@ pub(crate) fn ellipse_sample_pairs(
 }
 
 pub(crate) fn export_ellipse_sample_pairs(
-    source: &cadcodec::Ellipse,
+    source: &opencadcodec::Ellipse,
     plane: CoordinateFrame3,
     major: f64,
     minor: f64,
@@ -521,8 +523,11 @@ mod tests {
     #[test]
     fn complete_ellipse_certifies_minor_axis_between_old_samples() {
         let placement = CoordinateFrame3::default();
-        let target =
-            cadcodec::Ellipse::from_center_axes(Vector3::ZERO, Vector3::new(4.0, 0.0, 0.0), 0.45);
+        let target = opencadcodec::Ellipse::from_center_axes(
+            Vector3::ZERO,
+            Vector3::new(4.0, 0.0, 0.0),
+            0.45,
+        );
         let samples =
             ellipse_sample_pairs(placement, 4.0, 2.0, 0.0, std::f64::consts::TAU, &target).unwrap();
         assert!(samples.iter().all(|(_, squared)| squared < &exact(1e-20)));

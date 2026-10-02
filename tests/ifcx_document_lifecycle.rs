@@ -23,7 +23,13 @@ fn source_snapshot_retains_fragments_foreign_content_and_policy() {
         IfcxCompositionPolicy::LaterWins,
         IfcxCompositionPolicy::RejectConflicts,
     ] {
-        let loaded = read_native_cad_ifcx_with_policy(&bytes, policy).unwrap();
+        let loaded = load_ifcx_cad_bytes(
+            &bytes,
+            IfcxCadReadOptions {
+                composition_policy: policy,
+            },
+        )
+        .unwrap();
         let source = loaded.graph();
         assert_eq!(source.source_bytes(), bytes);
         assert_eq!(source.composition_policy(), policy);
@@ -55,14 +61,14 @@ fn source_snapshot_retains_fragments_foreign_content_and_policy() {
             source.composed_ifcx()["schemas"]["example::note"]["dataType"],
             "String"
         );
-        assert_eq!(loaded.raw_ifcx(), source.composed_ifcx());
+        assert_eq!(loaded.graph().composed_ifcx(), source.composed_ifcx());
     }
 }
 
 #[test]
 fn extracted_document_edits_do_not_change_source_snapshot() {
     let bytes = foreign_source();
-    let loaded = read_native_cad_ifcx(&bytes).unwrap();
+    let loaded = load_ifcx_cad_bytes(&bytes, Default::default()).unwrap();
     let expected = loaded.document().clone();
     let (source, mut document) = loaded.into_parts();
     let before = source.composed_ifcx().clone();
@@ -81,15 +87,18 @@ fn extracted_document_edits_do_not_change_source_snapshot() {
     assert_eq!(source.composed_ifcx(), &before);
     assert_eq!(source.source_bytes(), bytes);
     assert_eq!(
-        read_native_cad_ifcx(&bytes).unwrap().into_document(),
+        load_ifcx_cad_bytes(&bytes, Default::default())
+            .unwrap()
+            .into_document(),
         expected
     );
 }
 
 fn paper_document() -> IfcxCadDocument {
-    read_native_cad_ifcx(include_bytes!(
-        "../examples/ifcx-native-cad/hello-paper-layouts.ifcx"
-    ))
+    load_ifcx_cad_bytes(
+        include_bytes!("../examples/ifcx-native-cad/hello-paper-layouts.ifcx"),
+        Default::default(),
+    )
     .unwrap()
     .into_document()
 }
@@ -236,16 +245,23 @@ fn typed_document_encoding_keeps_history_and_supported_semantics() {
         include_bytes!("../examples/ifcx-native-cad/hello-nested-blocks.ifcx"),
         include_bytes!("../examples/ifcx-native-cad/hello-paper-layouts.ifcx"),
     ] {
-        let mut document = read_native_cad_ifcx(fixture).unwrap().into_document();
+        let mut document = load_ifcx_cad_bytes(fixture, Default::default())
+            .unwrap()
+            .into_document();
         document.id_counters.next_entity_id = 9007199254740993;
         document.model.entities[0].id = document.id_counters.allocate_entity_id().unwrap();
         document.model.entities.reverse();
         document.layers[0].name = "Renamed".into();
         validate_ifcx_cad_document(&document).unwrap();
         let bytes = encode_ifcx_cad_document(&document).unwrap();
-        assert_eq!(bytes, write_native_cad_ifcx(&document).unwrap());
-        assert_eq!(read_native_cad_ifcx(&bytes).unwrap().document(), &document);
-        assert!(String::from_utf8(bytes)
+        assert_eq!(bytes, encode_ifcx_cad_document(&document).unwrap());
+        assert_eq!(
+            load_ifcx_cad_bytes(bytes.bytes(), Default::default())
+                .unwrap()
+                .document(),
+            &document
+        );
+        assert!(String::from_utf8((bytes).into_bytes())
             .unwrap()
             .contains("9007199254740994"));
     }
@@ -259,16 +275,23 @@ fn typed_document_encoding_keeps_history_and_supported_semantics() {
     empty.id_counters.next_block_id = u64::MAX;
     validate_ifcx_cad_document(&empty).unwrap();
     let bytes = encode_ifcx_cad_document(&empty).unwrap();
-    assert_eq!(read_native_cad_ifcx(&bytes).unwrap().document(), &empty);
+    assert_eq!(
+        load_ifcx_cad_bytes(bytes.bytes(), Default::default())
+            .unwrap()
+            .document(),
+        &empty
+    );
 }
 
 #[test]
 fn cad_profile_encoding_does_not_claim_source_graph_writeback() {
     let bytes = foreign_source();
-    let (source, mut document) = read_native_cad_ifcx(&bytes).unwrap().into_parts();
+    let (source, mut document) = load_ifcx_cad_bytes(&bytes, Default::default())
+        .unwrap()
+        .into_parts();
     document.layers[0].name = "Edited".into();
     let encoded = encode_ifcx_cad_document(&document).unwrap();
-    let rebuilt = read_native_cad_ifcx(&encoded).unwrap();
+    let rebuilt = load_ifcx_cad_bytes(encoded.bytes(), Default::default()).unwrap();
     assert_eq!(rebuilt.document(), &document);
     assert!(!rebuilt.graph().composed_ifcx()["data"]
         .as_array()

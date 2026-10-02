@@ -98,7 +98,7 @@ messages. CAD output is read back and version checked. The IFCX route additional
 converts that actual readback to IFCX and strict-reads it before exposing download
 bytes. This is structural/profile readback, not a claim of exact semantic or
 numeric equality through the external codec. Readback diagnostics are displayed.
-The processor uses pinned opencadcodec through the local Rust `cadcodec` alias.
+The processor uses pinned opencadcodec under its upstream Rust name `opencadcodec`.
 Nonzero BLOCK bases now pass both real DXF and DWG routes, including the browser
 smoke fixture, without marker repair or block explosion. Paper CAD conversion
 remains deferred. The separately pinned Open CAD Studio viewer is unchanged.

@@ -7,7 +7,7 @@ production loading. Coverage, loss acceptance, recoveries and fresh ID
 allocation are shared. Encoding creates a new CAD-profile file; no source graph
 writeback is performed.
 
-Pinned semantic inventory V1, opencadcodec (local Rust alias `cadcodec`)
+Pinned semantic inventory V1, opencadcodec
 `d96e3fa2fe5acbeac966f1db4c01142618bf9c79`. Exhaustive matches classify every
 inventory category. Serde residual checks cover fields plus typed comparisons
 for skipped-serde common/marker/object state. Data not exposed by the codec has
@@ -91,7 +91,7 @@ referring inserts. Each instance whose target loses content receives
 on a definition also participate in this propagation. Mappings cover emitted
 objects only.
 
-Indexed color is projected through cadcodec's canonical ACI palette to RGB,
+Indexed color is projected through opencadcodec's canonical ACI palette to RGB,
 with index/context loss reported. Unavailable layer color becomes white;
 inherited layer opacity becomes opaque; unavailable/default weight becomes
 explicit 0.25 mm. Unsupported numeric weights use the closest standard CAD

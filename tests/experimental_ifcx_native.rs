@@ -1,4 +1,4 @@
-use ocdraw::ifcx_cad::read_native_cad_ifcx;
+use ocdraw::ifcx_cad::load_ifcx_cad_bytes;
 use ocdraw::ifcx_cad::*;
 use serde_json::{json, Value};
 
@@ -34,8 +34,8 @@ fn base() -> Value {
 
 fn read(
     value: &Value,
-) -> Result<ocdraw::ifcx_cad::ValidatedIfcxCad, ocdraw::ifcx_cad::IfcxCadReport> {
-    read_native_cad_ifcx(&serde_json::to_vec(value).unwrap())
+) -> Result<ocdraw::ifcx_cad::ValidatedIfcxCad, ocdraw::ifcx_cad::IfcxCadReadError> {
+    load_ifcx_cad_bytes(&serde_json::to_vec(value).unwrap(), Default::default())
 }
 
 #[test]
@@ -89,17 +89,26 @@ fn reader_policy_can_reject_the_same_cad_overwrite() {
         "attributes": {"ifccad::geom::circle": {"radius": 5.0}}
     }));
     let bytes = serde_json::to_vec(&value).unwrap();
-    let default = read_native_cad_ifcx(&bytes).unwrap();
-    let explicit_later =
-        read_native_cad_ifcx_with_policy(&bytes, IfcxCompositionPolicy::LaterWins).unwrap();
+    let default = load_ifcx_cad_bytes(&bytes, Default::default()).unwrap();
+    let explicit_later = load_ifcx_cad_bytes(
+        &bytes,
+        IfcxCadReadOptions {
+            composition_policy: IfcxCompositionPolicy::LaterWins,
+        },
+    )
+    .unwrap();
     assert_eq!(default.document(), explicit_later.document());
-    assert!(
-        read_native_cad_ifcx_with_policy(&bytes, IfcxCompositionPolicy::RejectConflicts)
-            .unwrap_err()
-            .errors
-            .iter()
-            .any(|e| e.contains("conflict at /cad/d1/e1/attributes/ifccad::geom::circle"))
-    );
+    assert!(load_ifcx_cad_bytes(
+        &bytes,
+        IfcxCadReadOptions {
+            composition_policy: IfcxCompositionPolicy::RejectConflicts
+        }
+    )
+    .unwrap_err()
+    .report()
+    .errors
+    .iter()
+    .any(|e| e.contains("conflict at /cad/d1/e1/attributes/ifccad::geom::circle")));
 }
 
 #[test]
@@ -111,6 +120,7 @@ fn profile_validates_after_later_geometry_fragment() {
     }));
     assert!(read(&value)
         .unwrap_err()
+        .report()
         .errors
         .iter()
         .any(|e| e.contains("invalid circle radius")));
@@ -128,7 +138,7 @@ fn profile_keeps_later_foreign_attribute_fragment() {
         .unwrap()
         .push(json!({"path":"/project/site","attributes":{"example::tag":"after"}}));
     let loaded = read(&value).unwrap();
-    let foreign = loaded.raw_ifcx()["data"]
+    let foreign = loaded.graph().composed_ifcx()["data"]
         .as_array()
         .unwrap()
         .iter()
@@ -146,6 +156,7 @@ fn profile_circle_requires_placement() {
         .remove("ifccad::geom::placement");
     assert!(read(&value)
         .unwrap_err()
+        .report()
         .errors
         .iter()
         .any(|e| e.contains("placement")));
@@ -158,6 +169,7 @@ fn profile_rejects_duplicate_owner() {
     value["data"].as_array_mut().unwrap().push(json!({"path":"/cad/d1/block/1","children":{"0":"/cad/d1/e1"},"attributes":{"ifccad::blockDefinition":{"name":"B","basePoint":[0,0,0],"insertionUnit":"mm"}}}));
     assert!(read(&value)
         .unwrap_err()
+        .report()
         .errors
         .iter()
         .any(|e| e.contains("owner")));
@@ -376,9 +388,14 @@ fn nested_blocks_keep_shared_definitions_order_and_stored_appearance() {
     let document = nested_document();
     let fixture = include_bytes!("../examples/ifcx-native-cad/hello-nested-blocks.ifcx");
     assert_paths_first(fixture);
-    assert_eq!(read_native_cad_ifcx(fixture).unwrap().document(), &document);
-    let bytes = write_native_cad_ifcx(&document).unwrap();
-    let loaded = read_native_cad_ifcx(&bytes).unwrap();
+    assert_eq!(
+        load_ifcx_cad_bytes(fixture, Default::default())
+            .unwrap()
+            .document(),
+        &document
+    );
+    let bytes = encode_ifcx_cad_document(&document).unwrap();
+    let loaded = load_ifcx_cad_bytes(bytes.bytes(), Default::default()).unwrap();
     assert_eq!(loaded.document(), &document);
     assert_eq!(
         loaded.document().blocks[1]
@@ -388,7 +405,7 @@ fn nested_blocks_keep_shared_definitions_order_and_stored_appearance() {
             .collect::<Vec<_>>(),
         vec![101, 102]
     );
-    let nodes = loaded.raw_ifcx()["data"].as_array().unwrap();
+    let nodes = loaded.graph().composed_ifcx()["data"].as_array().unwrap();
     let outer = nodes
         .iter()
         .find(|node| node["path"] == "/cad/d1/block/2")
@@ -448,16 +465,22 @@ fn nested_block_definition_cycle_is_rejected() {
         *definition_id = 2;
     }
     document.blocks[0].entities.push(back_reference);
-    assert!(write_native_cad_ifcx(&document)
+    assert!(encode_ifcx_cad_document(&document)
         .unwrap_err()
+        .report()
+        .unwrap()
         .errors
         .iter()
         .any(|error| error.contains("cycle")));
 }
 
 fn paper_layout_file() -> Value {
-    let mut value: Value =
-        serde_json::from_slice(&write_native_cad_ifcx(&nested_document()).unwrap()).unwrap();
+    let mut value: Value = serde_json::from_slice(
+        encode_ifcx_cad_document(&nested_document())
+            .unwrap()
+            .bytes(),
+    )
+    .unwrap();
     value["data"][0]["children"]["paper2"] = json!("/cad/d1/layout/2");
     value["data"][0]["attributes"]["ifccad::drawing"]["nextLayoutId"] = json!(4);
     value["data"][0]["attributes"]["ifccad::drawing"]["nextEntityId"] = json!(204);
@@ -502,7 +525,7 @@ fn paper_layouts_accept_distinct_units_and_shared_block_definitions() {
     assert_eq!(*definition_id, 2);
     assert_eq!(transform.scale, [10.0; 3]);
     assert_eq!(transform.placement.origin, [20.0, 20.0, 0.0]);
-    let raw_paper = loaded.raw_ifcx()["data"]
+    let raw_paper = loaded.graph().composed_ifcx()["data"]
         .as_array()
         .unwrap()
         .iter()
@@ -514,12 +537,17 @@ fn paper_layouts_accept_distinct_units_and_shared_block_definitions() {
 #[test]
 fn writer_roundtrips_paper_layouts_without_unit_conversion() {
     let document = read(&paper_layout_file()).unwrap().document().clone();
-    let bytes = write_native_cad_ifcx(&document).unwrap();
-    assert_paths_first(&bytes);
-    assert_eq!(read_native_cad_ifcx(&bytes).unwrap().document(), &document);
+    let bytes = encode_ifcx_cad_document(&document).unwrap();
+    assert_paths_first(bytes.bytes());
+    assert_eq!(
+        load_ifcx_cad_bytes(bytes.bytes(), Default::default())
+            .unwrap()
+            .document(),
+        &document
+    );
     let mut reversed = document.clone();
     reversed.paper_layouts.reverse();
-    assert_eq!(write_native_cad_ifcx(&reversed).unwrap(), bytes);
+    assert_eq!(encode_ifcx_cad_document(&reversed).unwrap(), bytes);
     if std::env::var_os("GENERATE_IFCX_PAPER_FIXTURE").is_some() {
         std::fs::write("examples/ifcx-native-cad/hello-paper-layouts.ifcx", bytes).unwrap();
     }
@@ -530,7 +558,12 @@ fn paper_layout_fixture_is_strictly_readable() {
     let fixture = include_bytes!("../examples/ifcx-native-cad/hello-paper-layouts.ifcx");
     assert_paths_first(fixture);
     let expected = read(&paper_layout_file()).unwrap().document().clone();
-    assert_eq!(read_native_cad_ifcx(fixture).unwrap().document(), &expected);
+    assert_eq!(
+        load_ifcx_cad_bytes(fixture, Default::default())
+            .unwrap()
+            .document(),
+        &expected
+    );
 }
 
 #[test]
@@ -552,7 +585,7 @@ fn paper_layouts_allow_empty_scopes_but_require_one_model() {
         .is_empty());
     value["data"][1]["attributes"]["ifccad::layout"] =
         json!({"kind":"Paper","name":"Extra","paper":{"width":1,"height":1,"lengthUnit":"mm"}});
-    assert!(read(&value).unwrap_err().errors[0].contains("missing Model"));
+    assert!(read(&value).unwrap_err().report().errors[0].contains("missing Model"));
     let mut value = paper_layout_file();
     let paper = value["data"]
         .as_array_mut()
@@ -561,7 +594,7 @@ fn paper_layouts_allow_empty_scopes_but_require_one_model() {
         .find(|n| n["path"] == "/cad/d1/layout/3")
         .unwrap();
     paper["attributes"]["ifccad::layout"] = json!({"kind":"Model"});
-    assert!(read(&value).unwrap_err().errors[0].contains("exactly one Model"));
+    assert!(read(&value).unwrap_err().report().errors[0].contains("exactly one Model"));
 }
 
 #[test]
@@ -617,21 +650,26 @@ fn paper_layouts_require_metadata_and_one_owner() {
 fn writer_rejects_duplicate_layout_ids() {
     let mut document = read(&paper_layout_file()).unwrap().document().clone();
     document.paper_layouts[0].id = document.model.id;
-    assert!(write_native_cad_ifcx(&document).is_err());
+    assert!(encode_ifcx_cad_document(&document).is_err());
     document.paper_layouts[0].id = document.paper_layouts[1].id;
-    assert!(write_native_cad_ifcx(&document).is_err());
+    assert!(encode_ifcx_cad_document(&document).is_err());
 }
 
 #[test]
 fn roundtrip_complete_example_and_determinism() {
     let document = fixture_document();
-    let bytes = write_native_cad_ifcx(&document).unwrap();
-    assert_paths_first(&bytes);
-    let file: Value = serde_json::from_slice(&bytes).unwrap();
+    let bytes = encode_ifcx_cad_document(&document).unwrap();
+    assert_paths_first(bytes.bytes());
+    let file: Value = serde_json::from_slice(bytes.bytes()).unwrap();
     assert!(file["schemas"].as_object().unwrap().is_empty());
     assert_eq!(file["imports"][0]["uri"], "urn:example:ifccad:0.1.0");
-    assert_eq!(read_native_cad_ifcx(&bytes).unwrap().document(), &document);
-    assert_eq!(write_native_cad_ifcx(&document).unwrap(), bytes);
+    assert_eq!(
+        load_ifcx_cad_bytes(bytes.bytes(), Default::default())
+            .unwrap()
+            .document(),
+        &document
+    );
+    assert_eq!(encode_ifcx_cad_document(&document).unwrap(), bytes);
     if std::env::var_os("GENERATE_IFCX_FIXTURE").is_some() {
         std::fs::write("examples/ifcx-native-cad/hello-cad.ifcx", &bytes).unwrap();
     }
@@ -639,9 +677,9 @@ fn roundtrip_complete_example_and_determinism() {
 
 #[test]
 fn writer_uses_unwrapped_cad_paths_and_references() {
-    let bytes = write_native_cad_ifcx(&fixture_document()).unwrap();
-    assert!(!bytes.windows(2).any(|pair| pair == b"</"));
-    let file: Value = serde_json::from_slice(&bytes).unwrap();
+    let bytes = encode_ifcx_cad_document(&fixture_document()).unwrap();
+    assert!(!bytes.bytes().windows(2).any(|pair| pair == b"</"));
+    let file: Value = serde_json::from_slice(bytes.bytes()).unwrap();
     assert_eq!(file["data"][0]["path"], "/cad/d1");
     assert_eq!(file["data"][0]["children"]["model"], "/cad/d1/layout/1");
     assert_eq!(file["data"][1]["children"]["2"], "/cad/d1/e90");
@@ -653,6 +691,7 @@ fn profile_rejects_usd_wrapped_cad_path() {
     value["data"][0]["path"] = json!("</cad/d1>");
     assert!(read(&value)
         .unwrap_err()
+        .report()
         .errors
         .iter()
         .any(|error| error.contains("invalid CAD path")));
@@ -684,6 +723,7 @@ fn profile_rejects_child_gap_and_unused_block_cycle() {
         .remove("0");
     assert!(read(&value)
         .unwrap_err()
+        .report()
         .errors
         .iter()
         .any(|e| e.contains("gap")));
@@ -693,6 +733,7 @@ fn profile_rejects_child_gap_and_unused_block_cycle() {
     value["data"].as_array_mut().unwrap().push(json!({"path":"/cad/d1/e3","attributes":{"ifccad::entity":{"layer":"/cad/d1/layer/0","appearance":{"color":{"mode":"ByLayer"},"opacity":{"mode":"ByLayer"},"linePattern":{"mode":"ByLayer"},"lineWeight":{"mode":"ByLayer"}}},"ifccad::blockInstance":{"definition":"/cad/d1/block/1","transform":{"placement":{"origin":[0,0,0],"xAxis":[1,0,0],"yAxis":[0,1,0]},"rotation":0,"scale":[1,1,1]}}}}));
     assert!(read(&value)
         .unwrap_err()
+        .report()
         .errors
         .iter()
         .any(|e| e.contains("cycle")));
@@ -704,9 +745,15 @@ fn profile_schema_and_extensions() {
     value["data"].as_array_mut().unwrap().push(json!({"path":"/project/site","children":{"cad":"/cad/d1/e1"},"attributes":{"example::tag":{"value":"kept"}}}));
     value["data"][3]["attributes"]["example::entityNote"] = json!(42);
     let loaded = read(&value).unwrap();
-    assert_eq!(loaded.raw_ifcx()["data"].as_array().unwrap().len(), 7);
     assert_eq!(
-        loaded.raw_ifcx()["data"][3]["attributes"]["example::entityNote"],
+        loaded.graph().composed_ifcx()["data"]
+            .as_array()
+            .unwrap()
+            .len(),
+        7
+    );
+    assert_eq!(
+        loaded.graph().composed_ifcx()["data"][3]["attributes"]["example::entityNote"],
         42
     );
     value["schemas"]
@@ -715,6 +762,7 @@ fn profile_schema_and_extensions() {
         .remove("ifccad::geom::circle");
     assert!(read(&value)
         .unwrap_err()
+        .report()
         .errors
         .iter()
         .any(|e| e.contains("schema")));
@@ -726,6 +774,7 @@ fn profile_rejects_invalid_unit_and_unknown_geometry() {
     value["data"][0]["attributes"]["ifccad::drawing"]["lengthUnit"] = json!("metres");
     assert!(read(&value)
         .unwrap_err()
+        .report()
         .errors
         .iter()
         .any(|e| e.contains("unit")));
@@ -733,6 +782,7 @@ fn profile_rejects_invalid_unit_and_unknown_geometry() {
     value["data"][3]["attributes"]["ifccad::geom::spline"] = json!({"knots":[]});
     assert!(read(&value)
         .unwrap_err()
+        .report()
         .errors
         .iter()
         .any(|e| e.contains("unsupported")));
@@ -745,6 +795,7 @@ fn profile_rejects_ambiguous_appearance_mode() {
         json!("#ff0000");
     assert!(read(&value)
         .unwrap_err()
+        .report()
         .errors
         .iter()
         .any(|e| e.contains("mode")));
@@ -753,6 +804,7 @@ fn profile_rejects_ambiguous_appearance_mode() {
         json!({"mode":"Explicit"});
     assert!(read(&value)
         .unwrap_err()
+        .report()
         .errors
         .iter()
         .any(|e| e.contains("value")));
@@ -762,7 +814,7 @@ fn profile_rejects_ambiguous_appearance_mode() {
 fn fixture_is_a_complete_strictly_readable_ifcx_file() {
     let bytes = include_bytes!("../examples/ifcx-native-cad/hello-cad.ifcx");
     assert_paths_first(bytes);
-    let loaded = read_native_cad_ifcx(bytes).unwrap();
+    let loaded = load_ifcx_cad_bytes(bytes, Default::default()).unwrap();
     assert_eq!(loaded.document(), &fixture_document());
     let schema_module: Value = serde_json::from_str(include_str!(
         "../schemas/ifcx-native-cad/experimental-profile-0.1.0.ifcx"
@@ -770,10 +822,10 @@ fn fixture_is_a_complete_strictly_readable_ifcx_file() {
     .unwrap();
     let schemas = schema_module["schemas"].as_object().unwrap();
     assert_eq!(
-        loaded.raw_ifcx()["imports"][0]["uri"],
+        loaded.graph().composed_ifcx()["imports"][0]["uri"],
         schema_module["header"]["id"]
     );
-    for node in loaded.raw_ifcx()["data"].as_array().unwrap() {
+    for node in loaded.graph().composed_ifcx()["data"].as_array().unwrap() {
         if let Some(attrs) = node.get("attributes").and_then(Value::as_object) {
             for key in attrs.keys().filter(|k| k.starts_with("ifccad::")) {
                 assert!(schemas.contains_key(key), "missing {key}");
@@ -791,6 +843,7 @@ fn profile_imported_schema_resolves_offline_and_missing_import_fails() {
     value["imports"] = json!([]);
     assert!(read(&value)
         .unwrap_err()
+        .report()
         .errors
         .iter()
         .any(|e| e.contains("schema")));
@@ -818,14 +871,14 @@ fn exploratory_line_count_probe() {
         })
         .collect();
     document.blocks.clear();
-    let bytes = write_native_cad_ifcx(&document).unwrap();
+    let bytes = encode_ifcx_cad_document(&document).unwrap();
     let start = std::time::Instant::now();
-    let loaded = read_native_cad_ifcx(&bytes).unwrap();
+    let loaded = load_ifcx_cad_bytes(bytes.bytes(), Default::default()).unwrap();
     let elapsed = start.elapsed();
     assert_eq!(loaded.document(), &document);
     println!(
         "1000 lines: {} complete JSON bytes, strict read {} ms",
-        bytes.len(),
+        bytes.bytes().len(),
         elapsed.as_millis()
     );
 }

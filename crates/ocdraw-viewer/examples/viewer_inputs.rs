@@ -1,5 +1,5 @@
 //! Generate small CAD inputs for a reproducible local viewer smoke test.
-use ocdraw_convert::cadcodec::{
+use ocdraw_convert::opencadcodec::{
     CadDocument, Circle, DwgWriter, DxfWriter, EntityType, Line, LwPolyline, Vector2,
 };
 fn main() -> Result<(), Box<dyn std::error::Error>> {

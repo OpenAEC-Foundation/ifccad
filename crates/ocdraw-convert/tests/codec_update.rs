@@ -1,11 +1,12 @@
-use cadcodec::{CadDocument, EntityType};
 use ocdraw_convert::{
-    cad_document_to_drawing, DirectExportError, ExportLossPolicy, ExportLossReason, ExportOptions,
+    cad_document_to_encoded_ocdraw, CadToOcdrawError, CadToOcdrawLossReason, CadToOcdrawOptions,
+    OcdrawLossPolicy,
 };
+use opencadcodec::{CadDocument, EntityType};
 
 #[test]
 fn autocad_anonymous_names_reach_ocdraw_without_name_repair() {
-    let doc = cadcodec::DwgReader::from_stream(std::io::Cursor::new(
+    let doc = opencadcodec::DwgReader::from_stream(std::io::Cursor::new(
         include_bytes!("fixtures/anonymous-names.dwg").as_slice(),
     ))
     .read()
@@ -21,9 +22,9 @@ fn autocad_anonymous_names_reach_ocdraw_without_name_repair() {
             .entities()
             .any(|e| matches!(e, EntityType::Insert(i) if i.block_name == name)));
     }
-    let out = cad_document_to_drawing(&doc, ExportOptions::default()).unwrap();
-    let loaded = ocdraw::ocdraw::load_drawing_bytes(out.drawing().bytes());
-    let drawing = loaded.validated_drawing().unwrap();
+    let out = cad_document_to_encoded_ocdraw(&doc, CadToOcdrawOptions::default()).unwrap();
+    let loaded = ocdraw::ocdraw::load_ocdraw_bytes(out.encoded().bytes());
+    let drawing = loaded.as_ref().ok().unwrap();
     for name in ["NamedBefore", "*U2", "NamedBetween", "*U4", "*U5"] {
         assert!(drawing.block_definitions().iter().any(|b| b.name == name));
     }
@@ -31,7 +32,7 @@ fn autocad_anonymous_names_reach_ocdraw_without_name_repair() {
 
 #[test]
 fn newly_exposed_header_settings_are_diagnosed_and_rejectable() {
-    let edits: [fn(&mut cadcodec::document::HeaderVariables); 4] = [
+    let edits: [fn(&mut opencadcodec::document::HeaderVariables); 4] = [
         |h| h.dwf_frame = 1,
         |h| h.dgn_frame = 2,
         |h| h.universal_create_date_julian = 2_460_000.,
@@ -40,18 +41,18 @@ fn newly_exposed_header_settings_are_diagnosed_and_rejectable() {
     for edit in edits {
         let mut doc = CadDocument::new();
         edit(&mut doc.header);
-        let out = cad_document_to_drawing(&doc, ExportOptions::default()).unwrap();
+        let out = cad_document_to_encoded_ocdraw(&doc, CadToOcdrawOptions::default()).unwrap();
         assert!(out.diagnostics().iter().flat_map(|d| d.reasons()).any(|r|
-            matches!(r, ExportLossReason::UnsupportedHeaderField { name } if name == "other_header_semantics")));
+            matches!(r, CadToOcdrawLossReason::UnsupportedHeaderField { name } if name == "other_header_semantics")));
         assert!(matches!(
-            cad_document_to_drawing(
+            cad_document_to_encoded_ocdraw(
                 &doc,
-                ExportOptions {
-                    loss_policy: ExportLossPolicy::Reject,
+                CadToOcdrawOptions {
+                    loss_policy: OcdrawLossPolicy::Reject,
                     ..Default::default()
                 }
             ),
-            Err(DirectExportError::LossRejected { .. })
+            Err(CadToOcdrawError::LossRejected { .. })
         ));
     }
 }
@@ -61,13 +62,13 @@ fn off_screen_viewports_are_diagnosed_in_canvas_and_authored_viewports() {
     for overall in [false, true] {
         let mut doc = CadDocument::new();
         let layout = doc.add_layout("Sheet").unwrap();
-        let cadcodec::objects::ObjectType::Layout(layout) = &doc.objects[&layout] else {
+        let opencadcodec::objects::ObjectType::Layout(layout) = &doc.objects[&layout] else {
             panic!()
         };
         let handle = if overall {
             layout.viewport
         } else {
-            let mut v = cadcodec::entities::Viewport::new();
+            let mut v = opencadcodec::entities::Viewport::new();
             v.id = 2;
             doc.add_entity_to_layout(EntityType::Viewport(v), "Sheet")
                 .unwrap()
@@ -76,30 +77,31 @@ fn off_screen_viewports_are_diagnosed_in_canvas_and_authored_viewports() {
             panic!()
         };
         v.off_screen = true;
-        let bytes = cadcodec::DxfWriter::new(&doc).write_to_vec().unwrap();
-        let decoded = cadcodec::DxfReader::from_reader(std::io::Cursor::new(bytes))
+        let bytes = opencadcodec::DxfWriter::new(&doc).write_to_vec().unwrap();
+        let decoded = opencadcodec::DxfReader::from_reader(std::io::Cursor::new(bytes))
             .unwrap()
             .read()
             .unwrap();
         assert!(decoded
             .entities()
             .any(|e| matches!(e, EntityType::Viewport(v) if v.off_screen)));
-        let out = cad_document_to_drawing(&decoded, ExportOptions::default()).unwrap();
+        let out = cad_document_to_encoded_ocdraw(&decoded, CadToOcdrawOptions::default()).unwrap();
         assert!(out.diagnostics().iter().flat_map(|d| d.reasons()).any(|r|
-            matches!(r, ExportLossReason::UnsupportedSemantic { name } if name.contains("off-screen"))
+            matches!(r, CadToOcdrawLossReason::UnsupportedSemantic { name } if name.contains("off-screen"))
         ), "{overall}: {:?}", out.diagnostics());
-        assert!(ocdraw::ocdraw::load_drawing_bytes(out.drawing().bytes())
-            .validated_drawing()
+        assert!(ocdraw::ocdraw::load_ocdraw_bytes(out.encoded().bytes())
+            .as_ref()
+            .ok()
             .is_some());
         assert!(matches!(
-            cad_document_to_drawing(
+            cad_document_to_encoded_ocdraw(
                 &decoded,
-                ExportOptions {
-                    loss_policy: ExportLossPolicy::Reject,
+                CadToOcdrawOptions {
+                    loss_policy: OcdrawLossPolicy::Reject,
                     ..Default::default()
                 }
             ),
-            Err(DirectExportError::LossRejected { .. })
+            Err(CadToOcdrawError::LossRejected { .. })
         ));
     }
 }
@@ -108,15 +110,18 @@ fn off_screen_viewports_are_diagnosed_in_canvas_and_authored_viewports() {
 fn typed_plot_edits_after_dxf_read_are_not_overwritten_by_retained_raw_codes() {
     let mut source = CadDocument::new();
     let handle = source.add_layout("Sheet").unwrap();
-    let cadcodec::objects::ObjectType::Layout(layout) = source.objects.get_mut(&handle).unwrap()
+    let opencadcodec::objects::ObjectType::Layout(layout) =
+        source.objects.get_mut(&handle).unwrap()
     else {
         panic!()
     };
     layout.paper_width = 210.;
     layout.paper_height = 297.;
     layout.plot_type = 1; // Extents plotting has a supported mapping.
-    let bytes = cadcodec::DxfWriter::new(&source).write_to_vec().unwrap();
-    let mut doc = cadcodec::DxfReader::from_reader(std::io::Cursor::new(bytes))
+    let bytes = opencadcodec::DxfWriter::new(&source)
+        .write_to_vec()
+        .unwrap();
+    let mut doc = opencadcodec::DxfReader::from_reader(std::io::Cursor::new(bytes))
         .unwrap()
         .read()
         .unwrap();
@@ -124,16 +129,17 @@ fn typed_plot_edits_after_dxf_read_are_not_overwritten_by_retained_raw_codes() {
         .objects
         .values_mut()
         .find_map(|o| match o {
-            cadcodec::objects::ObjectType::Layout(l) if l.name == "Sheet" => Some(l),
+            opencadcodec::objects::ObjectType::Layout(l) if l.name == "Sheet" => Some(l),
             _ => None,
         })
         .unwrap();
     assert!(layout.raw_plot_settings_codes.is_some());
     layout.plot_rotation = 1;
-    let out = cad_document_to_drawing(&doc, ExportOptions::default()).unwrap();
-    let loaded = ocdraw::ocdraw::load_drawing_bytes(out.drawing().bytes());
+    let out = cad_document_to_encoded_ocdraw(&doc, CadToOcdrawOptions::default()).unwrap();
+    let loaded = ocdraw::ocdraw::load_ocdraw_bytes(out.encoded().bytes());
     let layout = loaded
-        .validated_drawing()
+        .as_ref()
+        .ok()
         .unwrap()
         .typed_layouts()
         .iter()
@@ -151,8 +157,8 @@ fn typed_plot_edits_after_dxf_read_are_not_overwritten_by_retained_raw_codes() {
     );
 }
 
-fn object_xdata_documents() -> [cadcodec::CadDocument; 2] {
-    use cadcodec::{CadDocument, DwgReader, DwgWriter, DxfReader, DxfWriter};
+fn object_xdata_documents() -> [opencadcodec::CadDocument; 2] {
+    use opencadcodec::{CadDocument, DwgReader, DwgWriter, DxfReader, DxfWriter};
     use std::io::Cursor;
     let source = CadDocument::new();
     let root = format!("{:X}", source.header.named_objects_dict_handle.value());
@@ -194,32 +200,37 @@ fn object_xdata_is_visible_after_both_codecs_and_never_silently_dropped() {
     for doc in object_xdata_documents() {
         let mut records = 0;
         doc.semantic_inventory_v1().visit(|part| {
-            if let cadcodec::SemanticPartV1::NonEntityExtendedData {
+            if let opencadcodec::SemanticPartV1::NonEntityExtendedData {
                 values: Some(values),
                 ..
             } = part
             {
-                if values == [cadcodec::xdata::XDataValue::String("object payload".into())] {
+                if values
+                    == [opencadcodec::xdata::XDataValue::String(
+                        "object payload".into(),
+                    )]
+                {
                     records += 1;
                 }
             }
         });
         assert_eq!(records, 1);
-        let out = cad_document_to_drawing(&doc, ExportOptions::default()).unwrap();
+        let out = cad_document_to_encoded_ocdraw(&doc, CadToOcdrawOptions::default()).unwrap();
         assert!(out.diagnostics().iter().flat_map(|d| d.reasons()).any(|r|
-            matches!(r, ExportLossReason::UnsupportedCollection { kind, count } if kind == "inventory.non_entity_extended_data" && *count == 1)));
-        assert!(ocdraw::ocdraw::load_drawing_bytes(out.drawing().bytes())
-            .validated_drawing()
+            matches!(r, CadToOcdrawLossReason::UnsupportedCollection { kind, count } if kind == "inventory.non_entity_extended_data" && *count == 1)));
+        assert!(ocdraw::ocdraw::load_ocdraw_bytes(out.encoded().bytes())
+            .as_ref()
+            .ok()
             .is_some());
         assert!(matches!(
-            cad_document_to_drawing(
+            cad_document_to_encoded_ocdraw(
                 &doc,
-                ExportOptions {
-                    loss_policy: ExportLossPolicy::Reject,
+                CadToOcdrawOptions {
+                    loss_policy: OcdrawLossPolicy::Reject,
                     ..Default::default()
                 }
             ),
-            Err(DirectExportError::LossRejected { .. })
+            Err(CadToOcdrawError::LossRejected { .. })
         ));
     }
 }

@@ -226,23 +226,23 @@ impl PairedPoint {
 }
 
 pub(crate) fn from_cad_instance(
-    insert: &cadcodec::entities::Insert,
-    base: cadcodec::Vector3,
-    assessment: &crate::ConversionGeometryAssessment,
+    insert: &opencadcodec::entities::Insert,
+    base: opencadcodec::Vector3,
+    assessment: &crate::OcdrawGeometryAssessment,
 ) -> Result<
     (
         ocdraw::ocdraw::BlockTransform,
         EvaluatedBlock,
         EvaluatedBlock,
     ),
-    Box<crate::ConversionGeometryFailure>,
+    Box<crate::OcdrawGeometryFailure>,
 > {
     use crate::{
-        ConversionEntitySource, ConversionGeometryFailureReason as Reason,
-        ConversionGeometryStage as Stage,
+        OcdrawGeometryEntitySource, OcdrawGeometryFailureReason as Reason,
+        OcdrawGeometryStage as Stage,
     };
     use ocdraw::ocdraw::{BlockTransform, CoordinateFrame3, Point3, Scale3, Vector3};
-    let source = ConversionEntitySource::CadEntity {
+    let source = OcdrawGeometryEntitySource::CadEntity {
         handle: insert.common.handle,
         kind: "INSERT".into(),
     };
@@ -269,7 +269,7 @@ pub(crate) fn from_cad_instance(
         return Err(fail());
     }
     // Evaluate the actual public CAD frame, not a separately re-normalized one.
-    let m = cadcodec::types::Matrix3::arbitrary_axis(insert.normal).m;
+    let m = opencadcodec::types::Matrix3::arbitrary_axis(insert.normal).m;
     if !m.iter().flatten().all(|v| v.is_finite()) {
         return Err(fail());
     }
@@ -319,7 +319,7 @@ pub(crate) fn from_cad_instance(
 }
 
 pub(crate) fn polyline_pairs(
-    poly: &cadcodec::LwPolyline,
+    poly: &opencadcodec::LwPolyline,
     plane: ocdraw::ocdraw::CoordinateFrame3,
 ) -> Vec<PairedPoint> {
     let basis = super::cad_plane(poly.normal).expect("validated CAD polyline axes");
@@ -370,18 +370,18 @@ pub(crate) fn to_cad_instance_parts(
     transform: ocdraw::ocdraw::BlockTransform,
     name: &str,
     base: [f64; 3],
-    source: crate::ConversionEntitySource,
-    assessment: &crate::ConversionGeometryAssessment,
+    source: crate::OcdrawGeometryEntitySource,
+    assessment: &crate::OcdrawGeometryAssessment,
 ) -> Result<
     (
-        cadcodec::entities::Insert,
+        opencadcodec::entities::Insert,
         EvaluatedBlock,
         EvaluatedBlock,
         bool,
     ),
-    crate::DirectImportError,
+    crate::OcdrawToCadError,
 > {
-    use crate::{ConversionGeometryFailureReason as Reason, ConversionGeometryStage as Stage};
+    use crate::{OcdrawGeometryFailureReason as Reason, OcdrawGeometryStage as Stage};
     let plane = transform.placement();
     let fail = || {
         assessment.failure(
@@ -392,7 +392,7 @@ pub(crate) fn to_cad_instance_parts(
         )
     };
     let normal = super::stored_normal(plane).ok_or_else(fail)?;
-    let matrix = cadcodec::types::Matrix3::arbitrary_axis(normal).m;
+    let matrix = opencadcodec::types::Matrix3::arbitrary_axis(normal).m;
     let axes: [[f64; 3]; 3] = std::array::from_fn(|j| std::array::from_fn(|i| matrix[i][j]));
     if !axes.iter().flatten().all(|v| v.is_finite()) {
         return Err(fail().into());
@@ -417,9 +417,9 @@ pub(crate) fn to_cad_instance_parts(
     } else {
         0.
     };
-    let mut target = cadcodec::entities::Insert::new(
+    let mut target = opencadcodec::entities::Insert::new(
         name,
-        cadcodec::Vector3::new(position[0], position[1], position[2]),
+        opencadcodec::Vector3::new(position[0], position[1], position[2]),
     );
     target.normal = normal;
     target.rotation = transform.rotation() + offset;
@@ -431,12 +431,12 @@ pub(crate) fn to_cad_instance_parts(
     target.set_y_scale(scale.y());
     target.set_z_scale(scale.z());
     if [target.x_scale(), target.y_scale(), target.z_scale()] != [scale.x(), scale.y(), scale.z()] {
-        return Err(crate::DirectImportError::Cad(format!("CAD scale setters changed {:?} to {:?}; values below magnitude 1e-12 cannot be represented by this codec API",[scale.x(),scale.y(),scale.z()],[target.x_scale(),target.y_scale(),target.z_scale()])));
+        return Err(crate::OcdrawToCadError::Cad(format!("CAD scale setters changed {:?} to {:?}; values below magnitude 1e-12 cannot be represented by this codec API",[scale.x(),scale.y(),scale.z()],[target.x_scale(),target.y_scale(),target.z_scale()])));
     }
     let source_map = EvaluatedBlock::native(transform, base);
     let (_, target_map, _) = from_cad_instance(
         &target,
-        cadcodec::Vector3::new(base[0], base[1], base[2]),
+        opencadcodec::Vector3::new(base[0], base[1], base[2]),
         assessment,
     )
     .map_err(|mut failure| {
@@ -450,7 +450,7 @@ pub(crate) fn import_polyline_parts(
     placement: ocdraw::ocdraw::CoordinateFrame3,
     vertices: &[[f64; 3]],
     closed: bool,
-    target: &cadcodec::LwPolyline,
+    target: &opencadcodec::LwPolyline,
 ) -> Vec<PairedPoint> {
     let (o, u, v) = super::components(placement);
     let basis = super::cad_plane(target.normal).expect("constructed CAD axes");

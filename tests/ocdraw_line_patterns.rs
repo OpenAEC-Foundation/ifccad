@@ -1,4 +1,4 @@
-use ocdraw::ocdraw::{load_drawing_bytes, DrawingLoadStatus};
+use ocdraw::ocdraw::{load_ocdraw_bytes, OcdrawReadStatus};
 use serde_json::{json, Value};
 
 fn drawing() -> Value {
@@ -11,12 +11,19 @@ fn drawing() -> Value {
 #[test]
 fn named_patterns_read_including_unused_empty_definitions() {
     let value = drawing();
-    let result = load_drawing_bytes(&serde_json::to_vec(&value).unwrap());
+    let result = load_ocdraw_bytes(&serde_json::to_vec(&value).unwrap());
     assert_eq!(
-        result.status(),
-        DrawingLoadStatus::Valid,
+        result
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Valid,
         "{:?}",
-        result.diagnostics()
+        result
+            .as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
     );
 }
 
@@ -31,8 +38,11 @@ fn invalid_pattern_definitions_are_rejected() {
         let mut value = drawing();
         value["linePatterns"][1]["pattern"] = pattern;
         assert_eq!(
-            load_drawing_bytes(&serde_json::to_vec(&value).unwrap()).status(),
-            DrawingLoadStatus::Invalid
+            load_ocdraw_bytes(&serde_json::to_vec(&value).unwrap())
+                .as_ref()
+                .map(|_| OcdrawReadStatus::Valid)
+                .unwrap_or_else(|e| e.status()),
+            OcdrawReadStatus::Invalid
         );
     }
 }
@@ -55,22 +65,28 @@ fn pattern_names_references_and_watermarks_are_checked() {
     invalids.push(v);
     for value in invalids {
         assert_eq!(
-            load_drawing_bytes(&serde_json::to_vec(&value).unwrap()).status(),
-            DrawingLoadStatus::Invalid
+            load_ocdraw_bytes(&serde_json::to_vec(&value).unwrap())
+                .as_ref()
+                .map(|_| OcdrawReadStatus::Valid)
+                .unwrap_or_else(|e| e.status()),
+            OcdrawReadStatus::Invalid
         );
     }
     let mut v = drawing();
     v["linePatternScale"] = json!(0);
     assert_eq!(
-        load_drawing_bytes(&serde_json::to_vec(&v).unwrap()).status(),
-        DrawingLoadStatus::Invalid
+        load_ocdraw_bytes(&serde_json::to_vec(&v).unwrap())
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
     );
 }
 
 #[test]
 fn inherited_modes_cannot_carry_ids_and_explicit_ids_resolve() {
     use ocdraw::ocdraw::*;
-    let mut builder = DrawingBuilder::new(DrawingOptions::new("references", "mm")).unwrap();
+    let mut builder = OcdrawBuilder::new(OcdrawBuildOptions::new("references", "mm")).unwrap();
     let pattern = builder.ensure_continuous_line_pattern().unwrap();
     let layer = builder
         .add_layer(LayerDefinition::new("0", RgbColor::new(0, 0, 0), pattern))
@@ -90,22 +106,28 @@ fn inherited_modes_cannot_carry_ids_and_explicit_ids_resolve() {
         v["streams"]["lineStream"]["linePatternMode"] = json!([mode]);
         v["streams"]["lineStream"]["linePatternId"] = json!([id]);
         assert_eq!(
-            load_drawing_bytes(&serde_json::to_vec(&v).unwrap()).status(),
-            DrawingLoadStatus::Invalid
+            load_ocdraw_bytes(&serde_json::to_vec(&v).unwrap())
+                .as_ref()
+                .map(|_| OcdrawReadStatus::Valid)
+                .unwrap_or_else(|e| e.status()),
+            OcdrawReadStatus::Invalid
         );
     }
     let mut v = value;
     v["streams"]["lineStream"]["linePatternId"] = json!([]);
     assert_eq!(
-        load_drawing_bytes(&serde_json::to_vec(&v).unwrap()).status(),
-        DrawingLoadStatus::Invalid
+        load_ocdraw_bytes(&serde_json::to_vec(&v).unwrap())
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
     );
 }
 
 #[test]
 fn invalid_writer_pattern_values_and_scales_are_rejected() {
     use ocdraw::ocdraw::*;
-    let mut b = DrawingBuilder::new(DrawingOptions::new("invalid", "mm")).unwrap();
+    let mut b = OcdrawBuilder::new(OcdrawBuildOptions::new("invalid", "mm")).unwrap();
     for pattern in [
         vec![f64::NAN, -1.0],
         vec![f64::INFINITY, -1.0],
@@ -142,7 +164,7 @@ fn invalid_writer_pattern_values_and_scales_are_rejected() {
 #[test]
 fn polyline_generation_and_scales_roundtrip() {
     use ocdraw::ocdraw::*;
-    let mut builder = DrawingBuilder::new(DrawingOptions::new("patterns", "mm")).unwrap();
+    let mut builder = OcdrawBuilder::new(OcdrawBuildOptions::new("patterns", "mm")).unwrap();
     let pattern = builder
         .add_line_pattern(LinePatternDefinition {
             name: "DashDot".into(),
@@ -160,8 +182,8 @@ fn polyline_generation_and_scales_roundtrip() {
     poly.appearance.line_pattern_scale = 0.5;
     builder.add_planar_polyline(poly).unwrap();
     let encoded = builder.finish().unwrap();
-    let loaded = load_drawing_bytes(encoded.bytes());
-    let drawing = loaded.validated_drawing().unwrap();
+    let loaded = load_ocdraw_bytes(encoded.bytes());
+    let drawing = loaded.as_ref().ok().unwrap();
     assert_eq!(drawing.line_pattern_scale(), 2.0);
     assert_eq!(
         drawing.line_patterns()[0].pattern,
@@ -185,13 +207,13 @@ fn polyline_generation_and_scales_roundtrip() {
 #[test]
 fn empty_drawing_and_omitted_defaults_do_not_synthesize_patterns() {
     use ocdraw::ocdraw::*;
-    let empty = DrawingBuilder::new(DrawingOptions::new("empty", "mm"))
+    let empty = OcdrawBuilder::new(OcdrawBuildOptions::new("empty", "mm"))
         .unwrap()
         .finish()
         .unwrap();
-    let read = load_drawing_bytes(empty.bytes());
-    assert!(read.validated_drawing().unwrap().line_patterns().is_empty());
-    let mut builder = DrawingBuilder::new(DrawingOptions::new("defaults", "mm")).unwrap();
+    let read = load_ocdraw_bytes(empty.bytes());
+    assert!(read.as_ref().ok().unwrap().line_patterns().is_empty());
+    let mut builder = OcdrawBuilder::new(OcdrawBuildOptions::new("defaults", "mm")).unwrap();
     let authored = builder
         .add_line_pattern(LinePatternDefinition {
             name: "Authored".into(),
@@ -223,8 +245,8 @@ fn empty_drawing_and_omitted_defaults_do_not_synthesize_patterns() {
         .unwrap();
     stream.remove("linePatternScale");
     stream.remove("linePatternGeneration");
-    let read = load_drawing_bytes(&serde_json::to_vec(&value).unwrap());
-    let drawing = read.validated_drawing().unwrap();
+    let read = load_ocdraw_bytes(&serde_json::to_vec(&value).unwrap());
+    let drawing = read.as_ref().ok().unwrap();
     assert_eq!(drawing.line_pattern_scale(), 1.0);
     assert_eq!(
         drawing.geometric_entities()[0]
@@ -249,14 +271,20 @@ fn entity_scale_and_generation_columns_are_strict() {
         let mut value = base.clone();
         value["streams"]["planarPolylineStream"]["linePatternScale"] = bad;
         assert_eq!(
-            load_drawing_bytes(&serde_json::to_vec(&value).unwrap()).status(),
-            DrawingLoadStatus::Invalid
+            load_ocdraw_bytes(&serde_json::to_vec(&value).unwrap())
+                .as_ref()
+                .map(|_| OcdrawReadStatus::Valid)
+                .unwrap_or_else(|e| e.status()),
+            OcdrawReadStatus::Invalid
         );
     }
     let mut value = base;
     value["streams"]["planarPolylineStream"]["linePatternGeneration"] = json!(["phase"]);
     assert_eq!(
-        load_drawing_bytes(&serde_json::to_vec(&value).unwrap()).status(),
-        DrawingLoadStatus::Invalid
+        load_ocdraw_bytes(&serde_json::to_vec(&value).unwrap())
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
     );
 }

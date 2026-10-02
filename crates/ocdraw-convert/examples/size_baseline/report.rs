@@ -45,22 +45,24 @@ pub fn provenance(repo: &Path, output: &Path, cargo_config: Option<&str>) -> Res
         .map(|p| json!({"name":p["name"],"version":p["version"],"source":p["source"]}))
         .collect();
     dependencies.sort_by_key(|p| format!("{}:{}:{}", p["name"], p["version"], p["source"]));
-    let cadcodec = metadata["packages"]
+    let opencadcodec = metadata["packages"]
         .as_array()
         .unwrap()
         .iter()
         .find(|p| p["name"] == "opencadcodec")
-        .ok_or("cadcodec dependency missing")?;
-    let local_override = cadcodec["source"].is_null();
+        .ok_or("opencadcodec dependency missing")?;
+    let local_override = opencadcodec["source"].is_null();
     let mut dependency_source =
-        json!({"local_override":local_override,"source":cadcodec["source"]});
+        json!({"local_override":local_override,"source":opencadcodec["source"]});
     if local_override {
         let manifest = Path::new(
-            cadcodec["manifest_path"]
+            opencadcodec["manifest_path"]
                 .as_str()
-                .ok_or("cadcodec manifest missing")?,
+                .ok_or("opencadcodec manifest missing")?,
         );
-        let root = manifest.parent().ok_or("cadcodec source root missing")?;
+        let root = manifest
+            .parent()
+            .ok_or("opencadcodec source root missing")?;
         // Hash actual patched source, not just the unchanged package version.
         let mut files = artifact_manifest(&root.join("src"))?
             .as_array()
@@ -74,7 +76,10 @@ pub fn provenance(repo: &Path, output: &Path, cargo_config: Option<&str>) -> Res
         dependency_source["source_sha256"] =
             json!(accounting::digest(&serde_json::to_vec(&files)?));
         dependency_source["base_revision"] = json!(command(root, "git", &["rev-parse", "HEAD"])?);
-        run::write_json(&output.join("cadcodec-source-manifest.json"), &json!(files))?;
+        run::write_json(
+            &output.join("opencadcodec-source-manifest.json"),
+            &json!(files),
+        )?;
     }
     // Hash actual source bytes, including uncommitted/untracked benchmark code.
     let files = command(
@@ -115,8 +120,8 @@ pub fn provenance(repo: &Path, output: &Path, cargo_config: Option<&str>) -> Res
         "deleted_source_paths":deleted_paths,
         "rustc":rustc,
         "cargo_lock_sha256":accounting::digest(&lock), "dependencies":dependencies,
-        "cadcodec":dependency_source,
-        "writers":{"ocdraw":"current pretty JSON, uncompressed standalone file", "dxf":"cadcodec text AC1032", "dwg":"cadcodec normal AC1032, native compression"}}),
+        "opencadcodec":dependency_source,
+        "writers":{"ocdraw":"current pretty JSON, uncompressed standalone file", "dxf":"opencadcodec text AC1032", "dwg":"opencadcodec normal AC1032, native compression"}}),
     )
 }
 

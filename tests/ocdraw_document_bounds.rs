@@ -1,9 +1,9 @@
 use ocdraw::ocdraw::*;
 fn drawing() -> OcdrawDocument {
-    load_drawing_bytes(include_bytes!(
+    load_ocdraw_bytes(include_bytes!(
         "../conformance/next/ocdraw/valid/placed-geometry.ocdraw.json"
     ))
-    .into_validated_drawing()
+    .ok()
     .unwrap()
     .into_document()
 }
@@ -37,8 +37,8 @@ fn recompute_uses_sparse_scope_ids_and_preserves_other_content() {
         .iter()
         .map(|s| (s.id, s.entities.clone()))
         .collect::<Vec<_>>();
-    recompute_document_bounds(&mut doc).unwrap();
-    validate_document(&doc).unwrap();
+    recompute_ocdraw_document_bounds(&mut doc).unwrap();
+    validate_ocdraw_document(&doc).unwrap();
     assert_eq!(
         ids,
         doc.scopes
@@ -55,7 +55,7 @@ fn recompute_failure_does_not_partially_update_bounds() {
         start: [f64::NAN, 0., 0.],
         end: [0., 0., 0.],
     };
-    assert!(recompute_document_bounds(&mut doc).is_err());
+    assert!(recompute_ocdraw_document_bounds(&mut doc).is_err());
     assert_eq!(
         before,
         doc.scopes.iter().map(|s| s.bounds).collect::<Vec<_>>()
@@ -70,31 +70,31 @@ fn invalid_supplied_bounds_can_be_replaced_and_empty_scopes_remain_empty() {
             Point3::new(-1., 0., 0.),
         ));
     }
-    recompute_document_bounds(&mut doc).unwrap();
-    validate_document(&doc).unwrap();
-    let mut empty = load_drawing_bytes(include_bytes!(
+    recompute_ocdraw_document_bounds(&mut doc).unwrap();
+    validate_ocdraw_document(&doc).unwrap();
+    let mut empty = load_ocdraw_bytes(include_bytes!(
         "../conformance/next/ocdraw/valid/empty.ocdraw.json"
     ))
-    .into_validated_drawing()
+    .ok()
     .unwrap()
     .into_document();
-    recompute_document_bounds(&mut empty).unwrap();
+    recompute_ocdraw_document_bounds(&mut empty).unwrap();
     assert_eq!(empty.scopes[0].bounds, None);
 }
 
 #[test]
 fn recompute_rejects_viewport_in_model_without_changing_bounds() {
-    let mut d = load_drawing_bytes(include_bytes!(
+    let mut d = load_ocdraw_bytes(include_bytes!(
         "../conformance/next/ocdraw/valid/paper-viewport.ocdraw.json"
     ))
-    .into_validated_drawing()
+    .ok()
     .unwrap()
     .into_document();
     let id = d.viewports[0].id;
     d.scopes[1].entities.clear();
     d.scopes[0].entities.push(id);
     let before = d.scopes.clone();
-    assert!(recompute_document_bounds(&mut d).is_err());
+    assert!(recompute_ocdraw_document_bounds(&mut d).is_err());
     assert_eq!(before, d.scopes);
 }
 #[test]
@@ -112,6 +112,6 @@ fn late_block_overflow_leaves_previously_computed_scopes_unchanged() {
         }
     }
     let before = d.scopes.clone();
-    assert!(recompute_document_bounds(&mut d).is_err());
+    assert!(recompute_ocdraw_document_bounds(&mut d).is_err());
     assert_eq!(before, d.scopes);
 }

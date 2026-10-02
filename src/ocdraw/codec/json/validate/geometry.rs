@@ -1,8 +1,8 @@
 //! Checks needed to construct typed placements before semantic validation.
-use crate::ocdraw::read::{diagnostic, DrawingDiagnostic};
+use crate::ocdraw::read::{diagnostic, OcdrawDiagnostic};
 use serde_json::Value;
 
-pub(super) fn validate_placed_geometry(value: &Value, diagnostics: &mut Vec<DrawingDiagnostic>) {
+pub(super) fn validate_placed_geometry(value: &Value, diagnostics: &mut Vec<OcdrawDiagnostic>) {
     for payload in [
         "pointStream",
         "circleStream",

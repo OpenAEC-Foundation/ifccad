@@ -1,17 +1,17 @@
 use ocdraw::ocdraw::*;
 
 fn drawing() -> OcdrawDocument {
-    load_drawing_bytes(include_bytes!(
+    load_ocdraw_bytes(include_bytes!(
         "../conformance/next/ocdraw/valid/ordered-scopes.ocdraw.json"
     ))
-    .into_validated_drawing()
+    .ok()
     .unwrap()
     .into_document()
 }
 
 #[test]
 fn authored_documents_share_reference_and_watermark_rules() {
-    assert!(validate_document(&drawing()).is_ok());
+    assert!(validate_ocdraw_document(&drawing()).is_ok());
     for mutation in 0..8 {
         let mut doc = drawing();
         match mutation {
@@ -29,7 +29,10 @@ fn authored_documents_share_reference_and_watermark_rules() {
             6 => doc.layers[0].line_pattern_id = LinePatternId(999),
             _ => doc.geometric_entities[1].id = doc.geometric_entities[0].id,
         }
-        assert!(validate_document(&doc).is_err(), "mutation {mutation}");
+        assert!(
+            validate_ocdraw_document(&doc).is_err(),
+            "mutation {mutation}"
+        );
     }
 }
 
@@ -63,7 +66,10 @@ fn authored_values_cannot_bypass_schema_field_constraints() {
             }
             _ => doc.next_entity_id = 0,
         }
-        assert!(validate_document(&doc).is_err(), "mutation {mutation}");
+        assert!(
+            validate_ocdraw_document(&doc).is_err(),
+            "mutation {mutation}"
+        );
     }
 }
 
@@ -85,9 +91,9 @@ fn dormant_bulges_are_validated_even_when_not_evaluated() {
             ));
         }
     }
-    assert!(validate_document(&doc).is_ok());
-    let after = load_drawing_bytes(encode_document(&doc).unwrap().bytes())
-        .into_validated_drawing()
+    assert!(validate_ocdraw_document(&doc).is_ok());
+    let after = load_ocdraw_bytes(encode_ocdraw_document(&doc).unwrap().bytes())
+        .ok()
         .unwrap()
         .into_document();
     assert_eq!(
@@ -102,7 +108,7 @@ fn dormant_bulges_are_validated_even_when_not_evaluated() {
     {
         vertices[1][2] = f64::NAN;
     }
-    assert!(validate_document(&doc).is_err());
+    assert!(validate_ocdraw_document(&doc).is_err());
 }
 
 #[test]
@@ -125,20 +131,20 @@ fn authored_blocks_and_saved_state_share_cross_record_rules() {
         transform: BlockTransform::try_new(CoordinateFrame3::default(), 0., Scale3::default())
             .unwrap(),
     };
-    assert!(validate_document(&cycle)
+    assert!(validate_ocdraw_document(&cycle)
         .unwrap_err()
         .diagnostics()
         .iter()
         .any(|d| d.code == "BLOCK_CYCLE"));
-    let mut d = load_drawing_bytes(include_bytes!(
+    let mut d = load_ocdraw_bytes(include_bytes!(
         "../conformance/next/ocdraw/valid/paper-viewport.ocdraw.json"
     ))
-    .into_validated_drawing()
+    .ok()
     .unwrap()
     .into_document();
     d.viewports[0].id = 0;
-    assert!(validate_document(&d).is_err());
+    assert!(validate_ocdraw_document(&d).is_err());
     d.viewports[0].id = 1;
     d.viewports[0].view.height = f64::NAN;
-    assert!(validate_document(&d).is_err());
+    assert!(validate_ocdraw_document(&d).is_err());
 }

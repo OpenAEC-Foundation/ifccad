@@ -1,26 +1,21 @@
-use crate::outcome::{diagnostic, unit_code};
+use crate::diagnostics::diagnostic;
+use crate::units::unit_code;
 use crate::*;
-use cadcodec::CadDocument;
 use ocdraw::ifcx_cad::{
-    validate_ifcx_cad_document, write_native_cad_ifcx, IfcxCadDocument, ValidatedIfcxCad,
+    encode_ifcx_cad_document, validate_ifcx_cad_document, IfcxCadDocument, ValidatedIfcxCad,
 };
-
-/// Convert supported content, returning diagnostics for omitted or modified data.
-pub fn ifcx_cad_to_cad_document(
-    source: &ValidatedIfcxCad,
-) -> Result<IfcxCadToCadOutcome, IfcxCadConversionError> {
-    ifcx_cad_to_cad_document_with_options(source, IfcxCadConversionOptions::default())
-}
+use opencadcodec::CadDocument;
 
 /// Convert supported content with explicit semantic loss acceptance.
-pub fn ifcx_cad_to_cad_document_with_options(
+pub fn ifcx_cad_source_to_cad_document(
     source: &ValidatedIfcxCad,
-    options: IfcxCadConversionOptions,
+    options: IfcxCadToCadOptions,
 ) -> Result<IfcxCadToCadOutcome, IfcxCadConversionError> {
     let drawing = source.document();
-    let canonical = write_native_cad_ifcx(drawing)
+    let canonical = encode_ifcx_cad_document(drawing)
         .map_err(|e| IfcxCadConversionError::CoreValidation(format!("{e:?}")))?;
-    let canonical: serde_json::Value = serde_json::from_slice(&canonical).expect("writer JSON");
+    let canonical: serde_json::Value =
+        serde_json::from_slice(canonical.bytes()).expect("writer JSON");
     let mut issues = Vec::new();
     let raw = crate::loss::native_defaults(source.graph().composed_ifcx());
     // Compare composed node payloads, allowing fragment order but not losing
@@ -36,18 +31,10 @@ pub fn ifcx_cad_to_cad_document_with_options(
     convert_document(drawing, options, issues)
 }
 
-/// Convert only the supplied logical CAD projection after validating it.
-/// This route has no source graph against which to assess foreign IFCX content.
+/// Convert a logical CAD projection with explicit semantic loss acceptance.
 pub fn ifcx_cad_document_to_cad_document(
     source: &IfcxCadDocument,
-) -> Result<IfcxCadToCadOutcome, IfcxCadConversionError> {
-    ifcx_cad_document_to_cad_document_with_options(source, IfcxCadConversionOptions::default())
-}
-
-/// Convert a logical CAD projection with explicit semantic loss acceptance.
-pub fn ifcx_cad_document_to_cad_document_with_options(
-    source: &IfcxCadDocument,
-    options: IfcxCadConversionOptions,
+    options: IfcxCadToCadOptions,
 ) -> Result<IfcxCadToCadOutcome, IfcxCadConversionError> {
     validate_ifcx_cad_document(source)
         .map_err(|e| IfcxCadConversionError::CoreValidation(format!("{e:?}")))?;
@@ -56,14 +43,14 @@ pub fn ifcx_cad_document_to_cad_document_with_options(
 
 fn convert_document(
     drawing: &IfcxCadDocument,
-    options: IfcxCadConversionOptions,
+    options: IfcxCadToCadOptions,
     mut issues: Vec<IfcxCadDiagnostic>,
 ) -> Result<IfcxCadToCadOutcome, IfcxCadConversionError> {
     // Native layers are identified by ID; CAD tables look them up by normalized
     // name. Reject ambiguity before the special layer-0 replacement or allocation.
     let mut layer_names = std::collections::BTreeMap::new();
     for layer in &drawing.layers {
-        let key = cadcodec::tables::normalize_name(&layer.name);
+        let key = opencadcodec::tables::normalize_name(&layer.name);
         if let Some(previous) = layer_names.insert(key, layer.id) {
             return Err(IfcxCadConversionError::InvalidStructure(format!(
                 "target layer lookup collision between layer/{previous} and layer/{} ({:?})",
@@ -86,7 +73,7 @@ fn convert_document(
         }
     }
     if !drawing.layers.iter().any(|l| l.name == "0") {
-        issues.push(crate::outcome::modification(
+        issues.push(crate::diagnostics::modification(
             "layer-0",
             "drawing.layers",
             "missing CAD layer 0 generated as white, opaque, Continuous and 0.25 mm",
@@ -95,13 +82,13 @@ fn convert_document(
     let mut document = CadDocument::new();
     if !drawing.layers.iter().any(|l| l.name == "0") {
         let layer = document.layers.get_mut("0").unwrap();
-        layer.color = cadcodec::Color::Rgb {
+        layer.color = opencadcodec::Color::Rgb {
             r: 255,
             g: 255,
             b: 255,
         };
-        layer.line_weight = cadcodec::LineWeight::Value(25);
-        layer.transparency = cadcodec::Transparency::Explicit(0);
+        layer.line_weight = opencadcodec::LineWeight::Value(25);
+        layer.transparency = opencadcodec::Transparency::Explicit(0);
     }
     document.header.insertion_units = unit_code(&drawing.length_unit);
     let mut mappings = IfcxCadMappings::default();
@@ -116,7 +103,7 @@ fn convert_document(
         .objects
         .values()
         .find_map(|o| match o {
-            cadcodec::objects::ObjectType::Layout(l)
+            opencadcodec::objects::ObjectType::Layout(l)
                 if l.block_record == document.header.model_space_block_handle =>
             {
                 Some(l.handle)
@@ -233,7 +220,7 @@ fn convert_document(
         }
     }
     crate::loss::to_cad(drawing, &mut issues);
-    crate::outcome::enforce_policy(options, &issues)?;
+    crate::diagnostics::enforce_policy(options.loss_policy, &issues)?;
     Ok(IfcxCadToCadOutcome {
         document,
         diagnostics: issues,

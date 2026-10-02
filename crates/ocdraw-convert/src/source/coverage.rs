@@ -1,7 +1,9 @@
 use super::SourceCoverage;
-use super::{ExportAction, ExportDiagnostic, ExportDiagnosticSource, ExportLossReason};
-use cadcodec::xdata::XDataValue;
-use cadcodec::{
+use super::{
+    CadToOcdrawAction, CadToOcdrawDiagnostic, CadToOcdrawDiagnosticSource, CadToOcdrawLossReason,
+};
+use opencadcodec::xdata::XDataValue;
+use opencadcodec::{
     CadDocument, SemanticNodeV1, SemanticObjectV1, SemanticPartV1, SemanticReferenceV1,
     SemanticRelationshipKindV1, SemanticTableRecordV1,
 };
@@ -13,8 +15,8 @@ static DWG_BOOTSTRAP: OnceLock<Option<CadDocument>> = OnceLock::new();
 fn dwg_bootstrap() -> Option<&'static CadDocument> {
     DWG_BOOTSTRAP
         .get_or_init(|| {
-            let bytes = cadcodec::DwgWriter::write_to_vec(&CadDocument::new()).ok()?;
-            cadcodec::DwgReader::from_stream(std::io::Cursor::new(bytes))
+            let bytes = opencadcodec::DwgWriter::write_to_vec(&CadDocument::new()).ok()?;
+            opencadcodec::DwgReader::from_stream(std::io::Cursor::new(bytes))
                 .read()
                 .ok()
         })
@@ -34,7 +36,7 @@ pub(crate) fn scan_document_semantics(document: &CadDocument, context: &mut Sour
         .iter()
         .map(|(handle, object)| (object as *const _, *handle))
         .collect::<HashMap<_, _>>();
-    let mut baseline_classes = HashMap::<String, Vec<&cadcodec::classes::DxfClass>>::new();
+    let mut baseline_classes = HashMap::<String, Vec<&opencadcodec::classes::DxfClass>>::new();
     for class in content_baseline.classes.iter() {
         baseline_classes
             .entry(class.dxf_name.to_ascii_uppercase())
@@ -47,7 +49,7 @@ pub(crate) fn scan_document_semantics(document: &CadDocument, context: &mut Sour
     let mut collection_counts = BTreeMap::<&'static str, usize>::new();
     let mut relationships = 0;
     let mut extended_data = 0;
-    let mut unresolved_typed = HashMap::<(*const cadcodec::EntityType, u8), usize>::new();
+    let mut unresolved_typed = HashMap::<(*const opencadcodec::EntityType, u8), usize>::new();
     let inventory = document.semantic_inventory_v1();
     // Keep this match exhaustive: a new upstream category must be classified.
     // Typed exporters still own their field-level and geometry diagnostics.
@@ -80,10 +82,10 @@ pub(crate) fn scan_document_semantics(document: &CadDocument, context: &mut Sour
         }
         SemanticPartV1::SummaryInfo(info) => {
             if info != &baseline.summary_info {
-                context.diagnostics.push(ExportDiagnostic::loss(
-                    ExportDiagnosticSource::DocumentField { name: "summary_info".to_owned() },
-                    ExportAction::Skipped,
-                    vec![ExportLossReason::DocumentSummaryInformation],
+                context.diagnostics.push(CadToOcdrawDiagnostic::loss(
+                    CadToOcdrawDiagnosticSource::DocumentField { name: "summary_info".to_owned() },
+                    CadToOcdrawAction::Skipped,
+                    vec![CadToOcdrawLossReason::DocumentSummaryInformation],
                 ));
             }
         }
@@ -144,7 +146,7 @@ pub(crate) fn scan_document_semantics(document: &CadDocument, context: &mut Sour
                 (SemanticReferenceV1::Resolved(SemanticNodeV1::TableRecord(SemanticTableRecordV1::Layer(layer))), Some(app), Some(values)) => {
                     if app.name.eq_ignore_ascii_case("AcCmTransparency") {
                         matches!(values, [XDataValue::Integer32(value)] if *value == layer.transparency.to_alpha_value())
-                    } else if app.name.eq_ignore_ascii_case(cadcodec::tables::layer::LAYER_DESCRIPTION_APP) {
+                    } else if app.name.eq_ignore_ascii_case(opencadcodec::tables::layer::LAYER_DESCRIPTION_APP) {
                         matches!(values, [XDataValue::String(prefix), XDataValue::String(description)]
                             if prefix.is_empty() && description == &layer.description)
                     } else {
@@ -203,17 +205,17 @@ fn same_semantic_node(a: SemanticNodeV1<'_>, b: SemanticNodeV1<'_>) -> bool {
 }
 
 fn scan_header(
-    header: &cadcodec::document::HeaderVariables,
+    header: &opencadcodec::document::HeaderVariables,
     baseline: &CadDocument,
     context: &mut SourceCoverage,
 ) {
     if !header.project_name.is_empty() {
-        context.diagnostics.push(ExportDiagnostic::loss(
-            ExportDiagnosticSource::DocumentField {
+        context.diagnostics.push(CadToOcdrawDiagnostic::loss(
+            CadToOcdrawDiagnosticSource::DocumentField {
                 name: "header.project_name".to_owned(),
             },
-            ExportAction::Skipped,
-            vec![ExportLossReason::UnsupportedHeaderField {
+            CadToOcdrawAction::Skipped,
+            vec![CadToOcdrawLossReason::UnsupportedHeaderField {
                 name: "project_name".to_owned(),
             }],
         ));
@@ -238,12 +240,12 @@ fn scan_header(
     }
     normalize_header_bookkeeping(&mut remaining, &original);
     if remaining != original {
-        context.diagnostics.push(ExportDiagnostic::loss(
-            ExportDiagnosticSource::DocumentField {
+        context.diagnostics.push(CadToOcdrawDiagnostic::loss(
+            CadToOcdrawDiagnosticSource::DocumentField {
                 name: "header.other_semantics".to_owned(),
             },
-            ExportAction::Skipped,
-            vec![ExportLossReason::UnsupportedHeaderField {
+            CadToOcdrawAction::Skipped,
+            vec![CadToOcdrawLossReason::UnsupportedHeaderField {
                 name: "other_header_semantics".to_owned(),
             }],
         ));
@@ -320,7 +322,7 @@ fn unsupported_table_record(
                     .vports
                     .get(&record.name)
                     .cloned()
-                    .unwrap_or_else(cadcodec::VPort::active);
+                    .unwrap_or_else(opencadcodec::VPort::active);
                 let mut residual = record.clone();
                 residual.handle = original.handle;
                 residual.lower_left = original.lower_left;
@@ -362,12 +364,12 @@ fn unsupported_table_record(
         SemanticTableRecordV1::Ucs(record) => {
             if context.mapped_workspace_ucss.contains(&record.handle) {
                 let mut residual = record.clone();
-                residual.origin = cadcodec::Vector3::ZERO;
-                residual.x_axis = cadcodec::Vector3::UNIT_X;
-                residual.y_axis = cadcodec::Vector3::UNIT_Y;
+                residual.origin = opencadcodec::Vector3::ZERO;
+                residual.x_axis = opencadcodec::Vector3::UNIT_X;
+                residual.y_axis = opencadcodec::Vector3::UNIT_Y;
                 residual.elevation = 0.0;
-                residual.handle = cadcodec::Handle::NULL;
-                (residual != cadcodec::Ucs::new(&record.name)).then_some("ucss")
+                residual.handle = opencadcodec::Handle::NULL;
+                (residual != opencadcodec::Ucs::new(&record.name)).then_some("ucss")
             } else {
                 changed!(record, baseline.ucss).then_some("ucss")
             }
@@ -382,13 +384,13 @@ fn unsupported_object(
     object: SemanticObjectV1<'_>,
     document: &CadDocument,
     baseline: &CadDocument,
-    handles: &HashMap<cadcodec::Handle, cadcodec::Handle>,
-    object_handles: &HashMap<*const cadcodec::objects::ObjectType, cadcodec::Handle>,
+    handles: &HashMap<opencadcodec::Handle, opencadcodec::Handle>,
+    object_handles: &HashMap<*const opencadcodec::objects::ObjectType, opencadcodec::Handle>,
 ) -> bool {
     let SemanticObjectV1::Typed(object) = object else {
         return true;
     };
-    if matches!(object, cadcodec::objects::ObjectType::Layout(_)) {
+    if matches!(object, opencadcodec::objects::ObjectType::Layout(_)) {
         return false;
     }
     let handle = object_handles.get(&(object as *const _));
@@ -403,8 +405,8 @@ fn unsupported_object(
 fn bootstrap_handle_map(
     document: &CadDocument,
     baseline: &CadDocument,
-) -> HashMap<cadcodec::Handle, cadcodec::Handle> {
-    use cadcodec::objects::ObjectType;
+) -> HashMap<opencadcodec::Handle, opencadcodec::Handle> {
+    use opencadcodec::objects::ObjectType;
     let mut handles = HashMap::new();
     let mut pending = vec![(
         document.header.named_objects_dict_handle,
@@ -447,14 +449,14 @@ fn bootstrap_handle_map(
 }
 
 fn same_bootstrap_object(
-    object: &cadcodec::objects::ObjectType,
-    original: &cadcodec::objects::ObjectType,
+    object: &opencadcodec::objects::ObjectType,
+    original: &opencadcodec::objects::ObjectType,
     document: &CadDocument,
     baseline: &CadDocument,
-    handles: &HashMap<cadcodec::Handle, cadcodec::Handle>,
-    role: cadcodec::Handle,
+    handles: &HashMap<opencadcodec::Handle, opencadcodec::Handle>,
+    role: opencadcodec::Handle,
 ) -> bool {
-    use cadcodec::objects::ObjectType;
+    use opencadcodec::objects::ObjectType;
     let mapped = |handle| handles.get(&handle).copied().unwrap_or(handle);
     match (object, original) {
         (ObjectType::Dictionary(actual), ObjectType::Dictionary(default)) => {
@@ -542,8 +544,8 @@ fn same_bootstrap_object(
 }
 
 fn normalize_header_bookkeeping(
-    header: &mut cadcodec::document::HeaderVariables,
-    baseline: &cadcodec::document::HeaderVariables,
+    header: &mut opencadcodec::document::HeaderVariables,
+    baseline: &opencadcodec::document::HeaderVariables,
 ) {
     macro_rules! normalize {
         ($($field:ident),+ $(,)?) => {
@@ -605,12 +607,12 @@ fn record_table(context: &mut SourceCoverage, kind: &str, count: usize) {
     if count == 0 {
         return;
     }
-    context.diagnostics.push(ExportDiagnostic::loss(
-        ExportDiagnosticSource::Table {
+    context.diagnostics.push(CadToOcdrawDiagnostic::loss(
+        CadToOcdrawDiagnosticSource::Table {
             kind: kind.to_owned(),
         },
-        ExportAction::Skipped,
-        vec![ExportLossReason::UnsupportedTableRecords {
+        CadToOcdrawAction::Skipped,
+        vec![CadToOcdrawLossReason::UnsupportedTableRecords {
             kind: kind.to_owned(),
             count,
         }],
@@ -621,13 +623,13 @@ fn record_collection(context: &mut SourceCoverage, kind: &str, count: usize) {
     if count == 0 {
         return;
     }
-    context.diagnostics.push(ExportDiagnostic::loss(
-        ExportDiagnosticSource::Collection {
+    context.diagnostics.push(CadToOcdrawDiagnostic::loss(
+        CadToOcdrawDiagnosticSource::Collection {
             kind: kind.to_owned(),
             count,
         },
-        ExportAction::Skipped,
-        vec![ExportLossReason::UnsupportedCollection {
+        CadToOcdrawAction::Skipped,
+        vec![CadToOcdrawLossReason::UnsupportedCollection {
             kind: kind.to_owned(),
             count,
         }],

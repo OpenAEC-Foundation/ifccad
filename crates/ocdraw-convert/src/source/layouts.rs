@@ -1,13 +1,13 @@
-use cadcodec::objects::Layout;
-use cadcodec::{CadDocument, Handle};
+use opencadcodec::objects::Layout;
+use opencadcodec::{CadDocument, Handle};
 
 pub(crate) fn overall_viewport_handle(document: &CadDocument, layout: &Layout) -> Option<Handle> {
-    if matches!(document.get_entity(layout.viewport), Some(cadcodec::EntityType::Viewport(viewport)) if viewport.id == 1 && viewport.common.owner_handle == layout.block_record)
+    if matches!(document.get_entity(layout.viewport), Some(opencadcodec::EntityType::Viewport(viewport)) if viewport.id == 1 && viewport.common.owner_handle == layout.block_record)
     {
         return Some(layout.viewport);
     }
     let mut candidates = document.entities().filter_map(|entity| match entity {
-        cadcodec::EntityType::Viewport(viewport)
+        opencadcodec::EntityType::Viewport(viewport)
             if viewport.id == 1 && viewport.common.owner_handle == layout.block_record =>
         {
             Some(viewport.common.handle)
@@ -49,16 +49,16 @@ pub(crate) fn is_untouched_scaffold(layout: &Layout, document: &CadDocument) -> 
 /// Only a completely empty default record without a layout or insert reference
 /// is bookkeeping. Authored metadata and content must stay represented.
 pub(crate) fn is_empty_reserved_paper_block(
-    record: &cadcodec::BlockRecord,
+    record: &opencadcodec::BlockRecord,
     document: &CadDocument,
 ) -> bool {
     if record.handle != document.header.paper_space_block_handle
         || !record.name.eq_ignore_ascii_case("*Paper_Space")
         || !record.layout.is_null()
         || document.objects.values().any(|object| matches!(object,
-            cadcodec::objects::ObjectType::Layout(layout) if layout.block_record == record.handle))
+            opencadcodec::objects::ObjectType::Layout(layout) if layout.block_record == record.handle))
         || document.entities().any(|entity| entity.common().owner_handle == record.handle
-            || matches!(entity, cadcodec::EntityType::Insert(insert) if insert.block_name.eq_ignore_ascii_case(&record.name)))
+            || matches!(entity, opencadcodec::EntityType::Insert(insert) if insert.block_name.eq_ignore_ascii_case(&record.name)))
     {
         return false;
     }
@@ -68,5 +68,5 @@ pub(crate) fn is_empty_reserved_paper_block(
     candidate.block_end_handle = Handle::NULL;
     candidate.entity_handles.clear(); // Validated structural BLOCK/ENDBLK handles only.
     candidate.name = "*Paper_Space".into();
-    candidate == cadcodec::BlockRecord::paper_space()
+    candidate == opencadcodec::BlockRecord::paper_space()
 }

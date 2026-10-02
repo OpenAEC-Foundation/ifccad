@@ -1,7 +1,7 @@
 # IFCX-CAD conversion proof
 
 Experimental direct conversion between `ocdraw::ifcx_cad` and pinned
-cadcodec `CadDocument`. The core remains independent of cadcodec. No IFCDR
+opencadcodec `CadDocument`. The core remains independent of opencadcodec. No IFCDR
 package, block explosion or appearance resolver is used.
 
 This incomplete adapter defaults to **Allow**: supported content is returned
@@ -15,10 +15,11 @@ for arbitrary CAD files or IFCX graphs.
 `IfcxCadDocument` is the central logical input/output between CAD conversion
 and IFCX encoding. `cad_document_to_ifcx_cad_document` constructs it directly
 with diagnostics and mappings; `ifcx_cad_document_to_cad_document` validates
-and converts the supplied projection. Both have `_with_options` variants.
+and converts the supplied projection. Both require explicit direction-qualified options; use `Default::default()`
+for the existing Allow policy.
 They do not encode/parse an IFCX file as an intermediate step.
 
-The existing functions below remain file-oriented convenience routes. A loaded
+The encoded and source functions below are convenience routes. A loaded
 `ValidatedIfcxCad` retains both the CAD document and its complete immutable
 source graph. Its conversion route additionally diagnoses foreign graph content
 and source numeric precision. Use this route to assess losses from a full IFCX
@@ -31,25 +32,24 @@ for ownership, validation and output boundaries.
 
 ```rust
 use ocdraw::ifcx_cad::ValidatedIfcxCad;
-use ifcx_cad_convert::{ifcx_cad_to_cad_document, cad_document_to_ifcx_cad,
+use ifcx_cad_convert::{ifcx_cad_source_to_cad_document, cad_document_to_encoded_ifcx_cad,
     IfcxCadTargetMetadata, IfcxCadConversionError};
 
 fn convert(source: &ValidatedIfcxCad, metadata: IfcxCadTargetMetadata)
     -> Result<Vec<u8>, IfcxCadConversionError>
 {
-    let cad = ifcx_cad_to_cad_document(source)?;
-    let back = cad_document_to_ifcx_cad(cad.document(), metadata)?;
+    let cad = ifcx_cad_source_to_cad_document(source, Default::default())?;
+    let back = cad_document_to_encoded_ifcx_cad(cad.document(), metadata, Default::default())?;
     // Strict writer and production reader have validated these bytes.
-    Ok(back.ifcx_bytes().to_vec())
+    Ok(back.encoded().bytes().to_vec())
 }
 ```
 
 Target header and drawing ID are caller supplied. Outcomes expose diagnostics
 and mappings; CAD outcomes also offer `into_document()`.
-Use `ifcx_cad_to_cad_document_with_options` or
-`cad_document_to_ifcx_cad_with_options` with
-`IfcxCadConversionOptions { loss_policy: IfcxCadLossPolicy::Reject }` for explicit
-rejection. `IfcxCadDiagnosticAction` distinguishes `Omitted`, `Modified` and
+Use `IfcxCadToCadOptions { loss_policy: IfcxCadLossPolicy::Reject }` for
+source/document-to-CAD conversion and `CadToIfcxCadOptions` with the same
+policy for conversion from CAD. These are distinct direction-specific types. `IfcxCadDiagnosticAction` distinguishes `Omitted`, `Modified` and
 `Recovery`; `is_loss()` excludes uniquely established structural cache repairs.
 Diagnostics are part of the result and should be presented to the caller.
 The separate layer, layout, line-pattern, block-definition and entity mappings offer
@@ -120,7 +120,7 @@ both policies. No geometric tolerance kernel is introduced.
 
 ## Exchange evidence
 
-Unmodified cadcodec revision `d96e3fa2fe5acbeac966f1db4c01142618bf9c79`, AC1032:
+Unmodified opencadcodec revision `d96e3fa2fe5acbeac966f1db4c01142618bf9c79`, AC1032:
 
 | Probe | Result |
 | --- | --- |
@@ -157,8 +157,7 @@ from the standalone OCDraw model and JSON encoding. Conversion is direct to
 
 Small unit-code and scaffold helpers adapt existing converter reasoning; the
 comprehensive numerical kernel is not copied. Extract narrow shared helpers
-with parity tests when both adapters need the same contract. Browser support
-and main integration remain separate follow-ups.
+with parity tests when both adapters need the same contract. Browser support and main integration are implemented as an independent route.
 
 ### Line-pattern conversion boundary
 

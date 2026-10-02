@@ -1,7 +1,7 @@
-use crate::outcome::diagnostic;
+use crate::diagnostics::diagnostic;
 use crate::{IfcxCadConversionError as Error, IfcxCadDiagnostic};
-use cadcodec::objects::ObjectType;
-use cadcodec::{
+use opencadcodec::objects::ObjectType;
+use opencadcodec::{
     CadDocument, EntityType, Handle, SemanticEntityV1, SemanticNodeV1, SemanticObjectV1,
     SemanticPartV1, SemanticReferenceV1, SemanticRelationshipKindV1, SemanticTableRecordV1,
 };
@@ -256,7 +256,7 @@ pub(crate) fn inspect(doc: &CadDocument) -> Result<Inspection, Error> {
                 }
                 residual(
                     marker,
-                    &cadcodec::entities::Block::new(&b.name, b.base_point),
+                    &opencadcodec::entities::Block::new(&b.name, b.base_point),
                     &["common", "name", "base_point"],
                     &format!("block-marker/{}", b.name),
                     &mut issues,
@@ -329,9 +329,9 @@ pub(crate) fn inspect(doc: &CadDocument) -> Result<Inspection, Error> {
         recoveries,
     })
 }
-fn marker_common(c: &cadcodec::entities::EntityCommon, issues: &mut Vec<IfcxCadDiagnostic>) {
+fn marker_common(c: &opencadcodec::entities::EntityCommon, issues: &mut Vec<IfcxCadDiagnostic>) {
     let mut r = c.clone();
-    let b = cadcodec::entities::EntityCommon::new();
+    let b = opencadcodec::entities::EntityCommon::new();
     r.handle = b.handle;
     r.owner_handle = b.owner_handle;
     r.raw_record = None;
@@ -351,7 +351,7 @@ fn overall_scaffold(doc: &CadDocument, e: &EntityType) -> bool {
     };
     if v.id!=1 || !doc.objects.values().any(|o|matches!(o,ObjectType::Layout(l) if l.name=="Layout1" && l.block_record==v.common.owner_handle && l.viewport==v.common.handle && (l.viewports.is_empty() || l.viewports==[v.common.handle]))) {return false;}
     let mut a = v.clone();
-    let mut b = cadcodec::entities::Viewport::new();
+    let mut b = opencadcodec::entities::Viewport::new();
     b.id = 1;
     a.common.handle = b.common.handle;
     a.common.owner_handle = b.common.owner_handle;
@@ -367,9 +367,9 @@ fn scan(doc: &CadDocument, issues: &mut Vec<IfcxCadDiagnostic>) -> Result<(), Er
     let baseline = if doc.dwg_source_version.is_some() {
         DWG_DEFAULT
             .get_or_init(|| {
-                let bytes = cadcodec::DwgWriter::write_to_vec(&CadDocument::new())
+                let bytes = opencadcodec::DwgWriter::write_to_vec(&CadDocument::new())
                     .map_err(|e| e.to_string())?;
-                cadcodec::DwgReader::from_stream(std::io::Cursor::new(bytes))
+                opencadcodec::DwgReader::from_stream(std::io::Cursor::new(bytes))
                     .read()
                     .map_err(|e| e.to_string())
             })
@@ -453,7 +453,7 @@ fn scan(doc: &CadDocument, issues: &mut Vec<IfcxCadDiagnostic>) -> Result<(), Er
             match r {
                 SemanticTableRecordV1::Layer(l) => residual(
                     l,
-                    &cadcodec::Layer::new(&l.name),
+                    &opencadcodec::Layer::new(&l.name),
                     &[
                         "handle",
                         "name",
@@ -481,7 +481,7 @@ fn scan(doc: &CadDocument, issues: &mut Vec<IfcxCadDiagnostic>) -> Result<(), Er
                     }
                     residual(
                         b,
-                        &cadcodec::BlockRecord::new(&b.name),
+                        &opencadcodec::BlockRecord::new(&b.name),
                         &ignored,
                         &format!("block/{}", b.name),
                         issues,

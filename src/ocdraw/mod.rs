@@ -1,18 +1,18 @@
 //! Standalone Open CAD Drawing document access.
 //!
-//! Fresh construction may use [`DrawingBuilder::finish`] directly or expose the
+//! Fresh construction may use [`OcdrawBuilder::finish`] directly or expose the
 //! complete logical document for editing before encoding:
 //!
 //! ```
-//! use ocdraw::ocdraw::{DrawingBuilder, DrawingOptions, encode_document,
-//!     recompute_document_bounds, validate_document};
+//! use ocdraw::ocdraw::{OcdrawBuilder, OcdrawBuildOptions, encode_ocdraw_document,
+//!     recompute_ocdraw_document_bounds, validate_ocdraw_document};
 //! # fn example() -> Result<(), Box<dyn std::error::Error>> {
-//! let mut document = DrawingBuilder::new(DrawingOptions::new("drawing", "mm"))?
+//! let mut document = OcdrawBuilder::new(OcdrawBuildOptions::new("drawing", "mm"))?
 //!     .build_document()?;
 //! // Edit typed records here. Recompute only when new bounds are wanted.
-//! recompute_document_bounds(&mut document)?;
-//! validate_document(&document)?;
-//! let encoded = encode_document(&document)?;
+//! recompute_ocdraw_document_bounds(&mut document)?;
+//! validate_ocdraw_document(&document)?;
+//! let encoded = encode_ocdraw_document(&document)?;
 //! // encoded.write_file("new-drawing.ocdraw.json")?;
 //! # let _ = encoded;
 //! # Ok(())
@@ -21,26 +21,33 @@
 //! ```
 //!
 //! Encoding retains valid supplied bounds and all four allocation watermarks.
-//! Reader snapshots expose [`ValidatedDrawing::document`] and can be consumed
-//! through [`ValidatedDrawing::into_document`] for mutation.
+//! Reader snapshots expose [`ValidatedOcdraw::document`] and can be consumed
+//! through [`ValidatedOcdraw::into_document`] for mutation.
 
 mod codec;
 mod display;
 pub(crate) mod geometry;
 mod layout;
 mod logical;
-pub use logical::recompute_document_bounds;
+pub use logical::recompute_ocdraw_document_bounds;
 pub use logical::OcdrawDocument;
-pub use logical::{validate_document, OcdrawValidationError};
+pub use logical::{validate_ocdraw_document, OcdrawValidationError};
+mod build;
 mod encode;
 pub(crate) mod names;
 mod plot;
 mod read;
+mod storage;
 pub(crate) mod types;
 mod workspace;
-mod write;
+pub use build::{
+    ArcDefinition, BlockDefinition, BlockInstanceDefinition, CircleDefinition, DrawingSavedState,
+    EllipseDefinition, GeometricEntityDefinition, LayerDefinition, LineDefinition,
+    OcdrawBuildError, OcdrawBuildOptions, OcdrawBuilder, PlanarPolylineDefinition, PlotStyleMode,
+    PointDefinition, RgbColor, SpatialPolylineDefinition, ViewportDefinition,
+};
 pub use display::{PointDisplay, PointGlyph, PointSize};
-pub use encode::{encode_document, OcdrawEncodeError};
+pub use encode::{encode_ocdraw_document, OcdrawEncodeError};
 pub use geometry::{
     BlockTransform, BlockTransformError, Bounds3d, CoordinateAxis, CoordinateFrame3,
     CoordinateFrameError, CoordinateFrameField, GeometryEvaluationError, PlaneAxis, Point3, Scale3,
@@ -72,15 +79,9 @@ pub use plot::{
 };
 pub use types::{BlockScaling, Bounds2d, DrawingLengthUnit, EntityId, LayerId, Point2, ScopeId};
 pub use workspace::UcsDefinition;
-pub use write::{
-    ArcDefinition, BlockDefinition, BlockInstanceDefinition, CircleDefinition, DrawingBuildError,
-    DrawingBuilder, DrawingOptions, DrawingSavedState, DrawingWriteError, EllipseDefinition,
-    EncodedDrawing, GeometricEntityDefinition, LayerDefinition, LineDefinition,
-    PlanarPolylineDefinition, PlotStyleMode, PointDefinition, RgbColor, SpatialPolylineDefinition,
-    ViewportDefinition,
-};
 
 pub use read::{
-    load_drawing_bytes, load_drawing_file, DrawingDiagnostic, DrawingLoadOutcome,
-    DrawingLoadStatus, DrawingOpenError, ValidatedDrawing,
+    load_ocdraw_bytes, OcdrawDiagnostic, OcdrawReadError, OcdrawReadStatus, ValidatedOcdraw,
 };
+
+pub use storage::{load_ocdraw_file, EncodedOcdraw, OcdrawOpenError, OcdrawWriteError};

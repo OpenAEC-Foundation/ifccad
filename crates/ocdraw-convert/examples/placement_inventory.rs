@@ -1,6 +1,6 @@
 //! Inspect one CAD file: placement_inventory INPUT OUTPUT_JSON.
 //! Counts stored LWPOLYLINE definitions, without expanding block instances.
-use ocdraw_convert::cadcodec::{DwgReader, DxfReader, EntityType};
+use ocdraw_convert::opencadcodec::{DwgReader, DxfReader, EntityType};
 use serde_json::json;
 use std::{collections::BTreeMap, fs, path::Path};
 

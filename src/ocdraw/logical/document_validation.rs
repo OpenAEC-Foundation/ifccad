@@ -1,24 +1,24 @@
 use super::*;
-use crate::ocdraw::DrawingDiagnostic;
+use crate::ocdraw::OcdrawDiagnostic;
 
 /// Structured failures for invalid authored or decoded drawing content.
 #[derive(Clone, Debug, thiserror::Error)]
 #[error("drawing content is invalid")]
 pub struct OcdrawValidationError {
-    diagnostics: Vec<DrawingDiagnostic>,
+    diagnostics: Vec<OcdrawDiagnostic>,
 }
 impl OcdrawValidationError {
-    pub fn diagnostics(&self) -> &[DrawingDiagnostic] {
+    pub fn diagnostics(&self) -> &[OcdrawDiagnostic] {
         &self.diagnostics
     }
-    pub fn into_diagnostics(self) -> Vec<DrawingDiagnostic> {
+    pub fn into_diagnostics(self) -> Vec<OcdrawDiagnostic> {
         self.diagnostics
     }
     pub(crate) fn from_logical_errors(errors: Vec<LogicalError>) -> Self {
         Self {
             diagnostics: errors
                 .into_iter()
-                .map(|e| DrawingDiagnostic {
+                .map(|e| OcdrawDiagnostic {
                     code: e.code,
                     location: e.location,
                     message: e.message,
@@ -35,7 +35,7 @@ pub(crate) enum ValidationPhase {
 }
 
 /// Validates current content without encoding, repairing or mutating it.
-pub fn validate_document(doc: &OcdrawDocument) -> Result<(), OcdrawValidationError> {
+pub fn validate_ocdraw_document(doc: &OcdrawDocument) -> Result<(), OcdrawValidationError> {
     let errors = validate_logical_document(doc, ValidationPhase::Complete);
     if errors.is_empty() {
         Ok(())

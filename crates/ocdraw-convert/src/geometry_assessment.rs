@@ -2,17 +2,17 @@
 use crate::geometry::numeric::exact;
 use crate::geometry::numeric::{round_down, round_up};
 use crate::units::{ResolvedTolerance, ToleranceVerdict};
-use crate::{ConversionGeometryTolerance, ConversionToleranceError};
-use cadcodec::Handle;
+use crate::{OcdrawGeometryTolerance, OcdrawToleranceError};
 use num_rational::BigRational;
 use num_traits::Zero;
 use ocdraw::ocdraw::DrawingLengthUnit;
+use opencadcodec::Handle;
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub struct ConversionDistanceInterval {
+pub struct OcdrawDistanceInterval {
     pub(crate) lower: f64,
     pub(crate) upper: f64,
 }
-impl ConversionDistanceInterval {
+impl OcdrawDistanceInterval {
     pub fn lower(self) -> f64 {
         self.lower
     }
@@ -21,17 +21,17 @@ impl ConversionDistanceInterval {
     }
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum ConversionGeometryStatus {
+pub enum OcdrawGeometryStatus {
     Empty,
     Exact,
     RoundedWithinTolerance,
 }
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
-pub enum ConversionEntitySource {
+pub enum OcdrawGeometryEntitySource {
     BlockOccurrence {
-        path: Vec<ConversionEntitySource>,
-        leaf: Box<ConversionEntitySource>,
+        path: Vec<OcdrawGeometryEntitySource>,
+        leaf: Box<OcdrawGeometryEntitySource>,
     },
     CadEntity {
         handle: Handle,
@@ -43,13 +43,13 @@ pub enum ConversionEntitySource {
     },
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum ConversionGeometryStage {
+pub enum OcdrawGeometryStage {
     SourceEvaluation,
     TargetConstruction,
     DeviationAssessment,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum ConversionGeometryFailureReason {
+pub enum OcdrawGeometryFailureReason {
     ProvenExceedance,
     NumericalProofIncomplete,
     CadAxisEvaluationFailed,
@@ -57,34 +57,34 @@ pub enum ConversionGeometryFailureReason {
     DeviationBoundOutOfRange,
 }
 #[derive(Clone, Debug, PartialEq)]
-pub struct ConversionGeometryFailure {
-    pub source: ConversionEntitySource,
+pub struct OcdrawGeometryFailure {
+    pub source: OcdrawGeometryEntitySource,
     pub vertex_index: Option<usize>,
-    pub stage: ConversionGeometryStage,
-    pub requested_tolerance: ConversionGeometryTolerance,
-    pub resolved_tolerance: Option<ConversionDistanceInterval>,
-    pub deviation: Option<ConversionDistanceInterval>,
-    pub reason: ConversionGeometryFailureReason,
+    pub stage: OcdrawGeometryStage,
+    pub requested_tolerance: OcdrawGeometryTolerance,
+    pub resolved_tolerance: Option<OcdrawDistanceInterval>,
+    pub deviation: Option<OcdrawDistanceInterval>,
+    pub reason: OcdrawGeometryFailureReason,
 }
 #[derive(Clone, Debug, PartialEq)]
-pub struct ConversionGeometryAssessment {
-    requested: ConversionGeometryTolerance,
+pub struct OcdrawGeometryAssessment {
+    requested: OcdrawGeometryTolerance,
     unit: DrawingLengthUnit,
-    resolved: ConversionDistanceInterval,
+    resolved: OcdrawDistanceInterval,
     limit: ResolvedTolerance,
     entities: usize,
     vertices: usize,
     rounded: usize,
     maximum: f64,
-    worst: Option<ConversionEntitySource>,
+    worst: Option<OcdrawGeometryEntitySource>,
 }
-impl ConversionGeometryAssessment {
+impl OcdrawGeometryAssessment {
     pub(crate) fn new(
-        requested: ConversionGeometryTolerance,
+        requested: OcdrawGeometryTolerance,
         unit: DrawingLengthUnit,
-    ) -> Result<Self, ConversionToleranceError> {
+    ) -> Result<Self, OcdrawToleranceError> {
         let limit = requested.resolve(unit)?;
-        let resolved = ConversionDistanceInterval {
+        let resolved = OcdrawDistanceInterval {
             lower: round_down(&limit.lower).unwrap_or(f64::MAX),
             upper: round_up(&limit.upper).unwrap_or(f64::INFINITY),
         };
@@ -100,22 +100,22 @@ impl ConversionGeometryAssessment {
             worst: None,
         })
     }
-    pub fn requested_tolerance(&self) -> ConversionGeometryTolerance {
+    pub fn requested_tolerance(&self) -> OcdrawGeometryTolerance {
         self.requested
     }
     pub fn drawing_unit(&self) -> DrawingLengthUnit {
         self.unit
     }
-    pub fn resolved_tolerance(&self) -> ConversionDistanceInterval {
+    pub fn resolved_tolerance(&self) -> OcdrawDistanceInterval {
         self.resolved
     }
-    pub fn status(&self) -> ConversionGeometryStatus {
+    pub fn status(&self) -> OcdrawGeometryStatus {
         if self.entities == 0 {
-            ConversionGeometryStatus::Empty
+            OcdrawGeometryStatus::Empty
         } else if self.rounded > 0 {
-            ConversionGeometryStatus::RoundedWithinTolerance
+            OcdrawGeometryStatus::RoundedWithinTolerance
         } else {
-            ConversionGeometryStatus::Exact
+            OcdrawGeometryStatus::Exact
         }
     }
     pub fn max_deviation_upper_bound(&self) -> f64 {
@@ -130,17 +130,17 @@ impl ConversionGeometryAssessment {
     pub fn rounded_entities(&self) -> usize {
         self.rounded
     }
-    pub fn worst_entity(&self) -> Option<&ConversionEntitySource> {
+    pub fn worst_entity(&self) -> Option<&OcdrawGeometryEntitySource> {
         self.worst.as_ref()
     }
     pub(crate) fn failure(
         &self,
-        source: &ConversionEntitySource,
+        source: &OcdrawGeometryEntitySource,
         vertex_index: Option<usize>,
-        stage: ConversionGeometryStage,
-        reason: ConversionGeometryFailureReason,
-    ) -> Box<ConversionGeometryFailure> {
-        Box::new(ConversionGeometryFailure {
+        stage: OcdrawGeometryStage,
+        reason: OcdrawGeometryFailureReason,
+    ) -> Box<OcdrawGeometryFailure> {
+        Box::new(OcdrawGeometryFailure {
             source: source.clone(),
             vertex_index,
             stage,
@@ -152,10 +152,10 @@ impl ConversionGeometryAssessment {
     }
     pub(crate) fn check(
         &self,
-        source: &ConversionEntitySource,
+        source: &OcdrawGeometryEntitySource,
         vertex: usize,
         d2: &BigRational,
-    ) -> Result<f64, Box<ConversionGeometryFailure>> {
+    ) -> Result<f64, Box<OcdrawGeometryFailure>> {
         if d2.is_zero() {
             return Ok(0.0);
         }
@@ -163,8 +163,8 @@ impl ConversionGeometryAssessment {
             self.failure(
                 source,
                 Some(vertex),
-                ConversionGeometryStage::DeviationAssessment,
-                ConversionGeometryFailureReason::DeviationBoundOutOfRange,
+                OcdrawGeometryStage::DeviationAssessment,
+                OcdrawGeometryFailureReason::DeviationBoundOutOfRange,
             )
         })?;
         let verdict = self.limit.check_squared(d2);
@@ -172,16 +172,16 @@ impl ConversionGeometryAssessment {
             let mut failure = self.failure(
                 source,
                 Some(vertex),
-                ConversionGeometryStage::DeviationAssessment,
+                OcdrawGeometryStage::DeviationAssessment,
                 match verdict {
-                    ToleranceVerdict::Exceeds => ConversionGeometryFailureReason::ProvenExceedance,
+                    ToleranceVerdict::Exceeds => OcdrawGeometryFailureReason::ProvenExceedance,
                     ToleranceVerdict::Unresolved => {
-                        ConversionGeometryFailureReason::NumericalProofIncomplete
+                        OcdrawGeometryFailureReason::NumericalProofIncomplete
                     }
                     ToleranceVerdict::Within => unreachable!(),
                 },
             );
-            failure.deviation = Some(ConversionDistanceInterval {
+            failure.deviation = Some(OcdrawDistanceInterval {
                 lower: deviation.0,
                 upper: deviation.1,
             });
@@ -191,22 +191,22 @@ impl ConversionGeometryAssessment {
     }
     pub(crate) fn check_interval(
         &self,
-        source: &ConversionEntitySource,
+        source: &OcdrawGeometryEntitySource,
         vertex: usize,
         lower: &BigRational,
         upper: &BigRational,
-    ) -> Result<f64, Box<ConversionGeometryFailure>> {
+    ) -> Result<f64, Box<OcdrawGeometryFailure>> {
         match self.check(source, vertex, upper) {
             Ok(bound) => Ok(bound),
             Err(mut failure) => {
                 if self.limit.check_squared(lower) != ToleranceVerdict::Exceeds {
-                    failure.reason = ConversionGeometryFailureReason::NumericalProofIncomplete;
+                    failure.reason = OcdrawGeometryFailureReason::NumericalProofIncomplete;
                 }
                 if let (Some(lo), Some(hi)) = (
                     crate::geometry::numeric::sqrt_interval(lower),
                     crate::geometry::numeric::sqrt_interval(upper),
                 ) {
-                    failure.deviation = Some(ConversionDistanceInterval {
+                    failure.deviation = Some(OcdrawDistanceInterval {
                         lower: lo.0,
                         upper: hi.1,
                     });
@@ -217,10 +217,10 @@ impl ConversionGeometryAssessment {
     }
     pub(crate) fn check_curve_bound(
         &self,
-        source: &ConversionEntitySource,
+        source: &OcdrawGeometryEntitySource,
         lower: &BigRational,
         upper: &BigRational,
-    ) -> Result<f64, Box<ConversionGeometryFailure>> {
+    ) -> Result<f64, Box<OcdrawGeometryFailure>> {
         self.check_interval(source, 0, lower, upper)
             .map_err(|mut failure| {
                 failure.vertex_index = None;
@@ -229,16 +229,16 @@ impl ConversionGeometryAssessment {
     }
     pub(crate) fn check_curve(
         &self,
-        source: &ConversionEntitySource,
+        source: &OcdrawGeometryEntitySource,
         curve: &crate::geometry::blocks::PairedCurve,
-    ) -> Result<f64, Box<ConversionGeometryFailure>> {
+    ) -> Result<f64, Box<OcdrawGeometryFailure>> {
         let bound = |interval: Option<(BigRational, BigRational)>| {
             interval.ok_or_else(|| {
                 self.failure(
                     source,
                     None,
-                    ConversionGeometryStage::DeviationAssessment,
-                    ConversionGeometryFailureReason::DeviationBoundOutOfRange,
+                    OcdrawGeometryStage::DeviationAssessment,
+                    OcdrawGeometryFailureReason::DeviationBoundOutOfRange,
                 )
             })
         };
@@ -246,7 +246,7 @@ impl ConversionGeometryAssessment {
         match self.check_curve_bound(source, &lower, &upper) {
             Ok(value) => Ok(value),
             Err(mut failure)
-                if failure.reason == ConversionGeometryFailureReason::NumericalProofIncomplete =>
+                if failure.reason == OcdrawGeometryFailureReason::NumericalProofIncomplete =>
             {
                 for segments in [2, 4, 8, 16, 32] {
                     let (lower, upper) = bound(curve.refined_squared_deviation(segments))?;
@@ -260,7 +260,7 @@ impl ConversionGeometryAssessment {
             Err(failure) => Err(failure),
         }
     }
-    pub(crate) fn record(&mut self, source: ConversionEntitySource, count: usize, bound: f64) {
+    pub(crate) fn record(&mut self, source: OcdrawGeometryEntitySource, count: usize, bound: f64) {
         self.entities += 1;
         self.vertices += count;
         if bound > 0.0 {
@@ -277,12 +277,12 @@ mod tests {
     use super::*;
     #[test]
     fn interval_outcomes_distinguish_proof_gap_from_proved_exceedance() {
-        let assessment = ConversionGeometryAssessment::new(
-            ConversionGeometryTolerance::drawing_units(1.).unwrap(),
+        let assessment = OcdrawGeometryAssessment::new(
+            OcdrawGeometryTolerance::drawing_units(1.).unwrap(),
             DrawingLengthUnit::Metre,
         )
         .unwrap();
-        let source = ConversionEntitySource::CadEntity {
+        let source = OcdrawGeometryEntitySource::CadEntity {
             handle: Handle::NULL,
             kind: "INSERT".into(),
         };
@@ -294,28 +294,28 @@ mod tests {
             .unwrap_err();
         assert_eq!(
             uncertain.reason,
-            ConversionGeometryFailureReason::NumericalProofIncomplete
+            OcdrawGeometryFailureReason::NumericalProofIncomplete
         );
         let outside = assessment
             .check_interval(&source, 2, &exact(2.), &exact(3.))
             .unwrap_err();
         assert_eq!(
             outside.reason,
-            ConversionGeometryFailureReason::ProvenExceedance
+            OcdrawGeometryFailureReason::ProvenExceedance
         );
         assert!(matches!(
-            crate::DirectExportError::from(uncertain.clone()),
-            crate::DirectExportError::Geometry(..)
+            crate::CadToOcdrawError::from(uncertain.clone()),
+            crate::CadToOcdrawError::Geometry(..)
         ));
         assert!(matches!(
-            crate::DirectImportError::from(uncertain),
-            crate::DirectImportError::Geometry(..)
+            crate::OcdrawToCadError::from(uncertain),
+            crate::OcdrawToCadError::Geometry(..)
         ));
     }
     #[test]
     fn uncertainty_is_a_hard_accuracy_failure_in_both_conversion_directions() {
-        let mut a = ConversionGeometryAssessment::new(
-            ConversionGeometryTolerance::default(),
+        let mut a = OcdrawGeometryAssessment::new(
+            OcdrawGeometryTolerance::default(),
             DrawingLengthUnit::Parsec,
         )
         .unwrap();
@@ -323,32 +323,32 @@ mod tests {
             lower: crate::units::q(2, 1),
             upper: crate::units::q(3, 1),
         };
-        let source = ConversionEntitySource::CadEntity {
+        let source = OcdrawGeometryEntitySource::CadEntity {
             handle: Handle::NULL,
             kind: "LINE".into(),
         };
         let failure = a.check(&source, 0, &crate::units::q(5, 1)).unwrap_err();
         assert_eq!(
             failure.reason,
-            ConversionGeometryFailureReason::NumericalProofIncomplete
+            OcdrawGeometryFailureReason::NumericalProofIncomplete
         );
         assert!(matches!(
-            crate::DirectImportError::from(failure.clone()),
-            crate::DirectImportError::Geometry(..)
+            crate::OcdrawToCadError::from(failure.clone()),
+            crate::OcdrawToCadError::Geometry(..)
         ));
         assert!(matches!(
-            crate::DirectExportError::from(failure),
-            crate::DirectExportError::Geometry(..)
+            crate::CadToOcdrawError::from(failure),
+            crate::CadToOcdrawError::Geometry(..)
         ));
     }
     #[test]
     fn rational_unit_limit_and_reported_distance_do_not_relax_acceptance() {
-        let a = ConversionGeometryAssessment::new(
-            ConversionGeometryTolerance::default(),
+        let a = OcdrawGeometryAssessment::new(
+            OcdrawGeometryTolerance::default(),
             DrawingLengthUnit::Inch,
         )
         .unwrap();
-        let source = ConversionEntitySource::CadEntity {
+        let source = OcdrawGeometryEntitySource::CadEntity {
             handle: Handle::NULL,
             kind: "LINE".into(),
         };
@@ -369,12 +369,12 @@ mod tests {
 
     #[test]
     fn exact_euclidean_tolerance_is_inclusive() {
-        let a = ConversionGeometryAssessment::new(
-            ConversionGeometryTolerance::drawing_units(1.0).unwrap(),
+        let a = OcdrawGeometryAssessment::new(
+            OcdrawGeometryTolerance::drawing_units(1.0).unwrap(),
             DrawingLengthUnit::Unitless,
         )
         .unwrap();
-        let source = ConversionEntitySource::CadEntity {
+        let source = OcdrawGeometryEntitySource::CadEntity {
             handle: Handle::NULL,
             kind: "LINE".into(),
         };
@@ -383,8 +383,8 @@ mod tests {
         assert!(a
             .check(&source, 0, &(exact(0.75) * exact(0.75) * exact(2.0)))
             .is_err());
-        let zero = ConversionGeometryAssessment::new(
-            ConversionGeometryTolerance::exact(),
+        let zero = OcdrawGeometryAssessment::new(
+            OcdrawGeometryTolerance::exact(),
             DrawingLengthUnit::Unitless,
         )
         .unwrap();

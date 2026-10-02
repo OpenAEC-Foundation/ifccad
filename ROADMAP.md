@@ -91,3 +91,7 @@ records its own applicable results.
 - Relevant measurements use the pinned dependency and fresh directories.
 - Only then record the first supported 0.1.0 contract. Release operations
   require a separate explicit request.
+
+The implemented lifecycle API conventions and provisional caller migration are
+documented in [model IO conventions](docs/model-io-conventions.md). This
+organization refinement does not change milestone order or semantic coverage.

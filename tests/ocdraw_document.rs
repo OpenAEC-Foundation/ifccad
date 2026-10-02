@@ -1,4 +1,4 @@
-use ocdraw::ocdraw::{load_drawing_bytes, Bounds3d, DrawingLoadStatus, Point3};
+use ocdraw::ocdraw::{load_ocdraw_bytes, Bounds3d, OcdrawReadStatus, Point3};
 use serde_json::{json, Value};
 
 #[test]
@@ -12,34 +12,39 @@ fn reader_exposes_and_moves_complete_document() {
         value["header"]["nextLayerId"] = json!(17);
         value["header"]["nextLayoutId"] = json!(24);
         value["header"]["nextLinePatternId"] = json!(19);
-        let read = load_drawing_bytes(&serde_json::to_vec(&value).unwrap());
+        let read = load_ocdraw_bytes(&serde_json::to_vec(&value).unwrap());
         assert_eq!(
-            read.status(),
-            DrawingLoadStatus::Valid,
+            read.as_ref()
+                .map(|_| OcdrawReadStatus::Valid)
+                .unwrap_or_else(|e| e.status()),
+            OcdrawReadStatus::Valid,
             "{:?}",
-            read.diagnostics()
+            read.as_ref()
+                .err()
+                .map(|e| e.diagnostics())
+                .unwrap_or_default()
         );
-        let borrowed = read.validated_drawing().unwrap().document();
+        let borrowed = read.as_ref().ok().unwrap().document();
         assert_eq!(borrowed.next_entity_id, entity);
         assert_eq!(borrowed.next_layer_id, 17);
         assert_eq!(borrowed.next_layout_id, 24);
         assert_eq!(borrowed.next_line_pattern_id, 19);
-        let doc = read.into_validated_drawing().unwrap().into_document();
+        let doc = read.ok().unwrap().into_document();
         assert_eq!(doc.next_entity_id, entity);
         assert_eq!(doc.drawing_id, "empty-drawing");
         assert_eq!(doc.unit, "unitless");
         assert!(doc.geometric_entities.is_empty());
         assert_eq!(doc.layouts[0].scope_id, doc.scopes[0].id);
     }
-    assert!(load_drawing_bytes(b"{}").into_validated_drawing().is_none());
+    assert!(load_ocdraw_bytes(b"{}").ok().is_none());
 }
 
 #[test]
 fn public_geometry_can_be_updated_without_mutating_original_snapshot() {
-    let read = load_drawing_bytes(include_bytes!(
+    let read = load_ocdraw_bytes(include_bytes!(
         "../conformance/next/ocdraw/valid/ordered-scopes.ocdraw.json"
     ));
-    let original = read.validated_drawing().unwrap().document();
+    let original = read.as_ref().ok().unwrap().document();
     let mut edited = original.clone();
     edited.geometric_entities[0].visible = !original.geometric_entities[0].visible;
     edited.geometric_entities[0].id = 100;
@@ -66,15 +71,15 @@ fn bounds_can_be_authored_without_recomputation() {
 #[test]
 fn builder_builds_valid_document_without_serializing() {
     use ocdraw::ocdraw::*;
-    let doc = DrawingBuilder::new(DrawingOptions::new("fresh", "mm"))
+    let doc = OcdrawBuilder::new(OcdrawBuildOptions::new("fresh", "mm"))
         .unwrap()
         .build_document()
         .unwrap();
-    validate_document(&doc).unwrap();
+    validate_ocdraw_document(&doc).unwrap();
     assert_eq!(doc.next_entity_id, 1);
     assert_eq!(doc.next_layout_id, 1);
     assert_eq!(doc.scopes[0].bounds, None);
-    let mut b = DrawingBuilder::new(DrawingOptions::new("filled", "mm")).unwrap();
+    let mut b = OcdrawBuilder::new(OcdrawBuildOptions::new("filled", "mm")).unwrap();
     b.ensure_continuous_line_pattern().unwrap();
     let layer = b
         .add_layer(LayerDefinition::new(
@@ -91,7 +96,7 @@ fn builder_builds_valid_document_without_serializing() {
         .add_line(LineDefinition::new(layer, [4., 5., 0.], [6., 7., 0.]).in_scope(paper))
         .unwrap();
     let doc = b.build_document().unwrap();
-    validate_document(&doc).unwrap();
+    validate_ocdraw_document(&doc).unwrap();
     assert_eq!(doc.scopes[0].entities, vec![first]);
     assert_eq!(doc.scopes[1].entities, vec![second]);
     assert_eq!(doc.next_entity_id, 3);
@@ -101,12 +106,12 @@ fn builder_builds_valid_document_without_serializing() {
 #[test]
 fn builder_document_preserves_admission_errors() {
     use ocdraw::ocdraw::*;
-    let mut b = DrawingBuilder::new(DrawingOptions::new("bad", "mm")).unwrap();
+    let mut b = OcdrawBuilder::new(OcdrawBuildOptions::new("bad", "mm")).unwrap();
     b.add_line(LineDefinition::new(99, [0., 0., 0.], [1., 1., 0.]))
         .unwrap();
     assert!(matches!(
         b.build_document(),
-        Err(DrawingBuildError::Invalid(_))
+        Err(OcdrawBuildError::Invalid(_))
     ));
 }
 
@@ -125,8 +130,11 @@ fn watermark_decoding_rejects_noninteger_backings_without_panicking() {
         let mut d = value.clone();
         d["header"][field] = json!(6.0);
         assert_eq!(
-            load_drawing_bytes(&serde_json::to_vec(&d).unwrap()).status(),
-            DrawingLoadStatus::Invalid
+            load_ocdraw_bytes(&serde_json::to_vec(&d).unwrap())
+                .as_ref()
+                .map(|_| OcdrawReadStatus::Valid)
+                .unwrap_or_else(|e| e.status()),
+            OcdrawReadStatus::Invalid
         );
     }
     let bytes = serde_json::to_string(&value).unwrap().replace(
@@ -134,7 +142,10 @@ fn watermark_decoding_rejects_noninteger_backings_without_panicking() {
         "\"nextEntityId\":18446744073709551616",
     );
     assert_eq!(
-        load_drawing_bytes(bytes.as_bytes()).status(),
-        DrawingLoadStatus::Invalid
+        load_ocdraw_bytes(bytes.as_bytes())
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
     );
 }

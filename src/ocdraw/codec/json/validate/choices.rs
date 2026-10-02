@@ -1,8 +1,8 @@
 //! Encoding grammar that must be checked before decoding tagged values.
-use crate::ocdraw::read::{diagnostic, DrawingDiagnostic};
+use crate::ocdraw::read::{diagnostic, OcdrawDiagnostic};
 use serde_json::Value;
 
-pub(super) fn validate_choices(value: &Value, diagnostics: &mut Vec<DrawingDiagnostic>) {
+pub(super) fn validate_choices(value: &Value, diagnostics: &mut Vec<OcdrawDiagnostic>) {
     let mut selections = Vec::new();
     if let Some(s) = value["drawingViewState"].get("currentModelUcs") {
         selections.push((s, "/drawingViewState/currentModelUcs".into()));

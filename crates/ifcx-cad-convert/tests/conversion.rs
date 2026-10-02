@@ -8,15 +8,15 @@ fn fresh_cad_import_emits_valid_counters_under_both_policies() {
     let source = primitives();
     let cad = to_cad(&validated(&source)).unwrap();
     for policy in [IfcxCadLossPolicy::Allow, IfcxCadLossPolicy::Reject] {
-        let back = cad_document_to_ifcx_cad_with_options(
+        let back = cad_document_to_encoded_ifcx_cad(
             cad.document(),
             metadata(),
-            IfcxCadConversionOptions {
+            CadToIfcxCadOptions {
                 loss_policy: policy,
             },
         )
         .unwrap();
-        let loaded = read_native_cad_ifcx(back.ifcx_bytes()).unwrap();
+        let loaded = load_ifcx_cad_bytes(back.encoded().bytes(), Default::default()).unwrap();
         assert_eq!(
             loaded.document().id_counters,
             IfcxCadIdCounters {
@@ -56,7 +56,7 @@ fn empty_roundtrip_keeps_unit_and_unused_layer() {
     let source = validated(&empty());
     let cad = to_cad(&source).unwrap();
     let result = from_cad(cad.document(), metadata()).unwrap();
-    let doc = result.validated_ifcx().document();
+    let doc = result.validated_source().document();
     assert_eq!(doc.header, header());
     assert_eq!(doc.drawing_id, 7);
     assert_eq!(doc.length_unit, "mm");
@@ -68,16 +68,16 @@ fn empty_roundtrip_keeps_unit_and_unused_layer() {
             .collect::<Vec<_>>(),
         ["0", "Notes"]
     );
-    ocdraw::ifcx_cad::read_native_cad_ifcx(result.ifcx_bytes()).unwrap();
+    ocdraw::ifcx_cad::load_ifcx_cad_bytes(result.encoded().bytes(), Default::default()).unwrap();
 }
 
 #[test]
 fn authored_paper_is_rejected_but_default_scaffold_is_not() {
     let mut c = cad();
     from_cad(&c, metadata()).unwrap();
-    c.add_paper_space_entity(cadcodec::EntityType::Line(cadcodec::Line::from_coords(
-        0., 0., 0., 1., 0., 0.,
-    )))
+    c.add_paper_space_entity(opencadcodec::EntityType::Line(
+        opencadcodec::Line::from_coords(0., 0., 0., 1., 0., 0.),
+    ))
     .unwrap();
     assert!(
         matches!(from_cad(&c,metadata()),Err(IfcxCadConversionError::Unsupported(d)) if d.iter().any(|d|d.code=="paper"))
@@ -90,13 +90,13 @@ fn ambiguous_model_owner_is_fatal() {
         .objects
         .values()
         .find_map(|o| match o {
-            cadcodec::objects::ObjectType::Layout(l) if l.name == "Model" => Some(l.clone()),
+            opencadcodec::objects::ObjectType::Layout(l) if l.name == "Model" => Some(l.clone()),
             _ => None,
         })
         .unwrap();
     l.handle = c.allocate_handle();
     c.objects
-        .insert(l.handle, cadcodec::objects::ObjectType::Layout(l));
+        .insert(l.handle, opencadcodec::objects::ObjectType::Layout(l));
     assert!(matches!(
         from_cad(&c, metadata()),
         Err(IfcxCadConversionError::InvalidStructure(_))
@@ -109,7 +109,7 @@ fn invalid_source_references_are_fatal() {
         .get_mut("*Model_Space")
         .unwrap()
         .entity_handles
-        .push(cadcodec::Handle::new(99999));
+        .push(opencadcodec::Handle::new(99999));
     assert!(matches!(
         from_cad(&c, metadata()),
         Err(IfcxCadConversionError::InvalidStructure(_))
@@ -118,12 +118,13 @@ fn invalid_source_references_are_fatal() {
 #[test]
 fn foreign_ifcx_information_is_identified() {
     let mut value: serde_json::Value =
-        serde_json::from_slice(&write_native_cad_ifcx(&empty()).unwrap()).unwrap();
+        serde_json::from_slice(encode_ifcx_cad_document(&empty()).unwrap().bytes()).unwrap();
     value["data"]
         .as_array_mut()
         .unwrap()
         .push(serde_json::json!({"path":"foreign","attributes":{"test::unknown":42}}));
-    let source = read_native_cad_ifcx(&serde_json::to_vec(&value).unwrap()).unwrap();
+    let source =
+        load_ifcx_cad_bytes(&serde_json::to_vec(&value).unwrap(), Default::default()).unwrap();
     assert!(
         matches!(to_cad(&source),Err(IfcxCadConversionError::Unsupported(d)) if d.iter().any(|d|d.code=="foreign-ifcx"))
     );
@@ -133,7 +134,7 @@ fn primitive_roundtrip_keeps_order_and_modes() {
     let source = primitives();
     let cad = to_cad(&validated(&source)).unwrap();
     let back = from_cad(cad.document(), metadata()).unwrap();
-    let out = back.validated_ifcx().document();
+    let out = back.validated_source().document();
     assert_eq!(out.length_unit, "cm");
     for (s, t) in source.model.entities.iter().zip(&out.model.entities) {
         assert_appearance_mapping(
@@ -167,7 +168,7 @@ fn primitive_roundtrip_keeps_order_and_modes() {
 fn supported_entity_with_thickness_or_xdata_is_rejected() {
     let mut c = to_cad(&validated(&primitives())).unwrap().into_document();
     let h = c.block_records.get("*Model_Space").unwrap().entity_handles[0];
-    let cadcodec::EntityType::Line(l) = c.get_entity_mut(h).unwrap() else {
+    let opencadcodec::EntityType::Line(l) = c.get_entity_mut(h).unwrap() else {
         panic!()
     };
     l.thickness = 2.;
@@ -177,14 +178,14 @@ fn supported_entity_with_thickness_or_xdata_is_rejected() {
     };
     assert!(d.iter().any(|d| d.location.ends_with("thickness")));
     assert!(d.iter().any(|d| d.code == "entity-common"));
-    let cadcodec::EntityType::Line(l) = c.get_entity_mut(h).unwrap() else {
+    let opencadcodec::EntityType::Line(l) = c.get_entity_mut(h).unwrap() else {
         panic!()
     };
     l.thickness = 0.;
     l.common.color_name = None;
-    let mut x = cadcodec::xdata::ExtendedDataRecord::new("ACAD");
+    let mut x = opencadcodec::xdata::ExtendedDataRecord::new("ACAD");
     x.values
-        .push(cadcodec::xdata::XDataValue::String("data".into()));
+        .push(opencadcodec::xdata::XDataValue::String("data".into()));
     c.get_entity_mut(h)
         .unwrap()
         .common_mut()
@@ -199,7 +200,7 @@ fn bulged_or_wide_polyline_is_rejected() {
     for width in [false, true] {
         let mut c = to_cad(&validated(&primitives())).unwrap().into_document();
         let h = c.block_records.get("*Model_Space").unwrap().entity_handles[1];
-        let cadcodec::EntityType::LwPolyline(l) = c.get_entity_mut(h).unwrap() else {
+        let opencadcodec::EntityType::LwPolyline(l) = c.get_entity_mut(h).unwrap() else {
             panic!()
         };
         if width {
@@ -260,13 +261,13 @@ fn rounding_is_not_silently_accepted() {
 #[test]
 fn overall_viewport_scaffold_is_checked_by_role_and_values() {
     let mut c = cad();
-    let mut viewport = cadcodec::entities::Viewport::new();
+    let mut viewport = opencadcodec::entities::Viewport::new();
     viewport.id = 1;
-    c.add_entity_to_layout(cadcodec::EntityType::Viewport(viewport), "Layout1")
+    c.add_entity_to_layout(opencadcodec::EntityType::Viewport(viewport), "Layout1")
         .unwrap();
     from_cad(&c, metadata()).unwrap();
     let h = c.block_records.get("*Paper_Space").unwrap().entity_handles[0];
-    let cadcodec::EntityType::Viewport(v) = c.get_entity_mut(h).unwrap() else {
+    let opencadcodec::EntityType::Viewport(v) = c.get_entity_mut(h).unwrap() else {
         panic!()
     };
     v.width = 321.;
@@ -277,7 +278,7 @@ fn overall_viewport_scaffold_is_checked_by_role_and_values() {
 #[test]
 fn layout_record_metadata_and_dangling_layout_links_are_not_dropped() {
     let mut c = cad();
-    c.block_records.get_mut("*Model_Space").unwrap().base_point = cadcodec::Vector3::UNIT_X;
+    c.block_records.get_mut("*Model_Space").unwrap().base_point = opencadcodec::Vector3::UNIT_X;
     assert!(matches!(
         from_cad(&c, metadata()),
         Err(IfcxCadConversionError::Unsupported(_))
@@ -287,11 +288,11 @@ fn layout_record_metadata_and_dangling_layout_links_are_not_dropped() {
         .objects
         .values_mut()
         .find_map(|o| match o {
-            cadcodec::objects::ObjectType::Layout(l) if l.name == "Layout1" => Some(l),
+            opencadcodec::objects::ObjectType::Layout(l) if l.name == "Layout1" => Some(l),
             _ => None,
         })
         .unwrap();
-    layout.viewport = cadcodec::Handle::new(99999);
+    layout.viewport = opencadcodec::Handle::new(99999);
     assert!(matches!(
         from_cad(&c, metadata()),
         Err(IfcxCadConversionError::InvalidStructure(_))
@@ -335,7 +336,7 @@ fn all_unit_codes_and_many_unused_definitions_strict_read_back() {
         assert_eq!(
             from_cad(cad.document(), metadata())
                 .unwrap()
-                .validated_ifcx()
+                .validated_source()
                 .document()
                 .length_unit,
             *unit
@@ -343,18 +344,18 @@ fn all_unit_codes_and_many_unused_definitions_strict_read_back() {
     }
     let mut c = cad();
     for n in 1..=12 {
-        let mut layer = cadcodec::Layer::new(format!("layer{n}"));
+        let mut layer = opencadcodec::Layer::new(format!("layer{n}"));
         layer.handle = c.allocate_handle();
-        layer.color = cadcodec::Color::from_rgb(255, 255, 255);
-        layer.line_weight = cadcodec::LineWeight::Value(25);
+        layer.color = opencadcodec::Color::from_rgb(255, 255, 255);
+        layer.line_weight = opencadcodec::LineWeight::Value(25);
         c.layers.add(layer).unwrap();
-        let mut block = cadcodec::BlockRecord::new(format!("block{n}"));
+        let mut block = opencadcodec::BlockRecord::new(format!("block{n}"));
         block.handle = c.allocate_handle();
         c.block_records.add(block).unwrap();
     }
     let result = from_cad(&c, metadata()).unwrap();
-    assert_eq!(result.validated_ifcx().document().blocks.len(), 12);
-    assert_eq!(result.validated_ifcx().document().layers.len(), 14);
+    assert_eq!(result.validated_source().document().blocks.len(), 12);
+    assert_eq!(result.validated_source().document().layers.len(), 14);
 }
 #[test]
 fn missing_layer_zero_and_authored_header_are_diagnosed() {
@@ -373,7 +374,7 @@ fn missing_layer_zero_and_authored_header_are_diagnosed() {
 #[test]
 fn stale_model_cache_requires_unique_agreement() {
     let mut c = cad();
-    c.header.model_space_block_handle = cadcodec::Handle::new(99999);
+    c.header.model_space_block_handle = opencadcodec::Handle::new(99999);
     let out = from_cad(&c, metadata()).unwrap();
     assert!(out
         .diagnostics()
@@ -388,7 +389,7 @@ fn stale_model_cache_requires_unique_agreement() {
 #[test]
 fn equivalent_integer_geometry_is_not_foreign_information() {
     let mut value: serde_json::Value =
-        serde_json::from_slice(&write_native_cad_ifcx(&primitives()).unwrap()).unwrap();
+        serde_json::from_slice(encode_ifcx_cad_document(&primitives()).unwrap().bytes()).unwrap();
     let line = value["data"]
         .as_array_mut()
         .unwrap()
@@ -396,7 +397,8 @@ fn equivalent_integer_geometry_is_not_foreign_information() {
         .find(|n| n["path"].as_str().unwrap().ends_with("/e90"))
         .unwrap();
     line["attributes"]["ifccad::geom::lineSegment"]["start"] = serde_json::json!([1, 2, 3]);
-    let source = read_native_cad_ifcx(&serde_json::to_vec(&value).unwrap()).unwrap();
+    let source =
+        load_ifcx_cad_bytes(&serde_json::to_vec(&value).unwrap(), Default::default()).unwrap();
     to_cad(&source).unwrap();
     let line = value["data"]
         .as_array_mut()
@@ -406,7 +408,8 @@ fn equivalent_integer_geometry_is_not_foreign_information() {
         .unwrap();
     line["attributes"]["ifccad::geom::lineSegment"]["start"][0] =
         serde_json::json!(9007199254740993_u64);
-    let source = read_native_cad_ifcx(&serde_json::to_vec(&value).unwrap()).unwrap();
+    let source =
+        load_ifcx_cad_bytes(&serde_json::to_vec(&value).unwrap(), Default::default()).unwrap();
     assert!(
         matches!(to_cad(&source),Err(IfcxCadConversionError::Unsupported(i)) if i.iter().any(|d|d.code=="foreign-ifcx"))
     );

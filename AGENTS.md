@@ -23,14 +23,14 @@ Start with:
 - `docs/vision.md` for long-term use cases, design principles, and success
   criteria;
 - `crates/ocdraw-convert/README.md` for conversion terminology and the boundary
-  between OCDraw and cadcodec `CadDocument`;
-- `crates/ocdraw-convert/src/source/COVERAGE.md` for the pinned cadcodec export
+  between OCDraw and opencadcodec `CadDocument`;
+- `crates/ocdraw-convert/docs/FROM-CAD-COVERAGE.md` for the pinned opencadcodec export
   coverage and loss-classification contract.
 
 For measurement or encoding work, also read
 `docs/benchmarks/ocdraw-size-exchange-v1.md` for the standalone controlled experiment, its limits,
 and reproduction instructions. Import changes must also consult
-`crates/ocdraw-convert/src/ocdraw/IMPORT-COVERAGE.md`.
+`crates/ocdraw-convert/docs/TO-CAD-COVERAGE.md`.
 
 For performance work, also read `docs/benchmarks/placement-preparation-v1.md`
 for the current preparation measurements and practice-file inventory. Prefer
@@ -79,9 +79,9 @@ follow-up work. Retain designs and plans still needed by active or upcoming work
 
 - The core `ocdraw` crate owns the drawing model, shared validation, typed
   construction, encoding, and standalone file storage.
-- The core crate must remain independent of cadcodec and other CAD runtimes.
+- The core crate must remain independent of opencadcodec and other CAD runtimes.
 - The `ocdraw-convert` companion crate owns conversion between validated OCDraw
-  drawings and cadcodec `CadDocument`.
+  drawings and opencadcodec `CadDocument`.
 - Keep conversion, logical package construction, physical encoding, and
   filesystem storage as separate responsibilities.
 - Add new entity semantics to the language-neutral logical contract and shared
@@ -129,7 +129,7 @@ follow-up work. Retain designs and plans still needed by active or upcoming work
   build-cache entries with `-Apply -CleanBuildCache` and reports other `target/`
   content for review. Run cache cleanup only when no build or test process is
   using those directories.
-- When updating cadcodec, review public-model changes against both converter
+- When updating opencadcodec, review public-model changes against both converter
   coverage contracts, including added fields on existing types. Keep local
   codec patches explicit and tied to a base revision; do not edit the Cargo
   cache or treat patched results as evidence for the unmodified dependency.
@@ -157,7 +157,7 @@ byte determinism is itself the contract under test.
 
 The controlled size/exchange experiment is not a standard completion gate.
 Rerun it when a change affects its corpus or a writer, codec, converter, or
-cadcodec dependency path actually exercised by that corpus, or when evaluating
+opencadcodec dependency path actually exercised by that corpus, or when evaluating
 an explicit size/exchange hypothesis. For new semantic families absent from
 the corpus, use focused strict-readback and conversion tests; add representative
 recipes before using the experiment as evidence about those families. When a

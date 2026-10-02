@@ -26,8 +26,8 @@ fn drawing() -> Value {
     ]);
     v
 }
-fn read(v: &Value) -> Result<ValidatedIfcxCad, IfcxCadReport> {
-    read_native_cad_ifcx(&serde_json::to_vec(v).unwrap())
+fn read(v: &Value) -> Result<ValidatedIfcxCad, IfcxCadReadError> {
+    load_ifcx_cad_bytes(&serde_json::to_vec(v).unwrap(), Default::default())
 }
 fn node<'a>(v: &'a mut Value, path: &str) -> &'a mut Value {
     v["data"]
@@ -41,8 +41,8 @@ fn node<'a>(v: &'a mut Value, path: &str) -> &'a mut Value {
 #[test]
 fn named_pattern_nodes_and_unused_definitions_survive_production_readback() {
     let source = read(&drawing()).unwrap();
-    let bytes = write_native_cad_ifcx(source.document()).unwrap();
-    let mut value: Value = serde_json::from_slice(&bytes).unwrap();
+    let bytes = encode_ifcx_cad_document(source.document()).unwrap();
+    let mut value: Value = serde_json::from_slice(bytes.bytes()).unwrap();
     assert_eq!(
         node(&mut value, "/cad/d1/linePattern/2")["attributes"]["ifccad::linePattern"]["pattern"],
         json!([6.0, -2.0, 0.0, -2.0])
@@ -66,14 +66,17 @@ fn composition_replaces_a_complete_pattern_before_validation() {
     v["data"].as_array_mut().unwrap().push(json!({"path":"/cad/d1/linePattern/2","attributes":{"ifccad::linePattern":{"name":"DashDot","pattern":[0.5,-0.25]}}}));
     let source = read(&v).unwrap();
     let mut back: Value =
-        serde_json::from_slice(&write_native_cad_ifcx(source.document()).unwrap()).unwrap();
+        serde_json::from_slice(encode_ifcx_cad_document(source.document()).unwrap().bytes())
+            .unwrap();
     assert_eq!(
         node(&mut back, "/cad/d1/linePattern/2")["attributes"]["ifccad::linePattern"]["pattern"],
         json!([0.5, -0.25])
     );
-    assert!(read_native_cad_ifcx_with_policy(
+    assert!(load_ifcx_cad_bytes(
         &serde_json::to_vec(&v).unwrap(),
-        IfcxCompositionPolicy::RejectConflicts
+        IfcxCadReadOptions {
+            composition_policy: IfcxCompositionPolicy::RejectConflicts
+        }
     )
     .is_err());
 }
@@ -123,8 +126,8 @@ fn definition_names_use_full_unicode_case_folding_and_ids_are_u64() {
         description: None,
         pattern: vec![],
     });
-    let bytes = write_native_cad_ifcx(&d).unwrap();
-    assert!(read_native_cad_ifcx(&bytes)
+    let bytes = encode_ifcx_cad_document(&d).unwrap();
+    assert!(load_ifcx_cad_bytes(bytes.bytes(), Default::default())
         .unwrap()
         .document()
         .line_patterns
@@ -136,10 +139,10 @@ fn definition_names_use_full_unicode_case_folding_and_ids_are_u64() {
         description: None,
         pattern: vec![],
     });
-    assert!(write_native_cad_ifcx(&d).is_err());
+    assert!(encode_ifcx_cad_document(&d).is_err());
     d.line_patterns.pop();
     d.line_patterns.push(d.line_patterns[0].clone());
-    assert!(write_native_cad_ifcx(&d).is_err());
+    assert!(encode_ifcx_cad_document(&d).is_err());
 }
 
 #[test]
@@ -155,29 +158,36 @@ fn definitions_require_drawing_ownership_and_entities_keep_explicit_references()
     d.model.entities[0].appearance.line_pattern = IfcxCadMode::Explicit(IfcxCadLinePatternId(2));
     d.model.entities[0].line_pattern_scale = 0.125;
     assert_eq!(
-        read_native_cad_ifcx(&write_native_cad_ifcx(&d).unwrap())
-            .unwrap()
-            .document(),
+        load_ifcx_cad_bytes(
+            encode_ifcx_cad_document(&d).unwrap().bytes(),
+            Default::default()
+        )
+        .unwrap()
+        .document(),
         &d
     );
     for value in [0., -1., f64::NAN, f64::INFINITY] {
         d.model.entities[0].line_pattern_scale = value;
-        assert!(write_native_cad_ifcx(&d).is_err());
+        assert!(encode_ifcx_cad_document(&d).is_err());
     }
 }
 
 #[test]
 fn dedicated_line_pattern_example_is_strictly_readable() {
-    let source = read_native_cad_ifcx(include_bytes!(
-        "../examples/ifcx-native-cad/hello-line-patterns.ifcx"
-    ))
+    let source = load_ifcx_cad_bytes(
+        include_bytes!("../examples/ifcx-native-cad/hello-line-patterns.ifcx"),
+        Default::default(),
+    )
     .unwrap();
     assert_eq!(source.document().line_pattern_scale, 2.);
     assert_eq!(source.document().line_patterns.len(), 3);
     assert_eq!(
-        read_native_cad_ifcx(&write_native_cad_ifcx(source.document()).unwrap())
-            .unwrap()
-            .document(),
+        load_ifcx_cad_bytes(
+            encode_ifcx_cad_document(source.document()).unwrap().bytes(),
+            Default::default()
+        )
+        .unwrap()
+        .document(),
         source.document()
     );
 }

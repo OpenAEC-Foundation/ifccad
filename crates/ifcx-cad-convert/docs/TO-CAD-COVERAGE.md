@@ -8,7 +8,7 @@ Those additional diagnostics and their Allow/Reject enforcement remain intact;
 applications assessing a full IFCX source must use the loaded-source routes.
 Original input bytes and composed graph remain immutable in `LoadedIfcxGraph`.
 
-Profile `urn:example:ifccad:0.1.0`; cadcodec revision
+Profile `urn:example:ifccad:0.1.0`; opencadcodec revision
 `d96e3fa2fe5acbeac966f1db4c01142618bf9c79`. Default Allow returns supported content
 with losses; explicit Reject refuses diagnosed omissions or modifications.
 
@@ -27,7 +27,7 @@ fresh CAD import assigns new IDs and watermarks with explicit outcome mappings.
 | Pattern scale/generation | Drawing/entity scales to header/common fields; planar polyline perSegment/continuous to plinegen |
 | Model | Default Model layout, ordered backing block membership |
 | Paper | Omit each layout and its entities with located diagnostics |
-| Layers | Retain names, unused declarations and concrete appearance; synthesize missing CAD layer 0 with diagnosed explicit fallback; reject collisions under cadcodec's normalized name lookup, including multiple layers named 0, before CAD allocation under both policies |
+| Layers | Retain names, unused declarations and concrete appearance; synthesize missing CAD layer 0 with diagnosed explicit fallback; reject collisions under opencadcodec's normalized name lookup, including multiple layers named 0, before CAD allocation under both policies |
 | Layer/entity appearance | True RGB, resolved named patterns, supported hundredth-mm weight, exact decoded opacity byte; preserve independent inherited/explicit modes on entities |
 | Lines | Direct finite XYZ endpoints |
 | Circles | Radius and origin retained; standard XY basis only |

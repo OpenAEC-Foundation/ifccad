@@ -1,6 +1,6 @@
 //! JSON document recognition and a deliberately explicit raw encoding view.
 
-use crate::ocdraw::read::{diagnostic, DrawingDiagnostic, DrawingLoadStatus};
+use crate::ocdraw::read::{diagnostic, OcdrawDiagnostic, OcdrawReadStatus};
 use crate::ocdraw::PlotStyleMode;
 use serde_json::Value;
 use std::sync::OnceLock;
@@ -33,16 +33,16 @@ impl JsonEncodedDrawing {
 
 pub(crate) fn parse_document(
     bytes: &[u8],
-) -> Result<JsonEncodedDrawing, (DrawingLoadStatus, Vec<DrawingDiagnostic>)> {
+) -> Result<JsonEncodedDrawing, (OcdrawReadStatus, Vec<OcdrawDiagnostic>)> {
     let value: Value = serde_json::from_slice(bytes).map_err(|error| {
         (
-            DrawingLoadStatus::Invalid,
+            OcdrawReadStatus::Invalid,
             vec![diagnostic("INVALID_JSON", "", error.to_string())],
         )
     })?;
     if value["header"]["format"] != "open_cad_drawing" {
         return Err((
-            DrawingLoadStatus::Invalid,
+            OcdrawReadStatus::Invalid,
             vec![diagnostic(
                 "FORMAT",
                 "/header/format",
@@ -55,7 +55,7 @@ pub(crate) fn parse_document(
         .filter(|version| !version.is_empty())
     else {
         return Err((
-            DrawingLoadStatus::Invalid,
+            OcdrawReadStatus::Invalid,
             vec![diagnostic(
                 "VERSION",
                 "/header/version",
@@ -65,7 +65,7 @@ pub(crate) fn parse_document(
     };
     if version != "0.1.0" {
         return Err((
-            DrawingLoadStatus::UnsupportedVersion,
+            OcdrawReadStatus::UnsupportedVersion,
             vec![diagnostic(
                 "UNSUPPORTED_VERSION",
                 "/header/version",
@@ -90,7 +90,7 @@ pub(crate) fn parse_document(
         })
         .collect::<Vec<_>>();
     if !diagnostics.is_empty() {
-        return Err((DrawingLoadStatus::Invalid, diagnostics));
+        return Err((OcdrawReadStatus::Invalid, diagnostics));
     }
     Ok(JsonEncodedDrawing(value))
 }

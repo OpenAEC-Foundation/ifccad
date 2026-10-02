@@ -1,7 +1,7 @@
 use super::adapters::Result;
 use super::recipe::{Appearance, Drawing, Entity, Geometry, Layer, Property};
-use ocdraw::ocdraw::{AppearanceSelection, DrawingGeometry, ValidatedDrawing};
-use ocdraw_convert::cadcodec::{CadDocument, Color, EntityType, LineWeight, Transparency};
+use ocdraw::ocdraw::{AppearanceSelection, DrawingGeometry, ValidatedOcdraw};
+use ocdraw_convert::opencadcodec::{CadDocument, Color, EntityType, LineWeight, Transparency};
 use serde_json::Value;
 fn property<T, U>(value: &AppearanceSelection<T>, convert: impl FnOnce(&T) -> U) -> Property<U> {
     match value {
@@ -10,7 +10,7 @@ fn property<T, U>(value: &AppearanceSelection<T>, convert: impl FnOnce(&T) -> U)
         AppearanceSelection::Explicit(v) => Property::Explicit(convert(v)),
     }
 }
-pub fn ocdraw(drawing: &ValidatedDrawing) -> Result<(Drawing, Vec<u64>)> {
+pub fn ocdraw(drawing: &ValidatedOcdraw) -> Result<(Drawing, Vec<u64>)> {
     if drawing.unit() != "mm" || drawing.scopes().len() != 1 || drawing.typed_layouts().len() != 1 {
         return Err("expected one millimetre model scope/layout".into());
     }
@@ -183,8 +183,8 @@ pub fn cad(document: &CadDocument) -> Result<Drawing> {
             EntityType::LwPolyline(polyline)
                 if polyline.thickness == 0.
                     && polyline.constant_width == 0.
-                    && (polyline.normal == ocdraw_convert::cadcodec::Vector3::UNIT_Z
-                        || polyline.normal == ocdraw_convert::cadcodec::Vector3::UNIT_X)
+                    && (polyline.normal == ocdraw_convert::opencadcodec::Vector3::UNIT_Z
+                        || polyline.normal == ocdraw_convert::opencadcodec::Vector3::UNIT_X)
                     && polyline
                         .vertices
                         .iter()

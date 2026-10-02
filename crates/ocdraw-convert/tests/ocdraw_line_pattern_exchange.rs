@@ -1,12 +1,14 @@
 use ocdraw::ocdraw::*;
-use ocdraw_convert::cadcodec::{DwgReader, DwgWriter, DxfReader, DxfWriter};
+use ocdraw_convert::opencadcodec::{DwgReader, DwgWriter, DxfReader, DxfWriter};
 use ocdraw_convert::{
-    cad_document_to_drawing, ocdraw_to_cad_document, ExportOptions, ImportOptions,
+    cad_document_to_encoded_ocdraw, ocdraw_source_to_cad_document, CadToOcdrawOptions,
+    OcdrawToCadOptions,
 };
 use std::io::Cursor;
 
 fn exchange(dwg: bool) {
-    let mut builder = DrawingBuilder::new(DrawingOptions::new("pattern-exchange", "mm")).unwrap();
+    let mut builder =
+        OcdrawBuilder::new(OcdrawBuildOptions::new("pattern-exchange", "mm")).unwrap();
     let dash = builder
         .add_line_pattern(LinePatternDefinition {
             name: "Custom".into(),
@@ -45,14 +47,12 @@ fn exchange(dwg: bool) {
     spatial.line_pattern_generation = LinePatternGeneration::Continuous;
     builder.add_spatial_polyline(spatial).unwrap();
     let original = builder.finish().unwrap();
-    let loaded = load_drawing_bytes(original.bytes());
-    let target = ocdraw_to_cad_document(
-        loaded.validated_drawing().unwrap(),
-        ImportOptions::default(),
-    )
-    .unwrap();
+    let loaded = load_ocdraw_bytes(original.bytes());
+    let target =
+        ocdraw_source_to_cad_document(loaded.as_ref().ok().unwrap(), OcdrawToCadOptions::default())
+            .unwrap();
     assert!(target.document().entities().any(|e| matches!(
-        e, ocdraw_convert::cadcodec::EntityType::Polyline3D(p) if p.flags.linetype_continuous
+        e, ocdraw_convert::opencadcodec::EntityType::Polyline3D(p) if p.flags.linetype_continuous
     )));
     let decoded = if dwg {
         DwgReader::from_stream(Cursor::new(
@@ -68,15 +68,15 @@ fn exchange(dwg: bool) {
         .read()
         .unwrap()
     };
-    let native = cad_document_to_drawing(&decoded, ExportOptions::default()).unwrap();
+    let native = cad_document_to_encoded_ocdraw(&decoded, CadToOcdrawOptions::default()).unwrap();
     assert_eq!(
         native.entity_mapping().len(),
         3,
         "{:?}",
         native.diagnostics()
     );
-    let read = load_drawing_bytes(native.drawing().bytes());
-    let drawing = read.validated_drawing().unwrap();
+    let read = load_ocdraw_bytes(native.encoded().bytes());
+    let drawing = read.as_ref().ok().unwrap();
     let dash = drawing
         .line_patterns()
         .iter()

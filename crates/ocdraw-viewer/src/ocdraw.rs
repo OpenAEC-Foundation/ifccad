@@ -1,11 +1,13 @@
 use crate::{fail, progress, result};
 use base64::{engine::general_purpose::STANDARD, Engine};
 use ocdraw::ocdraw::{
-    load_drawing_bytes, load_drawing_file, DrawingLoadOutcome, DrawingLoadStatus,
+    load_ocdraw_bytes, load_ocdraw_file, OcdrawOpenError, OcdrawReadError, OcdrawReadStatus,
+    ValidatedOcdraw,
 };
-use ocdraw_convert::cadcodec::{DwgReader, DxfReader};
+use ocdraw_convert::opencadcodec::{DwgReader, DxfReader};
 use ocdraw_convert::{
-    cad_document_to_drawing, ocdraw_to_cad_document, ExportOptions, ImportOptions,
+    cad_document_to_encoded_ocdraw, ocdraw_source_to_cad_document, CadToOcdrawOptions,
+    OcdrawToCadOptions,
 };
 use serde_json::{json, Value};
 use std::io::Cursor;
@@ -23,8 +25,9 @@ pub fn inspect_drawing(path: &Path) -> Value {
         };
     }
     let mut output = result(path, "ocdraw");
-    match load_drawing_file(path) {
-        Ok(drawing) => present(&mut output, drawing),
+    match load_ocdraw_file(path) {
+        Ok(drawing) => present(&mut output, Ok(drawing)),
+        Err(OcdrawOpenError::Read(error)) => present(&mut output, Err(error)),
         Err(error) => fail(&mut output, "reading", "DRAWING_OPEN_FAILED", error),
     }
     output
@@ -35,7 +38,7 @@ pub fn inspect_drawing_bytes(name: &str, bytes: &[u8]) -> Value {
         return crate::ifcx::inspect_ifcx_bytes(name, bytes);
     }
     let mut output = result(Path::new(name), "ocdraw");
-    present(&mut output, load_drawing_bytes(bytes));
+    present(&mut output, load_ocdraw_bytes(bytes));
     output
 }
 
@@ -69,7 +72,7 @@ pub fn inspect_cad_as_drawing_bytes(name: &str, format: &str, bytes: &[u8]) -> V
         .map(|item| format!("{item:?}"))
         .collect::<Vec<_>>());
     progress("converting");
-    let converted = match cad_document_to_drawing(&cad, ExportOptions::default()) {
+    let converted = match cad_document_to_encoded_ocdraw(&cad, CadToOcdrawOptions::default()) {
         Ok(converted) => converted,
         Err(error) => {
             fail(
@@ -88,9 +91,9 @@ pub fn inspect_cad_as_drawing_bytes(name: &str, format: &str, bytes: &[u8]) -> V
     })).collect::<Vec<_>>();
     output["conversion"] =
         json!({"diagnostics": diagnostics, "entityCount": converted.entity_mapping().len()});
-    let drawing_bytes = converted.drawing().bytes();
+    let drawing_bytes = converted.encoded().bytes();
     progress("validating");
-    present(&mut output, load_drawing_bytes(drawing_bytes));
+    present(&mut output, load_ocdraw_bytes(drawing_bytes));
     if output["validation"]["strictAvailable"] != true {
         fail(
             &mut output,
@@ -139,10 +142,10 @@ pub fn export_drawing_bytes(name: &str, bytes: &[u8], format: &str, version: &st
         fail(&mut output, "exporting", code, message);
         return output;
     }
-    let read = load_drawing_bytes(bytes);
-    let drawing = read.validated_drawing().expect("strict status checked");
+    let read = load_ocdraw_bytes(bytes);
+    let drawing = read.as_ref().expect("strict status checked");
     progress("converting");
-    let converted = match ocdraw_to_cad_document(drawing, ImportOptions::default()) {
+    let converted = match ocdraw_source_to_cad_document(drawing, OcdrawToCadOptions::default()) {
         Ok(value) => value,
         Err(error) => {
             fail(&mut output, "converting", "CAD_CONVERSION_FAILED", error);
@@ -186,14 +189,20 @@ pub fn export_drawing_bytes(name: &str, bytes: &[u8], format: &str, version: &st
     )
 }
 
-fn present(output: &mut Value, outcome: DrawingLoadOutcome) {
-    let status = match outcome.status() {
-        DrawingLoadStatus::Valid => "valid",
-        DrawingLoadStatus::Invalid => "invalid",
-        DrawingLoadStatus::UnsupportedVersion => "unsupportedVersion",
+fn present(output: &mut Value, outcome: Result<ValidatedOcdraw, OcdrawReadError>) {
+    let status = match &outcome {
+        Ok(_) => "valid",
+        Err(error) => match error.status() {
+            OcdrawReadStatus::Invalid => "invalid",
+            OcdrawReadStatus::UnsupportedVersion => "unsupportedVersion",
+            OcdrawReadStatus::Valid => unreachable!("reader errors cannot be valid"),
+        },
     };
     let diagnostics = outcome
-        .diagnostics()
+        .as_ref()
+        .err()
+        .map(|e| e.diagnostics())
+        .unwrap_or_default()
         .iter()
         .map(|item| {
             json!({
@@ -202,11 +211,11 @@ fn present(output: &mut Value, outcome: DrawingLoadOutcome) {
         })
         .collect::<Vec<_>>();
     output["validation"] = json!({
-        "strictAvailable": outcome.validated_drawing().is_some(),
+        "strictAvailable": outcome.as_ref().ok().is_some(),
         "status": status,
         "diagnostics": diagnostics
     });
-    if let Some(drawing) = outcome.validated_drawing() {
+    if let Ok(drawing) = outcome.as_ref() {
         let value = drawing.as_value();
         output["presentation"] = json!({
             "drawingId": drawing.drawing_id(),

@@ -1,10 +1,10 @@
 mod common;
-use cadcodec::{CadDocument, DwgReader, DwgWriter, DxfReader, DxfWriter};
 use common::*;
+use opencadcodec::{CadDocument, DwgReader, DwgWriter, DxfReader, DxfWriter};
 use std::io::Cursor;
 
 fn exchange(c: &CadDocument, dwg: bool) -> CadDocument {
-    assert_eq!(c.version, cadcodec::DxfVersion::AC1032);
+    assert_eq!(c.version, opencadcodec::DxfVersion::AC1032);
     if dwg {
         DwgReader::from_stream(Cursor::new(DwgWriter::write_to_vec(c).unwrap()))
             .read()
@@ -21,20 +21,23 @@ fn roundtrip(d: &ocdraw::ifcx_cad::IfcxCadDocument, dwg: bool) {
     let file = exchange(first.document(), dwg);
     let expected = from_cad(first.document(), metadata()).unwrap();
     let back = from_cad(&file, metadata()).unwrap();
-    let second = to_cad(back.validated_ifcx()).unwrap();
+    let second = to_cad(back.validated_source()).unwrap();
     let stable = from_cad(second.document(), metadata()).unwrap();
     assert_eq!(
-        back.validated_ifcx().document(),
-        stable.validated_ifcx().document()
+        back.validated_source().document(),
+        stable.validated_source().document()
     );
     assert_eq!(
-        back.validated_ifcx().document().model.entities.len(),
+        back.validated_source().document().model.entities.len(),
         d.model.entities.len()
     );
-    assert_eq!(back.validated_ifcx().document().length_unit, d.length_unit);
     assert_eq!(
-        semantic(expected.validated_ifcx().document()),
-        semantic(back.validated_ifcx().document())
+        back.validated_source().document().length_unit,
+        d.length_unit
+    );
+    assert_eq!(
+        semantic(expected.validated_source().document()),
+        semantic(back.validated_source().document())
     );
 }
 #[test]
@@ -73,14 +76,14 @@ fn dxf_degree_radian_rounding_is_an_external_codec_limit() {
         .entities
         .cad_handle(d.model.entities[0].id)
         .unwrap();
-    let cadcodec::EntityType::Insert(i) = first.document().get_entity(h).unwrap() else {
+    let opencadcodec::EntityType::Insert(i) = first.document().get_entity(h).unwrap() else {
         panic!()
     };
     assert_eq!(i.rotation, source_rotation);
     let file = exchange(first.document(), false);
     let restored = from_cad(&file, metadata()).unwrap();
     let IfcxCadEntityKind::BlockInstance { transform, .. } =
-        &restored.validated_ifcx().document().model.entities[0].kind
+        &restored.validated_source().document().model.entities[0].kind
     else {
         panic!()
     };

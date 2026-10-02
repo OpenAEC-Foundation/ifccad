@@ -68,8 +68,8 @@ fn invalid_drawing_reports_direct_reader_diagnostics() {
 #[test]
 fn cad_bytes_convert_directly_to_a_reopenable_drawing() {
     use ocdraw_viewer::inspect_cad_as_drawing_bytes;
-    let cad = ocdraw_convert::cadcodec::CadDocument::new();
-    let bytes = ocdraw_convert::cadcodec::DxfWriter::new(&cad)
+    let cad = ocdraw_convert::opencadcodec::CadDocument::new();
+    let bytes = ocdraw_convert::opencadcodec::DxfWriter::new(&cad)
         .write_to_vec()
         .unwrap();
     let result = inspect_cad_as_drawing_bytes("blank.dxf", "dxf", &bytes);
@@ -88,7 +88,7 @@ fn standalone_drawing_exports_to_cad_without_package_lookup() {
     let encoded = result["export"]["download"]["base64"].as_str().unwrap();
     let written =
         base64::Engine::decode(&base64::engine::general_purpose::STANDARD, encoded).unwrap();
-    let cad = ocdraw_convert::cadcodec::DxfReader::from_reader(std::io::Cursor::new(written))
+    let cad = ocdraw_convert::opencadcodec::DxfReader::from_reader(std::io::Cursor::new(written))
         .unwrap()
         .read()
         .unwrap();

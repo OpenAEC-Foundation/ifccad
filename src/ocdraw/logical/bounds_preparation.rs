@@ -89,7 +89,9 @@ impl Evaluation<'_> {
 }
 
 /// Recomputes scope bounds explicitly. Failure leaves all supplied bounds intact.
-pub fn recompute_document_bounds(doc: &mut OcdrawDocument) -> Result<(), OcdrawValidationError> {
+pub fn recompute_ocdraw_document_bounds(
+    doc: &mut OcdrawDocument,
+) -> Result<(), OcdrawValidationError> {
     let errors = validate_logical_document(doc, ValidationPhase::BeforeBounds);
     if !errors.is_empty() {
         return Err(OcdrawValidationError::from_logical_errors(errors));

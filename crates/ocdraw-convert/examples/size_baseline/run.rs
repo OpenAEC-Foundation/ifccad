@@ -1,9 +1,10 @@
 use super::{accounting, adapters, projection, recipe, report};
 use adapters::Result;
-use ocdraw::ocdraw::{load_drawing_bytes, load_drawing_file};
-use ocdraw_convert::cadcodec::{CadDocument, DwgReader, DwgWriter, DxfReader, DxfWriter};
+use ocdraw::ocdraw::{load_ocdraw_bytes, load_ocdraw_file};
+use ocdraw_convert::opencadcodec::{CadDocument, DwgReader, DwgWriter, DxfReader, DxfWriter};
 use ocdraw_convert::{
-    cad_document_to_drawing, ocdraw_to_cad_document, ExportLossPolicy, ExportOptions, ImportOptions,
+    cad_document_to_encoded_ocdraw, ocdraw_source_to_cad_document, CadToOcdrawOptions,
+    OcdrawLossPolicy, OcdrawToCadOptions,
 };
 use serde_json::{json, Value};
 use std::{fs, path::Path};
@@ -36,10 +37,8 @@ fn measure(root: &Path, case: &recipe::Case) -> Result<Value> {
     let recipe = recipe::generate(case)?;
     let native = adapters::drawing(&recipe)?;
     native.write_file(root.join("drawing.ocdraw.json"))?;
-    let loaded = load_drawing_file(root.join("drawing.ocdraw.json"))?;
-    let drawing = loaded
-        .validated_drawing()
-        .ok_or_else(|| format!("native readback: {:?}", loaded.diagnostics()))?;
+    let loaded = load_ocdraw_file(root.join("drawing.ocdraw.json"))?;
+    let drawing = &loaded;
     let (projection, ids) = projection::ocdraw(drawing)?;
     projection::verify(&recipe, &projection)?;
     let mut outputs = json!({"ocdraw":{"bytes":native.bytes().len(),"sha256":accounting::digest(native.bytes())}});
@@ -52,7 +51,7 @@ fn measure(root: &Path, case: &recipe::Case) -> Result<Value> {
             &projection::cad(&read_cad(direct.clone(), format)?)?,
         )?;
         outputs[format] = json!({"bytes":direct.len(),"sha256":accounting::digest(&direct)});
-        let imported = ocdraw_to_cad_document(drawing, ImportOptions::default())?;
+        let imported = ocdraw_source_to_cad_document(drawing, OcdrawToCadOptions::default())?;
         let import_issues = imported
             .diagnostics()
             .iter()
@@ -71,10 +70,10 @@ fn measure(root: &Path, case: &recipe::Case) -> Result<Value> {
         fs::write(root.join(format!("chain.{format}")), &bytes)?;
         let returned = read_cad(bytes, format)?;
         projection::verify(&recipe, &projection::cad(&returned)?)?;
-        let exported = cad_document_to_drawing(
+        let exported = cad_document_to_encoded_ocdraw(
             &returned,
-            ExportOptions {
-                loss_policy: ExportLossPolicy::Reject,
+            CadToOcdrawOptions {
+                loss_policy: OcdrawLossPolicy::Reject,
                 ..Default::default()
             },
         )
@@ -85,12 +84,10 @@ fn measure(root: &Path, case: &recipe::Case) -> Result<Value> {
             .map(|d| format!("{d:?}"))
             .collect::<Vec<_>>();
         exported
-            .drawing()
+            .encoded()
             .write_file(root.join(format!("returned-{format}.ocdraw.json")))?;
-        let readback = load_drawing_bytes(exported.drawing().bytes());
-        let final_drawing = readback
-            .validated_drawing()
-            .ok_or("return readback invalid")?;
+        let readback = load_ocdraw_bytes(exported.encoded().bytes());
+        let final_drawing = readback.as_ref().ok().ok_or("return readback invalid")?;
         projection::verify(&recipe, &projection::ocdraw(final_drawing)?.0)?;
         chains[format] = json!({"status":"passed","import_diagnostics":import_issues,"export_diagnostics":export_issues});
     }
@@ -131,8 +128,8 @@ mod tests {
         })
         .unwrap();
         let bytes = adapters::drawing(&recipe).unwrap();
-        let loaded = load_drawing_bytes(bytes.bytes());
-        let (actual, ids) = projection::ocdraw(loaded.validated_drawing().unwrap()).unwrap();
+        let loaded = load_ocdraw_bytes(bytes.bytes());
+        let (actual, ids) = projection::ocdraw(loaded.as_ref().ok().unwrap()).unwrap();
         projection::verify(&recipe, &actual).unwrap();
         assert_eq!(ids, (1..=8).collect::<Vec<_>>());
     }

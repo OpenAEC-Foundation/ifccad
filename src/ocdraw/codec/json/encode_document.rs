@@ -6,7 +6,7 @@ use crate::ocdraw::logical::{DrawingGeometricEntity, EntityGeometry};
 use crate::ocdraw::{DrawingLayoutKind, DrawingScopeKind, OcdrawDocument, PlotStyleMode};
 use serde_json::{json, Map, Value};
 
-pub(crate) fn encode_document(doc: &OcdrawDocument) -> Value {
+pub(crate) fn encode_ocdraw_document(doc: &OcdrawDocument) -> Value {
     let layer_values = doc
         .layers
         .iter()
@@ -169,5 +169,5 @@ pub(crate) fn encode_document(doc: &OcdrawDocument) -> Value {
 }
 
 pub(crate) fn encode_document_bytes(doc: &OcdrawDocument) -> Result<Vec<u8>, serde_json::Error> {
-    serde_json::to_vec_pretty(&encode_document(doc))
+    serde_json::to_vec_pretty(&encode_ocdraw_document(doc))
 }

@@ -1,9 +1,10 @@
-use cadcodec::{CadDocument, Circle, Color, EntityType, Line, Point, Vector3};
-use ocdraw::ocdraw::{load_drawing_bytes, DrawingLoadStatus};
+use ocdraw::ocdraw::{load_ocdraw_bytes, OcdrawReadStatus};
 use ocdraw_convert::{
-    cad_document_to_drawing, cad_document_to_drawing_with_id, ocdraw_to_cad_document,
-    ConversionLossPolicy, DirectExportError, ExportOptions, ImportOptions,
+    cad_document_to_encoded_ocdraw, cad_document_to_encoded_ocdraw_with_id,
+    ocdraw_source_to_cad_document, CadToOcdrawError, CadToOcdrawOptions, OcdrawLossPolicy,
+    OcdrawToCadOptions,
 };
+use opencadcodec::{CadDocument, Circle, Color, EntityType, Line, Point, Vector3};
 
 #[test]
 fn direct_line_export_creates_a_standalone_drawing() {
@@ -11,15 +12,20 @@ fn direct_line_export_creates_a_standalone_drawing() {
     let mut line = Line::from_coords(1.0, 2.0, 0.0, 3.0, 4.0, 0.0);
     line.common.color = Color::ByBlock;
     source.add_entity(EntityType::Line(line)).unwrap();
-    let outcome = cad_document_to_drawing(&source, ExportOptions::default()).unwrap();
-    let read = load_drawing_bytes(outcome.drawing().bytes());
+    let outcome = cad_document_to_encoded_ocdraw(&source, CadToOcdrawOptions::default()).unwrap();
+    let read = load_ocdraw_bytes(outcome.encoded().bytes());
     assert_eq!(
-        read.status(),
-        DrawingLoadStatus::Valid,
+        read.as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Valid,
         "{:?}",
-        read.diagnostics()
+        read.as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
     );
-    let value = read.validated_drawing().unwrap().as_value();
+    let value = read.as_ref().ok().unwrap().as_value();
     assert_eq!(value["streams"]["lineStream"]["count"], 1);
     assert_eq!(value["streams"]["lineStream"]["colorMode"][0], "ByBlock");
     assert!(value["layers"]
@@ -27,7 +33,7 @@ fn direct_line_export_creates_a_standalone_drawing() {
         .is_some_and(|layers| !layers.is_empty()));
     assert_eq!(value["drawingWorkspaceState"]["activeLayoutId"], 0);
     let imported =
-        ocdraw_to_cad_document(read.validated_drawing().unwrap(), ImportOptions::default())
+        ocdraw_source_to_cad_document(read.as_ref().ok().unwrap(), OcdrawToCadOptions::default())
             .unwrap();
     let imported_line = imported
         .document()
@@ -46,42 +52,42 @@ fn direct_line_export_creates_a_standalone_drawing() {
 fn unsupported_cad_content_is_diagnosed_and_rejectable() {
     let mut source = CadDocument::new();
     source.header.project_name = "Unrepresented project name".into();
-    let allow = cad_document_to_drawing(&source, ExportOptions::default()).unwrap();
+    let allow = cad_document_to_encoded_ocdraw(&source, CadToOcdrawOptions::default()).unwrap();
     assert!(!allow.diagnostics().is_empty());
-    let reject = cad_document_to_drawing(
+    let reject = cad_document_to_encoded_ocdraw(
         &source,
-        ExportOptions {
-            loss_policy: ConversionLossPolicy::Reject,
-            ..ExportOptions::default()
+        CadToOcdrawOptions {
+            loss_policy: OcdrawLossPolicy::Reject,
+            ..CadToOcdrawOptions::default()
         },
     );
-    assert!(matches!(
-        reject,
-        Err(DirectExportError::LossRejected { .. })
-    ));
+    assert!(matches!(reject, Err(CadToOcdrawError::LossRejected { .. })));
 }
 
 #[test]
 fn caller_can_assign_a_stable_drawing_identity() {
     let source = CadDocument::new();
-    let outcome =
-        cad_document_to_drawing_with_id(&source, "drawing-stable-42", ExportOptions::default())
-            .unwrap();
-    let read = load_drawing_bytes(outcome.drawing().bytes());
+    let outcome = cad_document_to_encoded_ocdraw_with_id(
+        &source,
+        "drawing-stable-42",
+        CadToOcdrawOptions::default(),
+    )
+    .unwrap();
+    let read = load_ocdraw_bytes(outcome.encoded().bytes());
     assert_eq!(
-        read.validated_drawing().unwrap().drawing_id(),
+        read.as_ref().ok().unwrap().drawing_id(),
         "drawing-stable-42"
     );
 }
 
 #[test]
 fn direct_import_preserves_paper_scope_and_mixed_appearance_modes() {
-    use cadcodec::{LineWeight, Transparency};
     use ocdraw::ocdraw::{
-        AppearanceSelection, DrawingBuilder, DrawingOptions, EntityAppearance, LayerDefinition,
-        LineDefinition, RgbColor,
+        AppearanceSelection, EntityAppearance, LayerDefinition, LineDefinition, OcdrawBuildOptions,
+        OcdrawBuilder, RgbColor,
     };
-    let mut builder = DrawingBuilder::new(DrawingOptions::new("paper", "mm")).unwrap();
+    use opencadcodec::{LineWeight, Transparency};
+    let mut builder = OcdrawBuilder::new(OcdrawBuildOptions::new("paper", "mm")).unwrap();
     builder.ensure_continuous_line_pattern().unwrap();
     let layer = builder
         .add_layer(LayerDefinition::new(
@@ -102,9 +108,9 @@ fn direct_import_preserves_paper_scope_and_mixed_appearance_modes() {
     };
     builder.add_line(line).unwrap();
     let encoded = builder.finish().unwrap();
-    let read = load_drawing_bytes(encoded.bytes());
+    let read = load_ocdraw_bytes(encoded.bytes());
     let imported =
-        ocdraw_to_cad_document(read.validated_drawing().unwrap(), ImportOptions::default())
+        ocdraw_source_to_cad_document(read.as_ref().ok().unwrap(), OcdrawToCadOptions::default())
             .unwrap();
     let line = imported
         .document()
@@ -118,7 +124,7 @@ fn direct_import_preserves_paper_scope_and_mixed_appearance_modes() {
     assert_eq!(line.common.transparency, Transparency::Explicit(128));
     assert_eq!(line.common.line_weight, LineWeight::W0_25);
     assert!(imported.document().objects.values().any(|object| matches!(object,
-        cadcodec::objects::ObjectType::Layout(layout) if layout.name == "Sheet" && layout.block_record == line.common.owner_handle)));
+        opencadcodec::objects::ObjectType::Layout(layout) if layout.name == "Sheet" && layout.block_record == line.common.owner_handle)));
 }
 
 #[test]
@@ -133,19 +139,24 @@ fn point_and_circle_roundtrip_through_direct_drawing() {
             3.0,
         )))
         .unwrap();
-    let exported = cad_document_to_drawing(&source, ExportOptions::default()).unwrap();
-    let read = load_drawing_bytes(exported.drawing().bytes());
+    let exported = cad_document_to_encoded_ocdraw(&source, CadToOcdrawOptions::default()).unwrap();
+    let read = load_ocdraw_bytes(exported.encoded().bytes());
     assert_eq!(
-        read.status(),
-        DrawingLoadStatus::Valid,
+        read.as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Valid,
         "{:?}",
-        read.diagnostics()
+        read.as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
     );
-    let value = read.validated_drawing().unwrap().as_value();
+    let value = read.as_ref().ok().unwrap().as_value();
     assert_eq!(value["streams"]["pointStream"]["count"], 1);
     assert_eq!(value["streams"]["circleStream"]["count"], 1);
     let imported =
-        ocdraw_to_cad_document(read.validated_drawing().unwrap(), ImportOptions::default())
+        ocdraw_source_to_cad_document(read.as_ref().ok().unwrap(), OcdrawToCadOptions::default())
             .unwrap();
     assert!(imported.document().entities().any(|entity| matches!(entity,
         EntityType::Point(point) if point.location == Vector3::new(4.0,5.0,0.0))));
@@ -155,27 +166,32 @@ fn point_and_circle_roundtrip_through_direct_drawing() {
 
 #[test]
 fn planar_and_spatial_polylines_keep_vertices_and_order() {
-    use cadcodec::{LwPolyline, Vector2};
+    use opencadcodec::{LwPolyline, Vector2};
     let mut source = CadDocument::new();
     let mut planar =
         LwPolyline::from_points(vec![Vector2::new(-1.25, 2.5), Vector2::new(3.75, -4.5)]);
     planar.vertices[0].bulge = 1.0;
     planar.is_closed = false;
     source.add_entity(EntityType::LwPolyline(planar)).unwrap();
-    let spatial = cadcodec::entities::Polyline3D::from_points(vec![
+    let spatial = opencadcodec::entities::Polyline3D::from_points(vec![
         Vector3::new(-1.25, 2.5, -3.75),
         Vector3::new(4.5, -5.25, 6.125),
     ]);
     source.add_entity(EntityType::Polyline3D(spatial)).unwrap();
-    let exported = cad_document_to_drawing(&source, ExportOptions::default()).unwrap();
-    let read = load_drawing_bytes(exported.drawing().bytes());
+    let exported = cad_document_to_encoded_ocdraw(&source, CadToOcdrawOptions::default()).unwrap();
+    let read = load_ocdraw_bytes(exported.encoded().bytes());
     assert_eq!(
-        read.status(),
-        DrawingLoadStatus::Valid,
+        read.as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Valid,
         "{:?}",
-        read.diagnostics()
+        read.as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
     );
-    let drawing = read.validated_drawing().unwrap();
+    let drawing = read.as_ref().ok().unwrap();
     assert_eq!(
         drawing.as_value()["streams"]["planarPolylineStream"]["bulge"],
         serde_json::json!([1.0, 0.0])
@@ -184,7 +200,7 @@ fn planar_and_spatial_polylines_keep_vertices_and_order() {
         drawing.as_value()["streams"]["spatialPolylineStream"]["z"],
         serde_json::json!([-3.75, 6.125])
     );
-    let imported = ocdraw_to_cad_document(drawing, ImportOptions::default()).unwrap();
+    let imported = ocdraw_source_to_cad_document(drawing, OcdrawToCadOptions::default()).unwrap();
     let kinds = imported
         .document()
         .entities()
@@ -199,30 +215,35 @@ fn planar_and_spatial_polylines_keep_vertices_and_order() {
 
 #[test]
 fn legacy_cad_polyline_variants_map_to_the_same_logical_families() {
-    use cadcodec::Vector2;
+    use opencadcodec::Vector2;
     let mut source = CadDocument::new();
-    let mut planar = cadcodec::entities::Polyline2D::new();
-    planar.add_vertex(cadcodec::entities::Vertex2D::from_point(Vector2::new(
+    let mut planar = opencadcodec::entities::Polyline2D::new();
+    planar.add_vertex(opencadcodec::entities::Vertex2D::from_point(Vector2::new(
         0.0, 0.0,
     )));
-    planar.add_vertex(cadcodec::entities::Vertex2D::from_point(Vector2::new(
+    planar.add_vertex(opencadcodec::entities::Vertex2D::from_point(Vector2::new(
         3.0, 4.0,
     )));
     source.add_entity(EntityType::Polyline2D(planar)).unwrap();
-    let spatial = cadcodec::entities::Polyline::from_points(vec![
+    let spatial = opencadcodec::entities::Polyline::from_points(vec![
         Vector3::new(1.0, 2.0, 3.0),
         Vector3::new(4.0, 5.0, 6.0),
     ]);
     source.add_entity(EntityType::Polyline(spatial)).unwrap();
-    let exported = cad_document_to_drawing(&source, ExportOptions::default()).unwrap();
-    let read = load_drawing_bytes(exported.drawing().bytes());
+    let exported = cad_document_to_encoded_ocdraw(&source, CadToOcdrawOptions::default()).unwrap();
+    let read = load_ocdraw_bytes(exported.encoded().bytes());
     assert_eq!(
-        read.status(),
-        DrawingLoadStatus::Valid,
+        read.as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Valid,
         "{:?}",
-        read.diagnostics()
+        read.as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
     );
-    let drawing = read.validated_drawing().unwrap().as_value();
+    let drawing = read.as_ref().ok().unwrap().as_value();
     assert_eq!(
         drawing["streams"]["planarPolylineStream"]["x"],
         serde_json::json!([0.0, 3.0])
@@ -238,17 +259,22 @@ fn point_display_header_state_roundtrips_directly() {
     let mut source = CadDocument::new();
     source.header.point_display_mode = 35;
     source.header.point_display_size = -5.0;
-    let exported = cad_document_to_drawing(&source, ExportOptions::default()).unwrap();
-    let read = load_drawing_bytes(exported.drawing().bytes());
+    let exported = cad_document_to_encoded_ocdraw(&source, CadToOcdrawOptions::default()).unwrap();
+    let read = load_ocdraw_bytes(exported.encoded().bytes());
     assert_eq!(
-        read.status(),
-        DrawingLoadStatus::Valid,
+        read.as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Valid,
         "{:?}",
-        read.diagnostics()
+        read.as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
     );
-    let drawing = read.validated_drawing().unwrap();
+    let drawing = read.as_ref().ok().unwrap();
     assert_eq!(drawing.as_value()["pointDisplay"]["form"]["glyph"], "cross");
-    let imported = ocdraw_to_cad_document(drawing, ImportOptions::default()).unwrap();
+    let imported = ocdraw_source_to_cad_document(drawing, OcdrawToCadOptions::default()).unwrap();
     assert_eq!(imported.document().header.point_display_mode, 35);
     assert_eq!(imported.document().header.point_display_size, -5.0);
 }
@@ -259,7 +285,7 @@ fn layout_limits_and_scaling_roundtrip_directly() {
     source.add_layout("Sheet").unwrap();
     source.header.paper_space_linetype_scaling = false;
     for object in source.objects.values_mut() {
-        if let cadcodec::objects::ObjectType::Layout(layout) = object {
+        if let opencadcodec::objects::ObjectType::Layout(layout) = object {
             if layout.name == "Sheet" {
                 layout.flags |= 2;
                 layout.min_limits = (1.0, 2.0);
@@ -267,15 +293,20 @@ fn layout_limits_and_scaling_roundtrip_directly() {
             }
         }
     }
-    let exported = cad_document_to_drawing(&source, ExportOptions::default()).unwrap();
-    let read = load_drawing_bytes(exported.drawing().bytes());
+    let exported = cad_document_to_encoded_ocdraw(&source, CadToOcdrawOptions::default()).unwrap();
+    let read = load_ocdraw_bytes(exported.encoded().bytes());
     assert_eq!(
-        read.status(),
-        DrawingLoadStatus::Valid,
+        read.as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Valid,
         "{:?}",
-        read.diagnostics()
+        read.as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
     );
-    let drawing = read.validated_drawing().unwrap();
+    let drawing = read.as_ref().ok().unwrap();
     let sheet = drawing.as_value()["layouts"]
         .as_array()
         .unwrap()
@@ -285,14 +316,14 @@ fn layout_limits_and_scaling_roundtrip_directly() {
     assert_eq!(sheet["limits"]["maxY"], 200.0);
     assert_eq!(sheet["limitsChecking"], true);
     assert_eq!(sheet["paperSpaceLinetypeScaling"], false);
-    let imported = ocdraw_to_cad_document(drawing, ImportOptions::default()).unwrap();
+    let imported = ocdraw_source_to_cad_document(drawing, OcdrawToCadOptions::default()).unwrap();
     assert!(!imported.document().header.paper_space_linetype_scaling);
     assert!(imported
         .document()
         .objects
         .values()
         .any(|object| matches!(object,
-        cadcodec::objects::ObjectType::Layout(layout) if layout.name == "Sheet"
+        opencadcodec::objects::ObjectType::Layout(layout) if layout.name == "Sheet"
             && layout.flags & 2 != 0 && layout.min_limits == (1.0, 2.0)
             && layout.max_limits == (100.0, 200.0))));
 }
@@ -302,7 +333,7 @@ fn configured_layout_plot_settings_roundtrip_directly() {
     let mut source = CadDocument::new();
     source.add_layout("Sheet").unwrap();
     for object in source.objects.values_mut() {
-        if let cadcodec::objects::ObjectType::Layout(layout) = object {
+        if let opencadcodec::objects::ObjectType::Layout(layout) = object {
             if layout.name == "Sheet" {
                 layout.paper_width = 210.0;
                 layout.paper_height = 297.0;
@@ -318,15 +349,20 @@ fn configured_layout_plot_settings_roundtrip_directly() {
             }
         }
     }
-    let exported = cad_document_to_drawing(&source, ExportOptions::default()).unwrap();
-    let read = load_drawing_bytes(exported.drawing().bytes());
+    let exported = cad_document_to_encoded_ocdraw(&source, CadToOcdrawOptions::default()).unwrap();
+    let read = load_ocdraw_bytes(exported.encoded().bytes());
     assert_eq!(
-        read.status(),
-        DrawingLoadStatus::Valid,
+        read.as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Valid,
         "{:?}",
-        read.diagnostics()
+        read.as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
     );
-    let drawing = read.validated_drawing().unwrap();
+    let drawing = read.as_ref().ok().unwrap();
     let sheet = drawing.as_value()["layouts"]
         .as_array()
         .unwrap()
@@ -335,13 +371,13 @@ fn configured_layout_plot_settings_roundtrip_directly() {
         .unwrap();
     assert_eq!(sheet["plotSettings"]["media"]["width"], 210.0);
     assert_eq!(sheet["plotSettings"]["media"]["mediaName"], "A4");
-    let imported = ocdraw_to_cad_document(drawing, ImportOptions::default()).unwrap();
+    let imported = ocdraw_source_to_cad_document(drawing, OcdrawToCadOptions::default()).unwrap();
     assert!(imported
         .document()
         .objects
         .values()
         .any(|object| matches!(object,
-        cadcodec::objects::ObjectType::Layout(layout) if layout.name == "Sheet"
+        opencadcodec::objects::ObjectType::Layout(layout) if layout.name == "Sheet"
             && layout.paper_width == 210.0 && layout.paper_height == 297.0
             && layout.plot_margin_left == 5.0 && layout.plot_margin_top == 8.0
             && layout.paper_size == "A4")));
@@ -350,24 +386,29 @@ fn configured_layout_plot_settings_roundtrip_directly() {
 #[test]
 fn unused_named_ucs_roundtrips_directly() {
     let mut source = CadDocument::new();
-    let mut ucs = cadcodec::Ucs::new("Grid A");
+    let mut ucs = opencadcodec::Ucs::new("Grid A");
     ucs.handle = source.allocate_handle();
     ucs.origin = Vector3::new(1.0, 2.0, 3.0);
     ucs.elevation = 4.0;
     source.ucss.add(ucs).unwrap();
-    let exported = cad_document_to_drawing(&source, ExportOptions::default()).unwrap();
+    let exported = cad_document_to_encoded_ocdraw(&source, CadToOcdrawOptions::default()).unwrap();
     assert!(!exported.diagnostics().iter().flat_map(|diagnostic| diagnostic.reasons()).any(|reason|
-        matches!(reason, ocdraw_convert::ExportLossReason::UnsupportedTableRecords { kind, .. } if kind == "ucss")));
-    let read = load_drawing_bytes(exported.drawing().bytes());
+        matches!(reason, ocdraw_convert::CadToOcdrawLossReason::UnsupportedTableRecords { kind, .. } if kind == "ucss")));
+    let read = load_ocdraw_bytes(exported.encoded().bytes());
     assert_eq!(
-        read.status(),
-        DrawingLoadStatus::Valid,
+        read.as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Valid,
         "{:?}",
-        read.diagnostics()
+        read.as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
     );
-    let drawing = read.validated_drawing().unwrap();
+    let drawing = read.as_ref().ok().unwrap();
     assert_eq!(drawing.as_value()["ucsDefinitions"][0]["name"], "Grid A");
-    let imported = ocdraw_to_cad_document(drawing, ImportOptions::default()).unwrap();
+    let imported = ocdraw_source_to_cad_document(drawing, OcdrawToCadOptions::default()).unwrap();
     let restored = imported
         .document()
         .ucss
@@ -381,9 +422,9 @@ fn unused_named_ucs_roundtrips_directly() {
 #[test]
 fn rotated_point_frame_is_mapped_in_direct_import() {
     use ocdraw::ocdraw::{
-        DrawingBuilder, DrawingOptions, LayerDefinition, PointDefinition, RgbColor,
+        LayerDefinition, OcdrawBuildOptions, OcdrawBuilder, PointDefinition, RgbColor,
     };
-    let mut builder = DrawingBuilder::new(DrawingOptions::new("rotated", "mm")).unwrap();
+    let mut builder = OcdrawBuilder::new(OcdrawBuildOptions::new("rotated", "mm")).unwrap();
     builder.ensure_continuous_line_pattern().unwrap();
     let layer = builder
         .add_layer(LayerDefinition::new(
@@ -402,15 +443,20 @@ fn rotated_point_frame_is_mapped_in_direct_import() {
     value["streams"]["pointStream"]["placement"][0]["Y"] =
         serde_json::json!({"x":-1.0,"y":0.0,"z":0.0});
     let bytes = serde_json::to_vec(&value).unwrap();
-    let read = load_drawing_bytes(&bytes);
+    let read = load_ocdraw_bytes(&bytes);
     assert_eq!(
-        read.status(),
-        DrawingLoadStatus::Valid,
+        read.as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Valid,
         "{:?}",
-        read.diagnostics()
+        read.as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
     );
     let imported =
-        ocdraw_to_cad_document(read.validated_drawing().unwrap(), ImportOptions::default())
+        ocdraw_source_to_cad_document(read.as_ref().ok().unwrap(), OcdrawToCadOptions::default())
             .unwrap();
     let point = imported
         .document()
@@ -426,7 +472,7 @@ fn rotated_point_frame_is_mapped_in_direct_import() {
 #[test]
 fn shared_block_definition_and_instance_roundtrip_directly() {
     let mut source = CadDocument::new();
-    let mut record = cadcodec::BlockRecord::new("Door");
+    let mut record = opencadcodec::BlockRecord::new("Door");
     record.handle = source.allocate_handle();
     let owner = record.handle;
     source.block_records.add(record).unwrap();
@@ -434,24 +480,29 @@ fn shared_block_definition_and_instance_roundtrip_directly() {
     line.common.owner_handle = owner;
     source.add_entity(EntityType::Line(line)).unwrap();
     source
-        .add_entity(EntityType::Insert(cadcodec::entities::Insert::new(
+        .add_entity(EntityType::Insert(opencadcodec::entities::Insert::new(
             "Door",
             Vector3::new(10.0, 0.0, 0.0),
         )))
         .unwrap();
-    let exported = cad_document_to_drawing(&source, ExportOptions::default()).unwrap();
-    let read = load_drawing_bytes(exported.drawing().bytes());
+    let exported = cad_document_to_encoded_ocdraw(&source, CadToOcdrawOptions::default()).unwrap();
+    let read = load_ocdraw_bytes(exported.encoded().bytes());
     assert_eq!(
-        read.status(),
-        DrawingLoadStatus::Valid,
+        read.as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Valid,
         "{:?}",
-        read.diagnostics()
+        read.as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
     );
-    let value = read.validated_drawing().unwrap().as_value();
+    let value = read.as_ref().ok().unwrap().as_value();
     assert_eq!(value["blockDefinitions"][0]["name"], "Door");
     assert_eq!(value["streams"]["blockInstanceStream"]["count"], 1);
     let imported =
-        ocdraw_to_cad_document(read.validated_drawing().unwrap(), ImportOptions::default())
+        ocdraw_source_to_cad_document(read.as_ref().ok().unwrap(), OcdrawToCadOptions::default())
             .unwrap();
     assert_eq!(
         imported
@@ -471,27 +522,34 @@ fn arc_roundtrip_preserves_center_radius_and_sweep() {
     let mut source = CadDocument::new();
     source.header.insertion_units = 4;
     source
-        .add_entity(EntityType::Arc(cadcodec::Arc::from_center_radius_angles(
-            Vector3::new(2.0, 3.0, 0.0),
-            5.0,
-            0.25,
-            1.25,
-        )))
+        .add_entity(EntityType::Arc(
+            opencadcodec::Arc::from_center_radius_angles(
+                Vector3::new(2.0, 3.0, 0.0),
+                5.0,
+                0.25,
+                1.25,
+            ),
+        ))
         .unwrap();
-    let exported = cad_document_to_drawing(&source, ExportOptions::default()).unwrap();
-    let read = load_drawing_bytes(exported.drawing().bytes());
+    let exported = cad_document_to_encoded_ocdraw(&source, CadToOcdrawOptions::default()).unwrap();
+    let read = load_ocdraw_bytes(exported.encoded().bytes());
     assert_eq!(
-        read.status(),
-        DrawingLoadStatus::Valid,
+        read.as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Valid,
         "{:?}",
-        read.diagnostics()
+        read.as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
     );
     assert_eq!(
-        read.validated_drawing().unwrap().as_value()["streams"]["arcStream"]["sweepParameter"][0],
+        read.as_ref().ok().unwrap().as_value()["streams"]["arcStream"]["sweepParameter"][0],
         1.0
     );
     let imported =
-        ocdraw_to_cad_document(read.validated_drawing().unwrap(), ImportOptions::default())
+        ocdraw_source_to_cad_document(read.as_ref().ok().unwrap(), OcdrawToCadOptions::default())
             .unwrap();
     assert!(imported.document().entities().any(|entity| matches!(entity,
         EntityType::Arc(arc) if arc.center == Vector3::new(2.0,3.0,0.0) && arc.radius == 5.0 && arc.start_angle == 0.25 && arc.end_angle == 1.25)));
@@ -502,13 +560,15 @@ fn full_and_partial_ellipses_roundtrip_directly() {
     let mut source = CadDocument::new();
     source.header.insertion_units = 4;
     source
-        .add_entity(EntityType::Ellipse(cadcodec::Ellipse::from_center_axes(
-            Vector3::new(1.0, 2.0, 0.0),
-            Vector3::new(3.0, 0.0, 0.0),
-            0.5,
-        )))
+        .add_entity(EntityType::Ellipse(
+            opencadcodec::Ellipse::from_center_axes(
+                Vector3::new(1.0, 2.0, 0.0),
+                Vector3::new(3.0, 0.0, 0.0),
+                0.5,
+            ),
+        ))
         .unwrap();
-    let mut partial = cadcodec::Ellipse::from_center_axes(
+    let mut partial = opencadcodec::Ellipse::from_center_axes(
         Vector3::new(10.0, 2.0, 0.0),
         Vector3::new(0.0, 4.0, 0.0),
         0.25,
@@ -516,19 +576,24 @@ fn full_and_partial_ellipses_roundtrip_directly() {
     partial.start_parameter = 0.5;
     partial.end_parameter = 1.5;
     source.add_entity(EntityType::Ellipse(partial)).unwrap();
-    let exported = cad_document_to_drawing(&source, ExportOptions::default()).unwrap();
-    let read = load_drawing_bytes(exported.drawing().bytes());
+    let exported = cad_document_to_encoded_ocdraw(&source, CadToOcdrawOptions::default()).unwrap();
+    let read = load_ocdraw_bytes(exported.encoded().bytes());
     assert_eq!(
-        read.status(),
-        DrawingLoadStatus::Valid,
+        read.as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Valid,
         "{:?}",
-        read.diagnostics()
+        read.as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
     );
-    let value = read.validated_drawing().unwrap().as_value();
+    let value = read.as_ref().ok().unwrap().as_value();
     assert_eq!(value["streams"]["ellipseStream"]["count"], 1);
     assert_eq!(value["streams"]["ellipseArcStream"]["count"], 1);
     let imported =
-        ocdraw_to_cad_document(read.validated_drawing().unwrap(), ImportOptions::default())
+        ocdraw_source_to_cad_document(read.as_ref().ok().unwrap(), OcdrawToCadOptions::default())
             .unwrap();
     assert_eq!(
         imported
@@ -544,9 +609,9 @@ fn full_and_partial_ellipses_roundtrip_directly() {
 fn standalone_preserves_oblique_polyline_elevation_and_dormant_bulge() {
     let mut document = CadDocument::new();
     document.header.insertion_units = 4;
-    let mut poly = cadcodec::LwPolyline::from_points(vec![
-        cadcodec::Vector2::new(1.0, 2.0),
-        cadcodec::Vector2::new(4.0, 6.0),
+    let mut poly = opencadcodec::LwPolyline::from_points(vec![
+        opencadcodec::Vector2::new(1.0, 2.0),
+        opencadcodec::Vector2::new(4.0, 6.0),
     ]);
     poly.normal = Vector3::UNIT_X;
     poly.elevation = 7.0;
@@ -555,16 +620,17 @@ fn standalone_preserves_oblique_polyline_elevation_and_dormant_bulge() {
     document
         .add_entity(EntityType::LwPolyline(poly.clone()))
         .unwrap();
-    let exported = cad_document_to_drawing(&document, ExportOptions::default()).unwrap();
-    let read = load_drawing_bytes(exported.drawing().bytes());
-    let drawing = read.validated_drawing().expect("production readback");
+    let exported =
+        cad_document_to_encoded_ocdraw(&document, CadToOcdrawOptions::default()).unwrap();
+    let read = load_ocdraw_bytes(exported.encoded().bytes());
+    let drawing = read.as_ref().expect("production readback");
     assert_eq!(
         drawing.geometric_entities().len(),
         1,
         "{:?}",
         exported.diagnostics()
     );
-    let imported = ocdraw_to_cad_document(drawing, ImportOptions::default()).unwrap();
+    let imported = ocdraw_source_to_cad_document(drawing, OcdrawToCadOptions::default()).unwrap();
     let target = imported
         .document()
         .entities()
@@ -597,16 +663,17 @@ fn standalone_preserves_oblique_circular_geometry_and_point_orientation() {
     document
         .add_entity(EntityType::Point(point.clone()))
         .unwrap();
-    let exported = cad_document_to_drawing(&document, ExportOptions::default()).unwrap();
-    let read = load_drawing_bytes(exported.drawing().bytes());
-    let drawing = read.validated_drawing().expect("production readback");
+    let exported =
+        cad_document_to_encoded_ocdraw(&document, CadToOcdrawOptions::default()).unwrap();
+    let read = load_ocdraw_bytes(exported.encoded().bytes());
+    let drawing = read.as_ref().expect("production readback");
     assert_eq!(
         drawing.geometric_entities().len(),
         2,
         "{:?}",
         exported.diagnostics()
     );
-    let imported = ocdraw_to_cad_document(drawing, ImportOptions::default()).unwrap();
+    let imported = ocdraw_source_to_cad_document(drawing, OcdrawToCadOptions::default()).unwrap();
     let target = imported
         .document()
         .entities()
@@ -634,13 +701,11 @@ fn standalone_preserves_oblique_circular_geometry_and_point_orientation() {
 #[test]
 fn standalone_import_enforces_unitless_exactness_and_explicit_tolerance() {
     use ocdraw::ocdraw::{
-        CoordinateFrame3, DrawingBuilder, DrawingGeometry, DrawingOptions,
-        GeometricEntityDefinition, LayerDefinition, Point3, RgbColor, Vector3 as NativeVector,
+        CoordinateFrame3, DrawingGeometry, GeometricEntityDefinition, LayerDefinition,
+        OcdrawBuildOptions, OcdrawBuilder, Point3, RgbColor, Vector3 as NativeVector,
     };
-    use ocdraw_convert::{
-        ConversionGeometryTolerance, ConversionToleranceError, DirectImportError,
-    };
-    let mut builder = DrawingBuilder::new(DrawingOptions::new("unitless", "unitless")).unwrap();
+    use ocdraw_convert::{OcdrawGeometryTolerance, OcdrawToCadError, OcdrawToleranceError};
+    let mut builder = OcdrawBuilder::new(OcdrawBuildOptions::new("unitless", "unitless")).unwrap();
     builder.ensure_continuous_line_pattern().unwrap();
     let layer = builder
         .add_layer(LayerDefinition::new(
@@ -669,29 +734,29 @@ fn standalone_import_enforces_unitless_exactness_and_explicit_tolerance() {
         ))
         .unwrap();
     let encoded = builder.finish().unwrap();
-    let read = load_drawing_bytes(encoded.bytes());
-    let drawing = read.validated_drawing().unwrap();
+    let read = load_ocdraw_bytes(encoded.bytes());
+    let drawing = read.as_ref().ok().unwrap();
     assert!(matches!(
-        ocdraw_to_cad_document(drawing, ImportOptions::default()),
-        Err(DirectImportError::Geometry(_))
+        ocdraw_source_to_cad_document(drawing, OcdrawToCadOptions::default()),
+        Err(OcdrawToCadError::Geometry(_))
     ));
     assert!(matches!(
-        ocdraw_to_cad_document(
+        ocdraw_source_to_cad_document(
             drawing,
-            ImportOptions {
-                geometry_tolerance: ConversionGeometryTolerance::metres(1.0).unwrap(),
-                ..ImportOptions::default()
+            OcdrawToCadOptions {
+                geometry_tolerance: OcdrawGeometryTolerance::metres(1.0).unwrap(),
+                ..OcdrawToCadOptions::default()
             }
         ),
-        Err(DirectImportError::GeometryTolerance(
-            ConversionToleranceError::PhysicalUnitRequired
+        Err(OcdrawToCadError::GeometryTolerance(
+            OcdrawToleranceError::PhysicalUnitRequired
         ))
     ));
-    let imported = ocdraw_to_cad_document(
+    let imported = ocdraw_source_to_cad_document(
         drawing,
-        ImportOptions {
-            geometry_tolerance: ConversionGeometryTolerance::drawing_units(1.0).unwrap(),
-            ..ImportOptions::default()
+        OcdrawToCadOptions {
+            geometry_tolerance: OcdrawGeometryTolerance::drawing_units(1.0).unwrap(),
+            ..OcdrawToCadOptions::default()
         },
     )
     .unwrap();
@@ -709,13 +774,13 @@ fn standalone_import_enforces_unitless_exactness_and_explicit_tolerance() {
 #[test]
 fn standalone_checks_scaled_block_occurrences_against_the_same_tolerance() {
     use ocdraw::ocdraw::{
-        BlockDefinition, BlockTransform, CoordinateFrame3, DrawingBuilder, DrawingGeometry,
-        DrawingOptions, GeometricEntityDefinition, LayerDefinition, Point3, RgbColor, Scale3,
-        Vector3 as NativeVector,
+        BlockDefinition, BlockTransform, CoordinateFrame3, DrawingGeometry,
+        GeometricEntityDefinition, LayerDefinition, OcdrawBuildOptions, OcdrawBuilder, Point3,
+        RgbColor, Scale3, Vector3 as NativeVector,
     };
-    use ocdraw_convert::{ConversionEntitySource, ConversionGeometryTolerance, DirectImportError};
+    use ocdraw_convert::{OcdrawGeometryEntitySource, OcdrawGeometryTolerance, OcdrawToCadError};
     let mut builder =
-        DrawingBuilder::new(DrawingOptions::new("amplification", "unitless")).unwrap();
+        OcdrawBuilder::new(OcdrawBuildOptions::new("amplification", "unitless")).unwrap();
     builder.ensure_continuous_line_pattern().unwrap();
     let layer = builder
         .add_layer(LayerDefinition::new(
@@ -760,25 +825,26 @@ fn standalone_checks_scaled_block_occurrences_against_the_same_tolerance() {
         ))
         .unwrap();
     let encoded = builder.finish().unwrap();
-    let loaded = load_drawing_bytes(encoded.bytes());
-    let drawing = loaded.validated_drawing().unwrap();
-    let options = ImportOptions {
-        geometry_tolerance: ConversionGeometryTolerance::drawing_units(1.0).unwrap(),
-        ..ImportOptions::default()
+    let loaded = load_ocdraw_bytes(encoded.bytes());
+    let drawing = loaded.as_ref().ok().unwrap();
+    let options = OcdrawToCadOptions {
+        geometry_tolerance: OcdrawGeometryTolerance::drawing_units(1.0).unwrap(),
+        ..OcdrawToCadOptions::default()
     };
-    let Err(DirectImportError::Geometry(failure)) = ocdraw_to_cad_document(drawing, options) else {
+    let Err(OcdrawToCadError::Geometry(failure)) = ocdraw_source_to_cad_document(drawing, options)
+    else {
         panic!("scaled local residual must fail")
     };
     assert!(matches!(
         failure.source,
-        ConversionEntitySource::BlockOccurrence { .. }
+        OcdrawGeometryEntitySource::BlockOccurrence { .. }
     ));
     assert_eq!(failure.deviation.unwrap().lower(), 4.0);
-    let imported = ocdraw_to_cad_document(
+    let imported = ocdraw_source_to_cad_document(
         drawing,
-        ImportOptions {
-            geometry_tolerance: ConversionGeometryTolerance::drawing_units(4.0).unwrap(),
-            ..ImportOptions::default()
+        OcdrawToCadOptions {
+            geometry_tolerance: OcdrawGeometryTolerance::drawing_units(4.0).unwrap(),
+            ..OcdrawToCadOptions::default()
         },
     )
     .unwrap();
@@ -792,7 +858,7 @@ fn standalone_checks_scaled_block_occurrences_against_the_same_tolerance() {
 fn standalone_roundtrips_rotated_mirrored_oblique_instances_and_shared_contents() {
     let mut document = CadDocument::new();
     document.header.insertion_units = 4;
-    let mut block = cadcodec::BlockRecord::new("Shared");
+    let mut block = opencadcodec::BlockRecord::new("Shared");
     block.handle = document.allocate_handle();
     block.base_point = Vector3::new(2.0, 3.0, 4.0);
     let owner = block.handle;
@@ -801,7 +867,7 @@ fn standalone_roundtrips_rotated_mirrored_oblique_instances_and_shared_contents(
     line.common.owner_handle = owner;
     document.add_entity(EntityType::Line(line)).unwrap();
     for x in [10.0, 20.0] {
-        let mut instance = cadcodec::entities::Insert::new("Shared", Vector3::new(x, 5.0, 7.0));
+        let mut instance = opencadcodec::entities::Insert::new("Shared", Vector3::new(x, 5.0, 7.0));
         instance.normal = Vector3::UNIT_X;
         instance.rotation = 0.4;
         instance.set_x_scale(-2.0);
@@ -809,12 +875,13 @@ fn standalone_roundtrips_rotated_mirrored_oblique_instances_and_shared_contents(
         instance.set_z_scale(0.5);
         document.add_entity(EntityType::Insert(instance)).unwrap();
     }
-    let exported = cad_document_to_drawing(&document, ExportOptions::default()).unwrap();
-    let loaded = load_drawing_bytes(exported.drawing().bytes());
-    let drawing = loaded.validated_drawing().unwrap();
+    let exported =
+        cad_document_to_encoded_ocdraw(&document, CadToOcdrawOptions::default()).unwrap();
+    let loaded = load_ocdraw_bytes(exported.encoded().bytes());
+    let drawing = loaded.as_ref().ok().unwrap();
     assert_eq!(drawing.block_definitions().len(), 1);
     assert_eq!(drawing.geometric_entities().len(), 3);
-    let imported = ocdraw_to_cad_document(drawing, ImportOptions::default()).unwrap();
+    let imported = ocdraw_source_to_cad_document(drawing, OcdrawToCadOptions::default()).unwrap();
     let source = document.entities().filter_map(|e| {
         if let EntityType::Insert(i) = e {
             Some(i)
@@ -860,42 +927,43 @@ fn standalone_roundtrips_rotated_mirrored_oblique_instances_and_shared_contents(
 #[test]
 fn standalone_preserves_active_model_window_and_named_current_ucs() {
     let mut document = CadDocument::new();
-    let mut named = cadcodec::Ucs::new("Survey");
+    let mut named = opencadcodec::Ucs::new("Survey");
     named.handle = document.allocate_handle();
     named.origin = Vector3::new(10.0, 20.0, 30.0);
     document.ucss.add(named).unwrap();
     document.header.model_space_ucs_name = "Survey".into();
     document.header.model_space_ucs_origin = Vector3::new(10.0, 20.0, 30.0);
     let vport = document.vports.iter_mut().next().unwrap();
-    vport.view_center = cadcodec::Vector2::new(3.0, 4.0);
+    vport.view_center = opencadcodec::Vector2::new(3.0, 4.0);
     vport.view_height = 27.0;
     vport.view_twist = 0.4;
     vport.grid_on = true;
-    vport.grid_spacing = cadcodec::Vector2::new(5.0, 7.0);
+    vport.grid_spacing = opencadcodec::Vector2::new(5.0, 7.0);
     vport.snap_on = true;
-    vport.snap_spacing = cadcodec::Vector2::new(2.0, 3.0);
-    let exported = cad_document_to_drawing(&document, ExportOptions::default()).unwrap();
-    let loaded = load_drawing_bytes(exported.drawing().bytes());
-    let drawing = loaded.validated_drawing().unwrap();
+    vport.snap_spacing = opencadcodec::Vector2::new(2.0, 3.0);
+    let exported =
+        cad_document_to_encoded_ocdraw(&document, CadToOcdrawOptions::default()).unwrap();
+    let loaded = load_ocdraw_bytes(exported.encoded().bytes());
+    let drawing = loaded.as_ref().ok().unwrap();
     assert_eq!(drawing.model_windows().len(), 1);
     assert_eq!(drawing.model_windows()[0].view.height, 27.0);
-    let imported = ocdraw_to_cad_document(drawing, ImportOptions::default()).unwrap();
+    let imported = ocdraw_source_to_cad_document(drawing, OcdrawToCadOptions::default()).unwrap();
     assert_eq!(imported.document().header.model_space_ucs_name, "Survey");
     let target = imported.document().vports.iter().next().unwrap();
-    assert_eq!(target.view_center, cadcodec::Vector2::new(3.0, 4.0));
+    assert_eq!(target.view_center, opencadcodec::Vector2::new(3.0, 4.0));
     assert_eq!(target.view_height, 27.0);
     assert_eq!(target.view_twist, 0.4);
     assert!(target.grid_on);
-    assert_eq!(target.grid_spacing, cadcodec::Vector2::new(5.0, 7.0));
+    assert_eq!(target.grid_spacing, opencadcodec::Vector2::new(5.0, 7.0));
     assert!(target.snap_on);
-    assert_eq!(target.snap_spacing, cadcodec::Vector2::new(2.0, 3.0));
+    assert_eq!(target.snap_spacing, opencadcodec::Vector2::new(2.0, 3.0));
 }
 
 #[test]
 fn standalone_preserves_paper_viewports_canvas_and_mixed_draw_order() {
     let mut document = CadDocument::new();
     let sheet = document.add_layout("Sheet").unwrap();
-    let cadcodec::objects::ObjectType::Layout(layout) = document.objects.get(&sheet).unwrap()
+    let opencadcodec::objects::ObjectType::Layout(layout) = document.objects.get(&sheet).unwrap()
     else {
         panic!()
     };
@@ -912,7 +980,7 @@ fn standalone_preserves_paper_viewports_canvas_and_mixed_draw_order() {
             "Sheet",
         )
         .unwrap();
-    let mut viewport = cadcodec::entities::Viewport::new();
+    let mut viewport = opencadcodec::entities::Viewport::new();
     viewport.id = 2;
     viewport.center = Vector3::new(20.0, 30.0, 0.0);
     viewport.width = 40.0;
@@ -932,9 +1000,10 @@ fn standalone_preserves_paper_viewports_canvas_and_mixed_draw_order() {
             "Sheet",
         )
         .unwrap();
-    let exported = cad_document_to_drawing(&document, ExportOptions::default()).unwrap();
-    let loaded = load_drawing_bytes(exported.drawing().bytes());
-    let drawing = loaded.validated_drawing().unwrap();
+    let exported =
+        cad_document_to_encoded_ocdraw(&document, CadToOcdrawOptions::default()).unwrap();
+    let loaded = load_ocdraw_bytes(exported.encoded().bytes());
+    let drawing = loaded.as_ref().ok().unwrap();
     assert_eq!(drawing.viewports().len(), 1, "{:?}", exported.diagnostics());
     assert_eq!(drawing.viewports()[0].view.height, 60.0);
     assert_eq!(drawing.viewports()[0].view.lens_length, Some(0.0));
@@ -948,7 +1017,7 @@ fn standalone_preserves_paper_viewports_canvas_and_mixed_draw_order() {
             .height,
         35.0
     );
-    let imported = ocdraw_to_cad_document(drawing, ImportOptions::default()).unwrap();
+    let imported = ocdraw_source_to_cad_document(drawing, OcdrawToCadOptions::default()).unwrap();
     let overall = imported
         .document()
         .entities()
@@ -1009,27 +1078,29 @@ fn standalone_preserves_paper_viewports_canvas_and_mixed_draw_order() {
 fn continuous_linetype_names_use_cad_case_insensitive_semantics() {
     let mut source = CadDocument::new();
     source.layers.get_mut("0").unwrap().line_type = "CONTINUOUS".into();
-    let mut line = cadcodec::Line::from_coords(0., 0., 0., 1., 0., 0.);
+    let mut line = opencadcodec::Line::from_coords(0., 0., 0., 1., 0., 0.);
     line.common.linetype = "continuous".into();
-    source.add_entity(cadcodec::EntityType::Line(line)).unwrap();
-    let exported = cad_document_to_drawing(&source, ExportOptions::default()).unwrap();
+    source
+        .add_entity(opencadcodec::EntityType::Line(line))
+        .unwrap();
+    let exported = cad_document_to_encoded_ocdraw(&source, CadToOcdrawOptions::default()).unwrap();
     assert!(
         exported.diagnostics().is_empty(),
         "{:?}",
         exported.diagnostics()
     );
-    let readback = load_drawing_bytes(exported.drawing().bytes());
+    let readback = load_ocdraw_bytes(exported.encoded().bytes());
     assert_eq!(
-        readback.validated_drawing().unwrap().typed_layers()[0].line_pattern_id,
+        readback.as_ref().ok().unwrap().typed_layers()[0].line_pattern_id,
         ocdraw::ocdraw::LinePatternId(0)
     );
 }
 
 #[test]
 fn authoritative_scope_order_survives_direct_dxf_and_dwg_exchange() {
-    use ocdraw::ocdraw::{DrawingGeometry, ValidatedDrawing};
+    use ocdraw::ocdraw::{DrawingGeometry, ValidatedOcdraw};
     use std::{collections::BTreeMap, io::Cursor};
-    fn projection(drawing: &ValidatedDrawing) -> BTreeMap<String, Vec<String>> {
+    fn projection(drawing: &ValidatedOcdraw) -> BTreeMap<String, Vec<String>> {
         let geometry = drawing
             .geometric_entities()
             .iter()
@@ -1077,22 +1148,27 @@ fn authoritative_scope_order_survives_direct_dxf_and_dwg_exchange() {
             .collect()
     }
     let bytes = include_bytes!("../../../conformance/next/ocdraw/valid/ordered-scopes.ocdraw.json");
-    let read = load_drawing_bytes(bytes);
+    let read = load_ocdraw_bytes(bytes);
     assert_eq!(
-        read.status(),
-        DrawingLoadStatus::Valid,
+        read.as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Valid,
         "{:?}",
-        read.diagnostics()
+        read.as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
     );
-    let drawing = read.validated_drawing().unwrap();
+    let drawing = read.as_ref().ok().unwrap();
     let expected = projection(drawing);
-    let target = ocdraw_to_cad_document(drawing, ImportOptions::default()).unwrap();
+    let target = ocdraw_source_to_cad_document(drawing, OcdrawToCadOptions::default()).unwrap();
     for (format, document) in [
         ("CadDocument", target.document().clone()),
         (
             "DXF",
-            cadcodec::DxfReader::from_reader(Cursor::new(
-                cadcodec::DxfWriter::new(target.document())
+            opencadcodec::DxfReader::from_reader(Cursor::new(
+                opencadcodec::DxfWriter::new(target.document())
                     .write_to_vec()
                     .unwrap(),
             ))
@@ -1102,32 +1178,39 @@ fn authoritative_scope_order_survives_direct_dxf_and_dwg_exchange() {
         ),
         (
             "DWG",
-            cadcodec::DwgReader::from_stream(Cursor::new(
-                cadcodec::DwgWriter::write_to_vec(target.document()).unwrap(),
+            opencadcodec::DwgReader::from_stream(Cursor::new(
+                opencadcodec::DwgWriter::write_to_vec(target.document()).unwrap(),
             ))
             .read()
             .unwrap(),
         ),
     ] {
-        let output = cad_document_to_drawing(&document, ExportOptions::default())
+        let output = cad_document_to_encoded_ocdraw(&document, CadToOcdrawOptions::default())
             .unwrap_or_else(|e| panic!("{format}: {e:?}"));
-        let returned = load_drawing_bytes(output.drawing().bytes());
+        let returned = load_ocdraw_bytes(output.encoded().bytes());
         assert_eq!(
-            returned.status(),
-            DrawingLoadStatus::Valid,
+            returned
+                .as_ref()
+                .map(|_| OcdrawReadStatus::Valid)
+                .unwrap_or_else(|e| e.status()),
+            OcdrawReadStatus::Valid,
             "{:?}",
-            returned.diagnostics()
+            returned
+                .as_ref()
+                .err()
+                .map(|e| e.diagnostics())
+                .unwrap_or_default()
         );
-        assert_eq!(projection(returned.validated_drawing().unwrap()), expected);
+        assert_eq!(projection(returned.as_ref().ok().unwrap()), expected);
     }
 }
 
 #[test]
 fn paper_layouts_match_the_source_without_bootstrap_layouts() {
-    use cadcodec::objects::ObjectType;
     use ocdraw::ocdraw::{
-        DrawingBuilder, DrawingOptions, LayerDefinition, LineDefinition, RgbColor,
+        LayerDefinition, LineDefinition, OcdrawBuildOptions, OcdrawBuilder, RgbColor,
     };
+    use opencadcodec::objects::ObjectType;
     use std::io::Cursor;
     for paper_names in [
         vec![],
@@ -1135,7 +1218,7 @@ fn paper_layouts_match_the_source_without_bootstrap_layouts() {
         vec!["Layout1"],
         vec!["Sheet", "Layout1"],
     ] {
-        let mut builder = DrawingBuilder::new(DrawingOptions::new("layouts", "mm")).unwrap();
+        let mut builder = OcdrawBuilder::new(OcdrawBuildOptions::new("layouts", "mm")).unwrap();
         builder.ensure_continuous_line_pattern().unwrap();
         let layer = builder
             .add_layer(LayerDefinition::new(
@@ -1167,18 +1250,18 @@ fn paper_layouts_match_the_source_without_bootstrap_layouts() {
         let encoded = builder.finish().unwrap();
         let mut value: serde_json::Value = serde_json::from_slice(encoded.bytes()).unwrap();
         value["layouts"].as_array_mut().unwrap().reverse();
-        let loaded = load_drawing_bytes(&serde_json::to_vec(&value).unwrap());
-        let imported = ocdraw_to_cad_document(
-            loaded.validated_drawing().unwrap(),
-            ImportOptions::default(),
+        let loaded = load_ocdraw_bytes(&serde_json::to_vec(&value).unwrap());
+        let imported = ocdraw_source_to_cad_document(
+            loaded.as_ref().ok().unwrap(),
+            OcdrawToCadOptions::default(),
         )
         .unwrap();
         for (format, document) in [
             ("CadDocument", imported.document().clone()),
             (
                 "DXF",
-                cadcodec::DxfReader::from_reader(Cursor::new(
-                    cadcodec::DxfWriter::new(imported.document())
+                opencadcodec::DxfReader::from_reader(Cursor::new(
+                    opencadcodec::DxfWriter::new(imported.document())
                         .write_to_vec()
                         .unwrap(),
                 ))
@@ -1188,8 +1271,8 @@ fn paper_layouts_match_the_source_without_bootstrap_layouts() {
             ),
             (
                 "DWG",
-                cadcodec::DwgReader::from_stream(Cursor::new(
-                    cadcodec::DwgWriter::write_to_vec(imported.document()).unwrap(),
+                opencadcodec::DwgReader::from_stream(Cursor::new(
+                    opencadcodec::DwgWriter::write_to_vec(imported.document()).unwrap(),
                 ))
                 .read()
                 .unwrap(),
@@ -1254,20 +1337,20 @@ fn paper_layouts_match_the_source_without_bootstrap_layouts() {
                 // the primary paper record as owner. Keep rejecting the conflict.
                 assert_ne!(marker.common.owner_handle, record.handle);
                 assert!(matches!(
-                    cad_document_to_drawing(&document, ExportOptions::default()),
-                    Err(DirectExportError::InvalidSourceStructure { .. })
+                    cad_document_to_encoded_ocdraw(&document, CadToOcdrawOptions::default()),
+                    Err(CadToOcdrawError::InvalidSourceStructure { .. })
                 ));
             } else {
-                let returned = cad_document_to_drawing(
+                let returned = cad_document_to_encoded_ocdraw(
                     &document,
-                    ExportOptions {
-                        loss_policy: ConversionLossPolicy::Reject,
-                        ..ExportOptions::default()
+                    CadToOcdrawOptions {
+                        loss_policy: OcdrawLossPolicy::Reject,
+                        ..CadToOcdrawOptions::default()
                     },
                 )
                 .unwrap();
-                let readback = load_drawing_bytes(returned.drawing().bytes());
-                let drawing = readback.validated_drawing().unwrap();
+                let readback = load_ocdraw_bytes(returned.encoded().bytes());
+                let drawing = readback.as_ref().ok().unwrap();
                 assert!(
                     drawing.block_definitions().is_empty(),
                     "{format}: reserved paper block became a definition"
@@ -1302,19 +1385,19 @@ fn fractional_planar_polyline_survives_actual_dxf_and_dwg_exchange() {
         .unwrap()
         .remove("spatialPolylineStream");
     value["scopes"][0]["entities"] = serde_json::json!([1]);
-    let loaded = load_drawing_bytes(&serde_json::to_vec(&value).unwrap());
-    let drawing = loaded.validated_drawing().unwrap();
+    let loaded = load_ocdraw_bytes(&serde_json::to_vec(&value).unwrap());
+    let drawing = loaded.as_ref().ok().unwrap();
     let expected = drawing
         .geometric_entities()
         .iter()
         .map(|entity| entity.geometry().clone())
         .collect::<Vec<_>>();
-    let imported = ocdraw_to_cad_document(drawing, ImportOptions::default()).unwrap();
+    let imported = ocdraw_source_to_cad_document(drawing, OcdrawToCadOptions::default()).unwrap();
     for (format, document) in [
         (
             "DXF",
-            cadcodec::DxfReader::from_reader(Cursor::new(
-                cadcodec::DxfWriter::new(imported.document())
+            opencadcodec::DxfReader::from_reader(Cursor::new(
+                opencadcodec::DxfWriter::new(imported.document())
                     .write_to_vec()
                     .unwrap(),
             ))
@@ -1324,23 +1407,32 @@ fn fractional_planar_polyline_survives_actual_dxf_and_dwg_exchange() {
         ),
         (
             "DWG",
-            cadcodec::DwgReader::from_stream(Cursor::new(
-                cadcodec::DwgWriter::write_to_vec(imported.document()).unwrap(),
+            opencadcodec::DwgReader::from_stream(Cursor::new(
+                opencadcodec::DwgWriter::write_to_vec(imported.document()).unwrap(),
             ))
             .read()
             .unwrap(),
         ),
     ] {
-        let exported = cad_document_to_drawing(&document, ExportOptions::default()).unwrap();
-        let returned = load_drawing_bytes(exported.drawing().bytes());
+        let exported =
+            cad_document_to_encoded_ocdraw(&document, CadToOcdrawOptions::default()).unwrap();
+        let returned = load_ocdraw_bytes(exported.encoded().bytes());
         assert_eq!(
-            returned.status(),
-            DrawingLoadStatus::Valid,
+            returned
+                .as_ref()
+                .map(|_| OcdrawReadStatus::Valid)
+                .unwrap_or_else(|e| e.status()),
+            OcdrawReadStatus::Valid,
             "{format}: {:?}",
-            returned.diagnostics()
+            returned
+                .as_ref()
+                .err()
+                .map(|e| e.diagnostics())
+                .unwrap_or_default()
         );
         let actual = returned
-            .validated_drawing()
+            .as_ref()
+            .ok()
             .unwrap()
             .geometric_entities()
             .iter()
@@ -1361,26 +1453,25 @@ fn fractional_planar_polyline_survives_actual_dxf_and_dwg_exchange() {
 
 #[test]
 fn reserved_paper_block_with_authored_metadata_is_not_discarded() {
-    use ocdraw::ocdraw::{DrawingBuilder, DrawingOptions};
-    let encoded = DrawingBuilder::new(DrawingOptions::new("model-only", "mm"))
+    use ocdraw::ocdraw::{OcdrawBuildOptions, OcdrawBuilder};
+    let encoded = OcdrawBuilder::new(OcdrawBuildOptions::new("model-only", "mm"))
         .unwrap()
         .finish()
         .unwrap();
-    let loaded = load_drawing_bytes(encoded.bytes());
-    let mut document = ocdraw_to_cad_document(
-        loaded.validated_drawing().unwrap(),
-        ImportOptions::default(),
-    )
-    .unwrap()
-    .into_document();
+    let loaded = load_ocdraw_bytes(encoded.bytes());
+    let mut document =
+        ocdraw_source_to_cad_document(loaded.as_ref().ok().unwrap(), OcdrawToCadOptions::default())
+            .unwrap()
+            .into_document();
     document
         .block_records
         .get_mut("*Paper_Space")
         .unwrap()
         .description = "Authored metadata".into();
-    let exported = cad_document_to_drawing(&document, ExportOptions::default()).unwrap();
-    let returned = load_drawing_bytes(exported.drawing().bytes());
-    let blocks = returned.validated_drawing().unwrap().block_definitions();
+    let exported =
+        cad_document_to_encoded_ocdraw(&document, CadToOcdrawOptions::default()).unwrap();
+    let returned = load_ocdraw_bytes(exported.encoded().bytes());
+    let blocks = returned.as_ref().ok().unwrap().block_definitions();
     assert_eq!(blocks.len(), 1);
     assert_eq!(blocks[0].description, "Authored metadata");
 }

@@ -4,8 +4,8 @@ use ifcx_cad_convert::*;
 use ocdraw::ifcx_cad::*;
 use serde_json::{json, Value};
 
-fn options(policy: IfcxCadLossPolicy) -> IfcxCadConversionOptions {
-    IfcxCadConversionOptions {
+fn options(policy: IfcxCadLossPolicy) -> CadToIfcxCadOptions {
+    CadToIfcxCadOptions {
         loss_policy: policy,
     }
 }
@@ -41,39 +41,46 @@ fn logical_and_encoded_imports_have_equivalent_documents_diagnostics_and_mapping
     sources.push(lossy);
     for source in sources {
         for policy in [IfcxCadLossPolicy::Allow, IfcxCadLossPolicy::Reject] {
-            let logical = cad_document_to_ifcx_cad_document_with_options(
-                &source,
-                metadata(),
-                options(policy),
-            );
-            let encoded =
-                cad_document_to_ifcx_cad_with_options(&source, metadata(), options(policy));
+            let logical = cad_document_to_ifcx_cad_document(&source, metadata(), options(policy));
+            let encoded = cad_document_to_encoded_ifcx_cad(&source, metadata(), options(policy));
             match (logical, encoded) {
                 (Ok(logical), Ok(encoded)) => {
                     validate_ifcx_cad_document(logical.document()).unwrap();
-                    assert_eq!(logical.document(), encoded.validated_ifcx().document());
+                    assert_eq!(logical.document(), encoded.validated_source().document());
                     assert_eq!(logical.diagnostics(), encoded.diagnostics());
                     assert_mappings(logical.mappings(), encoded.mappings());
-                    let direct = ifcx_cad_document_to_cad_document_with_options(
+                    let direct = ifcx_cad_document_to_cad_document(
                         logical.document(),
-                        options(policy),
+                        IfcxCadToCadOptions {
+                            loss_policy: (options(policy)).loss_policy,
+                        },
                     )
                     .unwrap();
-                    let loaded = ifcx_cad_to_cad_document_with_options(
-                        encoded.validated_ifcx(),
-                        options(policy),
+                    let loaded = ifcx_cad_source_to_cad_document(
+                        encoded.validated_source(),
+                        IfcxCadToCadOptions {
+                            loss_policy: (options(policy)).loss_policy,
+                        },
                     )
                     .unwrap();
                     assert_eq!(direct.diagnostics(), loaded.diagnostics());
                     // Compare emitted CAD semantics through the logical importer.
-                    let a =
-                        cad_document_to_ifcx_cad_document(direct.document(), metadata()).unwrap();
-                    let b =
-                        cad_document_to_ifcx_cad_document(loaded.document(), metadata()).unwrap();
+                    let a = cad_document_to_ifcx_cad_document(
+                        direct.document(),
+                        metadata(),
+                        Default::default(),
+                    )
+                    .unwrap();
+                    let b = cad_document_to_ifcx_cad_document(
+                        loaded.document(),
+                        metadata(),
+                        Default::default(),
+                    )
+                    .unwrap();
                     assert_eq!(a.document(), b.document());
                     assert_eq!(
                         logical.into_document(),
-                        encoded.validated_ifcx().document().clone()
+                        encoded.validated_source().document().clone()
                     );
                 }
                 (
@@ -104,14 +111,19 @@ fn invalid_direct_document_never_reaches_cad_construction() {
                     .push(document.model.entities[0].clone()),
             }
             assert!(matches!(
-                ifcx_cad_document_to_cad_document_with_options(&document, options(policy)),
+                ifcx_cad_document_to_cad_document(
+                    &document,
+                    IfcxCadToCadOptions {
+                        loss_policy: (options(policy)).loss_policy
+                    }
+                ),
                 Err(IfcxCadConversionError::CoreValidation(_))
             ));
         }
         let mut bad_metadata = metadata();
         bad_metadata.header.id.clear();
         assert!(matches!(
-            cad_document_to_ifcx_cad_document_with_options(&cad(), bad_metadata, options(policy)),
+            cad_document_to_ifcx_cad_document(&cad(), bad_metadata, options(policy)),
             Err(IfcxCadConversionError::CoreValidation(_))
         ));
     }
@@ -120,22 +132,22 @@ fn invalid_direct_document_never_reaches_cad_construction() {
 #[test]
 fn source_aware_conversion_keeps_foreign_loss_and_exact_precision_checks() {
     let mut root: Value =
-        serde_json::from_slice(&encode_ifcx_cad_document(&primitives()).unwrap()).unwrap();
+        serde_json::from_slice(encode_ifcx_cad_document(&primitives()).unwrap().bytes()).unwrap();
     root["data"]
         .as_array_mut()
         .unwrap()
         .push(json!({"path":"foreign","attributes":{"example::note":"retained"}}));
     let bytes = serde_json::to_vec(&root).unwrap();
-    let source = read_native_cad_ifcx(&bytes).unwrap();
-    let direct = ifcx_cad_document_to_cad_document(source.document()).unwrap();
+    let source = load_ifcx_cad_bytes(&bytes, Default::default()).unwrap();
+    let direct = ifcx_cad_document_to_cad_document(source.document(), Default::default()).unwrap();
     assert!(!direct
         .diagnostics()
         .iter()
         .any(|d| d.code == "foreign-ifcx"));
-    let allow = ifcx_cad_to_cad_document(&source).unwrap();
+    let allow = ifcx_cad_source_to_cad_document(&source, Default::default()).unwrap();
     assert!(allow.diagnostics().iter().any(|d| d.code == "foreign-ifcx"));
     assert!(
-        matches!(ifcx_cad_to_cad_document_with_options(&source, options(IfcxCadLossPolicy::Reject)), Err(IfcxCadConversionError::Unsupported(d)) if d.iter().any(|d| d.code == "foreign-ifcx"))
+        matches!(ifcx_cad_source_to_cad_document(&source, IfcxCadToCadOptions { loss_policy: (options(IfcxCadLossPolicy::Reject)).loss_policy }), Err(IfcxCadConversionError::Unsupported(d)) if d.iter().any(|d| d.code == "foreign-ifcx"))
     );
     assert_eq!(source.graph().source_bytes(), bytes);
     root["data"]
@@ -146,10 +158,10 @@ fn source_aware_conversion_keeps_foreign_loss_and_exact_precision_checks() {
         .unwrap()["attributes"]["ifccad::geom::lineSegment"]["start"][0] =
         json!(9007199254740993_u64);
     let bytes = serde_json::to_vec(&root).unwrap();
-    let source = read_native_cad_ifcx(&bytes).unwrap();
+    let source = load_ifcx_cad_bytes(&bytes, Default::default()).unwrap();
     for policy in [IfcxCadLossPolicy::Allow, IfcxCadLossPolicy::Reject] {
         assert!(
-            matches!(ifcx_cad_to_cad_document_with_options(&source, options(policy)), Err(IfcxCadConversionError::Unsupported(d)) if d.iter().any(|d| d.code == "precision"))
+            matches!(ifcx_cad_source_to_cad_document(&source, IfcxCadToCadOptions { loss_policy: (options(policy)).loss_policy }), Err(IfcxCadConversionError::Unsupported(d)) if d.iter().any(|d| d.code == "precision"))
         );
     }
     assert_eq!(source.graph().source_bytes(), bytes);

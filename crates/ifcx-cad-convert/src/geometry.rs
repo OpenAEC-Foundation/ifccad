@@ -1,7 +1,7 @@
-use crate::{outcome::diagnostic, IfcxCadDiagnostic};
-use cadcodec::{EntityType, Vector2, Vector3};
+use crate::{diagnostics::diagnostic, IfcxCadDiagnostic};
 use num_rational::BigRational;
 use ocdraw::ifcx_cad::*;
+use opencadcodec::{EntityType, Vector2, Vector3};
 
 pub(crate) fn v(p: [f64; 3]) -> Vector3 {
     Vector3::new(p[0], p[1], p[2])
@@ -47,11 +47,11 @@ pub(crate) fn to_entity(
     let before = issues.len();
     let result = match kind {
         IfcxCadEntityKind::LineSegment { start, end } => {
-            EntityType::Line(cadcodec::Line::from_points(v(*start), v(*end)))
+            EntityType::Line(opencadcodec::Line::from_points(v(*start), v(*end)))
         }
         IfcxCadEntityKind::Circle { radius, placement } => {
             canonical(placement, loc, issues);
-            EntityType::Circle(cadcodec::Circle::from_center_radius(
+            EntityType::Circle(opencadcodec::Circle::from_center_radius(
                 v(placement.origin),
                 *radius,
             ))
@@ -72,7 +72,7 @@ pub(crate) fn to_entity(
                     )
                 })
                 .collect();
-            let mut poly = cadcodec::entities::LwPolyline::from_points(vertices);
+            let mut poly = opencadcodec::entities::LwPolyline::from_points(vertices);
             poly.elevation = placement.origin[2];
             poly.is_closed = *closed;
             poly.plinegen = *line_pattern_generation == IfcxCadLinePatternGeneration::Continuous;
@@ -96,7 +96,7 @@ pub(crate) fn from_entity(
         EntityType::Line(l) => {
             crate::source::residual(
                 l,
-                &cadcodec::Line::new(),
+                &opencadcodec::Line::new(),
                 &["common", "start", "end"],
                 loc,
                 issues,
@@ -109,7 +109,7 @@ pub(crate) fn from_entity(
         EntityType::Circle(c) => {
             crate::source::residual(
                 c,
-                &cadcodec::Circle::new(),
+                &opencadcodec::Circle::new(),
                 &["common", "center", "radius"],
                 loc,
                 issues,
@@ -122,7 +122,7 @@ pub(crate) fn from_entity(
         EntityType::LwPolyline(l) => {
             crate::source::residual(
                 l,
-                &cadcodec::entities::LwPolyline::new(),
+                &opencadcodec::entities::LwPolyline::new(),
                 &["common", "vertices", "is_closed", "elevation", "plinegen"],
                 loc,
                 issues,
@@ -130,7 +130,7 @@ pub(crate) fn from_entity(
             for vertex in &l.vertices {
                 crate::source::residual(
                     vertex,
-                    &cadcodec::entities::LwVertex::new(vertex.location),
+                    &opencadcodec::entities::LwVertex::new(vertex.location),
                     &["location"],
                     loc,
                     issues,

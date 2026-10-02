@@ -1,6 +1,6 @@
 //! Characterization of the unmodified pinned codec at the converter boundary.
-use cadcodec::entities::Insert;
-use cadcodec::{
+use opencadcodec::entities::Insert;
+use opencadcodec::{
     BlockRecord, CadDocument, DwgReader, DwgWriter, DxfReader, DxfWriter, EntityType, Line, Vector3,
 };
 use std::io::Cursor;

@@ -2,10 +2,10 @@ mod choices;
 mod geometry;
 mod streams;
 
-use crate::ocdraw::read::{diagnostic, DrawingDiagnostic};
+use crate::ocdraw::read::{diagnostic, OcdrawDiagnostic};
 use serde_json::Value;
 
-pub(crate) fn validate_physical(value: &Value, diagnostics: &mut Vec<DrawingDiagnostic>) {
+pub(crate) fn validate_physical(value: &Value, diagnostics: &mut Vec<OcdrawDiagnostic>) {
     // JSON Schema's integer type also accepts integral floating-point backings.
     // Allocation history must use exact unsigned integer decoding, never f64.
     for field in [

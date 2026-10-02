@@ -5,21 +5,22 @@ use ocdraw::ifcx_cad::*;
 pub fn to_cad(
     source: &ValidatedIfcxCad,
 ) -> Result<ifcx_cad_convert::IfcxCadToCadOutcome, ifcx_cad_convert::IfcxCadConversionError> {
-    ifcx_cad_convert::ifcx_cad_to_cad_document_with_options(
+    ifcx_cad_convert::ifcx_cad_source_to_cad_document(
         source,
-        ifcx_cad_convert::IfcxCadConversionOptions {
+        ifcx_cad_convert::IfcxCadToCadOptions {
             loss_policy: ifcx_cad_convert::IfcxCadLossPolicy::Reject,
         },
     )
 }
 pub fn from_cad(
-    source: &cadcodec::CadDocument,
+    source: &opencadcodec::CadDocument,
     metadata: ifcx_cad_convert::IfcxCadTargetMetadata,
-) -> Result<ifcx_cad_convert::CadToIfcxCadOutcome, ifcx_cad_convert::IfcxCadConversionError> {
-    ifcx_cad_convert::cad_document_to_ifcx_cad_with_options(
+) -> Result<ifcx_cad_convert::CadToEncodedIfcxCadOutcome, ifcx_cad_convert::IfcxCadConversionError>
+{
+    ifcx_cad_convert::cad_document_to_encoded_ifcx_cad(
         source,
         metadata,
-        ifcx_cad_convert::IfcxCadConversionOptions {
+        ifcx_cad_convert::CadToIfcxCadOptions {
             loss_policy: ifcx_cad_convert::IfcxCadLossPolicy::Reject,
         },
     )
@@ -93,7 +94,11 @@ pub fn layer(id: u64, name: &str) -> IfcxCadLayer {
     }
 }
 pub fn validated(doc: &IfcxCadDocument) -> ValidatedIfcxCad {
-    read_native_cad_ifcx(&write_native_cad_ifcx(doc).unwrap()).unwrap()
+    load_ifcx_cad_bytes(
+        encode_ifcx_cad_document(doc).unwrap().bytes(),
+        Default::default(),
+    )
+    .unwrap()
 }
 pub fn modes() -> IfcxCadEntityAppearance {
     IfcxCadEntityAppearance {
@@ -161,8 +166,8 @@ pub fn primitives() -> IfcxCadDocument {
     doc
 }
 #[allow(dead_code)]
-pub fn cad() -> cadcodec::CadDocument {
-    ifcx_cad_convert::ifcx_cad_to_cad_document(&validated(&empty()))
+pub fn cad() -> opencadcodec::CadDocument {
+    ifcx_cad_convert::ifcx_cad_source_to_cad_document(&validated(&empty()), Default::default())
         .unwrap()
         .into_document()
 }

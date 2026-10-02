@@ -20,12 +20,22 @@ fn target_layer_name_collisions_fail_under_both_policies_and_routes() {
         let loaded = validated(&source);
         let original = loaded.graph().source_bytes().to_vec();
         for policy in [IfcxCadLossPolicy::Allow, IfcxCadLossPolicy::Reject] {
-            let options = IfcxCadConversionOptions {
+            let options = CadToIfcxCadOptions {
                 loss_policy: policy,
             };
             for result in [
-                ifcx_cad_document_to_cad_document_with_options(&source, options),
-                ifcx_cad_to_cad_document_with_options(&loaded, options),
+                ifcx_cad_document_to_cad_document(
+                    &source,
+                    IfcxCadToCadOptions {
+                        loss_policy: (options).loss_policy,
+                    },
+                ),
+                ifcx_cad_source_to_cad_document(
+                    &loaded,
+                    IfcxCadToCadOptions {
+                        loss_policy: (options).loss_policy,
+                    },
+                ),
             ] {
                 match result {
                     Err(IfcxCadConversionError::InvalidStructure(message)) => {

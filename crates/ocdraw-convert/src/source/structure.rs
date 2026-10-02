@@ -1,6 +1,6 @@
-use super::SourceStructureProblem;
-use cadcodec::objects::ObjectType;
-use cadcodec::{CadDocument, Handle};
+use super::CadSourceStructureProblem;
+use opencadcodec::objects::ObjectType;
+use opencadcodec::{CadDocument, Handle};
 use std::borrow::Cow;
 
 pub(crate) struct ModelSpaceInfo<'a> {
@@ -45,10 +45,10 @@ pub(crate) fn with_recovered_model_space_handle(document: &CadDocument) -> Cow<'
 
 pub(crate) fn inspect_model_space(
     document: &CadDocument,
-) -> Result<ModelSpaceInfo<'_>, Vec<SourceStructureProblem>> {
+) -> Result<ModelSpaceInfo<'_>, Vec<CadSourceStructureProblem>> {
     let model_space_block = document.header.model_space_block_handle;
     if model_space_block == Handle::NULL {
-        return Err(vec![SourceStructureProblem::ModelSpaceBlockMissing]);
+        return Err(vec![CadSourceStructureProblem::ModelSpaceBlockMissing]);
     }
 
     let mut problems = Vec::new();
@@ -57,7 +57,8 @@ pub(crate) fn inspect_model_space(
         .iter()
         .any(|record| record.handle == model_space_block)
     {
-        problems.push(SourceStructureProblem::ModelSpaceBlockRecordMissing { model_space_block });
+        problems
+            .push(CadSourceStructureProblem::ModelSpaceBlockRecordMissing { model_space_block });
     }
 
     let layouts = document
@@ -69,9 +70,9 @@ pub(crate) fn inspect_model_space(
         })
         .collect::<Vec<_>>();
     match layouts.len() {
-        0 => problems.push(SourceStructureProblem::ModelLayoutMissing { model_space_block }),
+        0 => problems.push(CadSourceStructureProblem::ModelLayoutMissing { model_space_block }),
         1 => {}
-        count => problems.push(SourceStructureProblem::MultipleModelLayouts {
+        count => problems.push(CadSourceStructureProblem::MultipleModelLayouts {
             model_space_block,
             count,
         }),

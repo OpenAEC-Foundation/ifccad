@@ -1,10 +1,10 @@
 use super::recipe::{Appearance, Drawing, Geometry, Property};
 use ocdraw::ocdraw::{
-    AppearanceSelection, CoordinateFrame3, DrawingBuilder, DrawingColor, DrawingGeometry,
-    DrawingOptions, EncodedDrawing, EntityAppearance, GeometricEntityDefinition, LayerDefinition,
-    Point3, Vector3,
+    AppearanceSelection, CoordinateFrame3, DrawingColor, DrawingGeometry, EncodedOcdraw,
+    EntityAppearance, GeometricEntityDefinition, LayerDefinition, OcdrawBuildOptions,
+    OcdrawBuilder, Point3, Vector3,
 };
-use ocdraw_convert::cadcodec::{
+use ocdraw_convert::opencadcodec::{
     CadDocument, Color, DxfVersion, EntityType, Layer, Line, LineWeight, LwPolyline, Transparency,
     Vector2,
 };
@@ -38,8 +38,8 @@ fn native_appearance(value: &Appearance) -> EntityAppearance {
         line_weight: selection(&value.weight),
     }
 }
-pub fn drawing(recipe: &Drawing) -> Result<EncodedDrawing> {
-    let mut builder = DrawingBuilder::new(DrawingOptions::new("size-baseline", "mm"))?;
+pub fn drawing(recipe: &Drawing) -> Result<EncodedOcdraw> {
+    let mut builder = OcdrawBuilder::new(OcdrawBuildOptions::new("size-baseline", "mm"))?;
     builder.ensure_continuous_line_pattern().unwrap();
     let mut layers = std::collections::BTreeMap::new();
     for source in &recipe.layers {
@@ -145,7 +145,10 @@ fn opacity(property: &Property<f64>) -> Transparency {
         _ => unreachable!("frozen recipe opacity"),
     }
 }
-fn apply(common: &mut ocdraw_convert::cadcodec::entities::EntityCommon, appearance: &Appearance) {
+fn apply(
+    common: &mut ocdraw_convert::opencadcodec::entities::EntityCommon,
+    appearance: &Appearance,
+) {
     common.color = color(&appearance.color);
     common.line_weight = weight(&appearance.weight);
     common.linetype = pattern(&appearance.pattern);
@@ -188,7 +191,7 @@ pub fn cad(recipe: &Drawing) -> Result<CadDocument> {
                     points.iter().map(|p| Vector2::new(p[0], p[1])).collect(),
                 );
                 if *x_axis == [0., 1., 0.] && *y_axis == [0., 0., 1.] {
-                    polyline.normal = ocdraw_convert::cadcodec::Vector3::UNIT_X;
+                    polyline.normal = ocdraw_convert::opencadcodec::Vector3::UNIT_X;
                     polyline.elevation = origin[0];
                     for v in &mut polyline.vertices {
                         v.location.x += origin[1];

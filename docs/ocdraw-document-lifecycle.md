@@ -2,23 +2,25 @@
 
 `OcdrawDocument` is the complete, owned logical drawing: typed entities,
 ordered scope membership, definitions, layouts and authored drawing state.
-It has no JSON columns, stream directory, geometry pools or cadcodec dependency.
+It has no JSON columns, stream directory, geometry pools or opencadcodec dependency.
 A different physical encoding can reuse this model and its semantic validator;
 its encoder, decoder, mapping and conformance evidence must implement the same
 logical contract. `OcdrawDocument` and IFCX-CAD remain separate domain models.
 
 ## Construction, reading and editing
 
-`DrawingBuilder::build_document()` consumes a fresh builder, moves its geometry
+`OcdrawBuilder::build_document()` consumes a fresh builder, moves its geometry
 into an `OcdrawDocument`, prepares scope bounds and validates the result.
 `finish()` remains a convenience wrapper over `build_document()` followed by
-`encode_document()`. Both paths use the same final encoder.
+`encode_ocdraw_document()`. Both paths use the same final encoder.
 
 The production reader retains a validated immutable snapshot. Use
-`ValidatedDrawing::document()` to borrow the logical document, `clone()` to edit
+`ValidatedOcdraw::document()` to borrow the logical document, `clone()` to edit
 an independent copy, or `into_document()` to consume the snapshot without a
-whole-document clone. `DrawingLoadOutcome::into_validated_drawing()` returns
-`None` for invalid input. Existing typed reader accessors remain available.
+whole-document clone. `load_ocdraw_bytes()` returns
+`Result<ValidatedOcdraw, OcdrawReadError>`; invalid and unsupported-version input
+retain structured diagnostics through the error. `load_ocdraw_file()` separately
+distinguishes storage failures from read failures. Typed reader accessors remain available.
 
 Before checking individual encoded rows, the reader checks that stream counts
 have exact unsigned integer backings in the addressable range, required columns
@@ -26,7 +28,7 @@ exist and row-column lengths match. It rejects malformed structures before
 traversing their declared rows, including tiny inputs with enormous counts.
 
 Public document and entity fields can be edited directly. Raw mutable content
-is not a validation guarantee: call `validate_document()` after changes.
+is not a validation guarantee: call `validate_ocdraw_document()` after changes.
 This checks typed scalar values, identities, references, ownership, block
 cycles, geometry, layouts, saved state and declared enclosures without encoding.
 Errors expose structured diagnostics. Tagged enum choices and checked frame
@@ -59,10 +61,10 @@ that allocation of another representable ID needs an explicit exhaustion policy.
 
 ## Explicit bounds preparation
 
-`encode_document()` validates the supplied document and retains valid bounds,
+`encode_ocdraw_document()` validates the supplied document and retains valid bounds,
 including conservative oversized bounds. It does not recompute or repair them.
 Missing, unordered, nonfinite or insufficient bounds are validation errors;
-an empty scope has no bounds. Call `recompute_document_bounds(&mut doc)` when
+an empty scope has no bounds. Call `recompute_ocdraw_document_bounds(&mut doc)` when
 new enclosures are wanted after a geometry change.
 
 Preparation ignores the old bounds but validates other content first. It derives
@@ -75,14 +77,14 @@ used by the fresh builder.
 
 ## Encoding and storage
 
-`encode_document(&doc)` borrows and validates the complete document, maps it to
+`encode_ocdraw_document(&doc)` borrows and validates the complete document, maps it to
 the current JSON encoding, and requires strict production-reader readback before
-returning `EncodedDrawing`. Geometry is not cloned solely for column grouping.
+returning `EncodedOcdraw`. Geometry is not cloned solely for column grouping.
 Repeated encoding of the same document is deterministic. Different vector
 orders are allowed and are not promised to serialize to the same bytes.
 
 `OcdrawEncodeError` distinguishes invalid input, serialization failure and
-unexpected readback failure. Storage stays separate: `EncodedDrawing::write_file`
+unexpected readback failure. Storage stays separate: `EncodedOcdraw::write_file`
 creates a new file and refuses to overwrite an existing file. Applications own
 replacement, backup and editor-session policies.
 
@@ -92,7 +94,7 @@ replacement, backup and editor-session policies.
 document together with export diagnostics, source-handle/entity-ID mapping and
 geometry assessment. Existing encoded exports call this route and then the core
 encoder. `ocdraw_document_to_cad_document` validates raw input before CAD
-construction; `ocdraw_to_cad_document` uses the reader's immutable snapshot.
+construction; `ocdraw_source_to_cad_document` uses the reader's immutable snapshot.
 Both imports share one typed conversion implementation without a JSON bridge.
 The pinned source coverage, loss policies and numerical tolerances are unchanged.
 

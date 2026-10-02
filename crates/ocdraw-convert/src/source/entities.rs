@@ -1,47 +1,47 @@
-use super::ExportLossReason;
-use cadcodec::entities::EntityCommon;
-use cadcodec::{Arc, Circle, Ellipse, Line, LwPolyline, Point, Vector3};
+use super::CadToOcdrawLossReason;
+use opencadcodec::entities::EntityCommon;
+use opencadcodec::{Arc, Circle, Ellipse, Line, LwPolyline, Point, Vector3};
 
-pub(crate) fn common_semantic_losses(common: &EntityCommon) -> Vec<ExportLossReason> {
+pub(crate) fn common_semantic_losses(common: &EntityCommon) -> Vec<CadToOcdrawLossReason> {
     let mut reasons = Vec::new();
 
     if !common.extended_data.is_empty() {
-        reasons.push(ExportLossReason::EntityExtendedData);
+        reasons.push(CadToOcdrawLossReason::EntityExtendedData);
     }
     if common.graphic_data.is_some() {
-        reasons.push(ExportLossReason::EntityGraphicData);
+        reasons.push(CadToOcdrawLossReason::EntityGraphicData);
     }
     if !common.reactors.is_empty() {
-        reasons.push(ExportLossReason::EntityReactors);
+        reasons.push(CadToOcdrawLossReason::EntityReactors);
     }
     if common.xdictionary_handle.is_some() {
-        reasons.push(ExportLossReason::EntityExtensionDictionary);
+        reasons.push(CadToOcdrawLossReason::EntityExtensionDictionary);
     }
     if common.color_book_handle.is_some() {
-        reasons.push(ExportLossReason::EntityColorBookReference);
+        reasons.push(CadToOcdrawLossReason::EntityColorBookReference);
     }
     if common.full_visual_style_handle.is_some() {
-        reasons.push(ExportLossReason::EntityFullVisualStyle);
+        reasons.push(CadToOcdrawLossReason::EntityFullVisualStyle);
     }
     if common.face_visual_style_handle.is_some() {
-        reasons.push(ExportLossReason::EntityFaceVisualStyle);
+        reasons.push(CadToOcdrawLossReason::EntityFaceVisualStyle);
     }
     if common.edge_visual_style_handle.is_some() {
-        reasons.push(ExportLossReason::EntityEdgeVisualStyle);
+        reasons.push(CadToOcdrawLossReason::EntityEdgeVisualStyle);
     }
     if common.material_flags != 0 || common.material_handle.is_some() {
-        reasons.push(ExportLossReason::EntityMaterial);
+        reasons.push(CadToOcdrawLossReason::EntityMaterial);
     }
     if common.shadow_flags != 0 {
-        reasons.push(ExportLossReason::EntityShadowFlags);
+        reasons.push(CadToOcdrawLossReason::EntityShadowFlags);
     }
     if common.plotstyle_flags != 0 || common.plotstyle_handle.is_some() {
-        reasons.push(ExportLossReason::EntityPlotStyle);
+        reasons.push(CadToOcdrawLossReason::EntityPlotStyle);
     }
     reasons
 }
 
-pub(crate) fn line_losses(line: &Line) -> Vec<ExportLossReason> {
+pub(crate) fn line_losses(line: &Line) -> Vec<CadToOcdrawLossReason> {
     let mut reasons = Vec::new();
     if ![
         line.start.x,
@@ -58,15 +58,15 @@ pub(crate) fn line_losses(line: &Line) -> Vec<ExportLossReason> {
     .into_iter()
     .all(f64::is_finite)
     {
-        reasons.push(ExportLossReason::NonFiniteCoordinate);
+        reasons.push(CadToOcdrawLossReason::NonFiniteCoordinate);
     }
     if line.thickness != 0.0 {
-        reasons.push(ExportLossReason::NonZeroThickness);
+        reasons.push(CadToOcdrawLossReason::NonZeroThickness);
     }
     reasons
 }
 
-pub(crate) fn point_losses(point: &Point) -> Vec<ExportLossReason> {
+pub(crate) fn point_losses(point: &Point) -> Vec<CadToOcdrawLossReason> {
     let mut reasons = Vec::new();
     if ![
         point.location.x,
@@ -81,18 +81,18 @@ pub(crate) fn point_losses(point: &Point) -> Vec<ExportLossReason> {
     .into_iter()
     .all(f64::is_finite)
     {
-        reasons.push(ExportLossReason::NonFiniteCoordinate);
+        reasons.push(CadToOcdrawLossReason::NonFiniteCoordinate);
     }
     if point.thickness != 0.0 {
-        reasons.push(ExportLossReason::NonZeroThickness);
+        reasons.push(CadToOcdrawLossReason::NonZeroThickness);
     }
     if crate::geometry::cad_plane(point.normal).is_none() {
-        reasons.push(ExportLossReason::UnsupportedNormal);
+        reasons.push(CadToOcdrawLossReason::UnsupportedNormal);
     }
     reasons
 }
 
-pub(crate) fn circle_losses(circle: &Circle) -> Vec<ExportLossReason> {
+pub(crate) fn circle_losses(circle: &Circle) -> Vec<CadToOcdrawLossReason> {
     let mut reasons = Vec::new();
     if ![
         circle.center.x,
@@ -107,23 +107,23 @@ pub(crate) fn circle_losses(circle: &Circle) -> Vec<ExportLossReason> {
     .into_iter()
     .all(f64::is_finite)
     {
-        reasons.push(ExportLossReason::NonFiniteCoordinate);
+        reasons.push(CadToOcdrawLossReason::NonFiniteCoordinate);
     }
     if circle.thickness != 0.0 {
-        reasons.push(ExportLossReason::NonZeroThickness);
+        reasons.push(CadToOcdrawLossReason::NonZeroThickness);
     }
     if circle.radius <= 0.0 {
-        reasons.push(ExportLossReason::UnsupportedSemantic {
+        reasons.push(CadToOcdrawLossReason::UnsupportedSemantic {
             name: "circle radius".into(),
         });
     }
     if crate::geometry::circular::from_cad_ocs(circle.center, circle.normal).is_none() {
-        reasons.push(ExportLossReason::UnsupportedNormal);
+        reasons.push(CadToOcdrawLossReason::UnsupportedNormal);
     }
     reasons
 }
 
-pub(crate) fn arc_losses(arc: &Arc) -> Vec<ExportLossReason> {
+pub(crate) fn arc_losses(arc: &Arc) -> Vec<CadToOcdrawLossReason> {
     let mut reasons = Vec::new();
     if ![
         arc.center.x,
@@ -140,13 +140,13 @@ pub(crate) fn arc_losses(arc: &Arc) -> Vec<ExportLossReason> {
     .into_iter()
     .all(f64::is_finite)
     {
-        reasons.push(ExportLossReason::NonFiniteCoordinate);
+        reasons.push(CadToOcdrawLossReason::NonFiniteCoordinate);
     }
     if arc.thickness != 0.0 {
-        reasons.push(ExportLossReason::NonZeroThickness);
+        reasons.push(CadToOcdrawLossReason::NonZeroThickness);
     }
     if arc.radius <= 0.0 {
-        reasons.push(ExportLossReason::UnsupportedSemantic {
+        reasons.push(CadToOcdrawLossReason::UnsupportedSemantic {
             name: "arc radius".into(),
         });
     }
@@ -157,17 +157,17 @@ pub(crate) fn arc_losses(arc: &Arc) -> Vec<ExportLossReason> {
         || sweep == 0.0
         || sweep >= std::f64::consts::TAU
     {
-        reasons.push(ExportLossReason::UnsupportedSemantic {
+        reasons.push(CadToOcdrawLossReason::UnsupportedSemantic {
             name: "arc sweep".into(),
         });
     }
     if crate::geometry::circular::from_cad_ocs(arc.center, arc.normal).is_none() {
-        reasons.push(ExportLossReason::UnsupportedNormal);
+        reasons.push(CadToOcdrawLossReason::UnsupportedNormal);
     }
     reasons
 }
 
-pub(crate) fn ellipse_losses(ellipse: &Ellipse) -> Vec<ExportLossReason> {
+pub(crate) fn ellipse_losses(ellipse: &Ellipse) -> Vec<CadToOcdrawLossReason> {
     let mut reasons = Vec::new();
     if ![
         ellipse.center.x,
@@ -186,10 +186,10 @@ pub(crate) fn ellipse_losses(ellipse: &Ellipse) -> Vec<ExportLossReason> {
     .into_iter()
     .all(f64::is_finite)
     {
-        reasons.push(ExportLossReason::NonFiniteCoordinate);
+        reasons.push(CadToOcdrawLossReason::NonFiniteCoordinate);
     }
     if crate::geometry::circular::from_cad_ellipse(ellipse).is_none() {
-        reasons.push(ExportLossReason::UnsupportedSemantic {
+        reasons.push(CadToOcdrawLossReason::UnsupportedSemantic {
             name: "ellipse frame or axis ratio".into(),
         });
     }
@@ -199,14 +199,14 @@ pub(crate) fn ellipse_losses(ellipse: &Ellipse) -> Vec<ExportLossReason> {
         || difference.abs() > std::f64::consts::TAU
         || (difference != std::f64::consts::TAU && sweep == 0.0)
     {
-        reasons.push(ExportLossReason::UnsupportedSemantic {
+        reasons.push(CadToOcdrawLossReason::UnsupportedSemantic {
             name: "ellipse parameter sweep".into(),
         });
     }
     reasons
 }
 
-pub(crate) fn polyline_losses(polyline: &LwPolyline) -> Vec<ExportLossReason> {
+pub(crate) fn polyline_losses(polyline: &LwPolyline) -> Vec<CadToOcdrawLossReason> {
     let mut reasons = Vec::new();
     let finite = [
         polyline.constant_width,
@@ -228,18 +228,18 @@ pub(crate) fn polyline_losses(polyline: &LwPolyline) -> Vec<ExportLossReason> {
     }))
     .all(f64::is_finite);
     if !finite {
-        reasons.push(ExportLossReason::NonFiniteCoordinate);
+        reasons.push(CadToOcdrawLossReason::NonFiniteCoordinate);
     }
     if polyline.vertices.len() < 2 {
-        reasons.push(ExportLossReason::PolylineTooFewVertices {
+        reasons.push(CadToOcdrawLossReason::PolylineTooFewVertices {
             count: polyline.vertices.len(),
         });
     }
     if polyline.thickness != 0.0 {
-        reasons.push(ExportLossReason::NonZeroThickness);
+        reasons.push(CadToOcdrawLossReason::NonZeroThickness);
     }
     if polyline.normal.x == 0.0 && polyline.normal.y == 0.0 && polyline.normal.z == 0.0 {
-        reasons.push(ExportLossReason::UnsupportedNormal);
+        reasons.push(CadToOcdrawLossReason::UnsupportedNormal);
     }
     let count = if polyline.is_closed {
         polyline.vertices.len()
@@ -250,7 +250,7 @@ pub(crate) fn polyline_losses(polyline: &LwPolyline) -> Vec<ExportLossReason> {
         let start = &polyline.vertices[index];
         let end = &polyline.vertices[(index + 1) % polyline.vertices.len()];
         if start.bulge != 0.0 && start.location == end.location {
-            reasons.push(ExportLossReason::UnsupportedSemantic {
+            reasons.push(CadToOcdrawLossReason::UnsupportedSemantic {
                 name: "bulged zero-length polyline segment".into(),
             });
             break;
@@ -260,12 +260,12 @@ pub(crate) fn polyline_losses(polyline: &LwPolyline) -> Vec<ExportLossReason> {
     reasons
 }
 
-fn lw_from_polyline2d(polyline: &cadcodec::entities::Polyline2D) -> LwPolyline {
+fn lw_from_polyline2d(polyline: &opencadcodec::entities::Polyline2D) -> LwPolyline {
     let mut lw = LwPolyline::from_points(
         polyline
             .vertices
             .iter()
-            .map(|vertex| cadcodec::Vector2::new(vertex.location.x, vertex.location.y))
+            .map(|vertex| opencadcodec::Vector2::new(vertex.location.x, vertex.location.y))
             .collect(),
     );
     lw.is_closed = polyline.flags.is_closed();
@@ -278,8 +278,8 @@ fn lw_from_polyline2d(polyline: &cadcodec::entities::Polyline2D) -> LwPolyline {
 }
 
 pub(crate) fn polyline2d_losses(
-    polyline: &cadcodec::entities::Polyline2D,
-) -> Vec<ExportLossReason> {
+    polyline: &opencadcodec::entities::Polyline2D,
+) -> Vec<CadToOcdrawLossReason> {
     let lw = lw_from_polyline2d(polyline);
     let mut reasons = polyline_losses(&lw);
     if ![
@@ -304,29 +304,29 @@ pub(crate) fn polyline2d_losses(
             .all(f64::is_finite)
         })
     {
-        reasons.push(ExportLossReason::NonFiniteCoordinate);
+        reasons.push(CadToOcdrawLossReason::NonFiniteCoordinate);
     }
     if polyline.thickness != 0.0 {
-        reasons.push(ExportLossReason::NonZeroThickness);
+        reasons.push(CadToOcdrawLossReason::NonZeroThickness);
     }
     if polyline.flags.bits() & (2 | 4) != 0
-        || polyline.smooth_surface != cadcodec::entities::SmoothSurfaceType::None
+        || polyline.smooth_surface != opencadcodec::entities::SmoothSurfaceType::None
         || polyline.vertices.iter().any(|vertex| {
             vertex.flags.bits() & (1 | 2 | 8 | 16) != 0 || vertex.curve_tangent != 0.0
         })
     {
-        reasons.push(ExportLossReason::UnsupportedSemantic {
+        reasons.push(CadToOcdrawLossReason::UnsupportedSemantic {
             name: "polyline fit curve".into(),
         });
     }
     if polyline.flags.bits() & (8 | 16 | 32 | 64) != 0 {
-        reasons.push(ExportLossReason::UnsupportedSemantic {
+        reasons.push(CadToOcdrawLossReason::UnsupportedSemantic {
             name: "polyline mesh or 3D flags".into(),
         });
     }
 
     if polyline.flags.bits() & !0xff != 0 {
-        reasons.push(ExportLossReason::UnsupportedSemantic {
+        reasons.push(CadToOcdrawLossReason::UnsupportedSemantic {
             name: "polyline flags".into(),
         });
     }
@@ -335,7 +335,7 @@ pub(crate) fn polyline2d_losses(
         .iter()
         .any(|vertex| vertex.flags.bits() & !(1 | 2 | 8 | 16) != 0)
     {
-        reasons.push(ExportLossReason::UnsupportedSemantic {
+        reasons.push(CadToOcdrawLossReason::UnsupportedSemantic {
             name: "2D polyline vertex flags".into(),
         });
     }
@@ -344,7 +344,7 @@ pub(crate) fn polyline2d_losses(
         .iter()
         .any(|vertex| vertex.location.z != 0.0)
     {
-        reasons.push(ExportLossReason::UnsupportedSemantic {
+        reasons.push(CadToOcdrawLossReason::UnsupportedSemantic {
             name: "2D polyline vertex elevation".into(),
         });
     }
@@ -354,11 +354,11 @@ pub(crate) fn polyline2d_losses(
 fn spatial_polyline_losses(
     points: impl IntoIterator<Item = Vector3>,
     flags: u16,
-) -> Vec<ExportLossReason> {
+) -> Vec<CadToOcdrawLossReason> {
     let points = points.into_iter().collect::<Vec<_>>();
     let mut reasons = Vec::new();
     if points.len() < 2 {
-        reasons.push(ExportLossReason::PolylineTooFewVertices {
+        reasons.push(CadToOcdrawLossReason::PolylineTooFewVertices {
             count: points.len(),
         });
     }
@@ -366,20 +366,20 @@ fn spatial_polyline_losses(
         .iter()
         .any(|point| ![point.x, point.y, point.z].into_iter().all(f64::is_finite))
     {
-        reasons.push(ExportLossReason::NonFiniteCoordinate);
+        reasons.push(CadToOcdrawLossReason::NonFiniteCoordinate);
     }
     if flags & (2 | 4) != 0 {
-        reasons.push(ExportLossReason::UnsupportedSemantic {
+        reasons.push(CadToOcdrawLossReason::UnsupportedSemantic {
             name: "polyline fit curve".into(),
         });
     }
     if flags & (16 | 32 | 64) != 0 {
-        reasons.push(ExportLossReason::UnsupportedSemantic {
+        reasons.push(CadToOcdrawLossReason::UnsupportedSemantic {
             name: "polyline mesh".into(),
         });
     }
     if flags & !(1 | 8 | 128) != 0 && flags & !(1 | 8 | 2 | 4 | 16 | 32 | 64 | 128) != 0 {
-        reasons.push(ExportLossReason::UnsupportedSemantic {
+        reasons.push(CadToOcdrawLossReason::UnsupportedSemantic {
             name: "polyline flags".into(),
         });
     }
@@ -387,8 +387,8 @@ fn spatial_polyline_losses(
 }
 
 pub(crate) fn generic_polyline_losses(
-    polyline: &cadcodec::entities::Polyline,
-) -> Vec<ExportLossReason> {
+    polyline: &opencadcodec::entities::Polyline,
+) -> Vec<CadToOcdrawLossReason> {
     let mut reasons = spatial_polyline_losses(
         polyline.vertices.iter().map(|vertex| vertex.location),
         polyline.flags.bits(),
@@ -398,7 +398,7 @@ pub(crate) fn generic_polyline_losses(
         .iter()
         .any(|vertex| vertex.flags.bits() != 0)
     {
-        reasons.push(ExportLossReason::UnsupportedSemantic {
+        reasons.push(CadToOcdrawLossReason::UnsupportedSemantic {
             name: "3D polyline vertex flags".into(),
         });
     }
@@ -406,14 +406,14 @@ pub(crate) fn generic_polyline_losses(
 }
 
 pub(crate) fn polyline3d_losses(
-    polyline: &cadcodec::entities::Polyline3D,
-) -> Vec<ExportLossReason> {
+    polyline: &opencadcodec::entities::Polyline3D,
+) -> Vec<CadToOcdrawLossReason> {
     let mut reasons = spatial_polyline_losses(
         polyline.vertices.iter().map(|vertex| vertex.position),
         polyline.flags.to_bits() as u16,
     );
     if polyline.default_start_width != 0.0 || polyline.default_end_width != 0.0 {
-        reasons.push(ExportLossReason::PolylineWidth);
+        reasons.push(CadToOcdrawLossReason::PolylineWidth);
     }
     if !polyline.flags.is_3d
         || polyline.elevation != 0.0
@@ -422,9 +422,9 @@ pub(crate) fn polyline3d_losses(
         || polyline.mesh_n_count != 0
         || polyline.smooth_m_density != 0
         || polyline.smooth_n_density != 0
-        || polyline.smooth_type != cadcodec::entities::polyline3d::SmoothSurfaceType::None
+        || polyline.smooth_type != opencadcodec::entities::polyline3d::SmoothSurfaceType::None
     {
-        reasons.push(ExportLossReason::UnsupportedSemantic {
+        reasons.push(CadToOcdrawLossReason::UnsupportedSemantic {
             name: "3D polyline source properties".into(),
         });
     }
@@ -435,7 +435,7 @@ pub(crate) fn polyline3d_losses(
         // not change the spatial path or introduce an unsupported property.
         .any(|vertex| vertex.flags != 32 || (!vertex.layer.is_empty() && vertex.layer != "0"))
     {
-        reasons.push(ExportLossReason::UnsupportedSemantic {
+        reasons.push(CadToOcdrawLossReason::UnsupportedSemantic {
             name: "3D polyline vertex properties".into(),
         });
     }

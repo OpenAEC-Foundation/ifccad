@@ -1,13 +1,16 @@
 use base64::{engine::general_purpose::STANDARD, Engine};
-use ocdraw::ifcx_cad::read_native_cad_ifcx;
+use ocdraw::ifcx_cad::load_ifcx_cad_bytes;
 use ocdraw_viewer::{export_drawing_bytes, inspect_drawing_bytes};
 
 const HELLO: &[u8] = include_bytes!("../../../examples/ifcx-native-cad/hello-line-patterns.ifcx");
 
 #[test]
 fn ifcx_native_download_preserves_large_counter_bytes() {
-    use ocdraw::ifcx_cad::{write_native_cad_ifcx, IfcxCadIdCounters};
-    let mut document = read_native_cad_ifcx(HELLO).unwrap().document().clone();
+    use ocdraw::ifcx_cad::{encode_ifcx_cad_document, IfcxCadIdCounters};
+    let mut document = load_ifcx_cad_bytes(HELLO, Default::default())
+        .unwrap()
+        .document()
+        .clone();
     document.id_counters = IfcxCadIdCounters {
         next_entity_id: 9_007_199_254_740_993,
         next_layer_id: 9_223_372_036_854_775_809,
@@ -15,16 +18,16 @@ fn ifcx_native_download_preserves_large_counter_bytes() {
         next_block_id: u64::MAX,
         next_line_pattern_id: u64::MAX,
     };
-    let bytes = write_native_cad_ifcx(&document).unwrap();
-    let inspected = inspect_drawing_bytes("large.ifcx", &bytes);
+    let bytes = encode_ifcx_cad_document(&document).unwrap();
+    let inspected = inspect_drawing_bytes("large.ifcx", bytes.bytes());
     assert_eq!(inspected["validation"]["strictAvailable"], true);
-    let exported = export_drawing_bytes("large.ifcx", &bytes, "ifcx", "AC1032");
+    let exported = export_drawing_bytes("large.ifcx", bytes.bytes(), "ifcx", "AC1032");
     let returned = STANDARD
         .decode(exported["export"]["download"]["base64"].as_str().unwrap())
         .unwrap();
-    assert_eq!(returned, bytes);
+    assert_eq!(returned, bytes.bytes());
     assert_eq!(
-        read_native_cad_ifcx(&returned)
+        load_ifcx_cad_bytes(&returned, Default::default())
             .unwrap()
             .document()
             .id_counters,
@@ -102,7 +105,7 @@ fn ifcx_download_retains_original_fragments_and_foreign_information() {
             .unwrap(),
         bytes
     );
-    let loaded = read_native_cad_ifcx(&bytes).unwrap();
+    let loaded = load_ifcx_cad_bytes(&bytes, Default::default()).unwrap();
     assert_eq!(loaded.graph().source_bytes(), bytes);
     let nodes = result["presentation"]["graph"]["data"].as_array().unwrap();
     assert_eq!(
@@ -134,27 +137,32 @@ fn ifcx_exports_real_dxf_and_dwg_with_diagnostics_and_strict_native_readback() {
             .decode(result["export"]["download"]["base64"].as_str().unwrap())
             .unwrap();
         let cad = if format == "dxf" {
-            ocdraw_convert::cadcodec::DxfReader::from_reader(std::io::Cursor::new(bytes))
+            ocdraw_convert::opencadcodec::DxfReader::from_reader(std::io::Cursor::new(bytes))
                 .unwrap()
                 .read()
                 .unwrap()
         } else {
-            ocdraw_convert::cadcodec::DwgReader::from_stream(std::io::Cursor::new(bytes))
+            ocdraw_convert::opencadcodec::DwgReader::from_stream(std::io::Cursor::new(bytes))
                 .read()
                 .unwrap()
         };
         let metadata = ifcx_cad_convert::IfcxCadTargetMetadata {
-            header: read_native_cad_ifcx(HELLO)
+            header: load_ifcx_cad_bytes(HELLO, Default::default())
                 .unwrap()
                 .document()
                 .header
                 .clone(),
             drawing_id: 1,
         };
-        let restored = ifcx_cad_convert::cad_document_to_ifcx_cad(&cad, metadata).unwrap();
-        assert_eq!(restored.validated_ifcx().document().line_patterns.len(), 3);
+        let restored =
+            ifcx_cad_convert::cad_document_to_encoded_ifcx_cad(&cad, metadata, Default::default())
+                .unwrap();
+        assert_eq!(
+            restored.validated_source().document().line_patterns.len(),
+            3
+        );
         assert!(restored
-            .validated_ifcx()
+            .validated_source()
             .document()
             .line_patterns
             .iter()
@@ -170,15 +178,15 @@ fn dwg_nonzero_base_passes_readback_and_download_retains_diagnostics() {
     let bytes = STANDARD
         .decode(result["export"]["download"]["base64"].as_str().unwrap())
         .unwrap();
-    let cad = ocdraw_convert::cadcodec::DwgReader::from_stream(std::io::Cursor::new(bytes))
+    let cad = ocdraw_convert::opencadcodec::DwgReader::from_stream(std::io::Cursor::new(bytes))
         .read()
         .unwrap();
-    let original = read_native_cad_ifcx(HELLO).unwrap();
+    let original = load_ifcx_cad_bytes(HELLO, Default::default()).unwrap();
     for block in &original.document().blocks {
         let record = cad.block_records.get(&block.name).unwrap();
         assert_eq!(
             record.base_point,
-            ocdraw_convert::cadcodec::Vector3::new(
+            ocdraw_convert::opencadcodec::Vector3::new(
                 block.base_point[0],
                 block.base_point[1],
                 block.base_point[2]
@@ -217,7 +225,7 @@ fn cad_input_can_be_downloaded_and_reopened_as_ifcx_with_caller_timestamp() {
     let native = STANDARD
         .decode(converted["export"]["download"]["base64"].as_str().unwrap())
         .unwrap();
-    let loaded = read_native_cad_ifcx(&native).unwrap();
+    let loaded = load_ifcx_cad_bytes(&native, Default::default()).unwrap();
     assert_eq!(loaded.document().header.timestamp, "2026-10-01T00:00:00Z");
     assert_eq!(loaded.document().model.entities.len(), 5);
 }

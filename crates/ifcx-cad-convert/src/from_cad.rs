@@ -1,53 +1,33 @@
-use crate::outcome::{diagnostic, UNITS};
+use crate::diagnostics::diagnostic;
+use crate::units::UNITS;
 use crate::*;
-use cadcodec::CadDocument;
 use ocdraw::ifcx_cad::*;
-
-/// Convert the supported CAD subset and strict-read the emitted IFCX.
-pub fn cad_document_to_ifcx_cad(
-    source: &CadDocument,
-    metadata: IfcxCadTargetMetadata,
-) -> Result<CadToIfcxCadOutcome, IfcxCadConversionError> {
-    cad_document_to_ifcx_cad_with_options(source, metadata, IfcxCadConversionOptions::default())
-}
+use opencadcodec::CadDocument;
 
 /// Convert supported content with explicit semantic loss acceptance.
-pub fn cad_document_to_ifcx_cad_with_options(
+pub fn cad_document_to_encoded_ifcx_cad(
     source: &CadDocument,
     metadata: IfcxCadTargetMetadata,
-    options: IfcxCadConversionOptions,
-) -> Result<CadToIfcxCadOutcome, IfcxCadConversionError> {
-    let logical = cad_document_to_ifcx_cad_document_with_options(source, metadata, options)?;
-    let bytes = encode_ifcx_cad_document(&logical.document)
+    options: CadToIfcxCadOptions,
+) -> Result<CadToEncodedIfcxCadOutcome, IfcxCadConversionError> {
+    let logical = cad_document_to_ifcx_cad_document(source, metadata, options)?;
+    let encoded = encode_ifcx_cad_document(&logical.document)
         .map_err(|e| IfcxCadConversionError::CoreValidation(format!("{e:?}")))?;
-    let validated = read_native_cad_ifcx(&bytes)
+    let validated = load_ifcx_cad_bytes(encoded.bytes(), Default::default())
         .map_err(|e| IfcxCadConversionError::CoreValidation(format!("{e:?}")))?;
-    Ok(CadToIfcxCadOutcome {
+    Ok(CadToEncodedIfcxCadOutcome {
         validated,
-        bytes,
+        encoded,
         diagnostics: logical.diagnostics,
         mappings: logical.mappings,
     })
 }
 
-/// Convert CAD content directly into a validated logical CAD projection.
-/// No IFCX file is encoded or parsed by this route.
+/// Construct a logical CAD projection with explicit semantic loss acceptance.
 pub fn cad_document_to_ifcx_cad_document(
     source: &CadDocument,
     metadata: IfcxCadTargetMetadata,
-) -> Result<CadToIfcxCadDocumentOutcome, IfcxCadConversionError> {
-    cad_document_to_ifcx_cad_document_with_options(
-        source,
-        metadata,
-        IfcxCadConversionOptions::default(),
-    )
-}
-
-/// Construct a logical CAD projection with explicit semantic loss acceptance.
-pub fn cad_document_to_ifcx_cad_document_with_options(
-    source: &CadDocument,
-    metadata: IfcxCadTargetMetadata,
-    options: IfcxCadConversionOptions,
+    options: CadToIfcxCadOptions,
 ) -> Result<CadToIfcxCadDocumentOutcome, IfcxCadConversionError> {
     let info = crate::source::inspect(source)?;
     let mut issues = info.issues;
@@ -56,7 +36,7 @@ pub fn cad_document_to_ifcx_cad_document_with_options(
     let length_unit = UNITS
         .get(source.header.insertion_units as usize)
         .unwrap_or_else(|| {
-            issues.push(crate::outcome::modification(
+            issues.push(crate::diagnostics::modification(
                 "units",
                 "header.insertion_units",
                 "unknown CAD unit code replaced with unitless; coordinates are not scaled",
@@ -79,7 +59,7 @@ pub fn cad_document_to_ifcx_cad_document_with_options(
     }
     let supported: Vec<_> = info.blocks.iter().copied().filter(|h| {
         let b = source.block_records.iter().find(|b| b.handle == *h).unwrap();
-        let dynamic = source.objects.values().any(|o| matches!(o, cadcodec::objects::ObjectType::DynamicBlock(d) if d.owner == *h));
+        let dynamic = source.objects.values().any(|o| matches!(o, opencadcodec::objects::ObjectType::DynamicBlock(d) if d.owner == *h));
         let supported = !b.name.starts_with('*') && !b.is_anonymous()
             && !b.flags.is_xref && !b.flags.is_xref_overlay && !b.flags.is_external
             && !b.flags.is_xref_unloaded && b.xref_path.is_empty() && !dynamic;
@@ -109,7 +89,7 @@ pub fn cad_document_to_ifcx_cad_document_with_options(
             .find(|b| b.handle == *h)
             .unwrap();
         let unit = UNITS.get(b.units as usize).unwrap_or_else(|| {
-            issues.push(crate::outcome::modification(
+            issues.push(crate::diagnostics::modification(
                 "units",
                 format!("block/{}", b.name),
                 "unknown block insertion unit replaced with unitless; coordinates are not scaled",
@@ -141,7 +121,7 @@ pub fn cad_document_to_ifcx_cad_document_with_options(
     }
     line_patterns.sort_by_key(|p| p.id.0.to_string());
     crate::loss::from_cad(source, &info.blocks, &info.entities, &mut issues);
-    crate::outcome::enforce_policy(options, &issues)?;
+    crate::diagnostics::enforce_policy(options.loss_policy, &issues)?;
     let drawing = IfcxCadDocument {
         header: metadata.header,
         drawing_id: metadata.drawing_id,
@@ -172,7 +152,7 @@ fn allocation_error(error: IfcxCadIdAllocationError) -> IfcxCadConversionError {
 fn convert_entities(
     source: &CadDocument,
     patterns: &crate::patterns::SourcePatterns,
-    handles: &[cadcodec::Handle],
+    handles: &[opencadcodec::Handle],
     ids: &mut IfcxCadIdCounters,
     mappings: &mut IfcxCadMappings,
     issues: &mut Vec<IfcxCadDiagnostic>,
@@ -183,7 +163,7 @@ fn convert_entities(
         let loc = format!("entity/{h}");
         let appearance = crate::appearance::from_common(e.common(), patterns, &loc, issues);
         let kind = match e {
-            cadcodec::EntityType::Insert(i) => mappings
+            opencadcodec::EntityType::Insert(i) => mappings
                 .blocks
                 .ifcx_id(
                     source

@@ -1,8 +1,8 @@
-use crate::outcome::{diagnostic, modification};
+use crate::diagnostics::{diagnostic, modification};
 use crate::IfcxCadDiagnostic;
-use cadcodec::entities::EntityCommon;
-use cadcodec::{Color, Layer, LineWeight, Transparency};
 use ocdraw::ifcx_cad::{IfcxCadEntityAppearance, IfcxCadLayerAppearance, IfcxCadMode};
+use opencadcodec::entities::EntityCommon;
+use opencadcodec::{Color, Layer, LineWeight, Transparency};
 
 const WEIGHTS: [i16; 24] = [
     0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40, 50, 53, 60, 70, 80, 90, 100, 106, 120, 140, 158, 200,
@@ -92,7 +92,7 @@ fn source_weight(value: LineWeight, loc: &str, issues: &mut Vec<IfcxCadDiagnosti
 }
 pub(crate) fn to_common(
     a: &IfcxCadEntityAppearance,
-    pattern: Option<(String, cadcodec::Handle)>,
+    pattern: Option<(String, opencadcodec::Handle)>,
     layer: &str,
     loc: &str,
     issues: &mut Vec<IfcxCadDiagnostic>,

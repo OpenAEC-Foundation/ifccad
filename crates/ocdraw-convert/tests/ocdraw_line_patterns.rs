@@ -1,11 +1,11 @@
-use ocdraw::ocdraw::load_drawing_bytes;
-use ocdraw_convert::cadcodec::tables::{
+use ocdraw::ocdraw::load_ocdraw_bytes;
+use ocdraw_convert::opencadcodec::tables::{
     LineTypeComplexContent, LineTypeComplexData, LineTypeElement,
 };
-use ocdraw_convert::cadcodec::{CadDocument, LineType};
+use ocdraw_convert::opencadcodec::{CadDocument, LineType};
 use ocdraw_convert::{
-    cad_document_to_drawing, ocdraw_to_cad_document, ConversionLossPolicy, ExportOptions,
-    ImportOptions,
+    cad_document_to_encoded_ocdraw, ocdraw_source_to_cad_document, CadToOcdrawOptions,
+    OcdrawLossPolicy, OcdrawToCadOptions,
 };
 
 #[test]
@@ -23,9 +23,9 @@ fn exports_custom_and_unused_simple_patterns() {
     source.line_types.add(p).unwrap();
     source.layers.get_mut("0").unwrap().line_type = "Custom".into();
     source.header.linetype_scale = 2.0;
-    let exported = cad_document_to_drawing(&source, ExportOptions::default()).unwrap();
-    let read = load_drawing_bytes(exported.drawing().bytes());
-    let drawing = read.validated_drawing().unwrap();
+    let exported = cad_document_to_encoded_ocdraw(&source, CadToOcdrawOptions::default()).unwrap();
+    let read = load_ocdraw_bytes(exported.encoded().bytes());
+    let drawing = read.as_ref().ok().unwrap();
     assert_eq!(drawing.line_pattern_scale(), 2.0);
     let p = drawing
         .line_patterns()
@@ -34,7 +34,7 @@ fn exports_custom_and_unused_simple_patterns() {
         .unwrap();
     assert_eq!(p.pattern, vec![6.0, -2.0, 0.0, -2.0]);
     assert_eq!(drawing.typed_layers()[0].line_pattern_id, p.id);
-    let returned = ocdraw_to_cad_document(drawing, ImportOptions::default()).unwrap();
+    let returned = ocdraw_source_to_cad_document(drawing, OcdrawToCadOptions::default()).unwrap();
     assert_eq!(
         returned
             .document()
@@ -60,10 +60,11 @@ fn unused_complex_pattern_falls_back_and_rejects() {
     p.elements = vec![dash, LineTypeElement::space(2.0)];
     p.pattern_length = 8.0;
     source.line_types.add(p).unwrap();
-    let out = cad_document_to_drawing(&source, ExportOptions::default()).unwrap();
-    let loaded = load_drawing_bytes(out.drawing().bytes());
+    let out = cad_document_to_encoded_ocdraw(&source, CadToOcdrawOptions::default()).unwrap();
+    let loaded = load_ocdraw_bytes(out.encoded().bytes());
     let p = loaded
-        .validated_drawing()
+        .as_ref()
+        .ok()
         .unwrap()
         .line_patterns()
         .iter()
@@ -76,16 +77,16 @@ fn unused_complex_pattern_falls_back_and_rejects() {
             .iter()
             .filter(|d| d.reasons().iter().any(|r| matches!(
                 r,
-                ocdraw_convert::ExportLossReason::ComplexLinePatternFallback { .. }
+                ocdraw_convert::CadToOcdrawLossReason::ComplexLinePatternFallback { .. }
             )))
             .count(),
         1
     );
-    let options = ExportOptions {
-        loss_policy: ConversionLossPolicy::Reject,
+    let options = CadToOcdrawOptions {
+        loss_policy: OcdrawLossPolicy::Reject,
         ..Default::default()
     };
-    assert!(cad_document_to_drawing(&source, options).is_err());
+    assert!(cad_document_to_encoded_ocdraw(&source, options).is_err());
 }
 
 #[test]
@@ -93,9 +94,9 @@ fn source_lookup_uses_cad_unicode_case_rules() {
     let mut source = CadDocument::new();
     source.line_types.add(LineType::new("Σ")).unwrap();
     source.layers.get_mut("0").unwrap().line_type = "ς".into();
-    let output = cad_document_to_drawing(&source, ExportOptions::default()).unwrap();
-    let read = load_drawing_bytes(output.drawing().bytes());
-    let drawing = read.validated_drawing().unwrap();
+    let output = cad_document_to_encoded_ocdraw(&source, CadToOcdrawOptions::default()).unwrap();
+    let read = load_ocdraw_bytes(output.encoded().bytes());
+    let drawing = read.as_ref().ok().unwrap();
     let p = drawing
         .line_patterns()
         .iter()
@@ -107,7 +108,7 @@ fn source_lookup_uses_cad_unicode_case_rules() {
 #[test]
 fn shape_and_mixed_fallback_keep_references_and_modes() {
     use ocdraw::ocdraw::AppearanceSelection;
-    use ocdraw_convert::cadcodec::{EntityType, Line};
+    use ocdraw_convert::opencadcodec::{EntityType, Line};
     for include_text in [false, true] {
         let mut source = CadDocument::new();
         let mut pattern = LineType::new("Symbols");
@@ -131,9 +132,9 @@ fn shape_and_mixed_fallback_keep_references_and_modes() {
             line.common.linetype = selection.into();
             source.add_entity(EntityType::Line(line)).unwrap();
         }
-        let out = cad_document_to_drawing(&source, ExportOptions::default()).unwrap();
-        let loaded = load_drawing_bytes(out.drawing().bytes());
-        let drawing = loaded.validated_drawing().unwrap();
+        let out = cad_document_to_encoded_ocdraw(&source, CadToOcdrawOptions::default()).unwrap();
+        let loaded = load_ocdraw_bytes(out.encoded().bytes());
+        let drawing = loaded.as_ref().ok().unwrap();
         let pattern = drawing
             .line_patterns()
             .iter()
@@ -161,20 +162,20 @@ fn shape_and_mixed_fallback_keep_references_and_modes() {
             .filter(|r| {
                 matches!(
                     r,
-                    ocdraw_convert::ExportLossReason::ComplexLinePatternFallback { .. }
+                    ocdraw_convert::CadToOcdrawLossReason::ComplexLinePatternFallback { .. }
                 )
             })
             .collect();
         assert_eq!(reasons.len(), 1);
         assert!(
-            matches!(reasons[0], ocdraw_convert::ExportLossReason::ComplexLinePatternFallback {
+            matches!(reasons[0], ocdraw_convert::CadToOcdrawLossReason::ComplexLinePatternFallback {
             text, shapes: true, ..
         } if *text == include_text)
         );
-        assert!(cad_document_to_drawing(
+        assert!(cad_document_to_encoded_ocdraw(
             &source,
-            ExportOptions {
-                loss_policy: ConversionLossPolicy::Reject,
+            CadToOcdrawOptions {
+                loss_policy: OcdrawLossPolicy::Reject,
                 ..Default::default()
             }
         )
@@ -184,7 +185,7 @@ fn shape_and_mixed_fallback_keep_references_and_modes() {
 
 #[test]
 fn inconsistent_pattern_references_fail_under_both_policies() {
-    use ocdraw_convert::cadcodec::{EntityType, Handle, Line};
+    use ocdraw_convert::opencadcodec::{EntityType, Handle, Line};
     for (name, handle) in [
         ("Missing", None),
         ("Continuous", Some(Handle::new(0xFFFF))),
@@ -196,16 +197,16 @@ fn inconsistent_pattern_references_fail_under_both_policies() {
         line.common.linetype = name.into();
         line.common.linetype_handle = handle;
         source.add_entity(EntityType::Line(line)).unwrap();
-        for loss_policy in [ConversionLossPolicy::Allow, ConversionLossPolicy::Reject] {
+        for loss_policy in [OcdrawLossPolicy::Allow, OcdrawLossPolicy::Reject] {
             assert!(matches!(
-                cad_document_to_drawing(
+                cad_document_to_encoded_ocdraw(
                     &source,
-                    ExportOptions {
+                    CadToOcdrawOptions {
                         loss_policy,
                         ..Default::default()
                     }
                 ),
-                Err(ocdraw_convert::DirectExportError::InvalidSourceStructure { .. })
+                Err(ocdraw_convert::CadToOcdrawError::InvalidSourceStructure { .. })
             ));
         }
     }

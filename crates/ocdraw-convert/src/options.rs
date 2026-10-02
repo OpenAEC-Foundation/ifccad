@@ -5,7 +5,7 @@ use thiserror::Error;
 /// Controls semantic loss acceptance. Proven within-tolerance numerical rounding
 /// is accepted by both policies, while remaining loss evidence.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
-pub enum ConversionLossPolicy {
+pub enum OcdrawLossPolicy {
     #[default]
     Allow,
     Reject,
@@ -20,39 +20,39 @@ enum ToleranceKind {
 /// Hard Euclidean accuracy limit, independent of semantic loss policy.
 /// Defaults to exactly one micrometre in known units and zero for unitless data.
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub struct ConversionGeometryTolerance(ToleranceKind);
-impl Default for ConversionGeometryTolerance {
+pub struct OcdrawGeometryTolerance(ToleranceKind);
+impl Default for OcdrawGeometryTolerance {
     fn default() -> Self {
         Self(ToleranceKind::Default)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Error)]
-pub enum ConversionToleranceError {
+pub enum OcdrawToleranceError {
     #[error("geometry tolerance must be finite and nonnegative")]
     InvalidValue,
     #[error("an explicit physical tolerance requires a known drawing unit")]
     PhysicalUnitRequired,
 }
-impl ConversionGeometryTolerance {
+impl OcdrawGeometryTolerance {
     /// Require zero geometric residual.
     pub fn exact() -> Self {
         Self(ToleranceKind::DrawingUnits(0.0))
     }
     /// Set a finite nonnegative limit in the drawing's coordinate unit.
-    pub fn drawing_units(value: f64) -> Result<Self, ConversionToleranceError> {
+    pub fn drawing_units(value: f64) -> Result<Self, OcdrawToleranceError> {
         Self::checked(ToleranceKind::DrawingUnits(value), value)
     }
     /// Set a physical limit; conversion fails if the drawing is unitless.
-    pub fn metres(value: f64) -> Result<Self, ConversionToleranceError> {
+    pub fn metres(value: f64) -> Result<Self, OcdrawToleranceError> {
         Self::checked(ToleranceKind::Metres(value), value)
     }
     /// Set a physical limit; conversion fails if the drawing is unitless.
-    pub fn millimetres(value: f64) -> Result<Self, ConversionToleranceError> {
+    pub fn millimetres(value: f64) -> Result<Self, OcdrawToleranceError> {
         Self::checked(ToleranceKind::Millimetres(value), value)
     }
-    fn checked(kind: ToleranceKind, value: f64) -> Result<Self, ConversionToleranceError> {
+    fn checked(kind: ToleranceKind, value: f64) -> Result<Self, OcdrawToleranceError> {
         if !value.is_finite() || value < 0.0 {
-            Err(ConversionToleranceError::InvalidValue)
+            Err(OcdrawToleranceError::InvalidValue)
         } else {
             Ok(Self(kind))
         }
@@ -60,7 +60,7 @@ impl ConversionGeometryTolerance {
     pub(crate) fn resolve(
         self,
         unit: DrawingLengthUnit,
-    ) -> Result<ResolvedTolerance, ConversionToleranceError> {
+    ) -> Result<ResolvedTolerance, OcdrawToleranceError> {
         let exact = |v| BigRational::from_float(v).expect("validated tolerance");
         let physical = match self.0 {
             ToleranceKind::DrawingUnits(v) => return Ok(ResolvedTolerance::exact(exact(v))),
@@ -72,14 +72,14 @@ impl ConversionGeometryTolerance {
             ToleranceKind::Millimetres(v) => exact(v) / q(1000, 1),
         };
         ResolvedTolerance::from_metres(physical, unit)
-            .ok_or(ConversionToleranceError::PhysicalUnitRequired)
+            .ok_or(OcdrawToleranceError::PhysicalUnitRequired)
     }
 }
 /// Policy for converting one validated IFCCAD drawing into CadDocument.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
-pub struct ImportOptions {
-    pub loss_policy: ConversionLossPolicy,
-    pub geometry_tolerance: ConversionGeometryTolerance,
+pub struct OcdrawToCadOptions {
+    pub loss_policy: OcdrawLossPolicy,
+    pub geometry_tolerance: OcdrawGeometryTolerance,
 }
 #[cfg(test)]
 mod tests {
@@ -88,38 +88,38 @@ mod tests {
     fn conversion_tolerance_rejects_invalid_values_and_resolves_exactly() {
         for v in [-1.0, f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
             assert_eq!(
-                ConversionGeometryTolerance::drawing_units(v),
-                Err(ConversionToleranceError::InvalidValue)
+                OcdrawGeometryTolerance::drawing_units(v),
+                Err(OcdrawToleranceError::InvalidValue)
             );
-            assert!(ConversionGeometryTolerance::metres(v).is_err());
-            assert!(ConversionGeometryTolerance::millimetres(v).is_err());
+            assert!(OcdrawGeometryTolerance::metres(v).is_err());
+            assert!(OcdrawGeometryTolerance::millimetres(v).is_err());
         }
         assert_eq!(
-            ConversionGeometryTolerance::default()
+            OcdrawGeometryTolerance::default()
                 .resolve(DrawingLengthUnit::Millimetre)
                 .unwrap(),
             ResolvedTolerance::exact(BigRational::new(1.into(), 1000.into()))
         );
         assert_eq!(
-            ConversionGeometryTolerance::default()
+            OcdrawGeometryTolerance::default()
                 .resolve(DrawingLengthUnit::Inch)
                 .unwrap(),
             ResolvedTolerance::exact(BigRational::new(1.into(), 25400.into()))
         );
         assert_eq!(
-            ConversionGeometryTolerance::default()
+            OcdrawGeometryTolerance::default()
                 .resolve(DrawingLengthUnit::Unitless)
                 .unwrap(),
             ResolvedTolerance::exact(BigRational::from_integer(0.into()))
         );
         assert_eq!(
-            ConversionGeometryTolerance::metres(0.0)
+            OcdrawGeometryTolerance::metres(0.0)
                 .unwrap()
                 .resolve(DrawingLengthUnit::Unitless),
-            Err(ConversionToleranceError::PhysicalUnitRequired)
+            Err(OcdrawToleranceError::PhysicalUnitRequired)
         );
         assert_eq!(
-            ConversionGeometryTolerance::exact()
+            OcdrawGeometryTolerance::exact()
                 .resolve(DrawingLengthUnit::Unitless)
                 .unwrap(),
             ResolvedTolerance::exact(BigRational::from_integer(0.into()))
@@ -127,9 +127,8 @@ mod tests {
     }
 }
 
-pub use ConversionLossPolicy as ExportLossPolicy;
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
-pub struct ExportOptions {
-    pub loss_policy: ExportLossPolicy,
-    pub geometry_tolerance: ConversionGeometryTolerance,
+pub struct CadToOcdrawOptions {
+    pub loss_policy: OcdrawLossPolicy,
+    pub geometry_tolerance: OcdrawGeometryTolerance,
 }

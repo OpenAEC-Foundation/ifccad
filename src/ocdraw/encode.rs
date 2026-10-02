@@ -1,5 +1,5 @@
 use super::{
-    DrawingBuildError, DrawingDiagnostic, DrawingLoadStatus, EncodedDrawing, OcdrawDocument,
+    EncodedOcdraw, OcdrawBuildError, OcdrawDiagnostic, OcdrawDocument, OcdrawReadStatus,
     OcdrawValidationError,
 };
 
@@ -12,11 +12,11 @@ pub enum OcdrawEncodeError {
     Serialization(#[from] serde_json::Error),
     #[error("encoded drawing failed strict production readback ({status:?})")]
     Readback {
-        status: DrawingLoadStatus,
-        diagnostics: Vec<DrawingDiagnostic>,
+        status: OcdrawReadStatus,
+        diagnostics: Vec<OcdrawDiagnostic>,
     },
 }
-impl From<OcdrawEncodeError> for DrawingBuildError {
+impl From<OcdrawEncodeError> for OcdrawBuildError {
     fn from(error: OcdrawEncodeError) -> Self {
         match error {
             OcdrawEncodeError::Serialization(e) => Self::Serialization(e),
@@ -33,15 +33,14 @@ impl From<OcdrawEncodeError> for DrawingBuildError {
 
 /// Encodes validated content without changing identities, order or supplied bounds.
 /// Output is checked by the production reader before it is returned.
-pub fn encode_document(doc: &OcdrawDocument) -> Result<EncodedDrawing, OcdrawEncodeError> {
-    super::validate_document(doc)?;
+pub fn encode_ocdraw_document(doc: &OcdrawDocument) -> Result<EncodedOcdraw, OcdrawEncodeError> {
+    super::validate_ocdraw_document(doc)?;
     let bytes = super::codec::json::encode_document_bytes(doc)?;
-    let read = super::load_drawing_bytes(&bytes);
-    if read.status() != DrawingLoadStatus::Valid {
+    if let Err(error) = super::load_ocdraw_bytes(&bytes) {
         return Err(OcdrawEncodeError::Readback {
-            status: read.status(),
-            diagnostics: read.diagnostics().to_vec(),
+            status: error.status(),
+            diagnostics: error.diagnostics().to_vec(),
         });
     }
-    Ok(EncodedDrawing::from_bytes(bytes))
+    Ok(EncodedOcdraw::from_bytes(bytes))
 }

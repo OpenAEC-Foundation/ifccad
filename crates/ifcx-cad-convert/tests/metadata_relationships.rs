@@ -1,13 +1,13 @@
 mod common;
-use cadcodec::{
+use common::*;
+use ifcx_cad_convert::*;
+use ocdraw::ifcx_cad::load_ifcx_cad_bytes;
+use opencadcodec::{
     objects::{ClassObject, ClassObjectData, ObjectType, Sun},
     Handle,
 };
-use common::*;
-use ifcx_cad_convert::*;
-use ocdraw::ifcx_cad::read_native_cad_ifcx;
 
-fn sample() -> cadcodec::CadDocument {
+fn sample() -> opencadcodec::CadDocument {
     to_cad(&validated(&primitives())).unwrap().into_document()
 }
 
@@ -21,9 +21,11 @@ fn unsupported_sun_owner_is_located_loss_not_structural_failure() {
     sun.owner = missing;
     source.objects.insert(handle, ObjectType::ClassObject(sun));
     let location = format!("object/{handle}.owner");
-    let logical = cad_document_to_ifcx_cad_document(&source, metadata()).unwrap();
-    let encoded = cad_document_to_ifcx_cad(&source, metadata()).unwrap();
-    assert_eq!(logical.document(), encoded.validated_ifcx().document());
+    let logical =
+        cad_document_to_ifcx_cad_document(&source, metadata(), Default::default()).unwrap();
+    let encoded =
+        cad_document_to_encoded_ifcx_cad(&source, metadata(), Default::default()).unwrap();
+    assert_eq!(logical.document(), encoded.validated_source().document());
     assert_eq!(logical.diagnostics(), encoded.diagnostics());
     assert!(logical
         .diagnostics()
@@ -40,20 +42,20 @@ fn unsupported_sun_owner_is_located_loss_not_structural_failure() {
         logical.document().model.entities.len(),
         primitives().model.entities.len()
     );
-    read_native_cad_ifcx(encoded.ifcx_bytes()).unwrap();
+    load_ifcx_cad_bytes(encoded.encoded().bytes(), Default::default()).unwrap();
     for result in [
-        cad_document_to_ifcx_cad_document_with_options(
+        cad_document_to_ifcx_cad_document(
             &source,
             metadata(),
-            IfcxCadConversionOptions {
+            CadToIfcxCadOptions {
                 loss_policy: IfcxCadLossPolicy::Reject,
             },
         )
         .map(|_| ()),
-        cad_document_to_ifcx_cad_with_options(
+        cad_document_to_encoded_ifcx_cad(
             &source,
             metadata(),
-            IfcxCadConversionOptions {
+            CadToIfcxCadOptions {
                 loss_policy: IfcxCadLossPolicy::Reject,
             },
         )
@@ -83,9 +85,10 @@ fn unresolved_optional_entity_relationships_keep_supported_geometry() {
         } else {
             common.reactors.push(Handle::new(99999));
         }
-        let allow = cad_document_to_ifcx_cad(&source, metadata()).unwrap();
+        let allow =
+            cad_document_to_encoded_ifcx_cad(&source, metadata(), Default::default()).unwrap();
         assert_eq!(
-            allow.validated_ifcx().document().model.entities.len(),
+            allow.validated_source().document().model.entities.len(),
             primitives().model.entities.len()
         );
         assert!(allow
@@ -93,12 +96,12 @@ fn unresolved_optional_entity_relationships_keep_supported_geometry() {
             .iter()
             .any(|d| d.code == "unresolved-relationship"
                 && d.location.starts_with(&format!("entity/{handle}."))));
-        read_native_cad_ifcx(allow.ifcx_bytes()).unwrap();
+        load_ifcx_cad_bytes(allow.encoded().bytes(), Default::default()).unwrap();
         assert!(matches!(
-            cad_document_to_ifcx_cad_with_options(
+            cad_document_to_encoded_ifcx_cad(
                 &source,
                 metadata(),
-                IfcxCadConversionOptions {
+                CadToIfcxCadOptions {
                     loss_policy: IfcxCadLossPolicy::Reject
                 }
             ),
@@ -134,15 +137,15 @@ fn essential_entity_and_layout_ownership_remain_fatal_under_both_policies() {
                 .owner_handle = Handle::new(99999);
         }
         for policy in [IfcxCadLossPolicy::Allow, IfcxCadLossPolicy::Reject] {
-            let options = IfcxCadConversionOptions {
+            let options = CadToIfcxCadOptions {
                 loss_policy: policy,
             };
             assert!(matches!(
-                cad_document_to_ifcx_cad_document_with_options(&source, metadata(), options),
+                cad_document_to_ifcx_cad_document(&source, metadata(), options),
                 Err(IfcxCadConversionError::InvalidStructure(_))
             ));
             assert!(matches!(
-                cad_document_to_ifcx_cad_with_options(&source, metadata(), options),
+                cad_document_to_encoded_ifcx_cad(&source, metadata(), options),
                 Err(IfcxCadConversionError::InvalidStructure(_))
             ));
         }

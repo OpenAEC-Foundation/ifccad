@@ -7,10 +7,10 @@
 //! its complete immutable source. Encoding produces a fresh CAD-profile file.
 //!
 //! ```
-//! use ocdraw::ifcx_cad::{read_native_cad_ifcx, validate_ifcx_cad_document,
+//! use ocdraw::ifcx_cad::{load_ifcx_cad_bytes, validate_ifcx_cad_document,
 //!     encode_ifcx_cad_document};
-//! # fn edit(bytes: &[u8]) -> Result<(), ocdraw::ifcx_cad::IfcxCadReport> {
-//! let (source, mut document) = read_native_cad_ifcx(bytes)?.into_parts();
+//! # fn edit(bytes: &[u8]) -> Result<(), Box<dyn std::error::Error>> {
+//! let (source, mut document) = load_ifcx_cad_bytes(bytes, Default::default())?.into_parts();
 //! document.model.entities.reverse();
 //! validate_ifcx_cad_document(&document)?;
 //! let profile_bytes = encode_ifcx_cad_document(&document)?;
@@ -21,25 +21,18 @@
 //! # }
 //! ```
 
-mod allocation;
-mod document_validation;
-mod graph;
-mod model;
-mod parse;
-mod patterns;
-mod validate;
-mod wire;
-mod write;
-
+mod codec;
+mod encode;
+mod logical;
+mod read;
+mod source;
+mod storage;
 pub(crate) const PROFILE_URI: &str = "urn:example:ifccad:0.1.0";
-
-pub use allocation::{IfcxCadIdAllocationError, IfcxCadIdCounters, IfcxCadIdDomain};
-pub use document_validation::validate_ifcx_cad_document;
-pub use graph::LoadedIfcxGraph;
-pub use model::*;
-pub use patterns::validate_ifcx_cad_line_patterns;
-pub use write::{encode_ifcx_cad_document, write_native_cad_ifcx};
-
+pub use encode::{encode_ifcx_cad_document, IfcxCadEncodeError};
+pub use logical::*;
+pub use read::{load_ifcx_cad_bytes, IfcxCadReadError, IfcxCadReadOptions, ValidatedIfcxCad};
+pub use source::LoadedIfcxGraph;
+pub use storage::{load_ifcx_cad_file, EncodedIfcxCad, IfcxCadOpenError, IfcxCadWriteError};
 /// How repeated IFCX node paths are composed before CAD validation.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum IfcxCompositionPolicy {
@@ -50,24 +43,9 @@ pub enum IfcxCompositionPolicy {
     RejectConflicts,
 }
 
-/// Load and validate the experimental IFCX CAD profile using later-wins composition.
-pub fn read_native_cad_ifcx(bytes: &[u8]) -> Result<ValidatedIfcxCad, IfcxCadReport> {
-    read_native_cad_ifcx_with_policy(bytes, IfcxCompositionPolicy::LaterWins)
-}
-
-/// Load and validate the experimental IFCX CAD profile with an explicit composition policy.
-/// CAD constraints are checked on the final composed nodes in either mode.
-pub fn read_native_cad_ifcx_with_policy(
-    bytes: &[u8],
-    policy: IfcxCompositionPolicy,
-) -> Result<ValidatedIfcxCad, IfcxCadReport> {
-    let graph = LoadedIfcxGraph::load(bytes, policy)?;
-    let document = validate::project(graph.composed_ifcx())?;
-    Ok(ValidatedIfcxCad { graph, document })
-}
-
 /// Errors found while loading or writing the experimental profile.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, thiserror::Error)]
+#[error("IFCX-CAD validation failed: {errors:?}")]
 pub struct IfcxCadReport {
     /// Human-readable, location-oriented diagnostics.
     pub errors: Vec<String>,

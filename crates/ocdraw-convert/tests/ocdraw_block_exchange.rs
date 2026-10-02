@@ -1,10 +1,11 @@
 //! Real codecs are part of this boundary test; no patched dependency or markers.
-use cadcodec::{
-    BlockRecord, CadDocument, DwgReader, DwgWriter, DxfReader, DxfWriter, EntityType, Line, Vector3,
-};
-use ocdraw::ocdraw::load_drawing_bytes;
+use ocdraw::ocdraw::load_ocdraw_bytes;
 use ocdraw_convert::{
-    cad_document_to_drawing, ocdraw_to_cad_document, ExportOptions, ImportOptions,
+    cad_document_to_encoded_ocdraw, ocdraw_source_to_cad_document, CadToOcdrawOptions,
+    OcdrawToCadOptions,
+};
+use opencadcodec::{
+    BlockRecord, CadDocument, DwgReader, DwgWriter, DxfReader, DxfWriter, EntityType, Line, Vector3,
 };
 use std::io::Cursor;
 
@@ -22,17 +23,15 @@ fn exchange(dwg: bool, base: f64) {
     line.common.owner_handle = owner;
     source.add_entity(EntityType::Line(line)).unwrap();
     for x in [10., 20.] {
-        let mut insert = cadcodec::entities::Insert::new("Door", Vector3::new(x, 0., 0.));
+        let mut insert = opencadcodec::entities::Insert::new("Door", Vector3::new(x, 0., 0.));
         insert.set_x_scale(-2.);
         source.add_entity(EntityType::Insert(insert)).unwrap();
     }
-    let encoded = cad_document_to_drawing(&source, ExportOptions::default()).unwrap();
-    let loaded = load_drawing_bytes(encoded.drawing().bytes());
-    let target = ocdraw_to_cad_document(
-        loaded.validated_drawing().unwrap(),
-        ImportOptions::default(),
-    )
-    .unwrap();
+    let encoded = cad_document_to_encoded_ocdraw(&source, CadToOcdrawOptions::default()).unwrap();
+    let loaded = load_ocdraw_bytes(encoded.encoded().bytes());
+    let target =
+        ocdraw_source_to_cad_document(loaded.as_ref().ok().unwrap(), OcdrawToCadOptions::default())
+            .unwrap();
     let decoded = if dwg {
         DwgReader::from_stream(Cursor::new(
             DwgWriter::write_to_vec(target.document()).unwrap(),
@@ -86,9 +85,10 @@ fn exchange(dwg: bool, base: f64) {
             Vector3::new(x - 2., 0., 0.)
         );
     }
-    let returned = cad_document_to_drawing(&decoded, ExportOptions::default()).unwrap();
-    assert!(load_drawing_bytes(returned.drawing().bytes())
-        .validated_drawing()
+    let returned = cad_document_to_encoded_ocdraw(&decoded, CadToOcdrawOptions::default()).unwrap();
+    assert!(load_ocdraw_bytes(returned.encoded().bytes())
+        .as_ref()
+        .ok()
         .is_some());
 }
 

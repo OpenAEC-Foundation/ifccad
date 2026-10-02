@@ -3,12 +3,16 @@
 `IfcxCadDocument` is the owned logical CAD projection used by validation,
 encoding and direct CAD conversion. It contains typed entities, ordered owner
 contents, layers, layouts, shared blocks, named patterns, units and allocation
-history. It remains independent of `OcdrawDocument` and cadcodec.
+history. It remains independent of `OcdrawDocument` and opencadcodec.
 
 ## Complete source and CAD projection
 
-The experimental reader returns `ValidatedIfcxCad`, pairing a validated CAD
-projection with a separate immutable `LoadedIfcxGraph`:
+`load_ifcx_cad_bytes(bytes, IfcxCadReadOptions)` returns
+`Result<ValidatedIfcxCad, IfcxCadReadError>`. Options default to LaterWins and
+can select RejectConflicts. Read errors expose the existing `IfcxCadReport`;
+`load_ifcx_cad_file(path, options)` separately distinguishes IO and read failures.
+A valid result pairs a validated CAD projection with a separate immutable
+`LoadedIfcxGraph`:
 
 - `document()` borrows the typed CAD projection.
 - `graph().source_bytes()` retains the exact input, including numeric tokens,
@@ -19,8 +23,6 @@ projection with a separate immutable `LoadedIfcxGraph`:
 - `into_document()` consumes the result and extracts its editable CAD projection.
 - `into_parts()` extracts both owned objects independently.
 
-The compatibility accessor `raw_ifcx()` still exposes the composed graph;
-its historical name does not mean original fragments or original bytes.
 The graph's JSON backing belongs to the current loader; typed CAD conversion
 has no JSON bridge.
 
@@ -60,8 +62,9 @@ See [ID management](ifcx-cad-id-management.md).
 
 `encode_ifcx_cad_document(&document)` validates the typed document, maps it to
 the current IFCX CAD profile, and requires strict production-reader readback
-with semantic equivalence. `write_native_cad_ifcx` remains a compatibility
-wrapper. Existing paths, uint64 values, ordered entities and supported native
+with semantic equivalence, returning `EncodedIfcxCad`. Its `bytes()` and
+`into_bytes()` accessors expose the encoding; `write_file()` creates a new file
+and refuses to overwrite an existing one. Existing paths, uint64 values, ordered entities and supported native
 Paper semantics are retained. Definition collections retain their existing
 unordered/readback normalization rules.
 
@@ -77,8 +80,8 @@ application responsibilities.
 
 ## Direct CAD conversion
 
-The companion converter adds these document routes, each with a
-`_with_options` variant for explicit Allow/Reject behavior:
+The companion converter exposes these document routes, each requiring explicit
+directional options for Allow/Reject behavior:
 
 - `cad_document_to_ifcx_cad_document`: constructs and validates a logical
   projection without encoding or reading an IFCX file. The outcome exposes
@@ -87,8 +90,8 @@ The companion converter adds these document routes, each with a
   before creating the CAD result. It assesses CAD content and target limitations
   within that input.
 
-The existing CAD-to-IFCX byte route calls logical conversion, then core encoding
-and production loading. The existing IFCX-to-CAD route takes `ValidatedIfcxCad`
+`cad_document_to_encoded_ifcx_cad` calls logical conversion, then core encoding
+and production loading. `ifcx_cad_source_to_cad_document` takes `ValidatedIfcxCad`
 and additionally checks the full composed source for foreign content and lossy
 numeric projection before using the common typed conversion implementation.
 These source-aware checks remain subject to the same Allow/Reject policy;

@@ -1,9 +1,9 @@
 pub(crate) mod blocks;
 pub(crate) mod circular;
 pub(crate) mod numeric;
-use cadcodec::types::Matrix3;
-use cadcodec::Vector3;
 use num_rational::BigRational;
+use opencadcodec::types::Matrix3;
+use opencadcodec::Vector3;
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct CadPlane {
     pub u: [f64; 3],
@@ -87,12 +87,12 @@ mod frame_helper_tests {
 }
 
 use crate::{
-    ConversionEntitySource, ConversionGeometryAssessment, ConversionGeometryFailure,
-    ConversionGeometryFailureReason as Reason, ConversionGeometryStage as Stage,
+    OcdrawGeometryAssessment, OcdrawGeometryEntitySource, OcdrawGeometryFailure,
+    OcdrawGeometryFailureReason as Reason, OcdrawGeometryStage as Stage,
 };
-use cadcodec::{LwPolyline, Vector2};
 use numeric::{exact, round_nearest};
 use ocdraw::ocdraw::{CoordinateFrame3, Point3};
+use opencadcodec::{LwPolyline, Vector2};
 fn cv(v: [f64; 3]) -> ocdraw::ocdraw::Vector3 {
     ocdraw::ocdraw::Vector3::new(v[0], v[1], v[2])
 }
@@ -173,9 +173,9 @@ impl PreparedProjection {
 }
 pub(crate) fn from_cad(
     poly: &LwPolyline,
-    assessment: &mut ConversionGeometryAssessment,
-) -> Result<(CoordinateFrame3, f64, bool), Box<ConversionGeometryFailure>> {
-    let source = ConversionEntitySource::CadEntity {
+    assessment: &mut OcdrawGeometryAssessment,
+) -> Result<(CoordinateFrame3, f64, bool), Box<OcdrawGeometryFailure>> {
+    let source = OcdrawGeometryEntitySource::CadEntity {
         handle: poly.common.handle,
         kind: "LWPOLYLINE".into(),
     };
@@ -244,9 +244,9 @@ pub(crate) fn to_cad_parts(
     plane: CoordinateFrame3,
     vertices: &[[f64; 3]],
     closed: bool,
-    source: ConversionEntitySource,
-    assessment: &mut ConversionGeometryAssessment,
-) -> Result<(LwPolyline, f64, bool), Box<ConversionGeometryFailure>> {
+    source: OcdrawGeometryEntitySource,
+    assessment: &mut OcdrawGeometryAssessment,
+) -> Result<(LwPolyline, f64, bool), Box<OcdrawGeometryFailure>> {
     let (o, x, y) = components(plane);
     let normal = stored_normal(plane).ok_or_else(|| {
         assessment.failure(

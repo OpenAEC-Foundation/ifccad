@@ -1,15 +1,15 @@
 //! Author placed geometry and a shared block directly, without an IFCX package.
 use ocdraw::ocdraw::{
-    BlockDefinition, BlockTransform, CoordinateFrame3, DrawingBuilder, DrawingGeometry,
-    DrawingOptions, GeometricEntityDefinition, LayerDefinition, LineDefinition, Point3, RgbColor,
-    Scale3, Vector3,
+    BlockDefinition, BlockTransform, CoordinateFrame3, DrawingGeometry, GeometricEntityDefinition,
+    LayerDefinition, LineDefinition, OcdrawBuildOptions, OcdrawBuilder, Point3, RgbColor, Scale3,
+    Vector3,
 };
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let path = std::env::args()
         .nth(1)
         .ok_or("usage: write_ocdraw <new-output.ocdraw.json>")?;
-    let mut drawing = DrawingBuilder::new(DrawingOptions::new("placed-geometry", "mm"))?;
+    let mut drawing = OcdrawBuilder::new(OcdrawBuildOptions::new("placed-geometry", "mm"))?;
     let continuous = drawing.ensure_continuous_line_pattern()?;
     let layer = drawing.add_layer(LayerDefinition::new(
         "0",
@@ -48,7 +48,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             transform,
         },
     ))?;
-    // Convenience route: build_document(), then the common encode_document().
+    // Convenience route: build_document(), then the common encode_ocdraw_document().
     // Use those separately to edit the logical document before encoding.
     drawing.finish()?.write_file(path)?;
     Ok(())

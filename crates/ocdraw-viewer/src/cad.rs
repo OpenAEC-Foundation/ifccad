@@ -1,7 +1,7 @@
 //! Shared physical CAD IO; the two drawing converters remain independent.
 use crate::{fail, progress};
 use base64::{engine::general_purpose::STANDARD, Engine};
-use ocdraw_convert::cadcodec::{
+use ocdraw_convert::opencadcodec::{
     CadDocument, DwgReader, DwgWriter, DxfReader, DxfVersion, DxfWriter,
 };
 use serde_json::{json, Value};

@@ -37189,12 +37189,37 @@
     ]
   },
   "provenance": {
-    "cadcodec": {
-      "local_override": false,
-      "source": "git+https://github.com/HakanSeven12/opencadcodec.git?rev=d96e3fa2fe5acbeac966f1db4c01142618bf9c79#d96e3fa2fe5acbeac966f1db4c01142618bf9c79"
-    },
-    "cargo_lock_sha256": "973e2c3d6b84121a635d63aa05dbca6a4b464ea8a7cb0b64ccafe952a398a2d6",
-    "deleted_source_paths": [],
+    "cargo_lock_sha256": "0f86244fdf251ecf65556cc1d39d0182ddff1d068e2b4fa029795c3b97135a59",
+    "deleted_source_paths": [
+      "crates/ocdraw-convert/src/ocdraw/COVERAGE.md",
+      "crates/ocdraw-convert/src/ocdraw/IMPORT-COVERAGE.md",
+      "crates/ocdraw-convert/src/ocdraw/appearance.rs",
+      "crates/ocdraw-convert/src/ocdraw/export.rs",
+      "crates/ocdraw-convert/src/ocdraw/geometry.rs",
+      "crates/ocdraw-convert/src/ocdraw/import.rs",
+      "crates/ocdraw-convert/src/ocdraw/import/entities.rs",
+      "crates/ocdraw-convert/src/ocdraw/import/layouts.rs",
+      "crates/ocdraw-convert/src/ocdraw/layout.rs",
+      "crates/ocdraw-convert/src/ocdraw/line_pattern.rs",
+      "crates/ocdraw-convert/src/ocdraw/mod.rs",
+      "crates/ocdraw-convert/src/ocdraw/point_display.rs",
+      "crates/ocdraw-convert/src/ocdraw/viewport.rs",
+      "crates/ocdraw-convert/src/ocdraw/workspace.rs",
+      "crates/ocdraw-convert/src/ocdraw/workspace/import.rs",
+      "crates/ocdraw-convert/src/source/COVERAGE.md",
+      "crates/ocdraw-convert/src/source/diagnostic.rs",
+      "src/ifcx_cad/allocation.rs",
+      "src/ifcx_cad/document_validation.rs",
+      "src/ifcx_cad/graph.rs",
+      "src/ifcx_cad/model.rs",
+      "src/ifcx_cad/parse.rs",
+      "src/ifcx_cad/patterns.rs",
+      "src/ifcx_cad/validate.rs",
+      "src/ifcx_cad/wire.rs",
+      "src/ifcx_cad/write.rs",
+      "src/ocdraw/write.rs",
+      "src/ocdraw/write/state.rs"
+    ],
     "dependencies": [
       {
         "name": "adler2",
@@ -37244,7 +37269,7 @@
       {
         "name": "bitflags",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "2.13.1"
+        "version": "2.13.2"
       },
       {
         "name": "block-buffer",
@@ -37274,7 +37299,12 @@
       {
         "name": "cfg-if",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "1.0.4"
+        "version": "1.0.5"
+      },
+      {
+        "name": "core_detect",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "version": "1.0.0"
       },
       {
         "name": "cpufeatures",
@@ -37284,22 +37314,22 @@
       {
         "name": "crc32fast",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "1.5.1"
+        "version": "1.5.2"
       },
       {
         "name": "crossbeam-deque",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.8.7"
+        "version": "0.8.8"
       },
       {
         "name": "crossbeam-epoch",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.9.20"
+        "version": "0.9.21"
       },
       {
         "name": "crossbeam-utils",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.8.22"
+        "version": "0.8.23"
       },
       {
         "name": "crypto-common",
@@ -37339,7 +37369,7 @@
       {
         "name": "encoding_rs",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.8.35"
+        "version": "0.8.41"
       },
       {
         "name": "equivalent",
@@ -37349,7 +37379,7 @@
       {
         "name": "fancy-regex",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.19.0"
+        "version": "0.19.2"
       },
       {
         "name": "flate2",
@@ -37464,7 +37494,7 @@
       {
         "name": "indexmap",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "2.14.1"
+        "version": "2.14.2"
       },
       {
         "name": "itoa",
@@ -37474,7 +37504,7 @@
       {
         "name": "js-sys",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.3.104"
+        "version": "0.3.105"
       },
       {
         "name": "jsonschema",
@@ -37530,6 +37560,21 @@
         "name": "miniz_oxide",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
         "version": "0.9.1"
+      },
+      {
+        "name": "multiversion",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "version": "0.9.0"
+      },
+      {
+        "name": "multiversion-macros",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "version": "0.9.0"
+      },
+      {
+        "name": "multiversion_no_op",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "version": "1.0.0"
       },
       {
         "name": "nom",
@@ -37742,6 +37787,11 @@
         "version": "0.3.10"
       },
       {
+        "name": "simdutf8",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "version": "0.1.5"
+      },
+      {
         "name": "slab",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
         "version": "0.4.12"
@@ -37749,7 +37799,7 @@
       {
         "name": "smallvec",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "1.16.0"
+        "version": "1.16.1"
       },
       {
         "name": "stable_deref_trait",
@@ -37774,12 +37824,12 @@
       {
         "name": "syn",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "3.0.4"
+        "version": "3.0.6"
       },
       {
         "name": "synstructure",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.13.2"
+        "version": "0.14.0"
       },
       {
         "name": "thiserror",
@@ -37824,7 +37874,7 @@
       {
         "name": "unicode-ident",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "1.0.24"
+        "version": "1.0.26"
       },
       {
         "name": "utf8_iter",
@@ -37849,22 +37899,22 @@
       {
         "name": "wasm-bindgen",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.2.127"
+        "version": "0.2.128"
       },
       {
         "name": "wasm-bindgen-macro",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.2.127"
+        "version": "0.2.128"
       },
       {
         "name": "wasm-bindgen-macro-support",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.2.127"
+        "version": "0.2.128"
       },
       {
         "name": "wasm-bindgen-shared",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.2.127"
+        "version": "0.2.128"
       },
       {
         "name": "web-time",
@@ -37889,12 +37939,12 @@
       {
         "name": "yoke-derive",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.8.2"
+        "version": "0.8.3"
       },
       {
         "name": "zerocopy",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.8.56"
+        "version": "0.8.57"
       },
       {
         "name": "zerofrom",
@@ -37904,7 +37954,7 @@
       {
         "name": "zerofrom-derive",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.1.7"
+        "version": "0.1.8"
       },
       {
         "name": "zerotrie",
@@ -37924,7 +37974,7 @@
       {
         "name": "zlib-rs",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.6.7"
+        "version": "0.6.8"
       },
       {
         "name": "zmij",
@@ -37932,13 +37982,17 @@
         "version": "1.0.23"
       }
     ],
+    "opencadcodec": {
+      "local_override": false,
+      "source": "git+https://github.com/HakanSeven12/opencadcodec.git?rev=d96e3fa2fe5acbeac966f1db4c01142618bf9c79#d96e3fa2fe5acbeac966f1db4c01142618bf9c79"
+    },
     "repository_dirty": true,
-    "repository_revision": "232ec3035c83eecf63ff7676690939a692354d48",
+    "repository_revision": "40c9fcaba8b03f85bbcef1822293e2b84a867285",
     "rustc": "rustc 1.98.0 (88d9e12ae 2026-08-18)\nbinary: rustc\ncommit-hash: 88d9e12ae178fab0fb5cc050a94da85685d449ea\ncommit-date: 2026-08-18\nhost: x86_64-pc-windows-msvc\nrelease: 1.98.0\nLLVM version: 22.1.8",
-    "source_manifest_sha256": "e09dbf7c2774303fbcd4e31f09b5aca4c0369a1f0b8b9fbee3fda0b49875f11a",
+    "source_manifest_sha256": "e3e311b27400e2261c1961afdfa669229c319c0e74d4a88946963895af1c1abf",
     "writers": {
-      "dwg": "cadcodec normal AC1032, native compression",
-      "dxf": "cadcodec text AC1032",
+      "dwg": "opencadcodec normal AC1032, native compression",
+      "dxf": "opencadcodec text AC1032",
       "ocdraw": "current pretty JSON, uncompressed standalone file"
     }
   },

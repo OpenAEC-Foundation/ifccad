@@ -1,4 +1,4 @@
-use ocdraw::ocdraw::{load_drawing_bytes, DrawingGeometry, DrawingLoadStatus};
+use ocdraw::ocdraw::{load_ocdraw_bytes, DrawingGeometry, OcdrawReadStatus};
 use serde_json::{json, Value};
 
 fn fixture() -> Value {
@@ -8,8 +8,8 @@ fn fixture() -> Value {
     .unwrap()
 }
 
-fn load(value: &Value) -> ocdraw::ocdraw::DrawingLoadOutcome {
-    load_drawing_bytes(&serde_json::to_vec(value).unwrap())
+fn load(value: &Value) -> Result<ocdraw::ocdraw::ValidatedOcdraw, ocdraw::ocdraw::OcdrawReadError> {
+    load_ocdraw_bytes(&serde_json::to_vec(value).unwrap())
 }
 
 #[test]
@@ -20,25 +20,52 @@ fn huge_stream_counts_are_rejected_before_row_validation() {
             let mut value = fixture();
             value["streams"] = json!({stream: {"count": u64::MAX}});
             let outcome = load(&value);
-            assert_eq!(outcome.status(), DrawingLoadStatus::Invalid);
+            assert_eq!(
+                outcome
+                    .as_ref()
+                    .map(|_| OcdrawReadStatus::Valid)
+                    .unwrap_or_else(|e| e.status()),
+                OcdrawReadStatus::Invalid
+            );
             assert!(outcome
-                .diagnostics()
+                .as_ref()
+                .err()
+                .map(|e| e.diagnostics())
+                .unwrap_or_default()
                 .iter()
                 .any(|d| d.code == "STREAM_COLUMN"));
         }
         let mut value = with_line();
         value["streams"]["lineStream"]["count"] = json!(u64::MAX);
         let outcome = load(&value);
-        assert_eq!(outcome.status(), DrawingLoadStatus::Invalid);
+        assert_eq!(
+            outcome
+                .as_ref()
+                .map(|_| OcdrawReadStatus::Valid)
+                .unwrap_or_else(|e| e.status()),
+            OcdrawReadStatus::Invalid
+        );
         assert!(outcome
-            .diagnostics()
+            .as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
             .iter()
             .any(|d| matches!(d.code, "COLUMN_COUNT" | "STREAM_COUNT")));
         value["streams"]["lineStream"]["count"] = json!(1.0);
         let outcome = load(&value);
-        assert_eq!(outcome.status(), DrawingLoadStatus::Invalid);
+        assert_eq!(
+            outcome
+                .as_ref()
+                .map(|_| OcdrawReadStatus::Valid)
+                .unwrap_or_else(|e| e.status()),
+            OcdrawReadStatus::Invalid
+        );
         assert!(outcome
-            .diagnostics()
+            .as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
             .iter()
             .any(|d| d.code == "STREAM_COUNT"));
         return;
@@ -98,18 +125,21 @@ fn with_line() -> Value {
 fn line_geometry_is_exposed_as_typed_drawing_meaning() {
     let read = load(&with_line());
     assert_eq!(
-        read.status(),
-        DrawingLoadStatus::Valid,
+        read.as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Valid,
         "{:?}",
-        read.diagnostics()
+        read.as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
     );
-    let entities = read.validated_drawing().unwrap().geometric_entities();
+    let entities = read.as_ref().ok().unwrap().geometric_entities();
     assert_eq!(entities.len(), 1);
     assert_eq!(entities[0].id(), 1);
     assert_eq!(
-        read.validated_drawing()
-            .unwrap()
-            .owner_scope_id(entities[0].id()),
+        read.as_ref().ok().unwrap().owner_scope_id(entities[0].id()),
         Some(0)
     );
     assert!(matches!(
@@ -124,12 +154,19 @@ fn line_geometry_is_exposed_as_typed_drawing_meaning() {
 fn empty_drawing_opens_without_an_implicit_layer() {
     let outcome = load(&fixture());
     assert_eq!(
-        outcome.status(),
-        DrawingLoadStatus::Valid,
+        outcome
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Valid,
         "{:?}",
-        outcome.diagnostics()
+        outcome
+            .as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
     );
-    let drawing = outcome.validated_drawing().unwrap();
+    let drawing = outcome.as_ref().ok().unwrap();
     assert_eq!(drawing.drawing_id(), "empty-drawing");
     assert_eq!(drawing.typed_layers().len(), 0);
     assert_eq!(drawing.typed_layouts().len(), 1);
@@ -150,14 +187,27 @@ fn malformed_plot_rectangles_fail_shared_layout_validation() {
             "plotLineWeights":true,"scaleLineWeights":false,"plotTransparency":false}
     });
     let result = load(&value);
-    assert_eq!(result.status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        result
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
     assert!(
         result
-            .diagnostics()
+            .as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
             .iter()
             .any(|item| item.code == "PLOT_RECT"),
         "{:?}",
-        result.diagnostics()
+        result
+            .as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
     );
 }
 
@@ -169,36 +219,65 @@ fn drawing_view_state_requires_existing_model_window_and_named_ucs() {
         "activeModelWindowId": 3
     });
     let result = load(&value);
-    assert_eq!(result.status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        result
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
     assert!(
         result
-            .diagnostics()
+            .as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
             .iter()
             .any(|item| item.code == "MODEL_WINDOW_REF"),
         "{:?}",
-        result.diagnostics()
+        result
+            .as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
     );
     assert!(
         result
-            .diagnostics()
+            .as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
             .iter()
             .any(|item| item.code == "UCS_REF"),
         "{:?}",
-        result.diagnostics()
+        result
+            .as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
     );
     value["drawingViewState"]["currentModelUcs"] = json!({"kind": "Named"});
     assert!(load(&value)
-        .diagnostics()
+        .as_ref()
+        .err()
+        .map(|e| e.diagnostics())
+        .unwrap_or_default()
         .iter()
         .any(|item| item.code == "UCS_REF"));
     value["drawingViewState"]["currentModelUcs"] = json!({"kind": "World", "ucsId": 7});
     assert!(load(&value)
-        .diagnostics()
+        .as_ref()
+        .err()
+        .map(|e| e.diagnostics())
+        .unwrap_or_default()
         .iter()
         .any(|item| item.code == "UCS_CHOICE"));
     value["drawingViewState"]["currentModelUcs"] = json!({"kind": "Unnamed"});
     assert!(load(&value)
-        .diagnostics()
+        .as_ref()
+        .err()
+        .map(|e| e.diagnostics())
+        .unwrap_or_default()
         .iter()
         .any(|item| item.code == "UCS_CHOICE"));
 }
@@ -236,12 +315,19 @@ fn drawing_view_state_decodes_to_typed_workspace_records() {
     let value = with_model_window();
     let result = load(&value);
     assert_eq!(
-        result.status(),
-        DrawingLoadStatus::Valid,
+        result
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Valid,
         "{:?}",
-        result.diagnostics()
+        result
+            .as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
     );
-    let drawing = result.validated_drawing().unwrap();
+    let drawing = result.as_ref().ok().unwrap();
     assert_eq!(drawing.view_state().unwrap().active_model_window_id, 3);
     assert_eq!(drawing.model_windows()[0].view.height, 10.0);
     assert!(drawing.has_unconverted_view_state());
@@ -299,10 +385,17 @@ fn clip_boundary_pattern_generation_does_not_change_clip_geometry() {
     });
     let loaded = load(&value);
     assert_eq!(
-        loaded.status(),
-        DrawingLoadStatus::Valid,
+        loaded
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Valid,
         "{:?}",
-        loaded.diagnostics()
+        loaded
+            .as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
     );
 }
 
@@ -311,21 +404,37 @@ fn paper_viewport_decodes_through_the_production_reader() {
     let mut value = with_viewport();
     let result = load(&value);
     assert_eq!(
-        result.status(),
-        DrawingLoadStatus::Valid,
+        result
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Valid,
         "{:?}",
-        result.diagnostics()
+        result
+            .as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
     );
-    let drawing = result.validated_drawing().unwrap();
+    let drawing = result.as_ref().ok().unwrap();
     assert_eq!(drawing.viewports().len(), 1);
     assert_eq!(drawing.owner_scope_id(drawing.viewports()[0].id), Some(1));
     assert_eq!(drawing.viewports()[0].view_scope_id, 0);
     assert_eq!(drawing.scopes()[1].entities, vec![1]);
     value["streams"]["viewportStream"]["frame"][0]["width"] = json!(10.0);
     let outside = load(&value);
-    assert_eq!(outside.status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        outside
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
     assert!(outside
-        .diagnostics()
+        .as_ref()
+        .err()
+        .map(|e| e.diagnostics())
+        .unwrap_or_default()
         .iter()
         .any(|item| item.code == "SCOPE_BOUNDS"));
 }
@@ -342,14 +451,27 @@ fn named_ucs_frame_must_have_independent_axes() {
         }
     }]);
     let result = load(&value);
-    assert_eq!(result.status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        result
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
     assert!(
         result
-            .diagnostics()
+            .as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
             .iter()
             .any(|item| item.code == "UCS_FRAME"),
         "{:?}",
-        result.diagnostics()
+        result
+            .as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
     );
 }
 
@@ -357,13 +479,31 @@ fn named_ucs_frame_must_have_independent_axes() {
 fn version_and_structure_fail_separately() {
     let mut value = fixture();
     value["header"]["version"] = json!("0.2.0");
-    assert_eq!(load(&value).status(), DrawingLoadStatus::UnsupportedVersion);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::UnsupportedVersion
+    );
     value["header"]["version"] = json!("0.1.0");
     value["unexpected"] = json!(1);
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
     let mut value = fixture();
     value["header"].as_object_mut().unwrap().remove("version");
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
 }
 
 #[test]
@@ -378,74 +518,156 @@ fn invalid_local_ids_and_appearance_are_rejected() {
          "opacity": 1.0, "linePatternId": 0, "lineWeight": 0.25}
     ]);
     value["header"]["nextLayerId"] = json!(1);
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
 
     let mut value = fixture();
     value["scopes"][0]["kind"] = json!(1);
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
 
     let mut value = with_line();
     assert_eq!(
-        load(&value).status(),
-        DrawingLoadStatus::Valid,
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Valid,
         "{:?}",
-        load(&value).diagnostics()
+        load(&value)
+            .as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
     );
     value["streams"]["lineStream"]["colorMode"] = json!(["ByLayer"]);
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
     let mut value = with_line();
     value["streams"]["lineStream"]
         .as_object_mut()
         .unwrap()
         .remove("colorMode");
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
 }
 
 #[test]
 fn present_stream_columns_and_counts_are_checked() {
     let mut value = with_line();
     value["streams"]["lineStream"]["count"] = json!(2);
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
     let mut value = with_line();
     value["streams"]["lineStream"]
         .as_object_mut()
         .unwrap()
         .remove("entityId");
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
 }
 
 #[test]
 fn nested_unknown_core_fields_are_rejected() {
     let mut value = fixture();
     value["drawingViewState"] = json!({"madeUp": true});
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
     let mut value = with_line();
     value["streams"]["lineStream"]["madeUp"] = json!([42]);
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
 }
 
 #[test]
 fn order_scope_and_line_bounds_must_match_geometry() {
     let mut value = with_line();
     value["scopes"][0]["entities"][0] = json!(99);
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
 
     let mut value = with_line();
     value["scopes"][0]["bounds"]["maxX"] = json!(1.0);
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
 
     let mut value = with_line();
     value["scopes"][0]["bounds"]["minX"] = json!(100.0);
     let result = load(&value);
-    assert_eq!(result.status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        result
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
     assert!(result
-        .diagnostics()
+        .as_ref()
+        .err()
+        .map(|e| e.diagnostics())
+        .unwrap_or_default()
         .iter()
         .any(|item| { item.code == "SCOPE_BOUNDS" && item.location == "/scopes/0/bounds" }));
 
     let mut value = with_line();
     value["scopes"][0]["entities"] = json!([1, 1]);
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
 }
 
 #[test]
@@ -453,12 +675,30 @@ fn local_id_spaces_are_separate_and_watermarks_are_checked() {
     let mut value = with_line();
     value["layouts"][0]["id"] = json!(1);
     value["header"]["nextLayoutId"] = json!(2);
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Valid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Valid
+    );
     value["header"]["nextLayoutId"] = json!(1);
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
     let mut value = with_line();
     value["header"]["nextEntityId"] = json!(1);
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
 }
 
 #[test]
@@ -468,16 +708,35 @@ fn block_scope_requires_a_local_definition() {
         .as_array_mut()
         .unwrap()
         .push(json!({"id":1,"kind":2,"bounds":null,"entities":[]}));
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
     value["blockDefinitions"] = json!([{"scopeId":1,"name":"Chair"}]);
     assert_eq!(
-        load(&value).status(),
-        DrawingLoadStatus::Valid,
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Valid,
         "{:?}",
-        load(&value).diagnostics()
+        load(&value)
+            .as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
     );
     value["blockDefinitions"][0]["scopeId"] = json!(0);
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
 }
 
 #[test]
@@ -485,18 +744,30 @@ fn viewport_layer_override_cannot_be_orphaned_or_target_a_missing_layer() {
     let mut value = with_line();
     value["streams"]["viewportLayerOverrideStream"] =
         json!({"count":1,"layerId":[0],"frozen":[true]});
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
     value["streams"]["viewportLayerOverrideStream"]["layerId"][0] = json!(99);
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
 }
 
 #[test]
 fn polyline_pool_ranges_and_scope_bounds_are_checked() {
     use ocdraw::ocdraw::{
-        DrawingBuilder, DrawingOptions, LayerDefinition, PlanarPolylineDefinition, RgbColor,
+        LayerDefinition, OcdrawBuildOptions, OcdrawBuilder, PlanarPolylineDefinition, RgbColor,
     };
     let mut builder =
-        DrawingBuilder::new(DrawingOptions::new("polyline-validation", "mm")).unwrap();
+        OcdrawBuilder::new(OcdrawBuildOptions::new("polyline-validation", "mm")).unwrap();
     builder.ensure_continuous_line_pattern().unwrap();
     let layer = builder
         .add_layer(LayerDefinition::new(
@@ -514,24 +785,48 @@ fn polyline_pool_ranges_and_scope_bounds_are_checked() {
         .unwrap();
     let bytes = builder.finish().unwrap();
     let mut value: Value = serde_json::from_slice(bytes.bytes()).unwrap();
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Valid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Valid
+    );
     value["streams"]["planarPolylineStream"]["vertexOffset"][0] = json!(1);
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
     value["streams"]["planarPolylineStream"]["vertexOffset"][0] = json!(0);
     value["streams"]["planarPolylineStream"]["bulge"][1] = json!(0.5);
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Valid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Valid
+    );
     value["streams"]["planarPolylineStream"]["bulge"][1] = json!(0.0);
     value["scopes"][0]["bounds"]["minY"] = json!(0.0);
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
 }
 
 #[test]
 fn point_and_circle_geometry_is_validated_against_scope_bounds() {
     use ocdraw::ocdraw::{
-        CircleDefinition, DrawingBuilder, DrawingOptions, LayerDefinition, PointDefinition,
+        CircleDefinition, LayerDefinition, OcdrawBuildOptions, OcdrawBuilder, PointDefinition,
         RgbColor,
     };
-    let mut builder = DrawingBuilder::new(DrawingOptions::new("geometry", "mm")).unwrap();
+    let mut builder = OcdrawBuilder::new(OcdrawBuildOptions::new("geometry", "mm")).unwrap();
     builder.ensure_continuous_line_pattern().unwrap();
     let layer = builder
         .add_layer(LayerDefinition::new(
@@ -549,21 +844,39 @@ fn point_and_circle_geometry_is_validated_against_scope_bounds() {
     let encoded = builder.finish().unwrap();
     let mut value: Value = serde_json::from_slice(encoded.bytes()).unwrap();
     value["streams"]["circleStream"]["radius"][0] = json!(0);
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
     let mut value: Value = serde_json::from_slice(encoded.bytes()).unwrap();
     value["scopes"][0]["bounds"]["maxX"] = json!(11.0);
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
     let mut value: Value = serde_json::from_slice(encoded.bytes()).unwrap();
     value["streams"]["pointStream"]["placement"][0]["origin"]["x"] = json!(100.0);
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
 }
 
 #[test]
 fn block_instance_definition_reference_must_target_a_block_scope() {
     use ocdraw::ocdraw::{
-        BlockInstanceDefinition, DrawingBuilder, DrawingOptions, LayerDefinition, RgbColor,
+        BlockInstanceDefinition, LayerDefinition, OcdrawBuildOptions, OcdrawBuilder, RgbColor,
     };
-    let mut builder = DrawingBuilder::new(DrawingOptions::new("blocks", "mm")).unwrap();
+    let mut builder = OcdrawBuilder::new(OcdrawBuildOptions::new("blocks", "mm")).unwrap();
     builder.ensure_continuous_line_pattern().unwrap();
     let layer = builder
         .add_layer(LayerDefinition::new(
@@ -579,15 +892,21 @@ fn block_instance_definition_reference_must_target_a_block_scope() {
     let encoded = builder.finish().unwrap();
     let mut value: Value = serde_json::from_slice(encoded.bytes()).unwrap();
     value["streams"]["blockInstanceStream"]["definitionScopeId"][0] = json!(0);
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
 }
 
 #[test]
 fn arc_sweep_and_bounds_are_validated() {
     use ocdraw::ocdraw::{
-        ArcDefinition, DrawingBuilder, DrawingOptions, LayerDefinition, RgbColor,
+        ArcDefinition, LayerDefinition, OcdrawBuildOptions, OcdrawBuilder, RgbColor,
     };
-    let mut builder = DrawingBuilder::new(DrawingOptions::new("arc", "mm")).unwrap();
+    let mut builder = OcdrawBuilder::new(OcdrawBuildOptions::new("arc", "mm")).unwrap();
     builder.ensure_continuous_line_pattern().unwrap();
     let layer = builder
         .add_layer(LayerDefinition::new(
@@ -608,18 +927,30 @@ fn arc_sweep_and_bounds_are_validated() {
     let encoded = builder.finish().unwrap();
     let mut value: Value = serde_json::from_slice(encoded.bytes()).unwrap();
     value["streams"]["arcStream"]["sweepParameter"][0] = json!(0.0);
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
     let mut value: Value = serde_json::from_slice(encoded.bytes()).unwrap();
     value["scopes"][0]["bounds"]["maxY"] = json!(1.0);
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
 }
 
 #[test]
 fn ellipse_axes_and_radii_are_validated() {
     use ocdraw::ocdraw::{
-        DrawingBuilder, DrawingOptions, EllipseDefinition, LayerDefinition, RgbColor,
+        EllipseDefinition, LayerDefinition, OcdrawBuildOptions, OcdrawBuilder, RgbColor,
     };
-    let mut builder = DrawingBuilder::new(DrawingOptions::new("ellipse", "mm")).unwrap();
+    let mut builder = OcdrawBuilder::new(OcdrawBuildOptions::new("ellipse", "mm")).unwrap();
     builder.ensure_continuous_line_pattern().unwrap();
     let layer = builder
         .add_layer(LayerDefinition::new(
@@ -640,10 +971,22 @@ fn ellipse_axes_and_radii_are_validated() {
     let encoded = builder.finish().unwrap();
     let mut value: Value = serde_json::from_slice(encoded.bytes()).unwrap();
     value["streams"]["ellipseStream"]["semiMinorRadius"][0] = json!(4.0);
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
     let mut value: Value = serde_json::from_slice(encoded.bytes()).unwrap();
     value["streams"]["ellipseStream"]["placement"][0]["X"]["x"] = json!(0.0);
-    assert_eq!(load(&value).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
 }
 
 #[test]
@@ -652,10 +995,15 @@ fn stream_names_and_mapping_suffice_without_a_document_directory() {
         value.as_object_mut().unwrap().remove("streamDirectory");
         let read = load(&value);
         assert_eq!(
-            read.status(),
-            DrawingLoadStatus::Valid,
+            read.as_ref()
+                .map(|_| OcdrawReadStatus::Valid)
+                .unwrap_or_else(|e| e.status()),
+            OcdrawReadStatus::Valid,
             "{:?}",
-            read.diagnostics()
+            read.as_ref()
+                .err()
+                .map(|e| e.diagnostics())
+                .unwrap_or_default()
         );
     }
 }
@@ -664,7 +1012,13 @@ fn stream_names_and_mapping_suffice_without_a_document_directory() {
 fn absent_unused_streams_do_not_relax_validation_of_present_streams() {
     let valid = with_line();
     assert_eq!(valid["streams"].as_object().unwrap().len(), 1);
-    assert_eq!(load(&valid).status(), DrawingLoadStatus::Valid);
+    assert_eq!(
+        load(&valid)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Valid
+    );
     for (field, value, code) in [
         ("x2", json!([]), "COLUMN_COUNT"),
         ("layerId", json!([99]), "ENTITY_REF"),
@@ -672,23 +1026,42 @@ fn absent_unused_streams_do_not_relax_validation_of_present_streams() {
         let mut drawing = valid.clone();
         drawing["streams"]["lineStream"][field] = value;
         let read = load(&drawing);
-        assert_eq!(read.status(), DrawingLoadStatus::Invalid);
+        assert_eq!(
+            read.as_ref()
+                .map(|_| OcdrawReadStatus::Valid)
+                .unwrap_or_else(|e| e.status()),
+            OcdrawReadStatus::Invalid
+        );
         assert!(
-            read.diagnostics().iter().any(|d| d.code == code),
+            read.as_ref()
+                .err()
+                .map(|e| e.diagnostics())
+                .unwrap_or_default()
+                .iter()
+                .any(|d| d.code == code),
             "{:?}",
-            read.diagnostics()
+            read.as_ref()
+                .err()
+                .map(|e| e.diagnostics())
+                .unwrap_or_default()
         );
     }
     let mut obsolete = valid.clone();
     obsolete["streamDirectory"] = json!({"version":"ocdraw.streamDirectory.v1","streams":[]});
     assert!(load(&obsolete)
-        .diagnostics()
+        .as_ref()
+        .err()
+        .map(|e| e.diagnostics())
+        .unwrap_or_default()
         .iter()
         .any(|d| d.code == "SCHEMA"));
     let mut unknown = valid;
     unknown["streams"]["inventedStream"] = json!({"count":0});
     assert!(load(&unknown)
-        .diagnostics()
+        .as_ref()
+        .err()
+        .map(|e| e.diagnostics())
+        .unwrap_or_default()
         .iter()
         .any(|d| d.code == "SCHEMA"));
 }
@@ -697,21 +1070,51 @@ fn absent_unused_streams_do_not_relax_validation_of_present_streams() {
 fn view_and_workspace_cross_record_rules_survive_the_logical_model_migration() {
     let mut viewport = with_viewport();
     viewport["streams"]["viewportStream"]["view"][0]["direction"] = json!({"x":0.,"y":0.,"z":0.});
-    assert_eq!(load(&viewport).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&viewport)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
     let mut clipping = with_viewport();
     clipping["streams"]["viewportStream"]["paperClip"][0] =
         json!({"enabled":false,"boundaryEntityId":99});
-    assert_eq!(load(&clipping).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&clipping)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
     let mut grid = with_model_window();
     grid["modelWindows"][0]["grid"]["majorLineFrequency"] = json!(0);
-    assert_eq!(load(&grid).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&grid)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
     let mut conflict = with_model_window();
     conflict["modelWindows"][0]["useStoredUcs"] = json!(true);
     conflict["modelWindows"][0]["storedUcs"] = json!({"kind":"Unnamed","frame":{"origin":{"x":1.,"y":0.,"z":0.},"X":{"x":1.,"y":0.,"z":0.},"Y":{"x":0.,"y":1.,"z":0.}}});
-    assert_eq!(load(&conflict).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&conflict)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
     let mut missing = with_model_window();
     missing.as_object_mut().unwrap().remove("drawingViewState");
-    assert_eq!(load(&missing).status(), DrawingLoadStatus::Invalid);
+    assert_eq!(
+        load(&missing)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Invalid
+    );
 }
 
 #[test]
@@ -747,12 +1150,17 @@ fn null_placement_rows_follow_the_registered_logical_default() {
         value["streams"] = json!({format!("{kind}Stream"):stream});
         let read = load(&value);
         assert_eq!(
-            read.status(),
-            DrawingLoadStatus::Valid,
+            read.as_ref()
+                .map(|_| OcdrawReadStatus::Valid)
+                .unwrap_or_else(|e| e.status()),
+            OcdrawReadStatus::Valid,
             "{kind}: {:?}",
-            read.diagnostics()
+            read.as_ref()
+                .err()
+                .map(|e| e.diagnostics())
+                .unwrap_or_default()
         );
-        let geometry = read.validated_drawing().unwrap().geometric_entities()[0].geometry();
+        let geometry = read.as_ref().ok().unwrap().geometric_entities()[0].geometry();
         let placement = match geometry {
             DrawingGeometry::Point { placement }
             | DrawingGeometry::Circle { placement, .. }
@@ -774,15 +1182,25 @@ fn viewport_enclosure_does_not_round_away_a_small_frame_at_large_coordinates() {
     value["scopes"][1]["bounds"]["minX"] = json!(center);
     value["scopes"][1]["bounds"]["maxX"] = json!(center);
     assert!(load(&value)
-        .diagnostics()
+        .as_ref()
+        .err()
+        .map(|e| e.diagnostics())
+        .unwrap_or_default()
         .iter()
         .any(|d| d.code == "SCOPE_BOUNDS"));
     value["scopes"][1]["bounds"]["minX"] = json!(center.next_down());
     value["scopes"][1]["bounds"]["maxX"] = json!(center.next_up());
     assert_eq!(
-        load(&value).status(),
-        DrawingLoadStatus::Valid,
+        load(&value)
+            .as_ref()
+            .map(|_| OcdrawReadStatus::Valid)
+            .unwrap_or_else(|e| e.status()),
+        OcdrawReadStatus::Valid,
         "{:?}",
-        load(&value).diagnostics()
+        load(&value)
+            .as_ref()
+            .err()
+            .map(|e| e.diagnostics())
+            .unwrap_or_default()
     );
 }

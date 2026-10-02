@@ -1,10 +1,10 @@
 use super::geometry;
-use crate::ocdraw::read::{diagnostic, DrawingDiagnostic};
+use crate::ocdraw::read::{diagnostic, OcdrawDiagnostic};
 use serde_json::Value;
 use std::collections::BTreeSet;
 
 /// Checks row counts and column shapes without traversing declared rows.
-pub(super) fn validate_stream_columns(value: &Value, diagnostics: &mut Vec<DrawingDiagnostic>) {
+pub(super) fn validate_stream_columns(value: &Value, diagnostics: &mut Vec<OcdrawDiagnostic>) {
     for map in super::super::stream_contract::mapping()["streams"]
         .as_array()
         .expect("bundled mapping")
@@ -60,7 +60,7 @@ pub(super) fn validate_stream_columns(value: &Value, diagnostics: &mut Vec<Drawi
     }
 }
 
-pub(super) fn validate_streams(value: &Value, diagnostics: &mut Vec<DrawingDiagnostic>) {
+pub(super) fn validate_streams(value: &Value, diagnostics: &mut Vec<OcdrawDiagnostic>) {
     if let Some(streams) = value["streams"].as_object() {
         for (name, stream) in streams {
             let pooled_columns = pooled_columns(name);
@@ -125,7 +125,7 @@ fn validate_vertex_pool(
     stream: &Value,
     pools: &[&str],
     count: usize,
-    diagnostics: &mut Vec<DrawingDiagnostic>,
+    diagnostics: &mut Vec<OcdrawDiagnostic>,
 ) {
     let lengths = pools
         .iter()

@@ -1,7 +1,7 @@
-use super::ExportLossReason;
-use cadcodec::entities::EntityCommon;
-use cadcodec::{Color, Layer, LineWeight, Transparency};
+use super::CadToOcdrawLossReason;
 use ocdraw::ocdraw::DrawingColor as AppearanceColor;
+use opencadcodec::entities::EntityCommon;
+use opencadcodec::{Color, Layer, LineWeight, Transparency};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub(crate) enum AppearanceMode {
@@ -22,15 +22,15 @@ pub(crate) struct AppearanceSignature {
 pub(crate) struct ConvertedAppearance {
     pub(crate) signature: AppearanceSignature,
     pub(crate) color: AppearanceColor,
-    pub(crate) losses: Vec<ExportLossReason>,
+    pub(crate) losses: Vec<CadToOcdrawLossReason>,
 }
 
 pub(crate) enum LayerAppearanceError {
-    Loss(Vec<ExportLossReason>),
+    Loss(Vec<CadToOcdrawLossReason>),
 }
 
 pub(crate) enum EntityAppearanceError {
-    Loss(Vec<ExportLossReason>),
+    Loss(Vec<CadToOcdrawLossReason>),
 }
 
 pub(crate) struct ConvertedEntityAppearance {
@@ -53,7 +53,7 @@ pub(crate) fn convert_entity_appearance(
                 Some(([r, g, b], Some(u32::from(index)))),
             ),
             None => {
-                losses.push(ExportLossReason::EntityColorUnsupported {
+                losses.push(CadToOcdrawLossReason::EntityColorUnsupported {
                     color: common.color.to_string(),
                 });
                 (AppearanceMode::Explicit, None)
@@ -61,7 +61,7 @@ pub(crate) fn convert_entity_appearance(
         },
         Color::Rgb { r, g, b } => (AppearanceMode::Explicit, Some(([r, g, b], None))),
         _ => {
-            losses.push(ExportLossReason::EntityColorUnsupported {
+            losses.push(CadToOcdrawLossReason::EntityColorUnsupported {
                 color: common.color.to_string(),
             });
             (AppearanceMode::Explicit, None)
@@ -75,7 +75,7 @@ pub(crate) fn convert_entity_appearance(
                 Some((catalog.to_owned(), name.to_owned()))
             }
             _ => {
-                losses.push(ExportLossReason::EntityNamedColorUnsupported {
+                losses.push(CadToOcdrawLossReason::EntityNamedColorUnsupported {
                     name: value.clone(),
                 });
                 None
@@ -83,7 +83,7 @@ pub(crate) fn convert_entity_appearance(
         },
     };
     if named.is_some() && explicit_color.is_none() {
-        losses.push(ExportLossReason::EntityNamedColorWithoutExplicitColor);
+        losses.push(CadToOcdrawLossReason::EntityNamedColorWithoutExplicitColor);
     }
 
     let (opacity_mode, opacity) = match common.transparency {
@@ -99,7 +99,7 @@ pub(crate) fn convert_entity_appearance(
             (AppearanceMode::Explicit, f64::from(value) / 100.0)
         }
         _ => {
-            losses.push(ExportLossReason::EntityLineWeightUnsupported {
+            losses.push(CadToOcdrawLossReason::EntityLineWeightUnsupported {
                 value: common.line_weight.value(),
             });
             (AppearanceMode::Explicit, 0.25)
@@ -152,7 +152,7 @@ pub(crate) fn convert_layer_appearance(
         _ => None,
     };
     if color_components.is_none() {
-        required_losses.push(ExportLossReason::LayerColorUnsupported {
+        required_losses.push(CadToOcdrawLossReason::LayerColorUnsupported {
             color: layer.color.to_string(),
         });
     }
@@ -160,18 +160,18 @@ pub(crate) fn convert_layer_appearance(
     let opacity = match layer.transparency {
         Transparency::Explicit(alpha) => Some(1.0 - f64::from(alpha) / 255.0),
         _ => {
-            required_losses.push(ExportLossReason::LayerTransparencyUnsupported);
+            required_losses.push(CadToOcdrawLossReason::LayerTransparencyUnsupported);
             None
         }
     };
     if layer.line_type.is_empty() {
-        required_losses.push(ExportLossReason::LayerLinePatternMissing);
+        required_losses.push(CadToOcdrawLossReason::LayerLinePatternMissing);
     }
     let line_weight = match layer.line_weight {
         LineWeight::Value(value) if value >= 0 => Some(f64::from(value) / 100.0),
         LineWeight::Default => Some(0.25),
         _ => {
-            required_losses.push(ExportLossReason::LayerLineWeightUnsupported {
+            required_losses.push(CadToOcdrawLossReason::LayerLineWeightUnsupported {
                 value: layer.line_weight.value(),
             });
             None
@@ -185,7 +185,7 @@ pub(crate) fn convert_layer_appearance(
             Some((catalog.clone(), name.clone()))
         }
         _ => {
-            losses.push(ExportLossReason::NamedColorIdentityIncomplete {
+            losses.push(CadToOcdrawLossReason::NamedColorIdentityIncomplete {
                 color_name: layer.color_name.clone(),
                 book_name: layer.book_name.clone(),
             });

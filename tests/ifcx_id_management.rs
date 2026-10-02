@@ -31,8 +31,8 @@ fn drawing(graph: &mut Value) -> &mut Value {
         .unwrap()["attributes"]["ifccad::drawing"]
 }
 
-fn read(graph: &Value) -> Result<ValidatedIfcxCad, IfcxCadReport> {
-    read_native_cad_ifcx(&serde_json::to_vec(graph).unwrap())
+fn read(graph: &Value) -> Result<ValidatedIfcxCad, IfcxCadReadError> {
+    load_ifcx_cad_bytes(&serde_json::to_vec(graph).unwrap(), Default::default())
 }
 
 #[test]
@@ -53,7 +53,7 @@ fn counter_fields_are_required_and_exact_u64() {
             &format!("\"{field}\":18446744073709551616"),
         );
         assert!(
-            read_native_cad_ifcx(text.as_bytes()).is_err(),
+            load_ifcx_cad_bytes(text.as_bytes(), Default::default()).is_err(),
             "overflow {field}"
         );
     }
@@ -75,7 +75,7 @@ fn stale_counters_cover_every_domain_and_owner() {
             _ => unreachable!(),
         }
         assert!(
-            write_native_cad_ifcx(&document).is_err(),
+            encode_ifcx_cad_document(&document).is_err(),
             "writer stale {field}"
         );
     }
@@ -90,10 +90,10 @@ fn block_contents_share_the_entity_domain_even_without_layout_entities() {
     }
     // e102 exists only in the second block definition.
     document.id_counters.next_entity_id = 102;
-    assert!(write_native_cad_ifcx(&document).is_err());
+    assert!(encode_ifcx_cad_document(&document).is_err());
     document.id_counters.next_entity_id = 103;
     let mut saved: Value =
-        serde_json::from_slice(&write_native_cad_ifcx(&document).unwrap()).unwrap();
+        serde_json::from_slice(encode_ifcx_cad_document(&document).unwrap().bytes()).unwrap();
     drawing(&mut saved)["nextEntityId"] = json!(102);
     assert!(read(&saved).is_err());
 }
@@ -101,13 +101,18 @@ fn block_contents_share_the_entity_domain_even_without_layout_entities() {
 #[test]
 fn sparse_ids_and_advanced_counters_roundtrip() {
     let document = read(&graph()).unwrap().document().clone();
-    let bytes = write_native_cad_ifcx(&document).unwrap();
-    let mut saved: Value = serde_json::from_slice(&bytes).unwrap();
+    let bytes = encode_ifcx_cad_document(&document).unwrap();
+    let mut saved: Value = serde_json::from_slice(bytes.bytes()).unwrap();
     assert_eq!(drawing(&mut saved)["nextEntityId"], json!(1000));
     for field in &FIELDS[1..] {
         assert_eq!(drawing(&mut saved)[*field], json!(100));
     }
-    assert_eq!(read_native_cad_ifcx(&bytes).unwrap().document(), &document);
+    assert_eq!(
+        load_ifcx_cad_bytes(bytes.bytes(), Default::default())
+            .unwrap()
+            .document(),
+        &document
+    );
     assert!(saved["data"]
         .as_array()
         .unwrap()
@@ -124,9 +129,11 @@ fn drawing_fragment_replacement_validates_final_counters() {
         "path": "/cad/d1", "attributes": {"ifccad::drawing": replacement}
     }));
     assert!(read(&graph).is_ok());
-    assert!(read_native_cad_ifcx_with_policy(
+    assert!(load_ifcx_cad_bytes(
         &serde_json::to_vec(&graph).unwrap(),
-        IfcxCompositionPolicy::RejectConflicts
+        IfcxCadReadOptions {
+            composition_policy: IfcxCompositionPolicy::RejectConflicts
+        }
     )
     .is_err());
     graph["data"].as_array_mut().unwrap().last_mut().unwrap()["attributes"]["ifccad::drawing"]
@@ -138,10 +145,13 @@ fn drawing_fragment_replacement_validates_final_counters() {
 }
 
 fn reopen(document: &IfcxCadDocument) -> IfcxCadDocument {
-    read_native_cad_ifcx(&write_native_cad_ifcx(document).unwrap())
-        .unwrap()
-        .document()
-        .clone()
+    load_ifcx_cad_bytes(
+        encode_ifcx_cad_document(document).unwrap().bytes(),
+        Default::default(),
+    )
+    .unwrap()
+    .document()
+    .clone()
 }
 
 #[test]
@@ -280,14 +290,14 @@ fn reorder_move_copy_and_rename_preserve_identity() {
         id: copy_id,
         ..moved.clone()
     });
-    let bytes = write_native_cad_ifcx(&document).unwrap();
-    let loaded = read_native_cad_ifcx(&bytes).unwrap();
+    let bytes = encode_ifcx_cad_document(&document).unwrap();
+    let loaded = load_ifcx_cad_bytes(bytes.bytes(), Default::default()).unwrap();
     assert_eq!(
         loaded.document().paper_layouts[0].entities.last().unwrap(),
         &moved
     );
     assert_eq!(loaded.document().id_counters.next_entity_id, 1001);
-    assert!(loaded.raw_ifcx()["data"]
+    assert!(loaded.graph().composed_ifcx()["data"]
         .as_array()
         .unwrap()
         .iter()
@@ -306,17 +316,22 @@ fn wire_roundtrip_preserves_full_width_counters_and_rejects_maximum_ids() {
             next_block_id: next,
             next_line_pattern_id: next,
         };
-        let bytes = write_native_cad_ifcx(&document).unwrap();
-        let mut saved: Value = serde_json::from_slice(&bytes).unwrap();
+        let bytes = encode_ifcx_cad_document(&document).unwrap();
+        let mut saved: Value = serde_json::from_slice(bytes.bytes()).unwrap();
         for field in FIELDS {
             assert_eq!(drawing(&mut saved)[field].as_u64(), Some(next));
         }
-        assert_eq!(read_native_cad_ifcx(&bytes).unwrap().document(), &document);
+        assert_eq!(
+            load_ifcx_cad_bytes(bytes.bytes(), Default::default())
+                .unwrap()
+                .document(),
+            &document
+        );
     }
     let mut document = read(&graph()).unwrap().document().clone();
     document.model.entities[0].id = u64::MAX;
     document.id_counters.next_entity_id = u64::MAX;
-    assert!(write_native_cad_ifcx(&document).is_err());
+    assert!(encode_ifcx_cad_document(&document).is_err());
     document.model.entities[0].id = u64::MAX - 1;
     assert_eq!(reopen(&document).model.entities[0].id, u64::MAX - 1);
 }
@@ -329,9 +344,11 @@ fn snapshot_validation_does_not_claim_historical_monotonicity() {
         .as_array_mut()
         .unwrap()
         .push(json!({"path":"/cad/d1","attributes":{"ifccad::drawing":identical}}));
-    assert!(read_native_cad_ifcx_with_policy(
+    assert!(load_ifcx_cad_bytes(
         &serde_json::to_vec(&graph).unwrap(),
-        IfcxCompositionPolicy::RejectConflicts
+        IfcxCadReadOptions {
+            composition_policy: IfcxCompositionPolicy::RejectConflicts
+        }
     )
     .is_ok());
     graph["data"].as_array_mut().unwrap().last_mut().unwrap()["attributes"]["ifccad::drawing"]

@@ -1,13 +1,14 @@
 # ocdraw-convert
 
-`ocdraw-convert` connects standalone OCDraw to cadcodec's `CadDocument` through
+`ocdraw-convert` connects standalone OCDraw to opencadcodec's `CadDocument` through
 `cad_document_to_ocdraw_document` and `ocdraw_document_to_cad_document`.
-The encoded `cad_document_to_drawing` and validated `ocdraw_to_cad_document`
-entry points remain compatible wrappers. These implementations
-live in [`src/ocdraw`](src/ocdraw). Pure CAD source classification lives in
+The encoded `cad_document_to_encoded_ocdraw` and validated `ocdraw_source_to_cad_document`
+entry points are convenience wrappers over logical conversion. These implementations
+live in [`src/from_cad`](src/from_cad) and [`src/to_cad`](src/to_cad),
+with native mapping helpers under [`src/mapping`](src/mapping). Pure CAD source classification lives in
 [`src/source`](src/source), and numerical kernels in [`src/geometry`](src/geometry).
-The core format implementation remains usable without cadcodec.
-The local dependency alias `cadcodec` selects upstream package `opencadcodec`
+The core format implementation remains usable without opencadcodec.
+The dependency and public Rust reexport use the upstream name `opencadcodec`
 at a shared fixed revision with `ifcx-cad-convert`. The
 [dependency audit](../../docs/geometry/opencadcodec-update-2026-10-02.md) records
 the current public-model classification and exchange fixes.
@@ -15,18 +16,17 @@ the current public-model classification and exchange fixes.
 ## Standalone conversion
 
 ```rust,no_run
-use ocdraw::ocdraw::load_drawing_bytes;
+use ocdraw::ocdraw::load_ocdraw_bytes;
 use ocdraw_convert::{
-    cad_document_to_drawing, ocdraw_to_cad_document, ExportOptions, ImportOptions,
+    cad_document_to_encoded_ocdraw, ocdraw_source_to_cad_document, CadToOcdrawOptions, OcdrawToCadOptions,
 };
-use ocdraw_convert::cadcodec::CadDocument;
+use ocdraw_convert::opencadcodec::CadDocument;
 
 # fn example() -> Result<(), Box<dyn std::error::Error>> {
 let source = CadDocument::new();
-let exported = cad_document_to_drawing(&source, ExportOptions::default())?;
-let inspected = load_drawing_bytes(exported.drawing().bytes());
-let drawing = inspected.validated_drawing().ok_or("invalid OCDraw")?;
-let imported = ocdraw_to_cad_document(drawing, ImportOptions::default())?;
+let exported = cad_document_to_encoded_ocdraw(&source, CadToOcdrawOptions::default())?;
+let drawing = load_ocdraw_bytes(exported.encoded().bytes())?;
+let imported = ocdraw_source_to_cad_document(&drawing, OcdrawToCadOptions::default())?;
 for diagnostic in imported.diagnostics() {
     eprintln!("{}: {}", diagnostic.code, diagnostic.message);
 }
@@ -64,7 +64,7 @@ covers nested block occurrences as well as definition-local geometry; scale
 can amplify local rounding. Outcomes expose `geometry_assessment()` and
 source/target entity mappings.
 
-See [standalone coverage](src/ocdraw/COVERAGE.md) for scope and limitations, and
+See [standalone coverage](docs/COVERAGE.md) for scope and limitations, and
 [block codec limits](../../docs/geometry/block-cad-boundary.md) for upstream
 DXF/DWG restrictions. Conversion through the real pinned DXF and DWG readers
 and writers is tested without dependency patches.
@@ -72,15 +72,15 @@ and writers is tested without dependency patches.
 ## Logical conversion without serialization
 
 ```rust
-use ocdraw::ocdraw::{encode_document, validate_document};
+use ocdraw::ocdraw::{encode_ocdraw_document, validate_ocdraw_document};
 use ocdraw_convert::{cad_document_to_ocdraw_document, ocdraw_document_to_cad_document,
-    cadcodec::CadDocument, ExportOptions, ImportOptions};
+    opencadcodec::CadDocument, CadToOcdrawOptions, OcdrawToCadOptions};
 # fn example() -> Result<(), Box<dyn std::error::Error>> {
-let exported = cad_document_to_ocdraw_document(&CadDocument::new(), ExportOptions::default())?;
+let exported = cad_document_to_ocdraw_document(&CadDocument::new(), CadToOcdrawOptions::default())?;
 let drawing = exported.document();
-validate_document(drawing)?;
-let cad = ocdraw_document_to_cad_document(drawing, ImportOptions::default())?;
-let bytes = encode_document(drawing)?; // Only when native storage is wanted.
+validate_ocdraw_document(drawing)?;
+let cad = ocdraw_document_to_cad_document(drawing, OcdrawToCadOptions::default())?;
+let bytes = encode_ocdraw_document(drawing)?; // Only when native storage is wanted.
 # let _ = (cad, bytes);
 # Ok(())
 # }

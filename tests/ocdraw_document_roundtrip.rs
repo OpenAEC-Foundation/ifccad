@@ -2,10 +2,7 @@ use ocdraw::ocdraw::*;
 use std::collections::BTreeSet;
 
 fn doc(bytes: &[u8]) -> OcdrawDocument {
-    load_drawing_bytes(bytes)
-        .into_validated_drawing()
-        .unwrap()
-        .into_document()
+    load_ocdraw_bytes(bytes).ok().unwrap().into_document()
 }
 #[test]
 fn all_current_content_survives_document_roundtrip() {
@@ -16,7 +13,7 @@ fn all_current_content_survives_document_roundtrip() {
     .unwrap()
     {
         let original = doc(&std::fs::read(path.unwrap().path()).unwrap());
-        let encoded = encode_document(&original).unwrap();
+        let encoded = encode_ocdraw_document(&original).unwrap();
         let after = doc(encoded.bytes());
         assert_eq!(original.drawing_id, after.drawing_id);
         assert_eq!(original.unit, after.unit);
@@ -55,7 +52,10 @@ fn all_current_content_survives_document_roundtrip() {
                 after.geometric_entities.iter().find(|x| x.id == e.id)
             );
         }
-        assert_eq!(encode_document(&original).unwrap().bytes(), encoded.bytes());
+        assert_eq!(
+            encode_ocdraw_document(&original).unwrap().bytes(),
+            encoded.bytes()
+        );
     }
 }
 #[test]
@@ -97,7 +97,7 @@ fn document_encoding_preserves_sparse_ids_and_advanced_watermarks() {
     d.next_layer_id = u32::MAX;
     d.next_line_pattern_id = u32::MAX;
     d.scopes.reverse();
-    let encoded = encode_document(&d).unwrap();
+    let encoded = encode_ocdraw_document(&d).unwrap();
     let after = doc(encoded.bytes());
     assert_eq!(after.next_entity_id, u64::MAX);
     assert_eq!(after.next_layer_id, u32::MAX);
@@ -119,22 +119,22 @@ fn encoding_preserves_valid_enlarged_bounds_without_preparation() {
             ));
         }
     }
-    let after = doc(encode_document(&d).unwrap().bytes());
+    let after = doc(encode_ocdraw_document(&d).unwrap().bytes());
     assert_eq!(after.scopes, d.scopes);
     d.geometric_entities[0].geometry = DrawingGeometry::Line {
         start: [500., 0., 0.],
         end: [501., 0., 0.],
     };
     assert!(matches!(
-        encode_document(&d),
+        encode_ocdraw_document(&d),
         Err(OcdrawEncodeError::InvalidDocument(_))
     ));
-    recompute_document_bounds(&mut d).unwrap();
-    assert!(encode_document(&d).is_ok());
+    recompute_ocdraw_document_bounds(&mut d).unwrap();
+    assert!(encode_ocdraw_document(&d).is_ok());
 }
 #[test]
 fn delete_rewrite_and_new_entity_do_not_reuse_ids() {
-    let mut b = DrawingBuilder::new(DrawingOptions::new("history", "mm")).unwrap();
+    let mut b = OcdrawBuilder::new(OcdrawBuildOptions::new("history", "mm")).unwrap();
     b.ensure_continuous_line_pattern().unwrap();
     let layer = b
         .add_layer(LayerDefinition::new(
@@ -151,7 +151,7 @@ fn delete_rewrite_and_new_entity_do_not_reuse_ids() {
     d.geometric_entities.retain(|e| e.id != 2);
     d.scopes[0].entities.retain(|id| *id != 2);
     d.next_entity_id = 6;
-    d = doc(encode_document(&d).unwrap().bytes());
+    d = doc(encode_ocdraw_document(&d).unwrap().bytes());
     assert_eq!(
         d.geometric_entities
             .iter()
@@ -161,7 +161,7 @@ fn delete_rewrite_and_new_entity_do_not_reuse_ids() {
     );
     d.geometric_entities.retain(|e| e.id != 4);
     d.scopes[0].entities.retain(|id| *id != 4);
-    d = doc(encode_document(&d).unwrap().bytes());
+    d = doc(encode_ocdraw_document(&d).unwrap().bytes());
     assert_eq!(d.next_entity_id, 6);
     let mut e = d.geometric_entities[0].clone();
     e.id = 6;
@@ -170,17 +170,20 @@ fn delete_rewrite_and_new_entity_do_not_reuse_ids() {
     d.next_entity_id = 7;
     d.geometric_entities.retain(|e| e.id != 6);
     d.scopes[0].entities.retain(|id| *id != 6);
-    assert_eq!(doc(encode_document(&d).unwrap().bytes()).next_entity_id, 7);
+    assert_eq!(
+        doc(encode_ocdraw_document(&d).unwrap().bytes()).next_entity_id,
+        7
+    );
 }
 #[test]
 fn finish_uses_the_document_encoder() {
-    let a = DrawingBuilder::new(DrawingOptions::new("fresh", "mm"))
+    let a = OcdrawBuilder::new(OcdrawBuildOptions::new("fresh", "mm"))
         .unwrap()
         .finish()
         .unwrap();
-    let d = DrawingBuilder::new(DrawingOptions::new("fresh", "mm"))
+    let d = OcdrawBuilder::new(OcdrawBuildOptions::new("fresh", "mm"))
         .unwrap()
         .build_document()
         .unwrap();
-    assert_eq!(a.bytes(), encode_document(&d).unwrap().bytes());
+    assert_eq!(a.bytes(), encode_ocdraw_document(&d).unwrap().bytes());
 }

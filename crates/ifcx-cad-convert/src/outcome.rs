@@ -1,64 +1,7 @@
-use cadcodec::{CadDocument, Handle};
-use ocdraw::ifcx_cad::{IfcxCadDocument, IfcxCadHeader, ValidatedIfcxCad};
+use crate::IfcxCadDiagnostic;
+use ocdraw::ifcx_cad::{IfcxCadDocument, ValidatedIfcxCad};
+use opencadcodec::{CadDocument, Handle};
 use std::collections::BTreeMap;
-
-/// Acceptance of diagnosed semantic losses. Structural and numeric failures
-/// remain errors under both policies.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub enum IfcxCadLossPolicy {
-    #[default]
-    Allow,
-    Reject,
-}
-
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub struct IfcxCadConversionOptions {
-    pub loss_policy: IfcxCadLossPolicy,
-}
-
-/// What happened to the located source information.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum IfcxCadDiagnosticAction {
-    Omitted,
-    Modified,
-    /// A uniquely established structural cache repair, without semantic loss.
-    Recovery,
-}
-
-/// Explicit target identity and provenance, supplied by the caller.
-#[derive(Clone, Debug)]
-pub struct IfcxCadTargetMetadata {
-    pub header: IfcxCadHeader,
-    pub drawing_id: u64,
-}
-
-/// Located unsupported content or a documented source recovery.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct IfcxCadDiagnostic {
-    pub code: &'static str,
-    pub location: String,
-    pub message: String,
-    pub action: IfcxCadDiagnosticAction,
-}
-
-impl IfcxCadDiagnostic {
-    pub fn is_loss(&self) -> bool {
-        self.action != IfcxCadDiagnosticAction::Recovery
-    }
-}
-
-#[derive(Debug, thiserror::Error)]
-pub enum IfcxCadConversionError {
-    #[error("invalid CAD structure: {0}")]
-    InvalidStructure(String),
-    #[error("unsupported conversion content: {0:?}")]
-    Unsupported(Vec<IfcxCadDiagnostic>),
-    #[error("IFCX-CAD validation failed: {0}")]
-    CoreValidation(String),
-    #[error("CAD construction failed: {0}")]
-    CadConstruction(String),
-}
-
 /// A single identity domain. Numeric IDs never pass through floating point.
 #[derive(Clone, Debug, Default)]
 pub struct IfcxCadIdentityMap(BTreeMap<u64, Handle>);
@@ -128,18 +71,21 @@ impl CadToIfcxCadDocumentOutcome {
     }
 }
 
-pub struct CadToIfcxCadOutcome {
+pub struct CadToEncodedIfcxCadOutcome {
     pub(crate) validated: ValidatedIfcxCad,
-    pub(crate) bytes: Vec<u8>,
+    pub(crate) encoded: ocdraw::ifcx_cad::EncodedIfcxCad,
     pub(crate) diagnostics: Vec<IfcxCadDiagnostic>,
     pub(crate) mappings: IfcxCadMappings,
 }
-impl CadToIfcxCadOutcome {
-    pub fn validated_ifcx(&self) -> &ValidatedIfcxCad {
+impl CadToEncodedIfcxCadOutcome {
+    pub fn validated_source(&self) -> &ValidatedIfcxCad {
         &self.validated
     }
-    pub fn ifcx_bytes(&self) -> &[u8] {
-        &self.bytes
+    pub fn encoded(&self) -> &ocdraw::ifcx_cad::EncodedIfcxCad {
+        &self.encoded
+    }
+    pub fn into_encoded(self) -> ocdraw::ifcx_cad::EncodedIfcxCad {
+        self.encoded
     }
     pub fn diagnostics(&self) -> &[IfcxCadDiagnostic] {
         &self.diagnostics
@@ -147,74 +93,4 @@ impl CadToIfcxCadOutcome {
     pub fn mappings(&self) -> &IfcxCadMappings {
         &self.mappings
     }
-}
-pub(crate) fn diagnostic(
-    code: &'static str,
-    location: impl Into<String>,
-    message: impl Into<String>,
-) -> IfcxCadDiagnostic {
-    IfcxCadDiagnostic {
-        code,
-        location: location.into(),
-        message: message.into(),
-        action: IfcxCadDiagnosticAction::Omitted,
-    }
-}
-
-pub(crate) fn modification(
-    code: &'static str,
-    location: impl Into<String>,
-    message: impl Into<String>,
-) -> IfcxCadDiagnostic {
-    let mut d = diagnostic(code, location, message);
-    d.action = IfcxCadDiagnosticAction::Modified;
-    d
-}
-
-pub(crate) fn enforce_policy(
-    options: IfcxCadConversionOptions,
-    issues: &[IfcxCadDiagnostic],
-) -> Result<(), IfcxCadConversionError> {
-    if issues
-        .iter()
-        .any(|d| matches!(d.code, "rounding" | "scale-clamped" | "precision"))
-        || (options.loss_policy == IfcxCadLossPolicy::Reject
-            && issues.iter().any(IfcxCadDiagnostic::is_loss))
-    {
-        return Err(IfcxCadConversionError::Unsupported(issues.to_vec()));
-    }
-    Ok(())
-}
-pub(crate) const UNITS: [&str; 25] = [
-    "unitless",
-    "in",
-    "ft",
-    "mi",
-    "mm",
-    "cm",
-    "m",
-    "km",
-    "microin",
-    "mil",
-    "yd",
-    "angstrom",
-    "nm",
-    "um",
-    "dm",
-    "dam",
-    "hm",
-    "Gm",
-    "au",
-    "ly",
-    "pc",
-    "usSurveyFoot",
-    "usSurveyInch",
-    "usSurveyYard",
-    "usSurveyMile",
-];
-pub(crate) fn unit_code(unit: &str) -> i16 {
-    UNITS
-        .iter()
-        .position(|u| *u == unit)
-        .expect("validated unit") as i16
 }

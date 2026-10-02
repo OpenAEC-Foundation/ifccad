@@ -1,4 +1,4 @@
-use ocdraw::ocdraw::{load_drawing_file, DrawingLoadStatus};
+use ocdraw::ocdraw::{load_ocdraw_bytes, OcdrawReadStatus};
 use serde_json::Value;
 use std::{collections::BTreeSet, path::Path};
 #[test]
@@ -11,18 +11,36 @@ fn candidate_drawing_cases_use_the_production_reader() {
     for case in manifest["cases"].as_array().unwrap() {
         let path = case["path"].as_str().unwrap();
         assert!(declared.insert(path.to_owned()));
-        let read = load_drawing_file(root.join(path)).unwrap();
+        let read = load_ocdraw_bytes(&std::fs::read(root.join(path)).unwrap());
         let expected = if case["status"] == "valid" {
-            DrawingLoadStatus::Valid
+            OcdrawReadStatus::Valid
         } else {
-            DrawingLoadStatus::Invalid
+            OcdrawReadStatus::Invalid
         };
-        assert_eq!(read.status(), expected, "{path}: {:?}", read.diagnostics());
+        assert_eq!(
+            read.as_ref()
+                .map(|_| OcdrawReadStatus::Valid)
+                .unwrap_or_else(|e| e.status()),
+            expected,
+            "{path}: {:?}",
+            read.as_ref()
+                .err()
+                .map(|e| e.diagnostics())
+                .unwrap_or_default()
+        );
         if let Some(code) = case["diagnostic"].as_str() {
             assert!(
-                read.diagnostics().iter().any(|d| d.code == code),
+                read.as_ref()
+                    .err()
+                    .map(|e| e.diagnostics())
+                    .unwrap_or_default()
+                    .iter()
+                    .any(|d| d.code == code),
                 "{path}: {:?}",
-                read.diagnostics()
+                read.as_ref()
+                    .err()
+                    .map(|e| e.diagnostics())
+                    .unwrap_or_default()
             );
         }
     }

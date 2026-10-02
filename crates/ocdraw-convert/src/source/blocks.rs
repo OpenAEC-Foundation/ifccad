@@ -1,13 +1,13 @@
-use super::SourceStructureProblem;
-use cadcodec::{CadDocument, EntityType, Handle};
-pub(crate) fn inspect_markers(document: &CadDocument) -> Vec<SourceStructureProblem> {
+use super::CadSourceStructureProblem;
+use opencadcodec::{CadDocument, EntityType, Handle};
+pub(crate) fn inspect_markers(document: &CadDocument) -> Vec<CadSourceStructureProblem> {
     let mut problems = Vec::new();
     for record in document.block_records.iter() {
         let Some(entity) = document.get_entity(record.block_entity_handle) else {
             continue;
         };
         let EntityType::Block(marker) = entity else {
-            problems.push(SourceStructureProblem::InconsistentRelationship {
+            problems.push(CadSourceStructureProblem::InconsistentRelationship {
                 description: format!(
                     "Block {:?} references a non-BLOCK begin marker",
                     record.name
@@ -16,7 +16,7 @@ pub(crate) fn inspect_markers(document: &CadDocument) -> Vec<SourceStructureProb
             continue;
         };
         if marker.common.owner_handle != record.handle || marker.name != record.name {
-            problems.push(SourceStructureProblem::InconsistentRelationship {
+            problems.push(CadSourceStructureProblem::InconsistentRelationship {
                 description: format!(
                     "Block {:?} begin marker has conflicting name or ownership",
                     record.name
@@ -24,7 +24,7 @@ pub(crate) fn inspect_markers(document: &CadDocument) -> Vec<SourceStructureProb
             });
         }
         if marker.base_point != record.base_point {
-            problems.push(SourceStructureProblem::InconsistentRelationship {
+            problems.push(CadSourceStructureProblem::InconsistentRelationship {
                 description: format!(
                     "Block {:?} has conflicting base points: record {:?}, marker {:?}",
                     record.name, record.base_point, marker.base_point,
@@ -35,7 +35,7 @@ pub(crate) fn inspect_markers(document: &CadDocument) -> Vec<SourceStructureProb
     problems
 }
 
-pub(crate) fn inspect_references(document: &CadDocument) -> Vec<SourceStructureProblem> {
+pub(crate) fn inspect_references(document: &CadDocument) -> Vec<CadSourceStructureProblem> {
     use std::collections::BTreeMap;
     let mut problems = Vec::new();
     let records: BTreeMap<_, _> = document
@@ -44,7 +44,7 @@ pub(crate) fn inspect_references(document: &CadDocument) -> Vec<SourceStructureP
         .map(|record| (record.handle, record))
         .collect();
     if records.len() != document.block_records.len() || records.contains_key(&Handle::NULL) {
-        problems.push(SourceStructureProblem::InconsistentRelationship {
+        problems.push(CadSourceStructureProblem::InconsistentRelationship {
             description:
                 "Block records must have distinct, non-null handles, including layout records"
                     .into(),
@@ -56,7 +56,7 @@ pub(crate) fn inspect_references(document: &CadDocument) -> Vec<SourceStructureP
         for &handle in &record.entity_handles {
             *membership.entry(handle).or_default() += 1;
             match document.get_entity(handle) {
-                None => problems.push(SourceStructureProblem::InconsistentRelationship {
+                None => problems.push(CadSourceStructureProblem::InconsistentRelationship {
                     description: format!(
                         "Block {:?} owns a missing entity {:?}",
                         record.name, handle
@@ -66,7 +66,7 @@ pub(crate) fn inspect_references(document: &CadDocument) -> Vec<SourceStructureP
                     if records.contains_key(&entity.common().owner_handle)
                         && entity.common().owner_handle != record.handle =>
                 {
-                    problems.push(SourceStructureProblem::InconsistentRelationship {
+                    problems.push(CadSourceStructureProblem::InconsistentRelationship {
                         description: format!(
                             "Block {:?} lists entity {:?} owned by another record",
                             record.name, handle
@@ -87,7 +87,7 @@ pub(crate) fn inspect_references(document: &CadDocument) -> Vec<SourceStructureP
         if records.contains_key(&entity.common().owner_handle)
             && membership.get(&entity.common().handle) != Some(&1)
         {
-            problems.push(SourceStructureProblem::InconsistentRelationship {
+            problems.push(CadSourceStructureProblem::InconsistentRelationship {
                 description: format!(
                     "Entity {:?} must occur exactly once in its owner's block contents",
                     entity.common().handle
@@ -106,7 +106,7 @@ pub(crate) fn inspect_references(document: &CadDocument) -> Vec<SourceStructureP
             continue;
         };
         let Some(target) = document.block_records.get(&insert.block_name) else {
-            problems.push(SourceStructureProblem::InconsistentRelationship {
+            problems.push(CadSourceStructureProblem::InconsistentRelationship {
                 description: format!(
                     "INSERT {:?} references missing block {:?}",
                     insert.common.handle, insert.block_name
@@ -138,7 +138,7 @@ pub(crate) fn inspect_references(document: &CadDocument) -> Vec<SourceStructureP
         }
     }
     if visited != pending.len() {
-        problems.push(SourceStructureProblem::InconsistentRelationship {
+        problems.push(CadSourceStructureProblem::InconsistentRelationship {
             description: "Block reference graph contains a cycle (including unused definitions)"
                 .into(),
         });

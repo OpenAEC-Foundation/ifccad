@@ -67,18 +67,18 @@ fn ordinary_patterns_scales_and_generation_convert_without_losses() {
     );
     let back = from_cad(first.document(), metadata()).unwrap();
     assert!(back
-        .validated_ifcx()
+        .validated_source()
         .document()
         .line_patterns
         .iter()
         .any(|p| p.name == "UnusedSolid" && p.pattern.is_empty()));
-    assert_eq!(back.validated_ifcx().document().line_pattern_scale, 2.);
+    assert_eq!(back.validated_source().document().line_pattern_scale, 2.);
     assert_eq!(
-        back.validated_ifcx().document().model.entities[0].line_pattern_scale,
+        back.validated_source().document().model.entities[0].line_pattern_scale,
         0.5
     );
     assert!(matches!(
-        back.validated_ifcx().document().model.entities[1].kind,
+        back.validated_source().document().model.entities[1].kind,
         IfcxCadEntityKind::PlanarPolyline {
             line_pattern_generation: IfcxCadLinePatternGeneration::Continuous,
             ..
@@ -90,11 +90,11 @@ fn ordinary_patterns_scales_and_generation_convert_without_losses() {
 fn complex_patterns_fallback_once_including_unused_with_stable_references() {
     for shape in [false, true] {
         let mut c = to_cad(&validated(&patterns())).unwrap().into_document();
-        let complex = cadcodec::tables::LineTypeComplexData {
+        let complex = opencadcodec::tables::LineTypeComplexData {
             content: if shape {
-                cadcodec::tables::LineTypeComplexContent::Shape { shape_number: 1 }
+                opencadcodec::tables::LineTypeComplexContent::Shape { shape_number: 1 }
             } else {
-                cadcodec::tables::LineTypeComplexContent::Text { text: "GAS".into() }
+                opencadcodec::tables::LineTypeComplexContent::Text { text: "GAS".into() }
             },
             style_handle: c.text_styles.get("Standard").unwrap().handle,
             ..Default::default()
@@ -102,14 +102,14 @@ fn complex_patterns_fallback_once_including_unused_with_stable_references() {
         c.line_types.get_mut("EigenStreepPunt").unwrap().elements[0].complex =
             Some(complex.clone());
         let unused = c.line_types.get_mut("UnusedSolid").unwrap();
-        unused.elements = vec![cadcodec::tables::LineTypeElement {
+        unused.elements = vec![opencadcodec::tables::LineTypeElement {
             length: 0.,
             complex: Some(complex),
         }];
         let first = c.clone();
-        let out = cad_document_to_ifcx_cad(&c, metadata()).unwrap();
+        let out = cad_document_to_encoded_ifcx_cad(&c, metadata(), Default::default()).unwrap();
         assert_eq!(c, first);
-        let d = out.validated_ifcx().document();
+        let d = out.validated_source().document();
         for name in ["EigenStreepPunt", "UnusedSolid"] {
             let p = d.line_patterns.iter().find(|p| p.name == name).unwrap();
             assert!(p.pattern.is_empty());
@@ -126,7 +126,8 @@ fn complex_patterns_fallback_once_including_unused_with_stable_references() {
             from_cad(&c, metadata()),
             Err(IfcxCadConversionError::Unsupported(_))
         ));
-        let back = ifcx_cad_to_cad_document(out.validated_ifcx()).unwrap();
+        let back =
+            ifcx_cad_source_to_cad_document(out.validated_source(), Default::default()).unwrap();
         assert!(back
             .document()
             .line_types
@@ -163,10 +164,10 @@ fn missing_or_conflicting_source_targets_and_invalid_values_always_fail() {
             _ => c.line_types.get_mut("EigenStreepPunt").unwrap().elements[0].length = f64::NAN,
         }
         for policy in [IfcxCadLossPolicy::Allow, IfcxCadLossPolicy::Reject] {
-            assert!(cad_document_to_ifcx_cad_with_options(
+            assert!(cad_document_to_encoded_ifcx_cad(
                 &c,
                 metadata(),
-                IfcxCadConversionOptions {
+                CadToIfcxCadOptions {
                     loss_policy: policy
                 }
             )
@@ -180,21 +181,21 @@ fn simple_and_named_empty_patterns_survive_real_dxf_and_dwg() {
     let first = to_cad(&validated(&patterns())).unwrap();
     for dwg in [false, true] {
         let c = if dwg {
-            let bytes = cadcodec::DwgWriter::write_to_vec(first.document()).unwrap();
-            cadcodec::DwgReader::from_stream(std::io::Cursor::new(bytes))
+            let bytes = opencadcodec::DwgWriter::write_to_vec(first.document()).unwrap();
+            opencadcodec::DwgReader::from_stream(std::io::Cursor::new(bytes))
                 .read()
                 .unwrap()
         } else {
-            let bytes = cadcodec::DxfWriter::new(first.document())
+            let bytes = opencadcodec::DxfWriter::new(first.document())
                 .write_to_vec()
                 .unwrap();
-            cadcodec::DxfReader::from_reader(std::io::Cursor::new(bytes))
+            opencadcodec::DxfReader::from_reader(std::io::Cursor::new(bytes))
                 .unwrap()
                 .read()
                 .unwrap()
         };
         let back = from_cad(&c, metadata()).unwrap();
-        let d = back.validated_ifcx().document();
+        let d = back.validated_source().document();
         assert_eq!(
             d.line_patterns
                 .iter()
@@ -239,7 +240,7 @@ fn missing_continuous_is_not_native_synthesis_but_diagnosed_target_scaffolding()
         to_cad(&native),
         Err(IfcxCadConversionError::Unsupported(_))
     ));
-    let output = ifcx_cad_to_cad_document(&native).unwrap();
+    let output = ifcx_cad_source_to_cad_document(&native, Default::default()).unwrap();
     assert_eq!(
         output
             .diagnostics()
@@ -255,14 +256,14 @@ fn missing_continuous_is_not_native_synthesis_but_diagnosed_target_scaffolding()
         .any(|p| p.handle == output.document().header.continuous_linetype_handle));
     for dwg in [false, true] {
         let c = if dwg {
-            cadcodec::DwgReader::from_stream(std::io::Cursor::new(
-                cadcodec::DwgWriter::write_to_vec(output.document()).unwrap(),
+            opencadcodec::DwgReader::from_stream(std::io::Cursor::new(
+                opencadcodec::DwgWriter::write_to_vec(output.document()).unwrap(),
             ))
             .read()
             .unwrap()
         } else {
-            cadcodec::DxfReader::from_reader(std::io::Cursor::new(
-                cadcodec::DxfWriter::new(output.document())
+            opencadcodec::DxfReader::from_reader(std::io::Cursor::new(
+                opencadcodec::DxfWriter::new(output.document())
                     .write_to_vec()
                     .unwrap(),
             ))
@@ -277,7 +278,7 @@ fn missing_continuous_is_not_native_synthesis_but_diagnosed_target_scaffolding()
 #[test]
 fn optional_native_defaults_are_lossless_but_large_integer_pattern_values_are_not() {
     let mut raw: serde_json::Value =
-        serde_json::from_slice(&write_native_cad_ifcx(&patterns()).unwrap()).unwrap();
+        serde_json::from_slice(encode_ifcx_cad_document(&patterns()).unwrap().bytes()).unwrap();
     for n in raw["data"].as_array_mut().unwrap() {
         for key in ["ifccad::drawing", "ifccad::entity"] {
             if let Some(a) = n["attributes"]
@@ -295,7 +296,7 @@ fn optional_native_defaults_are_lossless_but_large_integer_pattern_values_are_no
         }
     }
     let bytes = serde_json::to_vec(&raw).unwrap();
-    let native = read_native_cad_ifcx(&bytes).unwrap();
+    let native = load_ifcx_cad_bytes(&bytes, Default::default()).unwrap();
     assert!(to_cad(&native).unwrap().diagnostics().is_empty());
     for target in ["ifccad::drawing", "ifccad::entity", "ifccad::linePattern"] {
         let mut changed = raw.clone();
@@ -313,8 +314,13 @@ fn optional_native_defaults_are_lossless_but_large_integer_pattern_values_are_no
             n["attributes"][target]["linePatternScale"] =
                 serde_json::json!(9_007_199_254_740_993_u64);
         }
-        let native = read_native_cad_ifcx(&serde_json::to_vec(&changed).unwrap()).unwrap();
-        assert!(ifcx_cad_to_cad_document(&native).is_err(), "{target}");
+        let native =
+            load_ifcx_cad_bytes(&serde_json::to_vec(&changed).unwrap(), Default::default())
+                .unwrap();
+        assert!(
+            ifcx_cad_source_to_cad_document(&native, Default::default()).is_err(),
+            "{target}"
+        );
     }
 }
 
@@ -325,7 +331,7 @@ fn native_unicode_names_and_target_lookup_collisions_are_checked() {
     d.line_patterns[2].name = "ı".into();
     let native = validated(&d);
     assert!(matches!(
-        ifcx_cad_to_cad_document(&native),
+        ifcx_cad_source_to_cad_document(&native, Default::default()),
         Err(IfcxCadConversionError::InvalidStructure(_))
     ));
 }
@@ -337,7 +343,7 @@ fn declared_period_normalization_is_policy_controlled_and_nonfinite_complex_valu
         .get_mut("EigenStreepPunt")
         .unwrap()
         .pattern_length = 99.;
-    let output = cad_document_to_ifcx_cad(&c, metadata()).unwrap();
+    let output = cad_document_to_encoded_ifcx_cad(&c, metadata(), Default::default()).unwrap();
     assert_eq!(
         output
             .diagnostics()
@@ -351,12 +357,12 @@ fn declared_period_normalization_is_policy_controlled_and_nonfinite_complex_valu
         Err(IfcxCadConversionError::Unsupported(_))
     ));
     c.line_types.get_mut("EigenStreepPunt").unwrap().elements[0].complex =
-        Some(cadcodec::tables::LineTypeComplexData {
+        Some(opencadcodec::tables::LineTypeComplexData {
             rotation: f64::NAN,
             ..Default::default()
         });
     assert!(matches!(
-        cad_document_to_ifcx_cad(&c, metadata()),
+        cad_document_to_encoded_ifcx_cad(&c, metadata(), Default::default()),
         Err(IfcxCadConversionError::InvalidStructure(_))
     ));
 }
@@ -385,7 +391,7 @@ fn shared_nested_definitions_keep_pattern_modes_per_occurrence() {
         .line_pattern = IfcxCadMode::ByLayer;
     let c = to_cad(&validated(&d)).unwrap();
     let back = from_cad(c.document(), metadata()).unwrap();
-    let restored = back.validated_ifcx().document();
+    let restored = back.validated_source().document();
     for (index, name) in ["EigenStreepPunt", "UnusedSolid"].into_iter().enumerate() {
         let IfcxCadMode::Explicit(id) = restored.model.entities[index].appearance.line_pattern
         else {

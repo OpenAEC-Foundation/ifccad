@@ -1,4 +1,4 @@
-use crate::{outcome::diagnostic, IfcxCadDiagnostic};
+use crate::{diagnostics::diagnostic, IfcxCadDiagnostic};
 use std::collections::BTreeSet;
 
 pub(crate) fn native_defaults(raw: &serde_json::Value) -> serde_json::Value {
@@ -81,9 +81,9 @@ fn propagate(defs: Vec<Definition>, instances: Vec<Instance>, issues: &mut Vec<I
 }
 
 pub(crate) fn from_cad(
-    doc: &cadcodec::CadDocument,
-    blocks: &[cadcodec::Handle],
-    model: &[cadcodec::Handle],
+    doc: &opencadcodec::CadDocument,
+    blocks: &[opencadcodec::Handle],
+    model: &[opencadcodec::Handle],
     issues: &mut Vec<IfcxCadDiagnostic>,
 ) {
     let mut defs = Vec::new();
@@ -103,7 +103,7 @@ pub(crate) fn from_cad(
     }));
     for (owner, entities) in owners {
         for h in entities {
-            if let Some(cadcodec::EntityType::Insert(i)) = doc.get_entity(*h) {
+            if let Some(opencadcodec::EntityType::Insert(i)) = doc.get_entity(*h) {
                 instances.push(Instance {
                     owner,
                     location: format!("entity/{h}"),

@@ -13,7 +13,7 @@ Status: experimental profile, 2026-10-01. This is an opt-in IFCX alpha drawing w
 ### Direct conversion proof (2026-10-01)
 
 The experimental [IFCX-CAD converter](../../crates/ifcx-cad-convert/README.md)
-now maps the validated projection directly to/from cadcodec, without an IFCDR
+now maps the validated projection directly to/from opencadcodec, without an IFCDR
 intermediate. Its bounded Model subset covers lines, circles, straight polylines,
 units, layers, stored appearance and shared/nested local blocks. Exact XY
 translation and CAD setter checks reject rounding/clamping. Extra source fields
@@ -24,7 +24,7 @@ Structural and numeric precision failures remain errors under both policies.
 In-memory tests retain owner order, unused declarations, signed nonuniform block
 scale, rotation/base/unit and large u64 identity mappings. Every generated IFCX
 passes the production writer/reader. The same primitive corpus passes semantic
-exchange through unmodified pinned cadcodec DXF and DWG (AC1032). Nested blocks
+exchange through unmodified pinned opencadcodec DXF and DWG (AC1032). Nested blocks
 with nonzero base pass both DXF and DWG using opencadcodec revision
 `d96e3fa2fe5acbeac966f1db4c01142618bf9c79`. The former nonzero DWG block-base
 reader defect is resolved. Full inventory traversal is required: the ordinary CAD
@@ -96,7 +96,7 @@ is in `crates/ifcx-cad-convert`. Geometric frame/transform validation uses
 OCDraw's shared types and length-unit validation reads OCDraw's bundled logical
 registry. IFCX nodes, composition, schema imports and CAD profile rules remain
 independent of OCDraw's logical drawing model and JSON codec. The converter
-maps directly to cadcodec, without passing through an OCDraw drawing.
+maps directly to opencadcodec, without passing through an OCDraw drawing.
 
 The mechanical migration retained strict conversion. A subsequent independent
 Allow/Reject implementation now supports partial conversion, whole-entity

@@ -2,14 +2,15 @@
 use num_rational::BigRational;
 use num_traits::ToPrimitive;
 use ocdraw::ocdraw::*;
-use ocdraw_convert::cadcodec::{DwgReader, DwgWriter, DxfReader, DxfWriter};
+use ocdraw_convert::opencadcodec::{DwgReader, DwgWriter, DxfReader, DxfWriter};
 use ocdraw_convert::{
-    cad_document_to_drawing, ocdraw_to_cad_document, ExportOptions, ImportOptions,
+    cad_document_to_encoded_ocdraw, ocdraw_source_to_cad_document, CadToOcdrawOptions,
+    OcdrawToCadOptions,
 };
 use serde_json::{json, Value};
 use std::{fs, hint::black_box, path::Path, time::Instant};
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
-fn create(name: &str) -> Result<EncodedDrawing> {
+fn create(name: &str) -> Result<EncodedOcdraw> {
     let half = 0.5_f64.sqrt();
     let plane = match name {
         "identity" => CoordinateFrame3::default(),
@@ -24,7 +25,7 @@ fn create(name: &str) -> Result<EncodedDrawing> {
             Vector3::new(0., 0., 1.),
         )?,
     };
-    let mut drawing = DrawingBuilder::new(DrawingOptions::new("spatial-performance", "m"))?;
+    let mut drawing = OcdrawBuilder::new(OcdrawBuildOptions::new("spatial-performance", "m"))?;
     drawing.ensure_continuous_line_pattern().unwrap();
     let layer = drawing.add_layer(LayerDefinition::new(
         "0",
@@ -110,17 +111,12 @@ fn main() -> Result<()> {
         }
         let mut result = json!({});
         result["load_and_validate"] = measure(|| {
-            let loaded = load_drawing_file(&path)?;
-            if loaded.validated_drawing().is_none() {
-                return Err(format!("{:?}", loaded.diagnostics()).into());
-            }
+            let loaded = load_ocdraw_file(&path)?;
             black_box(loaded);
             Ok(())
         })?;
-        let loaded = load_drawing_file(&path)?;
-        let drawing = loaded
-            .validated_drawing()
-            .ok_or("invalid measured drawing")?;
+        let loaded = load_ocdraw_file(&path)?;
+        let drawing = &loaded;
         result["scope_points"] = measure(|| {
             let mut count = 0;
             for e in drawing.geometric_entities() {
@@ -140,16 +136,19 @@ fn main() -> Result<()> {
             Ok(())
         })?;
         result["ocdraw_to_cad"] = measure(|| {
-            black_box(ocdraw_to_cad_document(drawing, ImportOptions::default())?);
+            black_box(ocdraw_source_to_cad_document(
+                drawing,
+                OcdrawToCadOptions::default(),
+            )?);
             Ok(())
         })?;
-        let imported = ocdraw_to_cad_document(drawing, ImportOptions::default())?;
+        let imported = ocdraw_source_to_cad_document(drawing, OcdrawToCadOptions::default())?;
         let assessment = imported.geometry_assessment();
         result["geometry"] = json!({"status":format!("{:?}",assessment.status()),"max_deviation_upper_bound":assessment.max_deviation_upper_bound(),"resolved_tolerance_upper":assessment.resolved_tolerance().upper(),"assessed_vertices":assessment.assessed_vertices(),"rounded_entities":assessment.rounded_entities()});
         result["cad_to_ocdraw"] = measure(|| {
-            black_box(cad_document_to_drawing(
+            black_box(cad_document_to_encoded_ocdraw(
                 imported.document(),
-                ExportOptions::default(),
+                CadToOcdrawOptions::default(),
             )?);
             Ok(())
         })?;
