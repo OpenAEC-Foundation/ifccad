@@ -13,6 +13,21 @@
         "dataType": "Object",
         "objectRestrictions": {
           "values": {
+            "nextEntityId": {
+              "dataType": "Integer"
+            },
+            "nextLayerId": {
+              "dataType": "Integer"
+            },
+            "nextLayoutId": {
+              "dataType": "Integer"
+            },
+            "nextBlockId": {
+              "dataType": "Integer"
+            },
+            "nextLinePatternId": {
+              "dataType": "Integer"
+            },
             "profileVersion": {
               "dataType": "String"
             },

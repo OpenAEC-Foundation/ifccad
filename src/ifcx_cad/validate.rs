@@ -9,6 +9,11 @@ use std::collections::{BTreeMap, BTreeSet};
 struct DrawingValue {
     profile_version: String,
     length_unit: String,
+    next_entity_id: u64,
+    next_layer_id: u64,
+    next_layout_id: u64,
+    next_block_id: u64,
+    next_line_pattern_id: u64,
     #[serde(default = "super::patterns::one")]
     line_pattern_scale: f64,
 }
@@ -607,18 +612,24 @@ pub(super) fn validate(raw: Value) -> Result<ValidatedIfcxCad, IfcxCadReport> {
     if entity_paths.len() != owners.len() || entity_paths.iter().any(|p| !owners.contains(*p)) {
         return Err(problem("CAD entity without exactly one owner"));
     }
-    Ok(ValidatedIfcxCad {
-        raw,
-        document: IfcxCadDocument {
-            header,
-            drawing_id,
-            length_unit: drawing.length_unit,
-            line_patterns,
-            line_pattern_scale: drawing.line_pattern_scale,
-            layers,
-            model,
-            paper_layouts,
-            blocks,
+    let document = IfcxCadDocument {
+        header,
+        drawing_id,
+        id_counters: IfcxCadIdCounters {
+            next_entity_id: drawing.next_entity_id,
+            next_layer_id: drawing.next_layer_id,
+            next_layout_id: drawing.next_layout_id,
+            next_block_id: drawing.next_block_id,
+            next_line_pattern_id: drawing.next_line_pattern_id,
         },
-    })
+        length_unit: drawing.length_unit,
+        line_patterns,
+        line_pattern_scale: drawing.line_pattern_scale,
+        layers,
+        model,
+        paper_layouts,
+        blocks,
+    };
+    super::allocation::validate(&document)?;
+    Ok(ValidatedIfcxCad { raw, document })
 }

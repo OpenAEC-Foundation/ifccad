@@ -5,6 +5,54 @@ use ocdraw_viewer::{export_drawing_bytes, inspect_drawing_bytes};
 const HELLO: &[u8] = include_bytes!("../../../examples/ifcx-native-cad/hello-line-patterns.ifcx");
 
 #[test]
+fn ifcx_native_download_preserves_large_counter_bytes() {
+    use ocdraw::ifcx_cad::{write_native_cad_ifcx, IfcxCadIdCounters};
+    let mut document = read_native_cad_ifcx(HELLO).unwrap().document().clone();
+    document.id_counters = IfcxCadIdCounters {
+        next_entity_id: 9_007_199_254_740_993,
+        next_layer_id: 9_223_372_036_854_775_809,
+        next_layout_id: u64::MAX,
+        next_block_id: u64::MAX,
+        next_line_pattern_id: u64::MAX,
+    };
+    let bytes = write_native_cad_ifcx(&document).unwrap();
+    let inspected = inspect_drawing_bytes("large.ifcx", &bytes);
+    assert_eq!(inspected["validation"]["strictAvailable"], true);
+    let exported = export_drawing_bytes("large.ifcx", &bytes, "ifcx", "AC1032");
+    let returned = STANDARD
+        .decode(exported["export"]["download"]["base64"].as_str().unwrap())
+        .unwrap();
+    assert_eq!(returned, bytes);
+    assert_eq!(
+        read_native_cad_ifcx(&returned)
+            .unwrap()
+            .document()
+            .id_counters,
+        document.id_counters
+    );
+}
+
+#[test]
+fn missing_counter_never_yields_native_or_cad_export_bytes() {
+    let mut graph: serde_json::Value = serde_json::from_slice(HELLO).unwrap();
+    graph["data"]
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .find(|node| node["path"] == "/cad/d1")
+        .unwrap()["attributes"]["ifccad::drawing"]
+        .as_object_mut()
+        .unwrap()
+        .remove("nextEntityId");
+    let bytes = serde_json::to_vec(&graph).unwrap();
+    for format in ["ifcx", "dxf", "dwg"] {
+        let result = export_drawing_bytes("legacy.ifcx", &bytes, format, "AC1032");
+        assert_eq!(result["validation"]["strictAvailable"], false);
+        assert!(result["export"]["download"].is_null());
+    }
+}
+
+#[test]
 fn ifcx_uses_its_own_reader_and_shows_composed_nodes() {
     let result = inspect_drawing_bytes("hello.ifcx", HELLO);
     assert_eq!(result["failure"], serde_json::Value::Null);

@@ -55,3 +55,17 @@ for(const format of ['ifcx','dxf','dwg']){
  }
 }
 console.log('Browser WASM IFCX-CAD opening, named patterns and real DXF/DWG roundtrips verified');
+
+// Keep full-width counter literals in text; JSON.parse/stringify would round them.
+const largeText=(await readFile(new URL('../../examples/ifcx-native-cad/hello-line-patterns.ifcx',import.meta.url),'utf8'))
+ .replace(/("next(?:Entity|Layer|Layout|Block|LinePattern)Id"\s*:\s*)\d+/g,(_,prefix)=>prefix+'9007199254740993');
+const largeBytes=new TextEncoder().encode(largeText);
+const largeSource={kind:'ifcx',name:'large.ifcx',files:[{path:'large.ifcx',bytes:largeBytes.buffer}]};
+const largeOpened=processBrowserRequest(largeSource,wasm);
+assert.equal(largeOpened.validation.strictAvailable,true);
+const largeExported=processBrowserRequest({...largeSource,export:{format:'ifcx'}},wasm);
+assert.equal(largeExported.failure,null);
+const largeReturned=Buffer.from(largeExported.export.download.base64,'base64');
+assert.deepEqual(largeReturned,Buffer.from(largeBytes));
+assert.equal(processBrowserRequest({kind:'ifcx',name:'again.ifcx',files:[{path:'again.ifcx',bytes:Uint8Array.from(largeReturned).buffer}]},wasm).validation.strictAvailable,true);
+console.log('Browser WASM full-width IFCX-CAD allocation state preserved in native download');

@@ -61,6 +61,7 @@ impl SourcePatterns {
 
 pub(crate) fn from_cad(
     doc: &CadDocument,
+    ids: &mut IfcxCadIdCounters,
     issues: &mut Vec<IfcxCadDiagnostic>,
 ) -> Result<(Vec<IfcxCadLinePattern>, SourcePatterns), IfcxCadConversionError> {
     scale(doc.header.linetype_scale)?;
@@ -150,7 +151,9 @@ pub(crate) fn from_cad(
                 "external line pattern provenance omitted",
             ));
         }
-        let id = IfcxCadLinePatternId(definitions.len() as u64);
+        let id = ids
+            .allocate_line_pattern_id()
+            .map_err(|error| IfcxCadConversionError::CoreValidation(error.to_string()))?;
         definitions.push(IfcxCadLinePattern {
             id,
             name: p.name.clone(),

@@ -29,7 +29,12 @@
       "attributes": {
         "ifccad::drawing": {
           "lengthUnit": "cm",
-          "profileVersion": "0.1.0"
+          "profileVersion": "0.1.0",
+          "nextEntityId": 204,
+          "nextLayerId": 3,
+          "nextLayoutId": 4,
+          "nextBlockId": 3,
+          "nextLinePatternId": 1
         }
       }
     },

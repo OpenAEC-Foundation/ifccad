@@ -3,6 +3,7 @@
 //! The formats share geometric validation types and the OCDraw unit registry.
 //! IFCX composition, nodes, schema imports and CAD attributes stay in this module.
 
+mod allocation;
 mod model;
 mod parse;
 mod patterns;
@@ -12,6 +13,7 @@ mod write;
 
 pub(crate) const PROFILE_URI: &str = "urn:example:ifccad:0.1.0";
 
+pub use allocation::{IfcxCadIdAllocationError, IfcxCadIdCounters, IfcxCadIdDomain};
 pub use model::*;
 pub use patterns::validate_ifcx_cad_line_patterns;
 pub use write::write_native_cad_ifcx;

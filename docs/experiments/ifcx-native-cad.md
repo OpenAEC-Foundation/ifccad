@@ -108,6 +108,12 @@ The existing [IFCCAD/DXF/DWG size baseline](../benchmarks/size-baseline-v1.md) m
 
 ## Recommendation
 
+The [persistent ID allocation design](ifcx-cad-id-management.md) was implemented
+and verified locally on `ifcx-cad-id-management` on 2026-10-02. It keeps compact
+node paths and stores per-domain watermarks for native editing. Native
+read/edit/write retains IDs and advanced counters; fresh CAD imports start a
+new allocation history. Independent concurrent allocation remains deferred.
+
 Continue the IFCX-native model as an experiment, especially for addressable CAD entities linked to BIM/project data. Keep the profile explicit and provisional alongside the independent OCDraw contract. Next decisive work is representative CAD coverage (viewports, more curves and appearance forms), an independent implementation of the profile, and a semantically matched size/CPU study. If buildingSMART publishes exact IFCX geometry attributes, replace local geometry keys selectively where their units, placement and roundtrip meaning agree; preserve CAD-specific role, layer, order and appearance semantics in a CAD profile.
 
 ### Named line-pattern slice (2026-10-01)

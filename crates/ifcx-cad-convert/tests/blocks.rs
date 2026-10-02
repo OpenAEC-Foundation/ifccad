@@ -34,7 +34,12 @@ fn compare(
             cad.mappings().entities.cad_handle(a.id),
             back.mappings().entities.cad_handle(b.id)
         );
-        assert_eq!(a.appearance, b.appearance);
+        assert_appearance_mapping(
+            &a.appearance,
+            &b.appearance,
+            cad.mappings(),
+            back.mappings(),
+        );
         match (&a.kind, &b.kind) {
             (
                 IfcxCadEntityKind::BlockInstance {

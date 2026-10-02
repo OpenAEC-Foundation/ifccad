@@ -31,6 +31,21 @@ pub fn metadata() -> ifcx_cad_convert::IfcxCadTargetMetadata {
         drawing_id: 7,
     }
 }
+
+pub fn assert_appearance_mapping(
+    source: &IfcxCadEntityAppearance,
+    target: &IfcxCadEntityAppearance,
+    original: &ifcx_cad_convert::IfcxCadMappings,
+    restored: &ifcx_cad_convert::IfcxCadMappings,
+) {
+    let mut expected = source.clone();
+    if let IfcxCadMode::Explicit(id) = source.line_pattern {
+        let handle = original.line_patterns.cad_handle(id.0).unwrap();
+        let restored_id = restored.line_patterns.ifcx_id(handle).unwrap();
+        expected.line_pattern = IfcxCadMode::Explicit(IfcxCadLinePatternId(restored_id));
+    }
+    assert_eq!(&expected, target);
+}
 pub fn header() -> IfcxCadHeader {
     IfcxCadHeader {
         id: "proof".into(),
@@ -41,6 +56,11 @@ pub fn header() -> IfcxCadHeader {
 }
 pub fn empty() -> IfcxCadDocument {
     IfcxCadDocument {
+        id_counters: IfcxCadIdCounters {
+            next_layer_id: 5,
+            next_layout_id: 2,
+            ..Default::default()
+        },
         line_patterns: vec![IfcxCadLinePattern {
             id: IfcxCadLinePatternId(0),
             name: "Continuous".into(),
@@ -92,6 +112,7 @@ pub fn placement(origin: [f64; 3]) -> IfcxCadPlacement {
 }
 pub fn primitives() -> IfcxCadDocument {
     let mut doc = empty();
+    doc.id_counters.next_entity_id = 91;
     doc.length_unit = "cm".into();
     doc.model.entities = vec![
         IfcxCadEntity {
@@ -147,6 +168,8 @@ pub fn cad() -> cadcodec::CadDocument {
 }
 pub fn nested(base: [f64; 3]) -> IfcxCadDocument {
     let mut d = empty();
+    d.id_counters.next_entity_id = 9_007_199_254_740_994;
+    d.id_counters.next_block_id = 10;
     let line = primitives().model.entities[0].clone();
     d.blocks = vec![
         IfcxCadBlockDefinition {

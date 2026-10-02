@@ -10,6 +10,41 @@ The complete path is a node identity. The profile uses `/cad/dN` for one drawing
 
 The JSON writer displays `path` first in each node, followed by `children` where present and then `attributes`. JSON member order does not affect node meaning; numeric child *keys* carry CAD draw order.
 
+### Persistent allocation state
+
+The drawing attribute requires `nextEntityId`, `nextLayerId`, `nextLayoutId`,
+`nextBlockId` and `nextLinePatternId`. They are IFCX `Integer` values checked
+as exact uint64 watermarks by the profile. Each must exceed every currently
+present ID in its domain. Entities across Model, Paper and block contents
+share the entity counter; Model and Paper layouts share the layout counter.
+Layers, block definitions and patterns have independent domains. New empty
+domains start at 1; existing canonical ID 0 remains valid. Drawing identity
+is caller supplied; there is no drawing-ID counter.
+
+Native reading/writing preserves supplied IDs and watermarks. Editing geometry,
+renaming, reordering or changing ownership within the drawing preserves paths.
+A copy is a new object and receives a new ID. Allocation advances with checked
+arithmetic; deletion or an unused reservation never lowers the watermark.
+The counter may equal `uint64::MAX`, but allocation then fails without mutation;
+an object with that ID cannot satisfy a greater uint64 watermark. IDs are never
+wrapped, compacted or silently reassigned. Exact integer persistence must not
+pass through floating point, including above JavaScript's safe integer range.
+
+These are CAD-profile rules, not an IFCX concurrent allocator. Validation is
+performed on the final composed drawing. A later `ifccad::drawing` replaces
+the whole attribute, so updates must supply the complete object; counters are
+not merged by maximum. A snapshot can check current IDs but cannot prove that
+a historically deleted ID was never reused or that a still-valid counter was
+never lowered. Maintaining that history is an editor responsibility.
+
+Missing counters fail the current strict experimental reader; they are not
+inferred on load. Initializing an older file from current maxima cannot recover
+deleted-ID history and needs an explicit allocation baseline. The experimental
+URI/version remains 0.1.0 without an immutable compatibility promise.
+DWG/DXF import initializes fresh allocation state and retains source associations
+only through conversion mappings, without promising persistent native identity
+through CAD serialization. See the [allocation design](../../docs/experiments/ifcx-cad-id-management.md).
+
 By default, multiple `data` fragments with the same path compose in file order. Their `children`, `inherits`, and `attributes` objects merge by key; for a repeated key, the later value replaces the entire earlier value, including a geometry or appearance attribute object. Other repeated node fields are replaced as whole values. A `null` inheritance value removes that key during composition, while a `null` child or attribute value remains a marker in the composed node. This matches the observed upstream flattening behavior; deletion during expanded graph loading and attribute deletion are not defined by this CAD profile. The reader also exposes a diagnostic `RejectConflicts` policy: it accepts disjoint and identical fragments but rejects differing repeated values, including on foreign IFCX nodes. That stricter option is a development check, not a claim that IFCX forbids overwrites. Duplicate JSON object keys within one object are errors under either policy. The reader validates CAD roles, references, geometry, and draw order on the final composed nodes under either policy. Unknown IFCX nodes and unknown non-CAD attributes are retained under the same selected composition rule. The CAD profile does not use `inherits` for blocks or appearance. A foreign IFCX node may refer to a CAD entity without acquiring ownership.
 
 ## Scope and order
@@ -20,7 +55,7 @@ The drawing has named `children` referring to exactly one Model layout, zero or 
 
 | Attribute | Required value / role |
 | --- | --- |
-| `ifccad::drawing` | `profileVersion`, `lengthUnit`; optional positive finite `linePatternScale` defaults to 1; one drawing node |
+| `ifccad::drawing` | `profileVersion`, `lengthUnit`, the five required allocation watermarks above; optional positive finite `linePatternScale` defaults to 1; one drawing node |
 | `ifccad::layout` | `kind: "Model"`, or `kind: "Paper"` with nonblank `name` and `paper: { width, height, lengthUnit }`; Model has no name or paper metadata in this proof |
 | `ifccad::linePattern` | nonempty `name`, optional `description`, ordered signed-real `pattern` array; drawing-owned definition |
 | `ifccad::layer` | `name`, direct concrete `appearance` values |

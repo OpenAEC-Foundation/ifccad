@@ -9,6 +9,13 @@ loss diagnostics; explicit Reject prevents output for any semantic loss.
 
 ## Inventory categories
 
+Fresh imports allocate entity, layer, layout, block-definition and pattern IDs
+from 1 using the core's independent checked uint64 domains. The drawing stores
+all five resulting next-ID watermarks, including empty domains. Allocation
+exhaustion is fatal under Allow and Reject. Numeric IDs are not CAD handles or
+table positions; mappings preserve source associations for this conversion.
+Reimporting CAD does not restore a previous IFCX-CAD allocation history.
+
 | Category | Treatment |
 | --- | --- |
 | Header | Map insertion units and linetype scale; compare other settings/names with pinned default. Derived extents, seed and explicitly listed control/dictionary/name-cache handles are excluded in `source.rs` |

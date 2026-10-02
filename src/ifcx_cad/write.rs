@@ -87,6 +87,7 @@ fn numbered_children(entities: &[IfcxCadEntity], prefix: &str) -> Map<String, Va
 
 /// Serialize an IFCX alpha drawing with the versioned CAD schema import and strict-read it.
 pub fn write_native_cad_ifcx(document: &IfcxCadDocument) -> Result<Vec<u8>, IfcxCadReport> {
+    super::allocation::validate(document)?;
     let mut layout_ids = BTreeSet::from([document.model.id]);
     let mut paper_layouts: Vec<_> = document.paper_layouts.iter().collect();
     paper_layouts.sort_by_key(|layout| layout.id);
@@ -133,9 +134,15 @@ pub fn write_native_cad_ifcx(document: &IfcxCadDocument) -> Result<Vec<u8>, Ifcx
     data.push(NodeOut {
         path: prefix.clone(),
         children: Some(drawing_children),
-        attributes: attrs(
-            json!({"ifccad::drawing":{"profileVersion":"0.1.0","lengthUnit":document.length_unit,"linePatternScale":document.line_pattern_scale}}),
-        ),
+        attributes: attrs(json!({"ifccad::drawing":{
+            "profileVersion":"0.1.0","lengthUnit":document.length_unit,
+            "linePatternScale":document.line_pattern_scale,
+            "nextEntityId":document.id_counters.next_entity_id,
+            "nextLayerId":document.id_counters.next_layer_id,
+            "nextLayoutId":document.id_counters.next_layout_id,
+            "nextBlockId":document.id_counters.next_block_id,
+            "nextLinePatternId":document.id_counters.next_line_pattern_id,
+        }})),
     });
     data.push(NodeOut {
         path: format!("{prefix}/layout/{}", document.model.id),
@@ -207,6 +214,8 @@ pub fn write_native_cad_ifcx(document: &IfcxCadDocument) -> Result<Vec<u8>, Ifcx
         .map_err(|e| IfcxCadReport::one(format!("IFCX serialization failed: {e}")))?;
     let loaded = read_native_cad_ifcx(&bytes)?;
     let mut expected = document.clone();
+    expected.layers.sort_by_key(|layer| layer.id.to_string());
+    expected.blocks.sort_by_key(|block| block.id.to_string());
     expected.line_patterns.sort_by_key(|p| p.id.0.to_string());
     expected.paper_layouts.sort_by_key(|layout| layout.id);
     if loaded.document() != &expected {

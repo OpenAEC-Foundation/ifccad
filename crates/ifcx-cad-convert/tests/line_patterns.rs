@@ -5,6 +5,7 @@ use ocdraw::ifcx_cad::*;
 
 fn patterns() -> IfcxCadDocument {
     let mut d = primitives();
+    d.id_counters.next_line_pattern_id = 9;
     d.line_patterns.extend([
         IfcxCadLinePattern {
             id: IfcxCadLinePatternId(7),
@@ -364,6 +365,7 @@ fn declared_period_normalization_is_policy_controlled_and_nonfinite_complex_valu
 fn shared_nested_definitions_keep_pattern_modes_per_occurrence() {
     let mut d = nested([0.; 3]);
     d.line_patterns = patterns().line_patterns;
+    d.id_counters.next_line_pattern_id = 9;
     d.layers[0].appearance.line_pattern = IfcxCadLinePatternId(7);
     d.model.entities[0].appearance.line_pattern = IfcxCadMode::Explicit(IfcxCadLinePatternId(7));
     d.model.entities[1].appearance.line_pattern = IfcxCadMode::Explicit(IfcxCadLinePatternId(8));

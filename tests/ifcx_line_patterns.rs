@@ -7,6 +7,7 @@ fn drawing() -> Value {
             .unwrap();
     for n in v["data"].as_array_mut().unwrap() {
         if n["path"] == "/cad/d1" {
+            n["attributes"]["ifccad::drawing"]["nextLinePatternId"] = json!(3);
             n["children"]["linePattern0"] = json!("/cad/d1/linePattern/0");
             n["children"]["linePattern2"] = json!("/cad/d1/linePattern/2");
         }
@@ -115,8 +116,9 @@ fn invalid_definitions_references_and_scales_fail() {
 #[test]
 fn definition_names_use_full_unicode_case_folding_and_ids_are_u64() {
     let mut d = read(&drawing()).unwrap().document().clone();
+    d.id_counters.next_line_pattern_id = u64::MAX;
     d.line_patterns.push(IfcxCadLinePattern {
-        id: IfcxCadLinePatternId(u64::MAX),
+        id: IfcxCadLinePatternId(u64::MAX - 1),
         name: "Straße".into(),
         description: None,
         pattern: vec![],
@@ -127,7 +129,7 @@ fn definition_names_use_full_unicode_case_folding_and_ids_are_u64() {
         .document()
         .line_patterns
         .iter()
-        .any(|p| p.id.0 == u64::MAX));
+        .any(|p| p.id.0 == u64::MAX - 1));
     d.line_patterns.push(IfcxCadLinePattern {
         id: IfcxCadLinePatternId(42),
         name: "STRASSE".into(),

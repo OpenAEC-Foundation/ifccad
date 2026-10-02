@@ -13,6 +13,15 @@ fn base() -> Value {
             {"path":"/cad/d1/e2","attributes":{"ifccad::entity":{"layer":"/cad/d1/layer/0","appearance":{"color":{"mode":"ByLayer"},"opacity":{"mode":"ByLayer"},"linePattern":{"mode":"ByLayer"},"lineWeight":{"mode":"ByLayer"}}},"ifccad::geom::lineSegment":{"start":[0,0,0],"end":[1,0,0]}}}
         ]
     });
+    for (field, count) in [
+        ("nextEntityId", 3),
+        ("nextLayerId", 1),
+        ("nextLayoutId", 2),
+        ("nextBlockId", 1),
+        ("nextLinePatternId", 1),
+    ] {
+        value["data"][0]["attributes"]["ifccad::drawing"][field] = json!(count);
+    }
     value["data"][0]["children"]["linePattern0"] = json!("/cad/d1/linePattern/0");
     value["data"].as_array_mut().unwrap().push(json!({"path":"/cad/d1/linePattern/0","attributes":{"ifccad::linePattern":{"name":"Continuous","pattern":[]}}}));
     let module: Value = serde_json::from_str(include_str!(
@@ -187,6 +196,13 @@ fn fixture_document() -> IfcxCadDocument {
         },
     };
     IfcxCadDocument {
+        id_counters: IfcxCadIdCounters {
+            next_entity_id: 101,
+            next_layer_id: 3,
+            next_layout_id: 2,
+            next_block_id: 2,
+            next_line_pattern_id: 1,
+        },
         line_patterns: vec![IfcxCadLinePattern {
             id: IfcxCadLinePatternId(0),
             name: "Continuous".into(),
@@ -298,6 +314,8 @@ fn fixture_document() -> IfcxCadDocument {
 
 fn nested_document() -> IfcxCadDocument {
     let mut document = fixture_document();
+    document.id_counters.next_entity_id = 103;
+    document.id_counters.next_block_id = 3;
     let placement = IfcxCadPlacement {
         origin: [5.0, 0.0, 0.0],
         x_axis: [1.0, 0.0, 0.0],
@@ -425,6 +443,7 @@ fn nested_block_definition_cycle_is_rejected() {
     let mut document = nested_document();
     let mut back_reference = document.blocks[1].entities[0].clone();
     back_reference.id = 103;
+    document.id_counters.next_entity_id = 104;
     if let IfcxCadEntityKind::BlockInstance { definition_id, .. } = &mut back_reference.kind {
         *definition_id = 2;
     }
@@ -440,6 +459,8 @@ fn paper_layout_file() -> Value {
     let mut value: Value =
         serde_json::from_slice(&write_native_cad_ifcx(&nested_document()).unwrap()).unwrap();
     value["data"][0]["children"]["paper2"] = json!("/cad/d1/layout/2");
+    value["data"][0]["attributes"]["ifccad::drawing"]["nextLayoutId"] = json!(4);
+    value["data"][0]["attributes"]["ifccad::drawing"]["nextEntityId"] = json!(204);
     value["data"][0]["children"]["paper3"] = json!("/cad/d1/layout/3");
     value["data"].as_array_mut().unwrap().extend([
         json!({"path":"/cad/d1/layout/2","children":{"0":"/cad/d1/e201","1":"/cad/d1/e202"},"attributes":{"ifccad::layout":{"kind":"Paper","name":"A3","paper":{"width":297.0,"height":420.0,"lengthUnit":"mm"}}}}),
@@ -778,6 +799,7 @@ fn profile_imported_schema_resolves_offline_and_missing_import_fails() {
 #[test]
 fn exploratory_line_count_probe() {
     let mut document = fixture_document();
+    document.id_counters.next_entity_id = 1001;
     document.model.entities = (1..=1000)
         .map(|id| IfcxCadEntity {
             line_pattern_scale: 1.,

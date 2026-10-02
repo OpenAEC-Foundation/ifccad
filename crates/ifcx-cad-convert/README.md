@@ -41,6 +41,13 @@ Layout object handles; block mappings use BlockRecord handles. IDs remain u64,
 including values above JavaScript's safe integer range. Deterministic allocation
 for a fixed enumeration does not promise persistence through CAD serialization.
 
+Each fresh CAD import allocates all five IFCX-CAD ID domains from 1 with checked
+core allocators and writes the resulting persistent watermarks. The layer
+named `0` has no reserved numeric ID. Native read/edit/write preserves authored
+IDs, including legacy numeric zero, and advanced watermarks; deletion never
+resets them. Reimporting DWG/DXF creates a new allocation history, and conversion
+mappings do not themselves persist that history inside the CAD file.
+
 ## Supported slice
 
 - One Model layout, 25 length-unit tokens, unused layers and definitions.

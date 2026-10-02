@@ -12,6 +12,24 @@ Each entry records: **current IFCX surface**, **our tested rule**, **open questi
 - **Broader use:** Compact, human-readable identifiers for repeated model elements, sensor points, assembly members, and external annotations without a UUID in every node. This needs an explicit collision and reference model before proposing it upstream.
 - **Evidence:** [profile paths](../../schemas/ifcx-native-cad/experimental-contract-0.1.0.md#file-and-identity), [fixture](../../examples/ifcx-native-cad/hello-cad.ifcx), [composition probe](ifcx-composition-probe.md), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp).
 
+### Native ID lifecycle (2026-10-02)
+
+The [persistent allocation design](ifcx-cad-id-management.md) keeps existing
+paths stable during native edits and records per-domain watermarks on the
+drawing. This is implemented and verified locally on `ifcx-cad-id-management`.
+The counters are a CAD-profile choice;
+they do not establish global uniqueness, resolve cross-file identities or
+support independently allocating editors. A future collaboration design must
+address node identity and ordered relationships together. G1 remains open.
+
+The schema describes these counters as IFCX `Integer`; exact unsigned 64-bit
+range and allocation rules are profile constraints. Rust/native WASM readback
+and original-byte browser download preserve full-width values. Full-width
+Integer interchange through the upstream composer or other JavaScript
+consumers still needs an independent probe; no generic IFCX precision guarantee
+is claimed. The broader question also applies to exact counters and identifiers
+outside CAD, independently of compact paths.
+
 ## G2 — Ordered relationships through `children` (`Candidate`)
 
 - **Current IFCX surface:** `children` is a keyed record of references or `null`; the TypeSpec does not give its keys a general ordering meaning.

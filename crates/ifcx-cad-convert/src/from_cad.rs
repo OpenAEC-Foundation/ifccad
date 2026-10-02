@@ -19,7 +19,8 @@ pub fn cad_document_to_ifcx_cad_with_options(
 ) -> Result<CadToIfcxCadOutcome, IfcxCadConversionError> {
     let info = crate::source::inspect(source)?;
     let mut issues = info.issues;
-    let (mut line_patterns, patterns) = crate::patterns::from_cad(source, &mut issues)?;
+    let mut ids = IfcxCadIdCounters::default();
+    let (mut line_patterns, patterns) = crate::patterns::from_cad(source, &mut ids, &mut issues)?;
     let length_unit = UNITS
         .get(source.header.insertion_units as usize)
         .unwrap_or_else(|| {
@@ -32,20 +33,18 @@ pub fn cad_document_to_ifcx_cad_with_options(
         })
         .to_string();
     let mut mappings = IfcxCadMappings::default();
-    mappings.layouts.insert(1, info.model_layout);
-    let mut layers: Vec<_> = source
-        .layers
-        .iter()
-        .enumerate()
-        .map(|(i, l)| {
-            mappings.layers.insert(i as u64, l.handle);
-            IfcxCadLayer {
-                id: i as u64,
-                name: l.name.clone(),
-                appearance: crate::appearance::from_layer(l, &patterns, &mut issues),
-            }
-        })
-        .collect();
+    let model_id = ids.allocate_layout_id().map_err(allocation_error)?;
+    mappings.layouts.insert(model_id, info.model_layout);
+    let mut layers = Vec::new();
+    for l in source.layers.iter() {
+        let id = ids.allocate_layer_id().map_err(allocation_error)?;
+        mappings.layers.insert(id, l.handle);
+        layers.push(IfcxCadLayer {
+            id,
+            name: l.name.clone(),
+            appearance: crate::appearance::from_layer(l, &patterns, &mut issues),
+        });
+    }
     let supported: Vec<_> = info.blocks.iter().copied().filter(|h| {
         let b = source.block_records.iter().find(|b| b.handle == *h).unwrap();
         let dynamic = source.objects.values().any(|o| matches!(o, cadcodec::objects::ObjectType::DynamicBlock(d) if d.owner == *h));
@@ -57,18 +56,19 @@ pub fn cad_document_to_ifcx_cad_with_options(
         }
         supported
     }).collect();
-    for (i, h) in supported.iter().enumerate() {
-        mappings.blocks.insert(i as u64 + 1, *h);
+    for h in &supported {
+        mappings
+            .blocks
+            .insert(ids.allocate_block_id().map_err(allocation_error)?, *h);
     }
-    let mut next_id = 1;
     let entities = convert_entities(
         source,
         &patterns,
         &info.entities,
-        &mut next_id,
+        &mut ids,
         &mut mappings,
         &mut issues,
-    );
+    )?;
     let mut blocks = Vec::new();
     for h in &supported {
         let b = source
@@ -93,10 +93,10 @@ pub fn cad_document_to_ifcx_cad_with_options(
                 source,
                 &patterns,
                 &b.entity_handles,
-                &mut next_id,
+                &mut ids,
                 &mut mappings,
                 &mut issues,
-            ),
+            )?,
         });
     }
     // The current core projection enumerates dictionary paths lexicographically.
@@ -113,11 +113,15 @@ pub fn cad_document_to_ifcx_cad_with_options(
     let drawing = IfcxCadDocument {
         header: metadata.header,
         drawing_id: metadata.drawing_id,
+        id_counters: ids,
         length_unit,
         line_patterns,
         line_pattern_scale: source.header.linetype_scale,
         layers,
-        model: IfcxCadLayout { id: 1, entities },
+        model: IfcxCadLayout {
+            id: model_id,
+            entities,
+        },
         paper_layouts: vec![],
         blocks,
     };
@@ -132,14 +136,18 @@ pub fn cad_document_to_ifcx_cad_with_options(
         mappings,
     })
 }
+fn allocation_error(error: IfcxCadIdAllocationError) -> IfcxCadConversionError {
+    IfcxCadConversionError::CoreValidation(error.to_string())
+}
+
 fn convert_entities(
     source: &CadDocument,
     patterns: &crate::patterns::SourcePatterns,
     handles: &[cadcodec::Handle],
-    next_id: &mut u64,
+    ids: &mut IfcxCadIdCounters,
     mappings: &mut IfcxCadMappings,
     issues: &mut Vec<IfcxCadDiagnostic>,
-) -> Vec<IfcxCadEntity> {
+) -> Result<Vec<IfcxCadEntity>, IfcxCadConversionError> {
     let mut entities = Vec::new();
     for h in handles {
         let e = source.get_entity(*h).expect("inspected entity");
@@ -166,8 +174,7 @@ fn convert_entities(
             ));
         }
         if let Some(kind) = kind {
-            let id = *next_id;
-            *next_id += 1;
+            let id = ids.allocate_entity_id().map_err(allocation_error)?;
             mappings.entities.insert(id, *h);
             entities.push(IfcxCadEntity {
                 line_pattern_scale: e.common().linetype_scale,
@@ -187,5 +194,5 @@ fn convert_entities(
             });
         }
     }
-    entities
+    Ok(entities)
 }

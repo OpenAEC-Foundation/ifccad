@@ -4,6 +4,12 @@ Profile `urn:example:ifccad:0.1.0`; cadcodec revision
 `5b682ed66ea2c89be8142c8dd83d83774fc3de08`. Default Allow returns supported content
 with losses; explicit Reject refuses diagnosed omissions or modifications.
 
+The validated source includes persistent next-ID watermarks. They remain in
+the source native drawing and govern subsequent native editing; they are
+allocation bookkeeping, not CAD entity semantics or a new preservation payload.
+This route does not encode that allocation history into DWG/DXF. A subsequent
+fresh CAD import assigns new IDs and watermarks with explicit outcome mappings.
+
 | Source | Treatment |
 | --- | --- |
 | Composition/profile rules | Core reader composes first, default LaterWins; converter accepts validated projection |

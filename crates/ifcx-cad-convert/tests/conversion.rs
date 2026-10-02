@@ -4,6 +4,54 @@ use ifcx_cad_convert::*;
 use ocdraw::ifcx_cad::*;
 
 #[test]
+fn fresh_cad_import_emits_valid_counters_under_both_policies() {
+    let source = primitives();
+    let cad = to_cad(&validated(&source)).unwrap();
+    for policy in [IfcxCadLossPolicy::Allow, IfcxCadLossPolicy::Reject] {
+        let back = cad_document_to_ifcx_cad_with_options(
+            cad.document(),
+            metadata(),
+            IfcxCadConversionOptions {
+                loss_policy: policy,
+            },
+        )
+        .unwrap();
+        let loaded = read_native_cad_ifcx(back.ifcx_bytes()).unwrap();
+        assert_eq!(
+            loaded.document().id_counters,
+            IfcxCadIdCounters {
+                next_entity_id: 4,
+                next_layer_id: 3,
+                next_layout_id: 2,
+                next_block_id: 1,
+                next_line_pattern_id: 2,
+            }
+        );
+        for (original, restored) in source
+            .model
+            .entities
+            .iter()
+            .zip(&loaded.document().model.entities)
+        {
+            assert_eq!(
+                cad.mappings().entities.cad_handle(original.id),
+                back.mappings().entities.cad_handle(restored.id)
+            );
+        }
+        assert_eq!(
+            loaded
+                .document()
+                .layers
+                .iter()
+                .find(|layer| layer.name == "0")
+                .unwrap()
+                .id,
+            1
+        );
+    }
+}
+
+#[test]
 fn empty_roundtrip_keeps_unit_and_unused_layer() {
     let source = validated(&empty());
     let cad = to_cad(&source).unwrap();
@@ -88,7 +136,12 @@ fn primitive_roundtrip_keeps_order_and_modes() {
     let out = back.validated_ifcx().document();
     assert_eq!(out.length_unit, "cm");
     for (s, t) in source.model.entities.iter().zip(&out.model.entities) {
-        assert_eq!(s.appearance, t.appearance);
+        assert_appearance_mapping(
+            &s.appearance,
+            &t.appearance,
+            cad.mappings(),
+            back.mappings(),
+        );
         assert_eq!(
             cad.mappings().entities.cad_handle(s.id),
             back.mappings().entities.cad_handle(t.id)

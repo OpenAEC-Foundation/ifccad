@@ -16,6 +16,8 @@ pub struct IfcxCadHeader {
 pub struct IfcxCadDocument {
     pub header: IfcxCadHeader,
     pub drawing_id: u64,
+    /// Persistent watermarks; native reading/writing never recomputes them.
+    pub id_counters: super::IfcxCadIdCounters,
     pub length_unit: String,
     pub line_patterns: Vec<IfcxCadLinePattern>,
     pub line_pattern_scale: f64,

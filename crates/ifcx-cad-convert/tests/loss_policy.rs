@@ -471,6 +471,8 @@ fn common_metadata_loss_keeps_geometry_and_marks_nested_occurrences() {
 #[test]
 fn missing_layer_zero_and_paper_have_explicit_loss_evidence() {
     let mut d = empty();
+    d.id_counters.next_entity_id = 46;
+    d.id_counters.next_layout_id = 9;
     d.layers.retain(|l| l.name != "0");
     let mut e = primitives().model.entities[0].clone();
     e.id = 45;
