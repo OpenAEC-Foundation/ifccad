@@ -97,6 +97,11 @@ opaque, Continuous, 0.25 mm CAD layer without a source mapping. Entity
 ByLayer/ByBlock modes remain independent and stored. These adaptations are
 policy-controlled losses, not an appearance resolver.
 
+The source inventory accepts a layer's canonical `AcCmTransparency` XDATA only
+when its single Integer32 exactly duplicates the mapped explicit layer transparency.
+This is an alternate encoding of supported opacity, with no source mutation or
+repair. Other owners, values, applications and undecodable payloads remain losses.
+
 Oblique frames, arcs/bulges/widths, named/indexed color identity, complex text/shape patterns,
 changed CAD settings, XDATA, arrays, attributes and source preservation remain
 outside the slice. Unsupported common metadata may be omitted while keeping

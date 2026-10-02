@@ -39,7 +39,7 @@ Reimporting CAD does not restore a previous IFCX-CAD allocation history.
 | Other typed/unsupported objects | Compare pinned scaffold by named dictionary roles and typed values; additional/modified/unsupported objects diagnosed |
 | Summary/Preview | Changed summary or any preview diagnosed |
 | Relationships | Entity/marker/Layout ownership and typed drawing references remain structural checks. Unresolved ownership of omitted non-Layout objects is located loss, including object kind and owner handle. Reactors/extension dictionaries, including unresolved endpoints, are diagnosed losses rather than global structural failures |
-| Non-entity extended data | Diagnosed, including undecodable payloads; no preservation in this slice |
+| Non-entity extended data | Diagnose all except a resolved Layer's exact canonical `AcCmTransparency` duplicate: one Integer32 equal to that layer's explicit transparency `to_dxf_value()`. Unknown applications, owners, inherited modes, extra/undecodable values and mismatches remain losses; no preservation in this slice |
 
 Defaults come from fresh CadDocument for in-memory/DXF, and one cached
 unmodified fresh-DWG write/read for DWG. Roles follow named dictionaries,
