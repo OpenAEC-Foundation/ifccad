@@ -2,8 +2,8 @@ use crate::outcome::diagnostic;
 use crate::{IfcxCadConversionError as Error, IfcxCadDiagnostic};
 use cadcodec::objects::ObjectType;
 use cadcodec::{
-    CadDocument, EntityType, Handle, SemanticEntityV1, SemanticObjectV1, SemanticPartV1,
-    SemanticReferenceV1, SemanticRelationshipKindV1, SemanticTableRecordV1,
+    CadDocument, EntityType, Handle, SemanticEntityV1, SemanticNodeV1, SemanticObjectV1,
+    SemanticPartV1, SemanticReferenceV1, SemanticRelationshipKindV1, SemanticTableRecordV1,
 };
 use serde::Serialize;
 use serde_json::Value;
@@ -381,7 +381,7 @@ fn scan(doc: &CadDocument, issues: &mut Vec<IfcxCadDiagnostic>) -> Result<(), Er
         &fresh
     };
     let object_roles = object_roles(doc, baseline);
-    let mut unresolved = false;
+    let mut unresolved = None;
     doc.semantic_inventory_v1().visit(|part| match part {
         SemanticPartV1::Header(h) => residual(
             h,
@@ -588,15 +588,39 @@ fn scan(doc: &CadDocument, issues: &mut Vec<IfcxCadDiagnostic>) -> Result<(), Er
             source,
             target,
         } => {
-            if matches!(source, SemanticReferenceV1::Unresolved)
-                || matches!(target, SemanticReferenceV1::Unresolved)
-            {
-                unresolved = true;
-            }
-            if kind != SemanticRelationshipKindV1::Ownership {
+            let missing = matches!(source, SemanticReferenceV1::Unresolved)
+                || matches!(target, SemanticReferenceV1::Unresolved);
+            let (source_path, source_name, owner) = relationship_source(doc, source);
+            let property = match kind {
+                SemanticRelationshipKindV1::Ownership => "owner",
+                SemanticRelationshipKindV1::ExtensionDictionary => "extensionDictionary",
+                SemanticRelationshipKindV1::Reactor => "reactor",
+            };
+            let location = format!("{source_path}.{property}");
+            // Entity and Layout ownership is essential. Other objects are outside
+            // the CAD projection and their ownership is omitted with the object.
+            let metadata_owner = matches!(source,
+                SemanticReferenceV1::Resolved(SemanticNodeV1::Object(object))
+                if !matches!(object, ObjectType::Layout(_)));
+            if missing && kind == SemanticRelationshipKindV1::Ownership && !metadata_owner {
+                unresolved.get_or_insert_with(|| {
+                    format!("dangling essential ownership relationship at {location}")
+                });
+            } else if missing {
+                let owner_detail = if kind == SemanticRelationshipKindV1::Ownership {
+                    owner.map(|h| format!(" (owner {h})")).unwrap_or_default()
+                } else {
+                    String::new()
+                };
+                issues.push(diagnostic(
+                    "unresolved-relationship",
+                    location,
+                    format!("unresolved {kind:?} relationship on {source_name}{owner_detail} omitted outside the CAD projection"),
+                ));
+            } else if kind != SemanticRelationshipKindV1::Ownership {
                 issues.push(diagnostic(
                     "relationship",
-                    "inventory",
+                    location,
                     "reactor/extension relationship is unsupported",
                 ));
             }
@@ -607,12 +631,38 @@ fn scan(doc: &CadDocument, issues: &mut Vec<IfcxCadDiagnostic>) -> Result<(), Er
             "non-entity extended data is unsupported",
         )),
     });
-    if unresolved {
-        return Err(Error::InvalidStructure(
-            "dangling semantic relationship".into(),
-        ));
+    if let Some(problem) = unresolved {
+        return Err(Error::InvalidStructure(problem));
     }
     Ok(())
+}
+
+fn relationship_source(
+    doc: &CadDocument,
+    source: SemanticReferenceV1<'_>,
+) -> (String, &'static str, Option<Handle>) {
+    match source {
+        SemanticReferenceV1::Resolved(SemanticNodeV1::Entity(entity)) => (
+            format!("entity/{}", entity.common().handle),
+            "entity",
+            Some(entity.common().owner_handle),
+        ),
+        SemanticReferenceV1::Resolved(SemanticNodeV1::Object(object)) => {
+            let handle = doc
+                .objects
+                .iter()
+                .find(|(_, candidate)| std::ptr::eq(*candidate, object))
+                .map(|(handle, _)| *handle)
+                .expect("inventory object");
+            let name = match object {
+                ObjectType::ClassObject(class) => class.dxf_name(),
+                ObjectType::Layout(_) => "Layout",
+                _ => "object",
+            };
+            (format!("object/{handle}"), name, doc.object_owner(handle))
+        }
+        _ => ("inventory".into(), "metadata", None),
+    }
 }
 
 // Adapted from the existing converter's bootstrap-role comparison. Dictionary

@@ -103,13 +103,19 @@ outside the slice. Unsupported common metadata may be omitted while keeping
 geometry. Extra fields on supported types are also checked. See the contracts:
 [to CAD](docs/TO-CAD-COVERAGE.md), [from CAD](docs/FROM-CAD-COVERAGE.md).
 
+Unresolved ownership of unsupported non-Layout objects, such as SUN lighting
+metadata, and optional reactor/extension relationships receive located loss
+diagnostics. Allow omits them; Reject refuses the loss. Entity and Layout
+ownership and typed drawing references remain structural requirements. Source
+objects are never repaired or removed from the caller's CAD document.
+
 Foreign IFCX information remains in the source reader's graph. A conservative
 canonical-envelope comparison reports extra nodes, attributes, relations,
 imports and schemas as losses; it can also diagnose equivalent alternate
 envelopes and is not graph equivalence. Allow projects the CAD subset; Reject
 refuses these differences. Exact geometry value checks separately reject integer
-to binary64 rounding. Invalid structure, cycles, dangling references, non-finite
-known geometry, translated-coordinate rounding and CAD scale clamping fail under
+to binary64 rounding. Invalid structure, cycles, dangling essential drawing
+references, non-finite known geometry, translated-coordinate rounding and CAD scale clamping fail under
 both policies. No geometric tolerance kernel is introduced.
 
 ## Exchange evidence

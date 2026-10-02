@@ -38,7 +38,7 @@ Reimporting CAD does not restore a previous IFCX-CAD allocation history.
 | Layout objects | Unique consistent Model link; pinned Model/Layout1 fields only. Validate viewport references; exclude derived extents and structural handles. Modified plot/UCS/layout fields or additional layouts diagnosed |
 | Other typed/unsupported objects | Compare pinned scaffold by named dictionary roles and typed values; additional/modified/unsupported objects diagnosed |
 | Summary/Preview | Changed summary or any preview diagnosed |
-| Relationships | Owner membership checked; dangling inventory endpoints fatal. Reactors/extension dictionaries diagnosed |
+| Relationships | Entity/marker/Layout ownership and typed drawing references remain structural checks. Unresolved ownership of omitted non-Layout objects is located loss, including object kind and owner handle. Reactors/extension dictionaries, including unresolved endpoints, are diagnosed losses rather than global structural failures |
 | Non-entity extended data | Diagnosed, including undecodable payloads; no preservation in this slice |
 
 Defaults come from fresh CadDocument for in-memory/DXF, and one cached
@@ -100,9 +100,15 @@ stored. Unknown drawing or block unit codes become unitless without scaling,
 with modification evidence. Unsupported table/header/object/source metadata is
 diagnosed and omitted. No full-source preservation claim follows from Allow.
 
-Both policies reject structural/reference/owner/marker conflicts, cycles,
+Both policies reject essential drawing reference/owner/marker conflicts, cycles,
 invalid scalar values in known geometry and numeric precision failures. A
 unique model-cache repair has action Recovery and does not count as a loss.
+Unresolved ownership of unsupported objects and optional reactor/extension
+relationships is omitted with loss diagnostics under Allow; Reject refuses that
+loss. This does not repair the source or preserve the unsupported metadata.
+Existing dictionary-entry and Layout/block/viewport consistency checks remain
+unchanged. `tests/metadata_relationships.rs` covers the metadata/structure boundary
+through logical and encoded conversion and production-reader readback.
 
 Metadata is caller supplied. New IDs follow source table/owner enumeration and
 remain u64; layer/definition vectors follow current core lexical path ordering.
