@@ -107,7 +107,9 @@ drawings before selecting binary storage, integrated compression or indexed
 chunks. OCDraw can explore its own storage choices; IFCX-CAD storage experiments
 must identify compatibility boundaries and coordinate with evolving IFCX
 technology. Current JSON/gzip probes do not establish native compressed formats
-or future IFCX capabilities.
+or future IFCX capabilities. Measurements run only on explicit user request,
+for the full experiment or a requested selection; they are never automatic
+completion gates, including after relevant code or dependency changes.
 
 ## Verification and freeze criteria
 

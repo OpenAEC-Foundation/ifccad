@@ -5,7 +5,24 @@ representations of exactly the same retained content, plus external gzip.
 It is separate from the accepted historical and standalone OCDraw experiments
 under `benchmarks/size/`.
 
-Run from the repository root with Python 3.11+ and the pinned Rust dependency:
+Measurements run only on explicit user request, for the full experiment or the
+requested selection. They are never automatic completion gates or CI tasks, even
+when main, converters, writers, codecs or dependencies change. Focused correctness
+and strict-readback tests remain part of normal verification. Retained reports
+state the tested revision and coverage; they do not automatically certify later
+revisions. The current runner executes the complete fixed corpus plus optional
+practice input. A narrower requested scope needs an explicit recipe/runner selection
+before execution; omitting practice still runs all nine synthetic recipes.
+
+Before an accepted run, prepare the pinned dependencies and local Cargo.lock:
+
+```text
+cargo build --offline -p ocdraw-viewer --example size_exchange --release
+```
+
+This one-time build also updates a stale local lockfile before provenance is
+captured. The measurement rejects source or lock changes during its two passes.
+Use Python 3.11+ and run from the repository root:
 
 ```text
 python scripts/size_exchange.py --run NEW_RUN_NAME --practice PATH_TO_ORIGINAL_DWG_OR_DXF

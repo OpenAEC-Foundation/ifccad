@@ -59,11 +59,11 @@ original practice hash, runtimes and pinned codec
 revision. Local codec patches are excluded. Original private drawings and local
 absolute source paths are not copied into the accepted report.
 
-## Initial results
+## Accepted results
 
 The matching detailed results are retained in
 [`results-v1.json`](../../benchmarks/size-exchange/results-v1.json).
-Accepted run: `approved-v2`, 2026-10-02. All ten cases pass both independent
+Accepted run: `main-foundation-v2`, 2026-10-02, optimized Rust profile. All ten cases pass both independent
 generations; all native, compact and gzip artifact hashes, semantic snapshot
 hashes and canonically ordered diagnostics match.
 
@@ -93,7 +93,8 @@ omitted during preparation, as detailed in the loss diagnostics.
 The only physical numeric preparation change is model instance 778 rotation,
 from `1.570796326794893` to `1.5707963267948932`, then
 `1.5707963267948934` radians. Two rounds reach the exact common fixed point.
-No core tolerance or production converter behavior changed.
+No core numeric tolerance changed; the transparency classification correction
+described below accepts only exact duplicates of already mapped layer opacity.
 
 For the practice subset, compact OCDraw+gzip is 39,605 bytes; compact
 IFCX-CAD+gzip is 47,881 bytes, so OCDraw is about 17.3% smaller. Current
@@ -128,7 +129,21 @@ On 2026-10-02, `transparency-foundation-v1` reran all ten cases in the optimized
 profile after the narrowly guarded IFCX layer-transparency XDATA correction.
 Both complete generations pass. Every raw/gzip artifact hash and semantic
 snapshot hash is identical to the preceding accepted run; the retained
-`benchmarks/size-exchange/results-v1.json` now records this run's current source
-provenance. Historical standalone and legacy benchmark references are unchanged.
+detailed results recorded that correction's provenance before the publication
+rerun below. Historical standalone and legacy benchmark references are unchanged.
 The separately accepted larger DXF practice comparison is documented in
 [common-subset-test-dxf-v1.md](common-subset-test-dxf-v1.md).
+
+## Publication verification and rerun policy
+
+`main-foundation-v2` verifies the experiment against integrated main commit
+`79dc864` after migration to the current direction-specific conversion and IO APIs.
+Both complete generations pass; all six raw/gzip artifact hashes and semantic
+snapshot hashes equal the preceding accepted results. The matching detailed JSON
+now records this clean-main run's exact source manifest and dependency provenance.
+
+Repeat the full measurement or a selection only on explicit user request. Main,
+converter, writer, codec and dependency changes never automatically trigger it.
+Normal focused correctness/strict-readback tests remain required. Accepted results
+retain their measured revision and coverage until a requested applicable run
+replaces them; later revisions are not implicitly measured.

@@ -1,5 +1,11 @@
 # OCDraw initial JSON size and exchange experiment
 
+Measurements are repeated only on explicit user request, for the full experiment
+or a requested selection. A new main revision or corpus/converter/writer/codec/
+dependency change does not trigger a measurement. This is never an automatic
+completion gate; focused correctness and strict-readback tests remain required.
+The accepted evidence below retains its recorded revision and coverage.
+
 ## Purpose and boundary
 
 This controlled experiment measures the initial standalone OCDraw JSON writer

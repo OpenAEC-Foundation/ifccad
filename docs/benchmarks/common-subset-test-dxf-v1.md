@@ -1,6 +1,6 @@
 # Four-format common-subset comparison: test.dxf
 
-Accepted 2026-10-02, run `transparency-test-dxf-v1`, optimized Rust profile,
+Accepted 2026-10-02, run `main-test-dxf-v1`, optimized Rust profile,
 unmodified opencadcodec revision `d96e3fa2fe5acbeac966f1db4c01142618bf9c79`.
 Detailed evidence: [test-dxf-results-v1.json](../../benchmarks/size-exchange/test-dxf-results-v1.json).
 The [common-subset experiment](common-subset-size-exchange-v1.md) defines the
@@ -99,3 +99,15 @@ Missing text, dimensions, hatches, layouts and other unsupported semantics
 are absent from all four outputs. The results concern these implementations
 and this corpus; they do not establish universal format ratios, isolate pure
 columnar savings, or identify the largest cause of DWG's remaining overhead.
+
+## Publication verification and rerun policy
+
+`main-test-dxf-v1` verifies integrated main commit `79dc864` after conversion/IO
+API migration. Both complete generations pass, including all nine synthetics;
+all six raw/gzip artifact hashes and semantic snapshot hashes equal the preceding
+accepted large-DXF run. Detailed results record the clean-main source manifest
+and dependency provenance.
+
+Repeat the full measurement or a selection only on explicit user request.
+Changes to main, converters, writers, codecs or dependencies do not trigger
+automatic measurements. Focused correctness and strict-readback tests still apply.

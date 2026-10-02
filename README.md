@@ -126,6 +126,9 @@ The repeatable [four-format experiment](benchmarks/size-exchange/README.md)
 compares OCDraw, IFCX-CAD, DXF and DWG with identical retained content. See the
 [synthetic/foundation report](docs/benchmarks/common-subset-size-exchange-v1.md)
 and [large DXF report](docs/benchmarks/common-subset-test-dxf-v1.md).
+Size measurements are run only on explicit user request, for the full experiment
+or a requested selection. They are never automatic checks for a new main revision
+or converter/encoding/dependency changes. Focused correctness tests still apply.
 Licensed under [MPL-2.0](LICENSE).
 
 

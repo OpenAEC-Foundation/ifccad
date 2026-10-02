@@ -15,23 +15,23 @@
     "gzipBytes": 999
   },
   "provenance": {
-    "gitHead": "40c9fcaba8b03f85bbcef1822293e2b84a867285",
+    "gitHead": "79dc8647ea649ddb757350682df75e3c30f45a4c",
     "sourceManifest": {
       ".gitattributes": "8aef41dd17de4e02afe2108e14886010da839ff0ea075b9ccba78ed74c1ea904",
       ".github/workflows/format-explorer.yml": "75da269abf727534dc6e78e7912432f6a1623a259012e3d1540d2c5414b55169",
-      ".gitignore": "4a96da8b97272e02e6204f6a5ae308e4b74e3408653a11a9d01b8403bc55082b",
-      "AGENTS.md": "7b9f1d26c5e49a7527071fe871ee15ace805f55c3fc3651b683baade5fbb8156",
+      ".gitignore": "e4d4921de410fa2166518eb17826a1b5a2374cbc5eeb13b7ef8a406159ddf609",
+      "AGENTS.md": "46d6cfb205536994cad5e55d211e6379ab9ccd20c6dfaab3c458608c643d5aab",
       "Cargo.lock": "100dc4bc7d98263afa0e6868d3b1d602380baeee3deea67a33f616d7c4d27ec0",
       "Cargo.toml": "4c47a2c19bcb3887f942a64f5372576403b50c0ec020b05b257e68df82935318",
       "LICENSE": "631eed01d0f126eeb2738fc6a1ab012cba6614be5dd14b8000cc50bcc04284f1",
       "PROVENANCE.md": "f68169c62127a8d4c2be05c90a1bd56829b18d1e130bcfb4bfac6d472c74f53c",
-      "README.md": "8a202f7a78362d3b2c36d301e0b7695321a8b1967cda882a0c043376821a7bbd",
-      "ROADMAP.md": "8cd3b15562165ffa9eccff494ce384334003422c5446a019df064651b5c78a1f",
-      "benchmarks/size-exchange/README.md": "4cd875863bbba8cf31d32aa05bf804655ac10734c8d872e2269a9180d1687b0f",
-      "benchmarks/size-exchange/corpus-v1.json": "4377de239c0d456d2919c022fc2d9d9ff1e777619f79ef71dea3f332054a62d6",
+      "README.md": "2ee8f0ec2ad27cf0286a50c96aed610879aa47d9ead5f3f8bc80827d2c86d418",
+      "ROADMAP.md": "51b647ef225e54d21a44fd3dad52725ed3611cb0ac226e127fb759895e87e268",
+      "benchmarks/size-exchange/README.md": "3e158073701dfc9953e33a7df23e4928400127b6f15df12544f9724e756a816c",
+      "benchmarks/size-exchange/corpus-v1.json": "f01f96a0fd4d54787ca37c38e5d84af323cacaf781b8b19b3ba3d369c7bf6739",
       "benchmarks/size/README.md": "a47ce8a0aa2c53ce8ee71b5579b181eefd2f7f4bc83fe22e3f0cdb3ecb5a5483",
       "benchmarks/size/corpus-v1.json": "c1b1d8e1eea776aa0ad0bb775db45bedd6c9e5bc1c9d6c117ba4e00483528fee",
-      "benchmarks/size/ocdraw-results-v1.json": "2d9af30f7a1050c392ec12ab528bbdc00f4be007d5cdc440e6bcf651cd3732cf",
+      "benchmarks/size/ocdraw-results-v1.json": "2d34be2802bf24bbb10431f6b1ed1002e0e9a7ecd00488fd89b0a42b97ac1c3e",
       "benchmarks/size/results-v1.json": "1a9bbf610955ec66433348884bf09afcc85ea24edb6ea6e3191ce9f573a0b435",
       "benchmarks/spatial/placement-inventory-v1.json": "df0ce8dd2d226e7cb50cdbffa7190246478c071690bb33bc7876f11c57d2d439",
       "benchmarks/spatial/preparation-results-v1.json": "11d2685be2d0dd420b813b55d085b105a4a1cf1570141077578c0935be9e9347",
@@ -159,112 +159,116 @@
       "conformance/next/ocdraw/valid/paper-viewport.ocdraw.json": "36665c403ea20432833e8653803e35635f269897edc6ef1c5e148a5f165db88d",
       "conformance/next/ocdraw/valid/placed-geometry.ocdraw.json": "9574099664261184c63241700443703486da6f0e6e12fab3770d68f67ac9fb68",
       "conformance/next/ocdraw/valid/sparse-identities.ocdraw.json": "cfd31bb1a82e839fe2387ba41ea5b3ecb69a7ad8673aa4c10d2b2e745b756a13",
-      "crates/ifcx-cad-convert/Cargo.toml": "ccc2bcea93ab0fa7f740d8601fefa6e415dd8434b80fe77d75720b94b7c80f3a",
-      "crates/ifcx-cad-convert/README.md": "e7cfde66e5384a4a10d6dd1b87cda57d6ac313eab5c616ac4f95f37d01ce8cf5",
-      "crates/ifcx-cad-convert/docs/FROM-CAD-COVERAGE.md": "fbf1109a2c68668771c7ee838b4b1a85f283b0e9d609ae4b0ce16ff7a27c972e",
-      "crates/ifcx-cad-convert/docs/TO-CAD-COVERAGE.md": "27f94ee94c32712d2f2bdf761ac78c3c5bbecd1d95ecfd6fcf062c216329e33e",
-      "crates/ifcx-cad-convert/src/appearance.rs": "172585f98876ac2ad919721eb4a99a145fdde19bee0faf652a8b131a11297f98",
-      "crates/ifcx-cad-convert/src/blocks.rs": "e516fe9ed868658dbdc68696725e9d073dac3e8b24d90c114f53fa024c9fba4d",
-      "crates/ifcx-cad-convert/src/from_cad.rs": "3963cd9aafe5a646890f2db96fe888bf634cf5d280e5be690f3fd05091aa9ead",
-      "crates/ifcx-cad-convert/src/geometry.rs": "e040951e5e5547e57f961618de3e655cbbdb4930f916c9b035d5448b7201a576",
-      "crates/ifcx-cad-convert/src/lib.rs": "573f4ab2f7bf11cdf9d2626819b8445d5835b095c3dff9f0c64d6d9a5e4cfbbe",
-      "crates/ifcx-cad-convert/src/loss.rs": "7cef550425d15c9ee57c339f2097f29bcea82354d61e65c24c94e60442c0e45f",
-      "crates/ifcx-cad-convert/src/outcome.rs": "c31cb9da0b4836d84628eb84baa7e34c702f0efa583bd30e799309102b2b0275",
-      "crates/ifcx-cad-convert/src/patterns.rs": "1bab31a2c9585446b2b8974a538d778a343b8d1b286f827abea520e2afae2a3d",
-      "crates/ifcx-cad-convert/src/source.rs": "aae7d04c1bb03221b920c71083c6d7ab8d355bf60d04697e796cef3981501b2b",
-      "crates/ifcx-cad-convert/src/to_cad.rs": "1cfa0e35e1349d45c3a488fd67983c3af80fcfb749bcc2ca569b66005008f4a4",
-      "crates/ifcx-cad-convert/tests/blocks.rs": "b7a89dd254a56eb11065432d6112d8fa1a8ed6ee6de8b4e24b60fc44c5a72026",
-      "crates/ifcx-cad-convert/tests/codec_update.rs": "a130ed4e03c41d3907b643ccece94809a2f8e3ad2e712dc1369939ce40e4873e",
-      "crates/ifcx-cad-convert/tests/common/mod.rs": "9d092d3c2b97e28d3c282d61eff71f66a8f07464f907b97981b2e334b77ef061",
-      "crates/ifcx-cad-convert/tests/conversion.rs": "904eb76f41afa9a2e4fc1080211e20897c4c6ce626d3c669771d3a63cfbbfc1f",
-      "crates/ifcx-cad-convert/tests/document_lifecycle.rs": "7c3011c4491f62b98f5566420e6d84fd920e2d8365991abac9dadd4e701e0603",
-      "crates/ifcx-cad-convert/tests/exchange.rs": "fbef29667ec2dc4a0809192b51fc7843e8260cbcc871e3057a8b42e6afa7219c",
-      "crates/ifcx-cad-convert/tests/layer_names.rs": "c33893952e4ac5d1908ac791b02ab233fc87d73c9d541436ac8411da8b742536",
-      "crates/ifcx-cad-convert/tests/layer_transparency.rs": "86442f4260d83bffddb666cf2852a102b3bbfed66cdd40c75d329dccb7ae4991",
-      "crates/ifcx-cad-convert/tests/line_patterns.rs": "38d4970af4881a4df79352dbb9212c5b5638076c57525b83e6d9b4adc6858b2c",
-      "crates/ifcx-cad-convert/tests/loss_policy.rs": "3dbfaf6252d3dffdc2cd85158ecdb6520531de7cf9a6e810745cea4c76c3986c",
-      "crates/ifcx-cad-convert/tests/metadata_relationships.rs": "b38d64f7ababba8ef3aafd19b8adacc1a061f0f6d5f3f72307d5731a1edf926b",
+      "crates/ifcx-cad-convert/Cargo.toml": "f51e460a77c2389ed86f7fb62cac5b63ad5c79c0d79ae5d44f668fe1166db88f",
+      "crates/ifcx-cad-convert/README.md": "f1d65af3ca02f3c23e7326bb60d59360854946127d05ab22d8829a1ac1082a38",
+      "crates/ifcx-cad-convert/docs/FROM-CAD-COVERAGE.md": "afc12bc160fe49109011166224f6a6db78a67bb56b7edcd8eb55c22eadf990b8",
+      "crates/ifcx-cad-convert/docs/TO-CAD-COVERAGE.md": "a112985bf29a4248d3af117a95021943452971e926a845f058d8da7f6bd69fae",
+      "crates/ifcx-cad-convert/src/appearance.rs": "a0a646a716812d68320a52790dea5b2fb11a0d5fa2944c420106a066f066c33d",
+      "crates/ifcx-cad-convert/src/blocks.rs": "8dc8c37aa6e0a18792f8bb21131f307af21f7ed3a466fd1181a2088c7b7d09ab",
+      "crates/ifcx-cad-convert/src/diagnostics.rs": "20623234ecd7a7dd233b303fff841e4480187307644b10c98bf7fe2e96fba8b1",
+      "crates/ifcx-cad-convert/src/from_cad.rs": "198246d4bb04aa13531e904662e11193d00624479bb467536e2a1b425afbc9a3",
+      "crates/ifcx-cad-convert/src/geometry.rs": "4603829c3536cdf590e7d2d4c0a27847de59ec6d8636bc1b5897d60967375c7c",
+      "crates/ifcx-cad-convert/src/lib.rs": "5d75ebe93a435166b3ab7cae57e5c7f88e63f05bba959f710360ce3c05bc4cf7",
+      "crates/ifcx-cad-convert/src/loss.rs": "6fd7aefe498698b738bd45a11e761d68d4a8e9fbc2023c597e3122196bb2a20b",
+      "crates/ifcx-cad-convert/src/options.rs": "17c7d2f090566e562ddbcc56610278f0d68aaa69215e8cbd36d912f5bade5415",
+      "crates/ifcx-cad-convert/src/outcome.rs": "ca1f278ec715c2a37337a71009f85cfab9ac7ed68bb463e699a8c19dacde21ca",
+      "crates/ifcx-cad-convert/src/patterns.rs": "8c370f12603fde42f50917f4748b79c56a894f4810cc662c09796fddf498badc",
+      "crates/ifcx-cad-convert/src/source.rs": "6559426b7bc7e2baec81646639e9fb6aea2c1da8943e9c5513bea9ed632ea3c4",
+      "crates/ifcx-cad-convert/src/to_cad.rs": "2568cdd566a2244cf3caa9f368a60071528639afdad94324d0a3fc2a1e6d437b",
+      "crates/ifcx-cad-convert/src/units.rs": "c49c88de49900948de1547f70066f98ce3dac38641229cea39068964a94f445c",
+      "crates/ifcx-cad-convert/tests/blocks.rs": "149c8019270d1be58f58e2558d17307b783808c6d0ad97b75f56c6382ff976fa",
+      "crates/ifcx-cad-convert/tests/codec_update.rs": "1fdbc84eee52739cb0e28e8ecb9db67ad4cccade2401222e7bc1914e0f04beb9",
+      "crates/ifcx-cad-convert/tests/common/mod.rs": "a37f9b04e3fc821d25ef3309b65185087aa4c3bc88998ffb5ac8eb594f98af29",
+      "crates/ifcx-cad-convert/tests/conversion.rs": "688202dbe8a01ba27a465ec33467a389e3b1e3f462ec453d14954260527d5964",
+      "crates/ifcx-cad-convert/tests/document_lifecycle.rs": "edc4f3a2f8dc932d23db083058be4e63e19d78db8913fd15aa2a40ceadd22647",
+      "crates/ifcx-cad-convert/tests/exchange.rs": "bcdcbd282bf1e74417b8cd008f9a95acc446cf096b0aee19456a292839d73de6",
+      "crates/ifcx-cad-convert/tests/layer_names.rs": "bb17ead7e808f212d6497fab36db52cdc5d5c9889925f601cef0eb7c0e002029",
+      "crates/ifcx-cad-convert/tests/layer_transparency.rs": "f7807e3bb5ab86d24d217394f87d92fcdba11b556d0cf87df116afbe45fdc3e9",
+      "crates/ifcx-cad-convert/tests/line_patterns.rs": "0dc3eb0574b88909c3853e8d2542e883e8181eb29da590153e9b73c047dd032a",
+      "crates/ifcx-cad-convert/tests/loss_policy.rs": "287aa7f936aa05bb6e53c5ba8beb2fef1a69e7427e2a6eadeb34c8bd3b907e8b",
+      "crates/ifcx-cad-convert/tests/metadata_relationships.rs": "8a701c0064f3460cfc8fa0d43f3b02c5556a0ea4bba0a04b4b3c7f8149b357f4",
       "crates/ocdraw-browser/Cargo.toml": "de243b2b4132ec3afa8ebc13ffdb52c06711a0777a4ecfb169899915c97380b3",
       "crates/ocdraw-browser/src/lib.rs": "7f5a3851e4f8485f1ca1447b99dcdf8494b87638a1f8e952ca876b8d8eed1fde",
-      "crates/ocdraw-convert/Cargo.toml": "542f971245ba698a0d389b8e1a9cbfe89b6839f8f65ff84a8f241b3d5ae8a7d6",
-      "crates/ocdraw-convert/README.md": "da97cdd74ed89ac1d623418341a6373d183ee52efafc6b897bcec5a06354ff0c",
-      "crates/ocdraw-convert/examples/minimal_to_dxf.rs": "42e76cfda742d072b4527bbbb73c63ada32cc8f10c7c96d771b8bf57dd2e1d44",
-      "crates/ocdraw-convert/examples/placement_inventory.rs": "d57151ee8b6f3efe3770998f3bda1011c5f1e1331c86bb90f73ba0f2b5ab6316",
+      "crates/ocdraw-convert/Cargo.toml": "8e692325e98d550e72d251543ee5a49620973640f24c8503775c16e2aaa341ac",
+      "crates/ocdraw-convert/README.md": "2f521e4027a259b99b8491a6528e5ad4a59e8c7b6324352f78f46bf4b79b0337",
+      "crates/ocdraw-convert/docs/COVERAGE.md": "ac0f2dcc5cae4e917526095eac85db8cbc3f0132edf4beb359901382051a5138",
+      "crates/ocdraw-convert/docs/FROM-CAD-COVERAGE.md": "0236fa17ee8c4b04eba4e1a38f7e06ca8948143df134e4f62c9b9f18fa23d8a5",
+      "crates/ocdraw-convert/docs/TO-CAD-COVERAGE.md": "fa4f755a2e7c12430425c3213b76ad020fdf3d045491292c8f892c46ab67b862",
+      "crates/ocdraw-convert/examples/minimal_to_dxf.rs": "03ae868bfc3e3161b6955a10b38e6f5d64a8843ca61c39a4f54a4e5f8368656f",
+      "crates/ocdraw-convert/examples/placement_inventory.rs": "be8ec2a077d2851604cad93dd27e8ecde31f5527ff710cc48780f9ca987201ea",
       "crates/ocdraw-convert/examples/size_baseline.rs": "b637c68f003852604daa0b63407d4208c7feee3049b8657ecebd3fdc61b90183",
       "crates/ocdraw-convert/examples/size_baseline/accounting.rs": "d46feec1f8a5f53eee89b49fc3cb0348d1d15b50cc5e02b9eac74bf0f92f5ca2",
-      "crates/ocdraw-convert/examples/size_baseline/adapters.rs": "5ed53e1f092dc438fcfad5c18229dc272e566f9e2535e2125dae51aa08058df6",
-      "crates/ocdraw-convert/examples/size_baseline/projection.rs": "0f2abeecc3993a200013a68c816a6e3813115301f8a3471893ac6ffea6ca66d9",
+      "crates/ocdraw-convert/examples/size_baseline/adapters.rs": "54c994bf0ea68c32cb2046ad06cff18e545ec32ed39bc3d176672ae49ae1b9ac",
+      "crates/ocdraw-convert/examples/size_baseline/projection.rs": "b2f1d8db395ef773a2a2a092533917a15648021b38a5b0c0ecaeaa193454e029",
       "crates/ocdraw-convert/examples/size_baseline/recipe.rs": "62e786104d12a2c71b801943eadec4fdeb77aca9eacd936c16793b8b7d0e9a53",
-      "crates/ocdraw-convert/examples/size_baseline/report.rs": "10c0e662ac6acd3ed83d8753247ccb64465cfc11e38ded28efbf97b8babdd6a5",
-      "crates/ocdraw-convert/examples/size_baseline/run.rs": "eb113c0bdd1aae6c291655453ab15dbb1dde66aff8683f1b5554f0cf94b096e5",
-      "crates/ocdraw-convert/examples/spatial_accuracy.rs": "ce1fff9eec7194bc15825c56af803e6b070b1cb8df53b42f5cf4b318604eab89",
-      "crates/ocdraw-convert/src/geometry/blocks.rs": "ee4691a6a80115c764525090d06a73ee96059ab3603d84763821070ba0188d4a",
-      "crates/ocdraw-convert/src/geometry/circular.rs": "79c1bfdbfa03a405537478880924775700811ad8e2109c875e312fa7dcd8c72d",
-      "crates/ocdraw-convert/src/geometry/mod.rs": "b1e0b9a773e38bbff71884a32fde2d07b27b5174afe009105d99ab87fc77c309",
+      "crates/ocdraw-convert/examples/size_baseline/report.rs": "ee6c03d184fab1f5cfab2019d10ec3c199f87f5beee6acd9e2add7fbf63fa21a",
+      "crates/ocdraw-convert/examples/size_baseline/run.rs": "443e78d3db40544be726a48fe9904cdb4732c2aa1e22820a3d8af19f3017ca9e",
+      "crates/ocdraw-convert/examples/spatial_accuracy.rs": "17a4574f98b4e91bcf8bfb621d40bc2802d11b954210882b81cced50e6fa37dd",
+      "crates/ocdraw-convert/src/diagnostics.rs": "f8bbfa7d1c89bf5a9d43cd9fd4352637ab652f9c50ad3a2e149a4930f97a35e9",
+      "crates/ocdraw-convert/src/from_cad/mod.rs": "324c20e5b3bd26f2b9e5bb187abc86bcc6f7597c07e4fca6e5950360a5119b04",
+      "crates/ocdraw-convert/src/geometry/blocks.rs": "ae176a68a945fd85382bb6766a77c0b6b6c32948e6d2c5d8986dfc7261930cec",
+      "crates/ocdraw-convert/src/geometry/circular.rs": "9239b7e04c6ed7b5422ec1d31a3f4bb67b094dad04481fa2a2b879e2132a8b2a",
+      "crates/ocdraw-convert/src/geometry/mod.rs": "1cab742734c1205c6526bfb9dfae0b692dfb8b33f2c64bbf9b439879d552e3bc",
       "crates/ocdraw-convert/src/geometry/numeric.rs": "1f49e7c0f0813fbfa64c8867e8cff53a390d57c4a1ed545a1d5c057c47bd92fa",
-      "crates/ocdraw-convert/src/geometry_assessment.rs": "ebce012012eb493daa614337ce305db6d431af287d02435a40a21dd4b017ab45",
-      "crates/ocdraw-convert/src/lib.rs": "4711f7369b6a01544847525ece54d42f184aa39744545c68060cab4e9ddfeeaf",
-      "crates/ocdraw-convert/src/ocdraw/COVERAGE.md": "efcf12f4532168316f2f46867d1052602fd6a766f9d99b194104ff062bcf1dcf",
-      "crates/ocdraw-convert/src/ocdraw/IMPORT-COVERAGE.md": "fc1e0a22078f02bce506b8ca4974c5041c28b3e85095408d25b324e00a12c4e1",
-      "crates/ocdraw-convert/src/ocdraw/appearance.rs": "5683edd08687ad9cebd155233e1096296b12b364253ac7624131f7a3fb42577f",
-      "crates/ocdraw-convert/src/ocdraw/export.rs": "fc3c65f5ddbe72b4bbc314fc984efc93405050de9e98c74c09b37963f5948c5b",
-      "crates/ocdraw-convert/src/ocdraw/geometry.rs": "6befb89c4044d8abbfda397395c628d3c3697578d7e41f0b7350948423eae757",
-      "crates/ocdraw-convert/src/ocdraw/import.rs": "b043952efcfc316e13f9ab8b8150cb358d9f65841723e734f22ebbe773e11c9f",
-      "crates/ocdraw-convert/src/ocdraw/import/entities.rs": "72fc474567c5adbbff7ab5c5973d93f2def5ba971cb783cfb30446c22a4dcb38",
-      "crates/ocdraw-convert/src/ocdraw/import/layouts.rs": "eea79a417339a6c3c869518b3993b1a738e7a0c197ef87c55a25f5184cd400e8",
-      "crates/ocdraw-convert/src/ocdraw/layout.rs": "e7b90431e7aa5a5b19dfb410713897d82b4273aef348881bfe0bb2dc85e47967",
-      "crates/ocdraw-convert/src/ocdraw/line_pattern.rs": "a94e872c2dff51f10666d782a54d609ed390f3a10b4c2174637c4fd3050e049b",
-      "crates/ocdraw-convert/src/ocdraw/mod.rs": "32c31638e3bbdd7c0bb8bde31306b48c16e0c655a408dc4c13f76cb2cc307b2e",
-      "crates/ocdraw-convert/src/ocdraw/point_display.rs": "cbcacceac14e4ab336815aff46d4824e5fd9b3c1fafc4ca92bb6a417ff5da131",
-      "crates/ocdraw-convert/src/ocdraw/viewport.rs": "cc2ae3257a1c0693d8358ff302eb91e01e726f7494657c16f8060f154c796218",
-      "crates/ocdraw-convert/src/ocdraw/workspace.rs": "3057359f9988f7ef45a339c22eb9bfdbabcaf57347850d02a23fb945ea61e1e5",
-      "crates/ocdraw-convert/src/ocdraw/workspace/import.rs": "427472fd7360befd777e7d844878cfbe3cc6a24c0a7fc79fd593b9d161d8038d",
-      "crates/ocdraw-convert/src/options.rs": "823f7f5d618a3c08d9e090b68bb31d4e3c6f68ebd0b3d1c88601826517a8b926",
+      "crates/ocdraw-convert/src/geometry_assessment.rs": "a0454bfe144b34253b2abfc090512badca4bf81fb0babfc9d52ae90059e99a90",
+      "crates/ocdraw-convert/src/lib.rs": "93b25490166c5ab3ef179f0619c1d6ca6828fc56a2f4d4be1401cec5ac8031d3",
+      "crates/ocdraw-convert/src/mapping/appearance.rs": "3c5069d1cd823242ecbe3fc3693c96b6a490afaaebaea5f2083f01d28165c3ed",
+      "crates/ocdraw-convert/src/mapping/geometry.rs": "2d37194dae014a45761f80c700c2f423ef1422d8cc55e8e8253a985acad20ff7",
+      "crates/ocdraw-convert/src/mapping/layout.rs": "98704f61b490c49001daa192c3171ac2eac4554c2529964b37969138d76ac5f0",
+      "crates/ocdraw-convert/src/mapping/line_pattern.rs": "7bf51f275d070afb921e54895506f0e40549260bc57dcb112c5229267fa24d3a",
+      "crates/ocdraw-convert/src/mapping/mod.rs": "07b49b399a10769c7618c619cf27e65e7aac51e639e02c309b78a8dfa639de5b",
+      "crates/ocdraw-convert/src/mapping/point_display.rs": "cbcacceac14e4ab336815aff46d4824e5fd9b3c1fafc4ca92bb6a417ff5da131",
+      "crates/ocdraw-convert/src/mapping/viewport.rs": "0960863d14eeb8b244f03bfedfa7b075f14c8ed753fd1e8891bea455e08ac89e",
+      "crates/ocdraw-convert/src/mapping/workspace.rs": "91e7a93acb15369df11e25ef802e11a4bd3cec288eb0f7e2eff0fedf1e925eff",
+      "crates/ocdraw-convert/src/mapping/workspace/import.rs": "5a453bd34253e37bcb5d48b358f8c97abb931f2655223312f8793f358e7cbc81",
+      "crates/ocdraw-convert/src/options.rs": "55b397a6ca2c58f115d416e4992e266030efb70cbd71924a49e39cd426b81c39",
+      "crates/ocdraw-convert/src/outcome.rs": "9a2845a1e66724987edd879dc90a3d92dbceada80a1184284ffa43ddbcbf5525",
       "crates/ocdraw-convert/src/point_display.rs": "bbdf644c8cf0912c50f6cafdf2933e963641533c8cd2975c5082f47aae491d2f",
-      "crates/ocdraw-convert/src/source/COVERAGE.md": "b0f026fabe476c45a7597019febbd12e7b97bc36b24fe1ab879aee1a9d47ff22",
-      "crates/ocdraw-convert/src/source/appearance.rs": "f9fcdfa056654f98538d6cdd6dbc6437cc97be76b96706a916eb3f9cbb37b286",
-      "crates/ocdraw-convert/src/source/blocks.rs": "a608e400119c8eafaadf5e426431aa30bc85d00b5b49aab7cc7f017c6c1e9534",
-      "crates/ocdraw-convert/src/source/coverage.rs": "6ee94af3ba22177f61226ed65a686b94f1aa47743b7c653d625c96c8de27ee99",
-      "crates/ocdraw-convert/src/source/diagnostic.rs": "21cd8a51f41da16753186ae50e1c4f7ed43a24347203eea91611e38275a8e1a7",
-      "crates/ocdraw-convert/src/source/entities.rs": "241ff3db3176ca0ba208abdc8f354823efa01f71fec4371d60e57ab3a14d8e96",
-      "crates/ocdraw-convert/src/source/layouts.rs": "db88f3ae8b85d2f4f2f6a63d4843ef1cf511a4902f2c39c1454d50b4ca01d534",
-      "crates/ocdraw-convert/src/source/mod.rs": "e729989a01802435a0345de0cb0c0640556501f579cfdac573165ce499b995a8",
-      "crates/ocdraw-convert/src/source/structure.rs": "0b5d4fb9f69f30beeedd7e6afdf2e798c68c4d0fcc48f53fab1b5b3918d9624b",
-      "crates/ocdraw-convert/src/units.rs": "41346f10bc5517b97fff08c24123398b0bf98dce469e310d360fe63e38755ce0",
-      "crates/ocdraw-convert/tests/block_codec_boundary.rs": "3201f7ca5c43fafddec11d98f1b8920c7d77d687a13853faafb3c60b7b408228",
-      "crates/ocdraw-convert/tests/codec_update.rs": "c08d44d92c023b0af5cd9fa3fbf1a24d3d8e372c498377d3503c7c6dc1ec63cd",
-      "crates/ocdraw-convert/tests/export_blocks.rs": "a7bd74566df391b219afa144cc2124f7dfbc1bf0eac1d0918a12f710efa10545",
-      "crates/ocdraw-convert/tests/export_coverage.rs": "7ff0812dd11b89561522b1963fa8f5f4b618854c7af60aec0cb08eb308f008f1",
+      "crates/ocdraw-convert/src/source/appearance.rs": "a30e1e1b6f6d4364fca457cfd6328f868427e5529fbc1317d425f54b2405ca7a",
+      "crates/ocdraw-convert/src/source/blocks.rs": "60b2ee7984e2855404dd17d59f840d63119cf647f208e5cb113c7c9d6391a609",
+      "crates/ocdraw-convert/src/source/coverage.rs": "0f8f48ea3a48f864c49a74d507d4d96028fdc80ae1708f488708e1f1d15bcac6",
+      "crates/ocdraw-convert/src/source/entities.rs": "ea545b87a5cb4ac08cdf0bd48a81969721cabcecb91c79978ba4f6e5b0b37d8a",
+      "crates/ocdraw-convert/src/source/layouts.rs": "791033558aaf6796aabc549853a5ef73f678fc41edebf85d91b6a226f29885a3",
+      "crates/ocdraw-convert/src/source/mod.rs": "43beff21bd887f9f39d2fe1fe6c35166a9a810450961104cd6b86a4544b11ba6",
+      "crates/ocdraw-convert/src/source/structure.rs": "9c750243d2cd332afde8190f8c3fcf656a5093bb05fe4a7e68eba7b5c662e637",
+      "crates/ocdraw-convert/src/to_cad/entities.rs": "ae98fff8f423f420d2a5529a42b9bff304198685a2238921a8ace034185c498f",
+      "crates/ocdraw-convert/src/to_cad/layouts.rs": "afaad85c31159adb2ad00ba45094090a4d596ad77d8ac50144c33b67f4e8dd14",
+      "crates/ocdraw-convert/src/to_cad/mod.rs": "c891a1f647908d10c0718a62119435af346bf04ff5a07e64ebf5efe9be64a4ec",
+      "crates/ocdraw-convert/src/units.rs": "148317f3251f0027aa5869eef78bf100771877c734776b5baaf53c75e5cba988",
+      "crates/ocdraw-convert/tests/block_codec_boundary.rs": "31524089b0ca5f9bcb2b59a207b11423bfc6cfea8309758a83f3823908fed82e",
+      "crates/ocdraw-convert/tests/codec_update.rs": "d3b39c74ec884db9364449c8e85f6f91b1533e3f4809de704439b04ebcb6f241",
+      "crates/ocdraw-convert/tests/export_blocks.rs": "316cf001401cf42975e4a33324349f8943bb926697feffd9b81714a01cfd197d",
+      "crates/ocdraw-convert/tests/export_coverage.rs": "02d970d771abb7815d151605b7df435b970c98e444ca1d9433b1e8887d9baa10",
       "crates/ocdraw-convert/tests/fixtures/README.md": "817ee7cf5864c847508f2e9ff1d345814d4eb56b5ebe107cf3bd9a07e3abd239",
       "crates/ocdraw-convert/tests/fixtures/anonymous-names.dwg": "ea5b55f7e99d2ad412779ef7f3e71ff3bd7f6c4147f6217d936eed02171291b9",
-      "crates/ocdraw-convert/tests/ocdraw_block_exchange.rs": "5b581002b702080cd335e5d0950290848ca10dacab14ede5233a2ad524b1a6f8",
-      "crates/ocdraw-convert/tests/ocdraw_conversion.rs": "ab0977de6066cafb88ffae9a49cd48184f1029a41c0bc7052e783f59d1840c86",
-      "crates/ocdraw-convert/tests/ocdraw_document_conversion.rs": "5b07535e93fa7f4a3a9a6ff9632fbfebf90ba9ce0a5fb2bb1e6cfe27ac044f49",
-      "crates/ocdraw-convert/tests/ocdraw_line_pattern_exchange.rs": "1ec7274272734dac6ae07066504997aa9301e1bb84711faf82f5e33f62654d1f",
-      "crates/ocdraw-convert/tests/ocdraw_line_patterns.rs": "c16c642df8254ed471be9aa7c9f57cd53d8afe2ecf8f90cf777dbeadad5681a4",
-      "crates/ocdraw-viewer/Cargo.toml": "8340d37c08ae138003b76e21646dbe82503f81aec939007f50fc35f0bd8144ba",
-      "crates/ocdraw-viewer/examples/size_exchange.rs": "ed561078ccf29bd06f74b80c4a28486bef5e09728644756868f1d022b8b7abe9",
-      "crates/ocdraw-viewer/examples/size_exchange/corpus.rs": "3143fd6948c5e12bb4579871ced4aa99d05507d4447d14adf1b841e006e1cc50",
-      "crates/ocdraw-viewer/examples/size_exchange/pipeline.rs": "bc467037ba525725550801fdb41a9443b67866de189a6374686f0ccf52a46cc2",
-      "crates/ocdraw-viewer/examples/size_exchange/projection.rs": "b9a74bee3030fffa50f71849c45e83c9e6bdbacc4a6d7f94444cd39d5a38c025",
-      "crates/ocdraw-viewer/examples/size_exchange/report.rs": "500015aa793395baba86d436570dd92cacddd34cd3a65d401608d8495cdfff29",
-      "crates/ocdraw-viewer/examples/viewer_inputs.rs": "1aba8ecb3a062c3c54cf571c412cadbd70985a308f5ee3880a32ecc4ffecae46",
-      "crates/ocdraw-viewer/src/cad.rs": "9afd4d20c4fadba1275c2441665d4356ca675d1390902226836e2b4d864c0ff6",
-      "crates/ocdraw-viewer/src/ifcx.rs": "f2b84784176783e7db4e78653ff33f2fda9369c62ce1f409f16b5606a96bcaa8",
+      "crates/ocdraw-convert/tests/ocdraw_block_exchange.rs": "b8a41c492e6da4d09af5442c85b8d47a89e1646feb54b92e92eac8dcca8cef44",
+      "crates/ocdraw-convert/tests/ocdraw_conversion.rs": "280641e24f420ec4ace7ad2beaaef787621ccacfe78f201dbdc433edfdaf4c50",
+      "crates/ocdraw-convert/tests/ocdraw_document_conversion.rs": "c04d4a0d05ced5776bd11218c11e91eb3bba7cabdb6decb197e9a0cadb0df5db",
+      "crates/ocdraw-convert/tests/ocdraw_line_pattern_exchange.rs": "77118a8fda366a56af067f43d43e6006a59af7c696f4d3f6835d89cb8c6c1756",
+      "crates/ocdraw-convert/tests/ocdraw_line_patterns.rs": "34d0dbb88acd975780641d89d71f0e3ddac688a86938410f560b7c1608574cd3",
+      "crates/ocdraw-viewer/Cargo.toml": "213f04e50d99f2e614fb09fc7ac62a974812734797a3041f39e3805068cea971",
+      "crates/ocdraw-viewer/examples/size_exchange.rs": "f6da63d2c9dff77ba7b9402ca059b386b542f34428f21192c2c121a1daaccf71",
+      "crates/ocdraw-viewer/examples/size_exchange/corpus.rs": "570eadf2f570e142979133af567c0f573e8c6471b6a7390f1f46ab1f02eb01e1",
+      "crates/ocdraw-viewer/examples/size_exchange/pipeline.rs": "02237ff3793a65285acedf588371b2e09ed1c369179b6ef3028712c13a119bb6",
+      "crates/ocdraw-viewer/examples/size_exchange/projection.rs": "edd6e30fe7a6620cd0d755b380c4ad3970301ba5b06426592f2478a0f8990141",
+      "crates/ocdraw-viewer/examples/size_exchange/report.rs": "78d2727c210ab0cdbead5daf7507c96ed250e1040bc58fdd3ced4f1ac5e1a499",
+      "crates/ocdraw-viewer/examples/viewer_inputs.rs": "7f2b3e7da81e7ba5fdc76097ebfaa0a151b47c6ff0800ed96d0ccef428440632",
+      "crates/ocdraw-viewer/src/cad.rs": "7807662a39337cf5cfcab3da8a78ff62598a2495e6bbc5793f732e58b9cd1098",
+      "crates/ocdraw-viewer/src/ifcx.rs": "40599d933deb9aa5ee494d01d63b79754cbe1ddb40b6e44adf8da86a3e79fb72",
       "crates/ocdraw-viewer/src/lib.rs": "39cdf15f663155bd86a8b52265a7ce36506720cc6aac5ed9019c9f3cb2ef14a2",
       "crates/ocdraw-viewer/src/main.rs": "01fc7380659bdb3b589af44ba93e6b67534dbc191e9fdc913e93565e224166e4",
-      "crates/ocdraw-viewer/src/ocdraw.rs": "2946536f3a7ca2d5783b80eb6df8aa720256eaa82ab817e58437882b809af8db",
-      "crates/ocdraw-viewer/tests/drawing_open.rs": "62b872aa0e4baacf097a2dcb1a86e443f49a3ef1f72141923e9be25aafbc96eb",
-      "crates/ocdraw-viewer/tests/ifcx_open.rs": "37a33db75f55d8508a4295814a98d6b18471e457816e6b37f19774491e89a172",
+      "crates/ocdraw-viewer/src/ocdraw.rs": "023fda7a45477c6a1c0706d088b98a03ce3ddb45572dfeec081c140abcc21245",
+      "crates/ocdraw-viewer/tests/drawing_open.rs": "b4e1f8d296857d6cde8cb429bcce4231fb57e82552c18a81dbffc1da2f37e571",
+      "crates/ocdraw-viewer/tests/ifcx_open.rs": "4011a23344eab9b7ddaf96ecef72c119b8474522116e3003b8a32bcdcd373c7f",
       "docs/architecture/browser-processing.md": "49afd9537c1b45764019500f18b07495927f8ac97b1a2b11eae3faa145ebaea1",
       "docs/benchmarks/coordinate-frames-performance-v1.md": "c1a84f1ab1d63a1a9f4c5245c135c912d242847e745371245a3d523f53907493",
-      "docs/benchmarks/ocdraw-size-exchange-v1.md": "8c4770d932f5f421a082fbfac3bfa6ab41c2d624eef49357b0d76c1a1420a8d2",
+      "docs/benchmarks/ocdraw-size-exchange-v1.md": "e15dc5fb315b9acc809e8576018dca8b34a274122862d6890f27fe6dfa755c75",
       "docs/benchmarks/placement-preparation-v1.md": "c8692261112257950fb59c2e41951e7e4378d549ac7f4b101002b61f5eb1490b",
       "docs/benchmarks/size-baseline-v1.md": "e6ada80e0e99a1b0e99267a3677b3e34a0eae8d9f8617cdb054a710cb852936c",
-      "docs/experiments/ifcx-cad-document-lifecycle.md": "08bb26a7c8b446762dd507b1eb1c4a6b7b88687e1e7edc01444648e291fb4370",
+      "docs/experiments/ifcx-cad-document-lifecycle.md": "392779a16548b7502edbf72502fcda765ed35953e6650650bb12721780a869c1",
       "docs/experiments/ifcx-cad-id-management.md": "e072e07efd5bdef4269c180e3c61962f7abe55a30ab3a0960570725cd0695be3",
       "docs/experiments/ifcx-composition-probe.md": "d35810e3af5ae347663471d4e49376a2eb5027bc00299c7c96a9b56a06221656",
-      "docs/experiments/ifcx-native-cad.md": "e97e937205135d9dc77bfb3868bc67174bf2cb1de10dd51d06f741cd8832c211",
+      "docs/experiments/ifcx-native-cad.md": "1af5a30ff7f76895c14fae517b0f19b22d9da91df4670a5ec693e480df7abedb",
       "docs/experiments/ifcx-upstream-gaps.md": "d95ef3b840509037df95a510b720873f5941274008be83507fcac3b72ba16ec3",
       "docs/geometry/block-cad-boundary.md": "26d454caa54e958db7d02c0ad73b668d6b5c52b2444b8d90417187ce229f7afc",
       "docs/geometry/block-transform.md": "13e6e092cf1cfb4d614dfd807b17e689d94489e5b8561d00b43bd04e57130912",
@@ -274,26 +278,27 @@
       "docs/legacy-ifccad.md": "510cb33e11a5dd888136bffc96fd0fa49cc2f0fe879940266c368deab1b5ebbd",
       "docs/legacy-roadmap.md": "2b80709bdd3848d231e4f2f3ade51fdec496c8a094521e0412145d176f8cedc6",
       "docs/legacy-vision.md": "125c5dd8ca380dc5ad4ed7c7a55f48425d444f0273579d3788057bd0ac2f04ad",
-      "docs/ocdraw-document-lifecycle.md": "b187ec59f5bdb1adfb4f7a3efd1ec744b6bdfc789329dbcd0774637c85e11b80",
-      "docs/vision.md": "5bda1e70803d598f442c1824963cf934f0a9d49587e987ae1d42c4664efefd2b",
+      "docs/model-io-conventions.md": "3ced09a349e0cd580b465260820119dab45369613190e798dc1a721c53d50b03",
+      "docs/ocdraw-document-lifecycle.md": "604f53c71472959fded7f587768756c2b17adc230a4361769ba284c04e06471f",
+      "docs/vision.md": "6ed25f6ea629f9afe1e1d6288bd7eaf9bc4a52826950c9378f9727ac91006cc7",
       "examples/ifcx-native-cad/hello-cad.ifcx": "5333aa77dced8e815ec116161dd892c622bb1f73f9eefdfdc389445e933302f8",
       "examples/ifcx-native-cad/hello-line-patterns.ifcx": "2258dc90a43d7a0d6e61c2b6e7eab40b173ff5e13170393ffdc237ecf1a4da6b",
       "examples/ifcx-native-cad/hello-nested-blocks.ifcx": "69df2268513f033f907adc3d96f42ad5a1de09bbec9adf647049ec1b0cba006f",
       "examples/ifcx-native-cad/hello-paper-layouts.ifcx": "140712048c8b32034eede930f2c8e718fa554c5177e380b3ded25a48b30907c4",
-      "examples/write_ocdraw.rs": "10ca40a57a5192e7bc649d5badcec3be29704f637fd855228f54aff2715e5816",
+      "examples/write_ocdraw.rs": "d27285297270cfbe90f75423eba8b6ec496f2aa9ec2a2eacaa6de95974f0a783",
       "format-explorer/.gitignore": "23100ac8808baef78f0f61c42d0c44a88fc8f4341fd690479a29210b44e6bdb6",
-      "format-explorer/README.md": "d96af5d211c248501bebd91ffd96959e08844b3933c3b8fa8c6a36bcd9dd6f38",
-      "format-explorer/deploy/container.mjs": "71ee1fd33f63feb53493e088decf60a781033ea586373d421586c9de39922dab",
+      "format-explorer/README.md": "0d03d7e90ce91d72068d7acf6736153387e1eb90af1c29ce7e275a84789760e8",
+      "format-explorer/deploy/container.mjs": "4785940aac3d55572336a9334dd608a40598b113be621ee2031bb71463964991",
       "format-explorer/deploy/inspect.sh": "6064e3b44df703095b02c6aa3e3708153773cecd83ca2b304c8e3442cb1299f7",
-      "format-explorer/deploy/known_hosts": "294551d09190474d96ea00ffd55f621efbdd615528882eb5bfcceac86593a432",
+      "format-explorer/deploy/known_hosts": "28583b910bc1b4b80b2827cee7fe6ebfb0c9b746dbaf6010b91f8fce50d25b9c",
       "format-explorer/deploy/release.sh": "10a037ed35b8ad4eedf32b031ddd2c95e07b62c4c0ff0ba2a462543ac9f73f01",
-      "format-explorer/deploy/smoke.mjs": "d6f89f883eeceb330e533440fbd04397860ce7642d1102a110561b0553d61344",
+      "format-explorer/deploy/smoke.mjs": "919fb513c4a772ace0b0f0efbb1a5fd554670fb0c4ce61569534fb47d72798dd",
       "format-explorer/ocs-source.json": "1768b2de8355e3d93629e5e8d8e6b2f2abc0c5700986ae14beeb708a0a16c885",
       "format-explorer/package.json": "a2884215c5c35e530a7d3f13df370e8150d1adf778870fa550cfde1914c8dd22",
       "format-explorer/scripts/build.mjs": "38d94e0a11c4cc541e21eb0b36483462cd42e08e5efe920f16bc00c9dd69cfca",
       "format-explorer/scripts/production.mjs": "2393911bd52a5199d6c3544bf553112f075c4e9894d27ca5d00b3abe445f2b19",
       "format-explorer/scripts/serve.mjs": "84273b0105524dbdf635845e2f470ecbfa6892105f8a0a661fe43ed0e41d7188",
-      "format-explorer/src/OpenAEC-LICENSE.txt": "5435e97033a71ab585b838d4ea17eac80132e848927c68fc5d704d6df4bbc27e",
+      "format-explorer/src/OpenAEC-LICENSE.txt": "b18be8239a52746e855b70199d77f181124300c2373ca7a49bf89ec77e1157d2",
       "format-explorer/src/THIRD-PARTY.txt": "2707e8f38125847ec5223f44e35ec9a51d7d47e5f8e7f628f9f484fa4b169269",
       "format-explorer/src/app.mjs": "ec9cc6590e0aabb2320e2f70cce82d20586f47f6296561e11d3fb5f14a60825c",
       "format-explorer/src/browser-client.mjs": "7b9a5d0e0488e295313a11471fdd758f2e51d8f5d019be777b8bae72a0a2e095",
@@ -303,7 +308,7 @@
       "format-explorer/src/index.html": "5de762dfdd7f548e12c57a75a6f3768a3e2768520c425d58c7a563d5dd84a186",
       "format-explorer/src/ocs-bridge.mjs": "767ac570c47c014f85ac4a45d3d7c73269fd485e0a93dd769fe0205bd2e9469b",
       "format-explorer/src/ocs-messages.mjs": "3442ee1c3ac22152a61c9661a4665375c35668965909f078d57a344279d2591d",
-      "format-explorer/src/openaec-symbol.svg": "37452eab2d89d63984bf1eb425da01479183d52a17b00cdac10fd103f81ca723",
+      "format-explorer/src/openaec-symbol.svg": "e306dd20153a1503d0084e174063ffd41c6e3dfdf9c2babfa85124e19caee4ff",
       "format-explorer/src/presentation-json.mjs": "8b870cac4374804cdd8d08844b9b1a36665e2770ab085c490b3059fd83e7620f",
       "format-explorer/src/styles.css": "1aa94f1f006e7d03baeba981f38f403be922ae5feb33e4024e6e9d5cb78f3a06",
       "format-explorer/tests/app.test.mjs": "e63f011f7f9e8a843ed1710fec3e59ae7839afa4c442eda8bfa101f10fa5e098",
@@ -314,7 +319,7 @@
       "format-explorer/tests/ocs-assets.test.mjs": "89f51de089e93a570b20603d1f01ec9458c3379aa0f83eae7df6c1eee89985f7",
       "format-explorer/tests/ocs-bridge.test.mjs": "6f1fee95ee79ee0b5a7cbed306d552c0f53c5a55e2e636976f51583fb814c4b5",
       "format-explorer/tests/ocs-messages.test.mjs": "0227cc9fa76f77478aaa4914562a5bb98a678031d8550d4b8be34ed7f8189fda",
-      "format-explorer/tests/public-service.test.mjs": "d86bbfd8d1f0386475b8b482c4ec8882d310f4105aea19c4d9d2b4bed163fb86",
+      "format-explorer/tests/public-service.test.mjs": "7fb4e4907fa8e9c99d011b7f622064aabb5e300af3677de1353cebc926916587",
       "format-explorer/tests/wasm-smoke.mjs": "5dee139a3dce0a1ec158cb1b8fb4d65552e0fdd60fcc1cfa91ed27c9b0c805e9",
       "patches/cadcodec-upstream.toml": "587203c4b208bf1c4ce0e05cf1a68bb066436b0d9174cf6b9b621bb03f858ff3",
       "patches/cadcodec-upstream/0001-dwg-header-lineweight.patch": "688f59bec2dceb5196dbe43843fefaabbaa5f532df6fe9ad59b00ecb5f29060c",
@@ -334,23 +339,32 @@
       "schemas/ocdraw/unicode/LICENSE.txt": "8437ba5f4e4c8ae0268c3df5cf106006f2d045ff3452eedd1f27e8eb26c5f327",
       "schemas/ocdraw/unicode/README.md": "6b312c42f6164f0ad8ee53c4072c2afa5e7e040813890540842cba21e13ce1a4",
       "scripts/block_trig_reference.py": "eb24caad2398cc2abf874f55e8cf9cc7f4f758a8472c01dfe53e7c9950608119",
-      "scripts/cleanup_local.ps1": "54a47784157fef65fa1fce30cb56b94e5e6d0b6475c2b003c5fe8c5a377f9539",
+      "scripts/cleanup_local.ps1": "7020c3d1faafb3b70bb4a5185c65cdb25d328e0e4a077779e416110c50b13963",
       "scripts/generate_casefold.py": "83122817a3d6a514740ce4c7861d9838cdc42c24084f3ca7c84c4085929a85e1",
-      "scripts/size_exchange.py": "25a1ef4f3d86c7e7e06c5d3b2876d6936762aa850c046cb706932072b22d2ce5",
+      "scripts/size_exchange.py": "d44613ed8c2d808e8608fe6b7d181dfef2acb02b1636bb297426cd8f623b89d2",
       "scripts/test_block_trig_reference.py": "38e33aa6e6a357206bdaf02df3c3f2baae2678267eecbe51788782a60ad0d4be",
-      "scripts/test_size_exchange.py": "a743f02d4c01074cc245f0cfd11c4ada0152f3a2a89d49e809394d6610381925",
-      "scripts/tests/cleanup_local.Tests.ps1": "8707088232c86830cf047df8ed2ee34fcc12eb12ed3bae057557af7b3a520f66",
-      "src/ifcx_cad/allocation.rs": "201c04c17499362fb9feb6fd7d77c139c309e0ccdea2b82524993e21054cb1f2",
-      "src/ifcx_cad/document_validation.rs": "30c48da5447f676b9ef59d6fce9c147cfa68101cd6b9f5a5023ce337ecdcd787",
-      "src/ifcx_cad/graph.rs": "afc516ac8fc1bfdb2fb85adc7a0f7652de2c1bd1e7e4596993f13486b1de8532",
-      "src/ifcx_cad/mod.rs": "7d7ef966965b831d6404f1c349e1670bdc9a2342e3384dd24c257c87be02601b",
-      "src/ifcx_cad/model.rs": "9aa4466613fe5ccdf6c18a0a7eb7f300810e234154a295525b13767a12dee038",
-      "src/ifcx_cad/parse.rs": "f839190e25afd3f22860f729a9c0a41772b863cf84f1e9fa8284da802f340d64",
-      "src/ifcx_cad/patterns.rs": "955f374198b496e6e86e0911320d58ca9f8e99150620efd0ca3c61a5b778bedc",
-      "src/ifcx_cad/validate.rs": "0fb8a6f1c7ee5c67da7800dc69b9187bba97b67ebeb33b8402de924e11ace383",
-      "src/ifcx_cad/wire.rs": "03b40aff4b6bccd014d68423939983a96e04f502f6680591addd1a3b7b2f8e79",
-      "src/ifcx_cad/write.rs": "b7fde9d5c65c23ea54643347fe88b8868802695e2c586a71af49c11a8a7bbb7c",
+      "scripts/test_size_exchange.py": "f921c925af0ae7cf7ba93ad2431e38c39deeb11c4b8a24419c1204678f152f9d",
+      "scripts/tests/cleanup_local.Tests.ps1": "15126d0bd5e32311c7f41db9735d7cb28bbdfd7ce5faae9d874b76f5228fa16e",
+      "src/ifcx_cad/codec/ifcx_json/encode.rs": "a60a0cad5188342639e3f6dfe2669a6a544af6c033f95e3202c76259db5a434e",
+      "src/ifcx_cad/codec/ifcx_json/mod.rs": "9694fd88f06c836cf2dfec65eff37288c74875a86bd0f3c0db9fbf182506fe26",
+      "src/ifcx_cad/codec/ifcx_json/validate.rs": "ae9bf99ba6565be75ee4cbdc2bdfc6606ee636a81b359876a563da5ccc7c5289",
+      "src/ifcx_cad/codec/ifcx_json/wire.rs": "03b40aff4b6bccd014d68423939983a96e04f502f6680591addd1a3b7b2f8e79",
+      "src/ifcx_cad/codec/mod.rs": "9dc89f29ddb0507a51bd1a94434a7c318845b4b8d8ba9f50a6add19800283f7a",
+      "src/ifcx_cad/encode.rs": "8638b399f36a8b25fd30382a92522d824fb5de4279953bbb87406cd4f899ddb1",
+      "src/ifcx_cad/logical/allocation.rs": "201c04c17499362fb9feb6fd7d77c139c309e0ccdea2b82524993e21054cb1f2",
+      "src/ifcx_cad/logical/document_validation.rs": "e3066c62d0c5b7dbb7573f10d610a4e600ebffa193efc0ab1f19f64f988bcd01",
+      "src/ifcx_cad/logical/mod.rs": "e990fc7f751cc651504685ffcf1ccb8a29d249ef5ef6a305d87aa3bea4194547",
+      "src/ifcx_cad/logical/model.rs": "fd64c02307293af922097136df43ca5c66d9bf9e033df8a4c8d1e3a6159f444f",
+      "src/ifcx_cad/logical/patterns.rs": "811715ff065151bdc8e5acdd2cdaa5846014669b2038bfabce19a384f99874e8",
+      "src/ifcx_cad/mod.rs": "02fdf1053e94250af556c8b8fcf3918bca4c9339ed0e0843b60f7ffde9206c3c",
+      "src/ifcx_cad/read.rs": "94d938236cc4f0d90e304ae5aa43986c8d71d074e5deda31305b267b115cd36f",
+      "src/ifcx_cad/source/composition.rs": "f839190e25afd3f22860f729a9c0a41772b863cf84f1e9fa8284da802f340d64",
+      "src/ifcx_cad/source/graph.rs": "2b6ccf01856577b3a13bca4389268b17d914b919aa81fca027b514f9b7266afd",
+      "src/ifcx_cad/source/mod.rs": "cc90c915751d2a4dcfb75b454d487723c9ccd3711067ee97f4a8853852450f75",
+      "src/ifcx_cad/storage.rs": "228351d2ac028d9482fd44383449aabf460fcdb350a7993961629320dffa9aa5",
       "src/lib.rs": "8b99efb5874bc1997090060aed02b274d643be3c9db0d211f53c892bba5c7ef5",
+      "src/ocdraw/build.rs": "1307ed6510e5833be065da9ff45ac1f794a65a654fb8a987b2787601b1452339",
+      "src/ocdraw/build/state.rs": "acd14c7f0323186219f4f231ef18b4c614125b68349d63a76f2c71a7bafa343d",
       "src/ocdraw/codec/json/decode_appearance.rs": "0a047b1fa93d12f4b447fb2d3416620c1001a5a907db081aeb7e78ce8f52494a",
       "src/ocdraw/codec/json/decode_geometry.rs": "62f6a88fb1a6f790f87a7d4d5d7a2300629614ff85f48a23e0ffd451c47e1fd5",
       "src/ocdraw/codec/json/decode_layer.rs": "ec74a8de29b5c3f88f21c4c5fd619f6af04e24e349edd8f914751634ac474cf5",
@@ -361,22 +375,22 @@
       "src/ocdraw/codec/json/decode_state.rs": "01218ffba1da0c8cbded0988e309c6e89856a31803106b5a490fd8b1ff6c68e1",
       "src/ocdraw/codec/json/decode_view_state.rs": "24144bd85bc26c12b14f28317bd685607e7ba675946c6590a990f27da5e73eee",
       "src/ocdraw/codec/json/decode_viewport.rs": "be850598d5a8c65ca2dc84b76c518e8d983c875d0771a092dd119f772a3790a4",
-      "src/ocdraw/codec/json/document.rs": "edf3b00c4681cf0378beb4da3541cb3395c9c021f3a075e6b1695f94e6947e1e",
+      "src/ocdraw/codec/json/document.rs": "0112fd82d784f73dcd09546d997dfffd06f34de4cffa9e702e4fd8f0e8c62e1a",
       "src/ocdraw/codec/json/encode_color.rs": "0865c9e6b841b556a8d1d64671eed629e04b5956e6e3199988852c5570de34e3",
-      "src/ocdraw/codec/json/encode_document.rs": "3f72088f01b312b31dd4c12bf113defabcb3302b58d613f18c876d9dd61a0a5d",
+      "src/ocdraw/codec/json/encode_document.rs": "2fc0b1af5640a3ba6a6a9ff885cc4ef7fa64d2a050893b9cf52c125bd3775b08",
       "src/ocdraw/codec/json/encode_geometry.rs": "f3e1ecf222e1f94705efa8d887c4eea76ceacf15cac1ee40abddaafc558a111a",
       "src/ocdraw/codec/json/encode_plot.rs": "8ec1abdc6a645775cf6cb9aed6811562e36d1ea26c14e8619bdcd668188a66cf",
       "src/ocdraw/codec/json/encode_state.rs": "00a627297f15548f2a20a23f0f499496a9919abf4fbdfaea657561e9728bf980",
       "src/ocdraw/codec/json/encode_view_state.rs": "e54abd62c4eafd2dacab5f50da73c22b42909a061db1c676128b6f8383712ba6",
       "src/ocdraw/codec/json/mod.rs": "9a056fa156c85fe3da3e847622305f2113ddb51038acd10c9f69d0ee1487cc1e",
       "src/ocdraw/codec/json/stream_contract.rs": "318357efcbfe6ffc7127919a3010b6309c134e9361b2d6f0005bed4106e2ce40",
-      "src/ocdraw/codec/json/validate.rs": "107601c3053dfe3b96f909b57172ccbd34bde635d2c9f146bdda505f1cc14a52",
-      "src/ocdraw/codec/json/validate/choices.rs": "4cfd21d43a9c5f715aa9c628a6b33cfe3e5fd347f8e65baff61f7bb2858b9daf",
-      "src/ocdraw/codec/json/validate/geometry.rs": "271b4dbb83a576158ce7afc4680d3da7ab711e85090bf3c5a58caf25a222e968",
-      "src/ocdraw/codec/json/validate/streams.rs": "2d969bb61819382ede9879224ca4d2c58f58b9385043d012a2b9722dc5b958ad",
+      "src/ocdraw/codec/json/validate.rs": "51c60620b169d025495bc4b107d91c95667c4b545a0ab4b013b5b06aa27a0137",
+      "src/ocdraw/codec/json/validate/choices.rs": "fe175371739808e12f82486df2d073fa532909a8b0cdecafb8a3facea17fb821",
+      "src/ocdraw/codec/json/validate/geometry.rs": "4d87dd468c73b9e8658ac9610f1f04d19ce2508b1eda28f241f54ac496095db6",
+      "src/ocdraw/codec/json/validate/streams.rs": "798a3a5b0dc88e5c6cf9d8f3366f7bf1f75c3c819b6f1c3d07a44faf675e9b86",
       "src/ocdraw/codec/mod.rs": "91c9c909865cef8a5a59ef13d8bd3a70573b4a6d8c8b059cb9c4dc1ee581f7d2",
       "src/ocdraw/display.rs": "d91db2d5f36530338e00a7940bbfa84e09be49af9e81af89084c58e9d96751e0",
-      "src/ocdraw/encode.rs": "839b54984c6c781e3455d6fd2b05fe171b5354f96b4f240264c72a070cc4a91d",
+      "src/ocdraw/encode.rs": "4cce30f7cf9678f766481b3e64591523e4f026aeaa5bfd9eb715129041fd2971",
       "src/ocdraw/geometry/block.rs": "eb371da4e8eebc44faa86a0ad9bf97011ca264e4b5b2d8ea7dbc58bcec5ae228",
       "src/ocdraw/geometry/bulge.rs": "786c661e9d29e07eb881fc3bbe97c48cf9dc372cee38772ff0b773cd15539e59",
       "src/ocdraw/geometry/circular.rs": "c03c76ac15cef35a5891fbcd185893a87ee8f82b5cc8a4367aad462c2791aeca",
@@ -388,46 +402,46 @@
       "src/ocdraw/layout.rs": "832eed6714f647c0b9abf6c1f913557669549dc0c55dfc27b89cb7f6531aad5b",
       "src/ocdraw/logical/appearance.rs": "d61958977fa76e0f81c14c20b9889a6a1255f8f3d160b01d9aeef8cc52385eef",
       "src/ocdraw/logical/block_validation.rs": "2f88a30727de2d1623914afcee2b308b50a52628f93987a8131d42e2e410a58c",
-      "src/ocdraw/logical/bounds_preparation.rs": "e2bb83273021aaede55a1d30737d073ab2fca40ee62f51b0bcb3dbd42e5dd9eb",
+      "src/ocdraw/logical/bounds_preparation.rs": "4052fcc29b181fa3c2b67f5a438914dec4324e4c566aab6502e7bd83719c3fb1",
       "src/ocdraw/logical/definitions.rs": "361e7f2770bc4f8a450618680604e69e2b6cac980406a9f8db1931856dee3775",
       "src/ocdraw/logical/document.rs": "7214bfd09a1141d483a4240ee86f26d54f75f1d8dc4f124ec91b8a251d591777",
       "src/ocdraw/logical/document_projection.rs": "94753de9b0e9a3de2d649f1662365de89585883a14b1364cc0499a71745261f8",
-      "src/ocdraw/logical/document_validation.rs": "657bdd172817b2fa261f143b540de476c9ea5a181d14d2d168e0fc3fce080b62",
+      "src/ocdraw/logical/document_validation.rs": "7707bdd5ce6092dee3a5f71e30f9854a08ee2f9f96f380c1cd5dafdc084ef040",
       "src/ocdraw/logical/field_validation.rs": "444eb7a72532f2184f8ab19d457d53943323b83fed7f9cec711370c4153fee54",
       "src/ocdraw/logical/geometry.rs": "4540bd0d44547e8701d895bf72c6b4e492be0726ae589b27e9d7027130cc1e02",
       "src/ocdraw/logical/geometry_validation.rs": "7aac3b619744895dec0c9c638a658fdd1d88a5dd43cc232b168ece73a95d1e3a",
       "src/ocdraw/logical/line_pattern.rs": "004badf466ddce6d0b6a48e80d59a40f821f7d2c3beee78c2a47b04b276d17c7",
       "src/ocdraw/logical/line_pattern_validation.rs": "44dd580ffa4c969c129275cee48d1c5fc41230c06cb58b4deb3d477f350effe5",
-      "src/ocdraw/logical/mod.rs": "dda5b75a2e0715c3967f84f1d8f5e3c7b68c0e9a0f21ee146c39b7bf15ca29c9",
+      "src/ocdraw/logical/mod.rs": "214341f39923b2b856da1ea3d568162a22d6470cb89777a16871c3161d12ca48",
       "src/ocdraw/logical/model.rs": "4d551c564ef9d2dcd27e9d2977b9fd3fd11c68c8636b31203253222b06e75da3",
       "src/ocdraw/logical/state_validation.rs": "2f25e4f64dc743d34f2d8a0dd856512f3084a6d54a48deb837d7032fc1c8db4b",
       "src/ocdraw/logical/validation.rs": "90ca084985881d2d7d4f5431cccf1b0dd638d887339542551b52d1a514cb8775",
       "src/ocdraw/logical/view_state.rs": "dc2e4d78e7f266e33f11304e256b4e4ce2546604d5f28703a500dd7aa92d1eba",
       "src/ocdraw/logical/viewport.rs": "d84363764795503ad63a62ff36a8e07e658df1772681ada118af7a03cae15b39",
-      "src/ocdraw/mod.rs": "f4de6a6e980aee4a1cb468f9917d81d14bb3eedf30d2af9ac6ffeafdef41d3c7",
+      "src/ocdraw/mod.rs": "5aea60fe63379946a100c4fd9ef48874eb21cde6ef5732f00c598dd20b62184b",
       "src/ocdraw/names.rs": "461f287c6f61971f59db6c25413b5f94368d673ba9e764364d89466c965c59bc",
       "src/ocdraw/plot.rs": "e6b12747c5e37fa1e5d23c3a4086105469fc62812fdbfaf996083bf2776ef892",
-      "src/ocdraw/read.rs": "68c1bc8e4ddc27a754e65e4939f162c0a6962abc641c91013672af4c9b5c9eca",
+      "src/ocdraw/read.rs": "c6a9dca90197e642635f0ab09e127c7804bacefa3e63a103c04a2dbaee2df8f2",
+      "src/ocdraw/storage.rs": "c07a3301bc701ec46a9f26a3d0ae3b26ed544e98f169fbb2097e67263a106703",
       "src/ocdraw/types.rs": "2103b24f6db7310fad727391093b08ebef16370d7d98631769ef4dd7d5200a03",
       "src/ocdraw/unicode_casefold_17.rs": "2589ee9ae0a6d3c8430f6f8e5dc748919aa8c31297a44753d3380df780c4f998",
       "src/ocdraw/workspace.rs": "cc5866d076c731a46d29e83fe8cb8eb69503355649701ef0eadc5c77229fbc2a",
-      "src/ocdraw/write.rs": "b6b6da8c4309d1a0fc1d7fc38639eb0df96a5a3e3062999a97f693968bc8e3f9",
-      "src/ocdraw/write/state.rs": "7d4ce8e68f0a76bca7226e74c43f7f1798d082a07a5ab4515df1fe215c46e09a",
       "tests/data/block-trig-reference.json": "ad67b9f1466182e086ccb69d5be8d2d83c2d79acba48286e6d0c96ec097259b9",
-      "tests/experimental_ifcx_native.rs": "c03abdbbfe98c5981c639703876fb7495cba6e703125d6be2a6c4b33f0bccadc",
-      "tests/ifcx_document_lifecycle.rs": "459111744f9efdb530c115f356d2c2c5b57a72a08dd61a00bdf7a877ae59eb91",
-      "tests/ifcx_id_management.rs": "a1fcebae2b358e15b6d796a604caa997301348cc3299b13928854dba4e95c89b",
-      "tests/ifcx_line_patterns.rs": "c1117c343c520381ea1786f54e8885e4f04dd6c49372ecfe4b3a82c4eacaabc0",
-      "tests/ocdraw_conformance.rs": "b9825a3b04f4fa3371aae35356e2885c81799bdc57b1715dc71584c7c61aa70b",
+      "tests/experimental_ifcx_native.rs": "c64ab48b6d67e3948da3a918eeee6df92690bbb1c7564abc5d62fcd25cba807b",
+      "tests/ifcx_document_lifecycle.rs": "025654c73d1797a4da248f390d8d7f7f5f360f0487560da6cc9b43bf3a756646",
+      "tests/ifcx_id_management.rs": "24d189f9b8b4c4b25722e11e85141720433682ade0b9f626d78b82f35ca13f92",
+      "tests/ifcx_line_patterns.rs": "78e3c323fdbbad171122277e38da5699ff245e007bb6fc21d33d4de9c9cbd797",
+      "tests/model_io.rs": "b1793010d76ae2351c06b4561e785ecd34fec9f70b9aded7b9578ebffbe53aed",
+      "tests/ocdraw_conformance.rs": "967d53f28b10d0e66105f0b7fed7aec607b481ebd34213c0222a97f8a8872b55",
       "tests/ocdraw_contract.rs": "2a8f3f64995eced56140c7bf03968a815c96e2956b895998617dd9a36ada4aec",
-      "tests/ocdraw_document.rs": "988caf193148bdabc9d546e2421989902c7658628e2ec058c92321d6ef26d3e7",
-      "tests/ocdraw_document_bounds.rs": "195ba6f81b5f4ac21ede8bda3f8b4e5d53d19086d83cca82d0931a839a45166f",
-      "tests/ocdraw_document_roundtrip.rs": "b9a88fc88281d103a1788f2c474fdd6de816190848518fd79d2fcc6a0e78ee77",
-      "tests/ocdraw_document_validation.rs": "86c0bf9df18db2f97fae22df8d83874ef24356cbf3dae915fade9fc76c24b257",
-      "tests/ocdraw_line_patterns.rs": "2b70c30580d4cf5fad00e496ee69d3c977d9099f621e638ce2ee2e4bd24f3a23",
-      "tests/ocdraw_ownership.rs": "6f9ea8d5ff9513aa76f25480eb56a997290b8ad2e9464a34e3f9093964860cac",
-      "tests/ocdraw_reader.rs": "e9b26beef7e4c4debe5abae8ec850c3ba4fcc1b44fd592d37e184ca682cd6875",
-      "tests/ocdraw_writer.rs": "d47375893be8de2f11a3cc8e4026dfb846f5bd520272da7c13cda36381f51e3f"
+      "tests/ocdraw_document.rs": "03f73d25c6a27db6cd8112d92d374b22a036b145ce1572fbb1962971976d9c3a",
+      "tests/ocdraw_document_bounds.rs": "4e14de1ef99d99fa8d9d0c2c6308a22c0762e9db028103a29d1587db5e9c28e9",
+      "tests/ocdraw_document_roundtrip.rs": "c48a0de4982480a104cd1d71b942b4d30a45ea52242fbdf33e1e9551d99958cd",
+      "tests/ocdraw_document_validation.rs": "d1fc1f345615bc1022936cfb40894f556ccb26bc5f4dba342e10723737a2a6d5",
+      "tests/ocdraw_line_patterns.rs": "668f1406665e8cc5e7a1beea87266dabda567d3b048b604fee73344bde9c6a20",
+      "tests/ocdraw_ownership.rs": "184fe0c7da4065b5beca64703a10ee7bd8e8dcc351a4b82fd3c33165dcc1b705",
+      "tests/ocdraw_reader.rs": "8d5e441319a5d2e39e0a26a21082cd2aa18e5d0f60bf6be095058f11fe1e5acd",
+      "tests/ocdraw_writer.rs": "fee0ff2841965935b9d4a9af5a9da2db723c185912c0dff8f9687b312ef3e9f4"
     },
     "codecRevision": "d96e3fa2fe5acbeac966f1db4c01142618bf9c79",
     "codecSource": "git+https://github.com/HakanSeven12/opencadcodec.git?rev=d96e3fa2fe5acbeac966f1db4c01142618bf9c79#d96e3fa2fe5acbeac966f1db4c01142618bf9c79",
@@ -440,7 +454,7 @@
     "zlib": "1.3.1.zlib-ng",
     "rustc": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
     "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
-    "dirty": true
+    "dirty": false
   },
   "cases": [
     {
@@ -508,12 +522,12 @@
         "stages": [
           {
             "diagnostics": [],
-            "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 0, vertices: 0, rounded: 0, maximum: 0.0, worst: None }",
+            "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 0, vertices: 0, rounded: 0, maximum: 0.0, worst: None }",
             "name": "CAD to OCDrawDocument"
           },
           {
             "diagnostics": [],
-            "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 0, vertices: 0, rounded: 0, maximum: 0.0, worst: None }",
+            "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 0, vertices: 0, rounded: 0, maximum: 0.0, worst: None }",
             "name": "OCDrawDocument to CAD"
           },
           {
@@ -641,12 +655,12 @@
           "stages": [
             {
               "diagnostics": [],
-              "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 0, vertices: 0, rounded: 0, maximum: 0.0, worst: None }",
+              "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 0, vertices: 0, rounded: 0, maximum: 0.0, worst: None }",
               "name": "CAD to OCDrawDocument"
             },
             {
               "diagnostics": [],
-              "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 0, vertices: 0, rounded: 0, maximum: 0.0, worst: None }",
+              "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 0, vertices: 0, rounded: 0, maximum: 0.0, worst: None }",
               "name": "OCDrawDocument to CAD"
             },
             {
@@ -728,12 +742,12 @@
         "stages": [
           {
             "diagnostics": [],
-            "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 100, vertices: 200, rounded: 0, maximum: 0.0, worst: None }",
+            "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 100, vertices: 200, rounded: 0, maximum: 0.0, worst: None }",
             "name": "CAD to OCDrawDocument"
           },
           {
             "diagnostics": [],
-            "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 100, vertices: 200, rounded: 0, maximum: 0.0, worst: None }",
+            "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 100, vertices: 200, rounded: 0, maximum: 0.0, worst: None }",
             "name": "OCDrawDocument to CAD"
           },
           {
@@ -867,12 +881,12 @@
           "stages": [
             {
               "diagnostics": [],
-              "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 100, vertices: 200, rounded: 0, maximum: 0.0, worst: None }",
+              "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 100, vertices: 200, rounded: 0, maximum: 0.0, worst: None }",
               "name": "CAD to OCDrawDocument"
             },
             {
               "diagnostics": [],
-              "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 100, vertices: 200, rounded: 0, maximum: 0.0, worst: None }",
+              "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 100, vertices: 200, rounded: 0, maximum: 0.0, worst: None }",
               "name": "OCDrawDocument to CAD"
             },
             {
@@ -954,12 +968,12 @@
         "stages": [
           {
             "diagnostics": [],
-            "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 10000, vertices: 20000, rounded: 0, maximum: 0.0, worst: None }",
+            "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 10000, vertices: 20000, rounded: 0, maximum: 0.0, worst: None }",
             "name": "CAD to OCDrawDocument"
           },
           {
             "diagnostics": [],
-            "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 10000, vertices: 20000, rounded: 0, maximum: 0.0, worst: None }",
+            "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 10000, vertices: 20000, rounded: 0, maximum: 0.0, worst: None }",
             "name": "OCDrawDocument to CAD"
           },
           {
@@ -1093,12 +1107,12 @@
           "stages": [
             {
               "diagnostics": [],
-              "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 10000, vertices: 20000, rounded: 0, maximum: 0.0, worst: None }",
+              "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 10000, vertices: 20000, rounded: 0, maximum: 0.0, worst: None }",
               "name": "CAD to OCDrawDocument"
             },
             {
               "diagnostics": [],
-              "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 10000, vertices: 20000, rounded: 0, maximum: 0.0, worst: None }",
+              "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 10000, vertices: 20000, rounded: 0, maximum: 0.0, worst: None }",
               "name": "OCDrawDocument to CAD"
             },
             {
@@ -1180,12 +1194,12 @@
         "stages": [
           {
             "diagnostics": [],
-            "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 1000, vertices: 2000, rounded: 0, maximum: 0.0, worst: None }",
+            "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 1000, vertices: 2000, rounded: 0, maximum: 0.0, worst: None }",
             "name": "CAD to OCDrawDocument"
           },
           {
             "diagnostics": [],
-            "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 1000, vertices: 2000, rounded: 0, maximum: 0.0, worst: None }",
+            "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 1000, vertices: 2000, rounded: 0, maximum: 0.0, worst: None }",
             "name": "OCDrawDocument to CAD"
           },
           {
@@ -1319,12 +1333,12 @@
           "stages": [
             {
               "diagnostics": [],
-              "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 1000, vertices: 2000, rounded: 0, maximum: 0.0, worst: None }",
+              "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 1000, vertices: 2000, rounded: 0, maximum: 0.0, worst: None }",
               "name": "CAD to OCDrawDocument"
             },
             {
               "diagnostics": [],
-              "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 1000, vertices: 2000, rounded: 0, maximum: 0.0, worst: None }",
+              "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 1000, vertices: 2000, rounded: 0, maximum: 0.0, worst: None }",
               "name": "OCDrawDocument to CAD"
             },
             {
@@ -1406,12 +1420,12 @@
         "stages": [
           {
             "diagnostics": [],
-            "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 100, vertices: 400, rounded: 0, maximum: 0.0, worst: None }",
+            "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 100, vertices: 400, rounded: 0, maximum: 0.0, worst: None }",
             "name": "CAD to OCDrawDocument"
           },
           {
             "diagnostics": [],
-            "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 100, vertices: 400, rounded: 0, maximum: 0.0, worst: None }",
+            "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 100, vertices: 400, rounded: 0, maximum: 0.0, worst: None }",
             "name": "OCDrawDocument to CAD"
           },
           {
@@ -1545,12 +1559,12 @@
           "stages": [
             {
               "diagnostics": [],
-              "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 100, vertices: 400, rounded: 0, maximum: 0.0, worst: None }",
+              "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 100, vertices: 400, rounded: 0, maximum: 0.0, worst: None }",
               "name": "CAD to OCDrawDocument"
             },
             {
               "diagnostics": [],
-              "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 100, vertices: 400, rounded: 0, maximum: 0.0, worst: None }",
+              "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 100, vertices: 400, rounded: 0, maximum: 0.0, worst: None }",
               "name": "OCDrawDocument to CAD"
             },
             {
@@ -1632,12 +1646,12 @@
         "stages": [
           {
             "diagnostics": [],
-            "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 10000, vertices: 40000, rounded: 0, maximum: 0.0, worst: None }",
+            "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 10000, vertices: 40000, rounded: 0, maximum: 0.0, worst: None }",
             "name": "CAD to OCDrawDocument"
           },
           {
             "diagnostics": [],
-            "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 10000, vertices: 40000, rounded: 0, maximum: 0.0, worst: None }",
+            "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 10000, vertices: 40000, rounded: 0, maximum: 0.0, worst: None }",
             "name": "OCDrawDocument to CAD"
           },
           {
@@ -1771,12 +1785,12 @@
           "stages": [
             {
               "diagnostics": [],
-              "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 10000, vertices: 40000, rounded: 0, maximum: 0.0, worst: None }",
+              "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 10000, vertices: 40000, rounded: 0, maximum: 0.0, worst: None }",
               "name": "CAD to OCDrawDocument"
             },
             {
               "diagnostics": [],
-              "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 10000, vertices: 40000, rounded: 0, maximum: 0.0, worst: None }",
+              "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 10000, vertices: 40000, rounded: 0, maximum: 0.0, worst: None }",
               "name": "OCDrawDocument to CAD"
             },
             {
@@ -1858,12 +1872,12 @@
         "stages": [
           {
             "diagnostics": [],
-            "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 1000, vertices: 4000, rounded: 0, maximum: 0.0, worst: None }",
+            "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 1000, vertices: 4000, rounded: 0, maximum: 0.0, worst: None }",
             "name": "CAD to OCDrawDocument"
           },
           {
             "diagnostics": [],
-            "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 1000, vertices: 4000, rounded: 0, maximum: 0.0, worst: None }",
+            "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 1000, vertices: 4000, rounded: 0, maximum: 0.0, worst: None }",
             "name": "OCDrawDocument to CAD"
           },
           {
@@ -1997,12 +2011,12 @@
           "stages": [
             {
               "diagnostics": [],
-              "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 1000, vertices: 4000, rounded: 0, maximum: 0.0, worst: None }",
+              "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 1000, vertices: 4000, rounded: 0, maximum: 0.0, worst: None }",
               "name": "CAD to OCDrawDocument"
             },
             {
               "diagnostics": [],
-              "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 1000, vertices: 4000, rounded: 0, maximum: 0.0, worst: None }",
+              "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 1000, vertices: 4000, rounded: 0, maximum: 0.0, worst: None }",
               "name": "OCDrawDocument to CAD"
             },
             {
@@ -2090,12 +2104,12 @@
         "stages": [
           {
             "diagnostics": [],
-            "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 19, vertices: 56, rounded: 0, maximum: 0.0, worst: None }",
+            "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 19, vertices: 56, rounded: 0, maximum: 0.0, worst: None }",
             "name": "CAD to OCDrawDocument"
           },
           {
             "diagnostics": [],
-            "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 19, vertices: 56, rounded: 0, maximum: 0.0, worst: None }",
+            "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 19, vertices: 56, rounded: 0, maximum: 0.0, worst: None }",
             "name": "OCDrawDocument to CAD"
           },
           {
@@ -2235,12 +2249,12 @@
           "stages": [
             {
               "diagnostics": [],
-              "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 19, vertices: 56, rounded: 0, maximum: 0.0, worst: None }",
+              "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 19, vertices: 56, rounded: 0, maximum: 0.0, worst: None }",
               "name": "CAD to OCDrawDocument"
             },
             {
               "diagnostics": [],
-              "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 19, vertices: 56, rounded: 0, maximum: 0.0, worst: None }",
+              "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 19, vertices: 56, rounded: 0, maximum: 0.0, worst: None }",
               "name": "OCDrawDocument to CAD"
             },
             {
@@ -2325,12 +2339,12 @@
         "stages": [
           {
             "diagnostics": [],
-            "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 128, vertices: 384, rounded: 0, maximum: 0.0, worst: None }",
+            "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 128, vertices: 384, rounded: 0, maximum: 0.0, worst: None }",
             "name": "CAD to OCDrawDocument"
           },
           {
             "diagnostics": [],
-            "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 128, vertices: 384, rounded: 0, maximum: 0.0, worst: None }",
+            "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 128, vertices: 384, rounded: 0, maximum: 0.0, worst: None }",
             "name": "OCDrawDocument to CAD"
           },
           {
@@ -2467,12 +2481,12 @@
           "stages": [
             {
               "diagnostics": [],
-              "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 128, vertices: 384, rounded: 0, maximum: 0.0, worst: None }",
+              "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 128, vertices: 384, rounded: 0, maximum: 0.0, worst: None }",
               "name": "CAD to OCDrawDocument"
             },
             {
               "diagnostics": [],
-              "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 128, vertices: 384, rounded: 0, maximum: 0.0, worst: None }",
+              "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 128, vertices: 384, rounded: 0, maximum: 0.0, worst: None }",
               "name": "OCDrawDocument to CAD"
             },
             {
@@ -14225,7 +14239,7 @@
                 "loss": true
               }
             ],
-            "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 3228, vertices: 7438, rounded: 43, maximum: 3.438502484517471e-14, worst: Some(BlockOccurrence { path: [CadEntity { handle: Handle(1605), kind: \"INSERT\" }], leaf: CadEntity { handle: Handle(1595), kind: \"ARC\" } }) }",
+            "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 3228, vertices: 7438, rounded: 43, maximum: 3.438502484517471e-14, worst: Some(BlockOccurrence { path: [CadEntity { handle: Handle(1605), kind: \"INSERT\" }], leaf: CadEntity { handle: Handle(1595), kind: \"ARC\" } }) }",
             "name": "CAD to OCDrawDocument"
           },
           {
@@ -15731,7 +15745,7 @@
                 "message": "geometry deviation is at most 0.00000000000003438502484517465 drawing units"
               }
             ],
-            "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 3228, vertices: 7438, rounded: 300, maximum: 5.4953236053932173e-14, worst: Some(BlockOccurrence { path: [DrawingEntity { scope_id: 0, entity_id: 1384 }], leaf: DrawingEntity { scope_id: 46, entity_id: 1360 } }) }",
+            "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 3228, vertices: 7438, rounded: 300, maximum: 5.4953236053932173e-14, worst: Some(BlockOccurrence { path: [DrawingEntity { scope_id: 0, entity_id: 1384 }], leaf: DrawingEntity { scope_id: 46, entity_id: 1360 } }) }",
             "name": "OCDrawDocument to CAD"
           },
           {
@@ -32093,7 +32107,7 @@
                   "loss": true
                 }
               ],
-              "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 3228, vertices: 7438, rounded: 43, maximum: 3.438502484517471e-14, worst: Some(BlockOccurrence { path: [CadEntity { handle: Handle(1605), kind: \"INSERT\" }], leaf: CadEntity { handle: Handle(1595), kind: \"ARC\" } }) }",
+              "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 3228, vertices: 7438, rounded: 43, maximum: 3.438502484517471e-14, worst: Some(BlockOccurrence { path: [CadEntity { handle: Handle(1605), kind: \"INSERT\" }], leaf: CadEntity { handle: Handle(1595), kind: \"ARC\" } }) }",
               "name": "CAD to OCDrawDocument"
             },
             {
@@ -33599,7 +33613,7 @@
                   "message": "geometry deviation is at most 0.00000000000003438502484517465 drawing units"
                 }
               ],
-              "geometry": "ConversionGeometryAssessment { requested: ConversionGeometryTolerance(Default), unit: Millimetre, resolved: ConversionDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 3228, vertices: 7438, rounded: 300, maximum: 5.4953236053932173e-14, worst: Some(BlockOccurrence { path: [DrawingEntity { scope_id: 0, entity_id: 1384 }], leaf: DrawingEntity { scope_id: 46, entity_id: 1360 } }) }",
+              "geometry": "OcdrawGeometryAssessment { requested: OcdrawGeometryTolerance(Default), unit: Millimetre, resolved: OcdrawDistanceInterval { lower: 0.0009999999999999998, upper: 0.001 }, limit: ResolvedTolerance { lower: Ratio { numer: 1, denom: 1000 }, upper: Ratio { numer: 1, denom: 1000 } }, entities: 3228, vertices: 7438, rounded: 300, maximum: 5.4953236053932173e-14, worst: Some(BlockOccurrence { path: [DrawingEntity { scope_id: 0, entity_id: 1384 }], leaf: DrawingEntity { scope_id: 46, entity_id: 1360 } }) }",
               "name": "OCDrawDocument to CAD"
             },
             {

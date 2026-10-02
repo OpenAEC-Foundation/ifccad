@@ -2,12 +2,13 @@
 
 ## Project context
 
-This repository develops Open CAD Drawing (OCDraw), an open, application-independent
-information model and exchange format for standalone CAD drawings. The repository
-keeps its experimental IFCCAD name. Active code and schemas no longer require an
+This repository develops OCDraw and IFCX-CAD in parallel. OCDraw is an open,
+application-independent information model and exchange format for standalone CAD
+drawings; IFCX-CAD is an independent experimental CAD drawing profile using IFCX.
+The repository keeps its experimental IFCCAD name. Active code and schemas no longer require an
 IFCX package or IFCDR/IFCPR resources. Initial OCDraw 0.1.0 remains provisional.
 
-During the experiment, main also contains the independent IFCX-CAD model under
+The active IFCX-CAD development track has its independent model under
 `src/ifcx_cad`, conversion under `crates/ifcx-cad-convert`, and a separate browser
 inspection/conversion route alongside OCDraw.
 Keep its model, schemas, validation and conversion routes clearly separate from
@@ -189,16 +190,19 @@ pass strict drawing validation. Conversion tests should compare semantic
 content rather than unstable handles or serialized byte layouts, except where
 byte determinism is itself the contract under test.
 
-The controlled size/exchange experiment is not a standard completion gate.
-Rerun it when a change affects its corpus or a writer, codec, converter, or
-opencadcodec dependency path actually exercised by that corpus, or when evaluating
-an explicit size/exchange hypothesis. For new semantic families absent from
-the corpus, use focused strict-readback and conversion tests; add representative
-recipes before using the experiment as evidence about those families. When a
-rerun is warranted, use the documented dependency configuration and a fresh
-run directory; run different Cargo configurations sequentially because they
-share Cargo.lock. Retain the last accepted report and its matching detailed
-result JSON until a new applicable run replaces them.
+Controlled size/exchange measurements are manual research tools, never automatic
+completion gates. Run or rerun a measurement, including any selected subset, only
+when the user explicitly requests it. Changes to main, the corpus, writers, codecs,
+converters or dependencies do not themselves authorize a rerun. Do not add automatic
+measurement runs to CI or development workflows. Focused correctness, strict-readback
+and conversion tests remain required independently of size measurements.
+When the user requests a measurement, use the documented dependency configuration
+and a fresh run directory, and run only the requested scope. Run different Cargo
+configurations sequentially because they share Cargo.lock. Retain the last accepted
+report and its matching detailed result JSON until a new applicable run replaces
+them; identify their recorded coverage and provenance rather than implying they
+measure every later revision. Add representative recipes for new semantic families
+only within an explicitly requested measurement scope.
 Compression probes explain observations; add compressed output as a formal
 variant only when production encoding and readback exist.
 
