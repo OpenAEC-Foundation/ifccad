@@ -102,16 +102,50 @@ follow-up work. Retain designs and plans still needed by active or upcoming work
 - Create Git worktrees inside the repository-local `.worktrees/` directory by
   default. Keep that directory ignored, and use another worktree location only
   when the user explicitly requests it.
-- After a task is integrated, run `pwsh -NoProfile -File scripts/cleanup_local.ps1`
-  to review all local worktrees and build caches. Report worktrees that may be
-  stale but cannot be removed safely, including the exact blockers and last
-  commit date, so the user can decide what to do with them. Do not silently
-  leave blocked worktrees behind or infer inactivity from commit age alone.
-- Remove only explicitly selected, merged worktrees after checking that no
-  ongoing work or process needs them. The cleanup script requires `-Apply`
-  and `-RemoveWorktree <name>`; it never forces removal of local changes or
-  unknown ignored content. Preserve active worktrees even when Git considers
-  them technically removable.
+- After merging a completed task into main, always clean up its repository-local
+  worktree and delete the merged local task branch. The user gives standing
+  authorization for this cleanup; no separate per-task removal confirmation is
+  needed. A merged worktree must not be kept solely because it contains local files.
+- Before removal, verify that the task is complete, its commits are in main,
+  and no ongoing work or process needs the worktree. Preserve active worktrees,
+  even if their current commits are technically merged. Never infer inactivity
+  from commit age alone or discard unrelated/unmerged changes.
+- Select local material before archiving; do not copy all ignored/untracked
+  files by default. Keep only unique information needed for active/upcoming
+  work, reproduction of applicable accepted evidence, or a concrete unresolved
+  problem. Ignored status, file type and commit age alone do not establish value.
+- Preserve unrecoverable source material and user-authored files, designs/plans
+  with still-needed unique decisions, and applicable benchmark provenance. For
+  accepted measurements, retain the documented report and matching detailed
+  results plus any exact source manifest, dependency lock/configuration or input
+  snapshot needed for reproduction that is not already retained elsewhere.
+  Keep raw generated measurement files only when the contract requires them or
+  they are needed to investigate a specific discrepancy.
+- Remove reproducible build/site/WASM output, caches, temporary test files,
+  intermediate migration scripts and resolved-debugging output when they contain
+  no unique required information and no process uses them. Discard duplicate or
+  superseded runs only after verifying that the applicable replacement and its
+  matching evidence are retained. Keep detailed logs only for unresolved issues
+  or evidence not adequately recorded in the retained task summary/report.
+- Completed local designs/plans may be removed once their lasting decisions and
+  relevant verification are recorded in regular repository documentation or a
+  concise retained task summary. Preserve working documents still needed by
+  active/upcoming work. Compare content before treating a main-local or Git copy
+  as a duplicate; do not overwrite existing main-local files.
+- Move the selected material into an ignored, task-specific archive below
+  `.superpowers/worktree-archives/<task>/` in the local main checkout, retaining
+  relative paths. Record an inventory with each retained item's reason and a
+  brief account of discarded categories. Archives stay outside Git. Inspect
+  unclassified material rather than indefinitely retaining it wholesale; if its
+  value or ownership remains uncertain, preserve that limited material and
+  report the uncertainty without retaining the entire completed worktree.
+- Run `pwsh -NoProfile -File scripts/cleanup_local.ps1` after integration to audit
+  all worktrees and caches. Explicitly select the completed task with `-Apply
+  -RemoveWorktree <name>` after relocating local material; the script must not
+  force deletion of changes or unknown ignored content. Do not clean caches in
+  other active worktrees. If cleanup remains blocked, report the exact blocker,
+  last commit date and preserved-material location, and resolve recoverable file
+  blockers rather than silently retaining the entire worktree.
 - Keep work in one task by default. Do not delegate to subagents unless the
   user explicitly requests parallel work.
 - Do not use `codex/` or a redundant `ifccad/` prefix in branch names.
