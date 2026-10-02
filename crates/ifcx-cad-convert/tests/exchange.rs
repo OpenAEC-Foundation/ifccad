@@ -1,7 +1,6 @@
 mod common;
 use cadcodec::{CadDocument, DwgReader, DwgWriter, DxfReader, DxfWriter};
 use common::*;
-use ifcx_cad_convert::*;
 use std::io::Cursor;
 
 fn exchange(c: &CadDocument, dwg: bool) -> CadDocument {
@@ -55,14 +54,8 @@ fn dwg_nested_blocks_with_zero_base() {
     roundtrip(&nested([0.; 3]), true);
 }
 #[test]
-fn dwg_nonzero_base_marker_limitation_is_explicit() {
-    let c = to_cad(&validated(&nested([1., 2., 0.])))
-        .unwrap()
-        .into_document();
-    let file = exchange(&c, true);
-    assert!(
-        matches!(from_cad(&file,metadata()),Err(IfcxCadConversionError::InvalidStructure(s)) if s.contains("marker"))
-    );
+fn dwg_nested_blocks_with_nonzero_base() {
+    roundtrip(&nested([1., 2., 0.]), true);
 }
 
 #[test]

@@ -346,6 +346,9 @@ pub(super) fn export(
             continue;
         };
         let default = cadcodec::entities::Viewport::new();
+        if viewport.off_screen {
+            loss(diagnostics, "paper canvas off-screen state");
+        }
         if viewport.center != default.center
             || viewport.width != default.width
             || viewport.height != default.height

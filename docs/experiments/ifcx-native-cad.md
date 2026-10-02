@@ -25,9 +25,9 @@ In-memory tests retain owner order, unused declarations, signed nonuniform block
 scale, rotation/base/unit and large u64 identity mappings. Every generated IFCX
 passes the production writer/reader. The same primitive corpus passes semantic
 exchange through unmodified pinned cadcodec DXF and DWG (AC1032). Nested blocks
-with nonzero base pass DXF; zero-base nested blocks pass DWG. Nonzero DWG block
-base is explicitly rejected because the pinned public BLOCK marker disagrees
-with its BlockRecord. Full inventory traversal is required: the ordinary CAD
+with nonzero base pass both DXF and DWG using opencadcodec revision
+`d96e3fa2fe5acbeac966f1db4c01142618bf9c79`. The former nonzero DWG block-base
+reader defect is resolved. Full inventory traversal is required: the ordinary CAD
 entity iterator hides these structural markers.
 
 The direction-specific coverage contracts record default scaffold handling and
@@ -148,8 +148,8 @@ and graph information, downloads original IFCX bytes and previews/exports the
 CAD projection. CAD input can choose OCDraw or direct IFCX-CAD. This uses the
 existing independent reader/converter; shared adapter code only writes/checks
 physical CAD files. Actual CAD readback must convert to strict-readable IFCX
-before a download is exposed. The known nonzero DWG base/marker conflict blocks
-that transfer without repair. Original graph inspection/native download retain
+before a download is exposed. Nonzero DWG block bases now pass this transfer.
+Original graph inspection/native download retain
 foreign information; CAD projection diagnoses omissions. Browser processing,
 size limits and cancellation remain active. Viewer/WASM tests cover both native
 routes and named-pattern DXF/DWG roundtrips; no general IFCX renderer or exact

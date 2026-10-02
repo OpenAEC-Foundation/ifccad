@@ -201,6 +201,39 @@ fn anonymous_marker_name_collision_remains_structural_error() {
     ));
 }
 
+#[test]
+fn anonymous_marker_name_conflict_without_collision_is_also_fatal() {
+    let mut document = definition(Some(Vector3::new(2., 0., 0.)));
+    let marker_handle = document
+        .block_records
+        .get("Door")
+        .unwrap()
+        .block_entity_handle;
+    document.block_records.rename("Door", "*U24").unwrap();
+    document
+        .block_records
+        .get_mut("*U24")
+        .unwrap()
+        .flags
+        .anonymous = true;
+    let Some(EntityType::Block(marker)) = document.get_entity_mut(marker_handle) else {
+        panic!()
+    };
+    marker.name = "*U25".into();
+    for loss_policy in [ExportLossPolicy::Allow, ExportLossPolicy::Reject] {
+        assert!(matches!(
+            cad_document_to_drawing(
+                &document,
+                ExportOptions {
+                    loss_policy,
+                    ..Default::default()
+                }
+            ),
+            Err(DirectExportError::InvalidSourceStructure { .. })
+        ));
+    }
+}
+
 fn definition(marker_base: Option<Vector3>) -> CadDocument {
     let mut document = CadDocument::new();
     let mut record = BlockRecord::new("Door");
@@ -354,7 +387,7 @@ fn conflicting_marker_is_structural_failure_under_both_loss_policies() {
         };
         assert!(problems.iter().any(|problem| matches!(problem,
             SourceStructureProblem::InconsistentRelationship { description }
-            if description.contains("Door") && description.contains("base point") && description.contains("cadcodec/issues/52")
+            if description.contains("Door") && description.contains("base point")
         )));
     }
 }

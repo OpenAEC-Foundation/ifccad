@@ -143,8 +143,7 @@ pub fn cad_document_to_ocdraw_document_with_id(
     options: ExportOptions,
 ) -> Result<OcdrawDocumentExportOutcome, DirectExportError> {
     let recovered = with_recovered_model_space_handle(document);
-    let recovered_blocks = crate::source::with_recovered_anonymous_block_name(recovered.as_ref());
-    let document = recovered_blocks.as_ref();
+    let document = recovered.as_ref();
     let model = inspect_model_space(document)
         .map_err(|problems| DirectExportError::InvalidSourceStructure { problems })?;
     let mut problems = inspect_markers(document);
@@ -247,11 +246,9 @@ pub fn cad_document_to_ocdraw_document_with_id(
         if crate::source::is_untouched_scaffold(layout, document) {
             continue;
         }
-        let normalized = super::layout::normalized_plot_integers(layout);
-        for field in super::layout::unrepresented_fields(
-            &normalized,
-            layout.block_record == model.block_handle,
-        ) {
+        for field in
+            super::layout::unrepresented_fields(layout, layout.block_record == model.block_handle)
+        {
             loss(
                 ExportDiagnosticSource::DocumentField {
                     name: format!("layout.{}.{}", layout.name, field),
@@ -282,7 +279,7 @@ pub fn cad_document_to_ocdraw_document_with_id(
             limits,
             limits_checking: layout.flags & 2 != 0,
             paper_space_linetype_scaling: document.header.paper_space_linetype_scaling,
-            plot_settings: match super::layout::plot_from_cad(&normalized, id == 0) {
+            plot_settings: match super::layout::plot_from_cad(layout, id == 0) {
                 Ok(settings) => settings,
                 Err(reason) => {
                     loss(

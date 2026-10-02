@@ -20,7 +20,8 @@ and entity schema v1 are provisional until contract completion and verification.
 - `src/ocdraw/codec/json`: physical fields, column packing, decoding and encoding.
 - `src/ocdraw/read.rs`, `write.rs`, `write/`: validated access and typed construction.
 - `crates/ocdraw-convert`: conversion between OCDraw and pinned cadcodec
-  `CadDocument`; DXF/DWG IO remains a CAD codec responsibility.
+  `CadDocument`; DXF/DWG IO remains a CAD codec responsibility. Both converters
+  use pinned upstream opencadcodec (the local Rust dependency alias is `cadcodec`).
 - `crates/ocdraw-viewer`, `crates/ocdraw-browser`: file inspection/conversion
   adapters. The inspector presents data and can embed Open CAD Studio to view
   original CAD and generated CAD via OCDraw; see [website](format-explorer/README.md).

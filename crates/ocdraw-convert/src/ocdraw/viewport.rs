@@ -65,6 +65,11 @@ pub(super) fn deferred_losses(viewport: &cadcodec::entities::Viewport) -> Vec<Ex
     let baseline = cadcodec::entities::Viewport::new();
     let mut reasons = Vec::new();
     let mut status = viewport.status;
+    if viewport.off_screen {
+        reasons.push(ExportLossReason::UnsupportedSemantic {
+            name: "viewport off-screen state".into(),
+        });
+    }
     status.is_on = baseline.status.is_on;
     status.locked = baseline.status.locked;
     status.perspective = baseline.status.perspective;

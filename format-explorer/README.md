@@ -98,9 +98,10 @@ messages. CAD output is read back and version checked. The IFCX route additional
 converts that actual readback to IFCX and strict-reads it before exposing download
 bytes. This is structural/profile readback, not a claim of exact semantic or
 numeric equality through the external codec. Readback diagnostics are displayed.
-The pinned DWG codec's nonzero BLOCK-base marker conflict blocks IFCX downloads
-of that generated DWG; zero-base blocks and DXF are covered by tests. No repair
-or block explosion is applied. Paper CAD conversion remains deferred.
+The processor uses pinned opencadcodec through the local Rust `cadcodec` alias.
+Nonzero BLOCK bases now pass both real DXF and DWG routes, including the browser
+smoke fixture, without marker repair or block explosion. Paper CAD conversion
+remains deferred. The separately pinned Open CAD Studio viewer is unchanged.
 
 A small fixture is included in built assets at
 `examples/hello-line-patterns.ifcx`. Browser worker, UI and WASM smoke tests

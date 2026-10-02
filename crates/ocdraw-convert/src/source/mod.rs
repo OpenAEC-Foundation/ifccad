@@ -11,9 +11,7 @@ pub(crate) use appearance::{
     convert_entity_appearance, convert_layer_appearance, AppearanceMode, EntityAppearanceError,
     LayerAppearanceError,
 };
-pub(crate) use blocks::{
-    inspect_markers, inspect_references, ordered_entities, with_recovered_anonymous_block_name,
-};
+pub(crate) use blocks::{inspect_markers, inspect_references, ordered_entities};
 pub use diagnostic::{
     ExportAction, ExportDiagnostic, ExportDiagnosticSource, ExportLossReason,
     SourceStructureProblem,

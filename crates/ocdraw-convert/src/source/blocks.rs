@@ -1,74 +1,5 @@
 use super::SourceStructureProblem;
 use cadcodec::{CadDocument, EntityType, Handle};
-use std::borrow::Cow;
-
-pub(crate) fn with_recovered_anonymous_block_name(document: &CadDocument) -> Cow<'_, CadDocument> {
-    let mut candidate = None;
-    for record in document.block_records.iter() {
-        let Some(EntityType::Block(marker)) = document.get_entity(record.block_entity_handle)
-        else {
-            continue;
-        };
-        if marker.name == record.name {
-            continue;
-        }
-        let Some(ordinal) = record
-            .name
-            .strip_prefix("*U")
-            .and_then(|suffix| suffix.parse::<u32>().ok())
-        else {
-            return Cow::Borrowed(document);
-        };
-        if !record.flags.anonymous
-            || record.flags.is_xref
-            || record.flags.is_xref_overlay
-            || record.flags.is_external
-            || record.flags.is_xref_unloaded
-            || !record.xref_path.is_empty()
-            || format!("*U{ordinal}") != record.name
-            || ordinal
-                .checked_add(1)
-                .is_none_or(|next| marker.name != format!("*U{next}"))
-            || marker.common.handle != record.block_entity_handle
-            || marker.common.owner_handle != record.handle
-            || marker.base_point != record.base_point
-            || document.block_records.contains(&marker.name)
-            || candidate.is_some()
-        {
-            return Cow::Borrowed(document);
-        }
-        candidate = Some((record.name.as_str(), marker.name.as_str()));
-    }
-    let Some((old_name, new_name)) = candidate else {
-        return Cow::Borrowed(document);
-    };
-    if document.entities().any(|entity| {
-        matches!(entity, EntityType::Insert(insert) if insert.block_name.eq_ignore_ascii_case(new_name))
-    }) {
-        return Cow::Borrowed(document);
-    }
-    let insert_handles: Vec<_> = document
-        .entities()
-        .filter_map(|entity| match entity {
-            EntityType::Insert(insert) if insert.block_name.eq_ignore_ascii_case(old_name) => {
-                Some(insert.common.handle)
-            }
-            _ => None,
-        })
-        .collect();
-    let mut recovered = document.clone();
-    if recovered.block_records.rename(old_name, new_name).is_err() {
-        return Cow::Borrowed(document);
-    }
-    for handle in insert_handles {
-        let Some(EntityType::Insert(insert)) = recovered.get_entity_mut(handle) else {
-            return Cow::Borrowed(document);
-        };
-        insert.block_name = new_name.to_owned();
-    }
-    Cow::Owned(recovered)
-}
-
 pub(crate) fn inspect_markers(document: &CadDocument) -> Vec<SourceStructureProblem> {
     let mut problems = Vec::new();
     for record in document.block_records.iter() {
@@ -95,7 +26,7 @@ pub(crate) fn inspect_markers(document: &CadDocument) -> Vec<SourceStructureProb
         if marker.base_point != record.base_point {
             problems.push(SourceStructureProblem::InconsistentRelationship {
                 description: format!(
-                    "Block {:?} has conflicting base points: record {:?}, marker {:?}. Known DWG reader limitation: https://github.com/HakanSeven12/cadcodec/issues/52; no automatic correction applied",
+                    "Block {:?} has conflicting base points: record {:?}, marker {:?}",
                     record.name, record.base_point, marker.base_point,
                 ),
             });

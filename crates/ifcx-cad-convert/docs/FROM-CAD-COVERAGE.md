@@ -7,12 +7,14 @@ production loading. Coverage, loss acceptance, recoveries and fresh ID
 allocation are shared. Encoding creates a new CAD-profile file; no source graph
 writeback is performed.
 
-Pinned semantic inventory V1, cadcodec
-`5b682ed66ea2c89be8142c8dd83d83774fc3de08`. Exhaustive matches classify every
+Pinned semantic inventory V1, opencadcodec (local Rust alias `cadcodec`)
+`d96e3fa2fe5acbeac966f1db4c01142618bf9c79`. Exhaustive matches classify every
 inventory category. Serde residual checks cover fields plus typed comparisons
 for skipped-serde common/marker/object state. Data not exposed by the codec has
 no asserted coverage. Default Allow returns the supported subset with located
 loss diagnostics; explicit Reject prevents output for any semantic loss.
+The [dependency audit](../../../docs/geometry/opencadcodec-update-2026-10-02.md)
+records the added public fields and their treatment in both converters.
 
 ## Inventory categories
 
@@ -44,11 +46,15 @@ unmodified fresh-DWG write/read for DWG. Roles follow named dictionaries,
 never handle coincidence/count alone. Standard style handle/name caches and
 duplicate raw DXF style records are normalized beside their typed comparisons;
 authored style fields remain compared. Source identity/reference collisions fail.
+The Model layout's `plot_flags.model_type` is also derived role bookkeeping:
+the DXF writer sets it from the Model name. Other plot flags remain diagnosed.
 
 An overall viewport is excluded only for the Layout1-linked ID-1 viewport with
 all constructor-default values apart from verified owner/identity/storage fields.
 Authored view settings or dimensions fail that classification. Other Paper
 entities and extra layouts are omitted with diagnostics under Allow.
+This comparison includes the newly exposed `Viewport.off_screen`; true prevents
+the viewport from being silently classified as default scaffold.
 
 ## Entity fields
 
@@ -105,8 +111,8 @@ definitions use BlockRecord handles. No handle or cross-file ID persistence clai
 
 Output goes through the production writer and strict reader. Tests cover large
 IDs, different handles, unused definitions, cycles, missing references, tiny
-scales, common-field loss and semantic DXF/DWG exchange. The known nonzero DWG
-base/marker conflict is rejected without repair. `tests/loss_policy.rs` covers
+scales, common-field loss and semantic DXF/DWG exchange, including nested/shared
+nonzero-base DWG blocks after upstream #52 was fixed. `tests/loss_policy.rs` covers
 partial owner order, missing mappings, nested loss propagation, explicit
 appearance adaptations, foreign graph loss and the Allow/Reject boundary.
 

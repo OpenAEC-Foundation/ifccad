@@ -9,7 +9,7 @@ applications assessing a full IFCX source must use the loaded-source routes.
 Original input bytes and composed graph remain immutable in `LoadedIfcxGraph`.
 
 Profile `urn:example:ifccad:0.1.0`; cadcodec revision
-`5b682ed66ea2c89be8142c8dd83d83774fc3de08`. Default Allow returns supported content
+`d96e3fa2fe5acbeac966f1db4c01142618bf9c79`. Default Allow returns supported content
 with losses; explicit Reject refuses diagnosed omissions or modifications.
 
 The validated source includes persistent next-ID watermarks. They remain in
@@ -64,4 +64,4 @@ angle rounding during degree/radian encoding.
 
 Evidence: `tests/conversion.rs`, `tests/blocks.rs`, `tests/exchange.rs`, `tests/line_patterns.rs`, `tests/layer_names.rs`.
 Real DXF/DWG tests use the same primitive corpus and strict IFCX readback;
-DWG nonzero-base marker conflicts are expected rejected transfers.
+Nested/shared nonzero-base blocks now pass both DXF and DWG transfers.

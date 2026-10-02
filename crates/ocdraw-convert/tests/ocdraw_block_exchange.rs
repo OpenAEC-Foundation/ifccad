@@ -4,8 +4,7 @@ use cadcodec::{
 };
 use ocdraw::ocdraw::load_drawing_bytes;
 use ocdraw_convert::{
-    cad_document_to_drawing, ocdraw_to_cad_document, DirectExportError, ExportOptions,
-    ImportOptions,
+    cad_document_to_drawing, ocdraw_to_cad_document, ExportOptions, ImportOptions,
 };
 use std::io::Cursor;
 
@@ -52,7 +51,7 @@ fn exchange(dwg: bool, base: f64) {
     assert_eq!(record.base_point, Vector3::new(base, 0., 0.));
     assert_eq!(record.units, 1);
     assert_eq!(decoded.header.insertion_units, 6);
-    assert_eq!(record.description, if dwg { "Entrance" } else { "" }); // upstream #49
+    assert_eq!(record.description, "Entrance");
     let lines: Vec<_> = decoded
         .entities_in_block("Door")
         .filter_map(|e| {
@@ -87,21 +86,10 @@ fn exchange(dwg: bool, base: f64) {
             Vector3::new(x - 2., 0., 0.)
         );
     }
-    let returned = cad_document_to_drawing(&decoded, ExportOptions::default());
-    if dwg && base != 0. {
-        assert!(
-            matches!(
-                returned,
-                Err(DirectExportError::InvalidSourceStructure { .. })
-            ),
-            "upstream #52 must not be hidden"
-        );
-    } else {
-        let returned = returned.unwrap();
-        assert!(load_drawing_bytes(returned.drawing().bytes())
-            .validated_drawing()
-            .is_some());
-    }
+    let returned = cad_document_to_drawing(&decoded, ExportOptions::default()).unwrap();
+    assert!(load_drawing_bytes(returned.drawing().bytes())
+        .validated_drawing()
+        .is_some());
 }
 
 #[test]
@@ -113,6 +101,6 @@ fn dwg_local_blocks_exchange_with_zero_base() {
     exchange(true, 0.);
 }
 #[test]
-fn dwg_nonzero_base_remains_explicitly_blocked_on_return() {
+fn dwg_local_blocks_exchange_with_nonzero_base() {
     exchange(true, 2.);
 }

@@ -7,8 +7,8 @@ before construction; validated reader import uses the same implementation.
 These are fresh conversions: no identity-preserving CAD editing session,
 watermark reconstruction or new source coverage is implied.
 
-Dependency: cadcodec/acadrust revision
-`5b682ed66ea2c89be8142c8dd83d83774fc3de08`, as pinned in Cargo.lock.
+Dependency: opencadcodec revision
+`d96e3fa2fe5acbeac966f1db4c01142618bf9c79`, as pinned in Cargo.toml and resolved in Cargo.lock.
 
 The source public-model classification in ../source/COVERAGE.md defines the pinned source classification. OCDraw is read through typed validated records;
 encoding metadata and raw JSON are outside the CAD conversion boundary.

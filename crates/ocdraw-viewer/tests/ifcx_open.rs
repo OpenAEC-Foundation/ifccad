@@ -122,23 +122,7 @@ fn ifcx_download_retains_original_fragments_and_foreign_information() {
 #[test]
 fn ifcx_exports_real_dxf_and_dwg_with_diagnostics_and_strict_native_readback() {
     for format in ["dxf", "dwg"] {
-        let mut graph: serde_json::Value = serde_json::from_slice(HELLO).unwrap();
-        if format == "dwg" {
-            // The pinned codec does not support consistent nonzero BLOCK base markers.
-            graph["data"]
-                .as_array_mut()
-                .unwrap()
-                .iter_mut()
-                .find(|n| n["path"] == "/cad/d1/block/1")
-                .unwrap()["attributes"]["ifccad::blockDefinition"]["basePoint"] =
-                serde_json::json!([0., 0., 0.]);
-        }
-        let result = export_drawing_bytes(
-            "hello.ifcx",
-            &serde_json::to_vec(&graph).unwrap(),
-            format,
-            "AC1032",
-        );
+        let result = export_drawing_bytes("hello.ifcx", HELLO, format, "AC1032");
         assert_eq!(result["failure"], serde_json::Value::Null, "{result}");
         assert_eq!(result["export"]["fileCheck"]["ifcxStrictReadback"], true);
         assert!(result["export"]["diagnostics"]
@@ -179,14 +163,28 @@ fn ifcx_exports_real_dxf_and_dwg_with_diagnostics_and_strict_native_readback() {
 }
 
 #[test]
-fn dwg_nonzero_base_readback_failure_blocks_download_and_retains_diagnostics() {
+fn dwg_nonzero_base_passes_readback_and_download_retains_diagnostics() {
     let result = export_drawing_bytes("hello.ifcx", HELLO, "dwg", "AC1032");
-    assert_eq!(result["failure"]["stage"], "checking");
-    assert!(result["failure"]["message"]
-        .as_str()
-        .unwrap()
-        .contains("BLOCK marker"));
-    assert!(result["export"]["download"].is_null());
+    assert!(result["failure"].is_null(), "{result}");
+    assert_eq!(result["export"]["fileCheck"]["ifcxStrictReadback"], true);
+    let bytes = STANDARD
+        .decode(result["export"]["download"]["base64"].as_str().unwrap())
+        .unwrap();
+    let cad = ocdraw_convert::cadcodec::DwgReader::from_stream(std::io::Cursor::new(bytes))
+        .read()
+        .unwrap();
+    let original = read_native_cad_ifcx(HELLO).unwrap();
+    for block in &original.document().blocks {
+        let record = cad.block_records.get(&block.name).unwrap();
+        assert_eq!(
+            record.base_point,
+            ocdraw_convert::cadcodec::Vector3::new(
+                block.base_point[0],
+                block.base_point[1],
+                block.base_point[2]
+            )
+        );
+    }
     assert!(!result["export"]["diagnostics"]
         .as_array()
         .unwrap()

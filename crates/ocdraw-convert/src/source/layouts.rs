@@ -18,8 +18,7 @@ pub(crate) fn overall_viewport_handle(document: &CadDocument, layout: &Layout) -
     candidates.next().is_none().then_some(candidate)
 }
 
-// cadcodec currently leaves padded ASCII DXF integer plot codes at their
-// defaults. Reapply only successfully parsed raw values to the export copy.
+// Compare typed plot state; raw codes are only checked for unclassified fields.
 pub(crate) fn is_untouched_scaffold(layout: &Layout, document: &CadDocument) -> bool {
     if layout.name != "Layout1" || layout.block_record != document.header.paper_space_block_handle {
         return false;

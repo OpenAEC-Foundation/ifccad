@@ -2,7 +2,7 @@
 
 These patches and instructions are retained for reproducing the former
 measurement reference. The current converter selects unmodified revision
-`5b682ed66ea2c89be8142c8dd83d83774fc3de08`; do not apply these older-base patches
+`d96e3fa2fe5acbeac966f1db4c01142618bf9c79`; do not apply these older-base patches
 to that revision. The [current experiment](../../docs/benchmarks/size-baseline-v1.md)
 passes without them. Retaining this historical recipe does not retire or modify
 the upstream issues.

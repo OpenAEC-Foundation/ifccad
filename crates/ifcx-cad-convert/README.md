@@ -114,7 +114,7 @@ both policies. No geometric tolerance kernel is introduced.
 
 ## Exchange evidence
 
-Unmodified cadcodec revision `5b682ed66ea2c89be8142c8dd83d83774fc3de08`, AC1032:
+Unmodified cadcodec revision `d96e3fa2fe5acbeac966f1db4c01142618bf9c79`, AC1032:
 
 | Probe | Result |
 | --- | --- |
@@ -122,7 +122,7 @@ Unmodified cadcodec revision `5b682ed66ea2c89be8142c8dd83d83774fc3de08`, AC1032:
 | Primitives through DXF and DWG | Semantic comparisons pass in both directions |
 | Nested/shared blocks with nonzero base through DXF | Pass |
 | Nested/shared blocks with zero base through DWG | Pass |
-| Nonzero block base through DWG | Expected rejection: decoded BLOCK marker disagrees with BlockRecord (known codec issue #52) |
+| Nonzero block base through DWG | Pass, including nested/shared definitions; codec issue #52 is resolved |
 | Near-quarter-turn rotation through DXF | External codec degree/radian roundtrip can change one binary64 step; separately diagnosed in the practice probe |
 
 No marker repair or guessed anonymous-block rename is applied. A stale DXF

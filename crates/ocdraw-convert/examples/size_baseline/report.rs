@@ -49,7 +49,7 @@ pub fn provenance(repo: &Path, output: &Path, cargo_config: Option<&str>) -> Res
         .as_array()
         .unwrap()
         .iter()
-        .find(|p| p["name"] == "acadrust")
+        .find(|p| p["name"] == "opencadcodec")
         .ok_or("cadcodec dependency missing")?;
     let local_override = cadcodec["source"].is_null();
     let mut dependency_source =

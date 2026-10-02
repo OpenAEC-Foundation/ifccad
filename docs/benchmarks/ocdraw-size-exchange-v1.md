@@ -23,8 +23,8 @@ layout or CAD handles are used as semantic equality evidence.
 
 ## Reproduction
 
-Use the unmodified cadcodec revision `5b682ed66ea2c89be8142c8dd83d83774fc3de08`
-pinned in Cargo.lock, without Cargo patch configuration. From repository root:
+Use the unmodified opencadcodec revision `d96e3fa2fe5acbeac966f1db4c01142618bf9c79`
+pinned in Cargo.toml and resolved in Cargo.lock, without Cargo patch configuration. From repository root:
 
 ```text
 cargo run --offline -p ocdraw-convert --example size_baseline -- --run YOUR_FRESH_RUN_NAME
@@ -55,13 +55,14 @@ used as standalone OCDraw measurements.
 
 ## Accepted initial JSON measurement
 
-Run `ocdraw-document-counts-20261002-112932`, measured on 2026-10-02:
+Run `opencadcodec-update-20261002-140309`, measured on 2026-10-02:
 all 12 primitive cases passed production readback and semantic exchange;
-both fresh generations passed repeatability. The pinned cadcodec dependency
-was unmodified. This evidence exercises the complete `OcdrawDocument` builder,
-shared validator, common encoder and logical CAD conversion wrappers. All
-measured artifacts, hashes, byte counts and exchange evidence are identical
-to the previously accepted `ocdraw-document-20261002-104515` run.
+both fresh generations passed repeatability. The pinned opencadcodec dependency
+was unmodified, with no local override. This evidence exercises the complete
+`OcdrawDocument` builder, shared validator, common encoder and logical CAD
+conversion wrappers. Native OCDraw byte counts and hashes are identical to the
+previously accepted `ocdraw-document-counts-20261002-112932` run. Actual CAD
+representations changed with the dependency update.
 
 This replaces the prior applicable standalone measurement from 2026-10-02;
 the historical package baseline is unchanged. Custom/complex line patterns,
@@ -79,18 +80,18 @@ is still a candidate; this measurement does not publish a supported version.
 
 | Case | OCDraw bytes | DXF bytes | DWG bytes |
 | --- | ---: | ---: | ---: |
-| empty | 945 | 46978 | 20854 |
-| lines-100 | 29272 | 60338 | 22262 |
-| lines-10000 | 2851323 | 1444626 | 168218 |
-| short-polylines-100 | 43679 | 79398 | 22486 |
-| short-polylines-10000 | 4350520 | 3396526 | 187933 |
-| long-polylines-10 | 56358 | 114314 | 23830 |
-| long-polylines-1000 | 5718362 | 7026512 | 257964 |
-| mixed-1000 | 385817 | 312494 | 42117 |
-| fractional-lines-1000 | 314536 | 215872 | 47198 |
-| spatial-line-1000 | 286313 | 187664 | 42213 |
-| elevated-1000 | 739444 | 376972 | 38917 |
-| tilted-shifted-1000 | 741471 | 408112 | 38982 |
+| empty | 945 | 47107 | 20918 |
+| lines-100 | 29272 | 60467 | 22326 |
+| lines-10000 | 2851323 | 1444755 | 168282 |
+| short-polylines-100 | 43679 | 79527 | 22550 |
+| short-polylines-10000 | 4350520 | 3396655 | 188029 |
+| long-polylines-10 | 56358 | 114443 | 23894 |
+| long-polylines-1000 | 5718362 | 7026641 | 258028 |
+| mixed-1000 | 385817 | 312623 | 42181 |
+| fractional-lines-1000 | 314536 | 216001 | 47262 |
+| spatial-line-1000 | 286313 | 187793 | 42277 |
+| elevated-1000 | 739444 | 377101 | 38981 |
+| tilted-shifted-1000 | 741471 | 408241 | 39046 |
 
 Larger line/short-polyline recipes have more pretty-JSON bytes than text DXF;
 other primitive recipes differ. Compressed DWG is smaller in every measured
@@ -99,9 +100,10 @@ representations. Layout, block and viewport exchange uses the focused tests,
 including explicit rejection of known inconsistent DWG block markers; those
 families are not evidence supplied by this table.
 
-Relative to the prior applicable run, all measured data is unchanged.
-The new document lifecycle changes the Rust construction/conversion boundary;
-it retains the emitted primitive representations in this controlled corpus.
-The retained provenance records the uncommitted source manifest and removed
-legacy decoding projection. This is size/exchange evidence, not a runtime
-performance or memory-use measurement.
+Relative to the prior applicable run, direct OCDraw bytes/hashes are unchanged.
+Direct DXF is 129 bytes larger in each case; direct DWG is 64 bytes larger except
+short-polylines-10000, which is 96 bytes larger. CAD hashes change, but semantic
+readback and repeatability pass. These are observed complete-file differences,
+not compression or runtime-performance conclusions. The retained provenance
+identifies the uncommitted source manifest and renamed dependency at its exact
+revision. Historical package and placement evidence retains its original pins.

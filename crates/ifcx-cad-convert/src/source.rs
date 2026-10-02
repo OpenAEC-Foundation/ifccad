@@ -517,8 +517,19 @@ fn scan(doc: &CadDocument, issues: &mut Vec<IfcxCadDiagnostic>) -> Result<(), Er
                 _ => None,
             });
             if let Some(b) = expected {
+                let mut actual = l.clone();
+                // The DXF writer derives this role bit from the Model layout
+                // name. Ownership was already checked; the bit adds no setting.
+                if l.name == "Model"
+                    && doc
+                        .block_records
+                        .iter()
+                        .any(|record| record.is_model_space() && record.handle == l.block_record)
+                {
+                    actual.plot_flags.model_type = b.plot_flags.model_type;
+                }
                 residual(
-                    l,
+                    &actual,
                     b,
                     &[
                         "handle",

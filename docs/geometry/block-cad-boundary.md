@@ -1,7 +1,7 @@
 # Block codec boundary qualification
 
-The converter currently selects the unmodified cadcodec revision
-`5b682ed66ea2c89be8142c8dd83d83774fc3de08`, without a local codec patch.
+The converter currently selects the unmodified opencadcodec revision
+`d96e3fa2fe5acbeac966f1db4c01142618bf9c79`, without a local codec patch.
 These observations characterize the dependency separately from the converter's
 local-definition and ordinary-instance support.
 
@@ -11,34 +11,34 @@ all insertion-unit codes 0 through 24, and an anonymous flag independent of
 the name. Inserts use position `(3,4,5)`, normal `(1,2,3)`, angle `0.7`, and
 scales `(2,3,-4)` or `(-2,-2,-2)`.
 
-## Observed limitations
+## Resolved reader/writer defects and remaining limitations
 
-- DWG materializes a public Block marker with `base_point=ZERO` rather than
-  the nonzero value retained on BlockRecord. Its name/owner agree, but its
-  base point does not. `dwg_document_builder::OBJ_BLOCK` explicitly constructs
-  this zero; it is not a source inconsistency. DXF deliberately omits these
-  structural marker entities. Do not claim nonzero-base DWG export is qualified
-  under the marker-consistency check until this discrepancy is resolved.
-  Tracked upstream as [cadcodec #52](https://github.com/HakanSeven12/cadcodec/issues/52).
-- In `sample_AC1032.dwg`, a null `BLOCK_CONTROL` slot at index 24 precedes an
-  anonymous record at index 25 (handle 3673, raw name `*U`). Its linked BLOCK
-  marker (handle 3674) explicitly names `*U25`, but the pinned DWG reader
-  exposes the record as `*U24`: `anonymous_block_names` filters unresolved
-  slots before numbering. Numbering first corrected this sample in an
-  instrumented copy, but that experiment does not establish a general fix.
-  The converter repairs this narrow case on an export copy only when the
-  explicit marker name, owner, base point, ordinal and uniqueness checks agree;
-  other conflicts remain fatal. Tracked upstream as
-  [cadcodec #55](https://github.com/HakanSeven12/opencadcodec/issues/55).
-- The DXF BLOCKS writer emits the record base point but omits description
-  group 4. Its roundtrip therefore loses `BlockRecord.description`; DWG
-  preserves it in the same case. A separate entity-marker writer does emit
-  group 4, but that is not the ordinary block-record serialization path.
+The current unmodified opencadcodec pin resolves three earlier defects:
+DWG BLOCK markers retain their record's nonzero base point (#52), anonymous
+names retain BLOCK_CONTROL ordinals including unresolved slots (#55), and DXF
+BLOCKS retains description group 4 (#49). The former narrow anonymous rename
+on an export copy has been removed. Present marker name/owner/base conflicts
+are structural errors under both loss policies.
+
+The synthetic AutoCAD 2025 fixture in
+`crates/ocdraw-convert/tests/fixtures/anonymous-names.dwg` checks named/anonymous
+alternation, marker agreement, INSERT names and strict OCDraw readback without
+repair. Its attributed INSERTs remain unsupported and diagnosed; the test does
+not claim attribute preservation.
+
+Two limitations still apply:
+
+- An extra paper-space DWG BLOCK marker now has the correct name, but can still
+  carry the primary paper record's owner instead of its own record's handle.
+  The multi-paper exchange test characterizes this remaining inconsistency;
+  conversion rejects it rather than guessing an owner.
+  [Upstream #78](https://github.com/HakanSeven12/opencadcodec/issues/78)
+  isolates it with a fresh `CadDocument` and one `add_layout` call at this pin.
 - Public Insert scale setters replace every magnitude below `1e-12` with
   positive `1e-12`. Both `+1e-13` and `-1e-13` lose their exact value before
   serialization, even for an empty definition. The DWG document builder also
-  calls these setters when materializing decoded scale values. Native IFCCAD
-  must not inherit this constraint or treat the change as exact conversion.
+  calls these setters when materializing decoded scale values. Native drawing
+  semantics must not inherit this constraint or treat the change as exact.
 
 ## Coordinate inspection
 
@@ -54,24 +54,19 @@ Independent sampled owning-scope assertions now use the hand-derived axes
 `u=(-2,1,0)/sqrt(5)`, `v=(-3,-6,5)/sqrt(70)`, `w=(1,2,3)/sqrt(14)` and
 reference sin/cos literals. Empty-definition roundtrips also confirm the
 already-clamped scale. These tests are sampled semantic checks, not a certified
-whole-domain numerical proof. Marker tests now explicitly characterize the DWG
-inconsistency and DXF absence; explodable and uniform-scaling flags roundtrip.
+whole-domain numerical proof. Marker tests check nonzero DWG base consistency and DXF marker absence;
+explodable and uniform-scaling flags roundtrip.
 
 ## Converter policy and exchange evidence
 
 The converter rejects contradictory present marker name/owner/base-point data
-as `InvalidSourceStructure` under both loss policies, except the single-slot
-anonymous `*U` name shift from [cadcodec #55](https://github.com/HakanSeven12/opencadcodec/issues/55).
-That repair uses the explicit begin-marker name to correct the record and its
-reader-derived INSERT names on an export copy only when owner, base point,
-ordinal, and uniqueness checks all agree. A collision or any other name
-conflict remains fatal. Marker absence is allowed; a zero marker is not guessed
-to mean absent. Native-to-CAD conversion constructs
-consistent records and markers. `block_exchange` exercises production package
-readback and the actual codecs: DXF with nonzero base and DWG with zero base
-return successfully; DWG with nonzero base is explicitly rejected on return
-because of #52. DXF description loss remains visible in these assertions
-([cadcodec #49](https://github.com/HakanSeven12/cadcodec/issues/49)).
+as `InvalidSourceStructure` under both loss policies. Marker absence is allowed;
+a zero marker is not guessed to mean absent. Native-to-CAD conversion constructs
+consistent records and markers. `ocdraw_block_exchange` and the IFCX-CAD
+`exchange` suite use production native readback and actual codecs: local
+nonzero-base blocks now return successfully through both DXF and DWG. The
+standalone route also retains descriptions in both codecs. IFCX-CAD's narrower
+block model still diagnoses descriptions as unsupported source metadata.
 
 Scale setters are checked after construction. Changed values give
 `BlockTargetLimitation`, also for empty definitions. Non-neutral native frames

@@ -7,6 +7,10 @@ entry points remain compatible wrappers. These implementations
 live in [`src/ocdraw`](src/ocdraw). Pure CAD source classification lives in
 [`src/source`](src/source), and numerical kernels in [`src/geometry`](src/geometry).
 The core format implementation remains usable without cadcodec.
+The local dependency alias `cadcodec` selects upstream package `opencadcodec`
+at a shared fixed revision with `ifcx-cad-convert`. The
+[dependency audit](../../docs/geometry/opencadcodec-update-2026-10-02.md) records
+the current public-model classification and exchange fixes.
 
 ## Standalone conversion
 

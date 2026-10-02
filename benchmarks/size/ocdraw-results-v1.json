@@ -6,28 +6,28 @@
       {
         "artifacts": [
           {
-            "bytes": 20757,
+            "bytes": 20821,
             "path": "chain.dwg",
             "role": "artifact",
-            "sha256": "61cfe410dc001535cf06a51b691f2162f0e75556f819afb156a6e8dc4b464df6"
+            "sha256": "1ecc62de2ef5d559a419e948d6b9792ecb5650e8f53c1714429a6bb2d4058f7f"
           },
           {
-            "bytes": 46273,
+            "bytes": 46402,
             "path": "chain.dxf",
             "role": "artifact",
-            "sha256": "f5846a26862ec15d980e5b61113acf282fb513f20a05f95fa90009832352c2ef"
+            "sha256": "7abc8d3b2eb75218535f1e737116050196bf7a96c945d08a67b529edef509768"
           },
           {
-            "bytes": 20854,
+            "bytes": 20918,
             "path": "direct.dwg",
             "role": "artifact",
-            "sha256": "7132215f5a7ab6abd10eec30189b647c902b9124a0132d0b370e21acd0d64921"
+            "sha256": "e6900a6a61db10e1298ee958857989fb13bc4b016bb99be589fb717763c0c750"
           },
           {
-            "bytes": 46978,
+            "bytes": 47107,
             "path": "direct.dxf",
             "role": "artifact",
-            "sha256": "5e3d03c012e75c876e8cafb79167b4e52b1ff30c714077e732d49ed2ffd219e1"
+            "sha256": "24184b964be4b1bfa819612fd86bda0d9d09fbaf21036df7140747fa4c9bb6c2"
           },
           {
             "bytes": 945,
@@ -69,12 +69,12 @@
         "id": "empty",
         "outputs": {
           "dwg": {
-            "bytes": 20854,
-            "sha256": "7132215f5a7ab6abd10eec30189b647c902b9124a0132d0b370e21acd0d64921"
+            "bytes": 20918,
+            "sha256": "e6900a6a61db10e1298ee958857989fb13bc4b016bb99be589fb717763c0c750"
           },
           "dxf": {
-            "bytes": 46978,
-            "sha256": "5e3d03c012e75c876e8cafb79167b4e52b1ff30c714077e732d49ed2ffd219e1"
+            "bytes": 47107,
+            "sha256": "24184b964be4b1bfa819612fd86bda0d9d09fbaf21036df7140747fa4c9bb6c2"
           },
           "ocdraw": {
             "bytes": 945,
@@ -86,28 +86,28 @@
       {
         "artifacts": [
           {
-            "bytes": 22166,
+            "bytes": 22230,
             "path": "chain.dwg",
             "role": "artifact",
-            "sha256": "18ad226455c19eecff9b429902157b589b6f2ca97e25890a1adef14f43350aa3"
+            "sha256": "a3e8112680d9bd62c5e846c1ace5456dc40dbca7c95243da30b3d0f3ff393ea9"
           },
           {
-            "bytes": 59633,
+            "bytes": 59762,
             "path": "chain.dxf",
             "role": "artifact",
-            "sha256": "1119cf1784723790133cbdf7e536db06d58e04e37abb16caa8963e385182574d"
+            "sha256": "ef9e8d2b6037c7213aaf02f708256a8ea67c33b28f52e61f5828f0a6b2fc198b"
           },
           {
-            "bytes": 22262,
+            "bytes": 22326,
             "path": "direct.dwg",
             "role": "artifact",
-            "sha256": "446d6f517672e874a877963a14ccb3e413b52992d691522ec18471ac4f5346ae"
+            "sha256": "5b6d34cd5ba31cbab5d6ff622f8efe58e5b590107e4173814b478aab2d537546"
           },
           {
-            "bytes": 60338,
+            "bytes": 60467,
             "path": "direct.dxf",
             "role": "artifact",
-            "sha256": "cc4ebb06e3c0ae63cdeb8b5a19a51227c0f2960c759935bca2893a6b2b93e126"
+            "sha256": "5ab961231ff9b37d440740eff063597f85780ad0553013428f71f181443215f2"
           },
           {
             "bytes": 29272,
@@ -250,12 +250,12 @@
         "id": "lines-100",
         "outputs": {
           "dwg": {
-            "bytes": 22262,
-            "sha256": "446d6f517672e874a877963a14ccb3e413b52992d691522ec18471ac4f5346ae"
+            "bytes": 22326,
+            "sha256": "5b6d34cd5ba31cbab5d6ff622f8efe58e5b590107e4173814b478aab2d537546"
           },
           "dxf": {
-            "bytes": 60338,
-            "sha256": "cc4ebb06e3c0ae63cdeb8b5a19a51227c0f2960c759935bca2893a6b2b93e126"
+            "bytes": 60467,
+            "sha256": "5ab961231ff9b37d440740eff063597f85780ad0553013428f71f181443215f2"
           },
           "ocdraw": {
             "bytes": 29272,
@@ -267,28 +267,28 @@
       {
         "artifacts": [
           {
-            "bytes": 168423,
+            "bytes": 168487,
             "path": "chain.dwg",
             "role": "artifact",
-            "sha256": "3526aa05dabbbc446467368005a9b8d74db4c16db8ae6d7e29cefffb232fc978"
+            "sha256": "fdb5bc526ea50a440634a7874ee626d99046414dcdf0473ad6f81defafd33dbe"
           },
           {
-            "bytes": 1443923,
+            "bytes": 1444052,
             "path": "chain.dxf",
             "role": "artifact",
-            "sha256": "f076f14f0056f3351b4f2561e19449a4cd23d29344329743eaae658c7a7eef80"
+            "sha256": "5bf188e572a5e60a5cda4f24b52ed111bca0dad5c53560eed092397be313f205"
           },
           {
-            "bytes": 168218,
+            "bytes": 168282,
             "path": "direct.dwg",
             "role": "artifact",
-            "sha256": "083fa26d7ee50c3bbe1d2272b83b0aba65b31f5a6248fae32335ac2d8d5bfc12"
+            "sha256": "cd168388a252d02c3bcd57ab0b56afa93ef15d0a7254e0d8c3154edb140eb35f"
           },
           {
-            "bytes": 1444626,
+            "bytes": 1444755,
             "path": "direct.dxf",
             "role": "artifact",
-            "sha256": "4d5476063b54cd7957a65637eca833c2bfcbaab0f49ff9230da038c066b24fd2"
+            "sha256": "d235fe65a47df19047d0454a16b297db216bd0e48f9e84de5fdddc8e01d53f32"
           },
           {
             "bytes": 2851323,
@@ -10331,12 +10331,12 @@
         "id": "lines-10000",
         "outputs": {
           "dwg": {
-            "bytes": 168218,
-            "sha256": "083fa26d7ee50c3bbe1d2272b83b0aba65b31f5a6248fae32335ac2d8d5bfc12"
+            "bytes": 168282,
+            "sha256": "cd168388a252d02c3bcd57ab0b56afa93ef15d0a7254e0d8c3154edb140eb35f"
           },
           "dxf": {
-            "bytes": 1444626,
-            "sha256": "4d5476063b54cd7957a65637eca833c2bfcbaab0f49ff9230da038c066b24fd2"
+            "bytes": 1444755,
+            "sha256": "d235fe65a47df19047d0454a16b297db216bd0e48f9e84de5fdddc8e01d53f32"
           },
           "ocdraw": {
             "bytes": 2851323,
@@ -10348,28 +10348,28 @@
       {
         "artifacts": [
           {
-            "bytes": 22390,
+            "bytes": 22454,
             "path": "chain.dwg",
             "role": "artifact",
-            "sha256": "eed38aed980a2e207490381f016d8f770a4258cca99dc9b5f1768f54aab1dbf0"
+            "sha256": "06a50f5d4caf249a81a745cd6f36cea2b2d97d8bc71f350ad5a6bb36fd618bd8"
           },
           {
-            "bytes": 78693,
+            "bytes": 78822,
             "path": "chain.dxf",
             "role": "artifact",
-            "sha256": "25b8a98e144fd9ff68fbbf22fa23168e238a5546663d7e1b1d07663d8c57bb8c"
+            "sha256": "66eaf5d72827492db85fcaf0acdfa0b6813a391b80ef0de36a4adcaf15e70768"
           },
           {
-            "bytes": 22486,
+            "bytes": 22550,
             "path": "direct.dwg",
             "role": "artifact",
-            "sha256": "d62a6900e27268ca4f88ac25e0c2e1233daf8d7bd124165543c3e4c30dda4bae"
+            "sha256": "bdc340af5d06d280b61d76697b66bfeeadef4dd9eb9d01d2c028cb7396709d4f"
           },
           {
-            "bytes": 79398,
+            "bytes": 79527,
             "path": "direct.dxf",
             "role": "artifact",
-            "sha256": "5769c560769f33d07deeb281291637347e59b48eeda928a82e5620f497e91887"
+            "sha256": "c5ee2d4edc3cf7cd232cb5ab113694779f0bb93c2389ae849ce95af25b78d521"
           },
           {
             "bytes": 43679,
@@ -10512,12 +10512,12 @@
         "id": "short-polylines-100",
         "outputs": {
           "dwg": {
-            "bytes": 22486,
-            "sha256": "d62a6900e27268ca4f88ac25e0c2e1233daf8d7bd124165543c3e4c30dda4bae"
+            "bytes": 22550,
+            "sha256": "bdc340af5d06d280b61d76697b66bfeeadef4dd9eb9d01d2c028cb7396709d4f"
           },
           "dxf": {
-            "bytes": 79398,
-            "sha256": "5769c560769f33d07deeb281291637347e59b48eeda928a82e5620f497e91887"
+            "bytes": 79527,
+            "sha256": "c5ee2d4edc3cf7cd232cb5ab113694779f0bb93c2389ae849ce95af25b78d521"
           },
           "ocdraw": {
             "bytes": 43679,
@@ -10529,28 +10529,28 @@
       {
         "artifacts": [
           {
-            "bytes": 187416,
+            "bytes": 187480,
             "path": "chain.dwg",
             "role": "artifact",
-            "sha256": "a7d41ce3833a7a0440a9934e63c097646fac0f330c80aaf7cbf5f414b55fd9a2"
+            "sha256": "2c137254097dbdb1c2e3aa1181eea9b6f973b389c258e294a3a26779cf8cd142"
           },
           {
-            "bytes": 3395823,
+            "bytes": 3395952,
             "path": "chain.dxf",
             "role": "artifact",
-            "sha256": "f40fca6f737218ccb1fb8558c384760152e54f2de7d16f3fd2c37287f09da8f1"
+            "sha256": "3a521b80a8de1f6ac8caaf7a250b2e3b14f80247ba3bd564ae27d463bcac2bc3"
           },
           {
-            "bytes": 187933,
+            "bytes": 188029,
             "path": "direct.dwg",
             "role": "artifact",
-            "sha256": "89e02f74d6f9f6420858974e6544c82e9290c5d43945cae62fdab73b12b4db55"
+            "sha256": "b1b02cb4f31f596cfb1c5d0faad010f75f0d946164c7a1994a92a51b785e8410"
           },
           {
-            "bytes": 3396526,
+            "bytes": 3396655,
             "path": "direct.dxf",
             "role": "artifact",
-            "sha256": "e02b6f5ce386bd7e044c2247b6ea27088c6cd94947d32b236905c3d493983ba9"
+            "sha256": "221ac477b4a7d6570ba0b30c864c6781dec407aece8b80399b7cd4408ae4f878"
           },
           {
             "bytes": 4350520,
@@ -20593,12 +20593,12 @@
         "id": "short-polylines-10000",
         "outputs": {
           "dwg": {
-            "bytes": 187933,
-            "sha256": "89e02f74d6f9f6420858974e6544c82e9290c5d43945cae62fdab73b12b4db55"
+            "bytes": 188029,
+            "sha256": "b1b02cb4f31f596cfb1c5d0faad010f75f0d946164c7a1994a92a51b785e8410"
           },
           "dxf": {
-            "bytes": 3396526,
-            "sha256": "e02b6f5ce386bd7e044c2247b6ea27088c6cd94947d32b236905c3d493983ba9"
+            "bytes": 3396655,
+            "sha256": "221ac477b4a7d6570ba0b30c864c6781dec407aece8b80399b7cd4408ae4f878"
           },
           "ocdraw": {
             "bytes": 4350520,
@@ -20610,28 +20610,28 @@
       {
         "artifacts": [
           {
-            "bytes": 23734,
+            "bytes": 23798,
             "path": "chain.dwg",
             "role": "artifact",
-            "sha256": "daaecf3a53331f258ce3787ca3ad814632980178fd52b9537732ec81f7d6ba62"
+            "sha256": "5de04a1b5eac1761c3d1db0cde0864ca2802b7c6fdbb4621bfd961415e33c9f9"
           },
           {
-            "bytes": 113609,
+            "bytes": 113738,
             "path": "chain.dxf",
             "role": "artifact",
-            "sha256": "c707e00ada412fd079f0181c5c2aa32d1e38b2ced185040e69db62469042b2c4"
+            "sha256": "c84bfc4b770d6bcd31a2243c5a180ea9abbd5f115cbf41b6c27a621806afa582"
           },
           {
-            "bytes": 23830,
+            "bytes": 23894,
             "path": "direct.dwg",
             "role": "artifact",
-            "sha256": "0ea092656a7553cbe9608679ca0b02360c41cd74a9bae0f23178a3648c3c120e"
+            "sha256": "6d5eba8e097820d4e42e6a098f5d5d15ac46ff5bee407f716e0b023745848ec4"
           },
           {
-            "bytes": 114314,
+            "bytes": 114443,
             "path": "direct.dxf",
             "role": "artifact",
-            "sha256": "5315e81c9c4d0ab777f3e98909c623bcd871e9086d03bc0b9d2480d47e76de36"
+            "sha256": "a352d906a8f27936f89a3f0f6ad1621e9b3bee1ea0983e629b73f3c13b16adbf"
           },
           {
             "bytes": 56358,
@@ -20684,12 +20684,12 @@
         "id": "long-polylines-10",
         "outputs": {
           "dwg": {
-            "bytes": 23830,
-            "sha256": "0ea092656a7553cbe9608679ca0b02360c41cd74a9bae0f23178a3648c3c120e"
+            "bytes": 23894,
+            "sha256": "6d5eba8e097820d4e42e6a098f5d5d15ac46ff5bee407f716e0b023745848ec4"
           },
           "dxf": {
-            "bytes": 114314,
-            "sha256": "5315e81c9c4d0ab777f3e98909c623bcd871e9086d03bc0b9d2480d47e76de36"
+            "bytes": 114443,
+            "sha256": "a352d906a8f27936f89a3f0f6ad1621e9b3bee1ea0983e629b73f3c13b16adbf"
           },
           "ocdraw": {
             "bytes": 56358,
@@ -20701,28 +20701,28 @@
       {
         "artifacts": [
           {
-            "bytes": 256428,
+            "bytes": 256492,
             "path": "chain.dwg",
             "role": "artifact",
-            "sha256": "4c537b92925ea891e3566aad93dde21084a89e2aa2b86033d2a29b7b2d60c535"
+            "sha256": "c9e69c3c4f0ed5fbf80b85f9057b417c69b2b4519572d6306fa92c1f9acdaf21"
           },
           {
-            "bytes": 7025808,
+            "bytes": 7025937,
             "path": "chain.dxf",
             "role": "artifact",
-            "sha256": "bc85f54705de92b1d42b628ccda0ecce91b5119414f2a59a22ac06dee250b372"
+            "sha256": "0c99e329537e54d2d2b1ba19b330a0d3b63af753b0d9f68ed7d9bc58944fd8f2"
           },
           {
-            "bytes": 257964,
+            "bytes": 258028,
             "path": "direct.dwg",
             "role": "artifact",
-            "sha256": "2d8a7be7da7b20de6a1a903d2ba85b699945077b7323fa5da7c5db84580b3a52"
+            "sha256": "f554b5845b554639002090767f86424cb24d148ffd0ee84be0ff535720bd9a01"
           },
           {
-            "bytes": 7026512,
+            "bytes": 7026641,
             "path": "direct.dxf",
             "role": "artifact",
-            "sha256": "7025dca878191836df969d9a7a083387a81a74c084a61bc3dbbbb251b00e50a4"
+            "sha256": "8222d3efec963e89f69c9370a4c104fac470e41b7b40c96f79d67f5eb545ac41"
           },
           {
             "bytes": 5718362,
@@ -21765,12 +21765,12 @@
         "id": "long-polylines-1000",
         "outputs": {
           "dwg": {
-            "bytes": 257964,
-            "sha256": "2d8a7be7da7b20de6a1a903d2ba85b699945077b7323fa5da7c5db84580b3a52"
+            "bytes": 258028,
+            "sha256": "f554b5845b554639002090767f86424cb24d148ffd0ee84be0ff535720bd9a01"
           },
           "dxf": {
-            "bytes": 7026512,
-            "sha256": "7025dca878191836df969d9a7a083387a81a74c084a61bc3dbbbb251b00e50a4"
+            "bytes": 7026641,
+            "sha256": "8222d3efec963e89f69c9370a4c104fac470e41b7b40c96f79d67f5eb545ac41"
           },
           "ocdraw": {
             "bytes": 5718362,
@@ -21782,28 +21782,28 @@
       {
         "artifacts": [
           {
-            "bytes": 42149,
+            "bytes": 42213,
             "path": "chain.dwg",
             "role": "artifact",
-            "sha256": "0eb15163fb382da4f7ced328576d9f8388286f17eeb635dede019f79b59a691e"
+            "sha256": "0487b9dd62011e46638a0be33129968663deefc2d8b7f72d5f0a4ab115f00e68"
           },
           {
-            "bytes": 311790,
+            "bytes": 311919,
             "path": "chain.dxf",
             "role": "artifact",
-            "sha256": "4ef25a4d62debbe041517d3e4721d7b39a1ca2df02bfd272a45bf0965837db97"
+            "sha256": "bdfc55359dad63c16c0e87aff652b0e7aa900413837d3cdf09454a1266c99e26"
           },
           {
-            "bytes": 42117,
+            "bytes": 42181,
             "path": "direct.dwg",
             "role": "artifact",
-            "sha256": "50d4fe9024136d8bf0fbe6129e2cc9768f00ef56e2acd0b1a019853387ed8dd8"
+            "sha256": "e7e397115802901b94dfa1c94c23cc29dff7d12155c2691cc5c5ea564966d1ef"
           },
           {
-            "bytes": 312494,
+            "bytes": 312623,
             "path": "direct.dxf",
             "role": "artifact",
-            "sha256": "85385cae3ddda2e8382529eb65679285eb1bf7c64850adbd51dedcf4f30d58d8"
+            "sha256": "6b9626a3e55065b79af3ff00a7ab68ace313e1cd154bd9f955ee67e8b903a4d0"
           },
           {
             "bytes": 385817,
@@ -22846,12 +22846,12 @@
         "id": "mixed-1000",
         "outputs": {
           "dwg": {
-            "bytes": 42117,
-            "sha256": "50d4fe9024136d8bf0fbe6129e2cc9768f00ef56e2acd0b1a019853387ed8dd8"
+            "bytes": 42181,
+            "sha256": "e7e397115802901b94dfa1c94c23cc29dff7d12155c2691cc5c5ea564966d1ef"
           },
           "dxf": {
-            "bytes": 312494,
-            "sha256": "85385cae3ddda2e8382529eb65679285eb1bf7c64850adbd51dedcf4f30d58d8"
+            "bytes": 312623,
+            "sha256": "6b9626a3e55065b79af3ff00a7ab68ace313e1cd154bd9f955ee67e8b903a4d0"
           },
           "ocdraw": {
             "bytes": 385817,
@@ -22863,28 +22863,28 @@
       {
         "artifacts": [
           {
-            "bytes": 47135,
+            "bytes": 47199,
             "path": "chain.dwg",
             "role": "artifact",
-            "sha256": "a1ec59419146ccc8c8d3639338f10ccfe9ec5eb543170ddbffdd4d9243cadcbb"
+            "sha256": "85fc98fea18360ac5c2fdc63e49adf1828e301a1663b33ab25e74e359345858c"
           },
           {
-            "bytes": 215168,
+            "bytes": 215297,
             "path": "chain.dxf",
             "role": "artifact",
-            "sha256": "9d74b7ab5600c2531ab1454a5741e9192dd7e8a3bd32a5f347d8af688b8db1c1"
+            "sha256": "e9c3480ab80733cf1e881103723ba1250aad3f30371354252bef4036a9c4b6f6"
           },
           {
-            "bytes": 47198,
+            "bytes": 47262,
             "path": "direct.dwg",
             "role": "artifact",
-            "sha256": "52b48b6beeb8f956935d19ee77e38128ce8659cf906d970714ae49564721d84a"
+            "sha256": "6fbca9dd77610069f92141ad3dd891f3f9079221243d5ca12acd3e753c5c1f62"
           },
           {
-            "bytes": 215872,
+            "bytes": 216001,
             "path": "direct.dxf",
             "role": "artifact",
-            "sha256": "5dc9679417ab2a5a9c96701d253490094d0a247935fe209f1c0071ecc0616483"
+            "sha256": "16772ece8118cd866daaba28db221bd0ae8f8751805155b4ba08fc186456a494"
           },
           {
             "bytes": 314536,
@@ -23927,12 +23927,12 @@
         "id": "fractional-lines-1000",
         "outputs": {
           "dwg": {
-            "bytes": 47198,
-            "sha256": "52b48b6beeb8f956935d19ee77e38128ce8659cf906d970714ae49564721d84a"
+            "bytes": 47262,
+            "sha256": "6fbca9dd77610069f92141ad3dd891f3f9079221243d5ca12acd3e753c5c1f62"
           },
           "dxf": {
-            "bytes": 215872,
-            "sha256": "5dc9679417ab2a5a9c96701d253490094d0a247935fe209f1c0071ecc0616483"
+            "bytes": 216001,
+            "sha256": "16772ece8118cd866daaba28db221bd0ae8f8751805155b4ba08fc186456a494"
           },
           "ocdraw": {
             "bytes": 314536,
@@ -23944,28 +23944,28 @@
       {
         "artifacts": [
           {
-            "bytes": 42149,
+            "bytes": 42213,
             "path": "chain.dwg",
             "role": "artifact",
-            "sha256": "c60806c1b47238d9d046d256ff995fd8966b4906cc1023d3e26f89e21a4a1400"
+            "sha256": "153eeff5ec73227363f31b7a078b4a87ba3a94b088ae924eb0aa00d09c5b7d3a"
           },
           {
-            "bytes": 186960,
+            "bytes": 187089,
             "path": "chain.dxf",
             "role": "artifact",
-            "sha256": "5162b58fdaea4066b2d95b2417e44f993a1642794c6a8efb9c491bb93b33cf89"
+            "sha256": "c3d1b23f1c2c96db80a94be71573d2964c9d601e992b314bd95d2b64576f5f53"
           },
           {
-            "bytes": 42213,
+            "bytes": 42277,
             "path": "direct.dwg",
             "role": "artifact",
-            "sha256": "dce4997f93334215e3fb157e283d4126f0cf51dd038f86b73eb604b15348e1fc"
+            "sha256": "32ebdedd13308998c719da2cab91154f29413a2b06a9b125907bfd218379539b"
           },
           {
-            "bytes": 187664,
+            "bytes": 187793,
             "path": "direct.dxf",
             "role": "artifact",
-            "sha256": "5256c6a730fdc7b234c11e1df1de7a250c86733961cbd79c12e70e7f4d9e1642"
+            "sha256": "0197f3159c763c8021a0faf03bac04c11f50de1db73ca9a06a48a2fee9415298"
           },
           {
             "bytes": 286313,
@@ -25008,12 +25008,12 @@
         "id": "spatial-line-1000",
         "outputs": {
           "dwg": {
-            "bytes": 42213,
-            "sha256": "dce4997f93334215e3fb157e283d4126f0cf51dd038f86b73eb604b15348e1fc"
+            "bytes": 42277,
+            "sha256": "32ebdedd13308998c719da2cab91154f29413a2b06a9b125907bfd218379539b"
           },
           "dxf": {
-            "bytes": 187664,
-            "sha256": "5256c6a730fdc7b234c11e1df1de7a250c86733961cbd79c12e70e7f4d9e1642"
+            "bytes": 187793,
+            "sha256": "0197f3159c763c8021a0faf03bac04c11f50de1db73ca9a06a48a2fee9415298"
           },
           "ocdraw": {
             "bytes": 286313,
@@ -25025,28 +25025,28 @@
       {
         "artifacts": [
           {
-            "bytes": 38949,
+            "bytes": 39013,
             "path": "chain.dwg",
             "role": "artifact",
-            "sha256": "c5c48a231ef9c023fbc2c15fcb15bf549e964eb5b16464724291f6639e05de79"
+            "sha256": "8eb0ba4910282d8e9448902ef29dc8a2bbb5b4d9ed613cf78d8aadacc22ac7f1"
           },
           {
-            "bytes": 376268,
+            "bytes": 376397,
             "path": "chain.dxf",
             "role": "artifact",
-            "sha256": "d9eea469494599e6cf1556110fe1d79d718bb57d0e8e56258e4ca104abb2fad7"
+            "sha256": "20856f23976da4b30fbc3ddd31843d6b172033790e11b481f6ce2850854adddb"
           },
           {
-            "bytes": 38917,
+            "bytes": 38981,
             "path": "direct.dwg",
             "role": "artifact",
-            "sha256": "ff2f1f2d82af47da9de3448a9635d7c84f13da9972a04f0c77001971d0bdb8e0"
+            "sha256": "7b2d6570f010d68639d11aff1f66a3ca689715fd1dc2236da8c0fb6a75c1dd3e"
           },
           {
-            "bytes": 376972,
+            "bytes": 377101,
             "path": "direct.dxf",
             "role": "artifact",
-            "sha256": "02afe52528610f369ea44292ffba6c60784e1ddbf5f7b625e334ad808361b4f4"
+            "sha256": "abf41d19fcc5e89fab6800289a95680dc1fe72a9d82be42bf2c4cc8824b1bef6"
           },
           {
             "bytes": 739444,
@@ -26089,12 +26089,12 @@
         "id": "elevated-1000",
         "outputs": {
           "dwg": {
-            "bytes": 38917,
-            "sha256": "ff2f1f2d82af47da9de3448a9635d7c84f13da9972a04f0c77001971d0bdb8e0"
+            "bytes": 38981,
+            "sha256": "7b2d6570f010d68639d11aff1f66a3ca689715fd1dc2236da8c0fb6a75c1dd3e"
           },
           "dxf": {
-            "bytes": 376972,
-            "sha256": "02afe52528610f369ea44292ffba6c60784e1ddbf5f7b625e334ad808361b4f4"
+            "bytes": 377101,
+            "sha256": "abf41d19fcc5e89fab6800289a95680dc1fe72a9d82be42bf2c4cc8824b1bef6"
           },
           "ocdraw": {
             "bytes": 739444,
@@ -26106,28 +26106,28 @@
       {
         "artifacts": [
           {
-            "bytes": 38918,
+            "bytes": 38982,
             "path": "chain.dwg",
             "role": "artifact",
-            "sha256": "b2af5f2ce8fb346982107e232e2792eed197e73947ed6118fc7bc3c17bad44bb"
+            "sha256": "975f840e5920270668339c792b9666ac1be78df52254b64be24c4f58e5e63c37"
           },
           {
-            "bytes": 407408,
+            "bytes": 407537,
             "path": "chain.dxf",
             "role": "artifact",
-            "sha256": "8cf96d4cd0825bd4d6bc014ab8541c058a12b196b7eb0990e171b0ea25fcdf93"
+            "sha256": "cb8d0617edd8487b392091a96652802aa189fee8ab282d1a653733befe67ae4b"
           },
           {
-            "bytes": 38982,
+            "bytes": 39046,
             "path": "direct.dwg",
             "role": "artifact",
-            "sha256": "412b7f48c1dbe5de4814ef25a910422786ff62b949a03afc1cb1ea15fcea9a43"
+            "sha256": "70d49b7f6cfa778f11255ddf82bddc93e71f351d00b244632f95c9f1106f73c1"
           },
           {
-            "bytes": 408112,
+            "bytes": 408241,
             "path": "direct.dxf",
             "role": "artifact",
-            "sha256": "e3837765d8c1f390eb93cf36b6ccae63f0d01ae310d5d241dc157ca7901c1616"
+            "sha256": "95cae61ce0d886f8abaf85948d171dae1bf8e8d7216f14310a1c7a8af6a49c4a"
           },
           {
             "bytes": 741471,
@@ -37172,12 +37172,12 @@
         "id": "tilted-shifted-1000",
         "outputs": {
           "dwg": {
-            "bytes": 38982,
-            "sha256": "412b7f48c1dbe5de4814ef25a910422786ff62b949a03afc1cb1ea15fcea9a43"
+            "bytes": 39046,
+            "sha256": "70d49b7f6cfa778f11255ddf82bddc93e71f351d00b244632f95c9f1106f73c1"
           },
           "dxf": {
-            "bytes": 408112,
-            "sha256": "e3837765d8c1f390eb93cf36b6ccae63f0d01ae310d5d241dc157ca7901c1616"
+            "bytes": 408241,
+            "sha256": "95cae61ce0d886f8abaf85948d171dae1bf8e8d7216f14310a1c7a8af6a49c4a"
           },
           "ocdraw": {
             "bytes": 741471,
@@ -37191,18 +37191,11 @@
   "provenance": {
     "cadcodec": {
       "local_override": false,
-      "source": "git+https://github.com/HakanSeven12/cadcodec.git?rev=5b682ed66ea2c89be8142c8dd83d83774fc3de08#5b682ed66ea2c89be8142c8dd83d83774fc3de08"
+      "source": "git+https://github.com/HakanSeven12/opencadcodec.git?rev=d96e3fa2fe5acbeac966f1db4c01142618bf9c79#d96e3fa2fe5acbeac966f1db4c01142618bf9c79"
     },
-    "cargo_lock_sha256": "4534a357756bee22a928918fae908503e9cfbe5275ad3dcc4f2370bf78a4f8c4",
-    "deleted_source_paths": [
-      "src/ocdraw/codec/json/decode_model.rs"
-    ],
+    "cargo_lock_sha256": "973e2c3d6b84121a635d63aa05dbca6a4b464ea8a7cb0b64ccafe952a398a2d6",
+    "deleted_source_paths": [],
     "dependencies": [
-      {
-        "name": "acadrust",
-        "source": "git+https://github.com/HakanSeven12/cadcodec.git?rev=5b682ed66ea2c89be8142c8dd83d83774fc3de08#5b682ed66ea2c89be8142c8dd83d83774fc3de08",
-        "version": "0.5.5"
-      },
       {
         "name": "adler2",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
@@ -37251,7 +37244,7 @@
       {
         "name": "bitflags",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "2.13.2"
+        "version": "2.13.1"
       },
       {
         "name": "block-buffer",
@@ -37281,12 +37274,7 @@
       {
         "name": "cfg-if",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "1.0.5"
-      },
-      {
-        "name": "core_detect",
-        "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "1.0.0"
+        "version": "1.0.4"
       },
       {
         "name": "cpufeatures",
@@ -37296,22 +37284,22 @@
       {
         "name": "crc32fast",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "1.5.2"
+        "version": "1.5.1"
       },
       {
         "name": "crossbeam-deque",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.8.8"
+        "version": "0.8.7"
       },
       {
         "name": "crossbeam-epoch",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.9.21"
+        "version": "0.9.20"
       },
       {
         "name": "crossbeam-utils",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.8.23"
+        "version": "0.8.22"
       },
       {
         "name": "crypto-common",
@@ -37351,7 +37339,7 @@
       {
         "name": "encoding_rs",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.8.41"
+        "version": "0.8.35"
       },
       {
         "name": "equivalent",
@@ -37361,7 +37349,7 @@
       {
         "name": "fancy-regex",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.19.2"
+        "version": "0.19.0"
       },
       {
         "name": "flate2",
@@ -37476,7 +37464,7 @@
       {
         "name": "indexmap",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "2.14.2"
+        "version": "2.14.1"
       },
       {
         "name": "itoa",
@@ -37486,7 +37474,7 @@
       {
         "name": "js-sys",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.3.105"
+        "version": "0.3.104"
       },
       {
         "name": "jsonschema",
@@ -37542,21 +37530,6 @@
         "name": "miniz_oxide",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
         "version": "0.9.1"
-      },
-      {
-        "name": "multiversion",
-        "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.9.0"
-      },
-      {
-        "name": "multiversion-macros",
-        "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.9.0"
-      },
-      {
-        "name": "multiversion_no_op",
-        "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "1.0.0"
       },
       {
         "name": "nom",
@@ -37632,6 +37605,11 @@
         "name": "once_cell",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
         "version": "1.21.4"
+      },
+      {
+        "name": "opencadcodec",
+        "source": "git+https://github.com/HakanSeven12/opencadcodec.git?rev=d96e3fa2fe5acbeac966f1db4c01142618bf9c79#d96e3fa2fe5acbeac966f1db4c01142618bf9c79",
+        "version": "0.5.5"
       },
       {
         "name": "outref",
@@ -37764,11 +37742,6 @@
         "version": "0.3.10"
       },
       {
-        "name": "simdutf8",
-        "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.1.5"
-      },
-      {
         "name": "slab",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
         "version": "0.4.12"
@@ -37776,7 +37749,7 @@
       {
         "name": "smallvec",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "1.16.1"
+        "version": "1.16.0"
       },
       {
         "name": "stable_deref_trait",
@@ -37801,12 +37774,12 @@
       {
         "name": "syn",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "3.0.6"
+        "version": "3.0.4"
       },
       {
         "name": "synstructure",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.14.0"
+        "version": "0.13.2"
       },
       {
         "name": "thiserror",
@@ -37851,7 +37824,7 @@
       {
         "name": "unicode-ident",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "1.0.26"
+        "version": "1.0.24"
       },
       {
         "name": "utf8_iter",
@@ -37876,22 +37849,22 @@
       {
         "name": "wasm-bindgen",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.2.128"
+        "version": "0.2.127"
       },
       {
         "name": "wasm-bindgen-macro",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.2.128"
+        "version": "0.2.127"
       },
       {
         "name": "wasm-bindgen-macro-support",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.2.128"
+        "version": "0.2.127"
       },
       {
         "name": "wasm-bindgen-shared",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.2.128"
+        "version": "0.2.127"
       },
       {
         "name": "web-time",
@@ -37916,12 +37889,12 @@
       {
         "name": "yoke-derive",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.8.3"
+        "version": "0.8.2"
       },
       {
         "name": "zerocopy",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.8.57"
+        "version": "0.8.56"
       },
       {
         "name": "zerofrom",
@@ -37931,7 +37904,7 @@
       {
         "name": "zerofrom-derive",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.1.8"
+        "version": "0.1.7"
       },
       {
         "name": "zerotrie",
@@ -37951,7 +37924,7 @@
       {
         "name": "zlib-rs",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "version": "0.6.8"
+        "version": "0.6.7"
       },
       {
         "name": "zmij",
@@ -37960,9 +37933,9 @@
       }
     ],
     "repository_dirty": true,
-    "repository_revision": "122054639590a43986da90a902af473abe656c62",
+    "repository_revision": "232ec3035c83eecf63ff7676690939a692354d48",
     "rustc": "rustc 1.98.0 (88d9e12ae 2026-08-18)\nbinary: rustc\ncommit-hash: 88d9e12ae178fab0fb5cc050a94da85685d449ea\ncommit-date: 2026-08-18\nhost: x86_64-pc-windows-msvc\nrelease: 1.98.0\nLLVM version: 22.1.8",
-    "source_manifest_sha256": "0579127155a59c0fdc58db74279937ee661a0d19a43fbf42caa5c1e3996820ef",
+    "source_manifest_sha256": "e09dbf7c2774303fbcd4e31f09b5aca4c0369a1f0b8b9fbee3fda0b49875f11a",
     "writers": {
       "dwg": "cadcodec normal AC1032, native compression",
       "dxf": "cadcodec text AC1032",

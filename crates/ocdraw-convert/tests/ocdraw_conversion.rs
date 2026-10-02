@@ -1249,7 +1249,9 @@ fn paper_layouts_match_the_source_without_bootstrap_layouts() {
                 else {
                     panic!("missing paper marker");
                 };
-                assert_eq!(marker.name, "*Paper_Space");
+                assert_eq!(marker.name, record.name);
+                // The name is fixed; DWG still gives the extra paper marker
+                // the primary paper record as owner. Keep rejecting the conflict.
                 assert_ne!(marker.common.owner_handle, record.handle);
                 assert!(matches!(
                     cad_document_to_drawing(&document, ExportOptions::default()),

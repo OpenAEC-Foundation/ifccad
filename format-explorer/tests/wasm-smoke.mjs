@@ -32,8 +32,8 @@ for(const name of ['ordered-scopes','fractional-polylines','paper-viewport','nam
 console.log('Browser WASM standalone OCDraw, DXF/DWG export and production readback verified');
 
 const graph=JSON.parse(await readFile(new URL('../../examples/ifcx-native-cad/hello-line-patterns.ifcx',import.meta.url),'utf8'));
-// Zero base isolates the supported DWG roundtrip from the pinned nonzero marker limitation.
-graph.data.find(n=>n.path==='/cad/d1/block/1').attributes['ifccad::blockDefinition'].basePoint=[0,0,0];
+// Exercise the fixture's nonzero base through both real codecs without repair.
+assert.deepEqual(graph.data.find(n=>n.path==='/cad/d1/block/1').attributes['ifccad::blockDefinition'].basePoint,[2,0,0]);
 const ifcxBytes=new TextEncoder().encode(JSON.stringify(graph));
 const ifcxSource={kind:'ifcx',name:'hello.ifcx',files:[{path:'hello.ifcx',bytes:ifcxBytes.buffer}]};
 assert.equal(processBrowserRequest(ifcxSource,wasm).presentation.linePatterns.length,3);
@@ -45,6 +45,7 @@ for(const format of ['ifcx','dxf','dwg']){
  assert.equal(returned.failure,null,JSON.stringify(returned.failure));
  assert.equal(returned.validation.strictAvailable,true);
  const patterns=returned.presentation.linePatterns.map(n=>n.attributes['ifccad::linePattern']);
+ assert.deepEqual(returned.presentation.blockDefinitions.find(n=>n.attributes['ifccad::blockDefinition']).attributes['ifccad::blockDefinition'].basePoint,[2,0,0]);
  assert.deepEqual(patterns.find(p=>p.name==='DashDot').pattern,[0.5,-0.25,0,-0.25]);
  assert.ok(patterns.find(p=>p.name==='UnusedSolid'));
  if(format!=='ifcx'){

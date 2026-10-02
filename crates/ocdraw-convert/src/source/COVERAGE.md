@@ -7,8 +7,8 @@ before construction; validated reader import uses the same implementation.
 These are fresh conversions: no identity-preserving CAD editing session,
 watermark reconstruction or new source coverage is implied.
 
-This inventory is pinned to cadcodec/acadrust revision
-`5b682ed66ea2c89be8142c8dd83d83774fc3de08`. It defines what the
+This inventory is pinned to opencadcodec revision
+`d96e3fa2fe5acbeac966f1db4c01142618bf9c79`. It defines what the
 `CadDocument -> OCDraw` exporter must either represent or diagnose. Updating the
 dependency requires reviewing every row. The pinned cadcodec
 `semantic_inventory_v1` is the export coverage traversal: its categories are
@@ -17,7 +17,10 @@ checks. Default table, class and object content is compared by semantic role
 and payload, rather than only collection length. The pinned fresh-document and
 DWG-read bootstrap forms account for codec-created standard scaffolding.
 Field-level classification remains a manual contract pending
-[cadcodec issue #50](https://github.com/HakanSeven12/cadcodec/issues/50).
+[opencadcodec issue #50](https://github.com/HakanSeven12/opencadcodec/issues/50).
+The Rust dependency remains named `cadcodec` locally; its package/repository is
+opencadcodec. The [dependency audit](../../../../docs/geometry/opencadcodec-update-2026-10-02.md)
+records added and changed public fields for both converters.
 
 Statuses are `Exact`, `PartialLoss`, `SkippedLoss`, `NonSemantic`, and
 `FatalIfInconsistent`. `Reject` rejects detectable semantic loss within this pinned public model,
@@ -35,15 +38,12 @@ unit, explodability and signed-uniform scaling policy; supported primitive
 contents remain in their definition scope without base-point pretranslation.
 External definitions remain unsupported. Present begin markers are checked
 against their records, and missing INSERT targets and cycles are fatal under
-both loss policies. The pinned DWG reader can expose a zero marker base point
-for a nonzero block base point ([cadcodec #52](https://github.com/HakanSeven12/opencadcodec/issues/52));
-this remains fatal. Absent DXF markers are allowed. The pinned DWG
-reader can shift one anonymous `*U` record name by one BLOCK_CONTROL ordinal
-([cadcodec #55](https://github.com/HakanSeven12/opencadcodec/issues/55)). When
-exactly one record has an explicit begin-marker name one ordinal higher, with
-matching owner/base point, no name collision, and no INSERT already targeting
-the corrected name, export corrects the record and its reader-derived INSERT
-names on a copy. Other marker conflicts remain fatal.
+both loss policies. The pinned DWG reader preserves nonzero marker base points
+and anonymous block names. Defects #52/#55 are resolved; the former anonymous
+name repair is no longer needed.
+All present marker conflicts are fatal; absent DXF markers are allowed.
+Block descriptions survive both DXF and DWG (#49). Extra paper-block DWG
+markers can still refer to the primary paper owner and are rejected.
 
 Ordinary instances retain references, placement, rotation, signed scale and
 visibility without explosion. Nested occurrence-space assessment includes outer
@@ -102,7 +102,7 @@ field or family; `Reject` returns no drawing when such a loss is present.
 | --- | --- | --- | --- |
 | `Layout.name`, `tab_order`, `block_record`, `viewport`, `viewports` | Exact/PartialLoss/FatalIfInconsistent | Drawing layout name, list order and scope binding; a missing paper block record is structural failure. The unique overall viewport ID 1 owned by the paper block supplies the canvas even if the `Layout.viewport` link is missing. A layout with no owned VIEWPORT and no viewport link exports no paper canvas. Authored paper VIEWPORT entities follow owner/order. | Paper canvas and viewport roundtrip |
 | `Layout.flags` bit 2, `min_limits/max_limits`, header `paper_space_linetype_scaling` | Exact/PartialLoss | `limitsChecking`, optional authored `limits`, `paperSpaceLinetypeScaling`. Non-rectangular limits and unrelated layout flag bits diagnose loss. | Paper layout roundtrip |
-| `paper_width/height`, `plot_paper_units`, `plot_rotation`, `plot_margin_*`, `plot_printer_name`, `paper_size` | Exact/SkippedLoss | Inline `media` geometry, printable area, rotation, device/media hints. Padded raw ASCII DXF plot integer codes are parsed on an export copy to compensate for the pinned cadcodec reader. Both dimensions zero mean absent `plotSettings`; invalid positive media or margins omit the complete plot value and diagnose loss. | Millimetre A4 and padded DXF plot roundtrip |
+| `paper_width/height`, `plot_paper_units`, `plot_rotation`, `plot_margin_*`, `plot_printer_name`, `paper_size` | Exact/SkippedLoss | Inline `media` geometry, printable area, rotation, device/media hints. The pinned reader parses padded ASCII DXF integers into typed fields. Those fields are authoritative after edits; retained raw codes never override them. Both dimensions zero mean absent `plotSettings`; invalid positive media or margins omit the complete plot value and diagnose loss. | Millimetre A4 and padded DXF plot roundtrip |
 | `plot_type`, `plot_window_*` | Exact/SkippedLoss | Extents, Limits, Window and paper Layout map by mode. Active Display or NamedView omits all `plotSettings` with a specific loss; an invalid window does likewise. | Layout and Display tests |
 | `plot_scale_numerator/denominator`, `plot_scale_type`, `plot_origin_x/y`, `plot_flags.plot_centered` | Exact/PartialLoss/SkippedLoss | Fixed/Fit scale and centered/media-relative offset. Unsupported Layout+Fit or Layout+Centered omits the complete plot value. A standard-scale preset code is reported as lost UI metadata. | Fixed Layout scale roundtrip |
 | `shade_plot_mode/resolution/dpi`, `plot_style_sheet`, `plot_flags.plot_plot_styles` | Exact/PartialLoss | Native shading and style application/name. An active external CTB/STB table name is retained, but absent table contents produce loss. | Plot table-name and mode test |
@@ -111,8 +111,9 @@ field or family; `Reject` returns no drawing when such a loss is present.
 | `Viewport.center/width/height`, `view_center/target/direction/height`, `twist_angle`, `lens_length`, `render_mode`, enabled/locked flags, front/back clip flags and distances | Exact/SkippedLoss | Native frame/view/render/clip fields, including a stored zero dormant lens in Orthographic. Perspective remains whole-viewport skipped pending CAD fixture calibration. Invalid geometry is not approximated. | Rectangular and zero-lens viewport readback |
 | `Viewport.clip_boundary_handle` | Exact/SkippedLoss | A previously mapped same-paper closed straight `LwPolyline` becomes an active native `paperClip` reference. Missing, unsupported or forward references skip the entire viewport. | Closed and missing clip tests |
 | `Viewport.frozen_layers` | Exact/PartialLoss | Each resolved handle becomes a relational frozen-layer override; unknown handles receive `MissingTarget`. The pinned Viewport model has no viewport appearance-override fields. | Native writer and reverse test |
-| Overall paper `Viewport` ID 1 view/grid/snap/UCS | Exact/PartialLoss | View center, target, direction, height, twist, clip, grid, snap and stored UCS become a `paperCanvas` workspace row. A nondefault screen-sized frame and nonpositive disabled snap spacing are diagnosed as loss; the latter is normalized to positive defaults required by OCDraw. The active viewport context remains unavailable. DWG reader output with zeroed viewport IDs cannot reliably identify the overall viewport and receives explicit loss evidence. | Paper canvas roundtrip and active-tab recovery test |
+| Overall paper `Viewport` ID 1 view/grid/snap/UCS | Exact/PartialLoss | View center, target, direction, height, twist, clip, grid, snap and stored UCS become a `paperCanvas` workspace row. A nondefault screen-sized frame and nonpositive disabled snap spacing are diagnosed as loss; the latter is normalized to positive defaults required by OCDraw. The active viewport context remains unavailable. The pinned DWG reader retains viewport IDs/status. Unresolved or malformed overall identity still receives loss evidence. | Paper canvas roundtrip and active-tab recovery test |
 | Authored paper `Viewport` snap/grid/UCS, visual style/background/lighting and viewport plot-style fields | PartialLoss | Nondefault source state is reported. Per-viewport workspace rows are not asserted natively by this converter. | Source-loss tests where present |
+| `Viewport.off_screen` | PartialLoss | DXF off-screen/active-limit state has no native equivalent. True receives explicit loss evidence on both overall paper canvases and authored viewports; Reject prevents output. | DXF readback and both loss policies |
 
 PageSetup objects, CTB/STB file contents, Display/NamedView state and perspective
 calibration remain deferred. A source's raw DXF plot-settings code pairs are a

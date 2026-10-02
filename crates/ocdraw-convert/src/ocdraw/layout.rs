@@ -7,61 +7,6 @@ use ocdraw::ocdraw::{
     ShadedPlotQuality, ShadedPlotQualityMode,
 };
 
-// cadcodec may retain DXF integer plot codes only in this raw list. Apply
-// parsed values to a copy so the direct route sees the same authored state.
-pub(crate) fn normalized_plot_integers(layout: &Layout) -> Layout {
-    let mut normalized = layout.clone();
-    if let Some(codes) = &layout.raw_plot_settings_codes {
-        for (code, raw) in codes {
-            let value = raw.trim();
-            match *code {
-                70 => {
-                    if let Ok(bits) = value.parse::<i32>() {
-                        normalized.plot_flags = cadcodec::objects::PlotFlags::from_bits(bits);
-                    }
-                }
-                72 => {
-                    if let Ok(parsed) = value.parse() {
-                        normalized.plot_paper_units = parsed;
-                    }
-                }
-                73 => {
-                    if let Ok(parsed) = value.parse() {
-                        normalized.plot_rotation = parsed;
-                    }
-                }
-                74 => {
-                    if let Ok(parsed) = value.parse() {
-                        normalized.plot_type = parsed;
-                    }
-                }
-                75 => {
-                    if let Ok(parsed) = value.parse() {
-                        normalized.plot_scale_type = parsed;
-                    }
-                }
-                76 => {
-                    if let Ok(parsed) = value.parse() {
-                        normalized.shade_plot_mode = parsed;
-                    }
-                }
-                77 => {
-                    if let Ok(parsed) = value.parse() {
-                        normalized.shade_plot_resolution = parsed;
-                    }
-                }
-                78 => {
-                    if let Ok(parsed) = value.parse() {
-                        normalized.shade_plot_dpi = parsed;
-                    }
-                }
-                _ => {}
-            }
-        }
-    }
-    normalized
-}
-
 pub(crate) fn unrepresented_fields(layout: &Layout, model: bool) -> Vec<&'static str> {
     let default = Layout::new(&layout.name);
     let mut plot_flags = layout.plot_flags;

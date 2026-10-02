@@ -26,3 +26,7 @@ import that Git history or the DWG/DXF/ACIS implementation. Those remain
 attributable in their existing repositories. The licence and source
 provenance bundled inside each conformance collection remain authoritative
 for those assets.
+
+The synthetic AutoCAD anonymous-block regression fixture is copied unchanged
+from pinned opencadcodec, under its MPL-2.0 license. Its source and generation
+details are recorded in the [fixture provenance](crates/ocdraw-convert/tests/fixtures/README.md).

@@ -73,17 +73,13 @@ fn check_roundtrip(dwg: bool) {
                     panic!("wrong block marker kind")
                 };
                 assert_eq!(marker.name, "Door");
-                // Known limitation: DWG constructs a public marker with zero
-                // base point, inconsistent with the correctly decoded record.
-                assert_eq!(marker.base_point, Vector3::ZERO);
-                assert_ne!(marker.base_point, block.base_point);
+                assert_eq!(marker.base_point, block.base_point);
                 assert_eq!(marker.common.owner_handle, block.handle);
             } else {
                 // DXF deliberately keeps structural markers out of entities.
                 assert!(result.get_entity(block.block_entity_handle).is_none());
             }
-            // The DXF BLOCKS writer omits group 4; DWG preserves description.
-            assert_eq!(block.description, if dwg { "Door description" } else { "" });
+            assert_eq!(block.description, "Door description");
             let insert = result
                 .entities()
                 .find_map(|entity| match entity {

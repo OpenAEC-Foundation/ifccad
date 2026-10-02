@@ -8,7 +8,7 @@ These are fresh conversions: no identity-preserving CAD editing session,
 watermark reconstruction or new source coverage is implied.
 
 The validated standalone drawing is the conversion boundary. The pinned codec
-revision is `5b682ed66ea2c89be8142c8dd83d83774fc3de08`. There is no package
+revision is `d96e3fa2fe5acbeac966f1db4c01142618bf9c79`. There is no package
 graph or preservation transfer. Geometry accuracy and semantic losses are
 reported separately; unknown target semantics are diagnosed.
 
