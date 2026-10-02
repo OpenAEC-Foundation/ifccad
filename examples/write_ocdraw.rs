@@ -48,6 +48,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             transform,
         },
     ))?;
+    // Convenience route: build_document(), then the common encode_document().
+    // Use those separately to edit the logical document before encoding.
     drawing.finish()?.write_file(path)?;
     Ok(())
 }

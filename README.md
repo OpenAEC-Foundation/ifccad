@@ -27,6 +27,12 @@ Reader and writer use shared logical validation. Generated outputs are loaded
 through the production reader. CAD conversion consumes typed drawing values,
 without JSON inspection. Core has no CAD runtime dependency.
 
+`OcdrawDocument` is the complete mutable logical drawing. The builder can return
+it with `build_document()`; `finish()` uses that document and the common encoder.
+Reading exposes an immutable document snapshot, which can be consumed for edits.
+`encode_document()` retains IDs, allocation watermarks and valid supplied bounds;
+bounds recomputation is explicit. See the [document lifecycle](docs/ocdraw-document-lifecycle.md).
+
 Current geometry includes XYZ lines, oriented points, placed circles/arcs and
 ellipses, planar polylines with bulges, direct XYZ spatial polylines, and local
 shared block instances. Layouts, appearances, plot state, named/current UCS,
@@ -41,7 +47,9 @@ has a hard unit-aware tolerance, including nested block occurrences. See
 ## Development sequence
 
 The typed model/JSON boundary, standalone parity and package retirement are
-implemented. Scope lists now define ownership and order; the JSON mapping uses
+implemented. The complete document lifecycle supports direct logical conversion,
+shared validation and identity-preserving core encoding. Scope lists now define
+ownership and order; the JSON mapping uses
 present stream names without a stream directory. Rust gates, candidate
 conformance and the standalone primitive exchange experiment pass. Recording
 0.1.0 and schema v1 as the first supported version remains a separate step.

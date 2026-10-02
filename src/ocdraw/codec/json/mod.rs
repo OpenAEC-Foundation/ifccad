@@ -4,7 +4,7 @@ mod decode_line_pattern;
 pub(crate) use decode_line_pattern::decode_line_patterns;
 mod decode_layer;
 mod decode_layout;
-mod decode_model;
+
 mod decode_plot;
 mod decode_scope;
 mod decode_state;
@@ -23,7 +23,7 @@ mod validate;
 pub(crate) use decode_geometry::decode_geometric_entities;
 pub(crate) use decode_layer::decode_layers;
 pub(crate) use decode_layout::decode_layouts;
-pub(crate) use decode_model::decode_model;
+
 pub(crate) use decode_scope::decode_scopes;
 pub(crate) use decode_state::{
     decode_block_definitions, decode_point_display, decode_ucs_definitions, decode_workspace_state,

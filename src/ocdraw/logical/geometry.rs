@@ -47,11 +47,11 @@ pub enum EntityGeometry {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct DrawingGeometricEntity {
-    pub(crate) id: u64,
-    pub(crate) layer_id: u32,
-    pub(crate) visible: bool,
-    pub(crate) appearance: EntityAppearance,
-    pub(crate) geometry: EntityGeometry,
+    pub id: u64,
+    pub layer_id: u32,
+    pub visible: bool,
+    pub appearance: EntityAppearance,
+    pub geometry: EntityGeometry,
 }
 
 #[derive(Clone, Debug)]

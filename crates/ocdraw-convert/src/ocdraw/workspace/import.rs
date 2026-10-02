@@ -6,7 +6,7 @@ use crate::ocdraw::import::{diagnostic, DirectImportDiagnostic};
 use cadcodec::entities::EntityType;
 use cadcodec::objects::ObjectType;
 use cadcodec::{CadDocument, Handle, VPort, Vector2, Vector3};
-use ocdraw::ocdraw::{DrawingPaperContext, ValidatedDrawing};
+use ocdraw::ocdraw::{DrawingPaperContext, OcdrawDocument};
 use std::collections::BTreeMap;
 struct DiagnosticAccumulator<'a>(&'a mut Vec<DirectImportDiagnostic>);
 enum ImportDiagnostic {
@@ -185,14 +185,14 @@ fn apply_canvas(
 }
 
 pub(in crate::ocdraw) fn apply(
-    drawing: &ValidatedDrawing,
+    drawing: &OcdrawDocument,
     document: &mut CadDocument,
     scope_layouts: &BTreeMap<u64, Option<String>>,
     diagnostics: &mut Vec<DirectImportDiagnostic>,
 ) {
     let mut diagnostics = DiagnosticAccumulator(diagnostics);
     let definitions = drawing
-        .ucs_definitions()
+        .ucs_definitions
         .iter()
         .map(|source| {
             (
@@ -209,7 +209,7 @@ pub(in crate::ocdraw) fn apply(
             )
         })
         .collect();
-    if let Some(state) = drawing.view_state() {
+    if let Some(state) = drawing.view_state.as_ref() {
         let (name, _, frame) = selection(state.current_model_ucs, &definitions);
         document.header.model_space_ucs_name = name;
         assign_frame(
@@ -219,10 +219,10 @@ pub(in crate::ocdraw) fn apply(
             frame,
         );
     }
-    if !drawing.model_windows().is_empty() {
+    if !drawing.model_windows.is_empty() {
         document.vports.clear();
-        let mut windows = drawing.model_windows().iter().collect::<Vec<_>>();
-        if let Some(state) = drawing.view_state() {
+        let mut windows = drawing.model_windows.iter().collect::<Vec<_>>();
+        if let Some(state) = drawing.view_state.as_ref() {
             windows.sort_by_key(|w| w.id != state.active_model_window_id);
         }
         for source in windows {
@@ -232,7 +232,7 @@ pub(in crate::ocdraw) fn apply(
             document.vports.add_allow_duplicate(target);
         }
     }
-    for source in drawing.paper_canvases() {
+    for source in &drawing.paper_canvases {
         if source.active_context != DrawingPaperContext::Canvas {
             diagnostics.record(ImportDiagnostic::WorkspaceUnsupported {
                 reason: "active paper viewport context".into(),
@@ -254,7 +254,7 @@ pub(in crate::ocdraw) fn apply(
             });
         }
     }
-    if !drawing.viewport_workspaces().is_empty() {
+    if !drawing.viewport_workspaces.is_empty() {
         diagnostics.record(ImportDiagnostic::WorkspaceUnsupported {
             reason: "paper viewport workspace state".into(),
         });

@@ -1,11 +1,6 @@
 mod state;
-use super::logical::{
-    AppearanceMode as LogicalAppearanceMode, AppearancePair, AppearanceSelection,
-    BlockDefinition as LogicalBlockDefinition, DrawingColor, DrawingEntityRecord, DrawingModel,
-    Entity as LogicalEntity, EntityAppearance, EntityGeometry, Layout as LogicalLayout, NamedId,
-    NamedUcs, Scope, ScopeKind,
-};
-use super::{load_drawing_bytes, DrawingLoadStatus, LayoutSettings, PointDisplay, UcsDefinition};
+use super::logical::{DrawingColor, DrawingEntityRecord, EntityAppearance, EntityGeometry};
+use super::{LayoutSettings, PointDisplay, UcsDefinition};
 pub use state::{DrawingSavedState, ViewportDefinition};
 use std::path::Path;
 
@@ -422,6 +417,9 @@ pub struct EncodedDrawing {
 }
 
 impl EncodedDrawing {
+    pub(crate) fn from_bytes(bytes: Vec<u8>) -> Self {
+        Self { bytes }
+    }
     pub fn bytes(&self) -> &[u8] {
         &self.bytes
     }
@@ -459,227 +457,6 @@ pub struct DrawingBuilder {
 }
 
 impl DrawingBuilder {
-    fn logical_model(&self) -> Result<DrawingModel, DrawingBuildError> {
-        let layer_count =
-            u32::try_from(self.layers.len()).map_err(|_| DrawingBuildError::IdExhausted)?;
-        let layout_count = self
-            .paper_layouts
-            .len()
-            .checked_add(1)
-            .and_then(|count| u32::try_from(count).ok())
-            .ok_or(DrawingBuildError::IdExhausted)?;
-        let layers = self
-            .layers
-            .iter()
-            .enumerate()
-            .map(|(id, layer)| NamedId {
-                id: id as u32,
-                name: layer.name.clone(),
-            })
-            .collect();
-        let mut layouts = vec![LogicalLayout {
-            id: 0,
-            name: self.model_layout_name.clone(),
-            scope_id: 0,
-            kind: ScopeKind::Model,
-            tab_index: 0,
-            limits: self.layout_settings[0].limits,
-            plot_rectangles: self.layout_settings[0].plot_settings.as_ref().map(|plot| {
-                super::logical::PlotRectangles {
-                    printable_area: plot.media.printable_area,
-                    window: match plot.area {
-                        super::PlotArea::Window(rect) => Some(rect),
-                        _ => None,
-                    },
-                }
-            }),
-        }];
-        let mut scopes = vec![Scope {
-            entities: Vec::new(),
-            id: 0,
-            kind: ScopeKind::Model,
-            has_bounds: None,
-            bounds: None,
-        }];
-        for (index, name) in self.paper_layouts.iter().enumerate() {
-            let id = u32::try_from(index + 1).map_err(|_| DrawingBuildError::IdExhausted)?;
-            layouts.push(LogicalLayout {
-                id,
-                name: name.clone(),
-                scope_id: id,
-                kind: ScopeKind::Paper,
-                tab_index: id,
-                limits: self.layout_settings[index + 1].limits,
-                plot_rectangles: self.layout_settings[index + 1].plot_settings.as_ref().map(
-                    |plot| super::logical::PlotRectangles {
-                        printable_area: plot.media.printable_area,
-                        window: match plot.area {
-                            super::PlotArea::Window(rect) => Some(rect),
-                            _ => None,
-                        },
-                    },
-                ),
-            });
-            scopes.push(Scope {
-                entities: Vec::new(),
-                id,
-                kind: ScopeKind::Paper,
-                has_bounds: None,
-                bounds: None,
-            });
-        }
-        let mut blocks = Vec::new();
-        for (index, definition) in self.block_definitions.iter().enumerate() {
-            let id = self
-                .paper_layouts
-                .len()
-                .checked_add(index + 1)
-                .and_then(|id| u32::try_from(id).ok())
-                .ok_or(DrawingBuildError::IdExhausted)?;
-            scopes.push(Scope {
-                entities: Vec::new(),
-                id,
-                kind: ScopeKind::Block,
-                has_bounds: None,
-                bounds: None,
-            });
-            blocks.push(LogicalBlockDefinition {
-                scope_id: id,
-                name: definition.name.clone(),
-            });
-        }
-        let mut entities: Vec<LogicalEntity> = self
-            .objects
-            .iter()
-            .enumerate()
-            .map(|(index, row)| LogicalEntity {
-                id: row.id,
-                layer_id: row.layer_id,
-                definition_scope_id: match row.geometry {
-                    EntityGeometry::BlockInstance {
-                        definition_scope_id,
-                        ..
-                    } => Some(definition_scope_id),
-                    _ => None,
-                },
-                appearance: [
-                    logical_pair(&row.appearance.color),
-                    logical_pair(&row.appearance.opacity),
-                    logical_pair(&row.appearance.line_pattern),
-                    logical_pair(&row.appearance.line_weight),
-                ],
-                location: format!("/entities/{index}"),
-            })
-            .collect();
-        entities.extend(self.viewports.iter().map(|row| LogicalEntity {
-            id: row.id,
-            layer_id: row.layer_id,
-            definition_scope_id: None,
-            appearance: [
-                logical_pair(&row.appearance.color),
-                logical_pair(&row.appearance.opacity),
-                logical_pair(&row.appearance.line_pattern),
-                logical_pair(&row.appearance.line_weight),
-            ],
-            location: format!("/entities/{}", row.id),
-        }));
-        for scope in &mut scopes {
-            scope.entities = self
-                .scope_entities
-                .get(&scope.id)
-                .cloned()
-                .unwrap_or_default();
-        }
-        Ok(DrawingModel {
-            line_patterns: self
-                .line_patterns
-                .iter()
-                .enumerate()
-                .map(|(i, p)| super::DrawingLinePattern {
-                    id: super::LinePatternId(i as u32),
-                    name: p.name.clone(),
-                    description: p.description.clone(),
-                    pattern: p.pattern.clone(),
-                })
-                .collect(),
-            next_line_pattern_id: u32::try_from(self.line_patterns.len())
-                .map_err(|_| DrawingBuildError::IdExhausted)?,
-            line_pattern_refs: self
-                .layers
-                .iter()
-                .enumerate()
-                .map(|(i, l)| (l.line_pattern_id, format!("/layers/{i}/linePatternId")))
-                .chain(
-                    self.objects
-                        .iter()
-                        .map(|o| (&o.appearance, o.id))
-                        .chain(self.viewports.iter().map(|o| (&o.appearance, o.id)))
-                        .filter_map(|(a, id)| match a.line_pattern {
-                            AppearanceSelection::Explicit(p) => {
-                                Some((p, format!("/entities/{id}/linePatternId")))
-                            }
-                            _ => None,
-                        }),
-                )
-                .chain(self.viewports.iter().flat_map(|v| {
-                    v.layer_overrides.iter().filter_map(|o| {
-                        o.line_pattern_id
-                            .map(|p| (p, format!("/viewports/{}/overrides", v.id)))
-                    })
-                }))
-                .collect(),
-            line_pattern_scales: std::iter::once((
-                self.line_pattern_scale,
-                "/linePatternScale".into(),
-            ))
-            .chain(
-                self.objects
-                    .iter()
-                    .map(|o| (&o.appearance, o.id))
-                    .chain(self.viewports.iter().map(|o| (&o.appearance, o.id)))
-                    .map(|(a, id)| {
-                        (
-                            a.line_pattern_scale,
-                            format!("/entities/{id}/linePatternScale"),
-                        )
-                    }),
-            )
-            .collect(),
-            next_entity_id: self.next_entity_id,
-            next_layer_id: layer_count,
-            next_layout_id: layout_count,
-            layers,
-            layouts,
-            scopes,
-            blocks,
-            entities,
-            current_layer_id: self.current_layer,
-            active_layout_id: self.active_layout,
-            ucs_definitions: self
-                .ucs_definitions
-                .iter()
-                .enumerate()
-                .map(|(id, ucs)| NamedUcs {
-                    id: id as u32,
-                    name: ucs.name.clone(),
-                    frame: Some(ucs.frame),
-                })
-                .collect(),
-            model_window_ids: self
-                .saved_state
-                .model_windows
-                .iter()
-                .map(|w| w.id)
-                .collect(),
-            active_model_window_id: self
-                .saved_state
-                .view_state
-                .map(|s| s.active_model_window_id),
-            named_ucs_refs: Vec::new(),
-            ucs_choices: Vec::new(),
-        })
-    }
-
     pub fn new(options: DrawingOptions) -> Result<Self, DrawingBuildError> {
         if options.drawing_id.is_empty() || options.unit.is_empty() {
             return Err(DrawingBuildError::Invalid(
@@ -1195,232 +972,172 @@ impl DrawingBuilder {
         Ok(id)
     }
 
-    pub fn finish(self) -> Result<EncodedDrawing, DrawingBuildError> {
-        let mut logical = self.logical_model()?;
-        if let Some(error) = logical.validate().into_iter().next() {
-            return Err(DrawingBuildError::Invalid(format!(
-                "{}: {}",
-                error.location, error.message
-            )));
+    /// Builds complete typed content without encoding it. Bounds are prepared automatically.
+    pub fn build_document(self) -> Result<super::OcdrawDocument, DrawingBuildError> {
+        use super::logical::*;
+        for row in &self.objects {
+            if !row.min.into_iter().chain(row.max).all(f64::is_finite) {
+                return Err(DrawingBuildError::Invalid(format!(
+                    "non-finite {} bounds",
+                    row.kind
+                )));
+            }
         }
-        let total_scopes = self.paper_layouts.len() + self.block_definitions.len() + 1;
+        let count = |n| u32::try_from(n).map_err(|_| DrawingBuildError::IdExhausted);
+        let next_layer_id = count(self.layers.len())?;
+        let next_line_pattern_id = count(self.line_patterns.len())?;
+        let next_layout_id = count(self.paper_layouts.len() + 1)?;
         let first_block_scope = self.paper_layouts.len() + 1;
-        let mut cache = vec![None; total_scopes];
-        let mut visiting = vec![false; total_scopes];
-        let objects_by_id = self
-            .objects
-            .iter()
-            .map(|row| (row.id, row))
-            .collect::<std::collections::BTreeMap<_, _>>();
-        let mut bounds = (0..total_scopes)
-            .map(|scope| {
-                resolve_scope_bounds(
-                    scope,
-                    first_block_scope,
-                    &self.block_definitions,
-                    &objects_by_id,
-                    &self.scope_entities,
-                    &mut cache,
-                    &mut visiting,
-                )
-            })
-            .collect::<Result<Vec<_>, _>>()?;
-        let owners = self
-            .scope_entities
-            .iter()
-            .flat_map(|(scope, ids)| ids.iter().map(move |id| (*id, *scope)))
-            .collect::<std::collections::BTreeMap<_, _>>();
-        for viewport in &self.viewports {
-            let index = owners[&viewport.id] as usize;
-            let Some(scope) = bounds.get_mut(index) else {
-                return Err(DrawingBuildError::Invalid(
-                    "viewport owner scope does not exist".into(),
-                ));
-            };
-            let frame = super::logical::viewport_bounds(viewport.frame)
-                .ok_or_else(|| DrawingBuildError::Invalid("invalid viewport frame".into()))?;
-            let min = frame.min().components();
-            let max = frame.max().components();
-            match scope {
-                Some((lower, upper)) => {
-                    for i in 0..3 {
-                        lower[i] = lower[i].min(min[i]);
-                        upper[i] = upper[i].max(max[i]);
-                    }
-                }
-                None => *scope = Some((min, max)),
-            }
-        }
-        for (scope, bounds) in logical.scopes.iter_mut().zip(&bounds) {
-            scope.has_bounds = Some(bounds.is_some());
-            scope.bounds = bounds.map(|(min, max)| crate::ocdraw::Bounds3d {
-                min: crate::ocdraw::Point3::new(min[0], min[1], min[2]),
-                max: crate::ocdraw::Point3::new(max[0], max[1], max[2]),
-            });
-        }
-        if let Some(error) = logical.validate().into_iter().next() {
-            return Err(DrawingBuildError::Invalid(format!(
-                "{}: {}",
-                error.location, error.message
-            )));
-        }
-        let geometric_entities = self
-            .objects
-            .iter()
-            .map(|row| super::logical::DrawingGeometricEntity {
-                id: row.id,
-                layer_id: row.layer_id,
-                visible: row.visible,
-                appearance: row.appearance.clone(),
-                geometry: row.geometry.clone(),
-            })
-            .collect::<Vec<_>>();
-        let scopes = logical
-            .scopes
-            .iter()
-            .map(|scope| super::logical::DrawingScope {
-                id: scope.id,
-                kind: match scope.kind {
-                    super::logical::ScopeKind::Model => super::logical::DrawingScopeKind::Model,
-                    super::logical::ScopeKind::Paper => super::logical::DrawingScopeKind::Paper,
-                    super::logical::ScopeKind::Block => super::logical::DrawingScopeKind::Block,
-                },
-                bounds: scope.bounds,
-                entities: scope.entities.clone(),
-            })
-            .collect::<Vec<_>>();
-        if let Some(error) = super::logical::validate_geometry_bounds(&geometric_entities, &scopes)
+        count(first_block_scope + self.block_definitions.len())?;
+        let mut names = vec![self.model_layout_name];
+        names.extend(self.paper_layouts);
+        let layouts = names
             .into_iter()
-            .next()
-        {
-            return Err(DrawingBuildError::Invalid(format!(
-                "{}: {}",
-                error.location, error.message
-            )));
-        }
-        let bytes = super::codec::json::encode_document_bytes(&self, &bounds)?;
-        let read = load_drawing_bytes(&bytes);
-        if read.status() != DrawingLoadStatus::Valid {
-            return Err(DrawingBuildError::Invalid(format!(
-                "{:?}",
-                read.diagnostics()
-            )));
-        }
-        Ok(EncodedDrawing { bytes })
-    }
-}
-
-type ScopeBounds = Option<([f64; 3], [f64; 3])>;
-
-fn resolve_scope_bounds(
-    scope: usize,
-    first_block_scope: usize,
-    definitions: &[BlockDefinition],
-    objects: &std::collections::BTreeMap<u64, &DrawingEntityRecord>,
-    scope_entities: &std::collections::BTreeMap<u32, Vec<u64>>,
-    cache: &mut [Option<ScopeBounds>],
-    visiting: &mut [bool],
-) -> Result<ScopeBounds, DrawingBuildError> {
-    if scope >= cache.len() {
-        return Err(DrawingBuildError::Invalid(format!("unknown scope {scope}")));
-    }
-    if let Some(bounds) = cache[scope] {
-        return Ok(bounds);
-    }
-    if visiting[scope] {
-        return Err(DrawingBuildError::Invalid("cyclic block instances".into()));
-    }
-    visiting[scope] = true;
-    let mut bounds: ScopeBounds = None;
-    for object in scope_entities
-        .get(&(scope as u32))
-        .into_iter()
-        .flatten()
-        .filter_map(|id| objects.get(id))
-    {
-        let (min, max) = if object.kind == "blockInstance" {
-            let definition = match object.geometry {
-                EntityGeometry::BlockInstance {
-                    definition_scope_id,
-                    ..
-                } => definition_scope_id as usize,
-                _ => unreachable!("block instance kind and geometry agree"),
-            };
-            if definition < first_block_scope || definition >= cache.len() {
-                return Err(DrawingBuildError::Invalid(
-                    "block instance references a non-block scope".into(),
-                ));
-            }
-            let definition_bounds = resolve_scope_bounds(
-                definition,
-                first_block_scope,
-                definitions,
-                objects,
-                scope_entities,
-                cache,
-                visiting,
-            )?;
-            if let Some((min, max)) = definition_bounds {
-                let transform = match object.geometry {
-                    EntityGeometry::BlockInstance { transform, .. } => transform,
-                    _ => unreachable!("block instance geometry"),
-                };
-                let base = definitions[definition - first_block_scope].base_point;
-                let prepared = super::geometry::PreparedBlockTransform::new(
-                    transform,
-                    super::Point3::new(base[0], base[1], base[2]),
-                )
-                .ok_or_else(|| {
-                    DrawingBuildError::Invalid("block transform cannot be evaluated".into())
-                })?;
-                let local = std::array::from_fn(|axis| super::geometry::numeric::Interval {
-                    lower: min[axis],
-                    upper: max[axis],
+            .zip(self.layout_settings)
+            .enumerate()
+            .map(|(i, (name, settings))| DrawingLayout {
+                id: i as u32,
+                scope_id: i as u32,
+                kind: if i == 0 {
+                    DrawingLayoutKind::Model
+                } else {
+                    DrawingLayoutKind::Paper
+                },
+                name,
+                tab_index: i as u32,
+                settings,
+            })
+            .collect::<Vec<_>>();
+        let mut scope_entities = self.scope_entities;
+        let mut scopes = layouts
+            .iter()
+            .map(|l| DrawingScope {
+                id: l.scope_id,
+                kind: if l.kind == DrawingLayoutKind::Model {
+                    DrawingScopeKind::Model
+                } else {
+                    DrawingScopeKind::Paper
+                },
+                bounds: None,
+                entities: scope_entities.remove(&l.scope_id).unwrap_or_default(),
+            })
+            .collect::<Vec<_>>();
+        let block_definitions = self
+            .block_definitions
+            .into_iter()
+            .enumerate()
+            .map(|(i, b)| {
+                let scope_id = (first_block_scope + i) as u32;
+                scopes.push(DrawingScope {
+                    id: scope_id,
+                    kind: DrawingScopeKind::Block,
+                    bounds: None,
+                    entities: scope_entities.remove(&scope_id).unwrap_or_default(),
                 });
-                let projected = prepared.apply_intervals(local).ok_or_else(|| {
-                    DrawingBuildError::Invalid("block bounds are out of range".into())
-                })?;
-                (projected.map(|v| v.lower), projected.map(|v| v.upper))
-            } else {
-                (object.min, object.max)
-            }
-        } else {
-            (object.min, object.max)
-        };
-        if !min.into_iter().chain(max).all(f64::is_finite) {
+                DrawingBlockDefinition {
+                    scope_id,
+                    name: b.name,
+                    base_point: b.base_point,
+                    description: b.description,
+                    anonymous: b.anonymous,
+                    insertion_unit: b.insertion_unit,
+                    explodable: b.explodable,
+                    uniform_scaling: b.uniform_scaling,
+                }
+            })
+            .collect();
+        if !scope_entities.is_empty() {
             return Err(DrawingBuildError::Invalid(
-                "non-finite entity bounds".into(),
+                "entity owner scope does not exist".into(),
             ));
         }
-        match &mut bounds {
-            Some((scope_min, scope_max)) => {
-                for axis in 0..3 {
-                    scope_min[axis] = scope_min[axis].min(min[axis]);
-                    scope_max[axis] = scope_max[axis].max(max[axis]);
-                }
-            }
-            None => bounds = Some((min, max)),
-        }
+        let mut doc = OcdrawDocument {
+            next_entity_id: self.next_entity_id,
+            next_layer_id,
+            next_layout_id,
+            next_line_pattern_id,
+            drawing_id: self.options.drawing_id,
+            unit: self.options.unit,
+            plot_style_mode: self.plot_style_mode,
+            line_pattern_scale: self.line_pattern_scale,
+            point_display: self.point_display,
+            geometric_entities: self
+                .objects
+                .into_iter()
+                .map(|e| DrawingGeometricEntity {
+                    id: e.id,
+                    layer_id: e.layer_id,
+                    visible: e.visible,
+                    appearance: e.appearance,
+                    geometry: e.geometry,
+                })
+                .collect(),
+            viewports: self.viewports,
+            layers: self
+                .layers
+                .into_iter()
+                .enumerate()
+                .map(|(i, l)| DrawingLayer {
+                    id: i as u32,
+                    name: l.name,
+                    description: l.description,
+                    visible: l.visible,
+                    frozen: l.frozen,
+                    locked: l.locked,
+                    plottable: l.plottable,
+                    frozen_in_new_viewports: l.frozen_in_new_viewports,
+                    color: l.color,
+                    opacity: l.opacity,
+                    line_pattern_id: l.line_pattern_id,
+                    line_weight: l.line_weight,
+                })
+                .collect(),
+            line_patterns: self
+                .line_patterns
+                .into_iter()
+                .enumerate()
+                .map(|(i, p)| DrawingLinePattern {
+                    id: super::LinePatternId(i as u32),
+                    name: p.name,
+                    description: p.description,
+                    pattern: p.pattern,
+                })
+                .collect(),
+            layouts,
+            scopes,
+            block_definitions,
+            ucs_definitions: self
+                .ucs_definitions
+                .into_iter()
+                .enumerate()
+                .map(|(i, definition)| DrawingUcsDefinition {
+                    id: i as u32,
+                    definition,
+                })
+                .collect(),
+            workspace_state: if self.current_layer.is_some() || self.active_layout.is_some() {
+                Some(DrawingWorkspaceState {
+                    current_layer_id: self.current_layer,
+                    active_layout_id: self.active_layout,
+                })
+            } else {
+                None
+            },
+            view_state: self.saved_state.view_state,
+            model_windows: self.saved_state.model_windows,
+            paper_canvases: self.saved_state.paper_canvases,
+            viewport_workspaces: self.saved_state.viewport_workspaces,
+        };
+        super::recompute_document_bounds(&mut doc)
+            .map_err(|e| DrawingBuildError::Invalid(format!("{:?}", e.diagnostics())))?;
+        super::validate_document(&doc)
+            .map_err(|e| DrawingBuildError::Invalid(format!("{:?}", e.diagnostics())))?;
+        Ok(doc)
     }
-    visiting[scope] = false;
-    cache[scope] = Some(bounds);
-    Ok(bounds)
-}
 
-fn logical_pair<T>(selection: &AppearanceSelection<T>) -> AppearancePair {
-    match selection {
-        AppearanceSelection::ByLayer => AppearancePair {
-            mode: LogicalAppearanceMode::ByLayer,
-            has_value: false,
-        },
-        AppearanceSelection::ByBlock => AppearancePair {
-            mode: LogicalAppearanceMode::ByBlock,
-            has_value: false,
-        },
-        AppearanceSelection::Explicit(_) => AppearancePair {
-            mode: LogicalAppearanceMode::Explicit,
-            has_value: true,
-        },
+    /// Convenience route: build a complete document, then use the shared encoder.
+    pub fn finish(self) -> Result<EncodedDrawing, DrawingBuildError> {
+        super::encode_document(&self.build_document()?).map_err(DrawingBuildError::from)
     }
 }
 
@@ -1436,7 +1153,7 @@ fn frame_at(origin: [f64; 3]) -> Result<crate::ocdraw::CoordinateFrame3, Drawing
 #[cfg(test)]
 mod ownership_tests {
     use super::*;
-    fn model() -> DrawingModel {
+    fn model() -> super::super::OcdrawDocument {
         let mut builder = DrawingBuilder::new(DrawingOptions::new("owners", "mm")).unwrap();
         builder.ensure_continuous_line_pattern().unwrap();
         let layer = builder
@@ -1450,33 +1167,37 @@ mod ownership_tests {
         builder
             .add_line(LineDefinition::new(layer, [0.; 3], [1.; 3]))
             .unwrap();
-        builder.logical_model().unwrap()
+        builder.build_document().unwrap()
     }
     #[test]
     fn shared_validation_checks_membership_without_an_encoding_backing() {
-        assert!(model().validate().is_empty());
+        assert!(super::super::validate_document(&model()).is_ok());
         let mut duplicate = model();
         duplicate.scopes[0].entities.push(1);
-        assert!(duplicate
-            .validate()
+        assert!(super::super::validate_document(&duplicate)
+            .unwrap_err()
+            .diagnostics()
             .iter()
             .any(|e| e.code == "ENTITY_OWNERSHIP" && e.location == "/scopes/0/entities/1"));
         let mut multiple = model();
         multiple.scopes[1].entities.push(1);
-        assert!(multiple
-            .validate()
+        assert!(super::super::validate_document(&multiple)
+            .unwrap_err()
+            .diagnostics()
             .iter()
             .any(|e| e.code == "ENTITY_OWNERSHIP"));
         let mut missing = model();
         missing.scopes[0].entities.push(99);
-        assert!(missing
-            .validate()
+        assert!(super::super::validate_document(&missing)
+            .unwrap_err()
+            .diagnostics()
             .iter()
             .any(|e| e.code == "ENTITY_REFERENCE"));
         let mut orphan = model();
         orphan.scopes[0].entities.clear();
-        assert!(orphan
-            .validate()
+        assert!(super::super::validate_document(&orphan)
+            .unwrap_err()
+            .diagnostics()
             .iter()
             .any(|e| e.code == "ENTITY_OWNERSHIP"));
     }

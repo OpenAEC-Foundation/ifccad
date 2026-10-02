@@ -37193,8 +37193,10 @@
       "local_override": false,
       "source": "git+https://github.com/HakanSeven12/cadcodec.git?rev=5b682ed66ea2c89be8142c8dd83d83774fc3de08#5b682ed66ea2c89be8142c8dd83d83774fc3de08"
     },
-    "cargo_lock_sha256": "2a252a859ff388bc5c6d34006dd3d0a78707ae89e017910d25b3815d9e13426d",
-    "deleted_source_paths": [],
+    "cargo_lock_sha256": "4534a357756bee22a928918fae908503e9cfbe5275ad3dcc4f2370bf78a4f8c4",
+    "deleted_source_paths": [
+      "src/ocdraw/codec/json/decode_model.rs"
+    ],
     "dependencies": [
       {
         "name": "acadrust",
@@ -37465,6 +37467,11 @@
         "name": "idna_adapter",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
         "version": "1.2.2"
+      },
+      {
+        "name": "ifcx-cad-convert",
+        "source": null,
+        "version": "0.1.0"
       },
       {
         "name": "indexmap",
@@ -37953,9 +37960,9 @@
       }
     ],
     "repository_dirty": true,
-    "repository_revision": "f3b06ad284ad4b94343bff72e4428970f0f70ef1",
+    "repository_revision": "122054639590a43986da90a902af473abe656c62",
     "rustc": "rustc 1.98.0 (88d9e12ae 2026-08-18)\nbinary: rustc\ncommit-hash: 88d9e12ae178fab0fb5cc050a94da85685d449ea\ncommit-date: 2026-08-18\nhost: x86_64-pc-windows-msvc\nrelease: 1.98.0\nLLVM version: 22.1.8",
-    "source_manifest_sha256": "23c2a0c4330995a8cd34220fa8662e4b8e8d8964d3fb0f54caa34c201b8b70b0",
+    "source_manifest_sha256": "0579127155a59c0fdc58db74279937ee661a0d19a43fbf42caa5c1e3996820ef",
     "writers": {
       "dwg": "cadcodec normal AC1032, native compression",
       "dxf": "cadcodec text AC1032",

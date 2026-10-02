@@ -3,7 +3,7 @@
 use super::{diagnostic, line_weight, DirectImportDiagnostic, DirectImportError};
 use cadcodec::{CadDocument, Color, EntityType, Handle, LineWeight, Transparency};
 use ocdraw::ocdraw::{
-    AppearanceSelection, DrawingBlockDefinition, DrawingColor, EntityAppearance, ValidatedDrawing,
+    AppearanceSelection, DrawingBlockDefinition, DrawingColor, EntityAppearance, OcdrawDocument,
 };
 use std::collections::BTreeMap;
 
@@ -87,7 +87,7 @@ pub(super) struct TargetIndex<'a> {
     pub blocks: &'a BTreeMap<u64, DrawingBlockDefinition>,
 }
 pub(super) fn append_entities(
-    drawing: &ValidatedDrawing,
+    drawing: &OcdrawDocument,
     document: &mut CadDocument,
     target: &TargetIndex<'_>,
     state: &mut crate::ocdraw::geometry::ExchangeState<u64>,
@@ -102,17 +102,17 @@ pub(super) fn append_entities(
     } = target;
     let mut entity_mapping = BTreeMap::new();
     let geometry = drawing
-        .geometric_entities()
+        .geometric_entities
         .iter()
         .map(|row| (row.id(), row))
         .collect::<BTreeMap<_, _>>();
     let viewports = drawing
-        .viewports()
+        .viewports
         .iter()
         .map(|row| (row.id, row))
         .collect::<BTreeMap<_, _>>();
     for (owner, id) in drawing
-        .scopes()
+        .scopes
         .iter()
         .flat_map(|scope| scope.entities.iter().map(move |id| (scope.id, *id)))
     {

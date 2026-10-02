@@ -7,7 +7,7 @@ use crate::{ConversionLossPolicy, ImportOptions};
 use cadcodec::objects::ObjectType;
 use cadcodec::{BlockRecord, CadDocument, EntityType, Handle, Layer, LineWeight, Transparency};
 use ocdraw::ocdraw::{
-    DrawingLayoutKind, PlotOffsetReference, PlotPlacement, PlotStyleMode, ValidatedDrawing,
+    DrawingLayoutKind, OcdrawDocument, PlotOffsetReference, PlotPlacement, PlotStyleMode,
 };
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -20,6 +20,8 @@ pub struct DirectImportDiagnostic {
 
 #[derive(Debug, thiserror::Error)]
 pub enum DirectImportError {
+    #[error(transparent)]
+    InvalidDocument(#[from] ocdraw::ocdraw::OcdrawValidationError),
     #[error(transparent)]
     GeometryTolerance(#[from] crate::ConversionToleranceError),
     #[error("geometric accuracy requirement failed: {0:?}")]
@@ -86,13 +88,21 @@ fn line_weight(
     LineWeight::from_value(bounded)
 }
 
-pub fn ocdraw_to_cad_document(
-    drawing: &ValidatedDrawing,
+pub fn ocdraw_document_to_cad_document(
+    drawing: &OcdrawDocument,
+    options: ImportOptions,
+) -> Result<DirectImportOutcome, DirectImportError> {
+    ocdraw::ocdraw::validate_document(drawing)?;
+    import_document(drawing, options)
+}
+
+fn import_document(
+    drawing: &OcdrawDocument,
     options: ImportOptions,
 ) -> Result<DirectImportOutcome, DirectImportError> {
     let mut document = CadDocument::new();
     let patterns = super::line_pattern::import_line_patterns(drawing, &mut document)?;
-    for source in drawing.ucs_definitions() {
+    for source in &drawing.ucs_definitions {
         let mut target = cadcodec::Ucs::new(&source.definition.name);
         target.handle = document.allocate_handle();
         let frame = source.definition.frame;
@@ -111,7 +121,7 @@ pub fn ocdraw_to_cad_document(
     let mut diagnostics = Vec::new();
     let code = super::export::UNIT_TOKENS
         .iter()
-        .position(|token| *token == drawing.unit())
+        .position(|token| *token == drawing.unit.as_str())
         .expect("validated drawing unit") as i16;
     let mut geometry =
         super::geometry::ExchangeState::new(crate::ConversionGeometryAssessment::new(
@@ -119,12 +129,12 @@ pub fn ocdraw_to_cad_document(
             crate::units::from_cad_code(code).expect("validated unit"),
         )?);
     let converted_ids = drawing
-        .geometric_entities()
+        .geometric_entities
         .iter()
         .map(|entity| entity.id())
-        .chain(drawing.viewports().iter().map(|row| row.id))
+        .chain(drawing.viewports.iter().map(|row| row.id))
         .collect::<BTreeSet<_>>();
-    for (scope_index, scope) in drawing.scopes().iter().enumerate() {
+    for (scope_index, scope) in drawing.scopes.iter().enumerate() {
         for (position, id) in scope.entities.iter().enumerate() {
             if !converted_ids.contains(id) {
                 diagnostics.push(diagnostic(
@@ -140,10 +150,9 @@ pub fn ocdraw_to_cad_document(
     if let Some(measurement) = crate::units::measurement(unit) {
         document.header.measurement = measurement;
     }
-    document.header.plotstyle_mode =
-        drawing.typed_plot_style_mode() == PlotStyleMode::ColorDependent;
+    document.header.plotstyle_mode = drawing.plot_style_mode == PlotStyleMode::ColorDependent;
     let mut layer_names = BTreeMap::new();
-    for (index, source) in drawing.typed_layers().iter().enumerate() {
+    for (index, source) in drawing.layers.iter().enumerate() {
         let id = u64::from(source.id);
         let name = source.name.as_str();
         let mut target = Layer::new(name);
@@ -191,11 +200,7 @@ pub fn ocdraw_to_cad_document(
     layouts::prepare_primary_paper_layout(drawing, &mut document)?;
     let mut scope_layouts = BTreeMap::new();
     let mut saved_linetype_scaling = None;
-    let mut layouts = drawing
-        .typed_layouts()
-        .iter()
-        .enumerate()
-        .collect::<Vec<_>>();
+    let mut layouts = drawing.layouts.iter().enumerate().collect::<Vec<_>>();
     layouts.sort_by_key(|(_, layout)| layout.tab_index);
     for (index, layout) in layouts {
         let scope_id = u64::from(layout.scope_id);
@@ -281,18 +286,14 @@ pub fn ocdraw_to_cad_document(
         }
     }
     layouts::prepare_paper_canvases(drawing, &mut document)?;
-    if let Some(workspace) = drawing.workspace_state() {
+    if let Some(workspace) = drawing.workspace_state.as_ref() {
         if let Some(id) = workspace.current_layer_id {
             if let Some(name) = layer_names.get(&u64::from(id)) {
                 document.header.current_layer_name = name.clone();
             }
         }
         if let Some(id) = workspace.active_layout_id {
-            if let Some(layout) = drawing
-                .typed_layouts()
-                .iter()
-                .find(|layout| layout.id == id)
-            {
+            if let Some(layout) = drawing.layouts.iter().find(|layout| layout.id == id) {
                 if layout.kind == DrawingLayoutKind::Paper {
                     document.header.show_model_space = false;
                     let name = layout.name.as_str();
@@ -310,14 +311,14 @@ pub fn ocdraw_to_cad_document(
             }
         }
     }
-    if let Some(display) = drawing.point_display() {
+    if let Some(display) = drawing.point_display {
         let (mode, size) = crate::point_display::to_cad(display);
         document.header.point_display_mode = mode;
         document.header.point_display_size = size;
     }
     let mut block_handles = BTreeMap::new();
     let mut blocks = BTreeMap::new();
-    for definition in drawing.block_definitions() {
+    for definition in &drawing.block_definitions {
         let scope_id = u64::from(definition.scope_id);
         let name = definition.name.as_str();
         let base = definition.base_point;
@@ -371,7 +372,7 @@ pub fn ocdraw_to_cad_document(
     )?;
     super::workspace::apply(drawing, &mut document, &scope_layouts, &mut diagnostics);
     let members = drawing
-        .scopes()
+        .scopes
         .iter()
         .map(|scope| (u64::from(scope.id), scope.entities.clone()))
         .collect();
@@ -401,4 +402,12 @@ impl From<Box<crate::ConversionGeometryFailure>> for DirectImportError {
     fn from(failure: Box<crate::ConversionGeometryFailure>) -> Self {
         Self::Geometry(failure)
     }
+}
+
+/// Converts content already validated by the production reader.
+pub fn ocdraw_to_cad_document(
+    drawing: &ocdraw::ocdraw::ValidatedDrawing,
+    options: ImportOptions,
+) -> Result<DirectImportOutcome, DirectImportError> {
+    import_document(drawing.document(), options)
 }

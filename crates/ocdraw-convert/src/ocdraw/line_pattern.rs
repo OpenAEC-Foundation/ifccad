@@ -4,7 +4,7 @@ use super::import::DirectImportError;
 use crate::source::{ExportAction, ExportDiagnostic, ExportDiagnosticSource, ExportLossReason};
 use cadcodec::{CadDocument, Handle};
 use ocdraw::ocdraw::{
-    AppearanceSelection, DrawingBuilder, LinePatternDefinition, LinePatternId, ValidatedDrawing,
+    AppearanceSelection, DrawingBuilder, LinePatternDefinition, LinePatternId, OcdrawDocument,
 };
 use std::collections::BTreeMap;
 
@@ -157,11 +157,11 @@ pub(super) fn export_line_patterns(
 
 pub(super) type ImportLinePatternMap = BTreeMap<LinePatternId, (String, Handle)>;
 pub(super) fn import_line_patterns(
-    source: &ValidatedDrawing,
+    source: &OcdrawDocument,
     target: &mut CadDocument,
 ) -> Result<ImportLinePatternMap, DirectImportError> {
     let mut map = BTreeMap::new();
-    for row in source.line_patterns() {
+    for row in &source.line_patterns {
         let mut native = cadcodec::LineType::new(&row.name);
         native.description = row.description.clone().unwrap_or_default();
         native.elements = row
@@ -188,6 +188,6 @@ pub(super) fn import_line_patterns(
         };
         map.insert(row.id, (row.name.clone(), handle));
     }
-    target.header.linetype_scale = source.line_pattern_scale();
+    target.header.linetype_scale = source.line_pattern_scale;
     Ok(map)
 }

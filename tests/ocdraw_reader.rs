@@ -12,6 +12,63 @@ fn load(value: &Value) -> ocdraw::ocdraw::DrawingLoadOutcome {
     load_drawing_bytes(&serde_json::to_vec(value).unwrap())
 }
 
+#[test]
+fn huge_stream_counts_are_rejected_before_row_validation() {
+    const CHILD: &str = "OCDRAW_TEST_HUGE_STREAM_COUNT_CHILD";
+    if std::env::var_os(CHILD).is_some() {
+        for stream in ["pointStream", "planarPolylineStream", "viewportStream"] {
+            let mut value = fixture();
+            value["streams"] = json!({stream: {"count": u64::MAX}});
+            let outcome = load(&value);
+            assert_eq!(outcome.status(), DrawingLoadStatus::Invalid);
+            assert!(outcome
+                .diagnostics()
+                .iter()
+                .any(|d| d.code == "STREAM_COLUMN"));
+        }
+        let mut value = with_line();
+        value["streams"]["lineStream"]["count"] = json!(u64::MAX);
+        let outcome = load(&value);
+        assert_eq!(outcome.status(), DrawingLoadStatus::Invalid);
+        assert!(outcome
+            .diagnostics()
+            .iter()
+            .any(|d| matches!(d.code, "COLUMN_COUNT" | "STREAM_COUNT")));
+        value["streams"]["lineStream"]["count"] = json!(1.0);
+        let outcome = load(&value);
+        assert_eq!(outcome.status(), DrawingLoadStatus::Invalid);
+        assert!(outcome
+            .diagnostics()
+            .iter()
+            .any(|d| d.code == "STREAM_COUNT"));
+        return;
+    }
+
+    // Isolate the reader so a regression cannot hang the complete test suite.
+    let mut child = std::process::Command::new(std::env::current_exe().unwrap())
+        .args([
+            "--exact",
+            "huge_stream_counts_are_rejected_before_row_validation",
+            "--nocapture",
+        ])
+        .env(CHILD, "1")
+        .spawn()
+        .unwrap();
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(10);
+    loop {
+        if let Some(status) = child.try_wait().unwrap() {
+            assert!(status.success(), "malformed-count reader subprocess failed");
+            break;
+        }
+        if std::time::Instant::now() >= deadline {
+            child.kill().unwrap();
+            child.wait().unwrap();
+            panic!("reader did not reject tiny malformed streams within 10 seconds");
+        }
+        std::thread::sleep(std::time::Duration::from_millis(10));
+    }
+}
+
 fn with_line() -> Value {
     let mut value = fixture();
     value["linePatterns"] = json!([{"id":0,"name":"Continuous","pattern":[]}]);

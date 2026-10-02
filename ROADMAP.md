@@ -12,7 +12,13 @@ expresses architectural dependencies; it is not a release calendar.
 
 1. **Typed logical model and JSON separation - implemented.** Reader, writer
    and converter exchange typed drawing records. JSON fields and packing stay
-   in the codec. Production readback validates generated outputs.
+   in the codec. Production readback validates generated outputs. The complete
+   `OcdrawDocument` lifecycle is implemented as a refinement of this boundary:
+   builder construction, shared authored validation, explicit bounds preparation
+   and one document encoder retain IDs and allocation watermarks. CAD conversion
+   accepts/returns the logical document; identity-preserving CAD editor sessions
+   and merging independent copies remain future designs. See
+   [lifecycle contracts](docs/ocdraw-document-lifecycle.md).
 2. **Standalone parity and package retirement - implemented.** Geometry, blocks,
    layers, layouts and drawing state have standalone readback. Active
    IFCX/IFCDR/IFCPR Rust routes and schemas are retired. DXF/DWG tests retain source/target limitations and

@@ -55,16 +55,22 @@ used as standalone OCDraw measurements.
 
 ## Accepted initial JSON measurement
 
-Run `ocdraw-line-patterns-20261001`, measured on 2026-10-01:
+Run `ocdraw-document-counts-20261002-112932`, measured on 2026-10-02:
 all 12 primitive cases passed production readback and semantic exchange;
 both fresh generations passed repeatability. The pinned cadcodec dependency
-was unmodified. This evidence covers the final ordered-ownership JSON mapping
-without a stream directory, with signed/fractional polyline coordinate pools,
-source-driven paper layouts and explicit drawing-local line-pattern definitions.
-This replaces the previous applicable standalone measurement from 2026-10-01;
-the historical package baseline is unchanged. Custom and complex line patterns
-are absent from this fixed corpus and use focused strict-readback/conversion
-tests; these measurements do not certify those families.
+was unmodified. This evidence exercises the complete `OcdrawDocument` builder,
+shared validator, common encoder and logical CAD conversion wrappers. All
+measured artifacts, hashes, byte counts and exchange evidence are identical
+to the previously accepted `ocdraw-document-20261002-104515` run.
+
+This replaces the prior applicable standalone measurement from 2026-10-02;
+the historical package baseline is unchanged. Custom/complex line patterns,
+blocks, authored layouts and viewports are absent from this fixed corpus and
+use focused strict-readback/conversion tests. Sparse identities and advanced
+allocation history likewise have dedicated document and conformance tests.
+Malformed stream counts and missing or short columns have a bounded reader
+regression test; they are not part of this valid-drawing measurement corpus.
+These measurements do not certify those absent families or editing sessions.
 
 [Matching detailed results](../../benchmarks/size/ocdraw-results-v1.json)
 contain the dirty working-tree source manifest, dependency provenance,
@@ -93,10 +99,9 @@ representations. Layout, block and viewport exchange uses the focused tests,
 including explicit rejection of known inconsistent DWG block markers; those
 families are not evidence supplied by this table.
 
-Relative to the prior applicable run, DXF/DWG byte counts are unchanged.
-OCDraw pretty JSON includes the new pattern table, allocation watermark and
-explicit default scale/generation columns; those fields account for the increase.
-
-The retained provenance identifies the measured working tree. The subsequent
-inspector diagnostic for DWG spatial pattern generation is outside this corpus
-and does not change its core writer/converter paths or emitted artifacts.
+Relative to the prior applicable run, all measured data is unchanged.
+The new document lifecycle changes the Rust construction/conversion boundary;
+it retains the emitted primitive representations in this controlled corpus.
+The retained provenance records the uncommitted source manifest and removed
+legacy decoding projection. This is size/exchange evidence, not a runtime
+performance or memory-use measurement.

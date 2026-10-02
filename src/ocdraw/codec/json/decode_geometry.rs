@@ -1,4 +1,4 @@
-//! Decode validated JSON columns into encoding-neutral geometric values.
+//! Decode schema-checked JSON columns into encoding-neutral geometric values.
 
 use super::decode_appearance::appearance;
 use crate::ocdraw::logical::{DrawingGeometricEntity, EntityGeometry};
@@ -172,22 +172,21 @@ pub(crate) fn decode_geometric_entities(value: &Value) -> Option<Vec<DrawingGeom
             });
         }
     }
-    let mut by_id = entities
-        .into_iter()
-        .map(|entity| (entity.id, entity))
-        .collect::<BTreeMap<_, _>>();
+    // Keep duplicates and orphans visible to shared logical validation.
+    let mut by_id = BTreeMap::<u64, Vec<DrawingGeometricEntity>>::new();
+    for entity in entities {
+        by_id.entry(entity.id).or_default().push(entity);
+    }
     let mut ordered = Vec::with_capacity(by_id.len());
     if let Some(ids) = value["scopes"].as_array() {
         for scope in ids {
             for id in scope["entities"].as_array()? {
-                if let Some(entity) = by_id.remove(&id.as_u64()?) {
-                    ordered.push(entity);
+                if let Some(entities) = by_id.remove(&id.as_u64()?) {
+                    ordered.extend(entities);
                 }
             }
         }
     }
-    if !by_id.is_empty() {
-        return None;
-    }
+    ordered.extend(by_id.into_values().flatten());
     Some(ordered)
 }

@@ -1,5 +1,12 @@
 # Standalone OCDraw conversion coverage
 
+The complete typed `OcdrawDocument` is the logical conversion boundary.
+Logical export returns it with the existing loss/mapping/accuracy evidence;
+encoded export delegates to the core encoder. Raw document import validates
+before construction; validated reader import uses the same implementation.
+These are fresh conversions: no identity-preserving CAD editing session,
+watermark reconstruction or new source coverage is implied.
+
 Dependency: cadcodec/acadrust revision
 `5b682ed66ea2c89be8142c8dd83d83774fc3de08`, as pinned in Cargo.lock.
 

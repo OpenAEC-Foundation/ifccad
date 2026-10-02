@@ -1,10 +1,10 @@
 //! Adapt the fresh CAD document's paper scaffold to authored OCDraw layouts.
 use super::DirectImportError;
 use cadcodec::{objects::ObjectType, CadDocument, EntityType, Handle};
-use ocdraw::ocdraw::{DrawingLayoutKind, ValidatedDrawing};
+use ocdraw::ocdraw::{DrawingLayoutKind, OcdrawDocument};
 
 pub(super) fn prepare_primary_paper_layout(
-    drawing: &ValidatedDrawing,
+    drawing: &OcdrawDocument,
     document: &mut CadDocument,
 ) -> Result<(), DirectImportError> {
     let primary = document.header.paper_space_block_handle;
@@ -17,7 +17,7 @@ pub(super) fn prepare_primary_paper_layout(
         })
         .ok_or_else(|| DirectImportError::Cad("fresh paper layout is missing".into()))?;
     let first = drawing
-        .typed_layouts()
+        .layouts
         .iter()
         .filter(|layout| layout.kind == DrawingLayoutKind::Paper)
         .min_by_key(|layout| layout.tab_index);
@@ -59,11 +59,11 @@ pub(super) fn prepare_primary_paper_layout(
 }
 
 pub(super) fn prepare_paper_canvases(
-    drawing: &ValidatedDrawing,
+    drawing: &OcdrawDocument,
     document: &mut CadDocument,
 ) -> Result<(), DirectImportError> {
     for source in drawing
-        .typed_layouts()
+        .layouts
         .iter()
         .filter(|layout| layout.kind == DrawingLayoutKind::Paper)
     {
@@ -78,7 +78,7 @@ pub(super) fn prepare_paper_canvases(
             })
             .expect("allocated paper layout");
         let has_canvas = drawing
-            .paper_canvases()
+            .paper_canvases
             .iter()
             .any(|canvas| canvas.scope_id == source.scope_id);
         if has_canvas && overall.is_null() {

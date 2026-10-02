@@ -1,5 +1,5 @@
 use super::encode_color;
-use crate::ocdraw::logical::{AppearanceSelection, DrawingEntityRecord, EntityGeometry};
+use crate::ocdraw::logical::{AppearanceSelection, DrawingGeometricEntity, EntityGeometry};
 use serde_json::{json, Map, Value};
 
 fn mode<T>(selection: &AppearanceSelection<T>) -> &'static str {
@@ -137,7 +137,7 @@ fn encode_geometry_fields(geometry: &EntityGeometry) -> Map<String, Value> {
     fields
 }
 
-pub(crate) fn object_columns(rows: &[&DrawingEntityRecord]) -> Map<String, Value> {
+pub(crate) fn object_columns(rows: &[&DrawingGeometricEntity]) -> Map<String, Value> {
     let mut columns = Map::new();
     columns.insert("count".into(), json!(rows.len()));
     let common = [
@@ -185,7 +185,7 @@ pub(crate) fn object_columns(rows: &[&DrawingEntityRecord]) -> Map<String, Value
     columns
 }
 
-pub(crate) fn polyline_columns(rows: &[&DrawingEntityRecord], kind: &str) -> Map<String, Value> {
+pub(crate) fn polyline_columns(rows: &[&DrawingGeometricEntity], kind: &str) -> Map<String, Value> {
     let mut columns = object_columns(rows);
     let pools = if kind == "planarPolyline" {
         &["x", "y", "bulge"][..]

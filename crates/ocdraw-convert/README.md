@@ -1,7 +1,9 @@
 # ocdraw-convert
 
 `ocdraw-convert` connects standalone OCDraw to cadcodec's `CadDocument` through
-`cad_document_to_drawing` and `ocdraw_to_cad_document`. These implementations
+`cad_document_to_ocdraw_document` and `ocdraw_document_to_cad_document`.
+The encoded `cad_document_to_drawing` and validated `ocdraw_to_cad_document`
+entry points remain compatible wrappers. These implementations
 live in [`src/ocdraw`](src/ocdraw). Pure CAD source classification lives in
 [`src/source`](src/source), and numerical kernels in [`src/geometry`](src/geometry).
 The core format implementation remains usable without cadcodec.
@@ -30,9 +32,11 @@ let cad_document = imported.into_document();
 # }
 ```
 
-The converter consumes the validated typed logical model. It does not inspect
-JSON columns or construct JSON. The core writer encodes every output and loads
-it through the production reader before returning it. Filesystem storage is a
+The converter consumes typed `OcdrawDocument` content. Raw input is validated
+before CAD construction; a reader snapshot already carries that guarantee. It does not inspect
+JSON columns or construct JSON. Logical export returns a document and the same loss, mapping and accuracy
+evidence without encoding. The encoded wrapper uses the core encoder and strict
+production readback. Filesystem storage is a
 separate application responsibility.
 
 The standalone route supports modelspace, paperspace, shared local blocks,
@@ -60,3 +64,24 @@ See [standalone coverage](src/ocdraw/COVERAGE.md) for scope and limitations, and
 [block codec limits](../../docs/geometry/block-cad-boundary.md) for upstream
 DXF/DWG restrictions. Conversion through the real pinned DXF and DWG readers
 and writers is tested without dependency patches.
+
+## Logical conversion without serialization
+
+```rust
+use ocdraw::ocdraw::{encode_document, validate_document};
+use ocdraw_convert::{cad_document_to_ocdraw_document, ocdraw_document_to_cad_document,
+    cadcodec::CadDocument, ExportOptions, ImportOptions};
+# fn example() -> Result<(), Box<dyn std::error::Error>> {
+let exported = cad_document_to_ocdraw_document(&CadDocument::new(), ExportOptions::default())?;
+let drawing = exported.document();
+validate_document(drawing)?;
+let cad = ocdraw_document_to_cad_document(drawing, ImportOptions::default())?;
+let bytes = encode_document(drawing)?; // Only when native storage is wanted.
+# let _ = (cad, bytes);
+# Ok(())
+# }
+```
+
+These are fresh conversions. CAD handles, OCDraw IDs and allocation history are
+not roundtripped through `CadDocument`. A future CAD editor save route needs
+explicit session context. See the [core lifecycle](../../docs/ocdraw-document-lifecycle.md).

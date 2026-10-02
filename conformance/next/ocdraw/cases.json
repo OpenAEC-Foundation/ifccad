@@ -149,6 +149,10 @@
       "path": "invalid/zero-line-pattern-scale.ocdraw.json",
       "status": "invalid",
       "diagnostic": "SCHEMA"
+    },
+    {
+      "path": "valid/sparse-identities.ocdraw.json",
+      "status": "valid"
     }
   ]
 }

@@ -1,5 +1,12 @@
 # OCDraw to CadDocument coverage
 
+The complete typed `OcdrawDocument` is the logical conversion boundary.
+Logical export returns it with the existing loss/mapping/accuracy evidence;
+encoded export delegates to the core encoder. Raw document import validates
+before construction; validated reader import uses the same implementation.
+These are fresh conversions: no identity-preserving CAD editing session,
+watermark reconstruction or new source coverage is implied.
+
 The validated standalone drawing is the conversion boundary. The pinned codec
 revision is `5b682ed66ea2c89be8142c8dd83d83774fc3de08`. There is no package
 graph or preservation transfer. Geometry accuracy and semantic losses are

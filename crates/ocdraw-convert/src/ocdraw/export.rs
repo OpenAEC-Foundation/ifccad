@@ -15,8 +15,8 @@ use cadcodec::objects::ObjectType;
 use cadcodec::{CadDocument, EntityType, Handle};
 use ocdraw::ocdraw::{
     BlockDefinition, CoordinateFrame3, DrawingBuildError, DrawingBuilder, DrawingOptions,
-    EncodedDrawing, GeometricEntityDefinition, LayoutRect, LayoutSettings, PlotStyleMode, Point3,
-    UcsDefinition, Vector3,
+    EncodedDrawing, GeometricEntityDefinition, LayoutRect, LayoutSettings, OcdrawDocument,
+    PlotStyleMode, Point3, UcsDefinition, Vector3,
 };
 use std::collections::BTreeMap;
 
@@ -73,6 +73,31 @@ impl DirectExportOutcome {
     }
 }
 
+pub struct OcdrawDocumentExportOutcome {
+    document: OcdrawDocument,
+    diagnostics: Vec<ExportDiagnostic>,
+    entity_mapping: BTreeMap<Handle, u64>,
+    geometry: crate::ConversionGeometryAssessment,
+}
+
+impl OcdrawDocumentExportOutcome {
+    pub fn document(&self) -> &OcdrawDocument {
+        &self.document
+    }
+    pub fn diagnostics(&self) -> &[ExportDiagnostic] {
+        &self.diagnostics
+    }
+    pub fn entity_mapping(&self) -> &BTreeMap<Handle, u64> {
+        &self.entity_mapping
+    }
+    pub fn geometry_assessment(&self) -> &crate::ConversionGeometryAssessment {
+        &self.geometry
+    }
+    pub fn into_document(self) -> OcdrawDocument {
+        self.document
+    }
+}
+
 #[derive(Debug, thiserror::Error)]
 pub enum DirectExportError {
     #[error(transparent)]
@@ -100,23 +125,23 @@ fn loss(
     }
 }
 
-pub fn cad_document_to_drawing(
+pub fn cad_document_to_ocdraw_document(
     document: &CadDocument,
     options: ExportOptions,
-) -> Result<DirectExportOutcome, DirectExportError> {
+) -> Result<OcdrawDocumentExportOutcome, DirectExportError> {
     let drawing_id = if document.header.fingerprint_guid.is_empty() {
         "drawing-main"
     } else {
         &document.header.fingerprint_guid
     };
-    cad_document_to_drawing_with_id(document, drawing_id, options)
+    cad_document_to_ocdraw_document_with_id(document, drawing_id, options)
 }
 
-pub fn cad_document_to_drawing_with_id(
+pub fn cad_document_to_ocdraw_document_with_id(
     document: &CadDocument,
     drawing_id: &str,
     options: ExportOptions,
-) -> Result<DirectExportOutcome, DirectExportError> {
+) -> Result<OcdrawDocumentExportOutcome, DirectExportError> {
     let recovered = with_recovered_model_space_handle(document);
     let recovered_blocks = crate::source::with_recovered_anonymous_block_name(recovered.as_ref());
     let document = recovered_blocks.as_ref();
@@ -700,9 +725,9 @@ pub fn cad_document_to_drawing_with_id(
     {
         return Err(DirectExportError::LossRejected { diagnostics });
     }
-    let drawing = drawing.finish()?;
-    Ok(DirectExportOutcome {
-        drawing,
+    let document = drawing.build_document()?;
+    Ok(OcdrawDocumentExportOutcome {
+        document,
         diagnostics,
         entity_mapping,
         geometry: geometry.assessment,
@@ -713,4 +738,33 @@ impl From<Box<crate::ConversionGeometryFailure>> for DirectExportError {
     fn from(failure: Box<crate::ConversionGeometryFailure>) -> Self {
         Self::Geometry(failure)
     }
+}
+
+/// Converts a fresh CAD source and encodes the resulting logical drawing.
+pub fn cad_document_to_drawing(
+    document: &CadDocument,
+    options: ExportOptions,
+) -> Result<DirectExportOutcome, DirectExportError> {
+    encode_export(cad_document_to_ocdraw_document(document, options)?)
+}
+pub fn cad_document_to_drawing_with_id(
+    document: &CadDocument,
+    drawing_id: &str,
+    options: ExportOptions,
+) -> Result<DirectExportOutcome, DirectExportError> {
+    encode_export(cad_document_to_ocdraw_document_with_id(
+        document, drawing_id, options,
+    )?)
+}
+fn encode_export(
+    outcome: OcdrawDocumentExportOutcome,
+) -> Result<DirectExportOutcome, DirectExportError> {
+    let drawing =
+        ocdraw::ocdraw::encode_document(&outcome.document).map_err(DrawingBuildError::from)?;
+    Ok(DirectExportOutcome {
+        drawing,
+        diagnostics: outcome.diagnostics,
+        entity_mapping: outcome.entity_mapping,
+        geometry: outcome.geometry,
+    })
 }

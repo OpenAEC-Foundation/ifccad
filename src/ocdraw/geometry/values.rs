@@ -58,6 +58,10 @@ pub struct Bounds3d {
 }
 
 impl Bounds3d {
+    /// Stores authored bounds; document validation checks ordering and finiteness.
+    pub const fn new(min: Point3, max: Point3) -> Self {
+        Self { min, max }
+    }
     pub const fn min(self) -> Point3 {
         self.min
     }

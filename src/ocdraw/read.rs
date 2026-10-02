@@ -4,11 +4,11 @@ use super::codec::json::{
     decode_viewports, decode_workspace_state,
 };
 use super::codec::json::{parse_document, JsonEncodedDrawing};
+use super::logical::OcdrawDocument;
 use super::logical::{
     DrawingBlockDefinition, DrawingGeometricEntity, DrawingLayer, DrawingLayout, DrawingScope,
     DrawingUcsDefinition, DrawingWorkspaceState,
 };
-use super::logical::{DrawingDocument, DrawingModel};
 use super::{PlotStyleMode, PointDisplay};
 use std::path::Path;
 
@@ -29,11 +29,20 @@ pub struct DrawingDiagnostic {
 #[derive(Clone, Debug)]
 pub struct ValidatedDrawing {
     encoding: JsonEncodedDrawing,
-    document: DrawingDocument,
+    document: OcdrawDocument,
     owners: std::collections::BTreeMap<u64, u32>,
 }
 
 impl ValidatedDrawing {
+    /// Borrows validated logical content without exposing mutable access.
+    pub fn document(&self) -> &OcdrawDocument {
+        &self.document
+    }
+
+    /// Moves logical content out, dropping the encoding and derived indexes.
+    pub fn into_document(self) -> OcdrawDocument {
+        self.document
+    }
     pub fn line_patterns(&self) -> &[super::DrawingLinePattern] {
         &self.document.line_patterns
     }
@@ -138,6 +147,10 @@ pub struct DrawingLoadOutcome {
 }
 
 impl DrawingLoadOutcome {
+    /// Extracts validated content without cloning it.
+    pub fn into_validated_drawing(self) -> Option<ValidatedDrawing> {
+        self.drawing
+    }
     pub fn status(&self) -> DrawingLoadStatus {
         self.status
     }
@@ -195,13 +208,6 @@ pub fn load_drawing_bytes(bytes: &[u8]) -> DrawingLoadOutcome {
     let value = encoding.value();
     let mut diagnostics = Vec::new();
     super::codec::json::validate_physical(value, &mut diagnostics);
-    let model: DrawingModel = super::codec::json::decode_model(value);
-    diagnostics.extend(
-        model
-            .validate()
-            .into_iter()
-            .map(|error| diagnostic(error.code, error.location, error.message)),
-    );
     if !diagnostics.is_empty() {
         return invalid(diagnostics);
     }
@@ -235,7 +241,7 @@ pub fn load_drawing_bytes(bytes: &[u8]) -> DrawingLoadOutcome {
     };
     let Some(ucs_definitions) = decode_ucs_definitions(value) else {
         return invalid(vec![diagnostic(
-            "UCS_DECODE",
+            "UCS_FRAME",
             "/ucsDefinitions",
             "validated UCS definition could not be decoded",
         )]);
@@ -268,24 +274,6 @@ pub fn load_drawing_bytes(bytes: &[u8]) -> DrawingLoadOutcome {
             "validated scopes could not be decoded",
         )]);
     };
-    diagnostics.extend(
-        super::logical::validate_geometry_bounds(&geometric_entities, &scopes)
-            .into_iter()
-            .map(|error| diagnostic(error.code, error.location, error.message)),
-    );
-    diagnostics.extend(
-        super::logical::validate_blocks(&geometric_entities, &block_definitions, &scopes)
-            .into_iter()
-            .map(|error| diagnostic(error.code, error.location, error.message)),
-    );
-    diagnostics.extend(
-        super::logical::validate_viewport_bounds(&viewports, &scopes)
-            .into_iter()
-            .map(|error| diagnostic(error.code, error.location, error.message)),
-    );
-    if !diagnostics.is_empty() {
-        return invalid(diagnostics);
-    }
     let Some(view_state) = decode_view_state(value) else {
         return invalid(vec![diagnostic(
             "VIEW_STATE_DECODE",
@@ -294,7 +282,19 @@ pub fn load_drawing_bytes(bytes: &[u8]) -> DrawingLoadOutcome {
         )]);
     };
     let (drawing_id, unit, plot_style_mode) = encoding.header();
-    let document = DrawingDocument {
+    let document = OcdrawDocument {
+        next_entity_id: value["header"]["nextEntityId"]
+            .as_u64()
+            .expect("checked integer watermark"),
+        next_layer_id: value["header"]["nextLayerId"]
+            .as_u64()
+            .expect("checked integer watermark") as u32,
+        next_layout_id: value["header"]["nextLayoutId"]
+            .as_u64()
+            .expect("checked integer watermark") as u32,
+        next_line_pattern_id: value["header"]["nextLinePatternId"]
+            .as_u64()
+            .expect("checked integer watermark") as u32,
         line_patterns: super::codec::json::decode_line_patterns(value),
         line_pattern_scale: value["linePatternScale"].as_f64().unwrap_or(1.0),
         drawing_id,
@@ -314,11 +314,9 @@ pub fn load_drawing_bytes(bytes: &[u8]) -> DrawingLoadOutcome {
         paper_canvases: view_state.paper_canvases,
         viewport_workspaces: view_state.viewport_workspaces,
     };
-    diagnostics.extend(
-        super::logical::validate_state(&document)
-            .into_iter()
-            .map(|e| diagnostic(e.code, e.location, e.message)),
-    );
+    if let Err(error) = super::validate_document(&document) {
+        diagnostics.extend(error.into_diagnostics());
+    }
     if !diagnostics.is_empty() {
         return invalid(diagnostics);
     }

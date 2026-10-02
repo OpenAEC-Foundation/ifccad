@@ -54,7 +54,7 @@ pub(super) fn render_mode(source: DrawingRenderMode) -> &'static str {
         DrawingRenderMode::SmoothShadedWithEdges => "SmoothShadedWithEdges",
     }
 }
-pub(super) fn encode_saved_state(root: &mut Value, state: &DrawingSavedState) {
+pub(super) fn encode_document_state(root: &mut Value, state: &OcdrawDocument) {
     if let Some(source) = state.view_state {
         root["drawingViewState"] = json!({"currentModelUcs":ucs(source.current_model_ucs),"activeModelWindowId":source.active_model_window_id});
     }

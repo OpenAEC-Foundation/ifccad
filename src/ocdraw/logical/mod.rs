@@ -4,8 +4,15 @@ mod line_pattern;
 pub(crate) mod line_pattern_validation;
 pub use line_pattern::*;
 mod appearance;
+mod bounds_preparation;
 mod definitions;
 mod document;
+mod document_projection;
+mod document_validation;
+mod field_validation;
+pub use bounds_preparation::recompute_document_bounds;
+pub use document_validation::{validate_document, OcdrawValidationError};
+pub(crate) use document_validation::{validate_logical_document, ValidationPhase};
 mod geometry;
 mod geometry_validation;
 mod model;
@@ -18,7 +25,7 @@ pub use definitions::{
     DrawingBlockDefinition, DrawingLayer, DrawingLayout, DrawingLayoutKind, DrawingScope,
     DrawingScopeKind, DrawingUcsDefinition, DrawingWorkspaceState,
 };
-pub(crate) use document::DrawingDocument;
+pub use document::OcdrawDocument;
 pub(crate) use geometry::DrawingEntityRecord;
 pub use geometry::{DrawingGeometricEntity, EntityGeometry};
 pub(crate) use geometry_validation::{

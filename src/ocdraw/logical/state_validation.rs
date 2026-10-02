@@ -1,4 +1,4 @@
-//! Cross-record view, clipping and workspace rules shared by reader and writer readback.
+//! Cross-record view, clipping and workspace rules shared by authored and decoded documents.
 use super::*;
 use std::collections::{BTreeMap, BTreeSet};
 fn error(code: &'static str, location: impl Into<String>, message: &str) -> LogicalError {
@@ -62,7 +62,7 @@ fn valid_view(view: DrawingView, paper: bool) -> bool {
         && (view.back_clip.mode != DrawingClipMode::AtDistance || back.is_some())
         && front.zip(back).is_none_or(|(front, back)| back < front)
 }
-pub(crate) fn validate_state(document: &DrawingDocument) -> Vec<LogicalError> {
+pub(crate) fn validate_state(document: &OcdrawDocument) -> Vec<LogicalError> {
     let owners = owner_index(&document.scopes);
     let scopes = document
         .scopes

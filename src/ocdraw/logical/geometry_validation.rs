@@ -1,9 +1,6 @@
 //! Geometry and scope bounds rules over decoded drawing values.
 
-use super::{
-    DrawingGeometricEntity, DrawingScope, DrawingScopeKind, DrawingViewport, EntityGeometry,
-    LogicalError,
-};
+use super::{DrawingGeometricEntity, DrawingScope, DrawingViewport, EntityGeometry, LogicalError};
 use crate::ocdraw::geometry::{bulge_segment_bounds, circular_bounds, elliptic_bounds};
 use crate::ocdraw::Point2;
 use std::collections::BTreeMap;
@@ -166,16 +163,6 @@ pub(crate) fn validate_viewport_bounds(
         let Some(owner) = owners.get(&viewport.id).and_then(|owner| by_id.get(owner)) else {
             continue;
         };
-        if owner.kind != DrawingScopeKind::Paper
-            || by_id.get(&viewport.view_scope_id).map(|scope| scope.kind)
-                != Some(DrawingScopeKind::Model)
-        {
-            errors.push(LogicalError {
-                code: "VIEWPORT_SCOPE",
-                location: format!("/streams/viewportStream/entityId/{index}"),
-                message: "viewport must belong to paper space and view model space".into(),
-            });
-        }
         let Some(frame) = viewport_bounds(viewport.frame) else {
             errors.push(LogicalError {
                 code: "VIEWPORT_FRAME",

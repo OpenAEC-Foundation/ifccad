@@ -3,11 +3,8 @@ use crate::ocdraw::read::{diagnostic, DrawingDiagnostic};
 use serde_json::Value;
 use std::collections::BTreeSet;
 
-pub(super) fn validate_streams(
-    value: &Value,
-    layer_ids: &BTreeSet<u64>,
-    diagnostics: &mut Vec<DrawingDiagnostic>,
-) {
+/// Checks row counts and column shapes without traversing declared rows.
+pub(super) fn validate_stream_columns(value: &Value, diagnostics: &mut Vec<DrawingDiagnostic>) {
     for map in super::super::stream_contract::mapping()["streams"]
         .as_array()
         .expect("bundled mapping")
@@ -35,12 +32,18 @@ pub(super) fn validate_streams(
     }
     if let Some(streams) = value["streams"].as_object() {
         for (name, stream) in streams {
-            let count = stream["count"].as_u64().expect("schema count") as usize;
-            let pooled_columns: &[&str] = match name.as_str() {
-                "planarPolylineStream" => &["x", "y", "bulge"],
-                "spatialPolylineStream" => &["x", "y", "z"],
-                _ => &[],
+            let Some(count) = stream["count"]
+                .as_u64()
+                .and_then(|count| usize::try_from(count).ok())
+            else {
+                diagnostics.push(diagnostic(
+                    "STREAM_COUNT",
+                    format!("/streams/{name}/count"),
+                    "stream count must be an exact unsigned integer in the addressable range",
+                ));
+                continue;
             };
+            let pooled_columns = pooled_columns(name);
             for (field, column) in stream.as_object().expect("schema stream") {
                 if field != "count"
                     && !pooled_columns.contains(&field.as_str())
@@ -53,8 +56,17 @@ pub(super) fn validate_streams(
                     ));
                 }
             }
+        }
+    }
+}
+
+pub(super) fn validate_streams(value: &Value, diagnostics: &mut Vec<DrawingDiagnostic>) {
+    if let Some(streams) = value["streams"].as_object() {
+        for (name, stream) in streams {
+            let pooled_columns = pooled_columns(name);
             if !pooled_columns.is_empty() {
-                validate_vertex_pool(value, name, stream, pooled_columns, count, diagnostics);
+                let count = stream["count"].as_u64().expect("validated stream count") as usize;
+                validate_vertex_pool(name, stream, pooled_columns, count, diagnostics);
             }
         }
     }
@@ -62,15 +74,6 @@ pub(super) fn validate_streams(
     let override_stream = &value["streams"]["viewportLayerOverrideStream"];
     let viewport_stream = &value["streams"]["viewportStream"];
     if let Some(overrides) = override_stream["layerId"].as_array() {
-        for (index, id) in overrides.iter().enumerate() {
-            if !id.as_u64().is_some_and(|id| layer_ids.contains(&id)) {
-                diagnostics.push(diagnostic(
-                    "VIEWPORT_LAYER",
-                    format!("/streams/viewportLayerOverrideStream/layerId/{index}"),
-                    "viewport override Layer does not resolve",
-                ));
-            }
-        }
         let offsets = viewport_stream["layerOverrideOffset"].as_array();
         let counts = viewport_stream["layerOverrideCount"].as_array();
         let viewport_count = viewport_stream["count"].as_u64().unwrap_or(0) as usize;
@@ -82,17 +85,12 @@ pub(super) fn validate_streams(
                 .zip(counts.and_then(|v| v.get(row)).and_then(Value::as_u64))
                 .and_then(|(start, count)| start.checked_add(count).map(|end| (start, end)));
             if let Some((start, end)) = range.filter(|(_, end)| *end <= overrides.len() as u64) {
-                let mut local_layers = BTreeSet::new();
                 for position in start..end {
-                    if !covered.insert(position)
-                        || !overrides[position as usize]
-                            .as_u64()
-                            .is_some_and(|id| local_layers.insert(id))
-                    {
+                    if !covered.insert(position) {
                         diagnostics.push(diagnostic(
                             "VIEWPORT_LAYER",
                             format!("/streams/viewportStream/layerOverrideOffset/{row}"),
-                            "viewport override ranges overlap or repeat a Layer",
+                            "viewport override ranges overlap",
                         ));
                     }
                 }
@@ -114,8 +112,15 @@ pub(super) fn validate_streams(
     }
 }
 
+fn pooled_columns(name: &str) -> &'static [&'static str] {
+    match name {
+        "planarPolylineStream" => &["x", "y", "bulge"],
+        "spatialPolylineStream" => &["x", "y", "z"],
+        _ => &[],
+    }
+}
+
 fn validate_vertex_pool(
-    drawing: &Value,
     name: &str,
     stream: &Value,
     pools: &[&str],
@@ -154,15 +159,6 @@ fn validate_vertex_pool(
         if let Some((offset, vertices, end)) = range {
             if offset == next as u64 && vertices >= 2 && end <= length as u64 {
                 next = end as usize;
-                geometry::validate_polyline_geometry(
-                    drawing,
-                    name,
-                    stream,
-                    row,
-                    offset as usize,
-                    vertices as usize,
-                    diagnostics,
-                );
                 continue;
             }
         }

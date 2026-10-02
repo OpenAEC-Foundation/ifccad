@@ -1,10 +1,38 @@
 //! Standalone Open CAD Drawing document access.
+//!
+//! Fresh construction may use [`DrawingBuilder::finish`] directly or expose the
+//! complete logical document for editing before encoding:
+//!
+//! ```
+//! use ocdraw::ocdraw::{DrawingBuilder, DrawingOptions, encode_document,
+//!     recompute_document_bounds, validate_document};
+//! # fn example() -> Result<(), Box<dyn std::error::Error>> {
+//! let mut document = DrawingBuilder::new(DrawingOptions::new("drawing", "mm"))?
+//!     .build_document()?;
+//! // Edit typed records here. Recompute only when new bounds are wanted.
+//! recompute_document_bounds(&mut document)?;
+//! validate_document(&document)?;
+//! let encoded = encode_document(&document)?;
+//! // encoded.write_file("new-drawing.ocdraw.json")?;
+//! # let _ = encoded;
+//! # Ok(())
+//! # }
+//! # example().unwrap();
+//! ```
+//!
+//! Encoding retains valid supplied bounds and all four allocation watermarks.
+//! Reader snapshots expose [`ValidatedDrawing::document`] and can be consumed
+//! through [`ValidatedDrawing::into_document`] for mutation.
 
 mod codec;
 mod display;
 pub(crate) mod geometry;
 mod layout;
 mod logical;
+pub use logical::recompute_document_bounds;
+pub use logical::OcdrawDocument;
+pub use logical::{validate_document, OcdrawValidationError};
+mod encode;
 pub(crate) mod names;
 mod plot;
 mod read;
@@ -12,6 +40,7 @@ pub(crate) mod types;
 mod workspace;
 mod write;
 pub use display::{PointDisplay, PointGlyph, PointSize};
+pub use encode::{encode_document, OcdrawEncodeError};
 pub use geometry::{
     BlockTransform, BlockTransformError, Bounds3d, CoordinateAxis, CoordinateFrame3,
     CoordinateFrameError, CoordinateFrameField, GeometryEvaluationError, PlaneAxis, Point3, Scale3,

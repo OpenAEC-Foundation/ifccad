@@ -8,7 +8,12 @@ use super::{
 use crate::ocdraw::{PlotStyleMode, PointDisplay};
 
 #[derive(Clone, Debug)]
-pub(crate) struct DrawingDocument {
+/// Complete encoding-independent drawing content. Validate after editing.
+pub struct OcdrawDocument {
+    pub next_entity_id: u64,
+    pub next_layer_id: u32,
+    pub next_layout_id: u32,
+    pub next_line_pattern_id: u32,
     pub drawing_id: String,
     pub unit: String,
     pub plot_style_mode: PlotStyleMode,
