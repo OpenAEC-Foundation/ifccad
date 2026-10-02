@@ -1,8 +1,6 @@
 # Open CAD Drawing (OCDraw)
 
-<p align="center">
-  <a href="https://ifccad-explorer.open-aec.com"><strong>Open CAD Drawing explorer</strong></a>
-</p>
+**Website: [Open CAD Drawing explorer](https://ifccad-explorer.open-aec.com)**
 
 An open, application-independent information model and exchange format for CAD
 drawings. This experimental repository keeps the IFCCAD name and develops
