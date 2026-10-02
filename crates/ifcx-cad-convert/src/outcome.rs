@@ -1,5 +1,5 @@
 use cadcodec::{CadDocument, Handle};
-use ocdraw::ifcx_cad::{IfcxCadHeader, ValidatedIfcxCad};
+use ocdraw::ifcx_cad::{IfcxCadDocument, IfcxCadHeader, ValidatedIfcxCad};
 use std::collections::BTreeMap;
 
 /// Acceptance of diagnosed semantic losses. Structural and numeric failures
@@ -107,6 +107,27 @@ impl IfcxCadToCadOutcome {
         &self.mappings
     }
 }
+/// A validated logical CAD projection, before IFCX encoding.
+pub struct CadToIfcxCadDocumentOutcome {
+    pub(crate) document: IfcxCadDocument,
+    pub(crate) diagnostics: Vec<IfcxCadDiagnostic>,
+    pub(crate) mappings: IfcxCadMappings,
+}
+impl CadToIfcxCadDocumentOutcome {
+    pub fn document(&self) -> &IfcxCadDocument {
+        &self.document
+    }
+    pub fn into_document(self) -> IfcxCadDocument {
+        self.document
+    }
+    pub fn diagnostics(&self) -> &[IfcxCadDiagnostic] {
+        &self.diagnostics
+    }
+    pub fn mappings(&self) -> &IfcxCadMappings {
+        &self.mappings
+    }
+}
+
 pub struct CadToIfcxCadOutcome {
     pub(crate) validated: ValidatedIfcxCad,
     pub(crate) bytes: Vec<u8>,

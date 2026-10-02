@@ -1,5 +1,13 @@
 # IFCX-CAD → CadDocument coverage
 
+The projection-only `ifcx_cad_document_to_cad_document` routes validate typed
+input before using the shared CAD conversion implementation. They do not inspect
+or encode IFCX bytes. The existing loaded-source routes also assess the complete
+composed graph for foreign information and exact-source numeric projection.
+Those additional diagnostics and their Allow/Reject enforcement remain intact;
+applications assessing a full IFCX source must use the loaded-source routes.
+Original input bytes and composed graph remain immutable in `LoadedIfcxGraph`.
+
 Profile `urn:example:ifccad:0.1.0`; cadcodec revision
 `5b682ed66ea2c89be8142c8dd83d83774fc3de08`. Default Allow returns supported content
 with losses; explicit Reject refuses diagnosed omissions or modifications.
@@ -19,7 +27,7 @@ fresh CAD import assigns new IDs and watermarks with explicit outcome mappings.
 | Pattern scale/generation | Drawing/entity scales to header/common fields; planar polyline perSegment/continuous to plinegen |
 | Model | Default Model layout, ordered backing block membership |
 | Paper | Omit each layout and its entities with located diagnostics |
-| Layers | Retain names, unused declarations and concrete appearance; synthesize missing CAD layer 0 with diagnosed explicit fallback |
+| Layers | Retain names, unused declarations and concrete appearance; synthesize missing CAD layer 0 with diagnosed explicit fallback; reject collisions under cadcodec's normalized name lookup, including multiple layers named 0, before CAD allocation under both policies |
 | Layer/entity appearance | True RGB, resolved named patterns, supported hundredth-mm weight, exact decoded opacity byte; preserve independent inherited/explicit modes on entities |
 | Lines | Direct finite XYZ endpoints |
 | Circles | Radius and origin retained; standard XY basis only |
@@ -54,6 +62,6 @@ the failed boundary. Diagnostics cover conversion to CadDocument; external
 DXF/DWG codecs require independent semantic readback and can introduce additional
 angle rounding during degree/radian encoding.
 
-Evidence: `tests/conversion.rs`, `tests/blocks.rs`, `tests/exchange.rs`, `tests/line_patterns.rs`.
+Evidence: `tests/conversion.rs`, `tests/blocks.rs`, `tests/exchange.rs`, `tests/line_patterns.rs`, `tests/layer_names.rs`.
 Real DXF/DWG tests use the same primitive corpus and strict IFCX readback;
 DWG nonzero-base marker conflicts are expected rejected transfers.

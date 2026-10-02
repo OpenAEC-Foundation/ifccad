@@ -1,5 +1,12 @@
 # CadDocument → IFCX-CAD coverage
 
+The logical `cad_document_to_ifcx_cad_document` routes return an independently
+validated typed document with diagnostics and mappings, without an IFCX byte
+bridge. Existing encoded routes call them, then core profile encoding and
+production loading. Coverage, loss acceptance, recoveries and fresh ID
+allocation are shared. Encoding creates a new CAD-profile file; no source graph
+writeback is performed.
+
 Pinned semantic inventory V1, cadcodec
 `5b682ed66ea2c89be8142c8dd83d83774fc3de08`. Exhaustive matches classify every
 inventory category. Serde residual checks cover fields plus typed comparisons

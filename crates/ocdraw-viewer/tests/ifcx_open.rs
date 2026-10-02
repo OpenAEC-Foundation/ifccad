@@ -79,8 +79,21 @@ fn ifcx_download_retains_original_fragments_and_foreign_information() {
     graph["data"]
         .as_array_mut()
         .unwrap()
+        .push(serde_json::json!({
+            "path":"/cad/d1/e42", "attributes":{"example::note":"separate fragment"}
+        }));
+    graph["data"]
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .find(|n| n["path"] == "/cad/d1")
+        .unwrap()["attributes"]["ifccad::drawing"]["nextEntityId"] =
+        serde_json::json!(9007199254740993_u64);
+    graph["data"]
+        .as_array_mut()
+        .unwrap()
         .push(serde_json::json!({"path":"/foreign","attributes":{"example::value":42}}));
-    let bytes = serde_json::to_vec(&graph).unwrap();
+    let bytes = serde_json::to_vec_pretty(&graph).unwrap();
     let result = export_drawing_bytes("hello.ifcx.json", &bytes, "ifcx", "AC1032");
     assert_eq!(result["failure"], serde_json::Value::Null);
     assert_eq!(
@@ -89,6 +102,21 @@ fn ifcx_download_retains_original_fragments_and_foreign_information() {
             .unwrap(),
         bytes
     );
+    let loaded = read_native_cad_ifcx(&bytes).unwrap();
+    assert_eq!(loaded.graph().source_bytes(), bytes);
+    let nodes = result["presentation"]["graph"]["data"].as_array().unwrap();
+    assert_eq!(
+        nodes.iter().filter(|n| n["path"] == "/cad/d1/e42").count(),
+        1
+    );
+    assert!(nodes.iter().any(|n| n["path"] == "/foreign"));
+    let dxf = export_drawing_bytes("hello.ifcx", &bytes, "dxf", "AC1032");
+    assert_eq!(dxf["failure"], serde_json::Value::Null);
+    assert!(dxf["export"]["diagnostics"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|d| d["code"] == "foreign-ifcx"));
 }
 
 #[test]

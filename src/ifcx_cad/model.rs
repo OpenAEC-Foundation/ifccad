@@ -11,7 +11,9 @@ pub struct IfcxCadHeader {
     pub timestamp: String,
 }
 
-/// A small, standalone drawing in the experimental IFCX CAD profile.
+/// Owned, editable CAD projection in the experimental IFCX profile.
+///
+/// This document does not contain foreign nodes or original IFCX fragments.
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfcxCadDocument {
     pub header: IfcxCadHeader,
@@ -163,10 +165,10 @@ pub enum IfcxCadLinePatternGeneration {
     Continuous,
 }
 
-/// The validated CAD projection and the composed IFCX graph, including extensions.
+/// A validated CAD projection together with its immutable full source context.
 #[derive(Clone, Debug)]
 pub struct ValidatedIfcxCad {
-    pub(crate) raw: Value,
+    pub(crate) graph: super::LoadedIfcxGraph,
     pub(crate) document: IfcxCadDocument,
 }
 
@@ -174,7 +176,21 @@ impl ValidatedIfcxCad {
     pub fn document(&self) -> &IfcxCadDocument {
         &self.document
     }
+    /// Borrow the complete source snapshot, including non-CAD information.
+    pub fn graph(&self) -> &super::LoadedIfcxGraph {
+        &self.graph
+    }
+    /// Extract an editable CAD projection, discarding its source context.
+    pub fn into_document(self) -> IfcxCadDocument {
+        self.document
+    }
+    /// Extract the independent source snapshot and editable CAD projection.
+    /// Changes to the document are not merged into the snapshot.
+    pub fn into_parts(self) -> (super::LoadedIfcxGraph, IfcxCadDocument) {
+        (self.graph, self.document)
+    }
+    /// Compatibility accessor for the composed graph, not the original fragments.
     pub fn raw_ifcx(&self) -> &Value {
-        &self.raw
+        self.graph.composed_ifcx()
     }
 }

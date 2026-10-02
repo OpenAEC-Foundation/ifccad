@@ -1,5 +1,4 @@
 use super::*;
-use crate::ocdraw::{BlockTransform, CoordinateFrame3, Point3, Scale3, Vector3};
 use serde::Deserialize;
 use serde_json::Value;
 use std::collections::{BTreeMap, BTreeSet};
@@ -138,62 +137,6 @@ fn children(node: &Value) -> Result<Vec<String>, IfcxCadReport> {
     }
     Ok(ordered.into_values().collect())
 }
-fn finite3(value: [f64; 3], context: &str) -> Result<(), IfcxCadReport> {
-    if value.iter().all(|n| n.is_finite()) {
-        Ok(())
-    } else {
-        Err(problem(format!("{context} has non-finite coordinate")))
-    }
-}
-fn placement(value: &IfcxCadPlacement, context: &str) -> Result<CoordinateFrame3, IfcxCadReport> {
-    finite3(value.origin, context)?;
-    finite3(value.x_axis, context)?;
-    finite3(value.y_axis, context)?;
-    let p = |v: [f64; 3]| Point3::new(v[0], v[1], v[2]);
-    let v = |v: [f64; 3]| Vector3::new(v[0], v[1], v[2]);
-    CoordinateFrame3::try_new(p(value.origin), v(value.x_axis), v(value.y_axis))
-        .map_err(|e| problem(format!("{context} invalid placement: {e}")))
-}
-fn unit(token: &str) -> bool {
-    static UNITS: std::sync::OnceLock<Vec<String>> = std::sync::OnceLock::new();
-    UNITS
-        .get_or_init(|| {
-            let registry: Value =
-                serde_json::from_str(include_str!("../../schemas/ocdraw/registry-0.1.0.json"))
-                    .expect("bundled OCDraw registry");
-            registry["types"]["unit"]["values"]
-                .as_array()
-                .expect("OCDraw unit registry")
-                .iter()
-                .map(|value| value.as_str().expect("unit token").to_owned())
-                .collect()
-        })
-        .iter()
-        .any(|unit| unit == token)
-}
-fn color(value: &str) -> bool {
-    value.len() == 7 && value.starts_with('#') && value[1..].bytes().all(|b| b.is_ascii_hexdigit())
-}
-fn appearance_check(layer: &IfcxCadLayerAppearance, context: &str) -> Result<(), IfcxCadReport> {
-    if !color(&layer.color)
-        || !layer.opacity.is_finite()
-        || !(0.0..=1.0).contains(&layer.opacity)
-        || !layer.line_weight.is_finite()
-        || layer.line_weight < 0.0
-    {
-        return Err(problem(format!("{context} invalid layer appearance")));
-    }
-    Ok(())
-}
-fn entity_appearance(a: &IfcxCadEntityAppearance, context: &str) -> Result<(), IfcxCadReport> {
-    if matches!(&a.color, IfcxCadMode::Explicit(v) if !color(v))
-        || matches!(&a.opacity, IfcxCadMode::Explicit(v) if !v.is_finite() || !(0.0..=1.0).contains(v))
-        || matches!(&a.line_weight, IfcxCadMode::Explicit(v) if !v.is_finite() || *v < 0.0)
-    {
-        return Err(problem(format!("{context} invalid entity appearance")));
-    }
-    Ok(())
-}
 fn entity(
     node: &Value,
     prefix: &str,
@@ -232,8 +175,6 @@ fn entity(
         .get(&value.layer)
         .ok_or_else(|| problem(format!("{path} unresolved layer {}", value.layer)))?;
     let appearance = value.appearance.typed(pattern_paths)?;
-    entity_appearance(&appearance, path)?;
-    super::patterns::scale(value.line_pattern_scale, path)?;
     let attrs = node
         .get("attributes")
         .and_then(Value::as_object)
@@ -263,8 +204,6 @@ fn entity(
     let kind = match *present[0] {
         "ifccad::geom::lineSegment" => {
             let line: LineValue = required(node, present[0])?;
-            finite3(line.start, path)?;
-            finite3(line.end, path)?;
             IfcxCadEntityKind::LineSegment {
                 start: line.start,
                 end: line.end,
@@ -272,11 +211,7 @@ fn entity(
         }
         "ifccad::geom::planarPolyline" => {
             let poly: PolylineValue = required(node, present[0])?;
-            if poly.vertices.len() < 2 || poly.vertices.iter().flatten().any(|n| !n.is_finite()) {
-                return Err(problem(format!("{path} invalid polyline vertices")));
-            }
             let frame: IfcxCadPlacement = required(node, "ifccad::geom::placement")?;
-            placement(&frame, path)?;
             IfcxCadEntityKind::PlanarPolyline {
                 line_pattern_generation: poly.line_pattern_generation,
                 vertices: poly.vertices,
@@ -286,11 +221,7 @@ fn entity(
         }
         "ifccad::geom::circle" => {
             let circle: CircleValue = required(node, present[0])?;
-            if !circle.radius.is_finite() || circle.radius <= 0.0 {
-                return Err(problem(format!("{path} invalid circle radius")));
-            }
             let frame: IfcxCadPlacement = required(node, "ifccad::geom::placement")?;
-            placement(&frame, path)?;
             IfcxCadEntityKind::Circle {
                 radius: circle.radius,
                 placement: frame,
@@ -304,17 +235,6 @@ fn entity(
                     instance.definition
                 ))
             })?;
-            let frame = placement(&instance.transform.placement, path)?;
-            BlockTransform::try_new(
-                frame,
-                instance.transform.rotation,
-                Scale3::new(
-                    instance.transform.scale[0],
-                    instance.transform.scale[1],
-                    instance.transform.scale[2],
-                ),
-            )
-            .map_err(|e| problem(format!("{path} invalid block transform: {e}")))?;
             IfcxCadEntityKind::BlockInstance {
                 definition_id,
                 transform: instance.transform,
@@ -329,55 +249,7 @@ fn entity(
         kind,
     })
 }
-fn cycle(blocks: &[IfcxCadBlockDefinition]) -> bool {
-    fn visit(
-        id: u64,
-        graph: &BTreeMap<u64, Vec<u64>>,
-        active: &mut BTreeSet<u64>,
-        done: &mut BTreeSet<u64>,
-    ) -> bool {
-        if done.contains(&id) {
-            return false;
-        }
-        if !active.insert(id) {
-            return true;
-        }
-        if graph.get(&id).is_some_and(|targets| {
-            targets
-                .iter()
-                .any(|target| visit(*target, graph, active, done))
-        }) {
-            return true;
-        }
-        active.remove(&id);
-        done.insert(id);
-        false
-    }
-    let graph: BTreeMap<_, _> = blocks
-        .iter()
-        .map(|b| {
-            (
-                b.id,
-                b.entities
-                    .iter()
-                    .filter_map(|e| match e.kind {
-                        IfcxCadEntityKind::BlockInstance { definition_id, .. } => {
-                            Some(definition_id)
-                        }
-                        _ => None,
-                    })
-                    .collect(),
-            )
-        })
-        .collect();
-    let mut active = BTreeSet::new();
-    let mut done = BTreeSet::new();
-    graph
-        .keys()
-        .any(|id| visit(*id, &graph, &mut active, &mut done))
-}
-
-pub(super) fn validate(raw: Value) -> Result<ValidatedIfcxCad, IfcxCadReport> {
+pub(super) fn project(raw: &Value) -> Result<IfcxCadDocument, IfcxCadReport> {
     let imports = raw
         .get("imports")
         .and_then(Value::as_array)
@@ -420,14 +292,7 @@ pub(super) fn validate(raw: Value) -> Result<ValidatedIfcxCad, IfcxCadReport> {
     }
     let header: IfcxCadHeader = serde_json::from_value(header.clone())
         .map_err(|e| problem(format!("invalid IFCX header: {e}")))?;
-    if header.id.is_empty()
-        || header.data_version.is_empty()
-        || header.author.is_empty()
-        || header.timestamp.is_empty()
-    {
-        return Err(problem("incomplete IFCX header"));
-    }
-    let nodes = node_map(&raw)?;
+    let nodes = node_map(raw)?;
     let drawings: Vec<_> = nodes
         .iter()
         .filter(|(_, n)| attr(n, "ifccad::drawing").is_some())
@@ -442,10 +307,6 @@ pub(super) fn validate(raw: Value) -> Result<ValidatedIfcxCad, IfcxCadReport> {
     if drawing.profile_version != "0.1.0" {
         return Err(problem("unsupported CAD profile version"));
     }
-    if !unit(&drawing.length_unit) {
-        return Err(problem("invalid drawing length unit"));
-    }
-    super::patterns::scale(drawing.line_pattern_scale, drawing_path)?;
     let mut pattern_paths = BTreeMap::new();
     let mut line_patterns = Vec::new();
     for (path, node) in &nodes {
@@ -468,7 +329,6 @@ pub(super) fn validate(raw: Value) -> Result<ValidatedIfcxCad, IfcxCadReport> {
             });
         }
     }
-    validate_ifcx_cad_line_patterns(&line_patterns)?;
     let mut layer_paths = BTreeMap::new();
     let mut layers = Vec::new();
     let mut block_paths = BTreeMap::new();
@@ -478,11 +338,7 @@ pub(super) fn validate(raw: Value) -> Result<ValidatedIfcxCad, IfcxCadReport> {
         if attr(node, "ifccad::layer").is_some() {
             let id = numbered(path, &format!("{prefix}/layer/"))?;
             let value: LayerValue = required(node, "ifccad::layer")?;
-            if value.name.is_empty() {
-                return Err(problem(format!("{path} empty layer name")));
-            }
             let appearance = value.appearance.typed(&pattern_paths)?;
-            appearance_check(&appearance, path)?;
             layer_paths.insert(path.clone(), id);
             layers.push(IfcxCadLayer {
                 id,
@@ -508,22 +364,12 @@ pub(super) fn validate(raw: Value) -> Result<ValidatedIfcxCad, IfcxCadReport> {
                 "Paper" => {
                     let name = layout
                         .name
-                        .filter(|name| !name.trim().is_empty())
                         .ok_or_else(|| problem(format!("{path} Paper layout needs a name")))?;
                     let paper = layout.paper.ok_or_else(|| {
                         problem(format!(
                             "{path} Paper layout needs paper dimensions and unit"
                         ))
                     })?;
-                    if !paper.width.is_finite()
-                        || paper.width <= 0.0
-                        || !paper.height.is_finite()
-                        || paper.height <= 0.0
-                        || !unit(&paper.length_unit)
-                        || paper.length_unit == "unitless"
-                    {
-                        return Err(problem(format!("{path} invalid paper dimensions or unit")));
-                    }
                     paper_paths.insert(id, (path.clone(), name, paper));
                 }
                 _ => {
@@ -589,10 +435,6 @@ pub(super) fn validate(raw: Value) -> Result<ValidatedIfcxCad, IfcxCadReport> {
     for (path, id) in &block_paths {
         let node = nodes[path];
         let value: DefinitionValue = required(node, "ifccad::blockDefinition")?;
-        if value.name.is_empty() || !unit(&value.insertion_unit) {
-            return Err(problem(format!("{path} invalid block definition")));
-        }
-        finite3(value.base_point, path)?;
         blocks.push(IfcxCadBlockDefinition {
             id: *id,
             name: value.name,
@@ -600,9 +442,6 @@ pub(super) fn validate(raw: Value) -> Result<ValidatedIfcxCad, IfcxCadReport> {
             insertion_unit: value.insertion_unit,
             entities: parse_owner(path)?,
         });
-    }
-    if cycle(&blocks) {
-        return Err(problem("block definition cycle"));
     }
     let entity_paths: BTreeSet<_> = nodes
         .iter()
@@ -630,6 +469,6 @@ pub(super) fn validate(raw: Value) -> Result<ValidatedIfcxCad, IfcxCadReport> {
         paper_layouts,
         blocks,
     };
-    super::allocation::validate(&document)?;
-    Ok(ValidatedIfcxCad { raw, document })
+    validate_ifcx_cad_document(&document)?;
+    Ok(document)
 }

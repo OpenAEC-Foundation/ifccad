@@ -12,6 +12,23 @@ for arbitrary CAD files or IFCX graphs.
 
 ## API
 
+`IfcxCadDocument` is the central logical input/output between CAD conversion
+and IFCX encoding. `cad_document_to_ifcx_cad_document` constructs it directly
+with diagnostics and mappings; `ifcx_cad_document_to_cad_document` validates
+and converts the supplied projection. Both have `_with_options` variants.
+They do not encode/parse an IFCX file as an intermediate step.
+
+The existing functions below remain file-oriented convenience routes. A loaded
+`ValidatedIfcxCad` retains both the CAD document and its complete immutable
+source graph. Its conversion route additionally diagnoses foreign graph content
+and source numeric precision. Use this route to assess losses from a full IFCX
+input. Projection-only conversion cannot assess discarded source context.
+
+Core `encode_ifcx_cad_document` creates a fresh CAD-profile file. It does not
+merge edits into a source graph. Original native downloads use source bytes.
+See the [document lifecycle](../../docs/experiments/ifcx-cad-document-lifecycle.md)
+for ownership, validation and output boundaries.
+
 ```rust
 use ocdraw::ifcx_cad::ValidatedIfcxCad;
 use ifcx_cad_convert::{ifcx_cad_to_cad_document, cad_document_to_ifcx_cad,

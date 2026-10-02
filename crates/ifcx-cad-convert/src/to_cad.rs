@@ -1,7 +1,9 @@
 use crate::outcome::{diagnostic, unit_code};
 use crate::*;
 use cadcodec::CadDocument;
-use ocdraw::ifcx_cad::{write_native_cad_ifcx, ValidatedIfcxCad};
+use ocdraw::ifcx_cad::{
+    validate_ifcx_cad_document, write_native_cad_ifcx, IfcxCadDocument, ValidatedIfcxCad,
+};
 
 /// Convert supported content, returning diagnostics for omitted or modified data.
 pub fn ifcx_cad_to_cad_document(
@@ -20,7 +22,7 @@ pub fn ifcx_cad_to_cad_document_with_options(
         .map_err(|e| IfcxCadConversionError::CoreValidation(format!("{e:?}")))?;
     let canonical: serde_json::Value = serde_json::from_slice(&canonical).expect("writer JSON");
     let mut issues = Vec::new();
-    let raw = crate::loss::native_defaults(source.raw_ifcx());
+    let raw = crate::loss::native_defaults(source.graph().composed_ifcx());
     // Compare composed node payloads, allowing fragment order but not losing
     // extensions, relations or extra schemas through the typed projection.
     if !crate::source::same_graph(&raw, &canonical) {
@@ -31,6 +33,44 @@ pub fn ifcx_cad_to_cad_document_with_options(
         ));
     }
     crate::loss::precision(&raw, &canonical, &mut issues);
+    convert_document(drawing, options, issues)
+}
+
+/// Convert only the supplied logical CAD projection after validating it.
+/// This route has no source graph against which to assess foreign IFCX content.
+pub fn ifcx_cad_document_to_cad_document(
+    source: &IfcxCadDocument,
+) -> Result<IfcxCadToCadOutcome, IfcxCadConversionError> {
+    ifcx_cad_document_to_cad_document_with_options(source, IfcxCadConversionOptions::default())
+}
+
+/// Convert a logical CAD projection with explicit semantic loss acceptance.
+pub fn ifcx_cad_document_to_cad_document_with_options(
+    source: &IfcxCadDocument,
+    options: IfcxCadConversionOptions,
+) -> Result<IfcxCadToCadOutcome, IfcxCadConversionError> {
+    validate_ifcx_cad_document(source)
+        .map_err(|e| IfcxCadConversionError::CoreValidation(format!("{e:?}")))?;
+    convert_document(source, options, Vec::new())
+}
+
+fn convert_document(
+    drawing: &IfcxCadDocument,
+    options: IfcxCadConversionOptions,
+    mut issues: Vec<IfcxCadDiagnostic>,
+) -> Result<IfcxCadToCadOutcome, IfcxCadConversionError> {
+    // Native layers are identified by ID; CAD tables look them up by normalized
+    // name. Reject ambiguity before the special layer-0 replacement or allocation.
+    let mut layer_names = std::collections::BTreeMap::new();
+    for layer in &drawing.layers {
+        let key = cadcodec::tables::normalize_name(&layer.name);
+        if let Some(previous) = layer_names.insert(key, layer.id) {
+            return Err(IfcxCadConversionError::InvalidStructure(format!(
+                "target layer lookup collision between layer/{previous} and layer/{} ({:?})",
+                layer.id, layer.name
+            )));
+        }
+    }
     for paper in &drawing.paper_layouts {
         issues.push(diagnostic(
             "paper",

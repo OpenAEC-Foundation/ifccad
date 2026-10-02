@@ -4,7 +4,6 @@ use super::{
 };
 use serde::Serialize;
 use serde_json::{json, Map, Value};
-use std::collections::BTreeSet;
 
 // Struct field order is the presentation order in the example and writer output.
 #[derive(Serialize)]
@@ -85,21 +84,13 @@ fn numbered_children(entities: &[IfcxCadEntity], prefix: &str) -> Map<String, Va
         .collect()
 }
 
-/// Serialize an IFCX alpha drawing with the versioned CAD schema import and strict-read it.
-pub fn write_native_cad_ifcx(document: &IfcxCadDocument) -> Result<Vec<u8>, IfcxCadReport> {
-    super::allocation::validate(document)?;
-    let mut layout_ids = BTreeSet::from([document.model.id]);
+/// Encode a fresh CAD-profile file and check it with the production reader.
+/// Foreign IFCX content and original fragment history are not part of this
+/// document and are not merged into the output.
+pub fn encode_ifcx_cad_document(document: &IfcxCadDocument) -> Result<Vec<u8>, IfcxCadReport> {
+    super::validate_ifcx_cad_document(document)?;
     let mut paper_layouts: Vec<_> = document.paper_layouts.iter().collect();
     paper_layouts.sort_by_key(|layout| layout.id);
-    for layout in &paper_layouts {
-        if !layout_ids.insert(layout.id) {
-            return Err(IfcxCadReport::one(format!(
-                "duplicate layout ID {}",
-                layout.id
-            )));
-        }
-    }
-    super::validate_ifcx_cad_line_patterns(&document.line_patterns)?;
     let prefix = format!("/cad/d{}", document.drawing_id);
     let mut drawing_children = Map::new();
     drawing_children.insert(
@@ -224,4 +215,9 @@ pub fn write_native_cad_ifcx(document: &IfcxCadDocument) -> Result<Vec<u8>, Ifcx
         ));
     }
     Ok(bytes)
+}
+
+/// Compatibility wrapper for fresh CAD-profile encoding; does not update a source graph.
+pub fn write_native_cad_ifcx(document: &IfcxCadDocument) -> Result<Vec<u8>, IfcxCadReport> {
+    encode_ifcx_cad_document(document)
 }

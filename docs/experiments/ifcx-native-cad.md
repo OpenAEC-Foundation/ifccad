@@ -1,5 +1,11 @@
 # IFCX-native CAD node experiment
 
+The [document lifecycle](ifcx-cad-document-lifecycle.md) separates the complete
+immutable IFCX source from the editable typed CAD projection. `IfcxCadDocument`
+is the central input/output for shared validation, encoding and direct CAD
+conversion. Merging an edited projection into a larger source graph remains
+deferred; CAD-profile encoding produces a fresh file.
+
 Status: experimental profile, 2026-10-01. This is an opt-in IFCX alpha drawing with a separate provisional schema module, independent of the standalone OCDraw contract. Historical released IFCCAD conformance collections remain unchanged. The [contract](../../schemas/ifcx-native-cad/experimental-contract-0.1.0.md), [schema module](../../schemas/ifcx-native-cad/experimental-profile-0.1.0.ifcx), [drawing fixture](../../examples/ifcx-native-cad/hello-cad.ifcx), [nested-block fixture](../../examples/ifcx-native-cad/hello-nested-blocks.ifcx), [paper-layout fixture](../../examples/ifcx-native-cad/hello-paper-layouts.ifcx), and [strict-readback tests](../../tests/experimental_ifcx_native.rs) form the reproducible result.
 
 ## Finding

@@ -15,7 +15,7 @@ fn diagnostics(items: &[IfcxCadDiagnostic]) -> Vec<Value> {
 }
 fn present(output: &mut Value, drawing: &ValidatedIfcxCad) {
     let d = drawing.document();
-    let nodes = drawing.raw_ifcx()["data"]
+    let nodes = drawing.graph().composed_ifcx()["data"]
         .as_array()
         .expect("validated graph");
     let role = |key: &str| {
@@ -28,7 +28,7 @@ fn present(output: &mut Value, drawing: &ValidatedIfcxCad) {
     output["validation"] = json!({"strictAvailable":true,"status":"valid","diagnostics":[]});
     output["presentation"] = json!({"format":"ifcx","drawingId":d.drawing_id,"unit":d.length_unit,"linePatternScale":d.line_pattern_scale,
         "layers":role("ifccad::layer"),"layouts":role("ifccad::layout"),"blockDefinitions":role("ifccad::blockDefinition"),
-        "linePatterns":role("ifccad::linePattern"),"entities":role("ifccad::entity"),"graph":drawing.raw_ifcx()});
+        "linePatterns":role("ifccad::linePattern"),"entities":role("ifccad::entity"),"graph":drawing.graph().composed_ifcx()});
 }
 /// Inspect the experimental IFCX-CAD profile after production composition/validation.
 pub fn inspect_ifcx_bytes(name: &str, bytes: &[u8]) -> Value {

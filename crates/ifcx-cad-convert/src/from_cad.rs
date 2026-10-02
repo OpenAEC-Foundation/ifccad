@@ -17,6 +17,38 @@ pub fn cad_document_to_ifcx_cad_with_options(
     metadata: IfcxCadTargetMetadata,
     options: IfcxCadConversionOptions,
 ) -> Result<CadToIfcxCadOutcome, IfcxCadConversionError> {
+    let logical = cad_document_to_ifcx_cad_document_with_options(source, metadata, options)?;
+    let bytes = encode_ifcx_cad_document(&logical.document)
+        .map_err(|e| IfcxCadConversionError::CoreValidation(format!("{e:?}")))?;
+    let validated = read_native_cad_ifcx(&bytes)
+        .map_err(|e| IfcxCadConversionError::CoreValidation(format!("{e:?}")))?;
+    Ok(CadToIfcxCadOutcome {
+        validated,
+        bytes,
+        diagnostics: logical.diagnostics,
+        mappings: logical.mappings,
+    })
+}
+
+/// Convert CAD content directly into a validated logical CAD projection.
+/// No IFCX file is encoded or parsed by this route.
+pub fn cad_document_to_ifcx_cad_document(
+    source: &CadDocument,
+    metadata: IfcxCadTargetMetadata,
+) -> Result<CadToIfcxCadDocumentOutcome, IfcxCadConversionError> {
+    cad_document_to_ifcx_cad_document_with_options(
+        source,
+        metadata,
+        IfcxCadConversionOptions::default(),
+    )
+}
+
+/// Construct a logical CAD projection with explicit semantic loss acceptance.
+pub fn cad_document_to_ifcx_cad_document_with_options(
+    source: &CadDocument,
+    metadata: IfcxCadTargetMetadata,
+    options: IfcxCadConversionOptions,
+) -> Result<CadToIfcxCadDocumentOutcome, IfcxCadConversionError> {
     let info = crate::source::inspect(source)?;
     let mut issues = info.issues;
     let mut ids = IfcxCadIdCounters::default();
@@ -125,13 +157,10 @@ pub fn cad_document_to_ifcx_cad_with_options(
         paper_layouts: vec![],
         blocks,
     };
-    let bytes = write_native_cad_ifcx(&drawing)
+    validate_ifcx_cad_document(&drawing)
         .map_err(|e| IfcxCadConversionError::CoreValidation(format!("{e:?}")))?;
-    let validated = read_native_cad_ifcx(&bytes)
-        .map_err(|e| IfcxCadConversionError::CoreValidation(format!("{e:?}")))?;
-    Ok(CadToIfcxCadOutcome {
-        validated,
-        bytes,
+    Ok(CadToIfcxCadDocumentOutcome {
+        document: drawing,
         diagnostics: issues.into_iter().chain(info.recoveries).collect(),
         mappings,
     })
