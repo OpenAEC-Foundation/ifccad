@@ -183,6 +183,7 @@ fn entity(
         .and_then(Value::as_object)
         .ok_or_else(|| problem(format!("{path} missing attributes")))?;
     let payloads = [
+        "ifccad::viewport",
         "ifccad::geom::lineSegment",
         "ifccad::geom::planarPolyline",
         "ifccad::geom::circle",
@@ -205,6 +206,15 @@ fn entity(
         return Err(problem(format!("{path} unsupported CAD geometry")));
     }
     let kind = match *present[0] {
+        "ifccad::viewport" => {
+            if attrs.contains_key("ifccad::geom::placement") {
+                return Err(problem(format!("{path} viewport has a geometry placement")));
+            }
+            IfcxCadEntityKind::Viewport(super::viewports::decode_viewport(
+                &attrs["ifccad::viewport"],
+                prefix,
+            )?)
+        }
         "ifccad::geom::lineSegment" => {
             let line: LineValue = required(node, present[0])?;
             IfcxCadEntityKind::LineSegment {

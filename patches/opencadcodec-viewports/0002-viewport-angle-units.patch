@@ -1,5 +1,21 @@
+diff --git a/src/entities/viewport.rs b/src/entities/viewport.rs
+index a934d72..547e031 100644
+--- a/src/entities/viewport.rs
++++ b/src/entities/viewport.rs
+@@ -274,9 +274,9 @@ pub struct Viewport {
+     pub back_clip_z: f64,
+     /// View height (in model space units)
+     pub view_height: f64,
+-    /// Snap angle
++    /// Snap angle in radians (DXF group 50 stores degrees).
+     pub snap_angle: f64,
+-    /// View twist angle
++    /// View twist angle in radians (DXF group 51 stores degrees).
+     pub twist_angle: f64,
+     /// Circle zoom percent (1-20000)
+     pub circle_sides: i16,
 diff --git a/src/io/dxf/reader/section_reader.rs b/src/io/dxf/reader/section_reader.rs
-index 9e0b8a4..c2cce3d 100644
+index f62208b..baff703 100644
 --- a/src/io/dxf/reader/section_reader.rs
 +++ b/src/io/dxf/reader/section_reader.rs
 @@ -16757,12 +16757,12 @@ impl<'a> SectionReader<'a> {
@@ -18,7 +34,7 @@ index 9e0b8a4..c2cce3d 100644
                  }
                  72 => {
 diff --git a/src/io/dxf/writer/section_writer.rs b/src/io/dxf/writer/section_writer.rs
-index 1503c51..77f0815 100644
+index f8b89fc..ff6a6f0 100644
 --- a/src/io/dxf/writer/section_writer.rs
 +++ b/src/io/dxf/writer/section_writer.rs
 @@ -4920,8 +4920,8 @@ impl<'a, W: DxfStreamWriter> SectionWriter<'a, W> {

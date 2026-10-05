@@ -142,6 +142,16 @@ depend on deferred paperspace/viewport conversion.
 
 ## Collaboration and upstream context
 
+Paper viewports share the ordinary entity domain and allocation watermark.
+The Model path, stored clip boundary and frozen layers use existing layout,
+entity and layer domains; there is no viewport counter. Native uint64 IDs are
+independent of CAD viewport runtime numbers. A copied viewport requires fresh
+entity allocation; its boundary must also receive its own identity because
+active and dormant boundary claims are exclusive. Moving the viewport alone
+across Paper owners invalidates a still-referenced boundary in the old owner.
+Native encode/readback preserves these IDs and sorts frozen-layer sets by exact
+numeric IDs; CAD reimport still allocates a new native identity baseline.
+
 This allocator assumes one writer or a centrally coordinated allocator per
 drawing. Independently edited copies can allocate identical IDs and child
 positions. `LaterWins` does not make that safe. Offline collaboration, UUID

@@ -78,6 +78,7 @@ pub(crate) fn to_entity(
             poly.plinegen = *line_pattern_generation == IfcxCadLinePatternGeneration::Continuous;
             EntityType::LwPolyline(poly)
         }
+        IfcxCadEntityKind::Viewport(_) => unreachable!("viewports use staged entity conversion"),
         IfcxCadEntityKind::BlockInstance { .. } => {
             issues.push(diagnostic("blocks", loc, "block conversion pending"));
             return None;

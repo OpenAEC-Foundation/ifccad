@@ -1,5 +1,5 @@
 name: Prepare viewport codec
-description: Select the pinned codec base with the two explicit viewport repairs
+description: Select the pinned codec base with the three explicit viewport repairs
 runs:
   using: composite
   steps:
@@ -14,7 +14,7 @@ runs:
       run: |
         set -euo pipefail
         codec=.superpowers/dependencies/opencadcodec-viewports-development
-        for patch in 0001-viewport-clipping.patch 0002-viewport-angle-units.patch; do
+        for patch in 0001-viewport-clipping.patch 0002-viewport-angle-units.patch 0003-viewport-off-state.patch; do
           git -C "$codec" apply --check "../../../patches/opencadcodec-viewports/$patch"
           git -C "$codec" apply "../../../patches/opencadcodec-viewports/$patch"
         done

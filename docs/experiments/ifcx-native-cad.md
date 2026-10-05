@@ -31,7 +31,7 @@ reader defect is resolved. Full inventory traversal is required: the ordinary CA
 entity iterator hides these structural markers.
 
 The direction-specific coverage contracts record default scaffold handling and
-unsupported semantics. Authored viewport/full plot conversion, oblique parameterization, broader
+unsupported semantics. Full plot conversion, broader oblique parameterization, broader
 CAD/source preservation and optimized encoding remain
 deferred. These probes support suitability of the tested IFCX-CAD subset;
 they provide no broad losslessness, size or performance claim.
@@ -68,6 +68,25 @@ not an exact numerical DXF roundtrip. No tolerance is added to the converter.
 Generated files and detailed reports remain local artifacts outside Git.
 
 ### IFCX-native representation
+
+The subsequent Paper viewport slice stores a Model reference, Paper frame,
+orthographic/perspective camera, signed depth clipping, seven render modes,
+independent display controls and frozen layers in the native profile. Active
+Paper clipping currently accepts analytic circles and closed straight polylines,
+including concave boundaries; dormant references retain ownership and identity.
+See the [contract](../../schemas/ifcx-native-cad/experimental-contract-0.1.0.md#paper-viewports)
+and [example](../../examples/ifcx-native-cad/hello-viewports.ifcx).
+
+In-memory, DXF and DWG exchange tests use explicit development codec repairs for
+clipping activation/boundaries, DXF angle units and independent off state.
+[Patch provenance](../../patches/opencadcodec-viewports/README.md) distinguishes
+these results from the unmodified production pin. Independent perspective
+arithmetic and hand-authored DXF provide camera reference evidence; no AutoCAD
+rendering equivalence is established. Native storage does not depend on these
+codec repairs. Ellipses and bulges still need native IFCX-CAD geometry support;
+OCDraw's independently expanded clip contract does not grant that support here.
+Full plot settings and a viewport rendering API remain later work. Historical
+practice and size results below retain their original tested coverage and pins.
 
 **IFCX nodes are a plausible authoritative representation for the tested CAD subset.** Every independent entity has an addressable path, ordinary IFCX `children` establish ownership, numeric child keys convey drawing order, and direct attributes retain precise geometry, unit, layer and appearance modes. One block definition serves two differently placed and styled instances without cloning its entity nodes or using `inherits`. A foreign IFCX node can reference a CAD entity. The generic IFCX graph remains extensible while a strict CAD-profile reader catches the conditional rules that IFCX's current per-attribute schemas cannot express alone.
 
@@ -120,7 +139,7 @@ node paths and stores per-domain watermarks for native editing. Native
 read/edit/write retains IDs and advanced counters; fresh CAD imports start a
 new allocation history. Independent concurrent allocation remains deferred.
 
-Continue the IFCX-native model as an experiment, especially for addressable CAD entities linked to BIM/project data. Keep the profile explicit and provisional alongside the independent OCDraw contract. Next decisive work is representative CAD coverage (viewports, more curves and appearance forms), an independent implementation of the profile, and a semantically matched size/CPU study. If buildingSMART publishes exact IFCX geometry attributes, replace local geometry keys selectively where their units, placement and roundtrip meaning agree; preserve CAD-specific role, layer, order and appearance semantics in a CAD profile.
+Continue the IFCX-native model as an experiment, especially for addressable CAD entities linked to BIM/project data. Keep the profile explicit and provisional alongside the independent OCDraw contract. Next decisive work is representative CAD coverage (more curves, plot settings and appearance forms), an independent implementation of the profile, and a semantically matched size/CPU study. If buildingSMART publishes exact IFCX geometry attributes, replace local geometry keys selectively where their units, placement and roundtrip meaning agree; preserve CAD-specific role, layer, order and appearance semantics in a CAD profile.
 
 ### Named line-pattern slice (2026-10-01)
 

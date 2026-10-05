@@ -1,0 +1,30 @@
+[
+  {
+    "file": "valid-circle.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid-lens.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid-missing-boundary.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid-circle-enclosure.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid-unknown-field.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid-frozen-duplicate.ifcx",
+    "valid": false
+  },
+  {
+    "file": "valid-concave-polyline.ifcx",
+    "valid": true
+  }
+]

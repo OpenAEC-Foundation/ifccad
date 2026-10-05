@@ -23,6 +23,12 @@ loss diagnostics; explicit Reject prevents output for any semantic loss.
 The [dependency audit](../../../docs/geometry/opencadcodec-update-2026-10-05.md)
 records the added public fields and their treatment in both converters.
 
+The 2026-10-05 additions to associative subentity identifiers, edge curves and
+embedded modeler-body profiles remain inside unsupported associative objects
+and solid/surface/history families. They are diagnosed at those existing
+boundaries. Unmodified upstream still loses viewport clipping activation and
+the DXF boundary reference; the separate viewport development patch is explicit.
+
 ## Inventory categories
 
 Fresh imports allocate entity, layer, layout, block-definition and pattern IDs
@@ -58,9 +64,52 @@ the DXF writer sets it from the Model name. Other plot flags remain diagnosed.
 
 An overall viewport is excluded only for a Paper-layout-linked ID-1 viewport with
 all constructor-default values apart from verified owner/identity/storage fields.
-Authored view settings or dimensions fail that classification. The pinned DWG reader leaves non-active viewport numbers at zero; a linked, otherwise fully default viewport is also scaffold in that backing. Authored viewports are omitted with diagnostics; supported Paper entities and extra empty or populated layouts are retained.
+Authored view settings or dimensions fail that classification. The pinned DWG reader leaves non-active viewport numbers at zero; a linked, otherwise fully default viewport is also scaffold in that backing. Authored non-overall Paper viewports convert with the explicit development codec configuration as specified below; without its required status support they are omitted with a located viewport-codec diagnostic. Supported sibling entities and additional empty/populated layouts are retained.
 This comparison includes the newly exposed `Viewport.off_screen`; true prevents
 the viewport from being silently classified as default scaffold.
+
+## Paper viewport conversion
+
+This route requires the explicit codec configuration in
+[`patches/opencadcodec-viewports`](../../../patches/opencadcodec-viewports/README.md).
+Default manifests select unmodified upstream; their status-bit capability gate
+omits authored viewports with `viewport-codec` loss instead of claiming support.
+The development configuration preserves activation, DXF boundary references,
+degree/radian angle mapping and the independent off bit. These repaired results
+do not qualify the unmodified pin or certify AutoCAD rendering.
+
+| VIEWPORT fields | Native treatment |
+| --- | --- |
+| Frame center/width/height | Paper XY coordinates and dimensions; nonzero frame Z omits the whole viewport |
+| View center/target/direction/height/twist | DCS XY and Model XYZ, original non-unit target-to-camera vector, Model view height and radians; nonzero DCS Z or invalid native parameters omits the whole viewport |
+| Perspective and lens length | Orthographic/Perspective plus stored millimetre lens, including dormant Orthographic zero |
+| Front/back clips | Disabled, front AtCamera or AtDistance, back AtDistance; preserve signed exposed distances even when dormant; native plane-order validation applies |
+| Render mode | Explicit mapping of all seven modes; numeric 4 is smooth without edges, 5 is flat with edges |
+| On/off, zoom lock, common invisibility | Effective enabled = is_on and not bit 0x20000; locked and visible are independent; mapped invisibility is excluded from common residual loss |
+| Nonrectangular activation and boundary | Bit 0x10000 and handle independently; three states: absent, dormant reference, active reference |
+| Frozen layers | Resolve names/identities into native layer references; deduplicate and sort numeric IDs; unresolved targets are individually diagnosed and omitted |
+| Runtime viewport number | Infrastructure role only, never a native identity; authored zero numbers remain authored unless the complete overall-canvas role applies |
+| Snap/grid/UCS/plot/visual/off-screen and other state | Typed residual comparison against constructor defaults; changed unmapped fields produce partial viewport-state loss |
+
+Ordinary geometry is prepared before viewports. A stored boundary must be retained
+in the same Paper owner, even when dormant. Missing or unsupported boundary geometry
+omits the whole viewport, retains supported siblings, and leaves no viewport ID
+mapping. Active clips additionally require native eligibility and full frame
+enclosure: analytic Circle or closed straight planar polyline in Paper Z=0.
+Ellipse, spline and bulged polyline clips omit the viewport until their native
+geometry is supported. No rectangle fallback or tessellation is performed.
+Contradictory boundary ownership or shared retained boundaries fail both policies.
+
+Model and all Paper IDs are allocated before owner contents. After eligibility,
+retained entities receive native IDs in original owner order, and forward boundary
+references resolve through the complete retained map. Partial losses retain the
+supported viewport under Allow; Reject refuses every diagnosed loss. Invalid
+structural relationships remain errors under both policies.
+
+Evidence: `tests/viewports.rs`, `tests/viewport_codec.rs` and
+`tests/viewport_exchange.rs`, with production native/DXF/DWG readback. The
+perspective reference uses independent arithmetic and hand-authored DXF values;
+it is not an AutoCAD-produced interoperability sample.
 
 ## Entity fields
 
@@ -133,11 +182,11 @@ lengths and drawing/entity scale values are included in exact projection checks.
 Tests in `tests/line_patterns.rs` include real pinned DXF/DWG exchanges, optional
 defaults, Unicode/target lookup collisions and whole complex-pattern fallback.
 
-The OCDraw viewport development worktree selects the explicit local codec repairs
-in [patches/opencadcodec-viewports](../../../patches/opencadcodec-viewports/README.md).
-This changes the shared dependency configuration, not this route's native entity
-coverage. The [2026-10-05 audit](../../../docs/geometry/opencadcodec-update-2026-10-05.md)
-records the public-model delta and separates patched from upstream evidence.
+The shared codec development configuration is documented in
+[patch provenance](../../../patches/opencadcodec-viewports/README.md). OCDraw and
+IFCX-CAD retain independent native geometry and clip contracts. The
+[2026-10-05 audit](../../../docs/geometry/opencadcodec-update-2026-10-05.md) separates
+patched from unmodified upstream evidence.
 ## Paper layout conversion boundary
 
 Native Paper names use full Unicode case folding; target CAD lookup additionally
@@ -158,5 +207,5 @@ Native media convert through exact rational millimetre factors. Any binary64
 rounding is fatal under both policies (5 inches maps exactly to 127 mm; 1 inch
 cannot exactly map to binary64 25.4 mm). Unsupported factors such as parsecs omit
 only media under Allow. Printer/media names, margins, rotation, plot limits,
-canvas/viewports and workspace state remain deferred losses. Definition-content
+authored overall canvases and workspace state remain deferred losses. Definition-content
 losses propagate to Paper instances through shared and nested definitions.

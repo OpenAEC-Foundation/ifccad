@@ -38,6 +38,7 @@
 mod appearance;
 mod blocks;
 mod diagnostics;
+mod entity_owners;
 mod from_cad;
 mod geometry;
 mod layouts;
@@ -48,6 +49,7 @@ mod patterns;
 mod source;
 mod to_cad;
 mod units;
+mod viewports;
 pub use diagnostics::{IfcxCadConversionError, IfcxCadDiagnostic, IfcxCadDiagnosticAction};
 pub use from_cad::{cad_document_to_encoded_ifcx_cad, cad_document_to_ifcx_cad_document};
 pub use opencadcodec;

@@ -66,12 +66,75 @@ The drawing has named `children` referring to exactly one Model layout, zero or 
 | `ifccad::geom::circle` | positive finite `radius`, plus `ifccad::geom::placement` |
 | `ifccad::geom::placement` | finite XYZ `origin`, `xAxis`, `yAxis`; valid orthonormal right-handed frame under the shared OCDraw geometric predicate |
 | `ifccad::blockInstance` | definition path and transform with placement, finite rotation in radians, nonzero finite XYZ scale |
+| `ifccad::viewport` | same-drawing Model reference, Paper frame, camera/view, render/display state, Paper clip and frozen-layer references; Paper ownership only |
 
-Every owned drawable has `ifccad::entity` and exactly one of the four drawable payload attributes. Unsupported `ifccad::geom::*` payloads fail explicitly. An independently used `ifccad::geom::circle` on a non-CAD IFCX node is not thereby a CAD entity. Coordinates use a fixed right-handed local XYZ convention; there is no implicit world alignment. The 25 length-unit tokens match the current OCDraw registry. Model and block-definition coordinates, including definition base points, use the drawing's length unit. Each Paper layout declares its own coordinate `lengthUnit`, including `unitless`. Direct Paper geometry sizes and placement origins use this coordinate unit. Optional `paper` describes a physical medium: positive finite width and height, and a physical registry unit (`unitless` is disallowed). Omit `paper` for an unsized sheet; null, partial or unknown medium fields fail. Medium dimensions are independent of coordinate units and geometry bounds, and imply neither a coordinate rescale nor clipping. No requirement places entities inside the physical medium. Existing example files have been migrated; missing new metadata fails without legacy synthesis. The experimental profile version and import remain unchanged.
+Every owned drawable has `ifccad::entity` and exactly one of the five drawable payload attributes. A viewport has no separate geometry or placement payload. Unsupported `ifccad::geom::*` payloads fail explicitly. An independently used `ifccad::geom::circle` on a non-CAD IFCX node is not thereby a CAD entity. Coordinates use a fixed right-handed local XYZ convention; there is no implicit world alignment. The 25 length-unit tokens match the current OCDraw registry. Model and block-definition coordinates, including definition base points, use the drawing's length unit. Each Paper layout declares its own coordinate `lengthUnit`, including `unitless`. Direct Paper geometry sizes and placement origins use this coordinate unit. Optional `paper` describes a physical medium: positive finite width and height, and a physical registry unit (`unitless` is disallowed). Omit `paper` for an unsized sheet; null, partial or unknown medium fields fail. Medium dimensions are independent of coordinate units and geometry bounds, and imply neither a coordinate rescale nor clipping. No requirement places entities inside the physical medium. Existing example files have been migrated; missing new metadata fails without legacy synthesis. The experimental profile version and import remain unchanged.
 
 A block definition's insertion unit records intent but does not silently scale coordinates. Transform evaluation subtracts the definition base point, applies stored scale and rotation, then applies placement. For a paper-owned instance, its scale maps drawing-coordinate numbers into paper-coordinate numbers; any unit conversion must be included explicitly. For example, the [paper-layout fixture](../../examples/ifcx-native-cad/hello-paper-layouts.ifcx) has centimetre model/block coordinates and an A3 sheet in millimetres, with a paper instance scale of `[10, 10, 10]`. A nested instance inside a definition stays in drawing units. Reading and writing never evaluate these transforms or normalize their values.
 
 The local circle shape aims at the analytic meaning of IFC4 `IfcCircle`; the namespace remains local until an official IFCX geometry attribute has an exact roundtrip contract. A line segment is not equivalent to unbounded `IfcLine`; planar polyline bulges, widths, and complex segments are outside this proof. The separate `placement` attribute can later be reused with a published geometry vocabulary if equivalent.
+
+## Paper viewports
+
+`ifccad::viewport` is an ordinary drawable with the drawing-wide entity identity,
+layer and appearance. It belongs to one Paper layout; Model and block ownership
+are invalid. Its required `model` path refers to the drawing's unique Model
+layout, not a block definition or another Paper layout. Required fields are
+`frame`, `view`, `renderMode`, `viewEnabled`, `viewLocked`, `visible`, `paperClip`
+and `frozenLayers`. Unknown fields at every nested level are rejected. Optional
+fields are omitted when absent; explicit null is invalid. Composition replaces
+the whole viewport attribute, including omitted optional fields, before validation.
+
+`frame` has XY `center` and positive `width`/`height` in owning Paper coordinate
+units. Center and dimensions are finite, and the exact rectangle enclosure must
+remain inside the finite binary64 range. Physical media neither rescale nor bound
+the frame. Unsized and unitless Paper layouts remain valid.
+
+`view` has XY DCS `center`, XYZ Model `target`, a target-to-camera XYZ `direction`,
+positive `height`, finite `twist` in radians, `projection`, `frontClip`, and
+`backClip`; `lensLengthMm` is optional. Center, target, direction and height use
+Model units. Direction is preserved without normalization and its exact Euclidean
+norm must be positive and within the finite binary64 range. Projection is
+`Orthographic` or `Perspective`. Perspective requires positive finite lens length
+in millimetres regardless of Model or Paper units; Orthographic permits an absent
+or finite nonnegative dormant lens. No camera values are inferred from media.
+
+Each depth clip has `mode` and optional finite signed `distance`. Modes are
+`Disabled`, `AtCamera`, and `AtDistance`; back clipping disallows `AtCamera`.
+`AtDistance` requires a distance measured from the target along the view direction,
+in Model units. Dormant distances remain stored when disabled or when the front
+plane is at the camera. If both planes are active, the back distance must be
+strictly less than the front distance; `AtCamera` uses the direction norm.
+No near-zero tolerance or implicit clamping is applied to these rules.
+
+Render modes are `TwoDimensional`, `Wireframe`, `HiddenLine`,
+`FlatShadedWithoutEdges`, `FlatShadedWithEdges`, `SmoothShadedWithoutEdges`, and
+`SmoothShadedWithEdges`. Visibility of the Paper viewport entity, enabled Model
+view and zoom locking are independent booleans. Storing these values does not
+implement a viewport renderer or certify application-specific print appearance.
+
+`paperClip` has required `enabled` and optional complete `boundary` entity path.
+Enabled clipping requires a boundary. A stored boundary, including when disabled,
+must exist in the same Paper owner, must not itself be a viewport, and may be
+claimed by only one viewport. Dormant boundary geometry is otherwise unrestricted.
+An active boundary is currently a closed straight planar polyline with at least
+three distinct vertices, or an analytic circle. Its valid placement lies exactly
+in Paper XY (origin and both axis Z components are zero). The whole transformed
+boundary must lie within the closed frame: every polyline vertex, or the full
+circle's analytic coordinate extrema. Concave polylines, touching boundaries,
+rotated/reflected XY placements and circles are accepted; no sampling or epsilon
+substitutes for full-curve enclosure. Bulged polylines, ellipses and other curve
+families need their own native geometry contract before becoming active clips.
+
+`frozenLayers` is a set of complete same-drawing layer paths. Every target must
+exist and occur once. Native writing sorts by numeric uint64 ID, without passing
+through floating point; input array order is not semantic. These are viewport
+layer overrides, not global layer visibility changes.
+
+The [viewport example](../../examples/ifcx-native-cad/hello-viewports.ifcx) and
+[candidate conformance cases](../../conformance/next/ifcx-native-cad/README.md)
+exercise strict reader/writer behavior. CAD conversion has separate coverage and
+dependency boundaries documented by the companion converter.
 
 ## CAD appearance
 
@@ -109,4 +172,4 @@ entity creation settings remain outside the native profile.
 
 ## Prototype boundary
 
-The strict reader and writer are in `src/ifcx_cad/`, exported as `ocdraw::ifcx_cad`. The writer strict-reads its own output and compares the typed CAD meaning. It emits JSON only. The standalone OCDraw reader validates a different contract. A separate `ifcx-cad-convert` companion provides a bounded direct mapping to cadcodec `CadDocument`; its direction-specific coverage documents define conversion limits. Viewports, plot settings, paper-to-model viewing transforms, annotation, indexed colors, complex text/shape line patterns and effective appearance evaluation are outside this profile version.
+The strict reader and writer are in `src/ifcx_cad/`, exported as `ocdraw::ifcx_cad`. The writer strict-reads its own output and compares the typed CAD meaning. It emits JSON only. The standalone OCDraw reader validates a different contract. A separate `ifcx-cad-convert` companion provides a bounded direct mapping to cadcodec `CadDocument`; its direction-specific coverage documents define conversion limits. Plot settings, a viewport projection/rendering API, annotation, indexed colors, complex text/shape line patterns and effective appearance evaluation are outside this profile version.

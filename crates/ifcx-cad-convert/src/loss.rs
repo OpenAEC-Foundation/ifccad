@@ -26,6 +26,20 @@ pub(crate) fn native_defaults(raw: &serde_json::Value) -> serde_json::Value {
                     .entry("linePatternGeneration")
                     .or_insert(serde_json::json!("perSegment"));
             }
+            if let Some(layers) = attrs
+                .get_mut("ifccad::viewport")
+                .and_then(|value| value.get_mut("frozenLayers"))
+                .and_then(serde_json::Value::as_array_mut)
+            {
+                // Native layer references form a set. Compare them in the
+                // writer's exact numeric order without rounding uint64 IDs.
+                layers.sort_by_key(|value| {
+                    value
+                        .as_str()
+                        .and_then(|path| path.rsplit('/').next())
+                        .and_then(|id| id.parse::<u64>().ok())
+                });
+            }
         }
     }
     raw
@@ -194,6 +208,17 @@ pub(crate) fn precision(
             continue;
         };
         for (key, value) in attrs {
+            if key == "ifccad::viewport"
+                && ["frame", "view"]
+                    .iter()
+                    .any(|field| !projected(&node["attributes"][key][field], &value[field]))
+            {
+                issues.push(diagnostic(
+                    "precision",
+                    format!("{path}.{key}"),
+                    "typed viewport projection changes an exact source number",
+                ));
+            }
             if (key.starts_with("ifccad::geom::")
                 || key == "ifccad::linePattern"
                 || key == "ifccad::blockInstance"

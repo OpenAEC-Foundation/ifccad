@@ -63,7 +63,7 @@ The experiment includes line, circle, planar polyline and local block geometry,
 native Model/Paper layouts, named simple line patterns, scales and polyline
 pattern generation, with strict readback and pinned DXF/DWG tests.
 Allow/Reject conversion policies expose or reject supported loss classifications.
-Model and multiple Paper layouts now convert with explicit tab order, optional physical media and separate coordinate units. Authored viewport and full plot conversion remain deferred; complex
+Model and multiple Paper layouts now convert with explicit tab order, optional physical media and separate coordinate units. The viewport slice adds camera, perspective/depth/display state and circle/closed straight-polyline clipping, with CAD exchange verified using explicit codec development repairs; upstream dependency adoption and full plot conversion remain separate follow-ups; complex
 text/shape patterns use a diagnosed whole-definition fallback under Allow.
 This integration does not freeze IFCX-CAD compatibility or expand the standalone
 OCDraw contract. Continued IFCX-CAD development expands drawing semantics and

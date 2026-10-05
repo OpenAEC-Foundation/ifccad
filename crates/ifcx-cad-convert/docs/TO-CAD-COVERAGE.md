@@ -18,6 +18,10 @@ Profile `urn:example:ifccad:0.1.0`; opencadcodec revision
 `fe69506cb99dea6f4c4a73b690a27fdf04403ea0`. Default Allow returns supported content
 with losses; explicit Reject refuses diagnosed omissions or modifications.
 
+The [dependency audit](../../../docs/geometry/opencadcodec-update-2026-10-05.md)
+records the current public-model review and the remaining upstream clipping
+defects. A development patch is not part of the default dependency.
+
 The validated source includes persistent next-ID watermarks. They remain in
 the source native drawing and govern subsequent native editing; they are
 allocation bookkeeping, not CAD entity semantics or a new preservation payload.
@@ -71,11 +75,50 @@ Evidence: `tests/conversion.rs`, `tests/blocks.rs`, `tests/exchange.rs`, `tests/
 Real DXF/DWG tests use the same primitive corpus and strict IFCX readback;
 Nested/shared nonzero-base blocks now pass both DXF and DWG transfers.
 
-The OCDraw viewport development worktree selects the explicit local codec repairs
-in [patches/opencadcodec-viewports](../../../patches/opencadcodec-viewports/README.md).
-This changes the shared dependency configuration, not this route's native entity
-coverage. The [2026-10-05 audit](../../../docs/geometry/opencadcodec-update-2026-10-05.md)
-records the public-model delta and separates patched from upstream evidence.
+The shared codec development configuration is documented in
+[patch provenance](../../../patches/opencadcodec-viewports/README.md). OCDraw and
+IFCX-CAD retain independent native geometry and clip contracts. The
+[2026-10-05 audit](../../../docs/geometry/opencadcodec-update-2026-10-05.md) separates
+patched from unmodified upstream evidence.
+## Paper viewport conversion
+
+Viewport output requires the same explicit codec development configuration as
+import; see the [patch provenance](../../../patches/opencadcodec-viewports/README.md).
+The unmodified dependency fails the required status-bit capability gate and
+omits the viewport with located loss. Native core storage has no codec dependency.
+
+The Paper frame maps to CAD center Z=0 and width/height. Model camera target,
+unnormalized direction, DCS center Z=0, height and radian twist map directly.
+Perspective, positive millimetre lens, signed depth planes, seven render modes,
+visibility, enabled, zoom locking and frozen-layer handles remain independent.
+Absent dormant lens/depth values use CAD constructor defaults; explicitly stored
+zero and signed values are copied. CAD requires bit 0x8000, while effective disabled
+state sets 0x20000. Front AtDistance sets not-at-eye only when appropriate;
+nonrectangular activation sets 0x10000 independently of the stored boundary handle.
+DXF angle degree conversion belongs to the repaired codec, not the converter.
+
+Ordinary owner geometry is prepared first and receives final CAD handles before
+viewport references resolve. Boundaries may follow their viewports in authored
+order. Analytic circles remain Circle entities; no sampled polyline substitutes
+for them. Supported native placements that the geometry converter cannot emit
+still omit both the boundary and referencing viewport according to loss policy,
+retaining supported siblings. Only emitted objects receive mappings.
+
+Authored viewport numbers start at 2 per Paper owner and are checked through
+`i16::MAX`; native uint64 IDs are never cast to runtime numbers. Overflow omits
+the viewport with `viewport-number` loss under Allow and Reject refuses that loss.
+Insertion uses preallocated handles and original owner order. Overall canvas and
+workspace scaffolding remain separate CAD infrastructure; no renderer or print
+equivalence is implied. Source graph/numeric loss checks continue to apply through
+the loaded-source route.
+
+Evidence: `tests/viewports.rs`, `tests/viewport_exchange.rs` and the numbering
+helper unit test; newly encoded native files undergo production strict readback.
+`tests/viewport_source.rs` checks exact-source frame/view numbers under both loss
+policies and proves frozen-layer array order alone does not cause semantic loss.
+The production browser smoke additionally exercises IFCX-CAD opening/export and
+DXF/DWG readback for perspective, circle clips and independent display states.
+
 ## Paper layout conversion boundary
 
 Native Paper names use full Unicode case folding; target CAD lookup additionally
@@ -96,5 +139,5 @@ Native media convert through exact rational millimetre factors. Any binary64
 rounding is fatal under both policies (5 inches maps exactly to 127 mm; 1 inch
 cannot exactly map to binary64 25.4 mm). Unsupported factors such as parsecs omit
 only media under Allow. Printer/media names, margins, rotation, plot limits,
-canvas/viewports and workspace state remain deferred losses. Definition-content
+authored overall canvases and workspace state remain deferred losses. Definition-content
 losses propagate to Paper instances through shared and nested definitions.

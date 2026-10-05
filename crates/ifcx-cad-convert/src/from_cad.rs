@@ -73,6 +73,12 @@ pub fn cad_document_to_ifcx_cad_document(
             .blocks
             .insert(ids.allocate_block_id().map_err(allocation_error)?, *h);
     }
+    for paper in &info.papers {
+        mappings.layouts.insert(
+            ids.allocate_layout_id().map_err(allocation_error)?,
+            paper.layout_handle,
+        );
+    }
     let entities = convert_entities(
         source,
         &patterns,
@@ -120,8 +126,10 @@ pub fn cad_document_to_ifcx_cad_document(
             unreachable!("inspected layout")
         };
         debug_assert_eq!(layout.block_record, paper.block_handle);
-        let id = ids.allocate_layout_id().map_err(allocation_error)?;
-        mappings.layouts.insert(id, paper.layout_handle);
+        let id = mappings
+            .layouts
+            .ifcx_id(paper.layout_handle)
+            .expect("allocated Paper owner");
         let (length_unit, medium) = crate::layouts::from_cad(layout, &mut issues);
         let entities = convert_entities(
             source,
@@ -195,53 +203,7 @@ fn convert_entities(
     mappings: &mut IfcxCadMappings,
     issues: &mut Vec<IfcxCadDiagnostic>,
 ) -> Result<Vec<IfcxCadEntity>, IfcxCadConversionError> {
-    let mut entities = Vec::new();
-    for h in handles {
-        let e = source.get_entity(*h).expect("inspected entity");
-        let loc = format!("entity/{h}");
-        let appearance = crate::appearance::from_common(e.common(), patterns, &loc, issues);
-        let kind = match e {
-            opencadcodec::EntityType::Insert(i) => mappings
-                .blocks
-                .ifcx_id(
-                    source
-                        .block_records
-                        .get(&i.block_name)
-                        .expect("inspected target")
-                        .handle,
-                )
-                .and_then(|id| crate::blocks::from_insert(i, id, &loc, issues)),
-            e => crate::geometry::from_entity(e, &loc, issues),
-        };
-        if kind.is_none() {
-            issues.push(diagnostic(
-                "entity-skipped",
-                &loc,
-                "whole entity omitted; unsupported geometry or entity family",
-            ));
-        }
-        if let Some(kind) = kind {
-            let id = ids.allocate_entity_id().map_err(allocation_error)?;
-            mappings.entities.insert(id, *h);
-            entities.push(IfcxCadEntity {
-                line_pattern_scale: e.common().linetype_scale,
-                id,
-                layer_id: mappings
-                    .layers
-                    .ifcx_id(
-                        source
-                            .layers
-                            .get(&e.common().layer)
-                            .expect("inspected layer")
-                            .handle,
-                    )
-                    .unwrap(),
-                appearance,
-                kind,
-            });
-        }
-    }
-    Ok(entities)
+    crate::entity_owners::from_cad(source, patterns, handles, ids, mappings, issues)
 }
 
 #[cfg(test)]

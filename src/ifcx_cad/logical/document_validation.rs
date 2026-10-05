@@ -98,6 +98,8 @@ pub fn validate_ifcx_cad_document(document: &IfcxCadDocument) -> Result<(), Ifcx
         }
         crate::ifcx_cad::logical::patterns::scale(entity.line_pattern_scale, &path)?;
         match &entity.kind {
+            IfcxCadEntityKind::Viewport(v) => validate_ifcx_cad_viewport_parameters(v)
+                .map_err(|report| problem(format!("{path}: {report}")))?,
             IfcxCadEntityKind::LineSegment { start, end } => {
                 finite3(*start, &path)?;
                 finite3(*end, &path)?;
@@ -140,6 +142,7 @@ pub fn validate_ifcx_cad_document(document: &IfcxCadDocument) -> Result<(), Ifcx
             }
         }
     }
+    super::viewports::validate_references(document)?;
     if cycle(&document.blocks) {
         return Err(problem("block definition cycle"));
     }

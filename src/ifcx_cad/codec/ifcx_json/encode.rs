@@ -37,6 +37,12 @@ fn entity_node(entity: &IfcxCadEntity, prefix: &str) -> NodeOut {
     let mut attrs = Map::new();
     attrs.insert("ifccad::entity".into(), json!({"layer":format!("{prefix}/layer/{}",entity.layer_id),"appearance":super::wire::entity(&entity.appearance,prefix),"linePatternScale":entity.line_pattern_scale}));
     match &entity.kind {
+        IfcxCadEntityKind::Viewport(viewport) => {
+            attrs.insert(
+                "ifccad::viewport".into(),
+                super::viewports::encode_viewport(viewport, prefix),
+            );
+        }
         IfcxCadEntityKind::LineSegment { start, end } => {
             attrs.insert(
                 "ifccad::geom::lineSegment".into(),

@@ -42,6 +42,22 @@ fn verify_readback(bytes: &[u8], document: &IfcxCadDocument) -> Result<(), IfcxC
     let loaded = load_ifcx_cad_bytes(bytes, IfcxCadReadOptions::default())
         .map_err(IfcxCadEncodeError::Readback)?;
     let mut expected = document.clone();
+    for entity in expected
+        .model
+        .entities
+        .iter_mut()
+        .chain(
+            expected
+                .paper_layouts
+                .iter_mut()
+                .flat_map(|p| &mut p.entities),
+        )
+        .chain(expected.blocks.iter_mut().flat_map(|b| &mut b.entities))
+    {
+        if let IfcxCadEntityKind::Viewport(v) = &mut entity.kind {
+            v.frozen_layers.sort_unstable();
+        }
+    }
     expected.layers.sort_by_key(|layer| layer.id.to_string());
     expected.blocks.sort_by_key(|block| block.id.to_string());
     expected.line_patterns.sort_by_key(|p| p.id.0.to_string());

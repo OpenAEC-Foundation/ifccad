@@ -41,6 +41,7 @@ pub fn semantic(d: &IfcxCadDocument) -> Result<Value> {
         values.iter().map(|e| {
             let layer = &d.layers.iter().find(|l| l.id == e.layer_id).unwrap().name;
             let geometry = match &e.kind {
+                IfcxCadEntityKind::Viewport(_) => unreachable!("validated viewports belong to paper layouts, which this comparison rejects"),
                 IfcxCadEntityKind::LineSegment { start, end } => json!({"kind":"line", "start":start,"end":end}),
                 IfcxCadEntityKind::Circle { radius, placement } => json!({"kind":"circle","radius":radius,"placement":placement}),
                 IfcxCadEntityKind::PlanarPolyline { vertices, closed, placement, line_pattern_generation } => json!({"kind":"polyline","vertices":vertices,"closed":closed,"placement":placement,"generation":line_pattern_generation}),

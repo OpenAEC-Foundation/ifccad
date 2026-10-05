@@ -235,3 +235,87 @@ pub fn instance(id: u64, definition_id: u64, origin: [f64; 3]) -> IfcxCadEntity 
         },
     }
 }
+
+pub fn native_viewport() -> IfcxCadViewport {
+    IfcxCadViewport {
+        model_id: 1,
+        frame: IfcxCadViewportFrame {
+            center: [100., 75.],
+            width: 160.,
+            height: 100.,
+        },
+        view: IfcxCadViewportView {
+            center: [0., 0.],
+            target: [0.; 3],
+            direction: [0., 0., 100.],
+            height: 200.,
+            twist: 0.,
+            projection: IfcxCadViewportProjection::Perspective,
+            lens_length_mm: Some(50.),
+            front_clip: IfcxCadViewportDepthClip {
+                mode: IfcxCadViewportClipMode::Disabled,
+                distance: Some(0.),
+            },
+            back_clip: IfcxCadViewportDepthClip {
+                mode: IfcxCadViewportClipMode::Disabled,
+                distance: Some(0.),
+            },
+        },
+        render_mode: IfcxCadViewportRenderMode::Wireframe,
+        view_enabled: false,
+        view_locked: true,
+        visible: false,
+        paper_clip: IfcxCadViewportPaperClip {
+            enabled: true,
+            boundary_entity_id: Some(1002),
+        },
+        frozen_layers: vec![4],
+    }
+}
+pub fn viewport_drawing() -> IfcxCadDocument {
+    let mut d = empty();
+    d.id_counters.next_entity_id = 1003;
+    d.id_counters.next_layout_id = 43;
+    let appearance = IfcxCadEntityAppearance {
+        color: IfcxCadMode::ByLayer,
+        opacity: IfcxCadMode::ByLayer,
+        line_weight: IfcxCadMode::ByLayer,
+        line_pattern: IfcxCadMode::ByLayer,
+    };
+    let entity = |id, kind| IfcxCadEntity {
+        id,
+        layer_id: 0,
+        appearance: appearance.clone(),
+        line_pattern_scale: 1.,
+        kind,
+    };
+    d.paper_layouts.push(IfcxCadPaperLayout {
+        id: 42,
+        name: "Sheet".into(),
+        tab_index: 1,
+        length_unit: "mm".into(),
+        paper: None,
+        entities: vec![
+            entity(
+                1000,
+                IfcxCadEntityKind::LineSegment {
+                    start: [0.; 3],
+                    end: [1., 0., 0.],
+                },
+            ),
+            entity(1001, IfcxCadEntityKind::Viewport(native_viewport())),
+            entity(
+                1002,
+                IfcxCadEntityKind::Circle {
+                    radius: 50.,
+                    placement: IfcxCadPlacement {
+                        origin: [100., 75., 0.],
+                        x_axis: [1., 0., 0.],
+                        y_axis: [0., 1., 0.],
+                    },
+                },
+            ),
+        ],
+    });
+    d
+}

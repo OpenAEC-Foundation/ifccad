@@ -81,6 +81,37 @@ for(const format of ['ifcx','dxf','dwg']){
 }
 console.log('Browser WASM IFCX-CAD opening, named patterns and real DXF/DWG roundtrips verified');
 
+const viewportGraph=JSON.parse(await readFile(new URL('../../examples/ifcx-native-cad/hello-viewports.ifcx',import.meta.url),'utf8'));
+const view=viewportGraph.data.find(node=>node.attributes?.['ifccad::viewport']).attributes['ifccad::viewport'];
+for(const enabled of [false,true]){
+ view.viewEnabled=enabled;view.visible=!enabled;view.viewLocked=true;
+ view.paperClip.enabled=enabled;view.view.twist=Math.PI/6;
+ const bytes=new TextEncoder().encode(JSON.stringify(viewportGraph));
+ const source={kind:'ifcx',name:'viewports.ifcx',files:[{path:'viewports.ifcx',bytes:bytes.buffer}]};
+ for(const format of ['ifcx','dxf','dwg']){
+  const exported=processBrowserRequest({...source,export:{format,version:'AC1032'}},wasm);
+  assert.equal(exported.failure,null,JSON.stringify(exported.failure));
+  const returned=processBrowserRequest({kind:format==='ifcx'?'ifcx':'cad',drawingFormat:'ifcx',name:'viewports.'+format,
+   files:[{path:'viewports.'+format,bytes:Uint8Array.from(Buffer.from(exported.export.download.base64,'base64')).buffer}]},wasm);
+  assert.equal(returned.failure,null,JSON.stringify(returned.failure));
+  assert.equal(returned.validation.strictAvailable,true);
+  const views=returned.presentation.entities.filter(node=>node.attributes['ifccad::viewport']);
+  assert.equal(views.length,1);
+  const restored=views[0].attributes['ifccad::viewport'];
+  assert.equal(restored.viewEnabled,enabled);assert.equal(restored.visible,!enabled);
+  assert.equal(restored.viewLocked,true);assert.equal(restored.paperClip.enabled,enabled);
+  assert.equal(restored.view.projection,'Perspective');assert.equal(restored.view.lensLengthMm,50);
+  assert.deepEqual(restored.view.direction,[0,0,100]);
+  assert.ok(Math.abs(restored.view.twist-Math.PI/6)<1e-12);
+  const boundary=returned.presentation.entities.find(node=>node.path===restored.paperClip.boundary);
+  assert.equal(boundary.attributes['ifccad::geom::circle'].radius,50);
+  const model=returned.presentation.layouts.find(node=>node.attributes['ifccad::layout'].kind==='Model');
+  assert.equal(restored.model,model.path);
+  assert.deepEqual(restored.frozenLayers.map(path=>returned.presentation.layers.find(node=>node.path===path).attributes['ifccad::layer'].name),['Notes']);
+ }
+}
+console.log('Browser WASM IFCX-CAD perspective, active/dormant circle clips and independent display states verified');
+
 // Keep full-width counter literals in text; JSON.parse/stringify would round them.
 const largeText=(await readFile(new URL('../../examples/ifcx-native-cad/hello-line-patterns.ifcx',import.meta.url),'utf8'))
  .replace(/("next(?:Entity|Layer|Layout|Block|LinePattern)Id"\s*:\s*)\d+/g,(_,prefix)=>prefix+'9007199254740993');

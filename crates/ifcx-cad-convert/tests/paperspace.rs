@@ -160,7 +160,7 @@ fn tab_gaps_are_recovery_but_ambiguous_order_and_links_are_fatal() {
     }
 }
 #[test]
-fn invalid_media_and_deferred_viewports_keep_supported_siblings_with_losses() {
+fn invalid_media_and_unsupported_viewports_keep_supported_siblings_with_losses() {
     let mut cad = source();
     layout_mut(&mut cad, "Inches").paper_height = 0.;
     let result = import(&cad, IfcxCadLossPolicy::Allow).unwrap();
@@ -176,7 +176,8 @@ fn invalid_media_and_deferred_viewports_keep_supported_siblings_with_losses() {
         import(&cad, IfcxCadLossPolicy::Reject),
         Err(IfcxCadConversionError::Unsupported(_))
     ));
-    let viewport = opencadcodec::entities::Viewport::new();
+    let mut viewport = opencadcodec::entities::Viewport::new();
+    viewport.center.z = 1.;
     let h = cad
         .add_entity_to_layout(EntityType::Viewport(viewport), "Inches")
         .unwrap();

@@ -151,7 +151,7 @@ opencadcodec `CadDocument`, including named simple line patterns, scales and pol
 pattern generation. See the [line-pattern sample](examples/ifcx-native-cad/hello-line-patterns.ifcx). Geometry validation and length-unit tokens reuse OCDraw;
 the two drawing models, schemas and encoding routes remain separate. The
 [Open CAD Drawing explorer](format-explorer/README.md) now opens IFCX-CAD and
-roundtrips through DXF/DWG using its own converter. Model and multiple Paper layouts convert with explicit tab order, optional physical media and separate coordinate units. Authored viewports and full plot settings remain deferred.
+roundtrips through DXF/DWG using its own converter. Model and multiple Paper layouts convert with explicit tab order, optional physical media and separate coordinate units. Paper viewports now retain orthographic/perspective camera, depth/display state and circle/closed straight-polyline clipping. CAD viewport exchange uses the explicit development codec repairs described in the converter; full plot settings remain deferred.
 
 ## Local maintenance
 

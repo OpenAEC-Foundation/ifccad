@@ -1,3 +1,4 @@
+use super::IfcxCadViewport;
 use serde::{Deserialize, Serialize};
 
 /// Caller-supplied IFCX header metadata; writing never invents identifiers or dates.
@@ -127,6 +128,7 @@ pub struct IfcxCadBlockTransform {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum IfcxCadEntityKind {
+    Viewport(IfcxCadViewport),
     LineSegment {
         start: [f64; 3],
         end: [f64; 3],

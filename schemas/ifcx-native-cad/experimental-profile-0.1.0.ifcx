@@ -251,6 +251,185 @@
         }
       }
     },
+    "ifccad::viewport": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "model": {
+              "dataType": "Reference"
+            },
+            "frame": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "center": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 2,
+                      "max": 2,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  },
+                  "width": {
+                    "dataType": "Real"
+                  },
+                  "height": {
+                    "dataType": "Real"
+                  }
+                }
+              }
+            },
+            "view": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "center": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 2,
+                      "max": 2,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  },
+                  "target": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 3,
+                      "max": 3,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  },
+                  "direction": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 3,
+                      "max": 3,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  },
+                  "height": {
+                    "dataType": "Real"
+                  },
+                  "twist": {
+                    "dataType": "Real"
+                  },
+                  "projection": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "Orthographic",
+                        "Perspective"
+                      ]
+                    }
+                  },
+                  "lensLengthMm": {
+                    "dataType": "Real",
+                    "optional": true
+                  },
+                  "frontClip": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "mode": {
+                          "dataType": "Enum",
+                          "enumRestrictions": {
+                            "options": [
+                              "Disabled",
+                              "AtCamera",
+                              "AtDistance"
+                            ]
+                          }
+                        },
+                        "distance": {
+                          "dataType": "Real",
+                          "optional": true
+                        }
+                      }
+                    }
+                  },
+                  "backClip": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "mode": {
+                          "dataType": "Enum",
+                          "enumRestrictions": {
+                            "options": [
+                              "Disabled",
+                              "AtCamera",
+                              "AtDistance"
+                            ]
+                          }
+                        },
+                        "distance": {
+                          "dataType": "Real",
+                          "optional": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "renderMode": {
+              "dataType": "Enum",
+              "enumRestrictions": {
+                "options": [
+                  "TwoDimensional",
+                  "Wireframe",
+                  "HiddenLine",
+                  "FlatShadedWithoutEdges",
+                  "FlatShadedWithEdges",
+                  "SmoothShadedWithoutEdges",
+                  "SmoothShadedWithEdges"
+                ]
+              }
+            },
+            "viewEnabled": {
+              "dataType": "Boolean"
+            },
+            "viewLocked": {
+              "dataType": "Boolean"
+            },
+            "visible": {
+              "dataType": "Boolean"
+            },
+            "paperClip": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "enabled": {
+                    "dataType": "Boolean"
+                  },
+                  "boundary": {
+                    "dataType": "Reference",
+                    "optional": true
+                  }
+                }
+              }
+            },
+            "frozenLayers": {
+              "dataType": "Array",
+              "arrayRestrictions": {
+                "min": 0,
+                "value": {
+                  "dataType": "Reference"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "ifccad::geom::lineSegment": {
       "value": {
         "dataType": "Object",

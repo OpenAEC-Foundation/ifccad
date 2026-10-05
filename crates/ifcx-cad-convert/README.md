@@ -136,7 +136,7 @@ both policies. No geometric tolerance kernel is introduced.
 
 ## Exchange evidence
 
-Unmodified opencadcodec revision `d96e3fa2fe5acbeac966f1db4c01142618bf9c79`, AC1032:
+Unmodified opencadcodec revision `fe69506cb99dea6f4c4a73b690a27fdf04403ea0`, AC1032:
 
 | Probe | Result |
 | --- | --- |
@@ -146,6 +146,12 @@ Unmodified opencadcodec revision `d96e3fa2fe5acbeac966f1db4c01142618bf9c79`, AC1
 | Nested/shared blocks with zero base through DWG | Pass |
 | Nonzero block base through DWG | Pass, including nested/shared definitions; codec issue #52 is resolved |
 | Near-quarter-turn rotation through DXF | External codec degree/radian roundtrip can change one binary64 step; separately diagnosed in the practice probe |
+
+The [2026-10-05 dependency audit](../../docs/geometry/opencadcodec-update-2026-10-05.md)
+records the public-model review and fresh verification. The viewport development
+regressions still fail on unmodified upstream; the explicit local patch passes
+those tests and remains separate from this default pin. Historical measurements
+retain their recorded revisions.
 
 No marker repair or guessed anonymous-block rename is applied. A stale DXF
 model cache can be recovered only through unique consistent block/layout
@@ -157,6 +163,26 @@ Generated IFCX passes the strict production reader. This bounded corpus does
 not establish broad CAD conformance or any file-size/performance conclusion.
 The API boundary is CadDocument; diagnostics do not promise exactness through a
 subsequent external DWG/DXF writer. Such outputs need independent readback.
+
+### Paper viewport development configuration
+
+Authored Paper viewports now map Model targets, Paper frames, orthographic and
+perspective cameras, signed depth clipping, render/display controls and frozen
+layers. Active clips support existing Circle and closed straight-polyline
+geometry; stored dormant boundaries retain their identity. Forward boundaries
+are resolved without changing authored order. Unsupported boundaries omit the
+whole viewport with located loss, retaining supported sibling geometry.
+
+CAD exchange currently uses
+[`patches/opencadcodec-viewports.toml`](../../patches/opencadcodec-viewports.toml)
+and its [documented local checkout/repairs](../../patches/opencadcodec-viewports/README.md).
+The default upstream dependency lacks required status support and diagnoses
+viewport omissions. Run converter exchange tests with
+`cargo test --config patches/opencadcodec-viewports.toml -p ifcx-cad-convert`.
+Core native viewports remain independent of opencadcodec. Direction-specific
+coverage documents define whole/partial loss, scalar mapping, runtime numbering
+and output-handle rules. Full plot configuration and viewport rendering remain
+outside this slice; wider OCDraw clipping support remains a separate contract.
 
 The serde feature enables field inspection, not a new file encoding. No Cargo
 cache code is edited. Baseline benchmark code is unchanged; no size experiment
@@ -194,7 +220,8 @@ foreign graph data is still checked and exact numeric projection errors fail.
 The OCDraw viewport worktree pins the shared upstream base `fe69506` and opts in
 to [explicit local codec repairs](../../patches/opencadcodec-viewports/README.md).
 The earlier exchange table retains its stated historical dependency provenance.
-This configuration does not adopt the separate IFCX-CAD viewport implementation.
+The current IFCX-CAD viewport slice uses the same repairs plus the independent
+viewport-off repair; its geometry and clipping contract stays separate from OCDraw.
 See the [2026-10-05 dependency audit](../../docs/geometry/opencadcodec-update-2026-10-05.md).
 ## Paper layout conversion boundary
 
@@ -216,5 +243,5 @@ Native media convert through exact rational millimetre factors. Any binary64
 rounding is fatal under both policies (5 inches maps exactly to 127 mm; 1 inch
 cannot exactly map to binary64 25.4 mm). Unsupported factors such as parsecs omit
 only media under Allow. Printer/media names, margins, rotation, plot limits,
-canvas/viewports and workspace state remain deferred losses. Definition-content
+authored overall canvases and workspace state remain deferred losses. Definition-content
 losses propagate to Paper instances through shared and nested definitions.

@@ -110,6 +110,7 @@ fn semantic(d: &ocdraw::ifcx_cad::IfcxCadDocument) -> serde_json::Value {
             .map(|e| {
                 let layer = &d.layers.iter().find(|l| l.id == e.layer_id).unwrap().name;
                 let geometry = match &e.kind {
+                    IfcxCadEntityKind::Viewport(v) => serde_json::json!(["viewport", v.frame, v.view]),
                     IfcxCadEntityKind::LineSegment { start, end } => {
                         serde_json::json!(["line", start, end])
                     }

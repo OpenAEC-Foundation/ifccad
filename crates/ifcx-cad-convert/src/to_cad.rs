@@ -153,7 +153,7 @@ fn convert_document(
             )
         })
         .collect();
-    for (owner, entities) in std::iter::once((model_owner, drawing.model.entities.as_slice()))
+    let owners: Vec<_> = std::iter::once((model_owner, drawing.model.entities.as_slice()))
         .chain(paper_owners.iter().map(|(id, owner)| {
             (
                 *owner,
@@ -167,63 +167,8 @@ fn convert_document(
             )
         }))
         .chain(block_owners)
-    {
-        for e in entities {
-            let loc = format!("entity/{}", e.id);
-            let layer = &drawing
-                .layers
-                .iter()
-                .find(|l| l.id == e.layer_id)
-                .expect("validated layer")
-                .name;
-            let pattern =
-                if let ocdraw::ifcx_cad::IfcxCadMode::Explicit(id) = e.appearance.line_pattern {
-                    Some(crate::patterns::target(&document, &mappings, id))
-                } else {
-                    None
-                };
-            let mut common =
-                crate::appearance::to_common(&e.appearance, pattern, layer, &loc, &mut issues);
-            common.linetype_scale = e.line_pattern_scale;
-            let target = match &e.kind {
-                ocdraw::ifcx_cad::IfcxCadEntityKind::BlockInstance {
-                    definition_id,
-                    transform,
-                } if mappings.blocks.cad_handle(*definition_id).is_some() => {
-                    let before = issues.len();
-                    let insert = crate::blocks::to_insert(
-                        &drawing
-                            .blocks
-                            .iter()
-                            .find(|b| b.id == *definition_id)
-                            .expect("validated definition")
-                            .name,
-                        transform,
-                        &loc,
-                        &mut issues,
-                    );
-                    (issues.len() == before).then_some(insert)
-                }
-                ocdraw::ifcx_cad::IfcxCadEntityKind::BlockInstance { .. } => None,
-                kind => crate::geometry::to_entity(kind, &loc, &mut issues),
-            };
-            if target.is_none() {
-                issues.push(diagnostic(
-                    "entity-skipped",
-                    &loc,
-                    "whole entity omitted; unsupported geometry or omitted block target",
-                ));
-            }
-            if let Some(mut target) = target {
-                *target.common_mut() = common;
-                target.common_mut().owner_handle = owner;
-                let h = document
-                    .add_entity(target)
-                    .map_err(|e| IfcxCadConversionError::CadConstruction(e.to_string()))?;
-                mappings.entities.insert(e.id, h);
-            }
-        }
-    }
+        .collect();
+    crate::entity_owners::to_cad(drawing, &mut document, &owners, &mut mappings, &mut issues)?;
     crate::loss::to_cad(drawing, &mut issues);
     crate::diagnostics::enforce_policy(options.loss_policy, &issues)?;
     Ok(IfcxCadToCadOutcome {

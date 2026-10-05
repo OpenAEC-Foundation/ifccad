@@ -105,7 +105,20 @@ value alone looks valid. Full-width allocation integers remain exact in typed
 state and native output.
 
 The paperspace slice extends conversion coverage; existing source recoveries and appearance adaptations remain in force. Fresh CAD imports allocate fresh native IDs; a CAD-runtime
-roundtrip does not preserve native allocation history automatically. Multiple authored Paper layouts, supported geometry, tab order and optional media convert. Authored viewport/view state and full plot settings remain deferred, with located loss diagnostics.
+roundtrip does not preserve native allocation history automatically. Multiple authored Paper layouts, supported geometry, tab order and optional media convert. Paper viewport camera, perspective, depth/display state and circle/closed straight-polyline clipping now convert with explicit codec development repairs; full plot settings remain deferred with located loss diagnostics.
+
+## Editing viewport references
+
+Paper viewports use ordinary entity IDs and owner order. Reordering does not
+change the referenced Model, clip boundary or frozen layers. Moving a viewport
+requires its stored boundary to remain in the same Paper owner, including when
+clipping is disabled. Copying a viewport needs a new entity ID and, if it has a
+boundary, an independently identified boundary: sharing one boundary between
+viewports is invalid. Editors must update those references before validation.
+Native encoding canonicalizes frozen-layer sets by numeric ID while preserving
+all other viewport payload semantics and strict whole-attribute composition.
+The [viewport contract](../../schemas/ifcx-native-cad/experimental-contract-0.1.0.md#paper-viewports)
+and candidate conformance fixtures define the current independent profile.
 
 ## Typed failures
 

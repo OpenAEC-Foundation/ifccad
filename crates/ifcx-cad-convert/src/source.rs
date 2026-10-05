@@ -271,6 +271,7 @@ pub(crate) fn inspect(doc: &CadDocument) -> Result<Inspection, Error> {
             if b.is_paper_space()
                 && matches!(e, EntityType::Viewport(_))
                 && !overall_scaffold(doc, e)
+                && matches!(e, EntityType::Viewport(v) if crate::viewports::overall_canvas(doc,v))
             {
                 issues.push(diagnostic(
                     "paper",
