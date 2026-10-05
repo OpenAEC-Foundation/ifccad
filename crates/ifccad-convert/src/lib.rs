@@ -41,6 +41,7 @@ mod diagnostics;
 mod entity_owners;
 mod from_cad;
 mod geometry;
+mod layout_references;
 mod layouts;
 mod loss;
 mod options;

@@ -120,6 +120,7 @@ pub(crate) fn inspect(doc: &CadDocument) -> Result<Inspection, Error> {
         return Err(invalid("model block and exactly one layout must agree"));
     }
     let mut recoveries = vec![];
+    let layout_dictionary = crate::layout_references::dictionary(doc, &mut recoveries)?;
     if doc.header.model_space_block_handle != model.handle {
         if doc.header.model_space_block_handle.is_null()
             || doc
@@ -208,7 +209,7 @@ pub(crate) fn inspect(doc: &CadDocument) -> Result<Inspection, Error> {
             if !layout_names.insert(l.name.to_uppercase()) {
                 return Err(invalid("ambiguous duplicate layout name"));
             }
-            if !matches!(doc.objects.get(&doc.header.acad_layout_dict_handle),Some(ObjectType::Dictionary(d)) if l.owner==d.handle && d.entries.iter().filter(|(name,h)| name==&l.name && *h==l.handle).count()==1)
+            if !matches!(doc.objects.get(&layout_dictionary),Some(ObjectType::Dictionary(d)) if l.owner==d.handle && d.entries.iter().filter(|(name,h)| name==&l.name && *h==l.handle).count()==1)
             {
                 return Err(invalid(
                     "layout dictionary membership or ownership disagrees",
@@ -217,17 +218,7 @@ pub(crate) fn inspect(doc: &CadDocument) -> Result<Inspection, Error> {
             if record.is_paper_space() {
                 paper_sources.push(l);
             }
-            for h in l
-                .viewports
-                .iter()
-                .chain(std::iter::once(&l.viewport))
-                .filter(|h| !h.is_null())
-            {
-                if !matches!(doc.get_entity(*h),Some(EntityType::Viewport(v)) if v.common.owner_handle==l.block_record)
-                {
-                    return Err(invalid("layout references missing or foreign viewport"));
-                }
-            }
+            crate::layout_references::viewports(doc, l, record.is_model_space(), &mut issues)?;
         }
         let entries = match object {
             ObjectType::Dictionary(d) => Some(&d.entries),
@@ -401,7 +392,7 @@ pub(crate) fn inspect(doc: &CadDocument) -> Result<Inspection, Error> {
                 .collect(),
         });
     }
-    scan(doc, &mut issues)?;
+    scan(doc, layout_dictionary, &mut issues)?;
     for e in doc.entities() {
         crate::geometry::validate_source(e)?;
     }
@@ -487,7 +478,11 @@ fn untouched_paper(doc: &CadDocument, layout: &opencadcodec::objects::Layout) ->
             })
 }
 
-fn scan(doc: &CadDocument, issues: &mut Vec<IfccadDiagnostic>) -> Result<(), Error> {
+fn scan(
+    doc: &CadDocument,
+    layout_dictionary: Handle,
+    issues: &mut Vec<IfccadDiagnostic>,
+) -> Result<(), Error> {
     static DWG_DEFAULT: OnceLock<Result<CadDocument, String>> = OnceLock::new();
     let fresh = CadDocument::new();
     let baseline = if doc.dwg_source_version.is_some() {
@@ -673,7 +668,7 @@ fn scan(doc: &CadDocument, issues: &mut Vec<IfccadDiagnostic>) -> Result<(), Err
             }
         }
         SemanticPartV1::Object(SemanticObjectV1::Typed(o)) => {
-            if !scaffold_object(o, doc, baseline, &object_roles) {
+            if !scaffold_object(o, doc, baseline, &object_roles, layout_dictionary) {
                 let h = doc
                     .objects
                     .iter()
@@ -851,6 +846,7 @@ fn scaffold_object(
     doc: &CadDocument,
     base: &CadDocument,
     map: &BTreeMap<Handle, Handle>,
+    layout_dictionary: Handle,
 ) -> bool {
     let Some((&h, _)) = doc.objects.iter().find(|(_, v)| std::ptr::eq(*v, o)) else {
         return false;
@@ -863,7 +859,7 @@ fn scaffold_object(
         (ObjectType::Dictionary(a), ObjectType::Dictionary(b)) => {
             let mut a = a.clone();
             let mut b = b.clone();
-            if h == doc.header.acad_layout_dict_handle {
+            if h == layout_dictionary {
                 a.entries.retain(|(name,h)|!matches!(doc.objects.get(h),Some(ObjectType::Layout(l)) if l.name==*name));
                 b.entries.retain(|(_,h)|matches!(base.objects.get(h),Some(o) if !matches!(o,ObjectType::Layout(_))));
             }

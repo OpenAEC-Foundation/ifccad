@@ -48,7 +48,7 @@ Reimporting CAD does not restore a previous IFCCAD allocation history.
 | TextStyle/DimStyle/AppId/View/VPort/Ucs/Vx | Only default records, record handles normalized; additional/changed records diagnosed |
 | Classes | Default definitions only; normalize derived numbering/instance counts and version metadata |
 | Entities | Supported fields below; every other family diagnosed. Full inventory includes structural markers hidden by `entities()` |
-| Layout objects | Unique bidirectional Model/Paper block links and ACAD_LAYOUT dictionary membership; names and tab order mapped. Media dimensions are millimetres, independently of plot units; optional media and bounded inch/mm coordinate mappings retained. Validate viewport references; exclude derived extents and structural handles. Other plot/UCS/layout fields diagnosed |
+| Layout objects | Unique bidirectional Model/Paper block links and named-root ACAD_LAYOUT dictionary membership; names and tab order mapped. Recover a missing/wrong-type derived layout-dictionary cache only through a unique consistent named relationship. Media dimensions are millimetres, independently of plot units; optional media and bounded inch/mm coordinate mappings retained. Model viewport references resolve VPORT records; Paper references resolve same-owner VIEWPORT entities. Model view selection is diagnosed loss; exclude derived extents and structural handles. Other plot/UCS/layout fields diagnosed |
 | Other typed/unsupported objects | Compare pinned scaffold by named dictionary roles and typed values; additional/modified/unsupported objects diagnosed |
 | Summary/Preview | Changed summary or any preview diagnosed |
 | Relationships | Entity/marker/Layout ownership and typed drawing references remain structural checks. Unresolved ownership of omitted non-Layout objects is located loss, including object kind and owner handle. Reactors/extension dictionaries, including unresolved endpoints, are diagnosed losses rather than global structural failures |
@@ -161,9 +161,30 @@ unique model-cache repair has action Recovery and does not count as a loss.
 Unresolved ownership of unsupported objects and optional reactor/extension
 relationships is omitted with loss diagnostics under Allow; Reject refuses that
 loss. This does not repair the source or preserve the unsupported metadata.
-Existing dictionary-entry and Layout/block/viewport consistency checks remain
-unchanged. `tests/metadata_relationships.rs` covers the metadata/structure boundary
+Essential dictionary-entry and Layout/block consistency checks remain
+in place. `tests/metadata_relationships.rs` covers the metadata/structure boundary
 through logical and encoded conversion and production-reader readback.
+
+Layout dictionary identity comes from the root named dictionary's unique
+`ACAD_LAYOUT` entry, with matching dictionary map key, payload identity and root
+ownership. Every layout must be owned by that dictionary and occur exactly once
+under its actual name. A null, missing or wrong-type header cache is recovered
+without mutating the caller's document, with `layout-dictionary-cache-recovered`
+action Recovery. A cache resolving to a different existing Dictionary, ambiguous
+or missing named targets, and actual membership/ownership conflicts remain fatal
+under both policies. This also governs scaffold comparison, so cache recovery
+does not produce a false dictionary-object loss or make Reject fail by itself.
+
+A Model layout's last-active viewport and viewport-list references must resolve
+VPORT table records, rather than Paper VIEWPORT entities. Their selection is not
+stored by the native model: `model-viewport-selection` is located loss under
+Allow and refused by Reject. Individual VPORT settings retain existing table
+classification. Paper references still require same-owner VIEWPORT entities;
+missing, wrong-kind or foreign targets remain structural errors. Tests in
+`tests/layout_references.rs` cover both logical and encoded routes, source
+immutability, relocated-dictionary DXF and Model-VPORT DWG readback, plus negative
+identity, ownership, ambiguity and target-kind cases. These corrections do not
+add Model view state, plot support or an overall-viewport identity heuristic.
 
 Metadata is caller supplied. New IDs follow source table/owner enumeration and
 remain u64; layer/definition vectors follow current core lexical path ordering.
