@@ -8,7 +8,7 @@ These are fresh conversions: no identity-preserving CAD editing session,
 watermark reconstruction or new source coverage is implied.
 
 The validated standalone drawing is the conversion boundary. The pinned codec
-revision is `d96e3fa2fe5acbeac966f1db4c01142618bf9c79`. There is no package
+revision is `fe69506cb99dea6f4c4a73b690a27fdf04403ea0`. There is no package
 graph or preservation transfer. Geometry accuracy and semantic losses are
 reported separately; unknown target semantics are diagnosed.
 
@@ -21,7 +21,8 @@ reported separately; unknown target semantics are diagnosed.
 | Model and paper layout names, scope binding and order | The CAD model layout and named paper layouts are allocated before scope entities. Source layout names and paper owners are retained. The first paper layout reuses and renames the fresh CAD scaffold; subsequent layouts are allocated in tab order. Without a source paper layout the scaffold layout and its dictionary entry are removed; the codec's reserved paper block/header remain, with no layout tab. An authored `Layout1` is retained like any other source name. |
 | Layout `limits`, `limitsChecking`, `paperSpaceLinetypeScaling` | Limits and flag bit 2 are mapped. Cadcodec stores PSLTSCALE once in its header; conflicting per-layout values receive `LAYOUT_FIELD_UNSUPPORTED`. |
 | Effective `plotSettings.media/area/mapping/output/options` | Millimetre/inch/pixel tokens, media dimensions/margins/rotation, all four supported plot areas, fixed/fit scale, offset/center, shading, active plot-style switch/name and supported flags map to pinned `Layout` fields. Printable-area-relative offsets and plot transparency have no exact target field and receive `LAYOUT_FIELD_UNSUPPORTED`. A page setup name or CTB/STB contents cannot be reconstructed from the native inline value. |
-| Paper `Viewport` frame, orthographic view, render and clip state | Mapped to a CAD VIEWPORT owned by the paper block. Perspective is skipped with `VIEWPORT_UNSUPPORTED` pending CAD fixture calibration; an unresolved active paper clip also skips the viewport. |
+| Paper `Viewport` frame, orthographic view, render and active clip state | Mapped to a CAD VIEWPORT owned by the paper block. Circle, full Ellipse and closed straight/bulged PlanarPolyline boundaries map through normal geometry conversion. Clip handles bind after ordered entity construction, allowing forward references without changing draw order. Perspective is skipped pending CAD fixture calibration. A required unconstructed boundary returns a typed construction error; no unresolved clipped viewport escapes as a rectangle. Locally patched DXF/DWG exchange preserves activation and references; the DWG profile includes an overall paper canvas. |
+| Dormant paper clip reference | Stored reference binds after ordered geometry construction while activation remains false. Convertible dormant boundary families need no active-clip eligibility; missing construction mappings return a typed error. The locally patched codec retains this state through DXF/DWG. |
 | Viewport frozen layers | Each relational frozen override maps to a CAD frozen-layer handle. Pinned opencadcodec has no per-viewport appearance-override slots; those report `VIEWPORT_UNSUPPORTED`. |
 | Drawing workspace current Layer | A local layer ID selects the CAD header current layer. |
 | Named UCS and model workspace | Named UCS definitions become CAD UCS table entries, including unused ones. Current World/named/unnamed model UCS and ordered model windows map to the header and active VPORT records, including dormant grid/snap values. CAD handles are newly allocated. Grid dot style or an out-of-range major frequency receives `WORKSPACE_UNSUPPORTED`. |
@@ -45,8 +46,23 @@ reported separately; unknown target semantics are diagnosed.
 | Other drawing/layout/view state | Named views, page-setup sharing and complete native appearance overrides remain outside this slice and cannot be reconstructed without a diagnostic or a future target-model extension. |
 | Bounds, allocation watermark, drawing/table identities | No reconstruction guarantee; target storage and handles differ |
 
-Coverage remains incomplete for the native semantics listed above. The outcome
-contains semantic diagnostics, a separate numerical geometry assessment, and
+Coverage remains incomplete for the native semantics listed above.
+
+Physical clipping and VIEWPORT angle exchange require the
+[explicit local codec repairs](../../../patches/opencadcodec-viewports/README.md)
+selected by this development worktree. Patched tests cover circles, rotated full
+ellipses and supported straight/bulged planar paths in both draw-order positions,
+negative/major bulges, nonzero twist and dormant stored references. Raw DXF
+50/51 values are independently checked as degrees. The unmodified base still
+omits/ignores group 340 and strips activation; explorer DXF exports report
+`DXF_VIEWPORT_CLIP_LOSS` when that codec is selected. Patched results do not
+establish support in unmodified upstream or application rendering.
+Without a conventional overall paper canvas, pinned DWG readback classifies
+the first authored viewport as the overall canvas. A characterization test
+records the lost authored-viewport identity. The passing clip exchange profile
+therefore requires that canvas; native files without one remain valid OCDraw.
+
+The outcome contains semantic diagnostics, a separate numerical geometry assessment, and
 source entity to target handle mappings. It has no aggregate fidelity grade.
 An empty diagnostic list is not a losslessness guarantee: opacity quantization
 and some presentation metadata are not comprehensively assessed.

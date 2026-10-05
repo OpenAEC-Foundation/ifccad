@@ -224,8 +224,21 @@ canvas views are orthographic.
 A viewport has a positive finite paper frame with a finite exact enclosure.
 An enabled paper clip requires an existing boundary entity in the same paper
 scope. Any stored boundary reference, including a dormant one, is unique to one
-viewport and resolves in that scope. An active boundary is a closed straight
-planar polyline with at least three distinct vertices, all inside the frame.
+viewport and resolves in that scope. An active boundary is a Circle, a full
+Ellipse (not EllipseArc), or a closed PlanarPolyline. All-straight polylines
+require at least three distinct XY vertices; a polyline with an active nonzero
+bulge requires at least two. Signed zero does not distinguish vertices. Every
+segment, including the closing segment, must be valid. The entire represented
+curve must lie in paper Z=0 within the frame's finite outward enclosure of
+center plus/minus half dimensions; touching that enclosure is allowed. For
+circles, ellipses and curved polyline segments, placement origin Z and both
+in-plane direction Z components must be exactly zero. Straight segments use
+exact placed endpoint checks. In-plane rotation and either plane orientation
+are allowed. Conservative geometry bounds crossing a frame edge are not proof
+that the curve crosses it. Do not approximate curves or apply a tolerance
+epsilon to clip validation. Dormant references need not satisfy active geometry
+eligibility. Self-intersections and zero signed area do not themselves invalidate
+a boundary; no new stored fill rule is introduced.
 Per-layer overrides select distinct existing layers and carry at least one
 effective change. Custom shading quality requires dpi 100..32767; other quality
 modes do not carry dpi.

@@ -55,6 +55,14 @@ Current geometry includes XYZ lines, oriented points, placed circles/arcs and
 ellipses, planar polylines with bulges, direct XYZ spatial polylines, and local
 shared block instances. Layouts, appearances, plot state, named/current UCS,
 model windows, paper canvases and paper viewports have typed records.
+Active viewport clips support circles, full ellipses and closed planar
+polylines with straight or bulged segments. Direct CAD conversion resolves clip
+references independently of draw order, preserving activation separately from
+stored boundaries. The [explicit local codec patches](patches/opencadcodec-viewports/README.md)
+qualify DXF/DWG clip roundtrips and DXF degree-angle mapping; the DWG profile
+includes a paper canvas. Unmodified upstream still loses clip activation/DXF
+references, and the explorer reports that loss when it is selected. See the
+converter coverage contracts for limits.
 Named simple patterns retain their definitions, unused records, local references,
 scale and polyline generation. Complex text/shape patterns become named continuous
 patterns with loss evidence under Allow; Reject refuses this fallback.

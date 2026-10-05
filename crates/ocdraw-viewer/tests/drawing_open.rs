@@ -1,6 +1,43 @@
 use ocdraw_viewer::inspect_drawing_bytes;
 
 #[test]
+fn dxf_export_preserves_active_viewport_clip() {
+    let bytes =
+        include_bytes!("../../../conformance/next/ocdraw/valid/viewport-circle-clip.ocdraw.json");
+    let result = ocdraw_viewer::export_drawing_bytes("clipped.ocdraw.json", bytes, "dxf", "AC1032");
+    assert!(result["failure"].is_null(), "{result}");
+    let diagnostics = result["export"]["diagnostics"].as_array().unwrap();
+    assert_eq!(
+        diagnostics
+            .iter()
+            .filter(|d| d["code"] == "DXF_VIEWPORT_CLIP_LOSS")
+            .count(),
+        0
+    );
+    let written = base64::Engine::decode(
+        &base64::engine::general_purpose::STANDARD,
+        result["export"]["download"]["base64"].as_str().unwrap(),
+    )
+    .unwrap();
+    let cad = ocdraw_convert::opencadcodec::DxfReader::from_reader(std::io::Cursor::new(written))
+        .unwrap()
+        .read()
+        .unwrap();
+    let viewport = cad
+        .entities()
+        .find_map(|e| match e {
+            ocdraw_convert::opencadcodec::EntityType::Viewport(v) if v.id != 1 => Some(v),
+            _ => None,
+        })
+        .unwrap();
+    assert_ne!(viewport.status.to_bits() & 0x10000, 0);
+    assert!(matches!(
+        cad.get_entity(viewport.clip_boundary_handle),
+        Some(ocdraw_convert::opencadcodec::EntityType::Circle(_))
+    ));
+}
+
+#[test]
 fn dwg_export_reports_spatial_generation_loss() {
     use ocdraw_viewer::export_drawing_bytes;
     let bytes =

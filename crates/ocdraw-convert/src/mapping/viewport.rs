@@ -4,29 +4,12 @@ use crate::source::{
 use ocdraw::ocdraw::*;
 use opencadcodec::{CadDocument, EntityType, Handle, Vector3};
 use std::collections::BTreeMap;
-pub(crate) fn losses(
-    viewport: &opencadcodec::entities::Viewport,
-    document: &CadDocument,
-    mapping: &BTreeMap<Handle, u64>,
-) -> Vec<CadToOcdrawLossReason> {
+pub(crate) fn losses(viewport: &opencadcodec::entities::Viewport) -> Vec<CadToOcdrawLossReason> {
     let mut reasons = Vec::new();
     if viewport.status.perspective {
         reasons.push(CadToOcdrawLossReason::UnsupportedSemantic {
             name: "perspective viewport needs CAD fixture calibration".into(),
         });
-    }
-    if viewport.clip_boundary_handle != Handle::NULL {
-        let supported = matches!(document.get_entity(viewport.clip_boundary_handle), Some(EntityType::LwPolyline(boundary))
-            if boundary.common.owner_handle == viewport.common.owner_handle
-                && boundary.is_closed && boundary.vertices.len() >= 3
-                && boundary.vertices.iter().all(|vertex| vertex.bulge == 0.0)
-                && boundary.elevation == 0.0 && boundary.normal == Vector3::UNIT_Z)
-            && mapping.contains_key(&viewport.clip_boundary_handle);
-        if !supported {
-            reasons.push(CadToOcdrawLossReason::UnsupportedSemantic {
-                name: "active viewport clip boundary".into(),
-            });
-        }
     }
     if viewport.center.z != 0.0 || viewport.view_center.z != 0.0 {
         reasons.push(CadToOcdrawLossReason::UnsupportedSemantic {
@@ -69,6 +52,8 @@ pub(crate) fn deferred_losses(
     let baseline = opencadcodec::entities::Viewport::new();
     let mut reasons = Vec::new();
     let mut status = viewport.status;
+    // Clipping activation is mapped independently of boundary presence.
+    status = opencadcodec::entities::ViewportStatusFlags::from_bits(status.to_bits() & !0x10000);
     if viewport.off_screen {
         reasons.push(CadToOcdrawLossReason::UnsupportedSemantic {
             name: "viewport off-screen state".into(),
@@ -153,7 +138,6 @@ fn render_to_cad(mode: DrawingRenderMode) -> opencadcodec::entities::ViewportRen
 pub(crate) struct SourceIndex<'a> {
     pub document: &'a CadDocument,
     pub layers: &'a BTreeMap<String, u32>,
-    pub entities: &'a BTreeMap<Handle, u64>,
 }
 pub(crate) fn from_cad(
     source: &opencadcodec::entities::Viewport,
@@ -163,11 +147,7 @@ pub(crate) fn from_cad(
     index: &SourceIndex<'_>,
     diagnostics: &mut Vec<CadToOcdrawDiagnostic>,
 ) -> ViewportDefinition {
-    let SourceIndex {
-        document,
-        layers,
-        entities: mapping,
-    } = index;
+    let SourceIndex { document, layers } = index;
     let view = DrawingView {
         center: Point2::new(source.view_center.x, source.view_center.y),
         target: Point3::new(
@@ -220,10 +200,8 @@ pub(crate) fn from_cad(
     target.view_locked = source.status.locked;
     target.appearance = appearance;
     target.visible = !source.common.invisible;
-    target.paper_clip = DrawingPaperClip {
-        enabled: source.clip_boundary_handle != Handle::NULL,
-        boundary_entity_id: mapping.get(&source.clip_boundary_handle).copied(),
-    };
+    target.paper_clip.enabled = source.status.to_bits() & 0x10000 != 0;
+    // Clip dependencies are resolved from converted geometry during ordered emission.
     for handle in &source.frozen_layers {
         if let Some(id) = document
             .layers
@@ -259,7 +237,6 @@ pub(crate) fn to_cad(
     source: &DrawingViewport,
     document: &CadDocument,
     layers: &BTreeMap<u64, String>,
-    mapping: &BTreeMap<u64, Handle>,
     diagnostics: &mut Vec<crate::OcdrawToCadDiagnostic>,
 ) -> Option<opencadcodec::entities::Viewport> {
     let location = format!("/entities/{}", source.id);
@@ -271,24 +248,6 @@ pub(crate) fn to_cad(
         ));
         return None;
     }
-    let clip = if source.paper_clip.enabled {
-        let Some(handle) = source
-            .paper_clip
-            .boundary_entity_id
-            .and_then(|id| mapping.get(&id))
-            .copied()
-        else {
-            diagnostics.push(crate::to_cad::diagnostic(
-                "VIEWPORT",
-                &location,
-                "clip boundary could not be mapped",
-            ));
-            return None;
-        };
-        handle
-    } else {
-        Handle::NULL
-    };
     let frame = source.frame;
     let view = source.view;
     let mut target = opencadcodec::entities::Viewport::new();
@@ -307,9 +266,17 @@ pub(crate) fn to_cad(
     target.front_clip_z = view.front_clip.distance.unwrap_or(0.0);
     target.status.back_clipping = view.back_clip.mode != DrawingClipMode::Disabled;
     target.back_clip_z = view.back_clip.distance.unwrap_or(0.0);
-    target.clip_boundary_handle = clip;
+    target.clip_boundary_handle = Handle::NULL;
     target.status.is_on = source.view_enabled;
     target.status.locked = source.view_locked;
+    target.status = opencadcodec::entities::ViewportStatusFlags::from_bits(
+        target.status.to_bits()
+            | if source.paper_clip.enabled {
+                0x10000
+            } else {
+                0
+            },
+    );
     target.render_mode = render_to_cad(source.render_mode);
     target.id = document
         .entities()

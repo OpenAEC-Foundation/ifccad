@@ -4,7 +4,7 @@ use ocdraw::ocdraw::{
     load_ocdraw_bytes, load_ocdraw_file, OcdrawOpenError, OcdrawReadError, OcdrawReadStatus,
     ValidatedOcdraw,
 };
-use ocdraw_convert::opencadcodec::{DwgReader, DxfReader};
+use ocdraw_convert::opencadcodec::{self, DwgReader, DxfReader};
 use ocdraw_convert::{
     cad_document_to_encoded_ocdraw, ocdraw_source_to_cad_document, CadToOcdrawOptions,
     OcdrawToCadOptions,
@@ -161,6 +161,17 @@ pub fn export_drawing_bytes(name: &str, bytes: &[u8], format: &str, version: &st
             })
         })
         .collect::<Vec<_>>();
+    if format == "dxf"
+        && opencadcodec::entities::ViewportStatusFlags::from_bits(0x10000).to_bits() & 0x10000 == 0
+    {
+        for viewport in drawing.viewports().iter().filter(|v| v.paper_clip.enabled) {
+            diagnostics.push(json!({
+                "code":"DXF_VIEWPORT_CLIP_LOSS",
+                "location":format!("/entities/{}",viewport.id),
+                "message":"The selected DXF codec does not preserve viewport clip activation and boundary references; this export uses the rectangular viewport frame"
+            }));
+        }
+    }
     if format == "dwg" {
         for entity in drawing.geometric_entities() {
             if matches!(

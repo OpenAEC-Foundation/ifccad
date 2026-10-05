@@ -10,7 +10,7 @@ with native mapping helpers under [`src/mapping`](src/mapping). Pure CAD source 
 The core format implementation remains usable without opencadcodec.
 The dependency and public Rust reexport use the upstream name `opencadcodec`
 at a shared fixed revision with `ifcx-cad-convert`. The
-[dependency audit](../../docs/geometry/opencadcodec-update-2026-10-02.md) records
+[dependency audit](../../docs/geometry/opencadcodec-update-2026-10-05.md) records
 the current public-model classification and exchange fixes.
 
 ## Standalone conversion
@@ -50,6 +50,25 @@ appearance choices, named simple line patterns and scales, layouts/plot settings
 model windows, paper canvases and paper viewports. Source order is retained
 across supported entity families. An open polyline's dormant final bulge is
 stored without treating it as an active segment.
+
+Active paper clips accept circles, full ellipses and closed planar polylines,
+including bulges and supported classic POLYLINE2D sources. Shared OCDraw validation
+checks the entire boundary in paper Z=0 within the frame, including tangent
+curves. Both conversion directions resolve clip references independently of
+scope draw order. Missing, unsupported or conflicting active boundaries skip
+the whole viewport under Allow and receive loss evidence; Reject refuses them.
+Active and dormant boundaries retain their reference independently of activation.
+Only active clips require the core's family/plane/frame eligibility. Missing,
+wrong-scope, skipped or conflicting stored references skip the dependent viewport;
+an active clip without a boundary is diagnosed rather than turned into a rectangle.
+
+The [explicit local codec patches](../../patches/opencadcodec-viewports/README.md)
+are selected in the current development worktree. Patched DXF/DWG roundtrips
+retain clipping activation, hidden boundaries and either draw-order position;
+DWG qualification includes a conventional paper canvas. Literal DXF angle tests
+check degrees at the file boundary and radians in CadDocument. The unmodified
+base still strips activation and DXF group 340, so patched results do not qualify
+it. Explorer DXF downloads emit `DXF_VIEWPORT_CLIP_LOSS` when that base is selected.
 
 Complex text/shape line patterns retain their names, descriptions and local
 references but become continuous under Allow, with one loss diagnostic per

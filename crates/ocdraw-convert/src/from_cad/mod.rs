@@ -1,4 +1,6 @@
 //! CadDocument to standalone OCDraw conversion.
+mod prepared_entities;
+use prepared_entities::{PreparedCadEntity, PreparedCadEntityValue};
 
 use crate::mapping::appearance::{direct_entity, direct_layer};
 use crate::source::{
@@ -371,7 +373,7 @@ pub fn cad_document_to_ocdraw_document_with_id(
         &mapped_vports,
         paper_scopes.keys().chain(block_scopes.keys()).copied(),
     ));
-    let mut entity_mapping = BTreeMap::new();
+    let mut prepared_entities = Vec::new();
     for entity in ordered_entities(document) {
         let common = entity.common();
         if matches!(entity, EntityType::Block(_) | EntityType::BlockEnd(_))
@@ -461,7 +463,7 @@ pub fn cad_document_to_ocdraw_document_with_id(
                         name: "viewport owner is not paper space".into(),
                     }]
                 } else {
-                    crate::mapping::viewport::losses(value, document, &entity_mapping)
+                    crate::mapping::viewport::losses(value)
                 }
             }
             EntityType::Insert(value) => {
@@ -549,7 +551,7 @@ pub fn cad_document_to_ocdraw_document_with_id(
         let layer_id = layer_id.expect("checked");
         let scope_id = scope_id.expect("checked");
         let appearance = appearance.expect("checked");
-        let id = if let EntityType::Viewport(viewport) = entity {
+        let value = if let EntityType::Viewport(viewport) = entity {
             partial.extend(crate::mapping::viewport::deferred_losses(viewport));
             let target = crate::mapping::viewport::from_cad(
                 viewport,
@@ -559,11 +561,13 @@ pub fn cad_document_to_ocdraw_document_with_id(
                 &crate::mapping::viewport::SourceIndex {
                     document,
                     layers: &layer_ids,
-                    entities: &entity_mapping,
                 },
                 &mut diagnostics,
             );
-            drawing.add_viewport(target)?
+            PreparedCadEntityValue::Viewport {
+                definition: target,
+                boundary: viewport.clip_boundary_handle,
+            }
         } else {
             let (value, bound, normalized) =
                 crate::mapping::geometry::from_cad(entity, &block_scopes, document, &mut geometry)?;
@@ -582,7 +586,7 @@ pub fn cad_document_to_ocdraw_document_with_id(
             let mut target = GeometricEntityDefinition::new(scope_id, layer_id, value);
             target.visible = !common.invisible;
             target.appearance = appearance;
-            drawing.add_geometric_entity(target)?
+            PreparedCadEntityValue::Geometry(target)
         };
         loss(
             source,
@@ -590,8 +594,13 @@ pub fn cad_document_to_ocdraw_document_with_id(
             partial,
             &mut diagnostics,
         );
-        entity_mapping.insert(common.handle, id);
+        prepared_entities.push(PreparedCadEntity {
+            handle: common.handle,
+            value,
+        });
     }
+    let (drawing_document, entity_mapping) =
+        prepared_entities::append(drawing, prepared_entities, document, &mut diagnostics)?;
     let members = document
         .block_records
         .iter()
@@ -643,9 +652,8 @@ pub fn cad_document_to_ocdraw_document_with_id(
     {
         return Err(CadToOcdrawError::LossRejected { diagnostics });
     }
-    let document = drawing.build_document()?;
     Ok(CadToOcdrawDocumentOutcome {
-        document,
+        document: drawing_document,
         diagnostics,
         entity_mapping,
         geometry: geometry.assessment,

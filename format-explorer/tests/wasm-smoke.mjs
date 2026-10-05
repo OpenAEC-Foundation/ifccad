@@ -31,6 +31,30 @@ for(const name of ['ordered-scopes','fractional-polylines','paper-viewport','nam
 }
 console.log('Browser WASM standalone OCDraw, DXF/DWG export and production readback verified');
 
+for(const name of ['viewport-circle-clip','viewport-ellipse-clip','viewport-bulged-clip','viewport-forward-clip']){
+ const original=JSON.parse(await readFile(new URL(`../../conformance/next/ocdraw/valid/${name}.ocdraw.json`,import.meta.url),'utf8'));
+ const boundaryStream=Object.keys(original.streams).find(key=>key!=='viewportStream');
+ for(const enabled of [false,true]){
+  const drawing=structuredClone(original);
+  drawing.streams.viewportStream.paperClip[0].enabled=enabled;
+  drawing.streams.viewportStream.view[0].twist=Math.PI/6;
+  const bytes=new TextEncoder().encode(JSON.stringify(drawing));
+  const source={kind:'drawing',name,files:[{path:name+'.ocdraw.json',bytes:bytes.buffer}]};
+  const exported=processBrowserRequest({...source,export:{format:'dxf',version:'AC1032'}},wasm);
+  assert.equal(exported.failure,null,`${name} ${enabled}: ${JSON.stringify(exported.failure)}`);
+  assert.equal(exported.export.diagnostics.some(d=>d.code==='DXF_VIEWPORT_CLIP_LOSS'),false);
+  const returned=processBrowserRequest({kind:'cad',name:'clipped',files:[{path:'clipped.dxf',bytes:Uint8Array.from(Buffer.from(exported.export.download.base64,'base64')).buffer}]},wasm);
+  assert.equal(returned.failure,null,`${name} ${enabled}: ${JSON.stringify(returned.failure)}`);
+  assert.equal(returned.validation.strictAvailable,true);
+  const viewport=returned.presentation.streams.viewportStream;
+  assert.equal(viewport.count,1);
+  assert.equal(viewport.paperClip[0].enabled,enabled);
+  assert.ok(returned.presentation.streams[boundaryStream].entityId.includes(viewport.paperClip[0].boundaryEntityId));
+  assert.ok(Math.abs(viewport.view[0].twist-Math.PI/6)<1e-12);
+ }
+}
+console.log('Browser WASM patched DXF active/dormant clips, boundary links and radians verified');
+
 const graph=JSON.parse(await readFile(new URL('../../examples/ifcx-native-cad/hello-line-patterns.ifcx',import.meta.url),'utf8'));
 // Exercise the fixture's nonzero base through both real codecs without repair.
 assert.deepEqual(graph.data.find(n=>n.path==='/cad/d1/block/1').attributes['ifccad::blockDefinition'].basePoint,[2,0,0]);

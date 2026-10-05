@@ -179,3 +179,9 @@ If native Continuous is absent, the fresh CAD target retains its required
 Continuous scaffold with `line-pattern-scaffold` modification; Reject refuses it.
 Optional native scale/generation defaults are normalized for comparison only;
 foreign graph data is still checked and exact numeric projection errors fail.
+
+The OCDraw viewport worktree pins the shared upstream base `fe69506` and opts in
+to [explicit local codec repairs](../../patches/opencadcodec-viewports/README.md).
+The earlier exchange table retains its stated historical dependency provenance.
+This configuration does not adopt the separate IFCX-CAD viewport implementation.
+See the [2026-10-05 dependency audit](../../docs/geometry/opencadcodec-update-2026-10-05.md).

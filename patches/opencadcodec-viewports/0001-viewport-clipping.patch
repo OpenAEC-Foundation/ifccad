@@ -1,0 +1,68 @@
+diff --git a/src/entities/viewport.rs b/src/entities/viewport.rs
+index a934d72..eaea91f 100644
+--- a/src/entities/viewport.rs
++++ b/src/entities/viewport.rs
+@@ -7,6 +7,9 @@ use crate::types::{BoundingBox3D, Color, Handle, LineWeight, Transparency, Vecto
+ #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+ #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+ pub struct ViewportStatusFlags {
++    /// Non-rectangular clipping activation, independent of boundary presence.
++    #[cfg_attr(feature = "serde", serde(default))]
++    pub non_rectangular_clipping: bool,
+     /// Viewport is on (visible)
+     pub is_on: bool,
+     /// Perspective mode active
+@@ -51,10 +54,12 @@ impl ViewportStatusFlags {
+     }
+ 
+     /// Create from the DWG/DXF viewport status bit-coded flags (group 90).
+-    /// The low bits run perspective(0x1) … iso_pair_right(0x2000); the two high
+-    /// bits are viewport-locked(0x4000) and viewport-on/visible(0x8000).
++    /// The low bits run perspective(0x1) … iso_pair_right(0x2000), followed by
++    /// viewport-locked(0x4000), viewport-on/visible(0x8000), and non-rectangular
++    /// clipping(0x10000).
+     pub fn from_bits(bits: i32) -> Self {
+         Self {
++            non_rectangular_clipping: (bits & 0x10000) != 0,
+             perspective: (bits & (1 << 0)) != 0,
+             front_clipping: (bits & (1 << 1)) != 0,
+             back_clipping: (bits & (1 << 2)) != 0,
+@@ -77,6 +82,9 @@ impl ViewportStatusFlags {
+     /// Convert to the DWG/DXF viewport status bit-coded flags (group 90).
+     pub fn to_bits(&self) -> i32 {
+         let mut bits = 0;
++        if self.non_rectangular_clipping {
++            bits |= 0x10000;
++        }
+         if self.perspective {
+             bits |= 1 << 0;
+         }
+diff --git a/src/io/dxf/reader/section_reader.rs b/src/io/dxf/reader/section_reader.rs
+index f62208b..9e0b8a4 100644
+--- a/src/io/dxf/reader/section_reader.rs
++++ b/src/io/dxf/reader/section_reader.rs
+@@ -16775,6 +16775,9 @@ impl<'a> SectionReader<'a> {
+                         vp.frozen_layers.push(Handle::new(h));
+                     }
+                 }
++                340 => {
++                    vp.clip_boundary_handle = pair.as_handle().map(Handle::new).unwrap_or(Handle::NULL);
++                }
+                 281 => {
+                     if let Some(v) = pair.as_i16() {
+                         vp.render_mode =
+diff --git a/src/io/dxf/writer/section_writer.rs b/src/io/dxf/writer/section_writer.rs
+index f8b89fc..1503c51 100644
+--- a/src/io/dxf/writer/section_writer.rs
++++ b/src/io/dxf/writer/section_writer.rs
+@@ -4932,6 +4932,10 @@ impl<'a, W: DxfStreamWriter> SectionWriter<'a, W> {
+                 self.writer.write_handle(331, *frozen_layer)?;
+             }
+         }
++        // Boundary presence and clipping activation are independent.
++        if !viewport.clip_boundary_handle.is_null() {
++            self.writer.write_handle(340, viewport.clip_boundary_handle)?;
++        }
+ 
+         // Render mode
+         self.writer

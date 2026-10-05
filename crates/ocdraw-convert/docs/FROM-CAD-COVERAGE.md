@@ -8,7 +8,7 @@ These are fresh conversions: no identity-preserving CAD editing session,
 watermark reconstruction or new source coverage is implied.
 
 This inventory is pinned to opencadcodec revision
-`d96e3fa2fe5acbeac966f1db4c01142618bf9c79`. It defines what the
+`fe69506cb99dea6f4c4a73b690a27fdf04403ea0`. It defines what the
 `CadDocument -> OCDraw` exporter must either represent or diagnose. Updating the
 dependency requires reviewing every row. The pinned opencadcodec
 `semantic_inventory_v1` is the export coverage traversal: its categories are
@@ -19,7 +19,7 @@ DWG-read bootstrap forms account for codec-created standard scaffolding.
 Field-level classification remains a manual contract pending
 [opencadcodec issue #50](https://github.com/HakanSeven12/opencadcodec/issues/50).
 The Rust dependency remains named `opencadcodec` locally; its package/repository is
-opencadcodec. The [dependency audit](../../../docs/geometry/opencadcodec-update-2026-10-02.md)
+opencadcodec. The [dependency audit](../../../docs/geometry/opencadcodec-update-2026-10-05.md)
 records added and changed public fields for both converters.
 
 Statuses are `Exact`, `PartialLoss`, `SkippedLoss`, `NonSemantic`, and
@@ -109,7 +109,7 @@ field or family; `Reject` returns no drawing when such a loss is present.
 | `plot_flags.plot_viewport_borders/draw_viewports_first/plot_hidden/print_lineweights/scale_lineweights` | Exact | Native named `PlotOptions` fields; no single opaque flags word. | Writer and paper roundtrip |
 | `plot_flags` remaining bits, `plot_page_name`, `plot_view_name/handle`, `visual_style_handle`, `paper_image_origin_*`, insertion base/elevation/UCS, reactors/dictionary | PartialLoss | Nondefault values produce field/family `UnsupportedSemantic` diagnostics. Extent caches and derived image/scale caches are not independent effective settings. | Source-loss tests where present |
 | `Viewport.center/width/height`, `view_center/target/direction/height`, `twist_angle`, `lens_length`, `render_mode`, enabled/locked flags, front/back clip flags and distances | Exact/SkippedLoss | Native frame/view/render/clip fields, including a stored zero dormant lens in Orthographic. Perspective remains whole-viewport skipped pending CAD fixture calibration. Invalid geometry is not approximated. | Rectangular and zero-lens viewport readback |
-| `Viewport.clip_boundary_handle` | Exact/SkippedLoss | A previously mapped same-paper closed straight `LwPolyline` becomes an active native `paperClip` reference. Missing, unsupported or forward references skip the entire viewport. | Closed and missing clip tests |
+| `Viewport.status` bit 0x10000 and `clip_boundary_handle` | Exact/SkippedLoss | Activation and stored reference are independent. Active Circle, full Ellipse and closed straight/bulged PlanarPolyline clips use shared converted-geometry validation in the same paper scope. Dormant stored references need ownership, uniqueness and convertible geometry but no active family/frame test. Both orders are retained; all conflicting claimants are skipped. An active missing boundary, a missing/skipped stored target, or wrong-scope target skips the dependent viewport with loss evidence; Reject refuses it. Hard geometry errors remain fatal. | Active/dormant native readback and locally patched DXF/DWG exchange |
 | `Viewport.frozen_layers` | Exact/PartialLoss | Each resolved handle becomes a relational frozen-layer override; unknown handles receive `MissingTarget`. The pinned Viewport model has no viewport appearance-override fields. | Native writer and reverse test |
 | Overall paper `Viewport` ID 1 view/grid/snap/UCS | Exact/PartialLoss | View center, target, direction, height, twist, clip, grid, snap and stored UCS become a `paperCanvas` workspace row. A nondefault screen-sized frame and nonpositive disabled snap spacing are diagnosed as loss; the latter is normalized to positive defaults required by OCDraw. The active viewport context remains unavailable. The pinned DWG reader retains viewport IDs/status. Unresolved or malformed overall identity still receives loss evidence. | Paper canvas roundtrip and active-tab recovery test |
 | Authored paper `Viewport` snap/grid/UCS, visual style/background/lighting and viewport plot-style fields | PartialLoss | Nondefault source state is reported. Per-viewport workspace rows are not asserted natively by this converter. | Source-loss tests where present |
@@ -132,7 +132,7 @@ were natively represented.
 | `Polyline2D` | Exact/PartialLoss/SkippedLoss | Ordinary planar vertices and bulges map to PlanarPolyline using the same OCS preparation. Width-only sources follow the centre-path partial-loss policy. Fit/spline-fit, nonzero vertex Z and unsupported flags or thickness skip the whole entity. |
 | `Polyline`, `Polyline3D` | Exact/SkippedLoss | Ordinary finite straight XYZ vertices, closure and continuous-generation flags map to SpatialPolyline. Codec-created vertex handles and an empty/default vertex layer are scaffolding; nondefault vertex layers and semantic vertex/source properties remain unsupported. Fit/spline-fit, mesh/polyface and unsupported vertex/source properties skip the whole entity. The export result preserves no source-specific 3D polyline variant identity. |
 | `Insert` | Exact/PartialLoss/SkippedLoss/FatalIfInconsistent | Ordinary local references map to BlockInstance. OCS insertion coordinates map to owning-scope placement using the actual pinned CAD axes. Qualified trig intervals and exact residual propagation check each occurrence. Unsupported array/attribute/view/external variants skip as a whole; missing/cyclic targets are fatal. |
-| `Viewport` | Exact/PartialLoss/SkippedLoss | Paper-owned orthographic rectangular viewports map frame, target/direction/height/twist, render mode, enabled/locked state, front/back clip and frozen layers. A mapped earlier same-scope closed straight `LwPolyline` may be an active clip. Missing or unsupported active boundaries and perspective skip the entire viewport; deferred snap/grid/UCS and visual state are diagnosed as partial loss. Appearance overrides are not exposed by the pinned CAD Viewport model. |
+| `Viewport` | Exact/PartialLoss/SkippedLoss | Paper-owned orthographic viewports map frame, target/direction/height/twist, render mode, enabled/locked state, front/back clip and frozen layers. A supported same-paper circle, full ellipse or closed straight/bulged planar polyline may be an active clip, regardless of order. Missing/invalid/unsupported or conflicting active boundaries and perspective skip the whole viewport; deferred snap/grid/UCS and visual state are diagnosed as partial loss. Appearance overrides are not exposed by the pinned CAD Viewport model. |
 | `Block`, `BlockEnd` | NonSemantic/FatalIfInconsistent/SkippedLoss | Matching structural markers supply record scaffolding, not drawable entities. Contradictory exposed begin-marker name/owner/base is fatal; unmatched markers are unsupported entities. |
 | `Text`, `MText`, `Spline`, `Helix`, `Dimension`, `Hatch`, `Solid`, `Face3D`, `Ray`, `XLine`, `AttributeDefinition`, `AttributeEntity`, `Leader`, `MultiLeader`, `MLine`, `Mesh`, `RasterImage`, `Solid3D`, `Region`, `Body`, `Surface`, `Table`, `Tolerance`, `PolyfaceMesh`, `Wipeout`, `Shape`, `Underlay`, `Seqend`, `Ole2Frame`, `PolygonMesh`, `Light`, `SectionSymbol`, `ViewBorder`, `Extended`, `Unknown` | SkippedLoss | Whole entity receives `UnsupportedEntityType`; no geometry is approximated. |
 | Model, paper, or supported definition ownership | Exact/FatalIfInconsistent | Per-owner explicit entity-handle order is retained; known-owner contents must occur exactly once with consistent membership. |
@@ -162,6 +162,16 @@ map to perSegment/continuous generation. Current CELTYPE/CELTSCALE/PLINEGEN
 defaults and unmodeled annotation scaling retain existing header loss reporting.
 
 ## Maintenance rule
+
+Viewport clipping coverage is assessed from the interpreted CadDocument. The
+[explicit local repairs](../../../patches/opencadcodec-viewports/README.md) on
+this exact base retain independent activation and group 340 references and map
+VIEWPORT DXF degree angles to radians. Literal file tests and full patched
+DXF/DWG chains cover the expanded families, dormant references and mixed order.
+Unmodified upstream still strips activation and DXF references; unavailable
+file semantics cannot be recovered by conversion. Patched verification is not
+evidence for that unmodified base. DWG readback without an overall canvas still
+reclassifies the first authored viewport; the passing profile includes a canvas.
 
 The 2026-09-11 update reviewed the public document/header, entity/common,
 table/object and appearance surfaces against the previous `a0f7d44` pin.

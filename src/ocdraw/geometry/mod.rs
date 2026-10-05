@@ -3,6 +3,7 @@
 mod block;
 mod bulge;
 mod circular;
+pub(crate) mod clip_containment;
 pub(crate) mod numeric;
 mod placement;
 mod trig;

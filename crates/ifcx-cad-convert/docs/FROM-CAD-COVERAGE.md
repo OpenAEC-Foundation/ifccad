@@ -8,12 +8,12 @@ allocation are shared. Encoding creates a new CAD-profile file; no source graph
 writeback is performed.
 
 Pinned semantic inventory V1, opencadcodec
-`d96e3fa2fe5acbeac966f1db4c01142618bf9c79`. Exhaustive matches classify every
+`fe69506cb99dea6f4c4a73b690a27fdf04403ea0`. Exhaustive matches classify every
 inventory category. Serde residual checks cover fields plus typed comparisons
 for skipped-serde common/marker/object state. Data not exposed by the codec has
 no asserted coverage. Default Allow returns the supported subset with located
 loss diagnostics; explicit Reject prevents output for any semantic loss.
-The [dependency audit](../../../docs/geometry/opencadcodec-update-2026-10-02.md)
+The [dependency audit](../../../docs/geometry/opencadcodec-update-2026-10-05.md)
 records the added public fields and their treatment in both converters.
 
 ## Inventory categories
@@ -126,3 +126,9 @@ Line-pattern and layer/definition vectors follow lexical path ordering. Signed
 lengths and drawing/entity scale values are included in exact projection checks.
 Tests in `tests/line_patterns.rs` include real pinned DXF/DWG exchanges, optional
 defaults, Unicode/target lookup collisions and whole complex-pattern fallback.
+
+The OCDraw viewport development worktree selects the explicit local codec repairs
+in [patches/opencadcodec-viewports](../../../patches/opencadcodec-viewports/README.md).
+This changes the shared dependency configuration, not this route's native entity
+coverage. The [2026-10-05 audit](../../../docs/geometry/opencadcodec-update-2026-10-05.md)
+records the public-model delta and separates patched from upstream evidence.

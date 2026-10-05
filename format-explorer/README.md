@@ -64,7 +64,10 @@ A missing bundle produces a visible message; inspection and download still work.
 GPL-3.0 and source revision attribution accompany the bundle. The OpenAEC symbol
 keeps its CC BY-SA license; see `src/THIRD-PARTY.txt`.
 
-Build the browser processor from the repository root:
+Build the browser processor from the repository root after preparing and
+selecting both [viewport codec repairs](../patches/opencadcodec-viewports/README.md).
+The deployment workflow uses the same pinned base and patches for its Rust
+checks and browser processor; both cache keys include the patch recipe.
 
 ```text
 wasm-pack build crates/ocdraw-browser --target web --out-dir ../../format-explorer/wasm-build --release
@@ -72,7 +75,8 @@ node format-explorer/tests/wasm-smoke.mjs
 ```
 
 The smoke check exercises standalone fixtures and actual OCDraw/IFCX-CAD/DXF/DWG
-output and production readback. Deployment checks exercise the static HTTP service,
+output and production readback, including active/dormant DXF clip references
+and viewport angles in radians. Deployment checks exercise the static HTTP service,
 WASM and framed viewer assets. Linux deployment activation/rollback tests are
 skipped on Windows. Pushing to main triggers the existing deployment workflow;
 local development commands do not publish the website.

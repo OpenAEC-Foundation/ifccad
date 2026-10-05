@@ -16,3 +16,6 @@ Thumbs.db
 /.superpowers/
 
 __pycache__/
+
+# Per-worktree opt-in dependency configuration; see patches/opencadcodec-viewports.
+/.cargo/config.toml

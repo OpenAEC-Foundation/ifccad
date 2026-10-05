@@ -23,7 +23,9 @@ jobs:
         id: browser-cache
         with:
           path: format-explorer/wasm-build
-          key: ocdraw-browser-wasm-ubuntu24-v1-${{ hashFiles('Cargo.toml', 'crates/**/Cargo.toml', 'src/**/*.rs', 'crates/**/src/**/*.rs', 'schemas/**', 'crates/ocdraw-convert/README.md') }}
+          key: ocdraw-browser-wasm-ubuntu24-v2-${{ hashFiles('Cargo.toml', 'crates/**/Cargo.toml', 'src/**/*.rs', 'crates/**/src/**/*.rs', 'schemas/**', 'crates/ocdraw-convert/README.md', 'patches/opencadcodec-viewports*', 'patches/opencadcodec-viewports/**', '.github/actions/viewport-codec/**') }}
+      - uses: ./.github/actions/viewport-codec
+        if: steps.browser-cache.outputs.cache-hit != 'true'
       - uses: dtolnay/rust-toolchain@stable
         if: steps.browser-cache.outputs.cache-hit != 'true'
         with:
@@ -127,7 +129,9 @@ jobs:
         id: rust-checks-cache
         with:
           path: target/explorer-rust-checks-passed
-          key: ocdraw-rust-checks-debian12-v1-${{ hashFiles('Cargo.toml', 'crates/**', 'src/**', 'tests/**', 'schemas/**', 'conformance/**', 'format-explorer/examples/**') }}
+          key: ocdraw-rust-checks-debian12-v2-${{ hashFiles('Cargo.toml', 'crates/**', 'src/**', 'tests/**', 'schemas/**', 'conformance/**', 'format-explorer/examples/**', 'patches/opencadcodec-viewports*', 'patches/opencadcodec-viewports/**', '.github/actions/viewport-codec/**') }}
+      - uses: ./.github/actions/viewport-codec
+        if: steps.rust-checks-cache.outputs.cache-hit != 'true'
       - name: Install Rust check tools
         if: steps.rust-checks-cache.outputs.cache-hit != 'true'
         run: rustup component add rustfmt clippy

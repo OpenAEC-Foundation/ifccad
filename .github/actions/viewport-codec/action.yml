@@ -1,0 +1,22 @@
+name: Prepare viewport codec
+description: Select the pinned codec base with the two explicit viewport repairs
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v5
+      with:
+        repository: HakanSeven12/opencadcodec
+        ref: fe69506cb99dea6f4c4a73b690a27fdf04403ea0
+        path: .superpowers/dependencies/opencadcodec-viewports-development
+        persist-credentials: false
+    - name: Apply and select viewport repairs
+      shell: bash
+      run: |
+        set -euo pipefail
+        codec=.superpowers/dependencies/opencadcodec-viewports-development
+        for patch in 0001-viewport-clipping.patch 0002-viewport-angle-units.patch; do
+          git -C "$codec" apply --check "../../../patches/opencadcodec-viewports/$patch"
+          git -C "$codec" apply "../../../patches/opencadcodec-viewports/$patch"
+        done
+        mkdir -p .cargo
+        cp patches/opencadcodec-viewports.toml .cargo/config.toml

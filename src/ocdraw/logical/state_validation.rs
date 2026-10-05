@@ -109,36 +109,24 @@ pub(crate) fn validate_state(document: &OcdrawDocument) -> Vec<LogicalError> {
                     "boundary must exist in the same paper scope and be unique to one viewport",
                 ));
             } else if clip.enabled {
-                let valid = geometry.get(&id).is_some_and(|entity| {
-                    let EntityGeometry::PlanarPolyline {
-                        placement,
-                        vertices,
-                        closed,
-                        ..
-                    } = entity.geometry()
-                    else {
-                        return false;
-                    };
-                    if !closed || vertices.iter().any(|v| v[2] != 0.) {
-                        return false;
+                if let Some(entity) = geometry.get(&id) {
+                    if let Err(failure) =
+                        super::validate_viewport_clip_boundary(viewport.frame, entity.geometry())
+                    {
+                        for diagnostic in failure.into_diagnostics() {
+                            errors.push(error(
+                                diagnostic.code,
+                                format!("{prefix}/paperClip/{index}"),
+                                &diagnostic.message,
+                            ));
+                        }
                     }
-                    let distinct = vertices
-                        .iter()
-                        .map(|v| {
-                            let bits = |v: f64| if v == 0. { 0 } else { v.to_bits() };
-                            (bits(v[0]), bits(v[1]))
-                        })
-                        .collect::<BTreeSet<_>>();
-                    let Some(bounds) = super::viewport_bounds(viewport.frame) else {
-                        return false;
-                    };
-                    distinct.len() >= 3
-                        && vertices.iter().all(|v| {
-                            placement.enclosed_by(crate::ocdraw::Point2::new(v[0], v[1]), bounds)
-                        })
-                });
-                if !valid {
-                    errors.push(error("VIEWPORT_CLIP",format!("{prefix}/paperClip/{index}"),"active boundary must be a closed straight polyline with three distinct vertices inside the viewport frame"));
+                } else {
+                    errors.push(error(
+                        "VIEWPORT_CLIP",
+                        format!("{prefix}/paperClip/{index}"),
+                        "active boundary must be a supported geometry entity",
+                    ));
                 }
             }
         }

@@ -167,17 +167,7 @@ pub(crate) fn validate_fields(doc: &OcdrawDocument) -> Vec<LogicalError> {
             format!("/entities/{}/appearance", e.id),
             "invalid explicit appearance",
         );
-        let valid = match &e.geometry {
-            EntityGeometry::Line { start, end } => start.iter().chain(end).all(|v| v.is_finite()),
-            EntityGeometry::PlanarPolyline { vertices, .. }
-            | EntityGeometry::SpatialPolyline { vertices, .. } => {
-                vertices.len() >= 2
-                    && vertices.iter().flatten().all(|v| v.is_finite())
-                    && enclosure(&e.geometry).is_some()
-            }
-            EntityGeometry::BlockInstance { .. } => true,
-            _ => enclosure(&e.geometry).is_some(),
-        };
+        let valid = geometry_is_valid(&e.geometry);
         check(
             valid,
             "ENTITY_GEOMETRY",
@@ -232,4 +222,18 @@ pub(crate) fn validate_fields(doc: &OcdrawDocument) -> Vec<LogicalError> {
         }
     }
     errors
+}
+
+pub(crate) fn geometry_is_valid(geometry: &EntityGeometry) -> bool {
+    match geometry {
+        EntityGeometry::Line { start, end } => start.iter().chain(end).all(|v| v.is_finite()),
+        EntityGeometry::PlanarPolyline { vertices, .. }
+        | EntityGeometry::SpatialPolyline { vertices, .. } => {
+            vertices.len() >= 2
+                && vertices.iter().flatten().all(|v| v.is_finite())
+                && enclosure(geometry).is_some()
+        }
+        EntityGeometry::BlockInstance { .. } => true,
+        _ => enclosure(geometry).is_some(),
+    }
 }

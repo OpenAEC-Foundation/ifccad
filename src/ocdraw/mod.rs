@@ -30,6 +30,7 @@ pub(crate) mod geometry;
 mod layout;
 mod logical;
 pub use logical::recompute_ocdraw_document_bounds;
+pub use logical::validate_viewport_clip_boundary;
 pub use logical::OcdrawDocument;
 pub use logical::{validate_ocdraw_document, OcdrawValidationError};
 mod build;

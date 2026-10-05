@@ -1,0 +1,34 @@
+diff --git a/src/io/dxf/reader/section_reader.rs b/src/io/dxf/reader/section_reader.rs
+index 9e0b8a4..c2cce3d 100644
+--- a/src/io/dxf/reader/section_reader.rs
++++ b/src/io/dxf/reader/section_reader.rs
+@@ -16757,12 +16757,12 @@ impl<'a> SectionReader<'a> {
+                 }
+                 50 => {
+                     if let Some(v) = pair.as_double() {
+-                        vp.snap_angle = v;
++                        vp.snap_angle = v.to_radians();
+                     }
+                 }
+                 51 => {
+                     if let Some(v) = pair.as_double() {
+-                        vp.twist_angle = v;
++                        vp.twist_angle = v.to_radians();
+                     }
+                 }
+                 72 => {
+diff --git a/src/io/dxf/writer/section_writer.rs b/src/io/dxf/writer/section_writer.rs
+index 1503c51..77f0815 100644
+--- a/src/io/dxf/writer/section_writer.rs
++++ b/src/io/dxf/writer/section_writer.rs
+@@ -4920,8 +4920,8 @@ impl<'a, W: DxfStreamWriter> SectionWriter<'a, W> {
+         self.writer.write_double(45, viewport.view_height)?;
+ 
+         // Snap and twist angles
+-        self.writer.write_double(50, viewport.snap_angle)?;
+-        self.writer.write_double(51, viewport.twist_angle)?;
++        self.writer.write_double(50, viewport.snap_angle.to_degrees())?;
++        self.writer.write_double(51, viewport.twist_angle.to_degrees())?;
+ 
+         // Circle sides
+         self.writer.write_i16(72, viewport.circle_sides)?;

@@ -1,0 +1,3 @@
+# Explicit development patch; base/provenance in opencadcodec-viewports/README.md.
+[patch."https://github.com/HakanSeven12/opencadcodec.git"]
+opencadcodec = { path = ".superpowers/dependencies/opencadcodec-viewports-development" }

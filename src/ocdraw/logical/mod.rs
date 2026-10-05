@@ -19,6 +19,8 @@ mod model;
 mod validation;
 mod view_state;
 mod viewport;
+mod viewport_clip;
+pub use viewport_clip::validate_viewport_clip_boundary;
 
 pub use appearance::{AppearanceSelection, DrawingColor, EntityAppearance};
 pub use definitions::{

@@ -153,6 +153,42 @@
     {
       "path": "valid/sparse-identities.ocdraw.json",
       "status": "valid"
+    },
+    {
+      "path": "valid/viewport-circle-clip.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "valid/viewport-ellipse-clip.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "valid/viewport-bulged-clip.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "valid/viewport-forward-clip.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "invalid/viewport-open-clip.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "VIEWPORT_CLIP"
+    },
+    {
+      "path": "invalid/viewport-off-plane-clip.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "VIEWPORT_CLIP"
+    },
+    {
+      "path": "invalid/viewport-curve-outside-frame.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "VIEWPORT_CLIP"
+    },
+    {
+      "path": "invalid/viewport-shared-clip.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "VIEWPORT_CLIP"
     }
   ]
 }

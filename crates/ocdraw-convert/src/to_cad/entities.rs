@@ -101,6 +101,7 @@ pub(super) fn append_entities(
         blocks,
     } = target;
     let mut entity_mapping = BTreeMap::new();
+    let mut pending_clips = Vec::new();
     let geometry = drawing
         .geometric_entities
         .iter()
@@ -143,13 +144,9 @@ pub(super) fn append_entities(
                     entity,
                 )
             } else if let Some(source) = viewports.get(&id) {
-                let Some(entity) = crate::mapping::viewport::to_cad(
-                    source,
-                    document,
-                    layer_names,
-                    &entity_mapping,
-                    diagnostics,
-                ) else {
+                let Some(entity) =
+                    crate::mapping::viewport::to_cad(source, document, layer_names, diagnostics)
+                else {
                     continue;
                 };
                 (
@@ -182,6 +179,24 @@ pub(super) fn append_entities(
         }
         .map_err(|error| OcdrawToCadError::Cad(format!("entity {id}: {error}")))?;
         entity_mapping.insert(id, handle);
+        if let Some(source) = viewports.get(&id) {
+            if let Some(boundary) = source.paper_clip.boundary_entity_id {
+                pending_clips.push((handle, boundary));
+            }
+        }
+    }
+    for (viewport, boundary) in pending_clips {
+        let boundary = entity_mapping.get(&boundary).copied().ok_or_else(|| {
+            OcdrawToCadError::Cad(format!(
+                "viewport {viewport} clip boundary was not constructed"
+            ))
+        })?;
+        let Some(EntityType::Viewport(target)) = document.get_entity_mut(viewport) else {
+            return Err(OcdrawToCadError::Cad(format!(
+                "viewport {viewport} was not constructed"
+            )));
+        };
+        target.clip_boundary_handle = boundary;
     }
     Ok(entity_mapping)
 }

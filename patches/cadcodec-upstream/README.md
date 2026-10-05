@@ -1,8 +1,8 @@
 # Historical fixes for cadcodec revision 2f2cd258
 
 These patches and instructions are retained for reproducing the former
-measurement reference. The current converter selects unmodified revision
-`d96e3fa2fe5acbeac966f1db4c01142618bf9c79`; do not apply these older-base patches
+measurement reference. The current converter manifests select upstream base
+`fe69506cb99dea6f4c4a73b690a27fdf04403ea0`; do not apply these older-base patches
 to that revision. The [current experiment](../../docs/benchmarks/size-baseline-v1.md)
 passes without them. Retaining this historical recipe does not retire or modify
 the upstream issues.

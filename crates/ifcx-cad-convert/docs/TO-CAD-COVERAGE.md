@@ -9,7 +9,7 @@ applications assessing a full IFCX source must use the loaded-source routes.
 Original input bytes and composed graph remain immutable in `LoadedIfcxGraph`.
 
 Profile `urn:example:ifccad:0.1.0`; opencadcodec revision
-`d96e3fa2fe5acbeac966f1db4c01142618bf9c79`. Default Allow returns supported content
+`fe69506cb99dea6f4c4a73b690a27fdf04403ea0`. Default Allow returns supported content
 with losses; explicit Reject refuses diagnosed omissions or modifications.
 
 The validated source includes persistent next-ID watermarks. They remain in
@@ -65,3 +65,9 @@ angle rounding during degree/radian encoding.
 Evidence: `tests/conversion.rs`, `tests/blocks.rs`, `tests/exchange.rs`, `tests/line_patterns.rs`, `tests/layer_names.rs`.
 Real DXF/DWG tests use the same primitive corpus and strict IFCX readback;
 Nested/shared nonzero-base blocks now pass both DXF and DWG transfers.
+
+The OCDraw viewport development worktree selects the explicit local codec repairs
+in [patches/opencadcodec-viewports](../../../patches/opencadcodec-viewports/README.md).
+This changes the shared dependency configuration, not this route's native entity
+coverage. The [2026-10-05 audit](../../../docs/geometry/opencadcodec-update-2026-10-05.md)
+records the public-model delta and separates patched from upstream evidence.

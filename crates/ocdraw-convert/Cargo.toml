@@ -12,7 +12,7 @@ num-bigint = "0.4"
 num-rational = "0.4"
 num-traits = "0.2"
 ocdraw = { path = "../.." }
-opencadcodec = { package = "opencadcodec", git = "https://github.com/HakanSeven12/opencadcodec.git", rev = "d96e3fa2fe5acbeac966f1db4c01142618bf9c79" }
+opencadcodec = { package = "opencadcodec", git = "https://github.com/HakanSeven12/opencadcodec.git", rev = "fe69506cb99dea6f4c4a73b690a27fdf04403ea0" }
 thiserror = "1.0"
 serde_json = "1.0"
 
