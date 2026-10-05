@@ -1,10 +1,10 @@
-# Open CAD Drawing explorer
+# IFCCAD & OCDraw Explorer
 
-The current application opens one standalone OCDraw or experimental IFCX-CAD
+The current application opens one standalone OCDraw or experimental IFCCAD
 file, or converts one DXF/DWG file to the selected drawing format. It displays
 validated records and diagnostics and can download the selected native format,
 DXF or DWG. Drawing preview embeds Open CAD Studio. The selectable routes support
-parallel OCDraw and IFCX-CAD development, with their own models, validation and
+parallel OCDraw and IFCCAD development, with their own models, validation and
 coverage. Support in one route does not imply support in the other. The former
 IFCX package explorer is retired.
 
@@ -18,11 +18,11 @@ Close the file in the other application and select it again before retrying.
 
 A valid native result confirms the converted content meets that drawing contract;
 it does not confirm lossless CAD conversion. Consult the conversion diagnostics:
-unsupported entities can be skipped. The IFCX-CAD route retains named simple
+unsupported entities can be skipped. The IFCCAD route retains named simple
 patterns; complex text/shape patterns get a diagnosed whole-pattern fallback.
 
 Run the app: `npm start` in this directory. A matching wasm-bindgen build of
-`ocdraw-browser` must be placed in `wasm-build/` for browser processing.
+`browser` must be placed in `wasm-build/` for browser processing.
 No hosted deployment is performed by development commands.
 
 Tests: `npm test`. File and CAD accuracy checks use the production Rust
@@ -32,8 +32,8 @@ reader/converter; the browser worker transport is tested independently.
 
 Choose **Tekening bekijken** after opening a file. Original DXF/DWG bytes open
 as the original document; the strictly validated OCDraw conversion is exported
-back to DXF/DWG as a distinct `via-ocdraw` or `via-ifcx` document. A native
-OCDraw/IFCX-CAD file has only the converted document. One shared CAD format/version selection controls both preview regeneration and
+back to DXF/DWG as a distinct `via-ocdraw` or `via-ifccad` document. A native
+OCDraw/IFCCAD file has only the converted document. One shared CAD format/version selection controls both preview regeneration and
 CAD download. OCDraw download is a separate action next to the drawing contents.
 Changing a selection regenerates a visible preview. The viewer uses the available
 page width and can enter full screen; leaving full screen restores inspection. An edited generated document remains open when it is replaced;
@@ -70,33 +70,33 @@ The deployment workflow uses the same pinned base and patches for its Rust
 checks and browser processor; both cache keys include the patch recipe.
 
 ```text
-wasm-pack build crates/ocdraw-browser --target web --out-dir ../../format-explorer/wasm-build --release
+wasm-pack build crates/browser --target web --out-dir ../../format-explorer/wasm-build --release
 node format-explorer/tests/wasm-smoke.mjs
 ```
 
-The smoke check exercises standalone fixtures and actual OCDraw/IFCX-CAD/DXF/DWG
+The smoke check exercises standalone fixtures and actual OCDraw/IFCCAD/DXF/DWG
 output and production readback, including active/dormant DXF clip references
 and viewport angles in radians. Deployment checks exercise the static HTTP service,
 WASM and framed viewer assets. Linux deployment activation/rollback tests are
 skipped on Windows. Pushing to main triggers the existing deployment workflow;
 local development commands do not publish the website.
 
-## IFCX-CAD workflow
+## IFCCAD workflow
 
-Open `.ifcx` or `.ifcx.json` using the same file picker. The production IFCX-CAD
+Open `.ifcx` or `.ifcx.json` using the same file picker. The production IFCCAD
 reader composes fragments with LaterWins and validates the experimental profile;
 the contents show named patterns, layers, layouts, entities, blocks and the
 composed graph, including foreign attributes/nodes. Its bundled profile schema
-resolves the experimental import offline. A native IFCX download preserves the
+resolves the experimental import offline. A native IFCCAD download preserves the
 original bytes and fragments, including foreign information.
 
-For a roundtrip, download DXF/DWG, select that file and choose **IFCX-CAD** under
-**DXF omzetten naar** or **DWG omzetten naar**, then open it and download IFCX-CAD.
-This choice appears only for DXF/DWG input; native OCDraw/IFCX files determine
+For a roundtrip, download DXF/DWG, select that file and choose **IFCCAD** under
+**DXF omzetten naar** or **DWG omzetten naar**, then open it and download IFCCAD.
+This choice appears only for DXF/DWG input; native OCDraw/IFCCAD files determine
 their own route. Changing the selection after opening reruns the
-original CAD input with the chosen converter. IFCX uses `ifcx-cad-convert`
+original CAD input with the chosen converter. IFCCAD uses `ifccad-convert`
 directly, without OCDraw as an intermediate. The current supported CAD profile
-is documented [here](../schemas/ifcx-native-cad/experimental-contract-0.1.0.md);
+is documented [here](../schemas/ifccad/experimental-contract-0.1.0.md);
 this route does not claim arbitrary IFCX building-geometry rendering.
 
 Allow conversion returns the supported subset and exposes all located loss

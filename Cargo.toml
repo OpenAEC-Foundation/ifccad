@@ -12,7 +12,7 @@ keywords = ["cad", "drawing", "ocdraw", "exchange", "conformance"]
 categories = ["parser-implementations", "encoding"]
 
 [workspace]
-members = ["crates/ocdraw-convert", "crates/ocdraw-viewer", "crates/ocdraw-browser", "crates/ifcx-cad-convert"]
+members = ["crates/ocdraw-convert", "crates/viewer", "crates/browser", "crates/ifccad-convert"]
 resolver = "2"
 
 [features]

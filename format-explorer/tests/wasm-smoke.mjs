@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {initSync,open_drawing,convert_cad_to_drawing,export_drawing,open_ifcx,convert_cad_to_ifcx,export_ifcx} from '../wasm-build/ocdraw_browser.js';
+import {initSync,open_drawing,convert_cad_to_drawing,export_drawing,open_ifccad,convert_cad_to_ifccad,export_ifccad} from '../wasm-build/browser.js';
 import {processBrowserRequest} from '../src/browser-worker.mjs';
 
-initSync({module:await readFile(new URL('../wasm-build/ocdraw_browser_bg.wasm',import.meta.url))});
-const wasm={open_drawing,convert_cad_to_drawing,export_drawing,open_ifcx,convert_cad_to_ifcx,export_ifcx};
+initSync({module:await readFile(new URL('../wasm-build/browser_bg.wasm',import.meta.url))});
+const wasm={open_drawing,convert_cad_to_drawing,export_drawing,open_ifccad,convert_cad_to_ifccad,export_ifccad};
 for(const name of ['ordered-scopes','fractional-polylines','paper-viewport','named-line-patterns']){
  const bytes=await readFile(new URL(`../../conformance/next/ocdraw/valid/${name}.ocdraw.json`,import.meta.url));
  const source={kind:'drawing',name,files:[{path:name+'.ocdraw.json',bytes:Uint8Array.from(bytes).buffer}]};
@@ -55,44 +55,44 @@ for(const name of ['viewport-circle-clip','viewport-ellipse-clip','viewport-bulg
 }
 console.log('Browser WASM patched DXF active/dormant clips, boundary links and radians verified');
 
-const graph=JSON.parse(await readFile(new URL('../../examples/ifcx-native-cad/hello-line-patterns.ifcx',import.meta.url),'utf8'));
+const graph=JSON.parse(await readFile(new URL('../../examples/ifccad/hello-line-patterns.ifcx',import.meta.url),'utf8'));
 // Exercise the fixture's nonzero base through both real codecs without repair.
 assert.deepEqual(graph.data.find(n=>n.path==='/cad/d1/block/1').attributes['ifccad::blockDefinition'].basePoint,[2,0,0]);
 const ifcxBytes=new TextEncoder().encode(JSON.stringify(graph));
-const ifcxSource={kind:'ifcx',name:'hello.ifcx',files:[{path:'hello.ifcx',bytes:ifcxBytes.buffer}]};
+const ifcxSource={kind:'ifccad',name:'hello.ifcx',files:[{path:'hello.ifcx',bytes:ifcxBytes.buffer}]};
 assert.equal(processBrowserRequest(ifcxSource,wasm).presentation.linePatterns.length,3);
-for(const format of ['ifcx','dxf','dwg']){
+for(const format of ['ifccad','dxf','dwg']){
  const exported=processBrowserRequest({...ifcxSource,export:{format,version:'AC1032'}},wasm);
  assert.equal(exported.failure,null,JSON.stringify(exported.failure));
  const download=exported.export.download;
- const returned=processBrowserRequest({kind:format==='ifcx'?'ifcx':'cad',drawingFormat:'ifcx',name:'returned.'+format,files:[{path:'returned.'+format,bytes:Uint8Array.from(Buffer.from(download.base64,'base64')).buffer}]},wasm);
+ const returned=processBrowserRequest({kind:format==='ifccad'?'ifccad':'cad',drawingFormat:'ifccad',name:download.fileName,files:[{path:download.fileName,bytes:Uint8Array.from(Buffer.from(download.base64,'base64')).buffer}]},wasm);
  assert.equal(returned.failure,null,JSON.stringify(returned.failure));
  assert.equal(returned.validation.strictAvailable,true);
  const patterns=returned.presentation.linePatterns.map(n=>n.attributes['ifccad::linePattern']);
  assert.deepEqual(returned.presentation.blockDefinitions.find(n=>n.attributes['ifccad::blockDefinition']).attributes['ifccad::blockDefinition'].basePoint,[2,0,0]);
  assert.deepEqual(patterns.find(p=>p.name==='DashDot').pattern,[0.5,-0.25,0,-0.25]);
  assert.ok(patterns.find(p=>p.name==='UnusedSolid'));
- if(format!=='ifcx'){
-  const saved=processBrowserRequest({kind:'cad',drawingFormat:'ifcx',name:'again.'+format,files:[{path:'again.'+format,bytes:Uint8Array.from(Buffer.from(download.base64,'base64')).buffer}],export:{format:'ifcx'}},wasm);
-  assert.equal(saved.export.download.format,'ifcx');
-  const reopened=processBrowserRequest({kind:'ifcx',name:'reopened.ifcx',files:[{path:'reopened.ifcx',bytes:Uint8Array.from(Buffer.from(saved.export.download.base64,'base64')).buffer}]},wasm);
+ if(format!=='ifccad'){
+  const saved=processBrowserRequest({kind:'cad',drawingFormat:'ifccad',name:'again.'+format,files:[{path:'again.'+format,bytes:Uint8Array.from(Buffer.from(download.base64,'base64')).buffer}],export:{format:'ifccad'}},wasm);
+  assert.equal(saved.export.download.format,'ifccad');
+  const reopened=processBrowserRequest({kind:'ifccad',name:'reopened.ifcx',files:[{path:'reopened.ifcx',bytes:Uint8Array.from(Buffer.from(saved.export.download.base64,'base64')).buffer}]},wasm);
   assert.equal(reopened.validation.strictAvailable,true);
  }
 }
-console.log('Browser WASM IFCX-CAD opening, named patterns and real DXF/DWG roundtrips verified');
+console.log('Browser WASM IFCCAD opening, named patterns and real DXF/DWG roundtrips verified');
 
-const viewportGraph=JSON.parse(await readFile(new URL('../../examples/ifcx-native-cad/hello-viewports.ifcx',import.meta.url),'utf8'));
+const viewportGraph=JSON.parse(await readFile(new URL('../../examples/ifccad/hello-viewports.ifcx',import.meta.url),'utf8'));
 const view=viewportGraph.data.find(node=>node.attributes?.['ifccad::viewport']).attributes['ifccad::viewport'];
 for(const enabled of [false,true]){
  view.viewEnabled=enabled;view.visible=!enabled;view.viewLocked=true;
  view.paperClip.enabled=enabled;view.view.twist=Math.PI/6;
  const bytes=new TextEncoder().encode(JSON.stringify(viewportGraph));
- const source={kind:'ifcx',name:'viewports.ifcx',files:[{path:'viewports.ifcx',bytes:bytes.buffer}]};
- for(const format of ['ifcx','dxf','dwg']){
+ const source={kind:'ifccad',name:'viewports.ifcx',files:[{path:'viewports.ifcx',bytes:bytes.buffer}]};
+ for(const format of ['ifccad','dxf','dwg']){
   const exported=processBrowserRequest({...source,export:{format,version:'AC1032'}},wasm);
   assert.equal(exported.failure,null,JSON.stringify(exported.failure));
-  const returned=processBrowserRequest({kind:format==='ifcx'?'ifcx':'cad',drawingFormat:'ifcx',name:'viewports.'+format,
-   files:[{path:'viewports.'+format,bytes:Uint8Array.from(Buffer.from(exported.export.download.base64,'base64')).buffer}]},wasm);
+  const returned=processBrowserRequest({kind:format==='ifccad'?'ifccad':'cad',drawingFormat:'ifccad',name:'viewports.'+format,
+   files:[{path:exported.export.download.fileName,bytes:Uint8Array.from(Buffer.from(exported.export.download.base64,'base64')).buffer}]},wasm);
   assert.equal(returned.failure,null,JSON.stringify(returned.failure));
   assert.equal(returned.validation.strictAvailable,true);
   const views=returned.presentation.entities.filter(node=>node.attributes['ifccad::viewport']);
@@ -110,18 +110,18 @@ for(const enabled of [false,true]){
   assert.deepEqual(restored.frozenLayers.map(path=>returned.presentation.layers.find(node=>node.path===path).attributes['ifccad::layer'].name),['Notes']);
  }
 }
-console.log('Browser WASM IFCX-CAD perspective, active/dormant circle clips and independent display states verified');
+console.log('Browser WASM IFCCAD perspective, active/dormant circle clips and independent display states verified');
 
 // Keep full-width counter literals in text; JSON.parse/stringify would round them.
-const largeText=(await readFile(new URL('../../examples/ifcx-native-cad/hello-line-patterns.ifcx',import.meta.url),'utf8'))
+const largeText=(await readFile(new URL('../../examples/ifccad/hello-line-patterns.ifcx',import.meta.url),'utf8'))
  .replace(/("next(?:Entity|Layer|Layout|Block|LinePattern)Id"\s*:\s*)\d+/g,(_,prefix)=>prefix+'9007199254740993');
 const largeBytes=new TextEncoder().encode(largeText);
-const largeSource={kind:'ifcx',name:'large.ifcx',files:[{path:'large.ifcx',bytes:largeBytes.buffer}]};
+const largeSource={kind:'ifccad',name:'large.ifcx',files:[{path:'large.ifcx',bytes:largeBytes.buffer}]};
 const largeOpened=processBrowserRequest(largeSource,wasm);
 assert.equal(largeOpened.validation.strictAvailable,true);
-const largeExported=processBrowserRequest({...largeSource,export:{format:'ifcx'}},wasm);
+const largeExported=processBrowserRequest({...largeSource,export:{format:'ifccad'}},wasm);
 assert.equal(largeExported.failure,null);
 const largeReturned=Buffer.from(largeExported.export.download.base64,'base64');
 assert.deepEqual(largeReturned,Buffer.from(largeBytes));
-assert.equal(processBrowserRequest({kind:'ifcx',name:'again.ifcx',files:[{path:'again.ifcx',bytes:Uint8Array.from(largeReturned).buffer}]},wasm).validation.strictAvailable,true);
-console.log('Browser WASM full-width IFCX-CAD allocation state preserved in native download');
+assert.equal(processBrowserRequest({kind:'ifccad',name:'again.ifcx',files:[{path:'again.ifcx',bytes:Uint8Array.from(largeReturned).buffer}]},wasm).validation.strictAvailable,true);
+console.log('Browser WASM full-width IFCCAD allocation state preserved in native download');

@@ -1,6 +1,9 @@
 # Historical IFCCAD package design
 
 This describes the retired pre-OCDraw route. It is not the active contract.
+The current IFCCAD project name refers to the independent IFCX-native CAD
+profile formerly called IFCX-CAD, developed alongside OCDraw; it does not
+refer to the package architecture documented here.
 Use Git history and the immutable numbered conformance snapshot for complete
 old implementation evidence.
 

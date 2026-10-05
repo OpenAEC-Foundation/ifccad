@@ -32,12 +32,12 @@ assert.match(html,/id="preview-fullscreen"/);
 assert.match(html,/id="preview-open"/);
 assert.match(html,/id="preview-frame"/);
 assert.doesNotMatch(html,/id="processing"/);
-const processorHead=await request('/wasm/ocdraw_browser_bg.wasm',{method:'HEAD'});
+const processorHead=await request('/wasm/browser_bg.wasm',{method:'HEAD'});
 assert.equal(processorHead.headers['content-type'],'application/wasm');
-const processorScript=await (await request('/wasm/ocdraw_browser.js')).text();
+const processorScript=await (await request('/wasm/browser.js')).text();
 assert.match(processorScript,/convert_cad_to_drawing/);
 assert.match(processorScript,/open_drawing/);
-for(const api of ['open_ifcx','convert_cad_to_ifcx','export_ifcx'])assert.ok(processorScript.includes(`export function ${api}(`),`Missing IFCX API: ${api}`);
+for(const api of ['open_ifccad','convert_cad_to_ifccad','export_ifccad'])assert.ok(processorScript.includes(`export function ${api}(`),`Missing IFCCAD API: ${api}`);
 const ifcxExampleHead=await request('/examples/hello-line-patterns.ifcx',{method:'HEAD'});
 assert.match(ifcxExampleHead.headers['content-type'],/^application\/json/);
 if(mode==='full') {
@@ -51,10 +51,10 @@ if(mode==='full') {
   const workerHead=await request('/ocs/app/worker_pkg/ocs_web_worker_bg.wasm',{method:'HEAD'});
   assert.equal(workerHead.headers['content-type'],'application/wasm');
   const fixture=await (await request('/examples/ordered-scopes.ocdraw.json')).text();
-  const {initSync,open_drawing,convert_cad_to_drawing,export_drawing}=await import('../dist/wasm/ocdraw_browser.js');
+  const {initSync,open_drawing,convert_cad_to_drawing,export_drawing}=await import('../dist/wasm/browser.js');
   const {readFile}=await import('node:fs/promises');
   const {processBrowserRequest}=await import('../dist/browser-worker.mjs');
-  initSync({module:await readFile(new URL('../dist/wasm/ocdraw_browser_bg.wasm',import.meta.url))});
+  initSync({module:await readFile(new URL('../dist/wasm/browser_bg.wasm',import.meta.url))});
   const wasm={open_drawing,convert_cad_to_drawing,export_drawing};
   const source={kind:'drawing',name:'ordered-scopes',files:[{path:'ordered-scopes.ocdraw.json',bytes:Uint8Array.from(Buffer.from(fixture)).buffer}]};
   const process=request=>{const result=processBrowserRequest(request,wasm);assert.equal(result.failure,null,JSON.stringify(result.failure));assert.equal(result.validation.strictAvailable,true);return result;};

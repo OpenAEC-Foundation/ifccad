@@ -1,0 +1,14 @@
+[package]
+name = "browser"
+version = "0.1.0"
+edition = "2021"
+license = "MPL-2.0"
+description = "Byte-oriented WebAssembly adapter for IFCCAD and OCDraw"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+viewer = { path = "../viewer" }
+js-sys = "0.3"
+wasm-bindgen = "0.2"

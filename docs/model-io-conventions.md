@@ -1,22 +1,23 @@
 # Model IO and conversion conventions
 
 The provisional Rust API uses explicit model and conversion direction names.
-OCDraw and IFCX-CAD remain independent models with independent encoding and
+OCDraw and IFCCAD remain independent models with independent encoding and
 validation contracts. This cleanup changes Rust call sites and module paths;
-it does not change native files, schemas, format versions or conversion coverage.
+it does not change native file content, logical schema definitions, format
+versions or conversion coverage.
 
 ## Responsibilities
 
-| Responsibility | OCDraw | IFCX-CAD |
+| Responsibility | OCDraw | IFCCAD |
 | --- | --- | --- |
-| Owned editable model and shared semantic validation | `logical/`, `OcdrawDocument` | `logical/`, `IfcxCadDocument` |
+| Owned editable model and shared semantic validation | `logical/`, `OcdrawDocument` | `logical/`, `IfccadDocument` |
 | Fresh typed construction | `build.rs`, `build/`, `OcdrawBuilder` | Public logical records and checked ID allocators |
-| Production byte reading | `read.rs`, `load_ocdraw_bytes` | `read.rs`, `load_ifcx_cad_bytes` |
-| Immutable IFCX source composition | Not applicable | `source/`, `LoadedIfcxGraph` |
-| Physical field mapping and validation | `codec/json/` | `codec/ifcx_json/` |
+| Production byte reading | `read.rs`, `load_ocdraw_bytes` | `read.rs`, `load_ifccad_bytes` |
+| Immutable IFCX source composition | Not applicable | `source/`, `LoadedIfccadGraph` |
+| Physical field mapping and validation | `codec/json/` | `codec/json/` |
 | Validation, encoding and strict readback orchestration | `encode.rs` | `encode.rs` |
-| Encoded bytes and file storage | `storage.rs`, `EncodedOcdraw` | `storage.rs`, `EncodedIfcxCad` |
-| CAD conversion | `ocdraw-convert` | `ifcx-cad-convert` |
+| Encoded bytes and file storage | `storage.rs`, `EncodedOcdraw` | `storage.rs`, `EncodedIfccad` |
+| CAD conversion | `ocdraw-convert` | `ifccad-convert` |
 
 Both converters use `from_cad` and `to_cad`, with `options`, `diagnostics` and
 `outcome` modules. CAD source auditing stays in `source`; native mapping helpers
@@ -28,9 +29,9 @@ converter's `docs/`: `FROM-CAD-COVERAGE.md` and `TO-CAD-COVERAGE.md`.
 ## Routes and ownership
 
 Byte readers return `Result<ValidatedOcdraw, OcdrawReadError>` or
-`Result<ValidatedIfcxCad, IfcxCadReadError>`. Invalid input yields no editable
+`Result<ValidatedIfccad, IfccadReadError>`. Invalid input yields no editable
 document. OCDraw errors retain invalid/unsupported-version classification and
-all structured diagnostics. IFCX errors retain the existing `IfcxCadReport`.
+all structured diagnostics. IFCX errors retain the existing `IfccadReport`.
 File readers distinguish IO failures from production read failures.
 
 Validated wrappers expose `document()` and `into_document()`. Clone the borrowed
@@ -40,7 +41,7 @@ readback. Validation neither encodes nor saves files. OCDraw bound recomputation
 remains an explicit, transactional operation; encoding retains valid supplied
 bounds. `OcdrawBuilder::finish()` is construction plus encoding.
 
-Encoders return owned `EncodedOcdraw` or `EncodedIfcxCad` values with `bytes()`,
+Encoders return owned `EncodedOcdraw` or `EncodedIfccad` values with `bytes()`,
 `into_bytes()` and `write_file()`. Both implement `AsRef<[u8]>`, `PartialEq` and
 `Eq`. Equality compares the exact encoded bytes; differing encodings can still
 represent equivalent logical documents. Only validated encoding constructs them.
@@ -55,7 +56,7 @@ It receives no original fragments or foreign content and provides no merge.
 
 ## Canonical conversion API
 
-Each model has four routes (replace `ocdraw` with `ifcx_cad` for IFCX-CAD):
+Each model has four routes (replace `ocdraw` with `ifccad` for IFCCAD):
 
 - `cad_document_to_ocdraw_document`: fresh logical construction.
 - `cad_document_to_encoded_ocdraw`: logical construction followed by core encoding.
@@ -63,7 +64,7 @@ Each model has four routes (replace `ocdraw` with `ifcx_cad` for IFCX-CAD):
 - `ocdraw_source_to_cad_document`: conversion of a validated reader snapshot.
 
 OCDraw keeps `_with_id` variants for caller-supplied drawing identity. IFCX takes
-`IfcxCadTargetMetadata` for explicit header and drawing identity. Every route
+`IfccadTargetMetadata` for explicit header and drawing identity. Every route
 requires direction-specific options; `Default::default()` selects the existing
 policy. No `Direct`, bare `Import`/`Export`, or `_with_options` duplicate API is
 needed. Outcomes expose `document()`/`into_document()` or
@@ -87,19 +88,19 @@ introduced. Recovery diagnostics remain distinguishable from semantic losses.
 | `load_drawing_file`, `DrawingOpenError` | `load_ocdraw_file`, `OcdrawOpenError` with IO/Read variants |
 | `DrawingWriteError` | `OcdrawWriteError` |
 | `validate_document`, `recompute_document_bounds`, `encode_document` | Model-qualified `validate_ocdraw_document`, `recompute_ocdraw_document_bounds`, `encode_ocdraw_document` |
-| `read_native_cad_ifcx`, `_with_policy` | `load_ifcx_cad_bytes(bytes, IfcxCadReadOptions { composition_policy })` |
-| `write_native_cad_ifcx` | `encode_ifcx_cad_document`, returning `EncodedIfcxCad` |
-| IFCX encoder's `Vec<u8>` | `EncodedIfcxCad::bytes()` or `into_bytes()` |
+| `read_native_cad_ifcx`, `_with_policy` | `load_ifccad_bytes(bytes, IfccadReadOptions { composition_policy })` |
+| `write_native_cad_ifcx` | `encode_ifccad_document`, returning `EncodedIfccad` |
+| IFCX encoder's `Vec<u8>` | `EncodedIfccad::bytes()` or `into_bytes()` |
 | `raw_ifcx()` | `graph().composed_ifcx()` |
 | `cad_document_to_drawing` | `cad_document_to_encoded_ocdraw` |
 | `ocdraw_to_cad_document` | `ocdraw_source_to_cad_document` |
-| `cad_document_to_ifcx_cad` | `cad_document_to_encoded_ifcx_cad` |
-| `ifcx_cad_to_cad_document` | `ifcx_cad_source_to_cad_document` |
+| `cad_document_to_ifcx_cad` | `cad_document_to_encoded_ifccad` |
+| `ifcx_cad_to_cad_document` | `ifccad_source_to_cad_document` |
 | IFCX `_with_options` pairs | One canonical function with required options |
 | `ExportOptions`, `ImportOptions`, `ConversionLossPolicy` / `ExportLossPolicy` | `CadToOcdrawOptions`, `OcdrawToCadOptions`, `OcdrawLossPolicy` |
-| `IfcxCadConversionOptions` | Distinct `CadToIfcxCadOptions` / `IfcxCadToCadOptions`; metadata and `IfcxCadLossPolicy` retain their names |
+| `IfcxCadConversionOptions` | Distinct `CadToIfccadOptions` / `IfccadToCadOptions`, with model-qualified metadata and loss policy |
 | `DirectExportOutcome`, `OcdrawDocumentExportOutcome`, `DirectImportOutcome` | `CadToEncodedOcdrawOutcome`, `CadToOcdrawDocumentOutcome`, `OcdrawToCadOutcome` |
-| `CadToIfcxCadOutcome` | `CadToEncodedIfcxCadOutcome` |
+| `CadToIfcxCadOutcome` | `CadToEncodedIfccadOutcome` |
 | `DirectExportError`, `DirectImportError`, `ExportDiagnostic`, `DirectImportDiagnostic` | `CadToOcdrawError`, `OcdrawToCadError`, `CadToOcdrawDiagnostic`, `OcdrawToCadDiagnostic` |
 | `ConversionGeometryTolerance`, `ConversionToleranceError`, `ConversionGeometryAssessment` and related lifecycle evidence types | `OcdrawGeometryTolerance`, `OcdrawToleranceError`, `OcdrawGeometryAssessment` and model-qualified evidence types |
 | Encoded outcome `drawing()` / `into_drawing()` | `encoded()` / `into_encoded()` |
@@ -115,15 +116,50 @@ guarantees retain their contracts. New geometry, editor context, source writebac
 and merging edited copies remain outside this task.
 
 See the [OCDraw lifecycle](ocdraw-document-lifecycle.md) and
-[IFCX-CAD lifecycle](experiments/ifcx-cad-document-lifecycle.md) for model-specific
+[IFCCAD lifecycle](experiments/ifccad-document-lifecycle.md) for model-specific
 guarantees and the converter READMEs for executable examples.
 
-## Retained error-boundary follow-up
+## IFCCAD naming migration
 
-IFCX conversion retains its shared `IfcxCadConversionError` and existing
-`CoreValidation(String)` payload in this cleanup. A future API refinement should
-retain validation reports and encoding/readback errors as typed causes, allowing
-callers to distinguish failures without parsing text. It must preserve located
-loss diagnostics, Recovery classification and Allow/Reject behavior. A shared
-conversion error can remain appropriate; separate direction errors are not a
-prerequisite for typed causes. This refinement is not implemented here.
+The provisional IFCCAD API and all repository consumers use the project name
+consistently. This is a breaking naming migration without deprecated aliases.
+
+| Previous name | Current name |
+| --- | --- |
+| `ocdraw::ifcx_cad`, `src/ifcx_cad` | `ocdraw::ifccad`, `src/ifccad` |
+| `ifcx-cad-convert`, `ifcx_cad_convert` | `ifccad-convert`, `ifccad_convert` |
+| `IfcxCadDocument`, other `IfcxCad…` types | `IfccadDocument`, corresponding `Ifccad…` types |
+| `ValidatedIfcxCad`, `EncodedIfcxCad` | `ValidatedIfccad`, `EncodedIfccad` |
+| `LoadedIfcxGraph`, `IfcxCompositionPolicy` | `LoadedIfccadGraph`, `IfccadCompositionPolicy` |
+| `load_ifcx_cad_bytes`, `load_ifcx_cad_file` | `load_ifccad_bytes`, `load_ifccad_file` |
+| `validate_ifcx_cad_document`, `encode_ifcx_cad_document` | `validate_ifccad_document`, `encode_ifccad_document` |
+| Conversion function segment `ifcx_cad` | `ifccad`, retaining explicit source/target direction |
+| Mapping lookup `ifcx_id(handle)` | `ifccad_id(handle)` |
+| Browser `open_ifcx`, `convert_cad_to_ifcx`, `export_ifcx` | `open_ifccad`, `convert_cad_to_ifccad`, `export_ifccad` |
+| Browser request kind/drawing format/native export format `ifcx` | `ifccad` |
+| `schemas/ifcx-native-cad`, `examples/ifcx-native-cad`, `conformance/next/ifcx-native-cad` | Corresponding `ifccad` directories |
+| `experimental-profile-0.1.0.ifcx` | `ifccad-profile-0.1.0.ifcx` |
+| `ocdraw-browser`, `ocdraw_browser`, `crates/ocdraw-browser` | `browser`, `crates/browser` |
+| `ocdraw-viewer`, `ocdraw_viewer`, `crates/ocdraw-viewer` | `viewer`, `crates/viewer` |
+| Generated `ocdraw_browser.js`, `ocdraw_browser_bg.wasm` | `browser.js`, `browser_bg.wasm` |
+
+The shared `browser` and `viewer` adapters serve both IFCCAD and OCDraw.
+Their crate names, imports, workspace paths and generated WebAssembly assets
+use these format-neutral names. The web application package is `format-explorer`.
+
+The root `ocdraw` crate and its OCDraw APIs keep their domain names. The
+underlying IFCX envelope uses `ifcxVersion: "ifcx_alpha"`, `.ifcx` files and
+the existing `ifccad::` attributes and `urn:example:ifccad:0.1.0` import.
+`graph().composed_ifcx()` continues to identify the raw IFCX envelope. Model
+semantics, identity, allocation state, composition, conversion coverage and
+numerical rules are unchanged. Native IFCCAD downloads use format identifier
+`ifccad` with `.ifcx` filenames and preserve exact source bytes.
+
+## Typed error causes
+
+IFCCAD conversion retains `IfccadConversionError` with typed validation,
+encoding, readback and allocation causes. Core encoding distinguishes invalid
+documents, encoding and strict readback failures through `IfccadEncodeError`.
+Callers can inspect variants and error source chains without parsing display
+text. Located diagnostics, Recovery classification and Allow/Reject behavior
+retain their existing contracts.

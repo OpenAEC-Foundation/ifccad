@@ -1,4 +1,4 @@
-# OCDraw and IFCX-CAD vision
+# OCDraw and IFCCAD vision
 
 OCDraw describes CAD drawings as an open, application-independent information
 model and exchange format. Drawings are useful deliverables in their own right,
@@ -7,7 +7,7 @@ standalone drawing must not depend on an IFC project graph to be understood.
 
 OpenAEC develops two complementary routes in parallel. OCDraw provides a
 standalone CAD drawing contract and direct control over physical storage.
-IFCX-CAD explores a CAD drawing profile within the evolving IFCX ecosystem,
+IFCCAD explores a CAD drawing profile within the evolving IFCX ecosystem,
 with opportunities for shared identity, relationships and composition alongside
 other building information. Its CAD content must also be understandable as a
 drawing in its own right. Both contracts remain provisional.

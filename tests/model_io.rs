@@ -1,6 +1,5 @@
-use ocdraw::ifcx_cad::{
-    encode_ifcx_cad_document, load_ifcx_cad_bytes, load_ifcx_cad_file, IfcxCadOpenError,
-    IfcxCadReadOptions,
+use ocdraw::ifccad::{
+    encode_ifccad_document, load_ifccad_bytes, load_ifccad_file, IfccadOpenError, IfccadReadOptions,
 };
 use ocdraw::ocdraw::{
     load_ocdraw_bytes, load_ocdraw_file, OcdrawBuildOptions, OcdrawBuilder, OcdrawOpenError,
@@ -12,18 +11,18 @@ fn result_readers_retain_invalid_input_evidence() {
     let error = load_ocdraw_bytes(b"{}").unwrap_err();
     assert!(!error.diagnostics().is_empty());
     assert!(matches!(error, OcdrawReadError::Invalid { .. }));
-    let error = load_ifcx_cad_bytes(b"{}", IfcxCadReadOptions::default()).unwrap_err();
+    let error = load_ifccad_bytes(b"{}", IfccadReadOptions::default()).unwrap_err();
     assert!(!error.report().errors.is_empty());
 }
 
 #[test]
 fn encoded_profile_and_original_source_have_independent_ownership() {
-    let original = include_bytes!("../examples/ifcx-native-cad/hello-cad.ifcx");
-    let loaded = load_ifcx_cad_bytes(original, IfcxCadReadOptions::default()).unwrap();
+    let original = include_bytes!("../examples/ifccad/hello-cad.ifcx");
+    let loaded = load_ifccad_bytes(original, IfccadReadOptions::default()).unwrap();
     let (source, mut document) = loaded.into_parts();
     document.header.author = "edited logical document".into();
-    let encoded = encode_ifcx_cad_document(&document).unwrap();
-    let readback = load_ifcx_cad_bytes(encoded.bytes(), IfcxCadReadOptions::default()).unwrap();
+    let encoded = encode_ifccad_document(&document).unwrap();
+    let readback = load_ifccad_bytes(encoded.bytes(), IfccadReadOptions::default()).unwrap();
     assert_eq!(readback.document().header.author, document.header.author);
     assert_eq!(source.source_bytes(), original);
     assert_ne!(encoded.bytes(), source.source_bytes());
@@ -45,15 +44,15 @@ fn file_storage_refuses_overwrite_and_distinguishes_read_errors() {
     encoded.write_file(&ocdraw_path).unwrap();
     assert!(encoded.write_file(&ocdraw_path).is_err());
     assert_eq!(load_ocdraw_file(&ocdraw_path).unwrap().drawing_id(), "io");
-    let loaded = load_ifcx_cad_bytes(
-        include_bytes!("../examples/ifcx-native-cad/hello-cad.ifcx"),
-        IfcxCadReadOptions::default(),
+    let loaded = load_ifccad_bytes(
+        include_bytes!("../examples/ifccad/hello-cad.ifcx"),
+        IfccadReadOptions::default(),
     )
     .unwrap();
-    let encoded = encode_ifcx_cad_document(loaded.document()).unwrap();
+    let encoded = encode_ifccad_document(loaded.document()).unwrap();
     encoded.write_file(&ifcx_path).unwrap();
     assert!(encoded.write_file(&ifcx_path).is_err());
-    load_ifcx_cad_file(&ifcx_path, IfcxCadReadOptions::default()).unwrap();
+    load_ifccad_file(&ifcx_path, IfccadReadOptions::default()).unwrap();
     std::fs::write(&invalid, b"{}").unwrap();
     assert!(matches!(
         load_ocdraw_file(&missing),
@@ -64,12 +63,12 @@ fn file_storage_refuses_overwrite_and_distinguishes_read_errors() {
         Err(OcdrawOpenError::Read(_))
     ));
     assert!(matches!(
-        load_ifcx_cad_file(&missing, IfcxCadReadOptions::default()),
-        Err(IfcxCadOpenError::Io(_))
+        load_ifccad_file(&missing, IfccadReadOptions::default()),
+        Err(IfccadOpenError::Io(_))
     ));
     assert!(matches!(
-        load_ifcx_cad_file(&invalid, IfcxCadReadOptions::default()),
-        Err(IfcxCadOpenError::Read(_))
+        load_ifccad_file(&invalid, IfccadReadOptions::default()),
+        Err(IfccadOpenError::Read(_))
     ));
     for path in [ocdraw_path, ifcx_path, invalid] {
         std::fs::remove_file(path).unwrap();

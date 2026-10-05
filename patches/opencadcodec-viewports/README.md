@@ -17,7 +17,7 @@ repairs, not evidence for the unmodified dependency or upstream acceptance.
   [PR #89](https://github.com/HakanSeven12/opencadcodec/pull/89), commit
   `c5ac46a33ed8b38e0be22a4853807fc8ed3d70aa`, directly based on upstream main.
 - `0003-viewport-off-state.patch` additionally preserves the independent off bit
-  0x20000 and reflects its effective state in DXF group 68. The IFCX-CAD slice
+  0x20000 and reflects its effective state in DXF group 68. The IFCCAD slice
   requires this to distinguish view enabled from entity visibility and zoom lock.
   It is a local repair, not part of either published PR; adding it exposes a new
   serde-defaulted public boolean field to the shared dependency. OCDraw's typed
@@ -40,7 +40,7 @@ cargo test --config patches/opencadcodec-viewports.toml --workspace
 For persistent opt-in in this worktree, put the contents of
 `patches/opencadcodec-viewports.toml` in `.cargo/config.toml` (create `.cargo`
 if needed; preserve any existing configuration). That local file is ignored.
-The existing main integration selected the first two repairs; this IFCX-CAD
+The existing main integration selected the first two repairs; this IFCCAD
 worktree selects all three. The deployment workflow prepares the same base and
 three patches through
 `.github/actions/viewport-codec` before Rust checks and browser compilation.

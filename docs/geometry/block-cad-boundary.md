@@ -62,10 +62,10 @@ explodable and uniform-scaling flags roundtrip.
 The converter rejects contradictory present marker name/owner/base-point data
 as `InvalidSourceStructure` under both loss policies. Marker absence is allowed;
 a zero marker is not guessed to mean absent. Native-to-CAD conversion constructs
-consistent records and markers. `ocdraw_block_exchange` and the IFCX-CAD
+consistent records and markers. `ocdraw_block_exchange` and the IFCCAD
 `exchange` suite use production native readback and actual codecs: local
 nonzero-base blocks now return successfully through both DXF and DWG. The
-standalone route also retains descriptions in both codecs. IFCX-CAD's narrower
+standalone route also retains descriptions in both codecs. IFCCAD's narrower
 block model still diagnoses descriptions as unsupported source metadata.
 
 Scale setters are checked after construction. Changed values give

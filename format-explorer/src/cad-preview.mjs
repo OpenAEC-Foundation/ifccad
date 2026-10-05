@@ -2,8 +2,8 @@ import {createFileClient,encodeBase64} from './browser-client.mjs';
 import {createOcsSession} from './ocs-messages.mjs';
 import {supportsCadVersion,defaultCadVersion} from './cad-formats.mjs';
 
-function drawingFormat(source){return source?.kind==='ifcx'||source?.drawingFormat==='ifcx'?'ifcx':'ocdraw';}
-function drawingLabel(source){return drawingFormat(source)==='ifcx'?'IFCX-CAD':'OCDraw';}
+function drawingFormat(source){return source?.kind==='ifccad'||source?.drawingFormat==='ifccad'?'ifccad':'ocdraw';}
+function drawingLabel(source){return drawingFormat(source)==='ifccad'?'IFCCAD':'OCDraw';}
 
 export function createCadPreviewController({openExport,openSession,onUpdate=()=>{}}){
  const state={source:null,valid:false,visible:false,busy:false,format:'dxf',version:defaultCadVersion,result:null,download:null,error:'',viewerError:'',viewerReady:false};
@@ -38,7 +38,7 @@ export function createCadPreviewController({openExport,openSession,onUpdate=()=>
    if(file.format!==state.format||result.export.requestedVersion!==state.version||atob(file.base64).length!==file.byteLength)throw Error('Het CAD-bestand komt niet overeen met de gekozen uitvoer.');
    state.download=file;
    if(file.base64.length<=24*1024*1024){cache.set(key,result);while(cache.size>2)cache.delete(cache.keys().next().value);}
-   if(active&&displayedKey!==key){await active.replaceGenerated(file.base64,`via-${drawingFormat(state.source)}-${state.version}.${state.format}`);if(current!==generation)return;displayedKey=key;}
+   if(active&&displayedKey!==key){await active.replaceGenerated(file.base64,`via-${drawingLabel(state.source).toLowerCase()}-${state.version}.${state.format}`);if(current!==generation)return;displayedKey=key;}
   }catch(error){if(current===generation&&!signal.aborted)state.error=error.message;}
   finally{if(current===generation){state.busy=false;notify();}}
  }

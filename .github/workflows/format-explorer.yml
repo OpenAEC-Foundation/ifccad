@@ -23,7 +23,7 @@ jobs:
         id: browser-cache
         with:
           path: format-explorer/wasm-build
-          key: ocdraw-browser-wasm-ubuntu24-v2-${{ hashFiles('Cargo.toml', 'crates/**/Cargo.toml', 'src/**/*.rs', 'crates/**/src/**/*.rs', 'schemas/**', 'crates/ocdraw-convert/README.md', 'patches/opencadcodec-viewports*', 'patches/opencadcodec-viewports/**', '.github/actions/viewport-codec/**') }}
+          key: browser-wasm-ubuntu24-v2-${{ hashFiles('Cargo.toml', 'crates/**/Cargo.toml', 'src/**/*.rs', 'crates/**/src/**/*.rs', 'schemas/**', 'crates/ocdraw-convert/README.md', 'patches/opencadcodec-viewports*', 'patches/opencadcodec-viewports/**', '.github/actions/viewport-codec/**') }}
       - uses: ./.github/actions/viewport-codec
         if: steps.browser-cache.outputs.cache-hit != 'true'
       - uses: dtolnay/rust-toolchain@stable
@@ -38,18 +38,18 @@ jobs:
           tool: wasm-pack
       - name: Build browser processor
         if: steps.browser-cache.outputs.cache-hit != 'true'
-        run: wasm-pack build crates/ocdraw-browser --target web --out-dir ../../format-explorer/wasm-build --release
+        run: wasm-pack build crates/browser --target web --out-dir ../../format-explorer/wasm-build --release
       - uses: actions/setup-node@v5
         with:
           node-version: '22'
       - name: Verify browser processor
         run: |
-          test -s format-explorer/wasm-build/ocdraw_browser.js
-          test -s format-explorer/wasm-build/ocdraw_browser_bg.wasm
+          test -s format-explorer/wasm-build/browser.js
+          test -s format-explorer/wasm-build/browser_bg.wasm
           node format-explorer/tests/wasm-smoke.mjs
       - uses: actions/upload-artifact@v4
         with:
-          name: ocdraw-browser-wasm
+          name: browser-wasm
           path: format-explorer/wasm-build/
           retention-days: 7
 
@@ -167,7 +167,7 @@ jobs:
           path: format-explorer/ocs-build
       - uses: actions/download-artifact@v4
         with:
-          name: ocdraw-browser-wasm
+          name: browser-wasm
           path: format-explorer/wasm-build
       - uses: actions/setup-node@v5
         with:
@@ -180,11 +180,11 @@ jobs:
         run: |
           test -s format-explorer/ocs-build/index.html
           test -n "$(find format-explorer/ocs-build -name '*.wasm' -print -quit)"
-          test -s format-explorer/wasm-build/ocdraw_browser_bg.wasm
+          test -s format-explorer/wasm-build/browser_bg.wasm
           bash -n format-explorer/deploy/release.sh
           npm --prefix format-explorer test
           npm --prefix format-explorer run build
-          test -s format-explorer/dist/wasm/ocdraw_browser_bg.wasm
+          test -s format-explorer/dist/wasm/browser_bg.wasm
           test -s format-explorer/dist/ocs/app/index.html
           test -s format-explorer/dist/ocs/app/LICENSE
       - name: Assemble and exercise release

@@ -9,7 +9,7 @@ with native mapping helpers under [`src/mapping`](src/mapping). Pure CAD source 
 [`src/source`](src/source), and numerical kernels in [`src/geometry`](src/geometry).
 The core format implementation remains usable without opencadcodec.
 The dependency and public Rust reexport use the upstream name `opencadcodec`
-at a shared fixed revision with `ifcx-cad-convert`. The
+at a shared fixed revision with `ifccad-convert`. The
 [dependency audit](../../docs/geometry/opencadcodec-update-2026-10-05.md) records
 the current public-model classification and exchange fixes.
 

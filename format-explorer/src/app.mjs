@@ -1,14 +1,14 @@
 import {createFileClient,decodeBase64} from './browser-client.mjs';
 import {initializeCadPreview} from './cad-preview.mjs';
 const $=id=>document.getElementById(id),client=createFileClient(),preview=initializeCadPreview();let source,controller;
-function drawingFormat(){return source?.kind==='ifcx'?'ifcx':source?.drawingFormat||'ocdraw';}
+function drawingFormat(){return source?.kind==='ifccad'?'ifccad':source?.drawingFormat||'ocdraw';}
 function updateInputControls(){
  const format=$('file').files?.[0]?.name.match(/\.(dwg|dxf)$/i)?.[1]?.toUpperCase();
  $('drawing-format-control').hidden=!format;$('drawing-format-label').textContent=format?format+' omzetten naar':'';$('drawing-format').disabled=!format||!!controller;
 }
 function clearSelection(){source=undefined;preview.clear();$('export').disabled=true;$('cad-download').disabled=true;$('drawing').hidden=true;}
 function show(result){
- const label=drawingFormat()==='ifcx'?'IFCX-CAD':'OCDraw';$('content-title').textContent=label+'-inhoud';$('export').textContent=label+' downloaden';
+ const label=drawingFormat()==='ifccad'?'IFCCAD':'OCDraw';$('content-title').textContent=label+'-inhoud';$('export').textContent=label+' downloaden';
  $('drawing').hidden=false;$('name').textContent=result.source?.name||source.name;
  $('report').textContent=JSON.stringify({reader:result.reader,conversion:result.conversion,validation:result.validation,failure:result.failure,export:result.export?{format:result.export.format,diagnostics:result.export.diagnostics,fileCheck:result.export.fileCheck}:undefined},null,2);
  $('records').textContent=JSON.stringify(result.presentation,null,2)||'Geen gevalideerde tekeninginformatie.';
@@ -26,7 +26,7 @@ $('open').onclick=async()=>{
  clearSelection();updateInputControls();
  const file=$('file').files[0];if(!file){$('status').textContent='Kies eerst een bestand.';return;}if(file.size>64*1024*1024){$('status').textContent='Dit bestand is groter dan 64 MiB.';return;}
  $('file').disabled=true;$('open').disabled=true;$('status').textContent='Bestand lezen…';
- try{const kind=/\.(dxf|dwg)$/i.test(file.name)?'cad':/\.ifcx(?:\.json)?$/i.test(file.name)?'ifcx':'drawing';if(kind!=='cad')$('drawing-format').value=kind==='ifcx'?'ifcx':'ocdraw';source={kind,name:file.name,...(kind==='cad'?{drawingFormat:$('drawing-format').value||'ocdraw'}:{}),files:[{path:file.name,bytes:await file.arrayBuffer()}]};}
+ try{const kind=/\.(dxf|dwg)$/i.test(file.name)?'cad':/\.ifcx(?:\.json)?$/i.test(file.name)?'ifccad':'drawing';if(kind!=='cad')$('drawing-format').value=kind==='ifccad'?'ifccad':'ocdraw';source={kind,name:file.name,...(kind==='cad'?{drawingFormat:$('drawing-format').value||'ocdraw'}:{}),files:[{path:file.name,bytes:await file.arrayBuffer()}]};}
  catch(e){$('status').textContent='Het bestand kon niet worden gelezen. Sluit het eventueel in het andere programma en kies het opnieuw. '+e.message;return;}
  finally{$('file').disabled=false;$('open').disabled=false;}
  await run();

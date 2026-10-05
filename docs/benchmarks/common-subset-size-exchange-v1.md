@@ -46,7 +46,7 @@ already installed. The IFCX schema's standalone raw/gzip cost is reported
 separately. Adding it to each transfer models a different delivery assumption.
 Gzip does not become an official file encoding through this experiment.
 The exact imported experimental profile is `urn:example:ifccad:0.1.0`, from
-`schemas/ifcx-native-cad/experimental-profile-0.1.0.ifcx`; its bytes are hashed
+`schemas/ifccad/ifccad-profile-0.1.0.ifcx`; its bytes are hashed
 in the detailed results. This is the current alpha profile, not a released
 standard. The driver requires Python 3.11 or newer.
 

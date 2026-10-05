@@ -1,6 +1,6 @@
 # IFCX alpha assumptions used by the native CAD experiment
 
-Checked against [buildingSMART's IFCX alpha TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp), examples and linked issues on 2026-09-30. This is a living record of choices the [native CAD profile](../../schemas/ifcx-native-cad/experimental-contract-0.1.0.md) relies on but IFCX has not yet specified sufficiently for independent interchange. It is not a list of accepted buildingSMART proposals. Update an entry when the experiment starts relying on a new rule, upstream clarifies it, or an independent implementation disagrees. Keep the exact CAD rule in the profile contract; record the general IFCX question and evidence here.
+Checked against [buildingSMART's IFCX alpha TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp), examples and linked issues on 2026-09-30. This is a living record of choices the [native CAD profile](../../schemas/ifccad/experimental-contract-0.1.0.md) relies on but IFCX has not yet specified sufficiently for independent interchange. It is not a list of accepted buildingSMART proposals. Update an entry when the experiment starts relying on a new rule, upstream clarifies it, or an independent implementation disagrees. Keep the exact CAD rule in the profile contract; record the general IFCX question and evidence here.
 
 Each entry records: **current IFCX surface**, **our tested rule**, **open question**, **broader use**, and **evidence / upstream overlap**. `Profile-only` means the rule may never belong in IFCX core. `Candidate` means a general IFCX clarification or mechanism could help other domains. `Interoperability risk` means current implementations may produce different results.
 
@@ -10,13 +10,13 @@ Each entry records: **current IFCX surface**, **our tested rule**, **open questi
 - **Our tested rule:** Paths such as `/cad/d1/e42` use a drawing-local canonical `uint64` segment. The complete path is a node's identity within this experiment, and references use that complete string. A drawing ID distinguishes drawings in the file. The reader rejects the earlier bracketed CAD paths.
 - **Open question:** Can a dataset identifier plus a local path form a stable globally referencable identity? How do imports, merging, renaming, and cross-file references resolve it? Which path characters and normalization rules are normative?
 - **Broader use:** Compact, human-readable identifiers for repeated model elements, sensor points, assembly members, and external annotations without a UUID in every node. This needs an explicit collision and reference model before proposing it upstream.
-- **Evidence:** [profile paths](../../schemas/ifcx-native-cad/experimental-contract-0.1.0.md#file-and-identity), [fixture](../../examples/ifcx-native-cad/hello-cad.ifcx), [composition probe](ifcx-composition-probe.md), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp).
+- **Evidence:** [profile paths](../../schemas/ifccad/experimental-contract-0.1.0.md#file-and-identity), [fixture](../../examples/ifccad/hello-cad.ifcx), [composition probe](ifcx-composition-probe.md), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp).
 
 ### Native ID lifecycle (2026-10-02)
 
-The [persistent allocation design](ifcx-cad-id-management.md) keeps existing
+The [persistent allocation design](ifccad-id-management.md) keeps existing
 paths stable during native edits and records per-domain watermarks on the
-drawing. This is implemented and verified locally on `ifcx-cad-id-management`.
+drawing. This is implemented and verified locally on `ifccad-id-management`.
 The counters are a CAD-profile choice;
 they do not establish global uniqueness, resolve cross-file identities or
 support independently allocating editors. A future collaboration design must
@@ -36,7 +36,7 @@ outside CAD, independently of compact paths.
 - **Our tested rule:** Model-layout, Paper-layout and block-definition children named `"0"`, `"1"`, etc. are contiguous and define CAD draw order separately per scope. Exactly one layout or block definition owns each drawable entity. JSON object member order is irrelevant; drawing children do not define layout-tab order.
 - **Open question:** Should IFCX offer an explicit ordered relationship, or should ordering remain a profile convention? If a generic mechanism is added, how are insertion, removal, and concurrent edits handled without renumbering every later relation?
 - **Broader use:** Order of assembly steps, presentation items, ordered spatial sections, and other graph traversals where order changes meaning. CAD draw order and single ownership remain profile-specific.
-- **Evidence:** [profile ownership and order](../../schemas/ifcx-native-cad/experimental-contract-0.1.0.md#scope-and-order), [nested-block fixture](../../examples/ifcx-native-cad/hello-nested-blocks.ifcx), [paper-layout fixture](../../examples/ifcx-native-cad/hello-paper-layouts.ifcx), [strict order tests](../../tests/experimental_ifcx_native.rs), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp).
+- **Evidence:** [profile ownership and order](../../schemas/ifccad/experimental-contract-0.1.0.md#scope-and-order), [nested-block fixture](../../examples/ifccad/hello-nested-blocks.ifcx), [paper-layout fixture](../../examples/ifccad/hello-paper-layouts.ifcx), [strict order tests](../../tests/ifccad_native.rs), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp).
 
 ## G3 — Composition of repeated path fragments (`Interoperability risk`)
 
@@ -44,7 +44,7 @@ outside CAD, independently of compact paths.
 - **Our tested rule:** By default, repeated fragments with the same path merge in file order, with the later value winning per `children`, `inherits`, or `attributes` key on CAD and non-CAD nodes alike. An explicit reader option rejects differing repeated values for development diagnostics. CAD constraints are checked on the composed result in both modes. Duplicate JSON object keys in one object still fail. In the default mode, the parser removes an `inherits` key when overwritten by `null` and retains `null` markers for children and attributes, following upstream flattening; graph expansion and attribute deletion remain unresolved. The [composition probe](ifcx-composition-probe.md) measured the upstream behavior that motivated this change.
 - **Open question:** What is the normative result of repeated paths, conflicting values, duplicate keys, and explicit `null` across one file or imported layers? Is source order meaningful?
 - **Broader use:** Predictable federation, extensions, diffs, and collaboration for all IFCX nodes. File-order overwrites are useful for layered changes, while CAD validation can still reject an invalid final drawing. We need concrete CAD cases before arguing that last-wins causes unacceptable ambiguity or should be non-normative in IFCX. A domain-specific format such as OCDraw remains an alternative if the IFCX graph or composition rules prove unsuitable.
-- **Evidence:** [profile fragment rule](../../schemas/ifcx-native-cad/experimental-contract-0.1.0.md#file-and-identity), [composition probe](ifcx-composition-probe.md), [upstream composer](https://github.com/buildingSMART/IFC5-development/blob/main/src/ifcx-core/composition/compose.ts), [upstream issue #132](https://github.com/buildingSMART/IFC5-development/issues/132).
+- **Evidence:** [profile fragment rule](../../schemas/ifccad/experimental-contract-0.1.0.md#file-and-identity), [composition probe](ifcx-composition-probe.md), [upstream composer](https://github.com/buildingSMART/IFC5-development/blob/main/src/ifcx-core/composition/compose.ts), [upstream issue #132](https://github.com/buildingSMART/IFC5-development/issues/132).
 
 ## G4 — Node profiles and cross-attribute requirements (`Candidate`)
 
@@ -52,7 +52,7 @@ outside CAD, independently of compact paths.
 - **Our tested rule:** An owned drawable must have `ifccad::entity` and exactly one supported geometry payload. A circle also needs placement. A Paper layout requires a unique name, explicit tab index and coordinate unit. Its optional physical medium has positive dimensions and a physical unit; Model requires tab zero and forbids Paper metadata. Exactly one Model layout is required; Paper layouts are optional. These conditional value and graph requirements, references, ownership, draw order and appearance modes are checked by the strict profile reader.
 - **Open question:** Is there a reusable IFCX profile or node-type mechanism for required attribute sets, alternatives, reference targets and cardinalities? How does it coexist with unknown extension attributes?
 - **Broader use:** Independent validation of domain-specific nodes, including building elements, infrastructure and linked observations. The CAD primitive set and its exact geometry rules remain profile-specific.
-- **Evidence:** [profile validation](../../schemas/ifcx-native-cad/experimental-contract-0.1.0.md), [strict reader and tests](../../tests/experimental_ifcx_native.rs), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp).
+- **Evidence:** [profile validation](../../schemas/ifccad/experimental-contract-0.1.0.md), [strict reader and tests](../../tests/ifccad_native.rs), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp).
 
 ## G5 — Versioned schema imports and reproducible resolution (`Candidate`)
 
@@ -60,7 +60,7 @@ outside CAD, independently of compact paths.
 - **Our tested rule:** The drawing imports `urn:example:ifccad:0.1.0`; the reader resolves only its bundled experimental schema module offline. Missing definitions fail. The `example` namespace and version are provisional: schema meaning currently follows the reader revision, without an immutable-publication promise.
 - **Open question:** How are imports located, verified, cached and kept stable across versions? Can a file carry both an immutable schema identity and a resolvable location without assuming network access?
 - **Broader use:** Reproducible exchange and validation of any domain extension, especially archived models and disconnected workflows.
-- **Evidence:** [profile import rule](../../schemas/ifcx-native-cad/experimental-contract-0.1.0.md#file-and-identity), [schema module](../../schemas/ifcx-native-cad/experimental-profile-0.1.0.ifcx), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp).
+- **Evidence:** [profile import rule](../../schemas/ifccad/experimental-contract-0.1.0.md#file-and-identity), [schema module](../../schemas/ifccad/ifccad-profile-0.1.0.ifcx), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp).
 
 ## G6 — Reusable value schemas and unions (`Candidate`)
 
@@ -68,7 +68,7 @@ outside CAD, independently of compact paths.
 - **Our tested rule:** The experimental schema repeats three-real arrays for line endpoints and placement vectors, while planar-polyline vertices use two-real arrays. The profile reader checks the supported value shapes and CAD semantics without inventing IFCX syntax for schema references or unions.
 - **Open question:** Can a value schema refer to another named value schema, and can an array element be one of several named shapes? How are restrictions tied to their declared datatype, including validation of mismatched or unused restriction fields?
 - **Broader use:** One reusable point or placement definition and a typed union of curve segments would improve independent validation of procedural geometry. The same mechanisms would serve non-CAD structured values. They would not by themselves require `ifccad::entity` and geometry attributes on the same node; that remains G4.
-- **Evidence:** [upstream issue #51](https://github.com/buildingSMART/IFC5-development/issues/51), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp), [experimental schema module](../../schemas/ifcx-native-cad/experimental-profile-0.1.0.ifcx).
+- **Evidence:** [upstream issue #51](https://github.com/buildingSMART/IFC5-development/issues/51), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp), [experimental schema module](../../schemas/ifccad/ifccad-profile-0.1.0.ifcx).
 
 ## Profile choices to keep separate
 
@@ -95,6 +95,6 @@ Before contacting buildingSMART, split each candidate into a minimal domain-neut
   positive scale/defaults and mode-dependent references. No unadopted reference
   datatype or node-profile syntax is introduced.
 
-Evidence: [line-pattern tests](../../tests/ifcx_line_patterns.rs),
-[conversion tests](../../crates/ifcx-cad-convert/tests/line_patterns.rs) and
-[profile contract](../../schemas/ifcx-native-cad/experimental-contract-0.1.0.md#named-line-patterns).
+Evidence: [line-pattern tests](../../tests/ifccad_line_patterns.rs),
+[conversion tests](../../crates/ifccad-convert/tests/line_patterns.rs) and
+[profile contract](../../schemas/ifccad/experimental-contract-0.1.0.md#named-line-patterns).

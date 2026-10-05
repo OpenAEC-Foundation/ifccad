@@ -5,7 +5,7 @@ ordered scope membership, definitions, layouts and authored drawing state.
 It has no JSON columns, stream directory, geometry pools or opencadcodec dependency.
 A different physical encoding can reuse this model and its semantic validator;
 its encoder, decoder, mapping and conformance evidence must implement the same
-logical contract. `OcdrawDocument` and IFCX-CAD remain separate domain models.
+logical contract. `OcdrawDocument` and IFCCAD remain separate domain models.
 
 ## Construction, reading and editing
 

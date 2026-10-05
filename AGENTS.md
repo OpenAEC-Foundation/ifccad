@@ -2,14 +2,16 @@
 
 ## Project context
 
-This repository develops OCDraw and IFCX-CAD in parallel. OCDraw is an open,
+This repository develops OCDraw and IFCCAD in parallel. OCDraw is an open,
 application-independent information model and exchange format for standalone CAD
-drawings; IFCX-CAD is an independent experimental CAD drawing profile using IFCX.
-The repository keeps its experimental IFCCAD name. Active code and schemas no longer require an
+drawings; IFCCAD is an independent experimental CAD drawing profile using IFCX.
+IFCCAD was formerly called IFCX-CAD; the repository name matches this track.
+Project-owned API, folder, schema and crate names use IFCCAD; underlying IFCX
+syntax and file extensions retain their IFCX names. Active code and schemas no longer require an
 IFCX package or IFCDR/IFCPR resources. Initial OCDraw 0.1.0 remains provisional.
 
-The active IFCX-CAD development track has its independent model under
-`src/ifcx_cad`, conversion under `crates/ifcx-cad-convert`, and a separate browser
+The active IFCCAD development track has its independent model under
+`src/ifccad`, conversion under `crates/ifccad-convert`, and a separate browser
 inspection/conversion route alongside OCDraw.
 Keep its model, schemas, validation and conversion routes clearly separate from
 standalone OCDraw. IFCX must not become a requirement for opening OCDraw.

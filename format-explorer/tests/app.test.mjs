@@ -40,17 +40,17 @@ test('CAD download uses the shared preview choice while OCDraw download is indep
  for(const blob of blobs)assert.deepEqual([...new Uint8Array(await blob.arrayBuffer())],[1,2]);
 });
 
-test('the current drawing explorer opens IFCX and downloads its native format',async()=>{
+test('the current drawing explorer opens IFCCAD and downloads its native IFCX format',async()=>{
  const elements=new Map(),requests=[];
  const element=id=>{if(!elements.has(id))elements.set(id,{disabled:false,textContent:'',hidden:true,value:''});return elements.get(id);};
- const client={async open(request){requests.push(request);return {validation:{strictAvailable:true},presentation:{format:'ifcx'}};}};
+ const client={async open(request){requests.push(request);return {validation:{strictAvailable:true},presentation:{format:'ifccad'}};}};
  const code=(await readFile(new URL('../src/app.mjs',import.meta.url),'utf8')).replace(/^import .*;\r?\n/gm,'');
  vm.runInNewContext(code,{document:{getElementById:element},createFileClient:()=>client,initializeCadPreview:()=>({clear(){},setSource(){}}),AbortController});
  element('file').files=[{name:'hello.ifcx',size:1,arrayBuffer:async()=>new ArrayBuffer(1)}];
  await element('open').onclick();await element('export').onclick();
- assert.equal(requests[0].kind,'ifcx');assert.equal(requests[1].export.format,'ifcx');
- assert.match(element('export').textContent,/IFCX/);assert.match(element('content-title').textContent,/IFCX/);
- element('file').files=[{name:'returned.dxf',size:1,arrayBuffer:async()=>new ArrayBuffer(1)}];await element('open').onclick();assert.equal(requests[2].drawingFormat,'ifcx');
+ assert.equal(requests[0].kind,'ifccad');assert.equal(requests[1].export.format,'ifccad');
+ assert.match(element('export').textContent,/IFCCAD/);assert.match(element('content-title').textContent,/IFCCAD/);
+ element('file').files=[{name:'returned.dxf',size:1,arrayBuffer:async()=>new ArrayBuffer(1)}];await element('open').onclick();assert.equal(requests[2].drawingFormat,'ifccad');
 });
 
 test('only a selected DWG or DXF offers conversion with its actual format name',async()=>{

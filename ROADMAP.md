@@ -1,4 +1,4 @@
-# OCDraw and IFCX-CAD development roadmap
+# OCDraw and IFCCAD development roadmap
 
 This document is authoritative for development sequencing and milestone status
 in this repository. Schemas and conformance define the format contract;
@@ -8,8 +8,8 @@ sequence and must be updated with it.
 ## Parallel development tracks
 
 This repository actively develops standalone OCDraw and the independent
-IFCX-CAD profile. The initial OCDraw sequence below retains its architectural
-dependencies and completion criteria. IFCX-CAD has its own provisional contract
+IFCCAD profile. The initial OCDraw sequence below retains its architectural
+dependencies and completion criteria. IFCCAD has its own provisional contract
 and coverage progression; either route can continue independently.
 
 Consider CAD semantics together, with reference drawings and validation evidence
@@ -34,7 +34,7 @@ expresses architectural dependencies; it is not a release calendar.
    [lifecycle contracts](docs/ocdraw-document-lifecycle.md).
 2. **Standalone parity and package retirement - implemented.** Geometry, blocks,
    layers, layouts and drawing state have standalone readback. Active
-   IFCX/IFCDR/IFCPR Rust routes and schemas are retired. DXF/DWG tests retain source/target limitations and
+   package IFCX/IFCDR/IFCPR Rust routes and schemas are retired. DXF/DWG tests retain source/target limitations and
    numerical accuracy checks. Tools, examples and standalone measurements use OCDraw.
 3. **Ordered scope ownership - implemented.** A scope's direct ordered `entities`
    list is authoritative for ownership and draw order. Stored entity owner IDs and both order streams were removed in a separate
@@ -53,10 +53,10 @@ own concrete designs. They may later use extension points within OCDraw;
 there is no current preservation resource or generic extension protocol to
 standardize ahead of a use case.
 
-## IFCX-CAD development track
+## IFCCAD development track
 
 The CAD-native-in-IFCX implementation and browser inspection route coexist on
-main with standalone OCDraw. Native IFCX-CAD opening, composed graph inspection
+main with standalone OCDraw. Native IFCCAD opening, composed graph inspection
 and direct DXF/DWG roundtrip use their own model, schemas, validation and
 converter. OCDraw opening does not require an IFCX file or package.
 The experiment includes line, circle, planar polyline and local block geometry,
@@ -65,8 +65,8 @@ pattern generation, with strict readback and pinned DXF/DWG tests.
 Allow/Reject conversion policies expose or reject supported loss classifications.
 Model and multiple Paper layouts now convert with explicit tab order, optional physical media and separate coordinate units. The viewport slice adds camera, perspective/depth/display state and circle/closed straight-polyline clipping, with CAD exchange verified using explicit codec development repairs; upstream dependency adoption and full plot conversion remain separate follow-ups; complex
 text/shape patterns use a diagnosed whole-definition fallback under Allow.
-This integration does not freeze IFCX-CAD compatibility or expand the standalone
-OCDraw contract. Continued IFCX-CAD development expands drawing semantics and
+This integration does not freeze IFCCAD compatibility or expand the standalone
+OCDraw contract. Continued IFCCAD development expands drawing semantics and
 conversion coverage in bounded slices, including later text, annotations and
 authored view/plot state. Its long-term direction is a CAD drawing module
 that can participate in the evolving IFCX ecosystem. IFC object associations,
@@ -104,7 +104,7 @@ records its own applicable results.
 Compact, directly openable storage is an adoption goal for both tracks. Compare
 size, full/partial opening time and peak/resident memory on representative
 drawings before selecting binary storage, integrated compression or indexed
-chunks. OCDraw can explore its own storage choices; IFCX-CAD storage experiments
+chunks. OCDraw can explore its own storage choices; IFCCAD storage experiments
 must identify compatibility boundaries and coordinate with evolving IFCX
 technology. Current JSON/gzip probes do not establish native compressed formats
 or future IFCX capabilities. Measurements run only on explicit user request,

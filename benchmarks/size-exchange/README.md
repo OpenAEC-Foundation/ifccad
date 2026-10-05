@@ -1,6 +1,6 @@
 # Common-subset transport experiment
 
-This repeatable experiment compares native OCDraw, IFCX-CAD, DXF and DWG
+This repeatable experiment compares native OCDraw, IFCCAD, DXF and DWG
 representations of exactly the same retained content, plus external gzip.
 It is separate from the accepted historical and standalone OCDraw experiments
 under `benchmarks/size/`.
@@ -17,7 +17,7 @@ before execution; omitting practice still runs all nine synthetic recipes.
 Before an accepted run, prepare the pinned dependencies and local Cargo.lock:
 
 ```text
-cargo build --offline -p ocdraw-viewer --example size_exchange --release
+cargo build --offline -p viewer --example size_exchange --release
 ```
 
 This one-time build also updates a stale local lockfile before provenance is

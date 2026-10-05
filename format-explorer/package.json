@@ -1,9 +1,9 @@
 {
-  "name": "ocdraw-inspector",
+  "name": "format-explorer",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Standalone Open CAD Drawing information inspector",
+  "description": "IFCCAD & OCDraw Explorer for drawing inspection and CAD conversion",
   "engines": {
     "node": ">=22"
   },

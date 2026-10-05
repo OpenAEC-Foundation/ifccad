@@ -14,7 +14,7 @@ import zlib
 from pathlib import Path
 
 CODEC_REVISION = 'd96e3fa2fe5acbeac966f1db4c01142618bf9c79'
-SCHEMA = 'schemas/ifcx-native-cad/experimental-profile-0.1.0.ifcx'
+SCHEMA = 'schemas/ifccad/ifccad-profile-0.1.0.ifcx'
 CORPUS = 'benchmarks/size-exchange/corpus-v1.json'
 FILES = ['drawing.ocdraw.json', 'drawing.ifcx', 'drawing.dxf', 'drawing.dwg',
          'drawing.compact.ocdraw.json', 'drawing.compact.ifcx']
@@ -144,7 +144,7 @@ def run_experiment(repo, run_name, practice=None, release=False):
     fresh_directory(root)
     before = provenance(repo, practice)
     (root / 'provenance.json').write_text(json.dumps(before, indent=2), encoding='utf-8')
-    build = ['cargo', 'build', '--offline', '-p', 'ocdraw-viewer', '--example', 'size_exchange']
+    build = ['cargo', 'build', '--offline', '-p', 'viewer', '--example', 'size_exchange']
     if release:
         build.append('--release')
     command(build, repo)

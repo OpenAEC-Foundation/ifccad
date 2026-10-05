@@ -11,7 +11,7 @@ stream directories are invalid. Entity schemas start at v1 within OCDraw.
 
 Released numbered collections remain immutable historical IFCCAD material.
 
-The independent [IFCX-CAD candidate collection](ifcx-native-cad/README.md)
+The independent [IFCCAD candidate collection](ifccad/README.md)
 exercises its provisional viewport profile with strict production native
 readback. It is separate from the OCDraw cases in this directory and does not
 modify any numbered collection.

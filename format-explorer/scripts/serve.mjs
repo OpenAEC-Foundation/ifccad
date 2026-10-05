@@ -25,7 +25,7 @@ const server=createServer(async(req,res)=>{
 });
 server.on('error',error=>{console.error(error.code==='EADDRINUSE'?`Port ${port} is in use. Choose another PORT.`:error);process.exit(1);});
 server.requestTimeout=120000;
-server.listen(port,'127.0.0.1',()=>console.log(`OCDraw inspector ready at http://127.0.0.1:${port}`));
+server.listen(port,'127.0.0.1',()=>console.log(`IFCCAD & OCDraw Explorer ready at http://127.0.0.1:${port}`));
 for(const signal of ['SIGINT','SIGTERM'])process.on(signal,async()=>{server.close();process.exit(0);});
 let timer,building=false,pending=false;
 async function rebuild(){

@@ -1,0 +1,138 @@
+use crate::{cad, fail, progress, result};
+use ifccad_convert::{
+    cad_document_to_encoded_ifccad, ifccad_source_to_cad_document, IfccadDiagnostic,
+    IfccadTargetMetadata,
+};
+use ocdraw::ifccad::{load_ifccad_bytes, IfccadHeader, ValidatedIfccad};
+use serde_json::{json, Value};
+use std::path::Path;
+
+pub(crate) fn is_ifccad_name(name: &str) -> bool {
+    let name = name.to_ascii_lowercase();
+    name.ends_with(".ifcx") || name.ends_with(".ifcx.json")
+}
+fn diagnostics(items: &[IfccadDiagnostic]) -> Vec<Value> {
+    items.iter().map(|d|json!({"code":d.code,"location":d.location,"message":d.message,"action":format!("{:?}",d.action)})).collect()
+}
+fn present(output: &mut Value, drawing: &ValidatedIfccad) {
+    let d = drawing.document();
+    let nodes = drawing.graph().composed_ifcx()["data"]
+        .as_array()
+        .expect("validated graph");
+    let role = |key: &str| {
+        nodes
+            .iter()
+            .filter(|n| n["attributes"].get(key).is_some())
+            .cloned()
+            .collect::<Vec<_>>()
+    };
+    output["validation"] = json!({"strictAvailable":true,"status":"valid","diagnostics":[]});
+    output["presentation"] = json!({"format":"ifccad","drawingId":d.drawing_id,"unit":d.length_unit,"linePatternScale":d.line_pattern_scale,
+        "layers":role("ifccad::layer"),"layouts":role("ifccad::layout"),"blockDefinitions":role("ifccad::blockDefinition"),
+        "linePatterns":role("ifccad::linePattern"),"entities":role("ifccad::entity"),"graph":drawing.graph().composed_ifcx()});
+}
+/// Inspect the experimental IFCCAD profile after production composition/validation.
+pub fn inspect_ifccad_bytes(name: &str, bytes: &[u8]) -> Value {
+    let mut output = result(Path::new(name), "ifccad");
+    match load_ifccad_bytes(bytes, Default::default()) {
+        Ok(drawing) => present(&mut output, &drawing),
+        Err(report) => {
+            output["validation"] = json!({"strictAvailable":false,"status":"invalid","diagnostics":report.report().errors.iter().map(|e|json!({"code":"IFCCAD_PROFILE","message":e})).collect::<Vec<_>>()});
+            fail(
+                &mut output,
+                "validating",
+                "IFCCAD_PROFILE_INVALID",
+                report.report().errors.join("; "),
+            );
+        }
+    }
+    output
+}
+/// Convert original CAD bytes directly to IFCCAD; no OCDraw projection is used.
+pub fn inspect_cad_as_ifccad_bytes(
+    name: &str,
+    format: &str,
+    bytes: &[u8],
+    timestamp: &str,
+) -> Value {
+    let mut output = result(Path::new(name), format);
+    let cad = match cad::read(format, bytes) {
+        Ok(d) => d,
+        Err(error) => {
+            fail(&mut output, "reading", "CAD_READ_FAILED", error);
+            return output;
+        }
+    };
+    output["reader"]["messages"] = json!(cad
+        .notifications
+        .iter()
+        .map(|i| format!("{i:?}"))
+        .collect::<Vec<_>>());
+    let metadata = IfccadTargetMetadata {
+        drawing_id: 1,
+        header: IfccadHeader {
+            id: name.into(),
+            data_version: "0.1.0".into(),
+            author: "IFCCAD & OCDraw Explorer".into(),
+            timestamp: timestamp.into(),
+        },
+    };
+    progress("converting");
+    let converted = match cad_document_to_encoded_ifccad(&cad, metadata, Default::default()) {
+        Ok(v) => v,
+        Err(error) => {
+            fail(&mut output, "converting", "IFCCAD_CONVERSION_FAILED", error);
+            return output;
+        }
+    };
+    output["conversion"] = json!({"format":"ifccad","diagnostics":diagnostics(converted.diagnostics()),"entityCount":converted.mappings().entities.iter().count()});
+    present(&mut output, converted.validated_source());
+    cad::download(&mut output, name, "ifccad", converted.encoded().bytes());
+    output
+}
+/// Preserve original IFCX on native download; project supported content for CAD.
+pub fn export_ifccad_bytes(name: &str, bytes: &[u8], format: &str, version: &str) -> Value {
+    let mut output = inspect_ifccad_bytes(name, bytes);
+    if output["validation"]["strictAvailable"] != true {
+        return output;
+    }
+    if format == "ifccad" {
+        cad::download(&mut output, name, "ifccad", bytes);
+        return output;
+    }
+    if let Err((code, message)) = cad::selection(format, version) {
+        fail(&mut output, "exporting", code, message);
+        return output;
+    }
+    let drawing = load_ifccad_bytes(bytes, Default::default()).expect("strict status checked");
+    progress("converting");
+    let converted = match ifccad_source_to_cad_document(&drawing, Default::default()) {
+        Ok(v) => v,
+        Err(error) => {
+            fail(&mut output, "converting", "CAD_CONVERSION_FAILED", error);
+            return output;
+        }
+    };
+    let issues = diagnostics(converted.diagnostics());
+    let metadata = IfccadTargetMetadata {
+        header: drawing.document().header.clone(),
+        drawing_id: drawing.document().drawing_id,
+    };
+    cad::export(
+        output,
+        converted.into_document(),
+        name,
+        format,
+        version,
+        issues,
+        move |readback| {
+            let restored = cad_document_to_encoded_ifccad(readback, metadata, Default::default())
+                .map_err(|e| e.to_string())?;
+            load_ifccad_bytes(restored.encoded().bytes(), Default::default())
+                .map_err(|e| e.report().errors.join("; "))?;
+            Ok(
+                json!({"cadReadback":true,"ifccadStrictReadback":true,"diagnostics":diagnostics(restored.diagnostics())}),
+            )
+        },
+    )
+}
