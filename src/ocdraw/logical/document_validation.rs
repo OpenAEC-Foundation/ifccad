@@ -49,6 +49,7 @@ pub(crate) fn validate_logical_document(
     phase: ValidationPhase,
 ) -> Vec<LogicalError> {
     let mut errors = super::field_validation::validate_fields(doc);
+    errors.extend(super::preservation_validation::validate_preservation(doc));
     errors.extend(super::document_projection::project_validation_model(doc, phase).validate());
     // Index-based evaluation is safe only after unique identities and ownership.
     if !errors.is_empty() {

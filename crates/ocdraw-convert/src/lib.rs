@@ -8,6 +8,11 @@ mod mapping;
 mod options;
 mod outcome;
 mod point_display;
+mod preservation;
+pub use preservation::{
+    OcdrawPreservationPhase, OcdrawPreservationReason, OcdrawPreservationReport,
+    OcdrawPreservationReportEntry, OcdrawPreservationResult, OcdrawSplineSnapshotError,
+};
 mod source;
 mod to_cad;
 mod units;
@@ -18,8 +23,8 @@ pub use from_cad::{
 };
 pub use geometry_assessment::*;
 pub use options::{
-    CadToOcdrawOptions, OcdrawGeometryTolerance, OcdrawLossPolicy, OcdrawToCadOptions,
-    OcdrawToleranceError,
+    CadToOcdrawOptions, OcdrawGeometryTolerance, OcdrawLossPolicy, OcdrawPreservationCapture,
+    OcdrawPreservationRestore, OcdrawToCadOptions, OcdrawToleranceError,
 };
 pub use outcome::*;
 pub use to_cad::{ocdraw_document_to_cad_document, ocdraw_source_to_cad_document};

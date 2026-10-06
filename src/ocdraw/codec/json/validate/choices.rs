@@ -47,6 +47,10 @@ pub(super) fn validate_choices(value: &Value, diagnostics: &mut Vec<OcdrawDiagno
         }
     }
     for (name, stream) in super::super::stream_contract::object_streams(value) {
+        // Opaque appearance uses a closed row object, not native mode/value columns.
+        if name == "opaqueEntityStream" {
+            continue;
+        }
         let count = stream["count"].as_u64().unwrap_or(0) as usize;
         for row in 0..count {
             for (mode, field) in [

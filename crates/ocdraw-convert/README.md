@@ -90,6 +90,31 @@ See [standalone coverage](docs/COVERAGE.md) for scope and limitations, and
 DXF/DWG restrictions. Conversion through the real pinned DXF and DWG readers
 and writers is tested without dependency patches.
 
+## Opt-in spline preservation
+
+Set `CadToOcdrawOptions::preservation_capture` to
+`OcdrawPreservationCapture::SupportedTyped` to capture every available Spline
+variant in ModelSpace, PaperSpace and supported local block definitions, without
+a degree/knot/weight/flag/fit profile filter. Disabled remains the default. The
+core stores generic records and opaque entities with optional exactly representable
+native layer/appearance and ordinary visibility. All remaining source common data
+is retained in the snapshot, including fields skipped by upstream Serde.
+
+Source parameters survive encode, closing the source instance and strict production
+readback. They have no native evaluator, certified bounds or rendering claim.
+`preservation_report()` distinguishes capture, native capability and restoration;
+`geometry_assessment().is_complete()` and `unassessed_sources()` expose opaque
+definition/occurrence content without weakening native tolerance gates.
+
+`OcdrawToCadOptions::preservation_restore` defaults to RestoreSupported. Eligible
+splines restore into a fresh CadDocument with current native common properties and
+scope order. Unknown/unqualified context receives located evidence. Skip is
+explicit loss under Allow; Reject refuses omitted live content. Unknown payloads
+remain core-transportable, and detached archives do not create phantom entities.
+LossRejected errors retain the preservation report. Full original records,
+raw/private/shared codec-state replay and other providers are outside this slice.
+See [payload/field/qualification contract](docs/SPLINE-SNAPSHOT-V1.md).
+
 ## Logical conversion without serialization
 
 ```rust

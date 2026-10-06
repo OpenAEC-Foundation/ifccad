@@ -74,6 +74,24 @@ pub(crate) fn parse_document(
         ));
     }
     static SCHEMA: OnceLock<Value> = OnceLock::new();
+    if let Some(preservation) = value.get("preservation") {
+        if let Some(version) = preservation["version"]
+            .as_u64()
+            .and_then(|v| u32::try_from(v).ok())
+            .filter(|v| *v > 0)
+        {
+            if version != 1 {
+                return Err((
+                    OcdrawReadStatus::UnsupportedVersion,
+                    vec![diagnostic(
+                        "PRESERVATION_VERSION",
+                        "/preservation/version",
+                        "unsupported preservation envelope version",
+                    )],
+                ));
+            }
+        }
+    }
     let schema = SCHEMA.get_or_init(|| {
         serde_json::from_str(include_str!("../../../../schemas/ocdraw/schema-0.1.0.json"))
             .expect("bundled schema")

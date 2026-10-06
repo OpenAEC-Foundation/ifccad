@@ -145,6 +145,7 @@ fn cached_geometry_extents_are_not_independent_drawing_settings() {
         CadToOcdrawOptions {
             geometry_tolerance: Default::default(),
             loss_policy: ocdraw_convert::OcdrawLossPolicy::Reject,
+            ..Default::default()
         },
     )
     .unwrap();
@@ -187,7 +188,8 @@ fn upstream_drawing_variables_are_reported_as_unsupported_objects() {
             &document,
             CadToOcdrawOptions {
                 geometry_tolerance: Default::default(),
-                loss_policy: ocdraw_convert::OcdrawLossPolicy::Reject
+                loss_policy: ocdraw_convert::OcdrawLossPolicy::Reject,
+                ..Default::default()
             }
         ),
         Err(ocdraw_convert::CadToOcdrawError::LossRejected { .. })

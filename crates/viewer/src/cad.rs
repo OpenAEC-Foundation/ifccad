@@ -81,6 +81,7 @@ pub(crate) fn export(
     let bytes = match written {
         Ok(v) => v,
         Err(error) => {
+            crate::ocdraw::record_target_codec_failure(&mut output, &error.to_string());
             fail(&mut output, "writing", "CAD_WRITE_FAILED", error);
             return output;
         }
@@ -98,6 +99,7 @@ pub(crate) fn export(
     let checked = match read(format, &bytes) {
         Ok(v) => v,
         Err(error) => {
+            crate::ocdraw::record_target_codec_failure(&mut output, &error);
             fail(&mut output, "checking", "CAD_READBACK_FAILED", error);
             return output;
         }

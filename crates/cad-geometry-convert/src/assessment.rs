@@ -51,6 +51,7 @@ pub struct GeometryFailure<S> {
 }
 #[derive(Clone, Debug, PartialEq)]
 pub struct GeometryAssessment<S> {
+    unassessed: Vec<S>,
     requested: GeometryTolerance,
     unit: DrawingLengthUnit,
     resolved: DistanceInterval,
@@ -72,6 +73,7 @@ impl<S: Clone> GeometryAssessment<S> {
             upper: round_up(&limit.upper).unwrap_or(f64::INFINITY),
         };
         Ok(Self {
+            unassessed: Vec::new(),
             requested,
             unit,
             resolved,
@@ -106,6 +108,17 @@ impl<S: Clone> GeometryAssessment<S> {
     }
     pub fn assessed_entities(&self) -> usize {
         self.entities
+    }
+    /// Retained source geometries for which no primitive proof was performed.
+    pub fn unassessed_sources(&self) -> &[S] {
+        &self.unassessed
+    }
+    /// Whether all retained sources registered by the adapter were assessed.
+    pub fn is_complete(&self) -> bool {
+        self.unassessed.is_empty()
+    }
+    pub fn record_unassessed(&mut self, source: S) {
+        self.unassessed.push(source);
     }
     pub fn assessed_vertices(&self) -> usize {
         self.vertices

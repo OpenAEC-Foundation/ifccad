@@ -1,6 +1,68 @@
 use viewer::inspect_drawing_bytes;
 
 #[test]
+fn spline_capture_is_explicit_and_reports_incomplete_native_geometry() {
+    let bytes = include_bytes!("../../ocdraw-convert/tests/fixtures/splines/open-cubic.dxf");
+    let disabled = viewer::inspect_cad_as_drawing_bytes("spline.dxf", "dxf", bytes);
+    assert_eq!(disabled["presentation"]["opaqueEntityCount"], 0);
+    let enabled =
+        viewer::inspect_cad_as_drawing_bytes_with_preservation("spline.dxf", "dxf", bytes, true);
+    assert!(enabled["failure"].is_null(), "{enabled}");
+    assert_eq!(enabled["presentation"]["opaqueEntityCount"], 1);
+    assert_eq!(
+        enabled["presentation"]["preservation"]["sources"][0]["origin"],
+        "dxf"
+    );
+    assert_eq!(
+        enabled["presentation"]["preservation"]["sources"][0]["sourceVersion"],
+        "AC1032"
+    );
+    assert_eq!(enabled["conversion"]["geometry"]["complete"], false);
+    assert_eq!(
+        enabled["presentation"]["boundsCompleteness"][0]["status"],
+        "unavailable"
+    );
+    assert!(enabled["conversion"]["preservation"]["entries"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|e| e["result"] == "capturedTyped"));
+    let native = base64::Engine::decode(
+        &base64::engine::general_purpose::STANDARD,
+        enabled["export"]["download"]["base64"].as_str().unwrap(),
+    )
+    .unwrap();
+    let reopened = viewer::inspect_drawing_bytes("saved.ocdraw.json", &native);
+    assert_eq!(
+        reopened["presentation"]["preservation"]["records"][0]["schema"],
+        "openaec.opencadcodec.spline"
+    );
+    for format in ["dxf", "dwg"] {
+        let exported = viewer::export_drawing_bytes("saved.ocdraw.json", &native, format, "AC1032");
+        assert!(exported["failure"].is_null(), "{exported}");
+        assert!(exported["conversion"]["preservation"]["entries"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|e| e["result"] == "restoredTyped"));
+    }
+}
+
+#[test]
+fn skipped_unknown_source_reports_survive_inspection_export() {
+    let bytes = include_bytes!(
+        "../../../conformance/next/ocdraw/valid/preservation-null-common.ocdraw.json"
+    );
+    let out = viewer::export_drawing_bytes("unknown.ocdraw.json", bytes, "dxf", "AC1032");
+    assert!(out["failure"].is_null(), "{out}");
+    assert_eq!(
+        out["conversion"]["preservation"]["entries"][0]["reason"],
+        "unsupportedPayload"
+    );
+    assert_eq!(out["presentation"]["opaqueEntityCount"], 1);
+}
+
+#[test]
 fn dxf_export_preserves_active_viewport_clip() {
     let bytes =
         include_bytes!("../../../conformance/next/ocdraw/valid/viewport-circle-clip.ocdraw.json");

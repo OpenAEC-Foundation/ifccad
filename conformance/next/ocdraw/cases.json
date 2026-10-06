@@ -189,6 +189,101 @@
       "path": "invalid/viewport-shared-clip.ocdraw.json",
       "status": "invalid",
       "diagnostic": "VIEWPORT_CLIP"
+    },
+    {
+      "path": "valid/preservation-generic.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "valid/preservation-null-common.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "valid/preservation-missing-soft-dependency.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "valid/preservation-detached-watermark.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "valid/preservation-mixed-scopes.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "invalid/preservation-missing-record.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "PRESERVATION_LINK"
+    },
+    {
+      "path": "invalid/preservation-wrong-subject.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "PRESERVATION_LINK"
+    },
+    {
+      "path": "invalid/preservation-missing-source.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "PRESERVATION_SOURCE"
+    },
+    {
+      "path": "invalid/preservation-watermark.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "PRESERVATION_ID"
+    },
+    {
+      "path": "invalid/preservation-duplicate-opaque-id.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "ENTITY_ID"
+    },
+    {
+      "path": "invalid/preservation-bad-base64.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "PRESERVATION_DECODE"
+    },
+    {
+      "path": "invalid/preservation-floating-record-id.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "PRESERVATION_DECODE"
+    },
+    {
+      "path": "invalid/preservation-unknown-envelope-field.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "SCHEMA"
+    },
+    {
+      "path": "invalid/opaque-unknown-column.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "SCHEMA"
+    },
+    {
+      "path": "invalid/opaque-column-count.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "COLUMN_COUNT"
+    },
+    {
+      "path": "invalid/opaque-missing-column.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "SCHEMA"
+    },
+    {
+      "path": "invalid/opaque-nonnull-bounds.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "SCOPE_BOUNDS"
+    },
+    {
+      "path": "invalid/opaque-missing-native-layer.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "ENTITY_REF"
+    },
+    {
+      "path": "invalid/opaque-inherited-value.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "SCHEMA"
+    },
+    {
+      "path": "invalid/opaque-active-clip.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "VIEWPORT_CLIP"
     }
   ]
 }

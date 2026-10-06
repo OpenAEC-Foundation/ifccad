@@ -325,7 +325,10 @@
                       ]
                     },
                     "nullEncoding": {
-                      "const": "logicalDefault"
+                      "enum": [
+                        "logicalDefault",
+                        "logicalNull"
+                      ]
                     }
                   },
                   "required": [
@@ -596,6 +599,50 @@
     "ocdrawVersion": {
       "type": "string",
       "minLength": 1
+    },
+    "preservationMapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "bytesEncoding": {
+          "const": "canonicalPaddedStandardBase64"
+        },
+        "targetTag": {
+          "const": "kind"
+        },
+        "targetId": {
+          "const": "id"
+        },
+        "drawingTargetHasId": {
+          "const": false
+        },
+        "subjectOmission": {
+          "const": "absent"
+        },
+        "sourceVersionOmission": {
+          "const": "absent"
+        },
+        "dependencyReferences": {
+          "const": "soft"
+        },
+        "nativePropertyNull": {
+          "const": "sourcePayload"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "bytesEncoding",
+        "targetTag",
+        "targetId",
+        "drawingTargetHasId",
+        "subjectOmission",
+        "sourceVersionOmission",
+        "dependencyReferences",
+        "nativePropertyNull"
+      ]
     }
   },
   "required": [

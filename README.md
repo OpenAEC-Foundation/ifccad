@@ -105,8 +105,13 @@ conformance and the standalone primitive exchange experiment pass. Recording
 0.1.0 and schema v1 as the first supported version remains a separate step.
 [ROADMAP.md](ROADMAP.md) defines sequencing and exit criteria.
 
-Preservation and external semantic links such as IFC associations are future
-concrete designs; no generic extension protocol is standardized now.
+OCDraw's first bounded preservation slice stores complete typed spline snapshots
+with editable native common properties, ordinary ownership/order, durable readback
+and separately qualified CAD restoration. Capture is opt-in; it does not add
+native spline geometry. Broader providers, raw/private/shared codec storage and
+external links such as IFC associations remain future work. See
+[preservation](docs/preservation.md). No generic foreign-semantic extension
+protocol or IFCPR resource is introduced.
 IFCCAD is integrated on main as an independent experiment alongside OCDraw,
 with separate models, schemas, validation and direct conversion routes.
 The explorer opens either native format and converts DWG/DXF through the chosen
@@ -115,6 +120,8 @@ bulged planar and straight spatial paths, optional scope bounds and expanded
 viewport clips. Both converters share adjustable accuracy with independent
 coordinate-domain evidence. This remains a provisional 0.1.0 revision;
 see [shared geometry](docs/geometry/shared-geometry.md).
+The next IFCCAD slice will cover plot settings and user/workspace state, including
+the relationship between Paper coordinate units, plot mapping and tolerance.
 
 ## Using the implementation
 

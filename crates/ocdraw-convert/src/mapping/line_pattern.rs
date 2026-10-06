@@ -26,6 +26,36 @@ fn invalid(message: impl Into<String>) -> CadToOcdrawError {
 }
 
 impl ExportLinePatternMap {
+    /// Opaque common values may retain an unresolved reference. A known
+    /// name/handle contradiction still violates source structure.
+    pub(crate) fn resolve_preserved(
+        &self,
+        name: &str,
+        handle: Option<Handle>,
+    ) -> Result<Option<AppearanceSelection<LinePatternId>>, CadToOcdrawError> {
+        let key = if name.is_empty() {
+            "BYLAYER".into()
+        } else {
+            name.to_uppercase()
+        };
+        if let Some(handle) = handle.filter(|h| *h != Handle::NULL) {
+            let Some(target) = self.handles.get(&handle) else {
+                return Ok(None);
+            };
+            if target != &key {
+                return Err(invalid("contradictory line pattern name and handle"));
+            }
+        }
+        Ok(match key.as_str() {
+            "BYLAYER" => Some(AppearanceSelection::ByLayer),
+            "BYBLOCK" => Some(AppearanceSelection::ByBlock),
+            _ => self
+                .names
+                .get(&key)
+                .copied()
+                .map(AppearanceSelection::Explicit),
+        })
+    }
     pub(crate) fn resolve(
         &self,
         name: &str,

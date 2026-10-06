@@ -11,6 +11,16 @@ pub fn convert_cad_to_drawing(name: &str, format: &str, bytes: &[u8]) -> String 
 }
 
 #[wasm_bindgen]
+pub fn convert_cad_to_drawing_with_preservation(
+    name: &str,
+    format: &str,
+    bytes: &[u8],
+    capture: bool,
+) -> String {
+    viewer::inspect_cad_as_drawing_bytes_with_preservation(name, format, bytes, capture).to_string()
+}
+
+#[wasm_bindgen]
 pub fn export_drawing(name: &str, bytes: &[u8], format: &str, version: &str) -> String {
     viewer::export_drawing_bytes(name, bytes, format, version).to_string()
 }

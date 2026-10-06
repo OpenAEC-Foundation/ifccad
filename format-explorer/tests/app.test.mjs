@@ -4,6 +4,21 @@ import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 import {decodeBase64} from '../src/browser-client.mjs';
 
+test('spline preservation is visible only for OCDraw CAD input and is explicitly forwarded',async()=>{
+ const elements=new Map(),requests=[];
+ const element=id=>{if(!elements.has(id))elements.set(id,{disabled:false,textContent:'',hidden:true,value:'',checked:false});return elements.get(id);};
+ const code=(await readFile(new URL('../src/app.mjs',import.meta.url),'utf8')).replace(/^import .*;\r?\n/gm,'');
+ vm.runInNewContext(code,{document:{getElementById:element},createFileClient:()=>({async open(request){requests.push(request);return {validation:{strictAvailable:true},presentation:{opaqueEntityCount:request.preserveSplines?1:0}};}}),initializeCadPreview:()=>({clear(){},setSource(){}}),AbortController});
+ element('file').files=[{name:'spline.dxf',size:1,arrayBuffer:async()=>new ArrayBuffer(1)}];
+ element('drawing-format').value='ocdraw';await element('file').onchange();
+ assert.equal(element('preservation-control').hidden,false);
+ element('preserve-splines').checked=true;
+ await element('open').onclick();assert.equal(requests[0].preserveSplines,true);
+ assert.match(element('status').textContent,/brongegevens/);
+ element('drawing-format').value='ifccad';await element('drawing-format').onchange();
+ assert.equal(element('preservation-control').hidden,true);assert.equal(requests[1].preserveSplines,false);
+});
+
 test('a file read failure is visible and cannot export the previously opened drawing',async()=>{
  const elements=new Map();
  const element=id=>{if(!elements.has(id))elements.set(id,{disabled:false,textContent:'',hidden:true});return elements.get(id);};

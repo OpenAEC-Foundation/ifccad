@@ -145,6 +145,14 @@ pub(crate) fn validate_fields(doc: &OcdrawDocument) -> Vec<LogicalError> {
             "invalid block name, units or base point",
         );
     }
+    for (i, entity) in doc.opaque_entities.iter().enumerate() {
+        check(
+            entity.appearance.as_ref().is_none_or(appearance),
+            "APPEARANCE_VALUE",
+            format!("/opaqueEntities/{i}/appearance"),
+            "invalid explicit appearance",
+        );
+    }
     for e in &doc.geometric_entities {
         if let EntityGeometry::BlockInstance {
             definition_scope_id,

@@ -9,7 +9,8 @@ watermark reconstruction or new source coverage is implied.
 
 The validated standalone drawing is the conversion boundary. The pinned codec
 revision is `fe69506cb99dea6f4c4a73b690a27fdf04403ea0`. There is no package
-graph or preservation transfer. Geometry accuracy and semantic losses are
+graph. The bounded typed spline preservation route is separate from native
+geometry support. Geometry accuracy and semantic losses are
 reported separately; unknown target semantics are diagnosed.
 
 | Source content | Existing treatment and assessment |
@@ -35,6 +36,7 @@ reported separately; unknown target semantics are diagnosed.
 | PlanarPolyline vertices, bulges, plane and closed flag | Closed flag and every bulge, including the final dormant bulge of an open polyline, map to CAD LwPolyline. Exact-compatible CAD parameterizations copy local points; other placements are transformed to the actual CAD arbitrary-axis basis and produce `PARAMETERIZATION_CHANGED`. Vertex and active curved-segment midpoint residuals are checked independently. |
 | SpatialPolyline XYZ vertices and closure | Directly maps to CAD Polyline3D with unchanged coordinates and closure. Source variant identity and unsupported CAD-only fit/mesh properties are not synthesized. |
 | Entity order | Inserted in each scope's logical order |
+| Opaque spline content | RestoreSupported defaults to evaluating the persisted source snapshot and mandatory owner/unit/reference predicates. Eligible splines restore into fresh identities with authoritative current native layer/appearance/visibility and combined mixed scope order. Missing/unqualified context gets located evidence; Allow may skip, Reject refuses dropped live content. No curve evaluation, approximation, certified bounds or raw-record replay. |
 | Entity identity | New target handles; source-ID mapping retained in outcome |
 | Layer reference, name, visibility | Mapped to CAD layer; entity visibility copied |
 | ByLayer / ByBlock appearance | Modes mapped for color, opacity, pattern and weight |

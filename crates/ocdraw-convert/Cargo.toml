@@ -8,6 +8,8 @@ repository = "https://github.com/OpenAEC-Foundation/ifccad"
 
 [dependencies]
 cad-geometry-convert = { path = "../cad-geometry-convert" }
+serde = { version = "1.0", features = ["derive"] }
+base64 = "0.22"
 fpmath = "=0.1.1"
 num-bigint = "0.4"
 num-rational = "0.4"

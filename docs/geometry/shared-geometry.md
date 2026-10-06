@@ -14,6 +14,10 @@ owns common CAD-plane preparation, exact/rational and interval calculations,
 paired primitive/curve evaluation, unit resolution, and nested block occurrence
 assessment. Both converters depend on it directly; neither converter depends
 on the other. Coverage inventories, losses, IDs and route errors remain separate.
+OCDraw's typed spline preservation remains separate from native primitive proof:
+retained spline sources and their occurrences are registered as unassessed.
+The report's `is_complete()` remains false for those sources; primitive status
+and residuals never certify the preserved spline's geometry.
 
 `ifccad-convert` uses an internal `GeometryContext` to track the active owner,
 resolve and collect each coordinate-domain assessment, and attach IFCCAD domain

@@ -1210,6 +1210,407 @@
         "perSegment",
         "continuous"
       ]
+    },
+    "preservationBytes": {
+      "kind": "sequence",
+      "items": "uint8",
+      "minItems": 0
+    },
+    "preservationRecordId": {
+      "kind": "scalar",
+      "base": "uint64",
+      "minimum": 1
+    },
+    "preservationOrigin": {
+      "kind": "enum",
+      "values": [
+        "cadDocument",
+        "dwg",
+        "dxf"
+      ]
+    },
+    "preservationCategory": {
+      "kind": "enum",
+      "values": [
+        "entity",
+        "object",
+        "table",
+        "drawing",
+        "layout",
+        "shared"
+      ]
+    },
+    "preservationRole": {
+      "kind": "enum",
+      "values": [
+        "complete",
+        "supplement",
+        "shared"
+      ]
+    },
+    "preservationRepresentation": {
+      "kind": "enum",
+      "values": [
+        "codecTyped",
+        "codecOpaque"
+      ]
+    },
+    "preservationCoverage": {
+      "kind": "enum",
+      "values": [
+        "qualified",
+        "conservative",
+        "unknown"
+      ]
+    },
+    "preservationPayloadKind": {
+      "kind": "enum",
+      "values": [
+        "adapterSnapshot",
+        "rawDwgRecord",
+        "rawDxfGroups",
+        "rawSection"
+      ]
+    },
+    "preservationTargetKind": {
+      "kind": "enum",
+      "values": [
+        "drawing",
+        "entity",
+        "layer",
+        "linePattern",
+        "layout",
+        "scope",
+        "blockDefinition",
+        "record"
+      ]
+    },
+    "preservationTarget": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "preservationTargetKind",
+          "nullable": false
+        },
+        {
+          "name": "id",
+          "valueType": "uint64",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "preservationSource": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "id",
+          "valueType": "nonEmptyString",
+          "nullable": false
+        },
+        {
+          "name": "provider",
+          "valueType": "nonEmptyString",
+          "nullable": false
+        },
+        {
+          "name": "providerRevision",
+          "valueType": "nonEmptyString",
+          "nullable": false
+        },
+        {
+          "name": "origin",
+          "valueType": "preservationOrigin",
+          "nullable": false
+        },
+        {
+          "name": "sourceVersion",
+          "valueType": "nonEmptyString",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "preservationBinding": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "slot",
+          "valueType": "nonEmptyString",
+          "nullable": false
+        },
+        {
+          "name": "sourceKey",
+          "valueType": "nonEmptyString",
+          "nullable": false
+        },
+        {
+          "name": "target",
+          "valueType": "preservationTarget",
+          "nullable": false
+        }
+      ]
+    },
+    "preservationCondition": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "target",
+          "valueType": "preservationTarget",
+          "nullable": false
+        },
+        {
+          "name": "predicate",
+          "valueType": "nonEmptyString",
+          "nullable": false
+        },
+        {
+          "name": "version",
+          "valueType": "uint32",
+          "nullable": false
+        },
+        {
+          "name": "baseline",
+          "valueType": "preservationBytes",
+          "nullable": false
+        }
+      ]
+    },
+    "preservationPayload": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "schema",
+          "valueType": "nonEmptyString",
+          "nullable": false
+        },
+        {
+          "name": "version",
+          "valueType": "uint32",
+          "nullable": false
+        },
+        {
+          "name": "kind",
+          "valueType": "preservationPayloadKind",
+          "nullable": false
+        },
+        {
+          "name": "bytes",
+          "valueType": "preservationBytes",
+          "nullable": false
+        }
+      ]
+    },
+    "preservationRecord": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "id",
+          "valueType": "preservationRecordId",
+          "nullable": false
+        },
+        {
+          "name": "sourceId",
+          "valueType": "nonEmptyString",
+          "nullable": false,
+          "reference": {
+            "category": "recordField",
+            "target": "preservationSource.id",
+            "strength": "hard"
+          }
+        },
+        {
+          "name": "sourceKey",
+          "valueType": "nonEmptyString",
+          "nullable": false
+        },
+        {
+          "name": "category",
+          "valueType": "preservationCategory",
+          "nullable": false
+        },
+        {
+          "name": "role",
+          "valueType": "preservationRole",
+          "nullable": false
+        },
+        {
+          "name": "representation",
+          "valueType": "preservationRepresentation",
+          "nullable": false
+        },
+        {
+          "name": "subject",
+          "valueType": "preservationTarget",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "dependencyCoverage",
+          "valueType": "preservationCoverage",
+          "nullable": false
+        },
+        {
+          "name": "bindings",
+          "valueType": "preservationBindings",
+          "nullable": false
+        },
+        {
+          "name": "conditions",
+          "valueType": "preservationConditions",
+          "nullable": false
+        },
+        {
+          "name": "payload",
+          "valueType": "preservationPayload",
+          "nullable": false
+        }
+      ]
+    },
+    "preservationSources": {
+      "kind": "sequence",
+      "items": "preservationSource",
+      "minItems": 0
+    },
+    "preservationRecords": {
+      "kind": "sequence",
+      "items": "preservationRecord",
+      "minItems": 0
+    },
+    "preservationBindings": {
+      "kind": "sequence",
+      "items": "preservationBinding",
+      "minItems": 0
+    },
+    "preservationConditions": {
+      "kind": "sequence",
+      "items": "preservationCondition",
+      "minItems": 0
+    },
+    "preservation": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "version",
+          "valueType": "uint32",
+          "nullable": false
+        },
+        {
+          "name": "nextRecordId",
+          "valueType": "uint64",
+          "nullable": false
+        },
+        {
+          "name": "sources",
+          "valueType": "preservationSources",
+          "nullable": false
+        },
+        {
+          "name": "records",
+          "valueType": "preservationRecords",
+          "nullable": false
+        }
+      ]
+    },
+    "opaqueColorSelection": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "mode",
+          "valueType": "appearanceMode",
+          "nullable": false
+        },
+        {
+          "name": "value",
+          "valueType": "color",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "opaqueOpacitySelection": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "mode",
+          "valueType": "appearanceMode",
+          "nullable": false
+        },
+        {
+          "name": "value",
+          "valueType": "opacity",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "opaquePatternSelection": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "mode",
+          "valueType": "appearanceMode",
+          "nullable": false
+        },
+        {
+          "name": "value",
+          "valueType": "uint32",
+          "nullable": false,
+          "optional": true,
+          "reference": {
+            "category": "tableField",
+            "target": "linePattern.id",
+            "strength": "hard"
+          }
+        }
+      ]
+    },
+    "opaqueWeightSelection": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "mode",
+          "valueType": "appearanceMode",
+          "nullable": false
+        },
+        {
+          "name": "value",
+          "valueType": "lineWeight",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "opaqueAppearance": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "color",
+          "valueType": "opaqueColorSelection",
+          "nullable": false
+        },
+        {
+          "name": "opacity",
+          "valueType": "opaqueOpacitySelection",
+          "nullable": false
+        },
+        {
+          "name": "linePattern",
+          "valueType": "opaquePatternSelection",
+          "nullable": false
+        },
+        {
+          "name": "lineWeight",
+          "valueType": "opaqueWeightSelection",
+          "nullable": false
+        },
+        {
+          "name": "linePatternScale",
+          "valueType": "float64",
+          "nullable": false
+        }
+      ]
     }
   },
   "resource": {
@@ -1274,6 +1675,12 @@
         "valueType": "float64",
         "nullable": false,
         "default": 1
+      },
+      {
+        "name": "preservation",
+        "valueType": "preservation",
+        "nullable": false,
+        "optional": true
       }
     ]
   },
@@ -2940,6 +3347,48 @@
           "default": 1
         }
       ]
+    },
+    {
+      "name": "opaqueEntity",
+      "schemaId": "ocdraw.opaqueEntity.v1",
+      "role": "object",
+      "fields": [
+        {
+          "name": "id",
+          "valueType": "entityId",
+          "nullable": false
+        },
+        {
+          "name": "preservationRecordId",
+          "valueType": "preservationRecordId",
+          "nullable": false,
+          "reference": {
+            "category": "recordField",
+            "target": "preservationRecord.id",
+            "strength": "hard"
+          }
+        },
+        {
+          "name": "visible",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "nullable": true,
+          "reference": {
+            "category": "tableField",
+            "target": "layer.id",
+            "strength": "hard"
+          }
+        },
+        {
+          "name": "appearance",
+          "valueType": "opaqueAppearance",
+          "nullable": true
+        }
+      ]
     }
   ],
   "invariants": [
@@ -3038,6 +3487,14 @@
     {
       "id": "ocdraw.linePatterns",
       "contract": "logical-contract-0.1.0.md#named-line-patterns"
+    },
+    {
+      "id": "ocdraw.preservation",
+      "contract": "logical-contract-0.1.0.md#preservation"
+    },
+    {
+      "id": "ocdraw.geometry-completeness",
+      "contract": "logical-contract-0.1.0.md#geometry-completeness"
     }
   ],
   "ocdrawVersion": "0.1.0"

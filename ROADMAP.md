@@ -48,10 +48,13 @@ expresses architectural dependencies; it is not a release calendar.
    remains a separate step. No compatibility layer is required for unpublished
    intermediate contracts.
 
-Future preservation and external semantic links (including IFC) require their
-own concrete designs. They may later use extension points within OCDraw;
-there is no current preservation resource or generic extension protocol to
-standardize ahead of a use case.
+The first bounded OCDraw preservation slice builds on the implemented lifecycle
+and ownership boundaries: complete typed spline snapshots, native common
+properties, durable envelope/opaque transport and separately qualified CAD
+restoration. It does not publish the initial contract or implement native spline
+geometry. Broader providers, raw/private/shared storage and external semantic
+links (including IFC) require separate concrete follow-up designs. No IFCPR
+resource or generic foreign-semantic extension protocol is revived.
 
 ## IFCCAD development track
 
@@ -75,6 +78,12 @@ conversion coverage in bounded slices, including later text, annotations and
 authored view/plot state. Its long-term direction is a CAD drawing module
 that can participate in the evolving IFCX ecosystem. IFC object associations,
 source-graph writeback and collaborative updates require concrete future designs.
+
+The next IFCCAD slice will address plot settings and user/workspace state against
+the existing OCDraw coverage. Keep the current explicit Paper coordinate units
+while designing their relationship to plot units and mappings; review physical
+Paper tolerance interpretation in both models. This follow-up does not adopt a
+new plot/state contract ahead of its design or change the current geometry slice.
 
 ## Later semantic coverage and exchange
 

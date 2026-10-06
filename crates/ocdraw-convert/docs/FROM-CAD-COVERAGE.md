@@ -134,8 +134,9 @@ were natively represented.
 | `Insert` | Exact/PartialLoss/SkippedLoss/FatalIfInconsistent | Ordinary local references map to BlockInstance. OCS insertion coordinates map to owning-scope placement using the actual pinned CAD axes. Qualified trig intervals and exact residual propagation check each occurrence. Unsupported array/attribute/view/external variants skip as a whole; missing/cyclic targets are fatal. |
 | `Viewport` | Exact/PartialLoss/SkippedLoss | Paper-owned orthographic viewports map frame, target/direction/height/twist, render mode, enabled/locked state, front/back clip and frozen layers. A supported same-paper circle, full ellipse or closed straight/bulged planar polyline may be an active clip, regardless of order. Missing/invalid/unsupported or conflicting active boundaries and perspective skip the whole viewport; deferred snap/grid/UCS and visual state are diagnosed as partial loss. Appearance overrides are not exposed by the pinned CAD Viewport model. |
 | `Block`, `BlockEnd` | NonSemantic/FatalIfInconsistent/SkippedLoss | Matching structural markers supply record scaffolding, not drawable entities. Contradictory exposed begin-marker name/owner/base is fatal; unmatched markers are unsupported entities. |
-| `Text`, `MText`, `Spline`, `Helix`, `Dimension`, `Hatch`, `Solid`, `Face3D`, `Ray`, `XLine`, `AttributeDefinition`, `AttributeEntity`, `Leader`, `MultiLeader`, `MLine`, `Mesh`, `RasterImage`, `Solid3D`, `Region`, `Body`, `Surface`, `Table`, `Tolerance`, `PolyfaceMesh`, `Wipeout`, `Shape`, `Underlay`, `Seqend`, `Ole2Frame`, `PolygonMesh`, `Light`, `SectionSymbol`, `ViewBorder`, `Extended`, `Unknown` | SkippedLoss | Whole entity receives `UnsupportedEntityType`; no geometry is approximated. |
+| `Text`, `MText`, `Helix`, `Dimension`, `Hatch`, `Solid`, `Face3D`, `Ray`, `XLine`, `AttributeDefinition`, `AttributeEntity`, `Leader`, `MultiLeader`, `MLine`, `Mesh`, `RasterImage`, `Solid3D`, `Region`, `Body`, `Surface`, `Table`, `Tolerance`, `PolyfaceMesh`, `Wipeout`, `Shape`, `Underlay`, `Seqend`, `Ole2Frame`, `PolygonMesh`, `Light`, `SectionSymbol`, `ViewBorder`, `Extended`, `Unknown` | SkippedLoss | Whole entity receives `UnsupportedEntityType`; no geometry is approximated. |
 | Model, paper, or supported definition ownership | Exact/FatalIfInconsistent | Per-owner explicit entity-handle order is retained; known-owner contents must occur exactly once with consistent membership. |
+| `Spline` | CapturedTyped (opt-in) / SkippedLoss (disabled) / FatalIfInconsistent | SupportedTyped captures every interpreted parameter/common variant before native representation/restoration assessment; Model/Paper/local definitions retain live opaque owner/order, valid unsupported owners retain detached source/order provenance with placement loss. No native NURBS profile or guessed bounds. |
 | Unsupported block owner | SkippedLoss | `BlockOwnedEntity`. |
 | Null or unknown owner | FatalIfInconsistent | All safely detectable owner problems are aggregated before return. |
 | Source handle number | NonSemantic | Replaced by a sequential OCDraw ID; `ExportEntityMapping` records the operational correspondence. |
@@ -191,8 +192,9 @@ non-entity EED retain separate inventory summaries only when a typed source
 diagnostic does not already own their meaning. Open maps and private/raw
 internals remain bounded by the inventory contract and this manual field
 matrix. New opencadcodec fields or variants must update this file, tests, and the
-scanner before the pinned revision changes. A future approved preservation design would need to define its own loss
-classification; no IFCPR transport exists in the current standalone model.
+scanner before the pinned revision changes. The bounded spline snapshot now owns
+separate capture/native-capability/restoration classification; no IFCPR resource
+or broader raw/private/shared provider is introduced.
 
 ## Coordinate-frame accuracy
 
@@ -223,3 +225,29 @@ bytes, cached bounds, private codec state or recovery of unsupported source data
 
 
 Standalone mapping details and target limitations are in [COVERAGE.md](COVERAGE.md). Source scanning is independent of format encoding; its results are included in standalone export outcomes.
+
+## Typed spline preservation field and restoration boundary
+
+The complete field audit and payload/predicate format are in
+[SPLINE-SNAPSHOT-V1.md](SPLINE-SNAPSHOT-V1.md). CapturedTyped is preservation
+capability evidence, not native Exact geometry. Every Spline/SplineFlags parameter
+and public EntityCommon field is captured, including linetype_handle,
+graphic_data, all retained style/material/plot-style handles/flags, entity_mode,
+has_ds_data and ExtendedData.raw_dwg_eed, except raw_record (separate
+storageSupplementOmitted). Source enum identity, presence, ordered arrays and
+binary64 bits survive production native readback, including nonfinite values.
+
+Native layer and the complete appearance are exposed only where exactly
+representable; otherwise those properties remain in the snapshot, never receive
+invented defaults, and do not filter capture. In particular Default lineweight
+and invalid native scale leave appearance absent. Current native properties are
+later authoritative. Unsupported attached objects, application/raw context and
+unresolved reference mappings can prevent restoration independently of capture.
+Actual omitted content elsewhere retains ordinary source diagnostics and Reject.
+
+A complete typed snapshot may satisfy capture Reject despite absent native
+geometry or deferred writing. Geometry assessment separately lists unassessed
+opaque definition/occurrence sources. The DXF/AC1032 DWG fixture matrix qualifies
+actual comparisons in every supported owner kind; it is not an input whitelist
+or a whole-file lossless/complete private-state preservation claim.
+For the opaque spline path, unresolved common pattern references remain in the snapshot and make native appearance/restore unavailable. A provable name/handle contradiction remains fatal. Ordinary native entity/table pattern validation is unchanged.

@@ -63,6 +63,8 @@ pub fn cad_document_to_ocdraw_document_with_id(
         return Err(CadToOcdrawError::InvalidSourceStructure { problems });
     }
     let mut diagnostics = Vec::new();
+    let mut preservation_report = crate::OcdrawPreservationReport::default();
+    let mut preservation = None;
     let mut geometry =
         crate::mapping::geometry::ExchangeState::new(crate::OcdrawGeometryAssessment::new(
             options.geometry_tolerance,
@@ -393,6 +395,167 @@ pub fn cad_document_to_ocdraw_document_with_id(
             handle: common.handle,
             kind: entity.as_entity().entity_type().into(),
         };
+        if let EntityType::Spline(spline) = entity {
+            if options.preservation_capture == crate::OcdrawPreservationCapture::SupportedTyped {
+                use crate::preservation::{
+                    capture_spline, spline_entry, unsupported_common_context, CODEC_REVISION,
+                };
+                use ocdraw::ocdraw::*;
+                let owner = document
+                    .block_records
+                    .iter()
+                    .find(|r| r.handle == common.owner_handle)
+                    .ok_or_else(|| CadToOcdrawError::InvalidSourceStructure {
+                        problems: vec![if common.owner_handle == Handle::NULL {
+                            CadSourceStructureProblem::EntityOwnerMissing {
+                                entity: common.handle,
+                            }
+                        } else {
+                            CadSourceStructureProblem::EntityOwnerUnknown {
+                                entity: common.handle,
+                                owner: common.owner_handle,
+                            }
+                        }],
+                    })?;
+                let order_index = owner
+                    .entity_handles
+                    .iter()
+                    .position(|h| *h == common.handle)
+                    .ok_or_else(|| CadToOcdrawError::InvalidSourceStructure {
+                        problems: vec![CadSourceStructureProblem::InconsistentRelationship {
+                            description: "spline is missing from authoritative owner order".into(),
+                        }],
+                    })?;
+                let payload = capture_spline(
+                    spline,
+                    u64::try_from(order_index).map_err(|_| OcdrawBuildError::IdExhausted)?,
+                    CODEC_REVISION,
+                )?;
+                let p = preservation.get_or_insert_with(|| OcdrawPreservation {
+                    version: 1,
+                    next_record_id: 1,
+                    sources: vec![OcdrawPreservationSource {
+                        id: "cad-source-1".into(),
+                        provider: "opencadcodec".into(),
+                        provider_revision: CODEC_REVISION.into(),
+                        origin: OcdrawPreservationOrigin::CadDocument,
+                        source_version: None,
+                    }],
+                    records: vec![],
+                });
+                let record_id = p
+                    .allocate_record_id()
+                    .map_err(|_| OcdrawBuildError::IdExhausted)?;
+                let key = format!("{:x}", common.handle);
+                p.records.push(OcdrawPreservationRecord {
+                    id: record_id,
+                    source_id: "cad-source-1".into(),
+                    source_key: key.clone(),
+                    category: OcdrawPreservationCategory::Entity,
+                    role: OcdrawPreservationRole::Complete,
+                    representation: OcdrawPreservationRepresentation::CodecTyped,
+                    subject: None,
+                    dependency_coverage: OcdrawPreservationDependencyCoverage::Conservative,
+                    bindings: vec![],
+                    conditions: vec![],
+                    payload: OcdrawPreservationPayload {
+                        schema: "openaec.opencadcodec.spline".into(),
+                        version: 1,
+                        kind: OcdrawPreservationPayloadKind::AdapterSnapshot,
+                        bytes: payload,
+                    },
+                });
+                preservation_report.entries.push(spline_entry(
+                    record_id,
+                    key.clone(),
+                    crate::OcdrawPreservationResult::CapturedTyped,
+                    format!("/preservation/records/{}", p.records.len() - 1),
+                    "complete interpreted spline source captured",
+                ));
+                if common.raw_record.is_some() {
+                    preservation_report.entries.push(spline_entry(
+                        record_id,
+                        key.clone(),
+                        crate::OcdrawPreservationResult::StorageSupplementOmitted,
+                        format!("/source/entities/{key}/rawRecord"),
+                        "original entity storage record is outside the typed snapshot",
+                    ));
+                }
+                if unsupported_common_context(spline) {
+                    let mut entry = spline_entry(
+                        record_id,
+                        key.clone(),
+                        crate::OcdrawPreservationResult::RestorationUnavailable,
+                        format!("/source/entities/{key}/common"),
+                        "retained attached or raw context has no qualified restoring provider",
+                    );
+                    entry.reason = Some(crate::OcdrawPreservationReason::UnsupportedContext);
+                    preservation_report.entries.push(entry);
+                }
+                let (scope, kind) = if common.owner_handle == model.block_handle {
+                    (Some(0), DrawingScopeKind::Model)
+                } else if let Some(scope) = paper_scopes.get(&common.owner_handle) {
+                    (Some(*scope), DrawingScopeKind::Paper)
+                } else {
+                    (
+                        block_scopes.get(&common.owner_handle).copied(),
+                        DrawingScopeKind::Block,
+                    )
+                };
+                if let Some(scope_id) = scope {
+                    let layer_id = layer_ids.get(&common.layer.to_lowercase()).copied();
+                    // Resolve structural name/handle contradictions even when another common value remains opaque.
+                    let pattern =
+                        patterns.resolve_preserved(&common.linetype, common.linetype_handle)?;
+                    let appearance =
+                        if matches!(common.line_weight, opencadcodec::LineWeight::Default)
+                            || !common.linetype_scale.is_finite()
+                            || common.linetype_scale <= 0.
+                        {
+                            None
+                        } else {
+                            pattern.and_then(|pattern| direct_entity(common, pattern).ok())
+                        };
+                    for (name, represented) in [
+                        ("layer", layer_id.is_some()),
+                        ("appearance", appearance.is_some()),
+                    ] {
+                        if !represented {
+                            preservation_report.entries.push(spline_entry(
+                                record_id,
+                                key.clone(),
+                                crate::OcdrawPreservationResult::NativePropertyUnrepresented,
+                                format!("/source/entities/{key}/{name}"),
+                                format!("source {name} remains in snapshot"),
+                            ));
+                        }
+                    }
+                    prepared_entities.push(PreparedCadEntity {
+                        handle: common.handle,
+                        value: PreparedCadEntityValue::Opaque {
+                            definition: OpaqueEntityDefinition {
+                                scope_id,
+                                preservation_record_id: record_id,
+                                layer_id,
+                                appearance,
+                                visible: !common.invisible,
+                            },
+                            kind,
+                        },
+                    });
+                } else {
+                    loss(
+                        source,
+                        CadToOcdrawAction::Skipped,
+                        vec![CadToOcdrawLossReason::BlockOwnedEntity {
+                            owner: common.owner_handle,
+                        }],
+                        &mut diagnostics,
+                    );
+                }
+                continue;
+            }
+        }
         if !matches!(
             entity,
             EntityType::Line(_)
@@ -599,8 +762,28 @@ pub fn cad_document_to_ocdraw_document_with_id(
             value,
         });
     }
-    let (drawing_document, entity_mapping) =
-        prepared_entities::append(drawing, prepared_entities, document, &mut diagnostics)?;
+    let (mut drawing_document, entity_mapping) = prepared_entities::append(
+        drawing,
+        prepared_entities,
+        document,
+        &mut diagnostics,
+        preservation,
+        unit.unwrap_or("unitless"),
+    )?;
+    crate::preservation::record_unassessed_occurrences(&drawing_document, &mut geometry.assessment);
+    crate::preservation::bind_source_references(
+        document,
+        &mut drawing_document,
+        &entity_mapping,
+        &mut preservation_report,
+    );
+    ocdraw::ocdraw::validate_ocdraw_document(&drawing_document)
+        .map_err(|e| OcdrawBuildError::Invalid(format!("{:?}", e.diagnostics())))?;
+    for entry in &mut preservation_report.entries {
+        if let Ok(handle) = u64::from_str_radix(&entry.source_key, 16) {
+            entry.entity_id = entity_mapping.get(&Handle::new(handle)).copied();
+        }
+    }
     let members = document
         .block_records
         .iter()
@@ -650,9 +833,13 @@ pub fn cad_document_to_ocdraw_document_with_id(
     if options.loss_policy == OcdrawLossPolicy::Reject
         && diagnostics.iter().any(CadToOcdrawDiagnostic::blocks_reject)
     {
-        return Err(CadToOcdrawError::LossRejected { diagnostics });
+        return Err(CadToOcdrawError::LossRejected {
+            diagnostics,
+            preservation: preservation_report,
+        });
     }
     Ok(CadToOcdrawDocumentOutcome {
+        preservation: preservation_report,
         document: drawing_document,
         diagnostics,
         entity_mapping,
@@ -688,6 +875,7 @@ fn encode_export(
     let drawing = ocdraw::ocdraw::encode_ocdraw_document(&outcome.document)
         .map_err(OcdrawBuildError::from)?;
     Ok(CadToEncodedOcdrawOutcome {
+        preservation: outcome.preservation,
         encoded: drawing,
         diagnostics: outcome.diagnostics,
         entity_mapping: outcome.entity_mapping,

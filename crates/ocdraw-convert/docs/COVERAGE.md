@@ -26,6 +26,7 @@ encoding metadata and raw JSON are outside the CAD conversion boundary.
 | Paper viewports | Frame, camera, clip, render mode, enabled/locked status, frozen local layers; active Circle/full Ellipse/closed straight or bulged PlanarPolyline clips resolve in either order |
 | Numeric accuracy | Hard tolerance, whole-curve checks and nested occurrence-space checks; structured assessment on both outcomes |
 | Source coverage | Unsupported fields diagnosed, bootstrap/runtime scaffolding classified, inconsistent references rejected |
+| Opt-in spline preservation | Every available Spline parameter/common carrier is stored; native common properties, owner/order, source-free readback and separately qualified fresh CAD restoration; no native spline geometry |
 
 Perspective CAD viewport export awaits a calibrated pinned-codec fixture.
 Viewport appearance overrides, authored shading quality, and viewport workspace
@@ -40,7 +41,10 @@ selected. Patched evidence does not establish unmodified-upstream support.
 Xrefs, external content, attributes/arrays/dynamic blocks, widths, unsupported
 entity families, opaque vertex identities, and extended source metadata are
 not silently approximated. Losses may be allowed with evidence or rejected.
-No preservation transport exists in the current standalone contract.
+The provisional standalone contract now has the bounded typed spline preservation
+transport described in [SPLINE-SNAPSHOT-V1.md](SPLINE-SNAPSHOT-V1.md). Capture is
+opt-in; unsupported extra source context may remain stored without safe restoration.
+Other families and raw/private/shared codec-state restoration are not added.
 
 Tiny block scales below the CAD setter threshold may fail conversion. The pinned
 codec retains nonzero DWG block bases and anonymous names after the dependency
@@ -53,6 +57,12 @@ oblique geometry and tolerances), ocdraw_block_exchange (actual DXF/DWG IO),
 ocdraw_viewport_clips (clip policies and direct mappings), and
 ocdraw_viewport_clip_exchange (patched DXF/DWG active/dormant clip chains), and
 ocdraw_viewport_codec (literal degree angles and activation/reference decoding).
+
+Spline tests additionally cover snapshots/shape validation, disabled versus enabled
+capture, native edits/refusal/reference rebinding, and actual direct-vs-preservation
+DXF/AC1032 DWG in Model/Paper/local blocks, unused definitions and repeated/nested
+occurrences. Comparison by Paper layout identity does not assert equal reserved
+block names or remove the additional-paper DWG marker boundary described below.
 
 The ordered-scopes fixture preserves model/paper/nested-block ownership and
 order through direct CadDocument, actual DXF and actual DWG. Its single named
