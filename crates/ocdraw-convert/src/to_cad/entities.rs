@@ -46,6 +46,7 @@ fn apply_common(
 ) {
     common.layer = layer_name.into();
     common.invisible = !visible;
+    common.color_name = None;
     common.color = match &appearance.color {
         AppearanceSelection::ByLayer => Color::ByLayer,
         AppearanceSelection::ByBlock => Color::ByBlock,
@@ -92,6 +93,8 @@ pub(super) fn append_entities(
     target: &TargetIndex<'_>,
     state: &mut crate::mapping::geometry::ExchangeState<u64>,
     diagnostics: &mut Vec<OcdrawToCadDiagnostic>,
+    restore: crate::OcdrawPreservationRestore,
+    preservation_report: &mut crate::OcdrawPreservationReport,
 ) -> Result<BTreeMap<u64, Handle>, OcdrawToCadError> {
     let TargetIndex {
         patterns,
@@ -102,6 +105,7 @@ pub(super) fn append_entities(
     } = target;
     let mut entity_mapping = BTreeMap::new();
     let mut pending_clips = Vec::new();
+    let mut pending_splines = Vec::new();
     let geometry = drawing
         .geometric_entities
         .iter()
@@ -112,12 +116,164 @@ pub(super) fn append_entities(
         .iter()
         .map(|row| (row.id, row))
         .collect::<BTreeMap<_, _>>();
+    let opaque = drawing
+        .opaque_entities
+        .iter()
+        .map(|e| (e.id, e))
+        .collect::<BTreeMap<_, _>>();
     for (owner, id) in drawing
         .scopes
         .iter()
         .flat_map(|scope| scope.entities.iter().map(move |id| (scope.id, *id)))
     {
         let location = format!("/entities/{id}");
+        if let Some(source) = opaque.get(&id) {
+            let record = drawing
+                .preservation
+                .as_ref()
+                .and_then(|p| {
+                    p.records
+                        .iter()
+                        .find(|r| r.id == source.preservation_record_id)
+                })
+                .expect("validated opaque record link");
+            let prepared = if restore == crate::OcdrawPreservationRestore::Skip {
+                Err(crate::OcdrawPreservationReason::UnsupportedContext)
+            } else {
+                crate::preservation::restore_spline(record, source, drawing)
+            };
+            let prepared = prepared.and_then(|mut spline| {
+                if spline
+                    .common
+                    .extended_data
+                    .records()
+                    .iter()
+                    .any(|r| document.app_ids.get(&r.application_name).is_none())
+                {
+                    return Err(crate::OcdrawPreservationReason::UnsupportedContext);
+                }
+                let layer = if let Some(id) = source.layer_id {
+                    layer_names.get(&u64::from(id)).cloned()
+                } else {
+                    record
+                        .bindings
+                        .iter()
+                        .find(|b| b.slot == "common.layer")
+                        .and_then(|b| match b.target {
+                            ocdraw::ocdraw::OcdrawPreservationTarget::Layer(id) => {
+                                layer_names.get(&u64::from(id)).cloned()
+                            }
+                            _ => None,
+                        })
+                }
+                .ok_or(crate::OcdrawPreservationReason::MissingDependency)?;
+                if let Some(appearance) = &source.appearance {
+                    apply_common(
+                        patterns,
+                        appearance,
+                        source.visible,
+                        &mut spline.common,
+                        &layer,
+                        &location,
+                        diagnostics,
+                    );
+                    // Canonical byte-derived native opacity maps back exactly; arbitrary edits
+                    // retain the existing quantization policy.
+                    if let AppearanceSelection::Explicit(value) = appearance.opacity {
+                        if let Some(alpha) = (0..=255_u16).find(|alpha| {
+                            (1. - f64::from(*alpha) / 255.).to_bits() == value.to_bits()
+                        }) {
+                            spline.common.transparency = Transparency::Explicit(alpha as u8);
+                        }
+                    }
+                } else {
+                    spline.common.layer = layer;
+                    spline.common.invisible = !source.visible;
+                    if !spline.common.linetype.is_empty()
+                        && !spline.common.linetype.eq_ignore_ascii_case("ByLayer")
+                        && !spline.common.linetype.eq_ignore_ascii_case("ByBlock")
+                    {
+                        let binding = record
+                            .bindings
+                            .iter()
+                            .find(|b| b.slot == "common.linetype")
+                            .ok_or(crate::OcdrawPreservationReason::MissingDependency)?;
+                        let ocdraw::ocdraw::OcdrawPreservationTarget::LinePattern(id) =
+                            binding.target
+                        else {
+                            return Err(crate::OcdrawPreservationReason::UnresolvedReference);
+                        };
+                        let pattern = patterns
+                            .get(&id)
+                            .ok_or(crate::OcdrawPreservationReason::MissingDependency)?;
+                        spline.common.linetype = pattern.0.clone();
+                        spline.common.linetype_handle = Some(pattern.1);
+                    } else {
+                        spline.common.linetype_handle = None;
+                    }
+                }
+                spline.common.handle = Handle::NULL;
+                spline.common.owner_handle = if let Some(handle) =
+                    block_handles.get(&u64::from(owner))
+                {
+                    *handle
+                } else if let Some(Some(layout)) = scope_layouts.get(&u64::from(owner)) {
+                    document
+                        .objects
+                        .values()
+                        .find_map(|o| match o {
+                            opencadcodec::objects::ObjectType::Layout(l) if &l.name == layout => {
+                                Some(l.block_record)
+                            }
+                            _ => None,
+                        })
+                        .ok_or(crate::OcdrawPreservationReason::MissingDependency)?
+                } else {
+                    document.header.model_space_block_handle
+                };
+                let kind = drawing
+                    .scopes
+                    .iter()
+                    .find(|s| s.id == owner)
+                    .expect("validated owner")
+                    .kind;
+                spline.common.entity_mode = Some(match kind {
+                    ocdraw::ocdraw::DrawingScopeKind::Model => 2,
+                    ocdraw::ocdraw::DrawingScopeKind::Paper => 1,
+                    ocdraw::ocdraw::DrawingScopeKind::Block => 0,
+                });
+                spline.common.raw_record = None;
+                Ok(spline)
+            });
+            match prepared {
+                Err(reason) => {
+                    crate::preservation::report_restore(
+                        preservation_report,
+                        record,
+                        Some(id),
+                        Some(reason),
+                    );
+                    diagnostics.push(diagnostic(
+                        "PRESERVATION_NOT_RESTORED",
+                        &location,
+                        format!("live opaque content not restored: {reason:?}"),
+                    ));
+                }
+                Ok(spline) => {
+                    let entity = EntityType::Spline(spline);
+                    let handle = match scope_layouts.get(&u64::from(owner)) {
+                        Some(Some(layout)) => document.add_entity_to_layout(entity, layout),
+                        _ => document.add_entity(entity),
+                    }
+                    .map_err(|error| {
+                        OcdrawToCadError::Cad(format!("opaque entity {id}: {error}"))
+                    })?;
+                    entity_mapping.insert(id, handle);
+                    pending_splines.push((id, handle));
+                }
+            }
+            continue;
+        }
         let (scope_id, layer_id, appearance, visible, mut entity) =
             if let Some(source) = geometry.get(&id) {
                 let (entity, bound, changed) =
@@ -183,6 +339,88 @@ pub(super) fn append_entities(
             if let Some(boundary) = source.paper_clip.boundary_entity_id {
                 pending_clips.push((handle, boundary));
             }
+        }
+    }
+    // Rebind only after construction, propagating missing targets through live dependants.
+    loop {
+        let mut failed = Vec::new();
+        for (id, handle) in &pending_splines {
+            if !entity_mapping.contains_key(id) {
+                continue;
+            }
+            let source = opaque[id];
+            let record = drawing
+                .preservation
+                .as_ref()
+                .unwrap()
+                .records
+                .iter()
+                .find(|r| r.id == source.preservation_record_id)
+                .unwrap();
+            let Some(EntityType::Spline(stored)) = document.get_entity(*handle) else {
+                return Err(OcdrawToCadError::Cad("constructed spline missing".into()));
+            };
+            let mut spline = stored.clone();
+            let original = crate::preservation::decode_spline_snapshot(&record.payload.bytes)
+                .map_err(|e| OcdrawToCadError::Cad(e.to_string()))?
+                .to_source();
+            spline.common.extended_data = original.common.extended_data;
+            if let Err(reason) = crate::preservation::rebind_spline_references(
+                &mut spline,
+                record,
+                source,
+                drawing,
+                document,
+                &entity_mapping,
+            ) {
+                failed.push((*id, *handle, reason));
+            } else if let Some(EntityType::Spline(target)) = document.get_entity_mut(*handle) {
+                *target = spline;
+            }
+        }
+        if failed.is_empty() {
+            break;
+        }
+        for (id, handle, reason) in failed {
+            document.remove_entity(handle);
+            for record in document.block_records.iter_mut() {
+                record.entity_handles.retain(|h| *h != handle);
+            }
+            entity_mapping.remove(&id);
+            let source = opaque[&id];
+            let record = drawing
+                .preservation
+                .as_ref()
+                .unwrap()
+                .records
+                .iter()
+                .find(|r| r.id == source.preservation_record_id)
+                .unwrap();
+            crate::preservation::report_restore(
+                preservation_report,
+                record,
+                Some(id),
+                Some(reason),
+            );
+            diagnostics.push(diagnostic(
+                "PRESERVATION_NOT_RESTORED",
+                format!("/entities/{id}"),
+                format!("required target was not constructed: {reason:?}"),
+            ));
+        }
+    }
+    for (id, _) in pending_splines {
+        if entity_mapping.contains_key(&id) {
+            let source = opaque[&id];
+            let record = drawing
+                .preservation
+                .as_ref()
+                .unwrap()
+                .records
+                .iter()
+                .find(|r| r.id == source.preservation_record_id)
+                .unwrap();
+            crate::preservation::report_restore(preservation_report, record, Some(id), None);
         }
     }
     for (viewport, boundary) in pending_clips {

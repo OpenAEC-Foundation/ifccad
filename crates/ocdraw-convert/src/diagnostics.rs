@@ -3,6 +3,8 @@ use ocdraw::ocdraw::OcdrawBuildError;
 #[derive(Debug, thiserror::Error)]
 pub enum CadToOcdrawError {
     #[error(transparent)]
+    PreservationSnapshot(#[from] crate::OcdrawSplineSnapshotError),
+    #[error(transparent)]
     GeometryTolerance(#[from] crate::OcdrawToleranceError),
     #[error("geometric accuracy requirement failed: {0:?}")]
     Geometry(Box<crate::OcdrawGeometryFailure>),
@@ -13,6 +15,7 @@ pub enum CadToOcdrawError {
     #[error("conversion loss was rejected")]
     LossRejected {
         diagnostics: Vec<CadToOcdrawDiagnostic>,
+        preservation: crate::OcdrawPreservationReport,
     },
     #[error(transparent)]
     DrawingBuild(#[from] OcdrawBuildError),
@@ -23,6 +26,23 @@ pub struct OcdrawToCadDiagnostic {
     pub code: &'static str,
     pub location: String,
     pub message: String,
+}
+
+impl CadToOcdrawError {
+    pub fn preservation_report(&self) -> Option<&crate::OcdrawPreservationReport> {
+        match self {
+            Self::LossRejected { preservation, .. } => Some(preservation),
+            _ => None,
+        }
+    }
+}
+impl OcdrawToCadError {
+    pub fn preservation_report(&self) -> Option<&crate::OcdrawPreservationReport> {
+        match self {
+            Self::LossRejected { preservation, .. } => Some(preservation),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -36,6 +56,7 @@ pub enum OcdrawToCadError {
     #[error("drawing conversion loss was rejected")]
     LossRejected {
         diagnostics: Vec<OcdrawToCadDiagnostic>,
+        preservation: crate::OcdrawPreservationReport,
     },
     #[error("CAD construction failed: {0}")]
     Cad(String),

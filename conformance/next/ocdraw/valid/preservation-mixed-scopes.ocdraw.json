@@ -1,0 +1,410 @@
+{
+  "blockDefinitions": [
+    {
+      "name": "Shared",
+      "scopeId": 1
+    }
+  ],
+  "header": {
+    "drawingId": "placed-geometry",
+    "format": "open_cad_drawing",
+    "nextEntityId": 7,
+    "nextLayerId": 1,
+    "nextLayoutId": 2,
+    "unit": "mm",
+    "version": "0.1.0",
+    "nextLinePatternId": 1
+  },
+  "layers": [
+    {
+      "color": {
+        "rgb": [
+          255,
+          255,
+          255
+        ]
+      },
+      "frozen": false,
+      "frozenInNewViewports": false,
+      "id": 0,
+      "lineWeight": 0.25,
+      "locked": false,
+      "name": "0",
+      "opacity": 1.0,
+      "plottable": true,
+      "visible": true,
+      "linePatternId": 0
+    }
+  ],
+  "layouts": [
+    {
+      "id": 0,
+      "kind": "model",
+      "name": "Model",
+      "scopeId": 0,
+      "tabIndex": 0
+    },
+    {
+      "id": 1,
+      "scopeId": 2,
+      "kind": "paper",
+      "name": "Sheet",
+      "tabIndex": 1
+    }
+  ],
+  "scopes": [
+    {
+      "bounds": null,
+      "id": 0,
+      "kind": 0,
+      "entities": [
+        3,
+        4
+      ]
+    },
+    {
+      "bounds": null,
+      "id": 1,
+      "kind": 2,
+      "entities": [
+        1,
+        5,
+        2
+      ]
+    },
+    {
+      "id": 2,
+      "kind": 1,
+      "bounds": null,
+      "entities": [
+        6
+      ]
+    }
+  ],
+  "streams": {
+    "blockInstanceStream": {
+      "color": [
+        null
+      ],
+      "colorMode": [
+        "ByLayer"
+      ],
+      "count": 1,
+      "definitionScopeId": [
+        1
+      ],
+      "entityId": [
+        3
+      ],
+      "layerId": [
+        0
+      ],
+      "linePatternMode": [
+        "ByLayer"
+      ],
+      "lineWeight": [
+        null
+      ],
+      "lineWeightMode": [
+        "ByLayer"
+      ],
+      "opacity": [
+        null
+      ],
+      "opacityMode": [
+        "ByLayer"
+      ],
+      "transform": [
+        {
+          "placement": {
+            "X": {
+              "x": 1.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "Y": {
+              "x": 0.0,
+              "y": 1.0,
+              "z": 0.0
+            },
+            "origin": {
+              "x": 10.0,
+              "y": 20.0,
+              "z": 30.0
+            }
+          },
+          "rotation": 0.4,
+          "scale": {
+            "x": -2.0,
+            "y": 3.0,
+            "z": 1.0
+          }
+        }
+      ],
+      "visible": [
+        true
+      ],
+      "linePatternId": [
+        null
+      ]
+    },
+    "lineStream": {
+      "color": [
+        null
+      ],
+      "colorMode": [
+        "ByLayer"
+      ],
+      "count": 1,
+      "entityId": [
+        1
+      ],
+      "layerId": [
+        0
+      ],
+      "linePatternMode": [
+        "ByLayer"
+      ],
+      "lineWeight": [
+        null
+      ],
+      "lineWeightMode": [
+        "ByLayer"
+      ],
+      "opacity": [
+        null
+      ],
+      "opacityMode": [
+        "ByLayer"
+      ],
+      "visible": [
+        true
+      ],
+      "x1": [
+        0.0
+      ],
+      "x2": [
+        4.0
+      ],
+      "y1": [
+        0.0
+      ],
+      "y2": [
+        3.0
+      ],
+      "z1": [
+        0.0
+      ],
+      "z2": [
+        2.0
+      ],
+      "linePatternId": [
+        null
+      ]
+    },
+    "planarPolylineStream": {
+      "bulge": [
+        0.25,
+        -0.5
+      ],
+      "closed": [
+        false
+      ],
+      "color": [
+        null
+      ],
+      "colorMode": [
+        "ByLayer"
+      ],
+      "count": 1,
+      "entityId": [
+        2
+      ],
+      "layerId": [
+        0
+      ],
+      "linePatternMode": [
+        "ByLayer"
+      ],
+      "lineWeight": [
+        null
+      ],
+      "lineWeightMode": [
+        "ByLayer"
+      ],
+      "opacity": [
+        null
+      ],
+      "opacityMode": [
+        "ByLayer"
+      ],
+      "placement": [
+        {
+          "X": {
+            "x": 0.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "Y": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 1.0
+          },
+          "origin": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          }
+        }
+      ],
+      "vertexCount": [
+        2
+      ],
+      "vertexOffset": [
+        0
+      ],
+      "visible": [
+        true
+      ],
+      "x": [
+        0.0,
+        2.0
+      ],
+      "y": [
+        0.0,
+        3.0
+      ],
+      "linePatternId": [
+        null
+      ]
+    },
+    "opaqueEntityStream": {
+      "count": 3,
+      "id": [
+        4,
+        5,
+        6
+      ],
+      "preservationRecordId": [
+        1,
+        2,
+        3
+      ],
+      "visible": [
+        true,
+        true,
+        false
+      ],
+      "layerId": [
+        0,
+        null,
+        0
+      ],
+      "appearance": [
+        {
+          "color": {
+            "mode": "ByLayer"
+          },
+          "opacity": {
+            "mode": "Explicit",
+            "value": 0.5
+          },
+          "linePattern": {
+            "mode": "ByBlock"
+          },
+          "lineWeight": {
+            "mode": "Explicit",
+            "value": 0.25
+          },
+          "linePatternScale": 2
+        },
+        null,
+        null
+      ]
+    }
+  },
+  "linePatterns": [
+    {
+      "id": 0,
+      "name": "Continuous",
+      "pattern": []
+    }
+  ],
+  "preservation": {
+    "version": 1,
+    "nextRecordId": 4,
+    "sources": [
+      {
+        "id": "generic-source",
+        "provider": "example.generic",
+        "providerRevision": "example-revision",
+        "origin": "cadDocument"
+      }
+    ],
+    "records": [
+      {
+        "id": 1,
+        "sourceId": "generic-source",
+        "sourceKey": "1",
+        "category": "entity",
+        "role": "complete",
+        "representation": "codecOpaque",
+        "dependencyCoverage": "unknown",
+        "bindings": [],
+        "conditions": [],
+        "payload": {
+          "schema": "example.unknown",
+          "version": 17,
+          "kind": "adapterSnapshot",
+          "bytes": "AP8I"
+        },
+        "subject": {
+          "kind": "entity",
+          "id": 4
+        }
+      },
+      {
+        "id": 2,
+        "sourceId": "generic-source",
+        "sourceKey": "2",
+        "category": "entity",
+        "role": "complete",
+        "representation": "codecOpaque",
+        "dependencyCoverage": "unknown",
+        "bindings": [],
+        "conditions": [],
+        "payload": {
+          "schema": "example.unknown",
+          "version": 17,
+          "kind": "adapterSnapshot",
+          "bytes": "AP8I"
+        },
+        "subject": {
+          "kind": "entity",
+          "id": 5
+        }
+      },
+      {
+        "id": 3,
+        "sourceId": "generic-source",
+        "sourceKey": "3",
+        "category": "entity",
+        "role": "complete",
+        "representation": "codecOpaque",
+        "dependencyCoverage": "unknown",
+        "bindings": [],
+        "conditions": [],
+        "payload": {
+          "schema": "example.unknown",
+          "version": 17,
+          "kind": "adapterSnapshot",
+          "bytes": "AP8I"
+        },
+        "subject": {
+          "kind": "entity",
+          "id": 6
+        }
+      }
+    ]
+  }
+}

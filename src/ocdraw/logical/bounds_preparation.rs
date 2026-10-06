@@ -27,20 +27,26 @@ fn failure(id: u32, message: &str) -> OcdrawValidationError {
 }
 
 struct Evaluation<'a> {
+    opaque: std::collections::BTreeSet<u64>,
     scopes: BTreeMap<u32, &'a DrawingScope>,
     entities: BTreeMap<u64, &'a DrawingGeometricEntity>,
     viewports: BTreeMap<u64, &'a DrawingViewport>,
     definitions: BTreeMap<u32, &'a DrawingBlockDefinition>,
-    completed: BTreeMap<u32, Option<Range>>,
+    completed: BTreeMap<u32, (bool, Option<Range>)>,
 }
 impl Evaluation<'_> {
-    fn scope(&mut self, id: u32) -> Result<Option<Range>, OcdrawValidationError> {
+    fn scope(&mut self, id: u32) -> Result<(bool, Option<Range>), OcdrawValidationError> {
         if let Some(bounds) = self.completed.get(&id) {
             return Ok(*bounds);
         }
         let scope = self.scopes[&id];
         let mut bounds = None;
+        let mut complete = true;
         for entity_id in &scope.entities {
+            if self.opaque.contains(entity_id) {
+                complete = false;
+                continue;
+            }
             if let Some(viewport) = self.viewports.get(entity_id) {
                 let b = viewport_bounds(viewport.frame)
                     .ok_or_else(|| failure(id, "invalid viewport enclosure"))?;
@@ -54,14 +60,17 @@ impl Evaluation<'_> {
                     transform,
                 } => {
                     let definition = self.definitions[&definition_scope_id];
-                    let local = self.scope(definition_scope_id)?;
+                    let (local_complete, local) = self.scope(definition_scope_id)?;
+                    complete &= local_complete;
+                    // Validate native matrix preparation without inventing a
+                    // point or complete enclosure for opaque child geometry.
+                    let base = definition.base_point;
+                    let prepared = PreparedBlockTransform::new(
+                        transform,
+                        Point3::new(base[0], base[1], base[2]),
+                    )
+                    .ok_or_else(|| failure(id, "block transform cannot be evaluated"))?;
                     if let Some((min, max)) = local {
-                        let base = definition.base_point;
-                        let prepared = PreparedBlockTransform::new(
-                            transform,
-                            Point3::new(base[0], base[1], base[2]),
-                        )
-                        .ok_or_else(|| failure(id, "block transform cannot be evaluated"))?;
                         let projected = prepared
                             .apply_intervals(std::array::from_fn(|i| Interval {
                                 lower: min[i],
@@ -69,10 +78,12 @@ impl Evaluation<'_> {
                             }))
                             .ok_or_else(|| failure(id, "block bounds are out of range"))?;
                         (projected.map(|v| v.lower), projected.map(|v| v.upper))
-                    } else {
+                    } else if local_complete {
                         // Preserve the existing writer's point enclosure for an empty instance.
                         let origin = transform.placement().origin().components();
                         (origin, origin)
+                    } else {
+                        continue;
                     }
                 }
                 _ => enclosure(&entity.geometry)
@@ -83,8 +94,8 @@ impl Evaluation<'_> {
             }
             union(&mut bounds, range);
         }
-        self.completed.insert(id, bounds);
-        Ok(bounds)
+        self.completed.insert(id, (complete, bounds));
+        Ok((complete, bounds))
     }
 }
 
@@ -96,7 +107,19 @@ pub fn recompute_ocdraw_document_bounds(
     if !errors.is_empty() {
         return Err(OcdrawValidationError::from_logical_errors(errors));
     }
+    let bounds = evaluate_document_bounds(doc)?;
+    for (scope, bounds) in doc.scopes.iter_mut().zip(bounds) {
+        scope.bounds = bounds;
+    }
+    Ok(())
+}
+
+/// Evaluates native subsets even when opaque content prevents a complete enclosure.
+pub(crate) fn evaluate_document_bounds(
+    doc: &OcdrawDocument,
+) -> Result<Vec<Option<Bounds3d>>, OcdrawValidationError> {
     let mut evaluation = Evaluation {
+        opaque: doc.opaque_entities.iter().map(|e| e.id).collect(),
         scopes: doc.scopes.iter().map(|s| (s.id, s)).collect(),
         entities: doc.geometric_entities.iter().map(|e| (e.id, e)).collect(),
         viewports: doc.viewports.iter().map(|v| (v.id, v)).collect(),
@@ -107,18 +130,20 @@ pub fn recompute_ocdraw_document_bounds(
             .collect(),
         completed: BTreeMap::new(),
     };
-    let bounds = doc
-        .scopes
+    doc.scopes
         .iter()
-        .map(|s| evaluation.scope(s.id))
-        .collect::<Result<Vec<_>, _>>()?;
-    for (scope, bounds) in doc.scopes.iter_mut().zip(bounds) {
-        scope.bounds = bounds.map(|(min, max)| {
-            Bounds3d::new(
-                Point3::new(min[0], min[1], min[2]),
-                Point3::new(max[0], max[1], max[2]),
-            )
-        });
-    }
-    Ok(())
+        .map(|s| {
+            evaluation.scope(s.id).map(|(complete, range)| {
+                if !complete {
+                    return None;
+                }
+                range.map(|(min, max)| {
+                    Bounds3d::new(
+                        Point3::new(min[0], min[1], min[2]),
+                        Point3::new(max[0], max[1], max[2]),
+                    )
+                })
+            })
+        })
+        .collect()
 }

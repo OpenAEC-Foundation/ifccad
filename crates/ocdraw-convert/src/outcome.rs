@@ -3,6 +3,7 @@ use ocdraw::ocdraw::{EncodedOcdraw, OcdrawDocument};
 use opencadcodec::{CadDocument, Handle};
 use std::collections::BTreeMap;
 pub struct CadToEncodedOcdrawOutcome {
+    pub(crate) preservation: crate::OcdrawPreservationReport,
     pub(crate) encoded: EncodedOcdraw,
     pub(crate) diagnostics: Vec<CadToOcdrawDiagnostic>,
     pub(crate) entity_mapping: BTreeMap<Handle, u64>,
@@ -10,6 +11,9 @@ pub struct CadToEncodedOcdrawOutcome {
 }
 
 impl CadToEncodedOcdrawOutcome {
+    pub fn preservation_report(&self) -> &crate::OcdrawPreservationReport {
+        &self.preservation
+    }
     pub fn encoded(&self) -> &EncodedOcdraw {
         &self.encoded
     }
@@ -28,6 +32,7 @@ impl CadToEncodedOcdrawOutcome {
 }
 
 pub struct CadToOcdrawDocumentOutcome {
+    pub(crate) preservation: crate::OcdrawPreservationReport,
     pub(crate) document: OcdrawDocument,
     pub(crate) diagnostics: Vec<CadToOcdrawDiagnostic>,
     pub(crate) entity_mapping: BTreeMap<Handle, u64>,
@@ -35,6 +40,9 @@ pub struct CadToOcdrawDocumentOutcome {
 }
 
 impl CadToOcdrawDocumentOutcome {
+    pub fn preservation_report(&self) -> &crate::OcdrawPreservationReport {
+        &self.preservation
+    }
     pub fn document(&self) -> &OcdrawDocument {
         &self.document
     }
@@ -53,6 +61,7 @@ impl CadToOcdrawDocumentOutcome {
 }
 
 pub struct OcdrawToCadOutcome {
+    pub(crate) preservation: crate::OcdrawPreservationReport,
     pub(crate) document: CadDocument,
     pub(crate) diagnostics: Vec<OcdrawToCadDiagnostic>,
     pub(crate) entity_mapping: BTreeMap<u64, Handle>,
@@ -60,6 +69,9 @@ pub struct OcdrawToCadOutcome {
 }
 
 impl OcdrawToCadOutcome {
+    pub fn preservation_report(&self) -> &crate::OcdrawPreservationReport {
+        &self.preservation
+    }
     pub fn document(&self) -> &CadDocument {
         &self.document
     }

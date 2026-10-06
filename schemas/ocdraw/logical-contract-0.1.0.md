@@ -46,9 +46,10 @@ There is exactly one ModelSpace scope and one model Layout selecting it. The
 model Layout has tab index zero. Every PaperSpace scope has exactly one paper
 Layout. A Layout never selects a block-definition scope. There may be no paper
 scopes, no entities, and no Layers. An empty scope has null bounds; a nonempty
-scope's finite bounds enclose its exact geometry. Entity IDs are unique across
-all scopes and object streams. Every entity's Layer ID resolves to a local
-Layer.
+scope with complete native geometry has finite enclosing bounds. Opaque content
+makes complete bounds unavailable as defined below. Entity IDs are unique across
+all scopes and object streams, including opaque entities. Present entity Layer
+IDs resolve to a local Layer; an opaque entity may leave its source layer opaque.
 
 Every scope has a required ordered `entities` list containing only entity IDs.
 The list is authoritative for both ownership and draw order. Every entity must
@@ -75,7 +76,7 @@ template may explicitly create Layer 0; a reader does not synthesize it.
 
 ## Appearance
 
-Each drawable entity stores four independent mode/value pairs: color, opacity,
+Each natively interpreted drawable entity stores four independent mode/value pairs: color, opacity,
 line pattern, and line weight. The modes are `ByLayer`, `ByBlock`, or `Explicit`;
 an omitted mode means `ByLayer`. `Explicit` requires its matching value, and
 other modes forbid that value. The pairs may use different modes on one entity.
@@ -251,3 +252,104 @@ select unique paper scopes. An active canvas's stored/current UCS agree. An acti
 paper viewport belongs to its canvas and has a viewport-workspace row; if it uses
 stored UCS that selection agrees with the canvas current UCS. Viewport-workspace
 rows select distinct existing paper viewports whose scope has a canvas.
+
+## Preservation
+
+The optional `preservation` collection is encoding-independent source information,
+not native geometry or a CAD-runtime object. Its envelope has `version` (initial
+value 1), nonzero uint64 `nextRecordId`, `sources` and `records`. Sources/records
+are required ordered arrays, possibly empty. Absence means no preservation state;
+a present empty collection may retain source contexts and allocation history.
+Record IDs are nonzero uint64, distinct from entity IDs, unique, and strictly
+below nextRecordId. Allocate with checked arithmetic; never lower the watermark
+when deleting. Exact IDs must not be decoded through floating point.
+
+Sources contain unique nonempty `id`, nonempty `provider` and `providerRevision`,
+`origin` (`cadDocument`, `dwg`, `dxf`), and optionally nonempty `sourceVersion`.
+No file origin is inferred when provenance is unknown. Source identity includes
+the drawing identity, source ID and provider-defined source key; equal handles
+in separate source contexts do not identify the same content.
+
+Each record has id, a resolving sourceId, nonempty sourceKey, category
+(entity/object/table/drawing/layout/shared), role (complete/supplement/shared),
+representation (codecTyped/codecOpaque), optional subject, dependencyCoverage
+(qualified/conservative/unknown), required bindings/conditions arrays and payload.
+Payload contains nonempty schema, positive uint32 version, kind
+(adapterSnapshot/rawDwgRecord/rawDxfGroups/rawSection), and owned bytes.
+CodecTyped means the source codec understands the type, not that OCDraw does.
+No schema-specific interpretation of payload or baseline bytes occurs in core.
+
+Targets are tagged as drawing, entity, layer, linePattern, layout, scope,
+blockDefinition or record. Drawing has no ID; other targets carry their domain's
+ID. Entity/record IDs are nonzero uint64; layer/pattern/layout/scope/blockDefinition
+IDs are uint32 (zero is valid). BlockDefinition uses its scope ID. Target roles
+are distinct even when their numeric IDs are equal. Each binding has unique
+nonempty slot, nonempty sourceKey and target. Each condition has target, nonempty
+predicate, positive uint32 version and baseline bytes. Binding/condition targets
+are soft: missing targets and record cycles do not invalidate storage. Eligibility
+is evaluated by the adapter from current content, never stored as a valid flag.
+A detached record's subject may be missing, including supplements after deletion.
+
+An opaque entity has ordinary drawing-wide id, preservationRecordId, required
+visible bool and nullable native layerId/appearance. It has no native geometry,
+stored owner or certified bounds. Each opaque ID occurs exactly once in one
+scope's entities list alongside native geometry and viewports. Its hard record
+link must resolve to a complete entity-category record whose subject is this same
+entity ID; a complete record has at most one live opaque entity. Native ID
+uniqueness and nextEntityId include opaque entities. No phantom entity is created
+for a detached record. Deleting an entity does not delete its preservation record;
+deleting a record still linked by a live opaque entity is invalid.
+
+Present native layer/appearance properties use the existing native reference and
+scalar rules. The whole native appearance has color, opacity, linePattern and
+lineWeight selections plus positive finite linePatternScale. Each selection is
+ByLayer, ByBlock or Explicit; only Explicit has a value. Absence retains that
+source property in the payload, not a request for inherited/default values. No
+native layer or common appearance is synthesized for unsupported source values.
+Present properties and visibility are authoritative at restoration; native edits
+must not be overwritten by a stale source snapshot. Unknown provider schemas and
+predicate versions transport unchanged; unknown core fields or envelope versions
+remain unsupported. Generic storage does not certify restoration, rendering,
+whole-file fidelity or the mathematical validity of provider geometry.
+
+Initial JSON maps preservation to a closed optional root object; subject and
+sourceVersion are omitted when absent and cannot be null. Payload bytes and
+condition baselines use canonical padded standard Base64, including the empty
+string for empty bytes. Reject whitespace, alternate alphabets, missing/extra
+padding and noncanonical pad bits. Validate actual encoded/checked decoded
+lengths and stream columns/counts before allocation based on rows; never trust
+advertised counts. This selects no configurable size limit or external sidecar.
+
+The registered opaqueEntityStream schema starts at v1. Count and all five columns
+id, preservationRecordId, visible, layerId and appearance are required and equal
+length. A null layerId/appearance retains the opaque source property. Each nonnull
+appearance row is a closed native object with all five properties. The stream
+has no owner or geometry column. An empty stream may be absent. Nonempty opaque
+content requires its preservation records. Core snapshots and file transport
+remain independent of opencadcodec and any provider payload serialization.
+
+## Geometry completeness
+
+Completeness is derived from membership and the acyclic native block-definition
+graph, not an authored status field or a source control-point box. Empty scopes
+have no members and null bounds. A nonempty fully native scope has complete
+finite bounds under existing enclosure rules. A direct opaque entity, or any
+block occurrence reaching one, makes complete geometry bounds unavailable;
+that scope must have null bounds. This applies to unused definitions and repeated
+or nested occurrences. Unavailable is not empty: an instance of an unavailable
+definition cannot use the empty-definition insertion-origin fallback.
+
+Native scalar and geometric/numerical checks still apply in unavailable scopes,
+including transformed native leaves inside nested opaque-affected definitions.
+Only the comparison against unavailable complete enclosures is omitted. Active
+viewport clipping cannot use an opaque boundary. A dormant reference may select
+an opaque entity under ordinary same-paper-scope and unique-claim rules. Exporters
+must not emit a dangling clip handle or substitute a rectangle if restoration
+skips the target.
+
+Explicit recomputation evaluates all native subsets and stages results before
+changing any supplied bounds. Complete scopes receive finite enclosures, empty
+or unavailable scopes receive null. Structure or native numerical failure leaves
+all supplied bounds intact. Removing the last opaque requirement restores ordinary
+complete bounds rules; callers recompute before encoding. Encoding validates
+and retains supplied bounds instead of silently repairing them.

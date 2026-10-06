@@ -11,6 +11,10 @@ pub(super) struct PreparedCadEntity {
     pub value: PreparedCadEntityValue,
 }
 pub(super) enum PreparedCadEntityValue {
+    Opaque {
+        definition: OpaqueEntityDefinition,
+        kind: DrawingScopeKind,
+    },
     Geometry(GeometricEntityDefinition),
     Viewport {
         definition: ViewportDefinition,
@@ -22,6 +26,8 @@ pub(super) fn append(
     prepared: Vec<PreparedCadEntity>,
     source: &CadDocument,
     diagnostics: &mut Vec<CadToOcdrawDiagnostic>,
+    mut preservation: Option<OcdrawPreservation>,
+    unit: &str,
 ) -> Result<(OcdrawDocument, BTreeMap<Handle, u64>), OcdrawBuildError> {
     let geometry = prepared
         .iter()
@@ -31,6 +37,15 @@ pub(super) fn append(
         })
         .collect::<BTreeMap<_, _>>();
     let mut claims = BTreeMap::<Handle, usize>::new();
+    let opaque = prepared
+        .iter()
+        .filter_map(|e| match &e.value {
+            PreparedCadEntityValue::Opaque { definition, .. } => {
+                Some((e.handle, definition.scope_id))
+            }
+            _ => None,
+        })
+        .collect::<BTreeMap<_, _>>();
     let overall = source
         .objects
         .values()
@@ -81,6 +96,14 @@ pub(super) fn append(
             } else {
                 None
             }
+        } else if let Some(scope) = opaque.get(boundary) {
+            if *scope != definition.scope_id {
+                Some("clip boundary belongs to another scope".into())
+            } else if definition.paper_clip.enabled {
+                Some("active clip boundary has opaque geometry".into())
+            } else {
+                None
+            }
         } else {
             Some("clip boundary was not converted to supported geometry".into())
         };
@@ -113,6 +136,24 @@ pub(super) fn append(
             continue;
         }
         let id = match entity.value {
+            PreparedCadEntityValue::Opaque { definition, kind } => {
+                let record_id = definition.preservation_record_id;
+                let scope_id = definition.scope_id;
+                let id = drawing.add_opaque_entity(definition)?;
+                let record = preservation
+                    .as_mut()
+                    .and_then(|p| p.records.iter_mut().find(|r| r.id == record_id))
+                    .ok_or_else(|| {
+                        OcdrawBuildError::Invalid("prepared opaque record is missing".into())
+                    })?;
+                record.subject = Some(OcdrawPreservationTarget::Entity(id));
+                record
+                    .conditions
+                    .extend(crate::preservation::build_spline_conditions(
+                        record_id, id, scope_id, kind, unit,
+                    ));
+                id
+            }
             PreparedCadEntityValue::Geometry(g) => drawing.add_geometric_entity(g)?,
             PreparedCadEntityValue::Viewport {
                 mut definition,
@@ -132,6 +173,9 @@ pub(super) fn append(
             }
         };
         mapping.insert(entity.handle, id);
+    }
+    if let Some(preservation) = preservation {
+        drawing.set_preservation(preservation);
     }
     let mut document = drawing.build_document()?;
     let bindings = pending.into_iter().collect::<BTreeMap<_, _>>();

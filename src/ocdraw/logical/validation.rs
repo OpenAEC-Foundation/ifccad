@@ -288,14 +288,14 @@ impl DrawingModel {
                     "entity ID must be nonzero and unique",
                 ));
             }
-            if !layer_ids.contains(&entity.layer_id) {
+            if entity.layer_id.is_some_and(|id| !layer_ids.contains(&id)) {
                 errors.push(error(
                     "ENTITY_REF",
                     &entity.location,
                     "entity Layer does not resolve",
                 ));
             }
-            for pair in &entity.appearance {
+            for pair in entity.appearance.iter().flatten() {
                 if (pair.mode == AppearanceMode::Explicit) != pair.has_value {
                     errors.push(error(
                         "APPEARANCE_PAIR",
@@ -324,14 +324,14 @@ impl DrawingModel {
                     ));
                 }
             }
-            if scope
-                .has_bounds
-                .is_some_and(|has_bounds| has_bounds == scope.entities.is_empty())
-            {
+            if scope.has_bounds.is_some_and(|has_bounds| {
+                has_bounds
+                    != (scope.geometry_completeness == super::ScopeGeometryCompleteness::Complete)
+            }) {
                 errors.push(error(
                     "SCOPE_BOUNDS",
                     format!("/scopes/{index}/bounds"),
-                    "empty scope needs null bounds; nonempty scope needs bounds",
+                    "empty or incomplete scope needs null bounds; complete nonempty scope needs finite bounds",
                 ));
             }
         }

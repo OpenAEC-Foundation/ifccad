@@ -1,0 +1,84 @@
+{
+  "header": {
+    "format": "open_cad_drawing",
+    "version": "0.1.0",
+    "drawingId": "empty-drawing",
+    "unit": "unitless",
+    "nextEntityId": 2,
+    "nextLayerId": 0,
+    "nextLayoutId": 1,
+    "nextLinePatternId": 0
+  },
+  "layouts": [
+    {
+      "id": 0,
+      "scopeId": 0,
+      "kind": "model",
+      "name": "Model",
+      "tabIndex": 0
+    }
+  ],
+  "scopes": [
+    {
+      "id": 0,
+      "kind": 0,
+      "bounds": null,
+      "entities": [
+        1
+      ]
+    }
+  ],
+  "streams": {
+    "opaqueEntityStream": {
+      "count": 1,
+      "id": [
+        1
+      ],
+      "preservationRecordId": [
+        1
+      ],
+      "visible": [],
+      "layerId": [
+        null
+      ],
+      "appearance": [
+        null
+      ]
+    }
+  },
+  "preservation": {
+    "version": 1,
+    "nextRecordId": 2,
+    "sources": [
+      {
+        "id": "generic-source",
+        "provider": "example.generic",
+        "providerRevision": "example-revision",
+        "origin": "cadDocument"
+      }
+    ],
+    "records": [
+      {
+        "id": 1,
+        "sourceId": "generic-source",
+        "sourceKey": "1",
+        "category": "entity",
+        "role": "complete",
+        "representation": "codecOpaque",
+        "dependencyCoverage": "unknown",
+        "bindings": [],
+        "conditions": [],
+        "payload": {
+          "schema": "example.unknown",
+          "version": 17,
+          "kind": "adapterSnapshot",
+          "bytes": "AP8I"
+        },
+        "subject": {
+          "kind": "entity",
+          "id": 1
+        }
+      }
+    ]
+  }
+}

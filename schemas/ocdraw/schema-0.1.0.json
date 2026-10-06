@@ -3460,6 +3460,75 @@
               }
             }
           }
+        },
+        "opaqueEntityStream": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "count": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 18446744073709551615
+            },
+            "id": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 18446744073709551615
+              }
+            },
+            "preservationRecordId": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 18446744073709551615
+              }
+            },
+            "visible": {
+              "type": "array",
+              "items": {
+                "type": "boolean"
+              }
+            },
+            "layerId": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 4294967295
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "appearance": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/opaqueAppearance"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          },
+          "required": [
+            "count",
+            "id",
+            "preservationRecordId",
+            "visible",
+            "layerId",
+            "appearance"
+          ]
         }
       }
     },
@@ -3499,6 +3568,9 @@
       "type": "number",
       "exclusiveMinimum": 0,
       "default": 1
+    },
+    "preservation": {
+      "$ref": "#/$defs/preservation"
     }
   },
   "$defs": {
@@ -5485,6 +5557,541 @@
           "type": "boolean"
         }
       }
+    },
+    "preservationBytes": {
+      "type": "string",
+      "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$"
+    },
+    "preservationTarget": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "drawing"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "entity"
+            },
+            "id": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 18446744073709551615
+            }
+          },
+          "required": [
+            "kind",
+            "id"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "layer"
+            },
+            "id": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            }
+          },
+          "required": [
+            "kind",
+            "id"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "linePattern"
+            },
+            "id": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            }
+          },
+          "required": [
+            "kind",
+            "id"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "layout"
+            },
+            "id": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            }
+          },
+          "required": [
+            "kind",
+            "id"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "scope"
+            },
+            "id": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            }
+          },
+          "required": [
+            "kind",
+            "id"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "blockDefinition"
+            },
+            "id": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            }
+          },
+          "required": [
+            "kind",
+            "id"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "record"
+            },
+            "id": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 18446744073709551615
+            }
+          },
+          "required": [
+            "kind",
+            "id"
+          ]
+        }
+      ]
+    },
+    "preservationSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "providerRevision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "origin": {
+          "enum": [
+            "cadDocument",
+            "dwg",
+            "dxf"
+          ]
+        },
+        "sourceVersion": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "id",
+        "provider",
+        "providerRevision",
+        "origin"
+      ]
+    },
+    "preservationBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "slot": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceKey": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target": {
+          "$ref": "#/$defs/preservationTarget"
+        }
+      },
+      "required": [
+        "slot",
+        "sourceKey",
+        "target"
+      ]
+    },
+    "preservationCondition": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "target": {
+          "$ref": "#/$defs/preservationTarget"
+        },
+        "predicate": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4294967295
+        },
+        "baseline": {
+          "$ref": "#/$defs/preservationBytes"
+        }
+      },
+      "required": [
+        "target",
+        "predicate",
+        "version",
+        "baseline"
+      ]
+    },
+    "preservationPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4294967295
+        },
+        "kind": {
+          "enum": [
+            "adapterSnapshot",
+            "rawDwgRecord",
+            "rawDxfGroups",
+            "rawSection"
+          ]
+        },
+        "bytes": {
+          "$ref": "#/$defs/preservationBytes"
+        }
+      },
+      "required": [
+        "schema",
+        "version",
+        "kind",
+        "bytes"
+      ]
+    },
+    "preservationRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18446744073709551615
+        },
+        "sourceId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceKey": {
+          "type": "string",
+          "minLength": 1
+        },
+        "category": {
+          "enum": [
+            "entity",
+            "object",
+            "table",
+            "drawing",
+            "layout",
+            "shared"
+          ]
+        },
+        "role": {
+          "enum": [
+            "complete",
+            "supplement",
+            "shared"
+          ]
+        },
+        "representation": {
+          "enum": [
+            "codecTyped",
+            "codecOpaque"
+          ]
+        },
+        "subject": {
+          "$ref": "#/$defs/preservationTarget"
+        },
+        "dependencyCoverage": {
+          "enum": [
+            "qualified",
+            "conservative",
+            "unknown"
+          ]
+        },
+        "bindings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/preservationBinding"
+          }
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/preservationCondition"
+          }
+        },
+        "payload": {
+          "$ref": "#/$defs/preservationPayload"
+        }
+      },
+      "required": [
+        "id",
+        "sourceId",
+        "sourceKey",
+        "category",
+        "role",
+        "representation",
+        "dependencyCoverage",
+        "bindings",
+        "conditions",
+        "payload"
+      ]
+    },
+    "preservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "nextRecordId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18446744073709551615
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/preservationSource"
+          }
+        },
+        "records": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/preservationRecord"
+          }
+        }
+      },
+      "required": [
+        "version",
+        "nextRecordId",
+        "sources",
+        "records"
+      ]
+    },
+    "opaqueAppearance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "color": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "mode": {
+                  "enum": [
+                    "ByLayer",
+                    "ByBlock"
+                  ]
+                }
+              },
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "mode": {
+                  "const": "Explicit"
+                },
+                "value": {
+                  "$ref": "#/$defs/color"
+                }
+              },
+              "required": [
+                "mode",
+                "value"
+              ]
+            }
+          ]
+        },
+        "opacity": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "mode": {
+                  "enum": [
+                    "ByLayer",
+                    "ByBlock"
+                  ]
+                }
+              },
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "mode": {
+                  "const": "Explicit"
+                },
+                "value": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              },
+              "required": [
+                "mode",
+                "value"
+              ]
+            }
+          ]
+        },
+        "linePattern": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "mode": {
+                  "enum": [
+                    "ByLayer",
+                    "ByBlock"
+                  ]
+                }
+              },
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "mode": {
+                  "const": "Explicit"
+                },
+                "value": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 4294967295
+                }
+              },
+              "required": [
+                "mode",
+                "value"
+              ]
+            }
+          ]
+        },
+        "lineWeight": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "mode": {
+                  "enum": [
+                    "ByLayer",
+                    "ByBlock"
+                  ]
+                }
+              },
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "mode": {
+                  "const": "Explicit"
+                },
+                "value": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "mode",
+                "value"
+              ]
+            }
+          ]
+        },
+        "linePatternScale": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "required": [
+        "color",
+        "opacity",
+        "linePattern",
+        "lineWeight",
+        "linePatternScale"
+      ]
     }
   }
 }

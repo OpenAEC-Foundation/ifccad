@@ -115,12 +115,6 @@ pub(crate) fn validate_geometry_bounds(
         .collect::<BTreeMap<_, _>>();
     let mut errors = Vec::new();
     for (index, entity) in entities.iter().enumerate() {
-        let Some(Some(bounds)) = owners
-            .get(&entity.id)
-            .and_then(|owner| scope_bounds.get(owner))
-        else {
-            continue;
-        };
         let Some((min, max)) = enclosure(&entity.geometry) else {
             if !matches!(entity.geometry, EntityGeometry::BlockInstance { .. }) {
                 errors.push(LogicalError {
@@ -129,6 +123,12 @@ pub(crate) fn validate_geometry_bounds(
                     message: "entity geometry cannot be evaluated".into(),
                 });
             }
+            continue;
+        };
+        let Some(Some(bounds)) = owners
+            .get(&entity.id)
+            .and_then(|owner| scope_bounds.get(owner))
+        else {
             continue;
         };
         let scope_min = bounds.min().components();

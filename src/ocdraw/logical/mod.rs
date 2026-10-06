@@ -7,6 +7,11 @@ mod appearance;
 mod bounds_preparation;
 mod definitions;
 mod document;
+mod opaque;
+mod preservation;
+mod preservation_validation;
+pub use opaque::DrawingOpaqueEntity;
+pub use preservation::*;
 mod document_projection;
 mod document_validation;
 mod field_validation;
@@ -14,7 +19,11 @@ pub use bounds_preparation::recompute_ocdraw_document_bounds;
 pub(crate) use document_validation::{validate_logical_document, ValidationPhase};
 pub use document_validation::{validate_ocdraw_document, OcdrawValidationError};
 mod geometry;
+mod geometry_completeness;
 mod geometry_validation;
+pub(crate) use geometry_completeness::{
+    derive_scope_geometry_completeness, ScopeGeometryCompleteness,
+};
 mod model;
 mod validation;
 mod view_state;

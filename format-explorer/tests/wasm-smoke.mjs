@@ -1,10 +1,26 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {initSync,open_drawing,convert_cad_to_drawing,export_drawing,open_ifccad,convert_cad_to_ifccad,export_ifccad} from '../wasm-build/browser.js';
+import {initSync,open_drawing,convert_cad_to_drawing,convert_cad_to_drawing_with_preservation,export_drawing,open_ifccad,convert_cad_to_ifccad,export_ifccad} from '../wasm-build/browser.js';
 import {processBrowserRequest} from '../src/browser-worker.mjs';
 
 initSync({module:await readFile(new URL('../wasm-build/browser_bg.wasm',import.meta.url))});
-const wasm={open_drawing,convert_cad_to_drawing,export_drawing,open_ifccad,convert_cad_to_ifccad,export_ifccad};
+const wasm={open_drawing,convert_cad_to_drawing,convert_cad_to_drawing_with_preservation,export_drawing,open_ifccad,convert_cad_to_ifccad,export_ifccad};
+const splineBytes=await readFile(new URL('../../crates/ocdraw-convert/tests/fixtures/splines/open-cubic.dxf',import.meta.url));
+const splineSource={kind:'cad',name:'spline.dxf',preserveSplines:true,files:[{path:'spline.dxf',bytes:Uint8Array.from(splineBytes).buffer}]};
+const splineOpened=processBrowserRequest(splineSource,wasm);
+assert.equal(splineOpened.failure,null,JSON.stringify(splineOpened.failure));
+assert.equal(splineOpened.presentation.opaqueEntityCount,1);assert.equal(splineOpened.conversion.geometry.complete,false);
+const splineNative=processBrowserRequest({...splineSource,export:{format:'ocdraw'}},wasm);
+const splineReopened=processBrowserRequest({kind:'drawing',name:'saved.ocdraw.json',files:[{path:'saved.ocdraw.json',bytes:Uint8Array.from(Buffer.from(splineNative.export.download.base64,'base64')).buffer}]},wasm);
+assert.equal(splineReopened.presentation.opaqueEntityCount,1);
+for(const format of ['dxf','dwg']){
+ const out=processBrowserRequest({...splineSource,export:{format,version:'AC1032'}},wasm);
+ assert.equal(out.failure,null,JSON.stringify(out.failure));
+ assert.ok(out.conversion.restoration.preservation.entries.some(e=>e.result==='restoredTyped'));
+ const returned=processBrowserRequest({kind:'cad',name:'returned.'+format,preserveSplines:true,files:[{path:'returned.'+format,bytes:Uint8Array.from(Buffer.from(out.export.download.base64,'base64')).buffer}]},wasm);
+ assert.equal(returned.failure,null,JSON.stringify(returned.failure));assert.equal(returned.presentation.opaqueEntityCount,1);
+}
+console.log('Browser WASM opt-in spline preservation, durable OCDraw readback and DXF/AC1032 DWG exchange verified');
 for(const name of ['ordered-scopes','fractional-polylines','paper-viewport','named-line-patterns']){
  const bytes=await readFile(new URL(`../../conformance/next/ocdraw/valid/${name}.ocdraw.json`,import.meta.url));
  const source={kind:'drawing',name,files:[{path:name+'.ocdraw.json',bytes:Uint8Array.from(bytes).buffer}]};

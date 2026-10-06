@@ -56,14 +56,11 @@ pub(crate) fn validate_blocks(
             errors.push(error(root.id, "block transform cannot be evaluated"));
             continue;
         };
-        let Some(Some(bounds)) = owners
+        let bounds = owners
             .get(&root.id)
             .and_then(|owner| scope_bounds.get(owner))
-        else {
-            continue;
-        };
-        let min = bounds.min().components();
-        let max = bounds.max().components();
+            .copied()
+            .flatten();
         let mut transforms = vec![prepared];
         let mut stack = vec![(definition_scope_id, vec![0usize], vec![definition_scope_id])];
         let mut invalid = false;
@@ -108,8 +105,15 @@ pub(crate) fn validate_blocks(
                             point = point.and_then(|p| transforms[index].apply_intervals(p));
                         }
                         if point.is_none_or(|p| {
-                            (0..3)
-                                .any(|axis| p[axis].lower < min[axis] || p[axis].upper > max[axis])
+                            (0..3).any(|axis| {
+                                !p[axis].lower.is_finite() || !p[axis].upper.is_finite()
+                            }) || bounds.is_some_and(|bounds| {
+                                let min = bounds.min().components();
+                                let max = bounds.max().components();
+                                (0..3).any(|axis| {
+                                    p[axis].lower < min[axis] || p[axis].upper > max[axis]
+                                })
+                            })
                         }) {
                             invalid = true;
                             break;
@@ -127,7 +131,7 @@ pub(crate) fn validate_blocks(
         if invalid {
             errors.push(error(
                 root.id,
-                "owning scope bounds do not enclose the block occurrence",
+                "native block occurrence cannot be evaluated finitely or lies outside owning bounds",
             ));
         }
     }

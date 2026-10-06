@@ -48,10 +48,13 @@ expresses architectural dependencies; it is not a release calendar.
    remains a separate step. No compatibility layer is required for unpublished
    intermediate contracts.
 
-Future preservation and external semantic links (including IFC) require their
-own concrete designs. They may later use extension points within OCDraw;
-there is no current preservation resource or generic extension protocol to
-standardize ahead of a use case.
+The first bounded OCDraw preservation slice builds on the implemented lifecycle
+and ownership boundaries: complete typed spline snapshots, native common
+properties, durable envelope/opaque transport and separately qualified CAD
+restoration. It does not publish the initial contract or implement native spline
+geometry. Broader providers, raw/private/shared storage and external semantic
+links (including IFC) require separate concrete follow-up designs. No IFCPR
+resource or generic foreign-semantic extension protocol is revived.
 
 ## IFCCAD development track
 

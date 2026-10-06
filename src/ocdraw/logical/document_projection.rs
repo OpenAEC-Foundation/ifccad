@@ -18,6 +18,7 @@ pub(crate) fn project_validation_model(
     doc: &OcdrawDocument,
     phase: ValidationPhase,
 ) -> DrawingModel {
+    let completeness = derive_scope_geometry_completeness(doc);
     let mut refs = doc
         .layers
         .iter()
@@ -58,15 +59,41 @@ pub(crate) fn project_validation_model(
         ));
         entities.push(Entity {
             id,
-            layer_id,
+            layer_id: Some(layer_id),
             definition_scope_id,
-            appearance: [
+            appearance: Some([
                 pair(&a.color),
                 pair(&a.opacity),
                 pair(&a.line_pattern),
                 pair(&a.line_weight),
-            ],
+            ]),
             location: format!("/entities/{id}"),
+        });
+    }
+    for entity in &doc.opaque_entities {
+        let id = entity.id;
+        if let Some(a) = &entity.appearance {
+            if let AppearanceSelection::Explicit(p) = a.line_pattern {
+                refs.push((p, format!("/opaqueEntities/{id}/appearance/linePattern")));
+            }
+            scales.push((
+                a.line_pattern_scale,
+                format!("/opaqueEntities/{id}/appearance/linePatternScale"),
+            ));
+        }
+        entities.push(Entity {
+            id,
+            layer_id: entity.layer_id,
+            definition_scope_id: None,
+            appearance: entity.appearance.as_ref().map(|a| {
+                [
+                    pair(&a.color),
+                    pair(&a.opacity),
+                    pair(&a.line_pattern),
+                    pair(&a.line_weight),
+                ]
+            }),
+            location: format!("/opaqueEntities/{id}"),
         });
     }
     for viewport in &doc.viewports {
@@ -146,6 +173,7 @@ pub(crate) fn project_validation_model(
             .scopes
             .iter()
             .map(|s| Scope {
+                geometry_completeness: completeness[&s.id],
                 id: s.id,
                 kind: match s.kind {
                     DrawingScopeKind::Model => ScopeKind::Model,

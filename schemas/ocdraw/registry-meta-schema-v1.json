@@ -175,7 +175,32 @@
             "pointGlyph",
             "pointSize",
             "pointSizeKind",
-            "linePatternGeneration"
+            "linePatternGeneration",
+            "preservationBytes",
+            "preservationRecordId",
+            "preservationOrigin",
+            "preservationCategory",
+            "preservationRole",
+            "preservationRepresentation",
+            "preservationCoverage",
+            "preservationPayloadKind",
+            "preservationTargetKind",
+            "preservationTarget",
+            "preservationSource",
+            "preservationBinding",
+            "preservationCondition",
+            "preservationPayload",
+            "preservationRecord",
+            "preservationSources",
+            "preservationRecords",
+            "preservationBindings",
+            "preservationConditions",
+            "preservation",
+            "opaqueColorSelection",
+            "opaqueOpacitySelection",
+            "opaquePatternSelection",
+            "opaqueWeightSelection",
+            "opaqueAppearance"
           ]
         },
         "nullable": {
@@ -203,12 +228,19 @@
           "enum": [
             "entity",
             "tableField",
-            "streamColumn"
+            "streamColumn",
+            "recordField"
           ]
         },
         "target": {
           "type": "string",
           "minLength": 1
+        },
+        "strength": {
+          "enum": [
+            "hard",
+            "soft"
+          ]
         }
       },
       "required": [
@@ -377,7 +409,32 @@
                 "pointGlyph",
                 "pointSize",
                 "pointSizeKind",
-                "linePatternGeneration"
+                "linePatternGeneration",
+                "preservationBytes",
+                "preservationRecordId",
+                "preservationOrigin",
+                "preservationCategory",
+                "preservationRole",
+                "preservationRepresentation",
+                "preservationCoverage",
+                "preservationPayloadKind",
+                "preservationTargetKind",
+                "preservationTarget",
+                "preservationSource",
+                "preservationBinding",
+                "preservationCondition",
+                "preservationPayload",
+                "preservationRecord",
+                "preservationSources",
+                "preservationRecords",
+                "preservationBindings",
+                "preservationConditions",
+                "preservation",
+                "opaqueColorSelection",
+                "opaqueOpacitySelection",
+                "opaquePatternSelection",
+                "opaqueWeightSelection",
+                "opaqueAppearance"
               ]
             },
             "minItems": {

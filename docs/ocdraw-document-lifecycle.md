@@ -34,9 +34,16 @@ cycles, geometry, layouts, saved state and declared enclosures without encoding.
 Errors expose structured diagnostics. Tagged enum choices and checked frame
 and transform types prevent some malformed states by construction.
 
+This logical editing path supports native edits followed by a new file save and
+CAD export; an immutable validated reader is not an editing restriction on
+`OcdrawDocument`. Spline-preservation tests exercise native changes, production
+encoding/reopening (including filesystem save/close/read), fresh CAD restoration
+and actual DXF/AC1032 DWG readback. Opaque spline parameter geometry has no native
+editing API; layer/appearance/visibility and surrounding native content do.
+
 ## Identity and allocation history
 
-Entity IDs are drawing-wide across geometry and viewports. Scope membership
+Entity IDs are drawing-wide across geometry, viewports and opaque entities. Scope membership
 is the authoritative ordered ownership list. Table IDs, layout IDs, scope IDs
 and layout tab indices have distinct roles: IDs need not be contiguous or equal
 to a vector position. Model identity is determined by its kind, not ID zero.
@@ -59,12 +66,22 @@ There is no automatic editing allocator, copy-merge identity protocol or
 conflict resolution in this API. A maximum watermark is valid but indicates
 that allocation of another representable ID needs an explicit exhaustion policy.
 
+An optional preservation collection owns a separate nonzero u64 next_record_id
+watermark. Its checked allocator never reuses deleted IDs. Removing an opaque
+entity retains the source record as a detached archive; removing a record still
+linked by a live opaque entity is invalid. Missing soft binding/condition targets
+do not invalidate stored source bytes. Present native layer/appearance references
+remain ordinary hard links. Unknown provider payloads and predicates remain owned
+bytes; adapters, not the core, assess restoration eligibility.
+
 ## Explicit bounds preparation
 
 `encode_ocdraw_document()` validates the supplied document and retains valid bounds,
 including conservative oversized bounds. It does not recompute or repair them.
-Missing, unordered, nonfinite or insufficient bounds are validation errors;
-an empty scope has no bounds. Call `recompute_ocdraw_document_bounds(&mut doc)` when
+Missing, unordered, nonfinite or insufficient complete native bounds are validation
+errors. Empty scopes and scopes with direct/transitive opaque geometry require
+null bounds; membership distinguishes empty from unavailable. Call
+`recompute_ocdraw_document_bounds(&mut doc)` when
 new enclosures are wanted after a geometry change.
 
 Preparation ignores the old bounds but validates other content first. It derives
@@ -74,6 +91,12 @@ bounds are replaced. A reference, cycle, semantic or numerical error leaves
 every supplied bound intact. Other records, IDs, membership and watermarks stay
 unchanged. An empty block instance retains the insertion-origin point enclosure
 used by the fresh builder.
+
+Opaque content never uses that empty-definition fallback. Preparation evaluates
+native leaves and native transform arithmetic even when complete child bounds are
+unavailable, stages null for opaque-affected scopes (including unused/nested
+definitions), and retains the same all-or-nothing failure behavior. No spline
+control-point box, tessellation or guessed geometry becomes authoritative bounds.
 
 ## Encoding and storage
 
@@ -96,7 +119,14 @@ geometry assessment. Existing encoded exports call this route and then the core
 encoder. `ocdraw_document_to_cad_document` validates raw input before CAD
 construction; `ocdraw_source_to_cad_document` uses the reader's immutable snapshot.
 Both imports share one typed conversion implementation without a JSON bridge.
-The pinned source coverage, loss policies and numerical tolerances are unchanged.
+Native coverage and numerical tolerances retain their existing rules. The opt-in
+spline preservation path adds complete interpreted source capture, optional exact
+native common properties, generic durable storage and separately qualified
+restoration. Capture Reject is a no-actual-semantic-loss gate for the current
+storage transfer; restore Reject refuses dropped live opaque content. Geometry
+assessment describes assessed native content and separately lists unassessed opaque
+definition/occurrence sources. It is not an all-source fidelity grade. See the
+converter's [snapshot contract](../crates/ocdraw-convert/docs/SPLINE-SNAPSHOT-V1.md).
 
 A CAD export constructs a fresh drawing and allocates fresh OCDraw IDs. A CAD
 import allocates fresh CAD handles. An identity-preserving save after editing

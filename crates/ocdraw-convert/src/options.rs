@@ -78,6 +78,7 @@ impl OcdrawGeometryTolerance {
 /// Policy for converting one validated IFCCAD drawing into CadDocument.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct OcdrawToCadOptions {
+    pub preservation_restore: OcdrawPreservationRestore,
     pub loss_policy: OcdrawLossPolicy,
     pub geometry_tolerance: OcdrawGeometryTolerance,
 }
@@ -129,6 +130,21 @@ mod tests {
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct CadToOcdrawOptions {
+    pub preservation_capture: OcdrawPreservationCapture,
     pub loss_policy: OcdrawLossPolicy,
     pub geometry_tolerance: OcdrawGeometryTolerance,
+}
+
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub enum OcdrawPreservationCapture {
+    #[default]
+    Disabled,
+    SupportedTyped,
+}
+
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub enum OcdrawPreservationRestore {
+    #[default]
+    RestoreSupported,
+    Skip,
 }

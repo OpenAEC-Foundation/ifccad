@@ -68,6 +68,7 @@ pub struct OcdrawGeometryFailure {
 }
 #[derive(Clone, Debug, PartialEq)]
 pub struct OcdrawGeometryAssessment {
+    unassessed: Vec<OcdrawGeometryEntitySource>,
     requested: OcdrawGeometryTolerance,
     unit: DrawingLengthUnit,
     resolved: OcdrawDistanceInterval,
@@ -89,6 +90,7 @@ impl OcdrawGeometryAssessment {
             upper: round_up(&limit.upper).unwrap_or(f64::INFINITY),
         };
         Ok(Self {
+            unassessed: Vec::new(),
             requested,
             unit,
             resolved,
@@ -123,6 +125,15 @@ impl OcdrawGeometryAssessment {
     }
     pub fn assessed_entities(&self) -> usize {
         self.entities
+    }
+    pub fn unassessed_sources(&self) -> &[OcdrawGeometryEntitySource] {
+        &self.unassessed
+    }
+    pub fn is_complete(&self) -> bool {
+        self.unassessed.is_empty()
+    }
+    pub(crate) fn record_unassessed(&mut self, source: OcdrawGeometryEntitySource) {
+        self.unassessed.push(source);
     }
     pub fn assessed_vertices(&self) -> usize {
         self.vertices

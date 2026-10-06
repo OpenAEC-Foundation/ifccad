@@ -33,6 +33,14 @@ pub use logical::recompute_ocdraw_document_bounds;
 pub use logical::validate_viewport_clip_boundary;
 pub use logical::OcdrawDocument;
 pub use logical::{validate_ocdraw_document, OcdrawValidationError};
+pub use logical::{
+    DrawingOpaqueEntity, OcdrawPreservation, OcdrawPreservationAllocationError,
+    OcdrawPreservationBinding, OcdrawPreservationCategory, OcdrawPreservationCondition,
+    OcdrawPreservationDependencyCoverage, OcdrawPreservationOrigin, OcdrawPreservationPayload,
+    OcdrawPreservationPayloadKind, OcdrawPreservationRecord, OcdrawPreservationRecordId,
+    OcdrawPreservationRepresentation, OcdrawPreservationRole, OcdrawPreservationSource,
+    OcdrawPreservationTarget,
+};
 mod build;
 mod encode;
 pub(crate) mod names;
@@ -44,8 +52,9 @@ mod workspace;
 pub use build::{
     ArcDefinition, BlockDefinition, BlockInstanceDefinition, CircleDefinition, DrawingSavedState,
     EllipseDefinition, GeometricEntityDefinition, LayerDefinition, LineDefinition,
-    OcdrawBuildError, OcdrawBuildOptions, OcdrawBuilder, PlanarPolylineDefinition, PlotStyleMode,
-    PointDefinition, RgbColor, SpatialPolylineDefinition, ViewportDefinition,
+    OcdrawBuildError, OcdrawBuildOptions, OcdrawBuilder, OpaqueEntityDefinition,
+    PlanarPolylineDefinition, PlotStyleMode, PointDefinition, RgbColor, SpatialPolylineDefinition,
+    ViewportDefinition,
 };
 pub use display::{PointDisplay, PointGlyph, PointSize};
 pub use encode::{encode_ocdraw_document, OcdrawEncodeError};

@@ -61,6 +61,11 @@
         "logical": "resource.linePatternScale",
         "payload": "linePatternScale",
         "omission": "logicalDefault"
+      },
+      {
+        "logical": "resource.preservation",
+        "payload": "preservation",
+        "omission": "logicalDefault"
       }
     ]
   },
@@ -1350,6 +1355,39 @@
           "omission": "logicalDefault"
         }
       ]
+    },
+    {
+      "name": "opaqueEntity",
+      "payload": "streams.opaqueEntityStream",
+      "fields": [
+        {
+          "logical": "opaqueEntity.id",
+          "payload": "id",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "opaqueEntity.preservationRecordId",
+          "payload": "preservationRecordId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "opaqueEntity.visible",
+          "payload": "visible",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "opaqueEntity.layerId",
+          "payload": "layerId",
+          "omission": "forbidden",
+          "nullEncoding": "logicalNull"
+        },
+        {
+          "logical": "opaqueEntity.appearance",
+          "payload": "appearance",
+          "omission": "forbidden",
+          "nullEncoding": "logicalNull"
+        }
+      ]
     }
   ],
   "valueMappings": {
@@ -1427,5 +1465,16 @@
     }
   },
   "$comment": "Normative interpretation: ./json-mapping-v4.md",
-  "ocdrawVersion": "0.1.0"
+  "ocdrawVersion": "0.1.0",
+  "preservationMapping": {
+    "schemaVersion": 1,
+    "bytesEncoding": "canonicalPaddedStandardBase64",
+    "targetTag": "kind",
+    "targetId": "id",
+    "drawingTargetHasId": false,
+    "subjectOmission": "absent",
+    "sourceVersionOmission": "absent",
+    "dependencyReferences": "soft",
+    "nativePropertyNull": "sourcePayload"
+  }
 }

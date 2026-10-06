@@ -6,7 +6,7 @@ use ocdraw::ocdraw::{
 };
 use ocdraw_convert::opencadcodec::{self, DwgReader, DxfReader};
 use ocdraw_convert::{
-    cad_document_to_encoded_ocdraw, ocdraw_source_to_cad_document, CadToOcdrawOptions,
+    cad_document_to_ocdraw_document, ocdraw_source_to_cad_document, CadToOcdrawOptions,
     OcdrawToCadOptions,
 };
 use serde_json::{json, Value};
@@ -43,6 +43,15 @@ pub fn inspect_drawing_bytes(name: &str, bytes: &[u8]) -> Value {
 }
 
 pub fn inspect_cad_as_drawing_bytes(name: &str, format: &str, bytes: &[u8]) -> Value {
+    inspect_cad_as_drawing_bytes_with_preservation(name, format, bytes, false)
+}
+
+pub fn inspect_cad_as_drawing_bytes_with_preservation(
+    name: &str,
+    format: &str,
+    bytes: &[u8],
+    capture: bool,
+) -> Value {
     let mut output = result(Path::new(name), format);
     let cad = match format {
         "dxf" => {
@@ -72,9 +81,22 @@ pub fn inspect_cad_as_drawing_bytes(name: &str, format: &str, bytes: &[u8]) -> V
         .map(|item| format!("{item:?}"))
         .collect::<Vec<_>>());
     progress("converting");
-    let converted = match cad_document_to_encoded_ocdraw(&cad, CadToOcdrawOptions::default()) {
+    let converted = match cad_document_to_ocdraw_document(
+        &cad,
+        CadToOcdrawOptions {
+            preservation_capture: if capture {
+                ocdraw_convert::OcdrawPreservationCapture::SupportedTyped
+            } else {
+                ocdraw_convert::OcdrawPreservationCapture::Disabled
+            },
+            ..Default::default()
+        },
+    ) {
         Ok(converted) => converted,
         Err(error) => {
+            if let Some(report) = error.preservation_report() {
+                output["conversion"] = json!({"preservation":preservation_report(report)});
+            }
             fail(
                 &mut output,
                 "converting",
@@ -89,9 +111,27 @@ pub fn inspect_cad_as_drawing_bytes(name: &str, format: &str, bytes: &[u8]) -> V
         "action": format!("{:?}", item.action()),
         "reasons": item.reasons().iter().map(|reason| format!("{reason:?}")).collect::<Vec<_>>()
     })).collect::<Vec<_>>();
-    output["conversion"] =
-        json!({"diagnostics": diagnostics, "entityCount": converted.entity_mapping().len()});
-    let drawing_bytes = converted.encoded().bytes();
+    output["conversion"] = json!({"diagnostics": diagnostics, "entityCount": converted.entity_mapping().len(),
+            "preservation":preservation_report(converted.preservation_report()),"geometry":geometry_report(converted.geometry_assessment())});
+    let mut document = converted.into_document();
+    if let Some(preservation) = &mut document.preservation {
+        for source in &mut preservation.sources {
+            source.origin = if format == "dwg" {
+                ocdraw::ocdraw::OcdrawPreservationOrigin::Dwg
+            } else {
+                ocdraw::ocdraw::OcdrawPreservationOrigin::Dxf
+            };
+            source.source_version = Some(cad.version.as_str().into());
+        }
+    }
+    let encoded = match ocdraw::ocdraw::encode_ocdraw_document(&document) {
+        Ok(encoded) => encoded,
+        Err(error) => {
+            fail(&mut output, "writing", "DRAWING_ENCODE_FAILED", error);
+            return output;
+        }
+    };
+    let drawing_bytes = encoded.bytes();
     progress("validating");
     present(&mut output, load_ocdraw_bytes(drawing_bytes));
     if output["validation"]["strictAvailable"] != true {
@@ -148,10 +188,14 @@ pub fn export_drawing_bytes(name: &str, bytes: &[u8], format: &str, version: &st
     let converted = match ocdraw_source_to_cad_document(drawing, OcdrawToCadOptions::default()) {
         Ok(value) => value,
         Err(error) => {
+            if let Some(report) = error.preservation_report() {
+                output["conversion"] = json!({"preservation":preservation_report(report)});
+            }
             fail(&mut output, "converting", "CAD_CONVERSION_FAILED", error);
             return output;
         }
     };
+    output["conversion"] = json!({"preservation":preservation_report(converted.preservation_report()),"geometry":geometry_report(converted.geometry_assessment())});
     let mut diagnostics = converted
         .diagnostics()
         .iter()
@@ -244,6 +288,12 @@ fn present(output: &mut Value, outcome: Result<ValidatedOcdraw, OcdrawReadError>
             "modelWindows":value["modelWindows"],
             "paperCanvases":value["paperCanvases"],
             "drawingWorkspaceState": value["drawingWorkspaceState"],
+            "opaqueEntityCount":drawing.opaque_entities().len(),
+            "opaqueEntities":drawing.opaque_entities().iter().map(|e|json!({"id":e.id.to_string(),"preservationRecordId":e.preservation_record_id.0.to_string(),"visible":e.visible,"nativeLayerId":e.layer_id,"nativeAppearanceAvailable":e.appearance.is_some()})).collect::<Vec<_>>(),
+            "preservation":drawing.preservation().map(|p|json!({"version":p.version,"nextRecordId":p.next_record_id.to_string(),
+                "sources":p.sources.iter().map(|s|json!({"id":s.id,"provider":s.provider,"providerRevision":s.provider_revision,"origin":match s.origin{ocdraw::ocdraw::OcdrawPreservationOrigin::CadDocument=>"cadDocument",ocdraw::ocdraw::OcdrawPreservationOrigin::Dwg=>"dwg",ocdraw::ocdraw::OcdrawPreservationOrigin::Dxf=>"dxf"},"sourceVersion":s.source_version})).collect::<Vec<_>>(),
+                "records":p.records.iter().map(|r|json!({"id":r.id.0.to_string(),"sourceId":r.source_id,"sourceKey":r.source_key,"schema":r.payload.schema,"version":r.payload.version,"byteLength":r.payload.bytes.len(),"category":format!("{:?}",r.category),"role":format!("{:?}",r.role),"dependencyCoverage":format!("{:?}",r.dependency_coverage)})).collect::<Vec<_>>()})),
+            "boundsCompleteness":drawing.scopes().iter().map(|s|json!({"scopeId":s.id,"status":if s.entities.is_empty(){"empty"}else if s.bounds.is_none(){"unavailable"}else{"complete"}})).collect::<Vec<_>>(),
         });
     }
 }
@@ -256,7 +306,18 @@ pub fn export_cad_bytes(
     target: &str,
     version: &str,
 ) -> Value {
-    let opening = inspect_cad_as_drawing_bytes(name, format, bytes);
+    export_cad_bytes_with_preservation(name, format, bytes, target, version, false)
+}
+
+pub fn export_cad_bytes_with_preservation(
+    name: &str,
+    format: &str,
+    bytes: &[u8],
+    target: &str,
+    version: &str,
+    capture: bool,
+) -> Value {
+    let opening = inspect_cad_as_drawing_bytes_with_preservation(name, format, bytes, capture);
     if opening["failure"].is_object()
         || opening["validation"]["strictAvailable"] != true
         || target == "ocdraw"
@@ -270,6 +331,38 @@ pub fn export_cad_bytes(
     let mut output = export_drawing_bytes(name, &drawing, target, version);
     output["source"] = opening["source"].clone();
     output["reader"] = opening["reader"].clone();
+    let restoration = output["conversion"].clone();
     output["conversion"] = opening["conversion"].clone();
+    if output["conversion"].is_object() {
+        output["conversion"]["restoration"] = restoration;
+    }
     output
+}
+
+fn preservation_report(report: &ocdraw_convert::OcdrawPreservationReport) -> Value {
+    json!({"entries":report.entries().iter().map(|e|json!({"recordId":e.record_id.map(|id|id.0.to_string()),"entityId":e.entity_id.map(|id|id.to_string()),
+        "sourceId":e.source_id,"sourceKey":e.source_key,"schema":e.schema,"version":e.version,"phase":e.phase,"result":e.result,"reason":e.reason,"location":e.location,"message":e.message})).collect::<Vec<_>>()})
+}
+fn geometry_report(report: &ocdraw_convert::OcdrawGeometryAssessment) -> Value {
+    json!({"complete":report.is_complete(),"assessedNativeStatus":format!("{:?}",report.status()),"assessedNativeEntities":report.assessed_entities(),
+        "unassessedSources":report.unassessed_sources().iter().map(|s|format!("{s:?}")).collect::<Vec<_>>()})
+}
+
+pub(crate) fn record_target_codec_failure(output: &mut Value, message: &str) {
+    if let Some(entries) = output["conversion"]["preservation"]["entries"].as_array_mut() {
+        let failures = entries
+            .iter()
+            .filter(|e| e["result"] == "restoredTyped")
+            .map(|e| {
+                let mut e = e.clone();
+                e["phase"] = json!("cadExchange");
+                e["result"] = json!("notRestored");
+                e["reason"] = json!("targetCodecRejected");
+                e["location"] = json!("/export");
+                e["message"] = json!(format!("physical CAD output failed: {message}"));
+                e
+            })
+            .collect::<Vec<_>>();
+        entries.extend(failures);
+    }
 }

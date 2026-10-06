@@ -79,6 +79,13 @@ pub(crate) fn encode_ocdraw_document(doc: &OcdrawDocument) -> Value {
         "scopes": scopes,
         "streams": {}
     });
+    if let Some(preservation) = &doc.preservation {
+        value["preservation"] = super::encode_preservation(preservation);
+    }
+    if !doc.opaque_entities.is_empty() {
+        value["streams"]["opaqueEntityStream"] =
+            super::encode_opaque_entities(&doc.opaque_entities);
+    }
     if !doc.line_patterns.is_empty() {
         value["linePatterns"] = json!(doc
             .line_patterns

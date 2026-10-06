@@ -19,7 +19,7 @@ export function processBrowserRequest(request,wasm,onProgress=()=>{}){
  if(operation&&(![drawingFormat,'dxf','dwg'].includes(operation.format)||(['dxf','dwg'].includes(operation.format)&&!supportsCadVersion(operation.version??defaultCadVersion))))throw Error('Invalid export selection');
  onProgress(request.kind==='cad'?'converting':'validating');
  const opening=parsePresentationJson(request.kind==='cad'
-  ?(drawingFormat==='ifccad'?wasm.convert_cad_to_ifccad(request.name,/\.dwg$/i.test(file.path)?'dwg':'dxf',file.bytes,new Date().toISOString()):wasm.convert_cad_to_drawing(request.name,/\.dwg$/i.test(file.path)?'dwg':'dxf',file.bytes))
+  ?(drawingFormat==='ifccad'?wasm.convert_cad_to_ifccad(request.name,/\.dwg$/i.test(file.path)?'dwg':'dxf',file.bytes,new Date().toISOString()):request.preserveSplines===true?wasm.convert_cad_to_drawing_with_preservation(request.name,/\.dwg$/i.test(file.path)?'dwg':'dxf',file.bytes,true):wasm.convert_cad_to_drawing(request.name,/\.dwg$/i.test(file.path)?'dwg':'dxf',file.bytes))
   :(drawingFormat==='ifccad'?wasm.open_ifccad(request.name,file.bytes):wasm.open_drawing(request.name,file.bytes)));
  if(!operation||opening.failure||!opening.validation?.strictAvailable)return opening;
  if(operation.format===drawingFormat){
@@ -29,7 +29,7 @@ export function processBrowserRequest(request,wasm,onProgress=()=>{}){
  const drawing=request.kind==='cad'?decodeBase64(opening.export.download.base64):file.bytes;
  onProgress('exporting');
  const result=parsePresentationJson(drawingFormat==='ifccad'?wasm.export_ifccad(request.name,drawing,operation.format,operation.version??defaultCadVersion):wasm.export_drawing(request.name,drawing,operation.format,operation.version??defaultCadVersion));
- if(request.kind==='cad'){result.source=opening.source;result.reader=opening.reader;result.conversion=opening.conversion;}
+ if(request.kind==='cad'){result.source=opening.source;result.reader=opening.reader;result.conversion={...opening.conversion,restoration:result.conversion};}
  return result;
 }
 

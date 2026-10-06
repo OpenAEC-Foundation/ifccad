@@ -15,6 +15,7 @@ pub(crate) enum ScopeKind {
 
 #[derive(Clone, Debug)]
 pub(crate) struct Scope {
+    pub geometry_completeness: super::ScopeGeometryCompleteness,
     pub entities: Vec<u64>,
     pub id: u32,
     pub kind: ScopeKind,
@@ -64,9 +65,9 @@ pub(crate) struct BlockDefinition {
 #[derive(Clone, Debug)]
 pub(crate) struct Entity {
     pub id: u64,
-    pub layer_id: u32,
+    pub layer_id: Option<u32>,
     pub definition_scope_id: Option<u32>,
-    pub appearance: [AppearancePair; 4],
+    pub appearance: Option<[AppearancePair; 4]>,
     pub location: String,
 }
 

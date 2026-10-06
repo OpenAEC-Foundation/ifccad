@@ -45,6 +45,12 @@ impl ValidatedOcdraw {
     pub fn line_patterns(&self) -> &[super::DrawingLinePattern] {
         &self.document.line_patterns
     }
+    pub fn preservation(&self) -> Option<&super::OcdrawPreservation> {
+        self.document.preservation.as_ref()
+    }
+    pub fn opaque_entities(&self) -> &[super::DrawingOpaqueEntity] {
+        &self.document.opaque_entities
+    }
     pub fn line_pattern_scale(&self) -> f64 {
         self.document.line_pattern_scale
     }
@@ -257,6 +263,16 @@ pub fn load_ocdraw_bytes(bytes: &[u8]) -> Result<ValidatedOcdraw, OcdrawReadErro
     };
     let (drawing_id, unit, plot_style_mode) = encoding.header();
     let document = OcdrawDocument {
+        preservation: super::codec::json::decode_preservation(value).map_err(|d| {
+            OcdrawReadError::Invalid {
+                diagnostics: vec![d],
+            }
+        })?,
+        opaque_entities: super::codec::json::decode_opaque_entities(value).map_err(|d| {
+            OcdrawReadError::Invalid {
+                diagnostics: vec![d],
+            }
+        })?,
         next_entity_id: value["header"]["nextEntityId"]
             .as_u64()
             .expect("checked integer watermark"),

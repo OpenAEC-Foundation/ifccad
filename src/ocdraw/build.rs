@@ -1,7 +1,9 @@
+mod preservation;
 mod state;
 use super::logical::{DrawingColor, DrawingEntityRecord, EntityAppearance, EntityGeometry};
 use super::EncodedOcdraw;
 use super::{LayoutSettings, PointDisplay, UcsDefinition};
+pub use preservation::OpaqueEntityDefinition;
 pub use state::{DrawingSavedState, ViewportDefinition};
 
 #[derive(Clone, Debug)]
@@ -407,6 +409,8 @@ pub enum OcdrawBuildError {
 }
 
 pub struct OcdrawBuilder {
+    pub(crate) preservation: Option<super::OcdrawPreservation>,
+    pub(crate) opaque_entities: Vec<super::DrawingOpaqueEntity>,
     pub(crate) options: OcdrawBuildOptions,
     pub(crate) model_layout_name: String,
     pub(crate) line_patterns: Vec<super::LinePatternDefinition>,
@@ -435,6 +439,8 @@ impl OcdrawBuilder {
             ));
         }
         Ok(Self {
+            preservation: None,
+            opaque_entities: Vec::new(),
             options,
             model_layout_name: "Model".into(),
             line_patterns: Vec::new(),
@@ -1020,6 +1026,8 @@ impl OcdrawBuilder {
             ));
         }
         let mut doc = OcdrawDocument {
+            preservation: self.preservation,
+            opaque_entities: self.opaque_entities,
             next_entity_id: self.next_entity_id,
             next_layer_id,
             next_layout_id,

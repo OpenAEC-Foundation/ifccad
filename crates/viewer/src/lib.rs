@@ -3,7 +3,8 @@ mod ifccad;
 mod ocdraw;
 pub use ifccad::{export_ifccad_bytes, inspect_cad_as_ifccad_bytes, inspect_ifccad_bytes};
 pub use ocdraw::{
-    export_cad_bytes, export_drawing_bytes, inspect_cad_as_drawing_bytes, inspect_drawing,
+    export_cad_bytes, export_cad_bytes_with_preservation, export_drawing_bytes,
+    inspect_cad_as_drawing_bytes, inspect_cad_as_drawing_bytes_with_preservation, inspect_drawing,
     inspect_drawing_bytes,
 };
 use serde_json::{json, Value};

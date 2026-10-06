@@ -5,12 +5,17 @@ pub(crate) use decode_line_pattern::decode_line_patterns;
 mod decode_layer;
 mod decode_layout;
 
+mod bytes;
 mod decode_plot;
 mod decode_scope;
 mod decode_state;
 mod decode_view_state;
 mod decode_viewport;
 mod document;
+mod opaque;
+mod preservation;
+pub(crate) use opaque::{decode_opaque_entities, encode_opaque_entities};
+pub(crate) use preservation::{decode_preservation, encode_preservation};
 mod encode_color;
 mod encode_document;
 mod encode_geometry;

@@ -74,6 +74,7 @@ fn import_document(
             .map_err(|error| OcdrawToCadError::Cad(format!("UCS definition: {error}")))?;
     }
     let mut diagnostics = Vec::new();
+    let mut preservation_report = crate::OcdrawPreservationReport::default();
     let code = crate::units::UNIT_TOKENS
         .iter()
         .position(|token| *token == drawing.unit.as_str())
@@ -88,6 +89,7 @@ fn import_document(
         .iter()
         .map(|entity| entity.id())
         .chain(drawing.viewports.iter().map(|row| row.id))
+        .chain(drawing.opaque_entities.iter().map(|row| row.id))
         .collect::<BTreeSet<_>>();
     for (scope_index, scope) in drawing.scopes.iter().enumerate() {
         for (position, id) in scope.entities.iter().enumerate() {
@@ -111,6 +113,15 @@ fn import_document(
         let id = u64::from(source.id);
         let name = source.name.as_str();
         let mut target = Layer::new(name);
+        target.handle = if name == "0" {
+            document
+                .layers
+                .get("0")
+                .map(|l| l.handle)
+                .unwrap_or_else(|| document.allocate_handle())
+        } else {
+            document.allocate_handle()
+        };
         target.flags.off = !source.visible;
         target.flags.frozen = source.frozen;
         target.flags.locked = source.locked;
@@ -324,7 +335,33 @@ fn import_document(
         },
         &mut geometry,
         &mut diagnostics,
+        options.preservation_restore,
+        &mut preservation_report,
     )?;
+    crate::preservation::record_unassessed_occurrences(drawing, &mut geometry.assessment);
+    if let Some(p) = &drawing.preservation {
+        for record in &p.records {
+            let root = (record.role == ocdraw::ocdraw::OcdrawPreservationRole::Complete
+                && record.category != ocdraw::ocdraw::OcdrawPreservationCategory::Entity)
+                || (record.role == ocdraw::ocdraw::OcdrawPreservationRole::Supplement
+                    && record
+                        .subject
+                        .is_some_and(|target| crate::preservation::target_exists(drawing, target)));
+            if root {
+                crate::preservation::report_restore(
+                    &mut preservation_report,
+                    record,
+                    None,
+                    Some(crate::OcdrawPreservationReason::UnsupportedPayload),
+                );
+                diagnostics.push(diagnostic(
+                    "PRESERVATION_NOT_RESTORED",
+                    format!("/preservation/records/{}", record.id.0),
+                    "no restoring provider for this live non-entity/supplement root",
+                ));
+            }
+        }
+    }
     crate::mapping::workspace::apply(drawing, &mut document, &scope_layouts, &mut diagnostics);
     let members = drawing
         .scopes
@@ -343,9 +380,13 @@ fn import_document(
             .iter()
             .any(|d| d.code != "GEOMETRY_ROUNDED_WITHIN_TOLERANCE")
     {
-        return Err(OcdrawToCadError::LossRejected { diagnostics });
+        return Err(OcdrawToCadError::LossRejected {
+            diagnostics,
+            preservation: preservation_report,
+        });
     }
     Ok(OcdrawToCadOutcome {
+        preservation: preservation_report,
         document,
         diagnostics,
         entity_mapping,

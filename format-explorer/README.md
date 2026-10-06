@@ -28,6 +28,20 @@ No hosted deployment is performed by development commands.
 Tests: `npm test`. File and CAD accuracy checks use the production Rust
 reader/converter; the browser worker transport is tested independently.
 
+For a DXF/DWG input on the OCDraw route, **Spline-brongegevens bewaren** explicitly
+enables typed spline preservation. It is off by default and is not an IFCCAD
+option. Every interpreted spline variant can be stored; this does not add native
+spline geometry or certified bounds. Capture, unavailable native geometry and
+qualified restoration are reported separately. Current native layer/appearance/
+visibility/order edits are authoritative. Unknown/raw/attached contexts may remain
+stored without safe restoration. Native save/open preserves those bytes.
+
+The CLI equivalent is `viewer cad FILE --preserve-splines` or
+`viewer export-cad FILE FORMAT [VERSION] --preserve-splines`. Rust callers select
+`OcdrawPreservationCapture::SupportedTyped`; existing entry points remain disabled
+wrappers. Actual DXF/AC1032 DWG readback and the WASM smoke fixture cover the bounded
+pilot; neither snapshots nor a successful native readback prove whole-file fidelity.
+
 ## Drawing preview
 
 Choose **Tekening bekijken** after opening a file. Original DXF/DWG bytes open
