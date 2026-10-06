@@ -11,6 +11,17 @@ test('spline preservation is an explicit OCDraw import option and survives CAD e
  assert.equal(selected,true);assert.equal(result.conversion.preservation.entries[0].result,'capturedTyped');
  assert.equal(result.conversion.restoration.preservation.entries[0].result,'restoredTyped');
 });
+test('custom options cannot silently fall back to an old WASM converter',()=>{
+ const request={kind:'cad',drawingFormat:'ifccad',name:'a.dxf',files:[{path:'a.dxf',bytes}],conversionOptions:{tolerance:{mode:'exact'}}};
+ const wasm={convert_cad_to_ifccad(){return '{"validation":{"strictAvailable":true}}';}};
+ assert.throws(()=>processBrowserRequest(request,wasm),/options|tolerance/i);
+});
+test('configured conversions pass their options and retain exact native source text',()=>{
+ let selected;const options={tolerance:{mode:'custom',value:0.001,unit:'mm'}};
+ const wasm={convert_cad_to_drawing_with_options(name,format,data,text){selected=JSON.parse(text);return '{"validation":{"strictAvailable":true},"export":{"download":{"base64":"e30="}}}';}};
+ const result=processBrowserRequest({kind:'cad',name:'a.dxf',files:[{path:'a.dxf',bytes}],conversionOptions:options},wasm);
+ assert.deepEqual(selected,options);assert.equal(result.nativeSourceText,'{}');
+});
 test('standalone opening uses one local file, without a package entry',()=>{let received;const wasm={open_drawing(...args){received=args;return '{"validation":{"strictAvailable":true},"presentation":{"entityId":9007199254740993}}';}};const result=processBrowserRequest({kind:'drawing',name:'demo',files:[{path:'demo.ocdraw.json',bytes}]},wasm);assert.equal(received[0],'demo');assert.equal(result.presentation.entityId,'9007199254740993');});
 test('CAD conversion supplies checked standalone bytes to CAD export',()=>{let received;const wasm={convert_cad_to_drawing(){return JSON.stringify({source:{format:'dxf'},conversion:{diagnostics:['loss']},validation:{strictAvailable:true},export:{download:{base64:'e30='}}});},export_drawing(...args){received=args;return '{"validation":{"strictAvailable":true},"export":{"format":"dwg"}}';}};const result=processBrowserRequest({kind:'cad',name:'a.dxf',files:[{path:'a.dxf',bytes}],export:{format:'dwg',version:'AC1032'}},wasm);assert.equal(new TextDecoder().decode(received[1]),'{}');assert.equal(received[2],'dwg');assert.deepEqual(result.conversion.diagnostics,['loss']);});
 test('failed validation never supplies downloadable bytes',()=>{const wasm={open_drawing(){return '{"validation":{"strictAvailable":false}}';},export_drawing(){throw Error('must not export');}};const result=processBrowserRequest({kind:'drawing',files:[{path:'a.ocdraw.json',bytes}],export:{format:'dxf'}},wasm);assert.equal(result.export,undefined);});

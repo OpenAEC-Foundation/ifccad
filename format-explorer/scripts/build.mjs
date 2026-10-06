@@ -1,6 +1,7 @@
 import {mkdir,copyFile,readdir,access,rm,cp,readFile,writeFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
+import {examples} from '../src/examples.mjs';
 export const output=new URL('../dist/',import.meta.url);
 export async function build({outputRoot=output,ocsRoot=new URL('../ocs-build/',import.meta.url)}={}){
  const destination=outputRoot instanceof URL?fileURLToPath(outputRoot):path.resolve(outputRoot);await mkdir(destination,{recursive:true});
@@ -8,6 +9,7 @@ export async function build({outputRoot=output,ocsRoot=new URL('../ocs-build/',i
  await mkdir(path.join(destination,'examples'),{recursive:true});
  await copyFile(new URL('../../conformance/next/ocdraw/valid/ordered-scopes.ocdraw.json',import.meta.url),path.join(destination,'examples','ordered-scopes.ocdraw.json'));
  await copyFile(new URL('../../examples/ifccad/hello-line-patterns.ifcx',import.meta.url),path.join(destination,'examples','hello-line-patterns.ifcx'));
+ for(const example of examples){const target=path.resolve(destination,example.path);if(!target.startsWith(path.resolve(destination)+path.sep))throw Error('Example output escapes build directory');await mkdir(path.dirname(target),{recursive:true});await copyFile(new URL('../../'+example.path,import.meta.url),target);}
  await rm(path.join(destination,'job-client.mjs'),{force:true});
  const wasmRoot=new URL('../wasm-build/',import.meta.url),wasmTarget=path.join(destination,'wasm');
  if(!wasmTarget.startsWith(path.resolve(destination)+path.sep))throw Error('Output escapes build directory');
@@ -24,6 +26,6 @@ export async function build({outputRoot=output,ocsRoot=new URL('../ocs-build/',i
   await writeFile(htmlFile,html.replace('</body>','<script type="module" src="./ocs-bridge.mjs"></script></body>'));
   await copyFile(new URL('../ocs-source.json',import.meta.url),path.join(target,'SOURCE.json'));
  }
- console.log('Built IFCCAD & OCDraw Explorer: '+destination);
+ console.log('Built CAD Format Explorer: '+destination);
 }
 if(process.argv[1]===fileURLToPath(import.meta.url))await build();

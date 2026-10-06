@@ -1,0 +1,263 @@
+{
+  "drawingViewState": {
+    "activeModelWindowId": 0,
+    "currentModelUcs": {
+      "kind": "World"
+    }
+  },
+  "drawingWorkspaceState": {
+    "activeLayoutId": 0,
+    "currentLayerId": 0
+  },
+  "header": {
+    "drawingId": "drawing-main",
+    "format": "open_cad_drawing",
+    "nextEntityId": 2,
+    "nextLayerId": 1,
+    "nextLayoutId": 1,
+    "nextLinePatternId": 1,
+    "unit": "mm",
+    "version": "0.1.0"
+  },
+  "layers": [
+    {
+      "color": {
+        "indexedColor": {
+          "index": 7,
+          "system": "ACI"
+        },
+        "rgb": [
+          255,
+          255,
+          255
+        ]
+      },
+      "frozen": false,
+      "frozenInNewViewports": false,
+      "id": 0,
+      "linePatternId": 0,
+      "lineWeight": 0.25,
+      "locked": false,
+      "name": "0",
+      "opacity": 1.0,
+      "plottable": true,
+      "visible": true
+    }
+  ],
+  "layouts": [
+    {
+      "id": 0,
+      "kind": "model",
+      "name": "Model",
+      "scopeId": 0,
+      "tabIndex": 0
+    }
+  ],
+  "linePatterns": [
+    {
+      "description": "Solid line",
+      "id": 0,
+      "name": "Continuous",
+      "pattern": []
+    }
+  ],
+  "modelWindows": [
+    {
+      "aspectRatio": 1.0,
+      "grid": {
+        "adaptive": true,
+        "beyondLimits": false,
+        "enabled": false,
+        "followsWorkplane": false,
+        "majorLineFrequency": 5,
+        "spacing": {
+          "x": 10.0,
+          "y": 10.0
+        },
+        "style": "Lines",
+        "subdivision": false
+      },
+      "modelWindowId": 0,
+      "rectangle": {
+        "maxX": 1.0,
+        "maxY": 1.0,
+        "minX": 0.0,
+        "minY": 0.0
+      },
+      "renderMode": "TwoDimensional",
+      "snap": {
+        "angle": 0.0,
+        "base": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "enabled": false,
+        "isometricPlane": "Left",
+        "spacing": {
+          "x": 0.5,
+          "y": 0.5
+        },
+        "style": "Rectangular"
+      },
+      "storedUcs": {
+        "kind": "World"
+      },
+      "useStoredUcs": true,
+      "view": {
+        "backClip": {
+          "distance": 0.0,
+          "mode": "Disabled"
+        },
+        "center": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "direction": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0
+        },
+        "frontClip": {
+          "distance": 0.0,
+          "mode": "Disabled"
+        },
+        "height": 10.0,
+        "lensLength": 50.0,
+        "projection": "Orthographic",
+        "target": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "twist": 0.0
+      }
+    }
+  ],
+  "pointDisplay": {
+    "form": {
+      "circle": false,
+      "glyph": "dot",
+      "square": false
+    },
+    "size": {
+      "kind": "defaultFivePercent"
+    }
+  },
+  "preservation": {
+    "nextRecordId": 2,
+    "records": [
+      {
+        "bindings": [
+          {
+            "slot": "common.layer",
+            "sourceKey": "10",
+            "target": {
+              "id": 0,
+              "kind": "layer"
+            }
+          }
+        ],
+        "category": "entity",
+        "conditions": [
+          {
+            "baseline": "eyJwcmVzZXJ2YXRpb25SZWNvcmRJZCI6MSwib3duZXJTY29wZUlkIjowfQ==",
+            "predicate": "openaec.ocdraw.splineEntityBinding",
+            "target": {
+              "id": 1,
+              "kind": "entity"
+            },
+            "version": 1
+          },
+          {
+            "baseline": "eyJraW5kIjoiTW9kZWwiLCJjb29yZGluYXRlVW5pdCI6Im1tIn0=",
+            "predicate": "openaec.ocdraw.splineCoordinateContext",
+            "target": {
+              "id": 0,
+              "kind": "scope"
+            },
+            "version": 1
+          },
+          {
+            "baseline": "eyJzbG90IjoiY29tbW9uLmxheWVyIiwic291cmNlS2V5IjoiMTAiLCJ0YXJnZXRSb2xlIjoibGF5ZXIifQ==",
+            "predicate": "openaec.ocdraw.sourceReferenceBinding",
+            "target": {
+              "id": 0,
+              "kind": "layer"
+            },
+            "version": 1
+          }
+        ],
+        "dependencyCoverage": "qualified",
+        "id": 1,
+        "payload": {
+          "bytes": "eyJjb2RlY1JldmlzaW9uIjoiZmU2OTUwNmNiOTlkZWE2ZjRjNGE3M2I2OTBhMjdmZGYwNDQwM2VhMCIsInNvdXJjZUhhbmRsZSI6IjEwMDAiLCJzb3VyY2VPd25lckhhbmRsZSI6IjE1Iiwic291cmNlT3JkZXJJbmRleCI6MCwiY29tbW9uIjp7ImhhbmRsZSI6IjEwMDAiLCJvd25lckhhbmRsZSI6IjE1IiwibGF5ZXIiOiIwIiwiY29sb3IiOiJCeUxheWVyIiwibGluZVdlaWdodCI6IkJ5TGF5ZXIiLCJsaW5ldHlwZSI6IiIsImxpbmV0eXBlSGFuZGxlIjpudWxsLCJsaW5ldHlwZVNjYWxlIjoiM2ZmMDAwMDAwMDAwMDAwMCIsInRyYW5zcGFyZW5jeSI6IkJ5TGF5ZXIiLCJjb2xvck5hbWUiOm51bGwsImludmlzaWJsZSI6ZmFsc2UsImV4dGVuZGVkRGF0YSI6eyJyZWNvcmRzIjpbXSwicmF3RHdnRWVkIjpbXX0sImdyYXBoaWNEYXRhIjpudWxsLCJyZWFjdG9ycyI6W10sInhkaWN0aW9uYXJ5SGFuZGxlIjpudWxsLCJjb2xvckJvb2tIYW5kbGUiOm51bGwsImZ1bGxWaXN1YWxTdHlsZUhhbmRsZSI6bnVsbCwiZmFjZVZpc3VhbFN0eWxlSGFuZGxlIjpudWxsLCJlZGdlVmlzdWFsU3R5bGVIYW5kbGUiOm51bGwsIm1hdGVyaWFsSGFuZGxlIjpudWxsLCJwbG90c3R5bGVIYW5kbGUiOm51bGwsIm1hdGVyaWFsRmxhZ3MiOjAsInNoYWRvd0ZsYWdzIjowLCJwbG90c3R5bGVGbGFncyI6MCwiZW50aXR5TW9kZSI6MiwiaGFzRHNEYXRhIjpmYWxzZX0sImZsYWdzIjp7ImNsb3NlZCI6ZmFsc2UsInBlcmlvZGljIjpmYWxzZSwicmF0aW9uYWwiOmZhbHNlLCJwbGFuYXIiOmZhbHNlLCJsaW5lYXIiOmZhbHNlfSwiZGVncmVlIjozLCJrbm90cyI6WyIwMDAwMDAwMDAwMDAwMDAwIiwiMDAwMDAwMDAwMDAwMDAwMCIsIjAwMDAwMDAwMDAwMDAwMDAiLCIwMDAwMDAwMDAwMDAwMDAwIiwiM2ZmMDAwMDAwMDAwMDAwMCIsIjNmZjAwMDAwMDAwMDAwMDAiLCIzZmYwMDAwMDAwMDAwMDAwIiwiM2ZmMDAwMDAwMDAwMDAwMCJdLCJjb250cm9sUG9pbnRzIjpbWyIwMDAwMDAwMDAwMDAwMDAwIiwiMDAwMDAwMDAwMDAwMDAwMCIsIjAwMDAwMDAwMDAwMDAwMDAiXSxbIjNmZjAwMDAwMDAwMDAwMDAiLCI0MDAwMDAwMDAwMDAwMDAwIiwiMDAwMDAwMDAwMDAwMDAwMCJdLFsiNDAwMDAwMDAwMDAwMDAwMCIsIjQwMDAwMDAwMDAwMDAwMDAiLCIwMDAwMDAwMDAwMDAwMDAwIl0sWyI0MDA4MDAwMDAwMDAwMDAwIiwiMDAwMDAwMDAwMDAwMDAwMCIsIjAwMDAwMDAwMDAwMDAwMDAiXV0sIndlaWdodHMiOltdLCJmaXRQb2ludHMiOltdLCJub3JtYWwiOlsiMDAwMDAwMDAwMDAwMDAwMCIsIjAwMDAwMDAwMDAwMDAwMDAiLCIzZmYwMDAwMDAwMDAwMDAwIl0sImJlZ2luVGFuZ2VudCI6WyIwMDAwMDAwMDAwMDAwMDAwIiwiMDAwMDAwMDAwMDAwMDAwMCIsIjAwMDAwMDAwMDAwMDAwMDAiXSwiZW5kVGFuZ2VudCI6WyIwMDAwMDAwMDAwMDAwMDAwIiwiMDAwMDAwMDAwMDAwMDAwMCIsIjAwMDAwMDAwMDAwMDAwMDAiXSwia25vdFRvbGVyYW5jZSI6IjAwMDAwMDAwMDAwMDAwMDAiLCJjb250cm9sVG9sZXJhbmNlIjoiMDAwMDAwMDAwMDAwMDAwMCIsImZpdFRvbGVyYW5jZSI6IjAwMDAwMDAwMDAwMDAwMDAiLCJrbm90UGFyYW1ldGVyaXphdGlvbiI6MCwiY3ZGcmFtZVZpc2libGUiOmZhbHNlLCJkd2dGbGFnczEiOjAsImR4ZkZsYWdzIjowfQ==",
+          "kind": "adapterSnapshot",
+          "schema": "openaec.opencadcodec.spline",
+          "version": 1
+        },
+        "representation": "codecTyped",
+        "role": "complete",
+        "sourceId": "cad-source-1",
+        "sourceKey": "1000",
+        "subject": {
+          "id": 1,
+          "kind": "entity"
+        }
+      }
+    ],
+    "sources": [
+      {
+        "id": "cad-source-1",
+        "origin": "dxf",
+        "provider": "opencadcodec",
+        "providerRevision": "fe69506cb99dea6f4c4a73b690a27fdf04403ea0",
+        "sourceVersion": "AC1032"
+      }
+    ],
+    "version": 1
+  },
+  "scopes": [
+    {
+      "bounds": null,
+      "entities": [
+        1
+      ],
+      "id": 0,
+      "kind": 0
+    }
+  ],
+  "streams": {
+    "opaqueEntityStream": {
+      "appearance": [
+        {
+          "color": {
+            "mode": "ByLayer"
+          },
+          "linePattern": {
+            "mode": "ByLayer"
+          },
+          "linePatternScale": 1.0,
+          "lineWeight": {
+            "mode": "ByLayer"
+          },
+          "opacity": {
+            "mode": "ByLayer"
+          }
+        }
+      ],
+      "count": 1,
+      "id": [
+        1
+      ],
+      "layerId": [
+        0
+      ],
+      "preservationRecordId": [
+        1
+      ],
+      "visible": [
+        true
+      ]
+    }
+  }
+}

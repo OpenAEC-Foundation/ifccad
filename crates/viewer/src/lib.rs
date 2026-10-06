@@ -1,6 +1,37 @@
 mod cad;
 mod geometry;
 mod ifccad;
+mod inspection;
+mod options;
+pub fn conversion_capabilities() -> Value {
+    json!({"ocdraw":{"adjustableTolerance":true},"ifccad":{"adjustableTolerance":true}})
+}
+pub use ocdraw::{export_drawing_bytes_with_options, inspect_cad_as_drawing_bytes_with_options};
+
+pub fn export_ifccad_bytes_with_options(
+    name: &str,
+    bytes: &[u8],
+    format: &str,
+    version: &str,
+    options: &str,
+) -> Value {
+    match options::ConversionOptions::parse(options) {
+        Ok(o) => ifccad::export_ifccad_with_options(name, bytes, format, version, &o),
+        Err(e) => options::invalid(name, "ifccad", "INVALID_CONVERSION_OPTIONS", e),
+    }
+}
+pub fn inspect_cad_as_ifccad_bytes_with_options(
+    name: &str,
+    format: &str,
+    bytes: &[u8],
+    timestamp: &str,
+    options: &str,
+) -> Value {
+    match options::ConversionOptions::parse(options) {
+        Ok(o) => ifccad::inspect_cad_as_ifccad_with_options(name, format, bytes, timestamp, &o),
+        Err(e) => options::invalid(name, "ifccad", "INVALID_CONVERSION_OPTIONS", e),
+    }
+}
 mod ocdraw;
 pub use ifccad::{export_ifccad_bytes, inspect_cad_as_ifccad_bytes, inspect_ifccad_bytes};
 pub use ocdraw::{

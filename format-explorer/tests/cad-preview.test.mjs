@@ -7,6 +7,42 @@ function setup(openExport=async()=>result){
  const calls=[];const session={async openOriginal(...args){calls.push(['original',...args]);},async replaceGenerated(...args){calls.push(['generated',...args]);},close(){calls.push(['close']);}};
  return {calls,controller:createCadPreviewController({openExport,openSession:async()=>session})};
 }
+test('background preparation validates output without starting the CAD viewer',async()=>{
+ let exports=0;const {calls,controller}=setup(async()=>{exports++;return result;});controller.setSource(source,true);
+ assert.equal(typeof controller.prepare,'function');await controller.prepare();assert.equal(controller.state.visible,false);assert.equal(controller.state.download,result.export.download);assert.deepEqual(calls,[]);
+ await controller.show();assert.equal(exports,1);assert.deepEqual(calls.map(c=>c[0]),['original','generated']);
+});
+test('opening or leaving Drawing shares the pending background export',async()=>{
+ let finish,signal,exports=0;const {calls,controller}=setup((r,o)=>{exports++;signal=o.signal;return new Promise(resolve=>{finish=resolve;});});controller.setSource(source,true);
+ assert.equal(typeof controller.prepare,'function');const background=controller.prepare();while(!finish)await new Promise(resolve=>setImmediate(resolve));
+ const viewing=controller.show();controller.hide();assert.equal(signal.aborted,false);finish(result);await Promise.all([background,viewing]);await controller.show();
+ assert.equal(exports,1);assert.equal(calls.filter(c=>c[0]==='generated').length,1);
+});
+test('replacing a source invalidates its unfinished background result',async()=>{
+ let finish,signal;const {controller}=setup((r,o)=>{signal=o.signal;return new Promise(resolve=>{finish=resolve;});});controller.setSource(source,true);
+ assert.equal(typeof controller.prepare,'function');const background=controller.prepare();while(!finish)await new Promise(resolve=>setImmediate(resolve));
+ controller.setSource({...source,name:'new.dwg'},true);assert.equal(signal.aborted,true);finish(result);await background;assert.equal(controller.state.download,null);assert.equal(controller.state.result,null);
+});
+test('invalid native input is not exported in the background',async()=>{
+ const {calls,controller}=setup(()=>{throw Error('must not export');});controller.setSource(source,false);
+ assert.equal(typeof controller.prepare,'function');await controller.prepare();assert.deepEqual(calls,[]);assert.equal(controller.state.result,null);
+});
+test('explicit cancellation discards late background progress and output',async()=>{
+ let finish,signal,progress;const {controller}=setup((r,o)=>{signal=o.signal;progress=o.onProgress;return new Promise(resolve=>{finish=resolve;});});controller.setSource(source,true);const pending=controller.prepare();while(!finish)await new Promise(resolve=>setImmediate(resolve));
+ controller.cancel();assert.equal(signal.aborted,true);assert.equal(controller.state.phase,'cancelled');progress('exporting');finish(result);await pending;assert.equal(controller.state.phase,'cancelled');assert.equal(controller.state.result,null);assert.equal(controller.state.download,null);
+});
+test('new output settings replace a pending hidden job and ignore its late result',async()=>{
+ let finish,signal;const requests=[];const {calls,controller}=setup((r,o)=>{requests.push(r);if(requests.length===1){signal=o.signal;return new Promise(resolve=>{finish=resolve;});}return {...result,export:{...result.export,download:{...result.export.download,format:r.export.format}}};});
+ controller.setSource(source,true);const old=controller.prepare();while(!finish)await new Promise(resolve=>setImmediate(resolve));await controller.select({format:'dxf',conversionOptions:{tolerance:{mode:'exact'}}});assert.equal(signal.aborted,true);finish(result);await old;
+ assert.equal(controller.state.download.format,'dxf');assert.equal(requests[1].conversionOptions.tolerance.mode,'exact');assert.deepEqual(calls,[]);
+});
+test('tolerance changes regenerate output without closing the edited CAD session',async()=>{
+ const requests=[];const {calls,controller}=setup(async r=>{requests.push(r);return result;});
+ controller.setSource(source,true);await controller.show();
+ await controller.select({conversionOptions:{tolerance:{mode:'exact'}}});
+ assert.equal(requests.length,2);assert.equal(requests[1].conversionOptions.tolerance.mode,'exact');
+ assert.equal(calls.filter(c=>c[0]==='original').length,1);assert.equal(calls.some(c=>c[0]==='close'),false);
+});
 test('original CAD and a production export via OCDraw open as distinct documents',async()=>{
  let request;const {calls,controller}=setup(async value=>{request=value;return result;});
  controller.setSource(source,true);await controller.show();

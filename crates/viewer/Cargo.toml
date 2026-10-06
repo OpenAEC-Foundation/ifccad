@@ -6,6 +6,7 @@ license = "MPL-2.0"
 description = "Local application adapter for IFCCAD and OCDraw"
 
 [dependencies]
+serde = { version = "1", features = ["derive"] }
 ocdraw = { path = "../.." }
 ocdraw-convert = { path = "../ocdraw-convert" }
 ifccad-convert = { path = "../ifccad-convert" }
