@@ -7,6 +7,7 @@ use serde_json::{json, Value};
 fn options(policy: IfccadLossPolicy) -> CadToIfccadOptions {
     CadToIfccadOptions {
         loss_policy: policy,
+        ..Default::default()
     }
 }
 
@@ -53,6 +54,7 @@ fn logical_and_encoded_imports_have_equivalent_documents_diagnostics_and_mapping
                         logical.document(),
                         IfccadToCadOptions {
                             loss_policy: (options(policy)).loss_policy,
+                            ..Default::default()
                         },
                     )
                     .unwrap();
@@ -60,6 +62,7 @@ fn logical_and_encoded_imports_have_equivalent_documents_diagnostics_and_mapping
                         encoded.validated_source(),
                         IfccadToCadOptions {
                             loss_policy: (options(policy)).loss_policy,
+                            ..Default::default()
                         },
                     )
                     .unwrap();
@@ -117,6 +120,7 @@ fn invalid_direct_document_never_reaches_cad_construction() {
                 &document,
                 IfccadToCadOptions {
                     loss_policy: policy,
+                    ..Default::default()
                 },
             )
             .err()
@@ -220,7 +224,7 @@ fn source_aware_conversion_keeps_foreign_loss_and_exact_precision_checks() {
     let allow = ifccad_source_to_cad_document(&source, Default::default()).unwrap();
     assert!(allow.diagnostics().iter().any(|d| d.code == "foreign-ifcx"));
     assert!(
-        matches!(ifccad_source_to_cad_document(&source, IfccadToCadOptions { loss_policy: (options(IfccadLossPolicy::Reject)).loss_policy }), Err(IfccadConversionError::Unsupported(d)) if d.iter().any(|d| d.code == "foreign-ifcx"))
+        matches!(ifccad_source_to_cad_document(&source, IfccadToCadOptions { loss_policy: (options(IfccadLossPolicy::Reject)).loss_policy , ..Default::default()}), Err(IfccadConversionError::Unsupported(d)) if d.iter().any(|d| d.code == "foreign-ifcx"))
     );
     assert_eq!(source.graph().source_bytes(), bytes);
     root["data"]
@@ -234,7 +238,7 @@ fn source_aware_conversion_keeps_foreign_loss_and_exact_precision_checks() {
     let source = load_ifccad_bytes(&bytes, Default::default()).unwrap();
     for policy in [IfccadLossPolicy::Allow, IfccadLossPolicy::Reject] {
         assert!(
-            matches!(ifccad_source_to_cad_document(&source, IfccadToCadOptions { loss_policy: (options(policy)).loss_policy }), Err(IfccadConversionError::Unsupported(d)) if d.iter().any(|d| d.code == "precision"))
+            matches!(ifccad_source_to_cad_document(&source, IfccadToCadOptions { loss_policy: (options(policy)).loss_policy , ..Default::default()}), Err(IfccadConversionError::Unsupported(d)) if d.iter().any(|d| d.code == "precision"))
         );
     }
     assert_eq!(source.graph().source_bytes(), bytes);

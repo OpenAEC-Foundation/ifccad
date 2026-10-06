@@ -1,11 +1,18 @@
 # Physical tolerance and symbolic units
 
-IFCDR resource units and definition insertion units use the same 25 symbolic
-values. Their exact physical definitions are in the
-[logical contract](../../schemas/ifcdr/logical-contract-0.9.0.md#unit-meaning).
+OCDraw and IFCCAD coordinate units use the same 25 symbolic values. Their
+physical definitions are in the
+[OCDraw logical contract](../../schemas/ocdraw/logical-contract-0.1.0.md).
 The converter maps CAD codes 0–24 explicitly; core enum discriminants have no
 CAD meaning. Unknown CAD codes retain the existing unsupported-unit diagnostic.
 Neither the unit mapping nor block insertion metadata rescales stored points.
+
+Both converters use the shared resolver in `cad-geometry-convert`. IFCCAD Model and
+definition-local checks use drawing units; each retained Paper layout resolves
+its own coordinate unit. Physical media does not infer a missing unit and
+reports never compare a global numeric maximum across unlike units. The exact
+registry/parsec assumptions below are unchanged by this extraction. See
+[shared geometry](shared-geometry.md) for public options and evidence.
 
 Physical tolerance defaults to exactly one micrometre, except unitless drawings
 default to exact geometry. An explicitly requested physical tolerance on unitless

@@ -45,6 +45,13 @@ pub enum EntityGeometry {
     },
 }
 
+impl EntityGeometry {
+    /// Borrows primitive fields for shared mathematics; block references are evaluated separately.
+    pub fn as_shared_geometry(&self) -> Option<crate::geometry_kernel::GeometryRef<'_>> {
+        super::geometry_validation::geometry_ref(self)
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct DrawingGeometricEntity {
     pub id: u64,

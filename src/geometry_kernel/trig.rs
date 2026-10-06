@@ -65,10 +65,9 @@ mod tests {
 
     #[test]
     fn intervals_enclose_independent_certified_references() {
-        let reference: serde_json::Value = serde_json::from_str(include_str!(
-            "../../../tests/data/block-trig-reference.json"
-        ))
-        .unwrap();
+        let reference: serde_json::Value =
+            serde_json::from_str(include_str!("../../tests/data/block-trig-reference.json"))
+                .unwrap();
         let value = |bits: &serde_json::Value| {
             f64::from_bits(u64::from_str_radix(bits.as_str().unwrap(), 16).unwrap())
         };

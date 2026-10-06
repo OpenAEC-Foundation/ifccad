@@ -33,12 +33,16 @@ and entity schema v1 are provisional until contract completion and verification.
 - `src/ocdraw/read.rs`, `build.rs`, `build/`: validated access and typed construction.
 - `src/ifccad` and `schemas/ifccad`: separate IFCCAD model,
   source graph, validation, profile and encoding.
+- `src/geometry_kernel`: shared primitive geometry, placement, validation,
+  bounds and analytic clip calculations, independent of CAD runtimes.
 - Both cores separate `encode.rs` orchestration, `codec/` physical mapping and
   `storage.rs` file IO; see [API conventions and migration](docs/model-io-conventions.md).
 - `crates/ocdraw-convert`: conversion between OCDraw and pinned opencadcodec
   `CadDocument`; DXF/DWG IO remains a CAD codec responsibility. Both converters
   use pinned upstream opencadcodec under its upstream name.
 - `crates/ifccad-convert`: the independent IFCCAD conversion route.
+- `crates/cad-geometry-convert`: shared CAD geometric preparation, tolerance
+  resolution and primitive/nested occurrence accuracy proofs for both routes.
 - `crates/viewer`, `crates/browser`: file inspection/conversion
   adapters. The inspector presents data and can embed Open CAD Studio to view
   original CAD and generated CAD through either route; see [website](format-explorer/README.md).
@@ -106,7 +110,11 @@ concrete designs; no generic extension protocol is standardized now.
 IFCCAD is integrated on main as an independent experiment alongside OCDraw,
 with separate models, schemas, validation and direct conversion routes.
 The explorer opens either native format and converts DWG/DXF through the chosen
-route. This integration does not freeze the experimental IFCCAD contract.
+route. IFCCAD geometry now includes points, signed arcs, full/partial ellipses,
+bulged planar and straight spatial paths, optional scope bounds and expanded
+viewport clips. Both converters share adjustable accuracy with independent
+coordinate-domain evidence. This remains a provisional 0.1.0 revision;
+see [shared geometry](docs/geometry/shared-geometry.md).
 
 ## Using the implementation
 
@@ -148,10 +156,11 @@ The independent IFCCAD proof is available in
 [evaluation](docs/experiments/ifccad.md). Its direct
 [converter](crates/ifccad-convert/README.md) connects the supported subset to
 opencadcodec `CadDocument`, including named simple line patterns, scales and polyline
-pattern generation. See the [line-pattern sample](examples/ifccad/hello-line-patterns.ifcx). Geometry validation and length-unit tokens reuse OCDraw;
+pattern generation. See the [geometry sample](examples/ifccad/hello-geometry.ifcx)
+and [line-pattern sample](examples/ifccad/hello-line-patterns.ifcx). Geometry validation and length-unit tokens use shared neutral helpers;
 the two drawing models, schemas and encoding routes remain separate. The
 [IFCCAD & OCDraw Explorer](format-explorer/README.md) now opens IFCCAD and
-roundtrips through DXF/DWG using its own converter. Model and multiple Paper layouts convert with explicit tab order, optional physical media and separate coordinate units. Paper viewports now retain orthographic/perspective camera, depth/display state and circle/closed straight-polyline clipping. CAD viewport exchange uses the explicit development codec repairs described in the converter; full plot settings remain deferred.
+roundtrips through DXF/DWG using its own converter. Model and multiple Paper layouts convert with explicit tab order, optional physical media and separate coordinate units. Paper viewports now retain orthographic/perspective camera, depth/display state and circle/full-ellipse/closed straight-or-bulged path clipping. CAD viewport exchange uses the explicit development codec repairs described in the converter; full plot settings remain deferred.
 
 ## History and naming
 

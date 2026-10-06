@@ -20,6 +20,7 @@ pub fn snapshot(document: &CadDocument) -> Result<Value> {
         metadata(),
         ifccad_convert::CadToIfccadOptions {
             loss_policy: ifccad_convert::IfccadLossPolicy::Reject,
+            ..Default::default()
         },
     )?;
     semantic(native.document())
@@ -28,6 +29,26 @@ pub fn semantic(d: &IfccadDocument) -> Result<Value> {
     validate_ifccad_document(d).map_err(|e| format!("{e:?}"))?;
     if !d.paper_layouts.is_empty() {
         return Err("paper outside current comparison contract".into());
+    }
+    for e in d
+        .model
+        .entities
+        .iter()
+        .chain(d.blocks.iter().flat_map(|b| &b.entities))
+    {
+        if !matches!(
+            &e.kind,
+            IfccadEntityKind::LineSegment { .. }
+                | IfccadEntityKind::Circle { .. }
+                | IfccadEntityKind::PlanarPolyline { .. }
+                | IfccadEntityKind::BlockInstance { .. }
+        ) {
+            return Err("geometry outside current comparison contract".into());
+        }
+        if matches!(&e.kind, IfccadEntityKind::PlanarPolyline{bulges,..} if bulges.iter().any(|b|*b!=0.))
+        {
+            return Err("curved geometry outside current comparison contract".into());
+        }
     }
     let pattern_name = |id| {
         d.line_patterns
@@ -44,8 +65,9 @@ pub fn semantic(d: &IfccadDocument) -> Result<Value> {
                 IfccadEntityKind::Viewport(_) => unreachable!("validated viewports belong to paper layouts, which this comparison rejects"),
                 IfccadEntityKind::LineSegment { start, end } => json!({"kind":"line", "start":start,"end":end}),
                 IfccadEntityKind::Circle { radius, placement } => json!({"kind":"circle","radius":radius,"placement":placement}),
-                IfccadEntityKind::PlanarPolyline { vertices, closed, placement, line_pattern_generation } => json!({"kind":"polyline","vertices":vertices,"closed":closed,"placement":placement,"generation":line_pattern_generation}),
-                IfccadEntityKind::BlockInstance { definition_id, transform } => json!({"kind":"insert","definition":d.blocks.iter().find(|b| b.id == *definition_id).unwrap().name,"transform":transform})
+                IfccadEntityKind::PlanarPolyline { vertices, closed, placement, line_pattern_generation , ..} => json!({"kind":"polyline","vertices":vertices,"closed":closed,"placement":placement,"generation":line_pattern_generation}),
+                IfccadEntityKind::BlockInstance { definition_id, transform } => json!({"kind":"insert","definition":d.blocks.iter().find(|b| b.id == *definition_id).unwrap().name,"transform":transform}),
+                _ => unreachable!("out-of-contract geometry rejected before comparison")
             };
             let mut appearance = serde_json::to_value(&e.appearance).unwrap();
             if let IfccadMode::Explicit(id) = e.appearance.line_pattern { appearance["linePattern"]["value"] = json!(pattern_name(id)); }
@@ -166,12 +188,14 @@ mod tests {
         let a = drawing("blocks");
         let mut b = a.clone();
         b.blocks.last_mut().unwrap().base_point[0] += 1.;
+        ocdraw::ifccad::recompute_ifccad_document_bounds(&mut b).unwrap();
         assert_ne!(semantic(&a).unwrap(), semantic(&b).unwrap());
         b = a.clone();
         if let IfccadEntityKind::BlockInstance { definition_id, .. } = &mut b.model.entities[0].kind
         {
             *definition_id = b.blocks[0].id;
         }
+        ocdraw::ifccad::recompute_ifccad_document_bounds(&mut b).unwrap();
         assert_ne!(semantic(&a).unwrap(), semantic(&b).unwrap());
     }
     #[test]

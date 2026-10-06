@@ -24,6 +24,7 @@ struct LayoutValue {
     name: Option<String>,
     length_unit: Option<String>,
     paper: Option<IfccadPaperSize>,
+    bounds: Option<IfccadBounds3d>,
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -37,6 +38,7 @@ struct DefinitionValue {
     name: String,
     base_point: [f64; 3],
     insertion_unit: String,
+    bounds: Option<IfccadBounds3d>,
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -45,23 +47,6 @@ struct EntityValue {
     line_pattern_scale: f64,
     layer: String,
     appearance: super::wire::EntityAppearance,
-}
-#[derive(Deserialize)]
-struct LineValue {
-    start: [f64; 3],
-    end: [f64; 3],
-}
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct PolylineValue {
-    #[serde(default)]
-    line_pattern_generation: IfccadLinePatternGeneration,
-    vertices: Vec<[f64; 2]>,
-    closed: bool,
-}
-#[derive(Deserialize)]
-struct CircleValue {
-    radius: f64,
 }
 #[derive(Deserialize)]
 struct InstanceValue {
@@ -101,6 +86,17 @@ fn node_map(raw: &Value) -> Result<BTreeMap<String, &Value>, IfccadReport> {
         .as_array()
         .ok_or_else(|| problem("IFCX data must be an array"))?
     {
+        for key in ["ifccad::layout", "ifccad::blockDefinition"] {
+            if attr(node, key)
+                .and_then(|v| v.get("bounds"))
+                .is_some_and(Value::is_null)
+            {
+                return Err(problem(
+                    "explicit null bounds are invalid; omit absent bounds",
+                ));
+            }
+        }
+
         let path = node
             .get("path")
             .and_then(Value::as_str)
@@ -182,13 +178,8 @@ fn entity(
         .get("attributes")
         .and_then(Value::as_object)
         .ok_or_else(|| problem(format!("{path} missing attributes")))?;
-    let payloads = [
-        "ifccad::viewport",
-        "ifccad::geom::lineSegment",
-        "ifccad::geom::planarPolyline",
-        "ifccad::geom::circle",
-        "ifccad::blockInstance",
-    ];
+    let mut payloads = super::geometry::PAYLOADS.to_vec();
+    payloads.extend(["ifccad::viewport", "ifccad::blockInstance"]);
     let present: Vec<_> = payloads
         .iter()
         .filter(|key| attrs.contains_key(**key))
@@ -215,32 +206,7 @@ fn entity(
                 prefix,
             )?)
         }
-        "ifccad::geom::lineSegment" => {
-            let line: LineValue = required(node, present[0])?;
-            IfccadEntityKind::LineSegment {
-                start: line.start,
-                end: line.end,
-            }
-        }
-        "ifccad::geom::planarPolyline" => {
-            let poly: PolylineValue = required(node, present[0])?;
-            let frame: IfccadPlacement = required(node, "ifccad::geom::placement")?;
-            IfccadEntityKind::PlanarPolyline {
-                line_pattern_generation: poly.line_pattern_generation,
-                vertices: poly.vertices,
-                closed: poly.closed,
-                placement: frame,
-            }
-        }
-        "ifccad::geom::circle" => {
-            let circle: CircleValue = required(node, present[0])?;
-            let frame: IfccadPlacement = required(node, "ifccad::geom::placement")?;
-            IfccadEntityKind::Circle {
-                radius: circle.radius,
-                placement: frame,
-            }
-        }
-        _ => {
+        "ifccad::blockInstance" => {
             let instance: InstanceValue = required(node, present[0])?;
             let definition_id = *block_paths.get(&instance.definition).ok_or_else(|| {
                 problem(format!(
@@ -253,6 +219,7 @@ fn entity(
                 transform: instance.transform,
             }
         }
+        key => super::geometry::decode_kind(attrs, key, path)?,
     };
     Ok(IfccadEntity {
         id,
@@ -450,6 +417,7 @@ pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
             .collect()
     };
     let model = IfccadLayout {
+        bounds: required::<LayoutValue>(nodes[&model_path], "ifccad::layout")?.bounds,
         id: numbered(&model_path, &format!("{prefix}/layout/"))?,
         tab_index: 0,
         entities: parse_owner(&model_path)?,
@@ -457,6 +425,7 @@ pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
     let mut paper_layouts = Vec::new();
     for (id, (path, name, tab_index, length_unit, paper)) in paper_paths {
         paper_layouts.push(IfccadPaperLayout {
+            bounds: required::<LayoutValue>(nodes[&path], "ifccad::layout")?.bounds,
             id,
             name,
             tab_index,
@@ -471,6 +440,7 @@ pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         let node = nodes[path];
         let value: DefinitionValue = required(node, "ifccad::blockDefinition")?;
         blocks.push(IfccadBlockDefinition {
+            bounds: value.bounds,
             id: *id,
             name: value.name,
             base_point: value.base_point,

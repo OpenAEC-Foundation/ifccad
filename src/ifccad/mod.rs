@@ -29,7 +29,7 @@
 //! let mut document = load_ifccad_bytes(bytes, Default::default())?.into_document();
 //! let id = document.id_counters.allocate_layout_id()?;
 //! let tab_index = u32::try_from(document.paper_layouts.len() + 1)?;
-//! document.paper_layouts.push(IfccadPaperLayout {
+//! document.paper_layouts.push(IfccadPaperLayout { bounds: None,
 //!     id, name: "New sheet".into(), tab_index,
 //!     length_unit: "unitless".into(), paper: None, entities: vec![],
 //! });

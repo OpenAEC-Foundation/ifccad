@@ -105,9 +105,18 @@ value alone looks valid. Full-width allocation integers remain exact in typed
 state and native output.
 
 The paperspace slice extends conversion coverage; existing source recoveries and appearance adaptations remain in force. Fresh CAD imports allocate fresh native IDs; a CAD-runtime
-roundtrip does not preserve native allocation history automatically. Multiple authored Paper layouts, supported geometry, tab order and optional media convert. Paper viewport camera, perspective, depth/display state and circle/closed straight-polyline clipping now convert with explicit codec development repairs; full plot settings remain deferred with located loss diagnostics.
+roundtrip does not preserve native allocation history automatically. Multiple authored Paper layouts, supported geometry, tab order and optional media convert. Paper viewport camera, perspective, depth/display state and circle/full-ellipse/closed straight-or-bulged path clipping now convert with explicit codec development repairs; full plot settings remain deferred with located loss diagnostics.
 
 ## Editing viewport references
+
+Model, Paper and block definitions have optional supplied bounds. Native load
+and encode preserve valid supplied boxes, including oversized boxes. Call
+`recompute_ifccad_document_bounds(&mut document)` explicitly after geometry
+editing; preparation validates and computes all scopes before changing any box.
+Failure leaves the document unchanged. Empty scopes have no box. CAD imports
+explicitly prepare fresh bounds rather than trusting CAD cached extents.
+See [shared geometry](../geometry/shared-geometry.md) for enclosure and tolerance
+boundaries; conversion preferences do not alter native reader validation.
 
 Paper viewports use ordinary entity IDs and owner order. Reordering does not
 change the referenced Model, clip boundary or frozen layers. Moving a viewport

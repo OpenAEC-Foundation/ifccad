@@ -1,0 +1,255 @@
+{
+  "header": {
+    "id": "viewport-reference",
+    "ifcxVersion": "ifcx_alpha",
+    "dataVersion": "0.1.0",
+    "author": "OpenAEC viewport reference",
+    "timestamp": "2026-10-01T00:00:00Z"
+  },
+  "imports": [
+    {
+      "uri": "urn:example:ifccad:0.1.0"
+    }
+  ],
+  "schemas": {},
+  "data": [
+    {
+      "path": "/cad/d1",
+      "children": {
+        "layer0": "/cad/d1/layer/0",
+        "layer4": "/cad/d1/layer/4",
+        "linePattern0": "/cad/d1/linePattern/0",
+        "model": "/cad/d1/layout/1",
+        "paper42": "/cad/d1/layout/42"
+      },
+      "attributes": {
+        "ifccad::drawing": {
+          "lengthUnit": "mm",
+          "linePatternScale": 1.0,
+          "nextBlockId": 1,
+          "nextEntityId": 1003,
+          "nextLayerId": 5,
+          "nextLayoutId": 43,
+          "nextLinePatternId": 1,
+          "profileVersion": "0.1.0"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layout/1",
+      "children": {},
+      "attributes": {
+        "ifccad::layout": {
+          "kind": "Model",
+          "tabIndex": 0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layout/42",
+      "children": {
+        "0": "/cad/d1/e1000",
+        "1": "/cad/d1/e1001",
+        "2": "/cad/d1/e1002"
+      },
+      "attributes": {
+        "ifccad::layout": {
+          "kind": "Paper",
+          "lengthUnit": "mm",
+          "name": "Sheet",
+          "tabIndex": 1
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/linePattern/0",
+      "attributes": {
+        "ifccad::linePattern": {
+          "description": "Solid line",
+          "name": "continuous",
+          "pattern": []
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layer/0",
+      "attributes": {
+        "ifccad::layer": {
+          "appearance": {
+            "color": "#FFFFFF",
+            "linePattern": "/cad/d1/linePattern/0",
+            "lineWeight": 0.25,
+            "opacity": 1.0
+          },
+          "name": "0"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layer/4",
+      "attributes": {
+        "ifccad::layer": {
+          "appearance": {
+            "color": "#FFFFFF",
+            "linePattern": "/cad/d1/linePattern/0",
+            "lineWeight": 0.25,
+            "opacity": 1.0
+          },
+          "name": "Notes"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e1000",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0",
+          "linePatternScale": 1.0
+        },
+        "ifccad::geom::lineSegment": {
+          "end": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "start": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e1001",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0",
+          "linePatternScale": 1.0
+        },
+        "ifccad::viewport": {
+          "frame": {
+            "center": [
+              100.0,
+              75.0
+            ],
+            "height": 100.0,
+            "width": 160.0
+          },
+          "frozenLayers": [
+            "/cad/d1/layer/4"
+          ],
+          "model": "/cad/d1/layout/1",
+          "paperClip": {
+            "boundary": "/cad/d1/e1002",
+            "enabled": true
+          },
+          "renderMode": "Wireframe",
+          "view": {
+            "backClip": {
+              "distance": 0.0,
+              "mode": "Disabled"
+            },
+            "center": [
+              0.0,
+              0.0
+            ],
+            "direction": [
+              0.0,
+              0.0,
+              100.0
+            ],
+            "frontClip": {
+              "distance": 0.0,
+              "mode": "Disabled"
+            },
+            "height": 200.0,
+            "lensLengthMm": 50.0,
+            "projection": "Perspective",
+            "target": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "twist": 0.0
+          },
+          "viewEnabled": true,
+          "viewLocked": true,
+          "visible": true
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e1002",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0",
+          "linePatternScale": 1.0
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            100.0,
+            75.0,
+            0.01
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::geom::ellipse": {
+          "semiMajorRadius": 60,
+          "semiMinorRadius": 40
+        }
+      }
+    }
+  ]
+}

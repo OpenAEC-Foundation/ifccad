@@ -1,163 +1,92 @@
-//! Typed geometry preparation shared by the standalone conversion directions.
-//!
-//! Numerical preparation operates on OCDraw values, independent of encoding.
-
-use crate::geometry::{
-    self,
-    blocks::{EvaluatedBlock, PairedCurve, PairedPoint},
-    circular,
-};
+//! OCDraw record/identity adapter over shared primitive preparation and proofs.
 use crate::{
-    OcdrawGeometryAssessment, OcdrawGeometryEntitySource, OcdrawGeometryFailure,
+    OcdrawGeometryEntitySource as Source, OcdrawGeometryFailure,
     OcdrawGeometryFailureReason as Reason, OcdrawGeometryStage as Stage,
 };
-use ocdraw::ocdraw::{CoordinateFrame3, DrawingGeometry, Point3, Vector3};
+use ocdraw::geometry_kernel::OwnedGeometry;
+use ocdraw::ocdraw::{DrawingGeometry, LinePatternGeneration};
 use opencadcodec::{EntityType, Handle};
 use std::collections::BTreeMap;
+pub(crate) type ExchangeState<K> = cad_geometry_convert::ExchangeState<K, Source>;
 
-struct Instance<K> {
-    definition: K,
-    source: EvaluatedBlock,
-    target: EvaluatedBlock,
+fn preparation_failure<K: Copy + Ord>(
+    state: &ExchangeState<K>,
+    identity: &Source,
+    error: cad_geometry_convert::CadPreparationError,
+    stage: Stage,
+) -> Box<OcdrawGeometryFailure> {
+    let (stage, reason) = match error {
+        cad_geometry_convert::CadPreparationError::Numerical { stage, reason } => (stage, reason),
+        cad_geometry_convert::CadPreparationError::OutOfRange => {
+            (stage, Reason::TargetCoordinateOutOfRange)
+        }
+        _ => (stage, Reason::CadAxisEvaluationFailed),
+    };
+    state.assessment.failure(identity, None, stage, reason)
 }
-pub(crate) struct ExchangeState<K> {
-    pub assessment: OcdrawGeometryAssessment,
-    points: BTreeMap<K, Vec<PairedPoint>>,
-    curves: BTreeMap<K, PairedCurve>,
-    instances: BTreeMap<K, Instance<K>>,
-    identities: BTreeMap<K, OcdrawGeometryEntitySource>,
-}
-impl<K: Copy + Ord> ExchangeState<K> {
-    pub fn new(assessment: OcdrawGeometryAssessment) -> Self {
-        Self {
-            assessment,
-            points: BTreeMap::new(),
-            curves: BTreeMap::new(),
-            instances: BTreeMap::new(),
-            identities: BTreeMap::new(),
-        }
-    }
-    pub fn affected_instances(
-        &self,
-        members: &BTreeMap<K, Vec<K>>,
-        affected: &std::collections::BTreeSet<K>,
-    ) -> BTreeMap<K, Vec<K>> {
-        let mut result = BTreeMap::<K, Vec<K>>::new();
-        for (&root, instance) in &self.instances {
-            let mut pending = vec![instance.definition];
-            let mut visited = std::collections::BTreeSet::new();
-            while let Some(definition) = pending.pop() {
-                if !visited.insert(definition) {
-                    continue;
-                }
-                if affected.contains(&definition) {
-                    result.entry(definition).or_default().push(root);
-                }
-                for child in members.get(&definition).into_iter().flatten() {
-                    if let Some(instance) = self.instances.get(child) {
-                        pending.push(instance.definition);
-                    }
-                }
-            }
-        }
-        result
-    }
-    fn curve(
-        &mut self,
-        key: K,
-        samples: Vec<(PairedPoint, num_rational::BigRational)>,
-        curve: Option<PairedCurve>,
-    ) -> Result<f64, Box<OcdrawGeometryFailure>> {
-        let identity = &self.identities[&key];
-        let curve = curve.ok_or_else(|| {
-            self.assessment.failure(
-                identity,
-                None,
-                Stage::DeviationAssessment,
-                Reason::DeviationBoundOutOfRange,
-            )
-        })?;
-        let mut maximum = 0.0_f64;
-        let mut points = Vec::new();
-        for (index, (point, d2)) in samples.into_iter().enumerate() {
-            maximum = maximum.max(self.assessment.check(identity, index, &d2)?);
-            points.push(point);
-        }
-        maximum = maximum.max(self.assessment.check_curve(identity, &curve)?);
-        self.assessment
-            .record(identity.clone(), points.len(), maximum);
-        self.points.insert(key, points);
-        self.curves.insert(key, curve);
-        Ok(maximum)
-    }
-    fn exact(&mut self, key: K, points: impl IntoIterator<Item = [f64; 3]>) {
-        let points = points
-            .into_iter()
-            .map(PairedPoint::exact)
-            .collect::<Vec<_>>();
-        self.assessment
-            .record(self.identities[&key].clone(), points.len(), 0.0);
-        self.points.insert(key, points);
-    }
-    // The source and validated drawing are acyclic. Include unused definitions,
-    // and apply nested transforms in reverse path order to retain correlation.
-    pub fn assess_occurrences(
-        &mut self,
-        members: &BTreeMap<K, Vec<K>>,
-    ) -> Result<Vec<(K, f64)>, Box<OcdrawGeometryFailure>> {
-        let mut rounded = Vec::new();
-        for (&root, instance) in &self.instances {
-            let mut stack = vec![(instance.definition, vec![root])];
-            while let Some((definition, path)) = stack.pop() {
-                for &leaf in members.get(&definition).into_iter().flatten() {
-                    if let Some(nested) = self.instances.get(&leaf) {
-                        let mut path = path.clone();
-                        path.push(leaf);
-                        stack.push((nested.definition, path));
-                    } else if let Some(points) = self.points.get(&leaf) {
-                        let identity = OcdrawGeometryEntitySource::BlockOccurrence {
-                            path: path
-                                .iter()
-                                .map(|key| self.identities[key].clone())
-                                .collect(),
-                            leaf: Box::new(self.identities[&leaf].clone()),
-                        };
-                        let mut maximum = 0.0_f64;
-                        for (index, point) in points.iter().enumerate() {
-                            let mut point = point.clone();
-                            for key in path.iter().rev() {
-                                let pair = &self.instances[key];
-                                point.apply(&pair.source, &pair.target);
-                            }
-                            let (lower, upper) = point.squared_deviation();
-                            maximum = maximum.max(
-                                self.assessment
-                                    .check_interval(&identity, index, &lower, &upper)?,
-                            );
-                        }
-                        if let Some(curve) = self.curves.get(&leaf) {
-                            let mut curve = curve.clone();
-                            for key in path.iter().rev() {
-                                let pair = &self.instances[key];
-                                curve.apply(&pair.source, &pair.target);
-                            }
-                            maximum = maximum.max(self.assessment.check_curve(&identity, &curve)?);
-                        }
-                        self.assessment.record(identity, points.len(), maximum);
-                        if maximum > 0.0 {
-                            rounded.push((root, maximum));
-                        }
-                    }
-                }
-            }
-        }
-        Ok(rounded)
+fn generation(entity: &EntityType) -> LinePatternGeneration {
+    let continuous = match entity {
+        EntityType::LwPolyline(p) => p.plinegen,
+        EntityType::Polyline2D(p) => p.flags.bits() & 128 != 0,
+        EntityType::Polyline3D(p) => p.flags.to_bits() & 128 != 0,
+        EntityType::Polyline(p) => p.flags.bits() & 128 != 0,
+        _ => false,
+    };
+    if continuous {
+        LinePatternGeneration::Continuous
+    } else {
+        LinePatternGeneration::PerSegment
     }
 }
-fn xyz(p: opencadcodec::Vector3) -> [f64; 3] {
-    [p.x, p.y, p.z]
+fn native(
+    geometry: OwnedGeometry,
+    line_pattern_generation: LinePatternGeneration,
+) -> DrawingGeometry {
+    match geometry {
+        OwnedGeometry::Line { start, end } => DrawingGeometry::Line { start, end },
+        OwnedGeometry::Point { placement } => DrawingGeometry::Point { placement },
+        OwnedGeometry::Circle { placement, radius } => {
+            DrawingGeometry::Circle { placement, radius }
+        }
+        OwnedGeometry::Arc {
+            placement,
+            radius,
+            start,
+            sweep,
+        } => DrawingGeometry::Arc {
+            placement,
+            radius,
+            start_parameter: start,
+            sweep_parameter: sweep,
+        },
+        OwnedGeometry::Ellipse {
+            placement,
+            major,
+            minor,
+            arc,
+        } => DrawingGeometry::Ellipse {
+            placement,
+            semi_major_radius: major,
+            semi_minor_radius: minor,
+            arc,
+        },
+        OwnedGeometry::PlanarPolyline {
+            placement,
+            vertices,
+            closed,
+        } => DrawingGeometry::PlanarPolyline {
+            placement,
+            vertices,
+            closed,
+            line_pattern_generation,
+        },
+        OwnedGeometry::SpatialPolyline { vertices, closed } => DrawingGeometry::SpatialPolyline {
+            vertices,
+            closed,
+            line_pattern_generation,
+        },
+    }
 }
-
 pub(crate) fn from_cad(
     entity: &EntityType,
     definitions: &BTreeMap<Handle, u32>,
@@ -165,229 +94,43 @@ pub(crate) fn from_cad(
     state: &mut ExchangeState<Handle>,
 ) -> Result<(DrawingGeometry, f64, bool), Box<OcdrawGeometryFailure>> {
     let key = entity.common().handle;
-    let identity = OcdrawGeometryEntitySource::CadEntity {
+    let identity = Source::CadEntity {
         handle: key,
         kind: entity.as_entity().entity_type().into(),
     };
-    state.identities.insert(key, identity.clone());
-    let range_failure = || {
-        state.assessment.failure(
-            &identity,
-            None,
-            Stage::TargetConstruction,
-            Reason::TargetCoordinateOutOfRange,
-        )
-    };
-    let mut maximum = 0.0;
-    let mut normalized = false;
-    let result = match entity {
-        EntityType::Line(line) => {
-            state.exact(key, [xyz(line.start), xyz(line.end)]);
-            DrawingGeometry::Line {
-                start: xyz(line.start),
-                end: xyz(line.end),
-            }
-        }
-        EntityType::Point(point) => {
-            let basis = geometry::cad_plane(point.normal).expect("classified point plane");
-            let (s, c) = point.x_axis_angle.sin_cos();
-            let rotated = |a: f64, b: f64| {
-                opencadcodec::Vector3::new(
-                    a * basis.u[0] + b * basis.v[0],
-                    a * basis.u[1] + b * basis.v[1],
-                    a * basis.u[2] + b * basis.v[2],
-                )
-            };
-            let (x, y) = geometry::orthonormal_pair(rotated(c, s), rotated(-s, c))
-                .expect("classified point axes");
-            let placement = CoordinateFrame3::try_new(
-                Point3::new(point.location.x, point.location.y, point.location.z),
-                Vector3::new(x.x, x.y, x.z),
-                Vector3::new(y.x, y.y, y.z),
-            )
-            .expect("classified point frame");
-            normalized = geometry::stored_normal(placement) != Some(point.normal);
-            state.exact(key, [xyz(point.location)]);
-            DrawingGeometry::Point { placement }
-        }
-        EntityType::Circle(circle) => {
-            let placement = circular::from_cad_ocs(circle.center, circle.normal)
-                .expect("classified circle frame");
-            let samples = circular::export_circle_sample_pairs(circle, placement)
-                .ok_or_else(range_failure)?;
-            maximum = state.curve(
-                key,
-                samples,
-                circular::export_circle_curve(circle, placement),
+    if let EntityType::Insert(insert) = entity {
+        let record = document
+            .block_records
+            .get(&insert.block_name)
+            .expect("validated block target");
+        let (transform, source, target) =
+            cad_geometry_convert::geometry::blocks::from_cad_instance(
+                insert,
+                record.base_point,
+                &state.assessment,
             )?;
-            normalized = geometry::stored_normal(placement) != Some(circle.normal);
-            DrawingGeometry::Circle {
-                placement,
-                radius: circle.radius,
-            }
-        }
-        EntityType::Arc(arc) => {
-            let placement =
-                circular::from_cad_ocs(arc.center, arc.normal).expect("classified arc frame");
-            let sweep = (arc.end_angle - arc.start_angle).rem_euclid(std::f64::consts::TAU);
-            let samples = circular::export_arc_sample_pairs(arc, placement, sweep)
-                .ok_or_else(range_failure)?;
-            maximum = state.curve(
-                key,
-                samples,
-                circular::export_arc_curve(arc, placement, sweep),
-            )?;
-            normalized = geometry::stored_normal(placement) != Some(arc.normal);
-            DrawingGeometry::Arc {
-                placement,
-                radius: arc.radius,
-                start_parameter: arc.start_angle,
-                sweep_parameter: sweep,
-            }
-        }
-        EntityType::Ellipse(ellipse) => {
-            let (placement, major, minor) =
-                circular::from_cad_ellipse(ellipse).expect("classified ellipse frame");
-            let difference = ellipse.end_parameter - ellipse.start_parameter;
-            let full = difference == std::f64::consts::TAU;
-            let sweep = if full {
-                difference
-            } else {
-                difference.rem_euclid(std::f64::consts::TAU)
-            };
-            let samples = circular::export_ellipse_sample_pairs(
-                ellipse,
-                placement,
-                major,
-                minor,
-                ellipse.start_parameter,
-                sweep,
-            )
-            .ok_or_else(range_failure)?;
-            maximum = state.curve(
-                key,
-                samples,
-                circular::export_ellipse_curve(ellipse, placement, major, minor, sweep),
-            )?;
-            normalized = geometry::stored_normal(placement) != Some(ellipse.normal);
-            DrawingGeometry::Ellipse {
-                placement,
-                semi_major_radius: major,
-                semi_minor_radius: minor,
-                arc: (!full).then_some((ellipse.start_parameter, sweep)),
-            }
-        }
-        EntityType::LwPolyline(poly) => {
-            planar_from_cad(poly, key, state, &mut maximum, &mut normalized)?
-        }
-        EntityType::Polyline2D(poly) => {
-            let mut prepared = opencadcodec::LwPolyline::from_points(
-                poly.vertices
-                    .iter()
-                    .map(|v| opencadcodec::Vector2::new(v.location.x, v.location.y))
-                    .collect(),
-            );
-            prepared.common = poly.common.clone();
-            prepared.normal = poly.normal;
-            prepared.elevation = poly.elevation;
-            prepared.is_closed = poly.flags.is_closed();
-            prepared.plinegen = poly.flags.bits() & 128 != 0;
-            for (a, b) in prepared.vertices.iter_mut().zip(&poly.vertices) {
-                a.bulge = b.bulge;
-            }
-            planar_from_cad(&prepared, key, state, &mut maximum, &mut normalized)?
-        }
-        EntityType::Polyline3D(poly) => {
-            let vertices = poly
-                .vertices
-                .iter()
-                .map(|v| xyz(v.position))
-                .collect::<Vec<_>>();
-            state.exact(key, vertices.iter().copied());
-            DrawingGeometry::SpatialPolyline {
-                line_pattern_generation: if poly.flags.to_bits() & 128 != 0 {
-                    ocdraw::ocdraw::LinePatternGeneration::Continuous
-                } else {
-                    ocdraw::ocdraw::LinePatternGeneration::PerSegment
-                },
-
-                vertices,
-                closed: poly.flags.closed,
-            }
-        }
-        EntityType::Polyline(poly) => {
-            let vertices = poly
-                .vertices
-                .iter()
-                .map(|v| xyz(v.location))
-                .collect::<Vec<_>>();
-            state.exact(key, vertices.iter().copied());
-            DrawingGeometry::SpatialPolyline {
-                line_pattern_generation: if poly.flags.bits() & 128 != 0 {
-                    ocdraw::ocdraw::LinePatternGeneration::Continuous
-                } else {
-                    ocdraw::ocdraw::LinePatternGeneration::PerSegment
-                },
-
-                vertices,
-                closed: poly.flags.is_closed(),
-            }
-        }
-        EntityType::Insert(insert) => {
-            let record = document
-                .block_records
-                .get(&insert.block_name)
-                .expect("checked block reference");
-            let (native, source, target) =
-                geometry::blocks::from_cad_instance(insert, record.base_point, &state.assessment)?;
-            normalized = geometry::stored_normal(native.placement()) != Some(insert.normal);
-            state.instances.insert(
-                key,
-                Instance {
-                    definition: record.handle,
-                    source,
-                    target,
-                },
-            );
+        let normalized = cad_geometry_convert::geometry::stored_normal(transform.placement())
+            != Some(insert.normal);
+        state.register_identity(key, identity);
+        state.record_instance_parts(key, record.handle, source, target);
+        return Ok((
             DrawingGeometry::BlockInstance {
                 definition_scope_id: definitions[&record.handle],
-                transform: native,
-            }
-        }
-        _ => unreachable!("classified geometry family"),
-    };
-    Ok((result, maximum, normalized))
+                transform,
+            },
+            0.,
+            normalized,
+        ));
+    }
+    let prepared = cad_geometry_convert::prepare_from_cad(entity)
+        .map_err(|e| preparation_failure(state, &identity, e, Stage::SourceEvaluation))?;
+    let maximum = state.record_geometry(key, identity, prepared.pair)?;
+    Ok((
+        native(prepared.geometry, generation(entity)),
+        maximum,
+        prepared.normal_normalized,
+    ))
 }
-fn planar_from_cad(
-    poly: &opencadcodec::LwPolyline,
-    key: Handle,
-    state: &mut ExchangeState<Handle>,
-    maximum: &mut f64,
-    normalized: &mut bool,
-) -> Result<DrawingGeometry, Box<OcdrawGeometryFailure>> {
-    let (placement, bound, changed) = geometry::from_cad(poly, &mut state.assessment)?;
-    *maximum = bound;
-    *normalized = changed;
-    state
-        .points
-        .insert(key, geometry::blocks::polyline_pairs(poly, placement));
-    Ok(DrawingGeometry::PlanarPolyline {
-        line_pattern_generation: if poly.plinegen {
-            ocdraw::ocdraw::LinePatternGeneration::Continuous
-        } else {
-            ocdraw::ocdraw::LinePatternGeneration::PerSegment
-        },
-
-        placement,
-        vertices: poly
-            .vertices
-            .iter()
-            .map(|v| [v.location.x, v.location.y, v.bulge])
-            .collect(),
-        closed: poly.is_closed,
-    })
-}
-
 pub(crate) fn to_cad(
     source: &ocdraw::ocdraw::DrawingGeometricEntity,
     owner_scope_id: u32,
@@ -395,195 +138,54 @@ pub(crate) fn to_cad(
     state: &mut ExchangeState<u64>,
 ) -> Result<(EntityType, f64, bool), crate::OcdrawToCadError> {
     let key = source.id();
-    let identity = OcdrawGeometryEntitySource::DrawingEntity {
+    let identity = Source::DrawingEntity {
         scope_id: owner_scope_id,
         entity_id: key,
     };
-    state.identities.insert(key, identity.clone());
-    let fail = || {
-        state.assessment.failure(
-            &identity,
-            None,
-            Stage::TargetConstruction,
-            Reason::CadAxisEvaluationFailed,
-        )
-    };
-    let range_failure = || {
-        state.assessment.failure(
-            &identity,
-            None,
-            Stage::TargetConstruction,
-            Reason::TargetCoordinateOutOfRange,
-        )
-    };
-    let mut maximum = 0.0;
-    let mut changed = false;
-    let entity = match source.geometry() {
-        DrawingGeometry::Line { start, end } => {
-            state.exact(key, [*start, *end]);
-            EntityType::Line(opencadcodec::Line::from_coords(
-                start[0], start[1], start[2], end[0], end[1], end[2],
-            ))
-        }
-        DrawingGeometry::Point { placement } => {
-            let native = *placement;
-            let normal = geometry::stored_normal(native).ok_or_else(fail)?;
-            let basis = geometry::cad_plane(normal).ok_or_else(fail)?;
-            let x = placement.x_axis();
-            let o = placement.origin();
-            let dot = |a: [f64; 3]| x.x() * a[0] + x.y() * a[1] + x.z() * a[2];
-            let mut target = opencadcodec::Point::from_coords(o.x(), o.y(), o.z());
-            target.normal = normal;
-            target.x_axis_angle = dot(basis.v).atan2(dot(basis.u));
-            state.exact(key, [[o.x(), o.y(), o.z()]]);
-            EntityType::Point(target)
-        }
-        DrawingGeometry::Circle { placement, radius } => {
-            let native = *placement;
-            let (center, normal, phase) = circular::to_cad_ocs(native, false).ok_or_else(fail)?;
-            let mut target = opencadcodec::Circle::from_center_radius(center, *radius);
-            target.normal = normal;
-            let samples = circular::circle_sample_pairs(native, *radius, phase, &target)?;
-            maximum = state.curve(
-                key,
-                samples,
-                circular::import_circle_curve(native, *radius, phase, &target),
+    if let DrawingGeometry::BlockInstance {
+        definition_scope_id,
+        transform,
+    } = source.geometry()
+    {
+        let definition = &blocks[&u64::from(*definition_scope_id)];
+        let (target, source_map, target_map, changed) =
+            cad_geometry_convert::geometry::blocks::to_cad_instance_parts(
+                *transform,
+                &definition.name,
+                definition.base_point,
+                identity.clone(),
+                &state.assessment,
             )?;
-            EntityType::Circle(target)
+        state.register_identity(key, identity);
+        state.record_instance_parts(key, u64::from(*definition_scope_id), source_map, target_map);
+        return Ok((EntityType::Insert(target), 0., changed));
+    }
+    let g = source
+        .geometry()
+        .as_shared_geometry()
+        .expect("primitive branch");
+    let mut prepared = cad_geometry_convert::prepare_to_cad(g)
+        .map_err(|e| preparation_failure(state, &identity, e, Stage::TargetConstruction))?;
+    match (source.geometry(), &mut prepared.entity) {
+        (
+            DrawingGeometry::PlanarPolyline {
+                line_pattern_generation,
+                ..
+            },
+            EntityType::LwPolyline(p),
+        ) => p.plinegen = *line_pattern_generation == LinePatternGeneration::Continuous,
+        (
+            DrawingGeometry::SpatialPolyline {
+                line_pattern_generation,
+                ..
+            },
+            EntityType::Polyline3D(p),
+        ) => {
+            p.flags.linetype_continuous =
+                *line_pattern_generation == LinePatternGeneration::Continuous
         }
-        DrawingGeometry::Arc {
-            placement,
-            radius,
-            start_parameter,
-            sweep_parameter,
-        } => {
-            let native = *placement;
-            let sweep = *sweep_parameter;
-            let (center, normal, phase) =
-                circular::to_cad_ocs(native, sweep < 0.0).ok_or_else(fail)?;
-            let start = phase
-                + if sweep < 0.0 {
-                    -start_parameter
-                } else {
-                    *start_parameter
-                };
-            let mut target = opencadcodec::Arc::from_center_radius_angles(
-                center,
-                *radius,
-                start,
-                start + sweep.abs(),
-            );
-            target.normal = normal;
-            let samples =
-                circular::arc_sample_pairs(native, *radius, *start_parameter, sweep, &target)?;
-            maximum = state.curve(
-                key,
-                samples,
-                circular::import_arc_curve(native, *radius, *start_parameter, sweep, &target),
-            )?;
-            EntityType::Arc(target)
-        }
-        DrawingGeometry::Ellipse {
-            placement,
-            semi_major_radius,
-            semi_minor_radius,
-            arc,
-        } => {
-            let native = *placement;
-            let (start, sweep) = arc.unwrap_or((0.0, std::f64::consts::TAU));
-            let mut target = circular::to_cad_ellipse(
-                native,
-                *semi_major_radius,
-                *semi_minor_radius,
-                sweep < 0.0,
-            )
-            .ok_or_else(fail)?;
-            target.start_parameter = if sweep < 0.0 { -start } else { start };
-            target.end_parameter = target.start_parameter + sweep.abs();
-            let samples = circular::ellipse_sample_pairs(
-                native,
-                *semi_major_radius,
-                *semi_minor_radius,
-                start,
-                sweep,
-                &target,
-            )
-            .ok_or_else(range_failure)?;
-            maximum = state.curve(
-                key,
-                samples,
-                circular::import_ellipse_curve(
-                    native,
-                    *semi_major_radius,
-                    *semi_minor_radius,
-                    start,
-                    sweep,
-                    &target,
-                ),
-            )?;
-            EntityType::Ellipse(target)
-        }
-        DrawingGeometry::PlanarPolyline {
-            placement,
-            vertices,
-            closed,
-            line_pattern_generation,
-        } => {
-            let native = *placement;
-            let (mut target, bound, parameterization) =
-                geometry::to_cad_parts(native, vertices, *closed, identity, &mut state.assessment)?;
-            maximum = bound;
-            changed = parameterization;
-            target.plinegen =
-                *line_pattern_generation == ocdraw::ocdraw::LinePatternGeneration::Continuous;
-            state.points.insert(
-                key,
-                geometry::blocks::import_polyline_parts(native, vertices, *closed, &target),
-            );
-            EntityType::LwPolyline(target)
-        }
-        DrawingGeometry::SpatialPolyline {
-            vertices,
-            closed,
-            line_pattern_generation,
-        } => {
-            let mut target = opencadcodec::entities::Polyline3D::from_points(
-                vertices
-                    .iter()
-                    .map(|v| opencadcodec::Vector3::new(v[0], v[1], v[2]))
-                    .collect(),
-            );
-            target.flags.closed = *closed;
-            target.flags.linetype_continuous =
-                *line_pattern_generation == ocdraw::ocdraw::LinePatternGeneration::Continuous;
-            state.exact(key, vertices.iter().copied());
-            EntityType::Polyline3D(target)
-        }
-        DrawingGeometry::BlockInstance {
-            definition_scope_id,
-            transform,
-        } => {
-            let definition = &blocks[&u64::from(*definition_scope_id)];
-            let (target, source_map, target_map, parameterization) =
-                geometry::blocks::to_cad_instance_parts(
-                    *transform,
-                    &definition.name,
-                    definition.base_point,
-                    identity,
-                    &state.assessment,
-                )?;
-            changed = parameterization;
-
-            state.instances.insert(
-                key,
-                Instance {
-                    definition: u64::from(*definition_scope_id),
-                    source: source_map,
-                    target: target_map,
-                },
-            );
-            EntityType::Insert(target)
-        }
-    };
-    Ok((entity, maximum, changed))
+        _ => {}
+    }
+    let maximum = state.record_geometry(key, identity, prepared.pair)?;
+    Ok((prepared.entity, maximum, prepared.parameterization_changed))
 }

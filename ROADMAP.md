@@ -59,11 +59,15 @@ The CAD-native-in-IFCX implementation and browser inspection route coexist on
 main with standalone OCDraw. Native IFCCAD opening, composed graph inspection
 and direct DXF/DWG roundtrip use their own model, schemas, validation and
 converter. OCDraw opening does not require an IFCX file or package.
-The experiment includes line, circle, planar polyline and local block geometry,
+The experiment includes points, lines, circles/signed arcs, full/partial ellipses,
+straight/bulged planar paths, straight spatial paths and local block geometry,
 native Model/Paper layouts, named simple line patterns, scales and polyline
 pattern generation, with strict readback and pinned DXF/DWG tests.
 Allow/Reject conversion policies expose or reject supported loss classifications.
-Model and multiple Paper layouts now convert with explicit tab order, optional physical media and separate coordinate units. The viewport slice adds camera, perspective/depth/display state and circle/closed straight-polyline clipping, with CAD exchange verified using explicit codec development repairs; upstream dependency adoption and full plot conversion remain separate follow-ups; complex
+Optional scope bounds have explicit atomic preparation. Geometry validation and
+CAD accuracy are shared with OCDraw through neutral helpers; converters expose
+adjustable hard tolerances and per-coordinate-domain numerical evidence.
+Model and multiple Paper layouts now convert with explicit tab order, optional physical media and separate coordinate units. The viewport slice adds camera, perspective/depth/display state and circle/full-ellipse/closed straight-or-bulged path clipping, with CAD exchange verified using explicit codec development repairs; upstream dependency adoption and full plot conversion remain separate follow-ups; complex
 text/shape patterns use a diagnosed whole-definition fallback under Allow.
 This integration does not freeze IFCCAD compatibility or expand the standalone
 OCDraw contract. Continued IFCCAD development expands drawing semantics and

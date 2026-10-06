@@ -82,18 +82,23 @@ fn multiple_paper_viewports_exchange_in_memory_dxf_dwg() {
     v.view_enabled = true;
     v.view_locked = false;
     v.render_mode = IfccadViewportRenderMode::FlatShadedWithEdges;
-    second.entities[2].kind = IfccadEntityKind::PlanarPolyline {
-        vertices: vec![[20., 25.], [180., 25.], [180., 125.], [20., 125.]],
-        closed: true,
-        placement: IfccadPlacement {
-            origin: [0.; 3],
-            x_axis: [1., 0., 0.],
-            y_axis: [0., 1., 0.],
-        },
-        line_pattern_generation: IfccadLinePatternGeneration::PerSegment,
+    second.entities[2].kind = {
+        let vertices: Vec<[f64; 2]> = vec![[20., 25.], [180., 25.], [180., 125.], [20., 125.]];
+        IfccadEntityKind::PlanarPolyline {
+            bulges: vec![0.; vertices.len()],
+            vertices,
+            closed: true,
+            placement: IfccadPlacement {
+                origin: [0.; 3],
+                x_axis: [1., 0., 0.],
+                y_axis: [0., 1., 0.],
+            },
+            line_pattern_generation: IfccadLinePatternGeneration::PerSegment,
+        }
     };
     drawing.paper_layouts.push(second);
     drawing.paper_layouts.push(IfccadPaperLayout {
+        bounds: None,
         id: 44,
         name: "Empty".into(),
         tab_index: 3,
@@ -108,6 +113,7 @@ fn multiple_paper_viewports_exchange_in_memory_dxf_dwg() {
         &source,
         IfccadToCadOptions {
             loss_policy: IfccadLossPolicy::Reject,
+            ..Default::default()
         },
     )
     .unwrap();
@@ -195,6 +201,7 @@ fn perspective_exchange_matches_independent_reference() {
             &drawing,
             IfccadToCadOptions {
                 loss_policy: IfccadLossPolicy::Reject,
+                ..Default::default()
             },
         )
         .unwrap();

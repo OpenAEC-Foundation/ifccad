@@ -20,6 +20,7 @@ pub fn cad_document_to_encoded_ifccad(
         encoded,
         diagnostics: logical.diagnostics,
         mappings: logical.mappings,
+        geometry: logical.geometry,
     })
 }
 
@@ -79,6 +80,28 @@ pub fn cad_document_to_ifccad_document(
             paper.layout_handle,
         );
     }
+    let mut geometry = crate::geometry_context::GeometryContext::new(
+        options.geometry_tolerance,
+        &length_unit,
+        model_id,
+    )?;
+    let mut paper_metadata = std::collections::BTreeMap::new();
+    for paper in &info.papers {
+        let opencadcodec::objects::ObjectType::Layout(layout) =
+            &source.objects[&paper.layout_handle]
+        else {
+            unreachable!("inspected Paper layout")
+        };
+        let metadata = crate::layouts::from_cad(layout, &mut issues);
+        geometry.add_paper(
+            mappings
+                .layouts
+                .ifccad_id(paper.layout_handle)
+                .expect("allocated Paper"),
+            &metadata.0,
+        )?;
+        paper_metadata.insert(paper.layout_handle, metadata);
+    }
     let entities = convert_entities(
         source,
         &patterns,
@@ -86,6 +109,7 @@ pub fn cad_document_to_ifccad_document(
         &mut ids,
         &mut mappings,
         &mut issues,
+        &mut geometry,
     )?;
     let mut blocks = Vec::new();
     for h in &supported {
@@ -102,7 +126,11 @@ pub fn cad_document_to_ifccad_document(
             ));
             &"unitless"
         });
+        geometry.select(crate::IfccadGeometryOwner::BlockDefinition(
+            mappings.blocks.ifccad_id(*h).unwrap(),
+        ));
         blocks.push(IfccadBlockDefinition {
+            bounds: None,
             id: mappings.blocks.ifccad_id(*h).unwrap(),
             name: b.name.clone(),
             base_point: crate::geometry::p(b.base_point),
@@ -114,6 +142,7 @@ pub fn cad_document_to_ifccad_document(
                 &mut ids,
                 &mut mappings,
                 &mut issues,
+                &mut geometry,
             )?,
         });
     }
@@ -130,7 +159,10 @@ pub fn cad_document_to_ifccad_document(
             .layouts
             .ifccad_id(paper.layout_handle)
             .expect("allocated Paper owner");
-        let (length_unit, medium) = crate::layouts::from_cad(layout, &mut issues);
+        let (length_unit, medium) = paper_metadata
+            .remove(&paper.layout_handle)
+            .expect("prepared Paper metadata");
+        geometry.select(crate::IfccadGeometryOwner::PaperLayout(id));
         let entities = convert_entities(
             source,
             &patterns,
@@ -138,8 +170,10 @@ pub fn cad_document_to_ifccad_document(
             &mut ids,
             &mut mappings,
             &mut issues,
+            &mut geometry,
         )?;
         paper_layouts.push(IfccadPaperLayout {
+            bounds: None,
             id,
             name: layout.name.clone(),
             tab_index: paper.tab_index,
@@ -168,7 +202,7 @@ pub fn cad_document_to_ifccad_document(
         &mut issues,
     );
     crate::diagnostics::enforce_policy(options.loss_policy, &issues)?;
-    let drawing = IfccadDocument {
+    let mut drawing = IfccadDocument {
         header: metadata.header,
         drawing_id: metadata.drawing_id,
         id_counters: ids,
@@ -177,6 +211,7 @@ pub fn cad_document_to_ifccad_document(
         line_pattern_scale: source.header.linetype_scale,
         layers,
         model: IfccadLayout {
+            bounds: None,
             id: model_id,
             tab_index: 0,
             entities,
@@ -184,8 +219,42 @@ pub fn cad_document_to_ifccad_document(
         paper_layouts,
         blocks,
     };
+    let members = drawing
+        .blocks
+        .iter()
+        .map(|b| {
+            (
+                mappings.blocks.cad_handle(b.id).unwrap().value(),
+                b.entities
+                    .iter()
+                    .filter_map(|e| mappings.entities.cad_handle(e.id).map(|h| h.value()))
+                    .collect::<Vec<_>>(),
+            )
+        })
+        .collect::<std::collections::BTreeMap<_, _>>();
+    let roots = |entities: &[IfccadEntity]| {
+        entities
+            .iter()
+            .filter(|e| matches!(e.kind, IfccadEntityKind::BlockInstance { .. }))
+            .map(|e| mappings.entities.cad_handle(e.id).unwrap().value())
+            .collect::<Vec<_>>()
+    };
+    geometry.select(crate::IfccadGeometryOwner::ModelLayout(drawing.model.id));
+    geometry.assess_roots(&members, &roots(&drawing.model.entities), &mut issues)?;
+    for b in &drawing.blocks {
+        geometry.select(crate::IfccadGeometryOwner::BlockDefinition(b.id));
+        geometry.assess_roots(&members, &roots(&b.entities), &mut issues)?;
+    }
+    for p in &drawing.paper_layouts {
+        geometry.select(crate::IfccadGeometryOwner::PaperLayout(p.id));
+        geometry.assess_roots(&members, &roots(&p.entities), &mut issues)?;
+    }
+    crate::diagnostics::enforce_policy(options.loss_policy, &issues)?;
+    recompute_ifccad_document_bounds(&mut drawing)
+        .map_err(IfccadConversionError::CoreValidation)?;
     validate_ifccad_document(&drawing).map_err(IfccadConversionError::CoreValidation)?;
     Ok(CadToIfccadDocumentOutcome {
+        geometry: geometry.finish(),
         document: drawing,
         diagnostics: issues.into_iter().chain(info.recoveries).collect(),
         mappings,
@@ -202,8 +271,9 @@ fn convert_entities(
     ids: &mut IfccadIdCounters,
     mappings: &mut IfccadMappings,
     issues: &mut Vec<IfccadDiagnostic>,
+    geometry: &mut crate::geometry_context::GeometryContext,
 ) -> Result<Vec<IfccadEntity>, IfccadConversionError> {
-    crate::entity_owners::from_cad(source, patterns, handles, ids, mappings, issues)
+    crate::entity_owners::from_cad(source, patterns, handles, ids, mappings, issues, geometry)
 }
 
 #[cfg(test)]

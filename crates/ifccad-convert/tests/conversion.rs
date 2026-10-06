@@ -13,6 +13,7 @@ fn fresh_cad_import_emits_valid_counters_under_both_policies() {
             metadata(),
             CadToIfccadOptions {
                 loss_policy: policy,
+                ..Default::default()
             },
         )
         .unwrap();
@@ -207,7 +208,7 @@ fn supported_entity_with_thickness_or_xdata_is_rejected() {
     );
 }
 #[test]
-fn bulged_or_wide_polyline_is_rejected() {
+fn bulges_are_retained_and_width_remains_a_rejectable_loss() {
     for width in [false, true] {
         let mut c = to_cad(&validated(&primitives())).unwrap().into_document();
         let h = c.block_records.get("*Model_Space").unwrap().entity_handles[1];
@@ -219,14 +220,21 @@ fn bulged_or_wide_polyline_is_rejected() {
         } else {
             l.vertices[0].bulge = 0.5;
         }
-        assert!(matches!(
-            from_cad(&c, metadata()),
-            Err(IfccadConversionError::Unsupported(_))
-        ));
+        if width {
+            assert!(matches!(
+                from_cad(&c, metadata()),
+                Err(IfccadConversionError::Unsupported(_))
+            ));
+        } else {
+            let out = from_cad(&c, metadata()).unwrap();
+            assert!(out.validated_source().document().model.entities.iter().any(
+                |e| matches!(&e.kind,IfccadEntityKind::PlanarPolyline{bulges,..} if bulges[0]==0.5)
+            ));
+        }
     }
 }
 #[test]
-fn unsupported_placement_is_located() {
+fn noncanonical_placement_obeys_the_geometric_limit_and_keeps_location() {
     let mut d = primitives();
     let IfccadEntityKind::Circle { placement, .. } = &mut d.model.entities[2].kind else {
         panic!()
@@ -234,8 +242,16 @@ fn unsupported_placement_is_located() {
     placement.x_axis = [0., 1., 0.];
     placement.y_axis = [-1., 0., 0.];
     assert!(
-        matches!(to_cad(&validated(&d)),Err(IfccadConversionError::Unsupported(i)) if i.iter().any(|d|d.code=="placement" && d.location=="entity/41"))
+        matches!(to_cad(&validated(&d)),Err(IfccadConversionError::Geometry(ref failure)) if matches!(&failure.failure.source,ifccad_convert::IfccadGeometryEntitySource::NativeEntity{entity_id:41,..}))
     );
+    assert!(ifccad_convert::ifccad_document_to_cad_document(
+        &d,
+        ifccad_convert::IfccadToCadOptions {
+            loss_policy: ifccad_convert::IfccadLossPolicy::Reject,
+            ..Default::default()
+        }
+    )
+    .is_ok());
 }
 #[test]
 fn nonrepresentable_appearance_is_rejected() {
@@ -266,7 +282,7 @@ fn rounding_is_not_silently_accepted() {
     placement.origin[0] = 1e20;
     vertices[0][0] = 1.;
     assert!(
-        matches!(to_cad(&validated(&d)),Err(IfccadConversionError::Unsupported(i)) if i.iter().any(|d|d.code=="rounding"))
+        matches!(to_cad(&validated(&d)),Err(IfccadConversionError::Geometry(ref failure)) if failure.reason==ifccad_convert::IfccadGeometryFailureReason::ProvenExceedance)
     );
 }
 #[test]

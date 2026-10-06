@@ -53,6 +53,7 @@ fn encoded(
         metadata(),
         CadToIfccadOptions {
             loss_policy: policy,
+            ..Default::default()
         },
     )
 }
@@ -60,6 +61,7 @@ fn assert_invalid(cad: &CadDocument) {
     for policy in [IfccadLossPolicy::Allow, IfccadLossPolicy::Reject] {
         let options = CadToIfccadOptions {
             loss_policy: policy,
+            ..Default::default()
         };
         assert!(matches!(
             cad_document_to_ifccad_document(cad, metadata(), options),
@@ -90,6 +92,7 @@ fn stale_layout_dictionary_cache_recovers_without_source_mutation_or_false_loss(
                 metadata(),
                 CadToIfccadOptions {
                     loss_policy: policy,
+                    ..Default::default()
                 },
             )
             .unwrap();

@@ -1,4 +1,5 @@
 mod cad;
+mod geometry;
 mod ifccad;
 mod ocdraw;
 pub use ifccad::{export_ifccad_bytes, inspect_cad_as_ifccad_bytes, inspect_ifccad_bytes};

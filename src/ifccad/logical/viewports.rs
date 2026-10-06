@@ -1,5 +1,4 @@
 use super::*;
-use crate::ocdraw::{CoordinateFrame3, Point3, Vector3};
 use num_rational::BigRational;
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -167,95 +166,23 @@ pub fn validate_ifccad_viewport_parameters(viewport: &IfccadViewport) -> Result<
     Ok(())
 }
 
-fn paper_placement(p: &IfccadPlacement) -> Result<(), IfccadReport> {
-    let point = |v: [f64; 3]| Point3::new(v[0], v[1], v[2]);
-    let vector = |v: [f64; 3]| Vector3::new(v[0], v[1], v[2]);
-    CoordinateFrame3::try_new(point(p.origin), vector(p.x_axis), vector(p.y_axis))
-        .map_err(|_| problem("viewport boundary has invalid placement"))?;
-    if p.origin[2] != 0. || p.x_axis[2] != 0. || p.y_axis[2] != 0. {
-        return Err(problem("viewport boundary must lie in Paper Z=0"));
-    }
-    Ok(())
-}
-
-fn circle_enclosed_by_viewport(
-    frame: &IfccadViewportFrame,
-    radius: f64,
-    p: &IfccadPlacement,
-) -> Result<bool, IfccadReport> {
-    let bounds = frame_bounds(frame)?;
-    paper_placement(p)?;
-    if !radius.is_finite() || radius <= 0. {
-        return Err(problem(
-            "viewport circle boundary needs a positive finite radius",
-        ));
-    }
-    let radius_squared = square(&exact(radius));
-    for (i, (lo, hi)) in bounds.iter().enumerate() {
-        let center = exact(p.origin[i]);
-        if &center < lo || &center > hi {
-            return Ok(false);
-        }
-        let amplitude_squared =
-            &radius_squared * (square(&exact(p.x_axis[i])) + square(&exact(p.y_axis[i])));
-        if amplitude_squared > square(&(&center - lo))
-            || amplitude_squared > square(&(hi - &center))
-        {
-            return Ok(false);
-        }
-    }
-    Ok(true)
-}
-
-/// Validate the complete supported boundary shape, independently of identity/owner.
+/// Validates active boundary geometry; ownership and exclusive references are document rules.
 pub fn validate_ifccad_viewport_boundary(
     frame: &IfccadViewportFrame,
     boundary: &IfccadEntityKind,
 ) -> Result<(), IfccadReport> {
-    let bounds = frame_bounds(frame)?;
-    match boundary {
-        IfccadEntityKind::Circle { radius, placement } => {
-            if !circle_enclosed_by_viewport(frame, *radius, placement)? {
-                return Err(problem("viewport circle boundary extends outside frame"));
-            }
-        }
-        IfccadEntityKind::PlanarPolyline {
-            vertices,
-            closed,
-            placement,
-            ..
-        } => {
-            paper_placement(placement)?;
-            if !closed || vertices.iter().flatten().any(|n| !n.is_finite()) {
-                return Err(problem(
-                    "viewport polyline boundary must be closed and finite",
-                ));
-            }
-            let bits = |n: f64| if n == 0. { 0 } else { n.to_bits() };
-            let distinct: BTreeSet<_> = vertices.iter().map(|v| (bits(v[0]), bits(v[1]))).collect();
-            if distinct.len() < 3 {
-                return Err(problem(
-                    "viewport polyline boundary needs three distinct vertices",
-                ));
-            }
-            for vertex in vertices {
-                for (i, (lo, hi)) in bounds.iter().enumerate() {
-                    let n = exact(placement.origin[i])
-                        + exact(placement.x_axis[i]) * exact(vertex[0])
-                        + exact(placement.y_axis[i]) * exact(vertex[1]);
-                    if &n < lo || &n > hi {
-                        return Err(problem("viewport polyline boundary extends outside frame"));
-                    }
-                }
-            }
-        }
-        _ => {
-            return Err(problem(
-                "viewport active boundary must be a closed planar polyline or circle",
-            ))
-        }
-    }
-    Ok(())
+    let primitive = boundary
+        .as_shared_geometry()?
+        .ok_or_else(|| problem("unsupported active boundary family"))?;
+    crate::geometry_kernel::validate_paper_boundary(
+        crate::geometry_kernel::PaperFrame {
+            center: frame.center,
+            width: frame.width,
+            height: frame.height,
+        },
+        primitive,
+    )
+    .map_err(|e| problem(&e.to_string()))
 }
 
 pub(super) fn validate_references(document: &IfccadDocument) -> Result<(), IfccadReport> {

@@ -6,6 +6,7 @@ license = "MPL-2.0"
 description = "Experimental exact IFCCAD and CadDocument conversion"
 
 [dependencies]
+cad-geometry-convert = { path = "../cad-geometry-convert" }
 ocdraw = { path = "../.." }
 opencadcodec = { package = "opencadcodec", git = "https://github.com/HakanSeven12/opencadcodec.git", rev = "fe69506cb99dea6f4c4a73b690a27fdf04403ea0", features = ["serde"] }
 serde = "1"

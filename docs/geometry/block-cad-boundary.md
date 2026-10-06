@@ -77,3 +77,10 @@ through each nested transform and reports the instance path and leaf. An
 export regression shows locally acceptable rounding failing after 1e9 outer
 scaling. These checks do not certify arbitrary downstream CAD applications or
 recover source fields already lost before the CadDocument boundary.
+
+These correlated evaluation kernels now live in the shared `cad-geometry-convert`
+companion and serve both converters. IFCCAD retains independent uint64 owner
+identities and applies each retained Paper occurrence's own coordinate-unit
+budget. Core transforms and conservative bounds live in `ocdraw::geometry_kernel`.
+See [shared geometry](shared-geometry.md); this extraction does not change
+the documented codec pin, marker conventions or qualification assumptions.

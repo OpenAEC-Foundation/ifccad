@@ -59,10 +59,11 @@ The reader error retains its report through both `report()` and `source()`.
 Update Rust error matches; native files and conversion policies are unchanged.
 Diagnostic strings remain available for presentation.
 
-Use `IfccadToCadOptions { loss_policy: IfccadLossPolicy::Reject }` for
+Use `IfccadToCadOptions { loss_policy: IfccadLossPolicy::Reject, ..Default::default() }` for
 source/document-to-CAD conversion and `CadToIfccadOptions` with the same
 policy for conversion from CAD. These are distinct direction-specific types. `IfccadDiagnosticAction` distinguishes `Omitted`, `Modified` and
-`Recovery`; `is_loss()` excludes uniquely established structural cache repairs.
+`Recovery` and `RoundedWithinTolerance`; `is_loss()` excludes uniquely established
+structural cache repairs while `is_semantic_loss()` also excludes certified rounding.
 Diagnostics are part of the result and should be presented to the caller.
 The separate layer, layout, line-pattern, block-definition and entity mappings offer
 `cad_handle(id)`, `ifccad_id(handle)` and read-only iteration. Layout mappings use
@@ -84,16 +85,26 @@ repair. Other owners, values, applications and undecodable payloads remain losse
 
 ## Supported slice
 
+Both directions accept `geometry_tolerance` and expose `geometry_assessment()`.
+The default is one micrometre in known coordinate units and zero for unitless;
+use `IfccadGeometryTolerance::exact()` for zero residual or
+`IfccadGeometryTolerance::drawing_units(1e-6)?` for a unitless coordinate budget.
+Physical `metres(...)` and `millimetres(...)` choices require known units in
+every retained coordinate domain. Model/definitions use drawing units; Paper
+uses its own declared coordinate unit. Bounds/media do not establish units.
+See the [shared geometry and accuracy contract](../../docs/geometry/shared-geometry.md)
+for nested occurrence proof, conservative bulge limits and separate file checks.
+
 - One Model layout and multiple Paper layouts with explicit tab order, optional physical media, unused layers and definitions. Native coordinate units support all 25 tokens; CAD Paper export supports unitless, inch and millimetre coordinates.
-- XYZ lines, standard-XY circles and straight planar polylines. Polyline XY
-  translation folds into vertices only for exact finite binary64 sums; Z becomes
-  elevation. Position/path/plane survive, local-origin decomposition does not.
+- Points, XYZ lines, circles/signed arcs, full/partial ellipses, straight/bulged
+  planar and straight spatial paths in valid oriented planes. Local-origin
+  decomposition may change while the shape meets the configured hard limit.
 - True RGB, named signed-length patterns (including unused/empty definitions), supported CAD hundredth-mm line weights and
   exactly byte-representable opacity. ByLayer/ByBlock/Explicit are independent
   for each entity property and remain stored. RGB text becomes uppercase.
 - Drawing/entity pattern scales and polyline per-segment/continuous generation.
 - Shared/nested local blocks, base points, insertion units and owner-relative
-  order; standard-XY insert placement, rotation and signed nonuniform scale.
+  order; valid oriented insert placement, rotation and signed nonuniform scale.
   CAD setter changes, including the tiny-scale clamp, cause rejection.
 
 Under Allow, incompatible geometry is omitted as a whole entity. Paper layouts with unsupported target coordinate units and their entities are omitted with located evidence. Ordinary local definitions retain supported
@@ -113,7 +124,7 @@ opaque, Continuous, 0.25 mm CAD layer without a source mapping. Entity
 ByLayer/ByBlock modes remain independent and stored. These adaptations are
 policy-controlled losses, not an appearance resolver.
 
-Oblique frames, arcs/bulges/widths, named/indexed color identity, complex text/shape patterns,
+Widths, fitted/mesh curves, named/indexed color identity, complex text/shape patterns,
 changed CAD settings, XDATA, arrays, attributes and source preservation remain
 outside the slice. Unsupported common metadata may be omitted while keeping
 geometry. Extra fields on supported types are also checked. See the contracts:
@@ -131,8 +142,9 @@ imports and schemas as losses; it can also diagnose equivalent alternate
 envelopes and is not graph equivalence. Allow projects the CAD subset; Reject
 refuses these differences. Exact geometry value checks separately reject integer
 to binary64 rounding. Invalid structure, cycles, dangling essential drawing
-references, non-finite known geometry, translated-coordinate rounding and CAD scale clamping fail under
-both policies. No geometric tolerance kernel is introduced.
+references, non-finite known geometry, geometric exceedance/incomplete proof and
+CAD scale clamping fail under both policies. Certified within-limit geometric
+rounding is reported and accepted independently of semantic loss policy.
 
 ## Exchange evidence
 
@@ -168,7 +180,7 @@ subsequent external DWG/DXF writer. Such outputs need independent readback.
 
 Authored Paper viewports now map Model targets, Paper frames, orthographic and
 perspective cameras, signed depth clipping, render/display controls and frozen
-layers. Active clips support existing Circle and closed straight-polyline
+layers. Active clips support Circle, full Ellipse and closed straight/bulged planar
 geometry; stored dormant boundaries retain their identity. Forward boundaries
 are resolved without changing authored order. Unsupported boundaries omit the
 whole viewport with located loss, retaining supported sibling geometry.
@@ -182,7 +194,7 @@ viewport omissions. Run converter exchange tests with
 Core native viewports remain independent of opencadcodec. Direction-specific
 coverage documents define whole/partial loss, scalar mapping, runtime numbering
 and output-handle rules. Full plot configuration and viewport rendering remain
-outside this slice; wider OCDraw clipping support remains a separate contract.
+outside this slice; each drawing format keeps its independent clip contract.
 
 The serde feature enables field inspection, not a new file encoding. No Cargo
 cache code is edited. Baseline benchmark code is unchanged; no size experiment
@@ -192,14 +204,14 @@ is part of this proof. Cargo.lock follows the repository's existing ignore rule.
 
 This adapter remains separate from `ocdraw-convert`. Its root dependency is the
 `ocdraw` crate, whose independent IFCCAD module lives in `src/ifccad`.
-The IFCX reader uses OCDraw's geometric validation types and unit registry;
+Both readers use the neutral core geometry validation and unit registry;
 IFCX nodes, composition, schema imports and profile validation stay separate
 from the standalone OCDraw model and JSON encoding. Conversion is direct to
 `CadDocument`, without an intermediate OCDraw file.
 
-Small unit-code and scaffold helpers adapt existing converter reasoning; the
-comprehensive numerical kernel is not copied. Extract narrow shared helpers
-with parity tests when both adapters need the same contract. Browser support and main integration are implemented as an independent route.
+Both converters use the `cad-geometry-convert` companion for CAD preparation, tolerance
+resolution and paired primitive/nested occurrence proof. Model identity and
+source coverage stay in their own adapters. See [shared geometry](../../docs/geometry/shared-geometry.md). Browser support and main integration are implemented as an independent route.
 
 ### Line-pattern conversion boundary
 

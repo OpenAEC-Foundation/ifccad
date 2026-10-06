@@ -6,6 +6,18 @@ use std::collections::{BTreeMap, BTreeSet};
 /// Validate a logical CAD document without encoding it or invoking a CAD runtime.
 /// Validation never repairs content, reorders collections or recomputes IDs.
 pub fn validate_ifccad_document(document: &IfccadDocument) -> Result<(), IfccadReport> {
+    validate_document(document, ValidationPhase::Complete)
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(super) enum ValidationPhase {
+    BeforeBounds,
+    Complete,
+}
+pub(super) fn validate_document(
+    document: &IfccadDocument,
+    phase: ValidationPhase,
+) -> Result<(), IfccadReport> {
     let prefix = format!("/cad/d{}", document.drawing_id);
     let header = &document.header;
     if header.id.is_empty()
@@ -100,29 +112,6 @@ pub fn validate_ifccad_document(document: &IfccadDocument) -> Result<(), IfccadR
         match &entity.kind {
             IfccadEntityKind::Viewport(v) => validate_ifccad_viewport_parameters(v)
                 .map_err(|report| problem(format!("{path}: {report}")))?,
-            IfccadEntityKind::LineSegment { start, end } => {
-                finite3(*start, &path)?;
-                finite3(*end, &path)?;
-            }
-            IfccadEntityKind::PlanarPolyline {
-                vertices,
-                placement: frame,
-                ..
-            } => {
-                if vertices.len() < 2 || vertices.iter().flatten().any(|n| !n.is_finite()) {
-                    return Err(problem(format!("{path} invalid polyline vertices")));
-                }
-                placement(frame, &path)?;
-            }
-            IfccadEntityKind::Circle {
-                radius,
-                placement: frame,
-            } => {
-                if !radius.is_finite() || *radius <= 0. {
-                    return Err(problem(format!("{path} invalid circle radius")));
-                }
-                placement(frame, &path)?;
-            }
             IfccadEntityKind::BlockInstance {
                 definition_id,
                 transform,
@@ -140,13 +129,34 @@ pub fn validate_ifccad_document(document: &IfccadDocument) -> Result<(), IfccadR
                 )
                 .map_err(|e| problem(format!("{path} invalid block transform: {e}")))?;
             }
+            _ => {
+                let geometry = entity
+                    .kind
+                    .as_shared_geometry()
+                    .map_err(|e| problem(format!("{path}: {e}")))?
+                    .expect("primitive geometry");
+                crate::geometry_kernel::validate_geometry(geometry).map_err(|e| {
+                    let message = match (e, &entity.kind) {
+                        (
+                            crate::geometry_kernel::GeometryValidationError::InvalidGeometry,
+                            IfccadEntityKind::Circle { .. },
+                        ) => "invalid circle radius".to_owned(),
+                        _ => e.to_string(),
+                    };
+                    problem(format!("{path}: {message}"))
+                })?;
+            }
         }
     }
     super::viewports::validate_references(document)?;
     if cycle(&document.blocks) {
         return Err(problem("block definition cycle"));
     }
-    super::allocation::validate(document)
+    super::allocation::validate(document)?;
+    if phase == ValidationPhase::Complete {
+        super::bounds::validate_supplied(document)?;
+    }
+    Ok(())
 }
 
 fn unique(ids: &mut BTreeSet<u64>, id: u64, path: &str) -> Result<(), IfccadReport> {

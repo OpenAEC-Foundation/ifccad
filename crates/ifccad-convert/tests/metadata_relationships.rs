@@ -47,6 +47,7 @@ fn unsupported_sun_owner_is_located_loss_not_structural_failure() {
             metadata(),
             CadToIfccadOptions {
                 loss_policy: IfccadLossPolicy::Reject,
+                ..Default::default()
             },
         )
         .map(|_| ()),
@@ -55,6 +56,7 @@ fn unsupported_sun_owner_is_located_loss_not_structural_failure() {
             metadata(),
             CadToIfccadOptions {
                 loss_policy: IfccadLossPolicy::Reject,
+                ..Default::default()
             },
         )
         .map(|_| ()),
@@ -100,7 +102,8 @@ fn unresolved_optional_entity_relationships_keep_supported_geometry() {
                 &source,
                 metadata(),
                 CadToIfccadOptions {
-                    loss_policy: IfccadLossPolicy::Reject
+                    loss_policy: IfccadLossPolicy::Reject,
+                    ..Default::default()
                 }
             ),
             Err(IfccadConversionError::Unsupported(_))
@@ -137,6 +140,7 @@ fn essential_entity_and_layout_ownership_remain_fatal_under_both_policies() {
         for policy in [IfccadLossPolicy::Allow, IfccadLossPolicy::Reject] {
             let options = CadToIfccadOptions {
                 loss_policy: policy,
+                ..Default::default()
             };
             assert!(matches!(
                 cad_document_to_ifccad_document(&source, metadata(), options),

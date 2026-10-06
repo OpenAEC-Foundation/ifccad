@@ -38,7 +38,13 @@ fn source_viewport_numeric_rounding_is_fatal_under_both_policies() {
         let source =
             load_ifccad_bytes(&serde_json::to_vec(&raw).unwrap(), Default::default()).unwrap();
         for loss_policy in [IfccadLossPolicy::Allow, IfccadLossPolicy::Reject] {
-            let result = ifccad_source_to_cad_document(&source, IfccadToCadOptions { loss_policy });
+            let result = ifccad_source_to_cad_document(
+                &source,
+                IfccadToCadOptions {
+                    loss_policy,
+                    ..Default::default()
+                },
+            );
             assert!(
                 matches!(result, Err(IfccadConversionError::Unsupported(ref d))
                     if d.iter().any(|d| d.code == "precision")),
@@ -58,6 +64,7 @@ fn source_frozen_layer_set_order_is_not_a_semantic_loss() {
         &source,
         IfccadToCadOptions {
             loss_policy: IfccadLossPolicy::Reject,
+            ..Default::default()
         },
     )
     .unwrap();

@@ -5,6 +5,106 @@ use viewer::{export_drawing_bytes, inspect_drawing_bytes};
 const HELLO: &[u8] = include_bytes!("../../../examples/ifccad/hello-line-patterns.ifcx");
 
 #[test]
+fn ifccad_geometry_and_bounds_are_inspectable() {
+    let bytes = include_bytes!("../../../examples/ifccad/hello-geometry.ifcx");
+    let opened = inspect_drawing_bytes("geometry.ifcx", bytes);
+    assert_eq!(opened["validation"]["status"], "valid");
+    assert!(opened["presentation"]["layouts"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|n| n["attributes"]["ifccad::layout"]["bounds"]["max"]
+            == serde_json::json!([10000, 10000, 10000])));
+    for kind in [
+        "point",
+        "arc",
+        "ellipse",
+        "ellipseArc",
+        "planarPolyline",
+        "spatialPolyline",
+    ] {
+        assert!(opened["presentation"]["entities"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|n| n["attributes"]
+                .get(format!("ifccad::geom::{kind}"))
+                .is_some()));
+    }
+    for format in ["dxf", "dwg"] {
+        let out = export_drawing_bytes("geometry.ifcx", bytes, format, "AC1032");
+        assert!(out["failure"].is_null(), "{out}");
+        assert!(out["export"]["geometryAssessment"]["domains"].is_array());
+        assert_eq!(out["export"]["fileCheck"]["ifccadStrictReadback"], true);
+        assert!(out["export"]["fileCheck"]["geometryAssessment"]["domains"].is_array());
+    }
+}
+
+#[test]
+fn conversion_evidence_retains_domains_and_large_ids() {
+    use ocdraw::ifccad::*;
+    let mut d = load_ifccad_bytes(
+        include_bytes!("../../../examples/ifccad/hello-viewports.ifcx"),
+        Default::default(),
+    )
+    .unwrap()
+    .into_document();
+    d.length_unit = "mm".into();
+    d.paper_layouts[0].length_unit = "in".into();
+    let mut e = d.paper_layouts[0].entities[0].clone();
+    e.id = 9_007_199_254_740_993;
+    e.kind = IfccadEntityKind::PlanarPolyline {
+        vertices: vec![[1., 0.], [2., 0.]],
+        bulges: vec![0., 0.],
+        closed: false,
+        line_pattern_generation: IfccadLinePatternGeneration::PerSegment,
+        placement: IfccadPlacement {
+            origin: [1e20, 0., 0.],
+            x_axis: [1., 0., 0.],
+            y_axis: [0., 1., 0.],
+        },
+    };
+    d.model.entities.push(e);
+    d.id_counters.next_entity_id = 9_007_199_254_740_994;
+    let bytes = encode_ifccad_document(&d).unwrap();
+    let failed = export_drawing_bytes("precision.ifcx", bytes.bytes(), "dxf", "AC1032");
+    assert_eq!(
+        failed["failure"]["geometry"]["source"]["entityId"],
+        "9007199254740993"
+    );
+    assert_eq!(failed["failure"]["geometry"]["domain"]["kind"], "Drawing");
+    assert!(failed["failure"]["geometry"]["reason"].is_string());
+    assert!(failed["export"]["download"].is_null());
+    let IfccadEntityKind::PlanarPolyline { placement, .. } = &mut d.model.entities[0].kind else {
+        unreachable!()
+    };
+    placement.origin = [1000000000000., 0., 0.];
+    if let IfccadEntityKind::PlanarPolyline { vertices, .. } = &mut d.model.entities[0].kind {
+        vertices[0][0] = 0.0001;
+    }
+    let bytes = encode_ifccad_document(&d).unwrap();
+    let out = export_drawing_bytes("round.ifcx", bytes.bytes(), "dxf", "AC1032");
+    assert!(out["failure"].is_null(), "{out}");
+    let assessment = &out["export"]["geometryAssessment"];
+    assert_eq!(assessment["status"], "RoundedWithinTolerance");
+    assert_eq!(
+        assessment["domains"][0]["worstEntity"]["entityId"],
+        "9007199254740993"
+    );
+    assert_eq!(assessment["domains"].as_array().unwrap().len(), 2);
+    assert_eq!(assessment["domains"][0]["coordinateUnit"], "mm");
+    assert_eq!(assessment["domains"][1]["coordinateUnit"], "in");
+    assert!(
+        assessment["domains"][0]["resolvedTolerance"]["upper"]
+            .as_f64()
+            .unwrap()
+            > assessment["domains"][1]["resolvedTolerance"]["upper"]
+                .as_f64()
+                .unwrap()
+    );
+}
+
+#[test]
 fn ifccad_native_download_preserves_large_counter_bytes() {
     use ocdraw::ifccad::{encode_ifccad_document, IfccadIdCounters};
     let mut document = load_ifccad_bytes(HELLO, Default::default())
@@ -221,6 +321,7 @@ fn cad_input_can_be_downloaded_and_reopened_as_ifcx_with_caller_timestamp() {
         "{converted}"
     );
     assert_eq!(converted["presentation"]["format"], "ifccad");
+    assert!(converted["conversion"]["geometryAssessment"]["domains"].is_array());
     assert_eq!(converted["export"]["download"]["format"], "ifccad");
     assert!(converted["export"]["download"]["fileName"]
         .as_str()

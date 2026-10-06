@@ -118,8 +118,8 @@ Reproduction from the repository root (Python 3.10+ and IEEE binary64 floats):
 ```text
 python scripts/test_block_trig_reference.py
 python scripts/block_trig_reference.py --check
-cargo test -p ifccad geometry::trig
-cargo test --release -p ifccad geometry::trig
+cargo test -p ocdraw geometry_kernel::trig
+cargo test --release -p ocdraw geometry_kernel::trig
 ```
 
 Omit `--check` only to regenerate the fixture deliberately. The generator tests

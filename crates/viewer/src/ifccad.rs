@@ -81,11 +81,17 @@ pub fn inspect_cad_as_ifccad_bytes(
     let converted = match cad_document_to_encoded_ifccad(&cad, metadata, Default::default()) {
         Ok(v) => v,
         Err(error) => {
-            fail(&mut output, "converting", "IFCCAD_CONVERSION_FAILED", error);
+            fail(
+                &mut output,
+                "converting",
+                "IFCCAD_CONVERSION_FAILED",
+                &error,
+            );
+            crate::geometry::failure(&mut output, &error);
             return output;
         }
     };
-    output["conversion"] = json!({"format":"ifccad","diagnostics":diagnostics(converted.diagnostics()),"entityCount":converted.mappings().entities.iter().count()});
+    output["conversion"] = json!({"format":"ifccad","diagnostics":diagnostics(converted.diagnostics()),"entityCount":converted.mappings().entities.iter().count(),"geometryAssessment":crate::geometry::assessment(converted.geometry_assessment())});
     present(&mut output, converted.validated_source());
     cad::download(&mut output, name, "ifccad", converted.encoded().bytes());
     output
@@ -109,30 +115,43 @@ pub fn export_ifccad_bytes(name: &str, bytes: &[u8], format: &str, version: &str
     let converted = match ifccad_source_to_cad_document(&drawing, Default::default()) {
         Ok(v) => v,
         Err(error) => {
-            fail(&mut output, "converting", "CAD_CONVERSION_FAILED", error);
+            fail(&mut output, "converting", "CAD_CONVERSION_FAILED", &error);
+            crate::geometry::failure(&mut output, &error);
             return output;
         }
     };
     let issues = diagnostics(converted.diagnostics());
+    let assessment = crate::geometry::assessment(converted.geometry_assessment());
     let metadata = IfccadTargetMetadata {
         header: drawing.document().header.clone(),
         drawing_id: drawing.document().drawing_id,
     };
-    cad::export(
+    let mut readback_geometry = Value::Null;
+    let mut output = cad::export(
         output,
         converted.into_document(),
         name,
         format,
         version,
         issues,
-        move |readback| {
+        |readback| {
             let restored = cad_document_to_encoded_ifccad(readback, metadata, Default::default())
-                .map_err(|e| e.to_string())?;
+                .map_err(|e| {
+                let mut details = json!({"failure":{}});
+                crate::geometry::failure(&mut details, &e);
+                readback_geometry = details["failure"]["geometry"].clone();
+                e.to_string()
+            })?;
             load_ifccad_bytes(restored.encoded().bytes(), Default::default())
                 .map_err(|e| e.report().errors.join("; "))?;
             Ok(
-                json!({"cadReadback":true,"ifccadStrictReadback":true,"diagnostics":diagnostics(restored.diagnostics())}),
+                json!({"cadReadback":true,"ifccadStrictReadback":true,"diagnostics":diagnostics(restored.diagnostics()),"geometryAssessment":crate::geometry::assessment(restored.geometry_assessment())}),
             )
         },
-    )
+    );
+    output["export"]["geometryAssessment"] = assessment;
+    if !readback_geometry.is_null() {
+        output["failure"]["geometry"] = readback_geometry;
+    }
+    output
 }

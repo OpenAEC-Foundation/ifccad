@@ -177,11 +177,15 @@ fn invalid_typed_documents_fail_without_encoding() {
         }
     });
     add("polyline vertices", |d| {
-        d.model.entities[0].kind = IfccadEntityKind::PlanarPolyline {
-            vertices: vec![[0., 0.]],
-            closed: false,
-            placement: placement(),
-            line_pattern_generation: IfccadLinePatternGeneration::PerSegment,
+        d.model.entities[0].kind = {
+            let vertices: Vec<[f64; 2]> = vec![[0., 0.]];
+            IfccadEntityKind::PlanarPolyline {
+                bulges: vec![0.; vertices.len()],
+                vertices,
+                closed: false,
+                placement: placement(),
+                line_pattern_generation: IfccadLinePatternGeneration::PerSegment,
+            }
         }
     });
     add("placement", |d| {

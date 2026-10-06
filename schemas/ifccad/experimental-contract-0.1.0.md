@@ -62,17 +62,22 @@ The drawing has named `children` referring to exactly one Model layout, zero or 
 | `ifccad::blockDefinition` | `name`, `basePoint` XYZ, `insertionUnit` |
 | `ifccad::entity` | resolvable drawing-local `layer`, four property modes in `appearance`; optional positive finite `linePatternScale` defaults to 1 |
 | `ifccad::geom::lineSegment` | `start` and `end` XYZ; finite segment, unlike unbounded IFC4 `IfcLine` |
-| `ifccad::geom::planarPolyline` | at least two XY `vertices`, `closed`, plus `ifccad::geom::placement`; optional `linePatternGeneration` defaults to `perSegment`, alternatively `continuous` |
+| `ifccad::geom::point` | empty object plus required placement; its origin is the position and its axes retain presentation orientation |
+| `ifccad::geom::planarPolyline` | at least two XY `vertices`, `closed`, optional outgoing `bulges` array plus placement; optional `linePatternGeneration` defaults to `perSegment`, alternatively `continuous` |
+| `ifccad::geom::spatialPolyline` | at least two direct owning-scope XYZ vertices, closure and optional pattern generation; placement and bulges are forbidden |
 | `ifccad::geom::circle` | positive finite `radius`, plus `ifccad::geom::placement` |
+| `ifccad::geom::arc` | positive radius, finite radian `startParameter` and signed `sweepParameter`, plus placement |
+| `ifccad::geom::ellipse` | positive `semiMajorRadius >= semiMinorRadius`, plus placement |
+| `ifccad::geom::ellipseArc` | ellipse fields plus finite radian start and signed sweep, plus placement |
 | `ifccad::geom::placement` | finite XYZ `origin`, `xAxis`, `yAxis`; valid orthonormal right-handed frame under the shared OCDraw geometric predicate |
 | `ifccad::blockInstance` | definition path and transform with placement, finite rotation in radians, nonzero finite XYZ scale |
 | `ifccad::viewport` | same-drawing Model reference, Paper frame, camera/view, render/display state, Paper clip and frozen-layer references; Paper ownership only |
 
-Every owned drawable has `ifccad::entity` and exactly one of the five drawable payload attributes. A viewport has no separate geometry or placement payload. Unsupported `ifccad::geom::*` payloads fail explicitly. An independently used `ifccad::geom::circle` on a non-CAD IFCX node is not thereby a CAD entity. Coordinates use a fixed right-handed local XYZ convention; there is no implicit world alignment. The 25 length-unit tokens match the current OCDraw registry. Model and block-definition coordinates, including definition base points, use the drawing's length unit. Each Paper layout declares its own coordinate `lengthUnit`, including `unitless`. Direct Paper geometry sizes and placement origins use this coordinate unit. Optional `paper` describes a physical medium: positive finite width and height, and a physical registry unit (`unitless` is disallowed). Omit `paper` for an unsized sheet; null, partial or unknown medium fields fail. Medium dimensions are independent of coordinate units and geometry bounds, and imply neither a coordinate rescale nor clipping. No requirement places entities inside the physical medium. Existing example files have been migrated; missing new metadata fails without legacy synthesis. The experimental profile version and import remain unchanged.
+Every owned drawable has `ifccad::entity` and exactly one of the ten drawable payload attributes. A viewport has no separate geometry or placement payload. Unsupported `ifccad::geom::*` payloads fail explicitly. An independently used `ifccad::geom::circle` on a non-CAD IFCX node is not thereby a CAD entity. Coordinates use a fixed right-handed local XYZ convention; there is no implicit world alignment. The 25 length-unit tokens match the current OCDraw registry. Model and block-definition coordinates, including definition base points, use the drawing's length unit. Each Paper layout declares its own coordinate `lengthUnit`, including `unitless`. Direct Paper geometry sizes and placement origins use this coordinate unit. Optional `paper` describes a physical medium: positive finite width and height, and a physical registry unit (`unitless` is disallowed). Omit `paper` for an unsized sheet; null, partial or unknown medium fields fail. Medium dimensions are independent of coordinate units and geometry bounds, and imply neither a coordinate rescale nor clipping. No requirement places entities inside the physical medium. Existing example files have been migrated; missing new metadata fails without legacy synthesis. The experimental profile version and import remain unchanged.
 
-A block definition's insertion unit records intent but does not silently scale coordinates. Transform evaluation subtracts the definition base point, applies stored scale and rotation, then applies placement. For a paper-owned instance, its scale maps drawing-coordinate numbers into paper-coordinate numbers; any unit conversion must be included explicitly. For example, the [paper-layout fixture](../../examples/ifccad/hello-paper-layouts.ifcx) has centimetre model/block coordinates and an A3 sheet in millimetres, with a paper instance scale of `[10, 10, 10]`. A nested instance inside a definition stays in drawing units. Reading and writing never evaluate these transforms or normalize their values.
+A block definition's insertion unit records intent but does not silently scale coordinates. Transform evaluation subtracts the definition base point, applies stored scale and rotation, then applies placement. For a paper-owned instance, its scale maps drawing-coordinate numbers into paper-coordinate numbers; any unit conversion must be included explicitly. For example, the [paper-layout fixture](../../examples/ifccad/hello-paper-layouts.ifcx) has centimetre model/block coordinates and an A3 sheet in millimetres, with a paper instance scale of `[10, 10, 10]`. A nested instance inside a definition stays in drawing units. Reading and writing never normalize or rewrite these transforms; present scope bounds require conservative transform evaluation for validation.
 
-The local circle shape aims at the analytic meaning of IFC4 `IfcCircle`; the namespace remains local until an official IFCX geometry attribute has an exact roundtrip contract. A line segment is not equivalent to unbounded `IfcLine`; planar polyline bulges, widths, and complex segments are outside this proof. The separate `placement` attribute can later be reused with a published geometry vocabulary if equivalent.
+The local circle shape aims at the analytic meaning of IFC4 `IfcCircle`; the namespace remains local until an official IFCX geometry attribute has an exact roundtrip contract. A line segment is not equivalent to unbounded `IfcLine`; planar polyline bulges are supported; widths and fitted/spline segments remain outside this profile. The separate `placement` attribute can later be reused with a published geometry vocabulary if equivalent.
 
 ## Paper viewports
 
@@ -117,14 +122,21 @@ implement a viewport renderer or certify application-specific print appearance.
 Enabled clipping requires a boundary. A stored boundary, including when disabled,
 must exist in the same Paper owner, must not itself be a viewport, and may be
 claimed by only one viewport. Dormant boundary geometry is otherwise unrestricted.
-An active boundary is currently a closed straight planar polyline with at least
-three distinct vertices, or an analytic circle. Its valid placement lies exactly
-in Paper XY (origin and both axis Z components are zero). The whole transformed
-boundary must lie within the closed frame: every polyline vertex, or the full
-circle's analytic coordinate extrema. Concave polylines, touching boundaries,
-rotated/reflected XY placements and circles are accepted; no sampling or epsilon
-substitutes for full-curve enclosure. Bulged polylines, ellipses and other curve
-families need their own native geometry contract before becoming active clips.
+An active boundary is a Circle, full Ellipse or closed planar polyline with
+straight/bulged segments. All-straight contours need three distinct XY vertices;
+a contour with active nonzero bulges needs two, permitting two-semicircle contours.
+Signed zero does not distinguish vertices. Standalone arcs, elliptic arcs,
+spatial polylines, points and block instances are not active clip families.
+The whole represented curve must lie in Paper Z=0 inside the frame's finite
+outward binary64 enclosure of center plus/minus half dimensions. Tangency is
+allowed. Curved placements require origin and both axes' Z components exactly
+zero; straight segments use exact placed endpoint checks. Valid rotated and
+reflected placements, concave paths, self-intersections and zero signed area
+are permitted without adding a new stored fill rule. Analytic curve extrema
+are checked; an oversized conservative bounding box is not proof of escape.
+No sampling, projection or conversion-tolerance epsilon substitutes for these
+rules. Dormant references retain their independent ownership/exclusivity rules
+without active shape/frame eligibility.
 
 `frozenLayers` is a set of complete same-drawing layer paths. Every target must
 exist and occur once. Native writing sorts by numeric uint64 ID, without passing
@@ -173,3 +185,42 @@ entity creation settings remain outside the native profile.
 ## Prototype boundary
 
 The strict reader and writer are in `src/ifccad/`, exported as `ocdraw::ifccad`. The writer strict-reads its own output and compares the typed CAD meaning. It emits JSON only. The standalone OCDraw reader validates a different contract. A separate `ifccad-convert` companion provides a bounded direct mapping to cadcodec `CadDocument`; its direction-specific coverage documents define conversion limits. Plot settings, a viewport projection/rendering API, annotation, indexed colors, complex text/shape line patterns and effective appearance evaluation are outside this profile version.
+
+## Primitive geometry rules
+
+All represented values are finite binary64. Readers and writers retain supplied
+placement axes and radian parameters without normalization. A circular point is
+`radius * (cos(t), sin(t))`; an elliptic point is
+`(semiMajorRadius * cos(t), semiMinorRadius * sin(t))` in the placed local plane.
+Arc sweeps satisfy `0 < abs(sweepParameter) < binary64 TAU`. Start parameters are
+not reduced modulo a turn. Full circles/ellipses retain distinct kinds from arcs,
+and equal-radius Ellipse remains Ellipse. Unknown primitive/placement members,
+missing fields and explicit null values are invalid. Direct XYZ geometry has no
+supporting placement attribute.
+
+A typed planar polyline has one finite outgoing bulge per vertex. Wire omission
+resolves to all zero; a present array must exactly match the vertex count. A
+nonzero bulge represents signed included angle `4 * atan(bulge)`. Closed paths
+activate every outgoing segment; the last bulge of an open path is retained but
+not evaluated. An active curved segment with coincident endpoints is invalid;
+straight repeats remain valid. Spatial polylines remain a separate straight XYZ
+family even when coplanar. Neither native family has width or fit semantics.
+These intrinsic rules use the same geometry predicates as OCDraw, through
+independent model adapters; no OCDraw file or CAD runtime is needed.
+## Optional bounds and explicit preparation
+
+Model, Paper and block-definition values may include `bounds` with exactly
+`min` and `max` finite ordered XYZ arrays. Empty owners require absence;
+nonempty owners may omit bounds. Explicit null, partial or unknown fields fail.
+Present bounds must contain the shared conservative geometry enclosure,
+including complete curves, nested signed block transforms and Paper viewport
+frames at Z=0. They are geometric metadata in the owner's coordinate unit,
+independent of physical media. They do not define cropping or display visibility.
+An empty-definition instance contributes its placement origin.
+
+`recompute_ifccad_document_bounds` is explicit and atomic. It validates authored
+content while ignoring stale bounds, prepares all scopes, and only then replaces
+all bounds. Failure changes no field. Native loading/encoding preserves valid
+supplied bounds without recomputation. Transform evaluation for supplied-bounds
+validation does not normalize or rewrite transforms. Owner identity domains
+remain distinct: a layout and a block may have the same numeric ID.

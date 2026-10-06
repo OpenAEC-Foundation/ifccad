@@ -225,15 +225,8 @@ pub(crate) fn validate_fields(doc: &OcdrawDocument) -> Vec<LogicalError> {
 }
 
 pub(crate) fn geometry_is_valid(geometry: &EntityGeometry) -> bool {
-    match geometry {
-        EntityGeometry::Line { start, end } => start.iter().chain(end).all(|v| v.is_finite()),
-        EntityGeometry::PlanarPolyline { vertices, .. }
-        | EntityGeometry::SpatialPolyline { vertices, .. } => {
-            vertices.len() >= 2
-                && vertices.iter().flatten().all(|v| v.is_finite())
-                && enclosure(geometry).is_some()
-        }
-        EntityGeometry::BlockInstance { .. } => true,
-        _ => enclosure(geometry).is_some(),
+    match super::geometry_validation::geometry_ref(geometry) {
+        Some(g) => crate::geometry_kernel::validate_geometry(g).is_ok(),
+        None => matches!(geometry, EntityGeometry::BlockInstance { .. }),
     }
 }

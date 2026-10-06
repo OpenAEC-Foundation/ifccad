@@ -1,7 +1,6 @@
-use crate::{diagnostics::diagnostic, IfccadDiagnostic};
-use num_rational::BigRational;
+use crate::IfccadDiagnostic;
 use ocdraw::ifccad::*;
-use opencadcodec::{EntityType, Vector2, Vector3};
+use opencadcodec::{EntityType, Vector3};
 
 pub(crate) fn v(p: [f64; 3]) -> Vector3 {
     Vector3::new(p[0], p[1], p[2])
@@ -16,150 +15,162 @@ pub(crate) fn xy(origin: [f64; 3]) -> IfccadPlacement {
         y_axis: [0., 1., 0.],
     }
 }
-pub(crate) fn canonical(f: &IfccadPlacement, loc: &str, issues: &mut Vec<IfccadDiagnostic>) {
-    if f.x_axis != [1., 0., 0.] || f.y_axis != [0., 1., 0.] {
-        issues.push(diagnostic(
-            "placement",
-            loc,
-            "this slice supports only standard XY frames",
-        ));
-    }
-}
-fn add(a: f64, b: f64, loc: &str, issues: &mut Vec<IfccadDiagnostic>) -> f64 {
-    let result = a + b;
-    let exact = BigRational::from_float(a)
-        .zip(BigRational::from_float(b))
-        .map(|(a, b)| a + b);
-    if exact.is_none() || exact != BigRational::from_float(result) {
-        issues.push(diagnostic(
-            "rounding",
-            loc,
-            "translated coordinate is not an exact finite binary64 sum",
-        ));
-    }
-    result
-}
 pub(crate) fn to_entity(
     kind: &IfccadEntityKind,
-    loc: &str,
+    key: u64,
+    context: &mut crate::geometry_context::GeometryContext,
     issues: &mut Vec<IfccadDiagnostic>,
-) -> Option<EntityType> {
-    let before = issues.len();
-    let result = match kind {
-        IfccadEntityKind::LineSegment { start, end } => {
-            EntityType::Line(opencadcodec::Line::from_points(v(*start), v(*end)))
-        }
-        IfccadEntityKind::Circle { radius, placement } => {
-            canonical(placement, loc, issues);
-            EntityType::Circle(opencadcodec::Circle::from_center_radius(
-                v(placement.origin),
-                *radius,
-            ))
-        }
-        IfccadEntityKind::PlanarPolyline {
-            vertices,
-            closed,
-            placement,
-            line_pattern_generation,
-        } => {
-            canonical(placement, loc, issues);
-            let vertices = vertices
-                .iter()
-                .map(|p| {
-                    Vector2::new(
-                        add(p[0], placement.origin[0], loc, issues),
-                        add(p[1], placement.origin[1], loc, issues),
-                    )
-                })
-                .collect();
-            let mut poly = opencadcodec::entities::LwPolyline::from_points(vertices);
-            poly.elevation = placement.origin[2];
-            poly.is_closed = *closed;
-            poly.plinegen = *line_pattern_generation == IfccadLinePatternGeneration::Continuous;
-            EntityType::LwPolyline(poly)
-        }
-        IfccadEntityKind::Viewport(_) => unreachable!("viewports use staged entity conversion"),
-        IfccadEntityKind::BlockInstance { .. } => {
-            issues.push(diagnostic("blocks", loc, "block conversion pending"));
-            return None;
-        }
+) -> Result<Option<EntityType>, crate::IfccadConversionError> {
+    let source = crate::IfccadGeometryEntitySource::NativeEntity {
+        owner: context.owner,
+        entity_id: key,
     };
-    (issues.len() == before).then_some(result)
+    let geometry = kind
+        .as_shared_geometry()
+        .map_err(crate::IfccadConversionError::CoreValidation)?
+        .expect("primitive branch");
+    let mut prepared = cad_geometry_convert::prepare_to_cad(geometry).map_err(|e| {
+        context.preparation_failure(&source, e, crate::IfccadGeometryStage::TargetConstruction)
+    })?;
+    if let (
+        IfccadEntityKind::PlanarPolyline {
+            line_pattern_generation,
+            ..
+        },
+        EntityType::LwPolyline(p),
+    ) = (kind, &mut prepared.entity)
+    {
+        p.plinegen = *line_pattern_generation == IfccadLinePatternGeneration::Continuous;
+    }
+    if let (
+        IfccadEntityKind::SpatialPolyline {
+            line_pattern_generation,
+            ..
+        },
+        EntityType::Polyline3D(p),
+    ) = (kind, &mut prepared.entity)
+    {
+        p.flags.linetype_continuous =
+            *line_pattern_generation == IfccadLinePatternGeneration::Continuous;
+    }
+    context.record(key, source, prepared.pair, issues)?;
+    Ok(Some(prepared.entity))
+}
+pub(crate) fn placement(frame: ocdraw::geometry_kernel::CoordinateFrame3) -> IfccadPlacement {
+    IfccadPlacement {
+        origin: frame.origin().components(),
+        x_axis: frame.x_axis().components(),
+        y_axis: frame.y_axis().components(),
+    }
+}
+fn generation(e: &EntityType) -> IfccadLinePatternGeneration {
+    let continuous = match e {
+        EntityType::LwPolyline(p) => p.plinegen,
+        EntityType::Polyline2D(p) => p.flags.bits() & 128 != 0,
+        EntityType::Polyline3D(p) => p.flags.to_bits() & 128 != 0,
+        EntityType::Polyline(p) => p.flags.bits() & 128 != 0,
+        _ => false,
+    };
+    if continuous {
+        IfccadLinePatternGeneration::Continuous
+    } else {
+        IfccadLinePatternGeneration::PerSegment
+    }
 }
 pub(crate) fn from_entity(
-    entity: &EntityType,
+    e: &EntityType,
     loc: &str,
     issues: &mut Vec<IfccadDiagnostic>,
-) -> Option<IfccadEntityKind> {
-    let unsupported = |issues: &mut Vec<_>, msg| issues.push(diagnostic("geometry", loc, msg));
-    let before = issues.len();
-    let result = match entity {
-        EntityType::Line(l) => {
-            crate::source::residual(
-                l,
-                &opencadcodec::Line::new(),
-                &["common", "start", "end"],
-                loc,
-                issues,
-            );
-            IfccadEntityKind::LineSegment {
-                start: p(l.start),
-                end: p(l.end),
-            }
-        }
-        EntityType::Circle(c) => {
-            crate::source::residual(
-                c,
-                &opencadcodec::Circle::new(),
-                &["common", "center", "radius"],
-                loc,
-                issues,
-            );
-            IfccadEntityKind::Circle {
-                radius: c.radius,
-                placement: xy(p(c.center)),
-            }
-        }
-        EntityType::LwPolyline(l) => {
-            crate::source::residual(
-                l,
-                &opencadcodec::entities::LwPolyline::new(),
-                &["common", "vertices", "is_closed", "elevation", "plinegen"],
-                loc,
-                issues,
-            );
-            for vertex in &l.vertices {
-                crate::source::residual(
-                    vertex,
-                    &opencadcodec::entities::LwVertex::new(vertex.location),
-                    &["location"],
-                    loc,
-                    issues,
-                );
-            }
-            IfccadEntityKind::PlanarPolyline {
-                line_pattern_generation: if l.plinegen {
-                    IfccadLinePatternGeneration::Continuous
-                } else {
-                    IfccadLinePatternGeneration::PerSegment
-                },
-                vertices: l
-                    .vertices
-                    .iter()
-                    .map(|v| [v.location.x, v.location.y])
-                    .collect(),
-                closed: l.is_closed,
-                placement: xy([0., 0., l.elevation]),
-            }
-        }
-        _ => {
-            unsupported(issues, "unsupported entity family");
-            return None;
-        }
+    context: &mut crate::geometry_context::GeometryContext,
+) -> Result<Option<IfccadEntityKind>, crate::IfccadConversionError> {
+    if !crate::source_geometry::classified(e, loc, issues) {
+        return Ok(None);
+    }
+    let identity = crate::IfccadGeometryEntitySource::CadEntity {
+        handle: e.common().handle,
+        kind: e.as_entity().entity_type().into(),
     };
-    (issues.len() == before).then_some(result)
+    let prepared = cad_geometry_convert::prepare_from_cad(e).map_err(|error| {
+        context.preparation_failure(
+            &identity,
+            error,
+            crate::IfccadGeometryStage::SourceEvaluation,
+        )
+    })?;
+    context.record(e.common().handle.value(), identity, prepared.pair, issues)?;
+    if prepared.normal_normalized {
+        issues.push(crate::diagnostics::modification(
+            "source-normal-normalized",
+            loc,
+            "CAD normal magnitude cannot be retained in a placed unit-frame primitive",
+        ));
+    }
+    use ocdraw::geometry_kernel::OwnedGeometry as G;
+    let line_pattern_generation = generation(e);
+    let kind = match prepared.geometry {
+        G::Line { start, end } => IfccadEntityKind::LineSegment { start, end },
+        G::Point { placement: frame } => IfccadEntityKind::Point {
+            placement: placement(frame),
+        },
+        G::Circle {
+            placement: frame,
+            radius,
+        } => IfccadEntityKind::Circle {
+            placement: placement(frame),
+            radius,
+        },
+        G::Arc {
+            placement: frame,
+            radius,
+            start,
+            sweep,
+        } => IfccadEntityKind::Arc {
+            placement: placement(frame),
+            radius,
+            start_parameter: start,
+            sweep_parameter: sweep,
+        },
+        G::Ellipse {
+            placement: frame,
+            major,
+            minor,
+            arc: None,
+        } => IfccadEntityKind::Ellipse {
+            placement: placement(frame),
+            semi_major_radius: major,
+            semi_minor_radius: minor,
+        },
+        G::Ellipse {
+            placement: frame,
+            major,
+            minor,
+            arc: Some((start, sweep)),
+        } => IfccadEntityKind::EllipseArc {
+            placement: placement(frame),
+            semi_major_radius: major,
+            semi_minor_radius: minor,
+            start_parameter: start,
+            sweep_parameter: sweep,
+        },
+        G::PlanarPolyline {
+            placement: frame,
+            vertices,
+            closed,
+        } => IfccadEntityKind::PlanarPolyline {
+            placement: placement(frame),
+            bulges: vertices.iter().map(|v| v[2]).collect(),
+            vertices: vertices.into_iter().map(|v| [v[0], v[1]]).collect(),
+            closed,
+            line_pattern_generation,
+        },
+        G::SpatialPolyline { vertices, closed } => IfccadEntityKind::SpatialPolyline {
+            vertices,
+            closed,
+            line_pattern_generation,
+        },
+    };
+    Ok(Some(kind))
 }
-
 /// Invalid scalars in known geometry remain errors even when another field
 /// would cause the entire entity to be skipped.
 pub(crate) fn validate_source(entity: &EntityType) -> Result<(), crate::IfccadConversionError> {
@@ -167,6 +178,55 @@ pub(crate) fn validate_source(entity: &EntityType) -> Result<(), crate::IfccadCo
     let valid = match entity {
         EntityType::Line(l) => {
             finite(l.start) && finite(l.end) && finite(l.normal) && l.thickness.is_finite()
+        }
+        EntityType::Point(p) => {
+            finite(p.location)
+                && finite(p.normal)
+                && p.x_axis_angle.is_finite()
+                && p.thickness.is_finite()
+        }
+        EntityType::Arc(p) => {
+            finite(p.center)
+                && finite(p.normal)
+                && p.radius.is_finite()
+                && p.radius > 0.
+                && p.start_angle.is_finite()
+                && p.end_angle.is_finite()
+                && p.thickness.is_finite()
+        }
+        EntityType::Ellipse(p) => {
+            finite(p.center)
+                && finite(p.normal)
+                && finite(p.major_axis)
+                && p.minor_axis_ratio.is_finite()
+                && p.minor_axis_ratio > 0.
+                && p.minor_axis_ratio <= 1.
+                && p.start_parameter.is_finite()
+                && p.end_parameter.is_finite()
+        }
+        EntityType::Polyline2D(p) => {
+            finite(p.normal)
+                && [p.elevation, p.thickness, p.start_width, p.end_width]
+                    .into_iter()
+                    .all(f64::is_finite)
+                && p.vertices.len() >= 2
+                && p.vertices.iter().all(|v| {
+                    finite(v.location)
+                        && [v.start_width, v.end_width, v.bulge, v.curve_tangent]
+                            .into_iter()
+                            .all(f64::is_finite)
+                })
+        }
+        EntityType::Polyline3D(p) => {
+            finite(p.normal)
+                && [p.elevation, p.default_start_width, p.default_end_width]
+                    .into_iter()
+                    .all(f64::is_finite)
+                && p.vertices.len() >= 2
+                && p.vertices.iter().all(|v| finite(v.position))
+        }
+        EntityType::Polyline(p) => {
+            p.vertices.len() >= 2 && p.vertices.iter().all(|v| finite(v.location))
         }
         EntityType::Circle(c) => {
             finite(c.center)

@@ -7,6 +7,8 @@ pub enum IfccadDiagnosticAction {
     Modified,
     /// A uniquely established structural cache repair, without semantic loss.
     Recovery,
+    /// Certified geometric rounding within the requested hard limit.
+    RoundedWithinTolerance,
 }
 
 /// Located unsupported content or a documented source recovery.
@@ -22,11 +24,21 @@ impl IfccadDiagnostic {
     pub fn is_loss(&self) -> bool {
         self.action != IfccadDiagnosticAction::Recovery
     }
+    pub fn is_semantic_loss(&self) -> bool {
+        matches!(
+            self.action,
+            IfccadDiagnosticAction::Omitted | IfccadDiagnosticAction::Modified
+        )
+    }
 }
 
 /// Conversion failure retaining the core phase and original typed cause.
 #[derive(Debug, thiserror::Error)]
 pub enum IfccadConversionError {
+    #[error("invalid geometric tolerance: {0}")]
+    Tolerance(#[source] crate::IfccadToleranceError),
+    #[error("{0}")]
+    Geometry(#[source] Box<crate::IfccadGeometryFailure>),
     #[error("invalid CAD structure: {0}")]
     InvalidStructure(String),
     #[error("unsupported conversion content: {0:?}")]
@@ -73,9 +85,25 @@ pub(crate) fn enforce_policy(
     if issues
         .iter()
         .any(|d| matches!(d.code, "rounding" | "scale-clamped" | "precision"))
-        || (loss_policy == IfccadLossPolicy::Reject && issues.iter().any(IfccadDiagnostic::is_loss))
+        || (loss_policy == IfccadLossPolicy::Reject
+            && issues.iter().any(IfccadDiagnostic::is_semantic_loss))
     {
         return Err(IfccadConversionError::Unsupported(issues.to_vec()));
     }
     Ok(())
+}
+
+pub(crate) fn geometry_rounding(
+    source: &crate::IfccadGeometryEntitySource,
+    domain: crate::IfccadGeometryDomain,
+    bound: f64,
+) -> IfccadDiagnostic {
+    IfccadDiagnostic {
+        code: "GeometryRoundedWithinTolerance",
+        location: format!("{source:?}"),
+        message: format!(
+            "certified geometric deviation <= {bound:e} in {domain:?} coordinate units"
+        ),
+        action: IfccadDiagnosticAction::RoundedWithinTolerance,
+    }
 }

@@ -69,6 +69,7 @@ fn export_preallocates_forward_boundary_handles_and_assigns_runtime_numbers() {
         &source,
         IfccadToCadOptions {
             loss_policy: IfccadLossPolicy::Reject,
+            ..Default::default()
         },
     )
     .unwrap();
@@ -140,7 +141,10 @@ fn contradictory_clip_ownership_and_shared_boundaries_are_structural_errors() {
                 cad_document_to_ifccad_document(
                     &document,
                     metadata(),
-                    CadToIfccadOptions { loss_policy },
+                    CadToIfccadOptions {
+                        loss_policy,
+                        ..Default::default()
+                    },
                 ),
                 Err(IfccadConversionError::InvalidStructure(_))
             ));
@@ -265,6 +269,7 @@ fn viewport_visibility_and_all_render_modes_are_independent() {
                     doc,
                     IfccadToCadOptions {
                         loss_policy: IfccadLossPolicy::Reject,
+                        ..Default::default()
                     },
                 )
                 .unwrap();
@@ -343,6 +348,11 @@ fn unsupported_boundary_families_and_camera_planes_omit_only_the_viewport() {
         };
         v.clip_boundary_handle = boundary;
         let out = cad_document_to_encoded_ifccad(&d, metadata(), Default::default()).unwrap();
+        if family == 2 {
+            assert!(out.mappings().entities.ifccad_id(handle).is_some());
+            assert!(!out.diagnostics().iter().any(|d| d.code == "viewport-clip"));
+            continue;
+        }
         assert!(out.mappings().entities.ifccad_id(handle).is_none());
         assert!(out.diagnostics().iter().any(|d| d.code == "viewport-clip"));
         assert!(matches!(
@@ -355,12 +365,32 @@ fn unsupported_boundary_families_and_camera_planes_omit_only_the_viewport() {
 #[test]
 fn omitted_export_boundary_never_leaves_viewport_mapping() {
     let mut drawing = viewport_drawing();
-    let IfccadEntityKind::Circle { placement, .. } = &mut drawing.paper_layouts[0].entities[2].kind
-    else {
-        panic!()
+    let id = drawing.id_counters.allocate_block_id().unwrap();
+    drawing.blocks.push(IfccadBlockDefinition {
+        id,
+        name: "*Unsupported clip reference".into(),
+        base_point: [0.; 3],
+        insertion_unit: "mm".into(),
+        bounds: None,
+        entities: vec![],
+    });
+    drawing.paper_layouts[0].entities[2].kind = IfccadEntityKind::BlockInstance {
+        definition_id: id,
+        transform: IfccadBlockTransform {
+            placement: IfccadPlacement {
+                origin: [0.; 3],
+                x_axis: [1., 0., 0.],
+                y_axis: [0., 1., 0.],
+            },
+            rotation: 0.,
+            scale: [1.; 3],
+        },
     };
-    placement.x_axis = [0., 1., 0.];
-    placement.y_axis = [-1., 0., 0.];
+    for e in &mut drawing.paper_layouts[0].entities {
+        if let IfccadEntityKind::Viewport(v) = &mut e.kind {
+            v.paper_clip.enabled = false;
+        }
+    }
     validate_ifccad_document(&drawing).unwrap();
     let out = ifccad_document_to_cad_document(&drawing, Default::default()).unwrap();
     assert!(out.mappings().entities.cad_handle(1001).is_none());
@@ -370,7 +400,8 @@ fn omitted_export_boundary_never_leaves_viewport_mapping() {
         ifccad_document_to_cad_document(
             &drawing,
             IfccadToCadOptions {
-                loss_policy: IfccadLossPolicy::Reject
+                loss_policy: IfccadLossPolicy::Reject,
+                ..Default::default()
             }
         ),
         Err(IfccadConversionError::Unsupported(_))
@@ -383,6 +414,7 @@ fn zero_runtime_number_does_not_make_an_authored_viewport_scaffold() {
         &viewport_drawing(),
         IfccadToCadOptions {
             loss_policy: IfccadLossPolicy::Reject,
+            ..Default::default()
         },
     )
     .unwrap()

@@ -7,6 +7,28 @@
 //! routes avoid an IFCX byte bridge; loaded-source conversion retains graph loss
 //! and numeric projection checks.
 //!
+//! Both directions expose the same hard geometric tolerance as OCDraw.
+//! Defaults use one micrometre in known coordinate units and zero for unitless
+//! domains. Each Paper layout resolves its own coordinate-unit limit.
+//! Certified within-limit rounding is accepted even under semantic Reject.
+//! Exceedance or incomplete proof returns no output.
+//!
+//! ```
+//! use ifccad_convert::{IfccadToCadOptions, CadToIfccadOptions,
+//!     IfccadGeometryTolerance, IfccadLossPolicy};
+//! let known_units = IfccadToCadOptions::default();
+//! let exact = IfccadToCadOptions {
+//!     geometry_tolerance: IfccadGeometryTolerance::exact(),
+//!     ..known_units
+//! };
+//! let unitless = CadToIfccadOptions {
+//!     geometry_tolerance: IfccadGeometryTolerance::drawing_units(1e-6)?,
+//!     loss_policy: IfccadLossPolicy::Reject,
+//! };
+//! # let _ = (exact, unitless);
+//! # Ok::<(), ifccad_convert::IfccadToleranceError>(())
+//! ```
+//!
 //! ```
 //! use ifccad_convert::{cad_document_to_ifccad_document,
 //!     ifccad_document_to_cad_document, IfccadTargetMetadata,
@@ -41,6 +63,9 @@ mod diagnostics;
 mod entity_owners;
 mod from_cad;
 mod geometry;
+mod geometry_assessment;
+mod geometry_context;
+pub use geometry_assessment::*;
 mod layout_references;
 mod layouts;
 mod loss;
@@ -48,6 +73,7 @@ mod options;
 mod outcome;
 mod patterns;
 mod source;
+mod source_geometry;
 mod to_cad;
 mod units;
 mod viewports;

@@ -4,7 +4,7 @@ use ifccad_convert::*;
 use ocdraw::ifccad::*;
 
 #[test]
-fn default_allow_keeps_supported_entities_and_reports_skipped_arc() {
+fn default_allow_keeps_supported_entities_and_reports_skipped_spline() {
     let mut c = cad();
     let first = c
         .add_entity(opencadcodec::EntityType::Line(
@@ -12,7 +12,7 @@ fn default_allow_keeps_supported_entities_and_reports_skipped_arc() {
         ))
         .unwrap();
     let arc = c
-        .add_entity(opencadcodec::EntityType::Arc(opencadcodec::Arc::new()))
+        .add_entity(opencadcodec::EntityType::Spline(opencadcodec::Spline::new()))
         .unwrap();
     let last = c
         .add_entity(opencadcodec::EntityType::Line(
@@ -79,6 +79,7 @@ fn default_allow_converts_unmodified_hello_cad_with_nearest_line_weight() {
 fn reject() -> CadToIfccadOptions {
     CadToIfccadOptions {
         loss_policy: IfccadLossPolicy::Reject,
+        ..Default::default()
     }
 }
 
@@ -106,7 +107,8 @@ fn reject_returns_losses_while_allow_returns_them_on_success() {
         ifccad_source_to_cad_document(
             &source,
             IfccadToCadOptions {
-                loss_policy: (reject()).loss_policy
+                loss_policy: (reject()).loss_policy,
+                ..Default::default()
             }
         ),
         Err(IfccadConversionError::Unsupported(_))
@@ -114,7 +116,7 @@ fn reject_returns_losses_while_allow_returns_them_on_success() {
 }
 
 #[test]
-fn allow_skips_whole_incompatible_geometry_in_both_directions() {
+fn allow_skips_unsupported_source_properties_and_retains_supported_native_placement() {
     for field in 0..5 {
         let mut c = ifccad_source_to_cad_document(&validated(&primitives()), Default::default())
             .unwrap()
@@ -131,8 +133,15 @@ fn allow_skips_whole_incompatible_geometry_in_both_directions() {
             _ => p.vertices[0].vertex_id = 10,
         }
         let out = cad_document_to_encoded_ifccad(&c, metadata(), Default::default()).unwrap();
-        assert_eq!(out.validated_source().document().model.entities.len(), 2);
-        assert!(out.mappings().entities.ifccad_id(h).is_none());
+        let mapped = matches!(field, 0 | 2);
+        assert_eq!(
+            out.validated_source().document().model.entities.len(),
+            if mapped { 3 } else { 2 }
+        );
+        assert_eq!(out.mappings().entities.ifccad_id(h).is_some(), mapped);
+        if mapped {
+            continue;
+        }
         assert!(out
             .diagnostics()
             .iter()
@@ -145,8 +154,8 @@ fn allow_skips_whole_incompatible_geometry_in_both_directions() {
     placement.x_axis = [0., 1., 0.];
     placement.y_axis = [-1., 0., 0.];
     let out = ifccad_source_to_cad_document(&validated(&d), Default::default()).unwrap();
-    assert!(out.mappings().entities.cad_handle(41).is_none());
-    assert_eq!(out.mappings().entities.iter().count(), 2);
+    assert!(out.mappings().entities.cad_handle(41).is_some());
+    assert_eq!(out.mappings().entities.iter().count(), 3);
 }
 
 #[test]
@@ -155,9 +164,9 @@ fn allow_reports_partial_nested_definitions_at_each_affected_instance() {
         .unwrap()
         .into_document();
     let h = c.block_records.get("Inner").unwrap().entity_handles[0];
-    let mut arc = opencadcodec::Arc::new();
+    let mut arc = opencadcodec::Spline::new();
     arc.common = c.get_entity(h).unwrap().common().clone();
-    *c.get_entity_mut(h).unwrap() = opencadcodec::EntityType::Arc(arc);
+    *c.get_entity_mut(h).unwrap() = opencadcodec::EntityType::Spline(arc);
     let out = cad_document_to_encoded_ifccad(&c, metadata(), Default::default()).unwrap();
     let d = out.validated_source().document();
     assert!(d
@@ -302,7 +311,8 @@ fn source_structure_and_numeric_failures_remain_fatal_under_both_policies() {
         assert!(ifccad_source_to_cad_document(
             &validated(&d),
             IfccadToCadOptions {
-                loss_policy: (options).loss_policy
+                loss_policy: (options).loss_policy,
+                ..Default::default()
             }
         )
         .is_err());
@@ -315,7 +325,8 @@ fn source_structure_and_numeric_failures_remain_fatal_under_both_policies() {
         assert!(ifccad_source_to_cad_document(
             &validated(&d),
             IfccadToCadOptions {
-                loss_policy: (options).loss_policy
+                loss_policy: (options).loss_policy,
+                ..Default::default()
             }
         )
         .is_err());
@@ -484,13 +495,14 @@ fn common_metadata_loss_keeps_geometry_and_marks_nested_occurrences() {
         },
     };
     let out = ifccad_source_to_cad_document(&validated(&d), Default::default()).unwrap();
-    assert!(out.document().entities_in_block("Inner").next().is_none());
+    // A represented rotation is geometric preparation, not missing block content.
+    assert!(out.document().entities_in_block("Inner").next().is_some());
     assert_eq!(
         out.diagnostics()
             .iter()
             .filter(|d| d.code == "block-content-loss")
             .count(),
-        3
+        0
     );
 }
 
@@ -503,6 +515,7 @@ fn missing_layer_zero_has_loss_evidence_while_paper_geometry_is_retained() {
     let mut e = primitives().model.entities[0].clone();
     e.id = 45;
     d.paper_layouts.push(IfccadPaperLayout {
+        bounds: None,
         id: 8,
         name: "Sheet".into(),
         tab_index: 1,
@@ -536,7 +549,8 @@ fn missing_layer_zero_has_loss_evidence_while_paper_geometry_is_retained() {
     assert!(ifccad_source_to_cad_document(
         &source,
         IfccadToCadOptions {
-            loss_policy: (reject()).loss_policy
+            loss_policy: (reject()).loss_policy,
+            ..Default::default()
         }
     )
     .is_err());

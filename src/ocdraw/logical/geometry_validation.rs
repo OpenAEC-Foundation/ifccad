@@ -1,107 +1,69 @@
 //! Geometry and scope bounds rules over decoded drawing values.
 
 use super::{DrawingGeometricEntity, DrawingScope, DrawingViewport, EntityGeometry, LogicalError};
-use crate::ocdraw::geometry::{bulge_segment_bounds, circular_bounds, elliptic_bounds};
-use crate::ocdraw::Point2;
 use std::collections::BTreeMap;
 
-pub(crate) fn enclosure(geometry: &EntityGeometry) -> Option<([f64; 3], [f64; 3])> {
-    let (min, max) = match geometry {
-        EntityGeometry::Line { start, end } => (
-            std::array::from_fn(|axis| start[axis].min(end[axis])),
-            std::array::from_fn(|axis| start[axis].max(end[axis])),
-        ),
-        EntityGeometry::Point { placement } => {
-            let origin = placement.origin().components();
-            (origin, origin)
-        }
-        EntityGeometry::Circle { placement, radius } => {
-            let bounds = circular_bounds(placement.components(), *radius, None)?;
-            (bounds.min().components(), bounds.max().components())
-        }
+pub(crate) fn geometry_ref(
+    geometry: &EntityGeometry,
+) -> Option<crate::geometry_kernel::GeometryRef<'_>> {
+    use crate::geometry_kernel::{GeometryRef as G, PlanarVertices};
+    Some(match geometry {
+        EntityGeometry::Line { start, end } => G::Line {
+            start: *start,
+            end: *end,
+        },
+        EntityGeometry::Point { placement } => G::Point {
+            placement: *placement,
+        },
+        EntityGeometry::Circle { placement, radius } => G::Circle {
+            placement: *placement,
+            radius: *radius,
+        },
         EntityGeometry::Arc {
             placement,
             radius,
             start_parameter,
             sweep_parameter,
-        } => {
-            let bounds = circular_bounds(
-                placement.components(),
-                *radius,
-                Some((*start_parameter, *sweep_parameter)),
-            )?;
-            (bounds.min().components(), bounds.max().components())
-        }
+        } => G::Arc {
+            placement: *placement,
+            radius: *radius,
+            start: *start_parameter,
+            sweep: *sweep_parameter,
+        },
         EntityGeometry::Ellipse {
             placement,
             semi_major_radius,
             semi_minor_radius,
             arc,
-        } => {
-            let bounds = elliptic_bounds(
-                placement.components(),
-                *semi_major_radius,
-                *semi_minor_radius,
-                *arc,
-            )?;
-            (bounds.min().components(), bounds.max().components())
-        }
+        } => G::Ellipse {
+            placement: *placement,
+            major: *semi_major_radius,
+            minor: *semi_minor_radius,
+            arc: *arc,
+        },
         EntityGeometry::PlanarPolyline {
             placement,
             vertices,
             closed,
             ..
-        } => {
-            if vertices.len() < 2 {
-                return None;
-            }
-            let mut min = [f64::INFINITY; 3];
-            let mut max = [f64::NEG_INFINITY; 3];
-            let segments = if *closed {
-                vertices.len()
-            } else {
-                vertices.len() - 1
-            };
-            for index in 0..segments {
-                let start = vertices[index];
-                let end = vertices[(index + 1) % vertices.len()];
-                let segment = bulge_segment_bounds(
-                    Point2::new(start[0], start[1]),
-                    Point2::new(end[0], end[1]),
-                    start[2],
-                )?;
-                for x in [segment.min().x(), segment.max().x()] {
-                    for y in [segment.min().y(), segment.max().y()] {
-                        let point = placement.enclose_point(Point2::new(x, y)).ok()?;
-                        for axis in 0..3 {
-                            min[axis] = min[axis].min(point.min().components()[axis]);
-                            max[axis] = max[axis].max(point.max().components()[axis]);
-                        }
-                    }
-                }
-            }
-            (min, max)
-        }
-        EntityGeometry::SpatialPolyline { vertices, .. } => {
-            if vertices.len() < 2 {
-                return None;
-            }
-            let mut min = [f64::INFINITY; 3];
-            let mut max = [f64::NEG_INFINITY; 3];
-            for vertex in vertices {
-                for (axis, value) in vertex.iter().copied().enumerate() {
-                    min[axis] = min[axis].min(value);
-                    max[axis] = max[axis].max(value);
-                }
-            }
-            (min, max)
-        }
+        } => G::PlanarPolyline {
+            placement: *placement,
+            vertices: PlanarVertices::Packed(vertices),
+            closed: *closed,
+        },
+        EntityGeometry::SpatialPolyline {
+            vertices, closed, ..
+        } => G::SpatialPolyline {
+            vertices,
+            closed: *closed,
+        },
         EntityGeometry::BlockInstance { .. } => return None,
-    };
-    min.into_iter()
-        .chain(max)
-        .all(f64::is_finite)
-        .then_some((min, max))
+    })
+}
+
+pub(crate) fn enclosure(geometry: &EntityGeometry) -> Option<([f64; 3], [f64; 3])> {
+    let bounds = crate::geometry_kernel::geometry_bounds(geometry_ref(geometry)?).ok()?;
+    Some((bounds.min().components(), bounds.max().components()))
 }
 
 pub(crate) fn validate_geometry_bounds(
@@ -201,37 +163,10 @@ pub(crate) fn validate_viewport_bounds(
 pub(crate) fn viewport_bounds(
     frame: super::DrawingViewportFrame,
 ) -> Option<crate::ocdraw::Bounds3d> {
-    use crate::ocdraw::{
-        geometry::numeric::{exact, round_down, round_up},
-        Bounds3d, Point3,
-    };
-    if ![
-        frame.center.x(),
-        frame.center.y(),
-        frame.width,
-        frame.height,
-    ]
-    .into_iter()
-    .all(f64::is_finite)
-        || frame.width <= 0.
-        || frame.height <= 0.
-    {
-        return None;
-    }
-    let x = exact(frame.center.x());
-    let y = exact(frame.center.y());
-    let half_width = exact(frame.width) * exact(0.5);
-    let half_height = exact(frame.height) * exact(0.5);
-    Some(Bounds3d {
-        min: Point3::new(
-            round_down(&(x.clone() - &half_width)).ok()?,
-            round_down(&(y.clone() - &half_height)).ok()?,
-            0.,
-        ),
-        max: Point3::new(
-            round_up(&(x + half_width)).ok()?,
-            round_up(&(y + half_height)).ok()?,
-            0.,
-        ),
+    crate::geometry_kernel::paper_frame_bounds(crate::geometry_kernel::PaperFrame {
+        center: [frame.center.x(), frame.center.y()],
+        width: frame.width,
+        height: frame.height,
     })
+    .ok()
 }

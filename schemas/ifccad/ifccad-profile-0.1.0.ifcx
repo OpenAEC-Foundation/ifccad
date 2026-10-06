@@ -83,6 +83,34 @@
             "lengthUnit": {
               "dataType": "String",
               "optional": true
+            },
+            "bounds": {
+              "dataType": "Object",
+              "optional": true,
+              "objectRestrictions": {
+                "values": {
+                  "min": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 3,
+                      "max": 3,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  },
+                  "max": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 3,
+                      "max": 3,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -139,6 +167,34 @@
             },
             "insertionUnit": {
               "dataType": "String"
+            },
+            "bounds": {
+              "dataType": "Object",
+              "optional": true,
+              "objectRestrictions": {
+                "values": {
+                  "min": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 3,
+                      "max": 3,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  },
+                  "max": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 3,
+                      "max": 3,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -492,6 +548,16 @@
                   "continuous"
                 ]
               }
+            },
+            "bulges": {
+              "dataType": "Array",
+              "optional": true,
+              "arrayRestrictions": {
+                "min": 2,
+                "value": {
+                  "dataType": "Real"
+                }
+              }
             }
           }
         }
@@ -601,6 +667,106 @@
                 "value": {
                   "dataType": "Real"
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ifccad::geom::point": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {}
+        }
+      }
+    },
+    "ifccad::geom::arc": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "radius": {
+              "dataType": "Real"
+            },
+            "startParameter": {
+              "dataType": "Real"
+            },
+            "sweepParameter": {
+              "dataType": "Real"
+            }
+          }
+        }
+      }
+    },
+    "ifccad::geom::ellipse": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "semiMajorRadius": {
+              "dataType": "Real"
+            },
+            "semiMinorRadius": {
+              "dataType": "Real"
+            }
+          }
+        }
+      }
+    },
+    "ifccad::geom::ellipseArc": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "semiMajorRadius": {
+              "dataType": "Real"
+            },
+            "semiMinorRadius": {
+              "dataType": "Real"
+            },
+            "startParameter": {
+              "dataType": "Real"
+            },
+            "sweepParameter": {
+              "dataType": "Real"
+            }
+          }
+        }
+      }
+    },
+    "ifccad::geom::spatialPolyline": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "vertices": {
+              "dataType": "Array",
+              "arrayRestrictions": {
+                "min": 2,
+                "value": {
+                  "dataType": "Array",
+                  "arrayRestrictions": {
+                    "min": 3,
+                    "max": 3,
+                    "value": {
+                      "dataType": "Real"
+                    }
+                  }
+                }
+              }
+            },
+            "closed": {
+              "dataType": "Boolean"
+            },
+            "linePatternGeneration": {
+              "dataType": "Enum",
+              "optional": true,
+              "enumRestrictions": {
+                "options": [
+                  "perSegment",
+                  "continuous"
+                ]
               }
             }
           }

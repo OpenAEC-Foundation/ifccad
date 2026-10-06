@@ -40,27 +40,6 @@ pub(crate) fn allocate(
     }
     Ok(())
 }
-pub(crate) fn to_insert(
-    name: &str,
-    t: &IfccadBlockTransform,
-    loc: &str,
-    issues: &mut Vec<IfccadDiagnostic>,
-) -> EntityType {
-    crate::geometry::canonical(&t.placement, loc, issues);
-    let mut i = opencadcodec::entities::Insert::new(name, crate::geometry::v(t.placement.origin));
-    i.rotation = t.rotation;
-    i.set_x_scale(t.scale[0]);
-    i.set_y_scale(t.scale[1]);
-    i.set_z_scale(t.scale[2]);
-    if [i.x_scale(), i.y_scale(), i.z_scale()] != t.scale {
-        issues.push(diagnostic(
-            "scale-clamped",
-            loc,
-            "CAD setters changed the requested scale",
-        ));
-    }
-    EntityType::Insert(i)
-}
 pub(crate) fn from_insert(
     i: &opencadcodec::entities::Insert,
     id: u64,
@@ -72,6 +51,7 @@ pub(crate) fn from_insert(
     expected.set_y_scale(i.y_scale());
     expected.set_z_scale(i.z_scale());
     expected.rotation = i.rotation;
+    expected.normal = i.normal;
     let before = issues.len();
     crate::source::residual(i, &expected, &["common"], loc, issues);
     if issues.len() != before {

@@ -1,6 +1,6 @@
 use super::numeric::{exact, round_down, round_nearest, round_up, Interval};
 use super::values::{Bounds3d, CoordinateAxis, Point3, Vector3};
-use crate::ocdraw::Point2;
+use crate::geometry_kernel::Point2;
 use num_rational::BigRational;
 use num_traits::Signed;
 use thiserror::Error;

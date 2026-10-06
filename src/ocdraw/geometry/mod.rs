@@ -1,22 +1,9 @@
-#![allow(dead_code)]
-
-mod block;
-mod bulge;
-mod circular;
-pub(crate) mod clip_containment;
-pub(crate) mod numeric;
-mod placement;
-mod trig;
-pub(crate) use bulge::bulge_segment_bounds;
-pub(crate) use circular::{circular_bounds, elliptic_bounds};
-pub(crate) use placement::CoordinateFrameComponents;
-mod values;
-
-pub(crate) use block::PreparedBlockTransform;
-pub use block::{BlockTransform, BlockTransformError, Scale3};
-
-pub use placement::{
-    CoordinateFrame3, CoordinateFrameError, CoordinateFrameField, GeometryEvaluationError,
-    PlaneAxis,
+//! Compatibility reexports for the shared format-neutral geometry kernel.
+pub(crate) use crate::geometry_kernel::{
+    bulge_segment_bounds, circular_bounds, elliptic_bounds, numeric, PreparedBlockTransform,
 };
-pub use values::{Bounds3d, CoordinateAxis, Point3, Vector3};
+pub use crate::geometry_kernel::{
+    BlockTransform, BlockTransformError, Bounds3d, CoordinateAxis, CoordinateFrame3,
+    CoordinateFrameError, CoordinateFrameField, GeometryEvaluationError, PlaneAxis, Point3, Scale3,
+    Vector3,
+};

@@ -95,9 +95,8 @@ Ordinary geometry is prepared before viewports. A stored boundary must be retain
 in the same Paper owner, even when dormant. Missing or unsupported boundary geometry
 omits the whole viewport, retains supported siblings, and leaves no viewport ID
 mapping. Active clips additionally require native eligibility and full frame
-enclosure: analytic Circle or closed straight planar polyline in Paper Z=0.
-Ellipse, spline and bulged polyline clips omit the viewport until their native
-geometry is supported. No rectangle fallback or tessellation is performed.
+enclosure: analytic Circle, full Ellipse or closed straight/bulged planar path
+in Paper Z=0. Spline clips remain unsupported. No rectangle fallback or tessellation is performed.
 Contradictory boundary ownership or shared retained boundaries fail both policies.
 
 Model and all Paper IDs are allocated before owner contents. After eligibility,
@@ -120,9 +119,10 @@ it is not an AutoCAD-produced interoperability sample.
 | Common linetype handle/entity mode/raw record/data-store flag | Typed-name/owner or encoding caches, not persisted separately; name/linetype handle agreement is validated |
 | Other common fields | Typed residual check includes XDATA/raw EED, visibility, named colors, graphics, material/plot/shadow/visual styles, references, reactors and dictionaries |
 | Line start/end | Direct XYZ; diagnose thickness/nondefault normal |
-| Circle center/radius | +Z normal only, canonical XY placement; diagnose thickness/nondefault normal |
-| LwPolyline vertices/closure/elevation | Straight XY points at stored Z. Map plinegen to perSegment/continuous; diagnose bulges, widths, vertex IDs, constant width, thickness and nondefault normal |
-| Insert target/point/rotation/scales | Existing local target, +Z normal, canonical XY placement; diagnose attributes, arrays/MINSERT, spacing, view/sequence handles and other residual fields |
+| Point/Circle/Arc/Ellipse | Position, radii and supported signed parameter spans in interpreted CAD planes; diagnose thickness and source normal normalization |
+| LwPolyline/ordinary Polyline2D | Ordered vertices, outgoing/dormant bulges, closure, elevation and interpreted plane; map plinegen; diagnose widths, vertex metadata, thickness and unsupported fitted/mesh state |
+| Ordinary generic/3D polylines | Straight XYZ vertices, closure and exposed generation; unsupported vertex/curve-fit metadata remains omission |
+| Insert target/point/rotation/scales | Existing local target, valid interpreted plane and signed transforms with nested accuracy proof; diagnose attributes, arrays/MINSERT, spacing, view/sequence handles and other residual fields |
 | BLOCK/ENDBLK | If present, record handle/type/name/owner/base must agree; diagnose delimiter/common changes. Missing DXF/programmatic markers are normal |
 
 Unused definitions participate in cycle/target validation. Case-insensitive
@@ -230,3 +230,33 @@ cannot exactly map to binary64 25.4 mm). Unsupported factors such as parsecs omi
 only media under Allow. Printer/media names, margins, rotation, plot limits,
 authored overall canvases and workspace state remain deferred losses. Definition-content
 losses propagate to Paper instances through shared and nested definitions.
+
+## Geometry and accuracy expansion (provisional 0.1.0)
+
+Point, Circle/Arc, full/partial Ellipse, straight/bulged LwPolyline and ordinary
+Polyline2D, ordinary generic/3D spatial polylines now map through shared CAD
+geometry preparation. Arbitrary valid CAD planes are interpreted through the
+pinned helper; source normal normalization is separately diagnosed. Native
+family identity, outgoing/dormant bulges, closure, pattern generation, owner
+order and fresh uint64 mapping are retained. Widths/thickness, fitted/mesh flags,
+nondefault per-vertex metadata and unsupported families retain explicit omission.
+Zero/full/multiple-turn ARC and unsupported elliptic spans are not synthesized
+as another kind. Invalid scalar values in every recognized family remain fatal.
+
+The converter now has `geometry_tolerance`, shared with OCDraw: default one
+micrometre in known units, zero for unitless, with exact/drawing-unit/physical
+caller choices. Proven geometric rounding within the selected limit is reported
+and accepted under Allow/Reject; exceedance and incomplete proof return typed
+Geometry errors without output. Raw source-projection precision, semantic losses
+and scale clamping remain distinct. Model/definition limits use drawing units;
+Paper limits use each declared coordinate unit, not sheet media. Local definitions,
+including unused ones, and every retained nested occurrence are assessed.
+Full conics and bulged segment-circle enclosures supplement sampled witnesses.
+
+Output explicitly prepares conservative optional scope bounds before strict
+native validation/readback. CAD cached extents are not asserted as native bounds.
+Active viewport boundaries additionally support full ellipses and closed bulged
+planar polylines using the shared exact analytic Paper containment predicate.
+Codec development-patch requirements and their unmodified-upstream boundary
+above remain in force; these native/direct mappings do not certify arbitrary
+CAD file serialization or application rendering.

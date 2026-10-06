@@ -22,18 +22,21 @@ fn target_layer_name_collisions_fail_under_both_policies_and_routes() {
         for policy in [IfccadLossPolicy::Allow, IfccadLossPolicy::Reject] {
             let options = CadToIfccadOptions {
                 loss_policy: policy,
+                ..Default::default()
             };
             for result in [
                 ifccad_document_to_cad_document(
                     &source,
                     IfccadToCadOptions {
                         loss_policy: (options).loss_policy,
+                        ..Default::default()
                     },
                 ),
                 ifccad_source_to_cad_document(
                     &loaded,
                     IfccadToCadOptions {
                         loss_policy: (options).loss_policy,
+                        ..Default::default()
                     },
                 ),
             ] {

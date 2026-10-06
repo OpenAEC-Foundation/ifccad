@@ -1,7 +1,7 @@
 //! Exact containment of represented paper curves, independent of CAD and tessellation.
 use super::numeric::exact;
-use crate::ocdraw::logical::{viewport_bounds, DrawingViewportFrame, EntityGeometry};
-use crate::ocdraw::{Bounds3d, CoordinateFrame3, Point2};
+use super::{paper_frame_bounds, GeometryRef, PaperFrame};
+use super::{Bounds3d, CoordinateFrame3, Point2};
 use num_rational::BigRational;
 use num_traits::{Signed, Zero};
 
@@ -98,41 +98,35 @@ fn bulged_segment(p: CoordinateFrame3, start: [f64; 3], end: [f64; 3], bounds: B
 }
 
 /// Called only after intrinsic geometry validation; nonfinite input is rejected defensively.
-pub(crate) fn enclosed_by_frame(frame: DrawingViewportFrame, geometry: &EntityGeometry) -> bool {
-    let Some(bounds) = viewport_bounds(frame) else {
+pub(crate) fn enclosed_by_frame(frame: PaperFrame, geometry: GeometryRef<'_>) -> bool {
+    let Ok(bounds) = paper_frame_bounds(frame) else {
         return false;
     };
     match geometry {
-        EntityGeometry::Circle { placement, radius } if radius.is_finite() && *radius > 0. => {
-            full_curve(*placement, *radius, *radius, bounds)
+        GeometryRef::Circle { placement, radius } if radius.is_finite() && radius > 0. => {
+            full_curve(placement, radius, radius, bounds)
         }
-        EntityGeometry::Ellipse {
+        GeometryRef::Ellipse {
             placement,
-            semi_major_radius,
-            semi_minor_radius,
+            major,
+            minor,
             arc: None,
-        } if semi_major_radius.is_finite()
-            && semi_minor_radius.is_finite()
-            && *semi_minor_radius > 0.
-            && semi_major_radius >= semi_minor_radius =>
-        {
-            full_curve(*placement, *semi_major_radius, *semi_minor_radius, bounds)
+        } if major.is_finite() && minor.is_finite() && minor > 0. && major >= minor => {
+            full_curve(placement, major, minor, bounds)
         }
-        EntityGeometry::PlanarPolyline {
+        GeometryRef::PlanarPolyline {
             placement,
             vertices,
             closed: true,
             ..
-        } if vertices.len() >= 2 && vertices.iter().flatten().all(|v| v.is_finite()) => {
-            (0..vertices.len()).all(|i| {
-                bulged_segment(
-                    *placement,
-                    vertices[i],
-                    vertices[(i + 1) % vertices.len()],
-                    bounds,
-                )
-            })
-        }
+        } if vertices.len() >= 2 && vertices.is_finite() => (0..vertices.len()).all(|i| {
+            bulged_segment(
+                placement,
+                vertices.get(i),
+                vertices.get((i + 1) % vertices.len()),
+                bounds,
+            )
+        }),
         _ => false,
     }
 }

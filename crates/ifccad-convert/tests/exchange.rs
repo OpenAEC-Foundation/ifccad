@@ -111,6 +111,7 @@ fn semantic(d: &ocdraw::ifccad::IfccadDocument) -> serde_json::Value {
                 let layer = &d.layers.iter().find(|l| l.id == e.layer_id).unwrap().name;
                 let geometry = match &e.kind {
                     IfccadEntityKind::Viewport(v) => serde_json::json!(["viewport", v.frame, v.view]),
+                    IfccadEntityKind::Point{..} | IfccadEntityKind::Arc{..} | IfccadEntityKind::Ellipse{..} | IfccadEntityKind::EllipseArc{..} | IfccadEntityKind::SpatialPolyline{..} => panic!("unexpected family in this existing primitive exchange fixture"),
                     IfccadEntityKind::LineSegment { start, end } => {
                         serde_json::json!(["line", start, end])
                     }
@@ -122,7 +123,7 @@ fn semantic(d: &ocdraw::ifccad::IfccadDocument) -> serde_json::Value {
                         closed,
                         placement,
                         line_pattern_generation,
-                    } => serde_json::json!(["polyline", vertices, closed, placement, line_pattern_generation]),
+            ..} => serde_json::json!(["polyline", vertices, closed, placement, line_pattern_generation]),
                     IfccadEntityKind::BlockInstance {
                         definition_id,
                         transform,

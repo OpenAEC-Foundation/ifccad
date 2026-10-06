@@ -72,10 +72,14 @@ needed. Outcomes expose `document()`/`into_document()` or
 
 IFCX source conversion additionally assesses foreign graph content and original
 numeric precision. Its document route cannot assess discarded source context.
-OCDraw retains its unit-aware hard tolerance and geometry assessment. IFCX
-retains exact translation/projection and CAD setter checks. These necessary
-differences remain explicit; no shared tolerance or generic diagnostic model is
-introduced. Recovery diagnostics remain distinguishable from semantic losses.
+Both converters use the same public unit-aware hard tolerance and numerical
+proof engine in `cad-geometry-convert`. IFCCAD evidence resolves each Paper coordinate
+domain independently. Within-limit rounding is distinct from semantic loss;
+raw-source projection and CAD setter checks remain exact guards.
+Model-specific diagnostic identities and source inventories stay separate.
+Recovery remains distinguishable from semantic loss. The core neutral primitive
+validation lives in `ocdraw::geometry_kernel`, independently of any CAD runtime or IFCX
+schema. See [shared geometry](geometry/shared-geometry.md).
 
 ## Migration from the previous provisional API
 

@@ -65,6 +65,7 @@ fn import(
         metadata(),
         CadToIfccadOptions {
             loss_policy: policy,
+            ..Default::default()
         },
     )
 }
@@ -202,6 +203,7 @@ fn native_papers() -> IfccadDocument {
     let instance = instance(502, doc.blocks[0].id, [8., 9., 0.]);
     doc.paper_layouts = vec![
         IfccadPaperLayout {
+            bounds: None,
             id: 3,
             name: "Inches".into(),
             tab_index: 2,
@@ -214,6 +216,7 @@ fn native_papers() -> IfccadDocument {
             entities: vec![line, instance],
         },
         IfccadPaperLayout {
+            bounds: None,
             id: 90,
             name: "Empty".into(),
             tab_index: 1,
@@ -349,7 +352,7 @@ fn media_conversion_is_exact_and_unsupported_coordinates_are_located() {
     doc.paper_layouts[0].paper.as_mut().unwrap().width = 1.;
     for policy in [IfccadLossPolicy::Allow, IfccadLossPolicy::Reject] {
         assert!(
-            matches!(ifccad_document_to_cad_document(&doc,IfccadToCadOptions{loss_policy:policy}),Err(IfccadConversionError::Unsupported(d)) if d.iter().any(|d|d.code=="rounding"))
+            matches!(ifccad_document_to_cad_document(&doc,IfccadToCadOptions{loss_policy:policy, ..Default::default()}),Err(IfccadConversionError::Unsupported(d)) if d.iter().any(|d|d.code=="rounding"))
         );
     }
     doc.paper_layouts[0].paper = None;
@@ -364,7 +367,8 @@ fn media_conversion_is_exact_and_unsupported_coordinates_are_located() {
     assert!(ifccad_document_to_cad_document(
         &doc,
         IfccadToCadOptions {
-            loss_policy: IfccadLossPolicy::Reject
+            loss_policy: IfccadLossPolicy::Reject,
+            ..Default::default()
         }
     )
     .is_err());
@@ -415,7 +419,8 @@ fn target_layout_name_collisions_and_tab_overflow_are_fatal() {
             ifccad_document_to_cad_document(
                 &doc,
                 IfccadToCadOptions {
-                    loss_policy: policy
+                    loss_policy: policy,
+                    ..Default::default()
                 }
             ),
             Err(IfccadConversionError::CadConstruction(_))
@@ -453,7 +458,8 @@ fn unsupported_medium_omits_only_media_and_definition_loss_reaches_paper() {
     assert!(ifccad_document_to_cad_document(
         &doc,
         IfccadToCadOptions {
-            loss_policy: IfccadLossPolicy::Reject
+            loss_policy: IfccadLossPolicy::Reject,
+            ..Default::default()
         }
     )
     .is_err());

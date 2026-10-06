@@ -35,8 +35,12 @@ pub struct IfccadToCadOutcome {
     pub(crate) document: CadDocument,
     pub(crate) diagnostics: Vec<IfccadDiagnostic>,
     pub(crate) mappings: IfccadMappings,
+    pub(crate) geometry: crate::IfccadGeometryAssessment,
 }
 impl IfccadToCadOutcome {
+    pub fn geometry_assessment(&self) -> &crate::IfccadGeometryAssessment {
+        &self.geometry
+    }
     pub fn document(&self) -> &CadDocument {
         &self.document
     }
@@ -55,8 +59,12 @@ pub struct CadToIfccadDocumentOutcome {
     pub(crate) document: IfccadDocument,
     pub(crate) diagnostics: Vec<IfccadDiagnostic>,
     pub(crate) mappings: IfccadMappings,
+    pub(crate) geometry: crate::IfccadGeometryAssessment,
 }
 impl CadToIfccadDocumentOutcome {
+    pub fn geometry_assessment(&self) -> &crate::IfccadGeometryAssessment {
+        &self.geometry
+    }
     pub fn document(&self) -> &IfccadDocument {
         &self.document
     }
@@ -76,8 +84,12 @@ pub struct CadToEncodedIfccadOutcome {
     pub(crate) encoded: ocdraw::ifccad::EncodedIfccad,
     pub(crate) diagnostics: Vec<IfccadDiagnostic>,
     pub(crate) mappings: IfccadMappings,
+    pub(crate) geometry: crate::IfccadGeometryAssessment,
 }
 impl CadToEncodedIfccadOutcome {
+    pub fn geometry_assessment(&self) -> &crate::IfccadGeometryAssessment {
+        &self.geometry
+    }
     pub fn validated_source(&self) -> &ValidatedIfccad {
         &self.validated
     }

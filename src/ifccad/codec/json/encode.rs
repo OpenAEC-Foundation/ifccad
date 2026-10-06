@@ -29,6 +29,12 @@ struct FileOut<'a> {
     data: Vec<NodeOut>,
 }
 
+fn with_bounds(mut value: Value, bounds: Option<super::IfccadBounds3d>) -> Value {
+    if let Some(bounds) = bounds {
+        value["bounds"] = json!(bounds);
+    }
+    value
+}
 fn attrs(value: Value) -> Map<String, Value> {
     value.as_object().expect("attribute object").clone()
 }
@@ -43,33 +49,14 @@ fn entity_node(entity: &IfccadEntity, prefix: &str) -> NodeOut {
                 super::viewports::encode_viewport(viewport, prefix),
             );
         }
-        IfccadEntityKind::LineSegment { start, end } => {
-            attrs.insert(
-                "ifccad::geom::lineSegment".into(),
-                json!({"start":start,"end":end}),
-            );
-        }
-        IfccadEntityKind::PlanarPolyline {
-            vertices,
-            closed,
-            placement,
-            line_pattern_generation,
-        } => {
-            attrs.insert(
-                "ifccad::geom::planarPolyline".into(),
-                json!({"vertices":vertices,"closed":closed,"linePatternGeneration":line_pattern_generation}),
-            );
-            attrs.insert("ifccad::geom::placement".into(), json!(placement));
-        }
-        IfccadEntityKind::Circle { radius, placement } => {
-            attrs.insert("ifccad::geom::circle".into(), json!({"radius":radius}));
-            attrs.insert("ifccad::geom::placement".into(), json!(placement));
-        }
         IfccadEntityKind::BlockInstance {
             definition_id,
             transform,
         } => {
             attrs.insert("ifccad::blockInstance".into(), json!({"definition":format!("{prefix}/block/{definition_id}"),"transform":transform}));
+        }
+        kind => {
+            super::geometry::encode_kind(kind, &mut attrs);
         }
     }
     NodeOut {
@@ -141,7 +128,7 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
         path: format!("{prefix}/layout/{}", document.model.id),
         children: Some(numbered_children(&document.model.entities, &prefix)),
         attributes: attrs(
-            json!({"ifccad::layout":{"kind":"Model","tabIndex":document.model.tab_index}}),
+            json!({"ifccad::layout":with_bounds(json!({"kind":"Model","tabIndex":document.model.tab_index}),document.model.bounds)}),
         ),
     });
     for layout in &paper_layouts {
@@ -152,7 +139,7 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
         data.push(NodeOut {
             path: format!("{prefix}/layout/{}", layout.id),
             children: Some(numbered_children(&layout.entities, &prefix)),
-            attributes: attrs(json!({"ifccad::layout":value})),
+            attributes: attrs(json!({"ifccad::layout":with_bounds(value,layout.bounds)})),
         });
     }
     for p in &document.line_patterns {
@@ -179,7 +166,7 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
         data.push(NodeOut {
             path: format!("{prefix}/block/{}",block.id),
             children: Some(numbered_children(&block.entities,&prefix)),
-            attributes: attrs(json!({"ifccad::blockDefinition":{"name":block.name,"basePoint":block.base_point,"insertionUnit":block.insertion_unit}})),
+            attributes: attrs(json!({"ifccad::blockDefinition":with_bounds(json!({"name":block.name,"basePoint":block.base_point,"insertionUnit":block.insertion_unit}),block.bounds)})),
         });
     }
     for entity in document

@@ -168,7 +168,8 @@ fn missing_or_conflicting_source_targets_and_invalid_values_always_fail() {
                 &c,
                 metadata(),
                 CadToIfccadOptions {
-                    loss_policy: policy
+                    loss_policy: policy,
+                    ..Default::default()
                 }
             )
             .is_err());

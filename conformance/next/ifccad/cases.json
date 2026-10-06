@@ -26,5 +26,65 @@
   {
     "file": "valid-concave-polyline.ifcx",
     "valid": true
+  },
+  {
+    "file": "valid/geometry-families.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid/polyline-bulge-count.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/polyline-coincident-bulge.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/arc-full-sweep.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/arc-zero-sweep.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/bounds-unordered.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/bounds-too-small.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/geometry-unknown-field.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/spatial-polyline-placement.ifcx",
+    "valid": false
+  },
+  {
+    "file": "valid/bounds-nested-blocks.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/viewport-ellipse-clip.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid/clip-off-plane.ifcx",
+    "valid": false
+  },
+  {
+    "file": "valid/viewport-bulged-clip.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid/clip-curve-outside.ifcx",
+    "valid": false
+  },
+  {
+    "file": "valid/viewport-forward-clip.ifcx",
+    "valid": true
   }
 ]

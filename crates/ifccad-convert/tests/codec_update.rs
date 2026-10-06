@@ -80,6 +80,7 @@ fn model_role_bit_is_scaffold_but_authored_plot_flags_remain_loss() {
     model.plot_flags.model_type = true;
     let reject = CadToIfccadOptions {
         loss_policy: IfccadLossPolicy::Reject,
+        ..Default::default()
     };
     cad_document_to_encoded_ifccad(&doc, metadata(), reject).unwrap();
     let model = doc
@@ -152,7 +153,8 @@ fn object_xdata_is_visible_after_both_codecs_and_never_silently_dropped() {
                 &doc,
                 metadata(),
                 CadToIfccadOptions {
-                    loss_policy: IfccadLossPolicy::Reject
+                    loss_policy: IfccadLossPolicy::Reject,
+                    ..Default::default()
                 }
             ),
             Err(IfccadConversionError::Unsupported(_))

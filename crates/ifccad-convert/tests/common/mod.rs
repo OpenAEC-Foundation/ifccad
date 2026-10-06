@@ -9,6 +9,7 @@ pub fn to_cad(
         source,
         ifccad_convert::IfccadToCadOptions {
             loss_policy: ifccad_convert::IfccadLossPolicy::Reject,
+            geometry_tolerance: ifccad_convert::IfccadGeometryTolerance::exact(),
         },
     )
 }
@@ -21,6 +22,7 @@ pub fn from_cad(
         metadata,
         ifccad_convert::CadToIfccadOptions {
             loss_policy: ifccad_convert::IfccadLossPolicy::Reject,
+            geometry_tolerance: ifccad_convert::IfccadGeometryTolerance::exact(),
         },
     )
 }
@@ -73,6 +75,7 @@ pub fn empty() -> IfccadDocument {
         length_unit: "mm".into(),
         layers: vec![layer(0, "0"), layer(4, "Notes")],
         model: IfccadLayout {
+            bounds: None,
             id: 1,
             tab_index: 0,
             entities: vec![],
@@ -140,11 +143,15 @@ pub fn primitives() -> IfccadDocument {
                 line_pattern: IfccadMode::ByLayer,
                 line_weight: IfccadMode::ByBlock,
             },
-            kind: IfccadEntityKind::PlanarPolyline {
-                line_pattern_generation: IfccadLinePatternGeneration::PerSegment,
-                vertices: vec![[0., 0.], [2., 0.], [2., 4.]],
-                closed: true,
-                placement: placement([8., 16., 3.]),
+            kind: {
+                let vertices: Vec<[f64; 2]> = vec![[0., 0.], [2., 0.], [2., 4.]];
+                IfccadEntityKind::PlanarPolyline {
+                    line_pattern_generation: IfccadLinePatternGeneration::PerSegment,
+                    bulges: vec![0.; vertices.len()],
+                    vertices,
+                    closed: true,
+                    placement: placement([8., 16., 3.]),
+                }
             },
         },
         IfccadEntity {
@@ -178,6 +185,7 @@ pub fn nested(base: [f64; 3]) -> IfccadDocument {
     let line = primitives().model.entities[0].clone();
     d.blocks = vec![
         IfccadBlockDefinition {
+            bounds: None,
             id: 3,
             name: "Inner".into(),
             base_point: base,
@@ -186,6 +194,7 @@ pub fn nested(base: [f64; 3]) -> IfccadDocument {
         },
         IfccadBlockDefinition {
             id: 9,
+            bounds: None,
             name: "Outer".into(),
             base_point: [0.; 3],
             insertion_unit: "mm".into(),
@@ -199,6 +208,7 @@ pub fn nested(base: [f64; 3]) -> IfccadDocument {
             ],
         },
         IfccadBlockDefinition {
+            bounds: None,
             id: 4,
             name: "Unused".into(),
             base_point: [0.; 3],
@@ -289,6 +299,7 @@ pub fn viewport_drawing() -> IfccadDocument {
         kind,
     };
     d.paper_layouts.push(IfccadPaperLayout {
+        bounds: None,
         id: 42,
         name: "Sheet".into(),
         tab_index: 1,

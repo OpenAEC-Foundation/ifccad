@@ -1,0 +1,18 @@
+[package]
+name = "cad-geometry-convert"
+version = "0.1.0"
+edition = "2021"
+license = "MPL-2.0"
+description = "Shared geometric preparation and certified CAD conversion accuracy"
+
+[dependencies]
+ocdraw = { path = "../.." }
+opencadcodec = { git = "https://github.com/HakanSeven12/opencadcodec.git", rev = "fe69506cb99dea6f4c4a73b690a27fdf04403ea0" }
+fpmath = "=0.1.1"
+num-bigint = "0.4"
+num-rational = "0.4"
+num-traits = "0.2"
+thiserror = "1"
+
+[dev-dependencies]
+serde_json = '1'

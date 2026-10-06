@@ -10,6 +10,7 @@ pub(crate) fn from_cad(
     ids: &mut IfccadIdCounters,
     mappings: &mut IfccadMappings,
     issues: &mut Vec<IfccadDiagnostic>,
+    geometry: &mut crate::geometry_context::GeometryContext,
 ) -> Result<Vec<IfccadEntity>, IfccadConversionError> {
     let mut retained = BTreeMap::new();
     for h in handles {
@@ -19,7 +20,7 @@ pub(crate) fn from_cad(
         }
         let loc = format!("entity/{h}");
         let appearance = crate::appearance::from_common(e.common(), patterns, &loc, issues);
-        let kind = match e {
+        let mut kind = match e {
             EntityType::Insert(i) => mappings
                 .blocks
                 .ifccad_id(
@@ -30,8 +31,50 @@ pub(crate) fn from_cad(
                         .handle,
                 )
                 .and_then(|id| crate::blocks::from_insert(i, id, &loc, issues)),
-            e => crate::geometry::from_entity(e, &loc, issues),
+            e => crate::geometry::from_entity(e, &loc, issues, geometry)?,
         };
+        if let Some(kind) = &mut kind {
+            if let (IfccadEntityKind::BlockInstance { transform, .. }, EntityType::Insert(insert)) =
+                (kind, e)
+            {
+                let record = source
+                    .block_records
+                    .get(&insert.block_name)
+                    .expect("inspected definition");
+                let identity = crate::IfccadGeometryEntitySource::CadEntity {
+                    handle: *h,
+                    kind: "INSERT".into(),
+                };
+                let (native, source_map, target_map) =
+                    cad_geometry_convert::geometry::blocks::from_cad_instance(
+                        insert,
+                        record.base_point,
+                        &geometry.state.assessment,
+                    )
+                    .map_err(|e| geometry.numerical_failure(e))?;
+                *transform = IfccadBlockTransform {
+                    placement: crate::geometry::placement(native.placement()),
+                    rotation: native.rotation(),
+                    scale: [native.scale().x(), native.scale().y(), native.scale().z()],
+                };
+                geometry.state.register_identity(h.value(), identity);
+                geometry.state.record_instance_parts(
+                    h.value(),
+                    record.handle.value(),
+                    source_map,
+                    target_map,
+                );
+                if cad_geometry_convert::geometry::stored_normal(native.placement())
+                    != Some(insert.normal)
+                {
+                    issues.push(crate::diagnostics::modification(
+                        "source-normal-normalized",
+                        &loc,
+                        "insert normal magnitude changed in native frame",
+                    ));
+                }
+            }
+        }
         if let Some(kind) = kind {
             retained.insert(*h, (kind, appearance));
         } else {
@@ -176,6 +219,7 @@ pub(crate) fn to_cad(
     owners: &[(Handle, &[IfccadEntity])],
     mappings: &mut IfccadMappings,
     issues: &mut Vec<IfccadDiagnostic>,
+    geometry: &mut crate::geometry_context::GeometryContext,
 ) -> Result<(), IfccadConversionError> {
     fn common(
         drawing: &IfccadDocument,
@@ -202,6 +246,29 @@ pub(crate) fn to_cad(
     }
     let mut retained = BTreeMap::new();
     for (owner, entities) in owners {
+        let native_owner = if *owner == document.header.model_space_block_handle {
+            crate::IfccadGeometryOwner::ModelLayout(drawing.model.id)
+        } else if let Some(id) = mappings.blocks.ifccad_id(*owner) {
+            crate::IfccadGeometryOwner::BlockDefinition(id)
+        } else {
+            let layout = document
+                .objects
+                .values()
+                .find_map(|o| match o {
+                    opencadcodec::objects::ObjectType::Layout(l) if l.block_record == *owner => {
+                        Some(l.handle)
+                    }
+                    _ => None,
+                })
+                .expect("allocated Paper owner");
+            crate::IfccadGeometryOwner::PaperLayout(
+                mappings
+                    .layouts
+                    .ifccad_id(layout)
+                    .expect("allocated native Paper"),
+            )
+        };
+        geometry.select(native_owner);
         for e in *entities {
             if matches!(e.kind, IfccadEntityKind::Viewport(_)) {
                 continue;
@@ -213,22 +280,58 @@ pub(crate) fn to_cad(
                     definition_id,
                     transform,
                 } if mappings.blocks.cad_handle(*definition_id).is_some() => {
-                    let before = issues.len();
-                    let insert = crate::blocks::to_insert(
-                        &drawing
-                            .blocks
-                            .iter()
-                            .find(|b| b.id == *definition_id)
-                            .expect("validated definition")
-                            .name,
-                        transform,
-                        &loc,
-                        issues,
+                    let definition = drawing
+                        .blocks
+                        .iter()
+                        .find(|b| b.id == *definition_id)
+                        .expect("validated definition");
+                    let frame = transform
+                        .placement
+                        .coordinate_frame()
+                        .map_err(IfccadConversionError::CoreValidation)?;
+                    let native = ocdraw::geometry_kernel::BlockTransform::try_new(
+                        frame,
+                        transform.rotation,
+                        ocdraw::geometry_kernel::Scale3::new(
+                            transform.scale[0],
+                            transform.scale[1],
+                            transform.scale[2],
+                        ),
+                    )
+                    .map_err(|e| IfccadConversionError::CadConstruction(e.to_string()))?;
+                    let identity = crate::IfccadGeometryEntitySource::NativeEntity {
+                        owner: geometry.owner,
+                        entity_id: e.id,
+                    };
+                    let (target, source_map, target_map, _) =
+                        cad_geometry_convert::geometry::blocks::to_cad_instance_parts(
+                            native,
+                            &definition.name,
+                            definition.base_point,
+                            identity.clone(),
+                            &geometry.state.assessment,
+                        )
+                        .map_err(|error| match error {
+                            cad_geometry_convert::CadGeometryError::Geometry(failure) => {
+                                geometry.numerical_failure(failure)
+                            }
+                            cad_geometry_convert::CadGeometryError::Cad(message) => {
+                                let mut diagnostics = issues.clone();
+                                diagnostics.push(diagnostic("scale-clamped", &loc, message));
+                                IfccadConversionError::Unsupported(diagnostics)
+                            }
+                        })?;
+                    geometry.state.register_identity(e.id, identity);
+                    geometry.state.record_instance_parts(
+                        e.id,
+                        *definition_id,
+                        source_map,
+                        target_map,
                     );
-                    (issues.len() == before).then_some(insert)
+                    Some(EntityType::Insert(target))
                 }
                 IfccadEntityKind::BlockInstance { .. } => None,
-                kind => crate::geometry::to_entity(kind, &loc, issues),
+                kind => crate::geometry::to_entity(kind, e.id, geometry, issues)?,
             };
             if let Some(mut target) = target {
                 *target.common_mut() = common;

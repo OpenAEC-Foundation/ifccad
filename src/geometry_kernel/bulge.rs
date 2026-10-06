@@ -1,4 +1,4 @@
-use crate::ocdraw::{Bounds2d, Point2};
+use crate::geometry_kernel::{Bounds2d, Point2};
 
 /// Conservative local XY enclosure of the circular segment defined by a CAD bulge.
 pub(crate) fn bulge_segment_bounds(start: Point2, end: Point2, bulge: f64) -> Option<Bounds2d> {

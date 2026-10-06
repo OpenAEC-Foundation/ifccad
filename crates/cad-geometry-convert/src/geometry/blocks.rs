@@ -5,24 +5,24 @@ use num_rational::BigRational as Q;
 use num_traits::{Signed, Zero};
 
 #[derive(Clone, Debug)]
-pub(crate) struct Range {
+pub struct Range {
     lo: Q,
     hi: Q,
 }
 impl Range {
-    pub(crate) fn point(value: Q) -> Self {
+    pub fn point(value: Q) -> Self {
         Self {
             lo: value.clone(),
             hi: value,
         }
     }
-    pub(crate) fn add(&self, rhs: &Self) -> Self {
+    pub fn add(&self, rhs: &Self) -> Self {
         Self {
             lo: &self.lo + &rhs.lo,
             hi: &self.hi + &rhs.hi,
         }
     }
-    pub(crate) fn scale(&self, value: &Q) -> Self {
+    pub fn scale(&self, value: &Q) -> Self {
         if value.is_negative() {
             Self {
                 lo: &self.hi * value,
@@ -35,7 +35,7 @@ impl Range {
             }
         }
     }
-    pub(crate) fn mul(&self, rhs: &Self) -> Self {
+    pub fn mul(&self, rhs: &Self) -> Self {
         let values = [
             &self.lo * &rhs.lo,
             &self.lo * &rhs.hi,
@@ -62,7 +62,7 @@ impl Range {
 /// Same pinned backend and two-neighbour enclosure as the core; exact rational
 /// interval arithmetic here prevents accumulation of arithmetic enclosure error.
 /// See docs/geometry/block-trigonometry.md for qualification and assumptions.
-pub(crate) fn trig(angle: f64) -> (Range, Range) {
+pub fn trig(angle: f64) -> (Range, Range) {
     if angle == 0. {
         return (Range::point(Q::zero()), Range::point(exact(1.)));
     }
@@ -75,7 +75,7 @@ pub(crate) fn trig(angle: f64) -> (Range, Range) {
 }
 
 #[derive(Clone)]
-pub(crate) struct EvaluatedBlock {
+pub struct EvaluatedBlock {
     pub origin: [Q; 3],
     pub base: [Q; 3],
     pub rotation: f64,
@@ -85,7 +85,7 @@ pub(crate) struct EvaluatedBlock {
     pub constant: [[Q; 3]; 3],
 }
 impl EvaluatedBlock {
-    pub fn native(transform: ocdraw::ocdraw::BlockTransform, base: [f64; 3]) -> Self {
+    pub fn native(transform: ocdraw::geometry_kernel::BlockTransform, base: [f64; 3]) -> Self {
         let (o, u, v) = super::components(transform.placement());
         let u = u.map(exact);
         let v = v.map(exact);
@@ -175,7 +175,7 @@ impl EvaluatedBlock {
 /// Target location plus correlated source-minus-target residual. Independent
 /// source/target coordinate intervals would invent error for identical maps.
 #[derive(Clone)]
-pub(crate) struct PairedPoint {
+pub struct PairedPoint {
     target: [Range; 3],
     residual: [Range; 3],
 }
@@ -225,27 +225,21 @@ impl PairedPoint {
     }
 }
 
-pub(crate) fn from_cad_instance(
+pub fn from_cad_instance<S: crate::GeometrySource>(
     insert: &opencadcodec::entities::Insert,
     base: opencadcodec::Vector3,
-    assessment: &crate::OcdrawGeometryAssessment,
+    assessment: &crate::GeometryAssessment<S>,
 ) -> Result<
     (
-        ocdraw::ocdraw::BlockTransform,
+        ocdraw::geometry_kernel::BlockTransform,
         EvaluatedBlock,
         EvaluatedBlock,
     ),
-    Box<crate::OcdrawGeometryFailure>,
+    Box<crate::GeometryFailure<S>>,
 > {
-    use crate::{
-        OcdrawGeometryEntitySource, OcdrawGeometryFailureReason as Reason,
-        OcdrawGeometryStage as Stage,
-    };
-    use ocdraw::ocdraw::{BlockTransform, CoordinateFrame3, Point3, Scale3, Vector3};
-    let source = OcdrawGeometryEntitySource::CadEntity {
-        handle: insert.common.handle,
-        kind: "INSERT".into(),
-    };
+    use crate::{GeometryFailureReason as Reason, GeometryStage as Stage};
+    use ocdraw::geometry_kernel::{BlockTransform, CoordinateFrame3, Point3, Scale3, Vector3};
+    let source = S::cad_entity(insert.common.handle, "INSERT".into());
     let fail = || {
         assessment.failure(
             &source,
@@ -318,9 +312,9 @@ pub(crate) fn from_cad_instance(
     Ok((transform, source_map, target_map))
 }
 
-pub(crate) fn polyline_pairs(
+pub fn polyline_pairs(
     poly: &opencadcodec::LwPolyline,
-    plane: ocdraw::ocdraw::CoordinateFrame3,
+    plane: ocdraw::geometry_kernel::CoordinateFrame3,
 ) -> Vec<PairedPoint> {
     let basis = super::cad_plane(poly.normal).expect("validated CAD polyline axes");
     let (o, x, y) = super::components(plane);
@@ -366,12 +360,12 @@ pub(crate) fn polyline_pairs(
     pairs
 }
 
-pub(crate) fn to_cad_instance_parts(
-    transform: ocdraw::ocdraw::BlockTransform,
+pub fn to_cad_instance_parts<S: crate::GeometrySource>(
+    transform: ocdraw::geometry_kernel::BlockTransform,
     name: &str,
     base: [f64; 3],
-    source: crate::OcdrawGeometryEntitySource,
-    assessment: &crate::OcdrawGeometryAssessment,
+    source: S,
+    assessment: &crate::GeometryAssessment<S>,
 ) -> Result<
     (
         opencadcodec::entities::Insert,
@@ -379,9 +373,9 @@ pub(crate) fn to_cad_instance_parts(
         EvaluatedBlock,
         bool,
     ),
-    crate::OcdrawToCadError,
+    crate::CadGeometryError<S>,
 > {
-    use crate::{OcdrawGeometryFailureReason as Reason, OcdrawGeometryStage as Stage};
+    use crate::{GeometryFailureReason as Reason, GeometryStage as Stage};
     let plane = transform.placement();
     let fail = || {
         assessment.failure(
@@ -431,7 +425,7 @@ pub(crate) fn to_cad_instance_parts(
     target.set_y_scale(scale.y());
     target.set_z_scale(scale.z());
     if [target.x_scale(), target.y_scale(), target.z_scale()] != [scale.x(), scale.y(), scale.z()] {
-        return Err(crate::OcdrawToCadError::Cad(format!("CAD scale setters changed {:?} to {:?}; values below magnitude 1e-12 cannot be represented by this codec API",[scale.x(),scale.y(),scale.z()],[target.x_scale(),target.y_scale(),target.z_scale()])));
+        return Err(crate::CadGeometryError::Cad(format!("CAD scale setters changed {:?} to {:?}; values below magnitude 1e-12 cannot be represented by this codec API",[scale.x(),scale.y(),scale.z()],[target.x_scale(),target.y_scale(),target.z_scale()])));
     }
     let source_map = EvaluatedBlock::native(transform, base);
     let (_, target_map, _) = from_cad_instance(
@@ -446,8 +440,8 @@ pub(crate) fn to_cad_instance_parts(
     Ok((target, source_map, target_map, changed))
 }
 
-pub(crate) fn import_polyline_parts(
-    placement: ocdraw::ocdraw::CoordinateFrame3,
+pub fn import_polyline_parts(
+    placement: ocdraw::geometry_kernel::CoordinateFrame3,
     vertices: &[[f64; 3]],
     closed: bool,
     target: &opencadcodec::LwPolyline,
@@ -652,7 +646,7 @@ impl PairedVector {
 
 /// A parameter-matched curve pair: centre plus cosine and sine axis vectors.
 #[derive(Clone)]
-pub(crate) struct PairedCurve {
+pub struct PairedCurve {
     center: PairedPoint,
     cosine: PairedVector,
     sine: PairedVector,
@@ -660,7 +654,7 @@ pub(crate) struct PairedCurve {
     span: f64,
 }
 impl PairedCurve {
-    pub(crate) fn new(
+    pub fn new(
         source_center: [Q; 3],
         source_axes: [[Range; 3]; 2],
         target_center: [Q; 3],
@@ -676,12 +670,12 @@ impl PairedCurve {
             span: std::f64::consts::TAU,
         }
     }
-    pub(crate) fn with_span(mut self, span: f64) -> Self {
+    pub fn with_span(mut self, span: f64) -> Self {
         debug_assert!(span.is_finite() && span > 0.0 && span <= std::f64::consts::TAU);
         self.span = span;
         self
     }
-    pub(crate) fn with_angular_drift(mut self, drift: Q) -> Self {
+    pub fn with_angular_drift(mut self, drift: Q) -> Self {
         debug_assert!(!drift.is_negative());
         self.angular_drift = drift;
         self
@@ -703,12 +697,12 @@ impl PairedCurve {
             [ranged(target_cosine), ranged(target_sine)],
         )
     }
-    pub(crate) fn apply(&mut self, source: &EvaluatedBlock, target: &EvaluatedBlock) {
+    pub fn apply(&mut self, source: &EvaluatedBlock, target: &EvaluatedBlock) {
         self.center.apply(source, target);
         self.cosine.apply(source, target);
         self.sine.apply(source, target);
     }
-    pub(crate) fn squared_deviation(&self) -> Option<(Q, Q)> {
+    pub fn squared_deviation(&self) -> Option<(Q, Q)> {
         let axis_squared = self.cosine.upper_squared() + self.sine.upper_squared();
         let center_squared = self.center.squared_deviation().1;
         let center_upper = super::numeric::sqrt_interval(&center_squared)?.1;
@@ -727,7 +721,7 @@ impl PairedCurve {
         Some(&self.angular_drift * exact(derivative_upper))
     }
     /// Midpoint/Lipschitz enclosure of each equal angular subinterval.
-    pub(crate) fn refined_squared_deviation(&self, segments: usize) -> Option<(Q, Q)> {
+    pub fn refined_squared_deviation(&self, segments: usize) -> Option<(Q, Q)> {
         debug_assert!(segments > 0);
         let axis_squared = self.cosine.upper_squared() + self.sine.upper_squared();
         let derivative_upper = exact(super::numeric::sqrt_interval(&axis_squared)?.1);

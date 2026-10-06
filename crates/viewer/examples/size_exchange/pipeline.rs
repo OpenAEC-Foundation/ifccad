@@ -34,11 +34,13 @@ fn ifcx_options(allow: bool) -> CadToIfccadOptions {
         } else {
             IfccadLossPolicy::Reject
         },
+        ..Default::default()
     }
 }
 fn ifcx_import_options(allow: bool) -> IfccadToCadOptions {
     IfccadToCadOptions {
         loss_policy: ifcx_options(allow).loss_policy,
+        ..Default::default()
     }
 }
 fn export_options(allow: bool) -> CadToOcdrawOptions {
@@ -455,6 +457,7 @@ mod tests {
             panic!()
         };
         transform.rotation = 1.570796326794893;
+        ocdraw::ifccad::recompute_ifccad_document_bounds(&mut doc).unwrap();
         p.document = ifccad_document_to_cad_document(&doc, ifcx_import_options(false))
             .unwrap()
             .into_document();

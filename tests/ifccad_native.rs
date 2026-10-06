@@ -260,6 +260,7 @@ fn fixture_document() -> IfccadDocument {
             },
         ],
         model: IfccadLayout {
+            bounds: None,
             id: 1,
             tab_index: 0,
             entities: vec![
@@ -278,11 +279,15 @@ fn fixture_document() -> IfccadDocument {
                     id: 7,
                     layer_id: 1,
                     appearance: by_layer.clone(),
-                    kind: IfccadEntityKind::PlanarPolyline {
-                        line_pattern_generation: IfccadLinePatternGeneration::PerSegment,
-                        vertices: vec![[0.0, 0.0], [2.0, 0.0], [2.0, 3.0]],
-                        closed: false,
-                        placement: placement.clone(),
+                    kind: {
+                        let vertices: Vec<[f64; 2]> = vec![[0.0, 0.0], [2.0, 0.0], [2.0, 3.0]];
+                        IfccadEntityKind::PlanarPolyline {
+                            line_pattern_generation: IfccadLinePatternGeneration::PerSegment,
+                            bulges: vec![0.; vertices.len()],
+                            vertices,
+                            closed: false,
+                            placement: placement.clone(),
+                        }
                     },
                 },
                 instance(90, 20.0, "#0000ff"),
@@ -300,6 +305,7 @@ fn fixture_document() -> IfccadDocument {
             ],
         },
         blocks: vec![IfccadBlockDefinition {
+            bounds: None,
             id: 1,
             name: "Marker".into(),
             base_point: [2.0, 0.0, 0.0],
@@ -331,6 +337,7 @@ fn nested_document() -> IfccadDocument {
         y_axis: [0.0, 1.0, 0.0],
     };
     document.blocks.push(IfccadBlockDefinition {
+        bounds: None,
         id: 2,
         name: "Nested marker".into(),
         base_point: [0.0, 0.0, 0.0],

@@ -40,17 +40,17 @@ fresh CAD import assigns new IDs and watermarks with explicit outcome mappings.
 | Layers | Retain names, unused declarations and concrete appearance; synthesize missing CAD layer 0 with diagnosed explicit fallback; reject collisions under opencadcodec's normalized name lookup, including multiple layers named 0, before CAD allocation under both policies |
 | Layer/entity appearance | True RGB, resolved named patterns, supported hundredth-mm weight, exact decoded opacity byte; preserve independent inherited/explicit modes on entities |
 | Lines | Direct finite XYZ endpoints |
-| Circles | Radius and origin retained; standard XY basis only |
-| Polylines | Ordered straight vertices/closure; exact BigRational check on translated XY sums; Z becomes elevation |
+| Point/Circle/Arc/Ellipse | Position, radii, full/signed partial spans and valid oriented plane through shared CAD preparation |
+| Polylines | Ordered straight/bulged planar or straight spatial vertices, dormant bulges, closure and generation; geometric translation residual checked against hard tolerance |
 | Definitions | Allocate all targets before contents; retain base, insertion unit, shared/nested references and unused definitions |
-| Instances | Standard XY placement, rotation and signed scales; compare setter getters to requested scales even for empty targets |
+| Instances | Valid oriented placement, rotation and signed scales; definition and all nested occurrence proof; compare setter getters even for empty targets |
 | Draw order | Owner vector order, independent of ID numbering |
 | Invalid ownership/frames/cycles | Core validation; invalid projections never reach conversion |
 | Incompatible names | Reserved/anonymous definitions and referring inserts omitted with diagnostics; other construction errors remain fatal |
 | Other IFCX graph/envelope information | Canonical-envelope loss diagnostic; includes extra schemas/imports/relations; source graph remains intact |
 
-Polyline local-origin decomposition is canonicalized without changing its exact
-path. Oblique parameterization and certified numerical tolerances are deferred.
+Polyline local-origin decomposition may be canonicalized; its path must remain
+within the configured hard tolerance. Oblique parameterization uses shared preparation.
 The target starts with pinned default table/layout/style infrastructure, including
 empty Paper scaffold when no authored Paper is emitted. The first authored sheet reuses this owner. Explicit owned BLOCK/ENDBLK markers preserve secondary Paper ownership through DWG; default overall viewports remain runtime infrastructure. CAD workspace settings are deferred. ByLayer/ByBlock modes are not resolved. Unsupported geometric
 parameterization omits the whole entity. Normal local definitions can retain
@@ -64,8 +64,9 @@ has Modified evidence. Missing layer 0 is white/opaque/Continuous/0.25 mm with n
 source mapping. Reject refuses all these losses. No source preservation is
 implemented.
 
-Both policies reject translated-coordinate rounding, integer-to-binary64
-geometry/pattern/scale projection and setter scale clamping, including empty definitions.
+Both policies reject translated-coordinate residual beyond the configured limit,
+inexact raw integer-to-binary64 geometry/pattern/scale projection and setter scale
+clamping, including empty definitions.
 Structural failures remain errors. Failure returns collected diagnostics before
 the failed boundary. Diagnostics cover conversion to CadDocument; external
 DXF/DWG codecs require independent semantic readback and can introduce additional
@@ -141,3 +142,33 @@ cannot exactly map to binary64 25.4 mm). Unsupported factors such as parsecs omi
 only media under Allow. Printer/media names, margins, rotation, plot limits,
 authored overall canvases and workspace state remain deferred losses. Definition-content
 losses propagate to Paper instances through shared and nested definitions.
+
+## Shared geometry and adjustable accuracy (provisional 0.1.0)
+
+Every current native primitive family maps through the same prepared CAD geometry
+and certified deviation engine as OCDraw, including oriented points, signed arcs,
+full/partial ellipses, bulged planar paths and straight spatial polylines. Valid
+oblique/rotated planes and signed local block transforms are no longer limited
+to standard XY. Unsupported semantic fields/layout coordinates/definition names
+retain their independent loss rules; tolerance never permits dropping a field.
+Source-aware conversion still checks original graph projection numbers exactly,
+including present scope bounds/media. Explicit zero-bulge arrays normalize to
+the same default semantics; nonzero dormant bulges remain retained.
+
+Both directions expose `geometry_tolerance` and per-domain `geometry_assessment()`.
+Default is one micrometre for known units and zero for unitless; exact, drawing-unit,
+metre and millimetre choices are public. Full conics and bulged segment-circle
+pairs plus all retained definition/nested occurrence evaluations must be proved
+within the hard limit. Paper root checks use Paper coordinate units; no unit
+rescaling is inferred from media. Definition-local acceptance is insufficient
+when occurrence scaling or a different root unit makes the deviation too large.
+
+Within-limit geometric rounding remains reported loss evidence but is exempt
+from semantic Reject and missing-content propagation. Exceedance/incomplete
+proof return Geometry errors with coordinate domain and source/occurrence path,
+not successful skipped entities. Raw numeric projection and actual CAD setter
+scale clamping remain hard failures under both policies, including empty targets.
+Native optional bounds are derived metadata: CAD output does not promise their
+exact restoration, and a fresh import prepares its own bounds. CAD file codecs
+are verified separately; an isolated conversion report is not an end-to-end
+certificate for arbitrary serialization/rendering.

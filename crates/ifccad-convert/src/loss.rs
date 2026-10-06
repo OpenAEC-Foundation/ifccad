@@ -26,6 +26,26 @@ pub(crate) fn native_defaults(raw: &serde_json::Value) -> serde_json::Value {
                     .entry("linePatternGeneration")
                     .or_insert(serde_json::json!("perSegment"));
             }
+            if let Some(value) = attrs
+                .get_mut("ifccad::geom::planarPolyline")
+                .and_then(serde_json::Value::as_object_mut)
+            {
+                if value
+                    .get("bulges")
+                    .and_then(|v| v.as_array())
+                    .is_some_and(|a| a.iter().all(|v| v.as_f64() == Some(0.)))
+                {
+                    value.remove("bulges");
+                }
+            }
+            if let Some(value) = attrs
+                .get_mut("ifccad::geom::spatialPolyline")
+                .and_then(serde_json::Value::as_object_mut)
+            {
+                value
+                    .entry("linePatternGeneration")
+                    .or_insert(serde_json::json!("perSegment"));
+            }
             if let Some(layers) = attrs
                 .get_mut("ifccad::viewport")
                 .and_then(|value| value.get_mut("frozenLayers"))
@@ -67,7 +87,7 @@ fn propagate(defs: Vec<Definition>, instances: Vec<Instance>, issues: &mut Vec<I
         .iter()
         .filter(|def| {
             issues.iter().any(|d| {
-                d.is_loss()
+                d.is_semantic_loss()
                     && (at(&d.location, &def.location)
                         || def.entities.iter().any(|e| at(&d.location, e)))
             })
@@ -207,6 +227,19 @@ pub(crate) fn precision(
             continue;
         };
         for (key, value) in attrs {
+            if key == "ifccad::layout" {
+                for field in ["bounds", "paper"] {
+                    if let Some(expected) = value.get(field) {
+                        if !projected(&node["attributes"][key][field], expected) {
+                            issues.push(diagnostic(
+                                "precision",
+                                format!("{path}.{key}.{field}"),
+                                "typed layout projection changes an exact source number",
+                            ));
+                        }
+                    }
+                }
+            }
             if key == "ifccad::viewport"
                 && ["frame", "view"]
                     .iter()

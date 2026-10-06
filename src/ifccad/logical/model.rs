@@ -50,6 +50,7 @@ pub struct IfccadLayerAppearance {
 pub struct IfccadLayout {
     pub id: u64,
     pub tab_index: u32,
+    pub bounds: Option<IfccadBounds3d>,
     /// Vector position is the CAD draw order.
     pub entities: Vec<IfccadEntity>,
 }
@@ -62,6 +63,7 @@ pub struct IfccadPaperLayout {
     /// Coordinate unit, independently of an optional physical medium.
     pub length_unit: String,
     pub paper: Option<IfccadPaperSize>,
+    pub bounds: Option<IfccadBounds3d>,
     /// Vector position is this paper layout's CAD draw order.
     pub entities: Vec<IfccadEntity>,
 }
@@ -81,7 +83,16 @@ pub struct IfccadBlockDefinition {
     pub name: String,
     pub base_point: [f64; 3],
     pub insertion_unit: String,
+    pub bounds: Option<IfccadBounds3d>,
     pub entities: Vec<IfccadEntity>,
+}
+
+/// Optional conservative XYZ enclosure in the owning coordinate unit.
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct IfccadBounds3d {
+    pub min: [f64; 3],
+    pub max: [f64; 3],
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -111,7 +122,7 @@ pub struct IfccadEntity {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct IfccadPlacement {
     pub origin: [f64; 3],
     pub x_axis: [f64; 3],
@@ -129,14 +140,41 @@ pub struct IfccadBlockTransform {
 #[derive(Clone, Debug, PartialEq)]
 pub enum IfccadEntityKind {
     Viewport(IfccadViewport),
+    Point {
+        placement: IfccadPlacement,
+    },
+    Arc {
+        radius: f64,
+        start_parameter: f64,
+        sweep_parameter: f64,
+        placement: IfccadPlacement,
+    },
+    Ellipse {
+        semi_major_radius: f64,
+        semi_minor_radius: f64,
+        placement: IfccadPlacement,
+    },
+    EllipseArc {
+        semi_major_radius: f64,
+        semi_minor_radius: f64,
+        start_parameter: f64,
+        sweep_parameter: f64,
+        placement: IfccadPlacement,
+    },
     LineSegment {
         start: [f64; 3],
         end: [f64; 3],
     },
     PlanarPolyline {
         vertices: Vec<[f64; 2]>,
+        bulges: Vec<f64>,
         closed: bool,
         placement: IfccadPlacement,
+        line_pattern_generation: IfccadLinePatternGeneration,
+    },
+    SpatialPolyline {
+        vertices: Vec<[f64; 3]>,
+        closed: bool,
         line_pattern_generation: IfccadLinePatternGeneration,
     },
     Circle {

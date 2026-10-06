@@ -65,7 +65,7 @@ GPL-3.0 and source revision attribution accompany the bundle. The OpenAEC symbol
 keeps its CC BY-SA license; see `src/THIRD-PARTY.txt`.
 
 Build the browser processor from the repository root after preparing and
-selecting both [viewport codec repairs](../patches/opencadcodec-viewports/README.md).
+selecting all three [viewport codec repairs](../patches/opencadcodec-viewports/README.md).
 The deployment workflow uses the same pinned base and patches for its Rust
 checks and browser processor; both cache keys include the patch recipe.
 
@@ -107,8 +107,22 @@ numeric equality through the external codec. Readback diagnostics are displayed.
 The processor uses pinned opencadcodec under its upstream Rust name `opencadcodec`.
 Nonzero BLOCK bases now pass both real DXF and DWG routes, including the browser
 smoke fixture, without marker repair or block explosion. Paper CAD conversion
-remains deferred. The separately pinned Open CAD Studio viewer is unchanged.
+retains multiple sheets, separate coordinate units and expanded clips through
+the documented codec repairs. Full plot conversion remains deferred. The
+separately pinned Open CAD Studio viewer is unchanged.
 
 A small fixture is included in built assets at
 `examples/hello-line-patterns.ifcx`. Browser worker, UI and WASM smoke tests
 exercise both native formats. Publishing remains a separate repository action.
+
+Expanded IFCCAD geometry and supplied scope bounds appear in composed nodes.
+Import reports expose `conversion.geometryAssessment`; CAD exports expose
+`export.geometryAssessment` and independent readback evidence under
+`export.fileCheck.geometryAssessment`. Domains show units, resolved limits,
+counts and source/occurrence evidence. Identity fields in these records are
+decimal strings to preserve uint64 values. Numerical failures expose a structured
+`failure.geometry` reason and available limit/deviation. Each report qualifies
+its own conversion boundary, rather than equality through an arbitrary codec.
+The backend currently uses default tolerance. A selectable request tolerance,
+including an explicit unitless value, remains later viewer work; no UI setting
+is stored in native geometry. See [shared geometry](../docs/geometry/shared-geometry.md).

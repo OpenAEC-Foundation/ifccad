@@ -114,6 +114,7 @@ pub fn generate(case: &Case) -> Result<CadDocument> {
         line_pattern_scale: 1.,
         layers: vec![layer(1, "0"), layer(2, "Details")],
         model: IfccadLayout {
+            bounds: None,
             id: 1,
             tab_index: 0,
             entities: vec![],
@@ -156,6 +157,7 @@ pub fn generate(case: &Case) -> Result<CadDocument> {
         };
         doc.blocks = vec![
             IfccadBlockDefinition {
+                bounds: None,
                 id: 1,
                 name: "Core".into(),
                 base_point: [1., 2., 0.],
@@ -180,6 +182,7 @@ pub fn generate(case: &Case) -> Result<CadDocument> {
                 ],
             },
             IfccadBlockDefinition {
+                bounds: None,
                 id: 2,
                 name: "Assembly".into(),
                 base_point: [2., 1., 0.],
@@ -190,6 +193,7 @@ pub fn generate(case: &Case) -> Result<CadDocument> {
                 ],
             },
             IfccadBlockDefinition {
+                bounds: None,
                 id: 3,
                 name: "Unused".into(),
                 base_point: [0.; 3],
@@ -225,8 +229,11 @@ pub fn generate(case: &Case) -> Result<CadDocument> {
                     placement: placement([x, y, 0.]),
                 },
                 "polyline" | "patterns" if case.family == "polyline" || i % 2 == 1 => {
+                    let vertices: Vec<[f64; 2]> =
+                        vec![[x, y], [x + 8., y], [x + 8., y + 4.], [x, y + 4.]];
                     IfccadEntityKind::PlanarPolyline {
-                        vertices: vec![[x, y], [x + 8., y], [x + 8., y + 4.], [x, y + 4.]],
+                        bulges: vec![0.; vertices.len()],
+                        vertices,
                         closed: i.is_multiple_of(2),
                         placement: placement([0.; 3]),
                         line_pattern_generation: if i.is_multiple_of(3) {
@@ -264,6 +271,7 @@ pub fn generate(case: &Case) -> Result<CadDocument> {
         &doc,
         ifccad_convert::IfccadToCadOptions {
             loss_policy: ifccad_convert::IfccadLossPolicy::Reject,
+            ..Default::default()
         },
     )?
     .into_document())
@@ -292,6 +300,7 @@ mod tests {
                 super::super::projection::metadata(),
                 ifccad_convert::CadToIfccadOptions {
                     loss_policy: ifccad_convert::IfccadLossPolicy::Reject,
+                    ..Default::default()
                 },
             )
             .unwrap();

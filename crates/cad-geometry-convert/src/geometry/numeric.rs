@@ -3,9 +3,9 @@ use num_traits::{Signed, ToPrimitive, Zero};
 use std::cmp::Ordering;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) struct NumericRangeError;
+pub struct NumericRangeError;
 
-pub(crate) fn exact(value: f64) -> BigRational {
+pub fn exact(value: f64) -> BigRational {
     BigRational::from_float(value).expect("finite numeric operand")
 }
 
@@ -77,7 +77,7 @@ fn bracket(value: &BigRational) -> Result<(f64, f64), NumericRangeError> {
     }
 }
 
-pub(crate) fn round_nearest(value: &BigRational) -> Result<f64, NumericRangeError> {
+pub fn round_nearest(value: &BigRational) -> Result<f64, NumericRangeError> {
     let (lower, upper) = bracket(value)?;
     if lower == upper {
         return Ok(lower);
@@ -91,15 +91,15 @@ pub(crate) fn round_nearest(value: &BigRational) -> Result<f64, NumericRangeErro
     })
 }
 
-pub(crate) fn round_down(value: &BigRational) -> Result<f64, NumericRangeError> {
+pub fn round_down(value: &BigRational) -> Result<f64, NumericRangeError> {
     bracket(value).map(|(lower, _)| lower)
 }
 
-pub(crate) fn round_up(value: &BigRational) -> Result<f64, NumericRangeError> {
+pub fn round_up(value: &BigRational) -> Result<f64, NumericRangeError> {
     bracket(value).map(|(_, upper)| upper)
 }
 
-pub(crate) fn sqrt_interval(value: &BigRational) -> Option<(f64, f64)> {
+pub fn sqrt_interval(value: &BigRational) -> Option<(f64, f64)> {
     if value.is_zero() {
         return Some((0.0, 0.0));
     }

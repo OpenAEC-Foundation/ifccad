@@ -6,7 +6,9 @@ The encoded `cad_document_to_encoded_ocdraw` and validated `ocdraw_source_to_cad
 entry points are convenience wrappers over logical conversion. These implementations
 live in [`src/from_cad`](src/from_cad) and [`src/to_cad`](src/to_cad),
 with native mapping helpers under [`src/mapping`](src/mapping). Pure CAD source classification lives in
-[`src/source`](src/source), and numerical kernels in [`src/geometry`](src/geometry).
+[`src/source`](src/source). Model adapters in [`src/geometry`](src/geometry) use the common
+[`cad-geometry-convert`](../cad-geometry-convert) numerical and occurrence proof engine.
+Both formats use [neutral core geometry](../../docs/geometry/shared-geometry.md).
 The core format implementation remains usable without opencadcodec.
 The dependency and public Rust reexport use the upstream name `opencadcodec`
 at a shared fixed revision with `ifccad-convert`. The

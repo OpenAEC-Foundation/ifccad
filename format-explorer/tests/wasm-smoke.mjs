@@ -125,3 +125,25 @@ const largeReturned=Buffer.from(largeExported.export.download.base64,'base64');
 assert.deepEqual(largeReturned,Buffer.from(largeBytes));
 assert.equal(processBrowserRequest({kind:'ifccad',name:'again.ifcx',files:[{path:'again.ifcx',bytes:Uint8Array.from(largeReturned).buffer}]},wasm).validation.strictAvailable,true);
 console.log('Browser WASM full-width IFCCAD allocation state preserved in native download');
+
+const geometryBytes=new Uint8Array(await readFile(new URL('../../examples/ifccad/hello-geometry.ifcx',import.meta.url)));
+const geometrySource={kind:'ifccad',name:'geometry.ifcx',files:[{path:'geometry.ifcx',bytes:geometryBytes.buffer}]};
+const geometryOpened=processBrowserRequest(geometrySource,wasm);
+assert.equal(geometryOpened.validation.strictAvailable,true);
+assert.ok(geometryOpened.presentation.layouts.some(n=>n.attributes['ifccad::layout'].bounds));
+for(const format of ['dxf','dwg']){
+ const exported=processBrowserRequest({...geometrySource,export:{format,version:'AC1032'}},wasm);
+ assert.equal(exported.failure,null,JSON.stringify(exported.failure));
+ assert.ok(exported.export.geometryAssessment.domains.length);
+ assert.ok(exported.export.fileCheck.geometryAssessment.domains.length);
+ const download=exported.export.download;
+ const returned=processBrowserRequest({kind:'cad',drawingFormat:'ifccad',name:download.fileName,
+  files:[{path:download.fileName,bytes:Uint8Array.from(Buffer.from(download.base64,'base64')).buffer}]},wasm);
+ assert.equal(returned.failure,null,JSON.stringify(returned.failure));
+ assert.equal(returned.validation.strictAvailable,true);
+ assert.ok(returned.conversion.geometryAssessment.domains.length);
+ for(const kind of ['point','arc','ellipse','ellipseArc','planarPolyline','spatialPolyline']){
+  assert.ok(returned.presentation.entities.some(n=>n.attributes['ifccad::geom::'+kind]));
+ }
+}
+console.log('Browser WASM expanded IFCCAD geometry, bounds and conversion evidence verified');

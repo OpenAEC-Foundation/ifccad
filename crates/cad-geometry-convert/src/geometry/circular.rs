@@ -1,10 +1,10 @@
 use super::blocks::{trig, PairedCurve, PairedPoint, Range};
 use super::numeric::exact;
 use super::{cad_plane, orthonormal_pair, stored_normal};
-use crate::OcdrawToCadError;
+use crate::CadConstructionError;
 use num_rational::BigRational;
 use num_traits::Signed;
-use ocdraw::ocdraw::{CoordinateFrame3, Point3};
+use ocdraw::geometry_kernel::{CoordinateFrame3, Point3};
 use opencadcodec::Vector3;
 
 type CurveComponents = ([BigRational; 3], [[Range; 3]; 2]);
@@ -110,7 +110,7 @@ fn pair_components(source: CurveComponents, target: CurveComponents) -> PairedCu
     PairedCurve::new(source.0, source.1, target.0, target.1)
 }
 
-pub(crate) fn import_circle_curve(
+pub fn import_circle_curve(
     plane: CoordinateFrame3,
     radius: f64,
     phase: f64,
@@ -122,7 +122,7 @@ pub(crate) fn import_circle_curve(
     ))
 }
 
-pub(crate) fn import_arc_curve(
+pub fn import_arc_curve(
     plane: CoordinateFrame3,
     radius: f64,
     start: f64,
@@ -146,7 +146,7 @@ pub(crate) fn import_arc_curve(
     )
 }
 
-pub(crate) fn import_ellipse_curve(
+pub fn import_ellipse_curve(
     plane: CoordinateFrame3,
     major: f64,
     minor: f64,
@@ -166,7 +166,7 @@ pub(crate) fn import_ellipse_curve(
     )
 }
 
-pub(crate) fn export_circle_curve(
+pub fn export_circle_curve(
     source: &opencadcodec::Circle,
     plane: CoordinateFrame3,
 ) -> Option<PairedCurve> {
@@ -176,7 +176,7 @@ pub(crate) fn export_circle_curve(
     ))
 }
 
-pub(crate) fn export_arc_curve(
+pub fn export_arc_curve(
     source: &opencadcodec::Arc,
     plane: CoordinateFrame3,
     sweep: f64,
@@ -198,7 +198,7 @@ pub(crate) fn export_arc_curve(
     )
 }
 
-pub(crate) fn export_ellipse_curve(
+pub fn export_ellipse_curve(
     source: &opencadcodec::Ellipse,
     plane: CoordinateFrame3,
     major: f64,
@@ -234,11 +234,11 @@ fn scaled(a: [f64; 3], value: f64) -> [f64; 3] {
 fn vec3(a: [f64; 3]) -> Vector3 {
     Vector3::new(a[0], a[1], a[2])
 }
-fn ifc_vec3(a: [f64; 3]) -> ocdraw::ocdraw::Vector3 {
-    ocdraw::ocdraw::Vector3::new(a[0], a[1], a[2])
+fn ifc_vec3(a: [f64; 3]) -> ocdraw::geometry_kernel::Vector3 {
+    ocdraw::geometry_kernel::Vector3::new(a[0], a[1], a[2])
 }
 
-pub(crate) fn from_cad_ocs(center: Vector3, normal: Vector3) -> Option<CoordinateFrame3> {
+pub fn from_cad_ocs(center: Vector3, normal: Vector3) -> Option<CoordinateFrame3> {
     let basis = cad_plane(normal)?;
     let origin = add3(
         scaled(basis.u, center.x),
@@ -256,10 +256,7 @@ pub(crate) fn from_cad_ocs(center: Vector3, normal: Vector3) -> Option<Coordinat
     .ok()
 }
 
-pub(crate) fn to_cad_ocs(
-    placement: CoordinateFrame3,
-    reverse: bool,
-) -> Option<(Vector3, Vector3, f64)> {
+pub fn to_cad_ocs(placement: CoordinateFrame3, reverse: bool) -> Option<(Vector3, Vector3, f64)> {
     let mut normal = stored_normal(placement)?;
     if reverse {
         normal = Vector3::new(-normal.x, -normal.y, -normal.z);
@@ -307,20 +304,22 @@ fn source_point(
     plane: CoordinateFrame3,
     radius: f64,
     angle: f64,
-) -> Result<Point3, OcdrawToCadError> {
+) -> Result<Point3, CadConstructionError> {
     plane
-        .try_to_scope_point(ocdraw::ocdraw::Point2::new(
+        .try_to_scope_point(ocdraw::geometry_kernel::Point2::new(
             radius * angle.cos(),
             radius * angle.sin(),
         ))
-        .map_err(|_| OcdrawToCadError::Cad("validated curve sample exceeds finite range".into()))
+        .map_err(|_| {
+            CadConstructionError::Cad("validated curve sample exceeds finite range".into())
+        })
 }
-pub(crate) fn circle_sample_pairs(
+pub fn circle_sample_pairs(
     plane: CoordinateFrame3,
     radius: f64,
     phase: f64,
     target: &opencadcodec::Circle,
-) -> Result<Vec<(PairedPoint, BigRational)>, OcdrawToCadError> {
+) -> Result<Vec<(PairedPoint, BigRational)>, CadConstructionError> {
     [
         0.0,
         std::f64::consts::FRAC_PI_2,
@@ -336,13 +335,13 @@ pub(crate) fn circle_sample_pairs(
     })
     .collect()
 }
-pub(crate) fn arc_sample_pairs(
+pub fn arc_sample_pairs(
     plane: CoordinateFrame3,
     radius: f64,
     start: f64,
     sweep: f64,
     target: &opencadcodec::Arc,
-) -> Result<Vec<(PairedPoint, BigRational)>, OcdrawToCadError> {
+) -> Result<Vec<(PairedPoint, BigRational)>, CadConstructionError> {
     [0.0, 0.5, 1.0]
         .into_iter()
         .map(|fraction| {
@@ -352,7 +351,7 @@ pub(crate) fn arc_sample_pairs(
         })
         .collect()
 }
-pub(crate) fn export_circle_sample_pairs(
+pub fn export_circle_sample_pairs(
     source: &opencadcodec::Circle,
     plane: CoordinateFrame3,
 ) -> Option<Vec<(PairedPoint, BigRational)>> {
@@ -365,7 +364,7 @@ pub(crate) fn export_circle_sample_pairs(
     .into_iter()
     .map(|angle| {
         let target = plane
-            .try_to_scope_point(ocdraw::ocdraw::Point2::new(
+            .try_to_scope_point(ocdraw::geometry_kernel::Point2::new(
                 source.radius * angle.cos(),
                 source.radius * angle.sin(),
             ))
@@ -374,7 +373,7 @@ pub(crate) fn export_circle_sample_pairs(
     })
     .collect()
 }
-pub(crate) fn export_arc_sample_pairs(
+pub fn export_arc_sample_pairs(
     source: &opencadcodec::Arc,
     plane: CoordinateFrame3,
     sweep: f64,
@@ -384,7 +383,7 @@ pub(crate) fn export_arc_sample_pairs(
         .map(|fraction| {
             let angle = source.start_angle + fraction * sweep;
             let target = plane
-                .try_to_scope_point(ocdraw::ocdraw::Point2::new(
+                .try_to_scope_point(ocdraw::geometry_kernel::Point2::new(
                     source.radius * angle.cos(),
                     source.radius * angle.sin(),
                 ))
@@ -394,9 +393,7 @@ pub(crate) fn export_arc_sample_pairs(
         .collect()
 }
 
-pub(crate) fn from_cad_ellipse(
-    source: &opencadcodec::Ellipse,
-) -> Option<(CoordinateFrame3, f64, f64)> {
+pub fn from_cad_ellipse(source: &opencadcodec::Ellipse) -> Option<(CoordinateFrame3, f64, f64)> {
     let basis = cad_plane(source.normal)?;
     let a = source.major_axis;
     let scale = a.x.abs().max(a.y.abs()).max(a.z.abs());
@@ -425,14 +422,14 @@ pub(crate) fn from_cad_ellipse(
     let center = source.center;
     let placement = CoordinateFrame3::try_new(
         Point3::new(center.x, center.y, center.z),
-        ocdraw::ocdraw::Vector3::new(x.x, x.y, x.z),
-        ocdraw::ocdraw::Vector3::new(y.x, y.y, y.z),
+        ocdraw::geometry_kernel::Vector3::new(x.x, x.y, x.z),
+        ocdraw::geometry_kernel::Vector3::new(y.x, y.y, y.z),
     )
     .ok()?;
     Some((placement, length, minor))
 }
 
-pub(crate) fn to_cad_ellipse(
+pub fn to_cad_ellipse(
     placement: CoordinateFrame3,
     major: f64,
     minor: f64,
@@ -470,7 +467,7 @@ fn ellipse_point(source: &opencadcodec::Ellipse, angle: f64) -> Option<Vector3> 
     Some(vec3(add3(center, major, minor)))
 }
 
-pub(crate) fn ellipse_sample_pairs(
+pub fn ellipse_sample_pairs(
     plane: CoordinateFrame3,
     major: f64,
     minor: f64,
@@ -484,7 +481,7 @@ pub(crate) fn ellipse_sample_pairs(
             let source_angle = start + fraction * sweep;
             let target_angle = target.start_parameter + fraction * sweep.abs();
             let source = plane
-                .try_to_scope_point(ocdraw::ocdraw::Point2::new(
+                .try_to_scope_point(ocdraw::geometry_kernel::Point2::new(
                     major * source_angle.cos(),
                     minor * source_angle.sin(),
                 ))
@@ -494,7 +491,7 @@ pub(crate) fn ellipse_sample_pairs(
         .collect()
 }
 
-pub(crate) fn export_ellipse_sample_pairs(
+pub fn export_ellipse_sample_pairs(
     source: &opencadcodec::Ellipse,
     plane: CoordinateFrame3,
     major: f64,
@@ -507,7 +504,7 @@ pub(crate) fn export_ellipse_sample_pairs(
         .map(|fraction| {
             let angle = start + fraction * sweep;
             let target = plane
-                .try_to_scope_point(ocdraw::ocdraw::Point2::new(
+                .try_to_scope_point(ocdraw::geometry_kernel::Point2::new(
                     major * angle.cos(),
                     minor * angle.sin(),
                 ))

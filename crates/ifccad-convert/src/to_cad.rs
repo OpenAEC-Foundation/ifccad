@@ -63,6 +63,14 @@ fn convert_document(
             "missing CAD layer 0 generated as white, opaque, Continuous and 0.25 mm",
         ));
     }
+    let mut geometry = crate::geometry_context::GeometryContext::new(
+        options.geometry_tolerance,
+        &drawing.length_unit,
+        drawing.model.id,
+    )?;
+    for paper in &drawing.paper_layouts {
+        geometry.add_paper(paper.id, &paper.length_unit)?;
+    }
     let mut document = CadDocument::new();
     if !drawing.layers.iter().any(|l| l.name == "0") {
         let layer = document.layers.get_mut("0").unwrap();
@@ -167,10 +175,59 @@ fn convert_document(
         }))
         .chain(block_owners)
         .collect();
-    crate::entity_owners::to_cad(drawing, &mut document, &owners, &mut mappings, &mut issues)?;
+    crate::entity_owners::to_cad(
+        drawing,
+        &mut document,
+        &owners,
+        &mut mappings,
+        &mut issues,
+        &mut geometry,
+    )?;
+    let members = supported
+        .iter()
+        .map(|b| {
+            (
+                b.id,
+                b.entities
+                    .iter()
+                    .filter(|e| mappings.entities.cad_handle(e.id).is_some())
+                    .map(|e| e.id)
+                    .collect::<Vec<_>>(),
+            )
+        })
+        .collect::<std::collections::BTreeMap<_, _>>();
+    let roots = |entities: &[ocdraw::ifccad::IfccadEntity]| {
+        entities
+            .iter()
+            .filter(|e| {
+                matches!(
+                    e.kind,
+                    ocdraw::ifccad::IfccadEntityKind::BlockInstance { .. }
+                ) && mappings.entities.cad_handle(e.id).is_some()
+            })
+            .map(|e| e.id)
+            .collect::<Vec<_>>()
+    };
+    geometry.select(crate::IfccadGeometryOwner::ModelLayout(drawing.model.id));
+    geometry.assess_roots(&members, &roots(&drawing.model.entities), &mut issues)?;
+    for block in &supported {
+        geometry.select(crate::IfccadGeometryOwner::BlockDefinition(block.id));
+        geometry.assess_roots(&members, &roots(&block.entities), &mut issues)?;
+    }
+    for (id, _) in &paper_owners {
+        let paper = drawing.paper_layouts.iter().find(|p| p.id == *id).unwrap();
+        geometry.select(crate::IfccadGeometryOwner::PaperLayout(*id));
+        geometry.assess_roots(&members, &roots(&paper.entities), &mut issues)?;
+    }
     crate::loss::to_cad(drawing, &mut issues);
     crate::diagnostics::enforce_policy(options.loss_policy, &issues)?;
+    let mut assessment = geometry.finish();
+    assessment.domains.retain(|domain| match domain.domain() {
+        IfccadGeometryDomain::Drawing => true,
+        IfccadGeometryDomain::PaperLayout(id) => mappings.layouts.cad_handle(id).is_some(),
+    });
     Ok(IfccadToCadOutcome {
+        geometry: assessment,
         document,
         diagnostics: issues,
         mappings,

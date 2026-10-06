@@ -135,7 +135,8 @@ fn circle_clip_checks_complete_curve_and_plane() {
 #[test]
 fn active_boundary_accepts_eligible_polylines_and_circles() {
     let frame = viewport().frame;
-    let poly = |vertices, closed| IfccadEntityKind::PlanarPolyline {
+    let poly = |vertices: Vec<[f64; 2]>, closed| IfccadEntityKind::PlanarPolyline {
+        bulges: vec![0.; vertices.len()],
         vertices,
         closed,
         placement: placement([0.; 3]),
@@ -190,6 +191,7 @@ fn viewport_requires_paper_and_unique_model_target() {
     doc.model.entities.pop();
     let id = doc.id_counters.allocate_layout_id().unwrap();
     doc.paper_layouts.push(IfccadPaperLayout {
+        bounds: None,
         id,
         name: "Sheet".into(),
         tab_index: 1,
@@ -218,6 +220,7 @@ fn drawing_with_viewport() -> IfccadDocument {
     view.model_id = doc.model.id;
     entity.kind = IfccadEntityKind::Viewport(view);
     doc.paper_layouts.push(IfccadPaperLayout {
+        bounds: None,
         id: doc.id_counters.allocate_layout_id().unwrap(),
         name: "Sheet".into(),
         tab_index: 1,

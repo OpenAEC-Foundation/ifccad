@@ -267,8 +267,8 @@ impl PreparedBlockTransform {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ocdraw::geometry::numeric::{exact, Interval};
-    use crate::ocdraw::{CoordinateAxis, CoordinateFrame3, Point3, Vector3};
+    use crate::geometry_kernel::numeric::{exact, Interval};
+    use crate::geometry_kernel::{CoordinateAxis, CoordinateFrame3, Point3, Vector3};
 
     fn origin() -> Point3 {
         Point3::new(0., 0., 0.)
@@ -533,7 +533,7 @@ mod tests {
             Vector3::new(-1., 0., 0.),
         );
         let local_bounds = local_plane
-            .enclose_point(crate::ocdraw::Point2::new(2., 3.))
+            .enclose_point(crate::geometry_kernel::Point2::new(2., 3.))
             .unwrap();
         let local = std::array::from_fn(|i| Interval {
             lower: local_bounds.min().components()[i],
