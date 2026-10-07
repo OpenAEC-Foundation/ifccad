@@ -1,4 +1,51 @@
-# IFCCAD & OCDraw Explorer
+# CAD Format Explorer
+
+The document/storage inspector, integrated IFCX navigation, workspace tabs
+and adjustable conversion tolerance are specified in
+[CAD Format Explorer interface design](../docs/architecture/format-explorer.md).
+
+The application starts with **IFCCAD · Drawing overview** in the **Bestandsboom /
+File tree** view. Choose **Document structure** for logical contents and **Storage
+structure** for IFCX node/source inspection or OCDraw streams/columns. Entities
+are grouped by type within their layout or block by default; **Draw order**
+shows the original sequence and each item retains its original draw position.
+The native contents tab name follows the selected IFCCAD/OCDraw result.
+Group counts appear directly beside each group name. Opening another file or
+selecting an example retains the active workspace tab. A visible loading panel
+shows the filename, operation and current phase, with cancellation available
+while reading, fetching examples or converting.
+
+**Conversion / checks** owns tolerance and output settings; CAD input exposes
+its IFCCAD/OCDraw target next to the file picker before processing. Default,
+exact and explicit physical/drawing-coordinate tolerances reach both converters
+and generated CAD output/readback. The numerical evidence remains available
+separately from semantic loss and strict native validity. The existing optional
+OCDraw supported-SPLINE capture/restoration route is retained.
+For newly opened DWG/DXF files, CAD output automatically follows the original
+format and the version reported by the CAD reader. The background roundtrip and
+CAD download share these settings. Subsequent manual choices are retained when
+applying settings. A source version outside the supported writer choices keeps
+a supported output version and is explicitly identified beside the controls.
+
+**Drawing** keeps the Open CAD Studio session across tabs. **Settings** offers
+Dutch/English and light/dark appearance, remembered locally; changing them does
+not reopen the source or reset the CAD session. **About** explains the formats,
+local processing and source/licenses. The [representative example inventory](../examples/README.md)
+describes the bundled demonstrations and their production-reader verification.
+
+Generating CAD for the drawing viewer updates the same **Conversion / checks**
+report as an explicit export. Reading/native validation, conversion messages,
+tolerance evidence and CAD readback stay there; Drawing has no duplicate
+diagnostic block. CAD viewer startup/session status remains beside the viewer.
+After successful opening, CAD roundtrip output is prepared automatically in a
+background worker using the applied CAD format/version and tolerance. Its
+progress and cancel control are available in Conversion / checks, and its
+readback/evidence is available without opening Drawing. Drawing shares an
+ongoing job or reuses the prepared output; Open CAD Studio itself starts only
+when Drawing is opened. Opening a new source or changing settings invalidates
+old pending output; applying settings starts preparation again.
+Drawing shows a single compact filename/fullscreen toolbar above Open CAD Studio;
+the file toolbar, document strip, footer and idle notices give way to CAD space.
 
 The current application opens one standalone OCDraw or experimental IFCCAD
 file, or converts one DXF/DWG file to the selected drawing format. It displays
@@ -25,12 +72,18 @@ Run the app: `npm start` in this directory. A matching wasm-bindgen build of
 `browser` must be placed in `wasm-build/` for browser processing.
 No hosted deployment is performed by development commands.
 
+The dev server supports an alternate `PORT` and an optional `OCS_ROOT` for an
+existing pinned viewer bundle. It stays on loopback and reloads when frontend
+source changes. Rebuilding WASM or adding example assets requires a website
+rebuild. This live development view is independent of hosted publication.
+
 Tests: `npm test`. File and CAD accuracy checks use the production Rust
 reader/converter; the browser worker transport is tested independently.
 
 For a DXF/DWG input on the OCDraw route, **Spline-brongegevens bewaren** explicitly
-enables typed spline preservation. It is off by default and is not an IFCCAD
-option. Every interpreted spline variant can be stored; this does not add native
+controls typed spline preservation. It is on by default for a newly selected CAD
+file and can be switched off before opening; it is not an IFCCAD option.
+Every interpreted spline variant can be stored; this does not add native
 spline geometry or certified bounds. Capture, unavailable native geometry and
 qualified restoration are reported separately. Current native layer/appearance/
 visibility/order edits are authoritative. Unknown/raw/attached contexts may remain
@@ -51,10 +104,14 @@ OCDraw/IFCCAD file has only the converted document. One shared CAD format/versio
 CAD download. OCDraw download is a separate action next to the drawing contents.
 Changing a selection regenerates a visible preview. The viewer uses the available
 page width and can enter full screen; leaving full screen restores inspection. An edited generated document remains open when it is replaced;
-no automatic save/discard is performed. Preview diagnostics are shown separately
-from the opening report. The original can still be viewed if conversion fails.
-Hiding the preview keeps its document session; opening a new source or explicitly
+no automatic save/discard is performed. Preview conversion diagnostics appear
+in Conversion / checks alongside the original reading and validation sections.
+The original can still be viewed if conversion fails.
+Leaving the Drawing tab keeps its document session; opening a new source or explicitly
 restarting the viewer replaces the session.
+Compound inspector values expand into JSON beneath their label/count row, using
+the full information-panel width. Their label, count and chevron align centrally
+on the same summary row.
 
 Open CAD Studio reads the generated CAD bytes, not OCDraw or IFCX directly. Viewing a
 similar drawing does not prove lossless conversion. Named simple line patterns,
@@ -137,6 +194,7 @@ counts and source/occurrence evidence. Identity fields in these records are
 decimal strings to preserve uint64 values. Numerical failures expose a structured
 `failure.geometry` reason and available limit/deviation. Each report qualifies
 its own conversion boundary, rather than equality through an arbitrary codec.
-The backend currently uses default tolerance. A selectable request tolerance,
-including an explicit unitless value, remains later viewer work; no UI setting
-is stored in native geometry. See [shared geometry](../docs/geometry/shared-geometry.md).
+The browser request applies the selected default, exact or explicit tolerance,
+including a drawing-coordinate limit for unitless domains, to both conversion
+routes. Native validation retains its own rules; no UI setting is stored in
+native geometry. See [shared geometry](../docs/geometry/shared-geometry.md).

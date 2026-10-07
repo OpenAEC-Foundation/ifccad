@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {initSync,open_drawing,convert_cad_to_drawing,convert_cad_to_drawing_with_preservation,export_drawing,open_ifccad,convert_cad_to_ifccad,export_ifccad} from '../wasm-build/browser.js';
+import {initSync,open_drawing,convert_cad_to_drawing,convert_cad_to_drawing_with_preservation,export_drawing,open_ifccad,convert_cad_to_ifccad,export_ifccad,export_drawing_with_options,convert_cad_to_drawing_with_options,export_ifccad_with_options,convert_cad_to_ifccad_with_options} from '../wasm-build/browser.js';
 import {processBrowserRequest} from '../src/browser-worker.mjs';
 
 initSync({module:await readFile(new URL('../wasm-build/browser_bg.wasm',import.meta.url))});
-const wasm={open_drawing,convert_cad_to_drawing,convert_cad_to_drawing_with_preservation,export_drawing,open_ifccad,convert_cad_to_ifccad,export_ifccad};
+const wasm={open_drawing,convert_cad_to_drawing,convert_cad_to_drawing_with_preservation,export_drawing,open_ifccad,convert_cad_to_ifccad,export_ifccad,export_drawing_with_options,convert_cad_to_drawing_with_options,export_ifccad_with_options,convert_cad_to_ifccad_with_options};
 const splineBytes=await readFile(new URL('../../crates/ocdraw-convert/tests/fixtures/splines/open-cubic.dxf',import.meta.url));
 const splineSource={kind:'cad',name:'spline.dxf',preserveSplines:true,files:[{path:'spline.dxf',bytes:Uint8Array.from(splineBytes).buffer}]};
 const splineOpened=processBrowserRequest(splineSource,wasm);
@@ -183,3 +183,22 @@ for (const format of ['ocdraw','ifccad']) {
  }
 }
 console.log('Browser WASM medium-only, inch plot and layout linetype-scaling exchange verified for both independent routes');
+
+for(const [fixture,knownMapping] of [['layout-plot-inch',true],['layout-medium-only',false]]){
+ const drawing=JSON.parse(await readFile(new URL(`../../conformance/next/ocdraw/valid/${fixture}.ocdraw.json`,import.meta.url),'utf8'));
+ drawing.header.unit='mm';
+ const source={kind:'drawing',name:fixture,files:[{path:fixture+'.ocdraw.json',bytes:new TextEncoder().encode(JSON.stringify(drawing)).buffer}],conversionOptions:{tolerance:{mode:'custom',value:0.001,unit:'mm'}},export:{format:'dxf',version:'AC1032'}};
+ const result=processBrowserRequest(source,wasm);
+ if(knownMapping){
+  assert.equal(result.failure,null,JSON.stringify(result.failure));
+  const paper=result.export.geometry.domains.find(d=>d.coordinateMeaning.kind==='PaperCoordinates');
+  assert.deepEqual(paper.coordinateMeaning.physicalOutputFactor,{numerator:'127',denominator:'5000'});
+  assert.equal(result.export.geometry.maxDeviationUpperBound,undefined);
+ }else{
+  assert.equal(result.failure.geometry.domain.kind,'PaperLayout');
+  assert.equal(result.failure.geometry.domain.layoutId,'1');
+  assert.equal(result.failure.geometry.reason,'PhysicalMappingRequired');
+  assert.equal(result.export?.download,undefined);
+ }
+}
+console.log('Browser WASM custom physical tolerance reports per-layout output meaning and refuses missing Paper mapping');

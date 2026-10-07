@@ -55,6 +55,21 @@ pub fn inspect_cad_as_ifccad_bytes(
     bytes: &[u8],
     timestamp: &str,
 ) -> Value {
+    inspect_cad_as_ifccad_with_options(
+        name,
+        format,
+        bytes,
+        timestamp,
+        &crate::options::ConversionOptions::default(),
+    )
+}
+pub(crate) fn inspect_cad_as_ifccad_with_options(
+    name: &str,
+    format: &str,
+    bytes: &[u8],
+    timestamp: &str,
+    options: &crate::options::ConversionOptions,
+) -> Value {
     let mut output = result(Path::new(name), format);
     let cad = match cad::read(format, bytes) {
         Ok(d) => d,
@@ -63,6 +78,7 @@ pub fn inspect_cad_as_ifccad_bytes(
             return output;
         }
     };
+    output["reader"]["version"] = json!(cad.dwg_source_version.unwrap_or(cad.version).as_str());
     output["reader"]["messages"] = json!(cad
         .notifications
         .iter()
@@ -73,12 +89,19 @@ pub fn inspect_cad_as_ifccad_bytes(
         header: IfccadHeader {
             id: name.into(),
             data_version: "0.1.0".into(),
-            author: "IFCCAD & OCDraw Explorer".into(),
+            author: "CAD Format Explorer".into(),
             timestamp: timestamp.into(),
         },
     };
     progress("converting");
-    let converted = match cad_document_to_encoded_ifccad(&cad, metadata, Default::default()) {
+    let converted = match cad_document_to_encoded_ifccad(
+        &cad,
+        metadata,
+        ifccad_convert::CadToIfccadOptions {
+            geometry_tolerance: options.ocdraw_tolerance().expect("checked options"),
+            ..Default::default()
+        },
+    ) {
         Ok(v) => v,
         Err(error) => {
             fail(
@@ -91,13 +114,28 @@ pub fn inspect_cad_as_ifccad_bytes(
             return output;
         }
     };
-    output["conversion"] = json!({"format":"ifccad","diagnostics":diagnostics(converted.diagnostics()),"entityCount":converted.mappings().entities.iter().count(),"geometryAssessment":crate::geometry::assessment(converted.geometry_assessment())});
+    output["conversion"] = json!({"format":"ifccad","diagnostics":diagnostics(converted.diagnostics()),"entityCount":converted.mappings().entities.iter().count(),"options":options.value(),"geometryAssessment":crate::geometry::assessment(converted.geometry_assessment())});
     present(&mut output, converted.validated_source());
     cad::download(&mut output, name, "ifccad", converted.encoded().bytes());
     output
 }
 /// Preserve original IFCX on native download; project supported content for CAD.
 pub fn export_ifccad_bytes(name: &str, bytes: &[u8], format: &str, version: &str) -> Value {
+    export_ifccad_with_options(
+        name,
+        bytes,
+        format,
+        version,
+        &crate::options::ConversionOptions::default(),
+    )
+}
+pub(crate) fn export_ifccad_with_options(
+    name: &str,
+    bytes: &[u8],
+    format: &str,
+    version: &str,
+    options: &crate::options::ConversionOptions,
+) -> Value {
     let mut output = inspect_ifccad_bytes(name, bytes);
     if output["validation"]["strictAvailable"] != true {
         return output;
@@ -112,7 +150,13 @@ pub fn export_ifccad_bytes(name: &str, bytes: &[u8], format: &str, version: &str
     }
     let drawing = load_ifccad_bytes(bytes, Default::default()).expect("strict status checked");
     progress("converting");
-    let converted = match ifccad_source_to_cad_document(&drawing, Default::default()) {
+    let converted = match ifccad_source_to_cad_document(
+        &drawing,
+        ifccad_convert::IfccadToCadOptions {
+            geometry_tolerance: options.ocdraw_tolerance().expect("checked options"),
+            ..Default::default()
+        },
+    ) {
         Ok(v) => v,
         Err(error) => {
             fail(&mut output, "converting", "CAD_CONVERSION_FAILED", &error);
@@ -135,8 +179,15 @@ pub fn export_ifccad_bytes(name: &str, bytes: &[u8], format: &str, version: &str
         version,
         issues,
         |readback| {
-            let restored = cad_document_to_encoded_ifccad(readback, metadata, Default::default())
-                .map_err(|e| {
+            let restored = cad_document_to_encoded_ifccad(
+                readback,
+                metadata,
+                ifccad_convert::CadToIfccadOptions {
+                    geometry_tolerance: options.ocdraw_tolerance().expect("checked options"),
+                    ..Default::default()
+                },
+            )
+            .map_err(|e| {
                 let mut details = json!({"failure":{}});
                 crate::geometry::failure(&mut details, &e);
                 readback_geometry = details["failure"]["geometry"].clone();
@@ -150,6 +201,7 @@ pub fn export_ifccad_bytes(name: &str, bytes: &[u8], format: &str, version: &str
         },
     );
     output["export"]["geometryAssessment"] = assessment;
+    output["export"]["options"] = options.value();
     if !readback_geometry.is_null() {
         output["failure"]["geometry"] = readback_geometry;
     }

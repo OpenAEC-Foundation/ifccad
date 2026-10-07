@@ -4,7 +4,8 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { watch } from 'node:fs';
 import { build, output } from './build.mjs';
-await build();
+const buildOptions=process.env.OCS_ROOT?{ocsRoot:process.env.OCS_ROOT}:{};
+await build(buildOptions);
 const root=fileURLToPath(output),port=Number(process.env.PORT||4173);
 const clients=new Set();
 const reloadScript='<script>const changes=new EventSource("./__viewer_events");changes.addEventListener("change",()=>location.reload());</script>';
@@ -25,13 +26,13 @@ const server=createServer(async(req,res)=>{
 });
 server.on('error',error=>{console.error(error.code==='EADDRINUSE'?`Port ${port} is in use. Choose another PORT.`:error);process.exit(1);});
 server.requestTimeout=120000;
-server.listen(port,'127.0.0.1',()=>console.log(`IFCCAD & OCDraw Explorer ready at http://127.0.0.1:${port}`));
+server.listen(port,'127.0.0.1',()=>console.log(`CAD Format Explorer ready at http://127.0.0.1:${port}`));
 for(const signal of ['SIGINT','SIGTERM'])process.on(signal,async()=>{server.close();process.exit(0);});
 let timer,building=false,pending=false;
 async function rebuild(){
   if(building){pending=true;return;}
   building=true;
-  try{await build();for(const client of clients)client.write('event: change\ndata: rebuilt\n\n');}
+  try{await build(buildOptions);for(const client of clients)client.write('event: change\ndata: rebuilt\n\n');}
   catch(error){console.error('Viewer rebuild failed:',error.message);}
   finally{building=false;if(pending){pending=false;await rebuild();}}
 }

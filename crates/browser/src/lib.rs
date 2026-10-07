@@ -1,4 +1,49 @@
 use wasm_bindgen::prelude::*;
+#[wasm_bindgen]
+pub fn conversion_capabilities() -> String {
+    viewer::conversion_capabilities().to_string()
+}
+
+#[wasm_bindgen]
+pub fn convert_cad_to_drawing_with_options(
+    name: &str,
+    format: &str,
+    bytes: &[u8],
+    options: &str,
+) -> String {
+    viewer::inspect_cad_as_drawing_bytes_with_options(name, format, bytes, options).to_string()
+}
+#[wasm_bindgen]
+pub fn export_drawing_with_options(
+    name: &str,
+    bytes: &[u8],
+    format: &str,
+    version: &str,
+    options: &str,
+) -> String {
+    viewer::export_drawing_bytes_with_options(name, bytes, format, version, options).to_string()
+}
+#[wasm_bindgen]
+pub fn convert_cad_to_ifccad_with_options(
+    name: &str,
+    format: &str,
+    bytes: &[u8],
+    timestamp: &str,
+    options: &str,
+) -> String {
+    viewer::inspect_cad_as_ifccad_bytes_with_options(name, format, bytes, timestamp, options)
+        .to_string()
+}
+#[wasm_bindgen]
+pub fn export_ifccad_with_options(
+    name: &str,
+    bytes: &[u8],
+    format: &str,
+    version: &str,
+    options: &str,
+) -> String {
+    viewer::export_ifccad_bytes_with_options(name, bytes, format, version, options).to_string()
+}
 
 #[wasm_bindgen]
 pub fn open_drawing(name: &str, bytes: &[u8]) -> String {

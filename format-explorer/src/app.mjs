@@ -1,39 +1,50 @@
 import {createFileClient,decodeBase64} from './browser-client.mjs';
 import {initializeCadPreview} from './cad-preview.mjs';
-const $=id=>document.getElementById(id),client=createFileClient(),preview=initializeCadPreview();let source,controller;
-function drawingFormat(){return source?.kind==='ifccad'?'ifccad':source?.drawingFormat||'ocdraw';}
-function updateInputControls(){
- const format=$('file').files?.[0]?.name.match(/\.(dwg|dxf)$/i)?.[1]?.toUpperCase();
- $('drawing-format-control').hidden=!format;$('drawing-format-label').textContent=format?format+' omzetten naar':'';$('drawing-format').disabled=!format||!!controller;
- const preservationAvailable=!!format&&$('drawing-format').value!=='ifccad';$('preservation-control').hidden=!preservationAvailable;$('preserve-splines').disabled=!preservationAvailable||!!controller;
+import {initializeWorkspace} from './workspace.mjs';
+import {conversionOptions} from './conversion-settings.mjs';
+import {examples} from './examples.mjs';
+import {cadOutputForSource,supportsCadVersion} from './cad-formats.mjs';
+const $=id=>document.getElementById(id),client=createFileClient();let source,controller,generation=0,stale=false,result,sourceCadVersion;
+const workspace=initializeWorkspace({onTab:tab=>{if(tab==='drawing'&&!stale)preview.show();else preview.hide();},onPreferences:()=>{preview.refresh?.();updateInputControls();updatePreservation();updateTolerance();updateCadSourceNote();}}),t=(key,values)=>workspace.t(key,values),preview=initializeCadPreview({translate:t,onReport:value=>workspace.setCadReport(value),onState:value=>workspace.setCadStatus(value),externalSettings:true});
+function drawingFormat(){return source?.kind==='ifccad'?'ifccad':source?.kind==='drawing'?'ocdraw':source?.drawingFormat||'ifccad';}
+function selectedOptions(){return conversionOptions({mode:$('tolerance-mode').value||'default',value:$('tolerance-value').value,unit:$('tolerance-unit').value||'mm'});}
+function updateInputControls(){const format=$('file').files?.[0]?.name.match(/\.(dwg|dxf)$/i)?.[1]?.toUpperCase();$('drawing-format-control').hidden=!format;$('drawing-format-label').textContent=format?t('convertTo',{format}):'';$('drawing-format').disabled=!format||!!controller;}
+function updatePreservation(){const cad=/\.(dxf|dwg)$/i.test($('file').files?.[0]?.name||'');const available=cad&&$('drawing-format').value==='ocdraw';$('preservation-control').hidden=!available;$('preserve-splines').disabled=!available||!!controller;}
+function updateCadSourceNote(){const unmatched=source?.kind==='cad'&&sourceCadVersion&&!supportsCadVersion(sourceCadVersion);$('cad-source-settings-note').hidden=!unmatched;$('cad-source-settings-note').textContent=unmatched?t('unsupportedSourceCadVersion',{sourceVersion:sourceCadVersion,outputVersion:$('preview-version').value}):'';}
+function updateTolerance(){const mode=$('tolerance-mode').value||'default';$('custom-tolerance').hidden=mode!=='custom';const unit=result?.presentation?.unit||result?.presentation?.graph?.data?.find(n=>n.attributes?.['ifccad::drawing'])?.attributes['ifccad::drawing'].lengthUnit,capable=result?.conversionCapabilities?.[drawingFormat()]?.adjustableTolerance;for(const option of Array.from($('tolerance-mode').options||[]))if(option.value!=='default')option.disabled=capable===false;if($('tolerance-mode').options?.[0])$('tolerance-mode').options[0].textContent=t(capable===false?'legacyTolerance':'defaultTolerance');$('tolerance-effective').textContent=(unit?t('unitLabel',{unit}):'')+(capable===false?' · '+t('toleranceUnavailable'):'');}
+function finishBusy(){controller=null;workspace.clearLoading();$('file').disabled=false;$('open').disabled=false;$('cancel').disabled=true;updateInputControls();updatePreservation();}
+function loadingInfo(name,kind,operation){return {name,action:operation?'exportingTo':kind==='cad'?'convertingTo':'openingFile',format:operation?.format?.toUpperCase()||($('drawing-format').value==='ocdraw'?'OCDraw':'IFCCAD')};}
+function clearSelection(){generation++;controller?.abort();finishBusy();source=undefined;result=undefined;sourceCadVersion=undefined;stale=false;preview.clear();workspace.clear();updateCadSourceNote();$('export').disabled=true;$('cad-download').disabled=true;$('drawing').hidden=true;}
+function show(value){result=value;const label=drawingFormat()==='ifccad'?'IFCCAD':'OCDraw';$('content-title').textContent=label+'-'+t('contents').toLowerCase();$('export').textContent=t('downloadNative',{format:label});$('drawing').hidden=!value.presentation&&!value.nativeSourceText;$('name').textContent=value.source?.name||source.name;
+ workspace.show({...value,inspectedFormat:drawingFormat(),presentation:value.presentation?{...value.presentation,format:drawingFormat()}:null},value.nativeSourceText||'');
+ $('report').textContent=JSON.stringify({reader:value.reader,conversion:value.conversion,validation:value.validation,failure:value.failure,export:value.export?{format:value.export.format,options:value.export.options,geometry:value.export.geometry,geometryAssessment:value.export.geometryAssessment,diagnostics:value.export.diagnostics,fileCheck:value.export.fileCheck}:undefined},null,2);
+ $('export').disabled=!value.validation?.strictAvailable||stale;$('cad-download').disabled=$('export').disabled;$('preview-open').disabled=$('export').disabled&&source?.kind!=='cad';$('status').textContent=value.failure?.message||t(value.validation?.strictAvailable?(value.presentation?.opaqueEntityCount>0?'readyOpaque':'ready'):'invalid');updateTolerance();
 }
-function clearSelection(){source=undefined;preview.clear();$('export').disabled=true;$('cad-download').disabled=true;$('drawing').hidden=true;}
-function show(result){
- const label=drawingFormat()==='ifccad'?'IFCCAD':'OCDraw';$('content-title').textContent=label+'-inhoud';$('export').textContent=label+' downloaden';
- $('drawing').hidden=false;$('name').textContent=result.source?.name||source.name;
- $('report').textContent=JSON.stringify({reader:result.reader,conversion:result.conversion,validation:result.validation,failure:result.failure,export:result.export?{format:result.export.format,diagnostics:result.export.diagnostics,fileCheck:result.export.fileCheck}:undefined},null,2);
- $('records').textContent=JSON.stringify(result.presentation,null,2)||'Geen gevalideerde tekeninginformatie.';
- $('export').disabled=!result.validation?.strictAvailable||!!result.failure;$('cad-download').disabled=$('export').disabled;
- $('status').textContent=result.failure?.message|| (result.validation?.strictAvailable?(result.presentation?.opaqueEntityCount>0?'Tekening gecontroleerd. Sommige vormen zijn alleen als brongegevens opgeslagen.':'Tekening gecontroleerd.'):'De tekening kon niet worden gevalideerd.');
+function download(file){const url=URL.createObjectURL(new Blob([decodeBase64(file.base64)])),link=document.createElement('a');link.href=url;link.download=file.fileName||source.name;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+async function run(operation,{newSource=false}={}){if(!source)return;const current=++generation;controller=new AbortController();$('file').disabled=true;$('open').disabled=true;$('cancel').disabled=false;$('export').disabled=true;$('cad-download').disabled=true;$('drawing-format').disabled=true;
+ workspace.setLoading({...loadingInfo(source.name,source.kind,operation),phase:'preparing'});
+ try{const value=await client.open({...source,...(operation?{export:operation}:{})},{signal:controller.signal,onProgress:phase=>{if(current===generation){workspace.setStatus(phase);workspace.setLoading({phase});}}});if(current!==generation)return;if(newSource&&source.kind==='cad'){sourceCadVersion=value.reader?.version;const output=cadOutputForSource(source.name,sourceCadVersion,{format:$('preview-format').value,version:$('preview-version').value});$('preview-format').value=output.format;$('preview-version').value=output.version;}stale=false;show(value);updateCadSourceNote();
+  if(!operation){if(newSource)preview.setSource({...source},!!value.validation?.strictAvailable&&!value.failure);else preview.updateSource({...source},!!value.validation?.strictAvailable&&!value.failure);if(value.validation?.strictAvailable&&!value.failure)void preview.select({format:$('preview-format').value||'dxf',version:$('preview-version').value||'AC1032'});}
+  if(operation&&value.export?.download&&!value.failure)download(value.export.download);
+ }catch(e){if(current===generation){$('status').textContent=e.name==='AbortError'?t('cancelled'):e.message;if(!operation&&e.name!=='AbortError')preview.setSource({...source},false);}}
+ finally{if(current===generation)finishBusy();}
 }
-async function run(operation){
- if(!source)return;controller=new AbortController();$('file').disabled=true;$('open').disabled=true;$('cancel').disabled=false;$('export').disabled=true;$('cad-download').disabled=true;$('drawing-format').disabled=true;
- $('preserve-splines').disabled=true;
- try{const result=await client.open({...source,...(operation?{export:operation}:{})},{signal:controller.signal,onProgress:phase=>$('status').textContent=phase});show(result);if(!operation)preview.setSource({...source},!!result.validation?.strictAvailable&&!result.failure);
-  if(operation&&result.export?.download&&!result.failure){const file=result.export.download,url=URL.createObjectURL(new Blob([decodeBase64(file.base64)])),link=document.createElement('a');link.href=url;link.download=file.fileName||source.name+'.'+operation.format;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
- }catch(e){$('status').textContent=e.name==='AbortError'?'Geannuleerd.':e.message;if(!operation&&e.name!=='AbortError')preview.setSource({...source},false);}finally{controller=null;$('file').disabled=false;$('open').disabled=false;$('cancel').disabled=true;updateInputControls();}
+async function openFile(file){clearSelection();const readingGeneration=generation;updateInputControls();if(!file){workspace.setStatus('chooseFirst');return;}if(file.size>64*1024*1024){workspace.setStatus('tooLarge');return;}const kind=/\.(dxf|dwg)$/i.test(file.name)?'cad':/\.ifcx(?:\.json)?$/i.test(file.name)?'ifccad':'drawing';$('file').disabled=true;$('open').disabled=true;$('cancel').disabled=false;workspace.setStatus('loading');workspace.setLoading({...loadingInfo(file.name,kind),phase:'loading'});
+ try{const options=selectedOptions(),bytes=await file.arrayBuffer();if(readingGeneration!==generation)return;source={kind,name:file.name,...(kind==='cad'?{drawingFormat:$('drawing-format').value||'ifccad',preserveSplines:$('preserve-splines').checked===true&&$('drawing-format').value==='ocdraw'}:{}),conversionOptions:options,files:[{path:file.name,bytes}]};}
+ catch(e){if(readingGeneration===generation){$('status').textContent=t('readFailed')+' '+e.message;finishBusy();}return;}
+ await run(undefined,{newSource:true});if(workspace.state?.tab==='drawing')await preview.show();
 }
-$('file').onchange=()=>{clearSelection();updateInputControls();};
-$('open').onclick=async()=>{
- clearSelection();updateInputControls();
- const file=$('file').files[0];if(!file){$('status').textContent='Kies eerst een bestand.';return;}if(file.size>64*1024*1024){$('status').textContent='Dit bestand is groter dan 64 MiB.';return;}
- $('file').disabled=true;$('open').disabled=true;$('status').textContent='Bestand lezen…';
- try{const kind=/\.(dxf|dwg)$/i.test(file.name)?'cad':/\.ifcx(?:\.json)?$/i.test(file.name)?'ifccad':'drawing';if(kind!=='cad')$('drawing-format').value=kind==='ifccad'?'ifccad':'ocdraw';source={kind,name:file.name,...(kind==='cad'?{drawingFormat:$('drawing-format').value||'ocdraw',preserveSplines:$('preserve-splines').checked===true&&$('drawing-format').value!=='ifccad'}:{}),files:[{path:file.name,bytes:await file.arrayBuffer()}]};}
- catch(e){$('status').textContent='Het bestand kon niet worden gelezen. Sluit het eventueel in het andere programma en kies het opnieuw. '+e.message;return;}
- finally{$('file').disabled=false;$('open').disabled=false;}
- await run();
-};
-$('drawing-format').onchange=async()=>{updateInputControls();if(source?.kind!=='cad')return;source={...source,drawingFormat:$('drawing-format').value,preserveSplines:$('preserve-splines').checked===true&&$('drawing-format').value!=='ifccad'};preview.clear();await run();};
-$('preserve-splines').onchange=async()=>{if(source?.kind!=='cad'||drawingFormat()!=='ocdraw')return;source={...source,preserveSplines:$('preserve-splines').checked===true};preview.clear();await run();};
-$('export').onclick=()=>run({format:drawingFormat()});$('cad-download').onclick=()=>run({format:$('preview-format').value,version:$('preview-version').value});$('cancel').onclick=()=>controller?.abort();
-updateInputControls();
+$('file').onchange=()=>{clearSelection();if(/\.(dxf|dwg)$/i.test($('file').files?.[0]?.name||''))$('preserve-splines').checked=true;updateInputControls();updatePreservation();};$('open').onclick=()=>openFile($('file').files[0]);
+function settingsChanged(){updatePreservation();stale=!!source;if(stale){preview.cancel();workspace.setStatus('stale');$('export').disabled=true;$('cad-download').disabled=true;$('preview-open').disabled=true;}updateInputControls();updatePreservation();updateTolerance();updateCadSourceNote();}
+$('drawing-format').onchange=settingsChanged;
+for(const name of ['tolerance-mode','tolerance-value','tolerance-unit','preview-format','preview-version','preserve-splines'])$(name).onchange=settingsChanged;
+$('apply-settings').onclick=async()=>{let options;try{options=selectedOptions();}catch(e){$('status').textContent=e.message;return;}if(!source)return;source={...source,conversionOptions:options,...(source.kind==='cad'?{drawingFormat:$('drawing-format').value||'ifccad',preserveSplines:$('preserve-splines').checked===true&&$('drawing-format').value==='ocdraw'}:{})};await run();await preview.select({format:$('preview-format').value,version:$('preview-version').value,conversionOptions:options});};
+$('export').onclick=()=>stale?undefined:run({format:drawingFormat()});$('cad-download').onclick=()=>stale?undefined:run({format:$('preview-format').value,version:$('preview-version').value});
+function cancel(){generation++;controller?.abort();finishBusy();workspace.setStatus('cancelled');}
+$('cancel').onclick=cancel;$('loading-cancel').onclick=cancel;
+$('preview-open').onclick=()=>{if(!stale)workspace.selectTab('drawing');};
+for(const example of examples){const option=document.createElement('option');option.value=example.path;option.textContent=example.format+' · '+example.name;$('examples').append(option);}
+async function openExample(path){const example=examples.find(x=>x.path===path);if(!example)return;clearSelection();const loadingGeneration=generation;controller=new AbortController();$('file').disabled=true;$('open').disabled=true;$('cancel').disabled=false;workspace.setLoading({...loadingInfo(example.path.split('/').at(-1),example.format==='IFCCAD'?'ifccad':'drawing'),phase:'loading'});try{const response=await fetch(example.path,{signal:controller.signal});if(!response.ok)throw Error('Example unavailable');const bytes=await response.arrayBuffer();if(loadingGeneration!==generation)return;$('file').value='';await openFile({name:example.path.split('/').at(-1),size:bytes.byteLength,arrayBuffer:async()=>bytes});$('examples').value=example.path;}catch(e){if(loadingGeneration===generation){clearSelection();$('status').textContent=e.message;}}}
+$('examples').onchange=()=>openExample($('examples').value);
+$('preserve-splines').checked=true;updateInputControls();updatePreservation();updateTolerance();updateCadSourceNote();
+if(examples.some(x=>x.path==='examples/ifccad/overview.ifcx'))openExample('examples/ifccad/overview.ifcx');

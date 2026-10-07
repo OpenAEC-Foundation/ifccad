@@ -7,7 +7,8 @@ Worker cancellation terminates processing and stale results remain ignored.
 All file paths/selections and 64 MiB limits are checked by the worker.
 
 OCDraw and IFCCAD use separate production readers, typed models and companion
-converters. CAD input defaults to OCDraw; `drawingFormat: "ifccad"` selects direct
+converters. The UI initially selects IFCCAD; the compatibility worker default
+when `drawingFormat` is omitted remains OCDraw. `drawingFormat: "ifccad"` selects direct
 IFCCAD conversion. Native IFCCAD has request kind `ifccad` and accepts `.ifcx` or
 `.ifcx.json`. The request export format must match the selected native format
 or be DXF/DWG; no cross-native projection is introduced. Original native download

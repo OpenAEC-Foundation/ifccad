@@ -52,6 +52,29 @@ pub fn inspect_cad_as_drawing_bytes_with_preservation(
     bytes: &[u8],
     capture: bool,
 ) -> Value {
+    let options = crate::options::ConversionOptions {
+        preserve_splines: capture,
+        ..Default::default()
+    };
+    inspect_cad_as_drawing_with_options(name, format, bytes, &options)
+}
+pub fn inspect_cad_as_drawing_bytes_with_options(
+    name: &str,
+    format: &str,
+    bytes: &[u8],
+    options: &str,
+) -> Value {
+    match crate::options::ConversionOptions::parse(options) {
+        Ok(o) => inspect_cad_as_drawing_with_options(name, format, bytes, &o),
+        Err(e) => crate::options::invalid(name, format, "INVALID_CONVERSION_OPTIONS", e),
+    }
+}
+fn inspect_cad_as_drawing_with_options(
+    name: &str,
+    format: &str,
+    bytes: &[u8],
+    options: &crate::options::ConversionOptions,
+) -> Value {
     let mut output = result(Path::new(name), format);
     let cad = match format {
         "dxf" => {
@@ -75,6 +98,7 @@ pub fn inspect_cad_as_drawing_bytes_with_preservation(
             return output;
         }
     };
+    output["reader"]["version"] = json!(cad.dwg_source_version.unwrap_or(cad.version).as_str());
     output["reader"]["messages"] = json!(cad
         .notifications
         .iter()
@@ -84,7 +108,8 @@ pub fn inspect_cad_as_drawing_bytes_with_preservation(
     let converted = match cad_document_to_ocdraw_document(
         &cad,
         CadToOcdrawOptions {
-            preservation_capture: if capture {
+            geometry_tolerance: options.ocdraw_tolerance().expect("checked options"),
+            preservation_capture: if options.preserve_splines {
                 ocdraw_convert::OcdrawPreservationCapture::SupportedTyped
             } else {
                 ocdraw_convert::OcdrawPreservationCapture::Disabled
@@ -101,8 +126,13 @@ pub fn inspect_cad_as_drawing_bytes_with_preservation(
                 &mut output,
                 "converting",
                 "DRAWING_CONVERSION_FAILED",
-                error,
+                &error,
             );
+            if let ocdraw_convert::CadToOcdrawError::Geometry(ref f) = error {
+                output["failure"]["geometry"] = crate::options::geometry_failure(f);
+            } else if let ocdraw_convert::CadToOcdrawError::PaperTolerance(ref f) = error {
+                output["failure"]["geometry"] = crate::options::paper_tolerance_failure(f);
+            }
             return output;
         }
     };
@@ -112,6 +142,7 @@ pub fn inspect_cad_as_drawing_bytes_with_preservation(
         "reasons": item.reasons().iter().map(|reason| format!("{reason:?}")).collect::<Vec<_>>()
     })).collect::<Vec<_>>();
     output["conversion"] = json!({"diagnostics": diagnostics, "entityCount": converted.entity_mapping().len(),
+            "options":options.value(),
             "preservation":preservation_report(converted.preservation_report()),"geometry":geometry_report(converted.geometry_assessment())});
     let mut document = converted.into_document();
     if let Some(preservation) = &mut document.preservation {
@@ -161,8 +192,41 @@ pub fn inspect_cad_as_drawing_bytes_with_preservation(
 }
 
 pub fn export_drawing_bytes(name: &str, bytes: &[u8], format: &str, version: &str) -> Value {
+    export_drawing_with_options(
+        name,
+        bytes,
+        format,
+        version,
+        &crate::options::ConversionOptions::default(),
+    )
+}
+pub fn export_drawing_bytes_with_options(
+    name: &str,
+    bytes: &[u8],
+    format: &str,
+    version: &str,
+    options: &str,
+) -> Value {
+    match crate::options::ConversionOptions::parse(options) {
+        Ok(o) => export_drawing_with_options(name, bytes, format, version, &o),
+        Err(e) => crate::options::invalid(name, format, "INVALID_CONVERSION_OPTIONS", e),
+    }
+}
+fn export_drawing_with_options(
+    name: &str,
+    bytes: &[u8],
+    format: &str,
+    version: &str,
+    options: &crate::options::ConversionOptions,
+) -> Value {
     if crate::ifccad::is_ifccad_name(name) {
-        return crate::ifccad::export_ifccad_bytes(name, bytes, format, version);
+        return crate::export_ifccad_bytes_with_options(
+            name,
+            bytes,
+            format,
+            version,
+            &options.value().to_string(),
+        );
     }
     let mut output = inspect_drawing_bytes(name, bytes);
     if output["validation"]["strictAvailable"] != true {
@@ -185,13 +249,24 @@ pub fn export_drawing_bytes(name: &str, bytes: &[u8], format: &str, version: &st
     let read = load_ocdraw_bytes(bytes);
     let drawing = read.as_ref().expect("strict status checked");
     progress("converting");
-    let converted = match ocdraw_source_to_cad_document(drawing, OcdrawToCadOptions::default()) {
+    let converted = match ocdraw_source_to_cad_document(
+        drawing,
+        OcdrawToCadOptions {
+            geometry_tolerance: options.ocdraw_tolerance().expect("checked options"),
+            ..Default::default()
+        },
+    ) {
         Ok(value) => value,
         Err(error) => {
             if let Some(report) = error.preservation_report() {
                 output["conversion"] = json!({"preservation":preservation_report(report)});
             }
-            fail(&mut output, "converting", "CAD_CONVERSION_FAILED", error);
+            fail(&mut output, "converting", "CAD_CONVERSION_FAILED", &error);
+            if let ocdraw_convert::OcdrawToCadError::Geometry(ref f) = error {
+                output["failure"]["geometry"] = crate::options::geometry_failure(f);
+            } else if let ocdraw_convert::OcdrawToCadError::PaperTolerance(ref f) = error {
+                output["failure"]["geometry"] = crate::options::paper_tolerance_failure(f);
+            }
             return output;
         }
     };
@@ -233,7 +308,8 @@ pub fn export_drawing_bytes(name: &str, bytes: &[u8], format: &str, version: &st
             }
         }
     }
-    crate::cad::export(
+    let geometry = crate::options::geometry(converted.geometry_assessment());
+    let mut returned = crate::cad::export(
         output,
         converted.into_document(),
         name,
@@ -241,7 +317,10 @@ pub fn export_drawing_bytes(name: &str, bytes: &[u8], format: &str, version: &st
         version,
         diagnostics,
         |_| Ok(Value::Null),
-    )
+    );
+    returned["export"]["geometry"] = geometry;
+    returned["export"]["options"] = options.value();
+    returned
 }
 
 fn present(output: &mut Value, outcome: Result<ValidatedOcdraw, OcdrawReadError>) {
@@ -273,6 +352,8 @@ fn present(output: &mut Value, outcome: Result<ValidatedOcdraw, OcdrawReadError>
     if let Ok(drawing) = outcome.as_ref() {
         let value = drawing.as_value();
         output["presentation"] = json!({
+            "format":"ocdraw",
+            "entities":crate::inspection::entities(drawing),
             "drawingId": drawing.drawing_id(),
             "unit": value["header"]["unit"],
             "plotStyleMode": drawing.plot_style_mode(),
@@ -284,7 +365,8 @@ fn present(output: &mut Value, outcome: Result<ValidatedOcdraw, OcdrawReadError>
             "streams":value["streams"],
             "blockDefinitions":value["blockDefinitions"],
             "ucsDefinitions":value["ucsDefinitions"],
-            "viewState":value["viewState"],
+            "viewState":value["drawingViewState"],
+            "pointDisplay":value["pointDisplay"],
             "modelWindows":value["modelWindows"],
             "paperCanvases":value["paperCanvases"],
             "drawingWorkspaceState": value["drawingWorkspaceState"],
@@ -294,6 +376,7 @@ fn present(output: &mut Value, outcome: Result<ValidatedOcdraw, OcdrawReadError>
                 "sources":p.sources.iter().map(|s|json!({"id":s.id,"provider":s.provider,"providerRevision":s.provider_revision,"origin":match s.origin{ocdraw::ocdraw::OcdrawPreservationOrigin::CadDocument=>"cadDocument",ocdraw::ocdraw::OcdrawPreservationOrigin::Dwg=>"dwg",ocdraw::ocdraw::OcdrawPreservationOrigin::Dxf=>"dxf"},"sourceVersion":s.source_version})).collect::<Vec<_>>(),
                 "records":p.records.iter().map(|r|json!({"id":r.id.0.to_string(),"sourceId":r.source_id,"sourceKey":r.source_key,"schema":r.payload.schema,"version":r.payload.version,"byteLength":r.payload.bytes.len(),"category":format!("{:?}",r.category),"role":format!("{:?}",r.role),"dependencyCoverage":format!("{:?}",r.dependency_coverage)})).collect::<Vec<_>>()})),
             "boundsCompleteness":drawing.scopes().iter().map(|s|json!({"scopeId":s.id,"status":if s.entities.is_empty(){"empty"}else if s.bounds.is_none(){"unavailable"}else{"complete"}})).collect::<Vec<_>>(),
+            "viewportWorkspaces":value["viewportWorkspaces"],
         });
     }
 }
@@ -343,7 +426,7 @@ fn preservation_report(report: &ocdraw_convert::OcdrawPreservationReport) -> Val
     json!({"entries":report.entries().iter().map(|e|json!({"recordId":e.record_id.map(|id|id.0.to_string()),"entityId":e.entity_id.map(|id|id.to_string()),
         "sourceId":e.source_id,"sourceKey":e.source_key,"schema":e.schema,"version":e.version,"phase":e.phase,"result":e.result,"reason":e.reason,"location":e.location,"message":e.message})).collect::<Vec<_>>()})
 }
-fn geometry_report(report: &ocdraw_convert::OcdrawGeometryAssessment) -> Value {
+pub(crate) fn geometry_report(report: &ocdraw_convert::OcdrawGeometryAssessment) -> Value {
     json!({"domains":report.domains().iter().map(|d|json!({"domain":format!("{:?}",d.domain()),"coordinateMeaning":crate::geometry::meaning(d.coordinate_meaning()),"resolvedTolerance":{"lower":d.resolved_tolerance().lower(),"upper":d.resolved_tolerance().upper()},"maxDeviationUpperBound":d.max_deviation_upper_bound(),"status":format!("{:?}",d.status())})).collect::<Vec<_>>(),"complete":report.is_complete(),"assessedNativeStatus":format!("{:?}",report.status()),"assessedNativeEntities":report.assessed_entities(),
         "unassessedSources":report.unassessed_sources().iter().map(|s|format!("{s:?}")).collect::<Vec<_>>()})
 }
