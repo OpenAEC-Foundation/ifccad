@@ -43,6 +43,11 @@ pub(super) fn validate_document(
         appearance_check(&layer.appearance, &path)?;
         pattern_reference(layer.appearance.line_pattern, &patterns, &path)?;
     }
+    crate::plot_kernel::validate_layout_output(
+        &document.model.settings,
+        crate::plot_kernel::LayoutOutputKind::Model,
+    )
+    .map_err(|e| problem(format!("Model invalid layout output: {e:?}")))?;
     let mut layouts = BTreeSet::from([document.model.id]);
     if document.model.tab_index != 0 {
         return Err(problem("Model layout tab index must be zero"));
@@ -65,19 +70,11 @@ pub(super) fn validate_document(
         {
             return Err(problem(format!("{path} invalid or duplicate tab index")));
         }
-        if !unit(&paper.length_unit) {
-            return Err(problem(format!("{path} invalid coordinate unit")));
-        }
-        if paper.paper.as_ref().is_some_and(|media| {
-            !media.width.is_finite()
-                || media.width <= 0.
-                || !media.height.is_finite()
-                || media.height <= 0.
-                || !unit(&media.length_unit)
-                || media.length_unit == "unitless"
-        }) {
-            return Err(problem(format!("{path} invalid paper dimensions or unit")));
-        }
+        crate::plot_kernel::validate_layout_output(
+            &paper.settings,
+            crate::plot_kernel::LayoutOutputKind::Paper,
+        )
+        .map_err(|e| problem(format!("{path} invalid layout output: {e:?}")))?;
     }
     let mut blocks = BTreeSet::new();
     for block in &document.blocks {

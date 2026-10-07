@@ -284,6 +284,38 @@
       "path": "invalid/opaque-active-clip.ocdraw.json",
       "status": "invalid",
       "diagnostic": "VIEWPORT_CLIP"
+    },
+    {
+      "path": "valid/layout-medium-only.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "valid/layout-plot-inch.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "valid/layout-raster.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "valid/layout-linetype-scaling.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "invalid/plot-without-medium.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/mixed-medium-plot-units.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/legacy-embedded-plot-medium.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/invalid-layout-page.ocdraw.json",
+      "status": "invalid"
     }
   ]
 }

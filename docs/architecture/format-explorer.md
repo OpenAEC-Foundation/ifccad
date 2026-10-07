@@ -287,22 +287,36 @@ CAD output format/version and tolerance are shared between export and the
 generated Open CAD Studio preview. Preserve the existing supported CAD-version
 validation rather than duplicating its list in unrelated components.
 
+Opening a new DWG/DXF source automatically selects its CAD format and
+the original version reported by the production reader. DWG reader provenance
+takes precedence over a normalized document version when available. Apply this
+selection before launching the background roundtrip; later explicit output
+choices are retained when applying settings. Native IFCCAD/OCDraw files retain
+the existing CAD-output selection. Unsupported source versions keep a supported
+output version with an explicit note beside the controls.
+
+The existing OCDraw typed-SPLINE capture checkbox starts enabled and resets to
+enabled when a new CAD file is selected. An explicit opt-out before opening is
+honored. This changes the explorer default only; lower-level APIs and CLI defaults,
+the qualified restoration rules and IFCCAD capabilities remain unchanged.
+
 | Tolerance choice | Applied meaning |
 | --- | --- |
-| Standaard | Exactly 1 µm in each known coordinate unit; zero for a unitless coordinate domain |
+| Standaard | Exactly 1 µm in known drawing units or fixed physical Paper output; zero coordinate residual when physical meaning is unknown |
 | Exact | Zero geometric residual |
 | Zelf instellen | Finite nonnegative value in millimetres, metres or each applicable drawing-coordinate domain |
 
-The control uses the shared geometry tolerance API integrated from
-`geometry-bounds`. Browser requests pass the selected limit into both native
+The control uses the shared geometry tolerance API in
+`cad-geometry-convert`. Browser requests pass the selected limit into both native
 conversion routes, generated CAD export and applicable IFCCAD CAD readback.
 Keep the control visible beside
-conversion settings and show the effective bound and coordinate unit/domain.
-Custom units remain explicit. Unitless domains reject physical tolerances,
-including when a paper medium has known physical dimensions. Paper and Model
-may have different coordinate units; show each relevant resolved limit. With
-drawing-coordinate tolerance, the same entered number is interpreted in each
-domain's own unit and must be explained as such.
+conversion settings and show each domain's effective bound and coordinate meaning.
+Custom units remain explicit. Model uses the drawing unit; each Paper layout uses
+its fixed plot mapping to resolve physical tolerances. Unknown Paper mapping
+rejects explicit physical requests, including when the medium has known physical
+dimensions. Reports retain separate limits and deviations per domain. With
+drawing-coordinate tolerance, the same entered number is interpreted directly
+in each domain's coordinates and must be explained as such.
 
 Tolerance is a hard numerical accuracy boundary. It does not alter native
 validation, clipping validity, semantic coverage or an Allow/Reject loss
@@ -423,7 +437,7 @@ each format's supported contract, not by incidental existing sample filenames.
 | Drawing overview | Units, identifiers, settings, several entity families, layers and patterns |
 | Geometry and placements | Every supported family, local frames, 3D orientation, curves and bounds |
 | Shared and nested blocks | Definitions, base points, transforms, nested occurrences and inherited appearance |
-| Layouts and viewports | Model/Paper order, units/media, camera/display/depth/clip state and layer overrides |
+| Layouts and viewports | Model/Paper order, drawing units, independent media and Paper plot mapping, camera/display/depth/clip state and layer overrides |
 | Drawing state | Authored coordinate/workspace/view/plot state exposed by that format |
 | IFCX relationships and fragments | Shared references, non-CAD nodes/attributes, actual fragment composition and source contributions |
 | OCDraw storage | Multiple streams, columns, pool ranges and correspondence with ordered logical content |

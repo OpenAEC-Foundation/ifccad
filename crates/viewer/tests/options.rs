@@ -19,7 +19,10 @@ fn custom_tolerance_is_checked_and_exposed_in_output() {
     );
     assert!(output["failure"].is_null(), "{output}");
     assert_eq!(output["export"]["options"]["tolerance"]["value"], 0.001);
-    assert!(output["export"]["geometry"]["resolvedTolerance"].is_object());
+    assert!(output["export"]["geometry"]["domains"][0]["resolvedTolerance"].is_object());
+    assert!(output["export"]["geometry"]
+        .get("resolvedTolerance")
+        .is_none());
 }
 #[test]
 fn native_ifccad_download_is_independent_of_cad_tolerance() {
@@ -68,5 +71,31 @@ fn cad_input_uses_the_selected_ifccad_tolerance_and_reports_domains() {
         .as_array()
         .unwrap()
         .iter()
-        .any(|d| d["coordinateUnit"] == "mm"));
+        .any(|d| d["coordinateMeaning"]["unit"] == "mm"));
+}
+
+#[test]
+fn physical_tolerance_without_paper_mapping_reports_the_layout() {
+    let mut source: serde_json::Value = serde_json::from_slice(include_bytes!(
+        "../../../conformance/next/ocdraw/valid/layout-medium-only.ocdraw.json"
+    ))
+    .unwrap();
+    source["header"]["unit"] = serde_json::json!("mm");
+    let bytes = serde_json::to_vec(&source).unwrap();
+    let output = viewer::export_drawing_bytes_with_options(
+        "medium.ocdraw.json",
+        &bytes,
+        "dxf",
+        "AC1032",
+        r#"{"tolerance":{"mode":"custom","value":0.001,"unit":"mm"}}"#,
+    );
+    assert_eq!(
+        output["failure"]["geometry"]["domain"]["kind"],
+        "PaperLayout"
+    );
+    assert_eq!(
+        output["failure"]["geometry"]["reason"],
+        "PhysicalMappingRequired"
+    );
+    assert!(output["export"].get("download").is_none());
 }

@@ -36,7 +36,7 @@ fresh CAD import assigns new IDs and watermarks with explicit outcome mappings.
 | Line patterns | Allocate all native named simple/empty definitions, including unused; preserve names/descriptions/lengths; retain required missing Continuous target scaffold with Modified evidence |
 | Pattern scale/generation | Drawing/entity scales to header/common fields; planar polyline perSegment/continuous to plinegen |
 | Model | Default Model layout, ordered backing block membership |
-| Paper | Allocate layouts in tab order, optional media and ordered backing block contents; unitless/in/mm coordinates supported. Other coordinate units omit the entire layout with located evidence. CAD-name collisions and indices exceeding i16 are fatal |
+| Paper | Allocate layouts in tab order, optional media and ordered backing block contents; independent numerical coordinates and effective plot mappings. Unsupported medium units omit media/plot state, not the layout. CAD-name collisions and indices exceeding i16 are fatal |
 | Layers | Retain names, unused declarations and concrete appearance; synthesize missing CAD layer 0 with diagnosed explicit fallback; reject collisions under opencadcodec's normalized name lookup, including multiple layers named 0, before CAD allocation under both policies |
 | Layer/entity appearance | True RGB, resolved named patterns, supported hundredth-mm weight, exact decoded opacity byte; preserve independent inherited/explicit modes on entities |
 | Lines | Direct finite XYZ endpoints |
@@ -129,19 +129,31 @@ Recovery diagnostic, preserving relative order. Native IDs and watermarks are
 independent of tab order. Only the fully default initial Layout1 scaffold is
 excluded; additional empty sheets remain authored.
 
-CAD paper dimensions are always millimetres. Positive finite dimensions map to
-an optional medium; invalid or partial dimensions omit only that medium with
-loss evidence. Explicit fixed 1:1 inch/mm mappings establish Paper coordinate
-units. Fully unconfigured unsized defaults are unitless; other authored mappings
-retain numeric coordinates as unitless with a loss diagnostic. Media never
-establish coordinate units and block instances are never implicitly rescaled.
+CAD dimensions, margins and offsets are millimetres independently of the plot
+unit selector. Layout media are retained without complete plot settings. Effective
+plotUnit/page/area/mapping/output/options and layout limits/checking/PSLTSCALE map
+through typed fields; unsupported complete plot state is diagnosed with valid
+media retained. Active scale selectors govern Fixed/Fit interpretation; conflicting
+standard preset/factor values are not guessed. Unknown/raster/Fit mappings never
+borrow Model units. Native Paper lengthUnit and paper spellings are removed.
 
-Native media convert through exact rational millimetre factors. Any binary64
-rounding is fatal under both policies (5 inches maps exactly to 127 mm; 1 inch
-cannot exactly map to binary64 25.4 mm). Unsupported factors such as parsecs omit
-only media under Allow. Printer/media names, margins, rotation, plot limits,
-authored overall canvases and workspace state remain deferred losses. Definition-content
-losses propagate to Paper instances through shared and nested definitions.
+Exact finite binary64 physical scalar conversion is required under both policies:
+5 inches maps to 127 mm; an exact 1-inch-to-mm conversion fails with PlotNumeric.
+Unsupported exact medium factors omit medium and dependent plot under Allow;
+Reject refuses loss. Unqualified pixel calibration, printable-relative offsets,
+transparency and active external style-table contents retain located restrictions.
+Media never infer geometry rescaling or containment. Fully default CAD plot fields
+canonicalize to absence; authored identical-default intent is indistinguishable.
+
+Both routes expose per-Paper output-mapping assessments. Fixed physical output
+resolves one-micrometre default accuracy per layout; unknown/Fit/pixel uses zero
+coordinate residual. Explicit physical requests fail without fixed mappings,
+including empty layouts and targets that lost their configuration. Definition-local
+and signed/nonuniform nested-root proofs stay mandatory. Native/typed-CAD/file
+exchange qualification and source-graph projection checks remain distinct.
+See [layout output](../../../docs/layout-output.md) and tests/plot_settings.rs,
+tests/plot_exchange.rs and tests/paper_plot_accuracy.rs.
+
 
 ## Shared geometry and adjustable accuracy (provisional 0.1.0)
 
@@ -159,8 +171,7 @@ Both directions expose `geometry_tolerance` and per-domain `geometry_assessment(
 Default is one micrometre for known units and zero for unitless; exact, drawing-unit,
 metre and millimetre choices are public. Full conics and bulged segment-circle
 pairs plus all retained definition/nested occurrence evaluations must be proved
-within the hard limit. Paper root checks use Paper coordinate units; no unit
-rescaling is inferred from media. Definition-local acceptance is insufficient
+within the hard limit. Paper root checks use fixed output mappings; no rescaling is inferred from media. Definition-local acceptance is insufficient
 when occurrence scaling or a different root unit makes the deviation too large.
 
 Within-limit geometric rounding remains reported loss evidence but is exempt

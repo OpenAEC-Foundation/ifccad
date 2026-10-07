@@ -21,6 +21,11 @@ exact and explicit physical/drawing-coordinate tolerances reach both converters
 and generated CAD output/readback. The numerical evidence remains available
 separately from semantic loss and strict native validity. The existing optional
 OCDraw supported-SPLINE capture/restoration route is retained.
+For newly opened DWG/DXF files, CAD output automatically follows the original
+format and the version reported by the CAD reader. The background roundtrip and
+CAD download share these settings. Subsequent manual choices are retained when
+applying settings. A source version outside the supported writer choices keeps
+a supported output version and is explicitly identified beside the controls.
 
 **Drawing** keeps the Open CAD Studio session across tabs. **Settings** offers
 Dutch/English and light/dark appearance, remembered locally; changing them does
@@ -76,8 +81,9 @@ Tests: `npm test`. File and CAD accuracy checks use the production Rust
 reader/converter; the browser worker transport is tested independently.
 
 For a DXF/DWG input on the OCDraw route, **Spline-brongegevens bewaren** explicitly
-enables typed spline preservation. It is off by default and is not an IFCCAD
-option. Every interpreted spline variant can be stored; this does not add native
+controls typed spline preservation. It is on by default for a newly selected CAD
+file and can be switched off before opening; it is not an IFCCAD option.
+Every interpreted spline variant can be stored; this does not add native
 spline geometry or certified bounds. Capture, unavailable native geometry and
 qualified restoration are reported separately. Current native layer/appearance/
 visibility/order edits are authoritative. Unknown/raw/attached contexts may remain

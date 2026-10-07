@@ -12,12 +12,7 @@ pub struct OcdrawBuildOptions {
     pub unit: String,
 }
 
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
-pub enum PlotStyleMode {
-    #[default]
-    ColorDependent,
-    Named,
-}
+pub use crate::plot_kernel::PlotStyleMode;
 
 impl OcdrawBuildOptions {
     pub fn new(drawing_id: impl Into<String>, unit: impl Into<String>) -> Self {
@@ -514,16 +509,15 @@ impl OcdrawBuilder {
         layout_id: u32,
         settings: LayoutSettings,
     ) -> Result<(), OcdrawBuildError> {
-        if settings.limits.is_some_and(|limits| !limits.is_valid()) {
-            return Err(OcdrawBuildError::Invalid("invalid layout limits".into()));
-        }
-        if settings
-            .plot_settings
-            .as_ref()
-            .is_some_and(|plot| !plot.is_valid())
-        {
-            return Err(OcdrawBuildError::Invalid("invalid plot settings".into()));
-        }
+        crate::plot_kernel::validate_layout_output(
+            &settings,
+            if layout_id == 0 {
+                crate::plot_kernel::LayoutOutputKind::Model
+            } else {
+                crate::plot_kernel::LayoutOutputKind::Paper
+            },
+        )
+        .map_err(|e| OcdrawBuildError::Invalid(format!("invalid layout output: {e:?}")))?;
         let slot = self
             .layout_settings
             .get_mut(layout_id as usize)

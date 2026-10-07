@@ -19,3 +19,12 @@ Negative cases cover bulge cardinality/coincident curved endpoints, zero/full
 arc sweeps, unordered/undersized bounds, unknown primitive fields, forbidden
 spatial placement, off-plane clips and whole-curve escape despite fitting vertices.
 These cases live only in `next`; no numbered collection is revised.
+
+## Layout output revision
+
+Both models retain layout media without complete plot settings. Plot unit and
+fixed mapping determine Paper output meaning; IFCCAD no longer stores an independent
+Paper coordinate unit. Effective plot settings, limits and layout PSLTSCALE have
+separate native/CAD coverage. The provisional field/API migration, strict physical
+scalar conversion limits, raster restrictions and per-domain accuracy reports are
+specified in [layout output](../../../docs/layout-output.md). No new workspace state, renderer, release or controlled measurement is implied.

@@ -1,5 +1,5 @@
 use crate::ocdraw::{
-    LayoutRect, PlotArea, PlotMapping, PlotMedia, PlotOffsetReference, PlotOptions, PlotOutput,
+    LayoutRect, PlotArea, PlotMapping, PlotOffsetReference, PlotOptions, PlotOutput, PlotPage,
     PlotPlacement, PlotRotation, PlotScale, PlotSettings, PlotUnit, ShadedPlot, ShadedPlotMode,
     ShadedPlotQuality, ShadedPlotQualityMode,
 };
@@ -15,7 +15,7 @@ pub(super) fn rectangle(value: &Value) -> Option<LayoutRect> {
 }
 
 pub(super) fn plot_settings(value: &Value) -> Option<PlotSettings> {
-    let media = value.get("media")?;
+    let page = value.get("page")?;
     let area = value.get("area")?;
     let mapping = value.get("mapping")?;
     let scale = mapping.get("scale")?;
@@ -25,28 +25,26 @@ pub(super) fn plot_settings(value: &Value) -> Option<PlotSettings> {
     let quality = shading.get("quality")?;
     let options = value.get("options")?;
     Some(PlotSettings {
-        media: PlotMedia {
-            unit: match media.get("unit")?.as_str()? {
-                "mm" => PlotUnit::Millimetre,
-                "in" => PlotUnit::Inch,
-                "px" => PlotUnit::Pixel,
-                _ => return None,
-            },
-            width: media.get("width")?.as_f64()?,
-            height: media.get("height")?.as_f64()?,
-            printable_area: rectangle(media.get("printableArea")?)?,
-            rotation: match media.get("rotation")?.as_str()? {
+        plot_unit: match value.get("plotUnit")?.as_str()? {
+            "mm" => PlotUnit::Millimetre,
+            "in" => PlotUnit::Inch,
+            "px" => PlotUnit::Pixel,
+            _ => return None,
+        },
+        page: PlotPage {
+            printable_area: rectangle(page.get("printableArea")?)?,
+            rotation: match page.get("rotation")?.as_str()? {
                 "none" => PlotRotation::None,
                 "counterClockwise90" => PlotRotation::CounterClockwise90,
                 "upsideDown" => PlotRotation::UpsideDown,
                 "clockwise90" => PlotRotation::Clockwise90,
                 _ => return None,
             },
-            device_name: media
+            device_name: page
                 .get("deviceName")
                 .and_then(Value::as_str)
                 .map(str::to_owned),
-            media_name: media
+            media_name: page
                 .get("mediaName")
                 .and_then(Value::as_str)
                 .map(str::to_owned),
@@ -120,5 +118,13 @@ pub(super) fn plot_settings(value: &Value) -> Option<PlotSettings> {
             scale_line_weights: options.get("scaleLineWeights")?.as_bool()?,
             plot_transparency: options.get("plotTransparency")?.as_bool()?,
         },
+    })
+}
+
+pub(super) fn layout_media(value: &Value) -> Option<crate::plot_kernel::LayoutMedia> {
+    Some(crate::plot_kernel::LayoutMedia {
+        unit: crate::plot_kernel::MediaUnit::from_token(value.get("unit")?.as_str()?)?,
+        width: value.get("width")?.as_f64()?,
+        height: value.get("height")?.as_f64()?,
     })
 }

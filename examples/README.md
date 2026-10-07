@@ -9,7 +9,7 @@ screenshots remain local artifacts outside this directory.
 | Example | Demonstrated content |
 | --- | --- |
 | IFCCAD overview | Current native line/circle/planar-polyline families, multiple layouts, analytic clipping, layers and named patterns, unused definitions, shared/nested blocks, reflected scale and nonzero block base |
-| IFCCAD layouts and viewports | Paper coordinate units and physical A3 media, viewport frame/camera/display/depth state, clipping and frozen layers with populated Model content |
+| IFCCAD layouts and viewports | Paper coordinates with a fixed millimetre plot mapping and independent physical A3 media, viewport frame/camera/display/depth state, clipping and frozen layers with populated Model content |
 | IFCCAD blocks and fragments | Nested/shared definitions, multiple contributions to the same node, foreign attributes/nodes and children/inherits references that do not confer CAD ownership |
 | OCDraw overview | Line, point, circle, arc, full/partial ellipse, bulged planar polyline, spatial polyline, shared/nested blocks, reflected transforms, named UCS, layers/patterns and allocation state |
 | OCDraw layouts and viewports | Model geometry and paper viewport with a closed bulged clip, clipping activation, scoped membership and bounds |

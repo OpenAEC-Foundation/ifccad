@@ -240,8 +240,17 @@ fn ifccad_overview() -> Result<Value> {
         .find(|n| n["path"] == "/cad/d1/layout/42")
         .unwrap();
     sheet["attributes"]["ifccad::layout"]["name"] = json!("A3 detail sheet");
-    sheet["attributes"]["ifccad::layout"]["paper"] =
-        json!({"width":420,"height":297,"lengthUnit":"mm"});
+    sheet["attributes"]["ifccad::layout"]["media"] = json!({"width":420,"height":297,"unit":"mm"});
+    sheet["attributes"]["ifccad::layout"]["plotSettings"] = json!({
+        "plotUnit":"mm",
+        "page":{"printableArea":{"minX":0,"minY":0,"maxX":420,"maxY":297},"rotation":"none"},
+        "area":{"mode":"Layout"},
+        "mapping":{"scale":{"mode":"Fixed","outputLength":1,"scopeLength":1},
+            "placement":{"mode":"Offset","reference":"Media","x":0,"y":0}},
+        "output":{"shadedPlot":{"mode":"AsDisplayed","quality":{"mode":"Normal"}},"applyPlotStyles":false},
+        "options":{"plotViewportBorders":false,"plotPaperSpaceLast":false,"hidePaperSpaceObjects":false,
+            "plotLineWeights":false,"scaleLineWeights":false,"plotTransparency":false}
+    });
     let appearance = json!({"color":{"mode":"ByLayer"},"linePattern":{"mode":"ByLayer"},"lineWeight":{"mode":"ByLayer"},"opacity":{"mode":"ByLayer"}});
     let entity = json!({"layer":"/cad/d1/layer/0","appearance":appearance});
     let placement = |x, y| json!({"origin":[x,y,0.],"xAxis":[1.,0.,0.],"yAxis":[0.,1.,0.]});

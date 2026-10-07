@@ -167,3 +167,12 @@ documents, encoding and strict readback failures through `IfccadEncodeError`.
 Callers can inspect variants and error source chains without parsing display
 text. Located diagnostics, Recovery classification and Allow/Reject behavior
 retain their existing contracts.
+
+## Layout output revision
+
+Both models retain layout media without complete plot settings. Plot unit and
+fixed mapping determine Paper output meaning; IFCCAD no longer stores an independent
+Paper coordinate unit. Effective plot settings, limits and layout PSLTSCALE have
+separate native/CAD coverage. The provisional field/API migration, strict physical
+scalar conversion limits, raster restrictions and per-domain accuracy reports are
+specified in [layout output](layout-output.md). No new workspace state, renderer, release or controlled measurement is implied.

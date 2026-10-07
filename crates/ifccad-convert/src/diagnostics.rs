@@ -35,6 +35,14 @@ impl IfccadDiagnostic {
 /// Conversion failure retaining the core phase and original typed cause.
 #[derive(Debug, thiserror::Error)]
 pub enum IfccadConversionError {
+    #[error("Paper layout {layout_id} tolerance cannot be resolved: {reason}")]
+    PaperTolerance {
+        layout_id: u64,
+        #[source]
+        reason: crate::IfccadToleranceError,
+    },
+    #[error(transparent)]
+    PlotNumeric(#[from] cad_geometry_convert::plot_units::PlotNumericError),
     #[error("invalid geometric tolerance: {0}")]
     Tolerance(#[source] crate::IfccadToleranceError),
     #[error("{0}")]

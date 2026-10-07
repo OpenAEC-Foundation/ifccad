@@ -20,8 +20,8 @@ reported separately; unknown target semantics are diagnosed.
 | Drawing `plotStyleMode` | Color-dependent/named maps to opencadcodec header `plotstyle_mode`; omission defaults to color-dependent. |
 | Drawing `pointDisplay` | Glyph/enclosure and tagged size map to opencadcodec header PDMODE/PDSIZE. Absent display uses dot and CAD default five-percent size. |
 | Model and paper layout names, scope binding and order | The CAD model layout and named paper layouts are allocated before scope entities. Source layout names and paper owners are retained. The first paper layout reuses and renames the fresh CAD scaffold; subsequent layouts are allocated in tab order. Without a source paper layout the scaffold layout and its dictionary entry are removed; the codec's reserved paper block/header remain, with no layout tab. An authored `Layout1` is retained like any other source name. |
-| Layout `limits`, `limitsChecking`, `paperSpaceLinetypeScaling` | Limits and flag bit 2 are mapped. Cadcodec stores PSLTSCALE once in its header; conflicting per-layout values receive `LAYOUT_FIELD_UNSUPPORTED`. |
-| Effective `plotSettings.media/area/mapping/output/options` | Millimetre/inch/pixel tokens, media dimensions/margins/rotation, all four supported plot areas, fixed/fit scale, offset/center, shading, active plot-style switch/name and supported flags map to pinned `Layout` fields. Printable-area-relative offsets and plot transparency have no exact target field and receive `LAYOUT_FIELD_UNSUPPORTED`. A page setup name or CTB/STB contents cannot be reconstructed from the native inline value. |
+| Layout `limits`, `limitsChecking`, `paperSpaceLinetypeScaling` | Limits and flag bits 1/2 preserve linetype scaling/checking per layout. The current header follows the selected layout; differences between layouts are preserved. |
+| Layout `media` and effective `plotSettings.plotUnit/page/area/mapping/output/options` | Independent medium dimensions and plot units, page margins/rotation, all four supported plot areas, fixed/fit scale, offset/center, shading, active plot-style switch/name and supported flags map to pinned `Layout` fields. Printable-area-relative offsets and plot transparency have no exact target field and receive `LAYOUT_FIELD_UNSUPPORTED`. A page setup name or CTB/STB contents cannot be reconstructed from the native inline value. |
 | Paper `Viewport` frame, orthographic view, render and active clip state | Mapped to a CAD VIEWPORT owned by the paper block. Circle, full Ellipse and closed straight/bulged PlanarPolyline boundaries map through normal geometry conversion. Clip handles bind after ordered entity construction, allowing forward references without changing draw order. Perspective is skipped pending CAD fixture calibration. A required unconstructed boundary returns a typed construction error; no unresolved clipped viewport escapes as a rectangle. Locally patched DXF/DWG exchange preserves activation and references; the DWG profile includes an overall paper canvas. |
 | Dormant paper clip reference | Stored reference binds after ordered geometry construction while activation remains false. Convertible dormant boundary families need no active-clip eligibility; missing construction mappings return a typed error. The locally patched codec retains this state through DXF/DWG. |
 | Viewport frozen layers | Each relational frozen override maps to a CAD frozen-layer handle. Pinned opencadcodec has no per-viewport appearance-override slots; those report `VIEWPORT_UNSUPPORTED`. |
@@ -70,6 +70,21 @@ and some presentation metadata are not comprehensively assessed.
 Insertion failures, numerical failures and missing-reference/internal-invariant
 errors return `OcdrawToCadError`, not a completed conversion outcome. Successful
 strict OCDraw readback does not itself establish successful CAD output.
+
+## Layout-output and Paper accuracy boundary
+
+Model/Paper media-only values map independently of complete plots. Physical CAD
+fields are millimetres and exact binary64 unit conversion is required; inexact
+values return typed PlotNumeric errors under both policies. Native raster data
+remain valid but CAD pixel calibration is unqualified and diagnosed. See
+[layout output](../../../docs/layout-output.md) for canonical default-plot absence,
+medium restrictions and public API migration.
+
+Paper assessments use individual fixed output factors. Unknown/Fit/pixel mapping
+requires zero residual by default; explicit physical requests fail without known
+source/target mappings, including empty layouts. Signed/nonuniform nested-root
+occurrences obey their root limit; aggregate status/counts remain, global maximum
+does not. Preserved spline evidence stays incomplete and unassessed.
 
 ## Upstream pin update — 2026-10-07
 

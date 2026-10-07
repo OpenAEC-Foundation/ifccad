@@ -60,7 +60,9 @@ fn multiple_paper_viewports_exchange_in_memory_dxf_dwg() {
     second.id = 43;
     second.name = "Other".into();
     second.tab_index = 2;
-    second.length_unit = "in".into();
+    if let Some(plot) = second.settings.plot_settings.as_mut() {
+        plot.plot_unit = ocdraw::plot_kernel::PlotUnit::Inch;
+    }
     for e in &mut second.entities {
         e.id += 1000;
     }
@@ -98,12 +100,14 @@ fn multiple_paper_viewports_exchange_in_memory_dxf_dwg() {
     };
     drawing.paper_layouts.push(second);
     drawing.paper_layouts.push(IfccadPaperLayout {
+        settings: ocdraw::ifccad::IfccadLayoutSettings {
+            media: None,
+            ..Default::default()
+        },
         bounds: None,
         id: 44,
         name: "Empty".into(),
         tab_index: 3,
-        length_unit: "unitless".into(),
-        paper: None,
         entities: vec![],
     });
     drawing.id_counters.next_layout_id = 45;
@@ -196,7 +200,7 @@ fn perspective_exchange_matches_independent_reference() {
         let native = common::from_cad(&cad, common::metadata()).unwrap();
         let mut drawing = native.validated_source().document().clone();
         drawing.length_unit = unit.into();
-        drawing.paper_layouts[0].length_unit = unit.into();
+
         let target = ifccad_document_to_cad_document(
             &drawing,
             IfccadToCadOptions {

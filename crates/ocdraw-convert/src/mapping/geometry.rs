@@ -7,7 +7,7 @@ use ocdraw::geometry_kernel::OwnedGeometry;
 use ocdraw::ocdraw::{DrawingGeometry, LinePatternGeneration};
 use opencadcodec::{EntityType, Handle};
 use std::collections::BTreeMap;
-pub(crate) type ExchangeState<K> = cad_geometry_convert::ExchangeState<K, Source>;
+pub(crate) type ExchangeState<K> = crate::geometry_context::GeometryContext<K>;
 
 fn preparation_failure<K: Copy + Ord>(
     state: &ExchangeState<K>,
@@ -22,7 +22,7 @@ fn preparation_failure<K: Copy + Ord>(
         }
         _ => (stage, Reason::CadAxisEvaluationFailed),
     };
-    state.assessment.failure(identity, None, stage, reason)
+    state.failure(state.assessment.failure(identity, None, stage, reason))
 }
 fn generation(entity: &EntityType) -> LinePatternGeneration {
     let continuous = match entity {
@@ -108,7 +108,8 @@ pub(crate) fn from_cad(
                 insert,
                 record.base_point,
                 &state.assessment,
-            )?;
+            )
+            .map_err(|f| state.failure(f))?;
         let normalized = cad_geometry_convert::geometry::stored_normal(transform.placement())
             != Some(insert.normal);
         state.register_identity(key, identity);
@@ -155,7 +156,8 @@ pub(crate) fn to_cad(
                 definition.base_point,
                 identity.clone(),
                 &state.assessment,
-            )?;
+            )
+            .map_err(|e| state.construction_error(e))?;
         state.register_identity(key, identity);
         state.record_instance_parts(key, u64::from(*definition_scope_id), source_map, target_map);
         return Ok((EntityType::Insert(target), 0., changed));

@@ -515,6 +515,7 @@ fn layout_limits_and_scaling_are_stored_in_the_layout() {
         .set_layout_settings(
             paper,
             LayoutSettings {
+                media: None,
                 limits: Some(LayoutRect {
                     min_x: 1.0,
                     min_y: 2.0,
@@ -549,18 +550,16 @@ fn layout_limits_and_scaling_are_stored_in_the_layout() {
 #[test]
 fn layout_plot_settings_roundtrip_through_production_reader() {
     use ocdraw::ocdraw::{
-        LayoutRect, LayoutSettings, PlotArea, PlotMapping, PlotMedia, PlotOptions, PlotOutput,
-        PlotPlacement, PlotRotation, PlotScale, PlotSettings, PlotUnit, ShadedPlot, ShadedPlotMode,
-        ShadedPlotQuality, ShadedPlotQualityMode,
+        LayoutMedia, LayoutRect, LayoutSettings, MediaUnit, PlotArea, PlotMapping, PlotOptions,
+        PlotOutput, PlotPage, PlotPlacement, PlotRotation, PlotScale, PlotSettings, PlotUnit,
+        ShadedPlot, ShadedPlotMode, ShadedPlotQuality, ShadedPlotQualityMode,
     };
     let mut builder = OcdrawBuilder::new(OcdrawBuildOptions::new("plot", "mm")).unwrap();
     builder.ensure_continuous_line_pattern().unwrap();
     let paper = builder.add_paper_layout("Sheet").unwrap();
     let settings = PlotSettings {
-        media: PlotMedia {
-            unit: PlotUnit::Millimetre,
-            width: 210.0,
-            height: 297.0,
+        plot_unit: PlotUnit::Millimetre,
+        page: PlotPage {
             printable_area: LayoutRect {
                 min_x: 5.0,
                 min_y: 5.0,
@@ -571,7 +570,7 @@ fn layout_plot_settings_roundtrip_through_production_reader() {
             device_name: None,
             media_name: Some("A4".into()),
         },
-        area: PlotArea::Layout,
+        area: PlotArea::Extents,
         mapping: PlotMapping {
             scale: PlotScale::FitToArea,
             placement: PlotPlacement::Centered,
@@ -600,6 +599,13 @@ fn layout_plot_settings_roundtrip_through_production_reader() {
         .set_layout_settings(
             paper,
             LayoutSettings {
+                media: Some(LayoutMedia {
+                    unit: MediaUnit::Physical(
+                        ocdraw::geometry_kernel::CoordinateLengthUnit::Millimetre,
+                    ),
+                    width: 210.,
+                    height: 297.,
+                }),
                 plot_settings: Some(settings),
                 ..LayoutSettings::default()
             },
@@ -624,9 +630,9 @@ fn layout_plot_settings_roundtrip_through_production_reader() {
         .plot_settings
         .as_ref()
         .unwrap();
-    assert_eq!(typed_plot.media.media_name.as_deref(), Some("A4"));
+    assert_eq!(typed_plot.page.media_name.as_deref(), Some("A4"));
     assert!(matches!(typed_plot.mapping.scale, PlotScale::FitToArea));
-    assert_eq!(plot["media"]["mediaName"], "A4");
+    assert_eq!(plot["page"]["mediaName"], "A4");
     assert_eq!(plot["mapping"]["scale"]["mode"], "FitToArea");
 }
 

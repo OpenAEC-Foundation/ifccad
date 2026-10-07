@@ -58,6 +58,7 @@ pub fn header() -> IfccadHeader {
 }
 pub fn empty() -> IfccadDocument {
     IfccadDocument {
+        plot_style_mode: Default::default(),
         id_counters: IfccadIdCounters {
             next_layer_id: 5,
             next_layout_id: 2,
@@ -75,6 +76,10 @@ pub fn empty() -> IfccadDocument {
         length_unit: "mm".into(),
         layers: vec![layer(0, "0"), layer(4, "Notes")],
         model: IfccadLayout {
+            settings: ocdraw::ifccad::IfccadLayoutSettings {
+                media: None,
+                ..Default::default()
+            },
             bounds: None,
             id: 1,
             tab_index: 0,
@@ -299,12 +304,11 @@ pub fn viewport_drawing() -> IfccadDocument {
         kind,
     };
     d.paper_layouts.push(IfccadPaperLayout {
+        settings: paper_settings(ocdraw::plot_kernel::PlotUnit::Millimetre, 1.),
         bounds: None,
         id: 42,
         name: "Sheet".into(),
         tab_index: 1,
-        length_unit: "mm".into(),
-        paper: None,
         entities: vec![
             entity(
                 1000,
@@ -328,4 +332,65 @@ pub fn viewport_drawing() -> IfccadDocument {
         ],
     });
     d
+}
+
+/// Explicit physical output for viewport accuracy fixtures; dimensions never rescale geometry.
+pub fn paper_settings(
+    plot_unit: ocdraw::plot_kernel::PlotUnit,
+    output_length: f64,
+) -> IfccadLayoutSettings {
+    use ocdraw::plot_kernel::*;
+    IfccadLayoutSettings {
+        media: Some(LayoutMedia {
+            unit: MediaUnit::Physical(ocdraw::geometry_kernel::CoordinateLengthUnit::Millimetre),
+            width: 1000.,
+            height: 1000.,
+        }),
+        plot_settings: Some(PlotSettings {
+            plot_unit,
+            page: PlotPage {
+                printable_area: PlotRect {
+                    min_x: 0.,
+                    min_y: 0.,
+                    max_x: 1000.,
+                    max_y: 1000.,
+                },
+                rotation: PlotRotation::None,
+                device_name: None,
+                media_name: None,
+            },
+            area: PlotArea::Layout,
+            mapping: PlotMapping {
+                scale: PlotScale::Fixed {
+                    output_length,
+                    scope_length: 1.,
+                },
+                placement: PlotPlacement::Offset {
+                    reference: PlotOffsetReference::Media,
+                    x: 0.,
+                    y: 0.,
+                },
+            },
+            output: PlotOutput {
+                shaded_plot: ShadedPlot {
+                    mode: ShadedPlotMode::AsDisplayed,
+                    quality: ShadedPlotQuality {
+                        mode: ShadedPlotQualityMode::Normal,
+                        dpi: None,
+                    },
+                },
+                apply_plot_styles: false,
+                plot_style_table_name: None,
+            },
+            options: PlotOptions {
+                plot_viewport_borders: false,
+                plot_paper_space_last: false,
+                hide_paper_space_objects: false,
+                plot_line_weights: false,
+                scale_line_weights: false,
+                plot_transparency: false,
+            },
+        }),
+        ..Default::default()
+    }
 }

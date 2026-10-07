@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {initSync,open_drawing,convert_cad_to_drawing,convert_cad_to_drawing_with_preservation,export_drawing,open_ifccad,convert_cad_to_ifccad,export_ifccad} from '../wasm-build/browser.js';
+import {initSync,open_drawing,convert_cad_to_drawing,convert_cad_to_drawing_with_preservation,export_drawing,open_ifccad,convert_cad_to_ifccad,export_ifccad,export_drawing_with_options,convert_cad_to_drawing_with_options,export_ifccad_with_options,convert_cad_to_ifccad_with_options} from '../wasm-build/browser.js';
 import {processBrowserRequest} from '../src/browser-worker.mjs';
 
 initSync({module:await readFile(new URL('../wasm-build/browser_bg.wasm',import.meta.url))});
-const wasm={open_drawing,convert_cad_to_drawing,convert_cad_to_drawing_with_preservation,export_drawing,open_ifccad,convert_cad_to_ifccad,export_ifccad};
+const wasm={open_drawing,convert_cad_to_drawing,convert_cad_to_drawing_with_preservation,export_drawing,open_ifccad,convert_cad_to_ifccad,export_ifccad,export_drawing_with_options,convert_cad_to_drawing_with_options,export_ifccad_with_options,convert_cad_to_ifccad_with_options};
 const splineBytes=await readFile(new URL('../../crates/ocdraw-convert/tests/fixtures/splines/open-cubic.dxf',import.meta.url));
 const splineSource={kind:'cad',name:'spline.dxf',preserveSplines:true,files:[{path:'spline.dxf',bytes:Uint8Array.from(splineBytes).buffer}]};
 const splineOpened=processBrowserRequest(splineSource,wasm);
@@ -163,3 +163,42 @@ for(const format of ['dxf','dwg']){
  }
 }
 console.log('Browser WASM expanded IFCCAD geometry, bounds and conversion evidence verified');
+
+for (const format of ['ocdraw','ifccad']) {
+ const extension=format==='ocdraw'?'ocdraw.json':'ifcx';
+ for (const name of ['layout-medium-only','layout-plot-inch','layout-linetype-scaling']) {
+  const bytes=new Uint8Array(await readFile(new URL(`../../conformance/next/${format}/valid/${name}.${extension}`,import.meta.url)));
+  const source={kind:format==='ocdraw'?'drawing':'ifccad',name:`${name}.${extension}`,files:[{path:`${name}.${extension}`,bytes:bytes.buffer}]};
+  const opened=processBrowserRequest(source,wasm);
+  assert.equal(opened.failure,null,JSON.stringify(opened.failure));
+  assert.equal(opened.validation.strictAvailable,true);
+  for (const target of ['dxf','dwg']) {
+   const exported=processBrowserRequest({...source,export:{format:target,version:'AC1032'}},wasm);
+   assert.equal(exported.failure,null,JSON.stringify(exported.failure));
+   const download=exported.export.download;
+   const returned=processBrowserRequest({kind:'cad',drawingFormat:format,name:download.fileName,files:[{path:download.fileName,bytes:Uint8Array.from(Buffer.from(download.base64,'base64')).buffer}]},wasm);
+   assert.equal(returned.failure,null,JSON.stringify(returned.failure));
+   assert.equal(returned.validation.strictAvailable,true);
+  }
+ }
+}
+console.log('Browser WASM medium-only, inch plot and layout linetype-scaling exchange verified for both independent routes');
+
+for(const [fixture,knownMapping] of [['layout-plot-inch',true],['layout-medium-only',false]]){
+ const drawing=JSON.parse(await readFile(new URL(`../../conformance/next/ocdraw/valid/${fixture}.ocdraw.json`,import.meta.url),'utf8'));
+ drawing.header.unit='mm';
+ const source={kind:'drawing',name:fixture,files:[{path:fixture+'.ocdraw.json',bytes:new TextEncoder().encode(JSON.stringify(drawing)).buffer}],conversionOptions:{tolerance:{mode:'custom',value:0.001,unit:'mm'}},export:{format:'dxf',version:'AC1032'}};
+ const result=processBrowserRequest(source,wasm);
+ if(knownMapping){
+  assert.equal(result.failure,null,JSON.stringify(result.failure));
+  const paper=result.export.geometry.domains.find(d=>d.coordinateMeaning.kind==='PaperCoordinates');
+  assert.deepEqual(paper.coordinateMeaning.physicalOutputFactor,{numerator:'127',denominator:'5000'});
+  assert.equal(result.export.geometry.maxDeviationUpperBound,undefined);
+ }else{
+  assert.equal(result.failure.geometry.domain.kind,'PaperLayout');
+  assert.equal(result.failure.geometry.domain.layoutId,'1');
+  assert.equal(result.failure.geometry.reason,'PhysicalMappingRequired');
+  assert.equal(result.export?.download,undefined);
+ }
+}
+console.log('Browser WASM custom physical tolerance reports per-layout output meaning and refuses missing Paper mapping');

@@ -316,7 +316,7 @@ fn outer_instance_scaling_can_turn_acceptable_rounding_into_failure() {
             other => panic!("unexpected: {other:?}"),
         };
         assert!(
-            matches!(failure.source, ocdraw_convert::OcdrawGeometryEntitySource::BlockOccurrence { path, .. } if path.len() == 2)
+            matches!(&failure.source, ocdraw_convert::OcdrawGeometryEntitySource::BlockOccurrence { path, .. } if path.len() == 2)
         );
     }
 }

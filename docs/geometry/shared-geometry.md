@@ -14,40 +14,43 @@ owns common CAD-plane preparation, exact/rational and interval calculations,
 paired primitive/curve evaluation, unit resolution, and nested block occurrence
 assessment. Both converters depend on it directly; neither converter depends
 on the other. Coverage inventories, losses, IDs and route errors remain separate.
+Both converters use the shared CAD unit-token registry and code order. IFCCAD's
+local unit-code helper adapts its string-valued units to that registry.
 OCDraw's typed spline preservation remains separate from native primitive proof:
 retained spline sources and their occurrences are registered as unassessed.
 The report's `is_complete()` remains false for those sources; primitive status
 and residuals never certify the preserved spline's geometry.
 
-`ifccad-convert` uses an internal `GeometryContext` to track the active owner,
-resolve and collect each coordinate-domain assessment, and attach IFCCAD domain
-identities to shared numerical failures. It wraps the shared `ExchangeState`;
-it does not define primitive geometry or persist conversion settings in a drawing.
-OCDraw currently uses `ExchangeState` directly with one drawing-unit assessment.
-OCDraw does retain per-layout plot-media units and scale mappings. This is distinct
-from declaring a Paper coordinate length unit and selecting its own numerical
-assessment domain. AutoCAD's per-layout page setup determines Paper unit meaning;
-DXF represents that through plot units and scale. See the official
-[model/Paper explanation](https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-Core/files/GUID-990538B6-DDA1-4190-BCC0-BB5BA94C9879.htm)
-and [PLOTSETTINGS fields](https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-1113675E-AB07-4567-801A-310CDE0D56E9.htm).
-IFCCAD's explicit Paper unit is a native contract choice; its current CAD export
-supports unitless/inch/millimetre coordinate mappings and diagnoses other units.
+Both converter crates use `from_cad/` and `to_cad/` for direction-specific
+orchestration and construction, `mapping/` for format adapters, and `source/`
+for CAD input inspection. `mapping/geometry.rs` translates each format's native
+records to and from shared geometry. Source inspection calls the shared CAD
+geometry helpers directly rather than going through a local forwarding module.
+Format-specific `geometry_context.rs` and `geometry_assessment.rs` remain at each
+converter's root. Matching folder responsibilities do not imply matching format
+coverage or a dependency between converters.
+
+Both converters wrap the shared `ExchangeState` with format-specific owner/domain
+contexts. Model and definition-local assessment use the drawing unit; Paper uses
+its layout's fixed plot mapping, without an independently authored coordinate unit.
+See [layout output](../layout-output.md) for medium, scale and migration rules.
 
 ## Accuracy policy
 
-Both conversion directions offer a `geometry_tolerance`. The default is exactly
-one micrometre in known coordinate units and zero in unitless coordinates.
-`exact()` requires zero residual. `drawing_units(x)` applies the same finite,
-nonnegative numerical limit in each domain. `metres(x)` and `millimetres(x)`
-resolve physical limits independently in each domain; explicitly physical
-requests refuse unitless domains, including empty retained Paper layouts.
-Physical sheet media never supplies a missing coordinate unit.
+Both directions expose `geometry_tolerance`. Default is one micrometre in known
+Model units and on known fixed physical Paper output; unknown domains require zero
+coordinate residual. `drawing_units(x)` applies directly in each numerical domain.
+Explicit metres/mm requests require a known drawing unit or fixed physical Paper
+mapping, including empty retained layouts. Medium dimensions and shaded DPI never
+supply missing Paper meaning. Exact rational scale factors resolve physical limits
+without rounding the accepted bound. An unrepresentable target medium/plot mapping
+cannot certify physical output; source/target limits are combined conservatively.
 
-IFCCAD Model and definition-local checks use the drawing unit. Each Paper layout
-has a separate coordinate domain. Outcomes expose per-domain limits, counts,
-status and worst source or nested occurrence path. There is no unqualified
-global maximum across unlike units. Local definition acceptance is insufficient:
-all retained root occurrences are also checked after signed/nested transforms.
+Domain reports include identity, coordinate meaning, limit, counts, status and worst
+source/occurrence. A Paper meaning contains its output factor or Unknown, not a
+physical coordinate-unit declaration. There is no cross-domain maximum. Nested
+occurrences are checked in every retained root domain, including signed/nonuniform
+scaling; definition-local acceptance alone is insufficient.
 
 The hard limit is independent of semantic Allow/Reject. Proven within-limit
 rounding has `RoundedWithinTolerance` evidence and is accepted with either

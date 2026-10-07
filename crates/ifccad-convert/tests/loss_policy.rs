@@ -515,16 +515,18 @@ fn missing_layer_zero_has_loss_evidence_while_paper_geometry_is_retained() {
     let mut e = primitives().model.entities[0].clone();
     e.id = 45;
     d.paper_layouts.push(IfccadPaperLayout {
+        settings: ocdraw::ifccad::IfccadLayoutSettings {
+            media: Some(ocdraw::ifccad::IfccadLayoutMedia {
+                width: 297.,
+                height: 210.,
+                unit: ocdraw::ifccad::IfccadMediaUnit::from_token("mm").unwrap(),
+            }),
+            ..Default::default()
+        },
         bounds: None,
         id: 8,
         name: "Sheet".into(),
         tab_index: 1,
-        length_unit: "mm".into(),
-        paper: Some(IfccadPaperSize {
-            width: 297.,
-            height: 210.,
-            length_unit: "mm".into(),
-        }),
         entities: vec![e],
     });
     let source = validated(&d);

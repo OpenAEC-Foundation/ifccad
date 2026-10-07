@@ -83,12 +83,11 @@ pub fn cad_document_to_ocdraw_document_with_id(
     let mut diagnostics = Vec::new();
     let mut preservation_report = crate::OcdrawPreservationReport::default();
     let mut preservation = None;
-    let mut geometry =
-        crate::mapping::geometry::ExchangeState::new(crate::OcdrawGeometryAssessment::new(
-            options.geometry_tolerance,
-            crate::units::from_cad_code(document.header.insertion_units)
-                .unwrap_or(ocdraw::ocdraw::DrawingLengthUnit::Unitless),
-        )?);
+    let mut geometry = crate::geometry_context::GeometryContext::new(
+        options.geometry_tolerance,
+        crate::units::from_cad_code(document.header.insertion_units)
+            .unwrap_or(ocdraw::ocdraw::DrawingLengthUnit::Unitless),
+    )?;
     let unit = usize::try_from(document.header.insertion_units)
         .ok()
         .and_then(|code| UNIT_TOKENS.get(code))
@@ -212,12 +211,20 @@ pub fn cad_document_to_ocdraw_document_with_id(
         } else {
             None
         };
-        let settings = LayoutSettings {
+        let mut settings = LayoutSettings {
+            media: crate::mapping::layout::medium_from_cad(layout),
             limits,
             limits_checking: layout.flags & 2 != 0,
-            paper_space_linetype_scaling: document.header.paper_space_linetype_scaling,
+            paper_space_linetype_scaling: if id == 0 && document.header.show_model_space {
+                document.header.paper_space_linetype_scaling
+            } else {
+                layout.flags & 1 != 0
+            },
             plot_settings: match crate::mapping::layout::plot_from_cad(layout, id == 0) {
                 Ok(settings) => settings,
+                Err(crate::mapping::layout::PlotMappingError::Numeric(error)) => {
+                    return Err(error.into())
+                }
                 Err(reason) => {
                     loss(
                         CadToOcdrawDiagnosticSource::DocumentField {
@@ -225,7 +232,7 @@ pub fn cad_document_to_ocdraw_document_with_id(
                         },
                         CadToOcdrawAction::PartiallyExported,
                         vec![CadToOcdrawLossReason::UnsupportedSemantic {
-                            name: reason.into(),
+                            name: reason.to_string(),
                         }],
                         &mut diagnostics,
                     );
@@ -233,7 +240,26 @@ pub fn cad_document_to_ocdraw_document_with_id(
                 }
             },
         };
-        if drawing.set_layout_settings(id, settings).is_err() {
+        if ocdraw::plot_kernel::validate_layout_output(
+            &settings,
+            if id == 0 {
+                ocdraw::plot_kernel::LayoutOutputKind::Model
+            } else {
+                ocdraw::plot_kernel::LayoutOutputKind::Paper
+            },
+        )
+        .is_err()
+        {
+            settings.plot_settings = None;
+            if settings.limits.is_some_and(|r| {
+                ![r.min_x, r.min_y, r.max_x, r.max_y]
+                    .into_iter()
+                    .all(f64::is_finite)
+                    || r.min_x > r.max_x
+                    || r.min_y > r.max_y
+            }) {
+                settings.limits = None;
+            }
             loss(
                 CadToOcdrawDiagnosticSource::DocumentField {
                     name: format!("layout.{}.limits", layout.name),
@@ -245,6 +271,14 @@ pub fn cad_document_to_ocdraw_document_with_id(
                 &mut diagnostics,
             );
         }
+        if id != 0 {
+            geometry.add_paper(
+                layout.block_record,
+                id,
+                cad_geometry_convert::plot_units::paper_mapping(settings.plot_settings.as_ref()),
+            )?;
+        }
+        drawing.set_layout_settings(id, settings)?;
     }
     let mut block_scopes = BTreeMap::new();
     let mut block_names = BTreeMap::new();
@@ -752,8 +786,10 @@ pub fn cad_document_to_ocdraw_document_with_id(
                 boundary: viewport.clip_boundary_handle,
             }
         } else {
-            let (value, bound, normalized) =
-                crate::mapping::geometry::from_cad(entity, &block_scopes, document, &mut geometry)?;
+            let (value, bound, normalized) = {
+                geometry.select(entity.common().owner_handle);
+                crate::mapping::geometry::from_cad(entity, &block_scopes, document, &mut geometry)?
+            };
             if bound > 0.0 {
                 partial.push(CadToOcdrawLossReason::GeometryRoundedWithinTolerance {
                     max_deviation_upper_bound: bound,
@@ -790,7 +826,8 @@ pub fn cad_document_to_ocdraw_document_with_id(
         preservation,
         unit.unwrap_or("unitless"),
     )?;
-    crate::preservation::record_unassessed_occurrences(&drawing_document, &mut geometry.assessment);
+    geometry.select_drawing();
+    geometry.record_unassessed(&drawing_document);
     crate::preservation::bind_source_references(
         document,
         &mut drawing_document,
@@ -863,7 +900,7 @@ pub fn cad_document_to_ocdraw_document_with_id(
         document: drawing_document,
         diagnostics,
         entity_mapping,
-        geometry: geometry.assessment,
+        geometry: geometry.finish(),
     })
 }
 

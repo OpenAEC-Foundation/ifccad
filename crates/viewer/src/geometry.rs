@@ -36,7 +36,7 @@ fn interval(d: IfccadDistanceInterval) -> Value {
 }
 pub(crate) fn assessment(a: &IfccadGeometryAssessment) -> Value {
     json!({"status":format!("{:?}",a.status()),"domains":a.domains().iter().map(|d|json!({
-        "domain":domain(d.domain()),"coordinateUnit":d.coordinate_unit().as_str(),"status":format!("{:?}",d.status()),
+        "domain":domain(d.domain()),"coordinateMeaning":meaning(d.coordinate_meaning()),"status":format!("{:?}",d.status()),
         "requestedTolerance":format!("{:?}",d.requested_tolerance()),"resolvedTolerance":interval(d.resolved_tolerance()),
         "assessedEntities":d.assessed_entities(),"assessedVertices":d.assessed_vertices(),"roundedEntities":d.rounded_entities(),
         "maxDeviationUpperBound":d.max_deviation_upper_bound(),"worstEntity":d.worst_entity().map(source)
@@ -44,10 +44,26 @@ pub(crate) fn assessment(a: &IfccadGeometryAssessment) -> Value {
 }
 pub(crate) fn failure(output: &mut Value, error: &IfccadConversionError) {
     if let IfccadConversionError::Geometry(f) = error {
-        output["failure"]["geometry"] = json!({"domain":domain(f.domain),"coordinateUnit":f.unit.as_str(),"source":source(&f.source),
+        output["failure"]["geometry"] = json!({"domain":domain(f.domain),"coordinateMeaning":meaning(&f.coordinate_meaning),"source":source(&f.source),
             "stage":format!("{:?}",f.stage),"reason":format!("{:?}",f.reason),"vertexIndex":f.vertex_index,
             "requestedTolerance":format!("{:?}",f.requested_tolerance),"resolvedTolerance":f.resolved_tolerance.map(interval),"deviation":f.deviation.map(interval)});
+    } else if let IfccadConversionError::PaperTolerance { layout_id, reason } = error {
+        output["failure"]["geometry"] = json!({"domain":{"kind":"PaperLayout","layoutId":layout_id.to_string()},"reason":format!("{reason:?}")});
     } else if let IfccadConversionError::Tolerance(reason) = error {
         output["failure"]["geometry"] = json!({"reason":format!("{reason:?}")});
+    }
+}
+
+pub(crate) fn meaning(m: &IfccadGeometryCoordinateMeaning) -> Value {
+    match m {
+        IfccadGeometryCoordinateMeaning::DrawingUnit(u) => {
+            json!({"kind":"DrawingUnit","unit":u.as_str()})
+        }
+        IfccadGeometryCoordinateMeaning::PaperCoordinates { mapping } => {
+            json!({"kind":"PaperCoordinates","physicalOutputFactor":match mapping {
+                IfccadPaperMapping::Unknown=>Value::Null,
+                IfccadPaperMapping::FixedPhysical{metres_per_coordinate:q}=>json!({"numerator":q.numer().to_string(),"denominator":q.denom().to_string()}),
+            }})
+        }
     }
 }

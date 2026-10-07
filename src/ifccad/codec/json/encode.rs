@@ -1,4 +1,5 @@
 use super::{IfccadDocument, IfccadEntity, IfccadEntityKind, PROFILE_URI};
+use crate::ifccad::IfccadPlotStyleMode;
 use serde::Serialize;
 use serde_json::{json, Map, Value};
 
@@ -117,6 +118,7 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
         attributes: attrs(json!({"ifccad::drawing":{
             "profileVersion":"0.1.0","lengthUnit":document.length_unit,
             "linePatternScale":document.line_pattern_scale,
+
             "nextEntityId":document.id_counters.next_entity_id,
             "nextLayerId":document.id_counters.next_layer_id,
             "nextLayoutId":document.id_counters.next_layout_id,
@@ -124,18 +126,21 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
             "nextLinePatternId":document.id_counters.next_line_pattern_id,
         }})),
     });
+    if document.plot_style_mode == IfccadPlotStyleMode::Named {
+        data.last_mut().unwrap().attributes["ifccad::drawing"]["plotStyleMode"] = json!("named");
+    }
     data.push(NodeOut {
         path: format!("{prefix}/layout/{}", document.model.id),
         children: Some(numbered_children(&document.model.entities, &prefix)),
         attributes: attrs(
-            json!({"ifccad::layout":with_bounds(json!({"kind":"Model","tabIndex":document.model.tab_index}),document.model.bounds)}),
+            json!({"ifccad::layout":with_bounds(super::layout::with_output(json!({"kind":"Model","tabIndex":document.model.tab_index}),&document.model.settings),document.model.bounds)}),
         ),
     });
     for layout in &paper_layouts {
-        let mut value = json!({"kind":"Paper","name":layout.name,"tabIndex":layout.tab_index,"lengthUnit":layout.length_unit});
-        if let Some(paper) = &layout.paper {
-            value["paper"] = json!(paper);
-        }
+        let value = super::layout::with_output(
+            json!({"kind":"Paper","name":layout.name,"tabIndex":layout.tab_index}),
+            &layout.settings,
+        );
         data.push(NodeOut {
             path: format!("{prefix}/layout/{}", layout.id),
             children: Some(numbered_children(&layout.entities, &prefix)),

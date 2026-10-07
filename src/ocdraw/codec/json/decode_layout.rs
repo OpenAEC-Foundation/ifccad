@@ -1,4 +1,4 @@
-use super::decode_plot::{plot_settings, rectangle};
+use super::decode_plot::{layout_media, plot_settings, rectangle};
 use crate::ocdraw::logical::{DrawingLayout, DrawingLayoutKind};
 use crate::ocdraw::LayoutSettings;
 use serde_json::Value;
@@ -20,6 +20,7 @@ pub(crate) fn decode_layouts(value: &Value) -> Option<Vec<DrawingLayout>> {
                 name: row.get("name")?.as_str()?.to_owned(),
                 tab_index: u32::try_from(row.get("tabIndex")?.as_u64()?).ok()?,
                 settings: LayoutSettings {
+                    media: row.get("media").map(layout_media).transpose_option()?,
                     limits: row.get("limits").map(rectangle).transpose_option()?,
                     limits_checking: row
                         .get("limitsChecking")

@@ -98,6 +98,7 @@ fn inspect_cad_as_drawing_with_options(
             return output;
         }
     };
+    output["reader"]["version"] = json!(cad.dwg_source_version.unwrap_or(cad.version).as_str());
     output["reader"]["messages"] = json!(cad
         .notifications
         .iter()
@@ -129,6 +130,8 @@ fn inspect_cad_as_drawing_with_options(
             );
             if let ocdraw_convert::CadToOcdrawError::Geometry(ref f) = error {
                 output["failure"]["geometry"] = crate::options::geometry_failure(f);
+            } else if let ocdraw_convert::CadToOcdrawError::PaperTolerance(ref f) = error {
+                output["failure"]["geometry"] = crate::options::paper_tolerance_failure(f);
             }
             return output;
         }
@@ -261,6 +264,8 @@ fn export_drawing_with_options(
             fail(&mut output, "converting", "CAD_CONVERSION_FAILED", &error);
             if let ocdraw_convert::OcdrawToCadError::Geometry(ref f) = error {
                 output["failure"]["geometry"] = crate::options::geometry_failure(f);
+            } else if let ocdraw_convert::OcdrawToCadError::PaperTolerance(ref f) = error {
+                output["failure"]["geometry"] = crate::options::paper_tolerance_failure(f);
             }
             return output;
         }
@@ -421,8 +426,8 @@ fn preservation_report(report: &ocdraw_convert::OcdrawPreservationReport) -> Val
     json!({"entries":report.entries().iter().map(|e|json!({"recordId":e.record_id.map(|id|id.0.to_string()),"entityId":e.entity_id.map(|id|id.to_string()),
         "sourceId":e.source_id,"sourceKey":e.source_key,"schema":e.schema,"version":e.version,"phase":e.phase,"result":e.result,"reason":e.reason,"location":e.location,"message":e.message})).collect::<Vec<_>>()})
 }
-fn geometry_report(report: &ocdraw_convert::OcdrawGeometryAssessment) -> Value {
-    json!({"complete":report.is_complete(),"assessedNativeStatus":format!("{:?}",report.status()),"assessedNativeEntities":report.assessed_entities(),
+pub(crate) fn geometry_report(report: &ocdraw_convert::OcdrawGeometryAssessment) -> Value {
+    json!({"domains":report.domains().iter().map(|d|json!({"domain":format!("{:?}",d.domain()),"coordinateMeaning":crate::geometry::meaning(d.coordinate_meaning()),"resolvedTolerance":{"lower":d.resolved_tolerance().lower(),"upper":d.resolved_tolerance().upper()},"maxDeviationUpperBound":d.max_deviation_upper_bound(),"status":format!("{:?}",d.status())})).collect::<Vec<_>>(),"complete":report.is_complete(),"assessedNativeStatus":format!("{:?}",report.status()),"assessedNativeEntities":report.assessed_entities(),
         "unassessedSources":report.unassessed_sources().iter().map(|s|format!("{s:?}")).collect::<Vec<_>>()})
 }
 

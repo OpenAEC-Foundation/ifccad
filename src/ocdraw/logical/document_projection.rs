@@ -161,7 +161,7 @@ pub(crate) fn project_validation_model(
                 tab_index: l.tab_index,
                 limits: l.settings.limits,
                 plot_rectangles: l.settings.plot_settings.as_ref().map(|p| PlotRectangles {
-                    printable_area: p.media.printable_area,
+                    printable_area: p.page.printable_area,
                     window: match p.area {
                         PlotArea::Window(r) => Some(r),
                         _ => None,

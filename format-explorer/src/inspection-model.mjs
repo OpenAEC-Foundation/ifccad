@@ -47,7 +47,8 @@ export function createInspection(result,sourceText=''){
  }
  const drawingUnit=p.unit||(p.graph?.data||[]).find(n=>n.attributes?.['ifccad::drawing'])?.attributes['ifccad::drawing'].lengthUnit;
  for(const n of nodes.values())if(['layout','blockDefinition','blockDefinitions'].includes(n.type)){
-  n.unit=n.values['ifccad::layout']?.lengthUnit||drawingUnit;
+  const layout=n.values['ifccad::layout']||n.values;
+  n.unit=n.type==='layout'&&String(layout.kind).toLowerCase()==='paper'?null:drawingUnit;
   const kinds=new Map();n.children.forEach((key,index)=>{const child=nodes.get(key);if(!child)return;child.owner=n.key;child.drawPosition=index;child.unit=n.unit;const kind=child.type;kinds.set(kind,[...(kinds.get(kind)||[]),key]);});
   n.groupedChildren=Array.from(kinds,([kind,keys])=>{const key=group('types:'+n.key+':'+kind,'plural.'+kind,keys);nodes.get(key).unit=n.unit;return key;});
  }

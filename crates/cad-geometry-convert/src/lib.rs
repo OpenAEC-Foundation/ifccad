@@ -1,6 +1,7 @@
 //! Shared CAD geometric preparation and hard accuracy assessment.
 mod assessment;
 pub mod geometry;
+pub mod plot_units;
 mod tolerance;
 pub mod units;
 pub use assessment::*;

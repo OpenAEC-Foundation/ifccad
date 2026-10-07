@@ -44,8 +44,7 @@ impl ConversionOptions {
     }
 }
 pub(crate) fn geometry(value: &OcdrawGeometryAssessment) -> Value {
-    let interval = value.resolved_tolerance();
-    json!({"status":format!("{:?}",value.status()),"unit":format!("{:?}",value.drawing_unit()),"resolvedTolerance":{"lower":interval.lower(),"upper":interval.upper()},"maxDeviationUpperBound":value.max_deviation_upper_bound(),"assessedEntities":value.assessed_entities(),"assessedVertices":value.assessed_vertices(),"roundedEntities":value.rounded_entities(),"worstEntity":value.worst_entity().map(|e|format!("{e:?}"))})
+    crate::ocdraw::geometry_report(value)
 }
 pub(crate) fn invalid(name: &str, format: &str, code: &str, message: impl ToString) -> Value {
     let mut output = crate::result(std::path::Path::new(name), format);
@@ -55,5 +54,9 @@ pub(crate) fn invalid(name: &str, format: &str, code: &str, message: impl ToStri
 pub(crate) fn geometry_failure(f: &ocdraw_convert::OcdrawGeometryFailure) -> Value {
     let interval =
         |i: ocdraw_convert::OcdrawDistanceInterval| json!({"lower":i.lower(),"upper":i.upper()});
-    json!({"source":format!("{:?}",f.source),"vertexIndex":f.vertex_index,"stage":format!("{:?}",f.stage),"requestedTolerance":format!("{:?}",f.requested_tolerance),"resolvedTolerance":f.resolved_tolerance.map(interval),"deviation":f.deviation.map(interval),"reason":format!("{:?}",f.reason)})
+    json!({"domain":format!("{:?}",f.domain),"coordinateMeaning":crate::geometry::meaning(&f.coordinate_meaning),"source":format!("{:?}",f.source),"vertexIndex":f.vertex_index,"stage":format!("{:?}",f.stage),"requestedTolerance":format!("{:?}",f.requested_tolerance),"resolvedTolerance":f.resolved_tolerance.map(interval),"deviation":f.deviation.map(interval),"reason":format!("{:?}",f.reason)})
+}
+
+pub(crate) fn paper_tolerance_failure(error: &ocdraw_convert::OcdrawPaperToleranceError) -> Value {
+    json!({"domain":{"kind":"PaperLayout","layoutId":error.layout_id.to_string()},"reason":format!("{:?}",error.reason)})
 }

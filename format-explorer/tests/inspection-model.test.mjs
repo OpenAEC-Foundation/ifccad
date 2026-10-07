@@ -2,6 +2,16 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 const adapter=await import('../src/inspection-model.mjs').catch(()=>({}));
 const graph={header:{},data:[{path:'/cad/d1',children:{model:'/cad/d1/layout/1'},attributes:{'ifccad::drawing':{lengthUnit:'mm'}}},{path:'/cad/d1/layout/1',children:{'0':'/cad/d1/e9007199254740993'},attributes:{'ifccad::layout':{kind:'Model'}}},{path:'/cad/d1/e9007199254740993',attributes:{'ifccad::entity':{layer:'/cad/d1/layer/1'},'ifccad::geom::lineSegment':{start:[0,0,0],end:[1,0,0]}}},{path:'/cad/d1/layer/1',attributes:{'ifccad::layer':{name:'Walls'}}},{path:'/foreign',children:{ref:'/cad/d1/e9007199254740993',self:'/foreign'},attributes:{note:'This arbitrary /cad/string is not a reference'}}]};
+test('Paper coordinates never inherit the physical drawing unit',()=>{
+ const paperGraph=structuredClone(graph);
+ paperGraph.data[1].attributes['ifccad::layout'].kind='Paper';
+ const native=adapter.createInspection({validation:{strictAvailable:true},presentation:{format:'ifccad',graph:paperGraph}},JSON.stringify(paperGraph));
+ assert.equal(native.nodes.get('/cad/d1/layout/1').unit,null);
+ assert.equal(native.nodes.get('/cad/d1/e9007199254740993').unit,null);
+ const standalone=adapter.createInspection({validation:{strictAvailable:true},presentation:{format:'ocdraw',unit:'mm',entities:[{id:2,geometry:{type:'line'}}],layouts:[{id:0,name:'Paper',kind:'paper',scopeId:9}],scopes:[{id:9,entities:[2]}]}},'{}');
+ assert.equal(standalone.nodes.get('layout:0').unit,null);
+ assert.equal(standalone.nodes.get('entity:2').unit,null);
+});
 test('failed IFCCAD validation retains its format and never fabricates validated CAD records',()=>{
  const model=adapter.createInspection({source:{format:'ifccad'},validation:{strictAvailable:false},presentation:null},JSON.stringify(graph));
  assert.equal(model.format,'ifccad');assert.equal(model.valid,false);assert.equal(model.nodes.has('/cad/d1/e9007199254740993'),false);assert.equal(model.nodes.has('drawing'),false);

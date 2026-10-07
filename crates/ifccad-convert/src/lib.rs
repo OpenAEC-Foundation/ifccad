@@ -57,26 +57,18 @@
 //! Ok(back.encoded().bytes().to_vec())
 //! # }
 //! ```
-mod appearance;
-mod blocks;
 mod diagnostics;
-mod entity_owners;
 mod from_cad;
-mod geometry;
 mod geometry_assessment;
 mod geometry_context;
 pub use geometry_assessment::*;
-mod layout_references;
-mod layouts;
 mod loss;
+mod mapping;
 mod options;
 mod outcome;
-mod patterns;
 mod source;
-mod source_geometry;
 mod to_cad;
 mod units;
-mod viewports;
 pub use diagnostics::{IfccadConversionError, IfccadDiagnostic, IfccadDiagnosticAction};
 pub use from_cad::{cad_document_to_encoded_ifccad, cad_document_to_ifccad_document};
 pub use opencadcodec;

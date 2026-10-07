@@ -17,18 +17,6 @@
       "name": "Model",
       "tabIndex": 0,
       "plotSettings": {
-        "media": {
-          "unit": "mm",
-          "width": 210,
-          "height": 297,
-          "printableArea": {
-            "minX": 205,
-            "minY": 5,
-            "maxX": 5,
-            "maxY": 292
-          },
-          "rotation": "none"
-        },
         "area": {
           "mode": "Extents"
         },
@@ -56,7 +44,22 @@
           "plotLineWeights": true,
           "scaleLineWeights": false,
           "plotTransparency": false
+        },
+        "plotUnit": "mm",
+        "page": {
+          "printableArea": {
+            "minX": 205,
+            "minY": 5,
+            "maxX": 5,
+            "maxY": 292
+          },
+          "rotation": "none"
         }
+      },
+      "media": {
+        "unit": "mm",
+        "width": 210,
+        "height": 297
       }
     }
   ],

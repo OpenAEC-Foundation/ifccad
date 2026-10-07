@@ -15,6 +15,7 @@ struct DrawingValue {
     next_line_pattern_id: u64,
     #[serde(default = "crate::ifccad::logical::patterns::one")]
     line_pattern_scale: f64,
+    plot_style_mode: Option<String>,
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -22,9 +23,33 @@ struct LayoutValue {
     kind: String,
     tab_index: u32,
     name: Option<String>,
-    length_unit: Option<String>,
-    paper: Option<IfccadPaperSize>,
+    media: Option<Value>,
+    limits: Option<Value>,
+    limits_checking: Option<bool>,
+    paper_space_linetype_scaling: Option<bool>,
+    plot_settings: Option<Value>,
     bounds: Option<IfccadBounds3d>,
+}
+impl LayoutValue {
+    fn output(&self) -> Option<IfccadLayoutSettings> {
+        let mut v = serde_json::json!({});
+        for (key, value) in [
+            ("media", &self.media),
+            ("limits", &self.limits),
+            ("plotSettings", &self.plot_settings),
+        ] {
+            if let Some(value) = value {
+                v[key] = value.clone();
+            }
+        }
+        if let Some(b) = self.limits_checking {
+            v["limitsChecking"] = serde_json::json!(b);
+        }
+        if let Some(b) = self.paper_space_linetype_scaling {
+            v["paperSpaceLinetypeScaling"] = serde_json::json!(b);
+        }
+        super::layout::decode_output(&v)
+    }
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -330,11 +355,26 @@ pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
             block_paths.insert(path.clone(), numbered(path, &format!("{prefix}/block/"))?);
         }
         if attr(node, "ifccad::layout").is_some() {
+            let raw = attr(node, "ifccad::layout").unwrap();
+            if [
+                "media",
+                "limits",
+                "plotSettings",
+                "limitsChecking",
+                "paperSpaceLinetypeScaling",
+            ]
+            .into_iter()
+            .any(|key| raw.get(key).is_some_and(Value::is_null))
+            {
+                return Err(problem(format!(
+                    "{path} layout output fields cannot be null"
+                )));
+            }
             let layout: LayoutValue = required(node, "ifccad::layout")?;
             let id = numbered(path, &format!("{prefix}/layout/"))?;
             match layout.kind.as_str() {
                 "Model" => {
-                    if ["name", "paper", "lengthUnit"].iter().any(|key| {
+                    if ["name"].iter().any(|key| {
                         attr(node, "ifccad::layout").is_some_and(|v| v.get(key).is_some())
                     }) || layout.tab_index != 0
                     {
@@ -348,27 +388,7 @@ pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
                     let name = layout
                         .name
                         .ok_or_else(|| problem(format!("{path} Paper layout needs a name")))?;
-                    let length_unit = layout.length_unit.ok_or_else(|| {
-                        problem(format!("{path} Paper layout needs a coordinate unit"))
-                    })?;
-                    if attr(node, "ifccad::layout")
-                        .and_then(|v| v.get("paper"))
-                        .is_some_and(Value::is_null)
-                    {
-                        return Err(problem(format!(
-                            "{path} paper must be omitted or a complete medium"
-                        )));
-                    }
-                    paper_paths.insert(
-                        id,
-                        (
-                            path.clone(),
-                            name,
-                            layout.tab_index,
-                            length_unit,
-                            layout.paper,
-                        ),
-                    );
+                    paper_paths.insert(id, (path.clone(), name, layout.tab_index));
                 }
                 _ => {
                     return Err(problem(format!(
@@ -417,20 +437,24 @@ pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
             .collect()
     };
     let model = IfccadLayout {
+        settings: required::<LayoutValue>(nodes[&model_path], "ifccad::layout")?
+            .output()
+            .ok_or_else(|| problem("invalid Model layout output"))?,
         bounds: required::<LayoutValue>(nodes[&model_path], "ifccad::layout")?.bounds,
         id: numbered(&model_path, &format!("{prefix}/layout/"))?,
         tab_index: 0,
         entities: parse_owner(&model_path)?,
     };
     let mut paper_layouts = Vec::new();
-    for (id, (path, name, tab_index, length_unit, paper)) in paper_paths {
+    for (id, (path, name, tab_index)) in paper_paths {
         paper_layouts.push(IfccadPaperLayout {
             bounds: required::<LayoutValue>(nodes[&path], "ifccad::layout")?.bounds,
             id,
             name,
             tab_index,
-            length_unit,
-            paper,
+            settings: required::<LayoutValue>(nodes[&path], "ifccad::layout")?
+                .output()
+                .ok_or_else(|| problem("invalid Paper layout output"))?,
             entities: parse_owner(&path)?,
         });
     }
@@ -456,6 +480,12 @@ pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
     if entity_paths.len() != owners.len() || entity_paths.iter().any(|p| !owners.contains(*p)) {
         return Err(problem("CAD entity without exactly one owner"));
     }
+    if attr(drawing_node, "ifccad::drawing")
+        .and_then(|v| v.get("plotStyleMode"))
+        .is_some_and(Value::is_null)
+    {
+        return Err(problem("plotStyleMode cannot be null"));
+    }
     let document = IfccadDocument {
         header,
         drawing_id,
@@ -467,6 +497,11 @@ pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
             next_line_pattern_id: drawing.next_line_pattern_id,
         },
         length_unit: drawing.length_unit,
+        plot_style_mode: match drawing.plot_style_mode.as_deref() {
+            None | Some("colorDependent") => IfccadPlotStyleMode::ColorDependent,
+            Some("named") => IfccadPlotStyleMode::Named,
+            _ => return Err(problem("invalid plot style mode")),
+        },
         line_patterns,
         line_pattern_scale: drawing.line_pattern_scale,
         layers,

@@ -68,11 +68,18 @@ impl<S: Clone> GeometryAssessment<S> {
         unit: DrawingLengthUnit,
     ) -> Result<Self, GeometryToleranceError> {
         let limit = requested.resolve(unit)?;
+        Ok(Self::with_resolved_limit(requested, unit, limit))
+    }
+    pub fn with_resolved_limit(
+        requested: GeometryTolerance,
+        unit: DrawingLengthUnit,
+        limit: ResolvedTolerance,
+    ) -> Self {
         let resolved = DistanceInterval {
             lower: round_down(&limit.lower).unwrap_or(f64::MAX),
             upper: round_up(&limit.upper).unwrap_or(f64::INFINITY),
         };
-        Ok(Self {
+        Self {
             unassessed: Vec::new(),
             requested,
             unit,
@@ -83,7 +90,7 @@ impl<S: Clone> GeometryAssessment<S> {
             rounded: 0,
             maximum: 0.0,
             worst: None,
-        })
+        }
     }
     pub fn requested_tolerance(&self) -> GeometryTolerance {
         self.requested

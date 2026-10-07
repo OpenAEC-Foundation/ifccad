@@ -2,8 +2,8 @@
 pub use opencadcodec;
 mod diagnostics;
 mod from_cad;
-mod geometry;
 mod geometry_assessment;
+mod geometry_context;
 mod mapping;
 mod options;
 mod outcome;

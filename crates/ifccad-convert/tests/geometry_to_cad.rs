@@ -113,11 +113,13 @@ fn paper_occurrences_compare_error_in_their_declared_coordinate_unit() {
     };
     let id = d.id_counters.allocate_layout_id().unwrap();
     d.paper_layouts.push(IfccadPaperLayout {
+        settings: ocdraw::ifccad::IfccadLayoutSettings {
+            media: None,
+            ..Default::default()
+        },
         id,
         name: "Inch paper".into(),
         tab_index: 1,
-        length_unit: "in".into(),
-        paper: None,
         bounds: None,
         entities: vec![e],
     });

@@ -37,6 +37,16 @@
             "linePatternScale": {
               "dataType": "Real",
               "optional": true
+            },
+            "plotStyleMode": {
+              "dataType": "Enum",
+              "enumRestrictions": {
+                "options": [
+                  "colorDependent",
+                  "named"
+                ]
+              },
+              "optional": true
             }
           }
         }
@@ -60,29 +70,8 @@
               "dataType": "String",
               "optional": true
             },
-            "paper": {
-              "dataType": "Object",
-              "optional": true,
-              "objectRestrictions": {
-                "values": {
-                  "width": {
-                    "dataType": "Real"
-                  },
-                  "height": {
-                    "dataType": "Real"
-                  },
-                  "lengthUnit": {
-                    "dataType": "String"
-                  }
-                }
-              }
-            },
             "tabIndex": {
               "dataType": "Integer"
-            },
-            "lengthUnit": {
-              "dataType": "String",
-              "optional": true
             },
             "bounds": {
               "dataType": "Object",
@@ -111,6 +100,319 @@
                   }
                 }
               }
+            },
+            "media": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "unit": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "in",
+                        "ft",
+                        "mi",
+                        "mm",
+                        "cm",
+                        "m",
+                        "km",
+                        "microin",
+                        "mil",
+                        "yd",
+                        "angstrom",
+                        "nm",
+                        "um",
+                        "dm",
+                        "dam",
+                        "hm",
+                        "Gm",
+                        "au",
+                        "ly",
+                        "pc",
+                        "usSurveyFoot",
+                        "usSurveyInch",
+                        "usSurveyYard",
+                        "usSurveyMile",
+                        "px"
+                      ]
+                    }
+                  },
+                  "width": {
+                    "dataType": "Real"
+                  },
+                  "height": {
+                    "dataType": "Real"
+                  }
+                }
+              },
+              "optional": true
+            },
+            "limits": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "minX": {
+                    "dataType": "Real"
+                  },
+                  "minY": {
+                    "dataType": "Real"
+                  },
+                  "maxX": {
+                    "dataType": "Real"
+                  },
+                  "maxY": {
+                    "dataType": "Real"
+                  }
+                }
+              },
+              "optional": true
+            },
+            "plotSettings": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "area": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "window": {
+                          "dataType": "Object",
+                          "objectRestrictions": {
+                            "values": {
+                              "minX": {
+                                "dataType": "Real"
+                              },
+                              "minY": {
+                                "dataType": "Real"
+                              },
+                              "maxX": {
+                                "dataType": "Real"
+                              },
+                              "maxY": {
+                                "dataType": "Real"
+                              }
+                            }
+                          },
+                          "optional": true
+                        },
+                        "mode": {
+                          "dataType": "Enum",
+                          "enumRestrictions": {
+                            "options": [
+                              "Window"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "mapping": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "scale": {
+                          "dataType": "Object",
+                          "objectRestrictions": {
+                            "values": {
+                              "outputLength": {
+                                "dataType": "Real",
+                                "optional": true
+                              },
+                              "scopeLength": {
+                                "dataType": "Real",
+                                "optional": true
+                              },
+                              "mode": {
+                                "dataType": "Enum",
+                                "enumRestrictions": {
+                                  "options": [
+                                    "Fixed",
+                                    "FitToArea"
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "placement": {
+                          "dataType": "Object",
+                          "objectRestrictions": {
+                            "values": {
+                              "reference": {
+                                "dataType": "Enum",
+                                "enumRestrictions": {
+                                  "options": [
+                                    "Media",
+                                    "PrintableArea"
+                                  ]
+                                },
+                                "optional": true
+                              },
+                              "x": {
+                                "dataType": "Real",
+                                "optional": true
+                              },
+                              "y": {
+                                "dataType": "Real",
+                                "optional": true
+                              },
+                              "mode": {
+                                "dataType": "Enum",
+                                "enumRestrictions": {
+                                  "options": [
+                                    "Centered",
+                                    "Offset"
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "output": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "shadedPlot": {
+                          "dataType": "Object",
+                          "objectRestrictions": {
+                            "values": {
+                              "mode": {
+                                "dataType": "Enum",
+                                "enumRestrictions": {
+                                  "options": [
+                                    "AsDisplayed",
+                                    "Wireframe",
+                                    "Hidden",
+                                    "Rendered"
+                                  ]
+                                }
+                              },
+                              "quality": {
+                                "dataType": "Object",
+                                "objectRestrictions": {
+                                  "values": {
+                                    "dpi": {
+                                      "dataType": "Integer",
+                                      "optional": true
+                                    },
+                                    "mode": {
+                                      "dataType": "Enum",
+                                      "enumRestrictions": {
+                                        "options": [
+                                          "Custom"
+                                        ]
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "applyPlotStyles": {
+                          "dataType": "Boolean"
+                        },
+                        "plotStyleTableName": {
+                          "dataType": "String",
+                          "optional": true
+                        }
+                      }
+                    }
+                  },
+                  "options": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "plotViewportBorders": {
+                          "dataType": "Boolean"
+                        },
+                        "plotPaperSpaceLast": {
+                          "dataType": "Boolean"
+                        },
+                        "hidePaperSpaceObjects": {
+                          "dataType": "Boolean"
+                        },
+                        "plotLineWeights": {
+                          "dataType": "Boolean"
+                        },
+                        "scaleLineWeights": {
+                          "dataType": "Boolean"
+                        },
+                        "plotTransparency": {
+                          "dataType": "Boolean"
+                        }
+                      }
+                    }
+                  },
+                  "plotUnit": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "mm",
+                        "in",
+                        "px"
+                      ]
+                    }
+                  },
+                  "page": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "printableArea": {
+                          "dataType": "Object",
+                          "objectRestrictions": {
+                            "values": {
+                              "minX": {
+                                "dataType": "Real"
+                              },
+                              "minY": {
+                                "dataType": "Real"
+                              },
+                              "maxX": {
+                                "dataType": "Real"
+                              },
+                              "maxY": {
+                                "dataType": "Real"
+                              }
+                            }
+                          }
+                        },
+                        "rotation": {
+                          "dataType": "Enum",
+                          "enumRestrictions": {
+                            "options": [
+                              "none",
+                              "counterClockwise90",
+                              "upsideDown",
+                              "clockwise90"
+                            ]
+                          }
+                        },
+                        "deviceName": {
+                          "dataType": "String",
+                          "optional": true
+                        },
+                        "mediaName": {
+                          "dataType": "String",
+                          "optional": true
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "optional": true
+            },
+            "limitsChecking": {
+              "dataType": "Boolean",
+              "optional": true
+            },
+            "paperSpaceLinetypeScaling": {
+              "dataType": "Boolean",
+              "optional": true
             }
           }
         }

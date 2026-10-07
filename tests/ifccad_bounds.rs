@@ -161,7 +161,11 @@ fn paper_bounds_use_coordinates_and_include_hidden_viewport_frames() {
     .into_document();
     recompute_ifccad_document_bounds(&mut d).unwrap();
     let before = d.paper_layouts[0].bounds;
-    d.paper_layouts[0].length_unit = "in".into();
+    d.paper_layouts[0].settings.media = Some(IfccadLayoutMedia {
+        unit: IfccadMediaUnit::Physical(ocdraw::geometry_kernel::CoordinateLengthUnit::Inch),
+        width: 1000.,
+        height: 1000.,
+    });
     for e in &mut d.paper_layouts[0].entities {
         if let IfccadEntityKind::Viewport(v) = &mut e.kind {
             v.visible = false;

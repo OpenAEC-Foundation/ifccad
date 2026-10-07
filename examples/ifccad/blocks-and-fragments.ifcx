@@ -75,12 +75,56 @@
             ]
           },
           "kind": "Paper",
-          "lengthUnit": "mm",
-          "name": "A3 detail sheet",
-          "paper": {
+          "media": {
             "height": 297,
-            "lengthUnit": "mm",
+            "unit": "mm",
             "width": 420
+          },
+          "name": "A3 detail sheet",
+          "plotSettings": {
+            "area": {
+              "mode": "Layout"
+            },
+            "mapping": {
+              "placement": {
+                "mode": "Offset",
+                "reference": "Media",
+                "x": 0,
+                "y": 0
+              },
+              "scale": {
+                "mode": "Fixed",
+                "outputLength": 1,
+                "scopeLength": 1
+              }
+            },
+            "options": {
+              "hidePaperSpaceObjects": false,
+              "plotLineWeights": false,
+              "plotPaperSpaceLast": false,
+              "plotTransparency": false,
+              "plotViewportBorders": false,
+              "scaleLineWeights": false
+            },
+            "output": {
+              "applyPlotStyles": false,
+              "shadedPlot": {
+                "mode": "AsDisplayed",
+                "quality": {
+                  "mode": "Normal"
+                }
+              }
+            },
+            "page": {
+              "printableArea": {
+                "maxX": 420,
+                "maxY": 297,
+                "minX": 0,
+                "minY": 0
+              },
+              "rotation": "none"
+            },
+            "plotUnit": "mm"
           },
           "tabIndex": 1
         }

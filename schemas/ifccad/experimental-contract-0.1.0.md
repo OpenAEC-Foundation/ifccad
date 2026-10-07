@@ -55,8 +55,8 @@ The drawing has named `children` referring to exactly one Model layout, zero or 
 
 | Attribute | Required value / role |
 | --- | --- |
-| `ifccad::drawing` | `profileVersion`, `lengthUnit`, the five required allocation watermarks above; optional positive finite `linePatternScale` defaults to 1; one drawing node |
-| `ifccad::layout` | `kind: "Model", tabIndex: 0`, or `kind: "Paper"` with required `name`, `tabIndex`, coordinate `lengthUnit` and optional `paper: { width, height, lengthUnit }`; Model forbids name, lengthUnit and paper fields, including null values |
+| `ifccad::drawing` | `profileVersion`, `lengthUnit`, allocation watermarks; optional positive finite `linePatternScale` defaults to 1; optional `plotStyleMode` defaults colorDependent, alternatively named; one drawing node |
+| `ifccad::layout` | Model `kind`, tabIndex 0 or Paper kind/name/contiguous tabIndex; optional media, limits, limitsChecking (false), paperSpaceLinetypeScaling (true), complete plotSettings and bounds. Model forbids name; old paper/coordinate lengthUnit fields are rejected. |
 | `ifccad::linePattern` | nonempty `name`, optional `description`, ordered signed-real `pattern` array; drawing-owned definition |
 | `ifccad::layer` | `name`, direct concrete `appearance` values |
 | `ifccad::blockDefinition` | `name`, `basePoint` XYZ, `insertionUnit` |
@@ -73,7 +73,23 @@ The drawing has named `children` referring to exactly one Model layout, zero or 
 | `ifccad::blockInstance` | definition path and transform with placement, finite rotation in radians, nonzero finite XYZ scale |
 | `ifccad::viewport` | same-drawing Model reference, Paper frame, camera/view, render/display state, Paper clip and frozen-layer references; Paper ownership only |
 
-Every owned drawable has `ifccad::entity` and exactly one of the ten drawable payload attributes. A viewport has no separate geometry or placement payload. Unsupported `ifccad::geom::*` payloads fail explicitly. An independently used `ifccad::geom::circle` on a non-CAD IFCX node is not thereby a CAD entity. Coordinates use a fixed right-handed local XYZ convention; there is no implicit world alignment. The 25 length-unit tokens match the current OCDraw registry. Model and block-definition coordinates, including definition base points, use the drawing's length unit. Each Paper layout declares its own coordinate `lengthUnit`, including `unitless`. Direct Paper geometry sizes and placement origins use this coordinate unit. Optional `paper` describes a physical medium: positive finite width and height, and a physical registry unit (`unitless` is disallowed). Omit `paper` for an unsized sheet; null, partial or unknown medium fields fail. Medium dimensions are independent of coordinate units and geometry bounds, and imply neither a coordinate rescale nor clipping. No requirement places entities inside the physical medium. Existing example files have been migrated; missing new metadata fails without legacy synthesis. The experimental profile version and import remain unchanged.
+Every owned drawable has `ifccad::entity` and exactly one of the ten drawable payload attributes. A viewport has no separate geometry or placement payload. Unsupported `ifccad::geom::*` payloads fail explicitly. An independently used `ifccad::geom::circle` on a non-CAD IFCX node is not thereby a CAD entity. Coordinates use a fixed right-handed local XYZ convention; there is no implicit world alignment. The 25 length-unit tokens match the current OCDraw registry. Model and block-definition coordinates, including definition base points, use the drawing's length unit. Paper layouts have independent numerical coordinate domains, without a physical
+coordinate-unit declaration. Optional `media: {unit,width,height}` retains physical
+registry dimensions or raster px; unitless media, partial/null/unknown fields and
+nonpositive/nonfinite dimensions are invalid. Media are valid on Model and Paper,
+including without plot settings, and never establish coordinate meaning or bounds.
+
+Complete optional plotSettings has plotUnit (mm/in/px), page (printableArea,
+rotation and name hints), area, mapping, output and options. A medium is required.
+Printable rectangles have positive area inside the unrotated medium; physical
+media pair with mm/in output and raster media with px. Fixed scale relates
+coordinate length to output length without rewriting geometry or transforms.
+Fit/absent/pixel output provides no fixed physical interpretation. Layout area
+requires Paper with fixed/offset mapping; Limits requires Model and authored limits.
+Paper-space linetype scaling is layout-local and independent of plot presence.
+Unknown fields and removed spellings are rejected; no old-file synthesis is added.
+See [layout output](../../docs/layout-output.md) for output choices and exchange limits.
+
 
 A block definition's insertion unit records intent but does not silently scale coordinates. Transform evaluation subtracts the definition base point, applies stored scale and rotation, then applies placement. For a paper-owned instance, its scale maps drawing-coordinate numbers into paper-coordinate numbers; any unit conversion must be included explicitly. For example, the [paper-layout fixture](../../examples/ifccad/hello-paper-layouts.ifcx) has centimetre model/block coordinates and an A3 sheet in millimetres, with a paper instance scale of `[10, 10, 10]`. A nested instance inside a definition stays in drawing units. Reading and writing never normalize or rewrite these transforms; present scope bounds require conservative transform evaluation for validation.
 
@@ -93,7 +109,7 @@ the whole viewport attribute, including omitted optional fields, before validati
 `frame` has XY `center` and positive `width`/`height` in owning Paper coordinate
 units. Center and dimensions are finite, and the exact rectangle enclosure must
 remain inside the finite binary64 range. Physical media neither rescale nor bound
-the frame. Unsized and unitless Paper layouts remain valid.
+the frame. Unsized Paper layouts without a fixed physical output mapping remain valid.
 
 `view` has XY DCS `center`, XYZ Model `target`, a target-to-camera XYZ `direction`,
 positive `height`, finite `twist` in radians, `projection`, `frontClip`, and
@@ -184,7 +200,7 @@ entity creation settings remain outside the native profile.
 
 ## Prototype boundary
 
-The strict reader and writer are in `src/ifccad/`, exported as `ocdraw::ifccad`. The writer strict-reads its own output and compares the typed CAD meaning. It emits JSON only. The standalone OCDraw reader validates a different contract. A separate `ifccad-convert` companion provides a bounded direct mapping to cadcodec `CadDocument`; its direction-specific coverage documents define conversion limits. Plot settings, a viewport projection/rendering API, annotation, indexed colors, complex text/shape line patterns and effective appearance evaluation are outside this profile version.
+The strict reader and writer are in `src/ifccad/`, exported as `ocdraw::ifccad`. The writer strict-reads its own output and compares the typed CAD meaning. It emits JSON only. The standalone OCDraw reader validates a different contract. A separate `ifccad-convert` companion provides a bounded direct mapping to cadcodec `CadDocument`; its direction-specific coverage documents define conversion limits. A viewport projection/rendering API, annotation, indexed colors, complex text/shape line patterns and effective appearance evaluation are outside this profile version.
 
 ## Primitive geometry rules
 

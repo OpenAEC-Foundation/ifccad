@@ -66,12 +66,14 @@ fn new_families_preserve_parameters_in_every_owner() {
     d.model.entities.extend(entities);
     let layout_id = d.id_counters.allocate_layout_id().unwrap();
     let mut paper = IfccadPaperLayout {
+        settings: ocdraw::ifccad::IfccadLayoutSettings {
+            media: None,
+            ..Default::default()
+        },
         bounds: None,
         id: layout_id,
         name: "Geometry sheet".into(),
         tab_index: (d.paper_layouts.len() + 1) as u32,
-        length_unit: "mm".into(),
-        paper: None,
         entities: vec![],
     };
     for kind in kinds() {

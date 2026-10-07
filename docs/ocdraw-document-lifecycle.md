@@ -135,3 +135,12 @@ identities and retaining unmapped authored content and allocation history.
 Giving a changed `CadDocument` a drawing ID alone does not provide that context.
 An editor working directly on `OcdrawDocument` can retain these values itself;
 core editing commands are not required to write its updated document.
+
+## Layout output revision
+
+Both models retain layout media without complete plot settings. Plot unit and
+fixed mapping determine Paper output meaning; IFCCAD no longer stores an independent
+Paper coordinate unit. Effective plot settings, limits and layout PSLTSCALE have
+separate native/CAD coverage. The provisional field/API migration, strict physical
+scalar conversion limits, raster restrictions and per-domain accuracy reports are
+specified in [layout output](layout-output.md). No new workspace state, renderer, release or controlled measurement is implied.

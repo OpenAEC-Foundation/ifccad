@@ -144,7 +144,7 @@ fn main() -> Result<()> {
         })?;
         let imported = ocdraw_source_to_cad_document(drawing, OcdrawToCadOptions::default())?;
         let assessment = imported.geometry_assessment();
-        result["geometry"] = json!({"status":format!("{:?}",assessment.status()),"max_deviation_upper_bound":assessment.max_deviation_upper_bound(),"resolved_tolerance_upper":assessment.resolved_tolerance().upper(),"assessed_vertices":assessment.assessed_vertices(),"rounded_entities":assessment.rounded_entities()});
+        result["geometry"] = json!({"status":format!("{:?}",assessment.status()),"max_deviation_upper_bound":assessment.domains().iter().find(|d|d.domain()==ocdraw_convert::OcdrawGeometryDomain::Drawing).unwrap().max_deviation_upper_bound(),"resolved_tolerance_upper":assessment.domains().iter().find(|d|d.domain()==ocdraw_convert::OcdrawGeometryDomain::Drawing).unwrap().resolved_tolerance().upper(),"assessed_vertices":assessment.assessed_vertices(),"rounded_entities":assessment.rounded_entities()});
         result["cad_to_ocdraw"] = measure(|| {
             black_box(cad_document_to_encoded_ocdraw(
                 imported.document(),

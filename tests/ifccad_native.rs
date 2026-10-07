@@ -204,6 +204,7 @@ fn fixture_document() -> IfccadDocument {
         },
     };
     IfccadDocument {
+        plot_style_mode: Default::default(),
         id_counters: IfccadIdCounters {
             next_entity_id: 101,
             next_layer_id: 3,
@@ -260,6 +261,10 @@ fn fixture_document() -> IfccadDocument {
             },
         ],
         model: IfccadLayout {
+            settings: ocdraw::ifccad::IfccadLayoutSettings {
+                media: None,
+                ..Default::default()
+            },
             bounds: None,
             id: 1,
             tab_index: 0,
@@ -487,12 +492,27 @@ fn paper_layout_file() -> Value {
     value["data"][0]["attributes"]["ifccad::drawing"]["nextEntityId"] = json!(204);
     value["data"][0]["children"]["paper3"] = json!("/cad/d1/layout/3");
     value["data"].as_array_mut().unwrap().extend([
-        json!({"path":"/cad/d1/layout/2","children":{"0":"/cad/d1/e201","1":"/cad/d1/e202"},"attributes":{"ifccad::layout":{"kind":"Paper","name":"A3","tabIndex":1,"lengthUnit":"mm","paper":{"width":297.0,"height":420.0,"lengthUnit":"mm"}}}}),
-        json!({"path":"/cad/d1/layout/3","children":{"0":"/cad/d1/e203"},"attributes":{"ifccad::layout":{"kind":"Paper","name":"Letter","tabIndex":2,"lengthUnit":"in","paper":{"width":8.5,"height":11.0,"lengthUnit":"in"}},"example::note":"retained"}}),
+        json!({"path":"/cad/d1/layout/2","children":{"0":"/cad/d1/e201","1":"/cad/d1/e202"},"attributes":{"ifccad::layout":{"kind":"Paper","name":"A3","tabIndex":1,"media":{"width":297.0,"height":420.0,"unit":"mm"}}}}),
+        json!({"path":"/cad/d1/layout/3","children":{"0":"/cad/d1/e203"},"attributes":{"ifccad::layout":{"kind":"Paper","name":"Letter","tabIndex":2,"media":{"width":8.5,"height":11.0,"unit":"in"}},"example::note":"retained"}}),
         json!({"path":"/cad/d1/e201","attributes":{"ifccad::entity":{"layer":"/cad/d1/layer/1","appearance":{"color":{"mode":"ByLayer"},"opacity":{"mode":"ByLayer"},"linePattern":{"mode":"ByLayer"},"lineWeight":{"mode":"ByLayer"}}},"ifccad::geom::lineSegment":{"start":[10,10,0],"end":[287,10,0]}}}),
         json!({"path":"/cad/d1/e202","attributes":{"ifccad::entity":{"layer":"/cad/d1/layer/2","appearance":{"color":{"mode":"Explicit","value":"#ff00ff"},"opacity":{"mode":"ByLayer"},"linePattern":{"mode":"ByLayer"},"lineWeight":{"mode":"ByLayer"}}},"ifccad::blockInstance":{"definition":"/cad/d1/block/2","transform":{"placement":{"origin":[20,20,0],"xAxis":[1,0,0],"yAxis":[0,1,0]},"rotation":0,"scale":[10,10,10]}}}}),
         json!({"path":"/cad/d1/e203","attributes":{"ifccad::entity":{"layer":"/cad/d1/layer/1","appearance":{"color":{"mode":"ByLayer"},"opacity":{"mode":"ByLayer"},"linePattern":{"mode":"ByLayer"},"lineWeight":{"mode":"ByLayer"}}},"ifccad::geom::circle":{"radius":0.5},"ifccad::geom::placement":{"origin":[1,1,0],"xAxis":[1,0,0],"yAxis":[0,1,0]}}}),
     ]);
+    // These authored fixture layouts explicitly used mm and inch coordinates;
+    // migrate that intent to a fixed output mapping without changing any geometry.
+    for node in value["data"].as_array_mut().unwrap() {
+        let Some(l) = node["attributes"].get_mut("ifccad::layout") else {
+            continue;
+        };
+        let unit = match l["name"].as_str() {
+            Some("A3") => "mm",
+            Some("Letter") => "in",
+            _ => continue,
+        };
+        let w = l["media"]["width"].clone();
+        let h = l["media"]["height"].clone();
+        l["plotSettings"] = json!({"plotUnit":unit,"page":{"printableArea":{"minX":0,"minY":0,"maxX":w,"maxY":h},"rotation":"none"},"area":{"mode":"Layout"},"mapping":{"scale":{"mode":"Fixed","outputLength":1,"scopeLength":1},"placement":{"mode":"Offset","reference":"Media","x":0,"y":0}},"output":{"shadedPlot":{"mode":"AsDisplayed","quality":{"mode":"Normal"}},"applyPlotStyles":false},"options":{"plotViewportBorders":false,"plotPaperSpaceLast":false,"hidePaperSpaceObjects":false,"plotLineWeights":false,"scaleLineWeights":false,"plotTransparency":false}});
+    }
     value
 }
 
@@ -507,13 +527,19 @@ fn paper_layouts_accept_distinct_units_and_shared_block_definitions() {
     assert_eq!((paper[0].id, paper[0].name.as_str()), (2, "A3"));
     assert_eq!(
         (
-            paper[0].paper.as_ref().unwrap().width,
-            paper[0].paper.as_ref().unwrap().height
+            paper[0].settings.media.as_ref().unwrap().width,
+            paper[0].settings.media.as_ref().unwrap().height
         ),
         (297.0, 420.0)
     );
-    assert_eq!(paper[0].paper.as_ref().unwrap().length_unit, "mm");
-    assert_eq!(paper[1].paper.as_ref().unwrap().length_unit, "in");
+    assert_eq!(
+        paper[0].settings.media.as_ref().unwrap().unit.as_str(),
+        "mm"
+    );
+    assert_eq!(
+        paper[1].settings.media.as_ref().unwrap().unit.as_str(),
+        "in"
+    );
     assert_eq!(
         paper[0].entities.iter().map(|e| e.id).collect::<Vec<_>>(),
         vec![201, 202]
@@ -587,7 +613,7 @@ fn paper_layouts_allow_empty_scopes_but_require_one_model() {
     assert!(read(&value).unwrap().document().paper_layouts[1]
         .entities
         .is_empty());
-    value["data"][1]["attributes"]["ifccad::layout"] = json!({"kind":"Paper","name":"Extra","tabIndex":3,"lengthUnit":"mm","paper":{"width":1,"height":1,"lengthUnit":"mm"}});
+    value["data"][1]["attributes"]["ifccad::layout"] = json!({"kind":"Paper","name":"Extra","tabIndex":3,"media":{"width":1,"height":1,"unit":"mm"}});
     assert!(read(&value).unwrap_err().report().errors[0].contains("missing Model"));
     let mut value = paper_layout_file();
     let paper = value["data"]

@@ -78,6 +78,7 @@ pub(crate) fn inspect_cad_as_ifccad_with_options(
             return output;
         }
     };
+    output["reader"]["version"] = json!(cad.dwg_source_version.unwrap_or(cad.version).as_str());
     output["reader"]["messages"] = json!(cad
         .notifications
         .iter()

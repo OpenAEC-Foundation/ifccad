@@ -6,8 +6,13 @@ The encoded `cad_document_to_encoded_ocdraw` and validated `ocdraw_source_to_cad
 entry points are convenience wrappers over logical conversion. These implementations
 live in [`src/from_cad`](src/from_cad) and [`src/to_cad`](src/to_cad),
 with native mapping helpers under [`src/mapping`](src/mapping). Pure CAD source classification lives in
-[`src/source`](src/source). Model adapters in [`src/geometry`](src/geometry) use the common
+[`src/source`](src/source). This direction/mapping/source organization is shared with
+`ifccad-convert`; each retains its own format adapters. The model adapter in
+[`src/mapping/geometry.rs`](src/mapping/geometry.rs) uses the common
 [`cad-geometry-convert`](../cad-geometry-convert) numerical and occurrence proof engine.
+Format-specific tolerance domains and report adaptation live in
+`geometry_context.rs` and `geometry_assessment.rs`. There is no local numerical
+geometry implementation or forwarding `geometry/` module.
 Both formats use [neutral core geometry](../../docs/geometry/shared-geometry.md).
 The core format implementation remains usable without opencadcodec.
 The dependency and public Rust reexport use the upstream name `opencadcodec`
@@ -135,6 +140,15 @@ let bytes = encode_ocdraw_document(drawing)?; // Only when native storage is wan
 These are fresh conversions. CAD handles, OCDraw IDs and allocation history are
 not roundtripped through `CadDocument`. A future CAD editor save route needs
 explicit session context. See the [core lifecycle](../../docs/ocdraw-document-lifecycle.md).
+
+## Layout output revision
+
+Both models retain layout media without complete plot settings. Plot unit and
+fixed mapping determine Paper output meaning; IFCCAD no longer stores an independent
+Paper coordinate unit. Effective plot settings, limits and layout PSLTSCALE have
+separate native/CAD coverage. The provisional field/API migration, strict physical
+scalar conversion limits, raster restrictions and per-domain accuracy reports are
+specified in [layout output](../../docs/layout-output.md). No new workspace state, renderer, release or controlled measurement is implied.
 
 ## Upstream pin update — 2026-10-07
 

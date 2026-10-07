@@ -4,19 +4,16 @@ use ifccad_convert::*;
 use ocdraw::ifccad::*;
 
 #[test]
-fn omitted_paper_layout_is_not_reported_as_an_assessed_output_domain() {
+fn unsupported_medium_does_not_remove_paper_geometry_domain() {
     let mut d = common::viewport_drawing();
-    d.paper_layouts[0].length_unit = "m".into();
+    d.paper_layouts[0].settings.media = Some(IfccadLayoutMedia {
+        unit: IfccadMediaUnit::from_token("pc").unwrap(),
+        width: 1000.,
+        height: 1000.,
+    });
     let out = ifccad_document_to_cad_document(&d, Default::default()).unwrap();
-    assert!(out
-        .diagnostics()
-        .iter()
-        .any(|i| i.code == "paper-coordinate-unit"));
-    assert_eq!(out.geometry_assessment().domains().len(), 1);
-    assert_eq!(
-        out.geometry_assessment().domains()[0].domain(),
-        IfccadGeometryDomain::Drawing
-    );
+    assert!(out.diagnostics().iter().any(|i| i.code == "paper-medium"));
+    assert_eq!(out.geometry_assessment().domains().len(), 2);
 }
 
 #[test]
@@ -24,15 +21,17 @@ fn unitless_media_does_not_enable_physical_tolerance() {
     let mut d = empty();
     let id = d.id_counters.allocate_layout_id().unwrap();
     d.paper_layouts.push(IfccadPaperLayout {
+        settings: ocdraw::ifccad::IfccadLayoutSettings {
+            media: Some(ocdraw::ifccad::IfccadLayoutMedia {
+                width: 100.,
+                height: 200.,
+                unit: ocdraw::ifccad::IfccadMediaUnit::from_token("mm").unwrap(),
+            }),
+            ..Default::default()
+        },
         id,
         name: "Unitless paper".into(),
         tab_index: 1,
-        length_unit: "unitless".into(),
-        paper: Some(IfccadPaperSize {
-            width: 100.,
-            height: 200.,
-            length_unit: "mm".into(),
-        }),
         bounds: None,
         entities: vec![],
     });
@@ -45,7 +44,7 @@ fn unitless_media_does_not_enable_physical_tolerance() {
     )
     .err()
     .expect("unitless coordinate domain");
-    assert!(matches!(error, IfccadConversionError::Tolerance(_)));
+    assert!(matches!(error, IfccadConversionError::PaperTolerance{layout_id,..} if layout_id==id));
     let outcome = ifccad_document_to_cad_document(&d, Default::default()).unwrap();
     assert_eq!(
         outcome.geometry_assessment().status(),
@@ -106,11 +105,10 @@ fn physical_limits_are_resolved_separately_for_each_paper_unit() {
     d.length_unit = "m".into();
     let id = d.id_counters.allocate_layout_id().unwrap();
     d.paper_layouts.push(IfccadPaperLayout {
+        settings: common::paper_settings(ocdraw::plot_kernel::PlotUnit::Millimetre, 1.),
         id,
         name: "Millimetre sheet".into(),
         tab_index: 1,
-        length_unit: "mm".into(),
-        paper: None,
         bounds: None,
         entities: vec![],
     });
