@@ -41,6 +41,8 @@ and entity schema v1 are provisional until contract completion and verification.
   `CadDocument`; DXF/DWG IO remains a CAD codec responsibility. Both converters
   use pinned upstream opencadcodec under its upstream name.
 - `crates/ifccad-convert`: the independent IFCCAD conversion route.
+- `crates/cad-preservation`: audited codec-specific spline byte snapshots shared
+  by the converters; envelopes and predicates stay format-specific.
 - `crates/cad-geometry-convert`: shared CAD geometric preparation, tolerance
   resolution and primitive/nested occurrence accuracy proofs for both routes.
 - `crates/viewer`, `crates/browser`: file inspection/conversion
@@ -130,6 +132,12 @@ effective plot output, limits, plot-style mode and Paper-space linetype-scaling
 parity; both CAD routes assess Paper accuracy through each fixed physical plot
 mapping. The provisional contract removes IFCCAD's independent Paper coordinate
 unit. See [layout output](docs/layout-output.md) for numeric/raster restrictions.
+Both routes now offer independent opaque SPLINE preservation pilots: durable
+storage, optional exact native common properties, guarded fresh CAD restoration
+and explicit incomplete geometry evidence. IFCCAD Paper guards use exact effective
+physical mapping. Broader raw/private/shared preservation and native spline
+geometry remain separate follow-up work; see [preservation](docs/preservation.md).
+
 The next IFCCAD slice covers UCS, model windows, paper canvases, grid/snap and
 active workspace choices against this output boundary.
 

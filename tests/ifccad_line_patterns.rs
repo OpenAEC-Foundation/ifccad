@@ -153,8 +153,15 @@ fn definitions_require_drawing_ownership_and_entities_keep_explicit_references()
     assert!(read(&v).is_err());
     let source = read(&drawing()).unwrap();
     let mut d = source.document().clone();
-    d.model.entities[0].appearance.line_pattern = IfccadMode::Explicit(IfccadLinePatternId(2));
-    d.model.entities[0].line_pattern_scale = 0.125;
+    d.model.entities[0]
+        .as_native_mut()
+        .unwrap()
+        .appearance
+        .line_pattern = IfccadMode::Explicit(IfccadLinePatternId(2));
+    d.model.entities[0]
+        .as_native_mut()
+        .unwrap()
+        .line_pattern_scale = 0.125;
     assert_eq!(
         load_ifccad_bytes(
             encode_ifccad_document(&d).unwrap().bytes(),
@@ -165,7 +172,10 @@ fn definitions_require_drawing_ownership_and_entities_keep_explicit_references()
         &d
     );
     for value in [0., -1., f64::NAN, f64::INFINITY] {
-        d.model.entities[0].line_pattern_scale = value;
+        d.model.entities[0]
+            .as_native_mut()
+            .unwrap()
+            .line_pattern_scale = value;
         assert!(encode_ifccad_document(&d).is_err());
     }
 }

@@ -182,10 +182,10 @@ fn viewport_requires_paper_and_unique_model_target() {
     .unwrap()
     .into_document();
     let mut entity = doc.model.entities[0].clone();
-    entity.id = doc.id_counters.allocate_entity_id().unwrap();
+    entity.as_native_mut().unwrap().id = doc.id_counters.allocate_entity_id().unwrap();
     let mut v = viewport();
     v.model_id = doc.model.id;
-    entity.kind = IfccadEntityKind::Viewport(v);
+    entity.as_native_mut().unwrap().kind = IfccadEntityKind::Viewport(v);
     doc.model.entities.push(entity.clone());
     assert!(validate_ifccad_document(&doc).is_err());
     doc.model.entities.pop();
@@ -202,7 +202,11 @@ fn viewport_requires_paper_and_unique_model_target() {
         entities: vec![entity],
     });
     assert!(validate_ifccad_document(&doc).is_ok());
-    let IfccadEntityKind::Viewport(v) = &mut doc.paper_layouts[0].entities[0].kind else {
+    let IfccadEntityKind::Viewport(v) = &mut doc.paper_layouts[0].entities[0]
+        .as_native_mut()
+        .unwrap()
+        .kind
+    else {
         unreachable!()
     };
     v.model_id = id;
@@ -217,10 +221,10 @@ fn drawing_with_viewport() -> IfccadDocument {
     .unwrap()
     .into_document();
     let mut entity = doc.model.entities[0].clone();
-    entity.id = doc.id_counters.allocate_entity_id().unwrap();
+    entity.as_native_mut().unwrap().id = doc.id_counters.allocate_entity_id().unwrap();
     let mut view = viewport();
     view.model_id = doc.model.id;
-    entity.kind = IfccadEntityKind::Viewport(view);
+    entity.as_native_mut().unwrap().kind = IfccadEntityKind::Viewport(view);
     doc.paper_layouts.push(IfccadPaperLayout {
         settings: ocdraw::ifccad::IfccadLayoutSettings {
             media: None,
@@ -239,16 +243,20 @@ fn drawing_with_viewport() -> IfccadDocument {
 fn dormant_boundary_is_owned_and_exclusive() {
     let mut doc = drawing_with_viewport();
     let mut boundary = doc.model.entities[0].clone();
-    boundary.id = doc.id_counters.allocate_entity_id().unwrap();
-    let id = boundary.id;
+    boundary.as_native_mut().unwrap().id = doc.id_counters.allocate_entity_id().unwrap();
+    let id = boundary.id();
     doc.paper_layouts[0].entities.push(boundary);
-    let IfccadEntityKind::Viewport(v) = &mut doc.paper_layouts[0].entities[0].kind else {
+    let IfccadEntityKind::Viewport(v) = &mut doc.paper_layouts[0].entities[0]
+        .as_native_mut()
+        .unwrap()
+        .kind
+    else {
         panic!()
     };
     v.paper_clip.boundary_entity_id = Some(id);
     assert!(validate_ifccad_document(&doc).is_ok()); // dormant ordinary Line is allowed
     let mut copy = doc.paper_layouts[0].entities[0].clone();
-    copy.id = doc.id_counters.allocate_entity_id().unwrap();
+    copy.as_native_mut().unwrap().id = doc.id_counters.allocate_entity_id().unwrap();
     doc.paper_layouts[0].entities.push(copy);
     assert!(validate_ifccad_document(&doc).is_err());
     doc.paper_layouts[0].entities.pop();
@@ -269,22 +277,38 @@ fn frozen_layers_are_a_set_with_exact_large_ids() {
     let low = doc.layers[0].id;
     let high = layer.id;
     doc.layers.push(layer);
-    let IfccadEntityKind::Viewport(v) = &mut doc.paper_layouts[0].entities[0].kind else {
+    let IfccadEntityKind::Viewport(v) = &mut doc.paper_layouts[0].entities[0]
+        .as_native_mut()
+        .unwrap()
+        .kind
+    else {
         panic!()
     };
     v.frozen_layers = vec![high, low];
     let encoded = encode_ifccad_document(&doc).unwrap();
     let read = load_ifccad_bytes(encoded.bytes(), Default::default()).unwrap();
-    let IfccadEntityKind::Viewport(v) = &read.document().paper_layouts[0].entities[0].kind else {
+    let IfccadEntityKind::Viewport(v) = &read.document().paper_layouts[0].entities[0]
+        .as_native()
+        .unwrap()
+        .kind
+    else {
         panic!()
     };
     assert_eq!(v.frozen_layers, [low, high]);
-    let IfccadEntityKind::Viewport(v) = &mut doc.paper_layouts[0].entities[0].kind else {
+    let IfccadEntityKind::Viewport(v) = &mut doc.paper_layouts[0].entities[0]
+        .as_native_mut()
+        .unwrap()
+        .kind
+    else {
         panic!()
     };
     v.frozen_layers = vec![high, high];
     assert!(validate_ifccad_document(&doc).is_err());
-    let IfccadEntityKind::Viewport(v) = &mut doc.paper_layouts[0].entities[0].kind else {
+    let IfccadEntityKind::Viewport(v) = &mut doc.paper_layouts[0].entities[0]
+        .as_native_mut()
+        .unwrap()
+        .kind
+    else {
         panic!()
     };
     v.frozen_layers = vec![high + 1];
@@ -318,26 +342,26 @@ fn native_copy_move_and_delete_preserve_viewport_identity_history() {
     let view = doc.paper_layouts[0]
         .entities
         .iter()
-        .find(|e| matches!(e.kind, IfccadEntityKind::Viewport(_)))
+        .find(|e| matches!(e.as_native().unwrap().kind, IfccadEntityKind::Viewport(_)))
         .unwrap()
         .clone();
-    let IfccadEntityKind::Viewport(v) = &view.kind else {
+    let IfccadEntityKind::Viewport(v) = &view.as_native().unwrap().kind else {
         unreachable!()
     };
     let boundary_id = v.paper_clip.boundary_entity_id.unwrap();
     let boundary = doc.paper_layouts[0]
         .entities
         .iter()
-        .find(|e| e.id == boundary_id)
+        .find(|e| e.id() == boundary_id)
         .unwrap()
         .clone();
     let mut copy = view.clone();
-    copy.id = doc.id_counters.allocate_entity_id().unwrap();
-    let copy_id = copy.id;
+    copy.as_native_mut().unwrap().id = doc.id_counters.allocate_entity_id().unwrap();
+    let copy_id = copy.id();
     let mut copied_boundary = boundary.clone();
-    copied_boundary.id = doc.id_counters.allocate_entity_id().unwrap();
-    let copied_boundary_id = copied_boundary.id;
-    let IfccadEntityKind::Viewport(v) = &mut copy.kind else {
+    copied_boundary.as_native_mut().unwrap().id = doc.id_counters.allocate_entity_id().unwrap();
+    let copied_boundary_id = copied_boundary.id();
+    let IfccadEntityKind::Viewport(v) = &mut copy.as_native_mut().unwrap().kind else {
         unreachable!()
     };
     v.paper_clip.boundary_entity_id = Some(copied_boundary_id);
@@ -353,7 +377,7 @@ fn native_copy_move_and_delete_preserve_viewport_identity_history() {
     second.entities = vec![view.clone(), boundary];
     doc.paper_layouts[0]
         .entities
-        .retain(|e| e.id != view.id && e.id != boundary_id);
+        .retain(|e| e.id() != view.id() && e.id() != boundary_id);
     doc.paper_layouts[0].entities.reverse();
     doc.paper_layouts.push(second);
     let encoded = encode_ifccad_document(&doc).unwrap();
@@ -361,8 +385,10 @@ fn native_copy_move_and_delete_preserve_viewport_identity_history() {
         .unwrap()
         .into_document();
     assert_eq!(read, doc);
-    assert_eq!(read.paper_layouts[1].entities[0].id, view.id);
-    let IfccadEntityKind::Viewport(v) = &read.paper_layouts[1].entities[0].kind else {
+    assert_eq!(read.paper_layouts[1].entities[0].id(), view.id());
+    let IfccadEntityKind::Viewport(v) =
+        &read.paper_layouts[1].entities[0].as_native().unwrap().kind
+    else {
         unreachable!()
     };
     assert_eq!(v.paper_clip.boundary_entity_id, Some(boundary_id));
@@ -370,7 +396,7 @@ fn native_copy_move_and_delete_preserve_viewport_identity_history() {
     // Deleting the highest allocated pair must not reset the watermark.
     read.paper_layouts[0]
         .entities
-        .retain(|e| e.id != copy_id && e.id != copied_boundary_id);
+        .retain(|e| e.id() != copy_id && e.id() != copied_boundary_id);
     let encoded = encode_ifccad_document(&read).unwrap();
     let mut read = load_ifccad_bytes(encoded.bytes(), Default::default())
         .unwrap()

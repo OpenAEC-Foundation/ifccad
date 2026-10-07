@@ -3,18 +3,30 @@ use ocdraw::ifccad::*;
 use opencadcodec::{CadDocument, EntityType, Handle};
 use std::collections::{BTreeMap, BTreeSet};
 
+pub(super) struct SourceScope<'a> {
+    pub document: &'a CadDocument,
+    pub patterns: &'a crate::mapping::line_pattern::SourcePatterns,
+    pub entities: &'a [Handle],
+}
 pub(super) fn from_cad(
-    source: &CadDocument,
-    patterns: &crate::mapping::line_pattern::SourcePatterns,
-    handles: &[Handle],
+    scope: SourceScope<'_>,
+    preservation: &mut crate::preservation::Capture,
     ids: &mut IfccadIdCounters,
     mappings: &mut IfccadMappings,
     issues: &mut Vec<IfccadDiagnostic>,
     geometry: &mut crate::geometry_context::GeometryContext,
 ) -> Result<Vec<IfccadEntity>, IfccadConversionError> {
+    let SourceScope {
+        document: source,
+        patterns,
+        entities: handles,
+    } = scope;
     let mut retained = BTreeMap::new();
     for h in handles {
         let e = source.get_entity(*h).expect("inspected entity");
+        if preservation.enabled && matches!(e, EntityType::Spline(_)) {
+            continue;
+        }
         if matches!(e, EntityType::Viewport(_)) {
             continue;
         }
@@ -139,16 +151,21 @@ pub(super) fn from_cad(
                     )));
                 }
             }
-            let Some((kind, _)) = retained.get(&boundary) else {
+            let kind = retained.get(&boundary).map(|(kind, _)| kind);
+            let opaque = preservation.enabled
+                && matches!(source.get_entity(boundary), Some(EntityType::Spline(_)));
+            if kind.is_none() && !(opaque && !view.paper_clip.enabled) {
                 issues.push(diagnostic(
                     "viewport-clip",
                     loc,
-                    "missing or unsupported clip boundary; whole viewport omitted",
+                    "missing or unsupported active clip boundary; whole viewport omitted",
                 ));
                 continue;
-            };
+            }
             if view.paper_clip.enabled
-                && validate_ifccad_viewport_boundary(&view.frame, kind).is_err()
+                && kind.is_some_and(|kind| {
+                    validate_ifccad_viewport_boundary(&view.frame, kind).is_err()
+                })
             {
                 issues.push(diagnostic("viewport-clip",loc,"active boundary is not an eligible enclosed Paper Z=0 curve; whole viewport omitted"));
                 continue;
@@ -174,14 +191,27 @@ pub(super) fn from_cad(
         retained.insert(*h, (IfccadEntityKind::Viewport(view), appearance));
     }
     let mut entities = Vec::new();
-    for h in handles {
+    for (index, h) in handles.iter().enumerate() {
+        if preservation.enabled {
+            if let Some(EntityType::Spline(s)) = source.get_entity(*h) {
+                entities.push(preservation.entity(
+                    s,
+                    index as u64,
+                    source,
+                    patterns,
+                    ids,
+                    mappings,
+                )?);
+                continue;
+            }
+        }
         if let Some((kind, appearance)) = retained.remove(h) {
             let e = source.get_entity(*h).expect("inspected entity");
             let id = ids
                 .allocate_entity_id()
                 .map_err(IfccadConversionError::IdAllocation)?;
             mappings.entities.insert(id, *h);
-            entities.push(IfccadEntity {
+            entities.push(IfccadEntity::Native(IfccadNativeEntity {
                 id,
                 kind,
                 appearance,
@@ -196,10 +226,10 @@ pub(super) fn from_cad(
                             .handle,
                     )
                     .expect("allocated layer"),
-            });
+            }));
         }
     }
-    for entity in &mut entities {
+    for entity in entities.iter_mut().filter_map(IfccadEntity::as_native_mut) {
         if let IfccadEntityKind::Viewport(view) = &mut entity.kind {
             if let Some(boundary) =
                 boundaries.get(&mappings.entities.cad_handle(entity.id).unwrap())

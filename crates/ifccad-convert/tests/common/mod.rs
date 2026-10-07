@@ -8,6 +8,7 @@ pub fn to_cad(
     ifccad_convert::ifccad_source_to_cad_document(
         source,
         ifccad_convert::IfccadToCadOptions {
+            preservation: Default::default(),
             loss_policy: ifccad_convert::IfccadLossPolicy::Reject,
             geometry_tolerance: ifccad_convert::IfccadGeometryTolerance::exact(),
         },
@@ -21,6 +22,7 @@ pub fn from_cad(
         source,
         metadata,
         ifccad_convert::CadToIfccadOptions {
+            preservation: Default::default(),
             loss_policy: ifccad_convert::IfccadLossPolicy::Reject,
             geometry_tolerance: ifccad_convert::IfccadGeometryTolerance::exact(),
         },
@@ -58,8 +60,10 @@ pub fn header() -> IfccadHeader {
 }
 pub fn empty() -> IfccadDocument {
     IfccadDocument {
+        preservation: None,
         plot_style_mode: Default::default(),
         id_counters: IfccadIdCounters {
+            next_preservation_record_id: 1,
             next_layer_id: 5,
             next_layout_id: 2,
             ..Default::default()
@@ -128,7 +132,7 @@ pub fn primitives() -> IfccadDocument {
     doc.id_counters.next_entity_id = 91;
     doc.length_unit = "cm".into();
     doc.model.entities = vec![
-        IfccadEntity {
+        IfccadEntity::Native(IfccadNativeEntity {
             line_pattern_scale: 1.,
             id: 90,
             layer_id: 4,
@@ -137,8 +141,8 @@ pub fn primitives() -> IfccadDocument {
                 start: [1., 2., 3.],
                 end: [4., 5., 6.],
             },
-        },
-        IfccadEntity {
+        }),
+        IfccadEntity::Native(IfccadNativeEntity {
             line_pattern_scale: 1.,
             id: 2,
             layer_id: 0,
@@ -158,8 +162,8 @@ pub fn primitives() -> IfccadDocument {
                     placement: placement([8., 16., 3.]),
                 }
             },
-        },
-        IfccadEntity {
+        }),
+        IfccadEntity::Native(IfccadNativeEntity {
             line_pattern_scale: 1.,
             id: 41,
             layer_id: 4,
@@ -173,7 +177,7 @@ pub fn primitives() -> IfccadDocument {
                 radius: 2.,
                 placement: placement([5., 6., 7.]),
             },
-        },
+        }),
     ];
     doc
 }
@@ -205,11 +209,11 @@ pub fn nested(base: [f64; 3]) -> IfccadDocument {
             insertion_unit: "mm".into(),
             entities: vec![
                 instance(15, 3, [0.; 3]),
-                IfccadEntity {
+                IfccadEntity::Native(IfccadNativeEntity {
                     line_pattern_scale: 1.,
                     id: 80,
-                    ..primitives().model.entities[0].clone()
-                },
+                    ..primitives().model.entities[0].as_native().unwrap().clone()
+                }),
             ],
         },
         IfccadBlockDefinition {
@@ -226,7 +230,9 @@ pub fn nested(base: [f64; 3]) -> IfccadDocument {
         instance(9007199254740993, 9, [16., 32., 0.]),
         instance(2, 9, [64., 0., 0.]),
     ];
-    let IfccadEntityKind::BlockInstance { transform, .. } = &mut d.model.entities[0].kind else {
+    let IfccadEntityKind::BlockInstance { transform, .. } =
+        &mut d.model.entities[0].as_native_mut().unwrap().kind
+    else {
         unreachable!()
     };
     transform.rotation = std::f64::consts::FRAC_PI_2;
@@ -234,7 +240,7 @@ pub fn nested(base: [f64; 3]) -> IfccadDocument {
     d
 }
 pub fn instance(id: u64, definition_id: u64, origin: [f64; 3]) -> IfccadEntity {
-    IfccadEntity {
+    IfccadEntity::Native(IfccadNativeEntity {
         line_pattern_scale: 1.,
         id,
         layer_id: 0,
@@ -247,7 +253,7 @@ pub fn instance(id: u64, definition_id: u64, origin: [f64; 3]) -> IfccadEntity {
                 scale: [2., 4., 1.],
             },
         },
-    }
+    })
 }
 
 pub fn native_viewport() -> IfccadViewport {
@@ -296,12 +302,14 @@ pub fn viewport_drawing() -> IfccadDocument {
         line_weight: IfccadMode::ByLayer,
         line_pattern: IfccadMode::ByLayer,
     };
-    let entity = |id, kind| IfccadEntity {
-        id,
-        layer_id: 0,
-        appearance: appearance.clone(),
-        line_pattern_scale: 1.,
-        kind,
+    let entity = |id, kind| {
+        IfccadEntity::Native(IfccadNativeEntity {
+            id,
+            layer_id: 0,
+            appearance: appearance.clone(),
+            line_pattern_scale: 1.,
+            kind,
+        })
     };
     d.paper_layouts.push(IfccadPaperLayout {
         settings: paper_settings(ocdraw::plot_kernel::PlotUnit::Millimetre, 1.),

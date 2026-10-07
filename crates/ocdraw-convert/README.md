@@ -167,3 +167,9 @@ layer references. Canonical one-byte-per-INSERT count framing is derived;
 unfamiliar/mismatched count storage retains loss evidence. Additional table,
 associative/count and solid-history data remain at the existing unsupported
 family boundaries. No benchmark evidence is extended by this update.
+
+The codec-specific spline byte DTO now lives in the model-independent
+[`cad-preservation`](../cad-preservation) companion. OCDraw envelopes, conditions,
+references and restoration stay in this adapter. Payload v1/v2 bytes and the
+public `OcdrawSplineSnapshotError` alias remain compatible; extraction introduces
+no codec dependency into either core and does not change the active pin.

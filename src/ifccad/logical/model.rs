@@ -17,6 +17,7 @@ pub struct IfccadHeader {
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadDocument {
     pub header: IfccadHeader,
+    pub preservation: Option<super::IfccadPreservation>,
     pub drawing_id: u64,
     /// Persistent watermarks; native reading/writing never recomputes them.
     pub id_counters: super::IfccadIdCounters,
@@ -103,8 +104,63 @@ pub struct IfccadEntityAppearance {
     pub line_weight: IfccadMode<f64>,
 }
 
+/// Ordered native or preserved drawing content; opaque data has no invented geometry.
 #[derive(Clone, Debug, PartialEq)]
-pub struct IfccadEntity {
+// Keep the existing native value inline; a new per-native heap allocation is
+// not justified by this preservation slice. Opaque values share that enum space.
+#[allow(clippy::large_enum_variant)]
+pub enum IfccadEntity {
+    Native(IfccadNativeEntity),
+    Opaque(IfccadOpaqueEntity),
+}
+impl IfccadEntity {
+    pub fn id(&self) -> u64 {
+        match self {
+            Self::Native(e) => e.id,
+            Self::Opaque(e) => e.id,
+        }
+    }
+    pub fn as_native(&self) -> Option<&IfccadNativeEntity> {
+        match self {
+            Self::Native(e) => Some(e),
+            _ => None,
+        }
+    }
+    pub fn as_native_mut(&mut self) -> Option<&mut IfccadNativeEntity> {
+        match self {
+            Self::Native(e) => Some(e),
+            _ => None,
+        }
+    }
+    pub fn as_opaque(&self) -> Option<&IfccadOpaqueEntity> {
+        match self {
+            Self::Opaque(e) => Some(e),
+            _ => None,
+        }
+    }
+    pub fn as_opaque_mut(&mut self) -> Option<&mut IfccadOpaqueEntity> {
+        match self {
+            Self::Opaque(e) => Some(e),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, Debug, PartialEq)]
+pub struct IfccadOpaqueEntity {
+    pub id: u64,
+    pub preservation_record_id: super::IfccadPreservationRecordId,
+    pub layer_id: Option<u64>,
+    pub appearance: Option<IfccadOpaqueAppearance>,
+    pub visible: bool,
+}
+#[derive(Clone, Debug, PartialEq)]
+pub struct IfccadOpaqueAppearance {
+    pub appearance: IfccadEntityAppearance,
+    pub line_pattern_scale: f64,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct IfccadNativeEntity {
     pub id: u64,
     pub layer_id: u64,
     pub appearance: IfccadEntityAppearance,

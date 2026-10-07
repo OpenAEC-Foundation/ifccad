@@ -90,7 +90,7 @@ pub(crate) fn residual<T: Serialize>(
     }
 }
 
-pub(crate) fn inspect(doc: &CadDocument) -> Result<Inspection, Error> {
+pub(crate) fn inspect(doc: &CadDocument, preserve_splines: bool) -> Result<Inspection, Error> {
     let invalid = |s: &str| Error::InvalidStructure(s.to_string());
     let models = doc
         .block_records
@@ -259,15 +259,17 @@ pub(crate) fn inspect(doc: &CadDocument) -> Result<Inspection, Error> {
             if matches!(e, EntityType::Block(_) | EntityType::BlockEnd(_)) {
                 return Err(invalid("structural marker appears in draw order"));
             }
-            if doc.layers.get(&e.common().layer).is_none() {
+            if doc.layers.get(&e.common().layer).is_none()
+                && !(preserve_splines && matches!(e, EntityType::Spline(_)))
+            {
                 return Err(invalid("entity references missing layer"));
             }
             if let Some(handle) = e.common().layer_handle.filter(|h| !h.is_null()) {
-                let layer = doc
-                    .layers
-                    .iter()
-                    .find(|layer| layer.handle == handle)
-                    .ok_or_else(|| invalid("entity has an unresolved source layer handle"))?;
+                let layer = match doc.layers.iter().find(|layer| layer.handle == handle) {
+                    Some(layer) => layer,
+                    None if preserve_splines && matches!(e, EntityType::Spline(_)) => continue,
+                    None => return Err(invalid("entity has an unresolved source layer handle")),
+                };
                 if !layer.name.eq_ignore_ascii_case(&e.common().layer) {
                     return Err(invalid("entity source layer name and handle disagree"));
                 }
@@ -405,7 +407,7 @@ pub(crate) fn inspect(doc: &CadDocument) -> Result<Inspection, Error> {
                 .collect(),
         });
     }
-    scan(doc, layout_dictionary, &mut issues)?;
+    scan(doc, layout_dictionary, preserve_splines, &mut issues)?;
     for e in doc.entities() {
         entities::validate_source(e)?;
     }
@@ -514,6 +516,7 @@ fn untouched_paper(doc: &CadDocument, layout: &opencadcodec::objects::Layout) ->
 fn scan(
     doc: &CadDocument,
     layout_dictionary: Handle,
+    preserve_splines: bool,
     issues: &mut Vec<IfccadDiagnostic>,
 ) -> Result<(), Error> {
     static DWG_DEFAULT: OnceLock<Result<CadDocument, String>> = OnceLock::new();
@@ -753,6 +756,7 @@ fn scan(
             source,
             target,
         } => {
+            if preserve_splines && kind!=SemanticRelationshipKindV1::Ownership && matches!(source,SemanticReferenceV1::Resolved(SemanticNodeV1::Entity(EntityType::Spline(_)))) { return; }
             let missing = matches!(source, SemanticReferenceV1::Unresolved)
                 || matches!(target, SemanticReferenceV1::Unresolved);
             let (source_path, source_name, owner) = relationship_source(doc, source);

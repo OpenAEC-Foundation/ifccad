@@ -1,32 +1,21 @@
-mod common_snapshot;
 mod conditions;
 mod references;
 mod report;
 mod restore;
-pub(crate) use references::{
-    bind_source_references, qualify_references, rebind_spline_references, target_exists,
-    validate_reference_condition,
-};
-mod spline_snapshot;
 pub(crate) use conditions::{
     build_spline_conditions, evaluate_spline_conditions, record_unassessed_occurrences,
     unsupported_common_context,
+};
+pub(crate) use references::{
+    bind_source_references, qualify_references, rebind_spline_references, target_exists,
+    validate_reference_condition,
 };
 pub use report::*;
 pub(crate) use restore::{report_restore, restore_spline};
 #[cfg(test)]
 mod tests;
-pub(crate) use spline_snapshot::{capture_spline, decode_spline_snapshot};
-pub(crate) const CODEC_REVISION: &str = "063c10671fe7833d562f772159771318c7a0ebb9";
-pub(crate) const LEGACY_CODEC_REVISION: &str = "fe69506cb99dea6f4c4a73b690a27fdf04403ea0";
-pub(crate) const SPLINE_PAYLOAD_VERSION: u32 = 2;
-
-#[derive(Debug, thiserror::Error)]
-pub enum OcdrawSplineSnapshotError {
-    #[error("malformed spline source snapshot: {0}")]
-    Malformed(serde_json::Error),
-    #[error("spline snapshot codec revision has not been audited")]
-    UnsupportedRevision,
-    #[error("spline snapshot source identities disagree")]
-    InconsistentIdentity,
-}
+pub use cad_preservation::CadSplineSnapshotError as OcdrawSplineSnapshotError;
+pub(crate) use cad_preservation::{
+    capture_spline, decode_spline_snapshot, CODEC_REVISION, LEGACY_CODEC_REVISION,
+    SPLINE_PAYLOAD_VERSION,
+};

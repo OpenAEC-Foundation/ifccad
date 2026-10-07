@@ -26,10 +26,11 @@ fn present(output: &mut Value, drawing: &ValidatedIfccad) {
             .cloned()
             .collect::<Vec<_>>()
     };
+    let completeness=ocdraw::ifccad::derive_ifccad_geometry_completeness(d).map(|states|states.into_iter().map(|(scope,state)|json!({"scope":format!("{scope:?}"),"complete":state!=ocdraw::ifccad::IfccadGeometryCompleteness::Unavailable,"state":format!("{state:?}")})).collect::<Vec<_>>()).unwrap_or_default();
     output["validation"] = json!({"strictAvailable":true,"status":"valid","diagnostics":[]});
     output["presentation"] = json!({"format":"ifccad","drawingId":d.drawing_id,"unit":d.length_unit,"linePatternScale":d.line_pattern_scale,
         "layers":role("ifccad::layer"),"layouts":role("ifccad::layout"),"blockDefinitions":role("ifccad::blockDefinition"),
-        "linePatterns":role("ifccad::linePattern"),"entities":role("ifccad::entity"),"graph":drawing.graph().composed_ifcx()});
+        "linePatterns":role("ifccad::linePattern"),"entities":role("ifccad::entity"),"opaqueEntities":role("ifccad::opaqueEntity"),"opaqueEntityCount":role("ifccad::opaqueEntity").len(),"preservationRecords":role("ifccad::preservationRecord"),"preservationSources":d.preservation.as_ref().map(|p|&p.sources),"boundsCompleteness":completeness,"graph":drawing.graph().composed_ifcx()});
 }
 /// Inspect the experimental IFCCAD profile after production composition/validation.
 pub fn inspect_ifccad_bytes(name: &str, bytes: &[u8]) -> Value {
@@ -98,6 +99,11 @@ pub(crate) fn inspect_cad_as_ifccad_with_options(
         &cad,
         metadata,
         ifccad_convert::CadToIfccadOptions {
+            preservation: if options.preserve_splines {
+                ifccad_convert::IfccadPreservationCapture::SupportedTyped
+            } else {
+                ifccad_convert::IfccadPreservationCapture::Disabled
+            },
             geometry_tolerance: options.ocdraw_tolerance().expect("checked options"),
             ..Default::default()
         },
@@ -114,7 +120,7 @@ pub(crate) fn inspect_cad_as_ifccad_with_options(
             return output;
         }
     };
-    output["conversion"] = json!({"format":"ifccad","diagnostics":diagnostics(converted.diagnostics()),"entityCount":converted.mappings().entities.iter().count(),"options":options.value(),"geometryAssessment":crate::geometry::assessment(converted.geometry_assessment())});
+    output["conversion"] = json!({"format":"ifccad","preservation":preservation_report(converted.preservation_report()),"diagnostics":diagnostics(converted.diagnostics()),"entityCount":converted.mappings().entities.iter().count(),"options":options.value(),"geometryAssessment":crate::geometry::assessment(converted.geometry_assessment())});
     present(&mut output, converted.validated_source());
     cad::download(&mut output, name, "ifccad", converted.encoded().bytes());
     output
@@ -164,6 +170,7 @@ pub(crate) fn export_ifccad_with_options(
             return output;
         }
     };
+    output["conversion"] = json!({"format":"ifccad","preservation":preservation_report(converted.preservation_report())});
     let issues = diagnostics(converted.diagnostics());
     let assessment = crate::geometry::assessment(converted.geometry_assessment());
     let metadata = IfccadTargetMetadata {
@@ -183,6 +190,7 @@ pub(crate) fn export_ifccad_with_options(
                 readback,
                 metadata,
                 ifccad_convert::CadToIfccadOptions {
+                    preservation: ifccad_convert::IfccadPreservationCapture::SupportedTyped,
                     geometry_tolerance: options.ocdraw_tolerance().expect("checked options"),
                     ..Default::default()
                 },
@@ -196,7 +204,7 @@ pub(crate) fn export_ifccad_with_options(
             load_ifccad_bytes(restored.encoded().bytes(), Default::default())
                 .map_err(|e| e.report().errors.join("; "))?;
             Ok(
-                json!({"cadReadback":true,"ifccadStrictReadback":true,"diagnostics":diagnostics(restored.diagnostics()),"geometryAssessment":crate::geometry::assessment(restored.geometry_assessment())}),
+                json!({"cadReadback":true,"ifccadStrictReadback":true,"opaqueEntityCount":restored.validated_source().document().preservation.as_ref().map_or(0,|p|p.records.iter().filter(|r|r.subject.is_some()).count()),"preservation":preservation_report(restored.preservation_report()),"diagnostics":diagnostics(restored.diagnostics()),"geometryAssessment":crate::geometry::assessment(restored.geometry_assessment())}),
             )
         },
     );
@@ -206,4 +214,8 @@ pub(crate) fn export_ifccad_with_options(
         output["failure"]["geometry"] = readback_geometry;
     }
     output
+}
+
+fn preservation_report(report: &ifccad_convert::IfccadPreservationReport) -> Value {
+    json!({"entries":report.entries().iter().map(|e|json!({"recordId":e.record_id.map(|id|id.0.to_string()),"entityId":e.entity_id.map(|id|id.to_string()),"sourceId":e.source_id,"sourceKey":e.source_key,"schema":e.schema,"version":e.version,"phase":e.phase,"result":e.result,"reason":e.reason,"location":e.location,"message":e.message})).collect::<Vec<_>>()})
 }

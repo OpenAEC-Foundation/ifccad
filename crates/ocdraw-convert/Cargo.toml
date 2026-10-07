@@ -7,6 +7,7 @@ license = "MPL-2.0"
 repository = "https://github.com/OpenAEC-Foundation/ifccad"
 
 [dependencies]
+cad-preservation = { path = "../cad-preservation" }
 cad-text = { path = "../cad-text" }
 cad-geometry-convert = { path = "../cad-geometry-convert" }
 serde = { version = "1.0", features = ["derive"] }

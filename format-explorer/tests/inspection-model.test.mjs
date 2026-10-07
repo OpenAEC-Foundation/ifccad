@@ -44,3 +44,13 @@ test('OCDraw typed entities preserve scope order and actual pool provenance',()=
  assert.deepEqual(model.nodes.get('entity:9007199254740993').storage,{stream:'planarPolylineStream',row:1,offset:3,count:2});
  assert.equal(model.nodes.get('entity:9007199254740993').values.geometry.vertices[0][0],5);
 });
+
+test('IFCCAD opaque rows expose preservation links and retain mixed draw order',()=>{
+ const g=structuredClone(graph),e=g.data.find(n=>n.attributes?.['ifccad::entity']);
+ e.attributes={'ifccad::opaqueEntity':{preservationRecord:'/cad/d1/preservation/r1',visible:true}};
+ g.data.push({path:'/cad/d1/preservation',children:{r1:'/cad/d1/preservation/r1'},attributes:{'ifccad::preservation':{version:1,sources:[]}}},{path:'/cad/d1/preservation/r1',attributes:{'ifccad::preservationRecord':{subject:{role:'entity',path:e.path},bindings:[],conditions:[],payload:{schema:'future',version:1,kind:'adapterSnapshot',bytes:'AA=='}}}});
+ const model=adapter.createInspection({validation:{strictAvailable:true},presentation:{format:'ifccad',graph:g}},JSON.stringify(g));
+ assert.equal(model.nodes.get(e.path).type,'opaque');assert.equal(model.nodes.get(e.path).outgoing.some(l=>l.target==='/cad/d1/preservation/r1'),true);
+ assert.equal(model.nodes.get('/cad/d1/preservation/r1').outgoing.some(l=>l.target===e.path),true);
+ assert.deepEqual(model.nodes.get('/cad/d1/layout/1').children,[e.path]);assert.equal(model.roots.includes('group:preservationRecord'),true);
+});

@@ -99,8 +99,86 @@ impl IfccadGeometryDomainAssessment {
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadGeometryAssessment {
     pub(crate) domains: Vec<IfccadGeometryDomainAssessment>,
+    pub(crate) unassessed: Vec<IfccadGeometryEntitySource>,
 }
 impl IfccadGeometryAssessment {
+    /// Accuracy evidence covers native subsets; opaque geometry stays explicitly unassessed.
+    pub fn is_complete(&self) -> bool {
+        self.unassessed.is_empty()
+    }
+    pub fn unassessed_entities(&self) -> &[IfccadGeometryEntitySource] {
+        &self.unassessed
+    }
+    pub(crate) fn with_unassessed(mut self, d: &ocdraw::ifccad::IfccadDocument) -> Self {
+        use ocdraw::ifccad::*;
+        fn walk(
+            d: &IfccadDocument,
+            owner: IfccadGeometryOwner,
+            contents: &[IfccadEntity],
+            path: &mut Vec<IfccadGeometryEntitySource>,
+            out: &mut Vec<IfccadGeometryEntitySource>,
+        ) {
+            for e in contents {
+                let identity = IfccadGeometryEntitySource::NativeEntity {
+                    owner,
+                    entity_id: e.id(),
+                };
+                if e.as_opaque().is_some() {
+                    out.push(if path.is_empty() {
+                        identity
+                    } else {
+                        IfccadGeometryEntitySource::BlockOccurrence {
+                            path: path.clone(),
+                            leaf: Box::new(identity),
+                        }
+                    });
+                } else if let Some(IfccadNativeEntity {
+                    kind: IfccadEntityKind::BlockInstance { definition_id, .. },
+                    ..
+                }) = e.as_native()
+                {
+                    if let Some(b) = d.blocks.iter().find(|b| b.id == *definition_id) {
+                        path.push(identity);
+                        walk(
+                            d,
+                            IfccadGeometryOwner::BlockDefinition(b.id),
+                            &b.entities,
+                            path,
+                            out,
+                        );
+                        path.pop();
+                    }
+                }
+            }
+        }
+        self.unassessed.clear();
+        walk(
+            d,
+            IfccadGeometryOwner::ModelLayout(d.model.id),
+            &d.model.entities,
+            &mut vec![],
+            &mut self.unassessed,
+        );
+        for p in &d.paper_layouts {
+            walk(
+                d,
+                IfccadGeometryOwner::PaperLayout(p.id),
+                &p.entities,
+                &mut vec![],
+                &mut self.unassessed,
+            );
+        }
+        for b in &d.blocks {
+            walk(
+                d,
+                IfccadGeometryOwner::BlockDefinition(b.id),
+                &b.entities,
+                &mut vec![],
+                &mut self.unassessed,
+            );
+        }
+        self
+    }
     pub fn domains(&self) -> &[IfccadGeometryDomainAssessment] {
         &self.domains
     }

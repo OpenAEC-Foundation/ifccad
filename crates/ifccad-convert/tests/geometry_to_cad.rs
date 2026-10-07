@@ -39,8 +39,8 @@ fn native_families_emit_supported_cad_geometry() {
             line_pattern_generation: IfccadLinePatternGeneration::Continuous,
         },
     ] {
-        template.id = d.id_counters.allocate_entity_id().unwrap();
-        template.kind = kind;
+        template.as_native_mut().unwrap().id = d.id_counters.allocate_entity_id().unwrap();
+        template.as_native_mut().unwrap().kind = kind;
         d.model.entities.push(template.clone());
     }
     let out = ifccad_document_to_cad_document(&d, Default::default()).unwrap();
@@ -53,7 +53,7 @@ fn native_families_emit_supported_cad_geometry() {
 fn signed_nested_scale_cannot_hide_an_amplified_residual() {
     let mut d = nested([0.; 3]);
     let inner = d.blocks.iter_mut().find(|b| b.name == "Inner").unwrap();
-    inner.entities[0].kind = IfccadEntityKind::PlanarPolyline {
+    inner.entities[0].as_native_mut().unwrap().kind = IfccadEntityKind::PlanarPolyline {
         placement: IfccadPlacement {
             origin: [1e20, 0., 0.],
             x_axis: [1., 0., 0.],
@@ -70,7 +70,9 @@ fn signed_nested_scale_cannot_hide_an_amplified_residual() {
     };
     assert!(ifccad_document_to_cad_document(&d, options).is_ok());
     for e in &mut d.model.entities {
-        if let IfccadEntityKind::BlockInstance { transform, .. } = &mut e.kind {
+        if let IfccadEntityKind::BlockInstance { transform, .. } =
+            &mut e.as_native_mut().unwrap().kind
+        {
             transform.scale = [-100.; 3];
         }
     }
@@ -85,7 +87,7 @@ fn paper_occurrences_compare_error_in_their_declared_coordinate_unit() {
     let mut d = nested([0.; 3]);
     d.model.entities.clear();
     let inner = d.blocks.iter_mut().find(|b| b.name == "Inner").unwrap();
-    inner.entities[0].kind = IfccadEntityKind::PlanarPolyline {
+    inner.entities[0].as_native_mut().unwrap().kind = IfccadEntityKind::PlanarPolyline {
         placement: IfccadPlacement {
             origin: [4398046511104., 0., 0.],
             x_axis: [1., 0., 0.],
@@ -98,8 +100,8 @@ fn paper_occurrences_compare_error_in_their_declared_coordinate_unit() {
     };
     assert!(ifccad_document_to_cad_document(&d, Default::default()).is_ok());
     let mut e = primitives().model.entities[0].clone();
-    e.id = d.id_counters.allocate_entity_id().unwrap();
-    e.kind = IfccadEntityKind::BlockInstance {
+    e.as_native_mut().unwrap().id = d.id_counters.allocate_entity_id().unwrap();
+    e.as_native_mut().unwrap().kind = IfccadEntityKind::BlockInstance {
         definition_id: 9,
         transform: IfccadBlockTransform {
             placement: IfccadPlacement {
@@ -169,6 +171,7 @@ fn source_defaults_do_not_create_foreign_loss_but_exact_bounds_projection_stays_
         let error = ifccad_source_to_cad_document(
             &source,
             IfccadToCadOptions {
+                preservation: Default::default(),
                 loss_policy,
                 geometry_tolerance: IfccadGeometryTolerance::drawing_units(1e10).unwrap(),
             },

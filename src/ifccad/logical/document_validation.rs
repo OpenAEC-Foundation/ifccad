@@ -93,8 +93,24 @@ pub(super) fn validate_document(
         .chain(document.paper_layouts.iter().flat_map(|l| &l.entities))
         .chain(document.blocks.iter().flat_map(|b| &b.entities))
     {
-        let path = format!("{prefix}/e{}", entity.id);
-        unique(&mut entities, entity.id, &path)?;
+        let path = format!("{prefix}/e{}", entity.id());
+        unique(&mut entities, entity.id(), &path)?;
+        let entity = match entity {
+            IfccadEntity::Native(e) => e,
+            IfccadEntity::Opaque(e) => {
+                if e.layer_id.is_some_and(|id| !layers.contains(&id)) {
+                    return Err(problem(format!("{path} unresolved opaque layer")));
+                }
+                if let Some(a) = &e.appearance {
+                    entity_appearance(&a.appearance, &path)?;
+                    if let IfccadMode::Explicit(id) = a.appearance.line_pattern {
+                        pattern_reference(id, &patterns, &path)?;
+                    }
+                    crate::ifccad::logical::patterns::scale(a.line_pattern_scale, &path)?;
+                }
+                continue;
+            }
+        };
         if !layers.contains(&entity.layer_id) {
             return Err(problem(format!(
                 "{path} unresolved layer {}",
@@ -145,6 +161,7 @@ pub(super) fn validate_document(
             }
         }
     }
+    super::preservation_validation::validate_preservation(document)?;
     super::viewports::validate_references(document)?;
     if cycle(&document.blocks) {
         return Err(problem("block definition cycle"));
@@ -266,6 +283,7 @@ fn cycle(blocks: &[IfccadBlockDefinition]) -> bool {
                 b.id,
                 b.entities
                     .iter()
+                    .filter_map(IfccadEntity::as_native)
                     .filter_map(|e| match e.kind {
                         IfccadEntityKind::BlockInstance { definition_id, .. } => {
                             Some(definition_id)

@@ -35,7 +35,7 @@ fn interval(d: IfccadDistanceInterval) -> Value {
     json!({"lower":d.lower(),"upper":d.upper()})
 }
 pub(crate) fn assessment(a: &IfccadGeometryAssessment) -> Value {
-    json!({"status":format!("{:?}",a.status()),"domains":a.domains().iter().map(|d|json!({
+    json!({"complete":a.is_complete(),"unassessedSources":a.unassessed_entities().iter().map(source).collect::<Vec<_>>(),"status":format!("{:?}",a.status()),"domains":a.domains().iter().map(|d|json!({
         "domain":domain(d.domain()),"coordinateMeaning":meaning(d.coordinate_meaning()),"status":format!("{:?}",d.status()),
         "requestedTolerance":format!("{:?}",d.requested_tolerance()),"resolvedTolerance":interval(d.resolved_tolerance()),
         "assessedEntities":d.assessed_entities(),"assessedVertices":d.assessed_vertices(),"roundedEntities":d.rounded_entities(),

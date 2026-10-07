@@ -69,14 +69,14 @@ fn nested_signed_occurrence_uses_paper_output_limit_under_both_policies() {
     use ocdraw::ifccad::*;
     let mut d = common::empty();
     let mut leaf = common::primitives().model.entities[1].clone();
-    leaf.id = 1;
+    leaf.as_native_mut().unwrap().id = 1;
     if let IfccadEntityKind::PlanarPolyline {
         vertices,
         bulges,
         placement,
         closed,
         ..
-    } = &mut leaf.kind
+    } = &mut leaf.as_native_mut().unwrap().kind
     {
         *vertices = vec![[0.25, 0.], [0.5, 1.]];
         *bulges = vec![0.; 2];
@@ -86,12 +86,16 @@ fn nested_signed_occurrence_uses_paper_output_limit_under_both_policies() {
         panic!("polyline fixture");
     }
     let mut inner = common::instance(2, 7, [0.; 3]);
-    if let IfccadEntityKind::BlockInstance { transform, .. } = &mut inner.kind {
+    if let IfccadEntityKind::BlockInstance { transform, .. } =
+        &mut inner.as_native_mut().unwrap().kind
+    {
         transform.rotation = 0.;
         transform.scale = [1.; 3];
     }
     let mut outer = common::instance(3, 8, [0.; 3]);
-    if let IfccadEntityKind::BlockInstance { transform, .. } = &mut outer.kind {
+    if let IfccadEntityKind::BlockInstance { transform, .. } =
+        &mut outer.as_native_mut().unwrap().kind
+    {
         transform.rotation = 0.;
         transform.scale = [-8., 2., 1.];
     }
@@ -128,6 +132,7 @@ fn nested_signed_occurrence_uses_paper_output_limit_under_both_policies() {
         let err = ifccad_document_to_cad_document(
             &d,
             IfccadToCadOptions {
+                preservation: Default::default(),
                 loss_policy,
                 geometry_tolerance: IfccadGeometryTolerance::millimetres(1.).unwrap(),
             },

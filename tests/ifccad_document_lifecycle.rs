@@ -98,9 +98,10 @@ fn extracted_document_edits_do_not_change_source_snapshot() {
         .model
         .entities
         .iter_mut()
-        .find(|e| e.id == 1)
+        .find(|e| e.id() == 1)
         .unwrap();
-    let IfccadEntityKind::LineSegment { end, .. } = &mut entity.kind else {
+    let IfccadEntityKind::LineSegment { end, .. } = &mut entity.as_native_mut().unwrap().kind
+    else {
         panic!("fixture line")
     };
     end[0] += 10.;
@@ -146,39 +147,45 @@ fn invalid_typed_documents_fail_without_encoding() {
     add("entity in different owners", |d| {
         d.blocks[0].entities.push(d.model.entities[0].clone())
     });
-    add("missing layer", |d| d.model.entities[0].layer_id = 900);
+    add("missing layer", |d| {
+        d.model.entities[0].as_native_mut().unwrap().layer_id = 900
+    });
     add("missing layer pattern", |d| {
         d.layers[0].appearance.line_pattern = IfccadLinePatternId(900)
     });
     add("missing entity pattern", |d| {
-        d.model.entities[0].appearance.line_pattern = IfccadMode::Explicit(IfccadLinePatternId(900))
+        d.model.entities[0]
+            .as_native_mut()
+            .unwrap()
+            .appearance
+            .line_pattern = IfccadMode::Explicit(IfccadLinePatternId(900))
     });
     add("missing block", |d| {
-        d.model.entities[0].kind = IfccadEntityKind::BlockInstance {
+        d.model.entities[0].as_native_mut().unwrap().kind = IfccadEntityKind::BlockInstance {
             definition_id: 900,
             transform: transform(),
         }
     });
     add("block cycle", |d| {
-        d.blocks[0].entities[0].kind = IfccadEntityKind::BlockInstance {
+        d.blocks[0].entities[0].as_native_mut().unwrap().kind = IfccadEntityKind::BlockInstance {
             definition_id: d.blocks[0].id,
             transform: transform(),
         }
     });
     add("nonfinite line", |d| {
-        d.model.entities[0].kind = IfccadEntityKind::LineSegment {
+        d.model.entities[0].as_native_mut().unwrap().kind = IfccadEntityKind::LineSegment {
             start: [f64::NAN, 0., 0.],
             end: [1., 0., 0.],
         }
     });
     add("circle radius", |d| {
-        d.model.entities[0].kind = IfccadEntityKind::Circle {
+        d.model.entities[0].as_native_mut().unwrap().kind = IfccadEntityKind::Circle {
             radius: 0.,
             placement: placement(),
         }
     });
     add("polyline vertices", |d| {
-        d.model.entities[0].kind = {
+        d.model.entities[0].as_native_mut().unwrap().kind = {
             let vertices: Vec<[f64; 2]> = vec![[0., 0.]];
             IfccadEntityKind::PlanarPolyline {
                 bulges: vec![0.; vertices.len()],
@@ -192,7 +199,7 @@ fn invalid_typed_documents_fail_without_encoding() {
     add("placement", |d| {
         let mut p = placement();
         p.y_axis = p.x_axis;
-        d.model.entities[0].kind = IfccadEntityKind::Circle {
+        d.model.entities[0].as_native_mut().unwrap().kind = IfccadEntityKind::Circle {
             radius: 2.,
             placement: p,
         };
@@ -200,7 +207,7 @@ fn invalid_typed_documents_fail_without_encoding() {
     add("block scale", |d| {
         let mut t = transform();
         t.scale[0] = 0.;
-        d.model.entities[0].kind = IfccadEntityKind::BlockInstance {
+        d.model.entities[0].as_native_mut().unwrap().kind = IfccadEntityKind::BlockInstance {
             definition_id: d.blocks[0].id,
             transform: t,
         };
@@ -208,13 +215,17 @@ fn invalid_typed_documents_fail_without_encoding() {
     add("block rotation", |d| {
         let mut t = transform();
         t.rotation = f64::INFINITY;
-        d.model.entities[0].kind = IfccadEntityKind::BlockInstance {
+        d.model.entities[0].as_native_mut().unwrap().kind = IfccadEntityKind::BlockInstance {
             definition_id: d.blocks[0].id,
             transform: t,
         };
     });
     add("entity appearance", |d| {
-        d.model.entities[0].appearance.opacity = IfccadMode::Explicit(2.)
+        d.model.entities[0]
+            .as_native_mut()
+            .unwrap()
+            .appearance
+            .opacity = IfccadMode::Explicit(2.)
     });
     add("layer appearance", |d| {
         d.layers[0].appearance.color = "red".into()
@@ -238,7 +249,10 @@ fn invalid_typed_documents_fail_without_encoding() {
     add("watermark", |d| d.id_counters.next_entity_id = 0);
     add("drawing pattern scale", |d| d.line_pattern_scale = 0.);
     add("entity pattern scale", |d| {
-        d.model.entities[0].line_pattern_scale = f64::NAN
+        d.model.entities[0]
+            .as_native_mut()
+            .unwrap()
+            .line_pattern_scale = f64::NAN
     });
     add("pattern definition", |d| {
         d.line_patterns[0].pattern = vec![f64::INFINITY]
@@ -280,7 +294,8 @@ fn typed_document_encoding_keeps_history_and_supported_semantics() {
             .unwrap()
             .into_document();
         document.id_counters.next_entity_id = 9007199254740993;
-        document.model.entities[0].id = document.id_counters.allocate_entity_id().unwrap();
+        document.model.entities[0].as_native_mut().unwrap().id =
+            document.id_counters.allocate_entity_id().unwrap();
         document.model.entities.reverse();
         document.layers[0].name = "Renamed".into();
         validate_ifccad_document(&document).unwrap();

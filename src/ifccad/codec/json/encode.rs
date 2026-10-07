@@ -42,6 +42,22 @@ fn attrs(value: Value) -> Map<String, Value> {
 
 fn entity_node(entity: &IfccadEntity, prefix: &str) -> NodeOut {
     let mut attrs = Map::new();
+    if let IfccadEntity::Opaque(e) = entity {
+        let mut value = json!({"preservationRecord":format!("{prefix}/preservation/r{}",e.preservation_record_id.0), "visible":e.visible});
+        if let Some(id) = e.layer_id {
+            value["nativeLayer"] = json!(format!("{prefix}/layer/{id}"));
+        }
+        if let Some(a) = &e.appearance {
+            value["nativeAppearance"] = json!({"appearance":super::wire::entity(&a.appearance,prefix),"linePatternScale":a.line_pattern_scale});
+        }
+        attrs.insert("ifccad::opaqueEntity".into(), value);
+        return NodeOut {
+            path: format!("{prefix}/e{}", e.id),
+            children: None,
+            attributes: attrs,
+        };
+    }
+    let entity = entity.as_native().expect("native branch");
     attrs.insert("ifccad::entity".into(), json!({"layer":format!("{prefix}/layer/{}",entity.layer_id),"appearance":super::wire::entity(&entity.appearance,prefix),"linePatternScale":entity.line_pattern_scale}));
     match &entity.kind {
         IfccadEntityKind::Viewport(viewport) => {
@@ -71,7 +87,7 @@ fn numbered_children(entities: &[IfccadEntity], prefix: &str) -> Map<String, Val
     entities
         .iter()
         .enumerate()
-        .map(|(i, e)| (i.to_string(), json!(format!("{prefix}/e{}", e.id))))
+        .map(|(i, e)| (i.to_string(), json!(format!("{prefix}/e{}", e.id()))))
         .collect()
 }
 
@@ -126,8 +142,40 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
             "nextLinePatternId":document.id_counters.next_line_pattern_id,
         }})),
     });
+    if document.preservation.is_some() || document.id_counters.next_preservation_record_id != 1 {
+        data.last_mut().unwrap().attributes["ifccad::drawing"]["nextPreservationRecordId"] =
+            json!(document.id_counters.next_preservation_record_id);
+    }
     if document.plot_style_mode == IfccadPlotStyleMode::Named {
         data.last_mut().unwrap().attributes["ifccad::drawing"]["plotStyleMode"] = json!("named");
+    }
+    if let Some(p) = &document.preservation {
+        data[0].children.as_mut().unwrap().insert(
+            "preservation".into(),
+            json!(format!("{prefix}/preservation")),
+        );
+        let mut records: Vec<_> = p.records.iter().collect();
+        records.sort_by_key(|r| r.id.0);
+        data.push(NodeOut {
+            path: format!("{prefix}/preservation"),
+            children: Some(
+                records
+                    .iter()
+                    .map(|r| {
+                        (
+                            format!("r{}", r.id.0),
+                            json!(format!("{prefix}/preservation/r{}", r.id.0)),
+                        )
+                    })
+                    .collect(),
+            ),
+            attributes: attrs(
+                json!({"ifccad::preservation":{"version":p.version,"sources":p.sources}}),
+            ),
+        });
+        for r in records {
+            data.push(NodeOut {path:format!("{prefix}/preservation/r{}",r.id.0),children:None,attributes:attrs(json!({"ifccad::preservationRecord":super::preservation::encode_record(r,&prefix)}))});
+        }
     }
     data.push(NodeOut {
         path: format!("{prefix}/layout/{}", document.model.id),

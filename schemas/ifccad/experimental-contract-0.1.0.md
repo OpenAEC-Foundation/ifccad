@@ -240,3 +240,59 @@ all bounds. Failure changes no field. Native loading/encoding preserves valid
 supplied bounds without recomputation. Transform evaluation for supplied-bounds
 validation does not normalize or rewrite transforms. Owner identity domains
 remain distinct: a layout and a block may have the same numeric ID.
+
+## Opaque source preservation
+
+A drawing may have a child `preservation` pointing to `/cad/dN/preservation`, with
+an `ifccad::preservation` object containing envelope `version: 1` and a required
+`sources` array. Source context IDs are unique nonempty strings; provider/revision
+are nonempty, origin is cadDocument/dwg/dxf and optional sourceVersion is omitted
+when unavailable. Collection children `rN` point to `/cad/dN/preservation/rN`.
+Record IDs form an independent positive uint64 domain, derived solely from paths.
+The optional drawing `nextPreservationRecordId` is required whenever a collection
+exists; without a collection it is omitted only at the untouched default 1.
+Present watermarks must be positive and exceed every record ID; reservations and
+deletions persist. Native-only input without this domain remains readable,
+including the prior inline drawing schema lacking only this optional field.
+
+A record has sourceId/sourceKey, category (entity/object/table/drawing/layout/shared),
+role (complete/supplement/shared), representation (codecTyped/codecOpaque), optional
+subject, dependencyCoverage (qualified/conservative/unknown), required bindings
+and conditions arrays, and payload {schema,version,kind,bytes}. Bindings contain
+slot/sourceKey/target; conditions contain target/predicate/version/baseline.
+Targets contain only role/path. Roles drawing/entity/layer/linePattern/layout/
+blockDefinition/record must match a canonical same-drawing complete path in that
+identity domain. Layout/block IDs may coincide but their roles/paths cannot alias.
+Payload/baseline bytes use canonical padded standard Base64. Positive payload and
+predicate versions and nonempty schemas/predicates are required. Optional fields
+are omitted; explicit null does not represent absence. Unknown core fields fail.
+Unknown provider schemas and predicates remain byte-transportable.
+
+An ordered drawable `/cad/dN/eN` is either native or has only
+`ifccad::opaqueEntity` among CAD attributes. That opaque attribute has required
+preservationRecord (full record path) and visible (Boolean), with optional
+nativeLayer (full layer path) and nativeAppearance {appearance,linePatternScale}.
+Present common values obey native constraints; absent values remain unavailable.
+No native entity/kind/placement attribute may coexist. Its record must be a
+complete entity record with the exact matching live entity subject. Detached
+archives explicitly clear subject and have no draw-order position/export obligation.
+Bindings and conditions are soft dependencies, so missing targets and record cycles
+remain storage-valid; labeling coverage qualified does not grant restoration.
+
+Composition merges node attribute keys. LaterWins replaces an entire repeated
+opaqueEntity/preservationRecord value; RejectConflicts refuses differing values.
+No recursive payload/baseline merge is allowed. Validate the final composed
+projection and all hard opaque/subject/common links. The immutable original source
+graph remains distinct from fresh logical encoding.
+
+Opaque geometry makes complete bounds unavailable in its direct owner and every
+reachable instance owner, including unused definitions. Those bounds must be absent;
+Empty and Unavailable differ, so an opaque-only block cannot use an empty-origin
+fallback. Native validation and transactional bounds preparation remain active.
+Opaque clip references require dormant state, same Paper ownership and exclusive
+use; active boundaries need supported native geometry.
+
+The initial IFCCAD adapter qualifies only typed SPLINE snapshots. Capture, restoration
+and physical CAD exchange are separately reported; no native spline evaluator or
+exact original-storage replay is claimed. See `docs/preservation.md` for predicates,
+coordinate meaning, source namespace rebinding and current pinned target restrictions.

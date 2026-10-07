@@ -40,7 +40,7 @@ impl ConversionOptions {
         }
     }
     pub(crate) fn value(&self) -> Value {
-        json!({"tolerance":match &self.tolerance{Tolerance::Default=>json!({"mode":"default"}),Tolerance::Exact=>json!({"mode":"exact"}),Tolerance::Custom{value,unit}=>json!({"mode":"custom","value":value,"unit":unit})}})
+        json!({"preserveSplines":self.preserve_splines,"tolerance":match &self.tolerance{Tolerance::Default=>json!({"mode":"default"}),Tolerance::Exact=>json!({"mode":"exact"}),Tolerance::Custom{value,unit}=>json!({"mode":"custom","value":value,"unit":unit})}})
     }
 }
 pub(crate) fn geometry(value: &OcdrawGeometryAssessment) -> Value {

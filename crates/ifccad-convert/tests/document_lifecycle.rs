@@ -108,8 +108,11 @@ fn invalid_direct_document_never_reaches_cad_construction() {
         for change in 0..3 {
             let mut document = primitives();
             match change {
-                0 => document.model.entities[0].layer_id = 900,
-                1 => document.model.entities[0].kind = instance(0, 900, [0.; 3]).kind,
+                0 => document.model.entities[0].as_native_mut().unwrap().layer_id = 900,
+                1 => {
+                    document.model.entities[0].as_native_mut().unwrap().kind =
+                        instance(0, 900, [0.; 3]).as_native().unwrap().kind.clone()
+                }
                 _ => document
                     .model
                     .entities

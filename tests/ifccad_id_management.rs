@@ -30,9 +30,10 @@ fn graph() -> Value {
         .chain(document.blocks.iter_mut().flat_map(|b| &mut b.entities))
         .zip([42, 7, 90, 9, 91, 201, 202, 203, 100, 101, 102])
     {
-        entity.id = id;
+        entity.as_native_mut().unwrap().id = id;
     }
     document.id_counters = IfccadIdCounters {
+        next_preservation_record_id: 1,
         next_entity_id: 1000,
         next_layer_id: 100,
         next_layout_id: 100,
@@ -180,9 +181,11 @@ fn delete_save_reopen_allocate_never_reuses_entity_id() {
     let template = document.model.entities[0].clone();
     document.model.entities = [1, 3, 4]
         .into_iter()
-        .map(|id| IfccadEntity {
-            id,
-            ..template.clone()
+        .map(|id| {
+            IfccadEntity::Native(IfccadNativeEntity {
+                id,
+                ..template.as_native().unwrap().clone()
+            })
         })
         .collect();
     document.paper_layouts.clear();
@@ -193,7 +196,13 @@ fn delete_save_reopen_allocate_never_reuses_entity_id() {
     assert_eq!(loaded.id_counters.next_entity_id, 5);
     let id = loaded.id_counters.allocate_entity_id().unwrap();
     assert_eq!(id, 5);
-    loaded.model.entities.push(IfccadEntity { id, ..template });
+    loaded
+        .model
+        .entities
+        .push(IfccadEntity::Native(IfccadNativeEntity {
+            id,
+            ..template.as_native().unwrap().clone()
+        }));
     let loaded = reopen(&loaded);
     assert_eq!(loaded.id_counters.next_entity_id, 6);
     assert_eq!(
@@ -201,7 +210,7 @@ fn delete_save_reopen_allocate_never_reuses_entity_id() {
             .model
             .entities
             .iter()
-            .map(|entity| entity.id)
+            .map(|entity| entity.id())
             .collect::<Vec<_>>(),
         [1, 3, 5]
     );
@@ -294,27 +303,32 @@ fn reorder_move_copy_and_rename_preserve_identity() {
     let counters = document.id_counters;
     document.model.entities.reverse();
     let mut moved = document.model.entities.pop().unwrap();
-    let id = moved.id;
-    moved.layer_id = document.layers[1].id;
-    moved.appearance.color = IfccadMode::Explicit("#123456".into());
-    let IfccadEntityKind::LineSegment { end, .. } = &mut moved.kind else {
+    let id = moved.id();
+    moved.as_native_mut().unwrap().layer_id = document.layers[1].id;
+    moved.as_native_mut().unwrap().appearance.color = IfccadMode::Explicit("#123456".into());
+    let IfccadEntityKind::LineSegment { end, .. } = &mut moved.as_native_mut().unwrap().kind else {
         panic!("line fixture")
     };
     *end = [60., 1., 0.];
     document.blocks[0].entities.push(moved.clone());
     let mut document = reopen(&document);
     assert_eq!(document.id_counters, counters);
-    document.blocks[0].entities.retain(|entity| entity.id != id);
+    document.blocks[0]
+        .entities
+        .retain(|entity| entity.id() != id);
     document.paper_layouts[0].entities.push(moved.clone());
     document.layers[1].name = "Renamed layer".into();
     document.blocks[0].name = "Renamed block".into();
     document.header.id = "saved-under-another-name".into();
     let copy_id = document.id_counters.allocate_entity_id().unwrap();
     assert_eq!(copy_id, 1000);
-    document.model.entities.push(IfccadEntity {
-        id: copy_id,
-        ..moved.clone()
-    });
+    document
+        .model
+        .entities
+        .push(IfccadEntity::Native(IfccadNativeEntity {
+            id: copy_id,
+            ..moved.as_native().unwrap().clone()
+        }));
     let bytes = encode_ifccad_document(&document).unwrap();
     let loaded = load_ifccad_bytes(bytes.bytes(), Default::default()).unwrap();
     assert_eq!(
@@ -327,7 +341,7 @@ fn reorder_move_copy_and_rename_preserve_identity() {
         .unwrap()
         .iter()
         .any(|node| node["path"] == format!("/cad/d1/e{id}")));
-    assert_eq!(loaded.document().model.entities.last().unwrap().id, 1000);
+    assert_eq!(loaded.document().model.entities.last().unwrap().id(), 1000);
 }
 
 #[test]
@@ -335,6 +349,7 @@ fn wire_roundtrip_preserves_full_width_counters_and_rejects_maximum_ids() {
     for next in [9_007_199_254_740_993, 9_223_372_036_854_775_809, u64::MAX] {
         let mut document = read(&graph()).unwrap().document().clone();
         document.id_counters = IfccadIdCounters {
+            next_preservation_record_id: 1,
             next_entity_id: next,
             next_layer_id: next,
             next_layout_id: next,
@@ -354,11 +369,11 @@ fn wire_roundtrip_preserves_full_width_counters_and_rejects_maximum_ids() {
         );
     }
     let mut document = read(&graph()).unwrap().document().clone();
-    document.model.entities[0].id = u64::MAX;
+    document.model.entities[0].as_native_mut().unwrap().id = u64::MAX;
     document.id_counters.next_entity_id = u64::MAX;
     assert!(encode_ifccad_document(&document).is_err());
-    document.model.entities[0].id = u64::MAX - 1;
-    assert_eq!(reopen(&document).model.entities[0].id, u64::MAX - 1);
+    document.model.entities[0].as_native_mut().unwrap().id = u64::MAX - 1;
+    assert_eq!(reopen(&document).model.entities[0].id(), u64::MAX - 1);
 }
 
 #[test]

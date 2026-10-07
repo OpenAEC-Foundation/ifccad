@@ -21,13 +21,20 @@ fn patterns() -> IfccadDocument {
         },
     ]);
     d.layers[0].appearance.line_pattern = IfccadLinePatternId(7);
-    d.model.entities[0].appearance.line_pattern = IfccadMode::Explicit(IfccadLinePatternId(7));
+    d.model.entities[0]
+        .as_native_mut()
+        .unwrap()
+        .appearance
+        .line_pattern = IfccadMode::Explicit(IfccadLinePatternId(7));
     d.line_pattern_scale = 2.;
-    d.model.entities[0].line_pattern_scale = 0.5;
+    d.model.entities[0]
+        .as_native_mut()
+        .unwrap()
+        .line_pattern_scale = 0.5;
     let IfccadEntityKind::PlanarPolyline {
         line_pattern_generation,
         ..
-    } = &mut d.model.entities[1].kind
+    } = &mut d.model.entities[1].as_native_mut().unwrap().kind
     else {
         panic!()
     };
@@ -74,11 +81,17 @@ fn ordinary_patterns_scales_and_generation_convert_without_losses() {
         .any(|p| p.name == "UnusedSolid" && p.pattern.is_empty()));
     assert_eq!(back.validated_source().document().line_pattern_scale, 2.);
     assert_eq!(
-        back.validated_source().document().model.entities[0].line_pattern_scale,
+        back.validated_source().document().model.entities[0]
+            .as_native()
+            .unwrap()
+            .line_pattern_scale,
         0.5
     );
     assert!(matches!(
-        back.validated_source().document().model.entities[1].kind,
+        back.validated_source().document().model.entities[1]
+            .as_native()
+            .unwrap()
+            .kind,
         IfccadEntityKind::PlanarPolyline {
             line_pattern_generation: IfccadLinePatternGeneration::Continuous,
             ..
@@ -213,9 +226,12 @@ fn simple_and_named_empty_patterns_survive_real_dxf_and_dwg() {
             .pattern
             .is_empty());
         assert_eq!(d.line_pattern_scale, 2.);
-        assert_eq!(d.model.entities[0].line_pattern_scale, 0.5);
+        assert_eq!(
+            d.model.entities[0].as_native().unwrap().line_pattern_scale,
+            0.5
+        );
         assert!(matches!(
-            d.model.entities[1].kind,
+            d.model.entities[1].as_native().unwrap().kind,
             IfccadEntityKind::PlanarPolyline {
                 line_pattern_generation: IfccadLinePatternGeneration::Continuous,
                 ..
@@ -373,13 +389,23 @@ fn shared_nested_definitions_keep_pattern_modes_per_occurrence() {
     d.line_patterns = patterns().line_patterns;
     d.id_counters.next_line_pattern_id = 9;
     d.layers[0].appearance.line_pattern = IfccadLinePatternId(7);
-    d.model.entities[0].appearance.line_pattern = IfccadMode::Explicit(IfccadLinePatternId(7));
-    d.model.entities[1].appearance.line_pattern = IfccadMode::Explicit(IfccadLinePatternId(8));
+    d.model.entities[0]
+        .as_native_mut()
+        .unwrap()
+        .appearance
+        .line_pattern = IfccadMode::Explicit(IfccadLinePatternId(7));
+    d.model.entities[1]
+        .as_native_mut()
+        .unwrap()
+        .appearance
+        .line_pattern = IfccadMode::Explicit(IfccadLinePatternId(8));
     d.blocks
         .iter_mut()
         .find(|b| b.name == "Inner")
         .unwrap()
         .entities[0]
+        .as_native_mut()
+        .unwrap()
         .appearance
         .line_pattern = IfccadMode::ByBlock;
     d.blocks
@@ -387,13 +413,19 @@ fn shared_nested_definitions_keep_pattern_modes_per_occurrence() {
         .find(|b| b.name == "Outer")
         .unwrap()
         .entities[0]
+        .as_native_mut()
+        .unwrap()
         .appearance
         .line_pattern = IfccadMode::ByLayer;
     let c = to_cad(&validated(&d)).unwrap();
     let back = from_cad(c.document(), metadata()).unwrap();
     let restored = back.validated_source().document();
     for (index, name) in ["EigenStreepPunt", "UnusedSolid"].into_iter().enumerate() {
-        let IfccadMode::Explicit(id) = restored.model.entities[index].appearance.line_pattern
+        let IfccadMode::Explicit(id) = restored.model.entities[index]
+            .as_native()
+            .unwrap()
+            .appearance
+            .line_pattern
         else {
             panic!()
         };
@@ -414,6 +446,8 @@ fn shared_nested_definitions_keep_pattern_modes_per_occurrence() {
             .find(|b| b.name == "Inner")
             .unwrap()
             .entities[0]
+            .as_native()
+            .unwrap()
             .appearance
             .line_pattern,
         IfccadMode::ByBlock
@@ -425,6 +459,8 @@ fn shared_nested_definitions_keep_pattern_modes_per_occurrence() {
             .find(|b| b.name == "Outer")
             .unwrap()
             .entities[0]
+            .as_native()
+            .unwrap()
             .appearance
             .line_pattern,
         IfccadMode::ByLayer

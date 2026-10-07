@@ -36,6 +36,9 @@ pub fn semantic(d: &IfccadDocument) -> Result<Value> {
         .iter()
         .chain(d.blocks.iter().flat_map(|b| &b.entities))
     {
+        let e = e
+            .as_native()
+            .ok_or("opaque content outside comparison contract")?;
         if !matches!(
             &e.kind,
             IfccadEntityKind::LineSegment { .. }
@@ -60,6 +63,7 @@ pub fn semantic(d: &IfccadDocument) -> Result<Value> {
     };
     let entities = |values: &[IfccadEntity]| {
         values.iter().map(|e| {
+            let e=e.as_native().expect("checked comparison profile");
             let layer = &d.layers.iter().find(|l| l.id == e.layer_id).unwrap().name;
             let geometry = match &e.kind {
                 IfccadEntityKind::Viewport(_) => unreachable!("validated viewports belong to paper layouts, which this comparison rejects"),
@@ -164,6 +168,7 @@ mod tests {
             .iter_mut()
             .chain(b.blocks.iter_mut().flat_map(|b| &mut b.entities))
         {
+            let entity = entity.as_native_mut().unwrap();
             entity.id += 100;
             entity.layer_id += 100;
             if let IfccadMode::Explicit(id) = &mut entity.appearance.line_pattern {
@@ -191,7 +196,8 @@ mod tests {
         ocdraw::ifccad::recompute_ifccad_document_bounds(&mut b).unwrap();
         assert_ne!(semantic(&a).unwrap(), semantic(&b).unwrap());
         b = a.clone();
-        if let IfccadEntityKind::BlockInstance { definition_id, .. } = &mut b.model.entities[0].kind
+        if let IfccadEntityKind::BlockInstance { definition_id, .. } =
+            &mut b.model.entities[0].as_native_mut().unwrap().kind
         {
             *definition_id = b.blocks[0].id;
         }

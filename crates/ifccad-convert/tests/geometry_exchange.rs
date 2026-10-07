@@ -104,8 +104,8 @@ fn expanded_families_exchange_through_actual_dxf_and_dwg_readers() {
     ];
     for kind in kinds {
         let mut e = template.clone();
-        e.id = d.id_counters.allocate_entity_id().unwrap();
-        e.kind = kind;
+        e.as_native_mut().unwrap().id = d.id_counters.allocate_entity_id().unwrap();
+        e.as_native_mut().unwrap().kind = kind;
         d.model.entities.push(e);
     }
     let cad = ifccad_document_to_cad_document(&d, Default::default()).unwrap();
@@ -117,15 +117,24 @@ fn expanded_families_exchange_through_actual_dxf_and_dwg_readers() {
         assert_eq!(actual.model.entities.len(), d.model.entities.len());
         for (expected, actual) in d.model.entities.iter().zip(&actual.model.entities) {
             assert_eq!(
-                std::mem::discriminant(&expected.kind),
-                std::mem::discriminant(&actual.kind)
+                std::mem::discriminant(&expected.as_native().unwrap().kind),
+                std::mem::discriminant(&actual.as_native().unwrap().kind)
             );
-            bounds_equal(&expected.kind, &actual.kind);
-            match (&expected.kind, &actual.kind) {
+            bounds_equal(
+                &expected.as_native().unwrap().kind,
+                &actual.as_native().unwrap().kind,
+            );
+            match (
+                &expected.as_native().unwrap().kind,
+                &actual.as_native().unwrap().kind,
+            ) {
                 (
                     IfccadEntityKind::PlanarPolyline { .. },
                     IfccadEntityKind::PlanarPolyline { .. },
-                ) => path_equal(&expected.kind, &actual.kind),
+                ) => path_equal(
+                    &expected.as_native().unwrap().kind,
+                    &actual.as_native().unwrap().kind,
+                ),
                 (
                     IfccadEntityKind::SpatialPolyline {
                         vertices: a,
@@ -157,7 +166,7 @@ fn ellipse_and_bulged_clip_identity_survives_real_file_exchange() {
     for bulged in [false, true] {
         let mut d = common::viewport_drawing();
         let frame = common::placement([100., 75., 0.]);
-        d.paper_layouts[0].entities[2].kind = if bulged {
+        d.paper_layouts[0].entities[2].as_native_mut().unwrap().kind = if bulged {
             IfccadEntityKind::PlanarPolyline {
                 placement: frame,
                 vertices: vec![[-50., 0.], [50., 0.]],
@@ -183,7 +192,7 @@ fn ellipse_and_bulged_clip_identity_survives_real_file_exchange() {
                 .entities
                 .iter()
                 .find_map(|e| {
-                    if let IfccadEntityKind::Viewport(v) = &e.kind {
+                    if let IfccadEntityKind::Viewport(v) = &e.as_native().unwrap().kind {
                         Some(v)
                     } else {
                         None
@@ -194,13 +203,19 @@ fn ellipse_and_bulged_clip_identity_survives_real_file_exchange() {
             let boundary = paper
                 .entities
                 .iter()
-                .find(|e| Some(e.id) == v.paper_clip.boundary_entity_id)
+                .find(|e| Some(e.id()) == v.paper_clip.boundary_entity_id)
                 .unwrap();
-            bounds_equal(&d.paper_layouts[0].entities[2].kind, &boundary.kind);
-            path_equal(&d.paper_layouts[0].entities[2].kind, &boundary.kind);
+            bounds_equal(
+                &d.paper_layouts[0].entities[2].as_native().unwrap().kind,
+                &boundary.as_native().unwrap().kind,
+            );
+            path_equal(
+                &d.paper_layouts[0].entities[2].as_native().unwrap().kind,
+                &boundary.as_native().unwrap().kind,
+            );
             assert_eq!(
-                std::mem::discriminant(&boundary.kind),
-                std::mem::discriminant(&d.paper_layouts[0].entities[2].kind)
+                std::mem::discriminant(&boundary.as_native().unwrap().kind),
+                std::mem::discriminant(&d.paper_layouts[0].entities[2].as_native().unwrap().kind)
             );
         }
     }
@@ -241,14 +256,16 @@ fn classic_and_generic_polyline_sources_use_the_same_native_geometry() {
             vertices,
             placement,
             ..
-        } = &entities[0].kind
+        } = &entities[0].as_native().unwrap().kind
         else {
             panic!("classic planar family")
         };
         assert_eq!(bulges, &[1., 7.]);
         assert_eq!(vertices, &[[-1., 0.], [1., 0.]]);
         assert_eq!(placement.origin[2], 7.);
-        let IfccadEntityKind::SpatialPolyline { vertices, .. } = &entities[1].kind else {
+        let IfccadEntityKind::SpatialPolyline { vertices, .. } =
+            &entities[1].as_native().unwrap().kind
+        else {
             panic!("spatial family")
         };
         assert_eq!(vertices, &[[0.; 3], [1., 2., 3.]]);

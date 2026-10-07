@@ -5,17 +5,18 @@ use std::collections::BTreeMap;
 
 pub(super) fn to_cad(
     drawing: &IfccadDocument,
+    restore: crate::IfccadPreservationRestore,
     document: &mut CadDocument,
     owners: &[(Handle, &[IfccadEntity])],
     mappings: &mut IfccadMappings,
     issues: &mut Vec<IfccadDiagnostic>,
     geometry: &mut crate::geometry_context::GeometryContext,
-) -> Result<(), IfccadConversionError> {
+) -> Result<crate::IfccadPreservationReport, IfccadConversionError> {
     fn common(
         drawing: &IfccadDocument,
         document: &CadDocument,
         mappings: &IfccadMappings,
-        e: &IfccadEntity,
+        e: &IfccadNativeEntity,
         issues: &mut Vec<IfccadDiagnostic>,
     ) -> opencadcodec::entities::EntityCommon {
         let loc = format!("entity/{}", e.id);
@@ -35,6 +36,7 @@ pub(super) fn to_cad(
         common.linetype_scale = e.line_pattern_scale;
         common
     }
+    let mut report = crate::IfccadPreservationReport::default();
     let mut retained = BTreeMap::new();
     for (owner, entities) in owners {
         let native_owner = if *owner == document.header.model_space_block_handle {
@@ -61,6 +63,92 @@ pub(super) fn to_cad(
         };
         geometry.select(native_owner);
         for e in *entities {
+            if let Some(opaque) = e.as_opaque() {
+                let record = drawing
+                    .preservation
+                    .as_ref()
+                    .unwrap()
+                    .records
+                    .iter()
+                    .find(|r| r.id == opaque.preservation_record_id)
+                    .unwrap();
+                let prepared = if restore == crate::IfccadPreservationRestore::Skip {
+                    Err(crate::IfccadPreservationReason::UnsupportedContext)
+                } else {
+                    crate::preservation::restore_spline(record, opaque, drawing)
+                };
+                match prepared {
+                    Ok(mut spline) => {
+                        if let Some(id) = opaque.layer_id {
+                            spline.common.layer = drawing
+                                .layers
+                                .iter()
+                                .find(|l| l.id == id)
+                                .unwrap()
+                                .name
+                                .clone();
+                            spline.common.layer_handle = mappings.layers.cad_handle(id);
+                        }
+                        if let Some(a) = &opaque.appearance {
+                            let pattern = if let IfccadMode::Explicit(id) =
+                                a.appearance.line_pattern
+                            {
+                                Some(crate::mapping::line_pattern::target(document, mappings, id))
+                            } else {
+                                None
+                            };
+                            let c = crate::mapping::appearance::to_common(
+                                &a.appearance,
+                                pattern,
+                                &spline.common.layer,
+                                &format!("entity/{}", opaque.id),
+                                issues,
+                            );
+                            spline.common.color = c.color;
+                            spline.common.transparency = c.transparency;
+                            spline.common.line_weight = c.line_weight;
+                            spline.common.linetype = c.linetype;
+                            spline.common.linetype_handle = c.linetype_handle;
+                            spline.common.linetype_scale = a.line_pattern_scale;
+                        }
+                        spline.common.invisible = !opaque.visible;
+                        spline.common.owner_handle = *owner;
+                        spline.common.entity_mode =
+                            Some(if *owner == document.header.model_space_block_handle {
+                                2
+                            } else if document
+                                .block_records
+                                .iter()
+                                .any(|b| b.handle == *owner && b.is_paper_space())
+                            {
+                                1
+                            } else {
+                                0
+                            });
+                        spline.common.raw_record = None;
+                        let handle = document.allocate_handle();
+                        spline.common.handle = handle;
+                        mappings.entities.insert(opaque.id, handle);
+                        retained.insert(opaque.id, EntityType::Spline(spline));
+                    }
+                    Err(reason) => {
+                        crate::preservation::report_restore(
+                            &mut report,
+                            drawing,
+                            record,
+                            Some(opaque.id),
+                            Some(reason),
+                        );
+                        issues.push(diagnostic(
+                            "preservation-not-restored",
+                            format!("entity/{}", opaque.id),
+                            format!("opaque SPLINE omitted: {reason:?}"),
+                        ));
+                    }
+                }
+                continue;
+            }
+            let e = e.as_native().expect("native branch");
             if matches!(e.kind, IfccadEntityKind::Viewport(_)) {
                 continue;
             }
@@ -142,7 +230,7 @@ pub(super) fn to_cad(
     }
     for (owner, entities) in owners {
         let mut authored_index = 0usize;
-        for e in *entities {
+        for e in entities.iter().filter_map(IfccadEntity::as_native) {
             let IfccadEntityKind::Viewport(v) = &e.kind else {
                 continue;
             };
@@ -185,14 +273,111 @@ pub(super) fn to_cad(
             mappings.entities.insert(e.id, handle);
         }
     }
+    // All native and eligible opaque handles now exist, including forward
+    // references. Remove failed dependencies before emitting any ordered entity.
+    loop {
+        let mut removed = Vec::new();
+        for (_, entities) in owners {
+            for opaque in entities.iter().filter_map(IfccadEntity::as_opaque) {
+                let Some(EntityType::Spline(spline)) = retained.get(&opaque.id) else {
+                    continue;
+                };
+                let record = drawing
+                    .preservation
+                    .as_ref()
+                    .unwrap()
+                    .records
+                    .iter()
+                    .find(|r| r.id == opaque.preservation_record_id)
+                    .unwrap();
+                let mut spline = spline.clone();
+                match crate::preservation::references::rebind_spline_references(
+                    &mut spline,
+                    record,
+                    opaque,
+                    drawing,
+                    document,
+                    mappings,
+                ) {
+                    Ok(()) => {
+                        spline.common.layer_handle =
+                            document.layers.get(&spline.common.layer).map(|l| l.handle);
+                        retained.insert(opaque.id, EntityType::Spline(spline));
+                    }
+                    Err(reason) => removed.push((opaque.id, record, reason)),
+                }
+            }
+        }
+        let mut changed = !removed.is_empty();
+        for (id, record, reason) in removed {
+            retained.remove(&id);
+            mappings.entities.remove(id);
+            crate::preservation::report_restore(
+                &mut report,
+                drawing,
+                record,
+                Some(id),
+                Some(reason),
+            );
+            issues.push(diagnostic(
+                "preservation-not-restored",
+                format!("entity/{id}"),
+                format!("required constructed reference unavailable: {reason:?}"),
+            ));
+        }
+        for (_, entities) in owners {
+            for e in entities.iter().filter_map(IfccadEntity::as_native) {
+                if let IfccadEntityKind::Viewport(v) = &e.kind {
+                    if retained.contains_key(&e.id)
+                        && v.paper_clip
+                            .boundary_entity_id
+                            .is_some_and(|id| mappings.entities.cad_handle(id).is_none())
+                    {
+                        retained.remove(&e.id);
+                        mappings.entities.remove(e.id);
+                        changed = true;
+                        issues.push(diagnostic(
+                            "viewport-clip",
+                            format!("entity/{}", e.id),
+                            "boundary failed restoration; dependent viewport omitted",
+                        ));
+                    }
+                }
+            }
+        }
+        if !changed {
+            break;
+        }
+    }
+    for (_, entities) in owners {
+        for opaque in entities.iter().filter_map(IfccadEntity::as_opaque) {
+            if retained.contains_key(&opaque.id) {
+                let record = drawing
+                    .preservation
+                    .as_ref()
+                    .unwrap()
+                    .records
+                    .iter()
+                    .find(|r| r.id == opaque.preservation_record_id)
+                    .unwrap();
+                crate::preservation::report_restore(
+                    &mut report,
+                    drawing,
+                    record,
+                    Some(opaque.id),
+                    None,
+                );
+            }
+        }
+    }
     for (_, entities) in owners {
         for e in *entities {
-            if let Some(target) = retained.remove(&e.id) {
+            if let Some(target) = retained.remove(&e.id()) {
                 document
                     .add_entity(target)
                     .map_err(|error| IfccadConversionError::CadConstruction(error.to_string()))?;
             }
         }
     }
-    Ok(())
+    Ok(report)
 }

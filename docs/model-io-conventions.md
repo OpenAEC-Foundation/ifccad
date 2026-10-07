@@ -176,3 +176,15 @@ Paper coordinate unit. Effective plot settings, limits and layout PSLTSCALE have
 separate native/CAD coverage. The provisional field/API migration, strict physical
 scalar conversion limits, raster restrictions and per-domain accuracy reports are
 specified in [layout output](layout-output.md). No new workspace state, renderer, release or controlled measurement is implied.
+
+## IFCCAD opaque entity migration
+
+`IfccadEntity` is now an ordered sum type. Wrap previous native construction in
+`IfccadEntity::Native(IfccadNativeEntity { ... })`; use `id()` for shared identity
+and `as_native[_mut]()` / `as_opaque[_mut]()` to inspect variants. Required native
+layer/appearance/kind fields remain strong. `IfccadDocument.preservation` is an
+optional independent collection; `IfccadIdCounters.next_preservation_record_id`
+and `allocate_preservation_record_id()` preserve reservations/deletions.
+Library capture remains opt-in through direction-qualified options. Loaded graphs
+stay immutable and fresh encode/load retains generic byte payloads; source graph
+writeback is not implied. This is a provisional API/contract change, not a release.

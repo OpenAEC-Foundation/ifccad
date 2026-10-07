@@ -21,6 +21,7 @@ fn fresh_cad_import_emits_valid_counters_under_both_policies() {
         assert_eq!(
             loaded.document().id_counters,
             IfccadIdCounters {
+                next_preservation_record_id: 1,
                 next_entity_id: 4,
                 next_layer_id: 3,
                 next_layout_id: 2,
@@ -35,8 +36,8 @@ fn fresh_cad_import_emits_valid_counters_under_both_policies() {
             .zip(&loaded.document().model.entities)
         {
             assert_eq!(
-                cad.mappings().entities.cad_handle(original.id),
-                back.mappings().entities.cad_handle(restored.id)
+                cad.mappings().entities.cad_handle(original.id()),
+                back.mappings().entities.cad_handle(restored.id())
             );
         }
         assert_eq!(
@@ -151,24 +152,30 @@ fn primitive_roundtrip_keeps_order_and_modes() {
     assert_eq!(out.length_unit, "cm");
     for (s, t) in source.model.entities.iter().zip(&out.model.entities) {
         assert_appearance_mapping(
-            &s.appearance,
-            &t.appearance,
+            &s.as_native().unwrap().appearance,
+            &t.as_native().unwrap().appearance,
             cad.mappings(),
             back.mappings(),
         );
         assert_eq!(
-            cad.mappings().entities.cad_handle(s.id),
-            back.mappings().entities.cad_handle(t.id)
+            cad.mappings().entities.cad_handle(s.id()),
+            back.mappings().entities.cad_handle(t.id())
         );
     }
-    assert_eq!(out.model.entities[0].kind, source.model.entities[0].kind);
-    assert_eq!(out.model.entities[2].kind, source.model.entities[2].kind);
+    assert_eq!(
+        out.model.entities[0].as_native().unwrap().kind,
+        source.model.entities[0].as_native().unwrap().kind
+    );
+    assert_eq!(
+        out.model.entities[2].as_native().unwrap().kind,
+        source.model.entities[2].as_native().unwrap().kind
+    );
     let IfccadEntityKind::PlanarPolyline {
         vertices,
         closed,
         placement,
         ..
-    } = &out.model.entities[1].kind
+    } = &out.model.entities[1].as_native().unwrap().kind
     else {
         panic!()
     };
@@ -229,7 +236,7 @@ fn bulges_are_retained_and_width_remains_a_rejectable_loss() {
         } else {
             let out = from_cad(&c, metadata()).unwrap();
             assert!(out.validated_source().document().model.entities.iter().any(
-                |e| matches!(&e.kind,IfccadEntityKind::PlanarPolyline{bulges,..} if bulges[0]==0.5)
+                |e| matches!(&e.as_native().unwrap().kind,IfccadEntityKind::PlanarPolyline{bulges,..} if bulges[0]==0.5)
             ));
         }
     }
@@ -237,7 +244,9 @@ fn bulges_are_retained_and_width_remains_a_rejectable_loss() {
 #[test]
 fn noncanonical_placement_obeys_the_geometric_limit_and_keeps_location() {
     let mut d = primitives();
-    let IfccadEntityKind::Circle { placement, .. } = &mut d.model.entities[2].kind else {
+    let IfccadEntityKind::Circle { placement, .. } =
+        &mut d.model.entities[2].as_native_mut().unwrap().kind
+    else {
         panic!()
     };
     placement.x_axis = [0., 1., 0.];
@@ -276,7 +285,7 @@ fn rounding_is_not_silently_accepted() {
         placement,
         vertices,
         ..
-    } = &mut d.model.entities[1].kind
+    } = &mut d.model.entities[1].as_native_mut().unwrap().kind
     else {
         panic!()
     };

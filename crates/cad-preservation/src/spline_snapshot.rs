@@ -1,5 +1,5 @@
 use super::common_snapshot::{SnapshotFloat, SnapshotHandle, SnapshotVector, SplineCommonSnapshot};
-use super::{OcdrawSplineSnapshotError, CODEC_REVISION, LEGACY_CODEC_REVISION};
+use super::{CadSplineSnapshotError, CODEC_REVISION, LEGACY_CODEC_REVISION};
 use opencadcodec::entities::{Spline, SplineFlags};
 use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -13,30 +13,30 @@ pub(crate) struct SnapshotFlags {
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub(crate) struct SplineSnapshot {
-    pub codec_revision: String,
-    pub source_handle: SnapshotHandle,
-    pub source_owner_handle: SnapshotHandle,
-    pub source_order_index: u64,
-    pub common: SplineCommonSnapshot,
-    pub flags: SnapshotFlags,
-    pub degree: i32,
-    pub knots: Vec<SnapshotFloat>,
-    pub control_points: Vec<SnapshotVector>,
-    pub weights: Vec<SnapshotFloat>,
-    pub fit_points: Vec<SnapshotVector>,
-    pub normal: SnapshotVector,
-    pub begin_tangent: SnapshotVector,
-    pub end_tangent: SnapshotVector,
-    pub knot_tolerance: SnapshotFloat,
-    pub control_tolerance: SnapshotFloat,
-    pub fit_tolerance: SnapshotFloat,
-    pub knot_parameterization: i32,
-    pub cv_frame_visible: bool,
-    pub dwg_flags1: i32,
+struct SplineSnapshot {
+    codec_revision: String,
+    source_handle: SnapshotHandle,
+    source_owner_handle: SnapshotHandle,
+    source_order_index: u64,
+    common: SplineCommonSnapshot,
+    flags: SnapshotFlags,
+    degree: i32,
+    knots: Vec<SnapshotFloat>,
+    control_points: Vec<SnapshotVector>,
+    weights: Vec<SnapshotFloat>,
+    fit_points: Vec<SnapshotVector>,
+    normal: SnapshotVector,
+    begin_tangent: SnapshotVector,
+    end_tangent: SnapshotVector,
+    knot_tolerance: SnapshotFloat,
+    control_tolerance: SnapshotFloat,
+    fit_tolerance: SnapshotFloat,
+    knot_parameterization: i32,
+    cv_frame_visible: bool,
+    dwg_flags1: i32,
     #[serde(default)]
-    pub dwg_scenario: Option<i32>,
-    pub dxf_flags: i16,
+    dwg_scenario: Option<i32>,
+    dxf_flags: i16,
 }
 impl SplineSnapshot {
     fn capture(source: &Spline, order_index: u64, codec_revision: &str) -> Self {
@@ -136,34 +136,59 @@ impl SplineSnapshot {
     }
 }
 
-pub(crate) fn capture_spline(
+/// An audited, owned source snapshot. Its wire DTO is private.
+#[derive(Clone, Debug)]
+pub struct CadSplineSnapshot(SplineSnapshot);
+impl CadSplineSnapshot {
+    pub fn codec_revision(&self) -> &str {
+        &self.0.codec_revision
+    }
+    pub fn payload_version(&self) -> u32 {
+        if self.0.codec_revision == CODEC_REVISION {
+            2
+        } else {
+            1
+        }
+    }
+    pub fn source_handle(&self) -> opencadcodec::Handle {
+        self.0.source_handle.0
+    }
+    pub fn source_owner_handle(&self) -> opencadcodec::Handle {
+        self.0.source_owner_handle.0
+    }
+    pub fn source_order_index(&self) -> u64 {
+        self.0.source_order_index
+    }
+    pub fn to_source(&self) -> Spline {
+        self.0.to_source()
+    }
+}
+pub fn capture_spline(
     source: &Spline,
     order_index: u64,
     codec_revision: &str,
-) -> Result<Vec<u8>, OcdrawSplineSnapshotError> {
+) -> Result<Vec<u8>, CadSplineSnapshotError> {
     if codec_revision != CODEC_REVISION {
-        return Err(OcdrawSplineSnapshotError::UnsupportedRevision);
+        return Err(CadSplineSnapshotError::UnsupportedRevision);
     }
     serde_json::to_vec(&SplineSnapshot::capture(
         source,
         order_index,
         codec_revision,
     ))
-    .map_err(OcdrawSplineSnapshotError::Malformed)
+    .map_err(CadSplineSnapshotError::Malformed)
 }
-pub(crate) fn decode_spline_snapshot(
-    bytes: &[u8],
-) -> Result<SplineSnapshot, OcdrawSplineSnapshotError> {
+pub fn decode_spline_snapshot(bytes: &[u8]) -> Result<CadSplineSnapshot, CadSplineSnapshotError> {
     let snapshot: SplineSnapshot =
-        serde_json::from_slice(bytes).map_err(OcdrawSplineSnapshotError::Malformed)?;
+        serde_json::from_slice(bytes).map_err(CadSplineSnapshotError::Malformed)?;
     if snapshot.codec_revision != CODEC_REVISION && snapshot.codec_revision != LEGACY_CODEC_REVISION
     {
-        return Err(OcdrawSplineSnapshotError::UnsupportedRevision);
+        return Err(CadSplineSnapshotError::UnsupportedRevision);
     }
     // Version 1 predates these source fields. Version 2 must state both,
     // including explicit null; accepting omission would invent source state.
     let value: serde_json::Value =
-        serde_json::from_slice(bytes).map_err(OcdrawSplineSnapshotError::Malformed)?;
+        serde_json::from_slice(bytes).map_err(CadSplineSnapshotError::Malformed)?;
     let scenario = value.get("dwgScenario").is_some();
     let layer_handle = value["common"].get("layerHandle").is_some();
     let valid_shape = if snapshot.codec_revision == CODEC_REVISION {
@@ -172,7 +197,7 @@ pub(crate) fn decode_spline_snapshot(
         !scenario && !layer_handle
     };
     if !valid_shape {
-        return Err(OcdrawSplineSnapshotError::Malformed(
+        return Err(CadSplineSnapshotError::Malformed(
             <serde_json::Error as serde::de::Error>::custom(
                 "source field presence does not match the audited codec revision",
             ),
@@ -181,7 +206,7 @@ pub(crate) fn decode_spline_snapshot(
     if snapshot.source_handle.0 != snapshot.common.handle.0
         || snapshot.source_owner_handle.0 != snapshot.common.owner_handle.0
     {
-        return Err(OcdrawSplineSnapshotError::InconsistentIdentity);
+        return Err(CadSplineSnapshotError::InconsistentIdentity);
     }
-    Ok(snapshot)
+    Ok(CadSplineSnapshot(snapshot))
 }

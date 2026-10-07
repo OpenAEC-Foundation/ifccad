@@ -12,4 +12,11 @@ pub use model::*;
 pub use patterns::validate_ifccad_line_patterns;
 pub use viewports::*;
 
-pub use bounds::recompute_ifccad_document_bounds;
+pub use bounds::{
+    derive_ifccad_geometry_completeness, recompute_ifccad_document_bounds,
+    IfccadGeometryCompleteness, IfccadScopeId,
+};
+
+mod preservation;
+pub use preservation::*;
+mod preservation_validation;

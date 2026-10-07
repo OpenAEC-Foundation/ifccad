@@ -202,12 +202,15 @@ pub(super) fn validate_references(document: &IfccadDocument) -> Result<(), Ifcca
         )
     {
         for e in contents {
-            entities.insert(e.id, (paper, e));
+            entities.insert(e.id(), (paper, e));
         }
     }
     let layers: BTreeSet<_> = document.layers.iter().map(|l| l.id).collect();
     let mut claimed = BTreeSet::new();
     for (paper, entity) in entities.values() {
+        let Some(entity) = entity.as_native() else {
+            continue;
+        };
         let IfccadEntityKind::Viewport(v) = &entity.kind else {
             continue;
         };
@@ -231,7 +234,9 @@ pub(super) fn validate_references(document: &IfccadDocument) -> Result<(), Ifcca
                     .get(&id)
                     .ok_or_else(|| problem("viewport boundary is unresolved"))?;
                 if owner != paper
-                    || matches!(boundary.kind, IfccadEntityKind::Viewport(_))
+                    || boundary
+                        .as_native()
+                        .is_some_and(|e| matches!(e.kind, IfccadEntityKind::Viewport(_)))
                     || !claimed.insert(id)
                 {
                     return Err(problem(
@@ -239,6 +244,9 @@ pub(super) fn validate_references(document: &IfccadDocument) -> Result<(), Ifcca
                     ));
                 }
                 if v.paper_clip.enabled {
+                    let boundary = boundary
+                        .as_native()
+                        .ok_or_else(|| problem("opaque geometry cannot be an active clip"))?;
                     validate_ifccad_viewport_boundary(&v.frame, &boundary.kind)?;
                 }
             }

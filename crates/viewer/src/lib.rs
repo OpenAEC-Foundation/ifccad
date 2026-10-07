@@ -4,7 +4,7 @@ mod ifccad;
 mod inspection;
 mod options;
 pub fn conversion_capabilities() -> Value {
-    json!({"ocdraw":{"adjustableTolerance":true},"ifccad":{"adjustableTolerance":true}})
+    json!({"ocdraw":{"adjustableTolerance":true,"splinePreservation":true},"ifccad":{"adjustableTolerance":true,"splinePreservation":true}})
 }
 pub use ocdraw::{export_drawing_bytes_with_options, inspect_cad_as_drawing_bytes_with_options};
 

@@ -4,7 +4,7 @@ use serde_json::Value;
 use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct DrawingValue {
     profile_version: String,
     length_unit: String,
@@ -13,6 +13,7 @@ struct DrawingValue {
     next_layout_id: u64,
     next_block_id: u64,
     next_line_pattern_id: u64,
+    next_preservation_record_id: Option<u64>,
     #[serde(default = "crate::ifccad::logical::patterns::one")]
     line_pattern_scale: f64,
     plot_style_mode: Option<String>,
@@ -82,6 +83,20 @@ struct InstanceValue {
 fn problem(message: impl Into<String>) -> IfccadReport {
     IfccadReport::one(message)
 }
+fn preservation_node_role(node: &Value, key: &str) -> Result<(), IfccadReport> {
+    let attributes = node["attributes"]
+        .as_object()
+        .ok_or_else(|| problem("preservation node attributes required"))?;
+    if attributes
+        .keys()
+        .any(|name| name.starts_with("ifccad::") && name != key)
+    {
+        return Err(problem(
+            "preservation node has an incompatible CAD attribute role",
+        ));
+    }
+    Ok(())
+}
 fn attr<'a>(node: &'a Value, key: &str) -> Option<&'a Value> {
     node.get("attributes")?.get(key)
 }
@@ -90,7 +105,7 @@ fn required<T: for<'de> Deserialize<'de>>(node: &Value, key: &str) -> Result<T, 
     let value = attr(node, key).ok_or_else(|| problem(format!("{path} missing {key}")))?;
     serde_json::from_value(value.clone()).map_err(|e| problem(format!("{path} invalid {key}: {e}")))
 }
-fn numbered(path: &str, prefix: &str) -> Result<u64, IfccadReport> {
+pub(super) fn numbered(path: &str, prefix: &str) -> Result<u64, IfccadReport> {
     let suffix = path
         .strip_prefix(prefix)
         .ok_or_else(|| problem(format!("invalid CAD path {path}; expected {prefix}N")))?;
@@ -170,30 +185,19 @@ fn entity(
 ) -> Result<IfccadEntity, IfccadReport> {
     let path = node["path"].as_str().unwrap();
     let id = numbered(path, &format!("{prefix}/e"))?;
-    let modes = attr(node, "ifccad::entity")
-        .and_then(|value| value.get("appearance"))
-        .and_then(Value::as_object)
-        .ok_or_else(|| problem(format!("{path} missing entity appearance")))?;
-    for property in ["color", "opacity", "linePattern", "lineWeight"] {
-        let fields = modes
-            .get(property)
-            .and_then(Value::as_object)
-            .ok_or_else(|| problem(format!("{path} missing {property} appearance mode")))?;
-        let mode = fields
-            .get("mode")
-            .and_then(Value::as_str)
-            .ok_or_else(|| problem(format!("{path} missing {property} mode")))?;
-        let valid = match mode {
-            "Explicit" => fields.len() == 2 && fields.contains_key("value"),
-            "ByLayer" | "ByBlock" => fields.len() == 1,
-            _ => false,
-        };
-        if !valid {
-            return Err(problem(format!(
-                "{path} invalid {property} mode/value combination"
-            )));
+    if let Some(value) = attr(node, "ifccad::opaqueEntity") {
+        let attributes = node["attributes"]
+            .as_object()
+            .ok_or_else(|| problem("opaque attributes required"))?;
+        if attributes
+            .keys()
+            .any(|k| k.starts_with("ifccad::") && k != "ifccad::opaqueEntity")
+        {
+            return Err(problem("opaque and native attributes cannot coexist"));
         }
+        return super::preservation::decode_opaque(value, id, prefix, pattern_paths);
     }
+    appearance_modes(&node["attributes"]["ifccad::entity"]["appearance"], path)?;
     let value: EntityValue = required(node, "ifccad::entity")?;
     let layer_id = *layer_paths
         .get(&value.layer)
@@ -246,13 +250,44 @@ fn entity(
         }
         key => super::geometry::decode_kind(attrs, key, path)?,
     };
-    Ok(IfccadEntity {
+    Ok(IfccadEntity::Native(IfccadNativeEntity {
         id,
         layer_id,
         appearance,
         line_pattern_scale: value.line_pattern_scale,
         kind,
-    })
+    }))
+}
+pub(super) fn appearance_modes(value: &Value, path: &str) -> Result<(), IfccadReport> {
+    let modes = value
+        .as_object()
+        .ok_or_else(|| problem(format!("{path} missing entity appearance")))?;
+    if modes.len() != 4 {
+        return Err(problem(format!(
+            "{path} appearance requires exactly four native properties"
+        )));
+    }
+    for property in ["color", "opacity", "linePattern", "lineWeight"] {
+        let fields = modes
+            .get(property)
+            .and_then(Value::as_object)
+            .ok_or_else(|| problem(format!("{path} missing {property} appearance mode")))?;
+        let mode = fields
+            .get("mode")
+            .and_then(Value::as_str)
+            .ok_or_else(|| problem(format!("{path} missing {property} mode")))?;
+        let valid = match mode {
+            "Explicit" => fields.len() == 2 && fields.contains_key("value"),
+            "ByLayer" | "ByBlock" => fields.len() == 1,
+            _ => false,
+        };
+        if !valid {
+            return Err(problem(format!(
+                "{path} invalid {property} mode/value combination"
+            )));
+        }
+    }
+    Ok(())
 }
 pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
     let imports = raw
@@ -273,6 +308,22 @@ pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
     let known = profile_module["schemas"]
         .as_object()
         .expect("built-in schema module has schemas");
+    let mut previous_drawing_schema = known["ifccad::drawing"].clone();
+    previous_drawing_schema["value"]["objectRestrictions"]["values"]
+        .as_object_mut()
+        .unwrap()
+        .remove("nextPreservationRecordId");
+    let native_only = raw["data"].as_array().is_some_and(|nodes| {
+        nodes.iter().all(|n| {
+            [
+                "ifccad::opaqueEntity",
+                "ifccad::preservation",
+                "ifccad::preservationRecord",
+            ]
+            .iter()
+            .all(|key| attr(n, key).is_none())
+        })
+    });
     for node in raw["data"]
         .as_array()
         .ok_or_else(|| problem("IFCX data must be an array"))?
@@ -280,11 +331,18 @@ pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         if let Some(attributes) = node.get("attributes").and_then(Value::as_object) {
             for key in attributes.keys().filter(|key| key.starts_with("ifccad::")) {
                 if let Some(expected) = known.get(key) {
-                    if schemas.get(key).is_some_and(|actual| actual != expected)
-                        || (schemas.get(key).is_none() && !imported_profile)
+                    if schemas.get(key).is_some_and(|actual| {
+                        actual != expected
+                            && !(key == "ifccad::drawing"
+                                && native_only
+                                && attributes[key].get("nextPreservationRecordId").is_none()
+                                && actual == &previous_drawing_schema)
+                    }) || (schemas.get(key).is_none() && !imported_profile)
                     {
                         return Err(problem(format!("missing or changed CAD schema {key}")));
                     }
+                } else {
+                    return Err(problem(format!("unsupported CAD profile attribute {key}")));
                 }
             }
         }
@@ -474,7 +532,9 @@ pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
     }
     let entity_paths: BTreeSet<_> = nodes
         .iter()
-        .filter(|(_, n)| attr(n, "ifccad::entity").is_some())
+        .filter(|(_, n)| {
+            attr(n, "ifccad::entity").is_some() || attr(n, "ifccad::opaqueEntity").is_some()
+        })
         .map(|(p, _)| p)
         .collect();
     if entity_paths.len() != owners.len() || entity_paths.iter().any(|p| !owners.contains(*p)) {
@@ -486,10 +546,95 @@ pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
     {
         return Err(problem("plotStyleMode cannot be null"));
     }
+    let preservation_path = format!("{prefix}/preservation");
+    let preservation = if let Some(node) = nodes.get(&preservation_path) {
+        if !declared.contains(preservation_path.as_str()) {
+            return Err(problem("drawing must reference preservation collection"));
+        }
+        #[derive(Deserialize)]
+        #[serde(rename_all = "camelCase", deny_unknown_fields)]
+        struct Collection {
+            version: u32,
+            sources: Vec<IfccadPreservationSource>,
+        }
+        preservation_node_role(node, "ifccad::preservation")?;
+        let collection: Collection = required(node, "ifccad::preservation")?;
+        if attr(node, "ifccad::preservation")
+            .and_then(|v| v.get("sources"))
+            .and_then(Value::as_array)
+            .is_some_and(|sources| {
+                sources
+                    .iter()
+                    .any(|s| s.get("sourceVersion").is_some_and(Value::is_null))
+            })
+        {
+            return Err(problem("omit absent source version"));
+        }
+        if collection
+            .sources
+            .iter()
+            .any(|s| s.source_version.as_ref().is_some_and(String::is_empty))
+        {
+            return Err(problem("invalid source version"));
+        }
+        let record_children = node["children"]
+            .as_object()
+            .ok_or_else(|| problem("preservation children map required"))?;
+        let mut records = Vec::new();
+        let mut declared_records = BTreeSet::new();
+        for (key, path) in record_children {
+            let path = path
+                .as_str()
+                .ok_or_else(|| problem("record child path required"))?;
+            let id = numbered(path, &format!("{prefix}/preservation/r"))?;
+            if key != &format!("r{id}") || !declared_records.insert(path) {
+                return Err(problem("noncanonical or duplicate record child"));
+            }
+            let node = nodes
+                .get(path)
+                .ok_or_else(|| problem("missing preservation record node"))?;
+            preservation_node_role(node, "ifccad::preservationRecord")?;
+            let value = attr(node, "ifccad::preservationRecord")
+                .ok_or_else(|| problem("record attribute required"))?;
+            records.push(super::preservation::decode_record(value, id, &prefix)?);
+        }
+        if nodes.iter().any(|(path, node)| {
+            attr(node, "ifccad::preservationRecord").is_some()
+                && !declared_records.contains(path.as_str())
+        }) {
+            return Err(problem("unowned preservation record"));
+        }
+        Some(IfccadPreservation {
+            version: collection.version,
+            sources: collection.sources,
+            records,
+        })
+    } else {
+        if nodes.values().any(|node| {
+            attr(node, "ifccad::preservationRecord").is_some()
+                || attr(node, "ifccad::preservation").is_some()
+        }) {
+            return Err(problem("misplaced preservation node"));
+        }
+        None
+    };
+    if attr(drawing_node, "ifccad::drawing")
+        .and_then(|v| v.get("nextPreservationRecordId"))
+        .is_some_and(Value::is_null)
+    {
+        return Err(problem("omit absent preservation watermark"));
+    }
+    let next_preservation_record_id = match drawing.next_preservation_record_id {
+        Some(id) => id,
+        None if preservation.is_none() => 1,
+        _ => return Err(problem("preservation requires allocation watermark")),
+    };
     let document = IfccadDocument {
+        preservation,
         header,
         drawing_id,
         id_counters: IfccadIdCounters {
+            next_preservation_record_id,
             next_entity_id: drawing.next_entity_id,
             next_layer_id: drawing.next_layer_id,
             next_layout_id: drawing.next_layout_id,

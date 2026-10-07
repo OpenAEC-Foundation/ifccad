@@ -452,7 +452,7 @@ mod tests {
         .unwrap();
         let mut doc = native.document().clone();
         let ocdraw::ifccad::IfccadEntityKind::BlockInstance { transform, .. } =
-            &mut doc.model.entities[0].kind
+            &mut doc.model.entities[0].as_native_mut().unwrap().kind
         else {
             panic!()
         };
