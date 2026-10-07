@@ -4,3 +4,8 @@ export const cadVersions=Object.freeze([
 ]);
 export const defaultCadVersion='AC1032';
 export const supportsCadVersion=value=>cadVersions.some(([code])=>code===value);
+export function cadOutputForSource(name,sourceVersion,current){
+ const format=String(name??'').match(/\.(dxf|dwg)$/i)?.[1]?.toLowerCase();
+ if(!format)return {...current};
+ return {format,version:supportsCadVersion(sourceVersion)?sourceVersion:supportsCadVersion(current.version)?current.version:defaultCadVersion};
+}

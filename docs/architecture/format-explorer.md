@@ -287,6 +287,19 @@ CAD output format/version and tolerance are shared between export and the
 generated Open CAD Studio preview. Preserve the existing supported CAD-version
 validation rather than duplicating its list in unrelated components.
 
+Opening a new DWG/DXF source automatically selects its CAD format and
+the original version reported by the production reader. DWG reader provenance
+takes precedence over a normalized document version when available. Apply this
+selection before launching the background roundtrip; later explicit output
+choices are retained when applying settings. Native IFCCAD/OCDraw files retain
+the existing CAD-output selection. Unsupported source versions keep a supported
+output version with an explicit note beside the controls.
+
+The existing OCDraw typed-SPLINE capture checkbox starts enabled and resets to
+enabled when a new CAD file is selected. An explicit opt-out before opening is
+honored. This changes the explorer default only; lower-level APIs and CLI defaults,
+the qualified restoration rules and IFCCAD capabilities remain unchanged.
+
 | Tolerance choice | Applied meaning |
 | --- | --- |
 | Standaard | Exactly 1 µm in each known coordinate unit; zero for a unitless coordinate domain |
