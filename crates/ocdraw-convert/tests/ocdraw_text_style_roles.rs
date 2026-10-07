@@ -137,8 +137,8 @@ fn actual_text_lookup_conflicts_and_duplicate_allocated_handles_stay_fatal() {
 
 #[test]
 fn resolving_shape_names_does_not_mask_invalid_mtext_column_heights() {
-    // The retained sample reaches this independent structural error once its
-    // anonymous shape records no longer conflict in ordinary font lookup.
+    // A negative nonfinal height is invalid; the final manual-column height
+    // is now qualified as a cache/sentinel for the automatic tail.
     let mut d = text_source();
     d.text_styles
         .add_allow_duplicate(shape("", 0x27f, "ltypeshp.shx"));
@@ -150,10 +150,11 @@ fn resolving_shape_names_does_not_mask_invalid_mtext_column_heights() {
     m.height = 1.;
     m.rectangle_width = 15.741414244987482;
     m.column_data.column_type = 2;
-    m.column_data.column_count = 1;
+    m.column_data.column_count = 2;
     m.column_data.width = m.rectangle_width;
     m.column_data.gutter = 110.22316703811953;
-    m.column_data.heights = vec![-2.9442928603910867];
+    m.rectangle_width = 2. * m.column_data.width + m.column_data.gutter;
+    m.column_data.heights = vec![-2.9442928603910867, 0.];
     let handle = d.add_entity(EntityType::MText(m)).unwrap();
     for loss_policy in [OcdrawLossPolicy::Allow, OcdrawLossPolicy::Reject] {
         assert!(
