@@ -87,8 +87,8 @@ Placement/content/style/column/background tests qualify a bounded profile;
 they do not establish a font engine, application rendering, every file version
 or full CAD/native parity. See both OCDraw converter coverage contracts and
 [cad-text](../crates/cad-text/README.md). Evidence uses base revision
-`fe69506cb99dea6f4c4a73b690a27fdf04403ea0` with the explicitly selected existing
-viewport-development patch; it is not evidence for an unmodified dependency.
+`063c10671fe7833d562f772159771318c7a0ebb9` with the explicitly selected existing
+viewport-off-state repair; it is not evidence for an unmodified dependency.
 No size/exchange measurement was run for this slice.
 
 Generate the [Explorer example](../examples/ocdraw/text.ocdraw.json) with

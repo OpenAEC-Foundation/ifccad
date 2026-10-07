@@ -5,6 +5,24 @@ import {processBrowserRequest} from '../src/browser-worker.mjs';
 
 initSync({module:await readFile(new URL('../wasm-build/browser_bg.wasm',import.meta.url))});
 const wasm={open_drawing,convert_cad_to_drawing,convert_cad_to_drawing_with_preservation,export_drawing,open_ifccad,convert_cad_to_ifccad,export_ifccad,export_drawing_with_options,convert_cad_to_drawing_with_options,export_ifccad_with_options,convert_cad_to_ifccad_with_options};
+const textBytes=await readFile(new URL('../../examples/ocdraw/text.ocdraw.json',import.meta.url));
+const textSource={kind:'drawing',name:'text.ocdraw.json',files:[{path:'text.ocdraw.json',bytes:Uint8Array.from(textBytes).buffer}]};
+const textOpened=processBrowserRequest(textSource,wasm);
+assert.equal(textOpened.failure,null,JSON.stringify(textOpened.failure));
+assert.equal(textOpened.presentation.entities.filter(e=>e.geometry?.type==='text').length,2);
+assert.equal(textOpened.presentation.entities.filter(e=>e.geometry?.type==='mText').length,1);
+assert.equal(textOpened.presentation.boundsCompleteness[0].quality,'estimated');
+assert.equal(textOpened.presentation.boundsCompleteness[0].enclosureVerified,false);
+for(const format of ['dxf','dwg']){
+ const output=processBrowserRequest({...textSource,export:{format,version:'AC1032'}},wasm);
+ assert.equal(output.failure,null,JSON.stringify(output.failure));
+ assert.equal(output.export.geometry.complete,false);
+ assert.equal(output.export.text.entries.length,3);
+ const returned=processBrowserRequest({kind:'cad',drawingFormat:'ocdraw',name:'text.'+format,files:[{path:'text.'+format,bytes:Uint8Array.from(Buffer.from(output.export.download.base64,'base64')).buffer}]},wasm);
+ assert.equal(returned.failure,null,JSON.stringify(returned.failure));
+ assert.equal(returned.presentation.entities.filter(e=>e.geometry?.type==='mText').length,1);
+}
+console.log('Browser WASM OCDraw Text/MText native inspection, estimated bounds and actual DXF/DWG exchange verified');
 const splineBytes=await readFile(new URL('../../crates/ocdraw-convert/tests/fixtures/splines/open-cubic.dxf',import.meta.url));
 const splineSource={kind:'cad',name:'spline.dxf',preserveSplines:true,files:[{path:'spline.dxf',bytes:Uint8Array.from(splineBytes).buffer}]};
 const splineOpened=processBrowserRequest(splineSource,wasm);

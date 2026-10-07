@@ -8,7 +8,7 @@ description = "Shared typed CAD text content and placement preparation"
 [dependencies]
 ocdraw = { path = "../.." }
 cad-geometry-convert = { path = "../cad-geometry-convert" }
-opencadcodec = { git = "https://github.com/HakanSeven12/opencadcodec.git", rev = "fe69506cb99dea6f4c4a73b690a27fdf04403ea0" }
+opencadcodec = { git = "https://github.com/HakanSeven12/opencadcodec.git", rev = "063c10671fe7833d562f772159771318c7a0ebb9" }
 num-rational = "0.4"
 num-traits = "0.2"
 thiserror = "1"

@@ -2,9 +2,9 @@
 
 `ocdraw::text` provides format-independent authored Text/MText values, intrinsic
 validation, property-wise inheritance and fontless extent preparation. This is
-an implementation building block; it does not yet add Text/MText to either
-native document schema or full conversion route. Those models and codecs stay
-independent.
+an implementation building block used by the native OCDraw model and its bounded
+CAD route. Independent IFCCAD integration is deferred until the OCDraw slice has
+been tested. Models and codecs stay independent; see [text support](text.md).
 
 The values carry no drawing IDs, scope ownership, CAD runtime, loaded font or
 physical encoding. Explicit `false`, zero where valid, and empty tab-stop reset
@@ -19,7 +19,7 @@ Structural tabs/breaks/stacks never hide inside literal strings.
 
 Full-context validation includes the authored entity-wide paragraph basis and
 the actual effective character formats. Empty lines use their paragraph basis;
-fully overridden unused values do not invent geometry. Both future document
+fully overridden unused values do not invent geometry. Independent document
 adapters must consume that same intrinsic validation rather than duplicate it.
 
 ## Fontless estimates

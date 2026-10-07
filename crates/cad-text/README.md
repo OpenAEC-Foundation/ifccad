@@ -12,6 +12,12 @@ TEXT and MTEXT have different grammars: ordinary TEXT braces/backslashes are
 literal, while MTEXT uses scopes. Unknown control codes, malformed escapes,
 dynamic field syntax and runtime resource-limit failures remain explicit.
 
+File-safe literal emission accounts for the codec's CIF decoding before MTEXT
+parsing: percent uses the qualified `%%%%` spelling, caret controls are separated
+by harmless scope boundaries, and a literal backslash before U+XXXX is fenced
+from premature Unicode decoding. Actual DXF/DWG readback tests cover these cases;
+raw grammar tests alone do not establish that boundary.
+
 Parsed character-basis factoring is exposed as `character_basis_normalized`.
 Prepared adapters report `CharacterBasisNormalized` or
 `AuthoredFormattingNormalized` when CAD state-machine representation changes
@@ -79,7 +85,8 @@ discarding this evidence does not produce a lossless conversion.
   mapping absolute padding to a relative border factor, and mapping absolute
   spacing to nominal-height factors carry explicit dependency-change issues.
 
-The dependency is pinned to `fe69506cb99dea6f4c4a73b690a27fdf04403ea0`, matching
-both converters and the shared CAD geometry helper. Existing viewport development
-patches are independent; their results are not evidence for unmodified upstream.
-No font engine, CAD dependency upgrade or measurement is introduced here.
+The dependency is pinned to `063c10671fe7833d562f772159771318c7a0ebb9`, matching
+both converters and the shared CAD geometry helper after integration with the
+codec update already on main. Its remaining viewport-off-state repair is
+independent; patched results are not evidence for unmodified upstream. The text
+slice adds no later codec upgrade, font engine or measurement.

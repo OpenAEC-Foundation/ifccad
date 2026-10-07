@@ -15,7 +15,7 @@ fn simple_text_and_mtext_content_survive_actual_dxf_and_dwg() {
         MTextParagraph {
             inlines: vec![
                 MTextInline::Run {
-                    text: "Header".into(),
+                    text: r"Header %<literal> ^I \U+0041".into(),
                     character_format: CharacterFormat {
                         underline: Some(true),
                         ..Default::default()
@@ -126,6 +126,6 @@ fn simple_text_and_mtext_content_survive_actual_dxf_and_dwg() {
                 }
             })
             .collect::<Vec<_>>();
-        assert_eq!(literals, vec!["Header", "12,5"]);
+        assert_eq!(literals, vec![r"Header %<literal> ^I \U+0041", "12,5"]);
     }
 }

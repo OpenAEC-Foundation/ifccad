@@ -222,6 +222,7 @@ fn literal_escaping_blocks_codes_and_dynamic_field_recognition() {
     for token in tokens {
         match token.kind {
             MarkupTokenKind::Literal(text) => restored.push_str(&text),
+            MarkupTokenKind::ScopeStart | MarkupTokenKind::ScopeEnd => {}
             other => panic!("literal became {other:?}"),
         }
     }
