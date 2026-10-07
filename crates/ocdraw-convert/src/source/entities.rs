@@ -86,7 +86,7 @@ pub(crate) fn point_losses(point: &Point) -> Vec<CadToOcdrawLossReason> {
     if point.thickness != 0.0 {
         reasons.push(CadToOcdrawLossReason::NonZeroThickness);
     }
-    if crate::geometry::cad_plane(point.normal).is_none() {
+    if cad_geometry_convert::geometry::cad_plane(point.normal).is_none() {
         reasons.push(CadToOcdrawLossReason::UnsupportedNormal);
     }
     reasons
@@ -117,7 +117,9 @@ pub(crate) fn circle_losses(circle: &Circle) -> Vec<CadToOcdrawLossReason> {
             name: "circle radius".into(),
         });
     }
-    if crate::geometry::circular::from_cad_ocs(circle.center, circle.normal).is_none() {
+    if cad_geometry_convert::geometry::circular::from_cad_ocs(circle.center, circle.normal)
+        .is_none()
+    {
         reasons.push(CadToOcdrawLossReason::UnsupportedNormal);
     }
     reasons
@@ -161,7 +163,7 @@ pub(crate) fn arc_losses(arc: &Arc) -> Vec<CadToOcdrawLossReason> {
             name: "arc sweep".into(),
         });
     }
-    if crate::geometry::circular::from_cad_ocs(arc.center, arc.normal).is_none() {
+    if cad_geometry_convert::geometry::circular::from_cad_ocs(arc.center, arc.normal).is_none() {
         reasons.push(CadToOcdrawLossReason::UnsupportedNormal);
     }
     reasons
@@ -188,7 +190,7 @@ pub(crate) fn ellipse_losses(ellipse: &Ellipse) -> Vec<CadToOcdrawLossReason> {
     {
         reasons.push(CadToOcdrawLossReason::NonFiniteCoordinate);
     }
-    if crate::geometry::circular::from_cad_ellipse(ellipse).is_none() {
+    if cad_geometry_convert::geometry::circular::from_cad_ellipse(ellipse).is_none() {
         reasons.push(CadToOcdrawLossReason::UnsupportedSemantic {
             name: "ellipse frame or axis ratio".into(),
         });

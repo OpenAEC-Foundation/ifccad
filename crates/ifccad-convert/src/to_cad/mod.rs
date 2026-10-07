@@ -1,3 +1,6 @@
+mod entities;
+mod layouts;
+
 use crate::diagnostics::diagnostic;
 use crate::units::unit_code;
 use crate::*;
@@ -69,7 +72,10 @@ fn convert_document(
         drawing.model.id,
     )?;
     for paper in &drawing.paper_layouts {
-        geometry.add_paper(paper.id, &paper.length_unit)?;
+        geometry.add_paper(
+            paper.id,
+            cad_geometry_convert::plot_units::paper_mapping(paper.settings.plot_settings.as_ref()),
+        )?;
     }
     let mut document = CadDocument::new();
     if !drawing.layers.iter().any(|l| l.name == "0") {
@@ -83,9 +89,22 @@ fn convert_document(
         layer.transparency = opencadcodec::Transparency::Explicit(0);
     }
     document.header.insertion_units = unit_code(&drawing.length_unit);
+    document.header.plotstyle_mode =
+        drawing.plot_style_mode == ocdraw::ifccad::IfccadPlotStyleMode::ColorDependent;
+    document.header.paper_space_linetype_scaling =
+        drawing.model.settings.paper_space_linetype_scaling;
+    let model_layout = document
+        .objects
+        .values_mut()
+        .find_map(|o| match o {
+            opencadcodec::objects::ObjectType::Layout(l) if l.name == "Model" => Some(l),
+            _ => None,
+        })
+        .expect("model layout");
+    crate::mapping::layout::apply_settings(model_layout, &drawing.model.settings, &mut issues)?;
     let mut mappings = IfccadMappings::default();
     document.header.linetype_scale = drawing.line_pattern_scale;
-    crate::patterns::allocate(
+    crate::mapping::line_pattern::allocate(
         &mut document,
         &drawing.line_patterns,
         &mut mappings,
@@ -105,10 +124,15 @@ fn convert_document(
         .expect("default Model layout");
     mappings.layouts.insert(drawing.model.id, layout);
     for layer in &drawing.layers {
-        let mut target = crate::appearance::to_layer(
+        let mut target = crate::mapping::appearance::to_layer(
             &layer.name,
             &layer.appearance,
-            &crate::patterns::target(&document, &mappings, layer.appearance.line_pattern).0,
+            &crate::mapping::line_pattern::target(
+                &document,
+                &mappings,
+                layer.appearance.line_pattern,
+            )
+            .0,
             &format!("layer/{}", layer.id),
             &mut issues,
         );
@@ -143,13 +167,28 @@ fn convert_document(
         })
         .cloned()
         .collect();
-    crate::blocks::allocate(&mut document, &supported, &mut mappings)?;
-    let paper_owners = crate::layouts::allocate(
+    crate::mapping::blocks::allocate(&mut document, &supported, &mut mappings)?;
+    let paper_owners = crate::to_cad::layouts::allocate(
         &mut document,
         &drawing.paper_layouts,
         &mut mappings,
         &mut issues,
     )?;
+    for paper in &drawing.paper_layouts {
+        let handle = mappings
+            .layouts
+            .cad_handle(paper.id)
+            .expect("allocated layout");
+        let opencadcodec::objects::ObjectType::Layout(l) = &document.objects[&handle] else {
+            unreachable!()
+        };
+        let mapping = if l.paper_width > 0. && l.paper_height > 0. {
+            cad_geometry_convert::plot_units::paper_mapping(paper.settings.plot_settings.as_ref())
+        } else {
+            cad_geometry_convert::plot_units::PaperMapping::Unknown
+        };
+        geometry.refine_paper(paper.id, mapping)?;
+    }
     let model_owner = document.header.model_space_block_handle;
     let block_owners: Vec<_> = supported
         .iter()
@@ -175,7 +214,7 @@ fn convert_document(
         }))
         .chain(block_owners)
         .collect();
-    crate::entity_owners::to_cad(
+    entities::to_cad(
         drawing,
         &mut document,
         &owners,

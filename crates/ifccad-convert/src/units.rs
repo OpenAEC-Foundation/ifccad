@@ -1,32 +1,8 @@
-pub(crate) const UNITS: [&str; 25] = [
-    "unitless",
-    "in",
-    "ft",
-    "mi",
-    "mm",
-    "cm",
-    "m",
-    "km",
-    "microin",
-    "mil",
-    "yd",
-    "angstrom",
-    "nm",
-    "um",
-    "dm",
-    "dam",
-    "hm",
-    "Gm",
-    "au",
-    "ly",
-    "pc",
-    "usSurveyFoot",
-    "usSurveyInch",
-    "usSurveyYard",
-    "usSurveyMile",
-];
+pub(crate) use cad_geometry_convert::units::UNIT_TOKENS;
+
+// IFCCAD stores units as tokens; the shared list supplies their CAD code order.
 pub(crate) fn unit_code(unit: &str) -> i16 {
-    UNITS
+    UNIT_TOKENS
         .iter()
         .position(|u| *u == unit)
         .expect("validated unit") as i16

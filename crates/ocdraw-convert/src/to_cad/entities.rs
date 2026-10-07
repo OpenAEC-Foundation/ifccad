@@ -126,6 +126,7 @@ pub(super) fn append_entities(
         .iter()
         .flat_map(|scope| scope.entities.iter().map(move |id| (scope.id, *id)))
     {
+        state.select(u64::from(owner));
         let location = format!("/entities/{id}");
         if let Some(source) = opaque.get(&id) {
             let record = drawing

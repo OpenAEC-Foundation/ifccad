@@ -118,13 +118,17 @@ pub(crate) fn validate_fields(doc: &OcdrawDocument) -> Vec<LogicalError> {
             "layout name must be nonempty",
         );
         check(
-            l.settings
-                .plot_settings
-                .as_ref()
-                .is_none_or(PlotSettings::is_valid),
+            crate::plot_kernel::validate_layout_output(
+                &l.settings,
+                match l.kind {
+                    DrawingLayoutKind::Model => crate::plot_kernel::LayoutOutputKind::Model,
+                    DrawingLayoutKind::Paper => crate::plot_kernel::LayoutOutputKind::Paper,
+                },
+            )
+            .is_ok(),
             "PLOT_RECT",
-            format!("/layouts/{i}/plotSettings"),
-            "invalid plot settings",
+            format!("/layouts/{i}"),
+            "invalid layout medium or plot settings",
         );
     }
     for (i, u) in doc.ucs_definitions.iter().enumerate() {

@@ -61,7 +61,7 @@ This does not certify fields erased before the CadDocument boundary.
 | --- | --- | --- |
 | `version`, `maintenance_version`, `dwg_source_version` | NonSemantic | Physical source-codec selection is not drawing semantics. |
 | `header.insertion_units` | Exact/PartialLoss | All 25 CAD codes 0â€“24 map exactly; unknown codes become `unitless` plus `UnsupportedUnit`. Coordinates are never rescaled. |
-| `header.plotstyle_mode`, `header.paper_space_linetype_scaling` | Exact | Drawing plot-style mode and each emitted layout's saved linetype-scaling intent; the latter is one CAD header value copied to every layout. |
+| `header.plotstyle_mode`, `header.paper_space_linetype_scaling` | Exact | Drawing plot-style mode and each emitted layout's saved linetype-scaling intent; saved Paper values use layout flag bit 1; the current header supplies active Model state rather than replacing inactive layouts. |
 | `header.point_display_mode`, `header.point_display_size` | Exact/SkippedLoss | Supported PDMODE glyph/enclosure bits and finite PDSIZE values map to grouped `Drawing.attributes.pointDisplay`; PDSIZE zero remains distinct from explicit negative five percent. Unsupported bits or nonfinite size skip the setting with `UnsupportedHeaderField { point_display }`. |
 | `header.model_space_block_handle` and the related `Layout.block_record` | Exact/FatalIfInconsistent | The relationship selects the one model layout. A stale nonnull header handle with no block-record target is corrected only when the named `*Model_Space` block record and exactly one layout agree on another handle; this covers a pinned DXF-reader handle-repair defect without changing the caller's document. Null, missing, or ambiguous structure remains fatal. Numeric handle replacement itself is not loss. |
 | `header.handle_seed`, table-control handles, dictionary handles, and standard-record handles | NonSemantic | Numeric serialization identity alone is ignored. Meaningful referenced content is covered at its table/object/entity source. |
@@ -101,8 +101,8 @@ field or family; `Reject` returns no drawing when such a loss is present.
 | Pinned source fields | Status | Mapping or diagnostic | Reverse test |
 | --- | --- | --- | --- |
 | `Layout.name`, `tab_order`, `block_record`, `viewport`, `viewports` | Exact/PartialLoss/FatalIfInconsistent | Drawing layout name, list order and scope binding; a missing paper block record is structural failure. The unique overall viewport ID 1 owned by the paper block supplies the canvas even if the `Layout.viewport` link is missing. A layout with no owned VIEWPORT and no viewport link exports no paper canvas. Authored paper VIEWPORT entities follow owner/order. | Paper canvas and viewport roundtrip |
-| `Layout.flags` bit 2, `min_limits/max_limits`, header `paper_space_linetype_scaling` | Exact/PartialLoss | `limitsChecking`, optional authored `limits`, `paperSpaceLinetypeScaling`. Non-rectangular limits and unrelated layout flag bits diagnose loss. | Paper layout roundtrip |
-| `paper_width/height`, `plot_paper_units`, `plot_rotation`, `plot_margin_*`, `plot_printer_name`, `paper_size` | Exact/SkippedLoss | Inline `media` geometry, printable area, rotation, device/media hints. The pinned reader parses padded ASCII DXF integers into typed fields. Those fields are authoritative after edits; retained raw codes never override them. Both dimensions zero mean absent `plotSettings`; invalid positive media or margins omit the complete plot value and diagnose loss. | Millimetre A4 and padded DXF plot roundtrip |
+| `Layout.flags` bits 1/2, `min_limits/max_limits`, header `paper_space_linetype_scaling` | Exact/PartialLoss | `limitsChecking`, optional authored `limits`, `paperSpaceLinetypeScaling`. Non-rectangular limits and unrelated layout flag bits diagnose loss. | Paper layout roundtrip |
+| `paper_width/height`, `plot_paper_units`, `plot_rotation`, `plot_margin_*`, `plot_printer_name`, `paper_size` | Exact/SkippedLoss | Independent layout medium (mm), plot unit, page rectangle/rotation and device/media hints. The pinned reader parses padded ASCII DXF integers into typed fields. Those fields are authoritative after edits; retained raw codes never override them. Both dimensions zero mean absent media; media-only states retain dimensions without invented plots. Invalid media/page state omits the affected value with loss. Exact scalar conversion is required. | Millimetre A4 and padded DXF plot roundtrip |
 | `plot_type`, `plot_window_*` | Exact/SkippedLoss | Extents, Limits, Window and paper Layout map by mode. Active Display or NamedView omits all `plotSettings` with a specific loss; an invalid window does likewise. | Layout and Display tests |
 | `plot_scale_numerator/denominator`, `plot_scale_type`, `plot_origin_x/y`, `plot_flags.plot_centered` | Exact/PartialLoss/SkippedLoss | Fixed/Fit scale and centered/media-relative offset. Unsupported Layout+Fit or Layout+Centered omits the complete plot value. A standard-scale preset code is reported as lost UI metadata. | Fixed Layout scale roundtrip |
 | `shade_plot_mode/resolution/dpi`, `plot_style_sheet`, `plot_flags.plot_plot_styles` | Exact/PartialLoss | Native shading and style application/name. An active external CTB/STB table name is retained, but absent table contents produce loss. | Plot table-name and mode test |
@@ -251,3 +251,19 @@ opaque definition/occurrence sources. The DXF/AC1032 DWG fixture matrix qualifie
 actual comparisons in every supported owner kind; it is not an input whitelist
 or a whole-file lossless/complete private-state preservation claim.
 For the opaque spline path, unresolved common pattern references remain in the snapshot and make native appearance/restore unavailable. A provable name/handle contradiction remains fatal. Ordinary native entity/table pattern validation is unchanged.
+
+## Layout-output revision
+
+Layout media can exist without complete plot settings. PlotSettings uses plotUnit
+and page; old embedded media is rejected. CAD mm dimensions never acquire an inch
+label. Active standard/custom selectors are authoritative; contradictory standard
+preset/factor state is diagnosed. Saved Paper PSLTSCALE values use layout bit 1,
+independent of limits checking and plot model-type flags. The current header tracks
+the active layout; inactive Model state is not overwritten by an active Paper value.
+
+Physical Paper accuracy derives from each fixed mapping, including nested roots;
+unknown/Fit/pixel defaults to exact coordinates. Explicit physical requests require
+known mappings even for empty layouts. No combined cross-domain maximum is exposed.
+Exact scalar conversion, raster qualification and medium-only default ambiguity
+follow [layout output](../../../docs/layout-output.md). Evidence: ocdraw_plot_settings,
+ocdraw_plot_exchange, paper_plot_accuracy and layout_plot_codec tests.

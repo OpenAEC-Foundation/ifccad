@@ -10,23 +10,23 @@ pub(crate) fn encode_rect(rect: LayoutRect) -> Option<Value> {
 }
 
 pub(crate) fn encode_plot_settings(plot: &PlotSettings) -> Option<Value> {
-    let unit = match plot.media.unit {
+    let unit = match plot.plot_unit {
         PlotUnit::Millimetre => "mm",
         PlotUnit::Inch => "in",
         PlotUnit::Pixel => "px",
     };
-    let rotation = match plot.media.rotation {
+    let rotation = match plot.page.rotation {
         PlotRotation::None => "none",
         PlotRotation::CounterClockwise90 => "counterClockwise90",
         PlotRotation::UpsideDown => "upsideDown",
         PlotRotation::Clockwise90 => "clockwise90",
     };
-    let mut media = json!({"unit":unit,"width":plot.media.width,"height":plot.media.height,"printableArea":encode_rect(plot.media.printable_area).expect("valid layout rectangle"),"rotation":rotation});
-    if let Some(name) = &plot.media.device_name {
-        media["deviceName"] = json!(name);
+    let mut page = json!({"printableArea":encode_rect(plot.page.printable_area).expect("valid layout rectangle"),"rotation":rotation});
+    if let Some(name) = &plot.page.device_name {
+        page["deviceName"] = json!(name);
     }
-    if let Some(name) = &plot.media.media_name {
-        media["mediaName"] = json!(name);
+    if let Some(name) = &plot.page.media_name {
+        page["mediaName"] = json!(name);
     }
     let area = match plot.area {
         PlotArea::Layout => json!({"mode":"Layout"}),
@@ -55,7 +55,7 @@ pub(crate) fn encode_plot_settings(plot: &PlotSettings) -> Option<Value> {
     }
     let o = plot.options;
     Some(
-        json!({"media":media,"area":area,"mapping":{"scale":scale,"placement":placement},"output":output,
+        json!({"plotUnit":unit,"page":page,"area":area,"mapping":{"scale":scale,"placement":placement},"output":output,
             "options":{"plotViewportBorders":o.plot_viewport_borders,"plotPaperSpaceLast":o.plot_paper_space_last,"hidePaperSpaceObjects":o.hide_paper_space_objects,"plotLineWeights":o.plot_line_weights,"scaleLineWeights":o.scale_line_weights,"plotTransparency":o.plot_transparency}}),
     )
 }

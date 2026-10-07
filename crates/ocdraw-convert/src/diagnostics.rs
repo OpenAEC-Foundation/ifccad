@@ -3,6 +3,10 @@ use ocdraw::ocdraw::OcdrawBuildError;
 #[derive(Debug, thiserror::Error)]
 pub enum CadToOcdrawError {
     #[error(transparent)]
+    PaperTolerance(#[from] crate::OcdrawPaperToleranceError),
+    #[error(transparent)]
+    PlotNumeric(#[from] cad_geometry_convert::plot_units::PlotNumericError),
+    #[error(transparent)]
     PreservationSnapshot(#[from] crate::OcdrawSplineSnapshotError),
     #[error(transparent)]
     GeometryTolerance(#[from] crate::OcdrawToleranceError),
@@ -47,6 +51,10 @@ impl OcdrawToCadError {
 
 #[derive(Debug, thiserror::Error)]
 pub enum OcdrawToCadError {
+    #[error(transparent)]
+    PaperTolerance(#[from] crate::OcdrawPaperToleranceError),
+    #[error(transparent)]
+    PlotNumeric(#[from] cad_geometry_convert::plot_units::PlotNumericError),
     #[error(transparent)]
     InvalidDocument(#[from] ocdraw::ocdraw::OcdrawValidationError),
     #[error(transparent)]

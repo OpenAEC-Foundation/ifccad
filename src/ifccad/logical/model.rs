@@ -21,6 +21,7 @@ pub struct IfccadDocument {
     /// Persistent watermarks; native reading/writing never recomputes them.
     pub id_counters: super::IfccadIdCounters,
     pub length_unit: String,
+    pub plot_style_mode: super::IfccadPlotStyleMode,
     pub line_patterns: Vec<IfccadLinePattern>,
     pub line_pattern_scale: f64,
     pub layers: Vec<IfccadLayer>,
@@ -48,6 +49,7 @@ pub struct IfccadLayerAppearance {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadLayout {
+    pub settings: super::IfccadLayoutSettings,
     pub id: u64,
     pub tab_index: u32,
     pub bounds: Option<IfccadBounds3d>,
@@ -60,21 +62,10 @@ pub struct IfccadPaperLayout {
     pub id: u64,
     pub name: String,
     pub tab_index: u32,
-    /// Coordinate unit, independently of an optional physical medium.
-    pub length_unit: String,
-    pub paper: Option<IfccadPaperSize>,
+    pub settings: super::IfccadLayoutSettings,
     pub bounds: Option<IfccadBounds3d>,
     /// Vector position is this paper layout's CAD draw order.
     pub entities: Vec<IfccadEntity>,
-}
-
-/// Physical sheet dimensions, independently of the Paper coordinate unit.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct IfccadPaperSize {
-    pub width: f64,
-    pub height: f64,
-    pub length_unit: String,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -87,7 +78,7 @@ pub struct IfccadBlockDefinition {
     pub entities: Vec<IfccadEntity>,
 }
 
-/// Optional conservative XYZ enclosure in the owning coordinate unit.
+/// Optional conservative XYZ enclosure in the owning numerical coordinates.
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct IfccadBounds3d {

@@ -79,11 +79,21 @@ fn import_document(
         .iter()
         .position(|token| *token == drawing.unit.as_str())
         .expect("validated drawing unit") as i16;
-    let mut geometry =
-        crate::mapping::geometry::ExchangeState::new(crate::OcdrawGeometryAssessment::new(
-            options.geometry_tolerance,
-            crate::units::from_cad_code(code).expect("validated unit"),
-        )?);
+    let mut geometry = crate::geometry_context::GeometryContext::new(
+        options.geometry_tolerance,
+        crate::units::from_cad_code(code).expect("validated drawing unit"),
+    )?;
+    for layout in &drawing.layouts {
+        if layout.kind == DrawingLayoutKind::Paper {
+            geometry.add_paper(
+                u64::from(layout.scope_id),
+                layout.id,
+                cad_geometry_convert::plot_units::paper_mapping(
+                    layout.settings.plot_settings.as_ref(),
+                ),
+            )?;
+        }
+    }
     let converted_ids = drawing
         .geometric_entities
         .iter()
@@ -165,7 +175,7 @@ fn import_document(
 
     layouts::prepare_primary_paper_layout(drawing, &mut document)?;
     let mut scope_layouts = BTreeMap::new();
-    let mut saved_linetype_scaling = None;
+
     let mut layouts = drawing.layouts.iter().enumerate().collect::<Vec<_>>();
     layouts.sort_by_key(|(_, layout)| layout.tab_index);
     for (index, layout) in layouts {
@@ -191,14 +201,7 @@ fn import_document(
             scope_layouts.insert(scope_id, Some(name.to_owned()));
         }
         let scaling = layout.settings.paper_space_linetype_scaling;
-        if saved_linetype_scaling.is_some_and(|previous| previous != scaling) {
-            diagnostics.push(diagnostic(
-                "LAYOUT_SCALING",
-                format!("/layouts/{index}/paperSpaceLinetypeScaling"),
-                "CAD has one drawing-wide paper-space linetype scaling setting",
-            ));
-        } else {
-            saved_linetype_scaling = Some(scaling);
+        if layout.kind == DrawingLayoutKind::Model {
             document.header.paper_space_linetype_scaling = scaling;
         }
         if let Some(ObjectType::Layout(target)) =
@@ -210,6 +213,24 @@ fn import_document(
                 _ => false,
             })
         {
+            if scaling {
+                target.flags |= 1;
+            } else {
+                target.flags &= !1;
+            }
+            if let Some(media) = &layout.settings.media {
+                if let Err(e) = crate::mapping::layout::apply_medium_to_cad(target, media) {
+                    if e == cad_geometry_convert::plot_units::PlotNumericError::UnsupportedUnit {
+                        diagnostics.push(diagnostic(
+                            "LAYOUT_MEDIA",
+                            format!("/layouts/{index}/media"),
+                            e.to_string(),
+                        ));
+                    } else {
+                        return Err(e.into());
+                    }
+                }
+            }
             if layout.settings.limits_checking {
                 target.flags |= 2;
             } else {
@@ -220,8 +241,57 @@ fn import_document(
                 target.max_limits = (limits.max_x, limits.max_y);
             }
             if let Some(plot) = &layout.settings.plot_settings {
-                crate::mapping::layout::apply_plot_to_cad(target, plot);
+                if let Err(e) = crate::mapping::layout::apply_plot_to_cad(
+                    target,
+                    layout
+                        .settings
+                        .media
+                        .as_ref()
+                        .expect("validated plot medium"),
+                    plot,
+                ) {
+                    if e == cad_geometry_convert::plot_units::PlotNumericError::UnsupportedUnit {
+                        diagnostics.push(diagnostic(
+                            "LAYOUT_SETTINGS",
+                            format!("/layouts/{index}/plotSettings"),
+                            e.to_string(),
+                        ));
+                    } else {
+                        return Err(e.into());
+                    }
+                }
             }
+        }
+        if layout.settings.plot_settings.is_some() {
+            let target = document
+                .objects
+                .values()
+                .find_map(|o| match o {
+                    ObjectType::Layout(l) if l.name == name => Some(l),
+                    _ => None,
+                })
+                .expect("allocated layout");
+            if crate::mapping::layout::plot_is_default(target) {
+                diagnostics.push(diagnostic("LAYOUT_DEFAULT_PLOT_AMBIGUOUS",format!("/layouts/{index}/plotSettings"),"authored plot equals CAD defaults; native absence cannot be distinguished on reimport"));
+            }
+        }
+        if layout.kind == DrawingLayoutKind::Paper {
+            let target = document
+                .objects
+                .values()
+                .find_map(|o| match o {
+                    ObjectType::Layout(l) if l.name == name => Some(l),
+                    _ => None,
+                })
+                .expect("allocated layout");
+            let mapping = if target.paper_width > 0. && target.paper_height > 0. {
+                cad_geometry_convert::plot_units::paper_mapping(
+                    layout.settings.plot_settings.as_ref(),
+                )
+            } else {
+                cad_geometry_convert::plot_units::PaperMapping::Unknown
+            };
+            geometry.refine_paper(u64::from(layout.scope_id), mapping)?;
         }
         if layout.settings.plot_settings.as_ref().is_some_and(|plot| {
             matches!(
@@ -338,7 +408,8 @@ fn import_document(
         options.preservation_restore,
         &mut preservation_report,
     )?;
-    crate::preservation::record_unassessed_occurrences(drawing, &mut geometry.assessment);
+    geometry.select_drawing();
+    geometry.record_unassessed(drawing);
     if let Some(p) = &drawing.preservation {
         for record in &p.records {
             let root = (record.role == ocdraw::ocdraw::OcdrawPreservationRole::Complete
@@ -363,6 +434,11 @@ fn import_document(
         }
     }
     crate::mapping::workspace::apply(drawing, &mut document, &scope_layouts, &mut diagnostics);
+    if let Some(id) = drawing.workspace_state.and_then(|w| w.active_layout_id) {
+        if let Some(l) = drawing.layouts.iter().find(|l| l.id == id) {
+            document.header.paper_space_linetype_scaling = l.settings.paper_space_linetype_scaling;
+        }
+    }
     let members = drawing
         .scopes
         .iter()
@@ -390,7 +466,7 @@ fn import_document(
         document,
         diagnostics,
         entity_mapping,
-        geometry: geometry.assessment,
+        geometry: geometry.finish(),
     })
 }
 

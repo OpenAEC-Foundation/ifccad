@@ -31,7 +31,7 @@
 //! let tab_index = u32::try_from(document.paper_layouts.len() + 1)?;
 //! document.paper_layouts.push(IfccadPaperLayout { bounds: None,
 //!     id, name: "New sheet".into(), tab_index,
-//!     length_unit: "unitless".into(), paper: None, entities: vec![],
+//!     settings: Default::default(), entities: vec![],
 //! });
 //! let encoded = encode_ifccad_document(&document)?;
 //! # let _ = encoded;
@@ -76,3 +76,10 @@ impl IfccadReport {
         }
     }
 }
+
+// Independent public paths for shared ID-free layout output values.
+pub use crate::plot_kernel::{
+    LayoutMedia as IfccadLayoutMedia, LayoutOutputSettings as IfccadLayoutSettings,
+    MediaUnit as IfccadMediaUnit, PlotSettings as IfccadPlotSettings,
+    PlotStyleMode as IfccadPlotStyleMode,
+};

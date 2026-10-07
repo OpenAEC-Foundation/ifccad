@@ -32,6 +32,10 @@ pub(crate) fn encode_ocdraw_document(doc: &OcdrawDocument) -> Value {
     let mut layouts=doc.layouts.iter().map(|l|json!({"id":l.id,"scopeId":l.scope_id,"kind":match l.kind {DrawingLayoutKind::Model=>"model",DrawingLayoutKind::Paper=>"paper"},"name":l.name,"tabIndex":l.tab_index})).collect::<Vec<_>>();
     for (layout, source) in layouts.iter_mut().zip(&doc.layouts) {
         let settings = &source.settings;
+        if let Some(media) = &settings.media {
+            layout["media"] =
+                json!({"unit":media.unit.as_str(),"width":media.width,"height":media.height});
+        }
         if let Some(limits) = settings.limits {
             layout["limits"] = encode_rect(limits).expect("validated limits");
         }

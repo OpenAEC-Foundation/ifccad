@@ -50,7 +50,13 @@ fn conversion_evidence_retains_domains_and_large_ids() {
     .unwrap()
     .into_document();
     d.length_unit = "mm".into();
-    d.paper_layouts[0].length_unit = "in".into();
+    let config: serde_json::Value = serde_json::from_slice(include_bytes!(
+        "../../../conformance/next/ifccad/valid/layout-plot-inch.ifcx"
+    ))
+    .unwrap();
+    let config =
+        load_ifccad_bytes(&serde_json::to_vec(&config).unwrap(), Default::default()).unwrap();
+    d.paper_layouts[0].settings = config.document().paper_layouts[0].settings.clone();
     let mut e = d.paper_layouts[0].entities[0].clone();
     e.id = 9_007_199_254_740_993;
     e.kind = IfccadEntityKind::PlanarPolyline {
@@ -92,8 +98,15 @@ fn conversion_evidence_retains_domains_and_large_ids() {
         "9007199254740993"
     );
     assert_eq!(assessment["domains"].as_array().unwrap().len(), 2);
-    assert_eq!(assessment["domains"][0]["coordinateUnit"], "mm");
-    assert_eq!(assessment["domains"][1]["coordinateUnit"], "in");
+    assert_eq!(assessment["domains"][0]["coordinateMeaning"]["unit"], "mm");
+    assert_eq!(
+        assessment["domains"][1]["coordinateMeaning"]["kind"],
+        "PaperCoordinates"
+    );
+    assert_eq!(
+        assessment["domains"][1]["coordinateMeaning"]["physicalOutputFactor"]["numerator"],
+        "127"
+    );
     assert!(
         assessment["domains"][0]["resolvedTolerance"]["upper"]
             .as_f64()

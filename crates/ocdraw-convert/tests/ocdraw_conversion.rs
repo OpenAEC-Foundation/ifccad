@@ -344,6 +344,7 @@ fn configured_layout_plot_settings_roundtrip_directly() {
                 layout.plot_type = 1;
                 layout.plot_paper_units = 1;
                 layout.plot_scale_type = 0;
+                layout.plot_flags.use_standard_scale = true;
                 layout.plot_flags.plot_centered = true;
                 layout.paper_size = "A4".into();
             }
@@ -369,8 +370,8 @@ fn configured_layout_plot_settings_roundtrip_directly() {
         .iter()
         .find(|layout| layout["name"] == "Sheet")
         .unwrap();
-    assert_eq!(sheet["plotSettings"]["media"]["width"], 210.0);
-    assert_eq!(sheet["plotSettings"]["media"]["mediaName"], "A4");
+    assert_eq!(sheet["media"]["width"], 210.0);
+    assert_eq!(sheet["plotSettings"]["page"]["mediaName"], "A4");
     let imported = ocdraw_source_to_cad_document(drawing, OcdrawToCadOptions::default()).unwrap();
     assert!(imported
         .document()
@@ -761,7 +762,13 @@ fn standalone_import_enforces_unitless_exactness_and_explicit_tolerance() {
     )
     .unwrap();
     assert_eq!(
-        imported.geometry_assessment().max_deviation_upper_bound(),
+        imported
+            .geometry_assessment()
+            .domains()
+            .iter()
+            .find(|d| d.domain() == ocdraw_convert::OcdrawGeometryDomain::Drawing)
+            .unwrap()
+            .max_deviation_upper_bound(),
         1.0
     );
     assert_eq!(imported.geometry_assessment().rounded_entities(), 1);
@@ -849,7 +856,13 @@ fn standalone_checks_scaled_block_occurrences_against_the_same_tolerance() {
     )
     .unwrap();
     assert_eq!(
-        imported.geometry_assessment().max_deviation_upper_bound(),
+        imported
+            .geometry_assessment()
+            .domains()
+            .iter()
+            .find(|d| d.domain() == ocdraw_convert::OcdrawGeometryDomain::Drawing)
+            .unwrap()
+            .max_deviation_upper_bound(),
         4.0
     );
 }

@@ -155,7 +155,7 @@ pub(crate) fn unsupported_common_context(spline: &Spline) -> bool {
 
 pub(crate) fn record_unassessed_occurrences(
     doc: &OcdrawDocument,
-    assessment: &mut crate::OcdrawGeometryAssessment,
+    assessment: &mut Vec<crate::OcdrawGeometryEntitySource>,
 ) {
     let opaque = doc
         .opaque_entities
@@ -188,7 +188,7 @@ pub(crate) fn record_unassessed_occurrences(
             entity_id: id,
         };
         if opaque.contains(&id) {
-            assessment.record_unassessed(if path.is_empty() {
+            assessment.push(if path.is_empty() {
                 source
             } else {
                 crate::OcdrawGeometryEntitySource::BlockOccurrence {

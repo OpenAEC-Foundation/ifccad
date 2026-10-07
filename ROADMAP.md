@@ -70,7 +70,7 @@ Allow/Reject conversion policies expose or reject supported loss classifications
 Optional scope bounds have explicit atomic preparation. Geometry validation and
 CAD accuracy are shared with OCDraw through neutral helpers; converters expose
 adjustable hard tolerances and per-coordinate-domain numerical evidence.
-Model and multiple Paper layouts now convert with explicit tab order, optional physical media and separate coordinate units. The viewport slice adds camera, perspective/depth/display state and circle/full-ellipse/closed straight-or-bulged path clipping, with CAD exchange verified using explicit codec development repairs; upstream dependency adoption and full plot conversion remain separate follow-ups; complex
+Model and multiple Paper layouts now convert with explicit tab order, optional media and explicit plot mappings. The viewport slice adds camera, perspective/depth/display state and circle/full-ellipse/closed straight-or-bulged path clipping, with CAD exchange verified using explicit codec development repairs; upstream dependency adoption remains a separate follow-up; complex
 text/shape patterns use a diagnosed whole-definition fallback under Allow.
 This integration does not freeze IFCCAD compatibility or expand the standalone
 OCDraw contract. Continued IFCCAD development expands drawing semantics and
@@ -79,11 +79,17 @@ authored view/plot state. Its long-term direction is a CAD drawing module
 that can participate in the evolving IFCX ecosystem. IFC object associations,
 source-graph writeback and collaborative updates require concrete future designs.
 
-The next IFCCAD slice will address plot settings and user/workspace state against
-the existing OCDraw coverage. Keep the current explicit Paper coordinate units
-while designing their relationship to plot units and mappings; review physical
-Paper tolerance interpretation in both models. This follow-up does not adopt a
-new plot/state contract ahead of its design or change the current geometry slice.
+The layout-output slice implements standalone medium dimensions and effective
+plot settings in both models, including Model/Paper limits and IFCCAD plot-style
+mode and Paper-space linetype-scaling parity. Plot mappings replace IFCCAD's
+independent Paper coordinate unit; both converters assess physical Paper accuracy
+per layout. Native media-only states remain valid. Exact binary64 scalar conversion
+and unqualified raster CAD output retain explicit restrictions; see
+[layout output](docs/layout-output.md). Current active schemas remain provisional.
+
+The next IFCCAD slice addresses drawing/workspace state (UCS, model windows,
+paper canvases, grid/snap and active choices) using this established output boundary.
+Other layer/entity/block presentation differences and preservation remain separate.
 
 ## Later semantic coverage and exchange
 

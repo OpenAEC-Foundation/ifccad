@@ -73,13 +73,57 @@
         "ifccad::layout": {
           "kind": "Paper",
           "name": "A3",
-          "paper": {
-            "height": 420.0,
-            "lengthUnit": "mm",
-            "width": 297.0
-          },
           "tabIndex": 1,
-          "lengthUnit": "mm"
+          "media": {
+            "unit": "mm",
+            "width": 297.0,
+            "height": 420.0
+          },
+          "plotSettings": {
+            "plotUnit": "mm",
+            "page": {
+              "printableArea": {
+                "minX": 0,
+                "minY": 0,
+                "maxX": 297.0,
+                "maxY": 420.0
+              },
+              "rotation": "none"
+            },
+            "area": {
+              "mode": "Layout"
+            },
+            "mapping": {
+              "scale": {
+                "mode": "Fixed",
+                "outputLength": 1.0,
+                "scopeLength": 1
+              },
+              "placement": {
+                "mode": "Offset",
+                "reference": "Media",
+                "x": 0,
+                "y": 0
+              }
+            },
+            "output": {
+              "shadedPlot": {
+                "mode": "AsDisplayed",
+                "quality": {
+                  "mode": "Normal"
+                }
+              },
+              "applyPlotStyles": false
+            },
+            "options": {
+              "plotViewportBorders": false,
+              "plotPaperSpaceLast": false,
+              "hidePaperSpaceObjects": false,
+              "plotLineWeights": false,
+              "scaleLineWeights": false,
+              "plotTransparency": false
+            }
+          }
         }
       }
     },
@@ -92,13 +136,57 @@
         "ifccad::layout": {
           "kind": "Paper",
           "name": "Letter",
-          "paper": {
-            "height": 11.0,
-            "lengthUnit": "in",
-            "width": 8.5
-          },
           "tabIndex": 2,
-          "lengthUnit": "in"
+          "media": {
+            "unit": "in",
+            "width": 8.5,
+            "height": 11.0
+          },
+          "plotSettings": {
+            "plotUnit": "in",
+            "page": {
+              "printableArea": {
+                "minX": 0,
+                "minY": 0,
+                "maxX": 8.5,
+                "maxY": 11.0
+              },
+              "rotation": "none"
+            },
+            "area": {
+              "mode": "Layout"
+            },
+            "mapping": {
+              "scale": {
+                "mode": "Fixed",
+                "outputLength": 1.0,
+                "scopeLength": 1
+              },
+              "placement": {
+                "mode": "Offset",
+                "reference": "Media",
+                "x": 0,
+                "y": 0
+              }
+            },
+            "output": {
+              "shadedPlot": {
+                "mode": "AsDisplayed",
+                "quality": {
+                  "mode": "Normal"
+                }
+              },
+              "applyPlotStyles": false
+            },
+            "options": {
+              "plotViewportBorders": false,
+              "plotPaperSpaceLast": false,
+              "hidePaperSpaceObjects": false,
+              "plotLineWeights": false,
+              "scaleLineWeights": false,
+              "plotTransparency": false
+            }
+          }
         }
       }
     },

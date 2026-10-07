@@ -22,7 +22,7 @@ fn papers() -> Value {
         value["data"].as_array_mut().unwrap().push(json!({
             "path": format!("/cad/d1/layout/{id}"), "children": {},
             "attributes": {"ifccad::layout": {"kind":"Paper", "name":name,
-                "tabIndex":tab, "lengthUnit":"unitless"}}
+                "tabIndex":tab}}
         }));
     }
     value
@@ -82,17 +82,14 @@ fn names_tabs_units_and_optional_media_are_strict() {
         ("tabIndex", json!(3)),
         ("name", json!("MODEL")),
         ("lengthUnit", json!("nonsense")),
-        ("paper", json!({"width":0,"height":210,"lengthUnit":"mm"})),
-        ("paper", json!({"width":297,"lengthUnit":"mm"})),
-        (
-            "paper",
-            json!({"width":297,"height":210,"lengthUnit":"unitless"}),
-        ),
+        ("media", json!({"width":0,"height":210,"unit":"mm"})),
+        ("media", json!({"width":297,"unit":"mm"})),
+        ("media", json!({"width":297,"height":210,"unit":"unitless"})),
         ("unknown", json!(1)),
-        ("paper", Value::Null),
+        ("media", Value::Null),
         (
-            "paper",
-            json!({"width":297,"height":210,"lengthUnit":"mm","unknown":1}),
+            "media",
+            json!({"width":297,"height":210,"unit":"mm","unknown":1}),
         ),
     ] {
         let mut value = valid.clone();
@@ -111,11 +108,11 @@ fn names_tabs_units_and_optional_media_are_strict() {
 #[test]
 fn editing_tab_order_preserves_units_identity_and_allocation() {
     let mut document = read(&papers()).unwrap().into_document();
-    document.paper_layouts[0].length_unit = "in".into();
-    document.paper_layouts[0].paper = Some(IfccadPaperSize {
+
+    document.paper_layouts[0].settings.media = Some(ocdraw::ifccad::IfccadLayoutMedia {
         width: 297.,
         height: 210.,
-        length_unit: "mm".into(),
+        unit: ocdraw::ifccad::IfccadMediaUnit::from_token("mm").unwrap(),
     });
     let counters = document.id_counters;
     document.paper_layouts[0].tab_index = 2;
@@ -124,17 +121,26 @@ fn editing_tab_order_preserves_units_identity_and_allocation() {
     let loaded = load_ifccad_bytes(encoded.bytes(), Default::default()).unwrap();
     assert_eq!(loaded.document().id_counters, counters);
     assert_eq!(loaded.document().paper_layouts[1].id, 90);
-    assert_eq!(loaded.document().paper_layouts[1].length_unit, "in");
+    assert!(loaded.document().paper_layouts[1]
+        .settings
+        .plot_settings
+        .is_none());
     assert_eq!(
         loaded.document().paper_layouts[1]
-            .paper
+            .settings
+            .media
             .as_ref()
             .unwrap()
             .width,
         297.
     );
     for invalid in [0., -1., f64::INFINITY, f64::NAN] {
-        document.paper_layouts[0].paper.as_mut().unwrap().width = invalid;
+        document.paper_layouts[0]
+            .settings
+            .media
+            .as_mut()
+            .unwrap()
+            .width = invalid;
         assert!(validate_ifccad_document(&document).is_err());
     }
     document.model.tab_index = 1;

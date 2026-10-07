@@ -1,8 +1,6 @@
-//! Temporary IFCCAD conversion state over the shared geometric proof engine.
-//! Tracks the active native owner and one assessment per coordinate domain:
-//! Model/definitions use drawing units; each Paper layout has its own unit.
-//! OCDraw currently uses the shared ExchangeState with one drawing assessment
-//! directly. Native geometry records and wire payloads do not store this state.
+//! IFCCAD owner/domain adapter over shared primitive and occurrence proofs.
+//! Model/definitions use drawing units; each Paper domain uses fixed output
+//! mapping or unknown coordinate meaning. Conversion state is not drawing data.
 use crate::{geometry_assessment::Assessment, *};
 use ocdraw::geometry_kernel::CoordinateLengthUnit;
 use std::collections::BTreeMap;
@@ -11,6 +9,8 @@ pub(crate) struct GeometryContext {
     pub owner: IfccadGeometryOwner,
     stored: BTreeMap<IfccadGeometryDomain, Assessment>,
     tolerance: IfccadGeometryTolerance,
+    meanings:
+        BTreeMap<IfccadGeometryDomain, cad_geometry_convert::plot_units::GeometryCoordinateMeaning>,
 }
 impl GeometryContext {
     pub fn new(
@@ -27,14 +27,73 @@ impl GeometryContext {
             owner: IfccadGeometryOwner::ModelLayout(model_id),
             stored: BTreeMap::new(),
             tolerance,
+            meanings: BTreeMap::from([(
+                IfccadGeometryDomain::Drawing,
+                cad_geometry_convert::plot_units::GeometryCoordinateMeaning::DrawingUnit(unit),
+            )]),
         })
     }
-    pub fn add_paper(&mut self, id: u64, unit: &str) -> Result<(), IfccadConversionError> {
-        let unit = CoordinateLengthUnit::from_token(unit).expect("validated/selected Paper unit");
+    pub fn add_paper(
+        &mut self,
+        id: u64,
+        mapping: cad_geometry_convert::plot_units::PaperMapping,
+    ) -> Result<(), IfccadConversionError> {
+        let limit =
+            cad_geometry_convert::plot_units::resolve_paper_tolerance(self.tolerance, &mapping)
+                .map_err(|reason| IfccadConversionError::PaperTolerance {
+                    layout_id: id,
+                    reason,
+                })?;
         let assessment =
-            Assessment::new(self.tolerance, unit).map_err(IfccadConversionError::Tolerance)?;
+            Assessment::with_resolved_limit(self.tolerance, CoordinateLengthUnit::Unitless, limit);
         self.stored
             .insert(IfccadGeometryDomain::PaperLayout(id), assessment);
+        self.meanings.insert(
+            IfccadGeometryDomain::PaperLayout(id),
+            cad_geometry_convert::plot_units::GeometryCoordinateMeaning::PaperCoordinates {
+                mapping,
+            },
+        );
+        Ok(())
+    }
+    pub fn refine_paper(
+        &mut self,
+        id: u64,
+        target: cad_geometry_convert::plot_units::PaperMapping,
+    ) -> Result<(), IfccadConversionError> {
+        use cad_geometry_convert::plot_units::{
+            resolve_paper_tolerance, GeometryCoordinateMeaning,
+        };
+        let domain = IfccadGeometryDomain::PaperLayout(id);
+        let GeometryCoordinateMeaning::PaperCoordinates { mapping: source } =
+            &self.meanings[&domain]
+        else {
+            unreachable!()
+        };
+        let a = resolve_paper_tolerance(self.tolerance, source).map_err(|reason| {
+            IfccadConversionError::PaperTolerance {
+                layout_id: id,
+                reason,
+            }
+        })?;
+        let b = resolve_paper_tolerance(self.tolerance, &target).map_err(|reason| {
+            IfccadConversionError::PaperTolerance {
+                layout_id: id,
+                reason,
+            }
+        })?;
+        let limit = cad_geometry_convert::units::ResolvedTolerance {
+            lower: a.lower.min(b.lower),
+            upper: a.upper.min(b.upper),
+        };
+        self.stored.insert(
+            domain,
+            Assessment::with_resolved_limit(self.tolerance, CoordinateLengthUnit::Unitless, limit),
+        );
+        self.meanings.insert(
+            domain,
+            GeometryCoordinateMeaning::PaperCoordinates { mapping: target },
+        );
         Ok(())
     }
     pub fn select(&mut self, owner: IfccadGeometryOwner) {
@@ -56,7 +115,7 @@ impl GeometryContext {
     ) -> IfccadConversionError {
         IfccadConversionError::Geometry(Box::new(IfccadGeometryFailure {
             domain: self.owner.domain(),
-            unit: self.state.assessment.drawing_unit(),
+            coordinate_meaning: self.meanings[&self.owner.domain()].clone(),
             failure,
         }))
     }
@@ -136,7 +195,11 @@ impl GeometryContext {
             domains: self
                 .stored
                 .into_iter()
-                .map(|(domain, evidence)| IfccadGeometryDomainAssessment { domain, evidence })
+                .map(|(domain, evidence)| IfccadGeometryDomainAssessment {
+                    meaning: self.meanings.remove(&domain).unwrap(),
+                    domain,
+                    evidence,
+                })
                 .collect(),
         }
     }

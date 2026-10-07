@@ -176,8 +176,9 @@ fn empty_drawing_opens_without_an_implicit_layer() {
 #[test]
 fn malformed_plot_rectangles_fail_shared_layout_validation() {
     let mut value = fixture();
+    value["layouts"][0]["media"] = json!({"unit":"mm","width":210.0,"height":297.0});
     value["layouts"][0]["plotSettings"] = json!({
-        "media": {"unit":"mm","width":210.0,"height":297.0,
+        "plotUnit":"mm", "page": {
             "printableArea":{"minX":205.0,"minY":5.0,"maxX":5.0,"maxY":292.0},
             "rotation":"none"},
         "area":{"mode":"Extents"},

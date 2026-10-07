@@ -10,3 +10,5 @@
 pub mod geometry_kernel;
 pub mod ifccad;
 pub mod ocdraw;
+
+pub mod plot_kernel;

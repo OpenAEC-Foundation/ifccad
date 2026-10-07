@@ -4,6 +4,18 @@ Experimental direct conversion between `ocdraw::ifccad` and pinned
 opencadcodec `CadDocument`. The core remains independent of opencadcodec. No IFCDR
 package, block explosion or appearance resolver is used.
 
+The source organization follows `ocdraw-convert`: [`src/from_cad`](src/from_cad)
+and [`src/to_cad`](src/to_cad) own conversion orchestration and entity construction;
+[`src/mapping`](src/mapping) owns format-specific geometry, appearance, block,
+layout, line-pattern and viewport adapters; [`src/source`](src/source) inspects
+CAD structure, layout references and supported entity fields. Target layout
+allocation lives in `src/to_cad/layouts.rs`. `geometry_context.rs` and
+`geometry_assessment.rs` adapt tolerance domains and evidence to IFCCAD ownership.
+Numerical geometry and occurrence proofs live in the shared
+[`cad-geometry-convert`](../cad-geometry-convert) crate. IFCX graph-loss checks
+remain specific to this route; OCDraw's preservation and workspace adapters
+remain specific to OCDraw.
+
 This incomplete adapter defaults to **Allow**: supported content is returned
 with located diagnostics for omissions and modifications. **Reject** refuses
 any diagnosed semantic loss. Errors distinguish invalid structure, unsupported
@@ -86,16 +98,16 @@ repair. Other owners, values, applications and undecodable payloads remain losse
 ## Supported slice
 
 Both directions accept `geometry_tolerance` and expose `geometry_assessment()`.
-The default is one micrometre in known coordinate units and zero for unitless;
+The default is one micrometre in known Model units or fixed physical Paper output, and zero when output meaning is unknown;
 use `IfccadGeometryTolerance::exact()` for zero residual or
 `IfccadGeometryTolerance::drawing_units(1e-6)?` for a unitless coordinate budget.
-Physical `metres(...)` and `millimetres(...)` choices require known units in
-every retained coordinate domain. Model/definitions use drawing units; Paper
-uses its own declared coordinate unit. Bounds/media do not establish units.
+Physical requests require a known drawing unit or fixed physical Paper mapping in
+every retained domain, including empty layouts. Model/definitions use drawing units;
+Paper uses plot units and ratio. Bounds/media never establish a mapping.
 See the [shared geometry and accuracy contract](../../docs/geometry/shared-geometry.md)
 for nested occurrence proof, conservative bulge limits and separate file checks.
 
-- One Model layout and multiple Paper layouts with explicit tab order, optional physical media, unused layers and definitions. Native coordinate units support all 25 tokens; CAD Paper export supports unitless, inch and millimetre coordinates.
+- One Model layout and multiple Paper layouts with explicit tab order, optional physical media, unused layers and definitions. Model units support all 25 tokens; Paper coordinates have output meaning through plot mapping, with independent medium dimensions.
 - Points, XYZ lines, circles/signed arcs, full/partial ellipses, straight/bulged
   planar and straight spatial paths in valid oriented planes. Local-origin
   decomposition may change while the shape meets the configured hard limit.
@@ -107,7 +119,7 @@ for nested occurrence proof, conservative bulge limits and separate file checks.
   order; valid oriented insert placement, rotation and signed nonuniform scale.
   CAD setter changes, including the tiny-scale clamp, cause rejection.
 
-Under Allow, incompatible geometry is omitted as a whole entity. Paper layouts with unsupported target coordinate units and their entities are omitted with located evidence. Ordinary local definitions retain supported
+Under Allow, incompatible geometry is omitted as a whole entity. Unsupported target medium factors omit medium/dependent plot values with located evidence; Paper geometry and layout ownership remain. Ordinary local definitions retain supported
 content; every instance of a partial definition receives a loss diagnostic,
 including through nested blocks. Anonymous/reserved names, XREF/external flags
 and directly owned dynamic-block objects cause definition omission; referring
@@ -244,16 +256,23 @@ Recovery diagnostic, preserving relative order. Native IDs and watermarks are
 independent of tab order. Only the fully default initial Layout1 scaffold is
 excluded; additional empty sheets remain authored.
 
-CAD paper dimensions are always millimetres. Positive finite dimensions map to
-an optional medium; invalid or partial dimensions omit only that medium with
-loss evidence. Explicit fixed 1:1 inch/mm mappings establish Paper coordinate
-units. Fully unconfigured unsized defaults are unitless; other authored mappings
-retain numeric coordinates as unitless with a loss diagnostic. Media never
-establish coordinate units and block instances are never implicitly rescaled.
+CAD physical dimensions, margins and offsets are millimetres independently of plot
+unit selection. Both layouts and valid media survive when unsupported complete
+plot state is omitted with loss. Effective plot settings and saved layout PSLTSCALE
+are mapped independently of workspace state. Paper coordinates acquire output
+meaning through fixed plot unit/ratio only; no implicit geometry rescaling occurs.
 
-Native media convert through exact rational millimetre factors. Any binary64
-rounding is fatal under both policies (5 inches maps exactly to 127 mm; 1 inch
-cannot exactly map to binary64 25.4 mm). Unsupported factors such as parsecs omit
-only media under Allow. Printer/media names, margins, rotation, plot limits,
-authored overall canvases and workspace state remain deferred losses. Definition-content
-losses propagate to Paper instances through shared and nested definitions.
+Physical scalar conversions must be exact in binary64; unsupported exact factors
+omit medium/dependent plot under Allow, while inexact conversion is a typed failure
+under both policies. Raster calibration, printable-relative offsets, transparency
+and external style contents keep explicit limits. Definition-content losses still
+propagate through shared/nested Paper instances. See the layout-output contract.
+
+## Layout output revision
+
+Both models retain layout media without complete plot settings. Plot unit and
+fixed mapping determine Paper output meaning; IFCCAD no longer stores an independent
+Paper coordinate unit. Effective plot settings, limits and layout PSLTSCALE have
+separate native/CAD coverage. The provisional field/API migration, strict physical
+scalar conversion limits, raster restrictions and per-domain accuracy reports are
+specified in [layout output](../../docs/layout-output.md). No new workspace state, renderer, release or controlled measurement is implied.

@@ -1,3 +1,6 @@
+pub(crate) mod entities;
+pub(crate) mod layouts;
+
 use crate::diagnostics::diagnostic;
 use crate::{IfccadConversionError as Error, IfccadDiagnostic};
 use opencadcodec::objects::ObjectType;
@@ -120,7 +123,7 @@ pub(crate) fn inspect(doc: &CadDocument) -> Result<Inspection, Error> {
         return Err(invalid("model block and exactly one layout must agree"));
     }
     let mut recoveries = vec![];
-    let layout_dictionary = crate::layout_references::dictionary(doc, &mut recoveries)?;
+    let layout_dictionary = crate::source::layouts::dictionary(doc, &mut recoveries)?;
     if doc.header.model_space_block_handle != model.handle {
         if doc.header.model_space_block_handle.is_null()
             || doc
@@ -218,7 +221,7 @@ pub(crate) fn inspect(doc: &CadDocument) -> Result<Inspection, Error> {
             if record.is_paper_space() {
                 paper_sources.push(l);
             }
-            crate::layout_references::viewports(doc, l, record.is_model_space(), &mut issues)?;
+            crate::source::layouts::viewports(doc, l, record.is_model_space(), &mut issues)?;
         }
         let entries = match object {
             ObjectType::Dictionary(d) => Some(&d.entries),
@@ -262,7 +265,7 @@ pub(crate) fn inspect(doc: &CadDocument) -> Result<Inspection, Error> {
             if b.is_paper_space()
                 && matches!(e, EntityType::Viewport(_))
                 && !overall_scaffold(doc, e)
-                && matches!(e, EntityType::Viewport(v) if crate::viewports::overall_canvas(doc,v))
+                && matches!(e, EntityType::Viewport(v) if crate::mapping::viewport::overall_canvas(doc,v))
             {
                 issues.push(diagnostic(
                     "paper",
@@ -394,7 +397,7 @@ pub(crate) fn inspect(doc: &CadDocument) -> Result<Inspection, Error> {
     }
     scan(doc, layout_dictionary, &mut issues)?;
     for e in doc.entities() {
-        crate::geometry::validate_source(e)?;
+        entities::validate_source(e)?;
     }
     for recovery in &mut recoveries {
         recovery.action = crate::IfccadDiagnosticAction::Recovery;
@@ -510,6 +513,8 @@ fn scan(
             &[
                 "insertion_units",
                 "linetype_scale",
+                "plotstyle_mode",
+                "paper_space_linetype_scaling",
                 "model_space_extents_min",
                 "model_space_extents_max",
                 "paper_space_extents_min",
@@ -651,8 +656,14 @@ fn scan(
                 {
                     actual.plot_flags.model_type = b.plot_flags.model_type;
                 }
+                actual.flags = (actual.flags & !3) | (b.flags & 3);
+                let f=&mut actual.plot_flags; let base=b.plot_flags;
+                f.use_standard_scale=base.use_standard_scale; f.plot_centered=base.plot_centered;
+                f.plot_viewport_borders=base.plot_viewport_borders; f.draw_viewports_first=base.draw_viewports_first;
+                f.plot_hidden=base.plot_hidden; f.print_lineweights=base.print_lineweights;
+                f.scale_lineweights=base.scale_lineweights; f.plot_plot_styles=base.plot_plot_styles;
                 let paper = doc.block_records.iter().any(|record|record.is_paper_space() && record.handle==l.block_record);
-                let mut ignored=vec!["handle","owner","block_record","viewport","viewports","min_extents","max_extents"];
+                let mut ignored=vec!["handle","owner","block_record","viewport","viewports","min_extents","max_extents","min_limits","max_limits","paper_width","paper_height","plot_paper_units","plot_scale_type","plot_scale_numerator","plot_scale_denominator","plot_scale_factor","plot_rotation","plot_type","plot_margin_left","plot_margin_bottom","plot_margin_right","plot_margin_top","plot_origin_x","plot_origin_y","plot_window_min_x","plot_window_min_y","plot_window_max_x","plot_window_max_y","plot_printer_name","paper_size","plot_style_sheet","shade_plot_mode","shade_plot_resolution","shade_plot_dpi"];
                 if paper {
                     // Unit/mapping support is classified separately, including unknown physical intent.
                     ignored.extend(["name","tab_order","paper_width","paper_height","plot_paper_units","plot_scale_type","plot_scale_numerator","plot_scale_denominator","plot_scale_factor"]);

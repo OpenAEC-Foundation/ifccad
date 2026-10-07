@@ -224,6 +224,10 @@ fn deleted_definitions_do_not_reset_their_watermarks() {
     let id = layout.id_counters.allocate_layout_id().unwrap();
     assert_eq!(id, 100);
     layout.paper_layouts.push(IfccadPaperLayout {
+        settings: ocdraw::ifccad::IfccadLayoutSettings {
+            media: None,
+            ..Default::default()
+        },
         id,
         tab_index: 3,
         name: "Unused".into(),

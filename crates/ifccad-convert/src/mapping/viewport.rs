@@ -65,8 +65,8 @@ pub(crate) fn from_cad(
         },
         view: IfccadViewportView {
             center: [v.view_center.x, v.view_center.y],
-            target: crate::geometry::p(v.view_target),
-            direction: crate::geometry::p(v.view_direction),
+            target: crate::mapping::geometry::p(v.view_target),
+            direction: crate::mapping::geometry::p(v.view_direction),
             height: v.view_height,
             twist: v.twist_angle,
             projection: if v.status.perspective {
@@ -184,8 +184,8 @@ pub(crate) fn to_cad(
     target.width = v.frame.width;
     target.height = v.frame.height;
     target.view_center = opencadcodec::Vector3::new(v.view.center[0], v.view.center[1], 0.);
-    target.view_target = crate::geometry::v(v.view.target);
-    target.view_direction = crate::geometry::v(v.view.direction);
+    target.view_target = crate::mapping::geometry::v(v.view.target);
+    target.view_direction = crate::mapping::geometry::v(v.view.direction);
     target.view_height = v.view.height;
     target.twist_angle = v.view.twist;
     if let Some(lens) = v.view.lens_length_mm {

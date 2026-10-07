@@ -23,7 +23,7 @@ fn wire() -> Value {
     });
     v["data"].as_array_mut().unwrap().extend([
         json!({"path":"/cad/d1/layout/42","children":{"0":"/cad/d1/e1000","1":"/cad/d1/e1002"},
-            "attributes":{"ifccad::layout":{"kind":"Paper","name":"Sheet","tabIndex":1,"lengthUnit":"in"}}}),
+            "attributes":{"ifccad::layout":{"kind":"Paper","name":"Sheet","tabIndex":1}}}),
         json!({"path":"/cad/d1/e1000","attributes":{"ifccad::entity":attributes.clone(),"ifccad::viewport":payload}}),
         json!({"path":"/cad/d1/e1002","attributes":{"ifccad::entity":attributes,"ifccad::geom::circle":{"radius":50},
             "ifccad::geom::placement":{"origin":[100,75,0],"xAxis":[1,0,0],"yAxis":[0,1,0]}}})

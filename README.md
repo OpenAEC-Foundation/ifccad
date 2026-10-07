@@ -120,8 +120,13 @@ bulged planar and straight spatial paths, optional scope bounds and expanded
 viewport clips. Both converters share adjustable accuracy with independent
 coordinate-domain evidence. This remains a provisional 0.1.0 revision;
 see [shared geometry](docs/geometry/shared-geometry.md).
-The next IFCCAD slice will cover plot settings and user/workspace state, including
-the relationship between Paper coordinate units, plot mapping and tolerance.
+Both formats now retain layout media independently of plot settings. IFCCAD adds
+effective plot output, limits, plot-style mode and Paper-space linetype-scaling
+parity; both CAD routes assess Paper accuracy through each fixed physical plot
+mapping. The provisional contract removes IFCCAD's independent Paper coordinate
+unit. See [layout output](docs/layout-output.md) for numeric/raster restrictions.
+The next IFCCAD slice covers UCS, model windows, paper canvases, grid/snap and
+active workspace choices against this output boundary.
 
 ## Using the implementation
 
@@ -167,7 +172,7 @@ pattern generation. See the [geometry sample](examples/ifccad/hello-geometry.ifc
 and [line-pattern sample](examples/ifccad/hello-line-patterns.ifcx). Geometry validation and length-unit tokens use shared neutral helpers;
 the two drawing models, schemas and encoding routes remain separate. The
 [IFCCAD & OCDraw Explorer](format-explorer/README.md) now opens IFCCAD and
-roundtrips through DXF/DWG using its own converter. Model and multiple Paper layouts convert with explicit tab order, optional physical media and separate coordinate units. Paper viewports now retain orthographic/perspective camera, depth/display state and circle/full-ellipse/closed straight-or-bulged path clipping. CAD viewport exchange uses the explicit development codec repairs described in the converter; full plot settings remain deferred.
+roundtrips through DXF/DWG using its own converter. Model and multiple Paper layouts convert with explicit tab order, optional media and explicit output mappings. Paper viewports now retain orthographic/perspective camera, depth/display state and circle/full-ellipse/closed straight-or-bulged path clipping. CAD viewport exchange uses the explicit development codec repairs described in the converter; effective plot settings retain the documented CAD limits.
 
 ## History and naming
 

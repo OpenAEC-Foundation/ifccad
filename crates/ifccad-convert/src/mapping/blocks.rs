@@ -21,7 +21,7 @@ pub(crate) fn allocate(
         b.handle = doc.allocate_handle();
         b.block_entity_handle = doc.allocate_handle();
         b.block_end_handle = doc.allocate_handle();
-        b.base_point = crate::geometry::v(def.base_point);
+        b.base_point = crate::mapping::geometry::v(def.base_point);
         b.units = unit_code(&def.insertion_unit);
         let mut start = opencadcodec::entities::Block::new(&def.name, b.base_point);
         start.common.handle = b.block_entity_handle;
@@ -60,7 +60,7 @@ pub(crate) fn from_insert(
     Some(IfccadEntityKind::BlockInstance {
         definition_id: id,
         transform: IfccadBlockTransform {
-            placement: crate::geometry::xy(crate::geometry::p(i.insert_point)),
+            placement: crate::mapping::geometry::xy(crate::mapping::geometry::p(i.insert_point)),
             rotation: i.rotation,
             scale: [i.x_scale(), i.y_scale(), i.z_scale()],
         },

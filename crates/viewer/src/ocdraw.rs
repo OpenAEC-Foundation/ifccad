@@ -344,7 +344,7 @@ fn preservation_report(report: &ocdraw_convert::OcdrawPreservationReport) -> Val
         "sourceId":e.source_id,"sourceKey":e.source_key,"schema":e.schema,"version":e.version,"phase":e.phase,"result":e.result,"reason":e.reason,"location":e.location,"message":e.message})).collect::<Vec<_>>()})
 }
 fn geometry_report(report: &ocdraw_convert::OcdrawGeometryAssessment) -> Value {
-    json!({"complete":report.is_complete(),"assessedNativeStatus":format!("{:?}",report.status()),"assessedNativeEntities":report.assessed_entities(),
+    json!({"domains":report.domains().iter().map(|d|json!({"domain":format!("{:?}",d.domain()),"coordinateMeaning":crate::geometry::meaning(d.coordinate_meaning()),"resolvedTolerance":{"lower":d.resolved_tolerance().lower(),"upper":d.resolved_tolerance().upper()},"maxDeviationUpperBound":d.max_deviation_upper_bound(),"status":format!("{:?}",d.status())})).collect::<Vec<_>>(),"complete":report.is_complete(),"assessedNativeStatus":format!("{:?}",report.status()),"assessedNativeEntities":report.assessed_entities(),
         "unassessedSources":report.unassessed_sources().iter().map(|s|format!("{s:?}")).collect::<Vec<_>>()})
 }
 

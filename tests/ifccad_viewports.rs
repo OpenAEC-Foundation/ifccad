@@ -191,12 +191,14 @@ fn viewport_requires_paper_and_unique_model_target() {
     doc.model.entities.pop();
     let id = doc.id_counters.allocate_layout_id().unwrap();
     doc.paper_layouts.push(IfccadPaperLayout {
+        settings: ocdraw::ifccad::IfccadLayoutSettings {
+            media: None,
+            ..Default::default()
+        },
         bounds: None,
         id,
         name: "Sheet".into(),
         tab_index: 1,
-        length_unit: "in".into(),
-        paper: None,
         entities: vec![entity],
     });
     assert!(validate_ifccad_document(&doc).is_ok());
@@ -220,12 +222,14 @@ fn drawing_with_viewport() -> IfccadDocument {
     view.model_id = doc.model.id;
     entity.kind = IfccadEntityKind::Viewport(view);
     doc.paper_layouts.push(IfccadPaperLayout {
+        settings: ocdraw::ifccad::IfccadLayoutSettings {
+            media: None,
+            ..Default::default()
+        },
         bounds: None,
         id: doc.id_counters.allocate_layout_id().unwrap(),
         name: "Sheet".into(),
         tab_index: 1,
-        length_unit: "mm".into(),
-        paper: None,
         entities: vec![entity],
     });
     doc

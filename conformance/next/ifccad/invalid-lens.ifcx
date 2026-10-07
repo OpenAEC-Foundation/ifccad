@@ -36,7 +36,6 @@
       "attributes": {
         "ifccad::layout": {
           "kind": "Paper",
-          "lengthUnit": "mm",
           "name": "Sheet",
           "tabIndex": 1
         }

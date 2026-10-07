@@ -1,12 +1,16 @@
 //! Model-specific identities and coordinate-domain evidence over the shared proof engine.
+pub use cad_geometry_convert::plot_units::{
+    GeometryCoordinateMeaning as IfccadGeometryCoordinateMeaning,
+    PaperMapping as IfccadPaperMapping,
+};
 pub use cad_geometry_convert::{
     DistanceInterval as IfccadDistanceInterval,
     GeometryFailureReason as IfccadGeometryFailureReason, GeometryStage as IfccadGeometryStage,
     GeometryStatus as IfccadGeometryStatus, GeometryTolerance as IfccadGeometryTolerance,
     GeometryToleranceError as IfccadToleranceError,
 };
-use ocdraw::geometry_kernel::CoordinateLengthUnit;
 use opencadcodec::Handle;
+use IfccadGeometryCoordinateMeaning as GeometryCoordinateMeaning;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum IfccadGeometryDomain {
@@ -58,13 +62,14 @@ pub(crate) type Assessment = cad_geometry_convert::GeometryAssessment<IfccadGeom
 pub struct IfccadGeometryDomainAssessment {
     pub(crate) domain: IfccadGeometryDomain,
     pub(crate) evidence: Assessment,
+    pub(crate) meaning: GeometryCoordinateMeaning,
 }
 impl IfccadGeometryDomainAssessment {
     pub fn domain(&self) -> IfccadGeometryDomain {
         self.domain
     }
-    pub fn coordinate_unit(&self) -> CoordinateLengthUnit {
-        self.evidence.drawing_unit()
+    pub fn coordinate_meaning(&self) -> &GeometryCoordinateMeaning {
+        &self.meaning
     }
     pub fn resolved_tolerance(&self) -> IfccadDistanceInterval {
         self.evidence.resolved_tolerance()
@@ -118,10 +123,10 @@ impl IfccadGeometryAssessment {
     }
 }
 #[derive(Debug, thiserror::Error)]
-#[error("geometric accuracy failed in {domain:?}, coordinate unit {unit:?}: {failure:?}")]
+#[error("geometric accuracy failed in {domain:?}, coordinates {coordinate_meaning:?}: {failure:?}")]
 pub struct IfccadGeometryFailure {
     pub domain: IfccadGeometryDomain,
-    pub unit: CoordinateLengthUnit,
+    pub coordinate_meaning: GeometryCoordinateMeaning,
     pub failure: Box<cad_geometry_convert::GeometryFailure<IfccadGeometryEntitySource>>,
 }
 impl std::ops::Deref for IfccadGeometryFailure {

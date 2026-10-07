@@ -186,6 +186,11 @@
           "logical": "layout.plotSettings",
           "payload": "plotSettings",
           "omission": "logicalDefault"
+        },
+        {
+          "logical": "layout.media",
+          "payload": "media",
+          "omission": "logicalDefault"
         }
       ]
     },

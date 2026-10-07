@@ -36,11 +36,24 @@ explicit color, opacity, line pattern, and line weight defaults. A Layout has a
 stable ID, nonempty unique name, scope reference, model/paper kind, and unique
 contiguous zero-based tab index. Names are compared with the pinned Unicode
 17.0 full case fold. Unused definitions remain valid and survive read/write.
-Layout limits, plot settings, and linetype scaling keep their existing typed
-semantics; an incomplete plot-settings record is invalid.
-The plot medium and any plot-window rectangle have positive width and height;
-reversed or zero-area printable and window rectangles are invalid even when
-their JSON fields individually satisfy the physical schema.
+Layout limits, limits checking and Paper-space linetype scaling are independent
+of optional output configuration. A layout may retain `media: {unit,width,height}`
+without plot settings, on Model or Paper. Physical medium units exclude unitless;
+px identifies raster dimensions. Width/height are positive finite numbers.
+
+Complete `plotSettings` requires media and has `plotUnit`, `page`, `area`, `mapping`,
+`output`, `options`; old embedded `plotSettings.media` is rejected. Page rectangles
+use unrotated medium units, have positive area and lie within the medium. Physical
+media pair with mm/in output; raster media pair with px, without assumed DPI.
+Windows and limits use layout-coordinate numbers. Layout area is Paper-only with
+fixed scale/offset placement; Limits is Model-only with authored limits.
+
+Paper-coordinate numbers do not inherit the drawing unit. Fixed outputLength /
+scopeLength relates them to plot units; absent/Fit/pixel settings establish no fixed
+physical meaning. Medium dimensions never rescale, clip or constrain geometry.
+`paperSpaceLinetypeScaling` defaults true and sizes viewport patterns in Paper
+coordinates; global/entity pattern scales remain independent. See
+[layout output](../../docs/layout-output.md) for the complete meanings and CAD limits.
 
 There is exactly one ModelSpace scope and one model Layout selecting it. The
 model Layout has tab index zero. Every PaperSpace scope has exactly one paper

@@ -18,6 +18,21 @@ pub fn source(kind: &str, forward: bool, bulge: f64) -> (CadDocument, Handle, Ha
             }
         })
         .unwrap();
+    // This CAD fixture explicitly uses a physical mm Paper output mapping.
+    // Model insertion units do not establish Paper accuracy.
+    for o in d.objects.values_mut() {
+        if let cad::objects::ObjectType::Layout(l) = o {
+            if l.name == "Layout1" {
+                l.paper_width = 1000.;
+                l.paper_height = 1000.;
+                l.plot_paper_units = 1;
+                l.plot_flags.use_standard_scale = false;
+                l.plot_scale_numerator = 1.;
+                l.plot_scale_denominator = 1.;
+                l.shade_plot_resolution = 2;
+            }
+        }
+    }
     d.header.show_model_space = false;
     d.header.paper_space_block_handle = layout;
     let mut canvas = Viewport::new();

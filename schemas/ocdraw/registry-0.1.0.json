@@ -891,48 +891,6 @@
         "clockwise90"
       ]
     },
-    "plotMedia": {
-      "kind": "record",
-      "fields": [
-        {
-          "name": "unit",
-          "valueType": "plotUnit",
-          "nullable": false
-        },
-        {
-          "name": "width",
-          "valueType": "float64",
-          "nullable": false
-        },
-        {
-          "name": "height",
-          "valueType": "float64",
-          "nullable": false
-        },
-        {
-          "name": "printableArea",
-          "valueType": "plotRect",
-          "nullable": false
-        },
-        {
-          "name": "rotation",
-          "valueType": "plotRotation",
-          "nullable": false
-        },
-        {
-          "name": "deviceName",
-          "valueType": "string",
-          "nullable": false,
-          "optional": true
-        },
-        {
-          "name": "mediaName",
-          "valueType": "string",
-          "nullable": false,
-          "optional": true
-        }
-      ]
-    },
     "plotAreaMode": {
       "kind": "enum",
       "values": [
@@ -1104,8 +1062,13 @@
       "kind": "record",
       "fields": [
         {
-          "name": "media",
-          "valueType": "plotMedia",
+          "name": "plotUnit",
+          "valueType": "plotUnit",
+          "nullable": false
+        },
+        {
+          "name": "page",
+          "valueType": "plotPage",
           "nullable": false
         },
         {
@@ -1611,6 +1574,83 @@
           "nullable": false
         }
       ]
+    },
+    "plotPage": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "printableArea",
+          "valueType": "plotRect",
+          "nullable": false
+        },
+        {
+          "name": "rotation",
+          "valueType": "plotRotation",
+          "nullable": false
+        },
+        {
+          "name": "deviceName",
+          "valueType": "string",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "mediaName",
+          "valueType": "string",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "mediaUnit": {
+      "kind": "enum",
+      "values": [
+        "in",
+        "ft",
+        "mi",
+        "mm",
+        "cm",
+        "m",
+        "km",
+        "microin",
+        "mil",
+        "yd",
+        "angstrom",
+        "nm",
+        "um",
+        "dm",
+        "dam",
+        "hm",
+        "Gm",
+        "au",
+        "ly",
+        "pc",
+        "usSurveyFoot",
+        "usSurveyInch",
+        "usSurveyYard",
+        "usSurveyMile",
+        "px"
+      ]
+    },
+    "layoutMedia": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "unit",
+          "valueType": "mediaUnit",
+          "nullable": false
+        },
+        {
+          "name": "width",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "height",
+          "valueType": "float64",
+          "nullable": false
+        }
+      ]
     }
   },
   "resource": {
@@ -1812,6 +1852,12 @@
         {
           "name": "plotSettings",
           "valueType": "plotSettings",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "media",
+          "valueType": "layoutMedia",
           "nullable": false,
           "optional": true
         }

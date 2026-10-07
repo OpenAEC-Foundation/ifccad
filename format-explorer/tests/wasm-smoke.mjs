@@ -163,3 +163,23 @@ for(const format of ['dxf','dwg']){
  }
 }
 console.log('Browser WASM expanded IFCCAD geometry, bounds and conversion evidence verified');
+
+for (const format of ['ocdraw','ifccad']) {
+ const extension=format==='ocdraw'?'ocdraw.json':'ifcx';
+ for (const name of ['layout-medium-only','layout-plot-inch','layout-linetype-scaling']) {
+  const bytes=new Uint8Array(await readFile(new URL(`../../conformance/next/${format}/valid/${name}.${extension}`,import.meta.url)));
+  const source={kind:format==='ocdraw'?'drawing':'ifccad',name:`${name}.${extension}`,files:[{path:`${name}.${extension}`,bytes:bytes.buffer}]};
+  const opened=processBrowserRequest(source,wasm);
+  assert.equal(opened.failure,null,JSON.stringify(opened.failure));
+  assert.equal(opened.validation.strictAvailable,true);
+  for (const target of ['dxf','dwg']) {
+   const exported=processBrowserRequest({...source,export:{format:target,version:'AC1032'}},wasm);
+   assert.equal(exported.failure,null,JSON.stringify(exported.failure));
+   const download=exported.export.download;
+   const returned=processBrowserRequest({kind:'cad',drawingFormat:format,name:download.fileName,files:[{path:download.fileName,bytes:Uint8Array.from(Buffer.from(download.base64,'base64')).buffer}]},wasm);
+   assert.equal(returned.failure,null,JSON.stringify(returned.failure));
+   assert.equal(returned.validation.strictAvailable,true);
+  }
+ }
+}
+console.log('Browser WASM medium-only, inch plot and layout linetype-scaling exchange verified for both independent routes');

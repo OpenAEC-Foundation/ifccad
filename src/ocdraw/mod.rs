@@ -83,9 +83,9 @@ pub use logical::{
     DrawingPaperClip, DrawingViewport, DrawingViewportFrame, DrawingViewportLayerOverride,
 };
 pub use plot::{
-    PlotArea, PlotMapping, PlotMedia, PlotOffsetReference, PlotOptions, PlotOutput, PlotPlacement,
-    PlotRotation, PlotScale, PlotSettings, PlotUnit, ShadedPlot, ShadedPlotMode, ShadedPlotQuality,
-    ShadedPlotQualityMode,
+    LayoutMedia, MediaUnit, PlotArea, PlotMapping, PlotOffsetReference, PlotOptions, PlotOutput,
+    PlotPage, PlotPlacement, PlotRotation, PlotScale, PlotSettings, PlotUnit, ShadedPlot,
+    ShadedPlotMode, ShadedPlotQuality, ShadedPlotQualityMode,
 };
 pub use types::{BlockScaling, Bounds2d, DrawingLengthUnit, EntityId, LayerId, Point2, ScopeId};
 pub use workspace::UcsDefinition;

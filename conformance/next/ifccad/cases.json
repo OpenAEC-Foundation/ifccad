@@ -86,5 +86,37 @@
   {
     "file": "valid/viewport-forward-clip.ifcx",
     "valid": true
+  },
+  {
+    "file": "valid/layout-medium-only.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/layout-plot-inch.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/layout-raster.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/layout-linetype-scaling.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid/plot-without-medium.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/legacy-paper-coordinate-unit.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/mixed-medium-plot-units.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/invalid-layout-page.ifcx",
+    "valid": false
   }
 ]

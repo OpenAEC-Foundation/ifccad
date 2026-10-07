@@ -1,6 +1,7 @@
 //! Source geometric field inventory; acceptance policy stays independent of numerical proofs.
+use crate::mapping::geometry::p;
 use crate::{diagnostics::diagnostic, source::residual, IfccadDiagnostic};
-use opencadcodec::EntityType;
+use opencadcodec::{EntityType, Vector3};
 pub(crate) fn classified(e: &EntityType, loc: &str, issues: &mut Vec<IfccadDiagnostic>) -> bool {
     let before = issues.len();
     match e {
@@ -173,4 +174,105 @@ pub(crate) fn classified(e: &EntityType, loc: &str, issues: &mut Vec<IfccadDiagn
         _ => issues.push(diagnostic("geometry", loc, "unsupported entity family")),
     }
     issues.len() == before
+}
+
+/// Invalid scalars in known geometry remain errors even when another field
+/// would cause the entire entity to be skipped.
+pub(crate) fn validate_source(entity: &EntityType) -> Result<(), crate::IfccadConversionError> {
+    let finite = |v: Vector3| p(v).iter().all(|n| n.is_finite());
+    let valid = match entity {
+        EntityType::Line(l) => {
+            finite(l.start) && finite(l.end) && finite(l.normal) && l.thickness.is_finite()
+        }
+        EntityType::Point(p) => {
+            finite(p.location)
+                && finite(p.normal)
+                && p.x_axis_angle.is_finite()
+                && p.thickness.is_finite()
+        }
+        EntityType::Arc(p) => {
+            finite(p.center)
+                && finite(p.normal)
+                && p.radius.is_finite()
+                && p.radius > 0.
+                && p.start_angle.is_finite()
+                && p.end_angle.is_finite()
+                && p.thickness.is_finite()
+        }
+        EntityType::Ellipse(p) => {
+            finite(p.center)
+                && finite(p.normal)
+                && finite(p.major_axis)
+                && p.minor_axis_ratio.is_finite()
+                && p.minor_axis_ratio > 0.
+                && p.minor_axis_ratio <= 1.
+                && p.start_parameter.is_finite()
+                && p.end_parameter.is_finite()
+        }
+        EntityType::Polyline2D(p) => {
+            finite(p.normal)
+                && [p.elevation, p.thickness, p.start_width, p.end_width]
+                    .into_iter()
+                    .all(f64::is_finite)
+                && p.vertices.len() >= 2
+                && p.vertices.iter().all(|v| {
+                    finite(v.location)
+                        && [v.start_width, v.end_width, v.bulge, v.curve_tangent]
+                            .into_iter()
+                            .all(f64::is_finite)
+                })
+        }
+        EntityType::Polyline3D(p) => {
+            finite(p.normal)
+                && [p.elevation, p.default_start_width, p.default_end_width]
+                    .into_iter()
+                    .all(f64::is_finite)
+                && p.vertices.len() >= 2
+                && p.vertices.iter().all(|v| finite(v.position))
+        }
+        EntityType::Polyline(p) => {
+            p.vertices.len() >= 2 && p.vertices.iter().all(|v| finite(v.location))
+        }
+        EntityType::Circle(c) => {
+            finite(c.center)
+                && finite(c.normal)
+                && c.radius.is_finite()
+                && c.radius > 0.
+                && c.thickness.is_finite()
+        }
+        EntityType::LwPolyline(l) => {
+            finite(l.normal)
+                && l.elevation.is_finite()
+                && l.thickness.is_finite()
+                && l.constant_width.is_finite()
+                && l.vertices.len() >= 2
+                && l.vertices.iter().all(|v| {
+                    [
+                        v.location.x,
+                        v.location.y,
+                        v.bulge,
+                        v.start_width,
+                        v.end_width,
+                    ]
+                    .iter()
+                    .all(|n| n.is_finite())
+                })
+        }
+        EntityType::Insert(i) => {
+            finite(i.insert_point)
+                && finite(i.normal)
+                && i.rotation.is_finite()
+                && [i.x_scale(), i.y_scale(), i.z_scale()]
+                    .iter()
+                    .all(|s| s.is_finite() && *s != 0.)
+        }
+        _ => true,
+    };
+    if !valid {
+        return Err(crate::IfccadConversionError::InvalidStructure(format!(
+            "invalid geometry scalars at entity/{}",
+            entity.common().handle
+        )));
+    }
+    Ok(())
 }

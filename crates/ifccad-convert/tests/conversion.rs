@@ -92,7 +92,8 @@ fn authored_unsized_paper_is_retained_and_default_scaffold_is_not() {
         1
     );
     assert!(restored.validated_source().document().paper_layouts[0]
-        .paper
+        .settings
+        .media
         .is_none());
 }
 #[test]

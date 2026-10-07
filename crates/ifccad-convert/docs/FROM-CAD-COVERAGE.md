@@ -40,7 +40,7 @@ Reimporting CAD does not restore a previous IFCCAD allocation history.
 
 | Category | Treatment |
 | --- | --- |
-| Header | Map insertion units and linetype scale; compare other settings/names with pinned default. Derived extents, seed and explicitly listed control/dictionary/name-cache handles are excluded in `source.rs` |
+| Header | Map insertion units, linetype scale and plot-style mode; compare other settings/names with pinned default. Derived extents, seed and explicitly listed control/dictionary/name-cache handles are excluded in `source.rs` |
 | Layers | Map identity/name/concrete appearance. Diagnose changed flags, descriptions, named colors, plotting/material/XREF metadata or other residual fields |
 | Local BlockRecords | Map name/base/unit/ordered contents. Begin/end identity and reverse insert handles are structural/derived. Diagnose flags, description, preview, insert-count bytes, scaling/explodability restrictions and layout association |
 | Model/Paper BlockRecords | Validate role/ownership; metadata including unit/base must remain default |
@@ -48,7 +48,7 @@ Reimporting CAD does not restore a previous IFCCAD allocation history.
 | TextStyle/DimStyle/AppId/View/VPort/Ucs/Vx | Only default records, record handles normalized; additional/changed records diagnosed |
 | Classes | Default definitions only; normalize derived numbering/instance counts and version metadata |
 | Entities | Supported fields below; every other family diagnosed. Full inventory includes structural markers hidden by `entities()` |
-| Layout objects | Unique bidirectional Model/Paper block links and named-root ACAD_LAYOUT dictionary membership; names and tab order mapped. Recover a missing/wrong-type derived layout-dictionary cache only through a unique consistent named relationship. Media dimensions are millimetres, independently of plot units; optional media and bounded inch/mm coordinate mappings retained. Model viewport references resolve VPORT records; Paper references resolve same-owner VIEWPORT entities. Model view selection is diagnosed loss; exclude derived extents and structural handles. Other plot/UCS/layout fields diagnosed |
+| Layout objects | Unique bidirectional Model/Paper block links and named-root ACAD_LAYOUT dictionary membership; names and tab order mapped. Recover a missing/wrong-type derived layout-dictionary cache only through a unique consistent named relationship. Media dimensions are millimetres, independently of plot units; optional media, effective plot state, limits/checking and saved PSLTSCALE retained. Model viewport references resolve VPORT records; Paper references resolve same-owner VIEWPORT entities. Model view selection is diagnosed loss; exclude derived extents and structural handles. Other plot/UCS/layout fields diagnosed |
 | Other typed/unsupported objects | Compare pinned scaffold by named dictionary roles and typed values; additional/modified/unsupported objects diagnosed |
 | Summary/Preview | Changed summary or any preview diagnosed |
 | Relationships | Entity/marker/Layout ownership and typed drawing references remain structural checks. Unresolved ownership of omitted non-Layout objects is located loss, including object kind and owner handle. Reactors/extension dictionaries, including unresolved endpoints, are diagnosed losses rather than global structural failures |
@@ -217,19 +217,31 @@ Recovery diagnostic, preserving relative order. Native IDs and watermarks are
 independent of tab order. Only the fully default initial Layout1 scaffold is
 excluded; additional empty sheets remain authored.
 
-CAD paper dimensions are always millimetres. Positive finite dimensions map to
-an optional medium; invalid or partial dimensions omit only that medium with
-loss evidence. Explicit fixed 1:1 inch/mm mappings establish Paper coordinate
-units. Fully unconfigured unsized defaults are unitless; other authored mappings
-retain numeric coordinates as unitless with a loss diagnostic. Media never
-establish coordinate units and block instances are never implicitly rescaled.
+CAD dimensions, margins and offsets are millimetres independently of the plot
+unit selector. Layout media are retained without complete plot settings. Effective
+plotUnit/page/area/mapping/output/options and layout limits/checking/PSLTSCALE map
+through typed fields; unsupported complete plot state is diagnosed with valid
+media retained. Active scale selectors govern Fixed/Fit interpretation; conflicting
+standard preset/factor values are not guessed. Unknown/raster/Fit mappings never
+borrow Model units. Native Paper lengthUnit and paper spellings are removed.
 
-Native media convert through exact rational millimetre factors. Any binary64
-rounding is fatal under both policies (5 inches maps exactly to 127 mm; 1 inch
-cannot exactly map to binary64 25.4 mm). Unsupported factors such as parsecs omit
-only media under Allow. Printer/media names, margins, rotation, plot limits,
-authored overall canvases and workspace state remain deferred losses. Definition-content
-losses propagate to Paper instances through shared and nested definitions.
+Exact finite binary64 physical scalar conversion is required under both policies:
+5 inches maps to 127 mm; an exact 1-inch-to-mm conversion fails with PlotNumeric.
+Unsupported exact medium factors omit medium and dependent plot under Allow;
+Reject refuses loss. Unqualified pixel calibration, printable-relative offsets,
+transparency and active external style-table contents retain located restrictions.
+Media never infer geometry rescaling or containment. Fully default CAD plot fields
+canonicalize to absence; authored identical-default intent is indistinguishable.
+
+Both routes expose per-Paper output-mapping assessments. Fixed physical output
+resolves one-micrometre default accuracy per layout; unknown/Fit/pixel uses zero
+coordinate residual. Explicit physical requests fail without fixed mappings,
+including empty layouts and targets that lost their configuration. Definition-local
+and signed/nonuniform nested-root proofs stay mandatory. Native/typed-CAD/file
+exchange qualification and source-graph projection checks remain distinct.
+See [layout output](../../../docs/layout-output.md) and tests/plot_settings.rs,
+tests/plot_exchange.rs and tests/paper_plot_accuracy.rs.
+
 
 ## Geometry and accuracy expansion (provisional 0.1.0)
 
@@ -249,7 +261,7 @@ caller choices. Proven geometric rounding within the selected limit is reported
 and accepted under Allow/Reject; exceedance and incomplete proof return typed
 Geometry errors without output. Raw source-projection precision, semantic losses
 and scale clamping remain distinct. Model/definition limits use drawing units;
-Paper limits use each declared coordinate unit, not sheet media. Local definitions,
+Paper limits use the fixed physical output mapping, not sheet dimensions. Local definitions,
 including unused ones, and every retained nested occurrence are assessed.
 Full conics and bulged segment-circle enclosures supplement sampled witnesses.
 

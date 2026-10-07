@@ -95,6 +95,7 @@ pub fn generate(case: &Case) -> Result<CadDocument> {
         },
     };
     let mut doc = IfccadDocument {
+        plot_style_mode: Default::default(),
         header: super::projection::metadata().header,
         drawing_id: 1,
         id_counters: IfccadIdCounters {
@@ -114,6 +115,10 @@ pub fn generate(case: &Case) -> Result<CadDocument> {
         line_pattern_scale: 1.,
         layers: vec![layer(1, "0"), layer(2, "Details")],
         model: IfccadLayout {
+            settings: ocdraw::ifccad::IfccadLayoutSettings {
+                media: None,
+                ..Default::default()
+            },
             bounds: None,
             id: 1,
             tab_index: 0,

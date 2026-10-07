@@ -24,8 +24,40 @@ pub enum GeometryToleranceError {
     InvalidValue,
     #[error("an explicit physical tolerance requires a known drawing unit")]
     PhysicalUnitRequired,
+    #[error("an explicit physical Paper tolerance requires a fixed physical plot mapping")]
+    PhysicalMappingRequired,
 }
 impl GeometryTolerance {
+    pub(crate) fn resolve_paper(
+        self,
+        mapping: &crate::plot_units::PaperMapping,
+    ) -> Result<ResolvedTolerance, GeometryToleranceError> {
+        use crate::plot_units::PaperMapping;
+        let exact = |v| BigRational::from_float(v).expect("validated tolerance");
+        if let ToleranceKind::DrawingUnits(v) = self.0 {
+            return Ok(ResolvedTolerance::exact(exact(v)));
+        }
+        let PaperMapping::FixedPhysical {
+            metres_per_coordinate,
+        } = mapping
+        else {
+            return if matches!(self.0, ToleranceKind::Default) {
+                Ok(ResolvedTolerance::exact(q(0, 1)))
+            } else {
+                Err(GeometryToleranceError::PhysicalMappingRequired)
+            };
+        };
+        if metres_per_coordinate <= &q(0, 1) {
+            return Err(GeometryToleranceError::PhysicalMappingRequired);
+        }
+        let physical = match self.0 {
+            ToleranceKind::Default => q(1, 1_000_000),
+            ToleranceKind::Metres(v) => exact(v),
+            ToleranceKind::Millimetres(v) => exact(v) / q(1000, 1),
+            ToleranceKind::DrawingUnits(_) => unreachable!(),
+        };
+        Ok(ResolvedTolerance::exact(physical / metres_per_coordinate))
+    }
     /// Require zero geometric residual.
     pub fn exact() -> Self {
         Self(ToleranceKind::DrawingUnits(0.0))

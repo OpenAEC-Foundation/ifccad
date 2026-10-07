@@ -124,7 +124,7 @@ pub(crate) fn to_common(
 }
 pub(crate) fn from_common(
     c: &EntityCommon,
-    patterns: &crate::patterns::SourcePatterns,
+    patterns: &crate::mapping::line_pattern::SourcePatterns,
     loc: &str,
     issues: &mut Vec<IfccadDiagnostic>,
 ) -> IfccadEntityAppearance {
@@ -186,7 +186,7 @@ pub(crate) fn to_layer(
 }
 pub(crate) fn from_layer(
     layer: &Layer,
-    patterns: &crate::patterns::SourcePatterns,
+    patterns: &crate::mapping::line_pattern::SourcePatterns,
     issues: &mut Vec<IfccadDiagnostic>,
 ) -> IfccadLayerAppearance {
     let loc = format!("layer/{}", layer.name);

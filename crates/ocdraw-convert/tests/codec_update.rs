@@ -151,7 +151,7 @@ fn typed_plot_edits_after_dxf_read_are_not_overwritten_by_retained_raw_codes() {
             .plot_settings
             .as_ref()
             .unwrap_or_else(|| panic!("{:?}", out.diagnostics()))
-            .media
+            .page
             .rotation,
         ocdraw::ocdraw::PlotRotation::CounterClockwise90
     );

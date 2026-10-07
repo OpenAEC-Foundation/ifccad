@@ -1,5 +1,7 @@
+mod entities;
+
 use crate::diagnostics::diagnostic;
-use crate::units::UNITS;
+use crate::units::UNIT_TOKENS;
 use crate::*;
 use ocdraw::ifccad::*;
 use opencadcodec::CadDocument;
@@ -33,8 +35,9 @@ pub fn cad_document_to_ifccad_document(
     let info = crate::source::inspect(source)?;
     let mut issues = info.issues;
     let mut ids = IfccadIdCounters::default();
-    let (mut line_patterns, patterns) = crate::patterns::from_cad(source, &mut ids, &mut issues)?;
-    let length_unit = UNITS
+    let (mut line_patterns, patterns) =
+        crate::mapping::line_pattern::from_cad(source, &mut ids, &mut issues)?;
+    let length_unit = UNIT_TOKENS
         .get(source.header.insertion_units as usize)
         .unwrap_or_else(|| {
             issues.push(crate::diagnostics::modification(
@@ -55,7 +58,7 @@ pub fn cad_document_to_ifccad_document(
         layers.push(IfccadLayer {
             id,
             name: l.name.clone(),
-            appearance: crate::appearance::from_layer(l, &patterns, &mut issues),
+            appearance: crate::mapping::appearance::from_layer(l, &patterns, &mut issues),
         });
     }
     let supported: Vec<_> = info.blocks.iter().copied().filter(|h| {
@@ -92,17 +95,17 @@ pub fn cad_document_to_ifccad_document(
         else {
             unreachable!("inspected Paper layout")
         };
-        let metadata = crate::layouts::from_cad(layout, &mut issues);
+        let settings = crate::mapping::layout::settings_from_cad(layout, false, &mut issues)?;
         geometry.add_paper(
             mappings
                 .layouts
                 .ifccad_id(paper.layout_handle)
                 .expect("allocated Paper"),
-            &metadata.0,
+            cad_geometry_convert::plot_units::paper_mapping(settings.plot_settings.as_ref()),
         )?;
-        paper_metadata.insert(paper.layout_handle, metadata);
+        paper_metadata.insert(paper.layout_handle, settings);
     }
-    let entities = convert_entities(
+    let entities = entities::from_cad(
         source,
         &patterns,
         &info.entities,
@@ -118,7 +121,7 @@ pub fn cad_document_to_ifccad_document(
             .iter()
             .find(|b| b.handle == *h)
             .unwrap();
-        let unit = UNITS.get(b.units as usize).unwrap_or_else(|| {
+        let unit = UNIT_TOKENS.get(b.units as usize).unwrap_or_else(|| {
             issues.push(crate::diagnostics::modification(
                 "units",
                 format!("block/{}", b.name),
@@ -133,9 +136,9 @@ pub fn cad_document_to_ifccad_document(
             bounds: None,
             id: mappings.blocks.ifccad_id(*h).unwrap(),
             name: b.name.clone(),
-            base_point: crate::geometry::p(b.base_point),
+            base_point: crate::mapping::geometry::p(b.base_point),
             insertion_unit: unit.to_string(),
-            entities: convert_entities(
+            entities: entities::from_cad(
                 source,
                 &patterns,
                 &b.entity_handles,
@@ -159,11 +162,11 @@ pub fn cad_document_to_ifccad_document(
             .layouts
             .ifccad_id(paper.layout_handle)
             .expect("allocated Paper owner");
-        let (length_unit, medium) = paper_metadata
+        let settings = paper_metadata
             .remove(&paper.layout_handle)
             .expect("prepared Paper metadata");
         geometry.select(crate::IfccadGeometryOwner::PaperLayout(id));
-        let entities = convert_entities(
+        let entities = entities::from_cad(
             source,
             &patterns,
             &paper.entity_handles,
@@ -177,8 +180,7 @@ pub fn cad_document_to_ifccad_document(
             id,
             name: layout.name.clone(),
             tab_index: paper.tab_index,
-            length_unit,
-            paper: medium,
+            settings,
             entities,
         });
     }
@@ -201,16 +203,33 @@ pub fn cad_document_to_ifccad_document(
             .collect::<Vec<_>>(),
         &mut issues,
     );
-    crate::diagnostics::enforce_policy(options.loss_policy, &issues)?;
     let mut drawing = IfccadDocument {
         header: metadata.header,
         drawing_id: metadata.drawing_id,
         id_counters: ids,
         length_unit,
+        plot_style_mode: if source.header.plotstyle_mode {
+            IfccadPlotStyleMode::ColorDependent
+        } else {
+            IfccadPlotStyleMode::Named
+        },
         line_patterns,
         line_pattern_scale: source.header.linetype_scale,
         layers,
         model: IfccadLayout {
+            settings: {
+                let opencadcodec::objects::ObjectType::Layout(l) =
+                    &source.objects[&info.model_layout]
+                else {
+                    unreachable!()
+                };
+                let mut settings = crate::mapping::layout::settings_from_cad(l, true, &mut issues)?;
+                if source.header.show_model_space {
+                    settings.paper_space_linetype_scaling =
+                        source.header.paper_space_linetype_scaling;
+                }
+                settings
+            },
             bounds: None,
             id: model_id,
             tab_index: 0,
@@ -219,6 +238,7 @@ pub fn cad_document_to_ifccad_document(
         paper_layouts,
         blocks,
     };
+    crate::diagnostics::enforce_policy(options.loss_policy, &issues)?;
     let members = drawing
         .blocks
         .iter()
@@ -262,18 +282,6 @@ pub fn cad_document_to_ifccad_document(
 }
 fn allocation_error(error: IfccadIdAllocationError) -> IfccadConversionError {
     IfccadConversionError::IdAllocation(error)
-}
-
-fn convert_entities(
-    source: &CadDocument,
-    patterns: &crate::patterns::SourcePatterns,
-    handles: &[opencadcodec::Handle],
-    ids: &mut IfccadIdCounters,
-    mappings: &mut IfccadMappings,
-    issues: &mut Vec<IfccadDiagnostic>,
-    geometry: &mut crate::geometry_context::GeometryContext,
-) -> Result<Vec<IfccadEntity>, IfccadConversionError> {
-    crate::entity_owners::from_cad(source, patterns, handles, ids, mappings, issues, geometry)
 }
 
 #[cfg(test)]

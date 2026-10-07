@@ -3577,16 +3577,14 @@
     "plotSettings": {
       "type": "object",
       "required": [
-        "media",
+        "plotUnit",
+        "page",
         "area",
         "mapping",
         "output",
         "options"
       ],
       "properties": {
-        "media": {
-          "$ref": "#/$defs/plotMedia"
-        },
         "area": {
           "$ref": "#/$defs/plotArea"
         },
@@ -3598,51 +3596,16 @@
         },
         "options": {
           "$ref": "#/$defs/plotOptions"
-        }
-      },
-      "additionalProperties": false
-    },
-    "plotMedia": {
-      "type": "object",
-      "required": [
-        "unit",
-        "width",
-        "height",
-        "printableArea",
-        "rotation"
-      ],
-      "properties": {
-        "unit": {
+        },
+        "plotUnit": {
           "enum": [
             "mm",
             "in",
             "px"
           ]
         },
-        "width": {
-          "type": "number",
-          "exclusiveMinimum": 0
-        },
-        "height": {
-          "type": "number",
-          "exclusiveMinimum": 0
-        },
-        "printableArea": {
-          "$ref": "#/$defs/rect2"
-        },
-        "rotation": {
-          "enum": [
-            "none",
-            "counterClockwise90",
-            "upsideDown",
-            "clockwise90"
-          ]
-        },
-        "deviceName": {
-          "$ref": "#/$defs/nonEmptyString"
-        },
-        "mediaName": {
-          "$ref": "#/$defs/nonEmptyString"
+        "page": {
+          "$ref": "#/$defs/plotPage"
         }
       },
       "additionalProperties": false
@@ -4228,6 +4191,9 @@
         },
         "plotSettings": {
           "$ref": "#/$defs/plotSettings"
+        },
+        "media": {
+          "$ref": "#/$defs/layoutMedia"
         }
       }
     },
@@ -6092,6 +6058,81 @@
         "lineWeight",
         "linePatternScale"
       ]
+    },
+    "plotPage": {
+      "type": "object",
+      "required": [
+        "printableArea",
+        "rotation"
+      ],
+      "properties": {
+        "printableArea": {
+          "$ref": "#/$defs/rect2"
+        },
+        "rotation": {
+          "enum": [
+            "none",
+            "counterClockwise90",
+            "upsideDown",
+            "clockwise90"
+          ]
+        },
+        "deviceName": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "mediaName": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      },
+      "additionalProperties": false
+    },
+    "layoutMedia": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit",
+        "width",
+        "height"
+      ],
+      "properties": {
+        "unit": {
+          "enum": [
+            "in",
+            "ft",
+            "mi",
+            "mm",
+            "cm",
+            "m",
+            "km",
+            "microin",
+            "mil",
+            "yd",
+            "angstrom",
+            "nm",
+            "um",
+            "dm",
+            "dam",
+            "hm",
+            "Gm",
+            "au",
+            "ly",
+            "pc",
+            "usSurveyFoot",
+            "usSurveyInch",
+            "usSurveyYard",
+            "usSurveyMile",
+            "px"
+          ]
+        },
+        "width": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "height": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
     }
   }
 }

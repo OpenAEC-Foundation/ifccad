@@ -79,21 +79,15 @@ fn cad_import_retains_multiple_empty_and_populated_paper_layouts() {
         assert_eq!(doc.paper_layouts.len(), 2, "{:?}", result.diagnostics());
         let empty = &doc.paper_layouts[0];
         let inches = &doc.paper_layouts[1];
+        assert_eq!((&*empty.name, empty.tab_index), ("Empty", 1));
+        assert!(empty.settings.media.is_none() && empty.entities.is_empty());
+        assert_eq!((&*inches.name, inches.tab_index), ("Inches", 2));
         assert_eq!(
-            (&*empty.name, empty.tab_index, &*empty.length_unit),
-            ("Empty", 1, "unitless")
-        );
-        assert!(empty.paper.is_none() && empty.entities.is_empty());
-        assert_eq!(
-            (&*inches.name, inches.tab_index, &*inches.length_unit),
-            ("Inches", 2, "in")
-        );
-        assert_eq!(
-            inches.paper,
-            Some(IfccadPaperSize {
+            inches.settings.media,
+            Some(ocdraw::ifccad::IfccadLayoutMedia {
                 width: 297.,
                 height: 210.,
-                length_unit: "mm".into()
+                unit: ocdraw::ifccad::IfccadMediaUnit::from_token("mm").unwrap()
             })
         );
         assert_eq!(inches.entities.len(), 3);
@@ -168,7 +162,7 @@ fn invalid_media_and_unsupported_viewports_keep_supported_siblings_with_losses()
     let doc = result.validated_source().document();
     assert_eq!(doc.paper_layouts.len(), 2);
     assert_eq!(doc.paper_layouts[1].entities.len(), 3);
-    assert!(doc.paper_layouts[1].paper.is_none());
+    assert!(doc.paper_layouts[1].settings.media.is_none());
     assert!(result
         .diagnostics()
         .iter()
@@ -203,25 +197,29 @@ fn native_papers() -> IfccadDocument {
     let instance = instance(502, doc.blocks[0].id, [8., 9., 0.]);
     doc.paper_layouts = vec![
         IfccadPaperLayout {
+            settings: ocdraw::ifccad::IfccadLayoutSettings {
+                media: Some(ocdraw::ifccad::IfccadLayoutMedia {
+                    width: 297.,
+                    height: 210.,
+                    unit: ocdraw::ifccad::IfccadMediaUnit::from_token("mm").unwrap(),
+                }),
+                ..Default::default()
+            },
             bounds: None,
             id: 3,
             name: "Inches".into(),
             tab_index: 2,
-            length_unit: "in".into(),
-            paper: Some(IfccadPaperSize {
-                width: 297.,
-                height: 210.,
-                length_unit: "mm".into(),
-            }),
             entities: vec![line, instance],
         },
         IfccadPaperLayout {
+            settings: ocdraw::ifccad::IfccadLayoutSettings {
+                media: None,
+                ..Default::default()
+            },
             bounds: None,
             id: 90,
             name: "Empty".into(),
             tab_index: 1,
-            length_unit: "unitless".into(),
-            paper: None,
             entities: vec![],
         },
     ];
@@ -277,10 +275,16 @@ fn native_papers_allocate_ordered_owners_and_survive_both_cad_codecs() {
             (&*doc.paper_layouts[0].name, &*doc.paper_layouts[1].name),
             ("Empty", "Inches")
         );
-        assert!(doc.paper_layouts[0].paper.is_none() && doc.paper_layouts[0].entities.is_empty());
+        assert!(
+            doc.paper_layouts[0].settings.media.is_none()
+                && doc.paper_layouts[0].entities.is_empty()
+        );
         let sheet = &doc.paper_layouts[1];
-        assert_eq!(sheet.length_unit, "in");
-        assert_eq!(sheet.paper, original.paper_layouts[0].paper);
+        assert!(sheet.settings.plot_settings.is_none());
+        assert_eq!(
+            sheet.settings.media,
+            original.paper_layouts[0].settings.media
+        );
         assert_eq!(
             sheet.entities[0].kind,
             original.paper_layouts[0].entities[0].kind
@@ -338,10 +342,10 @@ fn native_papers_allocate_ordered_owners_and_survive_both_cad_codecs() {
 #[test]
 fn media_conversion_is_exact_and_unsupported_coordinates_are_located() {
     let mut doc = native_papers();
-    doc.paper_layouts[0].paper = Some(IfccadPaperSize {
+    doc.paper_layouts[0].settings.media = Some(ocdraw::ifccad::IfccadLayoutMedia {
         width: 5.,
         height: 10.,
-        length_unit: "in".into(),
+        unit: ocdraw::ifccad::IfccadMediaUnit::from_token("in").unwrap(),
     });
     let output = to_cad(&validated(&doc)).unwrap();
     let handle = output.mappings().layouts.cad_handle(3).unwrap();
@@ -349,63 +353,42 @@ fn media_conversion_is_exact_and_unsupported_coordinates_are_located() {
         panic!()
     };
     assert_eq!((layout.paper_width, layout.paper_height), (127., 254.));
-    doc.paper_layouts[0].paper.as_mut().unwrap().width = 1.;
+    doc.paper_layouts[0].settings.media.as_mut().unwrap().width = 1.;
     for policy in [IfccadLossPolicy::Allow, IfccadLossPolicy::Reject] {
-        assert!(
-            matches!(ifccad_document_to_cad_document(&doc,IfccadToCadOptions{loss_policy:policy, ..Default::default()}),Err(IfccadConversionError::Unsupported(d)) if d.iter().any(|d|d.code=="rounding"))
-        );
+        assert!(matches!(
+            ifccad_document_to_cad_document(
+                &doc,
+                IfccadToCadOptions {
+                    loss_policy: policy,
+                    ..Default::default()
+                }
+            ),
+            Err(IfccadConversionError::PlotNumeric(
+                cad_geometry_convert::plot_units::PlotNumericError::Inexact
+            ))
+        ));
     }
-    doc.paper_layouts[0].paper = None;
-    doc.paper_layouts[0].length_unit = "cm".into();
+    doc.paper_layouts[0].settings.media = None;
     let output = ifccad_document_to_cad_document(&doc, Default::default()).unwrap();
-    assert!(output.mappings().layouts.cad_handle(3).is_none());
-    assert!(output.mappings().entities.cad_handle(501).is_none());
-    assert!(output
-        .diagnostics()
-        .iter()
-        .any(|d| d.code == "paper-coordinate-unit" && d.location == "layout/3"));
-    assert!(ifccad_document_to_cad_document(
-        &doc,
-        IfccadToCadOptions {
-            loss_policy: IfccadLossPolicy::Reject,
-            ..Default::default()
-        }
-    )
-    .is_err());
+    assert!(output.mappings().layouts.cad_handle(3).is_some());
+    assert!(output.mappings().entities.cad_handle(501).is_some());
 }
 
 #[test]
 fn authored_plot_mappings_and_settings_have_located_losses() {
-    for change in 0..5 {
-        let mut cad = source();
-        let sheet = layout_mut(&mut cad, "Inches");
-        match change {
-            0 => sheet.plot_paper_units = 2,
-            1 => sheet.plot_scale_denominator = 2.,
-            2 => sheet.plot_printer_name = "Authored printer".into(),
-            3 => sheet.plot_scale_factor = 2.,
-            _ => sheet.plot_flags.use_standard_scale = true,
-        }
-        let output = import(&cad, IfccadLossPolicy::Allow).unwrap();
-        assert_eq!(
-            output.validated_source().document().paper_layouts[1]
-                .entities
-                .len(),
-            3
-        );
-        if change != 2 {
-            assert_eq!(
-                output.validated_source().document().paper_layouts[1].length_unit,
-                "unitless"
-            );
-            assert!(output
-                .diagnostics()
-                .iter()
-                .any(|d| d.code == "paper-coordinate-unit"
-                    && d.location == "layout/Inches.plotMapping"));
-        }
-        assert!(import(&cad, IfccadLossPolicy::Reject).is_err());
-    }
+    let mut cad = source();
+    let sheet = layout_mut(&mut cad, "Inches");
+    sheet.plot_paper_units = 2;
+    let output = import(&cad, IfccadLossPolicy::Allow).unwrap();
+    let paper = &output.validated_source().document().paper_layouts[1];
+    assert!(paper.settings.media.is_some());
+    assert!(paper.settings.plot_settings.is_none());
+    assert_eq!(paper.entities.len(), 3);
+    assert!(output
+        .diagnostics()
+        .iter()
+        .any(|d| d.code == "plot-settings"));
+    assert!(import(&cad, IfccadLossPolicy::Reject).is_err());
 }
 
 #[test]
@@ -431,6 +414,10 @@ fn target_layout_name_collisions_and_tab_overflow_are_fatal() {
     doc.model.id = 0;
     doc.paper_layouts = (1..=32768)
         .map(|tab| IfccadPaperLayout {
+            settings: ocdraw::ifccad::IfccadLayoutSettings {
+                media: None,
+                ..Default::default()
+            },
             id: u64::from(tab),
             name: format!("Sheet {tab}"),
             tab_index: tab,
@@ -448,13 +435,14 @@ fn target_layout_name_collisions_and_tab_overflow_are_fatal() {
 #[test]
 fn unsupported_medium_omits_only_media_and_definition_loss_reaches_paper() {
     let mut doc = native_papers();
-    doc.paper_layouts[0].paper.as_mut().unwrap().length_unit = "pc".into();
+    doc.paper_layouts[0].settings.media.as_mut().unwrap().unit =
+        ocdraw::ifccad::IfccadMediaUnit::from_token("pc").unwrap();
     let output = ifccad_document_to_cad_document(&doc, Default::default()).unwrap();
     assert!(output.mappings().entities.cad_handle(501).is_some());
     assert!(output
         .diagnostics()
         .iter()
-        .any(|d| d.code == "paper-medium" && d.location == "layout/3.paper"));
+        .any(|d| d.code == "paper-medium" && d.location == "layout/Inches"));
     assert!(ifccad_document_to_cad_document(
         &doc,
         IfccadToCadOptions {
