@@ -15,7 +15,7 @@ with the affected domain. Payloads and error sources remain typed; these
 categories do not change Allow/Reject or the supported source subset.
 
 Pinned semantic inventory V1, opencadcodec
-`fe69506cb99dea6f4c4a73b690a27fdf04403ea0`. Exhaustive matches classify every
+`063c10671fe7833d562f772159771318c7a0ebb9`. Exhaustive matches classify every
 inventory category. Serde residual checks cover fields plus typed comparisons
 for skipped-serde common/marker/object state. Data not exposed by the codec has
 no asserted coverage. Default Allow returns the supported subset with located
@@ -26,7 +26,7 @@ records the added public fields and their treatment in both converters.
 The 2026-10-05 additions to associative subentity identifiers, edge curves and
 embedded modeler-body profiles remain inside unsupported associative objects
 and solid/surface/history families. They are diagnosed at those existing
-boundaries. Unmodified upstream still loses viewport clipping activation and
+boundaries. The previous pin lost viewport clipping activation and
 the DXF boundary reference; the separate viewport development patch is explicit.
 
 ## Inventory categories
@@ -74,9 +74,9 @@ This route requires the explicit codec configuration in
 [`patches/opencadcodec-viewports`](../../../patches/opencadcodec-viewports/README.md).
 Default manifests select unmodified upstream; their status-bit capability gate
 omits authored viewports with `viewport-codec` loss instead of claiming support.
-The development configuration preserves activation, DXF boundary references,
-degree/radian angle mapping and the independent off bit. These repaired results
-do not qualify the unmodified pin or certify AutoCAD rendering.
+Activation, DXF boundary references and degree/radian angle mapping are now
+upstream capabilities. The development configuration adds the independent off
+bit; those off-state results do not qualify the unmodified pin or certify AutoCAD rendering.
 
 | VIEWPORT fields | Native treatment |
 | --- | --- |
@@ -260,3 +260,21 @@ planar polylines using the shared exact analytic Paper containment predicate.
 Codec development-patch requirements and their unmodified-upstream boundary
 above remain in force; these native/direct mappings do not certify arbitrary
 CAD file serialization or application rendering.
+
+## Upstream pin update — 2026-10-07
+
+Both converters use opencadcodec `063c10671fe7833d562f772159771318c7a0ebb9` (0.6.0).
+Clipping activation/group 340 and VIEWPORT angle units now come from merged
+upstream PRs #88/#89; only the independent viewport-off repair remains selected.
+References above to clipping/angle defects of the previous unmodified pin are
+historical evidence, not limitations of this new base. The [current dependency
+audit](../../../docs/geometry/opencadcodec-update-2026-10-07.md) records new public
+fields and compatibility decisions. Native spline semantics remain absent;
+new OCDraw snapshots use payload v2 and retain v1 read/restore support. Fit-only
+spline DXF parameterization remains a target-codec limitation pending PR #99.
+Unresolved source layer handles must not silently become a native layer 0.
+Known resolved handles are relationship identity and are rebuilt from native
+layer references. Canonical one-byte-per-INSERT count framing is derived;
+unfamiliar/mismatched count storage retains loss evidence. Additional table,
+associative/count and solid-history data remain at the existing unsupported
+family boundaries. No benchmark evidence is extended by this update.

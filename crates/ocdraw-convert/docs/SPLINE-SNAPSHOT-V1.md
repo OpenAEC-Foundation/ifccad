@@ -1,4 +1,4 @@
-# OCDraw typed spline snapshot v1
+# OCDraw typed spline snapshots
 
 This is the first bounded preservation adapter. It stores every interpreted
 `EntityType::Spline` offered by the pinned CadDocument model. Capture is not a
@@ -8,15 +8,18 @@ OCDraw and IFCCAD remain separate; this adapter implements only OCDraw.
 ## Carrier and compatibility
 
 Provider: `opencadcodec`; payload schema: `openaec.opencadcodec.spline`; version:
-`1`; kind: `adapterSnapshot`; category/role/representation:
+`2` for new capture; `1` remains supported for the previous revision. Kind: `adapterSnapshot`; category/role/representation:
 `entity` / `complete` / `codecTyped`.
 
-Audited codec revision: `fe69506cb99dea6f4c4a73b690a27fdf04403ea0`. The currently
-selected development configuration adds the explicit viewport repairs described
-in `patches/opencadcodec-viewports/README.md`. Those patches change viewport and
-DXF viewport parsing/writing, not the Spline, EntityCommon or XDATA carrier. They
-are part of the verification configuration; their tests do not qualify an
-unmodified dependency. Neither CAD pin nor package versions are upgraded here.
+Current audited codec revision: `063c10671fe7833d562f772159771318c7a0ebb9` (0.6.0).
+The previous `fe69506cb99dea6f4c4a73b690a27fdf04403ea0` revision remains accepted
+for version-1 snapshots. Version 2 adds explicit nullable `dwgScenario` and
+`common.layerHandle`; version 1 lacks those fields and restores them as None,
+without inventing missing source state. The provider revision, payload version
+and body revision must agree. Current capture always emits version 2.
+See the [dependency audit](../../../docs/geometry/opencadcodec-update-2026-10-07.md).
+Only the documented viewport-off repair remains selected; clipping and angle
+repairs have merged upstream. PR #99's fit-spline DXF repair is not in this pin.
 
 `SplineSnapshot` and `SplineCommonSnapshot` are private adapter types, independent
 of core storage. Version belongs to the persisted format, not the Rust names.
@@ -63,8 +66,10 @@ because it omits retained common fields and raw EED.
 | normal, begin_tangent, end_tangent | XYZ bit vectors | No normal/tangent normalization. |
 | knot_tolerance, control_tolerance, fit_tolerance | Binary64 bits | No new tolerance policy. |
 | knot_parameterization, cv_frame_visible, dwg_flags1, dxf_flags | Exact source scalar ranges | Dormant/full flag words retained; physical codec may normalize them as in direct writing. |
+| dwg_scenario | Explicit nullable i32 in v2; unavailable in v1 | Retains which DWG storage scenario supplied the parameters; no invented closure/periodicity knowledge. |
 | handle, owner_handle | Hex provenance | Fresh handle and mapped owner; target entity_mode follows actual owning scope. |
 | layer | Complete source name | Optional native layer ID. Current native reference wins; otherwise source binding must resolve. |
+| layer_handle | Explicit nullable source handle in v2; unavailable in v1 | Qualify the source name/handle association. An unresolved handle does not become native layer 0; current native layers reconstruct fresh handles. |
 | color, color_name | Exact enum/optional metadata | Complete native appearance only when exactly expressible; no invented color/mode. |
 | line_weight | Exact enum/i16 | `Default` has no exact native mode and leaves the whole appearance opaque. |
 | linetype, linetype_handle | Source name/optional handle | Native pattern selection wins. Source fallback uses a qualified pattern binding; numeric source handles are not copied. |

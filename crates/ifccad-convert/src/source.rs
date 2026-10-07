@@ -259,6 +259,16 @@ pub(crate) fn inspect(doc: &CadDocument) -> Result<Inspection, Error> {
             if doc.layers.get(&e.common().layer).is_none() {
                 return Err(invalid("entity references missing layer"));
             }
+            if let Some(handle) = e.common().layer_handle.filter(|h| !h.is_null()) {
+                let layer = doc
+                    .layers
+                    .iter()
+                    .find(|layer| layer.handle == handle)
+                    .ok_or_else(|| invalid("entity has an unresolved source layer handle"))?;
+                if !layer.name.eq_ignore_ascii_case(&e.common().layer) {
+                    return Err(invalid("entity source layer name and handle disagree"));
+                }
+            }
             if b.is_paper_space()
                 && matches!(e, EntityType::Viewport(_))
                 && !overall_scaffold(doc, e)
@@ -301,7 +311,7 @@ pub(crate) fn inspect(doc: &CadDocument) -> Result<Inspection, Error> {
                     &format!("block-marker/{}", b.name),
                     &mut issues,
                 );
-                marker_common(&marker.common, &mut issues);
+                marker_common(doc, &marker.common, &mut issues);
             }
             EntityType::BlockEnd(marker) => {
                 let b = doc
@@ -312,7 +322,7 @@ pub(crate) fn inspect(doc: &CadDocument) -> Result<Inspection, Error> {
                 if marker.common.handle != b.block_end_handle {
                     return Err(invalid("ENDBLK marker conflicts with record"));
                 }
-                marker_common(&marker.common, &mut issues);
+                marker_common(doc, &marker.common, &mut issues);
             }
             _ if !owned.contains(&e.common().handle) => {
                 return Err(invalid("entity missing from owner membership"))
@@ -408,7 +418,21 @@ pub(crate) fn inspect(doc: &CadDocument) -> Result<Inspection, Error> {
         recoveries,
     })
 }
-fn marker_common(c: &opencadcodec::entities::EntityCommon, issues: &mut Vec<IfccadDiagnostic>) {
+fn resolved_layer_handle(doc: &CadDocument, c: &opencadcodec::entities::EntityCommon) -> bool {
+    c.layer_handle
+        .filter(|h| !h.is_null())
+        .is_none_or(|handle| {
+            doc.layers
+                .iter()
+                .any(|l| l.handle == handle && l.name.eq_ignore_ascii_case(&c.layer))
+        })
+}
+
+fn marker_common(
+    doc: &CadDocument,
+    c: &opencadcodec::entities::EntityCommon,
+    issues: &mut Vec<IfccadDiagnostic>,
+) {
     let mut r = c.clone();
     let b = opencadcodec::entities::EntityCommon::new();
     r.handle = b.handle;
@@ -416,6 +440,9 @@ fn marker_common(c: &opencadcodec::entities::EntityCommon, issues: &mut Vec<Ifcc
     r.raw_record = None;
     r.entity_mode = None;
     r.linetype_handle = None;
+    if resolved_layer_handle(doc, c) {
+        r.layer_handle = None;
+    }
     if r != b {
         issues.push(diagnostic(
             "marker-common",
@@ -441,6 +468,9 @@ fn overall_scaffold(doc: &CadDocument, e: &EntityType) -> bool {
     a.common.entity_mode = b.common.entity_mode;
     a.common.raw_record = None;
     a.common.linetype_handle = None;
+    if resolved_layer_handle(doc, &a.common) {
+        a.common.layer_handle = None;
+    }
     a == b
 }
 
@@ -595,6 +625,14 @@ fn scan(
                         "entity_handles",
                         "insert_handles",
                     ];
+                    // The writer emits one canonical byte per inverse INSERT
+                    // handle. Those bytes only frame this derived list; retain
+                    // loss evidence for unfamiliar or inconsistent raw values.
+                    if b.insert_count_bytes.len()==b.insert_handles.len()
+                        && b.insert_count_bytes.iter().all(|byte|*byte==1)
+                    {
+                        ignored.push("insert_count_bytes");
+                    }
                     if b.is_model_space() || b.is_paper_space() {
                         ignored.push("layout");
                     } else {

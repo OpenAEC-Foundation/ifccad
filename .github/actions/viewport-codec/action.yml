@@ -1,12 +1,12 @@
 name: Prepare viewport codec
-description: Select the pinned codec base with the three explicit viewport repairs
+description: Select the pinned codec base with the remaining explicit viewport-off repair
 runs:
   using: composite
   steps:
     - uses: actions/checkout@v5
       with:
         repository: HakanSeven12/opencadcodec
-        ref: fe69506cb99dea6f4c4a73b690a27fdf04403ea0
+        ref: 063c10671fe7833d562f772159771318c7a0ebb9
         path: .superpowers/dependencies/opencadcodec-viewports-development
         persist-credentials: false
     - name: Apply and select viewport repairs
@@ -14,7 +14,7 @@ runs:
       run: |
         set -euo pipefail
         codec=.superpowers/dependencies/opencadcodec-viewports-development
-        for patch in 0001-viewport-clipping.patch 0002-viewport-angle-units.patch 0003-viewport-off-state.patch; do
+        for patch in 0003-viewport-off-state.patch; do
           git -C "$codec" apply --check "../../../patches/opencadcodec-viewports/$patch"
           git -C "$codec" apply "../../../patches/opencadcodec-viewports/$patch"
         done

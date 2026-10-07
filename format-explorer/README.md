@@ -130,7 +130,7 @@ GPL-3.0 and source revision attribution accompany the bundle. The OpenAEC symbol
 keeps its CC BY-SA license; see `src/THIRD-PARTY.txt`.
 
 Build the browser processor from the repository root after preparing and
-selecting all three [viewport codec repairs](../patches/opencadcodec-viewports/README.md).
+selecting the remaining [viewport-off codec repair](../patches/opencadcodec-viewports/README.md).
 The deployment workflow uses the same pinned base and patches for its Rust
 checks and browser processor; both cache keys include the patch recipe.
 

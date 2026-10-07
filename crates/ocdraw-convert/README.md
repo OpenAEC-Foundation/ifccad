@@ -135,3 +135,21 @@ let bytes = encode_ocdraw_document(drawing)?; // Only when native storage is wan
 These are fresh conversions. CAD handles, OCDraw IDs and allocation history are
 not roundtripped through `CadDocument`. A future CAD editor save route needs
 explicit session context. See the [core lifecycle](../../docs/ocdraw-document-lifecycle.md).
+
+## Upstream pin update — 2026-10-07
+
+Both converters use opencadcodec `063c10671fe7833d562f772159771318c7a0ebb9` (0.6.0).
+Clipping activation/group 340 and VIEWPORT angle units now come from merged
+upstream PRs #88/#89; only the independent viewport-off repair remains selected.
+References above to clipping/angle defects of the previous unmodified pin are
+historical evidence, not limitations of this new base. The [current dependency
+audit](../../docs/geometry/opencadcodec-update-2026-10-07.md) records new public
+fields and compatibility decisions. Native spline semantics remain absent;
+new OCDraw snapshots use payload v2 and retain v1 read/restore support. Fit-only
+spline DXF parameterization remains a target-codec limitation pending PR #99.
+Unresolved source layer handles must not silently become a native layer 0.
+Known resolved handles are relationship identity and are rebuilt from native
+layer references. Canonical one-byte-per-INSERT count framing is derived;
+unfamiliar/mismatched count storage retains loss evidence. Additional table,
+associative/count and solid-history data remain at the existing unsupported
+family boundaries. No benchmark evidence is extended by this update.

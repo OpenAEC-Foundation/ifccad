@@ -17,7 +17,9 @@ pub(crate) use restore::{report_restore, restore_spline};
 #[cfg(test)]
 mod tests;
 pub(crate) use spline_snapshot::{capture_spline, decode_spline_snapshot};
-pub(crate) const CODEC_REVISION: &str = "fe69506cb99dea6f4c4a73b690a27fdf04403ea0";
+pub(crate) const CODEC_REVISION: &str = "063c10671fe7833d562f772159771318c7a0ebb9";
+pub(crate) const LEGACY_CODEC_REVISION: &str = "fe69506cb99dea6f4c4a73b690a27fdf04403ea0";
+pub(crate) const SPLINE_PAYLOAD_VERSION: u32 = 2;
 
 #[derive(Debug, thiserror::Error)]
 pub enum OcdrawSplineSnapshotError {

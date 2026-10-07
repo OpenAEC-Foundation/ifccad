@@ -1,5 +1,5 @@
 use super::common_snapshot::{SnapshotFloat, SnapshotHandle, SnapshotVector, SplineCommonSnapshot};
-use super::{OcdrawSplineSnapshotError, CODEC_REVISION};
+use super::{OcdrawSplineSnapshotError, CODEC_REVISION, LEGACY_CODEC_REVISION};
 use opencadcodec::entities::{Spline, SplineFlags};
 use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -34,6 +34,8 @@ pub(crate) struct SplineSnapshot {
     pub knot_parameterization: i32,
     pub cv_frame_visible: bool,
     pub dwg_flags1: i32,
+    #[serde(default)]
+    pub dwg_scenario: Option<i32>,
     pub dxf_flags: i16,
 }
 impl SplineSnapshot {
@@ -55,6 +57,7 @@ impl SplineSnapshot {
             knot_parameterization,
             cv_frame_visible,
             dwg_flags1,
+            dwg_scenario,
             dxf_flags,
         } = source;
         let SplineFlags {
@@ -99,6 +102,7 @@ impl SplineSnapshot {
             knot_parameterization: *knot_parameterization,
             cv_frame_visible: *cv_frame_visible,
             dwg_flags1: *dwg_flags1,
+            dwg_scenario: *dwg_scenario,
             dxf_flags: *dxf_flags,
         }
     }
@@ -126,6 +130,7 @@ impl SplineSnapshot {
             knot_parameterization: self.knot_parameterization,
             cv_frame_visible: self.cv_frame_visible,
             dwg_flags1: self.dwg_flags1,
+            dwg_scenario: self.dwg_scenario,
             dxf_flags: self.dxf_flags,
         }
     }
@@ -151,8 +156,27 @@ pub(crate) fn decode_spline_snapshot(
 ) -> Result<SplineSnapshot, OcdrawSplineSnapshotError> {
     let snapshot: SplineSnapshot =
         serde_json::from_slice(bytes).map_err(OcdrawSplineSnapshotError::Malformed)?;
-    if snapshot.codec_revision != CODEC_REVISION {
+    if snapshot.codec_revision != CODEC_REVISION && snapshot.codec_revision != LEGACY_CODEC_REVISION
+    {
         return Err(OcdrawSplineSnapshotError::UnsupportedRevision);
+    }
+    // Version 1 predates these source fields. Version 2 must state both,
+    // including explicit null; accepting omission would invent source state.
+    let value: serde_json::Value =
+        serde_json::from_slice(bytes).map_err(OcdrawSplineSnapshotError::Malformed)?;
+    let scenario = value.get("dwgScenario").is_some();
+    let layer_handle = value["common"].get("layerHandle").is_some();
+    let valid_shape = if snapshot.codec_revision == CODEC_REVISION {
+        scenario && layer_handle
+    } else {
+        !scenario && !layer_handle
+    };
+    if !valid_shape {
+        return Err(OcdrawSplineSnapshotError::Malformed(
+            <serde_json::Error as serde::de::Error>::custom(
+                "source field presence does not match the audited codec revision",
+            ),
+        ));
     }
     if snapshot.source_handle.0 != snapshot.common.handle.0
         || snapshot.source_owner_handle.0 != snapshot.common.owner_handle.0

@@ -80,7 +80,7 @@ pub(crate) fn spline_entry(
         source_id: "cad-source-1".into(),
         source_key,
         schema: "openaec.opencadcodec.spline".into(),
-        version: 1,
+        version: super::SPLINE_PAYLOAD_VERSION,
         phase,
         result,
         reason: None,

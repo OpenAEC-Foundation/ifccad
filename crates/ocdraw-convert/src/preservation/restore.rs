@@ -15,13 +15,18 @@ pub(crate) fn restore_spline(
         .find(|s| s.id == record.source_id)
         .ok_or(MissingDependency)?;
     if record.payload.schema != "openaec.opencadcodec.spline"
-        || record.payload.version != 1
+        || !matches!(record.payload.version, 1 | 2)
         || record.payload.kind != OcdrawPreservationPayloadKind::AdapterSnapshot
         || record.representation != OcdrawPreservationRepresentation::CodecTyped
     {
         return Err(UnsupportedPayload);
     }
-    if source.provider != "opencadcodec" || source.provider_revision != CODEC_REVISION {
+    let expected_version = match source.provider_revision.as_str() {
+        CODEC_REVISION => SPLINE_PAYLOAD_VERSION,
+        LEGACY_CODEC_REVISION => 1,
+        _ => return Err(UnsupportedPayload),
+    };
+    if source.provider != "opencadcodec" || record.payload.version != expected_version {
         return Err(UnsupportedPayload);
     }
     evaluate_spline_conditions(record, entity, drawing)?;
@@ -29,6 +34,9 @@ pub(crate) fn restore_spline(
         OcdrawSplineSnapshotError::UnsupportedRevision => UnsupportedPayload,
         _ => MalformedPayload,
     })?;
+    if snapshot.codec_revision != source.provider_revision {
+        return Err(MalformedPayload);
+    }
     if record.source_key != format!("{:x}", snapshot.source_handle.0) {
         return Err(MalformedPayload);
     }

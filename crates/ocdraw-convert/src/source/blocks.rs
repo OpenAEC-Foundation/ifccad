@@ -78,6 +78,21 @@ pub(crate) fn inspect_references(document: &CadDocument) -> Vec<CadSourceStructu
         }
     }
     for entity in document.entities() {
+        let common = entity.common();
+        if let Some(layer) = common
+            .layer_handle
+            .filter(|h| !h.is_null())
+            .and_then(|handle| document.layers.iter().find(|layer| layer.handle == handle))
+        {
+            if !layer.name.eq_ignore_ascii_case(&common.layer) {
+                problems.push(CadSourceStructureProblem::InconsistentRelationship {
+                    description: format!(
+                        "Entity {:?} source layer name and handle disagree",
+                        common.handle
+                    ),
+                });
+            }
+        }
         if matches!(
             entity,
             EntityType::Block(_) | EntityType::BlockEnd(_) | EntityType::AttributeEntity(_)

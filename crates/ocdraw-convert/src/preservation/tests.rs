@@ -26,9 +26,11 @@ fn snapshot_retains_every_parameter_and_skipped_common_carrier() {
     source.cv_frame_visible = true;
     source.dwg_flags1 = -123;
     source.dxf_flags = -456;
+    source.dwg_scenario = Some(2);
     source.common.handle = Handle::new(0xab);
     source.common.owner_handle = Handle::new(0xcd);
     source.common.layer = "source layer".into();
+    source.common.layer_handle = Some(Handle::new(0x110));
     source.common.color = Color::None;
     source.common.line_weight = LineWeight::Default;
     source.common.transparency = Transparency::Explicit(217);
@@ -98,6 +100,8 @@ fn snapshot_retains_every_parameter_and_skipped_common_carrier() {
         vec![0x7ff8000000000042, 0x8000000000000000, 0x7ff0000000000000]
     );
     assert_eq!(restored.flags, source.flags);
+    assert_eq!(restored.dwg_scenario, Some(2));
+    assert_eq!(restored.common.layer_handle, Some(Handle::new(0x110)));
     assert_eq!(restored.control_points, source.control_points);
     assert_eq!(restored.weights, source.weights);
     assert_eq!(restored.fit_points, source.fit_points);

@@ -8,7 +8,7 @@ These are fresh conversions: no identity-preserving CAD editing session,
 watermark reconstruction or new source coverage is implied.
 
 The validated standalone drawing is the conversion boundary. The pinned codec
-revision is `fe69506cb99dea6f4c4a73b690a27fdf04403ea0`. There is no package
+revision is `063c10671fe7833d562f772159771318c7a0ebb9`. There is no package
 graph. The bounded typed spline preservation route is separate from native
 geometry support. Geometry accuracy and semantic losses are
 reported separately; unknown target semantics are diagnosed.
@@ -50,15 +50,13 @@ reported separately; unknown target semantics are diagnosed.
 
 Coverage remains incomplete for the native semantics listed above.
 
-Physical clipping and VIEWPORT angle exchange require the
-[explicit local codec repairs](../../../patches/opencadcodec-viewports/README.md)
-selected by this development worktree. Patched tests cover circles, rotated full
+Physical clipping and VIEWPORT angle exchange now use upstream repairs.
+The [remaining local repair](../../../patches/opencadcodec-viewports/README.md)
+preserves viewport-off state. Selected tests cover circles, rotated full
 ellipses and supported straight/bulged planar paths in both draw-order positions,
 negative/major bulges, nonzero twist and dormant stored references. Raw DXF
-50/51 values are independently checked as degrees. The unmodified base still
-omits/ignores group 340 and strips activation; explorer DXF exports report
-`DXF_VIEWPORT_CLIP_LOSS` when that codec is selected. Patched results do not
-establish support in unmodified upstream or application rendering.
+50/51 values are independently checked as degrees. Prior clipping-loss evidence
+applies to the previous pin; application rendering remains a separate qualification.
 Without a conventional overall paper canvas, pinned DWG readback classifies
 the first authored viewport as the overall canvas. A characterization test
 records the lost authored-viewport identity. The passing clip exchange profile
@@ -72,3 +70,21 @@ and some presentation metadata are not comprehensively assessed.
 Insertion failures, numerical failures and missing-reference/internal-invariant
 errors return `OcdrawToCadError`, not a completed conversion outcome. Successful
 strict OCDraw readback does not itself establish successful CAD output.
+
+## Upstream pin update — 2026-10-07
+
+Both converters use opencadcodec `063c10671fe7833d562f772159771318c7a0ebb9` (0.6.0).
+Clipping activation/group 340 and VIEWPORT angle units now come from merged
+upstream PRs #88/#89; only the independent viewport-off repair remains selected.
+References above to clipping/angle defects of the previous unmodified pin are
+historical evidence, not limitations of this new base. The [current dependency
+audit](../../../docs/geometry/opencadcodec-update-2026-10-07.md) records new public
+fields and compatibility decisions. Native spline semantics remain absent;
+new OCDraw snapshots use payload v2 and retain v1 read/restore support. Fit-only
+spline DXF parameterization remains a target-codec limitation pending PR #99.
+Unresolved source layer handles must not silently become a native layer 0.
+Known resolved handles are relationship identity and are rebuilt from native
+layer references. Canonical one-byte-per-INSERT count framing is derived;
+unfamiliar/mismatched count storage retains loss evidence. Additional table,
+associative/count and solid-history data remain at the existing unsupported
+family boundaries. No benchmark evidence is extended by this update.

@@ -8,7 +8,7 @@ These are fresh conversions: no identity-preserving CAD editing session,
 watermark reconstruction or new source coverage is implied.
 
 This inventory is pinned to opencadcodec revision
-`fe69506cb99dea6f4c4a73b690a27fdf04403ea0`. It defines what the
+`063c10671fe7833d562f772159771318c7a0ebb9`. It defines what the
 `CadDocument -> OCDraw` exporter must either represent or diagnose. Updating the
 dependency requires reviewing every row. The pinned opencadcodec
 `semantic_inventory_v1` is the export coverage traversal: its categories are
@@ -165,13 +165,12 @@ defaults and unmodeled annotation scaling retain existing header loss reporting.
 ## Maintenance rule
 
 Viewport clipping coverage is assessed from the interpreted CadDocument. The
-[explicit local repairs](../../../patches/opencadcodec-viewports/README.md) on
-this exact base retain independent activation and group 340 references and map
-VIEWPORT DXF degree angles to radians. Literal file tests and full patched
+[remaining local repair](../../../patches/opencadcodec-viewports/README.md) retains
+the independent viewport-off bit. This upstream base retains activation and
+group 340 references and maps VIEWPORT DXF degree angles to radians. Literal file tests and full selected
 DXF/DWG chains cover the expanded families, dormant references and mixed order.
-Unmodified upstream still strips activation and DXF references; unavailable
-file semantics cannot be recovered by conversion. Patched verification is not
-evidence for that unmodified base. DWG readback without an overall canvas still
+The previous pin stripped activation and DXF references; historical verification
+does not retroactively qualify that unmodified base. DWG readback without an overall canvas still
 reclassifies the first authored viewport; the passing profile includes a canvas.
 
 The 2026-09-11 update reviewed the public document/header, entity/common,
@@ -251,3 +250,21 @@ opaque definition/occurrence sources. The DXF/AC1032 DWG fixture matrix qualifie
 actual comparisons in every supported owner kind; it is not an input whitelist
 or a whole-file lossless/complete private-state preservation claim.
 For the opaque spline path, unresolved common pattern references remain in the snapshot and make native appearance/restore unavailable. A provable name/handle contradiction remains fatal. Ordinary native entity/table pattern validation is unchanged.
+
+## Upstream pin update — 2026-10-07
+
+Both converters use opencadcodec `063c10671fe7833d562f772159771318c7a0ebb9` (0.6.0).
+Clipping activation/group 340 and VIEWPORT angle units now come from merged
+upstream PRs #88/#89; only the independent viewport-off repair remains selected.
+References above to clipping/angle defects of the previous unmodified pin are
+historical evidence, not limitations of this new base. The [current dependency
+audit](../../../docs/geometry/opencadcodec-update-2026-10-07.md) records new public
+fields and compatibility decisions. Native spline semantics remain absent;
+new OCDraw snapshots use payload v2 and retain v1 read/restore support. Fit-only
+spline DXF parameterization remains a target-codec limitation pending PR #99.
+Unresolved source layer handles must not silently become a native layer 0.
+Known resolved handles are relationship identity and are rebuilt from native
+layer references. Canonical one-byte-per-INSERT count framing is derived;
+unfamiliar/mismatched count storage retains loss evidence. Additional table,
+associative/count and solid-history data remain at the existing unsupported
+family boundaries. No benchmark evidence is extended by this update.

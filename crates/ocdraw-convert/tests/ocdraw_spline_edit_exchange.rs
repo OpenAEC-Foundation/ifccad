@@ -818,7 +818,7 @@ fn condition_failures_are_rechecked_after_save_and_reopen() {
             InvalidCondition::MissingRequiredReference => {
                 record.conditions.retain(|c| c.predicate != REFERENCE)
             }
-            InvalidCondition::FuturePayload => record.payload.version = 2,
+            InvalidCondition::FuturePayload => record.payload.version = 3,
         }
         let reopened = saved(&doc);
         assert_eq!(

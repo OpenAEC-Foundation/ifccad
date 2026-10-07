@@ -59,6 +59,9 @@ fn references(spline: &Spline) -> Vec<(String, Reference)> {
         "common.layer".into(),
         Reference::Layer(spline.common.layer.clone()),
     )];
+    if let Some(handle) = spline.common.layer_handle.filter(|h| !h.is_null()) {
+        refs.push(("common.layerHandle".into(), Reference::Handle(handle)));
+    }
     if let Some(handle) = spline.common.linetype_handle.filter(|h| !h.is_null()) {
         refs.push(("common.linetypeHandle".into(), Reference::Handle(handle)));
     }
@@ -90,7 +93,7 @@ fn references(spline: &Spline) -> Vec<(String, Reference)> {
 }
 fn active(slot: &str, entity: &DrawingOpaqueEntity) -> bool {
     match slot {
-        "common.layer" => entity.layer_id.is_none(),
+        "common.layer" | "common.layerHandle" => entity.layer_id.is_none(),
         "common.linetype" | "common.linetypeHandle" => entity.appearance.is_none(),
         _ => true,
     }
@@ -297,6 +300,12 @@ pub(crate) fn qualify_references(
         }
         match reference {
             Reference::Handle(_)
+                if slot == "common.layerHandle"
+                    && !matches!(binding.target, OcdrawPreservationTarget::Layer(_)) =>
+            {
+                return Err(UnsupportedContext)
+            }
+            Reference::Handle(_)
                 if slot == "common.linetypeHandle"
                     && !matches!(binding.target, OcdrawPreservationTarget::LinePattern(_)) =>
             {
@@ -417,6 +426,9 @@ pub(crate) fn rebind_spline_references(
             }
             Reference::Handle(_) if slot == "common.linetypeHandle" => {
                 spline.common.linetype_handle = Some(handle)
+            }
+            Reference::Handle(_) if slot == "common.layerHandle" => {
+                spline.common.layer_handle = Some(handle)
             }
             Reference::Handle(_) => replace_xdata_value(spline, &slot, XDataValue::Handle(handle))?,
         }

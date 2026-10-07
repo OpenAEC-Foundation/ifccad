@@ -36,6 +36,24 @@ fn loss(
     }
 }
 
+fn resolved_layer_name<'a>(
+    document: &'a CadDocument,
+    common: &opencadcodec::entities::EntityCommon,
+) -> Option<&'a str> {
+    let layer = if let Some(handle) = common.layer_handle.filter(|h| !h.is_null()) {
+        document
+            .layers
+            .iter()
+            .find(|layer| layer.handle == handle)?
+    } else {
+        document.layers.get(&common.layer)?
+    };
+    layer
+        .name
+        .eq_ignore_ascii_case(&common.layer)
+        .then_some(layer.name.as_str())
+}
+
 pub fn cad_document_to_ocdraw_document(
     document: &CadDocument,
     options: CadToOcdrawOptions,
@@ -460,7 +478,7 @@ pub fn cad_document_to_ocdraw_document_with_id(
                     conditions: vec![],
                     payload: OcdrawPreservationPayload {
                         schema: "openaec.opencadcodec.spline".into(),
-                        version: 1,
+                        version: crate::preservation::SPLINE_PAYLOAD_VERSION,
                         kind: OcdrawPreservationPayloadKind::AdapterSnapshot,
                         bytes: payload,
                     },
@@ -503,7 +521,8 @@ pub fn cad_document_to_ocdraw_document_with_id(
                     )
                 };
                 if let Some(scope_id) = scope {
-                    let layer_id = layer_ids.get(&common.layer.to_lowercase()).copied();
+                    let layer_id = resolved_layer_name(document, common)
+                        .and_then(|name| layer_ids.get(&name.to_lowercase()).copied());
                     // Resolve structural name/handle contradictions even when another common value remains opaque.
                     let pattern =
                         patterns.resolve_preserved(&common.linetype, common.linetype_handle)?;
@@ -685,7 +704,8 @@ pub fn cad_document_to_ocdraw_document_with_id(
                 owner: common.owner_handle,
             });
         }
-        let layer_id = layer_ids.get(&common.layer.to_lowercase()).copied();
+        let layer_id = resolved_layer_name(document, common)
+            .and_then(|name| layer_ids.get(&name.to_lowercase()).copied());
         if layer_id.is_none() {
             reasons.push(CadToOcdrawLossReason::MissingEntityLayer {
                 name: common.layer.clone(),

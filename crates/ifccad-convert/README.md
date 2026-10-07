@@ -148,7 +148,7 @@ rounding is reported and accepted independently of semantic loss policy.
 
 ## Exchange evidence
 
-Unmodified opencadcodec revision `fe69506cb99dea6f4c4a73b690a27fdf04403ea0`, AC1032:
+Historical baseline at unmodified opencadcodec revision `fe69506cb99dea6f4c4a73b690a27fdf04403ea0`, AC1032:
 
 | Probe | Result |
 | --- | --- |
@@ -161,8 +161,8 @@ Unmodified opencadcodec revision `fe69506cb99dea6f4c4a73b690a27fdf04403ea0`, AC1
 
 The [2026-10-05 dependency audit](../../docs/geometry/opencadcodec-update-2026-10-05.md)
 records the public-model review and fresh verification. The viewport development
-regressions still fail on unmodified upstream; the explicit local patch passes
-those tests and remains separate from this default pin. Historical measurements
+regressions failed on that unmodified baseline; their clipping and angle repairs
+have since merged upstream. The separate viewport-off repair remains local. Historical measurements
 retain their recorded revisions.
 
 No marker repair or guessed anonymous-block rename is applied. A stale DXF
@@ -229,12 +229,11 @@ Continuous scaffold with `line-pattern-scaffold` modification; Reject refuses it
 Optional native scale/generation defaults are normalized for comparison only;
 foreign graph data is still checked and exact numeric projection errors fail.
 
-The OCDraw viewport worktree pins the shared upstream base `fe69506` and opts in
-to [explicit local codec repairs](../../patches/opencadcodec-viewports/README.md).
-The earlier exchange table retains its stated historical dependency provenance.
-The current IFCCAD viewport slice uses the same repairs plus the independent
-viewport-off repair; its geometry and clipping contract stays separate from OCDraw.
-See the [2026-10-05 dependency audit](../../docs/geometry/opencadcodec-update-2026-10-05.md).
+Both converters pin upstream `063c10671fe7833d562f772159771318c7a0ebb9` and select
+only the [remaining viewport-off repair](../../patches/opencadcodec-viewports/README.md).
+The earlier exchange table retains its historical provenance. IFCCAD geometry,
+clipping and source classification remain separate from OCDraw.
+See the [2026-10-07 dependency audit](../../docs/geometry/opencadcodec-update-2026-10-07.md).
 ## Paper layout conversion boundary
 
 Native Paper names use full Unicode case folding; target CAD lookup additionally
@@ -257,3 +256,21 @@ cannot exactly map to binary64 25.4 mm). Unsupported factors such as parsecs omi
 only media under Allow. Printer/media names, margins, rotation, plot limits,
 authored overall canvases and workspace state remain deferred losses. Definition-content
 losses propagate to Paper instances through shared and nested definitions.
+
+## Upstream pin update — 2026-10-07
+
+Both converters use opencadcodec `063c10671fe7833d562f772159771318c7a0ebb9` (0.6.0).
+Clipping activation/group 340 and VIEWPORT angle units now come from merged
+upstream PRs #88/#89; only the independent viewport-off repair remains selected.
+References above to clipping/angle defects of the previous unmodified pin are
+historical evidence, not limitations of this new base. The [current dependency
+audit](../../docs/geometry/opencadcodec-update-2026-10-07.md) records new public
+fields and compatibility decisions. Native spline semantics remain absent;
+new OCDraw snapshots use payload v2 and retain v1 read/restore support. Fit-only
+spline DXF parameterization remains a target-codec limitation pending PR #99.
+Unresolved source layer handles must not silently become a native layer 0.
+Known resolved handles are relationship identity and are rebuilt from native
+layer references. Canonical one-byte-per-INSERT count framing is derived;
+unfamiliar/mismatched count storage retains loss evidence. Additional table,
+associative/count and solid-history data remain at the existing unsupported
+family boundaries. No benchmark evidence is extended by this update.

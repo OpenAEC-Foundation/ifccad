@@ -64,10 +64,10 @@ model windows, paper canvases and paper viewports have typed records.
 Active viewport clips support circles, full ellipses and closed planar
 polylines with straight or bulged segments. Direct CAD conversion resolves clip
 references independently of draw order, preserving activation separately from
-stored boundaries. The [explicit local codec patches](patches/opencadcodec-viewports/README.md)
-qualify DXF/DWG clip roundtrips and DXF degree-angle mapping; the DWG profile
-includes a paper canvas. Unmodified upstream still loses clip activation/DXF
-references, and the explorer reports that loss when it is selected. See the
+stored boundaries. The new upstream pin includes clipping and DXF angle repairs;
+the [remaining local codec patch](patches/opencadcodec-viewports/README.md)
+retains the independent viewport-off bit. The DWG profile includes a paper canvas.
+See the [dependency audit](docs/geometry/opencadcodec-update-2026-10-07.md) and the
 converter coverage contracts for limits.
 Named simple patterns retain their definitions, unused records, local references,
 scale and polyline generation. Complex text/shape patterns become named continuous

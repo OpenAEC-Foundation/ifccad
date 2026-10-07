@@ -8,7 +8,7 @@ These are fresh conversions: no identity-preserving CAD editing session,
 watermark reconstruction or new source coverage is implied.
 
 Dependency: opencadcodec revision
-`fe69506cb99dea6f4c4a73b690a27fdf04403ea0`, as pinned in Cargo.toml. The current
+`063c10671fe7833d562f772159771318c7a0ebb9`, as pinned in Cargo.toml. The current
 development worktree selects the explicit local patch; Cargo.lock reflects that
 selected path dependency rather than an unmodified upstream resolution.
 
@@ -33,11 +33,10 @@ Viewport appearance overrides, authored shading quality, and viewport workspace
 state have explicit target/source loss diagnostics where not supported.
 Clip family and full-curve eligibility are shared core rules. Stored boundary
 references are independent of activation, including dormant references. The
-[explicit local codec repairs](../../../patches/opencadcodec-viewports/README.md)
-qualify DXF/DWG clipping and DXF degree-angle mapping on the exact base. DWG tests
-use a conventional paper canvas. Unmodified base still loses activation and
-DXF references; explorer downloads report `DXF_VIEWPORT_CLIP_LOSS` when it is
-selected. Patched evidence does not establish unmodified-upstream support.
+[remaining viewport-off repair](../../../patches/opencadcodec-viewports/README.md)
+preserves the independent off-state semantics. Clipping and DXF degree-angle
+mapping are upstream capabilities in this pin; DWG tests use a conventional
+paper canvas. Historical clipping-loss evidence applies to the previous pin.
 Xrefs, external content, attributes/arrays/dynamic blocks, widths, unsupported
 entity families, opaque vertex identities, and extended source metadata are
 not silently approximated. Losses may be allowed with evidence or rejected.
@@ -102,3 +101,21 @@ exchange test records this boundary. The inspector DWG download adds an explicit
 DWG_SPATIAL_PATTERN_GENERATION_LOSS diagnostic per affected entity; direct
 CadDocument conversion retains the flag. These tests do not
 certify text/font/shape dependencies or every CAD viewport/annotation behavior.
+
+## Upstream pin update — 2026-10-07
+
+Both converters use opencadcodec `063c10671fe7833d562f772159771318c7a0ebb9` (0.6.0).
+Clipping activation/group 340 and VIEWPORT angle units now come from merged
+upstream PRs #88/#89; only the independent viewport-off repair remains selected.
+References above to clipping/angle defects of the previous unmodified pin are
+historical evidence, not limitations of this new base. The [current dependency
+audit](../../../docs/geometry/opencadcodec-update-2026-10-07.md) records new public
+fields and compatibility decisions. Native spline semantics remain absent;
+new OCDraw snapshots use payload v2 and retain v1 read/restore support. Fit-only
+spline DXF parameterization remains a target-codec limitation pending PR #99.
+Unresolved source layer handles must not silently become a native layer 0.
+Known resolved handles are relationship identity and are rebuilt from native
+layer references. Canonical one-byte-per-INSERT count framing is derived;
+unfamiliar/mismatched count storage retains loss evidence. Additional table,
+associative/count and solid-history data remain at the existing unsupported
+family boundaries. No benchmark evidence is extended by this update.

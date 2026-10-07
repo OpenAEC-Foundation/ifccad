@@ -1,5 +1,5 @@
 diff --git a/src/entities/viewport.rs b/src/entities/viewport.rs
-
+index 0aea92c..14a9d27 100644
 --- a/src/entities/viewport.rs
 +++ b/src/entities/viewport.rs
 @@ -10,6 +10,9 @@ pub struct ViewportStatusFlags {
@@ -31,10 +31,10 @@ diff --git a/src/entities/viewport.rs b/src/entities/viewport.rs
              bits |= 0x10000;
          }
 diff --git a/src/io/dxf/writer/section_writer.rs b/src/io/dxf/writer/section_writer.rs
-
+index 27d5393..e0a8190 100644
 --- a/src/io/dxf/writer/section_writer.rs
 +++ b/src/io/dxf/writer/section_writer.rs
-@@ -4872,7 +4872,7 @@ impl<'a, W: DxfStreamWriter> SectionWriter<'a, W> {
+@@ -4973,7 +4973,7 @@ impl<'a, W: DxfStreamWriter> SectionWriter<'a, W> {
                  .copied()
                  .unwrap_or(0)
          };

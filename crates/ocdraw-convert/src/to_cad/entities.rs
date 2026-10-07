@@ -212,6 +212,8 @@ pub(super) fn append_entities(
                         spline.common.linetype_handle = None;
                     }
                 }
+                spline.common.layer_handle =
+                    document.layers.get(&spline.common.layer).map(|l| l.handle);
                 spline.common.handle = Handle::NULL;
                 spline.common.owner_handle = if let Some(handle) =
                     block_handles.get(&u64::from(owner))

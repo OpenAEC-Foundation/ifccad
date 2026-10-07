@@ -151,6 +151,9 @@ pub(crate) fn from_common(
     r.handle = b.handle;
     r.owner_handle = b.owner_handle;
     r.layer = b.layer.clone();
+    // source::inspect has qualified the handle/name association; native layers
+    // retain that association with newly constructed CAD identities.
+    r.layer_handle = None;
     r.color = b.color;
     r.line_weight = b.line_weight;
     r.linetype = b.linetype.clone();

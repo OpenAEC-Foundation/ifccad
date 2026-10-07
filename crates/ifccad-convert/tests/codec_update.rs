@@ -161,3 +161,37 @@ fn object_xdata_is_visible_after_both_codecs_and_never_silently_dropped() {
         ));
     }
 }
+
+#[test]
+fn unresolved_entity_layer_handle_is_not_the_codec_layer_zero_fallback() {
+    let mut source = opencadcodec::CadDocument::new();
+    let mut line = opencadcodec::Line::new();
+    line.end = opencadcodec::Vector3::new(1., 0., 0.);
+    line.common.layer_handle = Some(opencadcodec::Handle::new(0xdead));
+    source
+        .add_entity(opencadcodec::EntityType::Line(line))
+        .unwrap();
+    assert!(
+        cad_document_to_ifccad_document(&source, metadata(), CadToIfccadOptions::default())
+            .is_err()
+    );
+}
+
+#[test]
+fn noncanonical_insert_count_storage_remains_a_located_loss() {
+    for bytes in [vec![1], vec![2]] {
+        let mut source = opencadcodec::CadDocument::new();
+        source
+            .block_records
+            .get_mut("*Model_Space")
+            .unwrap()
+            .insert_count_bytes = bytes;
+        let out =
+            cad_document_to_ifccad_document(&source, metadata(), CadToIfccadOptions::default())
+                .unwrap();
+        assert!(out
+            .diagnostics()
+            .iter()
+            .any(|d| d.location.ends_with("insert_count_bytes")));
+    }
+}

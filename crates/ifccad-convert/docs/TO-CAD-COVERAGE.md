@@ -15,7 +15,7 @@ production-readback and semantic-mismatch phases. Error sources remain typed;
 this changes Rust error handling, not graph-aware loss or precision assessment.
 
 Profile `urn:example:ifccad:0.1.0`; opencadcodec revision
-`fe69506cb99dea6f4c4a73b690a27fdf04403ea0`. Default Allow returns supported content
+`063c10671fe7833d562f772159771318c7a0ebb9`. Default Allow returns supported content
 with losses; explicit Reject refuses diagnosed omissions or modifications.
 
 The [dependency audit](../../../docs/geometry/opencadcodec-update-2026-10-05.md)
@@ -172,3 +172,21 @@ Native optional bounds are derived metadata: CAD output does not promise their
 exact restoration, and a fresh import prepares its own bounds. CAD file codecs
 are verified separately; an isolated conversion report is not an end-to-end
 certificate for arbitrary serialization/rendering.
+
+## Upstream pin update — 2026-10-07
+
+Both converters use opencadcodec `063c10671fe7833d562f772159771318c7a0ebb9` (0.6.0).
+Clipping activation/group 340 and VIEWPORT angle units now come from merged
+upstream PRs #88/#89; only the independent viewport-off repair remains selected.
+References above to clipping/angle defects of the previous unmodified pin are
+historical evidence, not limitations of this new base. The [current dependency
+audit](../../../docs/geometry/opencadcodec-update-2026-10-07.md) records new public
+fields and compatibility decisions. Native spline semantics remain absent;
+new OCDraw snapshots use payload v2 and retain v1 read/restore support. Fit-only
+spline DXF parameterization remains a target-codec limitation pending PR #99.
+Unresolved source layer handles must not silently become a native layer 0.
+Known resolved handles are relationship identity and are rebuilt from native
+layer references. Canonical one-byte-per-INSERT count framing is derived;
+unfamiliar/mismatched count storage retains loss evidence. Additional table,
+associative/count and solid-history data remain at the existing unsupported
+family boundaries. No benchmark evidence is extended by this update.
