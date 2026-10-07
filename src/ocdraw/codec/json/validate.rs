@@ -26,6 +26,21 @@ pub(crate) fn validate_physical(value: &Value, diagnostics: &mut Vec<OcdrawDiagn
         }
     }
     streams::validate_stream_columns(value, diagnostics);
+    if let Some(counter) = value["header"].get("nextTextStyleId") {
+        if !counter.as_u64().is_some_and(|id| u32::try_from(id).is_ok()) {
+            diagnostics.push(diagnostic(
+                "ID_WATERMARK",
+                "/header/nextTextStyleId",
+                "text style watermark needs an exact unsigned integer backing in its ID range",
+            ));
+        }
+    } else if value.get("textStyles").is_some() {
+        diagnostics.push(diagnostic(
+            "ID_WATERMARK",
+            "/header/nextTextStyleId",
+            "a present text style table requires its allocation watermark",
+        ));
+    }
     if !diagnostics.is_empty() {
         return;
     }

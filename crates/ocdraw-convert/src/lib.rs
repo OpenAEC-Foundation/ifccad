@@ -7,6 +7,8 @@ mod geometry_context;
 mod mapping;
 mod options;
 mod outcome;
+mod text_assessment;
+pub use text_assessment::*;
 mod point_display;
 mod preservation;
 pub use preservation::{

@@ -153,38 +153,15 @@ impl BlockTransform {
         rotation: f64,
         scale: Scale3,
     ) -> Result<Self, BlockTransformError> {
-        let n = normalized(normal.components()).ok_or(BlockTransformError::InvalidNormal)?;
-        let x = if n[0].abs() < 1. / 64. && n[1].abs() < 1. / 64. {
-            [n[2], 0., -n[0]]
-        } else {
-            [-n[1], n[0], 0.]
-        };
-        let x = normalized(x).ok_or(BlockTransformError::InvalidNormal)?;
-        let y = [
-            n[1] * x[2] - n[2] * x[1],
-            n[2] * x[0] - n[0] * x[2],
-            n[0] * x[1] - n[1] * x[0],
-        ];
-        let placement = CoordinateFrame3::try_new(
-            origin,
-            Vector3::new(x[0], x[1], x[2]),
-            Vector3::new(y[0], y[1], y[2]),
-        )?;
+        let placement =
+            CoordinateFrame3::try_from_normal_arbitrary_axis(origin, normal).map_err(|error| {
+                match error {
+                    CoordinateFrameError::InvalidNormal => BlockTransformError::InvalidNormal,
+                    error => BlockTransformError::InvalidPlacement(error),
+                }
+            })?;
         Self::try_new(placement, rotation, scale)
     }
-}
-
-fn normalized(v: [f64; 3]) -> Option<[f64; 3]> {
-    if !v.into_iter().all(f64::is_finite) {
-        return None;
-    }
-    let scale = v.into_iter().map(f64::abs).fold(0., f64::max);
-    if scale == 0. {
-        return None;
-    }
-    let v = v.map(|c| c / scale);
-    let length = (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]).sqrt();
-    Some(v.map(|c| c / length))
 }
 
 fn neg(v: Interval) -> Interval {

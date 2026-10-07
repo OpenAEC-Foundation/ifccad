@@ -19,6 +19,8 @@ pub enum PlaneAxis {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Error)]
 pub enum CoordinateFrameError {
+    #[error("arbitrary-axis construction requires a finite nonzero normal")]
+    InvalidNormal,
     #[error("non-finite {axis:?} component of plane {field:?}")]
     NonFiniteComponent {
         field: CoordinateFrameField,
@@ -136,6 +138,60 @@ impl CoordinateFrame3 {
         let components = CoordinateFrameComponents { origin, x, y };
         components.validate()?;
         Ok(Self(components))
+    }
+
+    /// Constructs a frame from a finite nonzero normal using arbitrary axes.
+    ///
+    /// The normal is explicitly normalized here using scaled arithmetic. The
+    /// origin is already in the owning scope, not in CAD OCS coordinates. This
+    /// constructor does not change the strict preserved-axis behavior of
+    /// [`Self::try_new`], and does not establish a CAD conversion accuracy proof.
+    ///
+    /// ```
+    /// use ocdraw::geometry_kernel::{CoordinateFrame3, Point3, Vector3};
+    /// let frame = CoordinateFrame3::try_from_normal_arbitrary_axis(
+    ///     Point3::new(10., 20., 30.), Vector3::new(0., 2., 0.),
+    /// )?;
+    /// assert_eq!(frame.x_axis().components(), [-1., 0., 0.]);
+    /// assert_eq!(frame.y_axis().components(), [0., 0., 1.]);
+    /// # Ok::<(), ocdraw::geometry_kernel::CoordinateFrameError>(())
+    /// ```
+    pub fn try_from_normal_arbitrary_axis(
+        origin: Point3,
+        normal: Vector3,
+    ) -> Result<Self, CoordinateFrameError> {
+        fn normalized(v: [f64; 3]) -> Result<[f64; 3], CoordinateFrameError> {
+            if !v.into_iter().all(f64::is_finite) {
+                return Err(CoordinateFrameError::InvalidNormal);
+            }
+            let scale = v.into_iter().map(f64::abs).fold(0.0, f64::max);
+            if scale == 0.0 {
+                return Err(CoordinateFrameError::InvalidNormal);
+            }
+            let v = v.map(|value| value / scale);
+            let length = (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]).sqrt();
+            Ok(v.map(|value| value / length))
+        }
+        fn cross(a: [f64; 3], b: [f64; 3]) -> [f64; 3] {
+            [
+                a[1] * b[2] - a[2] * b[1],
+                a[2] * b[0] - a[0] * b[2],
+                a[0] * b[1] - a[1] * b[0],
+            ]
+        }
+        let n = normalized(normal.components())?;
+        let x = if n[0].abs() < 1. / 64. && n[1].abs() < 1. / 64. {
+            [n[2], 0., -n[0]]
+        } else {
+            [-n[1], n[0], 0.]
+        };
+        let x = normalized(x)?;
+        let y = cross(n, x);
+        Self::try_new(
+            origin,
+            Vector3::new(x[0], x[1], x[2]),
+            Vector3::new(y[0], y[1], y[2]),
+        )
     }
     pub fn origin(self) -> Point3 {
         self.0.origin

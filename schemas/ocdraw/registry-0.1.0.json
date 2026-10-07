@@ -1651,6 +1651,731 @@
           "nullable": false
         }
       ]
+    },
+    "textStyleId": {
+      "kind": "scalar",
+      "base": "uint32",
+      "minimum": 0
+    },
+    "boundsQuality": {
+      "kind": "enum",
+      "values": [
+        "enclosing",
+        "estimated"
+      ]
+    },
+    "textHorizontalAlignment": {
+      "kind": "enum",
+      "values": [
+        "left",
+        "center",
+        "right"
+      ]
+    },
+    "textVerticalAlignment": {
+      "kind": "enum",
+      "values": [
+        "baseline",
+        "bottom",
+        "middle",
+        "top"
+      ]
+    },
+    "textLayoutKind": {
+      "kind": "enum",
+      "values": [
+        "anchored",
+        "wholeTextMiddle",
+        "aligned",
+        "fit"
+      ]
+    },
+    "textFontRequest": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "family",
+          "valueType": "nonEmptyString",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "cadFontName",
+          "valueType": "nonEmptyString",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "bigFontName",
+          "valueType": "nonEmptyString",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "bold",
+          "valueType": "boolean",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "italic",
+          "valueType": "boolean",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "charset",
+          "valueType": "uint32",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "pitch",
+          "valueType": "uint8",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "textRun": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "text",
+          "valueType": "nonEmptyString",
+          "nullable": false
+        },
+        {
+          "name": "underline",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": false
+        },
+        {
+          "name": "overline",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": false
+        },
+        {
+          "name": "strikeThrough",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": false
+        }
+      ]
+    },
+    "textRuns": {
+      "kind": "sequence",
+      "items": "textRun",
+      "minItems": 0
+    },
+    "textLayout": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "textLayoutKind",
+          "nullable": false
+        },
+        {
+          "name": "horizontal",
+          "valueType": "textHorizontalAlignment",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "vertical",
+          "valueType": "textVerticalAlignment",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "height",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "widthFactor",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "length",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "textHeightKind": {
+      "kind": "enum",
+      "values": [
+        "absolute",
+        "relative"
+      ]
+    },
+    "textHeight": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "textHeightKind",
+          "nullable": false
+        },
+        {
+          "name": "distance",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "factor",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "textColorKind": {
+      "kind": "enum",
+      "values": [
+        "entity",
+        "byLayer",
+        "byBlock",
+        "explicit"
+      ]
+    },
+    "textColor": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "textColorKind",
+          "nullable": false
+        },
+        {
+          "name": "color",
+          "valueType": "color",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "textPosition": {
+      "kind": "enum",
+      "values": [
+        "bottom",
+        "center",
+        "top"
+      ]
+    },
+    "characterFormat": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "font",
+          "valueType": "textFontRequest",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "color",
+          "valueType": "textColor",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "height",
+          "valueType": "textHeight",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "widthFactor",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "tracking",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "obliqueAngle",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "underline",
+          "valueType": "boolean",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "overline",
+          "valueType": "boolean",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "strikeThrough",
+          "valueType": "boolean",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "position",
+          "valueType": "textPosition",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "textParagraphAlignment": {
+      "kind": "enum",
+      "values": [
+        "left",
+        "center",
+        "right",
+        "justified",
+        "distributed"
+      ]
+    },
+    "textLineSpacingKind": {
+      "kind": "enum",
+      "values": [
+        "exact",
+        "atLeast",
+        "multiple"
+      ]
+    },
+    "textLineSpacing": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "textLineSpacingKind",
+          "nullable": false
+        },
+        {
+          "name": "distance",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "factor",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "textTabAlignment": {
+      "kind": "enum",
+      "values": [
+        "left",
+        "center",
+        "right",
+        "decimal"
+      ]
+    },
+    "textTabStop": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "positionFactor",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "alignment",
+          "valueType": "textTabAlignment",
+          "nullable": false
+        },
+        {
+          "name": "separator",
+          "valueType": "string",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "textTabStops": {
+      "kind": "sequence",
+      "items": "textTabStop",
+      "minItems": 0
+    },
+    "paragraphFormat": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "alignment",
+          "valueType": "textParagraphAlignment",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "leftIndentFactor",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "rightIndentFactor",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "firstLineIndentFactor",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "spaceBefore",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "spaceAfter",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "lineSpacing",
+          "valueType": "textLineSpacing",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "tabStops",
+          "valueType": "textTabStops",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "mTextInlineKind": {
+      "kind": "enum",
+      "values": [
+        "run",
+        "tab",
+        "lineBreak",
+        "columnBreak",
+        "stack"
+      ]
+    },
+    "textStackKind": {
+      "kind": "enum",
+      "values": [
+        "fraction",
+        "diagonalFraction",
+        "tolerance",
+        "decimalTolerance"
+      ]
+    },
+    "textStackAlignment": {
+      "kind": "enum",
+      "values": [
+        "top",
+        "center",
+        "bottom"
+      ]
+    },
+    "mTextInline": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "mTextInlineKind",
+          "nullable": false
+        },
+        {
+          "name": "text",
+          "valueType": "string",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "characterFormat",
+          "valueType": "characterFormat",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "stackKind",
+          "valueType": "textStackKind",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "upper",
+          "valueType": "string",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "lower",
+          "valueType": "string",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "alignment",
+          "valueType": "textStackAlignment",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "textScale",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "separator",
+          "valueType": "string",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "mTextInlines": {
+      "kind": "sequence",
+      "items": "mTextInline",
+      "minItems": 0
+    },
+    "mTextParagraph": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "inlines",
+          "valueType": "mTextInlines",
+          "nullable": false
+        },
+        {
+          "name": "characterFormat",
+          "valueType": "characterFormat",
+          "nullable": false,
+          "default": {}
+        },
+        {
+          "name": "paragraphFormat",
+          "valueType": "paragraphFormat",
+          "nullable": false,
+          "default": {}
+        }
+      ]
+    },
+    "mTextContent": {
+      "kind": "sequence",
+      "items": "mTextParagraph",
+      "minItems": 1
+    },
+    "mTextFlow": {
+      "kind": "enum",
+      "values": [
+        "horizontal",
+        "vertical",
+        "byStyle"
+      ]
+    },
+    "mTextAttachment": {
+      "kind": "enum",
+      "values": [
+        "topLeft",
+        "topCenter",
+        "topRight",
+        "middleLeft",
+        "middleCenter",
+        "middleRight",
+        "bottomLeft",
+        "bottomCenter",
+        "bottomRight"
+      ]
+    },
+    "mTextColumnHeightKind": {
+      "kind": "enum",
+      "values": [
+        "fixed",
+        "auto"
+      ]
+    },
+    "mTextColumnHeight": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "mTextColumnHeightKind",
+          "nullable": false
+        },
+        {
+          "name": "distance",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "mTextColumnHeights": {
+      "kind": "sequence",
+      "items": "mTextColumnHeight",
+      "minItems": 1
+    },
+    "mTextColumnsKind": {
+      "kind": "enum",
+      "values": [
+        "static",
+        "dynamicAutoHeight",
+        "dynamicManualHeight"
+      ]
+    },
+    "mTextColumns": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "mTextColumnsKind",
+          "nullable": false
+        },
+        {
+          "name": "columnWidth",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "gutter",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "flowReversed",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": false
+        },
+        {
+          "name": "count",
+          "valueType": "uint32",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "currentColumnCount",
+          "valueType": "uint32",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "columnHeight",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "columnHeights",
+          "valueType": "mTextColumnHeights",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "textPaddingKind": {
+      "kind": "enum",
+      "values": [
+        "absolute",
+        "relative"
+      ]
+    },
+    "textPadding": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "textPaddingKind",
+          "nullable": false
+        },
+        {
+          "name": "distance",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "factor",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "mTextFillKind": {
+      "kind": "enum",
+      "values": [
+        "none",
+        "color",
+        "canvas"
+      ]
+    },
+    "mTextFill": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "mTextFillKind",
+          "nullable": false
+        },
+        {
+          "name": "color",
+          "valueType": "color",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "mTextBackground": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "fill",
+          "valueType": "mTextFill",
+          "nullable": false,
+          "default": {
+            "kind": "none"
+          }
+        },
+        {
+          "name": "padding",
+          "valueType": "textPadding",
+          "nullable": false,
+          "default": {
+            "kind": "relative",
+            "factor": 0.5
+          }
+        },
+        {
+          "name": "opacity",
+          "valueType": "opacity",
+          "nullable": false,
+          "default": 1
+        },
+        {
+          "name": "frame",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": false
+        }
+      ]
     }
   },
   "resource": {
@@ -1721,6 +2446,12 @@
         "valueType": "preservation",
         "nullable": false,
         "optional": true
+      },
+      {
+        "name": "nextTextStyleId",
+        "valueType": "uint32",
+        "nullable": false,
+        "default": 1
       }
     ]
   },
@@ -1891,6 +2622,12 @@
             "category": "entity",
             "target": "entity"
           }
+        },
+        {
+          "name": "boundsQuality",
+          "valueType": "boundsQuality",
+          "nullable": false,
+          "optional": true
         }
       ]
     },
@@ -2141,6 +2878,70 @@
           "name": "pattern",
           "valueType": "linePattern",
           "nullable": false
+        }
+      ]
+    },
+    {
+      "name": "textStyle",
+      "schemaId": "ocdraw.textStyle.v1",
+      "default": [],
+      "fields": [
+        {
+          "name": "id",
+          "valueType": "textStyleId",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "valueType": "nonEmptyString",
+          "nullable": false
+        },
+        {
+          "name": "font",
+          "valueType": "textFontRequest",
+          "nullable": false
+        },
+        {
+          "name": "widthFactor",
+          "valueType": "float64",
+          "nullable": false,
+          "default": 1
+        },
+        {
+          "name": "obliqueAngle",
+          "valueType": "float64",
+          "nullable": false,
+          "default": 0
+        },
+        {
+          "name": "vertical",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": false
+        },
+        {
+          "name": "creationBackward",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": false
+        },
+        {
+          "name": "creationUpsideDown",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": false
+        },
+        {
+          "name": "creationHeight",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "lastUsedHeight",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
         }
       ]
     }
@@ -3435,6 +4236,356 @@
           "nullable": true
         }
       ]
+    },
+    {
+      "name": "text",
+      "schemaId": "ocdraw.text.v1",
+      "role": "object",
+      "fields": [
+        {
+          "name": "entityId",
+          "valueType": "entityId",
+          "nullable": false,
+          "reference": {
+            "category": "entity",
+            "target": "entity"
+          }
+        },
+        {
+          "name": "placement",
+          "valueType": "coordinateFrame3",
+          "nullable": false,
+          "default": {
+            "origin": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "X": {
+              "x": 1,
+              "y": 0,
+              "z": 0
+            },
+            "Y": {
+              "x": 0,
+              "y": 1,
+              "z": 0
+            }
+          }
+        },
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "layer.id"
+          }
+        },
+        {
+          "name": "colorMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "color",
+          "valueType": "color",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "opacityMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "opacity",
+          "valueType": "opacity",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "linePatternMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "linePatternId",
+          "valueType": "uint32",
+          "nullable": false,
+          "optional": true,
+          "reference": {
+            "category": "tableField",
+            "target": "linePattern.id"
+          }
+        },
+        {
+          "name": "lineWeightMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "lineWeight",
+          "valueType": "lineWeight",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "visible",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": true
+        },
+        {
+          "name": "linePatternScale",
+          "valueType": "float64",
+          "nullable": false,
+          "default": 1
+        },
+        {
+          "name": "styleId",
+          "valueType": "textStyleId",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "textStyle.id"
+          }
+        },
+        {
+          "name": "layout",
+          "valueType": "textLayout",
+          "nullable": false
+        },
+        {
+          "name": "content",
+          "valueType": "textRuns",
+          "nullable": false
+        },
+        {
+          "name": "rotation",
+          "valueType": "float64",
+          "nullable": false,
+          "default": 0
+        },
+        {
+          "name": "backward",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": false
+        },
+        {
+          "name": "upsideDown",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": false
+        },
+        {
+          "name": "obliqueAngle",
+          "valueType": "float64",
+          "nullable": false,
+          "default": 0
+        },
+        {
+          "name": "thickness",
+          "valueType": "float64",
+          "nullable": false,
+          "default": 0
+        }
+      ]
+    },
+    {
+      "name": "mText",
+      "schemaId": "ocdraw.mText.v1",
+      "role": "object",
+      "fields": [
+        {
+          "name": "entityId",
+          "valueType": "entityId",
+          "nullable": false,
+          "reference": {
+            "category": "entity",
+            "target": "entity"
+          }
+        },
+        {
+          "name": "placement",
+          "valueType": "coordinateFrame3",
+          "nullable": false,
+          "default": {
+            "origin": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "X": {
+              "x": 1,
+              "y": 0,
+              "z": 0
+            },
+            "Y": {
+              "x": 0,
+              "y": 1,
+              "z": 0
+            }
+          }
+        },
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "layer.id"
+          }
+        },
+        {
+          "name": "colorMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "color",
+          "valueType": "color",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "opacityMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "opacity",
+          "valueType": "opacity",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "linePatternMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "linePatternId",
+          "valueType": "uint32",
+          "nullable": false,
+          "optional": true,
+          "reference": {
+            "category": "tableField",
+            "target": "linePattern.id"
+          }
+        },
+        {
+          "name": "lineWeightMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "lineWeight",
+          "valueType": "lineWeight",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "visible",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": true
+        },
+        {
+          "name": "linePatternScale",
+          "valueType": "float64",
+          "nullable": false,
+          "default": 1
+        },
+        {
+          "name": "styleId",
+          "valueType": "textStyleId",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "textStyle.id"
+          }
+        },
+        {
+          "name": "height",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "content",
+          "valueType": "mTextContent",
+          "nullable": false
+        },
+        {
+          "name": "rotation",
+          "valueType": "float64",
+          "nullable": false,
+          "default": 0
+        },
+        {
+          "name": "backward",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": false
+        },
+        {
+          "name": "upsideDown",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": false
+        },
+        {
+          "name": "attachment",
+          "valueType": "mTextAttachment",
+          "nullable": false,
+          "default": "topLeft"
+        },
+        {
+          "name": "flow",
+          "valueType": "mTextFlow",
+          "nullable": false,
+          "default": "horizontal"
+        },
+        {
+          "name": "characterFormat",
+          "valueType": "characterFormat",
+          "nullable": false,
+          "default": {}
+        },
+        {
+          "name": "paragraphFormat",
+          "valueType": "paragraphFormat",
+          "nullable": false,
+          "default": {}
+        },
+        {
+          "name": "wrapWidth",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "columns",
+          "valueType": "mTextColumns",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "background",
+          "valueType": "mTextBackground",
+          "nullable": false,
+          "optional": true
+        }
+      ]
     }
   ],
   "invariants": [
@@ -3541,6 +4692,10 @@
     {
       "id": "ocdraw.geometry-completeness",
       "contract": "logical-contract-0.1.0.md#geometry-completeness"
+    },
+    {
+      "id": "ocdraw.text",
+      "contract": "logical-contract-0.1.0.md#text"
     }
   ],
   "ocdrawVersion": "0.1.0"

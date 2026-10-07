@@ -75,6 +75,23 @@ fn geometry(value: &DrawingGeometry) -> Value {
 }
 pub(crate) fn entities(drawing: &ValidatedOcdraw) -> Value {
     let mut output:Vec<Value>=drawing.geometric_entities().iter().map(|e|json!({"id":e.id,"layerId":e.layer_id,"visible":e.visible,"appearance":appearance(&e.appearance),"geometry":geometry(&e.geometry)})).collect();
+    for t in drawing.text_entities() {
+        let mut geometry = text_geometry(drawing, "textStream", t.id, "text", t.placement);
+        geometry["rotation"] = json!(t.rotation);
+        geometry["backward"] = json!(t.backward);
+        geometry["upsideDown"] = json!(t.upside_down);
+        geometry["obliqueAngle"] = json!(t.oblique_angle);
+        geometry["thickness"] = json!(t.thickness);
+        output.push(json!({"id":t.id.to_string(),"layerId":t.layer_id,"styleId":t.style_id.0,"visible":t.visible,"appearance":appearance(&t.appearance),"geometry":geometry}));
+    }
+    for t in drawing.mtext_entities() {
+        let mut geometry = text_geometry(drawing, "mTextStream", t.id, "mText", t.placement);
+        geometry["height"] = json!(t.height);
+        geometry["rotation"] = json!(t.rotation);
+        geometry["backward"] = json!(t.backward);
+        geometry["upsideDown"] = json!(t.upside_down);
+        output.push(json!({"id":t.id.to_string(),"layerId":t.layer_id,"styleId":t.style_id.0,"visible":t.visible,"appearance":appearance(&t.appearance),"geometry":geometry}));
+    }
     for v in drawing.viewports() {
         let mut stored = serde_json::Map::new();
         for stream in drawing.as_value()["streams"]
@@ -98,4 +115,35 @@ pub(crate) fn entities(drawing: &ValidatedOcdraw) -> Value {
         output.push(json!({"id":v.id,"layerId":v.layer_id,"type":"viewport","viewScopeId":v.view_scope_id,"visible":v.visible,"appearance":appearance(&v.appearance),"frame":{"center":[v.frame.center.x(),v.frame.center.y()],"width":v.frame.width,"height":v.frame.height},"paperClip":{"enabled":v.paper_clip.enabled,"boundaryEntityId":v.paper_clip.boundary_entity_id},"storedFields":stored}));
     }
     json!(output)
+}
+
+fn text_geometry(
+    drawing: &ValidatedOcdraw,
+    stream_name: &str,
+    id: u64,
+    kind: &str,
+    placement: CoordinateFrame3,
+) -> Value {
+    let stream = &drawing.as_value()["streams"][stream_name];
+    let row = stream["entityId"]
+        .as_array()
+        .and_then(|ids| ids.iter().position(|v| v.as_u64() == Some(id)))
+        .expect("validated text row");
+    let mut value = json!({"type":kind,"placement":frame(placement)});
+    for field in [
+        "layout",
+        "content",
+        "attachment",
+        "flow",
+        "wrapWidth",
+        "columns",
+        "background",
+        "characterFormat",
+        "paragraphFormat",
+    ] {
+        if let Some(v) = stream[field].get(row).filter(|v| !v.is_null()) {
+            value[field] = v.clone();
+        }
+    }
+    value
 }

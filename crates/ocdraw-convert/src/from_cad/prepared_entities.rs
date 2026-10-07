@@ -10,7 +10,9 @@ pub(super) struct PreparedCadEntity {
     pub handle: Handle,
     pub value: PreparedCadEntityValue,
 }
-pub(super) enum PreparedCadEntityValue {
+pub(crate) enum PreparedCadEntityValue {
+    Text(TextEntityDefinition),
+    MText(Box<MTextEntityDefinition>),
     Opaque {
         definition: OpaqueEntityDefinition,
         kind: DrawingScopeKind,
@@ -43,6 +45,8 @@ pub(super) fn append(
             PreparedCadEntityValue::Opaque { definition, .. } => {
                 Some((e.handle, definition.scope_id))
             }
+            PreparedCadEntityValue::Text(t) => Some((e.handle, t.scope_id)),
+            PreparedCadEntityValue::MText(t) => Some((e.handle, t.scope_id)),
             _ => None,
         })
         .collect::<BTreeMap<_, _>>();
@@ -100,7 +104,7 @@ pub(super) fn append(
             if *scope != definition.scope_id {
                 Some("clip boundary belongs to another scope".into())
             } else if definition.paper_clip.enabled {
-                Some("active clip boundary has opaque geometry".into())
+                Some("active clip boundary has no eligible geometry".into())
             } else {
                 None
             }
@@ -136,6 +140,8 @@ pub(super) fn append(
             continue;
         }
         let id = match entity.value {
+            PreparedCadEntityValue::Text(t) => drawing.add_text(t)?,
+            PreparedCadEntityValue::MText(t) => drawing.add_mtext(*t)?,
             PreparedCadEntityValue::Opaque { definition, kind } => {
                 let record_id = definition.preservation_record_id;
                 let scope_id = definition.scope_id;

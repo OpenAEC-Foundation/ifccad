@@ -1,0 +1,207 @@
+{
+  "header": {
+    "drawingId": "explorer-ocdraw-text",
+    "format": "open_cad_drawing",
+    "nextEntityId": 4,
+    "nextLayerId": 1,
+    "nextLayoutId": 1,
+    "nextLinePatternId": 1,
+    "nextTextStyleId": 2,
+    "unit": "mm",
+    "version": "0.1.0"
+  },
+  "layers": [
+    {
+      "color": {
+        "rgb": [
+          35,
+          90,
+          160
+        ]
+      },
+      "frozen": false,
+      "frozenInNewViewports": false,
+      "id": 0,
+      "linePatternId": 0,
+      "lineWeight": 0.25,
+      "locked": false,
+      "name": "Text",
+      "opacity": 1.0,
+      "plottable": true,
+      "visible": true
+    }
+  ],
+  "layouts": [
+    {
+      "id": 0,
+      "kind": "model",
+      "name": "Model",
+      "scopeId": 0,
+      "tabIndex": 0
+    }
+  ],
+  "linePatterns": [
+    {
+      "id": 0,
+      "name": "Continuous",
+      "pattern": []
+    }
+  ],
+  "scopes": [
+    {
+      "bounds": null,
+      "entities": [
+        1,
+        2
+      ],
+      "id": 0,
+      "kind": 0
+    }
+  ],
+  "streams": {
+    "textStream": {
+      "backward": [
+        false,
+        false
+      ],
+      "color": [
+        null,
+        null
+      ],
+      "colorMode": [
+        "ByLayer",
+        "ByLayer"
+      ],
+      "content": [
+        [],
+        []
+      ],
+      "count": 2,
+      "entityId": [
+        1,
+        2
+      ],
+      "layerId": [
+        0,
+        0
+      ],
+      "layout": [
+        {
+          "height": 2.5,
+          "horizontal": "left",
+          "kind": "anchored",
+          "vertical": "baseline",
+          "widthFactor": 1.0
+        },
+        {
+          "height": 2.5,
+          "kind": "wholeTextMiddle",
+          "widthFactor": 1.0
+        }
+      ],
+      "linePatternId": [
+        null,
+        null
+      ],
+      "linePatternMode": [
+        "ByLayer",
+        "ByLayer"
+      ],
+      "linePatternScale": [
+        1.0,
+        1.0
+      ],
+      "lineWeight": [
+        null,
+        null
+      ],
+      "lineWeightMode": [
+        "ByLayer",
+        "ByLayer"
+      ],
+      "obliqueAngle": [
+        0.0,
+        0.0
+      ],
+      "opacity": [
+        null,
+        null
+      ],
+      "opacityMode": [
+        "ByLayer",
+        "ByLayer"
+      ],
+      "placement": [
+        {
+          "X": {
+            "x": 1.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "Y": {
+            "x": 0.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "origin": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          }
+        },
+        {
+          "X": {
+            "x": 1.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "Y": {
+            "x": 0.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "origin": {
+            "x": 50.0,
+            "y": -10.0,
+            "z": 0.0
+          }
+        }
+      ],
+      "rotation": [
+        0.0,
+        0.0
+      ],
+      "styleId": [
+        1,
+        1
+      ],
+      "thickness": [
+        0.0,
+        0.0
+      ],
+      "upsideDown": [
+        false,
+        false
+      ],
+      "visible": [
+        true,
+        true
+      ]
+    }
+  },
+  "textStyles": [
+    {
+      "creationBackward": false,
+      "creationUpsideDown": false,
+      "font": {
+        "cadFontName": "txt.shx"
+      },
+      "id": 1,
+      "lastUsedHeight": 2.5,
+      "name": "Requested CAD font",
+      "obliqueAngle": 0.0,
+      "vertical": false,
+      "widthFactor": 1.0
+    }
+  ]
+}

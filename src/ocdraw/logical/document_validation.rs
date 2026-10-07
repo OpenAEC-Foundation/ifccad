@@ -49,6 +49,10 @@ pub(crate) fn validate_logical_document(
     phase: ValidationPhase,
 ) -> Vec<LogicalError> {
     let mut errors = super::field_validation::validate_fields(doc);
+    errors.extend(super::text_validation::validate_text(doc));
+    if phase == ValidationPhase::Complete {
+        errors.extend(super::text_bounds::validate_bounds_quality(doc));
+    }
     errors.extend(super::preservation_validation::validate_preservation(doc));
     errors.extend(super::document_projection::project_validation_model(doc, phase).validate());
     // Index-based evaluation is safe only after unique identities and ownership.
@@ -57,6 +61,17 @@ pub(crate) fn validate_logical_document(
     }
     errors.extend(validate_state(doc));
     if phase == ValidationPhase::Complete {
+        if let Err(error) = super::bounds_preparation::evaluate_document_bounds(doc) {
+            return error
+                .into_diagnostics()
+                .into_iter()
+                .map(|d| LogicalError {
+                    code: d.code,
+                    location: d.location,
+                    message: d.message,
+                })
+                .collect();
+        }
         errors.extend(validate_geometry_bounds(
             &doc.geometric_entities,
             &doc.scopes,

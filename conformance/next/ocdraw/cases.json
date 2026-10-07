@@ -316,6 +316,52 @@
     {
       "path": "invalid/invalid-layout-page.ocdraw.json",
       "status": "invalid"
+    },
+    {
+      "path": "valid/text-rich-content.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "valid/text-empty-content.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "valid/text-producer-enclosing.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "valid/text-optional-column-null.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "invalid/text-missing-style.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "TEXT_STYLE_REFERENCE"
+    },
+    {
+      "path": "invalid/text-unknown-format-member.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "SCHEMA"
+    },
+    {
+      "path": "invalid/text-stored-partial.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "SCHEMA"
+    },
+    {
+      "path": "invalid/text-float-style-id.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "TEXT_ENCODING"
+    },
+    {
+      "path": "invalid/text-huge-column-count.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "COLUMN_COUNT"
+    },
+    {
+      "path": "invalid/text-missing-style-watermark.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "SCHEMA"
     }
   ]
 }

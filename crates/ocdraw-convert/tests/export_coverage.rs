@@ -247,7 +247,10 @@ fn newly_exposed_table_fields_are_reported_even_on_bootstrap_records() {
         let outcome =
             cad_document_to_encoded_ocdraw(&document, CadToOcdrawOptions::default()).unwrap();
         assert!(
-            outcome.diagnostics().iter().any(|d| (table == "line_types"
+            outcome.diagnostics().iter().any(|d| (table == "text_styles"
+                && matches!(d.source(), CadToOcdrawDiagnosticSource::Table { kind } if kind == "text_styles/Standard")
+                && d.action() == CadToOcdrawAction::Skipped)
+                || (table == "line_types"
                 && d.reasons()
                     .contains(&CadToOcdrawLossReason::UnsupportedSemantic {
                         name: "line pattern xref provenance".into()

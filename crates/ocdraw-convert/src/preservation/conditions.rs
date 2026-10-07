@@ -161,6 +161,13 @@ pub(crate) fn record_unassessed_occurrences(
         .opaque_entities
         .iter()
         .map(|e| e.id)
+        .chain(
+            doc.text_entities
+                .iter()
+                .filter(|t| !t.content.is_empty())
+                .map(|t| t.id),
+        )
+        .chain(doc.mtext_entities.iter().map(|t| t.id))
         .collect::<std::collections::BTreeSet<_>>();
     let instances = doc
         .geometric_entities

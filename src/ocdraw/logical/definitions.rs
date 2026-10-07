@@ -69,6 +69,8 @@ pub struct DrawingScope {
     pub id: u32,
     pub kind: DrawingScopeKind,
     pub bounds: Option<Bounds3d>,
+    /// Missing with a box means the producer declares an enclosure.
+    pub bounds_quality: Option<super::OcdrawBoundsQuality>,
     pub entities: Vec<u64>,
 }
 

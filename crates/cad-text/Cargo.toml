@@ -1,0 +1,17 @@
+[package]
+name = "cad-text"
+version = "0.1.0"
+edition = "2021"
+license = "MPL-2.0"
+description = "Shared typed CAD text content and placement preparation"
+
+[dependencies]
+ocdraw = { path = "../.." }
+cad-geometry-convert = { path = "../cad-geometry-convert" }
+opencadcodec = { git = "https://github.com/HakanSeven12/opencadcodec.git", rev = "fe69506cb99dea6f4c4a73b690a27fdf04403ea0" }
+num-rational = "0.4"
+num-traits = "0.2"
+thiserror = "1"
+
+[dev-dependencies]
+serde_json = "1"

@@ -35,6 +35,8 @@ pub(crate) fn target_exists(doc: &OcdrawDocument, target: OcdrawPreservationTarg
             doc.geometric_entities.iter().any(|e| e.id == id)
                 || doc.viewports.iter().any(|e| e.id == id)
                 || doc.opaque_entities.iter().any(|e| e.id == id)
+                || doc.text_entities.iter().any(|e| e.id == id)
+                || doc.mtext_entities.iter().any(|e| e.id == id)
         }
         Layer(id) => doc.layers.iter().any(|e| e.id == id),
         LinePattern(id) => doc.line_patterns.iter().any(|e| e.id == id),

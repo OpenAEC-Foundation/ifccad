@@ -1,10 +1,12 @@
 mod preservation;
 mod state;
+mod text;
 use super::logical::{DrawingColor, DrawingEntityRecord, EntityAppearance, EntityGeometry};
 use super::EncodedOcdraw;
 use super::{LayoutSettings, PointDisplay, UcsDefinition};
 pub use preservation::OpaqueEntityDefinition;
 pub use state::{DrawingSavedState, ViewportDefinition};
+pub use text::{MTextEntityDefinition, TextEntityDefinition, TextStyleDefinition};
 
 #[derive(Clone, Debug)]
 pub struct OcdrawBuildOptions {
@@ -404,6 +406,10 @@ pub enum OcdrawBuildError {
 }
 
 pub struct OcdrawBuilder {
+    pub(crate) text_styles: Vec<super::DrawingTextStyle>,
+    pub(crate) text_entities: Vec<super::DrawingTextEntity>,
+    pub(crate) mtext_entities: Vec<super::DrawingMTextEntity>,
+    pub(crate) next_text_style_id: u32,
     pub(crate) preservation: Option<super::OcdrawPreservation>,
     pub(crate) opaque_entities: Vec<super::DrawingOpaqueEntity>,
     pub(crate) options: OcdrawBuildOptions,
@@ -434,6 +440,10 @@ impl OcdrawBuilder {
             ));
         }
         Ok(Self {
+            text_styles: Vec::new(),
+            text_entities: Vec::new(),
+            mtext_entities: Vec::new(),
+            next_text_style_id: 1,
             preservation: None,
             opaque_entities: Vec::new(),
             options,
@@ -987,6 +997,7 @@ impl OcdrawBuilder {
                     DrawingScopeKind::Paper
                 },
                 bounds: None,
+                bounds_quality: None,
                 entities: scope_entities.remove(&l.scope_id).unwrap_or_default(),
             })
             .collect::<Vec<_>>();
@@ -1000,6 +1011,7 @@ impl OcdrawBuilder {
                     id: scope_id,
                     kind: DrawingScopeKind::Block,
                     bounds: None,
+                    bounds_quality: None,
                     entities: scope_entities.remove(&scope_id).unwrap_or_default(),
                 });
                 DrawingBlockDefinition {
@@ -1020,6 +1032,10 @@ impl OcdrawBuilder {
             ));
         }
         let mut doc = OcdrawDocument {
+            text_styles: self.text_styles,
+            text_entities: self.text_entities,
+            mtext_entities: self.mtext_entities,
+            next_text_style_id: self.next_text_style_id,
             preservation: self.preservation,
             opaque_entities: self.opaque_entities,
             next_entity_id: self.next_entity_id,

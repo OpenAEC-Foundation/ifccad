@@ -72,6 +72,11 @@ converter coverage contracts for limits.
 Named simple patterns retain their definitions, unused records, local references,
 scale and polyline generation. Complex text/shape patterns become named continuous
 patterns with loss evidence under Allow; Reject refuses this fallback.
+OCDraw now has native Text/MText, local font requests and text styles, rich
+paragraph/inline formatting, column/background state and explicit estimated
+bound quality. Its CAD routes qualify a bounded text profile and expose
+unverified glyph geometry separately from anchor accuracy. IFCCAD text integration
+is deferred until this OCDraw slice is tested. See [text support](docs/text.md).
 Unsupported conversion semantics are diagnosed or rejected. Numerical accuracy
 has a hard unit-aware tolerance, including nested block occurrences. See
 [export coverage](crates/ocdraw-convert/docs/FROM-CAD-COVERAGE.md) and

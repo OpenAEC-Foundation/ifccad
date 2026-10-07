@@ -66,6 +66,11 @@
         "logical": "resource.preservation",
         "payload": "preservation",
         "omission": "logicalDefault"
+      },
+      {
+        "logical": "resource.nextTextStyleId",
+        "payload": "header.nextTextStyleId",
+        "omission": "logicalDefault"
       }
     ]
   },
@@ -218,6 +223,11 @@
           "logical": "scope.entities",
           "payload": "entities",
           "omission": "forbidden"
+        },
+        {
+          "logical": "scope.boundsQuality",
+          "payload": "boundsQuality",
+          "omission": "logicalDefault"
         }
       ]
     },
@@ -445,6 +455,63 @@
           "logical": "linePattern.pattern",
           "payload": "pattern",
           "omission": "forbidden"
+        }
+      ]
+    },
+    {
+      "name": "textStyle",
+      "payload": "textStyles",
+      "omission": "logicalDefault",
+      "fields": [
+        {
+          "logical": "textStyle.id",
+          "payload": "id",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "textStyle.name",
+          "payload": "name",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "textStyle.font",
+          "payload": "font",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "textStyle.widthFactor",
+          "payload": "widthFactor",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "textStyle.obliqueAngle",
+          "payload": "obliqueAngle",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "textStyle.vertical",
+          "payload": "vertical",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "textStyle.creationBackward",
+          "payload": "creationBackward",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "textStyle.creationUpsideDown",
+          "payload": "creationUpsideDown",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "textStyle.creationHeight",
+          "payload": "creationHeight",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "textStyle.lastUsedHeight",
+          "payload": "lastUsedHeight",
+          "omission": "logicalDefault"
         }
       ]
     }
@@ -1391,6 +1458,260 @@
           "payload": "appearance",
           "omission": "forbidden",
           "nullEncoding": "logicalNull"
+        }
+      ]
+    },
+    {
+      "name": "text",
+      "payload": "streams.textStream",
+      "fields": [
+        {
+          "logical": "text.entityId",
+          "payload": "entityId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "text.placement",
+          "payload": "placement",
+          "omission": "logicalDefault",
+          "nullEncoding": "logicalDefault"
+        },
+        {
+          "logical": "text.layerId",
+          "payload": "layerId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "text.colorMode",
+          "payload": "colorMode",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "text.color",
+          "payload": "color",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "text.opacityMode",
+          "payload": "opacityMode",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "text.opacity",
+          "payload": "opacity",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "text.linePatternMode",
+          "payload": "linePatternMode",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "text.linePatternId",
+          "payload": "linePatternId",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "text.lineWeightMode",
+          "payload": "lineWeightMode",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "text.lineWeight",
+          "payload": "lineWeight",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "text.visible",
+          "payload": "visible",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "text.linePatternScale",
+          "payload": "linePatternScale",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "text.styleId",
+          "payload": "styleId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "text.layout",
+          "payload": "layout",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "text.content",
+          "payload": "content",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "text.rotation",
+          "payload": "rotation",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "text.backward",
+          "payload": "backward",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "text.upsideDown",
+          "payload": "upsideDown",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "text.obliqueAngle",
+          "payload": "obliqueAngle",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "text.thickness",
+          "payload": "thickness",
+          "omission": "logicalDefault"
+        }
+      ]
+    },
+    {
+      "name": "mText",
+      "payload": "streams.mTextStream",
+      "fields": [
+        {
+          "logical": "mText.entityId",
+          "payload": "entityId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "mText.placement",
+          "payload": "placement",
+          "omission": "logicalDefault",
+          "nullEncoding": "logicalDefault"
+        },
+        {
+          "logical": "mText.layerId",
+          "payload": "layerId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "mText.colorMode",
+          "payload": "colorMode",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "mText.color",
+          "payload": "color",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "mText.opacityMode",
+          "payload": "opacityMode",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "mText.opacity",
+          "payload": "opacity",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "mText.linePatternMode",
+          "payload": "linePatternMode",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "mText.linePatternId",
+          "payload": "linePatternId",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "mText.lineWeightMode",
+          "payload": "lineWeightMode",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "mText.lineWeight",
+          "payload": "lineWeight",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "mText.visible",
+          "payload": "visible",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "mText.linePatternScale",
+          "payload": "linePatternScale",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "mText.styleId",
+          "payload": "styleId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "mText.height",
+          "payload": "height",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "mText.content",
+          "payload": "content",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "mText.rotation",
+          "payload": "rotation",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "mText.backward",
+          "payload": "backward",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "mText.upsideDown",
+          "payload": "upsideDown",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "mText.attachment",
+          "payload": "attachment",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "mText.flow",
+          "payload": "flow",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "mText.characterFormat",
+          "payload": "characterFormat",
+          "omission": "logicalDefault",
+          "nullEncoding": "logicalDefault"
+        },
+        {
+          "logical": "mText.paragraphFormat",
+          "payload": "paragraphFormat",
+          "omission": "logicalDefault",
+          "nullEncoding": "logicalDefault"
+        },
+        {
+          "logical": "mText.wrapWidth",
+          "payload": "wrapWidth",
+          "omission": "logicalDefault",
+          "nullEncoding": "logicalDefault"
+        },
+        {
+          "logical": "mText.columns",
+          "payload": "columns",
+          "omission": "logicalDefault",
+          "nullEncoding": "logicalDefault"
+        },
+        {
+          "logical": "mText.background",
+          "payload": "background",
+          "omission": "logicalDefault",
+          "nullEncoding": "logicalDefault"
         }
       ]
     }

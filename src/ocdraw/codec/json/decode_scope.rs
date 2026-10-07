@@ -38,6 +38,16 @@ pub(crate) fn decode_scopes(value: &Value) -> Option<Vec<DrawingScope>> {
                 id,
                 kind,
                 bounds,
+                bounds_quality: match row.get("boundsQuality") {
+                    None => None,
+                    Some(v) if v == "enclosing" => {
+                        Some(crate::ocdraw::OcdrawBoundsQuality::Enclosing)
+                    }
+                    Some(v) if v == "estimated" => {
+                        Some(crate::ocdraw::OcdrawBoundsQuality::Estimated)
+                    }
+                    _ => return None,
+                },
                 entities: row
                     .get("entities")?
                     .as_array()?

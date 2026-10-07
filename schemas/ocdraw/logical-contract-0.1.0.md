@@ -344,9 +344,10 @@ remain independent of opencadcodec and any provider payload serialization.
 ## Geometry completeness
 
 Completeness is derived from membership and the acyclic native block-definition
-graph, not an authored status field or a source control-point box. Empty scopes
-have no members and null bounds. A nonempty fully native scope has complete
-finite bounds under existing enclosure rules. A direct opaque entity, or any
+graph, not an authored status field or a source control-point box. Geometrically
+empty scopes have null bounds, including scopes containing only empty Text.
+A fully available scope has finite bounds under the enclosure or text estimate
+rules below. A direct opaque entity, or any
 block occurrence reaching one, makes complete geometry bounds unavailable;
 that scope must have null bounds. This applies to unused definitions and repeated
 or nested occurrences. Unavailable is not empty: an instance of an unavailable
@@ -366,3 +367,102 @@ or unavailable scopes receive null. Structure or native numerical failure leaves
 all supplied bounds intact. Removing the last opaque requirement restores ordinary
 complete bounds rules; callers recompute before encoding. Encoding validates
 and retains supplied bounds instead of silently repairing them.
+
+## Text
+
+Text styles form a separate drawing-local table. IDs are unsigned 32-bit values;
+zero is valid. Names are nonempty, NUL-free and unique under the pinned Unicode
+full case fold, without trimming or normalization. Unused styles are retained.
+`nextTextStyleId` must be positive and exceed every live style ID; deleting a
+style does not reduce it. When both table and counter are absent the domain is
+empty with watermark 1. A present table requires the counter, even when empty;
+a counter without a table retains allocation history. No Standard style is
+implicitly created.
+
+Style font requests contain a family or CAD font name, optional big-font name,
+and optional face/charset/pitch requests. Big-font requests require a CAD font
+name. No font is loaded or substituted by the format. Width factor defaults to
+1, oblique angle to 0, vertical and creation mirrors to false. Optional creation
+height is positive; last-used height is nonnegative, including explicit zero.
+These are creation metadata, not a second application of entity geometry.
+
+Text has its own registered stream, with entityId, layerId, styleId, layout and
+content required. Its common identity, appearance, visibility and ordered scope
+ownership follow the existing entity rules. Placement uses the same identity
+default and physical null-row convention as points. Rotation, oblique angle and
+signed thickness default to 0; backward and upsideDown default to false. Native
+read axes remain authored axes; the reader does not silently normalize them.
+
+Layout is a closed tagged choice: anchored requires horizontal left/center/right,
+vertical baseline/bottom/middle/top, positive height and widthFactor;
+wholeTextMiddle requires positive height and widthFactor; aligned requires
+positive length and widthFactor; fit requires positive length and height. These
+distinct meanings are not collapsed. Content is an ordered sequence of literal
+Unicode runs, each with text and underline/overline/strikeThrough flags defaulting
+to false. Runs are nonempty; the sequence may be empty. No run merging occurs.
+Control codes, raw tabs and line/paragraph separators are invalid in run text;
+ordinary Unicode, combining characters and literal CAD-like spellings remain
+literal. Dynamic fields and CAD markup are not interpreted by native readers.
+
+`boundsQuality` is an optional producer declaration next to a nonnull scope box.
+Missing quality means enclosing; explicit estimated means all extent contributions
+are available but at least one is estimated. Neither declaration certifies font
+glyph enclosure. Unknown contributions derive partial coverage and require null
+bounds; partial cannot be stored as a box quality, and quality without a box is
+invalid. Estimation and incomplete coverage propagate through block instances,
+including unused definitions. Primitive enclosure and numerical checks remain
+mandatory even alongside text estimates or unavailable content. Estimated or
+partial results cannot prove a negative spatial query or safe glyph culling.
+Explicit recomputation stages both boxes and quality before changing the document.
+Empty Text contributes no box. The fontless estimator does not turn an enclosing
+producer declaration into independently verified glyph evidence.
+
+MText is a separate registered object stream. Count, entityId, layerId, styleId,
+positive height and content columns are required. Its placement/common properties
+follow Text; rotation and mirrors have the same defaults. Attachment defaults to
+topLeft (nine horizontal/vertical combinations), flow to horizontal (also vertical
+and byStyle). Optional characterFormat and paragraphFormat default to no overrides.
+Wrap width, columns and background are optional; null rows mean absence only in
+these five registered optional columns. Nested fields cannot be null. Content
+has at least one paragraph; empty and trailing empty paragraphs are valid.
+
+Character inheritance is style, entity characterFormat, paragraph characterFormat,
+then inline characterFormat. Each optional property retains presence; explicit
+false is not absence. A font override replaces the whole symbolic request. Colors
+select entity, byLayer, byBlock or explicit native color. Height selects relative
+positive factor or absolute positive distance; widthFactor and tracking are
+positive, obliqueAngle lies strictly between minus/plus pi/2, position selects
+bottom/center/top, and the three decorations are independent optional booleans.
+Resolved formats are derived, never stored back over authored overrides.
+
+Paragraph inheritance is entity paragraphFormat followed by paragraph overrides.
+Alignment selects left/center/right/justified/distributed. Signed finite indent
+factors use nominal entity height. Before/after spacing is nonnegative. Line
+spacing is exact/atLeast positive distance or multiple positive factor. Tab stops
+have positive strictly increasing position factors and left/center/right/decimal
+alignment; only decimal has a required single Unicode-scalar separator, excluding
+controls and bidi direction controls. Absence inherits; an explicit empty list
+resets to the standard 4n grid. That grid does not restart after custom stops.
+
+Inlines are closed run/tab/lineBreak/columnBreak/stack choices. Literal run text
+has the Text Unicode/control rules. A stack has fraction/diagonalFraction/tolerance/
+decimalTolerance kind, upper/lower literal text not both empty, top/center/bottom
+alignment (center default), positive textScale (0.7 default), optional separator
+only for decimalTolerance and optional characterFormat. Column breaks require
+columns; breaks and tabs are structural inlines, never raw run controls.
+
+Wrapping is optional positive wrapWidth, or columns, never both. Static columns
+require count, columnWidth, gutter and columnHeight. Dynamic-auto-height requires
+currentColumnCount and shared positive columnHeight. Dynamic-manual-height uses a
+nonempty columnHeights list, positive fixed distances and at most one auto entry
+at its end; it has no separate count. Width/heights are positive, gutter is
+nonnegative, counts are unsigned 32-bit positive values and flowReversed defaults
+false. Overflow does not change authored content, capacity or count.
+
+Background fill selects none/color/canvas (none default); padding is nonnegative
+absolute distance or relative factor (relative 0.5 default), opacity is within
+0..1 (1 default) and frame defaults false. Frame-only backgrounds are valid.
+Physical frame stroke must resolve in the owning coordinate domain; medium size
+alone is not a Paper scale, and unresolved stroke produces partial coverage.
+All derived numeric operations must stay finite; unknown extents do not suppress
+numeric checks on neighboring primitives, text or block occurrences.

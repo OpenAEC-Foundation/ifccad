@@ -7,6 +7,13 @@ use crate::ocdraw::{
 use std::collections::BTreeMap;
 
 type Range = ([f64; 3], [f64; 3]);
+#[derive(Clone, Default)]
+struct ScopeExtent {
+    incomplete: bool,
+    estimated: bool,
+    range: Option<Range>,
+    text_reasons: Vec<crate::text::TextExtentReason>,
+}
 fn union(bounds: &mut Option<Range>, (min, max): Range) {
     match bounds {
         Some((lo, hi)) => {
@@ -27,24 +34,34 @@ fn failure(id: u32, message: &str) -> OcdrawValidationError {
 }
 
 struct Evaluation<'a> {
+    text: BTreeMap<u64, crate::text::TextExtentEstimate>,
     opaque: std::collections::BTreeSet<u64>,
     scopes: BTreeMap<u32, &'a DrawingScope>,
     entities: BTreeMap<u64, &'a DrawingGeometricEntity>,
     viewports: BTreeMap<u64, &'a DrawingViewport>,
     definitions: BTreeMap<u32, &'a DrawingBlockDefinition>,
-    completed: BTreeMap<u32, (bool, Option<Range>)>,
+    completed: BTreeMap<u32, ScopeExtent>,
 }
 impl Evaluation<'_> {
-    fn scope(&mut self, id: u32) -> Result<(bool, Option<Range>), OcdrawValidationError> {
+    fn scope(&mut self, id: u32) -> Result<ScopeExtent, OcdrawValidationError> {
         if let Some(bounds) = self.completed.get(&id) {
-            return Ok(*bounds);
+            return Ok(bounds.clone());
         }
         let scope = self.scopes[&id];
         let mut bounds = None;
-        let mut complete = true;
+        let mut extent = ScopeExtent::default();
         for entity_id in &scope.entities {
             if self.opaque.contains(entity_id) {
-                complete = false;
+                extent.incomplete = true;
+                continue;
+            }
+            if let Some(text) = self.text.get(entity_id) {
+                extent.incomplete |= text.status == crate::text::TextExtentStatus::Unavailable;
+                extent.estimated |= text.status != crate::text::TextExtentStatus::Empty;
+                extent.text_reasons.extend(text.reasons.iter().copied());
+                if let Some(b) = text.bounds {
+                    union(&mut bounds, (b.min().components(), b.max().components()));
+                }
                 continue;
             }
             if let Some(viewport) = self.viewports.get(entity_id) {
@@ -60,8 +77,10 @@ impl Evaluation<'_> {
                     transform,
                 } => {
                     let definition = self.definitions[&definition_scope_id];
-                    let (local_complete, local) = self.scope(definition_scope_id)?;
-                    complete &= local_complete;
+                    let local_extent = self.scope(definition_scope_id)?;
+                    extent.incomplete |= local_extent.incomplete;
+                    extent.estimated |= local_extent.estimated;
+                    extent.text_reasons.extend(local_extent.text_reasons);
                     // Validate native matrix preparation without inventing a
                     // point or complete enclosure for opaque child geometry.
                     let base = definition.base_point;
@@ -70,7 +89,7 @@ impl Evaluation<'_> {
                         Point3::new(base[0], base[1], base[2]),
                     )
                     .ok_or_else(|| failure(id, "block transform cannot be evaluated"))?;
-                    if let Some((min, max)) = local {
+                    if let Some((min, max)) = local_extent.range {
                         let projected = prepared
                             .apply_intervals(std::array::from_fn(|i| Interval {
                                 lower: min[i],
@@ -78,7 +97,7 @@ impl Evaluation<'_> {
                             }))
                             .ok_or_else(|| failure(id, "block bounds are out of range"))?;
                         (projected.map(|v| v.lower), projected.map(|v| v.upper))
-                    } else if local_complete {
+                    } else if !local_extent.incomplete {
                         // Preserve the existing writer's point enclosure for an empty instance.
                         let origin = transform.placement().origin().components();
                         (origin, origin)
@@ -94,8 +113,10 @@ impl Evaluation<'_> {
             }
             union(&mut bounds, range);
         }
-        self.completed.insert(id, (complete, bounds));
-        Ok((complete, bounds))
+        extent.range = bounds;
+        extent.text_reasons.dedup();
+        self.completed.insert(id, extent.clone());
+        Ok(extent)
     }
 }
 
@@ -108,17 +129,35 @@ pub fn recompute_ocdraw_document_bounds(
         return Err(OcdrawValidationError::from_logical_errors(errors));
     }
     let bounds = evaluate_document_bounds(doc)?;
-    for (scope, bounds) in doc.scopes.iter_mut().zip(bounds) {
-        scope.bounds = bounds;
+    for (scope, assessment) in doc.scopes.iter_mut().zip(bounds) {
+        scope.bounds = assessment.bounds;
+        scope.bounds_quality = if assessment.bounds.is_some()
+            && assessment.quality == Some(OcdrawBoundsQuality::Estimated)
+        {
+            assessment.quality
+        } else {
+            None
+        };
     }
     Ok(())
 }
 
 /// Evaluates native subsets even when opaque content prevents a complete enclosure.
+pub fn assess_ocdraw_document_bounds(
+    doc: &OcdrawDocument,
+) -> Result<Vec<OcdrawScopeBoundsAssessment>, OcdrawValidationError> {
+    let errors = validate_logical_document(doc, ValidationPhase::BeforeBounds);
+    if !errors.is_empty() {
+        return Err(OcdrawValidationError::from_logical_errors(errors));
+    }
+    evaluate_document_bounds(doc)
+}
+
 pub(crate) fn evaluate_document_bounds(
     doc: &OcdrawDocument,
-) -> Result<Vec<Option<Bounds3d>>, OcdrawValidationError> {
+) -> Result<Vec<OcdrawScopeBoundsAssessment>, OcdrawValidationError> {
     let mut evaluation = Evaluation {
+        text: super::text_bounds::text_estimates(doc)?,
         opaque: doc.opaque_entities.iter().map(|e| e.id).collect(),
         scopes: doc.scopes.iter().map(|s| (s.id, s)).collect(),
         entities: doc.geometric_entities.iter().map(|e| (e.id, e)).collect(),
@@ -133,16 +172,32 @@ pub(crate) fn evaluate_document_bounds(
     doc.scopes
         .iter()
         .map(|s| {
-            evaluation.scope(s.id).map(|(complete, range)| {
-                if !complete {
-                    return None;
+            evaluation.scope(s.id).map(|extent| {
+                let bounds = if extent.incomplete {
+                    None
+                } else {
+                    extent.range.map(|(min, max)| {
+                        Bounds3d::new(
+                            Point3::new(min[0], min[1], min[2]),
+                            Point3::new(max[0], max[1], max[2]),
+                        )
+                    })
+                };
+                OcdrawScopeBoundsAssessment {
+                    scope_id: s.id,
+                    bounds,
+                    quality: if extent.incomplete {
+                        Some(OcdrawBoundsQuality::Partial)
+                    } else if bounds.is_none() {
+                        None
+                    } else if extent.estimated {
+                        Some(OcdrawBoundsQuality::Estimated)
+                    } else {
+                        Some(OcdrawBoundsQuality::Enclosing)
+                    },
+                    enclosure_verified: !extent.incomplete && !extent.estimated,
+                    text_reasons: extent.text_reasons,
                 }
-                range.map(|(min, max)| {
-                    Bounds3d::new(
-                        Point3::new(min[0], min[1], min[2]),
-                        Point3::new(max[0], max[1], max[2]),
-                    )
-                })
             })
         })
         .collect()

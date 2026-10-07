@@ -15,6 +15,7 @@ screenshots remain local artifacts outside this directory.
 | OCDraw layouts and viewports | Model geometry and paper viewport with a closed bulged clip, clipping activation, scoped membership and bounds |
 | OCDraw state and storage | Named/current UCS, active model window, view/grid/snap and dormant depth state, interleaved draw order across streams and pooled coordinates |
 | OCDraw preserved spline | Opaque entity identity/ownership, typed SPLINE source record, source provenance and guarded CAD restoration |
+| OCDraw Text and MText | Requested CAD font, distinct Text layouts, literal Unicode/control-like spellings, authored paragraph formatting, a fraction stack, trailing empty paragraph, canvas background and estimated bounds |
 
 The IFCCAD overview now also includes points, arcs, full and partial ellipses,
 and spatial polylines introduced by geometry-bounds. Its valid stored bounds
@@ -28,10 +29,17 @@ This producer refuses overwrite and validates the actual generated native
 bytes. Its source is the pinned `open-cubic.dxf` converter fixture. It exposes
 source-only geometry explicitly and does not substitute a sampled native curve.
 
+The text example is generated separately with
+`cargo run --example write_text -- examples/ocdraw/text.ocdraw.json` on a new output
+path. It passes production native readback. Its glyph outlines/layout are not
+independently verified; the Explorer distinguishes estimates from producer claims.
+The qualified CAD subset and diagnosed authoring-dependency changes are described
+in [text support](../docs/text.md). IFCCAD text remains deferred.
+
 The overview covers semantic families, not every enum value or numerical edge
 case; candidate conformance and Rust tests cover those boundaries. IFCCAD's
 current geometry differs from OCDraw. The preserved spline example covers the
-approved typed OCDraw source-preservation route; native spline geometry, text
+approved typed OCDraw source-preservation route; native spline geometry, IFCCAD text
 and unimplemented plot semantics are not implied by this collection.
 Additional physical clip shapes and plot/paper workspace state should
 be represented by focused examples as this collection expands.

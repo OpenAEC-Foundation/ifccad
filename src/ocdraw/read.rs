@@ -45,6 +45,15 @@ impl ValidatedOcdraw {
     pub fn line_patterns(&self) -> &[super::DrawingLinePattern] {
         &self.document.line_patterns
     }
+    pub fn text_styles(&self) -> &[super::DrawingTextStyle] {
+        &self.document.text_styles
+    }
+    pub fn text_entities(&self) -> &[super::DrawingTextEntity] {
+        &self.document.text_entities
+    }
+    pub fn mtext_entities(&self) -> &[super::DrawingMTextEntity] {
+        &self.document.mtext_entities
+    }
     pub fn preservation(&self) -> Option<&super::OcdrawPreservation> {
         self.document.preservation.as_ref()
     }
@@ -263,6 +272,28 @@ pub fn load_ocdraw_bytes(bytes: &[u8]) -> Result<ValidatedOcdraw, OcdrawReadErro
     };
     let (drawing_id, unit, plot_style_mode) = encoding.header();
     let document = OcdrawDocument {
+        text_styles: super::codec::json::decode_text_styles(value).map_err(|d| {
+            OcdrawReadError::Invalid {
+                diagnostics: vec![d],
+            }
+        })?,
+        text_entities: super::codec::json::decode_text(value).map_err(|d| {
+            OcdrawReadError::Invalid {
+                diagnostics: vec![d],
+            }
+        })?,
+        mtext_entities: super::codec::json::decode_mtext(value).map_err(|d| {
+            OcdrawReadError::Invalid {
+                diagnostics: vec![d],
+            }
+        })?,
+        next_text_style_id: value["header"]
+            .get("nextTextStyleId")
+            .map(|v| {
+                u32::try_from(v.as_u64().expect("checked exact text style watermark"))
+                    .expect("checked text style watermark range")
+            })
+            .unwrap_or(1),
         preservation: super::codec::json::decode_preservation(value).map_err(|d| {
             OcdrawReadError::Invalid {
                 diagnostics: vec![d],

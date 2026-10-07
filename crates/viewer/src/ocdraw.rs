@@ -143,7 +143,7 @@ fn inspect_cad_as_drawing_with_options(
     })).collect::<Vec<_>>();
     output["conversion"] = json!({"diagnostics": diagnostics, "entityCount": converted.entity_mapping().len(),
             "options":options.value(),
-            "preservation":preservation_report(converted.preservation_report()),"geometry":geometry_report(converted.geometry_assessment())});
+            "preservation":preservation_report(converted.preservation_report()),"geometry":geometry_report(converted.geometry_assessment()),"text":text_report(converted.text_assessment())});
     let mut document = converted.into_document();
     if let Some(preservation) = &mut document.preservation {
         for source in &mut preservation.sources {
@@ -309,6 +309,7 @@ fn export_drawing_with_options(
         }
     }
     let geometry = crate::options::geometry(converted.geometry_assessment());
+    let text = text_report(converted.text_assessment());
     let mut returned = crate::cad::export(
         output,
         converted.into_document(),
@@ -319,6 +320,7 @@ fn export_drawing_with_options(
         |_| Ok(Value::Null),
     );
     returned["export"]["geometry"] = geometry;
+    returned["export"]["text"] = text;
     returned["export"]["options"] = options.value();
     returned
 }
@@ -358,6 +360,8 @@ fn present(output: &mut Value, outcome: Result<ValidatedOcdraw, OcdrawReadError>
             "unit": value["header"]["unit"],
             "plotStyleMode": drawing.plot_style_mode(),
             "linePatterns": drawing.line_patterns().iter().map(|p|json!({"id":p.id,"name":p.name,"description":p.description,"pattern":p.pattern})).collect::<Vec<_>>(),
+            "textStyles": value["textStyles"].as_array().cloned().unwrap_or_default(),
+            "nextTextStyleId": drawing.document().next_text_style_id,
             "linePatternScale": drawing.line_pattern_scale(),
             "layers": value["layers"].as_array().cloned().unwrap_or_default(),
             "layouts": value["layouts"],
@@ -375,10 +379,32 @@ fn present(output: &mut Value, outcome: Result<ValidatedOcdraw, OcdrawReadError>
             "preservation":drawing.preservation().map(|p|json!({"version":p.version,"nextRecordId":p.next_record_id.to_string(),
                 "sources":p.sources.iter().map(|s|json!({"id":s.id,"provider":s.provider,"providerRevision":s.provider_revision,"origin":match s.origin{ocdraw::ocdraw::OcdrawPreservationOrigin::CadDocument=>"cadDocument",ocdraw::ocdraw::OcdrawPreservationOrigin::Dwg=>"dwg",ocdraw::ocdraw::OcdrawPreservationOrigin::Dxf=>"dxf"},"sourceVersion":s.source_version})).collect::<Vec<_>>(),
                 "records":p.records.iter().map(|r|json!({"id":r.id.0.to_string(),"sourceId":r.source_id,"sourceKey":r.source_key,"schema":r.payload.schema,"version":r.payload.version,"byteLength":r.payload.bytes.len(),"category":format!("{:?}",r.category),"role":format!("{:?}",r.role),"dependencyCoverage":format!("{:?}",r.dependency_coverage)})).collect::<Vec<_>>()})),
-            "boundsCompleteness":drawing.scopes().iter().map(|s|json!({"scopeId":s.id,"status":if s.entities.is_empty(){"empty"}else if s.bounds.is_none(){"unavailable"}else{"complete"}})).collect::<Vec<_>>(),
+            "boundsCompleteness":bounds_report(drawing),
             "viewportWorkspaces":value["viewportWorkspaces"],
         });
     }
+}
+
+fn quality(q: ocdraw::ocdraw::OcdrawBoundsQuality) -> &'static str {
+    match q {
+        ocdraw::ocdraw::OcdrawBoundsQuality::Enclosing => "enclosing",
+        ocdraw::ocdraw::OcdrawBoundsQuality::Estimated => "estimated",
+        ocdraw::ocdraw::OcdrawBoundsQuality::Partial => "partial",
+    }
+}
+fn bounds_report(drawing: &ValidatedOcdraw) -> Value {
+    let derived = ocdraw::ocdraw::assess_ocdraw_document_bounds(drawing.document())
+        .expect("validated numerical bounds");
+    json!(drawing.scopes().iter().zip(derived).map(|(s,a)|json!({"scopeId":s.id,
+        "status":match a.quality {None=>"empty",Some(ocdraw::ocdraw::OcdrawBoundsQuality::Enclosing)=>"complete",Some(ocdraw::ocdraw::OcdrawBoundsQuality::Estimated)=>"estimated",Some(ocdraw::ocdraw::OcdrawBoundsQuality::Partial)=>"unavailable"},
+        "quality":a.quality.map(quality),"declaredQuality":s.bounds.map(|_|quality(s.bounds_quality.unwrap_or(ocdraw::ocdraw::OcdrawBoundsQuality::Enclosing))),
+        "enclosureVerified":a.enclosure_verified,"safeForNegativeQuery":a.enclosure_verified,
+        "textReasons":a.text_reasons.iter().map(|r|format!("{r:?}")).collect::<Vec<_>>()
+    })).collect::<Vec<_>>())
+}
+fn text_report(report: &ocdraw_convert::OcdrawTextAssessment) -> Value {
+    use ocdraw_convert::{OcdrawTextGlyphCoverage as G, OcdrawTextNumericCoverage as N};
+    json!({"entries":report.entries().iter().map(|e|json!({"entityId":e.entity_id.to_string(),"numericCoverage":match e.numeric_coverage{N::ActiveTextAnchors=>"activeTextAnchors",N::MTextWcsAnchor=>"mTextWcsAnchor",N::NotTransferred=>"notTransferred"},"glyphCoverage":match e.glyph_coverage{G::Empty=>"empty",G::Unassessed=>"unassessed"}})).collect::<Vec<_>>()})
 }
 
 /// Convert CAD to a validated standalone drawing, then export that drawing.

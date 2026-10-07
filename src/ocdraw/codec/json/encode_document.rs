@@ -27,7 +27,11 @@ pub(crate) fn encode_ocdraw_document(doc: &OcdrawDocument) -> Value {
         .collect::<Vec<_>>();
     let scopes=doc.scopes.iter().map(|s| {
         let bounds=s.bounds.map(|b| json!({"minX":b.min().x(),"minY":b.min().y(),"minZ":b.min().z(),"maxX":b.max().x(),"maxY":b.max().y(),"maxZ":b.max().z()}));
-        json!({"id":s.id,"kind":match s.kind {DrawingScopeKind::Model=>0,DrawingScopeKind::Paper=>1,DrawingScopeKind::Block=>2},"bounds":bounds,"entities":s.entities})
+        let mut row = json!({"id":s.id,"kind":match s.kind {DrawingScopeKind::Model=>0,DrawingScopeKind::Paper=>1,DrawingScopeKind::Block=>2},"bounds":bounds,"entities":s.entities});
+        if let Some(quality) = s.bounds_quality {
+            row["boundsQuality"] = json!(match quality { crate::ocdraw::OcdrawBoundsQuality::Enclosing => "enclosing", crate::ocdraw::OcdrawBoundsQuality::Estimated => "estimated", crate::ocdraw::OcdrawBoundsQuality::Partial => unreachable!("validated stored quality") });
+        }
+        row
     }).collect::<Vec<_>>();
     let mut layouts=doc.layouts.iter().map(|l|json!({"id":l.id,"scopeId":l.scope_id,"kind":match l.kind {DrawingLayoutKind::Model=>"model",DrawingLayoutKind::Paper=>"paper"},"name":l.name,"tabIndex":l.tab_index})).collect::<Vec<_>>();
     for (layout, source) in layouts.iter_mut().zip(&doc.layouts) {
@@ -85,6 +89,18 @@ pub(crate) fn encode_ocdraw_document(doc: &OcdrawDocument) -> Value {
     });
     if let Some(preservation) = &doc.preservation {
         value["preservation"] = super::encode_preservation(preservation);
+    }
+    if !doc.text_styles.is_empty() {
+        value["textStyles"] = super::encode_text_styles(&doc.text_styles);
+    }
+    if !doc.text_entities.is_empty() {
+        value["streams"]["textStream"] = super::encode_text(&doc.text_entities);
+    }
+    if !doc.mtext_entities.is_empty() {
+        value["streams"]["mTextStream"] = super::encode_mtext(&doc.mtext_entities);
+    }
+    if !doc.text_styles.is_empty() || doc.next_text_style_id != 1 {
+        value["header"]["nextTextStyleId"] = json!(doc.next_text_style_id);
     }
     if !doc.opaque_entities.is_empty() {
         value["streams"]["opaqueEntityStream"] =

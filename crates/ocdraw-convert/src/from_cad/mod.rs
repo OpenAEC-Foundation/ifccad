@@ -1,5 +1,5 @@
 //! CadDocument to standalone OCDraw conversion.
-mod prepared_entities;
+pub(crate) mod prepared_entities;
 use prepared_entities::{PreparedCadEntity, PreparedCadEntityValue};
 
 use crate::mapping::appearance::{direct_entity, direct_layer};
@@ -113,6 +113,7 @@ pub fn cad_document_to_ocdraw_document_with_id(
         &mut drawing,
         &mut diagnostics,
     )?;
+    let text_styles = crate::mapping::text::from_styles(document, &mut drawing, &mut diagnostics)?;
     let mut ucs_names = BTreeMap::new();
     let mut ucs_handles = BTreeMap::new();
     for source in document.ucss.iter() {
@@ -622,6 +623,8 @@ pub fn cad_document_to_ocdraw_document_with_id(
                 | EntityType::Polyline(_)
                 | EntityType::Polyline3D(_)
                 | EntityType::Viewport(_)
+                | EntityType::Text(_)
+                | EntityType::MText(_)
         ) {
             loss(
                 source,
@@ -640,6 +643,7 @@ pub fn cad_document_to_ocdraw_document_with_id(
             EntityType::Circle(value) => direct_circle_losses(value),
             EntityType::Arc(value) => direct_arc_losses(value),
             EntityType::Ellipse(value) => direct_ellipse_losses(value),
+            EntityType::Text(_) | EntityType::MText(_) => Vec::new(),
             EntityType::LwPolyline(value) => {
                 if value.constant_width != 0.0
                     || value
@@ -768,7 +772,28 @@ pub fn cad_document_to_ocdraw_document_with_id(
         let layer_id = layer_id.expect("checked");
         let scope_id = scope_id.expect("checked");
         let appearance = appearance.expect("checked");
-        let value = if let EntityType::Viewport(viewport) = entity {
+        let value = if matches!(entity, EntityType::Text(_) | EntityType::MText(_)) {
+            geometry.select(common.owner_handle);
+            let Some(value) = crate::mapping::text::from_entity(
+                entity,
+                scope_id,
+                layer_id,
+                appearance,
+                &text_styles,
+                &mut geometry,
+                &mut diagnostics,
+            )?
+            else {
+                loss(
+                    source,
+                    CadToOcdrawAction::Skipped,
+                    partial,
+                    &mut diagnostics,
+                );
+                continue;
+            };
+            value
+        } else if let EntityType::Viewport(viewport) = entity {
             partial.extend(crate::mapping::viewport::deferred_losses(viewport));
             let target = crate::mapping::viewport::from_cad(
                 viewport,
@@ -896,6 +921,8 @@ pub fn cad_document_to_ocdraw_document_with_id(
         });
     }
     Ok(CadToOcdrawDocumentOutcome {
+        text: crate::OcdrawTextAssessment::new(&drawing_document, entity_mapping.values().copied()),
+        text_styles: text_styles.handles,
         preservation: preservation_report,
         document: drawing_document,
         diagnostics,
@@ -932,6 +959,8 @@ fn encode_export(
     let drawing = ocdraw::ocdraw::encode_ocdraw_document(&outcome.document)
         .map_err(OcdrawBuildError::from)?;
     Ok(CadToEncodedOcdrawOutcome {
+        text: outcome.text,
+        text_styles: outcome.text_styles,
         preservation: outcome.preservation,
         encoded: drawing,
         diagnostics: outcome.diagnostics,

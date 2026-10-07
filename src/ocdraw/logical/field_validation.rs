@@ -45,7 +45,7 @@ fn unit(value: &str) -> bool {
             | "usSurveyMile"
     )
 }
-fn color(c: &DrawingColor) -> bool {
+pub(crate) fn color(c: &DrawingColor) -> bool {
     c.indexed.as_ref().is_none_or(|(s, _)| !s.is_empty())
         && c.named
             .as_ref()
@@ -57,7 +57,7 @@ fn opacity(v: f64) -> bool {
 fn weight(v: f64) -> bool {
     v.is_finite() && v >= 0.
 }
-fn appearance(a: &EntityAppearance) -> bool {
+pub(crate) fn appearance(a: &EntityAppearance) -> bool {
     (match &a.color {
         AppearanceSelection::Explicit(c) => color(c),
         _ => true,

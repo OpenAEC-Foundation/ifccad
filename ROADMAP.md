@@ -106,9 +106,19 @@ The named simple line-pattern slice adds drawing-local definitions (including
 Continuous), local references, global/entity scale and polyline generation.
 Unused definitions survive. Complex text/shape definitions retain their named
 identity and references with an explicitly diagnosed continuous fallback under
-Allow; Reject refuses that loss. Native text/shapes, external assets, current
+Allow; Reject refuses that loss. Native shapes, external assets, current
 creation defaults and model-tab annotation scaling remain later work. This is
 semantic expansion of the provisional contract, not its publication.
+
+The OCDraw Text/MText slice implements native styles, typed rich content, authored
+inheritance, strict JSON readback and enclosing/estimated/partial bounds evidence.
+Its separate CAD route qualifies a bounded profile with anchor accuracy and
+unassessed font geometry. Native content and CAD editing-dependency normalization
+are distinguished in diagnostics. IFCCAD integration is deliberately deferred
+until the OCDraw implementation on main has been tested; the approved equal
+bounds-quality meanings do not by themselves add IFCCAD support. Text annotations,
+dynamic fields, attributes and font engines remain separate work. See
+[text support](docs/text.md). This does not publish or freeze the initial contract.
 
 ## Later physical encodings and performance
 

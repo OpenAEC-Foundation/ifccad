@@ -289,9 +289,8 @@ fn unsupported_table_record(
     match record {
         SemanticTableRecordV1::Layer(_) => None,
         SemanticTableRecordV1::LineType(_) => None,
-        SemanticTableRecordV1::TextStyle(record) => {
-            changed!(record, baseline.text_styles).then_some("text_styles")
-        }
+        // The text adapter classifies every field of every style, including unused entries.
+        SemanticTableRecordV1::TextStyle(_) => None,
         SemanticTableRecordV1::BlockRecord(record) => {
             let changed = baseline
                 .block_records

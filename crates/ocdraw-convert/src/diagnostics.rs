@@ -2,6 +2,12 @@ use crate::*;
 use ocdraw::ocdraw::OcdrawBuildError;
 #[derive(Debug, thiserror::Error)]
 pub enum CadToOcdrawError {
+    #[error("CAD text preparation failed for {handle}: {source}")]
+    TextPreparation {
+        handle: opencadcodec::Handle,
+        #[source]
+        source: cad_text::CadTextError,
+    },
     #[error(transparent)]
     PaperTolerance(#[from] crate::OcdrawPaperToleranceError),
     #[error(transparent)]
@@ -51,6 +57,12 @@ impl OcdrawToCadError {
 
 #[derive(Debug, thiserror::Error)]
 pub enum OcdrawToCadError {
+    #[error("text preparation failed for entity {entity_id}: {source}")]
+    TextPreparation {
+        entity_id: u64,
+        #[source]
+        source: cad_text::CadTextError,
+    },
     #[error(transparent)]
     PaperTolerance(#[from] crate::OcdrawPaperToleranceError),
     #[error(transparent)]

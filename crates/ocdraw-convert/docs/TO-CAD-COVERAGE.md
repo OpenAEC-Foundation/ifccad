@@ -16,6 +16,8 @@ reported separately; unknown target semantics are diagnosed.
 | Source content | Existing treatment and assessment |
 | --- | --- |
 | Length unit | All 25 tokens mapped to CAD codes 0–24; no coordinate rescaling |
+| Text styles | Qualified symbolic font selectors and creation metadata map before contents, including unused definitions. Unsupported face flags/context are diagnosed; dependent text is skipped as a whole. Missing last-height history becomes CAD's 2.5 default with a diagnostic. IDs/handles are conversion-local. |
+| Text / MText | Separate qualified OCS/WCS preparation, literal-safe emission, supported layouts/decorations, paragraphs, stacks and explicit column/background state. Mixed order remains authoritative. Unsupported active text features skip the whole entity under Allow; Reject refuses. Dependency/formatting normalization and inactive-state losses are diagnosed. |
 | Local block definitions | All definitions, including unused ones, allocated before contents; name, base point, description, anonymous flag, insertion unit, explodability and signed-uniform policy retained. Consistent structural markers are created. |
 | Drawing `plotStyleMode` | Color-dependent/named maps to opencadcodec header `plotstyle_mode`; omission defaults to color-dependent. |
 | Drawing `pointDisplay` | Glyph/enclosure and tagged size map to opencadcodec header PDMODE/PDSIZE. Absent display uses dot and CAD default five-percent size. |
@@ -49,6 +51,17 @@ reported separately; unknown target semantics are diagnosed.
 | Bounds, allocation watermark, drawing/table identities | No reconstruction guarantee; target storage and handles differ |
 
 Coverage remains incomplete for the native semantics listed above.
+
+The full native text model exceeds this qualified CAD subset. Independent MText
+mirrors, TEXT strike-through, unqualified intra-paragraph line-break exchange,
+advanced stack variants, decimal/local-spacing profiles, unsupported font/color
+metadata, annotative contexts and nonopaque background transparency receive
+whole-entity/profile restrictions. No plain-text fallback or text preservation
+provider conceals those restrictions. Authored formatting presence/scope can
+normalize in the CAD state machine; `TEXT_DEPENDENCY_CHANGED` exposes that change
+and Reject refuses it. `text_assessment()` separates anchors from unassessed glyph
+geometry. See [OCDraw text](../../../docs/text.md); empty diagnostics do not prove
+font layout or every authored editing dependency.
 
 Physical clipping and VIEWPORT angle exchange now use upstream repairs.
 The [remaining local repair](../../../patches/opencadcodec-viewports/README.md)

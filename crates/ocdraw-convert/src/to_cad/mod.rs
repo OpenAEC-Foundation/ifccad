@@ -74,6 +74,7 @@ fn import_document(
             .map_err(|error| OcdrawToCadError::Cad(format!("UCS definition: {error}")))?;
     }
     let mut diagnostics = Vec::new();
+    let text_styles = crate::mapping::text::to_styles(drawing, &mut document, &mut diagnostics)?;
     let mut preservation_report = crate::OcdrawPreservationReport::default();
     let code = crate::units::UNIT_TOKENS
         .iter()
@@ -100,6 +101,8 @@ fn import_document(
         .map(|entity| entity.id())
         .chain(drawing.viewports.iter().map(|row| row.id))
         .chain(drawing.opaque_entities.iter().map(|row| row.id))
+        .chain(drawing.text_entities.iter().map(|row| row.id))
+        .chain(drawing.mtext_entities.iter().map(|row| row.id))
         .collect::<BTreeSet<_>>();
     for (scope_index, scope) in drawing.scopes.iter().enumerate() {
         for (position, id) in scope.entities.iter().enumerate() {
@@ -397,6 +400,7 @@ fn import_document(
         drawing,
         &mut document,
         &entities::TargetIndex {
+            text_styles: &text_styles,
             patterns: &patterns,
             layers: &layer_names,
             layouts: &scope_layouts,
@@ -462,6 +466,8 @@ fn import_document(
         });
     }
     Ok(OcdrawToCadOutcome {
+        text: crate::OcdrawTextAssessment::new(drawing, entity_mapping.keys().copied()),
+        text_styles: text_styles.handles,
         preservation: preservation_report,
         document,
         diagnostics,

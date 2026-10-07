@@ -109,44 +109,11 @@ impl ResolvedTolerance {
         }
     }
     pub fn from_metres(t: BigRational, unit: DrawingLengthUnit) -> Option<Self> {
-        use DrawingLengthUnit::*;
-        if unit == Parsec {
-            let k = q(648000, 1) * q(149597870700, 1);
-            let lower = BigRational::from_float(f64::from_bits(0x400921fb54442d18)).unwrap();
-            let upper = BigRational::from_float(f64::from_bits(0x400921fb54442d19)).unwrap();
-            return Some(Self {
-                lower: &t * lower / &k,
-                upper: t * upper / k,
-            });
-        }
-        let factor = match unit {
-            Unitless => return None,
-            Millimetre => q(1, 1000),
-            Centimetre => q(1, 100),
-            Metre => q(1, 1),
-            Kilometre => q(1000, 1),
-            Inch => q(127, 5000),
-            Foot => q(381, 1250),
-            Mile => q(201168, 125),
-            Yard => q(1143, 1250),
-            Microinch => q(127, 5000000000),
-            Mil => q(127, 5000000),
-            Angstrom => q(1, 10000000000),
-            Nanometre => q(1, 1000000000),
-            Micrometre => q(1, 1000000),
-            Decimetre => q(1, 10),
-            Decametre => q(10, 1),
-            Hectometre => q(100, 1),
-            Gigametre => q(1000000000, 1),
-            AstronomicalUnit => q(149597870700, 1),
-            LightYear => q(9460730472580800, 1),
-            UsSurveyFoot => q(1200, 3937),
-            UsSurveyInch => q(100, 3937),
-            UsSurveyYard => q(3600, 3937),
-            UsSurveyMile => q(6336000, 3937),
-            Parsec => unreachable!(),
-        };
-        Some(Self::exact(t / factor))
+        let (lower, upper) = unit.coordinates_per_metre()?;
+        Some(Self {
+            lower: &t * lower,
+            upper: t * upper,
+        })
     }
 }
 

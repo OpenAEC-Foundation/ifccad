@@ -49,6 +49,16 @@ pub(crate) fn project_validation_model(
                 .iter()
                 .map(|e| (e.id, e.layer_id, &e.appearance, None)),
         )
+        .chain(
+            doc.text_entities
+                .iter()
+                .map(|e| (e.id, e.layer_id, &e.appearance, None)),
+        )
+        .chain(
+            doc.mtext_entities
+                .iter()
+                .map(|e| (e.id, e.layer_id, &e.appearance, None)),
+        )
     {
         if let AppearanceSelection::Explicit(p) = a.line_pattern {
             refs.push((p, format!("/entities/{id}/linePatternId")));

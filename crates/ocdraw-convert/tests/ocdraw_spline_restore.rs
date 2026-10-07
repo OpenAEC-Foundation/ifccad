@@ -360,6 +360,7 @@ fn owner_move_unknown_predicates_and_record_groups_never_grant_eligibility() {
         id: 1,
         kind: DrawingScopeKind::Paper,
         bounds: None,
+        bounds_quality: None,
         entities: vec![id],
     });
     doc.layouts.push(DrawingLayout {

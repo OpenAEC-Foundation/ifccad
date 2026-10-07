@@ -68,6 +68,15 @@ it does not confirm lossless CAD conversion. Consult the conversion diagnostics:
 unsupported entities can be skipped. The IFCCAD route retains named simple
 patterns; complex text/shape patterns get a diagnosed whole-pattern fallback.
 
+OCDraw Text/MText appears in draw order with links to text styles, literal content
+and authored nested formatting. Layout/block inspection shows independently
+derived bounds quality, the stored producer declaration and whether enclosure is
+verified. Conversion reports distinguish text anchor coverage from unassessed
+letter shapes/layout. Estimated/partial bounds never certify negative spatial
+queries. The chooser includes a standalone Text/MText example; see
+[text support](../docs/text.md) for native semantics and the narrower CAD profile.
+IFCCAD text integration is deferred until the OCDraw slice has been tested on main.
+
 Run the app: `npm start` in this directory. A matching wasm-bindgen build of
 `browser` must be placed in `wasm-build/` for browser processing.
 No hosted deployment is performed by development commands.

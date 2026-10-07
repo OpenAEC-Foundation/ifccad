@@ -81,6 +81,7 @@ fn apply_common(
 }
 
 pub(super) struct TargetIndex<'a> {
+    pub text_styles: &'a crate::mapping::text::TargetTextStyles,
     pub patterns: &'a crate::mapping::line_pattern::ImportLinePatternMap,
     pub layers: &'a BTreeMap<u64, String>,
     pub layouts: &'a BTreeMap<u64, Option<String>>,
@@ -97,6 +98,7 @@ pub(super) fn append_entities(
     preservation_report: &mut crate::OcdrawPreservationReport,
 ) -> Result<BTreeMap<u64, Handle>, OcdrawToCadError> {
     let TargetIndex {
+        text_styles,
         patterns,
         layers: layer_names,
         layouts: scope_layouts,
@@ -120,6 +122,16 @@ pub(super) fn append_entities(
         .opaque_entities
         .iter()
         .map(|e| (e.id, e))
+        .collect::<BTreeMap<_, _>>();
+    let text = drawing
+        .text_entities
+        .iter()
+        .map(|t| (t.id, t))
+        .collect::<BTreeMap<_, _>>();
+    let mtext = drawing
+        .mtext_entities
+        .iter()
+        .map(|t| (t.id, t))
         .collect::<BTreeMap<_, _>>();
     for (owner, id) in drawing
         .scopes
@@ -302,6 +314,25 @@ pub(super) fn append_entities(
                     source.visible(),
                     entity,
                 )
+            } else if text.contains_key(&id) || mtext.contains_key(&id) {
+                let Some(entity) = crate::mapping::text::to_entity(
+                    text.get(&id).copied(),
+                    mtext.get(&id).copied(),
+                    owner,
+                    text_styles,
+                    state,
+                    diagnostics,
+                )?
+                else {
+                    continue;
+                };
+                let (layer_id, appearance, visible) = if let Some(t) = text.get(&id) {
+                    (t.layer_id, &t.appearance, t.visible)
+                } else {
+                    let t = mtext[&id];
+                    (t.layer_id, &t.appearance, t.visible)
+                };
+                (u64::from(owner), layer_id, appearance, visible, entity)
             } else if let Some(source) = viewports.get(&id) {
                 let Some(entity) =
                     crate::mapping::viewport::to_cad(source, document, layer_names, diagnostics)

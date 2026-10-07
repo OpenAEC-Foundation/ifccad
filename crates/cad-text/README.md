@@ -1,0 +1,85 @@
+# cad-text
+
+Shared CAD text preparation for the independent OCDraw and IFCCAD adapters.
+The library has no drawing identities, ownership, native codec, filesystem IO,
+font resolver, renderer or conversion loss policy. The core `ocdraw::text`
+module stays independent of opencadcodec. The OCDraw native/directional route now
+uses this bounded profile; independent IFCCAD integration is deferred until that
+slice has been tested. Shared helper success never establishes route parity.
+
+`parse_text` and `parse_mtext` turn supported CAD control codes into typed values.
+TEXT and MTEXT have different grammars: ordinary TEXT braces/backslashes are
+literal, while MTEXT uses scopes. Unknown control codes, malformed escapes,
+dynamic field syntax and runtime resource-limit failures remain explicit.
+
+Parsed character-basis factoring is exposed as `character_basis_normalized`.
+Prepared adapters report `CharacterBasisNormalized` or
+`AuthoredFormattingNormalized` when CAD state-machine representation changes
+authored override scope/presence, including a no-op entity-color reset. Current
+effective formatting is not a certificate for future editing dependencies.
+Route adapters enforce these issues through their own Allow/Reject policy.
+Parsing retains significant whitespace, blank/trailing paragraphs, explicit
+character overrides and column breaks without changing entity kind.
+
+MTEXT source scopes may cross paragraph breaks. The parser resolves source
+carry-over into independent paragraph/inline overrides and restores the source
+context when a group closes. Identifiable global character properties remain
+global; shared explicit paragraph properties may be factored locally. Current
+style values never become inferred fixed overrides. Relative height codes are
+accumulated in the source context, then reference the nominal native height.
+
+Emitters escape literals, including strings that resemble formatting or field
+syntax. TEXT uses its legacy percent controls. Unsupported target semantics
+return errors rather than silently becoming plain strings. The simple default
+profile is exercised through the pinned production DXF and AC1032 DWG codecs.
+That evidence does not establish application rendering or a complete native
+document roundtrip.
+
+## Boundary and evidence
+
+`import_text_style`/`prepare_text_style_to_cad` retain supported symbolic font
+requests and creation metadata, including unused-style data provided by callers.
+Missing installed fonts are not inspected. Annotative, external and shape-file
+style contexts are outside this profile. Local identity/name/reference checks
+remain the drawing adapter's responsibility.
+
+`prepare_text_from_cad`, `prepare_mtext_from_cad` and their target preparations
+select active anchors, typed layouts and placement. TEXT anchors are OCS;
+MTEXT insertion is WCS. A coherent retained MTEXT direction avoids unnecessary
+angle reconstruction. Native MTEXT independent mirror flags remain unsupported
+at this CAD boundary rather than being guessed from a flipped normal.
+
+Preparations return `GeometryPair` inputs for `cad-geometry-convert`'s hard
+tolerance and nested-occurrence checks. These cover anchor/represented baseline
+or extrusion parameters, **not** glyph contours or laid-out text geometry.
+`glyph_geometry_unassessed` remains true. The caller resolves its actual
+coordinate domain and checks the pairs; preparation does not accept a numerical
+deviation on the caller's behalf.
+
+`CadTextIssue` identifies represented current values whose authoring dependency
+changes, or dormant source state omitted by the bounded native profile. Adapters
+must locate/classify every issue and apply their independent Allow/Reject policy;
+discarding this evidence does not produce a lossless conversion.
+
+## Current restrictions
+
+- Local paragraph before/after/exact-spacing units and decimal tab markers remain
+  unqualified (opencadcodec issues 87 and 90). No unit factor or separator is guessed.
+- Native intra-paragraph line breaks, decimal-tolerance stacks and nondefault
+  stack size/position combinations need separate CAD file qualification.
+- TEXT strikethrough has no qualified pinned target code; native support is separate.
+- Font delimiter escapes, inline combined/big-font requests and style font-face
+  flags absent from the pinned public table type remain explicit restrictions.
+- Dynamic auto-height count cannot be recovered from cached extents. Manual
+  count/list mismatch is invalid; zero-height sentinel/auto-tail remains unqualified.
+- Column reference width must agree with the supported derived-total profile.
+- Background transparency packing is not yet qualified; non-opaque fill is
+  restricted. Default-opacity explicit/canvas fill and frame-only are distinct.
+- Expanding a native global paragraph basis into CAD paragraph properties,
+  mapping absolute padding to a relative border factor, and mapping absolute
+  spacing to nominal-height factors carry explicit dependency-change issues.
+
+The dependency is pinned to `fe69506cb99dea6f4c4a73b690a27fdf04403ea0`, matching
+both converters and the shared CAD geometry helper. Existing viewport development
+patches are independent; their results are not evidence for unmodified upstream.
+No font engine, CAD dependency upgrade or measurement is introduced here.

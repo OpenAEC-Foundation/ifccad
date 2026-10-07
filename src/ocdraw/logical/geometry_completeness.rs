@@ -18,6 +18,17 @@ pub(crate) fn derive_scope_geometry_completeness(
         .iter()
         .map(|e| e.id)
         .collect::<BTreeSet<_>>();
+    let estimates = super::text_bounds::text_estimates(doc).unwrap_or_default();
+    let empty_text = estimates
+        .iter()
+        .filter(|(_, e)| e.status == crate::text::TextExtentStatus::Empty)
+        .map(|(id, _)| *id)
+        .collect::<BTreeSet<_>>();
+    let unavailable_text = estimates
+        .iter()
+        .filter(|(_, e)| e.status == crate::text::TextExtentStatus::Unavailable)
+        .map(|(id, _)| *id)
+        .collect::<BTreeSet<_>>();
     let blocks = doc
         .geometric_entities
         .iter()
@@ -32,7 +43,11 @@ pub(crate) fn derive_scope_geometry_completeness(
     let mut unavailable = doc
         .scopes
         .iter()
-        .filter(|s| s.entities.iter().any(|id| opaque.contains(id)))
+        .filter(|s| {
+            s.entities
+                .iter()
+                .any(|id| opaque.contains(id) || unavailable_text.contains(id))
+        })
         .map(|s| s.id)
         .collect::<BTreeSet<_>>();
     loop {
@@ -61,7 +76,7 @@ pub(crate) fn derive_scope_geometry_completeness(
                 s.id,
                 if unavailable.contains(&s.id) {
                     ScopeGeometryCompleteness::Unavailable
-                } else if s.entities.is_empty() {
+                } else if s.entities.iter().all(|id| empty_text.contains(id)) {
                     ScopeGeometryCompleteness::Empty
                 } else {
                     ScopeGeometryCompleteness::Complete

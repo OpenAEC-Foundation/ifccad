@@ -12,3 +12,4 @@ pub mod ifccad;
 pub mod ocdraw;
 
 pub mod plot_kernel;
+pub mod text;

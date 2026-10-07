@@ -1,4 +1,11 @@
 mod decode_appearance;
+mod mtext;
+mod mtext_values;
+mod text;
+mod text_style;
+pub(crate) use mtext::{decode_mtext, encode_mtext};
+pub(crate) use text::{decode_text, encode_text};
+pub(crate) use text_style::{decode_text_styles, encode_text_styles};
 mod decode_geometry;
 mod decode_line_pattern;
 pub(crate) use decode_line_pattern::decode_line_patterns;

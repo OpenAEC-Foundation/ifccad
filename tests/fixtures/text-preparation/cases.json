@@ -1,0 +1,26 @@
+{
+  "fixtureVersion": 1,
+  "cadVersion": "AC1032",
+  "coordinateUnit": "mm",
+  "cases": [
+    {"name": "text-left-baseline-active-first-point", "file": "text-layouts.dxf", "handle": "10", "status": "supportedCandidate", "expect": {"kind": "Text", "style": "Labels", "anchor": [10,20,0], "layout": {"kind": "anchored", "horizontal": "left", "vertical": "baseline", "height": 2.5, "widthFactor": 1}, "literal": "D-01"}},
+    {"name": "text-right-top-active-second-point", "file": "text-layouts.dxf", "handle": "11", "status": "supportedCandidate", "expect": {"anchor": [30,40,0], "layout": {"kind": "anchored", "horizontal": "right", "vertical": "top", "height": 2.5, "widthFactor": 1}, "literal": "RIGHT"}},
+    {"name": "text-ordinary-center-middle", "file": "text-layouts.dxf", "handle": "12", "status": "supportedCandidate", "expect": {"anchor": [50,60,0], "layout": {"kind": "anchored", "horizontal": "center", "vertical": "middle", "height": 2.5, "widthFactor": 1}, "literal": "gyp"}},
+    {"name": "text-whole-middle-is-distinct", "file": "text-layouts.dxf", "handle": "13", "status": "supportedCandidate", "expect": {"anchor": [70,80,0], "layout": {"kind": "wholeTextMiddle", "height": 2.5, "widthFactor": 1}, "literal": "gyp"}},
+    {"name": "text-aligned-3-4-5-baseline", "file": "text-layouts.dxf", "handle": "14", "status": "supportedCandidate", "expect": {"anchor": [0,0,0], "baselineVector": [3,4,0], "layout": {"kind": "aligned", "length": 5, "widthFactor": 1}, "literal": "ALIGNED"}},
+    {"name": "text-fit-elevated-baseline", "file": "text-layouts.dxf", "handle": "15", "status": "supportedCandidate", "expect": {"anchor": [5,6,7], "baselineVector": [8,0,0], "layout": {"kind": "fit", "length": 8, "height": 2.5}, "literal": "FIT"}},
+    {"name": "text-ocs-tilted-normal", "file": "text-layouts.dxf", "handle": "16", "status": "supportedCandidate", "expect": {"anchor": [-3,5,4], "xAxis": [-1,0,0], "yAxis": [0,0,1], "literal": "TILTED"}},
+    {"name": "text-generation-flags-preserve-string", "file": "text-layouts.dxf", "handle": "17", "status": "supportedCandidate", "expect": {"backward": true, "upsideDown": true, "literal": "AB"}},
+    {"name": "mtext-wcs-and-empty-paragraphs", "file": "mtext-markup.dxf", "handle": "20", "status": "supportedCandidate", "expect": {"kind": "MText", "anchor": [100,50,7], "xAxis": [0,1,0], "yAxis": [-1,0,0], "attachment": "topLeft", "height": 2.5, "wrapWidth": 80, "paragraphCount": 5, "leadingEmpty": true, "trailingEmpty": true, "containsTab": true, "stack": {"stackKind": "fraction", "upper": "1", "lower": "2"}}},
+    {"name": "mtext-scoped-relative-heights", "file": "mtext-markup.dxf", "handle": "21", "status": "supportedCandidate", "expect": {"nominalHeight": 2.5, "segments": [{"literal": "small", "heightFactor": 0.2, "underline": true}, {"literal": "quarter", "heightFactor": 0.25, "underline": true}, {"literal": "plain", "heightFactor": 1, "underline": false}]}},
+    {"name": "mtext-literal-code-and-field-like-string", "file": "mtext-markup.dxf", "handle": "22", "status": "supportedCandidate", "expect": {"literal": "\\P {literal} %<literal>%"}},
+    {"name": "mtext-local-spacing-units", "status": "knownCodecRestriction", "source": "\\pb2,a3,se4;value", "restriction": "paragraph before/after/exact spacing units not qualified (#87)"},
+    {"name": "mtext-decimal-tab-marker", "status": "knownCodecRestriction", "source": "\\pxtD8;^I12,5", "restriction": "parsed decimal stop cannot establish separator identity (#90)"},
+    {"name": "mtext-unmatched-scope", "status": "malformedStructural", "source": "{unterminated", "expectError": "UnbalancedScope"},
+    {"name": "mtext-invalid-height", "status": "malformedStructural", "source": "\\H0;invalid", "expectError": "InvalidNumber"},
+    {"name": "native-all-stack-kinds", "status": "nativeOnly", "stackKinds": ["fraction", "diagonalFraction", "tolerance", "decimalTolerance"], "decimalSeparator": ",", "textScale": 0.7},
+    {"name": "native-column-state", "status": "nativeOnly", "columns": [{"kind": "static", "count": 2, "columnWidth": 40, "gutter": 5, "columnHeight": 60, "flowReversed": false}, {"kind": "dynamicAutoHeight", "columnWidth": 40, "gutter": 5, "columnHeight": 60, "currentColumnCount": 3, "flowReversed": true}, {"kind": "dynamicManualHeight", "columnWidth": 40, "gutter": 5, "columnHeights": [{"kind": "fixed", "distance": 60}, {"kind": "fixed", "distance": 45}, {"kind": "auto"}], "flowReversed": false}]},
+    {"name": "native-flow-and-background", "status": "nativeOnly", "flows": ["horizontal", "vertical", "byStyle"], "backgrounds": [{"fill": {"kind": "none"}, "frame": true, "opacity": 1, "padding": {"kind": "absolute", "distance": 1}}, {"fill": {"kind": "canvas"}, "frame": false, "opacity": 0.5, "padding": {"kind": "relative", "factor": 0.5}}]},
+    {"name": "native-format-inheritance", "status": "nativeOnly", "nominalHeight": 2.5, "characterFormat": {"widthFactor": 0.8, "height": {"kind": "relative", "factor": 1.5}}, "paragraphFormat": {"leftIndentFactor": 2, "spaceAfter": 1}, "paragraphOverrides": {"paragraphFormat": {"leftIndentFactor": 0, "tabStops": []}, "characterFormat": {"underline": false}}, "expect": {"effectiveHeight": 3.75, "widthFactor": 0.8, "leftIndentFactor": 0, "spaceAfter": 1, "tabGrid": "4,8,12,... from paragraph left indent"}}
+  ]
+}

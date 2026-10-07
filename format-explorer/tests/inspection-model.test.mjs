@@ -2,6 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 const adapter=await import('../src/inspection-model.mjs').catch(()=>({}));
 const graph={header:{},data:[{path:'/cad/d1',children:{model:'/cad/d1/layout/1'},attributes:{'ifccad::drawing':{lengthUnit:'mm'}}},{path:'/cad/d1/layout/1',children:{'0':'/cad/d1/e9007199254740993'},attributes:{'ifccad::layout':{kind:'Model'}}},{path:'/cad/d1/e9007199254740993',attributes:{'ifccad::entity':{layer:'/cad/d1/layer/1'},'ifccad::geom::lineSegment':{start:[0,0,0],end:[1,0,0]}}},{path:'/cad/d1/layer/1',attributes:{'ifccad::layer':{name:'Walls'}}},{path:'/foreign',children:{ref:'/cad/d1/e9007199254740993',self:'/foreign'},attributes:{note:'This arbitrary /cad/string is not a reference'}}]};
+test('OCDraw text styles are linked and estimated bounds never become verified enclosure',()=>{
+ const model=adapter.createInspection({validation:{strictAvailable:true},presentation:{format:'ocdraw',unit:'mm',textStyles:[{id:0,name:'Requested',font:{family:'Face'}}],entities:[{id:'9007199254740993',styleId:0,geometry:{type:'mText',content:[{inlines:[{kind:'run',text:'Literal <script>'}]}]}}],layouts:[{id:0,name:'Model',kind:'model',scopeId:9}],scopes:[{id:9,entities:['9007199254740993']}],boundsCompleteness:[{scopeId:9,quality:'estimated',enclosureVerified:false,safeForNegativeQuery:false}]}},'{}');
+ assert.equal(model.nodes.get('textStyle:0').title,'Requested');
+ assert.equal(model.nodes.get('entity:9007199254740993').outgoing.some(e=>e.target==='textStyle:0'),true);
+ assert.equal(model.nodes.get('layout:0').values.boundsAssessment.quality,'estimated');
+ assert.equal(model.nodes.get('layout:0').values.boundsAssessment.enclosureVerified,false);
+ assert.equal(model.nodes.get('layout:0').values.boundsAssessment.safeForNegativeQuery,false);
+});
 test('Paper coordinates never inherit the physical drawing unit',()=>{
  const paperGraph=structuredClone(graph);
  paperGraph.data[1].attributes['ifccad::layout'].kind='Paper';

@@ -1,0 +1,385 @@
+{
+  "header": {
+    "drawingId": "explorer-ocdraw-text",
+    "format": "open_cad_drawing",
+    "nextEntityId": 4,
+    "nextLayerId": 1,
+    "nextLayoutId": 1,
+    "nextLinePatternId": 1,
+    "nextTextStyleId": 2,
+    "unit": "mm",
+    "version": "0.1.0"
+  },
+  "layers": [
+    {
+      "color": {
+        "rgb": [
+          35,
+          90,
+          160
+        ]
+      },
+      "frozen": false,
+      "frozenInNewViewports": false,
+      "id": 0,
+      "linePatternId": 0,
+      "lineWeight": 0.25,
+      "locked": false,
+      "name": "Text",
+      "opacity": 1.0,
+      "plottable": true,
+      "visible": true
+    }
+  ],
+  "layouts": [
+    {
+      "id": 0,
+      "kind": "model",
+      "name": "Model",
+      "scopeId": 0,
+      "tabIndex": 0
+    }
+  ],
+  "linePatterns": [
+    {
+      "id": 0,
+      "name": "Continuous",
+      "pattern": []
+    }
+  ],
+  "scopes": [
+    {
+      "bounds": {
+        "maxX": 92.50000000000001,
+        "maxY": 6.25,
+        "maxZ": 0.0,
+        "minX": -1.25,
+        "minY": -76.75000000000001,
+        "minZ": 0.0
+      },
+      "boundsQuality": "estimated",
+      "entities": [
+        1,
+        2,
+        3
+      ],
+      "id": 0,
+      "kind": 0
+    }
+  ],
+  "streams": {
+    "mTextStream": {
+      "attachment": [
+        "topLeft"
+      ],
+      "background": [
+        {
+          "fill": {
+            "kind": "canvas"
+          },
+          "frame": false,
+          "opacity": 1.0,
+          "padding": {
+            "factor": 0.5,
+            "kind": "relative"
+          }
+        }
+      ],
+      "backward": [
+        false
+      ],
+      "characterFormat": [
+        {}
+      ],
+      "color": [
+        null
+      ],
+      "colorMode": [
+        "ByLayer"
+      ],
+      "content": [
+        [
+          {
+            "characterFormat": {
+              "underline": true
+            },
+            "inlines": [
+              {
+                "characterFormat": {},
+                "kind": "run",
+                "text": "MText met alinea’s"
+              }
+            ],
+            "paragraphFormat": {},
+            "format": {}
+          },
+          {
+            "characterFormat": {},
+            "inlines": [
+              {
+                "characterFormat": {},
+                "kind": "run",
+                "text": "Letterlijke codes: \\P en %<veld>."
+              }
+            ],
+            "paragraphFormat": {}
+          },
+          {
+            "characterFormat": {},
+            "inlines": [
+              {
+                "characterFormat": {},
+                "kind": "run",
+                "text": "Breuk: "
+              },
+              {
+                "alignment": "center",
+                "characterFormat": {},
+                "kind": "stack",
+                "lower": "2",
+                "stackKind": "fraction",
+                "textScale": 0.7,
+                "upper": "1"
+              }
+            ],
+            "paragraphFormat": {}
+          },
+          {
+            "characterFormat": {},
+            "inlines": [],
+            "paragraphFormat": {}
+          }
+        ]
+      ],
+      "count": 1,
+      "entityId": [
+        3
+      ],
+      "flow": [
+        "horizontal"
+      ],
+      "height": [
+        2.5
+      ],
+      "layerId": [
+        0
+      ],
+      "linePatternId": [
+        null
+      ],
+      "linePatternMode": [
+        "ByLayer"
+      ],
+      "linePatternScale": [
+        1.0
+      ],
+      "lineWeight": [
+        null
+      ],
+      "lineWeightMode": [
+        "ByLayer"
+      ],
+      "opacity": [
+        null
+      ],
+      "opacityMode": [
+        "ByLayer"
+      ],
+      "paragraphFormat": [
+        {}
+      ],
+      "placement": [
+        {
+          "X": {
+            "x": 1.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "Y": {
+            "x": 0.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "origin": {
+            "x": 0.0,
+            "y": -20.0,
+            "z": 0.0
+          }
+        }
+      ],
+      "rotation": [
+        0.0
+      ],
+      "styleId": [
+        1
+      ],
+      "upsideDown": [
+        false
+      ],
+      "visible": [
+        true
+      ],
+      "wrapWidth": [
+        60.0
+      ]
+    },
+    "textStream": {
+      "backward": [
+        false,
+        false
+      ],
+      "color": [
+        null,
+        null
+      ],
+      "colorMode": [
+        "ByLayer",
+        "ByLayer"
+      ],
+      "content": [
+        [
+          {
+            "overline": false,
+            "strikeThrough": false,
+            "text": "OCDraw Text · é🙂",
+            "underline": true
+          }
+        ],
+        [
+          {
+            "overline": false,
+            "strikeThrough": false,
+            "text": "Whole-text middle",
+            "underline": false
+          }
+        ]
+      ],
+      "count": 2,
+      "entityId": [
+        1,
+        2
+      ],
+      "layerId": [
+        0,
+        0
+      ],
+      "layout": [
+        {
+          "height": 2.5,
+          "horizontal": "left",
+          "kind": "anchored",
+          "vertical": "baseline",
+          "widthFactor": 1.0
+        },
+        {
+          "height": 2.5,
+          "kind": "wholeTextMiddle",
+          "widthFactor": 1.0
+        }
+      ],
+      "linePatternId": [
+        null,
+        null
+      ],
+      "linePatternMode": [
+        "ByLayer",
+        "ByLayer"
+      ],
+      "linePatternScale": [
+        1.0,
+        1.0
+      ],
+      "lineWeight": [
+        null,
+        null
+      ],
+      "lineWeightMode": [
+        "ByLayer",
+        "ByLayer"
+      ],
+      "obliqueAngle": [
+        0.0,
+        0.0
+      ],
+      "opacity": [
+        null,
+        null
+      ],
+      "opacityMode": [
+        "ByLayer",
+        "ByLayer"
+      ],
+      "placement": [
+        {
+          "X": {
+            "x": 1.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "Y": {
+            "x": 0.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "origin": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          }
+        },
+        {
+          "X": {
+            "x": 1.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "Y": {
+            "x": 0.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "origin": {
+            "x": 50.0,
+            "y": -10.0,
+            "z": 0.0
+          }
+        }
+      ],
+      "rotation": [
+        0.0,
+        0.0
+      ],
+      "styleId": [
+        1,
+        1
+      ],
+      "thickness": [
+        0.0,
+        0.0
+      ],
+      "upsideDown": [
+        false,
+        false
+      ],
+      "visible": [
+        true,
+        true
+      ]
+    }
+  },
+  "textStyles": [
+    {
+      "creationBackward": false,
+      "creationUpsideDown": false,
+      "font": {
+        "cadFontName": "txt.shx"
+      },
+      "id": 1,
+      "lastUsedHeight": 2.5,
+      "name": "Requested CAD font",
+      "obliqueAngle": 0.0,
+      "vertical": false,
+      "widthFactor": 1.0
+    }
+  ]
+}
