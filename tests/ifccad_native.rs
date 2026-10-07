@@ -1,6 +1,20 @@
 use ocdraw::ifccad::load_ifccad_bytes;
 use ocdraw::ifccad::*;
 use serde_json::{json, Value};
+#[path = "../examples/support/ifccad_consistency.rs"]
+mod example_consistency;
+
+fn example_bytes(bytes: &[u8]) -> Vec<u8> {
+    example_consistency::normalize(&serde_json::from_slice(bytes).unwrap()).unwrap()
+}
+fn example_document(document: &IfccadDocument) -> IfccadDocument {
+    load_ifccad_bytes(
+        &example_bytes(encode_ifccad_document(document).unwrap().bytes()),
+        Default::default(),
+    )
+    .unwrap()
+    .into_document()
+}
 
 fn base() -> Value {
     let mut value = json!({
@@ -401,7 +415,7 @@ fn nested_blocks_keep_shared_definitions_order_and_stored_appearance() {
         load_ifccad_bytes(fixture, Default::default())
             .unwrap()
             .document(),
-        &document
+        &example_document(&document)
     );
     let bytes = encode_ifccad_document(&document).unwrap();
     let loaded = load_ifccad_bytes(bytes.bytes(), Default::default()).unwrap();
@@ -460,7 +474,11 @@ fn nested_blocks_keep_shared_definitions_order_and_stored_appearance() {
         );
     }
     if std::env::var_os("GENERATE_IFCX_NESTED_FIXTURE").is_some() {
-        std::fs::write("examples/ifccad/hello-nested-blocks.ifcx", &bytes).unwrap();
+        std::fs::write(
+            "examples/ifccad/hello-nested-blocks.ifcx",
+            example_bytes(bytes.bytes()),
+        )
+        .unwrap();
     }
 }
 
@@ -579,7 +597,11 @@ fn writer_roundtrips_paper_layouts_without_unit_conversion() {
     reversed.paper_layouts.reverse();
     assert_eq!(encode_ifccad_document(&reversed).unwrap(), bytes);
     if std::env::var_os("GENERATE_IFCX_PAPER_FIXTURE").is_some() {
-        std::fs::write("examples/ifccad/hello-paper-layouts.ifcx", bytes).unwrap();
+        std::fs::write(
+            "examples/ifccad/hello-paper-layouts.ifcx",
+            example_bytes(bytes.bytes()),
+        )
+        .unwrap();
     }
 }
 
@@ -592,7 +614,7 @@ fn paper_layout_fixture_is_strictly_readable() {
         load_ifccad_bytes(fixture, Default::default())
             .unwrap()
             .document(),
-        &expected
+        &example_document(&expected)
     );
 }
 
@@ -700,7 +722,11 @@ fn roundtrip_complete_example_and_determinism() {
     );
     assert_eq!(encode_ifccad_document(&document).unwrap(), bytes);
     if std::env::var_os("GENERATE_IFCX_FIXTURE").is_some() {
-        std::fs::write("examples/ifccad/hello-cad.ifcx", &bytes).unwrap();
+        std::fs::write(
+            "examples/ifccad/hello-cad.ifcx",
+            example_bytes(bytes.bytes()),
+        )
+        .unwrap();
     }
 }
 
@@ -844,7 +870,7 @@ fn fixture_is_a_complete_strictly_readable_ifcx_file() {
     let bytes = include_bytes!("../examples/ifccad/hello-cad.ifcx");
     assert_paths_first(bytes);
     let loaded = load_ifccad_bytes(bytes, Default::default()).unwrap();
-    assert_eq!(loaded.document(), &fixture_document());
+    assert_eq!(loaded.document(), &example_document(&fixture_document()));
     let schema_module: Value =
         serde_json::from_str(include_str!("../schemas/ifccad/ifccad-profile-0.1.0.ifcx")).unwrap();
     let schemas = schema_module["schemas"].as_object().unwrap();

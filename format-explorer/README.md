@@ -85,6 +85,17 @@ The dev server supports an alternate `PORT` and an optional `OCS_ROOT` for an
 existing pinned viewer bundle. It stays on loopback and reloads when frontend
 source changes. Rebuilding WASM or adding example assets requires a website
 rebuild. This live development view is independent of hosted publication.
+Website assembly compares file contents and writes only changed files. Existing
+WASM, viewer runtime, fonts and bridge files retain their output files on an
+unchanged build. Changed bundle files are synchronized and removed source files
+are pruned; a missing converter/viewer bundle clears its stale output. The viewer
+HTML is regenerated from its source with one bridge injection. Compilation of
+Rust/WASM and Open CAD Studio remains a separate operation.
+
+The production Rust-check cache includes repository `examples/` alongside Rust,
+schemas and conformance inputs, so edits to the authored examples invalidate a
+previous passing-check marker. The corrected cache key uses a new version;
+converter and pinned Open CAD Studio caches remain independent.
 
 Tests: `npm test`. File and CAD accuracy checks use the production Rust
 reader/converter; the browser worker transport is tested independently.
@@ -158,8 +169,28 @@ The smoke check exercises standalone fixtures and actual OCDraw/IFCCAD/DXF/DWG
 output and production readback, including active/dormant DXF clip references
 and viewport angles in radians. Deployment checks exercise the static HTTP service,
 WASM and framed viewer assets. Linux deployment activation/rollback tests are
-skipped on Windows. Pushing to main triggers the existing deployment workflow;
-local development commands do not publish the website.
+skipped on Windows.
+
+Pull requests targeting main run the same Rust formatting, Clippy, workspace
+tests, WASM readback smoke checks, website tests, asset assembly and local release
+smoke checks as main. Unchanged converter and pinned Open CAD Studio bundles reuse
+the existing build caches. The Rust verification cache includes repository-root
+examples and the workflow recipe. The **CAD Format Explorer checks** status fails
+when a required job fails, is cancelled or is skipped; it can be selected as a
+required check in GitHub's branch rules. PR updates cancel only that PR's old run.
+
+Only a push to main or a manual workflow run on main can deploy, after all checks
+succeed. PR runs use read-only repository permissions and never enter the
+production deployment job. Local development commands do not publish the website.
+
+Deployment currently retains the existing Docker service: a checksummed archive
+is tested before transfer, activated as one release, checked for the expected
+revision, and rolled back on activation or service-check failure. OpenAEC's
+[shared site deployment workflow](https://github.com/OpenAEC-Foundation/github/blob/main/.github/workflows/deploy-site.yml)
+currently syncs static files directly to a web directory and can configure nginx.
+The explorer retains its own deployment workflow and the existing release
+activation and rollback behavior; migration to the shared workflow is outside
+the current scope.
 
 ## IFCCAD workflow
 

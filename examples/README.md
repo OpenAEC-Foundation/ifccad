@@ -6,6 +6,20 @@ Regenerate with `cargo run --example write_explorer_examples -- examples`.
 Generated native files here are source examples; WASM, CAD build output and
 screenshots remain local artifacts outside this directory.
 
+All files under `ifccad/` use the writer's node presentation order: `path`,
+optional `children`, then `attributes`. Additional IFCX fields such as `inherits`
+follow these fields and retain their values. IDs are compact per domain, with
+entity IDs starting at 1 in Model/Paper/block writer traversal order. ID 0 remains
+for the existing standard layer and continuous line pattern. References and
+allocation counters follow the new IDs; multiple source contributions to one
+node remain separate.
+
+Normalize authored IFCCAD examples with
+`cargo run --example normalize_ifccad_examples -- examples/ifccad`.
+The explorer generator uses the same example-only normalization. The production
+writer preserves caller-supplied IDs and allocation history; sparse/high IDs remain
+valid and are still exercised by conformance and writer tests.
+
 | Example | Demonstrated content |
 | --- | --- |
 | IFCCAD overview | Current native line/circle/planar-polyline families, multiple layouts, analytic clipping, layers and named patterns, unused definitions, shared/nested blocks, reflected scale and nonzero block base |
@@ -48,7 +62,7 @@ The recipe reuses the independently validated viewport construction from
 `ifccad/hello-viewports.ifcx` and the candidate OCDraw bulged-viewport fixture,
 then authors new Model geometry, layers/patterns, blocks, state and source
 contributions around them. The intended IFCX fragment example has exactly two
-source contributions for `/cad/d1/e110`, with geometry supplied by the later
+source contributions for `/cad/d1/e1`, with geometry supplied by the later
 fragment; its foreign graph information is retained natively and may be
 diagnosed when projected to CAD. All claims are about the experimental IFCCAD
 profile, not arbitrary IFCX conformance or lossless CAD exchange.

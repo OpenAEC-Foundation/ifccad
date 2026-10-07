@@ -186,7 +186,7 @@ fn ifccad_uses_its_own_reader_and_shows_composed_nodes() {
         .as_array()
         .unwrap()
         .iter()
-        .any(|n| n["path"] == "/cad/d1/linePattern/7"));
+        .any(|n| n["attributes"]["ifccad::linePattern"]["name"] == "DashDot"));
 }
 
 #[test]
@@ -196,7 +196,7 @@ fn ifccad_download_retains_original_fragments_and_foreign_information() {
         .as_array_mut()
         .unwrap()
         .push(serde_json::json!({
-            "path":"/cad/d1/e42", "attributes":{"example::note":"separate fragment"}
+            "path":"/cad/d1/e1", "attributes":{"example::note":"separate fragment"}
         }));
     graph["data"]
         .as_array_mut()
@@ -222,7 +222,7 @@ fn ifccad_download_retains_original_fragments_and_foreign_information() {
     assert_eq!(loaded.graph().source_bytes(), bytes);
     let nodes = result["presentation"]["graph"]["data"].as_array().unwrap();
     assert_eq!(
-        nodes.iter().filter(|n| n["path"] == "/cad/d1/e42").count(),
+        nodes.iter().filter(|n| n["path"] == "/cad/d1/e1").count(),
         1
     );
     assert!(nodes.iter().any(|n| n["path"] == "/foreign"));

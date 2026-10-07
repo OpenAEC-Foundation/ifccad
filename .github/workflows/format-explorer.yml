@@ -1,7 +1,9 @@
-name: Deploy format explorer
+name: CAD Format Explorer CI and deployment
 
 on:
   push:
+    branches: [main]
+  pull_request:
     branches: [main]
   workflow_dispatch:
 
@@ -9,12 +11,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: format-explorer-production
-  cancel-in-progress: false
+  # PR updates replace their own checks without interrupting a main deployment.
+  group: ${{ github.event_name == 'pull_request' && format('format-explorer-pr-{0}', github.event.pull_request.number) || 'format-explorer-production' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   browser-wasm:
-    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:
@@ -54,7 +56,6 @@ jobs:
           retention-days: 7
 
   ocs:
-    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 75
     steps:
@@ -115,7 +116,6 @@ jobs:
           retention-days: 7
 
   checks:
-    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     container: rust:bookworm
     timeout-minutes: 20
@@ -129,7 +129,7 @@ jobs:
         id: rust-checks-cache
         with:
           path: target/explorer-rust-checks-passed
-          key: ocdraw-rust-checks-debian12-v2-${{ hashFiles('Cargo.toml', 'crates/**', 'src/**', 'tests/**', 'schemas/**', 'conformance/**', 'format-explorer/examples/**', 'patches/opencadcodec-viewports*', 'patches/opencadcodec-viewports/**', '.github/actions/viewport-codec/**') }}
+          key: ocdraw-rust-checks-debian12-v3-${{ hashFiles('Cargo.toml', 'crates/**', 'src/**', 'tests/**', 'schemas/**', 'conformance/**', 'examples/**', 'patches/opencadcodec-viewports*', 'patches/opencadcodec-viewports/**', '.github/actions/viewport-codec/**', '.github/workflows/format-explorer.yml') }}
       - uses: ./.github/actions/viewport-codec
         if: steps.rust-checks-cache.outputs.cache-hit != 'true'
       - name: Install Rust check tools
@@ -153,7 +153,6 @@ jobs:
           printf '%s\n' "$GITHUB_SHA" > target/explorer-rust-checks-passed
 
   build:
-    if: github.ref == 'refs/heads/main'
     needs: [ocs, browser-wasm]
     runs-on: ubuntu-24.04
     # Match the existing Node 22 / Debian 12 production container's libc.
@@ -213,8 +212,24 @@ jobs:
           path: ${{ runner.temp }}/explorer.tar.gz
           retention-days: 7
 
-  deploy:
+  ci:
+    name: CAD Format Explorer checks
     needs: [checks, build]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require all verification jobs to succeed
+        env:
+          RUST_RESULT: ${{ needs.checks.result }}
+          BUILD_RESULT: ${{ needs.build.result }}
+        run: |
+          test "$RUST_RESULT" = success
+          test "$BUILD_RESULT" = success
+
+  deploy:
+    needs: [ci]
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     environment:

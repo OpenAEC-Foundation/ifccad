@@ -3,6 +3,8 @@ use ocdraw::ocdraw::*;
 use serde_json::{json, Value};
 use std::{error::Error, path::Path};
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
+#[path = "support/ifccad_consistency.rs"]
+mod consistency;
 
 fn ocdraw_overview() -> Result<OcdrawDocument> {
     let mut b = OcdrawBuilder::new(OcdrawBuildOptions::new("explorer-ocdraw-overview", "mm"))?;
@@ -237,7 +239,7 @@ fn ifccad_overview() -> Result<Value> {
     model["children"] = json!({"0":"/cad/d1/e110","1":"/cad/d1/e111","2":"/cad/d1/e112","3":"/cad/d1/e113","4":"/cad/d1/e114"});
     let sheet = all
         .iter_mut()
-        .find(|n| n["path"] == "/cad/d1/layout/42")
+        .find(|n| n["attributes"]["ifccad::layout"]["kind"] == "Paper")
         .unwrap();
     sheet["attributes"]["ifccad::layout"]["name"] = json!("A3 detail sheet");
     sheet["attributes"]["ifccad::layout"]["media"] = json!({"width":420,"height":297,"unit":"mm"});
@@ -292,7 +294,11 @@ fn ifccad_overview() -> Result<Value> {
     all.push(json!({"path":"/cad/d1/linePattern/8","attributes":{"ifccad::linePattern":{"name":"Unused reference","pattern":[]}}}));
     let layer = all
         .iter_mut()
-        .find(|n| n["path"] == "/cad/d1/layer/4")
+        .find(|n| {
+            n["attributes"]
+                .get("ifccad::layer")
+                .is_some_and(|l| l["name"] != "0")
+        })
         .unwrap();
     layer["attributes"]["ifccad::layer"]["appearance"]["linePattern"] =
         json!("/cad/d1/linePattern/7");
@@ -326,6 +332,8 @@ fn ifccad_overview() -> Result<Value> {
             next += 1;
         }
     }
+    all.iter_mut().find(|n| n["path"] == "/cad/d1").unwrap()["attributes"]["ifccad::drawing"]
+        ["nextEntityId"] = json!(next);
     Ok(d)
 }
 fn write_ifccad(root: &Path, name: &str, value: &Value) -> Result<()> {
@@ -369,7 +377,7 @@ fn write_ifccad(root: &Path, name: &str, value: &Value) -> Result<()> {
             }
         }
     }
-    let bytes = serde_json::to_vec_pretty(&value)?;
+    let bytes = consistency::normalize(&value)?;
     ocdraw::ifccad::load_ifccad_bytes(&bytes, Default::default())
         .map_err(|e| format!("{name}: {}", e.report().errors.join("; ")))?;
     std::fs::write(root.join(name), bytes)?;

@@ -33,7 +33,7 @@ fn foreign_source() -> Vec<u8> {
         .push(json!({"uri":"urn:example:foreign"}));
     source["schemas"]["example::note"] = json!({"dataType":"String"});
     let nodes = source["data"].as_array_mut().unwrap();
-    nodes.push(json!({"path":"/cad/d1/e42","attributes":{"example::note":"authored fragment"}}));
+    nodes.push(json!({"path":"/cad/d1/e1","attributes":{"example::note":"authored fragment"}}));
     nodes.push(json!({"path":"foreign","attributes":{"example::counter":9007199254740993_u64},"children":{"drawing":"/cad/d1"}}));
     serde_json::to_vec_pretty(&source).unwrap()
 }
@@ -61,13 +61,13 @@ fn source_snapshot_retains_fragments_foreign_content_and_policy() {
                 .as_array()
                 .unwrap()
                 .iter()
-                .filter(|n| n["path"] == "/cad/d1/e42")
+                .filter(|n| n["path"] == "/cad/d1/e1")
                 .count()
         };
         assert_eq!(count(&original), 2);
         assert_eq!(count(source.composed_ifcx()), 1);
         let nodes = source.composed_ifcx()["data"].as_array().unwrap();
-        let line = nodes.iter().find(|n| n["path"] == "/cad/d1/e42").unwrap();
+        let line = nodes.iter().find(|n| n["path"] == "/cad/d1/e1").unwrap();
         assert_eq!(line["attributes"]["example::note"], "authored fragment");
         let foreign = nodes.iter().find(|n| n["path"] == "foreign").unwrap();
         assert_eq!(
@@ -98,13 +98,14 @@ fn extracted_document_edits_do_not_change_source_snapshot() {
         .model
         .entities
         .iter_mut()
-        .find(|e| e.id == 42)
+        .find(|e| e.id == 1)
         .unwrap();
     let IfccadEntityKind::LineSegment { end, .. } = &mut entity.kind else {
         panic!("fixture line")
     };
     end[0] += 10.;
-    assert_eq!(document.id_counters.allocate_entity_id().unwrap(), 101);
+    let next = document.id_counters.next_entity_id;
+    assert_eq!(document.id_counters.allocate_entity_id().unwrap(), next);
     assert_ne!(document, expected);
     assert_eq!(source.composed_ifcx(), &before);
     assert_eq!(source.source_bytes(), bytes);

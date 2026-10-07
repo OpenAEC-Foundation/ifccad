@@ -17,19 +17,19 @@
       "path": "/cad/d1",
       "children": {
         "layer0": "/cad/d1/layer/0",
-        "layer4": "/cad/d1/layer/4",
+        "layer1": "/cad/d1/layer/1",
         "linePattern0": "/cad/d1/linePattern/0",
         "model": "/cad/d1/layout/1",
-        "paper42": "/cad/d1/layout/42"
+        "paper2": "/cad/d1/layout/2"
       },
       "attributes": {
         "ifccad::drawing": {
           "lengthUnit": "mm",
           "linePatternScale": 1.0,
           "nextBlockId": 1,
-          "nextEntityId": 1003,
-          "nextLayerId": 5,
-          "nextLayoutId": 43,
+          "nextEntityId": 4,
+          "nextLayerId": 2,
+          "nextLayoutId": 3,
           "nextLinePatternId": 1,
           "profileVersion": "0.1.0"
         }
@@ -46,11 +46,11 @@
       }
     },
     {
-      "path": "/cad/d1/layout/42",
+      "path": "/cad/d1/layout/2",
       "children": {
-        "0": "/cad/d1/e1000",
-        "1": "/cad/d1/e1001",
-        "2": "/cad/d1/e1002"
+        "0": "/cad/d1/e1",
+        "1": "/cad/d1/e2",
+        "2": "/cad/d1/e3"
       },
       "attributes": {
         "ifccad::layout": {
@@ -85,7 +85,7 @@
       }
     },
     {
-      "path": "/cad/d1/layer/4",
+      "path": "/cad/d1/layer/1",
       "attributes": {
         "ifccad::layer": {
           "appearance": {
@@ -99,7 +99,7 @@
       }
     },
     {
-      "path": "/cad/d1/e1000",
+      "path": "/cad/d1/e1",
       "attributes": {
         "ifccad::entity": {
           "appearance": {
@@ -134,7 +134,7 @@
       }
     },
     {
-      "path": "/cad/d1/e1001",
+      "path": "/cad/d1/e2",
       "attributes": {
         "ifccad::entity": {
           "appearance": {
@@ -164,11 +164,11 @@
             "width": 160.0
           },
           "frozenLayers": [
-            "/cad/d1/layer/4"
+            "/cad/d1/layer/1"
           ],
           "model": "/cad/d1/layout/1",
           "paperClip": {
-            "boundary": "/cad/d1/e1002",
+            "boundary": "/cad/d1/e3",
             "enabled": true
           },
           "renderMode": "Wireframe",
@@ -207,7 +207,7 @@
       }
     },
     {
-      "path": "/cad/d1/e1002",
+      "path": "/cad/d1/e3",
       "attributes": {
         "ifccad::entity": {
           "appearance": {

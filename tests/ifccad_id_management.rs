@@ -10,16 +10,36 @@ const FIELDS: [&str; 5] = [
 ];
 
 fn graph() -> Value {
-    let mut graph: Value = serde_json::from_slice(include_bytes!(
-        "../examples/ifccad/hello-paper-layouts.ifcx"
-    ))
-    .unwrap();
-    let drawing = drawing(&mut graph);
-    drawing["nextEntityId"] = json!(1000);
-    for field in &FIELDS[1..] {
-        drawing[*field] = json!(100);
+    let mut document = load_ifccad_bytes(
+        include_bytes!("../examples/ifccad/hello-paper-layouts.ifcx"),
+        Default::default(),
+    )
+    .unwrap()
+    .into_document();
+    // Keep sparse-ID/history coverage independent of the examples' compact IDs.
+    for (entity, id) in document
+        .model
+        .entities
+        .iter_mut()
+        .chain(
+            document
+                .paper_layouts
+                .iter_mut()
+                .flat_map(|p| &mut p.entities),
+        )
+        .chain(document.blocks.iter_mut().flat_map(|b| &mut b.entities))
+        .zip([42, 7, 90, 9, 91, 201, 202, 203, 100, 101, 102])
+    {
+        entity.id = id;
     }
-    graph
+    document.id_counters = IfccadIdCounters {
+        next_entity_id: 1000,
+        next_layer_id: 100,
+        next_layout_id: 100,
+        next_block_id: 100,
+        next_line_pattern_id: 100,
+    };
+    serde_json::from_slice(encode_ifccad_document(&document).unwrap().bytes()).unwrap()
 }
 
 fn drawing(graph: &mut Value) -> &mut Value {

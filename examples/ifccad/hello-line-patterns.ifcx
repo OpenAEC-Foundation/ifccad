@@ -20,21 +20,21 @@
         "layer0": "/cad/d1/layer/0",
         "layer1": "/cad/d1/layer/1",
         "layer2": "/cad/d1/layer/2",
-        "model": "/cad/d1/layout/1",
         "linePattern0": "/cad/d1/linePattern/0",
-        "linePattern7": "/cad/d1/linePattern/7",
-        "linePattern8": "/cad/d1/linePattern/8"
+        "linePattern1": "/cad/d1/linePattern/1",
+        "linePattern2": "/cad/d1/linePattern/2",
+        "model": "/cad/d1/layout/1"
       },
       "attributes": {
         "ifccad::drawing": {
           "lengthUnit": "cm",
-          "profileVersion": "0.1.0",
           "linePatternScale": 2.0,
-          "nextEntityId": 101,
+          "nextBlockId": 2,
+          "nextEntityId": 7,
           "nextLayerId": 3,
           "nextLayoutId": 2,
-          "nextBlockId": 2,
-          "nextLinePatternId": 9
+          "nextLinePatternId": 3,
+          "profileVersion": "0.1.0"
         }
       }
     },
@@ -48,11 +48,11 @@
       }
     },
     {
-      "path": "/cad/d1/linePattern/7",
+      "path": "/cad/d1/linePattern/1",
       "attributes": {
         "ifccad::linePattern": {
-          "name": "DashDot",
           "description": "Fractional stroke, gap and dot",
+          "name": "DashDot",
           "pattern": [
             0.5,
             -0.25,
@@ -63,7 +63,7 @@
       }
     },
     {
-      "path": "/cad/d1/linePattern/8",
+      "path": "/cad/d1/linePattern/2",
       "attributes": {
         "ifccad::linePattern": {
           "name": "UnusedSolid",
@@ -74,11 +74,11 @@
     {
       "path": "/cad/d1/layout/1",
       "children": {
-        "0": "/cad/d1/e42",
-        "1": "/cad/d1/e7",
-        "2": "/cad/d1/e90",
-        "3": "/cad/d1/e9",
-        "4": "/cad/d1/e91"
+        "0": "/cad/d1/e1",
+        "1": "/cad/d1/e2",
+        "2": "/cad/d1/e3",
+        "3": "/cad/d1/e4",
+        "4": "/cad/d1/e5"
       },
       "attributes": {
         "ifccad::layout": {
@@ -107,7 +107,7 @@
         "ifccad::layer": {
           "appearance": {
             "color": "#00ff00",
-            "linePattern": "/cad/d1/linePattern/7",
+            "linePattern": "/cad/d1/linePattern/1",
             "lineWeight": 0.25,
             "opacity": 0.8
           },
@@ -132,7 +132,7 @@
     {
       "path": "/cad/d1/block/1",
       "children": {
-        "0": "/cad/d1/e100"
+        "0": "/cad/d1/e6"
       },
       "attributes": {
         "ifccad::blockDefinition": {
@@ -147,7 +147,7 @@
       }
     },
     {
-      "path": "/cad/d1/e42",
+      "path": "/cad/d1/e1",
       "attributes": {
         "ifccad::entity": {
           "appearance": {
@@ -156,7 +156,7 @@
             },
             "linePattern": {
               "mode": "Explicit",
-              "value": "/cad/d1/linePattern/7"
+              "value": "/cad/d1/linePattern/1"
             },
             "lineWeight": {
               "mode": "ByLayer"
@@ -183,7 +183,7 @@
       }
     },
     {
-      "path": "/cad/d1/e7",
+      "path": "/cad/d1/e2",
       "attributes": {
         "ifccad::entity": {
           "appearance": {
@@ -221,6 +221,7 @@
         },
         "ifccad::geom::planarPolyline": {
           "closed": false,
+          "linePatternGeneration": "continuous",
           "vertices": [
             [
               0.0,
@@ -234,13 +235,12 @@
               2.0,
               3.0
             ]
-          ],
-          "linePatternGeneration": "continuous"
+          ]
         }
       }
     },
     {
-      "path": "/cad/d1/e90",
+      "path": "/cad/d1/e3",
       "attributes": {
         "ifccad::blockInstance": {
           "definition": "/cad/d1/block/1",
@@ -291,7 +291,7 @@
       }
     },
     {
-      "path": "/cad/d1/e9",
+      "path": "/cad/d1/e4",
       "attributes": {
         "ifccad::entity": {
           "appearance": {
@@ -333,7 +333,7 @@
       }
     },
     {
-      "path": "/cad/d1/e91",
+      "path": "/cad/d1/e5",
       "attributes": {
         "ifccad::blockInstance": {
           "definition": "/cad/d1/block/1",
@@ -384,7 +384,7 @@
       }
     },
     {
-      "path": "/cad/d1/e100",
+      "path": "/cad/d1/e6",
       "attributes": {
         "ifccad::entity": {
           "appearance": {
