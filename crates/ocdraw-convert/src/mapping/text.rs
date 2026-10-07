@@ -41,11 +41,23 @@ pub(crate) fn from_styles(
         handles: BTreeMap::new(),
     };
     let mut seen_handles = std::collections::BTreeSet::new();
+    let mut shape_names = std::collections::BTreeSet::new();
     for style in source.text_styles.iter() {
         if style.handle != Handle::NULL && !seen_handles.insert(style.handle) {
             return Err(OcdrawBuildError::Invalid("duplicate CAD text style handle".into()).into());
         }
         let key = style.name.to_lowercase();
+        if style.is_shape_file {
+            skipped(
+                CadToOcdrawDiagnosticSource::Table {
+                    kind: format!("text_styles/shape/{}", style.handle),
+                },
+                cad_text::CadTextError::Unsupported("shape-file style role").to_string(),
+                diagnostics,
+            );
+            shape_names.insert(key);
+            continue;
+        }
         if map.names.contains_key(&key) {
             return Err(
                 OcdrawBuildError::Invalid("duplicate CAD text style lookup name".into()).into(),
@@ -85,6 +97,11 @@ pub(crate) fn from_styles(
                 );
             }
         }
+    }
+    // Shape resources may share names (including an empty name). Retain an
+    // unsupported target only when no ordinary font style defines that name.
+    for name in shape_names {
+        map.names.entry(name).or_insert(None);
     }
     Ok(map)
 }
