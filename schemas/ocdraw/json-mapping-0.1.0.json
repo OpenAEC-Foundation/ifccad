@@ -1724,6 +1724,97 @@
           "nullEncoding": "logicalDefault"
         }
       ]
+    },
+    {
+      "name": "hatch",
+      "payload": "streams.hatchStream",
+      "fields": [
+        {
+          "logical": "hatch.entityId",
+          "payload": "entityId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "hatch.placement",
+          "payload": "placement",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "hatch.layerId",
+          "payload": "layerId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "hatch.colorMode",
+          "payload": "colorMode",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "hatch.color",
+          "payload": "color",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "hatch.opacityMode",
+          "payload": "opacityMode",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "hatch.opacity",
+          "payload": "opacity",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "hatch.linePatternMode",
+          "payload": "linePatternMode",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "hatch.linePatternId",
+          "payload": "linePatternId",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "hatch.lineWeightMode",
+          "payload": "lineWeightMode",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "hatch.lineWeight",
+          "payload": "lineWeight",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "hatch.visible",
+          "payload": "visible",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "hatch.linePatternScale",
+          "payload": "linePatternScale",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "hatch.areaRule",
+          "payload": "areaRule",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "hatch.joinTolerance",
+          "payload": "joinTolerance",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "hatch.loops",
+          "payload": "loops",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "hatch.fill",
+          "payload": "fill",
+          "omission": "forbidden"
+        }
+      ]
     }
   ],
   "valueMappings": {

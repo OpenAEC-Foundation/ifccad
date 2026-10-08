@@ -95,3 +95,4 @@ pub(crate) fn direct_document_losses(
     coverage::scan_document_semantics(document, &mut context);
     context.diagnostics
 }
+pub(crate) mod hatch;

@@ -84,3 +84,19 @@ pub fn convert_cad_to_ifccad(name: &str, format: &str, bytes: &[u8], timestamp: 
 pub fn export_ifccad(name: &str, bytes: &[u8], format: &str, version: &str) -> String {
     viewer::export_ifccad_bytes(name, bytes, format, version).to_string()
 }
+#[cfg(test)]
+mod hatch_tests {
+    #[test]
+    fn existing_browser_open_routes_expose_hatch_inspection() {
+        assert!(super::open_drawing(
+            "hatch.ocdraw.json",
+            include_bytes!("../../../examples/ocdraw/hello-hatch-solid.ocdraw.json")
+        )
+        .contains("hatchEntityCount\":1"));
+        assert!(super::open_ifccad(
+            "hatch.ifcx",
+            include_bytes!("../../../examples/ifccad/hello-hatch-solid.ifcx")
+        )
+        .contains("hatchEntityCount\":1"));
+    }
+}

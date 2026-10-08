@@ -1,5 +1,8 @@
 mod block_validation;
+pub(crate) mod hatch;
+mod hatch_validation;
 pub(crate) use block_validation::validate_blocks;
+pub use hatch::{resolve_ocdraw_hatch_join_tolerance, DrawingHatchEntity, OcdrawHatchLoop};
 mod line_pattern;
 pub(crate) mod line_pattern_validation;
 pub use line_pattern::*;

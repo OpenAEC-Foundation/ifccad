@@ -386,3 +386,34 @@ Intrinsic view, clip, grid and snap rules are shared with OCDraw through the
 runtime-independent workspace kernel. Unknown fields/variants, foreign references,
 nonfinite scalars, invalid activation consistency and counter exhaustion remain
 errors. IFCX composition retains its established whole-attribute semantics.
+
+## Solid Hatch
+
+An ordinary entity may have ifccad::hatch plus the required shared placement.
+The body stores loops, areaRule (normal/outer/ignore), joinTolerance and fill.
+Only fill kind solid is available in this slice. Nested boundary kinds are
+closed polyline, full circle/ellipse and ordered line/circularArc/ellipticArc
+edges, in local XY numeric arrays. Variant fields are closed and checked by
+the profile; IFCX Object/Array descriptions alone do not express those unions.
+
+joinTolerance defaults to the binary64 value of 1e-9 in local coordinates.
+Every ordered edge join, including closing join, requires a proof within that
+stored limit. Exact zero, proven exceedance and insufficient numerical proof
+remain distinct. IO does not snap, normalize, triangulate or regenerate bounds.
+
+One loop may store source as a canonical complete same-drawing entity path.
+The target must be a full Circle/Ellipse or closed planar Polyline in the
+same owner. References do not certify current agreement between source and
+stored contour. Invalid references fail; explicit detach keeps the contour.
+
+The complete ifccad::hatch value is replaced by a later fragment, including
+its loops array. Nested keys are ordinary typed values, not independent nodes
+or attribute maps. Unknown/inactive fields, null optional references and
+unavailable fill variants fail. Native-placement is the qualified baseline;
+the separate xformop experiment does not automatically gain Hatch support.
+
+All stored contour geometry contributes conservative enclosure evidence,
+without nesting or intersection classification. Optional scopebounds remain
+optional; supplied boxes require enclosure. Full intersection audit, pattern
+fill, gradients, spline boundaries and runtime association updates are
+separate capabilities.

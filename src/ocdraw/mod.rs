@@ -35,6 +35,7 @@ pub use logical::OcdrawDocument;
 pub use logical::{
     assess_ocdraw_document_bounds, OcdrawBoundsQuality, OcdrawScopeBoundsAssessment,
 };
+pub use logical::{resolve_ocdraw_hatch_join_tolerance, DrawingHatchEntity, OcdrawHatchLoop};
 pub use logical::{validate_ocdraw_document, OcdrawValidationError};
 pub use logical::{DrawingMTextEntity, DrawingTextEntity, DrawingTextStyle, OcdrawTextStyleId};
 pub use logical::{
@@ -46,6 +47,7 @@ pub use logical::{
     OcdrawPreservationTarget,
 };
 mod build;
+pub use build::HatchEntityDefinition;
 mod encode;
 pub(crate) mod names;
 mod plot;

@@ -10,6 +10,7 @@ use crate::ocdraw::{PlotStyleMode, PointDisplay};
 #[derive(Clone, Debug)]
 /// Complete encoding-independent drawing content. Validate after editing.
 pub struct OcdrawDocument {
+    pub hatch_entities: Vec<super::DrawingHatchEntity>,
     pub text_styles: Vec<super::DrawingTextStyle>,
     pub text_entities: Vec<super::DrawingTextEntity>,
     pub mtext_entities: Vec<super::DrawingMTextEntity>,

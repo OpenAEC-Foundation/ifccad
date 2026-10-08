@@ -3,6 +3,8 @@ mod allocation;
 mod bounds;
 mod document_validation;
 mod geometry;
+mod hatch;
+pub use hatch::{resolve_ifccad_hatch_join_tolerance, IfccadHatch, IfccadHatchLoop};
 mod model;
 mod text;
 pub use text::{IfccadMText, IfccadText, IfccadTextStyle, IfccadTextStyleId};

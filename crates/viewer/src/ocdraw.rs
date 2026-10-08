@@ -365,6 +365,7 @@ fn present(output: &mut Value, outcome: Result<ValidatedOcdraw, OcdrawReadError>
         let value = drawing.as_value();
         output["presentation"] = json!({
             "format":"ocdraw",
+            "hatchEntityCount":drawing.hatch_entities().len(),
             "entities":crate::inspection::entities(drawing),
             "drawingId": drawing.drawing_id(),
             "unit": value["header"]["unit"],

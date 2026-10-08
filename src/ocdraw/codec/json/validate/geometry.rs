@@ -7,6 +7,7 @@ pub(super) fn validate_placed_geometry(value: &Value, diagnostics: &mut Vec<Ocdr
         "pointStream",
         "textStream",
         "mTextStream",
+        "hatchStream",
         "circleStream",
         "arcStream",
         "ellipseStream",

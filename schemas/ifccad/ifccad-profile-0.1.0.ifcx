@@ -2984,6 +2984,229 @@
           }
         }
       }
+    },
+    "ifccad::hatch": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "loops": {
+              "dataType": "Array",
+              "arrayRestrictions": {
+                "min": 1,
+                "value": {
+                  "dataType": "Object",
+                  "objectRestrictions": {
+                    "values": {
+                      "boundary": {
+                        "dataType": "Object",
+                        "objectRestrictions": {
+                          "values": {
+                            "kind": {
+                              "dataType": "Enum",
+                              "enumRestrictions": {
+                                "options": [
+                                  "polyline",
+                                  "circle",
+                                  "ellipse",
+                                  "edges"
+                                ]
+                              }
+                            },
+                            "vertices": {
+                              "dataType": "Array",
+                              "arrayRestrictions": {
+                                "min": 2,
+                                "value": {
+                                  "dataType": "Array",
+                                  "arrayRestrictions": {
+                                    "min": 2,
+                                    "max": 2,
+                                    "value": {
+                                      "dataType": "Real"
+                                    }
+                                  }
+                                }
+                              },
+                              "optional": true
+                            },
+                            "bulges": {
+                              "dataType": "Array",
+                              "arrayRestrictions": {
+                                "min": 2,
+                                "value": {
+                                  "dataType": "Real"
+                                }
+                              },
+                              "optional": true
+                            },
+                            "edges": {
+                              "dataType": "Array",
+                              "arrayRestrictions": {
+                                "min": 1,
+                                "value": {
+                                  "dataType": "Object",
+                                  "objectRestrictions": {
+                                    "values": {
+                                      "kind": {
+                                        "dataType": "Enum",
+                                        "enumRestrictions": {
+                                          "options": [
+                                            "line",
+                                            "circularArc",
+                                            "ellipticArc"
+                                          ]
+                                        }
+                                      },
+                                      "start": {
+                                        "dataType": "Array",
+                                        "arrayRestrictions": {
+                                          "min": 2,
+                                          "max": 2,
+                                          "value": {
+                                            "dataType": "Real"
+                                          }
+                                        },
+                                        "optional": true
+                                      },
+                                      "end": {
+                                        "dataType": "Array",
+                                        "arrayRestrictions": {
+                                          "min": 2,
+                                          "max": 2,
+                                          "value": {
+                                            "dataType": "Real"
+                                          }
+                                        },
+                                        "optional": true
+                                      },
+                                      "center": {
+                                        "dataType": "Array",
+                                        "arrayRestrictions": {
+                                          "min": 2,
+                                          "max": 2,
+                                          "value": {
+                                            "dataType": "Real"
+                                          }
+                                        },
+                                        "optional": true
+                                      },
+                                      "xAxis": {
+                                        "dataType": "Array",
+                                        "arrayRestrictions": {
+                                          "min": 2,
+                                          "max": 2,
+                                          "value": {
+                                            "dataType": "Real"
+                                          }
+                                        },
+                                        "optional": true
+                                      },
+                                      "radius": {
+                                        "dataType": "Real",
+                                        "optional": true
+                                      },
+                                      "semiMajorRadius": {
+                                        "dataType": "Real",
+                                        "optional": true
+                                      },
+                                      "semiMinorRadius": {
+                                        "dataType": "Real",
+                                        "optional": true
+                                      },
+                                      "startParameter": {
+                                        "dataType": "Real",
+                                        "optional": true
+                                      },
+                                      "sweepParameter": {
+                                        "dataType": "Real",
+                                        "optional": true
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "optional": true
+                            },
+                            "center": {
+                              "dataType": "Array",
+                              "arrayRestrictions": {
+                                "min": 2,
+                                "max": 2,
+                                "value": {
+                                  "dataType": "Real"
+                                }
+                              },
+                              "optional": true
+                            },
+                            "xAxis": {
+                              "dataType": "Array",
+                              "arrayRestrictions": {
+                                "min": 2,
+                                "max": 2,
+                                "value": {
+                                  "dataType": "Real"
+                                }
+                              },
+                              "optional": true
+                            },
+                            "radius": {
+                              "dataType": "Real",
+                              "optional": true
+                            },
+                            "semiMajorRadius": {
+                              "dataType": "Real",
+                              "optional": true
+                            },
+                            "semiMinorRadius": {
+                              "dataType": "Real",
+                              "optional": true
+                            }
+                          }
+                        }
+                      },
+                      "source": {
+                        "dataType": "Reference",
+                        "optional": true
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "areaRule": {
+              "dataType": "Enum",
+              "optional": true,
+              "enumRestrictions": {
+                "options": [
+                  "normal",
+                  "outer",
+                  "ignore"
+                ]
+              }
+            },
+            "joinTolerance": {
+              "dataType": "Real",
+              "optional": true
+            },
+            "fill": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "kind": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "solid"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "data": []

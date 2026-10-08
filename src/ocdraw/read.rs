@@ -33,6 +33,9 @@ pub struct ValidatedOcdraw {
 }
 
 impl ValidatedOcdraw {
+    pub fn hatch_entities(&self) -> &[super::DrawingHatchEntity] {
+        &self.document.hatch_entities
+    }
     /// Borrows validated logical content without exposing mutable access.
     pub fn document(&self) -> &OcdrawDocument {
         &self.document
@@ -272,6 +275,11 @@ pub fn load_ocdraw_bytes(bytes: &[u8]) -> Result<ValidatedOcdraw, OcdrawReadErro
     };
     let (drawing_id, unit, plot_style_mode) = encoding.header();
     let document = OcdrawDocument {
+        hatch_entities: super::codec::json::decode_hatch(value).map_err(|d| {
+            OcdrawReadError::Invalid {
+                diagnostics: vec![d],
+            }
+        })?,
         text_styles: super::codec::json::decode_text_styles(value).map_err(|d| {
             OcdrawReadError::Invalid {
                 diagnostics: vec![d],

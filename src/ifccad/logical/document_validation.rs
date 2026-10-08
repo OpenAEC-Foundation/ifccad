@@ -124,6 +124,7 @@ pub(super) fn validate_document(
         }
         crate::ifccad::logical::patterns::scale(entity.line_pattern_scale, &path)?;
         match &entity.kind {
+            IfccadEntityKind::Hatch(h) => super::hatch::validate_hatch(h, &path)?,
             IfccadEntityKind::Text(_) | IfccadEntityKind::MText(_) => {
                 super::text::validate_entity(document, &entity.kind, &path)?
             }
@@ -167,6 +168,7 @@ pub(super) fn validate_document(
     }
     super::preservation_validation::validate_preservation(document)?;
     super::viewports::validate_references(document)?;
+    super::hatch::validate_hatch_sources(document)?;
     if cycle(&document.blocks) {
         return Err(problem("block definition cycle"));
     }

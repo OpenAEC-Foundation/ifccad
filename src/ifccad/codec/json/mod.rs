@@ -1,6 +1,8 @@
 use crate::ifccad::*;
 mod encode;
 mod geometry;
+mod hatch;
+mod hatch_values;
 mod text;
 mod text_layout;
 mod text_values;

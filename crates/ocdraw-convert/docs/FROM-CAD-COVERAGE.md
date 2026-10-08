@@ -155,7 +155,7 @@ were natively represented.
 | `Block`, `BlockEnd` | NonSemantic/FatalIfInconsistent/SkippedLoss | Matching structural markers supply record scaffolding, not drawable entities. Contradictory exposed begin-marker name/owner/base is fatal; unmatched markers are unsupported entities. |
 | `Text` | Exact/PartialLoss/SkippedLoss/FatalIfInconsistent | Supported literal Unicode/decorations and all four closed layouts use active OCS anchors, rotation/mirrors, shear and signed thickness. Qualified numeric anchor/baseline preparation uses hard tolerance; font glyphs are unassessed. Unsupported markup/fields/style contexts skip the whole entity; malformed active geometry fails. |
 | `MText` | Exact/PartialLoss/SkippedLoss/FatalIfInconsistent | Qualified WCS placement/direction, attachment/flow/wrap, typed paragraphs/inlines/stacks, explicit column states and opaque background profile. Dynamic manual columns use an Auto final entry: its finite stored height is cache/sentinel metadata (negative DWG, zero DXF or positive); earlier heights remain positive fixed distances and count/list agreement is checked. Source character-basis normalization, spacing dependencies and inactive state are diagnosed. Unsupported active formatting/annotation/column/background profiles skip the whole entity. No font-layout certificate or silent plain-text fallback. |
-| `Helix`, `Dimension`, `Hatch`, `Solid`, `Face3D`, `Ray`, `XLine`, `AttributeDefinition`, `AttributeEntity`, `Leader`, `MultiLeader`, `MLine`, `Mesh`, `RasterImage`, `Solid3D`, `Region`, `Body`, `Surface`, `Table`, `Tolerance`, `PolyfaceMesh`, `Wipeout`, `Shape`, `Underlay`, `Seqend`, `Ole2Frame`, `PolygonMesh`, `Light`, `SectionSymbol`, `ViewBorder`, `Extended`, `Unknown` | SkippedLoss | Whole entity receives `UnsupportedEntityType`; no geometry is approximated. |
+| `Helix`, `Dimension`, `Solid`, `Face3D`, `Ray`, `XLine`, `AttributeDefinition`, `AttributeEntity`, `Leader`, `MultiLeader`, `MLine`, `Mesh`, `RasterImage`, `Solid3D`, `Region`, `Body`, `Surface`, `Table`, `Tolerance`, `PolyfaceMesh`, `Wipeout`, `Shape`, `Underlay`, `Seqend`, `Ole2Frame`, `PolygonMesh`, `Light`, `SectionSymbol`, `ViewBorder`, `Extended`, `Unknown` | SkippedLoss | Whole entity receives `UnsupportedEntityType`; no geometry is approximated. |
 | Model, paper, or supported definition ownership | Exact/FatalIfInconsistent | Per-owner explicit entity-handle order is retained; known-owner contents must occur exactly once with consistent membership. |
 | `Spline` | CapturedTyped (opt-in) / SkippedLoss (disabled) / FatalIfInconsistent | SupportedTyped captures every interpreted parameter/common variant before native representation/restoration assessment; Model/Paper/local definitions retain live opaque owner/order, valid unsupported owners retain detached source/order provenance with placement loss. No native NURBS profile or guessed bounds. |
 | Unsupported block owner | SkippedLoss | `BlockOwnedEntity`. |
@@ -318,3 +318,23 @@ UCS definitions, Model windows, canvas frame/grid/snap/UCS and authored Paper vi
 A uniquely available active Model window may be selected; multiple unqualified windows survive with unspecified activation. Paper current viewport/UCS association remains unavailable on the codec surface. Model/Paper mode and the active Paper tab are retained through the unique reserved *Paper_Space block and its consistent LAYOUT association, including multiple sheets. Export synchronizes BLOCK_RECORD names, existing BLOCK begin names and the reserved header handle together; setting the header cache alone does not change the active role. Unknown choices remain omitted with located loss. Skipped viewports receive no workspace references.
 
 Dot grid style and frequencies beyond CAD i16 receive field-specific substitutions. VIEWPORT grid beyond-limits/adaptive/subdivision/follow-workplane flags stay in CadDocument but its pinned DXF/DWG routes do not retain them; target diagnostics identify each nondefault field and Reject refuses that portability loss. Model VPORT grid flags survive both routes. Unrepresented display/icon/base/orthographic/plot/visual state remains diagnosed. Numeric and structural failures remain fatal under both policies.
+
+## Solid Hatch field coverage
+
+| Field/state | Classification and native result |
+| --- | --- |
+| elevation/normal, all stored supported paths | Contour conversion assessed against the actual CAD OCS, including nested occurrences; finite/parameter/join failures are hard errors |
+| is_solid/style | Solid plus exact normal/outer/ignore; pattern, active gradient and MPOLYGON omit the whole Hatch with SkippedLoss/Omitted |
+| line/circular/elliptic edges, closed straight/bulged polyline | Every loop retained; exact full-turn qualification, signed sweeps, no snapping/tessellation; spline/open/mixed-polyline backing unsupported |
+| is_associative/boundary_handles | Single eligible same-owner closed source per loop, bound after IDs exist; inactive/multiple/skipped/wrong-owner relations get PartialLoss/Omitted with the complete contour retained |
+| path flags | POLYLINE is backing; EXTERNAL/DERIVED/OUTERMOST omitted as located hints; other/unknown active flags omit whole Hatch |
+| pattern name/description/lines/type/angle/scale/double | Inactive nondefault Solid editing state diagnosed, not silently consumed |
+| disabled gradient, seed points/pixel size, inactive MPOLYGON fields | Located editing/construction-state loss when nondefault |
+| common attachments/context | AcadAnnotative markers and non-null extension dictionaries require separate qualification and omit whole Hatch; other common metadata uses existing format-specific audit; no opaque Hatch preservation |
+
+Producer join requests use local units or a known physical mapping with explicit
+fallback policy. They do not change the hard conversion accuracy budget.
+Actual AC1032 DXF/DWG tests qualify stored contour/area/reference data, including
+hole-first ordering, multiple regions, tilted planes and nonuniform blocks.
+Fill evaluation and interactive reactor updates remain unassessed; this is not
+a rendered-pixel guarantee. See [Hatch support](../../../docs/hatch.md).

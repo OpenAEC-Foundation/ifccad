@@ -2398,6 +2398,204 @@
           "nullable": false
         }
       ]
+    },
+    "hatchAreaRule": {
+      "kind": "enum",
+      "values": [
+        "normal",
+        "outer",
+        "ignore"
+      ]
+    },
+    "hatchBoundaryKind": {
+      "kind": "enum",
+      "values": [
+        "polyline",
+        "circle",
+        "ellipse",
+        "edges"
+      ]
+    },
+    "hatchEdgeKind": {
+      "kind": "enum",
+      "values": [
+        "line",
+        "circularArc",
+        "ellipticArc"
+      ]
+    },
+    "hatchFillKind": {
+      "kind": "enum",
+      "values": [
+        "solid"
+      ]
+    },
+    "hatchBulges": {
+      "kind": "sequence",
+      "items": "float64",
+      "minItems": 0
+    },
+    "hatchEdges": {
+      "kind": "sequence",
+      "items": "hatchEdge",
+      "minItems": 1
+    },
+    "hatchEdge": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "hatchEdgeKind",
+          "nullable": false
+        },
+        {
+          "name": "start",
+          "valueType": "point2",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "end",
+          "valueType": "point2",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "center",
+          "valueType": "point2",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "xAxis",
+          "valueType": "point2",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "radius",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "semiMajorRadius",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "semiMinorRadius",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "startParameter",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "sweepParameter",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "hatchBoundary": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "hatchBoundaryKind",
+          "nullable": false
+        },
+        {
+          "name": "vertices",
+          "valueType": "vertices",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "bulges",
+          "valueType": "hatchBulges",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "edges",
+          "valueType": "hatchEdges",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "center",
+          "valueType": "point2",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "xAxis",
+          "valueType": "point2",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "radius",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "semiMajorRadius",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "semiMinorRadius",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "hatchLoop": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "boundary",
+          "valueType": "hatchBoundary",
+          "nullable": false
+        },
+        {
+          "name": "sourceEntityId",
+          "valueType": "entityId",
+          "nullable": false,
+          "optional": true,
+          "reference": {
+            "category": "entity",
+            "target": "entity"
+          }
+        }
+      ]
+    },
+    "hatchLoops": {
+      "kind": "sequence",
+      "items": "hatchLoop",
+      "minItems": 1
+    },
+    "hatchFill": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "hatchFillKind",
+          "nullable": false
+        }
+      ]
     }
   },
   "resource": {
@@ -4620,6 +4818,122 @@
           "valueType": "mTextBackground",
           "nullable": false,
           "optional": true
+        }
+      ]
+    },
+    {
+      "name": "hatch",
+      "schemaId": "ocdraw.hatch.v1",
+      "role": "object",
+      "fields": [
+        {
+          "name": "entityId",
+          "valueType": "entityId",
+          "nullable": false,
+          "reference": {
+            "category": "entity",
+            "target": "entity"
+          }
+        },
+        {
+          "name": "placement",
+          "valueType": "coordinateFrame3",
+          "nullable": false
+        },
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "layer.id"
+          }
+        },
+        {
+          "name": "colorMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "color",
+          "valueType": "color",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "opacityMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "opacity",
+          "valueType": "opacity",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "linePatternMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "linePatternId",
+          "valueType": "uint32",
+          "nullable": false,
+          "optional": true,
+          "reference": {
+            "category": "tableField",
+            "target": "linePattern.id"
+          }
+        },
+        {
+          "name": "lineWeightMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "lineWeight",
+          "valueType": "lineWeight",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "visible",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": true
+        },
+        {
+          "name": "linePatternScale",
+          "valueType": "float64",
+          "nullable": false,
+          "default": 1
+        },
+        {
+          "name": "areaRule",
+          "valueType": "hatchAreaRule",
+          "nullable": false,
+          "default": "normal"
+        },
+        {
+          "name": "joinTolerance",
+          "valueType": "float64",
+          "nullable": false,
+          "default": 1e-09
+        },
+        {
+          "name": "loops",
+          "valueType": "hatchLoops",
+          "nullable": false
+        },
+        {
+          "name": "fill",
+          "valueType": "hatchFill",
+          "nullable": false
         }
       ]
     }

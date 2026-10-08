@@ -50,6 +50,11 @@ pub(crate) fn project_validation_model(
                 .map(|e| (e.id, e.layer_id, &e.appearance, None)),
         )
         .chain(
+            doc.hatch_entities
+                .iter()
+                .map(|e| (e.id, e.layer_id, &e.appearance, None)),
+        )
+        .chain(
             doc.text_entities
                 .iter()
                 .map(|e| (e.id, e.layer_id, &e.appearance, None)),

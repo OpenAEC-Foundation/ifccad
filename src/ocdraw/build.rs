@@ -1,9 +1,11 @@
+mod hatch;
 mod preservation;
 mod state;
 mod text;
 use super::logical::{DrawingColor, DrawingEntityRecord, EntityAppearance, EntityGeometry};
 use super::EncodedOcdraw;
 use super::{LayoutSettings, PointDisplay, UcsDefinition};
+pub use hatch::HatchEntityDefinition;
 pub use preservation::OpaqueEntityDefinition;
 pub use state::{DrawingSavedState, ViewportDefinition};
 pub use text::{MTextEntityDefinition, TextEntityDefinition, TextStyleDefinition};
@@ -406,6 +408,7 @@ pub enum OcdrawBuildError {
 }
 
 pub struct OcdrawBuilder {
+    pub(crate) hatch_entities: Vec<super::DrawingHatchEntity>,
     pub(crate) text_styles: Vec<super::DrawingTextStyle>,
     pub(crate) text_entities: Vec<super::DrawingTextEntity>,
     pub(crate) mtext_entities: Vec<super::DrawingMTextEntity>,
@@ -440,6 +443,7 @@ impl OcdrawBuilder {
             ));
         }
         Ok(Self {
+            hatch_entities: Vec::new(),
             text_styles: Vec::new(),
             text_entities: Vec::new(),
             mtext_entities: Vec::new(),
@@ -1032,6 +1036,7 @@ impl OcdrawBuilder {
             ));
         }
         let mut doc = OcdrawDocument {
+            hatch_entities: self.hatch_entities,
             text_styles: self.text_styles,
             text_entities: self.text_entities,
             mtext_entities: self.mtext_entities,

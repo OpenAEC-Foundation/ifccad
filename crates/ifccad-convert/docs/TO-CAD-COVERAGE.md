@@ -278,3 +278,20 @@ UCS definitions, Model windows, canvas frame/grid/snap/UCS and authored Paper vi
 A uniquely available active Model window may be selected; multiple unqualified windows survive with unspecified activation. Paper current viewport/UCS association remains unavailable on the codec surface. Model/Paper mode and the active Paper tab are retained through the unique reserved *Paper_Space block and its consistent LAYOUT association, including multiple sheets. Export synchronizes BLOCK_RECORD names, existing BLOCK begin names and the reserved header handle together; setting the header cache alone does not change the active role. Unknown choices remain omitted with located loss. Skipped viewports receive no workspace references.
 
 Dot grid style and frequencies beyond CAD i16 receive field-specific substitutions. VIEWPORT grid beyond-limits/adaptive/subdivision/follow-workplane flags stay in CadDocument but its pinned DXF/DWG routes do not retain them; target diagnostics identify each nondefault field and Reject refuses that portability loss. Model VPORT grid flags survive both routes. Unrepresented display/icon/base/orthographic/plot/visual state remains diagnosed. Numeric and structural failures remain fatal under both policies.
+
+## Solid Hatch
+
+Stored local contours become CAD OCS paths with the exact native area-rule mode.
+Curve/point evidence participates in hard numerical and nested occurrence
+assessment. Forward source references bind only after target handles exist;
+no contour regeneration or source-geometry equality check is performed.
+Missing converted targets detach only the relation with located loss. Invalid
+native references fail shared core validation under Allow and Reject.
+
+CAD does not persist authored native join policy: a nondefault limit produces
+located rejectable loss. Default/polyline path flags do not assert outer/hole
+labels. Actual AC1032 DXF/DWG tests qualify contour/order/reference retention,
+including small stored gaps; they do not certify CAD fill evaluation or reactor
+update behavior. Fill and nested fill occurrences remain unassessed. No pattern,
+gradient, spline-boundary or MPOLYGON backing is offered by this slice.
+See [Hatch support](../../../docs/hatch.md) for the complete bounded guarantee.

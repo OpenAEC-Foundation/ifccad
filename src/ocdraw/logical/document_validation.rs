@@ -60,6 +60,10 @@ pub(crate) fn validate_logical_document(
         return errors;
     }
     errors.extend(validate_state(doc));
+    errors.extend(super::hatch_validation::validate_hatch_parts(doc, phase));
+    if !errors.is_empty() {
+        return errors;
+    }
     if phase == ValidationPhase::Complete {
         if let Err(error) = super::bounds_preparation::evaluate_document_bounds(doc) {
             return error

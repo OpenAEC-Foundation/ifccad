@@ -474,3 +474,42 @@ Physical frame stroke must resolve in the owning coordinate domain; medium size
 alone is not a Paper scale, and unresolved stroke produces partial coverage.
 All derived numeric operations must stay finite; unknown extents do not suppress
 numeric checks on neighboring primitives, text or block occurrences.
+
+## Solid Hatch
+
+A Hatch is an ordinary entity with its own stable ID, appearance, ownership and
+draw order. One placement defines its local XY plane. It stores nonempty loops,
+areaRule (normal/outer/ignore), joinTolerance and a typed fill. This active slice
+supports only fill kind solid.
+
+Boundary kinds are closed polyline, full circle, full ellipse and ordered
+line/circularArc/ellipticArc edges. In hatchStream nested values, XY coordinates
+are two-element numeric arrays. Outgoing bulges include the closing segment;
+missing bulges mean zero, while supplied bulges match the vertex count.
+Ellipses retain positive major/minor radii and a checked local X-axis; Y is its
+CCW perpendicular. Stored curve parameters are not normalized or tessellated.
+
+joinTolerance defaults to the binary64 value of 1e-9 in local coordinate units.
+Every ordered edge join, including last-to-first, must be proven within the
+stored limit. Zero requires exact agreement. Proven exceedance and incomplete
+numerical evidence are distinct failures. Native IO does not snap geometry.
+
+Normal alternates filled/excluded nested regions; Outer keeps the outer band;
+Ignore does not subtract inner loops. Base validation does not prove
+simplicity, absence of intersections, nesting or filled-area evaluability.
+Evaluation remains a viewer/editor responsibility; no generated fill cache
+or topology-valid flag is stored.
+
+A loop may reference one exact sourceEntityId: a full Circle/Ellipse or closed
+planar Polyline in the same owner. Missing, wrong-kind and wrong-owner sources
+fail. IO does not update stored boundaries from sources. Explicit detach keeps
+the boundary. Block-occurrence selectors and update reactors are separate work.
+
+One hatchStream has ordinary common and placement columns, optional whole
+areaRule/joinTolerance columns with defaults, and typed nested loops/fill.
+All supplied columns match count. Unknown nested fields, null source references,
+floating-point IDs and unavailable fill variants are invalid.
+
+Stored contours contribute certified conservative bounds without nesting
+classification. Preparation remains explicit and atomic. Pattern fills,
+gradients, splines and CAD-route qualification are separate development work.

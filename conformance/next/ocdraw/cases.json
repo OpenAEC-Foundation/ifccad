@@ -382,6 +382,30 @@
     {
       "path": "invalid/workspace-zero-frame.ocdraw.json",
       "status": "invalid"
+    },
+    {
+      "path": "valid/hatch-solid.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "invalid/hatch-missing-source.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/hatch-unknown-boundary-field.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/hatch-unavailable-fill.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/hatch-negative-join-tolerance.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/hatch-column-length.ocdraw.json",
+      "status": "invalid"
     }
   ]
 }

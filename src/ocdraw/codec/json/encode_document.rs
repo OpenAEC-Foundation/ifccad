@@ -90,6 +90,9 @@ pub(crate) fn encode_ocdraw_document(doc: &OcdrawDocument) -> Value {
     if let Some(preservation) = &doc.preservation {
         value["preservation"] = super::encode_preservation(preservation);
     }
+    if !doc.hatch_entities.is_empty() {
+        value["streams"]["hatchStream"] = super::encode_hatch(&doc.hatch_entities);
+    }
     if !doc.text_styles.is_empty() {
         value["textStyles"] = super::encode_text_styles(&doc.text_styles);
     }

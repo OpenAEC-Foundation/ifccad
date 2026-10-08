@@ -4,6 +4,9 @@ use opencadcodec::{CadDocument, EntityType, Handle};
 use std::collections::{BTreeMap, BTreeSet};
 
 pub(super) struct SourceScope<'a> {
+    pub unit: &'a str,
+    pub paper: Option<Option<&'a ocdraw::plot_kernel::PlotSettings>>,
+    pub hatch_tolerance: ocdraw::geometry_kernel::hatch::HatchJoinToleranceRequest,
     pub document: &'a CadDocument,
     pub patterns: &'a crate::mapping::line_pattern::SourcePatterns,
     pub entities: &'a [Handle],
@@ -17,6 +20,9 @@ pub(super) fn from_cad(
     geometry: &mut crate::geometry_context::GeometryContext,
 ) -> Result<Vec<IfccadEntity>, IfccadConversionError> {
     let SourceScope {
+        unit,
+        paper,
+        hatch_tolerance,
         document: source,
         patterns,
         entities: handles,
@@ -34,6 +40,16 @@ pub(super) fn from_cad(
         let appearance =
             crate::mapping::appearance::from_common(e.common(), patterns, &loc, issues);
         let mut kind = match e {
+            EntityType::Hatch(h) => crate::mapping::hatch::from_cad(
+                h,
+                cad_geometry_convert::hatch::resolve_creation_tolerance(
+                    hatch_tolerance,
+                    unit,
+                    paper,
+                )?,
+                geometry,
+                issues,
+            )?,
             EntityType::Text(_) | EntityType::MText(_) => {
                 crate::mapping::text::from_entity(source, e, mappings, geometry, issues)?
             }
@@ -249,5 +265,6 @@ pub(super) fn from_cad(
             }
         }
     }
+    crate::source::hatch::bind(&mut entities, source, mappings, issues);
     Ok(entities)
 }

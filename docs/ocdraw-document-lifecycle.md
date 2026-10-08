@@ -144,3 +144,13 @@ Paper coordinate unit. Effective plot settings, limits and layout PSLTSCALE have
 separate native/CAD coverage. The provisional field/API migration, strict physical
 scalar conversion limits, raster restrictions and per-domain accuracy reports are
 specified in [layout output](layout-output.md). No new workspace state, renderer, release or controlled measurement is implied.
+
+## Hatch contours
+
+The ID-free `geometry_kernel::hatch` module supplies typed planar boundaries,
+join proofs, conservative bounds and creation-limit resolution. Each format
+retains its own identity, source integrity and encoding. Shared CAD preparation
+registers complete contour curves and occurrence evidence; fill remains
+unassessed. Source edits do not regenerate stored contours during IO. Explicit
+detachment keeps geometry; invalid source deletion fails validation.
+See [Hatch support](hatch.md).

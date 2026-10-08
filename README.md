@@ -78,6 +78,12 @@ Both routes have independent native Text/MText, local font requests and text sty
 paragraph/inline formatting, column/background state and explicit estimated
 bound quality. Their CAD routes separately qualify a bounded text profile and expose
 unverified glyph geometry separately from anchor accuracy. See [text support](docs/text.md).
+
+Both routes also provide native Solid Hatch with stored planar boundaries,
+three area rules and optional same-owner source relations. Contour exchange
+and unassessed fill are separate evidence; see [Hatch support](docs/hatch.md).
+Pattern Hatch awaits the verification checkpoint on main.
+
 Unsupported conversion semantics are diagnosed or rejected. Numerical accuracy
 has a hard unit-aware tolerance, including nested block occurrences. See
 [export coverage](crates/ocdraw-convert/docs/FROM-CAD-COVERAGE.md) and

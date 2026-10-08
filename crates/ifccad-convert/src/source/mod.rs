@@ -1029,3 +1029,4 @@ mod transparency_tests {
         }
     }
 }
+pub(crate) mod hatch;

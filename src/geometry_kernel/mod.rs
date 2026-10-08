@@ -7,6 +7,7 @@ mod bounds;
 mod bulge;
 mod circular;
 pub(crate) mod clip_containment;
+pub mod hatch;
 pub(crate) mod numeric;
 mod placement;
 mod primitive;

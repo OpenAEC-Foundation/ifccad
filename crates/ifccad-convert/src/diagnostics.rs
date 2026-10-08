@@ -35,6 +35,14 @@ impl IfccadDiagnostic {
 /// Conversion failure retaining the core phase and original typed cause.
 #[derive(Debug, thiserror::Error)]
 pub enum IfccadConversionError {
+    #[error("Hatch preparation at {location}: {source}")]
+    HatchPreparation {
+        location: String,
+        #[source]
+        source: cad_geometry_convert::hatch::CadHatchPreparationError,
+    },
+    #[error("Hatch creation tolerance: {0}")]
+    HatchTolerance(#[from] ocdraw::geometry_kernel::hatch::HatchJoinToleranceError),
     #[error("text preparation at {location}: {source}")]
     TextPreparation {
         location: String,

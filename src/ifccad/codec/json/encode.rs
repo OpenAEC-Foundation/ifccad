@@ -67,6 +67,13 @@ fn entity_node(entity: &IfccadEntity, prefix: &str) -> NodeOut {
     let entity = entity.as_native().expect("native branch");
     attrs.insert("ifccad::entity".into(), json!({"layer":format!("{prefix}/layer/{}",entity.layer_id),"appearance":super::wire::entity(&entity.appearance,prefix),"linePatternScale":entity.line_pattern_scale}));
     match &entity.kind {
+        IfccadEntityKind::Hatch(h) => {
+            attrs.insert("ifccad::geom::placement".into(), json!(h.placement));
+            attrs.insert(
+                "ifccad::hatch".into(),
+                super::hatch::encode_hatch(h, prefix),
+            );
+        }
         IfccadEntityKind::Text(_) | IfccadEntityKind::MText(_) => {
             super::text::encode_entity(&entity.kind, prefix, &mut attrs);
         }

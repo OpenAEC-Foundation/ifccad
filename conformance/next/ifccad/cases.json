@@ -178,5 +178,25 @@
   {
     "file": "invalid/workspace-zero-frame.ifcx",
     "valid": false
+  },
+  {
+    "file": "valid/hatch-solid.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid/hatch-missing-source.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/hatch-unknown-boundary.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/hatch-unavailable-fill.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/hatch-null-source.ifcx",
+    "valid": false
   }
 ]

@@ -313,6 +313,20 @@ impl<'a> Evaluation<'a> {
                     .map_err(|e| error(owner, &e.to_string()))?;
                     Self::estimate(estimate)
                 }
+                IfccadEntityKind::Hatch(h) => {
+                    let b = native(
+                        crate::geometry_kernel::hatch::hatch_bounds(
+                            h.placement.coordinate_frame()?,
+                            h.loops.iter().map(|l| &l.boundary),
+                        )
+                        .map_err(|e| error(owner, &e.to_string()))?,
+                    );
+                    Extents {
+                        all: Some(b),
+                        proven: Some(b),
+                        ..Default::default()
+                    }
+                }
                 IfccadEntityKind::Viewport(v) => {
                     let b = native(
                         paper_frame_bounds(PaperFrame {

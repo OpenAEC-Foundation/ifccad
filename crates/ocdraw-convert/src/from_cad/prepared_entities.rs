@@ -11,6 +11,11 @@ pub(super) struct PreparedCadEntity {
     pub value: PreparedCadEntityValue,
 }
 pub(crate) enum PreparedCadEntityValue {
+    Hatch {
+        definition: HatchEntityDefinition,
+        handles: Vec<Vec<Handle>>,
+        associative: bool,
+    },
     Text(TextEntityDefinition),
     MText(Box<MTextEntityDefinition>),
     Opaque {
@@ -135,11 +140,21 @@ pub(super) fn append(
     }
     let mut mapping = BTreeMap::new();
     let mut pending = Vec::new();
+    let mut pending_hatches = Vec::new();
     for entity in prepared {
         if skipped.contains(&entity.handle) {
             continue;
         }
         let id = match entity.value {
+            PreparedCadEntityValue::Hatch {
+                definition,
+                handles,
+                associative,
+            } => {
+                let id = drawing.add_hatch(definition)?;
+                pending_hatches.push((entity.handle, id, handles, associative));
+                id
+            }
             PreparedCadEntityValue::Text(t) => drawing.add_text(t)?,
             PreparedCadEntityValue::MText(t) => drawing.add_mtext(*t)?,
             PreparedCadEntityValue::Opaque { definition, kind } => {
@@ -184,6 +199,7 @@ pub(super) fn append(
         drawing.set_preservation(preservation);
     }
     let mut document = drawing.build_document()?;
+    crate::source::hatch::bind(&mut document, &mapping, pending_hatches, diagnostics);
     let bindings = pending.into_iter().collect::<BTreeMap<_, _>>();
     for v in &mut document.viewports {
         if let Some((boundary, enabled)) = bindings.get(&v.id) {

@@ -9,6 +9,7 @@ pub enum IfccadLossPolicy {
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct CadToIfccadOptions {
+    pub hatch_join_tolerance: ocdraw::geometry_kernel::hatch::HatchJoinToleranceRequest,
     pub preservation: IfccadPreservationCapture,
     pub loss_policy: IfccadLossPolicy,
     pub geometry_tolerance: crate::IfccadGeometryTolerance,

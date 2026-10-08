@@ -2,6 +2,12 @@ use crate::*;
 use ocdraw::ocdraw::OcdrawBuildError;
 #[derive(Debug, thiserror::Error)]
 pub enum CadToOcdrawError {
+    #[error("CAD Hatch preparation failed for {handle}: {source}")]
+    HatchPreparation {
+        handle: opencadcodec::Handle,
+        #[source]
+        source: cad_geometry_convert::hatch::CadHatchPreparationError,
+    },
     #[error(transparent)]
     WorkspaceNumeric(#[from] cad_workspace_convert::WorkspaceNumericError),
     #[error("CAD text preparation failed for {handle}: {source}")]

@@ -168,6 +168,7 @@ pub(crate) fn record_unassessed_occurrences(
                 .map(|t| t.id),
         )
         .chain(doc.mtext_entities.iter().map(|t| t.id))
+        .chain(doc.hatch_entities.iter().map(|h| h.id))
         .collect::<std::collections::BTreeSet<_>>();
     let instances = doc
         .geometric_entities

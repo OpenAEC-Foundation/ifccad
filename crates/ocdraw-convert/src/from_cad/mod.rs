@@ -637,6 +637,7 @@ pub fn cad_document_to_ocdraw_document_with_id(
                 | EntityType::Viewport(_)
                 | EntityType::Text(_)
                 | EntityType::MText(_)
+                | EntityType::Hatch(_)
         ) {
             loss(
                 source,
@@ -655,7 +656,7 @@ pub fn cad_document_to_ocdraw_document_with_id(
             EntityType::Circle(value) => direct_circle_losses(value),
             EntityType::Arc(value) => direct_arc_losses(value),
             EntityType::Ellipse(value) => direct_ellipse_losses(value),
-            EntityType::Text(_) | EntityType::MText(_) => Vec::new(),
+            EntityType::Text(_) | EntityType::MText(_) | EntityType::Hatch(_) => Vec::new(),
             EntityType::LwPolyline(value) => {
                 if value.constant_width != 0.0
                     || value
@@ -794,6 +795,29 @@ pub fn cad_document_to_ocdraw_document_with_id(
                 &text_styles,
                 &mut geometry,
                 &mut diagnostics,
+            )?
+            else {
+                loss(
+                    source,
+                    CadToOcdrawAction::Skipped,
+                    partial,
+                    &mut diagnostics,
+                );
+                continue;
+            };
+            value
+        } else if let EntityType::Hatch(hatch) = entity {
+            let tolerance =
+                drawing.resolve_hatch_join_tolerance(scope_id, options.hatch_join_tolerance)?;
+            geometry.select(common.owner_handle);
+            let Some(value) = crate::mapping::hatch::from_cad(
+                hatch,
+                scope_id,
+                layer_id,
+                appearance,
+                tolerance,
+                &mut geometry,
+                &mut partial,
             )?
             else {
                 loss(

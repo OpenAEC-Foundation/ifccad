@@ -107,6 +107,12 @@ pub(super) fn append_entities(
     } = target;
     let mut entity_mapping = BTreeMap::new();
     let mut pending_clips = Vec::new();
+    let mut pending_hatches = Vec::new();
+    let hatches = drawing
+        .hatch_entities
+        .iter()
+        .map(|h| (h.id, h))
+        .collect::<BTreeMap<_, _>>();
     let mut pending_splines = Vec::new();
     let geometry = drawing
         .geometric_entities
@@ -314,6 +320,15 @@ pub(super) fn append_entities(
                     source.visible(),
                     entity,
                 )
+            } else if let Some(h) = hatches.get(&id) {
+                let entity = crate::mapping::hatch::to_cad(h, owner, state, diagnostics)?;
+                (
+                    u64::from(owner),
+                    h.layer_id,
+                    &h.appearance,
+                    h.visible,
+                    entity,
+                )
             } else if text.contains_key(&id) || mtext.contains_key(&id) {
                 let Some(entity) = crate::mapping::text::to_entity(
                     text.get(&id).copied(),
@@ -369,11 +384,34 @@ pub(super) fn append_entities(
         }
         .map_err(|error| OcdrawToCadError::Cad(format!("entity {id}: {error}")))?;
         entity_mapping.insert(id, handle);
+        if let Some(h) = hatches.get(&id) {
+            pending_hatches.push((handle, *h));
+        }
         if let Some(source) = viewports.get(&id) {
             if let Some(boundary) = source.paper_clip.boundary_entity_id {
                 pending_clips.push((handle, boundary));
             }
         }
+    }
+    for (handle, h) in pending_hatches {
+        let EntityType::Hatch(target) = document.get_entity_mut(handle).expect("constructed Hatch")
+        else {
+            unreachable!()
+        };
+        for (index, (p, l)) in target.paths.iter_mut().zip(&h.loops).enumerate() {
+            if let Some(id) = l.source_entity_id {
+                if let Some(handle) = entity_mapping.get(&id) {
+                    p.boundary_handles.push(*handle);
+                } else {
+                    diagnostics.push(diagnostic(
+                        "HATCH_SOURCE",
+                        format!("/entities/{}/loops/{index}/source", h.id),
+                        "source was not materialized; stored contour retained",
+                    ));
+                }
+            }
+        }
+        target.is_associative = target.paths.iter().any(|p| !p.boundary_handles.is_empty());
     }
     // Rebind only after construction, propagating missing targets through live dependants.
     loop {

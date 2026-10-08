@@ -213,6 +213,9 @@ pub(super) fn to_cad(
                     Some(EntityType::Insert(target))
                 }
                 IfccadEntityKind::BlockInstance { .. } => None,
+                IfccadEntityKind::Hatch(h) => {
+                    crate::mapping::hatch::to_cad(h, e.id, geometry, issues)?
+                }
                 kind => crate::mapping::geometry::to_entity(kind, e.id, geometry, issues)?,
             };
             if let Some(mut target) = target {
@@ -274,6 +277,30 @@ pub(super) fn to_cad(
             *target.common_mut() = c;
             retained.insert(e.id, target);
             mappings.entities.insert(e.id, handle);
+        }
+    }
+    for (_, entities) in owners {
+        for e in entities.iter().filter_map(IfccadEntity::as_native) {
+            let IfccadEntityKind::Hatch(h) = &e.kind else {
+                continue;
+            };
+            let Some(EntityType::Hatch(target)) = retained.get_mut(&e.id) else {
+                continue;
+            };
+            for (index, (p, l)) in target.paths.iter_mut().zip(&h.loops).enumerate() {
+                if let Some(id) = l.source_entity_id {
+                    if let Some(handle) = mappings.entities.cad_handle(id) {
+                        p.boundary_handles.push(handle);
+                    } else {
+                        issues.push(diagnostic(
+                            "hatch-source",
+                            format!("entity/{}/loops/{index}/source", e.id),
+                            "source omitted; stored contour retained",
+                        ));
+                    }
+                }
+            }
+            target.is_associative = target.paths.iter().any(|p| !p.boundary_handles.is_empty());
         }
     }
     // All native and eligible opaque handles now exist, including forward

@@ -234,6 +234,7 @@ fn entity(
         "ifccad::blockInstance",
         "ifccad::text",
         "ifccad::mText",
+        "ifccad::hatch",
     ]);
     let present: Vec<_> = payloads
         .iter()
@@ -252,6 +253,14 @@ fn entity(
         return Err(problem(format!("{path} unsupported CAD geometry")));
     }
     let kind = match *present[0] {
+        "ifccad::hatch" => super::hatch::decode_hatch(
+            &attrs["ifccad::hatch"],
+            attrs
+                .get("ifccad::geom::placement")
+                .ok_or_else(|| problem("Hatch placement required"))?,
+            prefix,
+            path,
+        )?,
         key @ ("ifccad::text" | "ifccad::mText") => super::text::decode_entity(
             &attrs[key],
             &attrs["ifccad::geom::placement"],

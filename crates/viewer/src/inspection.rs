@@ -75,6 +75,27 @@ fn geometry(value: &DrawingGeometry) -> Value {
 }
 pub(crate) fn entities(drawing: &ValidatedOcdraw) -> Value {
     let mut output:Vec<Value>=drawing.geometric_entities().iter().map(|e|json!({"id":e.id,"layerId":e.layer_id,"visible":e.visible,"appearance":appearance(&e.appearance),"geometry":geometry(&e.geometry)})).collect();
+    for h in drawing.hatch_entities() {
+        let stream = &drawing.as_value()["streams"]["hatchStream"];
+        let row = stream["entityId"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .position(|v| v.as_u64() == Some(h.id))
+            .unwrap();
+        let mut loops = stream["loops"][row].clone();
+        for l in loops.as_array_mut().unwrap() {
+            if let Some(id) = l["sourceEntityId"].as_u64() {
+                l["sourceEntityId"] = json!(id.to_string());
+            }
+        }
+        let rule = match h.area_rule {
+            ocdraw::geometry_kernel::hatch::HatchAreaRule::Normal => "normal",
+            ocdraw::geometry_kernel::hatch::HatchAreaRule::Outer => "outer",
+            ocdraw::geometry_kernel::hatch::HatchAreaRule::Ignore => "ignore",
+        };
+        output.push(json!({"id":h.id.to_string(),"layerId":h.layer_id,"visible":h.visible,"appearance":appearance(&h.appearance),"geometry":{"type":"hatch","placement":frame(h.placement),"areaRule":rule,"joinTolerance":h.join_tolerance,"loops":loops,"fill":{"kind":"solid"},"fillEvaluation":"unassessed"}}));
+    }
     for t in drawing.text_entities() {
         let mut geometry = text_geometry(drawing, "textStream", t.id, "text", t.placement);
         geometry["rotation"] = json!(t.rotation);

@@ -195,6 +195,7 @@ pub struct IfccadBlockTransform {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum IfccadEntityKind {
+    Hatch(super::IfccadHatch),
     Text(super::IfccadText),
     MText(Box<super::IfccadMText>),
     Viewport(IfccadViewport),

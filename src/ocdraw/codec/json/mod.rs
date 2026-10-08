@@ -1,4 +1,7 @@
 mod decode_appearance;
+mod hatch;
+mod hatch_values;
+pub(crate) use hatch::{decode_hatch, encode_hatch};
 mod mtext;
 mod mtext_values;
 mod text;

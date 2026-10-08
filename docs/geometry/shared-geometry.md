@@ -121,3 +121,13 @@ drawings do not store conversion preferences.
 ## Workspace scalar boundary
 
 The core workspace_kernel shares ID-free view/grid/snap/canvas values and intrinsic exact predicates. cad-workspace-convert adapts CAD scalar fields. Format-owned bindings retain identifiers and source/target losses. Workspace fields do not enter primitive geometric certification or alter per-layout Paper tolerance; canvas frames do not contribute bounds.
+
+## Hatch contours
+
+The ID-free `geometry_kernel::hatch` module supplies typed planar boundaries,
+join proofs, conservative bounds and creation-limit resolution. Each format
+retains its own identity, source integrity and encoding. Shared CAD preparation
+registers complete contour curves and occurrence evidence; fill remains
+unassessed. Source edits do not regenerate stored contours during IO. Explicit
+detachment keeps geometry; invalid source deletion fails validation.
+See [Hatch support](../hatch.md).

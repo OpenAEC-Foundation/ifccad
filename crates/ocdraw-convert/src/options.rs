@@ -67,6 +67,7 @@ mod tests {
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct CadToOcdrawOptions {
+    pub hatch_join_tolerance: ocdraw::geometry_kernel::hatch::HatchJoinToleranceRequest,
     pub preservation_capture: OcdrawPreservationCapture,
     pub loss_policy: OcdrawLossPolicy,
     pub geometry_tolerance: OcdrawGeometryTolerance,

@@ -244,7 +244,18 @@
             "mTextFillKind",
             "mTextFill",
             "mTextBackground",
-            "canvasFrame"
+            "canvasFrame",
+            "hatchAreaRule",
+            "hatchBoundaryKind",
+            "hatchEdgeKind",
+            "hatchFillKind",
+            "hatchBulges",
+            "hatchEdges",
+            "hatchBoundary",
+            "hatchLoop",
+            "hatchLoops",
+            "hatchFill",
+            "hatchEdge"
           ]
         },
         "nullable": {
@@ -523,7 +534,18 @@
                 "mTextFillKind",
                 "mTextFill",
                 "mTextBackground",
-                "canvasFrame"
+                "canvasFrame",
+                "hatchAreaRule",
+                "hatchBoundaryKind",
+                "hatchEdgeKind",
+                "hatchFillKind",
+                "hatchBulges",
+                "hatchEdges",
+                "hatchBoundary",
+                "hatchLoop",
+                "hatchLoops",
+                "hatchFill",
+                "hatchEdge"
               ]
             },
             "minItems": {

@@ -130,6 +130,9 @@ pub fn cad_document_to_ifccad_document(
     }
     let entities = entities::from_cad(
         entities::SourceScope {
+            unit: &length_unit,
+            paper: None,
+            hatch_tolerance: options.hatch_join_tolerance,
             document: source,
             patterns: &patterns,
             entities: &info.entities,
@@ -167,6 +170,9 @@ pub fn cad_document_to_ifccad_document(
             insertion_unit: unit.to_string(),
             entities: entities::from_cad(
                 entities::SourceScope {
+                    unit: &length_unit,
+                    paper: None,
+                    hatch_tolerance: options.hatch_join_tolerance,
                     document: source,
                     patterns: &patterns,
                     entities: &b.entity_handles,
@@ -198,6 +204,9 @@ pub fn cad_document_to_ifccad_document(
         geometry.select(crate::IfccadGeometryOwner::PaperLayout(id));
         let entities = entities::from_cad(
             entities::SourceScope {
+                unit: &length_unit,
+                paper: Some(settings.plot_settings.as_ref()),
+                hatch_tolerance: options.hatch_join_tolerance,
                 document: source,
                 patterns: &patterns,
                 entities: &paper.entity_handles,

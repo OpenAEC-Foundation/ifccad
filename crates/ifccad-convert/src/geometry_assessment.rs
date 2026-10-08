@@ -125,8 +125,10 @@ impl IfccadGeometryAssessment {
                 };
                 if e.as_opaque().is_some()
                     || e.as_native().is_some_and(|e| {
-                        matches!(&e.kind, IfccadEntityKind::MText(_))
-                            || matches!(&e.kind,IfccadEntityKind::Text(t) if !t.content.is_empty())
+                        matches!(
+                            &e.kind,
+                            IfccadEntityKind::MText(_) | IfccadEntityKind::Hatch(_)
+                        ) || matches!(&e.kind,IfccadEntityKind::Text(t) if !t.content.is_empty())
                     })
                 {
                     out.push(if path.is_empty() {

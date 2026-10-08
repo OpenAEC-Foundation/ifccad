@@ -39,6 +39,7 @@ struct Evaluation<'a> {
     scopes: BTreeMap<u32, &'a DrawingScope>,
     entities: BTreeMap<u64, &'a DrawingGeometricEntity>,
     viewports: BTreeMap<u64, &'a DrawingViewport>,
+    hatches: BTreeMap<u64, &'a DrawingHatchEntity>,
     definitions: BTreeMap<u32, &'a DrawingBlockDefinition>,
     completed: BTreeMap<u32, ScopeExtent>,
 }
@@ -67,6 +68,15 @@ impl Evaluation<'_> {
             if let Some(viewport) = self.viewports.get(entity_id) {
                 let b = viewport_bounds(viewport.frame)
                     .ok_or_else(|| failure(id, "invalid viewport enclosure"))?;
+                union(&mut bounds, (b.min().components(), b.max().components()));
+                continue;
+            }
+            if let Some(h) = self.hatches.get(entity_id) {
+                let b = crate::geometry_kernel::hatch::hatch_bounds(
+                    h.placement,
+                    h.loops.iter().map(|l| &l.boundary),
+                )
+                .map_err(|e| failure(id, &e.to_string()))?;
                 union(&mut bounds, (b.min().components(), b.max().components()));
                 continue;
             }
@@ -162,6 +172,7 @@ pub(crate) fn evaluate_document_bounds(
         scopes: doc.scopes.iter().map(|s| (s.id, s)).collect(),
         entities: doc.geometric_entities.iter().map(|e| (e.id, e)).collect(),
         viewports: doc.viewports.iter().map(|v| (v.id, v)).collect(),
+        hatches: doc.hatch_entities.iter().map(|h| (h.id, h)).collect(),
         definitions: doc
             .block_definitions
             .iter()

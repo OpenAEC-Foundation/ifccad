@@ -38,7 +38,12 @@ pub(crate) fn native_defaults(
             .and_then(serde_json::Value::as_object_mut)
         {
             if let Some(reference) = reference {
-                for key in ["ifccad::text", "ifccad::mText", "ifccad::textStyle"] {
+                for key in [
+                    "ifccad::text",
+                    "ifccad::mText",
+                    "ifccad::textStyle",
+                    "ifccad::hatch",
+                ] {
                     if let Some(value) = attrs.get_mut(key) {
                         defaults(value, &reference["attributes"][key]);
                     }
