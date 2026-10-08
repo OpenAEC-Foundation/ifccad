@@ -3,6 +3,7 @@ mod geometry;
 mod ifccad;
 mod inspection;
 mod options;
+mod selection;
 pub fn conversion_capabilities() -> Value {
     json!({"ocdraw":{"adjustableTolerance":true},"ifccad":{"adjustableTolerance":true}})
 }

@@ -25,8 +25,13 @@ export function connectOcsFrame(host,{waitForApi=waitForOcs,sessionFactory=api=>
    }catch(error){reply({status:'error',message:error.message});}
    return;
   }
-  if(!session||message.token!==token||!['open','replace'].includes(message.op)||!['original','generated'].includes(message.role))return;
+  if(!session||message.token!==token||!['open','replace','select'].includes(message.op)||!['original','generated'].includes(message.role))return;
   try{
+   if(message.op==='select'){
+    if(message.role!=='generated')return;
+    const documentId=await session.selectGenerated(message.handles,message.layout,message.documentId);
+    reply({id:message.id,role:'generated',status:'selected',documentId});return;
+   }
    const documentId=message.op==='open'&&message.role==='original'
     ?await session.openOriginal(message.base64,message.name)
     :message.op==='replace'&&message.role==='generated'

@@ -1,6 +1,6 @@
 export const ocsChannel='ocdraw-ocs';
 export function createOcsSession(iframe,token,{host=window,origin=location.origin,timeoutMs=120000}={}){
- let closed=false,serial=0,queue=Promise.resolve(),readyResolve,readyReject;
+ let closed=false,serial=0,queue=Promise.resolve(),readyResolve,readyReject,generatedDocumentId;
  const pending=new Map();
  const ready=new Promise((resolve,reject)=>{readyResolve=resolve;readyReject=reject;});
  ready.catch(()=>{});
@@ -12,12 +12,13 @@ export function createOcsSession(iframe,token,{host=window,origin=location.origi
   if(message.status==='ready'){clearTimeout(readyTimer);readyResolve();return;}
   if(message.status==='error'&&!message.id){clearTimeout(readyTimer);readyReject(Error(message.message||'Open CAD Studio could not start'));return;}
   const item=pending.get(message.id);if(!item)return;
+  if(message.status==='opened'&&message.role==='generated')generatedDocumentId=message.documentId;
   pending.delete(message.id);clearTimeout(item.timer);
   if(message.status==='error')item.reject(Error(message.message||'Open CAD Studio could not open the drawing'));
   else item.resolve(message);
  };
  iframe.addEventListener('load',onLoad);host.addEventListener('message',onMessage);
- function send(op,role,base64,name){
+ function send(op,role,payload){
   const run=async()=>{
    await ready;
    if(closed)throw Error('Viewer session closed');
@@ -25,15 +26,16 @@ export function createOcsSession(iframe,token,{host=window,origin=location.origi
    return new Promise((resolve,reject)=>{
     const timer=setTimeout(()=>{pending.delete(id);reject(Error('Open CAD Studio did not answer in time'));},timeoutMs);
     pending.set(id,{resolve,reject,timer});
-    iframe.contentWindow.postMessage({channel:ocsChannel,token,id,op,role,base64,name},origin);
+    iframe.contentWindow.postMessage({channel:ocsChannel,token,id,op,role,...payload},origin);
    });
   };
   const next=queue.then(run);queue=next.catch(()=>{});return next;
  }
  return {
   ready,
-  openOriginal:(base64,name)=>send('open','original',base64,name),
-  replaceGenerated:(base64,name)=>send('replace','generated',base64,name),
+  openOriginal:(base64,name)=>send('open','original',{base64,name}),
+  replaceGenerated:(base64,name)=>send('replace','generated',{base64,name}),
+  selectGenerated:(handles,layout)=>send('select','generated',{handles,layout,documentId:generatedDocumentId}),
   close(){closed=true;clearTimeout(readyTimer);iframe.removeEventListener('load',onLoad);host.removeEventListener('message',onMessage);readyReject(Error('Viewer session closed'));for(const item of pending.values()){clearTimeout(item.timer);item.reject(Error('Viewer session closed'));}pending.clear();}
  };
 }
@@ -70,7 +72,7 @@ export function createOcsControl(api,{delay=ms=>new Promise(resolve=>setTimeout(
 }
 export function isCurrentOcsMessage(event,iframe,token,origin){
  const message=event?.data;
- return event?.origin===origin&&event?.source===iframe?.contentWindow&&message?.channel===ocsChannel&&message?.token===token&&['ready','opened','error'].includes(message.status);
+ return event?.origin===origin&&event?.source===iframe?.contentWindow&&message?.channel===ocsChannel&&message?.token===token&&['ready','opened','selected','error'].includes(message.status);
 }
 export function createDocumentSession(control){
  let originalId=null,generatedId=null,queue=Promise.resolve();
@@ -103,6 +105,18 @@ export function createDocumentSession(control){
  return {
   openOriginal:(base64,name)=>schedule(async()=>{if(originalId!==null)throw Error('Original drawing already open');originalId=await open(base64,name);return originalId;}),
   replaceGenerated:(base64,name)=>schedule(async()=>{await closeGenerated();generatedId=await open(base64,name);return generatedId;}),
+  selectGenerated(handles,layout,documentId=generatedId){return schedule(async()=>{
+   if(!Array.isArray(handles)||handles.length>1||handles.some(handle=>typeof handle!=='string'||!/^([0-9a-f]{1,16})$/i.test(handle)||BigInt('0x'+handle)===0n))throw Error('Invalid CAD selection handle');
+   if(generatedId===null||documentId!==generatedId)throw Error('Generated drawing changed');
+   let state=await control({op:'state'});
+   if(!state.documents?.some(document=>document.id===generatedId))throw Error('Generated drawing is no longer open');
+   if(state.command||state.modal)throw Error('Finish the current CAD command or dialog before selecting');
+   if(state.document_id!==generatedId){const activated=await control({op:'activate',document_id:generatedId});if(!activated.ok)throw Error(activated.error||'Cannot activate generated drawing');state=await control({op:'state'});}
+   if(handles.length&&layout&&state.layout!==layout)throw Error('Open CAD layout '+layout+' to select this element');
+   const selected=await control({op:'select',document_id:generatedId,handles});if(!selected.ok)throw Error(selected.error||'CAD selection failed');
+   state=await control({op:'state'});if(state.document_id!==generatedId||JSON.stringify(state.selection)!==JSON.stringify(handles))throw Error('CAD selection was not confirmed');
+   return generatedId;
+  });},
   ids:()=>({originalId,generatedId})
  };
 }

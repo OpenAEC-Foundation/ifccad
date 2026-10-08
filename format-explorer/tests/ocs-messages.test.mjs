@@ -2,6 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {isCurrentOcsMessage,createDocumentSession,createOcsControl,createOcsSession} from '../src/ocs-messages.mjs';
 
+test('native selection activates only the generated document and verifies its selected handle',async()=>{
+ let current=1,next=2,selection=[];const documents=[{id:1}],calls=[];
+ const control=async request=>{calls.push(request);if(request.op==='state')return {ok:true,document_id:current,documents,revision:0,layout:'Model',selection};if(request.op==='open'){current=next++;documents.push({id:current});return {ok:true};}if(request.op==='activate'){current=request.document_id;return {ok:true};}if(request.op==='select'){selection=request.handles;return {ok:true};}throw Error('unexpected operation');};
+ const session=createDocumentSession(control);await session.openOriginal('YQ==','original.dxf');await session.replaceGenerated('Yg==','generated.dxf');const generated=session.ids().generatedId;current=session.ids().originalId;
+ assert.equal(typeof session.selectGenerated,'function');await session.selectGenerated(['A2'],'Model');assert.equal(current,generated);assert.deepEqual(selection,['A2']);assert.equal(calls.filter(r=>r.op==='open').length,2);
+ await assert.rejects(session.selectGenerated(['A2'],'Paper'),/layout/i);assert.deepEqual(selection,['A2']);
+ await session.selectGenerated([]);assert.deepEqual(selection,[]);
+});
+
 test('only the active same-origin frame and token may answer',()=>{
  const frame={contentWindow:{}},token='current',origin='https://explorer.example';
  const good={origin,source:frame.contentWindow,data:{channel:'ocdraw-ocs',token,status:'opened'}};

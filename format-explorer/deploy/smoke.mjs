@@ -28,7 +28,10 @@ const html=await (await request('/')).text();
 assert.match(html,/id="preview-format"/);
 assert.match(html,/id="cad-download"/);
 assert.match(html,/id="export"/);
-assert.match(html,/id="preview-fullscreen"/);
+for(const panel of ['contents','drawing','conversion']){
+ assert.ok(html.includes(`id="${panel}-expand"`));
+ assert.ok(html.includes(`id="${panel}-restore"`));
+}
 assert.match(html,/id="preview-open"/);
 assert.match(html,/id="preview-frame"/);
 assert.doesNotMatch(html,/id="processing"/);

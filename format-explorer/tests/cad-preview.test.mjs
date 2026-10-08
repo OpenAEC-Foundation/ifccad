@@ -3,6 +3,37 @@ import assert from 'node:assert/strict';
 import {createCadPreviewController} from '../src/cad-preview.mjs';
 const source={kind:'cad',name:'original.dwg',files:[{path:'original.dwg',bytes:new Uint8Array([1,2]).buffer}]};
 const result={failure:null,validation:{strictAvailable:true},export:{requestedVersion:'AC1032',download:{format:'dwg',base64:'AQI=',byteLength:2}}};
+
+test('selection in an already displayed drawing never reactivates drawing preparation',async()=>{
+ let finishSelection,exports=0,opens=0,replacements=0;const updates=[];
+ const output={...result,export:{...result.export,download:{...result.export.download,format:'dxf'},viewerSelection:{format:'ifccad',entities:[{path:'/cad/d1/e1',handle:'A',layout:'Model'}]}}};
+ const controller=createCadPreviewController({openExport:async()=>{exports++;return output;},openSession:async()=>{opens++;return {async replaceGenerated(){replacements++;},selectGenerated:()=>new Promise(resolve=>{finishSelection=resolve;}),close(){}};},onUpdate:state=>updates.push(state)});
+ controller.setSource({kind:'ifccad',name:'input.ifcx',files:source.files},true);await controller.show();updates.length=0;
+ const selecting=controller.selectElement('/cad/d1/e1');while(!finishSelection)await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(updates.some(state=>state.busy||state.viewerBusy||!state.viewerReady),false);
+ assert.equal(controller.state.selectionStatus,'pending');finishSelection();await selecting;
+ assert.equal(controller.state.selectionStatus,'selected');assert.equal(exports,1);assert.equal(opens,1);assert.equal(replacements,1);
+ assert.equal(updates.some(state=>state.busy||state.viewerBusy||!state.viewerReady),false);
+});
+
+test('native tree selection waits for prepared CAD and uses its exact mapping without re-exporting',async()=>{
+ let finish,exports=0;const selections=[];
+ const session={async replaceGenerated(){},async selectGenerated(handles,layout){selections.push([handles,layout]);},close(){}};
+ const controller=createCadPreviewController({openExport:()=>{exports++;return new Promise(resolve=>{finish=resolve;});},openSession:async()=>session});
+ controller.setSource({kind:'ifccad',name:'input.ifcx',files:source.files},true);
+ assert.equal(typeof controller.selectElement,'function');const showing=controller.show();const selecting=controller.selectElement('/cad/d1/e9007199254740993');
+ while(!finish)await new Promise(resolve=>setImmediate(resolve));finish({...result,export:{...result.export,download:{...result.export.download,format:'dxf'},viewerSelection:{format:'ifccad',entities:[{path:'/cad/d1/e9007199254740993',handle:'CAFE',layout:'Model'}]}}});await Promise.all([showing,selecting]);
+ assert.deepEqual(selections.at(-1),[['CAFE'],'Model']);assert.equal(exports,1);assert.equal(controller.state.selectionStatus,'selected');
+ await controller.selectElement('/foreign/unmapped');assert.deepEqual(selections.at(-1),[[],undefined]);assert.equal(controller.state.selectionStatus,'unavailable');assert.equal(exports,1);
+});
+
+test('a new file discards a pending native selection and rapid selection keeps the last item',async()=>{
+ let finish;const selected=[];
+ const output={...result,export:{...result.export,download:{...result.export.download,format:'dxf'},viewerSelection:{format:'ifccad',entities:[{path:'/cad/d1/e1',handle:'A',layout:'Model'},{path:'/cad/d1/e2',handle:'B',layout:'Model'}]}}};
+ const controller=createCadPreviewController({openExport:()=>new Promise(resolve=>{finish=resolve;}),openSession:async()=>({async replaceGenerated(){},async selectGenerated(handles){selected.push(handles);},close(){}})});
+ controller.setSource({kind:'ifccad',name:'old.ifcx',files:source.files},true);const viewing=controller.show();const selection=controller.selectElement('/cad/d1/e1');while(!finish)await new Promise(resolve=>setImmediate(resolve));controller.setSource({kind:'ifccad',name:'new.ifcx',files:source.files},true);finish(output);await Promise.all([viewing,selection]);assert.deepEqual(selected,[]);assert.equal(controller.state.selectionKey,null);
+ const showing=controller.show();await new Promise(resolve=>setImmediate(resolve));const a=controller.selectElement('/cad/d1/e1'),b=controller.selectElement('/cad/d1/e2');finish(output);await Promise.all([showing,a,b]);assert.deepEqual(selected.at(-1),['B']);assert.equal(controller.state.selectionStatus,'selected');
+});
 function setup(openExport=async()=>result){
  const calls=[];const session={async openOriginal(...args){calls.push(['original',...args]);},async replaceGenerated(...args){calls.push(['generated',...args]);},close(){calls.push(['close']);}};
  return {calls,controller:createCadPreviewController({openExport,openSession:async()=>session})};

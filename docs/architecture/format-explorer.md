@@ -36,28 +36,43 @@ inspection capabilities only when their contracts and implementation are availab
 
 | Workspace | Default content | Contextual actions |
 | --- | --- | --- |
+| Overzicht / Overview | Contents left, drawing right, input/output reports below | Resizable splits and expanding a panel to its individual workspace |
 | IFCCAD-inhoud or OCDraw-inhoud | Readable structure and selected-item information | Bestandsboom/JSON, structure selection, native download |
 | Conversie / controle | Conversion settings and located reports | Target route for CAD input, tolerance, CAD format/version, process/cancel/download |
-| Tekening | Open CAD Studio in the available workspace | Compact filename/fullscreen toolbar; temporary loading/error notice and viewer restart |
+| Tekening | Open CAD Studio in the available workspace | Compact filename and expand/restore icon; temporary loading/error notice and viewer restart |
 
-The contents workspace is selected on initial startup. Opening another file,
-converting it or selecting an example preserves the active workspace tab. The
-contents tab name derives from the actual native result: `IFCCAD-inhoud`
-or `OCDraw-inhoud`. A selected filename and format appear in the document
-strip outside Drawing. No multiple-file editor is introduced; the application still processes
+The Overview workspace is selected on initial startup. Its three panes reuse
+the same content inspector, CAD session and conversion reports as the individual
+workspaces. Both input and output reports are visible beneath contents/drawing;
+the full Conversion workspace retains the two stage tabs and shared settings.
+The expand icon shows one workspace and is replaced by a restore icon that
+returns to Overview. Language-aware tooltips and accessible names explain the
+icons. Primary workspace tabs and the separate browser-fullscreen action are
+omitted. Returning to
+Overview retains selection, controls, panel proportions and the CAD session.
+Desktop separators adjust column widths and top/report heights by pointer or
+arrow keys; narrow screens stack all panes rather than create horizontal overflow.
+
+Opening another file, converting it or selecting an example preserves the active
+workspace view. The contents heading derives from the actual native result:
+`IFCCAD-inhoud` or `OCDraw-inhoud`, with its source filename beneath it. The drawing
+header also identifies its file. Validation and readback belong to conversion
+reports; redundant document/status strips are omitted. Important errors and
+settings reminders remain beside file controls, and invalid contents retain an
+explicit label. No multiple-file editor is introduced; the application still processes
 one selected source at a time.
 
-Desktop fills the available browser height without a scrolling page. Header,
-tabs stay visible. Contents and Conversion / checks retain the file toolbar,
-document strip and status bar; Drawing replaces them with one compact filename/
-fullscreen toolbar and gives the remaining height to Open CAD Studio. Long trees, JSON and reports
+Desktop fills the available browser height without a scrolling page. The
+application header stays visible. Contents and Conversion / checks retain the
+file toolbar; Drawing uses its compact filename/restore toolbar and gives the
+remaining height to Open CAD Studio. Long trees, JSON and reports
 scroll within their own panels. The information panel is resizable. Narrow
 screens reflow the tree and information panel; constrained screen height must
 not make controls inaccessible. Panel width is a presentation preference,
 not file metadata.
 
-Tab changes preserve selection, expansion, inspector subtab, settings and CAD
-session. Entering a tab is not permission to restart a viewer, reset a selection
+View changes preserve selection, expansion, inspector subtab, settings and CAD
+session. Expanding a panel does not restart a viewer, reset a selection
 or repeat a completed conversion. New source selection clears results from the
 previous source. Cancellation or a newer request prevents a late result from
 replacing the current drawing.
@@ -339,26 +354,61 @@ output conversion retain separate evidence in the report.
 
 ## Conversion report and CAD session
 
+IFCCAD tree selection uses transient export `viewerSelection` metadata. Native
+paths map to hexadecimal CAD handles and the actual CAD layout name only after
+readback confirms the handle, entity variant and owner. Native file storage is
+unchanged. The bridge activates the generated document, verifies its expected
+identity and layout, applies selection and reads it back to confirm. Commands or
+dialogs in progress are not interrupted. Selection is serialized and stale
+source/output requests are discarded. Missing links and inactive layouts are
+explicitly unavailable; shared block-definition contents have no direct link.
+Selecting a property keeps the owning element's CAD selection; navigation groups
+clear selection. Camera and document revision are not changed.
+
 The Conversion / checks workspace is the single location for conversion and
 readback messages, including output generated automatically for CAD viewing.
+Within it, **Input conversion / Invoerconversie** owns original CAD reading,
+CAD-to-native conversion diagnostics and native validation; **Output conversion
+/ Uitvoerconversie** owns native-to-CAD roundtrip export, source restoration and written
+CAD readback. Each tab shows its direction, such as DWG → OCDraw and OCDraw → DWG,
+with the actual output version. Native IFCCAD/OCDraw input explicitly reports
+direct opening/validation without inventing an input conversion. The selected
+conversion tab survives file/example changes and language/theme changes.
+
+The two stages retain separate readable sections and diagnostic JSON; output
+results or failures never replace the input report or native validity. CAD export
+settings and download/view actions belong to the output tab, while supported
+source capture belongs to input. Tolerance and Apply settings remain shared
+across both conversions. Geometry, restoration and readback details expand on
+demand. Arrow keys and Home/End operate the nested tablist.
+
+Overview exposes tolerance, CAD format/version, Apply settings and CAD download
+in a compact strip, with source capture when available. The reports can collapse
+together to leave that strip, through its disclosure icon or by dragging the
+row separator down. Expanding Conversion always exposes its report tabs; restoring
+Overview retains its collapsed/expanded preference. Actionable failures remain
+visible beside the file controls even when the reports are collapsed.
+
 After successful native opening or CAD conversion, prepare CAD roundtrip output
 in the background with the applied CAD format/version and tolerance. Native
 inspection remains usable while its actual conversion progress is shown in the
-document strip and Conversion / checks, with cancellation in the latter. Its
+Conversion / checks, with cancellation beside its progress. Its
 readback and numerical evidence do not depend on entering Drawing. Drawing
 shares a pending preparation or reuses its validated output; Open CAD Studio
-itself is initialized only on entering Drawing. Leaving Drawing does not cancel
+itself is initialized when Drawing is visible, in Overview or its individual
+workspace. Starting the viewer does not block source opening or native inspection.
+Leaving these workspaces does not cancel
 background preparation. A new source, changed settings or explicit cancellation
 invalidates an unfinished job so stale progress/results cannot replace current
 evidence. Applying settings regenerates output. Invalid input does not launch a
 background native-to-CAD export.
-The drawing tab contains no duplicate CAD preview messages block. A new preview
+The drawing view contains no duplicate CAD preview messages block. A new preview
 result updates the central report while retaining original reading and native
 validation; viewer startup/session errors remain visible beside Open CAD Studio.
-When ready, Drawing shows only its filename/fullscreen toolbar and the CAD
+When ready, Drawing shows only its filename/restore toolbar and the CAD
 workspace. Explanations of original/generated documents and idle ready/validation
-messages do not consume extra rows. The fullscreen button stays inside the
-fullscreen surface, so exiting it remains available there.
+messages do not consume extra rows. The restore button remains available even
+for empty, failed or stale drawing states.
 
 Present reading, native validation, conversion and exported-file readback as
 separate report sections with summary status and expandable details. Located

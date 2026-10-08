@@ -6,7 +6,7 @@ import {decodeBase64} from '../src/browser-client.mjs';
 import {translate} from '../src/i18n.mjs';
 import {createCadPreviewController} from '../src/cad-preview.mjs';
 import * as cadFormats from '../src/cad-formats.mjs';
-const initializeWorkspace=()=>({t:(key,v)=>translate('nl',key,v),show(){},clear(){},selectTab(){},setStatus(){},setLoading(){},clearLoading(){}});
+const initializeWorkspace=()=>({t:(key,v)=>translate('nl',key,v),show(){},clear(){},selectTab(){},setStatus(){},setLoading(){},clearLoading(){},setCadReport(){}});
 const conversionOptions=()=>({tolerance:{mode:'default'}});
 const examples=[];
 test('source preservation defaults on for CAD input while explicit opt-out is respected',async()=>{
@@ -115,6 +115,27 @@ test('CAD download uses the shared preview choice while OCDraw download is indep
  for(const blob of blobs)assert.deepEqual([...new Uint8Array(await blob.arrayBuffer())],[1,2]);
 });
 
+test('opening in overview also shows the prepared drawing without another conversion',async()=>{
+ const elements=new Map(),element=id=>{if(!elements.has(id))elements.set(id,{disabled:false,textContent:'',hidden:false,value:''});return elements.get(id);};let conversions=0;
+ let finishSession;const preview=createCadPreviewController({openExport:async()=>{conversions++;return {validation:{strictAvailable:true},export:{requestedVersion:'AC1032',download:{format:'dxf',base64:'AQI=',byteLength:2}}};},openSession:()=>new Promise(resolve=>{finishSession=resolve;})});
+ const code=(await readFile(new URL('../src/app.mjs',import.meta.url),'utf8')).replace(/^import .*;\r?\n/gm,'');
+ vm.runInNewContext(code,{initializeWorkspace:()=>({...initializeWorkspace(),state:{tab:'overview'}}),conversionOptions,examples,...cadFormats,document:{getElementById:element},createFileClient:()=>({async open(){return {validation:{strictAvailable:true}};}}),initializeCadPreview:()=>preview,AbortController});
+ element('file').files=[{name:'drawing.ifcx',size:1,arrayBuffer:async()=>new ArrayBuffer(1)}];const opened=element('open').onclick();
+ assert.equal(await Promise.race([opened.then(()=>true),new Promise(resolve=>setImmediate(()=>resolve(false)))]),true,'opening must not wait for CAD viewer startup');
+ finishSession({async replaceGenerated(){},close(){}});await preview.show();
+ assert.equal(preview.state.visible,true);assert.equal(preview.state.viewerReady,true);assert.equal(preview.state.download.format,'dxf');assert.equal(conversions,1);
+});
+
+test('failed CAD output retains the validated native input and its download controls',async()=>{
+ for(const transportFailure of [false,true]){
+  const elements=new Map(),element=id=>{if(!elements.has(id))elements.set(id,{disabled:false,textContent:'',hidden:true,value:''});return elements.get(id);};
+  const code=(await readFile(new URL('../src/app.mjs',import.meta.url),'utf8')).replace(/^import .*;\r?\n/gm,'');
+  vm.runInNewContext(code,{initializeWorkspace,conversionOptions,examples,...cadFormats,document:{getElementById:element},createFileClient:()=>({async open(request){if(request.export){if(transportFailure)throw Error('DWG output failed');return {validation:{strictAvailable:false},failure:{message:'DWG output failed'}};}return {validation:{strictAvailable:true},presentation:{format:'ifccad'}};}}),initializeCadPreview:()=>({clear(){},setSource(){},updateSource(){},cancel(){},select(){return Promise.resolve();}}),AbortController});
+  element('preview-format').value='dwg';element('preview-version').value='AC1027';element('file').files=[{name:'input.ifcx',size:1,arrayBuffer:async()=>new ArrayBuffer(1)}];await element('open').onclick();await element('cad-download').onclick();
+  assert.equal(element('export').disabled,false);assert.equal(element('cad-download').disabled,false);assert.match(element('content-title').textContent,/IFCCAD/);assert.equal(element('status').textContent,'DWG output failed');assert.equal(element('status').hidden,false);
+ }
+});
+
 test('the current drawing explorer opens IFCCAD and downloads its native IFCX format',async()=>{
  const elements=new Map(),requests=[];
  const element=id=>{if(!elements.has(id))elements.set(id,{disabled:false,textContent:'',hidden:true,value:''});return elements.get(id);};
@@ -124,7 +145,7 @@ test('the current drawing explorer opens IFCCAD and downloads its native IFCX fo
  element('file').files=[{name:'hello.ifcx',size:1,arrayBuffer:async()=>new ArrayBuffer(1)}];
  await element('open').onclick();await element('export').onclick();
  assert.equal(requests[0].kind,'ifccad');assert.equal(requests[1].export.format,'ifccad');
- assert.match(element('export').textContent,/IFCCAD/);assert.match(element('content-title').textContent,/IFCCAD/);
+ assert.match(element('export').title,/IFCCAD/);assert.match(element('content-title').textContent,/IFCCAD/);
  element('file').files=[{name:'returned.dxf',size:1,arrayBuffer:async()=>new ArrayBuffer(1)}];await element('open').onclick();assert.equal(requests[2].drawingFormat,'ifccad');
 });
 

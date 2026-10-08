@@ -1,3 +1,10 @@
+/** Display a composed IFCX node in writer order without changing source values. */
+export function ifcxNodeJson(node){
+ const preferred=['path','children','attributes'];
+ const keys=[...preferred.filter(key=>Object.hasOwn(node,key)),...Object.keys(node).filter(key=>!preferred.includes(key))];
+ return JSON.stringify(Object.fromEntries(keys.map(key=>[key,node[key]])),null,2);
+}
+
 /** Preserve integer identity tokens beyond JS precision; original text stays separate. */
 export function parsePresentationJson(text){
  // Validate first, so token protection never repairs malformed input.

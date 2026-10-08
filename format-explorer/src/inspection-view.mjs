@@ -1,4 +1,5 @@
 import {translate} from './i18n.mjs';
+import {ifcxNodeJson} from './presentation-json.mjs';
 export const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function itemTitle(node,language){return node.type==='drawing'?translate(language,'drawing')+(node.key==='drawing'?'':' · '+node.title):node.type==='group'||node.type==='file'?translate(language,node.title):['node','layer','layers','layout','linePattern','linePatterns','blockDefinition','blockDefinitions','table','stream'].includes(node.type)?node.title:translate(language,node.type)+' · '+node.title;}
 export function renderInspection(model,state){
@@ -18,7 +19,7 @@ export function renderInspection(model,state){
  if(inspector==='relations'){
   for(const [title,edges]of [['outgoing',node.outgoing],['incoming',node.incoming]])details+='<h3>'+e(t(title))+'</h3><dl class="properties-list">'+(edges.length?edges.map(link=>{const key=title==='outgoing'?link.target:link.source;return '<div><dt>'+e(link.field)+'</dt><dd>'+(model.nodes.has(key)?jump(key,itemTitle(model.nodes.get(key),language)):e(key)+' · '+e(t('unresolved')))+'</dd></div>';}).join(''):'<p class="secondary">'+e(t('noRelations'))+'</p>')+'</dl>';
  }else if(inspector==='source'){
-  if(model.format==='ifccad'&&node.raw){details+='<p class="secondary">'+e(t('compositionHelp'))+'</p><details open><summary>'+e(t('effectiveNode'))+'</summary><pre>'+e(JSON.stringify(node.raw,null,2))+'</pre></details>';for(const f of node.fragments)details+='<details><summary>'+e(t('fragment',{index:f.index}))+' · data['+f.index+']</summary><pre>'+e(JSON.stringify(f.value,null,2))+'</pre></details>';}
+  if(model.format==='ifccad'&&node.raw){details+='<p class="secondary">'+e(t('compositionHelp'))+'</p><details open><summary>'+e(t('effectiveNode'))+'</summary><pre>'+e(ifcxNodeJson(node.raw))+'</pre></details>';for(const f of node.fragments)details+='<details><summary>'+e(t('fragment',{index:f.index}))+' · data['+f.index+']</summary><pre>'+e(JSON.stringify(f.value,null,2))+'</pre></details>';}
   else details+='<h3>'+e(t(['stream','table'].includes(node.type)?'storageJson':'inspectionJson'))+'</h3><pre>'+e(JSON.stringify(value,null,2))+'</pre>';
  }else{
  const help=t('help.'+node.type);if(!help.startsWith('help.'))details+='<p class="secondary">'+e(help)+'</p>';

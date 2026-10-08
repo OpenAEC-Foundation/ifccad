@@ -5,6 +5,61 @@ use viewer::{export_drawing_bytes, inspect_drawing_bytes};
 const HELLO: &[u8] = include_bytes!("../../../examples/ifccad/hello-line-patterns.ifcx");
 
 #[test]
+fn ifccad_viewer_selection_identifies_entities_in_written_cad() {
+    use ocdraw_convert::opencadcodec::{DwgReader, DxfReader, Handle};
+    use std::io::Cursor;
+    for format in ["dxf", "dwg"] {
+        let out = export_drawing_bytes("patterns.ifcx", HELLO, format, "AC1032");
+        assert!(out["failure"].is_null(), "{out}");
+        let selection = &out["export"]["viewerSelection"];
+        assert_eq!(selection["format"], "ifccad");
+        let entries = selection["entities"].as_array().expect("selection entries");
+        assert!(!entries.is_empty());
+        let bytes = STANDARD
+            .decode(out["export"]["download"]["base64"].as_str().unwrap())
+            .unwrap();
+        let cad = if format == "dxf" {
+            DxfReader::from_reader(Cursor::new(bytes))
+                .unwrap()
+                .read()
+                .unwrap()
+        } else {
+            DwgReader::from_stream(Cursor::new(bytes)).read().unwrap()
+        };
+        for entry in entries {
+            assert!(entry["path"].as_str().unwrap().starts_with("/cad/d1/e"));
+            assert_eq!(entry["layout"], "Model");
+            let handle =
+                Handle::new(u64::from_str_radix(entry["handle"].as_str().unwrap(), 16).unwrap());
+            let entity = cad.get_entity(handle).expect("mapped written entity");
+            assert_eq!(
+                entity.common().owner_handle,
+                cad.header.model_space_block_handle
+            );
+        }
+    }
+}
+
+#[test]
+fn viewer_selection_preserves_large_native_identities_as_paths() {
+    use ocdraw::ifccad::encode_ifccad_document;
+    let mut drawing = load_ifccad_bytes(HELLO, Default::default())
+        .unwrap()
+        .into_document();
+    drawing.drawing_id = 9_007_199_254_740_995;
+    drawing.model.entities[0].id = 9_007_199_254_740_993;
+    drawing.id_counters.next_entity_id = 9_007_199_254_740_994;
+    let bytes = encode_ifccad_document(&drawing).unwrap();
+    let output = export_drawing_bytes("large.ifcx", bytes.bytes(), "dxf", "AC1032");
+    assert!(output["failure"].is_null(), "{output}");
+    assert!(output["export"]["viewerSelection"]["entities"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|entry| entry["path"] == "/cad/d9007199254740995/e9007199254740993"));
+}
+
+#[test]
 fn ifccad_geometry_and_bounds_are_inspectable() {
     let bytes = include_bytes!("../../../examples/ifccad/hello-geometry.ifcx");
     let opened = inspect_drawing_bytes("geometry.ifcx", bytes);

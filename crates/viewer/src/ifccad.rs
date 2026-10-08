@@ -166,6 +166,12 @@ pub(crate) fn export_ifccad_with_options(
     };
     let issues = diagnostics(converted.diagnostics());
     let assessment = crate::geometry::assessment(converted.geometry_assessment());
+    let selection_candidates = crate::selection::ifccad_candidates(
+        drawing.document(),
+        converted.mappings(),
+        converted.document(),
+    );
+    let mut viewer_selection = Value::Null;
     let metadata = IfccadTargetMetadata {
         header: drawing.document().header.clone(),
         drawing_id: drawing.document().drawing_id,
@@ -195,6 +201,8 @@ pub(crate) fn export_ifccad_with_options(
             })?;
             load_ifccad_bytes(restored.encoded().bytes(), Default::default())
                 .map_err(|e| e.report().errors.join("; "))?;
+            viewer_selection =
+                crate::selection::qualified_ifccad_selection(&selection_candidates, readback);
             Ok(
                 json!({"cadReadback":true,"ifccadStrictReadback":true,"diagnostics":diagnostics(restored.diagnostics()),"geometryAssessment":crate::geometry::assessment(restored.geometry_assessment())}),
             )
@@ -202,6 +210,9 @@ pub(crate) fn export_ifccad_with_options(
     );
     output["export"]["geometryAssessment"] = assessment;
     output["export"]["options"] = options.value();
+    if output["failure"].is_null() {
+        output["export"]["viewerSelection"] = viewer_selection;
+    }
     if !readback_geometry.is_null() {
         output["failure"]["geometry"] = readback_geometry;
     }

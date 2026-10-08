@@ -1,17 +1,45 @@
 # CAD Format Explorer
 
-The document/storage inspector, integrated IFCX navigation, workspace tabs
+Selecting an IFCCAD element in the tree also selects its mapped object in the
+generated Open CAD Studio document. The link comes from conversion and is
+qualified against the written CAD readback; IDs/handles remain strings. Selection
+waits for existing preparation and never triggers an additional conversion.
+Camera position and document edits are retained. The relevant CAD layout must
+already be active. Shared block-definition contents and skipped/foreign items
+have no direct selectable link; block instances are selectable. Unavailable
+links produce a brief viewer notice. This is tree-to-viewer selection only.
+
+The document/storage inspector, integrated IFCX navigation, overview and panel navigation
 and adjustable conversion tolerance are specified in
 [CAD Format Explorer interface design](../docs/architecture/format-explorer.md).
 
-The application starts with **IFCCAD · Drawing overview** in the **Bestandsboom /
-File tree** view. Choose **Document structure** for logical contents and **Storage
+The application starts in **Overview / Overzicht** with **IFCCAD · Drawing
+overview**: file contents on the left, Open CAD Studio on the right and both
+conversion stages beneath them. Drag the separators or use their arrow keys to
+adjust the split. Each pane's expand icon opens it across the workspace; the
+restore icon replaces that button and returns to Overview. Tooltips and accessible
+labels follow the selected language. Returning to Overview retains the tree
+selection, settings and existing CAD session.
+
+Native download uses an icon beside the contents heading, with the actual
+IFCCAD/OCDraw format in its tooltip. CAD download is beside Output format and
+Version, with the selected CAD format/version in its tooltip. Keyboard activation
+and disabled/stale-result guards remain available.
+
+Narrow screens stack the panels. Inspection starts in the **Bestandsboom / File tree**
+view. Choose **Document structure** for logical contents and **Storage
 structure** for IFCX node/source inspection or OCDraw streams/columns. Entities
 are grouped by type within their layout or block by default; **Draw order**
 shows the original sequence and each item retains its original draw position.
-The native contents tab name follows the selected IFCCAD/OCDraw result.
+The native contents heading follows the selected IFCCAD/OCDraw result and shows
+the source filename. Validation/readback stay in the report; redundant document
+and footer status bars are omitted. Actionable errors or settings reminders
+appear beside the file controls, and invalid contents remain explicitly labelled.
+Composed IFCX node JSON in Source and JSON of selection uses `path`, optional
+`children`, then `attributes`, followed by any remaining fields. Original source
+fragments retain their stored order and values; full-file JSON retains its source text.
 Group counts appear directly beside each group name. Opening another file or
-selecting an example retains the active workspace tab. A visible loading panel
+selecting an example retains the active workspace view. A visible loading panel
 shows the filename, operation and current phase, with cancellation available
 while reading, fetching examples or converting.
 
@@ -21,13 +49,28 @@ exact and explicit physical/drawing-coordinate tolerances reach both converters
 and generated CAD output/readback. The numerical evidence remains available
 separately from semantic loss and strict native validity. The existing optional
 OCDraw supported-SPLINE capture/restoration route is retained.
+Its **Input conversion / Invoerconversie** tab shows source reading, CAD-to-native
+diagnostics and native validation. **Output conversion / Uitvoerconversie**
+shows export, source restoration and written CAD readback, with its own status
+and diagnostic JSON. Both show their actual direction (for example DWG → OCDraw
+and OCDraw → DWG); output identifies the written version. Opening a native file
+explicitly reports that no input conversion was needed. An output failure does
+not change input validity, and native downloads retain the existing input/output
+reports. The nested tab survives file/example changes and preferences changes,
+and supports arrow keys and Home/End. Output format/version and CAD actions are
+on output in the full view; source capture is on input; tolerance and Apply settings remain shared.
+Overview also exposes a compact settings strip with tolerance, CAD format/version,
+Apply settings and CAD download, plus source capture when available. Hide/show
+reports with the header chevron, or drag the row separator down to the settings
+strip. Both reports disappear together while the settings remain available;
+expanding Conversion shows its reports regardless of that overview preference.
 For newly opened DWG/DXF files, CAD output automatically follows the original
 format and the version reported by the CAD reader. The background roundtrip and
 CAD download share these settings. Subsequent manual choices are retained when
 applying settings. A source version outside the supported writer choices keeps
 a supported output version and is explicitly identified beside the controls.
 
-**Drawing** keeps the Open CAD Studio session across tabs. **Settings** offers
+**Drawing** keeps the Open CAD Studio session across views. **Settings** offers
 Dutch/English and light/dark appearance, remembered locally; changing them does
 not reopen the source or reset the CAD session. **About** explains the formats,
 local processing and source/licenses. The [representative example inventory](../examples/README.md)
@@ -41,11 +84,13 @@ After successful opening, CAD roundtrip output is prepared automatically in a
 background worker using the applied CAD format/version and tolerance. Its
 progress and cancel control are available in Conversion / checks, and its
 readback/evidence is available without opening Drawing. Drawing shares an
-ongoing job or reuses the prepared output; Open CAD Studio itself starts only
-when Drawing is opened. Opening a new source or changing settings invalidates
+ongoing job or reuses the prepared output; Open CAD Studio itself starts when
+Drawing is visible in Overview or its own tab. Viewer startup does not block file
+opening or native inspection. Opening a new source or changing settings invalidates
 old pending output; applying settings starts preparation again.
-Drawing shows a single compact filename/fullscreen toolbar above Open CAD Studio;
-the file toolbar, document strip, footer and idle notices give way to CAD space.
+Drawing shows a compact filename and expand/restore icon above Open CAD Studio;
+its full view gives the remaining height to CAD. No separate browser-fullscreen
+action is added to the explorer toolbar.
 
 The current application opens one standalone OCDraw or experimental IFCCAD
 file, or converts one DXF/DWG file to the selected drawing format. It displays
