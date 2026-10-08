@@ -389,7 +389,7 @@ identity and layout, applies selection and reads it back to confirm. Commands or
 dialogs in progress are not interrupted. Selection is serialized and stale
 source/output requests are discarded. Missing links and inactive layouts are
 explicitly unavailable; shared block-definition contents have no direct link.
-Selecting a property keeps the owning element's CAD selection; navigation groups
+Expanding properties keeps the owning element's CAD selection; navigation groups
 clear selection. Camera and document revision are not changed.
 
 Reverse selection observes the pinned OCS state API (no native event export) at
@@ -666,7 +666,8 @@ selection uses the same reveal path and never initiates another conversion.
 Properties belong to the inspector under Stored values, including expandable
 nested objects and compact coordinate arrays. The structure tree never renders
 record fields; only actual structural children give a row an expand control.
-Primitive property selection preserves the owner's tree highlight and inspector
+Primitive property names and values are plain text, and the inspector always
+retains the selected native record's heading. Nested object summaries retain
 expansion state. Typed references remain clickable within the nested properties.
 Source and Relationships remain the dedicated raw-data and edge views.
 
@@ -679,3 +680,34 @@ Selecting a nonempty navigation-only group with up to ten members also opens it
 inline. Its chevron can still collapse it explicitly. This does not auto-expand
 native layouts or block definitions with their own properties; large groups keep
 opening the middle list.
+
+
+## Linked CAD layout activation
+
+Selecting a native layout activates the matching layout in the current generated
+CAD document and clears its element selection. Selecting a mapped native element
+activates the exact owner layout from the readback-qualified viewerSelection map
+before selecting its handle. Non-layout resources and unmapped block-definition
+contents do not infer a CAD layout. Both IFCCAD and OCDraw use their own identities;
+Model activates the CAD Model tab, while Paper uses its validated native name.
+
+The pinned OCS control start operation dispatches the complete CTAB command
+without the batch feeder's intermediate bare-command prompt. Its native layout
+handler consumes the entire remaining name, including spaces/punctuation. No
+viewer patch or upgrade is needed. See the pinned
+[control dispatcher](https://github.com/HakanSeven12/OpenCADStudio/blob/0d023d267bc5b7afeca3b54e98875b0efd4f3926/src/app/control/mod.rs)
+and [CTAB handler](https://github.com/HakanSeven12/OpenCADStudio/blob/0d023d267bc5b7afeca3b54e98875b0efd4f3926/src/app/commands/plotvars.rs).
+
+The bridge verifies generated-document identity, absence of a CAD command/modal,
+layout activation and final selection. Already-active layouts skip CTAB, retaining
+their camera. Layout changes reuse OCS's normal saved view behavior; the explorer
+does not fit, reload or re-export the drawing. Selection requests are serialized
+and later intent supersedes stale status updates. Echo observation stays paused
+through the operation and is seeded with the acknowledged layout/handles.
+Missing/renamed layouts or a blocked command produce an unavailable status rather
+than selecting in the wrong coordinate space. Names containing control characters
+or leading/trailing whitespace are rejected because CTAB trims that whitespace.
+
+Property labels and primitive values no longer select a field or change the
+inspector heading. Expandable summaries and typed references remain interactive;
+Source always shows the selected native record.

@@ -60,13 +60,13 @@ test('leaf properties live only in the inspector and do not give records structu
  assert.match(view.details,/data-field-id=/);assert.match(view.details,/<summary><svg[^>]*aria-hidden="true"[\s\S]*?<span class="property-label">Element properties<\/span>/);
  assert.doesNotMatch(view.details,/<summary>[\s\S]*?\d+ fields[\s\S]*?<\/summary>/);
 });
-test('a selected property remains distinct from its owner and retains nested expansion',()=>{
+test('primitive properties are text and the inspector retains the element heading and nested expansion',()=>{
  const key='/cad/d1/e110',path=['ifccad::entity','appearance','color','mode'];
  const model=createInspection({validation:{strictAvailable:true},presentation:{format:'ifccad',graph:{data:[{path:key,attributes:{'ifccad::entity':{appearance:{color:{mode:'ByLayer'}},layer:'/cad/d1/layer/0'},'ifccad::geom::lineSegment':{start:[0,0,0],end:[1,0,0]}}}]}}});
  const state={language:'en',view:'nodes',selection:key,field:path,expanded:new Set([key]),fieldExpanded:new Set([JSON.stringify([key,['ifccad::entity']]),JSON.stringify([key,['ifccad::entity','appearance']]),JSON.stringify([key,['ifccad::entity','appearance','color']])]),inspector:'properties'};
- const view=renderInspection(model,state);assert.match(view.details,/<h2>mode<\/h2>/);
+ const view=renderInspection(model,state);assert.match(view.details,/<h2>Line · e110<\/h2>/);
  assert.equal((view.details.match(/data-field-id="[^"]*" open/g)||[]).length,4);
- assert.match(view.details,/class="property-choice selected"[^>]*aria-current="true"/);
+ assert.doesNotMatch(view.details,/data-field=|class="property-choice/);assert.match(view.details,/ByLayer/);
  assert.match(view.tree,/class="tree-row selected"/);
 });
 

@@ -191,8 +191,8 @@
 .inspector-field[open]>summary .value-summary svg{transform:rotate(90deg)}
 .inspector-field .field-children{padding-left:12px;border-left:1px solid var(--theme-border);margin-left:2px}
 .field-value{display:grid;grid-template-columns:minmax(0,42%) minmax(0,1fr);gap:10px;align-items:start;padding:9px 0}
-.field-value .property-choice{border:0;background:transparent;padding:0;text-align:left;font-size:inherit;color:var(--theme-secondary);overflow-wrap:anywhere}
-.field-content{overflow-wrap:anywhere;min-width:0}.inspector-field .property-choice.selected{background:var(--theme-highlight);box-shadow:inset 3px 0 var(--theme-accent);padding-left:6px;border-radius:3px}
+
+.field-content{overflow-wrap:anywhere;min-width:0}
 
 .inspector-field>summary>svg{width:12px;height:12px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transform-origin:50% 50%}
 .inspector-field[open]>summary>svg{transform:rotate(90deg)}

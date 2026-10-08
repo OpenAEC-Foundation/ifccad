@@ -1,5 +1,14 @@
 // A UI projection: native nodes, identities and source ordering are unchanged.
 const projections=new WeakMap();
+export function cadSelectionForNode(model,key){
+ const node=model.nodes.get(key);if(!node)return null;
+ if(node.type==='layout'){
+  const values=node.values['ifccad::layout']||node.values;
+  const layout=String(values.kind).toLowerCase()==='model'?'Model':values.name;
+  return typeof layout==='string'&&layout?{kind:'layout',layout}:null;
+ }
+ return (model.format==='ifccad'?!!node.values['ifccad::entity']:key.startsWith('entity:'))?{kind:'element',key}:null;
+}
 export function inspectionNavigation(model,{view='drawing',grouping='type'}={}){
  let cached=projections.get(model);if(!cached){cached=new Map();projections.set(model,cached);}
  const signature=view+':'+grouping;if(cached.has(signature))return cached.get(signature);

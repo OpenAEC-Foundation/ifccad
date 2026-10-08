@@ -19,12 +19,34 @@ test('reverse selection messages require the current frame, token and generated 
 });
 
 test('native selection activates only the generated document and verifies its selected handle',async()=>{
- let current=1,next=2,selection=[];const documents=[{id:1}],calls=[];
- const control=async request=>{calls.push(request);if(request.op==='state')return {ok:true,document_id:current,documents,revision:0,layout:'Model',selection};if(request.op==='open'){current=next++;documents.push({id:current});return {ok:true};}if(request.op==='activate'){current=request.document_id;return {ok:true};}if(request.op==='select'){selection=request.handles;return {ok:true};}throw Error('unexpected operation');};
+ let current=1,next=2,selection=[],layout='Model';const documents=[{id:1}],calls=[];
+ const control=async request=>{calls.push(request);if(request.op==='state')return {ok:true,document_id:current,documents,revision:0,layout,selection};if(request.op==='open'){current=next++;documents.push({id:current});return {ok:true};}if(request.op==='activate'){current=request.document_id;return {ok:true};}if(request.op==='start'){layout=request.cmd.slice(5);return {ok:true};}if(request.op==='select'){selection=request.handles;return {ok:true};}throw Error('unexpected operation');};
  const session=createDocumentSession(control);await session.openOriginal('YQ==','original.dxf');await session.replaceGenerated('Yg==','generated.dxf');const generated=session.ids().generatedId;current=session.ids().originalId;
  assert.equal(typeof session.selectGenerated,'function');await session.selectGenerated(['A2'],'Model');assert.equal(current,generated);assert.deepEqual(selection,['A2']);assert.equal(calls.filter(r=>r.op==='open').length,2);
- await assert.rejects(session.selectGenerated(['A2'],'Paper'),/layout/i);assert.deepEqual(selection,['A2']);
+ await session.selectGenerated(['A2'],'Paper');assert.equal(layout,'Paper');assert.deepEqual(selection,['A2']);
+ assert.equal(calls.findIndex(r=>r.op==='start')<calls.findLastIndex(r=>r.op==='select'),true);
+ const runs=calls.filter(r=>r.op==='start').length;await session.selectGenerated(['A2'],'Paper');assert.equal(calls.filter(r=>r.op==='start').length,runs);
+ await session.selectGenerated([],'Sheet A; "é"');assert.equal(layout,'Sheet A; "é"');assert.deepEqual(selection,[]);
  await session.selectGenerated([]);assert.deepEqual(selection,[]);
+});
+
+test('unconfirmed or blocked layout changes never select a handle in the wrong space',async()=>{
+ let selection=['AB'],command=null,layout='Model',current=7;const calls=[];
+ const control=async request=>{calls.push(request);if(request.op==='state')return {ok:true,document_id:current,documents:[{id:7}],layout,selection,command};if(request.op==='open')return {ok:true};if(request.op==='start')return {ok:true};if(request.op==='select'){selection=request.handles;return {ok:true};}throw Error('unexpected operation');};
+ const session=createDocumentSession(control);await session.replaceGenerated('YQ==','generated.dxf');
+ await assert.rejects(session.selectGenerated(['CD'],'Missing'),/layout/i);assert.deepEqual(selection,['AB']);assert.equal(calls.some(r=>r.op==='select'),false);
+ command={name:'LINE'};await assert.rejects(session.selectGenerated(['CD'],'Paper'),/command/i);assert.equal(calls.filter(r=>r.op==='start').length,1);
+ for(const name of ['', ' Paper ', 'Paper\nModel'])await assert.rejects(session.selectGenerated([],name),/layout/i);
+ await assert.rejects(session.selectGenerated([],'Paper',8),/changed/i);
+});
+
+test('activation rechecks the generated document and does not interrupt its CAD command',async()=>{
+ let current=7,blocked=false,activateWorks=true;const calls=[];
+ const control=async request=>{calls.push(request);if(request.op==='state')return {ok:true,document_id:current,documents:[{id:7},{id:9}],layout:'Model',selection:[],command:current===7&&blocked?{name:'LINE'}:null};if(request.op==='open')return {ok:true};if(request.op==='activate'){if(activateWorks)current=request.document_id;return {ok:true};}throw Error('unexpected operation');};
+ const session=createDocumentSession(control);await session.replaceGenerated('YQ==','generated.dxf');current=9;blocked=true;
+ await assert.rejects(session.selectGenerated([],'Paper'),/command/i);assert.equal(calls.some(r=>r.op==='start'||r.op==='select'),false);
+ current=9;blocked=false;activateWorks=false;
+ await assert.rejects(session.selectGenerated([],'Paper'),/activate/i);assert.equal(calls.some(r=>r.op==='start'||r.op==='select'),false);
 });
 
 test('only the active same-origin frame and token may answer',()=>{

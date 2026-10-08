@@ -114,14 +114,25 @@ export function createDocumentSession(control){
   replaceGenerated:(base64,name)=>schedule(async()=>{await closeGenerated();generatedId=await open(base64,name);return generatedId;}),
   selectGenerated(handles,layout,documentId=generatedId){return schedule(async()=>{
    if(!Array.isArray(handles)||handles.length>1||handles.some(handle=>typeof handle!=='string'||!/^([0-9a-f]{1,16})$/i.test(handle)||BigInt('0x'+handle)===0n))throw Error('Invalid CAD selection handle');
+   if(layout!==undefined&&(typeof layout!=='string'||!layout||layout.trim()!==layout||/[\u0000-\u001f\u007f]/.test(layout)))throw Error('Invalid CAD layout name');
    if(generatedId===null||documentId!==generatedId)throw Error('Generated drawing changed');
    let state=await control({op:'state'});
    if(!state.documents?.some(document=>document.id===generatedId))throw Error('Generated drawing is no longer open');
    if(state.command||state.modal)throw Error('Finish the current CAD command or dialog before selecting');
    if(state.document_id!==generatedId){const activated=await control({op:'activate',document_id:generatedId});if(!activated.ok)throw Error(activated.error||'Cannot activate generated drawing');state=await control({op:'state'});}
-   if(handles.length&&layout&&state.layout!==layout)throw Error('Open CAD layout '+layout+' to select this element');
+   if(!state.ok||state.document_id!==generatedId)throw Error('Cannot activate generated drawing');
+   if(state.command||state.modal)throw Error('Finish the current CAD command or dialog before selecting');
+   if(layout!==undefined&&state.layout!==layout){
+    // The pinned OCS CTAB command accepts the complete remaining name, including
+    // spaces and punctuation. Direct start bypasses the batch feeder, which
+    // would first dispatch bare CTAB and leave a value prompt pending.
+    const switched=await control({op:'start',document_id:generatedId,cmd:'CTAB '+layout});
+    if(!switched.ok)throw Error(switched.error||'CAD layout activation failed');
+    state=await control({op:'state'});
+    if(!state.ok||state.document_id!==generatedId||state.layout!==layout)throw Error('Requested CAD layout was not activated');
+   }
    const selected=await control({op:'select',document_id:generatedId,handles});if(!selected.ok)throw Error(selected.error||'CAD selection failed');
-   state=await control({op:'state'});if(state.document_id!==generatedId||JSON.stringify(state.selection)!==JSON.stringify(handles))throw Error('CAD selection was not confirmed');
+   state=await control({op:'state'});if(!state.ok||state.document_id!==generatedId||layout!==undefined&&state.layout!==layout||JSON.stringify(state.selection)!==JSON.stringify(handles))throw Error('CAD selection was not confirmed');
    return generatedId;
   });},
   ids:()=>({originalId,generatedId})

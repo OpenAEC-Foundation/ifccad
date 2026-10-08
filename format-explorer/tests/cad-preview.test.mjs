@@ -4,6 +4,26 @@ import {createCadPreviewController} from '../src/cad-preview.mjs';
 const source={kind:'cad',name:'original.dwg',files:[{path:'original.dwg',bytes:new Uint8Array([1,2]).buffer}]};
 const result={failure:null,validation:{strictAvailable:true},export:{requestedVersion:'AC1032',download:{format:'dwg',base64:'AQI=',byteLength:2}}};
 
+test('native layout and cross-layout entity choices use the current CAD session without another export',async()=>{
+ for(const format of ['ifccad','ocdraw']){
+  const selected=[],updates=[];let exports=0,replacements=0;const key=format==='ifccad'?'/cad/d1/e2':'entity:2';
+  const output={...result,export:{...result.export,download:{...result.export.download,format:'dxf'},viewerSelection:{format,entities:[{path:key,handle:'BB',layout:'Sheet A'}]}}};
+  const controller=createCadPreviewController({openExport:async()=>{exports++;return output;},openSession:async()=>({async replaceGenerated(){replacements++;},async selectGenerated(handles,layout){selected.push([handles,layout]);},close(){}}),onUpdate:state=>updates.push(state)});
+  controller.setSource({kind:format==='ifccad'?'ifccad':'drawing',name:'native',files:source.files},true);await controller.show();updates.length=0;
+  assert.equal(typeof controller.selectLayout,'function');await controller.selectLayout('Model');await controller.selectElement(key);await controller.selectLayout('Sheet B');
+  assert.deepEqual(selected,[[[],'Model'],[['BB'],'Sheet A'],[[],'Sheet B']]);assert.equal(exports,1);assert.equal(replacements,1);
+  assert.equal(updates.some(state=>state.busy||state.viewerBusy),false);assert.equal(controller.state.selectionStatus,'selected');
+ }
+});
+
+test('a later selection supersedes a queued layout request and remains the final intent',async()=>{
+ let finish;const selected=[];const output={...result,export:{...result.export,download:{...result.export.download,format:'dxf'},viewerSelection:{format:'ocdraw',entities:[{path:'entity:1',handle:'AB',layout:'Model'}]}}};
+ const controller=createCadPreviewController({openExport:async()=>output,openSession:async()=>({async replaceGenerated(){},selectGenerated(handles,layout){selected.push([handles,layout]);return layout==='Paper'?new Promise(resolve=>{finish=resolve;}):Promise.resolve();},close(){}})});
+ controller.setSource({kind:'drawing',name:'native',files:source.files},true);await controller.show();assert.equal(typeof controller.selectLayout,'function');
+ const first=controller.selectLayout('Paper');while(!finish)await new Promise(resolve=>setImmediate(resolve));const last=controller.selectElement('entity:1');finish();await Promise.all([first,last]);
+ assert.deepEqual(selected,[[[],'Paper'],[['AB'],'Model']]);assert.equal(controller.state.selectionKey,'entity:1');assert.equal(controller.state.selectionStatus,'selected');
+});
+
 test('CAD selection reverses the qualified map without export, feedback or stale-file updates',async()=>{
  for(const format of ['ifccad','ocdraw']){
   const keys=format==='ifccad'?['/cad/d1/e1','/cad/d1/e2']:['entity:1','entity:2'];let listener,exports=0,selects=0;const revealed=[];

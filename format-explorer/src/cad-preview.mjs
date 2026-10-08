@@ -6,14 +6,14 @@ function drawingFormat(source){return source?.kind==='ifccad'||source?.drawingFo
 function drawingLabel(source){return drawingFormat(source)==='ifccad'?'IFCCAD':'OCDraw';}
 
 export function createCadPreviewController({openExport,openSession,onUpdate=()=>{},onCadSelection=()=>{}}){
- const state={source:null,valid:false,visible:false,busy:false,viewerBusy:false,phase:'',format:'dxf',version:defaultCadVersion,conversionOptions:undefined,result:null,download:null,error:'',viewerError:'',viewerReady:false,selectionKey:null,selectionStatus:'',selectionError:'',selectionRequested:false};
+ const state={source:null,valid:false,visible:false,busy:false,viewerBusy:false,phase:'',format:'dxf',version:defaultCadVersion,conversionOptions:undefined,result:null,download:null,error:'',viewerError:'',viewerReady:false,selectionKey:null,selectionLayout:null,selectionStatus:'',selectionError:'',selectionRequested:false};
  let selectionVersion=0,selectionQueue=Promise.resolve(),appliedSelection=null;
  let generation=0,epoch=0,controller=null,preparation=null,viewPromise=null,session=null,sessionPromise=null,originalOpened=false,displayedKey=null,preparedKey=null;
  const cache=new Map(),notify=()=>{session?.setVisible?.(state.visible&&!state.busy&&!state.viewerBusy&&!!state.download&&displayedKey===preparedKey);onUpdate({...state});};
  const outputKey=()=>JSON.stringify([drawingFormat(state.source),state.format,state.version,state.conversionOptions]);
  function invalidate(){generation++;selectionVersion++;appliedSelection=null;controller?.abort();controller=null;preparation=null;viewPromise=null;state.busy=false;state.viewerBusy=false;}
  function resetSession(){session?.close();session=null;sessionPromise=null;originalOpened=false;displayedKey=null;state.viewerReady=false;}
- function clear(){invalidate();epoch++;resetSession();cache.clear();preparedKey=null;Object.assign(state,{source:null,valid:false,visible:false,phase:'',result:null,download:null,error:'',viewerError:'',selectionKey:null,selectionStatus:'',selectionError:'',selectionRequested:false});notify();}
+ function clear(){invalidate();epoch++;resetSession();cache.clear();preparedKey=null;Object.assign(state,{source:null,valid:false,visible:false,phase:'',result:null,download:null,error:'',viewerError:'',selectionKey:null,selectionLayout:null,selectionStatus:'',selectionError:'',selectionRequested:false});notify();}
  function receiveCadSelection(event){
   if(!state.visible||!state.valid||state.busy||state.viewerBusy||!state.download||displayedKey!==preparedKey||!Array.isArray(event.handles)||event.handles.length!==1)return;
   const handle=event.handles[0];if(typeof handle!=='string'||!/^([0-9a-f]{1,16})$/i.test(handle))return;
@@ -23,25 +23,25 @@ export function createCadPreviewController({openExport,openSession,onUpdate=()=>
   const matches=map.entities?.filter(entry=>entry.handle.toUpperCase()===canonical&&entry.layout===event.layout)||[];
   if(matches.length!==1)return;
   const key=matches[0].path;
-  if(key===state.selectionKey){appliedSelection=JSON.stringify([generation,selectionVersion,key]);if(state.selectionStatus!=='selected'){state.selectionStatus='selected';state.selectionError='';notify();}return;}
-  selectionVersion++;state.selectionRequested=true;state.selectionKey=key;state.selectionStatus='selected';state.selectionError='';
-  appliedSelection=JSON.stringify([generation,selectionVersion,key]);notify();onCadSelection(key);
+  if(key===state.selectionKey){appliedSelection=JSON.stringify([generation,selectionVersion,key,null]);if(state.selectionStatus!=='selected'){state.selectionStatus='selected';state.selectionError='';notify();}return;}
+  selectionVersion++;state.selectionRequested=true;state.selectionKey=key;state.selectionLayout=null;state.selectionStatus='selected';state.selectionError='';
+  appliedSelection=JSON.stringify([generation,selectionVersion,key,null]);notify();onCadSelection(key);
  }
  function syncSelection(current,active){
   if(!state.selectionRequested||!active||!state.download||displayedKey!==preparedKey)return Promise.resolve();
-  const version=selectionVersion,key=state.selectionKey,signature=JSON.stringify([current,version,key]);if(signature===appliedSelection)return Promise.resolve();
+  const version=selectionVersion,key=state.selectionKey,requestedLayout=state.selectionLayout,signature=JSON.stringify([current,version,key,requestedLayout]);if(signature===appliedSelection)return Promise.resolve();
   const task=selectionQueue.then(async()=>{
    if(current!==generation||version!==selectionVersion)return;
    const map=state.result?.export?.viewerSelection,target=map?.format===drawingFormat(state.source)?map.entities?.find(entity=>entity.path===key):undefined;
    try{
     if(typeof active.selectGenerated!=='function')throw Error('CAD selection is unavailable in this viewer');
-    await active.selectGenerated(target?[target.handle]:[],target?.layout);
-    if(current===generation&&version===selectionVersion){appliedSelection=signature;state.selectionStatus=key?(target?'selected':'unavailable'):'';state.selectionError='';notify();}
+    await active.selectGenerated(target?[target.handle]:[],target?.layout??requestedLayout??undefined);
+    if(current===generation&&version===selectionVersion){appliedSelection=signature;state.selectionStatus=requestedLayout!==null?'selected':key?(target?'selected':'unavailable'):'';state.selectionError='';notify();}
    }catch(error){if(current===generation&&version===selectionVersion){state.selectionStatus='unavailable';state.selectionError=error.message;notify();}}
   });selectionQueue=task.catch(()=>{});return task;
  }
- async function selectElement(key){
-  state.selectionRequested=true;state.selectionKey=key;state.selectionStatus=key?'pending':'';state.selectionError='';selectionVersion++;notify();
+ async function selectRequest(key,layout=null){
+  state.selectionRequested=true;state.selectionKey=key;state.selectionLayout=layout;state.selectionStatus=key||layout!==null?'pending':'';state.selectionError='';selectionVersion++;notify();
   if(!state.visible||!state.valid)return;
   if(session&&state.download&&displayedKey===preparedKey&&preparedKey===outputKey()&&!state.viewerError){await syncSelection(generation,session);return;}
   await showDrawing();await syncSelection(generation,session);
@@ -91,7 +91,7 @@ export function createCadPreviewController({openExport,openSession,onUpdate=()=>
   })().finally(()=>{if(current===generation){viewPromise=null;state.viewerBusy=false;notify();}});
   return viewPromise;
  }
- return {state,clear,prepare,selectElement,refresh:notify,cancel(){invalidate();preparedKey=null;state.result=null;state.download=null;state.phase='cancelled';notify();},updateSource(source,valid){invalidate();cache.clear();preparedKey=null;displayedKey=null;if(drawingFormat(source)!==drawingFormat(state.source))Object.assign(state,{selectionKey:null,selectionRequested:false,selectionStatus:"",selectionError:""});state.source=source;state.valid=valid;state.conversionOptions=source.exportConversionOptions??source.conversionOptions;state.result=null;state.download=null;state.phase='';notify();},setSource(source,valid){clear();state.source=source;state.valid=valid;state.conversionOptions=source?.exportConversionOptions??source?.conversionOptions;state.format=/\.dwg$/i.test(source?.name)?'dwg':'dxf';state.version=defaultCadVersion;notify();},show(){state.visible=true;notify();return showDrawing();},hide(){state.visible=false;notify();},retryViewer(){epoch++;resetSession();viewPromise=null;appliedSelection=null;state.viewerError='';return showDrawing();},select(values){
+ return {state,clear,prepare,selectElement:key=>selectRequest(key),selectLayout:layout=>selectRequest(null,layout),refresh:notify,cancel(){invalidate();preparedKey=null;state.result=null;state.download=null;state.phase='cancelled';notify();},updateSource(source,valid){invalidate();cache.clear();preparedKey=null;displayedKey=null;if(drawingFormat(source)!==drawingFormat(state.source))Object.assign(state,{selectionKey:null,selectionLayout:null,selectionRequested:false,selectionStatus:"",selectionError:""});state.source=source;state.valid=valid;state.conversionOptions=source.exportConversionOptions??source.conversionOptions;state.result=null;state.download=null;state.phase='';notify();},setSource(source,valid){clear();state.source=source;state.valid=valid;state.conversionOptions=source?.exportConversionOptions??source?.conversionOptions;state.format=/\.dwg$/i.test(source?.name)?'dwg':'dxf';state.version=defaultCadVersion;notify();},show(){state.visible=true;notify();return showDrawing();},hide(){state.visible=false;notify();},retryViewer(){epoch++;resetSession();viewPromise=null;appliedSelection=null;state.viewerError='';return showDrawing();},select(values){
   const previous=outputKey();
   if(values.format!==undefined){if(!['dxf','dwg'].includes(values.format))throw Error('Unknown CAD format');state.format=values.format;}
   if(values.version!==undefined){if(!supportsCadVersion(values.version))throw Error('Unknown CAD version');state.version=values.version;}
@@ -122,7 +122,7 @@ export function initializeCadPreview({translate,onReport=()=>{},onState=()=>{},o
   $('preview-status').textContent=message;$('preview-notice').hidden=!message;
   $('preview-name').textContent=state.source?.name||text('drawing','Tekening');$('preview-name').title=state.source?.name||'';
   $('preview-retry').hidden=!state.viewerError;
-  $('cad-selection-status').hidden=!['pending','unavailable'].includes(state.selectionStatus);$('cad-selection-status').textContent=text(state.selectionStatus==='pending'?'cadSelectionPending':'cadSelectionUnavailable','');$('cad-selection-status').title=state.selectionError;
+  $('cad-selection-status').hidden=!['pending','unavailable'].includes(state.selectionStatus);$('cad-selection-status').textContent=text(state.selectionStatus==='pending'?(state.selectionLayout!==null?'cadLayoutPending':'cadSelectionPending'):(state.selectionLayout!==null?'cadLayoutUnavailable':'cadSelectionUnavailable'),'');$('cad-selection-status').title=state.selectionError;
   if(!state.result)reportedResult=null;
   else if(state.result!==reportedResult){reportedResult=state.result;onReport(state.result);}
   onState({phase:state.phase,format:state.format,version:state.version,error:state.error});

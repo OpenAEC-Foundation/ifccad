@@ -5,7 +5,7 @@ export const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&a
 export function itemTitle(node,language){return node.type==='drawing'?translate(language,'drawing')+(node.key==='drawing'?'':' · '+node.title):node.type==='group'||node.type==='file'?translate(language,node.title):['node','layer','layers','layout','linePattern','linePatterns','blockDefinition','blockDefinitions','table','stream'].includes(node.type)?node.title:translate(language,node.type)+' · '+node.title;}
 export function renderInspection(model,state){
  const chevron='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 3 L10.5 8 L5.5 13"/></svg>';
- const {language,selection,expanded,inspector,field=[]}=state,t=(k,v)=>translate(language,k,v),e=escapeHtml;
+ const {language,selection,expanded,inspector}=state,t=(k,v)=>translate(language,k,v),e=escapeHtml;
  const summary=value=>value===null?'null':Array.isArray(value)?(value.length<=4&&value.every(v=>typeof v!=='object')?'['+value.map(v=>e(v)).join(', ')+']':t('items',{count:value.length})):typeof value==='object'?t('fields',{count:Object.keys(value).length}):typeof value==='boolean'?t(value?'yes':'no'):e(value);
  const keyLabel=key=>t(key.replace(/^ifccad::geom::|^ifccad::/,''));
  const jump=(key,label)=>'<button class="reference" data-select="'+e(key)+'">'+e(label)+' ↗</button>';
@@ -17,16 +17,16 @@ export function renderInspection(model,state){
   if(value===null||typeof value!=='object'||depth>16)return '';
   const entries=Object.entries(value),ownerNode=navigation.nodes.get(owner);
   return entries.slice(0,100).map(([key,v])=>{
-   const next=[...path,key],attribute=e(JSON.stringify(next)),fieldId=JSON.stringify([owner,next]),selected=owner===selection&&JSON.stringify(next)===JSON.stringify(field),label=e(keyLabel(key));
+   const next=[...path,key],fieldId=JSON.stringify([owner,next]),label=e(keyLabel(key));
    const composite=v!==null&&typeof v==='object'&&!(Array.isArray(v)&&v.length<=4&&v.every(item=>item===null||typeof item!=='object'));
    if(composite)return '<details class="inspector-field" data-field-id="'+e(fieldId)+'"'+(!state.fieldCollapsed?.has(fieldId)&&(depth===0||state.fieldExpanded?.has(fieldId))?' open':'')+'><summary>'+chevron+'<span class="property-label">'+label+'</span></summary><div class="field-children">'+fields(v,next,depth+1,owner)+'</div></details>';
    const edge=ownerNode?.outgoing.find(link=>link.field===next.join('.'));
-   return '<div class="inspector-field field-value"><button class="property-choice'+(selected?' selected':'')+'" data-field="'+attribute+'"'+(selected?' aria-current="true"':'')+'>'+label+'</button><span class="field-content">'+(edge&&model.nodes.has(edge.target)?jump(edge.target,itemTitle(model.nodes.get(edge.target),language)):summary(v))+'</span></div>';
+   return '<div class="inspector-field field-value"><span class="property-label">'+label+'</span><span class="field-content">'+(edge&&model.nodes.has(edge.target)?jump(edge.target,itemTitle(model.nodes.get(edge.target),language)):summary(v))+'</span></div>';
   }).join('')+(entries.length>100?'<div class="secondary">'+e(t('items',{count:entries.length}))+' · JSON</div>':'');
  }
  function tree(keys,seen=new Set()){return keys.map(key=>{const n=navigation.nodes.get(key);if(!n)return '';const children=displayChildren(n).length,open=expanded.has(key),cycle=seen.has(key);return '<div><div class="tree-row'+(key===selection?' selected':'')+'">'+(children&&!cycle?'<button class="tree-expand" data-toggle="'+e(key)+'" aria-expanded="'+open+'" aria-label="'+e(itemTitle(n,language))+'">'+chevron+'</button>':'<span class="tree-expand"></span>')+'<button class="tree-item" data-select="'+e(key)+'"'+(key===selection?' aria-current="true"':'')+'><span>'+e(itemTitle(n,language))+'</span>'+(n.type==='group'?'<span class="group-count">'+n.children.length+'</span>':'')+'</button></div>'+(open&&!cycle?'<div class="tree-children">'+tree(navigation.isLarge(key)?displayChildren(n).filter(child=>forced.has(child)):displayChildren(n),new Set([...seen,key]))+'</div>':'')+'</div>';}).join('');}
  const treeHtml=tree(roots),node=navigation.nodes.get(selection);if(!node)return {tree:treeHtml,details:'<p class="secondary">'+e(t('noSelection'))+'</p>',more:false,collection};
- let value=node.values;for(const key of field)value=value?.[key];const heading='<h2>'+e(field.length?keyLabel(field.at(-1)):itemTitle(node,language))+'</h2>'+(field.length?'<p class="secondary">'+e(itemTitle(node,language))+'</p>':'')+'<div class="identity">'+e(node.key)+(field.length?' / '+e(field.join('/')):'')+'</div>';
+ const value=node.values,heading='<h2>'+e(itemTitle(node,language))+'</h2><div class="identity">'+e(node.key)+'</div>';
  let details=heading;
  if(node.drawPosition!=null)details+='<p class="secondary">'+e(t('drawPosition'))+': '+(node.drawPosition+1)+'</p>';
  if(inspector==='relations'){
@@ -35,8 +35,8 @@ export function renderInspection(model,state){
   if(model.format==='ifccad'&&node.raw){details+='<p class="secondary">'+e(t('compositionHelp'))+'</p><details open><summary>'+e(t('effectiveNode'))+'</summary><pre>'+e(ifcxNodeJson(node.raw))+'</pre></details>';for(const f of node.fragments)details+='<details><summary>'+e(t('fragment',{index:f.index}))+' · data['+f.index+']</summary><pre>'+e(JSON.stringify(f.value,null,2))+'</pre></details>';}
   else details+='<h3>'+e(t(['stream','table'].includes(node.type)?'storageJson':'inspectionJson'))+'</h3><pre>'+e(JSON.stringify(value,null,2))+'</pre>';
  }else{
- if(!field.length&&node.workspace)details+='<p class="secondary">'+e(t('coordinateDomain'))+': '+e(t(node.workspace.coordinateDomain))+(node.workspace.unit?' · '+e(t('unitLabel',{unit:node.workspace.unit})): '')+'</p>';
- if(!field.length&&node.workspaceChoices){
+ if(node.workspace)details+='<p class="secondary">'+e(t('coordinateDomain'))+': '+e(t(node.workspace.coordinateDomain))+(node.workspace.unit?' · '+e(t('unitLabel',{unit:node.workspace.unit})): '')+'</p>';
+ if(node.workspaceChoices){
   const current=value=>value==null?t('unspecified'):value.kind==='World'?t('ucsWorld'):value.kind==='Named'?(model.nodes.get(model.format==='ifccad'?value.ucs:'ucs:'+String(value.ucsId))?.title||t('unspecified')):value.kind||String(value);
   details+='<dl class="properties-list workspace-choices">'+Object.entries(node.workspaceChoices).map(([key,value])=>'<div><dt>'+e(t(key))+'</dt><dd>'+e(key==='currentUcs'?current(value):value==null?t('unspecified'):typeof value==='string'?(model.nodes.get(value)?.title||value):value.kind)+'</dd></div>').join('')+'</dl>';
  }

@@ -324,7 +324,8 @@ native geometry. See [shared geometry](../docs/geometry/shared-geometry.md).
 
 The structure tree expands only structural children. Record properties expand
 under Stored values in the inspector, preserving nested expansion and clickable
-references. Selecting a property retains the owning record's tree selection.
+references. Primitive property names and values are plain text; the inspector heading stays
+on the selected native record.
 
 The first property layer opens by default. Property headings show a left chevron
 and title without field counts; explicit expansion/collapse is retained until a
@@ -332,3 +333,11 @@ new source is opened.
 
 Clicking a small navigation group opens its members inline; its arrow still
 supports collapsing it. Larger groups open the middle list.
+
+
+Native layout selection activates that layout in generated Open CAD Studio.
+Selecting a qualified element in another layout switches to its owner layout
+before selecting it, without a new export or drawing reload. CAD commands/dialogs
+are respected, and missing layouts are reported. Switching layouts follows OCS's
+normal saved-view behavior. Ordinary property labels/values are text; nested
+object headings and typed reference links remain interactive.

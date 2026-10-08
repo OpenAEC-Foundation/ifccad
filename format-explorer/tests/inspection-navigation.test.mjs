@@ -36,3 +36,15 @@ test('many distinct entity types do not hide the structural type overview behind
  assert.equal(nav.inspectionNavigation(model).isLarge('layout:0'),false);
  assert.equal(nav.inspectionNavigation(model,{grouping:'order'}).isLarge('layout:0'),true);
 });
+test('native CAD navigation distinguishes layouts, entities and non-layout resources in both formats',()=>{
+ assert.equal(typeof nav.cadSelectionForNode,'function');
+ const ocdraw=createInspection({presentation:{format:'ocdraw',layouts:[{id:0,scopeId:0,kind:'model',name:'Model'},{id:1,scopeId:1,kind:'paper',name:'Sheet A'}],entities:[{id:2,geometry:{type:'line'}}],layers:[{id:0,name:'Layer 0'}]}});
+ assert.deepEqual(nav.cadSelectionForNode(ocdraw,'layout:0'),{kind:'layout',layout:'Model'});
+ assert.deepEqual(nav.cadSelectionForNode(ocdraw,'layout:1'),{kind:'layout',layout:'Sheet A'});
+ assert.deepEqual(nav.cadSelectionForNode(ocdraw,'entity:2'),{kind:'element',key:'entity:2'});
+ assert.equal(nav.cadSelectionForNode(ocdraw,'layer:0'),null);
+ const ifccad=createInspection({presentation:{format:'ifccad',graph:{data:[{path:'/layout/m',attributes:{'ifccad::layout':{kind:'Model'}}},{path:'/layout/9007199254740993',attributes:{'ifccad::layout':{kind:'Paper',name:'Sheet B'}}},{path:'/e2',attributes:{'ifccad::entity':{},'ifccad::geom::lineSegment':{}}}]}}});
+ assert.deepEqual(nav.cadSelectionForNode(ifccad,'/layout/m'),{kind:'layout',layout:'Model'});
+ assert.deepEqual(nav.cadSelectionForNode(ifccad,'/layout/9007199254740993'),{kind:'layout',layout:'Sheet B'});
+ assert.deepEqual(nav.cadSelectionForNode(ifccad,'/e2'),{kind:'element',key:'/e2'});
+});
