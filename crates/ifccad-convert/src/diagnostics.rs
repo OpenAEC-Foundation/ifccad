@@ -37,6 +37,8 @@ impl IfccadDiagnostic {
 pub enum IfccadConversionError {
     #[error(transparent)]
     SourceSnapshot(#[from] cad_preservation::CadSplineSnapshotError),
+    #[error(transparent)]
+    WorkspaceNumeric(#[from] cad_workspace_convert::WorkspaceNumericError),
     #[error("Paper layout {layout_id} tolerance cannot be resolved: {reason}")]
     PaperTolerance {
         layout_id: u64,

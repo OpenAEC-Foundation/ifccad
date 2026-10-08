@@ -54,3 +54,28 @@ test('IFCCAD opaque rows expose preservation links and retain mixed draw order',
  assert.equal(model.nodes.get('/cad/d1/preservation/r1').outgoing.some(l=>l.target===e.path),true);
  assert.deepEqual(model.nodes.get('/cad/d1/layout/1').children,[e.path]);assert.equal(model.roots.includes('group:preservationRecord'),true);
 });
+test('IFCCAD workspace links are explicit and full-width identities remain exact',()=>{
+ const u='/cad/d1/ucs/9007199254740993',w='/cad/d1/modelWindow/9007199254740993',paper='/cad/d1/layout/2',viewport='/cad/d1/e3';
+ const data=[{path:'/cad/d1',attributes:{'ifccad::drawing':{lengthUnit:'m',modelWindows:[w]},'ifccad::modelViewState':{currentModelUcs:{kind:'Named',ucs:u},activeModelWindow:w}}},{path:u,attributes:{'ifccad::ucsDefinition':{name:'Reference plane'}}},{path:w,attributes:{'ifccad::modelWindow':{storedUcs:{kind:'Named',ucs:u},useStoredUcs:false}}},{path:paper,attributes:{'ifccad::layout':{kind:'Paper'},'ifccad::paperCanvas':{storedUcs:{kind:'World'},useStoredUcs:false}}},{path:viewport,attributes:{'ifccad::entity':{},'ifccad::viewport':{model:'/cad/d1/layout/1'},'ifccad::viewportWorkspace':{storedUcs:{kind:'Named',ucs:u},useStoredUcs:false},note:u}}];
+ const model=adapter.createInspection({validation:{strictAvailable:true},presentation:{format:'ifccad',unit:'m',graph:{data}}});
+ assert.ok(model.roots.includes('group:ucsDefinition')); assert.ok(model.roots.includes('group:modelWindow'));
+ assert.ok(model.nodes.get('/cad/d1').outgoing.some(e=>e.target===w&&e.field==='ifccad::modelViewState.activeModelWindow'));
+ assert.ok(model.nodes.get(viewport).outgoing.some(e=>e.target===u&&e.field==='ifccad::viewportWorkspace.storedUcs'));
+ assert.ok(!model.nodes.get(viewport).outgoing.some(e=>e.field==='note'));
+ assert.equal(model.nodes.get(viewport).workspace.coordinateDomain,'Model');
+ assert.equal(model.nodes.get(viewport).workspace.unit,'m');
+ assert.equal(model.nodes.get(paper).workspace.coordinateDomain,'Paper');
+ assert.equal(model.nodes.get(paper).workspace.unit,null);
+ assert.equal(model.nodes.get(paper).workspaceChoices.activeContext,null);
+ assert.equal(model.nodes.get(paper).workspaceChoices.currentUcs,null);
+});
+test('OCDraw viewport workspace rows use owning entity identity and saved UCS links',()=>{
+ const p={format:'ocdraw',unit:'m',ucsDefinitions:[{id:0,name:'Plane'}],viewportWorkspaces:[{viewportEntityId:'9007199254740993',storedUcs:{kind:'Named',ucsId:0},useStoredUcs:false},{viewportEntityId:'9007199254740995',storedUcs:{kind:'World'},useStoredUcs:true}],paperCanvases:[{scopeId:7,storedUcs:{kind:'World'},useStoredUcs:false}],modelWindows:[{id:3,storedUcs:{kind:'Named',ucsId:0}}],viewState:{currentModelUcs:{kind:'World'}},entities:[{id:'9007199254740993',type:'viewport'},{id:'9007199254740995',type:'viewport'}]};
+ const model=adapter.createInspection({validation:{strictAvailable:true},presentation:p});
+ assert.ok(model.nodes.has('workspace:9007199254740993')); assert.ok(model.nodes.has('workspace:9007199254740995'));
+ assert.ok(model.nodes.get('workspace:9007199254740993').outgoing.some(e=>e.target==='entity:9007199254740993'));
+ assert.ok(model.nodes.get('workspace:9007199254740993').outgoing.some(e=>e.target==='ucs:0'));
+ assert.equal(model.nodes.get('workspace:9007199254740993').workspace.coordinateDomain,'Model');
+ assert.equal(model.nodes.get('canvas:7').workspace.coordinateDomain,'Paper');
+ assert.equal(model.nodes.get('drawing').workspaceChoices.activeModelWindow,null);
+});

@@ -18,6 +18,36 @@ pub(crate) fn native_defaults(raw: &serde_json::Value) -> serde_json::Value {
                         .or_insert(serde_json::json!(1.0));
                 }
             }
+            if let Some(drawing) = attrs
+                .get_mut("ifccad::drawing")
+                .and_then(serde_json::Value::as_object_mut)
+            {
+                drawing.entry("nextUcsId").or_insert(serde_json::json!(1));
+                drawing
+                    .entry("nextModelWindowId")
+                    .or_insert(serde_json::json!(1));
+                if drawing
+                    .get("modelWindows")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some_and(|a| a.is_empty())
+                {
+                    drawing.remove("modelWindows");
+                }
+            }
+            for key in [
+                "ifccad::paperCanvas",
+                "ifccad::viewportWorkspace",
+                "ifccad::modelWindow",
+            ] {
+                if let Some(value) = attrs
+                    .get_mut(key)
+                    .and_then(serde_json::Value::as_object_mut)
+                {
+                    value
+                        .entry("useStoredUcs")
+                        .or_insert(serde_json::json!(true));
+                }
+            }
             if let Some(value) = attrs
                 .get_mut("ifccad::geom::planarPolyline")
                 .and_then(serde_json::Value::as_object_mut)
@@ -257,10 +287,17 @@ pub(crate) fn precision(
             if (key.starts_with("ifccad::geom::")
                 || key == "ifccad::linePattern"
                 || key == "ifccad::blockInstance"
-                || key == "ifccad::blockDefinition")
+                || key == "ifccad::blockDefinition"
+                || matches!(
+                    key.as_str(),
+                    "ifccad::ucsDefinition"
+                        | "ifccad::modelWindow"
+                        | "ifccad::paperCanvas"
+                        | "ifccad::viewportWorkspace"
+                ))
                 && !projected(&node["attributes"][key], value)
             {
-                issues.push(diagnostic("precision", format!("{path}.{key}"), "typed geometry projection changes an exact source value; numeric approximation is rejected under both policies"));
+                issues.push(diagnostic("precision", format!("{path}.{key}"), "typed native projection changes an exact source value; scalar approximation is rejected under both policies"));
             }
             if (key == "ifccad::drawing" || key == "ifccad::entity")
                 && !projected(

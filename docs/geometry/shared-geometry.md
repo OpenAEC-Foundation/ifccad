@@ -117,3 +117,7 @@ evidence and structured numerical failures. Identity fields in this evidence
 are decimal strings to preserve uint64 values in JavaScript. A user tolerance
 selector and live-viewer integration remain subsequent application work; native
 drawings do not store conversion preferences.
+
+## Workspace scalar boundary
+
+The core workspace_kernel shares ID-free view/grid/snap/canvas values and intrinsic exact predicates. cad-workspace-convert adapts CAD scalar fields. Format-owned bindings retain identifiers and source/target losses. Workspace fields do not enter primitive geometric certification or alter per-layout Paper tolerance; canvas frames do not contribute bounds.

@@ -87,9 +87,13 @@ per layout. Native media-only states remain valid. Exact binary64 scalar convers
 and unqualified raster CAD output retain explicit restrictions; see
 [layout output](docs/layout-output.md). Current active schemas remain provisional.
 
-The next IFCCAD slice addresses drawing/workspace state (UCS, model windows,
-paper canvases, grid/snap and active choices) using this established output boundary.
-Other layer/entity/block presentation differences remain separate. The independent
+The workspace slice adds IFCCAD UCS and Model windows, Paper canvases and
+authored viewport aids, with optional current choices, exact references and
+independent allocation watermarks. OCDraw conversion uses the same scalar rules.
+Paper current-context/tab selection and VIEWPORT file grid behavior retain
+qualified codec limitations; see [workspace state](docs/workspace-state.md).
+Other layer/entity/block presentation differences remain separate.
+
 opaque SPLINE preservation pilot now uses this output boundary, including exact
 Paper coordinate-meaning predicates, durable IFCX transport and qualified fresh
 CAD restoration. It does not depend on workspace state, add native spline geometry,

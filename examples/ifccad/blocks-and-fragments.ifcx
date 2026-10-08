@@ -35,6 +35,8 @@
           "nextLayerId": 2,
           "nextLayoutId": 3,
           "nextLinePatternId": 3,
+          "nextModelWindowId": 1,
+          "nextUcsId": 1,
           "profileVersion": "0.1.0"
         }
       }

@@ -51,6 +51,24 @@
             "nextPreservationRecordId": {
               "dataType": "Integer",
               "optional": true
+            },
+            "nextUcsId": {
+              "dataType": "Integer",
+              "optional": true
+            },
+            "nextModelWindowId": {
+              "dataType": "Integer",
+              "optional": true
+            },
+            "modelWindows": {
+              "dataType": "Array",
+              "optional": true,
+              "arrayRestrictions": {
+                "min": 0,
+                "value": {
+                  "dataType": "Reference"
+                }
+              }
             }
           }
         }
@@ -1438,6 +1456,980 @@
                   }
                 }
               }
+            }
+          }
+        }
+      }
+    },
+    "ifccad::ucsDefinition": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "name": {
+              "dataType": "String"
+            },
+            "frame": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "origin": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 3,
+                      "max": 3,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  },
+                  "xAxis": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 3,
+                      "max": 3,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  },
+                  "yAxis": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 3,
+                      "max": 3,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "elevation": {
+              "dataType": "Real"
+            }
+          }
+        }
+      }
+    },
+    "ifccad::modelWindow": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "grid": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "enabled": {
+                    "dataType": "Boolean"
+                  },
+                  "spacing": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 2,
+                      "max": 2,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  },
+                  "style": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "Lines",
+                        "Dots"
+                      ]
+                    }
+                  },
+                  "majorLineFrequency": {
+                    "dataType": "Integer"
+                  },
+                  "beyondLimits": {
+                    "dataType": "Boolean"
+                  },
+                  "adaptive": {
+                    "dataType": "Boolean"
+                  },
+                  "subdivision": {
+                    "dataType": "Boolean"
+                  },
+                  "followsWorkplane": {
+                    "dataType": "Boolean"
+                  }
+                }
+              }
+            },
+            "snap": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "enabled": {
+                    "dataType": "Boolean"
+                  },
+                  "base": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 2,
+                      "max": 2,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  },
+                  "spacing": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 2,
+                      "max": 2,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  },
+                  "angle": {
+                    "dataType": "Real"
+                  },
+                  "style": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "Rectangular",
+                        "Isometric"
+                      ]
+                    }
+                  },
+                  "isometricPlane": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "Left",
+                        "Top",
+                        "Right"
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "storedUcs": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "kind": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "World",
+                        "Named",
+                        "Unnamed"
+                      ]
+                    }
+                  },
+                  "ucs": {
+                    "dataType": "Reference",
+                    "optional": true
+                  },
+                  "frame": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "origin": {
+                          "dataType": "Array",
+                          "arrayRestrictions": {
+                            "min": 3,
+                            "max": 3,
+                            "value": {
+                              "dataType": "Real"
+                            }
+                          }
+                        },
+                        "xAxis": {
+                          "dataType": "Array",
+                          "arrayRestrictions": {
+                            "min": 3,
+                            "max": 3,
+                            "value": {
+                              "dataType": "Real"
+                            }
+                          }
+                        },
+                        "yAxis": {
+                          "dataType": "Array",
+                          "arrayRestrictions": {
+                            "min": 3,
+                            "max": 3,
+                            "value": {
+                              "dataType": "Real"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "optional": true
+                  }
+                }
+              }
+            },
+            "useStoredUcs": {
+              "dataType": "Boolean",
+              "optional": true
+            },
+            "rectangle": {
+              "dataType": "Array",
+              "arrayRestrictions": {
+                "min": 4,
+                "max": 4,
+                "value": {
+                  "dataType": "Real"
+                }
+              }
+            },
+            "view": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "center": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 2,
+                      "max": 2,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  },
+                  "target": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 3,
+                      "max": 3,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  },
+                  "direction": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 3,
+                      "max": 3,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  },
+                  "height": {
+                    "dataType": "Real"
+                  },
+                  "twist": {
+                    "dataType": "Real"
+                  },
+                  "projection": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "Orthographic",
+                        "Perspective"
+                      ]
+                    }
+                  },
+                  "lensLengthMm": {
+                    "dataType": "Real",
+                    "optional": true
+                  },
+                  "frontClip": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "mode": {
+                          "dataType": "Enum",
+                          "enumRestrictions": {
+                            "options": [
+                              "Disabled",
+                              "AtCamera",
+                              "AtDistance"
+                            ]
+                          }
+                        },
+                        "distance": {
+                          "dataType": "Real",
+                          "optional": true
+                        }
+                      }
+                    }
+                  },
+                  "backClip": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "mode": {
+                          "dataType": "Enum",
+                          "enumRestrictions": {
+                            "options": [
+                              "Disabled",
+                              "AtCamera",
+                              "AtDistance"
+                            ]
+                          }
+                        },
+                        "distance": {
+                          "dataType": "Real",
+                          "optional": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "aspectRatio": {
+              "dataType": "Real"
+            },
+            "renderMode": {
+              "dataType": "Enum",
+              "enumRestrictions": {
+                "options": [
+                  "TwoDimensional",
+                  "Wireframe",
+                  "HiddenLine",
+                  "FlatShadedWithoutEdges",
+                  "FlatShadedWithEdges",
+                  "SmoothShadedWithoutEdges",
+                  "SmoothShadedWithEdges"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "ifccad::paperCanvas": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "grid": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "enabled": {
+                    "dataType": "Boolean"
+                  },
+                  "spacing": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 2,
+                      "max": 2,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  },
+                  "style": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "Lines",
+                        "Dots"
+                      ]
+                    }
+                  },
+                  "majorLineFrequency": {
+                    "dataType": "Integer"
+                  },
+                  "beyondLimits": {
+                    "dataType": "Boolean"
+                  },
+                  "adaptive": {
+                    "dataType": "Boolean"
+                  },
+                  "subdivision": {
+                    "dataType": "Boolean"
+                  },
+                  "followsWorkplane": {
+                    "dataType": "Boolean"
+                  }
+                }
+              }
+            },
+            "snap": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "enabled": {
+                    "dataType": "Boolean"
+                  },
+                  "base": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 2,
+                      "max": 2,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  },
+                  "spacing": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 2,
+                      "max": 2,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  },
+                  "angle": {
+                    "dataType": "Real"
+                  },
+                  "style": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "Rectangular",
+                        "Isometric"
+                      ]
+                    }
+                  },
+                  "isometricPlane": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "Left",
+                        "Top",
+                        "Right"
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "storedUcs": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "kind": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "World",
+                        "Named",
+                        "Unnamed"
+                      ]
+                    }
+                  },
+                  "ucs": {
+                    "dataType": "Reference",
+                    "optional": true
+                  },
+                  "frame": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "origin": {
+                          "dataType": "Array",
+                          "arrayRestrictions": {
+                            "min": 3,
+                            "max": 3,
+                            "value": {
+                              "dataType": "Real"
+                            }
+                          }
+                        },
+                        "xAxis": {
+                          "dataType": "Array",
+                          "arrayRestrictions": {
+                            "min": 3,
+                            "max": 3,
+                            "value": {
+                              "dataType": "Real"
+                            }
+                          }
+                        },
+                        "yAxis": {
+                          "dataType": "Array",
+                          "arrayRestrictions": {
+                            "min": 3,
+                            "max": 3,
+                            "value": {
+                              "dataType": "Real"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "optional": true
+                  }
+                }
+              }
+            },
+            "useStoredUcs": {
+              "dataType": "Boolean",
+              "optional": true
+            },
+            "view": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "center": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 2,
+                      "max": 2,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  },
+                  "target": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 3,
+                      "max": 3,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  },
+                  "direction": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 3,
+                      "max": 3,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  },
+                  "height": {
+                    "dataType": "Real"
+                  },
+                  "twist": {
+                    "dataType": "Real"
+                  },
+                  "projection": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "Orthographic",
+                        "Perspective"
+                      ]
+                    }
+                  },
+                  "lensLengthMm": {
+                    "dataType": "Real",
+                    "optional": true
+                  },
+                  "frontClip": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "mode": {
+                          "dataType": "Enum",
+                          "enumRestrictions": {
+                            "options": [
+                              "Disabled",
+                              "AtCamera",
+                              "AtDistance"
+                            ]
+                          }
+                        },
+                        "distance": {
+                          "dataType": "Real",
+                          "optional": true
+                        }
+                      }
+                    }
+                  },
+                  "backClip": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "mode": {
+                          "dataType": "Enum",
+                          "enumRestrictions": {
+                            "options": [
+                              "Disabled",
+                              "AtCamera",
+                              "AtDistance"
+                            ]
+                          }
+                        },
+                        "distance": {
+                          "dataType": "Real",
+                          "optional": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "frame": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "center": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 3,
+                      "max": 3,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  },
+                  "width": {
+                    "dataType": "Real"
+                  },
+                  "height": {
+                    "dataType": "Real"
+                  }
+                }
+              },
+              "optional": true
+            },
+            "currentUcs": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "kind": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "World",
+                        "Named",
+                        "Unnamed"
+                      ]
+                    }
+                  },
+                  "ucs": {
+                    "dataType": "Reference",
+                    "optional": true
+                  },
+                  "frame": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "origin": {
+                          "dataType": "Array",
+                          "arrayRestrictions": {
+                            "min": 3,
+                            "max": 3,
+                            "value": {
+                              "dataType": "Real"
+                            }
+                          }
+                        },
+                        "xAxis": {
+                          "dataType": "Array",
+                          "arrayRestrictions": {
+                            "min": 3,
+                            "max": 3,
+                            "value": {
+                              "dataType": "Real"
+                            }
+                          }
+                        },
+                        "yAxis": {
+                          "dataType": "Array",
+                          "arrayRestrictions": {
+                            "min": 3,
+                            "max": 3,
+                            "value": {
+                              "dataType": "Real"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "optional": true
+                  }
+                }
+              },
+              "optional": true
+            },
+            "activeContext": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "kind": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "Canvas",
+                        "Viewport"
+                      ]
+                    }
+                  },
+                  "viewport": {
+                    "dataType": "Reference",
+                    "optional": true
+                  }
+                }
+              },
+              "optional": true
+            }
+          }
+        }
+      }
+    },
+    "ifccad::viewportWorkspace": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "grid": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "enabled": {
+                    "dataType": "Boolean"
+                  },
+                  "spacing": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 2,
+                      "max": 2,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  },
+                  "style": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "Lines",
+                        "Dots"
+                      ]
+                    }
+                  },
+                  "majorLineFrequency": {
+                    "dataType": "Integer"
+                  },
+                  "beyondLimits": {
+                    "dataType": "Boolean"
+                  },
+                  "adaptive": {
+                    "dataType": "Boolean"
+                  },
+                  "subdivision": {
+                    "dataType": "Boolean"
+                  },
+                  "followsWorkplane": {
+                    "dataType": "Boolean"
+                  }
+                }
+              }
+            },
+            "snap": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "enabled": {
+                    "dataType": "Boolean"
+                  },
+                  "base": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 2,
+                      "max": 2,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  },
+                  "spacing": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 2,
+                      "max": 2,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  },
+                  "angle": {
+                    "dataType": "Real"
+                  },
+                  "style": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "Rectangular",
+                        "Isometric"
+                      ]
+                    }
+                  },
+                  "isometricPlane": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "Left",
+                        "Top",
+                        "Right"
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "storedUcs": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "kind": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "World",
+                        "Named",
+                        "Unnamed"
+                      ]
+                    }
+                  },
+                  "ucs": {
+                    "dataType": "Reference",
+                    "optional": true
+                  },
+                  "frame": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "origin": {
+                          "dataType": "Array",
+                          "arrayRestrictions": {
+                            "min": 3,
+                            "max": 3,
+                            "value": {
+                              "dataType": "Real"
+                            }
+                          }
+                        },
+                        "xAxis": {
+                          "dataType": "Array",
+                          "arrayRestrictions": {
+                            "min": 3,
+                            "max": 3,
+                            "value": {
+                              "dataType": "Real"
+                            }
+                          }
+                        },
+                        "yAxis": {
+                          "dataType": "Array",
+                          "arrayRestrictions": {
+                            "min": 3,
+                            "max": 3,
+                            "value": {
+                              "dataType": "Real"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "optional": true
+                  }
+                }
+              }
+            },
+            "useStoredUcs": {
+              "dataType": "Boolean",
+              "optional": true
+            }
+          }
+        }
+      }
+    },
+    "ifccad::drawingWorkspace": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "currentLayer": {
+              "dataType": "Reference",
+              "optional": true
+            },
+            "activeLayout": {
+              "dataType": "Reference",
+              "optional": true
+            }
+          }
+        }
+      }
+    },
+    "ifccad::modelViewState": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "currentModelUcs": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "kind": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "World",
+                        "Named",
+                        "Unnamed"
+                      ]
+                    }
+                  },
+                  "ucs": {
+                    "dataType": "Reference",
+                    "optional": true
+                  },
+                  "frame": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "origin": {
+                          "dataType": "Array",
+                          "arrayRestrictions": {
+                            "min": 3,
+                            "max": 3,
+                            "value": {
+                              "dataType": "Real"
+                            }
+                          }
+                        },
+                        "xAxis": {
+                          "dataType": "Array",
+                          "arrayRestrictions": {
+                            "min": 3,
+                            "max": 3,
+                            "value": {
+                              "dataType": "Real"
+                            }
+                          }
+                        },
+                        "yAxis": {
+                          "dataType": "Array",
+                          "arrayRestrictions": {
+                            "min": 3,
+                            "max": 3,
+                            "value": {
+                              "dataType": "Real"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "optional": true
+                  }
+                }
+              },
+              "optional": true
+            },
+            "activeModelWindow": {
+              "dataType": "Reference",
+              "optional": true
             }
           }
         }

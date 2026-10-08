@@ -329,7 +329,10 @@ fn drawing_view_state_decodes_to_typed_workspace_records() {
             .unwrap_or_default()
     );
     let drawing = result.as_ref().ok().unwrap();
-    assert_eq!(drawing.view_state().unwrap().active_model_window_id, 3);
+    assert_eq!(
+        drawing.view_state().unwrap().active_model_window_id,
+        Some(3)
+    );
     assert_eq!(drawing.model_windows()[0].view.height, 10.0);
     assert!(drawing.has_unconverted_view_state());
 }
@@ -1114,7 +1117,7 @@ fn view_and_workspace_cross_record_rules_survive_the_logical_model_migration() {
             .as_ref()
             .map(|_| OcdrawReadStatus::Valid)
             .unwrap_or_else(|e| e.status()),
-        OcdrawReadStatus::Invalid
+        OcdrawReadStatus::Valid
     );
 }
 

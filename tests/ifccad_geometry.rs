@@ -66,6 +66,8 @@ fn new_families_preserve_parameters_in_every_owner() {
     d.model.entities.extend(entities);
     let layout_id = d.id_counters.allocate_layout_id().unwrap();
     let mut paper = IfccadPaperLayout {
+        canvas: None,
+
         settings: ocdraw::ifccad::IfccadLayoutSettings {
             media: None,
             ..Default::default()

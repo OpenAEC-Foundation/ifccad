@@ -522,6 +522,8 @@ fn missing_layer_zero_has_loss_evidence_while_paper_geometry_is_retained() {
     let mut e = primitives().model.entities[0].clone();
     e.as_native_mut().unwrap().id = 45;
     d.paper_layouts.push(IfccadPaperLayout {
+        canvas: None,
+
         settings: ocdraw::ifccad::IfccadLayoutSettings {
             media: Some(ocdraw::ifccad::IfccadLayoutMedia {
                 width: 297.,

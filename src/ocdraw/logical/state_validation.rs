@@ -9,58 +9,22 @@ fn error(code: &'static str, location: impl Into<String>, message: &str) -> Logi
     }
 }
 fn valid_grid(grid: DrawingGrid) -> bool {
-    [grid.spacing.x(), grid.spacing.y()]
-        .into_iter()
-        .all(|v| v.is_finite() && v >= 0.)
-        && grid.major_line_frequency > 0
+    crate::workspace_kernel::validate_grid(&grid).is_ok()
 }
 fn valid_snap(snap: DrawingSnap) -> bool {
-    [
-        snap.base.x(),
-        snap.base.y(),
-        snap.spacing.x(),
-        snap.spacing.y(),
-        snap.angle,
-    ]
-    .into_iter()
-    .all(f64::is_finite)
-        && snap.spacing.x() > 0.
-        && snap.spacing.y() > 0.
+    crate::workspace_kernel::validate_snap(&snap).is_ok()
 }
 fn valid_view(view: DrawingView, paper: bool) -> bool {
-    let d = view.direction.components();
-    let norm = d[0].hypot(d[1]).hypot(d[2]);
-    let front = match view.front_clip.mode {
-        DrawingClipMode::Disabled => None,
-        DrawingClipMode::AtCamera => Some(norm),
-        DrawingClipMode::AtDistance => view.front_clip.distance,
-    };
-    let back = if view.back_clip.mode == DrawingClipMode::AtDistance {
-        view.back_clip.distance
-    } else {
-        None
-    };
-    [view.center.x(), view.center.y(), view.height, view.twist]
-        .into_iter()
-        .chain(view.target.components())
-        .chain(d)
-        .all(f64::is_finite)
-        && norm.is_finite()
-        && norm > 0.
-        && view.height > 0.
-        && (!paper || view.projection == DrawingProjection::Orthographic)
-        && match (view.projection, view.lens_length) {
-            (DrawingProjection::Orthographic, None) => true,
-            (DrawingProjection::Orthographic, Some(v)) => v.is_finite() && v >= 0.,
-            (DrawingProjection::Perspective, Some(v)) => v.is_finite() && v > 0.,
-            _ => false,
-        }
-        && view.front_clip.distance.is_none_or(f64::is_finite)
-        && view.back_clip.distance.is_none_or(f64::is_finite)
-        && (view.front_clip.mode != DrawingClipMode::AtDistance || front.is_some())
-        && view.back_clip.mode != DrawingClipMode::AtCamera
-        && (view.back_clip.mode != DrawingClipMode::AtDistance || back.is_some())
-        && front.zip(back).is_none_or(|(front, back)| back < front)
+    use crate::workspace_kernel::{validate_view, WorkspaceViewKind};
+    validate_view(
+        &view,
+        if paper {
+            WorkspaceViewKind::PaperCanvas
+        } else {
+            WorkspaceViewKind::Model
+        },
+    )
+    .is_ok()
 }
 pub(crate) fn validate_state(document: &OcdrawDocument) -> Vec<LogicalError> {
     let owners = owner_index(&document.scopes);
@@ -161,13 +125,6 @@ pub(crate) fn validate_state(document: &OcdrawDocument) -> Vec<LogicalError> {
             }
         }
     }
-    if document.view_state.is_none() && !document.model_windows.is_empty() {
-        errors.push(error(
-            "WORKSPACE_STATE",
-            "/drawingViewState",
-            "model windows require drawing view state",
-        ));
-    }
     for (index, window) in document.model_windows.iter().enumerate() {
         let rect = window.rectangle;
         if !rect
@@ -204,8 +161,13 @@ pub(crate) fn validate_state(document: &OcdrawDocument) -> Vec<LogicalError> {
         if document
             .model_windows
             .iter()
-            .find(|w| w.id == view.active_model_window_id)
-            .is_some_and(|w| w.use_stored_ucs && w.stored_ucs != view.current_model_ucs)
+            .find(|w| Some(w.id) == view.active_model_window_id)
+            .is_some_and(|w| {
+                w.use_stored_ucs
+                    && view
+                        .current_model_ucs
+                        .is_some_and(|current| w.stored_ucs != current)
+            })
         {
             errors.push(error(
                 "WORKSPACE_STATE",
@@ -234,15 +196,38 @@ pub(crate) fn validate_state(document: &OcdrawDocument) -> Vec<LogicalError> {
                 "invalid paper view, grid or snap",
             ));
         }
+        if canvas
+            .frame
+            .as_ref()
+            .is_some_and(|frame| crate::workspace_kernel::validate_canvas_frame(frame).is_err())
+        {
+            errors.push(error(
+                "WORKSPACE_STATE",
+                format!("/paperCanvases/{index}/frame"),
+                "invalid canvas frame",
+            ));
+        }
+        if canvas.current_ucs.is_some() && canvas.active_context.is_none() {
+            errors.push(error(
+                "WORKSPACE_STATE",
+                format!("/paperCanvases/{index}/currentUcs"),
+                "current UCS requires a known active context",
+            ));
+        }
         match canvas.active_context {
-            DrawingPaperContext::Canvas if canvas.stored_ucs != canvas.current_ucs => {
+            Some(DrawingPaperContext::Canvas)
+                if canvas.use_stored_ucs
+                    && canvas
+                        .current_ucs
+                        .is_some_and(|current| canvas.stored_ucs != current) =>
+            {
                 errors.push(error(
                     "WORKSPACE_STATE",
                     format!("/paperCanvases/{index}/currentUcs"),
                     "active canvas stored UCS conflicts with current UCS",
-                ))
+                ));
             }
-            DrawingPaperContext::Viewport(id) => {
+            Some(DrawingPaperContext::Viewport(id)) => {
                 let workspace = document
                     .viewport_workspaces
                     .iter()
@@ -256,9 +241,12 @@ pub(crate) fn validate_state(document: &OcdrawDocument) -> Vec<LogicalError> {
                         format!("/paperCanvases/{index}/activeContext"),
                         "active paper viewport must belong to this canvas and have a workspace row",
                     ));
-                } else if workspace
-                    .is_some_and(|w| w.use_stored_ucs && w.stored_ucs != canvas.current_ucs)
-                {
+                } else if workspace.is_some_and(|w| {
+                    w.use_stored_ucs
+                        && canvas
+                            .current_ucs
+                            .is_some_and(|current| w.stored_ucs != current)
+                }) {
                     errors.push(error(
                         "WORKSPACE_STATE",
                         format!("/paperCanvases/{index}/currentUcs"),
@@ -274,14 +262,16 @@ pub(crate) fn validate_state(document: &OcdrawDocument) -> Vec<LogicalError> {
         let id = workspace.viewport_entity_id;
         if !workspace_ids.insert(id)
             || !viewports.contains_key(&id)
-            || owners
-                .get(&id)
-                .is_none_or(|owner| !canvases.contains(owner))
+            || owners.get(&id).is_none_or(|owner| {
+                scopes
+                    .get(owner)
+                    .is_none_or(|scope| scope.kind != DrawingScopeKind::Paper)
+            })
         {
             errors.push(error(
                 "WORKSPACE_STATE",
                 format!("/viewportWorkspaces/{index}/viewportEntityId"),
-                "workspace must select one unique viewport with a paper canvas",
+                "workspace must select one unique viewport in a paper scope",
             ));
         }
         if !valid_grid(workspace.grid) || !valid_snap(workspace.snap) {

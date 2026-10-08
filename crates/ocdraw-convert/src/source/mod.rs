@@ -2,6 +2,7 @@
 mod appearance;
 mod blocks;
 mod coverage;
+pub(crate) mod workspace;
 
 mod entities;
 mod layouts;

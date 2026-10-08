@@ -1,4 +1,6 @@
 export const examples=[
+ {format:'IFCCAD',name:'Workspace state',path:'examples/ifccad/workspace-state.ifcx'},
+ {format:'OCDraw',name:'Workspace state',path:'examples/ocdraw/workspace-state.ocdraw.json'},
  {format:'IFCCAD',name:'Drawing overview',path:'examples/ifccad/overview.ifcx'},
  {format:'IFCCAD',name:'Layouts and viewports',path:'examples/ifccad/layouts-viewports.ifcx'},
  {format:'IFCCAD',name:'Shared blocks and graph contributions',path:'examples/ifccad/blocks-and-fragments.ifcx'},

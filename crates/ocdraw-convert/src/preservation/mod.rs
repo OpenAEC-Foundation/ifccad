@@ -17,5 +17,5 @@ mod tests;
 pub use cad_preservation::CadSplineSnapshotError as OcdrawSplineSnapshotError;
 pub(crate) use cad_preservation::{
     capture_spline, decode_spline_snapshot, CODEC_REVISION, LEGACY_CODEC_REVISION,
-    SPLINE_PAYLOAD_VERSION,
+    PREVIOUS_CODEC_REVISION, SPLINE_PAYLOAD_VERSION,
 };

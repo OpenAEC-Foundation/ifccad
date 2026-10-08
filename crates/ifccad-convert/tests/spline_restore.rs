@@ -188,6 +188,7 @@ fn scoped() -> IfccadDocument {
     let mut native = common::nested([0.; 3]);
     native.paper_layouts = vec![
         IfccadPaperLayout {
+            canvas: None,
             id: 42,
             name: "Physical".into(),
             tab_index: 1,
@@ -196,6 +197,7 @@ fn scoped() -> IfccadDocument {
             entities: vec![],
         },
         IfccadPaperLayout {
+            canvas: None,
             id: 43,
             name: "Unknown".into(),
             tab_index: 2,

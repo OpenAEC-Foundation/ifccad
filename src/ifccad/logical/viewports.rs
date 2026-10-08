@@ -5,6 +5,8 @@ use std::collections::{BTreeMap, BTreeSet};
 /// A Model view owned by a Paper layout, using the ordinary entity identity.
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadViewport {
+    /// Kept out of line so adding saved aids does not enlarge every entity variant.
+    pub workspace: Option<Box<super::IfccadViewportWorkspace>>,
     pub model_id: u64,
     pub frame: IfccadViewportFrame,
     pub view: IfccadViewportView,
@@ -77,9 +79,6 @@ fn problem(message: &str) -> IfccadReport {
 fn exact(v: f64) -> BigRational {
     BigRational::from_float(v).expect("checked finite value")
 }
-fn square(v: &BigRational) -> BigRational {
-    v * v
-}
 
 fn frame_bounds(
     frame: &IfccadViewportFrame,
@@ -110,60 +109,11 @@ fn frame_bounds(
 /// Validate viewport scalar parameters without resolving document references.
 pub fn validate_ifccad_viewport_parameters(viewport: &IfccadViewport) -> Result<(), IfccadReport> {
     frame_bounds(&viewport.frame)?;
-    let v = &viewport.view;
-    if v.center
-        .iter()
-        .chain(v.target.iter())
-        .chain(v.direction.iter())
-        .any(|n| !n.is_finite())
-        || !v.height.is_finite()
-        || v.height <= 0.
-        || !v.twist.is_finite()
-    {
-        return Err(problem(
-            "viewport view needs finite coordinates and positive height",
-        ));
-    }
-    let norm_squared: BigRational = v.direction.iter().map(|n| square(&exact(*n))).sum();
-    if norm_squared <= exact(0.) || norm_squared > square(&exact(f64::MAX)) {
-        return Err(problem("viewport direction needs a finite positive norm"));
-    }
-    if v.lens_length_mm.is_some_and(|n| !n.is_finite() || n < 0.)
-        || (v.projection == IfccadViewportProjection::Perspective
-            && !v.lens_length_mm.is_some_and(|n| n.is_finite() && n > 0.))
-    {
-        return Err(problem(
-            "viewport projection has an invalid lens length in millimetres",
-        ));
-    }
-    for (front, clip) in [(true, &v.front_clip), (false, &v.back_clip)] {
-        if clip.distance.is_some_and(|n| !n.is_finite())
-            || (clip.mode == IfccadViewportClipMode::AtDistance && clip.distance.is_none())
-            || (!front && clip.mode == IfccadViewportClipMode::AtCamera)
-        {
-            return Err(problem(
-                "viewport depth clipping has an invalid mode or distance",
-            ));
-        }
-    }
-    if v.front_clip.mode != IfccadViewportClipMode::Disabled
-        && v.back_clip.mode != IfccadViewportClipMode::Disabled
-    {
-        let back = v.back_clip.distance.expect("validated active distance");
-        let ordered = match v.front_clip.mode {
-            IfccadViewportClipMode::AtCamera => back < 0. || square(&exact(back)) < norm_squared,
-            IfccadViewportClipMode::AtDistance => {
-                back < v.front_clip.distance.expect("validated active distance")
-            }
-            IfccadViewportClipMode::Disabled => unreachable!(),
-        };
-        if !ordered {
-            return Err(problem(
-                "viewport active back plane must be behind front plane",
-            ));
-        }
-    }
-    Ok(())
+    crate::workspace_kernel::validate_view(
+        &viewport.view.as_workspace_view(),
+        crate::workspace_kernel::WorkspaceViewKind::Model,
+    )
+    .map_err(|error| problem(&error.to_string()))
 }
 
 /// Validates active boundary geometry; ownership and exclusive references are document rules.
@@ -261,4 +211,33 @@ pub(super) fn validate_references(document: &IfccadDocument) -> Result<(), Ifcca
         })?;
     }
     Ok(())
+}
+
+impl IfccadViewportView {
+    pub fn as_workspace_view(&self) -> crate::workspace_kernel::WorkspaceView {
+        use crate::geometry_kernel::{Point2, Point3, Vector3};
+        use crate::workspace_kernel::*;
+        let clip = |v: &IfccadViewportDepthClip| WorkspaceClip {
+            mode: match v.mode {
+                IfccadViewportClipMode::Disabled => WorkspaceClipMode::Disabled,
+                IfccadViewportClipMode::AtCamera => WorkspaceClipMode::AtCamera,
+                IfccadViewportClipMode::AtDistance => WorkspaceClipMode::AtDistance,
+            },
+            distance: v.distance,
+        };
+        WorkspaceView {
+            center: Point2::new(self.center[0], self.center[1]),
+            target: Point3::new(self.target[0], self.target[1], self.target[2]),
+            direction: Vector3::new(self.direction[0], self.direction[1], self.direction[2]),
+            height: self.height,
+            twist: self.twist,
+            projection: match self.projection {
+                IfccadViewportProjection::Orthographic => WorkspaceProjection::Orthographic,
+                IfccadViewportProjection::Perspective => WorkspaceProjection::Perspective,
+            },
+            lens_length: self.lens_length_mm,
+            front_clip: clip(&self.front_clip),
+            back_clip: clip(&self.back_clip),
+        }
+    }
 }

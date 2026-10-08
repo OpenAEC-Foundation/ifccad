@@ -335,14 +335,9 @@ fn import_document(
             if let Some(layout) = drawing.layouts.iter().find(|layout| layout.id == id) {
                 if layout.kind == DrawingLayoutKind::Paper {
                     document.header.show_model_space = false;
-                    let name = layout.name.as_str();
-                    if let Some(block) = document.objects.values().find_map(|object| match object {
-                        ObjectType::Layout(target) if target.name == name => {
-                            Some(target.block_record)
-                        }
-                        _ => None,
-                    }) {
-                        document.header.paper_space_block_handle = block;
+                    let papers = document.objects.values().filter(|o|matches!(o,ObjectType::Layout(l) if document.block_records.iter().any(|b|b.handle == l.block_record && b.is_paper_space()))).count();
+                    if papers > 1 {
+                        diagnostics.push(diagnostic("WORKSPACE","/drawingWorkspaceState/activeLayoutId","CAD retains Model/Paper mode but does not expose the selected Paper tab among several layouts"));
                     }
                 } else {
                     document.header.show_model_space = true;
@@ -437,7 +432,13 @@ fn import_document(
             }
         }
     }
-    crate::mapping::workspace::apply(drawing, &mut document, &scope_layouts, &mut diagnostics);
+    crate::mapping::workspace::apply(
+        drawing,
+        &mut document,
+        &scope_layouts,
+        &entity_mapping,
+        &mut diagnostics,
+    )?;
     if let Some(id) = drawing.workspace_state.and_then(|w| w.active_layout_id) {
         if let Some(l) = drawing.layouts.iter().find(|l| l.id == id) {
             document.header.paper_space_linetype_scaling = l.settings.paper_space_linetype_scaling;

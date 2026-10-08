@@ -178,6 +178,13 @@ mod tests {
                 *definition_id += 100;
             }
         }
+        if let Some(id) = b
+            .workspace_state
+            .as_mut()
+            .and_then(|state| state.current_layer_id.as_mut())
+        {
+            *id += 100;
+        }
         b.id_counters.next_entity_id += 100;
         b.id_counters.next_layer_id += 100;
         b.id_counters.next_line_pattern_id += 100;

@@ -257,14 +257,22 @@ Per-layer overrides select distinct existing layers and carry at least one
 effective change. Custom shading quality requires dpi 100..32767; other quality
 modes do not carry dpi.
 
-Model windows require drawing view state and positive normalized rectangles
-within [0,1]. Grid spacing is finite and nonnegative; major frequency is positive.
-Snap spacing is finite and positive, with finite base and angle. An active model
-window using its stored UCS must agree with the current model UCS. Paper canvases
-select unique paper scopes. An active canvas's stored/current UCS agree. An active
-paper viewport belongs to its canvas and has a viewport-workspace row; if it uses
-stored UCS that selection agrees with the canvas current UCS. Viewport-workspace
-rows select distinct existing paper viewports whose scope has a canvas.
+Model windows have positive normalized rectangles within [0,1]. They remain
+valid without a current-window selection or drawing view state. Current Model UCS
+and active model-window identity are independently optional; omission does not
+select World or the first window. An empty selection-only record encodes as absent.
+Grid spacing is finite and nonnegative; major frequency is positive. Snap spacing
+is finite and positive while enabled and nonnegative while disabled; base and angle
+remain finite. An active model window using stored UCS agrees with a supplied
+current Model UCS. Paper canvases select unique paper scopes. Their optional saved
+frame has finite XYZ center and positive width/height, without normalized bounds;
+it does not contribute drawable geometry or bounds. Canvas `useStoredUcs` defaults
+to true when absent. Optional current UCS requires a known active context. With
+activation enabled, supplied stored/current UCS selections agree in the selected
+context. An active Paper viewport belongs to that canvas and has a workspace row.
+Viewport-workspace rows select distinct existing Paper-owned viewports and do not
+require a canvas snapshot. Dormant records and unknown choices are not filled with
+constructor defaults by native reading or writing.
 
 ## Preservation
 

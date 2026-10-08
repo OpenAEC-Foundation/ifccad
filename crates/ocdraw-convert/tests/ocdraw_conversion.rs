@@ -981,7 +981,6 @@ fn standalone_preserves_paper_viewports_canvas_and_mixed_draw_order() {
         panic!()
     };
     document.header.show_model_space = false;
-    document.header.paper_space_block_handle = layout.block_record;
     let canvas = layout.viewport;
     let EntityType::Viewport(overall) = document.get_entity_mut(canvas).unwrap() else {
         panic!()
@@ -1040,10 +1039,20 @@ fn standalone_preserves_paper_viewports_canvas_and_mixed_draw_order() {
         })
         .unwrap();
     assert_eq!(overall.view_height, 35.0);
-    assert!(!imported.document().header.show_model_space);
+    assert_eq!(
+        drawing.document().workspace_state.unwrap().active_layout_id,
+        None
+    );
+    assert!(exported.diagnostics().iter().any(|d|matches!(d.source(),ocdraw_convert::CadToOcdrawDiagnosticSource::DocumentField{name} if name == "header.show_model_space")));
+    assert!(imported.document().header.show_model_space);
     assert_eq!(
         imported.document().header.paper_space_block_handle,
-        overall.common.owner_handle
+        imported
+            .document()
+            .block_records
+            .get("*Paper_Space")
+            .unwrap()
+            .handle
     );
     let target = imported
         .document()
@@ -1346,14 +1355,9 @@ fn paper_layouts_match_the_source_without_bootstrap_layouts() {
                     panic!("missing paper marker");
                 };
                 assert_eq!(marker.name, record.name);
-                // The name is fixed; DWG still gives the extra paper marker
-                // the primary paper record as owner. Keep rejecting the conflict.
-                assert_ne!(marker.common.owner_handle, record.handle);
-                assert!(matches!(
-                    cad_document_to_encoded_ocdraw(&document, CadToOcdrawOptions::default()),
-                    Err(CadToOcdrawError::InvalidSourceStructure { .. })
-                ));
-            } else {
+                assert_eq!(marker.common.owner_handle, record.handle);
+            }
+            {
                 let returned = cad_document_to_encoded_ocdraw(
                     &document,
                     CadToOcdrawOptions {

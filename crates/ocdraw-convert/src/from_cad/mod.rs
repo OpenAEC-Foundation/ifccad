@@ -121,26 +121,34 @@ pub fn cad_document_to_ocdraw_document_with_id(
             Point3::new(source.origin.x, source.origin.y, source.origin.z),
             Vector3::new(source.x_axis.x, source.x_axis.y, source.x_axis.z),
             Vector3::new(source.y_axis.x, source.y_axis.y, source.y_axis.z),
-        );
-        if let Ok(frame) = frame {
-            let id = drawing.add_ucs_definition(UcsDefinition::new(
-                &source.name,
-                frame,
-                source.elevation,
-            ))?;
-            ucs_names.insert(source.name.to_lowercase(), id);
-            ucs_handles.insert(source.handle, id);
-        } else {
-            loss(
-                CadToOcdrawDiagnosticSource::DocumentField {
-                    name: format!("ucs.{}", source.name),
-                },
-                CadToOcdrawAction::Skipped,
-                vec![CadToOcdrawLossReason::UnsupportedSemantic {
-                    name: "invalid UCS frame".into(),
+        )
+        .map_err(|e| cad_workspace_convert::WorkspaceNumericError {
+            field: "ucs.frame",
+            message: e.to_string(),
+        })?;
+        if !source.elevation.is_finite()
+            || frame.x_axis().components() != [source.x_axis.x, source.x_axis.y, source.x_axis.z]
+            || frame.y_axis().components() != [source.y_axis.x, source.y_axis.y, source.y_axis.z]
+        {
+            return Err(cad_workspace_convert::WorkspaceNumericError {
+                field: "ucs",
+                message: "nonfinite elevation or inexact axis normalization".into(),
+            }
+            .into());
+        }
+        let id = drawing.add_ucs_definition(UcsDefinition::new(
+            &source.name,
+            frame,
+            source.elevation,
+        ))?;
+        if ucs_names.insert(source.name.to_lowercase(), id).is_some()
+            || (!source.handle.is_null() && ucs_handles.insert(source.handle, id).is_some())
+        {
+            return Err(CadToOcdrawError::InvalidSourceStructure {
+                problems: vec![CadSourceStructureProblem::InconsistentRelationship {
+                    description: format!("ambiguous UCS name/handle for {}", source.name),
                 }],
-                &mut diagnostics,
-            );
+            });
         }
         if source.ortho_view_type != 0
             || source.ortho_type != 0
@@ -382,20 +390,40 @@ pub fn cad_document_to_ocdraw_document_with_id(
     }
     if document.header.show_model_space {
         drawing.set_active_layout(0);
-    } else if let Some(&layout_id) = paper_scopes.get(&document.header.paper_space_block_handle) {
-        drawing.set_active_layout(layout_id);
     } else {
-        loss(
-            CadToOcdrawDiagnosticSource::DocumentField {
-                name: "header.paper_space_block_handle".into(),
-            },
-            CadToOcdrawAction::Skipped,
-            vec![CadToOcdrawLossReason::MissingTarget {
-                kind: "paper layout".into(),
-                identifier: document.header.paper_space_block_handle.to_string(),
-            }],
-            &mut diagnostics,
-        );
+        let papers: Vec<_> = document
+            .objects
+            .values()
+            .filter_map(|o| match o {
+                ObjectType::Layout(l)
+                    if document
+                        .block_records
+                        .iter()
+                        .any(|b| b.handle == l.block_record && b.is_paper_space()) =>
+                {
+                    Some(l)
+                }
+                _ => None,
+            })
+            .collect();
+        if papers.len() == 1 {
+            if let Some(&id) = paper_scopes.get(&papers[0].block_record) {
+                drawing.set_active_layout(id);
+            } else {
+                loss(
+                    CadToOcdrawDiagnosticSource::DocumentField {
+                        name: "header.show_model_space".into(),
+                    },
+                    CadToOcdrawAction::PartiallyExported,
+                    vec![CadToOcdrawLossReason::UnsupportedSemantic {
+                        name: "current Paper layout has no constructed native owner".into(),
+                    }],
+                    &mut diagnostics,
+                );
+            }
+        } else {
+            loss(CadToOcdrawDiagnosticSource::DocumentField{name:"header.show_model_space".into()},CadToOcdrawAction::PartiallyExported,vec![CadToOcdrawLossReason::UnsupportedSemantic{name:"Paper mode known; current Paper layout is unavailable among several layouts".into()}],&mut diagnostics);
+        }
     }
 
     if let Some(display) = crate::mapping::point_display::direct_from_cad(
@@ -422,7 +450,7 @@ pub fn cad_document_to_ocdraw_document_with_id(
         &ucs_names,
         &ucs_handles,
         &mut diagnostics,
-    );
+    )?;
     diagnostics.extend(direct_document_losses(
         document,
         &mapped_vports,
@@ -850,6 +878,13 @@ pub fn cad_document_to_ocdraw_document_with_id(
         &mut diagnostics,
         preservation,
         unit.unwrap_or("unitless"),
+    )?;
+    crate::mapping::workspace::bind_viewport_workspaces(
+        document,
+        &mut drawing_document,
+        &entity_mapping,
+        &ucs_handles,
+        &mut diagnostics,
     )?;
     geometry.select_drawing();
     geometry.record_unassessed(&drawing_document);

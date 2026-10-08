@@ -223,6 +223,7 @@ fn convert_document(
         &mut issues,
         &mut geometry,
     )?;
+    crate::mapping::workspace::to_cad(drawing, &mut document, &mut mappings, &mut issues)?;
     let members = supported
         .iter()
         .map(|b| {

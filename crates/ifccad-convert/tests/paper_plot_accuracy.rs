@@ -126,6 +126,8 @@ fn nested_signed_occurrence_uses_paper_output_limit_under_both_policies() {
         },
     ];
     d.paper_layouts = vec![IfccadPaperLayout {
+        canvas: None,
+
         id: 42,
         name: "Sheet".into(),
         tab_index: 1,

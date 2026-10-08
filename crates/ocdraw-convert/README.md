@@ -149,9 +149,12 @@ fixed mapping determine Paper output meaning; IFCCAD no longer stores an indepen
 Paper coordinate unit. Effective plot settings, limits and layout PSLTSCALE have
 separate native/CAD coverage. The provisional field/API migration, strict physical
 scalar conversion limits, raster restrictions and per-domain accuracy reports are
-specified in [layout output](../../docs/layout-output.md). No new workspace state, renderer, release or controlled measurement is implied.
+specified in [layout output](../../docs/layout-output.md). The later workspace slice is documented separately; no renderer, release or controlled measurement is implied.
 
 ## Upstream pin update — 2026-10-07
+
+Historical note: this records the previous base. The 2026-10-08 update below supersedes its pin and remaining spline/paperspace limitations.
+
 
 Both converters use opencadcodec `063c10671fe7833d562f772159771318c7a0ebb9` (0.6.0).
 Clipping activation/group 340 and VIEWPORT angle units now come from merged
@@ -174,3 +177,12 @@ The codec-specific spline byte DTO now lives in the model-independent
 references and restoration stay in this adapter. Payload v1/v2 bytes and the
 public `OcdrawSplineSnapshotError` alias remain compatible; extraction introduces
 no codec dependency into either core and does not change the active pin.
+## Workspace and upstream update — 2026-10-08
+
+Both converters select opencadcodec 0.6.0 at `ab2eecdbffc31120b5ad6d899f6fc67cf21ede39` plus the explicit viewport-off repair [PR #103](https://github.com/HakanSeven12/opencadcodec/pull/103). Merged spline DXF parameterization and DWG Paper owner/overall-role repairs now come from upstream. See the [dependency audit](../../docs/geometry/opencadcodec-update-2026-10-08.md) and [workspace contract](../../docs/workspace-state.md) for the current field/transport boundary.
+
+UCS definitions, Model windows, canvas frame/grid/snap/UCS and authored Paper viewport aids map through shared ID-free scalar helpers. Native identities, ownership, source classification and located losses stay format-specific. Disabled zero snap spacing and stored-UCS activation survive independently of current choices. Model-viewport aids retain Model coordinates inside Paper; canvas aids use Paper coordinates. Canvas frames do not enter geometry bounds or clip ownership.
+
+A uniquely available active Model window may be selected; multiple unqualified windows survive with unspecified activation. Paper current viewport/UCS association remains unavailable on the codec surface. Model/Paper mode is available, while the active Paper tab among several sheets is not: the reserved Paper-block handle identifies infrastructure and is never rewritten as a tab selector. Unknown choices remain omitted with located loss. Skipped viewports receive no workspace references.
+
+Dot grid style and frequencies beyond CAD i16 receive field-specific substitutions. VIEWPORT grid beyond-limits/adaptive/subdivision/follow-workplane flags stay in CadDocument but its pinned DXF/DWG routes do not retain them; target diagnostics identify each nondefault field and Reject refuses that portability loss. Model VPORT grid flags survive both routes. Unrepresented display/icon/base/orthographic/plot/visual state remains diagnosed. Numeric and structural failures remain fatal under both policies.

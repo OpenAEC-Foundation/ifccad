@@ -2,6 +2,8 @@ use crate::*;
 use ocdraw::ocdraw::OcdrawBuildError;
 #[derive(Debug, thiserror::Error)]
 pub enum CadToOcdrawError {
+    #[error(transparent)]
+    WorkspaceNumeric(#[from] cad_workspace_convert::WorkspaceNumericError),
     #[error("CAD text preparation failed for {handle}: {source}")]
     TextPreparation {
         handle: opencadcodec::Handle,
@@ -57,6 +59,8 @@ impl OcdrawToCadError {
 
 #[derive(Debug, thiserror::Error)]
 pub enum OcdrawToCadError {
+    #[error(transparent)]
+    WorkspaceNumeric(#[from] cad_workspace_convert::WorkspaceNumericError),
     #[error("text preparation failed for entity {entity_id}: {source}")]
     TextPreparation {
         entity_id: u64,

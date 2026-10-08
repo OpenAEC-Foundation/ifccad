@@ -138,8 +138,9 @@ and explicit incomplete geometry evidence. IFCCAD Paper guards use exact effecti
 physical mapping. Broader raw/private/shared preservation and native spline
 geometry remain separate follow-up work; see [preservation](docs/preservation.md).
 
-The next IFCCAD slice covers UCS, model windows, paper canvases, grid/snap and
-active workspace choices against this output boundary.
+Both formats now retain UCS, Model windows, Paper canvases and per-viewport
+grid/snap state, including unspecified choices and dormant values. Qualified CAD
+limitations remain explicit; see [workspace state](docs/workspace-state.md).
 
 ## Using the implementation
 

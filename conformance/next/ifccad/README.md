@@ -28,3 +28,5 @@ Paper coordinate unit. Effective plot settings, limits and layout PSLTSCALE have
 separate native/CAD coverage. The provisional field/API migration, strict physical
 scalar conversion limits, raster restrictions and per-domain accuracy reports are
 specified in [layout output](../../../docs/layout-output.md). No new workspace state, renderer, release or controlled measurement is implied.
+
+Workspace candidates cover saved/current separation, unknown choices, disabled zero snap spacing, independent canvas frames and malformed references/scalars. IFCCAD also covers full-width UCS/window identities with explicit independent watermarks.

@@ -30,7 +30,7 @@ fn present(output: &mut Value, drawing: &ValidatedIfccad) {
     output["validation"] = json!({"strictAvailable":true,"status":"valid","diagnostics":[]});
     output["presentation"] = json!({"format":"ifccad","drawingId":d.drawing_id,"unit":d.length_unit,"linePatternScale":d.line_pattern_scale,
         "layers":role("ifccad::layer"),"layouts":role("ifccad::layout"),"blockDefinitions":role("ifccad::blockDefinition"),
-        "linePatterns":role("ifccad::linePattern"),"entities":role("ifccad::entity"),"opaqueEntities":role("ifccad::opaqueEntity"),"opaqueEntityCount":role("ifccad::opaqueEntity").len(),"preservationRecords":role("ifccad::preservationRecord"),"preservationSources":d.preservation.as_ref().map(|p|&p.sources),"boundsCompleteness":completeness,"graph":drawing.graph().composed_ifcx()});
+        "linePatterns":role("ifccad::linePattern"),"ucsDefinitions":role("ifccad::ucsDefinition"),"modelWindows":role("ifccad::modelWindow"),"entities":role("ifccad::entity"),"opaqueEntities":role("ifccad::opaqueEntity"),"opaqueEntityCount":role("ifccad::opaqueEntity").len(),"preservationRecords":role("ifccad::preservationRecord"),"preservationSources":d.preservation.as_ref().map(|p|&p.sources),"boundsCompleteness":completeness,"graph":drawing.graph().composed_ifcx()});
 }
 /// Inspect the experimental IFCCAD profile after production composition/validation.
 pub fn inspect_ifccad_bytes(name: &str, bytes: &[u8]) -> Value {

@@ -1,0 +1,490 @@
+{
+  "header": {
+    "id": "explorer-ifccad-workspace",
+    "ifcxVersion": "ifcx_alpha",
+    "dataVersion": "0.1.0",
+    "author": "OpenAEC viewport reference",
+    "timestamp": "2026-10-01T00:00:00Z"
+  },
+  "imports": [
+    {
+      "uri": "urn:example:ifccad:0.1.0"
+    }
+  ],
+  "schemas": {},
+  "data": [
+    {
+      "path": "/cad/d1",
+      "children": {
+        "layer0": "/cad/d1/layer/0",
+        "layer1": "/cad/d1/layer/1",
+        "linePattern0": "/cad/d1/linePattern/0",
+        "model": "/cad/d1/layout/1",
+        "paper2": "/cad/d1/layout/2",
+        "ucs9007199254740993": "/cad/d1/ucs/9007199254740993",
+        "window9007199254740993": "/cad/d1/modelWindow/9007199254740993"
+      },
+      "attributes": {
+        "ifccad::drawing": {
+          "lengthUnit": "mm",
+          "linePatternScale": 1.0,
+          "modelWindows": [
+            "/cad/d1/modelWindow/9007199254740993"
+          ],
+          "nextBlockId": 1,
+          "nextEntityId": 4,
+          "nextLayerId": 2,
+          "nextLayoutId": 3,
+          "nextLinePatternId": 1,
+          "nextModelWindowId": 9007199254740994,
+          "nextUcsId": 9007199254740994,
+          "profileVersion": "0.1.0"
+        },
+        "ifccad::drawingWorkspace": {
+          "activeLayout": "/cad/d1/layout/1",
+          "currentLayer": "/cad/d1/layer/0"
+        },
+        "ifccad::modelViewState": {
+          "activeModelWindow": "/cad/d1/modelWindow/9007199254740993",
+          "currentModelUcs": {
+            "kind": "Named",
+            "ucs": "/cad/d1/ucs/9007199254740993"
+          }
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/ucs/9007199254740993",
+      "attributes": {
+        "ifccad::ucsDefinition": {
+          "elevation": 0.0,
+          "frame": {
+            "origin": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "xAxis": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "yAxis": [
+              0.0,
+              1.0,
+              0.0
+            ]
+          },
+          "name": "Reference plane"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/modelWindow/9007199254740993",
+      "attributes": {
+        "ifccad::modelWindow": {
+          "aspectRatio": 1.5,
+          "grid": {
+            "adaptive": true,
+            "beyondLimits": false,
+            "enabled": true,
+            "followsWorkplane": true,
+            "majorLineFrequency": 5,
+            "spacing": [
+              10.0,
+              10.0
+            ],
+            "style": "Lines",
+            "subdivision": false
+          },
+          "rectangle": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "renderMode": "TwoDimensional",
+          "snap": {
+            "angle": 1.5707963267948966,
+            "base": [
+              0.0,
+              0.0
+            ],
+            "enabled": false,
+            "isometricPlane": "Left",
+            "spacing": [
+              0.0,
+              0.0
+            ],
+            "style": "Isometric"
+          },
+          "storedUcs": {
+            "kind": "Named",
+            "ucs": "/cad/d999/ucs/9007199254740993"
+          },
+          "useStoredUcs": false,
+          "view": {
+            "backClip": {
+              "mode": "Disabled"
+            },
+            "center": [
+              80.0,
+              40.0
+            ],
+            "direction": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "frontClip": {
+              "distance": 10.0,
+              "mode": "Disabled"
+            },
+            "height": 140.0,
+            "lensLengthMm": 50.0,
+            "projection": "Orthographic",
+            "target": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "twist": 0.0
+          }
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layout/1",
+      "children": {},
+      "attributes": {
+        "ifccad::layout": {
+          "kind": "Model",
+          "tabIndex": 0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layout/2",
+      "children": {
+        "0": "/cad/d1/e1",
+        "1": "/cad/d1/e2",
+        "2": "/cad/d1/e3"
+      },
+      "attributes": {
+        "ifccad::layout": {
+          "kind": "Paper",
+          "name": "Sheet",
+          "tabIndex": 1
+        },
+        "ifccad::paperCanvas": {
+          "frame": {
+            "center": [
+              100.0,
+              -50.0,
+              3.0
+            ],
+            "height": 10.0,
+            "width": 20.0
+          },
+          "grid": {
+            "adaptive": true,
+            "beyondLimits": false,
+            "enabled": true,
+            "followsWorkplane": true,
+            "majorLineFrequency": 5,
+            "spacing": [
+              0.25,
+              0.5
+            ],
+            "style": "Lines",
+            "subdivision": false
+          },
+          "snap": {
+            "angle": 1.5707963267948966,
+            "base": [
+              0.0,
+              0.0
+            ],
+            "enabled": false,
+            "isometricPlane": "Left",
+            "spacing": [
+              0.0,
+              0.0
+            ],
+            "style": "Isometric"
+          },
+          "storedUcs": {
+            "kind": "World"
+          },
+          "useStoredUcs": false,
+          "view": {
+            "backClip": {
+              "mode": "Disabled"
+            },
+            "center": [
+              80.0,
+              40.0
+            ],
+            "direction": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "frontClip": {
+              "distance": 10.0,
+              "mode": "Disabled"
+            },
+            "height": 140.0,
+            "lensLengthMm": 50.0,
+            "projection": "Orthographic",
+            "target": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "twist": 0.0
+          }
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/linePattern/0",
+      "attributes": {
+        "ifccad::linePattern": {
+          "description": "Solid line",
+          "name": "Continuous",
+          "pattern": []
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layer/0",
+      "attributes": {
+        "ifccad::layer": {
+          "appearance": {
+            "color": "#FFFFFF",
+            "linePattern": "/cad/d1/linePattern/0",
+            "lineWeight": 0.25,
+            "opacity": 1.0
+          },
+          "name": "0"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layer/1",
+      "attributes": {
+        "ifccad::layer": {
+          "appearance": {
+            "color": "#FFFFFF",
+            "linePattern": "/cad/d1/linePattern/0",
+            "lineWeight": 0.25,
+            "opacity": 1.0
+          },
+          "name": "Notes"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e1",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0",
+          "linePatternScale": 1.0
+        },
+        "ifccad::geom::lineSegment": {
+          "end": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "start": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e2",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0",
+          "linePatternScale": 1.0
+        },
+        "ifccad::viewport": {
+          "frame": {
+            "center": [
+              100.0,
+              75.0
+            ],
+            "height": 100.0,
+            "width": 160.0
+          },
+          "frozenLayers": [
+            "/cad/d1/layer/1"
+          ],
+          "model": "/cad/d1/layout/1",
+          "paperClip": {
+            "boundary": "/cad/d1/e3",
+            "enabled": true
+          },
+          "renderMode": "Wireframe",
+          "view": {
+            "backClip": {
+              "distance": 0.0,
+              "mode": "Disabled"
+            },
+            "center": [
+              0.0,
+              0.0
+            ],
+            "direction": [
+              0.0,
+              0.0,
+              100.0
+            ],
+            "frontClip": {
+              "distance": 0.0,
+              "mode": "Disabled"
+            },
+            "height": 200.0,
+            "lensLengthMm": 50.0,
+            "projection": "Perspective",
+            "target": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "twist": 0.0
+          },
+          "viewEnabled": true,
+          "viewLocked": true,
+          "visible": true
+        },
+        "ifccad::viewportWorkspace": {
+          "grid": {
+            "adaptive": true,
+            "beyondLimits": false,
+            "enabled": true,
+            "followsWorkplane": true,
+            "majorLineFrequency": 5,
+            "spacing": [
+              2.0,
+              3.0
+            ],
+            "style": "Lines",
+            "subdivision": false
+          },
+          "snap": {
+            "angle": 1.5707963267948966,
+            "base": [
+              0.0,
+              0.0
+            ],
+            "enabled": false,
+            "isometricPlane": "Left",
+            "spacing": [
+              0.0,
+              0.0
+            ],
+            "style": "Isometric"
+          },
+          "storedUcs": {
+            "frame": {
+              "origin": [
+                2.0,
+                3.0,
+                0.0
+              ],
+              "xAxis": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "yAxis": [
+                0.0,
+                1.0,
+                0.0
+              ]
+            },
+            "kind": "Unnamed"
+          },
+          "useStoredUcs": false
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e3",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0",
+          "linePatternScale": 1.0
+        },
+        "ifccad::geom::circle": {
+          "radius": 50.0
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            100.0,
+            75.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    }
+  ]
+}

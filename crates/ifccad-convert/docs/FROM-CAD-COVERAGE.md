@@ -15,7 +15,7 @@ with the affected domain. Payloads and error sources remain typed; these
 categories do not change Allow/Reject or the supported source subset.
 
 Pinned semantic inventory V1, opencadcodec
-`063c10671fe7833d562f772159771318c7a0ebb9`. Exhaustive matches classify every
+`ab2eecdbffc31120b5ad6d899f6fc67cf21ede39`. Exhaustive matches classify every
 inventory category. Serde residual checks cover fields plus typed comparisons
 for skipped-serde common/marker/object state. Data not exposed by the codec has
 no asserted coverage. Default Allow returns the supported subset with located
@@ -33,7 +33,7 @@ the DXF boundary reference; the separate viewport development patch is explicit.
 
 Fresh imports allocate entity, layer, layout, block-definition and pattern IDs
 from 1 using the core's independent checked uint64 domains. The drawing stores
-all five resulting next-ID watermarks, including empty domains. Allocation
+all seven resulting next-ID watermarks, including empty domains. Allocation
 exhaustion is fatal under Allow and Reject. Numeric IDs are not CAD handles or
 table positions; mappings preserve source associations for this conversion.
 Reimporting CAD does not restore a previous IFCCAD allocation history.
@@ -176,15 +176,14 @@ under both policies. This also governs scaffold comparison, so cache recovery
 does not produce a false dictionary-object loss or make Reject fail by itself.
 
 A Model layout's last-active viewport and viewport-list references must resolve
-VPORT table records, rather than Paper VIEWPORT entities. Their selection is not
-stored by the native model: `model-viewport-selection` is located loss under
-Allow and refused by Reject. Individual VPORT settings retain existing table
-classification. Paper references still require same-owner VIEWPORT entities;
+VPORT table records, rather than Paper VIEWPORT entities. Native Model windows and optional current selection now exist. The extra
+layout-cache selection/list relation remains unqualified and receives
+`model-viewport-selection` loss; independent active VPORT settings are retained. Paper references still require same-owner VIEWPORT entities;
 missing, wrong-kind or foreign targets remain structural errors. Tests in
 `tests/layout_references.rs` cover both logical and encoded routes, source
 immutability, relocated-dictionary DXF and Model-VPORT DWG readback, plus negative
-identity, ownership, ambiguity and target-kind cases. These corrections do not
-add Model view state, plot support or an overall-viewport identity heuristic.
+identity, ownership, ambiguity and target-kind cases. The workspace update below adds Model state and qualified overall roles without
+turning unqualified cache pointers into current selections.
 
 Metadata is caller supplied. New IDs follow source table/owner enumeration and
 remain u64; layer/definition vectors follow current core lexical path ordering.
@@ -275,6 +274,9 @@ CAD file serialization or application rendering.
 
 ## Upstream pin update — 2026-10-07
 
+Historical note: this records the previous base. The 2026-10-08 update below supersedes its pin and remaining spline/paperspace limitations.
+
+
 Both converters use opencadcodec `063c10671fe7833d562f772159771318c7a0ebb9` (0.6.0).
 Clipping activation/group 340 and VIEWPORT angle units now come from merged
 upstream PRs #88/#89; only the independent viewport-off repair remains selected.
@@ -317,3 +319,12 @@ are independent of the direct codec chain. On 063c106, fit-only parameterization
 physical readback reports TARGET_CODEC_SPLINE_PARAMETERIZATION_LOSS separately.
 No #99 local repair, new pin, viewer update or raw_record replay is applied.
 See the active experimental contract and docs/preservation.md for the full boundary.
+## Workspace and upstream update — 2026-10-08
+
+Both converters select opencadcodec 0.6.0 at `ab2eecdbffc31120b5ad6d899f6fc67cf21ede39` plus the explicit viewport-off repair [PR #103](https://github.com/HakanSeven12/opencadcodec/pull/103). Merged spline DXF parameterization and DWG Paper owner/overall-role repairs now come from upstream. See the [dependency audit](../../../docs/geometry/opencadcodec-update-2026-10-08.md) and [workspace contract](../../../docs/workspace-state.md) for the current field/transport boundary.
+
+UCS definitions, Model windows, canvas frame/grid/snap/UCS and authored Paper viewport aids map through shared ID-free scalar helpers. Native identities, ownership, source classification and located losses stay format-specific. Disabled zero snap spacing and stored-UCS activation survive independently of current choices. Model-viewport aids retain Model coordinates inside Paper; canvas aids use Paper coordinates. Canvas frames do not enter geometry bounds or clip ownership.
+
+A uniquely available active Model window may be selected; multiple unqualified windows survive with unspecified activation. Paper current viewport/UCS association remains unavailable on the codec surface. Model/Paper mode is available, while the active Paper tab among several sheets is not: the reserved Paper-block handle identifies infrastructure and is never rewritten as a tab selector. Unknown choices remain omitted with located loss. Skipped viewports receive no workspace references.
+
+Dot grid style and frequencies beyond CAD i16 receive field-specific substitutions. VIEWPORT grid beyond-limits/adaptive/subdivision/follow-workplane flags stay in CadDocument but its pinned DXF/DWG routes do not retain them; target diagnostics identify each nondefault field and Reject refuses that portability loss. Model VPORT grid flags survive both routes. Unrepresented display/icon/base/orthographic/plot/visual state remains diagnosed. Numeric and structural failures remain fatal under both policies.

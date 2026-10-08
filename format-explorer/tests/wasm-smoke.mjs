@@ -5,6 +5,26 @@ import {processBrowserRequest} from '../src/browser-worker.mjs';
 
 initSync({module:await readFile(new URL('../wasm-build/browser_bg.wasm',import.meta.url))});
 const wasm={conversion_capabilities,open_drawing,convert_cad_to_drawing,convert_cad_to_drawing_with_preservation,export_drawing,open_ifccad,convert_cad_to_ifccad,export_ifccad,export_drawing_with_options,convert_cad_to_drawing_with_options,export_ifccad_with_options,convert_cad_to_ifccad_with_options};
+
+for(const [kind,path]of [['drawing','../../examples/ocdraw/workspace-state.ocdraw.json'],['ifccad','../../examples/ifccad/workspace-state.ifcx']]){
+ const name=path.split('/').at(-1),bytes=new Uint8Array(await readFile(new URL(path,import.meta.url)));
+ const source={kind,name,files:[{path:name,bytes:bytes.buffer}]};
+ const opened=processBrowserRequest(source,wasm);assert.equal(opened.failure,null,JSON.stringify(opened.failure));assert.equal(opened.validation.strictAvailable,true);
+ if(kind==='ifccad'){
+  assert.equal(opened.presentation.ucsDefinitions[0].path,'/cad/d1/ucs/9007199254740993');
+  assert.equal(opened.presentation.modelWindows[0].path,'/cad/d1/modelWindow/9007199254740993');
+  const native=processBrowserRequest({...source,export:{format:'ifccad'}},wasm);assert.equal(native.failure,null);assert.deepEqual(Buffer.from(native.export.download.base64,'base64'),Buffer.from(bytes));
+ }else{assert.equal(opened.presentation.paperCanvases[0].activeContext,undefined);assert.equal(opened.presentation.viewportWorkspaces[0].useStoredUcs,false);}
+ for(const format of ['dxf','dwg']){
+  const output=processBrowserRequest({...source,export:{format,version:'AC1032'}},wasm);assert.equal(output.failure,null,JSON.stringify(output.failure));
+  assert.ok(output.export.diagnostics.some(d=>String(d.location).includes('grid.adaptive')));
+  const returned=processBrowserRequest({kind:'cad',drawingFormat:kind==='drawing'?'ocdraw':'ifccad',name:'workspace.'+format,files:[{path:'workspace.'+format,bytes:Uint8Array.from(Buffer.from(output.export.download.base64,'base64')).buffer}]},wasm);
+  assert.equal(returned.failure,null,JSON.stringify(returned.failure));assert.equal(returned.validation.strictAvailable,true);
+  if(kind==='drawing'){assert.equal(returned.presentation.paperCanvases[0].activeContext,undefined);assert.equal(returned.presentation.paperCanvases[0].frame.center.z,3);}
+  else{const canvas=returned.presentation.graph.data.find(n=>n.attributes?.['ifccad::paperCanvas']).attributes['ifccad::paperCanvas'];assert.equal(canvas.activeContext,undefined);assert.equal(canvas.frame.center[2],3);}
+ }
+}
+console.log('Browser WASM workspace fields, classified grid limitations and full-width references verified');
 const textBytes=await readFile(new URL('../../examples/ocdraw/text.ocdraw.json',import.meta.url));
 const textSource={kind:'drawing',name:'text.ocdraw.json',files:[{path:'text.ocdraw.json',bytes:Uint8Array.from(textBytes).buffer}]};
 const textOpened=processBrowserRequest(textSource,wasm);
@@ -148,7 +168,7 @@ console.log('Browser WASM IFCCAD perspective, active/dormant circle clips and in
 
 // Keep full-width counter literals in text; JSON.parse/stringify would round them.
 const largeText=(await readFile(new URL('../../examples/ifccad/hello-line-patterns.ifcx',import.meta.url),'utf8'))
- .replace(/("next(?:Entity|Layer|Layout|Block|LinePattern)Id"\s*:\s*)\d+/g,(_,prefix)=>prefix+'9007199254740993');
+ .replace(/("next(?:Entity|Layer|Layout|Block|LinePattern|Ucs|ModelWindow)Id"\s*:\s*)\d+/g,(_,prefix)=>prefix+'9007199254740993');
 const largeBytes=new TextEncoder().encode(largeText);
 const largeSource={kind:'ifccad',name:'large.ifcx',files:[{path:'large.ifcx',bytes:largeBytes.buffer}]};
 const largeOpened=processBrowserRequest(largeSource,wasm);

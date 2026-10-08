@@ -9,6 +9,8 @@ pub enum IfccadIdDomain {
     Block,
     LinePattern,
     PreservationRecord,
+    Ucs,
+    ModelWindow,
 }
 
 /// Allocation cannot reserve a valid ID in the indicated domain.
@@ -34,6 +36,8 @@ pub struct IfccadIdAllocationError {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct IfccadIdCounters {
     pub next_preservation_record_id: u64,
+    pub next_ucs_id: u64,
+    pub next_model_window_id: u64,
     pub next_entity_id: u64,
     pub next_layer_id: u64,
     pub next_layout_id: u64,
@@ -45,6 +49,8 @@ impl Default for IfccadIdCounters {
     fn default() -> Self {
         Self {
             next_preservation_record_id: 1,
+            next_ucs_id: 1,
+            next_model_window_id: 1,
             next_entity_id: 1,
             next_layer_id: 1,
             next_layout_id: 1,
@@ -78,6 +84,15 @@ impl IfccadIdCounters {
         .map(super::IfccadPreservationRecordId)
     }
 
+    pub fn allocate_ucs_id(&mut self) -> Result<super::IfccadUcsId, IfccadIdAllocationError> {
+        allocate(&mut self.next_ucs_id, IfccadIdDomain::Ucs).map(super::IfccadUcsId)
+    }
+    pub fn allocate_model_window_id(
+        &mut self,
+    ) -> Result<super::IfccadModelWindowId, IfccadIdAllocationError> {
+        allocate(&mut self.next_model_window_id, IfccadIdDomain::ModelWindow)
+            .map(super::IfccadModelWindowId)
+    }
     pub fn allocate_entity_id(&mut self) -> Result<u64, IfccadIdAllocationError> {
         allocate(&mut self.next_entity_id, IfccadIdDomain::Entity)
     }
@@ -121,6 +136,16 @@ pub(super) fn validate(document: &super::IfccadDocument) -> Result<(), super::If
         .chain(document.paper_layouts.iter().map(|layout| layout.id))
         .max();
     for (field, next, maximum) in [
+        (
+            "nextUcsId",
+            ids.next_ucs_id,
+            document.ucs_definitions.iter().map(|v| v.id.0).max(),
+        ),
+        (
+            "nextModelWindowId",
+            ids.next_model_window_id,
+            document.model_windows.iter().map(|v| v.id.0).max(),
+        ),
         ("nextEntityId", ids.next_entity_id, maximum_entity),
         (
             "nextPreservationRecordId",
@@ -191,6 +216,9 @@ mod tests {
             ids,
             IfccadIdCounters {
                 next_preservation_record_id: 1,
+                next_ucs_id: 1,
+                next_model_window_id: 1,
+
                 next_entity_id: 3,
                 next_layer_id: 2,
                 next_layout_id: 2,
@@ -226,9 +254,14 @@ mod tests {
             IfccadIdDomain::Layout,
             IfccadIdDomain::Block,
             IfccadIdDomain::LinePattern,
+            IfccadIdDomain::Ucs,
+            IfccadIdDomain::ModelWindow,
         ] {
             let mut ids = IfccadIdCounters {
                 next_preservation_record_id: u64::MAX - 1,
+                next_ucs_id: u64::MAX - 1,
+                next_model_window_id: u64::MAX - 1,
+
                 next_entity_id: u64::MAX - 1,
                 next_layer_id: u64::MAX - 1,
                 next_layout_id: u64::MAX - 1,
@@ -244,6 +277,8 @@ mod tests {
                 IfccadIdDomain::Layout => ids.allocate_layout_id(),
                 IfccadIdDomain::Block => ids.allocate_block_id(),
                 IfccadIdDomain::LinePattern => ids.allocate_line_pattern_id().map(|id| id.0),
+                IfccadIdDomain::Ucs => ids.allocate_ucs_id().map(|id| id.0),
+                IfccadIdDomain::ModelWindow => ids.allocate_model_window_id().map(|id| id.0),
             };
             assert_eq!(allocate(&mut ids).unwrap(), u64::MAX - 1);
             let before = ids;

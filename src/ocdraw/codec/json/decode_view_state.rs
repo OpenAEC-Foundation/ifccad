@@ -140,11 +140,29 @@ fn rows<'a>(root: &'a Value, key: &str) -> Option<&'a [Value]> {
     }
 }
 
+fn optional<T>(
+    value: &Value,
+    key: &str,
+    decode: impl FnOnce(&Value) -> Option<T>,
+) -> Option<Option<T>> {
+    match value.get(key) {
+        Some(v) => Some(Some(decode(v)?)),
+        None => Some(None),
+    }
+}
+fn canvas_frame(value: &Value) -> Option<crate::workspace_kernel::WorkspaceCanvasFrame> {
+    Some(crate::workspace_kernel::WorkspaceCanvasFrame {
+        center: point3(value.get("center")?)?,
+        width: value.get("width")?.as_f64()?,
+        height: value.get("height")?.as_f64()?,
+    })
+}
+
 pub(crate) fn decode_view_state(root: &Value) -> Option<DecodedViewState> {
     let view_state = match root.get("drawingViewState") {
         Some(value) => Some(DrawingViewState {
-            current_model_ucs: choice(value.get("currentModelUcs")?)?,
-            active_model_window_id: u32_value(value.get("activeModelWindowId")?)?,
+            current_model_ucs: optional(value, "currentModelUcs", choice)?,
+            active_model_window_id: optional(value, "activeModelWindowId", u32_value)?,
         }),
         None => None,
     };
@@ -173,21 +191,27 @@ pub(crate) fn decode_view_state(root: &Value) -> Option<DecodedViewState> {
     let paper_canvases = rows(root, "paperCanvases")?
         .iter()
         .map(|value| {
-            let active = value.get("activeContext")?;
-            let active_context = match active.get("kind")?.as_str()? {
-                "Canvas" => DrawingPaperContext::Canvas,
-                "Viewport" => {
-                    DrawingPaperContext::Viewport(active.get("viewportEntityId")?.as_u64()?)
+            let active_context = optional(value, "activeContext", |active| {
+                match active.get("kind")?.as_str()? {
+                    "Canvas" => Some(DrawingPaperContext::Canvas),
+                    "Viewport" => Some(DrawingPaperContext::Viewport(
+                        active.get("viewportEntityId")?.as_u64()?,
+                    )),
+                    _ => None,
                 }
-                _ => return None,
-            };
+            })?;
             Some(DrawingPaperCanvas {
+                frame: optional(value, "frame", canvas_frame)?,
+                use_stored_ucs: match value.get("useStoredUcs") {
+                    Some(v) => v.as_bool()?,
+                    None => true,
+                },
                 scope_id: u32_value(value.get("scopeId")?)?,
                 view: view(value.get("view")?)?,
                 grid: grid(value.get("grid")?)?,
                 snap: snap(value.get("snap")?)?,
                 stored_ucs: choice(value.get("storedUcs")?)?,
-                current_ucs: choice(value.get("currentUcs")?)?,
+                current_ucs: optional(value, "currentUcs", choice)?,
                 active_context,
             })
         })

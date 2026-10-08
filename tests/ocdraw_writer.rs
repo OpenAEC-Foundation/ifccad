@@ -998,8 +998,8 @@ fn typed_saved_state_and_paper_viewport_have_production_readback() {
     };
     builder.set_saved_state(DrawingSavedState {
         view_state: Some(DrawingViewState {
-            current_model_ucs: DrawingUcsSelection::World,
-            active_model_window_id: 7,
+            current_model_ucs: Some(DrawingUcsSelection::World),
+            active_model_window_id: Some(7),
         }),
         model_windows: vec![window],
         ..DrawingSavedState::default()
@@ -1020,7 +1020,10 @@ fn typed_saved_state_and_paper_viewport_have_production_readback() {
     let loaded = load_ocdraw_bytes(encoded.bytes());
     let drawing = loaded.as_ref().ok().unwrap();
     assert_eq!(drawing.model_windows(), &[window]);
-    assert_eq!(drawing.view_state().unwrap().active_model_window_id, 7);
+    assert_eq!(
+        drawing.view_state().unwrap().active_model_window_id,
+        Some(7)
+    );
     assert_eq!(drawing.viewports()[0].id, viewport);
     assert_eq!(
         drawing.owner_scope_id(drawing.viewports()[0].id),

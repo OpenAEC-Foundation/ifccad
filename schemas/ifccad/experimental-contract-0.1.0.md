@@ -296,3 +296,35 @@ The initial IFCCAD adapter qualifies only typed SPLINE snapshots. Capture, resto
 and physical CAD exchange are separately reported; no native spline evaluator or
 exact original-storage replay is claimed. See `docs/preservation.md` for predicates,
 coordinate meaning, source namespace rebinding and current pinned target restrictions.
+
+## Drawing workspace
+
+Optional workspace snapshots use `ifccad::drawingWorkspace` (current Layer and
+active layout), `ifccad::modelViewState` (optional current Model UCS and active
+window), drawing-owned `ifccad::ucsDefinition` and `ifccad::modelWindow` nodes,
+`ifccad::paperCanvas` on a Paper layout, and `ifccad::viewportWorkspace` on an
+authored Paper viewport. These records do not enter entity order or bounds.
+The drawing's `modelWindows` reference array is the sole window order; graph
+node and child-key order are incidental. References use complete same-drawing
+paths. World, Named and Unnamed selections have distinct allowed fields.
+
+UCS and model windows use independent persistent `nextUcsId` and
+`nextModelWindowId` allocation watermarks. They exceed all live IDs and never
+reduce after deletion. Actual workspace families require both explicit counters;
+legacy CAD-only input without workspace identities may use initial values of 1.
+Writers emit both counters. Native IDs never pass through floating point.
+
+Model window and authored model-viewport workspace coordinates use drawing
+units; Paper canvas values use that layout's Paper coordinates. No scale is
+inferred from media. Stored UCS and its activation flag remain independent from
+optional current state. Missing current choices stay unspecified. A current UCS
+requires a known active Paper context; an active viewport has a workspace in the
+same layout. A viewport workspace can exist without a canvas snapshot.
+
+Canvas frames preserve finite XYZ center and positive dimensions without
+contributing geometry. Grid spacing is finite and nonnegative; snap spacing is
+positive while enabled and nonnegative while disabled. Preserve dormant values.
+Intrinsic view, clip, grid and snap rules are shared with OCDraw through the
+runtime-independent workspace kernel. Unknown fields/variants, foreign references,
+nonfinite scalars, invalid activation consistency and counter exhaustion remain
+errors. IFCX composition retains its established whole-attribute semantics.

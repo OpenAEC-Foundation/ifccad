@@ -4,6 +4,23 @@ use opencadcodec::entities::Spline;
 use opencadcodec::{CadDocument, EntityType, Handle, Line, Vector3};
 
 const LEGACY: &str = "fe69506cb99dea6f4c4a73b690a27fdf04403ea0";
+
+#[test]
+fn previous_version_two_snapshot_remains_readable_after_pin_update() {
+    let previous = "063c10671fe7833d562f772159771318c7a0ebb9";
+    let mut doc = captured();
+    let preservation = doc.preservation.as_mut().unwrap();
+    preservation.sources[0].provider_revision = previous.into();
+    let record = &mut preservation.records[0];
+    let mut body: serde_json::Value = serde_json::from_slice(&record.payload.bytes).unwrap();
+    body["codecRevision"] = serde_json::json!(previous);
+    record.payload.bytes = serde_json::to_vec(&body).unwrap();
+    let restored = ocdraw_document_to_cad_document(&reopened(&doc), Default::default()).unwrap();
+    assert!(restored
+        .document()
+        .entities()
+        .any(|e| matches!(e, EntityType::Spline(_))));
+}
 fn captured() -> OcdrawDocument {
     let mut source = CadDocument::new();
     source.layers.get_mut("0").unwrap().handle = Handle::new(0xf001);

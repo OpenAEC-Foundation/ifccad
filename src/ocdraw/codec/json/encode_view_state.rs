@@ -56,7 +56,16 @@ pub(super) fn render_mode(source: DrawingRenderMode) -> &'static str {
 }
 pub(super) fn encode_document_state(root: &mut Value, state: &OcdrawDocument) {
     if let Some(source) = state.view_state {
-        root["drawingViewState"] = json!({"currentModelUcs":ucs(source.current_model_ucs),"activeModelWindowId":source.active_model_window_id});
+        let mut value = json!({});
+        if let Some(current) = source.current_model_ucs {
+            value["currentModelUcs"] = ucs(current);
+        }
+        if let Some(active) = source.active_model_window_id {
+            value["activeModelWindowId"] = json!(active);
+        }
+        if !value.as_object().unwrap().is_empty() {
+            root["drawingViewState"] = value;
+        }
     }
     if !state.model_windows.is_empty() {
         root["modelWindows"]=json!(state.model_windows.iter().map(|source|json!({"modelWindowId":source.id,
@@ -64,8 +73,13 @@ pub(super) fn encode_document_state(root: &mut Value, state: &OcdrawDocument) {
         "aspectRatio":source.aspect_ratio,"renderMode":render_mode(source.render_mode),"grid":grid(source.grid),"snap":snap(source.snap),"storedUcs":ucs(source.stored_ucs),"useStoredUcs":source.use_stored_ucs})).collect::<Vec<_>>());
     }
     if !state.paper_canvases.is_empty() {
-        root["paperCanvases"]=json!(state.paper_canvases.iter().map(|source|json!({"scopeId":source.scope_id,"view":view(source.view),
-        "grid":grid(source.grid),"snap":snap(source.snap),"storedUcs":ucs(source.stored_ucs),"currentUcs":ucs(source.current_ucs),"activeContext":match source.active_context {DrawingPaperContext::Canvas=>json!({"kind":"Canvas"}),DrawingPaperContext::Viewport(id)=>json!({"kind":"Viewport","viewportEntityId":id})}})).collect::<Vec<_>>());
+        root["paperCanvases"] = json!(state.paper_canvases.iter().map(|source| {
+            let mut value = json!({"scopeId":source.scope_id,"view":view(source.view),"grid":grid(source.grid),"snap":snap(source.snap),"storedUcs":ucs(source.stored_ucs),"useStoredUcs":source.use_stored_ucs});
+            if let Some(frame) = source.frame { value["frame"] = json!({"center":point3(frame.center),"width":frame.width,"height":frame.height}); }
+            if let Some(current) = source.current_ucs { value["currentUcs"] = ucs(current); }
+            if let Some(context) = source.active_context { value["activeContext"] = match context { DrawingPaperContext::Canvas => json!({"kind":"Canvas"}), DrawingPaperContext::Viewport(id) => json!({"kind":"Viewport","viewportEntityId":id}) }; }
+            value
+        }).collect::<Vec<_>>());
     }
     if !state.viewport_workspaces.is_empty() {
         root["viewportWorkspaces"]=json!(state.viewport_workspaces.iter().map(|source|json!({"viewportEntityId":source.viewport_entity_id,
