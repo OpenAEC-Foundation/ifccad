@@ -197,6 +197,7 @@ fn native_papers() -> IfccadDocument {
     let instance = instance(502, doc.blocks[0].id, [8., 9., 0.]);
     doc.paper_layouts = vec![
         IfccadPaperLayout {
+            bounds_quality: None,
             settings: ocdraw::ifccad::IfccadLayoutSettings {
                 media: Some(ocdraw::ifccad::IfccadLayoutMedia {
                     width: 297.,
@@ -212,6 +213,7 @@ fn native_papers() -> IfccadDocument {
             entities: vec![line, instance],
         },
         IfccadPaperLayout {
+            bounds_quality: None,
             settings: ocdraw::ifccad::IfccadLayoutSettings {
                 media: None,
                 ..Default::default()

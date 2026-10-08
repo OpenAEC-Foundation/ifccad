@@ -42,6 +42,7 @@ fn verify_readback(bytes: &[u8], document: &IfccadDocument) -> Result<(), Ifccad
     let loaded = load_ifccad_bytes(bytes, IfccadReadOptions::default())
         .map_err(IfccadEncodeError::Readback)?;
     let mut expected = document.clone();
+    expected.text_styles.sort_by_key(|style| style.id);
     for entity in expected
         .model
         .entities

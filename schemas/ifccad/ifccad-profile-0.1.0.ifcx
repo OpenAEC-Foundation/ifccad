@@ -51,6 +51,10 @@
             "nextPreservationRecordId": {
               "dataType": "Integer",
               "optional": true
+            },
+            "nextTextStyleId": {
+              "dataType": "Integer",
+              "optional": true
             }
           }
         }
@@ -417,6 +421,16 @@
             "paperSpaceLinetypeScaling": {
               "dataType": "Boolean",
               "optional": true
+            },
+            "boundsQuality": {
+              "dataType": "Enum",
+              "enumRestrictions": {
+                "options": [
+                  "enclosing",
+                  "estimated"
+                ]
+              },
+              "optional": true
             }
           }
         }
@@ -501,6 +515,16 @@
                   }
                 }
               }
+            },
+            "boundsQuality": {
+              "dataType": "Enum",
+              "enumRestrictions": {
+                "options": [
+                  "enclosing",
+                  "estimated"
+                ]
+              },
+              "optional": true
             }
           }
         }
@@ -1438,6 +1462,532 @@
                   }
                 }
               }
+            }
+          }
+        }
+      }
+    },
+    "ifccad::textStyle": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "name": {
+              "dataType": "String"
+            },
+            "font": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "family": {
+                    "dataType": "String",
+                    "optional": true
+                  },
+                  "cadFontName": {
+                    "dataType": "String",
+                    "optional": true
+                  },
+                  "bigFontName": {
+                    "dataType": "String",
+                    "optional": true
+                  },
+                  "bold": {
+                    "dataType": "Boolean",
+                    "optional": true
+                  },
+                  "italic": {
+                    "dataType": "Boolean",
+                    "optional": true
+                  },
+                  "charset": {
+                    "dataType": "Integer",
+                    "optional": true
+                  },
+                  "pitch": {
+                    "dataType": "Integer",
+                    "optional": true
+                  }
+                }
+              }
+            },
+            "widthFactor": {
+              "dataType": "Real",
+              "optional": true
+            },
+            "obliqueAngle": {
+              "dataType": "Real",
+              "optional": true
+            },
+            "vertical": {
+              "dataType": "Boolean",
+              "optional": true
+            },
+            "creationHeight": {
+              "dataType": "Real",
+              "optional": true
+            },
+            "lastUsedHeight": {
+              "dataType": "Real",
+              "optional": true
+            },
+            "creationBackward": {
+              "dataType": "Boolean",
+              "optional": true
+            },
+            "creationUpsideDown": {
+              "dataType": "Boolean",
+              "optional": true
+            }
+          }
+        }
+      }
+    },
+    "ifccad::text": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "style": {
+              "dataType": "String"
+            },
+            "rotation": {
+              "dataType": "Real",
+              "optional": true
+            },
+            "backward": {
+              "dataType": "Boolean",
+              "optional": true
+            },
+            "upsideDown": {
+              "dataType": "Boolean",
+              "optional": true
+            },
+            "layout": {
+              "dataType": "Object"
+            },
+            "content": {
+              "dataType": "Array",
+              "arrayRestrictions": {
+                "value": {
+                  "dataType": "Object",
+                  "objectRestrictions": {
+                    "values": {
+                      "text": {
+                        "dataType": "String"
+                      },
+                      "underline": {
+                        "dataType": "Boolean",
+                        "optional": true
+                      },
+                      "overline": {
+                        "dataType": "Boolean",
+                        "optional": true
+                      },
+                      "strikeThrough": {
+                        "dataType": "Boolean",
+                        "optional": true
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "obliqueAngle": {
+              "dataType": "Real",
+              "optional": true
+            },
+            "thickness": {
+              "dataType": "Real",
+              "optional": true
+            }
+          }
+        }
+      }
+    },
+    "ifccad::mText": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "style": {
+              "dataType": "String"
+            },
+            "rotation": {
+              "dataType": "Real",
+              "optional": true
+            },
+            "backward": {
+              "dataType": "Boolean",
+              "optional": true
+            },
+            "upsideDown": {
+              "dataType": "Boolean",
+              "optional": true
+            },
+            "height": {
+              "dataType": "Real"
+            },
+            "content": {
+              "dataType": "Array",
+              "arrayRestrictions": {
+                "value": {
+                  "dataType": "Object",
+                  "objectRestrictions": {
+                    "values": {
+                      "inlines": {
+                        "dataType": "Array",
+                        "arrayRestrictions": {
+                          "value": {
+                            "dataType": "Object"
+                          }
+                        }
+                      },
+                      "characterFormat": {
+                        "dataType": "Object",
+                        "objectRestrictions": {
+                          "values": {
+                            "font": {
+                              "dataType": "Object",
+                              "objectRestrictions": {
+                                "values": {
+                                  "family": {
+                                    "dataType": "String",
+                                    "optional": true
+                                  },
+                                  "cadFontName": {
+                                    "dataType": "String",
+                                    "optional": true
+                                  },
+                                  "bigFontName": {
+                                    "dataType": "String",
+                                    "optional": true
+                                  },
+                                  "bold": {
+                                    "dataType": "Boolean",
+                                    "optional": true
+                                  },
+                                  "italic": {
+                                    "dataType": "Boolean",
+                                    "optional": true
+                                  },
+                                  "charset": {
+                                    "dataType": "Integer",
+                                    "optional": true
+                                  },
+                                  "pitch": {
+                                    "dataType": "Integer",
+                                    "optional": true
+                                  }
+                                }
+                              },
+                              "optional": true
+                            },
+                            "color": {
+                              "dataType": "Object",
+                              "optional": true
+                            },
+                            "height": {
+                              "dataType": "Object",
+                              "optional": true
+                            },
+                            "widthFactor": {
+                              "dataType": "Real",
+                              "optional": true
+                            },
+                            "tracking": {
+                              "dataType": "Real",
+                              "optional": true
+                            },
+                            "obliqueAngle": {
+                              "dataType": "Real",
+                              "optional": true
+                            },
+                            "underline": {
+                              "dataType": "Boolean",
+                              "optional": true
+                            },
+                            "overline": {
+                              "dataType": "Boolean",
+                              "optional": true
+                            },
+                            "strikeThrough": {
+                              "dataType": "Boolean",
+                              "optional": true
+                            },
+                            "position": {
+                              "dataType": "Enum",
+                              "enumRestrictions": {
+                                "options": [
+                                  "bottom",
+                                  "center",
+                                  "top"
+                                ]
+                              },
+                              "optional": true
+                            }
+                          }
+                        },
+                        "optional": true
+                      },
+                      "paragraphFormat": {
+                        "dataType": "Object",
+                        "objectRestrictions": {
+                          "values": {
+                            "alignment": {
+                              "dataType": "Enum",
+                              "enumRestrictions": {
+                                "options": [
+                                  "left",
+                                  "center",
+                                  "right",
+                                  "justified",
+                                  "distributed"
+                                ]
+                              },
+                              "optional": true
+                            },
+                            "leftIndentFactor": {
+                              "dataType": "Real",
+                              "optional": true
+                            },
+                            "rightIndentFactor": {
+                              "dataType": "Real",
+                              "optional": true
+                            },
+                            "firstLineIndentFactor": {
+                              "dataType": "Real",
+                              "optional": true
+                            },
+                            "spaceBefore": {
+                              "dataType": "Real",
+                              "optional": true
+                            },
+                            "spaceAfter": {
+                              "dataType": "Real",
+                              "optional": true
+                            },
+                            "lineSpacing": {
+                              "dataType": "Object",
+                              "optional": true
+                            },
+                            "tabStops": {
+                              "dataType": "Array",
+                              "arrayRestrictions": {
+                                "value": {
+                                  "dataType": "Object"
+                                }
+                              },
+                              "optional": true
+                            }
+                          }
+                        },
+                        "optional": true
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "attachment": {
+              "dataType": "Enum",
+              "enumRestrictions": {
+                "options": [
+                  "topLeft",
+                  "topCenter",
+                  "topRight",
+                  "middleLeft",
+                  "middleCenter",
+                  "middleRight",
+                  "bottomLeft",
+                  "bottomCenter",
+                  "bottomRight"
+                ]
+              },
+              "optional": true
+            },
+            "flow": {
+              "dataType": "Enum",
+              "enumRestrictions": {
+                "options": [
+                  "horizontal",
+                  "vertical",
+                  "byStyle"
+                ]
+              },
+              "optional": true
+            },
+            "wrapWidth": {
+              "dataType": "Real",
+              "optional": true
+            },
+            "columns": {
+              "dataType": "Object",
+              "optional": true
+            },
+            "background": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "fill": {
+                    "dataType": "Object",
+                    "optional": true
+                  },
+                  "padding": {
+                    "dataType": "Object",
+                    "optional": true
+                  },
+                  "opacity": {
+                    "dataType": "Real",
+                    "optional": true
+                  },
+                  "frame": {
+                    "dataType": "Boolean",
+                    "optional": true
+                  }
+                }
+              },
+              "optional": true
+            },
+            "characterFormat": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "font": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "family": {
+                          "dataType": "String",
+                          "optional": true
+                        },
+                        "cadFontName": {
+                          "dataType": "String",
+                          "optional": true
+                        },
+                        "bigFontName": {
+                          "dataType": "String",
+                          "optional": true
+                        },
+                        "bold": {
+                          "dataType": "Boolean",
+                          "optional": true
+                        },
+                        "italic": {
+                          "dataType": "Boolean",
+                          "optional": true
+                        },
+                        "charset": {
+                          "dataType": "Integer",
+                          "optional": true
+                        },
+                        "pitch": {
+                          "dataType": "Integer",
+                          "optional": true
+                        }
+                      }
+                    },
+                    "optional": true
+                  },
+                  "color": {
+                    "dataType": "Object",
+                    "optional": true
+                  },
+                  "height": {
+                    "dataType": "Object",
+                    "optional": true
+                  },
+                  "widthFactor": {
+                    "dataType": "Real",
+                    "optional": true
+                  },
+                  "tracking": {
+                    "dataType": "Real",
+                    "optional": true
+                  },
+                  "obliqueAngle": {
+                    "dataType": "Real",
+                    "optional": true
+                  },
+                  "underline": {
+                    "dataType": "Boolean",
+                    "optional": true
+                  },
+                  "overline": {
+                    "dataType": "Boolean",
+                    "optional": true
+                  },
+                  "strikeThrough": {
+                    "dataType": "Boolean",
+                    "optional": true
+                  },
+                  "position": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "bottom",
+                        "center",
+                        "top"
+                      ]
+                    },
+                    "optional": true
+                  }
+                }
+              },
+              "optional": true
+            },
+            "paragraphFormat": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "alignment": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "left",
+                        "center",
+                        "right",
+                        "justified",
+                        "distributed"
+                      ]
+                    },
+                    "optional": true
+                  },
+                  "leftIndentFactor": {
+                    "dataType": "Real",
+                    "optional": true
+                  },
+                  "rightIndentFactor": {
+                    "dataType": "Real",
+                    "optional": true
+                  },
+                  "firstLineIndentFactor": {
+                    "dataType": "Real",
+                    "optional": true
+                  },
+                  "spaceBefore": {
+                    "dataType": "Real",
+                    "optional": true
+                  },
+                  "spaceAfter": {
+                    "dataType": "Real",
+                    "optional": true
+                  },
+                  "lineSpacing": {
+                    "dataType": "Object",
+                    "optional": true
+                  },
+                  "tabStops": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "value": {
+                        "dataType": "Object"
+                      }
+                    },
+                    "optional": true
+                  }
+                }
+              },
+              "optional": true
             }
           }
         }

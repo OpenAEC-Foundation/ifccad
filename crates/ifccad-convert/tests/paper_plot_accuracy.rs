@@ -109,6 +109,7 @@ fn nested_signed_occurrence_uses_paper_output_limit_under_both_policies() {
     }
     d.blocks = vec![
         IfccadBlockDefinition {
+            bounds_quality: None,
             id: 7,
             name: "Leaf".into(),
             base_point: [0.; 3],
@@ -117,6 +118,7 @@ fn nested_signed_occurrence_uses_paper_output_limit_under_both_policies() {
             entities: vec![leaf],
         },
         IfccadBlockDefinition {
+            bounds_quality: None,
             id: 8,
             name: "Outer".into(),
             base_point: [0.; 3],
@@ -126,6 +128,7 @@ fn nested_signed_occurrence_uses_paper_output_limit_under_both_policies() {
         },
     ];
     d.paper_layouts = vec![IfccadPaperLayout {
+        bounds_quality: None,
         id: 42,
         name: "Sheet".into(),
         tab_index: 1,

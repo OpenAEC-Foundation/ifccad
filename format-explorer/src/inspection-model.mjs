@@ -12,11 +12,12 @@ export function createInspection(result,sourceText=''){
   const graph=p.graph||{},all=graph.data||[];
   for(const item of all){const a=item.attributes||{},role=Object.keys(a).find(k=>k==='ifccad::entity')||Object.keys(a).find(k=>k.startsWith('ifccad::'));
    const payload=role?a[role]:{},geometry=Object.keys(a).find(k=>k.startsWith('ifccad::geom::')&&k!=='ifccad::geom::placement');
-   const type=a['ifccad::opaqueEntity']?'opaque':a['ifccad::blockInstance']?'blockInstance':a['ifccad::viewport']?'viewport':geometry?geometry.split('::').at(-1):role?.split('::').at(-1)||'node';
+   const type=a['ifccad::opaqueEntity']?'opaque':a['ifccad::text']?'text':a['ifccad::mText']?'mText':a['ifccad::blockInstance']?'blockInstance':a['ifccad::viewport']?'viewport':geometry?geometry.split('::').at(-1):role?.split('::').at(-1)||'node';
    const title=payload?.name||payload?.kind||item.path.split('/').at(-1),n=put(item.path,title,a,type);n.raw=item;
    nodeRoots.push(n.key);
   }
   for(const [i,fragment] of (source?.data||[]).entries())nodes.get(fragment.path)?.fragments.push({index:i,value:fragment});
+  for(const assessment of p.boundsCompleteness||[]){const n=nodes.get(assessment.scopePath);if(n)n.values={...n.values,boundsAssessment:assessment};}
   for(const item of all){const a=item.attributes||{},key=item.path,ordered=Object.entries(item.children||{}).sort(([x],[y])=>numeric(x,y));
    for(const [name,target]of ordered){link(key,target,'children.'+name,'child');if(/^\d+$/.test(name)&&(a['ifccad::layout']||a['ifccad::blockDefinition']))nodes.get(key).children.push(target);}
    for(const [name,target]of Object.entries(item.inherits||{}))if(typeof target==='string')link(key,target,'inherits.'+name,'inherits');
@@ -26,13 +27,15 @@ export function createInspection(result,sourceText=''){
    if(a['ifccad::preservation'])nodes.get(key).children=Object.entries(item.children||{}).sort(([x],[y])=>numeric(x.slice(1),y.slice(1))).map(([,path])=>path);
    link(key,a['ifccad::layer']?.appearance?.linePattern,'ifccad::layer.appearance.linePattern','pattern');
    link(key,a['ifccad::blockInstance']?.definition,'ifccad::blockInstance.definition','definition');
+   for(const kind of ['text','mText'])link(key,a['ifccad::'+kind]?.style,'ifccad::'+kind+'.style','style');
    const v=a['ifccad::viewport'];if(v){link(key,v.model,'ifccad::viewport.model','model');link(key,v.paperClip?.boundary,'ifccad::viewport.paperClip.boundary','clip');for(const target of v.frozenLayers||[])link(key,target,'ifccad::viewport.frozenLayers','layer');}
    if(a['ifccad::layout']||a['ifccad::blockDefinition'])nodes.get(key).children=Object.entries(item.children||{}).filter(([key])=>/^\d+$/.test(key)).sort(([x],[y])=>numeric(x,y)).map(([,target])=>target);
   }
   const role=r=>all.filter(n=>n.attributes?.['ifccad::'+r]).map(n=>n.path);
   const drawing=role('drawing');roots.push(...drawing);
   for(const [r,title]of [['layout','layouts'],['layer','layers'],['linePattern','linePatterns'],['blockDefinition','blocks'],['preservationRecord','preservation']]){const children=role(r);if(r==='layout')children.sort((a,b)=>(nodes.get(a).values['ifccad::layout'].tabIndex||0)-(nodes.get(b).values['ifccad::layout'].tabIndex||0));if(children.length)roots.push(group(r,title,children));}
-  const known=new Set(['drawing','layout','layer','linePattern','blockDefinition','entity','opaqueEntity','preservation','preservationRecord'].flatMap(role));const others=all.filter(n=>!known.has(n.path)).map(n=>n.path);if(others.length)roots.push(group('other','otherNodes',others));
+  const textStyles=role('textStyle');if(textStyles.length)roots.push(group('textStyle','textStyles',textStyles));
+  const known=new Set(['drawing','layout','layer','linePattern','textStyle','blockDefinition','entity','opaqueEntity','preservation','preservationRecord'].flatMap(role));const others=all.filter(n=>!known.has(n.path)).map(n=>n.path);if(others.length)roots.push(group('other','otherNodes',others));
   for(const name of ['header','imports','schemas']){const n=put('file:'+name,name,graph[name]??source?.[name]??{},'file');roots.push(n.key);nodeRoots.push(n.key);}
  }else{
   const table=(name,domain,title)=>{const children=[];for(const v of p[name]||[]){const n=put(domain+':'+id(v.id??v.scopeId),v.name||id(v.id??v.scopeId),v,name);children.push(n.key);}return children.length?group(name,title,children):null;};

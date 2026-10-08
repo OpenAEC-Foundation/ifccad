@@ -223,9 +223,11 @@ fn fixture_document() -> IfccadDocument {
         })
     };
     IfccadDocument {
+        text_styles: Vec::new(),
         preservation: None,
         plot_style_mode: Default::default(),
         id_counters: IfccadIdCounters {
+            next_text_style_id: 1,
             next_preservation_record_id: 1,
             next_entity_id: 101,
             next_layer_id: 3,
@@ -282,6 +284,7 @@ fn fixture_document() -> IfccadDocument {
             },
         ],
         model: IfccadLayout {
+            bounds_quality: None,
             settings: ocdraw::ifccad::IfccadLayoutSettings {
                 media: None,
                 ..Default::default()
@@ -331,6 +334,7 @@ fn fixture_document() -> IfccadDocument {
             ],
         },
         blocks: vec![IfccadBlockDefinition {
+            bounds_quality: None,
             bounds: None,
             id: 1,
             name: "Marker".into(),
@@ -363,6 +367,7 @@ fn nested_document() -> IfccadDocument {
         y_axis: [0.0, 1.0, 0.0],
     };
     document.blocks.push(IfccadBlockDefinition {
+        bounds_quality: None,
         bounds: None,
         id: 2,
         name: "Nested marker".into(),

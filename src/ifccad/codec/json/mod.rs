@@ -1,6 +1,9 @@
 use crate::ifccad::*;
 mod encode;
 mod geometry;
+mod text;
+mod text_layout;
+mod text_values;
 mod validate;
 mod viewports;
 mod wire;

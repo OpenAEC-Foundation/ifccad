@@ -2,6 +2,47 @@ use base64::{engine::general_purpose::STANDARD, Engine};
 use ocdraw::ifccad::load_ifccad_bytes;
 use viewer::{export_drawing_bytes, inspect_drawing_bytes};
 
+#[test]
+fn native_ifccad_text_and_independent_bounds_evidence_are_inspectable() {
+    let opened = inspect_drawing_bytes(
+        "text.ifcx",
+        include_bytes!("../../../examples/ifccad/hello-text.ifcx"),
+    );
+    assert_eq!(opened["validation"]["status"], "valid");
+    assert_eq!(opened["presentation"]["textEntityCount"], 3);
+    assert_eq!(opened["presentation"]["mTextEntityCount"], 3);
+    assert_eq!(
+        opened["presentation"]["textStyles"]
+            .as_array()
+            .unwrap()
+            .len(),
+        1
+    );
+    let scope = opened["presentation"]["boundsCompleteness"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|s| s["scopePath"] == "/cad/d1/layout/1")
+        .unwrap();
+    assert_eq!(scope["quality"], "estimated");
+    assert_eq!(scope["enclosureVerified"], false);
+    assert_eq!(scope["safeForNegativeQuery"], false);
+    let exported = export_drawing_bytes(
+        "text.ifcx",
+        include_bytes!("../../../examples/ifccad/hello-text.ifcx"),
+        "dxf",
+        "AC1032",
+    );
+    assert!(exported["failure"].is_null(), "{exported}");
+    assert_eq!(
+        exported["conversion"]["textAssessment"]["entries"]
+            .as_array()
+            .unwrap()
+            .len(),
+        6
+    );
+}
+
 const HELLO: &[u8] = include_bytes!("../../../examples/ifccad/hello-line-patterns.ifcx");
 
 #[test]
@@ -195,6 +236,7 @@ fn ifccad_native_download_preserves_large_counter_bytes() {
         .document()
         .clone();
     document.id_counters = IfccadIdCounters {
+        next_text_style_id: 1,
         next_preservation_record_id: 1,
         next_entity_id: 9_007_199_254_740_993,
         next_layer_id: 9_223_372_036_854_775_809,

@@ -2,6 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 const adapter=await import('../src/inspection-model.mjs').catch(()=>({}));
 const graph={header:{},data:[{path:'/cad/d1',children:{model:'/cad/d1/layout/1'},attributes:{'ifccad::drawing':{lengthUnit:'mm'}}},{path:'/cad/d1/layout/1',children:{'0':'/cad/d1/e9007199254740993'},attributes:{'ifccad::layout':{kind:'Model'}}},{path:'/cad/d1/e9007199254740993',attributes:{'ifccad::entity':{layer:'/cad/d1/layer/1'},'ifccad::geom::lineSegment':{start:[0,0,0],end:[1,0,0]}}},{path:'/cad/d1/layer/1',attributes:{'ifccad::layer':{name:'Walls'}}},{path:'/foreign',children:{ref:'/cad/d1/e9007199254740993',self:'/foreign'},attributes:{note:'This arbitrary /cad/string is not a reference'}}]};
+test('IFCCAD text style paths and glyph bounds evidence stay independent',()=>{
+ const g=structuredClone(graph),entity=g.data[2],style='/cad/d1/textStyle/9007199254740997';
+ delete entity.attributes['ifccad::geom::lineSegment'];entity.attributes['ifccad::mText']={style,height:2,content:[{inlines:[{kind:'run',text:'Literal <script>'}]}]};
+ g.data.push({path:style,attributes:{'ifccad::textStyle':{name:'Requested',font:{family:'Face'}}}});
+ const model=adapter.createInspection({validation:{strictAvailable:true},presentation:{format:'ifccad',graph:g,boundsCompleteness:[{scopePath:'/cad/d1/layout/1',quality:'estimated',enclosureVerified:false,safeForNegativeQuery:false}]}},JSON.stringify(g));
+ assert.equal(model.nodes.get(entity.path).type,'mText');assert.equal(model.nodes.get(entity.path).outgoing.some(e=>e.target===style&&e.kind==='style'),true);
+ assert.equal(model.nodes.get('/cad/d1/layout/1').values.boundsAssessment.quality,'estimated');assert.equal(model.nodes.get('/cad/d1/layout/1').values.boundsAssessment.safeForNegativeQuery,false);assert.equal(model.roots.includes('group:textStyle'),true);
+});
 test('OCDraw text styles are linked and estimated bounds never become verified enclosure',()=>{
  const model=adapter.createInspection({validation:{strictAvailable:true},presentation:{format:'ocdraw',unit:'mm',textStyles:[{id:0,name:'Requested',font:{family:'Face'}}],entities:[{id:'9007199254740993',styleId:0,geometry:{type:'mText',content:[{inlines:[{kind:'run',text:'Literal <script>'}]}]}}],layouts:[{id:0,name:'Model',kind:'model',scopeId:9}],scopes:[{id:9,entities:['9007199254740993']}],boundsCompleteness:[{scopeId:9,quality:'estimated',enclosureVerified:false,safeForNegativeQuery:false}]}},'{}');
  assert.equal(model.nodes.get('textStyle:0').title,'Requested');

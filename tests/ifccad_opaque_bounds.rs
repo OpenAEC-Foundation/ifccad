@@ -22,6 +22,7 @@ fn opaque_only_unused_and_nested_definitions_never_use_empty_origin_fallback() {
     let opaque = d.model.entities.pop().unwrap();
     let leaf_id = d.id_counters.allocate_block_id().unwrap();
     d.blocks.push(IfccadBlockDefinition {
+        bounds_quality: None,
         id: leaf_id,
         name: "Opaque leaf".into(),
         base_point: [0.; 3],
@@ -46,6 +47,7 @@ fn opaque_only_unused_and_nested_definitions_never_use_empty_origin_fallback() {
     d.model.entities.push(IfccadEntity::Native(instance));
     let empty_id = d.id_counters.allocate_block_id().unwrap();
     d.blocks.push(IfccadBlockDefinition {
+        bounds_quality: None,
         id: empty_id,
         name: "Empty".into(),
         base_point: [0.; 3],

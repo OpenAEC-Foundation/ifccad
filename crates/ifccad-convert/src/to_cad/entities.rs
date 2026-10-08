@@ -155,6 +155,9 @@ pub(super) fn to_cad(
             let loc = format!("entity/{}", e.id);
             let common = common(drawing, document, mappings, e, issues);
             let target = match &e.kind {
+                IfccadEntityKind::Text(_) | IfccadEntityKind::MText(_) => {
+                    crate::mapping::text::to_entity(drawing, e, mappings, geometry, issues)?
+                }
                 IfccadEntityKind::BlockInstance {
                     definition_id,
                     transform,

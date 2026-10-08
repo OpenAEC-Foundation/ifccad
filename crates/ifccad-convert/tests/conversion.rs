@@ -21,6 +21,7 @@ fn fresh_cad_import_emits_valid_counters_under_both_policies() {
         assert_eq!(
             loaded.document().id_counters,
             IfccadIdCounters {
+                next_text_style_id: 2,
                 next_preservation_record_id: 1,
                 next_entity_id: 4,
                 next_layer_id: 3,

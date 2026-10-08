@@ -19,7 +19,7 @@ pub fn ifccad_source_to_cad_document(
     let canonical: serde_json::Value =
         serde_json::from_slice(canonical.bytes()).expect("writer JSON");
     let mut issues = Vec::new();
-    let raw = crate::loss::native_defaults(source.graph().composed_ifcx());
+    let raw = crate::loss::native_defaults(source.graph().composed_ifcx(), &canonical);
     // Compare composed node payloads, allowing fragment order but not losing
     // extensions, relations or extra schemas through the typed projection.
     if !crate::source::same_graph(&raw, &canonical) {
@@ -78,6 +78,7 @@ fn convert_document(
         )?;
     }
     let mut document = CadDocument::new();
+    // Allocate style targets before any scope contents.
     if !drawing.layers.iter().any(|l| l.name == "0") {
         let layer = document.layers.get_mut("0").unwrap();
         layer.color = opencadcodec::Color::Rgb {
@@ -103,6 +104,7 @@ fn convert_document(
         .expect("model layout");
     crate::mapping::layout::apply_settings(model_layout, &drawing.model.settings, &mut issues)?;
     let mut mappings = IfccadMappings::default();
+    crate::mapping::text::to_styles(drawing, &mut document, &mut mappings, &mut issues)?;
     document.header.linetype_scale = drawing.line_pattern_scale;
     crate::mapping::line_pattern::allocate(
         &mut document,
@@ -269,6 +271,7 @@ fn convert_document(
         IfccadGeometryDomain::PaperLayout(id) => mappings.layouts.cad_handle(id).is_some(),
     });
     Ok(IfccadToCadOutcome {
+        text: crate::IfccadTextAssessment::new(drawing, mappings.entities.iter().map(|(id, _)| id)),
         geometry: assessment.with_unassessed(drawing),
         preservation,
         document,

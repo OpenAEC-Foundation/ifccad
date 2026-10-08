@@ -141,6 +141,7 @@ fn semantic(d: &ocdraw::ifccad::IfccadDocument) -> serde_json::Value {
                             .name,
                         transform
                     ]),
+                    IfccadEntityKind::Text(_) | IfccadEntityKind::MText(_) => panic!("primitive-only exchange fixture"),
                 };
                 { let mut appearance = serde_json::to_value(&e.as_native().unwrap().appearance).unwrap();
                   if let IfccadMode::Explicit(id) = e.as_native().unwrap().appearance.line_pattern { appearance["linePattern"]["value"] = serde_json::json!(pattern_name(id)); }

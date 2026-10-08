@@ -35,6 +35,12 @@ impl IfccadDiagnostic {
 /// Conversion failure retaining the core phase and original typed cause.
 #[derive(Debug, thiserror::Error)]
 pub enum IfccadConversionError {
+    #[error("text preparation at {location}: {source}")]
+    TextPreparation {
+        location: String,
+        #[source]
+        source: cad_text::CadTextError,
+    },
     #[error(transparent)]
     SourceSnapshot(#[from] cad_preservation::CadSplineSnapshotError),
     #[error("Paper layout {layout_id} tolerance cannot be resolved: {reason}")]

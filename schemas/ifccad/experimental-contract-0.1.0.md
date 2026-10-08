@@ -228,18 +228,76 @@ independent model adapters; no OCDraw file or CAD runtime is needed.
 Model, Paper and block-definition values may include `bounds` with exactly
 `min` and `max` finite ordered XYZ arrays. Empty owners require absence;
 nonempty owners may omit bounds. Explicit null, partial or unknown fields fail.
-Present bounds must contain the shared conservative geometry enclosure,
+Present bounds must contain the independently proven conservative geometry subset,
 including complete curves, nested signed block transforms and Paper viewport
 frames at Z=0. They are geometric metadata in the owner's coordinate unit,
 independent of physical media. They do not define cropping or display visibility.
-An empty-definition instance contributes its placement origin.
+An actually empty-definition instance contributes its placement origin; a
+nonempty definition with empty glyph extents does not acquire fabricated points.
+`boundsQuality` may accompany a box as `enclosing` or `estimated`. Omission with
+a present box declares enclosing. Quality without a box, explicit null quality
+and stored partial boxes fail. A supplied enclosing glyph claim is a producer
+declaration, not font-engine verification. Estimates are navigation aids; readers
+must not use them to prove exclusion. Missing opaque/unavailable contributions
+require absent bounds and derive `partial`, even when a known subset has extents.
 
 `recompute_ifccad_document_bounds` is explicit and atomic. It validates authored
 content while ignoring stale bounds, prepares all scopes, and only then replaces
-all bounds. Failure changes no field. Native loading/encoding preserves valid
+all bounds and qualities. Failure changes no field. Native loading/encoding preserves valid
 supplied bounds without recomputation. Transform evaluation for supplied-bounds
 validation does not normalize or rewrite transforms. Owner identity domains
 remain distinct: a layout and a block may have the same numeric ID.
+
+`assess_ifccad_document_bounds` exposes independent enclosing/estimated/partial
+quality, coverage and enclosure evidence. Availability may include estimated
+glyph boxes; it does not certify contours. Glyph estimates and known primitive
+subsets propagate through signed/nonuniform block transforms. Arithmetic checks
+for known contributions remain hard with absent bounds and unavailable neighbours.
+
+## Text and MText
+
+The independent closed nested mapping is
+[`text-values-0.1.0.schema.json`](text-values-0.1.0.schema.json). Its required
+fields, enums, variant exclusivity, primitive types and unknown/null rejection
+supplement the bundled IFCX module and semantic constraints described in
+[`docs/text.md`](../../docs/text.md). No CAD formatting codes are interpreted by
+native IO. Text runs and MText paragraph/inline boundaries, authored overrides,
+literal Unicode, explicit false/zero and empty tab-stop resets remain unchanged.
+
+Text styles are drawing children at `/cad/dN/textStyle/N`, with a nonempty,
+NUL-free name unique under the pinned Unicode 17 full case fold, without trim or
+normalization. The `ifccad::textStyle` value contains name, required symbolic font
+request and style properties; ID is represented by the path, never repeated.
+Unused styles survive native IO. Style IDs are independent zero-valid uint64
+values. `nextTextStyleId` is positive and exceeds every live style ID; allocation
+is checked and deletion does not lower it. Omission means 1 only for an empty
+style domain without text references; present style records require the counter.
+Counter-only empty domains retain advanced allocation history. No Standard style
+or current-style workspace selection is synthesized by the core.
+
+A native text entity has the existing `ifccad::entity` common attributes,
+`ifccad::geom::placement`, and exactly one `ifccad::text` or `ifccad::mText`
+drawable payload. Text cannot coexist with another drawable role. `style` is a
+complete canonical same-drawing path to a text-style role, including IDs above
+2^53. Text/MText are not eligible active Paper clip curves. Dormant references
+retain the existing same-owner/exclusive constraints.
+
+Text has anchored/wholeTextMiddle/aligned/fit layouts, literal decorated runs,
+separate rotation/mirrors/shear and signed thickness. MText has ordered typed
+paragraphs/inlines, separate characterFormat/paragraphFormat, all attachments,
+flow, optional wrapping, static/dynamicAutoHeight/dynamicManualHeight columns and
+background fill/padding/opacity/frame. Inline/background explicit colours use
+this profile's RGB strings, independently of OCDraw colour metadata. Distances
+use owning coordinates; inline relative heights and indentation/tab factors use
+nominal MText height. Font overrides replace the whole request. Layout overflow
+does not truncate content, and source-independent validation shares only pure
+text values and geometry helpers.
+
+Composition replaces an entire repeated text/mText/textStyle attribute value.
+LaterWins does not concatenate content arrays or merge nested overrides.
+RejectConflicts rejects differing payloads. Final composition validates style
+membership, role, references, identities, counters, layout and scope bounds.
+Foreign IFCX context and original fragments remain in the immutable source graph.
 
 ## Opaque source preservation
 

@@ -45,7 +45,8 @@ Reimporting CAD does not restore a previous IFCCAD allocation history.
 | Local BlockRecords | Map name/base/unit/ordered contents. Begin/end identity and reverse insert handles are structural/derived. Diagnose flags, description, preview, insert-count bytes, scaling/explodability restrictions and layout association |
 | Model/Paper BlockRecords | Validate role/ownership; metadata including unit/base must remain default |
 | LineType | Actual signed-length definitions, names/descriptions and unused records; canonical ByLayer/ByBlock are mode scaffolding. Whole text/shape pattern fallback to named empty under Allow, one Modified diagnostic per definition; invalid values/alignment/name-handle targets fail both policies |
-| TextStyle/DimStyle/AppId/View/VPort/Ucs/Vx | Only default records, record handles normalized; additional/changed records diagnosed |
+| TextStyle | All qualified ordinary styles including unused; independent IDs/mappings and symbolic font/creation properties. Shape, annotative and external roles are diagnosed, with dependent text skipped; invalid lookup/scalars remain fatal |
+| DimStyle/AppId/View/VPort/Ucs/Vx | Only default records, record handles normalized; additional/changed records diagnosed |
 | Classes | Default definitions only; normalize derived numbering/instance counts and version metadata |
 | Entities | Supported fields below; every other family diagnosed. Full inventory includes structural markers hidden by `entities()` |
 | Layout objects | Unique bidirectional Model/Paper block links and named-root ACAD_LAYOUT dictionary membership; names and tab order mapped. Recover a missing/wrong-type derived layout-dictionary cache only through a unique consistent named relationship. Media dimensions are millimetres, independently of plot units; optional media, effective plot state, limits/checking and saved PSLTSCALE retained. Model viewport references resolve VPORT records; Paper references resolve same-owner VIEWPORT entities. Model view selection is diagnosed loss; exclude derived extents and structural handles. Other plot/UCS/layout fields diagnosed |
@@ -317,3 +318,47 @@ are independent of the direct codec chain. On 063c106, fit-only parameterization
 physical readback reports TARGET_CODEC_SPLINE_PARAMETERIZATION_LOSS separately.
 No #99 local repair, new pin, viewer update or raw_record replay is applied.
 See the active experimental contract and docs/preservation.md for the full boundary.
+
+## Text and MText
+
+The IFCCAD adapter independently imports ordinary Text/MText through `cad-text`.
+Style names resolve to qualified ordinary roles; anonymous SHX shape resources
+do not enter the ordinary lookup namespace. Supported styles preserve name,
+font-file/TrueType/big-font requests, width, shear, vertical and creation-mirror
+properties, fixed-height omission for source zero and explicit last-used zero.
+Unused definitions and ordered Model/Paper/local-block content remain present.
+Current-style name/settings outside this model remain header loss. No implicit
+native Standard style or font substitution is introduced.
+
+Text represents active OCS anchors, layouts, rotations/mirrors, shear, signed
+thickness and literal decorated runs. MText represents WCS anchors/direction,
+nominal height, attachment/flow, wrap or columns, paragraph/character overrides,
+closed inlines and qualified background state. Cached extents are not glyph
+proof. Manual column final finite cache values map to Auto; earlier heights stay
+positive. A malformed source/reference/scalar remains fatal before annotation or
+unsupported-style omission; unsupported active layout/content skips the whole
+entity under Allow and Reject refuses located loss. Generic common metadata
+continues to receive its independent residual classification.
+
+IFCCAD accepts exactly version-1 `AcadAnnotative` flag 0 as inactive ordinary
+text. Active/unknown context data, annotative styles and MText's active annotative
+flag remain unsupported. Remaining XDATA method data is still common-metadata
+loss. Dynamic fields, attributes, advanced stack/spacing/decimal-tab settings and
+unqualified line-break file semantics keep the restrictions in `cad-text`.
+Native rich values are broader than this CAD subset. Inline ACI colours resolve
+to this profile's RGB representation; palette identity is not a native field.
+
+Layer typed ByLayer means the codec's opaque default and maps to opacity 1.
+Known raw `AcCmTransparency` integer 0 is a duplicate of that default; disagreeing
+or unknown raw tags remain XDATA loss. Layer ByBlock keeps its diagnosed existing
+fallback. Entity inheritance is independent. Unknown raw tags already collapsed
+by the codec cannot be reconstructed from the typed mode alone; see upstream #104.
+
+`text_assessment()` reports active Text anchors or MText WCS anchors and separate
+unassessed glyph coverage. Geometry assessment is incomplete for nonempty glyphs,
+including unused definitions and occurrences. Estimates never certify contours.
+Production strict native readback and actual DXF/AC1032 DWG tests cover simple
+Text/MText in all three owners, explicit paragraph RGB, Unicode/trailing empty
+paragraphs and manual Auto-tail columns. File angle conversion may round the last
+bit; native storage remains exact. These tests use the pinned 063c106 existing
+viewport development repair and do not establish every font or file version.

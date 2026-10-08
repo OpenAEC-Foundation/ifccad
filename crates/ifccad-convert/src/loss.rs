@@ -1,13 +1,49 @@
 use crate::{diagnostics::diagnostic, IfccadDiagnostic};
 use std::collections::BTreeSet;
 
-pub(crate) fn native_defaults(raw: &serde_json::Value) -> serde_json::Value {
+pub(crate) fn native_defaults(
+    raw: &serde_json::Value,
+    canonical: &serde_json::Value,
+) -> serde_json::Value {
+    fn defaults(actual: &mut serde_json::Value, expected: &serde_json::Value) {
+        match (actual, expected) {
+            (serde_json::Value::Object(a), serde_json::Value::Object(e)) => {
+                for (key, value) in e {
+                    if let Some(a) = a.get_mut(key) {
+                        defaults(a, value);
+                    } else {
+                        a.insert(key.clone(), value.clone());
+                    }
+                }
+            }
+            (serde_json::Value::Array(a), serde_json::Value::Array(e)) if a.len() == e.len() => {
+                for (a, e) in a.iter_mut().zip(e) {
+                    defaults(a, e);
+                }
+            }
+            _ => {}
+        }
+    }
+    let expected: std::collections::BTreeMap<_, _> = canonical["data"]
+        .as_array()
+        .expect("canonical graph")
+        .iter()
+        .map(|n| (n["path"].as_str().expect("canonical path"), n))
+        .collect();
     let mut raw = raw.clone();
     for n in raw["data"].as_array_mut().expect("validated graph") {
+        let reference = n["path"].as_str().and_then(|p| expected.get(p)).copied();
         if let Some(attrs) = n
             .get_mut("attributes")
             .and_then(serde_json::Value::as_object_mut)
         {
+            if let Some(reference) = reference {
+                for key in ["ifccad::text", "ifccad::mText", "ifccad::textStyle"] {
+                    if let Some(value) = attrs.get_mut(key) {
+                        defaults(value, &reference["attributes"][key]);
+                    }
+                }
+            }
             for key in ["ifccad::drawing", "ifccad::entity"] {
                 if let Some(value) = attrs
                     .get_mut(key)
@@ -257,7 +293,10 @@ pub(crate) fn precision(
             if (key.starts_with("ifccad::geom::")
                 || key == "ifccad::linePattern"
                 || key == "ifccad::blockInstance"
-                || key == "ifccad::blockDefinition")
+                || key == "ifccad::blockDefinition"
+                || key == "ifccad::text"
+                || key == "ifccad::mText"
+                || key == "ifccad::textStyle")
                 && !projected(&node["attributes"][key], value)
             {
                 issues.push(diagnostic("precision", format!("{path}.{key}"), "typed geometry projection changes an exact source value; numeric approximation is rejected under both policies"));

@@ -31,6 +31,15 @@ and converts the supplied projection. Both require explicit direction-qualified 
 for the existing Allow policy.
 They do not encode/parse an IFCX file as an intermediate step.
 
+Native Text/MText and independent full-width text-style mappings use the shared
+bounded `cad-text` preparation through IFCCAD-owned adapters. Both directions
+retain supported unused styles and ordered Model/Paper/block text. Actual DXF
+and AC1032 DWG tests qualify these owners and manual Auto-tail columns separately
+from OCDraw. `text_assessment()` identifies active Text anchors/MText WCS anchors
+and unassessed glyphs; numeric evidence does not certify font contours or layout.
+Native bounds can be estimated; absent extents derive partial coverage.
+See [text support](../../docs/text.md) for native values and profile restrictions.
+
 The encoded and source functions below are convenience routes. A loaded
 `ValidatedIfccad` retains both the CAD document and its complete immutable
 source graph. Its conversion route additionally diagnoses foreign graph content

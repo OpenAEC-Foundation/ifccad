@@ -27,6 +27,7 @@ impl IfccadIdentityMap {
 
 #[derive(Clone, Debug, Default)]
 pub struct IfccadMappings {
+    pub text_styles: IfccadIdentityMap,
     pub line_patterns: IfccadIdentityMap,
     pub layouts: IfccadIdentityMap,
     pub layers: IfccadIdentityMap,
@@ -35,6 +36,7 @@ pub struct IfccadMappings {
 }
 
 pub struct IfccadToCadOutcome {
+    pub(crate) text: crate::IfccadTextAssessment,
     pub(crate) document: CadDocument,
     pub(crate) diagnostics: Vec<IfccadDiagnostic>,
     pub(crate) mappings: IfccadMappings,
@@ -42,6 +44,9 @@ pub struct IfccadToCadOutcome {
     pub(crate) preservation: crate::IfccadPreservationReport,
 }
 impl IfccadToCadOutcome {
+    pub fn text_assessment(&self) -> &crate::IfccadTextAssessment {
+        &self.text
+    }
     pub fn preservation_report(&self) -> &crate::IfccadPreservationReport {
         &self.preservation
     }
@@ -63,6 +68,7 @@ impl IfccadToCadOutcome {
 }
 /// A validated logical CAD projection, before IFCX encoding.
 pub struct CadToIfccadDocumentOutcome {
+    pub(crate) text: crate::IfccadTextAssessment,
     pub(crate) document: IfccadDocument,
     pub(crate) diagnostics: Vec<IfccadDiagnostic>,
     pub(crate) mappings: IfccadMappings,
@@ -70,6 +76,9 @@ pub struct CadToIfccadDocumentOutcome {
     pub(crate) preservation: crate::IfccadPreservationReport,
 }
 impl CadToIfccadDocumentOutcome {
+    pub fn text_assessment(&self) -> &crate::IfccadTextAssessment {
+        &self.text
+    }
     pub fn preservation_report(&self) -> &crate::IfccadPreservationReport {
         &self.preservation
     }
@@ -91,6 +100,7 @@ impl CadToIfccadDocumentOutcome {
 }
 
 pub struct CadToEncodedIfccadOutcome {
+    pub(crate) text: crate::IfccadTextAssessment,
     pub(crate) validated: ValidatedIfccad,
     pub(crate) encoded: ocdraw::ifccad::EncodedIfccad,
     pub(crate) diagnostics: Vec<IfccadDiagnostic>,
@@ -99,6 +109,9 @@ pub struct CadToEncodedIfccadOutcome {
     pub(crate) preservation: crate::IfccadPreservationReport,
 }
 impl CadToEncodedIfccadOutcome {
+    pub fn text_assessment(&self) -> &crate::IfccadTextAssessment {
+        &self.text
+    }
     pub fn preservation_report(&self) -> &crate::IfccadPreservationReport {
         &self.preservation
     }

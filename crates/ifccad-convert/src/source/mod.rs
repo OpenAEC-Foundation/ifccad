@@ -655,7 +655,7 @@ fn scan(
                     );
                 }
                 SemanticTableRecordV1::LineType(_) => {} // handled by checked native pattern conversion
-                SemanticTableRecordV1::TextStyle(r) => table!(r, baseline.text_styles),
+                SemanticTableRecordV1::TextStyle(_) => {} // complete public STYLE fields classified by the text adapter
                 SemanticTableRecordV1::DimStyle(r) => table!(r, baseline.dim_styles),
                 SemanticTableRecordV1::AppId(r) => table!(r, baseline.app_ids),
                 SemanticTableRecordV1::View(r) => table!(r, baseline.views),
@@ -825,7 +825,10 @@ fn layer_transparency_duplicate(
             )),
             Some("AcCmTransparency"),
             Some([opencadcodec::xdata::XDataValue::Integer32(value)]),
-        ) => layer.transparency.is_explicit() && *value == layer.transparency.to_dxf_value(),
+        ) => {
+            (layer.transparency.is_explicit() && *value == layer.transparency.to_dxf_value())
+                || (layer.transparency == opencadcodec::Transparency::ByLayer && *value == 0)
+        }
         _ => false,
     }
 }

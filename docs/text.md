@@ -1,9 +1,11 @@
-# OCDraw Text and MText
+# OCDraw and IFCCAD Text and MText
 
 OCDraw supports standalone authored Text/MText, local text styles, typed rich
 content and strict native readback. Its core needs neither IFCX nor a CAD or font
-runtime. The independent IFCCAD integration is deferred until the OCDraw slice
-has been tested on main; it does not acquire native text support from these helpers.
+runtime. IFCCAD independently supports the same authored text values through its
+own identities, IFCX payloads, strict reader/writer and CAD adapters. Shared
+helpers do not establish route coverage; each route has its own native and
+actual-file tests.
 
 Text has four distinct layouts: anchored, whole-text middle, aligned and fit.
 Placement, rotation, independent mirrors, shear and signed thickness remain
@@ -31,6 +33,27 @@ accessors expose typed records. The registered `textStream` and `mTextStream`
 use ordinary row columns for common values and closed nested rows for layout and
 content. The [logical contract](../schemas/ocdraw/logical-contract-0.1.0.md#text),
 registry, JSON mapping and active schema define the provisional wire contract.
+
+IFCCAD uses `IfccadTextStyleId(u64)`, `IfccadTextStyle`, `IfccadText` and
+`IfccadMText`, with Text/MText variants in its own native entity enum. The style
+counter is independent of every other domain; IDs include zero and full-width
+values beyond 2^53. `/cad/dN/textStyle/N` nodes are drawing children, including
+unused styles. A text payload contains a complete same-drawing `style` path,
+alongside the existing entity appearance and separate geometry placement.
+`ifccad::text`, `ifccad::mText` and `ifccad::textStyle` replace whole attribute
+values on LaterWins composition. No run/paragraph graph nodes are introduced.
+The [IFCCAD contract](../schemas/ifccad/experimental-contract-0.1.0.md#text-and-mtext)
+and [closed text-value schema](../schemas/ifccad/text-values-0.1.0.schema.json)
+define its independent provisional mapping.
+
+`assess_ifccad_document_bounds` returns derived enclosing/estimated/partial
+quality and independent enclosure evidence. IFCCAD stores absent bounds by
+omission; `boundsQuality` requires a box, permits enclosing/estimated, and
+defaults to enclosing when omitted with a box. Atomic explicit recomputation
+updates boxes and qualities together, including unused/nested definitions.
+Glyph estimates are never verified enclosures; known primitive subsets and
+numeric failures remain checked even when bounds are absent or a neighbour is
+opaque. Empty glyphs do not invent insertion-point geometry for a nonempty block.
 
 ## Bounds and evidence
 
@@ -103,3 +126,19 @@ No size/exchange measurement was run for this slice.
 Generate the [Explorer example](../examples/ocdraw/text.ocdraw.json) with
 `cargo run --example write_text -- <new-output.ocdraw.json>`. The producer strictly
 reads its output and refuses overwrite. Fonts remain requested rather than bundled.
+
+The independent [IFCCAD example](../examples/ifccad/hello-text.ifcx) includes
+Text/MText in Model, Paper and a local block, explicit paragraph colour and
+estimated bounds. Generate it with `cargo run --example write_ifccad_text --
+<output.ifcx>`. That producer uses strict native readback before writing.
+IFCCAD actual-file tests qualify these owners independently and cover manual
+Auto-tail columns in DXF and AC1032 DWG. A DXF degree/radian roundtrip can change
+a stored angle's last bit; native IO remains exact. Formatting scope changes
+are located, rejectable `text-dependency` diagnostics rather than silently
+claimed authored parity. IFCCAD accepts the exact version-1 AcadAnnotative flag
+0 as disabled ordinary text; residual XDATA still receives common-metadata loss
+evidence. Active/unknown annotation contexts remain outside the bounded profile.
+Both IFCCAD directions expose `text_assessment()` and explicit unassessed glyph
+geometry. Loaded-source conversion compares closed text payloads and their
+defaults without changing source bytes; exact numeric projection loss is hard
+under both policies. See the two IFCCAD converter coverage contracts for limits.

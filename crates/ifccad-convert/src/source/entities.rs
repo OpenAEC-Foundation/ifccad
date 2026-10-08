@@ -181,6 +181,32 @@ pub(crate) fn classified(e: &EntityType, loc: &str, issues: &mut Vec<IfccadDiagn
 pub(crate) fn validate_source(entity: &EntityType) -> Result<(), crate::IfccadConversionError> {
     let finite = |v: Vector3| p(v).iter().all(|n| n.is_finite());
     let valid = match entity {
+        EntityType::Text(t) => {
+            finite(t.insertion_point)
+                && t.alignment_point.is_none_or(finite)
+                && finite(t.normal)
+                && t.normal != opencadcodec::Vector3::ZERO
+                && t.height.is_finite()
+                && t.height > 0.
+                && t.width_factor.is_finite()
+                && t.width_factor > 0.
+                && t.rotation.is_finite()
+                && t.oblique_angle.is_finite()
+                && t.oblique_angle.abs() < std::f64::consts::FRAC_PI_2
+                && t.thickness.is_finite()
+        }
+        EntityType::MText(t) => {
+            finite(t.insertion_point)
+                && finite(t.normal)
+                && t.normal != opencadcodec::Vector3::ZERO
+                && t.dwg_x_direction.is_none_or(finite)
+                && t.height.is_finite()
+                && t.height > 0.
+                && t.rotation.is_finite()
+                && t.rectangle_width.is_finite()
+                && t.rectangle_width >= 0.
+                && t.rectangle_height.is_none_or(f64::is_finite)
+        }
         EntityType::Line(l) => {
             finite(l.start) && finite(l.end) && finite(l.normal) && l.thickness.is_finite()
         }

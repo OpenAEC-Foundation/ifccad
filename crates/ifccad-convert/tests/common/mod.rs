@@ -60,6 +60,7 @@ pub fn header() -> IfccadHeader {
 }
 pub fn empty() -> IfccadDocument {
     IfccadDocument {
+        text_styles: Vec::new(),
         preservation: None,
         plot_style_mode: Default::default(),
         id_counters: IfccadIdCounters {
@@ -80,6 +81,7 @@ pub fn empty() -> IfccadDocument {
         length_unit: "mm".into(),
         layers: vec![layer(0, "0"), layer(4, "Notes")],
         model: IfccadLayout {
+            bounds_quality: None,
             settings: ocdraw::ifccad::IfccadLayoutSettings {
                 media: None,
                 ..Default::default()
@@ -194,6 +196,7 @@ pub fn nested(base: [f64; 3]) -> IfccadDocument {
     let line = primitives().model.entities[0].clone();
     d.blocks = vec![
         IfccadBlockDefinition {
+            bounds_quality: None,
             bounds: None,
             id: 3,
             name: "Inner".into(),
@@ -202,6 +205,7 @@ pub fn nested(base: [f64; 3]) -> IfccadDocument {
             entities: vec![line],
         },
         IfccadBlockDefinition {
+            bounds_quality: None,
             id: 9,
             bounds: None,
             name: "Outer".into(),
@@ -217,6 +221,7 @@ pub fn nested(base: [f64; 3]) -> IfccadDocument {
             ],
         },
         IfccadBlockDefinition {
+            bounds_quality: None,
             bounds: None,
             id: 4,
             name: "Unused".into(),
@@ -312,6 +317,7 @@ pub fn viewport_drawing() -> IfccadDocument {
         })
     };
     d.paper_layouts.push(IfccadPaperLayout {
+        bounds_quality: None,
         settings: paper_settings(ocdraw::plot_kernel::PlotUnit::Millimetre, 1.),
         bounds: None,
         id: 42,

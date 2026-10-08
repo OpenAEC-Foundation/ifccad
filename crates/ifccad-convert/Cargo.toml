@@ -6,6 +6,7 @@ license = "MPL-2.0"
 description = "Experimental exact IFCCAD and CadDocument conversion"
 
 [dependencies]
+cad-text = { path = "../cad-text" }
 cad-preservation = { path = "../cad-preservation" }
 cad-geometry-convert = { path = "../cad-geometry-convert" }
 ocdraw = { path = "../.." }

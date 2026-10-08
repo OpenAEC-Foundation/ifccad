@@ -378,6 +378,7 @@ fn omitted_export_boundary_never_leaves_viewport_mapping() {
     let mut drawing = viewport_drawing();
     let id = drawing.id_counters.allocate_block_id().unwrap();
     drawing.blocks.push(IfccadBlockDefinition {
+        bounds_quality: None,
         id,
         name: "*Unsupported clip reference".into(),
         base_point: [0.; 3],

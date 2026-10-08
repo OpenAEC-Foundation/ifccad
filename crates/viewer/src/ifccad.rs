@@ -14,6 +14,10 @@ pub(crate) fn is_ifccad_name(name: &str) -> bool {
 fn diagnostics(items: &[IfccadDiagnostic]) -> Vec<Value> {
     items.iter().map(|d|json!({"code":d.code,"location":d.location,"message":d.message,"action":format!("{:?}",d.action)})).collect()
 }
+fn text_report(report: &ifccad_convert::IfccadTextAssessment) -> Value {
+    use ifccad_convert::{IfccadTextGlyphCoverage as G, IfccadTextNumericCoverage as N};
+    json!({"entries":report.entries().iter().map(|e|json!({"entityId":e.entity_id.to_string(),"owner":format!("{:?}",e.owner),"numericCoverage":match e.numeric_coverage{N::ActiveTextAnchors=>"activeTextAnchors",N::MTextWcsAnchor=>"mTextWcsAnchor",N::NotTransferred=>"notTransferred"},"glyphCoverage":match e.glyph_coverage{G::Empty=>"empty",G::Unassessed=>"unassessed"}})).collect::<Vec<_>>()})
+}
 fn present(output: &mut Value, drawing: &ValidatedIfccad) {
     let d = drawing.document();
     let nodes = drawing.graph().composed_ifcx()["data"]
@@ -26,11 +30,22 @@ fn present(output: &mut Value, drawing: &ValidatedIfccad) {
             .cloned()
             .collect::<Vec<_>>()
     };
-    let completeness=ocdraw::ifccad::derive_ifccad_geometry_completeness(d).map(|states|states.into_iter().map(|(scope,state)|json!({"scope":format!("{scope:?}"),"complete":state!=ocdraw::ifccad::IfccadGeometryCompleteness::Unavailable,"state":format!("{state:?}")})).collect::<Vec<_>>()).unwrap_or_default();
+    use ocdraw::ifccad::{
+        assess_ifccad_document_bounds, IfccadBoundsQuality as Q, IfccadScopeId as S,
+    };
+    let completeness=assess_ifccad_document_bounds(d).expect("validated numerical extents").scopes.into_iter().map(|(scope,a)|{
+        let (scope_path,bounds,claim)=match scope {
+            S::Layout(id) if id==d.model.id=>(format!("/cad/d{}/layout/{id}",d.drawing_id),d.model.bounds,d.model.bounds_quality),
+            S::Layout(id)=>{let p=d.paper_layouts.iter().find(|p|p.id==id).unwrap();(format!("/cad/d{}/layout/{id}",d.drawing_id),p.bounds,p.bounds_quality)},
+            S::BlockDefinition(id)=>{let b=d.blocks.iter().find(|b|b.id==id).unwrap();(format!("/cad/d{}/block/{id}",d.drawing_id),b.bounds,b.bounds_quality)},
+        };
+        let quality=|q:Q|match q {Q::Enclosing=>"enclosing",Q::Estimated=>"estimated",Q::Partial=>"partial"};
+        json!({"scope":format!("{scope:?}"),"scopePath":scope_path,"complete":a.quality!=Some(Q::Partial),"state":if a.quality==Some(Q::Partial){"Unavailable"}else if a.bounds.is_none(){"Empty"}else{"Complete"},"quality":a.quality.map(quality),"bounds":a.bounds,"storedBounds":bounds,"storedQuality":bounds.map(|_|quality(claim.unwrap_or(Q::Enclosing))),"enclosureVerified":a.enclosure_verified,"safeForNegativeQuery":a.enclosure_verified&&bounds.is_some()&&claim!=Some(Q::Estimated),"textReasons":a.text_reasons.iter().map(|r|format!("{r:?}")).collect::<Vec<_>>()})
+    }).collect::<Vec<_>>();
     output["validation"] = json!({"strictAvailable":true,"status":"valid","diagnostics":[]});
     output["presentation"] = json!({"format":"ifccad","drawingId":d.drawing_id,"unit":d.length_unit,"linePatternScale":d.line_pattern_scale,
         "layers":role("ifccad::layer"),"layouts":role("ifccad::layout"),"blockDefinitions":role("ifccad::blockDefinition"),
-        "linePatterns":role("ifccad::linePattern"),"entities":role("ifccad::entity"),"opaqueEntities":role("ifccad::opaqueEntity"),"opaqueEntityCount":role("ifccad::opaqueEntity").len(),"preservationRecords":role("ifccad::preservationRecord"),"preservationSources":d.preservation.as_ref().map(|p|&p.sources),"boundsCompleteness":completeness,"graph":drawing.graph().composed_ifcx()});
+        "linePatterns":role("ifccad::linePattern"),"textStyles":role("ifccad::textStyle"),"textEntityCount":role("ifccad::text").len(),"mTextEntityCount":role("ifccad::mText").len(),"entities":role("ifccad::entity"),"opaqueEntities":role("ifccad::opaqueEntity"),"opaqueEntityCount":role("ifccad::opaqueEntity").len(),"preservationRecords":role("ifccad::preservationRecord"),"preservationSources":d.preservation.as_ref().map(|p|&p.sources),"boundsCompleteness":completeness,"graph":drawing.graph().composed_ifcx()});
 }
 /// Inspect the experimental IFCCAD profile after production composition/validation.
 pub fn inspect_ifccad_bytes(name: &str, bytes: &[u8]) -> Value {
@@ -120,7 +135,7 @@ pub(crate) fn inspect_cad_as_ifccad_with_options(
             return output;
         }
     };
-    output["conversion"] = json!({"format":"ifccad","preservation":preservation_report(converted.preservation_report()),"diagnostics":diagnostics(converted.diagnostics()),"entityCount":converted.mappings().entities.iter().count(),"options":options.value(),"geometryAssessment":crate::geometry::assessment(converted.geometry_assessment())});
+    output["conversion"] = json!({"format":"ifccad","preservation":preservation_report(converted.preservation_report()),"diagnostics":diagnostics(converted.diagnostics()),"entityCount":converted.mappings().entities.iter().count(),"options":options.value(),"geometryAssessment":crate::geometry::assessment(converted.geometry_assessment()),"textAssessment":text_report(converted.text_assessment())});
     present(&mut output, converted.validated_source());
     cad::download(&mut output, name, "ifccad", converted.encoded().bytes());
     output
@@ -170,7 +185,7 @@ pub(crate) fn export_ifccad_with_options(
             return output;
         }
     };
-    output["conversion"] = json!({"format":"ifccad","preservation":preservation_report(converted.preservation_report())});
+    output["conversion"] = json!({"format":"ifccad","preservation":preservation_report(converted.preservation_report()),"textAssessment":text_report(converted.text_assessment())});
     let issues = diagnostics(converted.diagnostics());
     let assessment = crate::geometry::assessment(converted.geometry_assessment());
     let selection_candidates = crate::selection::ifccad_candidates(

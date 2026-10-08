@@ -67,14 +67,18 @@ straight/bulged planar paths, straight spatial paths and local block geometry,
 native Model/Paper layouts, named simple line patterns, scales and polyline
 pattern generation, with strict readback and pinned DXF/DWG tests.
 Allow/Reject conversion policies expose or reject supported loss classifications.
-Optional scope bounds have explicit atomic preparation. Geometry validation and
+Optional scope bounds have explicit atomic preparation. Native Text/MText and
+independent local text styles now use the same enclosing/estimated/partial
+quality meanings as OCDraw, with separate schemas, conversion and file tests.
+Font contours and layout remain unassessed; numeric text evidence covers anchors.
+Geometry validation and
 CAD accuracy are shared with OCDraw through neutral helpers; converters expose
 adjustable hard tolerances and per-coordinate-domain numerical evidence.
 Model and multiple Paper layouts now convert with explicit tab order, optional media and explicit plot mappings. The viewport slice adds camera, perspective/depth/display state and circle/full-ellipse/closed straight-or-bulged path clipping, with CAD exchange verified using explicit codec development repairs; upstream dependency adoption remains a separate follow-up; complex
 text/shape patterns use a diagnosed whole-definition fallback under Allow.
 This integration does not freeze IFCCAD compatibility or expand the standalone
 OCDraw contract. Continued IFCCAD development expands drawing semantics and
-conversion coverage in bounded slices, including later text, annotations and
+conversion coverage in bounded slices, including later annotations and
 authored view/plot state. Its long-term direction is a CAD drawing module
 that can participate in the evolving IFCX ecosystem. IFC object associations,
 source-graph writeback and collaborative updates require concrete future designs.

@@ -30,9 +30,16 @@ struct FileOut<'a> {
     data: Vec<NodeOut>,
 }
 
-fn with_bounds(mut value: Value, bounds: Option<super::IfccadBounds3d>) -> Value {
+fn with_bounds(
+    mut value: Value,
+    bounds: Option<super::IfccadBounds3d>,
+    quality: Option<super::IfccadBoundsQuality>,
+) -> Value {
     if let Some(bounds) = bounds {
         value["bounds"] = json!(bounds);
+        if let Some(quality) = quality {
+            value["boundsQuality"] = json!(quality);
+        }
     }
     value
 }
@@ -60,6 +67,9 @@ fn entity_node(entity: &IfccadEntity, prefix: &str) -> NodeOut {
     let entity = entity.as_native().expect("native branch");
     attrs.insert("ifccad::entity".into(), json!({"layer":format!("{prefix}/layer/{}",entity.layer_id),"appearance":super::wire::entity(&entity.appearance,prefix),"linePatternScale":entity.line_pattern_scale}));
     match &entity.kind {
+        IfccadEntityKind::Text(_) | IfccadEntityKind::MText(_) => {
+            super::text::encode_entity(&entity.kind, prefix, &mut attrs);
+        }
         IfccadEntityKind::Viewport(viewport) => {
             attrs.insert(
                 "ifccad::viewport".into(),
@@ -122,6 +132,12 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
             json!(format!("{prefix}/linePattern/{}", p.id.0)),
         );
     }
+    for style in &document.text_styles {
+        drawing_children.insert(
+            format!("textStyle{}", style.id.0),
+            json!(format!("{prefix}/textStyle/{}", style.id.0)),
+        );
+    }
     for block in &document.blocks {
         drawing_children.insert(
             format!("block{}", block.id),
@@ -146,8 +162,19 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
         data.last_mut().unwrap().attributes["ifccad::drawing"]["nextPreservationRecordId"] =
             json!(document.id_counters.next_preservation_record_id);
     }
+    if !document.text_styles.is_empty() || document.id_counters.next_text_style_id != 1 {
+        data.last_mut().unwrap().attributes["ifccad::drawing"]["nextTextStyleId"] =
+            json!(document.id_counters.next_text_style_id);
+    }
+    for style in &document.text_styles {
+        data.push(NodeOut {
+            path: format!("{prefix}/textStyle/{}", style.id.0),
+            children: None,
+            attributes: attrs(json!({"ifccad::textStyle": super::text::encode_style(style)})),
+        });
+    }
     if document.plot_style_mode == IfccadPlotStyleMode::Named {
-        data.last_mut().unwrap().attributes["ifccad::drawing"]["plotStyleMode"] = json!("named");
+        data[0].attributes["ifccad::drawing"]["plotStyleMode"] = json!("named");
     }
     if let Some(p) = &document.preservation {
         data[0].children.as_mut().unwrap().insert(
@@ -181,7 +208,7 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
         path: format!("{prefix}/layout/{}", document.model.id),
         children: Some(numbered_children(&document.model.entities, &prefix)),
         attributes: attrs(
-            json!({"ifccad::layout":with_bounds(super::layout::with_output(json!({"kind":"Model","tabIndex":document.model.tab_index}),&document.model.settings),document.model.bounds)}),
+            json!({"ifccad::layout":with_bounds(super::layout::with_output(json!({"kind":"Model","tabIndex":document.model.tab_index}),&document.model.settings),document.model.bounds,document.model.bounds_quality)}),
         ),
     });
     for layout in &paper_layouts {
@@ -192,7 +219,9 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
         data.push(NodeOut {
             path: format!("{prefix}/layout/{}", layout.id),
             children: Some(numbered_children(&layout.entities, &prefix)),
-            attributes: attrs(json!({"ifccad::layout":with_bounds(value,layout.bounds)})),
+            attributes: attrs(
+                json!({"ifccad::layout":with_bounds(value,layout.bounds,layout.bounds_quality)}),
+            ),
         });
     }
     for p in &document.line_patterns {
@@ -219,7 +248,7 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
         data.push(NodeOut {
             path: format!("{prefix}/block/{}",block.id),
             children: Some(numbered_children(&block.entities,&prefix)),
-            attributes: attrs(json!({"ifccad::blockDefinition":with_bounds(json!({"name":block.name,"basePoint":block.base_point,"insertionUnit":block.insertion_unit}),block.bounds)})),
+            attributes: attrs(json!({"ifccad::blockDefinition":with_bounds(json!({"name":block.name,"basePoint":block.base_point,"insertionUnit":block.insertion_unit}),block.bounds,block.bounds_quality)})),
         });
     }
     for entity in document

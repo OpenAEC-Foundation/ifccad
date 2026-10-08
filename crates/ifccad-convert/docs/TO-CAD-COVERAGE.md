@@ -230,3 +230,38 @@ are independent of the direct codec chain. On 063c106, fit-only parameterization
 physical readback reports TARGET_CODEC_SPLINE_PARAMETERIZATION_LOSS separately.
 No #99 local repair, new pin, viewer update or raw_record replay is applied.
 See the active experimental contract and docs/preservation.md for the full boundary.
+
+## Text and MText
+
+Own style IDs allocate qualified CAD targets before scope contents, including
+unused styles. CAD lookup collisions are fatal under both policies; unsupported
+styles cause whole dependent text omission. Symbolic fonts remain unresolved.
+Text/MText preserve supported appearance and Model/Paper/block order through the
+independent adapter over `cad-text`. Native authored rich values remain broader
+than the CAD profile: Text strike-through, independent MText mirrors, advanced
+decimal/spacing/stack states, dynamic fields, attributes and unsupported active
+font/layout combinations are located whole-entity losses under Allow; Reject
+refuses. Manual Auto-tail exports zero; a native fixed final cap remains unsupported.
+Formatting factoring, paragraph-basis, spacing/padding-reference changes are
+located, rejectable modifications, not silently claimed editing parity.
+
+Numeric evidence covers qualified active Text anchors/MText WCS anchors and
+nested occurrence propagation, independently of unassessed glyph/layout fidelity.
+`text_assessment()` distinguishes transferred and skipped native text. Supplied
+native boxes/qualities are metadata; fresh import prepares enclosing/estimated/
+partial bounds rather than recovering original declarations. No estimated box
+is used as a font-contour proof or to widen hard geometric tolerance.
+
+Loaded-source comparison canonicalizes omitted known text defaults without
+altering input bytes or replacing explicit authored overrides. Exact text,
+style and placement numbers remain subject to the hard source projection check
+under both policies, including values beyond binary64 integer precision. Foreign
+context remains diagnosed by the existing graph comparison.
+
+Independent production tests qualify native strict readback and actual DXF and
+AC1032 DWG for simple Text/MText in Model/Paper/local blocks and manual Auto-tail
+columns. Explicit paragraph RGB and Unicode/trailing paragraphs are included;
+CAD degree/radian file conversion has an observed last-bit angle roundoff.
+Native-only richer cases are qualified by separate closed-payload tests. The
+configuration is pinned 063c106 with the existing viewport development repair;
+this is not evidence for an unmodified dependency or an application/font engine.

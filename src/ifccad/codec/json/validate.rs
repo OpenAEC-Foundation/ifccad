@@ -13,6 +13,7 @@ struct DrawingValue {
     next_layout_id: u64,
     next_block_id: u64,
     next_line_pattern_id: u64,
+    next_text_style_id: Option<u64>,
     next_preservation_record_id: Option<u64>,
     #[serde(default = "crate::ifccad::logical::patterns::one")]
     line_pattern_scale: f64,
@@ -21,6 +22,7 @@ struct DrawingValue {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct LayoutValue {
+    bounds_quality: Option<IfccadBoundsQuality>,
     kind: String,
     tab_index: u32,
     name: Option<String>,
@@ -61,6 +63,7 @@ struct LayerValue {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct DefinitionValue {
+    bounds_quality: Option<IfccadBoundsQuality>,
     name: String,
     base_point: [f64; 3],
     insertion_unit: String,
@@ -128,6 +131,14 @@ fn node_map(raw: &Value) -> Result<BTreeMap<String, &Value>, IfccadReport> {
     {
         for key in ["ifccad::layout", "ifccad::blockDefinition"] {
             if attr(node, key)
+                .and_then(|v| v.get("boundsQuality"))
+                .is_some_and(Value::is_null)
+            {
+                return Err(problem(
+                    "explicit null boundsQuality is invalid; omit absent quality",
+                ));
+            }
+            if attr(node, key)
                 .and_then(|v| v.get("bounds"))
                 .is_some_and(Value::is_null)
             {
@@ -182,6 +193,7 @@ fn entity(
     layer_paths: &BTreeMap<String, u64>,
     block_paths: &BTreeMap<String, u64>,
     pattern_paths: &BTreeMap<String, IfccadLinePatternId>,
+    style_paths: &BTreeMap<String, IfccadTextStyleId>,
 ) -> Result<IfccadEntity, IfccadReport> {
     let path = node["path"].as_str().unwrap();
     let id = numbered(path, &format!("{prefix}/e"))?;
@@ -208,7 +220,12 @@ fn entity(
         .and_then(Value::as_object)
         .ok_or_else(|| problem(format!("{path} missing attributes")))?;
     let mut payloads = super::geometry::PAYLOADS.to_vec();
-    payloads.extend(["ifccad::viewport", "ifccad::blockInstance"]);
+    payloads.extend([
+        "ifccad::viewport",
+        "ifccad::blockInstance",
+        "ifccad::text",
+        "ifccad::mText",
+    ]);
     let present: Vec<_> = payloads
         .iter()
         .filter(|key| attrs.contains_key(**key))
@@ -226,6 +243,13 @@ fn entity(
         return Err(problem(format!("{path} unsupported CAD geometry")));
     }
     let kind = match *present[0] {
+        key @ ("ifccad::text" | "ifccad::mText") => super::text::decode_entity(
+            &attrs[key],
+            &attrs["ifccad::geom::placement"],
+            key,
+            path,
+            style_paths,
+        )?,
         "ifccad::viewport" => {
             if attrs.contains_key("ifccad::geom::placement") {
                 return Err(problem(format!("{path} viewport has a geometry placement")));
@@ -371,6 +395,43 @@ pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         return Err(problem("unsupported CAD profile version"));
     }
     let mut pattern_paths = BTreeMap::new();
+    let mut style_paths = BTreeMap::new();
+    let mut text_styles = Vec::new();
+    for (path, node) in &nodes {
+        if let Some(value) = attr(node, "ifccad::textStyle") {
+            let attributes = node["attributes"]
+                .as_object()
+                .ok_or_else(|| problem("style attributes required"))?;
+            if attributes
+                .keys()
+                .any(|key| key.starts_with("ifccad::") && key != "ifccad::textStyle")
+            {
+                return Err(problem(format!(
+                    "{path} text style has incompatible CAD role"
+                )));
+            }
+            let id = IfccadTextStyleId(numbered(path, &format!("{prefix}/textStyle/"))?);
+            let (name, properties) = super::text::decode_style(value, path)?;
+            style_paths.insert(path.clone(), id);
+            text_styles.push(IfccadTextStyle {
+                id,
+                name,
+                properties,
+            });
+        }
+    }
+    if attr(drawing_node, "ifccad::drawing")
+        .and_then(|v| v.get("nextTextStyleId"))
+        .is_some_and(Value::is_null)
+    {
+        return Err(problem("nextTextStyleId cannot be null"));
+    }
+    let next_text_style_id = match drawing.next_text_style_id {
+        Some(next) => next,
+        None if text_styles.is_empty() => 1,
+        None => return Err(problem("text styles require nextTextStyleId")),
+    };
+    text_styles.sort_by_key(|style| style.id);
     let mut line_patterns = Vec::new();
     for (path, node) in &nodes {
         if let Some(value) = attr(node, "ifccad::linePattern") {
@@ -469,6 +530,7 @@ pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         .keys()
         .chain(block_paths.keys())
         .chain(pattern_paths.keys())
+        .chain(style_paths.keys())
         .chain(std::iter::once(&model_path))
         .chain(paper_paths.values().map(|(path, ..)| path))
     {
@@ -490,11 +552,20 @@ pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
                 let child = nodes
                     .get(target)
                     .ok_or_else(|| problem(format!("{path} missing child {target}")))?;
-                entity(child, &prefix, &layer_paths, &block_paths, &pattern_paths)
+                entity(
+                    child,
+                    &prefix,
+                    &layer_paths,
+                    &block_paths,
+                    &pattern_paths,
+                    &style_paths,
+                )
             })
             .collect()
     };
     let model = IfccadLayout {
+        bounds_quality: required::<LayoutValue>(nodes[&model_path], "ifccad::layout")?
+            .bounds_quality,
         settings: required::<LayoutValue>(nodes[&model_path], "ifccad::layout")?
             .output()
             .ok_or_else(|| problem("invalid Model layout output"))?,
@@ -506,6 +577,7 @@ pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
     let mut paper_layouts = Vec::new();
     for (id, (path, name, tab_index)) in paper_paths {
         paper_layouts.push(IfccadPaperLayout {
+            bounds_quality: required::<LayoutValue>(nodes[&path], "ifccad::layout")?.bounds_quality,
             bounds: required::<LayoutValue>(nodes[&path], "ifccad::layout")?.bounds,
             id,
             name,
@@ -522,6 +594,7 @@ pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         let node = nodes[path];
         let value: DefinitionValue = required(node, "ifccad::blockDefinition")?;
         blocks.push(IfccadBlockDefinition {
+            bounds_quality: value.bounds_quality,
             bounds: value.bounds,
             id: *id,
             name: value.name,
@@ -630,10 +703,12 @@ pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         _ => return Err(problem("preservation requires allocation watermark")),
     };
     let document = IfccadDocument {
+        text_styles,
         preservation,
         header,
         drawing_id,
         id_counters: IfccadIdCounters {
+            next_text_style_id,
             next_preservation_record_id,
             next_entity_id: drawing.next_entity_id,
             next_layer_id: drawing.next_layer_id,

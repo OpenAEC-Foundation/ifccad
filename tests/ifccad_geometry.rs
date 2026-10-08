@@ -66,6 +66,7 @@ fn new_families_preserve_parameters_in_every_owner() {
     d.model.entities.extend(entities);
     let layout_id = d.id_counters.allocate_layout_id().unwrap();
     let mut paper = IfccadPaperLayout {
+        bounds_quality: None,
         settings: ocdraw::ifccad::IfccadLayoutSettings {
             media: None,
             ..Default::default()
@@ -85,6 +86,7 @@ fn new_families_preserve_parameters_in_every_owner() {
     d.paper_layouts.push(paper);
     let id = d.id_counters.allocate_block_id().unwrap();
     let mut block = IfccadBlockDefinition {
+        bounds_quality: None,
         bounds: None,
         id,
         name: "Geometry block".into(),

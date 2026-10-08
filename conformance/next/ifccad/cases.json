@@ -126,5 +126,37 @@
   {
     "file": "invalid/opaque-missing-record.ifcx",
     "valid": false
+  },
+  {
+    "file": "valid/text-owners.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/text-rich.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid/text-foreign-style.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/text-missing-watermark.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/text-null-override.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/text-column-wrap-conflict.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/text-unknown-inline-field.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/text-stored-partial.ifcx",
+    "valid": false
   }
 ]

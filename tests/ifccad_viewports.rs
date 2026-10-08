@@ -191,6 +191,7 @@ fn viewport_requires_paper_and_unique_model_target() {
     doc.model.entities.pop();
     let id = doc.id_counters.allocate_layout_id().unwrap();
     doc.paper_layouts.push(IfccadPaperLayout {
+        bounds_quality: None,
         settings: ocdraw::ifccad::IfccadLayoutSettings {
             media: None,
             ..Default::default()
@@ -226,6 +227,7 @@ fn drawing_with_viewport() -> IfccadDocument {
     view.model_id = doc.model.id;
     entity.as_native_mut().unwrap().kind = IfccadEntityKind::Viewport(view);
     doc.paper_layouts.push(IfccadPaperLayout {
+        bounds_quality: None,
         settings: ocdraw::ifccad::IfccadLayoutSettings {
             media: None,
             ..Default::default()

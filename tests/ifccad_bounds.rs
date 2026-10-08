@@ -58,6 +58,7 @@ fn separate_layout_and_block_ids_do_not_alias_during_preparation() {
     let block_id = d.model.id;
     d.id_counters.next_block_id = d.id_counters.next_block_id.max(block_id + 1);
     d.blocks.push(IfccadBlockDefinition {
+        bounds_quality: None,
         id: block_id,
         name: "Bounds block".into(),
         base_point: [4., 0., 0.],

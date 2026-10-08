@@ -1,4 +1,4 @@
-use super::IfccadLinePatternId;
+use super::{IfccadLinePatternId, IfccadTextStyleId};
 
 /// Drawing-local domains with independent allocation watermarks.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -8,6 +8,7 @@ pub enum IfccadIdDomain {
     Layout,
     Block,
     LinePattern,
+    TextStyle,
     PreservationRecord,
 }
 
@@ -33,6 +34,7 @@ pub struct IfccadIdAllocationError {
 /// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct IfccadIdCounters {
+    pub next_text_style_id: u64,
     pub next_preservation_record_id: u64,
     pub next_entity_id: u64,
     pub next_layer_id: u64,
@@ -44,6 +46,7 @@ pub struct IfccadIdCounters {
 impl Default for IfccadIdCounters {
     fn default() -> Self {
         Self {
+            next_text_style_id: 1,
             next_preservation_record_id: 1,
             next_entity_id: 1,
             next_layer_id: 1,
@@ -63,6 +66,9 @@ fn allocate(next: &mut u64, domain: IfccadIdDomain) -> Result<u64, IfccadIdAlloc
 }
 
 impl IfccadIdCounters {
+    pub fn allocate_text_style_id(&mut self) -> Result<IfccadTextStyleId, IfccadIdAllocationError> {
+        allocate(&mut self.next_text_style_id, IfccadIdDomain::TextStyle).map(IfccadTextStyleId)
+    }
     pub fn allocate_preservation_record_id(
         &mut self,
     ) -> Result<super::IfccadPreservationRecordId, IfccadIdAllocationError> {
@@ -121,6 +127,11 @@ pub(super) fn validate(document: &super::IfccadDocument) -> Result<(), super::If
         .chain(document.paper_layouts.iter().map(|layout| layout.id))
         .max();
     for (field, next, maximum) in [
+        (
+            "nextTextStyleId",
+            ids.next_text_style_id,
+            document.text_styles.iter().map(|s| s.id.0).max(),
+        ),
         ("nextEntityId", ids.next_entity_id, maximum_entity),
         (
             "nextPreservationRecordId",
@@ -190,6 +201,7 @@ mod tests {
         assert_eq!(
             ids,
             IfccadIdCounters {
+                next_text_style_id: 1,
                 next_preservation_record_id: 1,
                 next_entity_id: 3,
                 next_layer_id: 2,
@@ -226,8 +238,10 @@ mod tests {
             IfccadIdDomain::Layout,
             IfccadIdDomain::Block,
             IfccadIdDomain::LinePattern,
+            IfccadIdDomain::TextStyle,
         ] {
             let mut ids = IfccadIdCounters {
+                next_text_style_id: u64::MAX - 1,
                 next_preservation_record_id: u64::MAX - 1,
                 next_entity_id: u64::MAX - 1,
                 next_layer_id: u64::MAX - 1,
@@ -244,6 +258,7 @@ mod tests {
                 IfccadIdDomain::Layout => ids.allocate_layout_id(),
                 IfccadIdDomain::Block => ids.allocate_block_id(),
                 IfccadIdDomain::LinePattern => ids.allocate_line_pattern_id().map(|id| id.0),
+                IfccadIdDomain::TextStyle => ids.allocate_text_style_id().map(|id| id.0),
             };
             assert_eq!(allocate(&mut ids).unwrap(), u64::MAX - 1);
             let before = ids;

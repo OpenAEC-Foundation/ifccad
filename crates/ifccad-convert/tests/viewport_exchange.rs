@@ -101,6 +101,7 @@ fn multiple_paper_viewports_exchange_in_memory_dxf_dwg() {
     };
     drawing.paper_layouts.push(second);
     drawing.paper_layouts.push(IfccadPaperLayout {
+        bounds_quality: None,
         settings: ocdraw::ifccad::IfccadLayoutSettings {
             media: None,
             ..Default::default()

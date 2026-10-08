@@ -2,6 +2,14 @@
 
 Checked against [buildingSMART's IFCX alpha TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp), examples and linked issues on 2026-09-30. This is a living record of choices the [native CAD profile](../../schemas/ifccad/experimental-contract-0.1.0.md) relies on but IFCX has not yet specified sufficiently for independent interchange. It is not a list of accepted buildingSMART proposals. Update an entry when the experiment starts relying on a new rule, upstream clarifies it, or an independent implementation disagrees. Keep the exact CAD rule in the profile contract; record the general IFCX question and evidence here.
 
+The schema-capability review of 2026-10-08 updates G4/G6 and adds G7/G8 using
+the public TypeSpec and prototype validator. This does not re-qualify the older
+path/composition probes or adopt an upstream proposal. Existing IFCX facilities
+must be used correctly before a local requirement is classified as an upstream
+gap. The desired direction is to express more of the profile directly in IFCX
+as general schema capabilities become available, and retire corresponding local
+supplements. A second permanent schema language is not an agreed goal.
+
 Each entry records: **current IFCX surface**, **our tested rule**, **open question**, **broader use**, and **evidence / upstream overlap**. `Profile-only` means the rule may never belong in IFCX core. `Candidate` means a general IFCX clarification or mechanism could help other domains. `Interoperability risk` means current implementations may produce different results.
 
 ## G1 — Local, compact node paths (`Candidate`)
@@ -49,7 +57,7 @@ outside CAD, independently of compact paths.
 ## G4 — Node profiles and cross-attribute requirements (`Candidate`)
 
 - **Current IFCX surface:** `schemas` describes individual attribute values. The alpha TypeSpec does not provide a normative way to say that a node with one role must also have specified attributes, exactly one of several payloads, and valid references. [Issue #72](https://github.com/buildingSMART/IFC5-development/issues/72) discusses how class properties could be described, but does not establish this validation contract.
-- **Our tested rule:** An owned drawable must have `ifccad::entity` and exactly one supported geometry payload. A circle also needs placement. A Paper layout requires a unique name, explicit tab index and coordinate unit. Its optional physical medium has positive dimensions and a physical unit; Model requires tab zero and forbids Paper metadata. Exactly one Model layout is required; Paper layouts are optional. These conditional value and graph requirements, references, ownership, draw order and appearance modes are checked by the strict profile reader.
+- **Our tested rule:** An owned native drawable must have `ifccad::entity` and exactly one supported primitive, viewport, block-instance or Text/MText payload; opaque content has its separate role. A circle or Text/MText also needs placement. A Paper layout requires a unique name and explicit tab index; coordinate meaning follows its plot mapping rather than an independent stored Paper unit. Its optional physical medium has positive dimensions and a physical unit; Model requires tab zero and forbids Paper naming metadata. Exactly one Model layout is required; Paper layouts are optional. Text requires a same-drawing text-style target with the correct role and drawing membership; present styles require a sufficient allocation watermark. These conditional value and graph requirements, references, ownership, draw order and appearance modes are checked by the strict profile reader.
 - **Open question:** Is there a reusable IFCX profile or node-type mechanism for required attribute sets, alternatives, reference targets and cardinalities? How does it coexist with unknown extension attributes?
 - **Broader use:** Independent validation of domain-specific nodes, including building elements, infrastructure and linked observations. The CAD primitive set and its exact geometry rules remain profile-specific.
 - **Evidence:** [profile validation](../../schemas/ifccad/experimental-contract-0.1.0.md), [strict reader and tests](../../tests/ifccad_native.rs), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp).
@@ -64,11 +72,108 @@ outside CAD, independently of compact paths.
 
 ## G6 — Reusable value schemas and unions (`Candidate`)
 
-- **Current IFCX surface:** The alpha TypeSpec describes nested arrays and objects inline. It has no defined union of alternative value schemas or clear named-schema reference for a nested value. Its `IfcxValueDescription` also lists restriction fields independently of `dataType`. [Schema wishlist issue #51](https://github.com/buildingSMART/IFC5-development/issues/51) proposes datatype-specific restrictions, schema references and unions; these are discussion points, not adopted rules. Value-schema inheritance here is separate from `IfcxNode.inherits`.
-- **Our tested rule:** The experimental schema repeats three-real arrays for line endpoints and placement vectors, while planar-polyline vertices use two-real arrays. The profile reader checks the supported value shapes and CAD semantics without inventing IFCX syntax for schema references or unions.
+- **Current IFCX surface:** The alpha TypeSpec supports nested arrays/objects, enums and optional properties, and `IfcxValueDescription.inherits` names other schemas. The prototype validator applies each inherited value description additively. This is not an exclusive union or a discriminator-selected conditional branch. Its restriction fields are also listed independently of `dataType`. [Schema wishlist issue #51](https://github.com/buildingSMART/IFC5-development/issues/51) discusses datatype-specific restrictions, schema references and unions; these are discussion points, not adopted rules. Whether inheritance provides suitable reusable nested schemas needs a focused declaration/runtime probe; absence of a separate reference keyword alone does not establish absence of reuse. Value-schema inheritance here is separate from `IfcxNode.inherits`.
+- **Our tested rule:** The experimental schema repeats three-real arrays for line endpoints and placement vectors, while planar-polyline vertices use two-real arrays. The Text/MText implementation adds closed alternatives: anchored/wholeTextMiddle/aligned/fit layouts; run/tab/lineBreak/columnBreak/stack inlines; relative/absolute heights; three column states; and fill/padding choices. Each discriminator selects its own required and permitted members. For example aligned requires length/widthFactor and has no height, while fit requires length/height and has no widthFactor. The provisional reader currently supplements the ordinary IFCX declarations with a text-specific JSON Schema and semantic checks. This is a local implementation choice, not IFCX syntax or a settled general IFCCAD validation architecture.
 - **Open question:** Can a value schema refer to another named value schema, and can an array element be one of several named shapes? How are restrictions tied to their declared datatype, including validation of mismatched or unused restriction fields?
 - **Broader use:** One reusable point or placement definition and a typed union of curve segments would improve independent validation of procedural geometry. The same mechanisms would serve non-CAD structured values. They would not by themselves require `ifccad::entity` and geometry attributes on the same node; that remains G4.
 - **Evidence:** [upstream issue #51](https://github.com/buildingSMART/IFC5-development/issues/51), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp), [experimental schema module](../../schemas/ifccad/ifccad-profile-0.1.0.ifcx).
+
+## G7 — Precise value constraints and presence (`Candidate`)
+
+- **Current IFCX surface:** The reviewed value-description model offers enums,
+  nested object properties with optionality and array min/max/item descriptions.
+  It does not declare general numeric-range, string-pattern/length, closed-object,
+  arbitrary-property dependency or exclusive-choice constructs. This is an
+  observation about the reviewed alpha surface, not every possible future IFCX
+  implementation. The prototype validator is separate evidence: it currently
+  checks declared object keys without rejecting extra keys, checks Integer as a
+  JavaScript number, and iterates array items without enforcing declared min/max.
+  Those last behaviours are implementation gaps in existing constructs, not a
+  reason to invent replacement IFCX syntax.
+- **Our tested rule:** Positive finite dimensions/heights/scales; exact uint64
+  identities and watermarks; nonempty/NUL-free symbolic names; single-scalar
+  decimal separators; closed core objects; explicit null versus omission;
+  required and forbidden members selected by kind; mutual exclusion of wrapWidth
+  and columns; and boundsQuality only with bounds. Omitted defaults and explicit
+  authored false/zero/reset values have defined, distinct meanings where relevant.
+  The precise constraints belong to the profile contract and production tests.
+- **Open question:** Which general value restrictions, conditional requirements,
+  unknown-key policy, numeric domains and default/presence semantics should be
+  expressible by an IFCX value schema? How do implementations report unsupported
+  constraints instead of silently claiming full validation? Which limits are
+  schema capabilities and which are bugs in a particular validator?
+- **Broader use:** Validating typed alternatives, scientific quantities,
+  equipment settings, materials and presentation data without one required
+  implementation language. Geometric calculations remain domain-specific.
+- **Evidence / overlap:** [TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp),
+  [prototype validator](https://github.com/buildingSMART/IFC5-development/blob/main/src/ifcx-core/schema/schema-validation.ts),
+  [schema wishlist #51](https://github.com/buildingSMART/IFC5-development/issues/51),
+  [native text tests](../../tests/ifccad_text_codec.rs),
+  [presence/reference tests](../../tests/ifccad_text_wire.rs),
+  [bounds tests](../../tests/ifccad_text_bounds.rs).
+
+## G8 — Discoverable supplemental profile rules (`Candidate`)
+
+- **Current IFCX surface:** Schema imports and per-attribute value descriptions
+  do not provide the reviewed experiment with a defined mechanism to discover
+  and require its extra node, graph or calculation rules. G4 concerns what these
+  rules express; G5 concerns reproducible imports; G8 concerns how a consumer
+  knows which validation obligations accompany an imported profile.
+- **Our tested rule:** A drawing imports one IFCCAD profile. The local reader
+  bundles its schema, extra text JSON Schema and semantic validators; another
+  implementation needs the normative contract and conformance tests as well.
+  Generic acceptance of the ordinary IFCX declarations does not establish full
+  IFCCAD conformance. No custom Union datatype, JSON Schema keyword or constraint
+  extension is presented as adopted IFCX syntax.
+- **Open question:** Could IFCX identify optional and mandatory validation
+  capabilities, link versioned formal constraints to a profile and distinguish
+  basic attribute validation from full profile validation? How should graph
+  constraints and domain algorithms be identified and reported? Would a clearly
+  namespaced extension be interoperable, or require an explicit unsupported-
+  capability result from ordinary consumers?
+- **Broader use:** Domain profiles whose constraints exceed basic attribute
+  shapes, with discoverable obligations, precise validation reports and a path
+  to migrate temporary rules into upstream schema capabilities.
+- **Evidence / overlap:** G4/G5/G6/G7;
+  [profile contract](../../schemas/ifccad/experimental-contract-0.1.0.md),
+  [current text validator](../../src/ifccad/codec/json/text.rs),
+  [core semantic validation](../../src/ifccad/logical/document_validation.rs).
+
+### Representation direction under review (2026-10-08)
+
+The proposed direction is to put every currently expressible rule in the ordinary
+IFCX schema, retain only the missing rules as explicit supplements, and document
+each supplement with a stable rule ID, its applicability, exact requirement,
+positive/negative cases, relevant G-number and upstream migration condition.
+Local value rules can use an established formal notation such as JSON Schema;
+graph/calculation rules need precise language-neutral requirements and named
+algorithms/tests where that notation cannot express them. Explanatory prose
+supports those rules; vague prose or only Rust code is not a portable contract.
+The packaging and validator architecture remain a proposal for review. No new
+rule DSL, in-schema private extension, full parallel schema, or upstream message
+is authorized by this register update alone.
+
+If custom declarations are later selected, they must be identified as IFCCAD
+extensions with defined enforcement and unsupported-capability behaviour. An
+ordinary IFCX consumer must not be assumed to interpret private conditionals.
+The long-term goal remains replacing these local supplements with applicable
+upstream capabilities, rather than maintaining equivalent definitions twice.
+
+### Local implementation defect, not an upstream wish (2026-10-08)
+
+The new text profile's generated array declarations initially contained
+`arrayRestrictions.values`; the reviewed IFCX model and prototype validator use
+`arrayRestrictions.value`. The existing primitive declarations already used the
+singular form. This implementation defect was corrected before integration.
+An independent probe uses the upstream validator body at Git blob
+`a430a1a82b3b64566db5a78025e1f25591e5dd28`: it accepts the corrected profile/text
+example and rejects the former plural array-item declaration. Only its two
+type-only imports are marked as such for Node TypeScript execution; the validator
+body is unchanged. A production-profile declaration regression checks the same
+upstream item-description contract separately from native projection.
+This evidence concerns the declared syntax and the prototype's implemented
+checks, not full IFCCAD semantic validation. The defect does not justify an
+additional schema language or private IFCX syntax.
 
 ## Profile choices to keep separate
 

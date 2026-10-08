@@ -21,6 +21,7 @@ fn unitless_media_does_not_enable_physical_tolerance() {
     let mut d = empty();
     let id = d.id_counters.allocate_layout_id().unwrap();
     d.paper_layouts.push(IfccadPaperLayout {
+        bounds_quality: None,
         settings: ocdraw::ifccad::IfccadLayoutSettings {
             media: Some(ocdraw::ifccad::IfccadLayoutMedia {
                 width: 100.,
@@ -107,6 +108,7 @@ fn physical_limits_are_resolved_separately_for_each_paper_unit() {
     d.length_unit = "m".into();
     let id = d.id_counters.allocate_layout_id().unwrap();
     d.paper_layouts.push(IfccadPaperLayout {
+        bounds_quality: None,
         settings: common::paper_settings(ocdraw::plot_kernel::PlotUnit::Millimetre, 1.),
         id,
         name: "Millimetre sheet".into(),

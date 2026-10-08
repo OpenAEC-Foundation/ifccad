@@ -196,6 +196,8 @@ pub(crate) fn from_layer(
     let color = source_color(layer.color, &loc, issues);
     let opacity = match layer.transparency {
         Transparency::Explicit(a) => 1. - f64::from(a) / 255.,
+        // The codec uses this layer mode for the opaque default, not inheritance.
+        Transparency::ByLayer => 1.,
         v => {
             issues.push(modification(
                 "appearance",

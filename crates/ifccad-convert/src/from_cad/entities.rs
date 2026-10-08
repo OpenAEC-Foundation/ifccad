@@ -34,6 +34,9 @@ pub(super) fn from_cad(
         let appearance =
             crate::mapping::appearance::from_common(e.common(), patterns, &loc, issues);
         let mut kind = match e {
+            EntityType::Text(_) | EntityType::MText(_) => {
+                crate::mapping::text::from_entity(source, e, mappings, geometry, issues)?
+            }
             EntityType::Insert(i) => mappings
                 .blocks
                 .ifccad_id(

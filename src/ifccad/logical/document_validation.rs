@@ -32,6 +32,7 @@ pub(super) fn validate_document(
     }
     crate::ifccad::logical::patterns::scale(document.line_pattern_scale, &prefix)?;
     validate_ifccad_line_patterns(&document.line_patterns)?;
+    super::text::validate_styles(document)?;
     let patterns: BTreeSet<_> = document.line_patterns.iter().map(|p| p.id).collect();
     let mut layers = BTreeSet::new();
     for layer in &document.layers {
@@ -123,6 +124,9 @@ pub(super) fn validate_document(
         }
         crate::ifccad::logical::patterns::scale(entity.line_pattern_scale, &path)?;
         match &entity.kind {
+            IfccadEntityKind::Text(_) | IfccadEntityKind::MText(_) => {
+                super::text::validate_entity(document, &entity.kind, &path)?
+            }
             IfccadEntityKind::Viewport(v) => validate_ifccad_viewport_parameters(v)
                 .map_err(|report| problem(format!("{path}: {report}")))?,
             IfccadEntityKind::BlockInstance {
@@ -229,7 +233,7 @@ fn unit(token: &str) -> bool {
         .iter()
         .any(|unit| unit == token)
 }
-fn color(value: &str) -> bool {
+pub(super) fn color(value: &str) -> bool {
     value.len() == 7 && value.starts_with('#') && value[1..].bytes().all(|b| b.is_ascii_hexdigit())
 }
 fn appearance_check(layer: &IfccadLayerAppearance, context: &str) -> Result<(), IfccadReport> {

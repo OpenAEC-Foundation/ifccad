@@ -95,11 +95,13 @@ pub fn generate(case: &Case) -> Result<CadDocument> {
         },
     };
     let mut doc = IfccadDocument {
+        text_styles: Vec::new(),
         preservation: None,
         plot_style_mode: Default::default(),
         header: super::projection::metadata().header,
         drawing_id: 1,
         id_counters: IfccadIdCounters {
+            next_text_style_id: 1,
             next_preservation_record_id: 1,
             next_entity_id: 1,
             next_layer_id: 3,
@@ -117,6 +119,7 @@ pub fn generate(case: &Case) -> Result<CadDocument> {
         line_pattern_scale: 1.,
         layers: vec![layer(1, "0"), layer(2, "Details")],
         model: IfccadLayout {
+            bounds_quality: None,
             settings: ocdraw::ifccad::IfccadLayoutSettings {
                 media: None,
                 ..Default::default()
@@ -164,6 +167,7 @@ pub fn generate(case: &Case) -> Result<CadDocument> {
         };
         doc.blocks = vec![
             IfccadBlockDefinition {
+                bounds_quality: None,
                 bounds: None,
                 id: 1,
                 name: "Core".into(),
@@ -189,6 +193,7 @@ pub fn generate(case: &Case) -> Result<CadDocument> {
                 ],
             },
             IfccadBlockDefinition {
+                bounds_quality: None,
                 bounds: None,
                 id: 2,
                 name: "Assembly".into(),
@@ -200,6 +205,7 @@ pub fn generate(case: &Case) -> Result<CadDocument> {
                 ],
             },
             IfccadBlockDefinition {
+                bounds_quality: None,
                 bounds: None,
                 id: 3,
                 name: "Unused".into(),

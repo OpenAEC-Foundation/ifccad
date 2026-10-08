@@ -20,6 +20,11 @@ arc sweeps, unordered/undersized bounds, unknown primitive fields, forbidden
 spatial placement, off-plane clips and whole-curve escape despite fitting vertices.
 These cases live only in `next`; no numbered collection is revised.
 
+Text candidates exercise independent style references/watermarks, ordered
+Model/Paper/block entities, closed rich payloads, explicit override presence,
+estimated quality and rejection of foreign styles, nulls, ambiguous columns and
+stored partial boxes. Glyph contours remain independently unverified.
+
 ## Layout output revision
 
 Both models retain layout media without complete plot settings. Plot unit and

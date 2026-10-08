@@ -18,6 +18,7 @@ pub fn cad_document_to_encoded_ifccad(
     let validated = load_ifccad_bytes(encoded.bytes(), Default::default())
         .map_err(IfccadConversionError::CoreReadback)?;
     Ok(CadToEncodedIfccadOutcome {
+        text: logical.text,
         validated,
         encoded,
         diagnostics: logical.diagnostics,
@@ -58,6 +59,8 @@ pub fn cad_document_to_ifccad_document(
         })
         .to_string();
     let mut mappings = IfccadMappings::default();
+    let text_styles =
+        crate::mapping::text::from_styles(source, &mut ids, &mut mappings, &mut issues)?;
     let model_id = ids.allocate_layout_id().map_err(allocation_error)?;
     mappings.layouts.insert(model_id, info.model_layout);
     let mut layers = Vec::new();
@@ -145,6 +148,7 @@ pub fn cad_document_to_ifccad_document(
             mappings.blocks.ifccad_id(*h).unwrap(),
         ));
         blocks.push(IfccadBlockDefinition {
+            bounds_quality: None,
             bounds: None,
             id: mappings.blocks.ifccad_id(*h).unwrap(),
             name: b.name.clone(),
@@ -194,6 +198,7 @@ pub fn cad_document_to_ifccad_document(
             &mut geometry,
         )?;
         paper_layouts.push(IfccadPaperLayout {
+            bounds_quality: None,
             bounds: None,
             id,
             name: layout.name.clone(),
@@ -222,6 +227,7 @@ pub fn cad_document_to_ifccad_document(
         &mut issues,
     );
     let mut drawing = IfccadDocument {
+        text_styles,
         preservation: None,
         header: metadata.header,
         drawing_id: metadata.drawing_id,
@@ -236,6 +242,7 @@ pub fn cad_document_to_ifccad_document(
         line_pattern_scale: source.header.linetype_scale,
         layers,
         model: IfccadLayout {
+            bounds_quality: None,
             settings: {
                 let opencadcodec::objects::ObjectType::Layout(l) =
                     &source.objects[&info.model_layout]
@@ -297,6 +304,10 @@ pub fn cad_document_to_ifccad_document(
         .map_err(IfccadConversionError::CoreValidation)?;
     validate_ifccad_document(&drawing).map_err(IfccadConversionError::CoreValidation)?;
     Ok(CadToIfccadDocumentOutcome {
+        text: crate::IfccadTextAssessment::new(
+            &drawing,
+            mappings.entities.iter().map(|(id, _)| id),
+        ),
         geometry: geometry.finish().with_unassessed(&drawing),
         preservation: preservation.report,
         document: drawing,
@@ -316,6 +327,7 @@ mod error_tests {
     #[test]
     fn allocation_exhaustion_retains_domain_and_source() {
         let mut ids = IfccadIdCounters {
+            next_text_style_id: 1,
             next_preservation_record_id: 1,
             next_entity_id: u64::MAX,
             next_layer_id: u64::MAX,

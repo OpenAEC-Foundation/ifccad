@@ -1,5 +1,6 @@
 export const examples=[
  {format:'IFCCAD',name:'Drawing overview',path:'examples/ifccad/overview.ifcx'},
+ {format:'IFCCAD',name:'Text and multiline text',path:'examples/ifccad/hello-text.ifcx'},
  {format:'IFCCAD',name:'Layouts and viewports',path:'examples/ifccad/layouts-viewports.ifcx'},
  {format:'IFCCAD',name:'Shared blocks and graph contributions',path:'examples/ifccad/blocks-and-fragments.ifcx'},
  {format:'OCDraw',name:'Drawing overview',path:'examples/ocdraw/overview.ocdraw.json'},

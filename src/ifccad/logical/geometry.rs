@@ -83,7 +83,9 @@ impl IfccadEntityKind {
                 vertices,
                 closed: *closed,
             },
-            Self::BlockInstance { .. } | Self::Viewport(_) => return Ok(None),
+            Self::BlockInstance { .. } | Self::Viewport(_) | Self::Text(_) | Self::MText(_) => {
+                return Ok(None)
+            }
         }))
     }
 }

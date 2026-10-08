@@ -16,6 +16,7 @@ pub struct IfccadHeader {
 /// This document does not contain foreign nodes or original IFCX fragments.
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadDocument {
+    pub text_styles: Vec<super::IfccadTextStyle>,
     pub header: IfccadHeader,
     pub preservation: Option<super::IfccadPreservation>,
     pub drawing_id: u64,
@@ -50,6 +51,7 @@ pub struct IfccadLayerAppearance {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadLayout {
+    pub bounds_quality: Option<super::IfccadBoundsQuality>,
     pub settings: super::IfccadLayoutSettings,
     pub id: u64,
     pub tab_index: u32,
@@ -60,6 +62,7 @@ pub struct IfccadLayout {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadPaperLayout {
+    pub bounds_quality: Option<super::IfccadBoundsQuality>,
     pub id: u64,
     pub name: String,
     pub tab_index: u32,
@@ -71,6 +74,7 @@ pub struct IfccadPaperLayout {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadBlockDefinition {
+    pub bounds_quality: Option<super::IfccadBoundsQuality>,
     pub id: u64,
     pub name: String,
     pub base_point: [f64; 3],
@@ -186,6 +190,8 @@ pub struct IfccadBlockTransform {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum IfccadEntityKind {
+    Text(super::IfccadText),
+    MText(Box<super::IfccadMText>),
     Viewport(IfccadViewport),
     Point {
         placement: IfccadPlacement,

@@ -23,6 +23,19 @@ for(const format of ['dxf','dwg']){
  assert.equal(returned.presentation.entities.filter(e=>e.geometry?.type==='mText').length,1);
 }
 console.log('Browser WASM OCDraw Text/MText native inspection, estimated bounds and actual DXF/DWG exchange verified');
+const ifccadTextBytes=await readFile(new URL('../../examples/ifccad/hello-text.ifcx',import.meta.url));
+const ifccadTextSource={kind:'ifccad',name:'text.ifcx',files:[{path:'text.ifcx',bytes:Uint8Array.from(ifccadTextBytes).buffer}]};
+const ifccadTextOpened=processBrowserRequest(ifccadTextSource,wasm);
+assert.equal(ifccadTextOpened.failure,null,JSON.stringify(ifccadTextOpened.failure));
+assert.equal(ifccadTextOpened.presentation.textEntityCount,3);assert.equal(ifccadTextOpened.presentation.mTextEntityCount,3);
+assert.equal(ifccadTextOpened.presentation.boundsCompleteness.find(s=>s.scopePath==='/cad/d1/layout/1').quality,'estimated');
+for(const format of ['dxf','dwg']){
+ const output=processBrowserRequest({...ifccadTextSource,export:{format,version:'AC1032'}},wasm);
+ assert.equal(output.failure,null,JSON.stringify(output.failure));assert.equal(output.conversion.textAssessment.entries.length,6);
+ const returned=processBrowserRequest({kind:'cad',drawingFormat:'ifccad',name:'text.'+format,files:[{path:'text.'+format,bytes:Uint8Array.from(Buffer.from(output.export.download.base64,'base64')).buffer}]},wasm);
+ assert.equal(returned.failure,null,JSON.stringify(returned.failure));assert.equal(returned.presentation.textEntityCount,3);assert.equal(returned.presentation.mTextEntityCount,3);
+}
+console.log('Browser WASM IFCCAD Text/MText, estimated bounds and Model/Paper/block DXF/DWG exchange verified');
 const splineBytes=await readFile(new URL('../../crates/ocdraw-convert/tests/fixtures/splines/open-cubic.dxf',import.meta.url));
 const splineSource={kind:'cad',name:'spline.dxf',preserveSplines:true,files:[{path:'spline.dxf',bytes:Uint8Array.from(splineBytes).buffer}]};
 const splineOpened=processBrowserRequest(splineSource,wasm);

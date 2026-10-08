@@ -33,6 +33,7 @@ fn graph() -> Value {
         entity.as_native_mut().unwrap().id = id;
     }
     document.id_counters = IfccadIdCounters {
+        next_text_style_id: 1,
         next_preservation_record_id: 1,
         next_entity_id: 1000,
         next_layer_id: 100,
@@ -349,6 +350,7 @@ fn wire_roundtrip_preserves_full_width_counters_and_rejects_maximum_ids() {
     for next in [9_007_199_254_740_993, 9_223_372_036_854_775_809, u64::MAX] {
         let mut document = read(&graph()).unwrap().document().clone();
         document.id_counters = IfccadIdCounters {
+            next_text_style_id: 1,
             next_preservation_record_id: 1,
             next_entity_id: next,
             next_layer_id: next,
