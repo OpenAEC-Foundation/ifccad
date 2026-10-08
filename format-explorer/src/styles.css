@@ -105,7 +105,7 @@
 .statusbar{display:none}
 .file-notice{flex-basis:100%;font-size:12px;padding:5px 8px;border-left:3px solid var(--theme-accent);overflow-wrap:anywhere}
 #conversion-collapse svg{transition:transform .15s;transform-origin:50% 50%}
-#conversion-collapse[aria-expanded=true] svg{transform:rotate(180deg)}
+#conversion-collapse[aria-expanded=false] svg{transform:rotate(180deg)}
 #application[data-workspace=overview][data-reports=collapsed] .workspace-body{grid-template-rows:minmax(0,1fr) 6px auto}
 #application[data-workspace=overview][data-reports=collapsed] .conversion-reports{display:none}
 #application[data-workspace=overview][data-reports=collapsed] .conversion-layout{flex:none}
