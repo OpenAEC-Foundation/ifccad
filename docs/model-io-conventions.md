@@ -188,3 +188,6 @@ and `allocate_preservation_record_id()` preserve reservations/deletions.
 Library capture remains opt-in through direction-qualified options. Loaded graphs
 stay immutable and fresh encode/load retains generic byte payloads; source graph
 writeback is not implied. This is a provisional API/contract change, not a release.
+## Workspace lifecycle
+
+IFCCAD UCS and Model-window IDs use separate persistent uint64 watermarks and canonical full references. Whole workspace attributes compose as IFCX values. Native readers/writers preserve omitted choices and dormant values; legacy missing canvas activation means true. The optional viewport snapshot is boxed in Rust to keep ordinary entity variants compact. Format-owned converters allocate/bind identities before references and strictly read back native output.

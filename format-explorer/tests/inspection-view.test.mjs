@@ -36,3 +36,11 @@ test('a selected property remains distinct from its owner and retains nested exp
  assert.match(view.tree,/class="property-choice selected"[^>]*aria-current="true"/);
  assert.doesNotMatch(view.tree,/class="tree-row selected"/);
 });
+
+test('workspace choices show unspecified and the construction coordinate space',()=>{
+ const model=createInspection({validation:{strictAvailable:true},presentation:{format:'ocdraw',unit:'m',paperCanvases:[{scopeId:7,storedUcs:{kind:'World'},useStoredUcs:false}],viewportWorkspaces:[{viewportEntityId:'9007199254740993',storedUcs:{kind:'World'},useStoredUcs:false}],entities:[{id:'9007199254740993',type:'viewport'}]}});
+ const state={language:'en',view:'drawing',field:[],expanded:new Set(),inspector:'properties'};
+ const canvas=renderInspection(model,{...state,selection:'canvas:7'});assert.match(canvas.details,/Unspecified/);assert.match(canvas.details,/Coordinate space/);assert.match(canvas.details,/Paper/);
+ const viewport=renderInspection(model,{...state,selection:'workspace:9007199254740993'});assert.match(viewport.details,/Model/);assert.match(viewport.details,/Unit: m/);
+ assert.equal(model.nodes.get('canvas:7').values.currentUcs,undefined);
+});

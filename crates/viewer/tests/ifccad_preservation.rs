@@ -38,7 +38,7 @@ fn ifccad_capture_durable_open_and_actual_export_show_separate_evidence() {
 }
 
 #[test]
-fn fit_dxf_parameterization_loss_is_distinct_from_successful_typed_restore() {
+fn merged_dxf_parameterization_fix_matches_successful_typed_restore() {
     use ocdraw_convert::opencadcodec::{CadDocument, DwgWriter, EntityType, Vector3};
     let mut c = CadDocument::new();
     let mut s = ocdraw_convert::opencadcodec::entities::Spline::new();
@@ -72,7 +72,7 @@ fn fit_dxf_parameterization_loss_is_distinct_from_successful_typed_restore() {
         out["failure"]
     );
     assert!(
-        out["export"]["diagnostics"]
+        !out["export"]["diagnostics"]
             .as_array()
             .unwrap()
             .iter()
@@ -80,4 +80,19 @@ fn fit_dxf_parameterization_loss_is_distinct_from_successful_typed_restore() {
         "{}",
         out["export"]["diagnostics"]
     );
+    let bytes = STANDARD
+        .decode(out["export"]["download"]["base64"].as_str().unwrap())
+        .unwrap();
+    let cad = ocdraw_convert::opencadcodec::DxfReader::from_reader(std::io::Cursor::new(bytes))
+        .unwrap()
+        .read()
+        .unwrap();
+    let spline = cad
+        .entities()
+        .find_map(|e| match e {
+            EntityType::Spline(s) => Some(s),
+            _ => None,
+        })
+        .unwrap();
+    assert_eq!(spline.knot_parameterization, 2);
 }

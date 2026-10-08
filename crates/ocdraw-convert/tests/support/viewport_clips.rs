@@ -149,6 +149,8 @@ pub fn native(kind: &str, forward: bool) -> OcdrawDocument {
         boundary_entity_id: Some(2),
     };
     d.paper_canvases.push(DrawingPaperCanvas {
+        frame: None,
+        use_stored_ucs: true,
         scope_id: 1,
         view: d.viewports[0].view,
         grid: DrawingGrid {
@@ -170,8 +172,8 @@ pub fn native(kind: &str, forward: bool) -> OcdrawDocument {
             isometric_plane: DrawingIsometricPlane::Left,
         },
         stored_ucs: DrawingUcsSelection::World,
-        current_ucs: DrawingUcsSelection::World,
-        active_context: DrawingPaperContext::Canvas,
+        current_ucs: None,
+        active_context: None,
     });
     d
 }

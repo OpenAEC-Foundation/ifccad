@@ -23,6 +23,9 @@ fn fresh_cad_import_emits_valid_counters_under_both_policies() {
             IfccadIdCounters {
                 next_text_style_id: 2,
                 next_preservation_record_id: 1,
+                next_ucs_id: 1,
+                next_model_window_id: 2,
+
                 next_entity_id: 4,
                 next_layer_id: 3,
                 next_layout_id: 2,
@@ -309,8 +312,12 @@ fn overall_viewport_scaffold_is_checked_by_role_and_values() {
         panic!()
     };
     v.width = 321.;
+    let result = cad_document_to_encoded_ifccad(&c, metadata(), Default::default()).unwrap();
+    let paper = &result.validated_source().document().paper_layouts[0];
+    assert_eq!(paper.canvas.as_ref().unwrap().frame.unwrap().width, 321.);
+    assert!(paper.entities.is_empty());
     assert!(
-        matches!(from_cad(&c,metadata()),Err(IfccadConversionError::Unsupported(i)) if i.iter().any(|d|d.code=="paper"))
+        matches!(from_cad(&c,metadata()),Err(IfccadConversionError::Unsupported(i)) if i.iter().any(|d|d.code == "workspace" && d.location.contains("activeContext")))
     );
 }
 #[test]

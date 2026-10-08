@@ -1,3 +1,6 @@
+fn initial_workspace_id() -> u64 {
+    1
+}
 use super::*;
 use serde::Deserialize;
 use serde_json::Value;
@@ -6,6 +9,8 @@ use std::collections::{BTreeMap, BTreeSet};
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct DrawingValue {
+    #[serde(default, rename = "modelWindows")]
+    _model_windows: Option<Vec<String>>,
     profile_version: String,
     length_unit: String,
     next_entity_id: u64,
@@ -15,6 +20,10 @@ struct DrawingValue {
     next_line_pattern_id: u64,
     next_text_style_id: Option<u64>,
     next_preservation_record_id: Option<u64>,
+    #[serde(default = "initial_workspace_id")]
+    next_ucs_id: u64,
+    #[serde(default = "initial_workspace_id")]
+    next_model_window_id: u64,
     #[serde(default = "crate::ifccad::logical::patterns::one")]
     line_pattern_scale: f64,
     plot_style_mode: Option<String>,
@@ -578,6 +587,8 @@ pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
     for (id, (path, name, tab_index)) in paper_paths {
         paper_layouts.push(IfccadPaperLayout {
             bounds_quality: required::<LayoutValue>(nodes[&path], "ifccad::layout")?.bounds_quality,
+            canvas: None,
+
             bounds: required::<LayoutValue>(nodes[&path], "ifccad::layout")?.bounds,
             id,
             name,
@@ -702,7 +713,11 @@ pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         None if preservation.is_none() => 1,
         _ => return Err(problem("preservation requires allocation watermark")),
     };
-    let document = IfccadDocument {
+    let mut document = IfccadDocument {
+        ucs_definitions: vec![],
+        model_windows: vec![],
+        workspace_state: None,
+        model_view_state: None,
         text_styles,
         preservation,
         header,
@@ -710,6 +725,10 @@ pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         id_counters: IfccadIdCounters {
             next_text_style_id,
             next_preservation_record_id,
+
+            next_ucs_id: drawing.next_ucs_id,
+            next_model_window_id: drawing.next_model_window_id,
+
             next_entity_id: drawing.next_entity_id,
             next_layer_id: drawing.next_layer_id,
             next_layout_id: drawing.next_layout_id,
@@ -729,6 +748,7 @@ pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         paper_layouts,
         blocks,
     };
+    super::workspace::decode_document(raw, &mut document)?;
     validate_ifccad_document(&document)?;
     Ok(document)
 }

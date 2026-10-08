@@ -123,6 +123,8 @@ fn paper_occurrences_compare_error_in_their_declared_coordinate_unit() {
     let id = d.id_counters.allocate_layout_id().unwrap();
     d.paper_layouts.push(IfccadPaperLayout {
         bounds_quality: None,
+        canvas: None,
+
         settings: ocdraw::ifccad::IfccadLayoutSettings {
             media: None,
             ..Default::default()

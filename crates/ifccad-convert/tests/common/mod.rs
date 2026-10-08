@@ -62,6 +62,11 @@ pub fn empty() -> IfccadDocument {
     IfccadDocument {
         text_styles: Vec::new(),
         preservation: None,
+        ucs_definitions: vec![],
+        model_windows: vec![],
+        workspace_state: None,
+        model_view_state: None,
+
         plot_style_mode: Default::default(),
         id_counters: IfccadIdCounters {
             next_preservation_record_id: 1,
@@ -263,6 +268,8 @@ pub fn instance(id: u64, definition_id: u64, origin: [f64; 3]) -> IfccadEntity {
 
 pub fn native_viewport() -> IfccadViewport {
     IfccadViewport {
+        workspace: None,
+
         model_id: 1,
         frame: IfccadViewportFrame {
             center: [100., 75.],
@@ -318,6 +325,8 @@ pub fn viewport_drawing() -> IfccadDocument {
     };
     d.paper_layouts.push(IfccadPaperLayout {
         bounds_quality: None,
+        canvas: None,
+
         settings: paper_settings(ocdraw::plot_kernel::PlotUnit::Millimetre, 1.),
         bounds: None,
         id: 42,

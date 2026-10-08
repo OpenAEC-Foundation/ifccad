@@ -179,7 +179,7 @@ fn save_close_reopen_and_fresh_dwg_uses_production_storage() {
     );
 }
 #[test]
-fn fit_parameterization_is_preserved_before_known_target_dxf_loss() {
+fn fit_parameterization_survives_merged_dxf_fix() {
     for parameter in [1, 2] {
         let d = captured();
         let mut cad = ifccad_document_to_cad_document(&d, Default::default())
@@ -216,8 +216,8 @@ fn fit_parameterization_is_preserved_before_known_target_dxf_loss() {
         let dxf = physical(restored.document(), false);
         assert_eq!(
             spline(&dxf).knot_parameterization,
-            0,
-            "current pinned DXF limitation must be deliberately requalified after #99"
+            parameter,
+            "merged #99 must retain fit parameterization through actual DXF readback"
         );
         let dwg = physical(restored.document(), true);
         assert_eq!(spline(&dwg).knot_parameterization, parameter);

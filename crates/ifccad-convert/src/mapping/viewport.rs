@@ -12,13 +12,7 @@ pub(crate) fn checked_viewport_number(authored_index: usize) -> Option<i16> {
 }
 
 pub(crate) fn overall_canvas(doc: &CadDocument, v: &Viewport) -> bool {
-    v.id == 1
-        || (doc.dwg_source_version.is_some()
-            && v.id == 0
-            && doc.objects.values().any(|o| {
-                matches!(o,opencadcodec::objects::ObjectType::Layout(l)
-            if l.block_record==v.common.owner_handle && l.viewport==v.common.handle)
-            }))
+    crate::source::workspace::overall(doc, v)
 }
 
 pub(crate) fn from_cad(
@@ -57,6 +51,8 @@ pub(crate) fn from_cad(
         }
     }
     let result = IfccadViewport {
+        workspace: None,
+
         model_id,
         frame: IfccadViewportFrame {
             center: [v.center.x, v.center.y],
@@ -124,41 +120,7 @@ pub(crate) fn from_cad(
         ));
         return None;
     }
-    let b = Viewport::new();
-    let mut r = v.clone();
-    r.common = b.common.clone();
-    r.center = b.center;
-    r.width = b.width;
-    r.height = b.height;
-    r.id = b.id;
-    r.view_center = b.view_center;
-    r.view_target = b.view_target;
-    r.view_direction = b.view_direction;
-    r.lens_length = b.lens_length;
-    r.front_clip_z = b.front_clip_z;
-    r.back_clip_z = b.back_clip_z;
-    r.view_height = b.view_height;
-    r.twist_angle = b.twist_angle;
-    r.render_mode = b.render_mode;
-    r.frozen_layers = b.frozen_layers.clone();
-    r.clip_boundary_handle = b.clip_boundary_handle;
-    let mask = 1
-        | 2
-        | 4
-        | 0x4000
-        | 0x8000
-        | 0x10000
-        | 0x20000
-        | if v.status.front_clipping { 16 } else { 0 };
-    r.status =
-        ViewportStatusFlags::from_bits((v.status.to_bits() & !mask) | (b.status.to_bits() & mask));
-    if r != b {
-        issues.push(diagnostic(
-            "viewport-state",
-            loc,
-            "unmapped viewport workspace, plot, off-screen or visual state omitted",
-        ));
-    }
+    crate::source::workspace::viewport_residual(v, issues);
     Some(result)
 }
 

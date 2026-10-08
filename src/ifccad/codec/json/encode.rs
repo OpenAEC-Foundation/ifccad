@@ -144,6 +144,18 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
             json!(format!("{prefix}/block/{}", block.id)),
         );
     }
+    for ucs in &document.ucs_definitions {
+        drawing_children.insert(
+            format!("ucs{}", ucs.id.0),
+            json!(format!("{prefix}/ucs/{}", ucs.id.0)),
+        );
+    }
+    for window in &document.model_windows {
+        drawing_children.insert(
+            format!("window{}", window.id.0),
+            json!(format!("{prefix}/modelWindow/{}", window.id.0)),
+        );
+    }
     data.push(NodeOut {
         path: prefix.clone(),
         children: Some(drawing_children),
@@ -156,6 +168,8 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
             "nextLayoutId":document.id_counters.next_layout_id,
             "nextBlockId":document.id_counters.next_block_id,
             "nextLinePatternId":document.id_counters.next_line_pattern_id,
+            "nextUcsId":document.id_counters.next_ucs_id,
+            "nextModelWindowId":document.id_counters.next_model_window_id,
         }})),
     });
     if document.preservation.is_some() || document.id_counters.next_preservation_record_id != 1 {
@@ -204,6 +218,30 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
             data.push(NodeOut {path:format!("{prefix}/preservation/r{}",r.id.0),children:None,attributes:attrs(json!({"ifccad::preservationRecord":super::preservation::encode_record(r,&prefix)}))});
         }
     }
+    if !document.model_windows.is_empty() {
+        data.iter_mut()
+            .find(|n| n.path == prefix)
+            .unwrap()
+            .attributes["ifccad::drawing"]["modelWindows"] = json!(document
+            .model_windows
+            .iter()
+            .map(|v| format!("{prefix}/modelWindow/{}", v.id.0))
+            .collect::<Vec<_>>());
+    }
+    data.iter_mut()
+        .find(|n| n.path == prefix)
+        .unwrap()
+        .attributes
+        .extend(attrs(super::workspace::encode_selections(
+            document, &prefix,
+        )));
+    for node in super::workspace::encode_definitions(document, &prefix) {
+        data.push(NodeOut {
+            path: node["path"].as_str().unwrap().to_owned(),
+            children: None,
+            attributes: attrs(node["attributes"].clone()),
+        });
+    }
     data.push(NodeOut {
         path: format!("{prefix}/layout/{}", document.model.id),
         children: Some(numbered_children(&document.model.entities, &prefix)),
@@ -219,9 +257,16 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
         data.push(NodeOut {
             path: format!("{prefix}/layout/{}", layout.id),
             children: Some(numbered_children(&layout.entities, &prefix)),
-            attributes: attrs(
-                json!({"ifccad::layout":with_bounds(value,layout.bounds,layout.bounds_quality)}),
-            ),
+            attributes: {
+                let mut a = attrs(json!({"ifccad::layout":with_bounds(value,layout.bounds,layout.bounds_quality)}));
+                if let Some(canvas) = &layout.canvas {
+                    a.insert(
+                        "ifccad::paperCanvas".into(),
+                        super::workspace::encode_canvas(canvas, &prefix),
+                    );
+                }
+                a
+            },
         });
     }
     for p in &document.line_patterns {
@@ -262,7 +307,16 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
         )
         .chain(document.blocks.iter().flat_map(|b| b.entities.iter()))
     {
-        data.push(entity_node(entity, &prefix));
+        let mut node = entity_node(entity, &prefix);
+        if let Some(IfccadEntityKind::Viewport(viewport)) = entity.as_native().map(|e| &e.kind) {
+            if let Some(workspace) = &viewport.workspace {
+                node.attributes.insert(
+                    "ifccad::viewportWorkspace".into(),
+                    super::workspace::encode_viewport(workspace, &prefix),
+                );
+            }
+        }
+        data.push(node);
     }
     let result = FileOut {
         header: HeaderOut {

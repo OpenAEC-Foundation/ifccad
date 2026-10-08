@@ -30,7 +30,7 @@
 //! let id = document.id_counters.allocate_layout_id()?;
 //! let tab_index = u32::try_from(document.paper_layouts.len() + 1)?;
 //! document.paper_layouts.push(IfccadPaperLayout {
-//!     bounds_quality: None, bounds: None,
+//!     canvas: None, bounds_quality: None, bounds: None,
 //!     id, name: "New sheet".into(), tab_index,
 //!     settings: Default::default(), entities: vec![],
 //! });

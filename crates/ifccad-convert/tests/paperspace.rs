@@ -73,7 +73,13 @@ fn import(
 fn cad_import_retains_multiple_empty_and_populated_paper_layouts() {
     let cad = source();
     for policy in [IfccadLossPolicy::Allow, IfccadLossPolicy::Reject] {
-        let result = import(&cad, policy).unwrap();
+        if policy == IfccadLossPolicy::Reject {
+            assert!(
+                matches!(import(&cad,policy),Err(IfccadConversionError::Unsupported(issues)) if issues.iter().any(|d|d.code == "workspace" && d.location.ends_with(".activeContext/currentUcs")))
+            );
+            continue;
+        }
+        let result = import_workspace(&cad);
         let loaded = load_ifccad_bytes(result.encoded().bytes(), Default::default()).unwrap();
         let doc = loaded.document();
         assert_eq!(doc.paper_layouts.len(), 2, "{:?}", result.diagnostics());
@@ -131,7 +137,7 @@ fn tab_gaps_are_recovery_but_ambiguous_order_and_links_are_fatal() {
     let mut cad = source();
     layout_mut(&mut cad, "Empty").tab_order = 2;
     layout_mut(&mut cad, "Inches").tab_order = 7;
-    let result = import(&cad, IfccadLossPolicy::Reject).unwrap();
+    let result = import_workspace(&cad);
     assert!(result.diagnostics().iter().any(
         |d| d.code == "layout-tabs-normalized" && d.action == IfccadDiagnosticAction::Recovery
     ));
@@ -198,6 +204,8 @@ fn native_papers() -> IfccadDocument {
     doc.paper_layouts = vec![
         IfccadPaperLayout {
             bounds_quality: None,
+            canvas: None,
+
             settings: ocdraw::ifccad::IfccadLayoutSettings {
                 media: Some(ocdraw::ifccad::IfccadLayoutMedia {
                     width: 297.,
@@ -214,6 +222,8 @@ fn native_papers() -> IfccadDocument {
         },
         IfccadPaperLayout {
             bounds_quality: None,
+            canvas: None,
+
             settings: ocdraw::ifccad::IfccadLayoutSettings {
                 media: None,
                 ..Default::default()
@@ -250,7 +260,7 @@ fn native_papers_allocate_ordered_owners_and_survive_both_cad_codecs() {
             );
         }
     }
-    for (codec, cad) in [
+    for cad in [
         output.document().clone(),
         opencadcodec::DxfReader::from_reader(std::io::Cursor::new(
             opencadcodec::DxfWriter::new(output.document())
@@ -265,12 +275,8 @@ fn native_papers_allocate_ordered_owners_and_survive_both_cad_codecs() {
         ))
         .read()
         .unwrap(),
-    ]
-    .into_iter()
-    .enumerate()
-    {
-        let restored = import(&cad, IfccadLossPolicy::Reject)
-            .unwrap_or_else(|e| panic!("codec {codec}: {e:?}"));
+    ] {
+        let restored = import_workspace(&cad);
         let doc = restored.validated_source().document();
         assert_eq!(doc.paper_layouts.len(), 2);
         assert_eq!(
@@ -430,6 +436,8 @@ fn target_layout_name_collisions_and_tab_overflow_are_fatal() {
     doc.model.id = 0;
     doc.paper_layouts = (1..=32768)
         .map(|tab| IfccadPaperLayout {
+            canvas: None,
+
             settings: ocdraw::ifccad::IfccadLayoutSettings {
                 media: None,
                 ..Default::default()
@@ -497,4 +505,18 @@ fn unsupported_medium_omits_only_media_and_definition_loss_reaches_paper() {
         .diagnostics()
         .iter()
         .any(|d| d.code == "block-content-loss" && d.location == "entity/502"));
+}
+
+fn import_workspace(cad: &CadDocument) -> CadToEncodedIfccadOutcome {
+    let result = import(cad, IfccadLossPolicy::Allow).unwrap();
+    assert!(
+        result
+            .diagnostics()
+            .iter()
+            .filter(|d| d.is_semantic_loss())
+            .all(|d| d.code == "workspace" && d.location.ends_with(".activeContext/currentUcs")),
+        "unexpected source loss: {:?}",
+        result.diagnostics()
+    );
+    result
 }

@@ -59,7 +59,7 @@ fn off_screen_state_prevents_default_viewport_scaffold_elision() {
     assert!(out
         .diagnostics()
         .iter()
-        .any(|d| d.code == "paper" && d.location == format!("entity/{handle}")));
+        .any(|d| d.code == "source-field" && d.location == format!("entity/{handle}.off_screen")));
     assert!(matches!(
         from_cad(&doc, metadata()),
         Err(IfccadConversionError::Unsupported(_))

@@ -13,3 +13,5 @@ pub mod ocdraw;
 
 pub mod plot_kernel;
 pub mod text;
+
+pub mod workspace_kernel;

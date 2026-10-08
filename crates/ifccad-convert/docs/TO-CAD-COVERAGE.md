@@ -15,7 +15,7 @@ production-readback and semantic-mismatch phases. Error sources remain typed;
 this changes Rust error handling, not graph-aware loss or precision assessment.
 
 Profile `urn:example:ifccad:0.1.0`; opencadcodec revision
-`063c10671fe7833d562f772159771318c7a0ebb9`. Default Allow returns supported content
+`ab2eecdbffc31120b5ad6d899f6fc67cf21ede39`. Default Allow returns supported content
 with losses; explicit Reject refuses diagnosed omissions or modifications.
 
 The [dependency audit](../../../docs/geometry/opencadcodec-update-2026-10-05.md)
@@ -52,7 +52,7 @@ fresh CAD import assigns new IDs and watermarks with explicit outcome mappings.
 Polyline local-origin decomposition may be canonicalized; its path must remain
 within the configured hard tolerance. Oblique parameterization uses shared preparation.
 The target starts with pinned default table/layout/style infrastructure, including
-empty Paper scaffold when no authored Paper is emitted. The first authored sheet reuses this owner. Explicit owned BLOCK/ENDBLK markers preserve secondary Paper ownership through DWG; default overall viewports remain runtime infrastructure. CAD workspace settings are deferred. ByLayer/ByBlock modes are not resolved. Unsupported geometric
+empty Paper scaffold when no authored Paper is emitted. The first authored sheet reuses this owner. Explicit owned BLOCK/ENDBLK markers preserve secondary Paper ownership through DWG; default overall viewports remain runtime infrastructure. CAD workspace mappings and qualified limitations are described below. ByLayer/ByBlock modes are not resolved. Unsupported geometric
 parameterization omits the whole entity. Normal local definitions can retain
 partial contents, with a loss diagnostic on each affected instance, propagated
 through nesting. Only emitted objects receive mappings.
@@ -188,6 +188,9 @@ certificate for arbitrary serialization/rendering.
 
 ## Upstream pin update — 2026-10-07
 
+Historical note: this records the previous base. The 2026-10-08 update below supersedes its pin and remaining spline/paperspace limitations.
+
+
 Both converters use opencadcodec `063c10671fe7833d562f772159771318c7a0ebb9` (0.6.0).
 Clipping activation/group 340 and VIEWPORT angle units now come from merged
 upstream PRs #88/#89; only the independent viewport-off repair remains selected.
@@ -263,5 +266,15 @@ AC1032 DWG for simple Text/MText in Model/Paper/local blocks and manual Auto-tai
 columns. Explicit paragraph RGB and Unicode/trailing paragraphs are included;
 CAD degree/radian file conversion has an observed last-bit angle roundoff.
 Native-only richer cases are qualified by separate closed-payload tests. The
-configuration is pinned 063c106 with the existing viewport development repair;
+configuration is pinned ab2eecd with the explicit viewport-off development repair;
 this is not evidence for an unmodified dependency or an application/font engine.
+
+## Workspace and upstream update — 2026-10-08
+
+Both converters select opencadcodec 0.6.0 at `ab2eecdbffc31120b5ad6d899f6fc67cf21ede39` plus the explicit viewport-off repair [PR #103](https://github.com/HakanSeven12/opencadcodec/pull/103). Merged spline DXF parameterization and DWG Paper owner/overall-role repairs now come from upstream. See the [dependency audit](../../../docs/geometry/opencadcodec-update-2026-10-08.md) and [workspace contract](../../../docs/workspace-state.md) for the current field/transport boundary.
+
+UCS definitions, Model windows, canvas frame/grid/snap/UCS and authored Paper viewport aids map through shared ID-free scalar helpers. Native identities, ownership, source classification and located losses stay format-specific. Disabled zero snap spacing and stored-UCS activation survive independently of current choices. Model-viewport aids retain Model coordinates inside Paper; canvas aids use Paper coordinates. Canvas frames do not enter geometry bounds or clip ownership.
+
+A uniquely available active Model window may be selected; multiple unqualified windows survive with unspecified activation. Paper current viewport/UCS association remains unavailable on the codec surface. Model/Paper mode and the active Paper tab are retained through the unique reserved *Paper_Space block and its consistent LAYOUT association, including multiple sheets. Export synchronizes BLOCK_RECORD names, existing BLOCK begin names and the reserved header handle together; setting the header cache alone does not change the active role. Unknown choices remain omitted with located loss. Skipped viewports receive no workspace references.
+
+Dot grid style and frequencies beyond CAD i16 receive field-specific substitutions. VIEWPORT grid beyond-limits/adaptive/subdivision/follow-workplane flags stay in CadDocument but its pinned DXF/DWG routes do not retain them; target diagnostics identify each nondefault field and Reject refuses that portability loss. Model VPORT grid flags survive both routes. Unrepresented display/icon/base/orthographic/plot/visual state remains diagnosed. Numeric and structural failures remain fatal under both policies.

@@ -118,10 +118,7 @@
     "drawingViewState": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "currentModelUcs",
-        "activeModelWindowId"
-      ],
+      "required": [],
       "properties": {
         "currentModelUcs": {
           "type": "object",
@@ -5469,10 +5466,12 @@
               ],
               "properties": {
                 "x": {
-                  "type": "number"
+                  "type": "number",
+                  "minimum": 0
                 },
                 "y": {
-                  "type": "number"
+                  "type": "number",
+                  "minimum": 0
                 }
               }
             },
@@ -5492,7 +5491,35 @@
                 "Right"
               ]
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "enabled": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "enabled"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "spacing": {
+                    "properties": {
+                      "x": {
+                        "exclusiveMinimum": 0
+                      },
+                      "y": {
+                        "exclusiveMinimum": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
         },
         "storedUcs": {
           "type": "object",
@@ -5599,9 +5626,7 @@
         "view",
         "grid",
         "snap",
-        "storedUcs",
-        "currentUcs",
-        "activeContext"
+        "storedUcs"
       ],
       "properties": {
         "scopeId": {
@@ -5831,10 +5856,12 @@
               ],
               "properties": {
                 "x": {
-                  "type": "number"
+                  "type": "number",
+                  "minimum": 0
                 },
                 "y": {
-                  "type": "number"
+                  "type": "number",
+                  "minimum": 0
                 }
               }
             },
@@ -5854,7 +5881,35 @@
                 "Right"
               ]
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "enabled": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "enabled"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "spacing": {
+                    "properties": {
+                      "x": {
+                        "exclusiveMinimum": 0
+                      },
+                      "y": {
+                        "exclusiveMinimum": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
         },
         "storedUcs": {
           "type": "object",
@@ -6058,6 +6113,49 @@
               "minimum": 1
             }
           }
+        },
+        "useStoredUcs": {
+          "type": "boolean",
+          "default": true
+        },
+        "frame": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "center",
+            "width",
+            "height"
+          ],
+          "properties": {
+            "center": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "x",
+                "y",
+                "z"
+              ],
+              "properties": {
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                },
+                "z": {
+                  "type": "number"
+                }
+              }
+            },
+            "width": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "height": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
         }
       }
     },
@@ -6174,10 +6272,12 @@
               ],
               "properties": {
                 "x": {
-                  "type": "number"
+                  "type": "number",
+                  "minimum": 0
                 },
                 "y": {
-                  "type": "number"
+                  "type": "number",
+                  "minimum": 0
                 }
               }
             },
@@ -6197,7 +6297,35 @@
                 "Right"
               ]
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "enabled": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "enabled"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "spacing": {
+                    "properties": {
+                      "x": {
+                        "exclusiveMinimum": 0
+                      },
+                      "y": {
+                        "exclusiveMinimum": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
         },
         "storedUcs": {
           "type": "object",

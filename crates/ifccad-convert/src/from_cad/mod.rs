@@ -39,6 +39,17 @@ pub fn cad_document_to_ifccad_document(
         ..Default::default()
     };
     let info = crate::source::inspect(source, preservation.enabled)?;
+    for entity in source.entities() {
+        if let opencadcodec::EntityType::Viewport(view) = entity {
+            if source
+                .block_records
+                .iter()
+                .any(|b| b.handle == view.common.owner_handle && b.is_paper_space())
+            {
+                cad_workspace_convert::prepare_viewport_aids_from_cad(view)?;
+            }
+        }
+    }
     let mut issues = info.issues;
     let mut ids = IfccadIdCounters::default();
     let (mut line_patterns, patterns) = crate::mapping::line_pattern::from_cad(
@@ -199,6 +210,8 @@ pub fn cad_document_to_ifccad_document(
         )?;
         paper_layouts.push(IfccadPaperLayout {
             bounds_quality: None,
+            canvas: None,
+
             bounds: None,
             id,
             name: layout.name.clone(),
@@ -229,6 +242,11 @@ pub fn cad_document_to_ifccad_document(
     let mut drawing = IfccadDocument {
         text_styles,
         preservation: None,
+        ucs_definitions: vec![],
+        model_windows: vec![],
+        workspace_state: None,
+        model_view_state: None,
+
         header: metadata.header,
         drawing_id: metadata.drawing_id,
         id_counters: ids,
@@ -265,6 +283,7 @@ pub fn cad_document_to_ifccad_document(
         blocks,
     };
     preservation.finish(source, &mut drawing, &mappings)?;
+    crate::mapping::workspace::from_cad(source, &mut drawing, &mut mappings, &mut issues)?;
     crate::diagnostics::enforce_policy(options.loss_policy, &issues)?;
     let members = drawing
         .blocks
@@ -329,6 +348,9 @@ mod error_tests {
         let mut ids = IfccadIdCounters {
             next_text_style_id: 1,
             next_preservation_record_id: 1,
+            next_ucs_id: 1,
+            next_model_window_id: 1,
+
             next_entity_id: u64::MAX,
             next_layer_id: u64::MAX,
             next_layout_id: u64::MAX,

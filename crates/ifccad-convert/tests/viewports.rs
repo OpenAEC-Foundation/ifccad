@@ -40,7 +40,7 @@ fn source() -> (opencadcodec::CadDocument, Handle, Handle) {
 #[test]
 fn cad_import_resolves_later_circle_without_reordering_and_preserves_display_states() {
     let (d, handle, boundary) = source();
-    let out = from_cad(&d, metadata()).unwrap();
+    let out = workspace_from_cad(&d);
     let sheet = &out.validated_source().document().paper_layouts[0];
     assert_eq!(sheet.entities.len(), 2);
     assert_eq!(
@@ -105,7 +105,7 @@ fn export_preallocates_forward_boundary_handles_and_assigns_runtime_numbers() {
         authored,
         [1000, 1001, 1002].map(|id| out.mappings().entities.cad_handle(id).unwrap())
     );
-    let restored = from_cad(out.document(), metadata()).unwrap();
+    let restored = workspace_from_cad(out.document());
     let IfccadEntityKind::Viewport(v) = &restored.validated_source().document().paper_layouts[0]
         .entities[1]
         .as_native()
@@ -260,7 +260,7 @@ fn viewport_visibility_and_all_render_modes_are_independent() {
                 v.lens_length = 0.;
                 v.front_clip_z = -20.;
                 v.back_clip_z = -30.;
-                let imported = from_cad(&d, metadata()).unwrap();
+                let imported = workspace_from_cad(&d);
                 let doc = imported.validated_source().document();
                 let IfccadEntityKind::Viewport(v) =
                     &doc.paper_layouts[0].entities[0].as_native().unwrap().kind
@@ -281,7 +281,7 @@ fn viewport_visibility_and_all_render_modes_are_independent() {
                     },
                 )
                 .unwrap();
-                let restored = from_cad(exported.document(), metadata()).unwrap();
+                let restored = workspace_from_cad(exported.document());
                 let IfccadEntityKind::Viewport(rv) =
                     &restored.validated_source().document().paper_layouts[0].entities[0]
                         .as_native()
@@ -450,6 +450,19 @@ fn zero_runtime_number_does_not_make_an_authored_viewport_scaffold() {
         panic!()
     };
     v.id = 0;
-    let out = from_cad(&d, metadata()).unwrap();
+    let out = workspace_from_cad(&d);
     assert!(out.mappings().entities.ifccad_id(handle).is_some());
+}
+
+fn workspace_from_cad(cad: &opencadcodec::CadDocument) -> CadToEncodedIfccadOutcome {
+    let out = cad_document_to_encoded_ifccad(cad, metadata(), Default::default()).unwrap();
+    assert!(
+        out.diagnostics()
+            .iter()
+            .filter(|d| d.is_semantic_loss())
+            .all(|d| d.code == "workspace" && d.location.ends_with(".activeContext/currentUcs")),
+        "unexpected source loss: {:?}",
+        out.diagnostics()
+    );
+    out
 }

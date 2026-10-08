@@ -243,7 +243,8 @@
             "textPadding",
             "mTextFillKind",
             "mTextFill",
-            "mTextBackground"
+            "mTextBackground",
+            "canvasFrame"
           ]
         },
         "nullable": {
@@ -521,7 +522,8 @@
                 "textPadding",
                 "mTextFillKind",
                 "mTextFill",
-                "mTextBackground"
+                "mTextBackground",
+                "canvasFrame"
               ]
             },
             "minItems": {

@@ -132,11 +132,14 @@ pub(super) fn from_cad(
             .block_records
             .iter()
             .any(|b| b.handle == v.common.owner_handle && b.is_paper_space());
-        if !paper || crate::mapping::viewport::overall_canvas(source, v) {
+        if paper && crate::mapping::viewport::overall_canvas(source, v) {
+            continue;
+        }
+        if !paper || !crate::source::workspace::authored(source, v) {
             issues.push(diagnostic(
                 "viewport-camera",
                 loc,
-                "Model-owned or authored overall Paper canvas is outside the viewport contract",
+                "viewport owner or authored-versus-overall role cannot be established",
             ));
             continue;
         }

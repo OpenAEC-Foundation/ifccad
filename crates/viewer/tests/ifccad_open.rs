@@ -238,6 +238,9 @@ fn ifccad_native_download_preserves_large_counter_bytes() {
     document.id_counters = IfccadIdCounters {
         next_text_style_id: 1,
         next_preservation_record_id: 1,
+        next_ucs_id: 1,
+        next_model_window_id: 1,
+
         next_entity_id: 9_007_199_254_740_993,
         next_layer_id: 9_223_372_036_854_775_809,
         next_layout_id: u64::MAX,

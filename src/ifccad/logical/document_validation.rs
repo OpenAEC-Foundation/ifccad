@@ -170,6 +170,7 @@ pub(super) fn validate_document(
     if cycle(&document.blocks) {
         return Err(problem("block definition cycle"));
     }
+    super::workspace::validate_workspace(document)?;
     super::allocation::validate(document)?;
     if phase == ValidationPhase::Complete {
         super::bounds::validate_supplied(document)?;

@@ -2,6 +2,8 @@ use ocdraw::ifccad::*;
 
 fn viewport() -> IfccadViewport {
     IfccadViewport {
+        workspace: None,
+
         model_id: 1,
         frame: IfccadViewportFrame {
             center: [100., 75.],
@@ -192,6 +194,8 @@ fn viewport_requires_paper_and_unique_model_target() {
     let id = doc.id_counters.allocate_layout_id().unwrap();
     doc.paper_layouts.push(IfccadPaperLayout {
         bounds_quality: None,
+        canvas: None,
+
         settings: ocdraw::ifccad::IfccadLayoutSettings {
             media: None,
             ..Default::default()
@@ -228,6 +232,8 @@ fn drawing_with_viewport() -> IfccadDocument {
     entity.as_native_mut().unwrap().kind = IfccadEntityKind::Viewport(view);
     doc.paper_layouts.push(IfccadPaperLayout {
         bounds_quality: None,
+        canvas: None,
+
         settings: ocdraw::ifccad::IfccadLayoutSettings {
             media: None,
             ..Default::default()

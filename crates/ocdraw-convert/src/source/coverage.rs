@@ -231,7 +231,8 @@ fn scan_header(
     remaining.plotstyle_mode = original.plotstyle_mode;
     remaining.point_display_mode = original.point_display_mode;
     remaining.point_display_size = original.point_display_size;
-    if !context.mapped_workspace_vports.is_empty() {
+    {
+        // Workspace fields are represented or explicitly diagnosed independently of VPORT presence.
         remaining.current_layer_name = original.current_layer_name.clone();
         remaining.model_space_ucs_name = original.model_space_ucs_name.clone();
         remaining.model_space_ucs_origin = original.model_space_ucs_origin;
@@ -349,6 +350,7 @@ fn unsupported_table_record(
                 residual.back_clipping = original.back_clipping;
                 residual.front_clip_at_eye = original.front_clip_at_eye;
                 residual.ucs_per_viewport = original.ucs_per_viewport;
+                residual.ucs_elevation = original.ucs_elevation;
                 residual.ucs_origin = original.ucs_origin;
                 residual.ucs_x_axis = original.ucs_x_axis;
                 residual.ucs_y_axis = original.ucs_y_axis;

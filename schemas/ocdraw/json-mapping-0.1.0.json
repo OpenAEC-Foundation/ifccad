@@ -390,12 +390,22 @@
         {
           "logical": "paperCanvas.currentUcs",
           "payload": "currentUcs",
-          "omission": "forbidden"
+          "omission": "logicalDefault"
         },
         {
           "logical": "paperCanvas.activeContext",
           "payload": "activeContext",
-          "omission": "forbidden"
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "paperCanvas.frame",
+          "payload": "frame",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "paperCanvas.useStoredUcs",
+          "payload": "useStoredUcs",
+          "omission": "logicalDefault"
         }
       ]
     },

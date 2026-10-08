@@ -189,6 +189,7 @@ fn scoped() -> IfccadDocument {
     native.paper_layouts = vec![
         IfccadPaperLayout {
             bounds_quality: None,
+            canvas: None,
             id: 42,
             name: "Physical".into(),
             tab_index: 1,
@@ -198,6 +199,7 @@ fn scoped() -> IfccadDocument {
         },
         IfccadPaperLayout {
             bounds_quality: None,
+            canvas: None,
             id: 43,
             name: "Unknown".into(),
             tab_index: 2,

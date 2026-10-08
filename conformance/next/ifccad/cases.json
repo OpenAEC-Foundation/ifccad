@@ -158,5 +158,25 @@
   {
     "file": "invalid/text-stored-partial.ifcx",
     "valid": false
+  },
+  {
+    "file": "valid/workspace-state.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/workspace-unknown-choice.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid/workspace-negative-dormant-snap.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/workspace-foreign-ucs.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/workspace-zero-frame.ifcx",
+    "valid": false
   }
 ]

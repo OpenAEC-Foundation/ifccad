@@ -1,45 +1,44 @@
 diff --git a/src/entities/viewport.rs b/src/entities/viewport.rs
-index 0aea92c..14a9d27 100644
+index 0aea92c..3b06795 100644
 --- a/src/entities/viewport.rs
 +++ b/src/entities/viewport.rs
-@@ -10,6 +10,9 @@ pub struct ViewportStatusFlags {
-     /// Non-rectangular clipping activation, independent of boundary presence.
-     #[cfg_attr(feature = "serde", serde(default))]
+@@ -12,3 +12,6 @@ pub struct ViewportStatusFlags {
      pub non_rectangular_clipping: bool,
+-    /// Viewport is on (visible)
 +    /// Explicit viewport-off flag (0x20000), independent of the legacy on bit.
 +    #[cfg_attr(feature = "serde", serde(default))]
 +    pub is_off: bool,
-     /// Viewport is on (visible)
++    /// Legacy on flag (0x8000); the explicit off flag takes precedence for visibility.
      pub is_on: bool,
-     /// Perspective mode active
-@@ -60,6 +63,7 @@ impl ViewportStatusFlags {
-     pub fn from_bits(bits: i32) -> Self {
-         Self {
+@@ -62,2 +65,3 @@ impl ViewportStatusFlags {
              non_rectangular_clipping: (bits & 0x10000) != 0,
 +            is_off: (bits & 0x20000) != 0,
              perspective: (bits & (1 << 0)) != 0,
-             front_clipping: (bits & (1 << 1)) != 0,
-             back_clipping: (bits & (1 << 2)) != 0,
-@@ -82,6 +86,9 @@ impl ViewportStatusFlags {
-     /// Convert to the DWG/DXF viewport status bit-coded flags (group 90).
-     pub fn to_bits(&self) -> i32 {
+@@ -84,2 +88,5 @@ impl ViewportStatusFlags {
          let mut bits = 0;
 +        if self.is_off {
 +            bits |= 0x20000;
 +        }
          if self.non_rectangular_clipping {
-             bits |= 0x10000;
-         }
+@@ -473,2 +480,3 @@ impl Viewport {
+         self.status.is_on = true;
++        self.status.is_off = false;
+     }
+@@ -478,2 +486,3 @@ impl Viewport {
+         self.status.is_on = false;
++        self.status.is_off = true;
+     }
+@@ -482,3 +491,3 @@ impl Viewport {
+     pub fn is_on(&self) -> bool {
+-        self.status.is_on
++        self.status.is_on && !self.status.is_off
+     }
 diff --git a/src/io/dxf/writer/section_writer.rs b/src/io/dxf/writer/section_writer.rs
-index 27d5393..e0a8190 100644
+index 69cb1e0..f4e727c 100644
 --- a/src/io/dxf/writer/section_writer.rs
 +++ b/src/io/dxf/writer/section_writer.rs
-@@ -4973,7 +4973,7 @@ impl<'a, W: DxfStreamWriter> SectionWriter<'a, W> {
-                 .copied()
-                 .unwrap_or(0)
+@@ -5020,3 +5020,3 @@ impl<'a, W: DxfStreamWriter> SectionWriter<'a, W> {
          };
 -        let status = match (viewport.status.is_on, viewport.off_screen) {
-+        let status = match (viewport.status.is_on && !viewport.status.is_off, viewport.off_screen) {
++        let status = match (viewport.is_on(), viewport.off_screen) {
              (false, _) => 0,
-             (true, true) => -1,
-             (true, false) => id,

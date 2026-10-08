@@ -362,6 +362,26 @@
       "path": "invalid/text-missing-style-watermark.ocdraw.json",
       "status": "invalid",
       "diagnostic": "SCHEMA"
+    },
+    {
+      "path": "valid/workspace-state.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "valid/workspace-unknown-choice.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "invalid/workspace-negative-dormant-snap.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/workspace-foreign-ucs.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/workspace-zero-frame.ocdraw.json",
+      "status": "invalid"
     }
   ]
 }

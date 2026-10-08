@@ -33,12 +33,12 @@ export function createInspection(result,sourceText=''){
   }
   const role=r=>all.filter(n=>n.attributes?.['ifccad::'+r]).map(n=>n.path);
   const drawing=role('drawing');roots.push(...drawing);
-  for(const [r,title]of [['layout','layouts'],['layer','layers'],['linePattern','linePatterns'],['blockDefinition','blocks'],['preservationRecord','preservation']]){const children=role(r);if(r==='layout')children.sort((a,b)=>(nodes.get(a).values['ifccad::layout'].tabIndex||0)-(nodes.get(b).values['ifccad::layout'].tabIndex||0));if(children.length)roots.push(group(r,title,children));}
+  for(const [r,title]of [['layout','layouts'],['layer','layers'],['linePattern','linePatterns'],['blockDefinition','blocks'],['preservationRecord','preservation'],['ucsDefinition','ucsDefinitions'],['modelWindow','modelWindows']]){const children=role(r);if(r==='layout')children.sort((a,b)=>(nodes.get(a).values['ifccad::layout'].tabIndex||0)-(nodes.get(b).values['ifccad::layout'].tabIndex||0));if(children.length)roots.push(group(r,title,children));}
   const textStyles=role('textStyle');if(textStyles.length)roots.push(group('textStyle','textStyles',textStyles));
-  const known=new Set(['drawing','layout','layer','linePattern','textStyle','blockDefinition','entity','opaqueEntity','preservation','preservationRecord'].flatMap(role));const others=all.filter(n=>!known.has(n.path)).map(n=>n.path);if(others.length)roots.push(group('other','otherNodes',others));
+  const known=new Set(['drawing','layout','layer','linePattern','textStyle','blockDefinition','entity','opaqueEntity','preservation','preservationRecord','ucsDefinition','modelWindow'].flatMap(role));const others=all.filter(n=>!known.has(n.path)).map(n=>n.path);if(others.length)roots.push(group('other','otherNodes',others));
   for(const name of ['header','imports','schemas']){const n=put('file:'+name,name,graph[name]??source?.[name]??{},'file');roots.push(n.key);nodeRoots.push(n.key);}
  }else{
-  const table=(name,domain,title)=>{const children=[];for(const v of p[name]||[]){const n=put(domain+':'+id(v.id??v.scopeId),v.name||id(v.id??v.scopeId),v,name);children.push(n.key);}return children.length?group(name,title,children):null;};
+  const table=(name,domain,title)=>{const children=[];for(const v of p[name]||[]){const n=put(domain+':'+id(v.id??v.scopeId??v.viewportEntityId),v.name||id(v.id??v.scopeId??v.viewportEntityId),v,name);children.push(n.key);}return children.length?group(name,title,children):null;};
   roots.push(put('drawing','drawing',Object.fromEntries(Object.entries(p).filter(([k,v])=>!Array.isArray(v)&&!['streams','entities','sourceText'].includes(k))), 'drawing').key);
   for(const name of ['layers','linePatterns','textStyles','blockDefinitions','ucsDefinitions','modelWindows','paperCanvases','viewportWorkspaces']){const k=table(name,{layers:'layer',linePatterns:'pattern',textStyles:'textStyle',blockDefinitions:'block',ucsDefinitions:'ucs',modelWindows:'window',paperCanvases:'canvas',viewportWorkspaces:'workspace'}[name],name==='blockDefinitions'?'blocks':name);if(k)roots.push(k);}
   if(p.preservation){const records=(p.preservation.records||[]).map(v=>put('preservation:'+id(v.id),id(v.id),v,'preservationRecord').key);roots.push(group('preservation','preservation',records));}
@@ -53,6 +53,29 @@ export function createInspection(result,sourceText=''){
   const layouts=roots.filter(key=>nodes.get(key)?.type==='layout');for(const key of layouts)roots.splice(roots.indexOf(key),1);if(layouts.length)roots.splice(1,0,group('layouts','layouts',layouts));
  }
  const drawingUnit=p.unit||(p.graph?.data||[]).find(n=>n.attributes?.['ifccad::drawing'])?.attributes['ifccad::drawing'].lengthUnit;
+ const namedUcs=(from,choice,field)=>{if(choice?.kind==='Named')link(from,format==='ifccad'?choice.ucs:'ucs:'+id(choice.ucsId),field,'ucs');};
+ for(const n of nodes.values()){
+  if(format==='ifccad'){
+   const a=n.values,model=a['ifccad::modelWindow'],canvas=a['ifccad::paperCanvas'],viewport=a['ifccad::viewportWorkspace'];
+   const snapshot=model||canvas||viewport;
+   if(snapshot){n.workspace={coordinateDomain:canvas?'Paper':'Model',unit:canvas?null:drawingUnit,useStoredUcs:snapshot.useStoredUcs??true};namedUcs(n.key,snapshot.storedUcs,(model?'ifccad::modelWindow':canvas?'ifccad::paperCanvas':'ifccad::viewportWorkspace')+'.storedUcs');}
+   if(canvas){n.workspaceChoices={currentUcs:canvas.currentUcs??null,activeContext:canvas.activeContext??null};namedUcs(n.key,canvas.currentUcs,'ifccad::paperCanvas.currentUcs');if(canvas.activeContext?.kind==='Viewport')link(n.key,canvas.activeContext.viewport,'ifccad::paperCanvas.activeContext','viewport');}
+   if(a['ifccad::drawing']){
+    const current=a['ifccad::modelViewState'];
+    if(current||p.modelWindows?.length||(p.graph?.data||[]).some(v=>v.attributes?.['ifccad::modelWindow']))n.workspaceChoices={currentUcs:current?.currentModelUcs??null,activeModelWindow:current?.activeModelWindow??null};
+    namedUcs(n.key,current?.currentModelUcs,'ifccad::modelViewState.currentModelUcs');link(n.key,current?.activeModelWindow,'ifccad::modelViewState.activeModelWindow','window');
+    for(const target of a['ifccad::drawing'].modelWindows||[])link(n.key,target,'ifccad::drawing.modelWindows','window');
+    link(n.key,a['ifccad::drawingWorkspace']?.currentLayer,'ifccad::drawingWorkspace.currentLayer','layer');link(n.key,a['ifccad::drawingWorkspace']?.activeLayout,'ifccad::drawingWorkspace.activeLayout','layout');
+   }
+  }else{
+   const snapshot=['modelWindows','paperCanvases','viewportWorkspaces'].includes(n.type);
+   if(snapshot){const canvas=n.type==='paperCanvases';n.workspace={coordinateDomain:canvas?'Paper':'Model',unit:canvas?null:drawingUnit,useStoredUcs:n.values.useStoredUcs??true};namedUcs(n.key,n.values.storedUcs,'storedUcs');}
+   if(n.type==='viewportWorkspaces')link(n.key,'entity:'+id(n.values.viewportEntityId),'viewportEntityId','viewport');
+   if(n.type==='paperCanvases'){n.workspaceChoices={currentUcs:n.values.currentUcs??null,activeContext:n.values.activeContext??null};namedUcs(n.key,n.values.currentUcs,'currentUcs');if(n.values.activeContext?.kind==='Viewport')link(n.key,'entity:'+id(n.values.activeContext.viewportEntityId),'activeContext','viewport');}
+   if(n.key==='drawing'&&(p.viewState||p.modelWindows?.length)){n.workspaceChoices={currentUcs:p.viewState?.currentModelUcs??null,activeModelWindow:p.viewState?.activeModelWindowId==null?null:'window:'+id(p.viewState.activeModelWindowId)};namedUcs(n.key,p.viewState?.currentModelUcs,'viewState.currentModelUcs');if(p.viewState?.activeModelWindowId!=null)link(n.key,'window:'+id(p.viewState.activeModelWindowId),'viewState.activeModelWindowId','window');}
+  }
+ }
+
  for(const n of nodes.values())if(['layout','blockDefinition','blockDefinitions'].includes(n.type)){
   const layout=n.values['ifccad::layout']||n.values;
   n.unit=n.type==='layout'&&String(layout.kind).toLowerCase()==='paper'?null:drawingUnit;

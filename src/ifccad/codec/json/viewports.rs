@@ -83,6 +83,8 @@ pub(super) fn decode_viewport(value: &Value, prefix: &str) -> Result<IfccadViewp
         .collect::<Result<Vec<_>, _>>()?;
     frozen_layers.sort_unstable();
     Ok(IfccadViewport {
+        workspace: None,
+
         model_id: id(&wire.model, &format!("{prefix}/layout/"))?,
         frame: wire.frame,
         view: wire.view,

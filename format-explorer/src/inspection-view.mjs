@@ -22,6 +22,11 @@ export function renderInspection(model,state){
   if(model.format==='ifccad'&&node.raw){details+='<p class="secondary">'+e(t('compositionHelp'))+'</p><details open><summary>'+e(t('effectiveNode'))+'</summary><pre>'+e(ifcxNodeJson(node.raw))+'</pre></details>';for(const f of node.fragments)details+='<details><summary>'+e(t('fragment',{index:f.index}))+' Â· data['+f.index+']</summary><pre>'+e(JSON.stringify(f.value,null,2))+'</pre></details>';}
   else details+='<h3>'+e(t(['stream','table'].includes(node.type)?'storageJson':'inspectionJson'))+'</h3><pre>'+e(JSON.stringify(value,null,2))+'</pre>';
  }else{
+ if(!field.length&&node.workspace)details+='<p class="secondary">'+e(t('coordinateDomain'))+': '+e(t(node.workspace.coordinateDomain))+(node.workspace.unit?' · '+e(t('unitLabel',{unit:node.workspace.unit})): '')+'</p>';
+ if(!field.length&&node.workspaceChoices){
+  const current=value=>value==null?t('unspecified'):value.kind==='World'?t('ucsWorld'):value.kind==='Named'?(model.nodes.get(model.format==='ifccad'?value.ucs:'ucs:'+String(value.ucsId))?.title||t('unspecified')):value.kind||String(value);
+  details+='<dl class="properties-list workspace-choices">'+Object.entries(node.workspaceChoices).map(([key,value])=>'<div><dt>'+e(t(key))+'</dt><dd>'+e(key==='currentUcs'?current(value):value==null?t('unspecified'):typeof value==='string'?(model.nodes.get(value)?.title||value):value.kind)+'</dd></div>').join('')+'</dl>';
+ }
  const help=t('help.'+node.type);if(!help.startsWith('help.'))details+='<p class="secondary">'+e(help)+'</p>';
   const assessment=node.values.boundsAssessment;if(assessment)details+='<p class="secondary">'+e(t('boundsSummary',{quality:t(assessment.quality||'empty'),proof:t(assessment.enclosureVerified?'enclosureChecked':'enclosureNotChecked')}))+'</p>';
   details+=node.type==='group'?'<p class="secondary">'+e(t('group'))+'</p>':'<h3>'+e(t('storedValues'))+'</h3>';

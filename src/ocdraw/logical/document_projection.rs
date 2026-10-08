@@ -120,20 +120,18 @@ pub(crate) fn project_validation_model(
         }
     };
     if let Some(s) = doc.view_state {
-        selection(
-            s.current_model_ucs,
-            "/drawingViewState/currentModelUcs/ucsId".into(),
-        );
+        if let Some(current) = s.current_model_ucs {
+            selection(current, "/drawingViewState/currentModelUcs/ucsId".into());
+        }
     }
     for (i, s) in doc.model_windows.iter().enumerate() {
         selection(s.stored_ucs, format!("/modelWindows/{i}/storedUcs/ucsId"));
     }
     for (i, s) in doc.paper_canvases.iter().enumerate() {
         selection(s.stored_ucs, format!("/paperCanvases/{i}/storedUcs/ucsId"));
-        selection(
-            s.current_ucs,
-            format!("/paperCanvases/{i}/currentUcs/ucsId"),
-        );
+        if let Some(current) = s.current_ucs {
+            selection(current, format!("/paperCanvases/{i}/currentUcs/ucsId"));
+        }
     }
     for (i, s) in doc.viewport_workspaces.iter().enumerate() {
         selection(
@@ -220,7 +218,7 @@ pub(crate) fn project_validation_model(
             })
             .collect(),
         model_window_ids: doc.model_windows.iter().map(|w| w.id).collect(),
-        active_model_window_id: doc.view_state.map(|s| s.active_model_window_id),
+        active_model_window_id: doc.view_state.and_then(|s| s.active_model_window_id),
         named_ucs_refs,
         ucs_choices: Vec::new(),
     }

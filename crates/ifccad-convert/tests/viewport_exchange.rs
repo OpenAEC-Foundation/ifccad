@@ -102,6 +102,8 @@ fn multiple_paper_viewports_exchange_in_memory_dxf_dwg() {
     drawing.paper_layouts.push(second);
     drawing.paper_layouts.push(IfccadPaperLayout {
         bounds_quality: None,
+        canvas: None,
+
         settings: ocdraw::ifccad::IfccadLayoutSettings {
             media: None,
             ..Default::default()
@@ -138,7 +140,7 @@ fn multiple_paper_viewports_exchange_in_memory_dxf_dwg() {
             .read()
             .unwrap(),
         };
-        let native = common::from_cad(&restored, common::metadata()).unwrap();
+        let native = workspace_from_cad(&restored);
         let out = native.validated_source().document();
         assert_eq!(out.paper_layouts.len(), 3);
         for (expected, actual) in drawing.paper_layouts.iter().zip(&out.paper_layouts) {
@@ -204,7 +206,7 @@ fn perspective_exchange_matches_independent_reference() {
                     .unwrap();
             }
         }
-        let native = common::from_cad(&cad, common::metadata()).unwrap();
+        let native = workspace_from_cad(&cad);
         let mut drawing = native.validated_source().document().clone();
         drawing.length_unit = unit.into();
 
@@ -234,7 +236,22 @@ fn perspective_exchange_matches_independent_reference() {
             for case in &cases {
                 assert_reference_view(case, &restored);
             }
-            common::from_cad(&restored, common::metadata()).unwrap();
+            workspace_from_cad(&restored);
         }
     }
+}
+
+fn workspace_from_cad(source: &opencadcodec::CadDocument) -> CadToEncodedIfccadOutcome {
+    let outcome =
+        cad_document_to_encoded_ifccad(source, common::metadata(), Default::default()).unwrap();
+    assert!(
+        outcome
+            .diagnostics()
+            .iter()
+            .filter(|d| d.is_semantic_loss())
+            .all(|d| d.code == "workspace" && d.location.ends_with(".activeContext/currentUcs")),
+        "unexpected source loss: {:?}",
+        outcome.diagnostics()
+    );
+    outcome
 }

@@ -1,5 +1,6 @@
 pub(crate) mod entities;
 pub(crate) mod layouts;
+pub(crate) mod workspace;
 
 use crate::diagnostics::diagnostic;
 use crate::{IfccadConversionError as Error, IfccadDiagnostic};
@@ -274,17 +275,6 @@ pub(crate) fn inspect(doc: &CadDocument, preserve_splines: bool) -> Result<Inspe
                     return Err(invalid("entity source layer name and handle disagree"));
                 }
             }
-            if b.is_paper_space()
-                && matches!(e, EntityType::Viewport(_))
-                && !overall_scaffold(doc, e)
-                && matches!(e, EntityType::Viewport(v) if crate::mapping::viewport::overall_canvas(doc,v))
-            {
-                issues.push(diagnostic(
-                    "paper",
-                    format!("entity/{h}"),
-                    "authored Paper viewport/canvas state is deferred",
-                ));
-            }
         }
     }
     for e in all {
@@ -480,6 +470,9 @@ fn overall_scaffold(doc: &CadDocument, e: &EntityType) -> bool {
 }
 
 fn untouched_paper(doc: &CadDocument, layout: &opencadcodec::objects::Layout) -> bool {
+    if !doc.header.show_model_space {
+        return false;
+    }
     // Only the initial runtime sheet is scaffold; extra empty sheets are authored.
     if layout.name != "Layout1" {
         return false;
@@ -545,6 +538,12 @@ fn scan(
             &baseline.header,
             &[
                 "insertion_units",
+                "current_layer_name",
+                "show_model_space",
+                "model_space_ucs_name",
+                "model_space_ucs_origin",
+                "model_space_ucs_x_axis",
+                "model_space_ucs_y_axis",
                 "linetype_scale",
                 "plotstyle_mode",
                 "paper_space_linetype_scaling",
@@ -659,8 +658,9 @@ fn scan(
                 SemanticTableRecordV1::DimStyle(r) => table!(r, baseline.dim_styles),
                 SemanticTableRecordV1::AppId(r) => table!(r, baseline.app_ids),
                 SemanticTableRecordV1::View(r) => table!(r, baseline.views),
+                SemanticTableRecordV1::VPort(r) if r.name.eq_ignore_ascii_case("*active") => workspace::vport_residual(r,issues),
                 SemanticTableRecordV1::VPort(r) => table!(r, baseline.vports),
-                SemanticTableRecordV1::Ucs(r) => table!(r, baseline.ucss),
+                SemanticTableRecordV1::Ucs(r) => workspace::ucs_residual(r,issues),
                 SemanticTableRecordV1::Vx(r) => table!(r, baseline.vx_table),
             }
         }

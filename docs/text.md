@@ -141,4 +141,7 @@ evidence. Active/unknown annotation contexts remain outside the bounded profile.
 Both IFCCAD directions expose `text_assessment()` and explicit unassessed glyph
 geometry. Loaded-source conversion compares closed text payloads and their
 defaults without changing source bytes; exact numeric projection loss is hard
-under both policies. See the two IFCCAD converter coverage contracts for limits.
+under both policies. The integrated IFCCAD qualification uses the main dependency
+base `ab2eecdbffc31120b5ad6d899f6fc67cf21ede39` and its explicit viewport-off
+repair; the earlier OCDraw slice evidence above records its original base.
+See the two IFCCAD converter coverage contracts for limits.

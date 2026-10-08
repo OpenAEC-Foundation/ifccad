@@ -792,7 +792,8 @@
         {
           "name": "currentModelUcs",
           "valueType": "ucsSelection",
-          "nullable": false
+          "nullable": false,
+          "optional": true
         },
         {
           "name": "activeModelWindowId",
@@ -801,7 +802,8 @@
           "reference": {
             "category": "tableField",
             "target": "modelWindow.modelWindowId"
-          }
+          },
+          "optional": true
         }
       ]
     },
@@ -2376,6 +2378,26 @@
           "default": false
         }
       ]
+    },
+    "canvasFrame": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "center",
+          "valueType": "point3",
+          "nullable": false
+        },
+        {
+          "name": "width",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "height",
+          "valueType": "float64",
+          "nullable": false
+        }
+      ]
     }
   },
   "resource": {
@@ -2808,12 +2830,26 @@
         {
           "name": "currentUcs",
           "valueType": "ucsSelection",
-          "nullable": false
+          "nullable": false,
+          "optional": true
         },
         {
           "name": "activeContext",
           "valueType": "paperActiveContext",
-          "nullable": false
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "frame",
+          "valueType": "canvasFrame",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "useStoredUcs",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": true
         }
       ]
     },

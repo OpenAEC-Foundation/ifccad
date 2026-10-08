@@ -97,12 +97,20 @@ pub fn generate(case: &Case) -> Result<CadDocument> {
     let mut doc = IfccadDocument {
         text_styles: Vec::new(),
         preservation: None,
+        ucs_definitions: vec![],
+        model_windows: vec![],
+        workspace_state: None,
+        model_view_state: None,
+
         plot_style_mode: Default::default(),
         header: super::projection::metadata().header,
         drawing_id: 1,
         id_counters: IfccadIdCounters {
             next_text_style_id: 1,
             next_preservation_record_id: 1,
+            next_ucs_id: 1,
+            next_model_window_id: 1,
+
             next_entity_id: 1,
             next_layer_id: 3,
             next_layout_id: 2,

@@ -126,6 +126,20 @@ pub fn normalize(value: &Value) -> Result<Vec<u8>, Box<dyn Error>> {
         d.blocks.iter().map(|b| b.id),
         false,
     );
+    let next_ucs = assign_paths(
+        &mut paths,
+        &prefix,
+        "ucs",
+        d.ucs_definitions.iter().map(|u| u.id.0),
+        false,
+    );
+    let next_window = assign_paths(
+        &mut paths,
+        &prefix,
+        "modelWindow",
+        d.model_windows.iter().map(|w| w.id.0),
+        false,
+    );
     let mut result = value.clone();
     rewrite_paths(&mut result, &paths);
     for node in result["data"].as_array_mut().unwrap() {
@@ -136,6 +150,8 @@ pub fn normalize(value: &Value) -> Result<Vec<u8>, Box<dyn Error>> {
                 ("nextLayerId", next_layer),
                 ("nextLinePatternId", next_pattern),
                 ("nextBlockId", next_block),
+                ("nextUcsId", next_ucs),
+                ("nextModelWindowId", next_window),
             ] {
                 drawing[key] = json!(next);
             }
@@ -150,7 +166,9 @@ pub fn normalize(value: &Value) -> Result<Vec<u8>, Box<dyn Error>> {
                             Some(match role {
                                 "layout" if id == "1" => "model".to_owned(),
                                 "layout" => format!("paper{id}"),
-                                "layer" | "linePattern" | "block" => format!("{role}{id}"),
+                                "layer" | "linePattern" | "block" | "ucs" | "modelWindow" => {
+                                    format!("{role}{id}")
+                                }
                                 _ => return None,
                             })
                         })

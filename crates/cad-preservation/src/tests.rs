@@ -187,7 +187,10 @@ fn literal_payload_versions_and_current_bytes_remain_compatible() {
     assert_eq!(snapshot.source_order_index(), 3);
     assert_eq!(
         capture_spline(&snapshot.to_source(), 3, CODEC_REVISION).unwrap(),
-        bytes
+        std::str::from_utf8(bytes)
+            .unwrap()
+            .replace(PREVIOUS_CODEC_REVISION, CODEC_REVISION)
+            .as_bytes()
     );
     let legacy =
         decode_spline_snapshot(include_bytes!("../tests/fixtures/spline-v1.json")).unwrap();

@@ -13,3 +13,4 @@ pub(crate) use validate::project;
 mod layout;
 
 mod preservation;
+mod workspace;

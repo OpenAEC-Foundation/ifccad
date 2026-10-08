@@ -8,7 +8,7 @@ These are fresh conversions: no identity-preserving CAD editing session,
 watermark reconstruction or new source coverage is implied.
 
 The validated standalone drawing is the conversion boundary. The pinned codec
-revision is `063c10671fe7833d562f772159771318c7a0ebb9`. There is no package
+revision is `ab2eecdbffc31120b5ad6d899f6fc67cf21ede39`. There is no package
 graph. The bounded typed spline preservation route is separate from native
 geometry support. Geometry accuracy and semantic losses are
 reported separately; unknown target semantics are diagnosed.
@@ -28,8 +28,8 @@ reported separately; unknown target semantics are diagnosed.
 | Dormant paper clip reference | Stored reference binds after ordered geometry construction while activation remains false. Convertible dormant boundary families need no active-clip eligibility; missing construction mappings return a typed error. The locally patched codec retains this state through DXF/DWG. |
 | Viewport frozen layers | Each relational frozen override maps to a CAD frozen-layer handle. Pinned opencadcodec has no per-viewport appearance-override slots; those report `VIEWPORT_UNSUPPORTED`. |
 | Drawing workspace current Layer | A local layer ID selects the CAD header current layer. |
-| Named UCS and model workspace | Named UCS definitions become CAD UCS table entries, including unused ones. Current World/named/unnamed model UCS and ordered model windows map to the header and active VPORT records, including dormant grid/snap values. CAD handles are newly allocated. Grid dot style or an out-of-range major frequency receives `WORKSPACE_UNSUPPORTED`. |
-| Paper workspace | A present paper canvas view, grid, snap and stored UCS map to the layout's conventional overall VIEWPORT ID 1. The importer creates that viewport for a reused `Layout1` scaffold before authored viewports. Without a paper canvas, the importer removes opencadcodec's newly allocated overall viewport scaffold so the layout remains viewport-free. A canvas's screen-sized frame and active viewport context are not reconstructed. Per-viewport workspace state is diagnosed as `WORKSPACE_UNSUPPORTED`. A saved active paper layout selects the CAD paper-space header block and clears `show_model_space`. |
+| Named UCS and model workspace | Named UCS definitions become CAD UCS table entries, including unused ones. Current World/named/unnamed model UCS and ordered model windows map to the header and active VPORT records, including dormant grid/snap values. CAD handles are newly allocated. Grid dot style or an out-of-range major frequency receives a field-specific `WORKSPACE` diagnostic. |
+| Paper workspace | A present paper canvas view, grid, snap and stored UCS map to the layout's conventional overall VIEWPORT ID 1. The importer creates that viewport for a reused `Layout1` scaffold before authored viewports. Without a paper canvas, the importer removes opencadcodec's newly allocated overall viewport scaffold so the layout remains viewport-free. A canvas frame is copied independently of drawable geometry, and per-viewport grid/snap/UCS bind to the existing entity. Current Paper context/UCS association is diagnosed when authored. A saved Paper selection clears `show_model_space` and binds the chosen layout to the reserved `*Paper_Space` role, synchronizing block-record and BLOCK-begin names with the header cache while retaining handles, ownership and tab order. |
 | Block instances | Shared references retained without explosion; owner scopes and local child coordinates retained. Non-neutral frames are converted with explicit parameterization-loss evidence and occurrence-space accuracy checks. Setter scale changes are hard `CAD construction error`, even for empty definitions. |
 | Line endpoints | XYZ copied directly; exact geometry assessment |
 | Point placement | Origin becomes CAD WCS location; stored normal and X/Y orientation determine CAD normal and X-axis marker angle. The geometric position is assessed independently of presentation. |
@@ -101,6 +101,9 @@ does not. Preserved spline evidence stays incomplete and unassessed.
 
 ## Upstream pin update — 2026-10-07
 
+Historical note: this records the previous base. The 2026-10-08 update below supersedes its pin and remaining spline/paperspace limitations.
+
+
 Both converters use opencadcodec `063c10671fe7833d562f772159771318c7a0ebb9` (0.6.0).
 Clipping activation/group 340 and VIEWPORT angle units now come from merged
 upstream PRs #88/#89; only the independent viewport-off repair remains selected.
@@ -116,3 +119,13 @@ layer references. Canonical one-byte-per-INSERT count framing is derived;
 unfamiliar/mismatched count storage retains loss evidence. Additional table,
 associative/count and solid-history data remain at the existing unsupported
 family boundaries. No benchmark evidence is extended by this update.
+
+## Workspace and upstream update — 2026-10-08
+
+Both converters select opencadcodec 0.6.0 at `ab2eecdbffc31120b5ad6d899f6fc67cf21ede39` plus the explicit viewport-off repair [PR #103](https://github.com/HakanSeven12/opencadcodec/pull/103). Merged spline DXF parameterization and DWG Paper owner/overall-role repairs now come from upstream. See the [dependency audit](../../../docs/geometry/opencadcodec-update-2026-10-08.md) and [workspace contract](../../../docs/workspace-state.md) for the current field/transport boundary.
+
+UCS definitions, Model windows, canvas frame/grid/snap/UCS and authored Paper viewport aids map through shared ID-free scalar helpers. Native identities, ownership, source classification and located losses stay format-specific. Disabled zero snap spacing and stored-UCS activation survive independently of current choices. Model-viewport aids retain Model coordinates inside Paper; canvas aids use Paper coordinates. Canvas frames do not enter geometry bounds or clip ownership.
+
+A uniquely available active Model window may be selected; multiple unqualified windows survive with unspecified activation. Paper current viewport/UCS association remains unavailable on the codec surface. Model/Paper mode and the active Paper tab are retained through the unique reserved *Paper_Space block and its consistent LAYOUT association, including multiple sheets. Export synchronizes BLOCK_RECORD names, existing BLOCK begin names and the reserved header handle together; setting the header cache alone does not change the active role. Unknown choices remain omitted with located loss. Skipped viewports receive no workspace references.
+
+Dot grid style and frequencies beyond CAD i16 receive field-specific substitutions. VIEWPORT grid beyond-limits/adaptive/subdivision/follow-workplane flags stay in CadDocument but its pinned DXF/DWG routes do not retain them; target diagnostics identify each nondefault field and Reject refuses that portability loss. Model VPORT grid flags survive both routes. Unrepresented display/icon/base/orthographic/plot/visual state remains diagnosed. Numeric and structural failures remain fatal under both policies.

@@ -8,7 +8,7 @@ These are fresh conversions: no identity-preserving CAD editing session,
 watermark reconstruction or new source coverage is implied.
 
 This inventory is pinned to opencadcodec revision
-`063c10671fe7833d562f772159771318c7a0ebb9`. It defines what the
+`ab2eecdbffc31120b5ad6d899f6fc67cf21ede39`. It defines what the
 `CadDocument -> OCDraw` exporter must either represent or diagnose. Updating the
 dependency requires reviewing every row. The pinned opencadcodec
 `semantic_inventory_v1` is the export coverage traversal: its categories are
@@ -52,7 +52,7 @@ and anonymous block names. Defects #52/#55 are resolved; the former anonymous
 name repair is no longer needed.
 All present marker conflicts are fatal; absent DXF markers are allowed.
 Block descriptions survive both DXF and DWG (#49). Extra paper-block DWG
-markers can still refer to the primary paper owner and are rejected.
+markers retain their own Paper owner on this pin; conflicting input remains rejected.
 
 Ordinary instances retain references, placement, rotation, signed scale and
 visibility without explosion. Nested occurrence-space assessment includes outer
@@ -69,7 +69,7 @@ This does not certify fields erased before the CadDocument boundary.
 | Source surface | Status | Export or diagnostic contract |
 | --- | --- | --- |
 | `version`, `maintenance_version`, `dwg_source_version` | NonSemantic | Physical source-codec selection is not drawing semantics. |
-| `header.insertion_units` | Exact/PartialLoss | All 25 CAD codes 0â€“24 map exactly; unknown codes become `unitless` plus `UnsupportedUnit`. Coordinates are never rescaled. |
+| `header.insertion_units` | Exact/PartialLoss | All 25 CAD codes 0–24 map exactly; unknown codes become `unitless` plus `UnsupportedUnit`. Coordinates are never rescaled. |
 | `header.plotstyle_mode`, `header.paper_space_linetype_scaling` | Exact | Drawing plot-style mode and each emitted layout's saved linetype-scaling intent; saved Paper values use layout flag bit 1; the current header supplies active Model state rather than replacing inactive layouts. |
 | `header.point_display_mode`, `header.point_display_size` | Exact/SkippedLoss | Supported PDMODE glyph/enclosure bits and finite PDSIZE values map to grouped `Drawing.attributes.pointDisplay`; PDSIZE zero remains distinct from explicit negative five percent. Unsupported bits or nonfinite size skip the setting with `UnsupportedHeaderField { point_display }`. |
 | `header.model_space_block_handle` and the related `Layout.block_record` | Exact/FatalIfInconsistent | The relationship selects the one model layout. A stale nonnull header handle with no block-record target is corrected only when the named `*Model_Space` block record and exactly one layout agree on another handle; this covers a pinned DXF-reader handle-repair defect without changing the caller's document. Null, missing, or ambiguous structure remains fatal. Numeric handle replacement itself is not loss. |
@@ -131,7 +131,7 @@ field or family; `Reject` returns no drawing when such a loss is present.
 | `Viewport.status` bit 0x10000 and `clip_boundary_handle` | Exact/SkippedLoss | Activation and stored reference are independent. Active Circle, full Ellipse and closed straight/bulged PlanarPolyline clips use shared converted-geometry validation in the same paper scope. Dormant stored references need ownership, uniqueness and convertible geometry but no active family/frame test. Both orders are retained; all conflicting claimants are skipped. An active missing boundary, a missing/skipped stored target, or wrong-scope target skips the dependent viewport with loss evidence; Reject refuses it. Hard geometry errors remain fatal. | Active/dormant native readback and locally patched DXF/DWG exchange |
 | `Viewport.frozen_layers` | Exact/PartialLoss | Each resolved handle becomes a relational frozen-layer override; unknown handles receive `MissingTarget`. The pinned Viewport model has no viewport appearance-override fields. | Native writer and reverse test |
 | Overall paper `Viewport` ID 1 view/grid/snap/UCS | Exact/PartialLoss | View center, target, direction, height, twist, clip, grid, snap and stored UCS become a `paperCanvas` workspace row. A nondefault screen-sized frame and nonpositive disabled snap spacing are diagnosed as loss; the latter is normalized to positive defaults required by OCDraw. The active viewport context remains unavailable. The pinned DWG reader retains viewport IDs/status. Unresolved or malformed overall identity still receives loss evidence. | Paper canvas roundtrip and active-tab recovery test |
-| Authored paper `Viewport` snap/grid/UCS, visual style/background/lighting and viewport plot-style fields | PartialLoss | Nondefault source state is reported. Per-viewport workspace rows are not asserted natively by this converter. | Source-loss tests where present |
+| Authored paper `Viewport` snap/grid/UCS, visual style/background/lighting and viewport plot-style fields | PartialLoss | Nondefault source state is reported. Grid/snap/stored UCS and activation now bind to native viewport workspace rows; remaining display/plot/visual fields stay diagnosed. | Source-loss tests where present |
 | `Viewport.off_screen` | PartialLoss | DXF off-screen/active-limit state has no native equivalent. True receives explicit loss evidence on both overall paper canvases and authored viewports; Reject prevents output. | DXF readback and both loss policies |
 
 PageSetup objects, CTB/STB file contents, Display/NamedView state and perspective
@@ -290,6 +290,9 @@ ocdraw_plot_exchange, paper_plot_accuracy and layout_plot_codec tests.
 
 ## Upstream pin update — 2026-10-07
 
+Historical note: this records the previous base. The 2026-10-08 update below supersedes its pin and remaining spline/paperspace limitations.
+
+
 Both converters use opencadcodec `063c10671fe7833d562f772159771318c7a0ebb9` (0.6.0).
 Clipping activation/group 340 and VIEWPORT angle units now come from merged
 upstream PRs #88/#89; only the independent viewport-off repair remains selected.
@@ -305,3 +308,13 @@ layer references. Canonical one-byte-per-INSERT count framing is derived;
 unfamiliar/mismatched count storage retains loss evidence. Additional table,
 associative/count and solid-history data remain at the existing unsupported
 family boundaries. No benchmark evidence is extended by this update.
+
+## Workspace and upstream update — 2026-10-08
+
+Both converters select opencadcodec 0.6.0 at `ab2eecdbffc31120b5ad6d899f6fc67cf21ede39` plus the explicit viewport-off repair [PR #103](https://github.com/HakanSeven12/opencadcodec/pull/103). Merged spline DXF parameterization and DWG Paper owner/overall-role repairs now come from upstream. See the [dependency audit](../../../docs/geometry/opencadcodec-update-2026-10-08.md) and [workspace contract](../../../docs/workspace-state.md) for the current field/transport boundary.
+
+UCS definitions, Model windows, canvas frame/grid/snap/UCS and authored Paper viewport aids map through shared ID-free scalar helpers. Native identities, ownership, source classification and located losses stay format-specific. Disabled zero snap spacing and stored-UCS activation survive independently of current choices. Model-viewport aids retain Model coordinates inside Paper; canvas aids use Paper coordinates. Canvas frames do not enter geometry bounds or clip ownership.
+
+A uniquely available active Model window may be selected; multiple unqualified windows survive with unspecified activation. Paper current viewport/UCS association remains unavailable on the codec surface. Model/Paper mode and the active Paper tab are retained through the unique reserved *Paper_Space block and its consistent LAYOUT association, including multiple sheets. Export synchronizes BLOCK_RECORD names, existing BLOCK begin names and the reserved header handle together; setting the header cache alone does not change the active role. Unknown choices remain omitted with located loss. Skipped viewports receive no workspace references.
+
+Dot grid style and frequencies beyond CAD i16 receive field-specific substitutions. VIEWPORT grid beyond-limits/adaptive/subdivision/follow-workplane flags stay in CadDocument but its pinned DXF/DWG routes do not retain them; target diagnostics identify each nondefault field and Reject refuses that portability loss. Model VPORT grid flags survive both routes. Unrepresented display/icon/base/orthographic/plot/visual state remains diagnosed. Numeric and structural failures remain fatal under both policies.

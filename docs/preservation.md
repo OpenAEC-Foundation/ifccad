@@ -123,11 +123,13 @@ opaque records and separately captured/restored evidence, plus unassessed geomet
 CLI CAD-input commands accept `--drawing-format ifccad|ocdraw` and
 `--preserve-splines`; default remains OCDraw. Native input follows its extension.
 
-On this pin, Uniform/SquareRoot fit-only parameterization survives snapshot storage
-and typed restoration, and the qualified DWG chain retains it. Current DXF physical
-readback returns Chord (0). Both routes report the separately located
-`TARGET_CODEC_SPLINE_PARAMETERIZATION_LOSS`; successful typed restoration does not
-qualify that curve's DXF geometry. The codec pin, local patches and viewer codec are
-unchanged by this pilot; [codec PR #99](https://github.com/HakanSeven12/opencadcodec/pull/99)
-is a separate adoption step. Bounds/numeric evidence remain incomplete for opaque
-geometry even when its parameters restore.
+On the 2026-10-08 pin ab2eecd, Uniform/SquareRoot fit-only parameterization
+survives snapshot storage, typed restoration and the qualified DXF/DWG routes;
+merged [codec PR #99](https://github.com/HakanSeven12/opencadcodec/pull/99) supplies
+correct DXF knot parameterization/frame/creation flags. The former 063c106 DXF
+limitation is now requalified by physical readback tests. Both routes still
+report `TARGET_CODEC_SPLINE_PARAMETERIZATION_LOSS` if an actual target mismatch
+is observed. Bounds/numeric evidence remain incomplete for opaque geometry even
+when its parameters restore. Audited older payload-v2/v1 bytes retain their
+recorded provider revision and stay readable/restorable after the pin update.
+

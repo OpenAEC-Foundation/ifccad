@@ -17,6 +17,10 @@ pub struct IfccadHeader {
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadDocument {
     pub text_styles: Vec<super::IfccadTextStyle>,
+    pub ucs_definitions: Vec<super::IfccadUcsDefinition>,
+    pub model_windows: Vec<super::IfccadModelWindow>,
+    pub workspace_state: Option<super::IfccadDrawingWorkspaceState>,
+    pub model_view_state: Option<super::IfccadModelViewState>,
     pub header: IfccadHeader,
     pub preservation: Option<super::IfccadPreservation>,
     pub drawing_id: u64,
@@ -63,6 +67,7 @@ pub struct IfccadLayout {
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadPaperLayout {
     pub bounds_quality: Option<super::IfccadBoundsQuality>,
+    pub canvas: Option<super::IfccadPaperCanvas>,
     pub id: u64,
     pub name: String,
     pub tab_index: u32,

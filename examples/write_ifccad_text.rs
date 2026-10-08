@@ -95,6 +95,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let paper_entities = vec![entity(text.clone())?, entity(mtext.clone())?];
     let block_entities = vec![entity(text)?, entity(mtext)?];
     let mut d = IfccadDocument {
+        ucs_definitions: vec![],
+        model_windows: vec![],
+        workspace_state: None,
+        model_view_state: None,
         header: IfccadHeader {
             id: "ifccad-native-text".into(),
             data_version: "0.1.0".into(),
@@ -140,6 +144,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             entities: model_entities,
         },
         paper_layouts: vec![IfccadPaperLayout {
+            canvas: None,
             id: paper_id,
             name: "Sheet".into(),
             tab_index: 1,

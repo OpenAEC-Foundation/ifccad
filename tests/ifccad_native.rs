@@ -224,11 +224,19 @@ fn fixture_document() -> IfccadDocument {
     };
     IfccadDocument {
         text_styles: Vec::new(),
+        ucs_definitions: vec![],
+        model_windows: vec![],
+        workspace_state: None,
+        model_view_state: None,
         preservation: None,
         plot_style_mode: Default::default(),
         id_counters: IfccadIdCounters {
             next_text_style_id: 1,
             next_preservation_record_id: 1,
+
+            next_ucs_id: 1,
+            next_model_window_id: 1,
+
             next_entity_id: 101,
             next_layer_id: 3,
             next_layout_id: 2,

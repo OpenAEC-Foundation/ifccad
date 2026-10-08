@@ -1,5 +1,7 @@
 use super::common_snapshot::{SnapshotFloat, SnapshotHandle, SnapshotVector, SplineCommonSnapshot};
-use super::{CadSplineSnapshotError, CODEC_REVISION, LEGACY_CODEC_REVISION};
+use super::{
+    CadSplineSnapshotError, CODEC_REVISION, LEGACY_CODEC_REVISION, PREVIOUS_CODEC_REVISION,
+};
 use opencadcodec::entities::{Spline, SplineFlags};
 use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -144,10 +146,10 @@ impl CadSplineSnapshot {
         &self.0.codec_revision
     }
     pub fn payload_version(&self) -> u32 {
-        if self.0.codec_revision == CODEC_REVISION {
-            2
-        } else {
+        if self.0.codec_revision == LEGACY_CODEC_REVISION {
             1
+        } else {
+            2
         }
     }
     pub fn source_handle(&self) -> opencadcodec::Handle {
@@ -181,7 +183,9 @@ pub fn capture_spline(
 pub fn decode_spline_snapshot(bytes: &[u8]) -> Result<CadSplineSnapshot, CadSplineSnapshotError> {
     let snapshot: SplineSnapshot =
         serde_json::from_slice(bytes).map_err(CadSplineSnapshotError::Malformed)?;
-    if snapshot.codec_revision != CODEC_REVISION && snapshot.codec_revision != LEGACY_CODEC_REVISION
+    if snapshot.codec_revision != CODEC_REVISION
+        && snapshot.codec_revision != PREVIOUS_CODEC_REVISION
+        && snapshot.codec_revision != LEGACY_CODEC_REVISION
     {
         return Err(CadSplineSnapshotError::UnsupportedRevision);
     }
@@ -191,7 +195,7 @@ pub fn decode_spline_snapshot(bytes: &[u8]) -> Result<CadSplineSnapshot, CadSpli
         serde_json::from_slice(bytes).map_err(CadSplineSnapshotError::Malformed)?;
     let scenario = value.get("dwgScenario").is_some();
     let layer_handle = value["common"].get("layerHandle").is_some();
-    let valid_shape = if snapshot.codec_revision == CODEC_REVISION {
+    let valid_shape = if snapshot.codec_revision != LEGACY_CODEC_REVISION {
         scenario && layer_handle
     } else {
         !scenario && !layer_handle

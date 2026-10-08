@@ -22,7 +22,7 @@ pub(crate) fn restore_spline(
         return Err(UnsupportedPayload);
     }
     let expected_version = match source.provider_revision.as_str() {
-        CODEC_REVISION => SPLINE_PAYLOAD_VERSION,
+        CODEC_REVISION | PREVIOUS_CODEC_REVISION => SPLINE_PAYLOAD_VERSION,
         LEGACY_CODEC_REVISION => 1,
         _ => return Err(UnsupportedPayload),
     };

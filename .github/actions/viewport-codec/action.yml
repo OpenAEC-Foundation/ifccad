@@ -6,7 +6,7 @@ runs:
     - uses: actions/checkout@v5
       with:
         repository: HakanSeven12/opencadcodec
-        ref: 063c10671fe7833d562f772159771318c7a0ebb9
+        ref: ab2eecdbffc31120b5ad6d899f6fc67cf21ede39
         path: .superpowers/dependencies/opencadcodec-viewports-development
         persist-credentials: false
     - name: Apply and select viewport repairs

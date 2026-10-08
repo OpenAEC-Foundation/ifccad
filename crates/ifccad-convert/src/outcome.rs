@@ -28,6 +28,8 @@ impl IfccadIdentityMap {
 #[derive(Clone, Debug, Default)]
 pub struct IfccadMappings {
     pub text_styles: IfccadIdentityMap,
+    pub ucss: IfccadIdentityMap,
+    pub model_windows: IfccadIdentityMap,
     pub line_patterns: IfccadIdentityMap,
     pub layouts: IfccadIdentityMap,
     pub layers: IfccadIdentityMap,

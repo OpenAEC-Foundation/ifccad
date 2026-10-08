@@ -60,37 +60,29 @@ pub(crate) fn deferred_losses(
         });
     }
     status.is_on = baseline.status.is_on;
+    status.is_off = baseline.status.is_off;
+    status.grid_on = baseline.status.grid_on;
+    status.snap_on = baseline.status.snap_on;
+    status.isometric_snap = baseline.status.isometric_snap;
+    status.iso_pair_top = baseline.status.iso_pair_top;
+    status.iso_pair_right = baseline.status.iso_pair_right;
     status.locked = baseline.status.locked;
     status.perspective = baseline.status.perspective;
     status.front_clipping = baseline.status.front_clipping;
     status.back_clipping = baseline.status.back_clipping;
     status.front_clip_not_at_eye = baseline.status.front_clip_not_at_eye;
-    if status != baseline.status
-        || viewport.snap_base != baseline.snap_base
-        || viewport.snap_spacing != baseline.snap_spacing
-        || viewport.grid_spacing != baseline.grid_spacing
-        || viewport.snap_angle != baseline.snap_angle
-        || viewport.circle_sides != baseline.circle_sides
-        || viewport.grid_flags != baseline.grid_flags
-        || viewport.grid_major != baseline.grid_major
-    {
+    if status != baseline.status || viewport.circle_sides != baseline.circle_sides {
         reasons.push(CadToOcdrawLossReason::UnsupportedSemantic {
-            name: "viewport workspace snap/grid/display state".into(),
+            name: "viewport display status/circleSides".into(),
         });
     }
     if viewport.ucs_at_origin != baseline.ucs_at_origin
-        || viewport.ucs_per_viewport != baseline.ucs_per_viewport
         || viewport.ucs_icon_visible != baseline.ucs_icon_visible
-        || viewport.ucs_origin != baseline.ucs_origin
-        || viewport.ucs_x_axis != baseline.ucs_x_axis
-        || viewport.ucs_y_axis != baseline.ucs_y_axis
-        || viewport.ucs_handle != Handle::NULL
         || viewport.base_ucs_handle != Handle::NULL
         || viewport.ucs_ortho_type != baseline.ucs_ortho_type
-        || viewport.elevation != baseline.elevation
     {
         reasons.push(CadToOcdrawLossReason::UnsupportedSemantic {
-            name: "viewport UCS state".into(),
+            name: "viewport UCS icon/base/orthographic state".into(),
         });
     }
     if !viewport.style_sheet.is_empty()
@@ -109,6 +101,22 @@ pub(crate) fn deferred_losses(
             name: "viewport visual and plot state".into(),
         });
     }
+    reasons
+}
+pub(crate) fn deferred_canvas_losses(
+    viewport: &opencadcodec::entities::Viewport,
+) -> Vec<CadToOcdrawLossReason> {
+    let mut reasons = deferred_losses(viewport);
+    let baseline = opencadcodec::entities::Viewport::new();
+    let mask = 0x4000 | 0x8000 | 0x10000 | 0x20000;
+    if (viewport.status.to_bits() ^ baseline.status.to_bits()) & mask != 0
+        || viewport.render_mode != baseline.render_mode
+        || !viewport.frozen_layers.is_empty()
+        || !viewport.clip_boundary_handle.is_null()
+    {
+        reasons.push(CadToOcdrawLossReason::UnsupportedSemantic {name:"canvas display status/renderMode/frozenLayers/clipBoundary has no native snapshot field".into()});
+    }
+    reasons.extend(crate::source::direct_common_losses(&viewport.common));
     reasons
 }
 fn render_from_cad(mode: opencadcodec::entities::ViewportRenderMode) -> DrawingRenderMode {
@@ -196,7 +204,7 @@ pub(crate) fn from_cad(
         view,
     );
     target.render_mode = render_from_cad(source.render_mode);
-    target.view_enabled = source.status.is_on;
+    target.view_enabled = source.is_on();
     target.view_locked = source.status.locked;
     target.appearance = appearance;
     target.visible = !source.common.invisible;
@@ -267,7 +275,11 @@ pub(crate) fn to_cad(
     target.status.back_clipping = view.back_clip.mode != DrawingClipMode::Disabled;
     target.back_clip_z = view.back_clip.distance.unwrap_or(0.0);
     target.clip_boundary_handle = Handle::NULL;
-    target.status.is_on = source.view_enabled;
+    if source.view_enabled {
+        target.turn_on();
+    } else {
+        target.turn_off();
+    }
     target.status.locked = source.view_locked;
     target.status = opencadcodec::entities::ViewportStatusFlags::from_bits(
         target.status.to_bits()

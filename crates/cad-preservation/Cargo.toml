@@ -5,7 +5,7 @@ edition = "2021"
 description = "Audited codec-specific CAD source snapshots"
 license = "MPL-2.0"
 [dependencies]
-opencadcodec = { git = "https://github.com/HakanSeven12/opencadcodec.git", rev = "063c10671fe7833d562f772159771318c7a0ebb9" }
+opencadcodec = { git = "https://github.com/HakanSeven12/opencadcodec.git", rev = "ab2eecdbffc31120b5ad6d899f6fc67cf21ede39" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 base64 = "0.22"

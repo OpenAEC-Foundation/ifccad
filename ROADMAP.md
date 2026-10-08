@@ -91,9 +91,14 @@ per layout. Native media-only states remain valid. Exact binary64 scalar convers
 and unqualified raster CAD output retain explicit restrictions; see
 [layout output](docs/layout-output.md). Current active schemas remain provisional.
 
-The next IFCCAD slice addresses drawing/workspace state (UCS, model windows,
-paper canvases, grid/snap and active choices) using this established output boundary.
-Other layer/entity/block presentation differences remain separate. The independent
+The workspace slice adds IFCCAD UCS and Model windows, Paper canvases and
+authored viewport aids, with optional current choices, exact references and
+independent allocation watermarks. OCDraw conversion uses the same scalar rules.
+Active Paper tabs are qualified through consistent reserved block/layout roles.
+Paper current-context/UCS selection and VIEWPORT file grid behavior retain
+qualified codec limitations; see [workspace state](docs/workspace-state.md).
+Other layer/entity/block presentation differences remain separate.
+
 opaque SPLINE preservation pilot now uses this output boundary, including exact
 Paper coordinate-meaning predicates, durable IFCX transport and qualified fresh
 CAD restoration. It does not depend on workspace state, add native spline geometry,
@@ -122,9 +127,9 @@ The OCDraw Text/MText slice implements native styles, typed rich content, author
 inheritance, strict JSON readback and enclosing/estimated/partial bounds evidence.
 Its separate CAD route qualifies a bounded profile with anchor accuracy and
 unassessed font geometry. Native content and CAD editing-dependency normalization
-are distinguished in diagnostics. IFCCAD integration is deliberately deferred
-until the OCDraw implementation on main has been tested; the approved equal
-bounds-quality meanings do not by themselves add IFCCAD support. Text annotations,
+are distinguished in diagnostics. The independent IFCCAD slice now provides
+its own native model, schemas, validation and CAD exchange tests, retaining
+the same bounds-quality meanings. Text annotations,
 dynamic fields, attributes and font engines remain separate work. See
 [text support](docs/text.md). This does not publish or freeze the initial contract.
 

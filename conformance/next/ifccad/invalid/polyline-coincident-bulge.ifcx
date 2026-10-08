@@ -31,7 +31,9 @@
           "nextLayerId": 3,
           "nextLayoutId": 2,
           "nextBlockId": 2,
-          "nextLinePatternId": 1
+          "nextLinePatternId": 1,
+          "nextUcsId": 1,
+          "nextModelWindowId": 1
         }
       }
     },

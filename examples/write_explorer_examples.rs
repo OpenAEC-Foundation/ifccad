@@ -206,8 +206,8 @@ fn ocdraw_state() -> Result<OcdrawDocument> {
         use_stored_ucs: true,
     });
     d.view_state = Some(DrawingViewState {
-        current_model_ucs: DrawingUcsSelection::Named(d.ucs_definitions[0].id),
-        active_model_window_id: 7,
+        current_model_ucs: Some(DrawingUcsSelection::Named(d.ucs_definitions[0].id)),
+        active_model_window_id: Some(7),
     });
     d.scopes
         .iter_mut()
@@ -383,6 +383,148 @@ fn write_ifccad(root: &Path, name: &str, value: &Value) -> Result<()> {
     std::fs::write(root.join(name), bytes)?;
     Ok(())
 }
+fn ocdraw_workspace() -> Result<OcdrawDocument> {
+    let mut d = ocdraw_layouts()?;
+    let state = ocdraw_state()?;
+    d.drawing_id = "explorer-ocdraw-workspace".into();
+    d.ucs_definitions = state.ucs_definitions;
+    let mut window = state.model_windows[0];
+    window.grid.style = DrawingGridStyle::Lines;
+    window.snap.spacing = Point2::new(0., 0.);
+    window.snap.angle = std::f64::consts::FRAC_PI_2;
+    window.snap.style = DrawingSnapStyle::Isometric;
+    window.snap.isometric_plane = DrawingIsometricPlane::Left;
+    window.use_stored_ucs = false;
+    d.model_windows = vec![window];
+    d.view_state = Some(DrawingViewState {
+        current_model_ucs: Some(DrawingUcsSelection::World),
+        active_model_window_id: None,
+    });
+    for layout in &d.layouts {
+        if layout.kind == DrawingLayoutKind::Paper {
+            let mut grid = window.grid;
+            grid.spacing = Point2::new(0.25, 0.5);
+            d.paper_canvases.push(DrawingPaperCanvas {
+                scope_id: layout.id,
+                view: window.view,
+                frame: Some(ocdraw::workspace_kernel::WorkspaceCanvasFrame {
+                    center: Point3::new(100., -50., 3.),
+                    width: 20.,
+                    height: 10.,
+                }),
+                grid,
+                snap: window.snap,
+                stored_ucs: DrawingUcsSelection::World,
+                use_stored_ucs: false,
+                current_ucs: None,
+                active_context: None,
+            });
+        }
+    }
+    for v in &d.viewports {
+        let mut grid = window.grid;
+        grid.spacing = Point2::new(2., 3.);
+        d.viewport_workspaces.push(DrawingViewportWorkspace {
+            viewport_entity_id: v.id,
+            grid,
+            snap: window.snap,
+            stored_ucs: DrawingUcsSelection::Unnamed(CoordinateFrame3::try_new(
+                Point3::new(2., 3., 0.),
+                Vector3::new(1., 0., 0.),
+                Vector3::new(0., 1., 0.),
+            )?),
+            use_stored_ucs: false,
+        });
+    }
+    validate_ocdraw_document(&d)?;
+    Ok(d)
+}
+fn ifccad_workspace() -> Result<ocdraw::ifccad::IfccadDocument> {
+    use ocdraw::ifccad::*;
+    const BIG: u64 = 9007199254740993;
+    let mut d = load_ifccad_bytes(
+        include_bytes!("ifccad/hello-viewports.ifcx"),
+        Default::default(),
+    )?
+    .into_document();
+    d.header.id = "explorer-ifccad-workspace".into();
+    let state = ocdraw_state()?;
+    let window = state.model_windows[0];
+    d.ucs_definitions.push(IfccadUcsDefinition {
+        id: IfccadUcsId(BIG),
+        name: "Reference plane".into(),
+        frame: CoordinateFrame3::default(),
+        elevation: 0.,
+    });
+    let mut grid = window.grid;
+    grid.style = DrawingGridStyle::Lines;
+    let mut snap = window.snap;
+    snap.spacing = Point2::new(0., 0.);
+    snap.angle = std::f64::consts::FRAC_PI_2;
+    snap.style = DrawingSnapStyle::Isometric;
+    snap.isometric_plane = DrawingIsometricPlane::Left;
+    d.model_windows.push(IfccadModelWindow {
+        id: IfccadModelWindowId(BIG),
+        rectangle: window.rectangle,
+        view: window.view,
+        aspect_ratio: window.aspect_ratio,
+        render_mode: window.render_mode,
+        grid,
+        snap,
+        stored_ucs: IfccadUcsSelection::World,
+        use_stored_ucs: false,
+    });
+    d.model_view_state = Some(IfccadModelViewState {
+        current_model_ucs: Some(IfccadUcsSelection::Named(IfccadUcsId(BIG))),
+        active_model_window_id: Some(IfccadModelWindowId(BIG)),
+    });
+    d.workspace_state = Some(IfccadDrawingWorkspaceState {
+        current_layer_id: Some(d.layers[0].id),
+        active_layout_id: Some(d.model.id),
+    });
+    d.id_counters.next_ucs_id = BIG + 1;
+    d.id_counters.next_model_window_id = BIG + 1;
+    for p in &mut d.paper_layouts {
+        let mut canvas_grid = grid;
+        canvas_grid.spacing = Point2::new(0.25, 0.5);
+        p.canvas = Some(IfccadPaperCanvas {
+            view: window.view,
+            frame: Some(ocdraw::workspace_kernel::WorkspaceCanvasFrame {
+                center: Point3::new(100., -50., 3.),
+                width: 20.,
+                height: 10.,
+            }),
+            grid: canvas_grid,
+            snap,
+            stored_ucs: IfccadUcsSelection::World,
+            use_stored_ucs: false,
+            current_ucs: None,
+            active_context: None,
+        });
+        for e in p
+            .entities
+            .iter_mut()
+            .filter_map(IfccadEntity::as_native_mut)
+        {
+            if let IfccadEntityKind::Viewport(v) = &mut e.kind {
+                let mut viewport_grid = grid;
+                viewport_grid.spacing = Point2::new(2., 3.);
+                v.workspace = Some(Box::new(IfccadViewportWorkspace {
+                    grid: viewport_grid,
+                    snap,
+                    stored_ucs: IfccadUcsSelection::Unnamed(CoordinateFrame3::try_new(
+                        Point3::new(2., 3., 0.),
+                        Vector3::new(1., 0., 0.),
+                        Vector3::new(0., 1., 0.),
+                    )?),
+                    use_stored_ucs: false,
+                }));
+            }
+        }
+    }
+    validate_ifccad_document(&d)?;
+    Ok(d)
+}
 fn write_ocdraw(root: &Path, name: &str, d: &OcdrawDocument) -> Result<()> {
     let encoded = encode_ocdraw_document(d)?;
     load_ocdraw_bytes(encoded.bytes())?;
@@ -411,6 +553,14 @@ fn main() -> Result<()> {
         "state-and-storage.ocdraw.json",
         &ocdraw_state()?,
     )?;
+    write_ocdraw(
+        &root.join("ocdraw"),
+        "workspace-state.ocdraw.json",
+        &ocdraw_workspace()?,
+    )?;
+    let workspace = ocdraw::ifccad::encode_ifccad_document(&ifccad_workspace()?)?;
+    ocdraw::ifccad::load_ifccad_bytes(workspace.bytes(), Default::default())?;
+    std::fs::write(root.join("ifccad/workspace-state.ifcx"), workspace.bytes())?;
     let overview = ifccad_overview()?;
     write_ifccad(&root.join("ifccad"), "overview.ifcx", &overview)?;
     let mut layouts = overview.clone();

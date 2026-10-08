@@ -35,6 +35,9 @@ fn graph() -> Value {
     document.id_counters = IfccadIdCounters {
         next_text_style_id: 1,
         next_preservation_record_id: 1,
+        next_ucs_id: 1,
+        next_model_window_id: 1,
+
         next_entity_id: 1000,
         next_layer_id: 100,
         next_layout_id: 100,
@@ -254,6 +257,8 @@ fn deleted_definitions_do_not_reset_their_watermarks() {
     let id = layout.id_counters.allocate_layout_id().unwrap();
     assert_eq!(id, 100);
     layout.paper_layouts.push(IfccadPaperLayout {
+        canvas: None,
+
         settings: ocdraw::ifccad::IfccadLayoutSettings {
             media: None,
             ..Default::default()
@@ -352,6 +357,9 @@ fn wire_roundtrip_preserves_full_width_counters_and_rejects_maximum_ids() {
         document.id_counters = IfccadIdCounters {
             next_text_style_id: 1,
             next_preservation_record_id: 1,
+            next_ucs_id: 1,
+            next_model_window_id: 1,
+
             next_entity_id: next,
             next_layer_id: next,
             next_layout_id: next,
