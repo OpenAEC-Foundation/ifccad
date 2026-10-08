@@ -24,7 +24,15 @@ waits for existing preparation and never triggers an additional conversion.
 Camera position and document edits are retained. The relevant CAD layout must
 already be active. Shared block-definition contents and skipped/foreign items
 have no direct selectable link; block instances are selectable. Unavailable
-links produce a brief viewer notice. This is tree-to-viewer selection only.
+links produce a brief viewer notice. Selection also works from the generated CAD
+document back to Contents: one mapped CAD object reveals the owning native record
+in the readable document tree, expands its ancestors and scrolls it into view.
+The current workspace pane and camera are retained. A record beyond the initial
+row budget is included without rendering all siblings. Original/external CAD
+tabs, new/unmapped objects and empty/multiple selections retain the last inspected
+record. CAD edits do not rewrite the native source. The pinned OCS state API is
+observed only while the drawing is visible and focused; forward operations pause
+observation and seed its baseline, and reverse updates never select CAD again.
 
 The document/storage inspector, integrated IFCX navigation, overview and panel navigation
 and adjustable conversion tolerance are specified in
@@ -46,16 +54,26 @@ and disabled/stale-result guards remain available.
 Narrow screens stack the panels. Inspection starts in the **Bestandsboom / File tree**
 view. Choose **Document structure** for logical contents and **Storage
 structure** for IFCX node/source inspection or OCDraw streams/columns. Entities
-are grouped by type within their layout or block by default; **Draw order**
+are grouped by type within their layout or block by default (singleton types
+appear directly); **Draw order**
 shows the original sequence and each item retains its original draw position.
 The native contents heading follows the selected IFCCAD/OCDraw result and shows
 the source filename. Validation/readback stay in the report; redundant document
 and footer status bars are omitted. Actionable errors or settings reminders
 appear beside the file controls, and invalid contents remain explicitly labelled.
-Composed IFCX node JSON in Source and JSON of selection uses `path`, optional
+Composed IFCX node JSON in Source uses `path`, optional
 `children`, then `attributes`, followed by any remaining fields. Original source
 fragments retain their stored order and values; full-file JSON retains its source text.
-Group counts appear directly beside each group name. Opening another file or
+Collections of up to ten records stay inline. Larger collections, including
+layers and block definitions, open an independently scrolling middle list with
+search and an optional layer filter. It renders only the visible rows and scrolls
+continuously without a Show more button. The structure remains visible; selected
+records retain a tree anchor. Home/End, arrows and Page Up/Down navigate the list.
+Once opened, the middle list also follows small collections until closed. Linked
+CAD selection reveals the appropriate group and list record by native identity,
+clearing filters only when they would hide that record. The inspector can be
+collapsed; on narrow contents panes it can open as an overlay. Column widths are
+resizable and start at equal widths. Group counts appear directly beside each group name. Opening another file or
 selecting an example retains the active workspace view. A visible loading panel
 shows the filename, operation and current phase, with cancellation available
 while reading, fetching examples or converting.
@@ -302,3 +320,15 @@ The browser request applies the selected default, exact or explicit tolerance,
 including a drawing-coordinate limit for unitless domains, to both conversion
 routes. Native validation retains its own rules; no UI setting is stored in
 native geometry. See [shared geometry](../docs/geometry/shared-geometry.md).
+
+
+The structure tree expands only structural children. Record properties expand
+under Stored values in the inspector, preserving nested expansion and clickable
+references. Selecting a property retains the owning record's tree selection.
+
+The first property layer opens by default. Property headings show a left chevron
+and title without field counts; explicit expansion/collapse is retained until a
+new source is opened.
+
+Clicking a small navigation group opens its members inline; its arrow still
+supports collapsing it. Larger groups open the middle list.

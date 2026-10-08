@@ -392,6 +392,24 @@ explicitly unavailable; shared block-definition contents have no direct link.
 Selecting a property keeps the owning element's CAD selection; navigation groups
 clear selection. Camera and document revision are not changed.
 
+Reverse selection observes the pinned OCS state API (no native event export) at
+300 ms while the current generated drawing is visible and its frame is focused.
+Pointer/keyboard/focus hints wake the observer. It pauses around programmatic
+document/selection operations and seeds acknowledged forward selections to avoid
+feedback. In-flight reads cannot publish after pause, close, document replacement,
+visibility or focus changes. Origin/frame/token/current generated-document checks
+guard unsolicited selection notifications. A single mapped handle and matching
+layout reveal the native record in readable document structure, expanding owner
+and type-group ancestors and scrolling the selected row. Large collections retain only the selected ancestor/record as a tree anchor;
+the middle list scrolls to the corresponding native identity without mounting
+preceding siblings. A filter hiding that identity is cleared on reveal.
+
+Reverse reveal does not notify the forward selection callback, alter the CAD
+document/camera or change the workspace pane. Same-item echoes retain property
+inspection. Empty/multiple/unmapped selections and original/external CAD tabs
+retain the last inspected record. The mapping is an association with prepared
+source identities, not CAD-to-native edit synchronization.
+
 The Conversion / checks workspace is the single location for conversion and
 readback messages, including output generated automatically for CAD viewing.
 Within it, **Input conversion / Invoerconversie** owns original CAD reading,
@@ -457,7 +475,7 @@ Replacing generated output preserves edited documents under the existing bridge
 behavior; no automatic save/discard is introduced. Viewer restart is explicit.
 
 The tree and inspector are immediately linked; tree-to-CAD selection uses only
-the verified export mapping. CAD-to-tree selection is not implemented. Graphical
+the verified export mapping in both directions for the current generated document. Graphical
 similarity remains separate from conversion evidence.
 
 ## Presentation and processing boundaries
@@ -605,3 +623,59 @@ governed by repository authorization.
 ## Workspace inspection
 
 Workspace records appear beside the existing independent native routes. UCS and Model-window references are linked explicitly, viewport rows use exact owning entity identity, Model-viewport construction aids retain Model coordinates and canvas aids retain Paper coordinates. Unknown current choices are presented as unspecified without rewriting source values. Native download preserves exact bytes, including full-width IFCCAD identities and all eight watermarks. CAD portability limits remain located diagnostics.
+
+## Adaptive contents collections
+
+The contents pane uses independently scrolling structure, item-list and inspector
+columns. A single entity-type member appears directly under its owner, with its
+type in its label. Collections of 2–10 items remain inline in the tree; selecting
+or expanding a collection larger than ten opens the middle list. This applies to
+layers, block definitions, layouts and other resource collections as well as
+entity types. Structural layouts and block definitions retain their identities.
+The overview of distinct entity types within an owner stays in the tree, even
+when there are more than ten types. Draw-order mode lists large ownership
+sequences in their original order. Storage views use the same browsing mechanism
+for large streams or root node collections.
+
+The middle list stays open until explicitly closed; later small-group selections
+use it too. Selecting a singleton then lists just that type's one record. A root
+without a collection shows an empty collection prompt. Opening another source
+resets collection, search and filter state. Search matches record identity, label,
+type, layer and short geometry description. The optional layer filter intersects
+search, without modifying the model. The list preserves source order and mounts
+only a fixed-height visible window with overscan. There is no 150-row cap or
+Show more action. Arrow keys, Home/End and Page Up/Down select and reveal items.
+
+Selection retains a single tree anchor inside each large ancestor collection;
+this also lets a block definition selected from a large list expand to show its
+own type groups. Tree, list and inspector keep independent scroll positions.
+Visible contents columns start at equal widths (thirds for three columns, halves
+for two). Column separators support pointer and keyboard resizing; widths become
+user-adjusted only after a resize. The inspector is
+collapsible and automatically hidden for open lists below 850px pane width, or
+below 520px in any contents mode, unless the user overrides it. Below 520px it
+opens over the contents rather than compressing the two navigation columns.
+The enlarged contents workspace keeps a bounded viewport on narrow screens;
+Overview continues to stack the main workspaces on those screens.
+
+These are inspection-only projections. Native IDs, attributes, source bytes,
+IFCX composition, OCDraw storage and CAD export are unchanged. Reverse CAD
+selection uses the same reveal path and never initiates another conversion.
+
+
+Properties belong to the inspector under Stored values, including expandable
+nested objects and compact coordinate arrays. The structure tree never renders
+record fields; only actual structural children give a row an expand control.
+Primitive property selection preserves the owner's tree highlight and inspector
+expansion state. Typed references remain clickable within the nested properties.
+Source and Relationships remain the dedicated raw-data and edge views.
+
+The first property nesting layer opens initially for each source. Deeper objects
+start collapsed. Explicit user collapse/expansion persists through selection and
+inspector-tab changes and resets with a new source. Property summaries show a
+left chevron and title only; redundant field counts are omitted.
+
+Selecting a nonempty navigation-only group with up to ten members also opens it
+inline. Its chevron can still collapse it explicitly. This does not auto-expand
+native layouts or block definitions with their own properties; large groups keep
+opening the middle list.

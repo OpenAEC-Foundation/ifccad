@@ -2,6 +2,22 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {isCurrentOcsMessage,createDocumentSession,createOcsControl,createOcsSession} from '../src/ocs-messages.mjs';
 
+test('reverse selection messages require the current frame, token and generated document',async()=>{
+ const listeners=new Map(),posted=[],events=[],origin='https://explorer.example';
+ const host={addEventListener(name,fn){listeners.set(name,fn);},removeEventListener(name){listeners.delete(name);}};
+ const frame={contentWindow:{postMessage(message){posted.push(message);}},addEventListener(name,fn){listeners.set('frame-'+name,fn);},removeEventListener(name){listeners.delete('frame-'+name);}};
+ const session=createOcsSession(frame,'token',{host,origin,timeoutMs:1000});
+ const receive=message=>listeners.get('message')({origin,source:frame.contentWindow,data:{channel:'ocdraw-ocs',token:'token',...message}});
+ try{
+  assert.equal(typeof session.subscribeSelection,'function');session.subscribeSelection(event=>events.push(event));receive({status:'ready'});
+  const opening=session.replaceGenerated('YQ==','generated.dxf');await new Promise(resolve=>setImmediate(resolve));const request=posted.find(message=>message.op==='replace');receive({id:request.id,status:'opened',role:'generated',documentId:7});await opening;
+  const good={status:'selection-changed',role:'generated',documentId:7,handles:['AB'],layout:'Model'};
+  receive({...good,documentId:8});receive({...good,token:'old'});listeners.get('message')({origin:'https://other.example',source:frame.contentWindow,data:{channel:'ocdraw-ocs',token:'token',...good}});assert.deepEqual(events,[]);
+  receive(good);assert.equal(events.length,1);assert.deepEqual(events[0].handles,['AB']);
+  const receiver=listeners.get('message');session.close();receiver({origin,source:frame.contentWindow,data:{channel:'ocdraw-ocs',token:'token',...good}});assert.equal(events.length,1);
+ }finally{session.close();}
+});
+
 test('native selection activates only the generated document and verifies its selected handle',async()=>{
  let current=1,next=2,selection=[];const documents=[{id:1}],calls=[];
  const control=async request=>{calls.push(request);if(request.op==='state')return {ok:true,document_id:current,documents,revision:0,layout:'Model',selection};if(request.op==='open'){current=next++;documents.push({id:current});return {ok:true};}if(request.op==='activate'){current=request.document_id;return {ok:true};}if(request.op==='select'){selection=request.handles;return {ok:true};}throw Error('unexpected operation');};

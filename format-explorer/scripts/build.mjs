@@ -52,6 +52,7 @@ export async function build({outputRoot=output,ocsRoot=new URL('../ocs-build/',i
    'index.html':Buffer.from(html.replace('</body>','<script type="module" src="./ocs-bridge.mjs"></script></body>')),
    'ocs-bridge.mjs':await readFile(new URL('../src/ocs-bridge.mjs',import.meta.url)),
    'ocs-messages.mjs':await readFile(new URL('../src/ocs-messages.mjs',import.meta.url)),
+   'ocs-selection.mjs':await readFile(new URL('../src/ocs-selection.mjs',import.meta.url)),
    'SOURCE.json':await readFile(new URL('../ocs-source.json',import.meta.url)),
   });
  }else await rm(target,{recursive:true,force:true});
