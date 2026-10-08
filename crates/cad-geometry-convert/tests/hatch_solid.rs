@@ -225,3 +225,28 @@ fn unqualified_annotation_or_extension_context_is_not_an_ordinary_solid() {
         })
     ));
 }
+#[test]
+fn unrepresentable_ellipse_ratio_does_not_emit_degenerate_cad_geometry() {
+    let boundaries = vec![HatchBoundary2::Ellipse {
+        center: [0., 0.],
+        x_axis: [1., 0.],
+        semi_major_radius: 1e300,
+        semi_minor_radius: 1e-300,
+    }];
+    assert!(
+        prepare_hatch_to_cad(Default::default(), &boundaries, HatchAreaRule::Normal, 1e-9).is_err()
+    );
+}
+#[test]
+fn native_partial_arc_is_not_rounded_into_a_full_cad_turn() {
+    use ocdraw::geometry_kernel::hatch::HatchEdge2;
+    let boundaries = vec![HatchBoundary2::Edges(vec![HatchEdge2::CircularArc {
+        center: [0., 0.],
+        radius: 1.,
+        start_parameter: 2.,
+        sweep_parameter: std::f64::consts::TAU.next_down(),
+    }])];
+    assert!(
+        prepare_hatch_to_cad(Default::default(), &boundaries, HatchAreaRule::Normal, 1e-9).is_err()
+    );
+}

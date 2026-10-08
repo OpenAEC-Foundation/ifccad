@@ -53,6 +53,10 @@ impl Projection {
         if !start.is_finite() || !end.is_finite() {
             return Err(CadPreparationError::OutOfRange.into());
         }
+        let target_sweep = super::from_cad::sweep(start, end, sweep > 0.)?;
+        if target_sweep.abs() >= TAU {
+            return Err(CadPreparationError::OutOfRange.into());
+        }
         Ok(BoundaryEdge::CircularArc(CircularArcEdge {
             center: self.point(c)?,
             radius: r,
@@ -72,6 +76,11 @@ impl Projection {
         sweep: f64,
     ) -> Result<BoundaryEdge, CadHatchPreparationError> {
         let major = self.vector([x[0] * a, x[1] * a])?;
+        let ratio = b / a;
+        let length = major.x.hypot(major.y);
+        if !ratio.is_finite() || ratio <= 0. || ratio > 1. || !length.is_finite() || length <= 0. {
+            return Err(CadPreparationError::OutOfRange.into());
+        }
         if !major.x.is_finite()
             || !major.y.is_finite()
             || !start.is_finite()
@@ -79,10 +88,14 @@ impl Projection {
         {
             return Err(CadPreparationError::OutOfRange.into());
         }
+        let target_sweep = super::from_cad::sweep(start, start + sweep, sweep > 0.)?;
+        if sweep.abs() < TAU && target_sweep.abs() >= TAU {
+            return Err(CadPreparationError::OutOfRange.into());
+        }
         Ok(BoundaryEdge::EllipticArc(EllipticArcEdge {
             center: self.point(c)?,
             major_axis_endpoint: major,
-            minor_axis_ratio: b / a,
+            minor_axis_ratio: ratio,
             start_angle: start,
             end_angle: start + sweep,
             counter_clockwise: sweep > 0.,

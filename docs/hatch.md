@@ -58,7 +58,9 @@ existing [viewport-off patch](../patches/opencadcodec-viewports/README.md).
 Shared preparation audits fields and registers full contour curve evidence
 with nested occurrence assessment. Exact source spans qualify full turns;
 no epsilon promotes near-full arcs. Frames project to the actual CAD OCS;
-signed traversal and bulges are retained without tessellation.
+signed traversal and bulges are retained without tessellation. Target ratios
+and spans must remain structurally representable: numerical tolerance cannot
+turn an ellipse axis ratio into zero or a partial arc into a full turn.
 
 Actual AC1032 DXF/DWG readback covers all three area rules, hole-first ordering,
 disconnected/nested contours, circles/ellipses, negative circular sweeps, bulges,
