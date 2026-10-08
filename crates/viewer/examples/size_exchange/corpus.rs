@@ -74,13 +74,13 @@ fn entity(id: u64, i: usize, kind: IfccadEntityKind) -> IfccadEntity {
             line_weight: IfccadMode::ByLayer,
         }
     };
-    IfccadEntity {
+    IfccadEntity::Native(IfccadNativeEntity {
         id,
         layer_id: if i.is_multiple_of(2) { 1 } else { 2 },
         appearance,
         line_pattern_scale: 1.,
         kind,
-    }
+    })
 }
 pub fn generate(case: &Case) -> Result<CadDocument> {
     check(case)?;
@@ -95,10 +95,12 @@ pub fn generate(case: &Case) -> Result<CadDocument> {
         },
     };
     let mut doc = IfccadDocument {
+        preservation: None,
         plot_style_mode: Default::default(),
         header: super::projection::metadata().header,
         drawing_id: 1,
         id_counters: IfccadIdCounters {
+            next_preservation_record_id: 1,
             next_entity_id: 1,
             next_layer_id: 3,
             next_layout_id: 2,
@@ -262,9 +264,10 @@ pub fn generate(case: &Case) -> Result<CadDocument> {
             };
             let mut e = entity(next, i, kind);
             if case.family == "patterns" {
-                e.line_pattern_scale = 0.5;
+                e.as_native_mut().unwrap().line_pattern_scale = 0.5;
                 if i.is_multiple_of(3) {
-                    e.appearance.line_pattern = IfccadMode::Explicit(IfccadLinePatternId(3));
+                    e.as_native_mut().unwrap().appearance.line_pattern =
+                        IfccadMode::Explicit(IfccadLinePatternId(3));
                 }
             }
             doc.model.entities.push(e);

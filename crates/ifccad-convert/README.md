@@ -12,9 +12,9 @@ CAD structure, layout references and supported entity fields. Target layout
 allocation lives in `src/to_cad/layouts.rs`. `geometry_context.rs` and
 `geometry_assessment.rs` adapt tolerance domains and evidence to IFCCAD ownership.
 Numerical geometry and occurrence proofs live in the shared
-[`cad-geometry-convert`](../cad-geometry-convert) crate. IFCX graph-loss checks
-remain specific to this route; OCDraw's preservation and workspace adapters
-remain specific to OCDraw.
+[`cad-geometry-convert`](../cad-geometry-convert) crate. IFCX graph-loss checks and preservation conditions remain specific to this route.
+The codec-only cad-preservation crate shares byte snapshots with OCDraw; workspace
+adapters remain specific to OCDraw.
 
 This incomplete adapter defaults to **Allow**: supported content is returned
 with located diagnostics for omissions and modifications. **Reject** refuses
@@ -293,3 +293,10 @@ layer references. Canonical one-byte-per-INSERT count framing is derived;
 unfamiliar/mismatched count storage retains loss evidence. Additional table,
 associative/count and solid-history data remain at the existing unsupported
 family boundaries. No benchmark evidence is extended by this update.
+
+Opaque spline capture is available with `CadToIfccadOptions.preservation =
+IfccadPreservationCapture::SupportedTyped` (library default Disabled). Export
+uses `IfccadPreservationRestore::RestoreSupported` by default, or explicit Skip.
+Outcomes expose `preservation_report()` independently from semantic diagnostics
+and numeric evidence. `geometry_assessment().is_complete()` is false for opaque
+curves/occurrences. See [preservation](../../docs/preservation.md).

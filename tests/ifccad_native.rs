@@ -57,7 +57,7 @@ fn profile_order_is_numeric_child_order() {
             .model
             .entities
             .iter()
-            .map(|e| e.id)
+            .map(|e| e.id())
             .collect::<Vec<_>>(),
         vec![2, 1]
     );
@@ -81,12 +81,15 @@ fn profile_uses_later_geometry_and_order_fragments() {
             .model
             .entities
             .iter()
-            .map(|e| e.id)
+            .map(|e| e.id())
             .collect::<Vec<_>>(),
         vec![1, 2]
     );
     assert!(matches!(
-        loaded.document().model.entities[0].kind,
+        loaded.document().model.entities[0]
+            .as_native()
+            .unwrap()
+            .kind,
         IfccadEntityKind::Circle { radius: 5.0, .. }
     ));
 }
@@ -197,29 +200,33 @@ fn fixture_document() -> IfccadDocument {
         x_axis: [1.0, 0.0, 0.0],
         y_axis: [0.0, 1.0, 0.0],
     };
-    let instance = |id, x, color: &str| IfccadEntity {
-        line_pattern_scale: 1.,
-        id,
-        layer_id: 2,
-        appearance: IfccadEntityAppearance {
-            color: IfccadMode::Explicit(color.into()),
-            ..by_layer.clone()
-        },
-        kind: IfccadEntityKind::BlockInstance {
-            definition_id: 1,
-            transform: IfccadBlockTransform {
-                placement: IfccadPlacement {
-                    origin: [x, 0.0, 0.0],
-                    ..placement.clone()
-                },
-                rotation: 0.25,
-                scale: [2.0, 1.0, 1.0],
+    let instance = |id, x, color: &str| {
+        IfccadEntity::Native(IfccadNativeEntity {
+            line_pattern_scale: 1.,
+            id,
+            layer_id: 2,
+            appearance: IfccadEntityAppearance {
+                color: IfccadMode::Explicit(color.into()),
+                ..by_layer.clone()
             },
-        },
+            kind: IfccadEntityKind::BlockInstance {
+                definition_id: 1,
+                transform: IfccadBlockTransform {
+                    placement: IfccadPlacement {
+                        origin: [x, 0.0, 0.0],
+                        ..placement.clone()
+                    },
+                    rotation: 0.25,
+                    scale: [2.0, 1.0, 1.0],
+                },
+            },
+        })
     };
     IfccadDocument {
+        preservation: None,
         plot_style_mode: Default::default(),
         id_counters: IfccadIdCounters {
+            next_preservation_record_id: 1,
             next_entity_id: 101,
             next_layer_id: 3,
             next_layout_id: 2,
@@ -283,7 +290,7 @@ fn fixture_document() -> IfccadDocument {
             id: 1,
             tab_index: 0,
             entities: vec![
-                IfccadEntity {
+                IfccadEntity::Native(IfccadNativeEntity {
                     line_pattern_scale: 1.,
                     id: 42,
                     layer_id: 1,
@@ -292,8 +299,8 @@ fn fixture_document() -> IfccadDocument {
                         start: [0.0, 0.0, 0.0],
                         end: [50.0, 0.0, 0.0],
                     },
-                },
-                IfccadEntity {
+                }),
+                IfccadEntity::Native(IfccadNativeEntity {
                     line_pattern_scale: 1.,
                     id: 7,
                     layer_id: 1,
@@ -308,9 +315,9 @@ fn fixture_document() -> IfccadDocument {
                             placement: placement.clone(),
                         }
                     },
-                },
+                }),
                 instance(90, 20.0, "#0000ff"),
-                IfccadEntity {
+                IfccadEntity::Native(IfccadNativeEntity {
                     line_pattern_scale: 1.,
                     id: 9,
                     layer_id: 2,
@@ -319,7 +326,7 @@ fn fixture_document() -> IfccadDocument {
                         radius: 3.0,
                         placement: placement.clone(),
                     },
-                },
+                }),
                 instance(91, 40.0, "#ffff00"),
             ],
         },
@@ -329,7 +336,7 @@ fn fixture_document() -> IfccadDocument {
             name: "Marker".into(),
             base_point: [2.0, 0.0, 0.0],
             insertion_unit: "cm".into(),
-            entities: vec![IfccadEntity {
+            entities: vec![IfccadEntity::Native(IfccadNativeEntity {
                 line_pattern_scale: 1.,
                 id: 100,
                 layer_id: 0,
@@ -341,7 +348,7 @@ fn fixture_document() -> IfccadDocument {
                     start: [2.0, 0.0, 0.0],
                     end: [4.0, 0.0, 0.0],
                 },
-            }],
+            })],
         }],
     }
 }
@@ -362,7 +369,7 @@ fn nested_document() -> IfccadDocument {
         base_point: [0.0, 0.0, 0.0],
         insertion_unit: "mm".into(),
         entities: vec![
-            IfccadEntity {
+            IfccadEntity::Native(IfccadNativeEntity {
                 line_pattern_scale: 1.,
                 id: 101,
                 layer_id: 0,
@@ -380,8 +387,8 @@ fn nested_document() -> IfccadDocument {
                         scale: [1.0, 1.0, 1.0],
                     },
                 },
-            },
-            IfccadEntity {
+            }),
+            IfccadEntity::Native(IfccadNativeEntity {
                 line_pattern_scale: 1.,
                 id: 102,
                 layer_id: 1,
@@ -395,11 +402,13 @@ fn nested_document() -> IfccadDocument {
                     start: [0.0, 0.0, 0.0],
                     end: [0.0, 1.0, 0.0],
                 },
-            },
+            }),
         ],
     });
     for entity in &mut document.model.entities {
-        if let IfccadEntityKind::BlockInstance { definition_id, .. } = &mut entity.kind {
+        if let IfccadEntityKind::BlockInstance { definition_id, .. } =
+            &mut entity.as_native_mut().unwrap().kind
+        {
             *definition_id = 2;
         }
     }
@@ -424,7 +433,7 @@ fn nested_blocks_keep_shared_definitions_order_and_stored_appearance() {
         loaded.document().blocks[1]
             .entities
             .iter()
-            .map(|entity| entity.id)
+            .map(|entity| entity.id())
             .collect::<Vec<_>>(),
         vec![101, 102]
     );
@@ -486,9 +495,11 @@ fn nested_blocks_keep_shared_definitions_order_and_stored_appearance() {
 fn nested_block_definition_cycle_is_rejected() {
     let mut document = nested_document();
     let mut back_reference = document.blocks[1].entities[0].clone();
-    back_reference.id = 103;
+    back_reference.as_native_mut().unwrap().id = 103;
     document.id_counters.next_entity_id = 104;
-    if let IfccadEntityKind::BlockInstance { definition_id, .. } = &mut back_reference.kind {
+    if let IfccadEntityKind::BlockInstance { definition_id, .. } =
+        &mut back_reference.as_native_mut().unwrap().kind
+    {
         *definition_id = 2;
     }
     document.blocks[0].entities.push(back_reference);
@@ -559,14 +570,14 @@ fn paper_layouts_accept_distinct_units_and_shared_block_definitions() {
         "in"
     );
     assert_eq!(
-        paper[0].entities.iter().map(|e| e.id).collect::<Vec<_>>(),
+        paper[0].entities.iter().map(|e| e.id()).collect::<Vec<_>>(),
         vec![201, 202]
     );
-    assert_eq!(paper[1].entities[0].id, 203);
+    assert_eq!(paper[1].entities[0].id(), 203);
     let IfccadEntityKind::BlockInstance {
         definition_id,
         transform,
-    } = &paper[0].entities[1].kind
+    } = &paper[0].entities[1].as_native().unwrap().kind
     else {
         panic!("paper block instance")
     };
@@ -907,20 +918,22 @@ fn exploratory_line_count_probe() {
     let mut document = fixture_document();
     document.id_counters.next_entity_id = 1001;
     document.model.entities = (1..=1000)
-        .map(|id| IfccadEntity {
-            line_pattern_scale: 1.,
-            id,
-            layer_id: 1,
-            appearance: IfccadEntityAppearance {
-                color: IfccadMode::ByLayer,
-                opacity: IfccadMode::ByLayer,
-                line_pattern: IfccadMode::ByLayer,
-                line_weight: IfccadMode::ByLayer,
-            },
-            kind: IfccadEntityKind::LineSegment {
-                start: [id as f64, 0.0, 0.0],
-                end: [id as f64, 10.0, 0.0],
-            },
+        .map(|id| {
+            IfccadEntity::Native(IfccadNativeEntity {
+                line_pattern_scale: 1.,
+                id,
+                layer_id: 1,
+                appearance: IfccadEntityAppearance {
+                    color: IfccadMode::ByLayer,
+                    opacity: IfccadMode::ByLayer,
+                    line_pattern: IfccadMode::ByLayer,
+                    line_weight: IfccadMode::ByLayer,
+                },
+                kind: IfccadEntityKind::LineSegment {
+                    start: [id as f64, 0.0, 0.0],
+                    end: [id as f64, 10.0, 0.0],
+                },
+            })
         })
         .collect();
     document.blocks.clear();

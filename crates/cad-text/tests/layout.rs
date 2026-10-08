@@ -37,12 +37,12 @@ fn explicit_static_and_dynamic_column_states_are_not_recomputed() {
     source.column_data.auto_height = false;
     source.column_data.heights = vec![60., 45.];
     assert!(
-        matches!(prepare_mtext_from_cad(&source).unwrap().columns,Some(MTextColumns::DynamicManualHeight{column_heights,..})if column_heights.len()==2)
+        matches!(prepare_mtext_from_cad(&source).unwrap().columns,Some(MTextColumns::DynamicManualHeight{column_heights,..})if column_heights == vec![MTextColumnHeight::Fixed { distance: 60. }, MTextColumnHeight::Auto])
     );
     source.column_data.heights = vec![60., 0.];
     assert!(matches!(
-        prepare_mtext_from_cad(&source),
-        Err(CadTextError::Unsupported(_))
+        prepare_mtext_from_cad(&source).unwrap().columns,
+        Some(MTextColumns::DynamicManualHeight { column_heights, .. }) if column_heights.last() == Some(&MTextColumnHeight::Auto)
     ));
     source.column_data.heights = vec![60.];
     assert!(matches!(

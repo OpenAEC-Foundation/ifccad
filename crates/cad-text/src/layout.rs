@@ -91,14 +91,15 @@ pub(crate) fn columns_to_cad(
         } => {
             c.column_type = 2;
             c.auto_height = false;
+            if !matches!(column_heights.last(), Some(MTextColumnHeight::Auto)) {
+                return Err(CadTextError::Unsupported(
+                    "CAD manual columns require an automatic final column",
+                ));
+            }
             for height in column_heights {
                 match height {
                     MTextColumnHeight::Fixed { distance } => c.heights.push(*distance),
-                    MTextColumnHeight::Auto => {
-                        return Err(CadTextError::Unsupported(
-                            "manual auto-tail sentinel export is not qualified",
-                        ))
-                    }
+                    MTextColumnHeight::Auto => c.heights.push(0.),
                 }
             }
             (
@@ -284,14 +285,17 @@ pub(crate) fn columns_from_cad(
                 ));
             }
             let mut heights = Vec::with_capacity(c.heights.len());
-            for height in &c.heights {
-                if *height == 0. {
-                    return Err(CadTextError::Unsupported(
-                        "manual zero-height sentinel is not qualified",
-                    ));
+            for (i, height) in c.heights.iter().enumerate() {
+                finite(*height)?;
+                // The last manual column takes all remaining content. DWG can
+                // retain a signed cached value where DXF writes a zero sentinel;
+                // neither is an authored fixed cap. See the qualification report.
+                if i + 1 == c.heights.len() {
+                    heights.push(MTextColumnHeight::Auto);
+                } else {
+                    positive(*height)?;
+                    heights.push(MTextColumnHeight::Fixed { distance: *height });
                 }
-                positive(*height)?;
-                heights.push(MTextColumnHeight::Fixed { distance: *height });
             }
             MTextColumns::DynamicManualHeight {
                 column_width: c.width,

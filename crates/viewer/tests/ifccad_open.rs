@@ -47,7 +47,7 @@ fn viewer_selection_preserves_large_native_identities_as_paths() {
         .unwrap()
         .into_document();
     drawing.drawing_id = 9_007_199_254_740_995;
-    drawing.model.entities[0].id = 9_007_199_254_740_993;
+    drawing.model.entities[0].as_native_mut().unwrap().id = 9_007_199_254_740_993;
     drawing.id_counters.next_entity_id = 9_007_199_254_740_994;
     let bytes = encode_ifccad_document(&drawing).unwrap();
     let output = export_drawing_bytes("large.ifcx", bytes.bytes(), "dxf", "AC1032");
@@ -113,8 +113,8 @@ fn conversion_evidence_retains_domains_and_large_ids() {
         load_ifccad_bytes(&serde_json::to_vec(&config).unwrap(), Default::default()).unwrap();
     d.paper_layouts[0].settings = config.document().paper_layouts[0].settings.clone();
     let mut e = d.paper_layouts[0].entities[0].clone();
-    e.id = 9_007_199_254_740_993;
-    e.kind = IfccadEntityKind::PlanarPolyline {
+    e.as_native_mut().unwrap().id = 9_007_199_254_740_993;
+    e.as_native_mut().unwrap().kind = IfccadEntityKind::PlanarPolyline {
         vertices: vec![[1., 0.], [2., 0.]],
         bulges: vec![0., 0.],
         closed: false,
@@ -136,11 +136,15 @@ fn conversion_evidence_retains_domains_and_large_ids() {
     assert_eq!(failed["failure"]["geometry"]["domain"]["kind"], "Drawing");
     assert!(failed["failure"]["geometry"]["reason"].is_string());
     assert!(failed["export"]["download"].is_null());
-    let IfccadEntityKind::PlanarPolyline { placement, .. } = &mut d.model.entities[0].kind else {
+    let IfccadEntityKind::PlanarPolyline { placement, .. } =
+        &mut d.model.entities[0].as_native_mut().unwrap().kind
+    else {
         unreachable!()
     };
     placement.origin = [1000000000000., 0., 0.];
-    if let IfccadEntityKind::PlanarPolyline { vertices, .. } = &mut d.model.entities[0].kind {
+    if let IfccadEntityKind::PlanarPolyline { vertices, .. } =
+        &mut d.model.entities[0].as_native_mut().unwrap().kind
+    {
         vertices[0][0] = 0.0001;
     }
     let bytes = encode_ifccad_document(&d).unwrap();
@@ -180,6 +184,7 @@ fn ifccad_native_download_preserves_large_counter_bytes() {
         .document()
         .clone();
     document.id_counters = IfccadIdCounters {
+        next_preservation_record_id: 1,
         next_entity_id: 9_007_199_254_740_993,
         next_layer_id: 9_223_372_036_854_775_809,
         next_layout_id: u64::MAX,

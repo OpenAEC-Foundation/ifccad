@@ -12,7 +12,7 @@ export function createInspection(result,sourceText=''){
   const graph=p.graph||{},all=graph.data||[];
   for(const item of all){const a=item.attributes||{},role=Object.keys(a).find(k=>k==='ifccad::entity')||Object.keys(a).find(k=>k.startsWith('ifccad::'));
    const payload=role?a[role]:{},geometry=Object.keys(a).find(k=>k.startsWith('ifccad::geom::')&&k!=='ifccad::geom::placement');
-   const type=a['ifccad::blockInstance']?'blockInstance':a['ifccad::viewport']?'viewport':geometry?geometry.split('::').at(-1):role?.split('::').at(-1)||'node';
+   const type=a['ifccad::opaqueEntity']?'opaque':a['ifccad::blockInstance']?'blockInstance':a['ifccad::viewport']?'viewport':geometry?geometry.split('::').at(-1):role?.split('::').at(-1)||'node';
    const title=payload?.name||payload?.kind||item.path.split('/').at(-1),n=put(item.path,title,a,type);n.raw=item;
    nodeRoots.push(n.key);
   }
@@ -21,6 +21,9 @@ export function createInspection(result,sourceText=''){
    for(const [name,target]of ordered){link(key,target,'children.'+name,'child');if(/^\d+$/.test(name)&&(a['ifccad::layout']||a['ifccad::blockDefinition']))nodes.get(key).children.push(target);}
    for(const [name,target]of Object.entries(item.inherits||{}))if(typeof target==='string')link(key,target,'inherits.'+name,'inherits');
    if(a['ifccad::entity']){link(key,a['ifccad::entity'].layer,'ifccad::entity.layer','layer');const pattern=a['ifccad::entity'].appearance?.linePattern;if(pattern?.mode==='Explicit')link(key,pattern.value,'ifccad::entity.appearance.linePattern','pattern');}
+   const opaque=a['ifccad::opaqueEntity'];if(opaque){link(key,opaque.preservationRecord,'ifccad::opaqueEntity.preservationRecord','preservation');link(key,opaque.nativeLayer,'ifccad::opaqueEntity.nativeLayer','layer');const pattern=opaque.nativeAppearance?.appearance?.linePattern;if(pattern?.mode==='Explicit')link(key,pattern.value,'ifccad::opaqueEntity.nativeAppearance.appearance.linePattern','pattern');}
+   const record=a['ifccad::preservationRecord'];if(record){link(key,record.subject?.path,'ifccad::preservationRecord.subject','subject');for(const [i,b]of(record.bindings||[]).entries())link(key,b.target?.path,'ifccad::preservationRecord.bindings.'+i,'binding');for(const [i,c]of(record.conditions||[]).entries())link(key,c.target?.path,'ifccad::preservationRecord.conditions.'+i,'condition');}
+   if(a['ifccad::preservation'])nodes.get(key).children=Object.entries(item.children||{}).sort(([x],[y])=>numeric(x.slice(1),y.slice(1))).map(([,path])=>path);
    link(key,a['ifccad::layer']?.appearance?.linePattern,'ifccad::layer.appearance.linePattern','pattern');
    link(key,a['ifccad::blockInstance']?.definition,'ifccad::blockInstance.definition','definition');
    const v=a['ifccad::viewport'];if(v){link(key,v.model,'ifccad::viewport.model','model');link(key,v.paperClip?.boundary,'ifccad::viewport.paperClip.boundary','clip');for(const target of v.frozenLayers||[])link(key,target,'ifccad::viewport.frozenLayers','layer');}
@@ -28,8 +31,8 @@ export function createInspection(result,sourceText=''){
   }
   const role=r=>all.filter(n=>n.attributes?.['ifccad::'+r]).map(n=>n.path);
   const drawing=role('drawing');roots.push(...drawing);
-  for(const [r,title]of [['layout','layouts'],['layer','layers'],['linePattern','linePatterns'],['blockDefinition','blocks']]){const children=role(r);if(r==='layout')children.sort((a,b)=>(nodes.get(a).values['ifccad::layout'].tabIndex||0)-(nodes.get(b).values['ifccad::layout'].tabIndex||0));if(children.length)roots.push(group(r,title,children));}
-  const known=new Set(['drawing','layout','layer','linePattern','blockDefinition','entity'].flatMap(role));const others=all.filter(n=>!known.has(n.path)).map(n=>n.path);if(others.length)roots.push(group('other','otherNodes',others));
+  for(const [r,title]of [['layout','layouts'],['layer','layers'],['linePattern','linePatterns'],['blockDefinition','blocks'],['preservationRecord','preservation']]){const children=role(r);if(r==='layout')children.sort((a,b)=>(nodes.get(a).values['ifccad::layout'].tabIndex||0)-(nodes.get(b).values['ifccad::layout'].tabIndex||0));if(children.length)roots.push(group(r,title,children));}
+  const known=new Set(['drawing','layout','layer','linePattern','blockDefinition','entity','opaqueEntity','preservation','preservationRecord'].flatMap(role));const others=all.filter(n=>!known.has(n.path)).map(n=>n.path);if(others.length)roots.push(group('other','otherNodes',others));
   for(const name of ['header','imports','schemas']){const n=put('file:'+name,name,graph[name]??source?.[name]??{},'file');roots.push(n.key);nodeRoots.push(n.key);}
  }else{
   const table=(name,domain,title)=>{const children=[];for(const v of p[name]||[]){const n=put(domain+':'+id(v.id??v.scopeId),v.name||id(v.id??v.scopeId),v,name);children.push(n.key);}return children.length?group(name,title,children):null;};

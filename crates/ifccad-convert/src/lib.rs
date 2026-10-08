@@ -24,6 +24,7 @@
 //! let unitless = CadToIfccadOptions {
 //!     geometry_tolerance: IfccadGeometryTolerance::drawing_units(1e-6)?,
 //!     loss_policy: IfccadLossPolicy::Reject,
+//!     ..Default::default()
 //! };
 //! # let _ = (exact, unitless);
 //! # Ok::<(), ifccad_convert::IfccadToleranceError>(())
@@ -65,6 +66,8 @@ pub use geometry_assessment::*;
 mod loss;
 mod mapping;
 mod options;
+mod preservation;
+pub use preservation::*;
 mod outcome;
 mod source;
 mod to_cad;

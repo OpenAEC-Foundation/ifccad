@@ -82,6 +82,15 @@ history becomes CAD's required 2.5 default with a diagnostic. Native formatting
 presence survives native IO; CAD state-machine normalization can change future
 editing dependencies and is not described as exact authored roundtrip.
 
+CAD dynamic manual columns end in an automatic column that takes the remaining
+content. Its stored final height is a cache/sentinel, including negative DWG
+values and zero DXF values; import uses the existing native `Auto` entry rather
+than inventing a fixed height from its magnitude or cached extents. Earlier
+heights retain positive fixed distances. Auto exports as zero. A native fixed
+final cap remains valid native data but cannot be represented by CAD manual
+columns, so CAD export diagnoses and skips that whole text under Allow; Reject
+refuses the loss. See the [qualification and evidence](text/mtext-manual-column-tail.md).
+
 Simple Text/MText pass production native IO and actual DXF/DWG exchange tests.
 Placement/content/style/column/background tests qualify a bounded profile;
 they do not establish a font engine, application rendering, every file version

@@ -35,6 +35,8 @@ impl IfccadDiagnostic {
 /// Conversion failure retaining the core phase and original typed cause.
 #[derive(Debug, thiserror::Error)]
 pub enum IfccadConversionError {
+    #[error(transparent)]
+    SourceSnapshot(#[from] cad_preservation::CadSplineSnapshotError),
     #[error("Paper layout {layout_id} tolerance cannot be resolved: {reason}")]
     PaperTolerance {
         layout_id: u64,

@@ -23,11 +23,11 @@ fn default_allow_keeps_supported_entities_and_reports_skipped_spline() {
     let entities = &out.validated_source().document().model.entities;
     assert_eq!(entities.len(), 2);
     assert_eq!(
-        out.mappings().entities.cad_handle(entities[0].id),
+        out.mappings().entities.cad_handle(entities[0].id()),
         Some(first)
     );
     assert_eq!(
-        out.mappings().entities.cad_handle(entities[1].id),
+        out.mappings().entities.cad_handle(entities[1].id()),
         Some(last)
     );
     assert!(out.mappings().entities.ifccad_id(arc).is_none());
@@ -148,7 +148,9 @@ fn allow_skips_unsupported_source_properties_and_retains_supported_native_placem
             .any(|d| d.code == "entity-skipped" && d.action == IfccadDiagnosticAction::Omitted));
     }
     let mut d = primitives();
-    let IfccadEntityKind::Circle { placement, .. } = &mut d.model.entities[2].kind else {
+    let IfccadEntityKind::Circle { placement, .. } =
+        &mut d.model.entities[2].as_native_mut().unwrap().kind
+    else {
         panic!()
     };
     placement.x_axis = [0., 1., 0.];
@@ -302,7 +304,7 @@ fn source_structure_and_numeric_failures_remain_fatal_under_both_policies() {
             placement,
             vertices,
             ..
-        } = &mut d.model.entities[1].kind
+        } = &mut d.model.entities[1].as_native_mut().unwrap().kind
         else {
             panic!()
         };
@@ -317,7 +319,8 @@ fn source_structure_and_numeric_failures_remain_fatal_under_both_policies() {
         )
         .is_err());
         let mut d = nested([0.; 3]);
-        let IfccadEntityKind::BlockInstance { transform, .. } = &mut d.model.entities[0].kind
+        let IfccadEntityKind::BlockInstance { transform, .. } =
+            &mut d.model.entities[0].as_native_mut().unwrap().kind
         else {
             panic!()
         };
@@ -477,6 +480,8 @@ fn common_metadata_loss_keeps_geometry_and_marks_nested_occurrences() {
         .find(|b| b.name == "Inner")
         .unwrap()
         .entities[0]
+        .as_native()
+        .unwrap()
         .kind
     else {
         panic!()
@@ -486,6 +491,8 @@ fn common_metadata_loss_keeps_geometry_and_marks_nested_occurrences() {
         .find(|b| b.name == "Inner")
         .unwrap()
         .entities[0]
+        .as_native_mut()
+        .unwrap()
         .kind = IfccadEntityKind::Circle {
         radius: 1.,
         placement: IfccadPlacement {
@@ -513,7 +520,7 @@ fn missing_layer_zero_has_loss_evidence_while_paper_geometry_is_retained() {
     d.id_counters.next_layout_id = 9;
     d.layers.retain(|l| l.name != "0");
     let mut e = primitives().model.entities[0].clone();
-    e.id = 45;
+    e.as_native_mut().unwrap().id = 45;
     d.paper_layouts.push(IfccadPaperLayout {
         settings: ocdraw::ifccad::IfccadLayoutSettings {
             media: Some(ocdraw::ifccad::IfccadLayoutMedia {
@@ -575,8 +582,16 @@ fn appearance_quantization_is_stable_through_dxf_readback() {
     let mut d = primitives();
     d.layers[0].appearance.line_weight = 0.1;
     d.layers[0].appearance.opacity = 0.5;
-    d.model.entities[0].appearance.line_weight = IfccadMode::Explicit(0.12);
-    d.model.entities[0].appearance.opacity = IfccadMode::Explicit(0.5);
+    d.model.entities[0]
+        .as_native_mut()
+        .unwrap()
+        .appearance
+        .line_weight = IfccadMode::Explicit(0.12);
+    d.model.entities[0]
+        .as_native_mut()
+        .unwrap()
+        .appearance
+        .opacity = IfccadMode::Explicit(0.5);
     let first = ifccad_source_to_cad_document(&validated(&d), Default::default()).unwrap();
     let expected = from_cad(first.document(), metadata()).unwrap();
     let bytes = opencadcodec::DxfWriter::new(first.document())

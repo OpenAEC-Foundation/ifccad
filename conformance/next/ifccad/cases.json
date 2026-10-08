@@ -118,5 +118,13 @@
   {
     "file": "invalid/invalid-layout-page.ifcx",
     "valid": false
+  },
+  {
+    "file": "valid/opaque-preservation.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid/opaque-missing-record.ifcx",
+    "valid": false
   }
 ]

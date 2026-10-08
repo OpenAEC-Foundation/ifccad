@@ -89,7 +89,11 @@ and unqualified raster CAD output retain explicit restrictions; see
 
 The next IFCCAD slice addresses drawing/workspace state (UCS, model windows,
 paper canvases, grid/snap and active choices) using this established output boundary.
-Other layer/entity/block presentation differences and preservation remain separate.
+Other layer/entity/block presentation differences remain separate. The independent
+opaque SPLINE preservation pilot now uses this output boundary, including exact
+Paper coordinate-meaning predicates, durable IFCX transport and qualified fresh
+CAD restoration. It does not depend on workspace state, add native spline geometry,
+freeze the profile or expand raw/private/shared storage; see [preservation](docs/preservation.md).
 
 ## Later semantic coverage and exchange
 

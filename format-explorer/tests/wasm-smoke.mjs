@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {initSync,open_drawing,convert_cad_to_drawing,convert_cad_to_drawing_with_preservation,export_drawing,open_ifccad,convert_cad_to_ifccad,export_ifccad,export_drawing_with_options,convert_cad_to_drawing_with_options,export_ifccad_with_options,convert_cad_to_ifccad_with_options} from '../wasm-build/browser.js';
+import {initSync,conversion_capabilities,open_drawing,convert_cad_to_drawing,convert_cad_to_drawing_with_preservation,export_drawing,open_ifccad,convert_cad_to_ifccad,export_ifccad,export_drawing_with_options,convert_cad_to_drawing_with_options,export_ifccad_with_options,convert_cad_to_ifccad_with_options} from '../wasm-build/browser.js';
 import {processBrowserRequest} from '../src/browser-worker.mjs';
 
 initSync({module:await readFile(new URL('../wasm-build/browser_bg.wasm',import.meta.url))});
-const wasm={open_drawing,convert_cad_to_drawing,convert_cad_to_drawing_with_preservation,export_drawing,open_ifccad,convert_cad_to_ifccad,export_ifccad,export_drawing_with_options,convert_cad_to_drawing_with_options,export_ifccad_with_options,convert_cad_to_ifccad_with_options};
+const wasm={conversion_capabilities,open_drawing,convert_cad_to_drawing,convert_cad_to_drawing_with_preservation,export_drawing,open_ifccad,convert_cad_to_ifccad,export_ifccad,export_drawing_with_options,convert_cad_to_drawing_with_options,export_ifccad_with_options,convert_cad_to_ifccad_with_options};
 const textBytes=await readFile(new URL('../../examples/ocdraw/text.ocdraw.json',import.meta.url));
 const textSource={kind:'drawing',name:'text.ocdraw.json',files:[{path:'text.ocdraw.json',bytes:Uint8Array.from(textBytes).buffer}]};
 const textOpened=processBrowserRequest(textSource,wasm);
@@ -220,3 +220,21 @@ for(const [fixture,knownMapping] of [['layout-plot-inch',true],['layout-medium-o
  }
 }
 console.log('Browser WASM custom physical tolerance reports per-layout output meaning and refuses missing Paper mapping');
+
+const ifccadSpline={...splineSource,drawingFormat:'ifccad'};
+const ifccadSplineOpened=processBrowserRequest(ifccadSpline,wasm);
+assert.equal(ifccadSplineOpened.failure,null,JSON.stringify(ifccadSplineOpened.failure));
+assert.equal(ifccadSplineOpened.presentation.opaqueEntityCount,1);
+assert.equal(ifccadSplineOpened.conversion.geometryAssessment.complete,false);
+assert.ok(ifccadSplineOpened.conversion.preservation.entries.some(e=>e.result==='capturedTyped'));
+const ifccadSplineSaved=processBrowserRequest({...ifccadSpline,export:{format:'ifccad'}},wasm);
+const savedIfccad={kind:'ifccad',name:'saved.ifcx',files:[{path:'saved.ifcx',bytes:Uint8Array.from(Buffer.from(ifccadSplineSaved.export.download.base64,'base64')).buffer}]};
+assert.equal(processBrowserRequest(savedIfccad,wasm).presentation.opaqueEntityCount,1);
+for(const format of ['dxf','dwg']){
+ const output=processBrowserRequest({...savedIfccad,export:{format,version:'AC1032'}},wasm);
+ assert.equal(output.failure,null,JSON.stringify(output.failure));
+ assert.ok(output.conversion.preservation.entries.some(e=>e.result==='restoredTyped'));
+ assert.equal(output.export.geometryAssessment.complete,false);
+ assert.equal(output.export.fileCheck.opaqueEntityCount,1);
+}
+console.log('Browser WASM IFCCAD opaque spline capture, durable reopen and actual DXF/DWG exchange verified');

@@ -65,7 +65,7 @@ fn within_limit_geometric_rounding_is_accepted_under_semantic_reject() {
         placement,
         vertices,
         ..
-    } = &mut d.model.entities[1].kind
+    } = &mut d.model.entities[1].as_native_mut().unwrap().kind
     else {
         panic!()
     };
@@ -74,6 +74,7 @@ fn within_limit_geometric_rounding_is_accepted_under_semantic_reject() {
     let exact = ifccad_document_to_cad_document(
         &d,
         IfccadToCadOptions {
+            preservation: Default::default(),
             loss_policy: IfccadLossPolicy::Reject,
             geometry_tolerance: IfccadGeometryTolerance::exact(),
         },
@@ -84,6 +85,7 @@ fn within_limit_geometric_rounding_is_accepted_under_semantic_reject() {
     let outcome = ifccad_document_to_cad_document(
         &d,
         IfccadToCadOptions {
+            preservation: Default::default(),
             loss_policy: IfccadLossPolicy::Reject,
             geometry_tolerance: IfccadGeometryTolerance::drawing_units(10.).unwrap(),
         },

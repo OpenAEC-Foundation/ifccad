@@ -31,16 +31,16 @@ fn compare(
 ) {
     for (a, b) in a.iter().zip(b) {
         assert_eq!(
-            cad.mappings().entities.cad_handle(a.id),
-            back.mappings().entities.cad_handle(b.id)
+            cad.mappings().entities.cad_handle(a.id()),
+            back.mappings().entities.cad_handle(b.id())
         );
         assert_appearance_mapping(
-            &a.appearance,
-            &b.appearance,
+            &a.as_native().unwrap().appearance,
+            &b.as_native().unwrap().appearance,
             cad.mappings(),
             back.mappings(),
         );
-        match (&a.kind, &b.kind) {
+        match (&a.as_native().unwrap().kind, &b.as_native().unwrap().kind) {
             (
                 IfccadEntityKind::BlockInstance {
                     definition_id: a,
@@ -65,7 +65,9 @@ fn compare(
 fn tiny_scale_clamping_is_rejected_for_empty_block() {
     let mut d = nested([0.; 3]);
     d.model.entities = vec![instance(1, 4, [0.; 3])];
-    let IfccadEntityKind::BlockInstance { transform, .. } = &mut d.model.entities[0].kind else {
+    let IfccadEntityKind::BlockInstance { transform, .. } =
+        &mut d.model.entities[0].as_native_mut().unwrap().kind
+    else {
         panic!()
     };
     transform.scale[0] = 1e-14;
@@ -205,9 +207,10 @@ fn large_ids_and_renumbered_handles_keep_relations() {
     let entities = &back.validated_source().document().model.entities;
     assert_eq!(entities.len(), 2);
     for e in entities {
-        let h = back.mappings().entities.cad_handle(e.id).unwrap();
+        let h = back.mappings().entities.cad_handle(e.id()).unwrap();
         assert!(h.value() > 9007199254740993);
-        let IfccadEntityKind::BlockInstance { definition_id, .. } = e.kind else {
+        let IfccadEntityKind::BlockInstance { definition_id, .. } = e.as_native().unwrap().kind
+        else {
             panic!()
         };
         assert_eq!(

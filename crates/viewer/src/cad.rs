@@ -59,7 +59,7 @@ pub(crate) fn export(
     name: &str,
     format: &str,
     version: &str,
-    diagnostics: Vec<Value>,
+    mut diagnostics: Vec<Value>,
     check: impl FnOnce(&CadDocument) -> Result<Value, String>,
 ) -> Value {
     output["export"] =
@@ -113,6 +113,8 @@ pub(crate) fn export(
         );
         return output;
     }
+    diagnostics.extend(spline_parameterization_losses(&document, &checked));
+    output["export"]["diagnostics"] = json!(&diagnostics);
     let check = match check(&checked) {
         Ok(v) => v,
         Err(error) => {
@@ -127,4 +129,48 @@ pub(crate) fn export(
         output["export"]["fileCheck"] = check;
     }
     output
+}
+
+// Compare independent outgoing typed parameters with physical reader output.
+// Scope name and spline order locate the curve without comparing CAD handles.
+fn spline_parameterization_losses(expected: &CadDocument, actual: &CadDocument) -> Vec<Value> {
+    use ocdraw_convert::opencadcodec::EntityType;
+    let mut losses = Vec::new();
+    for block in expected.block_records.iter() {
+        let Some(returned) = actual.block_records.get(&block.name) else {
+            continue;
+        };
+        let expected_splines =
+            block
+                .entity_handles
+                .iter()
+                .filter_map(|h| match expected.get_entity(*h) {
+                    Some(EntityType::Spline(s)) => Some(s),
+                    _ => None,
+                });
+        let actual_splines: Vec<_> = returned
+            .entity_handles
+            .iter()
+            .filter_map(|h| match actual.get_entity(*h) {
+                Some(EntityType::Spline(s)) => Some(s),
+                _ => None,
+            })
+            .collect();
+        for (index, source) in expected_splines.enumerate() {
+            let Some(target) = actual_splines.get(index) else {
+                continue;
+            };
+            if source.control_points.is_empty()
+                && !source.fit_points.is_empty()
+                && matches!(source.knot_parameterization, 1 | 2)
+                && target.knot_parameterization == 0
+            {
+                losses.push(json!({"code":"TARGET_CODEC_SPLINE_PARAMETERIZATION_LOSS",
+                    "location":format!("block/{}/splines/{index}",block.name),"phase":"cadExchange","action":"Modified",
+                    "expected":source.knot_parameterization,"actual":target.knot_parameterization,
+                    "message":"The target CAD codec changed spline fit parameterization; the resulting curve may differ. Typed source restoration succeeded before this physical exchange loss."}));
+            }
+        }
+    }
+    losses
 }

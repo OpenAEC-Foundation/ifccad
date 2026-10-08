@@ -47,6 +47,10 @@
                 ]
               },
               "optional": true
+            },
+            "nextPreservationRecordId": {
+              "dataType": "Integer",
+              "optional": true
             }
           }
         }
@@ -1069,6 +1073,370 @@
                   "perSegment",
                   "continuous"
                 ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "ifccad::opaqueEntity": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "preservationRecord": {
+              "dataType": "String"
+            },
+            "visible": {
+              "dataType": "Boolean"
+            },
+            "nativeLayer": {
+              "dataType": "String",
+              "optional": true
+            },
+            "nativeAppearance": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "appearance": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "color": {
+                          "dataType": "Object",
+                          "objectRestrictions": {
+                            "values": {
+                              "mode": {
+                                "dataType": "Enum",
+                                "enumRestrictions": {
+                                  "options": [
+                                    "ByLayer",
+                                    "ByBlock",
+                                    "Explicit"
+                                  ]
+                                }
+                              },
+                              "value": {
+                                "dataType": "String",
+                                "optional": true
+                              }
+                            }
+                          }
+                        },
+                        "opacity": {
+                          "dataType": "Object",
+                          "objectRestrictions": {
+                            "values": {
+                              "mode": {
+                                "dataType": "Enum",
+                                "enumRestrictions": {
+                                  "options": [
+                                    "ByLayer",
+                                    "ByBlock",
+                                    "Explicit"
+                                  ]
+                                }
+                              },
+                              "value": {
+                                "dataType": "Real",
+                                "optional": true
+                              }
+                            }
+                          }
+                        },
+                        "linePattern": {
+                          "dataType": "Object",
+                          "objectRestrictions": {
+                            "values": {
+                              "mode": {
+                                "dataType": "Enum",
+                                "enumRestrictions": {
+                                  "options": [
+                                    "ByLayer",
+                                    "ByBlock",
+                                    "Explicit"
+                                  ]
+                                }
+                              },
+                              "value": {
+                                "dataType": "String",
+                                "optional": true
+                              }
+                            }
+                          }
+                        },
+                        "lineWeight": {
+                          "dataType": "Object",
+                          "objectRestrictions": {
+                            "values": {
+                              "mode": {
+                                "dataType": "Enum",
+                                "enumRestrictions": {
+                                  "options": [
+                                    "ByLayer",
+                                    "ByBlock",
+                                    "Explicit"
+                                  ]
+                                }
+                              },
+                              "value": {
+                                "dataType": "Real",
+                                "optional": true
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "linePatternScale": {
+                    "dataType": "Real"
+                  }
+                }
+              },
+              "optional": true
+            }
+          }
+        }
+      }
+    },
+    "ifccad::preservation": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "version": {
+              "dataType": "Integer"
+            },
+            "sources": {
+              "dataType": "Array",
+              "arrayRestrictions": {
+                "value": {
+                  "dataType": "Object",
+                  "objectRestrictions": {
+                    "values": {
+                      "id": {
+                        "dataType": "String"
+                      },
+                      "provider": {
+                        "dataType": "String"
+                      },
+                      "providerRevision": {
+                        "dataType": "String"
+                      },
+                      "origin": {
+                        "dataType": "Enum",
+                        "enumRestrictions": {
+                          "options": [
+                            "cadDocument",
+                            "dwg",
+                            "dxf"
+                          ]
+                        }
+                      },
+                      "sourceVersion": {
+                        "dataType": "String",
+                        "optional": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ifccad::preservationRecord": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "sourceId": {
+              "dataType": "String"
+            },
+            "sourceKey": {
+              "dataType": "String"
+            },
+            "category": {
+              "dataType": "Enum",
+              "enumRestrictions": {
+                "options": [
+                  "entity",
+                  "object",
+                  "table",
+                  "drawing",
+                  "layout",
+                  "shared"
+                ]
+              }
+            },
+            "role": {
+              "dataType": "Enum",
+              "enumRestrictions": {
+                "options": [
+                  "complete",
+                  "supplement",
+                  "shared"
+                ]
+              }
+            },
+            "representation": {
+              "dataType": "Enum",
+              "enumRestrictions": {
+                "options": [
+                  "codecTyped",
+                  "codecOpaque"
+                ]
+              }
+            },
+            "subject": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "role": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "drawing",
+                        "entity",
+                        "layer",
+                        "linePattern",
+                        "layout",
+                        "blockDefinition",
+                        "record"
+                      ]
+                    }
+                  },
+                  "path": {
+                    "dataType": "String"
+                  }
+                }
+              },
+              "optional": true
+            },
+            "dependencyCoverage": {
+              "dataType": "Enum",
+              "enumRestrictions": {
+                "options": [
+                  "qualified",
+                  "conservative",
+                  "unknown"
+                ]
+              }
+            },
+            "bindings": {
+              "dataType": "Array",
+              "arrayRestrictions": {
+                "value": {
+                  "dataType": "Object",
+                  "objectRestrictions": {
+                    "values": {
+                      "slot": {
+                        "dataType": "String"
+                      },
+                      "sourceKey": {
+                        "dataType": "String"
+                      },
+                      "target": {
+                        "dataType": "Object",
+                        "objectRestrictions": {
+                          "values": {
+                            "role": {
+                              "dataType": "Enum",
+                              "enumRestrictions": {
+                                "options": [
+                                  "drawing",
+                                  "entity",
+                                  "layer",
+                                  "linePattern",
+                                  "layout",
+                                  "blockDefinition",
+                                  "record"
+                                ]
+                              }
+                            },
+                            "path": {
+                              "dataType": "String"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "conditions": {
+              "dataType": "Array",
+              "arrayRestrictions": {
+                "value": {
+                  "dataType": "Object",
+                  "objectRestrictions": {
+                    "values": {
+                      "target": {
+                        "dataType": "Object",
+                        "objectRestrictions": {
+                          "values": {
+                            "role": {
+                              "dataType": "Enum",
+                              "enumRestrictions": {
+                                "options": [
+                                  "drawing",
+                                  "entity",
+                                  "layer",
+                                  "linePattern",
+                                  "layout",
+                                  "blockDefinition",
+                                  "record"
+                                ]
+                              }
+                            },
+                            "path": {
+                              "dataType": "String"
+                            }
+                          }
+                        }
+                      },
+                      "predicate": {
+                        "dataType": "String"
+                      },
+                      "version": {
+                        "dataType": "Integer"
+                      },
+                      "baseline": {
+                        "dataType": "String"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "payload": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "schema": {
+                    "dataType": "String"
+                  },
+                  "version": {
+                    "dataType": "Integer"
+                  },
+                  "kind": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "adapterSnapshot",
+                        "rawDwgRecord",
+                        "rawDxfGroups",
+                        "rawSection"
+                      ]
+                    }
+                  },
+                  "bytes": {
+                    "dataType": "String"
+                  }
+                }
               }
             }
           }

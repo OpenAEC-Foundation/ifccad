@@ -8,11 +8,12 @@ pub enum IfccadIdDomain {
     Layout,
     Block,
     LinePattern,
+    PreservationRecord,
 }
 
-/// Allocation cannot advance the indicated domain without overflowing.
+/// Allocation cannot reserve a valid ID in the indicated domain.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, thiserror::Error)]
-#[error("IFCCAD {domain:?} ID space exhausted")]
+#[error("IFCCAD {domain:?} cannot allocate a valid ID")]
 pub struct IfccadIdAllocationError {
     pub domain: IfccadIdDomain,
 }
@@ -32,6 +33,7 @@ pub struct IfccadIdAllocationError {
 /// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct IfccadIdCounters {
+    pub next_preservation_record_id: u64,
     pub next_entity_id: u64,
     pub next_layer_id: u64,
     pub next_layout_id: u64,
@@ -42,6 +44,7 @@ pub struct IfccadIdCounters {
 impl Default for IfccadIdCounters {
     fn default() -> Self {
         Self {
+            next_preservation_record_id: 1,
             next_entity_id: 1,
             next_layer_id: 1,
             next_layout_id: 1,
@@ -60,6 +63,21 @@ fn allocate(next: &mut u64, domain: IfccadIdDomain) -> Result<u64, IfccadIdAlloc
 }
 
 impl IfccadIdCounters {
+    pub fn allocate_preservation_record_id(
+        &mut self,
+    ) -> Result<super::IfccadPreservationRecordId, IfccadIdAllocationError> {
+        if self.next_preservation_record_id == 0 {
+            return Err(IfccadIdAllocationError {
+                domain: IfccadIdDomain::PreservationRecord,
+            });
+        }
+        allocate(
+            &mut self.next_preservation_record_id,
+            IfccadIdDomain::PreservationRecord,
+        )
+        .map(super::IfccadPreservationRecordId)
+    }
+
     pub fn allocate_entity_id(&mut self) -> Result<u64, IfccadIdAllocationError> {
         allocate(&mut self.next_entity_id, IfccadIdDomain::Entity)
     }
@@ -97,13 +115,21 @@ pub(super) fn validate(document: &super::IfccadDocument) -> Result<(), super::If
                 .flat_map(|layout| &layout.entities),
         )
         .chain(document.blocks.iter().flat_map(|block| &block.entities))
-        .map(|entity| entity.id)
+        .map(|entity| entity.id())
         .max();
     let maximum_layout = std::iter::once(document.model.id)
         .chain(document.paper_layouts.iter().map(|layout| layout.id))
         .max();
     for (field, next, maximum) in [
         ("nextEntityId", ids.next_entity_id, maximum_entity),
+        (
+            "nextPreservationRecordId",
+            ids.next_preservation_record_id,
+            document
+                .preservation
+                .as_ref()
+                .and_then(|p| p.records.iter().map(|r| r.id.0).max()),
+        ),
         (
             "nextLayerId",
             ids.next_layer_id,
@@ -125,6 +151,11 @@ pub(super) fn validate(document: &super::IfccadDocument) -> Result<(), super::If
                 .max(),
         ),
     ] {
+        if next == 0 {
+            return Err(super::IfccadReport::one(format!(
+                "{field} must be positive"
+            )));
+        }
         if let Some(maximum) = maximum.filter(|maximum| next <= *maximum) {
             return Err(super::IfccadReport::one(format!(
                 "/cad/d{} {field} {next} must exceed current ID {maximum}",
@@ -159,6 +190,7 @@ mod tests {
         assert_eq!(
             ids,
             IfccadIdCounters {
+                next_preservation_record_id: 1,
                 next_entity_id: 3,
                 next_layer_id: 2,
                 next_layout_id: 2,
@@ -171,6 +203,7 @@ mod tests {
     #[test]
     fn allocation_preserves_large_values() {
         let mut ids = IfccadIdCounters {
+            next_preservation_record_id: 1,
             next_entity_id: 9_007_199_254_740_993,
             next_line_pattern_id: 9_007_199_254_740_993,
             ..Default::default()
@@ -187,6 +220,7 @@ mod tests {
     #[test]
     fn exhaustion_is_atomic_in_every_domain() {
         for domain in [
+            IfccadIdDomain::PreservationRecord,
             IfccadIdDomain::Entity,
             IfccadIdDomain::Layer,
             IfccadIdDomain::Layout,
@@ -194,6 +228,7 @@ mod tests {
             IfccadIdDomain::LinePattern,
         ] {
             let mut ids = IfccadIdCounters {
+                next_preservation_record_id: u64::MAX - 1,
                 next_entity_id: u64::MAX - 1,
                 next_layer_id: u64::MAX - 1,
                 next_layout_id: u64::MAX - 1,
@@ -201,6 +236,9 @@ mod tests {
                 next_line_pattern_id: u64::MAX - 1,
             };
             let allocate = |ids: &mut IfccadIdCounters| match domain {
+                IfccadIdDomain::PreservationRecord => {
+                    ids.allocate_preservation_record_id().map(|id| id.0)
+                }
                 IfccadIdDomain::Entity => ids.allocate_entity_id(),
                 IfccadIdDomain::Layer => ids.allocate_layer_id(),
                 IfccadIdDomain::Layout => ids.allocate_layout_id(),

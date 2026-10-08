@@ -64,7 +64,7 @@ test('opening another file preserves the active workspace tab',async()=>{
  assert.deepEqual(switched,[]);assert.equal(workspace.state.tab,'conversion');
 });
 
-test('spline preservation is visible only for OCDraw CAD input and is explicitly forwarded',async()=>{
+test('spline preservation is available for either CAD route and is explicitly forwarded',async()=>{
  const elements=new Map(),requests=[];
  const element=id=>{if(!elements.has(id))elements.set(id,{disabled:false,textContent:'',hidden:true,value:'',checked:false});return elements.get(id);};
  const code=(await readFile(new URL('../src/app.mjs',import.meta.url),'utf8')).replace(/^import .*;\r?\n/gm,'');
@@ -76,7 +76,7 @@ test('spline preservation is visible only for OCDraw CAD input and is explicitly
  await element('open').onclick();assert.equal(requests[0].preserveSplines,true);
  assert.match(element('status').textContent,/brongegevens/);
  element('drawing-format').value='ifccad';await element('drawing-format').onchange();
- assert.equal(element('preservation-control').hidden,true);await element('apply-settings').onclick();assert.equal(requests[1].preserveSplines,false);
+ assert.equal(element('preservation-control').hidden,false);await element('apply-settings').onclick();assert.equal(requests[1].preserveSplines,true);
 });
 
 test('a file read failure is visible and cannot export the previously opened drawing',async()=>{

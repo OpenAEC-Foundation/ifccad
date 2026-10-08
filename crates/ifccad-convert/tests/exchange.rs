@@ -66,7 +66,9 @@ fn dxf_degree_radian_rounding_is_an_external_codec_limit() {
     use ocdraw::ifccad::IfccadEntityKind;
     let mut d = nested([0.; 3]);
     let source_rotation = 1.570796326794893_f64;
-    let IfccadEntityKind::BlockInstance { transform, .. } = &mut d.model.entities[0].kind else {
+    let IfccadEntityKind::BlockInstance { transform, .. } =
+        &mut d.model.entities[0].as_native_mut().unwrap().kind
+    else {
         panic!()
     };
     transform.rotation = source_rotation;
@@ -74,7 +76,7 @@ fn dxf_degree_radian_rounding_is_an_external_codec_limit() {
     let h = first
         .mappings()
         .entities
-        .cad_handle(d.model.entities[0].id)
+        .cad_handle(d.model.entities[0].id())
         .unwrap();
     let opencadcodec::EntityType::Insert(i) = first.document().get_entity(h).unwrap() else {
         panic!()
@@ -83,7 +85,10 @@ fn dxf_degree_radian_rounding_is_an_external_codec_limit() {
     let file = exchange(first.document(), false);
     let restored = from_cad(&file, metadata()).unwrap();
     let IfccadEntityKind::BlockInstance { transform, .. } =
-        &restored.validated_source().document().model.entities[0].kind
+        &restored.validated_source().document().model.entities[0]
+            .as_native()
+            .unwrap()
+            .kind
     else {
         panic!()
     };
@@ -108,8 +113,8 @@ fn semantic(d: &ocdraw::ifccad::IfccadDocument) -> serde_json::Value {
         values
             .iter()
             .map(|e| {
-                let layer = &d.layers.iter().find(|l| l.id == e.layer_id).unwrap().name;
-                let geometry = match &e.kind {
+                let layer = &d.layers.iter().find(|l| l.id == e.as_native().unwrap().layer_id).unwrap().name;
+                let geometry = match &e.as_native().unwrap().kind {
                     IfccadEntityKind::Viewport(v) => serde_json::json!(["viewport", v.frame, v.view]),
                     IfccadEntityKind::Point{..} | IfccadEntityKind::Arc{..} | IfccadEntityKind::Ellipse{..} | IfccadEntityKind::EllipseArc{..} | IfccadEntityKind::SpatialPolyline{..} => panic!("unexpected family in this existing primitive exchange fixture"),
                     IfccadEntityKind::LineSegment { start, end } => {
@@ -137,9 +142,9 @@ fn semantic(d: &ocdraw::ifccad::IfccadDocument) -> serde_json::Value {
                         transform
                     ]),
                 };
-                { let mut appearance = serde_json::to_value(&e.appearance).unwrap();
-                  if let IfccadMode::Explicit(id) = e.appearance.line_pattern { appearance["linePattern"]["value"] = serde_json::json!(pattern_name(id)); }
-                  serde_json::json!({"layer":layer,"appearance":appearance,"scale":e.line_pattern_scale,"geometry":geometry}) }
+                { let mut appearance = serde_json::to_value(&e.as_native().unwrap().appearance).unwrap();
+                  if let IfccadMode::Explicit(id) = e.as_native().unwrap().appearance.line_pattern { appearance["linePattern"]["value"] = serde_json::json!(pattern_name(id)); }
+                  serde_json::json!({"layer":layer,"appearance":appearance,"scale":e.as_native().unwrap().line_pattern_scale,"geometry":geometry}) }
             })
             .collect::<Vec<_>>()
     };

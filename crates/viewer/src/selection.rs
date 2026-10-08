@@ -29,14 +29,14 @@ pub(crate) fn ifccad_candidates(
         });
         let Some(layout) = layout else { continue };
         for entity in entities {
-            let Some(handle) = mappings.entities.cad_handle(entity.id) else {
+            let Some(handle) = mappings.entities.cad_handle(entity.id()) else {
                 continue;
             };
             let Some(target) = cad.get_entity(handle) else {
                 continue;
             };
             candidates.push(IfccadSelectionCandidate {
-                path: format!("/cad/d{}/e{}", drawing.drawing_id, entity.id),
+                path: format!("/cad/d{}/e{}", drawing.drawing_id, entity.id()),
                 handle,
                 owner: target.common().owner_handle,
                 kind: std::mem::discriminant(target),

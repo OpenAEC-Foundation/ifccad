@@ -138,7 +138,7 @@ fn every_ifccad_example_uses_compact_ids_and_writer_node_order() {
             .iter()
             .chain(papers.iter().flat_map(|p| &p.entities))
             .chain(d.blocks.iter().flat_map(|b| &b.entities))
-            .map(|e| e.id)
+            .map(|e| e.id())
             .collect();
         assert_eq!(
             ids,

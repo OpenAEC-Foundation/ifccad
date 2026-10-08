@@ -310,10 +310,11 @@ choices are retained when applying settings. Native IFCCAD/OCDraw files retain
 the existing CAD-output selection. Unsupported source versions keep a supported
 output version with an explicit note beside the controls.
 
-The existing OCDraw typed-SPLINE capture checkbox starts enabled and resets to
+The typed-SPLINE capture checkbox applies independently to both native routes,
+starts enabled and resets to
 enabled when a new CAD file is selected. An explicit opt-out before opening is
 honored. This changes the explorer default only; lower-level APIs and CLI defaults,
-the qualified restoration rules and IFCCAD capabilities remain unchanged.
+the qualified restoration rules and each route's capabilities remain unchanged.
 
 | Tolerance choice | Applied meaning |
 | --- | --- |

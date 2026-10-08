@@ -23,6 +23,7 @@ pub fn cad_document_to_encoded_ifccad(
         diagnostics: logical.diagnostics,
         mappings: logical.mappings,
         geometry: logical.geometry,
+        preservation: logical.preservation,
     })
 }
 
@@ -32,11 +33,19 @@ pub fn cad_document_to_ifccad_document(
     metadata: IfccadTargetMetadata,
     options: CadToIfccadOptions,
 ) -> Result<CadToIfccadDocumentOutcome, IfccadConversionError> {
-    let info = crate::source::inspect(source)?;
+    let mut preservation = crate::preservation::Capture {
+        enabled: options.preservation == crate::IfccadPreservationCapture::SupportedTyped,
+        ..Default::default()
+    };
+    let info = crate::source::inspect(source, preservation.enabled)?;
     let mut issues = info.issues;
     let mut ids = IfccadIdCounters::default();
-    let (mut line_patterns, patterns) =
-        crate::mapping::line_pattern::from_cad(source, &mut ids, &mut issues)?;
+    let (mut line_patterns, patterns) = crate::mapping::line_pattern::from_cad(
+        source,
+        preservation.enabled,
+        &mut ids,
+        &mut issues,
+    )?;
     let length_unit = UNIT_TOKENS
         .get(source.header.insertion_units as usize)
         .unwrap_or_else(|| {
@@ -106,9 +115,12 @@ pub fn cad_document_to_ifccad_document(
         paper_metadata.insert(paper.layout_handle, settings);
     }
     let entities = entities::from_cad(
-        source,
-        &patterns,
-        &info.entities,
+        entities::SourceScope {
+            document: source,
+            patterns: &patterns,
+            entities: &info.entities,
+        },
+        &mut preservation,
         &mut ids,
         &mut mappings,
         &mut issues,
@@ -139,9 +151,12 @@ pub fn cad_document_to_ifccad_document(
             base_point: crate::mapping::geometry::p(b.base_point),
             insertion_unit: unit.to_string(),
             entities: entities::from_cad(
-                source,
-                &patterns,
-                &b.entity_handles,
+                entities::SourceScope {
+                    document: source,
+                    patterns: &patterns,
+                    entities: &b.entity_handles,
+                },
+                &mut preservation,
                 &mut ids,
                 &mut mappings,
                 &mut issues,
@@ -167,9 +182,12 @@ pub fn cad_document_to_ifccad_document(
             .expect("prepared Paper metadata");
         geometry.select(crate::IfccadGeometryOwner::PaperLayout(id));
         let entities = entities::from_cad(
-            source,
-            &patterns,
-            &paper.entity_handles,
+            entities::SourceScope {
+                document: source,
+                patterns: &patterns,
+                entities: &paper.entity_handles,
+            },
+            &mut preservation,
             &mut ids,
             &mut mappings,
             &mut issues,
@@ -204,6 +222,7 @@ pub fn cad_document_to_ifccad_document(
         &mut issues,
     );
     let mut drawing = IfccadDocument {
+        preservation: None,
         header: metadata.header,
         drawing_id: metadata.drawing_id,
         id_counters: ids,
@@ -238,6 +257,7 @@ pub fn cad_document_to_ifccad_document(
         paper_layouts,
         blocks,
     };
+    preservation.finish(source, &mut drawing, &mappings)?;
     crate::diagnostics::enforce_policy(options.loss_policy, &issues)?;
     let members = drawing
         .blocks
@@ -247,7 +267,7 @@ pub fn cad_document_to_ifccad_document(
                 mappings.blocks.cad_handle(b.id).unwrap().value(),
                 b.entities
                     .iter()
-                    .filter_map(|e| mappings.entities.cad_handle(e.id).map(|h| h.value()))
+                    .filter_map(|e| mappings.entities.cad_handle(e.id()).map(|h| h.value()))
                     .collect::<Vec<_>>(),
             )
         })
@@ -255,8 +275,11 @@ pub fn cad_document_to_ifccad_document(
     let roots = |entities: &[IfccadEntity]| {
         entities
             .iter()
-            .filter(|e| matches!(e.kind, IfccadEntityKind::BlockInstance { .. }))
-            .map(|e| mappings.entities.cad_handle(e.id).unwrap().value())
+            .filter(|e| {
+                e.as_native()
+                    .is_some_and(|e| matches!(e.kind, IfccadEntityKind::BlockInstance { .. }))
+            })
+            .map(|e| mappings.entities.cad_handle(e.id()).unwrap().value())
             .collect::<Vec<_>>()
     };
     geometry.select(crate::IfccadGeometryOwner::ModelLayout(drawing.model.id));
@@ -274,7 +297,8 @@ pub fn cad_document_to_ifccad_document(
         .map_err(IfccadConversionError::CoreValidation)?;
     validate_ifccad_document(&drawing).map_err(IfccadConversionError::CoreValidation)?;
     Ok(CadToIfccadDocumentOutcome {
-        geometry: geometry.finish(),
+        geometry: geometry.finish().with_unassessed(&drawing),
+        preservation: preservation.report,
         document: drawing,
         diagnostics: issues.into_iter().chain(info.recoveries).collect(),
         mappings,
@@ -292,6 +316,7 @@ mod error_tests {
     #[test]
     fn allocation_exhaustion_retains_domain_and_source() {
         let mut ids = IfccadIdCounters {
+            next_preservation_record_id: 1,
             next_entity_id: u64::MAX,
             next_layer_id: u64::MAX,
             next_layout_id: u64::MAX,

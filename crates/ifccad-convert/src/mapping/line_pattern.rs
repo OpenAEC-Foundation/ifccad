@@ -61,6 +61,7 @@ impl SourcePatterns {
 
 pub(crate) fn from_cad(
     doc: &CadDocument,
+    preserve_splines: bool,
     ids: &mut IfccadIdCounters,
     issues: &mut Vec<IfccadDiagnostic>,
 ) -> Result<(Vec<IfccadLinePattern>, SourcePatterns), IfccadConversionError> {
@@ -170,6 +171,9 @@ pub(crate) fn from_cad(
         }
     }
     for e in doc.entities() {
+        if preserve_splines && matches!(e, opencadcodec::EntityType::Spline(_)) {
+            continue;
+        }
         scale(e.common().linetype_scale)?;
         lookup.resolve(&e.common().linetype, e.common().linetype_handle)?;
     }
@@ -241,10 +245,11 @@ mod error_tests {
     #[test]
     fn pattern_allocation_exhaustion_retains_domain_and_source() {
         let mut ids = IfccadIdCounters {
+            next_preservation_record_id: 1,
             next_line_pattern_id: u64::MAX,
             ..Default::default()
         };
-        let error = from_cad(&CadDocument::new(), &mut ids, &mut Vec::new())
+        let error = from_cad(&CadDocument::new(), false, &mut ids, &mut Vec::new())
             .err()
             .expect("exhausted pattern IDs");
         let IfccadConversionError::IdAllocation(source) = &error else {

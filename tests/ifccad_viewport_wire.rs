@@ -45,7 +45,9 @@ fn payload(v: &mut Value) -> &mut Value {
 fn viewport_payload_roundtrips_through_production_reader() {
     let original = wire();
     let doc = read(&original).unwrap().into_document();
-    let IfccadEntityKind::Viewport(view) = &doc.paper_layouts[0].entities[0].kind else {
+    let IfccadEntityKind::Viewport(view) =
+        &doc.paper_layouts[0].entities[0].as_native().unwrap().kind
+    else {
         panic!()
     };
     assert_eq!(view.view.direction, [0., 0., 100.]);
@@ -54,7 +56,7 @@ fn viewport_payload_roundtrips_through_production_reader() {
         doc.paper_layouts[0]
             .entities
             .iter()
-            .map(|e| e.id)
+            .map(|e| e.id())
             .collect::<Vec<_>>(),
         [1000, 1002]
     );
@@ -143,7 +145,9 @@ fn viewport_composes_as_complete_attribute() {
         .unwrap()
         .push(json!({"path":"/cad/d1/e1000","attributes":{"ifccad::viewport":later}}));
     let doc = read(&v).unwrap().into_document();
-    let IfccadEntityKind::Viewport(view) = &doc.paper_layouts[0].entities[0].kind else {
+    let IfccadEntityKind::Viewport(view) =
+        &doc.paper_layouts[0].entities[0].as_native().unwrap().kind
+    else {
         panic!()
     };
     assert_eq!(view.view.lens_length_mm, None);

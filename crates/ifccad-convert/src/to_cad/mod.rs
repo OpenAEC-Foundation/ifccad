@@ -214,8 +214,9 @@ fn convert_document(
         }))
         .chain(block_owners)
         .collect();
-    entities::to_cad(
+    let preservation = entities::to_cad(
         drawing,
+        options.preservation,
         &mut document,
         &owners,
         &mut mappings,
@@ -229,8 +230,8 @@ fn convert_document(
                 b.id,
                 b.entities
                     .iter()
-                    .filter(|e| mappings.entities.cad_handle(e.id).is_some())
-                    .map(|e| e.id)
+                    .filter(|e| mappings.entities.cad_handle(e.id()).is_some())
+                    .map(|e| e.id())
                     .collect::<Vec<_>>(),
             )
         })
@@ -239,12 +240,14 @@ fn convert_document(
         entities
             .iter()
             .filter(|e| {
-                matches!(
-                    e.kind,
-                    ocdraw::ifccad::IfccadEntityKind::BlockInstance { .. }
-                ) && mappings.entities.cad_handle(e.id).is_some()
+                e.as_native().is_some_and(|e| {
+                    matches!(
+                        e.kind,
+                        ocdraw::ifccad::IfccadEntityKind::BlockInstance { .. }
+                    )
+                }) && mappings.entities.cad_handle(e.id()).is_some()
             })
-            .map(|e| e.id)
+            .map(|e| e.id())
             .collect::<Vec<_>>()
     };
     geometry.select(crate::IfccadGeometryOwner::ModelLayout(drawing.model.id));
@@ -266,7 +269,8 @@ fn convert_document(
         IfccadGeometryDomain::PaperLayout(id) => mappings.layouts.cad_handle(id).is_some(),
     });
     Ok(IfccadToCadOutcome {
-        geometry: assessment,
+        geometry: assessment.with_unassessed(drawing),
+        preservation,
         document,
         diagnostics: issues,
         mappings,

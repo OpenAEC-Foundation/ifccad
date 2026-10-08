@@ -59,8 +59,8 @@ fn new_families_preserve_parameters_in_every_owner() {
     let mut entities = Vec::new();
     for kind in kinds() {
         let mut e = template.clone();
-        e.id = d.id_counters.allocate_entity_id().unwrap();
-        e.kind = kind;
+        e.as_native_mut().unwrap().id = d.id_counters.allocate_entity_id().unwrap();
+        e.as_native_mut().unwrap().kind = kind;
         entities.push(e);
     }
     d.model.entities.extend(entities);
@@ -78,8 +78,8 @@ fn new_families_preserve_parameters_in_every_owner() {
     };
     for kind in kinds() {
         let mut e = template.clone();
-        e.id = d.id_counters.allocate_entity_id().unwrap();
-        e.kind = kind;
+        e.as_native_mut().unwrap().id = d.id_counters.allocate_entity_id().unwrap();
+        e.as_native_mut().unwrap().kind = kind;
         paper.entities.push(e);
     }
     d.paper_layouts.push(paper);
@@ -94,8 +94,8 @@ fn new_families_preserve_parameters_in_every_owner() {
     };
     for kind in kinds() {
         let mut e = template.clone();
-        e.id = d.id_counters.allocate_entity_id().unwrap();
-        e.kind = kind;
+        e.as_native_mut().unwrap().id = d.id_counters.allocate_entity_id().unwrap();
+        e.as_native_mut().unwrap().kind = kind;
         block.entities.push(e);
     }
     d.blocks.push(block);
@@ -108,14 +108,14 @@ fn new_families_preserve_parameters_in_every_owner() {
         .model
         .entities
         .iter()
-        .any(|e| e.id == 9_007_199_254_740_993));
+        .any(|e| e.id() == 9_007_199_254_740_993));
 }
 fn polyline() -> (IfccadDocument, u64) {
     let mut d = base();
     let mut e = d.model.entities[0].clone();
-    e.id = d.id_counters.allocate_entity_id().unwrap();
-    e.kind = kinds().remove(4);
-    let id = e.id;
+    e.as_native_mut().unwrap().id = d.id_counters.allocate_entity_id().unwrap();
+    e.as_native_mut().unwrap().kind = kinds().remove(4);
+    let id = e.id();
     d.model.entities.push(e);
     (d, id)
 }
@@ -133,8 +133,14 @@ fn polyline_wire_defaults_and_dormant_values_are_explicit() {
         node["attributes"]["ifccad::geom::planarPolyline"]["bulges"],
         json!([1., -0.25, 7.])
     );
-    let IfccadEntityKind::PlanarPolyline { bulges, .. } =
-        &mut d.model.entities.last_mut().unwrap().kind
+    let IfccadEntityKind::PlanarPolyline { bulges, .. } = &mut d
+        .model
+        .entities
+        .last_mut()
+        .unwrap()
+        .as_native_mut()
+        .unwrap()
+        .kind
     else {
         panic!()
     };
@@ -160,8 +166,14 @@ fn polyline_wire_defaults_and_dormant_values_are_explicit() {
 fn malformed_curve_payloads_fail_both_authored_and_wire_validation() {
     let (mut d, id) = polyline();
     let good = encode_ifccad_document(&d).unwrap();
-    let IfccadEntityKind::PlanarPolyline { bulges, .. } =
-        &mut d.model.entities.last_mut().unwrap().kind
+    let IfccadEntityKind::PlanarPolyline { bulges, .. } = &mut d
+        .model
+        .entities
+        .last_mut()
+        .unwrap()
+        .as_native_mut()
+        .unwrap()
+        .kind
     else {
         panic!()
     };
@@ -184,7 +196,7 @@ fn malformed_curve_payloads_fail_both_authored_and_wire_validation() {
 fn arc_ranges_and_unknown_core_fields_are_rejected() {
     let mut d = base();
     for sweep in [0., std::f64::consts::TAU, -std::f64::consts::TAU, f64::NAN] {
-        d.model.entities[0].kind = IfccadEntityKind::Arc {
+        d.model.entities[0].as_native_mut().unwrap().kind = IfccadEntityKind::Arc {
             radius: 1.,
             start_parameter: 0.,
             sweep_parameter: sweep,
@@ -192,14 +204,15 @@ fn arc_ranges_and_unknown_core_fields_are_rejected() {
         };
         assert!(validate_ifccad_document(&d).is_err());
     }
-    d.model.entities[0].kind = IfccadEntityKind::Point { placement: frame() };
+    d.model.entities[0].as_native_mut().unwrap().kind =
+        IfccadEntityKind::Point { placement: frame() };
     let mut raw: Value =
         serde_json::from_slice(encode_ifccad_document(&d).unwrap().bytes()).unwrap();
     let node = raw["data"]
         .as_array_mut()
         .unwrap()
         .iter_mut()
-        .find(|n| n["path"] == format!("/cad/d{}/e{}", d.drawing_id, d.model.entities[0].id))
+        .find(|n| n["path"] == format!("/cad/d{}/e{}", d.drawing_id, d.model.entities[0].id()))
         .unwrap();
     node["attributes"]["ifccad::geom::point"]["position"] = json!([1, 2, 3]);
     assert!(load_ifccad_bytes(&serde_json::to_vec(&raw).unwrap(), Default::default()).is_err());

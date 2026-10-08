@@ -42,3 +42,11 @@ test('CAD can roundtrip via IFCCAD without an OCDraw intermediate',()=>{
  const result=processBrowserRequest({...request,export:{format:'dxf'}},wasm);
  assert.equal(new TextDecoder().decode(received[1]),'{}');assert.deepEqual(result.conversion.diagnostics,['ifcx-loss']);
 });
+
+test('IFCCAD spline capture forwards the option and requires an advertised capable processor',()=>{
+ let selected;
+ const wasm={conversion_capabilities(){return JSON.stringify({ifccad:{adjustableTolerance:true,splinePreservation:true}});},convert_cad_to_ifccad_with_options(name,format,input,time,text){selected=JSON.parse(text);return JSON.stringify({validation:{strictAvailable:true},presentation:{format:'ifccad',opaqueEntityCount:1},conversion:{preservation:{entries:[{result:'capturedTyped'}]}}});},convert_cad_to_ifccad(){return JSON.stringify({validation:{strictAvailable:true},presentation:{opaqueEntityCount:0}});}};
+ const request={kind:'cad',drawingFormat:'ifccad',name:'a.dwg',preserveSplines:true,files:[{path:'a.dwg',bytes}]};
+ const result=processBrowserRequest(request,wasm);assert.equal(selected.preserveSplines,true);assert.equal(result.presentation.opaqueEntityCount,1);
+ assert.throws(()=>processBrowserRequest(request,{...wasm,conversion_capabilities(){return JSON.stringify({ifccad:{adjustableTolerance:true}});}}),/preservation|processor/i);
+});

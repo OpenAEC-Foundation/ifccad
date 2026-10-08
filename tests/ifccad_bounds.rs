@@ -31,7 +31,7 @@ fn recomputation_is_atomic_and_keeps_identity() {
     recompute_ifccad_document_bounds(&mut d).unwrap();
     assert!(d.model.bounds.is_some());
     assert_eq!(d.id_counters, ids);
-    d.model.entities[0].kind = IfccadEntityKind::Circle {
+    d.model.entities[0].as_native_mut().unwrap().kind = IfccadEntityKind::Circle {
         radius: f64::MAX,
         placement: IfccadPlacement {
             origin: [f64::MAX, 0., 0.],
@@ -50,8 +50,8 @@ fn separate_layout_and_block_ids_do_not_alias_during_preparation() {
     d.model.entities.clear();
     d.blocks.clear();
     let mut leaf = template.clone();
-    leaf.id = d.id_counters.allocate_entity_id().unwrap();
-    leaf.kind = IfccadEntityKind::LineSegment {
+    leaf.as_native_mut().unwrap().id = d.id_counters.allocate_entity_id().unwrap();
+    leaf.as_native_mut().unwrap().kind = IfccadEntityKind::LineSegment {
         start: [4., 0., 0.],
         end: [6., 0., 0.],
     };
@@ -66,8 +66,8 @@ fn separate_layout_and_block_ids_do_not_alias_during_preparation() {
         entities: vec![leaf],
     });
     let mut instance = template;
-    instance.id = d.id_counters.allocate_entity_id().unwrap();
-    instance.kind = IfccadEntityKind::BlockInstance {
+    instance.as_native_mut().unwrap().id = d.id_counters.allocate_entity_id().unwrap();
+    instance.as_native_mut().unwrap().kind = IfccadEntityKind::BlockInstance {
         definition_id: block_id,
         transform: IfccadBlockTransform {
             placement: IfccadPlacement {
@@ -95,7 +95,7 @@ fn bounds_cover_curve_interiors_and_exclude_dormant_bulges() {
     let mut e = d.model.entities[0].clone();
     d.blocks.clear();
     d.model.entities.clear();
-    e.kind = IfccadEntityKind::Arc {
+    e.as_native_mut().unwrap().kind = IfccadEntityKind::Arc {
         radius: 2.,
         start_parameter: 0.,
         sweep_parameter: std::f64::consts::PI,
@@ -110,7 +110,7 @@ fn bounds_cover_curve_interiors_and_exclude_dormant_bulges() {
     let bounds = d.model.bounds.unwrap();
     assert!(bounds.max[1] >= 2.);
     assert!(bounds.min[0] <= -2. && bounds.max[0] >= 2.);
-    d.model.entities[0].kind = IfccadEntityKind::PlanarPolyline {
+    d.model.entities[0].as_native_mut().unwrap().kind = IfccadEntityKind::PlanarPolyline {
         vertices: vec![[0., 0.], [2., 0.]],
         bulges: vec![0., 100.],
         closed: false,
@@ -167,7 +167,7 @@ fn paper_bounds_use_coordinates_and_include_hidden_viewport_frames() {
         height: 1000.,
     });
     for e in &mut d.paper_layouts[0].entities {
-        if let IfccadEntityKind::Viewport(v) = &mut e.kind {
+        if let IfccadEntityKind::Viewport(v) = &mut e.as_native_mut().unwrap().kind {
             v.visible = false;
             v.view.target = [1e20, 2e20, 3e20];
         }
@@ -176,7 +176,7 @@ fn paper_bounds_use_coordinates_and_include_hidden_viewport_frames() {
     assert_eq!(d.paper_layouts[0].bounds, before);
     let bounds = d.paper_layouts[0].bounds.unwrap();
     for e in &d.paper_layouts[0].entities {
-        if let IfccadEntityKind::Viewport(v) = &e.kind {
+        if let IfccadEntityKind::Viewport(v) = &e.as_native().unwrap().kind {
             assert!(bounds.min[0] <= v.frame.center[0] - v.frame.width / 2.);
             assert!(bounds.max[1] >= v.frame.center[1] + v.frame.height / 2.);
             assert!(bounds.min[2] <= 0. && bounds.max[2] >= 0.);

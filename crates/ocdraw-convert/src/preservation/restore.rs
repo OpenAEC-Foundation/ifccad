@@ -34,10 +34,10 @@ pub(crate) fn restore_spline(
         OcdrawSplineSnapshotError::UnsupportedRevision => UnsupportedPayload,
         _ => MalformedPayload,
     })?;
-    if snapshot.codec_revision != source.provider_revision {
+    if snapshot.codec_revision() != source.provider_revision {
         return Err(MalformedPayload);
     }
-    if record.source_key != format!("{:x}", snapshot.source_handle.0) {
+    if record.source_key != format!("{:x}", snapshot.source_handle()) {
         return Err(MalformedPayload);
     }
     let spline = snapshot.to_source();

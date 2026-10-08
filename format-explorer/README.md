@@ -145,9 +145,10 @@ converter and pinned Open CAD Studio caches remain independent.
 Tests: `npm test`. File and CAD accuracy checks use the production Rust
 reader/converter; the browser worker transport is tested independently.
 
-For a DXF/DWG input on the OCDraw route, **Spline-brongegevens bewaren** explicitly
-controls typed spline preservation. It is on by default for a newly selected CAD
-file and can be switched off before opening; it is not an IFCCAD option.
+For a DXF/DWG input on either native route, **Spline-brongegevens bewaren** explicitly
+controls that route's independent typed spline preservation. It is on by default
+for a newly selected CAD file and can be switched off before opening. IFCCAD uses
+its opaque entity and preservation records; OCDraw keeps its existing route.
 Every interpreted spline variant can be stored; this does not add native
 spline geometry or certified bounds. Capture, unavailable native geometry and
 qualified restoration are reported separately. Current native layer/appearance/
@@ -156,7 +157,8 @@ stored without safe restoration. Native save/open preserves those bytes.
 
 The CLI equivalent is `viewer cad FILE --preserve-splines` or
 `viewer export-cad FILE FORMAT [VERSION] --preserve-splines`. Rust callers select
-`OcdrawPreservationCapture::SupportedTyped`; existing entry points remain disabled
+`OcdrawPreservationCapture::SupportedTyped` or `IfccadPreservationCapture::SupportedTyped`;
+existing entry points remain disabled
 wrappers. Actual DXF/AC1032 DWG readback and the WASM smoke fixture cover the bounded
 pilot; neither snapshots nor a successful native readback prove whole-file fidelity.
 

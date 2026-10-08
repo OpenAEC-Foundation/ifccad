@@ -54,9 +54,14 @@ fn verify_readback(bytes: &[u8], document: &IfccadDocument) -> Result<(), Ifccad
         )
         .chain(expected.blocks.iter_mut().flat_map(|b| &mut b.entities))
     {
-        if let IfccadEntityKind::Viewport(v) = &mut entity.kind {
-            v.frozen_layers.sort_unstable();
+        if let Some(entity) = entity.as_native_mut() {
+            if let IfccadEntityKind::Viewport(v) = &mut entity.kind {
+                v.frozen_layers.sort_unstable();
+            }
         }
+    }
+    if let Some(p) = &mut expected.preservation {
+        p.records.sort_by_key(|r| r.id.0);
     }
     expected.layers.sort_by_key(|layer| layer.id.to_string());
     expected.blocks.sort_by_key(|block| block.id.to_string());

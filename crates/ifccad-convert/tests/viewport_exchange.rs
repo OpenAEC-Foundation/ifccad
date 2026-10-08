@@ -64,9 +64,10 @@ fn multiple_paper_viewports_exchange_in_memory_dxf_dwg() {
         plot.plot_unit = ocdraw::plot_kernel::PlotUnit::Inch;
     }
     for e in &mut second.entities {
-        e.id += 1000;
+        e.as_native_mut().unwrap().id += 1000;
     }
-    let IfccadEntityKind::Viewport(v) = &mut second.entities[1].kind else {
+    let IfccadEntityKind::Viewport(v) = &mut second.entities[1].as_native_mut().unwrap().kind
+    else {
         panic!()
     };
     v.paper_clip.boundary_entity_id = Some(2002);
@@ -84,7 +85,7 @@ fn multiple_paper_viewports_exchange_in_memory_dxf_dwg() {
     v.view_enabled = true;
     v.view_locked = false;
     v.render_mode = IfccadViewportRenderMode::FlatShadedWithEdges;
-    second.entities[2].kind = {
+    second.entities[2].as_native_mut().unwrap().kind = {
         let vertices: Vec<[f64; 2]> = vec![[20., 25.], [180., 25.], [180., 125.], [20., 125.]];
         IfccadEntityKind::PlanarPolyline {
             bulges: vec![0.; vertices.len()],
@@ -145,10 +146,12 @@ fn multiple_paper_viewports_exchange_in_memory_dxf_dwg() {
             if actual.entities.is_empty() {
                 continue;
             }
-            let IfccadEntityKind::Viewport(ev) = &expected.entities[1].kind else {
+            let IfccadEntityKind::Viewport(ev) = &expected.entities[1].as_native().unwrap().kind
+            else {
                 panic!()
             };
-            let IfccadEntityKind::Viewport(av) = &actual.entities[1].kind else {
+            let IfccadEntityKind::Viewport(av) = &actual.entities[1].as_native().unwrap().kind
+            else {
                 panic!()
             };
             assert_eq!(ev.frame, av.frame);
@@ -160,10 +163,13 @@ fn multiple_paper_viewports_exchange_in_memory_dxf_dwg() {
             );
             assert_eq!(
                 av.paper_clip.boundary_entity_id,
-                Some(actual.entities[2].id)
+                Some(actual.entities[2].id())
             );
             assert_eq!(av.model_id, out.model.id);
-            assert_eq!(expected.entities[2].kind, actual.entities[2].kind);
+            assert_eq!(
+                expected.entities[2].as_native().unwrap().kind,
+                actual.entities[2].as_native().unwrap().kind
+            );
             let names = |d: &IfccadDocument, ids: &[u64]| {
                 ids.iter()
                     .map(|id| d.layers.iter().find(|l| l.id == *id).unwrap().name.clone())

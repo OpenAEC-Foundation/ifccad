@@ -40,7 +40,7 @@ fn cad_families_map_to_independent_native_kinds_and_prepare_bounds() {
     assert!(d.model.bounds.is_some());
     for family in 0..5 {
         assert!(d.model.entities.iter().any(|e| matches!(
-            (&e.kind, family),
+            (&e.as_native().unwrap().kind, family),
             (IfccadEntityKind::Point { .. }, 0)
                 | (IfccadEntityKind::Arc { .. }, 1)
                 | (IfccadEntityKind::Ellipse { .. }, 2)

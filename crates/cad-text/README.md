@@ -77,7 +77,11 @@ discarding this evidence does not produce a lossless conversion.
 - Font delimiter escapes, inline combined/big-font requests and style font-face
   flags absent from the pinned public table type remain explicit restrictions.
 - Dynamic auto-height count cannot be recovered from cached extents. Manual
-  count/list mismatch is invalid; zero-height sentinel/auto-tail remains unqualified.
+  count/list mismatch is invalid. The last manual column is automatic: its
+  finite stored height is ignored, including zero DXF sentinels and negative
+  DWG cache values. Earlier heights remain positive fixed distances. Native
+  Auto tails export as zero; a native fixed final cap is unsupported in CAD.
+  See the [source qualification](../../docs/text/mtext-manual-column-tail.md).
 - Column reference width must agree with the supported derived-total profile.
 - Background transparency packing is not yet qualified; non-opaque fill is
   restricted. Default-opacity explicit/canvas fill and frame-only are distinct.

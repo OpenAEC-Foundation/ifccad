@@ -162,7 +162,7 @@ pub(crate) fn to_cad(doc: &ocdraw::ifccad::IfccadDocument, issues: &mut Vec<Ifcc
             entities: b
                 .entities
                 .iter()
-                .map(|e| format!("entity/{}", e.id))
+                .map(|e| format!("entity/{}", e.id()))
                 .collect(),
         })
         .collect();
@@ -179,7 +179,10 @@ pub(crate) fn to_cad(doc: &ocdraw::ifccad::IfccadDocument, issues: &mut Vec<Ifcc
                 .map(|b| (Some(b.id), b.entities.as_slice())),
         )
     {
-        for e in entities {
+        for e in entities
+            .iter()
+            .filter_map(ocdraw::ifccad::IfccadEntity::as_native)
+        {
             if let ocdraw::ifccad::IfccadEntityKind::BlockInstance { definition_id, .. } = e.kind {
                 instances.push(Instance {
                     owner,

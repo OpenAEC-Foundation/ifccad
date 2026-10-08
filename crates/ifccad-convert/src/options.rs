@@ -9,6 +9,7 @@ pub enum IfccadLossPolicy {
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct CadToIfccadOptions {
+    pub preservation: IfccadPreservationCapture,
     pub loss_policy: IfccadLossPolicy,
     pub geometry_tolerance: crate::IfccadGeometryTolerance,
 }
@@ -16,6 +17,7 @@ pub struct CadToIfccadOptions {
 /// Loss acceptance for conversion from an IFCCAD source or document.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct IfccadToCadOptions {
+    pub preservation: IfccadPreservationRestore,
     pub loss_policy: IfccadLossPolicy,
     pub geometry_tolerance: crate::IfccadGeometryTolerance,
 }
@@ -27,3 +29,18 @@ pub struct IfccadTargetMetadata {
 }
 
 use ocdraw::ifccad::IfccadHeader;
+
+/// Capture is explicitly enabled by callers; native conversion defaults stay unchanged.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum IfccadPreservationCapture {
+    #[default]
+    Disabled,
+    SupportedTyped,
+}
+/// Evaluate stored conditions for every fresh export, or explicitly omit opaque contents.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum IfccadPreservationRestore {
+    #[default]
+    RestoreSupported,
+    Skip,
+}

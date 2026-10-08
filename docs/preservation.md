@@ -1,6 +1,6 @@
 # Preservation direction
 
-Status: first OCDraw typed-spline slice implemented in the provisional 0.1.0 contract, 2026-10-06. Broader providers and IFCCAD adaptation remain follow-up designs; this does not publish or freeze the supported contract. ROADMAP remains authoritative; active schemas and tests remain the source of truth for existing behavior.
+Status: typed-spline pilots implemented separately for OCDraw and IFCCAD in their provisional 0.1.0 contracts. Broader providers remain follow-up designs; this does not publish or freeze the supported contract. ROADMAP remains authoritative; active schemas and tests remain the source of truth for existing behavior.
 
 ## Purpose and boundaries
 
@@ -30,7 +30,7 @@ Opaque geometry makes complete bounds unavailable, including through nested bloc
 
 ## First slice and follow-up
 
-The first implemented slice is OCDraw only: snapshot every available CadDocument Spline variant in ModelSpace, PaperSpace and supported local block definitions. No degree, knot, weight, flag or control/fit-point profile filters capture. Preserve all source parameters/common data, expose known common properties natively and retain mixed source order. There is no native spline evaluator, bounds calculation or geometry editing operation.
+The initial OCDraw slice and independent IFCCAD adaptation: snapshot every available CadDocument Spline variant in ModelSpace, PaperSpace and supported local block definitions. No degree, knot, weight, flag or control/fit-point profile filters capture. Preserve all source parameters/common data, expose known common properties natively and retain mixed source order. There is no native spline evaluator, bounds calculation or geometry editing operation.
 
 Capture is opt-in and separate from restoration qualification. Ownership/coordinate context and any residual references must be safely reconstructed for export; unresolved attached objects or raw context may prevent restoration while the full available spline snapshot remains stored. Current native layer/appearance/visibility and line-pattern changes are authoritative, so ordinary layer/default/pattern edits do not automatically invalidate spline parameters. Opaque extra data can have stricter qualified reuse rules.
 
@@ -77,3 +77,57 @@ The inspector's Spline-brongegevens bewaren option applies only to the OCDraw
 CAD route. It reports opaque counts, source provenance, unavailable bounds and
 separate capture/restoration evidence. The CLI supports --preserve-splines for
 cad/export-cad. Native opening and IFCCAD conversion do not require this option.
+## Independent IFCCAD mapping
+
+IFCCAD owns its envelopes, paths, validation and restore predicates. Its ordered
+owner vectors contain `IfccadEntity::Native(IfccadNativeEntity)` or
+`IfccadEntity::Opaque(IfccadOpaqueEntity)`. Strong required native properties stay
+on the native variant. Opaque layer and the complete appearance/scale bundle
+are optional; visibility remains independently editable. No geometry/default
+layer/appearance is invented. The codec-only `cad-preservation` companion shares
+only the audited opencadcodec byte DTO with both converters. Existing spline
+payload v2/current 063c106 and v1/legacy fe69506 bytes remain compatible.
+
+The IFCX mapping uses `ifccad::opaqueEntity`, `ifccad::preservation` and
+`ifccad::preservationRecord`; see the active IFCCAD experimental contract.
+The record watermark lives in `IfccadIdCounters`, independently of entity IDs.
+Unknown provider bytes and soft missing/cyclic dependencies remain transportable.
+Complete live records match their opaque subjects; detached archives have no
+export obligation. The original IFCX graph stays immutable, and graph-aware CAD
+conversion still diagnoses independent foreign information.
+
+IFCCAD predicate version 1 names are `openaec.ifccad.splineEntityBinding`,
+`openaec.ifccad.splineCoordinateContext` and
+`openaec.ifccad.sourceReferenceBinding`. Entity baselines retain the complete
+record and owner paths. Model/block meaning uses the drawing unit; blocks also
+check insertion unit. Paper meaning is the exact reduced rational metres per
+coordinate from effective plot mapping. Unknown is explicit. Equivalent mappings
+remain eligible, changed meaning refuses, and reverting restores eligibility.
+Renames, draw-order edits, block base/instance transforms and common-property
+edits do not refresh baselines. Bounds distinguish Empty/Complete/Unavailable;
+opaque-only children never use the empty-block origin fallback. Dormant same-owner
+exclusive opaque clips are legal; active opaque clip boundaries are rejected.
+
+Known source references bind through actual allocated CAD targets, including
+forward typed XDATA handles. Inherited ByLayer/ByBlock handles use Drawing-role
+bindings with provider source keys `byLayer:<hex>`/`byBlock:<hex>`; this avoids
+inventing ordinary native pattern IDs for codec scaffold tables. Unresolved or
+changed required bindings and unsupported attached/raw/application context refuse
+restoration while keeping source bytes. No provider registry, generic SCC restore,
+raw source record replay or native spline evaluator is added.
+
+Library capture defaults to Disabled; RestoreSupported is the export default,
+with explicit Skip and located loss under Allow/Reject. The explorer forwards its
+existing CAD-input preservation choice through either route. Its inspector shows
+opaque records and separately captured/restored evidence, plus unassessed geometry.
+CLI CAD-input commands accept `--drawing-format ifccad|ocdraw` and
+`--preserve-splines`; default remains OCDraw. Native input follows its extension.
+
+On this pin, Uniform/SquareRoot fit-only parameterization survives snapshot storage
+and typed restoration, and the qualified DWG chain retains it. Current DXF physical
+readback returns Chord (0). Both routes report the separately located
+`TARGET_CODEC_SPLINE_PARAMETERIZATION_LOSS`; successful typed restoration does not
+qualify that curve's DXF geometry. The codec pin, local patches and viewer codec are
+unchanged by this pilot; [codec PR #99](https://github.com/HakanSeven12/opencadcodec/pull/99)
+is a separate adoption step. Bounds/numeric evidence remain incomplete for opaque
+geometry even when its parameters restore.

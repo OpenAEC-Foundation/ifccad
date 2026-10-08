@@ -54,7 +54,7 @@ fn expanded_boundaries_survive_production_native_readback() {
             .iter_mut()
             .flat_map(|p| &mut p.entities)
             .find_map(|e| {
-                if let IfccadEntityKind::Viewport(v) = &mut e.kind {
+                if let IfccadEntityKind::Viewport(v) = &mut e.as_native_mut().unwrap().kind {
                     v.paper_clip.enabled = active;
                     v.frame = frame();
                     v.paper_clip.boundary_entity_id
@@ -67,9 +67,9 @@ fn expanded_boundaries_survive_production_native_readback() {
             .paper_layouts
             .iter_mut()
             .flat_map(|p| &mut p.entities)
-            .find(|e| e.id == boundary_id)
+            .find(|e| e.id() == boundary_id)
             .unwrap();
-        boundary.kind = IfccadEntityKind::Ellipse {
+        boundary.as_native_mut().unwrap().kind = IfccadEntityKind::Ellipse {
             semi_major_radius: 3.,
             semi_minor_radius: 2.,
             placement: placement(),
@@ -97,7 +97,7 @@ fn dormant_ineligible_shapes_and_forward_references_keep_identity() {
         .entities
         .iter_mut()
         .find_map(|e| {
-            if let IfccadEntityKind::Viewport(v) = &mut e.kind {
+            if let IfccadEntityKind::Viewport(v) = &mut e.as_native_mut().unwrap().kind {
                 v.paper_clip.enabled = false;
                 v.paper_clip.boundary_entity_id
             } else {
@@ -108,10 +108,10 @@ fn dormant_ineligible_shapes_and_forward_references_keep_identity() {
     let i = d.paper_layouts[0]
         .entities
         .iter()
-        .position(|e| e.id == boundary_id)
+        .position(|e| e.id() == boundary_id)
         .unwrap();
     let mut boundary = d.paper_layouts[0].entities.remove(i);
-    boundary.kind = IfccadEntityKind::SpatialPolyline {
+    boundary.as_native_mut().unwrap().kind = IfccadEntityKind::SpatialPolyline {
         vertices: vec![[0., 0., 2.], [1., 2., 3.]],
         closed: false,
         line_pattern_generation: IfccadLinePatternGeneration::PerSegment,
@@ -126,7 +126,7 @@ fn dormant_ineligible_shapes_and_forward_references_keep_identity() {
         &d
     );
     for e in &mut d.paper_layouts[0].entities {
-        if let IfccadEntityKind::Viewport(v) = &mut e.kind {
+        if let IfccadEntityKind::Viewport(v) = &mut e.as_native_mut().unwrap().kind {
             if v.paper_clip.boundary_entity_id == Some(boundary_id) {
                 v.paper_clip.enabled = true;
             }

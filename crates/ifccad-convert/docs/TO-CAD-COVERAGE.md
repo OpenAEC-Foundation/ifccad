@@ -201,3 +201,30 @@ layer references. Canonical one-byte-per-INSERT count framing is derived;
 unfamiliar/mismatched count storage retains loss evidence. Additional table,
 associative/count and solid-history data remain at the existing unsupported
 family boundaries. No benchmark evidence is extended by this update.
+
+## Bounded opaque SPLINE preservation
+
+An independent opt-in IFCCAD typed-spline pilot now captures all public Spline
+variants/common fields before native geometry admission. Core transport has its
+own envelopes/opaque sum type and strict IFCX storage; only the audited codec byte
+DTO is shared through cad-preservation. Native common availability is exact and
+optional. Capture defaults Disabled; RestoreSupported defaults on export, while
+Skip diagnoses omitted live content. Source ownership conflicts remain fatal;
+unsupported valid owners may retain detached archives with independent placement loss.
+Native fields remain authoritative; original baselines are never refreshed.
+
+Restore checks actual mandatory predicates, provider/payload versions, source/body
+identity and required constructed references, including forward typed XDATA.
+Model/block units and block insertion unit are guarded; Paper mapping uses exact
+reduced rational physical meaning, with explicit Unknown. Unsupported attached/raw
+context stays stored and is not replayed. Numeric evidence remains unassessed for
+opaque curves and occurrences, and complete bounds are absent. Source IFCX foreign
+content still receives graph-aware loss; no writeback is added.
+
+Production save/reopen and native editing are tested, including actual DXF and
+AC1032 DWG plus filesystem close/reopen. Literal source/control-point assertions
+are independent of the direct codec chain. On 063c106, fit-only parameterization
+1/2 restores exactly in typed CAD and DWG, but DXF readback returns 0; application
+physical readback reports TARGET_CODEC_SPLINE_PARAMETERIZATION_LOSS separately.
+No #99 local repair, new pin, viewer update or raw_record replay is applied.
+See the active experimental contract and docs/preservation.md for the full boundary.

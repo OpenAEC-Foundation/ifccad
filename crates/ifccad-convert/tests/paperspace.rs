@@ -110,16 +110,16 @@ fn cad_import_retains_multiple_empty_and_populated_paper_layouts() {
                 paper
                     .entities
                     .iter()
-                    .map(|e| result.mappings().entities.cad_handle(e.id).unwrap())
+                    .map(|e| result.mappings().entities.cad_handle(e.id()).unwrap())
                     .collect::<Vec<_>>(),
                 authored
             );
         }
         assert!(
-            matches!(&inches.entities[0].kind,IfccadEntityKind::LineSegment{start,end} if *start==[1.,2.,0.] && *end==[3.,4.,0.])
+            matches!(&inches.entities[0].as_native().unwrap().kind,IfccadEntityKind::LineSegment{start,end} if *start==[1.,2.,0.] && *end==[3.,4.,0.])
         );
         assert!(matches!(
-            inches.entities[2].kind,
+            inches.entities[2].as_native().unwrap().kind,
             IfccadEntityKind::BlockInstance { .. }
         ));
         assert!(doc.id_counters.next_layout_id > inches.id);
@@ -193,7 +193,7 @@ fn native_papers() -> IfccadDocument {
     let mut doc = nested([0., 0., 0.]);
     doc.id_counters.next_layout_id = 91;
     let mut line = primitives().model.entities[0].clone();
-    line.id = 501;
+    line.as_native_mut().unwrap().id = 501;
     let instance = instance(502, doc.blocks[0].id, [8., 9., 0.]);
     doc.paper_layouts = vec![
         IfccadPaperLayout {
@@ -236,7 +236,7 @@ fn native_papers_allocate_ordered_owners_and_survive_both_cad_codecs() {
         };
         assert_eq!(layout.tab_order, i16::try_from(source.tab_index).unwrap());
         for entity in &source.entities {
-            let handle = output.mappings().entities.cad_handle(entity.id).unwrap();
+            let handle = output.mappings().entities.cad_handle(entity.id()).unwrap();
             assert_eq!(
                 output
                     .document()
@@ -286,8 +286,11 @@ fn native_papers_allocate_ordered_owners_and_survive_both_cad_codecs() {
             original.paper_layouts[0].settings.media
         );
         assert_eq!(
-            sheet.entities[0].kind,
-            original.paper_layouts[0].entities[0].kind
+            sheet.entities[0].as_native().unwrap().kind,
+            original.paper_layouts[0].entities[0]
+                .as_native()
+                .unwrap()
+                .kind
         );
         let (
             IfccadEntityKind::BlockInstance {
@@ -299,8 +302,11 @@ fn native_papers_allocate_ordered_owners_and_survive_both_cad_codecs() {
                 transform: b,
             },
         ) = (
-            &original.paper_layouts[0].entities[1].kind,
-            &sheet.entities[1].kind,
+            &original.paper_layouts[0].entities[1]
+                .as_native()
+                .unwrap()
+                .kind,
+            &sheet.entities[1].as_native().unwrap().kind,
         )
         else {
             panic!()
@@ -315,10 +321,18 @@ fn native_papers_allocate_ordered_owners_and_survive_both_cad_codecs() {
                 .name,
             doc.blocks.iter().find(|d| d.id == *after).unwrap().name
         );
-        let mut expected = original.paper_layouts[0].entities[0].appearance.clone();
+        let mut expected = original.paper_layouts[0].entities[0]
+            .as_native()
+            .unwrap()
+            .appearance
+            .clone();
         if let (IfccadMode::Explicit(before), IfccadMode::Explicit(after)) = (
             &expected.line_pattern,
-            &sheet.entities[0].appearance.line_pattern,
+            &sheet.entities[0]
+                .as_native()
+                .unwrap()
+                .appearance
+                .line_pattern,
         ) {
             assert_eq!(
                 original
@@ -335,7 +349,7 @@ fn native_papers_allocate_ordered_owners_and_survive_both_cad_codecs() {
             );
             expected.line_pattern = IfccadMode::Explicit(*after);
         }
-        assert_eq!(sheet.entities[0].appearance, expected);
+        assert_eq!(sheet.entities[0].as_native().unwrap().appearance, expected);
         validate_ifccad_document(doc).unwrap();
     }
 }
@@ -464,10 +478,18 @@ fn unsupported_medium_omits_only_media_and_definition_loss_reaches_paper() {
             && d.location
                 == format!(
                     "entity/{}",
-                    output.mappings().entities.cad_handle(instance.id).unwrap()
+                    output
+                        .mappings()
+                        .entities
+                        .cad_handle(instance.id())
+                        .unwrap()
                 )));
     let mut native = native_papers();
-    native.blocks[0].entities[0].appearance.opacity = IfccadMode::Explicit(0.5);
+    native.blocks[0].entities[0]
+        .as_native_mut()
+        .unwrap()
+        .appearance
+        .opacity = IfccadMode::Explicit(0.5);
     let output = ifccad_document_to_cad_document(&native, Default::default()).unwrap();
     assert!(output
         .diagnostics()

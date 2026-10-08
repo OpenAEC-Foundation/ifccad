@@ -17,6 +17,9 @@ impl IfccadIdentityMap {
     pub fn iter(&self) -> impl Iterator<Item = (u64, Handle)> + '_ {
         self.0.iter().map(|(&id, &h)| (id, h))
     }
+    pub(crate) fn remove(&mut self, id: u64) {
+        self.0.remove(&id);
+    }
     pub(crate) fn insert(&mut self, id: u64, handle: Handle) {
         self.0.insert(id, handle);
     }
@@ -36,8 +39,12 @@ pub struct IfccadToCadOutcome {
     pub(crate) diagnostics: Vec<IfccadDiagnostic>,
     pub(crate) mappings: IfccadMappings,
     pub(crate) geometry: crate::IfccadGeometryAssessment,
+    pub(crate) preservation: crate::IfccadPreservationReport,
 }
 impl IfccadToCadOutcome {
+    pub fn preservation_report(&self) -> &crate::IfccadPreservationReport {
+        &self.preservation
+    }
     pub fn geometry_assessment(&self) -> &crate::IfccadGeometryAssessment {
         &self.geometry
     }
@@ -60,8 +67,12 @@ pub struct CadToIfccadDocumentOutcome {
     pub(crate) diagnostics: Vec<IfccadDiagnostic>,
     pub(crate) mappings: IfccadMappings,
     pub(crate) geometry: crate::IfccadGeometryAssessment,
+    pub(crate) preservation: crate::IfccadPreservationReport,
 }
 impl CadToIfccadDocumentOutcome {
+    pub fn preservation_report(&self) -> &crate::IfccadPreservationReport {
+        &self.preservation
+    }
     pub fn geometry_assessment(&self) -> &crate::IfccadGeometryAssessment {
         &self.geometry
     }
@@ -85,8 +96,12 @@ pub struct CadToEncodedIfccadOutcome {
     pub(crate) diagnostics: Vec<IfccadDiagnostic>,
     pub(crate) mappings: IfccadMappings,
     pub(crate) geometry: crate::IfccadGeometryAssessment,
+    pub(crate) preservation: crate::IfccadPreservationReport,
 }
 impl CadToEncodedIfccadOutcome {
+    pub fn preservation_report(&self) -> &crate::IfccadPreservationReport {
+        &self.preservation
+    }
     pub fn geometry_assessment(&self) -> &crate::IfccadGeometryAssessment {
         &self.geometry
     }

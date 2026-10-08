@@ -44,17 +44,20 @@ fn cad_import_resolves_later_circle_without_reordering_and_preserves_display_sta
     let sheet = &out.validated_source().document().paper_layouts[0];
     assert_eq!(sheet.entities.len(), 2);
     assert_eq!(
-        out.mappings().entities.cad_handle(sheet.entities[0].id),
+        out.mappings().entities.cad_handle(sheet.entities[0].id()),
         Some(handle)
     );
     assert_eq!(
-        out.mappings().entities.cad_handle(sheet.entities[1].id),
+        out.mappings().entities.cad_handle(sheet.entities[1].id()),
         Some(boundary)
     );
-    let IfccadEntityKind::Viewport(v) = &sheet.entities[0].kind else {
+    let IfccadEntityKind::Viewport(v) = &sheet.entities[0].as_native().unwrap().kind else {
         panic!()
     };
-    assert_eq!(v.paper_clip.boundary_entity_id, Some(sheet.entities[1].id));
+    assert_eq!(
+        v.paper_clip.boundary_entity_id,
+        Some(sheet.entities[1].id())
+    );
     assert!(!v.visible);
     assert!(!v.view_enabled);
     assert!(v.view_locked);
@@ -103,8 +106,11 @@ fn export_preallocates_forward_boundary_handles_and_assigns_runtime_numbers() {
         [1000, 1001, 1002].map(|id| out.mappings().entities.cad_handle(id).unwrap())
     );
     let restored = from_cad(out.document(), metadata()).unwrap();
-    let IfccadEntityKind::Viewport(v) =
-        &restored.validated_source().document().paper_layouts[0].entities[1].kind
+    let IfccadEntityKind::Viewport(v) = &restored.validated_source().document().paper_layouts[0]
+        .entities[1]
+        .as_native()
+        .unwrap()
+        .kind
     else {
         panic!()
     };
@@ -190,7 +196,7 @@ fn dormant_boundary_and_missing_frozen_layer_are_independent() {
     v.frozen_layers.push(Handle::new(0xABCDEF));
     let out = cad_document_to_encoded_ifccad(&d, metadata(), Default::default()).unwrap();
     let sheet = &out.validated_source().document().paper_layouts[0];
-    let IfccadEntityKind::Viewport(v) = &sheet.entities[0].kind else {
+    let IfccadEntityKind::Viewport(v) = &sheet.entities[0].as_native().unwrap().kind else {
         panic!()
     };
     assert!(!v.paper_clip.enabled);
@@ -256,7 +262,9 @@ fn viewport_visibility_and_all_render_modes_are_independent() {
                 v.back_clip_z = -30.;
                 let imported = from_cad(&d, metadata()).unwrap();
                 let doc = imported.validated_source().document();
-                let IfccadEntityKind::Viewport(v) = &doc.paper_layouts[0].entities[0].kind else {
+                let IfccadEntityKind::Viewport(v) =
+                    &doc.paper_layouts[0].entities[0].as_native().unwrap().kind
+                else {
                     panic!()
                 };
                 assert_eq!(v.render_mode, expected);
@@ -275,7 +283,10 @@ fn viewport_visibility_and_all_render_modes_are_independent() {
                 .unwrap();
                 let restored = from_cad(exported.document(), metadata()).unwrap();
                 let IfccadEntityKind::Viewport(rv) =
-                    &restored.validated_source().document().paper_layouts[0].entities[0].kind
+                    &restored.validated_source().document().paper_layouts[0].entities[0]
+                        .as_native()
+                        .unwrap()
+                        .kind
                 else {
                     panic!()
                 };
@@ -374,7 +385,10 @@ fn omitted_export_boundary_never_leaves_viewport_mapping() {
         bounds: None,
         entities: vec![],
     });
-    drawing.paper_layouts[0].entities[2].kind = IfccadEntityKind::BlockInstance {
+    drawing.paper_layouts[0].entities[2]
+        .as_native_mut()
+        .unwrap()
+        .kind = IfccadEntityKind::BlockInstance {
         definition_id: id,
         transform: IfccadBlockTransform {
             placement: IfccadPlacement {
@@ -387,7 +401,7 @@ fn omitted_export_boundary_never_leaves_viewport_mapping() {
         },
     };
     for e in &mut drawing.paper_layouts[0].entities {
-        if let IfccadEntityKind::Viewport(v) = &mut e.kind {
+        if let IfccadEntityKind::Viewport(v) = &mut e.as_native_mut().unwrap().kind {
             v.paper_clip.enabled = false;
         }
     }
