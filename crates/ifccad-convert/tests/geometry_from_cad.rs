@@ -51,15 +51,23 @@ fn cad_families_map_to_independent_native_kinds_and_prepare_bounds() {
     validate_ifccad_document(d).unwrap();
 }
 #[test]
-fn ellipse_rounding_needs_an_explicit_unitless_limit() {
+fn ellipse_rounding_is_accepted_by_coordinate_default_but_exact_remains_strict() {
     let mut c = cad();
     c.header.insertion_units = 0;
     let mut ellipse = opencadcodec::Ellipse::new();
     ellipse.major_axis = Vector3::new(3., 4., 0.);
     ellipse.minor_axis_ratio = 0.5;
     c.add_entity(EntityType::Ellipse(ellipse)).unwrap();
-    let exact = cad_document_to_ifccad_document(&c, metadata(), Default::default());
+    let exact = cad_document_to_ifccad_document(
+        &c,
+        metadata(),
+        CadToIfccadOptions {
+            geometry_tolerance: IfccadGeometryTolerance::exact(),
+            ..Default::default()
+        },
+    );
     assert!(matches!(exact, Err(IfccadConversionError::Geometry(_))));
+    assert!(cad_document_to_ifccad_document(&c, metadata(), Default::default()).is_ok());
     let out = cad_document_to_ifccad_document(
         &c,
         metadata(),

@@ -18,7 +18,18 @@ pub(crate) enum Tolerance {
     Custom {
         value: f64,
         unit: String,
+        #[serde(
+            default,
+            rename = "coordinateFallback",
+            deserialize_with = "coordinate_fallback"
+        )]
+        coordinate_fallback: Option<f64>,
     },
+}
+fn coordinate_fallback<'de, D: serde::Deserializer<'de>>(
+    deserializer: D,
+) -> Result<Option<f64>, D::Error> {
+    f64::deserialize(deserializer).map(Some)
 }
 impl ConversionOptions {
     pub(crate) fn parse(text: &str) -> Result<Self, String> {
@@ -30,17 +41,44 @@ impl ConversionOptions {
         match &self.tolerance {
             Tolerance::Default => Ok(OcdrawGeometryTolerance::default()),
             Tolerance::Exact => Ok(OcdrawGeometryTolerance::exact()),
-            Tolerance::Custom { value, unit } => match unit.as_str() {
-                "mm" => OcdrawGeometryTolerance::millimetres(*value),
-                "m" => OcdrawGeometryTolerance::metres(*value),
-                "drawing" => OcdrawGeometryTolerance::drawing_units(*value),
-                _ => return Err("Unknown tolerance unit".into()),
+            Tolerance::Custom {
+                value,
+                unit,
+                coordinate_fallback,
+            } => {
+                let tolerance = match unit.as_str() {
+                    "mm" => OcdrawGeometryTolerance::millimetres(*value),
+                    "m" => OcdrawGeometryTolerance::metres(*value),
+                    "drawing" => OcdrawGeometryTolerance::drawing_units(*value),
+                    _ => return Err("Unknown tolerance unit".into()),
+                }
+                .map_err(|e| e.to_string())?;
+                match coordinate_fallback {
+                    Some(value) => tolerance
+                        .with_coordinate_fallback(*value)
+                        .map_err(|e| e.to_string()),
+                    None => Ok(tolerance),
+                }
             }
-            .map_err(|e| e.to_string()),
         }
     }
     pub(crate) fn value(&self) -> Value {
-        json!({"preserveSplines":self.preserve_splines,"tolerance":match &self.tolerance{Tolerance::Default=>json!({"mode":"default"}),Tolerance::Exact=>json!({"mode":"exact"}),Tolerance::Custom{value,unit}=>json!({"mode":"custom","value":value,"unit":unit})}})
+        let tolerance = match &self.tolerance {
+            Tolerance::Default => json!({"mode":"default"}),
+            Tolerance::Exact => json!({"mode":"exact"}),
+            Tolerance::Custom {
+                value,
+                unit,
+                coordinate_fallback,
+            } => {
+                let mut value = json!({"mode":"custom","value":value,"unit":unit});
+                if let Some(fallback) = coordinate_fallback {
+                    value["coordinateFallback"] = json!(fallback);
+                }
+                value
+            }
+        };
+        json!({"preserveSplines":self.preserve_splines,"tolerance":tolerance})
     }
 }
 pub(crate) fn geometry(value: &OcdrawGeometryAssessment) -> Value {

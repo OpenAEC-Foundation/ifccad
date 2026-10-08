@@ -235,12 +235,12 @@ mod tests {
                 assert!(T::millimetres(1.).unwrap().resolve(unit).is_err());
                 assert_eq!(
                     T::default().resolve(unit).unwrap(),
-                    ResolvedTolerance::exact(q(0, 1))
+                    ResolvedTolerance::exact(q(1, 1_000_000_000))
                 );
             } else {
                 assert_eq!(
                     T::default().resolve(unit).unwrap(),
-                    ResolvedTolerance::from_metres(q(1, 1000000), unit).unwrap()
+                    ResolvedTolerance::exact(q(1, 1_000_000_000))
                 );
                 assert_eq!(
                     T::millimetres(1000.).unwrap().resolve(unit).unwrap(),

@@ -330,13 +330,16 @@ mod tests {
     }
     #[test]
     fn rational_unit_limit_and_reported_distance_do_not_relax_acceptance() {
-        let a =
-            GeometryAssessment::new(GeometryTolerance::default(), DrawingLengthUnit::Inch).unwrap();
+        let a = GeometryAssessment::new(
+            GeometryTolerance::metres(1.).unwrap(),
+            DrawingLengthUnit::Inch,
+        )
+        .unwrap();
         let source = TestSource::CadEntity {
             handle: Handle::NULL,
             kind: "LINE".into(),
         };
-        let limit = BigRational::new(1.into(), 25400.into());
+        let limit = BigRational::new(5000.into(), 127.into());
         let squared = &limit * &limit;
         let reported = a.check(&source, 0, &squared).unwrap();
         assert!(exact(reported) * exact(reported) >= squared);

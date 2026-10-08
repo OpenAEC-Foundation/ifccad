@@ -221,6 +221,17 @@ for(const [fixture,knownMapping] of [['layout-plot-inch',true],['layout-medium-o
 }
 console.log('Browser WASM custom physical tolerance reports per-layout output meaning and refuses missing Paper mapping');
 
+{
+ const native=Uint8Array.from(await readFile(new URL('../../examples/ifccad/hello-line-patterns.ifcx',import.meta.url))).buffer;
+ const exported=processBrowserRequest({kind:'ifccad',name:'lines.ifcx',files:[{path:'lines.ifcx',bytes:native}],export:{format:'dxf',version:'AC1032'}},wasm);
+ assert.equal(exported.failure,null);const bytes=Uint8Array.from(Buffer.from(exported.export.download.base64,'base64')).buffer;
+ for(const drawingFormat of ['ifccad','ocdraw']){
+  const result=processBrowserRequest({kind:'cad',drawingFormat,name:'lines.dxf',files:[{path:'lines.dxf',bytes}],conversionOptions:{tolerance:{mode:'exact'}},exportConversionOptions:{tolerance:{mode:'custom',value:0.003,unit:'mm',coordinateFallback:1e-9}},export:{format:'dxf',version:'AC1032'}},wasm);
+  assert.equal(result.failure,null,JSON.stringify(result.failure));assert.equal(result.conversion.options.tolerance.mode,'exact');assert.equal(result.export.options.tolerance.value,0.003);assert.equal(result.export.options.tolerance.coordinateFallback,1e-9);
+ }
+}
+console.log('Browser WASM uses independent input and output tolerances through both native CAD routes');
+
 const ifccadSpline={...splineSource,drawingFormat:'ifccad'};
 const ifccadSplineOpened=processBrowserRequest(ifccadSpline,wasm);
 assert.equal(ifccadSplineOpened.failure,null,JSON.stringify(ifccadSplineOpened.failure));

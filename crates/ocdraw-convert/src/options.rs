@@ -36,19 +36,19 @@ mod tests {
             OcdrawGeometryTolerance::default()
                 .resolve(DrawingLengthUnit::Millimetre)
                 .unwrap(),
-            ResolvedTolerance::exact(BigRational::new(1.into(), 1000.into()))
+            ResolvedTolerance::exact(BigRational::new(1.into(), 1_000_000_000.into()))
         );
         assert_eq!(
             OcdrawGeometryTolerance::default()
                 .resolve(DrawingLengthUnit::Inch)
                 .unwrap(),
-            ResolvedTolerance::exact(BigRational::new(1.into(), 25400.into()))
+            ResolvedTolerance::exact(BigRational::new(1.into(), 1_000_000_000.into()))
         );
         assert_eq!(
             OcdrawGeometryTolerance::default()
                 .resolve(DrawingLengthUnit::Unitless)
                 .unwrap(),
-            ResolvedTolerance::exact(BigRational::from_integer(0.into()))
+            ResolvedTolerance::exact(BigRational::new(1.into(), 1_000_000_000.into()))
         );
         assert_eq!(
             OcdrawGeometryTolerance::metres(0.0)

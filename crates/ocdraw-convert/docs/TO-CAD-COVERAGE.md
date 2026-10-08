@@ -94,8 +94,8 @@ remain valid but CAD pixel calibration is unqualified and diagnosed. See
 medium restrictions and public API migration.
 
 Paper assessments use individual fixed output factors. Unknown/Fit/pixel mapping
-requires zero residual by default; explicit physical requests fail without known
-source/target mappings, including empty layouts. Signed/nonuniform nested-root
+uses 1e-9 coordinates by default; explicit physical requests fail without known
+source/target mappings, including empty layouts, unless an independent coordinate fallback is explicitly requested. Signed/nonuniform nested-root
 occurrences obey their root limit; aggregate status/counts remain, global maximum
 does not. Preserved spline evidence stays incomplete and unassessed.
 

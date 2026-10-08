@@ -15,11 +15,11 @@ export function createCadPreviewController({openExport,openSession,onUpdate=()=>
  function resetSession(){session?.close();session=null;sessionPromise=null;originalOpened=false;displayedKey=null;state.viewerReady=false;}
  function clear(){invalidate();epoch++;resetSession();cache.clear();preparedKey=null;Object.assign(state,{source:null,valid:false,visible:false,phase:'',result:null,download:null,error:'',viewerError:'',selectionKey:null,selectionStatus:'',selectionError:'',selectionRequested:false});notify();}
  function syncSelection(current,active){
-  if(!state.selectionRequested||!active||!state.download||displayedKey!==preparedKey||drawingFormat(state.source)!=='ifccad')return Promise.resolve();
+  if(!state.selectionRequested||!active||!state.download||displayedKey!==preparedKey)return Promise.resolve();
   const version=selectionVersion,key=state.selectionKey,signature=JSON.stringify([current,version,key]);if(signature===appliedSelection)return Promise.resolve();
   const task=selectionQueue.then(async()=>{
    if(current!==generation||version!==selectionVersion)return;
-   const map=state.result?.export?.viewerSelection,target=map?.format==='ifccad'?map.entities?.find(entity=>entity.path===key):undefined;
+   const map=state.result?.export?.viewerSelection,target=map?.format===drawingFormat(state.source)?map.entities?.find(entity=>entity.path===key):undefined;
    try{
     if(typeof active.selectGenerated!=='function')throw Error('CAD selection is unavailable in this viewer');
     await active.selectGenerated(target?[target.handle]:[],target?.layout);
@@ -49,7 +49,7 @@ export function createCadPreviewController({openExport,openSession,onUpdate=()=>
   state.busy=true;state.phase='preparing';state.result=null;state.download=null;state.error='';notify();
   const promise=Promise.resolve().then(async()=>{
    try{
-    const result=cache.get(key)??await openExport({...source,...(conversionOptions?{conversionOptions}:{}),export:{format,version}},{signal,onProgress:phase=>{if(current===generation){state.phase=phase;notify();}}});
+    const result=cache.get(key)??await openExport({...source,...(conversionOptions?{exportConversionOptions:conversionOptions}:{}),export:{format,version}},{signal,onProgress:phase=>{if(current===generation){state.phase=phase;notify();}}});
     if(current!==generation||signal.aborted)return;
     state.result=result;
     if(result.failure)throw Error(result.failure.message);
@@ -78,7 +78,7 @@ export function createCadPreviewController({openExport,openSession,onUpdate=()=>
   })().finally(()=>{if(current===generation){viewPromise=null;state.viewerBusy=false;notify();}});
   return viewPromise;
  }
- return {state,clear,prepare,selectElement,refresh:notify,cancel(){invalidate();preparedKey=null;state.result=null;state.download=null;state.phase='cancelled';notify();},updateSource(source,valid){invalidate();cache.clear();preparedKey=null;displayedKey=null;if(drawingFormat(source)!==drawingFormat(state.source))Object.assign(state,{selectionKey:null,selectionRequested:false,selectionStatus:"",selectionError:""});state.source=source;state.valid=valid;state.conversionOptions=source.conversionOptions;state.result=null;state.download=null;state.phase='';notify();},setSource(source,valid){clear();state.source=source;state.valid=valid;state.conversionOptions=source?.conversionOptions;state.format=/\.dwg$/i.test(source?.name)?'dwg':'dxf';state.version=defaultCadVersion;notify();},show(){state.visible=true;notify();return showDrawing();},hide(){state.visible=false;notify();},retryViewer(){epoch++;resetSession();viewPromise=null;appliedSelection=null;state.viewerError='';return showDrawing();},select(values){
+ return {state,clear,prepare,selectElement,refresh:notify,cancel(){invalidate();preparedKey=null;state.result=null;state.download=null;state.phase='cancelled';notify();},updateSource(source,valid){invalidate();cache.clear();preparedKey=null;displayedKey=null;if(drawingFormat(source)!==drawingFormat(state.source))Object.assign(state,{selectionKey:null,selectionRequested:false,selectionStatus:"",selectionError:""});state.source=source;state.valid=valid;state.conversionOptions=source.exportConversionOptions??source.conversionOptions;state.result=null;state.download=null;state.phase='';notify();},setSource(source,valid){clear();state.source=source;state.valid=valid;state.conversionOptions=source?.exportConversionOptions??source?.conversionOptions;state.format=/\.dwg$/i.test(source?.name)?'dwg':'dxf';state.version=defaultCadVersion;notify();},show(){state.visible=true;notify();return showDrawing();},hide(){state.visible=false;notify();},retryViewer(){epoch++;resetSession();viewPromise=null;appliedSelection=null;state.viewerError='';return showDrawing();},select(values){
   const previous=outputKey();
   if(values.format!==undefined){if(!['dxf','dwg'].includes(values.format))throw Error('Unknown CAD format');state.format=values.format;}
   if(values.version!==undefined){if(!supportsCadVersion(values.version))throw Error('Unknown CAD version');state.version=values.version;}

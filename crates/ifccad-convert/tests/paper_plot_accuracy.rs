@@ -20,7 +20,15 @@ fn paper_mapping_is_exposed_without_an_authored_coordinate_unit() {
             }
         }
     }
-    let out = cad_document_to_ifccad_document(&c, common::metadata(), Default::default()).unwrap();
+    let out = cad_document_to_ifccad_document(
+        &c,
+        common::metadata(),
+        CadToIfccadOptions {
+            geometry_tolerance: IfccadGeometryTolerance::millimetres(0.001).unwrap(),
+            ..Default::default()
+        },
+    )
+    .unwrap();
     let paper = out
         .geometry_assessment()
         .domains()

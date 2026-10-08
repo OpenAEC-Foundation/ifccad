@@ -8,7 +8,7 @@
 //! and numeric projection checks.
 //!
 //! Both directions expose the same hard geometric tolerance as OCDraw.
-//! Defaults use one micrometre in known coordinate units and zero for unitless
+//! Defaults use 1e-9 in each domain's own coordinates, including unitless
 //! domains. Each Paper layout resolves its own coordinate-unit limit.
 //! Certified within-limit rounding is accepted even under semantic Reject.
 //! Exceedance or incomplete proof returns no output.

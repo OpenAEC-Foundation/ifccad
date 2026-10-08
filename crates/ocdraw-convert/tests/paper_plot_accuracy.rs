@@ -23,7 +23,14 @@ fn source() -> CadDocument {
 }
 #[test]
 fn paper_limits_and_meaning_are_per_layout() {
-    let out = cad_document_to_ocdraw_document(&source(), Default::default()).unwrap();
+    let out = cad_document_to_ocdraw_document(
+        &source(),
+        CadToOcdrawOptions {
+            geometry_tolerance: OcdrawGeometryTolerance::millimetres(0.001).unwrap(),
+            ..Default::default()
+        },
+    )
+    .unwrap();
     let domains = out.geometry_assessment().domains();
     assert_eq!(domains.len(), 3);
     let first = domains

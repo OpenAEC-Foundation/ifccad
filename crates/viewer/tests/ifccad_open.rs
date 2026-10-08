@@ -148,7 +148,18 @@ fn conversion_evidence_retains_domains_and_large_ids() {
         vertices[0][0] = 0.0001;
     }
     let bytes = encode_ifccad_document(&d).unwrap();
-    let out = export_drawing_bytes("round.ifcx", bytes.bytes(), "dxf", "AC1032");
+    let rejected = export_drawing_bytes("round.ifcx", bytes.bytes(), "dxf", "AC1032");
+    assert_eq!(
+        rejected["failure"]["geometry"]["reason"],
+        "ProvenExceedance"
+    );
+    let out = viewer::export_drawing_bytes_with_options(
+        "round.ifcx",
+        bytes.bytes(),
+        "dxf",
+        "AC1032",
+        r#"{"tolerance":{"mode":"custom","value":0.001,"unit":"mm"}}"#,
+    );
     assert!(out["failure"].is_null(), "{out}");
     let assessment = &out["export"]["geometryAssessment"];
     assert_eq!(assessment["status"], "RoundedWithinTolerance");
