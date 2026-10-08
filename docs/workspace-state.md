@@ -72,7 +72,7 @@ rescaled by a plot mapping. Lens length retains its physical millimetre meaning.
 | VIEWPORT grid behavior | Public fields copied; nondefault target fields receive portability evidence | Pinned routes omit all four GridFlags; source readback has defaults. Reject refuses this known portability loss |
 | Active Model window | A single consistent `*ACTIVE` record is unambiguous; otherwise records remain without a choice | Multiple-record ordering has not been qualified as a general current-window guarantee |
 | Current Paper context/UCS | Unavailable association receives an owner-located diagnostic | Viewport ID, visibility, off-screen state and source order do not reconstruct lost stacking/current rank |
-| Active layout | Model mode is known; a uniquely available Paper layout can be qualified | CAD exposes mode and a known native choice sets it; an unidentified tab among several sheets cannot be persisted as an active native reference and receives loss. Reserved Paper ownership remains unchanged |
+| Active layout | Model mode is known; current Paper is qualified from the unique `*Paper_Space` record and consistent reciprocal LAYOUT link, independently of sheet count or tab order | DXF and AC1032 DWG retain first and secondary active Paper tabs. Export synchronizes record names, existing BLOCK-begin names and the reserved header cache; handles, entity ownership and tab order remain unchanged |
 | Unsupported grid style/frequency | Dots substitute Lines; frequency beyond positive i16 substitutes 5, with exact field evidence | These diagnosed substitutions are not exact fidelity |
 
 Malformed references, collisions and nonfinite/negative workspace values remain
@@ -92,3 +92,21 @@ The ordinary example generator produces both `workspace-state` examples;
 mutable candidate conformance includes unknown choices, full-width references
 and invalid spacing/reference/frame cases. No released numbered collection was
 modified and no live CAD editing controls were added.
+
+### Active Paper qualification correction (2026-10-08)
+
+The original foundation DXF retains Paper mode (`$TILEMODE=0`) and associates
+Layout1 with `*Paper_Space`, while Layout2 owns `*Paper_Space0`. This role follows
+[DXF layout management](https://ezdxf.readthedocs.io/en/stable/dxfinternals/layout_management.html). The initial
+workspace slice incorrectly treated all multi-sheet Paper choices as unavailable;
+a subsequent export then fell back to the default Model mode. A header-only
+selection attempt had failed earlier, but this did not establish that the complete
+reserved-block role was unrepresentable. Both adapters now qualify the reciprocal
+block/layout association and synchronize the complete target role. Existing BLOCK
+begin records must agree with their renamed BLOCK_RECORD: DWG uses their names
+to reconstruct the entity spaces on readback. No native contract was extended.
+
+The regression tests exchange two distinct sheets through both physical backings,
+check first and secondary selection and retain geometry on its original sheet.
+Unknown or inconsistent role associations remain diagnosed; a tab index or sheet
+count is not used as a selection substitute.

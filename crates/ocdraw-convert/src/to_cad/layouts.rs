@@ -103,3 +103,56 @@ pub(super) fn prepare_paper_canvases(
     }
     Ok(())
 }
+
+/// Change the complete reserved Paper role, keeping layout/entity handles and owners.
+pub(super) fn activate_paper_layout(
+    document: &mut CadDocument,
+    block: Handle,
+) -> Result<(), OcdrawToCadError> {
+    let active = document
+        .block_records
+        .get("*Paper_Space")
+        .ok_or_else(|| OcdrawToCadError::Cad("reserved Paper block is missing".into()))?;
+    let active_handle = active.handle;
+    let selected_name = document
+        .block_records
+        .iter()
+        .find(|b| b.handle == block)
+        .ok_or_else(|| OcdrawToCadError::Cad("selected Paper block is missing".into()))?
+        .name
+        .clone();
+    if active_handle != block {
+        let mut temporary = "__active_paper_swap".to_string();
+        while document.block_records.contains(&temporary) {
+            temporary.push('_');
+        }
+        document
+            .block_records
+            .rename("*Paper_Space", &temporary)
+            .map_err(OcdrawToCadError::Cad)?;
+        document
+            .block_records
+            .rename(&selected_name, "*Paper_Space")
+            .map_err(OcdrawToCadError::Cad)?;
+        document
+            .block_records
+            .rename(&temporary, selected_name)
+            .map_err(OcdrawToCadError::Cad)?;
+    }
+    // DWG writes an existing BLOCK begin marker verbatim. Its name must agree
+    // with the renamed record, otherwise readback reconstructs the former role.
+    let markers: Vec<_> = document
+        .block_records
+        .iter()
+        .filter(|record| record.is_paper_space())
+        .map(|record| (record.block_entity_handle, record.name.clone()))
+        .collect();
+    for (handle, name) in markers {
+        if let Some(EntityType::Block(marker)) = document.get_entity_mut(handle) {
+            marker.name = name;
+        }
+    }
+    document.header.paper_space_block_handle = block;
+    document.header.show_model_space = false;
+    Ok(())
+}

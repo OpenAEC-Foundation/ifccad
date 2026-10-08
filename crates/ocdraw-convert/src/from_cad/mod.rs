@@ -391,38 +391,22 @@ pub fn cad_document_to_ocdraw_document_with_id(
     if document.header.show_model_space {
         drawing.set_active_layout(0);
     } else {
-        let papers: Vec<_> = document
-            .objects
-            .values()
-            .filter_map(|o| match o {
-                ObjectType::Layout(l)
-                    if document
-                        .block_records
-                        .iter()
-                        .any(|b| b.handle == l.block_record && b.is_paper_space()) =>
-                {
-                    Some(l)
-                }
-                _ => None,
-            })
-            .collect();
-        if papers.len() == 1 {
-            if let Some(&id) = paper_scopes.get(&papers[0].block_record) {
-                drawing.set_active_layout(id);
-            } else {
-                loss(
-                    CadToOcdrawDiagnosticSource::DocumentField {
-                        name: "header.show_model_space".into(),
-                    },
-                    CadToOcdrawAction::PartiallyExported,
-                    vec![CadToOcdrawLossReason::UnsupportedSemantic {
-                        name: "current Paper layout has no constructed native owner".into(),
-                    }],
-                    &mut diagnostics,
-                );
-            }
+        if let Some(id) = crate::source::active_paper_layout(document)
+            .and_then(|layout| paper_scopes.get(&layout.block_record))
+        {
+            drawing.set_active_layout(*id);
         } else {
-            loss(CadToOcdrawDiagnosticSource::DocumentField{name:"header.show_model_space".into()},CadToOcdrawAction::PartiallyExported,vec![CadToOcdrawLossReason::UnsupportedSemantic{name:"Paper mode known; current Paper layout is unavailable among several layouts".into()}],&mut diagnostics);
+            loss(
+                CadToOcdrawDiagnosticSource::DocumentField {
+                    name: "header.show_model_space".into(),
+                },
+                CadToOcdrawAction::PartiallyExported,
+                vec![CadToOcdrawLossReason::UnsupportedSemantic {
+                    name: "Paper mode known; active Paper block/layout association unavailable"
+                        .into(),
+                }],
+                &mut diagnostics,
+            );
         }
     }
 

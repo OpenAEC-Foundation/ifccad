@@ -73,3 +73,57 @@ pub(crate) fn is_empty_reserved_paper_block(
     candidate.name = "*Paper_Space".into();
     candidate == opencadcodec::BlockRecord::paper_space()
 }
+
+/// The exact reserved block names identify the active Paper entity space in DXF.
+/// A header cache or tab order alone does not establish this association.
+pub(crate) fn active_paper_layout(doc: &CadDocument) -> Option<&opencadcodec::objects::Layout> {
+    let mut blocks = doc
+        .block_records
+        .iter()
+        .filter(|b| b.name.eq_ignore_ascii_case("*Paper_Space"));
+    let block = blocks.next()?;
+    if blocks.next().is_some() {
+        return None;
+    }
+    let mut layouts = doc.objects.values().filter_map(|o| match o {
+        opencadcodec::objects::ObjectType::Layout(l) if l.block_record == block.handle => Some(l),
+        _ => None,
+    });
+    let layout = layouts.next()?;
+    (layouts.next().is_none() && layout.handle == block.layout).then_some(layout)
+}
+
+#[cfg(test)]
+mod active_paper_tests {
+    use super::*;
+
+    #[test]
+    fn reciprocal_reserved_role_qualifies_multiple_layouts() {
+        let mut doc = CadDocument::new();
+        doc.add_layout("Second").unwrap();
+        assert_eq!(active_paper_layout(&doc).unwrap().name, "Layout1");
+        doc.block_records
+            .rename("*Paper_Space", "temporary")
+            .unwrap();
+        doc.block_records
+            .rename("*Paper_Space0", "*Paper_Space")
+            .unwrap();
+        doc.block_records
+            .rename("temporary", "*Paper_Space0")
+            .unwrap();
+        // Header cache and tab ordering are deliberately unchanged.
+        assert_eq!(active_paper_layout(&doc).unwrap().name, "Second");
+    }
+
+    #[test]
+    fn missing_or_inconsistent_reserved_role_is_not_guessed() {
+        let mut doc = CadDocument::new();
+        doc.add_layout("Second").unwrap();
+        doc.block_records.get_mut("*Paper_Space").unwrap().layout = Handle::NULL;
+        assert!(active_paper_layout(&doc).is_none());
+        doc.block_records
+            .rename("*Paper_Space", "*Paper_Space7")
+            .unwrap();
+        assert!(active_paper_layout(&doc).is_none());
+    }
+}

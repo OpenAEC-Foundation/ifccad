@@ -139,8 +139,9 @@ physical mapping. Broader raw/private/shared preservation and native spline
 geometry remain separate follow-up work; see [preservation](docs/preservation.md).
 
 Both formats now retain UCS, Model windows, Paper canvases and per-viewport
-grid/snap state, including unspecified choices and dormant values. Qualified CAD
-limitations remain explicit; see [workspace state](docs/workspace-state.md).
+grid/snap state, including unspecified choices and dormant values. Known active
+Paper layouts survive DXF/DWG exchange through consistent reserved-block roles.
+Qualified CAD limitations remain explicit; see [workspace state](docs/workspace-state.md).
 
 ## Using the implementation
 

@@ -335,10 +335,17 @@ fn import_document(
             if let Some(layout) = drawing.layouts.iter().find(|layout| layout.id == id) {
                 if layout.kind == DrawingLayoutKind::Paper {
                     document.header.show_model_space = false;
-                    let papers = document.objects.values().filter(|o|matches!(o,ObjectType::Layout(l) if document.block_records.iter().any(|b|b.handle == l.block_record && b.is_paper_space()))).count();
-                    if papers > 1 {
-                        diagnostics.push(diagnostic("WORKSPACE","/drawingWorkspaceState/activeLayoutId","CAD retains Model/Paper mode but does not expose the selected Paper tab among several layouts"));
-                    }
+                    let block = document
+                        .objects
+                        .values()
+                        .find_map(|o| match o {
+                            ObjectType::Layout(l) if l.name == layout.name => Some(l.block_record),
+                            _ => None,
+                        })
+                        .ok_or_else(|| {
+                            OcdrawToCadError::Cad("active Paper layout is missing".into())
+                        })?;
+                    layouts::activate_paper_layout(&mut document, block)?;
                 } else {
                     document.header.show_model_space = true;
                 }

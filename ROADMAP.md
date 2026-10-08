@@ -90,7 +90,8 @@ and unqualified raster CAD output retain explicit restrictions; see
 The workspace slice adds IFCCAD UCS and Model windows, Paper canvases and
 authored viewport aids, with optional current choices, exact references and
 independent allocation watermarks. OCDraw conversion uses the same scalar rules.
-Paper current-context/tab selection and VIEWPORT file grid behavior retain
+Active Paper tabs are qualified through consistent reserved block/layout roles.
+Paper current-context/UCS selection and VIEWPORT file grid behavior retain
 qualified codec limitations; see [workspace state](docs/workspace-state.md).
 Other layer/entity/block presentation differences remain separate.
 

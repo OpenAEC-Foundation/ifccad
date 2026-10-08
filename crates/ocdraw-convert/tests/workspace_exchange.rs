@@ -132,6 +132,29 @@ fn file_grid(
 }
 
 #[test]
+fn paper_mode_with_two_layouts_retains_the_active_block_owner() {
+    let mut source = opencadcodec::CadDocument::new();
+    source.add_layout("Second").unwrap();
+    source.header.show_model_space = false;
+    let native = cad_document_to_ocdraw_document(&source, Default::default())
+        .unwrap()
+        .into_document();
+    let encoded = encode_ocdraw_document(&native).unwrap();
+    let loaded = load_ocdraw_bytes(encoded.bytes()).unwrap();
+    let native = loaded.document();
+    let expected = native
+        .layouts
+        .iter()
+        .find(|p| p.name == "Layout1")
+        .unwrap()
+        .id;
+    assert_eq!(
+        native.workspace_state.as_ref().unwrap().active_layout_id,
+        Some(expected)
+    );
+}
+
+#[test]
 fn active_secondary_paper_layout_does_not_corrupt_roles() {
     let mut source = CadDocument::new();
     source.add_layout("Second").unwrap();
@@ -142,6 +165,12 @@ fn active_secondary_paper_layout_does_not_corrupt_roles() {
                 opencadcodec::Vector3::new(1., 0., 0.),
             )),
             "Layout1",
+        )
+        .unwrap();
+    source
+        .add_entity_to_layout(
+            opencadcodec::EntityType::Line(opencadcodec::Line::from_coords(2., 0., 0., 3., 0., 0.)),
+            "Second",
         )
         .unwrap();
     let mut native = cad_document_to_ocdraw_document(&source, Default::default())
@@ -155,10 +184,34 @@ fn active_secondary_paper_layout_does_not_corrupt_roles() {
         .id;
     native.workspace_state.as_mut().unwrap().active_layout_id = Some(selected);
     let target = ocdraw_document_to_cad_document(&native, Default::default()).unwrap();
-    assert!(target
+    assert!(!target
         .diagnostics()
         .iter()
         .any(|d| d.location.contains("activeLayout")));
+    let selected_block = target
+        .document()
+        .objects
+        .values()
+        .find_map(|o| match o {
+            opencadcodec::objects::ObjectType::Layout(l) if l.name == "Second" => {
+                Some(l.block_record)
+            }
+            _ => None,
+        })
+        .unwrap();
+    assert_eq!(
+        target
+            .document()
+            .block_records
+            .get("*Paper_Space")
+            .unwrap()
+            .handle,
+        selected_block
+    );
+    assert_eq!(
+        target.document().header.paper_space_block_handle,
+        selected_block
+    );
     for format in [false, true] {
         let cad = if format {
             DwgReader::from_stream(Cursor::new(
@@ -174,11 +227,30 @@ fn active_secondary_paper_layout_does_not_corrupt_roles() {
             .read()
             .unwrap()
         };
+        for (name, start_x) in [("Layout1", 0.), ("Second", 2.)] {
+            let owner = cad
+                .objects
+                .values()
+                .find_map(|o| match o {
+                    opencadcodec::objects::ObjectType::Layout(l) if l.name == name => {
+                        Some(l.block_record)
+                    }
+                    _ => None,
+                })
+                .unwrap();
+            assert!(cad.entities().any(|e|matches!(e,opencadcodec::EntityType::Line(l) if l.common.owner_handle == owner && l.start.x == start_x)));
+        }
         let actual = cad_document_to_ocdraw_document(&cad, Default::default())
             .unwrap()
             .into_document();
         let active = actual.workspace_state.unwrap().active_layout_id;
-        assert_eq!(active, None, "dwg={format}");
+        let expected = actual
+            .layouts
+            .iter()
+            .find(|p| p.name == "Second")
+            .unwrap()
+            .id;
+        assert_eq!(active, Some(expected), "dwg={format}");
         assert_eq!(
             actual
                 .layouts

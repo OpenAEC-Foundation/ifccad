@@ -38,9 +38,9 @@ regressions and 1,354 library tests passing; broad upstream formatting has
 pre-existing unrelated differences.
 
 The public surface does not retain the complete positive VIEWPORT stacking
-rank/current Paper selection. `paper_space_block_handle` identifies reserved
-infrastructure, not a current tab selector: Paper mode alone cannot identify one
-of several layouts. Multiple-window active ordering remains unqualified without
+rank/current Paper viewport selection. Active Paper layout identity is qualified
+by the consistent reserved-block/LAYOUT role; the header cache alone is not a
+tab selector. Multiple-window active ordering remains unqualified without
 an established association. VIEWPORT GridFlags survive in CadDocument but become
 default after the pinned DXF/DWG routes; VPORT GridFlags survive both. Each
 nondefault VIEWPORT behavior receives a target portability diagnostic, while
@@ -50,3 +50,10 @@ runtime values remain copied. These limits are covered in
 Primitive accuracy, Paper plot tolerance, source graph checks and spline
 bounds/accuracy incompleteness remain independent. No controlled measurement was
 run; older benchmark reports retain their recorded dependency provenance.
+
+Active-Paper qualification correction: the initial slice's multi-sheet limitation
+was caused by incomplete adapter role mapping, not an absent codec field. Both
+adapters now resolve the unique reciprocal `*Paper_Space`/LAYOUT association and
+synchronize record names, existing BLOCK-begin names and header cache on export.
+First and secondary selection are qualified independently for DXF and AC1032 DWG.
+No additional codec patch is required; see `../workspace-state.md`.

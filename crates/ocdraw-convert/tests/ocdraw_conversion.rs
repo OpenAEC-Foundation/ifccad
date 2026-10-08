@@ -1039,12 +1039,21 @@ fn standalone_preserves_paper_viewports_canvas_and_mixed_draw_order() {
         })
         .unwrap();
     assert_eq!(overall.view_height, 35.0);
+    // Paper mode plus the reserved block role qualifies Layout1 despite the
+    // additional Sheet layout. Canvas and mixed draw order stay independent.
+    let active = drawing
+        .document()
+        .layouts
+        .iter()
+        .find(|layout| layout.name == "Layout1")
+        .unwrap()
+        .id;
     assert_eq!(
         drawing.document().workspace_state.unwrap().active_layout_id,
-        None
+        Some(active)
     );
-    assert!(exported.diagnostics().iter().any(|d|matches!(d.source(),ocdraw_convert::CadToOcdrawDiagnosticSource::DocumentField{name} if name == "header.show_model_space")));
-    assert!(imported.document().header.show_model_space);
+    assert!(!exported.diagnostics().iter().any(|d|matches!(d.source(),ocdraw_convert::CadToOcdrawDiagnosticSource::DocumentField{name} if name == "header.show_model_space")));
+    assert!(!imported.document().header.show_model_space);
     assert_eq!(
         imported.document().header.paper_space_block_handle,
         imported

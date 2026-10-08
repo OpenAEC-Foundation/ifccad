@@ -25,6 +25,36 @@ for(const [kind,path]of [['drawing','../../examples/ocdraw/workspace-state.ocdra
  }
 }
 console.log('Browser WASM workspace fields, classified grid limitations and full-width references verified');
+
+// A second active Paper tab must survive the complete CAD -> native -> CAD browser route.
+const activePaperFixture=JSON.parse(await readFile(new URL('../../examples/ocdraw/workspace-state.ocdraw.json',import.meta.url),'utf8'));
+activePaperFixture.header.nextLayoutId=3;
+activePaperFixture.layouts.push({id:2,scopeId:2,kind:'paper',name:'Selected second sheet',tabIndex:2});
+activePaperFixture.scopes.push({id:2,kind:1,entities:[],bounds:null});
+activePaperFixture.drawingWorkspaceState={activeLayoutId:2};
+const activePaperInput=new TextEncoder().encode(JSON.stringify(activePaperFixture));
+const activePaperCad=processBrowserRequest({kind:'drawing',name:'active-paper',files:[{path:'active-paper.ocdraw.json',bytes:activePaperInput.buffer}],export:{format:'dxf',version:'AC1032'}},wasm);
+assert.equal(activePaperCad.failure,null,JSON.stringify(activePaperCad.failure));
+assert.equal(activePaperCad.validation.strictAvailable,true,JSON.stringify(activePaperCad.validation));
+function activePaperName(format,opened){
+ assert.equal(opened.failure,null,JSON.stringify(opened.failure));
+ const native=JSON.parse(Buffer.from(opened.export.download.base64,'base64').toString('utf8'));
+ if(format==='ocdraw')return native.layouts.find(l=>l.id===native.drawingWorkspaceState?.activeLayoutId)?.name;
+ const selected=native.data.find(n=>n.attributes?.['ifccad::drawingWorkspace'])?.attributes['ifccad::drawingWorkspace'].activeLayout;
+ return native.data.find(n=>n.path===selected)?.attributes['ifccad::layout'].name;
+}
+for(const drawingFormat of ['ocdraw','ifccad']){
+ const original={kind:'cad',drawingFormat,name:'active-paper',files:[{path:'active-paper.dxf',bytes:Uint8Array.from(Buffer.from(activePaperCad.export.download.base64,'base64')).buffer}]};
+ assert.equal(activePaperName(drawingFormat,processBrowserRequest({...original,export:{format:drawingFormat}},wasm)),'Selected second sheet');
+ for(const format of ['dxf','dwg']){
+  const output=processBrowserRequest({...original,export:{format,version:'AC1032'}},wasm);
+  assert.equal(output.failure,null,JSON.stringify(output.failure));
+  const returned=processBrowserRequest({kind:'cad',drawingFormat,name:'active-paper-returned',files:[{path:`active-paper.${format}`,bytes:Uint8Array.from(Buffer.from(output.export.download.base64,'base64')).buffer}],export:{format:drawingFormat}},wasm);
+  assert.equal(activePaperName(drawingFormat,returned),'Selected second sheet',`${drawingFormat} ${format}`);
+ }
+}
+console.log('Browser WASM multi-sheet active Paper layout retained through both native routes and DXF/DWG');
+
 const textBytes=await readFile(new URL('../../examples/ocdraw/text.ocdraw.json',import.meta.url));
 const textSource={kind:'drawing',name:'text.ocdraw.json',files:[{path:'text.ocdraw.json',bytes:Uint8Array.from(textBytes).buffer}]};
 const textOpened=processBrowserRequest(textSource,wasm);

@@ -183,26 +183,8 @@ pub(crate) fn from_cad(
     let active_layout_id = if header.show_model_space {
         Some(drawing.model.id)
     } else {
-        let papers: Vec<_> = source
-            .objects
-            .values()
-            .filter_map(|o| match o {
-                ObjectType::Layout(l)
-                    if source
-                        .block_records
-                        .iter()
-                        .any(|b| b.handle == l.block_record && b.is_paper_space()) =>
-                {
-                    Some(l)
-                }
-                _ => None,
-            })
-            .collect();
-        if papers.len() == 1 {
-            maps.layouts.ifccad_id(papers[0].handle)
-        } else {
-            None
-        }
+        crate::source::workspace::active_paper_layout(source)
+            .and_then(|layout| maps.layouts.ifccad_id(layout.handle))
     };
     if active_layout_id.is_none() {
         loss(
@@ -455,8 +437,14 @@ pub(crate) fn to_cad(
         }
         if let Some(id) = state.active_layout_id {
             target.header.show_model_space = id == drawing.model.id;
-            if !target.header.show_model_space && drawing.paper_layouts.len() > 1 {
-                loss(issues,format!("/cad/d{}.ifccad::drawingWorkspace.activeLayout",drawing.drawing_id),"CAD retains Model/Paper mode but does not expose the selected Paper tab among several layouts");
+            if !target.header.show_model_space {
+                let layout_handle = maps.layouts.cad_handle(id).expect("allocated layout");
+                let Some(ObjectType::Layout(layout)) = target.objects.get(&layout_handle) else {
+                    return Err(Error::CadConstruction(
+                        "active Paper layout is missing".into(),
+                    ));
+                };
+                activate_paper_layout(target, layout.block_record)?;
             }
             let settings = if id == drawing.model.id {
                 &drawing.model.settings
@@ -555,5 +543,55 @@ pub(crate) fn to_cad(
             }
         }
     }
+    Ok(())
+}
+
+/// Change the complete reserved Paper role, keeping layout/entity handles and owners.
+fn activate_paper_layout(document: &mut CadDocument, block: Handle) -> Result<(), Error> {
+    let active = document
+        .block_records
+        .get("*Paper_Space")
+        .ok_or_else(|| Error::CadConstruction("reserved Paper block is missing".into()))?;
+    let active_handle = active.handle;
+    let selected_name = document
+        .block_records
+        .iter()
+        .find(|b| b.handle == block)
+        .ok_or_else(|| Error::CadConstruction("selected Paper block is missing".into()))?
+        .name
+        .clone();
+    if active_handle != block {
+        let mut temporary = "__active_paper_swap".to_string();
+        while document.block_records.contains(&temporary) {
+            temporary.push('_');
+        }
+        document
+            .block_records
+            .rename("*Paper_Space", &temporary)
+            .map_err(Error::CadConstruction)?;
+        document
+            .block_records
+            .rename(&selected_name, "*Paper_Space")
+            .map_err(Error::CadConstruction)?;
+        document
+            .block_records
+            .rename(&temporary, selected_name)
+            .map_err(Error::CadConstruction)?;
+    }
+    // DWG writes an existing BLOCK begin marker verbatim. Its name must agree
+    // with the renamed record, otherwise readback reconstructs the former role.
+    let markers: Vec<_> = document
+        .block_records
+        .iter()
+        .filter(|record| record.is_paper_space())
+        .map(|record| (record.block_entity_handle, record.name.clone()))
+        .collect();
+    for (handle, name) in markers {
+        if let Some(EntityType::Block(marker)) = document.get_entity_mut(handle) {
+            marker.name = name;
+        }
+    }
+    document.header.paper_space_block_handle = block;
+    document.header.show_model_space = false;
     Ok(())
 }

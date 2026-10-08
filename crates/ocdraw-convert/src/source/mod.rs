@@ -18,7 +18,8 @@ pub(crate) use appearance::{
 };
 pub(crate) use blocks::{inspect_markers, inspect_references, ordered_entities};
 pub(crate) use layouts::{
-    is_empty_reserved_paper_block, is_untouched_scaffold, overall_viewport_handle,
+    active_paper_layout, is_empty_reserved_paper_block, is_untouched_scaffold,
+    overall_viewport_handle,
 };
 pub(crate) use structure::{inspect_model_space, with_recovered_model_space_handle};
 #[derive(Default)]
