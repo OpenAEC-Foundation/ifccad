@@ -330,3 +330,11 @@ Unsupported associations retain contour geometry with located loss.
 conversion tolerance. Nondefault native limits are not persisted in CAD and
 produce rejectable loss. Fill remains unassessed despite contour curve proofs.
 See [Hatch support](../../docs/hatch.md) and the coverage inventories.
+## Native validation contract
+
+The core IFCCAD [rule catalog](../../schemas/ifccad/profile-rules-0.1.0.md) links
+ordinary IFCX declarations, offline local-value supplements and graph/domain
+algorithms. The same single experimental drawing import remains sufficient.
+Wire supplements do not replace typed validation or converter loss/accuracy
+checks; source graphs and source bytes remain immutable. Native records reject unknown members and explicit nulls consistently;
+validation messages identify their rule and source/component location.

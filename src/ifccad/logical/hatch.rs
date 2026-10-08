@@ -93,9 +93,11 @@ pub struct IfccadHatch {
     pub fill: HatchFill,
 }
 pub(crate) fn validate_hatch(h: &IfccadHatch, path: &str) -> Result<(), IfccadReport> {
-    h.placement.coordinate_frame()?;
+    h.placement
+        .coordinate_frame()
+        .map_err(|e| crate::ifccad::diagnostics::context(e, "IFCCAD-HATCH-001", path))?;
     validate_hatch_boundaries(h.loops.iter().map(|l| &l.boundary), h.join_tolerance)
-        .map_err(|e| IfccadReport::one(format!("{path}: {e}")))
+        .map_err(|e| crate::ifccad::diagnostics::failure("IFCCAD-HATCH-003", path, e.to_string()))
 }
 fn owned(d: &IfccadDocument) -> impl Iterator<Item = (IfccadScopeId, &IfccadEntity)> {
     d.model
@@ -135,7 +137,11 @@ pub(crate) fn validate_hatch_sources(d: &IfccadDocument) -> Result<(), IfccadRep
                         })
                 });
                 if !valid {
-                    return Err(IfccadReport::one(format!("/cad/d{}/e{}/loops/{i}/source: missing or unsupported closed same-owner entity",d.drawing_id,e.id)));
+                    return Err(crate::ifccad::diagnostics::failure(
+                        "IFCCAD-HATCH-002",
+                        &format!("/cad/d{}/e{}/loops/{i}/source", d.drawing_id, e.id),
+                        "missing or unsupported closed same-owner entity",
+                    ));
                 }
             }
         }

@@ -74,7 +74,7 @@ pub enum IfccadViewportRenderMode {
 }
 
 fn problem(message: &str) -> IfccadReport {
-    IfccadReport::one(message)
+    crate::ifccad::diagnostics::failure("IFCCAD-VIEWPORT-003", "/ifccad::viewport", message)
 }
 fn exact(v: f64) -> BigRational {
     BigRational::from_float(v).expect("checked finite value")
@@ -113,7 +113,19 @@ pub fn validate_ifccad_viewport_parameters(viewport: &IfccadViewport) -> Result<
         &viewport.view.as_workspace_view(),
         crate::workspace_kernel::WorkspaceViewKind::Model,
     )
-    .map_err(|error| problem(&error.to_string()))
+    .map_err(|error| {
+        crate::ifccad::diagnostics::failure(
+            "IFCCAD-VIEWPORT-002",
+            &format!(
+                "/ifccad::viewport/{}",
+                error
+                    .field
+                    .replace("lensLength", "lensLengthMm")
+                    .replace('.', "/")
+            ),
+            error.to_string(),
+        )
+    })
 }
 
 /// Validates active boundary geometry; ownership and exclusive references are document rules.
@@ -202,12 +214,12 @@ pub(super) fn validate_references(document: &IfccadDocument) -> Result<(), Ifcca
             }
             Ok(())
         })();
-        result.map_err(|report: IfccadReport| IfccadReport {
-            errors: report
-                .errors
-                .into_iter()
-                .map(|message| format!("/cad/d{}/e{}: {message}", document.drawing_id, entity.id))
-                .collect(),
+        result.map_err(|report: IfccadReport| {
+            crate::ifccad::diagnostics::context(
+                report,
+                "IFCCAD-VIEWPORT-003",
+                &format!("/cad/d{}/e{}", document.drawing_id, entity.id),
+            )
         })?;
     }
     Ok(())

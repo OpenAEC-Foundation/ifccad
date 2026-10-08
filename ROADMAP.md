@@ -139,8 +139,8 @@ The Solid Hatch slice implements independent OCDraw/IFCCAD typed storage,
 structural/join/source validation, contour bounds, CAD conversion and inspection.
 Actual AC1032 DXF/DWG tests retain area rules, loops and associations, with
 contour/occurrence numerical evidence and separately unassessed fill.
-The task branch awaits integration and the agreed verification checkpoint on
-main. Pattern Hatch follows that checkpoint; gradients, native spline boundaries,
+The agreed verification checkpoint on main separates this Solid slice from
+Pattern Hatch. Pattern implementation follows user acceptance of that checkpoint; gradients, native spline boundaries,
 intersection auditing and runtime associative updates remain separate work.
 See [Hatch support](docs/hatch.md). No initial contract publication is implied.
 

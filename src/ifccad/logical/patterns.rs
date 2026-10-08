@@ -21,10 +21,11 @@ pub fn validate_ifccad_line_patterns(patterns: &[IfccadLinePattern]) -> Result<(
                     || !period.is_finite()
                     || period <= 0.))
         {
-            return Err(IfccadReport::one(format!(
-                "invalid or duplicate line pattern {} ({})",
-                p.id.0, p.name
-            )));
+            return Err(crate::ifccad::diagnostics::failure(
+                "IFCCAD-PATTERN-002",
+                &format!("/linePattern/{}", p.id.0),
+                format!("invalid or duplicate line pattern {} ({})", p.id.0, p.name),
+            ));
         }
     }
     Ok(())
@@ -32,9 +33,11 @@ pub fn validate_ifccad_line_patterns(patterns: &[IfccadLinePattern]) -> Result<(
 
 pub(crate) fn scale(value: f64, context: &str) -> Result<(), IfccadReport> {
     if !value.is_finite() || value <= 0. {
-        return Err(IfccadReport::one(format!(
-            "{context} invalid line pattern scale"
-        )));
+        return Err(crate::ifccad::diagnostics::failure(
+            "IFCCAD-PATTERN-001",
+            context,
+            format!("{context} invalid line pattern scale"),
+        ));
     }
     Ok(())
 }

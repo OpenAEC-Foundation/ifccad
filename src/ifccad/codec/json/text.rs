@@ -9,37 +9,6 @@ use serde::Deserialize;
 use serde_json::{json, Value};
 use std::collections::BTreeMap;
 
-fn validate_payload(value: &Value, kind: &str, path: &str) -> Result<(), IfccadReport> {
-    static VALIDATORS: std::sync::OnceLock<BTreeMap<&'static str, jsonschema::Validator>> =
-        std::sync::OnceLock::new();
-    let validators = VALIDATORS.get_or_init(|| {
-        let base: Value = serde_json::from_str(include_str!(
-            "../../../../schemas/ifccad/text-values-0.1.0.schema.json"
-        ))
-        .expect("bundled IFCCAD text schema");
-        ["textStyle", "text", "mText"]
-            .into_iter()
-            .map(|kind| {
-                let mut schema = base.clone();
-                schema["$ref"] = json!(format!("#/$defs/{kind}"));
-                (
-                    kind,
-                    jsonschema::draft202012::new(&schema).expect("valid IFCCAD text schema"),
-                )
-            })
-            .collect()
-    });
-    let errors: Vec<_> = validators[kind]
-        .iter_errors(value)
-        .map(|e| format!("{path}/{}{}: {e}", kind, e.instance_path()))
-        .collect();
-    if errors.is_empty() {
-        Ok(())
-    } else {
-        Err(IfccadReport { errors })
-    }
-}
-
 pub(super) fn decode_entity(
     v: &Value,
     placement: &Value,
@@ -52,13 +21,30 @@ pub(super) fn decode_entity(
     } else {
         "mText"
     };
-    validate_payload(v, kind, path)?;
-    let failure = || IfccadReport::one(format!("{path} invalid {kind} fields"));
-    let placement: IfccadPlacement = serde_json::from_value(placement.clone())
-        .map_err(|e| IfccadReport::one(format!("{path} text placement: {e}")))?;
+    super::supplemental::validate_value(key, v, path)?;
+    let failure = || {
+        crate::ifccad::diagnostics::failure(
+            super::supplemental::rule_id(key),
+            &format!("{path}/{key}"),
+            format!("invalid {kind} fields"),
+        )
+    };
+    let placement: IfccadPlacement = serde_json::from_value(placement.clone()).map_err(|e| {
+        crate::ifccad::diagnostics::failure(
+            "IFCCAD-GEOMETRY-001",
+            &format!("{path}/ifccad::geom::placement"),
+            e.to_string(),
+        )
+    })?;
     let style_id = *styles
         .get(v["style"].as_str().ok_or_else(failure)?)
-        .ok_or_else(|| IfccadReport::one(format!("{path} unresolved drawing-local text style")))?;
+        .ok_or_else(|| {
+            crate::ifccad::diagnostics::failure(
+                "IFCCAD-TEXT-004",
+                &format!("{path}/{key}/style"),
+                "unresolved drawing-local text style",
+            )
+        })?;
     let rotation = v.get("rotation").and_then(Value::as_f64).unwrap_or(0.);
     let backward = v.get("backward").and_then(Value::as_bool).unwrap_or(false);
     let upside_down = v
@@ -210,14 +196,21 @@ pub(super) fn decode_style(
     value: &Value,
     path: &str,
 ) -> Result<(String, TextStyleProperties), IfccadReport> {
-    validate_payload(value, "textStyle", path)?;
+    super::supplemental::validate_value("ifccad::textStyle", value, path)?;
     if !reject_nulls(value) {
-        return Err(IfccadReport::one(format!(
-            "{path} textStyle cannot contain null"
-        )));
+        return Err(crate::ifccad::diagnostics::failure(
+            "IFCCAD-TEXT-001",
+            path,
+            format!("{path} textStyle cannot contain null"),
+        ));
     }
-    let s: StyleValue = serde_json::from_value(value.clone())
-        .map_err(|e| IfccadReport::one(format!("{path} textStyle: {e}")))?;
+    let s: StyleValue = serde_json::from_value(value.clone()).map_err(|e| {
+        crate::ifccad::diagnostics::failure(
+            "IFCCAD-TEXT-001",
+            &format!("{path}/ifccad::textStyle"),
+            e.to_string(),
+        )
+    })?;
     Ok((
         s.name,
         TextStyleProperties {

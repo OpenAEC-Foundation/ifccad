@@ -67,3 +67,25 @@ fn nested_unknown_fields_null_sources_and_noncanonical_paths_are_rejected() {
         assert!(load_ifccad_bytes(&serde_json::to_vec(&v).unwrap(), Default::default()).is_err());
     }
 }
+#[test]
+fn hatch_reference_preserves_zero_ids_in_ifccad_domains() {
+    let mut d = fixture::drawing();
+    d.drawing_id = 0;
+    for e in &mut d.model.entities {
+        let e = e.as_native_mut().unwrap();
+        if e.id == fixture::SOURCE {
+            e.id = 0;
+        }
+        if let IfccadEntityKind::Hatch(h) = &mut e.kind {
+            h.loops[1].source_entity_id = Some(0);
+        }
+    }
+    let bytes = encode_ifccad_document(&d).unwrap();
+    assert!(String::from_utf8_lossy(bytes.bytes()).contains("/cad/d0/e0"));
+    assert_eq!(
+        load_ifccad_bytes(bytes.bytes(), Default::default())
+            .unwrap()
+            .document(),
+        &d
+    );
+}

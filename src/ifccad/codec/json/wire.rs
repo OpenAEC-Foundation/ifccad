@@ -4,7 +4,7 @@ use serde_json::{json, Value};
 use std::collections::BTreeMap;
 
 #[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(super) struct LayerAppearance {
     color: String,
     opacity: f64,
@@ -12,7 +12,7 @@ pub(super) struct LayerAppearance {
     line_weight: f64,
 }
 #[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(super) struct EntityAppearance {
     color: IfccadMode<String>,
     opacity: IfccadMode<f64>,
@@ -23,10 +23,13 @@ fn resolve(
     path: &str,
     patterns: &BTreeMap<String, IfccadLinePatternId>,
 ) -> Result<IfccadLinePatternId, IfccadReport> {
-    patterns
-        .get(path)
-        .copied()
-        .ok_or_else(|| IfccadReport::one(format!("unresolved drawing-local line pattern {path}")))
+    patterns.get(path).copied().ok_or_else(|| {
+        crate::ifccad::diagnostics::failure(
+            "IFCCAD-APPEARANCE-001",
+            "/linePattern",
+            format!("unresolved drawing-local line pattern {path}"),
+        )
+    })
 }
 impl LayerAppearance {
     pub(super) fn typed(

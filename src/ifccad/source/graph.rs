@@ -19,7 +19,9 @@ impl LoadedIfccadGraph {
         policy: IfccadCompositionPolicy,
     ) -> Result<Self, IfccadReport> {
         Ok(Self {
-            composed: composition::compose(bytes, policy)?,
+            composed: composition::compose(bytes, policy).map_err(|report| {
+                crate::ifccad::diagnostics::context(report, "IFCCAD-WIRE-002", "/")
+            })?,
             source: bytes.to_vec(),
             policy,
         })

@@ -33,6 +33,8 @@ pub(super) fn decode_hatch(
     prefix: &str,
     path: &str,
 ) -> Result<IfccadEntityKind, IfccadReport> {
+    super::supplemental::validate_value("ifccad::hatch", value, path)?;
+    super::supplemental::validate_value("ifccad::geom::placement", placement, path)?;
     let error = |msg: &str| IfccadReport::one(format!("{path}: {msg}"));
     let raw = value["loops"]
         .as_array()

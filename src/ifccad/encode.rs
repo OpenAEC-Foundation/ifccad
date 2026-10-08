@@ -5,11 +5,11 @@ use super::*;
 pub enum IfccadEncodeError {
     #[error("{0}")]
     InvalidDocument(#[from] IfccadReport),
-    #[error("IFCX serialization failed: {0}")]
+    #[error("IFCCAD-WIRE-005 /serialization: IFCX serialization failed: {0}")]
     Serialization(#[from] serde_json::Error),
     #[error("strict IFCX readback failed: {0}")]
     Readback(#[source] IfccadReadError),
-    #[error("strict IFCX readback changed CAD semantics")]
+    #[error("{0}")]
     SemanticMismatch(#[source] IfccadReport),
 }
 /// Encode a fresh CAD-profile file, without updating an original source graph.
@@ -71,9 +71,13 @@ fn verify_readback(bytes: &[u8], document: &IfccadDocument) -> Result<(), Ifccad
         .paper_layouts
         .sort_by_key(|layout| layout.tab_index);
     if loaded.document() != &expected {
-        return Err(IfccadEncodeError::SemanticMismatch(IfccadReport::one(
-            "strict IFCX readback changed CAD semantics",
-        )));
+        return Err(IfccadEncodeError::SemanticMismatch(
+            crate::ifccad::diagnostics::failure(
+                "IFCCAD-WIRE-005",
+                "/",
+                "strict IFCX readback changed CAD semantics",
+            ),
+        ));
     }
     Ok(())
 }
@@ -132,7 +136,7 @@ mod tests {
         };
         assert_eq!(
             report.errors,
-            ["strict IFCX readback changed CAD semantics"]
+            ["IFCCAD-WIRE-005 /: strict IFCX readback changed CAD semantics"]
         );
         assert_eq!(error.report(), Some(report));
         assert_eq!(

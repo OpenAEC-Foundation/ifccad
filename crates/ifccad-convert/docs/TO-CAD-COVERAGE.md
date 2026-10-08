@@ -295,3 +295,10 @@ including small stored gaps; they do not certify CAD fill evaluation or reactor
 update behavior. Fill and nested fill occurrences remain unassessed. No pattern,
 gradient, spline-boundary or MPOLYGON backing is offered by this slice.
 See [Hatch support](../../../docs/hatch.md) for the complete bounded guarantee.
+## IFCCAD validation rule organization
+
+Native output and input continue through the production reader and shared domain
+validation. The [profile rules](../../../schemas/ifccad/profile-rules-0.1.0.md)
+link ordinary IFCX declarations with bundled local-value supplements and precise
+graph/calculation requirements. This organization does not widen the supported
+CAD subset or change Allow/Reject, numerical limits, identity or source retention.

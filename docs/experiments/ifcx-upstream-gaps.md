@@ -120,8 +120,11 @@ outside CAD, independently of compact paths.
   rules express; G5 concerns reproducible imports; G8 concerns how a consumer
   knows which validation obligations accompany an imported profile.
 - **Our tested rule:** A drawing imports one IFCCAD profile. The local reader
-  bundles its schema, extra text JSON Schema and semantic validators; another
-  implementation needs the normative contract and conformance tests as well.
+  bundles its ordinary IFCX declarations, general local-value JSON Schema
+  supplements and semantic validators. The [rule catalog](../../schemas/ifccad/profile-rules-0.1.0.md)
+  identifies applicability, evidence and upstream-migration conditions for all
+  current families; an independent implementation also needs those graph/domain
+  requirements and conformance cases.
   Generic acceptance of the ordinary IFCX declarations does not establish full
   IFCCAD conformance. No custom Union datatype, JSON Schema keyword or constraint
   extension is presented as adopted IFCX syntax.
@@ -139,9 +142,9 @@ outside CAD, independently of compact paths.
   [current text validator](../../src/ifccad/codec/json/text.rs),
   [core semantic validation](../../src/ifccad/logical/document_validation.rs).
 
-### Representation direction under review (2026-10-08)
+### Implemented representation direction (2026-10-08)
 
-The proposed direction is to put every currently expressible rule in the ordinary
+The adopted direction is to put every currently expressible rule in the ordinary
 IFCX schema, retain only the missing rules as explicit supplements, and document
 each supplement with a stable rule ID, its applicability, exact requirement,
 positive/negative cases, relevant G-number and upstream migration condition.
@@ -149,9 +152,16 @@ Local value rules can use an established formal notation such as JSON Schema;
 graph/calculation rules need precise language-neutral requirements and named
 algorithms/tests where that notation cannot express them. Explanatory prose
 supports those rules; vague prose or only Rust code is not a portable contract.
-The packaging and validator architecture remain a proposal for review. No new
-rule DSL, in-schema private extension, full parallel schema, or upstream message
-is authorized by this register update alone.
+The [normative rule catalog](../../schemas/ifccad/profile-rules-0.1.0.md) covers all
+current families. The [offline local-value supplement](../../schemas/ifccad/supplemental-values-0.1.0.schema.json)
+is dispatched by the [IFCCAD codec](../../src/ifccad/codec/json/supplemental.rs),
+while typed projection and domain algorithms retain graph/calculation checks.
+Each catalog entry records applicability, evidence, G-number and a migration
+condition. Native closure and null rules are consistent across families; historical
+inline module exceptions are removed, and validation errors carry rule/location
+information.
+G4/G6/G7/G8 remain upstream requests; this implementation does not invent IFCX
+syntax, a rule DSL, a whole parallel drawing schema or an upstream message.
 
 If custom declarations are later selected, they must be identified as IFCCAD
 extensions with defined enforcement and unsupported-capability behaviour. An

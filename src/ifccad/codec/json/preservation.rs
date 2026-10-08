@@ -4,7 +4,7 @@ use base64::{engine::general_purpose::STANDARD, Engine};
 use serde_json::{json, Value};
 
 fn problem(message: impl Into<String>) -> IfccadReport {
-    IfccadReport::one(message)
+    crate::ifccad::diagnostics::failure("IFCCAD-PRESERVATION-001", "/", message)
 }
 fn target_path(t: IfccadPreservationTarget, prefix: &str) -> String {
     use IfccadPreservationTarget::*;

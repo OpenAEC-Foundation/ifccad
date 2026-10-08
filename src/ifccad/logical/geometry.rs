@@ -12,7 +12,13 @@ impl IfccadPlacement {
             Vector3::new(x[0], x[1], x[2]),
             Vector3::new(y[0], y[1], y[2]),
         )
-        .map_err(|e| IfccadReport::one(format!("invalid placement: {e}")))
+        .map_err(|e| {
+            crate::ifccad::diagnostics::failure(
+                "IFCCAD-GEOMETRY-001",
+                "/ifccad::geom::placement",
+                format!("invalid placement: {e}"),
+            )
+        })
     }
 }
 impl IfccadEntityKind {

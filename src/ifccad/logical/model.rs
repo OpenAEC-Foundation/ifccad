@@ -38,6 +38,7 @@ pub struct IfccadDocument {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct IfccadLayer {
     pub id: u64,
     pub name: String,
@@ -45,7 +46,7 @@ pub struct IfccadLayer {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct IfccadLayerAppearance {
     pub color: String,
     pub opacity: f64,
@@ -97,7 +98,7 @@ pub struct IfccadBounds3d {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "mode", content = "value")]
+#[serde(tag = "mode", content = "value", deny_unknown_fields)]
 pub enum IfccadMode<T> {
     ByLayer,
     ByBlock,
@@ -105,7 +106,7 @@ pub enum IfccadMode<T> {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct IfccadEntityAppearance {
     pub color: IfccadMode<String>,
     pub opacity: IfccadMode<f64>,
@@ -186,7 +187,7 @@ pub struct IfccadPlacement {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct IfccadBlockTransform {
     pub placement: IfccadPlacement,
     pub rotation: f64,
@@ -260,7 +261,7 @@ pub struct IfccadLinePattern {
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub enum IfccadLinePatternGeneration {
     #[default]
     PerSegment,
