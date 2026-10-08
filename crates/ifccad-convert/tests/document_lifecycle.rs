@@ -150,7 +150,10 @@ fn invalid_direct_document_never_reaches_cad_construction() {
             let IfccadConversionError::CoreValidation(report) = &error else {
                 panic!("metadata validation precedes encoding");
             };
-            assert_eq!(report.errors, ["incomplete IFCX header"]);
+            assert_eq!(
+                report.errors,
+                ["IFCCAD-WIRE-001 /header: incomplete IFCX header"]
+            );
             assert_eq!(
                 error.source().unwrap().downcast_ref::<IfccadReport>(),
                 Some(report)

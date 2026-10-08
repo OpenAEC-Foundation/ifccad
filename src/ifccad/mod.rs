@@ -41,6 +41,7 @@
 //! ```
 
 mod codec;
+mod diagnostics;
 mod encode;
 mod logical;
 mod read;
@@ -66,7 +67,8 @@ pub enum IfccadCompositionPolicy {
 #[derive(Clone, Debug, PartialEq, Eq, thiserror::Error)]
 #[error("IFCCAD validation failed: {errors:?}")]
 pub struct IfccadReport {
-    /// Human-readable, location-oriented diagnostics.
+    /// Core-generated validation messages contain a stable IFCCAD rule ID,
+    /// a source or logical component location, and the original error detail.
     pub errors: Vec<String>,
 }
 

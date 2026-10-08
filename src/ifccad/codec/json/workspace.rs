@@ -6,7 +6,7 @@ use serde_json::{json, Value};
 use std::collections::{BTreeMap, BTreeSet};
 
 fn bad(message: impl Into<String>) -> IfccadReport {
-    IfccadReport::one(message)
+    crate::ifccad::diagnostics::failure("IFCCAD-WORKSPACE-001", "/", message)
 }
 fn parse<T: serde::de::DeserializeOwned>(v: &Value) -> Result<T, IfccadReport> {
     serde_json::from_value(v.clone()).map_err(|e| bad(format!("invalid workspace value: {e}")))
@@ -306,6 +306,7 @@ pub(super) fn decode_document(
     let mut windows = BTreeMap::new();
     for (&path, node) in &nodes {
         if let Some(v) = attr(node, "ifccad::ucsDefinition") {
+            super::supplemental::validate_value("ifccad::ucsDefinition", v, path)?;
             #[derive(Deserialize)]
             #[serde(deny_unknown_fields)]
             struct Definition {
@@ -325,6 +326,7 @@ pub(super) fn decode_document(
             });
         }
         if let Some(v) = attr(node, "ifccad::modelWindow") {
+            super::supplemental::validate_value("ifccad::modelWindow", v, path)?;
             fields(
                 v,
                 &[
@@ -368,6 +370,7 @@ pub(super) fn decode_document(
             );
         }
         if let Some(v) = attr(node, "ifccad::paperCanvas") {
+            super::supplemental::validate_value("ifccad::paperCanvas", v, path)?;
             let layout_id = id(path, &format!("{prefix}/layout/"))?;
             let paper = document
                 .paper_layouts
@@ -377,6 +380,7 @@ pub(super) fn decode_document(
             paper.canvas = Some(decode_canvas(v, &prefix)?);
         }
         if let Some(v) = attr(node, "ifccad::viewportWorkspace") {
+            super::supplemental::validate_value("ifccad::viewportWorkspace", v, path)?;
             let entity_id = id(path, &format!("{prefix}/e"))?;
             let viewport = document
                 .paper_layouts
@@ -416,6 +420,7 @@ pub(super) fn decode_document(
         ));
     }
     if let Some(v) = attr(drawing, "ifccad::drawingWorkspace") {
+        super::supplemental::validate_value("ifccad::drawingWorkspace", v, &prefix)?;
         fields(v, &["currentLayer", "activeLayout"])?;
         document.workspace_state = Some(IfccadDrawingWorkspaceState {
             current_layer_id: optional(v, "currentLayer", |v| {
@@ -433,6 +438,7 @@ pub(super) fn decode_document(
         });
     }
     if let Some(v) = attr(drawing, "ifccad::modelViewState") {
+        super::supplemental::validate_value("ifccad::modelViewState", v, &prefix)?;
         fields(v, &["currentModelUcs", "activeModelWindow"])?;
         document.model_view_state = Some(IfccadModelViewState {
             current_model_ucs: optional(v, "currentModelUcs", |v| ucs(v, &prefix))?,

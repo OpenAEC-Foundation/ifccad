@@ -9,7 +9,13 @@ pub(super) fn validate_preservation(d: &IfccadDocument) -> Result<(), IfccadRepo
         .chain(d.paper_layouts.iter().flat_map(|p| &p.entities))
         .chain(d.blocks.iter().flat_map(|b| &b.entities))
         .collect();
-    let fail = |s: &str| IfccadReport::one(format!("/cad/d{}/preservation: {s}", d.drawing_id));
+    let fail = |s: &str| {
+        crate::ifccad::diagnostics::failure(
+            "IFCCAD-PRESERVATION-002",
+            &format!("/cad/d{}/preservation", d.drawing_id),
+            s,
+        )
+    };
     let Some(p) = &d.preservation else {
         return if entities.iter().any(|e| e.as_opaque().is_some()) {
             Err(fail("opaque entity requires preservation"))

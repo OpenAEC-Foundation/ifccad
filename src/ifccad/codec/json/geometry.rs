@@ -75,8 +75,13 @@ struct SpatialValue {
     line_pattern_generation: IfccadLinePatternGeneration,
 }
 fn decode<T: for<'a> Deserialize<'a>>(value: &Value, path: &str) -> Result<T, IfccadReport> {
-    serde_json::from_value(value.clone())
-        .map_err(|e| IfccadReport::one(format!("{path}: invalid geometry payload: {e}")))
+    serde_json::from_value(value.clone()).map_err(|e| {
+        crate::ifccad::diagnostics::failure(
+            "IFCCAD-GEOMETRY-001",
+            path,
+            format!("invalid geometry payload: {e}"),
+        )
+    })
 }
 pub(super) fn decode_kind(
     attrs: &Map<String, Value>,
@@ -84,11 +89,19 @@ pub(super) fn decode_kind(
     path: &str,
 ) -> Result<IfccadEntityKind, IfccadReport> {
     let v = &attrs[key];
+    super::supplemental::validate_value(key, v, path)?;
     let frame = || {
+        if let Some(v) = attrs.get("ifccad::geom::placement") {
+            super::supplemental::validate_value("ifccad::geom::placement", v, path)?;
+        }
         decode::<IfccadPlacement>(
-            attrs
-                .get("ifccad::geom::placement")
-                .ok_or_else(|| IfccadReport::one(format!("{path}: missing geometry placement")))?,
+            attrs.get("ifccad::geom::placement").ok_or_else(|| {
+                crate::ifccad::diagnostics::failure(
+                    "IFCCAD-GEOMETRY-001",
+                    &format!("{path}/ifccad::geom::placement"),
+                    "missing geometry placement",
+                )
+            })?,
             path,
         )
     };
@@ -97,9 +110,11 @@ pub(super) fn decode_kind(
         "ifccad::geom::lineSegment" | "ifccad::geom::spatialPolyline"
     ) && attrs.contains_key("ifccad::geom::placement")
     {
-        return Err(IfccadReport::one(format!(
-            "{path}: direct XYZ geometry forbids placement"
-        )));
+        return Err(crate::ifccad::diagnostics::failure(
+            "IFCCAD-GEOMETRY-001",
+            &format!("{path}/ifccad::geom::placement"),
+            format!("{path}: direct XYZ geometry forbids placement"),
+        ));
     }
     Ok(match key {
         "ifccad::geom::point" => {
@@ -175,9 +190,11 @@ pub(super) fn decode_kind(
             }
         }
         _ => {
-            return Err(IfccadReport::one(format!(
-                "{path}: unsupported geometry payload"
-            )))
+            return Err(crate::ifccad::diagnostics::failure(
+                "IFCCAD-GEOMETRY-001",
+                &format!("{path}/{key}"),
+                format!("{path}: unsupported geometry payload"),
+            ))
         }
     })
 }

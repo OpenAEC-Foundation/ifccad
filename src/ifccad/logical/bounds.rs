@@ -90,7 +90,11 @@ impl Extents {
     }
 }
 fn error(owner: Owner, message: &str) -> IfccadReport {
-    IfccadReport::one(format!("{owner:?}.bounds: {message}"))
+    let path = match owner {
+        Owner::Layout(id) => format!("/layout/{id}/ifccad::layout/bounds"),
+        Owner::BlockDefinition(id) => format!("/block/{id}/ifccad::blockDefinition/bounds"),
+    };
+    crate::ifccad::diagnostics::failure("IFCCAD-BOUNDS-002", &path, message)
 }
 fn union(target: &mut Option<IfccadBounds3d>, value: IfccadBounds3d) {
     match target {
@@ -464,7 +468,14 @@ pub fn assess_ifccad_document_bounds(
                 },
             ))
         })
-        .collect::<Result<_, IfccadReport>>()?;
+        .collect::<Result<_, IfccadReport>>()
+        .map_err(|report| {
+            crate::ifccad::diagnostics::context(
+                report,
+                "IFCCAD-BOUNDS-002",
+                &format!("/cad/d{}", d.drawing_id),
+            )
+        })?;
     Ok(IfccadBoundsAssessment { scopes })
 }
 /// Complete availability can include estimates; it is not a glyph certificate.
@@ -480,5 +491,12 @@ pub fn derive_ifccad_geometry_completeness(
     owners
         .into_iter()
         .map(|owner| evaluation.scope(owner).map(|e| (owner, e.completeness())))
-        .collect()
+        .collect::<Result<_, IfccadReport>>()
+        .map_err(|report| {
+            crate::ifccad::diagnostics::context(
+                report,
+                "IFCCAD-BOUNDS-002",
+                &format!("/cad/d{}", d.drawing_id),
+            )
+        })
 }

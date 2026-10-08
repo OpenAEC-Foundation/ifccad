@@ -16,7 +16,7 @@ pub enum IfccadIdDomain {
 
 /// Allocation cannot reserve a valid ID in the indicated domain.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, thiserror::Error)]
-#[error("IFCCAD {domain:?} cannot allocate a valid ID")]
+#[error("IFCCAD-ID-002 /allocation/{domain:?}: cannot allocate a valid ID")]
 pub struct IfccadIdAllocationError {
     pub domain: IfccadIdDomain,
 }
@@ -188,15 +188,21 @@ pub(super) fn validate(document: &super::IfccadDocument) -> Result<(), super::If
         ),
     ] {
         if next == 0 {
-            return Err(super::IfccadReport::one(format!(
-                "{field} must be positive"
-            )));
+            return Err(crate::ifccad::diagnostics::failure(
+                "IFCCAD-ID-002",
+                &format!("/cad/d{}/ifccad::drawing/{field}", document.drawing_id),
+                format!("{field} must be positive"),
+            ));
         }
         if let Some(maximum) = maximum.filter(|maximum| next <= *maximum) {
-            return Err(super::IfccadReport::one(format!(
-                "/cad/d{} {field} {next} must exceed current ID {maximum}",
-                document.drawing_id
-            )));
+            return Err(crate::ifccad::diagnostics::failure(
+                "IFCCAD-ID-002",
+                &format!("/cad/d{}/ifccad::drawing/{field}", document.drawing_id),
+                format!(
+                    "/cad/d{} {field} {next} must exceed current ID {maximum}",
+                    document.drawing_id
+                ),
+            ));
         }
     }
     Ok(())

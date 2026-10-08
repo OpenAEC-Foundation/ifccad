@@ -86,22 +86,44 @@ pub(super) fn compose(
 ) -> Result<Value, IfccadReport> {
     let mut deserializer = serde_json::Deserializer::from_slice(bytes);
     let mut root = UniqueValue::deserialize(&mut deserializer)
-        .map_err(|error| IfccadReport::one(format!("invalid IFCX JSON: {error}")))?
+        .map_err(|error| {
+            crate::ifccad::diagnostics::failure(
+                "IFCCAD-WIRE-001",
+                "/",
+                format!("invalid IFCX JSON: {error}"),
+            )
+        })?
         .0;
-    deserializer
-        .end()
-        .map_err(|error| IfccadReport::one(format!("trailing IFCX JSON: {error}")))?;
+    deserializer.end().map_err(|error| {
+        crate::ifccad::diagnostics::failure(
+            "IFCCAD-WIRE-001",
+            "/",
+            format!("trailing IFCX JSON: {error}"),
+        )
+    })?;
     let data = root
         .get_mut("data")
         .and_then(Value::as_array_mut)
-        .ok_or_else(|| IfccadReport::one("IFCX data must be an array"))?;
+        .ok_or_else(|| {
+            crate::ifccad::diagnostics::failure(
+                "IFCCAD-WIRE-001",
+                "/data",
+                "IFCX data must be an array",
+            )
+        })?;
     let mut indices = BTreeMap::<String, usize>::new();
     let mut composed = Vec::<Value>::new();
     for node in std::mem::take(data) {
         let path = node
             .get("path")
             .and_then(Value::as_str)
-            .ok_or_else(|| IfccadReport::one("IFCX node path must be a string"))?
+            .ok_or_else(|| {
+                crate::ifccad::diagnostics::failure(
+                    "IFCCAD-WIRE-001",
+                    "/data/path",
+                    "IFCX node path must be a string",
+                )
+            })?
             .to_owned();
         if let Some(index) = indices.get(&path).copied() {
             merge_node(&mut composed[index], node, policy, &path)?;
@@ -128,12 +150,12 @@ fn merge_node(
     policy: IfccadCompositionPolicy,
     path: &str,
 ) -> Result<(), IfccadReport> {
-    let target = existing
-        .as_object_mut()
-        .ok_or_else(|| IfccadReport::one("IFCX node must be an object"))?;
-    let fields = additional
-        .as_object()
-        .ok_or_else(|| IfccadReport::one("IFCX node must be an object"))?;
+    let target = existing.as_object_mut().ok_or_else(|| {
+        crate::ifccad::diagnostics::failure("IFCCAD-WIRE-001", path, "IFCX node must be an object")
+    })?;
+    let fields = additional.as_object().ok_or_else(|| {
+        crate::ifccad::diagnostics::failure("IFCCAD-WIRE-001", path, "IFCX node must be an object")
+    })?;
     for (field, value) in fields {
         if field == "path" {
             continue;
@@ -146,9 +168,11 @@ fn merge_node(
                     for (key, new_value) in new_fields {
                         match present_fields.get(key) {
                             Some(old_value) if old_value != new_value => {
-                                return Err(IfccadReport::one(format!(
-                                    "conflict at {path}/{field}/{key}"
-                                )));
+                                return Err(crate::ifccad::diagnostics::failure(
+                                    "IFCCAD-WIRE-002",
+                                    &format!("{path}/{field}/{key}"),
+                                    format!("conflict at {path}/{field}/{key}"),
+                                ));
                             }
                             Some(_) => {}
                             None => {
@@ -157,7 +181,11 @@ fn merge_node(
                         }
                     }
                 } else if present != value {
-                    return Err(IfccadReport::one(format!("conflict at {path}/{field}")));
+                    return Err(crate::ifccad::diagnostics::failure(
+                        "IFCCAD-WIRE-002",
+                        &format!("{path}/{field}"),
+                        "conflicting fragments",
+                    ));
                 }
             } else {
                 target.insert(field.to_owned(), value.clone());

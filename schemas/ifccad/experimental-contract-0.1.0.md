@@ -2,6 +2,18 @@
 
 IFCCAD is an opt-in, standalone IFCX alpha experiment, independent of the OCDraw drawing contract. Generic IFCX content may coexist with these CAD nodes. A reader claiming this CAD profile must enforce the rules below after composing fragments for equal paths. Project-owned API and schema file names use IFCCAD. The underlying IFCX syntax, `.ifcx` serialization, `ifccad::` schema namespace and profile URI retain their meaning. Released historical conformance collections remain unchanged.
 
+## Validation contract
+
+The ordinary IFCX module describes the available field shapes. The normative
+[profile rules](profile-rules-0.1.0.md) identify additional local-value, graph and
+domain obligations for all current attribute families. The bundled offline reader
+uses [JSON Schema supplements](supplemental-values-0.1.0.schema.json) at consumed
+CAD attribute boundaries together with typed projection and shared domain validation.
+No extra drawing import is required. Ordinary IFCX checks alone do not establish
+full IFCCAD validity. Native record closure and absence/null rules are enforced consistently across
+all current families. Historical inline module definitions are not accepted.
+Generated validation diagnostics identify a rule and source/component location.
+
 ## File and identity
 
 The file has IFCX `header`, `imports`, `schemas`, and `data`. `header.ifcxVersion` is `ifcx_alpha`. `header.dataVersion` belongs to the dataset. The drawing value's `profileVersion` is `0.1.0` and identifies this provisional CAD proof. This alpha contract can be revised without increasing that number; it does not promise compatibility across experimental reader revisions. The recommended drawing imports `urn:example:ifccad:0.1.0`, whose schema-only IFCX document is `ifccad-profile-0.1.0.ifcx`, and leaves drawing-local `schemas` empty. The `example` URN namespace is registered for documentation and experimentation; this identifier is intentionally temporary and must be replaced by an organization-controlled published URI before production exchange. During this experiment, the reader revision determines the schema definition for this URI; the identifier does not yet promise an immutable published schema. The strict reader resolves this one experimental URI from its bundled profile, without network access. Alternatively, a drawing may inline exactly matching definitions from that module's `schemas`; a missing import and missing local definitions fail. This is a bounded offline resolver, not general IFCX import resolution. Conditional requirements and cross-node constraints in this document exceed IFCX's per-attribute descriptions.
@@ -73,7 +85,7 @@ The drawing has named `children` referring to exactly one Model layout, zero or 
 | `ifccad::blockInstance` | definition path and transform with placement, finite rotation in radians, nonzero finite XYZ scale |
 | `ifccad::viewport` | same-drawing Model reference, Paper frame, camera/view, render/display state, Paper clip and frozen-layer references; Paper ownership only |
 
-Every owned drawable has `ifccad::entity` and exactly one of the ten drawable payload attributes. A viewport has no separate geometry or placement payload. Unsupported `ifccad::geom::*` payloads fail explicitly. An independently used `ifccad::geom::circle` on a non-CAD IFCX node is not thereby a CAD entity. Coordinates use a fixed right-handed local XYZ convention; there is no implicit world alignment. The 25 length-unit tokens match the current OCDraw registry. Model and block-definition coordinates, including definition base points, use the drawing's length unit. Paper layouts have independent numerical coordinate domains, without a physical
+Every owned drawable has `ifccad::entity` and exactly one supported drawable payload attribute. A viewport has no separate geometry or placement payload. Unsupported `ifccad::geom::*` payloads fail explicitly. An independently used `ifccad::geom::circle` on a non-CAD IFCX node is not thereby a CAD entity. Coordinates use a fixed right-handed local XYZ convention; there is no implicit world alignment. The 25 length-unit tokens match the current OCDraw registry. Model and block-definition coordinates, including definition base points, use the drawing's length unit. Paper layouts have independent numerical coordinate domains, without a physical
 coordinate-unit declaration. Optional `media: {unit,width,height}` retains physical
 registry dimensions or raster px; unitless media, partial/null/unknown fields and
 nonpositive/nonfinite dimensions are invalid. Media are valid on Model and Paper,
@@ -257,7 +269,7 @@ for known contributions remain hard with absent bounds and unavailable neighbour
 ## Text and MText
 
 The independent closed nested mapping is
-[`text-values-0.1.0.schema.json`](text-values-0.1.0.schema.json). Its required
+[`supplemental-values-0.1.0.schema.json`](supplemental-values-0.1.0.schema.json). Its required
 fields, enums, variant exclusivity, primitive types and unknown/null rejection
 supplement the bundled IFCX module and semantic constraints described in
 [`docs/text.md`](../../docs/text.md). No CAD formatting codes are interpreted by
@@ -310,8 +322,8 @@ Record IDs form an independent positive uint64 domain, derived solely from paths
 The optional drawing `nextPreservationRecordId` is required whenever a collection
 exists; without a collection it is omitted only at the untouched default 1.
 Present watermarks must be positive and exceed every record ID; reservations and
-deletions persist. Native-only input without this domain remains readable,
-including the prior inline drawing schema lacking only this optional field.
+deletions persist. A native file without a preservation domain may omit its untouched default
+watermark. Its imported or inline schema must still match the current module.
 
 A record has sourceId/sourceKey, category (entity/object/table/drawing/layout/shared),
 role (complete/supplement/shared), representation (codecTyped/codecOpaque), optional

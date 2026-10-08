@@ -64,13 +64,13 @@ impl LayoutValue {
     }
 }
 #[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct LayerValue {
     name: String,
     appearance: super::wire::LayerAppearance,
 }
 #[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct DefinitionValue {
     bounds_quality: Option<IfccadBoundsQuality>,
     name: String,
@@ -79,7 +79,7 @@ struct DefinitionValue {
     bounds: Option<IfccadBounds3d>,
 }
 #[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct EntityValue {
     #[serde(default = "crate::ifccad::logical::patterns::one")]
     line_pattern_scale: f64,
@@ -87,13 +87,14 @@ struct EntityValue {
     appearance: super::wire::EntityAppearance,
 }
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 struct InstanceValue {
     definition: String,
     transform: IfccadBlockTransform,
 }
 
 fn problem(message: impl Into<String>) -> IfccadReport {
-    IfccadReport::one(message)
+    crate::ifccad::diagnostics::failure("IFCCAD-WIRE-004", "/", message)
 }
 fn preservation_node_role(node: &Value, key: &str) -> Result<(), IfccadReport> {
     let attributes = node["attributes"]
@@ -114,18 +115,40 @@ fn attr<'a>(node: &'a Value, key: &str) -> Option<&'a Value> {
 }
 fn required<T: for<'de> Deserialize<'de>>(node: &Value, key: &str) -> Result<T, IfccadReport> {
     let path = node["path"].as_str().unwrap_or("(unknown path)");
-    let value = attr(node, key).ok_or_else(|| problem(format!("{path} missing {key}")))?;
-    serde_json::from_value(value.clone()).map_err(|e| problem(format!("{path} invalid {key}: {e}")))
+    let value = attr(node, key).ok_or_else(|| {
+        crate::ifccad::diagnostics::failure(
+            super::supplemental::rule_id(key),
+            &format!("{path}/{key}"),
+            "missing required attribute",
+        )
+    })?;
+    super::supplemental::validate_value(key, value, path)?;
+    let parsed = serde_json::from_value(value.clone()).map_err(|e| {
+        crate::ifccad::diagnostics::failure(
+            super::supplemental::rule_id(key),
+            &format!("{path}/{key}"),
+            e.to_string(),
+        )
+    })?;
+    Ok(parsed)
 }
 pub(super) fn numbered(path: &str, prefix: &str) -> Result<u64, IfccadReport> {
-    let suffix = path
-        .strip_prefix(prefix)
-        .ok_or_else(|| problem(format!("invalid CAD path {path}; expected {prefix}N")))?;
-    let number = suffix
-        .parse::<u64>()
-        .map_err(|_| problem(format!("invalid CAD path {path}")))?;
+    let suffix = path.strip_prefix(prefix).ok_or_else(|| {
+        crate::ifccad::diagnostics::failure(
+            "IFCCAD-ID-001",
+            path,
+            format!("invalid CAD path; expected {prefix}N"),
+        )
+    })?;
+    let number = suffix.parse::<u64>().map_err(|_| {
+        crate::ifccad::diagnostics::failure("IFCCAD-ID-001", path, "invalid CAD path")
+    })?;
     if number.to_string() != suffix {
-        return Err(problem(format!("noncanonical CAD path {path}")));
+        return Err(crate::ifccad::diagnostics::failure(
+            "IFCCAD-ID-001",
+            path,
+            "noncanonical CAD path",
+        ));
     }
     Ok(number)
 }
@@ -216,14 +239,25 @@ fn entity(
         {
             return Err(problem("opaque and native attributes cannot coexist"));
         }
+        super::supplemental::validate_value("ifccad::opaqueEntity", value, path)?;
         return super::preservation::decode_opaque(value, id, prefix, pattern_paths);
     }
     appearance_modes(&node["attributes"]["ifccad::entity"]["appearance"], path)?;
     let value: EntityValue = required(node, "ifccad::entity")?;
-    let layer_id = *layer_paths
-        .get(&value.layer)
-        .ok_or_else(|| problem(format!("{path} unresolved layer {}", value.layer)))?;
-    let appearance = value.appearance.typed(pattern_paths)?;
+    let layer_id = *layer_paths.get(&value.layer).ok_or_else(|| {
+        crate::ifccad::diagnostics::failure(
+            "IFCCAD-APPEARANCE-001",
+            &format!("{path}/ifccad::entity/layer"),
+            format!("unresolved layer {}", value.layer),
+        )
+    })?;
+    let appearance = value.appearance.typed(pattern_paths).map_err(|report| {
+        crate::ifccad::diagnostics::context(
+            report,
+            "IFCCAD-APPEARANCE-001",
+            &format!("{path}/ifccad::entity/appearance"),
+        )
+    })?;
     let attrs = node
         .get("attributes")
         .and_then(Value::as_object)
@@ -263,9 +297,15 @@ fn entity(
             if attrs.contains_key("ifccad::geom::placement") {
                 return Err(problem(format!("{path} viewport has a geometry placement")));
             }
+            super::supplemental::validate_value(
+                "ifccad::viewport",
+                &attrs["ifccad::viewport"],
+                path,
+            )?;
             IfccadEntityKind::Viewport(super::viewports::decode_viewport(
                 &attrs["ifccad::viewport"],
                 prefix,
+                path,
             )?)
         }
         "ifccad::blockInstance" => {
@@ -323,6 +363,20 @@ pub(super) fn appearance_modes(value: &Value, path: &str) -> Result<(), IfccadRe
     Ok(())
 }
 pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
+    let owner = raw["data"]
+        .as_array()
+        .and_then(|nodes| {
+            nodes
+                .iter()
+                .find(|node| attr(node, "ifccad::drawing").is_some())
+        })
+        .and_then(|node| node["path"].as_str())
+        .unwrap_or("/");
+    project_inner(raw)
+        .map_err(|report| crate::ifccad::diagnostics::context(report, "IFCCAD-WIRE-004", owner))
+}
+
+fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
     let imports = raw
         .get("imports")
         .and_then(Value::as_array)
@@ -341,22 +395,6 @@ pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
     let known = profile_module["schemas"]
         .as_object()
         .expect("built-in schema module has schemas");
-    let mut previous_drawing_schema = known["ifccad::drawing"].clone();
-    previous_drawing_schema["value"]["objectRestrictions"]["values"]
-        .as_object_mut()
-        .unwrap()
-        .remove("nextPreservationRecordId");
-    let native_only = raw["data"].as_array().is_some_and(|nodes| {
-        nodes.iter().all(|n| {
-            [
-                "ifccad::opaqueEntity",
-                "ifccad::preservation",
-                "ifccad::preservationRecord",
-            ]
-            .iter()
-            .all(|key| attr(n, key).is_none())
-        })
-    });
     for node in raw["data"]
         .as_array()
         .ok_or_else(|| problem("IFCX data must be an array"))?
@@ -364,15 +402,14 @@ pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         if let Some(attributes) = node.get("attributes").and_then(Value::as_object) {
             for key in attributes.keys().filter(|key| key.starts_with("ifccad::")) {
                 if let Some(expected) = known.get(key) {
-                    if schemas.get(key).is_some_and(|actual| {
-                        actual != expected
-                            && !(key == "ifccad::drawing"
-                                && native_only
-                                && attributes[key].get("nextPreservationRecordId").is_none()
-                                && actual == &previous_drawing_schema)
-                    }) || (schemas.get(key).is_none() && !imported_profile)
+                    if schemas.get(key).is_some_and(|actual| actual != expected)
+                        || (schemas.get(key).is_none() && !imported_profile)
                     {
-                        return Err(problem(format!("missing or changed CAD schema {key}")));
+                        return Err(crate::ifccad::diagnostics::failure(
+                            "IFCCAD-WIRE-001",
+                            &format!("/schemas/{key}"),
+                            "missing or changed CAD schema",
+                        ));
                     }
                 } else {
                     return Err(problem(format!("unsupported CAD profile attribute {key}")));
@@ -380,14 +417,23 @@ pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
             }
         }
     }
-    let header = raw
-        .get("header")
-        .ok_or_else(|| problem("missing IFCX header"))?;
+    let header = raw.get("header").ok_or_else(|| {
+        crate::ifccad::diagnostics::failure("IFCCAD-WIRE-001", "/header", "missing IFCX header")
+    })?;
     if header.get("ifcxVersion").and_then(Value::as_str) != Some("ifcx_alpha") {
-        return Err(problem("unsupported IFCX version"));
+        return Err(crate::ifccad::diagnostics::failure(
+            "IFCCAD-WIRE-001",
+            "/header/ifcxVersion",
+            "unsupported IFCX version",
+        ));
     }
-    let header: IfccadHeader = serde_json::from_value(header.clone())
-        .map_err(|e| problem(format!("invalid IFCX header: {e}")))?;
+    let header: IfccadHeader = serde_json::from_value(header.clone()).map_err(|e| {
+        crate::ifccad::diagnostics::failure(
+            "IFCCAD-WIRE-001",
+            "/header",
+            format!("invalid IFCX header: {e}"),
+        )
+    })?;
     let nodes = node_map(raw)?;
     let drawings: Vec<_> = nodes
         .iter()
@@ -401,7 +447,11 @@ pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
     let prefix = drawing_prefix(drawing_id);
     let drawing: DrawingValue = required(drawing_node, "ifccad::drawing")?;
     if drawing.profile_version != "0.1.0" {
-        return Err(problem("unsupported CAD profile version"));
+        return Err(crate::ifccad::diagnostics::failure(
+            "IFCCAD-WIRE-001",
+            &format!("{drawing_path}/ifccad::drawing/profileVersion"),
+            "unsupported CAD profile version",
+        ));
     }
     let mut pattern_paths = BTreeMap::new();
     let mut style_paths = BTreeMap::new();
@@ -444,7 +494,9 @@ pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
     let mut line_patterns = Vec::new();
     for (path, node) in &nodes {
         if let Some(value) = attr(node, "ifccad::linePattern") {
+            super::supplemental::validate_value("ifccad::linePattern", value, path)?;
             #[derive(Deserialize)]
+            #[serde(deny_unknown_fields)]
             struct Definition {
                 name: String,
                 description: Option<String>,
@@ -471,7 +523,13 @@ pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         if attr(node, "ifccad::layer").is_some() {
             let id = numbered(path, &format!("{prefix}/layer/"))?;
             let value: LayerValue = required(node, "ifccad::layer")?;
-            let appearance = value.appearance.typed(&pattern_paths)?;
+            let appearance = value.appearance.typed(&pattern_paths).map_err(|report| {
+                crate::ifccad::diagnostics::context(
+                    report,
+                    "IFCCAD-APPEARANCE-001",
+                    &format!("{path}/ifccad::layer/appearance"),
+                )
+            })?;
             layer_paths.insert(path.clone(), id);
             layers.push(IfccadLayer {
                 id,
@@ -680,7 +738,16 @@ pub(crate) fn project(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
             preservation_node_role(node, "ifccad::preservationRecord")?;
             let value = attr(node, "ifccad::preservationRecord")
                 .ok_or_else(|| problem("record attribute required"))?;
-            records.push(super::preservation::decode_record(value, id, &prefix)?);
+            super::supplemental::validate_value("ifccad::preservationRecord", value, path)?;
+            records.push(
+                super::preservation::decode_record(value, id, &prefix).map_err(|report| {
+                    crate::ifccad::diagnostics::context(
+                        report,
+                        "IFCCAD-PRESERVATION-001",
+                        &format!("{path}/ifccad::preservationRecord"),
+                    )
+                })?,
+            );
         }
         if nodes.iter().any(|(path, node)| {
             attr(node, "ifccad::preservationRecord").is_some()

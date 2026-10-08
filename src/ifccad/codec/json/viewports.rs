@@ -23,16 +23,18 @@ struct PaperClipWire {
     boundary: Option<String>,
 }
 fn id(path: &str, prefix: &str) -> Result<u64, IfccadReport> {
-    let tail = path
-        .strip_prefix(prefix)
-        .ok_or_else(|| IfccadReport::one(format!("invalid viewport reference {path}")))?;
-    let id: u64 = tail
-        .parse()
-        .map_err(|_| IfccadReport::one(format!("invalid viewport ID path {path}")))?;
+    let tail = path.strip_prefix(prefix).ok_or_else(|| {
+        crate::ifccad::diagnostics::failure("IFCCAD-ID-001", path, "invalid viewport reference")
+    })?;
+    let id: u64 = tail.parse().map_err(|_| {
+        crate::ifccad::diagnostics::failure("IFCCAD-ID-001", path, "invalid viewport ID path")
+    })?;
     if tail != id.to_string() {
-        return Err(IfccadReport::one(format!(
-            "noncanonical viewport ID path {path}"
-        )));
+        return Err(crate::ifccad::diagnostics::failure(
+            "IFCCAD-ID-001",
+            path,
+            format!("noncanonical viewport ID path {path}"),
+        ));
     }
     Ok(id)
 }
@@ -61,7 +63,11 @@ pub(super) fn encode_viewport(viewport: &IfccadViewport, prefix: &str) -> Value 
     })
     .expect("validated viewport serializes")
 }
-pub(super) fn decode_viewport(value: &Value, prefix: &str) -> Result<IfccadViewport, IfccadReport> {
+pub(super) fn decode_viewport(
+    value: &Value,
+    prefix: &str,
+    path: &str,
+) -> Result<IfccadViewport, IfccadReport> {
     for pointer in [
         "/view/lensLengthMm",
         "/view/frontClip/distance",
@@ -69,13 +75,20 @@ pub(super) fn decode_viewport(value: &Value, prefix: &str) -> Result<IfccadViewp
         "/paperClip/boundary",
     ] {
         if value.pointer(pointer).is_some_and(Value::is_null) {
-            return Err(IfccadReport::one(format!(
-                "viewport {pointer} must be omitted rather than null"
-            )));
+            return Err(crate::ifccad::diagnostics::failure(
+                "IFCCAD-VIEWPORT-001",
+                &format!("{path}/ifccad::viewport{pointer}"),
+                format!("viewport {pointer} must be omitted rather than null"),
+            ));
         }
     }
-    let wire: ViewportWire = serde_json::from_value(value.clone())
-        .map_err(|e| IfccadReport::one(format!("invalid viewport payload: {e}")))?;
+    let wire: ViewportWire = serde_json::from_value(value.clone()).map_err(|e| {
+        crate::ifccad::diagnostics::failure(
+            "IFCCAD-VIEWPORT-001",
+            &format!("{path}/ifccad::viewport"),
+            format!("invalid viewport payload: {e}"),
+        )
+    })?;
     let mut frozen_layers = wire
         .frozen_layers
         .iter()

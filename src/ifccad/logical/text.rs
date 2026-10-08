@@ -47,14 +47,30 @@ pub(super) fn validate_entity(
         .text_styles
         .iter()
         .find(|s| s.id == id)
-        .ok_or_else(|| super::IfccadReport::one(format!("{path} unresolved text style")))?;
-    placement.coordinate_frame()?;
+        .ok_or_else(|| {
+            crate::ifccad::diagnostics::failure(
+                "IFCCAD-TEXT-004",
+                &format!("{path}/style"),
+                "unresolved text style",
+            )
+        })?;
+    placement.coordinate_frame().map_err(|report| {
+        crate::ifccad::diagnostics::context(report, "IFCCAD-GEOMETRY-001", path)
+    })?;
+    let (rule, attribute) = match kind {
+        super::IfccadEntityKind::Text(_) => ("IFCCAD-TEXT-002", "ifccad::text"),
+        _ => ("IFCCAD-TEXT-003", "ifccad::mText"),
+    };
     if !rotation.is_finite() {
-        return Err(super::IfccadReport::one(format!(
-            "{path} nonfinite text rotation"
-        )));
+        return Err(crate::ifccad::diagnostics::failure(
+            rule,
+            &format!("{path}/{attribute}/rotation"),
+            format!("{path} nonfinite text rotation"),
+        ));
     }
-    let error = |e: TextValueError| super::IfccadReport::one(format!("{path}: {e}"));
+    let error = |e: TextValueError| {
+        crate::ifccad::diagnostics::failure(rule, &format!("{path}/{attribute}"), e.to_string())
+    };
     match kind {
         super::IfccadEntityKind::Text(t) => {
             validate_text_layout(&t.layout).map_err(error)?;
@@ -63,9 +79,11 @@ pub(super) fn validate_entity(
                 || t.oblique_angle.abs() >= std::f64::consts::FRAC_PI_2
                 || !t.thickness.is_finite()
             {
-                return Err(super::IfccadReport::one(format!(
-                    "{path} invalid text shear or thickness"
-                )));
+                return Err(crate::ifccad::diagnostics::failure(
+                    rule,
+                    &format!("{path}/{attribute}"),
+                    format!("{path} invalid text shear or thickness"),
+                ));
             }
         }
         super::IfccadEntityKind::MText(t) => {
@@ -118,20 +136,31 @@ pub(super) fn validate_styles(document: &super::IfccadDocument) -> Result<(), su
     for style in &document.text_styles {
         let path = format!("/cad/d{}/textStyle/{}", document.drawing_id, style.id.0);
         if !ids.insert(style.id) {
-            return Err(super::IfccadReport::one(format!(
-                "{path} duplicate text style ID"
-            )));
+            return Err(crate::ifccad::diagnostics::failure(
+                "IFCCAD-ID-001",
+                &path,
+                format!("{path} duplicate text style ID"),
+            ));
         }
         if style.name.is_empty()
             || style.name.contains('\0')
             || !names.insert(crate::ocdraw::names::name_key(&style.name))
         {
-            return Err(super::IfccadReport::one(format!(
+            return Err(crate::ifccad::diagnostics::failure(
+                "IFCCAD-TEXT-001",
+                &format!("{path}/ifccad::textStyle/name"),
+                format!(
                 "{path} text style name must be nonempty, NUL-free and unique under case folding"
-            )));
+            ),
+            ));
         }
-        crate::text::validate_text_style(&style.properties)
-            .map_err(|e| super::IfccadReport::one(format!("{path}: {e}")))?;
+        crate::text::validate_text_style(&style.properties).map_err(|e| {
+            crate::ifccad::diagnostics::failure(
+                "IFCCAD-TEXT-001",
+                &format!("{path}/ifccad::textStyle"),
+                e.to_string(),
+            )
+        })?;
     }
     Ok(())
 }

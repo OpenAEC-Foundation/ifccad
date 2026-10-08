@@ -1,0 +1,2579 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:example:ifccad:supplemental-values:0.1.0",
+  "title": "IFCCAD supplemental local value constraints",
+  "$defs": {
+    "mTextBackground": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "fill": {
+          "$ref": "#/$defs/mTextFill"
+        },
+        "padding": {
+          "$ref": "#/$defs/textPadding"
+        },
+        "opacity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "frame": {
+          "type": "boolean"
+        }
+      },
+      "required": []
+    },
+    "textPadding": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "absolute"
+            },
+            "distance": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "kind",
+            "distance"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "relative"
+            },
+            "factor": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "kind",
+            "factor"
+          ]
+        }
+      ]
+    },
+    "mTextFill": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "none"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "canvas"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "color"
+            },
+            "color": {
+              "type": "string",
+              "pattern": "^#[0-9A-Fa-f]{6}$"
+            }
+          },
+          "required": [
+            "kind",
+            "color"
+          ]
+        }
+      ]
+    },
+    "mTextColumns": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "static"
+            },
+            "columnWidth": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "gutter": {
+              "type": "number",
+              "minimum": 0
+            },
+            "flowReversed": {
+              "type": "boolean"
+            },
+            "count": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 4294967295
+            },
+            "columnHeight": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "kind",
+            "columnWidth",
+            "gutter",
+            "count",
+            "columnHeight"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "dynamicAutoHeight"
+            },
+            "columnWidth": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "gutter": {
+              "type": "number",
+              "minimum": 0
+            },
+            "flowReversed": {
+              "type": "boolean"
+            },
+            "currentColumnCount": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 4294967295
+            },
+            "columnHeight": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "kind",
+            "columnWidth",
+            "gutter",
+            "currentColumnCount",
+            "columnHeight"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "dynamicManualHeight"
+            },
+            "columnWidth": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "gutter": {
+              "type": "number",
+              "minimum": 0
+            },
+            "flowReversed": {
+              "type": "boolean"
+            },
+            "columnHeights": {
+              "$ref": "#/$defs/mTextColumnHeights"
+            }
+          },
+          "required": [
+            "kind",
+            "columnWidth",
+            "gutter",
+            "columnHeights"
+          ]
+        }
+      ]
+    },
+    "mTextColumnHeights": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/mTextColumnHeight"
+      },
+      "minItems": 1
+    },
+    "mTextColumnHeight": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "fixed"
+            },
+            "distance": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "kind",
+            "distance"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "auto"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        }
+      ]
+    },
+    "mTextFlow": {
+      "enum": [
+        "horizontal",
+        "vertical",
+        "byStyle"
+      ]
+    },
+    "mTextAttachment": {
+      "enum": [
+        "topLeft",
+        "topCenter",
+        "topRight",
+        "middleLeft",
+        "middleCenter",
+        "middleRight",
+        "bottomLeft",
+        "bottomCenter",
+        "bottomRight"
+      ]
+    },
+    "mTextContent": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/mTextParagraph"
+      },
+      "minItems": 1
+    },
+    "mTextParagraph": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "inlines": {
+          "$ref": "#/$defs/mTextInlines"
+        },
+        "characterFormat": {
+          "$ref": "#/$defs/characterFormat"
+        },
+        "paragraphFormat": {
+          "$ref": "#/$defs/paragraphFormat"
+        }
+      },
+      "required": [
+        "inlines"
+      ]
+    },
+    "paragraphFormat": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "alignment": {
+          "$ref": "#/$defs/textParagraphAlignment"
+        },
+        "leftIndentFactor": {
+          "type": "number"
+        },
+        "rightIndentFactor": {
+          "type": "number"
+        },
+        "firstLineIndentFactor": {
+          "type": "number"
+        },
+        "spaceBefore": {
+          "type": "number",
+          "minimum": 0
+        },
+        "spaceAfter": {
+          "type": "number",
+          "minimum": 0
+        },
+        "lineSpacing": {
+          "$ref": "#/$defs/textLineSpacing"
+        },
+        "tabStops": {
+          "$ref": "#/$defs/textTabStops"
+        }
+      },
+      "required": []
+    },
+    "textTabStops": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/textTabStop"
+      },
+      "minItems": 0
+    },
+    "textTabStop": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "positionFactor": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "alignment": {
+              "enum": [
+                "left",
+                "center",
+                "right"
+              ]
+            }
+          },
+          "required": [
+            "positionFactor",
+            "alignment"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "positionFactor": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "alignment": {
+              "const": "decimal"
+            },
+            "separator": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1
+            }
+          },
+          "required": [
+            "positionFactor",
+            "alignment",
+            "separator"
+          ]
+        }
+      ]
+    },
+    "textLineSpacing": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "exact"
+            },
+            "distance": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "kind",
+            "distance"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "atLeast"
+            },
+            "distance": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "kind",
+            "distance"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "multiple"
+            },
+            "factor": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "kind",
+            "factor"
+          ]
+        }
+      ]
+    },
+    "textParagraphAlignment": {
+      "enum": [
+        "left",
+        "center",
+        "right",
+        "justified",
+        "distributed"
+      ]
+    },
+    "characterFormat": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "font": {
+          "$ref": "#/$defs/textFontRequest"
+        },
+        "color": {
+          "$ref": "#/$defs/textColor"
+        },
+        "height": {
+          "$ref": "#/$defs/textHeight"
+        },
+        "widthFactor": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "tracking": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "obliqueAngle": {
+          "type": "number"
+        },
+        "underline": {
+          "type": "boolean"
+        },
+        "overline": {
+          "type": "boolean"
+        },
+        "strikeThrough": {
+          "type": "boolean"
+        },
+        "position": {
+          "$ref": "#/$defs/textPosition"
+        }
+      },
+      "required": []
+    },
+    "textPosition": {
+      "enum": [
+        "bottom",
+        "center",
+        "top"
+      ]
+    },
+    "textHeight": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "absolute"
+            },
+            "distance": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "kind",
+            "distance"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "relative"
+            },
+            "factor": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "kind",
+            "factor"
+          ]
+        }
+      ]
+    },
+    "textColor": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "entity"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "byLayer"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "byBlock"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "explicit"
+            },
+            "color": {
+              "type": "string",
+              "pattern": "^#[0-9A-Fa-f]{6}$"
+            }
+          },
+          "required": [
+            "kind",
+            "color"
+          ]
+        }
+      ]
+    },
+    "textFontRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "family": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cadFontName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bigFontName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bold": {
+          "type": "boolean"
+        },
+        "italic": {
+          "type": "boolean"
+        },
+        "charset": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "pitch": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        }
+      },
+      "required": [],
+      "anyOf": [
+        {
+          "required": [
+            "family"
+          ]
+        },
+        {
+          "required": [
+            "cadFontName"
+          ]
+        }
+      ]
+    },
+    "mTextInlines": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/mTextInline"
+      },
+      "minItems": 0
+    },
+    "mTextInline": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "run"
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1
+            },
+            "characterFormat": {
+              "$ref": "#/$defs/characterFormat"
+            }
+          },
+          "required": [
+            "kind",
+            "text"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "stack"
+            },
+            "stackKind": {
+              "$ref": "#/$defs/textStackKind"
+            },
+            "upper": {
+              "type": "string"
+            },
+            "lower": {
+              "type": "string"
+            },
+            "alignment": {
+              "$ref": "#/$defs/textStackAlignment"
+            },
+            "textScale": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "separator": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1
+            },
+            "characterFormat": {
+              "$ref": "#/$defs/characterFormat"
+            }
+          },
+          "required": [
+            "kind",
+            "stackKind",
+            "upper",
+            "lower"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "tab"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "lineBreak"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "columnBreak"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        }
+      ]
+    },
+    "textStackAlignment": {
+      "enum": [
+        "top",
+        "center",
+        "bottom"
+      ]
+    },
+    "textStackKind": {
+      "enum": [
+        "fraction",
+        "diagonalFraction",
+        "tolerance",
+        "decimalTolerance"
+      ]
+    },
+    "textRun": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "underline": {
+          "type": "boolean"
+        },
+        "overline": {
+          "type": "boolean"
+        },
+        "strikeThrough": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "text"
+      ]
+    },
+    "textLayout": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "anchored"
+            },
+            "horizontal": {
+              "enum": [
+                "left",
+                "center",
+                "right"
+              ]
+            },
+            "vertical": {
+              "enum": [
+                "baseline",
+                "bottom",
+                "middle",
+                "top"
+              ]
+            },
+            "height": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "widthFactor": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "kind",
+            "horizontal",
+            "vertical",
+            "height",
+            "widthFactor"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "wholeTextMiddle"
+            },
+            "height": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "widthFactor": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "kind",
+            "height",
+            "widthFactor"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "aligned"
+            },
+            "length": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "widthFactor": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "kind",
+            "length",
+            "widthFactor"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "fit"
+            },
+            "length": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "height": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "kind",
+            "length",
+            "height"
+          ]
+        }
+      ]
+    },
+    "textStyle": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "font": {
+          "$ref": "#/$defs/textFontRequest"
+        },
+        "widthFactor": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "obliqueAngle": {
+          "type": "number"
+        },
+        "vertical": {
+          "type": "boolean"
+        },
+        "creationHeight": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "lastUsedHeight": {
+          "type": "number",
+          "minimum": 0
+        },
+        "creationBackward": {
+          "type": "boolean"
+        },
+        "creationUpsideDown": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name",
+        "font"
+      ],
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "text": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "style",
+        "layout",
+        "content"
+      ],
+      "properties": {
+        "style": {
+          "type": "string",
+          "pattern": "^/cad/d(?:0|[1-9][0-9]*)/textStyle/(?:0|[1-9][0-9]*)$"
+        },
+        "rotation": {
+          "type": "number"
+        },
+        "backward": {
+          "type": "boolean"
+        },
+        "upsideDown": {
+          "type": "boolean"
+        },
+        "layout": {
+          "$ref": "#/$defs/textLayout"
+        },
+        "content": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/textRun"
+          }
+        },
+        "obliqueAngle": {
+          "type": "number"
+        },
+        "thickness": {
+          "type": "number"
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "mText": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "style",
+        "height",
+        "content"
+      ],
+      "properties": {
+        "style": {
+          "type": "string",
+          "pattern": "^/cad/d(?:0|[1-9][0-9]*)/textStyle/(?:0|[1-9][0-9]*)$"
+        },
+        "rotation": {
+          "type": "number"
+        },
+        "backward": {
+          "type": "boolean"
+        },
+        "upsideDown": {
+          "type": "boolean"
+        },
+        "height": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "content": {
+          "$ref": "#/$defs/mTextContent"
+        },
+        "attachment": {
+          "$ref": "#/$defs/mTextAttachment"
+        },
+        "flow": {
+          "$ref": "#/$defs/mTextFlow"
+        },
+        "wrapWidth": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "columns": {
+          "$ref": "#/$defs/mTextColumns"
+        },
+        "background": {
+          "$ref": "#/$defs/mTextBackground"
+        },
+        "characterFormat": {
+          "$ref": "#/$defs/characterFormat"
+        },
+        "paragraphFormat": {
+          "$ref": "#/$defs/paragraphFormat"
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "drawingExtras": {
+      "type": "object",
+      "properties": {
+        "nextEntityId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18446744073709551615
+        },
+        "nextLayerId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18446744073709551615
+        },
+        "nextLayoutId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18446744073709551615
+        },
+        "nextBlockId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18446744073709551615
+        },
+        "nextLinePatternId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18446744073709551615
+        },
+        "profileVersion": {},
+        "lengthUnit": {},
+        "linePatternScale": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "plotStyleMode": {},
+        "nextPreservationRecordId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18446744073709551615
+        },
+        "nextTextStyleId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18446744073709551615
+        },
+        "nextUcsId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18446744073709551615
+        },
+        "nextModelWindowId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18446744073709551615
+        },
+        "modelWindows": {}
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "layerExtras": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "minLength": 1
+        },
+        "appearance": {
+          "type": "object",
+          "properties": {
+            "color": {
+              "type": "string",
+              "pattern": "^#[0-9A-Fa-f]{6}$"
+            },
+            "opacity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "lineWeight": {
+              "type": "number",
+              "minimum": 0
+            },
+            "linePattern": {}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "appearanceModes": {
+      "type": "object",
+      "properties": {
+        "color": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "ByLayer"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "ByBlock"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "Explicit"
+                },
+                "value": {
+                  "type": "string",
+                  "pattern": "^#[0-9A-Fa-f]{6}$"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode",
+                "value"
+              ]
+            }
+          ]
+        },
+        "opacity": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "ByLayer"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "ByBlock"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "Explicit"
+                },
+                "value": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode",
+                "value"
+              ]
+            }
+          ]
+        },
+        "linePattern": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "ByLayer"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "ByBlock"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "Explicit"
+                },
+                "value": {}
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode",
+                "value"
+              ]
+            }
+          ]
+        },
+        "lineWeight": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "ByLayer"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "ByBlock"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "Explicit"
+                },
+                "value": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode",
+                "value"
+              ]
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "color",
+        "opacity",
+        "linePattern",
+        "lineWeight"
+      ]
+    },
+    "entityExtras": {
+      "type": "object",
+      "properties": {
+        "layer": {},
+        "appearance": {
+          "$ref": "#/$defs/appearanceModes"
+        },
+        "linePatternScale": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "patternExtras": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "minLength": 1
+        },
+        "description": {},
+        "pattern": {
+          "anyOf": [
+            {
+              "maxItems": 0
+            },
+            {
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "blockDefinitionExtras": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "minLength": 1
+        },
+        "basePoint": {},
+        "insertionUnit": {},
+        "bounds": {
+          "type": "object",
+          "properties": {
+            "min": {},
+            "max": {}
+          },
+          "additionalProperties": false
+        },
+        "boundsQuality": {
+          "enum": [
+            "enclosing",
+            "estimated"
+          ]
+        }
+      },
+      "dependentRequired": {
+        "boundsQuality": [
+          "bounds"
+        ]
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "placementExtras": {
+      "type": "object",
+      "properties": {
+        "origin": {},
+        "xAxis": {},
+        "yAxis": {}
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "blockInstanceExtras": {
+      "type": "object",
+      "properties": {
+        "definition": {},
+        "transform": {
+          "type": "object",
+          "properties": {
+            "placement": {
+              "$ref": "#/$defs/placementExtras"
+            },
+            "scale": {
+              "items": {
+                "not": {
+                  "const": 0
+                }
+              }
+            },
+            "rotation": {}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "geometryPointExtras": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "geometryLineExtras": {
+      "type": "object",
+      "properties": {
+        "start": {},
+        "end": {}
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "geometryCircleExtras": {
+      "type": "object",
+      "properties": {
+        "radius": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "geometryArcExtras": {
+      "type": "object",
+      "properties": {
+        "radius": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "startParameter": {},
+        "sweepParameter": {}
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "geometryEllipseExtras": {
+      "type": "object",
+      "properties": {
+        "semiMajorRadius": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "semiMinorRadius": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "geometryEllipseArcExtras": {
+      "type": "object",
+      "properties": {
+        "semiMajorRadius": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "semiMinorRadius": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "startParameter": {},
+        "sweepParameter": {}
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "geometryPlanarExtras": {
+      "type": "object",
+      "properties": {
+        "vertices": {},
+        "closed": {},
+        "linePatternGeneration": {},
+        "bulges": {}
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "geometrySpatialExtras": {
+      "type": "object",
+      "properties": {
+        "vertices": {},
+        "closed": {},
+        "linePatternGeneration": {}
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "rectExtras": {
+      "type": "object",
+      "properties": {
+        "minX": {},
+        "minY": {},
+        "maxX": {},
+        "maxY": {}
+      },
+      "additionalProperties": false
+    },
+    "plotAreaExtras": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "Layout"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "mode"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "Extents"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "mode"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "Limits"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "mode"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "Window"
+            },
+            "window": {
+              "$ref": "#/$defs/rectExtras"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "mode",
+            "window"
+          ]
+        }
+      ]
+    },
+    "plotScaleExtras": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "Fixed"
+            },
+            "outputLength": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "scopeLength": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "mode",
+            "outputLength",
+            "scopeLength"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "FitToArea"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "mode"
+          ]
+        }
+      ]
+    },
+    "plotPlacementExtras": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "Centered"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "mode"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "Offset"
+            },
+            "reference": {},
+            "x": {},
+            "y": {}
+          },
+          "additionalProperties": false,
+          "required": [
+            "mode",
+            "reference",
+            "x",
+            "y"
+          ]
+        }
+      ]
+    },
+    "plotQualityExtras": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "Draft"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "mode"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "Preview"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "mode"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "Normal"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "mode"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "Presentation"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "mode"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "Maximum"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "mode"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "Custom"
+            },
+            "dpi": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 4294967295
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "mode",
+            "dpi"
+          ]
+        }
+      ]
+    },
+    "plotExtras": {
+      "type": "object",
+      "properties": {
+        "plotUnit": {},
+        "page": {
+          "type": "object",
+          "properties": {
+            "printableArea": {
+              "$ref": "#/$defs/rectExtras"
+            },
+            "rotation": {},
+            "deviceName": {},
+            "mediaName": {}
+          },
+          "additionalProperties": false
+        },
+        "area": {
+          "$ref": "#/$defs/plotAreaExtras"
+        },
+        "mapping": {
+          "type": "object",
+          "properties": {
+            "scale": {
+              "$ref": "#/$defs/plotScaleExtras"
+            },
+            "placement": {
+              "$ref": "#/$defs/plotPlacementExtras"
+            }
+          },
+          "additionalProperties": false
+        },
+        "output": {
+          "type": "object",
+          "properties": {
+            "shadedPlot": {
+              "type": "object",
+              "properties": {
+                "mode": {},
+                "quality": {
+                  "$ref": "#/$defs/plotQualityExtras"
+                }
+              },
+              "additionalProperties": false
+            },
+            "applyPlotStyles": {},
+            "plotStyleTableName": {}
+          },
+          "additionalProperties": false
+        },
+        "options": {
+          "type": "object",
+          "properties": {
+            "plotViewportBorders": {},
+            "plotPaperSpaceLast": {},
+            "hidePaperSpaceObjects": {},
+            "plotLineWeights": {},
+            "scaleLineWeights": {},
+            "plotTransparency": {}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "layoutExtras": {
+      "type": "object",
+      "properties": {
+        "kind": {},
+        "name": {},
+        "tabIndex": {},
+        "bounds": {
+          "type": "object",
+          "properties": {
+            "min": {},
+            "max": {}
+          },
+          "additionalProperties": false
+        },
+        "media": {
+          "type": "object",
+          "properties": {
+            "unit": {},
+            "width": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "height": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "additionalProperties": false
+        },
+        "limits": {
+          "$ref": "#/$defs/rectExtras"
+        },
+        "plotSettings": {
+          "$ref": "#/$defs/plotExtras"
+        },
+        "limitsChecking": {},
+        "paperSpaceLinetypeScaling": {},
+        "boundsQuality": {
+          "enum": [
+            "enclosing",
+            "estimated"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "dependentRequired": {
+        "boundsQuality": [
+          "bounds"
+        ]
+      },
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "frontClipExtras": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "enum": [
+            "Disabled",
+            "AtCamera",
+            "AtDistance"
+          ]
+        },
+        "distance": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "AtDistance"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "required": [
+              "distance"
+            ],
+            "properties": {
+              "distance": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "backClipExtras": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "enum": [
+            "Disabled",
+            "AtDistance"
+          ]
+        },
+        "distance": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "AtDistance"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "required": [
+              "distance"
+            ],
+            "properties": {
+              "distance": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "viewExtras": {
+      "type": "object",
+      "properties": {
+        "center": {},
+        "target": {},
+        "direction": {},
+        "height": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "twist": {},
+        "projection": {},
+        "lensLengthMm": {
+          "type": "number",
+          "minimum": 0
+        },
+        "frontClip": {
+          "$ref": "#/$defs/frontClipExtras"
+        },
+        "backClip": {
+          "$ref": "#/$defs/backClipExtras"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "projection": {
+                "const": "Perspective"
+              }
+            },
+            "required": [
+              "projection"
+            ]
+          },
+          "then": {
+            "required": [
+              "lensLengthMm"
+            ],
+            "properties": {
+              "lensLengthMm": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "viewportExtras": {
+      "type": "object",
+      "properties": {
+        "model": {},
+        "frame": {
+          "type": "object",
+          "properties": {
+            "center": {},
+            "width": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "height": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "additionalProperties": false
+        },
+        "view": {
+          "$ref": "#/$defs/viewExtras"
+        },
+        "renderMode": {},
+        "viewEnabled": {},
+        "viewLocked": {},
+        "visible": {},
+        "paperClip": {
+          "type": "object",
+          "properties": {
+            "enabled": {},
+            "boundary": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "enabled": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "enabled"
+                ]
+              },
+              "then": {
+                "required": [
+                  "boundary"
+                ],
+                "properties": {
+                  "boundary": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "frozenLayers": {
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "ucsChoiceExtras": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "World"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "Named"
+            },
+            "ucs": {}
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "ucs"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "Unnamed"
+            },
+            "frame": {
+              "$ref": "#/$defs/placementExtras"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "frame"
+          ]
+        }
+      ]
+    },
+    "paperContextExtras": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "Canvas"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "Viewport"
+            },
+            "viewport": {}
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "viewport"
+          ]
+        }
+      ]
+    },
+    "gridExtras": {
+      "type": "object",
+      "properties": {
+        "enabled": {},
+        "spacing": {
+          "items": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "style": {},
+        "majorLineFrequency": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4294967295
+        },
+        "beyondLimits": {},
+        "adaptive": {},
+        "subdivision": {},
+        "followsWorkplane": {}
+      },
+      "additionalProperties": false
+    },
+    "snapExtras": {
+      "type": "object",
+      "properties": {
+        "enabled": {},
+        "base": {},
+        "spacing": {
+          "items": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "angle": {},
+        "style": {},
+        "isometricPlane": {}
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "enabled": {
+                "const": true
+              }
+            },
+            "required": [
+              "enabled"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spacing": {
+                "items": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drawingWorkspaceExtras": {
+      "type": "object",
+      "properties": {
+        "currentLayer": {},
+        "activeLayout": {}
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "modelViewStateExtras": {
+      "type": "object",
+      "properties": {
+        "currentModelUcs": {
+          "$ref": "#/$defs/ucsChoiceExtras"
+        },
+        "activeModelWindow": {}
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "ucsDefinitionExtras": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "minLength": 1
+        },
+        "frame": {
+          "$ref": "#/$defs/placementExtras"
+        },
+        "elevation": {}
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "modelWindowExtras": {
+      "type": "object",
+      "properties": {
+        "grid": {
+          "$ref": "#/$defs/gridExtras"
+        },
+        "snap": {
+          "$ref": "#/$defs/snapExtras"
+        },
+        "storedUcs": {
+          "$ref": "#/$defs/ucsChoiceExtras"
+        },
+        "useStoredUcs": {},
+        "rectangle": {
+          "items": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        },
+        "view": {
+          "$ref": "#/$defs/viewExtras"
+        },
+        "aspectRatio": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "renderMode": {}
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "paperCanvasExtras": {
+      "type": "object",
+      "properties": {
+        "grid": {
+          "$ref": "#/$defs/gridExtras"
+        },
+        "snap": {
+          "$ref": "#/$defs/snapExtras"
+        },
+        "storedUcs": {
+          "$ref": "#/$defs/ucsChoiceExtras"
+        },
+        "useStoredUcs": {},
+        "view": {
+          "$ref": "#/$defs/viewExtras"
+        },
+        "frame": {
+          "type": "object",
+          "properties": {
+            "center": {},
+            "width": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "height": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "additionalProperties": false
+        },
+        "currentUcs": {
+          "$ref": "#/$defs/ucsChoiceExtras"
+        },
+        "activeContext": {
+          "$ref": "#/$defs/paperContextExtras"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "viewportWorkspaceExtras": {
+      "type": "object",
+      "properties": {
+        "grid": {
+          "$ref": "#/$defs/gridExtras"
+        },
+        "snap": {
+          "$ref": "#/$defs/snapExtras"
+        },
+        "storedUcs": {
+          "$ref": "#/$defs/ucsChoiceExtras"
+        },
+        "useStoredUcs": {}
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "preservationTargetExtras": {
+      "type": "object",
+      "properties": {
+        "role": {},
+        "path": {}
+      },
+      "additionalProperties": false
+    },
+    "preservationExtras": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "sources": {
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "provider": {
+                "type": "string",
+                "minLength": 1
+              },
+              "providerRevision": {
+                "type": "string",
+                "minLength": 1
+              },
+              "origin": {},
+              "sourceVersion": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "preservationRecordExtras": {
+      "type": "object",
+      "properties": {
+        "sourceId": {},
+        "sourceKey": {
+          "type": "string",
+          "minLength": 1
+        },
+        "category": {},
+        "role": {},
+        "representation": {},
+        "subject": {
+          "$ref": "#/$defs/preservationTargetExtras"
+        },
+        "dependencyCoverage": {},
+        "bindings": {
+          "items": {
+            "type": "object",
+            "properties": {
+              "slot": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sourceKey": {
+                "type": "string",
+                "minLength": 1
+              },
+              "target": {
+                "$ref": "#/$defs/preservationTargetExtras"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "conditions": {
+          "items": {
+            "type": "object",
+            "properties": {
+              "target": {
+                "$ref": "#/$defs/preservationTargetExtras"
+              },
+              "predicate": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 18446744073709551615
+              },
+              "baseline": {}
+            },
+            "additionalProperties": false
+          }
+        },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "version": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 18446744073709551615
+            },
+            "kind": {},
+            "bytes": {}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "opaqueEntityExtras": {
+      "type": "object",
+      "properties": {
+        "preservationRecord": {},
+        "visible": {},
+        "nativeLayer": {},
+        "nativeAppearance": {
+          "type": "object",
+          "properties": {
+            "appearance": {
+              "$ref": "#/$defs/appearanceModes"
+            },
+            "linePatternScale": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "nonNullValue": {
+      "type": [
+        "object",
+        "array",
+        "string",
+        "number",
+        "boolean"
+      ],
+      "additionalProperties": {
+        "$ref": "#/$defs/nonNullValue"
+      },
+      "items": {
+        "$ref": "#/$defs/nonNullValue"
+      }
+    }
+  },
+  "$comment": "Mandatory IFCCAD local supplements. Ordinary IFCX shapes, typed decoding and profile-rules graph/domain algorithms also apply. This is not a whole drawing schema or IFCX core syntax."
+}

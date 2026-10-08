@@ -68,7 +68,9 @@ pub struct IfccadViewportWorkspace {
 
 pub(crate) fn validate_workspace(document: &IfccadDocument) -> Result<(), IfccadReport> {
     let prefix = format!("/cad/d{}", document.drawing_id);
-    let fail = |path: &str, message: &str| IfccadReport::one(format!("{path}: {message}"));
+    let fail = |path: &str, message: &str| {
+        crate::ifccad::diagnostics::failure("IFCCAD-WORKSPACE-001", path, message)
+    };
     let mut ucs_ids = BTreeSet::new();
     let mut names = BTreeSet::new();
     for ucs in &document.ucs_definitions {

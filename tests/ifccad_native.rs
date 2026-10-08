@@ -136,7 +136,8 @@ fn profile_validates_after_later_geometry_fragment() {
         .report()
         .errors
         .iter()
-        .any(|e| e.contains("invalid circle radius")));
+        .any(|e| e.contains("IFCCAD-GEOMETRY-002")
+            && e.contains("/cad/d1/e1/ifccad::geom::circle/radius")));
 }
 
 #[test]

@@ -31,6 +31,7 @@ and entity schema v1 are provisional until contract completion and verification.
 - `src/ocdraw/logical`: typed model and shared semantic validation.
 - `src/ocdraw/codec/json`: physical fields, column packing, decoding and encoding.
 - `src/ocdraw/read.rs`, `build.rs`, `build/`: validated access and typed construction.
+- [IFCCAD profile rules](schemas/ifccad/profile-rules-0.1.0.md): ordinary IFCX declarations, temporary local-value supplements and graph/domain obligations.
 - `src/ifccad` and `schemas/ifccad`: separate IFCCAD model,
   source graph, validation, profile and encoding.
 - `src/geometry_kernel`: shared primitive geometry, placement, validation,

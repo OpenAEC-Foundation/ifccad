@@ -12,7 +12,10 @@ fn encoder_validation_retains_original_report() {
         .into_document();
     document.header.id.clear();
     let expected = validate_ifccad_document(&document).unwrap_err();
-    assert_eq!(expected.errors, ["incomplete IFCX header"]);
+    assert_eq!(
+        expected.errors,
+        ["IFCCAD-WIRE-001 /header: incomplete IFCX header"]
+    );
     let error = encode_ifccad_document(&document).unwrap_err();
     let IfccadEncodeError::InvalidDocument(report) = &error else {
         panic!("expected logical validation phase");

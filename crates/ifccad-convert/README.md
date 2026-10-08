@@ -320,3 +320,12 @@ UCS definitions, Model windows, canvas frame/grid/snap/UCS and authored Paper vi
 A uniquely available active Model window may be selected; multiple unqualified windows survive with unspecified activation. Paper current viewport/UCS association remains unavailable on the codec surface. Model/Paper mode and the active Paper tab are retained through the unique reserved *Paper_Space block and its consistent LAYOUT association, including multiple sheets. Export synchronizes BLOCK_RECORD names, existing BLOCK begin names and the reserved header handle together; setting the header cache alone does not change the active role. Unknown choices remain omitted with located loss. Skipped viewports receive no workspace references.
 
 Dot grid style and frequencies beyond CAD i16 receive field-specific substitutions. VIEWPORT grid beyond-limits/adaptive/subdivision/follow-workplane flags stay in CadDocument but its pinned DXF/DWG routes do not retain them; target diagnostics identify each nondefault field and Reject refuses that portability loss. Model VPORT grid flags survive both routes. Unrepresented display/icon/base/orthographic/plot/visual state remains diagnosed. Numeric and structural failures remain fatal under both policies.
+
+## Native validation contract
+
+The core IFCCAD [rule catalog](../../schemas/ifccad/profile-rules-0.1.0.md) links
+ordinary IFCX declarations, offline local-value supplements and graph/domain
+algorithms. The same single experimental drawing import remains sufficient.
+Wire supplements do not replace typed validation or converter loss/accuracy
+checks; source graphs and source bytes remain immutable. Native records reject unknown members and explicit nulls consistently;
+validation messages identify their rule and source/component location.

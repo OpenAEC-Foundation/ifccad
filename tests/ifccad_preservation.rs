@@ -208,7 +208,7 @@ fn closed_wire_rejects_unknown_core_fields_null_optionals_and_wrong_domains() {
 }
 
 #[test]
-fn previous_native_only_inline_profile_remains_readable_and_deleted_records_do_not_reset_counter() {
+fn old_incomplete_inline_profile_is_rejected_and_deleted_records_keep_counter() {
     let d = support::base();
     let b = encode_ifccad_document(&d).unwrap();
     let mut v: serde_json::Value = serde_json::from_slice(b.bytes()).unwrap();
@@ -219,9 +219,7 @@ fn previous_native_only_inline_profile_remains_readable_and_deleted_records_do_n
         .as_object_mut()
         .unwrap()
         .remove("nextPreservationRecordId");
-    let loaded = load_ifccad_bytes(&serde_json::to_vec(&v).unwrap(), Default::default()).unwrap();
-    assert!(loaded.document().preservation.is_none());
-    assert_eq!(loaded.document().id_counters.next_preservation_record_id, 1);
+    assert!(load_ifccad_bytes(&serde_json::to_vec(&v).unwrap(), Default::default()).is_err());
     let mut d = with_opaque();
     let watermark = d.id_counters.next_preservation_record_id;
     d.model.entities.retain(|e| e.as_opaque().is_none());
