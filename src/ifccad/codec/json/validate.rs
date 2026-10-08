@@ -9,6 +9,8 @@ use std::collections::{BTreeMap, BTreeSet};
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct DrawingValue {
+    #[serde(default, rename = "modelWindows")]
+    _model_windows: Option<Vec<String>>,
     profile_version: String,
     length_unit: String,
     next_entity_id: u64,

@@ -501,7 +501,11 @@ fn ifccad_workspace() -> Result<ocdraw::ifccad::IfccadDocument> {
             current_ucs: None,
             active_context: None,
         });
-        for e in p.entities.iter_mut().filter_map(IfccadEntity::as_native_mut) {
+        for e in p
+            .entities
+            .iter_mut()
+            .filter_map(IfccadEntity::as_native_mut)
+        {
             if let IfccadEntityKind::Viewport(v) = &mut e.kind {
                 let mut viewport_grid = grid;
                 viewport_grid.spacing = Point2::new(2., 3.);

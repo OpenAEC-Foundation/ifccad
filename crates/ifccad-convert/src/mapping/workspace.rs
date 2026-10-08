@@ -264,7 +264,10 @@ pub(crate) fn from_cad(
     for index in 0..drawing.paper_layouts.len() {
         for item in 0..drawing.paper_layouts[index].entities.len() {
             let id = drawing.paper_layouts[index].entities[item].id();
-            if !drawing.paper_layouts[index].entities[item].as_native().is_some_and(|e|matches!(e.kind,IfccadEntityKind::Viewport(_))) {
+            if !drawing.paper_layouts[index].entities[item]
+                .as_native()
+                .is_some_and(|e| matches!(e.kind, IfccadEntityKind::Viewport(_)))
+            {
                 continue;
             }
             let Some(EntityType::Viewport(v)) = maps
@@ -287,8 +290,11 @@ pub(crate) fn from_cad(
                 &location,
             );
             field_losses(fields.losses, &location, issues);
-            if let IfccadEntityKind::Viewport(view) =
-                &mut drawing.paper_layouts[index].entities[item].as_native_mut().expect("native viewport").kind
+            if let IfccadEntityKind::Viewport(view) = &mut drawing.paper_layouts[index].entities
+                [item]
+                .as_native_mut()
+                .expect("native viewport")
+                .kind
             {
                 view.workspace = Some(Box::new(IfccadViewportWorkspace {
                     grid: value.grid,

@@ -281,7 +281,7 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
         .chain(document.blocks.iter().flat_map(|b| b.entities.iter()))
     {
         let mut node = entity_node(entity, &prefix);
-        if let Some(IfccadEntityKind::Viewport(viewport)) = entity.as_native().map(|e|&e.kind) {
+        if let Some(IfccadEntityKind::Viewport(viewport)) = entity.as_native().map(|e| &e.kind) {
             if let Some(workspace) = &viewport.workspace {
                 node.attributes.insert(
                     "ifccad::viewportWorkspace".into(),

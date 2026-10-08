@@ -33,7 +33,7 @@ the DXF boundary reference; the separate viewport development patch is explicit.
 
 Fresh imports allocate entity, layer, layout, block-definition and pattern IDs
 from 1 using the core's independent checked uint64 domains. The drawing stores
-all seven resulting next-ID watermarks, including empty domains. Allocation
+all eight resulting next-ID watermarks, including empty domains. Allocation
 exhaustion is fatal under Allow and Reject. Numeric IDs are not CAD handles or
 table positions; mappings preserve source associations for this conversion.
 Reimporting CAD does not restore a previous IFCCAD allocation history.

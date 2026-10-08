@@ -94,7 +94,8 @@ fn paper_canvas_and_authored_viewport_workspace_are_distinct() {
         .iter()
         .find(|e| e.id() == id)
         .unwrap()
-        .as_native().unwrap()
+        .as_native()
+        .unwrap()
         .kind
     else {
         panic!("viewport")

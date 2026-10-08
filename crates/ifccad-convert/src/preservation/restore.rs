@@ -1,6 +1,7 @@
 use super::*;
 use cad_preservation::{
-    decode_spline_snapshot, CODEC_REVISION, LEGACY_CODEC_REVISION, PREVIOUS_CODEC_REVISION, SPLINE_PAYLOAD_VERSION,
+    decode_spline_snapshot, CODEC_REVISION, LEGACY_CODEC_REVISION, PREVIOUS_CODEC_REVISION,
+    SPLINE_PAYLOAD_VERSION,
 };
 use ocdraw::ifccad::*;
 use opencadcodec::entities::Spline;

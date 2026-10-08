@@ -604,4 +604,4 @@ governed by repository authorization.
 
 ## Workspace inspection
 
-Workspace records appear beside the existing independent native routes. UCS and Model-window references are linked explicitly, viewport rows use exact owning entity identity, Model-viewport construction aids retain Model coordinates and canvas aids retain Paper coordinates. Unknown current choices are presented as unspecified without rewriting source values. Native download preserves exact bytes, including full-width IFCCAD identities and all seven watermarks. CAD portability limits remain located diagnostics.
+Workspace records appear beside the existing independent native routes. UCS and Model-window references are linked explicitly, viewport rows use exact owning entity identity, Model-viewport construction aids retain Model coordinates and canvas aids retain Paper coordinates. Unknown current choices are presented as unspecified without rewriting source values. Native download preserves exact bytes, including full-width IFCCAD identities and all eight watermarks. CAD portability limits remain located diagnostics.

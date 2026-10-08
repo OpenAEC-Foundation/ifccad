@@ -146,10 +146,10 @@ impl CadSplineSnapshot {
         &self.0.codec_revision
     }
     pub fn payload_version(&self) -> u32 {
-        if self.0.codec_revision == CODEC_REVISION {
-            2
-        } else {
+        if self.0.codec_revision == LEGACY_CODEC_REVISION {
             1
+        } else {
+            2
         }
     }
     pub fn source_handle(&self) -> opencadcodec::Handle {
