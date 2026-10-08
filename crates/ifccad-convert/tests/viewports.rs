@@ -58,11 +58,11 @@ fn cad_import_resolves_later_circle_without_reordering_and_preserves_display_sta
         v.paper_clip.boundary_entity_id,
         Some(sheet.entities[1].id())
     );
-    assert!(!v.visible);
+    assert!(!sheet.entities[0].as_native().unwrap().visible);
     assert!(!v.view_enabled);
     assert!(v.view_locked);
     assert_eq!(v.view.direction, [0., 0., 100.]);
-    assert_eq!(v.frozen_layers.len(), 1);
+    assert_eq!(v.layer_overrides.len(), 1);
 }
 
 #[test]
@@ -204,7 +204,7 @@ fn dormant_boundary_and_missing_frozen_layer_are_independent() {
         v.paper_clip.boundary_entity_id,
         out.mappings().entities.ifccad_id(boundary)
     );
-    assert_eq!(v.frozen_layers.len(), 1);
+    assert_eq!(v.layer_overrides.len(), 1);
     assert!(out
         .diagnostics()
         .iter()
@@ -268,7 +268,13 @@ fn viewport_visibility_and_all_render_modes_are_independent() {
                     panic!()
                 };
                 assert_eq!(v.render_mode, expected);
-                assert_eq!(v.visible, visible);
+                assert_eq!(
+                    doc.paper_layouts[0].entities[0]
+                        .as_native()
+                        .unwrap()
+                        .visible,
+                    visible
+                );
                 assert_eq!(v.view_enabled, bits & 0x8000 != 0 && bits & 0x20000 == 0);
                 assert_eq!(v.view_locked, bits & 0x4000 != 0);
                 assert_eq!(v.view.lens_length_mm, Some(0.));
@@ -293,8 +299,22 @@ fn viewport_visibility_and_all_render_modes_are_independent() {
                 assert_eq!(v.view, rv.view);
                 assert_eq!(v.render_mode, rv.render_mode);
                 assert_eq!(
-                    (v.visible, v.view_enabled, v.view_locked),
-                    (rv.visible, rv.view_enabled, rv.view_locked)
+                    (
+                        doc.paper_layouts[0].entities[0]
+                            .as_native()
+                            .unwrap()
+                            .visible,
+                        v.view_enabled,
+                        v.view_locked
+                    ),
+                    (
+                        restored.validated_source().document().paper_layouts[0].entities[0]
+                            .as_native()
+                            .unwrap()
+                            .visible,
+                        rv.view_enabled,
+                        rv.view_locked
+                    )
                 );
             }
         }
@@ -378,9 +398,13 @@ fn omitted_export_boundary_never_leaves_viewport_mapping() {
     let mut drawing = viewport_drawing();
     let id = drawing.id_counters.allocate_block_id().unwrap();
     drawing.blocks.push(IfccadBlockDefinition {
+        description: String::new(),
+        anonymous: false,
+        explodable: true,
+        uniform_scaling: false,
         bounds_quality: None,
         id,
-        name: "*Unsupported clip reference".into(),
+        name: "*Paper_Space888".into(),
         base_point: [0.; 3],
         insertion_unit: "mm".into(),
         bounds: None,

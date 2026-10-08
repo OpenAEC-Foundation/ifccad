@@ -1,92 +1,97 @@
 use crate::diagnostics::{diagnostic, modification};
 use crate::IfccadDiagnostic;
-use ocdraw::ifccad::{IfccadEntityAppearance, IfccadLayerAppearance, IfccadMode};
+use ocdraw::ifccad::{IfccadColor, IfccadEntityAppearance, IfccadLayerAppearance, IfccadMode};
 use opencadcodec::entities::EntityCommon;
 use opencadcodec::{Color, Layer, LineWeight, Transparency};
 
-const WEIGHTS: [i16; 24] = [
-    0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40, 50, 53, 60, 70, 80, 90, 100, 106, 120, 140, 158, 200,
-    211,
-];
-
-pub(crate) fn color(value: &str) -> Color {
-    Color::from_rgb(
-        u8::from_str_radix(&value[1..3], 16).unwrap(),
-        u8::from_str_radix(&value[3..5], 16).unwrap(),
-        u8::from_str_radix(&value[5..7], 16).unwrap(),
-    )
-}
-pub(crate) fn weight(value: f64) -> Option<LineWeight> {
-    WEIGHTS
-        .into_iter()
-        .find(|v| f64::from(*v) / 100. == value)
-        .map(LineWeight::Value)
-}
-pub(crate) fn opacity(value: f64) -> Option<Transparency> {
-    (0..=255)
-        .find(|a| 1. - f64::from(*a) / 255. == value)
-        .map(Transparency::Explicit)
-}
-fn cad_weight(value: f64, loc: &str, issues: &mut Vec<IfccadDiagnostic>) -> LineWeight {
-    if let Some(w) = weight(value) {
-        return w;
+pub(super) fn native_color(value: cad_presentation_convert::CadColorValue) -> IfccadColor {
+    IfccadColor {
+        rgb: value.rgb,
+        indexed: value.indexed,
+        named: value.named,
     }
-    let nearest = WEIGHTS
-        .into_iter()
-        .min_by(|a, b| {
-            (f64::from(*a) / 100. - value)
-                .abs()
-                .total_cmp(&(f64::from(*b) / 100. - value).abs())
-        })
-        .unwrap();
-    issues.push(modification(
-        "appearance",
-        format!("{loc}.line_weight"),
-        format!(
-            "line weight {value} mm rounded to {} mm",
-            f64::from(nearest) / 100.
-        ),
-    ));
-    LineWeight::Value(nearest)
 }
-fn cad_opacity(value: f64, loc: &str, issues: &mut Vec<IfccadDiagnostic>) -> Transparency {
-    if let Some(t) = opacity(value) {
-        return t;
+pub(super) fn scalar_color(value: &IfccadColor) -> cad_presentation_convert::CadColorValue {
+    cad_presentation_convert::CadColorValue {
+        rgb: value.rgb,
+        indexed: value.indexed.clone(),
+        named: value.named.clone(),
     }
-    let nearest = (0u8..=255)
-        .min_by(|a, b| {
-            ((1. - f64::from(*a) / 255.) - value)
-                .abs()
-                .total_cmp(&((1. - f64::from(*b) / 255.) - value).abs())
-                .then_with(|| b.cmp(a))
-        })
-        .unwrap();
-    issues.push(modification(
-        "appearance",
-        format!("{loc}.opacity"),
-        format!(
-            "opacity {value} quantized to {} (transparency byte {nearest})",
-            1. - f64::from(nearest) / 255.
-        ),
-    ));
-    Transparency::Explicit(nearest)
 }
-fn source_color(value: Color, loc: &str, issues: &mut Vec<IfccadDiagnostic>) -> String {
-    let (r, g, b) = value.rgb().unwrap_or((255, 255, 255));
-    let target = format!("#{r:02X}{g:02X}{b:02X}");
-    if !matches!(value, Color::Rgb { .. }) {
-        issues.push(modification("appearance",format!("{loc}.color"),format!("color {value:?} mapped to {target}; indexed/inherited/none identity is not retained")));
+pub(super) fn cad_color(
+    value: &IfccadColor,
+    loc: &str,
+    issues: &mut Vec<IfccadDiagnostic>,
+) -> cad_presentation_convert::CadColorMapping {
+    let mapped = cad_presentation_convert::color_to_cad(&scalar_color(value))
+        .expect("validated native color");
+    for loss in &mapped.losses {
+        issues.push(modification(
+            "appearance",
+            format!("{loc}.color"),
+            format!("indexed color identity omitted ({loss:?}); RGB retained"),
+        ));
     }
-    target
+    mapped
 }
-fn source_weight(value: LineWeight, loc: &str, issues: &mut Vec<IfccadDiagnostic>) -> f64 {
+pub(super) fn cad_weight(value: f64, loc: &str, issues: &mut Vec<IfccadDiagnostic>) -> LineWeight {
+    let mapped =
+        cad_presentation_convert::lineweight_to_cad(value).expect("validated native lineweight");
+    if mapped.changed {
+        issues.push(modification(
+            "appearance",
+            format!("{loc}.line_weight"),
+            format!(
+                "lineweight {value} mm quantized to {} mm",
+                mapped.roundtrip_mm
+            ),
+        ));
+    }
+    mapped.weight
+}
+pub(super) fn cad_opacity(
+    value: f64,
+    loc: &str,
+    issues: &mut Vec<IfccadDiagnostic>,
+) -> Transparency {
+    let mapped = cad_presentation_convert::opacity_to_cad(value).expect("validated native opacity");
+    if mapped.changed {
+        issues.push(modification(
+            "appearance",
+            format!("{loc}.opacity"),
+            format!("opacity {value} quantized to {}", mapped.roundtrip),
+        ));
+    }
+    mapped.transparency
+}
+fn source_color(
+    value: Color,
+    loc: &str,
+    issues: &mut Vec<IfccadDiagnostic>,
+) -> Option<IfccadColor> {
+    match cad_presentation_convert::explicit_color_from_cad(value) {
+        Ok(value) => Some(native_color(value)),
+        Err(_) => {
+            issues.push(diagnostic(
+                "appearance",
+                format!("{loc}.color"),
+                "unsupported required concrete color; dependent item omitted",
+            ));
+            None
+        }
+    }
+}
+fn source_weight(value: LineWeight, loc: &str, issues: &mut Vec<IfccadDiagnostic>) -> Option<f64> {
     match value {
-        LineWeight::Value(v) if v >= 0 => cad_weight(f64::from(v) / 100., loc, issues)
-            .millimeters()
-            .unwrap(),
+        LineWeight::Default => Some(0.25),
+        LineWeight::Value(v) if v >= 0 => Some(f64::from(v) / 100.0),
         _ => {
-            issues.push(modification("appearance",format!("{loc}.line_weight"),format!("weight {value:?} replaced with explicit 0.25 mm; no drawing-default weight is available in this profile")));
-            0.25
+            issues.push(diagnostic(
+                "appearance",
+                format!("{loc}.line_weight"),
+                "unsupported required concrete lineweight; dependent item omitted",
+            ));
+            None
         }
     }
 }
@@ -102,7 +107,17 @@ pub(crate) fn to_common(
     c.color = match &a.color {
         ByLayer => Color::ByLayer,
         ByBlock => Color::ByBlock,
-        Explicit(v) => color(v),
+        Explicit(v) => {
+            let mapped = cad_color(v, loc, issues);
+            if let Some((catalog, name)) = mapped.named {
+                if catalog.contains('$') {
+                    issues.push(modification("appearance",format!("{loc}.color"),"named catalog contains entity-name delimiter; RGB/index retained without named identity"));
+                } else {
+                    c.color_name = Some(format!("{catalog}${name}"));
+                }
+            }
+            mapped.color
+        }
     };
     c.transparency = match a.opacity {
         ByLayer => Transparency::ByLayer,
@@ -127,13 +142,21 @@ pub(crate) fn from_common(
     patterns: &crate::mapping::line_pattern::SourcePatterns,
     loc: &str,
     issues: &mut Vec<IfccadDiagnostic>,
-) -> IfccadEntityAppearance {
+) -> Option<IfccadEntityAppearance> {
     use IfccadMode::*;
-    let color = match c.color {
+    let mut color = match c.color {
         Color::ByLayer => ByLayer,
         Color::ByBlock => ByBlock,
-        v => Explicit(source_color(v, loc, issues)),
+        v => Explicit(source_color(v, loc, issues)?),
     };
+    if let (Explicit(target), Some(name)) = (&mut color, &c.color_name) {
+        if let Some((catalog, name)) = name
+            .split_once('$')
+            .filter(|(catalog, name)| !catalog.is_empty() && !name.is_empty())
+        {
+            target.named = Some((catalog.to_owned(), name.to_owned()));
+        }
+    }
     let opacity = match c.transparency {
         Transparency::ByLayer => ByLayer,
         Transparency::ByBlock => ByBlock,
@@ -142,7 +165,7 @@ pub(crate) fn from_common(
     let line_weight = match c.line_weight {
         LineWeight::ByLayer => ByLayer,
         LineWeight::ByBlock => ByBlock,
-        v => Explicit(source_weight(v, loc, issues)),
+        v => Explicit(source_weight(v, loc, issues)?),
     };
     let line_pattern = patterns.entity(c);
     // Typed comparison also covers public fields skipped by serde.
@@ -155,23 +178,31 @@ pub(crate) fn from_common(
     // retain that association with newly constructed CAD identities.
     r.layer_handle = None;
     r.color = b.color;
+    if matches!(&color, Explicit(value) if value.named.is_some()) {
+        r.color_name = None;
+    }
     r.line_weight = b.line_weight;
     r.linetype = b.linetype.clone();
     r.transparency = b.transparency;
     r.linetype_handle = None;
     r.linetype_scale = b.linetype_scale;
+    r.invisible = b.invisible;
     r.entity_mode = None;
     r.raw_record = None;
     r.has_ds_data = false;
     if r != b {
-        issues.push(diagnostic("entity-common",loc,"unsupported common properties omitted (including XDATA, style, visibility or material)"));
+        issues.push(diagnostic(
+            "entity-common",
+            loc,
+            "unsupported common properties omitted (including XDATA, style or material)",
+        ));
     }
-    IfccadEntityAppearance {
+    Some(IfccadEntityAppearance {
         color,
         opacity,
         line_pattern,
         line_weight,
-    }
+    })
 }
 pub(crate) fn to_layer(
     name: &str,
@@ -181,7 +212,16 @@ pub(crate) fn to_layer(
     issues: &mut Vec<IfccadDiagnostic>,
 ) -> Layer {
     let mut layer = Layer::new(name);
-    layer.color = color(&a.color);
+    let mapped = cad_color(&a.color, loc, issues);
+    layer.color = mapped.color;
+    if let Some((catalog, name)) = mapped.named {
+        if catalog.contains('$') {
+            issues.push(modification("appearance",format!("{loc}.color"),"named catalog contains the DXF color-book delimiter; concrete color retained without named identity"));
+        } else {
+            layer.book_name = Some(catalog);
+            layer.color_name = Some(name);
+        }
+    }
     layer.transparency = cad_opacity(a.opacity, loc, issues);
     layer.line_weight = cad_weight(a.line_weight, loc, issues);
     layer.line_type = pattern_name.into();
@@ -191,28 +231,39 @@ pub(crate) fn from_layer(
     layer: &Layer,
     patterns: &crate::mapping::line_pattern::SourcePatterns,
     issues: &mut Vec<IfccadDiagnostic>,
-) -> IfccadLayerAppearance {
+) -> Option<IfccadLayerAppearance> {
     let loc = format!("layer/{}", layer.name);
-    let color = source_color(layer.color, &loc, issues);
+    let mut color = source_color(layer.color, &loc, issues)?;
+    match (&layer.book_name, &layer.color_name) {
+        (Some(catalog), Some(name)) if !catalog.is_empty() && !name.is_empty() => {
+            color.named = Some((catalog.clone(), name.clone()));
+        }
+        (None, None) => (),
+        _ => issues.push(modification(
+            "appearance",
+            format!("{loc}.color"),
+            "incomplete named-color identity omitted; concrete RGB/index retained",
+        )),
+    }
     let opacity = match layer.transparency {
         Transparency::Explicit(a) => 1. - f64::from(a) / 255.,
         // The codec uses this layer mode for the opaque default, not inheritance.
         Transparency::ByLayer => 1.,
         v => {
-            issues.push(modification(
+            issues.push(diagnostic(
                 "appearance",
                 format!("{loc}.opacity"),
-                format!("layer opacity {v:?} replaced with explicit 1"),
+                format!("unsupported required layer opacity {v:?}; layer omitted"),
             ));
-            1.
+            return None;
         }
     };
-    let line_weight = source_weight(layer.line_weight, &loc, issues);
+    let line_weight = source_weight(layer.line_weight, &loc, issues)?;
     let line_pattern = patterns.layer(&layer.line_type);
-    IfccadLayerAppearance {
+    Some(IfccadLayerAppearance {
         color,
         opacity,
         line_weight,
         line_pattern,
-    }
+    })
 }

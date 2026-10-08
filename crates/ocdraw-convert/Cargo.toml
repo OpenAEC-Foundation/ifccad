@@ -7,6 +7,7 @@ license = "MPL-2.0"
 repository = "https://github.com/OpenAEC-Foundation/ifccad"
 
 [dependencies]
+cad-presentation-convert = { path = "../cad-presentation-convert" }
 cad-preservation = { path = "../cad-preservation" }
 cad-workspace-convert = { path = "../cad-workspace-convert" }
 cad-text = { path = "../cad-text" }

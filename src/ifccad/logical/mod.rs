@@ -6,6 +6,8 @@ mod geometry;
 mod hatch;
 pub use hatch::{resolve_ifccad_hatch_join_tolerance, IfccadHatch, IfccadHatchLoop};
 mod model;
+mod presentation;
+pub use presentation::{IfccadColor, IfccadPointDisplay, IfccadPointGlyph, IfccadPointSize};
 mod text;
 pub use text::{IfccadMText, IfccadText, IfccadTextStyle, IfccadTextStyleId};
 pub(crate) mod patterns;

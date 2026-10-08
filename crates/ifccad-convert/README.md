@@ -11,8 +11,12 @@ layout, line-pattern and viewport adapters; [`src/source`](src/source) inspects
 CAD structure, layout references and supported entity fields. Target layout
 allocation lives in `src/to_cad/layouts.rs`. `geometry_context.rs` and
 `geometry_assessment.rs` adapt tolerance domains and evidence to IFCCAD ownership.
-Numerical geometry and occurrence proofs live in the shared
-Numerical geometry lives in cad-geometry-convert; format-owned graph/preservation conditions remain independent. Byte snapshots use cad-preservation and scalar workspace adaptation uses cad-workspace-convert.
+Numerical geometry and occurrence proofs live in cad-geometry-convert;
+format-owned graph/preservation conditions remain independent. Byte snapshots use
+cad-preservation, scalar workspace adaptation uses cad-workspace-convert, and
+CAD presentation decisions use cad-presentation-convert. See
+[presentation coverage](../../docs/presentation.md) for native fields, scalar
+policy, viewport overrides, perspective and remaining transport gates.
 
 This incomplete adapter defaults to **Allow**: supported content is returned
 with located diagnostics for omissions and modifications. **Reject** refuses

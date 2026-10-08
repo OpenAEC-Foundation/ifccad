@@ -99,7 +99,7 @@ pub(super) fn encode_viewports(root: &mut Value, rows: &[DrawingViewport]) {
         }
         let field = json!({"entityId":row.id,"viewScopeId":row.view_scope_id,"layerId":row.layer_id,"visible":row.visible,
             "frame":{"center":point2(row.frame.center),"width":row.frame.width,"height":row.frame.height},"view":view(row.view),"renderMode":render_mode(row.render_mode),
-            "viewEnabled":row.view_enabled,"viewLocked":row.view_locked,"paperClip":paper_clip,"plotShadingOverride":row.plot_shading_override.map(super::encode_plot::encode_shading),
+            "viewEnabled":row.view_enabled,"viewLocked":row.view_locked,"paperClip":paper_clip,"plotShadingOverride":row.plot_shading_override.map(|mode| { use crate::ocdraw::ShadedPlotMode::*; match mode { AsDisplayed=>"AsDisplayed", Wireframe=>"Wireframe", Hidden=>"Hidden", Rendered=>"Rendered" } }),
             "layerOverrideOffset":overrides.len(),"layerOverrideCount":row.layer_overrides.len()});
         for entry in &row.layer_overrides {
             let mut item = json!({"layerId":entry.layer_id,"frozen":entry.frozen});

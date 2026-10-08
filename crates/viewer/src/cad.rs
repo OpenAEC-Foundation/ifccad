@@ -114,6 +114,7 @@ pub(crate) fn export(
         return output;
     }
     diagnostics.extend(spline_parameterization_losses(&document, &checked));
+    diagnostics.extend(viewport_shadeplot_losses(&document, &checked));
     output["export"]["diagnostics"] = json!(&diagnostics);
     let check = match check(&checked) {
         Ok(v) => v,
@@ -169,6 +170,54 @@ fn spline_parameterization_losses(expected: &CadDocument, actual: &CadDocument) 
                     "location":format!("block/{}/splines/{index}",block.name),"phase":"cadExchange","action":"Modified",
                     "expected":source.knot_parameterization,"actual":target.knot_parameterization,
                     "message":"The target CAD codec changed spline fit parameterization; the resulting curve may differ. Typed source restoration succeeded before this physical exchange loss."}));
+            }
+        }
+    }
+    losses
+}
+
+// Match frame occurrences within the owning block, allowing a generated overall canvas.
+// Handles and runtime viewport numbers are not stable exchange identities.
+fn viewport_shadeplot_losses(expected: &CadDocument, actual: &CadDocument) -> Vec<Value> {
+    use ocdraw_convert::opencadcodec::EntityType;
+    let mut losses = Vec::new();
+    for block in expected.block_records.iter() {
+        let returned: Vec<_> = actual
+            .block_records
+            .get(&block.name)
+            .into_iter()
+            .flat_map(|b| &b.entity_handles)
+            .filter_map(|h| match actual.get_entity(*h) {
+                Some(EntityType::Viewport(v)) => Some(v),
+                _ => None,
+            })
+            .collect();
+        let mut used = vec![false; returned.len()];
+        for (index, source) in block
+            .entity_handles
+            .iter()
+            .filter_map(|h| match expected.get_entity(*h) {
+                Some(EntityType::Viewport(v)) => Some(v),
+                _ => None,
+            })
+            .enumerate()
+        {
+            let target = returned
+                .iter()
+                .enumerate()
+                .find(|(i, v)| {
+                    !used[*i]
+                        && v.center == source.center
+                        && v.width == source.width
+                        && v.height == source.height
+                })
+                .map(|(i, v)| {
+                    used[i] = true;
+                    *v
+                });
+            let actual_mode = target.map(|v| v.shade_plot_mode);
+            if source.shade_plot_mode != 0 && actual_mode != Some(source.shade_plot_mode) {
+                losses.push(json!({"code":"TARGET_CODEC_VIEWPORT_SHADEPLOT_LOSS","location":format!("block/{}/viewports/{index}.shadePlot",block.name),"phase":"cadExchange","action":"Modified","expected":source.shade_plot_mode,"actual":actual_mode,"message":"The requested viewport ShadePlot mode was not retained or could not be confirmed in physical CAD readback. The pinned DXF codec lacks VIEWPORT group 170 support; memory/DWG support is qualified separately."}));
             }
         }
     }

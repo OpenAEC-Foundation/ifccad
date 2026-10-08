@@ -133,7 +133,7 @@ pub(crate) fn entities(drawing: &ValidatedOcdraw) -> Value {
                 }
             }
         }
-        output.push(json!({"id":v.id,"layerId":v.layer_id,"type":"viewport","viewScopeId":v.view_scope_id,"visible":v.visible,"appearance":appearance(&v.appearance),"frame":{"center":[v.frame.center.x(),v.frame.center.y()],"width":v.frame.width,"height":v.frame.height},"paperClip":{"enabled":v.paper_clip.enabled,"boundaryEntityId":v.paper_clip.boundary_entity_id},"storedFields":stored}));
+        output.push(json!({"id":v.id,"layerId":v.layer_id,"type":"viewport","viewScopeId":v.view_scope_id,"visible":v.visible,"appearance":appearance(&v.appearance),"frame":{"center":[v.frame.center.x(),v.frame.center.y()],"width":v.frame.width,"height":v.frame.height},"paperClip":{"enabled":v.paper_clip.enabled,"boundaryEntityId":v.paper_clip.boundary_entity_id},"plotShadingOverride":v.plot_shading_override.map(|mode|format!("{mode:?}")),"layerOverrides":v.layer_overrides.iter().map(|row|json!({"layerId":row.layer_id,"frozen":row.frozen,"color":row.color.as_ref().map(color),"opacity":row.opacity,"linePatternId":row.line_pattern_id.map(|id|id.0),"lineWeight":row.line_weight})).collect::<Vec<_>>(),"storedFields":stored}));
     }
     json!(output)
 }

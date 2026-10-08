@@ -26,21 +26,40 @@ pub(super) fn diagnostic(
     }
 }
 
-fn line_weight(
+pub(super) fn line_weight(
     value: f64,
     location: &str,
     diagnostics: &mut Vec<OcdrawToCadDiagnostic>,
 ) -> LineWeight {
-    let hundredths = (value * 100.0).round();
-    let bounded = hundredths.clamp(0.0, i16::MAX as f64) as i16;
-    if f64::from(bounded) / 100.0 != value {
+    let mapped =
+        cad_presentation_convert::lineweight_to_cad(value).expect("validated native lineweight");
+    if mapped.changed {
         diagnostics.push(diagnostic(
             "LINE_WEIGHT_ROUNDED",
             location,
-            "line weight was rounded to CAD hundredths of a millimetre",
+            format!(
+                "lineweight {value} mm quantized to {} mm",
+                mapped.roundtrip_mm
+            ),
         ));
     }
-    LineWeight::from_value(bounded)
+    mapped.weight
+}
+
+pub(super) fn opacity(
+    value: f64,
+    location: &str,
+    diagnostics: &mut Vec<OcdrawToCadDiagnostic>,
+) -> Transparency {
+    let mapped = cad_presentation_convert::opacity_to_cad(value).expect("validated native opacity");
+    if mapped.changed {
+        diagnostics.push(diagnostic(
+            "OPACITY_QUANTIZED",
+            location,
+            format!("opacity {value} quantized to {}", mapped.roundtrip),
+        ));
+    }
+    mapped.transparency
 }
 
 pub fn ocdraw_document_to_cad_document(
@@ -147,9 +166,17 @@ fn import_document(
             &mut diagnostics,
         );
         target.color = mapped_color;
-        target.book_name = catalog;
-        target.color_name = color_name;
-        target.transparency = Transparency::from_percent(1.0 - source.opacity);
+        if catalog.as_ref().is_some_and(|name| name.contains('$')) {
+            diagnostics.push(diagnostic("COLOR_NAME",format!("/layers/{index}/color"),"named catalog contains the DXF color-book delimiter; concrete color retained without named identity"));
+        } else {
+            target.book_name = catalog;
+            target.color_name = color_name;
+        }
+        target.transparency = opacity(
+            source.opacity,
+            &format!("/layers/{index}/opacity"),
+            &mut diagnostics,
+        );
         target.line_type = patterns[&source.line_pattern_id].0.clone();
         target.line_weight = line_weight(
             source.line_weight,
@@ -439,6 +466,14 @@ fn import_document(
             }
         }
     }
+    crate::mapping::viewport_overrides::to_cad(
+        drawing,
+        &mut document,
+        &entity_mapping,
+        &layer_names,
+        &patterns,
+        &mut diagnostics,
+    );
     crate::mapping::workspace::apply(
         drawing,
         &mut document,

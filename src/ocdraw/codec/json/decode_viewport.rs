@@ -3,7 +3,7 @@ use super::decode_view_state::{point2, render_mode, view};
 use crate::ocdraw::logical::{
     DrawingPaperClip, DrawingViewport, DrawingViewportFrame, DrawingViewportLayerOverride,
 };
-use crate::ocdraw::{ShadedPlot, ShadedPlotMode, ShadedPlotQuality, ShadedPlotQualityMode};
+use crate::ocdraw::ShadedPlotMode;
 use serde_json::Value;
 
 fn column<'a>(stream: &'a Value, key: &str, row: usize) -> Option<&'a Value> {
@@ -30,10 +30,18 @@ fn override_row(stream: &Value, row: usize) -> Option<DrawingViewportLayerOverri
     })
 }
 
+fn shaded(value: &Value) -> Option<ShadedPlotMode> {
+    Some(match value.as_str()? {
+        "AsDisplayed" => ShadedPlotMode::AsDisplayed,
+        "Wireframe" => ShadedPlotMode::Wireframe,
+        "Hidden" => ShadedPlotMode::Hidden,
+        "Rendered" => ShadedPlotMode::Rendered,
+        _ => return None,
+    })
+}
 trait OptionOptionExt<T> {
     fn transpose_option(self) -> Option<Option<T>>;
 }
-
 impl<T> OptionOptionExt<T> for Option<Option<T>> {
     fn transpose_option(self) -> Option<Option<T>> {
         match self {
@@ -42,34 +50,6 @@ impl<T> OptionOptionExt<T> for Option<Option<T>> {
             None => Some(None),
         }
     }
-}
-
-fn shaded(value: &Value) -> Option<ShadedPlot> {
-    let quality = value.get("quality")?;
-    Some(ShadedPlot {
-        mode: match value.get("mode")?.as_str()? {
-            "AsDisplayed" => ShadedPlotMode::AsDisplayed,
-            "Wireframe" => ShadedPlotMode::Wireframe,
-            "Hidden" => ShadedPlotMode::Hidden,
-            "Rendered" => ShadedPlotMode::Rendered,
-            _ => return None,
-        },
-        quality: ShadedPlotQuality {
-            mode: match quality.get("mode")?.as_str()? {
-                "Draft" => ShadedPlotQualityMode::Draft,
-                "Preview" => ShadedPlotQualityMode::Preview,
-                "Normal" => ShadedPlotQualityMode::Normal,
-                "Presentation" => ShadedPlotQualityMode::Presentation,
-                "Maximum" => ShadedPlotQualityMode::Maximum,
-                "Custom" => ShadedPlotQualityMode::Custom,
-                _ => return None,
-            },
-            dpi: quality
-                .get("dpi")
-                .map(|value| u32::try_from(value.as_u64()?).ok())
-                .transpose_option()?,
-        },
-    })
 }
 
 pub(crate) fn decode_viewports(root: &Value) -> Option<Vec<DrawingViewport>> {

@@ -24,9 +24,9 @@ reported separately; unknown target semantics are diagnosed.
 | Model and paper layout names, scope binding and order | The CAD model layout and named paper layouts are allocated before scope entities. Source layout names and paper owners are retained. The first paper layout reuses and renames the fresh CAD scaffold; subsequent layouts are allocated in tab order. Without a source paper layout the scaffold layout and its dictionary entry are removed; the codec's reserved paper block/header remain, with no layout tab. An authored `Layout1` is retained like any other source name. |
 | Layout `limits`, `limitsChecking`, `paperSpaceLinetypeScaling` | Limits and flag bits 1/2 preserve linetype scaling/checking per layout. The current header follows the selected layout; differences between layouts are preserved. |
 | Layout `media` and effective `plotSettings.plotUnit/page/area/mapping/output/options` | Independent medium dimensions and plot units, page margins/rotation, all four supported plot areas, fixed/fit scale, offset/center, shading, active plot-style switch/name and supported flags map to pinned `Layout` fields. Printable-area-relative offsets and plot transparency have no exact target field and receive `LAYOUT_FIELD_UNSUPPORTED`. A page setup name or CTB/STB contents cannot be reconstructed from the native inline value. |
-| Paper `Viewport` frame, orthographic view, render and active clip state | Mapped to a CAD VIEWPORT owned by the paper block. Circle, full Ellipse and closed straight/bulged PlanarPolyline boundaries map through normal geometry conversion. Clip handles bind after ordered entity construction, allowing forward references without changing draw order. Perspective is skipped pending CAD fixture calibration. A required unconstructed boundary returns a typed construction error; no unresolved clipped viewport escapes as a rectangle. Locally patched DXF/DWG exchange preserves activation and references; the DWG profile includes an overall paper canvas. |
+| Paper `Viewport` frame, orthographic/perspective view, render and active clip state | Mapped to a CAD VIEWPORT owned by the paper block. Circle, full Ellipse and closed straight/bulged PlanarPolyline boundaries map through normal geometry conversion. Clip handles bind after ordered entity construction, allowing forward references without changing draw order. Perspective is qualified against the independently specified axial/oblique camera references, retaining unnormalized direction and lens millimeters. A required unconstructed boundary returns a typed construction error; no unresolved clipped viewport escapes as a rectangle. Locally patched DXF/DWG exchange preserves activation and references; the DWG profile includes an overall paper canvas. |
 | Dormant paper clip reference | Stored reference binds after ordered geometry construction while activation remains false. Convertible dormant boundary families need no active-clip eligibility; missing construction mappings return a typed error. The locally patched codec retains this state through DXF/DWG. |
-| Viewport frozen layers | Each relational frozen override maps to a CAD frozen-layer handle. Pinned opencadcodec has no per-viewport appearance-override slots; those report `VIEWPORT_UNSUPPORTED`. |
+| Viewport frozen layers | Each relational frozen override maps to a CAD frozen-layer handle. Qualified RGB/ACI, opacity, line pattern and explicit weight overrides bind through layer extension XRecords after construction; unknown/custom metadata remains located loss. |
 | Drawing workspace current Layer | A local layer ID selects the CAD header current layer. |
 | Named UCS and model workspace | Named UCS definitions become CAD UCS table entries, including unused ones. Current World/named/unnamed model UCS and ordered model windows map to the header and active VPORT records, including dormant grid/snap values. CAD handles are newly allocated. Grid dot style or an out-of-range major frequency receives a field-specific `WORKSPACE` diagnostic. |
 | Paper workspace | A present paper canvas view, grid, snap and stored UCS map to the layout's conventional overall VIEWPORT ID 1. The importer creates that viewport for a reused `Layout1` scaffold before authored viewports. Without a paper canvas, the importer removes opencadcodec's newly allocated overall viewport scaffold so the layout remains viewport-free. A canvas frame is copied independently of drawable geometry, and per-viewport grid/snap/UCS bind to the existing entity. Current Paper context/UCS association is diagnosed when authored. A saved Paper selection clears `show_model_space` and binds the chosen layout to the reserved `*Paper_Space` role, synchronizing block-record and BLOCK-begin names with the header cache while retaining handles, ownership and tab order. |
@@ -42,12 +42,12 @@ reported separately; unknown target semantics are diagnosed.
 | Entity identity | New target handles; source-ID mapping retained in outcome |
 | Layer reference, name, visibility | Mapped to CAD layer; entity visibility copied |
 | ByLayer / ByBlock appearance | Modes mapped for color, opacity, pattern and weight |
-| Explicit color | ACI 1–255 preferred when supplied; otherwise RGB; named metadata mapped where supported |
+| Explicit color | ACI 1–255 used only when consistent with native RGB; unsupported/inconsistent indexed identity retains RGB with loss. Named metadata maps where representable; ambiguous entity catalogue delimiters receive loss |
 | Line pattern | Every local named simple definition, including unused and named empty records, allocated before layers/entities; reference modes and global/entity scales retained. Polyline generation maps to CAD flags. |
-| Line weight | Mapped to supported CAD weights; rounding emits a grouped loss diagnostic |
-| Opacity | Converted to CAD transparency with upstream's upward byte rounding (0.5 opacity gives transparency byte 128); quantization fidelity is not assessed |
+| Line weight | Nearest of the 24 standard CAD table weights, with lower-value interior ties; quantization is located semantic loss and Reject refuses it |
+| Opacity | Exact byte-derived native values return the original CAD byte. Other values use upward transparency rounding (0.5 opacity gives byte 128); changed opacity receives located semantic loss and Reject refuses it |
 | Color metadata and appearance identity | No comprehensive fidelity assessment; unsupported indexed systems use RGB, and unsupported target color metadata is diagnosed |
-| Other drawing/layout/view state | Named views, page-setup sharing and complete native appearance overrides remain outside this slice and cannot be reconstructed without a diagnostic or a future target-model extension. |
+| Other drawing/layout/view state | Named views, page-setup sharing and unqualified custom appearance overrides remain outside the qualified profile and cannot be reconstructed without a diagnostic or a future target-model extension. |
 | Bounds, allocation watermark, drawing/table identities | No reconstruction guarantee; target storage and handles differ |
 
 Coverage remains incomplete for the native semantics listed above.
@@ -77,8 +77,8 @@ therefore requires that canvas; native files without one remain valid OCDraw.
 
 The outcome contains semantic diagnostics, a separate numerical geometry assessment, and
 source entity to target handle mappings. It has no aggregate fidelity grade.
-An empty diagnostic list is not a losslessness guarantee: opacity quantization
-and some presentation metadata are not comprehensively assessed.
+An empty diagnostic list is not a losslessness guarantee: unqualified source
+metadata and codec-private state remain outside the bounded fidelity assessment.
 
 Insertion failures, numerical failures and missing-reference/internal-invariant
 errors return `OcdrawToCadError`, not a completed conversion outcome. Successful
@@ -146,3 +146,28 @@ including small stored gaps; they do not certify CAD fill evaluation or reactor
 update behavior. Fill and nested fill occurrences remain unassessed. No pattern,
 gradient, spline-boundary or MPOLYGON backing is offered by this slice.
 See [Hatch support](../../../docs/hatch.md) for the complete bounded guarantee.
+## Presentation parity — 2026-10-08
+
+See the [presentation contract](../../../docs/presentation.md) for independent
+native color metadata, common/layer state, PointDisplay, ordinary block metadata,
+exact transparency bytes, standard-weight quantization, relational viewport
+rows and mode-only ShadePlot. Unsupported indexed metadata preserves authored
+RGB with loss; unrepresentable required source appearance never invents white.
+Semantic quantization remains independent of geometric tolerance and Reject.
+
+Known RGB/ACI, alpha, pattern and explicit-weight sections map with format-owned
+reference resolution. Equal duplicates are consumed; contradictory values are
+invalid structure. Unknown/incomplete/mixed XRecord content remains classified;
+only fully consumed qualified containers are exempted. Source/current IDs are
+never copied as target handles. Skipped viewports emit no override/workspace refs.
+Named/custom override identity stays unqualified and diagnosed.
+
+Orthographic and perspective authored Paper cameras are qualified through strict
+native loading and actual DXF/AC1032 DWG readback with independent hand-authored
+camera/landmark constants. The physical profile establishes the overall Paper
+canvas separately; no active Paper choice or external renderer accuracy is inferred.
+Viewport ShadePlot maps independently of render mode and layout quality. Memory
+and DWG mode values 0–3 are qualified; DXF group 170 remains gated by codec PR
+#107, with outgoing browser readback loss reported explicitly. Paper grid flags
+remain gated by #106. Both PRs were still open at qualification, so the audited
+ab2eecd plus explicit viewport-off configuration remains selected.

@@ -42,11 +42,18 @@ impl Capture {
         // Exact common representation is all-or-nothing. Preserve unavailable
         // source fields in the byte snapshot, with no fabricated native defaults.
         let mut issues = Vec::new();
-        let appearance = if matches!(c.color, Color::ByLayer | Color::ByBlock | Color::Rgb { .. })
-            && matches!(
-                c.line_weight,
-                LineWeight::ByLayer | LineWeight::ByBlock | LineWeight::Value(0..)
-            )
+        let qualified_weight = match c.line_weight {
+            LineWeight::ByLayer | LineWeight::ByBlock => true,
+            LineWeight::Value(value) if value >= 0 => {
+                cad_presentation_convert::lineweight_to_cad(f64::from(value) / 100.0)
+                    .is_ok_and(|mapped| !mapped.changed)
+            }
+            _ => false,
+        };
+        let appearance = if matches!(
+            c.color,
+            Color::ByLayer | Color::ByBlock | Color::Rgb { .. } | Color::Index(1..=255)
+        ) && qualified_weight
             && c.linetype_scale.is_finite()
             && c.linetype_scale > 0.
             && patterns.resolve(&c.linetype, c.linetype_handle).is_ok()
@@ -55,13 +62,16 @@ impl Capture {
                 crate::mapping::appearance::from_common(c, patterns, "spline", &mut issues);
             // Omitted attached context is retained by the snapshot; only value
             // approximation prevents exposing the native appearance bundle.
-            (!issues
-                .iter()
-                .any(|i| i.action == IfccadDiagnosticAction::Modified))
-            .then_some(IfccadOpaqueAppearance {
-                appearance,
-                line_pattern_scale: c.linetype_scale,
-            })
+            appearance
+                .filter(|_| {
+                    !issues
+                        .iter()
+                        .any(|i| i.action == IfccadDiagnosticAction::Modified)
+                })
+                .map(|appearance| IfccadOpaqueAppearance {
+                    appearance,
+                    line_pattern_scale: c.linetype_scale,
+                })
         } else {
             None
         };

@@ -34,6 +34,7 @@ pub(super) fn to_cad(
         let mut common =
             crate::mapping::appearance::to_common(&e.appearance, pattern, layer, &loc, issues);
         common.linetype_scale = e.line_pattern_scale;
+        common.invisible = !e.visible;
         common
     }
     let mut report = crate::IfccadPreservationReport::default();
@@ -270,7 +271,6 @@ pub(super) fn to_cad(
             authored_index += 1;
             let mut target = EntityType::Viewport(viewport);
             let mut c = common(drawing, document, mappings, e, issues);
-            c.invisible = !v.visible;
             c.owner_handle = *owner;
             c.handle = document.allocate_handle();
             let handle = c.handle;

@@ -1,7 +1,7 @@
 //! Paper viewport records and their per-layer overrides.
 
 use super::{DrawingColor, DrawingRenderMode, DrawingView, EntityAppearance};
-use crate::ocdraw::{Point2, ShadedPlot};
+use crate::ocdraw::{Point2, ShadedPlotMode};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct DrawingViewportFrame {
@@ -37,7 +37,7 @@ pub struct DrawingViewport {
     pub view_enabled: bool,
     pub view_locked: bool,
     pub paper_clip: DrawingPaperClip,
-    pub plot_shading_override: Option<ShadedPlot>,
+    pub plot_shading_override: Option<ShadedPlotMode>,
     pub appearance: EntityAppearance,
     pub visible: bool,
     pub layer_overrides: Vec<DrawingViewportLayerOverride>,

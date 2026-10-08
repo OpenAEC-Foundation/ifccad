@@ -254,8 +254,11 @@ epsilon to clip validation. Dormant references need not satisfy active geometry
 eligibility. Self-intersections and zero signed area do not themselves invalidate
 a boundary; no new stored fill rule is introduced.
 Per-layer overrides select distinct existing layers and carry at least one
-effective change. Custom shading quality requires dpi 100..32767; other quality
-modes do not carry dpi.
+effective change. Viewport plotShadingOverride is only a shaded-plot mode,
+independent of renderMode. Its JSON column carries a mode string or null;
+combined mode/quality viewport objects are rejected in the active provisional
+contract. Shading quality belongs to layout output: Custom quality requires
+dpi 100..32767; other quality modes do not carry dpi.
 
 Model windows have positive normalized rectangles within [0,1]. They remain
 valid without a current-window selection or drawing view state. Current Model UCS

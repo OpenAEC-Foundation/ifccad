@@ -86,6 +86,9 @@ pub(crate) fn viewport_residual(
 ) {
     let b = opencadcodec::entities::Viewport::new();
     let mut r = v.clone();
+    if (0..=3).contains(&v.shade_plot_mode) {
+        r.shade_plot_mode = b.shade_plot_mode;
+    }
     r.status.grid_on = b.status.grid_on;
     r.status.snap_on = b.status.snap_on;
     r.status.isometric_snap = b.status.isometric_snap;
@@ -153,6 +156,7 @@ pub(crate) fn canvas_residual(
     }
     for (field, changed) in [
         ("render_mode", v.render_mode != b.render_mode),
+        ("shade_plot_mode", v.shade_plot_mode != b.shade_plot_mode),
         ("frozen_layers", !v.frozen_layers.is_empty()),
         ("clip_boundary_handle", !v.clip_boundary_handle.is_null()),
     ] {

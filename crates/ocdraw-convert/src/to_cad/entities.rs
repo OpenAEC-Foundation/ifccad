@@ -1,6 +1,6 @@
 //! Materialize CAD entities from validated OCDraw values, never JSON columns.
 
-use super::{diagnostic, line_weight, OcdrawToCadDiagnostic, OcdrawToCadError};
+use super::{diagnostic, line_weight, opacity, OcdrawToCadDiagnostic, OcdrawToCadError};
 use ocdraw::ocdraw::{
     AppearanceSelection, DrawingBlockDefinition, DrawingColor, EntityAppearance, OcdrawDocument,
 };
@@ -12,27 +12,25 @@ pub(super) fn color(
     location: &str,
     diagnostics: &mut Vec<OcdrawToCadDiagnostic>,
 ) -> (Color, Option<String>, Option<String>) {
-    let rgb = value.rgb;
-    let mapped = if let Some((system, index)) = &value.indexed {
-        if system.eq_ignore_ascii_case("ACI") && (1..=255).contains(index) {
-            Color::Index(*index as u8)
-        } else {
-            diagnostics.push(diagnostic(
-                "COLOR_INDEX",
-                location,
-                "indexed color metadata cannot be represented in CAD",
-            ));
-            Color::from_rgb(rgb[0], rgb[1], rgb[2])
-        }
-    } else {
-        Color::from_rgb(rgb[0], rgb[1], rgb[2])
-    };
-    let (catalog, name) = value
+    let mapped = cad_presentation_convert::color_to_cad(&cad_presentation_convert::CadColorValue {
+        rgb: value.rgb,
+        indexed: value.indexed.clone(),
+        named: value.named.clone(),
+    })
+    .expect("validated native color");
+    for loss in &mapped.losses {
+        diagnostics.push(diagnostic(
+            "COLOR_INDEX",
+            location,
+            format!("indexed identity omitted ({loss:?}); RGB retained"),
+        ));
+    }
+    let (catalog, name) = mapped
         .named
         .as_ref()
         .map(|(catalog, name)| (Some(catalog.clone()), Some(name.clone())))
         .unwrap_or((None, None));
-    (mapped, catalog, name)
+    (mapped.color, catalog, name)
 }
 
 fn apply_common(
@@ -53,7 +51,11 @@ fn apply_common(
         AppearanceSelection::Explicit(value) => {
             let (mapped, catalog, name) = color(value, location, diagnostics);
             if let (Some(catalog), Some(name)) = (catalog, name) {
-                common.color_name = Some(format!("{catalog}${name}"));
+                if catalog.contains('$') {
+                    diagnostics.push(diagnostic("COLOR_NAME", location, "named catalog contains entity-name delimiter; concrete color retained without named identity"));
+                } else {
+                    common.color_name = Some(format!("{catalog}${name}"));
+                }
             }
             mapped
         }
@@ -61,7 +63,9 @@ fn apply_common(
     common.transparency = match appearance.opacity {
         AppearanceSelection::ByLayer => Transparency::ByLayer,
         AppearanceSelection::ByBlock => Transparency::ByBlock,
-        AppearanceSelection::Explicit(value) => Transparency::from_percent(1.0 - value),
+        AppearanceSelection::Explicit(value) => {
+            opacity(value, &format!("{location}/opacity"), diagnostics)
+        }
     };
     common.linetype_scale = appearance.line_pattern_scale;
     common.linetype_handle = match appearance.line_pattern {

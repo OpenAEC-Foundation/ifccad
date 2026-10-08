@@ -61,6 +61,7 @@ pub fn header() -> IfccadHeader {
 }
 pub fn empty() -> IfccadDocument {
     IfccadDocument {
+        point_display: None,
         text_styles: Vec::new(),
         preservation: None,
         ucs_definitions: vec![],
@@ -103,10 +104,16 @@ pub fn empty() -> IfccadDocument {
 }
 pub fn layer(id: u64, name: &str) -> IfccadLayer {
     IfccadLayer {
+        description: None,
+        visible: true,
+        frozen: false,
+        locked: false,
+        plottable: true,
+        frozen_in_new_viewports: false,
         id,
         name: name.into(),
         appearance: IfccadLayerAppearance {
-            color: "#FFFFFF".into(),
+            color: IfccadColor::rgb(255, 255, 255),
             opacity: 1.,
             line_pattern: IfccadLinePatternId(0),
             line_weight: 0.25,
@@ -141,6 +148,7 @@ pub fn primitives() -> IfccadDocument {
     doc.length_unit = "cm".into();
     doc.model.entities = vec![
         IfccadEntity::Native(IfccadNativeEntity {
+            visible: true,
             line_pattern_scale: 1.,
             id: 90,
             layer_id: 4,
@@ -151,6 +159,7 @@ pub fn primitives() -> IfccadDocument {
             },
         }),
         IfccadEntity::Native(IfccadNativeEntity {
+            visible: true,
             line_pattern_scale: 1.,
             id: 2,
             layer_id: 0,
@@ -172,11 +181,12 @@ pub fn primitives() -> IfccadDocument {
             },
         }),
         IfccadEntity::Native(IfccadNativeEntity {
+            visible: true,
             line_pattern_scale: 1.,
             id: 41,
             layer_id: 4,
             appearance: IfccadEntityAppearance {
-                color: IfccadMode::Explicit("#123456".into()),
+                color: IfccadMode::Explicit(IfccadColor::rgb(18, 52, 86)),
                 opacity: IfccadMode::ByLayer,
                 line_pattern: IfccadMode::ByBlock,
                 line_weight: IfccadMode::ByLayer,
@@ -202,6 +212,10 @@ pub fn nested(base: [f64; 3]) -> IfccadDocument {
     let line = primitives().model.entities[0].clone();
     d.blocks = vec![
         IfccadBlockDefinition {
+            description: String::new(),
+            anonymous: false,
+            explodable: true,
+            uniform_scaling: false,
             bounds_quality: None,
             bounds: None,
             id: 3,
@@ -211,6 +225,10 @@ pub fn nested(base: [f64; 3]) -> IfccadDocument {
             entities: vec![line],
         },
         IfccadBlockDefinition {
+            description: String::new(),
+            anonymous: false,
+            explodable: true,
+            uniform_scaling: false,
             bounds_quality: None,
             id: 9,
             bounds: None,
@@ -220,6 +238,7 @@ pub fn nested(base: [f64; 3]) -> IfccadDocument {
             entities: vec![
                 instance(15, 3, [0.; 3]),
                 IfccadEntity::Native(IfccadNativeEntity {
+                    visible: true,
                     line_pattern_scale: 1.,
                     id: 80,
                     ..primitives().model.entities[0].as_native().unwrap().clone()
@@ -227,6 +246,10 @@ pub fn nested(base: [f64; 3]) -> IfccadDocument {
             ],
         },
         IfccadBlockDefinition {
+            description: String::new(),
+            anonymous: false,
+            explodable: true,
+            uniform_scaling: false,
             bounds_quality: None,
             bounds: None,
             id: 4,
@@ -252,6 +275,7 @@ pub fn nested(base: [f64; 3]) -> IfccadDocument {
 }
 pub fn instance(id: u64, definition_id: u64, origin: [f64; 3]) -> IfccadEntity {
     IfccadEntity::Native(IfccadNativeEntity {
+        visible: true,
         line_pattern_scale: 1.,
         id,
         layer_id: 0,
@@ -297,12 +321,19 @@ pub fn native_viewport() -> IfccadViewport {
         render_mode: IfccadViewportRenderMode::Wireframe,
         view_enabled: false,
         view_locked: true,
-        visible: false,
         paper_clip: IfccadViewportPaperClip {
             enabled: true,
             boundary_entity_id: Some(1002),
         },
-        frozen_layers: vec![4],
+        layer_overrides: vec![IfccadViewportLayerOverride {
+            layer_id: 4,
+            frozen: true,
+            color: None,
+            opacity: None,
+            line_pattern_id: None,
+            line_weight: None,
+        }],
+        plot_shading_override: None,
     }
 }
 pub fn viewport_drawing() -> IfccadDocument {
@@ -317,6 +348,7 @@ pub fn viewport_drawing() -> IfccadDocument {
     };
     let entity = |id, kind| {
         IfccadEntity::Native(IfccadNativeEntity {
+            visible: !matches!(&kind, IfccadEntityKind::Viewport(_)),
             id,
             layer_id: 0,
             appearance: appearance.clone(),

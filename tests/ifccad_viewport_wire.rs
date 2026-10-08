@@ -18,8 +18,8 @@ fn wire() -> Value {
         "model":"/cad/d1/layout/1", "frame":{"center":[100,75],"width":160,"height":100},
         "view":{"center":[0,0],"target":[0,0,0],"direction":[0,0,100],"height":200,"twist":0,
                 "projection":"Perspective","lensLengthMm":50,"frontClip":{"mode":"Disabled"},"backClip":{"mode":"Disabled"}},
-        "renderMode":"Wireframe","viewEnabled":true,"viewLocked":false,"visible":true,
-        "paperClip":{"enabled":true,"boundary":"/cad/d1/e1002"},"frozenLayers":[]
+        "renderMode":"Wireframe","viewEnabled":true,"viewLocked":false,
+        "paperClip":{"enabled":true,"boundary":"/cad/d1/e1002"},"layerOverrides":[]
     });
     v["data"].as_array_mut().unwrap().extend([
         json!({"path":"/cad/d1/layout/42","children":{"0":"/cad/d1/e1000","1":"/cad/d1/e1002"},
@@ -108,9 +108,8 @@ fn viewport_wire_rejects_unknown_null_and_conflicting_payloads() {
         "renderMode",
         "viewEnabled",
         "viewLocked",
-        "visible",
         "paperClip",
-        "frozenLayers",
+        "layerOverrides",
     ] {
         let mut v = wire();
         payload(&mut v).as_object_mut().unwrap().remove(field);

@@ -145,3 +145,10 @@ under both policies. The integrated IFCCAD qualification uses the main dependenc
 base `ab2eecdbffc31120b5ad6d899f6fc67cf21ede39` and its explicit viewport-off
 repair; the earlier OCDraw slice evidence above records its original base.
 See the two IFCCAD converter coverage contracts for limits.
+
+IFCCAD concrete character/background colors now use IfccadColor with RGB fallback
+and optional indexed/named metadata rather than hexadecimal strings, independently
+of OCDraw's DrawingColor. Qualified RGB/ACI text identity passes through the shared
+CAD color rules; richer/unqualified text color metadata still obeys the bounded
+whole-text restriction. Scalar color support does not certify glyph appearance.
+See [presentation](presentation.md) for migration and numerical policy.

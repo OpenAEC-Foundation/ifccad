@@ -96,8 +96,7 @@
               "const": "color"
             },
             "color": {
-              "type": "string",
-              "pattern": "^#[0-9A-Fa-f]{6}$"
+              "$ref": "#/$defs/concreteColor"
             }
           },
           "required": [
@@ -579,8 +578,7 @@
               "const": "explicit"
             },
             "color": {
-              "type": "string",
-              "pattern": "^#[0-9A-Fa-f]{6}$"
+              "$ref": "#/$defs/concreteColor"
             }
           },
           "required": [
@@ -1092,7 +1090,10 @@
           "minimum": 1,
           "maximum": 18446744073709551615
         },
-        "modelWindows": {}
+        "modelWindows": {},
+        "pointDisplay": {
+          "$ref": "#/$defs/pointDisplay"
+        }
       },
       "additionalProperties": false,
       "allOf": [
@@ -1111,8 +1112,7 @@
           "type": "object",
           "properties": {
             "color": {
-              "type": "string",
-              "pattern": "^#[0-9A-Fa-f]{6}$"
+              "$ref": "#/$defs/concreteColor"
             },
             "opacity": {
               "type": "number",
@@ -1126,6 +1126,24 @@
             "linePattern": {}
           },
           "additionalProperties": false
+        },
+        "description": {
+          "type": "string"
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "frozen": {
+          "type": "boolean"
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "plottable": {
+          "type": "boolean"
+        },
+        "frozenInNewViewports": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,
@@ -1171,8 +1189,7 @@
                   "const": "Explicit"
                 },
                 "value": {
-                  "type": "string",
-                  "pattern": "^#[0-9A-Fa-f]{6}$"
+                  "$ref": "#/$defs/concreteColor"
                 }
               },
               "additionalProperties": false,
@@ -1335,6 +1352,9 @@
         "linePatternScale": {
           "type": "number",
           "exclusiveMinimum": 0
+        },
+        "visible": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,
@@ -1396,6 +1416,18 @@
             "enclosing",
             "estimated"
           ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "anonymous": {
+          "type": "boolean"
+        },
+        "explodable": {
+          "type": "boolean"
+        },
+        "uniformScaling": {
+          "type": "boolean"
         }
       },
       "dependentRequired": {
@@ -2071,7 +2103,6 @@
         "renderMode": {},
         "viewEnabled": {},
         "viewLocked": {},
-        "visible": {},
         "paperClip": {
           "type": "object",
           "properties": {
@@ -2106,8 +2137,19 @@
             }
           ]
         },
-        "frozenLayers": {
-          "uniqueItems": true
+        "layerOverrides": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/viewportLayerOverride"
+          }
+        },
+        "plotShadingOverride": {
+          "enum": [
+            "AsDisplayed",
+            "Wireframe",
+            "Hidden",
+            "Rendered"
+          ]
         }
       },
       "additionalProperties": false,
@@ -2865,6 +2907,210 @@
         },
         "fill": {
           "$ref": "#/$defs/hatchFill"
+        }
+      }
+    },
+    "concreteColor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rgb"
+      ],
+      "properties": {
+        "rgb": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          }
+        },
+        "indexedColor": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "system",
+            "index"
+          ],
+          "properties": {
+            "system": {
+              "type": "string",
+              "minLength": 1
+            },
+            "index": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 18446744073709551615
+            }
+          }
+        },
+        "namedColor": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "catalog",
+            "name"
+          ],
+          "properties": {
+            "catalog": {
+              "type": "string",
+              "minLength": 1
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "viewportLayerOverride": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "layer"
+      ],
+      "properties": {
+        "layer": {
+          "type": "string"
+        },
+        "frozen": {
+          "type": "boolean"
+        },
+        "color": {
+          "$ref": "#/$defs/concreteColor"
+        },
+        "opacity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "linePattern": {
+          "type": "string"
+        },
+        "lineWeight": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "frozen"
+          ],
+          "properties": {
+            "frozen": {
+              "const": true
+            }
+          }
+        },
+        {
+          "required": [
+            "color"
+          ]
+        },
+        {
+          "required": [
+            "opacity"
+          ]
+        },
+        {
+          "required": [
+            "linePattern"
+          ]
+        },
+        {
+          "required": [
+            "lineWeight"
+          ]
+        }
+      ]
+    },
+    "pointDisplay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "form",
+        "size"
+      ],
+      "properties": {
+        "form": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "glyph",
+            "circle",
+            "square"
+          ],
+          "properties": {
+            "glyph": {
+              "enum": [
+                "dot",
+                "hidden",
+                "plus",
+                "cross",
+                "shortLine"
+              ]
+            },
+            "circle": {
+              "type": "boolean"
+            },
+            "square": {
+              "type": "boolean"
+            }
+          }
+        },
+        "size": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "defaultFivePercent"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "value"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "absolute"
+                },
+                "value": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "value"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "viewportPercent"
+                },
+                "value": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              }
+            }
+          ]
         }
       }
     }

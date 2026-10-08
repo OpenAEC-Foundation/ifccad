@@ -61,7 +61,7 @@ fn placement(origin: [f64; 3]) -> IfccadPlacement {
 fn entity(id: u64, i: usize, kind: IfccadEntityKind) -> IfccadEntity {
     let appearance = if i.is_multiple_of(3) {
         IfccadEntityAppearance {
-            color: IfccadMode::Explicit("#B4283C".into()),
+            color: IfccadMode::Explicit(IfccadColor::rgb(180, 40, 60)),
             opacity: IfccadMode::Explicit(1.),
             line_pattern: IfccadMode::Explicit(IfccadLinePatternId(1)),
             line_weight: IfccadMode::Explicit(0.5),
@@ -75,6 +75,7 @@ fn entity(id: u64, i: usize, kind: IfccadEntityKind) -> IfccadEntity {
         }
     };
     IfccadEntity::Native(IfccadNativeEntity {
+        visible: true,
         id,
         layer_id: if i.is_multiple_of(2) { 1 } else { 2 },
         appearance,
@@ -85,16 +86,23 @@ fn entity(id: u64, i: usize, kind: IfccadEntityKind) -> IfccadEntity {
 pub fn generate(case: &Case) -> Result<CadDocument> {
     check(case)?;
     let layer = |id, name: &str| IfccadLayer {
+        description: None,
+        visible: true,
+        frozen: false,
+        locked: false,
+        plottable: true,
+        frozen_in_new_viewports: false,
         id,
         name: name.into(),
         appearance: IfccadLayerAppearance {
-            color: "#0A141E".into(),
+            color: IfccadColor::rgb(10, 20, 30),
             opacity: 1.,
             line_pattern: IfccadLinePatternId(1),
             line_weight: 0.25,
         },
     };
     let mut doc = IfccadDocument {
+        point_display: None,
         text_styles: Vec::new(),
         preservation: None,
         ucs_definitions: vec![],
@@ -175,6 +183,10 @@ pub fn generate(case: &Case) -> Result<CadDocument> {
         };
         doc.blocks = vec![
             IfccadBlockDefinition {
+                description: String::new(),
+                anonymous: false,
+                explodable: true,
+                uniform_scaling: false,
                 bounds_quality: None,
                 bounds: None,
                 id: 1,
@@ -201,6 +213,10 @@ pub fn generate(case: &Case) -> Result<CadDocument> {
                 ],
             },
             IfccadBlockDefinition {
+                description: String::new(),
+                anonymous: false,
+                explodable: true,
+                uniform_scaling: false,
                 bounds_quality: None,
                 bounds: None,
                 id: 2,
@@ -213,6 +229,10 @@ pub fn generate(case: &Case) -> Result<CadDocument> {
                 ],
             },
             IfccadBlockDefinition {
+                description: String::new(),
+                anonymous: false,
+                explodable: true,
+                uniform_scaling: false,
                 bounds_quality: None,
                 bounds: None,
                 id: 3,

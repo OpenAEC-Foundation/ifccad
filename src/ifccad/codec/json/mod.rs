@@ -3,6 +3,7 @@ mod encode;
 mod geometry;
 mod hatch;
 mod hatch_values;
+mod presentation;
 mod supplemental;
 mod text;
 mod text_layout;

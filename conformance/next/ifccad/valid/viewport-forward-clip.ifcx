@@ -32,7 +32,8 @@
             }
           },
           "layer": "/cad/d1/layer/0",
-          "linePatternScale": 1.0
+          "linePatternScale": 1.0,
+          "visible": true
         },
         "ifccad::viewport": {
           "frame": {
@@ -43,9 +44,6 @@
             "height": 100.0,
             "width": 160.0
           },
-          "frozenLayers": [
-            "/cad/d1/layer/4"
-          ],
           "model": "/cad/d1/layout/1",
           "paperClip": {
             "boundary": "/cad/d1/e1002",
@@ -82,7 +80,12 @@
           },
           "viewEnabled": true,
           "viewLocked": true,
-          "visible": true
+          "layerOverrides": [
+            {
+              "layer": "/cad/d1/layer/4",
+              "frozen": true
+            }
+          ]
         }
       }
     },
@@ -150,7 +153,13 @@
       "attributes": {
         "ifccad::layer": {
           "appearance": {
-            "color": "#FFFFFF",
+            "color": {
+              "rgb": [
+                255,
+                255,
+                255
+              ]
+            },
             "linePattern": "/cad/d1/linePattern/0",
             "lineWeight": 0.25,
             "opacity": 1.0
@@ -164,7 +173,13 @@
       "attributes": {
         "ifccad::layer": {
           "appearance": {
-            "color": "#FFFFFF",
+            "color": {
+              "rgb": [
+                255,
+                255,
+                255
+              ]
+            },
             "linePattern": "/cad/d1/linePattern/0",
             "lineWeight": 0.25,
             "opacity": 1.0

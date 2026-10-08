@@ -249,36 +249,44 @@ fn map_background<C, D>(
     })
 }
 fn from_color(c: &cad_text::MarkupColor) -> Result<DrawingColor, cad_text::CadTextError> {
-    Ok(match *c {
-        cad_text::MarkupColor::Rgb { red, green, blue } => DrawingColor::rgb(red, green, blue),
+    let source = match *c {
+        cad_text::MarkupColor::Rgb { red, green, blue } => {
+            opencadcodec::Color::from_rgb(red, green, blue)
+        }
         cad_text::MarkupColor::Index(index) => {
             let index = u8::try_from(index).map_err(|_| {
                 cad_text::CadTextError::Unsupported("ACI color outside qualified range")
             })?;
-            let (r, g, b) = opencadcodec::Color::Index(index).rgb().ok_or(
-                cad_text::CadTextError::Unsupported("unresolved inline ACI color"),
-            )?;
-            DrawingColor::rgb(r, g, b).with_indexed("ACI", u64::from(index))
+            opencadcodec::Color::Index(index)
         }
+    };
+    let value = cad_presentation_convert::explicit_color_from_cad(source)
+        .map_err(|_| cad_text::CadTextError::Unsupported("unresolved inline ACI color"))?;
+    Ok(DrawingColor {
+        rgb: value.rgb,
+        indexed: value.indexed,
+        named: value.named,
     })
 }
 fn to_color(c: &DrawingColor) -> Result<cad_text::MarkupColor, cad_text::CadTextError> {
-    if c.named.is_some() {
+    let mapped = cad_presentation_convert::color_to_cad(&cad_presentation_convert::CadColorValue {
+        rgb: c.rgb,
+        indexed: c.indexed.clone(),
+        named: c.named.clone(),
+    })
+    .map_err(|_| cad_text::CadTextError::Unsupported("invalid inline color identity"))?;
+    if mapped.named.is_some() {
         return Err(cad_text::CadTextError::Unsupported(
             "named inline/background color metadata",
         ));
     }
-    if let Some((system, index)) = &c.indexed {
-        if system.eq_ignore_ascii_case("ACI")
-            && (1..=255).contains(index)
-            && opencadcodec::Color::Index(*index as u8).rgb()
-                == Some((c.rgb[0], c.rgb[1], c.rgb[2]))
-        {
-            return Ok(cad_text::MarkupColor::Index(*index as u16));
-        }
+    if !mapped.losses.is_empty() {
         return Err(cad_text::CadTextError::Unsupported(
             "inline/background indexed color metadata or contradictory RGB fallback",
         ));
+    }
+    if let opencadcodec::Color::Index(index) = mapped.color {
+        return Ok(cad_text::MarkupColor::Index(u16::from(index)));
     }
     Ok(cad_text::MarkupColor::Rgb {
         red: c.rgb[0],

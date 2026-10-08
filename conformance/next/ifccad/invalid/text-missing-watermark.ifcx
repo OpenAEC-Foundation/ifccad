@@ -122,7 +122,13 @@
       "attributes": {
         "ifccad::layer": {
           "appearance": {
-            "color": "#FFFFFF",
+            "color": {
+              "rgb": [
+                255,
+                255,
+                255
+              ]
+            },
             "linePattern": "/cad/d1/linePattern/0",
             "lineWeight": 0.25,
             "opacity": 1.0
@@ -271,7 +277,13 @@
             {
               "characterFormat": {
                 "color": {
-                  "color": "#1192EE",
+                  "color": {
+                    "rgb": [
+                      17,
+                      146,
+                      238
+                    ]
+                  },
                   "kind": "explicit"
                 }
               },
@@ -471,7 +483,13 @@
             {
               "characterFormat": {
                 "color": {
-                  "color": "#1192EE",
+                  "color": {
+                    "rgb": [
+                      17,
+                      146,
+                      238
+                    ]
+                  },
                   "kind": "explicit"
                 }
               },
@@ -620,7 +638,13 @@
             {
               "characterFormat": {
                 "color": {
-                  "color": "#1192EE",
+                  "color": {
+                    "rgb": [
+                      17,
+                      146,
+                      238
+                    ]
+                  },
                   "kind": "explicit"
                 }
               },

@@ -1,0 +1,10 @@
+[package]
+name = "cad-presentation-convert"
+version = "0.1.0"
+edition = "2021"
+license = "MPL-2.0"
+description = "Shared CAD color and presentation scalar conversion"
+
+[dependencies]
+opencadcodec = { git = "https://github.com/HakanSeven12/opencadcodec.git", rev = "ab2eecdbffc31120b5ad6d899f6fc67cf21ede39" }
+thiserror = "1"

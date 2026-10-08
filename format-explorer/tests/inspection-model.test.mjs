@@ -87,3 +87,28 @@ test('OCDraw viewport workspace rows use owning entity identity and saved UCS li
  assert.equal(model.nodes.get('canvas:7').workspace.coordinateDomain,'Paper');
  assert.equal(model.nodes.get('drawing').workspaceChoices.activeModelWindow,null);
 });
+
+test('IFCCAD relational override rows expose their own layer and pattern references',()=>{
+ const graph={data:[
+  {path:'/cad/d1',attributes:{'ifccad::drawing':{lengthUnit:'mm',pointDisplay:{form:{glyph:'plus',circle:true,square:false},size:{kind:'viewportPercent',value:2}}}}},
+  {path:'/cad/d1/l1',attributes:{'ifccad::layer':{name:'Layer'}}},
+  {path:'/cad/d1/p1',attributes:{'ifccad::linePattern':{name:'Pattern'}}},
+  {path:'/cad/d1/e1',attributes:{'ifccad::entity':{layer:'/cad/d1/l1',visible:false},'ifccad::viewport':{model:'/cad/d1/model',plotShadingOverride:'Hidden',layerOverrides:[{layer:'/cad/d1/l1',frozen:true,linePattern:'/cad/d1/p1',color:{rgb:[255,0,0],indexedColor:{system:'ACI',index:1}}}]}}}
+ ]};
+ const model=adapter.createInspection({validation:{strictAvailable:true},presentation:{format:'ifccad',graph}},JSON.stringify(graph));
+ const view=model.nodes.get('/cad/d1/e1');
+ assert.ok(view.outgoing.some(e=>e.field==='ifccad::viewport.layerOverrides.0.layer'&&e.target==='/cad/d1/l1'));
+ assert.ok(view.outgoing.some(e=>e.field==='ifccad::viewport.layerOverrides.0.linePattern'&&e.target==='/cad/d1/p1'));
+ assert.equal(view.values['ifccad::viewport'].plotShadingOverride,'Hidden');
+ assert.equal(view.values['ifccad::entity'].visible,false);
+ assert.equal(model.nodes.get('/cad/d1').values['ifccad::drawing'].pointDisplay.form.glyph,'plus');
+});
+
+test('OCDraw typed viewport overrides expose independent layer and pattern references',()=>{
+ const presentation={layers:[{id:0,name:'Layer'}],linePatterns:[{id:1,name:'Pattern'}],entities:[{id:7,type:'viewport',layerId:0,plotShadingOverride:'Hidden',layerOverrides:[{layerId:0,frozen:true,linePatternId:1,color:{rgb:[255,0,0],indexed:['ACI',1]}}]}]};
+ const model=adapter.createInspection({validation:{strictAvailable:true},presentation},'{}');
+ const view=model.nodes.get('entity:7');
+ assert.ok(view.outgoing.some(e=>e.field==='layerOverrides.0.layerId'&&e.target==='layer:0'));
+ assert.ok(view.outgoing.some(e=>e.field==='layerOverrides.0.linePatternId'&&e.target==='pattern:1'));
+ assert.equal(view.values.plotShadingOverride,'Hidden');
+});

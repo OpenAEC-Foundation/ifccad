@@ -203,7 +203,7 @@ fn model_viewport_aids_keep_model_units_inside_inch_paper() {
     assert_eq!(frame.origin(), Point3::new(6., 7., 0.));
 }
 #[test]
-fn omitted_target_viewport_has_located_workspace_loss() {
+fn perspective_target_viewport_keeps_its_workspace() {
     let mut source = CadDocument::new();
     let mut view = Viewport::new();
     view.id = 2;
@@ -223,8 +223,11 @@ fn omitted_target_viewport_has_located_workspace_loss() {
         .view
         .projection = DrawingProjection::Perspective;
     let target = ocdraw_document_to_cad_document(&drawing, Default::default()).unwrap();
-    assert!(!target.entity_mapping().contains_key(&id));
-    assert!(target
+    let mapped = target.entity_mapping()[&id];
+    assert!(
+        matches!(target.document().get_entity(mapped),Some(EntityType::Viewport(v)) if v.status.perspective)
+    );
+    assert!(!target
         .diagnostics()
         .iter()
         .any(|d| d.location == format!("/viewportWorkspaces/{id}")

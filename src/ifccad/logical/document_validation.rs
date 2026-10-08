@@ -57,6 +57,16 @@ fn validate_document_inner(
             "invalid drawing length unit",
         ));
     }
+    if document
+        .point_display
+        .is_some_and(|display| !display.is_valid())
+    {
+        return Err(crate::ifccad::diagnostics::failure(
+            "IFCCAD-PRESENTATION-001",
+            &format!("{prefix}/ifccad::drawing/pointDisplay"),
+            "point display size must be positive and finite",
+        ));
+    }
     crate::ifccad::logical::patterns::scale(
         document.line_pattern_scale,
         &format!("{prefix}/ifccad::drawing/linePatternScale"),
@@ -212,6 +222,19 @@ fn validate_document_inner(
                         format!("{path} unresolved block definition {definition_id}"),
                     ));
                 }
+                if document
+                    .blocks
+                    .iter()
+                    .any(|b| b.id == *definition_id && b.uniform_scaling)
+                    && !(transform.scale[0] == transform.scale[1]
+                        && transform.scale[1] == transform.scale[2])
+                {
+                    return Err(crate::ifccad::diagnostics::failure(
+                        "IFCCAD-GEOMETRY-004",
+                        &format!("{path}/ifccad::blockInstance/transform/scale"),
+                        "definition requires signed uniform scaling",
+                    ));
+                }
                 let frame = placement(&transform.placement, &path)?;
                 BlockTransform::try_new(
                     frame,
@@ -340,8 +363,8 @@ fn unit(token: &str) -> bool {
         .iter()
         .any(|unit| unit == token)
 }
-pub(super) fn color(value: &str) -> bool {
-    value.len() == 7 && value.starts_with('#') && value[1..].bytes().all(|b| b.is_ascii_hexdigit())
+pub(super) fn color(value: &IfccadColor) -> bool {
+    value.is_valid()
 }
 fn appearance_check(layer: &IfccadLayerAppearance, context: &str) -> Result<(), IfccadReport> {
     for (field, valid) in [

@@ -77,6 +77,7 @@ pub(crate) fn scan_document_semantics(document: &CadDocument, context: &mut Sour
         }
         SemanticPartV1::Entity(_) => {}
         SemanticPartV1::Object(object) => {
+            if matches!(object, SemanticObjectV1::Typed(o) if object_handles.get(&(o as *const _)).is_some_and(|h|context.consumed_override_objects.contains(h))) { return; }
             *collection_counts.entry("objects").or_default() +=
                 usize::from(unsupported_object(object, document, content_baseline, &bootstrap_handles, &object_handles));
         }
@@ -97,6 +98,7 @@ pub(crate) fn scan_document_semantics(document: &CadDocument, context: &mut Sour
             SemanticRelationshipKindV1::Ownership => {}
             SemanticRelationshipKindV1::ExtensionDictionary
             | SemanticRelationshipKindV1::Reactor => {
+                if kind == SemanticRelationshipKindV1::ExtensionDictionary && matches!(target,SemanticReferenceV1::Resolved(SemanticNodeV1::Object(o)) if object_handles.get(&(o as *const _)).is_some_and(|h|context.consumed_override_objects.contains(h))) { return; }
                 let already_reported = match source {
                     SemanticReferenceV1::Resolved(SemanticNodeV1::Entity(entity)) => {
                         let common = entity.common();

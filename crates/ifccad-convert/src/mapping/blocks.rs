@@ -10,20 +10,25 @@ pub(crate) fn allocate(
     map: &mut IfccadMappings,
 ) -> Result<(), IfccadConversionError> {
     for def in defs {
-        if def.name.starts_with('*') {
+        let mut b = BlockRecord::new(&def.name);
+        if b.is_model_space() || b.is_paper_space() {
             return Err(IfccadConversionError::Unsupported(vec![diagnostic(
                 "block-name",
                 format!("block/{}", def.id),
-                "reserved/anonymous block name is unsupported",
+                "CAD Model/Paper role name is unsupported for a local definition",
             )]));
         }
-        let mut b = BlockRecord::new(&def.name);
+        b.description = def.description.clone();
+        b.flags.anonymous = def.anonymous;
+        b.explodable = def.explodable;
+        b.scale_uniformly = def.uniform_scaling;
         b.handle = doc.allocate_handle();
         b.block_entity_handle = doc.allocate_handle();
         b.block_end_handle = doc.allocate_handle();
         b.base_point = crate::mapping::geometry::v(def.base_point);
         b.units = unit_code(&def.insertion_unit);
         let mut start = opencadcodec::entities::Block::new(&def.name, b.base_point);
+        start.description = b.description.clone();
         start.common.handle = b.block_entity_handle;
         start.common.owner_handle = b.handle;
         let mut end = opencadcodec::entities::BlockEnd::new();

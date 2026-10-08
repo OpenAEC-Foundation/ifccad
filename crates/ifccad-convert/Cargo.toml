@@ -6,6 +6,7 @@ license = "MPL-2.0"
 description = "Experimental exact IFCCAD and CadDocument conversion"
 
 [dependencies]
+cad-presentation-convert = { path = "../cad-presentation-convert" }
 cad-text = { path = "../cad-text" }
 cad-preservation = { path = "../cad-preservation" }
 cad-workspace-convert = { path = "../cad-workspace-convert" }

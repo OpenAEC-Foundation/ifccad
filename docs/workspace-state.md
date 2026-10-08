@@ -110,3 +110,14 @@ The regression tests exchange two distinct sheets through both physical backings
 check first and secondary selection and retain geometry on its original sheet.
 Unknown or inconsistent role associations remain diagnosed; a tab index or sheet
 count is not used as a selection substitute.
+
+## Presentation boundary
+
+Common visibility, viewport enabled/locked state, relational layer overrides and
+mode-only ShadePlot belong to presentation. They remain independent of saved
+UCS/grid/snap and current choices. OCDraw now maps perspective authored Paper
+cameras in the qualified explicit-canvas profile; Paper canvases remain
+orthographic. Direction magnitude and lens millimeters are not normalized or
+scaled with Paper units. See [presentation](presentation.md), including the still
+open codec #106 grid and #107 DXF ShadePlot gates. No current Paper selection is
+inferred from viewport IDs, order or on/off state.

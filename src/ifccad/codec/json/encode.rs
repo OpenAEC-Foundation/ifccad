@@ -66,6 +66,9 @@ fn entity_node(entity: &IfccadEntity, prefix: &str) -> NodeOut {
     }
     let entity = entity.as_native().expect("native branch");
     attrs.insert("ifccad::entity".into(), json!({"layer":format!("{prefix}/layer/{}",entity.layer_id),"appearance":super::wire::entity(&entity.appearance,prefix),"linePatternScale":entity.line_pattern_scale}));
+    if !entity.visible {
+        attrs["ifccad::entity"]["visible"] = json!(false);
+    }
     match &entity.kind {
         IfccadEntityKind::Hatch(h) => {
             attrs.insert("ifccad::geom::placement".into(), json!(h.placement));
@@ -197,6 +200,10 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
     if document.plot_style_mode == IfccadPlotStyleMode::Named {
         data[0].attributes["ifccad::drawing"]["plotStyleMode"] = json!("named");
     }
+    if let Some(display) = document.point_display {
+        data[0].attributes["ifccad::drawing"]["pointDisplay"] =
+            super::presentation::encode_point_display(display);
+    }
     if let Some(p) = &document.preservation {
         data[0].children.as_mut().unwrap().insert(
             "preservation".into(),
@@ -288,19 +295,46 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
         });
     }
     for layer in &document.layers {
+        let mut value =
+            json!({"name":layer.name,"appearance":super::wire::layer(&layer.appearance,&prefix)});
+        if let Some(description) = &layer.description {
+            value["description"] = json!(description);
+        }
+        for (field, actual, default) in [
+            ("visible", layer.visible, true),
+            ("frozen", layer.frozen, false),
+            ("locked", layer.locked, false),
+            ("plottable", layer.plottable, true),
+            ("frozenInNewViewports", layer.frozen_in_new_viewports, false),
+        ] {
+            if actual != default {
+                value[field] = json!(actual);
+            }
+        }
         data.push(NodeOut {
             path: format!("{prefix}/layer/{}", layer.id),
             children: None,
-            attributes: attrs(
-                json!({"ifccad::layer":{"name":layer.name,"appearance":super::wire::layer(&layer.appearance,&prefix)}}),
-            ),
+            attributes: attrs(json!({"ifccad::layer":value})),
         });
     }
     for block in &document.blocks {
+        let mut value = json!({"name":block.name,"basePoint":block.base_point,"insertionUnit":block.insertion_unit});
+        if !block.description.is_empty() {
+            value["description"] = json!(block.description);
+        }
+        if block.anonymous {
+            value["anonymous"] = json!(true);
+        }
+        if !block.explodable {
+            value["explodable"] = json!(false);
+        }
+        if block.uniform_scaling {
+            value["uniformScaling"] = json!(true);
+        }
         data.push(NodeOut {
             path: format!("{prefix}/block/{}",block.id),
             children: Some(numbered_children(&block.entities,&prefix)),
-            attributes: attrs(json!({"ifccad::blockDefinition":with_bounds(json!({"name":block.name,"basePoint":block.base_point,"insertionUnit":block.insertion_unit}),block.bounds,block.bounds_quality)})),
+            attributes: attrs(json!({"ifccad::blockDefinition":with_bounds(value,block.bounds,block.bounds_quality)})),
         });
     }
     for entity in document

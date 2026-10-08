@@ -229,14 +229,14 @@ fn omitted_definitions_do_not_leave_dangling_inserts_or_mappings() {
         .iter_mut()
         .find(|b| b.name == "Inner")
         .unwrap()
-        .name = "*U1".into();
+        .name = "*Paper_Space9".into();
     let out = ifccad_source_to_cad_document(&validated(&d), Default::default()).unwrap();
     assert!(out.mappings().blocks.cad_handle(3).is_none());
     assert_eq!(out.document().entities_in_block("Outer").count(), 1);
 }
 
 #[test]
-fn appearance_fallbacks_are_explicit_and_preserve_inherited_entity_modes() {
+fn indexed_color_default_weight_and_quantization_preserve_inherited_entity_modes() {
     let mut c = cad();
     let mut pattern = opencadcodec::LineType::dashed();
     pattern.handle = c.allocate_handle();
@@ -253,7 +253,10 @@ fn appearance_fallbacks_are_explicit_and_preserve_inherited_entity_modes() {
         .iter()
         .find(|l| l.name == "Notes")
         .unwrap();
-    assert_eq!(layer.appearance.color, "#FF0000");
+    assert_eq!(
+        layer.appearance.color,
+        IfccadColor::rgb(255, 0, 0).with_indexed("ACI", 1)
+    );
     assert_eq!(layer.appearance.line_weight, 0.25);
     let pattern = out
         .validated_source()
@@ -451,7 +454,8 @@ fn common_metadata_loss_keeps_geometry_and_marks_nested_occurrences() {
         .unwrap()
         .into_document();
     let h = c.block_records.get("Inner").unwrap().entity_handles[0];
-    c.get_entity_mut(h).unwrap().common_mut().invisible = true;
+    c.get_entity_mut(h).unwrap().common_mut().color_name =
+        Some("incomplete named-color identity".into());
     let out = cad_document_to_encoded_ifccad(&c, metadata(), Default::default()).unwrap();
     assert!(out.mappings().entities.ifccad_id(h).is_some());
     assert_eq!(

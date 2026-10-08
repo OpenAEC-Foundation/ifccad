@@ -112,7 +112,7 @@ not suffix-only references. Foreign namespaces remain outside this catalog.
 
 | ID | Requirement and algorithm | Phase / gap | Evidence |
 |---|---|---|---|
-| IFCCAD-APPEARANCE-001 | Concrete layer/explicit entity RGB MUST match `^#[0-9A-Fa-f]{6}$`; opacity MUST be finite in [0,1]; lineWeight MUST be finite >=0 mm. Layer name MUST be nonempty. Entity layer/pattern references MUST resolve in the drawing. | V/G/D; G7/G4 | [domain checks](../../src/ifccad/logical/document_validation.rs), [profile tests](../../tests/ifccad_profile_rules.rs) |
+| IFCCAD-APPEARANCE-001 | Concrete colors MUST be closed RGB-byte objects with optional closed nonempty indexed/named metadata; indexed values MUST be exact uint64; opacity MUST be finite in [0,1]; lineWeight MUST be finite >=0 mm. Layer name MUST be nonempty. Entity layer/pattern references MUST resolve in the drawing. | V/G/D; G7/G4 | [domain checks](../../src/ifccad/logical/document_validation.rs), [profile tests](../../tests/ifccad_profile_rules.rs) |
 | IFCCAD-APPEARANCE-002 | Each entity property mode object MUST contain only mode for ByLayer/ByBlock, and exactly mode/value for Explicit. Preserve modes, including top-level ByBlock with no universal fallback. Layer named `0` and ByBlock chains defer per occurrence to containing instances; this contract supplies no resolved-appearance evaluator. | V/D; G6/P | [line patterns](../../tests/ifccad_line_patterns.rs), [wire modes](../../src/ifccad/codec/json/validate.rs) |
 | IFCCAD-PATTERN-001 | Drawing/entity scale MUST be finite >0; absence means 1. Polyline generation absence means perSegment, alternatively continuous. Signed lengths use owner coordinates and scale multiplicatively; no resolved renderer is implied. | V/D; G7/P | [pattern tests](../../tests/ifccad_line_patterns.rs) |
 | IFCCAD-PATTERN-002 | Pattern names MUST be nonempty and unique under pinned Unicode 17 full case folding without trim/normalization; ByLayer/ByBlock names are forbidden. Continuous MUST have empty pattern. Nonempty pattern MUST contain >=2 finite values with first >=0 and finite positive sum of absolute lengths. Unused definitions MUST survive. | V/D; G7/P | [pattern algorithm](../../src/ifccad/logical/patterns.rs), [pattern tests](../../tests/ifccad_line_patterns.rs) |
@@ -141,7 +141,7 @@ not suffix-only references. Foreign namespaces remain outside this catalog.
 | IFCCAD-VIEWPORT-001 | Viewport MUST belong to Paper and refer to its drawing's unique Model. Its finite Paper frame MUST have positive dimensions and finite outward enclosure of center Ãƒâ€š±half dimensions. View enabled/visible/locked are independent authored booleans; no media scaling/inferred values. | V/G/D; G4/G7/P | [viewport tests](../../tests/ifccad_viewports.rs) |
 | IFCCAD-VIEWPORT-002 | Model view MUST have finite values, positive height, and nonzero direction whose exact norm is <=binary64 MAX; direction is preserved. Perspective requires positive finite lens mm; Orthographic permits absent/nonnegative dormant lens. AtDistance requires finite signed distance, back forbids AtCamera, active back MUST be strictly behind active front; AtCamera uses exact direction norm. Dormant distances survive. | V/D; G6/G7/P | [workspace predicate](../../src/workspace_kernel/validation.rs), [viewport tests](../../tests/ifccad_viewports.rs) |
 | IFCCAD-VIEWPORT-003 | Enabled clip MUST have boundary; every stored boundary MUST resolve within same Paper owner and be exclusive to one viewport, including dormant references. Active boundary MUST be circle/full ellipse/closed planar polyline in exact Paper Z=0 inside outward frame enclosure. Straight contour needs >=3 distinct XY vertices; active bulged contour >=2. Tangency, concavity/reflection/self-intersections are permitted. Use shared analytic whole-curve containment; never sampling, projection or tolerance epsilon. | G/D; G4/P | [viewport algorithm](../../src/ifccad/logical/viewports.rs), [clip predicate](../../src/geometry_kernel), [viewport tests](../../tests/ifccad_viewports.rs) |
-| IFCCAD-VIEWPORT-004 | Frozen layers MUST be unique complete same-drawing live layer references; input order is not semantic. Writer sorts numeric uint64 identities without binary64 conversion. | G; G4 | [viewport tests](../../tests/ifccad_viewports.rs) |
+| IFCCAD-VIEWPORT-004 | Viewport override rows MUST reference unique complete same-drawing live layers and optional live patterns; color/opacity/weight obey ordinary concrete constraints; no-op rows MUST fail; frozen false MUST NOT thaw global freeze; input order is not semantic. Writer sorts numeric uint64 identities without binary64 conversion. | G; G4 | [viewport tests](../../tests/ifccad_viewports.rs) |
 
 ## IFCCAD-TEXT
 
@@ -218,3 +218,22 @@ Existing WIRE/ID/OWN/GEOMETRY/BOUNDS rules continue to apply. A local supplement
 validates tags/fields, not topology, join proofs or source agreement. The reader
 validates only final composed values; whole Hatch attribute replacement remains
 the ordinary IFCX composition rule. No IFCX union dialect is introduced.
+
+## Presentation additions
+
+Drawing PointDisplay is a closed glyph/enclosure/tagged-size value with positive
+finite absolute/percentage size or defaultFivePercent, independent of Point
+anchor/bounds. Common native entity visibility defaults true; viewport-local
+visibility and frozenLayers are rejected. Layer description/on-off/freeze/lock/
+plottability/new-viewport freeze remain independent. Block description/anonymous/
+explodable/uniformScaling persist; uniform instance scale is exactly equal on
+all three signed axes. Viewport plotShadingOverride is a mode-only enum; layout
+quality/DPI remains separate. See [presentation](../../docs/presentation.md) and
+[native regression tests](../../tests/ifccad_viewport_presentation.rs). Local
+supplements enforce closure/types; graph validation owns refs and uniform policy.
+
+`IFCCAD-PRESENTATION-001` identifies invalid logical PointDisplay size at its
+drawing field. Local drawing supplements also enforce the closed form/size shape.
+`IFCCAD-GEOMETRY-004` additionally rejects nonuniform signed scales on an
+instance whose definition requires uniformScaling. Existing registered attribute
+rule families continue to own closed metadata and viewport-row checks.

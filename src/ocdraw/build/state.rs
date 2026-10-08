@@ -20,7 +20,7 @@ pub struct ViewportDefinition {
     pub view_enabled: bool,
     pub view_locked: bool,
     pub paper_clip: DrawingPaperClip,
-    pub plot_shading_override: Option<crate::ocdraw::ShadedPlot>,
+    pub plot_shading_override: Option<crate::ocdraw::ShadedPlotMode>,
     pub appearance: EntityAppearance,
     pub visible: bool,
     pub layer_overrides: Vec<DrawingViewportLayerOverride>,

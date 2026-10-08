@@ -268,7 +268,7 @@ fn noncanonical_placement_obeys_the_geometric_limit_and_keeps_location() {
     .is_ok());
 }
 #[test]
-fn nonrepresentable_appearance_is_rejected() {
+fn nonrepresentable_opacity_is_rejected_but_layer_description_is_retained() {
     for value in [0.5, 0.123456] {
         let mut d = empty();
         d.layers[0].appearance.opacity = value;
@@ -278,8 +278,18 @@ fn nonrepresentable_appearance_is_rejected() {
     }
     let mut c = cad();
     c.layers.get_mut("Notes").unwrap().description = "authored metadata".into();
-    assert!(
-        matches!(from_cad(&c,metadata()),Err(IfccadConversionError::Unsupported(i)) if i.iter().any(|d|d.location=="layer/Notes.description"))
+    let imported = from_cad(&c, metadata()).unwrap();
+    assert_eq!(
+        imported
+            .validated_source()
+            .document()
+            .layers
+            .iter()
+            .find(|l| l.name == "Notes")
+            .unwrap()
+            .description
+            .as_deref(),
+        Some("authored metadata")
     );
 }
 #[test]

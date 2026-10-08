@@ -114,3 +114,8 @@ uint64 identities remain decimal strings. Native opening remains independent of 
 See the separate [OCDraw](../crates/ocdraw-convert/docs/TO-CAD-COVERAGE.md) and
 [IFCCAD](../crates/ifccad-convert/docs/TO-CAD-COVERAGE.md) coverage contracts and
 [codec qualification fixture](../crates/cad-geometry-convert/tests/fixtures/layout-plot-PROVENANCE.md).
+
+Viewport plotShadingOverride is a mode-only value, independent of render mode;
+quality/DPI remains in these effective layout settings. Paper linetype scaling
+is likewise independent of point-symbol display and viewport layer overrides.
+See [presentation](presentation.md) for exact CAD scalar and transport limits.

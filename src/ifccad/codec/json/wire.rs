@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(super) struct LayerAppearance {
-    color: String,
+    color: IfccadColor,
     opacity: f64,
     line_pattern: String,
     line_weight: f64,
@@ -14,7 +14,7 @@ pub(super) struct LayerAppearance {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(super) struct EntityAppearance {
-    color: IfccadMode<String>,
+    color: IfccadMode<IfccadColor>,
     opacity: IfccadMode<f64>,
     line_pattern: IfccadMode<String>,
     line_weight: IfccadMode<f64>,

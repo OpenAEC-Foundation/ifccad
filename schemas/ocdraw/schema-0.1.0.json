@@ -1910,49 +1910,16 @@
               "items": {
                 "oneOf": [
                   {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "required": [
-                      "mode",
-                      "quality"
-                    ],
-                    "properties": {
-                      "mode": {
-                        "enum": [
-                          "AsDisplayed",
-                          "Wireframe",
-                          "Hidden",
-                          "Rendered"
-                        ]
-                      },
-                      "quality": {
-                        "type": "object",
-                        "additionalProperties": false,
-                        "required": [
-                          "mode"
-                        ],
-                        "properties": {
-                          "mode": {
-                            "enum": [
-                              "Draft",
-                              "Preview",
-                              "Normal",
-                              "Presentation",
-                              "Maximum",
-                              "Custom"
-                            ]
-                          },
-                          "dpi": {
-                            "type": "integer",
-                            "minimum": 0,
-                            "maximum": 4294967295
-                          }
-                        }
-                      }
-                    }
+                    "type": "null"
                   },
                   {
-                    "type": "null"
+                    "type": "string",
+                    "enum": [
+                      "AsDisplayed",
+                      "Wireframe",
+                      "Hidden",
+                      "Rendered"
+                    ]
                   }
                 ]
               }

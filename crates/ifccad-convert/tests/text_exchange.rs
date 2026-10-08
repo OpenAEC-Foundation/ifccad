@@ -328,15 +328,25 @@ fn unsupported_style_roles_do_not_hide_nonfinite_ordinary_metrics() {
 }
 
 #[test]
-fn inline_palette_identity_loss_is_explicit_in_the_rgb_profile() {
+fn inline_palette_identity_is_retained_in_the_concrete_color_profile() {
     let mut source = CadDocument::new();
     let mut t = MText::new();
     t.value = "\\C65;Green".into();
     source.add_entity(EntityType::MText(t)).unwrap();
     let native = cad_document_to_ifccad_document(&source, metadata(), Default::default()).unwrap();
     assert_eq!(native.document().model.entities.len(), 1);
-    assert!(native
+    assert!(!native
         .diagnostics()
         .iter()
         .any(|d| d.code == "text-color-index" && d.is_semantic_loss()));
+    let IfccadEntityKind::MText(text) = &native.document().model.entities[0]
+        .as_native()
+        .unwrap()
+        .kind
+    else {
+        panic!()
+    };
+    assert!(
+        matches!(&text.character_format.color, Some(ocdraw::text::TextColor::Explicit(color)) if color.indexed == Some(("ACI".into(),65)))
+    );
 }

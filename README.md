@@ -44,6 +44,8 @@ and entity schema v1 are provisional until contract completion and verification.
 - `crates/ifccad-convert`: the independent IFCCAD conversion route.
 - `crates/cad-preservation`: audited codec-specific spline byte snapshots shared
   by the converters; envelopes and predicates stay format-specific.
+- `crates/cad-presentation-convert`: CAD-only color/quantization rules and strict
+  viewport XRecord grammar; native reference binding stays in each adapter.
 - `crates/cad-geometry-convert`: shared CAD geometric preparation, tolerance
   resolution and primitive/nested occurrence accuracy proofs for both routes.
 - `crates/viewer`, `crates/browser`: file inspection/conversion
@@ -148,6 +150,13 @@ Both formats now retain UCS, Model windows, Paper canvases and per-viewport
 grid/snap state, including unspecified choices and dormant values. Known active
 Paper layouts survive DXF/DWG exchange through consistent reserved-block roles.
 Qualified CAD limitations remain explicit; see [workspace state](docs/workspace-state.md).
+Both native presentation models now retain concrete color identity, layer/common
+visibility, PointDisplay and ordinary block metadata. Relational viewport
+appearance overrides map through qualified CAD XRecords. OCDraw now also
+converts perspective Paper cameras; quality/DPI stays on layouts while viewport
+ShadePlot stores mode only. The Paper grid and DXF ShadePlot repairs remain
+upstream-gated; see [presentation and transport coverage](docs/presentation.md).
+
 
 ## Using the implementation
 

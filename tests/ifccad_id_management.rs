@@ -187,6 +187,7 @@ fn delete_save_reopen_allocate_never_reuses_entity_id() {
         .into_iter()
         .map(|id| {
             IfccadEntity::Native(IfccadNativeEntity {
+                visible: true,
                 id,
                 ..template.as_native().unwrap().clone()
             })
@@ -204,6 +205,7 @@ fn delete_save_reopen_allocate_never_reuses_entity_id() {
         .model
         .entities
         .push(IfccadEntity::Native(IfccadNativeEntity {
+            visible: true,
             id,
             ..template.as_native().unwrap().clone()
         }));
@@ -227,6 +229,12 @@ fn deleted_definitions_do_not_reset_their_watermarks() {
     let id = layer.id_counters.allocate_layer_id().unwrap();
     assert_eq!(id, 100);
     layer.layers.push(IfccadLayer {
+        description: None,
+        visible: true,
+        frozen: false,
+        locked: false,
+        plottable: true,
+        frozen_in_new_viewports: false,
         id,
         name: "Unused".into(),
         ..layer.layers[0].clone()
@@ -278,6 +286,10 @@ fn deleted_definitions_do_not_reset_their_watermarks() {
     let id = block.id_counters.allocate_block_id().unwrap();
     assert_eq!(id, 100);
     block.blocks.push(IfccadBlockDefinition {
+        description: String::new(),
+        anonymous: false,
+        explodable: true,
+        uniform_scaling: false,
         id,
         name: "Unused".into(),
         entities: vec![],
@@ -311,7 +323,8 @@ fn reorder_move_copy_and_rename_preserve_identity() {
     let mut moved = document.model.entities.pop().unwrap();
     let id = moved.id();
     moved.as_native_mut().unwrap().layer_id = document.layers[1].id;
-    moved.as_native_mut().unwrap().appearance.color = IfccadMode::Explicit("#123456".into());
+    moved.as_native_mut().unwrap().appearance.color =
+        IfccadMode::Explicit(IfccadColor::rgb(18, 52, 86));
     let IfccadEntityKind::LineSegment { end, .. } = &mut moved.as_native_mut().unwrap().kind else {
         panic!("line fixture")
     };
@@ -332,6 +345,7 @@ fn reorder_move_copy_and_rename_preserve_identity() {
         .model
         .entities
         .push(IfccadEntity::Native(IfccadNativeEntity {
+            visible: true,
             id: copy_id,
             ..moved.as_native().unwrap().clone()
         }));

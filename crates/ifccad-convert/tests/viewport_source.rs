@@ -58,7 +58,7 @@ fn source_viewport_numeric_rounding_is_fatal_under_both_policies() {
 #[test]
 fn source_frozen_layer_set_order_is_not_a_semantic_loss() {
     let mut raw = wire();
-    payload(&mut raw)["frozenLayers"] = json!(["/cad/d1/layer/4", "/cad/d1/layer/0"]);
+    payload(&mut raw)["layerOverrides"] = json!([{"layer":"/cad/d1/layer/4","frozen":true}, {"layer":"/cad/d1/layer/0","frozen":true}]);
     let source = load_ifccad_bytes(&serde_json::to_vec(&raw).unwrap(), Default::default()).unwrap();
     let outcome = ifccad_source_to_cad_document(
         &source,

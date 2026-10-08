@@ -67,12 +67,12 @@ The drawing has named `children` referring to exactly one Model layout, zero or 
 
 | Attribute | Required value / role |
 | --- | --- |
-| `ifccad::drawing` | `profileVersion`, `lengthUnit`, allocation watermarks; optional positive finite `linePatternScale` defaults to 1; optional `plotStyleMode` defaults colorDependent, alternatively named; one drawing node |
+| `ifccad::drawing` | `profileVersion`, `lengthUnit`, allocation watermarks; optional positive finite `linePatternScale` defaults to 1; optional `plotStyleMode` defaults colorDependent, alternatively named; optional closed `pointDisplay`; one drawing node |
 | `ifccad::layout` | Model `kind`, tabIndex 0 or Paper kind/name/contiguous tabIndex; optional media, limits, limitsChecking (false), paperSpaceLinetypeScaling (true), complete plotSettings and bounds. Model forbids name; old paper/coordinate lengthUnit fields are rejected. |
 | `ifccad::linePattern` | nonempty `name`, optional `description`, ordered signed-real `pattern` array; drawing-owned definition |
-| `ifccad::layer` | `name`, direct concrete `appearance` values |
-| `ifccad::blockDefinition` | `name`, `basePoint` XYZ, `insertionUnit` |
-| `ifccad::entity` | resolvable drawing-local `layer`, four property modes in `appearance`; optional positive finite `linePatternScale` defaults to 1 |
+| `ifccad::layer` | `name`, direct concrete `appearance`; optional description and independent visible/frozen/locked/plottable/frozenInNewViewports state |
+| `ifccad::blockDefinition` | `name`, `basePoint` XYZ, `insertionUnit`; description, anonymous, explodable and signed-uniform scaling policy |
+| `ifccad::entity` | resolvable drawing-local `layer`, four property modes in `appearance`; optional positive finite `linePatternScale` defaults to 1; common `visible` defaults true |
 | `ifccad::geom::lineSegment` | `start` and `end` XYZ; finite segment, unlike unbounded IFC4 `IfcLine` |
 | `ifccad::geom::point` | empty object plus required placement; its origin is the position and its axes retain presentation orientation |
 | `ifccad::geom::planarPolyline` | at least two XY `vertices`, `closed`, optional outgoing `bulges` array plus placement; optional `linePatternGeneration` defaults to `perSegment`, alternatively `continuous` |
@@ -105,6 +105,14 @@ See [layout output](../../docs/layout-output.md) for output choices and exchange
 
 A block definition's insertion unit records intent but does not silently scale coordinates. Transform evaluation subtracts the definition base point, applies stored scale and rotation, then applies placement. For a paper-owned instance, its scale maps drawing-coordinate numbers into paper-coordinate numbers; any unit conversion must be included explicitly. For example, the [paper-layout fixture](../../examples/ifccad/hello-paper-layouts.ifcx) has centimetre model/block coordinates and an A3 sheet in millimetres, with a paper instance scale of `[10, 10, 10]`. A nested instance inside a definition stays in drawing units. Reading and writing never normalize or rewrite these transforms; present scope bounds require conservative transform evaluation for validation.
 
+Definitions also retain `description` (default empty), `anonymous` (false),
+`explodable` (true) and `uniformScaling` (false). When uniformScaling is true,
+every referencing instance requires exactly equal signed X/Y/Z scale values:
+`[-2,-2,-2]` is valid; `[-2,2,2]` is not. No epsilon, automatic scale repair or
+explosion is performed. Name/anonymous intent is independent of native ownership
+and IDs. CAD's reserved Model/Paper block names cannot be allocated as local
+CAD definitions; a native name hint does not itself change a block's native role.
+
 The local circle shape aims at the analytic meaning of IFC4 `IfcCircle`; the namespace remains local until an official IFCX geometry attribute has an exact roundtrip contract. A line segment is not equivalent to unbounded `IfcLine`; planar polyline bulges are supported; widths and fitted/spline segments remain outside this profile. The separate `placement` attribute can later be reused with a published geometry vocabulary if equivalent.
 
 ## Paper viewports
@@ -113,8 +121,8 @@ The local circle shape aims at the analytic meaning of IFC4 `IfcCircle`; the nam
 layer and appearance. It belongs to one Paper layout; Model and block ownership
 are invalid. Its required `model` path refers to the drawing's unique Model
 layout, not a block definition or another Paper layout. Required fields are
-`frame`, `view`, `renderMode`, `viewEnabled`, `viewLocked`, `visible`, `paperClip`
-and `frozenLayers`. Unknown fields at every nested level are rejected. Optional
+`frame`, `view`, `renderMode`, `viewEnabled`, `viewLocked`, `paperClip`
+and `layerOverrides`. Unknown fields at every nested level are rejected. Optional
 fields are omitted when absent; explicit null is invalid. Composition replaces
 the whole viewport attribute, including omitted optional fields, before validation.
 
@@ -166,10 +174,18 @@ No sampling, projection or conversion-tolerance epsilon substitutes for these
 rules. Dormant references retain their independent ownership/exclusivity rules
 without active shape/frame eligibility.
 
-`frozenLayers` is a set of complete same-drawing layer paths. Every target must
-exist and occur once. Native writing sorts by numeric uint64 ID, without passing
-through floating point; input array order is not semantic. These are viewport
-layer overrides, not global layer visibility changes.
+`layerOverrides` has one row per same-drawing layer path, with optional concrete
+color, opacity, linePattern reference and lineWeight; frozen defaults false.
+Every row must carry a freeze or appearance change. References must exist;
+duplicate layers, unknown fields and explicit null optional values are invalid.
+Native writing sorts rows by numeric uint64 layer ID without floating projection;
+row order is not semantic. Viewport freeze does not override global layer freeze.
+The former frozenLayers array is removed from the active provisional contract.
+
+Optional `plotShadingOverride` is a mode string AsDisplayed, Wireframe, Hidden
+or Rendered; absence has the AsDisplayed default. Render mode is separate.
+Quality/custom DPI belongs only to layout plotsettings. Combined viewport
+mode/quality objects are not accepted or silently migrated.
 
 The [viewport example](../../examples/ifccad/hello-viewports.ifcx) and
 [candidate conformance cases](../../conformance/next/ifccad/README.md)
@@ -178,7 +194,37 @@ dependency boundaries documented by the companion converter.
 
 ## CAD appearance
 
-Layer appearance directly contains `color` as `#RRGGBB`, `opacity` in `[0,1]`, `linePattern` as a same-drawing pattern-definition path, and nonnegative `lineWeight` in millimetres. Each entity has these four properties independently as `{ "mode": "ByLayer" }`, `{ "mode": "ByBlock" }`, or `{ "mode": "Explicit", "value": ... }`. Modes survive readback; no appearance definition or binding node exists. For an explicit entity pattern, `value` is that same complete path; inherited modes must have no value. The typed API uses `IfccadLinePatternId(u64)`. Literal names such as `Continuous` are not references and are rejected.
+Drawing-local optional `pointDisplay` uses the independent IFCCAD types
+`IfccadPointDisplay`, `IfccadPointGlyph` and `IfccadPointSize`. The closed
+wire value is `{form:{glyph,circle,square},size:{kind,...}}`: glyph is dot,
+hidden, plus, cross or shortLine; circle and square are independent Booleans.
+Size kind defaultFivePercent forbids a value, while absolute and viewportPercent
+require a finite positive value. CAD PDSIZE zero retains its default-five-percent
+meaning, separately from explicit negative-five-percent. Symbol form/size does
+not change point geometry, ownership or geometric bounds. No physical unit is
+assigned to view-relative sizes and no renderer is introduced.
+
+Layer metadata independently retains optional `description`, `visible` and
+`plottable` (both default true), and `frozen`, `locked` and
+`frozenInNewViewports` (default false). Unknown fields and explicit nulls are
+invalid. Layer on/off is not global freeze or lock. Common `ifccad::entity`
+has optional `visible` default true for all native entities, including
+geometry, instances, Text/MText and viewports. Viewport-local `visible` is
+removed; viewport enabled/locked status remains independent. Hidden content
+retains its ordinary ownership, draw order and geometry/bounds meaning.
+
+Layer appearance directly contains a concrete `color` object, `opacity` in `[0,1]`, `linePattern` as a same-drawing pattern-definition path, and nonnegative `lineWeight` in millimetres. Each entity has these four properties independently as `{ "mode": "ByLayer" }`, `{ "mode": "ByBlock" }`, or `{ "mode": "Explicit", "value": ... }`. Modes survive readback; no appearance definition or binding node exists. For an explicit entity pattern, `value` is that same complete path; inherited modes must have no value. The typed API uses `IfccadLinePatternId(u64)`. Literal names such as `Continuous` are not references and are rejected.
+
+Concrete color is `{ "rgb": [255, 0, 0] }`, optionally extended with
+`indexedColor: {system,index}` and `namedColor: {catalog,name}`. RGB has exactly
+three integers 0–255. Index is uint64; identity strings are nonempty. Indexed
+and named identity may coexist; RGB retains the concrete fallback. Native
+validation does not resolve catalogues or calculate ACI colors. ByLayer/ByBlock
+remain separate appearance modes, not concrete index values. Unknown nested
+fields, explicit null metadata and removed `#RRGGBB` color strings are rejected.
+The Rust type is `IfccadColor`; the same concrete value applies to MText inline
+and background colors and editable native appearance on opaque content. The
+provisional color migration does not alter codec-specific preservation payloads.
 
 The stored modes retain ordinary CAD intent per occurrence: Explicit supplies its own value, ByLayer uses the effective layer, and ByBlock defers to the containing block instance's corresponding property. An entity on the layer *named* `0` inside a block definition inherits the containing instance's effective layer; nested layer-0 and ByBlock chains continue outward through instances. A top-level ByBlock mode remains stored but has no universal effective fallback in this proof. The document has no resolved-appearance field. The experimental reader validates references, layer names, modes and explicit values but does not compute effective appearance; rendering or conversion may do that per occurrence.
 
@@ -212,7 +258,7 @@ entity creation settings remain outside the native profile.
 
 ## Prototype boundary
 
-The strict reader and writer are in `src/ifccad/`, exported as `ocdraw::ifccad`. The writer strict-reads its own output and compares the typed CAD meaning. It emits JSON only. The standalone OCDraw reader validates a different contract. A separate `ifccad-convert` companion provides a bounded direct mapping to cadcodec `CadDocument`; its direction-specific coverage documents define conversion limits. A viewport projection/rendering API, annotation, indexed colors, complex text/shape line patterns and effective appearance evaluation are outside this profile version.
+The strict reader and writer are in `src/ifccad/`, exported as `ocdraw::ifccad`. The writer strict-reads its own output and compares the typed CAD meaning. It emits JSON only. The standalone OCDraw reader validates a different contract. A separate `ifccad-convert` companion provides a bounded direct mapping to cadcodec `CadDocument`; its direction-specific coverage documents define conversion limits. A viewport projection/rendering API, annotation, complex text/shape line patterns and effective appearance evaluation are outside this profile version.
 
 ## Primitive geometry rules
 
@@ -299,7 +345,7 @@ separate rotation/mirrors/shear and signed thickness. MText has ordered typed
 paragraphs/inlines, separate characterFormat/paragraphFormat, all attachments,
 flow, optional wrapping, static/dynamicAutoHeight/dynamicManualHeight columns and
 background fill/padding/opacity/frame. Inline/background explicit colours use
-this profile's RGB strings, independently of OCDraw colour metadata. Distances
+this profile's concrete color values, independently of OCDraw identities. Distances
 use owning coordinates; inline relative heights and indentation/tab factors use
 nominal MText height. Font overrides replace the whole request. Layout overflow
 does not truncate content, and source-independent validation shares only pure

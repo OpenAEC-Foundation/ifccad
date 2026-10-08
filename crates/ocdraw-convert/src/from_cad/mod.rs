@@ -435,11 +435,6 @@ pub fn cad_document_to_ocdraw_document_with_id(
         &ucs_handles,
         &mut diagnostics,
     )?;
-    diagnostics.extend(direct_document_losses(
-        document,
-        &mapped_vports,
-        paper_scopes.keys().chain(block_scopes.keys()).copied(),
-    ));
     let mut prepared_entities = Vec::new();
     for entity in ordered_entities(document) {
         let common = entity.common();
@@ -887,6 +882,20 @@ pub fn cad_document_to_ocdraw_document_with_id(
         preservation,
         unit.unwrap_or("unitless"),
     )?;
+    let consumed = crate::mapping::viewport_overrides::from_cad(
+        document,
+        &mut drawing_document,
+        &entity_mapping,
+        &layer_ids,
+        &patterns,
+        &mut diagnostics,
+    )?;
+    diagnostics.extend(direct_document_losses(
+        document,
+        &mapped_vports,
+        paper_scopes.keys().chain(block_scopes.keys()).copied(),
+        consumed,
+    ));
     crate::mapping::workspace::bind_viewport_workspaces(
         document,
         &mut drawing_document,

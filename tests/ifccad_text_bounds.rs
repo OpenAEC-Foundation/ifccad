@@ -231,6 +231,10 @@ fn nested_estimates_and_partial_coverage_keep_projection_overflow_hard() {
     let block_id = d.id_counters.allocate_block_id().unwrap();
     let contents = std::mem::take(&mut d.model.entities);
     d.blocks.push(IfccadBlockDefinition {
+        description: String::new(),
+        anonymous: false,
+        explodable: true,
+        uniform_scaling: false,
         id: block_id,
         name: "Mixed".into(),
         base_point: [0.; 3],
@@ -287,6 +291,10 @@ fn empty_glyphs_do_not_turn_nonempty_definitions_into_insertion_point_geometry()
     t.content.clear();
     let id = d.id_counters.allocate_block_id().unwrap();
     d.blocks = vec![IfccadBlockDefinition {
+        description: String::new(),
+        anonymous: false,
+        explodable: true,
+        uniform_scaling: false,
         id,
         name: "Empty glyphs".into(),
         base_point: [0.; 3],

@@ -73,6 +73,60 @@
                   "dataType": "Reference"
                 }
               }
+            },
+            "pointDisplay": {
+              "dataType": "Object",
+              "optional": true,
+              "objectRestrictions": {
+                "values": {
+                  "form": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "glyph": {
+                          "dataType": "Enum",
+                          "enumRestrictions": {
+                            "options": [
+                              "dot",
+                              "hidden",
+                              "plus",
+                              "cross",
+                              "shortLine"
+                            ]
+                          }
+                        },
+                        "circle": {
+                          "dataType": "Boolean"
+                        },
+                        "square": {
+                          "dataType": "Boolean"
+                        }
+                      }
+                    }
+                  },
+                  "size": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "kind": {
+                          "dataType": "Enum",
+                          "enumRestrictions": {
+                            "options": [
+                              "defaultFivePercent",
+                              "absolute",
+                              "viewportPercent"
+                            ]
+                          }
+                        },
+                        "value": {
+                          "dataType": "Real",
+                          "optional": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -467,7 +521,49 @@
               "objectRestrictions": {
                 "values": {
                   "color": {
-                    "dataType": "String"
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "rgb": {
+                          "dataType": "Array",
+                          "arrayRestrictions": {
+                            "min": 3,
+                            "max": 3,
+                            "value": {
+                              "dataType": "Integer"
+                            }
+                          }
+                        },
+                        "indexedColor": {
+                          "dataType": "Object",
+                          "optional": true,
+                          "objectRestrictions": {
+                            "values": {
+                              "system": {
+                                "dataType": "String"
+                              },
+                              "index": {
+                                "dataType": "Integer"
+                              }
+                            }
+                          }
+                        },
+                        "namedColor": {
+                          "dataType": "Object",
+                          "optional": true,
+                          "objectRestrictions": {
+                            "values": {
+                              "catalog": {
+                                "dataType": "String"
+                              },
+                              "name": {
+                                "dataType": "String"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
                   },
                   "opacity": {
                     "dataType": "Real"
@@ -480,6 +576,30 @@
                   }
                 }
               }
+            },
+            "visible": {
+              "dataType": "Boolean",
+              "optional": true
+            },
+            "frozen": {
+              "dataType": "Boolean",
+              "optional": true
+            },
+            "locked": {
+              "dataType": "Boolean",
+              "optional": true
+            },
+            "plottable": {
+              "dataType": "Boolean",
+              "optional": true
+            },
+            "frozenInNewViewports": {
+              "dataType": "Boolean",
+              "optional": true
+            },
+            "description": {
+              "dataType": "String",
+              "optional": true
             }
           }
         }
@@ -543,6 +663,22 @@
                 ]
               },
               "optional": true
+            },
+            "description": {
+              "dataType": "String",
+              "optional": true
+            },
+            "anonymous": {
+              "dataType": "Boolean",
+              "optional": true
+            },
+            "explodable": {
+              "dataType": "Boolean",
+              "optional": true
+            },
+            "uniformScaling": {
+              "dataType": "Boolean",
+              "optional": true
             }
           }
         }
@@ -575,7 +711,49 @@
                           }
                         },
                         "value": {
-                          "dataType": "String",
+                          "dataType": "Object",
+                          "objectRestrictions": {
+                            "values": {
+                              "rgb": {
+                                "dataType": "Array",
+                                "arrayRestrictions": {
+                                  "min": 3,
+                                  "max": 3,
+                                  "value": {
+                                    "dataType": "Integer"
+                                  }
+                                }
+                              },
+                              "indexedColor": {
+                                "dataType": "Object",
+                                "optional": true,
+                                "objectRestrictions": {
+                                  "values": {
+                                    "system": {
+                                      "dataType": "String"
+                                    },
+                                    "index": {
+                                      "dataType": "Integer"
+                                    }
+                                  }
+                                }
+                              },
+                              "namedColor": {
+                                "dataType": "Object",
+                                "optional": true,
+                                "objectRestrictions": {
+                                  "values": {
+                                    "catalog": {
+                                      "dataType": "String"
+                                    },
+                                    "name": {
+                                      "dataType": "String"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          },
                           "optional": true
                         }
                       }
@@ -649,6 +827,10 @@
             },
             "linePatternScale": {
               "dataType": "Real",
+              "optional": true
+            },
+            "visible": {
+              "dataType": "Boolean",
               "optional": true
             }
           }
@@ -804,9 +986,6 @@
             "viewLocked": {
               "dataType": "Boolean"
             },
-            "visible": {
-              "dataType": "Boolean"
-            },
             "paperClip": {
               "dataType": "Object",
               "objectRestrictions": {
@@ -821,13 +1000,94 @@
                 }
               }
             },
-            "frozenLayers": {
+            "layerOverrides": {
               "dataType": "Array",
               "arrayRestrictions": {
                 "min": 0,
                 "value": {
-                  "dataType": "Reference"
+                  "dataType": "Object",
+                  "objectRestrictions": {
+                    "values": {
+                      "layer": {
+                        "dataType": "Reference"
+                      },
+                      "frozen": {
+                        "dataType": "Boolean",
+                        "optional": true
+                      },
+                      "color": {
+                        "dataType": "Object",
+                        "objectRestrictions": {
+                          "values": {
+                            "rgb": {
+                              "dataType": "Array",
+                              "arrayRestrictions": {
+                                "min": 3,
+                                "max": 3,
+                                "value": {
+                                  "dataType": "Integer"
+                                }
+                              }
+                            },
+                            "indexedColor": {
+                              "dataType": "Object",
+                              "optional": true,
+                              "objectRestrictions": {
+                                "values": {
+                                  "system": {
+                                    "dataType": "String"
+                                  },
+                                  "index": {
+                                    "dataType": "Integer"
+                                  }
+                                }
+                              }
+                            },
+                            "namedColor": {
+                              "dataType": "Object",
+                              "optional": true,
+                              "objectRestrictions": {
+                                "values": {
+                                  "catalog": {
+                                    "dataType": "String"
+                                  },
+                                  "name": {
+                                    "dataType": "String"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "optional": true
+                      },
+                      "opacity": {
+                        "dataType": "Real",
+                        "optional": true
+                      },
+                      "linePattern": {
+                        "dataType": "Reference",
+                        "optional": true
+                      },
+                      "lineWeight": {
+                        "dataType": "Real",
+                        "optional": true
+                      }
+                    }
+                  }
                 }
+              }
+            },
+            "plotShadingOverride": {
+              "dataType": "Enum",
+              "optional": true,
+              "enumRestrictions": {
+                "options": [
+                  "AsDisplayed",
+                  "Wireframe",
+                  "Hidden",
+                  "Rendered"
+                ]
               }
             }
           }
@@ -1159,7 +1419,49 @@
                                 }
                               },
                               "value": {
-                                "dataType": "String",
+                                "dataType": "Object",
+                                "objectRestrictions": {
+                                  "values": {
+                                    "rgb": {
+                                      "dataType": "Array",
+                                      "arrayRestrictions": {
+                                        "min": 3,
+                                        "max": 3,
+                                        "value": {
+                                          "dataType": "Integer"
+                                        }
+                                      }
+                                    },
+                                    "indexedColor": {
+                                      "dataType": "Object",
+                                      "optional": true,
+                                      "objectRestrictions": {
+                                        "values": {
+                                          "system": {
+                                            "dataType": "String"
+                                          },
+                                          "index": {
+                                            "dataType": "Integer"
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "namedColor": {
+                                      "dataType": "Object",
+                                      "optional": true,
+                                      "objectRestrictions": {
+                                        "values": {
+                                          "catalog": {
+                                            "dataType": "String"
+                                          },
+                                          "name": {
+                                            "dataType": "String"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
                                 "optional": true
                               }
                             }

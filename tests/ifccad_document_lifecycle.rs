@@ -231,7 +231,7 @@ fn invalid_typed_documents_fail_without_encoding() {
             .opacity = IfccadMode::Explicit(2.)
     });
     add("layer appearance", |d| {
-        d.layers[0].appearance.color = "red".into()
+        d.layers[0].appearance.color = IfccadColor::rgb(255, 0, 0).with_indexed("", 1)
     });
     add("layer name", |d| d.layers[0].name.clear());
     add("paper dimensions", |d| {

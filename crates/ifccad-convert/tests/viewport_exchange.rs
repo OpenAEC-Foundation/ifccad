@@ -81,10 +81,10 @@ fn multiple_paper_viewports_exchange_in_memory_dxf_dwg() {
         mode: IfccadViewportClipMode::AtDistance,
         distance: Some(-20.),
     };
-    v.visible = true;
     v.view_enabled = true;
     v.view_locked = false;
     v.render_mode = IfccadViewportRenderMode::FlatShadedWithEdges;
+    second.entities[1].as_native_mut().unwrap().visible = true;
     second.entities[2].as_native_mut().unwrap().kind = {
         let vertices: Vec<[f64; 2]> = vec![[20., 25.], [180., 25.], [180., 125.], [20., 125.]];
         IfccadEntityKind::PlanarPolyline {
@@ -161,8 +161,16 @@ fn multiple_paper_viewports_exchange_in_memory_dxf_dwg() {
             assert_eq!(ev.view, av.view);
             assert_eq!(ev.render_mode, av.render_mode);
             assert_eq!(
-                (ev.visible, ev.view_enabled, ev.view_locked),
-                (av.visible, av.view_enabled, av.view_locked)
+                (
+                    expected.entities[1].as_native().unwrap().visible,
+                    ev.view_enabled,
+                    ev.view_locked
+                ),
+                (
+                    actual.entities[1].as_native().unwrap().visible,
+                    av.view_enabled,
+                    av.view_locked
+                )
             );
             assert_eq!(
                 av.paper_clip.boundary_entity_id,
@@ -173,14 +181,22 @@ fn multiple_paper_viewports_exchange_in_memory_dxf_dwg() {
                 expected.entities[2].as_native().unwrap().kind,
                 actual.entities[2].as_native().unwrap().kind
             );
-            let names = |d: &IfccadDocument, ids: &[u64]| {
+            let names = |d: &IfccadDocument, ids: &[IfccadViewportLayerOverride]| {
                 ids.iter()
-                    .map(|id| d.layers.iter().find(|l| l.id == *id).unwrap().name.clone())
+                    .filter(|row| row.frozen)
+                    .map(|row| {
+                        d.layers
+                            .iter()
+                            .find(|l| l.id == row.layer_id)
+                            .unwrap()
+                            .name
+                            .clone()
+                    })
                     .collect::<Vec<_>>()
             };
             assert_eq!(
-                names(&drawing, &ev.frozen_layers),
-                names(out, &av.frozen_layers)
+                names(&drawing, &ev.layer_overrides),
+                names(out, &av.layer_overrides)
             );
         }
     }

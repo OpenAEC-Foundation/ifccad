@@ -11,7 +11,7 @@ fn native_edits_remain_authoritative_after_durable_reopen() {
     let e = d.model.entities[0].as_opaque_mut().unwrap();
     e.visible = false;
     let a = e.appearance.as_mut().unwrap();
-    a.appearance.color = IfccadMode::Explicit("#aabbcc".into());
+    a.appearance.color = IfccadMode::Explicit(IfccadColor::rgb(170, 187, 204));
     a.line_pattern_scale = 2.;
     d.layers[0].name = "Renamed source layer".into();
     let bytes = encode_ifccad_document(&d).unwrap();

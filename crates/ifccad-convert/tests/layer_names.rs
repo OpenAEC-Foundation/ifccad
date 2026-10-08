@@ -14,7 +14,7 @@ fn target_layer_name_collisions_fail_under_both_policies_and_routes() {
         let mut source = primitives();
         source.layers[0].name = first.into();
         source.layers[1].name = second.into();
-        source.layers[1].appearance.color = "#FF0000".into();
+        source.layers[1].appearance.color = IfccadColor::rgb(255, 0, 0);
         let before = source.clone();
         validate_ifccad_document(&source).unwrap();
         let loaded = validated(&source);

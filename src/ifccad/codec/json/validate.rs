@@ -9,6 +9,8 @@ use std::collections::{BTreeMap, BTreeSet};
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct DrawingValue {
+    #[serde(default, deserialize_with = "super::presentation::present")]
+    point_display: Option<Value>,
     #[serde(default, rename = "modelWindows")]
     _model_windows: Option<Vec<String>>,
     profile_version: String,
@@ -67,11 +69,31 @@ impl LayoutValue {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct LayerValue {
     name: String,
+    #[serde(default, deserialize_with = "super::presentation::present")]
+    description: Option<String>,
+    #[serde(default = "default_enabled")]
+    visible: bool,
+    #[serde(default)]
+    frozen: bool,
+    #[serde(default)]
+    locked: bool,
+    #[serde(default = "default_enabled")]
+    plottable: bool,
+    #[serde(default)]
+    frozen_in_new_viewports: bool,
     appearance: super::wire::LayerAppearance,
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct DefinitionValue {
+    #[serde(default)]
+    description: String,
+    #[serde(default)]
+    anonymous: bool,
+    #[serde(default = "default_enabled")]
+    explodable: bool,
+    #[serde(default)]
+    uniform_scaling: bool,
     bounds_quality: Option<IfccadBoundsQuality>,
     name: String,
     base_point: [f64; 3],
@@ -81,6 +103,8 @@ struct DefinitionValue {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct EntityValue {
+    #[serde(default = "default_enabled")]
+    visible: bool,
     #[serde(default = "crate::ifccad::logical::patterns::one")]
     line_pattern_scale: f64,
     layer: String,
@@ -95,6 +119,9 @@ struct InstanceValue {
 
 fn problem(message: impl Into<String>) -> IfccadReport {
     crate::ifccad::diagnostics::failure("IFCCAD-WIRE-004", "/", message)
+}
+fn default_enabled() -> bool {
+    true
 }
 fn preservation_node_role(node: &Value, key: &str) -> Result<(), IfccadReport> {
     let attributes = node["attributes"]
@@ -334,6 +361,7 @@ fn entity(
     };
     Ok(IfccadEntity::Native(IfccadNativeEntity {
         id,
+        visible: value.visible,
         layer_id,
         appearance,
         line_pattern_scale: value.line_pattern_scale,
@@ -543,6 +571,12 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
             layers.push(IfccadLayer {
                 id,
                 name: value.name,
+                description: value.description,
+                visible: value.visible,
+                frozen: value.frozen,
+                locked: value.locked,
+                plottable: value.plottable,
+                frozen_in_new_viewports: value.frozen_in_new_viewports,
                 appearance,
             });
         }
@@ -672,6 +706,10 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         let node = nodes[path];
         let value: DefinitionValue = required(node, "ifccad::blockDefinition")?;
         blocks.push(IfccadBlockDefinition {
+            description: value.description,
+            anonymous: value.anonymous,
+            explodable: value.explodable,
+            uniform_scaling: value.uniform_scaling,
             bounds_quality: value.bounds_quality,
             bounds: value.bounds,
             id: *id,
@@ -790,6 +828,11 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         _ => return Err(problem("preservation requires allocation watermark")),
     };
     let mut document = IfccadDocument {
+        point_display: drawing
+            .point_display
+            .as_ref()
+            .map(super::presentation::decode_point_display)
+            .transpose()?,
         ucs_definitions: vec![],
         model_windows: vec![],
         workspace_state: None,

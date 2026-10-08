@@ -16,6 +16,7 @@ pub struct IfccadHeader {
 /// This document does not contain foreign nodes or original IFCX fragments.
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadDocument {
+    pub point_display: Option<super::IfccadPointDisplay>,
     pub text_styles: Vec<super::IfccadTextStyle>,
     pub ucs_definitions: Vec<super::IfccadUcsDefinition>,
     pub model_windows: Vec<super::IfccadModelWindow>,
@@ -42,13 +43,19 @@ pub struct IfccadDocument {
 pub struct IfccadLayer {
     pub id: u64,
     pub name: String,
+    pub description: Option<String>,
+    pub visible: bool,
+    pub frozen: bool,
+    pub locked: bool,
+    pub plottable: bool,
+    pub frozen_in_new_viewports: bool,
     pub appearance: IfccadLayerAppearance,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct IfccadLayerAppearance {
-    pub color: String,
+    pub color: super::IfccadColor,
     pub opacity: f64,
     pub line_pattern: IfccadLinePatternId,
     pub line_weight: f64,
@@ -80,6 +87,10 @@ pub struct IfccadPaperLayout {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadBlockDefinition {
+    pub description: String,
+    pub anonymous: bool,
+    pub explodable: bool,
+    pub uniform_scaling: bool,
     pub bounds_quality: Option<super::IfccadBoundsQuality>,
     pub id: u64,
     pub name: String,
@@ -108,7 +119,7 @@ pub enum IfccadMode<T> {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct IfccadEntityAppearance {
-    pub color: IfccadMode<String>,
+    pub color: IfccadMode<super::IfccadColor>,
     pub opacity: IfccadMode<f64>,
     pub line_pattern: IfccadMode<IfccadLinePatternId>,
     pub line_weight: IfccadMode<f64>,
@@ -172,6 +183,7 @@ pub struct IfccadOpaqueAppearance {
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadNativeEntity {
     pub id: u64,
+    pub visible: bool,
     pub layer_id: u64,
     pub appearance: IfccadEntityAppearance,
     pub line_pattern_scale: f64,

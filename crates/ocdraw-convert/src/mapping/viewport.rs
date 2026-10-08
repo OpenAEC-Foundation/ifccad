@@ -6,9 +6,14 @@ use opencadcodec::{CadDocument, EntityType, Handle, Vector3};
 use std::collections::BTreeMap;
 pub(crate) fn losses(viewport: &opencadcodec::entities::Viewport) -> Vec<CadToOcdrawLossReason> {
     let mut reasons = Vec::new();
-    if viewport.status.perspective {
+    if ocdraw::workspace_kernel::validate_view(
+        &view_from_cad(viewport),
+        ocdraw::workspace_kernel::WorkspaceViewKind::Model,
+    )
+    .is_err()
+    {
         reasons.push(CadToOcdrawLossReason::UnsupportedSemantic {
-            name: "perspective viewport needs CAD fixture calibration".into(),
+            name: "invalid viewport lens, direction or clip planes".into(),
         });
     }
     if viewport.center.z != 0.0 || viewport.view_center.z != 0.0 {
@@ -86,7 +91,7 @@ pub(crate) fn deferred_losses(
         });
     }
     if !viewport.style_sheet.is_empty()
-        || viewport.shade_plot_mode != baseline.shade_plot_mode
+        || !(0..=3).contains(&viewport.shade_plot_mode)
         || viewport.background_handle != Handle::NULL
         || viewport.shade_plot_handle != Handle::NULL
         || viewport.visual_style_handle != Handle::NULL
@@ -110,6 +115,7 @@ pub(crate) fn deferred_canvas_losses(
     let baseline = opencadcodec::entities::Viewport::new();
     let mask = 0x4000 | 0x8000 | 0x10000 | 0x20000;
     if (viewport.status.to_bits() ^ baseline.status.to_bits()) & mask != 0
+        || viewport.shade_plot_mode != baseline.shade_plot_mode
         || viewport.render_mode != baseline.render_mode
         || !viewport.frozen_layers.is_empty()
         || !viewport.clip_boundary_handle.is_null()
@@ -143,20 +149,8 @@ fn render_to_cad(mode: DrawingRenderMode) -> opencadcodec::entities::ViewportRen
         DrawingRenderMode::SmoothShadedWithEdges => Cad::GouraudShadedWithEdges,
     }
 }
-pub(crate) struct SourceIndex<'a> {
-    pub document: &'a CadDocument,
-    pub layers: &'a BTreeMap<String, u32>,
-}
-pub(crate) fn from_cad(
-    source: &opencadcodec::entities::Viewport,
-    scope: u32,
-    layer: u32,
-    appearance: EntityAppearance,
-    index: &SourceIndex<'_>,
-    diagnostics: &mut Vec<CadToOcdrawDiagnostic>,
-) -> ViewportDefinition {
-    let SourceIndex { document, layers } = index;
-    let view = DrawingView {
+fn view_from_cad(source: &opencadcodec::entities::Viewport) -> DrawingView {
+    DrawingView {
         center: Point2::new(source.view_center.x, source.view_center.y),
         target: Point3::new(
             source.view_target.x,
@@ -170,7 +164,11 @@ pub(crate) fn from_cad(
         ),
         height: source.view_height,
         twist: source.twist_angle,
-        projection: DrawingProjection::Orthographic,
+        projection: if source.status.perspective {
+            DrawingProjection::Perspective
+        } else {
+            DrawingProjection::Orthographic
+        },
         lens_length: Some(source.lens_length),
         front_clip: DrawingClip {
             mode: if source.status.front_clipping {
@@ -192,7 +190,22 @@ pub(crate) fn from_cad(
             },
             distance: Some(source.back_clip_z),
         },
-    };
+    }
+}
+pub(crate) struct SourceIndex<'a> {
+    pub document: &'a CadDocument,
+    pub layers: &'a BTreeMap<String, u32>,
+}
+pub(crate) fn from_cad(
+    source: &opencadcodec::entities::Viewport,
+    scope: u32,
+    layer: u32,
+    appearance: EntityAppearance,
+    index: &SourceIndex<'_>,
+    diagnostics: &mut Vec<CadToOcdrawDiagnostic>,
+) -> ViewportDefinition {
+    let SourceIndex { document, layers } = index;
+    let view = view_from_cad(source);
     let mut target = ViewportDefinition::new(
         scope,
         layer,
@@ -204,6 +217,13 @@ pub(crate) fn from_cad(
         view,
     );
     target.render_mode = render_from_cad(source.render_mode);
+    target.plot_shading_override = match source.shade_plot_mode {
+        0 => None,
+        1 => Some(ocdraw::plot_kernel::ShadedPlotMode::Wireframe),
+        2 => Some(ocdraw::plot_kernel::ShadedPlotMode::Hidden),
+        3 => Some(ocdraw::plot_kernel::ShadedPlotMode::Rendered),
+        _ => None,
+    };
     target.view_enabled = source.is_on();
     target.view_locked = source.status.locked;
     target.appearance = appearance;
@@ -248,14 +268,6 @@ pub(crate) fn to_cad(
     diagnostics: &mut Vec<crate::OcdrawToCadDiagnostic>,
 ) -> Option<opencadcodec::entities::Viewport> {
     let location = format!("/entities/{}", source.id);
-    if source.view.projection == DrawingProjection::Perspective {
-        diagnostics.push(crate::to_cad::diagnostic(
-            "VIEWPORT",
-            &location,
-            "perspective viewport requires CAD fixture calibration",
-        ));
-        return None;
-    }
     let frame = source.frame;
     let view = source.view;
     let mut target = opencadcodec::entities::Viewport::new();
@@ -269,6 +281,7 @@ pub(crate) fn to_cad(
     target.view_height = view.height;
     target.twist_angle = view.twist;
     target.lens_length = view.lens_length.unwrap_or(target.lens_length);
+    target.status.perspective = view.projection == DrawingProjection::Perspective;
     target.status.front_clipping = view.front_clip.mode != DrawingClipMode::Disabled;
     target.status.front_clip_not_at_eye = view.front_clip.mode == DrawingClipMode::AtDistance;
     target.front_clip_z = view.front_clip.distance.unwrap_or(0.0);
@@ -290,7 +303,16 @@ pub(crate) fn to_cad(
             },
     );
     target.render_mode = render_to_cad(source.render_mode);
-    target.id = document
+    target.shade_plot_mode = match source
+        .plot_shading_override
+        .unwrap_or(ocdraw::plot_kernel::ShadedPlotMode::AsDisplayed)
+    {
+        ocdraw::plot_kernel::ShadedPlotMode::AsDisplayed => 0,
+        ocdraw::plot_kernel::ShadedPlotMode::Wireframe => 1,
+        ocdraw::plot_kernel::ShadedPlotMode::Hidden => 2,
+        ocdraw::plot_kernel::ShadedPlotMode::Rendered => 3,
+    };
+    let next_number = document
         .entities()
         .filter_map(|e| {
             if let EntityType::Viewport(v) = e {
@@ -301,7 +323,16 @@ pub(crate) fn to_cad(
         })
         .max()
         .unwrap_or(1)
-        .checked_add(1)?;
+        .checked_add(1);
+    let Some(number) = next_number else {
+        diagnostics.push(crate::to_cad::diagnostic(
+            "VIEWPORT",
+            &location,
+            "CAD viewport number exceeds i16; viewport omitted",
+        ));
+        return None;
+    };
+    target.id = number;
     for entry in &source.layer_overrides {
         if entry.frozen {
             if let Some(layer) = layers
@@ -311,24 +342,6 @@ pub(crate) fn to_cad(
                 target.frozen_layers.push(layer.handle);
             }
         }
-        if entry.color.is_some()
-            || entry.opacity.is_some()
-            || entry.line_pattern_id.is_some()
-            || entry.line_weight.is_some()
-        {
-            diagnostics.push(crate::to_cad::diagnostic(
-                "VIEWPORT",
-                &location,
-                "viewport appearance override is not represented by CAD",
-            ));
-        }
-    }
-    if source.plot_shading_override.is_some() {
-        diagnostics.push(crate::to_cad::diagnostic(
-            "VIEWPORT",
-            &location,
-            "viewport plot-shading quality override is not represented by CAD",
-        ));
     }
     Some(target)
 }

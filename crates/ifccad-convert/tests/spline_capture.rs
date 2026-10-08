@@ -66,7 +66,8 @@ fn exact_native_common_is_optional_without_fabricated_fallbacks() {
     use opencadcodec::{Color, Handle, LineWeight};
     for (color, weight, scale, expected) in [
         (Color::from_rgb(1, 2, 3), LineWeight::ByLayer, 2., true),
-        (Color::Index(3), LineWeight::ByLayer, 1., false),
+        (Color::Index(3), LineWeight::ByLayer, 1., true),
+        (Color::from_rgb(1, 2, 3), LineWeight::Value(33), 1., false),
         (Color::None, LineWeight::ByLayer, 1., false),
         (Color::ByLayer, LineWeight::Default, 1., false),
         (Color::ByBlock, LineWeight::ByBlock, -0., false),

@@ -37,8 +37,23 @@ pub(super) fn from_cad(
             continue;
         }
         let loc = format!("entity/{h}");
-        let appearance =
-            crate::mapping::appearance::from_common(e.common(), patterns, &loc, issues);
+        let source_layer = source
+            .layers
+            .get(&e.common().layer)
+            .expect("inspected layer");
+        if mappings.layers.ifccad_id(source_layer.handle).is_none() {
+            issues.push(diagnostic(
+                "entity-layer",
+                &loc,
+                "required source layer was not represented; entity omitted",
+            ));
+            continue;
+        }
+        let Some(appearance) =
+            crate::mapping::appearance::from_common(e.common(), patterns, &loc, issues)
+        else {
+            continue;
+        };
         let mut kind = match e {
             EntityType::Hatch(h) => crate::mapping::hatch::from_cad(
                 h,
@@ -209,7 +224,23 @@ pub(super) fn from_cad(
         }
         let mut common = v.common.clone();
         common.invisible = false;
-        let appearance = crate::mapping::appearance::from_common(&common, patterns, &loc, issues);
+        let source_layer = source
+            .layers
+            .get(&common.layer)
+            .expect("inspected viewport layer");
+        if mappings.layers.ifccad_id(source_layer.handle).is_none() {
+            issues.push(diagnostic(
+                "viewport-layer",
+                &loc,
+                "required source layer was not represented; viewport omitted",
+            ));
+            continue;
+        }
+        let Some(appearance) =
+            crate::mapping::appearance::from_common(&common, patterns, &loc, issues)
+        else {
+            continue;
+        };
         retained.insert(*h, (IfccadEntityKind::Viewport(view), appearance));
     }
     let mut entities = Vec::new();
@@ -235,6 +266,7 @@ pub(super) fn from_cad(
             mappings.entities.insert(id, *h);
             entities.push(IfccadEntity::Native(IfccadNativeEntity {
                 id,
+                visible: !e.common().invisible,
                 kind,
                 appearance,
                 line_pattern_scale: e.common().linetype_scale,

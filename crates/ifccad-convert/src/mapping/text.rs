@@ -131,27 +131,44 @@ pub(crate) fn to_styles(
     }
     Ok(())
 }
-fn from_color(c: &cad_text::MarkupColor) -> Result<String, cad_text::CadTextError> {
-    let (r, g, b) = match *c {
-        cad_text::MarkupColor::Rgb { red, green, blue } => (red, green, blue),
+fn from_color(c: &cad_text::MarkupColor) -> Result<IfccadColor, cad_text::CadTextError> {
+    let source = match *c {
+        cad_text::MarkupColor::Rgb { red, green, blue } => {
+            opencadcodec::Color::from_rgb(red, green, blue)
+        }
         cad_text::MarkupColor::Index(i) => opencadcodec::Color::Index(
             u8::try_from(i).map_err(|_| cad_text::CadTextError::Unsupported("inline ACI range"))?,
-        )
-        .rgb()
-        .ok_or(cad_text::CadTextError::Unsupported(
-            "unresolved inline colour",
-        ))?,
+        ),
     };
-    Ok(format!("#{r:02X}{g:02X}{b:02X}"))
-}
-fn to_color(c: &str) -> Result<cad_text::MarkupColor, cad_text::CadTextError> {
-    let n = u32::from_str_radix(c.trim_start_matches('#'), 16)
-        .map_err(|_| cad_text::CadTextError::InvalidSource("invalid IFCCAD RGB"))?;
-    Ok(cad_text::MarkupColor::Rgb {
-        red: (n >> 16) as u8,
-        green: (n >> 8) as u8,
-        blue: n as u8,
+    let value = cad_presentation_convert::explicit_color_from_cad(source)
+        .map_err(|_| cad_text::CadTextError::Unsupported("unresolved inline colour"))?;
+    Ok(IfccadColor {
+        rgb: value.rgb,
+        indexed: value.indexed,
+        named: value.named,
     })
+}
+fn to_color(c: &IfccadColor) -> Result<cad_text::MarkupColor, cad_text::CadTextError> {
+    let mapped = cad_presentation_convert::color_to_cad(&cad_presentation_convert::CadColorValue {
+        rgb: c.rgb,
+        indexed: c.indexed.clone(),
+        named: c.named.clone(),
+    })
+    .map_err(|_| cad_text::CadTextError::Unsupported("invalid inline color identity"))?;
+    if !mapped.losses.is_empty() || mapped.named.is_some() {
+        return Err(cad_text::CadTextError::Unsupported(
+            "inline/background color metadata cannot be represented",
+        ));
+    }
+    match mapped.color {
+        opencadcodec::Color::Index(index) => Ok(cad_text::MarkupColor::Index(u16::from(index))),
+        opencadcodec::Color::Rgb {
+            r: red,
+            g: green,
+            b: blue,
+        } => Ok(cad_text::MarkupColor::Rgb { red, green, blue }),
+        _ => Err(cad_text::CadTextError::Unsupported("inline color mode")),
+    }
 }
 pub(crate) fn from_entity(
     source: &CadDocument,
@@ -192,13 +209,7 @@ pub(crate) fn from_entity(
         return Ok(None);
     };
     let style_id = IfccadTextStyleId(id);
-    let palette = std::cell::Cell::new(false);
-    let colour = |c: &cad_text::MarkupColor| {
-        if matches!(c, cad_text::MarkupColor::Index(_)) {
-            palette.set(true);
-        }
-        from_color(c)
-    };
+    let colour = |c: &cad_text::MarkupColor| from_color(c);
     let prepared = (|| -> Result<_, cad_text::CadTextError> {
         Ok(match e {
             EntityType::Text(t) => {
@@ -268,13 +279,6 @@ pub(crate) fn from_entity(
         pair,
         issues,
     )?;
-    if palette.get() {
-        issues.push(crate::diagnostics::modification(
-            "text-color-index",
-            &loc,
-            "inline/background ACI identity represented by concrete RGB",
-        ));
-    }
     if normalized {
         issues.push(crate::diagnostics::modification(
             "source-normal-normalized",
@@ -344,8 +348,8 @@ pub(crate) fn to_entity(
                     wrap_width: t.wrap_width,
                     columns: t.columns.as_ref(),
                     background: map_background_opt(t.background.as_ref())?.as_ref(),
-                    content: &map_content(&t.content, &|c: &String| to_color(c))?,
-                    character_format: &map_character(&t.character_format, &|c: &String| {
+                    content: &map_content(&t.content, &|c: &IfccadColor| to_color(c))?,
+                    character_format: &map_character(&t.character_format, &|c: &IfccadColor| {
                         to_color(c)
                     })?,
                     paragraph_format: &t.paragraph_format,
@@ -388,9 +392,9 @@ pub(crate) fn to_entity(
     Ok(Some(p.entity))
 }
 fn map_background_opt(
-    v: Option<&MTextBackground<String>>,
+    v: Option<&MTextBackground<IfccadColor>>,
 ) -> Result<Option<MTextBackground<cad_text::MarkupColor>>, cad_text::CadTextError> {
-    v.map(|b| map_background(b, &|c: &String| to_color(c)))
+    v.map(|b| map_background(b, &|c: &IfccadColor| to_color(c)))
         .transpose()
 }
 fn map_character<C, D>(

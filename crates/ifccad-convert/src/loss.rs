@@ -119,14 +119,21 @@ pub(crate) fn native_defaults(
             }
             if let Some(layers) = attrs
                 .get_mut("ifccad::viewport")
-                .and_then(|value| value.get_mut("frozenLayers"))
+                .and_then(|value| value.get_mut("layerOverrides"))
                 .and_then(serde_json::Value::as_array_mut)
             {
                 // Native layer references form a set. Compare them in the
                 // writer's exact numeric order without rounding uint64 IDs.
+                for row in layers
+                    .iter_mut()
+                    .filter_map(serde_json::Value::as_object_mut)
+                {
+                    row.entry("frozen").or_insert(serde_json::json!(false));
+                }
                 layers.sort_by_key(|value| {
                     value
-                        .as_str()
+                        .get("layer")
+                        .and_then(serde_json::Value::as_str)
                         .and_then(|path| path.rsplit('/').next())
                         .and_then(|id| id.parse::<u64>().ok())
                 });

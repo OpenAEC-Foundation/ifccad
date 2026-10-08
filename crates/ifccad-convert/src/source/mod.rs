@@ -91,7 +91,11 @@ pub(crate) fn residual<T: Serialize>(
     }
 }
 
-pub(crate) fn inspect(doc: &CadDocument, preserve_splines: bool) -> Result<Inspection, Error> {
+pub(crate) fn inspect(
+    doc: &CadDocument,
+    preserve_splines: bool,
+    consumed_objects: &BTreeSet<Handle>,
+) -> Result<Inspection, Error> {
     let invalid = |s: &str| Error::InvalidStructure(s.to_string());
     let models = doc
         .block_records
@@ -302,7 +306,11 @@ pub(crate) fn inspect(doc: &CadDocument, preserve_splines: bool) -> Result<Inspe
                 residual(
                     marker,
                     &opencadcodec::entities::Block::new(&b.name, b.base_point),
-                    &["common", "name", "base_point"],
+                    if marker.description == b.description {
+                        &["common", "name", "base_point", "description"]
+                    } else {
+                        &["common", "name", "base_point"]
+                    },
                     &format!("block-marker/{}", b.name),
                     &mut issues,
                 );
@@ -397,7 +405,13 @@ pub(crate) fn inspect(doc: &CadDocument, preserve_splines: bool) -> Result<Inspe
                 .collect(),
         });
     }
-    scan(doc, layout_dictionary, preserve_splines, &mut issues)?;
+    scan(
+        doc,
+        layout_dictionary,
+        preserve_splines,
+        consumed_objects,
+        &mut issues,
+    )?;
     for e in doc.entities() {
         entities::validate_source(e)?;
     }
@@ -510,6 +524,7 @@ fn scan(
     doc: &CadDocument,
     layout_dictionary: Handle,
     preserve_splines: bool,
+    consumed_objects: &BTreeSet<Handle>,
     issues: &mut Vec<IfccadDiagnostic>,
 ) -> Result<(), Error> {
     static DWG_DEFAULT: OnceLock<Result<CadDocument, String>> = OnceLock::new();
@@ -539,6 +554,8 @@ fn scan(
             &[
                 "insertion_units",
                 "current_layer_name",
+                "point_display_mode",
+                "point_display_size",
                 "show_model_space",
                 "model_space_ucs_name",
                 "model_space_ucs_origin",
@@ -609,9 +626,19 @@ fn scan(
                 };
             }
             match r {
-                SemanticTableRecordV1::Layer(l) => residual(
+                SemanticTableRecordV1::Layer(l) => {
+                    let mut baseline = opencadcodec::Layer::new(&l.name);
+                    baseline.flags.off = l.flags.off;
+                    baseline.flags.frozen = l.flags.frozen;
+                    baseline.flags.locked = l.flags.locked;
+                    baseline.flags.frozen_in_new_viewport = l.flags.frozen_in_new_viewport;
+                    if matches!((&l.book_name,&l.color_name), (Some(catalog),Some(name)) if !catalog.is_empty() && !name.is_empty()) {
+                        baseline.book_name = l.book_name.clone();
+                        baseline.color_name = l.color_name.clone();
+                    }
+                    residual(
                     l,
-                    &opencadcodec::Layer::new(&l.name),
+                    &baseline,
                     &[
                         "handle",
                         "name",
@@ -619,11 +646,17 @@ fn scan(
                         "line_type",
                         "line_weight",
                         "transparency",
+                        "is_plottable",
+                        "description",
                     ],
                     &format!("layer/{}", l.name),
                     issues,
-                ),
+                )},
                 SemanticTableRecordV1::BlockRecord(b) => {
+                    let mut baseline = opencadcodec::BlockRecord::new(&b.name);
+                    if !b.is_model_space() && !b.is_paper_space() {
+                        baseline.flags.anonymous = b.flags.anonymous;
+                    }
                     let mut ignored = vec![
                         "handle",
                         "block_entity_handle",
@@ -643,11 +676,11 @@ fn scan(
                     if b.is_model_space() || b.is_paper_space() {
                         ignored.push("layout");
                     } else {
-                        ignored.extend(["units", "base_point"]);
+                        ignored.extend(["units", "base_point", "description", "explodable", "scale_uniformly"]);
                     }
                     residual(
                         b,
-                        &opencadcodec::BlockRecord::new(&b.name),
+                        &baseline,
                         &ignored,
                         &format!("block/{}", b.name),
                         issues,
@@ -720,7 +753,7 @@ fn scan(
             }
         }
         SemanticPartV1::Object(SemanticObjectV1::Typed(o)) => {
-            if !scaffold_object(o, doc, baseline, &object_roles, layout_dictionary) {
+            if !consumed_objects.contains(&doc.objects.iter().find(|(_,v)| std::ptr::eq(*v,o)).map(|(h,_)|*h).expect("inventory object")) && !scaffold_object(o, doc, baseline, &object_roles, layout_dictionary) {
                 let h = doc
                     .objects
                     .iter()
@@ -756,6 +789,7 @@ fn scan(
             source,
             target,
         } => {
+            if kind == SemanticRelationshipKindV1::ExtensionDictionary && matches!(target, SemanticReferenceV1::Resolved(SemanticNodeV1::Object(o)) if doc.objects.iter().any(|(h,v)|std::ptr::eq(v,o) && consumed_objects.contains(h))) { return; }
             if preserve_splines && kind!=SemanticRelationshipKindV1::Ownership && matches!(source,SemanticReferenceV1::Resolved(SemanticNodeV1::Entity(EntityType::Spline(_)))) { return; }
             let missing = matches!(source, SemanticReferenceV1::Unresolved)
                 || matches!(target, SemanticReferenceV1::Unresolved);

@@ -105,12 +105,28 @@ pub(crate) fn from_cad(
         },
         view_enabled: v.status.is_on && v.status.to_bits() & 0x20000 == 0,
         view_locked: v.status.locked,
-        visible: !v.common.invisible,
         paper_clip: IfccadViewportPaperClip {
             enabled: v.status.to_bits() & 0x10000 != 0,
             boundary_entity_id: None,
         },
-        frozen_layers: frozen_layers.into_iter().collect(),
+        layer_overrides: frozen_layers
+            .into_iter()
+            .map(|layer_id| IfccadViewportLayerOverride {
+                layer_id,
+                frozen: true,
+                color: None,
+                opacity: None,
+                line_pattern_id: None,
+                line_weight: None,
+            })
+            .collect(),
+        plot_shading_override: match v.shade_plot_mode {
+            0 => None,
+            1 => Some(ocdraw::plot_kernel::ShadedPlotMode::Wireframe),
+            2 => Some(ocdraw::plot_kernel::ShadedPlotMode::Hidden),
+            3 => Some(ocdraw::plot_kernel::ShadedPlotMode::Rendered),
+            _ => None, // The source residual diagnoses unsupported plot modes.
+        },
     };
     if let Err(report) = validate_ifccad_viewport_parameters(&result) {
         issues.push(diagnostic(
@@ -182,10 +198,25 @@ pub(crate) fn to_cad(
             | if v.paper_clip.enabled { 0x10000 } else { 0 },
     );
     target.clip_boundary_handle = boundary;
+    target.shade_plot_mode = match v
+        .plot_shading_override
+        .unwrap_or(ocdraw::plot_kernel::ShadedPlotMode::AsDisplayed)
+    {
+        ocdraw::plot_kernel::ShadedPlotMode::AsDisplayed => 0,
+        ocdraw::plot_kernel::ShadedPlotMode::Wireframe => 1,
+        ocdraw::plot_kernel::ShadedPlotMode::Hidden => 2,
+        ocdraw::plot_kernel::ShadedPlotMode::Rendered => 3,
+    };
     target.frozen_layers = v
-        .frozen_layers
+        .layer_overrides
         .iter()
-        .map(|id| mappings.layers.cad_handle(*id).expect("allocated layer"))
+        .filter(|row| row.frozen)
+        .map(|row| {
+            mappings
+                .layers
+                .cad_handle(row.layer_id)
+                .expect("allocated layer")
+        })
         .collect();
     target.render_mode = match v.render_mode {
         IfccadViewportRenderMode::TwoDimensional => ViewportRenderMode::Wireframe2D,

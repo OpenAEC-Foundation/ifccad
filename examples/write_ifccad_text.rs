@@ -49,7 +49,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         content: vec![
             MTextParagraph {
                 character_format: CharacterFormat {
-                    color: Some(TextColor::Explicit("#1192EE".into())),
+                    color: Some(TextColor::Explicit(IfccadColor::rgb(17, 146, 238))),
                     ..Default::default()
                 },
                 inlines: vec![MTextInline::Run {
@@ -76,6 +76,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
     let mut entity = |kind| -> Result<IfccadEntity, IfccadIdAllocationError> {
         Ok(IfccadEntity::Native(IfccadNativeEntity {
+            visible: true,
             id: ids.allocate_entity_id()?,
             layer_id: 0,
             appearance: appearance.clone(),
@@ -95,6 +96,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let paper_entities = vec![entity(text.clone())?, entity(mtext.clone())?];
     let block_entities = vec![entity(text)?, entity(mtext)?];
     let mut d = IfccadDocument {
+        point_display: None,
         ucs_definitions: vec![],
         model_windows: vec![],
         workspace_state: None,
@@ -126,10 +128,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             pattern: vec![],
         }],
         layers: vec![IfccadLayer {
+            description: None,
+            visible: true,
+            frozen: false,
+            locked: false,
+            plottable: true,
+            frozen_in_new_viewports: false,
             id: 0,
             name: "0".into(),
             appearance: IfccadLayerAppearance {
-                color: "#FFFFFF".into(),
+                color: IfccadColor::rgb(255, 255, 255),
                 opacity: 1.,
                 line_pattern: IfccadLinePatternId(0),
                 line_weight: 0.25,
@@ -154,6 +162,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             entities: paper_entities,
         }],
         blocks: vec![IfccadBlockDefinition {
+            description: String::new(),
+            anonymous: false,
+            explodable: true,
+            uniform_scaling: false,
             id: block_id,
             name: "LabelsBlock".into(),
             base_point: [0.; 3],

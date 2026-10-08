@@ -37,16 +37,18 @@ fresh CAD import assigns new IDs and watermarks with explicit outcome mappings.
 | Pattern scale/generation | Drawing/entity scales to header/common fields; planar polyline perSegment/continuous to plinegen |
 | Model | Default Model layout, ordered backing block membership |
 | Paper | Allocate layouts in tab order, optional media and ordered backing block contents; independent numerical coordinates and effective plot mappings. Unsupported medium units omit media/plot state, not the layout. CAD-name collisions and indices exceeding i16 are fatal |
-| Layers | Retain names, unused declarations and concrete appearance; synthesize missing CAD layer 0 with diagnosed explicit fallback; reject collisions under opencadcodec's normalized name lookup, including multiple layers named 0, before CAD allocation under both policies |
+| Layers | Retain names, unused declarations, concrete appearance, on/off, freeze, lock, plottability, freeze-in-new-viewports and description; synthesize missing CAD layer 0 with diagnosed explicit fallback; reject collisions under opencadcodec's normalized name lookup, including multiple layers named 0, before CAD allocation under both policies |
+| Common visibility | Native common visible maps to CAD common.invisible for geometry, instances, Text/MText and viewports, independently of viewport enabled/locked and layer status; hidden content is retained |
+| PointDisplay | Symbol form, circle/square and default/absolute/viewport-percent size map independently to PDMODE/PDSIZE. The marker's size does not enter geometric position/bounds assessment |
 | Layer/entity appearance | True RGB, resolved named patterns, supported hundredth-mm weight, exact decoded opacity byte; preserve independent inherited/explicit modes on entities |
 | Lines | Direct finite XYZ endpoints |
 | Point/Circle/Arc/Ellipse | Position, radii, full/signed partial spans and valid oriented plane through shared CAD preparation |
 | Polylines | Ordered straight/bulged planar or straight spatial vertices, dormant bulges, closure and generation; geometric translation residual checked against hard tolerance |
-| Definitions | Allocate all targets before contents; retain base, insertion unit, shared/nested references and unused definitions |
+| Definitions | Allocate all targets before contents; retain base, insertion unit, description, ordinary anonymous flag, explodability, signed-uniform policy, shared/nested references and unused definitions; BLOCK begin description follows the record |
 | Instances | Valid oriented placement, rotation and signed scales; definition and all nested occurrence proof; compare setter getters even for empty targets |
 | Draw order | Owner vector order, independent of ID numbering |
 | Invalid ownership/frames/cycles | Core validation; invalid projections never reach conversion |
-| Incompatible names | Reserved/anonymous definitions and referring inserts omitted with diagnostics; other construction errors remain fatal |
+| Incompatible names | Reserved CAD Model/Paper role names and referring inserts omitted with diagnostics; ordinary anonymous names/definitions are supported; other construction errors remain fatal |
 | Other IFCX graph/envelope information | Canonical-envelope loss diagnostic; includes extra schemas/imports/relations; source graph remains intact |
 
 Polyline local-origin decomposition may be canonicalized; its path must remain
@@ -57,12 +59,21 @@ parameterization omits the whole entity. Normal local definitions can retain
 partial contents, with a loss diagnostic on each affected instance, propagated
 through nesting. Only emitted objects receive mappings.
 
-Nonstandard weights are quantized to the nearest supported CAD entry (ties
-prefer the lower entry), opacity to the nearest decoded byte (ties prefer higher
-transparency). Each adaptation
+Nonstandard weights are quantized to the nearest standard CAD table entry (ties
+prefer the lower entry). Exact byte-derived opacity returns the original byte;
+other values use upward CAD transparency rounding. Each changed value
 has Modified evidence. Missing layer 0 is white/opaque/Continuous/0.25 mm with no
 source mapping. Reject refuses all these losses. No source preservation is
 implemented.
+
+Concrete indexed colors use ACI only when its RGB agrees with the authored
+fallback. Unsupported/inconsistent indexed metadata keeps RGB with located loss;
+complete layer/entity named identities are retained where the target field can
+represent them. A catalogue containing the entity `$` delimiter is diagnosed
+rather than reinterpreted. The bounded inline/background text profile permits
+RGB and consistent ACI; unrepresentable text color metadata remains a whole-text
+profile restriction. Opaque restoration uses the same scalar decisions and never
+rewrites source snapshot payloads.
 
 Both policies reject translated-coordinate residual beyond the configured limit,
 inexact raw integer-to-binary64 geometry/pattern/scale projection and setter scale
@@ -302,3 +313,28 @@ validation. The [profile rules](../../../schemas/ifccad/profile-rules-0.1.0.md)
 link ordinary IFCX declarations with bundled local-value supplements and precise
 graph/calculation requirements. This organization does not widen the supported
 CAD subset or change Allow/Reject, numerical limits, identity or source retention.
+## Presentation parity — 2026-10-08
+
+See the [presentation contract](../../../docs/presentation.md) for independent
+native color metadata, common/layer state, PointDisplay, ordinary block metadata,
+exact transparency bytes, standard-weight quantization, relational viewport
+rows and mode-only ShadePlot. Unsupported indexed metadata preserves authored
+RGB with loss; unrepresentable required source appearance never invents white.
+Semantic quantization remains independent of geometric tolerance and Reject.
+
+Known RGB/ACI, alpha, pattern and explicit-weight sections map with format-owned
+reference resolution. Equal duplicates are consumed; contradictory values are
+invalid structure. Unknown/incomplete/mixed XRecord content remains classified;
+only fully consumed qualified containers are exempted. Source/current IDs are
+never copied as target handles. Skipped viewports emit no override/workspace refs.
+Named/custom override identity stays unqualified and diagnosed.
+
+Orthographic and perspective authored Paper cameras are qualified through strict
+native loading and actual DXF/AC1032 DWG readback with independent hand-authored
+camera/landmark constants. The physical profile establishes the overall Paper
+canvas separately; no active Paper choice or external renderer accuracy is inferred.
+Viewport ShadePlot maps independently of render mode and layout quality. Memory
+and DWG mode values 0–3 are qualified; DXF group 170 remains gated by codec PR
+#107, with outgoing browser readback loss reported explicitly. Paper grid flags
+remain gated by #106. Both PRs were still open at qualification, so the audited
+ab2eecd plus explicit viewport-off configuration remains selected.

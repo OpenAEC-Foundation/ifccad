@@ -7,3 +7,5 @@ pub(crate) mod point_display;
 pub(crate) mod text;
 pub(crate) mod viewport;
 pub(crate) mod workspace;
+
+pub(crate) mod viewport_overrides;

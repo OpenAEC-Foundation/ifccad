@@ -41,8 +41,9 @@ Reimporting CAD does not restore a previous IFCCAD allocation history.
 | Category | Treatment |
 | --- | --- |
 | Header | Map insertion units, linetype scale and plot-style mode; compare other settings/names with pinned default. Derived extents, seed and explicitly listed control/dictionary/name-cache handles are excluded in `source.rs` |
-| Layers | Map identity/name/concrete appearance. Diagnose changed flags, descriptions, named colors, plotting/material/XREF metadata or other residual fields |
-| Local BlockRecords | Map name/base/unit/ordered contents. Begin/end identity and reverse insert handles are structural/derived. Diagnose flags, description, preview, insert-count bytes, scaling/explodability restrictions and layout association |
+| Layers | Map identity/name/concrete appearance, independent on/off, global freeze, lock, plottability, freeze-in-new-viewports and description. Complete concrete named identity is mapped; incomplete/inherited color names, material/XREF metadata and other residual fields remain classified separately |
+| Header PDMODE/PDSIZE | Supported glyph/enclosure bits and finite default/absolute/view-relative sizes become native PointDisplay. Default zero remains distinct from explicit negative-five-percent. Unsupported bits/nonfinite size omit only the setting with located point-display loss; point geometry remains live |
+| Local BlockRecords | Map name/base/unit/ordered contents, description, anonymous flag, explodability and signed-uniform policy, including unused ordinary anonymous definitions. Consistent begin-description duplicates are consumed; conflicting extra marker metadata retains loss evidence. Begin/end identity and reverse insert handles are structural/derived. Other flags, preview, unfamiliar insert-count bytes and layout associations remain diagnosed |
 | Model/Paper BlockRecords | Validate role/ownership; metadata including unit/base must remain default |
 | LineType | Actual signed-length definitions, names/descriptions and unused records; canonical ByLayer/ByBlock are mode scaffolding. Whole text/shape pattern fallback to named empty under Allow, one Modified diagnostic per definition; invalid values/alignment/name-handle targets fail both policies |
 | TextStyle | All qualified ordinary styles including unused; independent IDs/mappings and symbolic font/creation properties. Shape, annotative and external roles are diagnosed, with dependent text skipped; invalid lookup/scalars remain fatal |
@@ -116,9 +117,10 @@ it is not an AutoCAD-produced interoperability sample.
 | Fields | Treatment |
 | --- | --- |
 | Common identity/owner/layer | Non-null unique identity; one ordered owner; existing layer; return mappings |
-| Common appearance | Independent ByLayer/ByBlock/Explicit modes. True RGB, resolved named patterns, entity pattern scale and supported weights. Indexed/named color and Default weight diagnosed |
+| Common appearance | Independent ByLayer/ByBlock/Explicit modes. Concrete RGB/ACI identity, complete named identity, resolved patterns, entity pattern scale and nonnegative weights are retained. Default weight uses the qualified effective 0.25 mm convention. Unrepresentable required color/weight omits the dependent item, not an invented white/default appearance |
 | Common linetype handle/entity mode/raw record/data-store flag | Typed-name/owner or encoding caches, not persisted separately; name/linetype handle agreement is validated |
-| Other common fields | Typed residual check includes XDATA/raw EED, visibility, named colors, graphics, material/plot/shadow/visual styles, references, reactors and dictionaries |
+| Common visibility | Native common visible maps independently of layer status and viewport on/off/lock; supported hidden geometry, instances, Text/MText and viewports retain ownership/order and geometry bounds |
+| Other common fields | Typed residual check includes XDATA/raw EED, unmapped/incomplete color metadata, graphics, material/plot/shadow/visual styles, references, reactors and dictionaries |
 | Line start/end | Direct XYZ; diagnose thickness/nondefault normal |
 | Point/Circle/Arc/Ellipse | Position, radii and supported signed parameter spans in interpreted CAD planes; diagnose thickness and source normal normalization |
 | LwPolyline/ordinary Polyline2D | Ordered vertices, outgoing/dormant bulges, closure, elevation and interpreted plane; map plinegen; diagnose widths, vertex metadata, thickness and unsupported fitted/mesh state |
@@ -135,23 +137,24 @@ BlockRecord/Layout agreement, with diagnostic; conflicting existing cache fails.
 
 Unsupported families and incompatible geometry residuals omit the whole entity,
 including bulges, widths, nondefault normals/thickness and Insert arrays or
-attributes. Unsupported common metadata (for example XDATA or invisibility)
+attributes. Unsupported common metadata (for example XDATA)
 is omitted with a diagnostic while representable geometry is retained. No
 flattening, block explosion or preservation is performed.
 
 Normal local definitions retain their supported children in source order.
-Reserved/anonymous names, XREF/external/unloaded flags or paths, and dynamic
+Reserved CAD Model/Paper roles, XREF/external/unloaded flags or paths, and dynamic
 objects directly owned by a definition cause definition omission along with
 referring inserts. Each instance whose target loses content receives
 `block-content-loss`, propagated through nested definitions. Metadata omissions
 on a definition also participate in this propagation. Mappings cover emitted
 objects only.
 
-Indexed color is projected through opencadcodec's canonical ACI palette to RGB,
-with index/context loss reported. Unavailable layer color becomes white;
-inherited layer opacity becomes opaque; unavailable/default weight becomes
-explicit 0.25 mm. Unsupported numeric weights use the closest standard CAD
-weight. Complex text/shape definitions become empty under their original name and ID, including unused definitions; each has one `line-pattern-complex` modification. Finite source period disagreements are diagnosed and derived from elements. Entity ByLayer/ByBlock modes remain
+Concrete colors retain RGB, qualified ACI and complete named identity. Unavailable
+required layer/entity color or weight omits the dependent item with located loss;
+there is no white fallback. Layer ByLayer opacity uses the qualified opaque
+constructor convention; Layer ByBlock is not a concrete opacity. Default weight
+uses effective 0.25 mm, while explicit nonnegative source weights remain native
+values; standard-table quantization occurs on CAD output with loss. Complex text/shape definitions become empty under their original name and ID, including unused definitions; each has one `line-pattern-complex` modification. Finite source period disagreements are diagnosed and derived from elements. Entity ByLayer/ByBlock modes remain
 stored. Unknown drawing or block unit codes become unitless without scaling,
 with modification evidence. Unsupported table/header/object/source metadata is
 diagnosed and omitted. No full-source preservation claim follows from Allow.
@@ -347,13 +350,11 @@ text. Active/unknown context data, annotative styles and MText's active annotati
 flag remain unsupported. Remaining XDATA method data is still common-metadata
 loss. Dynamic fields, attributes, advanced stack/spacing/decimal-tab settings and
 unqualified line-break file semantics keep the restrictions in `cad-text`.
-Native rich values are broader than this CAD subset. Inline ACI colours resolve
-to this profile's RGB representation; palette identity is not a native field.
+Native rich values are broader than this CAD subset. Inline/background concrete RGB and ACI identity use IfccadColor; unqualified named/custom text colors remain whole-text restrictions.
 
 Layer typed ByLayer means the codec's opaque default and maps to opacity 1.
 Known raw `AcCmTransparency` integer 0 is a duplicate of that default; disagreeing
-or unknown raw tags remain XDATA loss. Layer ByBlock keeps its diagnosed existing
-fallback. Entity inheritance is independent. Unknown raw tags already collapsed
+or unknown raw tags remain XDATA loss. Layer ByBlock is unrepresentable required appearance; the layer and dependent items are skipped with located loss. Entity inheritance is independent. Unknown raw tags already collapsed
 by the codec cannot be reconstructed from the typed mode alone; see upstream #104.
 
 `text_assessment()` reports active Text anchors or MText WCS anchors and separate
@@ -401,3 +402,28 @@ validation. The [profile rules](../../../schemas/ifccad/profile-rules-0.1.0.md)
 link ordinary IFCX declarations with bundled local-value supplements and precise
 graph/calculation requirements. This organization does not widen the supported
 CAD subset or change Allow/Reject, numerical limits, identity or source retention.
+## Presentation parity — 2026-10-08
+
+See the [presentation contract](../../../docs/presentation.md) for independent
+native color metadata, common/layer state, PointDisplay, ordinary block metadata,
+exact transparency bytes, standard-weight quantization, relational viewport
+rows and mode-only ShadePlot. Unsupported indexed metadata preserves authored
+RGB with loss; unrepresentable required source appearance never invents white.
+Semantic quantization remains independent of geometric tolerance and Reject.
+
+Known RGB/ACI, alpha, pattern and explicit-weight sections map with format-owned
+reference resolution. Equal duplicates are consumed; contradictory values are
+invalid structure. Unknown/incomplete/mixed XRecord content remains classified;
+only fully consumed qualified containers are exempted. Source/current IDs are
+never copied as target handles. Skipped viewports emit no override/workspace refs.
+Named/custom override identity stays unqualified and diagnosed.
+
+Orthographic and perspective authored Paper cameras are qualified through strict
+native loading and actual DXF/AC1032 DWG readback with independent hand-authored
+camera/landmark constants. The physical profile establishes the overall Paper
+canvas separately; no active Paper choice or external renderer accuracy is inferred.
+Viewport ShadePlot maps independently of render mode and layout quality. Memory
+and DWG mode values 0–3 are qualified; DXF group 170 remains gated by codec PR
+#107, with outgoing browser readback loss reported explicitly. Paper grid flags
+remain gated by #106. Both PRs were still open at qualification, so the audited
+ab2eecd plus explicit viewport-off configuration remains selected.

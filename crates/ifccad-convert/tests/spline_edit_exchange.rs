@@ -43,7 +43,7 @@ fn edited_native_content_and_independent_spline_oracle_survive_dxf_and_dwg() {
         let mut d = original.clone();
         match mutation {
             0 => d.layers[0].name = "Renamed".into(),
-            1 => d.layers[0].appearance.color = "#ff0011".into(),
+            1 => d.layers[0].appearance.color = IfccadColor::rgb(255, 0, 17),
             2 => {
                 d.model.entities[0]
                     .as_opaque_mut()
@@ -52,7 +52,7 @@ fn edited_native_content_and_independent_spline_oracle_survive_dxf_and_dwg() {
                     .as_mut()
                     .unwrap()
                     .appearance
-                    .color = IfccadMode::Explicit("#123456".into())
+                    .color = IfccadMode::Explicit(IfccadColor::rgb(18, 52, 86))
             }
             3 => d.model.entities[0].as_opaque_mut().unwrap().visible = false,
             4 => {
@@ -86,6 +86,7 @@ fn edited_native_content_and_independent_spline_oracle_survive_dxf_and_dwg() {
                 d.model.entities.insert(
                     0,
                     IfccadEntity::Native(IfccadNativeEntity {
+                        visible: true,
                         id,
                         layer_id: d.layers[0].id,
                         appearance: a,

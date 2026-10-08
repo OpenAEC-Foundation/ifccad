@@ -38,7 +38,7 @@ pub fn cad_document_to_ifccad_document(
         enabled: options.preservation == crate::IfccadPreservationCapture::SupportedTyped,
         ..Default::default()
     };
-    let info = crate::source::inspect(source, preservation.enabled)?;
+    let info = crate::source::inspect(source, preservation.enabled, &Default::default())?;
     for entity in source.entities() {
         if let opencadcodec::EntityType::Viewport(view) = entity {
             if source
@@ -50,7 +50,7 @@ pub fn cad_document_to_ifccad_document(
             }
         }
     }
-    let mut issues = info.issues;
+    let mut issues = Vec::new();
     let mut ids = IfccadIdCounters::default();
     let (mut line_patterns, patterns) = crate::mapping::line_pattern::from_cad(
         source,
@@ -76,22 +76,31 @@ pub fn cad_document_to_ifccad_document(
     mappings.layouts.insert(model_id, info.model_layout);
     let mut layers = Vec::new();
     for l in source.layers.iter() {
+        let Some(appearance) = crate::mapping::appearance::from_layer(l, &patterns, &mut issues)
+        else {
+            continue;
+        };
         let id = ids.allocate_layer_id().map_err(allocation_error)?;
         mappings.layers.insert(id, l.handle);
         layers.push(IfccadLayer {
             id,
             name: l.name.clone(),
-            appearance: crate::mapping::appearance::from_layer(l, &patterns, &mut issues),
+            description: (!l.description.is_empty()).then(|| l.description.clone()),
+            visible: !l.flags.off,
+            frozen: l.flags.frozen,
+            locked: l.flags.locked,
+            plottable: l.is_plottable,
+            frozen_in_new_viewports: l.flags.frozen_in_new_viewport,
+            appearance,
         });
     }
     let supported: Vec<_> = info.blocks.iter().copied().filter(|h| {
         let b = source.block_records.iter().find(|b| b.handle == *h).unwrap();
         let dynamic = source.objects.values().any(|o| matches!(o, opencadcodec::objects::ObjectType::DynamicBlock(d) if d.owner == *h));
-        let supported = !b.name.starts_with('*') && !b.is_anonymous()
-            && !b.flags.is_xref && !b.flags.is_xref_overlay && !b.flags.is_external
+        let supported = !b.flags.is_xref && !b.flags.is_xref_overlay && !b.flags.is_external
             && !b.flags.is_xref_unloaded && b.xref_path.is_empty() && !dynamic;
         if !supported {
-            issues.push(diagnostic("block-skipped", format!("block/{}", b.name), "anonymous, external or dynamic block definition omitted, together with referring instances"));
+            issues.push(diagnostic("block-skipped", format!("block/{}", b.name), "external or dynamic block definition omitted, together with referring instances"));
         }
         supported
     }).collect();
@@ -162,6 +171,10 @@ pub fn cad_document_to_ifccad_document(
             mappings.blocks.ifccad_id(*h).unwrap(),
         ));
         blocks.push(IfccadBlockDefinition {
+            description: b.description.clone(),
+            anonymous: b.flags.anonymous,
+            explodable: b.explodable,
+            uniform_scaling: b.scale_uniformly,
             bounds_quality: None,
             bounds: None,
             id: mappings.blocks.ifccad_id(*h).unwrap(),
@@ -249,6 +262,10 @@ pub fn cad_document_to_ifccad_document(
         &mut issues,
     );
     let mut drawing = IfccadDocument {
+        point_display: crate::mapping::point_display::from_cad(
+            source.header.point_display_mode,
+            source.header.point_display_size,
+        ),
         text_styles,
         preservation: None,
         ucs_definitions: vec![],
@@ -291,8 +308,18 @@ pub fn cad_document_to_ifccad_document(
         paper_layouts,
         blocks,
     };
+    if drawing.point_display.is_none() {
+        issues.push(diagnostic(
+            "point-display",
+            "header.pointDisplay",
+            "unsupported PDMODE/PDSIZE setting omitted; point geometry retained",
+        ));
+    }
     preservation.finish(source, &mut drawing, &mappings)?;
     crate::mapping::workspace::from_cad(source, &mut drawing, &mut mappings, &mut issues)?;
+    let consumed =
+        crate::mapping::viewport_overrides::from_cad(source, &mut drawing, &mappings, &mut issues)?;
+    issues.extend(crate::source::inspect(source, preservation.enabled, &consumed)?.issues);
     crate::diagnostics::enforce_policy(options.loss_policy, &issues)?;
     let members = drawing
         .blocks

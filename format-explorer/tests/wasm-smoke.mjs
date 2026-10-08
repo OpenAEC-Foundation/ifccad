@@ -179,9 +179,10 @@ for(const format of ['ifccad','dxf','dwg']){
 console.log('Browser WASM IFCCAD opening, named patterns and real DXF/DWG roundtrips verified');
 
 const viewportGraph=JSON.parse(await readFile(new URL('../../examples/ifccad/hello-viewports.ifcx',import.meta.url),'utf8'));
-const view=viewportGraph.data.find(node=>node.attributes?.['ifccad::viewport']).attributes['ifccad::viewport'];
+const viewportNode=viewportGraph.data.find(node=>node.attributes?.['ifccad::viewport']);
+const view=viewportNode.attributes['ifccad::viewport'];
 for(const enabled of [false,true]){
- view.viewEnabled=enabled;view.visible=!enabled;view.viewLocked=true;
+ view.viewEnabled=enabled;viewportNode.attributes['ifccad::entity'].visible=!enabled;view.viewLocked=true;
  view.paperClip.enabled=enabled;view.view.twist=Math.PI/6;
  const bytes=new TextEncoder().encode(JSON.stringify(viewportGraph));
  const source={kind:'ifccad',name:'viewports.ifcx',files:[{path:'viewports.ifcx',bytes:bytes.buffer}]};
@@ -195,7 +196,7 @@ for(const enabled of [false,true]){
   const views=returned.presentation.entities.filter(node=>node.attributes['ifccad::viewport']);
   assert.equal(views.length,1);
   const restored=views[0].attributes['ifccad::viewport'];
-  assert.equal(restored.viewEnabled,enabled);assert.equal(restored.visible,!enabled);
+  assert.equal(restored.viewEnabled,enabled);assert.equal(views[0].attributes['ifccad::entity'].visible??true,!enabled);
   assert.equal(restored.viewLocked,true);assert.equal(restored.paperClip.enabled,enabled);
   assert.equal(restored.view.projection,'Perspective');assert.equal(restored.view.lensLengthMm,50);
   assert.deepEqual(restored.view.direction,[0,0,100]);
@@ -204,7 +205,7 @@ for(const enabled of [false,true]){
   assert.equal(boundary.attributes['ifccad::geom::circle'].radius,50);
   const model=returned.presentation.layouts.find(node=>node.attributes['ifccad::layout'].kind==='Model');
   assert.equal(restored.model,model.path);
-  assert.deepEqual(restored.frozenLayers.map(path=>returned.presentation.layers.find(node=>node.path===path).attributes['ifccad::layer'].name),['Notes']);
+  assert.deepEqual(restored.layerOverrides.filter(row=>row.frozen).map(row=>row.layer).map(path=>returned.presentation.layers.find(node=>node.path===path).attributes['ifccad::layer'].name),['Notes']);
  }
 }
 console.log('Browser WASM IFCCAD perspective, active/dormant circle clips and independent display states verified');

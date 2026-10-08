@@ -151,7 +151,7 @@ were natively represented.
 | `Polyline2D` | Exact/PartialLoss/SkippedLoss | Ordinary planar vertices and bulges map to PlanarPolyline using the same OCS preparation. Width-only sources follow the centre-path partial-loss policy. Fit/spline-fit, nonzero vertex Z and unsupported flags or thickness skip the whole entity. |
 | `Polyline`, `Polyline3D` | Exact/SkippedLoss | Ordinary finite straight XYZ vertices, closure and continuous-generation flags map to SpatialPolyline. Codec-created vertex handles and an empty/default vertex layer are scaffolding; nondefault vertex layers and semantic vertex/source properties remain unsupported. Fit/spline-fit, mesh/polyface and unsupported vertex/source properties skip the whole entity. The export result preserves no source-specific 3D polyline variant identity. |
 | `Insert` | Exact/PartialLoss/SkippedLoss/FatalIfInconsistent | Ordinary local references map to BlockInstance. OCS insertion coordinates map to owning-scope placement using the actual pinned CAD axes. Qualified trig intervals and exact residual propagation check each occurrence. Unsupported array/attribute/view/external variants skip as a whole; missing/cyclic targets are fatal. |
-| `Viewport` | Exact/PartialLoss/SkippedLoss | Paper-owned orthographic viewports map frame, target/direction/height/twist, render mode, enabled/locked state, front/back clip and frozen layers. A supported same-paper circle, full ellipse or closed straight/bulged planar polyline may be an active clip, regardless of order. Missing/invalid/unsupported or conflicting active boundaries and perspective skip the whole viewport; deferred snap/grid/UCS and visual state are diagnosed as partial loss. Appearance overrides are not exposed by the pinned CAD Viewport model. |
+| `Viewport` | Exact/PartialLoss/SkippedLoss | Paper-owned orthographic/perspective cameras retain frame, target, unnormalized direction, height, twist, lens millimeters, render, on/off/lock and depth clips. Qualified same-paper active/dormant clip dependencies bind independently of order; invalid camera/ownership/active boundaries skip the dependent viewport. Frozen layers merge with qualified RGB/ACI/opacity/pattern/weight XRecord rows. ShadePlot modes 0–3 are independent from render; unknown modes and remaining visual/icon state retain partial loss. Saved grid/snap/UCS maps through the workspace profile. Current Paper selection remains unavailable. |
 | `Block`, `BlockEnd` | NonSemantic/FatalIfInconsistent/SkippedLoss | Matching structural markers supply record scaffolding, not drawable entities. Contradictory exposed begin-marker name/owner/base is fatal; unmatched markers are unsupported entities. |
 | `Text` | Exact/PartialLoss/SkippedLoss/FatalIfInconsistent | Supported literal Unicode/decorations and all four closed layouts use active OCS anchors, rotation/mirrors, shear and signed thickness. Qualified numeric anchor/baseline preparation uses hard tolerance; font glyphs are unassessed. Unsupported markup/fields/style contexts skip the whole entity; malformed active geometry fails. |
 | `MText` | Exact/PartialLoss/SkippedLoss/FatalIfInconsistent | Qualified WCS placement/direction, attachment/flow/wrap, typed paragraphs/inlines/stacks, explicit column states and opaque background profile. Dynamic manual columns use an Auto final entry: its finite stored height is cache/sentinel metadata (negative DWG, zero DXF or positive); earlier heights remain positive fixed distances and count/list agreement is checked. Source character-basis normalization, spacing dependencies and inactive state are diagnosed. Unsupported active formatting/annotation/column/background profiles skip the whole entity. No font-layout certificate or silent plain-text fallback. |
@@ -338,3 +338,28 @@ Actual AC1032 DXF/DWG tests qualify stored contour/area/reference data, includin
 hole-first ordering, multiple regions, tilted planes and nonuniform blocks.
 Fill evaluation and interactive reactor updates remain unassessed; this is not
 a rendered-pixel guarantee. See [Hatch support](../../../docs/hatch.md).
+## Presentation parity — 2026-10-08
+
+See the [presentation contract](../../../docs/presentation.md) for independent
+native color metadata, common/layer state, PointDisplay, ordinary block metadata,
+exact transparency bytes, standard-weight quantization, relational viewport
+rows and mode-only ShadePlot. Unsupported indexed metadata preserves authored
+RGB with loss; unrepresentable required source appearance never invents white.
+Semantic quantization remains independent of geometric tolerance and Reject.
+
+Known RGB/ACI, alpha, pattern and explicit-weight sections map with format-owned
+reference resolution. Equal duplicates are consumed; contradictory values are
+invalid structure. Unknown/incomplete/mixed XRecord content remains classified;
+only fully consumed qualified containers are exempted. Source/current IDs are
+never copied as target handles. Skipped viewports emit no override/workspace refs.
+Named/custom override identity stays unqualified and diagnosed.
+
+Orthographic and perspective authored Paper cameras are qualified through strict
+native loading and actual DXF/AC1032 DWG readback with independent hand-authored
+camera/landmark constants. The physical profile establishes the overall Paper
+canvas separately; no active Paper choice or external renderer accuracy is inferred.
+Viewport ShadePlot maps independently of render mode and layout quality. Memory
+and DWG mode values 0–3 are qualified; DXF group 170 remains gated by codec PR
+#107, with outgoing browser readback loss reported explicitly. Paper grid flags
+remain gated by #106. Both PRs were still open at qualification, so the audited
+ab2eecd plus explicit viewport-off configuration remains selected.

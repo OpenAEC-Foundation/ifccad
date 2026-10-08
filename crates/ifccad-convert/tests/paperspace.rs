@@ -477,7 +477,8 @@ fn unsupported_medium_omits_only_media_and_definition_loss_reaches_paper() {
     .is_err());
     let mut cad = source();
     let inner = cad.block_records.get("Inner").unwrap().entity_handles[0];
-    cad.get_entity_mut(inner).unwrap().common_mut().invisible = true;
+    cad.get_entity_mut(inner).unwrap().common_mut().color_name =
+        Some("incomplete named-color identity".into());
     let output = import(&cad, IfccadLossPolicy::Allow).unwrap();
     let sheet = &output.validated_source().document().paper_layouts[1];
     let instance = sheet.entities.last().unwrap();

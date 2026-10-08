@@ -90,6 +90,12 @@ fn convert_document(
         layer.transparency = opencadcodec::Transparency::Explicit(0);
     }
     document.header.insertion_units = unit_code(&drawing.length_unit);
+    if let Some(display) = drawing.point_display {
+        (
+            document.header.point_display_mode,
+            document.header.point_display_size,
+        ) = crate::mapping::point_display::to_cad(display);
+    }
     document.header.plotstyle_mode =
         drawing.plot_style_mode == ocdraw::ifccad::IfccadPlotStyleMode::ColorDependent;
     document.header.paper_space_linetype_scaling =
@@ -138,6 +144,12 @@ fn convert_document(
             &format!("layer/{}", layer.id),
             &mut issues,
         );
+        target.flags.off = !layer.visible;
+        target.flags.frozen = layer.frozen;
+        target.flags.locked = layer.locked;
+        target.flags.frozen_in_new_viewport = layer.frozen_in_new_viewports;
+        target.is_plottable = layer.plottable;
+        target.description = layer.description.clone().unwrap_or_default();
         if layer.name == "0" {
             target.handle = document.layers.get("0").expect("default layer").handle;
             *document.layers.get_mut("0").unwrap() = target;
@@ -156,11 +168,12 @@ fn convert_document(
         .blocks
         .iter()
         .filter(|b| {
-            if b.name.starts_with('*') {
+            let record = opencadcodec::BlockRecord::new(&b.name);
+            if record.is_model_space() || record.is_paper_space() {
                 issues.push(diagnostic(
                     "block-skipped",
                     format!("block/{}", b.id),
-                    "reserved or anonymous definition omitted together with referring instances",
+                    "reserved CAD Model/Paper role name omitted together with referring instances",
                 ));
                 false
             } else {
@@ -225,6 +238,7 @@ fn convert_document(
         &mut issues,
         &mut geometry,
     )?;
+    crate::mapping::viewport_overrides::to_cad(drawing, &mut document, &mappings, &mut issues);
     crate::mapping::workspace::to_cad(drawing, &mut document, &mut mappings, &mut issues)?;
     let members = supported
         .iter()

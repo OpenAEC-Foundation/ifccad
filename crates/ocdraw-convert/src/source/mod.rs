@@ -28,6 +28,7 @@ struct SourceCoverage {
     mapped_block_records: std::collections::BTreeSet<opencadcodec::Handle>,
     mapped_workspace_vports: std::collections::BTreeSet<opencadcodec::Handle>,
     mapped_workspace_ucss: std::collections::BTreeSet<opencadcodec::Handle>,
+    consumed_override_objects: std::collections::BTreeSet<opencadcodec::Handle>,
 }
 pub(crate) fn direct_line_losses(line: &opencadcodec::Line) -> Vec<CadToOcdrawLossReason> {
     entities::line_losses(line)
@@ -83,8 +84,12 @@ pub(crate) fn direct_document_losses(
     document: &opencadcodec::CadDocument,
     mapped_vports: &std::collections::BTreeSet<opencadcodec::Handle>,
     mapped_blocks: impl IntoIterator<Item = opencadcodec::Handle>,
+    consumed_override_objects: std::collections::BTreeSet<opencadcodec::Handle>,
 ) -> Vec<CadToOcdrawDiagnostic> {
-    let mut context = SourceCoverage::default();
+    let mut context = SourceCoverage {
+        consumed_override_objects,
+        ..Default::default()
+    };
     context
         .mapped_workspace_ucss
         .extend(document.ucss.iter().map(|ucs| ucs.handle));

@@ -28,7 +28,7 @@ export function createInspection(result,sourceText=''){
    link(key,a['ifccad::layer']?.appearance?.linePattern,'ifccad::layer.appearance.linePattern','pattern');
    link(key,a['ifccad::blockInstance']?.definition,'ifccad::blockInstance.definition','definition');
    for(const kind of ['text','mText'])link(key,a['ifccad::'+kind]?.style,'ifccad::'+kind+'.style','style');
-   const v=a['ifccad::viewport'];if(v){link(key,v.model,'ifccad::viewport.model','model');link(key,v.paperClip?.boundary,'ifccad::viewport.paperClip.boundary','clip');for(const target of v.frozenLayers||[])link(key,target,'ifccad::viewport.frozenLayers','layer');}
+   const v=a['ifccad::viewport'];if(v){link(key,v.model,'ifccad::viewport.model','model');link(key,v.paperClip?.boundary,'ifccad::viewport.paperClip.boundary','clip');for(const [i,row]of(v.layerOverrides||[]).entries()){link(key,row.layer,'ifccad::viewport.layerOverrides.'+i+'.layer','layer');link(key,row.linePattern,'ifccad::viewport.layerOverrides.'+i+'.linePattern','pattern');}}
    if(a['ifccad::layout']||a['ifccad::blockDefinition'])nodes.get(key).children=Object.entries(item.children||{}).filter(([key])=>/^\d+$/.test(key)).sort(([x],[y])=>numeric(x,y)).map(([,target])=>target);
   }
   const role=r=>all.filter(n=>n.attributes?.['ifccad::'+r]).map(n=>n.path);
@@ -49,7 +49,7 @@ export function createInspection(result,sourceText=''){
   for(const n of nodes.values())if(n.type==='blockDefinitions'){const assessment=assessments.get(id(n.values.scopeId));if(assessment)n.values={...n.values,boundsAssessment:assessment};n.children=(scopes.get(id(n.values.scopeId))?.entities||[]).map(e=>'entity:'+id(e));for(const target of n.children)link(n.key,target,'scope.entities','owner');}
   for(const [name,stream]of Object.entries(p.streams||{})){const s=put('stream:'+name,name,stream,'stream');storageRoots.push(s.key);for(const [row,value]of (stream.entityId||[]).entries()){const n=nodes.get('entity:'+id(value));if(n){n.storage={stream:name,row,...(stream.vertexOffset?{offset:stream.vertexOffset[row],count:stream.vertexCount[row]}:{})};s.children.push(n.key);}}}
   for(const name of ['layers','layouts','scopes','blockDefinitions','linePatterns','textStyles','ucsDefinitions','viewState','modelWindows','paperCanvases','drawingWorkspaceState','viewportWorkspaces'])if(p[name]!=null)storageRoots.push(put('table:'+name,name,p[name],'table').key);
-  for(const n of nodes.values())if(n.type==='viewport'){for(const target of n.values.frozenLayers||[])link(n.key,'layer:'+id(target),'frozenLayers','layer');}
+  for(const n of nodes.values())if(n.type==='viewport'){for(const [i,row]of(n.values.layerOverrides||[]).entries()){link(n.key,'layer:'+id(row.layerId),'layerOverrides.'+i+'.layerId','layer');if(row.linePatternId!=null)link(n.key,'pattern:'+id(row.linePatternId),'layerOverrides.'+i+'.linePatternId','pattern');}}
   const layouts=roots.filter(key=>nodes.get(key)?.type==='layout');for(const key of layouts)roots.splice(roots.indexOf(key),1);if(layouts.length)roots.splice(1,0,group('layouts','layouts',layouts));
  }
  const drawingUnit=p.unit||(p.graph?.data||[]).find(n=>n.attributes?.['ifccad::drawing'])?.attributes['ifccad::drawing'].lengthUnit;

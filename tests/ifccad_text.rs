@@ -133,7 +133,7 @@ fn text_and_mtext_keep_authored_content_and_share_only_pure_values() {
                 inlines: vec![MTextInline::Run {
                     text: "literal \\P".into(),
                     character_format: CharacterFormat {
-                        color: Some(TextColor::Explicit("#11AAEE".into())),
+                        color: Some(TextColor::Explicit(IfccadColor::rgb(17, 170, 238))),
                         underline: Some(false),
                         ..Default::default()
                     },

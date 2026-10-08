@@ -94,22 +94,6 @@ pub(crate) fn validate_state(document: &OcdrawDocument) -> Vec<LogicalError> {
                 }
             }
         }
-        if let Some(shading) = viewport.plot_shading_override {
-            let custom = shading.quality.mode == crate::ocdraw::ShadedPlotQualityMode::Custom;
-            if (custom
-                && !shading
-                    .quality
-                    .dpi
-                    .is_some_and(|dpi| (100..=32767).contains(&dpi)))
-                || (!custom && shading.quality.dpi.is_some())
-            {
-                errors.push(error(
-                    "VIEWPORT_SHADING",
-                    format!("{prefix}/plotShadingOverride/{index}"),
-                    "only Custom shading quality carries dpi 100..32767",
-                ));
-            }
-        }
         for override_row in &viewport.layer_overrides {
             if !override_row.frozen
                 && override_row.color.is_none()

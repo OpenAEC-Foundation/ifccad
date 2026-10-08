@@ -15,7 +15,7 @@ fn rich() -> IfccadDocument {
     let character = CharacterFormat {
         underline: Some(false),
         height: Some(TextHeight::Relative { factor: 1.2 }),
-        color: Some(TextColor::Explicit("#01aB03".into())),
+        color: Some(TextColor::Explicit(IfccadColor::rgb(1, 171, 3))),
         ..Default::default()
     };
     let mut inlines = vec![
@@ -62,7 +62,7 @@ fn rich() -> IfccadDocument {
             flow_reversed: true,
         }),
         background: Some(MTextBackground {
-            fill: MTextFill::Color("#12aBcD".into()),
+            fill: MTextFill::Color(IfccadColor::rgb(18, 171, 205)),
             padding: TextPadding::Absolute { distance: 1. },
             opacity: 0.5,
             frame: false,

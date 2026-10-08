@@ -22,7 +22,7 @@ fn base() -> Value {
         "imports": [], "schemas": {}, "data": [
             {"path":"/cad/d1","children":{"model":"/cad/d1/layout/1","layer0":"/cad/d1/layer/0"},"attributes":{"ifccad::drawing":{"profileVersion":"0.1.0","lengthUnit":"mm"}}},
             {"path":"/cad/d1/layout/1","children":{"0":"/cad/d1/e2","1":"/cad/d1/e1"},"attributes":{"ifccad::layout":{"kind":"Model","tabIndex":0}}},
-            {"path":"/cad/d1/layer/0","attributes":{"ifccad::layer":{"name":"0","appearance":{"color":"#ffffff","opacity":1.0,"linePattern":"/cad/d1/linePattern/0","lineWeight":0.25}}}},
+            {"path":"/cad/d1/layer/0","attributes":{"ifccad::layer":{"name":"0","appearance":{"color":{"rgb": [255, 255, 255]},"opacity":1.0,"linePattern":"/cad/d1/linePattern/0","lineWeight":0.25}}}},
             {"path":"/cad/d1/e1","attributes":{"ifccad::entity":{"layer":"/cad/d1/layer/0","appearance":{"color":{"mode":"ByLayer"},"opacity":{"mode":"ByLayer"},"linePattern":{"mode":"ByLayer"},"lineWeight":{"mode":"ByLayer"}}},"ifccad::geom::circle":{"radius":2.0},"ifccad::geom::placement":{"origin":[0,0,0],"xAxis":[1,0,0],"yAxis":[0,1,0]}}},
             {"path":"/cad/d1/e2","attributes":{"ifccad::entity":{"layer":"/cad/d1/layer/0","appearance":{"color":{"mode":"ByLayer"},"opacity":{"mode":"ByLayer"},"linePattern":{"mode":"ByLayer"},"lineWeight":{"mode":"ByLayer"}}},"ifccad::geom::lineSegment":{"start":[0,0,0],"end":[1,0,0]}}}
         ]
@@ -201,13 +201,14 @@ fn fixture_document() -> IfccadDocument {
         x_axis: [1.0, 0.0, 0.0],
         y_axis: [0.0, 1.0, 0.0],
     };
-    let instance = |id, x, color: &str| {
+    let instance = |id, x, color: IfccadColor| {
         IfccadEntity::Native(IfccadNativeEntity {
+            visible: true,
             line_pattern_scale: 1.,
             id,
             layer_id: 2,
             appearance: IfccadEntityAppearance {
-                color: IfccadMode::Explicit(color.into()),
+                color: IfccadMode::Explicit(color),
                 ..by_layer.clone()
             },
             kind: IfccadEntityKind::BlockInstance {
@@ -224,6 +225,7 @@ fn fixture_document() -> IfccadDocument {
         })
     };
     IfccadDocument {
+        point_display: None,
         text_styles: Vec::new(),
         ucs_definitions: vec![],
         model_windows: vec![],
@@ -262,30 +264,48 @@ fn fixture_document() -> IfccadDocument {
         paper_layouts: Vec::new(),
         layers: vec![
             IfccadLayer {
+                description: None,
+                visible: true,
+                frozen: false,
+                locked: false,
+                plottable: true,
+                frozen_in_new_viewports: false,
                 id: 0,
                 name: "0".into(),
                 appearance: IfccadLayerAppearance {
-                    color: "#ffffff".into(),
+                    color: IfccadColor::rgb(255, 255, 255),
                     opacity: 1.0,
                     line_pattern: IfccadLinePatternId(0),
                     line_weight: 0.1,
                 },
             },
             IfccadLayer {
+                description: None,
+                visible: true,
+                frozen: false,
+                locked: false,
+                plottable: true,
+                frozen_in_new_viewports: false,
                 id: 1,
                 name: "Construction".into(),
                 appearance: IfccadLayerAppearance {
-                    color: "#00ff00".into(),
+                    color: IfccadColor::rgb(0, 255, 0),
                     opacity: 0.8,
                     line_pattern: IfccadLinePatternId(0),
                     line_weight: 0.25,
                 },
             },
             IfccadLayer {
+                description: None,
+                visible: true,
+                frozen: false,
+                locked: false,
+                plottable: true,
+                frozen_in_new_viewports: false,
                 id: 2,
                 name: "Symbols".into(),
                 appearance: IfccadLayerAppearance {
-                    color: "#ff0000".into(),
+                    color: IfccadColor::rgb(255, 0, 0),
                     opacity: 1.0,
                     line_pattern: IfccadLinePatternId(0),
                     line_weight: 0.35,
@@ -303,6 +323,7 @@ fn fixture_document() -> IfccadDocument {
             tab_index: 0,
             entities: vec![
                 IfccadEntity::Native(IfccadNativeEntity {
+                    visible: true,
                     line_pattern_scale: 1.,
                     id: 42,
                     layer_id: 1,
@@ -313,6 +334,7 @@ fn fixture_document() -> IfccadDocument {
                     },
                 }),
                 IfccadEntity::Native(IfccadNativeEntity {
+                    visible: true,
                     line_pattern_scale: 1.,
                     id: 7,
                     layer_id: 1,
@@ -328,8 +350,9 @@ fn fixture_document() -> IfccadDocument {
                         }
                     },
                 }),
-                instance(90, 20.0, "#0000ff"),
+                instance(90, 20.0, IfccadColor::rgb(0, 0, 255)),
                 IfccadEntity::Native(IfccadNativeEntity {
+                    visible: true,
                     line_pattern_scale: 1.,
                     id: 9,
                     layer_id: 2,
@@ -339,10 +362,14 @@ fn fixture_document() -> IfccadDocument {
                         placement: placement.clone(),
                     },
                 }),
-                instance(91, 40.0, "#ffff00"),
+                instance(91, 40.0, IfccadColor::rgb(255, 255, 0)),
             ],
         },
         blocks: vec![IfccadBlockDefinition {
+            description: String::new(),
+            anonymous: false,
+            explodable: true,
+            uniform_scaling: false,
             bounds_quality: None,
             bounds: None,
             id: 1,
@@ -350,6 +377,7 @@ fn fixture_document() -> IfccadDocument {
             base_point: [2.0, 0.0, 0.0],
             insertion_unit: "cm".into(),
             entities: vec![IfccadEntity::Native(IfccadNativeEntity {
+                visible: true,
                 line_pattern_scale: 1.,
                 id: 100,
                 layer_id: 0,
@@ -376,6 +404,10 @@ fn nested_document() -> IfccadDocument {
         y_axis: [0.0, 1.0, 0.0],
     };
     document.blocks.push(IfccadBlockDefinition {
+        description: String::new(),
+        anonymous: false,
+        explodable: true,
+        uniform_scaling: false,
         bounds_quality: None,
         bounds: None,
         id: 2,
@@ -384,6 +416,7 @@ fn nested_document() -> IfccadDocument {
         insertion_unit: "mm".into(),
         entities: vec![
             IfccadEntity::Native(IfccadNativeEntity {
+                visible: true,
                 line_pattern_scale: 1.,
                 id: 101,
                 layer_id: 0,
@@ -403,6 +436,7 @@ fn nested_document() -> IfccadDocument {
                 },
             }),
             IfccadEntity::Native(IfccadNativeEntity {
+                visible: true,
                 line_pattern_scale: 1.,
                 id: 102,
                 layer_id: 1,
@@ -538,7 +572,7 @@ fn paper_layout_file() -> Value {
         json!({"path":"/cad/d1/layout/2","children":{"0":"/cad/d1/e201","1":"/cad/d1/e202"},"attributes":{"ifccad::layout":{"kind":"Paper","name":"A3","tabIndex":1,"media":{"width":297.0,"height":420.0,"unit":"mm"}}}}),
         json!({"path":"/cad/d1/layout/3","children":{"0":"/cad/d1/e203"},"attributes":{"ifccad::layout":{"kind":"Paper","name":"Letter","tabIndex":2,"media":{"width":8.5,"height":11.0,"unit":"in"}},"example::note":"retained"}}),
         json!({"path":"/cad/d1/e201","attributes":{"ifccad::entity":{"layer":"/cad/d1/layer/1","appearance":{"color":{"mode":"ByLayer"},"opacity":{"mode":"ByLayer"},"linePattern":{"mode":"ByLayer"},"lineWeight":{"mode":"ByLayer"}}},"ifccad::geom::lineSegment":{"start":[10,10,0],"end":[287,10,0]}}}),
-        json!({"path":"/cad/d1/e202","attributes":{"ifccad::entity":{"layer":"/cad/d1/layer/2","appearance":{"color":{"mode":"Explicit","value":"#ff00ff"},"opacity":{"mode":"ByLayer"},"linePattern":{"mode":"ByLayer"},"lineWeight":{"mode":"ByLayer"}}},"ifccad::blockInstance":{"definition":"/cad/d1/block/2","transform":{"placement":{"origin":[20,20,0],"xAxis":[1,0,0],"yAxis":[0,1,0]},"rotation":0,"scale":[10,10,10]}}}}),
+        json!({"path":"/cad/d1/e202","attributes":{"ifccad::entity":{"layer":"/cad/d1/layer/2","appearance":{"color":{"mode":"Explicit","value":{"rgb": [255, 0, 255]}},"opacity":{"mode":"ByLayer"},"linePattern":{"mode":"ByLayer"},"lineWeight":{"mode":"ByLayer"}}},"ifccad::blockInstance":{"definition":"/cad/d1/block/2","transform":{"placement":{"origin":[20,20,0],"xAxis":[1,0,0],"yAxis":[0,1,0]},"rotation":0,"scale":[10,10,10]}}}}),
         json!({"path":"/cad/d1/e203","attributes":{"ifccad::entity":{"layer":"/cad/d1/layer/1","appearance":{"color":{"mode":"ByLayer"},"opacity":{"mode":"ByLayer"},"linePattern":{"mode":"ByLayer"},"lineWeight":{"mode":"ByLayer"}}},"ifccad::geom::circle":{"radius":0.5},"ifccad::geom::placement":{"origin":[1,1,0],"xAxis":[1,0,0],"yAxis":[0,1,0]}}}),
     ]);
     // These authored fixture layouts explicitly used mm and inch coordinates;
@@ -872,7 +906,7 @@ fn profile_rejects_invalid_unit_and_unknown_geometry() {
 fn profile_rejects_ambiguous_appearance_mode() {
     let mut value = base();
     value["data"][3]["attributes"]["ifccad::entity"]["appearance"]["color"]["value"] =
-        json!("#ff0000");
+        json!({"rgb": [255, 0, 0]});
     assert!(read(&value)
         .unwrap_err()
         .report()
@@ -934,6 +968,7 @@ fn exploratory_line_count_probe() {
     document.model.entities = (1..=1000)
         .map(|id| {
             IfccadEntity::Native(IfccadNativeEntity {
+                visible: true,
                 line_pattern_scale: 1.,
                 id,
                 layer_id: 1,

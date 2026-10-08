@@ -13,9 +13,19 @@ pub struct IfccadViewport {
     pub render_mode: IfccadViewportRenderMode,
     pub view_enabled: bool,
     pub view_locked: bool,
-    pub visible: bool,
     pub paper_clip: IfccadViewportPaperClip,
-    pub frozen_layers: Vec<u64>,
+    pub layer_overrides: Vec<IfccadViewportLayerOverride>,
+    pub plot_shading_override: Option<crate::plot_kernel::ShadedPlotMode>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct IfccadViewportLayerOverride {
+    pub layer_id: u64,
+    pub frozen: bool,
+    pub color: Option<IfccadColor>,
+    pub opacity: Option<f64>,
+    pub line_pattern_id: Option<IfccadLinePatternId>,
+    pub line_weight: Option<f64>,
 }
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -182,11 +192,36 @@ pub(super) fn validate_references(document: &IfccadDocument) -> Result<(), Ifcca
                     "viewport requires Paper ownership and the drawing's Model target",
                 ));
             }
-            let frozen: BTreeSet<_> = v.frozen_layers.iter().copied().collect();
-            if frozen.len() != v.frozen_layers.len() || !frozen.is_subset(&layers) {
+            let overridden: BTreeSet<_> = v.layer_overrides.iter().map(|r| r.layer_id).collect();
+            if overridden.len() != v.layer_overrides.len() || !overridden.is_subset(&layers) {
                 return Err(problem(
-                    "viewport frozen layers must be unique drawing-local references",
+                    "viewport layer overrides must be unique drawing-local references",
                 ));
+            }
+            for row in &v.layer_overrides {
+                if !row.frozen
+                    && row.color.is_none()
+                    && row.opacity.is_none()
+                    && row.line_pattern_id.is_none()
+                    && row.line_weight.is_none()
+                {
+                    return Err(problem(
+                        "viewport layer override requires a frozen or appearance value",
+                    ));
+                }
+                if row.color.as_ref().is_some_and(|c| !c.is_valid())
+                    || row
+                        .opacity
+                        .is_some_and(|v| !v.is_finite() || !(0.0..=1.0).contains(&v))
+                    || row.line_weight.is_some_and(|v| !v.is_finite() || v < 0.0)
+                    || row
+                        .line_pattern_id
+                        .is_some_and(|id| !document.line_patterns.iter().any(|p| p.id == id))
+                {
+                    return Err(problem(
+                        "invalid viewport layer override value or pattern reference",
+                    ));
+                }
             }
             if v.paper_clip.enabled && v.paper_clip.boundary_entity_id.is_none() {
                 return Err(problem("viewport active Paper clip requires a boundary"));

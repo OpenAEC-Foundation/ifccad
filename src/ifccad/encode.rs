@@ -57,7 +57,7 @@ fn verify_readback(bytes: &[u8], document: &IfccadDocument) -> Result<(), Ifccad
     {
         if let Some(entity) = entity.as_native_mut() {
             if let IfccadEntityKind::Viewport(v) = &mut entity.kind {
-                v.frozen_layers.sort_unstable();
+                v.layer_overrides.sort_by_key(|row| row.layer_id);
             }
         }
     }

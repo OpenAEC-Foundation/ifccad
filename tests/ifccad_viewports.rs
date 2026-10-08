@@ -30,12 +30,12 @@ fn viewport() -> IfccadViewport {
         render_mode: IfccadViewportRenderMode::Wireframe,
         view_enabled: true,
         view_locked: false,
-        visible: true,
         paper_clip: IfccadViewportPaperClip {
             enabled: false,
             boundary_entity_id: None,
         },
-        frozen_layers: vec![],
+        layer_overrides: vec![],
+        plot_shading_override: None,
     }
 }
 fn placement(origin: [f64; 3]) -> IfccadPlacement {
@@ -292,7 +292,15 @@ fn frozen_layers_are_a_set_with_exact_large_ids() {
     else {
         panic!()
     };
-    v.frozen_layers = vec![high, low];
+    let frozen = |layer_id| IfccadViewportLayerOverride {
+        layer_id,
+        frozen: true,
+        color: None,
+        opacity: None,
+        line_pattern_id: None,
+        line_weight: None,
+    };
+    v.layer_overrides = vec![frozen(high), frozen(low)];
     let encoded = encode_ifccad_document(&doc).unwrap();
     let read = load_ifccad_bytes(encoded.bytes(), Default::default()).unwrap();
     let IfccadEntityKind::Viewport(v) = &read.document().paper_layouts[0].entities[0]
@@ -302,7 +310,13 @@ fn frozen_layers_are_a_set_with_exact_large_ids() {
     else {
         panic!()
     };
-    assert_eq!(v.frozen_layers, [low, high]);
+    assert_eq!(
+        v.layer_overrides
+            .iter()
+            .map(|row| row.layer_id)
+            .collect::<Vec<_>>(),
+        [low, high]
+    );
     let IfccadEntityKind::Viewport(v) = &mut doc.paper_layouts[0].entities[0]
         .as_native_mut()
         .unwrap()
@@ -310,7 +324,7 @@ fn frozen_layers_are_a_set_with_exact_large_ids() {
     else {
         panic!()
     };
-    v.frozen_layers = vec![high, high];
+    v.layer_overrides = vec![frozen(high), frozen(high)];
     assert!(validate_ifccad_document(&doc).is_err());
     let IfccadEntityKind::Viewport(v) = &mut doc.paper_layouts[0].entities[0]
         .as_native_mut()
@@ -319,7 +333,7 @@ fn frozen_layers_are_a_set_with_exact_large_ids() {
     else {
         panic!()
     };
-    v.frozen_layers = vec![high + 1];
+    v.layer_overrides = vec![frozen(high + 1)];
     assert!(validate_ifccad_document(&doc).is_err());
 }
 

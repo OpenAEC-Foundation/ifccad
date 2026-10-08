@@ -1,4 +1,5 @@
-//! Closed IFCCAD text values; colours are native RGB strings.
+//! Closed IFCCAD text values; colours retain concrete RGB and optional identity.
+use crate::ifccad::IfccadColor;
 use crate::text::*;
 use serde_json::{json, Value};
 
@@ -64,7 +65,7 @@ fn read_height(v: &Value) -> Option<TextHeight> {
         _ => return None,
     })
 }
-fn text_color(v: &TextColor<String>) -> Value {
+fn text_color(v: &TextColor<IfccadColor>) -> Value {
     match v {
         TextColor::Entity => json!({"kind":"entity"}),
         TextColor::ByLayer => json!({"kind":"byLayer"}),
@@ -72,17 +73,17 @@ fn text_color(v: &TextColor<String>) -> Value {
         TextColor::Explicit(c) => json!({"kind":"explicit","color":json!(c)}),
     }
 }
-fn read_text_color(v: &Value) -> Option<TextColor<String>> {
+fn read_text_color(v: &Value) -> Option<TextColor<IfccadColor>> {
     Some(match v.get("kind")?.as_str()? {
         "entity" => TextColor::Entity,
         "byLayer" => TextColor::ByLayer,
         "byBlock" => TextColor::ByBlock,
-        "explicit" => TextColor::Explicit(v.get("color")?.as_str()?.to_owned()),
+        "explicit" => TextColor::Explicit(super::presentation::read_color(v.get("color")?)?),
         _ => return None,
     })
 }
 
-pub(super) fn character(v: &CharacterFormat<String>) -> Value {
+pub(super) fn character(v: &CharacterFormat<IfccadColor>) -> Value {
     let mut row = json!({});
     macro_rules! fields { ($($field:ident=>$key:literal),*) => { $(if let Some(v)=&v.$field { row[$key]=json!(v); })* }; }
     fields!(width_factor=>"widthFactor",tracking=>"tracking",oblique_angle=>"obliqueAngle",underline=>"underline",overline=>"overline",strike_through=>"strikeThrough");
@@ -100,7 +101,7 @@ pub(super) fn character(v: &CharacterFormat<String>) -> Value {
     }
     row
 }
-pub(super) fn read_character(v: &Value) -> Option<CharacterFormat<String>> {
+pub(super) fn read_character(v: &Value) -> Option<CharacterFormat<IfccadColor>> {
     Some(CharacterFormat {
         font: optional(v.get("font"), read_font)?,
         color: optional(v.get("color"), read_text_color)?,
@@ -191,7 +192,7 @@ pub(super) fn read_paragraph(v: &Value) -> Option<ParagraphFormat> {
         space_after: optional(v.get("spaceAfter"), Value::as_f64)?,
     })
 }
-fn inline(v: &MTextInline<String>) -> Value {
+fn inline(v: &MTextInline<IfccadColor>) -> Value {
     match v {
         MTextInline::Run {
             text,
@@ -209,7 +210,7 @@ fn inline(v: &MTextInline<String>) -> Value {
         }
     }
 }
-fn read_inline(v: &Value) -> Option<MTextInline<String>> {
+fn read_inline(v: &Value) -> Option<MTextInline<IfccadColor>> {
     Some(match v.get("kind")?.as_str()? {
         "run" => MTextInline::Run {
             text: v.get("text")?.as_str()?.into(),
@@ -232,10 +233,10 @@ fn read_inline(v: &Value) -> Option<MTextInline<String>> {
         _ => return None,
     })
 }
-pub(super) fn content(v: &[MTextParagraph<String>]) -> Value {
+pub(super) fn content(v: &[MTextParagraph<IfccadColor>]) -> Value {
     Value::Array(v.iter().map(|p| json!({"paragraphFormat":paragraph(&p.paragraph_format),"characterFormat":character(&p.character_format),"inlines":p.inlines.iter().map(inline).collect::<Vec<_>>()})).collect())
 }
-pub(super) fn read_content(v: &Value) -> Option<Vec<MTextParagraph<String>>> {
+pub(super) fn read_content(v: &Value) -> Option<Vec<MTextParagraph<IfccadColor>>> {
     v.as_array()?
         .iter()
         .map(|p| {
@@ -325,18 +326,18 @@ pub(super) fn read_columns(v: &Value) -> Option<MTextColumns> {
         _ => return None,
     })
 }
-pub(super) fn background(v: &MTextBackground<String>) -> Value {
+pub(super) fn background(v: &MTextBackground<IfccadColor>) -> Value {
     json!({"fill":match &v.fill {MTextFill::None=>json!({"kind":"none"}),MTextFill::Canvas=>json!({"kind":"canvas"}),MTextFill::Color(c)=>json!({"kind":"color","color":json!(c)})},
         "padding":match v.padding {TextPadding::Absolute{distance}=>json!({"kind":"absolute","distance":distance}),TextPadding::Relative{factor}=>json!({"kind":"relative","factor":factor})},"opacity":v.opacity,"frame":v.frame})
 }
-pub(super) fn read_background(v: &Value) -> Option<MTextBackground<String>> {
+pub(super) fn read_background(v: &Value) -> Option<MTextBackground<IfccadColor>> {
     let defaults = MTextBackground::default();
     Some(MTextBackground {
         fill: optional(v.get("fill"), |v| {
             Some(match v.get("kind")?.as_str()? {
                 "none" => MTextFill::None,
                 "canvas" => MTextFill::Canvas,
-                "color" => MTextFill::Color(v.get("color")?.as_str()?.to_owned()),
+                "color" => MTextFill::Color(super::presentation::read_color(v.get("color")?)?),
                 _ => return None,
             })
         })?

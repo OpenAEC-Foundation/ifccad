@@ -1,4 +1,5 @@
 //! IFCCAD-owned text identities, independent of standalone drawing tables.
+use super::IfccadColor;
 use crate::text::TextStyleProperties;
 use crate::text::*;
 
@@ -27,10 +28,10 @@ pub struct IfccadMText {
     pub flow: MTextFlow,
     pub wrap_width: Option<f64>,
     pub columns: Option<MTextColumns>,
-    pub background: Option<MTextBackground<String>>,
-    pub character_format: CharacterFormat<String>,
+    pub background: Option<MTextBackground<IfccadColor>>,
+    pub character_format: CharacterFormat<IfccadColor>,
     pub paragraph_format: ParagraphFormat,
-    pub content: Vec<MTextParagraph<String>>,
+    pub content: Vec<MTextParagraph<IfccadColor>>,
 }
 
 pub(super) fn validate_entity(
@@ -87,7 +88,7 @@ pub(super) fn validate_entity(
             }
         }
         super::IfccadEntityKind::MText(t) => {
-            let color = |c: &String| super::document_validation::color(c);
+            let color = |c: &IfccadColor| super::document_validation::color(c);
             let context = MTextValueContext {
                 nominal_height: t.height,
                 wrap_width: t.wrap_width,

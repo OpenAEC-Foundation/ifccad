@@ -11,9 +11,46 @@ struct ViewportWire {
     render_mode: IfccadViewportRenderMode,
     view_enabled: bool,
     view_locked: bool,
-    visible: bool,
     paper_clip: PaperClipWire,
-    frozen_layers: Vec<String>,
+    layer_overrides: Vec<LayerOverrideWire>,
+    #[serde(
+        default,
+        deserialize_with = "super::presentation::present",
+        skip_serializing_if = "Option::is_none"
+    )]
+    plot_shading_override: Option<String>,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct LayerOverrideWire {
+    layer: String,
+    #[serde(default)]
+    frozen: bool,
+    #[serde(
+        default,
+        deserialize_with = "super::presentation::present",
+        skip_serializing_if = "Option::is_none"
+    )]
+    color: Option<IfccadColor>,
+    #[serde(
+        default,
+        deserialize_with = "super::presentation::present",
+        skip_serializing_if = "Option::is_none"
+    )]
+    opacity: Option<f64>,
+    #[serde(
+        default,
+        deserialize_with = "super::presentation::present",
+        skip_serializing_if = "Option::is_none"
+    )]
+    line_pattern: Option<String>,
+    #[serde(
+        default,
+        deserialize_with = "super::presentation::present",
+        skip_serializing_if = "Option::is_none"
+    )]
+    line_weight: Option<f64>,
 }
 #[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -39,8 +76,8 @@ fn id(path: &str, prefix: &str) -> Result<u64, IfccadReport> {
     Ok(id)
 }
 pub(super) fn encode_viewport(viewport: &IfccadViewport, prefix: &str) -> Value {
-    let mut layers = viewport.frozen_layers.clone();
-    layers.sort_unstable();
+    let mut layers: Vec<_> = viewport.layer_overrides.iter().collect();
+    layers.sort_by_key(|r| r.layer_id);
     serde_json::to_value(ViewportWire {
         model: format!("{prefix}/layout/{}", viewport.model_id),
         frame: viewport.frame.clone(),
@@ -48,7 +85,6 @@ pub(super) fn encode_viewport(viewport: &IfccadViewport, prefix: &str) -> Value 
         render_mode: viewport.render_mode,
         view_enabled: viewport.view_enabled,
         view_locked: viewport.view_locked,
-        visible: viewport.visible,
         paper_clip: PaperClipWire {
             enabled: viewport.paper_clip.enabled,
             boundary: viewport
@@ -56,10 +92,29 @@ pub(super) fn encode_viewport(viewport: &IfccadViewport, prefix: &str) -> Value 
                 .boundary_entity_id
                 .map(|id| format!("{prefix}/e{id}")),
         },
-        frozen_layers: layers
+        layer_overrides: layers
             .iter()
-            .map(|id| format!("{prefix}/layer/{id}"))
+            .map(|row| LayerOverrideWire {
+                layer: format!("{prefix}/layer/{}", row.layer_id),
+                frozen: row.frozen,
+                color: row.color.clone(),
+                opacity: row.opacity,
+                line_weight: row.line_weight,
+                line_pattern: row
+                    .line_pattern_id
+                    .map(|id| format!("{prefix}/linePattern/{}", id.0)),
+            })
             .collect(),
+        plot_shading_override: viewport.plot_shading_override.map(|mode| {
+            use crate::plot_kernel::ShadedPlotMode::*;
+            match mode {
+                AsDisplayed => "AsDisplayed",
+                Wireframe => "Wireframe",
+                Hidden => "Hidden",
+                Rendered => "Rendered",
+            }
+            .to_owned()
+        }),
     })
     .expect("validated viewport serializes")
 }
@@ -89,12 +144,39 @@ pub(super) fn decode_viewport(
             format!("invalid viewport payload: {e}"),
         )
     })?;
-    let mut frozen_layers = wire
-        .frozen_layers
+    let mut layer_overrides = wire
+        .layer_overrides
         .iter()
-        .map(|p| id(p, &format!("{prefix}/layer/")))
+        .map(|row| {
+            Ok(IfccadViewportLayerOverride {
+                layer_id: id(&row.layer, &format!("{prefix}/layer/"))?,
+                frozen: row.frozen,
+                color: row.color.clone(),
+                opacity: row.opacity,
+                line_weight: row.line_weight,
+                line_pattern_id: row
+                    .line_pattern
+                    .as_ref()
+                    .map(|p| id(p, &format!("{prefix}/linePattern/")).map(IfccadLinePatternId))
+                    .transpose()?,
+            })
+        })
         .collect::<Result<Vec<_>, _>>()?;
-    frozen_layers.sort_unstable();
+    layer_overrides.sort_by_key(|r| r.layer_id);
+    let plot_shading_override = wire
+        .plot_shading_override
+        .as_deref()
+        .map(|value| {
+            use crate::plot_kernel::ShadedPlotMode::*;
+            Ok(match value {
+                "AsDisplayed" => AsDisplayed,
+                "Wireframe" => Wireframe,
+                "Hidden" => Hidden,
+                "Rendered" => Rendered,
+                _ => return Err(IfccadReport::one("invalid viewport plot shading mode")),
+            })
+        })
+        .transpose()?;
     Ok(IfccadViewport {
         workspace: None,
 
@@ -104,7 +186,6 @@ pub(super) fn decode_viewport(
         render_mode: wire.render_mode,
         view_enabled: wire.view_enabled,
         view_locked: wire.view_locked,
-        visible: wire.visible,
         paper_clip: IfccadViewportPaperClip {
             enabled: wire.paper_clip.enabled,
             boundary_entity_id: wire
@@ -114,6 +195,7 @@ pub(super) fn decode_viewport(
                 .map(|p| id(p, &format!("{prefix}/e")))
                 .transpose()?,
         },
-        frozen_layers,
+        layer_overrides,
+        plot_shading_override,
     })
 }

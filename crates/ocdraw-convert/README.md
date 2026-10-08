@@ -15,6 +15,12 @@ Format-specific tolerance domains and report adaptation live in
 geometry implementation or forwarding `geometry/` module.
 Both formats use [neutral core geometry](../../docs/geometry/shared-geometry.md).
 The core format implementation remains usable without opencadcodec.
+CAD presentation decisions and strict XRecord grammar use the ID-free
+cad-presentation-convert companion. Native IDs, reference binding and diagnostics
+stay in this adapter. See [presentation coverage](../../docs/presentation.md),
+including qualified perspective Paper cameras and the remaining grid/ShadePlot
+transport gates.
+
 The dependency and public Rust reexport use the upstream name `opencadcodec`
 at a shared fixed revision with `ifccad-convert`. The
 [dependency audit](../../docs/geometry/opencadcodec-update-2026-10-05.md) records
