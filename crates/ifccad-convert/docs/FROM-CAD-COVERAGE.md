@@ -233,9 +233,9 @@ transparency and active external style-table contents retain located restriction
 Media never infer geometry rescaling or containment. Fully default CAD plot fields
 canonicalize to absence; authored identical-default intent is indistinguishable.
 
-Both routes expose per-Paper output-mapping assessments. Fixed physical output
-resolves one-micrometre default accuracy per layout; unknown/Fit/pixel uses zero
-coordinate residual. Explicit physical requests fail without fixed mappings,
+Both routes expose per-Paper output-mapping assessments. Default is exactly 1e-9
+coordinate per domain. Explicit physical requests fail without fixed mappings
+unless an independent coordinate fallback is explicitly supplied,
 including empty layouts and targets that lost their configuration. Definition-local
 and signed/nonuniform nested-root proofs stay mandatory. Native/typed-CAD/file
 exchange qualification and source-graph projection checks remain distinct.
@@ -255,13 +255,13 @@ nondefault per-vertex metadata and unsupported families retain explicit omission
 Zero/full/multiple-turn ARC and unsupported elliptic spans are not synthesized
 as another kind. Invalid scalar values in every recognized family remain fatal.
 
-The converter now has `geometry_tolerance`, shared with OCDraw: default one
-micrometre in known units, zero for unitless, with exact/drawing-unit/physical
+The converter now has `geometry_tolerance`, shared with OCDraw: default exactly
+1e-9 in each coordinate domain, with exact/drawing-unit/physical
 caller choices. Proven geometric rounding within the selected limit is reported
 and accepted under Allow/Reject; exceedance and incomplete proof return typed
 Geometry errors without output. Raw source-projection precision, semantic losses
 and scale clamping remain distinct. Model/definition limits use drawing units;
-Paper limits use the fixed physical output mapping, not sheet dimensions. Local definitions,
+Explicit physical Paper limits use the fixed output mapping, not sheet dimensions. Local definitions,
 including unused ones, and every retained nested occurrence are assessed.
 Full conics and bulged segment-circle enclosures supplement sampled witnesses.
 

@@ -1,6 +1,23 @@
 # CAD Format Explorer
 
-Selecting an IFCCAD element in the tree also selects its mapped object in the
+Geometric tolerance defaults to exactly 1e-9 in each coordinate domain. The
+Overview toolbar opens an anchored popup; expanded Conversion / checks shows
+the same controls in its left column. Draft values are retained across these
+views and take effect on Apply. Exact remains zero. Custom settings choose
+coordinates of each space or a physical mm/m limit with an independently
+editable coordinate fallback (initially 1e-9) for unitless Model and Paper without
+a fixed physical plot scale. The generic Unit label is now Model unit. Effective
+tolerances list certified limits from the current conversion result, with
+fallback indications; changed drafts identify that limits update after Apply.
+The controls target input and output together by default, or input/output alone.
+Separate choices retain the other boundary's limit. The summary indicates when
+they differ, and effective limits are grouped by conversion step. Input tolerance
+applies to CAD import; native-file validation does not use it. Output tolerance
+also applies to roundtrip CAD readback.
+Physical-only callers without an explicit fallback keep strict rejection of
+unknown physical meaning. These options reach both native routes and CAD readback.
+
+Selecting an IFCCAD or OCDraw element in the tree also selects its mapped object in the
 generated Open CAD Studio document. The link comes from conversion and is
 qualified against the written CAD readback; IDs/handles remain strings. Selection
 waits for existing preparation and never triggers an additional conversion.

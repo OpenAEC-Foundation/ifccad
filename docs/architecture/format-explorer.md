@@ -296,6 +296,30 @@ spelling. Exact original bytes continue to govern original native downloads.
 
 ## Conversion settings and tolerance
 
+Overview uses a tolerance summary button opening a viewport-clamped modal popup
+above the conversion strip. Escape, the close button and outside click dismiss
+it and restore trigger focus. Full Conversion / checks moves the same controls
+into the left settings column. Values persist across views. Draft edits do not
+alter the current result until Apply; applying from the popup closes it and runs
+the existing shared conversion-settings action. Narrow screens center the dialog.
+The context label explicitly says Model unit; Paper never inherits it.
+
+Custom physical settings include a separately editable coordinate fallback for
+unknown physical domains. The effective-limits disclosure reads actual certified
+Model/Paper domain limits from conversion evidence, not guessed units or rounded
+preview arithmetic. When draft settings differ, it identifies the rows as the
+current result and notes that limits update after Apply.
+
+Settings target both conversion boundaries by default, or input/output alone.
+Applying to one boundary retains the other's policy. The summary explicitly
+indicates separate limits and its accessible title describes both. Effective
+limits are grouped by the selected boundaries. Browser CAD requests retain
+`conversionOptions` for original CAD import and optional `exportConversionOptions`
+for native-to-CAD export/readback; absence of the latter retains the former
+single-policy request behavior. The preview controller changes output options
+without replacing the original CAD input options. Native-file input validation
+is independent of geometric conversion tolerance.
+
 Controls are grouped by operation. CAD input has a native target; native input
 has a CAD output format/version. Native download is an action in Contents.
 CAD output format/version and tolerance are shared between export and the
@@ -318,7 +342,7 @@ the qualified restoration rules and each route's capabilities remain unchanged.
 
 | Tolerance choice | Applied meaning |
 | --- | --- |
-| Standaard | Exactly 1 µm in known drawing units or fixed physical Paper output; zero coordinate residual when physical meaning is unknown |
+| Standaard | Exactly 1e-9 in each domain’s own coordinates, independent of physical meaning |
 | Exact | Zero geometric residual |
 | Zelf instellen | Finite nonnegative value in millimetres, metres or each applicable drawing-coordinate domain |
 
@@ -329,8 +353,9 @@ Keep the control visible beside
 conversion settings and show each domain's effective bound and coordinate meaning.
 Custom units remain explicit. Model uses the drawing unit; each Paper layout uses
 its fixed plot mapping to resolve physical tolerances. Unknown Paper mapping
-rejects explicit physical requests, including when the medium has known physical
-dimensions. Reports retain separate limits and deviations per domain. With
+requires an explicit independent coordinate fallback for physical requests,
+including when the medium has known physical dimensions. Without fallback,
+physical requests remain rejected in unknown domains. Reports retain separate limits and deviations per domain. With
 drawing-coordinate tolerance, the same entered number is interpreted directly
 in each domain's coordinates and must be explained as such.
 
@@ -355,8 +380,9 @@ output conversion retain separate evidence in the report.
 
 ## Conversion report and CAD session
 
-IFCCAD tree selection uses transient export `viewerSelection` metadata. Native
-paths map to hexadecimal CAD handles and the actual CAD layout name only after
+IFCCAD and OCDraw tree selection use transient export `viewerSelection` metadata.
+IFCCAD node paths and OCDraw `entity:<decimal ID>` inspection keys map to hexadecimal
+CAD handles and the actual CAD layout name only after
 readback confirms the handle, entity variant and owner. Native file storage is
 unchanged. The bridge activates the generated document, verifies its expected
 identity and layout, applies selection and reads it back to confirm. Commands or
@@ -430,10 +456,9 @@ native drawing model directly. Tab changes retain the session and its edits.
 Replacing generated output preserves edited documents under the existing bridge
 behavior; no automatic save/discard is introduced. Viewer restart is explicit.
 
-The application does not promise cross-selection highlighting between its
-tree and Open CAD Studio until the pinned bridge supplies a verified mapping.
-The tree and inspector are immediately linked; graphical similarity remains
-separate from conversion evidence.
+The tree and inspector are immediately linked; tree-to-CAD selection uses only
+the verified export mapping. CAD-to-tree selection is not implemented. Graphical
+similarity remains separate from conversion evidence.
 
 ## Presentation and processing boundaries
 

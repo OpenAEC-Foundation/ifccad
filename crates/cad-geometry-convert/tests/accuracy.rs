@@ -3,15 +3,10 @@ use num_rational::BigRational;
 use ocdraw::geometry_kernel::CoordinateLengthUnit as Unit;
 
 #[test]
-fn physical_defaults_resolve_exactly_without_guessing_unitless_scale() {
-    for (unit, numerator, denominator) in [
-        (Unit::Millimetre, 1, 1000),
-        (Unit::Metre, 1, 1_000_000),
-        (Unit::Inch, 1, 25400),
-        (Unit::Unitless, 0, 1),
-    ] {
+fn coordinate_default_is_equal_in_each_domain_without_guessing_physical_scale() {
+    for unit in [Unit::Millimetre, Unit::Metre, Unit::Inch, Unit::Unitless] {
         let resolved = GeometryTolerance::default().resolve(unit).unwrap();
-        let expected = BigRational::new(numerator.into(), denominator.into());
+        let expected = BigRational::new(1.into(), 1_000_000_000.into());
         assert_eq!(resolved.lower, expected);
         assert_eq!(resolved.upper, expected);
     }

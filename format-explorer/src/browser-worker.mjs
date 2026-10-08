@@ -16,7 +16,16 @@ function selectedFile(request){
 export function processBrowserRequest(request,wasm,onProgress=()=>{}){
  const file=selectedFile(request),operation=request.export;
  const options=request.conversionOptions||request.preserveSplines===true?{tolerance:normalizeTolerance(request.conversionOptions?.tolerance??{mode:"default"}),...(request.preserveSplines===true?{preserveSplines:true}:{})}:undefined;
- const invoke=(name,args)=>{if(name==='convert_cad_to_ifccad'&&request.preserveSplines===true){const capabilities=typeof wasm.conversion_capabilities==='function'?parsePresentationJson(wasm.conversion_capabilities()):{};if(capabilities.ifccad?.splinePreservation!==true||typeof wasm.convert_cad_to_ifccad_with_options!=='function')throw Error('IFCCAD spline preservation is unavailable in this processor');}if(options){if(typeof wasm[name+'_with_options']==='function')return wasm[name+'_with_options'](...args,JSON.stringify(options));if(options.tolerance.mode!=='default')throw Error('This converter build does not support adjustable tolerance options');}if(name==='convert_cad_to_drawing'&&request.preserveSplines===true){if(typeof wasm.convert_cad_to_drawing_with_preservation!=='function')throw Error('Spline preservation is unavailable in this processor');return wasm.convert_cad_to_drawing_with_preservation(...args,true);}return wasm[name](...args);};
+ const exportOptions=request.exportConversionOptions?{tolerance:normalizeTolerance(request.exportConversionOptions.tolerance??{mode:'default'})}:options;
+ const invoke=(name,args,config=options)=>{
+  const capabilities=typeof wasm.conversion_capabilities==='function'?parsePresentationJson(wasm.conversion_capabilities()):{};
+  if(typeof wasm.conversion_capabilities==='function'&&(config?.tolerance.mode??'default')==='default'&&capabilities[drawingFormat]?.coordinateToleranceDefault!==true)throw Error('Coordinate default tolerance is unavailable in this processor');
+  if(config?.tolerance.coordinateFallback!==undefined&&capabilities[drawingFormat]?.coordinateToleranceFallback!==true)throw Error('Coordinate tolerance fallback is unavailable in this processor');
+  if(name==='convert_cad_to_ifccad'&&request.preserveSplines===true&&(capabilities.ifccad?.splinePreservation!==true||typeof wasm.convert_cad_to_ifccad_with_options!=='function'))throw Error('IFCCAD spline preservation is unavailable in this processor');
+  if(config){if(typeof wasm[name+'_with_options']==='function')return wasm[name+'_with_options'](...args,JSON.stringify(config));if(config.tolerance.mode!=='default')throw Error('This converter build does not support adjustable tolerance options');}
+  if(name==='convert_cad_to_drawing'&&request.preserveSplines===true){if(typeof wasm.convert_cad_to_drawing_with_preservation!=='function')throw Error('Spline preservation is unavailable in this processor');return wasm.convert_cad_to_drawing_with_preservation(...args,true);}
+  return wasm[name](...args);
+ };
  const drawingFormat=request.kind==='ifccad'?'ifccad':request.kind==='cad'?(request.drawingFormat??'ocdraw'):'ocdraw';
  if(!['ocdraw','ifccad'].includes(drawingFormat))throw Error('Invalid drawing format');
  if(operation&&(![drawingFormat,'dxf','dwg'].includes(operation.format)||(['dxf','dwg'].includes(operation.format)&&!supportsCadVersion(operation.version??defaultCadVersion))))throw Error('Invalid export selection');
@@ -34,7 +43,7 @@ export function processBrowserRequest(request,wasm,onProgress=()=>{}){
  }
  const drawing=request.kind==='cad'?decodeBase64(opening.export.download.base64):file.bytes;
  onProgress('exporting');
- const result=parsePresentationJson(drawingFormat==='ifccad'?invoke('export_ifccad',[request.name,drawing,operation.format,operation.version??defaultCadVersion]):invoke('export_drawing',[request.name,drawing,operation.format,operation.version??defaultCadVersion]));
+ const result=parsePresentationJson(drawingFormat==='ifccad'?invoke('export_ifccad',[request.name,drawing,operation.format,operation.version??defaultCadVersion],exportOptions):invoke('export_drawing',[request.name,drawing,operation.format,operation.version??defaultCadVersion],exportOptions));
  result.nativeSourceText=opening.nativeSourceText;
  result.conversionCapabilities=opening.conversionCapabilities;
  if(!result.presentation)result.presentation=opening.presentation;

@@ -14,10 +14,15 @@ reports never compare a global numeric maximum across unlike units. The exact
 registry/parsec assumptions below are unchanged by this extraction. See
 [shared geometry](shared-geometry.md) for public options and evidence.
 
-Physical tolerance defaults to exactly one micrometre, except unitless drawings
-default to exact geometry. An explicitly requested physical tolerance on unitless
-data is rejected, including zero. Exact and drawing-coordinate tolerances do not
-need a physical unit. Finite supplied tolerances retain their exact binary64
+Tolerance defaults to exactly 1/1,000,000,000 in each domain's own coordinates,
+including known-unit Model Space and Paper with a fixed physical plot mapping.
+It is an absolute coordinate limit, not a physical length or a relative error.
+Exact remains zero. An explicit physical tolerance requires a known unit or fixed
+physical Paper scale, including zero, unless the caller explicitly supplies
+`with_coordinate_fallback(value)`. The independent fallback applies only where
+physical meaning is unknown, never by borrowing the Model unit for Paper.
+Exact and drawing-coordinate tolerances do not need a physical unit.
+Finite supplied tolerances retain their exact binary64
 values; all rational unit factors are constructed as integer fractions.
 
 Parsec uses the exact definition `K/pi` metres, `K=648000*149597870700`. A metre

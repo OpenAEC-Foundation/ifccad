@@ -80,11 +80,11 @@ Printable-relative offsets, transparency and external style contents retain
 explicit CAD restrictions.
 
 Both routes report drawing and individual Paper domains, without a cross-domain
-maximum. Default physical Paper accuracy is one micrometre on the output, divided
-by the fixed metres-per-coordinate factor. Unknown/Fit/pixel mappings default to
-zero coordinate residual. Explicit coordinate limits apply directly; explicit
+maximum. Default accuracy is exactly 1e-9 in each domain's own coordinates.
+Explicit coordinate limits apply directly; explicit
 physical requests require a fixed physical mapping, including empty layouts,
-with typed PaperTolerance errors carrying the layout ID.
+with typed PaperTolerance errors carrying the layout ID. A physical request can
+explicitly add an independent coordinate fallback for unknown/Fit/pixel mappings.
 Output mapping loss cannot acquire a physical certificate: source/target limits
 are combined conservatively and missing target mapping remains unknown. Nested
 signed/nonuniform occurrences are checked in their root domain as well as locally.

@@ -310,6 +310,9 @@ fn export_drawing_with_options(
     }
     let geometry = crate::options::geometry(converted.geometry_assessment());
     let text = text_report(converted.text_assessment());
+    let selection_candidates =
+        crate::selection::ocdraw_candidates(converted.entity_mapping(), converted.document());
+    let mut viewer_selection = Value::Null;
     let mut returned = crate::cad::export(
         output,
         converted.into_document(),
@@ -317,11 +320,18 @@ fn export_drawing_with_options(
         format,
         version,
         diagnostics,
-        |_| Ok(Value::Null),
+        |readback| {
+            viewer_selection =
+                crate::selection::qualified_selection(&selection_candidates, readback, "ocdraw");
+            Ok(Value::Null)
+        },
     );
     returned["export"]["geometry"] = geometry;
     returned["export"]["text"] = text;
     returned["export"]["options"] = options.value();
+    if returned["failure"].is_null() {
+        returned["export"]["viewerSelection"] = viewer_selection;
+    }
     returned
 }
 

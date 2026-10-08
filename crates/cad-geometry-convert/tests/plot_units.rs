@@ -39,21 +39,21 @@ fn paper_limit_uses_fixed_mapping_not_medium() {
     };
     assert_eq!(
         resolve_paper_tolerance(GeometryTolerance::default(), &mapping).unwrap(),
-        ResolvedTolerance::exact(q(1, 2000))
+        ResolvedTolerance::exact(q(1, 1_000_000_000))
     );
     let inch = PaperMapping::FixedPhysical {
         metres_per_coordinate: q(127, 5000),
     };
     assert_eq!(
         resolve_paper_tolerance(GeometryTolerance::default(), &inch).unwrap(),
-        ResolvedTolerance::exact(q(1, 25400))
+        ResolvedTolerance::exact(q(1, 1_000_000_000))
     );
 }
 #[test]
 fn unknown_paper_mapping_never_borrows_physical_units() {
     assert_eq!(
         resolve_paper_tolerance(GeometryTolerance::default(), &PaperMapping::Unknown).unwrap(),
-        ResolvedTolerance::exact(q(0, 1))
+        ResolvedTolerance::exact(q(1, 1_000_000_000))
     );
     assert_eq!(
         resolve_paper_tolerance(

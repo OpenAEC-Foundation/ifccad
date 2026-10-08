@@ -98,11 +98,12 @@ repair. Other owners, values, applications and undecodable payloads remain losse
 ## Supported slice
 
 Both directions accept `geometry_tolerance` and expose `geometry_assessment()`.
-The default is one micrometre in known Model units or fixed physical Paper output, and zero when output meaning is unknown;
+The default is exactly 1e-9 in each domain's own coordinates, independent of physical meaning;
 use `IfccadGeometryTolerance::exact()` for zero residual or
 `IfccadGeometryTolerance::drawing_units(1e-6)?` for a unitless coordinate budget.
 Physical requests require a known drawing unit or fixed physical Paper mapping in
-every retained domain, including empty layouts. Model/definitions use drawing units;
+every retained domain, including empty layouts, unless `with_coordinate_fallback(value)`
+explicitly supplies a coordinate limit for unknown domains. Model/definitions use drawing units;
 Paper uses plot units and ratio. Bounds/media never establish a mapping.
 See the [shared geometry and accuracy contract](../../docs/geometry/shared-geometry.md)
 for nested occurrence proof, conservative bulge limits and separate file checks.

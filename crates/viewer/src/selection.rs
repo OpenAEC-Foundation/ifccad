@@ -4,7 +4,7 @@ use ocdraw::ifccad::IfccadDocument;
 use ocdraw_convert::opencadcodec::{objects::ObjectType, CadDocument, EntityType, Handle};
 use serde_json::{json, Value};
 
-pub(crate) struct IfccadSelectionCandidate {
+pub(crate) struct CadSelectionCandidate {
     path: String,
     handle: Handle,
     owner: Handle,
@@ -16,7 +16,7 @@ pub(crate) fn ifccad_candidates(
     drawing: &IfccadDocument,
     mappings: &IfccadMappings,
     cad: &CadDocument,
-) -> Vec<IfccadSelectionCandidate> {
+) -> Vec<CadSelectionCandidate> {
     let mut candidates = Vec::new();
     for (layout_id, entities) in std::iter::once((drawing.model.id, &drawing.model.entities))
         .chain(drawing.paper_layouts.iter().map(|p| (p.id, &p.entities)))
@@ -35,7 +35,7 @@ pub(crate) fn ifccad_candidates(
             let Some(target) = cad.get_entity(handle) else {
                 continue;
             };
-            candidates.push(IfccadSelectionCandidate {
+            candidates.push(CadSelectionCandidate {
                 path: format!("/cad/d{}/e{}", drawing.drawing_id, entity.id()),
                 handle,
                 owner: target.common().owner_handle,
@@ -47,9 +47,44 @@ pub(crate) fn ifccad_candidates(
     candidates
 }
 
+pub(crate) fn ocdraw_candidates(
+    mappings: &std::collections::BTreeMap<u64, Handle>,
+    cad: &CadDocument,
+) -> Vec<CadSelectionCandidate> {
+    mappings
+        .iter()
+        .filter_map(|(id, handle)| {
+            let entity = cad.get_entity(*handle)?;
+            let owner = entity.common().owner_handle;
+            // Only entities directly owned by a layout have a visible instance.
+            let layout = cad.objects.values().find_map(|object| match object {
+                ObjectType::Layout(layout) if layout.block_record == owner => {
+                    Some(layout.name.clone())
+                }
+                _ => None,
+            })?;
+            Some(CadSelectionCandidate {
+                path: format!("entity:{id}"),
+                handle: *handle,
+                owner,
+                kind: std::mem::discriminant(entity),
+                layout,
+            })
+        })
+        .collect()
+}
+
 pub(crate) fn qualified_ifccad_selection(
-    candidates: &[IfccadSelectionCandidate],
+    candidates: &[CadSelectionCandidate],
     readback: &CadDocument,
+) -> Value {
+    qualified_selection(candidates, readback, "ifccad")
+}
+
+pub(crate) fn qualified_selection(
+    candidates: &[CadSelectionCandidate],
+    readback: &CadDocument,
+    format: &str,
 ) -> Value {
     let entities: Vec<_> = candidates.iter().filter_map(|candidate| {
         let entity = readback.get_entity(candidate.handle)?;
@@ -57,7 +92,7 @@ pub(crate) fn qualified_ifccad_selection(
             && std::mem::discriminant(entity) == candidate.kind)
             .then(|| json!({"path":candidate.path,"handle":format!("{:X}",candidate.handle.value()),"layout":candidate.layout}))
     }).collect();
-    json!({"format":"ifccad","entities":entities})
+    json!({"format":format,"entities":entities})
 }
 
 #[cfg(test)]

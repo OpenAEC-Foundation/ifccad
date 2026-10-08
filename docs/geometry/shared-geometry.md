@@ -37,11 +37,13 @@ See [layout output](../layout-output.md) for medium, scale and migration rules.
 
 ## Accuracy policy
 
-Both directions expose `geometry_tolerance`. Default is one micrometre in known
-Model units and on known fixed physical Paper output; unknown domains require zero
-coordinate residual. `drawing_units(x)` applies directly in each numerical domain.
+Both directions expose `geometry_tolerance`. Default is exactly 1e-9 in each
+numerical domain's own coordinates, independent of Model units and Paper plot
+scale. Exact remains zero. `drawing_units(x)` applies directly in each numerical domain.
 Explicit metres/mm requests require a known drawing unit or fixed physical Paper
-mapping, including empty retained layouts. Medium dimensions and shaded DPI never
+mapping, including empty retained layouts, unless an explicit independent
+`with_coordinate_fallback(x)` supplies a coordinate limit for unknown domains.
+Known physical domains retain the physical request. Medium dimensions and shaded DPI never
 supply missing Paper meaning. Exact rational scale factors resolve physical limits
 without rounding the accepted bound. An unrepresentable target medium/plot mapping
 cannot certify physical output; source/target limits are combined conservatively.

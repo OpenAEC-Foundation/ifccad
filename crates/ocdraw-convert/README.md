@@ -84,8 +84,9 @@ Simple unused records, entity scales and polyline generation are retained.
 
 Conversion diagnoses unsupported source properties and target limitations;
 `Reject` rejects semantic loss. Numerical accuracy is a separate hard limit.
-The default is one micrometre for known units and exact conversion for unitless
-drawings. An explicit physical tolerance requires a known unit. Assessment
+The default is exactly 1e-9 in each domain's own coordinates. Exact conversion is
+explicitly available. A physical tolerance requires known physical meaning unless
+`with_coordinate_fallback(value)` supplies an independent limit for unknown domains. Assessment
 covers nested block occurrences as well as definition-local geometry; scale
 can amplify local rounding. Outcomes expose `geometry_assessment()` and
 source/target entity mappings.

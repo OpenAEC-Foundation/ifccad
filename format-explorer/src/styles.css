@@ -119,6 +119,29 @@
 #cad-controls label{flex:1 1 85px}
 #application[data-workspace=overview] #cad-controls{flex-wrap:nowrap}
 #application[data-workspace=overview] #cad-controls label{flex:none}
+#tolerance-inline:empty{display:none}
+#tolerance-dialog{position:fixed;margin:0;right:auto;bottom:auto;width:min(460px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto}
+#tolerance-fields label,#application[data-workspace=overview] #tolerance-fields label{display:flex;flex-direction:column;align-items:stretch;gap:6px;margin:12px 0;font-size:12px}
+#tolerance-fields input,#tolerance-fields select,#application[data-workspace=overview] #tolerance-fields input,#application[data-workspace=overview] #tolerance-fields select{width:100%;min-width:0;font-size:14px;padding:7px}
+#tolerance-fields #custom-tolerance,#application[data-workspace=overview] #tolerance-fields #custom-tolerance{display:block}
+.tolerance-value-row{display:grid;grid-template-columns:minmax(0,1fr) 85px;gap:8px;align-items:end}
+#tolerance-coordinate-unit{padding-bottom:20px;font-size:12px}
+#tolerance-fallback-control{border-top:1px solid var(--theme-border);padding-top:8px;margin-top:14px}
+#tolerance-fallback{max-width:160px}
+#tolerance-fallback-control>span{font-size:12px}
+#tolerance-fields .secondary{font-size:12px;margin:8px 0;line-height:1.5}
+#tolerance-domains{border-top:1px solid var(--theme-border);padding-top:12px;margin-top:16px;font-size:12px}
+.tolerance-domain{display:grid;gap:3px;padding:10px 0;border-bottom:1px solid var(--theme-border);overflow-wrap:anywhere}
+.tolerance-domain strong{font-weight:600}.tolerance-domain .secondary{margin:0!important}
+#tolerance-error{color:var(--theme-error,#dc2626);font-size:12px}
+#tolerance-popup-apply{margin-top:18px}
+#tolerance-dialog[open]{display:flex;flex-direction:column;overflow:hidden}
+#tolerance-dialog>.dialog-heading,#tolerance-popup-apply{flex-shrink:0}
+#tolerance-dialog-content{min-height:0;overflow:auto;padding-right:3px}
+#tolerance-open{text-align:left}
+#application[data-workspace=conversion] .conversion-layout{grid-template-columns:300px minmax(0,1fr)}
+#application[data-workspace=overview] #tolerance-inline{display:none}
+@media(max-width:620px){#tolerance-dialog{inset:0;margin:auto}#application[data-workspace=conversion] .conversion-layout{grid-template-columns:1fr}}
 .content-heading h1{margin:0}
 #content-filename{display:block;overflow-wrap:anywhere;font-size:11px;max-width:260px}
 #content-validity{font-size:11px;color:var(--theme-accent)}

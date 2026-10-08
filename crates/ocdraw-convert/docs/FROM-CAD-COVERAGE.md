@@ -216,8 +216,8 @@ actual axes returned by the pinned helper after robust scaled normalization.
 It never assumes repeated normalization preserves all source normal bits.
 
 `geometry_tolerance` is a hard Euclidean limit under both `Allow` and `Reject`.
-The default is exactly one micrometre for known drawing units and zero for
-unitless drawings. Explicit physical tolerances require a known unit. Unit
+The default is exactly 1e-9 in each domain’s own coordinates. Explicit physical
+tolerances require known physical meaning or an explicit coordinate fallback. Unit
 conversion and squared residual comparison use exact rational values; distance
 reports give outward bounds in drawing units. Every emitted line endpoint,
 polyline vertex and active bulged-segment midpoint is covered. Failure to establish accuracy returns a typed error
@@ -273,7 +273,7 @@ independent of limits checking and plot model-type flags. The current header tra
 the active layout; inactive Model state is not overwritten by an active Paper value.
 
 Physical Paper accuracy derives from each fixed mapping, including nested roots;
-unknown/Fit/pixel defaults to exact coordinates. Explicit physical requests require
+default is 1e-9 Paper coordinate, including unknown/Fit/pixel. Explicit physical requests require
 known mappings even for empty layouts. No combined cross-domain maximum is exposed.
 Exact scalar conversion, raster qualification and medium-only default ambiguity
 follow [layout output](../../../docs/layout-output.md). Evidence: ocdraw_plot_settings,

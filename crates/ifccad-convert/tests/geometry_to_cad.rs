@@ -84,6 +84,13 @@ fn signed_nested_scale_cannot_hide_an_amplified_residual() {
 
 #[test]
 fn paper_occurrences_compare_error_in_their_declared_coordinate_unit() {
+    let options = IfccadToCadOptions {
+        geometry_tolerance: IfccadGeometryTolerance::millimetres(0.001)
+            .unwrap()
+            .with_coordinate_fallback(0.)
+            .unwrap(),
+        ..Default::default()
+    };
     let mut d = nested([0.; 3]);
     d.model.entities.clear();
     let inner = d.blocks.iter_mut().find(|b| b.name == "Inner").unwrap();
@@ -98,7 +105,7 @@ fn paper_occurrences_compare_error_in_their_declared_coordinate_unit() {
         closed: false,
         line_pattern_generation: IfccadLinePatternGeneration::PerSegment,
     };
-    assert!(ifccad_document_to_cad_document(&d, Default::default()).is_ok());
+    assert!(ifccad_document_to_cad_document(&d, options).is_ok());
     let mut e = primitives().model.entities[0].clone();
     e.as_native_mut().unwrap().id = d.id_counters.allocate_entity_id().unwrap();
     e.as_native_mut().unwrap().kind = IfccadEntityKind::BlockInstance {
@@ -120,15 +127,14 @@ fn paper_occurrences_compare_error_in_their_declared_coordinate_unit() {
             ..Default::default()
         },
         id,
-        name: "Inch paper".into(),
+        name: "Unknown-scale paper".into(),
         tab_index: 1,
         bounds: None,
         entities: vec![e],
     });
-    let Err(IfccadConversionError::Geometry(error)) =
-        ifccad_document_to_cad_document(&d, Default::default())
+    let Err(IfccadConversionError::Geometry(error)) = ifccad_document_to_cad_document(&d, options)
     else {
-        panic!("paper error must use inch budget")
+        panic!("paper error must use its coordinate fallback")
     };
     assert_eq!(error.domain, IfccadGeometryDomain::PaperLayout(id));
     assert!(

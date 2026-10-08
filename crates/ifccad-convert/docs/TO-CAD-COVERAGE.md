@@ -145,9 +145,9 @@ transparency and active external style-table contents retain located restriction
 Media never infer geometry rescaling or containment. Fully default CAD plot fields
 canonicalize to absence; authored identical-default intent is indistinguishable.
 
-Both routes expose per-Paper output-mapping assessments. Fixed physical output
-resolves one-micrometre default accuracy per layout; unknown/Fit/pixel uses zero
-coordinate residual. Explicit physical requests fail without fixed mappings,
+Both routes expose per-Paper output-mapping assessments. Default is exactly 1e-9
+coordinate per domain. Explicit physical requests fail without fixed mappings
+unless an independent coordinate fallback is explicitly supplied,
 including empty layouts and targets that lost their configuration. Definition-local
 and signed/nonuniform nested-root proofs stay mandatory. Native/typed-CAD/file
 exchange qualification and source-graph projection checks remain distinct.
@@ -168,10 +168,12 @@ including present scope bounds/media. Explicit zero-bulge arrays normalize to
 the same default semantics; nonzero dormant bulges remain retained.
 
 Both directions expose `geometry_tolerance` and per-domain `geometry_assessment()`.
-Default is one micrometre for known units and zero for unitless; exact, drawing-unit,
+Default is exactly 1e-9 in each numerical domain; exact, drawing-unit,
 metre and millimetre choices are public. Full conics and bulged segment-circle
 pairs plus all retained definition/nested occurrence evaluations must be proved
-within the hard limit. Paper root checks use fixed output mappings; no rescaling is inferred from media. Definition-local acceptance is insufficient
+within the hard limit. Explicit physical Paper root checks use fixed output mappings
+or an explicitly requested independent coordinate fallback; no rescaling is inferred
+from media. Definition-local acceptance is insufficient
 when occurrence scaling or a different root unit makes the deviation too large.
 
 Within-limit geometric rounding remains reported loss evidence but is exempt

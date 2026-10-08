@@ -99,3 +99,57 @@ fn physical_tolerance_without_paper_mapping_reports_the_layout() {
     );
     assert!(output["export"].get("download").is_none());
 }
+
+#[test]
+fn explicit_coordinate_fallback_reaches_both_native_routes_and_readback() {
+    let options =
+        r#"{"tolerance":{"mode":"custom","value":0.001,"unit":"mm","coordinateFallback":1e-9}}"#;
+    for (name, bytes) in [
+        (
+            "medium.ocdraw.json",
+            include_bytes!("../../../conformance/next/ocdraw/valid/layout-medium-only.ocdraw.json")
+                .as_slice(),
+        ),
+        (
+            "medium.ifcx",
+            include_bytes!("../../../conformance/next/ifccad/valid/layout-medium-only.ifcx")
+                .as_slice(),
+        ),
+    ] {
+        let output =
+            viewer::export_drawing_bytes_with_options(name, bytes, "dxf", "AC1032", options);
+        assert!(output["failure"].is_null(), "{output}");
+        assert_eq!(
+            output["export"]["options"]["tolerance"]["coordinateFallback"],
+            1e-9
+        );
+        assert!(output["export"]["download"].is_object());
+        let geometry = if name.ends_with("ifcx") {
+            &output["export"]["geometryAssessment"]
+        } else {
+            &output["export"]["geometry"]
+        };
+        assert!(geometry["domains"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(
+                |domain| domain["coordinateMeaning"]["kind"] == "PaperCoordinates"
+                    && domain["resolvedTolerance"]["upper"] == 1e-9
+            ));
+    }
+    for value in [
+        r#"{"mode":"custom","value":1,"unit":"drawing","coordinateFallback":1e-9}"#,
+        r#"{"mode":"custom","value":1,"unit":"mm","coordinateFallback":-1}"#,
+        r#"{"mode":"custom","value":1,"unit":"mm","coordinateFallback":null}"#,
+    ] {
+        let output = viewer::export_drawing_bytes_with_options(
+            "test.ocdraw.json",
+            include_bytes!("../../../examples/ocdraw/overview.ocdraw.json"),
+            "dxf",
+            "AC1032",
+            &format!("{{\"tolerance\":{value}}}"),
+        );
+        assert_eq!(output["failure"]["code"], "INVALID_CONVERSION_OPTIONS");
+    }
+}

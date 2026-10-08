@@ -56,7 +56,7 @@ fn unitless_media_does_not_enable_physical_tolerance() {
         .iter()
         .find(|d| d.domain() == IfccadGeometryDomain::PaperLayout(id))
         .unwrap();
-    assert_eq!(paper.resolved_tolerance().upper(), 0.);
+    assert_eq!(paper.resolved_tolerance().upper(), 1e-9);
 }
 #[test]
 fn within_limit_geometric_rounding_is_accepted_under_semantic_reject() {
@@ -114,7 +114,14 @@ fn physical_limits_are_resolved_separately_for_each_paper_unit() {
         bounds: None,
         entities: vec![],
     });
-    let outcome = ifccad_document_to_cad_document(&d, Default::default()).unwrap();
+    let outcome = ifccad_document_to_cad_document(
+        &d,
+        IfccadToCadOptions {
+            geometry_tolerance: IfccadGeometryTolerance::millimetres(0.001).unwrap(),
+            ..Default::default()
+        },
+    )
+    .unwrap();
     let domains = outcome.geometry_assessment().domains();
     let drawing = domains
         .iter()
