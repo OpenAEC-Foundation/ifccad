@@ -159,7 +159,10 @@ pub(crate) fn convert_layer_appearance(
 
     let opacity = match layer.transparency {
         Transparency::Explicit(alpha) => Some(1.0 - f64::from(alpha) / 255.0),
-        _ => {
+        // On a layer, the codec's ByLayer value denotes the opaque default;
+        // entity inheritance is handled separately above.
+        Transparency::ByLayer => Some(1.0),
+        Transparency::ByBlock => {
             required_losses.push(CadToOcdrawLossReason::LayerTransparencyUnsupported);
             None
         }

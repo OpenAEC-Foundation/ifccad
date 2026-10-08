@@ -86,9 +86,18 @@ This does not certify fields erased before the CadDocument boundary.
 
 ## Tables, objects, and public side views
 
+Layer default-opacity normalization consumes the typed `CadDocument` contract.
+The known raw-zero/default method has effective opacity 1.0; encoding/method
+presence is not part of the standalone layer value. The pinned codec also
+collapses unrecognized raw transparency method tags to `ByLayer` and does not
+expose raw layer EED publicly, so this adapter cannot recover or independently
+validate those original tags. [Upstream issue 104](https://github.com/HakanSeven12/opencadcodec/issues/104)
+requests that distinction and a clearer layer-context API. This qualification
+does not broaden entity inheritance or admit layer `ByBlock`.
+
 | Source surface | Status | Export or diagnostic contract |
 | --- | --- | --- |
-| `layers` | Exact/PartialLoss/SkippedLoss | Source order and unused layers are retained. On/Off, global Freeze, Lock, plottability, freeze-in-new-viewports and description are distinct native fields. Exact color, opacity, linetype name, and numeric/default lineweight become a deduplicated appearance. Unsupported references retain their loss diagnostics; a required unrepresentable appearance skips the layer. |
+| `layers` | Exact/PartialLoss/SkippedLoss | Source order and unused layers are retained. On/Off, global Freeze, Lock, plottability, freeze-in-new-viewports and description are distinct native fields. Exact color, opacity, linetype name, and numeric/default lineweight become a deduplicated appearance. Typed CadDocument `Transparency::ByLayer` on a layer is the opaque default and normalizes to opacity 1.0; explicit alpha retains its value, while layer ByBlock remains unsupported. This preserves effective appearance, not the original default/explicit encoding. Entity inheritance is independent. Unsupported references retain their loss diagnostics; a required unrepresentable appearance skips the layer. |
 | Named ordinary linetypes | Exact/PartialLoss/FatalIfInconsistent | All simple actual definitions and unused records become local pattern IDs. Empty definitions remain separately named. Text/shapes use one diagnosed named continuous fallback per definition under Allow; Reject refuses it. Modified ByLayer/ByBlock scaffolding and xref provenance are diagnosed separately. Invalid patterns/alignment and unresolved or contradictory references are errors. |
 | Ordinary local `block_records` | Exact/PartialLoss/FatalIfInconsistent | Definitions allocated before ordered contents; public metadata retained as above. Attribute flags, preview and insertion-count bytes are partial losses. Record handles must be distinct/non-null; references, membership and cycles are checked. Unicode-fold name collisions cannot merge or retarget definitions. |
 | `text_styles` | Exact/SkippedLoss/FatalIfInconsistent | Qualified local font requests, width/shear/vertical settings, fixed/last-height metadata and creation mirrors become independent native styles, including unused records. Annotative/shape/xref contexts and missing font selectors are diagnosed per record. Shape resources are classified before font-name lookup: repeated or empty shape names do not collide with ordinary text styles, and each skipped shape record is identified by its handle. References to shape-only names are diagnosed as unsupported text. Duplicate ordinary font lookup names, duplicate allocated handles across either role, and invalid numeric values in ordinary font styles fail. Null handles do not merge named records. |
