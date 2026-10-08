@@ -5,15 +5,28 @@ import {supportsCadVersion,defaultCadVersion} from './cad-formats.mjs';
 function drawingFormat(source){return source?.kind==='ifccad'||source?.drawingFormat==='ifccad'?'ifccad':'ocdraw';}
 function drawingLabel(source){return drawingFormat(source)==='ifccad'?'IFCCAD':'OCDraw';}
 
-export function createCadPreviewController({openExport,openSession,onUpdate=()=>{}}){
+export function createCadPreviewController({openExport,openSession,onUpdate=()=>{},onCadSelection=()=>{}}){
  const state={source:null,valid:false,visible:false,busy:false,viewerBusy:false,phase:'',format:'dxf',version:defaultCadVersion,conversionOptions:undefined,result:null,download:null,error:'',viewerError:'',viewerReady:false,selectionKey:null,selectionStatus:'',selectionError:'',selectionRequested:false};
  let selectionVersion=0,selectionQueue=Promise.resolve(),appliedSelection=null;
  let generation=0,epoch=0,controller=null,preparation=null,viewPromise=null,session=null,sessionPromise=null,originalOpened=false,displayedKey=null,preparedKey=null;
- const cache=new Map(),notify=()=>onUpdate({...state});
+ const cache=new Map(),notify=()=>{session?.setVisible?.(state.visible&&!state.busy&&!state.viewerBusy&&!!state.download&&displayedKey===preparedKey);onUpdate({...state});};
  const outputKey=()=>JSON.stringify([drawingFormat(state.source),state.format,state.version,state.conversionOptions]);
  function invalidate(){generation++;selectionVersion++;appliedSelection=null;controller?.abort();controller=null;preparation=null;viewPromise=null;state.busy=false;state.viewerBusy=false;}
  function resetSession(){session?.close();session=null;sessionPromise=null;originalOpened=false;displayedKey=null;state.viewerReady=false;}
  function clear(){invalidate();epoch++;resetSession();cache.clear();preparedKey=null;Object.assign(state,{source:null,valid:false,visible:false,phase:'',result:null,download:null,error:'',viewerError:'',selectionKey:null,selectionStatus:'',selectionError:'',selectionRequested:false});notify();}
+ function receiveCadSelection(event){
+  if(!state.visible||!state.valid||state.busy||state.viewerBusy||!state.download||displayedKey!==preparedKey||!Array.isArray(event.handles)||event.handles.length!==1)return;
+  const handle=event.handles[0];if(typeof handle!=='string'||!/^([0-9a-f]{1,16})$/i.test(handle))return;
+  const canonical=handle.toUpperCase().replace(/^0+(?=[0-9A-F])/,'');
+  const map=state.result?.export?.viewerSelection;
+  if(map?.format!==drawingFormat(state.source))return;
+  const matches=map.entities?.filter(entry=>entry.handle.toUpperCase()===canonical&&entry.layout===event.layout)||[];
+  if(matches.length!==1)return;
+  const key=matches[0].path;
+  if(key===state.selectionKey){appliedSelection=JSON.stringify([generation,selectionVersion,key]);if(state.selectionStatus!=='selected'){state.selectionStatus='selected';state.selectionError='';notify();}return;}
+  selectionVersion++;state.selectionRequested=true;state.selectionKey=key;state.selectionStatus='selected';state.selectionError='';
+  appliedSelection=JSON.stringify([generation,selectionVersion,key]);notify();onCadSelection(key);
+ }
  function syncSelection(current,active){
   if(!state.selectionRequested||!active||!state.download||displayedKey!==preparedKey)return Promise.resolve();
   const version=selectionVersion,key=state.selectionKey,signature=JSON.stringify([current,version,key]);if(signature===appliedSelection)return Promise.resolve();
@@ -34,7 +47,7 @@ export function createCadPreviewController({openExport,openSession,onUpdate=()=>
   await showDrawing();await syncSelection(generation,session);
  }
  async function ensureSession(current){
-  if(!sessionPromise){const started=epoch;sessionPromise=Promise.resolve().then(openSession).then(value=>{if(started!==epoch){value.close();return null;}session=value;return value;});}
+  if(!sessionPromise){const started=epoch;sessionPromise=Promise.resolve().then(openSession).then(value=>{if(started!==epoch){value.close();return null;}session=value;value.subscribeSelection?.(event=>{if(started===epoch&&session===value)receiveCadSelection(event);});return value;});}
   const active=await sessionPromise;if(current!==generation||!active)return null;
   state.viewerReady=true;state.viewerError='';notify();
   if(state.source.kind==='cad'&&!originalOpened){const file=state.source.files[0];await active.openOriginal(file.base64??encodeBase64(file.bytes),file.path);if(current!==generation)return null;originalOpened=true;}
@@ -88,7 +101,7 @@ export function createCadPreviewController({openExport,openSession,onUpdate=()=>
  }};
 }
 
-export function initializeCadPreview({translate,onReport=()=>{},onState=()=>{},externalSettings=false}={}){
+export function initializeCadPreview({translate,onReport=()=>{},onState=()=>{},onCadSelection=()=>{},externalSettings=false}={}){
  const $=id=>document.getElementById(id),client=createFileClient(),mount=$('preview-frame');
  let reportedResult=null;
  const text=(key,fallback)=>translate?translate(key):fallback;
@@ -114,7 +127,7 @@ export function initializeCadPreview({translate,onReport=()=>{},onState=()=>{},e
   else if(state.result!==reportedResult){reportedResult=state.result;onReport(state.result);}
   onState({phase:state.phase,format:state.format,version:state.version,error:state.error});
  }
- const preview=createCadPreviewController({openExport:(request,options)=>client.open(request,options),openSession,onUpdate:update});
+ const preview=createCadPreviewController({openExport:(request,options)=>client.open(request,options),openSession,onUpdate:update,onCadSelection});
  $('preview-open').onclick=()=>preview.show();$('preview-retry').onclick=()=>preview.retryViewer();
  $('cad-roundtrip-cancel').onclick=()=>preview.cancel();
  for(const id of ['preview-format','preview-version'])$(id).onchange=()=>preview.select({format:$('preview-format').value,version:$('preview-version').value});

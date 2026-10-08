@@ -1,6 +1,7 @@
 export const ocsChannel='ocdraw-ocs';
 export function createOcsSession(iframe,token,{host=window,origin=location.origin,timeoutMs=120000}={}){
- let closed=false,serial=0,queue=Promise.resolve(),readyResolve,readyReject,generatedDocumentId;
+ let closed=false,serial=0,queue=Promise.resolve(),readyResolve,readyReject,generatedDocumentId,readyDone=false,visible=false;
+ const selectionListeners=new Set();
  const pending=new Map();
  const ready=new Promise((resolve,reject)=>{readyResolve=resolve;readyReject=reject;});
  ready.catch(()=>{});
@@ -9,8 +10,12 @@ export function createOcsSession(iframe,token,{host=window,origin=location.origi
  const onMessage=event=>{
   if(!isCurrentOcsMessage(event,iframe,token,origin)||closed)return;
   const message=event.data;
-  if(message.status==='ready'){clearTimeout(readyTimer);readyResolve();return;}
+  if(message.status==='ready'){clearTimeout(readyTimer);readyDone=true;readyResolve();iframe.contentWindow.postMessage({channel:ocsChannel,token,op:'observe',visible},origin);return;}
   if(message.status==='error'&&!message.id){clearTimeout(readyTimer);readyReject(Error(message.message||'Open CAD Studio could not start'));return;}
+  if(message.status==='selection-changed'){
+   if(message.role==='generated'&&generatedDocumentId!=null&&message.documentId===generatedDocumentId&&Array.isArray(message.handles)&&typeof message.layout==='string')for(const listener of selectionListeners)listener(message);
+   return;
+  }
   const item=pending.get(message.id);if(!item)return;
   if(message.status==='opened'&&message.role==='generated')generatedDocumentId=message.documentId;
   pending.delete(message.id);clearTimeout(item.timer);
@@ -36,7 +41,9 @@ export function createOcsSession(iframe,token,{host=window,origin=location.origi
   openOriginal:(base64,name)=>send('open','original',{base64,name}),
   replaceGenerated:(base64,name)=>send('replace','generated',{base64,name}),
   selectGenerated:(handles,layout)=>send('select','generated',{handles,layout,documentId:generatedDocumentId}),
-  close(){closed=true;clearTimeout(readyTimer);iframe.removeEventListener('load',onLoad);host.removeEventListener('message',onMessage);readyReject(Error('Viewer session closed'));for(const item of pending.values()){clearTimeout(item.timer);item.reject(Error('Viewer session closed'));}pending.clear();}
+  subscribeSelection(listener){selectionListeners.add(listener);return()=>selectionListeners.delete(listener);},
+  setVisible(value){const next=!!value;if(next===visible)return;visible=next;if(readyDone&&!closed)iframe.contentWindow.postMessage({channel:ocsChannel,token,op:'observe',visible},origin);},
+  close(){if(closed)return;closed=true;iframe.contentWindow?.postMessage({channel:ocsChannel,token,op:'disconnect'},origin);selectionListeners.clear();clearTimeout(readyTimer);iframe.removeEventListener('load',onLoad);host.removeEventListener('message',onMessage);readyReject(Error('Viewer session closed'));for(const item of pending.values()){clearTimeout(item.timer);item.reject(Error('Viewer session closed'));}pending.clear();}
  };
 }
 export function createOcsControl(api,{delay=ms=>new Promise(resolve=>setTimeout(resolve,ms)),maxPolls=600,maxBusyRetries=20}={}){
@@ -72,7 +79,7 @@ export function createOcsControl(api,{delay=ms=>new Promise(resolve=>setTimeout(
 }
 export function isCurrentOcsMessage(event,iframe,token,origin){
  const message=event?.data;
- return event?.origin===origin&&event?.source===iframe?.contentWindow&&message?.channel===ocsChannel&&message?.token===token&&['ready','opened','selected','error'].includes(message.status);
+ return event?.origin===origin&&event?.source===iframe?.contentWindow&&message?.channel===ocsChannel&&message?.token===token&&['ready','opened','selected','selection-changed','error'].includes(message.status);
 }
 export function createDocumentSession(control){
  let originalId=null,generatedId=null,queue=Promise.resolve();

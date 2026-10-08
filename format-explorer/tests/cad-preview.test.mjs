@@ -4,6 +4,20 @@ import {createCadPreviewController} from '../src/cad-preview.mjs';
 const source={kind:'cad',name:'original.dwg',files:[{path:'original.dwg',bytes:new Uint8Array([1,2]).buffer}]};
 const result={failure:null,validation:{strictAvailable:true},export:{requestedVersion:'AC1032',download:{format:'dwg',base64:'AQI=',byteLength:2}}};
 
+test('CAD selection reverses the qualified map without export, feedback or stale-file updates',async()=>{
+ for(const format of ['ifccad','ocdraw']){
+  const keys=format==='ifccad'?['/cad/d1/e1','/cad/d1/e2']:['entity:1','entity:2'];let listener,exports=0,selects=0;const revealed=[];
+  const output={...result,export:{...result.export,download:{...result.export.download,format:'dxf'},viewerSelection:{format,entities:[{path:keys[0],handle:'AB',layout:'Model'},{path:keys[1],handle:'BB',layout:'Model'}]}}};
+  const controller=createCadPreviewController({openExport:async()=>{exports++;return output;},openSession:async()=>({subscribeSelection(fn){listener=fn;return()=>{};},setVisible(){},async replaceGenerated(){},async selectGenerated(){selects++;},close(){}}),onCadSelection:key=>revealed.push(key)});
+  controller.setSource({kind:format==='ifccad'?'ifccad':'drawing',name:'source',files:source.files},true);await controller.show();
+  assert.equal(typeof listener,'function');listener({handles:['AB'],layout:'Model'});assert.deepEqual(revealed,[keys[0]]);await controller.show();assert.equal(selects,0);assert.equal(exports,1);
+  listener({handles:['AB'],layout:'Model'});assert.equal(revealed.length,1);
+  await controller.selectElement(keys[1]);listener({handles:['BB'],layout:'Model'});assert.equal(revealed.length,1);assert.equal(selects,1);
+  for(const event of [{handles:['FF'],layout:'Model'},{handles:['AB'],layout:'Paper'},{handles:['AB','BB'],layout:'Model'},{handles:[],layout:'Model'}])listener(event);assert.equal(revealed.length,1);
+  controller.hide();listener({handles:['AB'],layout:'Model'});assert.equal(revealed.length,1);await controller.show();controller.clear();listener({handles:['AB'],layout:'Model'});assert.equal(revealed.length,1);
+ }
+});
+
 test('OCDraw selection uses its qualified mapping without reloading or preparing the drawing',async()=>{
  const selected=[],updates=[];let exports=0,replacements=0;
  const output={...result,export:{...result.export,download:{...result.export.download,format:'dxf'},viewerSelection:{format:'ocdraw',entities:[{path:'entity:9007199254740993',handle:'CAFE',layout:'Model'}]}}};
