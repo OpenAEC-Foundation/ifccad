@@ -6,6 +6,13 @@ Regenerate with `cargo run --example write_explorer_examples -- examples`.
 Generated native files here are source examples; WASM, CAD build output and
 screenshots remain local artifacts outside this directory.
 
+White foreground layers explicitly retain CAD color ACI 7 through
+`indexedColor` (`system: ACI`, `index: 7`), alongside RGB white as their native
+fallback. CAD viewers can then draw them white on dark Model backgrounds and
+black on white Paper sheets. True RGB white remains a distinct authored color;
+white backgrounds/masks must not be changed to ACI 7. Example generators keep
+this identity, and browser smoke checks exercise DXF/DWG production readback.
+
 All files under `ifccad/` use the writer's node presentation order: `path`,
 optional `children`, then `attributes`. Additional IFCX fields such as `inherits`
 follow these fields and retain their values. IDs are compact per domain, with

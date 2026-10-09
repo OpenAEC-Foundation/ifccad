@@ -17,6 +17,10 @@
   "layers": [
     {
       "color": {
+        "indexedColor": {
+          "index": 7,
+          "system": "ACI"
+        },
         "rgb": [
           255,
           255,

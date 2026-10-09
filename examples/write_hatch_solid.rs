@@ -8,7 +8,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         description: None,
         pattern: vec![],
     })?;
-    let layer = b.add_layer(LayerDefinition::new("0", RgbColor::new(255, 255, 255), p))?;
+    let layer = b.add_layer(LayerDefinition::new(
+        "0",
+        DrawingColor::rgb(255, 255, 255).with_indexed("ACI", 7),
+        p,
+    ))?;
     let source = b.add_circle(CircleDefinition::new(layer, [0.0, 0.0, 0.0], 1.0))?;
     let hatch = b.add_hatch(HatchEntityDefinition {
         scope_id: 0,

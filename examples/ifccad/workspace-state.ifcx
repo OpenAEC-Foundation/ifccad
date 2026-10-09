@@ -262,6 +262,10 @@
         "ifccad::layer": {
           "appearance": {
             "color": {
+              "indexedColor": {
+                "index": 7,
+                "system": "ACI"
+              },
               "rgb": [
                 255,
                 255,
@@ -282,6 +286,10 @@
         "ifccad::layer": {
           "appearance": {
             "color": {
+              "indexedColor": {
+                "index": 7,
+                "system": "ACI"
+              },
               "rgb": [
                 255,
                 255,
