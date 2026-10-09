@@ -2,9 +2,25 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {initSync,conversion_capabilities,open_drawing,convert_cad_to_drawing,convert_cad_to_drawing_with_preservation,export_drawing,open_ifccad,convert_cad_to_ifccad,export_ifccad,export_drawing_with_options,convert_cad_to_drawing_with_options,export_ifccad_with_options,convert_cad_to_ifccad_with_options} from '../wasm-build/browser.js';
 import {processBrowserRequest} from '../src/browser-worker.mjs';
+import {createInspection} from '../src/inspection-model.mjs';
+import {renderInspection} from '../src/inspection-view.mjs';
 
 initSync({module:await readFile(new URL('../wasm-build/browser_bg.wasm',import.meta.url))});
 const wasm={conversion_capabilities,open_drawing,convert_cad_to_drawing,convert_cad_to_drawing_with_preservation,export_drawing,open_ifccad,convert_cad_to_ifccad,export_ifccad,export_drawing_with_options,convert_cad_to_drawing_with_options,export_ifccad_with_options,convert_cad_to_ifccad_with_options};
+
+for(const [kind,path]of [['ifccad','../../examples/ifccad/hello-hatch-solid.ifcx'],['drawing','../../examples/ocdraw/hello-hatch-solid.ocdraw.json']]){
+ const name=path.split('/').at(-1),bytes=Uint8Array.from(await readFile(new URL(path,import.meta.url))),source={kind,name,files:[{path:name,bytes:bytes.buffer}]};
+ const opened=processBrowserRequest(source,wasm);assert.equal(opened.failure,null,JSON.stringify(opened.failure));assert.equal(opened.validation.strictAvailable,true);assert.equal(opened.presentation.hatchEntityCount,1);
+ const model=createInspection(opened,new TextDecoder().decode(bytes)),hatch=Array.from(model.nodes.values()).find(node=>node.type==='hatch');assert.ok(hatch);assert.ok(hatch.outgoing.some(edge=>edge.kind==='hatchSource'));
+ const view=renderInspection(model,{language:'en',view:'drawing',selection:hatch.key,expanded:new Set(),inspector:'properties'});assert.match(view.details,/Fill.*not assessed/i);
+ for(const format of ['dxf','dwg']){
+  const output=processBrowserRequest({...source,export:{format,version:'AC1032'}},wasm);assert.equal(output.failure,null,JSON.stringify(output.failure));assert.ok(output.export.viewerSelection.entities.some(entry=>entry.path===hatch.key));
+  const returned=processBrowserRequest({kind:'cad',drawingFormat:kind==='ifccad'?'ifccad':'ocdraw',name:'hatch.'+format,files:[{path:'hatch.'+format,bytes:Uint8Array.from(Buffer.from(output.export.download.base64,'base64')).buffer}]},wasm);
+  assert.equal(returned.failure,null,JSON.stringify(returned.failure));assert.equal(returned.validation.strictAvailable,true);assert.equal(returned.presentation.hatchEntityCount,1);
+  const resultModel=createInspection(returned,returned.nativeSourceText),resultHatch=Array.from(resultModel.nodes.values()).find(node=>node.type==='hatch');assert.ok(resultHatch.outgoing.some(edge=>edge.kind==='hatchSource'));
+ }
+}
+console.log('Browser WASM Hatch inspection, source links, qualified selection and DXF/DWG strict readback verified for both formats');
 
 for(const [kind,path]of [['drawing','../../examples/ocdraw/workspace-state.ocdraw.json'],['ifccad','../../examples/ifccad/workspace-state.ifcx']]){
  const name=path.split('/').at(-1),bytes=new Uint8Array(await readFile(new URL(path,import.meta.url)));

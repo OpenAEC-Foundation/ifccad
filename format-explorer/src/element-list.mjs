@@ -38,7 +38,7 @@ export function initializeElementList({onSelect,t,getLanguage}){
    if(changed){search.value='';layer.value='';viewport.scrollTop=0;}
    collection=next;model=nextModel;selection=key;
    if(changed||language!==nextLanguage){
-    entries=collectionEntries(navigation,next.keys,node=>itemTitle(node,nextLanguage));language=nextLanguage;
+    entries=collectionEntries(navigation,next.keys,node=>itemTitle(node,nextLanguage),nextLanguage);language=nextLanguage;
     const layers=new Map(entries.filter(entry=>entry.layerKey).map(entry=>[entry.layerKey,entry.layer]));const previous=layer.value;
     layer.innerHTML='<option value="">'+e(t('allLayers'))+'</option>'+Array.from(layers,([key,label])=>'<option value="'+e(key)+'">'+e(label)+'</option>').join('');layer.value=previous;layer.hidden=layers.size===0;
    }
