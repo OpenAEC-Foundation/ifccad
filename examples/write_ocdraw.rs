@@ -1,8 +1,8 @@
 //! Author placed geometry and a shared block directly, without an IFCX package.
 use ocdraw::ocdraw::{
-    BlockDefinition, BlockTransform, CoordinateFrame3, DrawingGeometry, GeometricEntityDefinition,
-    LayerDefinition, LineDefinition, OcdrawBuildOptions, OcdrawBuilder, Point3, RgbColor, Scale3,
-    Vector3,
+    BlockDefinition, BlockTransform, CoordinateFrame3, DrawingColor, DrawingGeometry,
+    GeometricEntityDefinition, LayerDefinition, LineDefinition, OcdrawBuildOptions, OcdrawBuilder,
+    Point3, Scale3, Vector3,
 };
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -13,7 +13,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let continuous = drawing.ensure_continuous_line_pattern()?;
     let layer = drawing.add_layer(LayerDefinition::new(
         "0",
-        RgbColor::new(255, 255, 255),
+        DrawingColor::rgb(255, 255, 255).with_indexed("ACI", 7),
         continuous,
     ))?;
     let block = drawing.add_block_definition(BlockDefinition::new("Shared"))?;

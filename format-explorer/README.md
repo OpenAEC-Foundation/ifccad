@@ -223,8 +223,20 @@ has a known limitation in the pinned DWG codec; see the converter coverage.
 The two converters retain their own coverage contracts and diagnostics.
 
 The pinned viewer bundle must be in the ignored `ocs-build/` directory. Pin:
-Open CAD Studio v2026.38, commit `0d023d267bc5b7afeca3b54e98875b0efd4f3926`.
-Build the official source with Trunk, its Cargo.lock wasm-bindgen version and:
+Open CAD Studio main, commit `2a2d9b55d9a328fb6e2ec4d4adb6b122aa189459`.
+This is a fixed snapshot of main, not a moving checkout. The deployment checkout,
+viewer cache and source attribution use the same revision. Its independent
+opencadcodec dependency is `8189f833574c544fc57a1d773591014c3a5907c9`, including
+DXF viewport clip-boundary decoding (group 340). The explorer converters retain
+their separately pinned dependency and patches.
+White foreground layers in the supplied examples explicitly retain CAD color
+ACI 7, with native RGB white as fallback. The viewer adapts ACI 7 to light/dark
+backgrounds, so Model contents remain visible on white Paper sheets. Authored
+true RGB white remains white. The circular Paper clip is verified in DXF/DWG;
+the example color identity is checked through production CAD readback.
+Build the official source in a checkout outside this repository, so Cargo does
+not inherit the explorer converter's local codec patch. Use the unchanged
+upstream Cargo.lock, Trunk and its matching wasm-bindgen CLI version:
 
 ```text
 trunk build --locked --release --public-url /ocs/app/ --dist dist/app --html-output index.html web-app.html

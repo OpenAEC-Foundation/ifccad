@@ -63,12 +63,12 @@ jobs:
         id: web-cache
         with:
           path: ocs-upstream/dist/app
-          key: ocs-web-v2026.38-0d023d2-linux-trunk
+          key: ocs-web-main-2a2d9b55-linux-trunk
       - uses: actions/checkout@v5
         if: steps.web-cache.outputs.cache-hit != 'true'
         with:
           repository: HakanSeven12/OpenCADStudio
-          ref: 0d023d267bc5b7afeca3b54e98875b0efd4f3926
+          ref: 2a2d9b55d9a328fb6e2ec4d4adb6b122aa189459
           path: ocs-upstream
       - uses: dtolnay/rust-toolchain@stable
         if: steps.web-cache.outputs.cache-hit != 'true'
@@ -111,7 +111,7 @@ jobs:
           test -s ocs-upstream/dist/app/supporters.json
       - uses: actions/upload-artifact@v4
         with:
-          name: ocs-web-v2026.38
+          name: ocs-web-main-2a2d9b55
           path: ocs-upstream/dist/app/
           retention-days: 7
 
@@ -162,7 +162,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/download-artifact@v4
         with:
-          name: ocs-web-v2026.38
+          name: ocs-web-main-2a2d9b55
           path: format-explorer/ocs-build
       - uses: actions/download-artifact@v4
         with:

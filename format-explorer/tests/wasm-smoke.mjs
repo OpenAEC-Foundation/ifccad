@@ -8,6 +8,19 @@ import {renderInspection} from '../src/inspection-view.mjs';
 initSync({module:await readFile(new URL('../wasm-build/browser_bg.wasm',import.meta.url))});
 const wasm={conversion_capabilities,open_drawing,convert_cad_to_drawing,convert_cad_to_drawing_with_preservation,export_drawing,open_ifccad,convert_cad_to_ifccad,export_ifccad,export_drawing_with_options,convert_cad_to_drawing_with_options,export_ifccad_with_options,convert_cad_to_ifccad_with_options};
 
+for(const [kind,path]of [['ifccad','../../examples/ifccad/overview.ifcx'],['drawing','../../examples/ocdraw/layouts-viewports.ocdraw.json']]){
+ const name=path.split('/').at(-1),bytes=Uint8Array.from(await readFile(new URL(path,import.meta.url))),source={kind,name,files:[{path:name,bytes:bytes.buffer}]};
+ for(const format of ['dxf','dwg']){
+  const output=processBrowserRequest({...source,export:{format,version:'AC1032'}},wasm);assert.equal(output.failure,null,JSON.stringify(output.failure));
+  const returned=processBrowserRequest({kind:'cad',drawingFormat:kind==='ifccad'?'ifccad':'ocdraw',name:'foreground.'+format,files:[{path:'foreground.'+format,bytes:Uint8Array.from(Buffer.from(output.export.download.base64,'base64')).buffer}]},wasm);
+  assert.equal(returned.failure,null,JSON.stringify(returned.failure));assert.equal(returned.validation.strictAvailable,true);
+  const native=JSON.parse(returned.nativeSourceText);
+  const color=kind==='ifccad'?native.data.map(node=>node.attributes?.['ifccad::layer']).find(layer=>layer?.name==='0').appearance.color:native.layers.find(layer=>layer.name==='0').color;
+  assert.deepEqual(color.rgb,[255,255,255]);assert.deepEqual(color.indexedColor,{system:'ACI',index:7},`${kind} ${format} must preserve the example's adaptive foreground color`);
+ }
+}
+console.log('Example foreground ACI 7 survives DXF/DWG production readback in both native formats');
+
 for(const [kind,path]of [['ifccad','../../examples/ifccad/hello-hatch-solid.ifcx'],['drawing','../../examples/ocdraw/hello-hatch-solid.ocdraw.json'],['ifccad','../../examples/ifccad/hello-hatch-pattern.ifcx'],['drawing','../../examples/ocdraw/hello-hatch-pattern.ocdraw.json']]){
  const name=path.split('/').at(-1),bytes=Uint8Array.from(await readFile(new URL(path,import.meta.url))),source={kind,name,files:[{path:name,bytes:bytes.buffer}]};
  const opened=processBrowserRequest(source,wasm);assert.equal(opened.failure,null,JSON.stringify(opened.failure));assert.equal(opened.validation.strictAvailable,true);assert.equal(opened.presentation.hatchEntityCount,1);

@@ -273,7 +273,7 @@ fn fixture_document() -> IfccadDocument {
                 id: 0,
                 name: "0".into(),
                 appearance: IfccadLayerAppearance {
-                    color: IfccadColor::rgb(255, 255, 255),
+                    color: IfccadColor::rgb(255, 255, 255).with_indexed("ACI", 7),
                     opacity: 1.0,
                     line_pattern: IfccadLinePatternId(0),
                     line_weight: 0.1,
