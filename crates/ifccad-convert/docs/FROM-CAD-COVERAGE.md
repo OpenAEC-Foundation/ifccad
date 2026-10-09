@@ -376,18 +376,18 @@ A uniquely available active Model window may be selected; multiple unqualified w
 
 Dot grid style and frequencies beyond CAD i16 receive field-specific substitutions. VIEWPORT grid beyond-limits/adaptive/subdivision/follow-workplane flags stay in CadDocument but its pinned DXF/DWG routes do not retain them; target diagnostics identify each nondefault field and Reject refuses that portability loss. Model VPORT grid flags survive both routes. Unrepresented display/icon/base/orthographic/plot/visual state remains diagnosed. Numeric and structural failures remain fatal under both policies.
 
-## Solid Hatch field coverage
+## Hatch field coverage
 
 | Field/state | Classification and native result |
 | --- | --- |
 | elevation/normal, all stored supported paths | Contour conversion assessed against the actual CAD OCS, including nested occurrences; finite/parameter/join failures are hard errors |
-| is_solid/style | Solid plus exact normal/outer/ignore; pattern, active gradient and MPOLYGON omit the whole Hatch with SkippedLoss/Omitted |
+| is_solid/style | Solid/explicit LinePattern plus exact normal/outer/ignore; active gradient, MPOLYGON and unqualified active pattern profiles omit the whole Hatch with SkippedLoss/Omitted |
 | line/circular/elliptic edges, closed straight/bulged polyline | Every loop retained; exact full-turn qualification, signed sweeps, no snapping/tessellation; spline/open/mixed-polyline backing unsupported |
 | is_associative/boundary_handles | Single eligible same-owner closed source per loop, bound after IDs exist; inactive/multiple/skipped/wrong-owner relations get PartialLoss/Omitted with the complete contour retained |
 | path flags | POLYLINE is backing; EXTERNAL/DERIVED/OUTERMOST omitted as located hints; other/unknown active flags omit whole Hatch |
-| pattern name/description/lines/type/angle/scale/double | Inactive nondefault Solid editing state diagnosed, not silently consumed |
+| pattern name/description/lines/type/angle/scale/double | Solid inactive state diagnosed; explicit effective families, literal metadata, origin/angle/scale retained for Pattern. Library/type dependency diagnosed; UserDefined requires a resolved fixed local continuous linetype and one continuous family; ByLayer layer-0 block dependencies are unqualified. Double only the documented axis-aligned origin-anchored profile, otherwise whole-Hatch omission |
 | disabled gradient, seed points/pixel size, inactive MPOLYGON fields | Located editing/construction-state loss when nondefault |
-| common attachments/context | AcadAnnotative markers and non-null extension dictionaries require separate qualification and omit whole Hatch; other common metadata uses existing format-specific audit; no opaque Hatch preservation |
+| common attachments/context | AcadAnnotative markers and non-null extension dictionaries require separate qualification and omit whole Hatch; qualified top-level ACAD origin is consumed once, nested/unrelated metadata uses existing format-specific audit; no opaque Hatch preservation |
 
 Producer join requests use local units or a known physical mapping with explicit
 fallback policy. They do not change the hard conversion accuracy budget.

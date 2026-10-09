@@ -49,14 +49,23 @@ pub(super) fn from_cad(
             ));
             continue;
         }
-        let Some(appearance) =
-            crate::mapping::appearance::from_common(e.common(), patterns, &loc, issues)
-        else {
+        let residual_hatch_common = if let EntityType::Hatch(h) = e {
+            cad_geometry_convert::hatch::pattern::residual_common(h).ok()
+        } else {
+            None
+        };
+        let Some(appearance) = crate::mapping::appearance::from_common(
+            residual_hatch_common.as_ref().unwrap_or(e.common()),
+            patterns,
+            &loc,
+            issues,
+        ) else {
             continue;
         };
         let mut kind = match e {
             EntityType::Hatch(h) => crate::mapping::hatch::from_cad(
                 h,
+                source,
                 cad_geometry_convert::hatch::resolve_creation_tolerance(
                     hatch_tolerance,
                     unit,

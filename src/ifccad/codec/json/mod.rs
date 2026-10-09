@@ -2,6 +2,7 @@ use crate::ifccad::*;
 mod encode;
 mod geometry;
 mod hatch;
+mod hatch_pattern;
 mod hatch_values;
 mod presentation;
 mod supplemental;

@@ -220,7 +220,14 @@ pub(super) fn to_cad(
                 kind => crate::mapping::geometry::to_entity(kind, e.id, geometry, issues)?,
             };
             if let Some(mut target) = target {
+                let pattern_origin = match &target {
+                    EntityType::Hatch(h) if !h.is_solid => h.stored_pattern_origin(),
+                    _ => None,
+                };
                 *target.common_mut() = common;
+                if let (EntityType::Hatch(h), Some(origin)) = (&mut target, pattern_origin) {
+                    h.record_pattern_origin(origin);
+                }
                 target.common_mut().owner_handle = *owner;
                 let handle = document.allocate_handle();
                 target.common_mut().handle = handle;

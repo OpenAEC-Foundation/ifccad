@@ -179,8 +179,41 @@ pub fn prepare_hatch_to_cad(
     boundaries: &[HatchBoundary2],
     area_rule: HatchAreaRule,
     join_tolerance: f64,
+    fill: &HatchFill,
 ) -> Result<PreparedCadHatch, CadHatchPreparationError> {
     validate_hatch_boundaries(boundaries, join_tolerance)?;
+    let mut hatch = construct_hatch(placement, boundaries, area_rule)?;
+    let mut pairs = super::evidence::pairs_to_cad(&hatch, placement, boundaries)?;
+    let mut losses = vec![];
+    if let HatchFill::LinePattern(p) = fill {
+        let prepared = super::pattern::prepare_pattern_to_cad(
+            p,
+            placement,
+            hatch.normal,
+            hatch.elevation,
+            boundaries,
+        )?;
+        hatch.is_solid = false;
+        hatch.pattern_type = HatchPatternType::Custom;
+        hatch.pattern = prepared.pattern;
+        hatch.pattern_angle = prepared.angle;
+        hatch.pattern_scale = prepared.scale;
+        hatch.record_pattern_origin(prepared.origin);
+        pairs.push(prepared.pair);
+        losses.extend(prepared.losses);
+    }
+    Ok(PreparedCadHatch {
+        hatch,
+        pairs,
+        losses,
+    })
+}
+
+pub(super) fn construct_hatch(
+    placement: CoordinateFrame3,
+    boundaries: &[HatchBoundary2],
+    area_rule: HatchAreaRule,
+) -> Result<Hatch, CadHatchPreparationError> {
     let normal = stored_normal(placement).ok_or(CadPreparationError::InvalidGeometry)?;
     let basis = cad_plane(normal).ok_or(CadPreparationError::InvalidGeometry)?;
     let frame = Frame::native(placement);
@@ -208,6 +241,5 @@ pub fn prepare_hatch_to_cad(
         .iter()
         .map(|b| projection.boundary(b))
         .collect::<Result<Vec<_>, _>>()?;
-    let pairs = super::evidence::pairs_to_cad(&hatch, placement, boundaries)?;
-    Ok(PreparedCadHatch { hatch, pairs })
+    Ok(hatch)
 }

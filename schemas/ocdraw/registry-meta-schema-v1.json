@@ -255,7 +255,13 @@
             "hatchLoop",
             "hatchLoops",
             "hatchFill",
-            "hatchEdge"
+            "hatchEdge",
+            "hatchDashKind",
+            "hatchDash",
+            "hatchDashes",
+            "hatchFamily",
+            "hatchFamilies",
+            "hatchLiteralString"
           ]
         },
         "nullable": {
@@ -545,7 +551,13 @@
                 "hatchLoop",
                 "hatchLoops",
                 "hatchFill",
-                "hatchEdge"
+                "hatchEdge",
+                "hatchDashKind",
+                "hatchDash",
+                "hatchDashes",
+                "hatchFamily",
+                "hatchFamilies",
+                "hatchLiteralString"
               ]
             },
             "minItems": {

@@ -115,6 +115,7 @@ pub(crate) fn export(
     }
     diagnostics.extend(spline_parameterization_losses(&document, &checked));
     diagnostics.extend(viewport_shadeplot_losses(&document, &checked));
+    diagnostics.extend(hatch_description_losses(&document, &checked));
     output["export"]["diagnostics"] = json!(&diagnostics);
     let check = match check(&checked) {
         Ok(v) => v,
@@ -218,6 +219,43 @@ fn viewport_shadeplot_losses(expected: &CadDocument, actual: &CadDocument) -> Ve
             let actual_mode = target.map(|v| v.shade_plot_mode);
             if source.shade_plot_mode != 0 && actual_mode != Some(source.shade_plot_mode) {
                 losses.push(json!({"code":"TARGET_CODEC_VIEWPORT_SHADEPLOT_LOSS","location":format!("block/{}/viewports/{index}.shadePlot",block.name),"phase":"cadExchange","action":"Modified","expected":source.shade_plot_mode,"actual":actual_mode,"message":"The requested viewport ShadePlot mode was not retained or could not be confirmed in physical CAD readback. The pinned DXF codec lacks VIEWPORT group 170 support; memory/DWG support is qualified separately."}));
+            }
+        }
+    }
+    losses
+}
+
+// Scope and typed Hatch order locate metadata independently of fresh handles.
+fn hatch_description_losses(expected: &CadDocument, actual: &CadDocument) -> Vec<Value> {
+    use ocdraw_convert::opencadcodec::EntityType;
+    let mut losses = Vec::new();
+    for block in expected.block_records.iter() {
+        let returned: Vec<_> = actual
+            .block_records
+            .get(&block.name)
+            .into_iter()
+            .flat_map(|b| &b.entity_handles)
+            .filter_map(|h| match actual.get_entity(*h) {
+                Some(EntityType::Hatch(h)) => Some(h),
+                _ => None,
+            })
+            .collect();
+        for (index, h) in block
+            .entity_handles
+            .iter()
+            .filter_map(|h| match expected.get_entity(*h) {
+                Some(EntityType::Hatch(h)) => Some(h),
+                _ => None,
+            })
+            .enumerate()
+        {
+            let observed = returned.get(index).map(|h| h.pattern.description.as_str());
+            if !h.pattern.description.is_empty() && observed != Some(h.pattern.description.as_str())
+            {
+                losses.push(json!({"code":"TARGET_CODEC_HATCH_DESCRIPTION_LOSS",
+                    "location":format!("block/{}/hatches/{index}.pattern.description",block.name),
+                    "phase":"cadExchange","action":"Modified","expected":h.pattern.description,
+                    "actual":observed,"message":"The pattern description was not retained in the CAD file."}));
             }
         }
     }

@@ -94,7 +94,7 @@ pub(crate) fn entities(drawing: &ValidatedOcdraw) -> Value {
             ocdraw::geometry_kernel::hatch::HatchAreaRule::Outer => "outer",
             ocdraw::geometry_kernel::hatch::HatchAreaRule::Ignore => "ignore",
         };
-        output.push(json!({"id":h.id.to_string(),"layerId":h.layer_id,"visible":h.visible,"appearance":appearance(&h.appearance),"geometry":{"type":"hatch","placement":frame(h.placement),"areaRule":rule,"joinTolerance":h.join_tolerance,"loops":loops,"fill":{"kind":"solid"},"fillEvaluation":"unassessed"}}));
+        output.push(json!({"id":h.id.to_string(),"layerId":h.layer_id,"visible":h.visible,"appearance":appearance(&h.appearance),"geometry":{"type":"hatch","placement":frame(h.placement),"areaRule":rule,"joinTolerance":h.join_tolerance,"loops":loops,"fill":stream["fill"][row].clone(),"fillEvaluation":"unassessed"}}));
     }
     for t in drawing.text_entities() {
         let mut geometry = text_geometry(drawing, "textStream", t.id, "text", t.placement);

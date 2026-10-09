@@ -8,7 +8,7 @@ import {renderInspection} from '../src/inspection-view.mjs';
 initSync({module:await readFile(new URL('../wasm-build/browser_bg.wasm',import.meta.url))});
 const wasm={conversion_capabilities,open_drawing,convert_cad_to_drawing,convert_cad_to_drawing_with_preservation,export_drawing,open_ifccad,convert_cad_to_ifccad,export_ifccad,export_drawing_with_options,convert_cad_to_drawing_with_options,export_ifccad_with_options,convert_cad_to_ifccad_with_options};
 
-for(const [kind,path]of [['ifccad','../../examples/ifccad/hello-hatch-solid.ifcx'],['drawing','../../examples/ocdraw/hello-hatch-solid.ocdraw.json']]){
+for(const [kind,path]of [['ifccad','../../examples/ifccad/hello-hatch-solid.ifcx'],['drawing','../../examples/ocdraw/hello-hatch-solid.ocdraw.json'],['ifccad','../../examples/ifccad/hello-hatch-pattern.ifcx'],['drawing','../../examples/ocdraw/hello-hatch-pattern.ocdraw.json']]){
  const name=path.split('/').at(-1),bytes=Uint8Array.from(await readFile(new URL(path,import.meta.url))),source={kind,name,files:[{path:name,bytes:bytes.buffer}]};
  const opened=processBrowserRequest(source,wasm);assert.equal(opened.failure,null,JSON.stringify(opened.failure));assert.equal(opened.validation.strictAvailable,true);assert.equal(opened.presentation.hatchEntityCount,1);
  const model=createInspection(opened,new TextDecoder().decode(bytes)),hatch=Array.from(model.nodes.values()).find(node=>node.type==='hatch');assert.ok(hatch);assert.ok(hatch.outgoing.some(edge=>edge.kind==='hatchSource'));

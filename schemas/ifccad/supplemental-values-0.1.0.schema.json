@@ -2852,16 +2852,61 @@
       ]
     },
     "hatchFill": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "kind"
-      ],
-      "properties": {
-        "kind": {
-          "const": "solid"
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "solid"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "families"
+          ],
+          "properties": {
+            "kind": {
+              "const": "linePattern"
+            },
+            "name": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "origin": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "rotation": {
+              "type": "number"
+            },
+            "scale": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "families": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/hatchFamily"
+              }
+            }
+          }
         }
-      }
+      ]
     },
     "hatchLoop": {
       "type": "object",
@@ -3111,6 +3156,93 @@
               }
             }
           ]
+        }
+      }
+    },
+    "hatchDash": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "length"
+          ],
+          "properties": {
+            "kind": {
+              "const": "dash"
+            },
+            "length": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "length"
+          ],
+          "properties": {
+            "kind": {
+              "const": "gap"
+            },
+            "length": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "dot"
+            }
+          }
+        }
+      ]
+    },
+    "hatchFamily": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "angle",
+        "basePoint",
+        "offset",
+        "dashes"
+      ],
+      "properties": {
+        "angle": {
+          "type": "number"
+        },
+        "basePoint": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "offset": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "dashes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/hatchDash"
+          }
         }
       }
     }

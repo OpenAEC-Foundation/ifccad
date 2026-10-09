@@ -38,6 +38,18 @@ fn native_hatch_is_materialized_with_stored_contours() {
     }))
     .expect("recognized native types must not panic in conversion");
     let out = result.unwrap();
+    assert!(!out
+        .diagnostics()
+        .iter()
+        .any(|d| d.code == "UNSUPPORTED_ENTITY"));
+    assert!(ocdraw_document_to_cad_document(
+        &d,
+        OcdrawToCadOptions {
+            loss_policy: ocdraw_convert::OcdrawLossPolicy::Reject,
+            ..Default::default()
+        }
+    )
+    .is_ok());
     assert_eq!(
         out.document()
             .entities()

@@ -3,7 +3,13 @@ import {readFile} from 'node:fs/promises';
 import {createInspection} from '../src/inspection-model.mjs';
 import {renderInspection,itemTitle} from '../src/inspection-view.mjs';
 import {collectionEntries} from '../src/inspection-navigation.mjs';
+import {hatchSummary} from '../src/hatch-view.mjs';
 const source=await readFile(new URL('../../examples/ifccad/hello-hatch-solid.ifcx',import.meta.url),'utf8');
+test('pattern summary identifies authored line families in both languages',()=>{
+ const value={fill:{kind:'linePattern',families:[{},{}]},loops:[{},{}],areaRule:'normal'};
+ assert.match(hatchSummary(value,'en'),/Pattern.*2 line families/);
+ assert.match(hatchSummary(value,'nl'),/Lijnpatroon.*2 lijnfamilies/);
+});
 test('IFCCAD Hatch type, grouping and contour-source links keep native identities',()=>{
  const graph=JSON.parse(source),first=graph.data.find(n=>n.attributes?.['ifccad::hatch']);
  const second=structuredClone(first);second.path='/cad/d1/e9007199254740993';graph.data.push(second);const layout=graph.data.find(n=>n.attributes?.['ifccad::layout']?.kind==='Model');layout.children['2']=second.path;

@@ -3499,9 +3499,93 @@
                     "dataType": "Enum",
                     "enumRestrictions": {
                       "options": [
-                        "solid"
+                        "solid",
+                        "linePattern"
                       ]
                     }
+                  },
+                  "name": {
+                    "dataType": "String",
+                    "optional": true
+                  },
+                  "description": {
+                    "dataType": "String",
+                    "optional": true
+                  },
+                  "origin": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    },
+                    "optional": true
+                  },
+                  "rotation": {
+                    "dataType": "Real",
+                    "optional": true
+                  },
+                  "scale": {
+                    "dataType": "Real",
+                    "optional": true
+                  },
+                  "families": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "value": {
+                        "dataType": "Object",
+                        "objectRestrictions": {
+                          "values": {
+                            "angle": {
+                              "dataType": "Real"
+                            },
+                            "basePoint": {
+                              "dataType": "Array",
+                              "arrayRestrictions": {
+                                "value": {
+                                  "dataType": "Real"
+                                }
+                              }
+                            },
+                            "offset": {
+                              "dataType": "Array",
+                              "arrayRestrictions": {
+                                "value": {
+                                  "dataType": "Real"
+                                }
+                              }
+                            },
+                            "dashes": {
+                              "dataType": "Array",
+                              "arrayRestrictions": {
+                                "value": {
+                                  "dataType": "Object",
+                                  "objectRestrictions": {
+                                    "values": {
+                                      "kind": {
+                                        "dataType": "Enum",
+                                        "enumRestrictions": {
+                                          "options": [
+                                            "dash",
+                                            "gap",
+                                            "dot"
+                                          ]
+                                        }
+                                      },
+                                      "length": {
+                                        "dataType": "Real",
+                                        "optional": true
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "optional": true
                   }
                 }
               }

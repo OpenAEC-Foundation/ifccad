@@ -644,7 +644,12 @@ pub fn cad_document_to_ocdraw_document_with_id(
             );
             continue;
         }
-        let mut partial = direct_common_losses(common);
+        let residual_hatch_common = if let EntityType::Hatch(h) = entity {
+            cad_geometry_convert::hatch::pattern::residual_common(h).ok()
+        } else {
+            None
+        };
+        let mut partial = direct_common_losses(residual_hatch_common.as_ref().unwrap_or(common));
         let mut reasons = match entity {
             EntityType::Line(value) => direct_line_losses(value),
             EntityType::Point(value) => direct_point_losses(value),
@@ -807,6 +812,7 @@ pub fn cad_document_to_ocdraw_document_with_id(
             geometry.select(common.owner_handle);
             let Some(value) = crate::mapping::hatch::from_cad(
                 hatch,
+                document,
                 scope_id,
                 layer_id,
                 appearance,

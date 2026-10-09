@@ -130,7 +130,7 @@ A uniquely available active Model window may be selected; multiple unqualified w
 
 Dot grid style and frequencies beyond CAD i16 receive field-specific substitutions. VIEWPORT grid beyond-limits/adaptive/subdivision/follow-workplane flags stay in CadDocument but its pinned DXF/DWG routes do not retain them; target diagnostics identify each nondefault field and Reject refuses that portability loss. Model VPORT grid flags survive both routes. Unrepresented display/icon/base/orthographic/plot/visual state remains diagnosed. Numeric and structural failures remain fatal under both policies.
 
-## Solid Hatch
+## Hatch
 
 Stored local contours become CAD OCS paths with the exact native area-rule mode.
 Curve/point evidence participates in hard numerical and nested occurrence
@@ -143,8 +143,12 @@ CAD does not persist authored native join policy: a nondefault limit produces
 located rejectable loss. Default/polyline path flags do not assert outer/hole
 labels. Actual AC1032 DXF/DWG tests qualify contour/order/reference retention,
 including small stored gaps; they do not certify CAD fill evaluation or reactor
-update behavior. Fill and nested fill occurrences remain unassessed. No pattern,
-gradient, spline-boundary or MPOLYGON backing is offered by this slice.
+update behavior. Fill and nested fill occurrences remain unassessed. Explicit LinePattern families evaluate once into Custom CAD definitions, including
+origin/rotation/scale and signed phase. Missing literal metadata is diagnosed.
+Pattern certificate envelopes join contour evidence in nested occurrence assessment.
+Nonempty descriptions remain in CadDocument; pinned DXF/DWG storage loses them,
+with a separate viewer/browser physical-readback metadata diagnostic.
+No gradient, spline-boundary or MPOLYGON backing is offered by this slice.
 See [Hatch support](../../../docs/hatch.md) for the complete bounded guarantee.
 ## Presentation parity — 2026-10-08
 

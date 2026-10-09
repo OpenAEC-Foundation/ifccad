@@ -122,6 +122,7 @@ fn import_document(
         .chain(drawing.opaque_entities.iter().map(|row| row.id))
         .chain(drawing.text_entities.iter().map(|row| row.id))
         .chain(drawing.mtext_entities.iter().map(|row| row.id))
+        .chain(drawing.hatch_entities.iter().map(|row| row.id))
         .collect::<BTreeSet<_>>();
     for (scope_index, scope) in drawing.scopes.iter().enumerate() {
         for (position, id) in scope.entities.iter().enumerate() {

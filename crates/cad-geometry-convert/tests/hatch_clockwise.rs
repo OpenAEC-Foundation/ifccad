@@ -52,8 +52,14 @@ fn original_dxf_9aa_and_dwg_counterpart_close_at_the_existing_default_limit() {
             panic!()
         };
         assert_eq!(edges.len(), 5);
-        let q = prepare_hatch_to_cad(p.placement, &p.boundaries, p.area_rule, p.join_tolerance)
-            .unwrap();
+        let q = prepare_hatch_to_cad(
+            p.placement,
+            &p.boundaries,
+            p.area_rule,
+            p.join_tolerance,
+            &ocdraw::geometry_kernel::hatch::HatchFill::Solid,
+        )
+        .unwrap();
         assert_eq!(
             prepare_hatch_from_cad(&q.hatch, 1e-9).unwrap().boundaries,
             p.boundaries
@@ -64,6 +70,63 @@ fn original_dxf_9aa_and_dwg_counterpart_close_at_the_existing_default_limit() {
                     curve.squared_deviation().unwrap().1
                         < cad_geometry_convert::geometry::numeric::exact(1e-18)
                 );
+            }
+        }
+    }
+}
+
+#[test]
+fn emitted_dxf_and_dwg_keep_the_original_clockwise_wire_orientation() {
+    use opencadcodec::{CadDocument, DwgReader, DwgWriter, DxfReader, DxfWriter, EntityType};
+    use std::io::Cursor;
+    for source in sources() {
+        let p = prepare_hatch_from_cad(&source, 1e-9).unwrap();
+        let q = prepare_hatch_to_cad(
+            p.placement,
+            &p.boundaries,
+            p.area_rule,
+            p.join_tolerance,
+            &p.fill,
+        )
+        .unwrap();
+        let mut document = CadDocument::new();
+        document.add_entity(EntityType::Hatch(q.hatch)).unwrap();
+        for dwg in [false, true] {
+            let returned = if dwg {
+                DwgReader::from_stream(Cursor::new(DwgWriter::write_to_vec(&document).unwrap()))
+                    .read()
+                    .unwrap()
+            } else {
+                DxfReader::from_reader(Cursor::new(
+                    DxfWriter::new(&document).write_to_vec().unwrap(),
+                ))
+                .unwrap()
+                .read()
+                .unwrap()
+            };
+            let h = returned
+                .entities()
+                .find_map(|e| {
+                    if let EntityType::Hatch(h) = e {
+                        Some(h)
+                    } else {
+                        None
+                    }
+                })
+                .unwrap();
+            for (actual, expected) in h
+                .paths
+                .iter()
+                .flat_map(|p| &p.edges)
+                .zip(source.paths.iter().flat_map(|p| &p.edges))
+            {
+                if let (BoundaryEdge::CircularArc(a), BoundaryEdge::CircularArc(b)) =
+                    (actual, expected)
+                {
+                    assert_eq!(a.counter_clockwise, b.counter_clockwise);
+                    assert!((a.start_angle - b.start_angle).abs() < 2e-14);
+                    assert!((a.end_angle - b.end_angle).abs() < 2e-14);
+                }
             }
         }
     }

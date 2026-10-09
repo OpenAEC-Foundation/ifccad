@@ -27,6 +27,13 @@ pub(crate) fn validate_hatch_parts(
             ));
             continue;
         }
+        if let Err(e) = crate::geometry_kernel::hatch::validate_hatch_fill(&h.fill) {
+            errors.push(logical_error(
+                "HATCH_FILL",
+                format!("{path}/fill"),
+                &e.to_string(),
+            ));
+        }
         for (j, l) in h.loops.iter().enumerate() {
             if let Some(id) = l.source_entity_id {
                 let good = sources.get(&id).is_some_and(|e| {

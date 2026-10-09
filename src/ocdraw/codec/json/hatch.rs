@@ -23,7 +23,7 @@ pub(crate) fn encode_hatch(rows: &[DrawingHatchEntity]) -> Value {
         "placement":rows.iter().map(|h|placement_frame(h.placement)).collect::<Vec<_>>(),
         "areaRule":rows.iter().map(|h|match h.area_rule{HatchAreaRule::Normal=>"normal",HatchAreaRule::Outer=>"outer",HatchAreaRule::Ignore=>"ignore"}).collect::<Vec<_>>(),
         "joinTolerance":rows.iter().map(|h|h.join_tolerance).collect::<Vec<_>>(),
-        "fill":rows.iter().map(|h|match &h.fill{HatchFill::Solid=>json!({"kind":"solid"})}).collect::<Vec<_>>(),
+        "fill":rows.iter().map(|h|super::hatch_pattern::encode(&h.fill)).collect::<Vec<_>>(),
         "loops":rows.iter().map(|h|h.loops.iter().map(|l|LoopValue{boundary:l.boundary.clone().into(),source_entity_id:l.source_entity_id}).collect::<Vec<_>>()).collect::<Vec<_>>()
     });
     appearance_columns(
@@ -69,9 +69,7 @@ pub(crate) fn decode_hatch(value: &Value) -> Result<Vec<DrawingHatchEntity>, Ocd
             });
         }
         let fill = get("fill").ok_or_else(|| fail(row))?;
-        if fill.as_object().is_none_or(|o| o.len() != 1) || fill["kind"] != "solid" {
-            return Err(fail(row));
-        }
+        let fill = super::hatch_pattern::decode(fill).map_err(|_| fail(row))?;
         let rule = match get("areaRule").and_then(Value::as_str) {
             None if get("areaRule").is_none() => HatchAreaRule::Normal,
             Some("normal") => HatchAreaRule::Normal,
@@ -101,7 +99,7 @@ pub(crate) fn decode_hatch(value: &Value) -> Result<Vec<DrawingHatchEntity>, Ocd
             loops,
             area_rule: rule,
             join_tolerance: tolerance,
-            fill: HatchFill::Solid,
+            fill,
         });
     }
     Ok(rows)

@@ -2427,7 +2427,8 @@
     "hatchFillKind": {
       "kind": "enum",
       "values": [
-        "solid"
+        "solid",
+        "linePattern"
       ]
     },
     "hatchBulges": {
@@ -2594,8 +2595,109 @@
           "name": "kind",
           "valueType": "hatchFillKind",
           "nullable": false
+        },
+        {
+          "name": "name",
+          "valueType": "hatchLiteralString",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "description",
+          "valueType": "hatchLiteralString",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "origin",
+          "valueType": "point2",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "rotation",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true,
+          "default": 0
+        },
+        {
+          "name": "scale",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true,
+          "default": 1
+        },
+        {
+          "name": "families",
+          "valueType": "hatchFamilies",
+          "nullable": false,
+          "optional": true
         }
       ]
+    },
+    "hatchDashKind": {
+      "kind": "enum",
+      "values": [
+        "dash",
+        "gap",
+        "dot"
+      ]
+    },
+    "hatchDash": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "hatchDashKind",
+          "nullable": false
+        },
+        {
+          "name": "length",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "hatchDashes": {
+      "kind": "sequence",
+      "items": "hatchDash",
+      "minItems": 0
+    },
+    "hatchFamily": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "angle",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "basePoint",
+          "valueType": "point2",
+          "nullable": false
+        },
+        {
+          "name": "offset",
+          "valueType": "point2",
+          "nullable": false
+        },
+        {
+          "name": "dashes",
+          "valueType": "hatchDashes",
+          "nullable": false
+        }
+      ]
+    },
+    "hatchFamilies": {
+      "kind": "sequence",
+      "items": "hatchFamily",
+      "minItems": 1
+    },
+    "hatchLiteralString": {
+      "kind": "scalar",
+      "base": "string"
     }
   },
   "resource": {

@@ -325,14 +325,17 @@ A uniquely available active Model window may be selected; multiple unqualified w
 
 Dot grid style and frequencies beyond CAD i16 receive field-specific substitutions. VIEWPORT grid beyond-limits/adaptive/subdivision/follow-workplane flags stay in CadDocument but its pinned DXF/DWG routes do not retain them; target diagnostics identify each nondefault field and Reject refuses that portability loss. Model VPORT grid flags survive both routes. Unrepresented display/icon/base/orthographic/plot/visual state remains diagnosed. Numeric and structural failures remain fatal under both policies.
 
-## Solid Hatch
+## Hatch
 
-Native Solid Hatch maps stored contours and the normal/outer/ignore area rule.
+Native Solid and LinePattern Hatch map stored contours and the normal/outer/ignore area rule.
 Per-loop single same-owner source references bind after entity allocation.
 Unsupported associations retain contour geometry with located loss.
 `hatch_join_tolerance` is a CAD-to-native creation option, separate from numeric
 conversion tolerance. Nondefault native limits are not persisted in CAD and
 produce rejectable loss. Fill remains unassessed despite contour curve proofs.
+Explicit pattern families retain phase, signed spacing and dash/gap/dot order.
+CAD definitions are evaluated once; qualified continuous UserDefined and a narrow
+double profile are supported. Other active dependencies omit the whole Hatch.
 See [Hatch support](../../docs/hatch.md) and the coverage inventories.
 ## Native validation contract
 

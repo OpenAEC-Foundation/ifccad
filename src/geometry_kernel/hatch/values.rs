@@ -10,10 +10,35 @@ pub enum HatchAreaRule {
     Ignore,
 }
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub enum HatchFill {
     #[default]
     Solid,
+    LinePattern(HatchLinePattern),
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct HatchLinePattern {
+    pub name: Option<String>,
+    pub description: Option<String>,
+    pub origin: [f64; 2],
+    pub rotation: f64,
+    pub scale: f64,
+    pub families: Vec<HatchLineFamily>,
+}
+#[derive(Clone, Debug, PartialEq)]
+pub struct HatchLineFamily {
+    pub angle: f64,
+    pub base_point: [f64; 2],
+    /// Along-direction and perpendicular offsets, in that order.
+    pub offset: [f64; 2],
+    pub dashes: Vec<HatchDash>,
+}
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum HatchDash {
+    Dash { length: f64 },
+    Gap { length: f64 },
+    Dot,
 }
 
 #[derive(Clone, Debug, PartialEq)]

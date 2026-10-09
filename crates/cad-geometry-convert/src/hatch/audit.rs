@@ -28,10 +28,10 @@ pub(super) fn audit(h: &Hatch) -> Result<Vec<HatchSourceLoss>, CadHatchPreparati
     if h.gradient_color.enabled {
         return Err(unsupported("gradient_color", "active gradient fill"));
     }
-    if !h.is_solid {
+    if !h.is_solid && h.is_double && h.pattern_type == HatchPatternType::UserDefined {
         return Err(unsupported(
-            "is_solid",
-            "pattern fill requires the second Hatch slice",
+            "is_double",
+            "active user-defined double pattern requires a qualified orthogonal expansion",
         ));
     }
     let mut losses = Vec::new();
@@ -41,19 +41,38 @@ pub(super) fn audit(h: &Hatch) -> Result<Vec<HatchSourceLoss>, CadHatchPreparati
             detail: detail.into(),
         })
     };
-    if h.pattern.name != "SOLID" || !h.pattern.description.is_empty() || !h.pattern.lines.is_empty()
+    if h.is_solid
+        && (h.pattern.name != "SOLID"
+            || !h.pattern.description.is_empty()
+            || !h.pattern.lines.is_empty())
     {
         loss("pattern", "inactive Solid pattern metadata is not retained");
     }
-    if h.pattern_type != HatchPatternType::Predefined
-        || h.pattern_angle != 0.
-        || h.pattern_scale != 1.
-        || h.is_double
+    if h.is_solid
+        && (h.pattern_type != HatchPatternType::Predefined
+            || h.pattern_angle != 0.
+            || h.pattern_scale != 1.
+            || h.is_double)
     {
         loss(
             "pattern_context",
             "inactive Solid pattern creation settings are not retained",
         );
+    }
+    if !h.is_solid && h.pattern_type == HatchPatternType::UserDefined {
+        return Err(unsupported(
+            "pattern_type",
+            "user-defined pattern needs model-aware continuous linetype qualification",
+        ));
+    }
+    if !h.is_solid {
+        loss("pattern_type", "literal families retained; external pattern-library and creation-type dependency is not retained");
+        if h.is_double {
+            loss(
+                "is_double",
+                "inactive double flag on predefined/custom pattern is not retained",
+            );
+        }
     }
     if h.gradient_color != HatchGradientPattern::default() {
         loss(

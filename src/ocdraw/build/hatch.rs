@@ -60,6 +60,8 @@ impl OcdrawBuilder {
                 "invalid Hatch appearance reference or scale".into(),
             ));
         }
+        crate::geometry_kernel::hatch::validate_hatch_fill(&d.fill)
+            .map_err(|e| OcdrawBuildError::Invalid(e.to_string()))?;
         validate_hatch_boundaries(d.loops.iter().map(|l| &l.boundary), d.join_tolerance)
             .map_err(|e| OcdrawBuildError::Invalid(e.to_string()))?;
         hatch_bounds(d.placement, d.loops.iter().map(|l| &l.boundary))

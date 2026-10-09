@@ -10,6 +10,13 @@ pub struct Range {
     hi: Q,
 }
 impl Range {
+    pub(crate) fn limits(&self) -> (&Q, &Q) {
+        (&self.lo, &self.hi)
+    }
+    pub(crate) fn hull(lo: Q, hi: Q) -> Self {
+        debug_assert!(lo <= hi);
+        Self { lo, hi }
+    }
     pub fn point(value: Q) -> Self {
         Self {
             lo: value.clone(),
@@ -180,6 +187,15 @@ pub struct PairedPoint {
     residual: [Range; 3],
 }
 impl PairedPoint {
+    /// Bounded evaluated positions for certified affine-region corner checks.
+    /// Independent intervals are conservative; exact operand correlation can
+    /// still be retained by callers using `new` or `exact`.
+    pub fn from_ranges(source: [Range; 3], target: [Range; 3]) -> Self {
+        Self {
+            residual: std::array::from_fn(|i| source[i].add(&target[i].scale(&exact(-1.)))),
+            target,
+        }
+    }
     pub fn new(source: [Q; 3], target: [Q; 3]) -> Self {
         Self {
             residual: std::array::from_fn(|i| Range::point(&source[i] - &target[i])),

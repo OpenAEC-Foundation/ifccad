@@ -18,6 +18,45 @@ fn exchange(d: &CadDocument, dwg: bool) -> CadDocument {
     }
 }
 #[test]
+fn explicit_pattern_survives_dxf_and_dwg_with_phase_and_ordered_dashes() {
+    let d = load_ocdraw_bytes(include_bytes!(
+        "../../../conformance/next/ocdraw/valid/hatch-pattern.ocdraw.json"
+    ))
+    .unwrap()
+    .into_document();
+    let cad = ocdraw_document_to_cad_document(&d, Default::default()).unwrap();
+    for dwg in [false, true] {
+        let file = exchange(cad.document(), dwg);
+        let back =
+            cad_document_to_ocdraw_document_with_id(&file, "pattern", Default::default()).unwrap();
+        assert_eq!(back.document().hatch_entities.len(), 1);
+        let HatchFill::LinePattern(actual) = &back.document().hatch_entities[0].fill else {
+            panic!("pattern lost")
+        };
+        let HatchFill::LinePattern(expected) = &d.hatch_entities[0].fill else {
+            panic!()
+        };
+        assert_eq!(actual.origin, expected.origin);
+        assert!((actual.rotation - expected.rotation).abs() < 1e-14);
+        assert_eq!(actual.scale, expected.scale);
+        assert_eq!(actual.families.len(), expected.families.len());
+        for (a, b) in actual.families.iter().zip(&expected.families) {
+            assert!((a.angle - b.angle).abs() < 1e-14);
+            for (x, y) in a.base_point.iter().zip(b.base_point) {
+                assert!((x - y).abs() < 1e-12);
+            }
+            assert_eq!(a.dashes, b.dashes);
+            for (x, y) in a.offset.iter().zip(b.offset) {
+                assert!((x - y).abs() < 1e-12);
+            }
+        }
+        assert!(
+            load_ocdraw_bytes(encode_ocdraw_document(back.document()).unwrap().bytes()).is_ok()
+        );
+        assert!(!back.geometry_assessment().is_complete());
+    }
+}
+#[test]
 fn tilted_curves_multiple_regions_and_tolerant_gap_survive_without_bridging() {
     for dwg in [false, true] {
         let mut d = load_ocdraw_bytes(include_bytes!(
@@ -119,5 +158,40 @@ fn curved_hatch_occurrences_survive_nested_nonuniform_blocks() {
         assert!(
             load_ocdraw_bytes(encode_ocdraw_document(back.document()).unwrap().bytes()).is_ok()
         );
+    }
+}
+
+#[test]
+fn user_defined_layer_zero_block_dependency_is_not_assumed_continuous() {
+    use opencadcodec::{entities::hatch::*, EntityType, Vector2};
+    for (mode, accepted) in [("Continuous", true), ("ByLayer", false)] {
+        let mut source = contours::cad_nonuniform_block();
+        let hh = source
+            .entities()
+            .find_map(|e| {
+                if let EntityType::Hatch(h) = e {
+                    Some(h.common.handle)
+                } else {
+                    None
+                }
+            })
+            .unwrap();
+        let EntityType::Hatch(h) = source.get_entity_mut(hh).unwrap() else {
+            panic!()
+        };
+        h.is_solid = false;
+        h.pattern_type = HatchPatternType::UserDefined;
+        h.common.linetype = mode.into();
+        h.pattern = HatchPattern::new("U");
+        h.pattern.lines.push(HatchPatternLine {
+            angle: 0.,
+            base_point: Vector2::ZERO,
+            offset: Vector2::new(0., 1.),
+            dash_lengths: vec![],
+        });
+        let out =
+            cad_document_to_ocdraw_document_with_id(&source, "block-context", Default::default())
+                .unwrap();
+        assert_eq!(out.document().hatch_entities.len(), usize::from(accepted));
     }
 }

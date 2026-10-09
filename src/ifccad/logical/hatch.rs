@@ -96,6 +96,9 @@ pub(crate) fn validate_hatch(h: &IfccadHatch, path: &str) -> Result<(), IfccadRe
     h.placement
         .coordinate_frame()
         .map_err(|e| crate::ifccad::diagnostics::context(e, "IFCCAD-HATCH-001", path))?;
+    crate::geometry_kernel::hatch::validate_hatch_fill(&h.fill).map_err(|e| {
+        crate::ifccad::diagnostics::failure("IFCCAD-HATCH-001", path, e.to_string())
+    })?;
     validate_hatch_boundaries(h.loops.iter().map(|l| &l.boundary), h.join_tolerance)
         .map_err(|e| crate::ifccad::diagnostics::failure("IFCCAD-HATCH-003", path, e.to_string()))
 }

@@ -475,3 +475,12 @@ without nesting or intersection classification. Optional scopebounds remain
 optional; supplied boxes require enclosure. Full intersection audit, pattern
 fill, gradients, spline boundaries and runtime association updates are
 separate capabilities.
+
+### Native embedded pattern fill
+
+`ifccad::hatch.fill` also admits LinePattern with explicit local families,
+origin/rotation/scale and ordered dash/gap/dot values. Names are literal metadata,
+not resource links. Native fill/period rules are IFCCAD-HATCH-004; whole attribute
+replacement remains unchanged. Storage/readback support does not by itself
+qualify CAD pattern preparation or fill rendering. Numeric CAD proof and source
+context admission are documented separately as those routes are qualified.

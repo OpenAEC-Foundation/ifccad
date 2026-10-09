@@ -1,4 +1,6 @@
 export const examples=[
+ {format:'IFCCAD',name:'Pattern Hatch with authored phase',path:'examples/ifccad/hello-hatch-pattern.ifcx'},
+ {format:'OCDraw',name:'Pattern Hatch with authored phase',path:'examples/ocdraw/hello-hatch-pattern.ocdraw.json'},
  {format:'IFCCAD',name:'Solid Hatch and source contour',path:'examples/ifccad/hello-hatch-solid.ifcx'},
  {format:'OCDraw',name:'Solid Hatch and source contour',path:'examples/ocdraw/hello-hatch-solid.ocdraw.json'},
  {format:'IFCCAD',name:'Workspace state',path:'examples/ifccad/workspace-state.ifcx'},

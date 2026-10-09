@@ -1,6 +1,6 @@
 use super::hatch_values::BoundaryValue;
 use super::*;
-use crate::geometry_kernel::hatch::{HatchAreaRule, HatchFill, DEFAULT_HATCH_JOIN_TOLERANCE};
+use crate::geometry_kernel::hatch::{HatchAreaRule, DEFAULT_HATCH_JOIN_TOLERANCE};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
@@ -49,9 +49,7 @@ pub(super) fn decode_hatch(
         }
     }
     let v: HatchValue = serde_json::from_value(value.clone()).map_err(|e| error(&e.to_string()))?;
-    if v.fill.as_object().is_none_or(|o| o.len() != 1) || v.fill["kind"] != "solid" {
-        return Err(error("unsupported Hatch fill"));
-    }
+    let fill = super::hatch_pattern::decode(&v.fill).map_err(|e| error(&e.to_string()))?;
     let area_rule = match v.area_rule.as_str() {
         "normal" => HatchAreaRule::Normal,
         "outer" => HatchAreaRule::Outer,
@@ -87,13 +85,11 @@ pub(super) fn decode_hatch(
         loops,
         area_rule,
         join_tolerance: v.join_tolerance,
-        fill: HatchFill::Solid,
+        fill,
     }))
 }
 pub(super) fn encode_hatch(h: &IfccadHatch, prefix: &str) -> Value {
-    let fill = match &h.fill {
-        HatchFill::Solid => json!({"kind":"solid"}),
-    };
+    let fill = super::hatch_pattern::encode(&h.fill);
     json!({
         "loops":h.loops.iter().map(|l|LoopValue{boundary:l.boundary.clone().into(),source:l.source_entity_id.map(|id|format!("{prefix}/e{id}"))}).collect::<Vec<_>>(),
         "areaRule":match h.area_rule{HatchAreaRule::Normal=>"normal",HatchAreaRule::Outer=>"outer",HatchAreaRule::Ignore=>"ignore"},

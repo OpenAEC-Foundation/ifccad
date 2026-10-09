@@ -516,3 +516,22 @@ floating-point IDs and unavailable fill variants are invalid.
 Stored contours contribute certified conservative bounds without nesting
 classification. Preparation remains explicit and atomic. Pattern fills,
 gradients, splines and CAD-route qualification are separate development work.
+
+## Hatch LinePattern fill
+
+In addition to Solid, `linePattern` embeds optional literal name/description,
+origin XY (default zero), rotation radians (default zero), positive scale
+(default one), and a nonempty list of families. A Solid value has only kind.
+Each family stores angle, basePoint XY, offset [along,perpendicular] and ordered
+typed dashes. Perpendicular spacing is nonzero and signed; no minimum magnitude.
+Dash/gap have positive finite length; Dot forbids length. Empty dashes is
+continuous; nonempty exact total period must be positive and no larger than
+finite binary64 maximum. All-gap is valid; all-dot is not. No alternating or
+first-element normalization. Literal metadata permits empty strings and is never
+a resource reference or library lookup. Optional absent fields forbid null.
+
+Families use d=(cos(angle),sin(angle)), n=(-sin(angle),cos(angle)); family k
+begins at basePoint+k*(offset.along*d+offset.perpendicular*n). Pattern points
+map to Hatch XY by origin+scale*R(rotation)*p, then the existing placement.
+Origin remains authored and does not follow contour/bounds/source edits.
+No generated lines, fill clipping or nesting are stored or evaluated by IO.

@@ -16,6 +16,7 @@ fn combine(pairs: Vec<cad_geometry_convert::GeometryPair>) -> cad_geometry_conve
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn from_cad(
     h: &Hatch,
+    source: &opencadcodec::CadDocument,
     scope_id: u32,
     layer_id: u32,
     appearance: EntityAppearance,
@@ -23,7 +24,11 @@ pub(crate) fn from_cad(
     state: &mut super::geometry::ExchangeState<Handle>,
     partial: &mut Vec<CadToOcdrawLossReason>,
 ) -> Result<Option<crate::from_cad::prepared_entities::PreparedCadEntityValue>, CadToOcdrawError> {
-    let p = match cad_geometry_convert::hatch::prepare_hatch_from_cad(h, tolerance) {
+    let p = match cad_geometry_convert::hatch::prepare_hatch_from_cad_with_pattern_context(
+        h,
+        tolerance,
+        continuous_user_linetype(h, source),
+    ) {
         Ok(p) => p,
         Err(cad_geometry_convert::hatch::CadHatchPreparationError::Unsupported {
             field,
@@ -81,12 +86,43 @@ pub(crate) fn from_cad(
                     .collect(),
                 area_rule: p.area_rule,
                 join_tolerance: p.join_tolerance,
-                fill: ocdraw::geometry_kernel::hatch::HatchFill::Solid,
+                fill: p.fill,
             },
             handles: p.source_handles,
             associative: p.is_associative,
         },
     ))
+}
+
+fn continuous_user_linetype(h: &Hatch, source: &opencadcodec::CadDocument) -> bool {
+    let c = &h.common;
+    let name = if c.linetype.is_empty() || c.linetype.eq_ignore_ascii_case("ByLayer") {
+        // Layer 0 in a local block inherits the insertion layer, including
+        // nested occurrences. A fixed local table lookup cannot qualify it.
+        if c.layer == "0"
+            && source
+                .block_records
+                .iter()
+                .any(|b| b.handle == c.owner_handle && !b.is_model_space() && !b.is_paper_space())
+        {
+            return false;
+        }
+        let Some(layer) = source.layers.get(&c.layer) else {
+            return false;
+        };
+        layer.line_type.as_str()
+    } else {
+        c.linetype.as_str()
+    };
+    if name.eq_ignore_ascii_case("ByBlock") || name.eq_ignore_ascii_case("ByLayer") {
+        return false;
+    }
+    source.line_types.get(name).is_some_and(|p| {
+        p.elements.is_empty()
+            && p.pattern_length == 0.
+            && !p.xref_dependent
+            && p.xref_block_record_handle.is_null()
+    })
 }
 pub(crate) fn to_cad(
     h: &DrawingHatchEntity,
@@ -104,8 +140,16 @@ pub(crate) fn to_cad(
         &boundaries,
         h.area_rule,
         h.join_tolerance,
+        &h.fill,
     )
     .map_err(|e| OcdrawToCadError::Cad(format!("Hatch {}: {e}", h.id)))?;
+    for loss in p.losses {
+        diagnostics.push(crate::to_cad::diagnostic(
+            "HATCH_PATTERN_METADATA",
+            format!("/entities/{}/{}", h.id, loss.field),
+            loss.detail,
+        ));
+    }
     let maximum = state
         .record_geometry(
             h.id,
@@ -120,7 +164,7 @@ pub(crate) fn to_cad(
         diagnostics.push(crate::to_cad::diagnostic(
             "GEOMETRY_ROUNDED_WITHIN_TOLERANCE",
             format!("/entities/{}", h.id),
-            format!("Hatch contour deviation is at most {maximum} coordinate units"),
+            format!("Hatch geometry deviation is at most {maximum} coordinate units"),
         ));
     }
     if h.join_tolerance != ocdraw::geometry_kernel::hatch::DEFAULT_HATCH_JOIN_TOLERANCE {

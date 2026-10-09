@@ -33,6 +33,65 @@ fn source(
     h.paths[0].boundary_handles = if multiple { vec![ch, ch] } else { vec![ch] };
     (d, hh, ch)
 }
+
+#[test]
+fn user_defined_active_linetype_is_resolved_in_the_document() {
+    use ocdraw::geometry_kernel::hatch::HatchFill;
+    for (mode, accepted) in [
+        ("Continuous", true),
+        ("ByLayer", true),
+        ("ByBlock", false),
+        ("DashedLayer", false),
+    ] {
+        for double in [false, true] {
+            let (mut d, hh, _) = source(true, false);
+            if mode == "DashedLayer" {
+                let mut lt = opencadcodec::LineType::new("ActiveDash");
+                lt.handle = d.allocate_handle();
+                lt.elements
+                    .push(opencadcodec::tables::LineTypeElement::dash(1.));
+                lt.elements
+                    .push(opencadcodec::tables::LineTypeElement::space(1.));
+                lt.pattern_length = 2.;
+                d.line_types.add(lt).unwrap();
+                d.layers.get_mut("0").unwrap().line_type = "ActiveDash".into();
+            }
+            let EntityType::Hatch(h) = d.get_entity_mut(hh).unwrap() else {
+                panic!()
+            };
+            h.is_solid = false;
+            h.pattern_type = HatchPatternType::UserDefined;
+            h.is_double = double;
+            h.common.linetype = if mode == "DashedLayer" {
+                "ByLayer"
+            } else {
+                mode
+            }
+            .into();
+            h.pattern = HatchPattern::new("U");
+            h.pattern.lines.push(HatchPatternLine {
+                angle: 0.,
+                base_point: Vector2::ZERO,
+                offset: Vector2::new(0., 1.),
+                dash_lengths: vec![],
+            });
+            let out =
+                cad_document_to_ocdraw_document_with_id(&d, "user-pattern", Default::default())
+                    .unwrap();
+            assert_eq!(
+                out.document().hatch_entities.len(),
+                usize::from(accepted),
+                "{mode} double={double}"
+            );
+            if accepted {
+                let HatchFill::LinePattern(p) = &out.document().hatch_entities[0].fill else {
+                    panic!()
+                };
+                assert_eq!(p.families.len(), if double { 2 } else { 1 });
+            }
+        }
+    }
+}
 #[test]
 fn source_binding_is_independent_of_draw_order_and_strict_readback() {
     for first in [true, false] {
@@ -88,6 +147,11 @@ fn large_native_ids_and_stale_relations_export_stored_contours() {
     let c = h + 1;
     n.hatch_entities[0].id = h;
     n.hatch_entities[0].loops[0].source_entity_id = Some(c);
+    let pattern = ocdraw::ocdraw::load_ocdraw_bytes(include_bytes!(
+        "../../../conformance/next/ocdraw/valid/hatch-pattern.ocdraw.json"
+    ))
+    .unwrap();
+    n.hatch_entities[0].fill = pattern.hatch_entities()[0].fill.clone();
     let circle = n
         .geometric_entities
         .iter_mut()
@@ -122,6 +186,8 @@ fn large_native_ids_and_stale_relations_export_stored_contours() {
         panic!()
     };
     assert_eq!(a.radius, 3.);
+    assert_eq!(target.pattern_origin(), Vector2::new(0.5, -0.5));
+    assert_eq!(target.pattern.lines.len(), 2);
     let EntityType::Circle(a) = out.document().get_entity(out.entity_mapping()[&c]).unwrap() else {
         panic!()
     };

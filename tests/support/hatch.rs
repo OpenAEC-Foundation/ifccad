@@ -99,6 +99,7 @@ pub fn cad_nonuniform_block() -> opencadcodec::CadDocument {
         &contours(),
         ocdraw::geometry_kernel::hatch::HatchAreaRule::Normal,
         1e-9,
+        &ocdraw::geometry_kernel::hatch::HatchFill::Solid,
     )
     .unwrap()
     .hatch;

@@ -20,6 +20,70 @@ fn exchange(d: &CadDocument, dwg: bool) -> CadDocument {
     }
 }
 #[test]
+fn explicit_pattern_survives_dxf_and_dwg_with_phase_and_ordered_dashes() {
+    let d = load_ifccad_bytes(
+        include_bytes!("../../../conformance/next/ifccad/valid/hatch-pattern.ifcx"),
+        Default::default(),
+    )
+    .unwrap()
+    .into_document();
+    let cad = ifccad_document_to_cad_document(&d, Default::default()).unwrap();
+    let find = |d: &IfccadDocument| {
+        d.model
+            .entities
+            .iter()
+            .filter_map(IfccadEntity::as_native)
+            .find_map(|e| {
+                if let IfccadEntityKind::Hatch(h) = &e.kind {
+                    Some(h.clone())
+                } else {
+                    None
+                }
+            })
+            .unwrap()
+    };
+    for dwg in [false, true] {
+        let file = exchange(cad.document(), dwg);
+        let back = cad_document_to_ifccad_document(
+            &file,
+            IfccadTargetMetadata {
+                header: d.header.clone(),
+                drawing_id: d.drawing_id,
+            },
+            Default::default(),
+        )
+        .unwrap();
+        let h = find(back.document());
+        let expected = find(&d);
+        let HatchFill::LinePattern(a) = h.fill else {
+            panic!("pattern lost")
+        };
+        let HatchFill::LinePattern(b) = expected.fill else {
+            panic!()
+        };
+        assert_eq!(a.origin, b.origin);
+        assert!((a.rotation - b.rotation).abs() < 1e-14);
+        assert_eq!(a.scale, b.scale);
+        assert_eq!(a.families.len(), b.families.len());
+        for (a, b) in a.families.iter().zip(b.families) {
+            assert!((a.angle - b.angle).abs() < 1e-14);
+            for (x, y) in a.base_point.iter().zip(b.base_point) {
+                assert!((x - y).abs() < 1e-12);
+            }
+            assert_eq!(a.dashes, b.dashes);
+            for (x, y) in a.offset.iter().zip(b.offset) {
+                assert!((x - y).abs() < 1e-12);
+            }
+        }
+        assert!(load_ifccad_bytes(
+            encode_ifccad_document(back.document()).unwrap().bytes(),
+            Default::default()
+        )
+        .is_ok());
+        assert!(!back.geometry_assessment().is_complete());
+    }
+}
+#[test]
 fn tilted_curves_multiple_regions_and_tolerant_gap_survive_without_bridging() {
     for dwg in [false, true] {
         let mut d = fixture::drawing();
@@ -170,5 +234,55 @@ fn curved_hatch_occurrences_survive_nested_nonuniform_blocks() {
             Default::default()
         )
         .is_ok());
+    }
+}
+
+#[test]
+fn user_defined_layer_zero_block_dependency_is_not_assumed_continuous() {
+    use opencadcodec::{entities::hatch::*, EntityType, Vector2};
+    for (mode, accepted) in [("Continuous", true), ("ByLayer", false)] {
+        let mut source = contours::cad_nonuniform_block();
+        let hh = source
+            .entities()
+            .find_map(|e| {
+                if let EntityType::Hatch(h) = e {
+                    Some(h.common.handle)
+                } else {
+                    None
+                }
+            })
+            .unwrap();
+        let EntityType::Hatch(h) = source.get_entity_mut(hh).unwrap() else {
+            panic!()
+        };
+        h.is_solid = false;
+        h.pattern_type = HatchPatternType::UserDefined;
+        h.common.linetype = mode.into();
+        h.pattern = HatchPattern::new("U");
+        h.pattern.lines.push(HatchPatternLine {
+            angle: 0.,
+            base_point: Vector2::ZERO,
+            offset: Vector2::new(0., 1.),
+            dash_lengths: vec![],
+        });
+        let d = fixture::drawing();
+        let out = cad_document_to_ifccad_document(
+            &source,
+            IfccadTargetMetadata {
+                header: d.header,
+                drawing_id: d.drawing_id,
+            },
+            Default::default(),
+        )
+        .unwrap();
+        let count = out
+            .document()
+            .blocks
+            .iter()
+            .flat_map(|b| &b.entities)
+            .filter_map(IfccadEntity::as_native)
+            .filter(|e| matches!(e.kind, IfccadEntityKind::Hatch(_)))
+            .count();
+        assert_eq!(count, usize::from(accepted));
     }
 }

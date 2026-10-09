@@ -10,6 +10,79 @@ fn metadata() -> IfccadTargetMetadata {
         drawing_id: d.drawing_id,
     }
 }
+
+#[test]
+fn user_defined_active_linetype_is_resolved_in_the_document() {
+    use ocdraw::geometry_kernel::hatch::HatchFill;
+    use opencadcodec::{entities::hatch::*, Vector2};
+    for (mode, accepted) in [
+        ("Continuous", true),
+        ("ByLayer", true),
+        ("ByBlock", false),
+        ("DashedLayer", false),
+    ] {
+        for double in [false, true] {
+            let cad =
+                ifccad_document_to_cad_document(&fixture::drawing(), Default::default()).unwrap();
+            let hh = cad.mappings().entities.cad_handle(fixture::HATCH).unwrap();
+            let mut d = cad.document().clone();
+            if mode == "DashedLayer" {
+                let mut lt = opencadcodec::LineType::new("ActiveDash");
+                lt.handle = d.allocate_handle();
+                lt.elements
+                    .push(opencadcodec::tables::LineTypeElement::dash(1.));
+                lt.elements
+                    .push(opencadcodec::tables::LineTypeElement::space(1.));
+                lt.pattern_length = 2.;
+                d.line_types.add(lt).unwrap();
+                let layer = d.get_entity(hh).unwrap().common().layer.clone();
+                d.layers.get_mut(&layer).unwrap().line_type = "ActiveDash".into();
+            }
+            let EntityType::Hatch(h) = d.get_entity_mut(hh).unwrap() else {
+                panic!()
+            };
+            h.is_solid = false;
+            h.pattern_type = HatchPatternType::UserDefined;
+            h.is_double = double;
+            h.common.linetype = if mode == "DashedLayer" {
+                "ByLayer"
+            } else {
+                mode
+            }
+            .into();
+            h.common.linetype_handle = None;
+            h.pattern = HatchPattern::new("U");
+            h.pattern.lines.push(HatchPatternLine {
+                angle: 0.,
+                base_point: Vector2::ZERO,
+                offset: Vector2::new(0., 1.),
+                dash_lengths: vec![],
+            });
+            let out = cad_document_to_ifccad_document(&d, metadata(), Default::default()).unwrap();
+            let fills = out
+                .document()
+                .model
+                .entities
+                .iter()
+                .filter_map(IfccadEntity::as_native)
+                .filter_map(|e| {
+                    if let IfccadEntityKind::Hatch(h) = &e.kind {
+                        Some(&h.fill)
+                    } else {
+                        None
+                    }
+                })
+                .collect::<Vec<_>>();
+            assert_eq!(fills.len(), usize::from(accepted), "{mode} double={double}");
+            if accepted {
+                let HatchFill::LinePattern(p) = fills[0] else {
+                    panic!()
+                };
+                assert_eq!(p.families.len(), if double { 2 } else { 1 });
+            }
+        }
+    }
+}
 #[test]
 fn independent_route_binds_forward_source_and_preserves_the_hole() {
     for reverse in [false, true] {
@@ -130,6 +203,31 @@ fn omitted_hatch_defaults_are_native_but_foreign_graph_data_remains_loss() {
         .as_array_mut()
         .unwrap()
         .push(serde_json::json!({"path":"/foreign/hatch-test","attributes":{}}));
+    let loaded = load_ifccad_bytes(&serde_json::to_vec(&raw).unwrap(), Default::default()).unwrap();
+    let out = ifccad_source_to_cad_document(&loaded, Default::default()).unwrap();
+    assert!(out.diagnostics().iter().any(|d| d.code == "foreign-ifcx"));
+}
+
+#[test]
+fn omitted_pattern_defaults_are_native_but_foreign_graph_data_remains_loss() {
+    let mut raw: serde_json::Value = serde_json::from_slice(include_bytes!(
+        "../../../conformance/next/ifccad/valid/hatch-pattern.ifcx"
+    ))
+    .unwrap();
+    for node in raw["data"].as_array_mut().unwrap() {
+        if let Some(h) = node["attributes"].get_mut("ifccad::hatch") {
+            for field in ["origin", "rotation", "scale"] {
+                h["fill"].as_object_mut().unwrap().remove(field);
+            }
+        }
+    }
+    let loaded = load_ifccad_bytes(&serde_json::to_vec(&raw).unwrap(), Default::default()).unwrap();
+    let out = ifccad_source_to_cad_document(&loaded, Default::default()).unwrap();
+    assert!(!out.diagnostics().iter().any(|d| d.code == "foreign-ifcx"));
+    raw["data"]
+        .as_array_mut()
+        .unwrap()
+        .push(serde_json::json!({"path":"/foreign/pattern-test","attributes":{}}));
     let loaded = load_ifccad_bytes(&serde_json::to_vec(&raw).unwrap(), Default::default()).unwrap();
     let out = ifccad_source_to_cad_document(&loaded, Default::default()).unwrap();
     assert!(out.diagnostics().iter().any(|d| d.code == "foreign-ifcx"));

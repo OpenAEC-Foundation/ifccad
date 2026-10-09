@@ -1,12 +1,14 @@
-//! Stored Solid Hatch contours and independent numerical conversion evidence.
+//! Stored Hatch contours/families and independent numerical conversion evidence.
 mod audit;
 mod evidence;
 mod from_cad;
+pub mod pattern;
 mod to_cad;
 use crate::{CadPreparationError, GeometryPair};
 pub use from_cad::prepare_hatch_from_cad;
+pub use from_cad::prepare_hatch_from_cad_with_pattern_context;
 use ocdraw::geometry_kernel::{
-    hatch::{HatchAreaRule, HatchBoundary2, HatchValidationError},
+    hatch::{HatchAreaRule, HatchBoundary2, HatchFill, HatchValidationError},
     CoordinateFrame3,
 };
 use opencadcodec::{entities::Hatch, Handle};
@@ -57,6 +59,7 @@ pub fn resolve_creation_tolerance(
 }
 
 pub struct PreparedNativeHatch {
+    pub fill: HatchFill,
     pub placement: CoordinateFrame3,
     pub boundaries: Vec<HatchBoundary2>,
     pub area_rule: HatchAreaRule,
@@ -69,6 +72,7 @@ pub struct PreparedNativeHatch {
 pub struct PreparedCadHatch {
     pub hatch: Hatch,
     pub pairs: Vec<GeometryPair>,
+    pub losses: Vec<HatchSourceLoss>,
 }
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct HatchSourceLoss {

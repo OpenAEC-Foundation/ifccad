@@ -29,8 +29,14 @@ fn solid_keeps_loops_handles_and_curve_evidence() {
     assert_eq!(p.area_rule, HatchAreaRule::Ignore);
     assert!(matches!(p.boundaries[0], HatchBoundary2::Circle { .. }));
     assert_eq!(p.pairs.iter().map(|p| p.curves.len()).sum::<usize>(), 2);
-    let q =
-        prepare_hatch_to_cad(p.placement, &p.boundaries, p.area_rule, p.join_tolerance).unwrap();
+    let q = prepare_hatch_to_cad(
+        p.placement,
+        &p.boundaries,
+        p.area_rule,
+        p.join_tolerance,
+        &ocdraw::geometry_kernel::hatch::HatchFill::Solid,
+    )
+    .unwrap();
     assert_eq!(q.hatch.paths.len(), 2);
     assert_eq!(q.hatch.style, h.style);
     assert_eq!(q.pairs.iter().map(|p| p.curves.len()).sum::<usize>(), 2);
@@ -97,7 +103,14 @@ fn rotated_plane_full_circle_has_equivalent_curve_correspondence() {
         center: [2., 3.],
         radius: 4.,
     }];
-    let out = prepare_hatch_to_cad(p, &b, HatchAreaRule::Normal, 1e-9).unwrap();
+    let out = prepare_hatch_to_cad(
+        p,
+        &b,
+        HatchAreaRule::Normal,
+        1e-9,
+        &ocdraw::geometry_kernel::hatch::HatchFill::Solid,
+    )
+    .unwrap();
     assert!(out.pairs[0].curves[0].squared_deviation().unwrap().1 < exact(1e-24));
 }
 
@@ -133,8 +146,14 @@ fn ellipse_bulges_and_reversed_edge_sweeps_keep_all_contours() {
     h.paths.push(p);
     let p = prepare_hatch_from_cad(&h, 1e-9).unwrap();
     assert_eq!(p.boundaries.len(), 4);
-    let q =
-        prepare_hatch_to_cad(p.placement, &p.boundaries, p.area_rule, p.join_tolerance).unwrap();
+    let q = prepare_hatch_to_cad(
+        p.placement,
+        &p.boundaries,
+        p.area_rule,
+        p.join_tolerance,
+        &ocdraw::geometry_kernel::hatch::HatchFill::Solid,
+    )
+    .unwrap();
     let r = prepare_hatch_from_cad(&q.hatch, 1e-9).unwrap();
     assert_eq!(r.boundaries, p.boundaries);
     assert_eq!(q.pairs.iter().map(|p| p.curves.len()).sum::<usize>(), 6);
@@ -148,8 +167,14 @@ fn flags_are_audited_without_first_loop_role_inference() {
     let p = prepare_hatch_from_cad(&h, 1e-9).unwrap();
     assert_eq!(p.boundaries.len(), 2);
     assert!(p.losses.iter().any(|l| l.field == "paths.flags"));
-    let q =
-        prepare_hatch_to_cad(p.placement, &p.boundaries, p.area_rule, p.join_tolerance).unwrap();
+    let q = prepare_hatch_to_cad(
+        p.placement,
+        &p.boundaries,
+        p.area_rule,
+        p.join_tolerance,
+        &ocdraw::geometry_kernel::hatch::HatchFill::Solid,
+    )
+    .unwrap();
     assert!(q
         .hatch
         .paths
@@ -233,9 +258,14 @@ fn unrepresentable_ellipse_ratio_does_not_emit_degenerate_cad_geometry() {
         semi_major_radius: 1e300,
         semi_minor_radius: 1e-300,
     }];
-    assert!(
-        prepare_hatch_to_cad(Default::default(), &boundaries, HatchAreaRule::Normal, 1e-9).is_err()
-    );
+    assert!(prepare_hatch_to_cad(
+        Default::default(),
+        &boundaries,
+        HatchAreaRule::Normal,
+        1e-9,
+        &ocdraw::geometry_kernel::hatch::HatchFill::Solid
+    )
+    .is_err());
 }
 #[test]
 fn native_partial_arc_is_not_rounded_into_a_full_cad_turn() {
@@ -246,7 +276,12 @@ fn native_partial_arc_is_not_rounded_into_a_full_cad_turn() {
         start_parameter: 2.,
         sweep_parameter: std::f64::consts::TAU.next_down(),
     }])];
-    assert!(
-        prepare_hatch_to_cad(Default::default(), &boundaries, HatchAreaRule::Normal, 1e-9).is_err()
-    );
+    assert!(prepare_hatch_to_cad(
+        Default::default(),
+        &boundaries,
+        HatchAreaRule::Normal,
+        1e-9,
+        &ocdraw::geometry_kernel::hatch::HatchFill::Solid
+    )
+    .is_err());
 }

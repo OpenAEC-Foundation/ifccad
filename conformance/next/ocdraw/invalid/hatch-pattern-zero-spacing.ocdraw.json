@@ -1,0 +1,289 @@
+{
+  "header": {
+    "drawingId": "hatch-solid-example",
+    "format": "open_cad_drawing",
+    "nextEntityId": 3,
+    "nextLayerId": 1,
+    "nextLayoutId": 1,
+    "nextLinePatternId": 1,
+    "unit": "mm",
+    "version": "0.1.0"
+  },
+  "layers": [
+    {
+      "color": {
+        "rgb": [
+          255,
+          255,
+          255
+        ]
+      },
+      "frozen": false,
+      "frozenInNewViewports": false,
+      "id": 0,
+      "linePatternId": 0,
+      "lineWeight": 0.25,
+      "locked": false,
+      "name": "0",
+      "opacity": 1.0,
+      "plottable": true,
+      "visible": true
+    }
+  ],
+  "layouts": [
+    {
+      "id": 0,
+      "kind": "model",
+      "name": "Model",
+      "scopeId": 0,
+      "tabIndex": 0
+    }
+  ],
+  "linePatterns": [
+    {
+      "id": 0,
+      "name": "Continuous",
+      "pattern": []
+    }
+  ],
+  "scopes": [
+    {
+      "bounds": {
+        "maxX": 3.0,
+        "maxY": 3.0,
+        "maxZ": 0.0,
+        "minX": -3.0,
+        "minY": -3.0,
+        "minZ": 0.0
+      },
+      "entities": [
+        2,
+        1
+      ],
+      "id": 0,
+      "kind": 0
+    }
+  ],
+  "streams": {
+    "circleStream": {
+      "color": [
+        null
+      ],
+      "colorMode": [
+        "ByLayer"
+      ],
+      "count": 1,
+      "entityId": [
+        1
+      ],
+      "layerId": [
+        0
+      ],
+      "linePatternId": [
+        null
+      ],
+      "linePatternMode": [
+        "ByLayer"
+      ],
+      "linePatternScale": [
+        1.0
+      ],
+      "lineWeight": [
+        null
+      ],
+      "lineWeightMode": [
+        "ByLayer"
+      ],
+      "opacity": [
+        null
+      ],
+      "opacityMode": [
+        "ByLayer"
+      ],
+      "placement": [
+        {
+          "X": {
+            "x": 1.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "Y": {
+            "x": 0.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "origin": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          }
+        }
+      ],
+      "radius": [
+        1.0
+      ],
+      "visible": [
+        true
+      ]
+    },
+    "hatchStream": {
+      "areaRule": [
+        "normal"
+      ],
+      "color": [
+        null
+      ],
+      "colorMode": [
+        "ByLayer"
+      ],
+      "count": 1,
+      "entityId": [
+        2
+      ],
+      "fill": [
+        {
+          "description": "Continuous and dashed/dot with signed spacing",
+          "families": [
+            {
+              "angle": 0.0,
+              "basePoint": [
+                0.0,
+                0.0
+              ],
+              "dashes": [],
+              "offset": [
+                0.0,
+                0
+              ]
+            },
+            {
+              "angle": 1.2,
+              "basePoint": [
+                1.0,
+                2.0
+              ],
+              "dashes": [
+                {
+                  "kind": "dash",
+                  "length": 3.0
+                },
+                {
+                  "kind": "gap",
+                  "length": 1.0
+                },
+                {
+                  "kind": "dot"
+                }
+              ],
+              "offset": [
+                0.25,
+                -2.5
+              ]
+            }
+          ],
+          "kind": "linePattern",
+          "name": "Demo families",
+          "origin": [
+            0.5,
+            -0.5
+          ],
+          "rotation": 0.25,
+          "scale": 2.0
+        }
+      ],
+      "joinTolerance": [
+        1e-09
+      ],
+      "layerId": [
+        0
+      ],
+      "linePatternId": [
+        null
+      ],
+      "linePatternMode": [
+        "ByLayer"
+      ],
+      "linePatternScale": [
+        1.0
+      ],
+      "lineWeight": [
+        null
+      ],
+      "lineWeightMode": [
+        "ByLayer"
+      ],
+      "loops": [
+        [
+          {
+            "boundary": {
+              "bulges": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ],
+              "kind": "polyline",
+              "vertices": [
+                [
+                  -3.0,
+                  -3.0
+                ],
+                [
+                  3.0,
+                  -3.0
+                ],
+                [
+                  3.0,
+                  3.0
+                ],
+                [
+                  -3.0,
+                  3.0
+                ]
+              ]
+            }
+          },
+          {
+            "boundary": {
+              "center": [
+                0.0,
+                0.0
+              ],
+              "kind": "circle",
+              "radius": 1.0
+            },
+            "sourceEntityId": 1
+          }
+        ]
+      ],
+      "opacity": [
+        null
+      ],
+      "opacityMode": [
+        "ByLayer"
+      ],
+      "placement": [
+        {
+          "X": {
+            "x": 1.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "Y": {
+            "x": 0.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "origin": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          }
+        }
+      ],
+      "visible": [
+        true
+      ]
+    }
+  }
+}

@@ -152,7 +152,7 @@ pub fn prepare_hatch_from_cad(
     h: &Hatch,
     join_tolerance: f64,
 ) -> Result<PreparedNativeHatch, CadHatchPreparationError> {
-    let losses = super::audit::audit(h)?;
+    let mut losses = super::audit::audit(h)?;
     if !h.elevation.is_finite()
         || ![h.normal.x, h.normal.y, h.normal.z]
             .into_iter()
@@ -187,8 +187,17 @@ pub fn prepare_hatch_from_cad(
         .map(boundary)
         .collect::<Result<Vec<_>, _>>()?;
     validate_hatch_boundaries(&boundaries, join_tolerance)?;
-    let pairs = super::evidence::pairs_from_cad(h, placement, &boundaries)?;
+    let mut pairs = super::evidence::pairs_from_cad(h, placement, &boundaries)?;
+    let fill = if h.is_solid {
+        HatchFill::Solid
+    } else {
+        let p = super::pattern::prepare_pattern_from_cad(h, placement, &boundaries)?;
+        pairs.push(p.pair);
+        losses.extend(p.losses);
+        HatchFill::LinePattern(p.pattern)
+    };
     Ok(PreparedNativeHatch {
+        fill,
         placement,
         boundaries,
         area_rule: match h.style {
@@ -202,4 +211,56 @@ pub fn prepare_hatch_from_cad(
         pairs,
         losses,
     })
+}
+
+/// Admit user-defined families only after the adapter has resolved their active
+/// linetype to a local continuous table record, including ByLayer dependencies.
+/// Unresolved ByBlock or external dependencies must pass `false`.
+pub fn prepare_hatch_from_cad_with_pattern_context(
+    h: &Hatch,
+    join_tolerance: f64,
+    continuous_linetype: bool,
+) -> Result<PreparedNativeHatch, CadHatchPreparationError> {
+    if h.is_solid || h.pattern_type != HatchPatternType::UserDefined {
+        return prepare_hatch_from_cad(h, join_tolerance);
+    }
+    super::pattern::validate_source_scalars(h)?;
+    if !continuous_linetype
+        || h.pattern.lines.len() != 1
+        || !h.pattern.lines[0].dash_lengths.is_empty()
+    {
+        return Err(unsupported(
+            "pattern_type",
+            "user-defined active linetype/families are not a qualified continuous profile",
+        ));
+    }
+    // Retain explicit evaluated geometry; the native format does not retain
+    // the CAD editor's user-defined linetype dependency.
+    let mut literal = h.clone();
+    literal.pattern_type = HatchPatternType::Custom;
+    literal.is_double = false;
+    if h.is_double {
+        super::pattern::audit::expand_double(h, &mut literal)?;
+    }
+    let mut prepared = prepare_hatch_from_cad(&literal, join_tolerance)?;
+    if h.is_double {
+        if let HatchFill::LinePattern(p) = &prepared.fill {
+            let pair = super::pattern::double_evidence(
+                &literal,
+                p,
+                prepared.placement,
+                &prepared.boundaries,
+            )?;
+            *prepared.pairs.last_mut().expect("pattern certificate") = pair;
+        }
+    }
+    prepared.losses.push(HatchSourceLoss {
+        field: "pattern_type",
+        detail: if h.is_double {
+            "qualified continuous user-defined double expanded to two literal families; editor linetype/double dependency is not retained"
+        } else {
+            "qualified continuous user-defined families retained; editor linetype dependency is not retained"
+        }.into(),
+    });
+    Ok(prepared)
 }

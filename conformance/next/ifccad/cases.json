@@ -198,5 +198,25 @@
   {
     "file": "invalid/hatch-null-source.ifcx",
     "valid": false
+  },
+  {
+    "file": "valid/hatch-pattern.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid/hatch-pattern-zero-spacing.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/hatch-pattern-all-dot.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/hatch-pattern-dot-length.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/hatch-pattern-null-name.ifcx",
+    "valid": false
   }
 ]

@@ -406,6 +406,26 @@
     {
       "path": "invalid/hatch-column-length.ocdraw.json",
       "status": "invalid"
+    },
+    {
+      "path": "valid/hatch-pattern.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "invalid/hatch-pattern-zero-spacing.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/hatch-pattern-all-dot.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/hatch-pattern-dot-length.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/hatch-pattern-null-name.ocdraw.json",
+      "status": "invalid"
     }
   ]
 }

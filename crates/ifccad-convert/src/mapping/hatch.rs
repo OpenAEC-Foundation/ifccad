@@ -14,12 +14,17 @@ fn combine(pairs: Vec<cad_geometry_convert::GeometryPair>) -> cad_geometry_conve
 }
 pub(crate) fn from_cad(
     h: &Hatch,
+    source: &opencadcodec::CadDocument,
     tolerance: f64,
     context: &mut crate::geometry_context::GeometryContext,
     issues: &mut Vec<IfccadDiagnostic>,
 ) -> Result<Option<IfccadEntityKind>, IfccadConversionError> {
     let loc = format!("entity/{}", h.common.handle);
-    let p = match cad_geometry_convert::hatch::prepare_hatch_from_cad(h, tolerance) {
+    let p = match cad_geometry_convert::hatch::prepare_hatch_from_cad_with_pattern_context(
+        h,
+        tolerance,
+        continuous_user_linetype(h, source),
+    ) {
         Ok(p) => p,
         Err(cad_geometry_convert::hatch::CadHatchPreparationError::Unsupported {
             field,
@@ -67,8 +72,39 @@ pub(crate) fn from_cad(
             .collect(),
         area_rule: p.area_rule,
         join_tolerance: p.join_tolerance,
-        fill: ocdraw::geometry_kernel::hatch::HatchFill::Solid,
+        fill: p.fill,
     })))
+}
+
+fn continuous_user_linetype(h: &Hatch, source: &opencadcodec::CadDocument) -> bool {
+    let c = &h.common;
+    let name = if c.linetype.is_empty() || c.linetype.eq_ignore_ascii_case("ByLayer") {
+        // Layer 0 in a local block inherits the insertion layer, including
+        // nested occurrences. A fixed local table lookup cannot qualify it.
+        if c.layer == "0"
+            && source
+                .block_records
+                .iter()
+                .any(|b| b.handle == c.owner_handle && !b.is_model_space() && !b.is_paper_space())
+        {
+            return false;
+        }
+        let Some(layer) = source.layers.get(&c.layer) else {
+            return false;
+        };
+        layer.line_type.as_str()
+    } else {
+        c.linetype.as_str()
+    };
+    if name.eq_ignore_ascii_case("ByBlock") || name.eq_ignore_ascii_case("ByLayer") {
+        return false;
+    }
+    source.line_types.get(name).is_some_and(|p| {
+        p.elements.is_empty()
+            && p.pattern_length == 0.
+            && !p.xref_dependent
+            && p.xref_block_record_handle.is_null()
+    })
 }
 pub(crate) fn to_cad(
     h: &IfccadHatch,
@@ -88,11 +124,19 @@ pub(crate) fn to_cad(
         &b,
         h.area_rule,
         h.join_tolerance,
+        &h.fill,
     )
     .map_err(|source| IfccadConversionError::HatchPreparation {
         location: format!("entity/{id}"),
         source,
     })?;
+    for loss in p.losses {
+        issues.push(crate::diagnostics::diagnostic(
+            "hatch-pattern-metadata",
+            format!("entity/{id}/{}", loss.field),
+            loss.detail,
+        ));
+    }
     context.record(
         id,
         IfccadGeometryEntitySource::NativeEntity {

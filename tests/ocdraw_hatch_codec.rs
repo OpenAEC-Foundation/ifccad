@@ -31,6 +31,21 @@ fn builder_rejects_invalid_hatch_without_consuming_an_identity() {
         }],
     };
     assert!(b.add_hatch(definition(0.0)).is_err());
+    let mut invalid_pattern = definition(2.0);
+    invalid_pattern.fill = HatchFill::LinePattern(HatchLinePattern {
+        name: None,
+        description: None,
+        origin: [0., 0.],
+        rotation: 0.,
+        scale: 1.,
+        families: vec![HatchLineFamily {
+            angle: 0.,
+            base_point: [0., 0.],
+            offset: [0., 0.],
+            dashes: vec![],
+        }],
+    });
+    assert!(b.add_hatch(invalid_pattern).is_err());
     assert_eq!(b.add_hatch(definition(2.0)).unwrap(), 1);
     let doc = b.build_document().unwrap();
     assert_eq!(doc.scopes[0].entities, [1]);

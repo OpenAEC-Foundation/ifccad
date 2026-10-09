@@ -67,7 +67,7 @@ not suffix-only references. Foreign namespaces remain outside this catalog.
 | `ifccad::geom::ellipseArc` | placed partial ellipse; GEOMETRY | `geometryEllipseArcExtras` |
 | `ifccad::geom::planarPolyline` | placed XY/outgoing bulges; GEOMETRY, PATTERN | `geometryPlanarExtras` |
 | `ifccad::geom::spatialPolyline` | direct XYZ; GEOMETRY, PATTERN | `geometrySpatialExtras` |
-| `ifccad::hatch` | placed Solid drawable; HATCH, GEOMETRY, OWN, BOUNDS | `hatchExtras` |
+| `ifccad::hatch` | placed Hatch drawable; HATCH, GEOMETRY, OWN, BOUNDS | `hatchExtras` |
 | `ifccad::viewport` | Paper drawable; VIEWPORT | `viewportExtras` |
 | `ifccad::textStyle` | drawing definition; ID, TEXT | `textStyle` |
 | `ifccad::text` | placed drawable; TEXT | `text` |
@@ -210,7 +210,7 @@ tokens through binary64 or to accept them in place of typed uint64 parsing.
 
 | Rule | Normative obligation | Phase; gap | Evidence |
 |---|---|---|---|
-| IFCCAD-HATCH-001 | Hatch MUST have one placement and only Solid fill. All nested loop/boundary/edge objects MUST be closed typed variants. Full circles/ellipses and partial signed arcs MUST obey shared primitive parameter rules. Loops MUST be nonempty; implicit closed polylines MUST have matching outgoing bulges and sufficient distinct vertices. | V/D; G6/G7/P | [Hatch](../../docs/hatch.md), [native wire](../../tests/ifccad_hatch_wire.rs) |
+| IFCCAD-HATCH-001 | Hatch MUST have one placement and a qualified Solid or LinePattern fill. All nested loop/boundary/edge objects MUST be closed typed variants. Full circles/ellipses and partial signed arcs MUST obey shared primitive parameter rules. Loops MUST be nonempty; implicit closed polylines MUST have matching outgoing bulges and sufficient distinct vertices. | V/D; G6/G7/P | [Hatch](../../docs/hatch.md), [native wire](../../tests/ifccad_hatch_wire.rs) |
 | IFCCAD-HATCH-002 | Each optional loop source MUST reference one complete closed Circle/Ellipse/planar Polyline in the same owner, by complete drawing-local entity identity. Missing, open, wrong-kind or wrong-owner targets MUST fail. Stored contours remain authoritative; IO MUST NOT compare source geometry or regenerate the Hatch. | G/D; G4/P | [source lifecycle](../../tests/ifccad_hatch.rs) |
 | IFCCAD-HATCH-003 | Authored joinTolerance MUST be finite/nonnegative in local units, default nearest binary64 decimal 1e-9. Exact zero requires proven equality. Excessive and numerically unprovable joins MUST fail separately. IO MUST NOT snap, bridge or increase the limit. Validation MUST NOT claim intersection/nesting/fill evaluation. | V/D; G7/P | [kernel](../../tests/hatch_geometry.rs), [creation units](../../tests/hatch_tolerance.rs) |
 
@@ -237,3 +237,19 @@ drawing field. Local drawing supplements also enforce the closed form/size shape
 `IFCCAD-GEOMETRY-004` additionally rejects nonuniform signed scales on an
 instance whose definition requires uniformScaling. Existing registered attribute
 rule families continue to own closed metadata and viewport-row checks.
+
+## Embedded line families (IFCCAD-HATCH-001)
+
+LinePattern MUST contain nonempty families and finite origin/rotation/positive
+scale, defaulting to (0,0)/0/1 when absent. Literal optional name/description
+may be empty but are not resource/library references. Every family MUST retain
+angle, basePoint, signed [along,perpendicular] offset and ordered dash/gap/dot
+sequence. Perpendicular MUST be nonzero; no density minimum is imposed.
+Dash/gap length MUST be positive/finite; Dot MUST forbid length. Empty sequence
+means continuous, all-gap is valid, all-dot/zero period invalid. Exact sum of
+nonempty sequence lengths MUST be positive and within finite binary64 range.
+No normalization or origin movement during contour edits. Unknown/null/inactive
+fields MUST fail. Ordinary inline IFCX declarations expose a tagged superset;
+the local supplement and typed domain checks enforce the actual variants.
+Whole Hatch attribute replacement and all contour/source/ID rules still apply.
+Evidence: tests/hatch_pattern.rs and tests/hatch_pattern_wire.rs.
