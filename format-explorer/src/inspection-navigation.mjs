@@ -1,3 +1,4 @@
+import {hatchValues,hatchSummary} from './hatch-view.mjs';
 // A UI projection: native nodes, identities and source ordering are unchanged.
 const projections=new WeakMap();
 export function cadSelectionForNode(model,key){
@@ -41,13 +42,14 @@ export function listWindow(length,scrollTop=0,height=400,rowHeight=56,overscan=4
  return {start,end,top:start*rowHeight,bottom:Math.max(0,(length-end)*rowHeight)};
 }
 
-export function collectionEntries(model,keys,title){
+export function collectionEntries(model,keys,title,language='en'){
  return keys.flatMap(key=>{
   const node=model.nodes.get(key);if(!node)return [];
   const edge=node.outgoing.find(e=>e.kind==='layer'),layerKey=edge?.target||'',layer=model.nodes.get(layerKey)?.title||layerKey;
   const geometry=node.values.geometry||Object.entries(node.values).find(([k])=>k.startsWith('ifccad::geom::')&&k!=='ifccad::geom::placement')?.[1];
   const point=value=>Array.isArray(value)?value.map(v=>typeof v==='number'?Number(v.toPrecision(6)):v).join(', '):'';
-  const summary=geometry?.start&&geometry?.end?point(geometry.start)+' → '+point(geometry.end):geometry?.radius!=null?'r = '+geometry.radius:geometry?.text||node.values.text||'';
+  const hatch=hatchValues(node);
+  const summary=hatch?hatchSummary(hatch,language):geometry?.start&&geometry?.end?point(geometry.start)+' → '+point(geometry.end):geometry?.radius!=null?'r = '+geometry.radius:geometry?.text||node.values.text||'';
   const label=title(node);return [{key,label,layerKey,layer,summary:String(summary),search:[key,label,node.type,layer,summary].join(' ').toLocaleLowerCase()}];
  });
 }

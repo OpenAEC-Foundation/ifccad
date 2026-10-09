@@ -341,3 +341,13 @@ before selecting it, without a new export or drawing reload. CAD commands/dialog
 are respected, and missing layouts are reported. Switching layouts follows OCS's
 normal saved-view behavior. Ordinary property labels/values are text; nested
 object headings and typed reference links remain interactive.
+
+
+Solid Hatch has a dedicated entity label/group, a contour-count/fill-rule list
+summary, and nested properties for stored loops and join tolerance. Loop sources
+are navigable typed references in Properties and Relationships. Both formats have
+an official Solid Hatch/source-contour example in the menu. Hatch storage rows
+remain inspectable in OCDraw hatchStream. Filled area/nesting remain unassessed;
+join tolerance is local and independent of conversion accuracy. Native contour
+sources do not regenerate stored boundaries. No pattern/gradient fallback is
+introduced. See ../docs/hatch.md for the native and conversion contract.

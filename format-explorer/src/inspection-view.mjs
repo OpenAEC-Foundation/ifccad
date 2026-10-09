@@ -1,3 +1,4 @@
+import {hatchValues,hatchSummary} from './hatch-view.mjs';
 import {translate} from './i18n.mjs';
 import {inspectionNavigation} from './inspection-navigation.mjs';
 import {ifcxNodeJson} from './presentation-json.mjs';
@@ -40,6 +41,7 @@ export function renderInspection(model,state){
   const current=value=>value==null?t('unspecified'):value.kind==='World'?t('ucsWorld'):value.kind==='Named'?(model.nodes.get(model.format==='ifccad'?value.ucs:'ucs:'+String(value.ucsId))?.title||t('unspecified')):value.kind||String(value);
   details+='<dl class="properties-list workspace-choices">'+Object.entries(node.workspaceChoices).map(([key,value])=>'<div><dt>'+e(t(key))+'</dt><dd>'+e(key==='currentUcs'?current(value):value==null?t('unspecified'):typeof value==='string'?(model.nodes.get(value)?.title||value):value.kind)+'</dd></div>').join('')+'</dl>';
  }
+ const hatch=hatchValues(node);if(hatch)details+='<p class="secondary">'+e(hatchSummary(hatch,language))+'</p>';
  const help=t('help.'+node.type);if(!help.startsWith('help.'))details+='<p class="secondary">'+e(help)+'</p>';
   const assessment=node.values.boundsAssessment;if(assessment)details+='<p class="secondary">'+e(t('boundsSummary',{quality:t(assessment.quality||'empty'),proof:t(assessment.enclosureVerified?'enclosureChecked':'enclosureNotChecked')}))+'</p>';
   details+=node.type==='group'?'<p class="secondary">'+e(t('group'))+'</p>':'<h3>'+e(t('storedValues'))+'</h3>';

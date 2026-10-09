@@ -711,3 +711,22 @@ or leading/trailing whitespace are rejected because CTAB trims that whitespace.
 Property labels and primitive values no longer select a field or change the
 inspector heading. Expandable summaries and typed references remain interactive;
 Source always shows the selected native record.
+
+
+## Solid Hatch inspection
+
+IFCCAD ifccad::hatch takes precedence over the common entity role when determining
+the readable type; OCDraw uses the existing geometry.type=hatch inspection row.
+Both retain owner/order and normal grouped/virtualized browsing. List summaries
+show Solid, contour count and authored area rule without deriving hole labels.
+Stored loops, placement, join tolerance and fill remain inspectable. Loop-source
+references use complete IFCCAD paths or OCDraw decimal uint64 strings, including
+incoming relationships. Stored boundaries remain authoritative after source edits.
+
+The inspector explains that fill/nesting/positive area are unassessed and that
+join tolerance is in local coordinates, independent of conversion tolerance.
+Official native examples are available for both formats; OCDraw storage provenance
+still points to hatchStream rows/columns. Existing readback-qualified CAD mappings
+support Hatch selection in both directions. CAD appearance is a visual aid, not
+certification of filled topology. Native/converter contracts are unchanged; only
+the currently supported Solid family is described, with no fallback for patterns.
