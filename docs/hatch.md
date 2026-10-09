@@ -86,3 +86,14 @@ Solid storage, conversion and inspection form slice 1. Patterns begin after
 integration, verification and user acceptance on main. This does not publish
 the provisional contract, add an intersection engine or rerun measurements.
 Example writers: `write_hatch_solid` and `write_ifccad_hatch_solid`.
+
+## Clockwise CAD edge angles
+
+The pinned codec exposes clockwise HATCH start/end values in clockwise wire
+coordinates. Import negates the start angle and uses a negative sweep of the
+positive wire span; export applies the inverse. Numerical curve evidence uses
+the same interpretation. This applies to circular and elliptic edges, without
+changing the plane, vertices or join limit. The original foundation-repair DXF
+Hatch 9AA and corresponding DWG Hatch 9A7 provide independent regressions; the
+original 160-unit false gap is the diameter of a radius-80 corner arc.
+See [ezdxf's wire convention](https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/boundary_paths.py).

@@ -197,7 +197,13 @@ fn cad(f: &Frame, p: &BoundaryPath, circle_phase: f64) -> Result<Curves, CadHatc
                     [e.center.x, e.center.y].map(exact),
                     [exact(e.radius), Q::zero()],
                     [Q::zero(), exact(e.radius)],
-                    if full { circle_phase } else { e.start_angle },
+                    if full {
+                        circle_phase
+                    } else if e.counter_clockwise {
+                        e.start_angle
+                    } else {
+                        -e.start_angle
+                    },
                     if full { std::f64::consts::TAU } else { sweep },
                 );
                 out.curves.last_mut().unwrap().2 =
@@ -214,7 +220,13 @@ fn cad(f: &Frame, p: &BoundaryPath, circle_phase: f64) -> Result<Curves, CadHatc
                     [e.center.x, e.center.y].map(exact),
                     a.clone(),
                     [-&a[1] * &ratio, &a[0] * &ratio],
-                    if full { 0. } else { e.start_angle },
+                    if full {
+                        0.
+                    } else if e.counter_clockwise {
+                        e.start_angle
+                    } else {
+                        -e.start_angle
+                    },
                     if full { std::f64::consts::TAU } else { sweep },
                 );
                 out.curves.last_mut().unwrap().2 =
@@ -230,21 +242,15 @@ fn cad(f: &Frame, p: &BoundaryPath, circle_phase: f64) -> Result<Curves, CadHatc
     }
     Ok(out)
 }
-fn exact_cad_span(start: f64, end: f64, ccw: bool) -> Q {
+fn exact_cad_span(start: f64, end: f64, _ccw: bool) -> Q {
     let d = exact(end) - exact(start);
     let tau = exact(std::f64::consts::TAU);
     if d.abs() == tau {
         tau
-    } else if ccw {
-        if d > Q::zero() {
-            d
-        } else {
-            d + tau
-        }
-    } else if d < Q::zero() {
-        -d
+    } else if d > Q::zero() {
+        d
     } else {
-        tau - d
+        d + tau
     }
 }
 pub(super) fn pairs_from_cad(

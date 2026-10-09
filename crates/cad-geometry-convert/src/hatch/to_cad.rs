@@ -53,6 +53,11 @@ impl Projection {
         if !start.is_finite() || !end.is_finite() {
             return Err(CadPreparationError::OutOfRange.into());
         }
+        let (start, end) = if sweep > 0. {
+            (start, end)
+        } else {
+            (-start, -end)
+        };
         let target_sweep = super::from_cad::sweep(start, end, sweep > 0.)?;
         if target_sweep.abs() >= TAU {
             return Err(CadPreparationError::OutOfRange.into());
@@ -88,7 +93,12 @@ impl Projection {
         {
             return Err(CadPreparationError::OutOfRange.into());
         }
-        let target_sweep = super::from_cad::sweep(start, start + sweep, sweep > 0.)?;
+        let (start, end) = if sweep > 0. {
+            (start, start + sweep)
+        } else {
+            (-start, -(start + sweep))
+        };
+        let target_sweep = super::from_cad::sweep(start, end, sweep > 0.)?;
         if sweep.abs() < TAU && target_sweep.abs() >= TAU {
             return Err(CadPreparationError::OutOfRange.into());
         }
@@ -97,7 +107,7 @@ impl Projection {
             major_axis_endpoint: major,
             minor_axis_ratio: ratio,
             start_angle: start,
-            end_angle: start + sweep,
+            end_angle: end,
             counter_clockwise: sweep > 0.,
         }))
     }

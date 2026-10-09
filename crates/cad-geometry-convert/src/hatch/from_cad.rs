@@ -11,6 +11,8 @@ use std::f64::consts::TAU;
 fn xy(p: opencadcodec::Vector2) -> [f64; 2] {
     [p.x, p.y]
 }
+// HATCH wire angles increase in their stored orientation. Clockwise
+// coordinates evaluate at negative mathematical angles, unlike standalone ARC.
 pub(super) fn sweep(start: f64, end: f64, ccw: bool) -> Result<f64, CadHatchPreparationError> {
     if !start.is_finite() || !end.is_finite() {
         return Err(CadPreparationError::InvalidGeometry.into());
@@ -35,7 +37,7 @@ pub(super) fn sweep(start: f64, end: f64, ccw: bool) -> Result<f64, CadHatchPrep
     Ok(if ccw {
         d.rem_euclid(TAU)
     } else {
-        -(-d).rem_euclid(TAU)
+        -d.rem_euclid(TAU)
     })
 }
 fn ellipse(e: &EllipticArcEdge) -> Result<([f64; 2], f64, f64), CadHatchPreparationError> {
@@ -106,7 +108,11 @@ pub(super) fn boundary(p: &BoundaryPath) -> Result<HatchBoundary2, CadHatchPrepa
                 BoundaryEdge::CircularArc(e) => HatchEdge2::CircularArc {
                     center: xy(e.center),
                     radius: e.radius,
-                    start_parameter: e.start_angle,
+                    start_parameter: if e.counter_clockwise {
+                        e.start_angle
+                    } else {
+                        -e.start_angle
+                    },
                     sweep_parameter: sweep(e.start_angle, e.end_angle, e.counter_clockwise)?,
                 },
                 BoundaryEdge::EllipticArc(e) => {
@@ -116,7 +122,11 @@ pub(super) fn boundary(p: &BoundaryPath) -> Result<HatchBoundary2, CadHatchPrepa
                         x_axis,
                         semi_major_radius,
                         semi_minor_radius,
-                        start_parameter: e.start_angle,
+                        start_parameter: if e.counter_clockwise {
+                            e.start_angle
+                        } else {
+                            -e.start_angle
+                        },
                         sweep_parameter: sweep(e.start_angle, e.end_angle, e.counter_clockwise)?,
                     }
                 }
