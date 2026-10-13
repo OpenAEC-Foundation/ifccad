@@ -72,6 +72,7 @@ fn validate_document_inner(
         &format!("{prefix}/ifccad::drawing/linePatternScale"),
     )?;
     validate_ifccad_line_patterns(&document.line_patterns)?;
+    super::symbol_source::validate_sources(document)?;
     super::text::validate_styles(document)?;
     super::dimension_validation::validate_dimensions(document)?;
     let patterns: BTreeSet<_> = document.line_patterns.iter().map(|p| p.id).collect();

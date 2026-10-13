@@ -5,6 +5,10 @@ use std::{error::Error, path::Path};
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 #[path = "support/ifccad_consistency.rs"]
 mod consistency;
+#[path = "support/complex_line_patterns.rs"]
+mod line_patterns;
+#[path = "support/explorer_overview.rs"]
+mod overview;
 
 fn ocdraw_overview() -> Result<OcdrawDocument> {
     let mut b = OcdrawBuilder::new(OcdrawBuildOptions::new("explorer-ocdraw-overview", "mm"))?;
@@ -12,7 +16,10 @@ fn ocdraw_overview() -> Result<OcdrawDocument> {
     let dash = b.add_line_pattern(LinePatternDefinition {
         name: "Axis".into(),
         description: Some("Long dash and dot".into()),
-        pattern: vec![6., -2., 0., -2.],
+        pattern: vec![6., -2., 0., -2.]
+            .into_iter()
+            .map(ocdraw::line_pattern::LinePatternElement::simple)
+            .collect(),
     })?;
     b.add_line_pattern(LinePatternDefinition {
         name: "Unused reference".into(),
@@ -130,7 +137,7 @@ fn ocdraw_layouts() -> Result<OcdrawDocument> {
     .into_document();
     d.drawing_id = "explorer-ocdraw-layouts-viewports".into();
     d.unit = "mm".into();
-    d.layers[0].color = DrawingColor::rgb(255, 255, 255).with_indexed("ACI", 7);
+    d.layers[0].color = DrawingColor::Foreground;
     for layout in &mut d.layouts {
         if layout.kind == DrawingLayoutKind::Paper {
             layout.name = "Detail sheet".into();
@@ -221,7 +228,9 @@ fn ocdraw_state() -> Result<OcdrawDocument> {
 fn ifccad_overview() -> Result<Value> {
     // Retain the production-tested viewport construction; author a new model
     // inventory, patterns, nested blocks and source contributions around it.
-    let mut d: Value = serde_json::from_slice(include_bytes!("ifccad/hello-viewports.ifcx"))?;
+    let mut d: Value = serde_json::from_slice(include_bytes!(
+        "../tests/fixtures/ifccad/hello-viewports.ifcx"
+    ))?;
     d["header"]["id"] = json!("explorer-ifccad-overview");
     d["header"]["author"] = json!("OpenAEC");
     d["header"]["timestamp"] = json!("2026-10-06T00:00:00Z");
@@ -305,8 +314,9 @@ fn ifccad_overview() -> Result<Value> {
         json!("/cad/d1/linePattern/7");
     // Author the additional primitive tuples as millimetre values in this new
     // drawing; the source sample's document and coordinate unit are unchanged.
-    let primitive_sample: Value =
-        serde_json::from_slice(include_bytes!("ifccad/hello-geometry.ifcx"))?;
+    let primitive_sample: Value = serde_json::from_slice(include_bytes!(
+        "../tests/fixtures/ifccad/hello-geometry.ifcx"
+    ))?;
     let mut next = 310;
     for original in primitive_sample["data"].as_array().unwrap() {
         if original["attributes"].as_object().is_some_and(|a| {
@@ -337,7 +347,7 @@ fn ifccad_overview() -> Result<Value> {
         ["nextEntityId"] = json!(next);
     Ok(d)
 }
-fn write_ifccad(root: &Path, name: &str, value: &Value) -> Result<()> {
+fn prepare_ifccad(name: &str, value: &Value) -> Result<Vec<u8>> {
     let mut value = value.clone();
     // First author valid conservative envelopes, then ask the shared native
     // preparation to replace them. Updating only bounds retains source fragments.
@@ -372,8 +382,16 @@ fn write_ifccad(root: &Path, name: &str, value: &Value) -> Result<()> {
         {
             for role in ["ifccad::layout", "ifccad::blockDefinition"] {
                 if node["attributes"].get(role).is_some() {
-                    node["attributes"][role]["bounds"] =
-                        prepared["attributes"][role]["bounds"].clone();
+                    for field in ["bounds", "boundsQuality"] {
+                        if let Some(value) = prepared["attributes"][role].get(field) {
+                            node["attributes"][role][field] = value.clone();
+                        } else {
+                            node["attributes"][role]
+                                .as_object_mut()
+                                .unwrap()
+                                .remove(field);
+                        }
+                    }
                 }
             }
         }
@@ -381,7 +399,10 @@ fn write_ifccad(root: &Path, name: &str, value: &Value) -> Result<()> {
     let bytes = consistency::normalize(&value)?;
     ocdraw::ifccad::load_ifccad_bytes(&bytes, Default::default())
         .map_err(|e| format!("{name}: {}", e.report().errors.join("; ")))?;
-    std::fs::write(root.join(name), bytes)?;
+    Ok(bytes)
+}
+fn write_ifccad(root: &Path, name: &str, value: &Value) -> Result<()> {
+    std::fs::write(root.join(name), prepare_ifccad(name, value)?)?;
     Ok(())
 }
 fn ocdraw_workspace() -> Result<OcdrawDocument> {
@@ -444,7 +465,7 @@ fn ifccad_workspace() -> Result<ocdraw::ifccad::IfccadDocument> {
     use ocdraw::ifccad::*;
     const BIG: u64 = 9007199254740993;
     let mut d = load_ifccad_bytes(
-        include_bytes!("ifccad/hello-viewports.ifcx"),
+        include_bytes!("../tests/fixtures/ifccad/hello-viewports.ifcx"),
         Default::default(),
     )?
     .into_document();
@@ -533,40 +554,72 @@ fn write_ocdraw(root: &Path, name: &str, d: &OcdrawDocument) -> Result<()> {
     Ok(())
 }
 fn main() -> Result<()> {
-    let root = std::env::args_os()
-        .nth(1)
+    let mut args = std::env::args_os().skip(1);
+    let root = args
+        .next()
         .map(std::path::PathBuf::from)
-        .ok_or("usage: write_explorer_examples <examples-directory>")?;
+        .ok_or("usage: write_explorer_examples <examples-directory> <test-fixtures-directory>")?;
+    let fixtures = args
+        .next()
+        .map(std::path::PathBuf::from)
+        .ok_or("test-fixtures-directory required")?;
     std::fs::create_dir_all(root.join("ocdraw"))?;
     std::fs::create_dir_all(root.join("ifccad"))?;
+    std::fs::create_dir_all(fixtures.join("ocdraw"))?;
+    std::fs::create_dir_all(fixtures.join("ifccad"))?;
     write_ocdraw(
         &root.join("ocdraw"),
         "overview.ocdraw.json",
-        &ocdraw_overview()?,
+        &line_patterns::ocdraw(overview::ocdraw(ocdraw_state()?, ocdraw_workspace()?)?)?,
     )?;
     write_ocdraw(
-        &root.join("ocdraw"),
+        &fixtures.join("ocdraw"),
         "layouts-viewports.ocdraw.json",
         &ocdraw_layouts()?,
     )?;
     write_ocdraw(
-        &root.join("ocdraw"),
+        &fixtures.join("ocdraw"),
         "state-and-storage.ocdraw.json",
         &ocdraw_state()?,
     )?;
     write_ocdraw(
-        &root.join("ocdraw"),
+        &fixtures.join("ocdraw"),
         "workspace-state.ocdraw.json",
         &ocdraw_workspace()?,
     )?;
     let workspace = ocdraw::ifccad::encode_ifccad_document(&ifccad_workspace()?)?;
     ocdraw::ifccad::load_ifccad_bytes(workspace.bytes(), Default::default())?;
-    std::fs::write(root.join("ifccad/workspace-state.ifcx"), workspace.bytes())?;
+    std::fs::write(
+        fixtures.join("ifccad/workspace-state.ifcx"),
+        workspace.bytes(),
+    )?;
     let overview = ifccad_overview()?;
-    write_ifccad(&root.join("ifccad"), "overview.ifcx", &overview)?;
+    let native = ocdraw::ifccad::load_ifccad_bytes(
+        &prepare_ifccad("overview.ifcx", &overview)?,
+        Default::default(),
+    )?
+    .into_document();
+    let native = line_patterns::ifccad(overview::ifccad(native, ifccad_workspace()?)?)?;
+    let bytes = ocdraw::ifccad::encode_ifccad_document(&native)?;
+    ocdraw::ifccad::load_ifccad_bytes(bytes.bytes(), Default::default())?;
+    let mut curated: Value = serde_json::from_slice(bytes.bytes())?;
+    let all = curated["data"].as_array_mut().unwrap();
+    let entity = all
+        .iter_mut()
+        .find(|n| n["path"] == "/cad/d1/e1")
+        .ok_or("overview line required")?;
+    let geometry = entity["attributes"]
+        .as_object_mut()
+        .unwrap()
+        .remove("ifccad::geom::lineSegment")
+        .ok_or("line geometry required")?;
+    all.push(json!({"path":"/cad/d1/e1","attributes":{"ifccad::geom::lineSegment":geometry,"example::note":"Geometry supplied by a second contribution"}}));
+    all.push(json!({"path":"/reference/design-intent","children":{"line":"/cad/d1/e1","marker":"/cad/d1/block/1"},"inherits":{"reference":"/reference/shared-note"},"attributes":{"example::note":"References do not confer CAD ownership"}}));
+    all.push(json!({"path":"/reference/shared-note","attributes":{"example::note":"Shared design information"}}));
+    write_ifccad(&root.join("ifccad"), "overview.ifcx", &curated)?;
     let mut layouts = overview.clone();
     layouts["header"]["id"] = json!("explorer-ifccad-layouts-viewports");
-    write_ifccad(&root.join("ifccad"), "layouts-viewports.ifcx", &layouts)?;
+    write_ifccad(&fixtures.join("ifccad"), "layouts-viewports.ifcx", &layouts)?;
     let mut fragments = overview;
     fragments["header"]["id"] = json!("explorer-ifccad-blocks-fragments");
     let all = fragments["data"].as_array_mut().unwrap();
@@ -583,7 +636,7 @@ fn main() -> Result<()> {
     all.push(json!({"path":"/reference/design-intent","children":{"line":"/cad/d1/e110","marker":"/cad/d1/block/1"},"inherits":{"reference":"/reference/shared-note"},"attributes":{"example::note":"Non-CAD references do not acquire CAD ownership"}}));
     all.push(json!({"path":"/reference/shared-note","attributes":{"example::note":"Shared design information"}}));
     write_ifccad(
-        &root.join("ifccad"),
+        &fixtures.join("ifccad"),
         "blocks-and-fragments.ifcx",
         &fragments,
     )?;

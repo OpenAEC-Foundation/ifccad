@@ -186,6 +186,7 @@ impl IfccadGeometryAssessment {
                 &mut self.unassessed,
             );
         }
+        crate::mapping::marker_coverage::record(d, &mut self.unassessed);
         self
     }
     pub fn domains(&self) -> &[IfccadGeometryDomainAssessment] {

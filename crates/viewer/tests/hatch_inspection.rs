@@ -21,6 +21,41 @@ fn ocdraw_hatch_inspection_exposes_loops_sources_and_limit() {
         .any(|l| l["sourceEntityId"].is_string()));
     assert_eq!(h["geometry"]["fillEvaluation"], "unassessed");
 }
+
+#[test]
+fn gradient_inspection_keeps_authored_state_without_claiming_fill_evaluation() {
+    let out = viewer::inspect_drawing_bytes(
+        "gradient.ocdraw.json",
+        include_bytes!("../../../conformance/next/ocdraw/valid/hatch-gradient.ocdraw.json"),
+    );
+    let g = &out["presentation"]["entities"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|e| e["geometry"]["type"] == "hatch")
+        .unwrap()["geometry"];
+    assert_eq!(g["gradient"]["type"], "inverseSpherical");
+    assert_eq!(
+        g["gradient"]["colors"][1]["rgb"],
+        serde_json::json!([30, 60, 150])
+    );
+    assert_eq!(g["gradientStatus"], "active");
+    assert_eq!(g["fillEvaluation"], "unassessed");
+    let out = viewer::inspect_drawing_bytes(
+        "partial.ocdraw.json",
+        include_bytes!(
+            "../../../conformance/next/ocdraw/valid/hatch-gradient-inactive.ocdraw.json"
+        ),
+    );
+    let g = &out["presentation"]["entities"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|e| e["geometry"]["type"] == "hatch")
+        .unwrap()["geometry"];
+    assert_eq!(g["gradientStatus"], "partial");
+    assert!(g["gradient"].get("colors").is_none());
+}
 #[test]
 fn ifccad_hatch_inspection_and_both_export_routes_are_available() {
     let bytes = include_bytes!("../../../conformance/next/ifccad/valid/hatch-solid.ifcx");
@@ -57,11 +92,12 @@ fn physical_pattern_description_loss_is_reported_for_both_routes_and_codecs() {
     for (name, bytes) in [
         (
             "pattern.ocdraw.json",
-            include_bytes!("../../../examples/ocdraw/hello-hatch-pattern.ocdraw.json").as_slice(),
+            include_bytes!("../../../tests/fixtures/ocdraw/hello-hatch-pattern.ocdraw.json")
+                .as_slice(),
         ),
         (
             "pattern.ifcx",
-            include_bytes!("../../../examples/ifccad/hello-hatch-pattern.ifcx").as_slice(),
+            include_bytes!("../../../tests/fixtures/ifccad/hello-hatch-pattern.ifcx").as_slice(),
         ),
     ] {
         for format in ["dxf", "dwg"] {

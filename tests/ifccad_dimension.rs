@@ -51,7 +51,7 @@ fn forward_source_edit_does_not_recompute_stored_definition() {
 fn unused_marker_block_cycles_and_duplicate_style_names_are_invalid() {
     let mut d = support::drawing();
     let mut block = load_ifccad_bytes(
-        include_bytes!("../examples/ifccad/hello-cad.ifcx"),
+        include_bytes!("fixtures/ifccad/hello-cad.ifcx"),
         Default::default(),
     )
     .unwrap()

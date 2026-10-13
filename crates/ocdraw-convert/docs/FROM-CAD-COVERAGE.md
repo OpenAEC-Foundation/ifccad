@@ -1,5 +1,10 @@
 # CadDocument to OCDraw source coverage
 
+Core encoding may omit exact [native defaults](../../../docs/drawing-defaults.md)
+as whole columns or layer fields. Production readback reconstructs complete
+logical values; CAD source coverage and loss classification are unchanged by
+this compact representation.
+
 The complete typed `OcdrawDocument` is the logical conversion boundary.
 Logical export returns it with the existing loss/mapping/accuracy evidence;
 encoded export delegates to the core encoder. Raw document import validates
@@ -98,9 +103,9 @@ does not broaden entity inheritance or admit layer `ByBlock`.
 | Source surface | Status | Export or diagnostic contract |
 | --- | --- | --- |
 | `layers` | Exact/PartialLoss/SkippedLoss | Source order and unused layers are retained. On/Off, global Freeze, Lock, plottability, freeze-in-new-viewports and description are distinct native fields. Exact color, opacity, linetype name, and numeric/default lineweight become a deduplicated appearance. Typed CadDocument `Transparency::ByLayer` on a layer is the opaque default and normalizes to opacity 1.0; explicit alpha retains its value, while layer ByBlock remains unsupported. This preserves effective appearance, not the original default/explicit encoding. Entity inheritance is independent. Unsupported references retain their loss diagnostics; a required unrepresentable appearance skips the layer. |
-| Named ordinary linetypes | Exact/PartialLoss/FatalIfInconsistent | All simple actual definitions and unused records become local pattern IDs. Empty definitions remain separately named. Text/shapes use one diagnosed named continuous fallback per definition under Allow; Reject refuses it. Modified ByLayer/ByBlock scaffolding and xref provenance are diagnosed separately. Invalid patterns/alignment and unresolved or contradictory references are errors. |
+| Named ordinary linetypes | Exact/PartialLoss/FatalIfInconsistent | Simple and qualified text/SHX marker definitions, including unused records, become local pattern IDs. Signed lengths, marker scale, relative/absolute radians and offsets retain their meaning. Marker STYLE pointers must resolve to the correct role. Unsupported active dependencies replace the whole definition with named continuous under Allow; Reject refuses. Invalid periods/scalars/references are fatal. Cached period disagreements, inherited scaffolding and xref provenance are diagnosed separately. |
 | Ordinary local `block_records` | Exact/PartialLoss/FatalIfInconsistent | Definitions allocated before ordered contents; public metadata retained as above. Attribute flags, preview and insertion-count bytes are partial losses. Record handles must be distinct/non-null; references, membership and cycles are checked. Unicode-fold name collisions cannot merge or retarget definitions. |
-| `text_styles` | Exact/SkippedLoss/FatalIfInconsistent | Qualified local font requests, width/shear/vertical settings, fixed/last-height metadata and creation mirrors become independent native styles, including unused records. Annotative/shape/xref contexts and missing font selectors are diagnosed per record. Shape resources are classified before font-name lookup: repeated or empty shape names do not collide with ordinary text styles, and each skipped shape record is identified by its handle. References to shape-only names are diagnosed as unsupported text. Duplicate ordinary font lookup names, duplicate allocated handles across either role, and invalid numeric values in ordinary font styles fail. Null handles do not merge named records. |
+| `text_styles` | Exact/PartialLoss/SkippedLoss/FatalIfInconsistent | Qualified ordinary font requests and creation metadata become independent text styles. Qualified shape-file records become independent SHX symbol sources by handle, including repeated filenames and anonymous/unused records; ordinary lookup remains separate. Source paths retain the basename and diagnose locator loss once per resource. Shape STYLE name/history metadata is diagnosed. Unsupported active shape properties leave dependent whole patterns unqualified. Duplicate allocated handles, ordinary name collisions and nonfinite metrics are fatal. Shape-only names cannot become text fonts. |
 | Other `line_types`; unsupported `block_records`; unmapped `dim_styles`; `app_ids`; `views`; unmapped `vports`/`ucss`; `vx_table` | SkippedLoss | One stable `UnsupportedTableRecords` summary per affected table. Mapped VPORT/UCS base fields are removed from the residual comparison; meaningful unmapped fields still produce a loss. Default opencadcodec bootstrap records are not reported. |
 | Active model `*Active` VPORT entries and UCS table | Exact/PartialLoss | Ordered model windows keep normalized rectangles, view, grid, grid snap, stored UCS and activation flag. Named UCS records keep name, frame and elevation even when unused. Multiple active entries remain ordered, but opencadcodec exposes no certain active-window identity; this receives a loss diagnostic. Orthographic/external UCS data and residual VPORT fields receive loss diagnostics. |
 | Default model/paper layout and bootstrap dictionaries/objects | NonSemantic until changed or referenced | The untouched empty `Layout1` scaffold is omitted. A primary reserved `*Paper_Space` record with no layout, content, insert reference or authored metadata is codec bookkeeping, not a local block definition; changed metadata/content is not discarded. Real paper layouts are emitted in tab order; model layout name is retained. Correctly named ACAD_LAYOUT dictionary entries are represented through those typed layouts, including absence of the bootstrap Layout1. Dictionary flags, aliases, unknown keys and dangling/non-layout targets remain independently classified. |
@@ -324,12 +329,12 @@ Dot grid style and frequencies beyond CAD i16 receive field-specific substitutio
 | Field/state | Classification and native result |
 | --- | --- |
 | elevation/normal, all stored supported paths | Contour conversion assessed against the actual CAD OCS, including nested occurrences; finite/parameter/join failures are hard errors |
-| is_solid/style | Solid/explicit LinePattern plus exact normal/outer/ignore; active gradient, MPOLYGON and unqualified active pattern profiles omit the whole Hatch with SkippedLoss/Omitted |
+| is_solid/style | Solid/explicit LinePattern/qualified Gradient plus exact normal/outer/ignore; MPOLYGON and unqualified active fill profiles omit the whole Hatch with SkippedLoss/Omitted |
 | line/circular/elliptic edges, closed straight/bulged polyline | Every loop retained; exact full-turn qualification, signed sweeps, no snapping/tessellation; spline/open/mixed-polyline backing unsupported |
 | is_associative/boundary_handles | Single eligible same-owner closed source per loop, bound after IDs exist; inactive/multiple/skipped/wrong-owner relations get PartialLoss/Omitted with the complete contour retained |
 | path flags | POLYLINE is backing; EXTERNAL/DERIVED/OUTERMOST omitted as located hints; other/unknown active flags omit whole Hatch |
 | pattern name/description/lines/type/angle/scale/double | Solid inactive state diagnosed; explicit effective families, literal metadata, origin/angle/scale retained for Pattern. Library/type dependency diagnosed; UserDefined requires a resolved fixed local continuous linetype and one continuous family; ByLayer layer-0 block dependencies are unqualified. Double only the documented axis-aligned origin-anchored profile, otherwise whole-Hatch omission |
-| disabled gradient, seed points/pixel size, inactive MPOLYGON fields | Located editing/construction-state loss when nondefault |
+| seed points/pixel size, inactive MPOLYGON fields | Located editing/construction-state loss when nondefault |
 | common attachments/context | AcadAnnotative markers and non-null extension dictionaries require separate qualification and omit whole Hatch; qualified top-level ACAD origin is consumed once, nested/unrelated metadata uses existing format-specific audit; no opaque Hatch preservation |
 
 Producer join requests use local units or a known physical mapping with explicit
@@ -403,3 +408,48 @@ host regeneration. The pinned DXF clone reader loses group 12, DXF omits flips
 and DIMSTYLE true colors, and epsilon omission limits certain near-default values.
 Other source picture definitions remain independently audited, never discarded
 by anonymous-looking names. See [Dimension support](../../../docs/dimension.md).
+
+## Foreground / ACI 7
+
+Native Foreground is a symbolic background-dependent black/white color, with no
+RGB fallback or separate ACI identity. Qualified ACI 7 imports as Foreground
+before palette lookup and exports as ACI 7, retaining CTB key 7. Literal RGB
+white and black remain true color. The old concrete `indexedColor: ACI/7` native
+object is invalid; current provisional examples and candidate fixtures use the
+closed `{"kind":"Foreground"}` choice.
+
+This applies to layer/entity colors, qualified Text/MText inline and explicit
+background colors, and C3/index-7 viewport-layer overrides. Named metadata on
+source ACI 7 cannot attach to Foreground and gets located loss under Allow;
+Reject refuses the loss. Editable native common appearance on preserved entities
+supports Foreground while provider payload bytes remain unchanged.
+
+The [independent exchange tests](../tests/ocdraw_foreground_exchange.rs) exercise native
+production readback and actual DXF/AC1032 DWG readback for this route, with fixed
+RGB controls. These tests prove data exchange, not external-app visual/CTB-output
+certification. Additional C5/ByPen/None/257 methods and broader plot-style contents
+remain unqualified. See [presentation](../../../docs/presentation.md#foreground-color)
+and [issue #16](https://github.com/OpenAEC-Foundation/ifccad/issues/16).
+
+Complex marker geometry remains unassessed per curve and block occurrence, independently of the host curve numerical proof. External font/SHX availability is not probed and does not cause semantic loss. Native producer bounds and derived assessment remain separate. AC1032 complex DXF/DWG exchange is independently checked by `tests/ocdraw_line_pattern_exchange.rs`, including resolved STYLE roles and the manually authored literal marker-flags fixture. This does not establish upright rotation, which the current codec public model cannot distinguish.
+
+## Gradient field coverage
+
+Enabled gradients override classic fill flags before pattern qualification.
+Nine standard names map to native type; values 0/1 and two RGB/ACI colors,
+angle, shift, one/two mode and tint are retained independently. Disabled
+known settings survive as partial/complete native state; fully default means
+absence. Unknown type/reserved/positions/extra colors or inherited endpoint
+colors omit active Hatch or only dormant state under Allow. Reject refuses.
+Missing active type/colors, one-entry pairs and nonfinite values are hard errors.
+Source ACAD pattern origin is inactive and remains common-audit loss, not an anchor.
+
+Original count, malformed-value, RGB/ACI-order and color/book identity information
+may already be unavailable in pinned file readback; coverage starts at exposed
+CadDocument values. Actual AC1032 tests and codec characterization are separate;
+legacy recovery, arbitrary fill fields/pixels and editor updates are unqualified.
+
+Gradient endpoints stay concrete after the Foreground color migration. Source
+ACI 7 endpoints are unqualified (active whole-Hatch or dormant-state omission
+under Allow; Reject refuses). Native Foreground endpoints fail validation;
+no fixed background or RGB replacement is invented.

@@ -149,6 +149,12 @@ pub(super) fn encode_entity(
     v["rotation"] = json!(rotation);
     v["backward"] = json!(backward);
     v["upsideDown"] = json!(upside_down);
+    for field in ["rotation", "obliqueAngle", "thickness"] {
+        super::defaults::omit_number(&mut v, field, 0.);
+    }
+    for field in ["backward", "upsideDown"] {
+        super::defaults::omit_bool(&mut v, field, false);
+    }
     attrs.insert(key.into(), v);
     attrs.insert("ifccad::geom::placement".into(), json!(placement));
 }
@@ -245,6 +251,11 @@ pub(super) fn encode_style(style: &IfccadTextStyle) -> Value {
     }
     if let Some(v) = p.last_used_height {
         value["lastUsedHeight"] = json!(v);
+    }
+    super::defaults::omit_number(&mut value, "widthFactor", 1.);
+    super::defaults::omit_number(&mut value, "obliqueAngle", 0.);
+    for field in ["vertical", "creationBackward", "creationUpsideDown"] {
+        super::defaults::omit_bool(&mut value, field, false);
     }
     value
 }

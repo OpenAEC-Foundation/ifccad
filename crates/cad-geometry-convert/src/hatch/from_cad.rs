@@ -188,7 +188,11 @@ pub fn prepare_hatch_from_cad(
         .collect::<Result<Vec<_>, _>>()?;
     validate_hatch_boundaries(&boundaries, join_tolerance)?;
     let mut pairs = super::evidence::pairs_from_cad(h, placement, &boundaries)?;
-    let fill = if h.is_solid {
+    let gradient = super::prepare_gradient_from_cad(h)?;
+    losses.extend(gradient.losses);
+    let fill = if h.gradient_color.enabled {
+        HatchFill::Gradient
+    } else if h.is_solid {
         HatchFill::Solid
     } else {
         let p = super::pattern::prepare_pattern_from_cad(h, placement, &boundaries)?;
@@ -197,6 +201,7 @@ pub fn prepare_hatch_from_cad(
         HatchFill::LinePattern(p.pattern)
     };
     Ok(PreparedNativeHatch {
+        gradient: gradient.gradient,
         fill,
         placement,
         boundaries,
@@ -221,7 +226,7 @@ pub fn prepare_hatch_from_cad_with_pattern_context(
     join_tolerance: f64,
     continuous_linetype: bool,
 ) -> Result<PreparedNativeHatch, CadHatchPreparationError> {
-    if h.is_solid || h.pattern_type != HatchPatternType::UserDefined {
+    if h.gradient_color.enabled || h.is_solid || h.pattern_type != HatchPatternType::UserDefined {
         return prepare_hatch_from_cad(h, join_tolerance);
     }
     super::pattern::validate_source_scalars(h)?;

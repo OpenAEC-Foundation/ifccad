@@ -2,7 +2,14 @@
 use ocdraw::{dimension::*, ifccad::*};
 use serde_json::{json, Value};
 fn color(c: &IfccadColor) -> Value {
-    json!({"rgb":c.rgb,"indexed":c.indexed,"named":c.named})
+    match c {
+        IfccadColor::Foreground => json!({"kind":"Foreground"}),
+        IfccadColor::Concrete {
+            rgb,
+            indexed,
+            named,
+        } => json!({"rgb":rgb,"indexed":indexed,"named":named}),
+    }
 }
 fn settings(v: &IfccadDimensionSettings, id: u64) -> Value {
     serde_json::to_value(v.map_references(

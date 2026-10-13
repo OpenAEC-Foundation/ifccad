@@ -5,19 +5,34 @@ use opencadcodec::entities::EntityCommon;
 use opencadcodec::{Color, Layer, LineWeight, Transparency};
 
 pub(super) fn native_color(value: cad_presentation_convert::CadColorValue) -> IfccadColor {
-    IfccadColor {
-        rgb: value.rgb,
-        indexed: value.indexed,
-        named: value.named,
+    match value {
+        cad_presentation_convert::CadColorValue::Foreground => IfccadColor::Foreground,
+        cad_presentation_convert::CadColorValue::Concrete {
+            rgb,
+            indexed,
+            named,
+        } => IfccadColor::Concrete {
+            rgb,
+            indexed,
+            named,
+        },
     }
 }
 pub(super) fn scalar_color(value: &IfccadColor) -> cad_presentation_convert::CadColorValue {
-    cad_presentation_convert::CadColorValue {
-        rgb: value.rgb,
-        indexed: value.indexed.clone(),
-        named: value.named.clone(),
+    match value {
+        IfccadColor::Foreground => cad_presentation_convert::CadColorValue::Foreground,
+        IfccadColor::Concrete {
+            rgb,
+            indexed,
+            named,
+        } => cad_presentation_convert::CadColorValue::Concrete {
+            rgb: *rgb,
+            indexed: indexed.clone(),
+            named: named.clone(),
+        },
     }
 }
+
 pub(super) fn cad_color(
     value: &IfccadColor,
     loc: &str,
@@ -149,12 +164,23 @@ pub(crate) fn from_common(
         Color::ByBlock => ByBlock,
         v => Explicit(source_color(v, loc, issues)?),
     };
+    let mut named_consumed = false;
     if let (Explicit(target), Some(name)) = (&mut color, &c.color_name) {
         if let Some((catalog, name)) = name
             .split_once('$')
             .filter(|(catalog, name)| !catalog.is_empty() && !name.is_empty())
         {
-            target.named = Some((catalog.to_owned(), name.to_owned()));
+            named_consumed = true;
+            match target {
+                IfccadColor::Concrete { named, .. } => {
+                    *named = Some((catalog.to_owned(), name.to_owned()))
+                }
+                IfccadColor::Foreground => issues.push(modification(
+                    "appearance",
+                    format!("{loc}.color_name"),
+                    "named identity on foreground color omitted",
+                )),
+            }
         }
     }
     let opacity = match c.transparency {
@@ -178,7 +204,7 @@ pub(crate) fn from_common(
     // retain that association with newly constructed CAD identities.
     r.layer_handle = None;
     r.color = b.color;
-    if matches!(&color, Explicit(value) if value.named.is_some()) {
+    if named_consumed {
         r.color_name = None;
     }
     r.line_weight = b.line_weight;
@@ -236,7 +262,16 @@ pub(crate) fn from_layer(
     let mut color = source_color(layer.color, &loc, issues)?;
     match (&layer.book_name, &layer.color_name) {
         (Some(catalog), Some(name)) if !catalog.is_empty() && !name.is_empty() => {
-            color.named = Some((catalog.clone(), name.clone()));
+            match &mut color {
+                IfccadColor::Concrete { named, .. } => {
+                    *named = Some((catalog.clone(), name.clone()))
+                }
+                IfccadColor::Foreground => issues.push(modification(
+                    "appearance",
+                    format!("{loc}.color"),
+                    "named identity on foreground color omitted",
+                )),
+            }
         }
         (None, None) => (),
         _ => issues.push(modification(

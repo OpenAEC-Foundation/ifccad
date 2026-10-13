@@ -191,3 +191,44 @@ writeback is not implied. This is a provisional API/contract change, not a relea
 ## Workspace lifecycle
 
 IFCCAD UCS and Model-window IDs use separate persistent uint64 watermarks and canonical full references. Whole workspace attributes compose as IFCX values. Native readers/writers preserve omitted choices and dormant values; legacy missing canvas activation means true. The optional viewport snapshot is boxed in Rust to keep ordinary entity variants compact. Format-owned converters allocate/bind identities before references and strictly read back native output.
+
+
+## Native color API migration
+
+`DrawingColor` and independent `IfccadColor` are enums with `Foreground` and
+`Concrete { rgb, indexed, named }` variants. `rgb(r,g,b)` still constructs a fixed
+color. Metadata builders `with_indexed` and `with_named` now return `Result`;
+they refuse metadata on Foreground instead of silently dropping it. Existing
+callers must propagate or handle `DrawingColorMetadataError` or
+`IfccadColorMetadataError`. Shared native validation rejects concrete ACI 7.
+
+Use variant matching to distinguish symbolic meaning. `concrete_rgb`,
+`indexed_identity` and `named_identity` expose optional values without resolving
+Foreground against an invented background. Rendering consumers can use
+`ocdraw::color::foreground_srgb` with their effective sRGB background; the
+drawing stores no theme-specific resolved color. See [presentation](presentation.md#foreground-color).
+
+## Complex line pattern values
+
+Public pattern arrays now contain typed `LinePatternElement<Marker>` values. Use
+`LinePatternElement::simple(length)` for existing numeric patterns; marked entries
+carry a native text-style or symbol-source reference plus a shared transform.
+The separate source table has its own persistent allocation watermark. Both
+production codecs retain plain numbers for unmarked entries and write closed
+objects for markers. IFCCAD references use complete profile-local paths. See
+[line patterns](line-patterns.md) for the logical/physical distinction, estimates
+and conversion limits.
+
+## Native Hatch gradient API
+
+`HatchFill::Gradient` selects `DrawingHatchEntity.gradient` or
+`IfccadHatch.gradient`; the types are DrawingHatchGradient/IfccadHatchGradient
+aliases over neutral HatchGradient with each model's concrete color.
+With the Foreground/Concrete API, endpoints require Concrete; no background is
+invented to turn Foreground into a gradient endpoint.
+HatchEntityDefinition also requires gradient:None/Some explicitly. Existing
+callers migrate with None; Gradient requires type/colors, while inactive state
+may be partial. No compatibility bridge for unpublished intermediate schemas.
+OCDraw outgoing Hatch failures now retain entity_id and the original typed
+cause in OcdrawToCadError::HatchPreparation. Model and actual-file guarantees
+remain separate; caller options lossPolicy=reject also enforce physical losses.

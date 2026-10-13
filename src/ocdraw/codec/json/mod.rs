@@ -4,7 +4,9 @@ mod dimension_style;
 mod dimension_values;
 pub(crate) use dimension::{decode_dimensions, encode_dimensions};
 pub(crate) use dimension_style::{decode_dimension_styles, encode_dimension_styles};
+mod defaults;
 mod hatch;
+mod hatch_gradient;
 mod hatch_pattern;
 mod hatch_values;
 pub(crate) use hatch::{decode_hatch, encode_hatch};
@@ -18,6 +20,10 @@ pub(crate) use text_style::{decode_text_styles, encode_text_styles};
 mod decode_geometry;
 mod decode_line_pattern;
 pub(crate) use decode_line_pattern::decode_line_patterns;
+mod line_pattern_values;
+pub(crate) use line_pattern_values::{
+    decode_symbol_sources, encode_pattern_elements, encode_symbol_sources,
+};
 mod decode_layer;
 mod decode_layout;
 

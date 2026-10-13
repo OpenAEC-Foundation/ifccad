@@ -21,7 +21,11 @@ pub fn ocdraw(drawing: &ValidatedOcdraw) -> Result<(Drawing, Vec<u64>)> {
             name: l.name.clone(),
             visible: l.visible,
             appearance: Appearance {
-                color: Property::Explicit(l.color.rgb),
+                color: Property::Explicit(
+                    l.color
+                        .concrete_rgb()
+                        .expect("the controlled RGB-only recipe excludes Foreground"),
+                ),
                 opacity: Property::Explicit(l.opacity),
                 pattern: Property::Explicit(
                     drawing
@@ -85,7 +89,10 @@ pub fn ocdraw(drawing: &ValidatedOcdraw) -> Result<(Drawing, Vec<u64>)> {
                 .clone(),
             visible: e.visible(),
             appearance: Appearance {
-                color: property(&a.color, |c| c.rgb),
+                color: property(&a.color, |c| {
+                    c.concrete_rgb()
+                        .expect("the controlled RGB-only recipe excludes Foreground")
+                }),
                 opacity: property(&a.opacity, |v| *v),
                 pattern: property(&a.line_pattern, |id| {
                     drawing

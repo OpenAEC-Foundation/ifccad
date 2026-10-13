@@ -19,6 +19,12 @@ pub(crate) fn encode_text_styles(styles: &[DrawingTextStyle]) -> Value {
             "creationUpsideDown": p.creation_upside_down});
         if let Some(height) = p.creation_height { row["creationHeight"] = json!(height); }
         if let Some(height) = p.last_used_height { row["lastUsedHeight"] = json!(height); }
+        for (field,default) in [("widthFactor",1.),("obliqueAngle",0.)] {
+            if super::defaults::number(&row[field],default) { row.as_object_mut().expect("style").remove(field); }
+        }
+        for field in ["vertical","creationBackward","creationUpsideDown"] {
+            if row[field].as_bool()==Some(false) { row.as_object_mut().expect("style").remove(field); }
+        }
         row
     }).collect())
 }

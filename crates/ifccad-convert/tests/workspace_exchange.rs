@@ -7,7 +7,7 @@ use std::io::Cursor;
 #[test]
 fn workspace_fields_survive_direct_dxf_and_dwg_exchange() {
     let original = load_ifccad_bytes(
-        include_bytes!("../../../examples/ifccad/workspace-state.ifcx"),
+        include_bytes!("../../../tests/fixtures/ifccad/workspace-state.ifcx"),
         Default::default(),
     )
     .unwrap();

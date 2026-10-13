@@ -19,7 +19,7 @@ route does not establish support in the other. IFCCAD is a provisional profile,
 not an official buildingSMART CAD standard.
 
 An OCDraw drawing contains typed geometric entities, layers, layouts, entity appearance
-choices, named simple line patterns, shared block definitions, and drawing-bound state. It opens without
+choices, named line patterns with text/SHX markers, shared block definitions, and drawing-bound state. It opens without
 IFCX. The JSON format marker is `open_cad_drawing`. The initial 0.1.0 contract
 and entity schema v1 are provisional until contract completion and verification.
 
@@ -56,6 +56,10 @@ Reader and writer use shared logical validation. Generated outputs are loaded
 through the production reader. CAD conversion consumes typed drawing values,
 without JSON inspection. Core has no CAD runtime dependency.
 
+Both routes use corresponding [drawing defaults](docs/drawing-defaults.md) for
+compact native JSON while retaining complete typed documents. Their physical
+omission rules, provisional compatibility and presence-sensitive state stay explicit.
+
 `OcdrawDocument` is the complete mutable logical drawing. The builder can return
 it with `build_document()`; `finish()` uses that document and the common encoder.
 Reading exposes an immutable document snapshot, which can be consumed for edits.
@@ -74,9 +78,13 @@ the [remaining local codec patch](patches/opencadcodec-viewports/README.md)
 retains the independent viewport-off bit. The DWG profile includes a paper canvas.
 See the [dependency audit](docs/geometry/opencadcodec-update-2026-10-07.md) and the
 converter coverage contracts for limits.
-Named simple patterns retain their definitions, unused records, local references,
-scale and polyline generation. Complex text/shape patterns become named continuous
-patterns with loss evidence under Allow; Reject refuses this fallback.
+Named patterns retain definitions, unused records, local references, scale and
+polyline generation. Both native routes support text and SHX markers with separate
+style/source identities and relative/absolute rotation. Qualified markers survive
+CAD conversion and AC1032 DXF/DWG exchange. Unsupported active dependencies use a
+diagnosed whole-definition named-continuous fallback under Allow; Reject refuses it.
+Unknown external glyph outlines remain unassessed while host curves stay checked.
+See [complex line patterns](docs/line-patterns.md).
 Both routes have independent native Text/MText, local font requests and text styles, rich
 paragraph/inline formatting, column/background state and explicit estimated
 bound quality. Their CAD routes separately qualify a bounded text profile and expose
@@ -89,10 +97,10 @@ inspection distinguish anchor accuracy from unassessed dimension display. The
 nine-kind design continues in later slices; annotative text and dimensions share
 a later annotation slice. See [Dimension support](docs/dimension.md).
 
-Both routes also provide native Solid and LinePattern Hatch with stored planar boundaries,
+Both routes also provide native Solid, LinePattern and Gradient Hatch with stored planar boundaries,
 three area rules and optional same-owner source relations. Contour exchange
 and unassessed fill are separate evidence; see [Hatch support](docs/hatch.md).
-Embedded pattern families retain origin, rotation, scale, signed spacing and ordered dash/gap/dot definitions; CAD support uses qualified explicit families.
+Embedded pattern families retain origin, rotation, scale, signed spacing and ordered dash/gap/dot definitions; CAD support uses qualified explicit families. Gradients retain two endpoint colors and active/inactive authorship settings, with basis-preserving AC1032 exchange and explicit codec-loss reporting.
 
 Unsupported conversion semantics are diagnosed or rejected. Numerical accuracy
 has a hard unit-aware tolerance, including nested block occurrences. See
@@ -157,7 +165,8 @@ Both formats now retain UCS, Model windows, Paper canvases and per-viewport
 grid/snap state, including unspecified choices and dormant values. Known active
 Paper layouts survive DXF/DWG exchange through consistent reserved-block roles.
 Qualified CAD limitations remain explicit; see [workspace state](docs/workspace-state.md).
-Both native presentation models now retain concrete color identity, layer/common
+Both native presentation models now retain symbolic Foreground (ACI 7), concrete
+color identity, layer/common
 visibility, PointDisplay and ordinary block metadata. Relational viewport
 appearance overrides map through qualified CAD XRecords. OCDraw now also
 converts perspective Paper cameras; quality/DPI stays on layouts while viewport
@@ -201,12 +210,12 @@ Licensed under [MPL-2.0](LICENSE).
 
 The independent IFCCAD proof is available in
 `src/ifccad`, with its [experimental contract](schemas/ifccad/experimental-contract-0.1.0.md),
-[sample](examples/ifccad/hello-cad.ifcx) and
+[sample](tests/fixtures/ifccad/hello-cad.ifcx) and
 [evaluation](docs/experiments/ifccad.md). Its direct
 [converter](crates/ifccad-convert/README.md) connects the supported subset to
-opencadcodec `CadDocument`, including named simple line patterns, scales and polyline
-pattern generation. See the [geometry sample](examples/ifccad/hello-geometry.ifcx)
-and [line-pattern sample](examples/ifccad/hello-line-patterns.ifcx). Geometry validation and length-unit tokens use shared neutral helpers;
+opencadcodec `CadDocument`, including named line patterns with text/SHX markers, scales and polyline
+pattern generation. See the [geometry sample](tests/fixtures/ifccad/hello-geometry.ifcx)
+and [line-pattern sample](tests/fixtures/ifccad/hello-line-patterns.ifcx). Geometry validation and length-unit tokens use shared neutral helpers;
 the two drawing models, schemas and encoding routes remain separate. The
 [IFCCAD & OCDraw Explorer](format-explorer/README.md) now opens IFCCAD and
 roundtrips through DXF/DWG using its own converter. Model and multiple Paper layouts convert with explicit tab order, optional media and explicit output mappings. Paper viewports now retain orthographic/perspective camera, depth/display state and circle/full-ellipse/closed straight-or-bulged path clipping. CAD viewport exchange uses the explicit development codec repairs described in the converter; effective plot settings retain the documented CAD limits.

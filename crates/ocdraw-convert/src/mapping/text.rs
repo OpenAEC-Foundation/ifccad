@@ -48,13 +48,6 @@ pub(crate) fn from_styles(
         }
         let key = style.name.to_lowercase();
         if style.is_shape_file {
-            skipped(
-                CadToOcdrawDiagnosticSource::Table {
-                    kind: format!("text_styles/shape/{}", style.handle),
-                },
-                cad_text::CadTextError::Unsupported("shape-file style role").to_string(),
-                diagnostics,
-            );
             shape_names.insert(key);
             continue;
         }
@@ -262,19 +255,11 @@ fn from_color(c: &cad_text::MarkupColor) -> Result<DrawingColor, cad_text::CadTe
     };
     let value = cad_presentation_convert::explicit_color_from_cad(source)
         .map_err(|_| cad_text::CadTextError::Unsupported("unresolved inline ACI color"))?;
-    Ok(DrawingColor {
-        rgb: value.rgb,
-        indexed: value.indexed,
-        named: value.named,
-    })
+    Ok(super::appearance::native_color(value))
 }
 fn to_color(c: &DrawingColor) -> Result<cad_text::MarkupColor, cad_text::CadTextError> {
-    let mapped = cad_presentation_convert::color_to_cad(&cad_presentation_convert::CadColorValue {
-        rgb: c.rgb,
-        indexed: c.indexed.clone(),
-        named: c.named.clone(),
-    })
-    .map_err(|_| cad_text::CadTextError::Unsupported("invalid inline color identity"))?;
+    let mapped = cad_presentation_convert::color_to_cad(&super::appearance::scalar_color(c))
+        .map_err(|_| cad_text::CadTextError::Unsupported("invalid inline color identity"))?;
     if mapped.named.is_some() {
         return Err(cad_text::CadTextError::Unsupported(
             "named inline/background color metadata",
@@ -285,14 +270,15 @@ fn to_color(c: &DrawingColor) -> Result<cad_text::MarkupColor, cad_text::CadText
             "inline/background indexed color metadata or contradictory RGB fallback",
         ));
     }
-    if let opencadcodec::Color::Index(index) = mapped.color {
-        return Ok(cad_text::MarkupColor::Index(u16::from(index)));
+    match mapped.color {
+        opencadcodec::Color::Index(index) => Ok(cad_text::MarkupColor::Index(u16::from(index))),
+        opencadcodec::Color::Rgb {
+            r: red,
+            g: green,
+            b: blue,
+        } => Ok(cad_text::MarkupColor::Rgb { red, green, blue }),
+        _ => Err(cad_text::CadTextError::Unsupported("inline color mode")),
     }
-    Ok(cad_text::MarkupColor::Rgb {
-        red: c.rgb[0],
-        green: c.rgb[1],
-        blue: c.rgb[2],
-    })
 }
 
 pub(crate) fn from_entity(

@@ -1,0 +1,959 @@
+{
+  "header": {
+    "id": "explorer-ifccad-layouts-viewports",
+    "ifcxVersion": "ifcx_alpha",
+    "dataVersion": "0.1.0",
+    "author": "OpenAEC",
+    "timestamp": "2026-10-06T00:00:00Z"
+  },
+  "imports": [
+    {
+      "uri": "urn:example:ifccad:0.1.0"
+    }
+  ],
+  "schemas": {},
+  "data": [
+    {
+      "path": "/cad/d1",
+      "children": {
+        "block1": "/cad/d1/block/1",
+        "block2": "/cad/d1/block/2",
+        "layer0": "/cad/d1/layer/0",
+        "layer1": "/cad/d1/layer/1",
+        "linePattern0": "/cad/d1/linePattern/0",
+        "linePattern1": "/cad/d1/linePattern/1",
+        "linePattern2": "/cad/d1/linePattern/2",
+        "model": "/cad/d1/layout/1",
+        "paper2": "/cad/d1/layout/2"
+      },
+      "attributes": {
+        "ifccad::drawing": {
+          "lengthUnit": "mm",
+          "linePatternScale": 1.0,
+          "nextBlockId": 3,
+          "nextEntityId": 16,
+          "nextLayerId": 2,
+          "nextLayoutId": 3,
+          "nextLinePatternId": 3,"nextSymbolSourceId":1,
+          "nextModelWindowId": 1,
+          "nextUcsId": 1,
+          "profileVersion": "0.1.0"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layout/1",
+      "children": {
+        "0": "/cad/d1/e1",
+        "1": "/cad/d1/e2",
+        "2": "/cad/d1/e3",
+        "3": "/cad/d1/e4",
+        "4": "/cad/d1/e5",
+        "5": "/cad/d1/e6",
+        "6": "/cad/d1/e7",
+        "7": "/cad/d1/e8",
+        "8": "/cad/d1/e9",
+        "9": "/cad/d1/e10"
+      },
+      "attributes": {
+        "ifccad::layout": {
+          "bounds": {
+            "max": [
+              150.00000000000003,
+              58.00000000000001,
+              4.0
+            ],
+            "min": [
+              -3.0000000000000018,
+              -2.0000000000000018,
+              0.0
+            ]
+          },
+          "kind": "Model",
+          "tabIndex": 0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layout/2",
+      "children": {
+        "0": "/cad/d1/e11",
+        "1": "/cad/d1/e12",
+        "2": "/cad/d1/e13"
+      },
+      "attributes": {
+        "ifccad::layout": {
+          "bounds": {
+            "max": [
+              180.0,
+              125.00000000000006,
+              0.0
+            ],
+            "min": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "kind": "Paper",
+          "media": {
+            "height": 297,
+            "unit": "mm",
+            "width": 420
+          },
+          "name": "A3 detail sheet",
+          "plotSettings": {
+            "area": {
+              "mode": "Layout"
+            },
+            "mapping": {
+              "placement": {
+                "mode": "Offset",
+                "reference": "Media",
+                "x": 0,
+                "y": 0
+              },
+              "scale": {
+                "mode": "Fixed",
+                "outputLength": 1,
+                "scopeLength": 1
+              }
+            },
+            "options": {
+              "hidePaperSpaceObjects": false,
+              "plotLineWeights": false,
+              "plotPaperSpaceLast": false,
+              "plotTransparency": false,
+              "plotViewportBorders": false,
+              "scaleLineWeights": false
+            },
+            "output": {
+              "applyPlotStyles": false,
+              "shadedPlot": {
+                "mode": "AsDisplayed",
+                "quality": {
+                  "mode": "Normal"
+                }
+              }
+            },
+            "page": {
+              "printableArea": {
+                "maxX": 420,
+                "maxY": 297,
+                "minX": 0,
+                "minY": 0
+              },
+              "rotation": "none"
+            },
+            "plotUnit": "mm"
+          },
+          "tabIndex": 1
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/linePattern/0",
+      "attributes": {
+        "ifccad::linePattern": {
+          "description": "Solid line",
+          "name": "Continuous",
+          "pattern": []
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layer/0",
+      "attributes": {
+        "ifccad::layer": {
+          "appearance": {
+            "color": {
+              "kind": "Foreground"
+            },
+            "linePattern": "/cad/d1/linePattern/0",
+            "lineWeight": 0.25,
+            "opacity": 1.0
+          },
+          "name": "0"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layer/1",
+      "attributes": {
+        "ifccad::layer": {
+          "appearance": {
+            "color": {
+              "kind": "Foreground"
+            },
+            "linePattern": "/cad/d1/linePattern/1",
+            "lineWeight": 0.25,
+            "opacity": 1.0
+          },
+          "name": "Notes"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e11",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0",
+          "linePatternScale": 1.0
+        },
+        "ifccad::geom::lineSegment": {
+          "end": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "start": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e12",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0",
+          "linePatternScale": 1.0,
+          "visible": true
+        },
+        "ifccad::viewport": {
+          "frame": {
+            "center": [
+              100.0,
+              75.0
+            ],
+            "height": 100.0,
+            "width": 160.0
+          },
+          "model": "/cad/d1/layout/1",
+          "paperClip": {
+            "boundary": "/cad/d1/e13",
+            "enabled": true
+          },
+          "renderMode": "Wireframe",
+          "view": {
+            "backClip": {
+              "distance": 0.0,
+              "mode": "Disabled"
+            },
+            "center": [
+              0.0,
+              0.0
+            ],
+            "direction": [
+              0.0,
+              0.0,
+              100.0
+            ],
+            "frontClip": {
+              "distance": 0.0,
+              "mode": "Disabled"
+            },
+            "height": 200.0,
+            "lensLengthMm": 50.0,
+            "projection": "Perspective",
+            "target": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "twist": 0.0
+          },
+          "viewEnabled": true,
+          "viewLocked": true,
+          "layerOverrides": [
+            {
+              "layer": "/cad/d1/layer/1",
+              "frozen": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e13",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0",
+          "linePatternScale": 1.0
+        },
+        "ifccad::geom::circle": {
+          "radius": 50.0
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            100.0,
+            75.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e1",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::geom::lineSegment": {
+          "end": [
+            120,
+            0,
+            0
+          ],
+          "start": [
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e2",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::geom::circle": {
+          "radius": 12
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            30.0,
+            30.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e3",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            60.0,
+            20.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::geom::planarPolyline": {
+          "closed": false,
+          "linePatternGeneration": "continuous",
+          "vertices": [
+            [
+              0,
+              0
+            ],
+            [
+              20,
+              0
+            ],
+            [
+              20,
+              25
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e4",
+      "attributes": {
+        "ifccad::blockInstance": {
+          "definition": "/cad/d1/block/2",
+          "transform": {
+            "placement": {
+              "origin": [
+                100.0,
+                50.0,
+                0.0
+              ],
+              "xAxis": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "yAxis": [
+                0.0,
+                1.0,
+                0.0
+              ]
+            },
+            "rotation": 0.3,
+            "scale": [
+              -1,
+              1,
+              1
+            ]
+          }
+        },
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e5",
+      "attributes": {
+        "ifccad::blockInstance": {
+          "definition": "/cad/d1/block/1",
+          "transform": {
+            "placement": {
+              "origin": [
+                130.0,
+                50.0,
+                0.0
+              ],
+              "xAxis": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "yAxis": [
+                0.0,
+                1.0,
+                0.0
+              ]
+            },
+            "rotation": 0,
+            "scale": [
+              2,
+              1,
+              1
+            ]
+          }
+        },
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e14",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::geom::lineSegment": {
+          "end": [
+            12,
+            8,
+            0
+          ],
+          "start": [
+            2,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e15",
+      "attributes": {
+        "ifccad::blockInstance": {
+          "definition": "/cad/d1/block/1",
+          "transform": {
+            "placement": {
+              "origin": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "xAxis": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "yAxis": [
+                0.0,
+                1.0,
+                0.0
+              ]
+            },
+            "rotation": 0,
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/block/1",
+      "children": {
+        "0": "/cad/d1/e14"
+      },
+      "attributes": {
+        "ifccad::blockDefinition": {
+          "basePoint": [
+            2,
+            0,
+            0
+          ],
+          "bounds": {
+            "max": [
+              12.0,
+              8.0,
+              0.0
+            ],
+            "min": [
+              2.0,
+              0.0,
+              0.0
+            ]
+          },
+          "insertionUnit": "mm",
+          "name": "Marker"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/block/2",
+      "children": {
+        "0": "/cad/d1/e15"
+      },
+      "attributes": {
+        "ifccad::blockDefinition": {
+          "basePoint": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "max": [
+              10.000000000000002,
+              8.0,
+              0.0
+            ],
+            "min": [
+              -5e-324,
+              0.0,
+              0.0
+            ]
+          },
+          "insertionUnit": "mm",
+          "name": "Nested marker"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/linePattern/1",
+      "attributes": {
+        "ifccad::linePattern": {
+          "description": "Dash and dot",
+          "name": "Axis",
+          "pattern": [
+            6,
+            -2,
+            0,
+            -2
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/linePattern/2",
+      "attributes": {
+        "ifccad::linePattern": {
+          "name": "Unused reference",
+          "pattern": []
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e6",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            2,
+            3,
+            4
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        },
+        "ifccad::geom::point": {}
+      }
+    },
+    {
+      "path": "/cad/d1/e7",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::geom::arc": {
+          "radius": 2,
+          "startParameter": 0.25,
+          "sweepParameter": -1
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e8",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::geom::ellipse": {
+          "semiMajorRadius": 3,
+          "semiMinorRadius": 2
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e9",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::geom::ellipseArc": {
+          "semiMajorRadius": 3,
+          "semiMinorRadius": 2,
+          "startParameter": 0.25,
+          "sweepParameter": 1
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e10",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::geom::spatialPolyline": {
+          "closed": false,
+          "vertices": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              1,
+              2,
+              3
+            ]
+          ]
+        }
+      }
+    }
+  ]
+}

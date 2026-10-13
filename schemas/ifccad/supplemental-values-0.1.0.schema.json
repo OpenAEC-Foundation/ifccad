@@ -1094,6 +1094,10 @@
         "pointDisplay": {
           "$ref": "#/$defs/pointDisplay"
         },
+        "nextSymbolSourceId": {
+          "type": "integer",
+          "minimum": 1
+        },
         "nextDimensionStyleId": {
           "type": "integer",
           "minimum": 1,
@@ -1122,7 +1126,8 @@
             "opacity": {
               "type": "number",
               "minimum": 0,
-              "maximum": 1
+              "maximum": 1,
+              "default": 1
             },
             "lineWeight": {
               "type": "number",
@@ -1352,7 +1357,7 @@
       "properties": {
         "layer": {},
         "appearance": {
-          "$ref": "#/$defs/appearanceModes"
+          "$ref": "#/$defs/nativeAppearanceModes"
         },
         "linePatternScale": {
           "type": "number",
@@ -1371,34 +1376,26 @@
     },
     "patternExtras": {
       "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "pattern"
+      ],
       "properties": {
         "name": {
+          "type": "string",
           "minLength": 1
         },
-        "description": {},
+        "description": {
+          "type": "string"
+        },
         "pattern": {
-          "anyOf": [
-            {
-              "maxItems": 0
-            },
-            {
-              "minItems": 2,
-              "prefixItems": [
-                {
-                  "type": "number",
-                  "minimum": 0
-                }
-              ]
-            }
-          ]
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/linePatternElement"
+          }
         }
-      },
-      "additionalProperties": false,
-      "allOf": [
-        {
-          "$ref": "#/$defs/nonNullValue"
-        }
-      ]
+      }
     },
     "blockDefinitionExtras": {
       "type": "object",
@@ -1476,9 +1473,20 @@
                 "not": {
                   "const": 0
                 }
-              }
+              },
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "default": [
+                1,
+                1,
+                1
+              ]
             },
-            "rotation": {}
+            "rotation": {
+              "type": "number",
+              "default": 0
+            }
           },
           "additionalProperties": false
         }
@@ -1503,14 +1511,32 @@
     "geometryLineExtras": {
       "type": "object",
       "properties": {
-        "start": {},
-        "end": {}
+        "start": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 3,
+          "items": {
+            "type": "number"
+          }
+        },
+        "end": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 3,
+          "items": {
+            "type": "number"
+          }
+        }
       },
       "additionalProperties": false,
       "allOf": [
         {
           "$ref": "#/$defs/nonNullValue"
         }
+      ],
+      "required": [
+        "start",
+        "end"
       ]
     },
     "geometryCircleExtras": {
@@ -1589,7 +1615,10 @@
       "type": "object",
       "properties": {
         "vertices": {},
-        "closed": {},
+        "closed": {
+          "type": "boolean",
+          "default": false
+        },
         "linePatternGeneration": {},
         "bulges": {}
       },
@@ -1604,7 +1633,10 @@
       "type": "object",
       "properties": {
         "vertices": {},
-        "closed": {},
+        "closed": {
+          "type": "boolean",
+          "default": false
+        },
         "linePatternGeneration": {}
       },
       "additionalProperties": false,
@@ -2910,6 +2942,18 @@
               }
             }
           }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "gradient"
+            }
+          }
         }
       ]
     },
@@ -2957,64 +3001,132 @@
         },
         "fill": {
           "$ref": "#/$defs/hatchFill"
+        },
+        "gradient": {
+          "$ref": "#/$defs/hatchGradient"
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "fill": {
+                "properties": {
+                  "kind": {
+                    "const": "gradient"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "gradient"
+            ],
+            "properties": {
+              "gradient": {
+                "required": [
+                  "type",
+                  "colors"
+                ]
+              }
+            }
+          }
+        }
+      ]
     },
     "concreteColor": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "rgb"
-      ],
-      "properties": {
-        "rgb": {
-          "type": "array",
-          "minItems": 3,
-          "maxItems": 3,
-          "items": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 255
-          }
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "Foreground"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
         },
-        "indexedColor": {
+        {
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "system",
-            "index"
+            "rgb"
           ],
           "properties": {
-            "system": {
-              "type": "string",
-              "minLength": 1
+            "rgb": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              }
             },
-            "index": {
-              "type": "integer",
-              "minimum": 0,
-              "maximum": 18446744073709551615
-            }
-          }
-        },
-        "namedColor": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "catalog",
-            "name"
-          ],
-          "properties": {
-            "catalog": {
-              "type": "string",
-              "minLength": 1
+            "indexedColor": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "system",
+                "index"
+              ],
+              "properties": {
+                "system": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "index": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 18446744073709551615
+                }
+              }
             },
-            "name": {
-              "type": "string",
-              "minLength": 1
+            "namedColor": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "catalog",
+                "name"
+              ],
+              "properties": {
+                "catalog": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
             }
+          },
+          "not": {
+            "properties": {
+              "indexedColor": {
+                "properties": {
+                  "system": {
+                    "pattern": "^[Aa][Cc][Ii]$"
+                  },
+                  "index": {
+                    "const": 7
+                  }
+                },
+                "required": [
+                  "system",
+                  "index"
+                ]
+              }
+            },
+            "required": [
+              "indexedColor"
+            ]
           }
         }
-      }
+      ]
     },
     "viewportLayerOverride": {
       "type": "object",
@@ -3250,6 +3362,396 @@
           }
         }
       }
+    },
+    "linePatternMarker": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "text",
+            "textStyle"
+          ],
+          "properties": {
+            "scale": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "offset": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number"
+              }
+            },
+            "rotation": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "mode",
+                "angle"
+              ],
+              "properties": {
+                "mode": {
+                  "enum": [
+                    "relative",
+                    "absolute"
+                  ]
+                },
+                "angle": {
+                  "type": "number"
+                }
+              }
+            },
+            "kind": {
+              "const": "text"
+            },
+            "text": {
+              "type": "string"
+            },
+            "textStyle": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "symbolSource",
+            "shapeNumber"
+          ],
+          "properties": {
+            "scale": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "offset": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number"
+              }
+            },
+            "rotation": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "mode",
+                "angle"
+              ],
+              "properties": {
+                "mode": {
+                  "enum": [
+                    "relative",
+                    "absolute"
+                  ]
+                },
+                "angle": {
+                  "type": "number"
+                }
+              }
+            },
+            "kind": {
+              "const": "symbol"
+            },
+            "symbolSource": {
+              "type": "string"
+            },
+            "shapeNumber": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            }
+          }
+        }
+      ]
+    },
+    "linePatternElement": {
+      "oneOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "length",
+            "marker"
+          ],
+          "properties": {
+            "length": {
+              "type": "number"
+            },
+            "marker": {
+              "$ref": "#/$defs/linePatternMarker"
+            }
+          }
+        }
+      ]
+    },
+    "symbolSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "fileName"
+      ],
+      "properties": {
+        "kind": {
+          "const": "shx"
+        },
+        "fileName": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "hatchGradient": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "enum": [
+            "linear",
+            "cylinder",
+            "inverseCylinder",
+            "spherical",
+            "inverseSpherical",
+            "hemispherical",
+            "inverseHemispherical",
+            "curved",
+            "inverseCurved"
+          ]
+        },
+        "colors": {
+          "type": "array",
+          "items": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/concreteColor"
+              },
+              {
+                "required": [
+                  "rgb"
+                ]
+              }
+            ]
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "rotation": {
+          "type": "number",
+          "default": 0
+        },
+        "shift": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0
+        },
+        "colorMode": {
+          "enum": [
+            "oneColor",
+            "twoColor"
+          ],
+          "default": "twoColor"
+        },
+        "tint": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0
+        }
+      }
+    },
+    "nativeAppearanceModes": {
+      "type": "object",
+      "properties": {
+        "color": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "ByLayer"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "ByBlock"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "Explicit"
+                },
+                "value": {
+                  "$ref": "#/$defs/concreteColor"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode",
+                "value"
+              ]
+            }
+          ]
+        },
+        "opacity": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "ByLayer"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "ByBlock"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "Explicit"
+                },
+                "value": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode",
+                "value"
+              ]
+            }
+          ]
+        },
+        "linePattern": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "ByLayer"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "ByBlock"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "Explicit"
+                },
+                "value": {}
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode",
+                "value"
+              ]
+            }
+          ]
+        },
+        "lineWeight": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "ByLayer"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "ByBlock"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "Explicit"
+                },
+                "value": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode",
+                "value"
+              ]
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
     },
     "dimensionDefinition": {
       "oneOf": [
@@ -4927,59 +5429,7 @@
       ]
     },
     "dimensionColor": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "rgb"
-      ],
-      "properties": {
-        "rgb": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 255
-          },
-          "minItems": 3,
-          "maxItems": 3
-        },
-        "indexedColor": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "system",
-            "index"
-          ],
-          "properties": {
-            "system": {
-              "type": "string",
-              "minLength": 1
-            },
-            "index": {
-              "type": "integer",
-              "minimum": 0
-            }
-          }
-        },
-        "namedColor": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "catalog",
-            "name"
-          ],
-          "properties": {
-            "catalog": {
-              "type": "string",
-              "minLength": 1
-            },
-            "name": {
-              "type": "string",
-              "minLength": 1
-            }
-          }
-        }
-      }
+      "$ref": "#/$defs/concreteColor"
     },
     "dimensionAppearance": {
       "type": "object",

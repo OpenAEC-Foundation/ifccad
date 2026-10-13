@@ -11,7 +11,7 @@ pub fn plane() -> IfccadPlacement {
 }
 pub fn drawing() -> IfccadDocument {
     let mut d = load_ifccad_bytes(
-        include_bytes!("../../examples/ifccad/hello-cad.ifcx"),
+        include_bytes!("../../tests/fixtures/ifccad/hello-cad.ifcx"),
         Default::default(),
     )
     .unwrap()
@@ -34,6 +34,7 @@ pub fn drawing() -> IfccadDocument {
     let source = template.clone();
     template.id = HATCH;
     template.kind = IfccadEntityKind::Hatch(IfccadHatch {
+        gradient: None,
         placement: plane(),
         area_rule: HatchAreaRule::Normal,
         join_tolerance: 1e-9,

@@ -1,0 +1,489 @@
+{
+  "blockDefinitions": [
+    {
+      "name": "Inherited pattern",
+      "scopeId": 2
+    }
+  ],
+  "header": {
+    "drawingId": "complex-line-patterns",
+    "format": "open_cad_drawing",
+    "nextEntityId": 7,
+    "nextLayerId": 3,
+    "nextLayoutId": 2,
+    "nextLinePatternId": 6,
+    "nextSymbolSourceId": 3,
+    "nextTextStyleId": 2,
+    "unit": "mm",
+    "version": "0.1.0"
+  },
+  "layers": [
+    {
+      "color": {
+        "rgb": [
+          25,
+          80,
+          150
+        ]
+      },
+      "frozen": false,
+      "frozenInNewViewports": false,
+      "id": 0,
+      "linePatternId": 0,
+      "lineWeight": 0.25,
+      "locked": false,
+      "name": "0",
+      "opacity": 1.0,
+      "plottable": true,
+      "visible": true
+    },
+    {
+      "color": {
+        "rgb": [
+          25,
+          80,
+          150
+        ]
+      },
+      "frozen": false,
+      "frozenInNewViewports": false,
+      "id": 1,
+      "linePatternId": 1,
+      "lineWeight": 0.25,
+      "locked": false,
+      "name": "Gas",
+      "opacity": 1.0,
+      "plottable": true,
+      "visible": true
+    },
+    {
+      "color": {
+        "rgb": [
+          150,
+          60,
+          25
+        ]
+      },
+      "frozen": false,
+      "frozenInNewViewports": false,
+      "id": 2,
+      "linePatternId": 3,
+      "lineWeight": 0.25,
+      "locked": false,
+      "name": "Mixed",
+      "opacity": 1.0,
+      "plottable": true,
+      "visible": true
+    }
+  ],
+  "layouts": [
+    {
+      "id": 0,
+      "kind": "model",
+      "name": "Model",
+      "scopeId": 0,
+      "tabIndex": 0
+    },
+    {
+      "id": 1,
+      "kind": "paper",
+      "name": "Patterns",
+      "scopeId": 1,
+      "tabIndex": 1
+    }
+  ],
+  "linePatterns": [
+    {
+      "id": 0,
+      "name": "Continuous",
+      "pattern": []
+    },
+    {
+      "description": "External glyph availability is not checked",
+      "id": 1,
+      "name": "GAS",
+      "pattern": [
+        10.0,
+        {
+          "length": 0.0,
+          "marker": {
+            "kind": "text",
+            "offset": [
+              0.0,
+              0.0
+            ],
+            "rotation": {
+              "angle": 0.0,
+              "mode": "relative"
+            },
+            "scale": 2.0,
+            "text": "GAS",
+            "textStyleId": 1
+          }
+        },
+        -5.0
+      ]
+    },
+    {
+      "description": "External glyph availability is not checked",
+      "id": 2,
+      "name": "Boxes",
+      "pattern": [
+        10.0,
+        {
+          "length": 0.0,
+          "marker": {
+            "kind": "symbol",
+            "offset": [
+              0.0,
+              0.0
+            ],
+            "rotation": {
+              "angle": 0.0,
+              "mode": "relative"
+            },
+            "scale": 2.0,
+            "shapeNumber": 132,
+            "symbolSourceId": 0
+          }
+        },
+        -5.0
+      ]
+    },
+    {
+      "description": "Text and custom SHX",
+      "id": 3,
+      "name": "Mixed",
+      "pattern": [
+        10.0,
+        {
+          "length": 0.0,
+          "marker": {
+            "kind": "text",
+            "offset": [
+              0.0,
+              0.0
+            ],
+            "rotation": {
+              "angle": 0.0,
+              "mode": "relative"
+            },
+            "scale": 2.0,
+            "text": "GAS",
+            "textStyleId": 1
+          }
+        },
+        -4.0,
+        {
+          "length": 0.0,
+          "marker": {
+            "kind": "symbol",
+            "offset": [
+              0.0,
+              0.0
+            ],
+            "rotation": {
+              "angle": 0.0,
+              "mode": "relative"
+            },
+            "scale": 2.0,
+            "shapeNumber": 42,
+            "symbolSourceId": 1
+          }
+        },
+        -4.0
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Unused",
+      "pattern": [
+        {
+          "length": 1.0,
+          "marker": {
+            "kind": "symbol",
+            "offset": [
+              0.0,
+              0.0
+            ],
+            "rotation": {
+              "angle": 0.0,
+              "mode": "relative"
+            },
+            "scale": 2.0,
+            "shapeNumber": 42,
+            "symbolSourceId": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Named empty",
+      "pattern": []
+    }
+  ],
+  "scopes": [
+    {
+      "bounds": {
+        "maxX": 65.0,
+        "maxY": 35.0,
+        "maxZ": 1.0,
+        "minX": 0.0,
+        "minY": 0.0,
+        "minZ": 0.0
+      },
+      "boundsQuality": "enclosing",
+      "entities": [
+        1,
+        2,
+        3,
+        5
+      ],
+      "id": 0,
+      "kind": 0
+    },
+    {
+      "bounds": null,
+      "entities": [
+        6
+      ],
+      "id": 1,
+      "kind": 1
+    },
+    {
+      "bounds": null,
+      "entities": [
+        4
+      ],
+      "id": 2,
+      "kind": 2
+    }
+  ],
+  "streams": {
+    "blockInstanceStream": {
+      "color": [
+        null
+      ],
+      "colorMode": [
+        "ByLayer"
+      ],
+      "count": 1,
+      "definitionScopeId": [
+        2
+      ],
+      "entityId": [
+        5
+      ],
+      "layerId": [
+        2
+      ],
+      "linePatternId": [
+        null
+      ],
+      "linePatternMode": [
+        "ByLayer"
+      ],
+      "linePatternScale": [
+        1.0
+      ],
+      "lineWeight": [
+        null
+      ],
+      "lineWeightMode": [
+        "ByLayer"
+      ],
+      "opacity": [
+        null
+      ],
+      "opacityMode": [
+        "ByLayer"
+      ],
+      "transform": [
+        {
+          "placement": {
+            "X": {
+              "x": 1.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "Y": {
+              "x": 0.0,
+              "y": 1.0,
+              "z": 0.0
+            },
+            "origin": {
+              "x": 0.0,
+              "y": 20.0,
+              "z": 0.0
+            }
+          }
+        }
+      ],
+      "visible": [
+        true
+      ]
+    },
+    "lineStream": {
+      "color": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "colorMode": [
+        "ByLayer",
+        "ByLayer",
+        "ByLayer",
+        "ByLayer",
+        "ByLayer"
+      ],
+      "count": 5,
+      "entityId": [
+        1,
+        2,
+        3,
+        4,
+        6
+      ],
+      "layerId": [
+        1,
+        2,
+        0,
+        0,
+        0
+      ],
+      "linePatternId": [
+        null,
+        null,
+        2,
+        null,
+        2
+      ],
+      "linePatternMode": [
+        "ByLayer",
+        "ByLayer",
+        "Explicit",
+        "ByBlock",
+        "Explicit"
+      ],
+      "linePatternScale": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "lineWeight": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "lineWeightMode": [
+        "ByLayer",
+        "ByLayer",
+        "ByLayer",
+        "ByLayer",
+        "ByLayer"
+      ],
+      "opacity": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "opacityMode": [
+        "ByLayer",
+        "ByLayer",
+        "ByLayer",
+        "ByLayer",
+        "ByLayer"
+      ],
+      "visible": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "x1": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "x2": [
+        60.0,
+        60.0,
+        60.0,
+        60.0,
+        60.0
+      ],
+      "y1": [
+        0.0,
+        10.0,
+        30.0,
+        0.0,
+        0.0
+      ],
+      "y2": [
+        0.0,
+        10.0,
+        30.0,
+        0.0,
+        0.0
+      ],
+      "z1": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "z2": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  },
+  "symbolSources": [
+    {
+      "fileName": "ltypeshp.shx",
+      "id": 0,
+      "kind": "shx"
+    },
+    {
+      "fileName": "custom-missing.shx",
+      "id": 1,
+      "kind": "shx"
+    },
+    {
+      "fileName": "custom-missing.shx",
+      "id": 2,
+      "kind": "shx"
+    }
+  ],
+  "textStyles": [
+    {
+      "creationBackward": false,
+      "creationUpsideDown": false,
+      "font": {
+        "cadFontName": "txt.shx"
+      },
+      "id": 1,
+      "lastUsedHeight": 2.5,
+      "name": "Pattern text",
+      "obliqueAngle": 0.0,
+      "vertical": false,
+      "widthFactor": 1.0
+    }
+  ]
+}

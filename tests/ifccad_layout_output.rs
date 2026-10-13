@@ -2,7 +2,7 @@ use ocdraw::{geometry_kernel::CoordinateLengthUnit as Unit, ifccad::*, plot_kern
 use serde_json::Value;
 fn sample() -> IfccadDocument {
     load_ifccad_bytes(
-        include_bytes!("../examples/ifccad/hello-paper-layouts.ifcx"),
+        include_bytes!("../tests/fixtures/ifccad/hello-paper-layouts.ifcx"),
         Default::default(),
     )
     .unwrap()

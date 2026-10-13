@@ -220,6 +220,154 @@
     "valid": false
   },
   {
+    "file": "valid/foreground-color.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid/foreground-mixed.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/foreground-unknown.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/foreground-metadata.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/foreground-legacy-index.ifcx",
+    "valid": false
+  },
+  {
+    "file": "valid/line-pattern-mixed-producer-enclosing.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/line-pattern-text.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/line-pattern-symbols-external-unresolved.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/line-pattern-high-source-id.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid/line-pattern-zero-scale.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/line-pattern-null-offset.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/line-pattern-bad-offset.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/line-pattern-unknown-marker-kind.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/line-pattern-unknown-marker-field.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/line-pattern-filename-path.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/line-pattern-filename-empty.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/line-pattern-stored-partial.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/line-pattern-known-curve-outside-partial.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/line-pattern-missing-source.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/line-pattern-missing-style.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/line-pattern-foreign-source-path.ifcx",
+    "valid": false
+  },
+  {
+    "file": "valid/hatch-gradient.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/hatch-gradient-inactive.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid/hatch-gradient-unknown-type.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/hatch-gradient-partial-active.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/hatch-gradient-null-state.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/hatch-gradient-bad-color-count.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/hatch-gradient-bad-shift.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/hatch-gradient-empty-inactive.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/hatch-unknown-fill.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/hatch-gradient-foreground.ifcx",
+    "valid": false
+  },
+  {
+    "file": "valid/defaults-expanded.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/defaults-compact.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid/default-null.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/default-unknown.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/default-line-point-length.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/default-active-open-clip.ifcx",
+    "valid": false
+  },
+  {
     "file": "valid/dimension-linear-aligned.ifcx",
     "valid": true
   },

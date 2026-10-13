@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 pub const DIMENSION: u64 = 9007199254740993;
 pub fn drawing() -> IfccadDocument {
     let mut d = load_ifccad_bytes(
-        include_bytes!("../../examples/ifccad/hello-cad.ifcx"),
+        include_bytes!("../fixtures/ifccad/hello-cad.ifcx"),
         Default::default(),
     )
     .unwrap()

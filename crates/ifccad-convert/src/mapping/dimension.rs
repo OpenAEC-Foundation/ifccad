@@ -34,10 +34,17 @@ fn loss(
     ));
 }
 fn from_color(c: &cad_dimension::CadColorValue) -> IfccadColor {
-    IfccadColor {
-        rgb: c.rgb,
-        indexed: c.indexed.clone(),
-        named: c.named.clone(),
+    match c {
+        cad_dimension::CadColorValue::Foreground => IfccadColor::Foreground,
+        cad_dimension::CadColorValue::Concrete {
+            rgb,
+            indexed,
+            named,
+        } => IfccadColor::Concrete {
+            rgb: *rgb,
+            indexed: indexed.clone(),
+            named: named.clone(),
+        },
     }
 }
 macro_rules! from_refs {
@@ -313,10 +320,17 @@ macro_rules! to_refs {
                     Handle::NULL
                 })
             },
-            |c| cad_dimension::CadColorValue {
-                rgb: c.rgb,
-                indexed: c.indexed.clone(),
-                named: c.named.clone(),
+            |c| match c {
+                IfccadColor::Foreground => cad_dimension::CadColorValue::Foreground,
+                IfccadColor::Concrete {
+                    rgb,
+                    indexed,
+                    named,
+                } => cad_dimension::CadColorValue::Concrete {
+                    rgb: *rgb,
+                    indexed: indexed.clone(),
+                    named: named.clone(),
+                },
             },
             |id| {
                 maps.line_patterns.cad_handle(id.0).unwrap_or_else(|| {

@@ -26,6 +26,8 @@ struct HatchValue {
     #[serde(default = "tolerance")]
     join_tolerance: f64,
     fill: Value,
+    #[serde(default, deserialize_with = "super::presentation::present")]
+    gradient: Option<Value>,
 }
 pub(super) fn decode_hatch(
     value: &Value,
@@ -81,6 +83,12 @@ pub(super) fn decode_hatch(
     let placement: IfccadPlacement =
         serde_json::from_value(placement.clone()).map_err(|e| error(&e.to_string()))?;
     Ok(IfccadEntityKind::Hatch(IfccadHatch {
+        gradient: v
+            .gradient
+            .as_ref()
+            .map(super::hatch_gradient::decode)
+            .transpose()
+            .map_err(|e| error(&e.to_string()))?,
         placement,
         loops,
         area_rule,
@@ -90,9 +98,13 @@ pub(super) fn decode_hatch(
 }
 pub(super) fn encode_hatch(h: &IfccadHatch, prefix: &str) -> Value {
     let fill = super::hatch_pattern::encode(&h.fill);
-    json!({
+    let mut value = json!({
         "loops":h.loops.iter().map(|l|LoopValue{boundary:l.boundary.clone().into(),source:l.source_entity_id.map(|id|format!("{prefix}/e{id}"))}).collect::<Vec<_>>(),
         "areaRule":match h.area_rule{HatchAreaRule::Normal=>"normal",HatchAreaRule::Outer=>"outer",HatchAreaRule::Ignore=>"ignore"},
         "joinTolerance":h.join_tolerance,"fill":fill
-    })
+    });
+    if let Some(g) = &h.gradient {
+        value["gradient"] = super::hatch_gradient::encode(g);
+    }
+    value
 }

@@ -3,7 +3,7 @@ use serde_json::{json, Value};
 
 fn model() -> Value {
     serde_json::from_slice(include_bytes!(
-        "../examples/ocdraw/state-and-storage.ocdraw.json"
+        "../tests/fixtures/ocdraw/state-and-storage.ocdraw.json"
     ))
     .unwrap()
 }

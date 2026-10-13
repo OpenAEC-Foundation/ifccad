@@ -428,6 +428,150 @@
       "status": "invalid"
     },
     {
+      "path": "valid/foreground-color.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "invalid/foreground-mixed.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/foreground-unknown.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/foreground-metadata.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/foreground-legacy-index.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "valid/line-pattern-mixed-producer-enclosing.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "valid/line-pattern-text.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "valid/line-pattern-symbols-external-unresolved.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "valid/line-pattern-high-source-id.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "invalid/line-pattern-zero-scale.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/line-pattern-null-offset.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/line-pattern-bad-offset.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/line-pattern-unknown-marker-kind.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/line-pattern-unknown-marker-field.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/line-pattern-filename-path.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/line-pattern-filename-empty.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/line-pattern-stored-partial.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/line-pattern-known-curve-outside-partial.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/line-pattern-missing-source.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/line-pattern-missing-style.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "valid/hatch-gradient.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "valid/hatch-gradient-inactive.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "invalid/hatch-gradient-unknown-type.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/hatch-gradient-partial-active.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/hatch-gradient-null-state.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/hatch-gradient-bad-color-count.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/hatch-gradient-bad-shift.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/hatch-gradient-empty-inactive.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/hatch-unknown-fill.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/hatch-gradient-foreground.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "valid/defaults-expanded.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "valid/defaults-compact.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "invalid/default-null.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/default-short-column.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/default-missing-vertex-pool.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/default-active-open-clip.ocdraw.json",
+      "status": "invalid"
+    },
+    {
       "path": "valid/dimension-linear-aligned.ocdraw.json",
       "status": "valid"
     },

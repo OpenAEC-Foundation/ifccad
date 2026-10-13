@@ -44,7 +44,7 @@ fn canonical(value: &Value) -> Value {
 
 #[test]
 fn layer_and_entity_colors_keep_rgb_indexed_and_named_identity() {
-    let mut value = fixture(include_bytes!("../examples/ifccad/hello-cad.ifcx"));
+    let mut value = fixture(include_bytes!("../tests/fixtures/ifccad/hello-cad.ifcx"));
     role(&mut value, "ifccad::layer")["attributes"]["ifccad::layer"]["appearance"]["color"] =
         color();
     role(&mut value, "ifccad::entity")["attributes"]["ifccad::entity"]["appearance"]["color"] =
@@ -63,7 +63,7 @@ fn layer_and_entity_colors_keep_rgb_indexed_and_named_identity() {
 
 #[test]
 fn color_objects_reject_removed_shapes_unknown_fields_and_explicit_nulls() {
-    let base = fixture(include_bytes!("../examples/ifccad/hello-cad.ifcx"));
+    let base = fixture(include_bytes!("../tests/fixtures/ifccad/hello-cad.ifcx"));
     assert!(read(&base).is_ok());
     for bad in [
         json!("#FF0000"),
@@ -88,7 +88,7 @@ fn color_objects_reject_removed_shapes_unknown_fields_and_explicit_nulls() {
 
 #[test]
 fn native_generic_color_indices_keep_exact_uint64_values() {
-    let mut value = fixture(include_bytes!("../examples/ifccad/hello-cad.ifcx"));
+    let mut value = fixture(include_bytes!("../tests/fixtures/ifccad/hello-cad.ifcx"));
     let expected = json!({"rgb":[12,34,56],"indexedColor":{"system":"custom","index":u64::MAX}});
     role(&mut value, "ifccad::layer")["attributes"]["ifccad::layer"]["appearance"]["color"] =
         expected.clone();
@@ -101,7 +101,7 @@ fn native_generic_color_indices_keep_exact_uint64_values() {
 
 #[test]
 fn composed_replacement_does_not_retain_stale_color_metadata() {
-    let mut value = fixture(include_bytes!("../examples/ifccad/hello-cad.ifcx"));
+    let mut value = fixture(include_bytes!("../tests/fixtures/ifccad/hello-cad.ifcx"));
     let layer = role(&mut value, "ifccad::layer");
     layer["attributes"]["ifccad::layer"]["appearance"]["color"] = color();
     let mut replacement = layer.clone();
@@ -116,7 +116,7 @@ fn composed_replacement_does_not_retain_stale_color_metadata() {
 
 #[test]
 fn mtext_inline_and_background_colors_use_the_same_concrete_color_contract() {
-    let mut value = fixture(include_bytes!("../examples/ifccad/hello-text.ifcx"));
+    let mut value = fixture(include_bytes!("../examples/ifccad/text.ifcx"));
     let text = &mut role(&mut value, "ifccad::mText")["attributes"]["ifccad::mText"];
     text["characterFormat"]["color"] = json!({"kind":"explicit","color":color()});
     text["background"] = json!({"fill":{"kind":"color","color":color()}});
@@ -138,8 +138,9 @@ fn editable_opaque_color_keeps_snapshot_payload_unchanged() {
     let mut value: Value =
         serde_json::from_slice(encode_ifccad_document(&original).unwrap().bytes()).unwrap();
     migrate_fixture_colors(&mut value);
-    let appearance =
-        role(&mut value, "ifccad::entity")["attributes"]["ifccad::entity"]["appearance"].clone();
+    // Opaque appearance has an independent, fully explicit wire contract.
+    let appearance = json!({"color":{"mode":"ByLayer"},"opacity":{"mode":"ByLayer"},
+        "linePattern":{"mode":"ByLayer"},"lineWeight":{"mode":"ByLayer"}});
     let opaque =
         &mut role(&mut value, "ifccad::opaqueEntity")["attributes"]["ifccad::opaqueEntity"];
     opaque["nativeLayer"] = json!("/cad/d1/layer/0");

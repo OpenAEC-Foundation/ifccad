@@ -11,7 +11,7 @@ grammar; each converter owns native reference binding and located loss policy.
 
 | Meaning | IFCCAD | OCDraw |
 | --- | --- | --- |
-| Concrete color | `IfccadColor`: RGB plus optional indexed/named identity | `DrawingColor`: the same independent value meaning |
+| Color | `IfccadColor`: Foreground or concrete RGB with optional indexed/named identity | `DrawingColor`: the same independent value meaning |
 | Layer presentation | Description, visible, frozen, locked, plottable, frozen in new viewports | Existing corresponding layer fields |
 | Entity visibility | Common native `visible`, default true | Common entity `visible` |
 | Point symbols | Optional drawing `PointDisplay` | Existing optional drawing `PointDisplay` |
@@ -28,12 +28,13 @@ true. A uniform definition requires exactly equal signed insertion scales:
 definitions, including unused ones. Native names are hints; reserved Model/Paper
 names are restricted when allocating CAD blocks, not used to infer native roles.
 
-Color RGB is the concrete fallback. Indexed identity is `(system, u64 index)`;
+For concrete colors, RGB is the fallback. Indexed identity is `(system, u64 index)`;
 named identity is `(catalog, name)`. Identity strings must be nonempty. Native
 identity ranges are broader than the qualified CAD palette. IFCCAD's physical
 color shape is `{rgb:[r,g,b], indexedColor?:{system,index},
-namedColor?:{catalog,name}}`. Text/inline/background colors and editable opaque
-common appearance use this shape; provider payload bytes remain untouched.
+namedColor?:{catalog,name}}`. Concrete Text/inline/background colors and editable opaque
+common appearance use this shape; Foreground uses the separate closed choice
+below. Provider payload bytes remain untouched.
 
 Point display stores dot/hidden/plus/cross/shortLine with independent circle and
 square enclosures. Size is default five percent, a positive absolute Model length,
@@ -52,6 +53,48 @@ Viewport `plotShadingOverride` contains only `AsDisplayed`, `Wireframe`, `Hidden
 or `Rendered`. Absence has the qualified AsDisplayed meaning. Quality/DPI stays
 on effective layout plot settings; viewport rendering mode is independent.
 
+
+## Foreground color
+
+Both independent native color types have an exclusive Foreground choice. Its
+closed wire value is `{"kind":"Foreground"}`, with no RGB, indexed or named
+metadata. Concrete colors keep the existing shape. Concrete indexed ACI 7
+(ASCII-case-insensitive system name) is rejected; use Foreground. Literal RGB
+black and white remain fixed colors, and readers never infer Foreground from RGB.
+The provisional migration updates active examples and candidate conformance;
+there is no compatibility reader for intermediate ACI-7 objects.
+
+Resolve appearance inheritance and viewport overrides first, then resolve
+Foreground against the occurrence's effective composited opaque sRGB background.
+Select pure black or white with the larger luminance contrast ratio, choosing
+black on a tie. For normalized sRGB component c, linearize as c/12.92 for
+c <= 0.04045, otherwise ((c+0.055)/1.055)^2.4. Let
+L = 0.2126 R + 0.7152 G + 0.0722 B; compare (L+0.05)/0.05 for black with
+1.05/(L+0.05) for white. Black backgrounds yield white and white backgrounds
+yield black. The CAD-independent `ocdraw::color::foreground_srgb` helper applies
+this native rule. It is not AutoCAD's complete adaptive palette algorithm.
+
+Do not store resolved theme RGB in the drawing. Foreground is distinct from
+MText's canvas-background-fill choice and from ByLayer/ByBlock modes. The existing
+top-level ByBlock resolution boundary remains unchanged. Inspection reports the
+symbolic value; this slice adds no renderer or theme controls.
+
+Qualified CAD index 7 imports as Foreground before palette lookup and exports as
+index 7, including CTB key 7. This applies to layer/entity appearance, qualified
+inline/background text color and the C3/index-7 viewport override payload. Fixed
+RGB white and black stay true color. A source named identity accompanying index
+7 is unsupported on the exclusive Foreground value: Allow reports located loss
+and Reject refuses it. Editable opaque common appearance uses native Foreground
+without rewriting provider payload bytes. An unrepresentable source common
+appearance may remain in its existing preserved snapshot instead of claiming an
+editable native value.
+
+Both format routes have production-reader tests and actual DXF/AC1032 DWG
+roundtrips for these color locations. This proves data exchange, not external-app
+visual output or CTB printing. Method C5, ByPen, None/257 and broader palette or
+CTB/STB contents remain outside this slice; see
+[color and plot-style follow-up](https://github.com/OpenAEC-Foundation/ifccad/issues/16).
+
 ## Provisional-format migration
 
 The active provisional IFCCAD profile replaces legacy hexadecimal color strings
@@ -65,7 +108,9 @@ their own schema and byte contract.
 
 ## CAD scalar policy
 
-Qualified concrete CAD colors are RGB and ACI 1–255. Consistent ACI identity can
+Qualified explicit CAD colors are RGB and ACI 1–255. ACI 7 maps to symbolic
+Foreground and back to ACI 7, without a stored RGB fallback or index identity.
+Other consistent ACI identity can
 be emitted as ACI; incompatible or unsupported indexed metadata falls back to
 authored RGB with located loss. Complete named identity can use the qualified
 layer/entity fields. Layer/entity catalog delimiters and unqualified text/color-book

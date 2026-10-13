@@ -177,7 +177,14 @@ schemas and conformance inputs, so edits to the authored examples invalidate a
 previous passing-check marker. The corrected cache key uses a new version;
 converter and pinned Open CAD Studio caches remain independent.
 
-Tests: `npm test`. File and CAD accuracy checks use the production Rust
+Opening/conversion cancellation is available in the loading popup. The file
+toolbar keeps only Open / convert; background roundtrip retains its own cancel
+action in Conversion / checks.
+
+Tests: `npm test`. Release smoke reads the shipped example manifest, checks every
+listed native asset and uses its OCDraw overview for real CAD readback. The
+packaged static smoke regression runs on Windows as well as Linux.
+File and CAD accuracy checks use the production Rust
 reader/converter; the browser worker transport is tested independently.
 
 For a DXF/DWG input on either native route, **Spline-brongegevens bewaren** explicitly
@@ -316,8 +323,12 @@ retains multiple sheets, separate coordinate units and expanded clips through
 the documented codec repairs. Full plot conversion remains deferred. The
 separately pinned Open CAD Studio viewer is unchanged.
 
-A small fixture is included in built assets at
-`examples/hello-line-patterns.ifcx`. Browser worker, UI and WASM smoke tests
+The chooser and built assets contain four representative drawings per format:
+overview, text, Hatches and Dimensions. Overviews include Model/Paper, blocks and workspace
+state; Hatch drawings show Solid and Pattern together. Specialized inputs live
+under repository `tests/fixtures/` and are not shipped by site assembly. Retired
+example assets are pruned on rebuild without rewriting unchanged bundles.
+Browser worker, UI and WASM smoke tests
 exercise both native formats. Publishing remains a separate repository action.
 
 Expanded IFCCAD geometry and supplied scope bounds appear in composed nodes.
@@ -363,3 +374,13 @@ remain inspectable in OCDraw hatchStream. Filled area/nesting remain unassessed;
 join tolerance is local and independent of conversion accuracy. Native contour
 sources do not regenerate stored boundaries. No pattern/gradient fallback is
 introduced. See ../docs/hatch.md for the native and conversion contract.
+
+The existing Drawing overview example in each native route includes complex
+line patterns; the chooser remains at four drawings per format. Pattern
+inspection shows ordered text/SHX markers and links to ordinary text styles or
+independent symbol sources, including repeated filenames and full-width IFCCAD
+paths. Source filenames do not imply availability; no SHX upload or asset probe
+is added. The embedded editor may resolve its own libraries. Derived Partial
+symbol coverage, producer bounds claims and enclosure verification remain separate
+in inspection, alongside existing text estimates. See
+[complex line patterns](../docs/line-patterns.md).

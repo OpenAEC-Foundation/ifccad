@@ -273,6 +273,12 @@ fn unsupported_table_record(
         SemanticTableRecordV1::Ucs(record) => ("ucss", &record.name),
         SemanticTableRecordV1::Vx(record) => ("vx_table", &record.name),
     };
+    if matches!(
+        record,
+        SemanticTableRecordV1::TextStyle(_) | SemanticTableRecordV1::LineType(_)
+    ) {
+        return None;
+    }
     let position = positions.entry((kind, name.to_uppercase())).or_default();
     if *position > 0 {
         *position += 1;

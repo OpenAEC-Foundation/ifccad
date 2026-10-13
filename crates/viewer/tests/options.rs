@@ -26,7 +26,7 @@ fn custom_tolerance_is_checked_and_exposed_in_output() {
 }
 #[test]
 fn native_ifccad_download_is_independent_of_cad_tolerance() {
-    let bytes = include_bytes!("../../../examples/ifccad/blocks-and-fragments.ifcx");
+    let bytes = include_bytes!("../../../tests/fixtures/ifccad/blocks-and-fragments.ifcx");
     let result = viewer::export_ifccad_bytes_with_options(
         "source.ifcx",
         bytes,

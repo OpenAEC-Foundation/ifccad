@@ -6,7 +6,7 @@ use viewer::{export_drawing_bytes, inspect_drawing_bytes};
 fn native_ifccad_text_and_independent_bounds_evidence_are_inspectable() {
     let opened = inspect_drawing_bytes(
         "text.ifcx",
-        include_bytes!("../../../examples/ifccad/hello-text.ifcx"),
+        include_bytes!("../../../examples/ifccad/text.ifcx"),
     );
     assert_eq!(opened["validation"]["status"], "valid");
     assert_eq!(opened["presentation"]["textEntityCount"], 3);
@@ -29,7 +29,7 @@ fn native_ifccad_text_and_independent_bounds_evidence_are_inspectable() {
     assert_eq!(scope["safeForNegativeQuery"], false);
     let exported = export_drawing_bytes(
         "text.ifcx",
-        include_bytes!("../../../examples/ifccad/hello-text.ifcx"),
+        include_bytes!("../../../examples/ifccad/text.ifcx"),
         "dxf",
         "AC1032",
     );
@@ -43,7 +43,7 @@ fn native_ifccad_text_and_independent_bounds_evidence_are_inspectable() {
     );
 }
 
-const HELLO: &[u8] = include_bytes!("../../../examples/ifccad/hello-line-patterns.ifcx");
+const HELLO: &[u8] = include_bytes!("../../../tests/fixtures/ifccad/hello-line-patterns.ifcx");
 
 #[test]
 fn ifccad_viewer_selection_identifies_entities_in_written_cad() {
@@ -102,7 +102,7 @@ fn viewer_selection_preserves_large_native_identities_as_paths() {
 
 #[test]
 fn ifccad_geometry_and_bounds_are_inspectable() {
-    let bytes = include_bytes!("../../../examples/ifccad/hello-geometry.ifcx");
+    let bytes = include_bytes!("../../../tests/fixtures/ifccad/hello-geometry.ifcx");
     let opened = inspect_drawing_bytes("geometry.ifcx", bytes);
     assert_eq!(opened["validation"]["status"], "valid");
     assert!(opened["presentation"]["layouts"]
@@ -140,7 +140,7 @@ fn ifccad_geometry_and_bounds_are_inspectable() {
 fn conversion_evidence_retains_domains_and_large_ids() {
     use ocdraw::ifccad::*;
     let mut d = load_ifccad_bytes(
-        include_bytes!("../../../examples/ifccad/hello-viewports.ifcx"),
+        include_bytes!("../../../tests/fixtures/ifccad/hello-viewports.ifcx"),
         Default::default(),
     )
     .unwrap()
@@ -237,6 +237,7 @@ fn ifccad_native_download_preserves_large_counter_bytes() {
         .clone();
     document.id_counters = IfccadIdCounters {
         next_dimension_style_id: 1,
+        next_symbol_source_id: 1,
         next_text_style_id: 1,
         next_preservation_record_id: 1,
         next_ucs_id: 1,
@@ -396,7 +397,9 @@ fn ifccad_exports_real_dxf_and_dwg_with_diagnostics_and_strict_native_readback()
             .document()
             .line_patterns
             .iter()
-            .any(|p| p.name == "DashDot" && p.pattern == [0.5, -0.25, 0., -0.25]));
+            .any(|p| p.name == "DashDot"
+                && p.pattern.iter().map(|e| e.length).collect::<Vec<_>>()
+                    == [0.5, -0.25, 0., -0.25]));
     }
 }
 

@@ -41,7 +41,7 @@ fn default_allow_keeps_supported_entities_and_reports_skipped_spline() {
 #[test]
 fn default_allow_converts_unmodified_hello_cad_with_nearest_line_weight() {
     let source = load_ifccad_bytes(
-        include_bytes!("../../../examples/ifccad/hello-cad.ifcx"),
+        include_bytes!("../../../tests/fixtures/ifccad/hello-cad.ifcx"),
         Default::default(),
     )
     .unwrap();
@@ -99,7 +99,7 @@ fn reject_returns_losses_while_allow_returns_them_on_success() {
     };
     assert_eq!(allow.diagnostics(), rejected);
     let source = load_ifccad_bytes(
-        include_bytes!("../../../examples/ifccad/hello-cad.ifcx"),
+        include_bytes!("../../../tests/fixtures/ifccad/hello-cad.ifcx"),
         Default::default(),
     )
     .unwrap();
@@ -255,7 +255,7 @@ fn indexed_color_default_weight_and_quantization_preserve_inherited_entity_modes
         .unwrap();
     assert_eq!(
         layer.appearance.color,
-        IfccadColor::rgb(255, 0, 0).with_indexed("ACI", 1)
+        IfccadColor::rgb(255, 0, 0).with_indexed("ACI", 1).unwrap()
     );
     assert_eq!(layer.appearance.line_weight, 0.25);
     let pattern = out

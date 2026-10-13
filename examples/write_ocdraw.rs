@@ -13,7 +13,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let continuous = drawing.ensure_continuous_line_pattern()?;
     let layer = drawing.add_layer(LayerDefinition::new(
         "0",
-        DrawingColor::rgb(255, 255, 255).with_indexed("ACI", 7),
+        DrawingColor::Foreground,
         continuous,
     ))?;
     let block = drawing.add_block_definition(BlockDefinition::new("Shared"))?;

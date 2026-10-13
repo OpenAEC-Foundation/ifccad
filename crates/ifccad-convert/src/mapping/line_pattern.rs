@@ -12,6 +12,108 @@ pub(crate) struct SourcePatterns {
 fn invalid(message: impl Into<String>) -> IfccadConversionError {
     IfccadConversionError::InvalidStructure(message.into())
 }
+
+fn from_marker(
+    doc: &CadDocument,
+    value: &opencadcodec::tables::LineTypeComplexData,
+    mappings: &IfccadMappings,
+    symbols: &super::symbol_source::SourceSymbolSources,
+) -> Result<Option<IfccadLinePatternMarker>, IfccadConversionError> {
+    use cad_presentation_convert::*;
+    use ocdraw::line_pattern::*;
+    let style = doc
+        .text_styles
+        .iter()
+        .find(|s| !value.style_handle.is_null() && s.handle == value.style_handle)
+        .ok_or_else(|| invalid("missing marker STYLE handle"))?;
+    if style.is_shape_file != value.is_shape() {
+        return Err(invalid("marker STYLE has wrong role"));
+    }
+    let value = match marker_values_from_cad(value) {
+        Ok(v) => v,
+        Err(CadLinePatternValueError::Unsupported(_)) => return Ok(None),
+        Err(e) => return Err(invalid(e.to_string())),
+    };
+    let transform = LinePatternTransform {
+        scale: value.scale,
+        offset: value.offset,
+        rotation: if value.absolute_rotation {
+            LinePatternRotation::Absolute(value.rotation)
+        } else {
+            LinePatternRotation::Relative(value.rotation)
+        },
+    };
+    Ok(match value.content {
+        CadLinePatternMarkerContent::Text(text) => mappings
+            .text_styles
+            .ifccad_id(style.handle)
+            .map(|id| IfccadLinePatternMarker::Text {
+                text,
+                text_style_id: IfccadTextStyleId(id),
+                transform,
+            }),
+        CadLinePatternMarkerContent::Shape(shape_number) => symbols
+            .by_handle
+            .get(&style.handle)
+            .copied()
+            .flatten()
+            .map(|id| IfccadLinePatternMarker::Symbol {
+                symbol_source_id: id,
+                shape_number,
+                transform,
+            }),
+    })
+}
+
+fn to_marker(
+    marker: &IfccadLinePatternMarker,
+    mappings: &IfccadMappings,
+    symbols: &BTreeMap<IfccadSymbolSourceId, Handle>,
+) -> Result<Option<opencadcodec::tables::LineTypeComplexData>, IfccadConversionError> {
+    use cad_presentation_convert::*;
+    use ocdraw::line_pattern::*;
+    let (content, handle, transform) = match marker {
+        IfccadLinePatternMarker::Text {
+            text,
+            text_style_id,
+            transform,
+        } => (
+            CadLinePatternMarkerContent::Text(text.clone()),
+            mappings.text_styles.cad_handle(text_style_id.0),
+            transform,
+        ),
+        IfccadLinePatternMarker::Symbol {
+            symbol_source_id,
+            shape_number,
+            transform,
+        } => (
+            CadLinePatternMarkerContent::Shape(*shape_number),
+            symbols.get(symbol_source_id).copied(),
+            transform,
+        ),
+    };
+    let Some(handle) = handle else {
+        return Ok(None);
+    };
+    let (rotation, absolute_rotation) = match transform.rotation {
+        LinePatternRotation::Relative(v) => (v, false),
+        LinePatternRotation::Absolute(v) => (v, true),
+    };
+    match marker_values_to_cad(
+        &CadLinePatternMarkerValues {
+            content,
+            scale: transform.scale,
+            offset: transform.offset,
+            rotation,
+            absolute_rotation,
+        },
+        handle,
+    ) {
+        Ok(v) => Ok(Some(v)),
+        Err(CadLinePatternValueError::Unsupported(_)) => Ok(None),
+        Err(e) => Err(invalid(e.to_string())),
+    }
+}
 fn scale(v: f64) -> Result<(), IfccadConversionError> {
     if !v.is_finite() || v <= 0. {
         return Err(invalid("invalid drawing/entity line pattern scale"));
@@ -64,6 +166,8 @@ pub(crate) fn from_cad(
     preserve_splines: bool,
     ids: &mut IfccadIdCounters,
     issues: &mut Vec<IfccadDiagnostic>,
+    mappings: &IfccadMappings,
+    symbols: &super::symbol_source::SourceSymbolSources,
 ) -> Result<(Vec<IfccadLinePattern>, SourcePatterns), IfccadConversionError> {
     scale(doc.header.linetype_scale)?;
     let mut definitions = Vec::new();
@@ -121,30 +225,44 @@ pub(crate) fn from_cad(
         if key == "CONTINUOUS" && !p.elements.is_empty() {
             return Err(invalid("nonempty Continuous record"));
         }
-        let pattern = if p.is_complex() {
-            let mut kinds = BTreeSet::new();
-            for e in &p.elements {
-                if let Some(c) = &e.complex {
-                    kinds.insert(match c.content {
-                        opencadcodec::tables::LineTypeComplexContent::Text { .. } => "text",
-                        opencadcodec::tables::LineTypeComplexContent::Shape { .. } => "shape",
-                    });
+        let raw = p
+            .elements
+            .iter()
+            .map(|e| ocdraw::line_pattern::LinePatternElement {
+                length: e.length,
+                marker: e.complex.as_ref().map(|_| ()),
+            })
+            .collect::<Vec<_>>();
+        ocdraw::line_pattern::validate_line_pattern_values(&raw)
+            .map_err(|e| invalid(e.to_string()))?;
+        let mut pattern = Vec::new();
+        let mut fallback = false;
+        for element in &p.elements {
+            let marker = if let Some(c) = &element.complex {
+                let marker = from_marker(doc, c, mappings, symbols)?;
+                if marker.is_none() {
+                    fallback = true;
                 }
-            }
-            issues.push(modification("line-pattern-complex",&loc,format!("entire complex pattern ({}) replaced with empty pattern; name, description and references retained",kinds.into_iter().collect::<Vec<_>>().join(", "))));
-            Vec::new()
-        } else {
-            let lengths = p.elements.iter().map(|e| e.length).collect::<Vec<_>>();
-            let period = lengths.iter().map(|v| v.abs()).sum::<f64>();
-            if p.pattern_length != period {
-                issues.push(modification(
-                    "line-pattern-period",
-                    &loc,
-                    "declared pattern period replaced with derived element-length sum",
-                ));
-            }
-            lengths
-        };
+                marker
+            } else {
+                None
+            };
+            pattern.push(ocdraw::line_pattern::LinePatternElement {
+                length: element.length,
+                marker,
+            });
+        }
+        if fallback {
+            pattern.clear();
+            issues.push(modification("line-pattern-complex",&loc,"unsupported active marker/style/source dependency: entire definition replaced with named continuous"));
+        }
+        if p.pattern_length != p.elements.iter().map(|e| e.length.abs()).sum::<f64>() {
+            issues.push(modification(
+                "line-pattern-period",
+                &loc,
+                "declared pattern period replaced with derived element-length sum",
+            ));
+        }
         if p.xref_dependent || !p.xref_block_record_handle.is_null() {
             issues.push(diagnostic(
                 "line-pattern-provenance",
@@ -185,6 +303,7 @@ pub(crate) fn allocate(
     defs: &[IfccadLinePattern],
     map: &mut IfccadMappings,
     issues: &mut Vec<IfccadDiagnostic>,
+    symbols: &BTreeMap<IfccadSymbolSourceId, Handle>,
 ) -> Result<(), IfccadConversionError> {
     let mut keys = BTreeSet::new();
     for p in defs {
@@ -203,15 +322,27 @@ pub(crate) fn allocate(
             .map(|r| r.handle)
             .unwrap_or_else(|| doc.allocate_handle());
         record.description = p.description.clone().unwrap_or_default();
-        record.elements = p
-            .pattern
-            .iter()
-            .map(|&length| opencadcodec::tables::LineTypeElement {
-                length,
-                complex: None,
-            })
-            .collect();
-        record.pattern_length = p.pattern.iter().map(|v| v.abs()).sum();
+        let mut fallback = false;
+        for element in &p.pattern {
+            let complex = if let Some(marker) = &element.marker {
+                let result = to_marker(marker, map, symbols)?;
+                if result.is_none() {
+                    fallback = true;
+                }
+                result
+            } else {
+                None
+            };
+            record.elements.push(opencadcodec::tables::LineTypeElement {
+                length: element.length,
+                complex,
+            });
+        }
+        if fallback {
+            record.elements.clear();
+            issues.push(modification("line-pattern-complex",format!("linePattern/{}",p.id.0),"unsupported active marker dependency: entire definition replaced with named continuous"));
+        }
+        record.pattern_length = record.elements.iter().map(|e| e.length.abs()).sum();
         map.line_patterns.insert(p.id.0, record.handle);
         doc.line_types.add_or_replace(record);
     }
@@ -245,13 +376,23 @@ mod error_tests {
     #[test]
     fn pattern_allocation_exhaustion_retains_domain_and_source() {
         let mut ids = IfccadIdCounters {
+            next_symbol_source_id: 1,
             next_preservation_record_id: 1,
             next_line_pattern_id: u64::MAX,
             ..Default::default()
         };
-        let error = from_cad(&CadDocument::new(), false, &mut ids, &mut Vec::new())
-            .err()
-            .expect("exhausted pattern IDs");
+        let error = from_cad(
+            &CadDocument::new(),
+            false,
+            &mut ids,
+            &mut Vec::new(),
+            &IfccadMappings::default(),
+            &super::super::symbol_source::SourceSymbolSources {
+                by_handle: BTreeMap::new(),
+            },
+        )
+        .err()
+        .expect("exhausted pattern IDs");
         let IfccadConversionError::IdAllocation(source) = &error else {
             panic!("expected typed pattern allocation failure");
         };

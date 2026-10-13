@@ -41,11 +41,10 @@ fn distinct_anonymous_shape_resources_do_not_collide_in_text_style_lookup() {
             .iter()
             .filter(|d| is_skipped_table(d))
             .count(),
-        2
+        0
     );
-    for handle in ["0x27F", "0x887"] {
-        assert!(out.diagnostics().iter().any(|d| is_skipped_table(d) && matches!(d.source(), CadToOcdrawDiagnosticSource::Table{kind} if kind == &format!("text_styles/shape/{handle}"))));
-    }
+    assert_eq!(out.document().symbol_sources.len(), 2);
+    assert_eq!(out.symbol_source_mapping().len(), 2);
     assert!(!out.text_style_mapping().contains_key(&Handle::new(0x27f)));
     assert!(!out.text_style_mapping().contains_key(&Handle::new(0x887)));
     let encoded = encode_ocdraw_document(out.document()).unwrap();
@@ -53,16 +52,15 @@ fn distinct_anonymous_shape_resources_do_not_collide_in_text_style_lookup() {
         load_ocdraw_bytes(encoded.bytes()).unwrap().text_entities(),
         out.document().text_entities
     );
-    assert!(matches!(
-        cad_document_to_ocdraw_document(
-            &d,
-            CadToOcdrawOptions {
-                loss_policy: OcdrawLossPolicy::Reject,
-                ..Default::default()
-            }
-        ),
-        Err(CadToOcdrawError::LossRejected { .. })
-    ));
+    let strict = cad_document_to_ocdraw_document(
+        &d,
+        CadToOcdrawOptions {
+            loss_policy: OcdrawLossPolicy::Reject,
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    assert_eq!(strict.document().symbol_sources.len(), 2);
 }
 
 #[test]
@@ -79,7 +77,7 @@ fn shape_names_do_not_shadow_ordinary_styles_or_turn_shape_targets_into_text_fon
             .iter()
             .filter(|d| is_skipped_table(d))
             .count(),
-        1
+        0
     );
     // A name found only in the unsupported shape role remains a located skip.
     d.text_styles

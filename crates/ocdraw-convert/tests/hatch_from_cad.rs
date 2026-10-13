@@ -238,6 +238,7 @@ fn active_gradient_skips_the_whole_hatch_and_invalid_creation_limit_is_hard() {
         panic!()
     };
     h.gradient_color.enabled = true;
+    h.gradient_color.name = "FUTURE".into();
     let out = cad_document_to_ocdraw_document_with_id(&d, "hatch", CadToOcdrawOptions::default())
         .unwrap();
     assert!(out.document().hatch_entities.is_empty());

@@ -84,8 +84,11 @@ pub struct IfccadHatchLoop {
     pub boundary: HatchBoundary2,
     pub source_entity_id: Option<u64>,
 }
+pub type IfccadHatchGradient = crate::geometry_kernel::hatch::HatchGradient<IfccadColor>;
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadHatch {
+    pub gradient: Option<IfccadHatchGradient>,
     pub placement: IfccadPlacement,
     pub loops: Vec<IfccadHatchLoop>,
     pub area_rule: HatchAreaRule,
@@ -98,6 +101,18 @@ pub(crate) fn validate_hatch(h: &IfccadHatch, path: &str) -> Result<(), IfccadRe
         .map_err(|e| crate::ifccad::diagnostics::context(e, "IFCCAD-HATCH-001", path))?;
     crate::geometry_kernel::hatch::validate_hatch_fill(&h.fill).map_err(|e| {
         crate::ifccad::diagnostics::failure("IFCCAD-HATCH-001", path, e.to_string())
+    })?;
+    crate::geometry_kernel::hatch::validate_hatch_gradient(
+        matches!(h.fill, HatchFill::Gradient),
+        h.gradient.as_ref(),
+        |color| color.concrete_rgb().is_some() && color.is_valid(),
+    )
+    .map_err(|e| {
+        crate::ifccad::diagnostics::failure(
+            "IFCCAD-HATCH-005",
+            &format!("{path}/gradient/{}", e.field),
+            e.to_string(),
+        )
     })?;
     validate_hatch_boundaries(h.loops.iter().map(|l| &l.boundary), h.join_tolerance)
         .map_err(|e| crate::ifccad::diagnostics::failure("IFCCAD-HATCH-003", path, e.to_string()))

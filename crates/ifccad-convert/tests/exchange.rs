@@ -164,7 +164,13 @@ fn semantic(d: &ocdraw::ifccad::IfccadDocument) -> serde_json::Value {
     let mut patterns = d
         .line_patterns
         .iter()
-        .map(|p| serde_json::json!({"name":p.name,"description":p.description,"pattern":p.pattern}))
+        .map(|p| {
+            let pattern=p.pattern.iter().map(|e| {
+                assert!(e.marker.is_none(),"this primitive comparison only qualifies simple patterns; complex markers have independent exchange tests");
+                e.length
+            }).collect::<Vec<_>>();
+            serde_json::json!({"name":p.name,"description":p.description,"pattern":pattern})
+        })
         .collect::<Vec<_>>();
     patterns.sort_by_key(|p| p["name"].as_str().unwrap().to_string());
     serde_json::json!({"unit":d.length_unit,"patterns":patterns,"scale":d.line_pattern_scale,"layers":layers,"model":entities(&d.model.entities),"blocks":blocks})

@@ -1,6 +1,11 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {createInspection} from '../src/inspection-model.mjs';
 import * as nav from '../src/inspection-navigation.mjs';
+test('source collections navigate filenames without merging duplicate resources',()=>{
+ const model=createInspection({presentation:{format:'ocdraw',symbolSources:[{id:1,kind:'shx',fileName:'shared.shx'},{id:2,kind:'shx',fileName:'shared.shx'}]}});
+ const entries=nav.collectionEntries(model,model.nodes.get('group:symbolSources').children,n=>n.title);
+ assert.deepEqual(entries.map(e=>e.key),['symbolSource:1','symbolSource:2']);
+});
 test('search and layer filters keep original identities and source order',()=>{
  assert.equal(typeof nav.collectionEntries,'function');assert.equal(typeof nav.filterCollection,'function');
  const model=createInspection({presentation:{format:'ocdraw',layers:[{id:0,name:'Ground'},{id:1,name:'Roof'}],entities:[{id:'9007199254740993',layerId:1,geometry:{type:'line',start:[1,2,0],end:[3,4,0]}},{id:2,layerId:0,geometry:{type:'circle',radius:5}},{id:3,layerId:1,geometry:{type:'line'}}]}});

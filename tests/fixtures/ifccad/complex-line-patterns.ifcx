@@ -1,0 +1,551 @@
+{
+  "header": {
+    "id": "ifccad-native-text",
+    "ifcxVersion": "ifcx_alpha",
+    "dataVersion": "0.1.0",
+    "author": "OpenAEC",
+    "timestamp": "2026-10-08T00:00:00Z"
+  },
+  "imports": [
+    {
+      "uri": "urn:example:ifccad:0.1.0"
+    }
+  ],
+  "schemas": {},
+  "data": [
+    {
+      "path": "/cad/d1",
+      "children": {
+        "block1": "/cad/d1/block/1",
+        "layer0": "/cad/d1/layer/0",
+        "linePattern0": "/cad/d1/linePattern/0",
+        "linePattern1": "/cad/d1/linePattern/1",
+        "linePattern2": "/cad/d1/linePattern/2",
+        "linePattern3": "/cad/d1/linePattern/3",
+        "linePattern4": "/cad/d1/linePattern/4",
+        "linePattern5": "/cad/d1/linePattern/5",
+        "model": "/cad/d1/layout/1",
+        "paper2": "/cad/d1/layout/2",
+        "symbolSource1": "/cad/d1/symbolSource/1",
+        "symbolSource2": "/cad/d1/symbolSource/2",
+        "symbolSource3": "/cad/d1/symbolSource/3",
+        "textStyle1": "/cad/d1/textStyle/1"
+      },
+      "attributes": {
+        "ifccad::drawing": {
+          "lengthUnit": "mm",
+          "linePatternScale": 1.0,
+          "nextBlockId": 2,
+          "nextEntityId": 7,
+          "nextLayerId": 1,
+          "nextLayoutId": 3,
+          "nextLinePatternId": 6,
+          "nextModelWindowId": 1,
+          "nextSymbolSourceId": 4,
+          "nextTextStyleId": 2,
+          "nextUcsId": 1,
+          "profileVersion": "0.1.0"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/textStyle/1",
+      "attributes": {
+        "ifccad::textStyle": {
+          "creationBackward": false,
+          "creationUpsideDown": false,
+          "font": {
+            "cadFontName": "txt.shx"
+          },
+          "lastUsedHeight": 2.5,
+          "name": "Labels",
+          "obliqueAngle": 0.0,
+          "vertical": false,
+          "widthFactor": 1.0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layout/1",
+      "children": {
+        "0": "/cad/d1/e1",
+        "1": "/cad/d1/e2",
+        "2": "/cad/d1/e3",
+        "3": "/cad/d1/e4"
+      },
+      "attributes": {
+        "ifccad::layout": {
+          "bounds": {
+            "max": [
+              65.0,
+              35.0,
+              1.0
+            ],
+            "min": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "boundsQuality": "enclosing",
+          "kind": "Model",
+          "tabIndex": 0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layout/2",
+      "children": {
+        "0": "/cad/d1/e5"
+      },
+      "attributes": {
+        "ifccad::layout": {
+          "kind": "Paper",
+          "name": "Sheet",
+          "tabIndex": 1
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/linePattern/0",
+      "attributes": {
+        "ifccad::linePattern": {
+          "name": "Continuous",
+          "pattern": []
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/linePattern/1",
+      "attributes": {
+        "ifccad::linePattern": {
+          "name": "GAS",
+          "pattern": [
+            10.0,
+            {
+              "length": 0.0,
+              "marker": {
+                "kind": "text",
+                "offset": [
+                  0.0,
+                  0.0
+                ],
+                "rotation": {
+                  "angle": 0.0,
+                  "mode": "relative"
+                },
+                "scale": 2.0,
+                "text": "GAS",
+                "textStyle": "/cad/d1/textStyle/1"
+              }
+            },
+            -5.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/linePattern/2",
+      "attributes": {
+        "ifccad::linePattern": {
+          "name": "Boxes",
+          "pattern": [
+            10.0,
+            {
+              "length": 0.0,
+              "marker": {
+                "kind": "symbol",
+                "offset": [
+                  0.0,
+                  0.0
+                ],
+                "rotation": {
+                  "angle": 0.0,
+                  "mode": "relative"
+                },
+                "scale": 2.0,
+                "shapeNumber": 132,
+                "symbolSource": "/cad/d1/symbolSource/1"
+              }
+            },
+            -5.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/linePattern/3",
+      "attributes": {
+        "ifccad::linePattern": {
+          "name": "Mixed",
+          "pattern": [
+            10.0,
+            {
+              "length": 0.0,
+              "marker": {
+                "kind": "text",
+                "offset": [
+                  0.0,
+                  0.0
+                ],
+                "rotation": {
+                  "angle": 0.0,
+                  "mode": "relative"
+                },
+                "scale": 2.0,
+                "text": "GAS",
+                "textStyle": "/cad/d1/textStyle/1"
+              }
+            },
+            -4.0,
+            {
+              "length": 0.0,
+              "marker": {
+                "kind": "symbol",
+                "offset": [
+                  0.0,
+                  0.0
+                ],
+                "rotation": {
+                  "angle": 0.0,
+                  "mode": "relative"
+                },
+                "scale": 2.0,
+                "shapeNumber": 42,
+                "symbolSource": "/cad/d1/symbolSource/2"
+              }
+            },
+            -4.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/linePattern/4",
+      "attributes": {
+        "ifccad::linePattern": {
+          "name": "Unused",
+          "pattern": [
+            {
+              "length": 1.0,
+              "marker": {
+                "kind": "symbol",
+                "offset": [
+                  0.0,
+                  0.0
+                ],
+                "rotation": {
+                  "angle": 0.0,
+                  "mode": "relative"
+                },
+                "scale": 2.0,
+                "shapeNumber": 42,
+                "symbolSource": "/cad/d1/symbolSource/2"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/linePattern/5",
+      "attributes": {
+        "ifccad::linePattern": {
+          "name": "Named empty",
+          "pattern": []
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/symbolSource/1",
+      "attributes": {
+        "ifccad::symbolSource": {
+          "fileName": "ltypeshp.shx",
+          "kind": "shx"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/symbolSource/2",
+      "attributes": {
+        "ifccad::symbolSource": {
+          "fileName": "custom-missing.shx",
+          "kind": "shx"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/symbolSource/3",
+      "attributes": {
+        "ifccad::symbolSource": {
+          "fileName": "custom-missing.shx",
+          "kind": "shx"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layer/0",
+      "attributes": {
+        "ifccad::layer": {
+          "appearance": {
+            "color": {
+              "kind": "Foreground"
+            },
+            "linePattern": "/cad/d1/linePattern/1",
+            "lineWeight": 0.25,
+            "opacity": 1.0
+          },
+          "name": "0"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/block/1",
+      "children": {
+        "0": "/cad/d1/e6"
+      },
+      "attributes": {
+        "ifccad::blockDefinition": {
+          "basePoint": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insertionUnit": "mm",
+          "name": "Inherited pattern"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e1",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "Explicit",
+              "value": "/cad/d1/linePattern/1"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0",
+          "linePatternScale": 1.0
+        },
+        "ifccad::geom::lineSegment": {
+          "end": [
+            60.0,
+            0.0,
+            0.0
+          ],
+          "start": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e2",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "Explicit",
+              "value": "/cad/d1/linePattern/3"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0",
+          "linePatternScale": 1.0
+        },
+        "ifccad::geom::lineSegment": {
+          "end": [
+            60.0,
+            10.0,
+            0.0
+          ],
+          "start": [
+            0.0,
+            10.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e3",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "Explicit",
+              "value": "/cad/d1/linePattern/2"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0",
+          "linePatternScale": 1.0
+        },
+        "ifccad::geom::lineSegment": {
+          "end": [
+            60.0,
+            30.0,
+            0.0
+          ],
+          "start": [
+            0.0,
+            30.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e4",
+      "attributes": {
+        "ifccad::blockInstance": {
+          "definition": "/cad/d1/block/1",
+          "transform": {
+            "placement": {
+              "origin": [
+                0.0,
+                20.0,
+                0.0
+              ],
+              "xAxis": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "yAxis": [
+                0.0,
+                1.0,
+                0.0
+              ]
+            },
+            "rotation": 0.0,
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          }
+        },
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "Explicit",
+              "value": "/cad/d1/linePattern/3"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0",
+          "linePatternScale": 1.0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e5",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "Explicit",
+              "value": "/cad/d1/linePattern/2"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0",
+          "linePatternScale": 1.0
+        },
+        "ifccad::geom::lineSegment": {
+          "end": [
+            60.0,
+            0.0,
+            0.0
+          ],
+          "start": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e6",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByBlock"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0",
+          "linePatternScale": 1.0
+        },
+        "ifccad::geom::lineSegment": {
+          "end": [
+            60.0,
+            0.0,
+            0.0
+          ],
+          "start": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -128,6 +128,9 @@
                 }
               }
             },
+            "nextSymbolSourceId": {
+              "dataType": "Integer"
+            },
             "nextDimensionStyleId": {
               "dataType": "Integer",
               "optional": true
@@ -570,7 +573,8 @@
                     }
                   },
                   "opacity": {
-                    "dataType": "Real"
+                    "dataType": "Real",
+                    "optional": true
                   },
                   "linePattern": {
                     "dataType": "String"
@@ -761,7 +765,8 @@
                           "optional": true
                         }
                       }
-                    }
+                    },
+                    "optional": true
                   },
                   "opacity": {
                     "dataType": "Object",
@@ -782,7 +787,8 @@
                           "optional": true
                         }
                       }
-                    }
+                    },
+                    "optional": true
                   },
                   "linePattern": {
                     "dataType": "Object",
@@ -803,7 +809,8 @@
                           "optional": true
                         }
                       }
-                    }
+                    },
+                    "optional": true
                   },
                   "lineWeight": {
                     "dataType": "Object",
@@ -824,10 +831,12 @@
                           "optional": true
                         }
                       }
-                    }
+                    },
+                    "optional": true
                   }
                 }
-              }
+              },
+              "optional": true
             },
             "linePatternScale": {
               "dataType": "Real",
@@ -1106,7 +1115,7 @@
             "start": {
               "dataType": "Array",
               "arrayRestrictions": {
-                "min": 3,
+                "min": 2,
                 "max": 3,
                 "value": {
                   "dataType": "Real"
@@ -1116,7 +1125,7 @@
             "end": {
               "dataType": "Array",
               "arrayRestrictions": {
-                "min": 3,
+                "min": 2,
                 "max": 3,
                 "value": {
                   "dataType": "Real"
@@ -1149,7 +1158,8 @@
               }
             },
             "closed": {
-              "dataType": "Boolean"
+              "dataType": "Boolean",
+              "optional": true
             },
             "linePatternGeneration": {
               "dataType": "Enum",
@@ -1242,7 +1252,8 @@
                     "dataType": "Object"
                   },
                   "rotation": {
-                    "dataType": "Real"
+                    "dataType": "Real",
+                    "optional": true
                   },
                   "scale": {
                     "dataType": "Array",
@@ -1252,7 +1263,8 @@
                       "value": {
                         "dataType": "Real"
                       }
-                    }
+                    },
+                    "optional": true
                   }
                 }
               }
@@ -1274,12 +1286,7 @@
               "optional": true
             },
             "pattern": {
-              "dataType": "Array",
-              "arrayRestrictions": {
-                "value": {
-                  "dataType": "Real"
-                }
-              }
+              "dataType": "Array"
             }
           }
         }
@@ -1369,7 +1376,8 @@
               }
             },
             "closed": {
-              "dataType": "Boolean"
+              "dataType": "Boolean",
+              "optional": true
             },
             "linePatternGeneration": {
               "dataType": "Enum",
@@ -3504,7 +3512,8 @@
                     "enumRestrictions": {
                       "options": [
                         "solid",
-                        "linePattern"
+                        "linePattern",
+                        "gradient"
                       ]
                     }
                   },
@@ -3593,6 +3602,84 @@
                   }
                 }
               }
+            },
+            "gradient": {
+              "dataType": "Object",
+              "optional": true,
+              "objectRestrictions": {
+                "values": {
+                  "type": {
+                    "dataType": "Enum",
+                    "optional": true,
+                    "enumRestrictions": {
+                      "options": [
+                        "linear",
+                        "cylinder",
+                        "inverseCylinder",
+                        "spherical",
+                        "inverseSpherical",
+                        "hemispherical",
+                        "inverseHemispherical",
+                        "curved",
+                        "inverseCurved"
+                      ]
+                    }
+                  },
+                  "colors": {
+                    "dataType": "Array",
+                    "optional": true,
+                    "arrayRestrictions": {
+                      "min": 2,
+                      "max": 2,
+                      "value": {
+                        "dataType": "Object"
+                      }
+                    }
+                  },
+                  "rotation": {
+                    "dataType": "Real",
+                    "optional": true
+                  },
+                  "shift": {
+                    "dataType": "Real",
+                    "optional": true
+                  },
+                  "colorMode": {
+                    "dataType": "Enum",
+                    "optional": true,
+                    "enumRestrictions": {
+                      "options": [
+                        "oneColor",
+                        "twoColor"
+                      ]
+                    }
+                  },
+                  "tint": {
+                    "dataType": "Real",
+                    "optional": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ifccad::symbolSource": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "kind": {
+              "dataType": "Enum",
+              "enumRestrictions": {
+                "options": [
+                  "shx"
+                ]
+              }
+            },
+            "fileName": {
+              "dataType": "String"
             }
           }
         }
@@ -3814,7 +3901,8 @@
                                               },
                                               "min": 3,
                                               "max": 3
-                                            }
+                                            },
+                                            "optional": true
                                           },
                                           "indexedColor": {
                                             "dataType": "Object",
@@ -3841,6 +3929,15 @@
                                                   "dataType": "String"
                                                 }
                                               }
+                                            },
+                                            "optional": true
+                                          },
+                                          "kind": {
+                                            "dataType": "Enum",
+                                            "enumRestrictions": {
+                                              "options": [
+                                                "Foreground"
+                                              ]
                                             },
                                             "optional": true
                                           }
@@ -3980,7 +4077,8 @@
                                                     },
                                                     "min": 3,
                                                     "max": 3
-                                                  }
+                                                  },
+                                                  "optional": true
                                                 },
                                                 "indexedColor": {
                                                   "dataType": "Object",
@@ -4007,6 +4105,15 @@
                                                         "dataType": "String"
                                                       }
                                                     }
+                                                  },
+                                                  "optional": true
+                                                },
+                                                "kind": {
+                                                  "dataType": "Enum",
+                                                  "enumRestrictions": {
+                                                    "options": [
+                                                      "Foreground"
+                                                    ]
                                                   },
                                                   "optional": true
                                                 }
@@ -4163,7 +4270,8 @@
                                                     },
                                                     "min": 3,
                                                     "max": 3
-                                                  }
+                                                  },
+                                                  "optional": true
                                                 },
                                                 "indexedColor": {
                                                   "dataType": "Object",
@@ -4190,6 +4298,15 @@
                                                         "dataType": "String"
                                                       }
                                                     }
+                                                  },
+                                                  "optional": true
+                                                },
+                                                "kind": {
+                                                  "dataType": "Enum",
+                                                  "enumRestrictions": {
+                                                    "options": [
+                                                      "Foreground"
+                                                    ]
                                                   },
                                                   "optional": true
                                                 }
@@ -4456,7 +4573,8 @@
                                               },
                                               "min": 3,
                                               "max": 3
-                                            }
+                                            },
+                                            "optional": true
                                           },
                                           "indexedColor": {
                                             "dataType": "Object",
@@ -4483,6 +4601,15 @@
                                                   "dataType": "String"
                                                 }
                                               }
+                                            },
+                                            "optional": true
+                                          },
+                                          "kind": {
+                                            "dataType": "Enum",
+                                            "enumRestrictions": {
+                                              "options": [
+                                                "Foreground"
+                                              ]
                                             },
                                             "optional": true
                                           }
@@ -4665,7 +4792,8 @@
                                         },
                                         "min": 3,
                                         "max": 3
-                                      }
+                                      },
+                                      "optional": true
                                     },
                                     "indexedColor": {
                                       "dataType": "Object",
@@ -4692,6 +4820,15 @@
                                             "dataType": "String"
                                           }
                                         }
+                                      },
+                                      "optional": true
+                                    },
+                                    "kind": {
+                                      "dataType": "Enum",
+                                      "enumRestrictions": {
+                                        "options": [
+                                          "Foreground"
+                                        ]
                                       },
                                       "optional": true
                                     }
@@ -5078,7 +5215,8 @@
                                               },
                                               "min": 3,
                                               "max": 3
-                                            }
+                                            },
+                                            "optional": true
                                           },
                                           "indexedColor": {
                                             "dataType": "Object",
@@ -5105,6 +5243,15 @@
                                                   "dataType": "String"
                                                 }
                                               }
+                                            },
+                                            "optional": true
+                                          },
+                                          "kind": {
+                                            "dataType": "Enum",
+                                            "enumRestrictions": {
+                                              "options": [
+                                                "Foreground"
+                                              ]
                                             },
                                             "optional": true
                                           }
@@ -5235,7 +5382,8 @@
                                                     },
                                                     "min": 3,
                                                     "max": 3
-                                                  }
+                                                  },
+                                                  "optional": true
                                                 },
                                                 "indexedColor": {
                                                   "dataType": "Object",
@@ -5262,6 +5410,15 @@
                                                         "dataType": "String"
                                                       }
                                                     }
+                                                  },
+                                                  "optional": true
+                                                },
+                                                "kind": {
+                                                  "dataType": "Enum",
+                                                  "enumRestrictions": {
+                                                    "options": [
+                                                      "Foreground"
+                                                    ]
                                                   },
                                                   "optional": true
                                                 }
@@ -5408,7 +5565,8 @@
                                                     },
                                                     "min": 3,
                                                     "max": 3
-                                                  }
+                                                  },
+                                                  "optional": true
                                                 },
                                                 "indexedColor": {
                                                   "dataType": "Object",
@@ -5435,6 +5593,15 @@
                                                         "dataType": "String"
                                                       }
                                                     }
+                                                  },
+                                                  "optional": true
+                                                },
+                                                "kind": {
+                                                  "dataType": "Enum",
+                                                  "enumRestrictions": {
+                                                    "options": [
+                                                      "Foreground"
+                                                    ]
                                                   },
                                                   "optional": true
                                                 }
@@ -5680,7 +5847,8 @@
                                               },
                                               "min": 3,
                                               "max": 3
-                                            }
+                                            },
+                                            "optional": true
                                           },
                                           "indexedColor": {
                                             "dataType": "Object",
@@ -5707,6 +5875,15 @@
                                                   "dataType": "String"
                                                 }
                                               }
+                                            },
+                                            "optional": true
+                                          },
+                                          "kind": {
+                                            "dataType": "Enum",
+                                            "enumRestrictions": {
+                                              "options": [
+                                                "Foreground"
+                                              ]
                                             },
                                             "optional": true
                                           }
@@ -5878,7 +6055,8 @@
                                         },
                                         "min": 3,
                                         "max": 3
-                                      }
+                                      },
+                                      "optional": true
                                     },
                                     "indexedColor": {
                                       "dataType": "Object",
@@ -5905,6 +6083,15 @@
                                             "dataType": "String"
                                           }
                                         }
+                                      },
+                                      "optional": true
+                                    },
+                                    "kind": {
+                                      "dataType": "Enum",
+                                      "enumRestrictions": {
+                                        "options": [
+                                          "Foreground"
+                                        ]
                                       },
                                       "optional": true
                                     }
@@ -6198,7 +6385,8 @@
                                                     },
                                                     "min": 3,
                                                     "max": 3
-                                                  }
+                                                  },
+                                                  "optional": true
                                                 },
                                                 "indexedColor": {
                                                   "dataType": "Object",
@@ -6225,6 +6413,15 @@
                                                         "dataType": "String"
                                                       }
                                                     }
+                                                  },
+                                                  "optional": true
+                                                },
+                                                "kind": {
+                                                  "dataType": "Enum",
+                                                  "enumRestrictions": {
+                                                    "options": [
+                                                      "Foreground"
+                                                    ]
                                                   },
                                                   "optional": true
                                                 }
@@ -6364,7 +6561,8 @@
                                                           },
                                                           "min": 3,
                                                           "max": 3
-                                                        }
+                                                        },
+                                                        "optional": true
                                                       },
                                                       "indexedColor": {
                                                         "dataType": "Object",
@@ -6391,6 +6589,15 @@
                                                               "dataType": "String"
                                                             }
                                                           }
+                                                        },
+                                                        "optional": true
+                                                      },
+                                                      "kind": {
+                                                        "dataType": "Enum",
+                                                        "enumRestrictions": {
+                                                          "options": [
+                                                            "Foreground"
+                                                          ]
                                                         },
                                                         "optional": true
                                                       }
@@ -6547,7 +6754,8 @@
                                                           },
                                                           "min": 3,
                                                           "max": 3
-                                                        }
+                                                        },
+                                                        "optional": true
                                                       },
                                                       "indexedColor": {
                                                         "dataType": "Object",
@@ -6574,6 +6782,15 @@
                                                               "dataType": "String"
                                                             }
                                                           }
+                                                        },
+                                                        "optional": true
+                                                      },
+                                                      "kind": {
+                                                        "dataType": "Enum",
+                                                        "enumRestrictions": {
+                                                          "options": [
+                                                            "Foreground"
+                                                          ]
                                                         },
                                                         "optional": true
                                                       }
@@ -6840,7 +7057,8 @@
                                                     },
                                                     "min": 3,
                                                     "max": 3
-                                                  }
+                                                  },
+                                                  "optional": true
                                                 },
                                                 "indexedColor": {
                                                   "dataType": "Object",
@@ -6867,6 +7085,15 @@
                                                         "dataType": "String"
                                                       }
                                                     }
+                                                  },
+                                                  "optional": true
+                                                },
+                                                "kind": {
+                                                  "dataType": "Enum",
+                                                  "enumRestrictions": {
+                                                    "options": [
+                                                      "Foreground"
+                                                    ]
                                                   },
                                                   "optional": true
                                                 }
@@ -7049,7 +7276,8 @@
                                               },
                                               "min": 3,
                                               "max": 3
-                                            }
+                                            },
+                                            "optional": true
                                           },
                                           "indexedColor": {
                                             "dataType": "Object",
@@ -7076,6 +7304,15 @@
                                                   "dataType": "String"
                                                 }
                                               }
+                                            },
+                                            "optional": true
+                                          },
+                                          "kind": {
+                                            "dataType": "Enum",
+                                            "enumRestrictions": {
+                                              "options": [
+                                                "Foreground"
+                                              ]
                                             },
                                             "optional": true
                                           }
@@ -7404,7 +7641,8 @@
                                                     },
                                                     "min": 3,
                                                     "max": 3
-                                                  }
+                                                  },
+                                                  "optional": true
                                                 },
                                                 "indexedColor": {
                                                   "dataType": "Object",
@@ -7431,6 +7669,15 @@
                                                         "dataType": "String"
                                                       }
                                                     }
+                                                  },
+                                                  "optional": true
+                                                },
+                                                "kind": {
+                                                  "dataType": "Enum",
+                                                  "enumRestrictions": {
+                                                    "options": [
+                                                      "Foreground"
+                                                    ]
                                                   },
                                                   "optional": true
                                                 }
@@ -7570,7 +7817,8 @@
                                                           },
                                                           "min": 3,
                                                           "max": 3
-                                                        }
+                                                        },
+                                                        "optional": true
                                                       },
                                                       "indexedColor": {
                                                         "dataType": "Object",
@@ -7597,6 +7845,15 @@
                                                               "dataType": "String"
                                                             }
                                                           }
+                                                        },
+                                                        "optional": true
+                                                      },
+                                                      "kind": {
+                                                        "dataType": "Enum",
+                                                        "enumRestrictions": {
+                                                          "options": [
+                                                            "Foreground"
+                                                          ]
                                                         },
                                                         "optional": true
                                                       }
@@ -7753,7 +8010,8 @@
                                                           },
                                                           "min": 3,
                                                           "max": 3
-                                                        }
+                                                        },
+                                                        "optional": true
                                                       },
                                                       "indexedColor": {
                                                         "dataType": "Object",
@@ -7780,6 +8038,15 @@
                                                               "dataType": "String"
                                                             }
                                                           }
+                                                        },
+                                                        "optional": true
+                                                      },
+                                                      "kind": {
+                                                        "dataType": "Enum",
+                                                        "enumRestrictions": {
+                                                          "options": [
+                                                            "Foreground"
+                                                          ]
                                                         },
                                                         "optional": true
                                                       }
@@ -8046,7 +8313,8 @@
                                                     },
                                                     "min": 3,
                                                     "max": 3
-                                                  }
+                                                  },
+                                                  "optional": true
                                                 },
                                                 "indexedColor": {
                                                   "dataType": "Object",
@@ -8073,6 +8341,15 @@
                                                         "dataType": "String"
                                                       }
                                                     }
+                                                  },
+                                                  "optional": true
+                                                },
+                                                "kind": {
+                                                  "dataType": "Enum",
+                                                  "enumRestrictions": {
+                                                    "options": [
+                                                      "Foreground"
+                                                    ]
                                                   },
                                                   "optional": true
                                                 }
@@ -8255,7 +8532,8 @@
                                               },
                                               "min": 3,
                                               "max": 3
-                                            }
+                                            },
+                                            "optional": true
                                           },
                                           "indexedColor": {
                                             "dataType": "Object",
@@ -8282,6 +8560,15 @@
                                                   "dataType": "String"
                                                 }
                                               }
+                                            },
+                                            "optional": true
+                                          },
+                                          "kind": {
+                                            "dataType": "Enum",
+                                            "enumRestrictions": {
+                                              "options": [
+                                                "Foreground"
+                                              ]
                                             },
                                             "optional": true
                                           }
@@ -8610,7 +8897,8 @@
                                                     },
                                                     "min": 3,
                                                     "max": 3
-                                                  }
+                                                  },
+                                                  "optional": true
                                                 },
                                                 "indexedColor": {
                                                   "dataType": "Object",
@@ -8637,6 +8925,15 @@
                                                         "dataType": "String"
                                                       }
                                                     }
+                                                  },
+                                                  "optional": true
+                                                },
+                                                "kind": {
+                                                  "dataType": "Enum",
+                                                  "enumRestrictions": {
+                                                    "options": [
+                                                      "Foreground"
+                                                    ]
                                                   },
                                                   "optional": true
                                                 }
@@ -8776,7 +9073,8 @@
                                                           },
                                                           "min": 3,
                                                           "max": 3
-                                                        }
+                                                        },
+                                                        "optional": true
                                                       },
                                                       "indexedColor": {
                                                         "dataType": "Object",
@@ -8803,6 +9101,15 @@
                                                               "dataType": "String"
                                                             }
                                                           }
+                                                        },
+                                                        "optional": true
+                                                      },
+                                                      "kind": {
+                                                        "dataType": "Enum",
+                                                        "enumRestrictions": {
+                                                          "options": [
+                                                            "Foreground"
+                                                          ]
                                                         },
                                                         "optional": true
                                                       }
@@ -8959,7 +9266,8 @@
                                                           },
                                                           "min": 3,
                                                           "max": 3
-                                                        }
+                                                        },
+                                                        "optional": true
                                                       },
                                                       "indexedColor": {
                                                         "dataType": "Object",
@@ -8986,6 +9294,15 @@
                                                               "dataType": "String"
                                                             }
                                                           }
+                                                        },
+                                                        "optional": true
+                                                      },
+                                                      "kind": {
+                                                        "dataType": "Enum",
+                                                        "enumRestrictions": {
+                                                          "options": [
+                                                            "Foreground"
+                                                          ]
                                                         },
                                                         "optional": true
                                                       }
@@ -9252,7 +9569,8 @@
                                                     },
                                                     "min": 3,
                                                     "max": 3
-                                                  }
+                                                  },
+                                                  "optional": true
                                                 },
                                                 "indexedColor": {
                                                   "dataType": "Object",
@@ -9279,6 +9597,15 @@
                                                         "dataType": "String"
                                                       }
                                                     }
+                                                  },
+                                                  "optional": true
+                                                },
+                                                "kind": {
+                                                  "dataType": "Enum",
+                                                  "enumRestrictions": {
+                                                    "options": [
+                                                      "Foreground"
+                                                    ]
                                                   },
                                                   "optional": true
                                                 }
@@ -9461,7 +9788,8 @@
                                               },
                                               "min": 3,
                                               "max": 3
-                                            }
+                                            },
+                                            "optional": true
                                           },
                                           "indexedColor": {
                                             "dataType": "Object",
@@ -9488,6 +9816,15 @@
                                                   "dataType": "String"
                                                 }
                                               }
+                                            },
+                                            "optional": true
+                                          },
+                                          "kind": {
+                                            "dataType": "Enum",
+                                            "enumRestrictions": {
+                                              "options": [
+                                                "Foreground"
+                                              ]
                                             },
                                             "optional": true
                                           }
@@ -9816,7 +10153,8 @@
                                                     },
                                                     "min": 3,
                                                     "max": 3
-                                                  }
+                                                  },
+                                                  "optional": true
                                                 },
                                                 "indexedColor": {
                                                   "dataType": "Object",
@@ -9843,6 +10181,15 @@
                                                         "dataType": "String"
                                                       }
                                                     }
+                                                  },
+                                                  "optional": true
+                                                },
+                                                "kind": {
+                                                  "dataType": "Enum",
+                                                  "enumRestrictions": {
+                                                    "options": [
+                                                      "Foreground"
+                                                    ]
                                                   },
                                                   "optional": true
                                                 }
@@ -9982,7 +10329,8 @@
                                                           },
                                                           "min": 3,
                                                           "max": 3
-                                                        }
+                                                        },
+                                                        "optional": true
                                                       },
                                                       "indexedColor": {
                                                         "dataType": "Object",
@@ -10009,6 +10357,15 @@
                                                               "dataType": "String"
                                                             }
                                                           }
+                                                        },
+                                                        "optional": true
+                                                      },
+                                                      "kind": {
+                                                        "dataType": "Enum",
+                                                        "enumRestrictions": {
+                                                          "options": [
+                                                            "Foreground"
+                                                          ]
                                                         },
                                                         "optional": true
                                                       }
@@ -10165,7 +10522,8 @@
                                                           },
                                                           "min": 3,
                                                           "max": 3
-                                                        }
+                                                        },
+                                                        "optional": true
                                                       },
                                                       "indexedColor": {
                                                         "dataType": "Object",
@@ -10192,6 +10550,15 @@
                                                               "dataType": "String"
                                                             }
                                                           }
+                                                        },
+                                                        "optional": true
+                                                      },
+                                                      "kind": {
+                                                        "dataType": "Enum",
+                                                        "enumRestrictions": {
+                                                          "options": [
+                                                            "Foreground"
+                                                          ]
                                                         },
                                                         "optional": true
                                                       }
@@ -10458,7 +10825,8 @@
                                                     },
                                                     "min": 3,
                                                     "max": 3
-                                                  }
+                                                  },
+                                                  "optional": true
                                                 },
                                                 "indexedColor": {
                                                   "dataType": "Object",
@@ -10485,6 +10853,15 @@
                                                         "dataType": "String"
                                                       }
                                                     }
+                                                  },
+                                                  "optional": true
+                                                },
+                                                "kind": {
+                                                  "dataType": "Enum",
+                                                  "enumRestrictions": {
+                                                    "options": [
+                                                      "Foreground"
+                                                    ]
                                                   },
                                                   "optional": true
                                                 }
@@ -10667,7 +11044,8 @@
                                               },
                                               "min": 3,
                                               "max": 3
-                                            }
+                                            },
+                                            "optional": true
                                           },
                                           "indexedColor": {
                                             "dataType": "Object",
@@ -10694,6 +11072,15 @@
                                                   "dataType": "String"
                                                 }
                                               }
+                                            },
+                                            "optional": true
+                                          },
+                                          "kind": {
+                                            "dataType": "Enum",
+                                            "enumRestrictions": {
+                                              "options": [
+                                                "Foreground"
+                                              ]
                                             },
                                             "optional": true
                                           }
@@ -11022,7 +11409,8 @@
                                                     },
                                                     "min": 3,
                                                     "max": 3
-                                                  }
+                                                  },
+                                                  "optional": true
                                                 },
                                                 "indexedColor": {
                                                   "dataType": "Object",
@@ -11049,6 +11437,15 @@
                                                         "dataType": "String"
                                                       }
                                                     }
+                                                  },
+                                                  "optional": true
+                                                },
+                                                "kind": {
+                                                  "dataType": "Enum",
+                                                  "enumRestrictions": {
+                                                    "options": [
+                                                      "Foreground"
+                                                    ]
                                                   },
                                                   "optional": true
                                                 }
@@ -11188,7 +11585,8 @@
                                                           },
                                                           "min": 3,
                                                           "max": 3
-                                                        }
+                                                        },
+                                                        "optional": true
                                                       },
                                                       "indexedColor": {
                                                         "dataType": "Object",
@@ -11215,6 +11613,15 @@
                                                               "dataType": "String"
                                                             }
                                                           }
+                                                        },
+                                                        "optional": true
+                                                      },
+                                                      "kind": {
+                                                        "dataType": "Enum",
+                                                        "enumRestrictions": {
+                                                          "options": [
+                                                            "Foreground"
+                                                          ]
                                                         },
                                                         "optional": true
                                                       }
@@ -11371,7 +11778,8 @@
                                                           },
                                                           "min": 3,
                                                           "max": 3
-                                                        }
+                                                        },
+                                                        "optional": true
                                                       },
                                                       "indexedColor": {
                                                         "dataType": "Object",
@@ -11398,6 +11806,15 @@
                                                               "dataType": "String"
                                                             }
                                                           }
+                                                        },
+                                                        "optional": true
+                                                      },
+                                                      "kind": {
+                                                        "dataType": "Enum",
+                                                        "enumRestrictions": {
+                                                          "options": [
+                                                            "Foreground"
+                                                          ]
                                                         },
                                                         "optional": true
                                                       }
@@ -11664,7 +12081,8 @@
                                                     },
                                                     "min": 3,
                                                     "max": 3
-                                                  }
+                                                  },
+                                                  "optional": true
                                                 },
                                                 "indexedColor": {
                                                   "dataType": "Object",
@@ -11691,6 +12109,15 @@
                                                         "dataType": "String"
                                                       }
                                                     }
+                                                  },
+                                                  "optional": true
+                                                },
+                                                "kind": {
+                                                  "dataType": "Enum",
+                                                  "enumRestrictions": {
+                                                    "options": [
+                                                      "Foreground"
+                                                    ]
                                                   },
                                                   "optional": true
                                                 }
@@ -11873,7 +12300,8 @@
                                               },
                                               "min": 3,
                                               "max": 3
-                                            }
+                                            },
+                                            "optional": true
                                           },
                                           "indexedColor": {
                                             "dataType": "Object",
@@ -11900,6 +12328,15 @@
                                                   "dataType": "String"
                                                 }
                                               }
+                                            },
+                                            "optional": true
+                                          },
+                                          "kind": {
+                                            "dataType": "Enum",
+                                            "enumRestrictions": {
+                                              "options": [
+                                                "Foreground"
+                                              ]
                                             },
                                             "optional": true
                                           }
@@ -12228,7 +12665,8 @@
                                                     },
                                                     "min": 3,
                                                     "max": 3
-                                                  }
+                                                  },
+                                                  "optional": true
                                                 },
                                                 "indexedColor": {
                                                   "dataType": "Object",
@@ -12255,6 +12693,15 @@
                                                         "dataType": "String"
                                                       }
                                                     }
+                                                  },
+                                                  "optional": true
+                                                },
+                                                "kind": {
+                                                  "dataType": "Enum",
+                                                  "enumRestrictions": {
+                                                    "options": [
+                                                      "Foreground"
+                                                    ]
                                                   },
                                                   "optional": true
                                                 }
@@ -12394,7 +12841,8 @@
                                                           },
                                                           "min": 3,
                                                           "max": 3
-                                                        }
+                                                        },
+                                                        "optional": true
                                                       },
                                                       "indexedColor": {
                                                         "dataType": "Object",
@@ -12421,6 +12869,15 @@
                                                               "dataType": "String"
                                                             }
                                                           }
+                                                        },
+                                                        "optional": true
+                                                      },
+                                                      "kind": {
+                                                        "dataType": "Enum",
+                                                        "enumRestrictions": {
+                                                          "options": [
+                                                            "Foreground"
+                                                          ]
                                                         },
                                                         "optional": true
                                                       }
@@ -12577,7 +13034,8 @@
                                                           },
                                                           "min": 3,
                                                           "max": 3
-                                                        }
+                                                        },
+                                                        "optional": true
                                                       },
                                                       "indexedColor": {
                                                         "dataType": "Object",
@@ -12604,6 +13062,15 @@
                                                               "dataType": "String"
                                                             }
                                                           }
+                                                        },
+                                                        "optional": true
+                                                      },
+                                                      "kind": {
+                                                        "dataType": "Enum",
+                                                        "enumRestrictions": {
+                                                          "options": [
+                                                            "Foreground"
+                                                          ]
                                                         },
                                                         "optional": true
                                                       }
@@ -12870,7 +13337,8 @@
                                                     },
                                                     "min": 3,
                                                     "max": 3
-                                                  }
+                                                  },
+                                                  "optional": true
                                                 },
                                                 "indexedColor": {
                                                   "dataType": "Object",
@@ -12897,6 +13365,15 @@
                                                         "dataType": "String"
                                                       }
                                                     }
+                                                  },
+                                                  "optional": true
+                                                },
+                                                "kind": {
+                                                  "dataType": "Enum",
+                                                  "enumRestrictions": {
+                                                    "options": [
+                                                      "Foreground"
+                                                    ]
                                                   },
                                                   "optional": true
                                                 }
@@ -13079,7 +13556,8 @@
                                               },
                                               "min": 3,
                                               "max": 3
-                                            }
+                                            },
+                                            "optional": true
                                           },
                                           "indexedColor": {
                                             "dataType": "Object",
@@ -13106,6 +13584,15 @@
                                                   "dataType": "String"
                                                 }
                                               }
+                                            },
+                                            "optional": true
+                                          },
+                                          "kind": {
+                                            "dataType": "Enum",
+                                            "enumRestrictions": {
+                                              "options": [
+                                                "Foreground"
+                                              ]
                                             },
                                             "optional": true
                                           }
@@ -13434,7 +13921,8 @@
                                                     },
                                                     "min": 3,
                                                     "max": 3
-                                                  }
+                                                  },
+                                                  "optional": true
                                                 },
                                                 "indexedColor": {
                                                   "dataType": "Object",
@@ -13461,6 +13949,15 @@
                                                         "dataType": "String"
                                                       }
                                                     }
+                                                  },
+                                                  "optional": true
+                                                },
+                                                "kind": {
+                                                  "dataType": "Enum",
+                                                  "enumRestrictions": {
+                                                    "options": [
+                                                      "Foreground"
+                                                    ]
                                                   },
                                                   "optional": true
                                                 }
@@ -13600,7 +14097,8 @@
                                                           },
                                                           "min": 3,
                                                           "max": 3
-                                                        }
+                                                        },
+                                                        "optional": true
                                                       },
                                                       "indexedColor": {
                                                         "dataType": "Object",
@@ -13627,6 +14125,15 @@
                                                               "dataType": "String"
                                                             }
                                                           }
+                                                        },
+                                                        "optional": true
+                                                      },
+                                                      "kind": {
+                                                        "dataType": "Enum",
+                                                        "enumRestrictions": {
+                                                          "options": [
+                                                            "Foreground"
+                                                          ]
                                                         },
                                                         "optional": true
                                                       }
@@ -13783,7 +14290,8 @@
                                                           },
                                                           "min": 3,
                                                           "max": 3
-                                                        }
+                                                        },
+                                                        "optional": true
                                                       },
                                                       "indexedColor": {
                                                         "dataType": "Object",
@@ -13810,6 +14318,15 @@
                                                               "dataType": "String"
                                                             }
                                                           }
+                                                        },
+                                                        "optional": true
+                                                      },
+                                                      "kind": {
+                                                        "dataType": "Enum",
+                                                        "enumRestrictions": {
+                                                          "options": [
+                                                            "Foreground"
+                                                          ]
                                                         },
                                                         "optional": true
                                                       }
@@ -14076,7 +14593,8 @@
                                                     },
                                                     "min": 3,
                                                     "max": 3
-                                                  }
+                                                  },
+                                                  "optional": true
                                                 },
                                                 "indexedColor": {
                                                   "dataType": "Object",
@@ -14103,6 +14621,15 @@
                                                         "dataType": "String"
                                                       }
                                                     }
+                                                  },
+                                                  "optional": true
+                                                },
+                                                "kind": {
+                                                  "dataType": "Enum",
+                                                  "enumRestrictions": {
+                                                    "options": [
+                                                      "Foreground"
+                                                    ]
                                                   },
                                                   "optional": true
                                                 }
@@ -14285,7 +14812,8 @@
                                               },
                                               "min": 3,
                                               "max": 3
-                                            }
+                                            },
+                                            "optional": true
                                           },
                                           "indexedColor": {
                                             "dataType": "Object",
@@ -14312,6 +14840,15 @@
                                                   "dataType": "String"
                                                 }
                                               }
+                                            },
+                                            "optional": true
+                                          },
+                                          "kind": {
+                                            "dataType": "Enum",
+                                            "enumRestrictions": {
+                                              "options": [
+                                                "Foreground"
+                                              ]
                                             },
                                             "optional": true
                                           }
@@ -14640,7 +15177,8 @@
                                                     },
                                                     "min": 3,
                                                     "max": 3
-                                                  }
+                                                  },
+                                                  "optional": true
                                                 },
                                                 "indexedColor": {
                                                   "dataType": "Object",
@@ -14667,6 +15205,15 @@
                                                         "dataType": "String"
                                                       }
                                                     }
+                                                  },
+                                                  "optional": true
+                                                },
+                                                "kind": {
+                                                  "dataType": "Enum",
+                                                  "enumRestrictions": {
+                                                    "options": [
+                                                      "Foreground"
+                                                    ]
                                                   },
                                                   "optional": true
                                                 }
@@ -14806,7 +15353,8 @@
                                                           },
                                                           "min": 3,
                                                           "max": 3
-                                                        }
+                                                        },
+                                                        "optional": true
                                                       },
                                                       "indexedColor": {
                                                         "dataType": "Object",
@@ -14833,6 +15381,15 @@
                                                               "dataType": "String"
                                                             }
                                                           }
+                                                        },
+                                                        "optional": true
+                                                      },
+                                                      "kind": {
+                                                        "dataType": "Enum",
+                                                        "enumRestrictions": {
+                                                          "options": [
+                                                            "Foreground"
+                                                          ]
                                                         },
                                                         "optional": true
                                                       }
@@ -14989,7 +15546,8 @@
                                                           },
                                                           "min": 3,
                                                           "max": 3
-                                                        }
+                                                        },
+                                                        "optional": true
                                                       },
                                                       "indexedColor": {
                                                         "dataType": "Object",
@@ -15016,6 +15574,15 @@
                                                               "dataType": "String"
                                                             }
                                                           }
+                                                        },
+                                                        "optional": true
+                                                      },
+                                                      "kind": {
+                                                        "dataType": "Enum",
+                                                        "enumRestrictions": {
+                                                          "options": [
+                                                            "Foreground"
+                                                          ]
                                                         },
                                                         "optional": true
                                                       }
@@ -15282,7 +15849,8 @@
                                                     },
                                                     "min": 3,
                                                     "max": 3
-                                                  }
+                                                  },
+                                                  "optional": true
                                                 },
                                                 "indexedColor": {
                                                   "dataType": "Object",
@@ -15309,6 +15877,15 @@
                                                         "dataType": "String"
                                                       }
                                                     }
+                                                  },
+                                                  "optional": true
+                                                },
+                                                "kind": {
+                                                  "dataType": "Enum",
+                                                  "enumRestrictions": {
+                                                    "options": [
+                                                      "Foreground"
+                                                    ]
                                                   },
                                                   "optional": true
                                                 }
@@ -15491,7 +16068,8 @@
                                               },
                                               "min": 3,
                                               "max": 3
-                                            }
+                                            },
+                                            "optional": true
                                           },
                                           "indexedColor": {
                                             "dataType": "Object",
@@ -15518,6 +16096,15 @@
                                                   "dataType": "String"
                                                 }
                                               }
+                                            },
+                                            "optional": true
+                                          },
+                                          "kind": {
+                                            "dataType": "Enum",
+                                            "enumRestrictions": {
+                                              "options": [
+                                                "Foreground"
+                                              ]
                                             },
                                             "optional": true
                                           }
@@ -15846,7 +16433,8 @@
                                                     },
                                                     "min": 3,
                                                     "max": 3
-                                                  }
+                                                  },
+                                                  "optional": true
                                                 },
                                                 "indexedColor": {
                                                   "dataType": "Object",
@@ -15873,6 +16461,15 @@
                                                         "dataType": "String"
                                                       }
                                                     }
+                                                  },
+                                                  "optional": true
+                                                },
+                                                "kind": {
+                                                  "dataType": "Enum",
+                                                  "enumRestrictions": {
+                                                    "options": [
+                                                      "Foreground"
+                                                    ]
                                                   },
                                                   "optional": true
                                                 }
@@ -16012,7 +16609,8 @@
                                                           },
                                                           "min": 3,
                                                           "max": 3
-                                                        }
+                                                        },
+                                                        "optional": true
                                                       },
                                                       "indexedColor": {
                                                         "dataType": "Object",
@@ -16039,6 +16637,15 @@
                                                               "dataType": "String"
                                                             }
                                                           }
+                                                        },
+                                                        "optional": true
+                                                      },
+                                                      "kind": {
+                                                        "dataType": "Enum",
+                                                        "enumRestrictions": {
+                                                          "options": [
+                                                            "Foreground"
+                                                          ]
                                                         },
                                                         "optional": true
                                                       }
@@ -16195,7 +16802,8 @@
                                                           },
                                                           "min": 3,
                                                           "max": 3
-                                                        }
+                                                        },
+                                                        "optional": true
                                                       },
                                                       "indexedColor": {
                                                         "dataType": "Object",
@@ -16222,6 +16830,15 @@
                                                               "dataType": "String"
                                                             }
                                                           }
+                                                        },
+                                                        "optional": true
+                                                      },
+                                                      "kind": {
+                                                        "dataType": "Enum",
+                                                        "enumRestrictions": {
+                                                          "options": [
+                                                            "Foreground"
+                                                          ]
                                                         },
                                                         "optional": true
                                                       }
@@ -16488,7 +17105,8 @@
                                                     },
                                                     "min": 3,
                                                     "max": 3
-                                                  }
+                                                  },
+                                                  "optional": true
                                                 },
                                                 "indexedColor": {
                                                   "dataType": "Object",
@@ -16515,6 +17133,15 @@
                                                         "dataType": "String"
                                                       }
                                                     }
+                                                  },
+                                                  "optional": true
+                                                },
+                                                "kind": {
+                                                  "dataType": "Enum",
+                                                  "enumRestrictions": {
+                                                    "options": [
+                                                      "Foreground"
+                                                    ]
                                                   },
                                                   "optional": true
                                                 }
@@ -16697,7 +17324,8 @@
                                               },
                                               "min": 3,
                                               "max": 3
-                                            }
+                                            },
+                                            "optional": true
                                           },
                                           "indexedColor": {
                                             "dataType": "Object",
@@ -16724,6 +17352,15 @@
                                                   "dataType": "String"
                                                 }
                                               }
+                                            },
+                                            "optional": true
+                                          },
+                                          "kind": {
+                                            "dataType": "Enum",
+                                            "enumRestrictions": {
+                                              "options": [
+                                                "Foreground"
+                                              ]
                                             },
                                             "optional": true
                                           }

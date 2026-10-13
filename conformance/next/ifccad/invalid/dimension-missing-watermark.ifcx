@@ -36,7 +36,8 @@
           "nextModelWindowId": 1,
           "nextTextStyleId": 1,
           "nextUcsId": 1,
-          "profileVersion": "0.1.0"
+          "profileVersion": "0.1.0",
+          "nextSymbolSourceId": 1
         }
       }
     },
@@ -236,15 +237,7 @@
         "ifccad::layer": {
           "appearance": {
             "color": {
-              "indexedColor": {
-                "index": 7,
-                "system": "ACI"
-              },
-              "rgb": [
-                255,
-                255,
-                255
-              ]
+              "kind": "Foreground"
             },
             "linePattern": "/cad/d1/linePattern/0",
             "lineWeight": 0.1,

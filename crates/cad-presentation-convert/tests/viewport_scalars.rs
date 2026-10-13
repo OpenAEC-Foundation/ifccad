@@ -6,10 +6,10 @@ use opencadcodec::{LineWeight, Transparency};
 fn literal_rgb_and_aci_method_values() {
     // AcCmColorBase packs method in the high byte; ACI 1 is 0xc3000001.
     let rgb = decode_override_color(&XRecordValue::Int32(-1039523821)).unwrap(); // c20a2013
-    assert_eq!(rgb.rgb, [0x0a, 0x20, 0x13]);
+    assert_eq!(rgb.concrete_rgb().unwrap(), [0x0a, 0x20, 0x13]);
     let aci = decode_override_color(&XRecordValue::Int32(-1023410175)).unwrap();
-    assert_eq!(aci.rgb, [255, 0, 0]);
-    assert_eq!(aci.indexed, Some(("ACI".into(), 1)));
+    assert_eq!(aci.concrete_rgb().unwrap(), [255, 0, 0]);
+    assert_eq!(aci.indexed_identity().cloned(), Some(("ACI".into(), 1)));
     assert_eq!(
         encode_override_color(&aci).unwrap().0,
         XRecordValue::Int32(-1023410175)

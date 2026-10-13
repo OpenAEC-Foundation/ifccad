@@ -3,7 +3,7 @@ import {translate} from './i18n.mjs';
 import {inspectionNavigation} from './inspection-navigation.mjs';
 import {ifcxNodeJson} from './presentation-json.mjs';
 export const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-export function itemTitle(node,language){return node.type==='drawing'?translate(language,'drawing')+(node.key==='drawing'?'':' · '+node.title):node.type==='group'||node.type==='file'?translate(language,node.title):['node','layer','layers','layout','linePattern','linePatterns','blockDefinition','blockDefinitions','table','stream'].includes(node.type)?node.title:translate(language,node.type)+' · '+node.title;}
+export function itemTitle(node,language){return node.type==='drawing'?translate(language,'drawing')+(node.key==='drawing'?'':' · '+node.title):node.type==='group'||node.type==='file'?translate(language,node.title):['node','layer','layers','layout','linePattern','linePatterns','symbolSource','symbolSources','blockDefinition','blockDefinitions','table','stream'].includes(node.type)?node.title:translate(language,node.type)+' · '+node.title;}
 export function renderInspection(model,state){
  const chevron='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 3 L10.5 8 L5.5 13"/></svg>';
  const {language,selection,expanded,inspector}=state,t=(k,v)=>translate(language,k,v),e=escapeHtml;
@@ -44,6 +44,7 @@ export function renderInspection(model,state){
  const hatch=hatchValues(node);if(hatch)details+='<p class="secondary">'+e(hatchSummary(hatch,language))+'</p>';
  const help=t('help.'+node.type);if(!help.startsWith('help.'))details+='<p class="secondary">'+e(help)+'</p>';
   const assessment=node.values.boundsAssessment;if(assessment)details+='<p class="secondary">'+e(t('boundsSummary',{quality:t(assessment.quality||'empty'),proof:t(assessment.enclosureVerified?'enclosureChecked':'enclosureNotChecked')}))+'</p>';
+  for(const reason of new Set(assessment?.linePatternReasons||[]))details+='<p class="secondary">'+e(t('linePatternReason.'+reason))+'</p>';
   details+=node.type==='group'?'<p class="secondary">'+e(t('group'))+'</p>':'<h3>'+e(t('storedValues'))+'</h3>';
   if(node.type!=='group')details+='<div class="inspector-fields" data-field-owner="'+e(node.key)+'">'+fields(node.values,[],0,node.key)+'</div>';
 

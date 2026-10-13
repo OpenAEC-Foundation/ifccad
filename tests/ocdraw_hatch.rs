@@ -33,6 +33,7 @@ fn drawing() -> OcdrawDocument {
         },
     });
     d.hatch_entities.push(DrawingHatchEntity {
+        gradient: None,
         id: HATCH,
         layer_id: layer,
         visible: true,

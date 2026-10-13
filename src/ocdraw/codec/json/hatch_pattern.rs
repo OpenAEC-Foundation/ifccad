@@ -23,6 +23,7 @@ struct FamilyValue {
 #[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
 enum FillValue {
     Solid,
+    Gradient,
     LinePattern {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         name: Option<String>,
@@ -40,6 +41,7 @@ enum FillValue {
 pub(super) fn encode(fill: &HatchFill) -> Value {
     let v = match fill {
         HatchFill::Solid => FillValue::Solid,
+        HatchFill::Gradient => FillValue::Gradient,
         HatchFill::LinePattern(p) => FillValue::LinePattern {
             name: p.name.clone(),
             description: p.description.clone(),
@@ -66,7 +68,23 @@ pub(super) fn encode(fill: &HatchFill) -> Value {
                 .collect(),
         },
     };
-    serde_json::to_value(v).expect("validated fill values")
+    let mut value = serde_json::to_value(v).expect("validated fill values");
+    if let HatchFill::LinePattern(p) = fill {
+        let fields = value.as_object_mut().expect("fill");
+        if p.origin
+            .iter()
+            .all(|v| super::defaults::is_positive_zero(*v))
+        {
+            fields.remove("origin");
+        }
+        if super::defaults::is_positive_zero(p.rotation) {
+            fields.remove("rotation");
+        }
+        if super::defaults::is_one(p.scale) {
+            fields.remove("scale");
+        }
+    }
+    value
 }
 pub(super) fn decode(v: &Value) -> Result<HatchFill, serde_json::Error> {
     use serde::de::Error as _;
@@ -80,6 +98,7 @@ pub(super) fn decode(v: &Value) -> Result<HatchFill, serde_json::Error> {
     }
     Ok(match serde_json::from_value::<FillValue>(v.clone())? {
         FillValue::Solid => HatchFill::Solid,
+        FillValue::Gradient => HatchFill::Gradient,
         FillValue::LinePattern {
             name,
             description,

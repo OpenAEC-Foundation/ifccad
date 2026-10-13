@@ -5,6 +5,11 @@ identities, same-owner relations and `dimension_assessment()` evidence. The CAD
 adapter shares only neutral preparation with OCDraw. Stored definition/text
 anchors use the hard owner-specific tolerance; dimension display and host
 regeneration remain unassessed. See [Dimension support](../../docs/dimension.md).
+Native [drawing defaults](../../docs/drawing-defaults.md) expand before conversion.
+The source-aware route compares known defaults in both the original composed
+graph and canonical output, including XY line endpoints. Expanded and compact
+spellings are equivalent; foreign graph content and exact scalar projection loss
+still receive the existing diagnostics. Typed document conversion is unchanged.
 
 Experimental direct conversion between `ocdraw::ifccad` and pinned
 opencadcodec `CadDocument`. The core remains independent of opencadcodec. No IFCDR
@@ -129,9 +134,9 @@ for nested occurrence proof, conservative bulge limits and separate file checks.
 - Points, XYZ lines, circles/signed arcs, full/partial ellipses, straight/bulged
   planar and straight spatial paths in valid oriented planes. Local-origin
   decomposition may change while the shape meets the configured hard limit.
-- True RGB, named signed-length patterns (including unused/empty definitions), supported CAD hundredth-mm line weights and
+- Foreground/ACI 7, qualified concrete RGB/indexed/named colors, named signed-length patterns (including unused/empty definitions), supported CAD hundredth-mm line weights and
   exactly byte-representable opacity. ByLayer/ByBlock/Explicit are independent
-  for each entity property and remain stored. RGB text becomes uppercase.
+  for each entity property and remain stored. Native colors use closed value objects.
 - Drawing/entity pattern scales and polyline per-segment/continuous generation.
 - Shared/nested local blocks, base points, insertion units and owner-relative
   order; valid oriented insert placement, rotation and signed nonuniform scale.
@@ -143,8 +148,9 @@ including through nested blocks. Anonymous/reserved names, XREF/external flags
 and directly owned dynamic-block objects cause definition omission; referring
 inserts are also omitted. Mappings contain only emitted objects.
 
-Appearance adaptations are explicit and diagnosed: ACI color becomes canonical
-RGB; unavailable layer color becomes white; inherited/default layer opacity
+Appearance adaptations are explicit and diagnosed: ACI 7 becomes native Foreground;
+other qualified ACI colors retain indexed identity with concrete RGB fallback.
+Unavailable required layer color omits the dependent layer with loss. Inherited/default layer opacity
 becomes opaque; unavailable/default weight becomes 0.25 mm. Numeric weights use
 the closest standard CAD weight (ties prefer the lower entry); opacity uses the
 closest decoded transparency byte (ties prefer greater transparency). Complex
@@ -154,7 +160,7 @@ opaque, Continuous, 0.25 mm CAD layer without a source mapping. Entity
 ByLayer/ByBlock modes remain independent and stored. These adaptations are
 policy-controlled losses, not an appearance resolver.
 
-Widths, fitted/mesh curves, named/indexed color identity, complex text/shape patterns,
+Widths, fitted/mesh curves, unqualified color metadata, complex text/shape patterns,
 changed CAD settings, XDATA, arrays, attributes and source preservation remain
 outside the slice. Unsupported common metadata may be omitted while keeping
 geometry. Extra fields on supported types are also checked. See the contracts:
@@ -333,7 +339,7 @@ Dot grid style and frequencies beyond CAD i16 receive field-specific substitutio
 
 ## Hatch
 
-Native Solid and LinePattern Hatch map stored contours and the normal/outer/ignore area rule.
+Native Solid, LinePattern and Gradient Hatch map stored contours and the normal/outer/ignore area rule.
 Per-loop single same-owner source references bind after entity allocation.
 Unsupported associations retain contour geometry with located loss.
 `hatch_join_tolerance` is a CAD-to-native creation option, separate from numeric
@@ -351,3 +357,13 @@ algorithms. The same single experimental drawing import remains sufficient.
 Wire supplements do not replace typed validation or converter loss/accuracy
 checks; source graphs and source bytes remain immutable. Native records reject unknown members and explicit nulls consistently;
 validation messages identify their rule and source/component location.
+
+Complex line patterns bind ordinary text styles and SHX symbol sources through independent IFCCAD identity maps. Sources retain basenames, including duplicate filenames and unused entries; no glyph files are loaded. Unsupported active dependencies receive whole-definition named-continuous fallback under Allow and rejection under Reject. Host curve accuracy remains assessed while marker outlines remain unassessed.
+
+Gradient settings use the separate native state: active type/two endpoints and
+independent rotation/shift/mode/tint, or partial dormant preferences. CAD output
+requires exact native/target OCS axes; unsupported active frames omit the whole
+Hatch, while dormant frame failure omits only state with a located loss.
+Native color identity may exceed the pinned gradient surface. Physical AC1032
+DXF/DWG qualification and #109 source/target limitations are detailed in
+[Hatch support](../../docs/hatch.md). No gradient renderer is implemented.

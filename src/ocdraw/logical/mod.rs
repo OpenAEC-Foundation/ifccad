@@ -5,8 +5,14 @@ pub use dimension::*;
 pub(crate) mod hatch;
 mod hatch_validation;
 pub(crate) use block_validation::validate_blocks;
-pub use hatch::{resolve_ocdraw_hatch_join_tolerance, DrawingHatchEntity, OcdrawHatchLoop};
+pub use hatch::{
+    resolve_ocdraw_hatch_join_tolerance, DrawingHatchEntity, DrawingHatchGradient, OcdrawHatchLoop,
+};
+pub(crate) use hatch_validation::hatch_gradient_color_valid;
 mod line_pattern;
+pub(crate) mod line_pattern_bounds;
+mod symbol_source;
+pub use symbol_source::*;
 pub(crate) mod line_pattern_validation;
 pub use line_pattern::*;
 mod appearance;
@@ -44,7 +50,9 @@ mod viewport;
 mod viewport_clip;
 pub use viewport_clip::validate_viewport_clip_boundary;
 
-pub use appearance::{AppearanceSelection, DrawingColor, EntityAppearance};
+pub use appearance::{
+    AppearanceSelection, DrawingColor, DrawingColorMetadataError, EntityAppearance,
+};
 pub use definitions::{
     DrawingBlockDefinition, DrawingLayer, DrawingLayout, DrawingLayoutKind, DrawingScope,
     DrawingScopeKind, DrawingUcsDefinition, DrawingWorkspaceState,

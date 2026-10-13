@@ -9,6 +9,10 @@ logical contract. `OcdrawDocument` and IFCCAD remain separate domain models.
 
 ## Construction, reading and editing
 
+Registered [drawing defaults](drawing-defaults.md) expand into complete logical
+values on reading. Writers may omit whole default columns; mixed columns retain
+every row. Presence-sensitive authored state is not default-stripped.
+
 `OcdrawBuilder::build_document()` consumes a fresh builder, moves its geometry
 into an `OcdrawDocument`, prepares scope bounds and validates the result.
 `finish()` remains a convenience wrapper over `build_document()` followed by

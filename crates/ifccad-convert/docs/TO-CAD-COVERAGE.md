@@ -1,4 +1,4 @@
-# IFCCAD → CadDocument coverage
+# IFCCAD â†’ CadDocument coverage
 
 The projection-only `ifccad_document_to_cad_document` routes validate typed
 input before using the shared CAD conversion implementation. They do not inspect
@@ -7,6 +7,11 @@ composed graph for foreign information and exact-source numeric projection.
 Those additional diagnostics and their Allow/Reject enforcement remain intact;
 applications assessing a full IFCX source must use the loaded-source routes.
 Original input bytes and composed graph remain immutable in `LoadedIfccadGraph`.
+
+Known [native defaults](../../../docs/drawing-defaults.md) are expanded on both
+sides of the source/canonical comparison, including XY line endpoints and native
+ByLayer omission. This does not erase foreign fields or supplied numeric values;
+exact-source precision losses remain fatal under both loss policies.
 
 Invalid logical input returns `CoreValidation(IfccadReport)` with its original
 diagnostics. The loaded-source route's canonical encoder failures return
@@ -33,7 +38,7 @@ fresh CAD import assigns new IDs and watermarks with explicit outcome mappings.
 | Composition/profile rules | Core reader composes first, default LaterWins; converter accepts validated projection |
 | Header/drawing/node identity | Source remains intact; mappings report identities; reverse header/drawing ID is caller supplied |
 | Drawing unit | Map all 25 declared tokens to CAD code, without scaling coordinates |
-| Line patterns | Allocate all native named simple/empty definitions, including unused; preserve names/descriptions/lengths; retain required missing Continuous target scaffold with Modified evidence |
+| Line patterns | Allocate simple and qualified text/SHX definitions after ordinary and shape STYLE handles; preserve signed lengths, transforms, relative/absolute radians and source relationships. Independent source IDs produce separate anonymous STYLE records even with equal filenames. Shape selectors 0..32767 are qualified; larger selectors and unsupported active styles use whole-definition named continuous with one Modified diagnostic under Allow, rejected under Reject. |
 | Pattern scale/generation | Drawing/entity scales to header/common fields; planar polyline perSegment/continuous to plinegen |
 | Model | Default Model layout, ordered backing block membership |
 | Paper | Allocate layouts in tab order, optional media and ordered backing block contents; independent numerical coordinates and effective plot mappings. Unsupported medium units omit media/plot state, not the layout. CAD-name collisions and indices exceeding i16 are fatal |
@@ -66,7 +71,7 @@ has Modified evidence. Missing layer 0 is white/opaque/Continuous/0.25 mm with n
 source mapping. Reject refuses all these losses. No source preservation is
 implemented.
 
-Concrete indexed colors use ACI only when its RGB agrees with the authored
+Foreground exports as ACI 7. Other concrete indexed colors use ACI only when their RGB agrees with the authored
 fallback. Unsupported/inconsistent indexed metadata keeps RGB with located loss;
 complete layer/entity named identities are retained where the target field can
 represent them. A catalogue containing the entity `$` delimiter is diagnosed
@@ -308,7 +313,7 @@ origin/rotation/scale and signed phase. Missing literal metadata is diagnosed.
 Pattern certificate envelopes join contour evidence in nested occurrence assessment.
 Nonempty descriptions remain in CadDocument; pinned DXF/DWG storage loses them,
 with a separate viewer/browser physical-readback metadata diagnostic.
-No gradient, spline-boundary or MPOLYGON backing is offered by this slice.
+No spline-boundary or MPOLYGON backing is offered by this slice.
 See [Hatch support](../../../docs/hatch.md) for the complete bounded guarantee.
 ## IFCCAD validation rule organization
 
@@ -382,3 +387,53 @@ host regeneration. The pinned DXF clone reader loses group 12, DXF omits flips
 and DIMSTYLE true colors, and epsilon omission limits certain near-default values.
 Other source picture definitions remain independently audited, never discarded
 by anonymous-looking names. See [Dimension support](../../../docs/dimension.md).
+
+## Foreground / ACI 7
+
+Native Foreground is a symbolic background-dependent black/white color, with no
+RGB fallback or separate ACI identity. Qualified ACI 7 imports as Foreground
+before palette lookup and exports as ACI 7, retaining CTB key 7. Literal RGB
+white and black remain true color. The old concrete `indexedColor: ACI/7` native
+object is invalid; current provisional examples and candidate fixtures use the
+closed `{"kind":"Foreground"}` choice.
+
+This applies to layer/entity colors, qualified Text/MText inline and explicit
+background colors, and C3/index-7 viewport-layer overrides. Named metadata on
+source ACI 7 cannot attach to Foreground and gets located loss under Allow;
+Reject refuses the loss. Editable native common appearance on preserved entities
+supports Foreground while provider payload bytes remain unchanged.
+
+The [independent exchange tests](../tests/foreground_exchange.rs) exercise native
+production readback and actual DXF/AC1032 DWG readback for this route, with fixed
+RGB controls. These tests prove data exchange, not external-app visual/CTB-output
+certification. Additional C5/ByPen/None/257 methods and broader plot-style contents
+remain unqualified. See [presentation](../../../docs/presentation.md#foreground-color)
+and [issue #16](https://github.com/OpenAEC-Foundation/ifccad/issues/16).
+
+Marker footprints are unassessed per affected native curve and block occurrence, alongside the numerical host-curve proof. External font/SHX availability is not probed or diagnosed as semantic loss. Producer bounds claims remain distinct from derived Partial/Estimated evidence.
+
+AC1032 complex DXF/DWG qualification uses `tests/complex_line_pattern_exchange.rs` and the independently authored `tests/fixtures/line-patterns/complex-literal-ac1032.dxf` at the pinned dependency and explicit viewport patch. STYLE roles, filename identities, marker values, relative/absolute flags and degree/radian conversion are checked semantically. Upright flags are outside the current codec public model; this does not qualify upright preservation.
+
+## Gradient target coverage
+
+Validated state maps to two CAD endpoints at 0/1 and independent type/angle/
+shift/mode/tint, with reserved=0. Disabled partials use empty type/colors where
+absent. RGB is exact; consistent ACI identity maps to ACI. Unsupported indexed
+or named identity keeps concrete RGB/ACI with located rejectable loss. No named
+gradient identity is promised by the pin.
+
+Actual target OCS axes must equal native X/Y exactly. An unqualified active
+frame omits the whole Hatch under Allow; a dormant mismatch omits only state.
+Reject refuses and hard contour/numeric failures remain fatal under both policies.
+Contours/occurrences retain existing accuracy; gradient fill/field/pixels are
+separately unassessed, without a renderer or automatic tint/angle repair.
+
+CadDocument success is distinct from actual AC1032 file retention: DWG retains
+disabled state, DXF drops it. Viewer/browser production readback reports that
+loss and refuses delivery under Reject; other gradient target versions are
+gated. See docs/hatch.md and upstream #109 for qualified source/transport limits.
+
+Gradient endpoints stay concrete after the Foreground color migration. Source
+ACI 7 endpoints are unqualified (active whole-Hatch or dormant-state omission
+under Allow; Reject refuses). Native Foreground endpoints fail validation;
+no fixed background or RGB replacement is invented.

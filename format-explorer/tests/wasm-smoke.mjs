@@ -4,11 +4,44 @@ import {initSync,conversion_capabilities,open_drawing,convert_cad_to_drawing,con
 import {processBrowserRequest} from '../src/browser-worker.mjs';
 import {createInspection} from '../src/inspection-model.mjs';
 import {renderInspection} from '../src/inspection-view.mjs';
+import {examples} from '../src/examples.mjs';
+import {hatchValues} from '../src/hatch-view.mjs';
 
 initSync({module:await readFile(new URL('../wasm-build/browser_bg.wasm',import.meta.url))});
 const wasm={conversion_capabilities,open_drawing,convert_cad_to_drawing,convert_cad_to_drawing_with_preservation,export_drawing,open_ifccad,convert_cad_to_ifccad,export_ifccad,export_drawing_with_options,convert_cad_to_drawing_with_options,export_ifccad_with_options,convert_cad_to_ifccad_with_options};
 
-for(const [kind,path]of [['ifccad','../../examples/ifccad/overview.ifcx'],['drawing','../../examples/ocdraw/layouts-viewports.ocdraw.json']]){
+for(const example of examples){
+ const kind=example.format==='IFCCAD'?'ifccad':'drawing',name=example.path.split('/').at(-1),bytes=Uint8Array.from(await readFile(new URL('../../'+example.path,import.meta.url))),source={kind,name,files:[{path:name,bytes:bytes.buffer}]};
+ const opened=processBrowserRequest(source,wasm);assert.equal(opened.failure,null,name+': '+JSON.stringify(opened.failure));assert.equal(opened.validation.strictAvailable,true);
+ const model=createInspection(opened,new TextDecoder().decode(bytes)),nodes=Array.from(model.nodes.values());
+ if(example.name==='Drawing overview'){
+  assert.ok(nodes.some(node=>node.type==='viewport'),name+' retains Paper viewports');
+  assert.ok(nodes.some(node=>node.type==='blockInstance'),name+' retains blocks');
+  const group=kind==='drawing'?'group:symbolSources':'group:symbolSource';
+  assert.equal(model.nodes.get(group).children.length,3);
+  assert.ok(nodes.some(node=>node.outgoing.some(edge=>edge.kind==='symbolSource')));
+  assert.ok(opened.presentation.boundsCompleteness.some(a=>a.quality==='partial'&&!a.enclosureVerified&&!a.safeForNegativeQuery));
+ }
+ if(example.name==='Hatches')assert.deepEqual(nodes.filter(node=>node.type==='hatch').map(node=>hatchValues(node).fill.kind).sort(),['linePattern','solid']);
+ for(const format of ['dxf','dwg']){
+  const output=processBrowserRequest({...source,export:{format,version:'AC1032'}},wasm);assert.equal(output.failure,null,name+' '+format+': '+JSON.stringify(output.failure));
+  const returned=processBrowserRequest({kind:'cad',drawingFormat:example.format==='IFCCAD'?'ifccad':'ocdraw',name:'curated.'+format,files:[{path:'curated.'+format,bytes:Uint8Array.from(Buffer.from(output.export.download.base64,'base64')).buffer}]},wasm);
+  assert.equal(returned.failure,null,name+': '+JSON.stringify(returned.failure));assert.equal(returned.validation.strictAvailable,true);
+  if(example.name==='Drawing overview') {
+   const inspected=createInspection(returned,returned.nativeSourceText),group=kind==='drawing'?'group:symbolSources':'group:symbolSource';
+   assert.equal(inspected.nodes.get(group).children.length,3);
+   assert.ok([...inspected.nodes.values()].some(node=>node.outgoing.some(edge=>edge.kind==='symbolSource')));
+  }
+  if(example.name==='Hatches'){
+   assert.equal(returned.presentation.hatchEntityCount,2);
+   const inspected=createInspection(returned,returned.nativeSourceText);
+   assert.deepEqual(Array.from(inspected.nodes.values()).filter(node=>node.type==='hatch').map(node=>hatchValues(node).fill.kind).sort(),['linePattern','solid']);
+  }
+ }
+}
+console.log('Six curated examples open and pass DXF/DWG production strict readback');
+
+for(const [kind,path]of [['ifccad','../../examples/ifccad/overview.ifcx'],['drawing','../../tests/fixtures/ocdraw/layouts-viewports.ocdraw.json']]){
  const name=path.split('/').at(-1),bytes=Uint8Array.from(await readFile(new URL(path,import.meta.url))),source={kind,name,files:[{path:name,bytes:bytes.buffer}]};
  for(const format of ['dxf','dwg']){
   const output=processBrowserRequest({...source,export:{format,version:'AC1032'}},wasm);assert.equal(output.failure,null,JSON.stringify(output.failure));
@@ -16,12 +49,12 @@ for(const [kind,path]of [['ifccad','../../examples/ifccad/overview.ifcx'],['draw
   assert.equal(returned.failure,null,JSON.stringify(returned.failure));assert.equal(returned.validation.strictAvailable,true);
   const native=JSON.parse(returned.nativeSourceText);
   const color=kind==='ifccad'?native.data.map(node=>node.attributes?.['ifccad::layer']).find(layer=>layer?.name==='0').appearance.color:native.layers.find(layer=>layer.name==='0').color;
-  assert.deepEqual(color.rgb,[255,255,255]);assert.deepEqual(color.indexedColor,{system:'ACI',index:7},`${kind} ${format} must preserve the example's adaptive foreground color`);
+  assert.deepEqual(color,{kind:'Foreground'},`${kind} ${format} must retain background-adaptive Foreground through CAD ACI 7`);
  }
 }
-console.log('Example foreground ACI 7 survives DXF/DWG production readback in both native formats');
+console.log('Example Foreground survives DXF/DWG ACI 7 production readback in both native formats');
 
-for(const [kind,path]of [['ifccad','../../examples/ifccad/hello-hatch-solid.ifcx'],['drawing','../../examples/ocdraw/hello-hatch-solid.ocdraw.json'],['ifccad','../../examples/ifccad/hello-hatch-pattern.ifcx'],['drawing','../../examples/ocdraw/hello-hatch-pattern.ocdraw.json']]){
+for(const [kind,path]of [['ifccad','../../tests/fixtures/ifccad/hello-hatch-solid.ifcx'],['drawing','../../tests/fixtures/ocdraw/hello-hatch-solid.ocdraw.json'],['ifccad','../../tests/fixtures/ifccad/hello-hatch-pattern.ifcx'],['drawing','../../tests/fixtures/ocdraw/hello-hatch-pattern.ocdraw.json']]){
  const name=path.split('/').at(-1),bytes=Uint8Array.from(await readFile(new URL(path,import.meta.url))),source={kind,name,files:[{path:name,bytes:bytes.buffer}]};
  const opened=processBrowserRequest(source,wasm);assert.equal(opened.failure,null,JSON.stringify(opened.failure));assert.equal(opened.validation.strictAvailable,true);assert.equal(opened.presentation.hatchEntityCount,1);
  const model=createInspection(opened,new TextDecoder().decode(bytes)),hatch=Array.from(model.nodes.values()).find(node=>node.type==='hatch');assert.ok(hatch);assert.ok(hatch.outgoing.some(edge=>edge.kind==='hatchSource'));
@@ -35,7 +68,7 @@ for(const [kind,path]of [['ifccad','../../examples/ifccad/hello-hatch-solid.ifcx
 }
 console.log('Browser WASM Hatch inspection, source links, qualified selection and DXF/DWG strict readback verified for both formats');
 
-for(const [kind,path]of [['drawing','../../examples/ocdraw/workspace-state.ocdraw.json'],['ifccad','../../examples/ifccad/workspace-state.ifcx']]){
+for(const [kind,path]of [['drawing','../../tests/fixtures/ocdraw/workspace-state.ocdraw.json'],['ifccad','../../tests/fixtures/ifccad/workspace-state.ifcx']]){
  const name=path.split('/').at(-1),bytes=new Uint8Array(await readFile(new URL(path,import.meta.url)));
  const source={kind,name,files:[{path:name,bytes:bytes.buffer}]};
  const opened=processBrowserRequest(source,wasm);assert.equal(opened.failure,null,JSON.stringify(opened.failure));assert.equal(opened.validation.strictAvailable,true);
@@ -56,7 +89,7 @@ for(const [kind,path]of [['drawing','../../examples/ocdraw/workspace-state.ocdra
 console.log('Browser WASM workspace fields, classified grid limitations and full-width references verified');
 
 // A second active Paper tab must survive the complete CAD -> native -> CAD browser route.
-const activePaperFixture=JSON.parse(await readFile(new URL('../../examples/ocdraw/workspace-state.ocdraw.json',import.meta.url),'utf8'));
+const activePaperFixture=JSON.parse(await readFile(new URL('../../tests/fixtures/ocdraw/workspace-state.ocdraw.json',import.meta.url),'utf8'));
 activePaperFixture.header.nextLayoutId=3;
 activePaperFixture.layouts.push({id:2,scopeId:2,kind:'paper',name:'Selected second sheet',tabIndex:2});
 activePaperFixture.scopes.push({id:2,kind:1,entities:[],bounds:null});
@@ -102,7 +135,7 @@ for(const format of ['dxf','dwg']){
  assert.equal(returned.presentation.entities.filter(e=>e.geometry?.type==='mText').length,1);
 }
 console.log('Browser WASM OCDraw Text/MText native inspection, estimated bounds and actual DXF/DWG exchange verified');
-const ifccadTextBytes=await readFile(new URL('../../examples/ifccad/hello-text.ifcx',import.meta.url));
+const ifccadTextBytes=await readFile(new URL('../../examples/ifccad/text.ifcx',import.meta.url));
 const ifccadTextSource={kind:'ifccad',name:'text.ifcx',files:[{path:'text.ifcx',bytes:Uint8Array.from(ifccadTextBytes).buffer}]};
 const ifccadTextOpened=processBrowserRequest(ifccadTextSource,wasm);
 assert.equal(ifccadTextOpened.failure,null,JSON.stringify(ifccadTextOpened.failure));
@@ -181,7 +214,7 @@ for(const name of ['viewport-circle-clip','viewport-ellipse-clip','viewport-bulg
 }
 console.log('Browser WASM patched DXF active/dormant clips, boundary links and radians verified');
 
-const graph=JSON.parse(await readFile(new URL('../../examples/ifccad/hello-line-patterns.ifcx',import.meta.url),'utf8'));
+const graph=JSON.parse(await readFile(new URL('../../tests/fixtures/ifccad/hello-line-patterns.ifcx',import.meta.url),'utf8'));
 // Exercise the fixture's nonzero base through both real codecs without repair.
 assert.deepEqual(graph.data.find(n=>n.path==='/cad/d1/block/1').attributes['ifccad::blockDefinition'].basePoint,[2,0,0]);
 const ifcxBytes=new TextEncoder().encode(JSON.stringify(graph));
@@ -207,7 +240,7 @@ for(const format of ['ifccad','dxf','dwg']){
 }
 console.log('Browser WASM IFCCAD opening, named patterns and real DXF/DWG roundtrips verified');
 
-const viewportGraph=JSON.parse(await readFile(new URL('../../examples/ifccad/hello-viewports.ifcx',import.meta.url),'utf8'));
+const viewportGraph=JSON.parse(await readFile(new URL('../../tests/fixtures/ifccad/hello-viewports.ifcx',import.meta.url),'utf8'));
 const viewportNode=viewportGraph.data.find(node=>node.attributes?.['ifccad::viewport']);
 const view=viewportNode.attributes['ifccad::viewport'];
 for(const enabled of [false,true]){
@@ -240,7 +273,7 @@ for(const enabled of [false,true]){
 console.log('Browser WASM IFCCAD perspective, active/dormant circle clips and independent display states verified');
 
 // Keep full-width counter literals in text; JSON.parse/stringify would round them.
-const largeText=(await readFile(new URL('../../examples/ifccad/hello-line-patterns.ifcx',import.meta.url),'utf8'))
+const largeText=(await readFile(new URL('../../tests/fixtures/ifccad/hello-line-patterns.ifcx',import.meta.url),'utf8'))
  .replace(/("next(?:Entity|Layer|Layout|Block|LinePattern|Ucs|ModelWindow)Id"\s*:\s*)\d+/g,(_,prefix)=>prefix+'9007199254740993');
 const largeBytes=new TextEncoder().encode(largeText);
 const largeSource={kind:'ifccad',name:'large.ifcx',files:[{path:'large.ifcx',bytes:largeBytes.buffer}]};
@@ -253,7 +286,7 @@ assert.deepEqual(largeReturned,Buffer.from(largeBytes));
 assert.equal(processBrowserRequest({kind:'ifccad',name:'again.ifcx',files:[{path:'again.ifcx',bytes:Uint8Array.from(largeReturned).buffer}]},wasm).validation.strictAvailable,true);
 console.log('Browser WASM full-width IFCCAD allocation state preserved in native download');
 
-const geometryBytes=new Uint8Array(await readFile(new URL('../../examples/ifccad/hello-geometry.ifcx',import.meta.url)));
+const geometryBytes=new Uint8Array(await readFile(new URL('../../tests/fixtures/ifccad/hello-geometry.ifcx',import.meta.url)));
 const geometrySource={kind:'ifccad',name:'geometry.ifcx',files:[{path:'geometry.ifcx',bytes:geometryBytes.buffer}]};
 const geometryOpened=processBrowserRequest(geometrySource,wasm);
 assert.equal(geometryOpened.validation.strictAvailable,true);
@@ -315,7 +348,7 @@ for(const [fixture,knownMapping] of [['layout-plot-inch',true],['layout-medium-o
 console.log('Browser WASM custom physical tolerance reports per-layout output meaning and refuses missing Paper mapping');
 
 {
- const native=Uint8Array.from(await readFile(new URL('../../examples/ifccad/hello-line-patterns.ifcx',import.meta.url))).buffer;
+ const native=Uint8Array.from(await readFile(new URL('../../tests/fixtures/ifccad/hello-line-patterns.ifcx',import.meta.url))).buffer;
  const exported=processBrowserRequest({kind:'ifccad',name:'lines.ifcx',files:[{path:'lines.ifcx',bytes:native}],export:{format:'dxf',version:'AC1032'}},wasm);
  assert.equal(exported.failure,null);const bytes=Uint8Array.from(Buffer.from(exported.export.download.base64,'base64')).buffer;
  for(const drawingFormat of ['ifccad','ocdraw']){

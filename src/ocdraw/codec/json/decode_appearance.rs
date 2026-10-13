@@ -6,6 +6,10 @@ fn column<'a>(stream: &'a Value, field: &str, row: usize) -> Option<&'a Value> {
 }
 
 pub(super) fn color(value: &Value) -> Option<DrawingColor> {
+    if value.get("kind").is_some() {
+        return (value.as_object()?.len() == 1 && value["kind"] == "Foreground")
+            .then_some(DrawingColor::Foreground);
+    }
     let rgb = value.get("rgb")?.as_array()?;
     let indexed = match value.get("indexedColor") {
         Some(value) => Some((
@@ -21,7 +25,7 @@ pub(super) fn color(value: &Value) -> Option<DrawingColor> {
         )),
         None => None,
     };
-    Some(DrawingColor {
+    Some(DrawingColor::Concrete {
         rgb: [
             u8::try_from(rgb.first()?.as_u64()?).ok()?,
             u8::try_from(rgb.get(1)?.as_u64()?).ok()?,

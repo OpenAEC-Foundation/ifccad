@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub(super) struct WireColor {
+pub(super) struct ConcreteWireColor {
     rgb: [u8; 3],
     #[serde(
         default,
@@ -30,31 +30,58 @@ struct Named {
     catalog: String,
     name: String,
 }
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+pub(super) enum WireColor {
+    Foreground(ForegroundWireColor),
+    Concrete(ConcreteWireColor),
+}
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(super) struct ForegroundWireColor {
+    kind: ForegroundKind,
+}
+#[derive(Clone, Debug, Serialize, Deserialize)]
+enum ForegroundKind {
+    Foreground,
+}
 impl WireColor {
     fn encode(c: &IfccadColor) -> Self {
-        Self {
-            rgb: c.rgb,
-            indexed_color: c.indexed.as_ref().map(|(s, i)| Indexed {
-                system: s.clone(),
-                index: *i,
+        match c {
+            IfccadColor::Foreground => Self::Foreground(ForegroundWireColor {
+                kind: ForegroundKind::Foreground,
             }),
-            named_color: c.named.as_ref().map(|(c, n)| Named {
-                catalog: c.clone(),
-                name: n.clone(),
+            IfccadColor::Concrete {
+                rgb,
+                indexed,
+                named,
+            } => Self::Concrete(ConcreteWireColor {
+                rgb: *rgb,
+                indexed_color: indexed.as_ref().map(|(s, i)| Indexed {
+                    system: s.clone(),
+                    index: *i,
+                }),
+                named_color: named.as_ref().map(|(c, n)| Named {
+                    catalog: c.clone(),
+                    name: n.clone(),
+                }),
             }),
         }
     }
     fn decode(&self) -> IfccadColor {
-        IfccadColor {
-            rgb: self.rgb,
-            indexed: self
-                .indexed_color
-                .as_ref()
-                .map(|c| (c.system.clone(), c.index)),
-            named: self
-                .named_color
-                .as_ref()
-                .map(|c| (c.catalog.clone(), c.name.clone())),
+        match self {
+            Self::Foreground(_) => IfccadColor::Foreground,
+            Self::Concrete(c) => IfccadColor::Concrete {
+                rgb: c.rgb,
+                indexed: c
+                    .indexed_color
+                    .as_ref()
+                    .map(|v| (v.system.clone(), v.index)),
+                named: c
+                    .named_color
+                    .as_ref()
+                    .map(|v| (v.catalog.clone(), v.name.clone())),
+            },
         }
     }
 }

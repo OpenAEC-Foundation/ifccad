@@ -2,7 +2,10 @@ use ocdraw::ifccad::*;
 use serde_json::{json, Value};
 
 fn fixture() -> Value {
-    serde_json::from_slice(include_bytes!("../examples/ifccad/hello-viewports.ifcx")).unwrap()
+    serde_json::from_slice(include_bytes!(
+        "../tests/fixtures/ifccad/hello-viewports.ifcx"
+    ))
+    .unwrap()
 }
 fn viewport(v: &mut Value) -> &mut Value {
     &mut v["data"]

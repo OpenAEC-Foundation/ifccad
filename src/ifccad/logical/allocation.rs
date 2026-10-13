@@ -10,6 +10,7 @@ pub enum IfccadIdDomain {
     LinePattern,
     TextStyle,
     DimensionStyle,
+    SymbolSource,
     PreservationRecord,
     Ucs,
     ModelWindow,
@@ -38,6 +39,7 @@ pub struct IfccadIdAllocationError {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct IfccadIdCounters {
     pub next_dimension_style_id: u64,
+    pub next_symbol_source_id: u64,
     pub next_text_style_id: u64,
     pub next_preservation_record_id: u64,
     pub next_ucs_id: u64,
@@ -53,6 +55,7 @@ impl Default for IfccadIdCounters {
     fn default() -> Self {
         Self {
             next_dimension_style_id: 1,
+            next_symbol_source_id: 1,
             next_text_style_id: 1,
             next_preservation_record_id: 1,
             next_ucs_id: 1,
@@ -83,6 +86,15 @@ impl IfccadIdCounters {
             IfccadIdDomain::DimensionStyle,
         )
         .map(super::IfccadDimensionStyleId)
+    }
+    pub fn allocate_symbol_source_id(
+        &mut self,
+    ) -> Result<super::IfccadSymbolSourceId, IfccadIdAllocationError> {
+        allocate(
+            &mut self.next_symbol_source_id,
+            IfccadIdDomain::SymbolSource,
+        )
+        .map(super::IfccadSymbolSourceId)
     }
     pub fn allocate_text_style_id(&mut self) -> Result<IfccadTextStyleId, IfccadIdAllocationError> {
         allocate(&mut self.next_text_style_id, IfccadIdDomain::TextStyle).map(IfccadTextStyleId)
@@ -203,6 +215,11 @@ pub(super) fn validate(document: &super::IfccadDocument) -> Result<(), super::If
                 .map(|pattern| pattern.id.0)
                 .max(),
         ),
+        (
+            "nextSymbolSourceId",
+            ids.next_symbol_source_id,
+            document.symbol_sources.iter().map(|s| s.id.0).max(),
+        ),
     ] {
         if next == 0 {
             return Err(crate::ifccad::diagnostics::failure(
@@ -250,6 +267,7 @@ mod tests {
             ids,
             IfccadIdCounters {
                 next_dimension_style_id: 1,
+                next_symbol_source_id: 1,
                 next_text_style_id: 1,
                 next_preservation_record_id: 1,
                 next_ucs_id: 1,
@@ -267,6 +285,7 @@ mod tests {
     #[test]
     fn allocation_preserves_large_values() {
         let mut ids = IfccadIdCounters {
+            next_symbol_source_id: 1,
             next_preservation_record_id: 1,
             next_entity_id: 9_007_199_254_740_993,
             next_line_pattern_id: 9_007_199_254_740_993,
@@ -292,11 +311,13 @@ mod tests {
             IfccadIdDomain::LinePattern,
             IfccadIdDomain::TextStyle,
             IfccadIdDomain::DimensionStyle,
+            IfccadIdDomain::SymbolSource,
             IfccadIdDomain::Ucs,
             IfccadIdDomain::ModelWindow,
         ] {
             let mut ids = IfccadIdCounters {
                 next_dimension_style_id: u64::MAX - 1,
+                next_symbol_source_id: u64::MAX - 1,
                 next_text_style_id: u64::MAX - 1,
                 next_preservation_record_id: u64::MAX - 1,
                 next_ucs_id: u64::MAX - 1,
@@ -319,6 +340,7 @@ mod tests {
                 IfccadIdDomain::LinePattern => ids.allocate_line_pattern_id().map(|id| id.0),
                 IfccadIdDomain::TextStyle => ids.allocate_text_style_id().map(|id| id.0),
                 IfccadIdDomain::DimensionStyle => ids.allocate_dimension_style_id().map(|id| id.0),
+                IfccadIdDomain::SymbolSource => ids.allocate_symbol_source_id().map(|id| id.0),
                 IfccadIdDomain::Ucs => ids.allocate_ucs_id().map(|id| id.0),
                 IfccadIdDomain::ModelWindow => ids.allocate_model_window_id().map(|id| id.0),
             };

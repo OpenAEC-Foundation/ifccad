@@ -110,9 +110,16 @@
       "kind": "record",
       "fields": [
         {
+          "name": "kind",
+          "valueType": "foregroundColorKind",
+          "nullable": false,
+          "optional": true
+        },
+        {
           "name": "rgb",
           "valueType": "rgb",
-          "nullable": false
+          "nullable": false,
+          "optional": true
         },
         {
           "name": "indexedColor",
@@ -823,7 +830,7 @@
     },
     "linePattern": {
       "kind": "sequence",
-      "items": "float64",
+      "items": "linePatternElement",
       "minItems": 0
     },
     "drawingWorkspaceState": {
@@ -2428,7 +2435,8 @@
       "kind": "enum",
       "values": [
         "solid",
-        "linePattern"
+        "linePattern",
+        "gradient"
       ]
     },
     "hatchBulges": {
@@ -2698,6 +2706,206 @@
     "hatchLiteralString": {
       "kind": "scalar",
       "base": "string"
+    },
+    "foregroundColorKind": {
+      "kind": "enum",
+      "values": [
+        "Foreground"
+      ]
+    },
+    "symbolSourceKind": {
+      "kind": "enum",
+      "values": [
+        "shx"
+      ]
+    },
+    "linePatternMarkerKind": {
+      "kind": "enum",
+      "values": [
+        "text",
+        "symbol"
+      ]
+    },
+    "linePatternRotationMode": {
+      "kind": "enum",
+      "values": [
+        "relative",
+        "absolute"
+      ]
+    },
+    "linePatternRotation": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "mode",
+          "valueType": "linePatternRotationMode",
+          "nullable": false
+        },
+        {
+          "name": "angle",
+          "valueType": "float64",
+          "nullable": false
+        }
+      ]
+    },
+    "linePatternMarker": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "linePatternMarkerKind",
+          "nullable": false
+        },
+        {
+          "name": "text",
+          "valueType": "string",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "textStyleId",
+          "valueType": "uint32",
+          "nullable": false,
+          "optional": true,
+          "reference": {
+            "category": "tableField",
+            "target": "textStyle.id",
+            "strength": "hard"
+          }
+        },
+        {
+          "name": "symbolSourceId",
+          "valueType": "uint32",
+          "nullable": false,
+          "optional": true,
+          "reference": {
+            "category": "tableField",
+            "target": "symbolSource.id",
+            "strength": "hard"
+          }
+        },
+        {
+          "name": "shapeNumber",
+          "valueType": "uint32",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "scale",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true,
+          "default": 1
+        },
+        {
+          "name": "offset",
+          "valueType": "point2",
+          "nullable": false,
+          "optional": true,
+          "default": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "rotation",
+          "valueType": "linePatternRotation",
+          "nullable": false,
+          "optional": true,
+          "default": {
+            "mode": "relative",
+            "angle": 0
+          }
+        }
+      ]
+    },
+    "linePatternElement": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "length",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "marker",
+          "valueType": "linePatternMarker",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "hatchGradientType": {
+      "kind": "enum",
+      "values": [
+        "linear",
+        "cylinder",
+        "inverseCylinder",
+        "spherical",
+        "inverseSpherical",
+        "hemispherical",
+        "inverseHemispherical",
+        "curved",
+        "inverseCurved"
+      ]
+    },
+    "hatchGradientColorMode": {
+      "kind": "enum",
+      "values": [
+        "oneColor",
+        "twoColor"
+      ]
+    },
+    "hatchGradientColors": {
+      "kind": "sequence",
+      "items": "color",
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "hatchGradient": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "type",
+          "valueType": "hatchGradientType",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "colors",
+          "valueType": "hatchGradientColors",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "rotation",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true,
+          "default": 0
+        },
+        {
+          "name": "shift",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true,
+          "default": 0
+        },
+        {
+          "name": "colorMode",
+          "valueType": "hatchGradientColorMode",
+          "nullable": false,
+          "optional": true,
+          "default": "twoColor"
+        },
+        {
+          "name": "tint",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true,
+          "default": 0
+        }
+      ]
     },
     "dimensionDefinition": {
       "kind": "record",
@@ -3039,19 +3247,26 @@
       "kind": "record",
       "fields": [
         {
+          "name": "kind",
+          "valueType": "foregroundColorKind",
+          "nullable": false,
+          "optional": true
+        },
+        {
           "name": "rgb",
-          "valueType": "dimensionColorRgb",
-          "nullable": false
+          "valueType": "rgb",
+          "nullable": false,
+          "optional": true
         },
         {
           "name": "indexedColor",
-          "valueType": "dimensionColorIndexedColor",
+          "valueType": "indexedColor",
           "nullable": false,
           "optional": true
         },
         {
           "name": "namedColor",
-          "valueType": "dimensionColorNamedColor",
+          "valueType": "namedColor",
           "nullable": false,
           "optional": true
         }
@@ -4312,6 +4527,11 @@
         "default": 1
       },
       {
+        "name": "nextSymbolSourceId",
+        "valueType": "uint32",
+        "nullable": false
+      },
+      {
         "name": "nextDimensionStyleId",
         "valueType": "uint32",
         "nullable": false,
@@ -4338,27 +4558,32 @@
         {
           "name": "visible",
           "valueType": "boolean",
-          "nullable": false
+          "nullable": false,
+          "default": true
         },
         {
           "name": "frozen",
           "valueType": "boolean",
-          "nullable": false
+          "nullable": false,
+          "default": false
         },
         {
           "name": "locked",
           "valueType": "boolean",
-          "nullable": false
+          "nullable": false,
+          "default": false
         },
         {
           "name": "plottable",
           "valueType": "boolean",
-          "nullable": false
+          "nullable": false,
+          "default": true
         },
         {
           "name": "frozenInNewViewports",
           "valueType": "boolean",
-          "nullable": false
+          "nullable": false,
+          "default": false
         },
         {
           "name": "description",
@@ -4374,7 +4599,8 @@
         {
           "name": "opacity",
           "valueType": "opacity",
-          "nullable": false
+          "nullable": false,
+          "default": 1
         },
         {
           "name": "linePatternId",
@@ -4824,6 +5050,28 @@
       ]
     },
     {
+      "name": "symbolSource",
+      "schemaId": "ocdraw.symbolSource.v1",
+      "default": [],
+      "fields": [
+        {
+          "name": "id",
+          "valueType": "uint32",
+          "nullable": false
+        },
+        {
+          "name": "kind",
+          "valueType": "symbolSourceKind",
+          "nullable": false
+        },
+        {
+          "name": "fileName",
+          "valueType": "nonEmptyString",
+          "nullable": false
+        }
+      ]
+    },
+    {
       "name": "dimensionStyle",
       "schemaId": "ocdraw.dimensionStyle.v1",
       "default": [],
@@ -5107,7 +5355,8 @@
         {
           "name": "closed",
           "valueType": "boolean",
-          "nullable": false
+          "nullable": false,
+          "default": false
         },
         {
           "name": "layerId",
@@ -5234,7 +5483,8 @@
         {
           "name": "closed",
           "valueType": "boolean",
-          "nullable": false
+          "nullable": false,
+          "default": false
         },
         {
           "name": "layerId",
@@ -6606,6 +6856,13 @@
           "name": "fill",
           "valueType": "hatchFill",
           "nullable": false
+        },
+        {
+          "name": "gradient",
+          "valueType": "hatchGradient",
+          "nullable": true,
+          "optional": true,
+          "default": null
         }
       ]
     },
@@ -6846,6 +7103,14 @@
     {
       "id": "ocdraw.text",
       "contract": "logical-contract-0.1.0.md#text"
+    },
+    {
+      "id": "COLOR_CHOICE",
+      "contract": "logical-contract-0.1.0.md#appearance"
+    },
+    {
+      "id": "ocdraw.complexLinePatterns",
+      "contract": "logical-contract-0.1.0.md#complex-line-patterns"
     },
     {
       "id": "ocdraw.dimension",

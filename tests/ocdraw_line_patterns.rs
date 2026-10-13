@@ -2,7 +2,7 @@ use ocdraw::ocdraw::{load_ocdraw_bytes, OcdrawReadStatus};
 use serde_json::{json, Value};
 
 fn drawing() -> Value {
-    json!({"header":{"format":"open_cad_drawing","version":"0.1.0","drawingId":"patterns","unit":"mm","nextEntityId":1,"nextLayerId":0,"nextLayoutId":1,"nextLinePatternId":3},
+    json!({"header":{"format":"open_cad_drawing","version":"0.1.0","drawingId":"patterns","unit":"mm","nextEntityId":1,"nextLayerId":0,"nextLayoutId":1,"nextLinePatternId":3,"nextSymbolSourceId":0},
     "layouts":[{"id":0,"scopeId":0,"kind":"model","name":"Model","tabIndex":0}],
     "scopes":[{"id":0,"kind":0,"entities":[],"bounds":null}],"streams":{},
     "linePatterns":[{"id":0,"name":"Continuous","pattern":[]},{"id":1,"name":"DashDot","pattern":[6,-2,0,-2]},{"id":2,"name":"GAS_LEIDING","pattern":[]}]})
@@ -138,7 +138,10 @@ fn invalid_writer_pattern_values_and_scales_are_rejected() {
             .add_line_pattern(LinePatternDefinition {
                 name: "Bad".into(),
                 description: None,
-                pattern
+                pattern: pattern
+                    .into_iter()
+                    .map(ocdraw::line_pattern::LinePatternElement::simple)
+                    .collect()
             })
             .is_err());
     }
@@ -150,6 +153,9 @@ fn invalid_writer_pattern_values_and_scales_are_rejected() {
             name: "Dots".into(),
             description: None,
             pattern: vec![0.0, -2.0]
+                .into_iter()
+                .map(ocdraw::line_pattern::LinePatternElement::simple)
+                .collect()
         })
         .is_ok());
     assert!(b
@@ -157,6 +163,9 @@ fn invalid_writer_pattern_values_and_scales_are_rejected() {
             name: "Solid".into(),
             description: None,
             pattern: vec![1.0, 2.0]
+                .into_iter()
+                .map(ocdraw::line_pattern::LinePatternElement::simple)
+                .collect()
         })
         .is_ok());
 }
@@ -169,7 +178,10 @@ fn polyline_generation_and_scales_roundtrip() {
         .add_line_pattern(LinePatternDefinition {
             name: "DashDot".into(),
             description: None,
-            pattern: vec![6.0, -2.0, 0.0, -2.0],
+            pattern: vec![6.0, -2.0, 0.0, -2.0]
+                .into_iter()
+                .map(ocdraw::line_pattern::LinePatternElement::simple)
+                .collect(),
         })
         .unwrap();
     let layer = builder
@@ -186,7 +198,11 @@ fn polyline_generation_and_scales_roundtrip() {
     let drawing = loaded.as_ref().ok().unwrap();
     assert_eq!(drawing.line_pattern_scale(), 2.0);
     assert_eq!(
-        drawing.line_patterns()[0].pattern,
+        drawing.line_patterns()[0]
+            .pattern
+            .iter()
+            .map(|e| e.length)
+            .collect::<Vec<_>>(),
         vec![6.0, -2.0, 0.0, -2.0]
     );
     assert_eq!(
@@ -218,7 +234,10 @@ fn empty_drawing_and_omitted_defaults_do_not_synthesize_patterns() {
         .add_line_pattern(LinePatternDefinition {
             name: "Authored".into(),
             description: None,
-            pattern: vec![1.0, -1.0],
+            pattern: vec![1.0, -1.0]
+                .into_iter()
+                .map(ocdraw::line_pattern::LinePatternElement::simple)
+                .collect(),
         })
         .unwrap();
     let continuous = builder.ensure_continuous_line_pattern().unwrap();

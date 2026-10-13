@@ -7,6 +7,7 @@ pub struct CadToEncodedOcdrawOutcome {
     pub(crate) dimension_styles: BTreeMap<Handle, ocdraw::ocdraw::OcdrawDimensionStyleId>,
     pub(crate) text: crate::OcdrawTextAssessment,
     pub(crate) text_styles: BTreeMap<Handle, ocdraw::ocdraw::OcdrawTextStyleId>,
+    pub(crate) symbol_sources: BTreeMap<Handle, ocdraw::ocdraw::SymbolSourceId>,
     pub(crate) preservation: crate::OcdrawPreservationReport,
     pub(crate) encoded: EncodedOcdraw,
     pub(crate) diagnostics: Vec<CadToOcdrawDiagnostic>,
@@ -22,6 +23,9 @@ impl CadToEncodedOcdrawOutcome {
         &self,
     ) -> &BTreeMap<Handle, ocdraw::ocdraw::OcdrawDimensionStyleId> {
         &self.dimension_styles
+    }
+    pub fn symbol_source_mapping(&self) -> &BTreeMap<Handle, ocdraw::ocdraw::SymbolSourceId> {
+        &self.symbol_sources
     }
     pub fn text_assessment(&self) -> &crate::OcdrawTextAssessment {
         &self.text
@@ -55,6 +59,7 @@ pub struct CadToOcdrawDocumentOutcome {
     pub(crate) dimension_styles: BTreeMap<Handle, ocdraw::ocdraw::OcdrawDimensionStyleId>,
     pub(crate) text: crate::OcdrawTextAssessment,
     pub(crate) text_styles: BTreeMap<Handle, ocdraw::ocdraw::OcdrawTextStyleId>,
+    pub(crate) symbol_sources: BTreeMap<Handle, ocdraw::ocdraw::SymbolSourceId>,
     pub(crate) preservation: crate::OcdrawPreservationReport,
     pub(crate) document: OcdrawDocument,
     pub(crate) diagnostics: Vec<CadToOcdrawDiagnostic>,
@@ -70,6 +75,9 @@ impl CadToOcdrawDocumentOutcome {
         &self,
     ) -> &BTreeMap<Handle, ocdraw::ocdraw::OcdrawDimensionStyleId> {
         &self.dimension_styles
+    }
+    pub fn symbol_source_mapping(&self) -> &BTreeMap<Handle, ocdraw::ocdraw::SymbolSourceId> {
+        &self.symbol_sources
     }
     pub fn text_assessment(&self) -> &crate::OcdrawTextAssessment {
         &self.text
@@ -103,6 +111,7 @@ pub struct OcdrawToCadOutcome {
     pub(crate) dimension_styles: BTreeMap<ocdraw::ocdraw::OcdrawDimensionStyleId, Handle>,
     pub(crate) text: crate::OcdrawTextAssessment,
     pub(crate) text_styles: BTreeMap<ocdraw::ocdraw::OcdrawTextStyleId, Handle>,
+    pub(crate) symbol_sources: BTreeMap<ocdraw::ocdraw::SymbolSourceId, Handle>,
     pub(crate) preservation: crate::OcdrawPreservationReport,
     pub(crate) document: CadDocument,
     pub(crate) diagnostics: Vec<OcdrawToCadDiagnostic>,
@@ -118,6 +127,9 @@ impl OcdrawToCadOutcome {
         &self,
     ) -> &BTreeMap<ocdraw::ocdraw::OcdrawDimensionStyleId, Handle> {
         &self.dimension_styles
+    }
+    pub fn symbol_source_mapping(&self) -> &BTreeMap<ocdraw::ocdraw::SymbolSourceId, Handle> {
+        &self.symbol_sources
     }
     pub fn text_assessment(&self) -> &crate::OcdrawTextAssessment {
         &self.text

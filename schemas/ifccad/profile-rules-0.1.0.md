@@ -18,6 +18,17 @@ local values, not a second whole-document schema.
 
 ## Validation phases and upstream migration
 
+Native defaults are applied after composition, before typed domain validation;
+see [drawing defaults](../../docs/drawing-defaults.md). Line endpoints MUST have
+two or three numeric components; a missing third component means +0. Other XYZ
+positions, spatial-polyline vertices, axes and scale components retain their
+existing requirements. Native entity appearance MAY omit individual properties
+or the whole object, defaulting each to ByLayer; null remains invalid. Opaque
+appearance absence remains unknown and its envelope rules are unchanged.
+Block rotation/scale default to +0/[1,1,1]; transform and placement remain required.
+Layer opacity defaults to 1; planar/spatial polyline closure defaults to false.
+Writers MUST preserve nondefaults and explicit -0 in newly compacted fields.
+
 `C` is JSON parsing/composition, `V` is consumed composed attribute validation,
 `G` is graph projection/reference validation, and `D` is typed domain validation.
 Writer output must pass the production reader and strict domain validation.
@@ -56,6 +67,7 @@ not suffix-only references. Foreign namespaces remain outside this catalog.
 | `ifccad::layer` | drawing definition; OWN, APPEARANCE | `layerExtras` |
 | `ifccad::entity` | native ordered drawable; OWN, APPEARANCE | `entityExtras` |
 | `ifccad::linePattern` | drawing definition; ID, PATTERN | `patternExtras` |
+| `ifccad::symbolSource` | independent drawing definition; ID, SYMBOL | `symbolSource` |
 | `ifccad::blockDefinition` | drawing definition; OWN, GEOMETRY, BOUNDS | `blockDefinitionExtras` |
 | `ifccad::blockInstance` | ordered drawable; OWN, GEOMETRY | `blockInstanceExtras` |
 | `ifccad::geom::placement` | required local frame on placed payloads; GEOMETRY | `placementExtras` |
@@ -112,7 +124,7 @@ not suffix-only references. Foreign namespaces remain outside this catalog.
 
 | ID | Requirement and algorithm | Phase / gap | Evidence |
 |---|---|---|---|
-| IFCCAD-APPEARANCE-001 | Concrete colors MUST be closed RGB-byte objects with optional closed nonempty indexed/named metadata; indexed values MUST be exact uint64; opacity MUST be finite in [0,1]; lineWeight MUST be finite >=0 mm. Layer name MUST be nonempty. Entity layer/pattern references MUST resolve in the drawing. | V/G/D; G7/G4 | [domain checks](../../src/ifccad/logical/document_validation.rs), [profile tests](../../tests/ifccad_profile_rules.rs) |
+| IFCCAD-APPEARANCE-001 | Colors MUST be either the exclusive closed `{kind:Foreground}` choice or closed RGB-byte objects with optional closed nonempty indexed/named metadata; concrete indexed ACI 7 (ASCII-case-insensitive system) MUST be rejected; indexed values MUST be exact uint64; opacity MUST be finite in [0,1]; lineWeight MUST be finite >=0 mm. Layer name MUST be nonempty. Entity layer/pattern references MUST resolve in the drawing. | V/G/D; G7/G4 | [domain checks](../../src/ifccad/logical/document_validation.rs), [profile tests](../../tests/ifccad_profile_rules.rs) |
 | IFCCAD-APPEARANCE-002 | Each entity property mode object MUST contain only mode for ByLayer/ByBlock, and exactly mode/value for Explicit. Preserve modes, including top-level ByBlock with no universal fallback. Layer named `0` and ByBlock chains defer per occurrence to containing instances; this contract supplies no resolved-appearance evaluator. | V/D; G6/P | [line patterns](../../tests/ifccad_line_patterns.rs), [wire modes](../../src/ifccad/codec/json/validate.rs) |
 | IFCCAD-PATTERN-001 | Drawing/entity scale MUST be finite >0; absence means 1. Polyline generation absence means perSegment, alternatively continuous. Signed lengths use owner coordinates and scale multiplicatively; no resolved renderer is implied. | V/D; G7/P | [pattern tests](../../tests/ifccad_line_patterns.rs) |
 | IFCCAD-PATTERN-002 | Pattern names MUST be nonempty and unique under pinned Unicode 17 full case folding without trim/normalization; ByLayer/ByBlock names are forbidden. Continuous MUST have empty pattern. Nonempty pattern MUST contain >=2 finite values with first >=0 and finite positive sum of absolute lengths. Unused definitions MUST survive. | V/D; G7/P | [pattern algorithm](../../src/ifccad/logical/patterns.rs), [pattern tests](../../tests/ifccad_line_patterns.rs) |
@@ -210,9 +222,10 @@ tokens through binary64 or to accept them in place of typed uint64 parsing.
 
 | Rule | Normative obligation | Phase; gap | Evidence |
 |---|---|---|---|
-| IFCCAD-HATCH-001 | Hatch MUST have one placement and a qualified Solid or LinePattern fill. All nested loop/boundary/edge objects MUST be closed typed variants. Full circles/ellipses and partial signed arcs MUST obey shared primitive parameter rules. Loops MUST be nonempty; implicit closed polylines MUST have matching outgoing bulges and sufficient distinct vertices. | V/D; G6/G7/P | [Hatch](../../docs/hatch.md), [native wire](../../tests/ifccad_hatch_wire.rs) |
+| IFCCAD-HATCH-001 | Hatch MUST have one placement and a qualified Solid, LinePattern or Gradient fill. All nested loop/boundary/edge objects MUST be closed typed variants. Full circles/ellipses and partial signed arcs MUST obey shared primitive parameter rules. Loops MUST be nonempty; implicit closed polylines MUST have matching outgoing bulges and sufficient distinct vertices. | V/D; G6/G7/P | [Hatch](../../docs/hatch.md), [native wire](../../tests/ifccad_hatch_wire.rs) |
 | IFCCAD-HATCH-002 | Each optional loop source MUST reference one complete closed Circle/Ellipse/planar Polyline in the same owner, by complete drawing-local entity identity. Missing, open, wrong-kind or wrong-owner targets MUST fail. Stored contours remain authoritative; IO MUST NOT compare source geometry or regenerate the Hatch. | G/D; G4/P | [source lifecycle](../../tests/ifccad_hatch.rs) |
 | IFCCAD-HATCH-003 | Authored joinTolerance MUST be finite/nonnegative in local units, default nearest binary64 decimal 1e-9. Exact zero requires proven equality. Excessive and numerically unprovable joins MUST fail separately. IO MUST NOT snap, bridge or increase the limit. Validation MUST NOT claim intersection/nesting/fill evaluation. | V/D; G7/P | [kernel](../../tests/hatch_geometry.rs), [creation units](../../tests/hatch_tolerance.rs) |
+| IFCCAD-HATCH-005 | Gradient fill MUST have complete typed gradient settings and exactly two concrete colors. Inactive settings MAY lack type/colors; nonfinite values, shift/tint outside [0,1] and all-default empty state MUST fail. One/two-color mode and tint MUST NOT regenerate stored colors. | V/D; G6/G7/P | [native gradient wire](../../tests/hatch_gradient_wire.rs) |
 
 Existing WIRE/ID/OWN/GEOMETRY/BOUNDS rules continue to apply. A local supplement
 validates tags/fields, not topology, join proofs or source agreement. The reader
@@ -265,3 +278,37 @@ Evidence: tests/hatch_pattern.rs and tests/hatch_pattern_wire.rs.
 Ordinary Dimension storage/readback does not establish CAD exchange, font layout
 or runtime associative updates. See the independent conversion coverage as it is
 qualified. Annotative Text/MText and Dimension remain a joint future slice.
+## Complex line patterns and symbol sources
+
+`ifccad::linePattern.pattern` is an ordered array of plain signed numbers or
+closed `{length,marker}` objects. Positive lengths retain strokes, negative
+lengths retain gaps; zero with a marker contributes no dot. Simple nonempty
+periods require two elements; complex periods permit one. Both require a
+nonnegative first length and a finite positive absolute-length sum.
+
+Text markers carry `kind:text`, literal `text` and a complete `textStyle` path.
+Symbol markers carry `kind:symbol`, `symbolSource` path and uint32 `shapeNumber`.
+Both support finite positive scale, finite two-component offset, and relative or
+absolute rotation in radians. Omission defaults are 1, [0,0], and relative zero;
+null, unknown fields and fields of another variant are rejected. References are
+canonical complete paths within the same drawing and must resolve to their
+respective roles after composition. Later fragments replace whole attribute
+values, including the array; RejectConflicts rejects conflicting fragments.
+
+`ifccad::symbolSource` is a closed `{kind:shx,fileName}` payload on
+`/cad/dN/symbolSource/N`, referenced by its drawing children. Source IDs are
+independent exact uint64 values, including zero. Duplicate filenames retain
+separate identity. The required `nextSymbolSourceId` is positive, greater than
+all existing source IDs, and is never lowered by deletion. Allocation overflow
+is atomic. Filenames are nonempty basenames except . and .., without slash,
+backslash or NUL. Internal reference errors are fatal; external asset absence
+is nonfatal and the core performs no asset lookup.
+
+The IFCX declaration supplies the Array wrapper. The profile-owned supplemental
+schema supplies its closed number/marked-element alternatives, and semantic
+validation supplies period, transform and graph rules. This is an independent
+experimental contract, not an adopted buildingSMART symbol resource standard.
+
+Gradient endpoints require concrete fixed RGB colors; Foreground is not a
+gradient endpoint. Concrete ACI 7 identity remains invalid under the common
+color contract. No background-dependent endpoint is resolved during IO.

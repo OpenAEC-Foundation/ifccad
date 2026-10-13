@@ -20,6 +20,7 @@ const ENTRIES: &[(&str, &str, &str)] = &[
     ("ifccad::layer", "layerExtras", "IFCCAD-APPEARANCE-001"),
     ("ifccad::entity", "entityExtras", "IFCCAD-APPEARANCE-002"),
     ("ifccad::linePattern", "patternExtras", "IFCCAD-PATTERN-002"),
+    ("ifccad::symbolSource", "symbolSource", "IFCCAD-SYMBOL-001"),
     (
         "ifccad::blockDefinition",
         "blockDefinitionExtras",

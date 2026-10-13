@@ -1,7 +1,7 @@
 use ocdraw::ifccad::*;
 use serde_json::{json, Value};
 
-const HELLO: &[u8] = include_bytes!("../examples/ifccad/hello-cad.ifcx");
+const HELLO: &[u8] = include_bytes!("../tests/fixtures/ifccad/hello-cad.ifcx");
 
 #[test]
 fn encoder_validation_retains_original_report() {
@@ -123,7 +123,7 @@ fn extracted_document_edits_do_not_change_source_snapshot() {
 
 fn paper_document() -> IfccadDocument {
     load_ifccad_bytes(
-        include_bytes!("../examples/ifccad/hello-paper-layouts.ifcx"),
+        include_bytes!("../tests/fixtures/ifccad/hello-paper-layouts.ifcx"),
         Default::default(),
     )
     .unwrap()
@@ -231,7 +231,7 @@ fn invalid_typed_documents_fail_without_encoding() {
             .opacity = IfccadMode::Explicit(2.)
     });
     add("layer appearance", |d| {
-        d.layers[0].appearance.color = IfccadColor::rgb(255, 0, 0).with_indexed("", 1)
+        d.layers[0].appearance.color = IfccadColor::rgb(255, 0, 0).with_indexed("", 1).unwrap()
     });
     add("layer name", |d| d.layers[0].name.clear());
     add("paper dimensions", |d| {
@@ -258,7 +258,9 @@ fn invalid_typed_documents_fail_without_encoding() {
             .line_pattern_scale = f64::NAN
     });
     add("pattern definition", |d| {
-        d.line_patterns[0].pattern = vec![f64::INFINITY]
+        d.line_patterns[0].pattern = vec![ocdraw::line_pattern::LinePatternElement::simple(
+            f64::INFINITY,
+        )]
     });
     for (name, document) in cases {
         let report = validate_ifccad_document(&document).expect_err(name);
@@ -289,9 +291,9 @@ fn transform() -> IfccadBlockTransform {
 fn typed_document_encoding_keeps_history_and_supported_semantics() {
     for fixture in [
         HELLO,
-        include_bytes!("../examples/ifccad/hello-line-patterns.ifcx"),
-        include_bytes!("../examples/ifccad/hello-nested-blocks.ifcx"),
-        include_bytes!("../examples/ifccad/hello-paper-layouts.ifcx"),
+        include_bytes!("../tests/fixtures/ifccad/hello-line-patterns.ifcx"),
+        include_bytes!("../tests/fixtures/ifccad/hello-nested-blocks.ifcx"),
+        include_bytes!("../tests/fixtures/ifccad/hello-paper-layouts.ifcx"),
     ] {
         let mut document = load_ifccad_bytes(fixture, Default::default())
             .unwrap()

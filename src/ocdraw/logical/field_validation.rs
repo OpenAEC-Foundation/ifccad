@@ -46,11 +46,9 @@ fn unit(value: &str) -> bool {
     )
 }
 pub(crate) fn color(c: &DrawingColor) -> bool {
-    c.indexed.as_ref().is_none_or(|(s, _)| !s.is_empty())
-        && c.named
-            .as_ref()
-            .is_none_or(|(c, n)| !c.is_empty() && !n.is_empty())
+    c.is_valid()
 }
+
 fn opacity(v: f64) -> bool {
     v.is_finite() && (0.0..=1.0).contains(&v)
 }

@@ -4,6 +4,15 @@ IFCCAD is an opt-in, standalone IFCX alpha experiment, independent of the OCDraw
 
 ## Validation contract
 
+The [drawing-defaults contract](../../docs/drawing-defaults.md) describes native
+omission semantics shared with OCDraw. Missing line Z means +0, entity appearance
+properties mean ByLayer, layer opacity means 1, and polyline closed means false.
+Block rotation and scale may omit +0 and [1,1,1]. These physical defaults expand
+after IFCX composition; the logical document retains complete values. Null,
+unknown fields and malformed present values remain invalid. Placement/axis and
+spatial-vertex requirements are unchanged. Existing fully expanded input remains
+valid; older experimental readers can reject new compact output.
+
 The ordinary IFCX module describes the available field shapes. The normative
 [profile rules](profile-rules-0.1.0.md) identify additional local-value, graph and
 domain obligations for all current attribute families. The bundled offline reader
@@ -72,8 +81,8 @@ The drawing has named `children` referring to exactly one Model layout, zero or 
 | `ifccad::linePattern` | nonempty `name`, optional `description`, ordered signed-real `pattern` array; drawing-owned definition |
 | `ifccad::layer` | `name`, direct concrete `appearance`; optional description and independent visible/frozen/locked/plottable/frozenInNewViewports state |
 | `ifccad::blockDefinition` | `name`, `basePoint` XYZ, `insertionUnit`; description, anonymous, explodable and signed-uniform scaling policy |
-| `ifccad::entity` | resolvable drawing-local `layer`, four property modes in `appearance`; optional positive finite `linePatternScale` defaults to 1; common `visible` defaults true |
-| `ifccad::geom::lineSegment` | `start` and `end` XYZ; finite segment, unlike unbounded IFC4 `IfcLine` |
+| `ifccad::entity` | required resolvable drawing-local `layer`; missing native `appearance` or its properties mean ByLayer; optional positive finite `linePatternScale` defaults to 1; common `visible` defaults true |
+| `ifccad::geom::lineSegment` | required `start` and `end`, each XY or XYZ with missing Z=+0; finite segment, unlike unbounded IFC4 `IfcLine` |
 | `ifccad::geom::point` | empty object plus required placement; its origin is the position and its axes retain presentation orientation |
 | `ifccad::geom::planarPolyline` | at least two XY `vertices`, `closed`, optional outgoing `bulges` array plus placement; optional `linePatternGeneration` defaults to `perSegment`, alternatively `continuous` |
 | `ifccad::geom::spatialPolyline` | at least two direct owning-scope XYZ vertices, closure and optional pattern generation; placement and bulges are forbidden |
@@ -103,7 +112,7 @@ Unknown fields and removed spellings are rejected; no old-file synthesis is adde
 See [layout output](../../docs/layout-output.md) for output choices and exchange limits.
 
 
-A block definition's insertion unit records intent but does not silently scale coordinates. Transform evaluation subtracts the definition base point, applies stored scale and rotation, then applies placement. For a paper-owned instance, its scale maps drawing-coordinate numbers into paper-coordinate numbers; any unit conversion must be included explicitly. For example, the [paper-layout fixture](../../examples/ifccad/hello-paper-layouts.ifcx) has centimetre model/block coordinates and an A3 sheet in millimetres, with a paper instance scale of `[10, 10, 10]`. A nested instance inside a definition stays in drawing units. Reading and writing never normalize or rewrite these transforms; present scope bounds require conservative transform evaluation for validation.
+A block definition's insertion unit records intent but does not silently scale coordinates. Transform evaluation subtracts the definition base point, applies stored scale and rotation, then applies placement. For a paper-owned instance, its scale maps drawing-coordinate numbers into paper-coordinate numbers; any unit conversion must be included explicitly. For example, the [paper-layout fixture](../../tests/fixtures/ifccad/hello-paper-layouts.ifcx) has centimetre model/block coordinates and an A3 sheet in millimetres, with a paper instance scale of `[10, 10, 10]`. A nested instance inside a definition stays in drawing units. Reading and writing never normalize or rewrite these transforms; present scope bounds require conservative transform evaluation for validation.
 
 Definitions also retain `description` (default empty), `anonymous` (false),
 `explodable` (true) and `uniformScaling` (false). When uniformScaling is true,
@@ -174,7 +183,7 @@ No sampling, projection or conversion-tolerance epsilon substitutes for these
 rules. Dormant references retain their independent ownership/exclusivity rules
 without active shape/frame eligibility.
 
-`layerOverrides` has one row per same-drawing layer path, with optional concrete
+`layerOverrides` has one row per same-drawing layer path, with optional explicit
 color, opacity, linePattern reference and lineWeight; frozen defaults false.
 Every row must carry a freeze or appearance change. References must exist;
 duplicate layers, unknown fields and explicit null optional values are invalid.
@@ -187,7 +196,7 @@ or Rendered; absence has the AsDisplayed default. Render mode is separate.
 Quality/custom DPI belongs only to layout plotsettings. Combined viewport
 mode/quality objects are not accepted or silently migrated.
 
-The [viewport example](../../examples/ifccad/hello-viewports.ifcx) and
+The [viewport example](../../tests/fixtures/ifccad/hello-viewports.ifcx) and
 [candidate conformance cases](../../conformance/next/ifccad/README.md)
 exercise strict reader/writer behavior. CAD conversion has separate coverage and
 dependency boundaries documented by the companion converter.
@@ -213,7 +222,7 @@ geometry, instances, Text/MText and viewports. Viewport-local `visible` is
 removed; viewport enabled/locked status remains independent. Hidden content
 retains its ordinary ownership, draw order and geometry/bounds meaning.
 
-Layer appearance directly contains a concrete `color` object, `opacity` in `[0,1]`, `linePattern` as a same-drawing pattern-definition path, and nonnegative `lineWeight` in millimetres. Each entity has these four properties independently as `{ "mode": "ByLayer" }`, `{ "mode": "ByBlock" }`, or `{ "mode": "Explicit", "value": ... }`. Modes survive readback; no appearance definition or binding node exists. For an explicit entity pattern, `value` is that same complete path; inherited modes must have no value. The typed API uses `IfccadLinePatternId(u64)`. Literal names such as `Continuous` are not references and are rejected.
+Layer appearance directly contains an explicit `color` choice, optional `opacity` in `[0,1]` defaulting to 1, `linePattern` as a same-drawing pattern-definition path, and nonnegative `lineWeight` in millimetres. Each native entity has these four properties independently as `{ "mode": "ByLayer" }`, `{ "mode": "ByBlock" }`, or `{ "mode": "Explicit", "value": ... }`; omitted properties or the omitted whole appearance object mean ByLayer. Modes survive readback; no appearance definition or binding node exists. For an explicit entity pattern, `value` is that same complete path; inherited modes must have no value. The typed API uses `IfccadLinePatternId(u64)`. Literal names such as `Continuous` are not references and are rejected.
 
 Concrete color is `{ "rgb": [255, 0, 0] }`, optionally extended with
 `indexedColor: {system,index}` and `namedColor: {catalog,name}`. RGB has exactly
@@ -222,9 +231,28 @@ and named identity may coexist; RGB retains the concrete fallback. Native
 validation does not resolve catalogues or calculate ACI colors. ByLayer/ByBlock
 remain separate appearance modes, not concrete index values. Unknown nested
 fields, explicit null metadata and removed `#RRGGBB` color strings are rejected.
-The Rust type is `IfccadColor`; the same concrete value applies to MText inline
-and background colors and editable native appearance on opaque content. The
-provisional color migration does not alter codec-specific preservation payloads.
+The Rust type is `IfccadColor`; the same color choice applies to MText inline
+and background colors and editable native appearance on opaque content. The provisional color migration does not alter codec-specific preservation payloads.
+
+Color is an exclusive Foreground or concrete choice. Foreground is encoded as
+the closed object `{"kind":"Foreground"}` and carries no RGB/indexed/named
+value. Concrete color has required RGB bytes and optional indexed/named identity;
+its existing physical shape is retained. A concrete indexed color with system
+ASCII-case-insensitively `ACI` and index 7 is invalid. Use Foreground, even when
+its current display matches RGB white or black. Unknown/mixed choices and null
+color values are invalid. Optional enclosing column slots keep their own
+nullability rules. These constraints apply to all native color locations,
+including text, viewport overrides and editable opaque common appearance.
+
+After inheritance/viewport overrides, resolve Foreground against the effective
+opaque sRGB background for that occurrence. Normalize components to c in [0,1]
+and linearize with c/12.92 when c <= 0.04045, otherwise
+((c+0.055)/1.055)^2.4. With L = 0.2126 R + 0.7152 G + 0.0722 B, select black
+when (L+0.05)/0.05 >= 1.05/(L+0.05), and white otherwise. Thus black backgrounds
+yield white and white backgrounds yield black. The selected RGB is not stored
+in the document. This native rule does not claim AutoCAD palette reproduction.
+Canvas-background-fill and ByLayer/ByBlock remain distinct meanings.
+
 
 The stored modes retain ordinary CAD intent per occurrence: Explicit supplies its own value, ByLayer uses the effective layer, and ByBlock defers to the containing block instance's corresponding property. An entity on the layer *named* `0` inside a block definition inherits the containing instance's effective layer; nested layer-0 and ByBlock chains continue outward through instances. A top-level ByBlock mode remains stored but has no universal effective fallback in this proof. The document has no resolved-appearance field. The experimental reader validates references, layer names, modes and explicit values but does not compute effective appearance; rendering or conversion may do that per occurrence.
 
@@ -449,7 +477,7 @@ errors. IFCX composition retains its established whole-attribute semantics.
 
 An ordinary entity may have ifccad::hatch plus the required shared placement.
 The body stores loops, areaRule (normal/outer/ignore), joinTolerance and fill.
-Only fill kind solid is available in this slice. Nested boundary kinds are
+The active profile supports solid, linePattern and gradient fill. Nested boundary kinds are
 closed polyline, full circle/ellipse and ordered line/circularArc/ellipticArc
 edges, in local XY numeric arrays. Variant fields are closed and checked by
 the profile; IFCX Object/Array descriptions alone do not express those unions.
@@ -466,7 +494,7 @@ stored contour. Invalid references fail; explicit detach keeps the contour.
 
 The complete ifccad::hatch value is replaced by a later fragment, including
 its loops array. Nested keys are ordinary typed values, not independent nodes
-or attribute maps. Unknown/inactive fields, null optional references and
+or attribute maps. Unknown fields, null optional references and
 unavailable fill variants fail. Native-placement is the qualified baseline;
 the separate xformop experiment does not automatically gain Hatch support.
 
@@ -504,7 +532,7 @@ Unused records remain drawing children. `nextDimensionStyleId` is positive and
 greater than every live style ID, retains deletion history and is required when
 style records exist. IDs, paths and counters remain exact beyond 2^53.
 
-Settings resolve base → type-specific → per-entity overrides. Presence of a leaf,
+Settings resolve base â†’ type-specific â†’ per-entity overrides. Presence of a leaf,
 including false, zero, empty text and explicit reset, is retained independently of
 its effective value. TextStyle, marker block and line-pattern refs are complete
 same-drawing paths, never stream indices, numeric handles or implicit defaults.
@@ -530,3 +558,34 @@ Definition points alone do not certify display bounds. Unavailable layout gives
 partial coverage under the existing bounds lifecycle; known primitive contributions
 still receive independent checks. Annotative Text/MText and Dimension share a
 separate future slice; runtime associativity belongs to an editor or update engine.
+### Complex line pattern migration
+
+The active provisional profile adds drawing-owned SHX symbol sources and typed
+text/symbol markers. All current drawing payloads now require
+`nextSymbolSourceId`, even without sources. Plain numeric elements keep their
+wire spelling; the Rust pattern vector now contains typed elements. Use
+`LinePatternElement::simple(length)` for plain entries. URI/digest/embedding and
+upright rotation remain deferred. See profile-rules-0.1.0.md for the closed
+physical alternatives and drawing-local reference contract.
+
+## Hatch gradient settings
+
+`fill.kind = gradient` selects the separate optional `gradient` state. Active
+Gradient requires type and exactly two concrete endpoint colors (positions 0/1).
+Solid/LinePattern can retain partial inactive settings without type or colors.
+Known types: linear, cylinder, inverseCylinder, spherical, inverseSpherical,
+hemispherical, inverseHemispherical, curved, inverseCurved.
+Rotation is finite local radians, never normalized; shift/tint are finite in
+[0,1]. Defaults: rotation=0, shift=0, colorMode=twoColor, tint=0.
+colorMode is oneColor/twoColor independently of the two stored colors; IO never
+generates color 2 from tint. Colors use the existing concrete RGB and optional
+indexed/named identity. Inherited colors, per-stop alpha and unknown fields
+are unavailable. A present state without type/colors and with all defaults is
+invalid; omit it. Native validity is separate from CAD and rendering qualification.
+
+IFCCAD omits absent state; gradient:null is invalid. Whole Hatch-attribute
+replacement includes gradient state, without nested merging.
+
+Gradient endpoints require concrete fixed RGB colors; Foreground is not a
+gradient endpoint. Concrete ACI 7 identity remains invalid under the common
+color contract. No background-dependent endpoint is resolved during IO.

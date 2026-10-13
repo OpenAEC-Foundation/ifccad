@@ -64,7 +64,7 @@ and direct DXF/DWG roundtrip use their own model, schemas, validation and
 converter. OCDraw opening does not require an IFCX file or package.
 The experiment includes points, lines, circles/signed arcs, full/partial ellipses,
 straight/bulged planar paths, straight spatial paths and local block geometry,
-native Model/Paper layouts, named simple line patterns, scales and polyline
+native Model/Paper layouts, named simple and complex text/SHX line patterns, scales and polyline
 pattern generation, with strict readback and pinned DXF/DWG tests.
 Allow/Reject conversion policies expose or reject supported loss classifications.
 Optional scope bounds have explicit atomic preparation. Native Text/MText and
@@ -74,8 +74,7 @@ Font contours and layout remain unassessed; numeric text evidence covers anchors
 Geometry validation and
 CAD accuracy are shared with OCDraw through neutral helpers; converters expose
 adjustable hard tolerances and per-coordinate-domain numerical evidence.
-Model and multiple Paper layouts now convert with explicit tab order, optional media and explicit plot mappings. The viewport slice adds camera, perspective/depth/display state and circle/full-ellipse/closed straight-or-bulged path clipping, with CAD exchange verified using explicit codec development repairs; upstream dependency adoption remains a separate follow-up; complex
-text/shape patterns use a diagnosed whole-definition fallback under Allow.
+Model and multiple Paper layouts now convert with explicit tab order, optional media and explicit plot mappings. The viewport slice adds camera, perspective/depth/display state and circle/full-ellipse/closed straight-or-bulged path clipping, with CAD exchange verified using explicit codec development repairs; upstream dependency adoption remains a separate follow-up; qualified complex text/SHX patterns retain independent source/style references through AC1032 exchange. Unsupported active dependencies use a diagnosed whole-definition fallback under Allow; external glyph outlines remain unassessed.
 This integration does not freeze IFCCAD compatibility or expand the standalone
 OCDraw contract. Continued IFCCAD development expands drawing semantics and
 conversion coverage in bounded slices, including later annotations and
@@ -141,8 +140,9 @@ Actual AC1032 DXF/DWG tests retain area rules, loops and associations, with
 contour/occurrence numerical evidence and separately unassessed fill.
 The Solid slice was verified and accepted on main before LinePattern implementation.
 The pattern slice adds embedded families, authored phase and qualified CAD conversion
-with contour/pattern numerical evidence and separately unassessed fill; gradients, native spline boundaries,
+with contour/pattern numerical evidence and separately unassessed fill; native spline boundaries,
 intersection auditing and runtime associative updates remain separate work.
+The gradient slice adds nine predefined types, two stored colors, independent mode/tint and partial inactive settings in both native models. CAD exchange is qualified for exact retained local axes and AC1032; inactive DXF settings and unavailable named color metadata remain diagnosed codec limitations. Gradient fields/pixels are unassessed.
 See [Hatch support](docs/hatch.md). No initial contract publication is implied.
 
 ## Ordinary Dimension checkpoint
@@ -191,3 +191,10 @@ completion gates, including after relevant code or dependency changes.
 The implemented lifecycle API conventions and provisional caller migration are
 documented in [model IO conventions](docs/model-io-conventions.md). This
 organization refinement does not change milestone order or semantic coverage.
+
+The complex line-pattern slice extends the existing drawing model and converter
+coverage without adding external asset resolution to the core. Both native routes
+keep closed text/SHX markers, independent source identity/watermarks, and separate
+producer/derived bounds evidence. Resource resolution and future source kinds
+remain deferred to issue 15; upright requires upstream codec support (issue 108).
+See [line patterns](docs/line-patterns.md). Milestone ordering is unchanged.

@@ -17,6 +17,7 @@ pub struct IfccadHeader {
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadDocument {
     pub dimension_styles: Vec<super::IfccadDimensionStyle>,
+    pub symbol_sources: Vec<super::IfccadSymbolSource>,
     pub point_display: Option<super::IfccadPointDisplay>,
     pub text_styles: Vec<super::IfccadTextStyle>,
     pub ucs_definitions: Vec<super::IfccadUcsDefinition>,
@@ -266,12 +267,12 @@ pub enum IfccadEntityKind {
 #[serde(transparent)]
 pub struct IfccadLinePatternId(pub u64);
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct IfccadLinePattern {
     pub id: IfccadLinePatternId,
     pub name: String,
     pub description: Option<String>,
-    pub pattern: Vec<f64>,
+    pub pattern: Vec<super::IfccadLinePatternElement>,
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]

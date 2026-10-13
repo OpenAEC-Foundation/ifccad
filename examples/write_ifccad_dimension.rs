@@ -5,8 +5,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let path = std::env::args()
         .nth(1)
         .ok_or("usage: write_ifccad_dimension <new-output.ifcx>")?;
-    let mut d = load_ifccad_bytes(include_bytes!("ifccad/hello-cad.ifcx"), Default::default())?
-        .into_document();
+    let mut d = load_ifccad_bytes(
+        include_bytes!("../tests/fixtures/ifccad/hello-cad.ifcx"),
+        Default::default(),
+    )?
+    .into_document();
     d.header = IfccadHeader {
         id: "urn:example:ifccad:dimension-slice-1".into(),
         data_version: "0.1.0".into(),

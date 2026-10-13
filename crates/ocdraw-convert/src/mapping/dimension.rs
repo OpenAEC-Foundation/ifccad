@@ -35,10 +35,17 @@ impl SourceDimensionIndex<'_> {
     }
 }
 fn color(c: &cad_dimension::CadColorValue) -> DrawingColor {
-    DrawingColor {
-        rgb: c.rgb,
-        indexed: c.indexed.clone(),
-        named: c.named.clone(),
+    match c {
+        cad_dimension::CadColorValue::Foreground => DrawingColor::Foreground,
+        cad_dimension::CadColorValue::Concrete {
+            rgb,
+            indexed,
+            named,
+        } => DrawingColor::Concrete {
+            rgb: *rgb,
+            indexed: indexed.clone(),
+            named: named.clone(),
+        },
     }
 }
 // Missing references only produce private provisional values; the result is discarded on error.
@@ -299,10 +306,17 @@ macro_rules! to_refs {
                     Handle::NULL
                 })
             },
-            |c| cad_dimension::CadColorValue {
-                rgb: c.rgb,
-                indexed: c.indexed.clone(),
-                named: c.named.clone(),
+            |c| match c {
+                DrawingColor::Foreground => cad_dimension::CadColorValue::Foreground,
+                DrawingColor::Concrete {
+                    rgb,
+                    indexed,
+                    named,
+                } => cad_dimension::CadColorValue::Concrete {
+                    rgb: *rgb,
+                    indexed: indexed.clone(),
+                    named: named.clone(),
+                },
             },
             |id| {
                 idx.patterns.get(id).map(|p| p.1).unwrap_or_else(|| {

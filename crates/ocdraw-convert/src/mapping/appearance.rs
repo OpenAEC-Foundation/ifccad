@@ -12,6 +12,35 @@ use ocdraw::ocdraw::{
 use opencadcodec::entities::EntityCommon;
 use opencadcodec::Layer;
 
+pub(crate) fn native_color(value: cad_presentation_convert::CadColorValue) -> DrawingColor {
+    match value {
+        cad_presentation_convert::CadColorValue::Foreground => DrawingColor::Foreground,
+        cad_presentation_convert::CadColorValue::Concrete {
+            rgb,
+            indexed,
+            named,
+        } => DrawingColor::Concrete {
+            rgb,
+            indexed,
+            named,
+        },
+    }
+}
+pub(crate) fn scalar_color(value: &DrawingColor) -> cad_presentation_convert::CadColorValue {
+    match value {
+        DrawingColor::Foreground => cad_presentation_convert::CadColorValue::Foreground,
+        DrawingColor::Concrete {
+            rgb,
+            indexed,
+            named,
+        } => cad_presentation_convert::CadColorValue::Concrete {
+            rgb: *rgb,
+            indexed: indexed.clone(),
+            named: named.clone(),
+        },
+    }
+}
+
 fn direct_color(source: &AppearanceColor) -> DrawingColor {
     source.clone()
 }
@@ -49,7 +78,7 @@ fn direct_selection<T>(mode: AppearanceMode, value: T) -> AppearanceSelection<T>
 pub(crate) fn direct_entity(
     common: &EntityCommon,
     pattern: AppearanceSelection<ocdraw::ocdraw::LinePatternId>,
-) -> Result<DirectEntityAppearance, Vec<CadToOcdrawLossReason>> {
+) -> Result<(DirectEntityAppearance, Vec<CadToOcdrawLossReason>), Vec<CadToOcdrawLossReason>> {
     let converted = match convert_entity_appearance(common) {
         Ok(converted) => converted,
         Err(EntityAppearanceError::Loss(reasons)) => return Err(reasons),
@@ -63,11 +92,14 @@ pub(crate) fn direct_entity(
     } else {
         (DrawingColor::rgb(0, 0, 0), 1.0, 0.25)
     };
-    Ok(DirectEntityAppearance {
-        color: direct_selection(converted.color_mode, color),
-        opacity: direct_selection(converted.opacity_mode, opacity),
-        line_pattern: pattern,
-        line_pattern_scale: common.linetype_scale,
-        line_weight: direct_selection(converted.line_weight_mode, line_weight),
-    })
+    Ok((
+        DirectEntityAppearance {
+            color: direct_selection(converted.color_mode, color),
+            opacity: direct_selection(converted.opacity_mode, opacity),
+            line_pattern: pattern,
+            line_pattern_scale: common.linetype_scale,
+            line_weight: direct_selection(converted.line_weight_mode, line_weight),
+        },
+        converted.losses,
+    ))
 }

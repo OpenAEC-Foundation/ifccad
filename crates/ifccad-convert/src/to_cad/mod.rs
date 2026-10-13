@@ -19,6 +19,7 @@ pub fn ifccad_source_to_cad_document(
     let canonical: serde_json::Value =
         serde_json::from_slice(canonical.bytes()).expect("writer JSON");
     let mut issues = Vec::new();
+    let canonical = crate::loss::native_defaults(&canonical, &canonical);
     let raw = crate::loss::native_defaults(source.graph().composed_ifcx(), &canonical);
     // Compare composed node payloads, allowing fragment order but not losing
     // extensions, relations or extra schemas through the typed projection.
@@ -111,12 +112,15 @@ fn convert_document(
     crate::mapping::layout::apply_settings(model_layout, &drawing.model.settings, &mut issues)?;
     let mut mappings = IfccadMappings::default();
     crate::mapping::text::to_styles(drawing, &mut document, &mut mappings, &mut issues)?;
+    let symbols =
+        crate::mapping::symbol_source::to_cad_symbol_sources(drawing, &mut document, &mut mappings);
     document.header.linetype_scale = drawing.line_pattern_scale;
     crate::mapping::line_pattern::allocate(
         &mut document,
         &drawing.line_patterns,
         &mut mappings,
         &mut issues,
+        &symbols,
     )?;
     let layout = document
         .objects

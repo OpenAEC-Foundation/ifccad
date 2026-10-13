@@ -178,7 +178,7 @@ fn active_boundary_accepts_eligible_polylines_and_circles() {
 #[test]
 fn viewport_requires_paper_and_unique_model_target() {
     let mut doc = load_ifccad_bytes(
-        include_bytes!("../examples/ifccad/hello-cad.ifcx"),
+        include_bytes!("../tests/fixtures/ifccad/hello-cad.ifcx"),
         Default::default(),
     )
     .unwrap()
@@ -220,7 +220,7 @@ fn viewport_requires_paper_and_unique_model_target() {
 
 fn drawing_with_viewport() -> IfccadDocument {
     let mut doc = load_ifccad_bytes(
-        include_bytes!("../examples/ifccad/hello-cad.ifcx"),
+        include_bytes!("../tests/fixtures/ifccad/hello-cad.ifcx"),
         Default::default(),
     )
     .unwrap()
@@ -356,7 +356,7 @@ fn finite_camera_and_frame_components_cannot_overflow_their_enclosures() {
 #[test]
 fn native_copy_move_and_delete_preserve_viewport_identity_history() {
     let mut doc = load_ifccad_bytes(
-        include_bytes!("../examples/ifccad/hello-viewports.ifcx"),
+        include_bytes!("../tests/fixtures/ifccad/hello-viewports.ifcx"),
         Default::default(),
     )
     .unwrap()

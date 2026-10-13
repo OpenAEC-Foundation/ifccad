@@ -2,6 +2,8 @@
 mod audit;
 mod evidence;
 mod from_cad;
+mod gradient;
+pub use gradient::{apply_gradient_to_cad, prepare_gradient_from_cad, PreparedNativeGradient};
 pub mod pattern;
 mod to_cad;
 use crate::{CadPreparationError, GeometryPair};
@@ -59,6 +61,7 @@ pub fn resolve_creation_tolerance(
 }
 
 pub struct PreparedNativeHatch {
+    pub gradient: Option<ocdraw::geometry_kernel::hatch::HatchGradient<opencadcodec::Color>>,
     pub fill: HatchFill,
     pub placement: CoordinateFrame3,
     pub boundaries: Vec<HatchBoundary2>,
@@ -81,6 +84,10 @@ pub struct HatchSourceLoss {
 }
 #[derive(Debug, thiserror::Error)]
 pub enum CadHatchPreparationError {
+    #[error("{0}")]
+    Gradient(#[from] ocdraw::geometry_kernel::hatch::HatchGradientValidationError),
+    #[error("invalid gradient {field}: {detail}")]
+    InvalidGradientSource { field: &'static str, detail: String },
     #[error("{0}")]
     Primitive(#[from] CadPreparationError),
     #[error("{0}")]

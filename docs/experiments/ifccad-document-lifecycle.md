@@ -7,6 +7,11 @@ history. It remains independent of `OcdrawDocument` and opencadcodec.
 
 ## Complete source and CAD projection
 
+Native [drawing defaults](../drawing-defaults.md) are applied after fragment
+composition. Compact XY line endpoints expand to XYZ, and omitted native
+appearance properties become ByLayer. Source bytes and opaque/authoring presence
+semantics remain independent of these physical omission rules.
+
 `load_ifccad_bytes(bytes, IfccadReadOptions)` returns
 `Result<ValidatedIfccad, IfccadReadError>`. Options default to LaterWins and
 can select RejectConflicts. Read errors expose the existing `IfccadReport`;

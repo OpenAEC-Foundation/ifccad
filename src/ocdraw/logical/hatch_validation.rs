@@ -3,6 +3,10 @@ use super::*;
 use crate::geometry_kernel::hatch::{hatch_bounds, validate_hatch_boundaries};
 use std::collections::BTreeMap;
 
+pub(crate) fn hatch_gradient_color_valid(color: &DrawingColor) -> bool {
+    color.concrete_rgb().is_some() && super::field_validation::color(color)
+}
+
 pub(crate) fn validate_hatch_parts(
     doc: &OcdrawDocument,
     phase: ValidationPhase,
@@ -31,6 +35,17 @@ pub(crate) fn validate_hatch_parts(
             errors.push(logical_error(
                 "HATCH_FILL",
                 format!("{path}/fill"),
+                &e.to_string(),
+            ));
+        }
+        if let Err(e) = crate::geometry_kernel::hatch::validate_hatch_gradient(
+            matches!(h.fill, crate::geometry_kernel::hatch::HatchFill::Gradient),
+            h.gradient.as_ref(),
+            hatch_gradient_color_valid,
+        ) {
+            errors.push(logical_error(
+                "HATCH_GRADIENT",
+                format!("{path}/gradient/{}", e.field),
                 &e.to_string(),
             ));
         }

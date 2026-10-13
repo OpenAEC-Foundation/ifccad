@@ -34,3 +34,51 @@ fn wire_rejects_unknown_nested_fields_and_explicit_null() {
     value["streams"]["dimensionStream"]["overrides"][0]["text"]["height"] = serde_json::Value::Null;
     assert!(load_ocdraw_bytes(&serde_json::to_vec(&value).unwrap()).is_err());
 }
+
+#[test]
+fn dimension_common_defaults_are_compact_and_mixed_visibility_is_complete() {
+    let mut d = support::drawing();
+    let encoded = encode_ocdraw_document(&d).unwrap();
+    let v: serde_json::Value = serde_json::from_slice(encoded.bytes()).unwrap();
+    let stream = &v["streams"]["dimensionStream"];
+    assert!(stream.get("visible").is_none());
+    for key in ["color", "linePattern", "lineWeight", "linePatternScale"] {
+        assert!(stream.get(key).is_none(), "{key}");
+    }
+    assert_eq!(
+        load_ocdraw_bytes(encoded.bytes())
+            .unwrap()
+            .dimension_entities(),
+        d.dimension_entities.as_slice()
+    );
+    let mut second = d.dimension_entities[0].clone();
+    second.id = d.next_entity_id;
+    d.next_entity_id += 1;
+    d.scopes[0].entities.push(second.id);
+    d.dimension_entities.push(second);
+    d.dimension_entities[0].visible = false;
+    let encoded = encode_ocdraw_document(&d).unwrap();
+    let v: serde_json::Value = serde_json::from_slice(encoded.bytes()).unwrap();
+    assert_eq!(
+        v["streams"]["dimensionStream"]["visible"],
+        serde_json::json!([false, true])
+    );
+    assert_eq!(
+        load_ocdraw_bytes(encoded.bytes())
+            .unwrap()
+            .dimension_entities(),
+        d.dimension_entities.as_slice()
+    );
+}
+
+#[test]
+fn dimension_foreground_colors_and_explicit_reset_leaves_survive() {
+    let mut d = support::drawing();
+    d.dimension_entities[0].overrides.text.appearance.color = Some(
+        ocdraw::dimension::DimensionAppearanceChoice::Explicit(DrawingColor::Foreground),
+    );
+    d.dimension_entities[0].overrides.text.height = Some(2.5);
+    let encoded = encode_ocdraw_document(&d).unwrap();
+    let loaded = load_ocdraw_bytes(encoded.bytes()).unwrap();
+    assert_eq!(loaded.dimension_entities(), d.dimension_entities.as_slice());
+}

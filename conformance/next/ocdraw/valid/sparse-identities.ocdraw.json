@@ -7,7 +7,7 @@
     "nextEntityId": 18446744073709551615,
     "nextLayerId": 17,
     "nextLayoutId": 24,
-    "nextLinePatternId": 19
+    "nextLinePatternId": 19,"nextSymbolSourceId":0
   },
   "layouts": [
     {

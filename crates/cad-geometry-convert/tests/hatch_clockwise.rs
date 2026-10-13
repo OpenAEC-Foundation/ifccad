@@ -58,6 +58,7 @@ fn original_dxf_9aa_and_dwg_counterpart_close_at_the_existing_default_limit() {
             p.area_rule,
             p.join_tolerance,
             &ocdraw::geometry_kernel::hatch::HatchFill::Solid,
+            None,
         )
         .unwrap();
         assert_eq!(
@@ -87,6 +88,7 @@ fn emitted_dxf_and_dwg_keep_the_original_clockwise_wire_orientation() {
             p.area_rule,
             p.join_tolerance,
             &p.fill,
+            None,
         )
         .unwrap();
         let mut document = CadDocument::new();

@@ -1,7 +1,5 @@
 use super::{unsupported, CadHatchPreparationError, HatchSourceLoss};
-use opencadcodec::entities::hatch::{
-    BoundaryPathFlags, Hatch, HatchGradientPattern, HatchPatternType,
-};
+use opencadcodec::entities::hatch::{BoundaryPathFlags, Hatch, HatchPatternType};
 use opencadcodec::{Color, Vector2};
 
 pub(super) fn audit(h: &Hatch) -> Result<Vec<HatchSourceLoss>, CadHatchPreparationError> {
@@ -25,10 +23,11 @@ pub(super) fn audit(h: &Hatch) -> Result<Vec<HatchSourceLoss>, CadHatchPreparati
             "MPOLYGON is outside the native Hatch profile",
         ));
     }
-    if h.gradient_color.enabled {
-        return Err(unsupported("gradient_color", "active gradient fill"));
-    }
-    if !h.is_solid && h.is_double && h.pattern_type == HatchPatternType::UserDefined {
+    if !h.gradient_color.enabled
+        && !h.is_solid
+        && h.is_double
+        && h.pattern_type == HatchPatternType::UserDefined
+    {
         return Err(unsupported(
             "is_double",
             "active user-defined double pattern requires a qualified orthogonal expansion",
@@ -41,14 +40,17 @@ pub(super) fn audit(h: &Hatch) -> Result<Vec<HatchSourceLoss>, CadHatchPreparati
             detail: detail.into(),
         })
     };
-    if h.is_solid
+    if (h.is_solid || h.gradient_color.enabled)
         && (h.pattern.name != "SOLID"
             || !h.pattern.description.is_empty()
             || !h.pattern.lines.is_empty())
     {
-        loss("pattern", "inactive Solid pattern metadata is not retained");
+        loss(
+            "pattern",
+            "inactive classic pattern metadata is not retained",
+        );
     }
-    if h.is_solid
+    if (h.is_solid || h.gradient_color.enabled)
         && (h.pattern_type != HatchPatternType::Predefined
             || h.pattern_angle != 0.
             || h.pattern_scale != 1.
@@ -56,16 +58,16 @@ pub(super) fn audit(h: &Hatch) -> Result<Vec<HatchSourceLoss>, CadHatchPreparati
     {
         loss(
             "pattern_context",
-            "inactive Solid pattern creation settings are not retained",
+            "inactive classic pattern creation settings are not retained",
         );
     }
-    if !h.is_solid && h.pattern_type == HatchPatternType::UserDefined {
+    if !h.gradient_color.enabled && !h.is_solid && h.pattern_type == HatchPatternType::UserDefined {
         return Err(unsupported(
             "pattern_type",
             "user-defined pattern needs model-aware continuous linetype qualification",
         ));
     }
-    if !h.is_solid {
+    if !h.gradient_color.enabled && !h.is_solid {
         loss("pattern_type", "literal families retained; external pattern-library and creation-type dependency is not retained");
         if h.is_double {
             loss(
@@ -73,12 +75,6 @@ pub(super) fn audit(h: &Hatch) -> Result<Vec<HatchSourceLoss>, CadHatchPreparati
                 "inactive double flag on predefined/custom pattern is not retained",
             );
         }
-    }
-    if h.gradient_color != HatchGradientPattern::default() {
-        loss(
-            "gradient_color",
-            "disabled gradient editing state is not retained",
-        );
     }
     if !h.seed_points.is_empty() {
         loss(

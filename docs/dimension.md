@@ -113,3 +113,10 @@ The maintained writers `write_dimension` and `write_ifccad_dimension` demonstrat
 ordinary styles, kind/local overrides, Model/Paper/block owners and source
 references. They refuse to overwrite an existing output file. Their corresponding
 inputs under `examples/ocdraw` and `examples/ifccad` can be opened independently.
+
+Dimension follows the shared [drawing defaults](drawing-defaults.md) for common
+entity appearance, visibility and line-pattern scale. OCDraw omits a default
+column only when every row has that default; mixed columns remain complete.
+Component colors support the symbolic `Foreground` choice, just like other
+presentation colors. Authored style settings and sparse override leaves retain
+their presence, including explicit false, zero and empty reset values.

@@ -22,6 +22,7 @@ fn fresh_cad_import_emits_valid_counters_under_both_policies() {
             loaded.document().id_counters,
             IfccadIdCounters {
                 next_dimension_style_id: 1,
+                next_symbol_source_id: 1,
                 next_text_style_id: 2,
                 next_preservation_record_id: 1,
                 next_ucs_id: 1,

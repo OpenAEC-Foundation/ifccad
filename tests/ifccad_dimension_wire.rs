@@ -90,3 +90,28 @@ fn later_wins_replaces_whole_body_and_keeps_original_source_immutable() {
     )
     .is_err());
 }
+
+#[test]
+fn dimension_foreground_and_explicit_reset_preserve_native_defaults() {
+    let mut d = support::drawing();
+    if let IfccadEntityKind::Dimension(v) = &mut d.model.entities[0].as_native_mut().unwrap().kind {
+        v.overrides.text.appearance.color =
+            Some(DimensionAppearanceChoice::Explicit(IfccadColor::Foreground));
+        v.overrides.extension_lines.first.suppressed = Some(false);
+    }
+    let encoded = encode_ifccad_document(&d).unwrap();
+    assert_eq!(
+        load_ifccad_bytes(encoded.bytes(), Default::default())
+            .unwrap()
+            .document(),
+        &d
+    );
+    let value: serde_json::Value = serde_json::from_slice(encoded.bytes()).unwrap();
+    let attrs = &value["data"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|n| n["attributes"].get("ifccad::dimension").is_some())
+        .unwrap()["attributes"];
+    assert!(attrs["ifccad::entity"].get("visible").is_none());
+}

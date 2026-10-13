@@ -4,11 +4,20 @@ import {createInspection} from '../src/inspection-model.mjs';
 import {renderInspection,itemTitle} from '../src/inspection-view.mjs';
 import {collectionEntries} from '../src/inspection-navigation.mjs';
 import {hatchSummary} from '../src/hatch-view.mjs';
-const source=await readFile(new URL('../../examples/ifccad/hello-hatch-solid.ifcx',import.meta.url),'utf8');
+const source=await readFile(new URL('../../tests/fixtures/ifccad/hello-hatch-solid.ifcx',import.meta.url),'utf8');
 test('pattern summary identifies authored line families in both languages',()=>{
  const value={fill:{kind:'linePattern',families:[{},{}]},loops:[{},{}],areaRule:'normal'};
  assert.match(hatchSummary(value,'en'),/Pattern.*2 line families/);
  assert.match(hatchSummary(value,'nl'),/Lijnpatroon.*2 lijnfamilies/);
+});
+
+test('gradient summaries name the active shape and disclose incomplete stored settings',()=>{
+ const value={fill:{kind:'gradient'},gradient:{type:'inverseSpherical',colors:[{rgb:[220,80,30]},{rgb:[30,60,150]}]},loops:[],areaRule:'normal'};
+ assert.match(hatchSummary(value,'en'),/Gradient.*Inverse spherical/);
+ value.fill={kind:'solid'};value.gradient={rotation:.5,tint:.65};
+ assert.match(hatchSummary(value,'nl'),/Effen.*onvolledig/i);
+ value.fill={kind:'unknown'};
+ assert.doesNotMatch(hatchSummary(value,'en'),/Solid/);
 });
 test('IFCCAD Hatch type, grouping and contour-source links keep native identities',()=>{
  const graph=JSON.parse(source),first=graph.data.find(n=>n.attributes?.['ifccad::hatch']);

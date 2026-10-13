@@ -35,7 +35,9 @@ pub use logical::OcdrawDocument;
 pub use logical::{
     assess_ocdraw_document_bounds, OcdrawBoundsQuality, OcdrawScopeBoundsAssessment,
 };
-pub use logical::{resolve_ocdraw_hatch_join_tolerance, DrawingHatchEntity, OcdrawHatchLoop};
+pub use logical::{
+    resolve_ocdraw_hatch_join_tolerance, DrawingHatchEntity, DrawingHatchGradient, OcdrawHatchLoop,
+};
 pub use logical::{validate_ocdraw_document, OcdrawValidationError};
 pub use logical::{
     DrawingDimensionEntity, DrawingDimensionStyle, OcdrawDimensionAssociation,
@@ -75,7 +77,7 @@ pub use geometry::{
     Vector3,
 };
 pub use layout::{LayoutRect, LayoutSettings};
-pub use logical::{AppearanceSelection, DrawingColor, EntityAppearance};
+pub use logical::{AppearanceSelection, DrawingColor, DrawingColorMetadataError, EntityAppearance};
 pub use logical::{
     DrawingBlockDefinition, DrawingLayer, DrawingLayout, DrawingLayoutKind, DrawingScope,
     DrawingScopeKind, DrawingUcsDefinition, DrawingWorkspaceState,
@@ -88,7 +90,8 @@ pub use logical::{
 };
 pub use logical::{DrawingGeometricEntity, EntityGeometry as DrawingGeometry};
 pub use logical::{
-    DrawingLinePattern, LinePatternDefinition, LinePatternGeneration, LinePatternId,
+    DrawingLinePattern, DrawingLinePatternElement, DrawingLinePatternMarker, DrawingSymbolSource,
+    LinePatternDefinition, LinePatternGeneration, LinePatternId, SymbolSourceId,
 };
 pub use logical::{
     DrawingPaperClip, DrawingViewport, DrawingViewportFrame, DrawingViewportLayerOverride,

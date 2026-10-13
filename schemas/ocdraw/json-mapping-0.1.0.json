@@ -73,6 +73,11 @@
         "omission": "logicalDefault"
       },
       {
+        "logical": "resource.nextSymbolSourceId",
+        "payload": "header.nextSymbolSourceId",
+        "omission": "forbidden"
+      },
+      {
         "logical": "resource.nextDimensionStyleId",
         "payload": "header.nextDimensionStyleId",
         "omission": "logicalDefault"
@@ -98,27 +103,27 @@
         {
           "logical": "layer.visible",
           "payload": "visible",
-          "omission": "forbidden"
+          "omission": "logicalDefault"
         },
         {
           "logical": "layer.frozen",
           "payload": "frozen",
-          "omission": "forbidden"
+          "omission": "logicalDefault"
         },
         {
           "logical": "layer.locked",
           "payload": "locked",
-          "omission": "forbidden"
+          "omission": "logicalDefault"
         },
         {
           "logical": "layer.plottable",
           "payload": "plottable",
-          "omission": "forbidden"
+          "omission": "logicalDefault"
         },
         {
           "logical": "layer.frozenInNewViewports",
           "payload": "frozenInNewViewports",
-          "omission": "forbidden"
+          "omission": "logicalDefault"
         },
         {
           "logical": "layer.description",
@@ -133,7 +138,7 @@
         {
           "logical": "layer.opacity",
           "payload": "opacity",
-          "omission": "forbidden"
+          "omission": "logicalDefault"
         },
         {
           "logical": "layer.linePatternId",
@@ -531,6 +536,28 @@
       ]
     },
     {
+      "name": "symbolSource",
+      "payload": "symbolSources",
+      "omission": "logicalDefault",
+      "fields": [
+        {
+          "logical": "symbolSource.id",
+          "payload": "id",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "symbolSource.kind",
+          "payload": "kind",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "symbolSource.fileName",
+          "payload": "fileName",
+          "omission": "forbidden"
+        }
+      ]
+    },
+    {
       "name": "dimensionStyle",
       "payload": "dimensionStyles",
       "omission": "logicalDefault",
@@ -750,7 +777,7 @@
         {
           "logical": "planarPolyline.closed",
           "payload": "closed",
-          "omission": "forbidden"
+          "omission": "logicalDefault"
         },
         {
           "logical": "planarPolyline.layerId",
@@ -843,7 +870,7 @@
         {
           "logical": "spatialPolyline.closed",
           "payload": "closed",
-          "omission": "forbidden"
+          "omission": "logicalDefault"
         },
         {
           "logical": "spatialPolyline.layerId",
@@ -1845,6 +1872,12 @@
           "logical": "hatch.fill",
           "payload": "fill",
           "omission": "forbidden"
+        },
+        {
+          "logical": "hatch.gradient",
+          "payload": "gradient",
+          "omission": "logicalDefault",
+          "nullEncoding": "logicalNull"
         }
       ]
     },
@@ -2024,7 +2057,7 @@
       "Viewport": 1
     }
   },
-  "$comment": "Normative interpretation: ./json-mapping-v4.md Hatch fill records are closed tagged Solid/LinePattern JSON values; LinePattern origin/rotation/scale omission means [0,0]/0/1, metadata absence is distinct from empty literal strings, and Dot forbids length. Family offsets are [along,perpendicular], not CAD XY offsets.",
+  "$comment": "Normative interpretation: ./json-mapping-v4.md Hatch fill records are closed tagged Solid/LinePattern JSON values; LinePattern origin/rotation/scale omission means [0,0]/0/1, metadata absence is distinct from empty literal strings, and Dot forbids length. Family offsets are [along,perpendicular], not CAD XY offsets. Complex linePattern elements without a marker map to numbers; marked elements map to closed {length,marker} objects. Marker rotation is {mode,angle} in radians. Default scale/offset/rotation omission is 1/[0,0]/relative zero; null is forbidden. Source records are closed id/kind/fileName records. Gradient settings are separate from fill activation. Gradient active requires type/colors; only the optional gradient column has null rows.",
   "ocdrawVersion": "0.1.0",
   "preservationMapping": {
     "schemaVersion": 1,

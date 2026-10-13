@@ -17,7 +17,7 @@ fn inspector_exposes_decoded_geometry_without_frontend_column_decoding() {
 fn authored_drawing_view_state_is_exposed_with_the_actual_encoding_key() {
     let result = viewer::inspect_drawing_bytes(
         "state.ocdraw.json",
-        include_bytes!("../../../examples/ocdraw/state-and-storage.ocdraw.json"),
+        include_bytes!("../../../tests/fixtures/ocdraw/state-and-storage.ocdraw.json"),
     );
     assert_eq!(
         result["presentation"]["viewState"]["activeModelWindowId"],

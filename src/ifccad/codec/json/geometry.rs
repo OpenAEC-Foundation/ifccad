@@ -20,8 +20,22 @@ struct PointValue {}
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct LineValue {
-    start: [f64; 3],
-    end: [f64; 3],
+    start: LinePointValue,
+    end: LinePointValue,
+}
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum LinePointValue {
+    Xy([f64; 2]),
+    Xyz([f64; 3]),
+}
+impl LinePointValue {
+    fn xyz(self) -> [f64; 3] {
+        match self {
+            Self::Xy([x, y]) => [x, y, 0.0],
+            Self::Xyz(point) => point,
+        }
+    }
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -53,6 +67,7 @@ struct EllipseArcValue {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct PlanarValue {
     vertices: Vec<[f64; 2]>,
+    #[serde(default)]
     closed: bool,
     #[serde(default)]
     line_pattern_generation: IfccadLinePatternGeneration,
@@ -62,6 +77,7 @@ struct PlanarValue {
 struct PlanarWithBulges {
     vertices: Vec<[f64; 2]>,
     bulges: Vec<f64>,
+    #[serde(default)]
     closed: bool,
     #[serde(default)]
     line_pattern_generation: IfccadLinePatternGeneration,
@@ -70,6 +86,7 @@ struct PlanarWithBulges {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct SpatialValue {
     vertices: Vec<[f64; 3]>,
+    #[serde(default)]
     closed: bool,
     #[serde(default)]
     line_pattern_generation: IfccadLinePatternGeneration,
@@ -126,8 +143,8 @@ pub(super) fn decode_kind(
         "ifccad::geom::lineSegment" => {
             let p: LineValue = decode(v, path)?;
             IfccadEntityKind::LineSegment {
-                start: p.start,
-                end: p.end,
+                start: p.start.xyz(),
+                end: p.end.xyz(),
             }
         }
         "ifccad::geom::circle" => {
@@ -205,7 +222,7 @@ pub(super) fn encode_kind(kind: &IfccadEntityKind, attrs: &mut Map<String, Value
         }
         IfccadEntityKind::LineSegment { start, end } => (
             "ifccad::geom::lineSegment",
-            json!({"start":start,"end":end}),
+            json!({"start":encode_line_point(start),"end":encode_line_point(end)}),
             None,
         ),
         IfccadEntityKind::Circle { radius, placement } => (
@@ -267,9 +284,29 @@ pub(super) fn encode_kind(kind: &IfccadEntityKind, attrs: &mut Map<String, Value
         ),
         _ => return false,
     };
+    let mut payload = payload;
+    if matches!(
+        kind,
+        IfccadEntityKind::PlanarPolyline { .. } | IfccadEntityKind::SpatialPolyline { .. }
+    ) {
+        super::defaults::omit_bool(&mut payload, "closed", false);
+        if payload["linePatternGeneration"] == "perSegment" {
+            payload
+                .as_object_mut()
+                .expect("polyline")
+                .remove("linePatternGeneration");
+        }
+    }
     attrs.insert(key.into(), payload);
     if let Some(p) = placement {
         attrs.insert("ifccad::geom::placement".into(), json!(p));
     }
     true
+}
+fn encode_line_point(point: &[f64; 3]) -> Value {
+    if super::defaults::is_positive_zero(point[2]) {
+        json!(&point[..2])
+    } else {
+        json!(point)
+    }
 }

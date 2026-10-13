@@ -2,7 +2,14 @@
 use ocdraw::{dimension::*, ocdraw::*};
 use serde_json::{json, Value};
 fn color(c: &DrawingColor) -> Value {
-    json!({"rgb":c.rgb,"indexed":c.indexed,"named":c.named})
+    match c {
+        DrawingColor::Foreground => json!({"kind":"Foreground"}),
+        DrawingColor::Concrete {
+            rgb,
+            indexed,
+            named,
+        } => json!({"rgb":rgb,"indexed":indexed,"named":named}),
+    }
 }
 fn settings(v: &OcdrawDimensionSettings) -> Value {
     serde_json::to_value(v.map_references(

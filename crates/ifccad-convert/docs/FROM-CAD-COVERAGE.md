@@ -1,4 +1,4 @@
-# CadDocument → IFCCAD coverage
+# CadDocument â†’ IFCCAD coverage
 
 The logical `cad_document_to_ifccad_document` routes return an independently
 validated typed document with diagnostics and mappings, without an IFCX byte
@@ -6,6 +6,11 @@ bridge. Existing encoded routes call them, then core profile encoding and
 production loading. Coverage, loss acceptance, recoveries and fresh ID
 allocation are shared. Encoding creates a new CAD-profile file; no source graph
 writeback is performed.
+
+Core encoding may omit exact [native defaults](../../../docs/drawing-defaults.md)
+and writes XY line endpoints when Z is +0. Production readback reconstructs the
+complete logical document; supported CAD source semantics and loss classification
+are unchanged by the compact representation.
 
 Logical document validation returns `CoreValidation(IfccadReport)`; encoded
 routes retain core encoder phases in `CoreEncoding(IfccadEncodeError)`.
@@ -45,8 +50,8 @@ Reimporting CAD does not restore a previous IFCCAD allocation history.
 | Header PDMODE/PDSIZE | Supported glyph/enclosure bits and finite default/absolute/view-relative sizes become native PointDisplay. Default zero remains distinct from explicit negative-five-percent. Unsupported bits/nonfinite size omit only the setting with located point-display loss; point geometry remains live |
 | Local BlockRecords | Map name/base/unit/ordered contents, description, anonymous flag, explodability and signed-uniform policy, including unused ordinary anonymous definitions. Consistent begin-description duplicates are consumed; conflicting extra marker metadata retains loss evidence. Begin/end identity and reverse insert handles are structural/derived. Other flags, preview, unfamiliar insert-count bytes and layout associations remain diagnosed |
 | Model/Paper BlockRecords | Validate role/ownership; metadata including unit/base must remain default |
-| LineType | Actual signed-length definitions, names/descriptions and unused records; canonical ByLayer/ByBlock are mode scaffolding. Whole text/shape pattern fallback to named empty under Allow, one Modified diagnostic per definition; invalid values/alignment/name-handle targets fail both policies |
-| TextStyle | All qualified ordinary styles including unused; independent IDs/mappings and symbolic font/creation properties. Shape, annotative and external roles are diagnosed, with dependent text skipped; invalid lookup/scalars remain fatal |
+| LineType | Actual simple and qualified text/SHX definitions, including unused records, preserve signed lengths, parameters and relative/absolute rotation. Ordinary and shape STYLE references resolve by role and handle; missing/wrong-role targets are fatal. Unsupported active dependencies replace the entire named definition under Allow with one Modified diagnostic; Reject refuses. Invalid periods/scalars and cache disagreements retain independent checks/diagnostics. |
+| TextStyle | Qualified ordinary styles retain independent native identities. Qualified shape STYLE records become independent SHX sources, including anonymous records, duplicate filenames and unused resources. File paths retain basenames with one locator-loss diagnostic per record. Active unsupported shape properties and inactive source name/history metadata are diagnosed separately. Wrong-role text lookup and duplicate/nonfinite structures remain invalid or explicitly unsupported. |
 | DimStyle/AppId/View/VPort/Ucs/Vx | Only default records, record handles normalized; additional/changed records diagnosed |
 | Classes | Default definitions only; normalize derived numbering/instance counts and version metadata |
 | Entities | Supported fields below; every other family diagnosed. Full inventory includes structural markers hidden by `entities()` |
@@ -381,12 +386,12 @@ Dot grid style and frequencies beyond CAD i16 receive field-specific substitutio
 | Field/state | Classification and native result |
 | --- | --- |
 | elevation/normal, all stored supported paths | Contour conversion assessed against the actual CAD OCS, including nested occurrences; finite/parameter/join failures are hard errors |
-| is_solid/style | Solid/explicit LinePattern plus exact normal/outer/ignore; active gradient, MPOLYGON and unqualified active pattern profiles omit the whole Hatch with SkippedLoss/Omitted |
+| is_solid/style | Solid/explicit LinePattern/qualified Gradient plus exact normal/outer/ignore; MPOLYGON and unqualified active fill profiles omit the whole Hatch with SkippedLoss/Omitted |
 | line/circular/elliptic edges, closed straight/bulged polyline | Every loop retained; exact full-turn qualification, signed sweeps, no snapping/tessellation; spline/open/mixed-polyline backing unsupported |
 | is_associative/boundary_handles | Single eligible same-owner closed source per loop, bound after IDs exist; inactive/multiple/skipped/wrong-owner relations get PartialLoss/Omitted with the complete contour retained |
 | path flags | POLYLINE is backing; EXTERNAL/DERIVED/OUTERMOST omitted as located hints; other/unknown active flags omit whole Hatch |
 | pattern name/description/lines/type/angle/scale/double | Solid inactive state diagnosed; explicit effective families, literal metadata, origin/angle/scale retained for Pattern. Library/type dependency diagnosed; UserDefined requires a resolved fixed local continuous linetype and one continuous family; ByLayer layer-0 block dependencies are unqualified. Double only the documented axis-aligned origin-anchored profile, otherwise whole-Hatch omission |
-| disabled gradient, seed points/pixel size, inactive MPOLYGON fields | Located editing/construction-state loss when nondefault |
+| seed points/pixel size, inactive MPOLYGON fields | Located editing/construction-state loss when nondefault |
 | common attachments/context | AcadAnnotative markers and non-null extension dictionaries require separate qualification and omit whole Hatch; qualified top-level ACAD origin is consumed once, nested/unrelated metadata uses existing format-specific audit; no opaque Hatch preservation |
 
 Producer join requests use local units or a known physical mapping with explicit
@@ -467,3 +472,50 @@ host regeneration. The pinned DXF clone reader loses group 12, DXF omits flips
 and DIMSTYLE true colors, and epsilon omission limits certain near-default values.
 Other source picture definitions remain independently audited, never discarded
 by anonymous-looking names. See [Dimension support](../../../docs/dimension.md).
+
+## Foreground / ACI 7
+
+Native Foreground is a symbolic background-dependent black/white color, with no
+RGB fallback or separate ACI identity. Qualified ACI 7 imports as Foreground
+before palette lookup and exports as ACI 7, retaining CTB key 7. Literal RGB
+white and black remain true color. The old concrete `indexedColor: ACI/7` native
+object is invalid; current provisional examples and candidate fixtures use the
+closed `{"kind":"Foreground"}` choice.
+
+This applies to layer/entity colors, qualified Text/MText inline and explicit
+background colors, and C3/index-7 viewport-layer overrides. Named metadata on
+source ACI 7 cannot attach to Foreground and gets located loss under Allow;
+Reject refuses the loss. Editable native common appearance on preserved entities
+supports Foreground while provider payload bytes remain unchanged.
+
+The [independent exchange tests](../tests/foreground_exchange.rs) exercise native
+production readback and actual DXF/AC1032 DWG readback for this route, with fixed
+RGB controls. These tests prove data exchange, not external-app visual/CTB-output
+certification. Additional C5/ByPen/None/257 methods and broader plot-style contents
+remain unqualified. See [presentation](../../../docs/presentation.md#foreground-color)
+and [issue #16](https://github.com/OpenAEC-Foundation/ifccad/issues/16).
+
+Marker footprints are unassessed per affected native curve and block occurrence, alongside the numerical host-curve proof. External font/SHX availability is not probed or diagnosed as semantic loss. Producer bounds claims remain distinct from derived Partial/Estimated evidence.
+
+AC1032 complex DXF/DWG qualification uses `tests/complex_line_pattern_exchange.rs` and the independently authored `tests/fixtures/line-patterns/complex-literal-ac1032.dxf` at the pinned dependency and explicit viewport patch. STYLE roles, filename identities, marker values, relative/absolute flags and degree/radian conversion are checked semantically. Upright flags are outside the current codec public model; this does not qualify upright preservation.
+
+## Gradient field coverage
+
+Enabled gradients override classic fill flags before pattern qualification.
+Nine standard names map to native type; values 0/1 and two RGB/ACI colors,
+angle, shift, one/two mode and tint are retained independently. Disabled
+known settings survive as partial/complete native state; fully default means
+absence. Unknown type/reserved/positions/extra colors or inherited endpoint
+colors omit active Hatch or only dormant state under Allow. Reject refuses.
+Missing active type/colors, one-entry pairs and nonfinite values are hard errors.
+Source ACAD pattern origin is inactive and remains common-audit loss, not an anchor.
+
+Original count, malformed-value, RGB/ACI-order and color/book identity information
+may already be unavailable in pinned file readback; coverage starts at exposed
+CadDocument values. Actual AC1032 tests and codec characterization are separate;
+legacy recovery, arbitrary fill fields/pixels and editor updates are unqualified.
+
+Gradient endpoints stay concrete after the Foreground color migration. Source
+ACI 7 endpoints are unqualified (active whole-Hatch or dormant-state omission
+under Allow; Reject refuses). Native Foreground endpoints fail validation;
+no fixed background or RGB replacement is invented.

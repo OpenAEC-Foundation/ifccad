@@ -7,6 +7,11 @@ before construction; validated reader import uses the same implementation.
 These are fresh conversions: no identity-preserving CAD editing session,
 watermark reconstruction or new source coverage is implied.
 
+The reader expands [native defaults](../../../docs/drawing-defaults.md), including
+omitted layer flags/opacity and polyline closure, before this typed boundary.
+Missing required pools, short present columns and inconsistent mode/value pairs
+remain invalid. Compact and fully expanded inputs have the same CAD meaning.
+
 The validated standalone drawing is the conversion boundary. The pinned codec
 revision is `ab2eecdbffc31120b5ad6d899f6fc67cf21ede39`. There is no package
 graph. The bounded typed spline preservation route is separate from native
@@ -42,8 +47,11 @@ reported separately; unknown target semantics are diagnosed.
 | Entity identity | New target handles; source-ID mapping retained in outcome |
 | Layer reference, name, visibility | Mapped to CAD layer; entity visibility copied |
 | ByLayer / ByBlock appearance | Modes mapped for color, opacity, pattern and weight |
-| Explicit color | ACI 1–255 used only when consistent with native RGB; unsupported/inconsistent indexed identity retains RGB with loss. Named metadata maps where representable; ambiguous entity catalogue delimiters receive loss |
+| Explicit color | ACI 7 maps from native Foreground; other ACI 1–255 used only when consistent with native RGB; unsupported/inconsistent indexed identity retains RGB with loss. Named metadata maps where representable; ambiguous entity catalogue delimiters receive loss |
 | Line pattern | Every local named simple definition, including unused and named empty records, allocated before layers/entities; reference modes and global/entity scales retained. Polyline generation maps to CAD flags. |
+
+| Explicit color | ACI 1–255 used only when consistent with native RGB; unsupported/inconsistent indexed identity retains RGB with loss. Named metadata maps where representable; ambiguous entity catalogue delimiters receive loss |
+| Line pattern | Simple and qualified text/SHX marker definitions, including unused records, allocate after ordinary and shape STYLE handles. Separate source IDs produce separate anonymous shape STYLE records even for repeated filenames. Lengths, marker parameters, relative/absolute radians, modes, global/entity scales and polyline generation survive. Native selectors outside 0..32767 or unsupported active styles replace the complete named pattern under Allow with a located diagnostic; Reject refuses. |
 | Line weight | Nearest of the 24 standard CAD table weights, with lower-value interior ties; quantization is located semantic loss and Reject refuses it |
 | Opacity | Exact byte-derived native values return the original CAD byte. Other values use upward transparency rounding (0.5 opacity gives byte 128); changed opacity receives located semantic loss and Reject refuses it |
 | Color metadata and appearance identity | No comprehensive fidelity assessment; unsupported indexed systems use RGB, and unsupported target color metadata is diagnosed |
@@ -148,7 +156,7 @@ origin/rotation/scale and signed phase. Missing literal metadata is diagnosed.
 Pattern certificate envelopes join contour evidence in nested occurrence assessment.
 Nonempty descriptions remain in CadDocument; pinned DXF/DWG storage loses them,
 with a separate viewer/browser physical-readback metadata diagnostic.
-No gradient, spline-boundary or MPOLYGON backing is offered by this slice.
+No spline-boundary or MPOLYGON backing is offered by this slice.
 See [Hatch support](../../../docs/hatch.md) for the complete bounded guarantee.
 ## Presentation parity — 2026-10-08
 
@@ -215,3 +223,51 @@ host regeneration. The pinned DXF clone reader loses group 12, DXF omits flips
 and DIMSTYLE true colors, and epsilon omission limits certain near-default values.
 Other source picture definitions remain independently audited, never discarded
 by anonymous-looking names. See [Dimension support](../../../docs/dimension.md).
+
+## Foreground / ACI 7
+
+Native Foreground is a symbolic background-dependent black/white color, with no
+RGB fallback or separate ACI identity. Qualified ACI 7 imports as Foreground
+before palette lookup and exports as ACI 7, retaining CTB key 7. Literal RGB
+white and black remain true color. The old concrete `indexedColor: ACI/7` native
+object is invalid; current provisional examples and candidate fixtures use the
+closed `{"kind":"Foreground"}` choice.
+
+This applies to layer/entity colors, qualified Text/MText inline and explicit
+background colors, and C3/index-7 viewport-layer overrides. Named metadata on
+source ACI 7 cannot attach to Foreground and gets located loss under Allow;
+Reject refuses the loss. Editable native common appearance on preserved entities
+supports Foreground while provider payload bytes remain unchanged.
+
+The [independent exchange tests](../tests/ocdraw_foreground_exchange.rs) exercise native
+production readback and actual DXF/AC1032 DWG readback for this route, with fixed
+RGB controls. These tests prove data exchange, not external-app visual/CTB-output
+certification. Additional C5/ByPen/None/257 methods and broader plot-style contents
+remain unqualified. See [presentation](../../../docs/presentation.md#foreground-color)
+and [issue #16](https://github.com/OpenAEC-Foundation/ifccad/issues/16).
+
+Complex marker geometry remains unassessed per curve and block occurrence, independently of the host curve numerical proof. External font/SHX availability is not probed and does not cause semantic loss. Native producer bounds and derived assessment remain separate. AC1032 complex DXF/DWG exchange is independently checked by `tests/ocdraw_line_pattern_exchange.rs`, including resolved STYLE roles and the manually authored literal marker-flags fixture. This does not establish upright rotation, which the current codec public model cannot distinguish.
+
+## Gradient target coverage
+
+Validated state maps to two CAD endpoints at 0/1 and independent type/angle/
+shift/mode/tint, with reserved=0. Disabled partials use empty type/colors where
+absent. RGB is exact; consistent ACI identity maps to ACI. Unsupported indexed
+or named identity keeps concrete RGB/ACI with located rejectable loss. No named
+gradient identity is promised by the pin.
+
+Actual target OCS axes must equal native X/Y exactly. An unqualified active
+frame omits the whole Hatch under Allow; a dormant mismatch omits only state.
+Reject refuses and hard contour/numeric failures remain fatal under both policies.
+Contours/occurrences retain existing accuracy; gradient fill/field/pixels are
+separately unassessed, without a renderer or automatic tint/angle repair.
+
+CadDocument success is distinct from actual AC1032 file retention: DWG retains
+disabled state, DXF drops it. Viewer/browser production readback reports that
+loss and refuses delivery under Reject; other gradient target versions are
+gated. See docs/hatch.md and upstream #109 for qualified source/transport limits.
+
+Gradient endpoints stay concrete after the Foreground color migration. Source
+ACI 7 endpoints are unqualified (active whole-Hatch or dormant-state omission
+under Allow; Reject refuses). Native Foreground endpoints fail validation;
+no fixed background or RGB replacement is invented.

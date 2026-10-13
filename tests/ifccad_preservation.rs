@@ -11,6 +11,7 @@ fn opaque_identity_and_allocation_are_independent() {
     assert_eq!(entity.id(), 9007199254740993);
     assert!(entity.as_native().is_none());
     let mut ids = IfccadIdCounters {
+        next_symbol_source_id: 1,
         next_preservation_record_id: u64::MAX,
         ..Default::default()
     };
@@ -237,6 +238,7 @@ fn old_incomplete_inline_profile_is_rejected_and_deleted_records_keep_counter() 
 #[test]
 fn record_zero_is_rejected_in_allocation_and_soft_target_domains() {
     let mut ids = IfccadIdCounters {
+        next_symbol_source_id: 1,
         next_preservation_record_id: 0,
         ..Default::default()
     };

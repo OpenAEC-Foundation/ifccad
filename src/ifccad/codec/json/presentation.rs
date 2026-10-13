@@ -6,7 +6,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-struct ColorValue {
+struct ConcreteColorValue {
     rgb: [u8; 3],
     #[serde(
         default,
@@ -20,6 +20,21 @@ struct ColorValue {
         skip_serializing_if = "Option::is_none"
     )]
     named_color: Option<NamedColor>,
+}
+#[derive(Serialize, Deserialize)]
+#[serde(untagged)]
+enum ColorValue {
+    Foreground(ForegroundValue),
+    Concrete(ConcreteColorValue),
+}
+#[derive(Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ForegroundValue {
+    kind: ForegroundKind,
+}
+#[derive(Serialize, Deserialize)]
+enum ForegroundKind {
+    Foreground,
 }
 #[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -40,31 +55,45 @@ pub(super) fn present<'de, D: Deserializer<'de>, T: Deserialize<'de>>(
 }
 impl Serialize for IfccadColor {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        ColorValue {
-            rgb: self.rgb,
-            indexed_color: self.indexed.as_ref().map(|(system, index)| IndexedColor {
+        let Self::Concrete {
+            rgb,
+            indexed,
+            named,
+        } = self
+        else {
+            return ColorValue::Foreground(ForegroundValue {
+                kind: ForegroundKind::Foreground,
+            })
+            .serialize(serializer);
+        };
+        ColorValue::Concrete(ConcreteColorValue {
+            rgb: *rgb,
+            indexed_color: indexed.as_ref().map(|(system, index)| IndexedColor {
                 system: system.clone(),
                 index: *index,
             }),
-            named_color: self.named.as_ref().map(|(catalog, name)| NamedColor {
+            named_color: named.as_ref().map(|(catalog, name)| NamedColor {
                 catalog: catalog.clone(),
                 name: name.clone(),
             }),
-        }
+        })
         .serialize(serializer)
     }
 }
 impl<'de> Deserialize<'de> for IfccadColor {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let value = ColorValue::deserialize(deserializer)?;
-        let color = Self {
+        let ColorValue::Concrete(value) = value else {
+            return Ok(Self::Foreground);
+        };
+        let color = Self::Concrete {
             rgb: value.rgb,
             indexed: value.indexed_color.map(|c| (c.system, c.index)),
             named: value.named_color.map(|c| (c.catalog, c.name)),
         };
         if !color.is_valid() {
             return Err(serde::de::Error::custom(
-                "color identity strings must be nonempty",
+                "invalid concrete color identity or reserved ACI 7; use Foreground",
             ));
         }
         Ok(color)

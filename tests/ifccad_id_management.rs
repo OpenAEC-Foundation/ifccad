@@ -11,7 +11,7 @@ const FIELDS: [&str; 5] = [
 
 fn graph() -> Value {
     let mut document = load_ifccad_bytes(
-        include_bytes!("../examples/ifccad/hello-paper-layouts.ifcx"),
+        include_bytes!("../tests/fixtures/ifccad/hello-paper-layouts.ifcx"),
         Default::default(),
     )
     .unwrap()
@@ -34,6 +34,7 @@ fn graph() -> Value {
     }
     document.id_counters = IfccadIdCounters {
         next_dimension_style_id: 1,
+        next_symbol_source_id: 1,
         next_text_style_id: 1,
         next_preservation_record_id: 1,
         next_ucs_id: 1,
@@ -371,6 +372,7 @@ fn wire_roundtrip_preserves_full_width_counters_and_rejects_maximum_ids() {
         let mut document = read(&graph()).unwrap().document().clone();
         document.id_counters = IfccadIdCounters {
             next_dimension_style_id: 1,
+            next_symbol_source_id: 1,
             next_text_style_id: 1,
             next_preservation_record_id: 1,
             next_ucs_id: 1,

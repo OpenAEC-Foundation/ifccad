@@ -173,6 +173,7 @@ impl<K: Copy + Ord> GeometryContext<K> {
     pub fn record_unassessed(&mut self, doc: &ocdraw::ocdraw::OcdrawDocument) {
         let mut sources = Vec::new();
         crate::preservation::record_unassessed_occurrences(doc, &mut sources);
+        crate::mapping::marker_coverage::record(doc, &mut sources);
         for source in sources {
             let root = match &source {
                 OcdrawGeometryEntitySource::BlockOccurrence { path, .. } => {

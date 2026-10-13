@@ -108,12 +108,19 @@ pub fn cad_document_to_ocdraw_document_with_id(
         drawing_id,
         unit.unwrap_or("unitless"),
     ))?;
-    let patterns = crate::mapping::line_pattern::export_line_patterns(
+    let text_styles = crate::mapping::text::from_styles(document, &mut drawing, &mut diagnostics)?;
+    let symbol_sources = crate::mapping::symbol_source::export_symbol_sources(
         document,
         &mut drawing,
         &mut diagnostics,
     )?;
-    let text_styles = crate::mapping::text::from_styles(document, &mut drawing, &mut diagnostics)?;
+    let patterns = crate::mapping::line_pattern::export_line_patterns(
+        document,
+        &mut drawing,
+        &mut diagnostics,
+        &text_styles,
+        &symbol_sources,
+    )?;
     let mut ucs_names = BTreeMap::new();
     let mut ucs_handles = BTreeMap::new();
     for source in document.ucss.iter() {
@@ -584,7 +591,11 @@ pub fn cad_document_to_ocdraw_document_with_id(
                         {
                             None
                         } else {
-                            pattern.and_then(|pattern| direct_entity(common, pattern).ok())
+                            pattern.and_then(|pattern| {
+                                direct_entity(common, pattern).ok().and_then(
+                                    |(appearance, losses)| losses.is_empty().then_some(appearance),
+                                )
+                            })
                         };
                     for (name, represented) in [
                         ("layer", layer_id.is_some()),
@@ -799,7 +810,10 @@ pub fn cad_document_to_ocdraw_document_with_id(
             common,
             patterns.resolve(&common.linetype, common.linetype_handle)?,
         ) {
-            Ok(value) => Some(value),
+            Ok((value, losses)) => {
+                partial.extend(losses);
+                Some(value)
+            }
             Err(losses) => {
                 reasons.extend(losses);
                 None
@@ -1047,6 +1061,11 @@ pub fn cad_document_to_ocdraw_document_with_id(
         dimension_styles: dimension_styles.handles,
         text: crate::OcdrawTextAssessment::new(&drawing_document, entity_mapping.values().copied()),
         text_styles: text_styles.handles,
+        symbol_sources: symbol_sources
+            .by_handle
+            .into_iter()
+            .filter_map(|(h, id)| id.map(|id| (h, id)))
+            .collect(),
         preservation: preservation_report,
         document: drawing_document,
         diagnostics,
@@ -1087,6 +1106,7 @@ fn encode_export(
         dimension_styles: outcome.dimension_styles,
         text: outcome.text,
         text_styles: outcome.text_styles,
+        symbol_sources: outcome.symbol_sources,
         preservation: outcome.preservation,
         encoded: drawing,
         diagnostics: outcome.diagnostics,

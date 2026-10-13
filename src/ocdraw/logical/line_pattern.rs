@@ -1,4 +1,21 @@
-//! Drawing-local line pattern identities and simple pattern definitions.
+//! Drawing-local line pattern identities and ordered pattern definitions.
+use super::{OcdrawTextStyleId, SymbolSourceId};
+use crate::line_pattern::{LinePatternElement, LinePatternTransform};
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum DrawingLinePatternMarker {
+    Text {
+        text: String,
+        text_style_id: OcdrawTextStyleId,
+        transform: LinePatternTransform,
+    },
+    Symbol {
+        symbol_source_id: SymbolSourceId,
+        shape_number: u32,
+        transform: LinePatternTransform,
+    },
+}
+pub type DrawingLinePatternElement = LinePatternElement<DrawingLinePatternMarker>;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, serde::Serialize)]
 #[serde(transparent)]
@@ -11,7 +28,7 @@ pub struct DrawingLinePattern {
     pub id: LinePatternId,
     pub name: String,
     pub description: Option<String>,
-    pub pattern: Vec<f64>,
+    pub pattern: Vec<DrawingLinePatternElement>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -19,7 +36,7 @@ pub struct DrawingLinePattern {
 pub struct LinePatternDefinition {
     pub name: String,
     pub description: Option<String>,
-    pub pattern: Vec<f64>,
+    pub pattern: Vec<DrawingLinePatternElement>,
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]

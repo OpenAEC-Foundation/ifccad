@@ -11,7 +11,10 @@ fn patterns() -> IfccadDocument {
             id: IfccadLinePatternId(7),
             name: "EigenStreepPunt".into(),
             description: Some("authored".into()),
-            pattern: vec![0.5, -0.25, 0., -0.25],
+            pattern: vec![0.5, -0.25, 0., -0.25]
+                .into_iter()
+                .map(ocdraw::line_pattern::LinePatternElement::simple)
+                .collect(),
         },
         IfccadLinePattern {
             id: IfccadLinePatternId(8),
@@ -103,22 +106,35 @@ fn ordinary_patterns_scales_and_generation_convert_without_losses() {
 fn complex_patterns_fallback_once_including_unused_with_stable_references() {
     for shape in [false, true] {
         let mut c = to_cad(&validated(&patterns())).unwrap().into_document();
+        let style_handle = if shape {
+            let mut style = opencadcodec::tables::TextStyle::new("");
+            style.handle = c.allocate_handle();
+            style.is_shape_file = true;
+            style.font_file = "symbols.shx".into();
+            let handle = style.handle;
+            c.text_styles.add_allow_duplicate(style);
+            handle
+        } else {
+            c.text_styles.get("Standard").unwrap().handle
+        };
         let complex = opencadcodec::tables::LineTypeComplexData {
             content: if shape {
                 opencadcodec::tables::LineTypeComplexContent::Shape { shape_number: 1 }
             } else {
                 opencadcodec::tables::LineTypeComplexContent::Text { text: "GAS".into() }
             },
-            style_handle: c.text_styles.get("Standard").unwrap().handle,
+            style_handle,
+            scale: 0.,
             ..Default::default()
         };
         c.line_types.get_mut("EigenStreepPunt").unwrap().elements[0].complex =
             Some(complex.clone());
         let unused = c.line_types.get_mut("UnusedSolid").unwrap();
         unused.elements = vec![opencadcodec::tables::LineTypeElement {
-            length: 0.,
+            length: 1.,
             complex: Some(complex),
         }];
+        unused.pattern_length = 1.;
         let first = c.clone();
         let out = cad_document_to_encoded_ifccad(&c, metadata(), Default::default()).unwrap();
         assert_eq!(c, first);
@@ -215,7 +231,10 @@ fn simple_and_named_empty_patterns_survive_real_dxf_and_dwg() {
                 .iter()
                 .find(|p| p.name == "EigenStreepPunt")
                 .unwrap()
-                .pattern,
+                .pattern
+                .iter()
+                .map(|e| e.length)
+                .collect::<Vec<_>>(),
             vec![0.5, -0.25, 0., -0.25]
         );
         assert!(d

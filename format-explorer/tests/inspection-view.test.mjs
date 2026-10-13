@@ -3,6 +3,23 @@ import {createInspection} from '../src/inspection-model.mjs';
 import {renderInspection} from '../src/inspection-view.mjs';
 import * as presentation from '../src/presentation-json.mjs';
 
+test('explicit pattern values render as references in both native formats',()=>{
+ for(const format of ['ifccad','ocdraw']) {
+  const pattern='/cad/d1/linePattern/5',entity='/cad/d1/e1';
+  const p=format==='ifccad'?{format,graph:{data:[{path:entity,attributes:{'ifccad::entity':{appearance:{linePattern:{mode:'Explicit',value:pattern}}}}},{path:pattern,attributes:{'ifccad::linePattern':{name:'Mixed',pattern:[]}}}]}}:{format,linePatterns:[{id:5,name:'Mixed',pattern:[]}],entities:[{id:1,appearance:{linePattern:{mode:'Explicit',value:5}},geometry:{type:'line'}}]};
+  const model=createInspection({presentation:p});
+  const rendered=renderInspection(model,{language:'en',view:'drawing',selection:format==='ifccad'?entity:'entity:1',expanded:new Set(),inspector:'properties'});
+  assert.ok(rendered.details.includes('data-select="'+(format==='ifccad'?pattern:'pattern:5')+'"'),rendered.details);
+ }
+});
+
+test('partial symbol coverage is explained without declaring an external file missing',()=>{
+ const model=createInspection({presentation:{format:'ocdraw',layouts:[{id:0,scopeId:0,name:'Model',kind:'model'}],scopes:[{id:0,entities:[]}],boundsCompleteness:[{scopeId:0,declaredQuality:'enclosing',quality:'partial',enclosureVerified:false,safeForNegativeQuery:false,linePatternReasons:['SymbolFootprintUnavailable']}]}});
+ const rendered=renderInspection(model,{language:'en',view:'drawing',selection:'layout:0',expanded:new Set(),inspector:'properties'});
+ assert.match(rendered.details,/Symbol outlines have not been assessed/);
+ assert.doesNotMatch(rendered.details,/file is missing/i);
+});
+
 test('a selected record beyond the old row budget uses a bounded middle list without losing the tree context',()=>{
  const entities=Array.from({length:300},(_,i)=>({id:i+1,geometry:{type:'line'}}));
  const model=createInspection({validation:{strictAvailable:true},presentation:{format:'ocdraw',entities,layouts:[{id:0,scopeId:0,kind:'model',name:'Model'}],scopes:[{id:0,entities:entities.map(e=>e.id)}]}});

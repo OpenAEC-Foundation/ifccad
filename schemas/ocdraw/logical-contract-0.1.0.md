@@ -13,6 +13,12 @@ until OCDraw 0.1.0 is fixed as the first supported version.
 
 ## Document and identity
 
+Corresponding native defaults are documented in
+[drawing defaults](../../docs/drawing-defaults.md). Readers construct complete
+logical values; writers omit only exact defaults. Line Z defaults to +0, while
+explicit -0 remains stored by the compact writer. Spatial vertex pools and
+placement definitions retain their existing mapping requirements.
+
 `header.format` is `open_cad_drawing` and `header.version` is `0.1.0`.
 `drawingId` is a stable, nonempty drawing identity independent of file path. The
 unit is explicit; `unitless` is valid. `nextEntityId`, `nextLayerId`, `nextLinePatternId`, and
@@ -32,7 +38,9 @@ defaults but must not replace an authored value with a guessed one.
 
 `layers` and `layouts` are drawing-level definition collections, not drawable
 entity streams. A Layer has its own stable ID, nonempty unique name, flags, and
-explicit color, opacity, line pattern, and line weight defaults. A Layout has a
+explicit color, line pattern and line weight values. Omitted opacity means 1;
+visible/plottable default true and frozen/locked/frozenInNewViewports default false.
+A Layout has a
 stable ID, nonempty unique name, scope reference, model/paper kind, and unique
 contiguous zero-based tab index. Names are compared with the pinned Unicode
 17.0 full case fold. Unused definitions remain valid and survive read/write.
@@ -104,6 +112,26 @@ opacity, line pattern, and line weight with explicit values. Missing override
 fields retain the Layer's defaults. It refers directly to a Layer ID and has
 no appearance-override ID. Its frozen flag remains independent.
 
+
+Color is an exclusive Foreground or concrete choice. Foreground is encoded as
+the closed object `{"kind":"Foreground"}` and carries no RGB/indexed/named
+value. Concrete color has required RGB bytes and optional indexed/named identity;
+its existing physical shape is retained. A concrete indexed color with system
+ASCII-case-insensitively `ACI` and index 7 is invalid. Use Foreground, even when
+its current display matches RGB white or black. Unknown/mixed choices and null
+color values are invalid. Optional enclosing column slots keep their own
+nullability rules. These constraints apply to all native color locations,
+including text, viewport overrides and editable opaque common appearance.
+
+After inheritance/viewport overrides, resolve Foreground against the effective
+opaque sRGB background for that occurrence. Normalize components to c in [0,1]
+and linearize with c/12.92 when c <= 0.04045, otherwise
+((c+0.055)/1.055)^2.4. With L = 0.2126 R + 0.7152 G + 0.0722 B, select black
+when (L+0.05)/0.05 >= 1.05/(L+0.05), and white otherwise. Thus black backgrounds
+yield white and white backgrounds yield black. The selected RGB is not stored
+in the document. This native rule does not claim AutoCAD palette reproduction.
+Canvas-background-fill and ByLayer/ByBlock remain distinct meanings.
+
 ## Named line patterns
 
 `linePatterns` is a drawing-local definition table. Each record has a unique
@@ -115,11 +143,40 @@ retained. Omission of the table means no definitions; readers synthesize none.
 reduced when deleting a record. No ID is implied by a table position or CAD handle.
 
 Positive finite pattern numbers are strokes, negative numbers are gaps, and zero
-is a dot, in drawing units. An empty pattern is continuous. A nonempty pattern
-has at least two entries, a nonnegative first entry, and a finite positive sum
+is a dot, in drawing units. An empty pattern is continuous. A nonempty simple pattern
+has at least two entries; a complex pattern may have one. Both require a nonnegative first entry and a finite positive sum
 of absolute lengths. Preserve entry order and values without merging elements.
 The name `Continuous`, under the same case fold, requires an empty sequence;
 `ByLayer` and `ByBlock` are reserved selection names and cannot name definitions.
+
+## Complex line patterns
+
+Each ordered logical element has a signed `length` and an optional marker. A
+plain element maps to a JSON number; a marked element maps to the closed object
+`{length,marker}`. Advance precedes placement: a positive length retains its
+stroke, a negative length retains its gap, and zero with a marker adds no dot.
+
+Markers are closed `text` or `symbol` variants. Text requires literal `text`
+(including empty strings) and a resolving local `textStyleId`. Symbols require
+a resolving local `symbolSourceId` and unsigned 32-bit `shapeNumber`. Both have
+finite positive `scale` (default 1), finite two-component `offset` (default
+[0,0]), and `rotation:{mode,angle}` in radians (default relative zero). Rotation
+modes are `relative` and `absolute`; null, unknown members and wrong-variant
+members are invalid. Empty text contributes no visible marker footprint.
+
+`symbolSources` is an optional ordered local table of closed
+`{id,kind:"shx",fileName}` records. IDs are uint32, zero is valid, and required
+`header.nextSymbolSourceId` exceeds all allocated IDs. The empty domain starts
+at zero. Deletion must retain the watermark; failed allocation changes nothing.
+Filenames are nonempty basenames other than `.` or `..`, without slash,
+backslash or NUL. Preserve case. Duplicate filenames do not merge identities.
+Missing external files are nonfatal: validation resolves internal references
+and never opens fonts or symbol assets. URI, digest and embedding are deferred.
+
+This provisional slice changes the typed pattern API from numeric vectors to
+ordered elements and requires the source watermark in active files, even when
+the source table is absent. Released numbered conformance collections remain
+unchanged.
 
 Simple patterns use A-type endpoint alignment: open lines/arcs begin and end
 with a stroke, adjusting endpoint strokes as needed; a path too short for a
@@ -483,7 +540,7 @@ numeric checks on neighboring primitives, text or block occurrences.
 A Hatch is an ordinary entity with its own stable ID, appearance, ownership and
 draw order. One placement defines its local XY plane. It stores nonempty loops,
 areaRule (normal/outer/ignore), joinTolerance and a typed fill. This active slice
-supports only fill kind solid.
+supports fill kinds solid, linePattern and gradient.
 
 Boundary kinds are closed polyline, full circle, full ellipse and ordered
 line/circularArc/ellipticArc edges. In hatchStream nested values, XY coordinates
@@ -595,3 +652,24 @@ Measurement points do not certify graphical extents. Without complete display
 preparation, Dimension contributes partial bounds coverage under the existing
 enclosing/estimated/partial lifecycle rules. Known primitive subsets remain
 validated. Annotative text and Dimension context support is a separate shared slice.
+## Hatch gradient settings
+
+`fill.kind = gradient` selects the separate optional `gradient` state. Active
+Gradient requires type and exactly two concrete endpoint colors (positions 0/1).
+Solid/LinePattern can retain partial inactive settings without type or colors.
+Known types: linear, cylinder, inverseCylinder, spherical, inverseSpherical,
+hemispherical, inverseHemispherical, curved, inverseCurved.
+Rotation is finite local radians, never normalized; shift/tint are finite in
+[0,1]. Defaults: rotation=0, shift=0, colorMode=twoColor, tint=0.
+colorMode is oneColor/twoColor independently of the two stored colors; IO never
+generates color 2 from tint. Colors use the existing concrete RGB and optional
+indexed/named identity. Inherited colors, per-stop alpha and unknown fields
+are unavailable. A present state without type/colors and with all defaults is
+invalid; omit it. Native validity is separate from CAD and rendering qualification.
+
+OCDraw maps state to an optional count-sized gradient column: only its absent
+rows may be null. Nested state fields cannot be null.
+
+Gradient endpoints require concrete fixed RGB colors; Foreground is not a
+gradient endpoint. Concrete ACI 7 identity remains invalid under the common
+color contract. No background-dependent endpoint is resolved during IO.

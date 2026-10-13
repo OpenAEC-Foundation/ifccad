@@ -32,7 +32,10 @@ fn exports_custom_and_unused_simple_patterns() {
         .iter()
         .find(|p| p.name == "Custom")
         .unwrap();
-    assert_eq!(p.pattern, vec![6.0, -2.0, 0.0, -2.0]);
+    assert_eq!(
+        p.pattern.iter().map(|e| e.length).collect::<Vec<_>>(),
+        vec![6.0, -2.0, 0.0, -2.0]
+    );
     assert_eq!(drawing.typed_layers()[0].line_pattern_id, p.id);
     let returned = ocdraw_source_to_cad_document(drawing, OcdrawToCadOptions::default()).unwrap();
     assert_eq!(
@@ -55,6 +58,8 @@ fn unused_complex_pattern_falls_back_and_rejects() {
     let mut dash = LineTypeElement::dash(6.0);
     dash.complex = Some(LineTypeComplexData {
         content: LineTypeComplexContent::Text { text: "GAS".into() },
+        style_handle: source.text_styles.get("Standard").unwrap().handle,
+        scale: 0.,
         ..Default::default()
     });
     p.elements = vec![dash, LineTypeElement::space(2.0)];
@@ -111,16 +116,24 @@ fn shape_and_mixed_fallback_keep_references_and_modes() {
     use ocdraw_convert::opencadcodec::{EntityType, Line};
     for include_text in [false, true] {
         let mut source = CadDocument::new();
+        let mut shape = ocdraw_convert::opencadcodec::tables::TextStyle::new("");
+        shape.handle = ocdraw_convert::opencadcodec::Handle::new(900);
+        shape.is_shape_file = true;
+        shape.font_file = "symbols.shx".into();
+        source.text_styles.add_allow_duplicate(shape);
         let mut pattern = LineType::new("Symbols");
         let mut symbol = LineTypeElement::dash(2.0);
         symbol.complex = Some(LineTypeComplexData {
             content: LineTypeComplexContent::Shape { shape_number: 7 },
+            style_handle: ocdraw_convert::opencadcodec::Handle::new(900),
+            scale: 0.,
             ..Default::default()
         });
         pattern.elements = vec![symbol, LineTypeElement::space(1.0)];
         if include_text {
             pattern.elements[1].complex = Some(LineTypeComplexData {
                 content: LineTypeComplexContent::Text { text: "GAS".into() },
+                style_handle: source.text_styles.get("Standard").unwrap().handle,
                 ..Default::default()
             });
         }

@@ -77,6 +77,12 @@ pub enum OcdrawToCadError {
         #[source]
         source: cad_dimension::CadDimensionPreparationError,
     },
+    #[error("Hatch preparation failed for entity {entity_id}: {source}")]
+    HatchPreparation {
+        entity_id: u64,
+        #[source]
+        source: cad_geometry_convert::hatch::CadHatchPreparationError,
+    },
     #[error(transparent)]
     WorkspaceNumeric(#[from] cad_workspace_convert::WorkspaceNumericError),
     #[error("text preparation failed for entity {entity_id}: {source}")]
@@ -167,6 +173,10 @@ pub enum CadToOcdrawLossReason {
     NamedColorIdentityIncomplete {
         color_name: Option<String>,
         book_name: Option<String>,
+    },
+    NamedColorOnForeground {
+        catalog: String,
+        name: String,
     },
     LayerColorUnsupported {
         color: String,

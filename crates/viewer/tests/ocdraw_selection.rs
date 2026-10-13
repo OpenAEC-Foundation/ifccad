@@ -7,7 +7,7 @@ use std::{collections::BTreeSet, io::Cursor};
 fn ocdraw_selection_links_written_layout_entities_and_excludes_block_contents() {
     for bytes in [
         include_bytes!("../../../examples/ocdraw/overview.ocdraw.json").as_slice(),
-        include_bytes!("../../../examples/ocdraw/layouts-viewports.ocdraw.json").as_slice(),
+        include_bytes!("../../../tests/fixtures/ocdraw/layouts-viewports.ocdraw.json").as_slice(),
     ] {
         let drawing = load_ocdraw_bytes(bytes).unwrap();
         let expected: BTreeSet<_> = drawing

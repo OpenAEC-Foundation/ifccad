@@ -97,6 +97,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let block_entities = vec![entity(text)?, entity(mtext)?];
     let mut d = IfccadDocument {
         dimension_styles: Vec::new(),
+        symbol_sources: vec![],
         point_display: None,
         ucs_definitions: vec![],
         model_windows: vec![],
@@ -138,7 +139,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             id: 0,
             name: "0".into(),
             appearance: IfccadLayerAppearance {
-                color: IfccadColor::rgb(255, 255, 255).with_indexed("ACI", 7),
+                color: IfccadColor::Foreground,
                 opacity: 1.,
                 line_pattern: IfccadLinePatternId(0),
                 line_weight: 0.25,
@@ -180,7 +181,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let encoded = encode_ifccad_document(&d)?;
     let path = std::env::args()
         .nth(1)
-        .unwrap_or_else(|| "examples/ifccad/hello-text.ifcx".into());
+        .unwrap_or_else(|| "examples/ifccad/text.ifcx".into());
     std::fs::write(path, encoded.bytes())?;
     Ok(())
 }

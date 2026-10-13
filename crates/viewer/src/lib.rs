@@ -1,9 +1,12 @@
+#![recursion_limit = "256"]
 mod cad;
 mod geometry;
+mod hatch_exchange;
 mod ifccad;
 mod inspection;
 mod inspection_dimension;
 mod inspection_ifccad_dimension;
+mod line_pattern;
 mod options;
 mod selection;
 pub fn conversion_capabilities() -> Value {

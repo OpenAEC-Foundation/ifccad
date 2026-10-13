@@ -127,7 +127,7 @@ Generate the [Explorer example](../examples/ocdraw/text.ocdraw.json) with
 `cargo run --example write_text -- <new-output.ocdraw.json>`. The producer strictly
 reads its output and refuses overwrite. Fonts remain requested rather than bundled.
 
-The independent [IFCCAD example](../examples/ifccad/hello-text.ifcx) includes
+The independent [IFCCAD example](../examples/ifccad/text.ifcx) includes
 Text/MText in Model, Paper and a local block, explicit paragraph colour and
 estimated bounds. Generate it with `cargo run --example write_ifccad_text --
 <output.ifcx>`. That producer uses strict native readback before writing.
@@ -152,3 +152,21 @@ of OCDraw's DrawingColor. Qualified RGB/ACI text identity passes through the sha
 CAD color rules; richer/unqualified text color metadata still obeys the bounded
 whole-text restriction. Scalar color support does not certify glyph appearance.
 See [presentation](presentation.md) for migration and numerical policy.
+
+
+Explicit native Text/MText colors also support the symbolic Foreground choice,
+including character/paragraph/inline overrides and explicit background fills.
+Qualified CAD indexed color 7 retains that meaning through DXF/AC1032 DWG in both
+routes; ordinary RGB white/black remain fixed. Foreground is different from the
+existing canvas-background-fill choice. See [Foreground](presentation.md#foreground-color)
+for resolution and the closed wire value; richer named/custom text colors retain
+their existing bounded-profile restrictions.
+
+## Text in line patterns
+
+Complex line patterns reference the same ordinary local text-style domain but
+store literal marker strings and their own scale, offset and relative/absolute
+rotation. They do not introduce Text/MText entities or rich text markup. The
+fontless marker estimate reuses the Text extent estimator, with nominal height
+from fixed style height and marker scale. Marker numerical coverage remains
+unassessed beside the host curve proof. See [line patterns](line-patterns.md).

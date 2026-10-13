@@ -16,7 +16,7 @@ pub(crate) enum PreparedCadEntityValue {
         references: Vec<cad_dimension::CadDimensionPointReference>,
     },
     Hatch {
-        definition: HatchEntityDefinition,
+        definition: Box<HatchEntityDefinition>,
         handles: Vec<Vec<Handle>>,
         associative: bool,
     },
@@ -164,7 +164,7 @@ pub(super) fn append(
                 handles,
                 associative,
             } => {
-                let id = drawing.add_hatch(definition)?;
+                let id = drawing.add_hatch(*definition)?;
                 pending_hatches.push((entity.handle, id, handles, associative));
                 id
             }

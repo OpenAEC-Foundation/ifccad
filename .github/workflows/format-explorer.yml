@@ -263,4 +263,4 @@ jobs:
           scp "${ssh_args[@]}" -P "$DEPLOY_PORT" "$RUNNER_TEMP/explorer.tar.gz" "$target:/opt/ifccad-explorer/incoming/$release.tar.gz"
           ssh "${ssh_args[@]}" -p "$DEPLOY_PORT" "$target" "bash -s -- '$release' '$checksum'" < format-explorer/deploy/release.sh
       - name: Verify public HTTPS website
-        run: node format-explorer/deploy/smoke.mjs https://ifccad-explorer.open-aec.com "$GITHUB_SHA" basic
+        run: node format-explorer/deploy/smoke.mjs https://ifccad-explorer.open-aec.com "$GITHUB_SHA" public

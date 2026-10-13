@@ -61,6 +61,7 @@ pub(crate) fn from_cad(
         issues,
     )?;
     Ok(Some(IfccadEntityKind::Hatch(IfccadHatch {
+        gradient: p.gradient.map(super::hatch_gradient::gradient_from_cad),
         placement: super::geometry::placement(p.placement),
         loops: p
             .boundaries
@@ -117,7 +118,15 @@ pub(crate) fn to_cad(
         .iter()
         .map(|l| l.boundary.clone())
         .collect::<Vec<_>>();
-    let p = cad_geometry_convert::hatch::prepare_hatch_to_cad(
+    let (gradient, color_losses) = h
+        .gradient
+        .as_ref()
+        .map(|g| {
+            let (g, losses) = super::hatch_gradient::gradient_to_cad(g);
+            (Some(g), losses)
+        })
+        .unwrap_or_default();
+    let p = match cad_geometry_convert::hatch::prepare_hatch_to_cad(
         h.placement
             .coordinate_frame()
             .map_err(IfccadConversionError::CoreValidation)?,
@@ -125,14 +134,48 @@ pub(crate) fn to_cad(
         h.area_rule,
         h.join_tolerance,
         &h.fill,
-    )
-    .map_err(|source| IfccadConversionError::HatchPreparation {
-        location: format!("entity/{id}"),
-        source,
-    })?;
+        gradient.as_ref(),
+    ) {
+        Ok(p) => p,
+        Err(cad_geometry_convert::hatch::CadHatchPreparationError::Unsupported {
+            field,
+            detail,
+        }) => {
+            let code = if field == "gradient.frame" {
+                "HATCH_GRADIENT_FRAME_UNSUPPORTED"
+            } else {
+                "hatch-unsupported"
+            };
+            issues.push(crate::diagnostics::diagnostic(
+                code,
+                format!("entity/{id}/{field}"),
+                detail,
+            ));
+            return Ok(None);
+        }
+        Err(source) => {
+            return Err(IfccadConversionError::HatchPreparation {
+                location: format!("entity/{id}"),
+                source,
+            })
+        }
+    };
+    if !p.losses.iter().any(|l| l.field == "gradient.frame") {
+        for loss in color_losses {
+            issues.push(crate::diagnostics::diagnostic(
+                "HATCH_GRADIENT_COLOR",
+                format!("entity/{id}/{}", loss.field),
+                loss.detail,
+            ));
+        }
+    }
     for loss in p.losses {
         issues.push(crate::diagnostics::diagnostic(
-            "hatch-pattern-metadata",
+            if loss.field == "gradient.frame" {
+                "HATCH_GRADIENT_FRAME_UNSUPPORTED"
+            } else {
+                "hatch-pattern-metadata"
+            },
             format!("entity/{id}/{}", loss.field),
             loss.detail,
         ));

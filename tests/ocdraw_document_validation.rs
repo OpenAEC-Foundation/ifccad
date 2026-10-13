@@ -61,8 +61,9 @@ fn authored_values_cannot_bypass_schema_field_constraints() {
                 }
             }
             9 => {
-                doc.geometric_entities[0].appearance.color =
-                    AppearanceSelection::Explicit(DrawingColor::rgb(0, 0, 0).with_indexed("", 0))
+                doc.geometric_entities[0].appearance.color = AppearanceSelection::Explicit(
+                    DrawingColor::rgb(0, 0, 0).with_indexed("", 0).unwrap(),
+                )
             }
             _ => doc.next_entity_id = 0,
         }

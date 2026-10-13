@@ -53,15 +53,26 @@ pub(crate) fn download(output: &mut Value, name: &str, format: &str, bytes: &[u8
     output["export"] = json!({"format":format,"download":{"format":format,"fileName":format!("{stem}.{extension}"),"byteLength":bytes.len(),"base64":STANDARD.encode(bytes)}});
 }
 
+pub(crate) struct CadFileExportRequest<'a> {
+    pub name: &'a str,
+    pub format: &'a str,
+    pub version: &'a str,
+    pub loss_policy: crate::options::ExportLossPolicy,
+}
+
 pub(crate) fn export(
     mut output: Value,
     mut document: CadDocument,
-    name: &str,
-    format: &str,
-    version: &str,
+    request: CadFileExportRequest<'_>,
     mut diagnostics: Vec<Value>,
     check: impl FnOnce(&CadDocument) -> Result<Value, String>,
 ) -> Value {
+    let CadFileExportRequest {
+        name,
+        format,
+        version,
+        loss_policy,
+    } = request;
     output["export"] =
         json!({"format":format,"requestedVersion":version,"diagnostics":diagnostics});
     let cad_version = match selection(format, version) {
@@ -71,6 +82,16 @@ pub(crate) fn export(
             return output;
         }
     };
+    if let Err(error) = crate::hatch_exchange::check_gradient_target_version(&document, cad_version)
+    {
+        fail(
+            &mut output,
+            "exporting",
+            "HATCH_GRADIENT_TARGET_VERSION_UNSUPPORTED",
+            error,
+        );
+        return output;
+    }
     document.version = cad_version;
     progress("writing");
     let written = if format == "dxf" {
@@ -113,10 +134,36 @@ pub(crate) fn export(
         );
         return output;
     }
+    let original_count = diagnostics.len();
+    let gradient_issues = match crate::hatch_exchange::check_hatch_exchange(&document, &checked) {
+        Ok(v) => v,
+        Err(error) => {
+            fail(
+                &mut output,
+                "checking",
+                "HATCH_GRADIENT_READBACK_UNCONFIRMED",
+                error,
+            );
+            return output;
+        }
+    };
+    diagnostics.extend(gradient_issues.into_iter().map(|i| i.value()));
     diagnostics.extend(spline_parameterization_losses(&document, &checked));
     diagnostics.extend(viewport_shadeplot_losses(&document, &checked));
     diagnostics.extend(hatch_description_losses(&document, &checked));
     output["export"]["diagnostics"] = json!(&diagnostics);
+    if loss_policy == crate::options::ExportLossPolicy::Reject
+        && (diagnostics.len() > original_count
+            || diagnostics.iter().any(|d| d["phase"] == "cadExchange"))
+    {
+        fail(
+            &mut output,
+            "checking",
+            "CAD_EXCHANGE_LOSS_REJECTED",
+            "CAD file losses were rejected; no download is offered",
+        );
+        return output;
+    }
     let check = match check(&checked) {
         Ok(v) => v,
         Err(error) => {

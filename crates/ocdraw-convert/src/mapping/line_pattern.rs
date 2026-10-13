@@ -15,7 +15,7 @@ pub(crate) struct ExportLinePatternMap {
     handles: BTreeMap<Handle, String>,
 }
 
-fn invalid(message: impl Into<String>) -> CadToOcdrawError {
+pub(super) fn invalid(message: impl Into<String>) -> CadToOcdrawError {
     CadToOcdrawError::InvalidSourceStructure {
         problems: vec![
             crate::source::CadSourceStructureProblem::InconsistentRelationship {
@@ -98,6 +98,8 @@ pub(crate) fn export_line_patterns(
     source: &CadDocument,
     builder: &mut OcdrawBuilder,
     diagnostics: &mut Vec<CadToOcdrawDiagnostic>,
+    styles: &super::text::SourceTextStyles,
+    symbols: &super::symbol_source::ExportSymbolSourceMap,
 ) -> Result<ExportLinePatternMap, CadToOcdrawError> {
     let mut map = ExportLinePatternMap {
         names: BTreeMap::new(),
@@ -134,11 +136,98 @@ pub(crate) fn export_line_patterns(
             continue;
         }
         let complex = row.is_complex();
-        let pattern = if complex {
-            vec![]
-        } else {
-            row.elements.iter().map(|e| e.length).collect()
-        };
+        if complex && row.name.eq_ignore_ascii_case("Continuous") {
+            return Err(invalid("Continuous cannot carry complex content"));
+        }
+        let raw = row
+            .elements
+            .iter()
+            .map(|e| ocdraw::line_pattern::LinePatternElement {
+                length: e.length,
+                marker: e.complex.as_ref().map(|_| ()),
+            })
+            .collect::<Vec<_>>();
+        ocdraw::line_pattern::validate_line_pattern_values(&raw)
+            .map_err(|e| invalid(e.to_string()))?;
+        let mut pattern = Vec::new();
+        let mut fallback = false;
+        for element in &row.elements {
+            let marker = if let Some(value) = &element.complex {
+                let style = source
+                    .text_styles
+                    .iter()
+                    .find(|s| !value.style_handle.is_null() && s.handle == value.style_handle)
+                    .ok_or_else(|| invalid("missing marker STYLE handle"))?;
+                if style.is_shape_file != value.is_shape() {
+                    return Err(invalid("marker STYLE has wrong role"));
+                }
+                let prepared = cad_presentation_convert::marker_values_from_cad(value);
+                let prepared = match prepared {
+                    Ok(v) => Some(v),
+                    Err(cad_presentation_convert::CadLinePatternValueError::Unsupported(_)) => {
+                        fallback = true;
+                        None
+                    }
+                    Err(e) => return Err(invalid(e.to_string())),
+                };
+                if let Some(prepared) = prepared {
+                    use ocdraw::{line_pattern::*, ocdraw::DrawingLinePatternMarker};
+                    let transform = LinePatternTransform {
+                        scale: prepared.scale,
+                        offset: prepared.offset,
+                        rotation: if prepared.absolute_rotation {
+                            LinePatternRotation::Absolute(prepared.rotation)
+                        } else {
+                            LinePatternRotation::Relative(prepared.rotation)
+                        },
+                    };
+                    match prepared.content {
+                        cad_presentation_convert::CadLinePatternMarkerContent::Text(text) => {
+                            match styles.handles.get(&value.style_handle) {
+                                Some(id) => Some(DrawingLinePatternMarker::Text {
+                                    text,
+                                    text_style_id: *id,
+                                    transform,
+                                }),
+                                None => {
+                                    fallback = true;
+                                    None
+                                }
+                            }
+                        }
+                        cad_presentation_convert::CadLinePatternMarkerContent::Shape(
+                            shape_number,
+                        ) => match symbols
+                            .by_handle
+                            .get(&value.style_handle)
+                            .copied()
+                            .flatten()
+                        {
+                            Some(id) => Some(DrawingLinePatternMarker::Symbol {
+                                symbol_source_id: id,
+                                shape_number,
+                                transform,
+                            }),
+                            None => {
+                                fallback = true;
+                                None
+                            }
+                        },
+                    }
+                } else {
+                    None
+                }
+            } else {
+                None
+            };
+            pattern.push(ocdraw::line_pattern::LinePatternElement {
+                length: element.length,
+                marker,
+            });
+        }
+        if fallback {
+            pattern.clear();
+        }
         let id = builder.add_line_pattern(LinePatternDefinition {
             name: row.name.clone(),
             description: (!row.description.is_empty()).then(|| row.description.clone()),
@@ -148,7 +237,12 @@ pub(crate) fn export_line_patterns(
             return Err(invalid("duplicate CAD line pattern name"));
         }
         let mut reasons = Vec::new();
-        if complex {
+        if row.pattern_length != row.elements.iter().map(|e| e.length.abs()).sum::<f64>() {
+            reasons.push(CadToOcdrawLossReason::UnsupportedSemantic {
+                name: "inconsistent CAD cached pattern length replaced by element period".into(),
+            });
+        }
+        if complex && fallback {
             if row.name.eq_ignore_ascii_case("Continuous") {
                 return Err(invalid("Continuous cannot carry complex content"));
             }
@@ -191,20 +285,78 @@ pub(crate) type ImportLinePatternMap = BTreeMap<LinePatternId, (String, Handle)>
 pub(crate) fn import_line_patterns(
     source: &OcdrawDocument,
     target: &mut CadDocument,
+    styles: &super::text::TargetTextStyles,
+    symbols: &BTreeMap<ocdraw::ocdraw::SymbolSourceId, Handle>,
+    diagnostics: &mut Vec<crate::OcdrawToCadDiagnostic>,
 ) -> Result<ImportLinePatternMap, OcdrawToCadError> {
     let mut map = BTreeMap::new();
     for row in &source.line_patterns {
         let mut native = opencadcodec::LineType::new(&row.name);
         native.description = row.description.clone().unwrap_or_default();
-        native.elements = row
-            .pattern
-            .iter()
-            .map(|v| opencadcodec::tables::LineTypeElement {
-                length: *v,
-                complex: None,
-            })
-            .collect();
-        native.pattern_length = row.pattern.iter().map(|v| v.abs()).sum();
+        let mut fallback = false;
+        for element in &row.pattern {
+            let complex = if let Some(marker) = &element.marker {
+                use cad_presentation_convert::*;
+                use ocdraw::{line_pattern::LinePatternRotation, ocdraw::DrawingLinePatternMarker};
+                let (content, handle, transform) = match marker {
+                    DrawingLinePatternMarker::Text {
+                        text,
+                        text_style_id,
+                        transform,
+                    } => (
+                        CadLinePatternMarkerContent::Text(text.clone()),
+                        styles.handles.get(text_style_id),
+                        transform,
+                    ),
+                    DrawingLinePatternMarker::Symbol {
+                        symbol_source_id,
+                        shape_number,
+                        transform,
+                    } => (
+                        CadLinePatternMarkerContent::Shape(*shape_number),
+                        symbols.get(symbol_source_id),
+                        transform,
+                    ),
+                };
+                if let Some(handle) = handle {
+                    let (rotation, absolute_rotation) = match transform.rotation {
+                        LinePatternRotation::Relative(v) => (v, false),
+                        LinePatternRotation::Absolute(v) => (v, true),
+                    };
+                    match marker_values_to_cad(
+                        &CadLinePatternMarkerValues {
+                            content,
+                            scale: transform.scale,
+                            offset: transform.offset,
+                            rotation,
+                            absolute_rotation,
+                        },
+                        *handle,
+                    ) {
+                        Ok(v) => Some(v),
+                        Err(CadLinePatternValueError::Unsupported(_)) => {
+                            fallback = true;
+                            None
+                        }
+                        Err(e) => return Err(OcdrawToCadError::Cad(e.to_string())),
+                    }
+                } else {
+                    fallback = true;
+                    None
+                }
+            } else {
+                None
+            };
+            native.elements.push(opencadcodec::tables::LineTypeElement {
+                length: element.length,
+                complex,
+            });
+        }
+        if fallback {
+            native.elements.clear();
+            diagnostics.push(crate::OcdrawToCadDiagnostic {code:"COMPLEX_LINE_PATTERN_FALLBACK",location:format!("/linePatterns/{}",row.id.0),message:"Unsupported active marker dependency: whole definition becomes named continuous".into()});
+        }
+        native.pattern_length = native.elements.iter().map(|v| v.length.abs()).sum();
         let handle = if let Some(existing) = target.line_types.get_mut(&row.name) {
             native.handle = existing.handle;
             *existing = native;

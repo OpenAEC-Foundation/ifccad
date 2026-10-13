@@ -52,6 +52,11 @@ pub(crate) fn encode_mtext(entities: &[DrawingMTextEntity]) -> Value {
         stream.as_object_mut().expect("object stream"),
         &entities.iter().map(|t| &t.appearance).collect::<Vec<_>>(),
     );
+    let columns = stream.as_object_mut().expect("mtext stream");
+    super::defaults::omit_default_column(columns, "rotation", |v| super::defaults::number(v, 0.));
+    for field in ["backward", "upsideDown"] {
+        super::defaults::omit_default_column(columns, field, |v| v.as_bool() == Some(false));
+    }
     stream
 }
 pub(crate) fn decode_mtext(value: &Value) -> Result<Vec<DrawingMTextEntity>, OcdrawDiagnostic> {

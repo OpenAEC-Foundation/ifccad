@@ -40,7 +40,7 @@ impl RgbColor {
 
 impl From<RgbColor> for DrawingColor {
     fn from(value: RgbColor) -> Self {
-        Self {
+        Self::Concrete {
             rgb: value.0,
             indexed: None,
             named: None,
@@ -413,6 +413,8 @@ pub struct OcdrawBuilder {
     pub(crate) dimension_styles: Vec<super::DrawingDimensionStyle>,
     pub(crate) dimension_entities: Vec<super::DrawingDimensionEntity>,
     pub(crate) next_dimension_style_id: u32,
+    pub(crate) symbol_sources: Vec<super::DrawingSymbolSource>,
+    pub(crate) next_symbol_source_id: u32,
     pub(crate) hatch_entities: Vec<super::DrawingHatchEntity>,
     pub(crate) text_styles: Vec<super::DrawingTextStyle>,
     pub(crate) text_entities: Vec<super::DrawingTextEntity>,
@@ -451,6 +453,8 @@ impl OcdrawBuilder {
             dimension_styles: vec![],
             dimension_entities: vec![],
             next_dimension_style_id: 1,
+            symbol_sources: Vec::new(),
+            next_symbol_source_id: 0,
             hatch_entities: Vec::new(),
             text_styles: Vec::new(),
             text_entities: Vec::new(),
@@ -570,6 +574,24 @@ impl OcdrawBuilder {
         Ok(())
     }
 
+    /// Adds a symbol request without opening the external asset. Failed allocation is atomic.
+    pub fn add_symbol_source(
+        &mut self,
+        source: crate::line_pattern::SymbolSource,
+    ) -> Result<super::SymbolSourceId, OcdrawBuildError> {
+        crate::line_pattern::validate_symbol_source(&source)
+            .map_err(|e| OcdrawBuildError::Invalid(e.to_string()))?;
+        let id = super::SymbolSourceId(self.next_symbol_source_id);
+        let next = self
+            .next_symbol_source_id
+            .checked_add(1)
+            .ok_or(OcdrawBuildError::IdExhausted)?;
+        self.symbol_sources
+            .push(super::DrawingSymbolSource { id, source });
+        self.next_symbol_source_id = next;
+        Ok(id)
+    }
+
     /// Allocates a local ID after validating the definition and folded name.
     pub fn add_line_pattern(
         &mut self,
@@ -591,6 +613,34 @@ impl OcdrawBuilder {
             &[],
         );
         if !errors.is_empty()
+            || definition
+                .pattern
+                .iter()
+                .filter_map(|e| e.marker.as_ref())
+                .any(|m| {
+                    let (transform, resolved) = match m {
+                        super::DrawingLinePatternMarker::Text {
+                            text_style_id,
+                            transform,
+                            ..
+                        } => (
+                            transform,
+                            self.text_styles.iter().any(|s| s.id == *text_style_id),
+                        ),
+                        super::DrawingLinePatternMarker::Symbol {
+                            symbol_source_id,
+                            transform,
+                            ..
+                        } => (
+                            transform,
+                            self.symbol_sources
+                                .iter()
+                                .any(|s| s.id == *symbol_source_id),
+                        ),
+                    };
+                    !resolved
+                        || crate::line_pattern::validate_line_pattern_transform(transform).is_err()
+                })
             || self.line_patterns.iter().any(|p| {
                 super::names::name_key(&p.name) == super::names::name_key(&definition.name)
             })
@@ -1047,6 +1097,8 @@ impl OcdrawBuilder {
             dimension_styles: self.dimension_styles,
             dimension_entities: self.dimension_entities,
             next_dimension_style_id: self.next_dimension_style_id,
+            symbol_sources: self.symbol_sources,
+            next_symbol_source_id: self.next_symbol_source_id,
             hatch_entities: self.hatch_entities,
             text_styles: self.text_styles,
             text_entities: self.text_entities,

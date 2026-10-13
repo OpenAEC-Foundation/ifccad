@@ -13,6 +13,8 @@ pub struct OcdrawDocument {
     pub dimension_styles: Vec<super::DrawingDimensionStyle>,
     pub dimension_entities: Vec<super::DrawingDimensionEntity>,
     pub next_dimension_style_id: u32,
+    pub symbol_sources: Vec<super::DrawingSymbolSource>,
+    pub next_symbol_source_id: u32,
     pub hatch_entities: Vec<super::DrawingHatchEntity>,
     pub text_styles: Vec<super::DrawingTextStyle>,
     pub text_entities: Vec<super::DrawingTextEntity>,

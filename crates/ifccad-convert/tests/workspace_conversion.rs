@@ -203,7 +203,7 @@ fn workspace_scalar_precision_is_not_certified_as_geometry_rounding() {
 #[test]
 fn ucs_definition_scalar_precision_is_not_silently_rounded() {
     let mut raw: serde_json::Value = serde_json::from_slice(include_bytes!(
-        "../../../examples/ifccad/workspace-state.ifcx"
+        "../../../tests/fixtures/ifccad/workspace-state.ifcx"
     ))
     .unwrap();
     for node in raw["data"].as_array_mut().unwrap() {

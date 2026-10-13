@@ -5,6 +5,9 @@ typed source selectors. Conversion exposes `dimension_assessment()` and style
 mappings independently of text/geometry evidence. Definition and explicit text
 anchors use the existing hard tolerance; dimension display and CAD picture
 regeneration remain unassessed. See [Dimension support](../../docs/dimension.md).
+Native [drawing defaults](../../docs/drawing-defaults.md) expand before conversion.
+Whole-column and layer-field omission do not change the complete typed input
+or CAD coverage. Compact and expanded source spellings use the same converters.
 
 `ocdraw-convert` connects standalone OCDraw to opencadcodec's `CadDocument` through
 `cad_document_to_ocdraw_document` and `ocdraw_document_to_cad_document`.
@@ -201,7 +204,7 @@ Dot grid style and frequencies beyond CAD i16 receive field-specific substitutio
 
 ## Hatch
 
-Native Solid and LinePattern Hatch map stored contours and the normal/outer/ignore area rule.
+Native Solid, LinePattern and Gradient Hatch map stored contours and the normal/outer/ignore area rule.
 Per-loop single same-owner source references bind after entity allocation.
 Unsupported associations retain contour geometry with located loss.
 `hatch_join_tolerance` is a CAD-to-native creation option, separate from numeric
@@ -211,3 +214,13 @@ Explicit pattern families retain phase, signed spacing and dash/gap/dot order.
 CAD definitions are evaluated once; qualified continuous UserDefined and a narrow
 double profile are supported. Other active dependencies omit the whole Hatch.
 See [Hatch support](../../docs/hatch.md) and the coverage inventories.
+
+Complex line patterns retain text-style and SHX-source references through separate conversion-local identity maps. SHX sources carry basenames; converters do not load external glyph files. Unsupported active marker dependencies use diagnosed whole-definition named-continuous fallback, subject to the loss policy. Marker footprints remain unassessed alongside the host curve proof.
+
+Gradient settings use the separate native state: active type/two endpoints and
+independent rotation/shift/mode/tint, or partial dormant preferences. CAD output
+requires exact native/target OCS axes; unsupported active frames omit the whole
+Hatch, while dormant frame failure omits only state with a located loss.
+Native color identity may exceed the pinned gradient surface. Physical AC1032
+DXF/DWG qualification and #109 source/target limitations are detailed in
+[Hatch support](../../docs/hatch.md). No gradient renderer is implemented.

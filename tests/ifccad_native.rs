@@ -33,6 +33,7 @@ fn base() -> Value {
         ("nextLayoutId", 2),
         ("nextBlockId", 1),
         ("nextLinePatternId", 1),
+        ("nextSymbolSourceId", 1),
     ] {
         value["data"][0]["attributes"]["ifccad::drawing"][field] = json!(count);
     }
@@ -226,6 +227,7 @@ fn fixture_document() -> IfccadDocument {
     };
     IfccadDocument {
         dimension_styles: Vec::new(),
+        symbol_sources: vec![],
         point_display: None,
         text_styles: Vec::new(),
         ucs_definitions: vec![],
@@ -236,6 +238,7 @@ fn fixture_document() -> IfccadDocument {
         plot_style_mode: Default::default(),
         id_counters: IfccadIdCounters {
             next_dimension_style_id: 1,
+            next_symbol_source_id: 1,
             next_text_style_id: 1,
             next_preservation_record_id: 1,
 
@@ -275,7 +278,7 @@ fn fixture_document() -> IfccadDocument {
                 id: 0,
                 name: "0".into(),
                 appearance: IfccadLayerAppearance {
-                    color: IfccadColor::rgb(255, 255, 255).with_indexed("ACI", 7),
+                    color: IfccadColor::Foreground,
                     opacity: 1.0,
                     line_pattern: IfccadLinePatternId(0),
                     line_weight: 0.1,
@@ -468,7 +471,7 @@ fn nested_document() -> IfccadDocument {
 #[test]
 fn nested_blocks_keep_shared_definitions_order_and_stored_appearance() {
     let document = nested_document();
-    let fixture = include_bytes!("../examples/ifccad/hello-nested-blocks.ifcx");
+    let fixture = include_bytes!("../tests/fixtures/ifccad/hello-nested-blocks.ifcx");
     assert_paths_first(fixture);
     assert_eq!(
         load_ifccad_bytes(fixture, Default::default())
@@ -534,7 +537,7 @@ fn nested_blocks_keep_shared_definitions_order_and_stored_appearance() {
     }
     if std::env::var_os("GENERATE_IFCX_NESTED_FIXTURE").is_some() {
         std::fs::write(
-            "examples/ifccad/hello-nested-blocks.ifcx",
+            "tests/fixtures/ifccad/hello-nested-blocks.ifcx",
             example_bytes(bytes.bytes()),
         )
         .unwrap();
@@ -659,7 +662,7 @@ fn writer_roundtrips_paper_layouts_without_unit_conversion() {
     assert_eq!(encode_ifccad_document(&reversed).unwrap(), bytes);
     if std::env::var_os("GENERATE_IFCX_PAPER_FIXTURE").is_some() {
         std::fs::write(
-            "examples/ifccad/hello-paper-layouts.ifcx",
+            "tests/fixtures/ifccad/hello-paper-layouts.ifcx",
             example_bytes(bytes.bytes()),
         )
         .unwrap();
@@ -668,7 +671,7 @@ fn writer_roundtrips_paper_layouts_without_unit_conversion() {
 
 #[test]
 fn paper_layout_fixture_is_strictly_readable() {
-    let fixture = include_bytes!("../examples/ifccad/hello-paper-layouts.ifcx");
+    let fixture = include_bytes!("../tests/fixtures/ifccad/hello-paper-layouts.ifcx");
     assert_paths_first(fixture);
     let expected = read(&paper_layout_file()).unwrap().document().clone();
     assert_eq!(
@@ -784,7 +787,7 @@ fn roundtrip_complete_example_and_determinism() {
     assert_eq!(encode_ifccad_document(&document).unwrap(), bytes);
     if std::env::var_os("GENERATE_IFCX_FIXTURE").is_some() {
         std::fs::write(
-            "examples/ifccad/hello-cad.ifcx",
+            "tests/fixtures/ifccad/hello-cad.ifcx",
             example_bytes(bytes.bytes()),
         )
         .unwrap();
@@ -928,7 +931,7 @@ fn profile_rejects_ambiguous_appearance_mode() {
 
 #[test]
 fn fixture_is_a_complete_strictly_readable_ifcx_file() {
-    let bytes = include_bytes!("../examples/ifccad/hello-cad.ifcx");
+    let bytes = include_bytes!("../tests/fixtures/ifccad/hello-cad.ifcx");
     assert_paths_first(bytes);
     let loaded = load_ifccad_bytes(bytes, Default::default()).unwrap();
     assert_eq!(loaded.document(), &example_document(&fixture_document()));

@@ -1,4 +1,11 @@
 const copy={
+ 'linePatternReason.SymbolFootprintUnavailable':['Symbol outlines have not been assessed. External file availability has not been checked.','Symboolomtrekken zijn niet beoordeeld. Beschikbaarheid van externe bestanden is niet gecontroleerd.'],
+ 'linePatternReason.TextEstimated':['Text marker size is estimated without font outlines.','De grootte van tekstmarkers is geschat zonder lettercontouren.'],
+ 'linePatternReason.AppearanceContextUnavailable':['The effective pattern cannot be assessed without its placement context.','Het effectieve lijnpatroon kan zonder plaatsingscontext niet worden beoordeeld.'],
+ 'help.symbolSource':['SHX filenames identify external shape sources. Availability has not been checked; an editor may resolve them from its libraries.','SHX-bestandsnamen verwijzen naar externe symboolbronnen. Beschikbaarheid is niet gecontroleerd; een editor kan ze in zijn bibliotheken zoeken.'],
+ symbolSourceId:['Symbol source','Symboolbron'],textStyleId:['Text style','Tekststijl'],textStyle:['Text style','Tekststijl'],storedQuality:['Producer declaration','Verklaring van de maker'],
+ symbolSource:['Symbol source','Symboolbron'],symbolSources:['Symbol sources','Symboolbronnen'],linePatternReasons:['Pattern bounds assessment','Bounds-beoordeling van lijnpatroon'],fileName:['File name','Bestandsnaam'],shapeNumber:['Shape number','Symboolnummer'],marker:['Marker','Marker'],
+ 'help.symbolSources':['SHX filenames identify external shape sources. Availability has not been checked; an editor may resolve them from its libraries.','SHX-bestandsnamen verwijzen naar externe symboolbronnen. Beschikbaarheid is niet gecontroleerd; een editor kan ze in zijn bibliotheken zoeken.'],
  hatch:['Hatch','Arcering'],'plural.hatch':['Hatches','Arceringen'],solidFill:['Solid','Effen'],patternFill:['Pattern','Lijnpatroon'],hatchFamilies:['{count} line families','{count} lijnfamilies'],hatchSummary:['{fill} · {count} contours · {rule}','{fill} · {count} contouren · {rule}'],
  'hatchRule.normal':['Normal (alternating regions)','Normaal (afwisselende gebieden)'],'hatchRule.outer':['Outer (up to first islands)','Buitenste (tot de eerste eilanden)'],'hatchRule.ignore':['Ignore (through islands)','Negeren (door eilanden heen)'],
  areaRule:['Area rule','Vulregel'],joinTolerance:['Join tolerance','Aansluittolerantie'],loops:['Contours','Contouren'],boundary:['Boundary','Grens'],sourceEntityId:['Source element','Bronelement'],fill:['Fill','Vulling'],fillEvaluation:['Fill assessment','Vullingsbeoordeling'],vertices:['Vertices','Hoekpunten'],bulges:['Bulges','Boogfactoren'],edges:['Edges','Randen'],
@@ -37,8 +44,8 @@ Object.assign(copy,{
  'help.blockInstance':['This occurrence references a shared definition with its own placement, rotation and signed scale.','Deze instantie verwijst naar een gedeelde definitie met eigen plaatsing, rotatie en positieve of negatieve schaalfactoren.'],
  'help.layer':['Layers organize elements and supply appearance to elements using ByLayer.','Lagen organiseren elementen en leveren weergave-eigenschappen aan elementen met ByLayer.'],
  'help.layers':['Layers organize elements and supply appearance to elements using ByLayer.','Lagen organiseren elementen en leveren weergave-eigenschappen aan elementen met ByLayer.'],
- 'help.linePattern':['Positive values are strokes, negative values gaps, zero a dot; an empty pattern is continuous.','Positieve waarden zijn strepen, negatieve tussenruimten en nul is een punt; een leeg patroon is doorlopend.'],
- 'help.linePatterns':['Positive values are strokes, negative values gaps, zero a dot; an empty pattern is continuous.','Positieve waarden zijn strepen, negatieve tussenruimten en nul is een punt; een leeg patroon is doorlopend.'],
+ 'help.linePattern':['Positive lengths draw strokes, negative lengths advance through gaps. Zero is a dot only without a marker. Text and SHX markers carry local references; an empty pattern is continuous.','Positieve lengten tekenen strepen, negatieve lengten verplaatsen over tussenruimten. Nul is alleen zonder marker een punt. Tekst- en SHX-markers bevatten lokale verwijzingen; een leeg patroon is doorlopend.'],
+ 'help.linePatterns':['Positive lengths draw strokes, negative lengths advance through gaps. Zero is a dot only without a marker. Text and SHX markers carry local references; an empty pattern is continuous.','Positieve lengten tekenen strepen, negatieve lengten verplaatsen over tussenruimten. Nul is alleen zonder marker een punt. Tekst- en SHX-markers bevatten lokale verwijzingen; een leeg patroon is doorlopend.'],
  'help.layout':['A layout owns ordered elements. Model and paper layouts have different coordinate and viewing roles.','Een layout bevat geordende elementen. Model- en papierlayouts hebben verschillende coördinaat- en weergaverollen.'],
  'help.blockDefinition':['Shared geometry is defined once. Instances reference it without changing definition ownership.','Gedeelde geometrie wordt eenmaal gedefinieerd. Instanties verwijzen ernaar zonder het eigenaarschap te veranderen.'],
  'help.blockDefinitions':['Shared geometry is defined once. Instances reference it without changing definition ownership.','Gedeelde geometrie wordt eenmaal gedefinieerd. Instanties verwijzen ernaar zonder het eigenaarschap te veranderen.'],
@@ -68,3 +75,11 @@ Object.assign(copy,{
 });
 export function translate(language,key,values={}){const text=copy[key]?.[language==='nl'?1:0]??key;return text.replace(/\{(\w+)\}/g,(_,name)=>String(values[name]??'{'+name+'}'));}
 export function localize(root,language){root.querySelectorAll('[data-i18n]').forEach(el=>el.textContent=translate(language,el.dataset.i18n));root.querySelectorAll('[data-i18n-label]').forEach(el=>el.setAttribute('aria-label',translate(language,el.dataset.i18nLabel)));root.querySelectorAll('[data-i18n-title]').forEach(el=>el.title=translate(language,el.dataset.i18nTitle));}
+
+Object.assign(copy,{
+ gradientFill:['Gradient','Gradient'],gradientInactive:['Stored gradient settings','Opgeslagen gradientinstellingen'],gradientPartial:['Stored gradient settings (incomplete)','Opgeslagen gradientinstellingen (onvolledig)'],
+ 'gradient.linear':['Linear','Lineair'],'gradient.cylinder':['Cylinder','Cilindrisch'],'gradient.inverseCylinder':['Inverse cylinder','Omgekeerd cilindrisch'],
+ 'gradient.spherical':['Spherical','Bolvormig'],'gradient.inverseSpherical':['Inverse spherical','Omgekeerd bolvormig'],
+ 'gradient.hemispherical':['Hemispherical','Halfbolvormig'],'gradient.inverseHemispherical':['Inverse hemispherical','Omgekeerd halfbolvormig'],
+ 'gradient.curved':['Curved','Gebogen'],'gradient.inverseCurved':['Inverse curved','Omgekeerd gebogen']
+});

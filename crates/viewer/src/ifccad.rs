@@ -40,12 +40,21 @@ fn present(output: &mut Value, drawing: &ValidatedIfccad) {
             S::BlockDefinition(id)=>{let b=d.blocks.iter().find(|b|b.id==id).unwrap();(format!("/cad/d{}/block/{id}",d.drawing_id),b.bounds,b.bounds_quality)},
         };
         let quality=|q:Q|match q {Q::Enclosing=>"enclosing",Q::Estimated=>"estimated",Q::Partial=>"partial"};
-        json!({"scope":format!("{scope:?}"),"scopePath":scope_path,"complete":a.quality!=Some(Q::Partial),"state":if a.quality==Some(Q::Partial){"Unavailable"}else if a.bounds.is_none(){"Empty"}else{"Complete"},"quality":a.quality.map(quality),"bounds":a.bounds,"storedBounds":bounds,"storedQuality":bounds.map(|_|quality(claim.unwrap_or(Q::Enclosing))),"enclosureVerified":a.enclosure_verified,"safeForNegativeQuery":a.enclosure_verified&&bounds.is_some()&&claim!=Some(Q::Estimated),"textReasons":a.text_reasons.iter().map(|r|format!("{r:?}")).collect::<Vec<_>>()})
+        json!({"scope":format!("{scope:?}"),"scopePath":scope_path,"complete":a.quality!=Some(Q::Partial),"state":if a.quality==Some(Q::Partial){"Unavailable"}else if a.bounds.is_none(){"Empty"}else{"Complete"},"quality":a.quality.map(quality),"bounds":a.bounds,"storedBounds":bounds,"storedQuality":bounds.map(|_|quality(claim.unwrap_or(Q::Enclosing))),"enclosureVerified":a.enclosure_verified,"safeForNegativeQuery":a.enclosure_verified&&bounds.is_some()&&claim!=Some(Q::Estimated),"textReasons":a.text_reasons.iter().map(|r|format!("{r:?}")).collect::<Vec<_>>(),"linePatternReasons":a.line_pattern_reasons.iter().map(|r|format!("{r:?}")).collect::<Vec<_>>()})
     }).collect::<Vec<_>>();
+    let hatches = role("ifccad::hatch")
+        .into_iter()
+        .map(|mut node| {
+            let body = &node["attributes"]["ifccad::hatch"];
+            let status = crate::inspection::gradient_status(&body["fill"], &body["gradient"]);
+            node["gradientStatus"] = json!(status);
+            node
+        })
+        .collect::<Vec<_>>();
     output["validation"] = json!({"strictAvailable":true,"status":"valid","diagnostics":[]});
     output["presentation"] = json!({"format":"ifccad","drawingId":d.drawing_id,"unit":d.length_unit,"linePatternScale":d.line_pattern_scale,"pointDisplay":nodes.iter().find_map(|n|n["attributes"].get("ifccad::drawing")).and_then(|d|d.get("pointDisplay")),
         "layers":role("ifccad::layer"),"layouts":role("ifccad::layout"),"blockDefinitions":role("ifccad::blockDefinition"),
-        "linePatterns":role("ifccad::linePattern"),"ucsDefinitions":role("ifccad::ucsDefinition"),"modelWindows":role("ifccad::modelWindow"),"hatchEntityCount":role("ifccad::hatch").len(),"hatches":role("ifccad::hatch"),"hatchFillEvaluation":"unassessed","textStyles":role("ifccad::textStyle"),"textEntityCount":role("ifccad::text").len(),"mTextEntityCount":role("ifccad::mText").len(),"entities":role("ifccad::entity"),"opaqueEntities":role("ifccad::opaqueEntity"),"opaqueEntityCount":role("ifccad::opaqueEntity").len(),"preservationRecords":role("ifccad::preservationRecord"),"preservationSources":d.preservation.as_ref().map(|p|&p.sources),"boundsCompleteness":completeness,"graph":drawing.graph().composed_ifcx()});
+        "linePatterns":role("ifccad::linePattern"),"symbolSources":role("ifccad::symbolSource"),"ucsDefinitions":role("ifccad::ucsDefinition"),"modelWindows":role("ifccad::modelWindow"),"hatchEntityCount":role("ifccad::hatch").len(),"hatches":hatches,"hatchFillEvaluation":"unassessed","textStyles":role("ifccad::textStyle"),"textEntityCount":role("ifccad::text").len(),"mTextEntityCount":role("ifccad::mText").len(),"entities":role("ifccad::entity"),"opaqueEntities":role("ifccad::opaqueEntity"),"opaqueEntityCount":role("ifccad::opaqueEntity").len(),"preservationRecords":role("ifccad::preservationRecord"),"preservationSources":d.preservation.as_ref().map(|p|&p.sources),"boundsCompleteness":completeness,"graph":drawing.graph().composed_ifcx()});
     output["presentation"]["dimensions"] = crate::inspection_ifccad_dimension::entities(d);
     output["presentation"]["dimensionStyles"] = crate::inspection_ifccad_dimension::styles(d);
 }
@@ -116,6 +125,7 @@ pub(crate) fn inspect_cad_as_ifccad_with_options(
         &cad,
         metadata,
         ifccad_convert::CadToIfccadOptions {
+            loss_policy: options.loss_policy.ifccad(),
             preservation: if options.preserve_splines {
                 ifccad_convert::IfccadPreservationCapture::SupportedTyped
             } else {
@@ -178,6 +188,7 @@ pub(crate) fn export_ifccad_with_options(
     let converted = match ifccad_source_to_cad_document(
         &drawing,
         ifccad_convert::IfccadToCadOptions {
+            loss_policy: options.loss_policy.ifccad(),
             geometry_tolerance: options.ocdraw_tolerance().expect("checked options"),
             ..Default::default()
         },
@@ -208,9 +219,12 @@ pub(crate) fn export_ifccad_with_options(
     let mut output = cad::export(
         output,
         converted.into_document(),
-        name,
-        format,
-        version,
+        cad::CadFileExportRequest {
+            name,
+            format,
+            version,
+            loss_policy: options.loss_policy,
+        },
         issues,
         |readback| {
             let restored = cad_document_to_encoded_ifccad(

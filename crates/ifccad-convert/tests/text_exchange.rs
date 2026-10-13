@@ -149,7 +149,7 @@ fn explicitly_disabled_annotation_is_ordinary_text_but_active_contexts_skip() {
 #[test]
 fn model_paper_and_block_text_have_independent_actual_file_qualification() {
     let original = load_ifccad_bytes(
-        include_bytes!("../../../examples/ifccad/hello-text.ifcx"),
+        include_bytes!("../../../examples/ifccad/text.ifcx"),
         Default::default(),
     )
     .unwrap();
@@ -347,6 +347,6 @@ fn inline_palette_identity_is_retained_in_the_concrete_color_profile() {
         panic!()
     };
     assert!(
-        matches!(&text.character_format.color, Some(ocdraw::text::TextColor::Explicit(color)) if color.indexed == Some(("ACI".into(),65)))
+        matches!(&text.character_format.color, Some(ocdraw::text::TextColor::Explicit(color)) if color.indexed_identity().cloned() == Some(("ACI".into(),65)))
     );
 }

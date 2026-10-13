@@ -32,7 +32,7 @@
           "nextLayerId": 3,
           "nextLayoutId": 2,
           "nextBlockId": 3,
-          "nextLinePatternId": 1,
+          "nextLinePatternId": 1,"nextSymbolSourceId":1,
           "nextUcsId": 1,
           "nextModelWindowId": 1
         }

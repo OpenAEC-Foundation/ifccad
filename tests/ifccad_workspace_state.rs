@@ -3,8 +3,10 @@ use serde_json::{json, Value};
 const BIG: u64 = 9_007_199_254_740_993;
 
 fn source() -> Value {
-    let mut value: Value =
-        serde_json::from_slice(include_bytes!("../examples/ifccad/hello-viewports.ifcx")).unwrap();
+    let mut value: Value = serde_json::from_slice(include_bytes!(
+        "../tests/fixtures/ifccad/hello-viewports.ifcx"
+    ))
+    .unwrap();
     let nodes = value["data"].as_array_mut().unwrap();
     let viewport = nodes
         .iter()
@@ -159,6 +161,7 @@ fn unused_ucs_and_advanced_watermarks_survive() {
         IfccadModelWindowId(BIG + 1)
     );
     let mut exhausted = IfccadIdCounters {
+        next_symbol_source_id: 1,
         next_ucs_id: u64::MAX,
         ..Default::default()
     };

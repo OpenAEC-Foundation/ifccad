@@ -26,6 +26,18 @@ pub(crate) fn encode_hatch(rows: &[DrawingHatchEntity]) -> Value {
         "fill":rows.iter().map(|h|super::hatch_pattern::encode(&h.fill)).collect::<Vec<_>>(),
         "loops":rows.iter().map(|h|h.loops.iter().map(|l|LoopValue{boundary:l.boundary.clone().into(),source_entity_id:l.source_entity_id}).collect::<Vec<_>>()).collect::<Vec<_>>()
     });
+    if rows.iter().any(|h| h.gradient.is_some()) {
+        v["gradient"] = Value::Array(
+            rows.iter()
+                .map(|h| {
+                    h.gradient
+                        .as_ref()
+                        .map(super::hatch_gradient::encode)
+                        .unwrap_or(Value::Null)
+                })
+                .collect(),
+        );
+    }
     appearance_columns(
         v.as_object_mut().expect("stream"),
         &rows.iter().map(|h| &h.appearance).collect::<Vec<_>>(),
@@ -82,6 +94,11 @@ pub(crate) fn decode_hatch(value: &Value) -> Result<Vec<DrawingHatchEntity>, Ocd
             Some(v) => v.as_f64().ok_or_else(|| fail(row))?,
         };
         rows.push(DrawingHatchEntity {
+            gradient: get("gradient")
+                .filter(|v| !v.is_null())
+                .map(super::hatch_gradient::decode)
+                .transpose()
+                .map_err(|_| fail(row))?,
             id: get("entityId")
                 .and_then(Value::as_u64)
                 .ok_or_else(|| fail(row))?,

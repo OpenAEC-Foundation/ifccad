@@ -2,7 +2,7 @@ use ocdraw::ifccad::*;
 use serde_json::{json, Value};
 
 fn fixture() -> Value {
-    serde_json::from_slice(include_bytes!("../examples/ifccad/hello-cad.ifcx")).unwrap()
+    serde_json::from_slice(include_bytes!("../tests/fixtures/ifccad/hello-cad.ifcx")).unwrap()
 }
 fn drawing(value: &mut Value) -> &mut Value {
     &mut value["data"]

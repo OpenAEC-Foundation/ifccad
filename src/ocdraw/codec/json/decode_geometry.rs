@@ -95,7 +95,9 @@ fn geometry(stream: &Value, kind: &str, row: usize) -> Option<EntityGeometry> {
                     ])
                 })
                 .collect::<Option<Vec<_>>>()?;
-            let closed = column(stream, "closed", row)?.as_bool()?;
+            let closed = column(stream, "closed", row)
+                .map(Value::as_bool)
+                .unwrap_or(Some(false))?;
             if kind == "planarPolyline" {
                 EntityGeometry::PlanarPolyline {
                     placement: placement(column(stream, "placement", row))?,

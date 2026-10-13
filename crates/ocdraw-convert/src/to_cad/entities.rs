@@ -12,12 +12,9 @@ pub(super) fn color(
     location: &str,
     diagnostics: &mut Vec<OcdrawToCadDiagnostic>,
 ) -> (Color, Option<String>, Option<String>) {
-    let mapped = cad_presentation_convert::color_to_cad(&cad_presentation_convert::CadColorValue {
-        rgb: value.rgb,
-        indexed: value.indexed.clone(),
-        named: value.named.clone(),
-    })
-    .expect("validated native color");
+    let mapped =
+        cad_presentation_convert::color_to_cad(&crate::mapping::appearance::scalar_color(value))
+            .expect("validated native color");
     for loss in &mapped.losses {
         diagnostics.push(diagnostic(
             "COLOR_INDEX",
@@ -307,100 +304,103 @@ pub(super) fn append_entities(
             }
             continue;
         }
-        let (scope_id, layer_id, appearance, visible, mut entity) =
-            if let Some(source) = geometry.get(&id) {
-                let (entity, bound, changed) =
-                    crate::mapping::geometry::to_cad(source, owner, blocks, state)?;
-                if bound > 0.0 {
-                    diagnostics.push(diagnostic(
-                        "GEOMETRY_ROUNDED_WITHIN_TOLERANCE",
-                        &location,
-                        format!("geometry deviation is at most {bound} drawing units"),
-                    ));
-                }
-                if changed {
-                    diagnostics.push(diagnostic(
-                        "PARAMETERIZATION_CHANGED",
-                        &location,
-                        "geometric parameterization was changed to the CAD coordinate convention",
-                    ));
-                }
-                (
-                    u64::from(owner),
-                    source.layer_id(),
-                    source.appearance(),
-                    source.visible(),
-                    entity,
-                )
-            } else if let Some(d) = dimensions.get(&id) {
-                let idx = crate::mapping::dimension::TargetDimensionIndex {
-                    text: text_styles,
-                    blocks: block_handles,
-                    patterns,
-                };
-                let Some(entity) = crate::mapping::dimension::to_entity(
-                    d,
-                    owner,
-                    dimension_styles,
-                    &idx,
-                    document,
-                    state,
-                    diagnostics,
-                )?
-                else {
-                    continue;
-                };
-                (
-                    u64::from(owner),
-                    d.layer_id,
-                    &d.appearance,
-                    d.visible,
-                    entity,
-                )
-            } else if let Some(h) = hatches.get(&id) {
-                let entity = crate::mapping::hatch::to_cad(h, owner, state, diagnostics)?;
-                (
-                    u64::from(owner),
-                    h.layer_id,
-                    &h.appearance,
-                    h.visible,
-                    entity,
-                )
-            } else if text.contains_key(&id) || mtext.contains_key(&id) {
-                let Some(entity) = crate::mapping::text::to_entity(
-                    text.get(&id).copied(),
-                    mtext.get(&id).copied(),
-                    owner,
-                    text_styles,
-                    state,
-                    diagnostics,
-                )?
-                else {
-                    continue;
-                };
-                let (layer_id, appearance, visible) = if let Some(t) = text.get(&id) {
-                    (t.layer_id, &t.appearance, t.visible)
-                } else {
-                    let t = mtext[&id];
-                    (t.layer_id, &t.appearance, t.visible)
-                };
-                (u64::from(owner), layer_id, appearance, visible, entity)
-            } else if let Some(source) = viewports.get(&id) {
-                let Some(entity) =
-                    crate::mapping::viewport::to_cad(source, document, layer_names, diagnostics)
-                else {
-                    continue;
-                };
-                (
-                    u64::from(owner),
-                    source.layer_id,
-                    &source.appearance,
-                    source.visible,
-                    EntityType::Viewport(entity),
-                )
-            } else {
+        let (scope_id, layer_id, appearance, visible, mut entity) = if let Some(source) =
+            geometry.get(&id)
+        {
+            let (entity, bound, changed) =
+                crate::mapping::geometry::to_cad(source, owner, blocks, state)?;
+            if bound > 0.0 {
+                diagnostics.push(diagnostic(
+                    "GEOMETRY_ROUNDED_WITHIN_TOLERANCE",
+                    &location,
+                    format!("geometry deviation is at most {bound} drawing units"),
+                ));
+            }
+            if changed {
+                diagnostics.push(diagnostic(
+                    "PARAMETERIZATION_CHANGED",
+                    &location,
+                    "geometric parameterization was changed to the CAD coordinate convention",
+                ));
+            }
+            (
+                u64::from(owner),
+                source.layer_id(),
+                source.appearance(),
+                source.visible(),
+                entity,
+            )
+        } else if let Some(d) = dimensions.get(&id) {
+            let idx = crate::mapping::dimension::TargetDimensionIndex {
+                text: text_styles,
+                blocks: block_handles,
+                patterns,
+            };
+            let Some(entity) = crate::mapping::dimension::to_entity(
+                d,
+                owner,
+                dimension_styles,
+                &idx,
+                document,
+                state,
+                diagnostics,
+            )?
+            else {
                 continue;
             };
+            (
+                u64::from(owner),
+                d.layer_id,
+                &d.appearance,
+                d.visible,
+                entity,
+            )
+        } else if let Some(h) = hatches.get(&id) {
+            let Some(entity) = crate::mapping::hatch::to_cad(h, owner, state, diagnostics)? else {
+                continue;
+            };
+            (
+                u64::from(owner),
+                h.layer_id,
+                &h.appearance,
+                h.visible,
+                entity,
+            )
+        } else if text.contains_key(&id) || mtext.contains_key(&id) {
+            let Some(entity) = crate::mapping::text::to_entity(
+                text.get(&id).copied(),
+                mtext.get(&id).copied(),
+                owner,
+                text_styles,
+                state,
+                diagnostics,
+            )?
+            else {
+                continue;
+            };
+            let (layer_id, appearance, visible) = if let Some(t) = text.get(&id) {
+                (t.layer_id, &t.appearance, t.visible)
+            } else {
+                let t = mtext[&id];
+                (t.layer_id, &t.appearance, t.visible)
+            };
+            (u64::from(owner), layer_id, appearance, visible, entity)
+        } else if let Some(source) = viewports.get(&id) {
+            let Some(entity) =
+                crate::mapping::viewport::to_cad(source, document, layer_names, diagnostics)
+            else {
+                continue;
+            };
+            (
+                u64::from(owner),
+                source.layer_id,
+                &source.appearance,
+                source.visible,
+                EntityType::Viewport(entity),
+            )
+        } else {
+            continue;
+        };
         let layer_name = &layer_names[&u64::from(layer_id)];
         apply_common(
             patterns,

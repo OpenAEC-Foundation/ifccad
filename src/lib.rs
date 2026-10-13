@@ -7,9 +7,11 @@
 //! with direct CAD conversion in the companion `ifccad-convert` crate.
 #![allow(missing_docs)]
 #![warn(rustdoc::missing_crate_level_docs)]
+pub mod color;
 pub mod dimension;
 pub mod geometry_kernel;
 pub mod ifccad;
+pub mod line_pattern;
 pub mod ocdraw;
 
 pub mod plot_kernel;

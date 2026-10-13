@@ -1,10 +1,45 @@
 use viewer::{export_drawing_bytes, inspect_drawing_bytes};
 
 #[test]
+fn inspection_reports_foreground_without_rgb() {
+    use ocdraw::ocdraw::*;
+    let mut d = load_ocdraw_bytes(include_bytes!(
+        "../../../conformance/next/ocdraw/valid/paper-viewport.ocdraw.json"
+    ))
+    .unwrap()
+    .into_document();
+    d.viewports[0].appearance.color = AppearanceSelection::Explicit(DrawingColor::Foreground);
+    d.viewports[0].layer_overrides = vec![DrawingViewportLayerOverride {
+        layer_id: d.layers[0].id,
+        frozen: false,
+        color: Some(DrawingColor::Foreground),
+        opacity: None,
+        line_pattern_id: None,
+        line_weight: None,
+    }];
+    let bytes = encode_ocdraw_document(&d).unwrap();
+    let result = inspect_drawing_bytes("foreground.ocdraw.json", bytes.bytes());
+    let v = result["presentation"]["entities"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|v| v["type"] == "viewport")
+        .unwrap();
+    assert_eq!(
+        v["appearance"]["color"]["value"],
+        serde_json::json!({"kind":"Foreground"})
+    );
+    assert_eq!(
+        v["layerOverrides"][0]["color"],
+        serde_json::json!({"kind":"Foreground"})
+    );
+}
+
+#[test]
 fn ifccad_inspection_exposes_native_presentation_and_point_display() {
     use ocdraw::ifccad::*;
     let mut d = load_ifccad_bytes(
-        include_bytes!("../../../examples/ifccad/hello-viewports.ifcx"),
+        include_bytes!("../../../tests/fixtures/ifccad/hello-viewports.ifcx"),
         Default::default(),
     )
     .unwrap()
@@ -20,7 +55,9 @@ fn ifccad_inspection_exposes_native_presentation_and_point_display() {
     d.layers[0].frozen_in_new_viewports = true;
     d.layers[0].appearance.color = IfccadColor::rgb(255, 0, 0)
         .with_indexed("ACI", 1)
-        .with_named("Book", "Red");
+        .unwrap()
+        .with_named("Book", "Red")
+        .unwrap();
     d.point_display = Some(IfccadPointDisplay {
         glyph: IfccadPointGlyph::Plus,
         circle: true,
@@ -43,7 +80,7 @@ fn ifccad_inspection_exposes_native_presentation_and_point_display() {
     v.layer_overrides = vec![IfccadViewportLayerOverride {
         layer_id: layer,
         frozen: true,
-        color: Some(IfccadColor::rgb(255, 0, 0).with_indexed("ACI", 1)),
+        color: Some(IfccadColor::rgb(255, 0, 0).with_indexed("ACI", 1).unwrap()),
         opacity: Some(1.),
         line_pattern_id: Some(pattern),
         line_weight: Some(0.25),
@@ -113,7 +150,7 @@ fn ocdraw_inspection_exposes_typed_viewport_override_refs_and_mode() {
     d.viewports[0].layer_overrides = vec![DrawingViewportLayerOverride {
         layer_id: d.layers[0].id,
         frozen: true,
-        color: Some(DrawingColor::rgb(255, 0, 0).with_indexed("ACI", 1)),
+        color: Some(DrawingColor::rgb(255, 0, 0).with_indexed("ACI", 1).unwrap()),
         opacity: Some(1.),
         line_pattern_id: Some(d.line_patterns[0].id),
         line_weight: Some(0.25),
@@ -147,7 +184,7 @@ fn physical_shadeplot_loss_is_explicit_for_dxf_but_not_dwg_in_both_routes() {
     oc.viewports[0].plot_shading_override = Some(ShadedPlotMode::Hidden);
     let oc = encode_ocdraw_document(&oc).unwrap();
     let mut ifc = load_ifccad_bytes(
-        include_bytes!("../../../examples/ifccad/hello-viewports.ifcx"),
+        include_bytes!("../../../tests/fixtures/ifccad/hello-viewports.ifcx"),
         Default::default(),
     )
     .unwrap()
