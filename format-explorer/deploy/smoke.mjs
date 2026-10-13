@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import {request as httpRequest} from 'node:http';
 import {request as httpsRequest} from 'node:https';
-import {examples} from '../dist/examples.mjs';
 
 // Exercise the static website and its shipped WebAssembly with public fixtures.
 const [base='http://127.0.0.1:4183', revision, mode='full'] = process.argv.slice(2);
+// The public check runs from checkout; packaged checks inspect shipped assets.
+const {examples}=await import(mode==='basic'?'../src/examples.mjs':'../dist/examples.mjs');
 const origin='https://ifccad-explorer.open-aec.com';
 async function request(path, options={}) {
   // Node fetch ignores a custom Host header. The container's loopback check
