@@ -1,6 +1,7 @@
 //! Format-specific adapters over the shared CAD geometry engine.
 pub(crate) mod appearance;
 pub(crate) mod blocks;
+pub(crate) mod dimension;
 pub(crate) mod geometry;
 pub(crate) mod hatch;
 pub(crate) mod layout;

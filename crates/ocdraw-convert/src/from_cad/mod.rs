@@ -349,6 +349,15 @@ pub fn cad_document_to_ocdraw_document_with_id(
     }
 
     let mut layer_ids = BTreeMap::new();
+    let dimension_index = crate::mapping::dimension::SourceDimensionIndex {
+        document,
+        text: &text_styles,
+        blocks: &block_scopes,
+        patterns: &patterns,
+    };
+    let dimension_styles =
+        crate::mapping::dimension::from_styles(&dimension_index, &mut drawing, &mut diagnostics)?;
+    let mut consumed_dimension_objects = std::collections::BTreeSet::new();
     for layer in document.layers.iter() {
         match direct_layer(layer, patterns.layer(&layer.line_type)?) {
             Ok((definition, reasons)) => {
@@ -633,6 +642,7 @@ pub fn cad_document_to_ocdraw_document_with_id(
                 | EntityType::Text(_)
                 | EntityType::MText(_)
                 | EntityType::Hatch(_)
+                | EntityType::Dimension(_)
         ) {
             loss(
                 source,
@@ -649,14 +659,37 @@ pub fn cad_document_to_ocdraw_document_with_id(
         } else {
             None
         };
-        let mut partial = direct_common_losses(residual_hatch_common.as_ref().unwrap_or(common));
+        let residual_dimension_common = if let EntityType::Dimension(d) = entity {
+            cad_dimension::parse_dimension_overrides(common.extended_data.records())
+                .ok()
+                .map(|p| {
+                    let mut c = common.clone();
+                    c.extended_data = Default::default();
+                    for r in p.residual {
+                        c.extended_data.add_record(r);
+                    }
+                    let _ = d;
+                    c
+                })
+        } else {
+            None
+        };
+        let mut partial = direct_common_losses(
+            residual_dimension_common
+                .as_ref()
+                .or(residual_hatch_common.as_ref())
+                .unwrap_or(common),
+        );
         let mut reasons = match entity {
             EntityType::Line(value) => direct_line_losses(value),
             EntityType::Point(value) => direct_point_losses(value),
             EntityType::Circle(value) => direct_circle_losses(value),
             EntityType::Arc(value) => direct_arc_losses(value),
             EntityType::Ellipse(value) => direct_ellipse_losses(value),
-            EntityType::Text(_) | EntityType::MText(_) | EntityType::Hatch(_) => Vec::new(),
+            EntityType::Text(_)
+            | EntityType::MText(_)
+            | EntityType::Hatch(_)
+            | EntityType::Dimension(_) => Vec::new(),
             EntityType::LwPolyline(value) => {
                 if value.constant_width != 0.0
                     || value
@@ -806,6 +839,32 @@ pub fn cad_document_to_ocdraw_document_with_id(
                 continue;
             };
             value
+        } else if let EntityType::Dimension(d) = entity {
+            geometry.select(common.owner_handle);
+            let Some(p) = crate::mapping::dimension::from_entity(
+                d,
+                &dimension_index,
+                &dimension_styles,
+                scope_id,
+                layer_id,
+                appearance,
+                &mut geometry,
+                &mut partial,
+            )?
+            else {
+                loss(
+                    source,
+                    CadToOcdrawAction::Skipped,
+                    partial,
+                    &mut diagnostics,
+                );
+                continue;
+            };
+            consumed_dimension_objects.extend(p.consumed);
+            PreparedCadEntityValue::Dimension {
+                definition: Box::new(p.definition),
+                references: p.references,
+            }
         } else if let EntityType::Hatch(hatch) = entity {
             let tolerance =
                 drawing.resolve_hatch_join_tolerance(scope_id, options.hatch_join_tolerance)?;
@@ -888,7 +947,7 @@ pub fn cad_document_to_ocdraw_document_with_id(
         preservation,
         unit.unwrap_or("unitless"),
     )?;
-    let consumed = crate::mapping::viewport_overrides::from_cad(
+    let mut consumed = crate::mapping::viewport_overrides::from_cad(
         document,
         &mut drawing_document,
         &entity_mapping,
@@ -896,11 +955,13 @@ pub fn cad_document_to_ocdraw_document_with_id(
         &patterns,
         &mut diagnostics,
     )?;
+    consumed.extend(consumed_dimension_objects);
     diagnostics.extend(direct_document_losses(
         document,
         &mapped_vports,
         paper_scopes.keys().chain(block_scopes.keys()).copied(),
         consumed,
+        &dimension_styles.consumed,
     ));
     crate::mapping::workspace::bind_viewport_workspaces(
         document,
@@ -979,6 +1040,11 @@ pub fn cad_document_to_ocdraw_document_with_id(
         });
     }
     Ok(CadToOcdrawDocumentOutcome {
+        dimension: crate::OcdrawDimensionAssessment::new(
+            &drawing_document,
+            entity_mapping.values().copied(),
+        ),
+        dimension_styles: dimension_styles.handles,
         text: crate::OcdrawTextAssessment::new(&drawing_document, entity_mapping.values().copied()),
         text_styles: text_styles.handles,
         preservation: preservation_report,
@@ -1017,6 +1083,8 @@ fn encode_export(
     let drawing = ocdraw::ocdraw::encode_ocdraw_document(&outcome.document)
         .map_err(OcdrawBuildError::from)?;
     Ok(CadToEncodedOcdrawOutcome {
+        dimension: outcome.dimension,
+        dimension_styles: outcome.dimension_styles,
         text: outcome.text,
         text_styles: outcome.text_styles,
         preservation: outcome.preservation,

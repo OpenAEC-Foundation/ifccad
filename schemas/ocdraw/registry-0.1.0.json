@@ -2698,6 +2698,1542 @@
     "hatchLiteralString": {
       "kind": "scalar",
       "base": "string"
+    },
+    "dimensionDefinition": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "dimensionDefinitionKind",
+          "nullable": false
+        },
+        {
+          "name": "firstPoint",
+          "valueType": "dimensionDefinitionFirstPoint",
+          "nullable": false
+        },
+        {
+          "name": "secondPoint",
+          "valueType": "dimensionDefinitionFirstPoint",
+          "nullable": false
+        },
+        {
+          "name": "dimensionLinePoint",
+          "valueType": "dimensionDefinitionFirstPoint",
+          "nullable": false
+        },
+        {
+          "name": "extensionDirectionAngle",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "directionAngle",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "dimensionDefinitionKind": {
+      "kind": "enum",
+      "values": [
+        "linear",
+        "aligned"
+      ]
+    },
+    "dimensionDefinitionFirstPoint": {
+      "kind": "sequence",
+      "items": "float64",
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "dimensionTextPlacement": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "dimensionTextPlacementKind",
+          "nullable": false
+        },
+        {
+          "name": "position",
+          "valueType": "dimensionDefinitionFirstPoint",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "rotation",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "attachment",
+          "valueType": "dimensionTextPlacementAttachment",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "dimensionTextPlacementKind": {
+      "kind": "enum",
+      "values": [
+        "styleDriven",
+        "explicit"
+      ]
+    },
+    "dimensionTextPlacementAttachment": {
+      "kind": "enum",
+      "values": [
+        "topLeft",
+        "topCenter",
+        "topRight",
+        "middleLeft",
+        "middleCenter",
+        "middleRight",
+        "bottomLeft",
+        "bottomCenter",
+        "bottomRight"
+      ]
+    },
+    "dimensionLabel": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "dimensionLabelKind",
+          "nullable": false
+        },
+        {
+          "name": "parts",
+          "valueType": "dimensionLabelParts",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "dimensionLabelKind": {
+      "kind": "enum",
+      "values": [
+        "generated",
+        "suppressed",
+        "template"
+      ]
+    },
+    "dimensionLabelPartsItem": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "dimensionLabelPartsItemKind",
+          "nullable": false
+        },
+        {
+          "name": "runs",
+          "valueType": "dimensionLabelPartsItemRuns",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "dimensionLabelPartsItemKind": {
+      "kind": "enum",
+      "values": [
+        "literal",
+        "measurement"
+      ]
+    },
+    "dimensionLabelPartsItemRuns": {
+      "kind": "sequence",
+      "items": "textRun",
+      "minItems": 0
+    },
+    "dimensionLabelParts": {
+      "kind": "sequence",
+      "items": "dimensionLabelPartsItem",
+      "minItems": 0
+    },
+    "dimensionSelector": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "dimensionSelectorKind",
+          "nullable": false
+        },
+        {
+          "name": "index",
+          "valueType": "dimensionSelectorIndex",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "dimensionSelectorKind": {
+      "kind": "enum",
+      "values": [
+        "position",
+        "start",
+        "end",
+        "center",
+        "vertex"
+      ]
+    },
+    "dimensionSelectorIndex": {
+      "kind": "scalar",
+      "base": "uint32",
+      "minimum": 0,
+      "maximum": 4294967295
+    },
+    "dimensionAssociation": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "role",
+          "valueType": "dimensionAssociationRole",
+          "nullable": false
+        },
+        {
+          "name": "sourceEntityId",
+          "valueType": "dimensionAssociationSourceEntityId",
+          "nullable": false
+        },
+        {
+          "name": "selector",
+          "valueType": "dimensionSelector",
+          "nullable": false
+        }
+      ]
+    },
+    "dimensionAssociationRole": {
+      "kind": "enum",
+      "values": [
+        "firstPoint",
+        "secondPoint"
+      ]
+    },
+    "dimensionAssociationSourceEntityId": {
+      "kind": "scalar",
+      "base": "uint64",
+      "minimum": 1,
+      "maximum": 18446744073709551615
+    },
+    "dimensionSettings": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "dimensionLine",
+          "valueType": "dimensionSettingsDimensionLine",
+          "nullable": false
+        },
+        {
+          "name": "extensionLines",
+          "valueType": "dimensionSettingsExtensionLines",
+          "nullable": false
+        },
+        {
+          "name": "arrows",
+          "valueType": "dimensionSettingsArrows",
+          "nullable": false
+        },
+        {
+          "name": "text",
+          "valueType": "dimensionSettingsText",
+          "nullable": false
+        },
+        {
+          "name": "fit",
+          "valueType": "dimensionSettingsFit",
+          "nullable": false
+        },
+        {
+          "name": "numbers",
+          "valueType": "dimensionSettingsNumbers",
+          "nullable": false
+        },
+        {
+          "name": "presentationScale",
+          "valueType": "dimensionSettingsTextHeight",
+          "nullable": false
+        }
+      ]
+    },
+    "dimensionSettingsDimensionLine": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "appearance",
+          "valueType": "dimensionAppearance",
+          "nullable": false
+        },
+        {
+          "name": "extension",
+          "valueType": "dimensionAppearanceLineWeightValue",
+          "nullable": false
+        },
+        {
+          "name": "suppressFirst",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "suppressSecond",
+          "valueType": "boolean",
+          "nullable": false
+        }
+      ]
+    },
+    "dimensionAppearance": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "color",
+          "valueType": "dimensionAppearanceColor",
+          "nullable": false
+        },
+        {
+          "name": "opacity",
+          "valueType": "dimensionAppearanceOpacity",
+          "nullable": false
+        },
+        {
+          "name": "linePattern",
+          "valueType": "dimensionAppearanceLinePattern",
+          "nullable": false
+        },
+        {
+          "name": "lineWeight",
+          "valueType": "dimensionAppearanceLineWeight",
+          "nullable": false
+        }
+      ]
+    },
+    "dimensionAppearanceColor": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "mode",
+          "valueType": "dimensionAppearanceColorMode",
+          "nullable": false
+        },
+        {
+          "name": "value",
+          "valueType": "dimensionColor",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "dimensionAppearanceColorMode": {
+      "kind": "enum",
+      "values": [
+        "inheritEntity",
+        "byLayer",
+        "byBlock",
+        "explicit"
+      ]
+    },
+    "dimensionColor": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "rgb",
+          "valueType": "dimensionColorRgb",
+          "nullable": false
+        },
+        {
+          "name": "indexedColor",
+          "valueType": "dimensionColorIndexedColor",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "namedColor",
+          "valueType": "dimensionColorNamedColor",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "dimensionColorRgbItem": {
+      "kind": "scalar",
+      "base": "uint32",
+      "minimum": 0,
+      "maximum": 255
+    },
+    "dimensionColorRgb": {
+      "kind": "sequence",
+      "items": "dimensionColorRgbItem",
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "dimensionColorIndexedColor": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "system",
+          "valueType": "dimensionColorIndexedColorSystem",
+          "nullable": false
+        },
+        {
+          "name": "index",
+          "valueType": "dimensionColorIndexedColorIndex",
+          "nullable": false
+        }
+      ]
+    },
+    "dimensionColorIndexedColorSystem": {
+      "kind": "scalar",
+      "base": "string",
+      "minLength": 1
+    },
+    "dimensionColorIndexedColorIndex": {
+      "kind": "scalar",
+      "base": "uint32",
+      "minimum": 0
+    },
+    "dimensionColorNamedColor": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "catalog",
+          "valueType": "dimensionColorIndexedColorSystem",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "valueType": "dimensionColorIndexedColorSystem",
+          "nullable": false
+        }
+      ]
+    },
+    "dimensionAppearanceOpacity": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "mode",
+          "valueType": "dimensionAppearanceColorMode",
+          "nullable": false
+        },
+        {
+          "name": "value",
+          "valueType": "dimensionAppearanceOpacityValue",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "dimensionAppearanceOpacityValue": {
+      "kind": "scalar",
+      "base": "float64",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "dimensionAppearanceLinePattern": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "mode",
+          "valueType": "dimensionAppearanceColorMode",
+          "nullable": false
+        },
+        {
+          "name": "value",
+          "valueType": "dimensionSelectorIndex",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "dimensionAppearanceLineWeight": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "mode",
+          "valueType": "dimensionAppearanceColorMode",
+          "nullable": false
+        },
+        {
+          "name": "value",
+          "valueType": "dimensionAppearanceLineWeightValue",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "dimensionAppearanceLineWeightValue": {
+      "kind": "scalar",
+      "base": "float64",
+      "minimum": 0
+    },
+    "dimensionSettingsExtensionLines": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "first",
+          "valueType": "dimensionExtension",
+          "nullable": false
+        },
+        {
+          "name": "second",
+          "valueType": "dimensionExtension",
+          "nullable": false
+        }
+      ]
+    },
+    "dimensionExtension": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "appearance",
+          "valueType": "dimensionAppearance",
+          "nullable": false
+        },
+        {
+          "name": "offset",
+          "valueType": "dimensionAppearanceLineWeightValue",
+          "nullable": false
+        },
+        {
+          "name": "extension",
+          "valueType": "dimensionAppearanceLineWeightValue",
+          "nullable": false
+        },
+        {
+          "name": "suppressed",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "length",
+          "valueType": "dimensionExtensionLength",
+          "nullable": false
+        }
+      ]
+    },
+    "dimensionExtensionLength": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "dimensionExtensionLengthKind",
+          "nullable": false
+        },
+        {
+          "name": "length",
+          "valueType": "dimensionAppearanceLineWeightValue",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "dimensionExtensionLengthKind": {
+      "kind": "enum",
+      "values": [
+        "automatic",
+        "fixed"
+      ]
+    },
+    "dimensionSettingsArrows": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "first",
+          "valueType": "dimensionMarker",
+          "nullable": false
+        },
+        {
+          "name": "second",
+          "valueType": "dimensionMarker",
+          "nullable": false
+        },
+        {
+          "name": "size",
+          "valueType": "dimensionAppearanceLineWeightValue",
+          "nullable": false
+        },
+        {
+          "name": "tickSize",
+          "valueType": "dimensionAppearanceLineWeightValue",
+          "nullable": false
+        },
+        {
+          "name": "flipFirst",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "flipSecond",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "centerMark",
+          "valueType": "dimensionSettingsArrowsCenterMark",
+          "nullable": false
+        }
+      ]
+    },
+    "dimensionMarker": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "dimensionMarkerKind",
+          "nullable": false
+        },
+        {
+          "name": "block",
+          "valueType": "dimensionSelectorIndex",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "dimensionMarkerKind": {
+      "kind": "enum",
+      "values": [
+        "closedFilled",
+        "closedOpen",
+        "open",
+        "dot",
+        "tick",
+        "none",
+        "localBlock"
+      ]
+    },
+    "dimensionSettingsArrowsCenterMark": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "dimensionSettingsArrowsCenterMarkKind",
+          "nullable": false
+        },
+        {
+          "name": "size",
+          "valueType": "dimensionAppearanceLineWeightValue",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "dimensionSettingsArrowsCenterMarkKind": {
+      "kind": "enum",
+      "values": [
+        "none",
+        "mark",
+        "lines"
+      ]
+    },
+    "dimensionSettingsText": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "style",
+          "valueType": "dimensionSelectorIndex",
+          "nullable": false
+        },
+        {
+          "name": "height",
+          "valueType": "dimensionSettingsTextHeight",
+          "nullable": false
+        },
+        {
+          "name": "appearance",
+          "valueType": "dimensionAppearance",
+          "nullable": false
+        },
+        {
+          "name": "attachment",
+          "valueType": "dimensionTextPlacementAttachment",
+          "nullable": false
+        },
+        {
+          "name": "insideOrientation",
+          "valueType": "dimensionSettingsTextInsideOrientation",
+          "nullable": false
+        },
+        {
+          "name": "outsideOrientation",
+          "valueType": "dimensionSettingsTextInsideOrientation",
+          "nullable": false
+        },
+        {
+          "name": "gap",
+          "valueType": "dimensionAppearanceLineWeightValue",
+          "nullable": false
+        },
+        {
+          "name": "movement",
+          "valueType": "dimensionSettingsTextMovement",
+          "nullable": false
+        },
+        {
+          "name": "lineSpacing",
+          "valueType": "dimensionSettingsTextLineSpacing",
+          "nullable": false
+        },
+        {
+          "name": "background",
+          "valueType": "dimensionSettingsTextBackground",
+          "nullable": false
+        }
+      ]
+    },
+    "dimensionSettingsTextHeight": {
+      "kind": "scalar",
+      "base": "float64",
+      "minimum": 0
+    },
+    "dimensionSettingsTextInsideOrientation": {
+      "kind": "enum",
+      "values": [
+        "aligned",
+        "horizontal"
+      ]
+    },
+    "dimensionSettingsTextMovement": {
+      "kind": "enum",
+      "values": [
+        "moveDimensionLine",
+        "addLeader",
+        "free"
+      ]
+    },
+    "dimensionSettingsTextLineSpacing": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "dimensionSettingsTextLineSpacingKind",
+          "nullable": false
+        },
+        {
+          "name": "factor",
+          "valueType": "dimensionSettingsTextLineSpacingFactor",
+          "nullable": false
+        }
+      ]
+    },
+    "dimensionSettingsTextLineSpacingKind": {
+      "kind": "enum",
+      "values": [
+        "atLeast",
+        "exact"
+      ]
+    },
+    "dimensionSettingsTextLineSpacingFactor": {
+      "kind": "scalar",
+      "base": "float64",
+      "minimum": 0.25,
+      "maximum": 4
+    },
+    "dimensionSettingsTextBackground": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "dimensionSettingsTextBackgroundKind",
+          "nullable": false
+        },
+        {
+          "name": "color",
+          "valueType": "dimensionColor",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "opacity",
+          "valueType": "dimensionAppearanceOpacityValue",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "padding",
+          "valueType": "dimensionSettingsTextBackgroundPadding",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "dimensionSettingsTextBackgroundKind": {
+      "kind": "enum",
+      "values": [
+        "none",
+        "color",
+        "canvas"
+      ]
+    },
+    "dimensionSettingsTextBackgroundPadding": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "dimensionSettingsTextBackgroundPaddingKind",
+          "nullable": false
+        },
+        {
+          "name": "distance",
+          "valueType": "dimensionAppearanceLineWeightValue",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "factor",
+          "valueType": "dimensionAppearanceLineWeightValue",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "dimensionSettingsTextBackgroundPaddingKind": {
+      "kind": "enum",
+      "values": [
+        "absolute",
+        "relative"
+      ]
+    },
+    "dimensionSettingsFit": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "preferredPlacement",
+          "valueType": "dimensionSettingsFitPreferredPlacement",
+          "nullable": false
+        },
+        {
+          "name": "forceTextInside",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "keepDimensionLineOutside",
+          "valueType": "boolean",
+          "nullable": false
+        }
+      ]
+    },
+    "dimensionSettingsFitPreferredPlacement": {
+      "kind": "enum",
+      "values": [
+        "textInside",
+        "arrowsInside",
+        "bestFit"
+      ]
+    },
+    "dimensionSettingsNumbers": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "primary",
+          "valueType": "dimensionSettingsNumbersPrimary",
+          "nullable": false
+        },
+        {
+          "name": "alternate",
+          "valueType": "dimensionSettingsNumbersAlternate",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "tolerance",
+          "valueType": "dimensionSettingsNumbersTolerance",
+          "nullable": false
+        }
+      ]
+    },
+    "dimensionSettingsNumbersPrimary": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "measurementFactor",
+          "valueType": "dimensionSettingsTextHeight",
+          "nullable": false
+        },
+        {
+          "name": "application",
+          "valueType": "dimensionSettingsNumbersPrimaryApplication",
+          "nullable": false
+        },
+        {
+          "name": "format",
+          "valueType": "dimensionSettingsNumbersPrimaryFormat",
+          "nullable": false
+        },
+        {
+          "name": "angleFormat",
+          "valueType": "dimensionSettingsNumbersPrimaryAngleFormat",
+          "nullable": false
+        },
+        {
+          "name": "precision",
+          "valueType": "dimensionSettingsNumbersPrimaryPrecision",
+          "nullable": false
+        },
+        {
+          "name": "decimalSeparator",
+          "valueType": "dimensionSettingsNumbersPrimaryDecimalSeparator",
+          "nullable": false
+        },
+        {
+          "name": "roundingIncrement",
+          "valueType": "dimensionAppearanceLineWeightValue",
+          "nullable": false
+        },
+        {
+          "name": "zeroSuppression",
+          "valueType": "dimensionSettingsNumbersPrimaryZeroSuppression",
+          "nullable": false
+        },
+        {
+          "name": "prefix",
+          "valueType": "string",
+          "nullable": false
+        },
+        {
+          "name": "suffix",
+          "valueType": "string",
+          "nullable": false
+        },
+        {
+          "name": "arcSymbol",
+          "valueType": "dimensionSettingsNumbersPrimaryArcSymbol",
+          "nullable": false
+        }
+      ]
+    },
+    "dimensionSettingsNumbersPrimaryApplication": {
+      "kind": "enum",
+      "values": [
+        "allOwners",
+        "paperOnly"
+      ]
+    },
+    "dimensionSettingsNumbersPrimaryFormat": {
+      "kind": "enum",
+      "values": [
+        "decimal",
+        "fractional",
+        "engineering",
+        "architectural",
+        "scientific"
+      ]
+    },
+    "dimensionSettingsNumbersPrimaryAngleFormat": {
+      "kind": "enum",
+      "values": [
+        "decimalDegrees",
+        "degreesMinutesSeconds",
+        "grads",
+        "radians"
+      ]
+    },
+    "dimensionSettingsNumbersPrimaryPrecision": {
+      "kind": "scalar",
+      "base": "uint32",
+      "minimum": 0,
+      "maximum": 16
+    },
+    "dimensionSettingsNumbersPrimaryDecimalSeparator": {
+      "kind": "scalar",
+      "base": "string",
+      "minLength": 1,
+      "maxLength": 1
+    },
+    "dimensionSettingsNumbersPrimaryZeroSuppression": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "leading",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "trailing",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "zeroFeet",
+          "valueType": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "zeroInches",
+          "valueType": "boolean",
+          "nullable": false
+        }
+      ]
+    },
+    "dimensionSettingsNumbersPrimaryArcSymbol": {
+      "kind": "enum",
+      "values": [
+        "none",
+        "before",
+        "above"
+      ]
+    },
+    "dimensionSettingsNumbersAlternate": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "factor",
+          "valueType": "dimensionSettingsTextHeight",
+          "nullable": false
+        },
+        {
+          "name": "format",
+          "valueType": "dimensionSettingsNumbersPrimaryFormat",
+          "nullable": false
+        },
+        {
+          "name": "precision",
+          "valueType": "dimensionSettingsNumbersPrimaryPrecision",
+          "nullable": false
+        },
+        {
+          "name": "decimalSeparator",
+          "valueType": "dimensionSettingsNumbersPrimaryDecimalSeparator",
+          "nullable": false
+        },
+        {
+          "name": "roundingIncrement",
+          "valueType": "dimensionAppearanceLineWeightValue",
+          "nullable": false
+        },
+        {
+          "name": "zeroSuppression",
+          "valueType": "dimensionSettingsNumbersPrimaryZeroSuppression",
+          "nullable": false
+        },
+        {
+          "name": "prefix",
+          "valueType": "string",
+          "nullable": false
+        },
+        {
+          "name": "suffix",
+          "valueType": "string",
+          "nullable": false
+        }
+      ]
+    },
+    "dimensionSettingsNumbersTolerance": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "dimensionSettingsNumbersToleranceKind",
+          "nullable": false
+        },
+        {
+          "name": "upper",
+          "valueType": "dimensionAppearanceLineWeightValue",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "lower",
+          "valueType": "dimensionAppearanceLineWeightValue",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "precision",
+          "valueType": "dimensionSettingsNumbersPrimaryPrecision",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "dimensionSettingsNumbersToleranceKind": {
+      "kind": "enum",
+      "values": [
+        "none",
+        "deviations",
+        "limits"
+      ]
+    },
+    "dimensionOverrides": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "dimensionLine",
+          "valueType": "dimensionOverridesDimensionLine",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "extensionLines",
+          "valueType": "dimensionOverridesExtensionLines",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "arrows",
+          "valueType": "dimensionOverridesArrows",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "text",
+          "valueType": "dimensionOverridesText",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "fit",
+          "valueType": "dimensionOverridesFit",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "numbers",
+          "valueType": "dimensionOverridesNumbers",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "presentationScale",
+          "valueType": "dimensionSettingsTextHeight",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "dimensionOverridesDimensionLine": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "appearance",
+          "valueType": "dimensionAppearanceOverrides",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "extension",
+          "valueType": "dimensionAppearanceLineWeightValue",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "suppressFirst",
+          "valueType": "boolean",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "suppressSecond",
+          "valueType": "boolean",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "dimensionAppearanceOverrides": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "color",
+          "valueType": "dimensionAppearanceColor",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "opacity",
+          "valueType": "dimensionAppearanceOpacity",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "linePattern",
+          "valueType": "dimensionAppearanceLinePattern",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "lineWeight",
+          "valueType": "dimensionAppearanceLineWeight",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "dimensionOverridesExtensionLines": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "first",
+          "valueType": "dimensionExtensionOverrides",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "second",
+          "valueType": "dimensionExtensionOverrides",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "dimensionExtensionOverrides": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "appearance",
+          "valueType": "dimensionAppearanceOverrides",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "offset",
+          "valueType": "dimensionAppearanceLineWeightValue",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "extension",
+          "valueType": "dimensionAppearanceLineWeightValue",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "suppressed",
+          "valueType": "boolean",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "length",
+          "valueType": "dimensionExtensionLength",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "dimensionOverridesArrows": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "first",
+          "valueType": "dimensionMarker",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "second",
+          "valueType": "dimensionMarker",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "size",
+          "valueType": "dimensionAppearanceLineWeightValue",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "tickSize",
+          "valueType": "dimensionAppearanceLineWeightValue",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "flipFirst",
+          "valueType": "boolean",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "flipSecond",
+          "valueType": "boolean",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "centerMark",
+          "valueType": "dimensionSettingsArrowsCenterMark",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "dimensionOverridesText": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "style",
+          "valueType": "dimensionSelectorIndex",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "height",
+          "valueType": "dimensionSettingsTextHeight",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "appearance",
+          "valueType": "dimensionAppearanceOverrides",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "attachment",
+          "valueType": "dimensionTextPlacementAttachment",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "insideOrientation",
+          "valueType": "dimensionSettingsTextInsideOrientation",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "outsideOrientation",
+          "valueType": "dimensionSettingsTextInsideOrientation",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "gap",
+          "valueType": "dimensionAppearanceLineWeightValue",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "movement",
+          "valueType": "dimensionSettingsTextMovement",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "lineSpacing",
+          "valueType": "dimensionSettingsTextLineSpacing",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "background",
+          "valueType": "dimensionSettingsTextBackground",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "dimensionOverridesFit": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "preferredPlacement",
+          "valueType": "dimensionSettingsFitPreferredPlacement",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "forceTextInside",
+          "valueType": "boolean",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "keepDimensionLineOutside",
+          "valueType": "boolean",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "dimensionOverridesNumbers": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "primary",
+          "valueType": "dimensionOverridesNumbersPrimary",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "alternate",
+          "valueType": "dimensionOverridesNumbersAlternate",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "tolerance",
+          "valueType": "dimensionSettingsNumbersTolerance",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "dimensionOverridesNumbersPrimary": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "measurementFactor",
+          "valueType": "dimensionSettingsTextHeight",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "application",
+          "valueType": "dimensionSettingsNumbersPrimaryApplication",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "format",
+          "valueType": "dimensionSettingsNumbersPrimaryFormat",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "angleFormat",
+          "valueType": "dimensionSettingsNumbersPrimaryAngleFormat",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "precision",
+          "valueType": "dimensionSettingsNumbersPrimaryPrecision",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "decimalSeparator",
+          "valueType": "dimensionSettingsNumbersPrimaryDecimalSeparator",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "roundingIncrement",
+          "valueType": "dimensionAppearanceLineWeightValue",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "zeroSuppression",
+          "valueType": "dimensionSettingsNumbersPrimaryZeroSuppression",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "prefix",
+          "valueType": "string",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "suffix",
+          "valueType": "string",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "arcSymbol",
+          "valueType": "dimensionSettingsNumbersPrimaryArcSymbol",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "dimensionOverridesNumbersAlternate": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "dimensionOverridesNumbersAlternateKind",
+          "nullable": false
+        },
+        {
+          "name": "settings",
+          "valueType": "dimensionSettingsNumbersAlternate",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "dimensionOverridesNumbersAlternateKind": {
+      "kind": "enum",
+      "values": [
+        "none",
+        "enabled"
+      ]
+    },
+    "dimensionTypeOverrides": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "linear",
+          "valueType": "dimensionOverrides",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "aligned",
+          "valueType": "dimensionOverrides",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "angularTwoLines",
+          "valueType": "dimensionOverrides",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "angularThreePoints",
+          "valueType": "dimensionOverrides",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "radius",
+          "valueType": "dimensionOverrides",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "diameter",
+          "valueType": "dimensionOverrides",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "ordinate",
+          "valueType": "dimensionOverrides",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "arcLength",
+          "valueType": "dimensionOverrides",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "joggedRadius",
+          "valueType": "dimensionOverrides",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    "dimensionStyleId": {
+      "kind": "scalar",
+      "base": "uint32",
+      "minimum": 0
+    },
+    "dimensionAssociations": {
+      "kind": "sequence",
+      "items": "dimensionAssociation",
+      "minItems": 0
     }
   },
   "resource": {
@@ -2771,6 +4307,12 @@
       },
       {
         "name": "nextTextStyleId",
+        "valueType": "uint32",
+        "nullable": false,
+        "default": 1
+      },
+      {
+        "name": "nextDimensionStyleId",
         "valueType": "uint32",
         "nullable": false,
         "default": 1
@@ -3276,6 +4818,34 @@
         {
           "name": "lastUsedHeight",
           "valueType": "float64",
+          "nullable": false,
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "dimensionStyle",
+      "schemaId": "ocdraw.dimensionStyle.v1",
+      "default": [],
+      "fields": [
+        {
+          "name": "id",
+          "valueType": "dimensionStyleId",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "valueType": "nonEmptyString",
+          "nullable": false
+        },
+        {
+          "name": "settings",
+          "valueType": "dimensionSettings",
+          "nullable": false
+        },
+        {
+          "name": "typeOverrides",
+          "valueType": "dimensionTypeOverrides",
           "nullable": false,
           "optional": true
         }
@@ -5038,6 +6608,134 @@
           "nullable": false
         }
       ]
+    },
+    {
+      "name": "dimension",
+      "schemaId": "ocdraw.dimension.v1",
+      "role": "object",
+      "fields": [
+        {
+          "name": "entityId",
+          "valueType": "entityId",
+          "nullable": false,
+          "reference": {
+            "category": "entity",
+            "target": "entity"
+          }
+        },
+        {
+          "name": "placement",
+          "valueType": "coordinateFrame3",
+          "nullable": false
+        },
+        {
+          "name": "layerId",
+          "valueType": "uint32",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "layer.id"
+          }
+        },
+        {
+          "name": "colorMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "color",
+          "valueType": "color",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "opacityMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "opacity",
+          "valueType": "opacity",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "linePatternMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "linePatternId",
+          "valueType": "uint32",
+          "nullable": false,
+          "optional": true,
+          "reference": {
+            "category": "tableField",
+            "target": "linePattern.id"
+          }
+        },
+        {
+          "name": "lineWeightMode",
+          "valueType": "appearanceMode",
+          "nullable": false,
+          "default": "ByLayer"
+        },
+        {
+          "name": "lineWeight",
+          "valueType": "lineWeight",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "visible",
+          "valueType": "boolean",
+          "nullable": false,
+          "default": true
+        },
+        {
+          "name": "linePatternScale",
+          "valueType": "float64",
+          "nullable": false,
+          "default": 1
+        },
+        {
+          "name": "styleId",
+          "valueType": "dimensionStyleId",
+          "nullable": false,
+          "reference": {
+            "category": "tableField",
+            "target": "dimensionStyle.id"
+          }
+        },
+        {
+          "name": "definition",
+          "valueType": "dimensionDefinition",
+          "nullable": false
+        },
+        {
+          "name": "textPlacement",
+          "valueType": "dimensionTextPlacement",
+          "nullable": false
+        },
+        {
+          "name": "label",
+          "valueType": "dimensionLabel",
+          "nullable": false
+        },
+        {
+          "name": "overrides",
+          "valueType": "dimensionOverrides",
+          "nullable": false
+        },
+        {
+          "name": "associations",
+          "valueType": "dimensionAssociations",
+          "nullable": false
+        }
+      ]
     }
   ],
   "invariants": [
@@ -5148,6 +6846,10 @@
     {
       "id": "ocdraw.text",
       "contract": "logical-contract-0.1.0.md#text"
+    },
+    {
+      "id": "ocdraw.dimension",
+      "contract": "logical-contract-0.1.0.md#dimension"
     }
   ],
   "ocdrawVersion": "0.1.0"

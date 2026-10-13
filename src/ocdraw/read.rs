@@ -33,6 +33,12 @@ pub struct ValidatedOcdraw {
 }
 
 impl ValidatedOcdraw {
+    pub fn dimension_styles(&self) -> &[super::DrawingDimensionStyle] {
+        &self.document.dimension_styles
+    }
+    pub fn dimension_entities(&self) -> &[super::DrawingDimensionEntity] {
+        &self.document.dimension_entities
+    }
     pub fn hatch_entities(&self) -> &[super::DrawingHatchEntity] {
         &self.document.hatch_entities
     }
@@ -275,6 +281,21 @@ pub fn load_ocdraw_bytes(bytes: &[u8]) -> Result<ValidatedOcdraw, OcdrawReadErro
     };
     let (drawing_id, unit, plot_style_mode) = encoding.header();
     let document = OcdrawDocument {
+        dimension_styles: super::codec::json::decode_dimension_styles(value).map_err(|d| {
+            OcdrawReadError::Invalid {
+                diagnostics: vec![d],
+            }
+        })?,
+        dimension_entities: super::codec::json::decode_dimensions(value).map_err(|d| {
+            OcdrawReadError::Invalid {
+                diagnostics: vec![d],
+            }
+        })?,
+        next_dimension_style_id: value["header"]
+            .get("nextDimensionStyleId")
+            .and_then(serde_json::Value::as_u64)
+            .map(|id| u32::try_from(id).expect("validated DimensionStyle watermark"))
+            .unwrap_or(1),
         hatch_entities: super::codec::json::decode_hatch(value).map_err(|d| {
             OcdrawReadError::Invalid {
                 diagnostics: vec![d],

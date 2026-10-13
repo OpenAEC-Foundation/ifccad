@@ -312,7 +312,9 @@ fn unsupported_table_record(
                 .then_some("block_records")
         }
         SemanticTableRecordV1::DimStyle(record) => {
-            changed!(record, baseline.dim_styles).then_some("dim_styles")
+            (!context.mapped_dimension_styles.contains(&record.handle)
+                && changed!(record, baseline.dim_styles))
+            .then_some("dim_styles")
         }
         SemanticTableRecordV1::AppId(record) => {
             changed!(record, baseline.app_ids).then_some("app_ids")

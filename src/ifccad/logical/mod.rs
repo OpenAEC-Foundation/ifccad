@@ -1,5 +1,8 @@
 use super::*;
 mod allocation;
+mod dimension;
+mod dimension_validation;
+pub use dimension::*;
 mod bounds;
 mod document_validation;
 mod geometry;

@@ -1093,6 +1093,11 @@
         "modelWindows": {},
         "pointDisplay": {
           "$ref": "#/$defs/pointDisplay"
+        },
+        "nextDimensionStyleId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18446744073709551615
         }
       },
       "additionalProperties": false,
@@ -3242,6 +3247,2314 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/hatchDash"
+          }
+        }
+      }
+    },
+    "dimensionDefinition": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "linear"
+            },
+            "firstPoint": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "secondPoint": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "dimensionLinePoint": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "extensionDirectionAngle": {
+              "type": "number"
+            },
+            "directionAngle": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "kind",
+            "firstPoint",
+            "secondPoint",
+            "dimensionLinePoint",
+            "directionAngle"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "aligned"
+            },
+            "firstPoint": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "secondPoint": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "dimensionLinePoint": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "extensionDirectionAngle": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "kind",
+            "firstPoint",
+            "secondPoint",
+            "dimensionLinePoint"
+          ]
+        }
+      ]
+    },
+    "dimensionTextPlacement": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "styleDriven"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "explicit"
+            },
+            "position": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "rotation": {
+              "type": "number"
+            },
+            "attachment": {
+              "enum": [
+                "topLeft",
+                "topCenter",
+                "topRight",
+                "middleLeft",
+                "middleCenter",
+                "middleRight",
+                "bottomLeft",
+                "bottomCenter",
+                "bottomRight"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "position",
+            "rotation",
+            "attachment"
+          ]
+        }
+      ]
+    },
+    "dimensionLabel": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "generated"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "suppressed"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "template"
+            },
+            "parts": {
+              "type": "array",
+              "items": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "kind": {
+                        "const": "literal"
+                      },
+                      "runs": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/textRun"
+                        }
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "runs"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "kind": {
+                        "const": "measurement"
+                      }
+                    },
+                    "required": [
+                      "kind"
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          "required": [
+            "kind",
+            "parts"
+          ]
+        }
+      ]
+    },
+    "dimensionSelector": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "position"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "start"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "end"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "center"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "vertex"
+            },
+            "index": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            }
+          },
+          "required": [
+            "kind",
+            "index"
+          ]
+        }
+      ]
+    },
+    "dimensionAssociation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "role": {
+          "enum": [
+            "firstPoint",
+            "secondPoint"
+          ]
+        },
+        "selector": {
+          "$ref": "#/$defs/dimensionSelector"
+        },
+        "source": {
+          "type": "string",
+          "pattern": "^/cad/d[0-9]+/e[0-9]+$"
+        }
+      },
+      "required": [
+        "role",
+        "source",
+        "selector"
+      ]
+    },
+    "dimensionSettings": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "dimensionLine": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "appearance": {
+              "$ref": "#/$defs/dimensionAppearance"
+            },
+            "extension": {
+              "type": "number",
+              "minimum": 0
+            },
+            "suppressFirst": {
+              "type": "boolean"
+            },
+            "suppressSecond": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "appearance",
+            "extension",
+            "suppressFirst",
+            "suppressSecond"
+          ]
+        },
+        "extensionLines": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "first": {
+              "$ref": "#/$defs/dimensionExtension"
+            },
+            "second": {
+              "$ref": "#/$defs/dimensionExtension"
+            }
+          },
+          "required": [
+            "first",
+            "second"
+          ]
+        },
+        "arrows": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "first": {
+              "$ref": "#/$defs/dimensionMarker"
+            },
+            "second": {
+              "$ref": "#/$defs/dimensionMarker"
+            },
+            "size": {
+              "type": "number",
+              "minimum": 0
+            },
+            "tickSize": {
+              "type": "number",
+              "minimum": 0
+            },
+            "flipFirst": {
+              "type": "boolean"
+            },
+            "flipSecond": {
+              "type": "boolean"
+            },
+            "centerMark": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "kind": {
+                      "const": "none"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "kind": {
+                      "const": "mark"
+                    },
+                    "size": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "size"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "kind": {
+                      "const": "lines"
+                    },
+                    "size": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "size"
+                  ]
+                }
+              ]
+            }
+          },
+          "required": [
+            "first",
+            "second",
+            "size",
+            "tickSize",
+            "flipFirst",
+            "flipSecond",
+            "centerMark"
+          ]
+        },
+        "text": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "style": {
+              "type": "string",
+              "pattern": "^/cad/d[0-9]+/textStyle/[0-9]+$"
+            },
+            "height": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "appearance": {
+              "$ref": "#/$defs/dimensionAppearance"
+            },
+            "attachment": {
+              "enum": [
+                "topLeft",
+                "topCenter",
+                "topRight",
+                "middleLeft",
+                "middleCenter",
+                "middleRight",
+                "bottomLeft",
+                "bottomCenter",
+                "bottomRight"
+              ]
+            },
+            "insideOrientation": {
+              "enum": [
+                "aligned",
+                "horizontal"
+              ]
+            },
+            "outsideOrientation": {
+              "enum": [
+                "aligned",
+                "horizontal"
+              ]
+            },
+            "gap": {
+              "type": "number",
+              "minimum": 0
+            },
+            "movement": {
+              "enum": [
+                "moveDimensionLine",
+                "addLeader",
+                "free"
+              ]
+            },
+            "lineSpacing": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "kind": {
+                      "const": "atLeast"
+                    },
+                    "factor": {
+                      "type": "number",
+                      "minimum": 0.25,
+                      "maximum": 4
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "factor"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "kind": {
+                      "const": "exact"
+                    },
+                    "factor": {
+                      "type": "number",
+                      "minimum": 0.25,
+                      "maximum": 4
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "factor"
+                  ]
+                }
+              ]
+            },
+            "background": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "kind": {
+                      "const": "none"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "kind": {
+                      "const": "color"
+                    },
+                    "color": {
+                      "$ref": "#/$defs/dimensionColor"
+                    },
+                    "opacity": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    "padding": {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "kind": {
+                              "const": "absolute"
+                            },
+                            "distance": {
+                              "type": "number",
+                              "minimum": 0
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "distance"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "kind": {
+                              "const": "relative"
+                            },
+                            "factor": {
+                              "type": "number",
+                              "minimum": 0
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "factor"
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "color",
+                    "opacity",
+                    "padding"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "kind": {
+                      "const": "canvas"
+                    },
+                    "opacity": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    "padding": {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "kind": {
+                              "const": "absolute"
+                            },
+                            "distance": {
+                              "type": "number",
+                              "minimum": 0
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "distance"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "kind": {
+                              "const": "relative"
+                            },
+                            "factor": {
+                              "type": "number",
+                              "minimum": 0
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "factor"
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "opacity",
+                    "padding"
+                  ]
+                }
+              ]
+            }
+          },
+          "required": [
+            "style",
+            "height",
+            "appearance",
+            "attachment",
+            "insideOrientation",
+            "outsideOrientation",
+            "gap",
+            "movement",
+            "lineSpacing",
+            "background"
+          ]
+        },
+        "fit": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "preferredPlacement": {
+              "enum": [
+                "textInside",
+                "arrowsInside",
+                "bestFit"
+              ]
+            },
+            "forceTextInside": {
+              "type": "boolean"
+            },
+            "keepDimensionLineOutside": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "preferredPlacement",
+            "forceTextInside",
+            "keepDimensionLineOutside"
+          ]
+        },
+        "numbers": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "primary": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "measurementFactor": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "application": {
+                  "enum": [
+                    "allOwners",
+                    "paperOnly"
+                  ]
+                },
+                "format": {
+                  "enum": [
+                    "decimal",
+                    "fractional",
+                    "engineering",
+                    "architectural",
+                    "scientific"
+                  ]
+                },
+                "angleFormat": {
+                  "enum": [
+                    "decimalDegrees",
+                    "degreesMinutesSeconds",
+                    "grads",
+                    "radians"
+                  ]
+                },
+                "precision": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 16
+                },
+                "decimalSeparator": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1
+                },
+                "roundingIncrement": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "zeroSuppression": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "leading": {
+                      "type": "boolean"
+                    },
+                    "trailing": {
+                      "type": "boolean"
+                    },
+                    "zeroFeet": {
+                      "type": "boolean"
+                    },
+                    "zeroInches": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "leading",
+                    "trailing",
+                    "zeroFeet",
+                    "zeroInches"
+                  ]
+                },
+                "prefix": {
+                  "type": "string"
+                },
+                "suffix": {
+                  "type": "string"
+                },
+                "arcSymbol": {
+                  "enum": [
+                    "none",
+                    "before",
+                    "above"
+                  ]
+                }
+              },
+              "required": [
+                "measurementFactor",
+                "application",
+                "format",
+                "angleFormat",
+                "precision",
+                "decimalSeparator",
+                "roundingIncrement",
+                "zeroSuppression",
+                "prefix",
+                "suffix",
+                "arcSymbol"
+              ]
+            },
+            "alternate": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "factor": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "format": {
+                  "enum": [
+                    "decimal",
+                    "fractional",
+                    "engineering",
+                    "architectural",
+                    "scientific"
+                  ]
+                },
+                "precision": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 16
+                },
+                "decimalSeparator": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1
+                },
+                "roundingIncrement": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "zeroSuppression": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "leading": {
+                      "type": "boolean"
+                    },
+                    "trailing": {
+                      "type": "boolean"
+                    },
+                    "zeroFeet": {
+                      "type": "boolean"
+                    },
+                    "zeroInches": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "leading",
+                    "trailing",
+                    "zeroFeet",
+                    "zeroInches"
+                  ]
+                },
+                "prefix": {
+                  "type": "string"
+                },
+                "suffix": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "factor",
+                "format",
+                "precision",
+                "decimalSeparator",
+                "roundingIncrement",
+                "zeroSuppression",
+                "prefix",
+                "suffix"
+              ]
+            },
+            "tolerance": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "kind": {
+                      "const": "none"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "kind": {
+                      "const": "deviations"
+                    },
+                    "upper": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "lower": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "precision": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 16
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "upper",
+                    "lower",
+                    "precision"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "kind": {
+                      "const": "limits"
+                    },
+                    "upper": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "lower": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "precision": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 16
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "upper",
+                    "lower",
+                    "precision"
+                  ]
+                }
+              ]
+            }
+          },
+          "required": [
+            "primary",
+            "tolerance"
+          ]
+        },
+        "presentationScale": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "required": [
+        "dimensionLine",
+        "extensionLines",
+        "arrows",
+        "text",
+        "fit",
+        "numbers",
+        "presentationScale"
+      ]
+    },
+    "dimensionOverrides": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "dimensionLine": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "appearance": {
+              "$ref": "#/$defs/dimensionAppearanceOverrides"
+            },
+            "extension": {
+              "type": "number",
+              "minimum": 0
+            },
+            "suppressFirst": {
+              "type": "boolean"
+            },
+            "suppressSecond": {
+              "type": "boolean"
+            }
+          },
+          "required": []
+        },
+        "extensionLines": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "first": {
+              "$ref": "#/$defs/dimensionExtensionOverrides"
+            },
+            "second": {
+              "$ref": "#/$defs/dimensionExtensionOverrides"
+            }
+          },
+          "required": []
+        },
+        "arrows": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "first": {
+              "$ref": "#/$defs/dimensionMarker"
+            },
+            "second": {
+              "$ref": "#/$defs/dimensionMarker"
+            },
+            "size": {
+              "type": "number",
+              "minimum": 0
+            },
+            "tickSize": {
+              "type": "number",
+              "minimum": 0
+            },
+            "flipFirst": {
+              "type": "boolean"
+            },
+            "flipSecond": {
+              "type": "boolean"
+            },
+            "centerMark": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "kind": {
+                      "const": "none"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "kind": {
+                      "const": "mark"
+                    },
+                    "size": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "size"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "kind": {
+                      "const": "lines"
+                    },
+                    "size": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "size"
+                  ]
+                }
+              ]
+            }
+          },
+          "required": []
+        },
+        "text": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "style": {
+              "type": "string",
+              "pattern": "^/cad/d[0-9]+/textStyle/[0-9]+$"
+            },
+            "height": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "appearance": {
+              "$ref": "#/$defs/dimensionAppearanceOverrides"
+            },
+            "attachment": {
+              "enum": [
+                "topLeft",
+                "topCenter",
+                "topRight",
+                "middleLeft",
+                "middleCenter",
+                "middleRight",
+                "bottomLeft",
+                "bottomCenter",
+                "bottomRight"
+              ]
+            },
+            "insideOrientation": {
+              "enum": [
+                "aligned",
+                "horizontal"
+              ]
+            },
+            "outsideOrientation": {
+              "enum": [
+                "aligned",
+                "horizontal"
+              ]
+            },
+            "gap": {
+              "type": "number",
+              "minimum": 0
+            },
+            "movement": {
+              "enum": [
+                "moveDimensionLine",
+                "addLeader",
+                "free"
+              ]
+            },
+            "lineSpacing": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "kind": {
+                      "const": "atLeast"
+                    },
+                    "factor": {
+                      "type": "number",
+                      "minimum": 0.25,
+                      "maximum": 4
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "factor"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "kind": {
+                      "const": "exact"
+                    },
+                    "factor": {
+                      "type": "number",
+                      "minimum": 0.25,
+                      "maximum": 4
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "factor"
+                  ]
+                }
+              ]
+            },
+            "background": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "kind": {
+                      "const": "none"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "kind": {
+                      "const": "color"
+                    },
+                    "color": {
+                      "$ref": "#/$defs/dimensionColor"
+                    },
+                    "opacity": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    "padding": {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "kind": {
+                              "const": "absolute"
+                            },
+                            "distance": {
+                              "type": "number",
+                              "minimum": 0
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "distance"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "kind": {
+                              "const": "relative"
+                            },
+                            "factor": {
+                              "type": "number",
+                              "minimum": 0
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "factor"
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "color",
+                    "opacity",
+                    "padding"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "kind": {
+                      "const": "canvas"
+                    },
+                    "opacity": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    "padding": {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "kind": {
+                              "const": "absolute"
+                            },
+                            "distance": {
+                              "type": "number",
+                              "minimum": 0
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "distance"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "kind": {
+                              "const": "relative"
+                            },
+                            "factor": {
+                              "type": "number",
+                              "minimum": 0
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "factor"
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "opacity",
+                    "padding"
+                  ]
+                }
+              ]
+            }
+          },
+          "required": []
+        },
+        "fit": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "preferredPlacement": {
+              "enum": [
+                "textInside",
+                "arrowsInside",
+                "bestFit"
+              ]
+            },
+            "forceTextInside": {
+              "type": "boolean"
+            },
+            "keepDimensionLineOutside": {
+              "type": "boolean"
+            }
+          },
+          "required": []
+        },
+        "numbers": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "primary": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "measurementFactor": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "application": {
+                  "enum": [
+                    "allOwners",
+                    "paperOnly"
+                  ]
+                },
+                "format": {
+                  "enum": [
+                    "decimal",
+                    "fractional",
+                    "engineering",
+                    "architectural",
+                    "scientific"
+                  ]
+                },
+                "angleFormat": {
+                  "enum": [
+                    "decimalDegrees",
+                    "degreesMinutesSeconds",
+                    "grads",
+                    "radians"
+                  ]
+                },
+                "precision": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 16
+                },
+                "decimalSeparator": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1
+                },
+                "roundingIncrement": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "zeroSuppression": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "leading": {
+                      "type": "boolean"
+                    },
+                    "trailing": {
+                      "type": "boolean"
+                    },
+                    "zeroFeet": {
+                      "type": "boolean"
+                    },
+                    "zeroInches": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "leading",
+                    "trailing",
+                    "zeroFeet",
+                    "zeroInches"
+                  ]
+                },
+                "prefix": {
+                  "type": "string"
+                },
+                "suffix": {
+                  "type": "string"
+                },
+                "arcSymbol": {
+                  "enum": [
+                    "none",
+                    "before",
+                    "above"
+                  ]
+                }
+              },
+              "required": []
+            },
+            "alternate": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "kind": {
+                      "const": "none"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "kind": {
+                      "const": "enabled"
+                    },
+                    "settings": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "factor": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "format": {
+                          "enum": [
+                            "decimal",
+                            "fractional",
+                            "engineering",
+                            "architectural",
+                            "scientific"
+                          ]
+                        },
+                        "precision": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 16
+                        },
+                        "decimalSeparator": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 1
+                        },
+                        "roundingIncrement": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "zeroSuppression": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "leading": {
+                              "type": "boolean"
+                            },
+                            "trailing": {
+                              "type": "boolean"
+                            },
+                            "zeroFeet": {
+                              "type": "boolean"
+                            },
+                            "zeroInches": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "leading",
+                            "trailing",
+                            "zeroFeet",
+                            "zeroInches"
+                          ]
+                        },
+                        "prefix": {
+                          "type": "string"
+                        },
+                        "suffix": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "factor",
+                        "format",
+                        "precision",
+                        "decimalSeparator",
+                        "roundingIncrement",
+                        "zeroSuppression",
+                        "prefix",
+                        "suffix"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "settings"
+                  ]
+                }
+              ]
+            },
+            "tolerance": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "kind": {
+                      "const": "none"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "kind": {
+                      "const": "deviations"
+                    },
+                    "upper": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "lower": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "precision": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 16
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "upper",
+                    "lower",
+                    "precision"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "kind": {
+                      "const": "limits"
+                    },
+                    "upper": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "lower": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "precision": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 16
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "upper",
+                    "lower",
+                    "precision"
+                  ]
+                }
+              ]
+            }
+          },
+          "required": []
+        },
+        "presentationScale": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "required": []
+    },
+    "dimensionTypeOverrides": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "linear": {
+          "$ref": "#/$defs/dimensionOverrides"
+        },
+        "aligned": {
+          "$ref": "#/$defs/dimensionOverrides"
+        },
+        "angularTwoLines": {
+          "$ref": "#/$defs/dimensionOverrides"
+        },
+        "angularThreePoints": {
+          "$ref": "#/$defs/dimensionOverrides"
+        },
+        "radius": {
+          "$ref": "#/$defs/dimensionOverrides"
+        },
+        "diameter": {
+          "$ref": "#/$defs/dimensionOverrides"
+        },
+        "ordinate": {
+          "$ref": "#/$defs/dimensionOverrides"
+        },
+        "arcLength": {
+          "$ref": "#/$defs/dimensionOverrides"
+        },
+        "joggedRadius": {
+          "$ref": "#/$defs/dimensionOverrides"
+        }
+      },
+      "required": []
+    },
+    "dimensionStyle": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "settings": {
+          "$ref": "#/$defs/dimensionSettings"
+        },
+        "typeOverrides": {
+          "$ref": "#/$defs/dimensionTypeOverrides"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "settings"
+      ]
+    },
+    "dimensionColor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rgb"
+      ],
+      "properties": {
+        "rgb": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "indexedColor": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "system",
+            "index"
+          ],
+          "properties": {
+            "system": {
+              "type": "string",
+              "minLength": 1
+            },
+            "index": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "namedColor": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "catalog",
+            "name"
+          ],
+          "properties": {
+            "catalog": {
+              "type": "string",
+              "minLength": 1
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "dimensionAppearance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "color": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "mode": {
+                  "enum": [
+                    "inheritEntity",
+                    "byLayer",
+                    "byBlock"
+                  ]
+                }
+              },
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "mode": {
+                  "const": "explicit"
+                },
+                "value": {
+                  "$ref": "#/$defs/dimensionColor"
+                }
+              },
+              "required": [
+                "mode",
+                "value"
+              ]
+            }
+          ]
+        },
+        "opacity": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "mode": {
+                  "enum": [
+                    "inheritEntity",
+                    "byLayer",
+                    "byBlock"
+                  ]
+                }
+              },
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "mode": {
+                  "const": "explicit"
+                },
+                "value": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              },
+              "required": [
+                "mode",
+                "value"
+              ]
+            }
+          ]
+        },
+        "linePattern": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "mode": {
+                  "enum": [
+                    "inheritEntity",
+                    "byLayer",
+                    "byBlock"
+                  ]
+                }
+              },
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "mode": {
+                  "const": "explicit"
+                },
+                "value": {
+                  "type": "string",
+                  "pattern": "^/cad/d[0-9]+/linePattern/[0-9]+$"
+                }
+              },
+              "required": [
+                "mode",
+                "value"
+              ]
+            }
+          ]
+        },
+        "lineWeight": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "mode": {
+                  "enum": [
+                    "inheritEntity",
+                    "byLayer",
+                    "byBlock"
+                  ]
+                }
+              },
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "mode": {
+                  "const": "explicit"
+                },
+                "value": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "mode",
+                "value"
+              ]
+            }
+          ]
+        }
+      },
+      "required": [
+        "color",
+        "opacity",
+        "linePattern",
+        "lineWeight"
+      ]
+    },
+    "dimensionAppearanceOverrides": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "color": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "mode": {
+                  "enum": [
+                    "inheritEntity",
+                    "byLayer",
+                    "byBlock"
+                  ]
+                }
+              },
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "mode": {
+                  "const": "explicit"
+                },
+                "value": {
+                  "$ref": "#/$defs/dimensionColor"
+                }
+              },
+              "required": [
+                "mode",
+                "value"
+              ]
+            }
+          ]
+        },
+        "opacity": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "mode": {
+                  "enum": [
+                    "inheritEntity",
+                    "byLayer",
+                    "byBlock"
+                  ]
+                }
+              },
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "mode": {
+                  "const": "explicit"
+                },
+                "value": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              },
+              "required": [
+                "mode",
+                "value"
+              ]
+            }
+          ]
+        },
+        "linePattern": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "mode": {
+                  "enum": [
+                    "inheritEntity",
+                    "byLayer",
+                    "byBlock"
+                  ]
+                }
+              },
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "mode": {
+                  "const": "explicit"
+                },
+                "value": {
+                  "type": "string",
+                  "pattern": "^/cad/d[0-9]+/linePattern/[0-9]+$"
+                }
+              },
+              "required": [
+                "mode",
+                "value"
+              ]
+            }
+          ]
+        },
+        "lineWeight": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "mode": {
+                  "enum": [
+                    "inheritEntity",
+                    "byLayer",
+                    "byBlock"
+                  ]
+                }
+              },
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "mode": {
+                  "const": "explicit"
+                },
+                "value": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "mode",
+                "value"
+              ]
+            }
+          ]
+        }
+      },
+      "required": []
+    },
+    "dimensionMarker": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "closedFilled"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "closedOpen"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "open"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "dot"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "tick"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "none"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "localBlock"
+            },
+            "block": {
+              "type": "string",
+              "pattern": "^/cad/d[0-9]+/block/[0-9]+$"
+            }
+          },
+          "required": [
+            "kind",
+            "block"
+          ]
+        }
+      ]
+    },
+    "dimensionExtension": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "appearance": {
+          "$ref": "#/$defs/dimensionAppearance"
+        },
+        "offset": {
+          "type": "number",
+          "minimum": 0
+        },
+        "extension": {
+          "type": "number",
+          "minimum": 0
+        },
+        "suppressed": {
+          "type": "boolean"
+        },
+        "length": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "kind": {
+                  "const": "automatic"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "kind": {
+                  "const": "fixed"
+                },
+                "length": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "kind",
+                "length"
+              ]
+            }
+          ]
+        }
+      },
+      "required": [
+        "appearance",
+        "offset",
+        "extension",
+        "suppressed",
+        "length"
+      ]
+    },
+    "dimensionExtensionOverrides": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "appearance": {
+          "$ref": "#/$defs/dimensionAppearanceOverrides"
+        },
+        "offset": {
+          "type": "number",
+          "minimum": 0
+        },
+        "extension": {
+          "type": "number",
+          "minimum": 0
+        },
+        "suppressed": {
+          "type": "boolean"
+        },
+        "length": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "kind": {
+                  "const": "automatic"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "kind": {
+                  "const": "fixed"
+                },
+                "length": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "kind",
+                "length"
+              ]
+            }
+          ]
+        }
+      },
+      "required": []
+    },
+    "dimensionStyleExtras": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "settings": {
+          "$ref": "#/$defs/dimensionSettings"
+        },
+        "typeOverrides": {
+          "$ref": "#/$defs/dimensionTypeOverrides"
+        }
+      },
+      "required": [
+        "name",
+        "settings"
+      ]
+    },
+    "dimensionExtras": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "style",
+        "definition",
+        "textPlacement",
+        "label",
+        "overrides",
+        "associations"
+      ],
+      "properties": {
+        "style": {
+          "type": "string",
+          "pattern": "^/cad/d[0-9]+/dimensionStyle/[0-9]+$"
+        },
+        "definition": {
+          "$ref": "#/$defs/dimensionDefinition"
+        },
+        "textPlacement": {
+          "$ref": "#/$defs/dimensionTextPlacement"
+        },
+        "label": {
+          "$ref": "#/$defs/dimensionLabel"
+        },
+        "overrides": {
+          "$ref": "#/$defs/dimensionOverrides"
+        },
+        "associations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/dimensionAssociation"
           }
         }
       }

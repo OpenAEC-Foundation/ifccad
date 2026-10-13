@@ -93,6 +93,15 @@ pub(crate) fn encode_ocdraw_document(doc: &OcdrawDocument) -> Value {
     if !doc.hatch_entities.is_empty() {
         value["streams"]["hatchStream"] = super::encode_hatch(&doc.hatch_entities);
     }
+    if !doc.dimension_entities.is_empty() {
+        value["streams"]["dimensionStream"] = super::encode_dimensions(&doc.dimension_entities);
+    }
+    if !doc.dimension_styles.is_empty() {
+        value["dimensionStyles"] = super::encode_dimension_styles(&doc.dimension_styles);
+    }
+    if !doc.dimension_styles.is_empty() || doc.next_dimension_style_id != 1 {
+        value["header"]["nextDimensionStyleId"] = json!(doc.next_dimension_style_id);
+    }
     if !doc.text_styles.is_empty() {
         value["textStyles"] = super::encode_text_styles(&doc.text_styles);
     }

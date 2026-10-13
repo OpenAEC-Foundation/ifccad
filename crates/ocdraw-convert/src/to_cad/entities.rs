@@ -85,6 +85,7 @@ fn apply_common(
 }
 
 pub(super) struct TargetIndex<'a> {
+    pub dimension_styles: &'a crate::mapping::dimension::TargetDimensionStyles,
     pub text_styles: &'a crate::mapping::text::TargetTextStyles,
     pub patterns: &'a crate::mapping::line_pattern::ImportLinePatternMap,
     pub layers: &'a BTreeMap<u64, String>,
@@ -102,6 +103,7 @@ pub(super) fn append_entities(
     preservation_report: &mut crate::OcdrawPreservationReport,
 ) -> Result<BTreeMap<u64, Handle>, OcdrawToCadError> {
     let TargetIndex {
+        dimension_styles,
         text_styles,
         patterns,
         layers: layer_names,
@@ -112,6 +114,12 @@ pub(super) fn append_entities(
     let mut entity_mapping = BTreeMap::new();
     let mut pending_clips = Vec::new();
     let mut pending_hatches = Vec::new();
+    let mut pending_dimensions = Vec::new();
+    let dimensions = drawing
+        .dimension_entities
+        .iter()
+        .map(|d| (d.id, d))
+        .collect::<BTreeMap<_, _>>();
     let hatches = drawing
         .hatch_entities
         .iter()
@@ -324,6 +332,31 @@ pub(super) fn append_entities(
                     source.visible(),
                     entity,
                 )
+            } else if let Some(d) = dimensions.get(&id) {
+                let idx = crate::mapping::dimension::TargetDimensionIndex {
+                    text: text_styles,
+                    blocks: block_handles,
+                    patterns,
+                };
+                let Some(entity) = crate::mapping::dimension::to_entity(
+                    d,
+                    owner,
+                    dimension_styles,
+                    &idx,
+                    document,
+                    state,
+                    diagnostics,
+                )?
+                else {
+                    continue;
+                };
+                (
+                    u64::from(owner),
+                    d.layer_id,
+                    &d.appearance,
+                    d.visible,
+                    entity,
+                )
             } else if let Some(h) = hatches.get(&id) {
                 let entity = crate::mapping::hatch::to_cad(h, owner, state, diagnostics)?;
                 (
@@ -388,6 +421,9 @@ pub(super) fn append_entities(
         }
         .map_err(|error| OcdrawToCadError::Cad(format!("entity {id}: {error}")))?;
         entity_mapping.insert(id, handle);
+        if let Some(d) = dimensions.get(&id) {
+            pending_dimensions.push((handle, *d));
+        }
         if let Some(h) = hatches.get(&id) {
             pending_hatches.push((handle, *h));
         }
@@ -396,6 +432,15 @@ pub(super) fn append_entities(
                 pending_clips.push((handle, boundary));
             }
         }
+    }
+    for (handle, d) in pending_dimensions {
+        crate::mapping::dimension::to_associations(
+            d,
+            handle,
+            &entity_mapping,
+            document,
+            diagnostics,
+        )?;
     }
     for (handle, h) in pending_hatches {
         let EntityType::Hatch(target) = document.get_entity_mut(handle).expect("constructed Hatch")

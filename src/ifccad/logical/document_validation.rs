@@ -73,6 +73,7 @@ fn validate_document_inner(
     )?;
     validate_ifccad_line_patterns(&document.line_patterns)?;
     super::text::validate_styles(document)?;
+    super::dimension_validation::validate_dimensions(document)?;
     let patterns: BTreeSet<_> = document.line_patterns.iter().map(|p| p.id).collect();
     let mut layers = BTreeSet::new();
     for layer in &document.layers {
@@ -202,6 +203,7 @@ fn validate_document_inner(
         }
         crate::ifccad::logical::patterns::scale(entity.line_pattern_scale, &path)?;
         match &entity.kind {
+            IfccadEntityKind::Dimension(_) => {}
             IfccadEntityKind::Hatch(h) => super::hatch::validate_hatch(h, &path)?,
             IfccadEntityKind::Text(_) | IfccadEntityKind::MText(_) => {
                 super::text::validate_entity(document, &entity.kind, &path)?

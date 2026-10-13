@@ -11,6 +11,10 @@ pub(super) struct PreparedCadEntity {
     pub value: PreparedCadEntityValue,
 }
 pub(crate) enum PreparedCadEntityValue {
+    Dimension {
+        definition: Box<DimensionEntityDefinition>,
+        references: Vec<cad_dimension::CadDimensionPointReference>,
+    },
     Hatch {
         definition: HatchEntityDefinition,
         handles: Vec<Vec<Handle>>,
@@ -141,11 +145,20 @@ pub(super) fn append(
     let mut mapping = BTreeMap::new();
     let mut pending = Vec::new();
     let mut pending_hatches = Vec::new();
+    let mut pending_dimensions = Vec::new();
     for entity in prepared {
         if skipped.contains(&entity.handle) {
             continue;
         }
         let id = match entity.value {
+            PreparedCadEntityValue::Dimension {
+                definition,
+                references,
+            } => {
+                let id = drawing.add_dimension(*definition)?;
+                pending_dimensions.push((entity.handle, id, references));
+                id
+            }
             PreparedCadEntityValue::Hatch {
                 definition,
                 handles,
@@ -200,6 +213,7 @@ pub(super) fn append(
     }
     let mut document = drawing.build_document()?;
     crate::source::hatch::bind(&mut document, &mapping, pending_hatches, diagnostics);
+    crate::source::dimension::bind(&mut document, &mapping, pending_dimensions, diagnostics);
     let bindings = pending.into_iter().collect::<BTreeMap<_, _>>();
     for v in &mut document.viewports {
         if let Some((boundary, enabled)) = bindings.get(&v.id) {

@@ -76,11 +76,15 @@ pub enum TextPosition {
     Top,
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct TextRun {
     pub text: String,
+    #[serde(default)]
     pub underline: bool,
+    #[serde(default)]
     pub overline: bool,
+    #[serde(default)]
     pub strike_through: bool,
 }
 
@@ -295,7 +299,8 @@ pub enum MTextFlow {
     ByStyle,
 }
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub enum MTextAttachment {
     #[default]
     TopLeft,

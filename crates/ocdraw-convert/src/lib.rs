@@ -1,6 +1,8 @@
 #![doc = include_str!("../README.md")]
 pub use opencadcodec;
 mod diagnostics;
+mod dimension_assessment;
+pub use dimension_assessment::*;
 mod from_cad;
 mod geometry_assessment;
 mod geometry_context;

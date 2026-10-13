@@ -342,7 +342,16 @@ fn changed_bootstrap_content_is_not_hidden_by_unchanged_collection_lengths() {
     document.classes = classes;
 
     let outcome = cad_document_to_encoded_ocdraw(&document, CadToOcdrawOptions::default()).unwrap();
-    for (kind, count) in [("dim_styles", 1), ("objects", 1), ("classes", 1)] {
+    let native = ocdraw::ocdraw::load_ocdraw_bytes(outcome.encoded().bytes()).unwrap();
+    let style = native
+        .document()
+        .dimension_styles
+        .iter()
+        .find(|s| s.name == "Standard")
+        .expect("modified unused DimensionStyle retained");
+    assert_eq!(style.settings.dimension_line.extension, 2.5);
+    assert!(outcome.diagnostics().iter().any(|d|d.reasons().iter().any(|r|matches!(r,CadToOcdrawLossReason::UnsupportedSemantic{name} if name.contains("DimensionStyle DIMDLI")))));
+    for (kind, count) in [("objects", 1), ("classes", 1)] {
         assert!(
             outcome
                 .diagnostics()

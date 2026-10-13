@@ -123,6 +123,7 @@ fn import_document(
         .chain(drawing.text_entities.iter().map(|row| row.id))
         .chain(drawing.mtext_entities.iter().map(|row| row.id))
         .chain(drawing.hatch_entities.iter().map(|row| row.id))
+        .chain(drawing.dimension_entities.iter().map(|row| row.id))
         .collect::<BTreeSet<_>>();
     for (scope_index, scope) in drawing.scopes.iter().enumerate() {
         for (position, id) in scope.entities.iter().enumerate() {
@@ -426,11 +427,23 @@ fn import_document(
         blocks.insert(scope_id, definition.clone());
     }
 
+    let dimension_index = crate::mapping::dimension::TargetDimensionIndex {
+        text: &text_styles,
+        blocks: &block_handles,
+        patterns: &patterns,
+    };
+    let dimension_styles = crate::mapping::dimension::to_styles(
+        drawing,
+        &mut document,
+        &dimension_index,
+        &mut diagnostics,
+    )?;
     let entity_mapping = entities::append_entities(
         drawing,
         &mut document,
         &entities::TargetIndex {
             text_styles: &text_styles,
+            dimension_styles: &dimension_styles,
             patterns: &patterns,
             layers: &layer_names,
             layouts: &scope_layouts,
@@ -510,6 +523,8 @@ fn import_document(
         });
     }
     Ok(OcdrawToCadOutcome {
+        dimension: crate::OcdrawDimensionAssessment::new(drawing, entity_mapping.keys().copied()),
+        dimension_styles: dimension_styles.handles,
         text: crate::OcdrawTextAssessment::new(drawing, entity_mapping.keys().copied()),
         text_styles: text_styles.handles,
         preservation: preservation_report,

@@ -225,6 +225,7 @@ fn fixture_document() -> IfccadDocument {
         })
     };
     IfccadDocument {
+        dimension_styles: Vec::new(),
         point_display: None,
         text_styles: Vec::new(),
         ucs_definitions: vec![],
@@ -234,6 +235,7 @@ fn fixture_document() -> IfccadDocument {
         preservation: None,
         plot_style_mode: Default::default(),
         id_counters: IfccadIdCounters {
+            next_dimension_style_id: 1,
             next_text_style_id: 1,
             next_preservation_record_id: 1,
 

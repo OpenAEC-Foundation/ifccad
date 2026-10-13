@@ -218,5 +218,21 @@
   {
     "file": "invalid/hatch-pattern-null-name.ifcx",
     "valid": false
+  },
+  {
+    "file": "valid/dimension-linear-aligned.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid/dimension-foreign-style.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/dimension-null-override.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/dimension-missing-watermark.ifcx",
+    "valid": false
   }
 ]

@@ -1,5 +1,11 @@
 # ocdraw-convert
 
+Ordinary linear/aligned dimensions use native definitions, local styles and
+typed source selectors. Conversion exposes `dimension_assessment()` and style
+mappings independently of text/geometry evidence. Definition and explicit text
+anchors use the existing hard tolerance; dimension display and CAD picture
+regeneration remain unassessed. See [Dimension support](../../docs/dimension.md).
+
 `ocdraw-convert` connects standalone OCDraw to opencadcodec's `CadDocument` through
 `cad_document_to_ocdraw_document` and `ocdraw_document_to_cad_document`.
 The encoded `cad_document_to_encoded_ocdraw` and validated `ocdraw_source_to_cad_document`

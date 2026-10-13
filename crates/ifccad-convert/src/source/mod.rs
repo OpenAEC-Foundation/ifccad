@@ -95,6 +95,7 @@ pub(crate) fn inspect(
     doc: &CadDocument,
     preserve_splines: bool,
     consumed_objects: &BTreeSet<Handle>,
+    consumed_dimension_styles: &BTreeSet<Handle>,
 ) -> Result<Inspection, Error> {
     let invalid = |s: &str| Error::InvalidStructure(s.to_string());
     let models = doc
@@ -410,6 +411,7 @@ pub(crate) fn inspect(
         layout_dictionary,
         preserve_splines,
         consumed_objects,
+        consumed_dimension_styles,
         &mut issues,
     )?;
     for e in doc.entities() {
@@ -525,6 +527,7 @@ fn scan(
     layout_dictionary: Handle,
     preserve_splines: bool,
     consumed_objects: &BTreeSet<Handle>,
+    consumed_dimension_styles: &BTreeSet<Handle>,
     issues: &mut Vec<IfccadDiagnostic>,
 ) -> Result<(), Error> {
     static DWG_DEFAULT: OnceLock<Result<CadDocument, String>> = OnceLock::new();
@@ -688,7 +691,7 @@ fn scan(
                 }
                 SemanticTableRecordV1::LineType(_) => {} // handled by checked native pattern conversion
                 SemanticTableRecordV1::TextStyle(_) => {} // complete public STYLE fields classified by the text adapter
-                SemanticTableRecordV1::DimStyle(r) => table!(r, baseline.dim_styles),
+                SemanticTableRecordV1::DimStyle(r) => {if !consumed_dimension_styles.contains(&r.handle){table!(r, baseline.dim_styles)}},
                 SemanticTableRecordV1::AppId(r) => table!(r, baseline.app_ids),
                 SemanticTableRecordV1::View(r) => table!(r, baseline.views),
                 SemanticTableRecordV1::VPort(r) if r.name.eq_ignore_ascii_case("*active") => workspace::vport_residual(r,issues),

@@ -35,6 +35,12 @@ impl IfccadDiagnostic {
 /// Conversion failure retaining the core phase and original typed cause.
 #[derive(Debug, thiserror::Error)]
 pub enum IfccadConversionError {
+    #[error("dimension preparation at {location}: {source}")]
+    DimensionPreparation {
+        location: String,
+        #[source]
+        source: cad_dimension::CadDimensionPreparationError,
+    },
     #[error("Hatch preparation at {location}: {source}")]
     HatchPreparation {
         location: String,

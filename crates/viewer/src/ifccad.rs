@@ -46,6 +46,8 @@ fn present(output: &mut Value, drawing: &ValidatedIfccad) {
     output["presentation"] = json!({"format":"ifccad","drawingId":d.drawing_id,"unit":d.length_unit,"linePatternScale":d.line_pattern_scale,"pointDisplay":nodes.iter().find_map(|n|n["attributes"].get("ifccad::drawing")).and_then(|d|d.get("pointDisplay")),
         "layers":role("ifccad::layer"),"layouts":role("ifccad::layout"),"blockDefinitions":role("ifccad::blockDefinition"),
         "linePatterns":role("ifccad::linePattern"),"ucsDefinitions":role("ifccad::ucsDefinition"),"modelWindows":role("ifccad::modelWindow"),"hatchEntityCount":role("ifccad::hatch").len(),"hatches":role("ifccad::hatch"),"hatchFillEvaluation":"unassessed","textStyles":role("ifccad::textStyle"),"textEntityCount":role("ifccad::text").len(),"mTextEntityCount":role("ifccad::mText").len(),"entities":role("ifccad::entity"),"opaqueEntities":role("ifccad::opaqueEntity"),"opaqueEntityCount":role("ifccad::opaqueEntity").len(),"preservationRecords":role("ifccad::preservationRecord"),"preservationSources":d.preservation.as_ref().map(|p|&p.sources),"boundsCompleteness":completeness,"graph":drawing.graph().composed_ifcx()});
+    output["presentation"]["dimensions"] = crate::inspection_ifccad_dimension::entities(d);
+    output["presentation"]["dimensionStyles"] = crate::inspection_ifccad_dimension::styles(d);
 }
 /// Inspect the experimental IFCCAD profile after production composition/validation.
 pub fn inspect_ifccad_bytes(name: &str, bytes: &[u8]) -> Value {
@@ -136,6 +138,8 @@ pub(crate) fn inspect_cad_as_ifccad_with_options(
         }
     };
     output["conversion"] = json!({"format":"ifccad","preservation":preservation_report(converted.preservation_report()),"diagnostics":diagnostics(converted.diagnostics()),"entityCount":converted.mappings().entities.iter().count(),"options":options.value(),"geometryAssessment":crate::geometry::assessment(converted.geometry_assessment()),"textAssessment":text_report(converted.text_assessment())});
+    output["conversion"]["dimensionAssessment"] =
+        crate::inspection_ifccad_dimension::report(converted.dimension_assessment());
     present(&mut output, converted.validated_source());
     cad::download(&mut output, name, "ifccad", converted.encoded().bytes());
     output
@@ -188,6 +192,8 @@ pub(crate) fn export_ifccad_with_options(
     output["conversion"] = json!({"format":"ifccad","preservation":preservation_report(converted.preservation_report()),"textAssessment":text_report(converted.text_assessment())});
     let issues = diagnostics(converted.diagnostics());
     let assessment = crate::geometry::assessment(converted.geometry_assessment());
+    output["conversion"]["dimensionAssessment"] =
+        crate::inspection_ifccad_dimension::report(converted.dimension_assessment());
     let selection_candidates = crate::selection::ifccad_candidates(
         drawing.document(),
         converted.mappings(),

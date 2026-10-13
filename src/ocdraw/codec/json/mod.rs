@@ -1,4 +1,9 @@
 mod decode_appearance;
+mod dimension;
+mod dimension_style;
+mod dimension_values;
+pub(crate) use dimension::{decode_dimensions, encode_dimensions};
+pub(crate) use dimension_style::{decode_dimension_styles, encode_dimension_styles};
 mod hatch;
 mod hatch_pattern;
 mod hatch_values;

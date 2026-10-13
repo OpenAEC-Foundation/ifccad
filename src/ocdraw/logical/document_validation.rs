@@ -50,6 +50,7 @@ pub(crate) fn validate_logical_document(
 ) -> Vec<LogicalError> {
     let mut errors = super::field_validation::validate_fields(doc);
     errors.extend(super::text_validation::validate_text(doc));
+    errors.extend(super::dimension_validation::validate_dimensions(doc));
     if phase == ValidationPhase::Complete {
         errors.extend(super::text_bounds::validate_bounds_quality(doc));
     }

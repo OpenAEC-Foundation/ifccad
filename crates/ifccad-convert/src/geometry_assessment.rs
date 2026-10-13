@@ -127,7 +127,9 @@ impl IfccadGeometryAssessment {
                     || e.as_native().is_some_and(|e| {
                         matches!(
                             &e.kind,
-                            IfccadEntityKind::MText(_) | IfccadEntityKind::Hatch(_)
+                            IfccadEntityKind::MText(_)
+                                | IfccadEntityKind::Hatch(_)
+                                | IfccadEntityKind::Dimension(_)
                         ) || matches!(&e.kind,IfccadEntityKind::Text(t) if !t.content.is_empty())
                     })
                 {

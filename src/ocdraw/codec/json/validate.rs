@@ -26,6 +26,24 @@ pub(crate) fn validate_physical(value: &Value, diagnostics: &mut Vec<OcdrawDiagn
         }
     }
     streams::validate_stream_columns(value, diagnostics);
+    if let Some(counter) = value["header"].get("nextDimensionStyleId") {
+        if !counter
+            .as_u64()
+            .is_some_and(|id| id > 0 && u32::try_from(id).is_ok())
+        {
+            diagnostics.push(diagnostic(
+                "ID_WATERMARK",
+                "/header/nextDimensionStyleId",
+                "DimensionStyle watermark needs an exact positive uint32 backing",
+            ));
+        }
+    } else if value.get("dimensionStyles").is_some() {
+        diagnostics.push(diagnostic(
+            "ID_WATERMARK",
+            "/header/nextDimensionStyleId",
+            "a DimensionStyle table requires its allocation watermark",
+        ));
+    }
     if let Some(counter) = value["header"].get("nextTextStyleId") {
         if !counter.as_u64().is_some_and(|id| u32::try_from(id).is_ok()) {
             diagnostics.push(diagnostic(

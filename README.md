@@ -82,6 +82,13 @@ paragraph/inline formatting, column/background state and explicit estimated
 bound quality. Their CAD routes separately qualify a bounded text profile and expose
 unverified glyph geometry separately from anchor accuracy. See [text support](docs/text.md).
 
+Both routes store native linear/aligned dimensions, named styles, authored
+overrides and same-owner source selectors. Measurement uses the stored definition;
+associative updates belong to an editor or separate engine. CAD exchange and
+inspection distinguish anchor accuracy from unassessed dimension display. The
+nine-kind design continues in later slices; annotative text and dimensions share
+a later annotation slice. See [Dimension support](docs/dimension.md).
+
 Both routes also provide native Solid and LinePattern Hatch with stored planar boundaries,
 three area rules and optional same-owner source relations. Contour exchange
 and unassessed fill are separate evidence; see [Hatch support](docs/hatch.md).

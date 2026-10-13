@@ -3,8 +3,10 @@ use ocdraw::ifccad::*;
 use opencadcodec::{CadDocument, EntityType, Handle};
 use std::collections::BTreeMap;
 
+#[allow(clippy::too_many_arguments)]
 pub(super) fn to_cad(
     drawing: &IfccadDocument,
+    dimension_styles: &crate::mapping::dimension::TargetDimensions,
     restore: crate::IfccadPreservationRestore,
     document: &mut CadDocument,
     owners: &[(Handle, &[IfccadEntity])],
@@ -156,6 +158,15 @@ pub(super) fn to_cad(
             let loc = format!("entity/{}", e.id);
             let common = common(drawing, document, mappings, e, issues);
             let target = match &e.kind {
+                IfccadEntityKind::Dimension(d) => crate::mapping::dimension::to_entity(
+                    d,
+                    e.id,
+                    document,
+                    mappings,
+                    dimension_styles,
+                    geometry,
+                    issues,
+                )?,
                 IfccadEntityKind::Text(_) | IfccadEntityKind::MText(_) => {
                     crate::mapping::text::to_entity(drawing, e, mappings, geometry, issues)?
                 }
@@ -220,6 +231,12 @@ pub(super) fn to_cad(
                 kind => crate::mapping::geometry::to_entity(kind, e.id, geometry, issues)?,
             };
             if let Some(mut target) = target {
+                let mut common = common;
+                if matches!(target, EntityType::Dimension(_)) {
+                    for r in target.common().extended_data.records() {
+                        common.extended_data.add_record(r.clone());
+                    }
+                }
                 let pattern_origin = match &target {
                     EntityType::Hatch(h) if !h.is_solid => h.stored_pattern_origin(),
                     _ => None,
@@ -413,6 +430,13 @@ pub(super) fn to_cad(
                 document
                     .add_entity(target)
                     .map_err(|error| IfccadConversionError::CadConstruction(error.to_string()))?;
+            }
+        }
+    }
+    for (_, entities) in owners {
+        for e in entities.iter().filter_map(IfccadEntity::as_native) {
+            if let IfccadEntityKind::Dimension(d) = &e.kind {
+                crate::mapping::dimension::to_associations(d, e.id, document, mappings, issues)?;
             }
         }
     }

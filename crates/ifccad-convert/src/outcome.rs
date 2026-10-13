@@ -27,6 +27,7 @@ impl IfccadIdentityMap {
 
 #[derive(Clone, Debug, Default)]
 pub struct IfccadMappings {
+    pub dimension_styles: IfccadIdentityMap,
     pub text_styles: IfccadIdentityMap,
     pub ucss: IfccadIdentityMap,
     pub model_windows: IfccadIdentityMap,
@@ -38,6 +39,7 @@ pub struct IfccadMappings {
 }
 
 pub struct IfccadToCadOutcome {
+    pub(crate) dimension: crate::IfccadDimensionAssessment,
     pub(crate) text: crate::IfccadTextAssessment,
     pub(crate) document: CadDocument,
     pub(crate) diagnostics: Vec<IfccadDiagnostic>,
@@ -46,6 +48,9 @@ pub struct IfccadToCadOutcome {
     pub(crate) preservation: crate::IfccadPreservationReport,
 }
 impl IfccadToCadOutcome {
+    pub fn dimension_assessment(&self) -> &crate::IfccadDimensionAssessment {
+        &self.dimension
+    }
     pub fn text_assessment(&self) -> &crate::IfccadTextAssessment {
         &self.text
     }
@@ -70,6 +75,7 @@ impl IfccadToCadOutcome {
 }
 /// A validated logical CAD projection, before IFCX encoding.
 pub struct CadToIfccadDocumentOutcome {
+    pub(crate) dimension: crate::IfccadDimensionAssessment,
     pub(crate) text: crate::IfccadTextAssessment,
     pub(crate) document: IfccadDocument,
     pub(crate) diagnostics: Vec<IfccadDiagnostic>,
@@ -78,6 +84,9 @@ pub struct CadToIfccadDocumentOutcome {
     pub(crate) preservation: crate::IfccadPreservationReport,
 }
 impl CadToIfccadDocumentOutcome {
+    pub fn dimension_assessment(&self) -> &crate::IfccadDimensionAssessment {
+        &self.dimension
+    }
     pub fn text_assessment(&self) -> &crate::IfccadTextAssessment {
         &self.text
     }
@@ -102,6 +111,7 @@ impl CadToIfccadDocumentOutcome {
 }
 
 pub struct CadToEncodedIfccadOutcome {
+    pub(crate) dimension: crate::IfccadDimensionAssessment,
     pub(crate) text: crate::IfccadTextAssessment,
     pub(crate) validated: ValidatedIfccad,
     pub(crate) encoded: ocdraw::ifccad::EncodedIfccad,
@@ -111,6 +121,9 @@ pub struct CadToEncodedIfccadOutcome {
     pub(crate) preservation: crate::IfccadPreservationReport,
 }
 impl CadToEncodedIfccadOutcome {
+    pub fn dimension_assessment(&self) -> &crate::IfccadDimensionAssessment {
+        &self.dimension
+    }
     pub fn text_assessment(&self) -> &crate::IfccadTextAssessment {
         &self.text
     }

@@ -331,6 +331,10 @@ impl<'a> Evaluation<'a> {
                         ..Default::default()
                     }
                 }
+                IfccadEntityKind::Dimension(_) => Extents {
+                    unavailable: true,
+                    ..Default::default()
+                },
                 IfccadEntityKind::Viewport(v) => {
                     let b = native(
                         paper_frame_bounds(PaperFrame {

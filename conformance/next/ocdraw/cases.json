@@ -426,6 +426,25 @@
     {
       "path": "invalid/hatch-pattern-null-name.ocdraw.json",
       "status": "invalid"
+    },
+    {
+      "path": "valid/dimension-linear-aligned.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "invalid/dimension-dangling-source.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "DIMENSION_SOURCE_REFERENCE"
+    },
+    {
+      "path": "invalid/dimension-null-override.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "SCHEMA"
+    },
+    {
+      "path": "invalid/dimension-zero-text-height.ocdraw.json",
+      "status": "invalid",
+      "diagnostic": "SCHEMA"
     }
   ]
 }

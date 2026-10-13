@@ -145,6 +145,17 @@ with contour/pattern numerical evidence and separately unassessed fill; gradient
 intersection auditing and runtime associative updates remain separate work.
 See [Hatch support](docs/hatch.md). No initial contract publication is implied.
 
+## Ordinary Dimension checkpoint
+
+The ordinary Dimension slice adds independent native linear/aligned entities and
+styles, typed source selectors, pure measurement/formatting and qualified CAD
+exchange/inspection. Definition and explicit text anchors use the existing hard
+tolerance; complete display and picture regeneration remain unassessed. Seven
+additional kinds, extended selectors and joint annotative Text/MText/Dimension
+remain subsequent slices. See [Dimension support](docs/dimension.md). This adds
+content within the existing sequence; it does not reopen layout/workspace work
+or publish the initial contract.
+
 ## Later physical encodings and performance
 
 Logical semantics remain independent of streams' physical packing, compression

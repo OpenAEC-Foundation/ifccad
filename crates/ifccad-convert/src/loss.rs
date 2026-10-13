@@ -43,6 +43,8 @@ pub(crate) fn native_defaults(
                     "ifccad::mText",
                     "ifccad::textStyle",
                     "ifccad::hatch",
+                    "ifccad::dimension",
+                    "ifccad::dimensionStyle",
                 ] {
                     if let Some(value) = attrs.get_mut(key) {
                         defaults(value, &reference["attributes"][key]);

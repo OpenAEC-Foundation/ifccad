@@ -70,6 +70,13 @@ fn entity_node(entity: &IfccadEntity, prefix: &str) -> NodeOut {
         attrs["ifccad::entity"]["visible"] = json!(false);
     }
     match &entity.kind {
+        IfccadEntityKind::Dimension(v) => {
+            attrs.insert("ifccad::geom::placement".into(), json!(v.placement));
+            attrs.insert(
+                "ifccad::dimension".into(),
+                super::dimension::encode(v, prefix),
+            );
+        }
         IfccadEntityKind::Hatch(h) => {
             attrs.insert("ifccad::geom::placement".into(), json!(h.placement));
             attrs.insert(
@@ -148,6 +155,12 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
             json!(format!("{prefix}/textStyle/{}", style.id.0)),
         );
     }
+    for style in &document.dimension_styles {
+        drawing_children.insert(
+            format!("dimensionStyle{}", style.id.0),
+            json!(format!("{prefix}/dimensionStyle/{}", style.id.0)),
+        );
+    }
     for block in &document.blocks {
         drawing_children.insert(
             format!("block{}", block.id),
@@ -196,6 +209,13 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
             children: None,
             attributes: attrs(json!({"ifccad::textStyle": super::text::encode_style(style)})),
         });
+    }
+    if !document.dimension_styles.is_empty() || document.id_counters.next_dimension_style_id != 1 {
+        data[0].attributes["ifccad::drawing"]["nextDimensionStyleId"] =
+            json!(document.id_counters.next_dimension_style_id);
+    }
+    for style in &document.dimension_styles {
+        data.push(NodeOut{path:format!("{prefix}/dimensionStyle/{}",style.id.0),children:None,attributes:attrs(json!({"ifccad::dimensionStyle":super::dimension_style::encode_style(style,&prefix)}))});
     }
     if document.plot_style_mode == IfccadPlotStyleMode::Named {
         data[0].attributes["ifccad::drawing"]["plotStyleMode"] = json!("named");

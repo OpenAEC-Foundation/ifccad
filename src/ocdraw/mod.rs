@@ -37,6 +37,10 @@ pub use logical::{
 };
 pub use logical::{resolve_ocdraw_hatch_join_tolerance, DrawingHatchEntity, OcdrawHatchLoop};
 pub use logical::{validate_ocdraw_document, OcdrawValidationError};
+pub use logical::{
+    DrawingDimensionEntity, DrawingDimensionStyle, OcdrawDimensionAssociation,
+    OcdrawDimensionOverrides, OcdrawDimensionSettings, OcdrawDimensionStyleId,
+};
 pub use logical::{DrawingMTextEntity, DrawingTextEntity, DrawingTextStyle, OcdrawTextStyleId};
 pub use logical::{
     DrawingOpaqueEntity, OcdrawPreservation, OcdrawPreservationAllocationError,
@@ -48,6 +52,7 @@ pub use logical::{
 };
 mod build;
 pub use build::HatchEntityDefinition;
+pub use build::{DimensionEntityDefinition, DimensionStyleDefinition};
 mod encode;
 pub(crate) mod names;
 mod plot;

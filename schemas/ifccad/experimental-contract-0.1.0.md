@@ -484,3 +484,49 @@ not resource links. Native fill/period rules are IFCCAD-HATCH-004; whole attribu
 replacement remains unchanged. Storage/readback support does not by itself
 qualify CAD pattern preparation or fill rendering. Numeric CAD proof and source
 context admission are documented separately as those routes are qualified.
+
+## Ordinary Dimension
+
+`ifccad::dimension` is an independent native drawable attribute with a closed
+linear/aligned definition, style reference, textPlacement, label, sparse overrides
+and optional associations. `ifccad::geom::placement` supplies the common local XY
+plane. The whole attribute replaces on LaterWins composition; no nested graph
+nodes or per-field merge behavior are implied. Unknown fields and null optionals
+are invalid. Other Dimension definitions and annotative contexts remain later work.
+Explicit text rotation is an offset from the dimension's default text orientation,
+including the effective orientation policy. An explicit extensionDirectionAngle
+is an absolute direction in the stored local XY plane.
+
+Drawing-owned `ifccad::dimensionStyle` nodes have canonical paths
+`/cad/dN/dimensionStyle/K`, independent zero-valid uint64 IDs, names unique under
+the existing case-folding convention, complete settings and sparse typeOverrides.
+Unused records remain drawing children. `nextDimensionStyleId` is positive and
+greater than every live style ID, retains deletion history and is required when
+style records exist. IDs, paths and counters remain exact beyond 2^53.
+
+Settings resolve base → type-specific → per-entity overrides. Presence of a leaf,
+including false, zero, empty text and explicit reset, is retained independently of
+its effective value. TextStyle, marker block and line-pattern refs are complete
+same-drawing paths, never stream indices, numeric handles or implicit defaults.
+Actual definitions register only linear and aligned; unused type-settings keys
+may cover all nine designed kinds without asserting entity support for them.
+
+The dimension stores its measurement points and presentation intent; it has no
+authoritative stored measurement or CAD picture block. Measurement and label
+formatting follow the shared pure value rules, without following source refs or
+loading fonts. Positive presentation scale is independent of the positive
+distance-measure factor; its allOwners/paperOnly application never infers units
+or viewport rescaling. Linear zero projections and zero aligned distances remain
+valid; unavailable required derived arithmetic is a hard error.
+
+Associations select firstPoint/secondPoint on a resolving same-owner source by
+position/start/end/center/vertex(index). Role duplicates, incompatible geometry,
+out-of-range indices and wrong owners are invalid. Stored points need not currently
+agree with the source. Source edits do not update a Dimension during IO; source
+deletion requires explicit detach/rebind/delete. Local marker dependencies join
+ordinary block references in cycle validation, including unused definitions.
+
+Definition points alone do not certify display bounds. Unavailable layout gives
+partial coverage under the existing bounds lifecycle; known primitive contributions
+still receive independent checks. Annotative Text/MText and Dimension share a
+separate future slice; runtime associativity belongs to an editor or update engine.

@@ -4,6 +4,7 @@ use opencadcodec::{CadDocument, EntityType, Handle};
 use std::collections::{BTreeMap, BTreeSet};
 
 pub(super) struct SourceScope<'a> {
+    pub dimensions: &'a mut crate::mapping::dimension::SourceDimensions,
     pub unit: &'a str,
     pub paper: Option<Option<&'a ocdraw::plot_kernel::PlotSettings>>,
     pub hatch_tolerance: ocdraw::geometry_kernel::hatch::HatchJoinToleranceRequest,
@@ -20,6 +21,7 @@ pub(super) fn from_cad(
     geometry: &mut crate::geometry_context::GeometryContext,
 ) -> Result<Vec<IfccadEntity>, IfccadConversionError> {
     let SourceScope {
+        dimensions,
         unit,
         paper,
         hatch_tolerance,
@@ -54,8 +56,25 @@ pub(super) fn from_cad(
         } else {
             None
         };
+        let residual_dimension_common = if matches!(e, EntityType::Dimension(_)) {
+            cad_dimension::parse_dimension_overrides(e.common().extended_data.records())
+                .ok()
+                .map(|p| {
+                    let mut c = e.common().clone();
+                    c.extended_data = Default::default();
+                    for r in p.residual {
+                        c.extended_data.add_record(r);
+                    }
+                    c
+                })
+        } else {
+            None
+        };
         let Some(appearance) = crate::mapping::appearance::from_common(
-            residual_hatch_common.as_ref().unwrap_or(e.common()),
+            residual_dimension_common
+                .as_ref()
+                .or(residual_hatch_common.as_ref())
+                .unwrap_or(e.common()),
             patterns,
             &loc,
             issues,
@@ -63,6 +82,9 @@ pub(super) fn from_cad(
             continue;
         };
         let mut kind = match e {
+            EntityType::Dimension(d) => crate::mapping::dimension::from_entity(
+                d, source, patterns, mappings, dimensions, geometry, issues,
+            )?,
             EntityType::Hatch(h) => crate::mapping::hatch::from_cad(
                 h,
                 source,

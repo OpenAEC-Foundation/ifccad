@@ -1,4 +1,6 @@
+mod dimension;
 mod hatch;
+pub use dimension::{DimensionEntityDefinition, DimensionStyleDefinition};
 mod preservation;
 mod state;
 mod text;
@@ -408,6 +410,9 @@ pub enum OcdrawBuildError {
 }
 
 pub struct OcdrawBuilder {
+    pub(crate) dimension_styles: Vec<super::DrawingDimensionStyle>,
+    pub(crate) dimension_entities: Vec<super::DrawingDimensionEntity>,
+    pub(crate) next_dimension_style_id: u32,
     pub(crate) hatch_entities: Vec<super::DrawingHatchEntity>,
     pub(crate) text_styles: Vec<super::DrawingTextStyle>,
     pub(crate) text_entities: Vec<super::DrawingTextEntity>,
@@ -443,6 +448,9 @@ impl OcdrawBuilder {
             ));
         }
         Ok(Self {
+            dimension_styles: vec![],
+            dimension_entities: vec![],
+            next_dimension_style_id: 1,
             hatch_entities: Vec::new(),
             text_styles: Vec::new(),
             text_entities: Vec::new(),
@@ -1036,6 +1044,9 @@ impl OcdrawBuilder {
             ));
         }
         let mut doc = OcdrawDocument {
+            dimension_styles: self.dimension_styles,
+            dimension_entities: self.dimension_entities,
+            next_dimension_style_id: self.next_dimension_style_id,
             hatch_entities: self.hatch_entities,
             text_styles: self.text_styles,
             text_entities: self.text_entities,

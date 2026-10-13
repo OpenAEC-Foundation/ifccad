@@ -1,0 +1,19 @@
+[package]
+name = "cad-dimension"
+version = "0.1.0"
+edition = "2021"
+license = "MPL-2.0"
+description = "Typed CAD dimension styles, overrides and geometric preparation"
+
+[dependencies]
+ocdraw = { path = "../.." }
+cad-geometry-convert = { path = "../cad-geometry-convert" }
+cad-presentation-convert = { path = "../cad-presentation-convert" }
+opencadcodec = { git = "https://github.com/HakanSeven12/opencadcodec.git", rev = "ab2eecdbffc31120b5ad6d899f6fc67cf21ede39" }
+num-rational = "0.4"
+num-traits = "0.2"
+fpmath = "=0.1.1"
+thiserror = "1"
+
+[dev-dependencies]
+serde_json = "1"

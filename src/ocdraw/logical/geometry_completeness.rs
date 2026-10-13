@@ -17,6 +17,7 @@ pub(crate) fn derive_scope_geometry_completeness(
         .opaque_entities
         .iter()
         .map(|e| e.id)
+        .chain(doc.dimension_entities.iter().map(|e| e.id))
         .collect::<BTreeSet<_>>();
     let estimates = super::text_bounds::text_estimates(doc).unwrap_or_default();
     let empty_text = estimates

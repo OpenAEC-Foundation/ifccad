@@ -1,4 +1,7 @@
 mod block_validation;
+mod dimension;
+pub(crate) mod dimension_validation;
+pub use dimension::*;
 pub(crate) mod hatch;
 mod hatch_validation;
 pub(crate) use block_validation::validate_blocks;

@@ -61,6 +61,7 @@ pub fn header() -> IfccadHeader {
 }
 pub fn empty() -> IfccadDocument {
     IfccadDocument {
+        dimension_styles: Vec::new(),
         point_display: None,
         text_styles: Vec::new(),
         preservation: None,

@@ -143,7 +143,7 @@ fn inspect_cad_as_drawing_with_options(
     })).collect::<Vec<_>>();
     output["conversion"] = json!({"diagnostics": diagnostics, "entityCount": converted.entity_mapping().len(),
             "options":options.value(),
-            "preservation":preservation_report(converted.preservation_report()),"geometry":geometry_report(converted.geometry_assessment()),"text":text_report(converted.text_assessment())});
+            "preservation":preservation_report(converted.preservation_report()),"geometry":geometry_report(converted.geometry_assessment()),"text":text_report(converted.text_assessment()),"dimension":crate::inspection_dimension::report(converted.dimension_assessment())});
     let mut document = converted.into_document();
     if let Some(preservation) = &mut document.preservation {
         for source in &mut preservation.sources {
@@ -310,6 +310,7 @@ fn export_drawing_with_options(
     }
     let geometry = crate::options::geometry(converted.geometry_assessment());
     let text = text_report(converted.text_assessment());
+    let dimension = crate::inspection_dimension::report(converted.dimension_assessment());
     let selection_candidates =
         crate::selection::ocdraw_candidates(converted.entity_mapping(), converted.document());
     let mut viewer_selection = Value::Null;
@@ -328,6 +329,7 @@ fn export_drawing_with_options(
     );
     returned["export"]["geometry"] = geometry;
     returned["export"]["text"] = text;
+    returned["export"]["dimension"] = dimension;
     returned["export"]["options"] = options.value();
     if returned["failure"].is_null() {
         returned["export"]["viewerSelection"] = viewer_selection;
@@ -372,6 +374,8 @@ fn present(output: &mut Value, outcome: Result<ValidatedOcdraw, OcdrawReadError>
             "plotStyleMode": drawing.plot_style_mode(),
             "linePatterns": drawing.line_patterns().iter().map(|p|json!({"id":p.id,"name":p.name,"description":p.description,"pattern":p.pattern})).collect::<Vec<_>>(),
             "textStyles": value["textStyles"].as_array().cloned().unwrap_or_default(),
+            "dimensionStyles":crate::inspection_dimension::styles(drawing.document()),
+            "dimensionEntityCount":drawing.document().dimension_entities.len(),
             "nextTextStyleId": drawing.document().next_text_style_id,
             "linePatternScale": drawing.line_pattern_scale(),
             "layers": value["layers"].as_array().cloned().unwrap_or_default(),

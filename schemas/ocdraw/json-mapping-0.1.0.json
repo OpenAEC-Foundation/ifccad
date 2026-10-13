@@ -71,6 +71,11 @@
         "logical": "resource.nextTextStyleId",
         "payload": "header.nextTextStyleId",
         "omission": "logicalDefault"
+      },
+      {
+        "logical": "resource.nextDimensionStyleId",
+        "payload": "header.nextDimensionStyleId",
+        "omission": "logicalDefault"
       }
     ]
   },
@@ -521,6 +526,33 @@
         {
           "logical": "textStyle.lastUsedHeight",
           "payload": "lastUsedHeight",
+          "omission": "logicalDefault"
+        }
+      ]
+    },
+    {
+      "name": "dimensionStyle",
+      "payload": "dimensionStyles",
+      "omission": "logicalDefault",
+      "fields": [
+        {
+          "logical": "dimensionStyle.id",
+          "payload": "id",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "dimensionStyle.name",
+          "payload": "name",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "dimensionStyle.settings",
+          "payload": "settings",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "dimensionStyle.typeOverrides",
+          "payload": "typeOverrides",
           "omission": "logicalDefault"
         }
       ]
@@ -1812,6 +1844,107 @@
         {
           "logical": "hatch.fill",
           "payload": "fill",
+          "omission": "forbidden"
+        }
+      ]
+    },
+    {
+      "name": "dimension",
+      "payload": "streams.dimensionStream",
+      "fields": [
+        {
+          "logical": "dimension.entityId",
+          "payload": "entityId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "dimension.placement",
+          "payload": "placement",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "dimension.layerId",
+          "payload": "layerId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "dimension.colorMode",
+          "payload": "colorMode",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "dimension.color",
+          "payload": "color",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "dimension.opacityMode",
+          "payload": "opacityMode",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "dimension.opacity",
+          "payload": "opacity",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "dimension.linePatternMode",
+          "payload": "linePatternMode",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "dimension.linePatternId",
+          "payload": "linePatternId",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "dimension.lineWeightMode",
+          "payload": "lineWeightMode",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "dimension.lineWeight",
+          "payload": "lineWeight",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "dimension.visible",
+          "payload": "visible",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "dimension.linePatternScale",
+          "payload": "linePatternScale",
+          "omission": "logicalDefault"
+        },
+        {
+          "logical": "dimension.styleId",
+          "payload": "styleId",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "dimension.definition",
+          "payload": "definition",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "dimension.textPlacement",
+          "payload": "textPlacement",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "dimension.label",
+          "payload": "label",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "dimension.overrides",
+          "payload": "overrides",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "dimension.associations",
+          "payload": "associations",
           "omission": "forbidden"
         }
       ]

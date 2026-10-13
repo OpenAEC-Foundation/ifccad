@@ -59,10 +59,12 @@
 //! # }
 //! ```
 mod diagnostics;
+mod dimension_assessment;
 mod from_cad;
 mod geometry_assessment;
 mod geometry_context;
 mod text_assessment;
+pub use dimension_assessment::*;
 pub use geometry_assessment::*;
 pub use text_assessment::*;
 mod loss;

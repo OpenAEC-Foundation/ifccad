@@ -16,6 +16,7 @@ pub struct IfccadHeader {
 /// This document does not contain foreign nodes or original IFCX fragments.
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadDocument {
+    pub dimension_styles: Vec<super::IfccadDimensionStyle>,
     pub point_display: Option<super::IfccadPointDisplay>,
     pub text_styles: Vec<super::IfccadTextStyle>,
     pub ucs_definitions: Vec<super::IfccadUcsDefinition>,
@@ -208,6 +209,7 @@ pub struct IfccadBlockTransform {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum IfccadEntityKind {
+    Dimension(Box<super::IfccadDimension>),
     Hatch(super::IfccadHatch),
     Text(super::IfccadText),
     MText(Box<super::IfccadMText>),

@@ -4,6 +4,16 @@ use serde_json::{json, Value};
 use std::{collections::BTreeMap, sync::OnceLock};
 
 const ENTRIES: &[(&str, &str, &str)] = &[
+    (
+        "ifccad::dimension",
+        "dimensionExtras",
+        "IFCCAD-DIMENSION-001",
+    ),
+    (
+        "ifccad::dimensionStyle",
+        "dimensionStyleExtras",
+        "IFCCAD-DIMENSION-002",
+    ),
     ("ifccad::hatch", "hatchExtras", "IFCCAD-HATCH-001"),
     ("ifccad::drawing", "drawingExtras", "IFCCAD-ID-002"),
     ("ifccad::layout", "layoutExtras", "IFCCAD-LAYOUT-002"),

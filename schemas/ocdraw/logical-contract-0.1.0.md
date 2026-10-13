@@ -535,3 +535,63 @@ begins at basePoint+k*(offset.along*d+offset.perpendicular*n). Pattern points
 map to Hatch XY by origin+scale*R(rotation)*p, then the existing placement.
 Origin remains authored and does not follow contour/bounds/source edits.
 No generated lines, fill clipping or nesting are stored or evaluated by IO.
+
+## Dimension
+
+Native ordinary Dimension currently registers linear and aligned definitions.
+The entity retains identity, layer/appearance/visibility, normal ordered scope
+ownership, one existing local XY placement, a local DimensionStyle reference,
+authored text placement, label, sparse settings overrides and optional relations.
+Local points are ordered pairs of finite binary64 values. Linear measures the
+absolute projection between firstPoint and secondPoint onto directionAngle;
+aligned measures their Euclidean distance. Zero measurements are valid. Overflow
+or an unavailable required numerical result is an error, never a substitute zero.
+dimensionLinePoint and optional extensionDirectionAngle retain presentation intent.
+
+Styles have independent zero-valid uint32 IDs and nonempty NUL-free names unique
+under the existing Unicode case-folding rules. nextDimensionStyleId is positive,
+exceeds all live IDs and never decreases on deletion. Unused records survive.
+Effective settings resolve base, typeOverrides and entity overrides in order;
+every leaf retains authored presence, including false/zero/empty and reset choices.
+Type keys cover all nine designed kinds; only implemented definition kinds are
+accepted as entities. A missing TextStyle, pattern or local marker block is invalid.
+Block/render cycles, including unused definitions, are rejected.
+
+Settings group dimensionLine, extensionLines, arrows, text, fit, numbers and
+presentationScale. Text height and presentationScale are positive; stored
+presentation distances are nonnegative; opacity is in [0,1]; line spacing factors
+are in [0.25,4]. Component appearance inherits the entity by explicit inheritEntity
+choice or uses existing ByLayer/ByBlock/Explicit meaning. Precision is 0..16 and
+decimalSeparator is one non-control, nondigit Unicode character. Each concrete
+style is complete; sparse overrides do not materialize inherited values in IO.
+The active schema defines the closed variants and field/range mappings.
+
+Measurement comes only from the stored definition. Distance display applies the
+positive measurementFactor to all owners or Paper only; it never changes geometry
+or infers scale from a viewport, paper medium, suffix or drawing unit. Presentation
+scale changes nominal graphics sizes but not measurement, explicit coordinates,
+rounding steps or tolerance values. Angle format does not apply a distance factor.
+Round display half-steps away from zero, retain explicit zero suppression and
+alternate factors, and emit no negative-zero text. Tolerances are in displayed
+primary units and only rescale for explicitly selected alternate units.
+
+textPlacement is styleDriven or explicit(position,rotation,attachment).
+The explicit rotation is an offset from the dimension's default text orientation,
+including its effective orientation policy. extensionDirectionAngle, when
+present, is an absolute direction in the stored local XY plane. Labels are
+generated, suppressed or a template of literal runs and measurement tokens;
+literal strings do not interpret DXF codes or dynamic fields. No authoritative
+cached length, formatted string or CAD picture block is stored.
+
+Relations identify firstPoint/secondPoint, one exact same-owner source entity ID
+and a closed position/start/end/center/vertex(index) selector. The target kind,
+vertex index and owner must be valid; closed curves do not acquire arbitrary
+start/end points. Each role has at most one relation. IO does not compare current
+source geometry with stored measurement points or update them. Deleting a source
+requires explicit detach/rebind/delete of dependents; detach retains the definition.
+Extended curve/occurrence/trans-space addressing and runtime updates are later work.
+
+Measurement points do not certify graphical extents. Without complete display
+preparation, Dimension contributes partial bounds coverage under the existing
+enclosing/estimated/partial lifecycle rules. Known primitive subsets remain
+validated. Annotative text and Dimension context support is a separate shared slice.

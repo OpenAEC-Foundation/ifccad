@@ -94,6 +94,7 @@ impl IfccadEntityKind {
             | Self::Text(_)
             | Self::MText(_)
             | Self::Hatch(_) => return Ok(None),
+            Self::Dimension(_) => return Ok(None),
         }))
     }
 }

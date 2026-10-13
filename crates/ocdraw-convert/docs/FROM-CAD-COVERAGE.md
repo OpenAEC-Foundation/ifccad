@@ -101,7 +101,7 @@ does not broaden entity inheritance or admit layer `ByBlock`.
 | Named ordinary linetypes | Exact/PartialLoss/FatalIfInconsistent | All simple actual definitions and unused records become local pattern IDs. Empty definitions remain separately named. Text/shapes use one diagnosed named continuous fallback per definition under Allow; Reject refuses it. Modified ByLayer/ByBlock scaffolding and xref provenance are diagnosed separately. Invalid patterns/alignment and unresolved or contradictory references are errors. |
 | Ordinary local `block_records` | Exact/PartialLoss/FatalIfInconsistent | Definitions allocated before ordered contents; public metadata retained as above. Attribute flags, preview and insertion-count bytes are partial losses. Record handles must be distinct/non-null; references, membership and cycles are checked. Unicode-fold name collisions cannot merge or retarget definitions. |
 | `text_styles` | Exact/SkippedLoss/FatalIfInconsistent | Qualified local font requests, width/shear/vertical settings, fixed/last-height metadata and creation mirrors become independent native styles, including unused records. Annotative/shape/xref contexts and missing font selectors are diagnosed per record. Shape resources are classified before font-name lookup: repeated or empty shape names do not collide with ordinary text styles, and each skipped shape record is identified by its handle. References to shape-only names are diagnosed as unsupported text. Duplicate ordinary font lookup names, duplicate allocated handles across either role, and invalid numeric values in ordinary font styles fail. Null handles do not merge named records. |
-| Other `line_types`; unsupported `block_records`; `dim_styles`; `app_ids`; `views`; unmapped `vports`/`ucss`; `vx_table` | SkippedLoss | One stable `UnsupportedTableRecords` summary per affected table. Mapped VPORT/UCS base fields are removed from the residual comparison; meaningful unmapped fields still produce a loss. Default opencadcodec bootstrap records are not reported. |
+| Other `line_types`; unsupported `block_records`; unmapped `dim_styles`; `app_ids`; `views`; unmapped `vports`/`ucss`; `vx_table` | SkippedLoss | One stable `UnsupportedTableRecords` summary per affected table. Mapped VPORT/UCS base fields are removed from the residual comparison; meaningful unmapped fields still produce a loss. Default opencadcodec bootstrap records are not reported. |
 | Active model `*Active` VPORT entries and UCS table | Exact/PartialLoss | Ordered model windows keep normalized rectangles, view, grid, grid snap, stored UCS and activation flag. Named UCS records keep name, frame and elevation even when unused. Multiple active entries remain ordered, but opencadcodec exposes no certain active-window identity; this receives a loss diagnostic. Orthographic/external UCS data and residual VPORT fields receive loss diagnostics. |
 | Default model/paper layout and bootstrap dictionaries/objects | NonSemantic until changed or referenced | The untouched empty `Layout1` scaffold is omitted. A primary reserved `*Paper_Space` record with no layout, content, insert reference or authored metadata is codec bookkeeping, not a local block definition; changed metadata/content is not discarded. Real paper layouts are emitted in tab order; model layout name is retained. Correctly named ACAD_LAYOUT dictionary entries are represented through those typed layouts, including absence of the bootstrap Layout1. Dictionary flags, aliases, unknown keys and dangling/non-layout targets remain independently classified. |
 | `objects` variants other than mapped `Layout` | SkippedLoss | Added or semantically changed objects contribute to one `objects` collection summary. Pinned bootstrap roles are matched through dictionary references, so a numeric handle change alone is not loss. Named reusable `PlotSettings` objects/page setups remain outside the native effective layout setting. Relationships exposed on entities/layers receive their more precise source-item reasons. |
@@ -155,7 +155,7 @@ were natively represented.
 | `Block`, `BlockEnd` | NonSemantic/FatalIfInconsistent/SkippedLoss | Matching structural markers supply record scaffolding, not drawable entities. Contradictory exposed begin-marker name/owner/base is fatal; unmatched markers are unsupported entities. |
 | `Text` | Exact/PartialLoss/SkippedLoss/FatalIfInconsistent | Supported literal Unicode/decorations and all four closed layouts use active OCS anchors, rotation/mirrors, shear and signed thickness. Qualified numeric anchor/baseline preparation uses hard tolerance; font glyphs are unassessed. Unsupported markup/fields/style contexts skip the whole entity; malformed active geometry fails. |
 | `MText` | Exact/PartialLoss/SkippedLoss/FatalIfInconsistent | Qualified WCS placement/direction, attachment/flow/wrap, typed paragraphs/inlines/stacks, explicit column states and opaque background profile. Dynamic manual columns use an Auto final entry: its finite stored height is cache/sentinel metadata (negative DWG, zero DXF or positive); earlier heights remain positive fixed distances and count/list agreement is checked. Source character-basis normalization, spacing dependencies and inactive state are diagnosed. Unsupported active formatting/annotation/column/background profiles skip the whole entity. No font-layout certificate or silent plain-text fallback. |
-| `Helix`, `Dimension`, `Solid`, `Face3D`, `Ray`, `XLine`, `AttributeDefinition`, `AttributeEntity`, `Leader`, `MultiLeader`, `MLine`, `Mesh`, `RasterImage`, `Solid3D`, `Region`, `Body`, `Surface`, `Table`, `Tolerance`, `PolyfaceMesh`, `Wipeout`, `Shape`, `Underlay`, `Seqend`, `Ole2Frame`, `PolygonMesh`, `Light`, `SectionSymbol`, `ViewBorder`, `Extended`, `Unknown` | SkippedLoss | Whole entity receives `UnsupportedEntityType`; no geometry is approximated. |
+| `Helix`, `Solid`, `Face3D`, `Ray`, `XLine`, `AttributeDefinition`, `AttributeEntity`, `Leader`, `MultiLeader`, `MLine`, `Mesh`, `RasterImage`, `Solid3D`, `Region`, `Body`, `Surface`, `Table`, `Tolerance`, `PolyfaceMesh`, `Wipeout`, `Shape`, `Underlay`, `Seqend`, `Ole2Frame`, `PolygonMesh`, `Light`, `SectionSymbol`, `ViewBorder`, `Extended`, `Unknown` | SkippedLoss | Whole entity receives `UnsupportedEntityType`; no geometry is approximated. |
 | Model, paper, or supported definition ownership | Exact/FatalIfInconsistent | Per-owner explicit entity-handle order is retained; known-owner contents must occur exactly once with consistent membership. |
 | `Spline` | CapturedTyped (opt-in) / SkippedLoss (disabled) / FatalIfInconsistent | SupportedTyped captures every interpreted parameter/common variant before native representation/restoration assessment; Model/Paper/local definitions retain live opaque owner/order, valid unsupported owners retain detached source/order provenance with placement loss. No native NURBS profile or guessed bounds. |
 | Unsupported block owner | SkippedLoss | `BlockOwnedEntity`. |
@@ -363,3 +363,43 @@ and DWG mode values 0–3 are qualified; DXF group 170 remains gated by codec PR
 #107, with outgoing browser readback loss reported explicitly. Paper grid flags
 remain gated by #106. Both PRs were still open at qualification, so the audited
 ab2eecd plus explicit viewport-off configuration remains selected.
+
+## Ordinary Dimension slice — 2026-10-13
+
+Linear and aligned dimensions now have an independent native conversion route.
+Named DIMSTYLE records, including qualified unused styles, bind local textstyle,
+marker-block and pattern references. The neutral helper's complete public-field
+[audit](../../../docs/dimension/cad-field-audit-2026-10-09.md) is normative for this
+bounded adapter profile. Successfully mapped styles and DIMASSOC objects are
+removed from generic unsupported inventory; every residual field/object keeps
+its existing diagnostic contract. Default unused bootstrap styles remain scaffold.
+
+Stored definition points and explicit text anchors use the existing hard
+owner/occurrence tolerance. Measurements are recomputed from the definition;
+CAD cache disagreement is located evidence. Display, fonts, extension lines,
+markers, picture regeneration and host automatic update remain unassessed.
+Conversion exposes separate dimension assessments and style mappings.
+Qualified ACAD DSTYLE preserves sparse false/zero/empty/equal resets. Invalid
+structure or numeric excess fails under both policies; unsupported active profile
+fields skip the affected style/entity with diagnostics, never default geometry.
+
+Single-object same-owner line start/end, circle center and point position
+relations bind after entity allocation, including forward references. Definition
+points never synchronize from their sources. Unsupported selectors/owners or
+unrepresented sources detach with located loss, retaining the stored definition.
+Native full-width identities remain exact; CAD handles are fresh conversion IDs.
+
+Native type overrides can materialize as complete CAD $0/$1 substyles with
+explicit inheritance/presence loss. Reimport retains complete named styles;
+no exact sparse parent hierarchy is claimed. Per-entity arrow flips and line
+spacing materialize inherited dependencies. Fixed-height font dependencies,
+aligned oblique extensions, annotation contexts and more complex marker,
+background, tolerance or dynamic-field profiles remain unqualified.
+
+Actual DXF and AC1032 DWG tests compare definition/style/override/text/relation
+semantics after production native readback. They do not establish full CAD-host
+fidelity. Output has no generated anonymous picture block; visibility requires
+host regeneration. The pinned DXF clone reader loses group 12, DXF omits flips
+and DIMSTYLE true colors, and epsilon omission limits certain near-default values.
+Other source picture definitions remain independently audited, never discarded
+by anonymous-looking names. See [Dimension support](../../../docs/dimension.md).

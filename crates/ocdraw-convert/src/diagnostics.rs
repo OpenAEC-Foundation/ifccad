@@ -2,6 +2,12 @@ use crate::*;
 use ocdraw::ocdraw::OcdrawBuildError;
 #[derive(Debug, thiserror::Error)]
 pub enum CadToOcdrawError {
+    #[error("CAD Dimension preparation failed for {handle}: {source}")]
+    DimensionPreparation {
+        handle: opencadcodec::Handle,
+        #[source]
+        source: cad_dimension::CadDimensionPreparationError,
+    },
     #[error("CAD Hatch preparation failed for {handle}: {source}")]
     HatchPreparation {
         handle: opencadcodec::Handle,
@@ -65,6 +71,12 @@ impl OcdrawToCadError {
 
 #[derive(Debug, thiserror::Error)]
 pub enum OcdrawToCadError {
+    #[error("Dimension preparation failed for entity {entity_id}: {source}")]
+    DimensionPreparation {
+        entity_id: u64,
+        #[source]
+        source: cad_dimension::CadDimensionPreparationError,
+    },
     #[error(transparent)]
     WorkspaceNumeric(#[from] cad_workspace_convert::WorkspaceNumericError),
     #[error("text preparation failed for entity {entity_id}: {source}")]

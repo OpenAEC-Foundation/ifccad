@@ -1,5 +1,11 @@
 # IFCCAD conversion proof
 
+Ordinary linear/aligned dimensions have independent IFCCAD styles, full-width
+identities, same-owner relations and `dimension_assessment()` evidence. The CAD
+adapter shares only neutral preparation with OCDraw. Stored definition/text
+anchors use the hard owner-specific tolerance; dimension display and host
+regeneration remain unassessed. See [Dimension support](../../docs/dimension.md).
+
 Experimental direct conversion between `ocdraw::ifccad` and pinned
 opencadcodec `CadDocument`. The core remains independent of opencadcodec. No IFCDR
 package, block explosion or appearance resolver is used.

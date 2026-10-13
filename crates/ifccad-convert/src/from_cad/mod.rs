@@ -18,6 +18,7 @@ pub fn cad_document_to_encoded_ifccad(
     let validated = load_ifccad_bytes(encoded.bytes(), Default::default())
         .map_err(IfccadConversionError::CoreReadback)?;
     Ok(CadToEncodedIfccadOutcome {
+        dimension: logical.dimension,
         text: logical.text,
         validated,
         encoded,
@@ -38,7 +39,12 @@ pub fn cad_document_to_ifccad_document(
         enabled: options.preservation == crate::IfccadPreservationCapture::SupportedTyped,
         ..Default::default()
     };
-    let info = crate::source::inspect(source, preservation.enabled, &Default::default())?;
+    let info = crate::source::inspect(
+        source,
+        preservation.enabled,
+        &Default::default(),
+        &Default::default(),
+    )?;
     for entity in source.entities() {
         if let opencadcodec::EntityType::Viewport(view) = entity {
             if source
@@ -137,8 +143,16 @@ pub fn cad_document_to_ifccad_document(
         )?;
         paper_metadata.insert(paper.layout_handle, settings);
     }
+    let (dimension_styles, mut dimensions) = crate::mapping::dimension::from_styles(
+        source,
+        &patterns,
+        &mut ids,
+        &mut mappings,
+        &mut issues,
+    )?;
     let entities = entities::from_cad(
         entities::SourceScope {
+            dimensions: &mut dimensions,
             unit: &length_unit,
             paper: None,
             hatch_tolerance: options.hatch_join_tolerance,
@@ -183,6 +197,7 @@ pub fn cad_document_to_ifccad_document(
             insertion_unit: unit.to_string(),
             entities: entities::from_cad(
                 entities::SourceScope {
+                    dimensions: &mut dimensions,
                     unit: &length_unit,
                     paper: None,
                     hatch_tolerance: options.hatch_join_tolerance,
@@ -217,6 +232,7 @@ pub fn cad_document_to_ifccad_document(
         geometry.select(crate::IfccadGeometryOwner::PaperLayout(id));
         let entities = entities::from_cad(
             entities::SourceScope {
+                dimensions: &mut dimensions,
                 unit: &length_unit,
                 paper: Some(settings.plot_settings.as_ref()),
                 hatch_tolerance: options.hatch_join_tolerance,
@@ -262,6 +278,7 @@ pub fn cad_document_to_ifccad_document(
         &mut issues,
     );
     let mut drawing = IfccadDocument {
+        dimension_styles,
         point_display: crate::mapping::point_display::from_cad(
             source.header.point_display_mode,
             source.header.point_display_size,
@@ -317,9 +334,19 @@ pub fn cad_document_to_ifccad_document(
     }
     preservation.finish(source, &mut drawing, &mappings)?;
     crate::mapping::workspace::from_cad(source, &mut drawing, &mut mappings, &mut issues)?;
-    let consumed =
+    crate::mapping::dimension::bind(&mut drawing, &mappings, &dimensions, &mut issues);
+    let mut consumed =
         crate::mapping::viewport_overrides::from_cad(source, &mut drawing, &mappings, &mut issues)?;
-    issues.extend(crate::source::inspect(source, preservation.enabled, &consumed)?.issues);
+    consumed.extend(dimensions.consumed_objects);
+    issues.extend(
+        crate::source::inspect(
+            source,
+            preservation.enabled,
+            &consumed,
+            &dimensions.consumed_styles,
+        )?
+        .issues,
+    );
     crate::diagnostics::enforce_policy(options.loss_policy, &issues)?;
     let members = drawing
         .blocks
@@ -359,6 +386,10 @@ pub fn cad_document_to_ifccad_document(
         .map_err(IfccadConversionError::CoreValidation)?;
     validate_ifccad_document(&drawing).map_err(IfccadConversionError::CoreValidation)?;
     Ok(CadToIfccadDocumentOutcome {
+        dimension: crate::IfccadDimensionAssessment::new(
+            &drawing,
+            mappings.entities.iter().map(|(id, _)| id),
+        ),
         text: crate::IfccadTextAssessment::new(
             &drawing,
             mappings.entities.iter().map(|(id, _)| id),
@@ -382,6 +413,7 @@ mod error_tests {
     #[test]
     fn allocation_exhaustion_retains_domain_and_source() {
         let mut ids = IfccadIdCounters {
+            next_dimension_style_id: 1,
             next_text_style_id: 1,
             next_preservation_record_id: 1,
             next_ucs_id: 1,

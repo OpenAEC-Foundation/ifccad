@@ -21,6 +21,8 @@ struct DrawingValue {
     next_block_id: u64,
     next_line_pattern_id: u64,
     next_text_style_id: Option<u64>,
+    #[serde(default, deserialize_with = "crate::dimension::present_option")]
+    next_dimension_style_id: Option<u64>,
     next_preservation_record_id: Option<u64>,
     #[serde(default = "initial_workspace_id")]
     next_ucs_id: u64,
@@ -296,6 +298,7 @@ fn entity(
         "ifccad::text",
         "ifccad::mText",
         "ifccad::hatch",
+        "ifccad::dimension",
     ]);
     let present: Vec<_> = payloads
         .iter()
@@ -314,6 +317,14 @@ fn entity(
         return Err(problem(format!("{path} unsupported CAD geometry")));
     }
     let kind = match *present[0] {
+        "ifccad::dimension" => super::dimension::decode(
+            &attrs["ifccad::dimension"],
+            attrs
+                .get("ifccad::geom::placement")
+                .ok_or_else(|| problem("Dimension placement required"))?,
+            prefix,
+            path,
+        )?,
         "ifccad::hatch" => super::hatch::decode_hatch(
             &attrs["ifccad::hatch"],
             attrs
@@ -629,6 +640,27 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         }
     }
     let model_path = model_path.ok_or_else(|| problem("missing Model layout"))?;
+    let mut dimension_paths = BTreeMap::new();
+    let mut dimension_styles = Vec::new();
+    for (path, node) in &nodes {
+        if let Some(v) = attr(node, "ifccad::dimensionStyle") {
+            if node["attributes"].as_object().is_none_or(|a| {
+                a.keys()
+                    .any(|k| k.starts_with("ifccad::") && k != "ifccad::dimensionStyle")
+            }) {
+                return Err(problem("DimensionStyle has incompatible role"));
+            }
+            let id = IfccadDimensionStyleId(numbered(path, &format!("{prefix}/dimensionStyle/"))?);
+            dimension_paths.insert(path.clone(), id);
+            dimension_styles.push(super::dimension_style::decode_style(v, id, &prefix, path)?);
+        }
+    }
+    dimension_styles.sort_by_key(|s| s.id);
+    let next_dimension_style_id = match drawing.next_dimension_style_id {
+        Some(v) => v,
+        None if dimension_styles.is_empty() => 1,
+        None => return Err(problem("DimensionStyles require nextDimensionStyleId")),
+    };
     let declared: BTreeSet<_> = drawing_node
         .get("children")
         .and_then(Value::as_object)
@@ -641,6 +673,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         .chain(block_paths.keys())
         .chain(pattern_paths.keys())
         .chain(style_paths.keys())
+        .chain(dimension_paths.keys())
         .chain(std::iter::once(&model_path))
         .chain(paper_paths.values().map(|(path, ..)| path))
     {
@@ -828,6 +861,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         _ => return Err(problem("preservation requires allocation watermark")),
     };
     let mut document = IfccadDocument {
+        dimension_styles,
         point_display: drawing
             .point_display
             .as_ref()
@@ -842,6 +876,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         header,
         drawing_id,
         id_counters: IfccadIdCounters {
+            next_dimension_style_id,
             next_text_style_id,
             next_preservation_record_id,
 

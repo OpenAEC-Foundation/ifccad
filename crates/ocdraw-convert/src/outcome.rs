@@ -3,6 +3,8 @@ use ocdraw::ocdraw::{EncodedOcdraw, OcdrawDocument};
 use opencadcodec::{CadDocument, Handle};
 use std::collections::BTreeMap;
 pub struct CadToEncodedOcdrawOutcome {
+    pub(crate) dimension: crate::OcdrawDimensionAssessment,
+    pub(crate) dimension_styles: BTreeMap<Handle, ocdraw::ocdraw::OcdrawDimensionStyleId>,
     pub(crate) text: crate::OcdrawTextAssessment,
     pub(crate) text_styles: BTreeMap<Handle, ocdraw::ocdraw::OcdrawTextStyleId>,
     pub(crate) preservation: crate::OcdrawPreservationReport,
@@ -13,6 +15,14 @@ pub struct CadToEncodedOcdrawOutcome {
 }
 
 impl CadToEncodedOcdrawOutcome {
+    pub fn dimension_assessment(&self) -> &crate::OcdrawDimensionAssessment {
+        &self.dimension
+    }
+    pub fn dimension_style_mapping(
+        &self,
+    ) -> &BTreeMap<Handle, ocdraw::ocdraw::OcdrawDimensionStyleId> {
+        &self.dimension_styles
+    }
     pub fn text_assessment(&self) -> &crate::OcdrawTextAssessment {
         &self.text
     }
@@ -41,6 +51,8 @@ impl CadToEncodedOcdrawOutcome {
 }
 
 pub struct CadToOcdrawDocumentOutcome {
+    pub(crate) dimension: crate::OcdrawDimensionAssessment,
+    pub(crate) dimension_styles: BTreeMap<Handle, ocdraw::ocdraw::OcdrawDimensionStyleId>,
     pub(crate) text: crate::OcdrawTextAssessment,
     pub(crate) text_styles: BTreeMap<Handle, ocdraw::ocdraw::OcdrawTextStyleId>,
     pub(crate) preservation: crate::OcdrawPreservationReport,
@@ -51,6 +63,14 @@ pub struct CadToOcdrawDocumentOutcome {
 }
 
 impl CadToOcdrawDocumentOutcome {
+    pub fn dimension_assessment(&self) -> &crate::OcdrawDimensionAssessment {
+        &self.dimension
+    }
+    pub fn dimension_style_mapping(
+        &self,
+    ) -> &BTreeMap<Handle, ocdraw::ocdraw::OcdrawDimensionStyleId> {
+        &self.dimension_styles
+    }
     pub fn text_assessment(&self) -> &crate::OcdrawTextAssessment {
         &self.text
     }
@@ -79,6 +99,8 @@ impl CadToOcdrawDocumentOutcome {
 }
 
 pub struct OcdrawToCadOutcome {
+    pub(crate) dimension: crate::OcdrawDimensionAssessment,
+    pub(crate) dimension_styles: BTreeMap<ocdraw::ocdraw::OcdrawDimensionStyleId, Handle>,
     pub(crate) text: crate::OcdrawTextAssessment,
     pub(crate) text_styles: BTreeMap<ocdraw::ocdraw::OcdrawTextStyleId, Handle>,
     pub(crate) preservation: crate::OcdrawPreservationReport,
@@ -89,6 +111,14 @@ pub struct OcdrawToCadOutcome {
 }
 
 impl OcdrawToCadOutcome {
+    pub fn dimension_assessment(&self) -> &crate::OcdrawDimensionAssessment {
+        &self.dimension
+    }
+    pub fn dimension_style_mapping(
+        &self,
+    ) -> &BTreeMap<ocdraw::ocdraw::OcdrawDimensionStyleId, Handle> {
+        &self.dimension_styles
+    }
     pub fn text_assessment(&self) -> &crate::OcdrawTextAssessment {
         &self.text
     }

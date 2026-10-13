@@ -183,6 +183,8 @@ fn convert_document(
         .cloned()
         .collect();
     crate::mapping::blocks::allocate(&mut document, &supported, &mut mappings)?;
+    let dimension_styles =
+        crate::mapping::dimension::to_styles(drawing, &mut document, &mut mappings, &mut issues)?;
     let paper_owners = crate::to_cad::layouts::allocate(
         &mut document,
         &drawing.paper_layouts,
@@ -231,6 +233,7 @@ fn convert_document(
         .collect();
     let preservation = entities::to_cad(
         drawing,
+        &dimension_styles,
         options.preservation,
         &mut document,
         &owners,
@@ -286,6 +289,10 @@ fn convert_document(
         IfccadGeometryDomain::PaperLayout(id) => mappings.layouts.cad_handle(id).is_some(),
     });
     Ok(IfccadToCadOutcome {
+        dimension: crate::IfccadDimensionAssessment::new(
+            drawing,
+            mappings.entities.iter().map(|(id, _)| id),
+        ),
         text: crate::IfccadTextAssessment::new(drawing, mappings.entities.iter().map(|(id, _)| id)),
         geometry: assessment.with_unassessed(drawing),
         preservation,

@@ -175,3 +175,43 @@ and DWG mode values 0–3 are qualified; DXF group 170 remains gated by codec PR
 #107, with outgoing browser readback loss reported explicitly. Paper grid flags
 remain gated by #106. Both PRs were still open at qualification, so the audited
 ab2eecd plus explicit viewport-off configuration remains selected.
+
+## Ordinary Dimension slice — 2026-10-13
+
+Linear and aligned dimensions now have an independent native conversion route.
+Named DIMSTYLE records, including qualified unused styles, bind local textstyle,
+marker-block and pattern references. The neutral helper's complete public-field
+[audit](../../../docs/dimension/cad-field-audit-2026-10-09.md) is normative for this
+bounded adapter profile. Successfully mapped styles and DIMASSOC objects are
+removed from generic unsupported inventory; every residual field/object keeps
+its existing diagnostic contract. Default unused bootstrap styles remain scaffold.
+
+Stored definition points and explicit text anchors use the existing hard
+owner/occurrence tolerance. Measurements are recomputed from the definition;
+CAD cache disagreement is located evidence. Display, fonts, extension lines,
+markers, picture regeneration and host automatic update remain unassessed.
+Conversion exposes separate dimension assessments and style mappings.
+Qualified ACAD DSTYLE preserves sparse false/zero/empty/equal resets. Invalid
+structure or numeric excess fails under both policies; unsupported active profile
+fields skip the affected style/entity with diagnostics, never default geometry.
+
+Single-object same-owner line start/end, circle center and point position
+relations bind after entity allocation, including forward references. Definition
+points never synchronize from their sources. Unsupported selectors/owners or
+unrepresented sources detach with located loss, retaining the stored definition.
+Native full-width identities remain exact; CAD handles are fresh conversion IDs.
+
+Native type overrides can materialize as complete CAD $0/$1 substyles with
+explicit inheritance/presence loss. Reimport retains complete named styles;
+no exact sparse parent hierarchy is claimed. Per-entity arrow flips and line
+spacing materialize inherited dependencies. Fixed-height font dependencies,
+aligned oblique extensions, annotation contexts and more complex marker,
+background, tolerance or dynamic-field profiles remain unqualified.
+
+Actual DXF and AC1032 DWG tests compare definition/style/override/text/relation
+semantics after production native readback. They do not establish full CAD-host
+fidelity. Output has no generated anonymous picture block; visibility requires
+host regeneration. The pinned DXF clone reader loses group 12, DXF omits flips
+and DIMSTYLE true colors, and epsilon omission limits certain near-default values.
+Other source picture definitions remain independently audited, never discarded
+by anonymous-looking names. See [Dimension support](../../../docs/dimension.md).

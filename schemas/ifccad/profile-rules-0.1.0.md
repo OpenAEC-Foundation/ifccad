@@ -253,3 +253,15 @@ fields MUST fail. Ordinary inline IFCX declarations expose a tagged superset;
 the local supplement and typed domain checks enforce the actual variants.
 Whole Hatch attribute replacement and all contour/source/ID rules still apply.
 Evidence: tests/hatch_pattern.rs and tests/hatch_pattern_wire.rs.
+
+## Ordinary Dimension rules
+
+| Rule | Requirement | Evidence |
+| --- | --- | --- |
+| IFCCAD-DIMENSION-001 | Native linear/aligned definitions, text placement and effective settings MUST pass shared value validation. Measurement MUST use stored definition; refs MUST resolve to the required kind and same owner; render/block cycles MUST fail. | `tests/ifccad_dimension.rs`, `tests/ifccad_dimension_bounds.rs` |
+| IFCCAD-DIMENSION-002 | Dimension and style values MUST obey their closed supplemental/IFCX declarations. Style/TextStyle/marker/pattern/source refs MUST be canonical complete same-drawing paths. Authored override presence and atomic LaterWins replacement MUST survive strict readback. | `tests/ifccad_dimension_wire.rs` |
+| IFCCAD-ID-002 | `nextDimensionStyleId` MUST be positive and exceed all live zero-valid uint64 style IDs; deletion MUST NOT lower it and allocation exhaustion MUST be atomic. | `tests/ifccad_dimension.rs` |
+
+Ordinary Dimension storage/readback does not establish CAD exchange, font layout
+or runtime associative updates. See the independent conversion coverage as it is
+qualified. Annotative Text/MText and Dimension remain a joint future slice.

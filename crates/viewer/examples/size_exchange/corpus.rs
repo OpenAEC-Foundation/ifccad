@@ -102,6 +102,7 @@ pub fn generate(case: &Case) -> Result<CadDocument> {
         },
     };
     let mut doc = IfccadDocument {
+        dimension_styles: Vec::new(),
         point_display: None,
         text_styles: Vec::new(),
         preservation: None,
@@ -114,6 +115,7 @@ pub fn generate(case: &Case) -> Result<CadDocument> {
         header: super::projection::metadata().header,
         drawing_id: 1,
         id_counters: IfccadIdCounters {
+            next_dimension_style_id: 1,
             next_text_style_id: 1,
             next_preservation_record_id: 1,
             next_ucs_id: 1,

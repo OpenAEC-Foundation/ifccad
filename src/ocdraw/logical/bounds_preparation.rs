@@ -168,7 +168,12 @@ pub(crate) fn evaluate_document_bounds(
 ) -> Result<Vec<OcdrawScopeBoundsAssessment>, OcdrawValidationError> {
     let mut evaluation = Evaluation {
         text: super::text_bounds::text_estimates(doc)?,
-        opaque: doc.opaque_entities.iter().map(|e| e.id).collect(),
+        opaque: doc
+            .opaque_entities
+            .iter()
+            .map(|e| e.id)
+            .chain(doc.dimension_entities.iter().map(|e| e.id))
+            .collect(),
         scopes: doc.scopes.iter().map(|s| (s.id, s)).collect(),
         entities: doc.geometric_entities.iter().map(|e| (e.id, e)).collect(),
         viewports: doc.viewports.iter().map(|v| (v.id, v)).collect(),
