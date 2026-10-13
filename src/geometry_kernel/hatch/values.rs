@@ -15,6 +15,41 @@ pub enum HatchFill {
     #[default]
     Solid,
     LinePattern(HatchLinePattern),
+    Gradient,
+}
+
+/// Predefined CAD gradient intent; this value does not evaluate a color field.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum HatchGradientType {
+    Linear,
+    Cylinder,
+    InverseCylinder,
+    Spherical,
+    InverseSpherical,
+    Hemispherical,
+    InverseHemispherical,
+    Curved,
+    InverseCurved,
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum HatchGradientColorMode {
+    OneColor,
+    #[default]
+    TwoColor,
+}
+
+/// Stored authorship settings. Inactive settings may lack a type or color pair.
+/// Endpoint colors are authoritative even in one-color mode; IO never derives
+/// the second color from tint. Concrete colors belong to each drawing model.
+#[derive(Clone, Debug, PartialEq)]
+pub struct HatchGradient<C> {
+    pub gradient_type: Option<HatchGradientType>,
+    pub colors: Option<[C; 2]>,
+    pub rotation: f64,
+    pub shift: f64,
+    pub color_mode: HatchGradientColorMode,
+    pub tint: f64,
 }
 
 #[derive(Clone, Debug, PartialEq)]

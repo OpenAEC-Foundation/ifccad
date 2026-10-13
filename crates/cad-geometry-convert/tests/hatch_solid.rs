@@ -35,6 +35,7 @@ fn solid_keeps_loops_handles_and_curve_evidence() {
         p.area_rule,
         p.join_tolerance,
         &ocdraw::geometry_kernel::hatch::HatchFill::Solid,
+        None,
     )
     .unwrap();
     assert_eq!(q.hatch.paths.len(), 2);
@@ -46,10 +47,11 @@ fn solid_keeps_loops_handles_and_curve_evidence() {
 fn active_gradient_and_mpolygon_are_not_solid_fallbacks() {
     let mut h = circle();
     h.gradient_color.enabled = true;
+    h.gradient_color.name = "FUTURE".into();
     assert!(matches!(
         prepare_hatch_from_cad(&h, 1e-9),
         Err(CadHatchPreparationError::Unsupported {
-            field: "gradient_color",
+            field: "gradient.type",
             ..
         })
     ));
@@ -109,6 +111,7 @@ fn rotated_plane_full_circle_has_equivalent_curve_correspondence() {
         HatchAreaRule::Normal,
         1e-9,
         &ocdraw::geometry_kernel::hatch::HatchFill::Solid,
+        None,
     )
     .unwrap();
     assert!(out.pairs[0].curves[0].squared_deviation().unwrap().1 < exact(1e-24));
@@ -152,6 +155,7 @@ fn ellipse_bulges_and_reversed_edge_sweeps_keep_all_contours() {
         p.area_rule,
         p.join_tolerance,
         &ocdraw::geometry_kernel::hatch::HatchFill::Solid,
+        None,
     )
     .unwrap();
     let r = prepare_hatch_from_cad(&q.hatch, 1e-9).unwrap();
@@ -173,6 +177,7 @@ fn flags_are_audited_without_first_loop_role_inference() {
         p.area_rule,
         p.join_tolerance,
         &ocdraw::geometry_kernel::hatch::HatchFill::Solid,
+        None,
     )
     .unwrap();
     assert!(q
@@ -199,14 +204,13 @@ fn spline_and_inactive_construction_fields_receive_explicit_classification() {
     h.pattern_scale = 2.;
     h.gradient_color.angle = 0.3;
     let p = prepare_hatch_from_cad(&h, 1e-9).unwrap();
-    for field in [
-        "seed_points",
-        "pixel_size",
-        "pattern_context",
-        "gradient_color",
-    ] {
+    for field in ["seed_points", "pixel_size", "pattern_context"] {
         assert!(p.losses.iter().any(|l| l.field == field));
     }
+    let gradient = p.gradient.as_ref().unwrap();
+    assert_eq!(gradient.rotation, 0.3);
+    assert_eq!(gradient.gradient_type, None);
+    assert_eq!(gradient.colors, None);
     h.paths[0].edges = vec![BoundaryEdge::Spline(SplineEdge {
         degree: 3,
         rational: false,
@@ -263,7 +267,8 @@ fn unrepresentable_ellipse_ratio_does_not_emit_degenerate_cad_geometry() {
         &boundaries,
         HatchAreaRule::Normal,
         1e-9,
-        &ocdraw::geometry_kernel::hatch::HatchFill::Solid
+        &ocdraw::geometry_kernel::hatch::HatchFill::Solid,
+        None
     )
     .is_err());
 }
@@ -281,7 +286,8 @@ fn native_partial_arc_is_not_rounded_into_a_full_cad_turn() {
         &boundaries,
         HatchAreaRule::Normal,
         1e-9,
-        &ocdraw::geometry_kernel::hatch::HatchFill::Solid
+        &ocdraw::geometry_kernel::hatch::HatchFill::Solid,
+        None
     )
     .is_err());
 }

@@ -1,5 +1,6 @@
 mod decode_appearance;
 mod hatch;
+mod hatch_gradient;
 mod hatch_pattern;
 mod hatch_values;
 pub(crate) use hatch::{decode_hatch, encode_hatch};

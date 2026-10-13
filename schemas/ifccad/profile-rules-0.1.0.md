@@ -211,9 +211,10 @@ tokens through binary64 or to accept them in place of typed uint64 parsing.
 
 | Rule | Normative obligation | Phase; gap | Evidence |
 |---|---|---|---|
-| IFCCAD-HATCH-001 | Hatch MUST have one placement and a qualified Solid or LinePattern fill. All nested loop/boundary/edge objects MUST be closed typed variants. Full circles/ellipses and partial signed arcs MUST obey shared primitive parameter rules. Loops MUST be nonempty; implicit closed polylines MUST have matching outgoing bulges and sufficient distinct vertices. | V/D; G6/G7/P | [Hatch](../../docs/hatch.md), [native wire](../../tests/ifccad_hatch_wire.rs) |
+| IFCCAD-HATCH-001 | Hatch MUST have one placement and a qualified Solid, LinePattern or Gradient fill. All nested loop/boundary/edge objects MUST be closed typed variants. Full circles/ellipses and partial signed arcs MUST obey shared primitive parameter rules. Loops MUST be nonempty; implicit closed polylines MUST have matching outgoing bulges and sufficient distinct vertices. | V/D; G6/G7/P | [Hatch](../../docs/hatch.md), [native wire](../../tests/ifccad_hatch_wire.rs) |
 | IFCCAD-HATCH-002 | Each optional loop source MUST reference one complete closed Circle/Ellipse/planar Polyline in the same owner, by complete drawing-local entity identity. Missing, open, wrong-kind or wrong-owner targets MUST fail. Stored contours remain authoritative; IO MUST NOT compare source geometry or regenerate the Hatch. | G/D; G4/P | [source lifecycle](../../tests/ifccad_hatch.rs) |
 | IFCCAD-HATCH-003 | Authored joinTolerance MUST be finite/nonnegative in local units, default nearest binary64 decimal 1e-9. Exact zero requires proven equality. Excessive and numerically unprovable joins MUST fail separately. IO MUST NOT snap, bridge or increase the limit. Validation MUST NOT claim intersection/nesting/fill evaluation. | V/D; G7/P | [kernel](../../tests/hatch_geometry.rs), [creation units](../../tests/hatch_tolerance.rs) |
+| IFCCAD-HATCH-005 | Gradient fill MUST have complete typed gradient settings and exactly two concrete colors. Inactive settings MAY lack type/colors; nonfinite values, shift/tint outside [0,1] and all-default empty state MUST fail. One/two-color mode and tint MUST NOT regenerate stored colors. | V/D; G6/G7/P | [native gradient wire](../../tests/hatch_gradient_wire.rs) |
 
 Existing WIRE/ID/OWN/GEOMETRY/BOUNDS rules continue to apply. A local supplement
 validates tags/fields, not topology, join proofs or source agreement. The reader
@@ -285,3 +286,7 @@ The IFCX declaration supplies the Array wrapper. The profile-owned supplemental
 schema supplies its closed number/marked-element alternatives, and semantic
 validation supplies period, transform and graph rules. This is an independent
 experimental contract, not an adopted buildingSMART symbol resource standard.
+
+Gradient endpoints require concrete fixed RGB colors; Foreground is not a
+gradient endpoint. Concrete ACI 7 identity remains invalid under the common
+color contract. No background-dependent endpoint is resolved during IO.

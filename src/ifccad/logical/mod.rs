@@ -5,7 +5,9 @@ mod document_validation;
 mod geometry;
 mod hatch;
 pub(crate) mod line_pattern_bounds;
-pub use hatch::{resolve_ifccad_hatch_join_tolerance, IfccadHatch, IfccadHatchLoop};
+pub use hatch::{
+    resolve_ifccad_hatch_join_tolerance, IfccadHatch, IfccadHatchGradient, IfccadHatchLoop,
+};
 mod model;
 mod symbol_source;
 pub use symbol_source::*;

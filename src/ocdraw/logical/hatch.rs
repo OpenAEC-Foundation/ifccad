@@ -112,8 +112,12 @@ pub struct OcdrawHatchLoop {
     pub source_entity_id: Option<u64>,
 }
 
+pub type DrawingHatchGradient =
+    crate::geometry_kernel::hatch::HatchGradient<crate::ocdraw::DrawingColor>;
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct DrawingHatchEntity {
+    pub gradient: Option<DrawingHatchGradient>,
     pub id: u64,
     pub layer_id: u32,
     pub visible: bool,

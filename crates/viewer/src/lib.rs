@@ -1,5 +1,6 @@
 mod cad;
 mod geometry;
+mod hatch_exchange;
 mod ifccad;
 mod inspection;
 mod line_pattern;

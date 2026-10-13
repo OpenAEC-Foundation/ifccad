@@ -140,8 +140,9 @@ Actual AC1032 DXF/DWG tests retain area rules, loops and associations, with
 contour/occurrence numerical evidence and separately unassessed fill.
 The Solid slice was verified and accepted on main before LinePattern implementation.
 The pattern slice adds embedded families, authored phase and qualified CAD conversion
-with contour/pattern numerical evidence and separately unassessed fill; gradients, native spline boundaries,
+with contour/pattern numerical evidence and separately unassessed fill; native spline boundaries,
 intersection auditing and runtime associative updates remain separate work.
+The gradient slice adds nine predefined types, two stored colors, independent mode/tint and partial inactive settings in both native models. CAD exchange is qualified for exact retained local axes and AC1032; inactive DXF settings and unavailable named color metadata remain diagnosed codec limitations. Gradient fields/pixels are unassessed.
 See [Hatch support](docs/hatch.md). No initial contract publication is implied.
 
 ## Later physical encodings and performance

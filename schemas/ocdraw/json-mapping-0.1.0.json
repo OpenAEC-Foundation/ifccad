@@ -1840,6 +1840,12 @@
           "logical": "hatch.fill",
           "payload": "fill",
           "omission": "forbidden"
+        },
+        {
+          "logical": "hatch.gradient",
+          "payload": "gradient",
+          "omission": "logicalDefault",
+          "nullEncoding": "logicalNull"
         }
       ]
     }
@@ -1918,7 +1924,7 @@
       "Viewport": 1
     }
   },
-  "$comment": "Normative interpretation: ./json-mapping-v4.md Hatch fill records are closed tagged Solid/LinePattern JSON values; LinePattern origin/rotation/scale omission means [0,0]/0/1, metadata absence is distinct from empty literal strings, and Dot forbids length. Family offsets are [along,perpendicular], not CAD XY offsets. Complex linePattern elements without a marker map to numbers; marked elements map to closed {length,marker} objects. Marker rotation is {mode,angle} in radians. Default scale/offset/rotation omission is 1/[0,0]/relative zero; null is forbidden. Source records are closed id/kind/fileName records.",
+  "$comment": "Normative interpretation: ./json-mapping-v4.md Hatch fill records are closed tagged Solid/LinePattern JSON values; LinePattern origin/rotation/scale omission means [0,0]/0/1, metadata absence is distinct from empty literal strings, and Dot forbids length. Family offsets are [along,perpendicular], not CAD XY offsets. Complex linePattern elements without a marker map to numbers; marked elements map to closed {length,marker} objects. Marker rotation is {mode,angle} in radians. Default scale/offset/rotation omission is 1/[0,0]/relative zero; null is forbidden. Source records are closed id/kind/fileName records. Gradient settings are separate from fill activation. Gradient active requires type/colors; only the optional gradient column has null rows.",
   "ocdrawVersion": "0.1.0",
   "preservationMapping": {
     "schemaVersion": 1,

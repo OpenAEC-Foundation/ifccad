@@ -15,6 +15,7 @@ fn native_hatch_is_materialized_with_stored_contours() {
         .add_layer(LayerDefinition::new("0", RgbColor::new(255, 255, 255), p))
         .unwrap();
     b.add_hatch(HatchEntityDefinition {
+        gradient: None,
         scope_id: 0,
         layer_id: layer,
         visible: true,

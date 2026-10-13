@@ -86,10 +86,10 @@ paragraph/inline formatting, column/background state and explicit estimated
 bound quality. Their CAD routes separately qualify a bounded text profile and expose
 unverified glyph geometry separately from anchor accuracy. See [text support](docs/text.md).
 
-Both routes also provide native Solid and LinePattern Hatch with stored planar boundaries,
+Both routes also provide native Solid, LinePattern and Gradient Hatch with stored planar boundaries,
 three area rules and optional same-owner source relations. Contour exchange
 and unassessed fill are separate evidence; see [Hatch support](docs/hatch.md).
-Embedded pattern families retain origin, rotation, scale, signed spacing and ordered dash/gap/dot definitions; CAD support uses qualified explicit families.
+Embedded pattern families retain origin, rotation, scale, signed spacing and ordered dash/gap/dot definitions; CAD support uses qualified explicit families. Gradients retain two endpoint colors and active/inactive authorship settings, with basis-preserving AC1032 exchange and explicit codec-loss reporting.
 
 Unsupported conversion semantics are diagnosed or rejected. Numerical accuracy
 has a hard unit-aware tolerance, including nested block occurrences. See

@@ -302,5 +302,45 @@
   {
     "file": "invalid/line-pattern-foreign-source-path.ifcx",
     "valid": false
+  },
+  {
+    "file": "valid/hatch-gradient.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/hatch-gradient-inactive.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid/hatch-gradient-unknown-type.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/hatch-gradient-partial-active.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/hatch-gradient-null-state.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/hatch-gradient-bad-color-count.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/hatch-gradient-bad-shift.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/hatch-gradient-empty-inactive.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/hatch-unknown-fill.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/hatch-gradient-foreground.ifcx",
+    "valid": false
   }
 ]

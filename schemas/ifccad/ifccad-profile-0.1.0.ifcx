@@ -3498,7 +3498,8 @@
                     "enumRestrictions": {
                       "options": [
                         "solid",
-                        "linePattern"
+                        "linePattern",
+                        "gradient"
                       ]
                     }
                   },
@@ -3583,6 +3584,64 @@
                         }
                       }
                     },
+                    "optional": true
+                  }
+                }
+              }
+            },
+            "gradient": {
+              "dataType": "Object",
+              "optional": true,
+              "objectRestrictions": {
+                "values": {
+                  "type": {
+                    "dataType": "Enum",
+                    "optional": true,
+                    "enumRestrictions": {
+                      "options": [
+                        "linear",
+                        "cylinder",
+                        "inverseCylinder",
+                        "spherical",
+                        "inverseSpherical",
+                        "hemispherical",
+                        "inverseHemispherical",
+                        "curved",
+                        "inverseCurved"
+                      ]
+                    }
+                  },
+                  "colors": {
+                    "dataType": "Array",
+                    "optional": true,
+                    "arrayRestrictions": {
+                      "min": 2,
+                      "max": 2,
+                      "value": {
+                        "dataType": "Object"
+                      }
+                    }
+                  },
+                  "rotation": {
+                    "dataType": "Real",
+                    "optional": true
+                  },
+                  "shift": {
+                    "dataType": "Real",
+                    "optional": true
+                  },
+                  "colorMode": {
+                    "dataType": "Enum",
+                    "optional": true,
+                    "enumRestrictions": {
+                      "options": [
+                        "oneColor",
+                        "twoColor"
+                      ]
+                    }
+                  },
+                  "tint": {
+                    "dataType": "Real",
                     "optional": true
                   }
                 }

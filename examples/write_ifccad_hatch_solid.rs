@@ -35,6 +35,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let hatch = 1;
     template.id = hatch;
     template.kind = IfccadEntityKind::Hatch(IfccadHatch {
+        gradient: None,
         placement: plane,
         area_rule: HatchAreaRule::Normal,
         join_tolerance: 1e-9,

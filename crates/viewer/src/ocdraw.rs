@@ -108,6 +108,7 @@ fn inspect_cad_as_drawing_with_options(
     let converted = match cad_document_to_ocdraw_document(
         &cad,
         CadToOcdrawOptions {
+            loss_policy: options.loss_policy.ocdraw(),
             geometry_tolerance: options.ocdraw_tolerance().expect("checked options"),
             preservation_capture: if options.preserve_splines {
                 ocdraw_convert::OcdrawPreservationCapture::SupportedTyped
@@ -252,6 +253,7 @@ fn export_drawing_with_options(
     let converted = match ocdraw_source_to_cad_document(
         drawing,
         OcdrawToCadOptions {
+            loss_policy: options.loss_policy.ocdraw(),
             geometry_tolerance: options.ocdraw_tolerance().expect("checked options"),
             ..Default::default()
         },
@@ -285,7 +287,7 @@ fn export_drawing_with_options(
     {
         for viewport in drawing.viewports().iter().filter(|v| v.paper_clip.enabled) {
             diagnostics.push(json!({
-                "code":"DXF_VIEWPORT_CLIP_LOSS",
+                "code":"DXF_VIEWPORT_CLIP_LOSS","phase":"cadExchange",
                 "location":format!("/entities/{}",viewport.id),
                 "message":"The selected DXF codec does not preserve viewport clip activation and boundary references; this export uses the rectangular viewport frame"
             }));
@@ -301,7 +303,7 @@ fn export_drawing_with_options(
                 }
             ) {
                 diagnostics.push(json!({
-                    "code":"DWG_SPATIAL_PATTERN_GENERATION_LOSS",
+                    "code":"DWG_SPATIAL_PATTERN_GENERATION_LOSS","phase":"cadExchange",
                     "location":format!("/entities/{}", entity.id()),
                     "message":"The DWG writer restarts the line pattern on each spatial polyline segment; DXF preserves continuous generation"
                 }));
@@ -316,13 +318,21 @@ fn export_drawing_with_options(
     let mut returned = crate::cad::export(
         output,
         converted.into_document(),
-        name,
-        format,
-        version,
+        crate::cad::CadFileExportRequest {
+            name,
+            format,
+            version,
+            loss_policy: options.loss_policy,
+        },
         diagnostics,
         |readback| {
             viewer_selection =
                 crate::selection::qualified_selection(&selection_candidates, readback, "ocdraw");
+            let restored = cad_document_to_ocdraw_document(readback, Default::default())
+                .map_err(|e| e.to_string())?;
+            let encoded = ocdraw::ocdraw::encode_ocdraw_document(restored.document())
+                .map_err(|e| e.to_string())?;
+            load_ocdraw_bytes(encoded.bytes()).map_err(|e| e.to_string())?;
             Ok(Value::Null)
         },
     );

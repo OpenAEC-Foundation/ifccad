@@ -1,6 +1,6 @@
 # Hatch
 
-OCDraw and IFCCAD independently support native Solid and LinePattern Hatch: an ordinary entity
+OCDraw and IFCCAD independently support native Solid, LinePattern and Gradient Hatch: an ordinary entity
 with identity, owner/order, appearance, one placed local XY plane, stored loops,
 an area rule and an authored join tolerance. OCDraw uses one `hatchStream`;
 IFCCAD uses placement plus one `ifccad::hatch` attribute. IFCX composition
@@ -20,7 +20,7 @@ not impose hole labels. IO does not derive nesting or calculate fill. Basic
 validation checks primitive parameters, loop cardinality, joins and references;
 it does not audit intersections, touching, overlap, self-crossing or positive
 filled area. Bounds conservatively enclose contours and possible temporary
-joins. Gradients, spline boundaries and MPOLYGON remain outside the current profile. There is no fallback to Solid.
+joins. Spline boundaries and MPOLYGON remain outside the current profile. There is no fallback to Solid.
 
 ## Tolerance and lifecycle
 
@@ -146,3 +146,80 @@ changing the plane, vertices or join limit. The original foundation-repair DXF
 Hatch 9AA and corresponding DWG Hatch 9A7 provide independent regressions; the
 original 160-unit false gap is the diameter of a radius-80 corner arc.
 See [ezdxf's wire convention](https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/boundary_paths.py).
+
+## Gradient authorship and storage
+
+One optional `gradient` state lives next to the selected fill. `fill.kind=gradient`
+requires its type and ordered pair of concrete colors (implicit endpoints 0/1).
+Solid/LinePattern may retain incomplete inactive state: type or colors may be
+absent, but a supplied pair always has both colors. The same stored state is
+retained after changing fill; there is no second dormant copy or whole-Hatch
+opaque payload. All-default state without type/colors is invalid; omit it.
+
+Types are linear, cylinder, inverseCylinder, spherical, inverseSpherical,
+hemispherical, inverseHemispherical, curved and inverseCurved. Finite rotation
+is local CCW radians; no modulo normalization. Finite shift/tint lie in [0,1].
+Defaults: rotation=0, shift=0, colorMode=twoColor, tint=0. Shift blends shifted
+and unshifted shape definitions; it is not a displacement. Mode oneColor or
+twoColor and tint are independent of both stored colors. Equal colors do not
+change mode, and IO never derives color 2 from tint.
+
+Each model uses its own concrete RGB plus optional indexed/named identity.
+Endpoints require the Concrete color variant. Symbolic Foreground has no fixed
+RGB endpoint and is invalid here; source ACI 7 endpoints remain unqualified,
+with active-Hatch or dormant-state loss under Allow and refusal under Reject.
+No per-stop alpha, inherited endpoint colors, free stops, HSL/HSV authored
+space, tint algorithm or rendering contract is added. Existing common opacity
+and visibility apply independently; colors are not replaced by entity color.
+
+OCDraw registers one optional `hatchStream.gradient` column. Omission means
+absence for every row; a present column is count-sized, with null only for
+absent rows. IFCCAD stores an optional `ifccad::hatch.gradient` member, omitted
+when absent; explicit null is invalid. Both closed mappings forbid nested
+null/unknown/mixed fields. Whole IFCCAD Hatch-attribute replacement includes
+state. Models/builders/readers/writers share intrinsic parameter validation,
+without evaluating fill or changing the contour/source/join/bounds contract.
+
+## Qualified gradient CAD boundary
+
+Enabled gradient is selected before classic pattern flags or UserDefined
+linetype gates. Inactive classic pattern/context data receives editing-state
+loss; known inactive gradient state is retained natively, including incomplete
+preferences. Unknown definitions, nonzero reserved data, non-0/1 positions,
+extra stops and inherited colors remain unqualified: Allow omits the active
+Hatch or only its inactive state; Reject refuses loss. Missing active data,
+nonfinite scalars/positions and incomplete endpoint pairs are hard errors.
+Inactive ACAD pattern-origin metadata is left for common loss auditing; it
+does not become a gradient anchor and source records are not mutated.
+
+Native placements remain valid independently of CAD coverage. Export requires
+exact numerical equality of local X/Y with the actual target arbitrary-axis
+axes. No geometric epsilon permits a basis change or angle repair. Failure
+omits active Hatch or only dormant state under Allow with
+HATCH_GRADIENT_FRAME_UNSUPPORTED; Reject refuses. Some oblique imported frames
+may therefore not qualify for export after normal reconstruction.
+
+Actual AC1032 DXF/DWG tests cover all nine types, both modes, RGB/ACI endpoints,
+all area rules, relationships and independently authored gradient tags.
+Additional exact tilted frames and nested nonuniform occurrences retain their
+local data; contours retain the existing numerical evidence. Fill, gradient
+fields and pixels remain separately unassessed. Example writer:
+`write_hatch_gradient` with route `ocdraw` or `ifccad`.
+Its focused samples are under `tests/fixtures/ocdraw` and `tests/fixtures/ifccad`.
+
+Memory CadDocument supports disabled state; pinned DWG retains it, pinned DXF
+omits it. Native named identity exceeds GradientColorEntry and produces located
+model loss with RGB retained. The reader can already have discarded DWG book
+names, DXF declared counts or malformed defaults; no downstream recovery or
+original-file losslessness is promised. Independent characterization tests
+record those limits; [upstream #109](https://github.com/HakanSeven12/opencadcodec/issues/109)
+tracks them. No unreviewed codec update is selected.
+
+Viewer/browser file exports compare mapped target state with physical readback,
+using scope/order and emitted conversion-local identity to confirm matching.
+Changed parameters receive TARGET_CODEC_HATCH_GRADIENT_PARAMETER_LOSS;
+disappeared inactive state receives TARGET_CODEC_HATCH_GRADIENT_STATE_LOSS.
+Unconfirmed matching fails verification. Optional conversion `lossPolicy`
+defaults to allow; reject is enforced at model and physical-file phases before
+offering a download. Gradient-state exports to other versions are explicitly
+unqualified and refused. Empty diagnostics do not certify renderer fidelity.

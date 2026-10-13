@@ -12,3 +12,7 @@ are under `examples/ifccad/` and `examples/ocdraw/`; test specialized variants h
 before incorporating a representative case into a curated overview/text/Hatch
 drawing. Generator fixture outputs must use an explicitly selected root so that
 regeneration does not restore the retired example list.
+
+`hello-hatch-gradient` inputs cover active and partial inactive gradient state.
+Regenerate with `cargo run --example write_hatch_gradient -- ocdraw` or `ifccad`;
+the default destination is this fixture tree, and the writer strictly reopens it.

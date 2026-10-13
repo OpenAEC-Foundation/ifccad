@@ -14,6 +14,7 @@ fn builder_rejects_invalid_hatch_without_consuming_an_identity() {
         .add_layer(LayerDefinition::new("0", RgbColor::new(255, 255, 255), p))
         .unwrap();
     let definition = |radius| HatchEntityDefinition {
+        gradient: None,
         scope_id: 0,
         layer_id: layer,
         visible: true,
@@ -46,6 +47,9 @@ fn builder_rejects_invalid_hatch_without_consuming_an_identity() {
         }],
     });
     assert!(b.add_hatch(invalid_pattern).is_err());
+    let mut invalid_gradient = definition(2.0);
+    invalid_gradient.fill = HatchFill::Gradient;
+    assert!(b.add_hatch(invalid_gradient).is_err());
     assert_eq!(b.add_hatch(definition(2.0)).unwrap(), 1);
     let doc = b.build_document().unwrap();
     assert_eq!(doc.scopes[0].entities, [1]);

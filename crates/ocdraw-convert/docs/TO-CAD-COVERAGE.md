@@ -151,7 +151,7 @@ origin/rotation/scale and signed phase. Missing literal metadata is diagnosed.
 Pattern certificate envelopes join contour evidence in nested occurrence assessment.
 Nonempty descriptions remain in CadDocument; pinned DXF/DWG storage loses them,
 with a separate viewer/browser physical-readback metadata diagnostic.
-No gradient, spline-boundary or MPOLYGON backing is offered by this slice.
+No spline-boundary or MPOLYGON backing is offered by this slice.
 See [Hatch support](../../../docs/hatch.md) for the complete bounded guarantee.
 ## Presentation parity — 2026-10-08
 
@@ -203,3 +203,27 @@ remain unqualified. See [presentation](../../../docs/presentation.md#foreground-
 and [issue #16](https://github.com/OpenAEC-Foundation/ifccad/issues/16).
 
 Complex marker geometry remains unassessed per curve and block occurrence, independently of the host curve numerical proof. External font/SHX availability is not probed and does not cause semantic loss. Native producer bounds and derived assessment remain separate. AC1032 complex DXF/DWG exchange is independently checked by `tests/ocdraw_line_pattern_exchange.rs`, including resolved STYLE roles and the manually authored literal marker-flags fixture. This does not establish upright rotation, which the current codec public model cannot distinguish.
+
+## Gradient target coverage
+
+Validated state maps to two CAD endpoints at 0/1 and independent type/angle/
+shift/mode/tint, with reserved=0. Disabled partials use empty type/colors where
+absent. RGB is exact; consistent ACI identity maps to ACI. Unsupported indexed
+or named identity keeps concrete RGB/ACI with located rejectable loss. No named
+gradient identity is promised by the pin.
+
+Actual target OCS axes must equal native X/Y exactly. An unqualified active
+frame omits the whole Hatch under Allow; a dormant mismatch omits only state.
+Reject refuses and hard contour/numeric failures remain fatal under both policies.
+Contours/occurrences retain existing accuracy; gradient fill/field/pixels are
+separately unassessed, without a renderer or automatic tint/angle repair.
+
+CadDocument success is distinct from actual AC1032 file retention: DWG retains
+disabled state, DXF drops it. Viewer/browser production readback reports that
+loss and refuses delivery under Reject; other gradient target versions are
+gated. See docs/hatch.md and upstream #109 for qualified source/transport limits.
+
+Gradient endpoints stay concrete after the Foreground color migration. Source
+ACI 7 endpoints are unqualified (active whole-Hatch or dormant-state omission
+under Allow; Reject refuses). Native Foreground endpoints fail validation;
+no fixed background or RGB replacement is invented.

@@ -2435,7 +2435,8 @@
       "kind": "enum",
       "values": [
         "solid",
-        "linePattern"
+        "linePattern",
+        "gradient"
       ]
     },
     "hatchBulges": {
@@ -2831,6 +2832,78 @@
           "valueType": "linePatternMarker",
           "nullable": false,
           "optional": true
+        }
+      ]
+    },
+    "hatchGradientType": {
+      "kind": "enum",
+      "values": [
+        "linear",
+        "cylinder",
+        "inverseCylinder",
+        "spherical",
+        "inverseSpherical",
+        "hemispherical",
+        "inverseHemispherical",
+        "curved",
+        "inverseCurved"
+      ]
+    },
+    "hatchGradientColorMode": {
+      "kind": "enum",
+      "values": [
+        "oneColor",
+        "twoColor"
+      ]
+    },
+    "hatchGradientColors": {
+      "kind": "sequence",
+      "items": "color",
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "hatchGradient": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "type",
+          "valueType": "hatchGradientType",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "colors",
+          "valueType": "hatchGradientColors",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "rotation",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true,
+          "default": 0
+        },
+        {
+          "name": "shift",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true,
+          "default": 0
+        },
+        {
+          "name": "colorMode",
+          "valueType": "hatchGradientColorMode",
+          "nullable": false,
+          "optional": true,
+          "default": "twoColor"
+        },
+        {
+          "name": "tint",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true,
+          "default": 0
         }
       ]
     }
@@ -5198,6 +5271,13 @@
           "name": "fill",
           "valueType": "hatchFill",
           "nullable": false
+        },
+        {
+          "name": "gradient",
+          "valueType": "hatchGradient",
+          "nullable": true,
+          "optional": true,
+          "default": null
         }
       ]
     }

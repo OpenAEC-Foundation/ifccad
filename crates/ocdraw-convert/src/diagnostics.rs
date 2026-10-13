@@ -65,6 +65,12 @@ impl OcdrawToCadError {
 
 #[derive(Debug, thiserror::Error)]
 pub enum OcdrawToCadError {
+    #[error("Hatch preparation failed for entity {entity_id}: {source}")]
+    HatchPreparation {
+        entity_id: u64,
+        #[source]
+        source: cad_geometry_convert::hatch::CadHatchPreparationError,
+    },
     #[error(transparent)]
     WorkspaceNumeric(#[from] cad_workspace_convert::WorkspaceNumericError),
     #[error("text preparation failed for entity {entity_id}: {source}")]

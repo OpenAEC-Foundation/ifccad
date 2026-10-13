@@ -1,6 +1,7 @@
 pub(crate) mod appearance;
 pub(crate) mod geometry;
 pub(crate) mod hatch;
+mod hatch_gradient;
 pub(crate) mod layout;
 pub(crate) mod line_pattern;
 pub(crate) mod marker_coverage;

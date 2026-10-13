@@ -2,7 +2,10 @@ mod block_validation;
 pub(crate) mod hatch;
 mod hatch_validation;
 pub(crate) use block_validation::validate_blocks;
-pub use hatch::{resolve_ocdraw_hatch_join_tolerance, DrawingHatchEntity, OcdrawHatchLoop};
+pub use hatch::{
+    resolve_ocdraw_hatch_join_tolerance, DrawingHatchEntity, DrawingHatchGradient, OcdrawHatchLoop,
+};
+pub(crate) use hatch_validation::hatch_gradient_color_valid;
 mod line_pattern;
 pub(crate) mod line_pattern_bounds;
 mod symbol_source;

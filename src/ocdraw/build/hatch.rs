@@ -5,6 +5,7 @@ use crate::ocdraw::*;
 
 #[derive(Clone, Debug)]
 pub struct HatchEntityDefinition {
+    pub gradient: Option<DrawingHatchGradient>,
     pub scope_id: u32,
     pub layer_id: u32,
     pub visible: bool,
@@ -62,6 +63,12 @@ impl OcdrawBuilder {
         }
         crate::geometry_kernel::hatch::validate_hatch_fill(&d.fill)
             .map_err(|e| OcdrawBuildError::Invalid(e.to_string()))?;
+        crate::geometry_kernel::hatch::validate_hatch_gradient(
+            matches!(d.fill, HatchFill::Gradient),
+            d.gradient.as_ref(),
+            crate::ocdraw::logical::hatch_gradient_color_valid,
+        )
+        .map_err(|e| OcdrawBuildError::Invalid(e.to_string()))?;
         validate_hatch_boundaries(d.loops.iter().map(|l| &l.boundary), d.join_tolerance)
             .map_err(|e| OcdrawBuildError::Invalid(e.to_string()))?;
         hatch_bounds(d.placement, d.loops.iter().map(|l| &l.boundary))
@@ -70,6 +77,7 @@ impl OcdrawBuilder {
         let next = id.checked_add(1).ok_or(OcdrawBuildError::IdExhausted)?;
         self.scope_entities.entry(d.scope_id).or_default().push(id);
         self.hatch_entities.push(DrawingHatchEntity {
+            gradient: d.gradient,
             id,
             layer_id: d.layer_id,
             visible: d.visible,

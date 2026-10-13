@@ -468,7 +468,7 @@ errors. IFCX composition retains its established whole-attribute semantics.
 
 An ordinary entity may have ifccad::hatch plus the required shared placement.
 The body stores loops, areaRule (normal/outer/ignore), joinTolerance and fill.
-Only fill kind solid is available in this slice. Nested boundary kinds are
+The active profile supports solid, linePattern and gradient fill. Nested boundary kinds are
 closed polyline, full circle/ellipse and ordered line/circularArc/ellipticArc
 edges, in local XY numeric arrays. Variant fields are closed and checked by
 the profile; IFCX Object/Array descriptions alone do not express those unions.
@@ -485,7 +485,7 @@ stored contour. Invalid references fail; explicit detach keeps the contour.
 
 The complete ifccad::hatch value is replaced by a later fragment, including
 its loops array. Nested keys are ordinary typed values, not independent nodes
-or attribute maps. Unknown/inactive fields, null optional references and
+or attribute maps. Unknown fields, null optional references and
 unavailable fill variants fail. Native-placement is the qualified baseline;
 the separate xformop experiment does not automatically gain Hatch support.
 
@@ -513,3 +513,25 @@ wire spelling; the Rust pattern vector now contains typed elements. Use
 `LinePatternElement::simple(length)` for plain entries. URI/digest/embedding and
 upright rotation remain deferred. See profile-rules-0.1.0.md for the closed
 physical alternatives and drawing-local reference contract.
+
+## Hatch gradient settings
+
+`fill.kind = gradient` selects the separate optional `gradient` state. Active
+Gradient requires type and exactly two concrete endpoint colors (positions 0/1).
+Solid/LinePattern can retain partial inactive settings without type or colors.
+Known types: linear, cylinder, inverseCylinder, spherical, inverseSpherical,
+hemispherical, inverseHemispherical, curved, inverseCurved.
+Rotation is finite local radians, never normalized; shift/tint are finite in
+[0,1]. Defaults: rotation=0, shift=0, colorMode=twoColor, tint=0.
+colorMode is oneColor/twoColor independently of the two stored colors; IO never
+generates color 2 from tint. Colors use the existing concrete RGB and optional
+indexed/named identity. Inherited colors, per-stop alpha and unknown fields
+are unavailable. A present state without type/colors and with all defaults is
+invalid; omit it. Native validity is separate from CAD and rendering qualification.
+
+IFCCAD omits absent state; gradient:null is invalid. Whole Hatch-attribute
+replacement includes gradient state, without nested merging.
+
+Gradient endpoints require concrete fixed RGB colors; Foreground is not a
+gradient endpoint. Concrete ACI 7 identity remains invalid under the common
+color contract. No background-dependent endpoint is resolved during IO.

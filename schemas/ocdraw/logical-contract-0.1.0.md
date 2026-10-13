@@ -532,7 +532,7 @@ numeric checks on neighboring primitives, text or block occurrences.
 A Hatch is an ordinary entity with its own stable ID, appearance, ownership and
 draw order. One placement defines its local XY plane. It stores nonempty loops,
 areaRule (normal/outer/ignore), joinTolerance and a typed fill. This active slice
-supports only fill kind solid.
+supports fill kinds solid, linePattern and gradient.
 
 Boundary kinds are closed polyline, full circle, full ellipse and ordered
 line/circularArc/ellipticArc edges. In hatchStream nested values, XY coordinates
@@ -584,3 +584,25 @@ begins at basePoint+k*(offset.along*d+offset.perpendicular*n). Pattern points
 map to Hatch XY by origin+scale*R(rotation)*p, then the existing placement.
 Origin remains authored and does not follow contour/bounds/source edits.
 No generated lines, fill clipping or nesting are stored or evaluated by IO.
+
+## Hatch gradient settings
+
+`fill.kind = gradient` selects the separate optional `gradient` state. Active
+Gradient requires type and exactly two concrete endpoint colors (positions 0/1).
+Solid/LinePattern can retain partial inactive settings without type or colors.
+Known types: linear, cylinder, inverseCylinder, spherical, inverseSpherical,
+hemispherical, inverseHemispherical, curved, inverseCurved.
+Rotation is finite local radians, never normalized; shift/tint are finite in
+[0,1]. Defaults: rotation=0, shift=0, colorMode=twoColor, tint=0.
+colorMode is oneColor/twoColor independently of the two stored colors; IO never
+generates color 2 from tint. Colors use the existing concrete RGB and optional
+indexed/named identity. Inherited colors, per-stop alpha and unknown fields
+are unavailable. A present state without type/colors and with all defaults is
+invalid; omit it. Native validity is separate from CAD and rendering qualification.
+
+OCDraw maps state to an optional count-sized gradient column: only its absent
+rows may be null. Nested state fields cannot be null.
+
+Gradient endpoints require concrete fixed RGB colors; Foreground is not a
+gradient endpoint. Concrete ACI 7 identity remains invalid under the common
+color contract. No background-dependent endpoint is resolved during IO.

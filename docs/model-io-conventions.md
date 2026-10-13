@@ -218,3 +218,17 @@ production codecs retain plain numbers for unmarked entries and write closed
 objects for markers. IFCCAD references use complete profile-local paths. See
 [line patterns](line-patterns.md) for the logical/physical distinction, estimates
 and conversion limits.
+
+## Native Hatch gradient API
+
+`HatchFill::Gradient` selects `DrawingHatchEntity.gradient` or
+`IfccadHatch.gradient`; the types are DrawingHatchGradient/IfccadHatchGradient
+aliases over neutral HatchGradient with each model's concrete color.
+With the Foreground/Concrete API, endpoints require Concrete; no background is
+invented to turn Foreground into a gradient endpoint.
+HatchEntityDefinition also requires gradient:None/Some explicitly. Existing
+callers migrate with None; Gradient requires type/colors, while inactive state
+may be partial. No compatibility bridge for unpublished intermediate schemas.
+OCDraw outgoing Hatch failures now retain entity_id and the original typed
+cause in OcdrawToCadError::HatchPreparation. Model and actual-file guarantees
+remain separate; caller options lossPolicy=reject also enforce physical losses.

@@ -5065,6 +5065,19 @@
               "items": {
                 "$ref": "#/$defs/hatchFill"
               }
+            },
+            "gradient": {
+              "type": "array",
+              "items": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/hatchGradient"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
             }
           }
         }
@@ -9356,6 +9369,18 @@
               }
             }
           }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "gradient"
+            }
+          }
         }
       ]
     },
@@ -9604,6 +9629,65 @@
           }
         }
       ]
+    },
+    "hatchGradient": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "enum": [
+            "linear",
+            "cylinder",
+            "inverseCylinder",
+            "spherical",
+            "inverseSpherical",
+            "hemispherical",
+            "inverseHemispherical",
+            "curved",
+            "inverseCurved"
+          ]
+        },
+        "colors": {
+          "type": "array",
+          "items": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/color"
+              },
+              {
+                "required": [
+                  "rgb"
+                ]
+              }
+            ]
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "rotation": {
+          "type": "number",
+          "default": 0
+        },
+        "shift": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0
+        },
+        "colorMode": {
+          "enum": [
+            "oneColor",
+            "twoColor"
+          ],
+          "default": "twoColor"
+        },
+        "tint": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0
+        }
+      }
     }
   },
   "allOf": [

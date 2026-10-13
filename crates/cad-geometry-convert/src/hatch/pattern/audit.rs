@@ -5,7 +5,7 @@ use opencadcodec::{entities::EntityCommon, xdata::XDataValue};
 /// All unrelated records, nested payloads and raw transport evidence remain.
 pub fn residual_common(h: &Hatch) -> Result<EntityCommon, CadHatchPreparationError> {
     let mut common = h.common.clone();
-    if h.is_solid {
+    if h.is_solid || h.gradient_color.enabled {
         return Ok(common);
     }
     if let Some(mut record) = common.extended_data.remove_record("ACAD") {

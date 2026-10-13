@@ -23,6 +23,7 @@ struct FamilyValue {
 #[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
 enum FillValue {
     Solid,
+    Gradient,
     LinePattern {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         name: Option<String>,
@@ -40,6 +41,7 @@ enum FillValue {
 pub(super) fn encode(fill: &HatchFill) -> Value {
     let v = match fill {
         HatchFill::Solid => FillValue::Solid,
+        HatchFill::Gradient => FillValue::Gradient,
         HatchFill::LinePattern(p) => FillValue::LinePattern {
             name: p.name.clone(),
             description: p.description.clone(),
@@ -80,6 +82,7 @@ pub(super) fn decode(v: &Value) -> Result<HatchFill, serde_json::Error> {
     }
     Ok(match serde_json::from_value::<FillValue>(v.clone())? {
         FillValue::Solid => HatchFill::Solid,
+        FillValue::Gradient => HatchFill::Gradient,
         FillValue::LinePattern {
             name,
             description,

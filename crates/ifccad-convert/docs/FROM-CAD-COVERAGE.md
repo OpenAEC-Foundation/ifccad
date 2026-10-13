@@ -381,12 +381,12 @@ Dot grid style and frequencies beyond CAD i16 receive field-specific substitutio
 | Field/state | Classification and native result |
 | --- | --- |
 | elevation/normal, all stored supported paths | Contour conversion assessed against the actual CAD OCS, including nested occurrences; finite/parameter/join failures are hard errors |
-| is_solid/style | Solid/explicit LinePattern plus exact normal/outer/ignore; active gradient, MPOLYGON and unqualified active pattern profiles omit the whole Hatch with SkippedLoss/Omitted |
+| is_solid/style | Solid/explicit LinePattern/qualified Gradient plus exact normal/outer/ignore; MPOLYGON and unqualified active fill profiles omit the whole Hatch with SkippedLoss/Omitted |
 | line/circular/elliptic edges, closed straight/bulged polyline | Every loop retained; exact full-turn qualification, signed sweeps, no snapping/tessellation; spline/open/mixed-polyline backing unsupported |
 | is_associative/boundary_handles | Single eligible same-owner closed source per loop, bound after IDs exist; inactive/multiple/skipped/wrong-owner relations get PartialLoss/Omitted with the complete contour retained |
 | path flags | POLYLINE is backing; EXTERNAL/DERIVED/OUTERMOST omitted as located hints; other/unknown active flags omit whole Hatch |
 | pattern name/description/lines/type/angle/scale/double | Solid inactive state diagnosed; explicit effective families, literal metadata, origin/angle/scale retained for Pattern. Library/type dependency diagnosed; UserDefined requires a resolved fixed local continuous linetype and one continuous family; ByLayer layer-0 block dependencies are unqualified. Double only the documented axis-aligned origin-anchored profile, otherwise whole-Hatch omission |
-| disabled gradient, seed points/pixel size, inactive MPOLYGON fields | Located editing/construction-state loss when nondefault |
+| seed points/pixel size, inactive MPOLYGON fields | Located editing/construction-state loss when nondefault |
 | common attachments/context | AcadAnnotative markers and non-null extension dictionaries require separate qualification and omit whole Hatch; qualified top-level ACAD origin is consumed once, nested/unrelated metadata uses existing format-specific audit; no opaque Hatch preservation |
 
 Producer join requests use local units or a known physical mapping with explicit
@@ -454,3 +454,24 @@ and [issue #16](https://github.com/OpenAEC-Foundation/ifccad/issues/16).
 Marker footprints are unassessed per affected native curve and block occurrence, alongside the numerical host-curve proof. External font/SHX availability is not probed or diagnosed as semantic loss. Producer bounds claims remain distinct from derived Partial/Estimated evidence.
 
 AC1032 complex DXF/DWG qualification uses `tests/complex_line_pattern_exchange.rs` and the independently authored `tests/fixtures/line-patterns/complex-literal-ac1032.dxf` at the pinned dependency and explicit viewport patch. STYLE roles, filename identities, marker values, relative/absolute flags and degree/radian conversion are checked semantically. Upright flags are outside the current codec public model; this does not qualify upright preservation.
+
+## Gradient field coverage
+
+Enabled gradients override classic fill flags before pattern qualification.
+Nine standard names map to native type; values 0/1 and two RGB/ACI colors,
+angle, shift, one/two mode and tint are retained independently. Disabled
+known settings survive as partial/complete native state; fully default means
+absence. Unknown type/reserved/positions/extra colors or inherited endpoint
+colors omit active Hatch or only dormant state under Allow. Reject refuses.
+Missing active type/colors, one-entry pairs and nonfinite values are hard errors.
+Source ACAD pattern origin is inactive and remains common-audit loss, not an anchor.
+
+Original count, malformed-value, RGB/ACI-order and color/book identity information
+may already be unavailable in pinned file readback; coverage starts at exposed
+CadDocument values. Actual AC1032 tests and codec characterization are separate;
+legacy recovery, arbitrary fill fields/pixels and editor updates are unqualified.
+
+Gradient endpoints stay concrete after the Foreground color migration. Source
+ACI 7 endpoints are unqualified (active whole-Hatch or dormant-state omission
+under Allow; Reject refuses). Native Foreground endpoints fail validation;
+no fixed background or RGB replacement is invented.

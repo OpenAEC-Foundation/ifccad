@@ -2901,6 +2901,18 @@
               }
             }
           }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "gradient"
+            }
+          }
         }
       ]
     },
@@ -2948,8 +2960,39 @@
         },
         "fill": {
           "$ref": "#/$defs/hatchFill"
+        },
+        "gradient": {
+          "$ref": "#/$defs/hatchGradient"
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "fill": {
+                "properties": {
+                  "kind": {
+                    "const": "gradient"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "gradient"
+            ],
+            "properties": {
+              "gradient": {
+                "required": [
+                  "type",
+                  "colors"
+                ]
+              }
+            }
+          }
+        }
+      ]
     },
     "concreteColor": {
       "oneOf": [
@@ -3424,6 +3467,65 @@
         "fileName": {
           "type": "string",
           "minLength": 1
+        }
+      }
+    },
+    "hatchGradient": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "enum": [
+            "linear",
+            "cylinder",
+            "inverseCylinder",
+            "spherical",
+            "inverseSpherical",
+            "hemispherical",
+            "inverseHemispherical",
+            "curved",
+            "inverseCurved"
+          ]
+        },
+        "colors": {
+          "type": "array",
+          "items": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/concreteColor"
+              },
+              {
+                "required": [
+                  "rgb"
+                ]
+              }
+            ]
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "rotation": {
+          "type": "number",
+          "default": 0
+        },
+        "shift": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0
+        },
+        "colorMode": {
+          "enum": [
+            "oneColor",
+            "twoColor"
+          ],
+          "default": "twoColor"
+        },
+        "tint": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0
         }
       }
     }

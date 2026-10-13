@@ -87,6 +87,38 @@ pub fn export_ifccad(name: &str, bytes: &[u8], format: &str, version: &str) -> S
 #[cfg(test)]
 mod hatch_tests {
     #[test]
+    fn browser_gradient_routes_forward_state_and_reject_file_loss() {
+        let o = include_bytes!("../../../tests/fixtures/ocdraw/hello-hatch-gradient.ocdraw.json");
+        let i = include_bytes!("../../../tests/fixtures/ifccad/hello-hatch-gradient.ifcx");
+        for result in [
+            super::open_drawing("gradient.ocdraw.json", o),
+            super::open_ifccad("gradient.ifcx", i),
+        ] {
+            let v: serde_json::Value = serde_json::from_str(&result).unwrap();
+            assert_eq!(v["presentation"]["hatchEntityCount"], 2);
+            assert!(result.contains("partial"));
+        }
+        let result = super::export_drawing_with_options(
+            "gradient.ocdraw.json",
+            o,
+            "dxf",
+            "AC1032",
+            r#"{"lossPolicy":"reject"}"#,
+        );
+        let v: serde_json::Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(v["failure"]["code"], "CAD_EXCHANGE_LOSS_REJECTED");
+        assert!(v["export"]["download"].is_null());
+        let result = super::export_ifccad_with_options(
+            "gradient.ifcx",
+            i,
+            "dxf",
+            "AC1032",
+            r#"{"lossPolicy":"reject"}"#,
+        );
+        let v: serde_json::Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(v["failure"]["code"], "CAD_EXCHANGE_LOSS_REJECTED");
+    }
+    #[test]
     fn existing_browser_open_routes_expose_hatch_inspection() {
         assert!(super::open_drawing(
             "hatch.ocdraw.json",

@@ -268,7 +268,11 @@
             "linePatternRotationMode",
             "linePatternRotation",
             "linePatternMarker",
-            "linePatternElement"
+            "linePatternElement",
+            "hatchGradient",
+            "hatchGradientType",
+            "hatchGradientColorMode",
+            "hatchGradientColors"
           ]
         },
         "nullable": {
@@ -571,7 +575,11 @@
                 "linePatternRotationMode",
                 "linePatternRotation",
                 "linePatternMarker",
-                "linePatternElement"
+                "linePatternElement",
+                "hatchGradient",
+                "hatchGradientType",
+                "hatchGradientColorMode",
+                "hatchGradientColors"
               ]
             },
             "minItems": {

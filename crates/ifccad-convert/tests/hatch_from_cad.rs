@@ -253,6 +253,7 @@ fn paper_producer_limit_uses_fixed_mapping_without_changing_accuracy_budget() {
         .clone();
     e.id = d.id_counters.allocate_entity_id().unwrap();
     e.kind = IfccadEntityKind::Hatch(IfccadHatch {
+        gradient: None,
         placement: fixture::plane(),
         loops: vec![IfccadHatchLoop {
             boundary: HatchBoundary2::Circle {

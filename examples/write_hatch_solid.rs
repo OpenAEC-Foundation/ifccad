@@ -11,6 +11,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let layer = b.add_layer(LayerDefinition::new("0", DrawingColor::Foreground, p))?;
     let source = b.add_circle(CircleDefinition::new(layer, [0.0, 0.0, 0.0], 1.0))?;
     let hatch = b.add_hatch(HatchEntityDefinition {
+        gradient: None,
         scope_id: 0,
         layer_id: layer,
         visible: true,

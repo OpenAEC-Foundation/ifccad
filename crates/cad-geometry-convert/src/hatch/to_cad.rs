@@ -180,6 +180,7 @@ pub fn prepare_hatch_to_cad(
     area_rule: HatchAreaRule,
     join_tolerance: f64,
     fill: &HatchFill,
+    gradient: Option<&ocdraw::geometry_kernel::hatch::HatchGradient<opencadcodec::Color>>,
 ) -> Result<PreparedCadHatch, CadHatchPreparationError> {
     validate_hatch_boundaries(boundaries, join_tolerance)?;
     let mut hatch = construct_hatch(placement, boundaries, area_rule)?;
@@ -202,6 +203,9 @@ pub fn prepare_hatch_to_cad(
         pairs.push(prepared.pair);
         losses.extend(prepared.losses);
     }
+    losses.extend(super::apply_gradient_to_cad(
+        &mut hatch, placement, fill, gradient,
+    )?);
     Ok(PreparedCadHatch {
         hatch,
         pairs,

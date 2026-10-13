@@ -75,3 +75,11 @@ Object.assign(copy,{
 });
 export function translate(language,key,values={}){const text=copy[key]?.[language==='nl'?1:0]??key;return text.replace(/\{(\w+)\}/g,(_,name)=>String(values[name]??'{'+name+'}'));}
 export function localize(root,language){root.querySelectorAll('[data-i18n]').forEach(el=>el.textContent=translate(language,el.dataset.i18n));root.querySelectorAll('[data-i18n-label]').forEach(el=>el.setAttribute('aria-label',translate(language,el.dataset.i18nLabel)));root.querySelectorAll('[data-i18n-title]').forEach(el=>el.title=translate(language,el.dataset.i18nTitle));}
+
+Object.assign(copy,{
+ gradientFill:['Gradient','Gradient'],gradientInactive:['Stored gradient settings','Opgeslagen gradientinstellingen'],gradientPartial:['Stored gradient settings (incomplete)','Opgeslagen gradientinstellingen (onvolledig)'],
+ 'gradient.linear':['Linear','Lineair'],'gradient.cylinder':['Cylinder','Cilindrisch'],'gradient.inverseCylinder':['Inverse cylinder','Omgekeerd cilindrisch'],
+ 'gradient.spherical':['Spherical','Bolvormig'],'gradient.inverseSpherical':['Inverse spherical','Omgekeerd bolvormig'],
+ 'gradient.hemispherical':['Hemispherical','Halfbolvormig'],'gradient.inverseHemispherical':['Inverse hemispherical','Omgekeerd halfbolvormig'],
+ 'gradient.curved':['Curved','Gebogen'],'gradient.inverseCurved':['Inverse curved','Omgekeerd gebogen']
+});

@@ -34,6 +34,7 @@ fn whole_pattern_preparation_retains_fill_and_contour_certificates() {
         p.area_rule,
         p.join_tolerance,
         &p.fill,
+        None,
     )
     .unwrap();
     assert!(!q.hatch.is_solid);
@@ -286,6 +287,7 @@ fn oblique_plane_pattern_certificate_propagates_through_nested_nonuniform_blocks
         HatchAreaRule::Normal,
         1e-9,
         &HatchFill::LinePattern(p),
+        None,
     )
     .unwrap();
     let transform = EvaluatedBlock::native(

@@ -4,10 +4,33 @@ use serde_json::{json, Value};
 #[derive(Default, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct ConversionOptions {
+    #[serde(default, rename = "lossPolicy")]
+    pub loss_policy: ExportLossPolicy,
     #[serde(default, rename = "preserveSplines")]
     pub preserve_splines: bool,
     #[serde(default)]
     pub tolerance: Tolerance,
+}
+#[derive(Clone, Copy, Default, Deserialize, serde::Serialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub(crate) enum ExportLossPolicy {
+    #[default]
+    Allow,
+    Reject,
+}
+impl ExportLossPolicy {
+    pub(crate) fn ocdraw(self) -> ocdraw_convert::OcdrawLossPolicy {
+        match self {
+            Self::Allow => ocdraw_convert::OcdrawLossPolicy::Allow,
+            Self::Reject => ocdraw_convert::OcdrawLossPolicy::Reject,
+        }
+    }
+    pub(crate) fn ifccad(self) -> ifccad_convert::IfccadLossPolicy {
+        match self {
+            Self::Allow => ifccad_convert::IfccadLossPolicy::Allow,
+            Self::Reject => ifccad_convert::IfccadLossPolicy::Reject,
+        }
+    }
 }
 #[derive(Default, Deserialize)]
 #[serde(tag = "mode", rename_all = "lowercase", deny_unknown_fields)]
@@ -78,7 +101,7 @@ impl ConversionOptions {
                 value
             }
         };
-        json!({"preserveSplines":self.preserve_splines,"tolerance":tolerance})
+        json!({"preserveSplines":self.preserve_splines,"tolerance":tolerance,"lossPolicy":self.loss_policy})
     }
 }
 pub(crate) fn geometry(value: &OcdrawGeometryAssessment) -> Value {

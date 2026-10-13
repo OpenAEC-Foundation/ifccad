@@ -328,7 +328,7 @@ Dot grid style and frequencies beyond CAD i16 receive field-specific substitutio
 
 ## Hatch
 
-Native Solid and LinePattern Hatch map stored contours and the normal/outer/ignore area rule.
+Native Solid, LinePattern and Gradient Hatch map stored contours and the normal/outer/ignore area rule.
 Per-loop single same-owner source references bind after entity allocation.
 Unsupported associations retain contour geometry with located loss.
 `hatch_join_tolerance` is a CAD-to-native creation option, separate from numeric
@@ -348,3 +348,11 @@ checks; source graphs and source bytes remain immutable. Native records reject u
 validation messages identify their rule and source/component location.
 
 Complex line patterns bind ordinary text styles and SHX symbol sources through independent IFCCAD identity maps. Sources retain basenames, including duplicate filenames and unused entries; no glyph files are loaded. Unsupported active dependencies receive whole-definition named-continuous fallback under Allow and rejection under Reject. Host curve accuracy remains assessed while marker outlines remain unassessed.
+
+Gradient settings use the separate native state: active type/two endpoints and
+independent rotation/shift/mode/tint, or partial dormant preferences. CAD output
+requires exact native/target OCS axes; unsupported active frames omit the whole
+Hatch, while dormant frame failure omits only state with a located loss.
+Native color identity may exceed the pinned gradient surface. Physical AC1032
+DXF/DWG qualification and #109 source/target limitations are detailed in
+[Hatch support](../../docs/hatch.md). No gradient renderer is implemented.

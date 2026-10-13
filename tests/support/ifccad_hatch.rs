@@ -34,6 +34,7 @@ pub fn drawing() -> IfccadDocument {
     let source = template.clone();
     template.id = HATCH;
     template.kind = IfccadEntityKind::Hatch(IfccadHatch {
+        gradient: None,
         placement: plane(),
         area_rule: HatchAreaRule::Normal,
         join_tolerance: 1e-9,

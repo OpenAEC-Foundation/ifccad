@@ -70,7 +70,8 @@ pub(crate) fn from_cad(
     }
     Ok(Some(
         crate::from_cad::prepared_entities::PreparedCadEntityValue::Hatch {
-            definition: HatchEntityDefinition {
+            definition: Box::new(HatchEntityDefinition {
+                gradient: p.gradient.map(super::hatch_gradient::gradient_from_cad),
                 scope_id,
                 layer_id,
                 visible: !h.common.invisible,
@@ -87,7 +88,7 @@ pub(crate) fn from_cad(
                 area_rule: p.area_rule,
                 join_tolerance: p.join_tolerance,
                 fill: p.fill,
-            },
+            }),
             handles: p.source_handles,
             associative: p.is_associative,
         },
@@ -129,23 +130,68 @@ pub(crate) fn to_cad(
     owner: u32,
     state: &mut super::geometry::ExchangeState<u64>,
     diagnostics: &mut Vec<OcdrawToCadDiagnostic>,
-) -> Result<EntityType, OcdrawToCadError> {
+) -> Result<Option<EntityType>, OcdrawToCadError> {
     let boundaries = h
         .loops
         .iter()
         .map(|l| l.boundary.clone())
         .collect::<Vec<_>>();
-    let p = cad_geometry_convert::hatch::prepare_hatch_to_cad(
+    let (gradient, color_losses) = h
+        .gradient
+        .as_ref()
+        .map(|g| {
+            let (g, losses) = super::hatch_gradient::gradient_to_cad(g);
+            (Some(g), losses)
+        })
+        .unwrap_or_default();
+    let p = match cad_geometry_convert::hatch::prepare_hatch_to_cad(
         h.placement,
         &boundaries,
         h.area_rule,
         h.join_tolerance,
         &h.fill,
-    )
-    .map_err(|e| OcdrawToCadError::Cad(format!("Hatch {}: {e}", h.id)))?;
+        gradient.as_ref(),
+    ) {
+        Ok(p) => p,
+        Err(cad_geometry_convert::hatch::CadHatchPreparationError::Unsupported {
+            field,
+            detail,
+        }) => {
+            let code = if field == "gradient.frame" {
+                "HATCH_GRADIENT_FRAME_UNSUPPORTED"
+            } else {
+                "HATCH_UNSUPPORTED"
+            };
+            diagnostics.push(crate::to_cad::diagnostic(
+                code,
+                format!("/entities/{}/{field}", h.id),
+                detail,
+            ));
+            return Ok(None);
+        }
+        Err(source) => {
+            return Err(OcdrawToCadError::HatchPreparation {
+                entity_id: h.id,
+                source,
+            })
+        }
+    };
+    if !p.losses.iter().any(|l| l.field == "gradient.frame") {
+        for loss in color_losses {
+            diagnostics.push(crate::to_cad::diagnostic(
+                "HATCH_GRADIENT_COLOR",
+                format!("/entities/{}/{}", h.id, loss.field),
+                loss.detail,
+            ));
+        }
+    }
     for loss in p.losses {
         diagnostics.push(crate::to_cad::diagnostic(
-            "HATCH_PATTERN_METADATA",
+            if loss.field == "gradient.frame" {
+                "HATCH_GRADIENT_FRAME_UNSUPPORTED"
+            } else {
+                "HATCH_PATTERN_METADATA"
+            },
             format!("/entities/{}/{}", h.id, loss.field),
             loss.detail,
         ));
@@ -174,5 +220,5 @@ pub(crate) fn to_cad(
             "CAD does not persist the native Hatch join tolerance",
         ));
     }
-    Ok(EntityType::Hatch(p.hatch))
+    Ok(Some(EntityType::Hatch(p.hatch)))
 }
