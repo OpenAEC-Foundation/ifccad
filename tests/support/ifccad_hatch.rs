@@ -11,7 +11,7 @@ pub fn plane() -> IfccadPlacement {
 }
 pub fn drawing() -> IfccadDocument {
     let mut d = load_ifccad_bytes(
-        include_bytes!("../../examples/ifccad/hello-cad.ifcx"),
+        include_bytes!("../../tests/fixtures/ifccad/hello-cad.ifcx"),
         Default::default(),
     )
     .unwrap()

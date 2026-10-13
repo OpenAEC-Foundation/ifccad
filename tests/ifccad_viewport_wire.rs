@@ -3,7 +3,7 @@ use serde_json::{json, Value};
 
 fn wire() -> Value {
     let mut v: Value =
-        serde_json::from_slice(include_bytes!("../examples/ifccad/hello-cad.ifcx")).unwrap();
+        serde_json::from_slice(include_bytes!("../tests/fixtures/ifccad/hello-cad.ifcx")).unwrap();
     let attributes = v["data"]
         .as_array()
         .unwrap()

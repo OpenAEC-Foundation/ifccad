@@ -57,11 +57,12 @@ fn physical_pattern_description_loss_is_reported_for_both_routes_and_codecs() {
     for (name, bytes) in [
         (
             "pattern.ocdraw.json",
-            include_bytes!("../../../examples/ocdraw/hello-hatch-pattern.ocdraw.json").as_slice(),
+            include_bytes!("../../../tests/fixtures/ocdraw/hello-hatch-pattern.ocdraw.json")
+                .as_slice(),
         ),
         (
             "pattern.ifcx",
-            include_bytes!("../../../examples/ifccad/hello-hatch-pattern.ifcx").as_slice(),
+            include_bytes!("../../../tests/fixtures/ifccad/hello-hatch-pattern.ifcx").as_slice(),
         ),
     ] {
         for format in ["dxf", "dwg"] {

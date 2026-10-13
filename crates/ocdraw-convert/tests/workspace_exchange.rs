@@ -6,7 +6,7 @@ use std::io::Cursor;
 #[test]
 fn workspace_fields_survive_direct_dxf_and_dwg_exchange() {
     let original = load_ocdraw_bytes(include_bytes!(
-        "../../../examples/ocdraw/workspace-state.ocdraw.json"
+        "../../../tests/fixtures/ocdraw/workspace-state.ocdraw.json"
     ))
     .unwrap();
     let target = ocdraw_source_to_cad_document(&original, Default::default()).unwrap();

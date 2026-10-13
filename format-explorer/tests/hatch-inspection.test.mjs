@@ -4,7 +4,7 @@ import {createInspection} from '../src/inspection-model.mjs';
 import {renderInspection,itemTitle} from '../src/inspection-view.mjs';
 import {collectionEntries} from '../src/inspection-navigation.mjs';
 import {hatchSummary} from '../src/hatch-view.mjs';
-const source=await readFile(new URL('../../examples/ifccad/hello-hatch-solid.ifcx',import.meta.url),'utf8');
+const source=await readFile(new URL('../../tests/fixtures/ifccad/hello-hatch-solid.ifcx',import.meta.url),'utf8');
 test('pattern summary identifies authored line families in both languages',()=>{
  const value={fill:{kind:'linePattern',families:[{},{}]},loops:[{},{}],areaRule:'normal'};
  assert.match(hatchSummary(value,'en'),/Pattern.*2 line families/);

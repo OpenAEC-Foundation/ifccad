@@ -6,7 +6,7 @@ is the central input/output for shared validation, encoding and direct CAD
 conversion. Merging an edited projection into a larger source graph remains
 deferred; CAD-profile encoding produces a fresh file.
 
-Status: experimental profile, 2026-10-01. This is an opt-in IFCX alpha drawing with a separate provisional schema module, independent of the standalone OCDraw contract. Historical released IFCCAD conformance collections remain unchanged. The [contract](../../schemas/ifccad/experimental-contract-0.1.0.md), [schema module](../../schemas/ifccad/ifccad-profile-0.1.0.ifcx), [drawing fixture](../../examples/ifccad/hello-cad.ifcx), [nested-block fixture](../../examples/ifccad/hello-nested-blocks.ifcx), [paper-layout fixture](../../examples/ifccad/hello-paper-layouts.ifcx), and [strict-readback tests](../../tests/ifccad_native.rs) form the reproducible result.
+Status: experimental profile, 2026-10-01. This is an opt-in IFCX alpha drawing with a separate provisional schema module, independent of the standalone OCDraw contract. Historical released IFCCAD conformance collections remain unchanged. The [contract](../../schemas/ifccad/experimental-contract-0.1.0.md), [schema module](../../schemas/ifccad/ifccad-profile-0.1.0.ifcx), [drawing fixture](../../tests/fixtures/ifccad/hello-cad.ifcx), [nested-block fixture](../../tests/fixtures/ifccad/hello-nested-blocks.ifcx), [paper-layout fixture](../../tests/fixtures/ifccad/hello-paper-layouts.ifcx), and [strict-readback tests](../../tests/ifccad_native.rs) form the reproducible result.
 
 ## Finding
 
@@ -75,7 +75,7 @@ independent display controls and frozen layers in the native profile. Active
 Paper clipping currently accepts analytic circles and closed straight polylines,
 including concave boundaries; dormant references retain ownership and identity.
 See the [contract](../../schemas/ifccad/experimental-contract-0.1.0.md#paper-viewports)
-and [example](../../examples/ifccad/hello-viewports.ifcx).
+and [example](../../tests/fixtures/ifccad/hello-viewports.ifcx).
 
 In-memory, DXF and DWG exchange tests use explicit development codec repairs for
 clipping activation/boundaries, DXF angle units and independent off state.

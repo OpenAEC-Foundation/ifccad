@@ -103,7 +103,7 @@ Unknown fields and removed spellings are rejected; no old-file synthesis is adde
 See [layout output](../../docs/layout-output.md) for output choices and exchange limits.
 
 
-A block definition's insertion unit records intent but does not silently scale coordinates. Transform evaluation subtracts the definition base point, applies stored scale and rotation, then applies placement. For a paper-owned instance, its scale maps drawing-coordinate numbers into paper-coordinate numbers; any unit conversion must be included explicitly. For example, the [paper-layout fixture](../../examples/ifccad/hello-paper-layouts.ifcx) has centimetre model/block coordinates and an A3 sheet in millimetres, with a paper instance scale of `[10, 10, 10]`. A nested instance inside a definition stays in drawing units. Reading and writing never normalize or rewrite these transforms; present scope bounds require conservative transform evaluation for validation.
+A block definition's insertion unit records intent but does not silently scale coordinates. Transform evaluation subtracts the definition base point, applies stored scale and rotation, then applies placement. For a paper-owned instance, its scale maps drawing-coordinate numbers into paper-coordinate numbers; any unit conversion must be included explicitly. For example, the [paper-layout fixture](../../tests/fixtures/ifccad/hello-paper-layouts.ifcx) has centimetre model/block coordinates and an A3 sheet in millimetres, with a paper instance scale of `[10, 10, 10]`. A nested instance inside a definition stays in drawing units. Reading and writing never normalize or rewrite these transforms; present scope bounds require conservative transform evaluation for validation.
 
 Definitions also retain `description` (default empty), `anonymous` (false),
 `explodable` (true) and `uniformScaling` (false). When uniformScaling is true,
@@ -187,7 +187,7 @@ or Rendered; absence has the AsDisplayed default. Render mode is separate.
 Quality/custom DPI belongs only to layout plotsettings. Combined viewport
 mode/quality objects are not accepted or silently migrated.
 
-The [viewport example](../../examples/ifccad/hello-viewports.ifcx) and
+The [viewport example](../../tests/fixtures/ifccad/hello-viewports.ifcx) and
 [candidate conformance cases](../../conformance/next/ifccad/README.md)
 exercise strict reader/writer behavior. CAD conversion has separate coverage and
 dependency boundaries documented by the companion converter.

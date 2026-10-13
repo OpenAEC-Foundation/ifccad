@@ -3,7 +3,7 @@ use serde_json::{json, Value};
 
 fn drawing() -> Value {
     let mut v: Value =
-        serde_json::from_slice(include_bytes!("../examples/ifccad/hello-cad.ifcx")).unwrap();
+        serde_json::from_slice(include_bytes!("../tests/fixtures/ifccad/hello-cad.ifcx")).unwrap();
     for n in v["data"].as_array_mut().unwrap() {
         if n["path"] == "/cad/d1" {
             n["attributes"]["ifccad::drawing"]["nextLinePatternId"] = json!(3);
@@ -183,7 +183,7 @@ fn definitions_require_drawing_ownership_and_entities_keep_explicit_references()
 #[test]
 fn dedicated_line_pattern_example_is_strictly_readable() {
     let source = load_ifccad_bytes(
-        include_bytes!("../examples/ifccad/hello-line-patterns.ifcx"),
+        include_bytes!("../tests/fixtures/ifccad/hello-line-patterns.ifcx"),
         Default::default(),
     )
     .unwrap();

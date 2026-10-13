@@ -17,7 +17,7 @@ fn result_readers_retain_invalid_input_evidence() {
 
 #[test]
 fn encoded_profile_and_original_source_have_independent_ownership() {
-    let original = include_bytes!("../examples/ifccad/hello-cad.ifcx");
+    let original = include_bytes!("../tests/fixtures/ifccad/hello-cad.ifcx");
     let loaded = load_ifccad_bytes(original, IfccadReadOptions::default()).unwrap();
     let (source, mut document) = loaded.into_parts();
     document.header.author = "edited logical document".into();
@@ -45,7 +45,7 @@ fn file_storage_refuses_overwrite_and_distinguishes_read_errors() {
     assert!(encoded.write_file(&ocdraw_path).is_err());
     assert_eq!(load_ocdraw_file(&ocdraw_path).unwrap().drawing_id(), "io");
     let loaded = load_ifccad_bytes(
-        include_bytes!("../examples/ifccad/hello-cad.ifcx"),
+        include_bytes!("../tests/fixtures/ifccad/hello-cad.ifcx"),
         IfccadReadOptions::default(),
     )
     .unwrap();

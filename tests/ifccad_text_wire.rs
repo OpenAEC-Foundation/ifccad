@@ -33,7 +33,7 @@ fn bundled_profile_uses_ifcx_array_item_description_syntax() {
 
 fn graph() -> Value {
     let mut d = load_ifccad_bytes(
-        include_bytes!("../examples/ifccad/hello-cad.ifcx"),
+        include_bytes!("../tests/fixtures/ifccad/hello-cad.ifcx"),
         Default::default(),
     )
     .unwrap()

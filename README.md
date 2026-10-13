@@ -195,12 +195,12 @@ Licensed under [MPL-2.0](LICENSE).
 
 The independent IFCCAD proof is available in
 `src/ifccad`, with its [experimental contract](schemas/ifccad/experimental-contract-0.1.0.md),
-[sample](examples/ifccad/hello-cad.ifcx) and
+[sample](tests/fixtures/ifccad/hello-cad.ifcx) and
 [evaluation](docs/experiments/ifccad.md). Its direct
 [converter](crates/ifccad-convert/README.md) connects the supported subset to
 opencadcodec `CadDocument`, including named simple line patterns, scales and polyline
-pattern generation. See the [geometry sample](examples/ifccad/hello-geometry.ifcx)
-and [line-pattern sample](examples/ifccad/hello-line-patterns.ifcx). Geometry validation and length-unit tokens use shared neutral helpers;
+pattern generation. See the [geometry sample](tests/fixtures/ifccad/hello-geometry.ifcx)
+and [line-pattern sample](tests/fixtures/ifccad/hello-line-patterns.ifcx). Geometry validation and length-unit tokens use shared neutral helpers;
 the two drawing models, schemas and encoding routes remain separate. The
 [IFCCAD & OCDraw Explorer](format-explorer/README.md) now opens IFCCAD and
 roundtrips through DXF/DWG using its own converter. Model and multiple Paper layouts convert with explicit tab order, optional media and explicit output mappings. Paper viewports now retain orthographic/perspective camera, depth/display state and circle/full-ellipse/closed straight-or-bulged path clipping. CAD viewport exchange uses the explicit development codec repairs described in the converter; effective plot settings retain the documented CAD limits.

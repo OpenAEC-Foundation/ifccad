@@ -98,7 +98,7 @@ mod tests {
     use serde_json::Value;
     use std::error::Error;
 
-    const HELLO: &[u8] = include_bytes!("../../examples/ifccad/hello-cad.ifcx");
+    const HELLO: &[u8] = include_bytes!("../../tests/fixtures/ifccad/hello-cad.ifcx");
 
     #[test]
     fn readback_failure_retains_reader_report_and_source() {

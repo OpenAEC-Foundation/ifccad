@@ -6,7 +6,7 @@ fn compact_examples_recover_sparse_ids_without_changing_content_or_fragments() {
     use serde_json::{json, Value};
     use std::collections::BTreeMap;
     let original: Value = serde_json::from_slice(include_bytes!(
-        "../examples/ifccad/blocks-and-fragments.ifcx"
+        "../tests/fixtures/ifccad/blocks-and-fragments.ifcx"
     ))
     .unwrap();
     let canonical = example_consistency::normalize(&original).unwrap();
@@ -210,8 +210,8 @@ fn representative_native_examples_strict_read_and_cover_entity_families() {
     use ocdraw::ocdraw::{load_ocdraw_bytes, DrawingGeometry};
     for bytes in [
         include_bytes!("../examples/ocdraw/overview.ocdraw.json").as_slice(),
-        include_bytes!("../examples/ocdraw/layouts-viewports.ocdraw.json").as_slice(),
-        include_bytes!("../examples/ocdraw/state-and-storage.ocdraw.json").as_slice(),
+        include_bytes!("../tests/fixtures/ocdraw/layouts-viewports.ocdraw.json").as_slice(),
+        include_bytes!("../tests/fixtures/ocdraw/state-and-storage.ocdraw.json").as_slice(),
     ] {
         load_ocdraw_bytes(bytes).unwrap();
     }
@@ -234,8 +234,8 @@ fn representative_native_examples_strict_read_and_cover_entity_families() {
     assert_eq!(kinds.len(), 8);
     for bytes in [
         include_bytes!("../examples/ifccad/overview.ifcx").as_slice(),
-        include_bytes!("../examples/ifccad/layouts-viewports.ifcx").as_slice(),
-        include_bytes!("../examples/ifccad/blocks-and-fragments.ifcx").as_slice(),
+        include_bytes!("../tests/fixtures/ifccad/layouts-viewports.ifcx").as_slice(),
+        include_bytes!("../tests/fixtures/ifccad/blocks-and-fragments.ifcx").as_slice(),
     ] {
         ocdraw::ifccad::load_ifccad_bytes(bytes, Default::default()).unwrap();
     }

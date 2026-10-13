@@ -5,7 +5,7 @@ use serde_json::{json, Value};
 mod preservation;
 
 fn graph() -> Value {
-    serde_json::from_slice(include_bytes!("../examples/ifccad/hello-text.ifcx")).unwrap()
+    serde_json::from_slice(include_bytes!("../examples/ifccad/text.ifcx")).unwrap()
 }
 fn attr<'a>(graph: &'a mut Value, key: &str) -> &'a mut Value {
     graph["data"]
@@ -242,8 +242,10 @@ fn text_root_fields_and_types_match_ifcx_declarations() {
 
 #[test]
 fn workspace_view_plot_and_preservation_supplements_preserve_boundaries() {
-    let mut g: Value =
-        serde_json::from_slice(include_bytes!("../examples/ifccad/workspace-state.ifcx")).unwrap();
+    let mut g: Value = serde_json::from_slice(include_bytes!(
+        "../tests/fixtures/ifccad/workspace-state.ifcx"
+    ))
+    .unwrap();
     let window = attr(&mut g, "ifccad::modelWindow").clone();
     let check = supplement("modelWindowExtras");
     assert!(check.is_valid(&window));
@@ -255,8 +257,10 @@ fn workspace_view_plot_and_preservation_supplements_preserve_boundaries() {
     assert!(check.is_valid(&bad));
     bad["storedUcs"] = json!({"kind":"World","ucs":"/cad/d1/ucs/1"});
     assert!(!check.is_valid(&bad));
-    let mut viewport: Value =
-        serde_json::from_slice(include_bytes!("../examples/ifccad/hello-viewports.ifcx")).unwrap();
+    let mut viewport: Value = serde_json::from_slice(include_bytes!(
+        "../tests/fixtures/ifccad/hello-viewports.ifcx"
+    ))
+    .unwrap();
     let view = attr(&mut viewport, "ifccad::viewport");
     let check = supplement("viewportExtras");
     assert!(check.is_valid(view));
@@ -307,8 +311,10 @@ fn optional_nulls_are_rejected_and_exact_watermarks_keep_their_native_meaning() 
 
 #[test]
 fn viewport_nulls_are_rejected_even_when_dormant() {
-    let g: Value =
-        serde_json::from_slice(include_bytes!("../examples/ifccad/hello-viewports.ifcx")).unwrap();
+    let g: Value = serde_json::from_slice(include_bytes!(
+        "../tests/fixtures/ifccad/hello-viewports.ifcx"
+    ))
+    .unwrap();
     for pointer in [
         "/view/lensLengthMm",
         "/view/frontClip/distance",
@@ -337,9 +343,10 @@ fn workspace_view_nulls_are_rejected_like_authored_viewport_nulls() {
         "/view/frontClip/distance",
         "/view/backClip/distance",
     ] {
-        let mut g: Value =
-            serde_json::from_slice(include_bytes!("../examples/ifccad/workspace-state.ifcx"))
-                .unwrap();
+        let mut g: Value = serde_json::from_slice(include_bytes!(
+            "../tests/fixtures/ifccad/workspace-state.ifcx"
+        ))
+        .unwrap();
         let window = attr(&mut g, "ifccad::modelWindow");
         window["view"]["projection"] = json!("Orthographic");
         window["view"]["lensLengthMm"] = json!(50);
@@ -465,7 +472,7 @@ fn standalone_scalar_validators_keep_semantic_rule_and_component_location() {
         .iter()
         .all(|m| m.starts_with("IFCCAD-GEOMETRY-") && m.contains("/ifccad::geom::placement")));
     let viewport_d = load_ifccad_bytes(
-        include_bytes!("../examples/ifccad/hello-viewports.ifcx"),
+        include_bytes!("../tests/fixtures/ifccad/hello-viewports.ifcx"),
         Default::default(),
     )
     .unwrap();
@@ -495,7 +502,7 @@ fn standalone_scalar_validators_keep_semantic_rule_and_component_location() {
 #[test]
 fn document_wrappers_preserve_specific_rule_and_owner_field() {
     let mut d = load_ifccad_bytes(
-        include_bytes!("../examples/ifccad/hello-viewports.ifcx"),
+        include_bytes!("../tests/fixtures/ifccad/hello-viewports.ifcx"),
         Default::default(),
     )
     .unwrap()

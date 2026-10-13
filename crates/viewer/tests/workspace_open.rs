@@ -3,7 +3,7 @@ use viewer::{export_drawing_bytes, inspect_drawing_bytes};
 
 #[test]
 fn ifccad_workspace_records_and_source_bytes_keep_full_width_identity() {
-    const BYTES: &[u8] = include_bytes!("../../../examples/ifccad/workspace-state.ifcx");
+    const BYTES: &[u8] = include_bytes!("../../../tests/fixtures/ifccad/workspace-state.ifcx");
     let opened = inspect_drawing_bytes("workspace.ifcx", BYTES);
     assert_eq!(opened["validation"]["status"], "valid");
     assert_eq!(
@@ -38,7 +38,7 @@ fn ifccad_workspace_records_and_source_bytes_keep_full_width_identity() {
 fn ocdraw_workspace_inspection_keeps_unspecified_choices_and_dormant_values() {
     let opened = inspect_drawing_bytes(
         "workspace.ocdraw.json",
-        include_bytes!("../../../examples/ocdraw/workspace-state.ocdraw.json"),
+        include_bytes!("../../../tests/fixtures/ocdraw/workspace-state.ocdraw.json"),
     );
     assert_eq!(opened["validation"]["status"], "valid");
     let p = &opened["presentation"];

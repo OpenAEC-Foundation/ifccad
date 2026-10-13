@@ -100,7 +100,7 @@ mod tests {
     use super::*;
     #[test]
     fn absent_or_changed_readback_identity_is_not_linked() {
-        let bytes = include_bytes!("../../../examples/ifccad/hello-line-patterns.ifcx");
+        let bytes = include_bytes!("../../../tests/fixtures/ifccad/hello-line-patterns.ifcx");
         let source = ocdraw::ifccad::load_ifccad_bytes(bytes, Default::default()).unwrap();
         let converted =
             ifccad_convert::ifccad_source_to_cad_document(&source, Default::default()).unwrap();

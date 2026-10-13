@@ -42,7 +42,7 @@ fn new_clip_families_accept_tangency_and_reject_interior_escape() {
 #[test]
 fn expanded_boundaries_survive_production_native_readback() {
     let original = load_ifccad_bytes(
-        include_bytes!("../examples/ifccad/hello-viewports.ifcx"),
+        include_bytes!("../tests/fixtures/ifccad/hello-viewports.ifcx"),
         Default::default(),
     )
     .unwrap()
@@ -88,7 +88,7 @@ fn expanded_boundaries_survive_production_native_readback() {
 #[test]
 fn dormant_ineligible_shapes_and_forward_references_keep_identity() {
     let mut d = load_ifccad_bytes(
-        include_bytes!("../examples/ifccad/hello-viewports.ifcx"),
+        include_bytes!("../tests/fixtures/ifccad/hello-viewports.ifcx"),
         Default::default(),
     )
     .unwrap()

@@ -2,7 +2,7 @@ use ocdraw::ifccad::*;
 use serde_json::{json, Value};
 
 fn fixture() -> Value {
-    serde_json::from_slice(include_bytes!("../examples/ifccad/hello-text.ifcx")).unwrap()
+    serde_json::from_slice(include_bytes!("../examples/ifccad/text.ifcx")).unwrap()
 }
 fn role<'a>(value: &'a mut Value, key: &str) -> &'a mut Value {
     &mut value["data"]
@@ -140,8 +140,10 @@ fn status_nulls_and_unknown_fields_are_not_silently_ignored() {
 
 #[test]
 fn viewport_visibility_belongs_to_common_entity_state() {
-    let mut value: Value =
-        serde_json::from_slice(include_bytes!("../examples/ifccad/hello-viewports.ifcx")).unwrap();
+    let mut value: Value = serde_json::from_slice(include_bytes!(
+        "../tests/fixtures/ifccad/hello-viewports.ifcx"
+    ))
+    .unwrap();
     let node = value["data"]
         .as_array_mut()
         .unwrap()

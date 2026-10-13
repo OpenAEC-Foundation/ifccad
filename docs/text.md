@@ -127,7 +127,7 @@ Generate the [Explorer example](../examples/ocdraw/text.ocdraw.json) with
 `cargo run --example write_text -- <new-output.ocdraw.json>`. The producer strictly
 reads its output and refuses overwrite. Fonts remain requested rather than bundled.
 
-The independent [IFCCAD example](../examples/ifccad/hello-text.ifcx) includes
+The independent [IFCCAD example](../examples/ifccad/text.ifcx) includes
 Text/MText in Model, Paper and a local block, explicit paragraph colour and
 estimated bounds. Generate it with `cargo run --example write_ifccad_text --
 <output.ifcx>`. That producer uses strict native readback before writing.
