@@ -65,7 +65,14 @@ fn entity_node(entity: &IfccadEntity, prefix: &str) -> NodeOut {
         };
     }
     let entity = entity.as_native().expect("native branch");
-    attrs.insert("ifccad::entity".into(), json!({"layer":format!("{prefix}/layer/{}",entity.layer_id),"appearance":super::wire::entity(&entity.appearance,prefix),"linePatternScale":entity.line_pattern_scale}));
+    let mut common = json!({"layer":format!("{prefix}/layer/{}",entity.layer_id)});
+    if let Some(appearance) = super::wire::native_entity(&entity.appearance, prefix) {
+        common["appearance"] = appearance;
+    }
+    if !super::defaults::is_one(entity.line_pattern_scale) {
+        common["linePatternScale"] = json!(entity.line_pattern_scale);
+    }
+    attrs.insert("ifccad::entity".into(), common);
     if !entity.visible {
         attrs["ifccad::entity"]["visible"] = json!(false);
     }
@@ -90,7 +97,7 @@ fn entity_node(entity: &IfccadEntity, prefix: &str) -> NodeOut {
             definition_id,
             transform,
         } => {
-            attrs.insert("ifccad::blockInstance".into(), json!({"definition":format!("{prefix}/block/{definition_id}"),"transform":transform}));
+            attrs.insert("ifccad::blockInstance".into(), json!({"definition":format!("{prefix}/block/{definition_id}"),"transform":super::wire::block_transform(transform)}));
         }
         kind => {
             super::geometry::encode_kind(kind, &mut attrs);
@@ -192,6 +199,12 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
     if document.preservation.is_some() || document.id_counters.next_preservation_record_id != 1 {
         data.last_mut().unwrap().attributes["ifccad::drawing"]["nextPreservationRecordId"] =
             json!(document.id_counters.next_preservation_record_id);
+    }
+    if super::defaults::is_one(document.line_pattern_scale) {
+        data[0].attributes["ifccad::drawing"]
+            .as_object_mut()
+            .expect("drawing")
+            .remove("linePatternScale");
     }
     if !document.text_styles.is_empty() || document.id_counters.next_text_style_id != 1 {
         data.last_mut().unwrap().attributes["ifccad::drawing"]["nextTextStyleId"] =

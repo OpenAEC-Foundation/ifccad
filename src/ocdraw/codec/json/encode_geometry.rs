@@ -124,7 +124,7 @@ fn encode_geometry_fields(geometry: &EntityGeometry) -> Map<String, Value> {
         } => {
             fields.insert("definitionScopeId".into(), json!(definition_scope_id));
             let mut value = json!({"placement": placement_frame(transform.placement())});
-            if transform.rotation() != 0.0 {
+            if !super::defaults::is_positive_zero(transform.rotation()) {
                 value["rotation"] = json!(transform.rotation());
             }
             if transform.scale() != crate::ocdraw::Scale3::default() {
@@ -182,6 +182,15 @@ pub(crate) fn object_columns(rows: &[&DrawingGeometricEntity]) -> Map<String, Va
         &mut columns,
         &rows.iter().map(|row| &row.appearance).collect::<Vec<_>>(),
     );
+    for field in ["z1", "z2"] {
+        super::defaults::omit_default_column(&mut columns, field, |v| {
+            v.as_f64().is_some_and(super::defaults::is_positive_zero)
+        });
+    }
+    super::defaults::omit_default_column(&mut columns, "closed", |v| v.as_bool() == Some(false));
+    super::defaults::omit_default_column(&mut columns, "linePatternGeneration", |v| {
+        v.as_str() == Some("perSegment")
+    });
     columns
 }
 
@@ -244,7 +253,7 @@ pub(super) fn appearance_columns(
             })
             .map(|mode| json!(mode))
             .collect();
-        columns.insert(mode_name, Value::Array(modes));
+        columns.insert(mode_name.clone(), Value::Array(modes));
         let values = appearances
             .iter()
             .map(|row| match property {
@@ -264,5 +273,21 @@ pub(super) fn appearance_columns(
             .into(),
             Value::Array(values),
         );
+        super::defaults::omit_default_column(columns, &mode_name, |v| {
+            v.as_str() == Some("ByLayer")
+        });
+        super::defaults::omit_default_column(
+            columns,
+            if property == "linePattern" {
+                "linePatternId"
+            } else {
+                property
+            },
+            Value::is_null,
+        );
     }
+    super::defaults::omit_default_column(columns, "visible", |v| v.as_bool() == Some(true));
+    super::defaults::omit_default_column(columns, "linePatternScale", |v| {
+        super::defaults::number(v, 1.)
+    });
 }

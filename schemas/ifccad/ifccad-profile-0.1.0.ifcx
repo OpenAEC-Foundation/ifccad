@@ -569,7 +569,8 @@
                     }
                   },
                   "opacity": {
-                    "dataType": "Real"
+                    "dataType": "Real",
+                    "optional": true
                   },
                   "linePattern": {
                     "dataType": "String"
@@ -760,7 +761,8 @@
                           "optional": true
                         }
                       }
-                    }
+                    },
+                    "optional": true
                   },
                   "opacity": {
                     "dataType": "Object",
@@ -781,7 +783,8 @@
                           "optional": true
                         }
                       }
-                    }
+                    },
+                    "optional": true
                   },
                   "linePattern": {
                     "dataType": "Object",
@@ -802,7 +805,8 @@
                           "optional": true
                         }
                       }
-                    }
+                    },
+                    "optional": true
                   },
                   "lineWeight": {
                     "dataType": "Object",
@@ -823,10 +827,12 @@
                           "optional": true
                         }
                       }
-                    }
+                    },
+                    "optional": true
                   }
                 }
-              }
+              },
+              "optional": true
             },
             "linePatternScale": {
               "dataType": "Real",
@@ -1105,7 +1111,7 @@
             "start": {
               "dataType": "Array",
               "arrayRestrictions": {
-                "min": 3,
+                "min": 2,
                 "max": 3,
                 "value": {
                   "dataType": "Real"
@@ -1115,7 +1121,7 @@
             "end": {
               "dataType": "Array",
               "arrayRestrictions": {
-                "min": 3,
+                "min": 2,
                 "max": 3,
                 "value": {
                   "dataType": "Real"
@@ -1148,7 +1154,8 @@
               }
             },
             "closed": {
-              "dataType": "Boolean"
+              "dataType": "Boolean",
+              "optional": true
             },
             "linePatternGeneration": {
               "dataType": "Enum",
@@ -1241,7 +1248,8 @@
                     "dataType": "Object"
                   },
                   "rotation": {
-                    "dataType": "Real"
+                    "dataType": "Real",
+                    "optional": true
                   },
                   "scale": {
                     "dataType": "Array",
@@ -1251,7 +1259,8 @@
                       "value": {
                         "dataType": "Real"
                       }
-                    }
+                    },
+                    "optional": true
                   }
                 }
               }
@@ -1363,7 +1372,8 @@
               }
             },
             "closed": {
-              "dataType": "Boolean"
+              "dataType": "Boolean",
+              "optional": true
             },
             "linePatternGeneration": {
               "dataType": "Enum",

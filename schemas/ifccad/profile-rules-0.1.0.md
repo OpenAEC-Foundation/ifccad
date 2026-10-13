@@ -18,6 +18,17 @@ local values, not a second whole-document schema.
 
 ## Validation phases and upstream migration
 
+Native defaults are applied after composition, before typed domain validation;
+see [drawing defaults](../../docs/drawing-defaults.md). Line endpoints MUST have
+two or three numeric components; a missing third component means +0. Other XYZ
+positions, spatial-polyline vertices, axes and scale components retain their
+existing requirements. Native entity appearance MAY omit individual properties
+or the whole object, defaulting each to ByLayer; null remains invalid. Opaque
+appearance absence remains unknown and its envelope rules are unchanged.
+Block rotation/scale default to +0/[1,1,1]; transform and placement remain required.
+Layer opacity defaults to 1; planar/spatial polyline closure defaults to false.
+Writers MUST preserve nondefaults and explicit -0 in newly compacted fields.
+
 `C` is JSON parsing/composition, `V` is consumed composed attribute validation,
 `G` is graph projection/reference validation, and `D` is typed domain validation.
 Writer output must pass the production reader and strict domain validation.

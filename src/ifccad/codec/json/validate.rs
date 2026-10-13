@@ -109,13 +109,18 @@ struct EntityValue {
     #[serde(default = "crate::ifccad::logical::patterns::one")]
     line_pattern_scale: f64,
     layer: String,
-    appearance: super::wire::EntityAppearance,
+    #[serde(
+        default,
+        rename = "appearance",
+        deserialize_with = "super::presentation::present"
+    )]
+    _appearance: Option<Value>,
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct InstanceValue {
     definition: String,
-    transform: IfccadBlockTransform,
+    transform: super::wire::BlockTransformValue,
 }
 
 fn problem(message: impl Into<String>) -> IfccadReport {
@@ -270,20 +275,24 @@ fn entity(
         super::supplemental::validate_value("ifccad::opaqueEntity", value, path)?;
         return super::preservation::decode_opaque(value, id, prefix, pattern_paths);
     }
-    appearance_modes(&node["attributes"]["ifccad::entity"]["appearance"], path)?;
+    // Retain specific mode/value diagnostics before the broad schema supplement.
+    let appearance = super::wire::decode_native_appearance(
+        node["attributes"]["ifccad::entity"].get("appearance"),
+        pattern_paths,
+    )
+    .map_err(|report| {
+        crate::ifccad::diagnostics::context(
+            report,
+            "IFCCAD-APPEARANCE-001",
+            &format!("{path}/ifccad::entity/appearance"),
+        )
+    })?;
     let value: EntityValue = required(node, "ifccad::entity")?;
     let layer_id = *layer_paths.get(&value.layer).ok_or_else(|| {
         crate::ifccad::diagnostics::failure(
             "IFCCAD-APPEARANCE-001",
             &format!("{path}/ifccad::entity/layer"),
             format!("unresolved layer {}", value.layer),
-        )
-    })?;
-    let appearance = value.appearance.typed(pattern_paths).map_err(|report| {
-        crate::ifccad::diagnostics::context(
-            report,
-            "IFCCAD-APPEARANCE-001",
-            &format!("{path}/ifccad::entity/appearance"),
         )
     })?;
     let attrs = node
@@ -355,7 +364,7 @@ fn entity(
             })?;
             IfccadEntityKind::BlockInstance {
                 definition_id,
-                transform: instance.transform,
+                transform: instance.transform.into_typed(),
             }
         }
         key => super::geometry::decode_kind(attrs, key, path)?,

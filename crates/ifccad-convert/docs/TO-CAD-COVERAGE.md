@@ -8,6 +8,11 @@ Those additional diagnostics and their Allow/Reject enforcement remain intact;
 applications assessing a full IFCX source must use the loaded-source routes.
 Original input bytes and composed graph remain immutable in `LoadedIfccadGraph`.
 
+Known [native defaults](../../../docs/drawing-defaults.md) are expanded on both
+sides of the source/canonical comparison, including XY line endpoints and native
+ByLayer omission. This does not erase foreign fields or supplied numeric values;
+exact-source precision losses remain fatal under both loss policies.
+
 Invalid logical input returns `CoreValidation(IfccadReport)` with its original
 diagnostics. The loaded-source route's canonical encoder failures return
 `CoreEncoding(IfccadEncodeError)`, retaining validation, serialization,

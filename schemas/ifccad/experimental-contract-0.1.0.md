@@ -4,6 +4,15 @@ IFCCAD is an opt-in, standalone IFCX alpha experiment, independent of the OCDraw
 
 ## Validation contract
 
+The [drawing-defaults contract](../../docs/drawing-defaults.md) describes native
+omission semantics shared with OCDraw. Missing line Z means +0, entity appearance
+properties mean ByLayer, layer opacity means 1, and polyline closed means false.
+Block rotation and scale may omit +0 and [1,1,1]. These physical defaults expand
+after IFCX composition; the logical document retains complete values. Null,
+unknown fields and malformed present values remain invalid. Placement/axis and
+spatial-vertex requirements are unchanged. Existing fully expanded input remains
+valid; older experimental readers can reject new compact output.
+
 The ordinary IFCX module describes the available field shapes. The normative
 [profile rules](profile-rules-0.1.0.md) identify additional local-value, graph and
 domain obligations for all current attribute families. The bundled offline reader
@@ -72,8 +81,8 @@ The drawing has named `children` referring to exactly one Model layout, zero or 
 | `ifccad::linePattern` | nonempty `name`, optional `description`, ordered signed-real `pattern` array; drawing-owned definition |
 | `ifccad::layer` | `name`, direct concrete `appearance`; optional description and independent visible/frozen/locked/plottable/frozenInNewViewports state |
 | `ifccad::blockDefinition` | `name`, `basePoint` XYZ, `insertionUnit`; description, anonymous, explodable and signed-uniform scaling policy |
-| `ifccad::entity` | resolvable drawing-local `layer`, four property modes in `appearance`; optional positive finite `linePatternScale` defaults to 1; common `visible` defaults true |
-| `ifccad::geom::lineSegment` | `start` and `end` XYZ; finite segment, unlike unbounded IFC4 `IfcLine` |
+| `ifccad::entity` | required resolvable drawing-local `layer`; missing native `appearance` or its properties mean ByLayer; optional positive finite `linePatternScale` defaults to 1; common `visible` defaults true |
+| `ifccad::geom::lineSegment` | required `start` and `end`, each XY or XYZ with missing Z=+0; finite segment, unlike unbounded IFC4 `IfcLine` |
 | `ifccad::geom::point` | empty object plus required placement; its origin is the position and its axes retain presentation orientation |
 | `ifccad::geom::planarPolyline` | at least two XY `vertices`, `closed`, optional outgoing `bulges` array plus placement; optional `linePatternGeneration` defaults to `perSegment`, alternatively `continuous` |
 | `ifccad::geom::spatialPolyline` | at least two direct owning-scope XYZ vertices, closure and optional pattern generation; placement and bulges are forbidden |
@@ -213,7 +222,7 @@ geometry, instances, Text/MText and viewports. Viewport-local `visible` is
 removed; viewport enabled/locked status remains independent. Hidden content
 retains its ordinary ownership, draw order and geometry/bounds meaning.
 
-Layer appearance directly contains an explicit `color` choice, `opacity` in `[0,1]`, `linePattern` as a same-drawing pattern-definition path, and nonnegative `lineWeight` in millimetres. Each entity has these four properties independently as `{ "mode": "ByLayer" }`, `{ "mode": "ByBlock" }`, or `{ "mode": "Explicit", "value": ... }`. Modes survive readback; no appearance definition or binding node exists. For an explicit entity pattern, `value` is that same complete path; inherited modes must have no value. The typed API uses `IfccadLinePatternId(u64)`. Literal names such as `Continuous` are not references and are rejected.
+Layer appearance directly contains an explicit `color` choice, optional `opacity` in `[0,1]` defaulting to 1, `linePattern` as a same-drawing pattern-definition path, and nonnegative `lineWeight` in millimetres. Each native entity has these four properties independently as `{ "mode": "ByLayer" }`, `{ "mode": "ByBlock" }`, or `{ "mode": "Explicit", "value": ... }`; omitted properties or the omitted whole appearance object mean ByLayer. Modes survive readback; no appearance definition or binding node exists. For an explicit entity pattern, `value` is that same complete path; inherited modes must have no value. The typed API uses `IfccadLinePatternId(u64)`. Literal names such as `Continuous` are not references and are rejected.
 
 Concrete color is `{ "rgb": [255, 0, 0] }`, optionally extended with
 `indexedColor: {system,index}` and `namedColor: {catalog,name}`. RGB has exactly

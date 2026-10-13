@@ -7,6 +7,11 @@ before construction; validated reader import uses the same implementation.
 These are fresh conversions: no identity-preserving CAD editing session,
 watermark reconstruction or new source coverage is implied.
 
+The reader expands [native defaults](../../../docs/drawing-defaults.md), including
+omitted layer flags/opacity and polyline closure, before this typed boundary.
+Missing required pools, short present columns and inconsistent mode/value pairs
+remain invalid. Compact and fully expanded inputs have the same CAD meaning.
+
 The validated standalone drawing is the conversion boundary. The pinned codec
 revision is `ab2eecdbffc31120b5ad6d899f6fc67cf21ede39`. There is no package
 graph. The bounded typed spline preservation route is separate from native

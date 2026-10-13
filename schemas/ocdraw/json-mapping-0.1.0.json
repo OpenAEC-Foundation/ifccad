@@ -98,27 +98,27 @@
         {
           "logical": "layer.visible",
           "payload": "visible",
-          "omission": "forbidden"
+          "omission": "logicalDefault"
         },
         {
           "logical": "layer.frozen",
           "payload": "frozen",
-          "omission": "forbidden"
+          "omission": "logicalDefault"
         },
         {
           "logical": "layer.locked",
           "payload": "locked",
-          "omission": "forbidden"
+          "omission": "logicalDefault"
         },
         {
           "logical": "layer.plottable",
           "payload": "plottable",
-          "omission": "forbidden"
+          "omission": "logicalDefault"
         },
         {
           "logical": "layer.frozenInNewViewports",
           "payload": "frozenInNewViewports",
-          "omission": "forbidden"
+          "omission": "logicalDefault"
         },
         {
           "logical": "layer.description",
@@ -133,7 +133,7 @@
         {
           "logical": "layer.opacity",
           "payload": "opacity",
-          "omission": "forbidden"
+          "omission": "logicalDefault"
         },
         {
           "logical": "layer.linePatternId",
@@ -745,7 +745,7 @@
         {
           "logical": "planarPolyline.closed",
           "payload": "closed",
-          "omission": "forbidden"
+          "omission": "logicalDefault"
         },
         {
           "logical": "planarPolyline.layerId",
@@ -838,7 +838,7 @@
         {
           "logical": "spatialPolyline.closed",
           "payload": "closed",
-          "omission": "forbidden"
+          "omission": "logicalDefault"
         },
         {
           "logical": "spatialPolyline.layerId",

@@ -56,6 +56,10 @@ Reader and writer use shared logical validation. Generated outputs are loaded
 through the production reader. CAD conversion consumes typed drawing values,
 without JSON inspection. Core has no CAD runtime dependency.
 
+Both routes use corresponding [drawing defaults](docs/drawing-defaults.md) for
+compact native JSON while retaining complete typed documents. Their physical
+omission rules, provisional compatibility and presence-sensitive state stay explicit.
+
 `OcdrawDocument` is the complete mutable logical drawing. The builder can return
 it with `build_document()`; `finish()` uses that document and the common encoder.
 Reading exposes an immutable document snapshot, which can be consumed for edits.

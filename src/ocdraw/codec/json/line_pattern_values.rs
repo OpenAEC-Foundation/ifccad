@@ -15,12 +15,13 @@ pub(crate) fn encode_pattern_elements(elements: &[DrawingLinePatternElement]) ->
             DrawingLinePatternMarker::Text {text, text_style_id, transform} => (json!({"kind":"text","text":text,"textStyleId":text_style_id.0}), transform),
             DrawingLinePatternMarker::Symbol {symbol_source_id, shape_number, transform} => (json!({"kind":"symbol","symbolSourceId":symbol_source_id.0,"shapeNumber":shape_number}), transform),
         };
-        value["scale"] = json!(transform.scale);
-        value["offset"] = json!(transform.offset);
-        value["rotation"] = match transform.rotation {
-            LinePatternRotation::Relative(angle) => json!({"mode":"relative","angle":angle}),
-            LinePatternRotation::Absolute(angle) => json!({"mode":"absolute","angle":angle}),
-        };
+        if !super::defaults::is_one(transform.scale) { value["scale"] = json!(transform.scale); }
+        if !transform.offset.iter().all(|v| super::defaults::is_positive_zero(*v)) { value["offset"] = json!(transform.offset); }
+        match transform.rotation {
+            LinePatternRotation::Relative(angle) if super::defaults::is_positive_zero(angle) => {},
+            LinePatternRotation::Relative(angle) => { value["rotation"] = json!({"mode":"relative","angle":angle}); },
+            LinePatternRotation::Absolute(angle) => { value["rotation"] = json!({"mode":"absolute","angle":angle}); },
+        }
         json!({"length":element.length,"marker":value})
     }).collect())
 }

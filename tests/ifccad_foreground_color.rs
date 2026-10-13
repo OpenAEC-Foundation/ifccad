@@ -8,7 +8,9 @@ fn editable_opaque_foreground_preserves_source_payload_bytes() {
     let original = preservation_support::with_opaque();
     let mut v: Value =
         serde_json::from_slice(encode_ifccad_document(&original).unwrap().bytes()).unwrap();
-    let appearance = role(&mut v, "ifccad::entity")["appearance"].clone();
+    // Opaque appearance stays explicit even when native ByLayer fields are omitted.
+    let appearance = json!({"color":{"mode":"ByLayer"},"opacity":{"mode":"ByLayer"},
+        "linePattern":{"mode":"ByLayer"},"lineWeight":{"mode":"ByLayer"}});
     let opaque = role(&mut v, "ifccad::opaqueEntity");
     opaque["nativeLayer"] = json!("/cad/d1/layer/0");
     opaque["nativeAppearance"] = json!({"appearance":appearance,"linePatternScale":1.0});

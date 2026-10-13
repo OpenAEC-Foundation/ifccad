@@ -1,5 +1,9 @@
 # ocdraw-convert
 
+Native [drawing defaults](../../docs/drawing-defaults.md) expand before conversion.
+Whole-column and layer-field omission do not change the complete typed input
+or CAD coverage. Compact and expanded source spellings use the same converters.
+
 `ocdraw-convert` connects standalone OCDraw to opencadcodec's `CadDocument` through
 `cad_document_to_ocdraw_document` and `ocdraw_document_to_cad_document`.
 The encoded `cad_document_to_encoded_ocdraw` and validated `ocdraw_source_to_cad_document`

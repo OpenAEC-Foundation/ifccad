@@ -1,5 +1,6 @@
 use crate::{diagnostics::diagnostic, IfccadDiagnostic};
 use std::collections::BTreeSet;
+mod defaults;
 
 pub(crate) fn native_defaults(
     raw: &serde_json::Value,
@@ -38,6 +39,7 @@ pub(crate) fn native_defaults(
             .and_then(serde_json::Value::as_object_mut)
         {
             if let Some(reference) = reference {
+                defaults::expand_attributes(attrs);
                 for key in [
                     "ifccad::text",
                     "ifccad::mText",

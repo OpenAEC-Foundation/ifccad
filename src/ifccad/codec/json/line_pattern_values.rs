@@ -12,8 +12,13 @@ pub(crate) fn encode_pattern_elements(
             IfccadLinePatternMarker::Text {text,text_style_id,transform}=>(json!({"kind":"text","text":text,"textStyle":format!("{prefix}/textStyle/{}",text_style_id.0)}),transform),
             IfccadLinePatternMarker::Symbol {symbol_source_id,shape_number,transform}=>(json!({"kind":"symbol","symbolSource":format!("{prefix}/symbolSource/{}",symbol_source_id.0),"shapeNumber":shape_number}),transform),
         };
-        v["scale"]=json!(t.scale);v["offset"]=json!(t.offset);
-        v["rotation"]=match t.rotation {LinePatternRotation::Relative(angle)=>json!({"mode":"relative","angle":angle}),LinePatternRotation::Absolute(angle)=>json!({"mode":"absolute","angle":angle})};
+        if !super::defaults::is_one(t.scale) { v["scale"]=json!(t.scale); }
+        if !t.offset.iter().all(|value| super::defaults::is_positive_zero(*value)) { v["offset"]=json!(t.offset); }
+        match t.rotation {
+            LinePatternRotation::Relative(angle) if super::defaults::is_positive_zero(angle) => {},
+            LinePatternRotation::Relative(angle) => { v["rotation"]=json!({"mode":"relative","angle":angle}); },
+            LinePatternRotation::Absolute(angle) => { v["rotation"]=json!({"mode":"absolute","angle":angle}); },
+        }
         json!({"length":e.length,"marker":v})
     }).collect::<Vec<_>>())
 }

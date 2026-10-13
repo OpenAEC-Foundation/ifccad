@@ -342,5 +342,29 @@
   {
     "file": "invalid/hatch-gradient-foreground.ifcx",
     "valid": false
+  },
+  {
+    "file": "valid/defaults-expanded.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/defaults-compact.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid/default-null.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/default-unknown.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/default-line-point-length.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/default-active-open-clip.ifcx",
+    "valid": false
   }
 ]

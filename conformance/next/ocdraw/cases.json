@@ -546,6 +546,30 @@
     {
       "path": "invalid/hatch-gradient-foreground.ocdraw.json",
       "status": "invalid"
+    },
+    {
+      "path": "valid/defaults-expanded.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "valid/defaults-compact.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "invalid/default-null.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/default-short-column.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/default-missing-vertex-pool.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/default-active-open-clip.ocdraw.json",
+      "status": "invalid"
     }
   ]
 }

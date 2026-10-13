@@ -1,4 +1,5 @@
 mod decode_appearance;
+mod defaults;
 mod hatch;
 mod hatch_gradient;
 mod hatch_pattern;

@@ -13,6 +13,12 @@ until OCDraw 0.1.0 is fixed as the first supported version.
 
 ## Document and identity
 
+Corresponding native defaults are documented in
+[drawing defaults](../../docs/drawing-defaults.md). Readers construct complete
+logical values; writers omit only exact defaults. Line Z defaults to +0, while
+explicit -0 remains stored by the compact writer. Spatial vertex pools and
+placement definitions retain their existing mapping requirements.
+
 `header.format` is `open_cad_drawing` and `header.version` is `0.1.0`.
 `drawingId` is a stable, nonempty drawing identity independent of file path. The
 unit is explicit; `unitless` is valid. `nextEntityId`, `nextLayerId`, `nextLinePatternId`, and
@@ -32,7 +38,9 @@ defaults but must not replace an authored value with a guessed one.
 
 `layers` and `layouts` are drawing-level definition collections, not drawable
 entity streams. A Layer has its own stable ID, nonempty unique name, flags, and
-explicit color, opacity, line pattern, and line weight defaults. A Layout has a
+explicit color, line pattern and line weight values. Omitted opacity means 1;
+visible/plottable default true and frozen/locked/frozenInNewViewports default false.
+A Layout has a
 stable ID, nonempty unique name, scope reference, model/paper kind, and unique
 contiguous zero-based tab index. Names are compared with the pinned Unicode
 17.0 full case fold. Unused definitions remain valid and survive read/write.

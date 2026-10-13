@@ -7,6 +7,11 @@ production loading. Coverage, loss acceptance, recoveries and fresh ID
 allocation are shared. Encoding creates a new CAD-profile file; no source graph
 writeback is performed.
 
+Core encoding may omit exact [native defaults](../../../docs/drawing-defaults.md)
+and writes XY line endpoints when Z is +0. Production readback reconstructs the
+complete logical document; supported CAD source semantics and loss classification
+are unchanged by the compact representation.
+
 Logical document validation returns `CoreValidation(IfccadReport)`; encoded
 routes retain core encoder phases in `CoreEncoding(IfccadEncodeError)`.
 Their additional production load returns `CoreReadback(IfccadReadError)`.

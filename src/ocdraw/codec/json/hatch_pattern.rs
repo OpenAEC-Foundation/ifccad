@@ -68,7 +68,23 @@ pub(super) fn encode(fill: &HatchFill) -> Value {
                 .collect(),
         },
     };
-    serde_json::to_value(v).expect("validated fill values")
+    let mut value = serde_json::to_value(v).expect("validated fill values");
+    if let HatchFill::LinePattern(p) = fill {
+        let fields = value.as_object_mut().expect("fill");
+        if p.origin
+            .iter()
+            .all(|v| super::defaults::is_positive_zero(*v))
+        {
+            fields.remove("origin");
+        }
+        if super::defaults::is_positive_zero(p.rotation) {
+            fields.remove("rotation");
+        }
+        if super::defaults::is_one(p.scale) {
+            fields.remove("scale");
+        }
+    }
+    value
 }
 pub(super) fn decode(v: &Value) -> Result<HatchFill, serde_json::Error> {
     use serde::de::Error as _;

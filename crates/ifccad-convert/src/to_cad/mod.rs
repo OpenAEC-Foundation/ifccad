@@ -19,6 +19,7 @@ pub fn ifccad_source_to_cad_document(
     let canonical: serde_json::Value =
         serde_json::from_slice(canonical.bytes()).expect("writer JSON");
     let mut issues = Vec::new();
+    let canonical = crate::loss::native_defaults(&canonical, &canonical);
     let raw = crate::loss::native_defaults(source.graph().composed_ifcx(), &canonical);
     // Compare composed node payloads, allowing fragment order but not losing
     // extensions, relations or extra schemas through the typed projection.

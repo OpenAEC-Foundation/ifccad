@@ -3009,27 +3009,32 @@
         {
           "name": "visible",
           "valueType": "boolean",
-          "nullable": false
+          "nullable": false,
+          "default": true
         },
         {
           "name": "frozen",
           "valueType": "boolean",
-          "nullable": false
+          "nullable": false,
+          "default": false
         },
         {
           "name": "locked",
           "valueType": "boolean",
-          "nullable": false
+          "nullable": false,
+          "default": false
         },
         {
           "name": "plottable",
           "valueType": "boolean",
-          "nullable": false
+          "nullable": false,
+          "default": true
         },
         {
           "name": "frozenInNewViewports",
           "valueType": "boolean",
-          "nullable": false
+          "nullable": false,
+          "default": false
         },
         {
           "name": "description",
@@ -3045,7 +3050,8 @@
         {
           "name": "opacity",
           "valueType": "opacity",
-          "nullable": false
+          "nullable": false,
+          "default": 1
         },
         {
           "name": "linePatternId",
@@ -3772,7 +3778,8 @@
         {
           "name": "closed",
           "valueType": "boolean",
-          "nullable": false
+          "nullable": false,
+          "default": false
         },
         {
           "name": "layerId",
@@ -3899,7 +3906,8 @@
         {
           "name": "closed",
           "valueType": "boolean",
-          "nullable": false
+          "nullable": false,
+          "default": false
         },
         {
           "name": "layerId",

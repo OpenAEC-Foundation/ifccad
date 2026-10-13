@@ -17,13 +17,28 @@ pub(crate) fn decode_layers(value: &Value) -> Option<Vec<DrawingLayer>> {
                             .get("description")
                             .and_then(Value::as_str)
                             .map(str::to_owned),
-                        visible: row.get("visible")?.as_bool()?,
-                        frozen: row.get("frozen")?.as_bool()?,
-                        locked: row.get("locked")?.as_bool()?,
-                        plottable: row.get("plottable")?.as_bool()?,
-                        frozen_in_new_viewports: row.get("frozenInNewViewports")?.as_bool()?,
+                        visible: row
+                            .get("visible")
+                            .map(Value::as_bool)
+                            .unwrap_or(Some(true))?,
+                        frozen: row
+                            .get("frozen")
+                            .map(Value::as_bool)
+                            .unwrap_or(Some(false))?,
+                        locked: row
+                            .get("locked")
+                            .map(Value::as_bool)
+                            .unwrap_or(Some(false))?,
+                        plottable: row
+                            .get("plottable")
+                            .map(Value::as_bool)
+                            .unwrap_or(Some(true))?,
+                        frozen_in_new_viewports: row
+                            .get("frozenInNewViewports")
+                            .map(Value::as_bool)
+                            .unwrap_or(Some(false))?,
                         color: color(row.get("color")?)?,
-                        opacity: row.get("opacity")?.as_f64()?,
+                        opacity: row.get("opacity").map(Value::as_f64).unwrap_or(Some(1.0))?,
                         line_pattern_id: crate::ocdraw::LinePatternId(
                             row.get("linePatternId")?.as_u64()? as u32,
                         ),

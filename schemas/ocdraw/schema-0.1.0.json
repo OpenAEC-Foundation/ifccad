@@ -5686,13 +5686,7 @@
       "required": [
         "id",
         "name",
-        "visible",
-        "frozen",
-        "locked",
-        "plottable",
-        "frozenInNewViewports",
         "color",
-        "opacity",
         "linePatternId",
         "lineWeight"
       ],
@@ -5707,19 +5701,24 @@
           "minLength": 1
         },
         "visible": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": true
         },
         "frozen": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "locked": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "plottable": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": true
         },
         "frozenInNewViewports": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "description": {
           "type": "string"
@@ -5730,7 +5729,8 @@
         "opacity": {
           "type": "number",
           "minimum": 0,
-          "maximum": 1
+          "maximum": 1,
+          "default": 1
         },
         "lineWeight": {
           "type": "number",

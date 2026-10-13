@@ -36,7 +36,9 @@ Every marker has a positive finite `scale`, a finite two-component `offset`
 (along and perpendicular to the line), and `rotation` with `relative` or
 `absolute` mode and a finite angle in radians. Defaults are scale 1, offset
 `[0,0]` and relative angle 0; omission applies those defaults, while explicit
-null is invalid. Writers emit complete transforms. Relative rotation follows
+null is invalid. Writers omit exact default transform fields, preserving signed
+zero and absolute-zero rotation; see [drawing defaults](drawing-defaults.md).
+Relative rotation follows
 the tangent; absolute rotation requests a fixed drawing orientation. Upright
 rotation is deferred because the pinned codec public model cannot represent it.
 

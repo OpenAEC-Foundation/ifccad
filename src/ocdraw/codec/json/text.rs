@@ -24,6 +24,13 @@ pub(crate) fn encode_text(entities: &[DrawingTextEntity]) -> Value {
         stream.as_object_mut().expect("object stream"),
         &entities.iter().map(|t| &t.appearance).collect::<Vec<_>>(),
     );
+    let columns = stream.as_object_mut().expect("text stream");
+    for field in ["rotation", "obliqueAngle", "thickness"] {
+        super::defaults::omit_default_column(columns, field, |v| super::defaults::number(v, 0.));
+    }
+    for field in ["backward", "upsideDown"] {
+        super::defaults::omit_default_column(columns, field, |v| v.as_bool() == Some(false));
+    }
     stream
 }
 

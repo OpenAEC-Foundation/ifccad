@@ -22,6 +22,20 @@ pub(crate) fn encode_ocdraw_document(doc: &OcdrawDocument) -> Value {
             if let Some(description) = &layer.description {
                 value["description"] = json!(description);
             }
+            for (key, default) in [
+                ("visible", true),
+                ("frozen", false),
+                ("locked", false),
+                ("plottable", true),
+                ("frozenInNewViewports", false),
+            ] {
+                if value[key].as_bool() == Some(default) {
+                    value.as_object_mut().expect("layer").remove(key);
+                }
+            }
+            if super::defaults::is_one(layer.opacity) {
+                value.as_object_mut().expect("layer").remove("opacity");
+            }
             value
         })
         .collect::<Vec<_>>();

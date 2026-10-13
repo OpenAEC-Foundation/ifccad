@@ -1,5 +1,11 @@
 # IFCCAD conversion proof
 
+Native [drawing defaults](../../docs/drawing-defaults.md) expand before conversion.
+The source-aware route compares known defaults in both the original composed
+graph and canonical output, including XY line endpoints. Expanded and compact
+spellings are equivalent; foreign graph content and exact scalar projection loss
+still receive the existing diagnostics. Typed document conversion is unchanged.
+
 Experimental direct conversion between `ocdraw::ifccad` and pinned
 opencadcodec `CadDocument`. The core remains independent of opencadcodec. No IFCDR
 package, block explosion or appearance resolver is used.

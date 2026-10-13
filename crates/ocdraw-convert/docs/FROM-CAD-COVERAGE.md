@@ -1,5 +1,10 @@
 # CadDocument to OCDraw source coverage
 
+Core encoding may omit exact [native defaults](../../../docs/drawing-defaults.md)
+as whole columns or layer fields. Production readback reconstructs complete
+logical values; CAD source coverage and loss classification are unchanged by
+this compact representation.
+
 The complete typed `OcdrawDocument` is the logical conversion boundary.
 Logical export returns it with the existing loss/mapping/accuracy evidence;
 encoded export delegates to the core encoder. Raw document import validates

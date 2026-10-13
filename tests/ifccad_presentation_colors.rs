@@ -138,8 +138,9 @@ fn editable_opaque_color_keeps_snapshot_payload_unchanged() {
     let mut value: Value =
         serde_json::from_slice(encode_ifccad_document(&original).unwrap().bytes()).unwrap();
     migrate_fixture_colors(&mut value);
-    let appearance =
-        role(&mut value, "ifccad::entity")["attributes"]["ifccad::entity"]["appearance"].clone();
+    // Opaque appearance has an independent, fully explicit wire contract.
+    let appearance = json!({"color":{"mode":"ByLayer"},"opacity":{"mode":"ByLayer"},
+        "linePattern":{"mode":"ByLayer"},"lineWeight":{"mode":"ByLayer"}});
     let opaque =
         &mut role(&mut value, "ifccad::opaqueEntity")["attributes"]["ifccad::opaqueEntity"];
     opaque["nativeLayer"] = json!("/cad/d1/layer/0");
