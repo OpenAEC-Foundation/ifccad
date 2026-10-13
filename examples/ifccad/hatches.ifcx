@@ -80,15 +80,7 @@
         "ifccad::layer": {
           "appearance": {
             "color": {
-              "indexedColor": {
-                "index": 7,
-                "system": "ACI"
-              },
-              "rgb": [
-                255,
-                255,
-                255
-              ]
+              "kind": "Foreground"
             },
             "linePattern": "/cad/d1/linePattern/0",
             "lineWeight": 0.1,
@@ -181,7 +173,7 @@
           "fill": {
             "kind": "solid"
           },
-          "joinTolerance": 1e-9,
+          "joinTolerance": 1e-09,
           "loops": [
             {
               "boundary": {
@@ -359,7 +351,7 @@
             "rotation": 0.25,
             "scale": 2.0
           },
-          "joinTolerance": 1e-9,
+          "joinTolerance": 1e-09,
           "loops": [
             {
               "boundary": {

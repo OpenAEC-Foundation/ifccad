@@ -8,7 +8,7 @@ fn base() -> Value {
 #[test]
 fn editable_opaque_foreground_preserves_source_payload_bytes() {
     let mut v: Value = serde_json::from_slice(include_bytes!(
-        "../examples/ocdraw/preserved-spline.ocdraw.json"
+        "fixtures/ocdraw/preserved-spline.ocdraw.json"
     ))
     .unwrap();
     let payload = v["preservation"].clone();

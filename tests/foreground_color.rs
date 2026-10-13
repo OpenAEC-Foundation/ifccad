@@ -44,7 +44,7 @@ fn authored_legacy_aci_seven_is_rejected_by_both_logical_validators() {
     assert!(validate_ocdraw_document(&d).is_err());
     assert!(encode_ocdraw_document(&d).is_err());
     let mut ifc = ocdraw::ifccad::load_ifccad_bytes(
-        include_bytes!("../examples/ifccad/hello-cad.ifcx"),
+        include_bytes!("fixtures/ifccad/hello-cad.ifcx"),
         Default::default(),
     )
     .unwrap()

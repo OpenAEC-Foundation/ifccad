@@ -30,7 +30,7 @@ fn editable_opaque_foreground_preserves_source_payload_bytes() {
 }
 
 fn base() -> Value {
-    serde_json::from_slice(include_bytes!("../examples/ifccad/hello-text.ifcx")).unwrap()
+    serde_json::from_slice(include_bytes!("../examples/ifccad/text.ifcx")).unwrap()
 }
 fn role<'a>(v: &'a mut Value, name: &str) -> &'a mut Value {
     &mut v["data"]
