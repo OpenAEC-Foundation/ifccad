@@ -148,6 +148,12 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
             json!(format!("{prefix}/textStyle/{}", style.id.0)),
         );
     }
+    for source in &document.symbol_sources {
+        drawing_children.insert(
+            format!("symbolSource{}", source.id.0),
+            json!(format!("{prefix}/symbolSource/{}", source.id.0)),
+        );
+    }
     for block in &document.blocks {
         drawing_children.insert(
             format!("block{}", block.id),
@@ -178,6 +184,7 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
             "nextLayoutId":document.id_counters.next_layout_id,
             "nextBlockId":document.id_counters.next_block_id,
             "nextLinePatternId":document.id_counters.next_line_pattern_id,
+            "nextSymbolSourceId":document.id_counters.next_symbol_source_id,
             "nextUcsId":document.id_counters.next_ucs_id,
             "nextModelWindowId":document.id_counters.next_model_window_id,
         }})),
@@ -284,7 +291,7 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
         });
     }
     for p in &document.line_patterns {
-        let mut value = json!({"name":p.name,"pattern":p.pattern});
+        let mut value = json!({"name":p.name,"pattern":super::line_pattern_values::encode_pattern_elements(&p.pattern,&prefix)});
         if let Some(description) = &p.description {
             value["description"] = json!(description);
         }
@@ -293,6 +300,9 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
             children: None,
             attributes: attrs(json!({"ifccad::linePattern":value})),
         });
+    }
+    for source in &document.symbol_sources {
+        data.push(NodeOut {path:format!("{prefix}/symbolSource/{}",source.id.0),children:None,attributes:attrs(json!({"ifccad::symbolSource":super::line_pattern_values::encode_source(&source.source)}))});
     }
     for layer in &document.layers {
         let mut value =

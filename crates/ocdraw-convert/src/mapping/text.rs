@@ -48,13 +48,6 @@ pub(crate) fn from_styles(
         }
         let key = style.name.to_lowercase();
         if style.is_shape_file {
-            skipped(
-                CadToOcdrawDiagnosticSource::Table {
-                    kind: format!("text_styles/shape/{}", style.handle),
-                },
-                cad_text::CadTextError::Unsupported("shape-file style role").to_string(),
-                diagnostics,
-            );
             shape_names.insert(key);
             continue;
         }

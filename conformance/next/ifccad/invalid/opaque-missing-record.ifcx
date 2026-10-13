@@ -9,7 +9,7 @@
           "nextEntityId": 8,
           "nextLayerId": 3,
           "nextLayoutId": 2,
-          "nextLinePatternId": 1,
+          "nextLinePatternId": 1,"nextSymbolSourceId":1,
           "nextPreservationRecordId": 2,
           "profileVersion": "0.1.0"
         }

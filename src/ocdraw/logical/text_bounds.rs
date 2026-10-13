@@ -19,6 +19,7 @@ pub struct OcdrawScopeBoundsAssessment {
     /// Independent enclosure evidence, not the stored producer declaration.
     pub enclosure_verified: bool,
     pub text_reasons: Vec<TextExtentReason>,
+    pub line_pattern_reasons: Vec<crate::line_pattern::LinePatternBoundsReason>,
 }
 
 pub(crate) fn text_estimates(

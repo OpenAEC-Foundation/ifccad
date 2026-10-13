@@ -5,6 +5,7 @@ use std::collections::BTreeMap;
 pub struct CadToEncodedOcdrawOutcome {
     pub(crate) text: crate::OcdrawTextAssessment,
     pub(crate) text_styles: BTreeMap<Handle, ocdraw::ocdraw::OcdrawTextStyleId>,
+    pub(crate) symbol_sources: BTreeMap<Handle, ocdraw::ocdraw::SymbolSourceId>,
     pub(crate) preservation: crate::OcdrawPreservationReport,
     pub(crate) encoded: EncodedOcdraw,
     pub(crate) diagnostics: Vec<CadToOcdrawDiagnostic>,
@@ -13,6 +14,9 @@ pub struct CadToEncodedOcdrawOutcome {
 }
 
 impl CadToEncodedOcdrawOutcome {
+    pub fn symbol_source_mapping(&self) -> &BTreeMap<Handle, ocdraw::ocdraw::SymbolSourceId> {
+        &self.symbol_sources
+    }
     pub fn text_assessment(&self) -> &crate::OcdrawTextAssessment {
         &self.text
     }
@@ -43,6 +47,7 @@ impl CadToEncodedOcdrawOutcome {
 pub struct CadToOcdrawDocumentOutcome {
     pub(crate) text: crate::OcdrawTextAssessment,
     pub(crate) text_styles: BTreeMap<Handle, ocdraw::ocdraw::OcdrawTextStyleId>,
+    pub(crate) symbol_sources: BTreeMap<Handle, ocdraw::ocdraw::SymbolSourceId>,
     pub(crate) preservation: crate::OcdrawPreservationReport,
     pub(crate) document: OcdrawDocument,
     pub(crate) diagnostics: Vec<CadToOcdrawDiagnostic>,
@@ -51,6 +56,9 @@ pub struct CadToOcdrawDocumentOutcome {
 }
 
 impl CadToOcdrawDocumentOutcome {
+    pub fn symbol_source_mapping(&self) -> &BTreeMap<Handle, ocdraw::ocdraw::SymbolSourceId> {
+        &self.symbol_sources
+    }
     pub fn text_assessment(&self) -> &crate::OcdrawTextAssessment {
         &self.text
     }
@@ -81,6 +89,7 @@ impl CadToOcdrawDocumentOutcome {
 pub struct OcdrawToCadOutcome {
     pub(crate) text: crate::OcdrawTextAssessment,
     pub(crate) text_styles: BTreeMap<ocdraw::ocdraw::OcdrawTextStyleId, Handle>,
+    pub(crate) symbol_sources: BTreeMap<ocdraw::ocdraw::SymbolSourceId, Handle>,
     pub(crate) preservation: crate::OcdrawPreservationReport,
     pub(crate) document: CadDocument,
     pub(crate) diagnostics: Vec<OcdrawToCadDiagnostic>,
@@ -89,6 +98,9 @@ pub struct OcdrawToCadOutcome {
 }
 
 impl OcdrawToCadOutcome {
+    pub fn symbol_source_mapping(&self) -> &BTreeMap<ocdraw::ocdraw::SymbolSourceId, Handle> {
+        &self.symbol_sources
+    }
     pub fn text_assessment(&self) -> &crate::OcdrawTextAssessment {
         &self.text
     }

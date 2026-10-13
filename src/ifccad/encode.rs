@@ -67,6 +67,7 @@ fn verify_readback(bytes: &[u8], document: &IfccadDocument) -> Result<(), Ifccad
     expected.layers.sort_by_key(|layer| layer.id.to_string());
     expected.blocks.sort_by_key(|block| block.id.to_string());
     expected.line_patterns.sort_by_key(|p| p.id.0.to_string());
+    expected.symbol_sources.sort_by_key(|s| s.id);
     expected
         .paper_layouts
         .sort_by_key(|layout| layout.tab_index);

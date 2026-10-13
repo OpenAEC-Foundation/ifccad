@@ -7,19 +7,13 @@ pub fn validate_ifccad_line_patterns(patterns: &[IfccadLinePattern]) -> Result<(
     let mut names = BTreeSet::new();
     for p in patterns {
         let name = crate::ocdraw::names::name_key(&p.name);
-        let period = p.pattern.iter().map(|v| v.abs()).sum::<f64>();
         if p.name.is_empty()
             || !ids.insert(p.id)
             || !names.insert(name.clone())
             || name == "bylayer"
             || name == "byblock"
             || (name == "continuous" && !p.pattern.is_empty())
-            || p.pattern.iter().any(|v| !v.is_finite())
-            || (!p.pattern.is_empty()
-                && (p.pattern.len() < 2
-                    || p.pattern[0] < 0.
-                    || !period.is_finite()
-                    || period <= 0.))
+            || crate::line_pattern::validate_line_pattern_values(&p.pattern).is_err()
         {
             return Err(crate::ifccad::diagnostics::failure(
                 "IFCCAD-PATTERN-002",

@@ -22,7 +22,8 @@
         "nextEntityId",
         "nextLayerId",
         "nextLayoutId",
-        "nextLinePatternId"
+        "nextLinePatternId",
+        "nextSymbolSourceId"
       ],
       "properties": {
         "format": {
@@ -86,6 +87,11 @@
         "nextTextStyleId": {
           "type": "integer",
           "minimum": 1,
+          "maximum": 4294967295
+        },
+        "nextSymbolSourceId": {
+          "type": "integer",
+          "minimum": 0,
           "maximum": 4294967295
         }
       }
@@ -5090,7 +5096,7 @@
           "pattern": {
             "type": "array",
             "items": {
-              "type": "number"
+              "$ref": "#/$defs/linePatternElement"
             }
           }
         }
@@ -5108,6 +5114,12 @@
       "type": "array",
       "items": {
         "$ref": "#/$defs/textStyle"
+      }
+    },
+    "symbolSources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/symbolSource"
       }
     }
   },
@@ -9433,6 +9445,165 @@
           }
         }
       }
+    },
+    "symbolSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "fileName"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "kind": {
+          "const": "shx"
+        },
+        "fileName": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^/\\\\\\u0000]+$"
+        }
+      }
+    },
+    "linePatternMarker": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "text",
+            "textStyleId"
+          ],
+          "properties": {
+            "scale": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "offset": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number"
+              }
+            },
+            "rotation": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "mode",
+                "angle"
+              ],
+              "properties": {
+                "mode": {
+                  "enum": [
+                    "relative",
+                    "absolute"
+                  ]
+                },
+                "angle": {
+                  "type": "number"
+                }
+              }
+            },
+            "kind": {
+              "const": "text"
+            },
+            "text": {
+              "type": "string"
+            },
+            "textStyleId": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "symbolSourceId",
+            "shapeNumber"
+          ],
+          "properties": {
+            "scale": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "offset": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number"
+              }
+            },
+            "rotation": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "mode",
+                "angle"
+              ],
+              "properties": {
+                "mode": {
+                  "enum": [
+                    "relative",
+                    "absolute"
+                  ]
+                },
+                "angle": {
+                  "type": "number"
+                }
+              }
+            },
+            "kind": {
+              "const": "symbol"
+            },
+            "symbolSourceId": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            "shapeNumber": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            }
+          }
+        }
+      ]
+    },
+    "linePatternElement": {
+      "oneOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "length",
+            "marker"
+          ],
+          "properties": {
+            "length": {
+              "type": "number"
+            },
+            "marker": {
+              "$ref": "#/$defs/linePatternMarker"
+            }
+          }
+        }
+      ]
     }
   },
   "allOf": [

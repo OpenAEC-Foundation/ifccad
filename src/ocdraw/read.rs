@@ -48,6 +48,12 @@ impl ValidatedOcdraw {
     pub fn line_patterns(&self) -> &[super::DrawingLinePattern] {
         &self.document.line_patterns
     }
+    pub fn symbol_sources(&self) -> &[super::DrawingSymbolSource] {
+        &self.document.symbol_sources
+    }
+    pub fn next_symbol_source_id(&self) -> u32 {
+        self.document.next_symbol_source_id
+    }
     pub fn text_styles(&self) -> &[super::DrawingTextStyle] {
         &self.document.text_styles
     }
@@ -275,6 +281,14 @@ pub fn load_ocdraw_bytes(bytes: &[u8]) -> Result<ValidatedOcdraw, OcdrawReadErro
     };
     let (drawing_id, unit, plot_style_mode) = encoding.header();
     let document = OcdrawDocument {
+        symbol_sources: super::codec::json::decode_symbol_sources(value).map_err(|d| {
+            OcdrawReadError::Invalid {
+                diagnostics: vec![d],
+            }
+        })?,
+        next_symbol_source_id: value["header"]["nextSymbolSourceId"]
+            .as_u64()
+            .expect("physical source watermark") as u32,
         hatch_entities: super::codec::json::decode_hatch(value).map_err(|d| {
             OcdrawReadError::Invalid {
                 diagnostics: vec![d],
@@ -324,7 +338,11 @@ pub fn load_ocdraw_bytes(bytes: &[u8]) -> Result<ValidatedOcdraw, OcdrawReadErro
         next_line_pattern_id: value["header"]["nextLinePatternId"]
             .as_u64()
             .expect("checked integer watermark") as u32,
-        line_patterns: super::codec::json::decode_line_patterns(value),
+        line_patterns: super::codec::json::decode_line_patterns(value).map_err(|d| {
+            OcdrawReadError::Invalid {
+                diagnostics: vec![d],
+            }
+        })?,
         line_pattern_scale: value["linePatternScale"].as_f64().unwrap_or(1.0),
         drawing_id,
         unit,

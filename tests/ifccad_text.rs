@@ -49,6 +49,7 @@ fn text_styles_keep_independent_large_ids_and_allocation_history() {
 #[test]
 fn text_style_exhaustion_is_atomic_and_native_lookup_does_not_trim() {
     let mut ids = IfccadIdCounters {
+        next_symbol_source_id: 1,
         next_text_style_id: u64::MAX,
         ..Default::default()
     };

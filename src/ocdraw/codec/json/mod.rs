@@ -13,6 +13,10 @@ pub(crate) use text_style::{decode_text_styles, encode_text_styles};
 mod decode_geometry;
 mod decode_line_pattern;
 pub(crate) use decode_line_pattern::decode_line_patterns;
+mod line_pattern_values;
+pub(crate) use line_pattern_values::{
+    decode_symbol_sources, encode_pattern_elements, encode_symbol_sources,
+};
 mod decode_layer;
 mod decode_layout;
 

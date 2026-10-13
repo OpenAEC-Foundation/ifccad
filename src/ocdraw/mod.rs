@@ -83,7 +83,8 @@ pub use logical::{
 };
 pub use logical::{DrawingGeometricEntity, EntityGeometry as DrawingGeometry};
 pub use logical::{
-    DrawingLinePattern, LinePatternDefinition, LinePatternGeneration, LinePatternId,
+    DrawingLinePattern, DrawingLinePatternElement, DrawingLinePatternMarker, DrawingSymbolSource,
+    LinePatternDefinition, LinePatternGeneration, LinePatternId, SymbolSourceId,
 };
 pub use logical::{
     DrawingPaperClip, DrawingViewport, DrawingViewportFrame, DrawingViewportLayerOverride,

@@ -27,6 +27,7 @@ impl IfccadIdentityMap {
 
 #[derive(Clone, Debug, Default)]
 pub struct IfccadMappings {
+    pub symbol_sources: IfccadIdentityMap,
     pub text_styles: IfccadIdentityMap,
     pub ucss: IfccadIdentityMap,
     pub model_windows: IfccadIdentityMap,

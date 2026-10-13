@@ -446,6 +446,66 @@
     {
       "path": "invalid/foreground-legacy-index.ocdraw.json",
       "status": "invalid"
+    },
+    {
+      "path": "valid/line-pattern-mixed-producer-enclosing.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "valid/line-pattern-text.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "valid/line-pattern-symbols-external-unresolved.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "valid/line-pattern-high-source-id.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "invalid/line-pattern-zero-scale.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/line-pattern-null-offset.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/line-pattern-bad-offset.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/line-pattern-unknown-marker-kind.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/line-pattern-unknown-marker-field.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/line-pattern-filename-path.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/line-pattern-filename-empty.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/line-pattern-stored-partial.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/line-pattern-known-curve-outside-partial.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/line-pattern-missing-source.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/line-pattern-missing-style.ocdraw.json",
+      "status": "invalid"
     }
   ]
 }

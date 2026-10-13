@@ -194,7 +194,14 @@ pub(crate) fn project_validation_model(
                     DrawingScopeKind::Block => ScopeKind::Block,
                 },
                 entities: s.entities.clone(),
-                has_bounds: (phase == ValidationPhase::Complete).then_some(s.bounds.is_some()),
+                // Marker-only partial coverage can have an absent full box.
+                // Defer this case until validated, context-specific evaluation;
+                // opaque/empty geometry and present producer boxes keep their
+                // existing structural policy here.
+                has_bounds: (phase == ValidationPhase::Complete
+                    && (s.bounds.is_some()
+                        || completeness[&s.id] != ScopeGeometryCompleteness::Complete))
+                    .then_some(s.bounds.is_some()),
                 bounds: if phase == ValidationPhase::Complete {
                     s.bounds
                 } else {

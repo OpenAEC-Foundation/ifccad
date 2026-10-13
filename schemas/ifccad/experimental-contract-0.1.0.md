@@ -503,3 +503,13 @@ not resource links. Native fill/period rules are IFCCAD-HATCH-004; whole attribu
 replacement remains unchanged. Storage/readback support does not by itself
 qualify CAD pattern preparation or fill rendering. Numeric CAD proof and source
 context admission are documented separately as those routes are qualified.
+
+### Complex line pattern migration
+
+The active provisional profile adds drawing-owned SHX symbol sources and typed
+text/symbol markers. All current drawing payloads now require
+`nextSymbolSourceId`, even without sources. Plain numeric elements keep their
+wire spelling; the Rust pattern vector now contains typed elements. Use
+`LinePatternElement::simple(length)` for plain entries. URI/digest/embedding and
+upright rotation remain deferred. See profile-rules-0.1.0.md for the closed
+physical alternatives and drawing-local reference contract.

@@ -44,6 +44,9 @@ reported separately; unknown target semantics are diagnosed.
 | ByLayer / ByBlock appearance | Modes mapped for color, opacity, pattern and weight |
 | Explicit color | ACI 7 maps from native Foreground; other ACI 1–255 used only when consistent with native RGB; unsupported/inconsistent indexed identity retains RGB with loss. Named metadata maps where representable; ambiguous entity catalogue delimiters receive loss |
 | Line pattern | Every local named simple definition, including unused and named empty records, allocated before layers/entities; reference modes and global/entity scales retained. Polyline generation maps to CAD flags. |
+
+| Explicit color | ACI 1–255 used only when consistent with native RGB; unsupported/inconsistent indexed identity retains RGB with loss. Named metadata maps where representable; ambiguous entity catalogue delimiters receive loss |
+| Line pattern | Simple and qualified text/SHX marker definitions, including unused records, allocate after ordinary and shape STYLE handles. Separate source IDs produce separate anonymous shape STYLE records even for repeated filenames. Lengths, marker parameters, relative/absolute radians, modes, global/entity scales and polyline generation survive. Native selectors outside 0..32767 or unsupported active styles replace the complete named pattern under Allow with a located diagnostic; Reject refuses. |
 | Line weight | Nearest of the 24 standard CAD table weights, with lower-value interior ties; quantization is located semantic loss and Reject refuses it |
 | Opacity | Exact byte-derived native values return the original CAD byte. Other values use upward transparency rounding (0.5 opacity gives byte 128); changed opacity receives located semantic loss and Reject refuses it |
 | Color metadata and appearance identity | No comprehensive fidelity assessment; unsupported indexed systems use RGB, and unsupported target color metadata is diagnosed |
@@ -198,3 +201,5 @@ RGB controls. These tests prove data exchange, not external-app visual/CTB-outpu
 certification. Additional C5/ByPen/None/257 methods and broader plot-style contents
 remain unqualified. See [presentation](../../../docs/presentation.md#foreground-color)
 and [issue #16](https://github.com/OpenAEC-Foundation/ifccad/issues/16).
+
+Complex marker geometry remains unassessed per curve and block occurrence, independently of the host curve numerical proof. External font/SHX availability is not probed and does not cause semantic loss. Native producer bounds and derived assessment remain separate. AC1032 complex DXF/DWG exchange is independently checked by `tests/ocdraw_line_pattern_exchange.rs`, including resolved STYLE roles and the manually authored literal marker-flags fixture. This does not establish upright rotation, which the current codec public model cannot distinguish.

@@ -30,7 +30,7 @@
           "nextEntityId": 4,
           "nextLayerId": 2,
           "nextLayoutId": 3,
-          "nextLinePatternId": 1,
+          "nextLinePatternId": 1,"nextSymbolSourceId":1,
           "profileVersion": "0.1.0",
           "nextUcsId": 1,
           "nextModelWindowId": 1

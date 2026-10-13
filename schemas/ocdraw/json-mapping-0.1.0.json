@@ -71,6 +71,11 @@
         "logical": "resource.nextTextStyleId",
         "payload": "header.nextTextStyleId",
         "omission": "logicalDefault"
+      },
+      {
+        "logical": "resource.nextSymbolSourceId",
+        "payload": "header.nextSymbolSourceId",
+        "omission": "forbidden"
       }
     ]
   },
@@ -522,6 +527,28 @@
           "logical": "textStyle.lastUsedHeight",
           "payload": "lastUsedHeight",
           "omission": "logicalDefault"
+        }
+      ]
+    },
+    {
+      "name": "symbolSource",
+      "payload": "symbolSources",
+      "omission": "logicalDefault",
+      "fields": [
+        {
+          "logical": "symbolSource.id",
+          "payload": "id",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "symbolSource.kind",
+          "payload": "kind",
+          "omission": "forbidden"
+        },
+        {
+          "logical": "symbolSource.fileName",
+          "payload": "fileName",
+          "omission": "forbidden"
         }
       ]
     }
@@ -1891,7 +1918,7 @@
       "Viewport": 1
     }
   },
-  "$comment": "Normative interpretation: ./json-mapping-v4.md Hatch fill records are closed tagged Solid/LinePattern JSON values; LinePattern origin/rotation/scale omission means [0,0]/0/1, metadata absence is distinct from empty literal strings, and Dot forbids length. Family offsets are [along,perpendicular], not CAD XY offsets.",
+  "$comment": "Normative interpretation: ./json-mapping-v4.md Hatch fill records are closed tagged Solid/LinePattern JSON values; LinePattern origin/rotation/scale omission means [0,0]/0/1, metadata absence is distinct from empty literal strings, and Dot forbids length. Family offsets are [along,perpendicular], not CAD XY offsets. Complex linePattern elements without a marker map to numbers; marked elements map to closed {length,marker} objects. Marker rotation is {mode,angle} in radians. Default scale/offset/rotation omission is 1/[0,0]/relative zero; null is forbidden. Source records are closed id/kind/fileName records.",
   "ocdrawVersion": "0.1.0",
   "preservationMapping": {
     "schemaVersion": 1,

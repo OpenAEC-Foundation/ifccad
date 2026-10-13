@@ -161,3 +161,12 @@ routes; ordinary RGB white/black remain fixed. Foreground is different from the
 existing canvas-background-fill choice. See [Foreground](presentation.md#foreground-color)
 for resolution and the closed wire value; richer named/custom text colors retain
 their existing bounded-profile restrictions.
+
+## Text in line patterns
+
+Complex line patterns reference the same ordinary local text-style domain but
+store literal marker strings and their own scale, offset and relative/absolute
+rotation. They do not introduce Text/MText entities or rich text markup. The
+fontless marker estimate reuses the Text extent estimator, with nominal height
+from fixed style height and marker scale. Marker numerical coverage remains
+unassessed beside the host curve proof. See [line patterns](line-patterns.md).

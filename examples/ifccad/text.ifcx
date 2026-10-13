@@ -35,7 +35,8 @@
           "nextModelWindowId": 1,
           "nextTextStyleId": 2,
           "nextUcsId": 1,
-          "profileVersion": "0.1.0"
+          "profileVersion": "0.1.0",
+          "nextSymbolSourceId": 1
         }
       }
     },

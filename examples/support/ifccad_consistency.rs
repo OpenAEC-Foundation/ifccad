@@ -119,6 +119,20 @@ pub fn normalize(value: &Value) -> Result<Vec<u8>, Box<dyn Error>> {
         d.line_patterns.iter().map(|p| p.id.0),
         true,
     );
+    let next_symbol_source = assign_paths(
+        &mut paths,
+        &prefix,
+        "symbolSource",
+        d.symbol_sources.iter().map(|s| s.id.0),
+        true,
+    );
+    let next_text_style = assign_paths(
+        &mut paths,
+        &prefix,
+        "textStyle",
+        d.text_styles.iter().map(|s| s.id.0),
+        true,
+    );
     let next_block = assign_paths(
         &mut paths,
         &prefix,
@@ -149,11 +163,15 @@ pub fn normalize(value: &Value) -> Result<Vec<u8>, Box<dyn Error>> {
                 ("nextLayoutId", next_layout),
                 ("nextLayerId", next_layer),
                 ("nextLinePatternId", next_pattern),
+                ("nextSymbolSourceId", next_symbol_source),
                 ("nextBlockId", next_block),
                 ("nextUcsId", next_ucs),
                 ("nextModelWindowId", next_window),
             ] {
                 drawing[key] = json!(next);
+            }
+            if !d.text_styles.is_empty() || drawing.get("nextTextStyleId").is_some() {
+                drawing["nextTextStyleId"] = json!(next_text_style);
             }
             if let Some(children) = node.get_mut("children").and_then(Value::as_object_mut) {
                 let mut renamed = serde_json::Map::new();
@@ -166,7 +184,8 @@ pub fn normalize(value: &Value) -> Result<Vec<u8>, Box<dyn Error>> {
                             Some(match role {
                                 "layout" if id == "1" => "model".to_owned(),
                                 "layout" => format!("paper{id}"),
-                                "layer" | "linePattern" | "block" | "ucs" | "modelWindow" => {
+                                "layer" | "linePattern" | "symbolSource" | "textStyle"
+                                | "block" | "ucs" | "modelWindow" => {
                                     format!("{role}{id}")
                                 }
                                 _ => return None,

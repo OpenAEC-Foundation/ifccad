@@ -370,7 +370,8 @@ fn present(output: &mut Value, outcome: Result<ValidatedOcdraw, OcdrawReadError>
             "drawingId": drawing.drawing_id(),
             "unit": value["header"]["unit"],
             "plotStyleMode": drawing.plot_style_mode(),
-            "linePatterns": drawing.line_patterns().iter().map(|p|json!({"id":p.id,"name":p.name,"description":p.description,"pattern":p.pattern})).collect::<Vec<_>>(),
+            "linePatterns": drawing.line_patterns().iter().map(|p|json!({"id":p.id,"name":p.name,"description":p.description,"pattern":crate::line_pattern::ocdraw_elements(&p.pattern)})).collect::<Vec<_>>(),
+            "symbolSources": crate::line_pattern::ocdraw_sources(drawing.symbol_sources()),
             "textStyles": value["textStyles"].as_array().cloned().unwrap_or_default(),
             "nextTextStyleId": drawing.document().next_text_style_id,
             "linePatternScale": drawing.line_pattern_scale(),
@@ -410,7 +411,8 @@ fn bounds_report(drawing: &ValidatedOcdraw) -> Value {
         "status":match a.quality {None=>"empty",Some(ocdraw::ocdraw::OcdrawBoundsQuality::Enclosing)=>"complete",Some(ocdraw::ocdraw::OcdrawBoundsQuality::Estimated)=>"estimated",Some(ocdraw::ocdraw::OcdrawBoundsQuality::Partial)=>"unavailable"},
         "quality":a.quality.map(quality),"declaredQuality":s.bounds.map(|_|quality(s.bounds_quality.unwrap_or(ocdraw::ocdraw::OcdrawBoundsQuality::Enclosing))),
         "enclosureVerified":a.enclosure_verified,"safeForNegativeQuery":a.enclosure_verified,
-        "textReasons":a.text_reasons.iter().map(|r|format!("{r:?}")).collect::<Vec<_>>()
+        "textReasons":a.text_reasons.iter().map(|r|format!("{r:?}")).collect::<Vec<_>>(),
+        "linePatternReasons":a.line_pattern_reasons.iter().map(|r|format!("{r:?}")).collect::<Vec<_>>()
     })).collect::<Vec<_>>())
 }
 fn text_report(report: &ocdraw_convert::OcdrawTextAssessment) -> Value {

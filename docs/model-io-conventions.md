@@ -207,3 +207,14 @@ Use variant matching to distinguish symbolic meaning. `concrete_rgb`,
 Foreground against an invented background. Rendering consumers can use
 `ocdraw::color::foreground_srgb` with their effective sRGB background; the
 drawing stores no theme-specific resolved color. See [presentation](presentation.md#foreground-color).
+
+## Complex line pattern values
+
+Public pattern arrays now contain typed `LinePatternElement<Marker>` values. Use
+`LinePatternElement::simple(length)` for existing numeric patterns; marked entries
+carry a native text-style or symbol-source reference plus a shared transform.
+The separate source table has its own persistent allocation watermark. Both
+production codecs retain plain numbers for unmarked entries and write closed
+objects for markers. IFCCAD references use complete profile-local paths. See
+[line patterns](line-patterns.md) for the logical/physical distinction, estimates
+and conversion limits.

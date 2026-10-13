@@ -2,6 +2,7 @@ mod cad;
 mod geometry;
 mod ifccad;
 mod inspection;
+mod line_pattern;
 mod options;
 mod selection;
 pub fn conversion_capabilities() -> Value {

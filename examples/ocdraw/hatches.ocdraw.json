@@ -7,7 +7,8 @@
     "nextLayoutId": 1,
     "nextLinePatternId": 1,
     "unit": "mm",
-    "version": "0.1.0"
+    "version": "0.1.0",
+    "nextSymbolSourceId": 0
   },
   "layers": [
     {

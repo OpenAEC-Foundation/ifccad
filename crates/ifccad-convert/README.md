@@ -346,3 +346,5 @@ algorithms. The same single experimental drawing import remains sufficient.
 Wire supplements do not replace typed validation or converter loss/accuracy
 checks; source graphs and source bytes remain immutable. Native records reject unknown members and explicit nulls consistently;
 validation messages identify their rule and source/component location.
+
+Complex line patterns bind ordinary text styles and SHX symbol sources through independent IFCCAD identity maps. Sources retain basenames, including duplicate filenames and unused entries; no glyph files are loaded. Unsupported active dependencies receive whole-definition named-continuous fallback under Allow and rejection under Reject. Host curve accuracy remains assessed while marker outlines remain unassessed.

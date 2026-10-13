@@ -17,12 +17,21 @@ for(const example of examples){
  if(example.name==='Drawing overview'){
   assert.ok(nodes.some(node=>node.type==='viewport'),name+' retains Paper viewports');
   assert.ok(nodes.some(node=>node.type==='blockInstance'),name+' retains blocks');
+  const group=kind==='drawing'?'group:symbolSources':'group:symbolSource';
+  assert.equal(model.nodes.get(group).children.length,3);
+  assert.ok(nodes.some(node=>node.outgoing.some(edge=>edge.kind==='symbolSource')));
+  assert.ok(opened.presentation.boundsCompleteness.some(a=>a.quality==='partial'&&!a.enclosureVerified&&!a.safeForNegativeQuery));
  }
  if(example.name==='Hatches')assert.deepEqual(nodes.filter(node=>node.type==='hatch').map(node=>hatchValues(node).fill.kind).sort(),['linePattern','solid']);
  for(const format of ['dxf','dwg']){
   const output=processBrowserRequest({...source,export:{format,version:'AC1032'}},wasm);assert.equal(output.failure,null,name+' '+format+': '+JSON.stringify(output.failure));
   const returned=processBrowserRequest({kind:'cad',drawingFormat:example.format==='IFCCAD'?'ifccad':'ocdraw',name:'curated.'+format,files:[{path:'curated.'+format,bytes:Uint8Array.from(Buffer.from(output.export.download.base64,'base64')).buffer}]},wasm);
   assert.equal(returned.failure,null,name+': '+JSON.stringify(returned.failure));assert.equal(returned.validation.strictAvailable,true);
+  if(example.name==='Drawing overview') {
+   const inspected=createInspection(returned,returned.nativeSourceText),group=kind==='drawing'?'group:symbolSources':'group:symbolSource';
+   assert.equal(inspected.nodes.get(group).children.length,3);
+   assert.ok([...inspected.nodes.values()].some(node=>node.outgoing.some(edge=>edge.kind==='symbolSource')));
+  }
   if(example.name==='Hatches'){
    assert.equal(returned.presentation.hatchEntityCount,2);
    const inspected=createInspection(returned,returned.nativeSourceText);

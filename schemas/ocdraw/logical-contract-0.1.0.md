@@ -135,11 +135,40 @@ retained. Omission of the table means no definitions; readers synthesize none.
 reduced when deleting a record. No ID is implied by a table position or CAD handle.
 
 Positive finite pattern numbers are strokes, negative numbers are gaps, and zero
-is a dot, in drawing units. An empty pattern is continuous. A nonempty pattern
-has at least two entries, a nonnegative first entry, and a finite positive sum
+is a dot, in drawing units. An empty pattern is continuous. A nonempty simple pattern
+has at least two entries; a complex pattern may have one. Both require a nonnegative first entry and a finite positive sum
 of absolute lengths. Preserve entry order and values without merging elements.
 The name `Continuous`, under the same case fold, requires an empty sequence;
 `ByLayer` and `ByBlock` are reserved selection names and cannot name definitions.
+
+## Complex line patterns
+
+Each ordered logical element has a signed `length` and an optional marker. A
+plain element maps to a JSON number; a marked element maps to the closed object
+`{length,marker}`. Advance precedes placement: a positive length retains its
+stroke, a negative length retains its gap, and zero with a marker adds no dot.
+
+Markers are closed `text` or `symbol` variants. Text requires literal `text`
+(including empty strings) and a resolving local `textStyleId`. Symbols require
+a resolving local `symbolSourceId` and unsigned 32-bit `shapeNumber`. Both have
+finite positive `scale` (default 1), finite two-component `offset` (default
+[0,0]), and `rotation:{mode,angle}` in radians (default relative zero). Rotation
+modes are `relative` and `absolute`; null, unknown members and wrong-variant
+members are invalid. Empty text contributes no visible marker footprint.
+
+`symbolSources` is an optional ordered local table of closed
+`{id,kind:"shx",fileName}` records. IDs are uint32, zero is valid, and required
+`header.nextSymbolSourceId` exceeds all allocated IDs. The empty domain starts
+at zero. Deletion must retain the watermark; failed allocation changes nothing.
+Filenames are nonempty basenames other than `.` or `..`, without slash,
+backslash or NUL. Preserve case. Duplicate filenames do not merge identities.
+Missing external files are nonfatal: validation resolves internal references
+and never opens fonts or symbol assets. URI, digest and embedding are deferred.
+
+This provisional slice changes the typed pattern API from numeric vectors to
+ordered elements and requires the source watermark in active files, even when
+the source table is absent. Released numbered conformance collections remain
+unchanged.
 
 Simple patterns use A-type endpoint alignment: open lines/arcs begin and end
 with a stroke, adjusting endpoint strokes as needed; a path too short for a

@@ -161,6 +161,7 @@ fn unused_ucs_and_advanced_watermarks_survive() {
         IfccadModelWindowId(BIG + 1)
     );
     let mut exhausted = IfccadIdCounters {
+        next_symbol_source_id: 1,
         next_ucs_id: u64::MAX,
         ..Default::default()
     };

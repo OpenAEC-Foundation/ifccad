@@ -115,7 +115,7 @@ pub(crate) fn encode_ocdraw_document(doc: &OcdrawDocument) -> Value {
             .iter()
             .map(|row| {
                 let id = row.id;
-                let mut v = json!({"id":id,"name":row.name,"pattern":row.pattern});
+                let mut v = json!({"id":id,"name":row.name,"pattern":super::encode_pattern_elements(&row.pattern)});
                 if let Some(d) = &row.description {
                     v["description"] = json!(d);
                 }
@@ -125,6 +125,10 @@ pub(crate) fn encode_ocdraw_document(doc: &OcdrawDocument) -> Value {
     }
     if doc.line_pattern_scale != 1.0 {
         value["linePatternScale"] = json!(doc.line_pattern_scale);
+    }
+    value["header"]["nextSymbolSourceId"] = json!(doc.next_symbol_source_id);
+    if !doc.symbol_sources.is_empty() {
+        value["symbolSources"] = super::encode_symbol_sources(&doc.symbol_sources);
     }
     if !layer_values.is_empty() {
         value["layers"] = json!(layer_values);

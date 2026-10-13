@@ -31,7 +31,7 @@
     "nextEntityId": 13,
     "nextLayerId": 2,
     "nextLayoutId": 1,
-    "nextLinePatternId": 3,
+    "nextLinePatternId": 3,"nextSymbolSourceId":0,
     "unit": "mm",
     "version": "0.1.0"
   },

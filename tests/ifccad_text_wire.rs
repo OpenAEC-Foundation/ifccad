@@ -5,8 +5,28 @@ use serde_json::{json, Value};
 fn bundled_profile_uses_ifcx_array_item_description_syntax() {
     // IFC5-development/schema/ifcx.tsp: ArrayRestrictions.value is singular.
     // Inspect schema declarations independently of our native reader projection.
-    fn check(v: &Value) {
+    fn check(v: &Value, path: &str) {
         if v.get("dataType").and_then(Value::as_str) == Some("Array") {
+            if v.get("arrayRestrictions").is_none() {
+                // IFCX item descriptions cannot express numeric-or-marker values.
+                // Only this approved wrapper delegates its closed item union.
+                assert_eq!(
+                    path,
+                    "/schemas/ifccad::linePattern/value/objectRestrictions/values/pattern"
+                );
+                let supplemental: Value = serde_json::from_str(include_str!(
+                    "../schemas/ifccad/supplemental-values-0.1.0.schema.json"
+                ))
+                .unwrap();
+                let choices = supplemental["$defs"]["linePatternElement"]["oneOf"]
+                    .as_array()
+                    .unwrap();
+                assert_eq!(choices.len(), 2);
+                assert_eq!(choices[0]["type"], "number");
+                assert_eq!(choices[1]["type"], "object");
+                assert_eq!(choices[1]["additionalProperties"], false);
+                return;
+            }
             let r = v
                 .get("arrayRestrictions")
                 .and_then(Value::as_object)
@@ -21,14 +41,19 @@ fn bundled_profile_uses_ifcx_array_item_description_syntax() {
             );
         }
         match v {
-            Value::Object(o) => o.values().for_each(check),
-            Value::Array(a) => a.iter().for_each(check),
+            Value::Object(o) => o
+                .iter()
+                .for_each(|(key, value)| check(value, &format!("{path}/{key}"))),
+            Value::Array(a) => a
+                .iter()
+                .enumerate()
+                .for_each(|(i, value)| check(value, &format!("{path}/{i}"))),
             _ => {}
         }
     }
     let profile: Value =
         serde_json::from_str(include_str!("../schemas/ifccad/ifccad-profile-0.1.0.ifcx")).unwrap();
-    check(&profile["schemas"]);
+    check(&profile["schemas"], "/schemas");
 }
 
 fn graph() -> Value {

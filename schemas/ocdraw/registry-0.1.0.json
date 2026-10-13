@@ -830,7 +830,7 @@
     },
     "linePattern": {
       "kind": "sequence",
-      "items": "float64",
+      "items": "linePatternElement",
       "minItems": 0
     },
     "drawingWorkspaceState": {
@@ -2711,6 +2711,128 @@
       "values": [
         "Foreground"
       ]
+    },
+    "symbolSourceKind": {
+      "kind": "enum",
+      "values": [
+        "shx"
+      ]
+    },
+    "linePatternMarkerKind": {
+      "kind": "enum",
+      "values": [
+        "text",
+        "symbol"
+      ]
+    },
+    "linePatternRotationMode": {
+      "kind": "enum",
+      "values": [
+        "relative",
+        "absolute"
+      ]
+    },
+    "linePatternRotation": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "mode",
+          "valueType": "linePatternRotationMode",
+          "nullable": false
+        },
+        {
+          "name": "angle",
+          "valueType": "float64",
+          "nullable": false
+        }
+      ]
+    },
+    "linePatternMarker": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "kind",
+          "valueType": "linePatternMarkerKind",
+          "nullable": false
+        },
+        {
+          "name": "text",
+          "valueType": "string",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "textStyleId",
+          "valueType": "uint32",
+          "nullable": false,
+          "optional": true,
+          "reference": {
+            "category": "tableField",
+            "target": "textStyle.id",
+            "strength": "hard"
+          }
+        },
+        {
+          "name": "symbolSourceId",
+          "valueType": "uint32",
+          "nullable": false,
+          "optional": true,
+          "reference": {
+            "category": "tableField",
+            "target": "symbolSource.id",
+            "strength": "hard"
+          }
+        },
+        {
+          "name": "shapeNumber",
+          "valueType": "uint32",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "scale",
+          "valueType": "float64",
+          "nullable": false,
+          "optional": true,
+          "default": 1
+        },
+        {
+          "name": "offset",
+          "valueType": "point2",
+          "nullable": false,
+          "optional": true,
+          "default": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "rotation",
+          "valueType": "linePatternRotation",
+          "nullable": false,
+          "optional": true,
+          "default": {
+            "mode": "relative",
+            "angle": 0
+          }
+        }
+      ]
+    },
+    "linePatternElement": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "length",
+          "valueType": "float64",
+          "nullable": false
+        },
+        {
+          "name": "marker",
+          "valueType": "linePatternMarker",
+          "nullable": false,
+          "optional": true
+        }
+      ]
     }
   },
   "resource": {
@@ -2787,6 +2909,11 @@
         "valueType": "uint32",
         "nullable": false,
         "default": 1
+      },
+      {
+        "name": "nextSymbolSourceId",
+        "valueType": "uint32",
+        "nullable": false
       }
     ]
   },
@@ -3291,6 +3418,28 @@
           "valueType": "float64",
           "nullable": false,
           "optional": true
+        }
+      ]
+    },
+    {
+      "name": "symbolSource",
+      "schemaId": "ocdraw.symbolSource.v1",
+      "default": [],
+      "fields": [
+        {
+          "name": "id",
+          "valueType": "uint32",
+          "nullable": false
+        },
+        {
+          "name": "kind",
+          "valueType": "symbolSourceKind",
+          "nullable": false
+        },
+        {
+          "name": "fileName",
+          "valueType": "nonEmptyString",
+          "nullable": false
         }
       ]
     }
@@ -5165,6 +5314,10 @@
     {
       "id": "COLOR_CHOICE",
       "contract": "logical-contract-0.1.0.md#appearance"
+    },
+    {
+      "id": "ocdraw.complexLinePatterns",
+      "contract": "logical-contract-0.1.0.md#complex-line-patterns"
     }
   ],
   "ocdrawVersion": "0.1.0"

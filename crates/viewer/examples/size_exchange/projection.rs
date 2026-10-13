@@ -90,7 +90,7 @@ pub fn semantic(d: &IfccadDocument) -> Result<Value> {
     let mut patterns = d
         .line_patterns
         .iter()
-        .map(|p| json!({"name":p.name,"description":p.description,"pattern":p.pattern}))
+        .map(|p| { assert!(p.pattern.iter().all(|e|e.marker.is_none()), "measurement projection only qualifies simple line patterns"); json!({"name":p.name,"description":p.description,"pattern":p.pattern.iter().map(|e|e.length).collect::<Vec<_>>()}) })
         .collect::<Vec<_>>();
     let mut blocks = d.blocks.iter().map(|b| json!({"name":b.name,"base":b.base_point,"unit":b.insertion_unit,"entities":entities(&b.entities)})).collect::<Vec<_>>();
     for values in [&mut layers, &mut patterns, &mut blocks] {

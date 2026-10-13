@@ -262,7 +262,13 @@
             "hatchFamily",
             "hatchFamilies",
             "hatchLiteralString",
-            "foregroundColorKind"
+            "foregroundColorKind",
+            "symbolSourceKind",
+            "linePatternMarkerKind",
+            "linePatternRotationMode",
+            "linePatternRotation",
+            "linePatternMarker",
+            "linePatternElement"
           ]
         },
         "nullable": {
@@ -559,7 +565,13 @@
                 "hatchFamily",
                 "hatchFamilies",
                 "hatchLiteralString",
-                "foregroundColorKind"
+                "foregroundColorKind",
+                "symbolSourceKind",
+                "linePatternMarkerKind",
+                "linePatternRotationMode",
+                "linePatternRotation",
+                "linePatternMarker",
+                "linePatternElement"
               ]
             },
             "minItems": {

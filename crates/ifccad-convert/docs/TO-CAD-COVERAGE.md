@@ -33,7 +33,7 @@ fresh CAD import assigns new IDs and watermarks with explicit outcome mappings.
 | Composition/profile rules | Core reader composes first, default LaterWins; converter accepts validated projection |
 | Header/drawing/node identity | Source remains intact; mappings report identities; reverse header/drawing ID is caller supplied |
 | Drawing unit | Map all 25 declared tokens to CAD code, without scaling coordinates |
-| Line patterns | Allocate all native named simple/empty definitions, including unused; preserve names/descriptions/lengths; retain required missing Continuous target scaffold with Modified evidence |
+| Line patterns | Allocate simple and qualified text/SHX definitions after ordinary and shape STYLE handles; preserve signed lengths, transforms, relative/absolute radians and source relationships. Independent source IDs produce separate anonymous STYLE records even with equal filenames. Shape selectors 0..32767 are qualified; larger selectors and unsupported active styles use whole-definition named continuous with one Modified diagnostic under Allow, rejected under Reject. |
 | Pattern scale/generation | Drawing/entity scales to header/common fields; planar polyline perSegment/continuous to plinegen |
 | Model | Default Model layout, ordered backing block membership |
 | Paper | Allocate layouts in tab order, optional media and ordered backing block contents; independent numerical coordinates and effective plot mappings. Unsupported medium units omit media/plot state, not the layout. CAD-name collisions and indices exceeding i16 are fatal |
@@ -365,3 +365,7 @@ RGB controls. These tests prove data exchange, not external-app visual/CTB-outpu
 certification. Additional C5/ByPen/None/257 methods and broader plot-style contents
 remain unqualified. See [presentation](../../../docs/presentation.md#foreground-color)
 and [issue #16](https://github.com/OpenAEC-Foundation/ifccad/issues/16).
+
+Marker footprints are unassessed per affected native curve and block occurrence, alongside the numerical host-curve proof. External font/SHX availability is not probed or diagnosed as semantic loss. Producer bounds claims remain distinct from derived Partial/Estimated evidence.
+
+AC1032 complex DXF/DWG qualification uses `tests/complex_line_pattern_exchange.rs` and the independently authored `tests/fixtures/line-patterns/complex-literal-ac1032.dxf` at the pinned dependency and explicit viewport patch. STYLE roles, filename identities, marker values, relative/absolute flags and degree/radian conversion are checked semantically. Upright flags are outside the current codec public model; this does not qualify upright preservation.

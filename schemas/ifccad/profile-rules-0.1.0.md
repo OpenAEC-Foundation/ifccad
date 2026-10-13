@@ -56,6 +56,7 @@ not suffix-only references. Foreign namespaces remain outside this catalog.
 | `ifccad::layer` | drawing definition; OWN, APPEARANCE | `layerExtras` |
 | `ifccad::entity` | native ordered drawable; OWN, APPEARANCE | `entityExtras` |
 | `ifccad::linePattern` | drawing definition; ID, PATTERN | `patternExtras` |
+| `ifccad::symbolSource` | independent drawing definition; ID, SYMBOL | `symbolSource` |
 | `ifccad::blockDefinition` | drawing definition; OWN, GEOMETRY, BOUNDS | `blockDefinitionExtras` |
 | `ifccad::blockInstance` | ordered drawable; OWN, GEOMETRY | `blockInstanceExtras` |
 | `ifccad::geom::placement` | required local frame on placed payloads; GEOMETRY | `placementExtras` |
@@ -253,3 +254,34 @@ fields MUST fail. Ordinary inline IFCX declarations expose a tagged superset;
 the local supplement and typed domain checks enforce the actual variants.
 Whole Hatch attribute replacement and all contour/source/ID rules still apply.
 Evidence: tests/hatch_pattern.rs and tests/hatch_pattern_wire.rs.
+
+## Complex line patterns and symbol sources
+
+`ifccad::linePattern.pattern` is an ordered array of plain signed numbers or
+closed `{length,marker}` objects. Positive lengths retain strokes, negative
+lengths retain gaps; zero with a marker contributes no dot. Simple nonempty
+periods require two elements; complex periods permit one. Both require a
+nonnegative first length and a finite positive absolute-length sum.
+
+Text markers carry `kind:text`, literal `text` and a complete `textStyle` path.
+Symbol markers carry `kind:symbol`, `symbolSource` path and uint32 `shapeNumber`.
+Both support finite positive scale, finite two-component offset, and relative or
+absolute rotation in radians. Omission defaults are 1, [0,0], and relative zero;
+null, unknown fields and fields of another variant are rejected. References are
+canonical complete paths within the same drawing and must resolve to their
+respective roles after composition. Later fragments replace whole attribute
+values, including the array; RejectConflicts rejects conflicting fragments.
+
+`ifccad::symbolSource` is a closed `{kind:shx,fileName}` payload on
+`/cad/dN/symbolSource/N`, referenced by its drawing children. Source IDs are
+independent exact uint64 values, including zero. Duplicate filenames retain
+separate identity. The required `nextSymbolSourceId` is positive, greater than
+all existing source IDs, and is never lowered by deletion. Allocation overflow
+is atomic. Filenames are nonempty basenames except . and .., without slash,
+backslash or NUL. Internal reference errors are fatal; external asset absence
+is nonfatal and the core performs no asset lookup.
+
+The IFCX declaration supplies the Array wrapper. The profile-owned supplemental
+schema supplies its closed number/marked-element alternatives, and semantic
+validation supplies period, transform and graph rules. This is an independent
+experimental contract, not an adopted buildingSMART symbol resource standard.

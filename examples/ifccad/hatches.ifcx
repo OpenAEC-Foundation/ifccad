@@ -33,7 +33,8 @@
           "nextLinePatternId": 1,
           "nextModelWindowId": 1,
           "nextUcsId": 1,
-          "profileVersion": "0.1.0"
+          "profileVersion": "0.1.0",
+          "nextSymbolSourceId": 1
         }
       }
     },

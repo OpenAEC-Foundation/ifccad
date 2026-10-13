@@ -35,16 +35,10 @@ pub(crate) fn validate_line_patterns(
                 "line pattern allocation watermark is not greater than allocated IDs",
             );
         }
-        let total: f64 = row.pattern.iter().map(|v| v.abs()).sum();
         if key == name_key("ByLayer")
             || key == name_key("ByBlock")
             || (key == name_key("Continuous") && !row.pattern.is_empty())
-            || row.pattern.iter().any(|v| !v.is_finite())
-            || (!row.pattern.is_empty()
-                && (row.pattern.len() < 2
-                    || row.pattern[0] < 0.0
-                    || !total.is_finite()
-                    || total <= 0.0))
+            || crate::line_pattern::validate_line_pattern_values(&row.pattern).is_err()
         {
             fail(
                 "LINE_PATTERN_VALUE",

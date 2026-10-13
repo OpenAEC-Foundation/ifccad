@@ -75,7 +75,17 @@ fn import_document(
     options: OcdrawToCadOptions,
 ) -> Result<OcdrawToCadOutcome, OcdrawToCadError> {
     let mut document = CadDocument::new();
-    let patterns = crate::mapping::line_pattern::import_line_patterns(drawing, &mut document)?;
+    let mut diagnostics = Vec::new();
+    let text_styles = crate::mapping::text::to_styles(drawing, &mut document, &mut diagnostics)?;
+    let symbol_sources =
+        crate::mapping::symbol_source::import_symbol_sources(drawing, &mut document);
+    let patterns = crate::mapping::line_pattern::import_line_patterns(
+        drawing,
+        &mut document,
+        &text_styles,
+        &symbol_sources,
+        &mut diagnostics,
+    )?;
     for source in &drawing.ucs_definitions {
         let mut target = opencadcodec::Ucs::new(&source.definition.name);
         target.handle = document.allocate_handle();
@@ -92,8 +102,6 @@ fn import_document(
             .add(target)
             .map_err(|error| OcdrawToCadError::Cad(format!("UCS definition: {error}")))?;
     }
-    let mut diagnostics = Vec::new();
-    let text_styles = crate::mapping::text::to_styles(drawing, &mut document, &mut diagnostics)?;
     let mut preservation_report = crate::OcdrawPreservationReport::default();
     let code = crate::units::UNIT_TOKENS
         .iter()
@@ -512,6 +520,7 @@ fn import_document(
     Ok(OcdrawToCadOutcome {
         text: crate::OcdrawTextAssessment::new(drawing, entity_mapping.keys().copied()),
         text_styles: text_styles.handles,
+        symbol_sources,
         preservation: preservation_report,
         document,
         diagnostics,

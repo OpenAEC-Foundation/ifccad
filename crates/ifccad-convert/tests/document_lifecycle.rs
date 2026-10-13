@@ -30,7 +30,10 @@ fn logical_and_encoded_imports_have_equivalent_documents_diagnostics_and_mapping
         id: IfccadLinePatternId(2),
         name: "Dashed".into(),
         description: Some("Unused pattern".into()),
-        pattern: vec![2., -1.],
+        pattern: vec![2., -1.]
+            .into_iter()
+            .map(ocdraw::line_pattern::LinePatternElement::simple)
+            .collect(),
     });
     patterned.id_counters.next_line_pattern_id = 3;
     let mut lossy = to_cad(&validated(&primitives())).unwrap().into_document();

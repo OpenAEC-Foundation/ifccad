@@ -1,4 +1,5 @@
 //! Independent enclosure evidence, estimates and atomic preparation.
+use super::line_pattern_bounds::{effective_context, marker_contribution, AppearanceContext};
 use super::*;
 use crate::geometry_kernel::{
     geometry_bounds, numeric::Interval, paper_frame_bounds, BlockTransform, PaperFrame, Point3,
@@ -32,6 +33,7 @@ pub struct IfccadScopeBoundsAssessment {
     pub quality: Option<IfccadBoundsQuality>,
     pub enclosure_verified: bool,
     pub text_reasons: Vec<TextExtentReason>,
+    pub line_pattern_reasons: Vec<crate::line_pattern::LinePatternBoundsReason>,
 }
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadBoundsAssessment {
@@ -44,17 +46,19 @@ struct Extents {
     unavailable: bool,
     estimated: bool,
     reasons: Vec<TextExtentReason>,
+    marker_unavailable: bool,
+    line_pattern_reasons: Vec<crate::line_pattern::LinePatternBoundsReason>,
 }
 impl Extents {
     fn bounds(&self) -> Option<IfccadBounds3d> {
-        if self.unavailable {
+        if self.unavailable || self.marker_unavailable {
             None
         } else {
             self.all
         }
     }
     fn quality(&self) -> Option<IfccadBoundsQuality> {
-        if self.unavailable {
+        if self.unavailable || self.marker_unavailable {
             Some(IfccadBoundsQuality::Partial)
         } else if self.all.is_none() {
             None
@@ -65,7 +69,7 @@ impl Extents {
         }
     }
     fn completeness(&self) -> IfccadGeometryCompleteness {
-        if self.unavailable {
+        if self.unavailable || self.marker_unavailable {
             IfccadGeometryCompleteness::Unavailable
         } else if self.all.is_some() {
             IfccadGeometryCompleteness::Complete
@@ -81,6 +85,12 @@ impl Extents {
             union(&mut self.proven, b);
         }
         self.unavailable |= other.unavailable;
+        self.marker_unavailable |= other.marker_unavailable;
+        for r in other.line_pattern_reasons {
+            if !self.line_pattern_reasons.contains(&r) {
+                self.line_pattern_reasons.push(r);
+            }
+        }
         self.estimated |= other.estimated;
         for r in other.reasons {
             if !self.reasons.contains(&r) {
@@ -182,7 +192,7 @@ struct Evaluation<'a> {
     drawing: &'a IfccadDocument,
     contents: BTreeMap<Owner, &'a [IfccadEntity]>,
     blocks: BTreeMap<u64, &'a IfccadBlockDefinition>,
-    completed: BTreeMap<Owner, Extents>,
+    completed: BTreeMap<(Owner, Option<AppearanceContext>), Extents>,
 }
 impl<'a> Evaluation<'a> {
     fn new(d: &'a IfccadDocument) -> Self {
@@ -204,8 +214,13 @@ impl<'a> Evaluation<'a> {
             completed: BTreeMap::new(),
         }
     }
-    fn scope(&mut self, owner: Owner) -> Result<Extents, IfccadReport> {
-        if let Some(b) = self.completed.get(&owner) {
+    fn scope(
+        &mut self,
+        owner: Owner,
+        parent: Option<AppearanceContext>,
+    ) -> Result<Extents, IfccadReport> {
+        let key = (owner, parent);
+        if let Some(b) = self.completed.get(&key) {
             return Ok(b.clone());
         }
         let mut combined = Extents::default();
@@ -214,13 +229,20 @@ impl<'a> Evaluation<'a> {
                 combined.unavailable = true;
                 continue;
             };
-            let value = match &e.kind {
+            let context = effective_context(
+                e,
+                parent,
+                matches!(owner, Owner::BlockDefinition(_)),
+                self.drawing,
+            );
+            let mut value = match &e.kind {
                 IfccadEntityKind::BlockInstance {
                     definition_id,
                     transform,
                 } => {
                     let block = self.blocks[definition_id];
-                    let mut local = self.scope(Owner::BlockDefinition(*definition_id))?;
+                    let mut local =
+                        self.scope(Owner::BlockDefinition(*definition_id), Some(context))?;
                     let t = BlockTransform::try_new(
                         transform.placement.coordinate_frame()?,
                         transform.rotation,
@@ -358,9 +380,31 @@ impl<'a> Evaluation<'a> {
                     }
                 }
             };
+            if matches!(
+                e.kind,
+                IfccadEntityKind::LineSegment { .. }
+                    | IfccadEntityKind::Circle { .. }
+                    | IfccadEntityKind::Arc { .. }
+                    | IfccadEntityKind::Ellipse { .. }
+                    | IfccadEntityKind::EllipseArc { .. }
+                    | IfccadEntityKind::PlanarPolyline { .. }
+                    | IfccadEntityKind::SpatialPolyline { .. }
+            ) {
+                let markers =
+                    marker_contribution(context.pattern_id, e.line_pattern_scale, self.drawing)?;
+                value.marker_unavailable |= markers.unavailable;
+                value.estimated |= markers.radius.is_some();
+                value.reasons.extend(markers.reasons);
+                value.line_pattern_reasons.extend(markers.bounds_reasons);
+                if let (Some(b), Some(radius)) = (value.all, markers.radius) {
+                    let (min, max) = crate::line_pattern::inflate_range((b.min, b.max), radius)
+                        .ok_or_else(|| error(owner, "text marker estimate exceeds finite range"))?;
+                    value.all = Some(IfccadBounds3d { min, max });
+                }
+            }
             combined.merge(value);
         }
-        self.completed.insert(owner, combined.clone());
+        self.completed.insert(key, combined.clone());
         Ok(combined)
     }
     fn estimate(e: TextExtentEstimate) -> Extents {
@@ -370,6 +414,7 @@ impl<'a> Evaluation<'a> {
             unavailable: e.status == TextExtentStatus::Unavailable,
             estimated: e.status != TextExtentStatus::Empty,
             reasons: e.reasons,
+            ..Default::default()
         }
     }
 }
@@ -401,7 +446,7 @@ pub(super) fn validate_supplied(d: &IfccadDocument) -> Result<(), IfccadReport> 
             ));
         }
         // Missing extents do not disable arithmetic checks for known content.
-        let actual = evaluation.scope(owner)?;
+        let actual = evaluation.scope(owner, None)?;
         let Some(b) = supplied else {
             continue;
         };
@@ -470,15 +515,16 @@ pub fn assess_ifccad_document_bounds(
     let scopes = owners
         .into_iter()
         .map(|owner| {
-            let e = evaluation.scope(owner)?;
+            let e = evaluation.scope(owner, None)?;
             Ok((
                 owner,
                 IfccadScopeBoundsAssessment {
                     scope_id: owner,
                     bounds: e.bounds(),
                     quality: e.quality(),
-                    enclosure_verified: !e.unavailable && !e.estimated,
+                    enclosure_verified: !e.unavailable && !e.marker_unavailable && !e.estimated,
                     text_reasons: e.reasons,
+                    line_pattern_reasons: e.line_pattern_reasons,
                 },
             ))
         })
@@ -504,7 +550,11 @@ pub fn derive_ifccad_geometry_completeness(
     let owners: Vec<_> = evaluation.contents.keys().copied().collect();
     owners
         .into_iter()
-        .map(|owner| evaluation.scope(owner).map(|e| (owner, e.completeness())))
+        .map(|owner| {
+            evaluation
+                .scope(owner, None)
+                .map(|e| (owner, e.completeness()))
+        })
         .collect::<Result<_, IfccadReport>>()
         .map_err(|report| {
             crate::ifccad::diagnostics::context(

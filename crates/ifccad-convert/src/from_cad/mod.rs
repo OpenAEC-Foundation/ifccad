@@ -52,11 +52,22 @@ pub fn cad_document_to_ifccad_document(
     }
     let mut issues = Vec::new();
     let mut ids = IfccadIdCounters::default();
+    let mut mappings = IfccadMappings::default();
+    let text_styles =
+        crate::mapping::text::from_styles(source, &mut ids, &mut mappings, &mut issues)?;
+    let (symbol_sources, symbol_map) = crate::mapping::symbol_source::from_cad_symbol_sources(
+        source,
+        &mut ids,
+        &mut mappings,
+        &mut issues,
+    )?;
     let (mut line_patterns, patterns) = crate::mapping::line_pattern::from_cad(
         source,
         preservation.enabled,
         &mut ids,
         &mut issues,
+        &mappings,
+        &symbol_map,
     )?;
     let length_unit = UNIT_TOKENS
         .get(source.header.insertion_units as usize)
@@ -69,9 +80,6 @@ pub fn cad_document_to_ifccad_document(
             &"unitless"
         })
         .to_string();
-    let mut mappings = IfccadMappings::default();
-    let text_styles =
-        crate::mapping::text::from_styles(source, &mut ids, &mut mappings, &mut issues)?;
     let model_id = ids.allocate_layout_id().map_err(allocation_error)?;
     mappings.layouts.insert(model_id, info.model_layout);
     let mut layers = Vec::new();
@@ -262,6 +270,7 @@ pub fn cad_document_to_ifccad_document(
         &mut issues,
     );
     let mut drawing = IfccadDocument {
+        symbol_sources,
         point_display: crate::mapping::point_display::from_cad(
             source.header.point_display_mode,
             source.header.point_display_size,
@@ -382,6 +391,7 @@ mod error_tests {
     #[test]
     fn allocation_exhaustion_retains_domain_and_source() {
         let mut ids = IfccadIdCounters {
+            next_symbol_source_id: 1,
             next_text_style_id: 1,
             next_preservation_record_id: 1,
             next_ucs_id: 1,

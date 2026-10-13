@@ -37,6 +37,9 @@ pub(crate) fn from_styles(
     let mut styles = Vec::new();
     let mut names = BTreeMap::new();
     for s in source.text_styles.iter() {
+        if s.is_shape_file {
+            continue;
+        }
         let loc = format!("textStyle/{}", s.handle);
         if !s.is_shape_file
             && (s.name.is_empty()

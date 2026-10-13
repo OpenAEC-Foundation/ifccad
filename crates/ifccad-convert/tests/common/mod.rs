@@ -61,6 +61,7 @@ pub fn header() -> IfccadHeader {
 }
 pub fn empty() -> IfccadDocument {
     IfccadDocument {
+        symbol_sources: vec![],
         point_display: None,
         text_styles: Vec::new(),
         preservation: None,
@@ -71,6 +72,7 @@ pub fn empty() -> IfccadDocument {
 
         plot_style_mode: Default::default(),
         id_counters: IfccadIdCounters {
+            next_symbol_source_id: 1,
             next_preservation_record_id: 1,
             next_layer_id: 5,
             next_layout_id: 2,

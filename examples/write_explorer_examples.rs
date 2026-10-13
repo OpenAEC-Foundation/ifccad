@@ -5,6 +5,8 @@ use std::{error::Error, path::Path};
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 #[path = "support/ifccad_consistency.rs"]
 mod consistency;
+#[path = "support/complex_line_patterns.rs"]
+mod line_patterns;
 #[path = "support/explorer_overview.rs"]
 mod overview;
 
@@ -14,7 +16,10 @@ fn ocdraw_overview() -> Result<OcdrawDocument> {
     let dash = b.add_line_pattern(LinePatternDefinition {
         name: "Axis".into(),
         description: Some("Long dash and dot".into()),
-        pattern: vec![6., -2., 0., -2.],
+        pattern: vec![6., -2., 0., -2.]
+            .into_iter()
+            .map(ocdraw::line_pattern::LinePatternElement::simple)
+            .collect(),
     })?;
     b.add_line_pattern(LinePatternDefinition {
         name: "Unused reference".into(),
@@ -377,8 +382,16 @@ fn prepare_ifccad(name: &str, value: &Value) -> Result<Vec<u8>> {
         {
             for role in ["ifccad::layout", "ifccad::blockDefinition"] {
                 if node["attributes"].get(role).is_some() {
-                    node["attributes"][role]["bounds"] =
-                        prepared["attributes"][role]["bounds"].clone();
+                    for field in ["bounds", "boundsQuality"] {
+                        if let Some(value) = prepared["attributes"][role].get(field) {
+                            node["attributes"][role][field] = value.clone();
+                        } else {
+                            node["attributes"][role]
+                                .as_object_mut()
+                                .unwrap()
+                                .remove(field);
+                        }
+                    }
                 }
             }
         }
@@ -557,7 +570,7 @@ fn main() -> Result<()> {
     write_ocdraw(
         &root.join("ocdraw"),
         "overview.ocdraw.json",
-        &overview::ocdraw(ocdraw_state()?, ocdraw_workspace()?)?,
+        &line_patterns::ocdraw(overview::ocdraw(ocdraw_state()?, ocdraw_workspace()?)?)?,
     )?;
     write_ocdraw(
         &fixtures.join("ocdraw"),
@@ -586,7 +599,7 @@ fn main() -> Result<()> {
         Default::default(),
     )?
     .into_document();
-    let native = overview::ifccad(native, ifccad_workspace()?)?;
+    let native = line_patterns::ifccad(overview::ifccad(native, ifccad_workspace()?)?)?;
     let bytes = ocdraw::ifccad::encode_ifccad_document(&native)?;
     ocdraw::ifccad::load_ifccad_bytes(bytes.bytes(), Default::default())?;
     let mut curated: Value = serde_json::from_slice(bytes.bytes())?;

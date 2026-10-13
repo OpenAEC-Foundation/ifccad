@@ -3,6 +3,8 @@
 use opencadcodec::{Color, LineWeight, Transparency};
 
 mod color;
+mod line_pattern;
+pub use line_pattern::*;
 mod quantization;
 mod viewport_overrides;
 pub use viewport_overrides::*;

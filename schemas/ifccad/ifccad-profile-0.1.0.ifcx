@@ -127,6 +127,9 @@
                   }
                 }
               }
+            },
+            "nextSymbolSourceId": {
+              "dataType": "Integer"
             }
           }
         }
@@ -1270,12 +1273,7 @@
               "optional": true
             },
             "pattern": {
-              "dataType": "Array",
-              "arrayRestrictions": {
-                "value": {
-                  "dataType": "Real"
-                }
-              }
+              "dataType": "Array"
             }
           }
         }
@@ -3589,6 +3587,26 @@
                   }
                 }
               }
+            }
+          }
+        }
+      }
+    },
+    "ifccad::symbolSource": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "kind": {
+              "dataType": "Enum",
+              "enumRestrictions": {
+                "options": [
+                  "shx"
+                ]
+              }
+            },
+            "fileName": {
+              "dataType": "String"
             }
           }
         }

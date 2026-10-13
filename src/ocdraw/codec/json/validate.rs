@@ -13,6 +13,7 @@ pub(crate) fn validate_physical(value: &Value, diagnostics: &mut Vec<OcdrawDiagn
         "nextLayerId",
         "nextLayoutId",
         "nextLinePatternId",
+        "nextSymbolSourceId",
     ] {
         let valid = value["header"][field]
             .as_u64()

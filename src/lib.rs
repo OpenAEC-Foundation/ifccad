@@ -10,6 +10,7 @@
 pub mod color;
 pub mod geometry_kernel;
 pub mod ifccad;
+pub mod line_pattern;
 pub mod ocdraw;
 
 pub mod plot_kernel;

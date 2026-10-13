@@ -7,7 +7,7 @@
     "nextEntityId": 2,
     "nextLayerId": 1,
     "nextLayoutId": 2,
-    "nextLinePatternId": 1
+    "nextLinePatternId": 1,"nextSymbolSourceId":0
   },
   "layouts": [
     {

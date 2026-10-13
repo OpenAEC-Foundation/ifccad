@@ -236,6 +236,7 @@ fn ifccad_native_download_preserves_large_counter_bytes() {
         .document()
         .clone();
     document.id_counters = IfccadIdCounters {
+        next_symbol_source_id: 1,
         next_text_style_id: 1,
         next_preservation_record_id: 1,
         next_ucs_id: 1,
@@ -395,7 +396,9 @@ fn ifccad_exports_real_dxf_and_dwg_with_diagnostics_and_strict_native_readback()
             .document()
             .line_patterns
             .iter()
-            .any(|p| p.name == "DashDot" && p.pattern == [0.5, -0.25, 0., -0.25]));
+            .any(|p| p.name == "DashDot"
+                && p.pattern.iter().map(|e| e.length).collect::<Vec<_>>()
+                    == [0.5, -0.25, 0., -0.25]));
     }
 }
 

@@ -258,7 +258,9 @@ fn invalid_typed_documents_fail_without_encoding() {
             .line_pattern_scale = f64::NAN
     });
     add("pattern definition", |d| {
-        d.line_patterns[0].pattern = vec![f64::INFINITY]
+        d.line_patterns[0].pattern = vec![ocdraw::line_pattern::LinePatternElement::simple(
+            f64::INFINITY,
+        )]
     });
     for (name, document) in cases {
         let report = validate_ifccad_document(&document).expect_err(name);

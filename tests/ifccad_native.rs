@@ -33,6 +33,7 @@ fn base() -> Value {
         ("nextLayoutId", 2),
         ("nextBlockId", 1),
         ("nextLinePatternId", 1),
+        ("nextSymbolSourceId", 1),
     ] {
         value["data"][0]["attributes"]["ifccad::drawing"][field] = json!(count);
     }
@@ -225,6 +226,7 @@ fn fixture_document() -> IfccadDocument {
         })
     };
     IfccadDocument {
+        symbol_sources: vec![],
         point_display: None,
         text_styles: Vec::new(),
         ucs_definitions: vec![],
@@ -234,6 +236,7 @@ fn fixture_document() -> IfccadDocument {
         preservation: None,
         plot_style_mode: Default::default(),
         id_counters: IfccadIdCounters {
+            next_symbol_source_id: 1,
             next_text_style_id: 1,
             next_preservation_record_id: 1,
 

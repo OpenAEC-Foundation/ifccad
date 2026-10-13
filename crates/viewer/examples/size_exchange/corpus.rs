@@ -102,6 +102,7 @@ pub fn generate(case: &Case) -> Result<CadDocument> {
         },
     };
     let mut doc = IfccadDocument {
+        symbol_sources: vec![],
         point_display: None,
         text_styles: Vec::new(),
         preservation: None,
@@ -114,6 +115,7 @@ pub fn generate(case: &Case) -> Result<CadDocument> {
         header: super::projection::metadata().header,
         drawing_id: 1,
         id_counters: IfccadIdCounters {
+            next_symbol_source_id: 1,
             next_text_style_id: 1,
             next_preservation_record_id: 1,
             next_ucs_id: 1,
@@ -158,7 +160,10 @@ pub fn generate(case: &Case) -> Result<CadDocument> {
                 id: IfccadLinePatternId(id),
                 name: name.into(),
                 description: Some(format!("{name} test pattern")),
-                pattern,
+                pattern: pattern
+                    .into_iter()
+                    .map(ocdraw::line_pattern::LinePatternElement::simple)
+                    .collect(),
             });
         }
         doc.id_counters.next_line_pattern_id = 5;

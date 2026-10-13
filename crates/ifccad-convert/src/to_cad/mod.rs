@@ -111,12 +111,15 @@ fn convert_document(
     crate::mapping::layout::apply_settings(model_layout, &drawing.model.settings, &mut issues)?;
     let mut mappings = IfccadMappings::default();
     crate::mapping::text::to_styles(drawing, &mut document, &mut mappings, &mut issues)?;
+    let symbols =
+        crate::mapping::symbol_source::to_cad_symbol_sources(drawing, &mut document, &mut mappings);
     document.header.linetype_scale = drawing.line_pattern_scale;
     crate::mapping::line_pattern::allocate(
         &mut document,
         &drawing.line_patterns,
         &mut mappings,
         &mut issues,
+        &symbols,
     )?;
     let layout = document
         .objects

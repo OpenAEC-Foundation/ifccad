@@ -498,7 +498,10 @@ fn modified_dashed_linetype_definition_is_not_hidden_by_its_supported_name() {
         .find(|p| p.name == "Dashed")
         .unwrap();
     assert_eq!(pattern.description.as_deref(), Some("Custom dash sequence"));
-    assert_eq!(pattern.pattern, vec![2.0, -0.25]);
+    assert_eq!(
+        pattern.pattern.iter().map(|e| e.length).collect::<Vec<_>>(),
+        vec![2.0, -0.25]
+    );
 }
 
 #[test]

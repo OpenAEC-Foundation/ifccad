@@ -1093,6 +1093,10 @@
         "modelWindows": {},
         "pointDisplay": {
           "$ref": "#/$defs/pointDisplay"
+        },
+        "nextSymbolSourceId": {
+          "type": "integer",
+          "minimum": 1
         }
       },
       "additionalProperties": false,
@@ -1366,34 +1370,26 @@
     },
     "patternExtras": {
       "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "pattern"
+      ],
       "properties": {
         "name": {
+          "type": "string",
           "minLength": 1
         },
-        "description": {},
+        "description": {
+          "type": "string"
+        },
         "pattern": {
-          "anyOf": [
-            {
-              "maxItems": 0
-            },
-            {
-              "minItems": 2,
-              "prefixItems": [
-                {
-                  "type": "number",
-                  "minimum": 0
-                }
-              ]
-            }
-          ]
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/linePatternElement"
+          }
         }
-      },
-      "additionalProperties": false,
-      "allOf": [
-        {
-          "$ref": "#/$defs/nonNullValue"
-        }
-      ]
+      }
     },
     "blockDefinitionExtras": {
       "type": "object",
@@ -3280,6 +3276,154 @@
           "items": {
             "$ref": "#/$defs/hatchDash"
           }
+        }
+      }
+    },
+    "linePatternMarker": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "text",
+            "textStyle"
+          ],
+          "properties": {
+            "scale": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "offset": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number"
+              }
+            },
+            "rotation": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "mode",
+                "angle"
+              ],
+              "properties": {
+                "mode": {
+                  "enum": [
+                    "relative",
+                    "absolute"
+                  ]
+                },
+                "angle": {
+                  "type": "number"
+                }
+              }
+            },
+            "kind": {
+              "const": "text"
+            },
+            "text": {
+              "type": "string"
+            },
+            "textStyle": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "symbolSource",
+            "shapeNumber"
+          ],
+          "properties": {
+            "scale": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "offset": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number"
+              }
+            },
+            "rotation": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "mode",
+                "angle"
+              ],
+              "properties": {
+                "mode": {
+                  "enum": [
+                    "relative",
+                    "absolute"
+                  ]
+                },
+                "angle": {
+                  "type": "number"
+                }
+              }
+            },
+            "kind": {
+              "const": "symbol"
+            },
+            "symbolSource": {
+              "type": "string"
+            },
+            "shapeNumber": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            }
+          }
+        }
+      ]
+    },
+    "linePatternElement": {
+      "oneOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "length",
+            "marker"
+          ],
+          "properties": {
+            "length": {
+              "type": "number"
+            },
+            "marker": {
+              "$ref": "#/$defs/linePatternMarker"
+            }
+          }
+        }
+      ]
+    },
+    "symbolSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "fileName"
+      ],
+      "properties": {
+        "kind": {
+          "const": "shx"
+        },
+        "fileName": {
+          "type": "string",
+          "minLength": 1
         }
       }
     }

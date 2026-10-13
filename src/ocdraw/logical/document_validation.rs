@@ -49,6 +49,7 @@ pub(crate) fn validate_logical_document(
     phase: ValidationPhase,
 ) -> Vec<LogicalError> {
     let mut errors = super::field_validation::validate_fields(doc);
+    errors.extend(super::symbol_source::validate_symbol_sources(doc));
     errors.extend(super::text_validation::validate_text(doc));
     if phase == ValidationPhase::Complete {
         errors.extend(super::text_bounds::validate_bounds_quality(doc));
@@ -65,16 +66,32 @@ pub(crate) fn validate_logical_document(
         return errors;
     }
     if phase == ValidationPhase::Complete {
-        if let Err(error) = super::bounds_preparation::evaluate_document_bounds(doc) {
-            return error
-                .into_diagnostics()
-                .into_iter()
-                .map(|d| LogicalError {
-                    code: d.code,
-                    location: d.location,
-                    message: d.message,
-                })
-                .collect();
+        let assessments = match super::bounds_preparation::evaluate_document_bounds(doc) {
+            Ok(assessments) => assessments,
+            Err(error) => {
+                return error
+                    .into_diagnostics()
+                    .into_iter()
+                    .map(|d| LogicalError {
+                        code: d.code,
+                        location: d.location,
+                        message: d.message,
+                    })
+                    .collect()
+            }
+        };
+        let geometry_completeness = derive_scope_geometry_completeness(doc);
+        for (i, (scope, assessment)) in doc.scopes.iter().zip(assessments).enumerate() {
+            if scope.bounds.is_none()
+                && geometry_completeness[&scope.id] == ScopeGeometryCompleteness::Complete
+                && assessment.quality != Some(OcdrawBoundsQuality::Partial)
+            {
+                errors.push(super::field_validation::logical_error(
+                    "SCOPE_BOUNDS",
+                    format!("/scopes/{i}/bounds"),
+                    "complete nonempty scope requires finite bounds",
+                ));
+            }
         }
         errors.extend(validate_geometry_bounds(
             &doc.geometric_entities,

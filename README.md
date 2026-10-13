@@ -19,7 +19,7 @@ route does not establish support in the other. IFCCAD is a provisional profile,
 not an official buildingSMART CAD standard.
 
 An OCDraw drawing contains typed geometric entities, layers, layouts, entity appearance
-choices, named simple line patterns, shared block definitions, and drawing-bound state. It opens without
+choices, named line patterns with text/SHX markers, shared block definitions, and drawing-bound state. It opens without
 IFCX. The JSON format marker is `open_cad_drawing`. The initial 0.1.0 contract
 and entity schema v1 are provisional until contract completion and verification.
 
@@ -74,9 +74,13 @@ the [remaining local codec patch](patches/opencadcodec-viewports/README.md)
 retains the independent viewport-off bit. The DWG profile includes a paper canvas.
 See the [dependency audit](docs/geometry/opencadcodec-update-2026-10-07.md) and the
 converter coverage contracts for limits.
-Named simple patterns retain their definitions, unused records, local references,
-scale and polyline generation. Complex text/shape patterns become named continuous
-patterns with loss evidence under Allow; Reject refuses this fallback.
+Named patterns retain definitions, unused records, local references, scale and
+polyline generation. Both native routes support text and SHX markers with separate
+style/source identities and relative/absolute rotation. Qualified markers survive
+CAD conversion and AC1032 DXF/DWG exchange. Unsupported active dependencies use a
+diagnosed whole-definition named-continuous fallback under Allow; Reject refuses it.
+Unknown external glyph outlines remain unassessed while host curves stay checked.
+See [complex line patterns](docs/line-patterns.md).
 Both routes have independent native Text/MText, local font requests and text styles, rich
 paragraph/inline formatting, column/background state and explicit estimated
 bound quality. Their CAD routes separately qualify a bounded text profile and expose
@@ -198,7 +202,7 @@ The independent IFCCAD proof is available in
 [sample](tests/fixtures/ifccad/hello-cad.ifcx) and
 [evaluation](docs/experiments/ifccad.md). Its direct
 [converter](crates/ifccad-convert/README.md) connects the supported subset to
-opencadcodec `CadDocument`, including named simple line patterns, scales and polyline
+opencadcodec `CadDocument`, including named line patterns with text/SHX markers, scales and polyline
 pattern generation. See the [geometry sample](tests/fixtures/ifccad/hello-geometry.ifcx)
 and [line-pattern sample](tests/fixtures/ifccad/hello-line-patterns.ifcx). Geometry validation and length-unit tokens use shared neutral helpers;
 the two drawing models, schemas and encoding routes remain separate. The

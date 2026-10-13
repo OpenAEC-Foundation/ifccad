@@ -240,3 +240,28 @@ fn representative_native_examples_strict_read_and_cover_entity_families() {
         ocdraw::ifccad::load_ifccad_bytes(bytes, Default::default()).unwrap();
     }
 }
+
+#[test]
+fn curated_overviews_include_complex_patterns_without_expanding_the_chooser() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let ocdraw = ocdraw::ocdraw::load_ocdraw_bytes(
+        &std::fs::read(root.join("examples/ocdraw/overview.ocdraw.json")).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(ocdraw.symbol_sources().len(), 3);
+    assert!(ocdraw
+        .line_patterns()
+        .iter()
+        .any(|p| p.name == "Mixed" && p.pattern.iter().any(|e| e.marker.is_some())));
+    let ifccad = ocdraw::ifccad::load_ifccad_bytes(
+        &std::fs::read(root.join("examples/ifccad/overview.ifcx")).unwrap(),
+        Default::default(),
+    )
+    .unwrap();
+    assert_eq!(ifccad.document().symbol_sources.len(), 3);
+    assert!(ifccad
+        .document()
+        .line_patterns
+        .iter()
+        .any(|p| p.name == "Mixed" && p.pattern.iter().any(|e| e.marker.is_some())));
+}

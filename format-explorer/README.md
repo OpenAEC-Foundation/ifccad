@@ -374,3 +374,13 @@ remain inspectable in OCDraw hatchStream. Filled area/nesting remain unassessed;
 join tolerance is local and independent of conversion accuracy. Native contour
 sources do not regenerate stored boundaries. No pattern/gradient fallback is
 introduced. See ../docs/hatch.md for the native and conversion contract.
+
+The existing Drawing overview example in each native route includes complex
+line patterns; the chooser remains at three drawings per format. Pattern
+inspection shows ordered text/SHX markers and links to ordinary text styles or
+independent symbol sources, including repeated filenames and full-width IFCCAD
+paths. Source filenames do not imply availability; no SHX upload or asset probe
+is added. The embedded editor may resolve its own libraries. Derived Partial
+symbol coverage, producer bounds claims and enclosure verification remain separate
+in inspection, alongside existing text estimates. See
+[complex line patterns](../docs/line-patterns.md).

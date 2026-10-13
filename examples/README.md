@@ -12,6 +12,10 @@ remain independently authored and opened; neither route requires the other.
 
 The chooser contains only these six files. Add supported semantic variants to
 the appropriate drawing instead of adding one chooser entry per enum value.
+Both overviews include a line-pattern palette: GAS text, `ltypeshp.shx` shape 132,
+custom external shape 42, mixed markers, unused definitions and duplicate source
+filenames. Their Model, Paper and shared block contexts retain separate glyph
+coverage evidence; external assets are not required for native validity.
 Focused regression cases and recipe inputs live in `tests/fixtures/ifccad/` and
 `tests/fixtures/ocdraw/`; conformance collections remain separate and unchanged.
 Rust programs below `examples/` demonstrate authoring APIs or generate drawings.

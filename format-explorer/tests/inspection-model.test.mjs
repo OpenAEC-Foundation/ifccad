@@ -1,5 +1,25 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {createInspection} from '../src/inspection-model.mjs';
+
+test('OCDraw complex patterns link styles and sources without probing availability',()=>{
+ const model=createInspection({presentation:{format:'ocdraw',linePatterns:[{id:1,name:'Mixed',pattern:[2,{length:0,marker:{kind:'text',text:'GAS',textStyleId:7}},{length:0,marker:{kind:'symbol',symbolSourceId:4,shapeNumber:42}},-2]}],textStyles:[{id:7,name:'Requested'}],symbolSources:[{id:4,kind:'shx',fileName:'Custom.SHX'}]}});
+ assert.deepEqual(model.nodes.get('pattern:1').outgoing.map(e=>e.target),['textStyle:7','symbolSource:4']);
+ assert.deepEqual(model.nodes.get('group:symbolSources').children,['symbolSource:4']);
+ assert.equal(model.nodes.get('symbolSource:4').title,'Custom.SHX');
+ assert.equal(model.nodes.get('symbolSource:4').values.availability,undefined);
+ assert.ok(model.storageRoots.includes('table:symbolSources'));
+});
+test('IFCCAD marker paths keep full-width source identities and independent bounds evidence',()=>{
+ const source='/cad/d1/symbolSource/9007199254740993',style='/cad/d1/textStyle/7',pattern='/cad/d1/linePattern/3',layout='/cad/d1/layout/1';
+ const evidence={scopePath:layout,storedQuality:'enclosing',quality:'partial',enclosureVerified:false,safeForNegativeQuery:false,linePatternReasons:['SymbolFootprintUnavailable']};
+ const graph={data:[{path:source,attributes:{'ifccad::symbolSource':{kind:'shx',fileName:'Custom.SHX'}}},{path:style,attributes:{'ifccad::textStyle':{name:'Requested'}}},{path:pattern,attributes:{'ifccad::linePattern':{name:'Mixed',pattern:[{length:0,marker:{kind:'text',textStyle:style}},{length:1,marker:{kind:'symbol',symbolSource:source,shapeNumber:42}}]}}},{path:layout,attributes:{'ifccad::layout':{kind:'Model'}}}]};
+ const model=createInspection({presentation:{format:'ifccad',graph,boundsCompleteness:[evidence]}});
+ assert.deepEqual(model.nodes.get(pattern).outgoing.map(e=>e.target),[style,source]);
+ assert.deepEqual(model.nodes.get('group:symbolSource').children,[source]);
+ assert.deepEqual(model.nodes.get(layout).values.boundsAssessment,evidence);
+ assert.equal(model.nodes.get(source).title,'Custom.SHX');
+});
 const adapter=await import('../src/inspection-model.mjs').catch(()=>({}));
 const graph={header:{},data:[{path:'/cad/d1',children:{model:'/cad/d1/layout/1'},attributes:{'ifccad::drawing':{lengthUnit:'mm'}}},{path:'/cad/d1/layout/1',children:{'0':'/cad/d1/e9007199254740993'},attributes:{'ifccad::layout':{kind:'Model'}}},{path:'/cad/d1/e9007199254740993',attributes:{'ifccad::entity':{layer:'/cad/d1/layer/1'},'ifccad::geom::lineSegment':{start:[0,0,0],end:[1,0,0]}}},{path:'/cad/d1/layer/1',attributes:{'ifccad::layer':{name:'Walls'}}},{path:'/foreign',children:{ref:'/cad/d1/e9007199254740993',self:'/foreign'},attributes:{note:'This arbitrary /cad/string is not a reference'}}]};
 test('IFCCAD text style paths and glyph bounds evidence stay independent',()=>{

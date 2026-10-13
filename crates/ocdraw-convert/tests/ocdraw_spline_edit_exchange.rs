@@ -330,7 +330,10 @@ fn apply(doc: &mut OcdrawDocument, edit: Edit) {
             }
             let p = doc.line_patterns.iter_mut().find(|p| p.id == dash).unwrap();
             if matches!(edit, Edit::PatternDefinition) {
-                p.pattern = vec![6., -3., 0., -1.];
+                p.pattern = [6., -3., 0., -1.]
+                    .into_iter()
+                    .map(ocdraw::line_pattern::LinePatternElement::simple)
+                    .collect();
             } else {
                 p.name = "RenamedDash".into();
             }

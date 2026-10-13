@@ -205,3 +205,5 @@ Explicit pattern families retain phase, signed spacing and dash/gap/dot order.
 CAD definitions are evaluated once; qualified continuous UserDefined and a narrow
 double profile are supported. Other active dependencies omit the whole Hatch.
 See [Hatch support](../../docs/hatch.md) and the coverage inventories.
+
+Complex line patterns retain text-style and SHX-source references through separate conversion-local identity maps. SHX sources carry basenames; converters do not load external glyph files. Unsupported active marker dependencies use diagnosed whole-definition named-continuous fallback, subject to the loss policy. Marker footprints remain unassessed alongside the host curve proof.

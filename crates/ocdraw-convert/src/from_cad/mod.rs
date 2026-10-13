@@ -108,12 +108,19 @@ pub fn cad_document_to_ocdraw_document_with_id(
         drawing_id,
         unit.unwrap_or("unitless"),
     ))?;
-    let patterns = crate::mapping::line_pattern::export_line_patterns(
+    let text_styles = crate::mapping::text::from_styles(document, &mut drawing, &mut diagnostics)?;
+    let symbol_sources = crate::mapping::symbol_source::export_symbol_sources(
         document,
         &mut drawing,
         &mut diagnostics,
     )?;
-    let text_styles = crate::mapping::text::from_styles(document, &mut drawing, &mut diagnostics)?;
+    let patterns = crate::mapping::line_pattern::export_line_patterns(
+        document,
+        &mut drawing,
+        &mut diagnostics,
+        &text_styles,
+        &symbol_sources,
+    )?;
     let mut ucs_names = BTreeMap::new();
     let mut ucs_handles = BTreeMap::new();
     for source in document.ucss.iter() {
@@ -988,6 +995,11 @@ pub fn cad_document_to_ocdraw_document_with_id(
     Ok(CadToOcdrawDocumentOutcome {
         text: crate::OcdrawTextAssessment::new(&drawing_document, entity_mapping.values().copied()),
         text_styles: text_styles.handles,
+        symbol_sources: symbol_sources
+            .by_handle
+            .into_iter()
+            .filter_map(|(h, id)| id.map(|id| (h, id)))
+            .collect(),
         preservation: preservation_report,
         document: drawing_document,
         diagnostics,
@@ -1026,6 +1038,7 @@ fn encode_export(
     Ok(CadToEncodedOcdrawOutcome {
         text: outcome.text,
         text_styles: outcome.text_styles,
+        symbol_sources: outcome.symbol_sources,
         preservation: outcome.preservation,
         encoded: drawing,
         diagnostics: outcome.diagnostics,

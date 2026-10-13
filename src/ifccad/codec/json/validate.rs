@@ -20,6 +20,7 @@ struct DrawingValue {
     next_layout_id: u64,
     next_block_id: u64,
     next_line_pattern_id: u64,
+    next_symbol_source_id: u64,
     next_text_style_id: Option<u64>,
     next_preservation_record_id: Option<u64>,
     #[serde(default = "initial_workspace_id")]
@@ -492,6 +493,26 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
     }
     let mut pattern_paths = BTreeMap::new();
     let mut style_paths = BTreeMap::new();
+    let mut source_paths = BTreeMap::new();
+    let mut symbol_sources = Vec::new();
+    for (path, node) in &nodes {
+        if let Some(value) = attr(node, "ifccad::symbolSource") {
+            if node["attributes"].as_object().is_some_and(|attrs| {
+                attrs
+                    .keys()
+                    .any(|k| k.starts_with("ifccad::") && k != "ifccad::symbolSource")
+            }) {
+                return Err(problem(format!(
+                    "{path} symbol source has incompatible CAD role"
+                )));
+            }
+            let id = IfccadSymbolSourceId(numbered(path, &format!("{prefix}/symbolSource/"))?);
+            let source = super::line_pattern_values::decode_source(value, path)?;
+            source_paths.insert(path.clone(), id);
+            symbol_sources.push(IfccadSymbolSource { id, source });
+        }
+    }
+    symbol_sources.sort_by_key(|s| s.id);
     let mut text_styles = Vec::new();
     for (path, node) in &nodes {
         if let Some(value) = attr(node, "ifccad::textStyle") {
@@ -537,7 +558,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
             struct Definition {
                 name: String,
                 description: Option<String>,
-                pattern: Vec<f64>,
+                pattern: Value,
             }
             let value: Definition = serde_json::from_value(value.clone())
                 .map_err(|e| problem(format!("{path} invalid line pattern: {e}")))?;
@@ -547,7 +568,11 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
                 id,
                 name: value.name,
                 description: value.description,
-                pattern: value.pattern,
+                pattern: super::line_pattern_values::decode_pattern_elements(
+                    &value.pattern,
+                    &prefix,
+                    &format!("{path}/ifccad::linePattern/pattern"),
+                )?,
             });
         }
     }
@@ -641,6 +666,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         .chain(block_paths.keys())
         .chain(pattern_paths.keys())
         .chain(style_paths.keys())
+        .chain(source_paths.keys())
         .chain(std::iter::once(&model_path))
         .chain(paper_paths.values().map(|(path, ..)| path))
     {
@@ -828,6 +854,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         _ => return Err(problem("preservation requires allocation watermark")),
     };
     let mut document = IfccadDocument {
+        symbol_sources,
         point_display: drawing
             .point_display
             .as_ref()
@@ -842,6 +869,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         header,
         drawing_id,
         id_counters: IfccadIdCounters {
+            next_symbol_source_id: drawing.next_symbol_source_id,
             next_text_style_id,
             next_preservation_record_id,
 
