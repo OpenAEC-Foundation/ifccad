@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {request as httpRequest} from 'node:http';
 import {request as httpsRequest} from 'node:https';
+import {examples} from '../dist/examples.mjs';
 
 // Exercise the static website and its shipped WebAssembly with public fixtures.
 const [base='http://127.0.0.1:4183', revision, mode='full'] = process.argv.slice(2);
@@ -41,8 +42,10 @@ const processorScript=await (await request('/wasm/browser.js')).text();
 assert.match(processorScript,/convert_cad_to_drawing/);
 assert.match(processorScript,/open_drawing/);
 for(const api of ['open_ifccad','convert_cad_to_ifccad','export_ifccad'])assert.ok(processorScript.includes(`export function ${api}(`),`Missing IFCCAD API: ${api}`);
-const ifcxExampleHead=await request('/examples/hello-line-patterns.ifcx',{method:'HEAD'});
-assert.match(ifcxExampleHead.headers['content-type'],/^application\/json/);
+for(const example of examples){
+ const head=await request('/'+example.path,{method:'HEAD'});
+ assert.match(head.headers['content-type'],/^application\/json/);
+}
 if(mode==='full') {
   const ocsHtml=await (await request('/ocs/app/index.html')).text();
   assert.match(ocsHtml,/ocs-bridge\.mjs/);
@@ -53,13 +56,16 @@ if(mode==='full') {
   assert.equal(wasmHead.headers['x-frame-options'],'SAMEORIGIN');
   const workerHead=await request('/ocs/app/worker_pkg/ocs_web_worker_bg.wasm',{method:'HEAD'});
   assert.equal(workerHead.headers['content-type'],'application/wasm');
-  const fixture=await (await request('/examples/ordered-scopes.ocdraw.json')).text();
+  const example=examples.find(example=>example.format==='OCDraw'&&example.name==='Drawing overview');
+  assert.ok(example,'OCDraw overview is missing from the shipped example manifest');
+  const fixture=await (await request('/'+example.path)).text();
   const {initSync,open_drawing,convert_cad_to_drawing,export_drawing}=await import('../dist/wasm/browser.js');
   const {readFile}=await import('node:fs/promises');
   const {processBrowserRequest}=await import('../dist/browser-worker.mjs');
   initSync({module:await readFile(new URL('../dist/wasm/browser_bg.wasm',import.meta.url))});
   const wasm={open_drawing,convert_cad_to_drawing,export_drawing};
-  const source={kind:'drawing',name:'ordered-scopes',files:[{path:'ordered-scopes.ocdraw.json',bytes:Uint8Array.from(Buffer.from(fixture)).buffer}]};
+  const name=example.path.split('/').at(-1);
+  const source={kind:'drawing',name,files:[{path:name,bytes:Uint8Array.from(Buffer.from(fixture)).buffer}]};
   const process=request=>{const result=processBrowserRequest(request,wasm);assert.equal(result.failure,null,JSON.stringify(result.failure));assert.equal(result.validation.strictAvailable,true);return result;};
   process(source);
   for(const format of ['dxf','dwg','ocdraw']){

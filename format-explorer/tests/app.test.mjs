@@ -45,15 +45,21 @@ test('opening starts background roundtrip without waiting for it or opening Draw
 });
 test('opening and converting show actual progress and cancellation also stops pending reads',async()=>{
  const elements=new Map(),progress=[],requests=[];let resolveRead;
- const element=id=>{if(!elements.has(id))elements.set(id,{disabled:false,textContent:'',hidden:false,value:''});return elements.get(id);};
+ const element=id=>{assert.notEqual(id,'cancel','the retired toolbar button must not be accessed');if(!elements.has(id))elements.set(id,{disabled:false,textContent:'',hidden:false,value:''});return elements.get(id);};
  const workspace={...initializeWorkspace(),setLoading(value){progress.push(value);},clearLoading(){progress.push(null);}};
  const code=(await readFile(new URL('../src/app.mjs',import.meta.url),'utf8')).replace(/^import .*;\r?\n/gm,'');
  vm.runInNewContext(code,{initializeWorkspace:()=>workspace,conversionOptions,examples,...cadFormats,document:{getElementById:element},createFileClient:()=>({async open(r,{onProgress}){requests.push(r);onProgress('converting');return {validation:{strictAvailable:true}};}}),initializeCadPreview:()=>({clear(){},setSource(){},select(){return Promise.resolve();},cancel(){}}),AbortController});
  element('drawing-format').value='ocdraw';element('file').files=[{name:'slow.dxf',size:1,arrayBuffer:()=>new Promise(r=>{resolveRead=r;})}];
- const pending=element('open').onclick();assert.equal(progress.at(-1)?.phase,'loading');assert.equal(progress.at(-1)?.name,'slow.dxf');assert.equal(element('cancel').disabled,false);
+ const pending=element('open').onclick();assert.equal(progress.at(-1)?.phase,'loading');assert.equal(progress.at(-1)?.name,'slow.dxf');assert.equal(element('open').disabled,true);
  element('loading-cancel').onclick();assert.equal(progress.at(-1),null);assert.equal(element('open').disabled,false);resolveRead(new ArrayBuffer(1));await pending;assert.equal(requests.length,0);
  element('file').files=[{name:'drawing.dxf',size:1,arrayBuffer:async()=>new ArrayBuffer(1)}];await element('open').onclick();
  assert.ok(progress.some(p=>p?.action==='convertingTo'&&p?.format==='OCDraw'));assert.ok(progress.some(p=>p?.phase==='converting'));assert.equal(progress.at(-1),null);
+});
+
+test('file toolbar has no duplicate cancel action while loading keeps its cancellation control',async()=>{
+ const html=await readFile(new URL('../src/index.html',import.meta.url),'utf8');
+ assert.doesNotMatch(html,/id="cancel"/);
+ assert.match(html,/id="loading-cancel"/);
 });
 test('opening another file preserves the active workspace tab',async()=>{
  const elements=new Map(),switched=[];const element=id=>{if(!elements.has(id))elements.set(id,{disabled:false,textContent:'',hidden:false,value:''});return elements.get(id);};

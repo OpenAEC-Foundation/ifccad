@@ -177,7 +177,14 @@ schemas and conformance inputs, so edits to the authored examples invalidate a
 previous passing-check marker. The corrected cache key uses a new version;
 converter and pinned Open CAD Studio caches remain independent.
 
-Tests: `npm test`. File and CAD accuracy checks use the production Rust
+Opening/conversion cancellation is available in the loading popup. The file
+toolbar keeps only Open / convert; background roundtrip retains its own cancel
+action in Conversion / checks.
+
+Tests: `npm test`. Release smoke reads the shipped example manifest, checks every
+listed native asset and uses its OCDraw overview for real CAD readback. The
+packaged static smoke regression runs on Windows as well as Linux.
+File and CAD accuracy checks use the production Rust
 reader/converter; the browser worker transport is tested independently.
 
 For a DXF/DWG input on either native route, **Spline-brongegevens bewaren** explicitly

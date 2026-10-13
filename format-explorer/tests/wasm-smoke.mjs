@@ -40,10 +40,10 @@ for(const [kind,path]of [['ifccad','../../examples/ifccad/overview.ifcx'],['draw
   assert.equal(returned.failure,null,JSON.stringify(returned.failure));assert.equal(returned.validation.strictAvailable,true);
   const native=JSON.parse(returned.nativeSourceText);
   const color=kind==='ifccad'?native.data.map(node=>node.attributes?.['ifccad::layer']).find(layer=>layer?.name==='0').appearance.color:native.layers.find(layer=>layer.name==='0').color;
-  assert.deepEqual(color.rgb,[255,255,255]);assert.deepEqual(color.indexedColor,{system:'ACI',index:7},`${kind} ${format} must preserve the example's adaptive foreground color`);
+  assert.deepEqual(color,{kind:'Foreground'},`${kind} ${format} must retain background-adaptive Foreground through CAD ACI 7`);
  }
 }
-console.log('Example foreground ACI 7 survives DXF/DWG production readback in both native formats');
+console.log('Example Foreground survives DXF/DWG ACI 7 production readback in both native formats');
 
 for(const [kind,path]of [['ifccad','../../tests/fixtures/ifccad/hello-hatch-solid.ifcx'],['drawing','../../tests/fixtures/ocdraw/hello-hatch-solid.ocdraw.json'],['ifccad','../../tests/fixtures/ifccad/hello-hatch-pattern.ifcx'],['drawing','../../tests/fixtures/ocdraw/hello-hatch-pattern.ocdraw.json']]){
  const name=path.split('/').at(-1),bytes=Uint8Array.from(await readFile(new URL(path,import.meta.url))),source={kind,name,files:[{path:name,bytes:bytes.buffer}]};
