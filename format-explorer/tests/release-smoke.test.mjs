@@ -20,11 +20,11 @@ test('public HTTPS smoke runs from a clean checkout without local dist',async()=
   await writeFile(path.join(root,'checkout/src/examples.mjs'),await readFile(new URL('../src/examples.mjs',import.meta.url)));
   service=productionServer({root:path.join(root,'website'),publicOrigin:'https://ifccad-explorer.open-aec.com'});
   await new Promise(resolve=>service.server.listen(0,'127.0.0.1',resolve));
-  await promisify(execFile)(process.execPath,[path.join(root,'checkout/deploy/smoke.mjs'),'http://127.0.0.1:'+service.server.address().port,'public-smoke','basic'],{cwd:path.join(root,'checkout'),timeout:30000});
+  await promisify(execFile)(process.execPath,[path.join(root,'checkout/deploy/smoke.mjs'),'http://127.0.0.1:'+service.server.address().port,'public-smoke','public'],{cwd:path.join(root,'checkout'),timeout:30000});
  }finally {if(service){service.server.closeAllConnections();await service.close();}await rm(root,{recursive:true,force:true});}
 });
 
-test('packaged release smoke uses the shipped curated examples without legacy fixtures',async()=>{
+for(const mode of ['static','basic'])test(`packaged release ${mode} smoke uses shipped examples without src`,async()=>{
  const root=await mkdtemp(path.join(tmpdir(),'explorer-release-smoke-'));
  let service;
  try{
@@ -36,6 +36,6 @@ test('packaged release smoke uses the shipped curated examples without legacy fi
   await writeFile(path.join(root,'deploy/smoke.mjs'),await readFile(new URL('../deploy/smoke.mjs',import.meta.url)));
   service=productionServer({root:path.join(root,'dist'),publicOrigin:'https://ifccad-explorer.open-aec.com'});
   await new Promise(resolve=>service.server.listen(0,'127.0.0.1',resolve));
-  await promisify(execFile)(process.execPath,[path.join(root,'deploy/smoke.mjs'),'http://127.0.0.1:'+service.server.address().port,'curated-smoke','static'],{timeout:30000});
+  await promisify(execFile)(process.execPath,[path.join(root,'deploy/smoke.mjs'),'http://127.0.0.1:'+service.server.address().port,'curated-smoke',mode],{timeout:30000});
  }finally{if(service){service.server.closeAllConnections();await service.close();}await rm(root,{recursive:true,force:true});}
 });
