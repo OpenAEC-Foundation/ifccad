@@ -31,10 +31,18 @@ export async function build({outputRoot=output,ocsRoot=new URL('../ocs-build/',i
  const destination=localPath(outputRoot);
  await directory(destination);
  for(const name of await readdir(new URL('../src/',import.meta.url)))if(/\.(html|css|mjs|svg|ttf|txt)$/.test(name))await copyChanged(new URL('../src/'+name,import.meta.url),path.join(destination,name));
- await mkdir(path.join(destination,'examples'),{recursive:true});
- await copyChanged(new URL('../../conformance/next/ocdraw/valid/ordered-scopes.ocdraw.json',import.meta.url),path.join(destination,'examples','ordered-scopes.ocdraw.json'));
- await copyChanged(new URL('../../examples/ifccad/hello-line-patterns.ifcx',import.meta.url),path.join(destination,'examples','hello-line-patterns.ifcx'));
- for(const example of examples){const target=path.resolve(destination,example.path);if(!target.startsWith(path.resolve(destination)+path.sep))throw Error('Example output escapes build directory');await mkdir(path.dirname(target),{recursive:true});await copyChanged(new URL('../../'+example.path,import.meta.url),target);}
+ const exampleTarget=path.join(destination,'examples');await directory(exampleTarget);
+ const formats=new Set(examples.map(example=>example.format.toLowerCase()));
+ for(const format of formats){
+  const files={};
+  for(const example of examples.filter(example=>example.format.toLowerCase()===format)){
+   const target=path.resolve(destination,example.path),folder=path.join(exampleTarget,format);
+   if(path.dirname(target)!==folder)throw Error('Example output escapes its format directory');
+   files[path.basename(target)]=await readFile(new URL('../../'+example.path,import.meta.url));
+  }
+  await bundle(null,path.join(exampleTarget,format),files);
+ }
+ for(const entry of await readdir(exampleTarget,{withFileTypes:true}))if(!formats.has(entry.name))await rm(path.join(exampleTarget,entry.name),{recursive:true,force:true});
  await rm(path.join(destination,'job-client.mjs'),{force:true});
  const wasmSource=localPath(wasmRoot),wasmTarget=path.join(destination,'wasm');
  if(!wasmTarget.startsWith(path.resolve(destination)+path.sep))throw Error('Output escapes build directory');

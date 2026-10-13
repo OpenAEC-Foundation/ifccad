@@ -4,7 +4,7 @@ use ocdraw::{geometry_kernel::hatch::*, ifccad::*, ocdraw::*};
 #[test]
 fn fixed_paper_scale_resolves_physical_limits_but_plot_edits_preserve_stored_tolerance() {
     let mut d = load_ifccad_bytes(
-        include_bytes!("../examples/ifccad/hello-paper-layouts.ifcx"),
+        include_bytes!("../tests/fixtures/ifccad/hello-paper-layouts.ifcx"),
         Default::default(),
     )
     .unwrap()
@@ -124,7 +124,7 @@ fn ocdraw_paper_uses_fixed_plot_meaning_and_never_infers_from_media() {
 #[test]
 fn invalid_known_paper_scale_is_not_treated_as_unknown_to_enable_a_fallback() {
     let mut d = load_ifccad_bytes(
-        include_bytes!("../examples/ifccad/hello-paper-layouts.ifcx"),
+        include_bytes!("../tests/fixtures/ifccad/hello-paper-layouts.ifcx"),
         Default::default(),
     )
     .unwrap()

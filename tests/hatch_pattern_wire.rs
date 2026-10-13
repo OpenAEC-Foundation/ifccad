@@ -23,7 +23,7 @@ fn pattern() -> HatchFill {
 #[test]
 fn ocdraw_pattern_strict_readback_preserves_phase_after_contour_edit() {
     let mut d = load_ocdraw_bytes(include_bytes!(
-        "../examples/ocdraw/hello-hatch-solid.ocdraw.json"
+        "../tests/fixtures/ocdraw/hello-hatch-solid.ocdraw.json"
     ))
     .unwrap()
     .into_document();
@@ -63,7 +63,7 @@ fn ifccad_pattern_strict_readback_keeps_source_and_whole_attribute() {
 #[test]
 fn unknown_null_dot_length_and_missing_families_are_rejected_in_both_formats() {
     let mut o = load_ocdraw_bytes(include_bytes!(
-        "../examples/ocdraw/hello-hatch-solid.ocdraw.json"
+        "../tests/fixtures/ocdraw/hello-hatch-solid.ocdraw.json"
     ))
     .unwrap()
     .into_document();

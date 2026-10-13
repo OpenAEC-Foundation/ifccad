@@ -3,7 +3,7 @@ use serde_json::{json, Value};
 
 fn base() -> IfccadDocument {
     load_ifccad_bytes(
-        include_bytes!("../examples/ifccad/hello-cad.ifcx"),
+        include_bytes!("../tests/fixtures/ifccad/hello-cad.ifcx"),
         Default::default(),
     )
     .unwrap()

@@ -3,7 +3,7 @@ use serde_json::{json, Value};
 
 fn fixture() -> Value {
     let mut value: Value = serde_json::from_slice(include_bytes!(
-        "../examples/ifccad/hello-nested-blocks.ifcx"
+        "../tests/fixtures/ifccad/hello-nested-blocks.ifcx"
     ))
     .unwrap();
     for node in value["data"].as_array_mut().unwrap() {

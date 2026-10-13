@@ -179,7 +179,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let encoded = encode_ifccad_document(&d)?;
     let path = std::env::args()
         .nth(1)
-        .unwrap_or_else(|| "examples/ifccad/hello-text.ifcx".into());
+        .unwrap_or_else(|| "examples/ifccad/text.ifcx".into());
     std::fs::write(path, encoded.bytes())?;
     Ok(())
 }

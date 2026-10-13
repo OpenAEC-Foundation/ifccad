@@ -99,7 +99,7 @@ self-intersection restriction is introduced.
 This revises experimental IFCCAD 0.1.0 under the existing schema URI. It does not
 promise that old inline definitions or earlier readers accept the new families.
 Active schemas and `conformance/next` define the updated contract; numbered
-collections remain unchanged. See the [geometry sample](../../examples/ifccad/hello-geometry.ifcx).
+collections remain unchanged. See the [geometry sample](../../tests/fixtures/ifccad/hello-geometry.ifcx).
 
 The expanded AC1032 family corpus, including signed arcs, partial ellipses,
 dormant outgoing bulges and spatial paths, passes production DXF/DWG readback.

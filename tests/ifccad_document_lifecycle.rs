@@ -1,7 +1,7 @@
 use ocdraw::ifccad::*;
 use serde_json::{json, Value};
 
-const HELLO: &[u8] = include_bytes!("../examples/ifccad/hello-cad.ifcx");
+const HELLO: &[u8] = include_bytes!("../tests/fixtures/ifccad/hello-cad.ifcx");
 
 #[test]
 fn encoder_validation_retains_original_report() {
@@ -123,7 +123,7 @@ fn extracted_document_edits_do_not_change_source_snapshot() {
 
 fn paper_document() -> IfccadDocument {
     load_ifccad_bytes(
-        include_bytes!("../examples/ifccad/hello-paper-layouts.ifcx"),
+        include_bytes!("../tests/fixtures/ifccad/hello-paper-layouts.ifcx"),
         Default::default(),
     )
     .unwrap()
@@ -289,9 +289,9 @@ fn transform() -> IfccadBlockTransform {
 fn typed_document_encoding_keeps_history_and_supported_semantics() {
     for fixture in [
         HELLO,
-        include_bytes!("../examples/ifccad/hello-line-patterns.ifcx"),
-        include_bytes!("../examples/ifccad/hello-nested-blocks.ifcx"),
-        include_bytes!("../examples/ifccad/hello-paper-layouts.ifcx"),
+        include_bytes!("../tests/fixtures/ifccad/hello-line-patterns.ifcx"),
+        include_bytes!("../tests/fixtures/ifccad/hello-nested-blocks.ifcx"),
+        include_bytes!("../tests/fixtures/ifccad/hello-paper-layouts.ifcx"),
     ] {
         let mut document = load_ifccad_bytes(fixture, Default::default())
             .unwrap()

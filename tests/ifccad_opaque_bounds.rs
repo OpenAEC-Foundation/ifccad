@@ -93,7 +93,7 @@ fn opaque_only_unused_and_nested_definitions_never_use_empty_origin_fallback() {
 #[test]
 fn opaque_clip_is_valid_only_when_dormant_same_owner_and_exclusive() {
     let mut d = load_ifccad_bytes(
-        include_bytes!("../examples/ifccad/hello-viewports.ifcx"),
+        include_bytes!("../tests/fixtures/ifccad/hello-viewports.ifcx"),
         Default::default(),
     )
     .unwrap()

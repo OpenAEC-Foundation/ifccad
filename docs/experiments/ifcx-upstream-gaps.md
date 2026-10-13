@@ -18,7 +18,7 @@ Each entry records: **current IFCX surface**, **our tested rule**, **open questi
 - **Our tested rule:** Paths such as `/cad/d1/e42` use a drawing-local canonical `uint64` segment. The complete path is a node's identity within this experiment, and references use that complete string. A drawing ID distinguishes drawings in the file. The reader rejects the earlier bracketed CAD paths.
 - **Open question:** Can a dataset identifier plus a local path form a stable globally referencable identity? How do imports, merging, renaming, and cross-file references resolve it? Which path characters and normalization rules are normative?
 - **Broader use:** Compact, human-readable identifiers for repeated model elements, sensor points, assembly members, and external annotations without a UUID in every node. This needs an explicit collision and reference model before proposing it upstream.
-- **Evidence:** [profile paths](../../schemas/ifccad/experimental-contract-0.1.0.md#file-and-identity), [fixture](../../examples/ifccad/hello-cad.ifcx), [composition probe](ifcx-composition-probe.md), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp).
+- **Evidence:** [profile paths](../../schemas/ifccad/experimental-contract-0.1.0.md#file-and-identity), [fixture](../../tests/fixtures/ifccad/hello-cad.ifcx), [composition probe](ifcx-composition-probe.md), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp).
 
 ### Native ID lifecycle (2026-10-02)
 
@@ -44,7 +44,7 @@ outside CAD, independently of compact paths.
 - **Our tested rule:** Model-layout, Paper-layout and block-definition children named `"0"`, `"1"`, etc. are contiguous and define CAD draw order separately per scope. Exactly one layout or block definition owns each drawable entity. JSON object member order is irrelevant; drawing children do not define layout-tab order.
 - **Open question:** Should IFCX offer an explicit ordered relationship, or should ordering remain a profile convention? If a generic mechanism is added, how are insertion, removal, and concurrent edits handled without renumbering every later relation?
 - **Broader use:** Order of assembly steps, presentation items, ordered spatial sections, and other graph traversals where order changes meaning. CAD draw order and single ownership remain profile-specific.
-- **Evidence:** [profile ownership and order](../../schemas/ifccad/experimental-contract-0.1.0.md#scope-and-order), [nested-block fixture](../../examples/ifccad/hello-nested-blocks.ifcx), [paper-layout fixture](../../examples/ifccad/hello-paper-layouts.ifcx), [strict order tests](../../tests/ifccad_native.rs), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp).
+- **Evidence:** [profile ownership and order](../../schemas/ifccad/experimental-contract-0.1.0.md#scope-and-order), [nested-block fixture](../../tests/fixtures/ifccad/hello-nested-blocks.ifcx), [paper-layout fixture](../../tests/fixtures/ifccad/hello-paper-layouts.ifcx), [strict order tests](../../tests/ifccad_native.rs), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp).
 
 ## G3 — Composition of repeated path fragments (`Interoperability risk`)
 

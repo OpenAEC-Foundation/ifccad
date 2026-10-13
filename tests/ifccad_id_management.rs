@@ -11,7 +11,7 @@ const FIELDS: [&str; 5] = [
 
 fn graph() -> Value {
     let mut document = load_ifccad_bytes(
-        include_bytes!("../examples/ifccad/hello-paper-layouts.ifcx"),
+        include_bytes!("../tests/fixtures/ifccad/hello-paper-layouts.ifcx"),
         Default::default(),
     )
     .unwrap()

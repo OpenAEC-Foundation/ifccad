@@ -32,8 +32,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let path = args.next().ok_or("new output path required")?;
     if route == "ocdraw" {
         use ocdraw::ocdraw::*;
-        let mut d = load_ocdraw_bytes(include_bytes!("ocdraw/hello-hatch-solid.ocdraw.json"))?
-            .into_document();
+        let mut d = load_ocdraw_bytes(include_bytes!(
+            "../tests/fixtures/ocdraw/hello-hatch-solid.ocdraw.json"
+        ))?
+        .into_document();
         d.hatch_entities[0].fill = fill();
         let bytes = encode_ocdraw_document(&d)?;
         load_ocdraw_bytes(bytes.bytes())?;
@@ -41,7 +43,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     } else if route == "ifccad" {
         use ocdraw::ifccad::*;
         let mut d = load_ifccad_bytes(
-            include_bytes!("ifccad/hello-hatch-solid.ifcx"),
+            include_bytes!("../tests/fixtures/ifccad/hello-hatch-solid.ifcx"),
             Default::default(),
         )?
         .into_document();

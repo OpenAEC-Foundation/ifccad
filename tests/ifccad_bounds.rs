@@ -1,7 +1,7 @@
 use ocdraw::ifccad::*;
 fn base() -> IfccadDocument {
     load_ifccad_bytes(
-        include_bytes!("../examples/ifccad/hello-cad.ifcx"),
+        include_bytes!("../tests/fixtures/ifccad/hello-cad.ifcx"),
         Default::default(),
     )
     .unwrap()
@@ -159,7 +159,7 @@ fn empty_owners_require_absent_bounds_and_wire_null_is_rejected() {
 #[test]
 fn paper_bounds_use_coordinates_and_include_hidden_viewport_frames() {
     let mut d = load_ifccad_bytes(
-        include_bytes!("../examples/ifccad/hello-viewports.ifcx"),
+        include_bytes!("../tests/fixtures/ifccad/hello-viewports.ifcx"),
         Default::default(),
     )
     .unwrap()

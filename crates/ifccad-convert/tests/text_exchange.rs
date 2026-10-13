@@ -149,7 +149,7 @@ fn explicitly_disabled_annotation_is_ordinary_text_but_active_contexts_skip() {
 #[test]
 fn model_paper_and_block_text_have_independent_actual_file_qualification() {
     let original = load_ifccad_bytes(
-        include_bytes!("../../../examples/ifccad/hello-text.ifcx"),
+        include_bytes!("../../../examples/ifccad/text.ifcx"),
         Default::default(),
     )
     .unwrap();

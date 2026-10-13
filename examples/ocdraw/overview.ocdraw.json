@@ -14,6 +14,13 @@
       "scopeId": 2
     }
   ],
+  "drawingViewState": {
+    "activeModelWindowId": 1,
+    "currentModelUcs": {
+      "kind": "Named",
+      "ucsId": 0
+    }
+  },
   "drawingWorkspaceState": {
     "activeLayoutId": 0,
     "currentLayerId": 0
@@ -21,9 +28,9 @@
   "header": {
     "drawingId": "explorer-ocdraw-overview",
     "format": "open_cad_drawing",
-    "nextEntityId": 13,
-    "nextLayerId": 2,
-    "nextLayoutId": 1,
+    "nextEntityId": 15,
+    "nextLayerId": 3,
+    "nextLayoutId": 2,
     "nextLinePatternId": 3,
     "unit": "mm",
     "version": "0.1.0"
@@ -66,6 +73,29 @@
       "opacity": 1.0,
       "plottable": true,
       "visible": true
+    },
+    {
+      "color": {
+        "indexedColor": {
+          "index": 7,
+          "system": "ACI"
+        },
+        "rgb": [
+          255,
+          255,
+          255
+        ]
+      },
+      "frozen": false,
+      "frozenInNewViewports": false,
+      "id": 2,
+      "linePatternId": 0,
+      "lineWeight": 0.25,
+      "locked": false,
+      "name": "Paper",
+      "opacity": 1.0,
+      "plottable": true,
+      "visible": true
     }
   ],
   "layouts": [
@@ -75,6 +105,18 @@
       "name": "Model",
       "scopeId": 0,
       "tabIndex": 0
+    },
+    {
+      "id": 1,
+      "kind": "paper",
+      "media": {
+        "height": 297.0,
+        "unit": "mm",
+        "width": 420.0
+      },
+      "name": "A3 detail sheet",
+      "scopeId": 3,
+      "tabIndex": 1
     }
   ],
   "linePatterns": [
@@ -101,6 +143,78 @@
       "pattern": []
     }
   ],
+  "modelWindows": [
+    {
+      "aspectRatio": 1.5,
+      "grid": {
+        "adaptive": true,
+        "beyondLimits": false,
+        "enabled": false,
+        "followsWorkplane": true,
+        "majorLineFrequency": 5,
+        "spacing": {
+          "x": 10.0,
+          "y": 10.0
+        },
+        "style": "Dots",
+        "subdivision": false
+      },
+      "modelWindowId": 1,
+      "rectangle": {
+        "maxX": 1.0,
+        "maxY": 1.0,
+        "minX": 0.0,
+        "minY": 0.0
+      },
+      "renderMode": "TwoDimensional",
+      "snap": {
+        "angle": 0.0,
+        "base": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "enabled": false,
+        "isometricPlane": "Top",
+        "spacing": {
+          "x": 5.0,
+          "y": 5.0
+        },
+        "style": "Rectangular"
+      },
+      "storedUcs": {
+        "kind": "Named",
+        "ucsId": 0
+      },
+      "useStoredUcs": true,
+      "view": {
+        "backClip": {
+          "mode": "Disabled"
+        },
+        "center": {
+          "x": 80.0,
+          "y": 40.0
+        },
+        "direction": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0
+        },
+        "frontClip": {
+          "distance": 10.0,
+          "mode": "Disabled"
+        },
+        "height": 160.0,
+        "lensLength": 50.0,
+        "projection": "Orthographic",
+        "target": {
+          "x": 90.0,
+          "y": 40.0,
+          "z": 0.0
+        },
+        "twist": 0.0
+      }
+    }
+  ],
   "scopes": [
     {
       "bounds": {
@@ -112,16 +226,16 @@
         "minZ": 0.0
       },
       "entities": [
-        1,
-        2,
-        3,
         4,
         5,
         6,
         7,
         8,
         11,
-        12
+        12,
+        1,
+        2,
+        3
       ],
       "id": 0,
       "kind": 0
@@ -155,6 +269,22 @@
       ],
       "id": 2,
       "kind": 2
+    },
+    {
+      "bounds": {
+        "maxX": 110.0,
+        "maxY": 82.5,
+        "maxZ": 0.0,
+        "minX": 90.0,
+        "minY": 67.5,
+        "minZ": 0.0
+      },
+      "entities": [
+        13,
+        14
+      ],
+      "id": 3,
+      "kind": 1
     }
   ],
   "streams": {
@@ -638,46 +768,61 @@
       "bulge": [
         0.5,
         0.0,
-        0.0
+        0.0,
+        1.0,
+        1.0
       ],
       "closed": [
-        false
+        false,
+        true
       ],
       "color": [
+        null,
         null
       ],
       "colorMode": [
+        "ByLayer",
         "ByLayer"
       ],
-      "count": 1,
+      "count": 2,
       "entityId": [
-        7
+        7,
+        13
       ],
       "layerId": [
-        0
+        0,
+        2
       ],
       "linePatternGeneration": [
-        "continuous"
+        "continuous",
+        "perSegment"
       ],
       "linePatternId": [
+        null,
         null
       ],
       "linePatternMode": [
+        "ByLayer",
         "ByLayer"
       ],
       "linePatternScale": [
+        1.0,
         1.0
       ],
       "lineWeight": [
+        null,
         null
       ],
       "lineWeightMode": [
+        "ByLayer",
         "ByLayer"
       ],
       "opacity": [
+        null,
         null
       ],
       "opacityMode": [
+        "ByLayer",
         "ByLayer"
       ],
       "placement": [
@@ -697,26 +842,50 @@
             "y": 65.0,
             "z": 0.0
           }
+        },
+        {
+          "X": {
+            "x": 1.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "Y": {
+            "x": 0.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "origin": {
+            "x": 100.0,
+            "y": 75.0,
+            "z": 0.0
+          }
         }
       ],
       "vertexCount": [
-        3
+        3,
+        2
       ],
       "vertexOffset": [
-        0
+        0,
+        3
       ],
       "visible": [
+        true,
         true
       ],
       "x": [
         0.0,
         25.0,
-        25.0
+        25.0,
+        -2.5,
+        2.5
       ],
       "y": [
         0.0,
         0.0,
-        20.0
+        20.0,
+        0.0,
+        0.0
       ]
     },
     "pointStream": {
@@ -842,6 +1011,109 @@
         15.0,
         0.0
       ]
+    },
+    "viewportStream": {
+      "color": [
+        null
+      ],
+      "colorMode": [
+        "ByLayer"
+      ],
+      "count": 1,
+      "entityId": [
+        14
+      ],
+      "frame": [
+        {
+          "center": {
+            "x": 100.0,
+            "y": 75.0
+          },
+          "height": 15.0,
+          "width": 20.0
+        }
+      ],
+      "layerId": [
+        2
+      ],
+      "layerOverrideCount": [
+        0
+      ],
+      "layerOverrideOffset": [
+        0
+      ],
+      "linePatternId": [
+        null
+      ],
+      "linePatternMode": [
+        "ByLayer"
+      ],
+      "linePatternScale": [
+        1.0
+      ],
+      "lineWeight": [
+        null
+      ],
+      "lineWeightMode": [
+        "ByLayer"
+      ],
+      "opacity": [
+        null
+      ],
+      "opacityMode": [
+        "ByLayer"
+      ],
+      "paperClip": [
+        {
+          "boundaryEntityId": 13,
+          "enabled": true
+        }
+      ],
+      "plotShadingOverride": [
+        null
+      ],
+      "renderMode": [
+        "Wireframe"
+      ],
+      "view": [
+        {
+          "backClip": {
+            "mode": "Disabled"
+          },
+          "center": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "direction": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 1.0
+          },
+          "frontClip": {
+            "mode": "Disabled"
+          },
+          "height": 160.0,
+          "projection": "Orthographic",
+          "target": {
+            "x": 90.0,
+            "y": 40.0,
+            "z": 0.0
+          },
+          "twist": 0.0
+        }
+      ],
+      "viewEnabled": [
+        true
+      ],
+      "viewLocked": [
+        false
+      ],
+      "viewScopeId": [
+        0
+      ],
+      "visible": [
+        true
+      ]
     }
   },
   "ucsDefinitions": [
@@ -866,6 +1138,59 @@
       },
       "name": "Detail plane",
       "ucsId": 0
+    }
+  ],
+  "viewportWorkspaces": [
+    {
+      "grid": {
+        "adaptive": true,
+        "beyondLimits": false,
+        "enabled": false,
+        "followsWorkplane": true,
+        "majorLineFrequency": 5,
+        "spacing": {
+          "x": 2.0,
+          "y": 3.0
+        },
+        "style": "Lines",
+        "subdivision": false
+      },
+      "snap": {
+        "angle": 1.5707963267948966,
+        "base": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "enabled": false,
+        "isometricPlane": "Left",
+        "spacing": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "style": "Isometric"
+      },
+      "storedUcs": {
+        "frame": {
+          "X": {
+            "x": 1.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "Y": {
+            "x": 0.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "origin": {
+            "x": 2.0,
+            "y": 3.0,
+            "z": 0.0
+          }
+        },
+        "kind": "Unnamed"
+      },
+      "useStoredUcs": false,
+      "viewportEntityId": 14
     }
   ]
 }

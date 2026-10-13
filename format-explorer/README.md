@@ -316,8 +316,12 @@ retains multiple sheets, separate coordinate units and expanded clips through
 the documented codec repairs. Full plot conversion remains deferred. The
 separately pinned Open CAD Studio viewer is unchanged.
 
-A small fixture is included in built assets at
-`examples/hello-line-patterns.ifcx`. Browser worker, UI and WASM smoke tests
+The chooser and built assets contain three representative drawings per format:
+overview, text and Hatches. Overviews include Model/Paper, blocks and workspace
+state; Hatch drawings show Solid and Pattern together. Specialized inputs live
+under repository `tests/fixtures/` and are not shipped by site assembly. Retired
+example assets are pruned on rebuild without rewriting unchanged bundles.
+Browser worker, UI and WASM smoke tests
 exercise both native formats. Publishing remains a separate repository action.
 
 Expanded IFCCAD geometry and supplied scope bounds appear in composed nodes.

@@ -239,7 +239,7 @@ fn paper_producer_limit_uses_fixed_mapping_without_changing_accuracy_budget() {
         plot_kernel::{PlotScale, PlotUnit},
     };
     let mut d = load_ifccad_bytes(
-        include_bytes!("../../../examples/ifccad/hello-paper-layouts.ifcx"),
+        include_bytes!("../../../tests/fixtures/ifccad/hello-paper-layouts.ifcx"),
         Default::default(),
     )
     .unwrap()

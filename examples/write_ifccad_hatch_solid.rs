@@ -2,8 +2,11 @@ use ocdraw::geometry_kernel::hatch::*;
 use ocdraw::ifccad::*;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let path = std::env::args().nth(1).ok_or("provide a new output path")?;
-    let mut d = load_ifccad_bytes(include_bytes!("ifccad/hello-cad.ifcx"), Default::default())?
-        .into_document();
+    let mut d = load_ifccad_bytes(
+        include_bytes!("../tests/fixtures/ifccad/hello-cad.ifcx"),
+        Default::default(),
+    )?
+    .into_document();
     let mut template = d
         .model
         .entities

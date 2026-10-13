@@ -4,7 +4,7 @@ use viewer::{export_drawing_bytes, inspect_drawing_bytes};
 fn ifccad_inspection_exposes_native_presentation_and_point_display() {
     use ocdraw::ifccad::*;
     let mut d = load_ifccad_bytes(
-        include_bytes!("../../../examples/ifccad/hello-viewports.ifcx"),
+        include_bytes!("../../../tests/fixtures/ifccad/hello-viewports.ifcx"),
         Default::default(),
     )
     .unwrap()
@@ -147,7 +147,7 @@ fn physical_shadeplot_loss_is_explicit_for_dxf_but_not_dwg_in_both_routes() {
     oc.viewports[0].plot_shading_override = Some(ShadedPlotMode::Hidden);
     let oc = encode_ocdraw_document(&oc).unwrap();
     let mut ifc = load_ifccad_bytes(
-        include_bytes!("../../../examples/ifccad/hello-viewports.ifcx"),
+        include_bytes!("../../../tests/fixtures/ifccad/hello-viewports.ifcx"),
         Default::default(),
     )
     .unwrap()
