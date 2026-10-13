@@ -174,7 +174,7 @@ No sampling, projection or conversion-tolerance epsilon substitutes for these
 rules. Dormant references retain their independent ownership/exclusivity rules
 without active shape/frame eligibility.
 
-`layerOverrides` has one row per same-drawing layer path, with optional concrete
+`layerOverrides` has one row per same-drawing layer path, with optional explicit
 color, opacity, linePattern reference and lineWeight; frozen defaults false.
 Every row must carry a freeze or appearance change. References must exist;
 duplicate layers, unknown fields and explicit null optional values are invalid.
@@ -213,7 +213,7 @@ geometry, instances, Text/MText and viewports. Viewport-local `visible` is
 removed; viewport enabled/locked status remains independent. Hidden content
 retains its ordinary ownership, draw order and geometry/bounds meaning.
 
-Layer appearance directly contains a concrete `color` object, `opacity` in `[0,1]`, `linePattern` as a same-drawing pattern-definition path, and nonnegative `lineWeight` in millimetres. Each entity has these four properties independently as `{ "mode": "ByLayer" }`, `{ "mode": "ByBlock" }`, or `{ "mode": "Explicit", "value": ... }`. Modes survive readback; no appearance definition or binding node exists. For an explicit entity pattern, `value` is that same complete path; inherited modes must have no value. The typed API uses `IfccadLinePatternId(u64)`. Literal names such as `Continuous` are not references and are rejected.
+Layer appearance directly contains an explicit `color` choice, `opacity` in `[0,1]`, `linePattern` as a same-drawing pattern-definition path, and nonnegative `lineWeight` in millimetres. Each entity has these four properties independently as `{ "mode": "ByLayer" }`, `{ "mode": "ByBlock" }`, or `{ "mode": "Explicit", "value": ... }`. Modes survive readback; no appearance definition or binding node exists. For an explicit entity pattern, `value` is that same complete path; inherited modes must have no value. The typed API uses `IfccadLinePatternId(u64)`. Literal names such as `Continuous` are not references and are rejected.
 
 Concrete color is `{ "rgb": [255, 0, 0] }`, optionally extended with
 `indexedColor: {system,index}` and `namedColor: {catalog,name}`. RGB has exactly
@@ -222,9 +222,28 @@ and named identity may coexist; RGB retains the concrete fallback. Native
 validation does not resolve catalogues or calculate ACI colors. ByLayer/ByBlock
 remain separate appearance modes, not concrete index values. Unknown nested
 fields, explicit null metadata and removed `#RRGGBB` color strings are rejected.
-The Rust type is `IfccadColor`; the same concrete value applies to MText inline
-and background colors and editable native appearance on opaque content. The
-provisional color migration does not alter codec-specific preservation payloads.
+The Rust type is `IfccadColor`; the same color choice applies to MText inline
+and background colors and editable native appearance on opaque content. The provisional color migration does not alter codec-specific preservation payloads.
+
+Color is an exclusive Foreground or concrete choice. Foreground is encoded as
+the closed object `{"kind":"Foreground"}` and carries no RGB/indexed/named
+value. Concrete color has required RGB bytes and optional indexed/named identity;
+its existing physical shape is retained. A concrete indexed color with system
+ASCII-case-insensitively `ACI` and index 7 is invalid. Use Foreground, even when
+its current display matches RGB white or black. Unknown/mixed choices and null
+color values are invalid. Optional enclosing column slots keep their own
+nullability rules. These constraints apply to all native color locations,
+including text, viewport overrides and editable opaque common appearance.
+
+After inheritance/viewport overrides, resolve Foreground against the effective
+opaque sRGB background for that occurrence. Normalize components to c in [0,1]
+and linearize with c/12.92 when c <= 0.04045, otherwise
+((c+0.055)/1.055)^2.4. With L = 0.2126 R + 0.7152 G + 0.0722 B, select black
+when (L+0.05)/0.05 >= 1.05/(L+0.05), and white otherwise. Thus black backgrounds
+yield white and white backgrounds yield black. The selected RGB is not stored
+in the document. This native rule does not claim AutoCAD palette reproduction.
+Canvas-background-fill and ByLayer/ByBlock remain distinct meanings.
+
 
 The stored modes retain ordinary CAD intent per occurrence: Explicit supplies its own value, ByLayer uses the effective layer, and ByBlock defers to the containing block instance's corresponding property. An entity on the layer *named* `0` inside a block definition inherits the containing instance's effective layer; nested layer-0 and ByBlock chains continue outward through instances. A top-level ByBlock mode remains stored but has no universal effective fallback in this proof. The document has no resolved-appearance field. The experimental reader validates references, layer names, modes and explicit values but does not compute effective appearance; rendering or conversion may do that per occurrence.
 

@@ -12,12 +12,9 @@ pub(super) fn color(
     location: &str,
     diagnostics: &mut Vec<OcdrawToCadDiagnostic>,
 ) -> (Color, Option<String>, Option<String>) {
-    let mapped = cad_presentation_convert::color_to_cad(&cad_presentation_convert::CadColorValue {
-        rgb: value.rgb,
-        indexed: value.indexed.clone(),
-        named: value.named.clone(),
-    })
-    .expect("validated native color");
+    let mapped =
+        cad_presentation_convert::color_to_cad(&crate::mapping::appearance::scalar_color(value))
+            .expect("validated native color");
     for loss in &mapped.losses {
         diagnostics.push(diagnostic(
             "COLOR_INDEX",

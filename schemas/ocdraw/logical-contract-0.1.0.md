@@ -104,6 +104,26 @@ opacity, line pattern, and line weight with explicit values. Missing override
 fields retain the Layer's defaults. It refers directly to a Layer ID and has
 no appearance-override ID. Its frozen flag remains independent.
 
+
+Color is an exclusive Foreground or concrete choice. Foreground is encoded as
+the closed object `{"kind":"Foreground"}` and carries no RGB/indexed/named
+value. Concrete color has required RGB bytes and optional indexed/named identity;
+its existing physical shape is retained. A concrete indexed color with system
+ASCII-case-insensitively `ACI` and index 7 is invalid. Use Foreground, even when
+its current display matches RGB white or black. Unknown/mixed choices and null
+color values are invalid. Optional enclosing column slots keep their own
+nullability rules. These constraints apply to all native color locations,
+including text, viewport overrides and editable opaque common appearance.
+
+After inheritance/viewport overrides, resolve Foreground against the effective
+opaque sRGB background for that occurrence. Normalize components to c in [0,1]
+and linearize with c/12.92 when c <= 0.04045, otherwise
+((c+0.055)/1.055)^2.4. With L = 0.2126 R + 0.7152 G + 0.0722 B, select black
+when (L+0.05)/0.05 >= 1.05/(L+0.05), and white otherwise. Thus black backgrounds
+yield white and white backgrounds yield black. The selected RGB is not stored
+in the document. This native rule does not claim AutoCAD palette reproduction.
+Canvas-background-fill and ByLayer/ByBlock remain distinct meanings.
+
 ## Named line patterns
 
 `linePatterns` is a drawing-local definition table. Each record has a unique

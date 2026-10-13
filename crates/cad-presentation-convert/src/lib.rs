@@ -12,10 +12,34 @@ pub use quantization::{lineweight_to_cad, opacity_to_cad};
 pub use xrecord_sections::*;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct CadColorValue {
-    pub rgb: [u8; 3],
-    pub indexed: Option<(String, u64)>,
-    pub named: Option<(String, String)>,
+pub enum CadColorValue {
+    Foreground,
+    Concrete {
+        rgb: [u8; 3],
+        indexed: Option<(String, u64)>,
+        named: Option<(String, String)>,
+    },
+}
+
+impl CadColorValue {
+    pub fn indexed_identity(&self) -> Option<&(String, u64)> {
+        match self {
+            Self::Concrete { indexed, .. } => indexed.as_ref(),
+            Self::Foreground => None,
+        }
+    }
+    pub fn named_identity(&self) -> Option<&(String, String)> {
+        match self {
+            Self::Concrete { named, .. } => named.as_ref(),
+            Self::Foreground => None,
+        }
+    }
+    pub fn concrete_rgb(&self) -> Option<[u8; 3]> {
+        match self {
+            Self::Concrete { rgb, .. } => Some(*rgb),
+            Self::Foreground => None,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

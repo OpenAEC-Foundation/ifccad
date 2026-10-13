@@ -1,36 +1,86 @@
-//! IFCCAD-owned concrete presentation values, independent of CAD runtimes.
+//! Native fixed and background-dependent colors.
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct IfccadColor {
-    pub rgb: [u8; 3],
-    pub indexed: Option<(String, u64)>,
-    pub named: Option<(String, String)>,
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum IfccadColor {
+    /// Black or white chosen against the occurrence's effective background.
+    Foreground,
+    /// Fixed RGB with optional palette/catalog identity.
+    Concrete {
+        rgb: [u8; 3],
+        indexed: Option<(String, u64)>,
+        named: Option<(String, String)>,
+    },
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+pub enum IfccadColorMetadataError {
+    #[error("foreground color cannot carry indexed or named metadata")]
+    ForegroundMetadata,
 }
 
 impl IfccadColor {
     pub fn rgb(red: u8, green: u8, blue: u8) -> Self {
-        Self {
+        Self::Concrete {
             rgb: [red, green, blue],
             indexed: None,
             named: None,
         }
     }
-    pub fn with_indexed(mut self, system: impl Into<String>, index: u64) -> Self {
-        self.indexed = Some((system.into(), index));
-        self
+
+    pub fn with_indexed(
+        mut self,
+        system: impl Into<String>,
+        index: u64,
+    ) -> Result<Self, IfccadColorMetadataError> {
+        let Self::Concrete { indexed, .. } = &mut self else {
+            return Err(IfccadColorMetadataError::ForegroundMetadata);
+        };
+        *indexed = Some((system.into(), index));
+        Ok(self)
     }
-    pub fn with_named(mut self, catalog: impl Into<String>, name: impl Into<String>) -> Self {
-        self.named = Some((catalog.into(), name.into()));
-        self
+
+    pub fn with_named(
+        mut self,
+        catalog: impl Into<String>,
+        name: impl Into<String>,
+    ) -> Result<Self, IfccadColorMetadataError> {
+        let Self::Concrete { named, .. } = &mut self else {
+            return Err(IfccadColorMetadataError::ForegroundMetadata);
+        };
+        *named = Some((catalog.into(), name.into()));
+        Ok(self)
     }
+
+    pub fn concrete_rgb(&self) -> Option<[u8; 3]> {
+        match self {
+            Self::Concrete { rgb, .. } => Some(*rgb),
+            Self::Foreground => None,
+        }
+    }
+
+    pub fn indexed_identity(&self) -> Option<&(String, u64)> {
+        match self {
+            Self::Concrete { indexed, .. } => indexed.as_ref(),
+            Self::Foreground => None,
+        }
+    }
+
+    pub fn named_identity(&self) -> Option<&(String, String)> {
+        match self {
+            Self::Concrete { named, .. } => named.as_ref(),
+            Self::Foreground => None,
+        }
+    }
+
     pub(crate) fn is_valid(&self) -> bool {
-        self.indexed
+        let Self::Concrete { indexed, named, .. } = self else {
+            return true;
+        };
+        indexed.as_ref().is_none_or(|(system, index)| {
+            !system.is_empty() && !(system.eq_ignore_ascii_case("ACI") && *index == 7)
+        }) && named
             .as_ref()
-            .is_none_or(|(system, _)| !system.is_empty())
-            && self
-                .named
-                .as_ref()
-                .is_none_or(|(catalog, name)| !catalog.is_empty() && !name.is_empty())
+            .is_none_or(|(catalog, name)| !catalog.is_empty() && !name.is_empty())
     }
 }
 

@@ -168,7 +168,7 @@ pub(crate) fn to_cad(
                         format!("indexed identity omitted: {loss:?}"),
                     ));
                 }
-                if color.named.is_some() {
+                if color.named_identity().is_some() {
                     issues.push(diagnostic(
                         "viewport-overrides",
                         format!("{location}.color.named"),

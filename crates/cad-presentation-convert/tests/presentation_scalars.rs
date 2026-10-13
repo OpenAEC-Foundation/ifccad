@@ -63,7 +63,7 @@ fn nonstandard_weights_choose_the_nearest_table_value_with_lower_ties() {
 fn source_colors_preserve_concrete_rgb_and_aci_identity() {
     assert_eq!(
         explicit_color_from_cad(Color::from_rgb(12, 34, 56)).unwrap(),
-        CadColorValue {
+        CadColorValue::Concrete {
             rgb: [12, 34, 56],
             indexed: None,
             named: None,
@@ -71,7 +71,7 @@ fn source_colors_preserve_concrete_rgb_and_aci_identity() {
     );
     assert_eq!(
         explicit_color_from_cad(Color::Index(1)).unwrap(),
-        CadColorValue {
+        CadColorValue::Concrete {
             rgb: [255, 0, 0],
             indexed: Some(("ACI".into(), 1)),
             named: None,
@@ -84,14 +84,14 @@ fn source_colors_preserve_concrete_rgb_and_aci_identity() {
 
 #[test]
 fn target_color_retains_matching_index_and_named_identity() {
-    let value = CadColorValue {
+    let value = CadColorValue::Concrete {
         rgb: [255, 0, 0],
         indexed: Some(("aci".into(), 1)),
         named: Some(("Example".into(), "Red".into())),
     };
     let mapped = color_to_cad(&value).unwrap();
     assert_eq!(mapped.color, Color::Index(1));
-    assert_eq!(mapped.named, value.named);
+    assert_eq!(mapped.named, value.named_identity().cloned());
     assert!(mapped.losses.is_empty());
 }
 
@@ -104,7 +104,7 @@ fn incompatible_index_never_replaces_the_native_rgb_fallback() {
         ("ACI", 256, CadColorLoss::UnsupportedIndex),
         ("ACI", u64::MAX, CadColorLoss::UnsupportedIndex),
     ] {
-        let value = CadColorValue {
+        let value = CadColorValue::Concrete {
             rgb: [12, 34, 56],
             indexed: Some((system.into(), index)),
             named: None,
@@ -118,17 +118,17 @@ fn incompatible_index_never_replaces_the_native_rgb_fallback() {
 #[test]
 fn incomplete_color_identity_is_not_accepted_as_valid_input() {
     for value in [
-        CadColorValue {
+        CadColorValue::Concrete {
             rgb: [0; 3],
             indexed: Some((String::new(), 1)),
             named: None,
         },
-        CadColorValue {
+        CadColorValue::Concrete {
             rgb: [0; 3],
             indexed: None,
             named: Some((String::new(), "Red".into())),
         },
-        CadColorValue {
+        CadColorValue::Concrete {
             rgb: [0; 3],
             indexed: None,
             named: Some(("Example".into(), String::new())),

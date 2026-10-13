@@ -218,5 +218,25 @@
   {
     "file": "invalid/hatch-pattern-null-name.ifcx",
     "valid": false
+  },
+  {
+    "file": "valid/foreground-color.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid/foreground-mixed.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/foreground-unknown.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/foreground-metadata.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/foreground-legacy-index.ifcx",
+    "valid": false
   }
 ]

@@ -38,7 +38,7 @@ impl RgbColor {
 
 impl From<RgbColor> for DrawingColor {
     fn from(value: RgbColor) -> Self {
-        Self {
+        Self::Concrete {
             rgb: value.0,
             indexed: None,
             named: None,

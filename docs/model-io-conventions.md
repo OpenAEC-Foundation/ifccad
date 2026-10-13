@@ -191,3 +191,19 @@ writeback is not implied. This is a provisional API/contract change, not a relea
 ## Workspace lifecycle
 
 IFCCAD UCS and Model-window IDs use separate persistent uint64 watermarks and canonical full references. Whole workspace attributes compose as IFCX values. Native readers/writers preserve omitted choices and dormant values; legacy missing canvas activation means true. The optional viewport snapshot is boxed in Rust to keep ordinary entity variants compact. Format-owned converters allocate/bind identities before references and strictly read back native output.
+
+
+## Native color API migration
+
+`DrawingColor` and independent `IfccadColor` are enums with `Foreground` and
+`Concrete { rgb, indexed, named }` variants. `rgb(r,g,b)` still constructs a fixed
+color. Metadata builders `with_indexed` and `with_named` now return `Result`;
+they refuse metadata on Foreground instead of silently dropping it. Existing
+callers must propagate or handle `DrawingColorMetadataError` or
+`IfccadColorMetadataError`. Shared native validation rejects concrete ACI 7.
+
+Use variant matching to distinguish symbolic meaning. `concrete_rgb`,
+`indexed_identity` and `named_identity` expose optional values without resolving
+Foreground against an invented background. Rendering consumers can use
+`ocdraw::color::foreground_srgb` with their effective sRGB background; the
+drawing stores no theme-specific resolved color. See [presentation](presentation.md#foreground-color).

@@ -12,7 +12,14 @@ fn frame(value: CoordinateFrame3) -> Value {
     json!({"origin":[o.x(),o.y(),o.z()],"xAxis":[x.x(),x.y(),x.z()],"yAxis":[y.x(),y.y(),y.z()]})
 }
 fn color(value: &DrawingColor) -> Value {
-    json!({"rgb":value.rgb,"indexed":value.indexed,"named":value.named})
+    match value {
+        DrawingColor::Foreground => json!({"kind":"Foreground"}),
+        DrawingColor::Concrete {
+            rgb,
+            indexed,
+            named,
+        } => json!({"rgb":rgb,"indexed":indexed,"named":named}),
+    }
 }
 fn choice<T>(value: &AppearanceSelection<T>, encode: impl FnOnce(&T) -> Value) -> Value {
     match value {

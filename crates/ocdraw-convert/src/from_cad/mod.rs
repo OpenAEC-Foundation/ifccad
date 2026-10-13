@@ -575,7 +575,11 @@ pub fn cad_document_to_ocdraw_document_with_id(
                         {
                             None
                         } else {
-                            pattern.and_then(|pattern| direct_entity(common, pattern).ok())
+                            pattern.and_then(|pattern| {
+                                direct_entity(common, pattern).ok().and_then(
+                                    |(appearance, losses)| losses.is_empty().then_some(appearance),
+                                )
+                            })
                         };
                     for (name, represented) in [
                         ("layer", layer_id.is_some()),
@@ -766,7 +770,10 @@ pub fn cad_document_to_ocdraw_document_with_id(
             common,
             patterns.resolve(&common.linetype, common.linetype_handle)?,
         ) {
-            Ok(value) => Some(value),
+            Ok((value, losses)) => {
+                partial.extend(losses);
+                Some(value)
+            }
             Err(losses) => {
                 reasons.extend(losses);
                 None

@@ -142,19 +142,11 @@ fn from_color(c: &cad_text::MarkupColor) -> Result<IfccadColor, cad_text::CadTex
     };
     let value = cad_presentation_convert::explicit_color_from_cad(source)
         .map_err(|_| cad_text::CadTextError::Unsupported("unresolved inline colour"))?;
-    Ok(IfccadColor {
-        rgb: value.rgb,
-        indexed: value.indexed,
-        named: value.named,
-    })
+    Ok(super::appearance::native_color(value))
 }
 fn to_color(c: &IfccadColor) -> Result<cad_text::MarkupColor, cad_text::CadTextError> {
-    let mapped = cad_presentation_convert::color_to_cad(&cad_presentation_convert::CadColorValue {
-        rgb: c.rgb,
-        indexed: c.indexed.clone(),
-        named: c.named.clone(),
-    })
-    .map_err(|_| cad_text::CadTextError::Unsupported("invalid inline color identity"))?;
+    let mapped = cad_presentation_convert::color_to_cad(&super::appearance::scalar_color(c))
+        .map_err(|_| cad_text::CadTextError::Unsupported("invalid inline color identity"))?;
     if !mapped.losses.is_empty() || mapped.named.is_some() {
         return Err(cad_text::CadTextError::Unsupported(
             "inline/background color metadata cannot be represented",

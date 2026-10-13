@@ -7,6 +7,94 @@ use ocdraw::ifccad::*;
 use opencadcodec::{Color, EntityType, Line, LineWeight, Transparency, Vector3};
 
 #[test]
+fn aci_seven_and_rgb_white_remain_distinct() {
+    let mut source = cad();
+    source.layers.get_mut("0").unwrap().color = Color::Index(7);
+    for color in [Color::Index(7), Color::from_rgb(255, 255, 255)] {
+        let mut line = Line::new();
+        line.end = Vector3::new(1., 2., 0.);
+        line.common.color = color;
+        source.add_entity(EntityType::Line(line)).unwrap();
+    }
+    let native = cad_document_to_ifccad_document(&source, metadata(), Default::default()).unwrap();
+    assert_eq!(
+        native.document().layers[0].appearance.color,
+        IfccadColor::Foreground
+    );
+    let encoded = encode_ifccad_document(native.document()).unwrap();
+    let read = load_ifccad_bytes(encoded.bytes(), Default::default()).unwrap();
+    let target = ifccad_document_to_cad_document(read.document(), Default::default()).unwrap();
+    let colors: Vec<_> = target
+        .document()
+        .model_space_entities()
+        .map(|e| e.common().color)
+        .collect();
+    assert_eq!(colors, [Color::Index(7), Color::from_rgb(255, 255, 255)]);
+}
+
+#[test]
+fn aci_seven_named_identity_is_located_loss() {
+    let mut source = cad();
+    let layer = source.layers.get_mut("0").unwrap();
+    layer.color = Color::Index(7);
+    layer.book_name = Some("Book".into());
+    layer.color_name = Some("White".into());
+    let mut line = Line::new();
+    line.end = Vector3::new(1., 2., 0.);
+    line.common.color = Color::Index(7);
+    line.common.color_name = Some("Book$White".into());
+    source.add_entity(EntityType::Line(line)).unwrap();
+    let native = cad_document_to_ifccad_document(&source, metadata(), Default::default()).unwrap();
+    assert_eq!(
+        native.document().layers[0].appearance.color,
+        IfccadColor::Foreground
+    );
+    assert_eq!(native.document().model.entities.len(), 1);
+    assert!(
+        native
+            .diagnostics()
+            .iter()
+            .filter(|d| d.location.contains("color"))
+            .count()
+            >= 2
+    );
+    assert!(cad_document_to_ifccad_document(
+        &source,
+        metadata(),
+        CadToIfccadOptions {
+            loss_policy: IfccadLossPolicy::Reject,
+            ..Default::default()
+        }
+    )
+    .is_err());
+}
+
+#[test]
+fn foreground_malformed_named_identity_is_not_silently_consumed() {
+    let mut source = cad();
+    let mut line = Line::new();
+    line.end = Vector3::new(1., 2., 0.);
+    line.common.color = Color::Index(7);
+    line.common.color_name = Some("Incomplete".into());
+    source.add_entity(EntityType::Line(line)).unwrap();
+    let output = cad_document_to_ifccad_document(&source, metadata(), Default::default()).unwrap();
+    assert!(
+        output.diagnostics().iter().any(|d| d.is_semantic_loss()),
+        "{:?}",
+        output.diagnostics()
+    );
+    assert!(cad_document_to_ifccad_document(
+        &source,
+        metadata(),
+        CadToIfccadOptions {
+            loss_policy: IfccadLossPolicy::Reject,
+            ..Default::default()
+        }
+    )
+    .is_err());
+}
+
+#[test]
 fn source_aci_and_named_identity_survive_layer_and_entity_native_colors() {
     let mut source = cad();
     let layer = source.layers.get_mut("0").unwrap();
@@ -29,11 +117,15 @@ fn source_aci_and_named_identity_survive_layer_and_entity_native_colors() {
         layer.appearance.color,
         IfccadColor::rgb(255, 0, 0)
             .with_indexed("ACI", 1)
+            .unwrap()
             .with_named("Example", "Red")
+            .unwrap()
     );
     let expected = IfccadColor::rgb(255, 255, 0)
         .with_indexed("ACI", 2)
-        .with_named("Example", "Yellow");
+        .unwrap()
+        .with_named("Example", "Yellow")
+        .unwrap();
     assert_eq!(
         output.document().model.entities[0]
             .as_native()
@@ -79,7 +171,7 @@ fn inline_aci_and_background_color_keep_identity_in_mtext_exchange() {
         panic!()
     };
     let expected = Some(TextColor::Explicit(
-        IfccadColor::rgb(255, 0, 0).with_indexed("ACI", 1),
+        IfccadColor::rgb(255, 0, 0).with_indexed("ACI", 1).unwrap(),
     ));
     let colors = std::iter::once(&text.character_format.color)
         .chain(text.content.iter().map(|p| &p.character_format.color))
@@ -99,7 +191,7 @@ fn inline_aci_and_background_color_keep_identity_in_mtext_exchange() {
         "ACI identity missing from factored native character color: {text:?}"
     );
     assert!(
-        matches!(&text.background.as_ref().unwrap().fill,MTextFill::Color(c) if c.indexed == Some(("ACI".into(),2)))
+        matches!(&text.background.as_ref().unwrap().fill,MTextFill::Color(c) if c.indexed_identity().cloned() == Some(("ACI".into(),2)))
     );
     let target = ifccad_document_to_cad_document(native.document(), Default::default()).unwrap();
     let EntityType::MText(text) = target.document().model_space_entities().next().unwrap() else {
@@ -112,7 +204,8 @@ fn inline_aci_and_background_color_keep_identity_in_mtext_exchange() {
 #[test]
 fn incompatible_aci_never_changes_rgb_and_reject_refuses_identity_loss() {
     let mut native = primitives();
-    native.layers[0].appearance.color = IfccadColor::rgb(12, 34, 56).with_indexed("ACI", 1);
+    native.layers[0].appearance.color =
+        IfccadColor::rgb(12, 34, 56).with_indexed("ACI", 1).unwrap();
     let output = ifccad_document_to_cad_document(&native, Default::default()).unwrap();
     assert_eq!(
         output.document().layers.get("0").unwrap().color,
@@ -260,7 +353,9 @@ fn qualified_indexed_spline_common_stays_editable_without_rewriting_snapshot_byt
         IfccadMode::Explicit(
             IfccadColor::rgb(255, 0, 0)
                 .with_indexed("ACI", 1)
+                .unwrap()
                 .with_named("Example", "Red")
+                .unwrap()
         )
     );
     appearance.appearance.opacity = IfccadMode::Explicit(0.999);
@@ -285,8 +380,9 @@ fn qualified_indexed_spline_common_stays_editable_without_rewriting_snapshot_byt
 #[test]
 fn layer_catalog_delimiter_is_diagnosed_before_portable_cad_projection() {
     let mut drawing = common::empty();
-    drawing.layers[0].appearance.color =
-        IfccadColor::rgb(255, 0, 0).with_named("Book$Series", "Red");
+    drawing.layers[0].appearance.color = IfccadColor::rgb(255, 0, 0)
+        .with_named("Book$Series", "Red")
+        .unwrap();
     let output = ifccad_document_to_cad_document(&drawing, Default::default()).unwrap();
     let layer = output
         .document()

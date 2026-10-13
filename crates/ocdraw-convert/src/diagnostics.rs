@@ -156,6 +156,10 @@ pub enum CadToOcdrawLossReason {
         color_name: Option<String>,
         book_name: Option<String>,
     },
+    NamedColorOnForeground {
+        catalog: String,
+        name: String,
+    },
     LayerColorUnsupported {
         color: String,
     },

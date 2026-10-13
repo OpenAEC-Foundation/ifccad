@@ -51,7 +51,7 @@ fn default_layer_retains_colour_entities_and_unused_layers_in_strict_native_outp
         .find(|l| l.name == "Coloured")
         .unwrap();
     assert_eq!(layer.opacity, 1.);
-    assert_eq!(layer.color.rgb, [17, 146, 238]);
+    assert_eq!(layer.color.concrete_rgb().unwrap(), [17, 146, 238]);
     assert_eq!(
         out.document()
             .layers
@@ -183,7 +183,7 @@ fn default_layer_survives_actual_dxf_and_dwg_import_and_canonical_export() {
             .find(|l| l.name == "Coloured")
             .unwrap();
         assert_eq!(layer.opacity, 1.);
-        assert_eq!(layer.color.rgb, [17, 146, 238]);
+        assert_eq!(layer.color.concrete_rgb().unwrap(), [17, 146, 238]);
         assert_eq!(
             native_back.document().text_entities[0].content,
             native.document().text_entities[0].content

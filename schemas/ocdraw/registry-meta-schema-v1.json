@@ -261,7 +261,8 @@
             "hatchDashes",
             "hatchFamily",
             "hatchFamilies",
-            "hatchLiteralString"
+            "hatchLiteralString",
+            "foregroundColorKind"
           ]
         },
         "nullable": {
@@ -557,7 +558,8 @@
                 "hatchDashes",
                 "hatchFamily",
                 "hatchFamilies",
-                "hatchLiteralString"
+                "hatchLiteralString",
+                "foregroundColorKind"
               ]
             },
             "minItems": {

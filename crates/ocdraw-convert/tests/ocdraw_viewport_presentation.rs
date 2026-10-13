@@ -46,7 +46,17 @@ fn all_viewport_overrides_merge_with_freezing_and_export_again() {
     let native = cad_document_to_ocdraw_document(&d, Default::default()).unwrap();
     let row = &native.document().viewports[0].layer_overrides[0];
     assert!(row.frozen);
-    assert_eq!(row.color.as_ref().unwrap().indexed.as_ref().unwrap().1, 1);
+    assert_eq!(
+        row.color
+            .as_ref()
+            .unwrap()
+            .indexed_identity()
+            .cloned()
+            .as_ref()
+            .unwrap()
+            .1,
+        1
+    );
     assert_eq!(row.opacity, Some(127. / 255.));
     assert_eq!(row.line_weight, Some(0.25));
     assert!(row.line_pattern_id.is_some());
@@ -157,7 +167,12 @@ fn supported_fields_do_not_hide_unrelated_record_data() {
     let native = cad_document_to_ocdraw_document(&d, Default::default()).unwrap();
     let view = &native.document().viewports[0];
     assert_eq!(
-        view.layer_overrides[0].color.as_ref().unwrap().rgb,
+        view.layer_overrides[0]
+            .color
+            .as_ref()
+            .unwrap()
+            .concrete_rgb()
+            .unwrap(),
         [255, 0, 0]
     );
     assert!(native.diagnostics().iter().any(|d|matches!(d.source(), CadToOcdrawDiagnosticSource::Collection{kind,..} if kind=="objects")));
@@ -235,14 +250,18 @@ fn two_viewports_and_layers_keep_overrides_separate_without_thawing_global_freez
     let native = cad_document_to_ocdraw_document(&d, Default::default()).unwrap();
     let views = native.document().viewports.iter().collect::<Vec<_>>();
     assert_eq!(views.len(), 2);
-    assert!(views.iter().any(|v| v
-        .layer_overrides
+    assert!(views
         .iter()
-        .any(|r| r.frozen && r.color.as_ref().is_some_and(|c| c.rgb == [255, 0, 0]))));
-    assert!(views.iter().any(|v| v
-        .layer_overrides
+        .any(|v| v.layer_overrides.iter().any(|r| r.frozen
+            && r.color
+                .as_ref()
+                .is_some_and(|c| c.concrete_rgb().unwrap() == [255, 0, 0]))));
+    assert!(views
         .iter()
-        .any(|r| !r.frozen && r.color.as_ref().is_some_and(|c| c.rgb == [10, 32, 19]))));
+        .any(|v| v.layer_overrides.iter().any(|r| !r.frozen
+            && r.color
+                .as_ref()
+                .is_some_and(|c| c.concrete_rgb().unwrap() == [10, 32, 19]))));
     let target = ocdraw_document_to_cad_document(native.document(), Default::default()).unwrap();
     let layer = target.document().layers.get("GloballyFrozen").unwrap();
     assert!(layer.flags.frozen);

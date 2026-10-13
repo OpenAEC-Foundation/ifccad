@@ -255,7 +255,7 @@ fn indexed_color_default_weight_and_quantization_preserve_inherited_entity_modes
         .unwrap();
     assert_eq!(
         layer.appearance.color,
-        IfccadColor::rgb(255, 0, 0).with_indexed("ACI", 1)
+        IfccadColor::rgb(255, 0, 0).with_indexed("ACI", 1).unwrap()
     );
     assert_eq!(layer.appearance.line_weight, 0.25);
     let pattern = out

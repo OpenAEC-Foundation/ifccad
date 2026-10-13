@@ -347,6 +347,6 @@ fn inline_palette_identity_is_retained_in_the_concrete_color_profile() {
         panic!()
     };
     assert!(
-        matches!(&text.character_format.color, Some(ocdraw::text::TextColor::Explicit(color)) if color.indexed == Some(("ACI".into(),65)))
+        matches!(&text.character_format.color, Some(ocdraw::text::TextColor::Explicit(color)) if color.indexed_identity().cloned() == Some(("ACI".into(),65)))
     );
 }

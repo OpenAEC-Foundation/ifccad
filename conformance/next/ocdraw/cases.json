@@ -426,6 +426,26 @@
     {
       "path": "invalid/hatch-pattern-null-name.ocdraw.json",
       "status": "invalid"
+    },
+    {
+      "path": "valid/foreground-color.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "invalid/foreground-mixed.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/foreground-unknown.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/foreground-metadata.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/foreground-legacy-index.ocdraw.json",
+      "status": "invalid"
     }
   ]
 }

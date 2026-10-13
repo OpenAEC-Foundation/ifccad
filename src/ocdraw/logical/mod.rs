@@ -41,7 +41,9 @@ mod viewport;
 mod viewport_clip;
 pub use viewport_clip::validate_viewport_clip_boundary;
 
-pub use appearance::{AppearanceSelection, DrawingColor, EntityAppearance};
+pub use appearance::{
+    AppearanceSelection, DrawingColor, DrawingColorMetadataError, EntityAppearance,
+};
 pub use definitions::{
     DrawingBlockDefinition, DrawingLayer, DrawingLayout, DrawingLayoutKind, DrawingScope,
     DrawingScopeKind, DrawingUcsDefinition, DrawingWorkspaceState,

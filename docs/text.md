@@ -152,3 +152,12 @@ of OCDraw's DrawingColor. Qualified RGB/ACI text identity passes through the sha
 CAD color rules; richer/unqualified text color metadata still obeys the bounded
 whole-text restriction. Scalar color support does not certify glyph appearance.
 See [presentation](presentation.md) for migration and numerical policy.
+
+
+Explicit native Text/MText colors also support the symbolic Foreground choice,
+including character/paragraph/inline overrides and explicit background fills.
+Qualified CAD indexed color 7 retains that meaning through DXF/AC1032 DWG in both
+routes; ordinary RGB white/black remain fixed. Foreground is different from the
+existing canvas-background-fill choice. See [Foreground](presentation.md#foreground-color)
+for resolution and the closed wire value; richer named/custom text colors retain
+their existing bounded-profile restrictions.

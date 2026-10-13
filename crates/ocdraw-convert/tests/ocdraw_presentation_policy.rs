@@ -14,6 +14,55 @@ fn native() -> OcdrawDocument {
 }
 
 #[test]
+fn aci_seven_and_rgb_white_remain_distinct() {
+    let mut source = CadDocument::new();
+    source.layers.get_mut("0").unwrap().color = Color::Index(7);
+    for color in [Color::Index(7), Color::from_rgb(255, 255, 255)] {
+        let mut line = Line::new();
+        line.end = Vector3::new(1., 2., 0.);
+        line.common.color = color;
+        source.add_entity(EntityType::Line(line)).unwrap();
+    }
+    let native = cad_document_to_ocdraw_document(&source, Default::default()).unwrap();
+    assert_eq!(native.document().layers[0].color, DrawingColor::Foreground);
+    let encoded = encode_ocdraw_document(native.document()).unwrap();
+    let read = load_ocdraw_bytes(encoded.bytes()).unwrap();
+    let target = ocdraw_document_to_cad_document(read.document(), Default::default()).unwrap();
+    let colors: Vec<_> = target
+        .document()
+        .model_space_entities()
+        .map(|e| e.common().color)
+        .collect();
+    assert_eq!(colors, [Color::Index(7), Color::from_rgb(255, 255, 255)]);
+}
+
+#[test]
+fn aci_seven_named_identity_is_located_loss() {
+    let mut source = CadDocument::new();
+    let layer = source.layers.get_mut("0").unwrap();
+    layer.color = Color::Index(7);
+    layer.book_name = Some("Book".into());
+    layer.color_name = Some("White".into());
+    let mut line = Line::new();
+    line.end = Vector3::new(1., 2., 0.);
+    line.common.color = Color::Index(7);
+    line.common.color_name = Some("Book$White".into());
+    source.add_entity(EntityType::Line(line)).unwrap();
+    let native = cad_document_to_ocdraw_document(&source, Default::default()).unwrap();
+    assert_eq!(native.document().layers[0].color, DrawingColor::Foreground);
+    assert_eq!(native.document().geometric_entities.len(), 1);
+    assert!(native.diagnostics().len() >= 2);
+    assert!(cad_document_to_ocdraw_document(
+        &source,
+        CadToOcdrawOptions {
+            loss_policy: OcdrawLossPolicy::Reject,
+            ..Default::default()
+        }
+    )
+    .is_err());
+}
+
+#[test]
 fn incompatible_aci_never_changes_rgb_and_reject_refuses_identity_loss() {
     let mut drawing = native();
     drawing
@@ -21,7 +70,9 @@ fn incompatible_aci_never_changes_rgb_and_reject_refuses_identity_loss() {
         .iter_mut()
         .find(|l| l.name == "0")
         .unwrap()
-        .color = DrawingColor::rgb(12, 34, 56).with_indexed("ACI", 1);
+        .color = DrawingColor::rgb(12, 34, 56)
+        .with_indexed("ACI", 1)
+        .unwrap();
     let output = ocdraw_document_to_cad_document(&drawing, Default::default()).unwrap();
     assert_eq!(
         output.document().layers.get("0").unwrap().color,
@@ -120,7 +171,9 @@ fn authored_opacity_and_weight_use_shared_quantization_with_located_loss() {
 #[test]
 fn layer_catalog_delimiter_is_diagnosed_before_portable_cad_projection() {
     let mut drawing = native();
-    drawing.layers[0].color = DrawingColor::rgb(255, 0, 0).with_named("Book$Series", "Red");
+    drawing.layers[0].color = DrawingColor::rgb(255, 0, 0)
+        .with_named("Book$Series", "Red")
+        .unwrap();
     let output = ocdraw_document_to_cad_document(&drawing, Default::default()).unwrap();
     let layer = output
         .document()

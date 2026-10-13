@@ -66,7 +66,7 @@ has Modified evidence. Missing layer 0 is white/opaque/Continuous/0.25 mm with n
 source mapping. Reject refuses all these losses. No source preservation is
 implemented.
 
-Concrete indexed colors use ACI only when its RGB agrees with the authored
+Foreground exports as ACI 7. Other concrete indexed colors use ACI only when their RGB agrees with the authored
 fallback. Unsupported/inconsistent indexed metadata keeps RGB with located loss;
 complete layer/entity named identities are retained where the target field can
 represent them. A catalogue containing the entity `$` delimiter is diagnosed
@@ -342,3 +342,26 @@ and DWG mode values 0–3 are qualified; DXF group 170 remains gated by codec PR
 #107, with outgoing browser readback loss reported explicitly. Paper grid flags
 remain gated by #106. Both PRs were still open at qualification, so the audited
 ab2eecd plus explicit viewport-off configuration remains selected.
+
+
+## Foreground / ACI 7
+
+Native Foreground is a symbolic background-dependent black/white color, with no
+RGB fallback or separate ACI identity. Qualified ACI 7 imports as Foreground
+before palette lookup and exports as ACI 7, retaining CTB key 7. Literal RGB
+white and black remain true color. The old concrete `indexedColor: ACI/7` native
+object is invalid; current provisional examples and candidate fixtures use the
+closed `{"kind":"Foreground"}` choice.
+
+This applies to layer/entity colors, qualified Text/MText inline and explicit
+background colors, and C3/index-7 viewport-layer overrides. Named metadata on
+source ACI 7 cannot attach to Foreground and gets located loss under Allow;
+Reject refuses the loss. Editable native common appearance on preserved entities
+supports Foreground while provider payload bytes remain unchanged.
+
+The [independent exchange tests](../tests/foreground_exchange.rs) exercise native
+production readback and actual DXF/AC1032 DWG readback for this route, with fixed
+RGB controls. These tests prove data exchange, not external-app visual/CTB-output
+certification. Additional C5/ByPen/None/257 methods and broader plot-style contents
+remain unqualified. See [presentation](../../../docs/presentation.md#foreground-color)
+and [issue #16](https://github.com/OpenAEC-Foundation/ifccad/issues/16).

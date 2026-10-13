@@ -130,7 +130,7 @@ fn ocdraw_layouts() -> Result<OcdrawDocument> {
     .into_document();
     d.drawing_id = "explorer-ocdraw-layouts-viewports".into();
     d.unit = "mm".into();
-    d.layers[0].color = DrawingColor::rgb(255, 255, 255).with_indexed("ACI", 7);
+    d.layers[0].color = DrawingColor::Foreground;
     for layout in &mut d.layouts {
         if layout.kind == DrawingLayoutKind::Paper {
             layout.name = "Detail sheet".into();

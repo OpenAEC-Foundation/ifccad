@@ -12,9 +12,7 @@ pub(crate) enum AppearanceMode {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct AppearanceSignature {
-    pub(crate) rgb: [u8; 3],
-    pub(crate) indexed: Option<u32>,
-    pub(crate) named: Option<(String, String)>,
+    pub(crate) color: AppearanceColor,
     pub(crate) opacity: u64,
     pub(crate) line_weight: u64,
 }
@@ -34,6 +32,7 @@ pub(crate) enum EntityAppearanceError {
 }
 
 pub(crate) struct ConvertedEntityAppearance {
+    pub(crate) losses: Vec<CadToOcdrawLossReason>,
     pub(crate) definition: Option<(AppearanceSignature, AppearanceColor)>,
     pub(crate) color_mode: AppearanceMode,
     pub(crate) opacity_mode: AppearanceMode,
@@ -47,19 +46,17 @@ pub(crate) fn convert_entity_appearance(
     let (color_mode, explicit_color) = match common.color {
         Color::ByLayer => (AppearanceMode::ByLayer, None),
         Color::ByBlock => (AppearanceMode::ByBlock, None),
-        Color::Index(index) => match common.color.rgb() {
-            Some((r, g, b)) => (
-                AppearanceMode::Explicit,
-                Some(([r, g, b], Some(u32::from(index)))),
-            ),
-            None => {
-                losses.push(CadToOcdrawLossReason::EntityColorUnsupported {
-                    color: common.color.to_string(),
-                });
-                (AppearanceMode::Explicit, None)
+        value @ (Color::Index(_) | Color::Rgb { .. }) => {
+            match cad_presentation_convert::explicit_color_from_cad(value) {
+                Ok(value) => (AppearanceMode::Explicit, Some(native_color(value))),
+                Err(_) => {
+                    losses.push(CadToOcdrawLossReason::EntityColorUnsupported {
+                        color: common.color.to_string(),
+                    });
+                    (AppearanceMode::Explicit, None)
+                }
             }
-        },
-        Color::Rgb { r, g, b } => (AppearanceMode::Explicit, Some(([r, g, b], None))),
+        }
         _ => {
             losses.push(CadToOcdrawLossReason::EntityColorUnsupported {
                 color: common.color.to_string(),
@@ -86,6 +83,12 @@ pub(crate) fn convert_entity_appearance(
         losses.push(CadToOcdrawLossReason::EntityNamedColorWithoutExplicitColor);
     }
 
+    let mut metadata_losses = Vec::new();
+    if matches!(explicit_color, Some(AppearanceColor::Foreground)) && named.is_some() {
+        metadata_losses.push(CadToOcdrawLossReason::EntityNamedColorUnsupported {
+            name: common.color_name.clone().expect("named source"),
+        });
+    }
     let (opacity_mode, opacity) = match common.transparency {
         Transparency::ByLayer => (AppearanceMode::ByLayer, 1.0),
         Transparency::ByBlock => (AppearanceMode::ByBlock, 1.0),
@@ -112,19 +115,16 @@ pub(crate) fn convert_entity_appearance(
     let needs_definition =
         [color_mode, opacity_mode, line_weight_mode].contains(&AppearanceMode::Explicit);
     let definition = needs_definition.then(|| {
-        let (rgb, indexed) = explicit_color.unwrap_or(([0, 0, 0], None));
-        let mut color = AppearanceColor::rgb(rgb[0], rgb[1], rgb[2]);
-        if let Some(index) = indexed {
-            color = color.with_indexed("ACI", u64::from(index));
-        }
-        if let Some((catalog, name)) = &named {
-            color = color.with_named(catalog, name);
+        let mut color = explicit_color.unwrap_or_else(|| AppearanceColor::rgb(0, 0, 0));
+        if let AppearanceColor::Concrete {
+            named: identity, ..
+        } = &mut color
+        {
+            *identity = named;
         }
         (
             AppearanceSignature {
-                rgb,
-                indexed,
-                named,
+                color: color.clone(),
                 opacity: opacity.to_bits(),
                 line_weight: line_weight.to_bits(),
             },
@@ -132,6 +132,7 @@ pub(crate) fn convert_entity_appearance(
         )
     });
     Ok(ConvertedEntityAppearance {
+        losses: metadata_losses,
         definition,
         color_mode,
         opacity_mode,
@@ -143,14 +144,9 @@ pub(crate) fn convert_layer_appearance(
     layer: &Layer,
 ) -> Result<ConvertedAppearance, LayerAppearanceError> {
     let mut required_losses = Vec::new();
-    let color_components = match layer.color {
-        Color::Index(index) => layer
-            .color
-            .rgb()
-            .map(|(r, g, b)| ([r, g, b], Some(u32::from(index)))),
-        Color::Rgb { r, g, b } => Some(([r, g, b], None)),
-        _ => None,
-    };
+    let color_components = cad_presentation_convert::explicit_color_from_cad(layer.color)
+        .ok()
+        .map(native_color);
     if color_components.is_none() {
         required_losses.push(CadToOcdrawLossReason::LayerColorUnsupported {
             color: layer.color.to_string(),
@@ -200,26 +196,40 @@ pub(crate) fn convert_layer_appearance(
         return Err(LayerAppearanceError::Loss(required_losses));
     }
 
-    let (rgb, indexed) = color_components.expect("validated layer color components");
+    let mut color = color_components.expect("validated layer color components");
     let opacity = opacity.expect("validated layer opacity");
     let line_weight = line_weight.expect("validated layer line weight");
 
-    let mut color = AppearanceColor::rgb(rgb[0], rgb[1], rgb[2]);
-    if let Some(index) = indexed {
-        color = color.with_indexed("ACI", u64::from(index));
-    }
-    if let Some((catalog, name)) = &named {
-        color = color.with_named(catalog, name);
+    if let Some((catalog, name)) = named {
+        match &mut color {
+            AppearanceColor::Concrete { named, .. } => *named = Some((catalog, name)),
+            AppearanceColor::Foreground => {
+                losses.push(CadToOcdrawLossReason::NamedColorOnForeground { catalog, name })
+            }
+        }
     }
     Ok(ConvertedAppearance {
         signature: AppearanceSignature {
-            rgb,
-            indexed,
-            named,
+            color: color.clone(),
             opacity: opacity.to_bits(),
             line_weight: line_weight.to_bits(),
         },
         color,
         losses,
     })
+}
+
+fn native_color(value: cad_presentation_convert::CadColorValue) -> AppearanceColor {
+    match value {
+        cad_presentation_convert::CadColorValue::Foreground => AppearanceColor::Foreground,
+        cad_presentation_convert::CadColorValue::Concrete {
+            rgb,
+            indexed,
+            named,
+        } => AppearanceColor::Concrete {
+            rgb,
+            indexed,
+            named,
+        },
+    }
 }

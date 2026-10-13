@@ -198,15 +198,7 @@
         "ifccad::layer": {
           "appearance": {
             "color": {
-              "indexedColor": {
-                "index": 7,
-                "system": "ACI"
-              },
-              "rgb": [
-                255,
-                255,
-                255
-              ]
+              "kind": "Foreground"
             },
             "linePattern": "/cad/d1/linePattern/0",
             "lineWeight": 0.1,

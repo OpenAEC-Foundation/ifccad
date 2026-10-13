@@ -12,15 +12,7 @@
   "layers": [
     {
       "color": {
-        "indexedColor": {
-          "index": 7,
-          "system": "ACI"
-        },
-        "rgb": [
-          255,
-          255,
-          255
-        ]
+        "kind": "Foreground"
       },
       "frozen": false,
       "frozenInNewViewports": false,
@@ -196,7 +188,7 @@
         }
       ],
       "joinTolerance": [
-        1e-9
+        1e-09
       ],
       "layerId": [
         0

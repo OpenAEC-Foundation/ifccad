@@ -70,7 +70,7 @@ pub use geometry::{
     Vector3,
 };
 pub use layout::{LayoutRect, LayoutSettings};
-pub use logical::{AppearanceSelection, DrawingColor, EntityAppearance};
+pub use logical::{AppearanceSelection, DrawingColor, DrawingColorMetadataError, EntityAppearance};
 pub use logical::{
     DrawingBlockDefinition, DrawingLayer, DrawingLayout, DrawingLayoutKind, DrawingScope,
     DrawingScopeKind, DrawingUcsDefinition, DrawingWorkspaceState,

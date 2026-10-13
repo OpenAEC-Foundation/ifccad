@@ -110,9 +110,16 @@
       "kind": "record",
       "fields": [
         {
+          "name": "kind",
+          "valueType": "foregroundColorKind",
+          "nullable": false,
+          "optional": true
+        },
+        {
           "name": "rgb",
           "valueType": "rgb",
-          "nullable": false
+          "nullable": false,
+          "optional": true
         },
         {
           "name": "indexedColor",
@@ -2698,6 +2705,12 @@
     "hatchLiteralString": {
       "kind": "scalar",
       "base": "string"
+    },
+    "foregroundColorKind": {
+      "kind": "enum",
+      "values": [
+        "Foreground"
+      ]
     }
   },
   "resource": {
@@ -5148,6 +5161,10 @@
     {
       "id": "ocdraw.text",
       "contract": "logical-contract-0.1.0.md#text"
+    },
+    {
+      "id": "COLOR_CHOICE",
+      "contract": "logical-contract-0.1.0.md#appearance"
     }
   ],
   "ocdrawVersion": "0.1.0"

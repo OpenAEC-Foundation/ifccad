@@ -48,11 +48,7 @@ pub(crate) fn from_cad(
             let mut conflict = false;
             let value = match section.kind {
                 K::LayerViewportColorOverride => decode_override_color(&section.value).map(|v| {
-                    let v = DrawingColor {
-                        rgb: v.rgb,
-                        indexed: v.indexed,
-                        named: v.named,
-                    };
+                    let v = super::appearance::native_color(v);
                     conflict = row.color.as_ref().is_some_and(|old| *old != v);
                     row.color = Some(v);
                 }),
@@ -156,11 +152,7 @@ pub(crate) fn to_cad(
             };
             let mut values = Vec::new();
             if let Some(color) = &row.color {
-                let color = CadColorValue {
-                    rgb: color.rgb,
-                    indexed: color.indexed.clone(),
-                    named: color.named.clone(),
-                };
+                let color = super::appearance::scalar_color(color);
                 let (value, losses) = encode_override_color(&color).expect("validated color");
                 for loss in losses {
                     diagnostics.push(crate::to_cad::diagnostic(
@@ -169,7 +161,7 @@ pub(crate) fn to_cad(
                         format!("indexed identity omitted: {loss:?}"),
                     ));
                 }
-                if color.named.is_some() {
+                if color.named_identity().is_some() {
                     diagnostics.push(crate::to_cad::diagnostic(
                         "VIEWPORT_OVERRIDE",
                         format!("{location}.color.named"),

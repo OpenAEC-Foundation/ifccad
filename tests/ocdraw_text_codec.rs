@@ -19,9 +19,7 @@ fn rich() -> OcdrawDocument {
     let character = CharacterFormat {
         underline: Some(false),
         height: Some(TextHeight::Relative { factor: 1.2 }),
-        color: Some(TextColor::Explicit(
-            DrawingColor::rgb(1, 2, 3).with_indexed("ACI", 7),
-        )),
+        color: Some(TextColor::Explicit(DrawingColor::Foreground)),
         ..Default::default()
     };
     d.mtext_entities.push(DrawingMTextEntity {

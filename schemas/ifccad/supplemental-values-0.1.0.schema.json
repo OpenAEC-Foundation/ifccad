@@ -2956,60 +2956,97 @@
       }
     },
     "concreteColor": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "rgb"
-      ],
-      "properties": {
-        "rgb": {
-          "type": "array",
-          "minItems": 3,
-          "maxItems": 3,
-          "items": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 255
-          }
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "Foreground"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
         },
-        "indexedColor": {
+        {
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "system",
-            "index"
+            "rgb"
           ],
           "properties": {
-            "system": {
-              "type": "string",
-              "minLength": 1
+            "rgb": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              }
             },
-            "index": {
-              "type": "integer",
-              "minimum": 0,
-              "maximum": 18446744073709551615
-            }
-          }
-        },
-        "namedColor": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "catalog",
-            "name"
-          ],
-          "properties": {
-            "catalog": {
-              "type": "string",
-              "minLength": 1
+            "indexedColor": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "system",
+                "index"
+              ],
+              "properties": {
+                "system": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "index": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 18446744073709551615
+                }
+              }
             },
-            "name": {
-              "type": "string",
-              "minLength": 1
+            "namedColor": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "catalog",
+                "name"
+              ],
+              "properties": {
+                "catalog": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
             }
+          },
+          "not": {
+            "properties": {
+              "indexedColor": {
+                "properties": {
+                  "system": {
+                    "pattern": "^[Aa][Cc][Ii]$"
+                  },
+                  "index": {
+                    "const": 7
+                  }
+                },
+                "required": [
+                  "system",
+                  "index"
+                ]
+              }
+            },
+            "required": [
+              "indexedColor"
+            ]
           }
         }
-      }
+      ]
     },
     "viewportLayerOverride": {
       "type": "object",

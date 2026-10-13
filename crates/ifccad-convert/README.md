@@ -123,9 +123,9 @@ for nested occurrence proof, conservative bulge limits and separate file checks.
 - Points, XYZ lines, circles/signed arcs, full/partial ellipses, straight/bulged
   planar and straight spatial paths in valid oriented planes. Local-origin
   decomposition may change while the shape meets the configured hard limit.
-- True RGB, named signed-length patterns (including unused/empty definitions), supported CAD hundredth-mm line weights and
+- Foreground/ACI 7, qualified concrete RGB/indexed/named colors, named signed-length patterns (including unused/empty definitions), supported CAD hundredth-mm line weights and
   exactly byte-representable opacity. ByLayer/ByBlock/Explicit are independent
-  for each entity property and remain stored. RGB text becomes uppercase.
+  for each entity property and remain stored. Native colors use closed value objects.
 - Drawing/entity pattern scales and polyline per-segment/continuous generation.
 - Shared/nested local blocks, base points, insertion units and owner-relative
   order; valid oriented insert placement, rotation and signed nonuniform scale.
@@ -137,8 +137,9 @@ including through nested blocks. Anonymous/reserved names, XREF/external flags
 and directly owned dynamic-block objects cause definition omission; referring
 inserts are also omitted. Mappings contain only emitted objects.
 
-Appearance adaptations are explicit and diagnosed: ACI color becomes canonical
-RGB; unavailable layer color becomes white; inherited/default layer opacity
+Appearance adaptations are explicit and diagnosed: ACI 7 becomes native Foreground;
+other qualified ACI colors retain indexed identity with concrete RGB fallback.
+Unavailable required layer color omits the dependent layer with loss. Inherited/default layer opacity
 becomes opaque; unavailable/default weight becomes 0.25 mm. Numeric weights use
 the closest standard CAD weight (ties prefer the lower entry); opacity uses the
 closest decoded transparency byte (ties prefer greater transparency). Complex
@@ -148,7 +149,7 @@ opaque, Continuous, 0.25 mm CAD layer without a source mapping. Entity
 ByLayer/ByBlock modes remain independent and stored. These adaptations are
 policy-controlled losses, not an appearance resolver.
 
-Widths, fitted/mesh curves, named/indexed color identity, complex text/shape patterns,
+Widths, fitted/mesh curves, unqualified color metadata, complex text/shape patterns,
 changed CAD settings, XDATA, arrays, attributes and source preservation remain
 outside the slice. Unsupported common metadata may be omitted while keeping
 geometry. Extra fields on supported types are also checked. See the contracts:

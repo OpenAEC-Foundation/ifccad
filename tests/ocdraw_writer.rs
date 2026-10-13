@@ -128,7 +128,10 @@ fn empty_and_populated_drawings_round_trip_through_the_production_reader() {
     assert_eq!(drawing.typed_layers().len(), 1);
     assert_eq!(drawing.typed_layouts()[0].name, "Model");
     assert_eq!(drawing.typed_layers()[0].name, "Red");
-    assert_eq!(drawing.typed_layers()[0].color.rgb, [255, 0, 0]);
+    assert_eq!(
+        drawing.typed_layers()[0].color.concrete_rgb().unwrap(),
+        [255, 0, 0]
+    );
     assert!(matches!(
         drawing.geometric_entities()[0].appearance().opacity,
         AppearanceSelection::Explicit(value) if value == 0.5
@@ -731,13 +734,16 @@ fn authored_color_metadata_survives_readback() {
     let layer = builder
         .add_layer(LayerDefinition::new(
             "A",
-            DrawingColor::rgb(255, 0, 0).with_indexed("ACI", 1),
+            DrawingColor::rgb(255, 0, 0).with_indexed("ACI", 1).unwrap(),
             ocdraw::ocdraw::LinePatternId(0),
         ))
         .unwrap();
     let mut line = LineDefinition::new(layer, [0.0, 0.0, 0.0], [1.0, 1.0, 0.0]);
-    line.appearance.color =
-        AppearanceSelection::Explicit(DrawingColor::rgb(0, 0, 255).with_named("Catalog", "Blue"));
+    line.appearance.color = AppearanceSelection::Explicit(
+        DrawingColor::rgb(0, 0, 255)
+            .with_named("Catalog", "Blue")
+            .unwrap(),
+    );
     builder.add_line(line).unwrap();
     let encoded = builder.finish().unwrap();
     let read = load_ocdraw_bytes(encoded.bytes());
