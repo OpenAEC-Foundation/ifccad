@@ -3817,6 +3817,20 @@
           "name": "arcSymbol",
           "valueType": "dimensionSettingsNumbersPrimaryArcSymbol",
           "nullable": false
+        },
+        {
+          "name": "fractionLayout",
+          "valueType": "dimensionFractionLayout",
+          "nullable": false,
+          "optional": true,
+          "default": "inline"
+        },
+        {
+          "name": "fractionScale",
+          "valueType": "dimensionSettingsTextHeight",
+          "nullable": false,
+          "optional": true,
+          "default": 1.0
         }
       ]
     },
@@ -3933,6 +3947,20 @@
           "name": "suffix",
           "valueType": "string",
           "nullable": false
+        },
+        {
+          "name": "fractionLayout",
+          "valueType": "dimensionFractionLayout",
+          "nullable": false,
+          "optional": true,
+          "default": "inline"
+        },
+        {
+          "name": "fractionScale",
+          "valueType": "dimensionSettingsTextHeight",
+          "nullable": false,
+          "optional": true,
+          "default": 1.0
         }
       ]
     },
@@ -4355,6 +4383,18 @@
           "valueType": "dimensionSettingsNumbersPrimaryArcSymbol",
           "nullable": false,
           "optional": true
+        },
+        {
+          "name": "fractionLayout",
+          "valueType": "dimensionFractionLayout",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "fractionScale",
+          "valueType": "dimensionSettingsTextHeight",
+          "nullable": false,
+          "optional": true
         }
       ]
     },
@@ -4449,6 +4489,14 @@
       "kind": "sequence",
       "items": "dimensionAssociation",
       "minItems": 0
+    },
+    "dimensionFractionLayout": {
+      "kind": "enum",
+      "values": [
+        "inline",
+        "horizontal",
+        "diagonal"
+      ]
     }
   },
   "resource": {

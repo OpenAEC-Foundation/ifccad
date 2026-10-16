@@ -1,0 +1,43 @@
+--- a/src/io/dwg/dwg_document_builder.rs
++++ b/src/io/dwg/dwg_document_builder.rs
+@@ -7642,8 +7642,8 @@
+     base.normal = common.normal;
+     base.text_middle_point = common.text_middle_point;
+     base.dwg_flags_byte = common.flags_byte;
+-    // Flags byte bit 0: dimension text positioned at a user-defined location.
+-    base.text_user_positioned = (common.flags_byte & 0x01) != 0;
++    // ODA Common Dimension Data: bit 0 is the opposite of DXF 70 bit 128.
++    base.text_user_positioned = (common.flags_byte & 0x01) == 0;
+     base.text = common.text.clone();
+     base.text_rotation = common.text_rotation;
+     base.horizontal_direction = common.horizontal_direction;
+--- a/src/io/dwg/dwg_stream_writers/object_writer/entities.rs
++++ b/src/io/dwg/dwg_stream_writers/object_writer/entities.rs
+@@ -2329,11 +2329,11 @@
+         // Elevation BD 11 Z-coord
+         self.writer.write_bit_double(base.text_middle_point.z);
+ 
+-        // Flags byte — bit 0: text positioned at a user-defined location.
++        // DWG bit 0 has the opposite polarity to DXF 70 bit 128.
+         let flags_byte = if base.text_user_positioned {
++            base.dwg_flags_byte & !0x01
++        } else {
+             base.dwg_flags_byte | 0x01
+-        } else {
+-            base.dwg_flags_byte & !0x01
+         };
+         self.writer.write_byte(flags_byte);
+ 
+--- a/src/entities/dimension.rs
++++ b/src/entities/dimension.rs
+@@ -92,8 +92,8 @@
+     pub flip_arrow1: bool,
+     /// Flip the second dimension arrow.
+     pub flip_arrow2: bool,
+-    /// Complete DWG dimension flag byte. Bit zero mirrors
+-    /// [`text_user_positioned`](Self::text_user_positioned).
++    /// Complete DWG dimension flag byte. Bit zero has the opposite polarity to
++    /// [`text_user_positioned`](Self::text_user_positioned), matching ODA and DXF 70 bit 128.
+     pub dwg_flags_byte: u8,
+     /// Dimension text was positioned at a user-defined location rather than at
+     /// the style's default (DXF group 70, bit 0x80). When false the text

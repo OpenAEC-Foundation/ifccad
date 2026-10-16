@@ -83,3 +83,612 @@ Object.assign(copy,{
  'gradient.hemispherical':['Hemispherical','Halfbolvormig'],'gradient.inverseHemispherical':['Inverse hemispherical','Omgekeerd halfbolvormig'],
  'gradient.curved':['Curved','Gebogen'],'gradient.inverseCurved':['Inverse curved','Omgekeerd gebogen']
 });
+
+Object.assign(copy, {
+ "dimension": [
+  "Dimension",
+  "Bemating"
+ ],
+ "plural.dimension": [
+  "Dimensions",
+  "Bematingen"
+ ],
+ "dimensionStyle": [
+  "Dimension style",
+  "Bematingsstijl"
+ ],
+ "dimensionStyles": [
+  "Dimension styles",
+  "Bematingsstijlen"
+ ],
+ "dimension.calculatedMeasurement": [
+  "Calculated measurement",
+  "Berekende maat"
+ ],
+ "dimension.calculatedHelp": [
+  "Calculated from the stored definition; source relationships do not update this value.",
+  "Berekend uit de opgeslagen definitie; bronrelaties werken deze waarde niet bij."
+ ],
+ "dimension.formattedLabel": [
+  "Dimension text",
+  "Maattekst"
+ ],
+ "dimension.effectiveSettings": [
+  "Effective settings",
+  "Effectieve instellingen"
+ ],
+ "help.dimension": [
+  "A dimension stores its definition and authored presentation. Source updates are handled by an editor or a separate engine.",
+  "Een bemating bewaart de definitie en presentatie. Een editor of aparte engine verwerkt bronwijzigingen."
+ ],
+ "help.dimensionStyle": [
+  "Base settings and authored overrides are stored separately.",
+  "Basisinstellingen en expliciete overrides zijn afzonderlijk opgeslagen."
+ ],
+ "help.dimensionStyles": [
+  "Base settings and authored overrides are stored separately.",
+  "Basisinstellingen en expliciete overrides zijn afzonderlijk opgeslagen."
+ ],
+ "dimension.field.dimension": [
+  "Dimension",
+  "Bemating"
+ ],
+ "dimension.field.dimensionStyle": [
+  "Dimension style",
+  "Bematingsstijl"
+ ],
+ "dimension.field.styleId": [
+  "Dimension style",
+  "Bematingsstijl"
+ ],
+ "dimension.field.style": [
+  "Style",
+  "Stijl"
+ ],
+ "dimension.field.definition": [
+  "Definition",
+  "Meetdefinitie"
+ ],
+ "dimension.field.label": [
+  "Authored label",
+  "Opgeslagen label"
+ ],
+ "dimension.field.labelDefinition": [
+  "Authored label",
+  "Opgeslagen label"
+ ],
+ "dimension.field.textPlacement": [
+  "Text placement",
+  "Tekstplaatsing"
+ ],
+ "dimension.field.overrides": [
+  "Authored overrides",
+  "Expliciete overrides"
+ ],
+ "dimension.field.typeOverrides": [
+  "Overrides by dimension kind",
+  "Overrides per bematingssoort"
+ ],
+ "dimension.field.settings": [
+  "Base settings",
+  "Basisinstellingen"
+ ],
+ "dimension.field.associations": [
+  "Source relationships",
+  "Bronrelaties"
+ ],
+ "dimension.field.firstPoint": [
+  "First point",
+  "Eerste meetpunt"
+ ],
+ "dimension.field.secondPoint": [
+  "Second point",
+  "Tweede meetpunt"
+ ],
+ "dimension.field.dimensionLinePoint": [
+  "Dimension line point",
+  "Punt op maatlijn"
+ ],
+ "dimension.field.directionAngle": [
+  "Direction angle",
+  "Richtingshoek"
+ ],
+ "dimension.field.extensionDirectionAngle": [
+  "Extension direction angle",
+  "Richting hulplijnen"
+ ],
+ "dimension.field.kind": [
+  "Type",
+  "Type"
+ ],
+ "dimension.field.variant": [
+  "Dimension kind",
+  "Bematingssoort"
+ ],
+ "dimension.field.role": [
+  "Role",
+  "Rol"
+ ],
+ "dimension.field.selector": [
+  "Point selector",
+  "Puntselector"
+ ],
+ "dimension.field.position": [
+  "Position",
+  "Positie"
+ ],
+ "dimension.field.attachment": [
+  "Attachment",
+  "Aankoppeling"
+ ],
+ "dimension.field.dimensionLine": [
+  "Dimension line",
+  "Maatlijn"
+ ],
+ "dimension.field.extensionLines": [
+  "Extension lines",
+  "Hulplijnen"
+ ],
+ "dimension.field.arrows": [
+  "Markers",
+  "Markeringen"
+ ],
+ "dimension.field.text": [
+  "Text",
+  "Tekst"
+ ],
+ "dimension.field.fit": [
+  "Fit policy",
+  "Plaatsingsbeleid"
+ ],
+ "dimension.field.numbers": [
+  "Number format",
+  "Getalopmaak"
+ ],
+ "dimension.field.primary": [
+  "Primary units",
+  "Primaire eenheden"
+ ],
+ "dimension.field.alternate": [
+  "Alternate units",
+  "Alternatieve eenheden"
+ ],
+ "dimension.field.tolerance": [
+  "Tolerance",
+  "Tolerantie"
+ ],
+ "dimension.field.presentationScale": [
+  "Presentation scale",
+  "Presentatieschaal"
+ ],
+ "dimension.field.fractionLayout": [
+  "Fraction layout",
+  "Breukopmaak"
+ ],
+ "dimension.field.fractionScale": [
+  "Fraction height scale",
+  "Breukhoogteschaal"
+ ],
+ "dimension.field.measurementFactor": [
+  "Measurement factor",
+  "Maatfactor"
+ ],
+ "dimension.field.application": [
+  "Factor application",
+  "Toepassing maatfactor"
+ ],
+ "dimension.field.format": [
+  "Number format",
+  "Getalnotatie"
+ ],
+ "dimension.field.angleFormat": [
+  "Angle format",
+  "Hoeknotatie"
+ ],
+ "dimension.field.precision": [
+  "Precision",
+  "Precisie"
+ ],
+ "dimension.field.decimalSeparator": [
+  "Decimal separator",
+  "Decimaalteken"
+ ],
+ "dimension.field.roundingIncrement": [
+  "Rounding increment",
+  "Afrondingsstap"
+ ],
+ "dimension.field.zeroSuppression": [
+  "Zero suppression",
+  "Nulonderdrukking"
+ ],
+ "dimension.field.prefix": [
+  "Prefix",
+  "Voorvoegsel"
+ ],
+ "dimension.field.suffix": [
+  "Suffix",
+  "Achtervoegsel"
+ ],
+ "dimension.field.arcSymbol": [
+  "Arc symbol",
+  "Boogsymbool"
+ ],
+ "dimension.field.insideOrientation": [
+  "Inside orientation",
+  "Tekstrichting binnen"
+ ],
+ "dimension.field.outsideOrientation": [
+  "Outside orientation",
+  "Tekstrichting buiten"
+ ],
+ "dimension.field.height": ["Text height", "Teksthoogte"],
+ "dimension.field.gap": [
+  "Text gap",
+  "Tekstafstand"
+ ],
+ "dimension.field.movement": [
+  "Text movement",
+  "Tekstverplaatsing"
+ ],
+ "dimension.field.lineSpacing": [
+  "Line spacing",
+  "Regelafstand"
+ ],
+ "dimension.field.background": [
+  "Background",
+  "Achtergrond"
+ ],
+ "dimension.field.preferredPlacement": [
+  "Preferred placement",
+  "Voorkeursplaatsing"
+ ],
+ "dimension.field.forceTextInside": [
+  "Force text inside",
+  "Tekst binnen houden"
+ ],
+ "dimension.field.keepDimensionLineOutside": [
+  "Keep dimension line outside",
+  "Maatlijn buiten behouden"
+ ],
+ "dimension.field.first": [
+  "First",
+  "Eerste"
+ ],
+ "dimension.field.second": [
+  "Second",
+  "Tweede"
+ ],
+ "dimension.field.offset": [
+  "Offset",
+  "Afstand"
+ ],
+ "dimension.field.extension": [
+  "Extension",
+  "Verlenging"
+ ],
+ "dimension.field.suppressed": [
+  "Suppressed",
+  "Onderdrukt"
+ ],
+ "dimension.field.length": [
+  "Length",
+  "Lengte"
+ ],
+ "dimension.field.size": [
+  "Size",
+  "Grootte"
+ ],
+ "dimension.field.tickSize": [
+  "Tick size",
+  "Streepgrootte"
+ ],
+ "dimension.field.flipFirst": [
+  "Flip first marker",
+  "Eerste markering omkeren"
+ ],
+ "dimension.field.flipSecond": [
+  "Flip second marker",
+  "Tweede markering omkeren"
+ ],
+ "dimension.field.suppressFirst": [
+  "Suppress first segment",
+  "Eerste segment onderdrukken"
+ ],
+ "dimension.field.suppressSecond": [
+  "Suppress second segment",
+  "Tweede segment onderdrukken"
+ ],
+ "dimension.field.centerMark": [
+  "Center mark",
+  "Centrummarkering"
+ ],
+ "dimension.field.leading": [
+  "Leading zeros",
+  "Voorloopnullen"
+ ],
+ "dimension.field.trailing": [
+  "Trailing zeros",
+  "Naloopnullen"
+ ],
+ "dimension.field.zeroFeet": [
+  "Zero feet",
+  "Nul voet"
+ ],
+ "dimension.field.zeroInches": [
+  "Zero inches",
+  "Nul inch"
+ ],
+ "dimension.field.factor": [
+  "Factor",
+  "Factor"
+ ],
+ "dimension.field.mode": [
+  "Mode",
+  "Modus"
+ ],
+ "dimension.field.parts": [
+  "Label parts",
+  "Labelonderdelen"
+ ],
+ "dimension.field.runs": [
+  "Text runs",
+  "Tekstfragmenten"
+ ],
+ "dimension.field.upper": [
+  "Upper deviation",
+  "Bovenafwijking"
+ ],
+ "dimension.field.lower": [
+  "Lower deviation",
+  "Onderafwijking"
+ ],
+ "dimension.field.index": [
+  "Vertex index",
+  "Hoekpuntindex"
+ ],
+ "dimension.field.source": [
+  "Source element",
+  "Bronelement"
+ ],
+ "dimension.field.sourceEntityId": [
+  "Source element",
+  "Bronelement"
+ ],
+ "dimension.value.linear": [
+  "Linear",
+  "Lineair"
+ ],
+ "dimension.value.aligned": [
+  "Aligned",
+  "Uitgelijnd"
+ ],
+ "dimension.value.generated": [
+  "Generated",
+  "Gegenereerd"
+ ],
+ "dimension.value.suppressed": [
+  "Suppressed",
+  "Onderdrukt"
+ ],
+ "dimension.value.template": [
+  "Template",
+  "Sjabloon"
+ ],
+ "dimension.value.literal": [
+  "Literal text",
+  "Letterlijke tekst"
+ ],
+ "dimension.value.measurement": [
+  "Measurement",
+  "Meetwaarde"
+ ],
+ "dimension.value.styleDriven": [
+  "From style",
+  "Volgens stijl"
+ ],
+ "dimension.value.explicit": [
+  "Explicit",
+  "Expliciet"
+ ],
+ "dimension.value.inline": [
+  "Inline",
+  "Ongestapeld"
+ ],
+ "dimension.value.horizontal": [
+  "Horizontal",
+  "Horizontaal"
+ ],
+ "dimension.value.diagonal": [
+  "Diagonal",
+  "Diagonaal"
+ ],
+ "dimension.value.fractional": [
+  "Fractional",
+  "Breuken"
+ ],
+ "dimension.value.architectural": [
+  "Architectural",
+  "Voet en inch met breuken"
+ ],
+ "dimension.value.engineering": [
+  "Engineering",
+  "Voet en decimale inch"
+ ],
+ "dimension.value.decimal": [
+  "Decimal",
+  "Decimaal"
+ ],
+ "dimension.value.scientific": [
+  "Scientific",
+  "Wetenschappelijk"
+ ],
+ "dimension.value.allOwners": [
+  "All owners",
+  "Alle scopes"
+ ],
+ "dimension.value.paperOnly": [
+  "Paper only",
+  "Alleen papier"
+ ],
+ "dimension.value.automatic": [
+  "Automatic",
+  "Automatisch"
+ ],
+ "dimension.value.fixed": [
+  "Fixed",
+  "Vast"
+ ],
+ "dimension.value.firstPoint": [
+  "First point",
+  "Eerste meetpunt"
+ ],
+ "dimension.value.secondPoint": [
+  "Second point",
+  "Tweede meetpunt"
+ ],
+ "dimension.value.start": [
+  "Start point",
+  "Beginpunt"
+ ],
+ "dimension.value.end": [
+  "End point",
+  "Eindpunt"
+ ],
+ "dimension.value.center": [
+  "Center",
+  "Centrum"
+ ],
+ "dimension.value.vertex": [
+  "Vertex",
+  "Hoekpunt"
+ ],
+ "dimension.value.position": [
+  "Position",
+  "Positie"
+ ],
+ "dimension.value.none": [
+  "None",
+  "Geen"
+ ],
+ "dimension.value.closedFilled": [
+  "Closed filled",
+  "Gesloten gevuld"
+ ],
+ "dimension.value.closedOpen": [
+  "Closed open",
+  "Gesloten open"
+ ],
+ "dimension.value.open": [
+  "Open",
+  "Open"
+ ],
+ "dimension.value.dot": [
+  "Dot",
+  "Punt"
+ ],
+ "dimension.value.tick": [
+  "Tick",
+  "Streep"
+ ],
+ "dimension.value.localBlock": [
+  "Local block",
+  "Lokaal blok"
+ ],
+ "dimension.value.bestFit": [
+  "Best fit",
+  "Beste plaatsing"
+ ],
+ "dimension.value.arrowsInside": [
+  "Markers inside",
+  "Markeringen binnen"
+ ],
+ "dimension.value.textInside": [
+  "Text inside",
+  "Tekst binnen"
+ ],
+ "dimension.value.middleCenter": [
+  "Middle center",
+  "Midden gecentreerd"
+ ],
+ "dimension.value.bottomCenter": [
+  "Bottom center",
+  "Onder gecentreerd"
+ ],
+ "dimension.value.atLeast": [
+  "At least",
+  "Minimaal"
+ ],
+ "dimension.value.exact": [
+  "Exact",
+  "Exact"
+ ],
+ "dimension.value.addLeader": [
+  "Add leader",
+  "Verwijslijn toevoegen"
+ ],
+ "dimension.value.moveDimensionLine": [
+  "Move dimension line",
+  "Maatlijn verplaatsen"
+ ],
+ "dimension.value.free": [
+  "Free",
+  "Vrij"
+ ],
+ "dimension.value.before": [
+  "Before",
+  "Voor"
+ ],
+ "dimension.value.above": [
+  "Above",
+  "Boven"
+ ],
+ "dimension.value.decimalDegrees": [
+  "Decimal degrees",
+  "Decimale graden"
+ ],
+ "dimension.value.degreesMinutesSeconds": [
+  "Degrees minutes seconds",
+  "Graden minuten seconden"
+ ],
+ "dimension.value.grads": [
+  "Grads",
+  "Gon"
+ ],
+ "dimension.value.radians": [
+  "Radians",
+  "Radialen"
+ ],
+ "dimension.value.deviations": [
+  "Deviations",
+  "Afwijkingen"
+ ],
+ "dimension.value.limits": [
+  "Limits",
+  "Grensmaten"
+ ],
+ "dimension.value.inheritEntity": [
+  "Inherit entity",
+  "Element overerven"
+ ],
+ "dimension.value.byLayer": [
+  "By layer",
+  "Volgens laag"
+ ],
+ "dimension.value.byBlock": [
+  "By block",
+  "Volgens blok"
+ ]
+});
+
+Object.assign(copy, {
+ 'dimension.field.type':['Entity type','Elementtype'],
+ 'dimension.value.dimension':['Dimension','Bemating'],
+ 'dimension.value.foreground':['Foreground','Voorgrond'],
+ 'dimension.value.angularTwoLines':['Two-line angle','Hoek tussen twee lijnen'],
+ 'dimension.value.angularThreePoints':['Three-point angle','Hoek tussen drie punten'],
+ 'dimension.value.radius':['Radius','Straal'],
+ 'dimension.value.diameter':['Diameter','Diameter'],
+ 'dimension.value.ordinate':['Ordinate','Coördinaatmaat'],
+ 'dimension.value.arcLength':['Arc length','Booglengte'],
+ 'dimension.value.joggedRadius':['Jogged radius','Verkorte straal']
+});

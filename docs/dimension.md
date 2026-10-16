@@ -28,6 +28,16 @@ than reinterpreting native literals. Formatting failure can be reported separate
 from a valid raw measurement. The inspector shows both authored label state and
 the formatted runs.
 
+Primary and enabled alternate numbers retain `fractionLayout` (inline,
+horizontal, diagonal) and positive finite `fractionScale`, defaulting to inline
+and 1.0 when absent. Layout and the stacked digit-height ratio are independent of
+numeric precision, rounding and unit factors. Inactive choices survive storage.
+Primary overrides preserve explicit inline/1.0 resets; alternate overrides keep
+their existing complete-profile replacement behavior. The derived formatted
+label exposes typed text/fraction fragments alongside the existing plain text
+projection. Literal TextRuns never become fractions by parsing their contents.
+The exact formatter reduces fractions and carries rounded inches into feet.
+
 Text placement is style-driven or explicit with local position, rotation and
 attachment. Rotation is an offset from the dimension's default text orientation,
 including its effective orientation policy. It is not an absolute world text
@@ -74,14 +84,22 @@ Both converters use `cad-dimension` for ID-free preparation and bind their own
 identities afterward. A CAD measurement cache is ignored; disagreement with the
 stored definition is diagnosed. Ordinary WCS definition points and OCS explicit
 text are qualified with literal fixtures and actual DXF/AC1032 DWG tests.
-DSTYLE preserves qualified sparse overrides. Missing references, malformed
+DSTYLE uses bounded typed source entries, then resolves coupled fields against
+the complete source style before native binding. Qualified fixed extension length,
+component ACI colors, separate markers and fraction layout/scale are supported.
+Inactive DIMTVP under DIMTAD=1 and inactive subunit settings cannot independently
+reject a style. Active subunit conversion remains unsupported. DSTYLE preserves
+qualified sparse overrides. Missing references, malformed
 structures and numerical excess cannot become default style/layer/geometry.
 
 CAD has several narrower representation boundaries. Coupled extension fields
 must agree. Type-style dependencies can be materialized as complete `$0`/`$1`
 CAD substyles with explicit factoring loss; reimport retains them as named
 styles. Line spacing and arrow flips become per-entity state with dependency
-evidence. Fixed-height font dependencies are unqualified. Complex marker,
+evidence. A CAD fixed TextStyle height is materialized into nominal Dimension
+height with dependency-loss evidence; presentationScale remains separate. CAD
+export accepts a matching fixed height and diagnoses a conflicting height without
+changing the shared TextStyle. Complex marker,
 background, tolerance, annotation and dynamic-field profiles can be unsupported.
 Simple single-object CAD associations qualify line start/end, circle center and
 point position; other native selectors remain supported natively.
@@ -120,3 +138,43 @@ column only when every row has that default; mixed columns remain complete.
 Component colors support the symbolic `Foreground` choice, just like other
 presentation colors. Authored style settings and sparse override leaves retain
 their presence, including explicit false, zero and empty reset values.
+
+## Explorer and codec qualification
+
+The Explorer labels entities, styles, fields and enums in Dutch and English.
+Stored definition, authored label/overrides and source relationships remain
+separate from calculated measurement, formatted label and effective settings.
+Horizontal/diagonal fractions have an escaped, accessible text preview. That
+preview is not a CAD glyph-layout or graphical bounds certificate. Full-width
+identities and the original source view remain available.
+
+DWG text placement uses the explicitly selected
+[text-position polarity repair](../patches/opencadcodec-dimension/README.md)
+alongside the viewport-off repair. DWG flags bit 0 is the opposite of DXF 70 bit
+128; independent raw-bit tests prevent matching codec reader/writer errors from
+masking one another. This does not qualify the unmodified dependency or introduce
+rotated automatic placement. The normal explicit native placement remains the
+representation for user-positioned source text.
+
+### CAD decimal-separator default
+
+CAD `DIMDSEP=0` (NULL) means the decimal point `.`. Import resolves this sentinel
+before native validation, for unused DIMSTYLE records as well as effective
+DSTYLE group 278 overrides. An explicit local zero remains an authored native
+`.` override, including when the inherited style already uses `.`. Other source
+characters retain their meaning; native control characters remain invalid.
+Export may write the equivalent explicit character code 46 rather than the CAD
+sentinel. No native NUL character or locale-dependent fallback is introduced.
+See [Autodesk DIMDSEP](https://help.autodesk.com/cloudhelp/2020/ENG/AutoCAD-Core/files/GUID-0CDD6AA6-CDD8-4C9D-A270-A3DA00DCE63E.htm).
+
+## Planned worked-out graphics
+
+After the repair round, a separate planned slice adds optional native vector
+representations for ordinary linear/aligned Dimensions in both independent
+models, before the remaining Dimension kinds. The measure definition stays
+authoritative. The proposed design covers complete source picture capture,
+ordered graphics, input-basis comparison, resource dependencies and qualified CAD
+picture-block reuse. Native rendering data and CAD-specific opaque preservation
+remain separate. Annotative per-context graphics stay with the later joint
+annotation slice. This is planned work under design review, not current storage
+or CAD fidelity support. Built-in generation has a separate scope decision.

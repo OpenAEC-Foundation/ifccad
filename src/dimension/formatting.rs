@@ -66,22 +66,77 @@ fn decimal(
     }
     format!("{sign}{}", body.replace('.', &separator.to_string()))
 }
-fn fractional(value: &BigRational, precision: u8) -> String {
+fn run(text: String) -> DimensionFormattedFragment {
+    DimensionFormattedFragment::Run(TextRun {
+        text,
+        ..Default::default()
+    })
+}
+fn push_text(parts: &mut Vec<DimensionFormattedFragment>, text: String) {
+    if !text.is_empty() {
+        parts.push(run(text));
+    }
+}
+fn plain_fragments(parts: &[DimensionFormattedFragment]) -> String {
+    parts
+        .iter()
+        .map(|part| match part {
+            DimensionFormattedFragment::Run(r) => r.text.clone(),
+            DimensionFormattedFragment::Fraction {
+                numerator,
+                denominator,
+                ..
+            } => format!("{numerator}/{denominator}"),
+        })
+        .collect()
+}
+fn fractional_fragments(
+    value: &BigRational,
+    precision: u8,
+    layout: DimensionFractionLayout,
+    scale: f64,
+) -> Vec<DimensionFormattedFragment> {
     let denominator = BigInt::one() << precision as usize;
     let count = round_integer(&(value * BigRational::from_integer(denominator.clone())));
     let negative = count.is_negative();
     let count = count.abs();
     let whole = &count / &denominator;
-    let remainder = &count % &denominator;
-    let fraction = BigRational::new(remainder, denominator);
-    let body = if fraction.is_zero() {
-        whole.to_string()
-    } else if whole.is_zero() {
-        format!("{}/{}", fraction.numer(), fraction.denom())
+    let fraction = BigRational::new(&count % &denominator, denominator);
+    let mut prefix = if negative {
+        "-".to_owned()
     } else {
-        format!("{whole} {}/{}", fraction.numer(), fraction.denom())
+        String::new()
     };
-    format!("{}{body}", if negative { "-" } else { "" })
+    if fraction.is_zero() {
+        return vec![run(format!("{prefix}{whole}"))];
+    }
+    if !whole.is_zero() {
+        prefix.push_str(&format!("{whole} "));
+    }
+    if layout == DimensionFractionLayout::Inline {
+        return vec![run(format!(
+            "{prefix}{}/{}",
+            fraction.numer(),
+            fraction.denom()
+        ))];
+    }
+    let mut parts = Vec::new();
+    push_text(&mut parts, prefix);
+    parts.push(DimensionFormattedFragment::Fraction {
+        numerator: fraction.numer().to_string(),
+        denominator: fraction.denom().to_string(),
+        layout,
+        text_scale: scale,
+    });
+    parts
+}
+fn fractional(value: &BigRational, precision: u8) -> String {
+    plain_fragments(&fractional_fragments(
+        value,
+        precision,
+        DimensionFractionLayout::Inline,
+        1.0,
+    ))
 }
 fn scientific(
     value: &BigRational,
@@ -119,13 +174,15 @@ fn scientific(
         e = exponent.abs()
     )
 }
-fn feet_inches(
+fn feet_inches_fragments(
     value: &BigRational,
     format: DimensionDistanceFormat,
     precision: u8,
     separator: char,
     zero: DimensionZeroSuppression,
-) -> String {
+    layout: DimensionFractionLayout,
+    scale: f64,
+) -> Vec<DimensionFormattedFragment> {
     let step = match format {
         DimensionDistanceFormat::Architectural => {
             BigRational::new(1.into(), BigInt::one() << precision as usize)
@@ -137,30 +194,68 @@ fn feet_inches(
     let inches = BigRational::from_integer(signed_count.abs()) * step;
     let feet = (&inches / BigRational::from_integer(12.into())).to_integer();
     let remainder = inches - BigRational::from_integer(&feet * 12);
-    let inches = if format == DimensionDistanceFormat::Architectural {
-        fractional(&remainder, precision)
-    } else {
-        decimal(&remainder, precision, separator, zero)
-    };
     let foot_text = if zero.zero_feet && feet.is_zero() {
         String::new()
     } else {
         format!("{feet}'")
     };
-    let inch_text = if zero.zero_inches && remainder.is_zero() && !foot_text.is_empty() {
-        String::new()
+    let mut parts = Vec::new();
+    push_text(
+        &mut parts,
+        format!("{}{foot_text}", if negative { "-" } else { "" }),
+    );
+    if zero.zero_inches && remainder.is_zero() && !foot_text.is_empty() {
+        return parts;
+    }
+    if !foot_text.is_empty() {
+        push_text(&mut parts, "-".into());
+    }
+    if format == DimensionDistanceFormat::Architectural {
+        if !foot_text.is_empty() && !remainder.is_zero() && remainder < BigRational::one() {
+            push_text(&mut parts, "0 ".into());
+        }
+        parts.extend(fractional_fragments(&remainder, precision, layout, scale));
     } else {
-        format!("{inches}\"")
-    };
-    let join = if !foot_text.is_empty() && !inch_text.is_empty() {
-        "-"
-    } else {
-        ""
-    };
-    format!(
-        "{}{foot_text}{join}{inch_text}",
-        if negative { "-" } else { "" }
-    )
+        push_text(&mut parts, decimal(&remainder, precision, separator, zero));
+    }
+    push_text(&mut parts, "\"".into());
+    parts
+}
+fn feet_inches(
+    value: &BigRational,
+    format: DimensionDistanceFormat,
+    precision: u8,
+    separator: char,
+    zero: DimensionZeroSuppression,
+) -> String {
+    plain_fragments(&feet_inches_fragments(
+        value,
+        format,
+        precision,
+        separator,
+        zero,
+        DimensionFractionLayout::Inline,
+        1.0,
+    ))
+}
+fn number_fragments(
+    value: &BigRational,
+    format: DimensionDistanceFormat,
+    precision: u8,
+    separator: char,
+    zero: DimensionZeroSuppression,
+    layout: DimensionFractionLayout,
+    scale: f64,
+) -> Vec<DimensionFormattedFragment> {
+    match format {
+        DimensionDistanceFormat::Fractional => {
+            fractional_fragments(value, precision, layout, scale)
+        }
+        DimensionDistanceFormat::Architectural => {
+            feet_inches_fragments(value, format, precision, separator, zero, layout, scale)
+        }
+        _ => vec![run(number(value, format, precision, separator, zero))],
+    }
 }
 fn number(
     value: &BigRational,
@@ -244,6 +339,7 @@ pub fn format_dimension_label(
     if matches!(label, DimensionLabel::Suppressed) {
         return Ok(DimensionFormattedLabel {
             state: DimensionFormattedLabelState::Suppressed,
+            fragments: Vec::new(),
             runs: Vec::new(),
             primary: String::new(),
             alternate: None,
@@ -256,6 +352,14 @@ pub fn format_dimension_label(
         {
             return Ok(DimensionFormattedLabel {
                 state: DimensionFormattedLabelState::Visible,
+                fragments: parts
+                    .iter()
+                    .flat_map(|p| match p {
+                        DimensionLabelPart::Literal(runs) => runs.clone(),
+                        DimensionLabelPart::Measurement => unreachable!(),
+                    })
+                    .map(DimensionFormattedFragment::Run)
+                    .collect(),
                 runs: parts
                     .iter()
                     .flat_map(|p| match p {
@@ -324,39 +428,69 @@ pub fn format_dimension_label(
                 primary.zero_suppression,
             )
         };
+    let primary_tolerance = tolerance(
+        &value,
+        &BigRational::one(),
+        &format.tolerance,
+        primary.decimal_separator,
+    )?;
     let mut generated = format!(
         "{}{}{}{}",
-        primary.prefix,
-        primary_text,
-        primary.suffix,
-        tolerance(
-            &value,
-            &BigRational::one(),
-            &format.tolerance,
-            primary.decimal_separator
-        )?
+        primary.prefix, primary_text, primary.suffix, primary_tolerance
+    );
+    let mut generated_fragments = Vec::new();
+    push_text(&mut generated_fragments, primary.prefix.clone());
+    if angle {
+        push_text(&mut generated_fragments, primary_text.clone());
+    } else {
+        generated_fragments.extend(number_fragments(
+            &rounded,
+            primary.format,
+            primary.precision,
+            primary.decimal_separator,
+            primary.zero_suppression,
+            primary.fraction_layout,
+            primary.fraction_scale,
+        ));
+    }
+    push_text(
+        &mut generated_fragments,
+        format!("{}{}", primary.suffix, primary_tolerance),
     );
     let alternate = if let Some(a) = &format.alternate {
         let a_value = checked(&value * exact(a.factor))?;
+        let a_rounded = quantize(&a_value, a.rounding_increment)?;
         let text = number(
-            &quantize(&a_value, a.rounding_increment)?,
+            &a_rounded,
             a.format,
             a.precision,
             a.decimal_separator,
             a.zero_suppression,
         );
+        let alternate_tolerance = tolerance(
+            &a_value,
+            &exact(a.factor),
+            &format.tolerance,
+            a.decimal_separator,
+        )?;
         generated.push_str(&format!(
             " [{}{}{}{}]",
-            a.prefix,
-            text,
-            a.suffix,
-            tolerance(
-                &a_value,
-                &exact(a.factor),
-                &format.tolerance,
-                a.decimal_separator
-            )?
+            a.prefix, text, a.suffix, alternate_tolerance
         ));
+        push_text(&mut generated_fragments, format!(" [{}", a.prefix));
+        generated_fragments.extend(number_fragments(
+            &a_rounded,
+            a.format,
+            a.precision,
+            a.decimal_separator,
+            a.zero_suppression,
+            a.fraction_layout,
+            a.fraction_scale,
+        ));
+        push_text(
+            &mut generated_fragments,
+            format!("{}{}]", a.suffix, alternate_tolerance),
+        );
         Some(text)
     } else {
         None
@@ -376,7 +510,23 @@ pub fn format_dimension_label(
             })
             .collect(),
     };
+    let fragments = match label {
+        DimensionLabel::Generated => generated_fragments,
+        DimensionLabel::Suppressed => Vec::new(),
+        DimensionLabel::Template(parts) => parts
+            .iter()
+            .flat_map(|part| match part {
+                DimensionLabelPart::Literal(runs) => runs
+                    .iter()
+                    .cloned()
+                    .map(DimensionFormattedFragment::Run)
+                    .collect(),
+                DimensionLabelPart::Measurement => generated_fragments.clone(),
+            })
+            .collect(),
+    };
     Ok(DimensionFormattedLabel {
+        fragments,
         state: if matches!(label, DimensionLabel::Suppressed) {
             DimensionFormattedLabelState::Suppressed
         } else {

@@ -18,7 +18,7 @@ export function createInspection(result,sourceText=''){
    nodeRoots.push(n.key);
   }
   for(const [i,fragment] of (source?.data||[]).entries())nodes.get(fragment.path)?.fragments.push({index:i,value:fragment});
-  for(const dimension of p.dimensions||[]){const n=nodes.get(dimension.path);if(n)n.values={...n.values,dimensionInspection:dimension};}
+  for(const dimension of p.dimensions||[]){const n=nodes.get(dimension.path);if(n)n.derived=dimension.geometry||dimension;}
   for(const assessment of p.boundsCompleteness||[]){const n=nodes.get(assessment.scopePath);if(n)n.values={...n.values,boundsAssessment:assessment};}
   for(const item of all){const a=item.attributes||{},key=item.path,ordered=Object.entries(item.children||{}).sort(([x],[y])=>numeric(x,y));
    for(const [name,target]of ordered){link(key,target,'children.'+name,'child');if(/^\d+$/.test(name)&&(a['ifccad::layout']||a['ifccad::blockDefinition']))nodes.get(key).children.push(target);}
@@ -90,6 +90,15 @@ export function createInspection(result,sourceText=''){
   n.unit=n.type==='layout'&&String(layout.kind).toLowerCase()==='paper'?null:drawingUnit;
   const kinds=new Map();n.children.forEach((key,index)=>{const child=nodes.get(key);if(!child)return;child.owner=n.key;child.drawPosition=index;child.unit=n.unit;const kind=child.type;kinds.set(kind,[...(kinds.get(kind)||[]),key]);});
   n.groupedChildren=Array.from(kinds,([kind,keys])=>{const key=group('types:'+n.key+':'+kind,'plural.'+kind,keys);nodes.get(key).unit=n.unit;return key;});
+ }
+ for(const n of nodes.values())if(n.type==='dimension'){
+  n.sourceValues=n.values;
+  if(format==='ocdraw'){
+   const geometry={...n.values.geometry};n.derived={};
+   for(const key of ['rawMeasurement','label','effectiveSettings','associationUpdate','displayEvaluation'])if(key in geometry){n.derived[key]=geometry[key];delete geometry[key];}
+   n.values={...n.values,geometry};
+  }
+  if(n.derived?.effectiveSettings)dimensionRefs(n.key,n.derived.effectiveSettings,'derived.effectiveSettings',format==='ifccad');
  }
  for(const n of nodes.values())n.incoming=[];
  for(const n of nodes.values())for(const edge of n.outgoing)nodes.get(edge.target)?.incoming.push(edge);

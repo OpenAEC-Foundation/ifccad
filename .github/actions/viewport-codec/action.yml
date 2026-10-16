@@ -1,5 +1,5 @@
 name: Prepare viewport codec
-description: Select the pinned codec base with the remaining explicit viewport-off repair
+description: Select the pinned codec base with explicit viewport and Dimension repairs
 runs:
   using: composite
   steps:
@@ -9,7 +9,7 @@ runs:
         ref: ab2eecdbffc31120b5ad6d899f6fc67cf21ede39
         path: .superpowers/dependencies/opencadcodec-viewports-development
         persist-credentials: false
-    - name: Apply and select viewport repairs
+    - name: Apply and select viewport and Dimension repairs
       shell: bash
       run: |
         set -euo pipefail
@@ -18,5 +18,7 @@ runs:
           git -C "$codec" apply --check "../../../patches/opencadcodec-viewports/$patch"
           git -C "$codec" apply "../../../patches/opencadcodec-viewports/$patch"
         done
+        git -C "$codec" apply --check "../../../patches/opencadcodec-dimension/0001-text-position-flag.patch"
+        git -C "$codec" apply "../../../patches/opencadcodec-dimension/0001-text-position-flag.patch"
         mkdir -p .cargo
         cp patches/opencadcodec-viewports.toml .cargo/config.toml

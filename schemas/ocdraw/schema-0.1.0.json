@@ -10821,6 +10821,20 @@
                     "before",
                     "above"
                   ]
+                },
+                "fractionLayout": {
+                  "type": "string",
+                  "enum": [
+                    "inline",
+                    "horizontal",
+                    "diagonal"
+                  ],
+                  "default": "inline"
+                },
+                "fractionScale": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "default": 1.0
                 }
               },
               "required": [
@@ -10897,6 +10911,20 @@
                 },
                 "suffix": {
                   "type": "string"
+                },
+                "fractionLayout": {
+                  "type": "string",
+                  "enum": [
+                    "inline",
+                    "horizontal",
+                    "diagonal"
+                  ],
+                  "default": "inline"
+                },
+                "fractionScale": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "default": 1.0
                 }
               },
               "required": [
@@ -11451,6 +11479,20 @@
                     "before",
                     "above"
                   ]
+                },
+                "fractionLayout": {
+                  "type": "string",
+                  "enum": [
+                    "inline",
+                    "horizontal",
+                    "diagonal"
+                  ],
+                  "default": "inline"
+                },
+                "fractionScale": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "default": 1.0
                 }
               },
               "required": []
@@ -11536,6 +11578,20 @@
                         },
                         "suffix": {
                           "type": "string"
+                        },
+                        "fractionLayout": {
+                          "type": "string",
+                          "enum": [
+                            "inline",
+                            "horizontal",
+                            "diagonal"
+                          ],
+                          "default": "inline"
+                        },
+                        "fractionScale": {
+                          "type": "number",
+                          "exclusiveMinimum": 0,
+                          "default": 1.0
                         }
                       },
                       "required": [

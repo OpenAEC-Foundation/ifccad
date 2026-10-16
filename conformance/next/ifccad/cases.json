@@ -382,5 +382,25 @@
   {
     "file": "invalid/dimension-missing-watermark.ifcx",
     "valid": false
+  },
+  {
+    "file": "valid/dimension-fraction-horizontal.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/dimension-fraction-diagonal.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid/dimension-fraction-layout.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/dimension-fraction-scale.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/dimension-fraction-null.ifcx",
+    "valid": false
   }
 ]

@@ -356,7 +356,8 @@
             "dimensionOverridesNumbersAlternateKind",
             "dimensionTypeOverrides",
             "dimensionStyleId",
-            "dimensionAssociations"
+            "dimensionAssociations",
+            "dimensionFractionLayout"
           ]
         },
         "nullable": {
@@ -751,7 +752,8 @@
                 "dimensionOverridesNumbersAlternateKind",
                 "dimensionTypeOverrides",
                 "dimensionStyleId",
-                "dimensionAssociations"
+                "dimensionAssociations",
+                "dimensionFractionLayout"
               ]
             },
             "minItems": {

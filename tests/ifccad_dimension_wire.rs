@@ -115,3 +115,25 @@ fn dimension_foreground_and_explicit_reset_preserve_native_defaults() {
         .unwrap()["attributes"];
     assert!(attrs["ifccad::entity"].get("visible").is_none());
 }
+
+#[test]
+fn fraction_styles_and_sparse_resets_survive_strict_native_reader() {
+    let mut d = support::drawing();
+    let primary = &mut d.dimension_styles[0].settings.numbers.primary;
+    primary.fraction_layout = DimensionFractionLayout::Diagonal;
+    primary.fraction_scale = 0.75;
+    let mut over = DimensionStyleOverrides::default();
+    over.numbers.primary.fraction_layout = Some(DimensionFractionLayout::Inline);
+    over.numbers.primary.fraction_scale = Some(1.0);
+    d.dimension_styles[0]
+        .type_overrides
+        .insert(DimensionKind::Aligned, over);
+    d.dimension_styles[0].settings.numbers.alternate = Some(DimensionAlternateNumberSettings {
+        fraction_layout: DimensionFractionLayout::Horizontal,
+        fraction_scale: 0.8,
+        ..Default::default()
+    });
+    let encoded = encode_ifccad_document(&d).unwrap();
+    let loaded = load_ifccad_bytes(encoded.bytes(), Default::default()).unwrap();
+    assert_eq!(loaded.document(), &d);
+}

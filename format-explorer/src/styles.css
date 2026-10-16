@@ -196,3 +196,14 @@
 
 .inspector-field>summary>svg{width:12px;height:12px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transform-origin:50% 50%}
 .inspector-field[open]>summary>svg{transform:rotate(90deg)}
+
+.dimension-label{font-size:18px;line-height:2.1;white-space:pre;max-width:100%;overflow:auto;padding:6px 0}
+.dimension-fraction{display:inline-grid;vertical-align:middle;text-align:center;line-height:1.1;margin:0 .1em}
+.dimension-fraction.horizontal{grid-template-columns:1fr;grid-template-rows:auto auto}
+.dimension-fraction.horizontal .numerator{border-bottom:1px solid currentColor;padding:0 .12em .08em}
+.dimension-fraction.horizontal .denominator{padding-top:.08em}
+.dimension-fraction.horizontal .fraction-separator{display:none}
+.dimension-fraction.diagonal{grid-template-columns:auto auto auto;grid-template-rows:auto auto}
+.dimension-fraction.diagonal .numerator{grid-column:1;grid-row:1}
+.dimension-fraction.diagonal .fraction-separator{grid-column:2;grid-row:1/3;align-self:center;font-size:1.8em}
+.dimension-fraction.diagonal .denominator{grid-column:3;grid-row:2}

@@ -1,10 +1,12 @@
 //! Native dimension meaning and pure measurement; independent of CAD and fonts.
+mod formatted;
 mod formatting;
 mod measurement;
 mod references;
 mod styles;
 mod validation;
 mod values;
+pub use formatted::*;
 pub use formatting::*;
 pub use measurement::*;
 pub use styles::*;

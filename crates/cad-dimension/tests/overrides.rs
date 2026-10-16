@@ -22,7 +22,7 @@ fn dstyle_keeps_equal_zero_false_and_empty_overrides() {
         X::String(String::new()),
         X::ControlString("}".into()),
     ])];
-    let parsed = parse_dimension_overrides(&records).unwrap();
+    let parsed = parse_overrides(&records).unwrap();
     assert_eq!(parsed.values.text.height, Some(2.5));
     assert_eq!(parsed.values.dimension_line.suppress_first, Some(false));
     assert_eq!(parsed.values.text.gap, Some(0.0));
@@ -47,13 +47,13 @@ fn malformed_or_duplicate_dstyle_is_not_a_default_style() {
             X::ControlString("}".into()),
         ],
     ] {
-        assert!(parse_dimension_overrides(&[record(values)]).is_err());
+        assert!(parse_overrides(&[record(values)]).is_err());
     }
 }
 #[test]
 fn unrelated_acad_values_are_retained_as_residual_evidence() {
     let r = record(vec![X::String("OTHER".into()), X::Integer16(3)]);
-    let parsed = parse_dimension_overrides(std::slice::from_ref(&r)).unwrap();
+    let parsed = parse_overrides(std::slice::from_ref(&r)).unwrap();
     assert_eq!(parsed.residual, vec![r]);
 }
 
@@ -74,7 +74,7 @@ fn duplicate_subsections_and_unknown_dimvars_are_distinct_failures() {
         X::ControlString("}".into()),
     ]);
     assert!(matches!(
-        parse_dimension_overrides(&[subsection.clone(), subsection]),
+        parse_overrides(&[subsection.clone(), subsection]),
         Err(CadDimensionPreparationError::Invalid { .. })
     ));
     let unknown = record(vec![
@@ -85,7 +85,7 @@ fn duplicate_subsections_and_unknown_dimvars_are_distinct_failures() {
         X::ControlString("}".into()),
     ]);
     assert!(matches!(
-        parse_dimension_overrides(&[unknown]),
+        parse_overrides(&[unknown]),
         Err(CadDimensionPreparationError::Unsupported { .. })
     ));
 }
@@ -103,7 +103,18 @@ fn per_entity_fields_and_dstyle_reset_are_materialized_separately() {
     apply_entity_overrides_to_cad(&mut entity, &over, &base).unwrap();
     assert_eq!(entity.base().line_spacing_style, 2);
     assert_eq!(entity.base().line_spacing_factor, 1.2);
-    let parsed = parse_dimension_overrides(entity.base().common.extended_data.records()).unwrap();
+    let parsed = parse_overrides(entity.base().common.extended_data.records()).unwrap();
     assert_eq!(parsed.values.dimension_line.suppress_first, Some(false));
     assert_eq!(parsed.values.arrows.flip_first, None);
+}
+
+fn parse_overrides(
+    records: &[ExtendedDataRecord],
+) -> Result<CadDimensionOverrides, CadDimensionPreparationError> {
+    let doc = opencadcodec::CadDocument::new();
+    resolve_dimension_overrides(
+        parse_dimension_overrides(records)?,
+        doc.dim_styles.get("Standard").unwrap(),
+        &doc,
+    )
 }

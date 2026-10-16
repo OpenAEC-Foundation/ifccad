@@ -101,6 +101,9 @@ fn marker(
     doc: &CadDocument,
 ) -> Result<DimensionMarker<Handle>, CadDimensionPreparationError> {
     if handle != Handle::NULL {
+        if !doc.block_records.iter().any(|block| block.handle == handle) {
+            return Err(invalid("style/arrow", "unresolved marker block handle"));
+        }
         return Ok(DimensionMarker::LocalBlock { block: handle });
     }
     if name.is_empty() {
@@ -132,7 +135,7 @@ pub fn prepare_style_from_cad(
     if s.xref_reference || s.xref_dependent || s.xref_handle != Handle::NULL {
         return Err(unsupported("style/xref", "external style dependencies"));
     }
-    if s.dimjust != 0 || !(0..=1).contains(&s.dimtad) || s.dimtvp != 0.0 {
+    if s.dimjust != 0 || !(0..=1).contains(&s.dimtad) || (s.dimtad == 0 && s.dimtvp != 0.0) {
         return Err(unsupported(
             "style/textPlacement",
             "unqualified justification/vertical offset profile",
@@ -150,19 +153,26 @@ pub fn prepare_style_from_cad(
             "outside arrow suppression has no native fit field",
         ));
     }
-    if matches!(s.dimlunit, 4 | 5) && s.dimfrac != 2 {
-        return Err(unsupported(
-            "DIMFRAC",
-            "stacked fraction layout is outside the plain number formatter",
+    if !s.dimtvp.is_finite()
+        || !s.dimmzf.is_finite()
+        || s.dimmzf < 0.0
+        || !s.dimaltmzf.is_finite()
+        || s.dimaltmzf < 0.0
+    {
+        return Err(invalid(
+            "style/inactiveNumeric",
+            "CAD settings require finite valid numbers",
         ));
     }
-    if s.dimmzf != 0.0
-        || !s.dimmzs.is_empty()
-        || (s.dimalt && (s.dimaltmzf != 0.0 || !s.dimaltmzs.is_empty()))
+    if (s.dimlunit == 2 && s.dimzin & 4 != 0 && (s.dimmzf != 0.0 || !s.dimmzs.is_empty()))
+        || (s.dimalt
+            && s.dimaltu == 2
+            && s.dimaltz & 4 != 0
+            && (s.dimaltmzf != 0.0 || !s.dimaltmzs.is_empty()))
     {
         return Err(unsupported(
             "DIMMZF/DIMMZS",
-            "zero-measurement substitution is not represented",
+            "active subunit conversion is not represented",
         ));
     }
     if (s.dimtol || s.dimlim) && (s.dimtfac != 1.0 || s.dimtolj != 0 || s.dimtzin != 0 || s.dimalt)
@@ -190,9 +200,6 @@ pub fn prepare_style_from_cad(
     }
     if !font.height.is_finite() || font.height < 0.0 {
         return Err(invalid("DIMTXSTY/height", "invalid font height"));
-    }
-    if font.height != 0.0 {
-        return Err(unsupported("DIMTXSTY/fixedHeight","fixed font height overrides dimension height; dependency materialization is unqualified"));
     }
     let mut v = CadDimensionStyleValues::new(text);
     v.presentation_scale = s.dimscale;
@@ -255,7 +262,11 @@ pub fn prepare_style_from_cad(
     } else {
         DimensionCenterMark::Lines { size: -s.dimcen }
     };
-    v.text.height = s.dimtxt;
+    v.text.height = if font.height > 0.0 {
+        font.height
+    } else {
+        s.dimtxt
+    };
     v.text.gap = s.dimgap;
     v.text.attachment = if s.dimtad == 0 {
         MTextAttachment::MiddleCenter
@@ -314,9 +325,16 @@ pub fn prepare_style_from_cad(
         DimensionFactorApplication::AllOwners
     };
     v.numbers.primary.format = distance_format(s.dimlunit)?;
+    v.numbers.primary.fraction_layout = fraction_layout(s.dimfrac)?;
+    v.numbers.primary.fraction_scale = s.dimtfac;
     v.numbers.primary.precision = precision("DIMDEC", s.dimdec)?;
-    v.numbers.primary.decimal_separator =
-        char::from_u32(s.dimdsep as u32).ok_or_else(|| invalid("DIMDSEP", "invalid separator"))?;
+    // CAD uses zero/NULL as the default decimal point, not as a literal NUL.
+    // Resolve the sentinel here for both styles and merged DSTYLE overrides.
+    v.numbers.primary.decimal_separator = if s.dimdsep == 0 {
+        '.'
+    } else {
+        char::from_u32(s.dimdsep as u32).ok_or_else(|| invalid("DIMDSEP", "invalid separator"))?
+    };
     v.numbers.primary.rounding_increment = s.dimrnd;
     v.numbers.primary.zero_suppression = zero_flags(s.dimzin)?;
     (v.numbers.primary.prefix, v.numbers.primary.suffix) = post(&s.dimpost)?;
@@ -335,9 +353,12 @@ pub fn prepare_style_from_cad(
     };
     if s.dimalt {
         let (p, suffix) = post(&s.dimapost)?;
+        let (alternate_format, alternate_layout) = alternate_format(s.dimaltu)?;
         v.numbers.alternate = Some(DimensionAlternateNumberSettings {
+            fraction_layout: alternate_layout,
+            fraction_scale: s.dimtfac,
             factor: s.dimaltf,
-            format: distance_format(s.dimaltu)?,
+            format: alternate_format,
             precision: precision("DIMALTD", s.dimaltd)?,
             decimal_separator: v.numbers.primary.decimal_separator,
             rounding_increment: s.dimaltrnd,
@@ -413,16 +434,22 @@ pub fn prepare_style_from_cad(
             detail: "inactive explicit background color omitted".into(),
         });
     }
-    if !matches!(s.dimlunit, 4 | 5) {
+    if font.height != 0.0 {
+        losses.push(CadDimensionLoss { field: "DIMTXSTY/fixedHeight".into(), detail: "fixed TextStyle height materialized as the explicit nominal dimension height; editing dependency omitted".into() });
+    }
+    if s.dimtad != 0 && s.dimtvp != 0.0 {
         losses.push(CadDimensionLoss {
-            field: "DIMFRAC".into(),
-            detail: "inactive fraction layout choice omitted".into(),
+            field: "DIMTVP".into(),
+            detail: "inactive vertical offset omitted while DIMTAD is enabled".into(),
         });
+    }
+    if s.dimmzf != 0.0 || !s.dimmzs.is_empty() || s.dimaltmzf != 0.0 || !s.dimaltmzs.is_empty() {
+        losses.push(CadDimensionLoss { field: "DIMMZF/DIMMZS".into(), detail: "inactive subunit settings omitted; native number settings retain their own zero suppression".into() });
     }
     Ok(PreparedCadDimensionStyle { values: v, losses })
 }
 
-fn target_color(
+pub(crate) fn target_color(
     v: &DimensionAppearanceChoice<CadColorValue>,
 ) -> Result<(i16, Option<Color>), CadDimensionPreparationError> {
     Ok(match v {
@@ -489,7 +516,9 @@ fn target_pattern(
         )),
     }
 }
-fn target_marker(v: &DimensionMarker<Handle>) -> Result<Handle, CadDimensionPreparationError> {
+pub(crate) fn target_marker(
+    v: &DimensionMarker<Handle>,
+) -> Result<Handle, CadDimensionPreparationError> {
     match v {
         DimensionMarker::ClosedFilled => Ok(Handle::NULL),
         DimensionMarker::LocalBlock { block } if !block.is_null() => Ok(*block),
@@ -681,7 +710,18 @@ pub fn prepare_style_to_cad(
         DimensionAngleFormat::Grads => 2,
         DimensionAngleFormat::Radians => 3,
     };
-    s.dimfrac = 2;
+    s.dimfrac = match p.fraction_layout {
+        DimensionFractionLayout::Horizontal => 0,
+        DimensionFractionLayout::Diagonal => 1,
+        DimensionFractionLayout::Inline => 2,
+    };
+    s.dimtfac = p.fraction_scale;
+    if !matches!(v.numbers.tolerance, DimensionToleranceSettings::None) && p.fraction_scale != 1.0 {
+        return Err(unsupported(
+            "numbers/fractionScale",
+            "CAD couples fraction and active tolerance text scales",
+        ));
+    }
     s.dimarcsym = match p.arc_symbol {
         DimensionArcSymbol::Before => 0,
         DimensionArcSymbol::Above => 1,
@@ -690,7 +730,28 @@ pub fn prepare_style_to_cad(
     if let Some(a) = &v.numbers.alternate {
         s.dimalt = true;
         s.dimaltf = a.factor;
-        s.dimaltu = format_code(a.format);
+        if a.fraction_scale != p.fraction_scale {
+            return Err(unsupported(
+                "alternate/fractionScale",
+                "CAD shares primary and alternate fraction scale",
+            ));
+        }
+        s.dimaltu = match (a.format, a.fraction_layout) {
+            (DimensionDistanceFormat::Architectural, DimensionFractionLayout::Inline) => 6,
+            (DimensionDistanceFormat::Fractional, DimensionFractionLayout::Inline) => 7,
+            (DimensionDistanceFormat::Architectural, DimensionFractionLayout::Horizontal) => 4,
+            (DimensionDistanceFormat::Fractional, DimensionFractionLayout::Horizontal) => 5,
+            (
+                DimensionDistanceFormat::Architectural | DimensionDistanceFormat::Fractional,
+                DimensionFractionLayout::Diagonal,
+            ) => {
+                return Err(unsupported(
+                    "alternate/fractionLayout",
+                    "alternative diagonal fractions are not qualified in CAD",
+                ))
+            }
+            _ => format_code(a.format),
+        };
         s.dimaltd = i16::from(a.precision);
         s.dimaltrnd = a.rounding_increment;
         s.dimaltz = zero_code(a.zero_suppression);
@@ -769,4 +830,54 @@ pub fn prepare_style_to_cad(
         });
     }
     Ok(PreparedCadDimensionTargetStyle { style: s, losses })
+}
+
+fn fraction_layout(value: i16) -> Result<DimensionFractionLayout, CadDimensionPreparationError> {
+    match value {
+        0 => Ok(DimensionFractionLayout::Horizontal),
+        1 => Ok(DimensionFractionLayout::Diagonal),
+        2 => Ok(DimensionFractionLayout::Inline),
+        _ => Err(unsupported("DIMFRAC", "unknown fraction layout")),
+    }
+}
+fn alternate_format(
+    value: i16,
+) -> Result<(DimensionDistanceFormat, DimensionFractionLayout), CadDimensionPreparationError> {
+    Ok(match value {
+        4 => (
+            DimensionDistanceFormat::Architectural,
+            DimensionFractionLayout::Horizontal,
+        ),
+        5 => (
+            DimensionDistanceFormat::Fractional,
+            DimensionFractionLayout::Horizontal,
+        ),
+        6 => (
+            DimensionDistanceFormat::Architectural,
+            DimensionFractionLayout::Inline,
+        ),
+        7 => (
+            DimensionDistanceFormat::Fractional,
+            DimensionFractionLayout::Inline,
+        ),
+        _ => (distance_format(value)?, DimensionFractionLayout::Inline),
+    })
+}
+pub(crate) fn effective_text_height(
+    source: &DimStyle,
+    doc: &CadDocument,
+) -> Result<f64, CadDimensionPreparationError> {
+    let style = if source.dimtxsty_handle != Handle::NULL {
+        doc.text_styles
+            .iter()
+            .find(|style| style.handle == source.dimtxsty_handle)
+    } else {
+        doc.text_styles.get(&source.dimtxsty)
+    }
+    .ok_or_else(|| invalid("DIMTXSTY", "unresolved text style"))?;
+    Ok(if style.height > 0.0 {
+        style.height
+    } else {
+        source.dimtxt
+    })
 }

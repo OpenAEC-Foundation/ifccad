@@ -64,9 +64,7 @@ pub(crate) fn entities(doc: &IfccadDocument) -> Value {
                 DimensionFormatContext { is_paper },
                 &d.label,
             ) {
-                Ok(v) => {
-                    json!({"state":match v.state{DimensionFormattedLabelState::Visible=>"visible",DimensionFormattedLabelState::Suppressed=>"suppressed"},"runs":v.runs,"primary":v.primary,"alternate":v.alternate})
-                }
+                Ok(v) => crate::inspection_dimension_label::label(v),
                 Err(e) => json!({"state":"unavailable","reason":e.to_string()}),
             };
             output.push(json!({"path":format!("/cad/d{}/e{}",doc.drawing_id,e.id),"entityId":e.id.to_string(),"style":format!("/cad/d{}/dimensionStyle/{}",doc.drawing_id,d.style_id.0),"geometry":{"type":"dimension","variant":d.definition.kind(),"definition":d.definition,"placement":d.placement,"textPlacement":d.text_placement,"rawMeasurement":raw,"labelDefinition":d.label,"label":label,"effectiveSettings":settings(&effective,doc.drawing_id),"overrides":overrides(&d.overrides,doc.drawing_id),"associations":d.associations.iter().map(|r|json!({"role":r.role,"source":format!("/cad/d{}/e{}",doc.drawing_id,r.source_entity_id),"selector":r.selector})).collect::<Vec<_>>(),"associationUpdate":"external","displayEvaluation":"unassessed"}}));

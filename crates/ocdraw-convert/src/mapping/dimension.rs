@@ -411,11 +411,11 @@ pub(crate) fn to_styles(
                     .text_styles
                     .iter()
                     .find(|t| t.handle == values.text.style)
-                    .is_some_and(|t| t.height != 0.0)
+                    .is_some_and(|t| t.height != 0.0 && t.height != values.text.height)
                 {
                     return Err(cad_dimension::CadDimensionPreparationError::Unsupported {
                         field: "text/style/fixedHeight".into(),
-                        detail: "CAD fixed font-height dependency is unqualified for dimensions"
+                        detail: "fixed TextStyle height conflicts with the effective nominal Dimension height"
                             .into(),
                     });
                 }
@@ -502,15 +502,18 @@ pub(crate) fn to_entity(
     let prepared = (|| {
         let over = target_overrides(&d.overrides, idx)?;
         let font = over.text.style.unwrap_or(s.values.text.style);
+        let height = over.text.height.unwrap_or(s.values.text.height);
         if target
             .text_styles
             .iter()
             .find(|t| t.handle == font)
-            .is_some_and(|t| t.height != 0.0)
+            .is_some_and(|t| t.height != 0.0 && t.height != height)
         {
             return Err(cad_dimension::CadDimensionPreparationError::Unsupported {
                 field: "text/style/fixedHeight".into(),
-                detail: "CAD fixed font-height dependency is unqualified for dimensions".into(),
+                detail:
+                    "fixed TextStyle height conflicts with the effective nominal Dimension height"
+                        .into(),
             });
         }
         let mut p = cad_dimension::prepare_dimension_to_cad(

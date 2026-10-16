@@ -47,6 +47,17 @@ fn from_color(c: &cad_dimension::CadColorValue) -> IfccadColor {
         },
     }
 }
+fn omission(
+    location: impl Into<String>,
+    message: impl Into<String>,
+    issues: &mut Vec<IfccadDiagnostic>,
+) {
+    issues.push(crate::diagnostics::diagnostic(
+        "dimension-metadata",
+        location,
+        message,
+    ));
+}
 macro_rules! from_refs {
     ($v:expr,$doc:expr,$patterns:expr,$maps:expr) => {{
         let missing = RefCell::new(Vec::new());
@@ -122,13 +133,13 @@ pub(crate) fn from_styles(
         let p = match cad_dimension::prepare_style_from_cad(s, doc) {
             Ok(p) => p,
             Err(cad_dimension::CadDimensionPreparationError::Unsupported { field, detail }) => {
-                loss(format!("{loc}/{field}"), detail, issues);
+                omission(format!("{loc}/{field}"), detail, issues);
                 continue;
             }
             Err(e) => return Err(fatal(&loc, e)),
         };
         if maps.text_styles.ifccad_id(p.values.text.style).is_none() {
-            loss(
+            omission(
                 &loc,
                 "DimensionStyle font style was not represented; style omitted",
                 issues,
@@ -170,13 +181,13 @@ pub(crate) fn from_entity(
     let p = match cad_dimension::prepare_dimension_from_cad(d, doc) {
         Ok(p) => p,
         Err(cad_dimension::CadDimensionPreparationError::Unsupported { field, detail }) => {
-            loss(format!("{loc}/{field}"), detail, issues);
+            omission(format!("{loc}/{field}"), detail, issues);
             return Ok(None);
         }
         Err(e) => return Err(fatal(&loc, e)),
     };
     let Some(style) = maps.dimension_styles.ifccad_id(p.style_handle) else {
-        loss(
+        omission(
             &loc,
             "required DimensionStyle was not represented; entity omitted",
             issues,
@@ -411,12 +422,12 @@ pub(crate) fn to_styles(
                     .text_styles
                     .iter()
                     .find(|t| t.handle == values.text.style)
-                    .is_some_and(|t| t.height != 0.0)
+                    .is_some_and(|t| t.height != 0.0 && t.height != values.text.height)
                 {
                     return Err(cad_dimension::CadDimensionPreparationError::Unsupported {
                         field: "text/style/fixedHeight".into(),
                         detail:
-                            "fixed font height overrides dimension height; dependency unqualified"
+                            "fixed TextStyle height conflicts with the effective nominal Dimension height"
                                 .into(),
                     });
                 }
@@ -428,7 +439,7 @@ pub(crate) fn to_styles(
                     if let Some(kind) = kind {
                         result.styles.remove(&(s.id, kind));
                     }
-                    loss(format!("{loc}/{field}"), detail, issues);
+                    omission(format!("{loc}/{field}"), detail, issues);
                     continue;
                 }
                 Err(e) => return Err(fatal(&loc, e)),
@@ -487,7 +498,7 @@ pub(crate) fn to_entity(
 ) -> Result<Option<opencadcodec::EntityType>, IfccadConversionError> {
     let loc = format!("entity/{id}");
     let Some(s) = styles.styles.get(&(d.style_id, d.definition.kind())) else {
-        loss(
+        omission(
             &loc,
             "required DimensionStyle not represented; entity omitted",
             issues,
@@ -497,15 +508,18 @@ pub(crate) fn to_entity(
     let p = (|| {
         let over = target_overrides(&d.overrides, maps)?;
         let font = over.text.style.unwrap_or(s.values.text.style);
+        let height = over.text.height.unwrap_or(s.values.text.height);
         if doc
             .text_styles
             .iter()
             .find(|t| t.handle == font)
-            .is_some_and(|t| t.height != 0.0)
+            .is_some_and(|t| t.height != 0.0 && t.height != height)
         {
             return Err(cad_dimension::CadDimensionPreparationError::Unsupported {
                 field: "text/style/fixedHeight".into(),
-                detail: "fixed font-height dependency unqualified".into(),
+                detail:
+                    "fixed TextStyle height conflicts with the effective nominal Dimension height"
+                        .into(),
             });
         }
         let frame = d.placement.coordinate_frame().map_err(|e| {
@@ -532,7 +546,7 @@ pub(crate) fn to_entity(
     let p = match p {
         Ok(p) => p,
         Err(cad_dimension::CadDimensionPreparationError::Unsupported { field, detail }) => {
-            loss(format!("{loc}/{field}"), detail, issues);
+            omission(format!("{loc}/{field}"), detail, issues);
             return Ok(None);
         }
         Err(e) => return Err(fatal(&loc, e)),

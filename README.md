@@ -95,7 +95,11 @@ overrides and same-owner source selectors. Measurement uses the stored definitio
 associative updates belong to an editor or separate engine. CAD exchange and
 inspection distinguish anchor accuracy from unassessed dimension display. The
 nine-kind design continues in later slices; annotative text and dimensions share
-a later annotation slice. See [Dimension support](docs/dimension.md).
+a later annotation slice. Native horizontal/diagonal fraction presentation,
+qualified CAD override repairs and localized Explorer properties extend the
+ordinary slice. Optional native worked-out graphics and CAD picture-block
+capture/reuse are planned next, before the remaining Dimension kinds; their
+design is under review. See [Dimension support](docs/dimension.md).
 
 Both routes also provide native Solid, LinePattern and Gradient Hatch with stored planar boundaries,
 three area rules and optional same-owner source relations. Contour exchange

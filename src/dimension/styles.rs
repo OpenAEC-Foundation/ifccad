@@ -103,10 +103,10 @@ pub enum DimensionFitPlacement {
 
 // The paired sparse records retain authored presence at each setting leaf.
 macro_rules! group {
-    ($base:ident, $over:ident $(<$($g:ident),+>)? $bound:literal { $(@appearance: $app:ty => $overapp:ty;)? $($field:ident:$ty:ty),+ $(,)? }) => {
+    ($base:ident, $over:ident $(<$($g:ident),+>)? $bound:literal { $(@appearance: $app:ty => $overapp:ty;)? $($(#[$attr:meta])* $field:ident:$ty:ty),+ $(,)? }) => {
         #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
         #[serde(rename_all="camelCase", deny_unknown_fields)]
-        pub struct $base $(<$($g),+>)? { $(pub appearance:$app,)? $(pub $field:$ty),+ }
+        pub struct $base $(<$($g),+>)? { $(pub appearance:$app,)? $($(#[$attr])* pub $field:$ty),+ }
         #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
         #[serde(rename_all="camelCase", deny_unknown_fields)]
         #[serde(bound(deserialize=$bound))]
@@ -169,7 +169,9 @@ impl<C, P> Default for DimensionExtensionLinesOverrides<C, P> {
 group!(DimensionPrimaryNumberSettings,DimensionPrimaryNumberOverrides "" {
     measurement_factor:f64, application:DimensionFactorApplication, format:DimensionDistanceFormat,
     angle_format:DimensionAngleFormat, precision:u8,decimal_separator:char,rounding_increment:f64,
-    zero_suppression:DimensionZeroSuppression,prefix:String,suffix:String,arc_symbol:DimensionArcSymbol
+    zero_suppression:DimensionZeroSuppression,prefix:String,suffix:String,arc_symbol:DimensionArcSymbol,
+    #[serde(default)] fraction_layout:DimensionFractionLayout,
+    #[serde(default="super::default_fraction_scale")] fraction_scale:f64
 });
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

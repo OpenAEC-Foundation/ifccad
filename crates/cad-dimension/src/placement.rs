@@ -315,7 +315,12 @@ pub fn prepare_dimension_from_cad(
         pair(xyz(second).map(exact), world(plane, b)),
         pair(xyz(line).map(exact), world(plane, line_local)),
     ];
-    let mut parsed = parse_dimension_overrides(base.common.extended_data.records())?;
+    let style = doc
+        .dim_styles
+        .get(&base.style_name)
+        .ok_or_else(|| invalid("styleName", "unresolved DimensionStyle"))?;
+    let parsed = parse_dimension_overrides(base.common.extended_data.records())?;
+    let mut parsed = resolve_dimension_overrides(parsed, style, doc)?;
     parsed.values.arrows.flip_first = Some(base.flip_arrow1);
     parsed.values.arrows.flip_second = Some(base.flip_arrow2);
     parsed.values.text.line_spacing = Some(match base.line_spacing_style {
@@ -351,30 +356,10 @@ pub fn prepare_dimension_from_cad(
         }
         DimensionTextPlacement::StyleDriven
     };
-    let style = doc
-        .dim_styles
-        .get(&base.style_name)
-        .ok_or_else(|| invalid("styleName", "unresolved DimensionStyle"))?;
-    let mut effective = prepare_style_from_cad(style, doc)?.values;
+    let mut effective = parsed.effective.clone();
     parsed.values.apply(&mut effective);
-    if effective.presentation_scale == 0.0 {
-        return Err(unsupported(
-            "DSTYLE/40",
-            "automatic viewport/Paper scale is unqualified",
-        ));
-    }
-    if matches!(
-        effective.numbers.primary.format,
-        DimensionDistanceFormat::Architectural | DimensionDistanceFormat::Fractional
-    ) && style.dimfrac != 2
-    {
-        return Err(unsupported(
-            "DIMFRAC",
-            "effective DSTYLE number format activates unqualified stacked fractions",
-        ));
-    }
     validate_dimension_settings(&effective).map_err(|e| invalid(&e.field, &e.to_string()))?;
-    let mut losses = Vec::new();
+    let mut losses = parsed.losses;
     if stored_normal(plane) != Some(base.normal) {
         losses.push(CadDimensionLoss {
             field: "normal".into(),

@@ -5,6 +5,7 @@ mod hatch_exchange;
 mod ifccad;
 mod inspection;
 mod inspection_dimension;
+mod inspection_dimension_label;
 mod inspection_ifccad_dimension;
 mod line_pattern;
 mod options;

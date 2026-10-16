@@ -1,241 +1,11 @@
 use crate::*;
 use ocdraw::dimension::*;
-use opencadcodec::{
-    xdata::{ExtendedDataRecord, XDataValue as X},
-    Handle,
-};
-use std::collections::BTreeSet;
+use opencadcodec::xdata::{ExtendedDataRecord, XDataValue as X};
 pub struct CadDimensionOverrides {
     pub values: CadDimensionStyleOverrides,
+    pub effective: CadDimensionStyleValues,
     pub residual: Vec<ExtendedDataRecord>,
-}
-fn real(code: i16, v: &X) -> Result<f64, CadDimensionPreparationError> {
-    if let X::Real(x) = v {
-        if x.is_finite() {
-            return Ok(*x);
-        }
-    }
-    Err(invalid(
-        &format!("DSTYLE/{code}"),
-        "dimvar requires finite group-1040 Real",
-    ))
-}
-fn integer(code: i16, v: &X) -> Result<i16, CadDimensionPreparationError> {
-    if let X::Integer16(x) = v {
-        Ok(*x)
-    } else {
-        Err(invalid(
-            &format!("DSTYLE/{code}"),
-            "dimvar requires group-1070 Integer16",
-        ))
-    }
-}
-fn boolean(code: i16, v: &X) -> Result<bool, CadDimensionPreparationError> {
-    match integer(code, v)? {
-        0 => Ok(false),
-        1 => Ok(true),
-        _ => Err(invalid(&format!("DSTYLE/{code}"), "boolean must be 0 or 1")),
-    }
-}
-fn string(code: i16, v: &X) -> Result<&str, CadDimensionPreparationError> {
-    if let X::String(x) = v {
-        Ok(x)
-    } else {
-        Err(invalid(
-            &format!("DSTYLE/{code}"),
-            "dimvar requires group-1000 String",
-        ))
-    }
-}
-fn handle(code: i16, v: &X) -> Result<Handle, CadDimensionPreparationError> {
-    if let X::Handle(x) = v {
-        Ok(*x)
-    } else {
-        Err(invalid(
-            &format!("DSTYLE/{code}"),
-            "dimvar requires group-1005 Handle",
-        ))
-    }
-}
-pub fn parse_dimension_overrides(
-    records: &[ExtendedDataRecord],
-) -> Result<CadDimensionOverrides, CadDimensionPreparationError> {
-    let mut values = CadDimensionStyleOverrides::default();
-    let mut residual = Vec::new();
-    let mut found = false;
-    for record in records {
-        if !record.application_name.eq_ignore_ascii_case("ACAD") {
-            residual.push(record.clone());
-            continue;
-        }
-        let mut leftover = Vec::new();
-        let mut at = 0;
-        while at < record.values.len() {
-            if record.values[at] != X::String("DSTYLE".into()) {
-                leftover.push(record.values[at].clone());
-                at += 1;
-                continue;
-            }
-            if found {
-                return Err(invalid("DSTYLE", "duplicate override subsection"));
-            }
-            found = true;
-            at += 1;
-            if record.values.get(at) != Some(&X::ControlString("{".into())) {
-                return Err(invalid("DSTYLE", "missing opening delimiter"));
-            }
-            at += 1;
-            let mut seen = BTreeSet::new();
-            loop {
-                let item = record
-                    .values
-                    .get(at)
-                    .ok_or_else(|| invalid("DSTYLE", "missing closing delimiter"))?;
-                if item == &X::ControlString("}".into()) {
-                    at += 1;
-                    break;
-                }
-                let X::Integer16(code) = item else {
-                    return Err(invalid("DSTYLE", "dimvar code must be Integer16"));
-                };
-                let code = *code;
-                if !seen.insert(code) {
-                    return Err(invalid(&format!("DSTYLE/{code}"), "duplicate dimvar"));
-                }
-                at += 1;
-                let data = record
-                    .values
-                    .get(at)
-                    .ok_or_else(|| invalid("DSTYLE", "missing dimvar value"))?;
-                at += 1;
-                match code {
-                    3 => {
-                        let (p, s) = crate::styles::post(string(code, data)?)?;
-                        values.numbers.primary.prefix = Some(p);
-                        values.numbers.primary.suffix = Some(s);
-                    }
-                    40 => values.presentation_scale = Some(real(code, data)?),
-                    41 => values.arrows.size = Some(real(code, data)?),
-                    42 => {
-                        let v = Some(real(code, data)?);
-                        values.extension_lines.first.offset = v;
-                        values.extension_lines.second.offset = v;
-                    }
-                    44 => {
-                        let v = Some(real(code, data)?);
-                        values.extension_lines.first.extension = v;
-                        values.extension_lines.second.extension = v;
-                    }
-                    45 => values.numbers.primary.rounding_increment = Some(real(code, data)?),
-                    46 => values.dimension_line.extension = Some(real(code, data)?),
-                    73 => {
-                        values.text.inside_orientation = Some(if boolean(code, data)? {
-                            DimensionTextOrientation::Horizontal
-                        } else {
-                            DimensionTextOrientation::Aligned
-                        })
-                    }
-                    74 => {
-                        values.text.outside_orientation = Some(if boolean(code, data)? {
-                            DimensionTextOrientation::Horizontal
-                        } else {
-                            DimensionTextOrientation::Aligned
-                        })
-                    }
-                    75 => values.extension_lines.first.suppressed = Some(boolean(code, data)?),
-                    76 => values.extension_lines.second.suppressed = Some(boolean(code, data)?),
-                    77 => {
-                        values.text.attachment = Some(match integer(code, data)? {
-                            0 => ocdraw::text::MTextAttachment::MiddleCenter,
-                            1 => ocdraw::text::MTextAttachment::BottomCenter,
-                            _ => {
-                                return Err(unsupported(
-                                    "DSTYLE/77",
-                                    "unqualified vertical placement",
-                                ))
-                            }
-                        })
-                    }
-                    78 => {
-                        values.numbers.primary.zero_suppression =
-                            Some(crate::styles::zero_flags(integer(code, data)?)?)
-                    }
-                    140 => values.text.height = Some(real(code, data)?),
-                    141 => {
-                        let v = real(code, data)?;
-                        values.arrows.center_mark = Some(if v == 0.0 {
-                            DimensionCenterMark::None
-                        } else if v > 0.0 {
-                            DimensionCenterMark::Mark { size: v }
-                        } else {
-                            DimensionCenterMark::Lines { size: -v }
-                        });
-                    }
-                    142 => values.arrows.tick_size = Some(real(code, data)?),
-                    144 => {
-                        let v = real(code, data)?;
-                        values.numbers.primary.measurement_factor = Some(v.abs());
-                        values.numbers.primary.application = Some(if v < 0.0 {
-                            DimensionFactorApplication::PaperOnly
-                        } else {
-                            DimensionFactorApplication::AllOwners
-                        });
-                    }
-                    147 => values.text.gap = Some(real(code, data)?),
-                    172 => values.fit.keep_dimension_line_outside = Some(boolean(code, data)?),
-                    174 => values.fit.force_text_inside = Some(boolean(code, data)?),
-                    271 => {
-                        values.numbers.primary.precision = Some(crate::styles::precision(
-                            "DSTYLE/271",
-                            integer(code, data)?,
-                        )?)
-                    }
-                    277 => {
-                        values.numbers.primary.format =
-                            Some(crate::styles::distance_format(integer(code, data)?)?)
-                    }
-                    278 => {
-                        values.numbers.primary.decimal_separator = Some(
-                            char::from_u32(integer(code, data)? as u32)
-                                .ok_or_else(|| invalid("DSTYLE/278", "invalid separator"))?,
-                        )
-                    }
-                    279 => {
-                        values.text.movement = Some(match integer(code, data)? {
-                            0 => DimensionTextMovement::MoveDimensionLine,
-                            1 => DimensionTextMovement::AddLeader,
-                            2 => DimensionTextMovement::Free,
-                            _ => return Err(unsupported("DSTYLE/279", "unknown movement")),
-                        })
-                    }
-                    281 => values.dimension_line.suppress_first = Some(boolean(code, data)?),
-                    282 => values.dimension_line.suppress_second = Some(boolean(code, data)?),
-                    289 => {
-                        values.fit.preferred_placement = Some(match integer(code, data)? {
-                            1 => DimensionFitPlacement::ArrowsInside,
-                            2 => DimensionFitPlacement::TextInside,
-                            3 => DimensionFitPlacement::BestFit,
-                            _ => return Err(unsupported("DSTYLE/289", "unqualified fit policy")),
-                        })
-                    }
-                    340 => values.text.style = Some(handle(code, data)?),
-                    _ => {
-                        return Err(unsupported(
-                            &format!("DSTYLE/{code}"),
-                            "dimvar is outside the qualified override grammar",
-                        ))
-                    }
-                }
-            }
-        }
-        if !leftover.is_empty() {
-            residual.push(ExtendedDataRecord {
-                application_name: record.application_name.clone(),
-                values: leftover,
-            });
-        }
-    }
-    Ok(CadDimensionOverrides { values, residual })
+    pub losses: Vec<CadDimensionLoss>,
 }
 /// Emit only exactly representable native leaf overrides; retain other profile restrictions.
 pub fn encode_dimension_overrides(
@@ -247,6 +17,118 @@ pub fn encode_dimension_overrides(
         out.push(X::Integer16(code));
         out.push(data);
     };
+    if let Some(layout) = v.numbers.primary.fraction_layout {
+        pair(
+            276,
+            X::Integer16(match layout {
+                DimensionFractionLayout::Horizontal => 0,
+                DimensionFractionLayout::Diagonal => 1,
+                DimensionFractionLayout::Inline => 2,
+            }),
+        );
+    }
+    if let Some(scale) = v.numbers.primary.fraction_scale {
+        if base.numbers.alternate.is_some()
+            && base
+                .numbers
+                .alternate
+                .as_ref()
+                .is_some_and(|a| a.fraction_scale != scale)
+        {
+            return Err(unsupported(
+                "overrides/fractionScale",
+                "CAD shares alternate fraction scale",
+            ));
+        }
+        if !matches!(base.numbers.tolerance, DimensionToleranceSettings::None) && scale != 1.0 {
+            return Err(unsupported(
+                "overrides/fractionScale",
+                "CAD couples fraction and tolerance scale",
+            ));
+        }
+        pair(146, X::Real(scale));
+    }
+    if v.extension_lines.first.length.is_some() || v.extension_lines.second.length.is_some() {
+        let first = v
+            .extension_lines
+            .first
+            .length
+            .unwrap_or(base.extension_lines.first.length);
+        let second = v
+            .extension_lines
+            .second
+            .length
+            .unwrap_or(base.extension_lines.second.length);
+        if first != second {
+            return Err(unsupported(
+                "overrides/extensionLines/length",
+                "CAD shares fixed extension length",
+            ));
+        }
+        match first {
+            DimensionExtensionLength::Automatic => pair(290, X::Integer16(0)),
+            DimensionExtensionLength::Fixed { length } => {
+                pair(49, X::Real(length));
+                pair(290, X::Integer16(1));
+            }
+        }
+    }
+    for (code, color) in [
+        (176, v.dimension_line.appearance.color.as_ref()),
+        (178, v.text.appearance.color.as_ref()),
+    ] {
+        if let Some(color) = color {
+            let (index, rgb) = crate::styles::target_color(color)?;
+            if rgb.is_some() {
+                return Err(unsupported(
+                    "overrides/color",
+                    "DSTYLE ACI override cannot preserve true color",
+                ));
+            }
+            pair(code, X::Integer16(index));
+        }
+    }
+    if v.extension_lines.first.appearance.color.is_some()
+        || v.extension_lines.second.appearance.color.is_some()
+    {
+        let first = v
+            .extension_lines
+            .first
+            .appearance
+            .color
+            .as_ref()
+            .unwrap_or(&base.extension_lines.first.appearance.color);
+        let second = v
+            .extension_lines
+            .second
+            .appearance
+            .color
+            .as_ref()
+            .unwrap_or(&base.extension_lines.second.appearance.color);
+        if first != second {
+            return Err(unsupported(
+                "overrides/extensionLines/color",
+                "CAD shares extension color",
+            ));
+        }
+        let (index, rgb) = crate::styles::target_color(first)?;
+        if rgb.is_some() {
+            return Err(unsupported(
+                "overrides/color",
+                "DSTYLE ACI override cannot preserve true color",
+            ));
+        }
+        pair(177, X::Integer16(index));
+    }
+    if v.arrows.first.is_some() || v.arrows.second.is_some() {
+        pair(173, X::Integer16(1));
+        if let Some(marker) = &v.arrows.first {
+            pair(343, X::Handle(crate::styles::target_marker(marker)?));
+        }
+        if let Some(marker) = &v.arrows.second {
+            pair(344, X::Handle(crate::styles::target_marker(marker)?));
+        }
+    }
     if let Some(x) = v.text.height {
         pair(140, X::Real(x));
     }
@@ -469,7 +351,16 @@ pub fn encode_dimension_overrides(
         application_name: "ACAD".into(),
         values,
     };
-    if parse_dimension_overrides(std::slice::from_ref(&record))?.values != *v {
+    let parsed = parse_dimension_overrides(std::slice::from_ref(&record))?;
+    let mut cad_base = prepare_style_to_cad("Override coverage", base)?.style;
+    for entry in &parsed.entries {
+        entry.apply_to(&mut cad_base);
+    }
+    let mut effective = base.clone();
+    v.apply(&mut effective);
+    if crate::source_overrides::project_source_overrides(&parsed.entries, &cad_base, &effective)
+        != *v
+    {
         return Err(unsupported(
             "overrides/dependencies",
             "CAD cannot retain this exact sparse override factoring",

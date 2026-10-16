@@ -7,6 +7,37 @@ use opencadcodec::{
 use std::io::Cursor;
 
 #[test]
+fn dwg_text_position_bit_has_opposite_polarity_to_dxf_128() {
+    // ODA Common Dimension Data: DWG flags bit 0 is the opposite of DXF 70 bit 128.
+    // Checking the raw byte prevents a wrong reader and writer masking each other.
+    for positioned in [false, true] {
+        let mut doc = CadDocument::new();
+        let mut source = DimensionAligned::new(Vector3::ZERO, Vector3::new(3.0, 0.0, 0.0));
+        source.base.text_user_positioned = positioned;
+        source.base.text_middle_point = Vector3::new(2.0, 4.0, 0.0);
+        source.base.dwg_flags_byte = 0xa0;
+        doc.add_entity(EntityType::Dimension(Dimension::Aligned(source)))
+            .unwrap();
+        let returned = DwgReader::from_stream(Cursor::new(DwgWriter::write_to_vec(&doc).unwrap()))
+            .read()
+            .unwrap();
+        let base = returned
+            .entities()
+            .find_map(|e| {
+                if let EntityType::Dimension(d) = e {
+                    Some(d.base())
+                } else {
+                    None
+                }
+            })
+            .unwrap();
+        assert_eq!(base.dwg_flags_byte & 1, u8::from(!positioned));
+        assert_eq!(base.dwg_flags_byte & 0xa0, 0xa0);
+        assert_eq!(base.text_user_positioned, positioned);
+    }
+}
+
+#[test]
 fn literal_dxf_group_11_is_ocs_independently_of_codec_comments() {
     let doc = DxfReader::from_reader(Cursor::new(include_bytes!(
         "../../../tests/fixtures/dimension/tilted-aligned.dxf"
@@ -41,7 +72,8 @@ fn literal_dxf_group_11_is_ocs_independently_of_codec_comments() {
 
 #[test]
 fn literal_clone_group_12_and_angular_group_16_remain_outside_slice_one() {
-    let literal = include_str!("../../../tests/fixtures/dimension/tilted-aligned.dxf");
+    let literal =
+        include_str!("../../../tests/fixtures/dimension/tilted-aligned.dxf").replace("\r\n", "\n");
     let clone = literal.replace("AcDbDimension\n", "AcDbDimension\n12\n19\n22\n23\n32\n29\n");
     let doc = DxfReader::from_reader(Cursor::new(clone.into_bytes()))
         .unwrap()

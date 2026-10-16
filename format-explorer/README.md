@@ -257,7 +257,7 @@ GPL-3.0 and source revision attribution accompany the bundle. The OpenAEC symbol
 keeps its CC BY-SA license; see `src/THIRD-PARTY.txt`.
 
 Build the browser processor from the repository root after preparing and
-selecting the remaining [viewport-off codec repair](../patches/opencadcodec-viewports/README.md).
+selecting the [viewport-off and Dimension codec repairs](../patches/opencadcodec-viewports/README.md).
 The deployment workflow uses the same pinned base and patches for its Rust
 checks and browser processor; both cache keys include the patch recipe.
 
@@ -384,3 +384,17 @@ is added. The embedded editor may resolve its own libraries. Derived Partial
 symbol coverage, producer bounds claims and enclosure verification remain separate
 in inspection, alongside existing text estimates. See
 [complex line patterns](../docs/line-patterns.md).
+
+## Dimension properties and fraction preview
+
+Dimension entities, named styles, fields and enum values have English/Dutch
+labels. The properties panel separates authored definition, label, overrides and
+source links from the calculated measurement, formatted label and effective
+settings. Calculations use stored definition points; source associations never
+update them implicitly. The source tab retains the original field representation
+and full-width identities remain exact across navigation and language changes.
+
+Typed label fragments display horizontal/diagonal fractions with their relative
+digit scale and a plain accessible label. Literal text is escaped and its existing
+decorations are retained. The preview does not certify CAD fonts, placement or
+bounds; Open CAD Studio loading/regeneration is a separate display check.

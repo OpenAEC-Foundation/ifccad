@@ -19,6 +19,11 @@ fn inspector_measures_stored_definition_and_shows_equal_override() {
     end[0] = 4500.0;
     let height = doc.dimension_styles[0].settings.text.height;
     doc.dimension_entities[0].overrides.text.height = Some(height);
+    let settings = &mut doc.dimension_styles[0].settings.numbers.primary;
+    settings.measurement_factor = 1.0 / 16000.0;
+    settings.format = ocdraw::dimension::DimensionDistanceFormat::Fractional;
+    settings.fraction_layout = ocdraw::dimension::DimensionFractionLayout::Diagonal;
+    settings.fraction_scale = 0.75;
     recompute_ocdraw_document_bounds(&mut doc).unwrap();
     let encoded = encode_ocdraw_document(&doc).unwrap();
     let out = viewer::inspect_drawing_bytes("dims.ocdraw.json", encoded.bytes());
@@ -29,6 +34,11 @@ fn inspector_measures_stored_definition_and_shows_equal_override() {
         .find(|e| e["geometry"]["type"] == "dimension")
         .unwrap();
     assert_eq!(d["geometry"]["rawMeasurement"]["value"], 4000.0);
+    assert!(d["geometry"]["label"]["fragments"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|p| p["kind"] == "fraction" && p["layout"] == "diagonal" && p["textScale"] == 0.75));
     assert_eq!(d["geometry"]["overrides"]["text"]["height"], height);
     assert_eq!(d["geometry"]["displayEvaluation"], "unassessed");
     assert_eq!(d["geometry"]["associations"][1]["selector"]["kind"], "end");
@@ -50,6 +60,7 @@ fn independent_ifccad_inspector_keeps_full_width_source_paths() {
         .as_str()
         .unwrap()
         .ends_with("e9007199254740993"));
+    assert!(d["geometry"]["label"]["fragments"].is_array());
     assert_eq!(d["geometry"]["displayEvaluation"], "unassessed");
 }
 

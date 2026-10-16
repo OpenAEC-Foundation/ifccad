@@ -367,3 +367,26 @@ Hatch, while dormant frame failure omits only state with a located loss.
 Native color identity may exceed the pinned gradient surface. Physical AC1032
 DXF/DWG qualification and #109 source/target limitations are detailed in
 [Hatch support](../../docs/hatch.md). No gradient renderer is implemented.
+
+## Ordinary Dimension repair profile
+
+Linear/aligned conversion resolves typed DSTYLE fields against the source style
+before activation checks. Fixed extension length, component ACI colors,
+shared/separate markers and fraction layout/scale have qualified mappings.
+Inactive DIMTVP/subunit state does not reject an otherwise supported style;
+active subunit conversion and complex tolerance layout remain restrictions.
+A fixed TextStyle height is materialized as nominal Dimension height with
+explicit dependency loss. Export accepts a matching fixed height and diagnoses
+conflicts without modifying the shared style. Entirely omitted styles/entities
+use Omitted diagnostics; retained objects with metadata changes use Modified.
+
+Native horizontal/diagonal fraction settings and authored resets survive strict
+IFCCAD readback. Repaired profiles are checked through ASCII/binary DXF and
+AC1032 DWG. Correct user-positioned DWG text uses the selected
+[codec polarity patch](../../patches/opencadcodec-dimension/README.md) alongside
+the viewport-off repair. Host display and picture regeneration remain distinct
+from typed-object transfer and native validity; see [Dimension support](../../docs/dimension.md).
+
+CAD DIMDSEP zero/NULL is normalized to the decimal point, including unused
+styles and explicit DSTYLE 278 resets; it is never stored as native NUL.
+The equivalent explicit decimal-point code may be used on CAD export.

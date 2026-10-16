@@ -1,4 +1,4 @@
-use super::DimensionPrimaryNumberSettings;
+use super::{DimensionFormattedFragment, DimensionPrimaryNumberSettings};
 use crate::text::{MTextAttachment, TextRun};
 use serde::{Deserialize, Serialize};
 
@@ -160,6 +160,19 @@ pub enum DimensionDistanceFormat {
     Architectural,
     Scientific,
 }
+/// Presentation of a numeric fraction; independent of precision and units.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum DimensionFractionLayout {
+    #[default]
+    Inline,
+    Horizontal,
+    Diagonal,
+}
+pub(crate) fn default_fraction_scale() -> f64 {
+    1.0
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum DimensionAngleFormat {
@@ -199,6 +212,8 @@ impl Default for DimensionPrimaryNumberSettings {
             prefix: String::new(),
             suffix: String::new(),
             arc_symbol: DimensionArcSymbol::Before,
+            fraction_layout: DimensionFractionLayout::Inline,
+            fraction_scale: 1.0,
         }
     }
 }
@@ -206,6 +221,10 @@ impl Default for DimensionPrimaryNumberSettings {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct DimensionAlternateNumberSettings {
+    #[serde(default)]
+    pub fraction_layout: DimensionFractionLayout,
+    #[serde(default = "default_fraction_scale")]
+    pub fraction_scale: f64,
     pub factor: f64,
     pub format: DimensionDistanceFormat,
     pub precision: u8,
@@ -218,6 +237,8 @@ pub struct DimensionAlternateNumberSettings {
 impl Default for DimensionAlternateNumberSettings {
     fn default() -> Self {
         Self {
+            fraction_layout: DimensionFractionLayout::Inline,
+            fraction_scale: 1.0,
             factor: 1.0,
             format: DimensionDistanceFormat::Decimal,
             precision: 2,
@@ -273,6 +294,8 @@ pub enum DimensionFormattedLabelState {
 #[derive(Clone, Debug, PartialEq)]
 pub struct DimensionFormattedLabel {
     pub state: DimensionFormattedLabelState,
+    /// Structured presentation; `runs` remains its plain text projection.
+    pub fragments: Vec<DimensionFormattedFragment>,
     pub runs: Vec<TextRun>,
     /// Numeric display text; empty when the authored label needs no measurement.
     pub primary: String,

@@ -97,6 +97,7 @@ pub fn validate_dimension_numbers(v: &DimensionNumberSettings) -> Result<(), Dim
         "numbers/primary/measurementFactor",
         v.primary.measurement_factor,
     )?;
+    positive("numbers/primary/fractionScale", v.primary.fraction_scale)?;
     precision("numbers/primary/precision", v.primary.precision)?;
     nonnegative(
         "numbers/primary/roundingIncrement",
@@ -110,6 +111,7 @@ pub fn validate_dimension_numbers(v: &DimensionNumberSettings) -> Result<(), Dim
     }
     if let Some(a) = &v.alternate {
         positive("numbers/alternate/factor", a.factor)?;
+        positive("numbers/alternate/fractionScale", a.fraction_scale)?;
         precision("numbers/alternate/precision", a.precision)?;
         nonnegative("numbers/alternate/roundingIncrement", a.rounding_increment)?;
         if a.decimal_separator.is_control() || a.decimal_separator.is_ascii_digit() {

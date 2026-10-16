@@ -1,6 +1,140 @@
 use ocdraw::dimension::*;
 use ocdraw::text::TextRun;
 
+fn fragment_text(label: &DimensionFormattedLabel) -> String {
+    label
+        .fragments
+        .iter()
+        .map(|part| match part {
+            DimensionFormattedFragment::Run(run) => run.text.clone(),
+            DimensionFormattedFragment::Fraction {
+                numerator,
+                denominator,
+                ..
+            } => format!("{numerator}/{denominator}"),
+        })
+        .collect()
+}
+
+#[test]
+fn architectural_fragments_preserve_layout_and_scale() {
+    for layout in [
+        DimensionFractionLayout::Inline,
+        DimensionFractionLayout::Horizontal,
+        DimensionFractionLayout::Diagonal,
+    ] {
+        let mut settings = DimensionNumberSettings::default();
+        settings.primary.format = DimensionDistanceFormat::Architectural;
+        settings.primary.precision = 2;
+        settings.primary.fraction_layout = layout;
+        settings.primary.fraction_scale = 0.75;
+        let label = formatted(48.25, &settings, false, &DimensionLabel::Generated);
+        assert_eq!(label.primary, "4'-0 1/4\"");
+        assert_eq!(
+            fragment_text(&label),
+            label
+                .runs
+                .iter()
+                .map(|r| r.text.as_str())
+                .collect::<String>()
+        );
+        let stacks: Vec<_> = label
+            .fragments
+            .iter()
+            .filter(|part| matches!(part, DimensionFormattedFragment::Fraction { .. }))
+            .collect();
+        if layout == DimensionFractionLayout::Inline {
+            assert!(stacks.is_empty());
+        } else {
+            assert!(
+                matches!(stacks.as_slice(), [DimensionFormattedFragment::Fraction { numerator, denominator, layout: actual, text_scale }] if numerator == "1" && denominator == "4" && *actual == layout && *text_scale == 0.75)
+            );
+        }
+    }
+}
+
+#[test]
+fn fraction_fragments_round_before_splitting() {
+    let mut settings = DimensionNumberSettings::default();
+    settings.primary.format = DimensionDistanceFormat::Architectural;
+    settings.primary.precision = 2;
+    settings.primary.fraction_layout = DimensionFractionLayout::Horizontal;
+    for value in [11.99, 0.0, -0.01] {
+        let label = formatted(value, &settings, false, &DimensionLabel::Generated);
+        assert!(!label
+            .fragments
+            .iter()
+            .any(|f| matches!(f, DimensionFormattedFragment::Fraction { .. })));
+        assert_eq!(fragment_text(&label), label.primary);
+    }
+    assert_eq!(
+        formatted(11.99, &settings, false, &DimensionLabel::Generated).primary,
+        "1'-0\""
+    );
+    settings.primary.format = DimensionDistanceFormat::Fractional;
+    let label = formatted(-0.25, &settings, false, &DimensionLabel::Generated);
+    assert_eq!(fragment_text(&label), "-1/4");
+}
+
+#[test]
+fn literal_fraction_text_is_not_reinterpreted() {
+    let mut settings = DimensionNumberSettings::default();
+    settings.primary.format = DimensionDistanceFormat::Fractional;
+    settings.primary.fraction_layout = DimensionFractionLayout::Diagonal;
+    let literal = TextRun {
+        text: "1/4 <script> \\S1/2;".into(),
+        ..Default::default()
+    };
+    let definition = DimensionLabel::Template(vec![
+        DimensionLabelPart::Literal(vec![literal.clone()]),
+        DimensionLabelPart::Measurement,
+    ]);
+    let label = formatted(0.25, &settings, false, &definition);
+    assert_eq!(
+        label.fragments.first(),
+        Some(&DimensionFormattedFragment::Run(literal))
+    );
+    assert_eq!(
+        fragment_text(&label),
+        label
+            .runs
+            .iter()
+            .map(|r| r.text.as_str())
+            .collect::<String>()
+    );
+    assert!(
+        formatted(0.25, &settings, false, &DimensionLabel::Suppressed)
+            .fragments
+            .is_empty()
+    );
+}
+
+#[test]
+fn alternate_fraction_fragments_keep_independent_settings() {
+    let mut settings = DimensionNumberSettings::default();
+    settings.primary.format = DimensionDistanceFormat::Fractional;
+    settings.primary.fraction_layout = DimensionFractionLayout::Diagonal;
+    settings.primary.fraction_scale = 0.75;
+    settings.alternate = Some(DimensionAlternateNumberSettings {
+        factor: 2.0,
+        format: DimensionDistanceFormat::Fractional,
+        fraction_layout: DimensionFractionLayout::Horizontal,
+        fraction_scale: 0.8,
+        ..Default::default()
+    });
+    let label = formatted(0.25, &settings, false, &DimensionLabel::Generated);
+    assert_eq!(fragment_text(&label), "1/4 [1/2]");
+    assert_eq!(
+        label
+            .fragments
+            .iter()
+            .filter(|f| matches!(f, DimensionFormattedFragment::Fraction { .. }))
+            .count(),
+        2
+    );
+    assert!(label.fragments.iter().any(|f| matches!(f, DimensionFormattedFragment::Fraction {layout: DimensionFractionLayout::Horizontal, text_scale, ..} if *text_scale == 0.8)));
+}
+
 fn formatted(
     value: f64,
     format: &DimensionNumberSettings,

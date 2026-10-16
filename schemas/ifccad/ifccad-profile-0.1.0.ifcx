@@ -4997,6 +4997,21 @@
                                   ]
                                 },
                                 "optional": true
+                              },
+                              "fractionLayout": {
+                                "dataType": "Enum",
+                                "enumRestrictions": {
+                                  "options": [
+                                    "inline",
+                                    "horizontal",
+                                    "diagonal"
+                                  ]
+                                },
+                                "optional": true
+                              },
+                              "fractionScale": {
+                                "dataType": "Real",
+                                "optional": true
                               }
                             }
                           },
@@ -5067,6 +5082,21 @@
                                     },
                                     "suffix": {
                                       "dataType": "String"
+                                    },
+                                    "fractionLayout": {
+                                      "dataType": "Enum",
+                                      "enumRestrictions": {
+                                        "options": [
+                                          "inline",
+                                          "horizontal",
+                                          "diagonal"
+                                        ]
+                                      },
+                                      "optional": true
+                                    },
+                                    "fractionScale": {
+                                      "dataType": "Real",
+                                      "optional": true
                                     }
                                   }
                                 },
@@ -6243,6 +6273,21 @@
                                     "above"
                                   ]
                                 }
+                              },
+                              "fractionLayout": {
+                                "dataType": "Enum",
+                                "enumRestrictions": {
+                                  "options": [
+                                    "inline",
+                                    "horizontal",
+                                    "diagonal"
+                                  ]
+                                },
+                                "optional": true
+                              },
+                              "fractionScale": {
+                                "dataType": "Real",
+                                "optional": true
                               }
                             }
                           }
@@ -6299,6 +6344,21 @@
                               },
                               "suffix": {
                                 "dataType": "String"
+                              },
+                              "fractionLayout": {
+                                "dataType": "Enum",
+                                "enumRestrictions": {
+                                  "options": [
+                                    "inline",
+                                    "horizontal",
+                                    "diagonal"
+                                  ]
+                                },
+                                "optional": true
+                              },
+                              "fractionScale": {
+                                "dataType": "Real",
+                                "optional": true
                               }
                             }
                           },
@@ -7481,6 +7541,21 @@
                                         ]
                                       },
                                       "optional": true
+                                    },
+                                    "fractionLayout": {
+                                      "dataType": "Enum",
+                                      "enumRestrictions": {
+                                        "options": [
+                                          "inline",
+                                          "horizontal",
+                                          "diagonal"
+                                        ]
+                                      },
+                                      "optional": true
+                                    },
+                                    "fractionScale": {
+                                      "dataType": "Real",
+                                      "optional": true
                                     }
                                   }
                                 },
@@ -7551,6 +7626,21 @@
                                           },
                                           "suffix": {
                                             "dataType": "String"
+                                          },
+                                          "fractionLayout": {
+                                            "dataType": "Enum",
+                                            "enumRestrictions": {
+                                              "options": [
+                                                "inline",
+                                                "horizontal",
+                                                "diagonal"
+                                              ]
+                                            },
+                                            "optional": true
+                                          },
+                                          "fractionScale": {
+                                            "dataType": "Real",
+                                            "optional": true
                                           }
                                         }
                                       },
@@ -8737,6 +8827,21 @@
                                         ]
                                       },
                                       "optional": true
+                                    },
+                                    "fractionLayout": {
+                                      "dataType": "Enum",
+                                      "enumRestrictions": {
+                                        "options": [
+                                          "inline",
+                                          "horizontal",
+                                          "diagonal"
+                                        ]
+                                      },
+                                      "optional": true
+                                    },
+                                    "fractionScale": {
+                                      "dataType": "Real",
+                                      "optional": true
                                     }
                                   }
                                 },
@@ -8807,6 +8912,21 @@
                                           },
                                           "suffix": {
                                             "dataType": "String"
+                                          },
+                                          "fractionLayout": {
+                                            "dataType": "Enum",
+                                            "enumRestrictions": {
+                                              "options": [
+                                                "inline",
+                                                "horizontal",
+                                                "diagonal"
+                                              ]
+                                            },
+                                            "optional": true
+                                          },
+                                          "fractionScale": {
+                                            "dataType": "Real",
+                                            "optional": true
                                           }
                                         }
                                       },
@@ -9993,6 +10113,21 @@
                                         ]
                                       },
                                       "optional": true
+                                    },
+                                    "fractionLayout": {
+                                      "dataType": "Enum",
+                                      "enumRestrictions": {
+                                        "options": [
+                                          "inline",
+                                          "horizontal",
+                                          "diagonal"
+                                        ]
+                                      },
+                                      "optional": true
+                                    },
+                                    "fractionScale": {
+                                      "dataType": "Real",
+                                      "optional": true
                                     }
                                   }
                                 },
@@ -10063,6 +10198,21 @@
                                           },
                                           "suffix": {
                                             "dataType": "String"
+                                          },
+                                          "fractionLayout": {
+                                            "dataType": "Enum",
+                                            "enumRestrictions": {
+                                              "options": [
+                                                "inline",
+                                                "horizontal",
+                                                "diagonal"
+                                              ]
+                                            },
+                                            "optional": true
+                                          },
+                                          "fractionScale": {
+                                            "dataType": "Real",
+                                            "optional": true
                                           }
                                         }
                                       },
@@ -11249,6 +11399,21 @@
                                         ]
                                       },
                                       "optional": true
+                                    },
+                                    "fractionLayout": {
+                                      "dataType": "Enum",
+                                      "enumRestrictions": {
+                                        "options": [
+                                          "inline",
+                                          "horizontal",
+                                          "diagonal"
+                                        ]
+                                      },
+                                      "optional": true
+                                    },
+                                    "fractionScale": {
+                                      "dataType": "Real",
+                                      "optional": true
                                     }
                                   }
                                 },
@@ -11319,6 +11484,21 @@
                                           },
                                           "suffix": {
                                             "dataType": "String"
+                                          },
+                                          "fractionLayout": {
+                                            "dataType": "Enum",
+                                            "enumRestrictions": {
+                                              "options": [
+                                                "inline",
+                                                "horizontal",
+                                                "diagonal"
+                                              ]
+                                            },
+                                            "optional": true
+                                          },
+                                          "fractionScale": {
+                                            "dataType": "Real",
+                                            "optional": true
                                           }
                                         }
                                       },
@@ -12505,6 +12685,21 @@
                                         ]
                                       },
                                       "optional": true
+                                    },
+                                    "fractionLayout": {
+                                      "dataType": "Enum",
+                                      "enumRestrictions": {
+                                        "options": [
+                                          "inline",
+                                          "horizontal",
+                                          "diagonal"
+                                        ]
+                                      },
+                                      "optional": true
+                                    },
+                                    "fractionScale": {
+                                      "dataType": "Real",
+                                      "optional": true
                                     }
                                   }
                                 },
@@ -12575,6 +12770,21 @@
                                           },
                                           "suffix": {
                                             "dataType": "String"
+                                          },
+                                          "fractionLayout": {
+                                            "dataType": "Enum",
+                                            "enumRestrictions": {
+                                              "options": [
+                                                "inline",
+                                                "horizontal",
+                                                "diagonal"
+                                              ]
+                                            },
+                                            "optional": true
+                                          },
+                                          "fractionScale": {
+                                            "dataType": "Real",
+                                            "optional": true
                                           }
                                         }
                                       },
@@ -13761,6 +13971,21 @@
                                         ]
                                       },
                                       "optional": true
+                                    },
+                                    "fractionLayout": {
+                                      "dataType": "Enum",
+                                      "enumRestrictions": {
+                                        "options": [
+                                          "inline",
+                                          "horizontal",
+                                          "diagonal"
+                                        ]
+                                      },
+                                      "optional": true
+                                    },
+                                    "fractionScale": {
+                                      "dataType": "Real",
+                                      "optional": true
                                     }
                                   }
                                 },
@@ -13831,6 +14056,21 @@
                                           },
                                           "suffix": {
                                             "dataType": "String"
+                                          },
+                                          "fractionLayout": {
+                                            "dataType": "Enum",
+                                            "enumRestrictions": {
+                                              "options": [
+                                                "inline",
+                                                "horizontal",
+                                                "diagonal"
+                                              ]
+                                            },
+                                            "optional": true
+                                          },
+                                          "fractionScale": {
+                                            "dataType": "Real",
+                                            "optional": true
                                           }
                                         }
                                       },
@@ -15017,6 +15257,21 @@
                                         ]
                                       },
                                       "optional": true
+                                    },
+                                    "fractionLayout": {
+                                      "dataType": "Enum",
+                                      "enumRestrictions": {
+                                        "options": [
+                                          "inline",
+                                          "horizontal",
+                                          "diagonal"
+                                        ]
+                                      },
+                                      "optional": true
+                                    },
+                                    "fractionScale": {
+                                      "dataType": "Real",
+                                      "optional": true
                                     }
                                   }
                                 },
@@ -15087,6 +15342,21 @@
                                           },
                                           "suffix": {
                                             "dataType": "String"
+                                          },
+                                          "fractionLayout": {
+                                            "dataType": "Enum",
+                                            "enumRestrictions": {
+                                              "options": [
+                                                "inline",
+                                                "horizontal",
+                                                "diagonal"
+                                              ]
+                                            },
+                                            "optional": true
+                                          },
+                                          "fractionScale": {
+                                            "dataType": "Real",
+                                            "optional": true
                                           }
                                         }
                                       },
@@ -16273,6 +16543,21 @@
                                         ]
                                       },
                                       "optional": true
+                                    },
+                                    "fractionLayout": {
+                                      "dataType": "Enum",
+                                      "enumRestrictions": {
+                                        "options": [
+                                          "inline",
+                                          "horizontal",
+                                          "diagonal"
+                                        ]
+                                      },
+                                      "optional": true
+                                    },
+                                    "fractionScale": {
+                                      "dataType": "Real",
+                                      "optional": true
                                     }
                                   }
                                 },
@@ -16343,6 +16628,21 @@
                                           },
                                           "suffix": {
                                             "dataType": "String"
+                                          },
+                                          "fractionLayout": {
+                                            "dataType": "Enum",
+                                            "enumRestrictions": {
+                                              "options": [
+                                                "inline",
+                                                "horizontal",
+                                                "diagonal"
+                                              ]
+                                            },
+                                            "optional": true
+                                          },
+                                          "fractionScale": {
+                                            "dataType": "Real",
+                                            "optional": true
                                           }
                                         }
                                       },
@@ -17529,6 +17829,21 @@
                                         ]
                                       },
                                       "optional": true
+                                    },
+                                    "fractionLayout": {
+                                      "dataType": "Enum",
+                                      "enumRestrictions": {
+                                        "options": [
+                                          "inline",
+                                          "horizontal",
+                                          "diagonal"
+                                        ]
+                                      },
+                                      "optional": true
+                                    },
+                                    "fractionScale": {
+                                      "dataType": "Real",
+                                      "optional": true
                                     }
                                   }
                                 },
@@ -17599,6 +17914,21 @@
                                           },
                                           "suffix": {
                                             "dataType": "String"
+                                          },
+                                          "fractionLayout": {
+                                            "dataType": "Enum",
+                                            "enumRestrictions": {
+                                              "options": [
+                                                "inline",
+                                                "horizontal",
+                                                "diagonal"
+                                              ]
+                                            },
+                                            "optional": true
+                                          },
+                                          "fractionScale": {
+                                            "dataType": "Real",
+                                            "optional": true
                                           }
                                         }
                                       },

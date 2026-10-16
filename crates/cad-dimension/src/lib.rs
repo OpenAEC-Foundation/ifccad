@@ -3,12 +3,14 @@ mod association;
 mod diagnostics;
 mod overrides;
 mod placement;
+mod source_overrides;
 mod styles;
 pub use association::*;
 pub use cad_presentation_convert::CadColorValue;
 pub use diagnostics::*;
 pub use overrides::*;
 pub use placement::*;
+pub use source_overrides::*;
 pub use styles::*;
 pub type CadDimensionStyleValues = ocdraw::dimension::DimensionStyleSettings<
     opencadcodec::Handle,

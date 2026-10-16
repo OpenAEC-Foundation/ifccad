@@ -312,3 +312,15 @@ experimental contract, not an adopted buildingSMART symbol resource standard.
 Gradient endpoints require concrete fixed RGB colors; Foreground is not a
 gradient endpoint. Concrete ACI 7 identity remains invalid under the common
 color contract. No background-dependent endpoint is resolved during IO.
+
+## Dimension fraction presentation
+
+Primary and enabled alternate number settings store `fractionLayout` (`inline`,
+`horizontal`, `diagonal`) and finite positive `fractionScale`. Omission defaults
+to `inline` and `1.0`, including old files. These settings affect only fractional
+and architectural number presentation; inactive values remain stored and
+validated. Precision, rounding, units and raw measurement are unchanged.
+Primary sparse overrides retain explicit `inline` and `1.0` resets. Alternate
+overrides retain the existing complete enabled-profile replacement rule.
+Literal label text is never parsed as a fraction. Formatted fragments are derived
+inspection results, not an authoritative stored label or measurement cache.

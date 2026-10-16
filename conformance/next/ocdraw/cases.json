@@ -589,6 +589,26 @@
       "path": "invalid/dimension-zero-text-height.ocdraw.json",
       "status": "invalid",
       "diagnostic": "SCHEMA"
+    },
+    {
+      "path": "valid/dimension-fraction-horizontal.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "valid/dimension-fraction-diagonal.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "invalid/dimension-fraction-layout.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/dimension-fraction-scale.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/dimension-fraction-null.ocdraw.json",
+      "status": "invalid"
     }
   ]
 }

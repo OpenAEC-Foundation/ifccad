@@ -25,7 +25,7 @@ jobs:
         id: browser-cache
         with:
           path: format-explorer/wasm-build
-          key: browser-wasm-ubuntu24-v2-${{ hashFiles('Cargo.toml', 'crates/**/Cargo.toml', 'src/**/*.rs', 'crates/**/src/**/*.rs', 'schemas/**', 'crates/ocdraw-convert/README.md', 'patches/opencadcodec-viewports*', 'patches/opencadcodec-viewports/**', '.github/actions/viewport-codec/**') }}
+          key: browser-wasm-ubuntu24-v2-${{ hashFiles('Cargo.toml', 'crates/**/Cargo.toml', 'src/**/*.rs', 'crates/**/src/**/*.rs', 'schemas/**', 'crates/ocdraw-convert/README.md', 'patches/opencadcodec-viewports*', 'patches/opencadcodec-viewports/**', 'patches/opencadcodec-dimension/**', '.github/actions/viewport-codec/**') }}
       - uses: ./.github/actions/viewport-codec
         if: steps.browser-cache.outputs.cache-hit != 'true'
       - uses: dtolnay/rust-toolchain@stable
@@ -129,7 +129,7 @@ jobs:
         id: rust-checks-cache
         with:
           path: target/explorer-rust-checks-passed
-          key: ocdraw-rust-checks-debian12-v3-${{ hashFiles('Cargo.toml', 'crates/**', 'src/**', 'tests/**', 'schemas/**', 'conformance/**', 'examples/**', 'patches/opencadcodec-viewports*', 'patches/opencadcodec-viewports/**', '.github/actions/viewport-codec/**', '.github/workflows/format-explorer.yml') }}
+          key: ocdraw-rust-checks-debian12-v3-${{ hashFiles('Cargo.toml', 'crates/**', 'src/**', 'tests/**', 'schemas/**', 'conformance/**', 'examples/**', 'patches/opencadcodec-viewports*', 'patches/opencadcodec-viewports/**', 'patches/opencadcodec-dimension/**', '.github/actions/viewport-codec/**', '.github/workflows/format-explorer.yml') }}
       - uses: ./.github/actions/viewport-codec
         if: steps.rust-checks-cache.outputs.cache-hit != 'true'
       - name: Install Rust check tools

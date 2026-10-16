@@ -152,7 +152,14 @@ styles, typed source selectors, pure measurement/formatting and qualified CAD
 exchange/inspection. Definition and explicit text anchors use the existing hard
 tolerance; complete display and picture regeneration remain unassessed. Seven
 additional kinds, extended selectors and joint annotative Text/MText/Dimension
-remain subsequent slices. See [Dimension support](docs/dimension.md). This adds
+remain subsequent slices. The repair round adds native fraction presentation,
+qualified CAD override coverage and localized inspector properties within this
+checkpoint. The next planned slice adds optional native worked-out Dimension
+graphics and qualified CAD picture-block capture/reuse, initially for linear and
+aligned. It precedes the remaining kinds and extended selectors; annotative
+per-context graphics stay with the later joint annotation slice. The graphics
+design is under review and does not yet extend the active contract. See
+[Dimension support](docs/dimension.md). This adds
 content within the existing sequence; it does not reopen layout/workspace work
 or publish the initial contract.
 

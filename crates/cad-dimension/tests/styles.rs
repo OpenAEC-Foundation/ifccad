@@ -40,9 +40,10 @@ fn active_unrepresented_style_semantics_are_not_silently_discarded() {
     outside.dimsoxd = true;
     let mut fraction = DimStyle::new("Stacked");
     fraction.dimlunit = 5;
-    fraction.dimfrac = 0;
+    fraction.dimfrac = 42;
     let mut factor = DimStyle::new("ZeroSuffix");
     factor.dimmzs = "zero".into();
+    factor.dimzin = 4;
     let mut tolerance = DimStyle::new("Tolerance");
     tolerance.dimtol = true;
     tolerance.dimtfac = 0.5;

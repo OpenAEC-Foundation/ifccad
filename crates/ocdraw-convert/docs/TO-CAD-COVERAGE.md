@@ -212,7 +212,10 @@ Native full-width identities remain exact; CAD handles are fresh conversion IDs.
 Native type overrides can materialize as complete CAD $0/$1 substyles with
 explicit inheritance/presence loss. Reimport retains complete named styles;
 no exact sparse parent hierarchy is claimed. Per-entity arrow flips and line
-spacing materialize inherited dependencies. Fixed-height font dependencies,
+spacing materialize inherited dependencies. Fixed TextStyle height is now
+materialized as nominal Dimension height with dependency evidence; matching
+fixed heights are accepted on output and conflicting heights are diagnosed.
+Remaining restrictions include
 aligned oblique extensions, annotation contexts and more complex marker,
 background, tolerance or dynamic-field profiles remain unqualified.
 
@@ -271,3 +274,23 @@ Gradient endpoints stay concrete after the Foreground color migration. Source
 ACI 7 endpoints are unqualified (active whole-Hatch or dormant-state omission
 under Allow; Reject refuses). Native Foreground endpoints fail validation;
 no fixed background or RGB replacement is invented.
+
+## Dimension repair profile added 2026-10-16
+
+Qualified source DSTYLE now includes fixed extension length/enabling (49/290),
+fraction layout/scale (276/146), ACI component colors (176/177/178) and
+shared/separate marker selection (173/342/343/344). Typed entries are resolved
+against the source style before activation checks; source order is irrelevant.
+Known inactive DIMTVP and subunit state no longer reject ordinary styles.
+Nonrepresentable active subunit conversion and complex tolerance layout remain
+explicit restrictions. Sparse reset presence and narrower coupled CAD output
+factoring remain audited, never silently approximated.
+
+The native contract stores inline/horizontal/diagonal fraction presentation;
+the neutral formatter provides structured fragments and a plain projection.
+Both native production readback and ASCII/binary DXF/AC1032 readback are exercised
+for repaired profiles. Correct DWG user-text placement requires the separate
+[polarity patch](../../../patches/opencadcodec-dimension/README.md) selected beside
+the viewport-off patch in the shared codec configuration. This is patched-codec
+evidence, not qualification of the unmodified dependency. CAD host rendering and
+picture regeneration remain a distinct assessment.

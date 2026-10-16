@@ -82,3 +82,26 @@ fn dimension_foreground_colors_and_explicit_reset_leaves_survive() {
     let loaded = load_ocdraw_bytes(encoded.bytes()).unwrap();
     assert_eq!(loaded.dimension_entities(), d.dimension_entities.as_slice());
 }
+
+#[test]
+fn fraction_styles_and_sparse_resets_survive_strict_native_reader() {
+    let mut d = support::drawing();
+    let primary = &mut d.dimension_styles[0].settings.numbers.primary;
+    primary.fraction_layout = DimensionFractionLayout::Diagonal;
+    primary.fraction_scale = 0.75;
+    let mut over = DimensionStyleOverrides::default();
+    over.numbers.primary.fraction_layout = Some(DimensionFractionLayout::Inline);
+    over.numbers.primary.fraction_scale = Some(1.0);
+    d.dimension_styles[0]
+        .type_overrides
+        .insert(DimensionKind::Aligned, over);
+    d.dimension_styles[0].settings.numbers.alternate = Some(DimensionAlternateNumberSettings {
+        fraction_layout: DimensionFractionLayout::Horizontal,
+        fraction_scale: 0.8,
+        ..Default::default()
+    });
+    let encoded = encode_ocdraw_document(&d).unwrap();
+    let loaded = load_ocdraw_bytes(encoded.bytes()).unwrap();
+    assert_eq!(loaded.dimension_styles(), d.dimension_styles.as_slice());
+    assert_eq!(loaded.dimension_entities(), d.dimension_entities.as_slice());
+}

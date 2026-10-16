@@ -61,24 +61,24 @@ The group-52 offset rule follows [Autodesk linear dimensions](https://help.autod
 | dimblk, dimblk1, dimblk2, dimblk_name, dimblk1_name, dimblk2_name, dimsah | R selected marker references; L inactive shared/separate choices; U unresolved legacy names. |
 | dimldrblk | L leader-only style state. |
 | dimtxt, dimtih, dimtoh, dimtix, dimtmove, dimtad | R qualified height/orientations/fit/movement/vertical anchor; U DIMTAD outside 0/1 or unknown movement. |
-| dimjust, dimtvp, dimtxtdirection | U nondefault justification/offset/reversed direction. |
+| dimjust, dimtvp, dimtxtdirection | U nondefault justification, active offset (DIMTAD=0) or reversed direction; L inactive DIMTVP under DIMTAD=1. |
 | dimsoxd | U active outside-arrow suppression. |
 | dimtfill, dimtfillclr, dimtfillclr_true_color | R none/canvas/opaque explicit color; L inactive color, U unknown mode/inherited color. True color gets target DXF L. |
-| dimmzf, dimmzs | U active zero-measurement substitution. |
-| dimaltmzf, dimaltmzs | U active alternate substitution, L inactive alternate state. |
+| dimmzf, dimmzs | U active decimal subunit conversion with leading-zero suppression; L inactive settings, including ordinary DWG factor 100 defaults. |
+| dimaltmzf, dimaltmzs | U active alternate decimal subunits; L inactive alternate state. |
 | dimtxsty_handle, dimtxsty | R resolved textstyle; I unresolved reference. Adapter must reject ambiguous name/handle relationships. |
 | dimscale, dimlfac | R positive presentation scale and numeric factor; negative DIMLFAC is Paper-only, never coordinate scale. U DIMSCALE=0 automatic viewport/Paper context. |
-| dimlunit, dimdec, dimrnd, dimdsep, dimzin | R plain numeric format, precision, rounding, separator and zero flags; U unknown modes/bits, I invalid precision/separator. |
+| dimlunit, dimdec, dimrnd, dimdsep, dimzin | R plain numeric format, precision, rounding, separator (DIMDSEP zero/NULL means decimal point) and zero flags; U unknown modes/bits, I invalid precision/separator. |
 | dimaunit | R angle-format style metadata; U survey format. |
 | dimadec, dimazin | L angular-only precision/zero state, no angular entities in this profile. |
 | dimalt, dimaltf, dimaltd, dimaltu, dimaltrnd, dimapost, dimaltz | R active alternate number group; L inactive data. |
 | dimalttd, dimalttz | U active alternate tolerance combination; L inactive state. |
 | dimtol, dimlim, dimtp, dimtm, dimtdec | R basic deviation/limits values; I contradictory modes; L inactive values. |
-| dimtfac, dimtolj, dimtzin | U nondefault active tolerance layout/suppression; L inactive state. |
+| dimtfac, dimtolj, dimtzin | R positive fraction scale; U nondefault active tolerance layout/suppression; L inactive tolerance state. |
 | dimatfit, dimtofl | R qualified fit/line policy; U unknown fit mode. |
 | dimupt, dimfit, dimunit | L cursor/obsolete editing fields. |
 | dimpost | R single measurement token plus plain prefix/suffix; U ambiguous token/markup/dynamic field. |
-| dimfrac | U active stacked fraction display; plain unstacked fractions qualified, inactive choice L. |
+| dimfrac | R native inline/horizontal/diagonal fraction choice, retained even when inactive. |
 | dimarcsym | R style metadata before/above/none, U unknown choice. |
 | dimjogang | L radius-only state. |
 | dimltex_handle, dimltex1_handle, dimltex2_handle | R component pattern refs; adapter must bind actual definitions. |
@@ -106,8 +106,10 @@ ACAD DSTYLE grammar: one `DSTYLE { code value ... }` subsection across records.
 Code is Integer16, each value has its specified XDATA type. Duplicate subsection,
 duplicate code, bad type, delimiter or nonfinite value is I. An unfamiliar dimvar
 in otherwise supported structure is U. Other records/ACAD values remain residual.
-Qualified codes: 3,40,41,42,44,45,46,73,74,75,76,77,78,140,141,142,144,147,
-172,174,271,277,278,279,281,282,289,340. Output reparses and compares sparse values;
+Qualified codes: 3,40,41,42,44,45,46,49,73,74,75,76,77,78,140,141,142,144,146,147,
+172,173,174,176,177,178,271,276,277,278,279,281,282,289,290,340,342,343,344.
+Source entries are typed before switches/values are resolved against the style.
+Output reparses and compares authored-leaf coverage;
 otherwise it rejects differing factoring instead of silently filling absent leaves.
 
 DIMASSOC public association fields: `dimension` R handle, `associativity` R first
@@ -142,3 +144,23 @@ explicit picture portability loss: a CAD host must regenerate display. Existing
 source picture definitions are independently audited; they are never discarded
 merely because their names look anonymous. Fonts, glyphs, line/marker display,
 host regeneration and enclosing display bounds remain unassessed.
+
+## Repair qualification added 2026-10-16
+
+A fixed positive CAD TextStyle height overrides DIMTXT and is materialized in
+native nominal text height, with editing-dependency loss. DIMSCALE remains
+separate. A target fixed height must match the effective native height; it never
+silently replaces it. Local text-style changes can materialize a height override.
+
+Primary DIMFRAC 0/1/2 maps to horizontal/diagonal/inline; DIMTFAC supplies the
+fraction scale. Alternate DIMALTU has a separate mapping: 4/5 stacked
+architectural/fractional, 6/7 inline. Native alternative diagonal stacks and
+independent primary/alternate fraction scales have an explicit narrower CAD
+output boundary. Active tolerance scaling remains unqualified. DSTYLE color
+leaves use ACI; true-color overrides require an unsupported transport profile.
+Coupled native leaves must retain qualified factoring on output.
+
+DWG text-position polarity requires the explicitly selected
+[codec repair](../../patches/opencadcodec-dimension/README.md). The raw-bit test
+checks both positions independently of matching reader/writer behavior. Native
+models, CAD definition anchors and strict-validation rules are unchanged.
