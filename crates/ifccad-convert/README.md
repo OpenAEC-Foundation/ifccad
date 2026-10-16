@@ -35,6 +35,12 @@ any diagnosed semantic loss. Errors distinguish invalid structure, unsupported
 content, core validation, encoding, output readback, ID allocation and CAD
 construction. It makes no losslessness claim for arbitrary CAD files or IFCX graphs.
 
+Model-only CAD input may contain the codec's empty reserved `*Paper_Space`
+record without a Paper layout. The converter accepts only the primary header-bound
+record with default metadata and no drawable content or layout/INSERT references; it creates
+no native Paper layout. Authored or conflicting orphan Paper records remain
+structural errors under both loss policies.
+
 ## API
 
 `IfccadDocument` is the central logical input/output between CAD conversion

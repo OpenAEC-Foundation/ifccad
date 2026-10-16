@@ -243,7 +243,10 @@ pub(crate) fn inspect(
         }
     }
     for b in doc.block_records.iter() {
-        if b.is_paper_space() && !layout_blocks.contains(&b.handle) {
+        if b.is_paper_space()
+            && !layout_blocks.contains(&b.handle)
+            && !layouts::is_empty_reserved_paper_block(doc, b)
+        {
             return Err(invalid("Paper block needs exactly one layout"));
         }
         if !names.insert(b.name.to_uppercase()) {
