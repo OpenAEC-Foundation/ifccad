@@ -82,12 +82,16 @@ pub fn resolve_ifccad_hatch_join_tolerance(
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadHatchLoop {
     pub boundary: HatchBoundary2,
-    pub source_entity_id: Option<u64>,
+    pub source_entity_ids: Vec<u64>,
+    pub provenance: Option<crate::geometry_kernel::hatch::HatchLoopProvenance>,
+    /// Special text-loop fill classification, independent of provenance and sources.
+    pub text_island: bool,
 }
 pub type IfccadHatchGradient = crate::geometry_kernel::hatch::HatchGradient<IfccadColor>;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadHatch {
+    pub association_enabled: bool,
     pub gradient: Option<IfccadHatchGradient>,
     pub placement: IfccadPlacement,
     pub loops: Vec<IfccadHatchLoop>,
@@ -96,6 +100,15 @@ pub struct IfccadHatch {
     pub fill: HatchFill,
 }
 pub(crate) fn validate_hatch(h: &IfccadHatch, path: &str) -> Result<(), IfccadReport> {
+    for (i, l) in h.loops.iter().enumerate() {
+        if l.provenance.as_ref().is_some_and(|p| p.is_empty()) {
+            return Err(crate::ifccad::diagnostics::failure(
+                "IFCCAD-HATCH-001",
+                &format!("{path}/loops/{i}/provenance"),
+                "empty provenance must be omitted",
+            ));
+        }
+    }
     h.placement
         .coordinate_frame()
         .map_err(|e| crate::ifccad::diagnostics::context(e, "IFCCAD-HATCH-001", path))?;
@@ -142,23 +155,18 @@ pub(crate) fn validate_hatch_sources(d: &IfccadDocument) -> Result<(), IfccadRep
             continue;
         };
         for (i, l) in h.loops.iter().enumerate() {
-            if let Some(id) = l.source_entity_id {
-                let valid = entities.get(&id).is_some_and(|(target_owner, target)| {
+            for (j, id) in l.source_entity_ids.iter().enumerate() {
+                let valid = entities.get(id).is_some_and(|(target_owner, target)| {
                     *target_owner == owner
-                        && target.as_native().is_some_and(|target| {
-                            matches!(
-                                target.kind,
-                                IfccadEntityKind::Circle { .. }
-                                    | IfccadEntityKind::Ellipse { .. }
-                                    | IfccadEntityKind::PlanarPolyline { closed: true, .. }
-                            )
-                        })
+                        && target
+                            .as_native()
+                            .is_some_and(|target| target.kind.is_hatch_boundary_source())
                 });
                 if !valid {
                     return Err(crate::ifccad::diagnostics::failure(
                         "IFCCAD-HATCH-002",
-                        &format!("/cad/d{}/e{}/loops/{i}/source", d.drawing_id, e.id),
-                        "missing or unsupported closed same-owner entity",
+                        &format!("/cad/d{}/e{}/loops/{i}/sources/{j}", d.drawing_id, e.id),
+                        "missing or unsupported same-owner boundary source entity",
                     ));
                 }
             }

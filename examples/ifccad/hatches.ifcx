@@ -214,9 +214,12 @@
                 "kind": "circle",
                 "radius": 1.0
               },
-              "source": "/cad/d1/e2"
+              "sources": [
+                "/cad/d1/e2"
+              ]
             }
-          ]
+          ],
+          "associationEnabled": true
         }
       }
     },
@@ -392,9 +395,12 @@
                 "kind": "circle",
                 "radius": 1.0
               },
-              "source": "/cad/d1/e4"
+              "sources": [
+                "/cad/d1/e4"
+              ]
             }
-          ]
+          ],
+          "associationEnabled": true
         }
       }
     },

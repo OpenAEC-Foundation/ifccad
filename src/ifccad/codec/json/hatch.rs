@@ -4,12 +4,52 @@ use crate::geometry_kernel::hatch::{HatchAreaRule, DEFAULT_HATCH_JOIN_TOLERANCE}
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ProvenanceValue {
+    #[serde(default, skip_serializing_if = "is_false")]
+    from_source_objects: bool,
+    #[serde(default, skip_serializing_if = "is_false")]
+    derived_from_pick_point: bool,
+    #[serde(default, skip_serializing_if = "is_false")]
+    outermost_hint: bool,
+    #[serde(default, skip_serializing_if = "is_false")]
+    text_box: bool,
+}
+fn is_false(value: &bool) -> bool {
+    !*value
+}
+impl From<ProvenanceValue> for crate::geometry_kernel::hatch::HatchLoopProvenance {
+    fn from(p: ProvenanceValue) -> Self {
+        Self {
+            from_source_objects: p.from_source_objects,
+            derived_from_pick_point: p.derived_from_pick_point,
+            outermost_hint: p.outermost_hint,
+            text_box: p.text_box,
+        }
+    }
+}
+impl From<&crate::geometry_kernel::hatch::HatchLoopProvenance> for ProvenanceValue {
+    fn from(p: &crate::geometry_kernel::hatch::HatchLoopProvenance) -> Self {
+        Self {
+            from_source_objects: p.from_source_objects,
+            derived_from_pick_point: p.derived_from_pick_point,
+            outermost_hint: p.outermost_hint,
+            text_box: p.text_box,
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct LoopValue {
     boundary: BoundaryValue,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    sources: Vec<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    source: Option<String>,
+    provenance: Option<ProvenanceValue>,
+    #[serde(default, skip_serializing_if = "is_false")]
+    text_island: bool,
 }
 fn rule() -> String {
     "normal".into()
@@ -20,6 +60,8 @@ fn tolerance() -> f64 {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct HatchValue {
+    #[serde(default)]
+    association_enabled: bool,
     loops: Vec<LoopValue>,
     #[serde(default = "rule")]
     area_rule: String,
@@ -42,7 +84,9 @@ pub(super) fn decode_hatch(
         .as_array()
         .ok_or_else(|| error("Hatch loops required"))?;
     for l in raw {
-        if l.get("source").is_some_and(Value::is_null)
+        if ["sources", "provenance", "textIsland"]
+            .iter()
+            .any(|k| l.get(k).is_some_and(Value::is_null))
             || l["boundary"].get("bulges").is_some_and(Value::is_null)
         {
             return Err(error(
@@ -61,7 +105,8 @@ pub(super) fn decode_hatch(
     let source_prefix = format!("{prefix}/e");
     let mut loops = Vec::new();
     for l in v.loops {
-        let id = if let Some(source) = l.source {
+        let mut ids = Vec::new();
+        for source in l.sources {
             let tail = source
                 .strip_prefix(&source_prefix)
                 .ok_or_else(|| error("Hatch source needs a complete same-drawing entity path"))?;
@@ -71,18 +116,19 @@ pub(super) fn decode_hatch(
             if tail != id.to_string() {
                 return Err(error("noncanonical Hatch source identity"));
             }
-            Some(id)
-        } else {
-            None
-        };
+            ids.push(id);
+        }
         loops.push(IfccadHatchLoop {
             boundary: l.boundary.into(),
-            source_entity_id: id,
+            source_entity_ids: ids,
+            provenance: l.provenance.map(Into::into),
+            text_island: l.text_island,
         });
     }
     let placement: IfccadPlacement =
         serde_json::from_value(placement.clone()).map_err(|e| error(&e.to_string()))?;
     Ok(IfccadEntityKind::Hatch(IfccadHatch {
+        association_enabled: v.association_enabled,
         gradient: v
             .gradient
             .as_ref()
@@ -99,10 +145,13 @@ pub(super) fn decode_hatch(
 pub(super) fn encode_hatch(h: &IfccadHatch, prefix: &str) -> Value {
     let fill = super::hatch_pattern::encode(&h.fill);
     let mut value = json!({
-        "loops":h.loops.iter().map(|l|LoopValue{boundary:l.boundary.clone().into(),source:l.source_entity_id.map(|id|format!("{prefix}/e{id}"))}).collect::<Vec<_>>(),
+        "loops":h.loops.iter().map(|l|LoopValue{boundary:l.boundary.clone().into(),sources:l.source_entity_ids.iter().map(|id|format!("{prefix}/e{id}")).collect(),provenance:l.provenance.as_ref().map(Into::into),text_island:l.text_island}).collect::<Vec<_>>(),
         "areaRule":match h.area_rule{HatchAreaRule::Normal=>"normal",HatchAreaRule::Outer=>"outer",HatchAreaRule::Ignore=>"ignore"},
         "joinTolerance":h.join_tolerance,"fill":fill
     });
+    if h.association_enabled {
+        value["associationEnabled"] = json!(true);
+    }
     if let Some(g) = &h.gradient {
         value["gradient"] = super::hatch_gradient::encode(g);
     }

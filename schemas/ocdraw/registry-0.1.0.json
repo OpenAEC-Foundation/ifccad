@@ -2580,14 +2580,24 @@
           "nullable": false
         },
         {
-          "name": "sourceEntityId",
-          "valueType": "entityId",
+          "name": "sourceEntityIds",
+          "valueType": "hatchSourceEntityIds",
           "nullable": false,
           "optional": true,
-          "reference": {
-            "category": "entity",
-            "target": "entity"
-          }
+          "default": []
+        },
+        {
+          "name": "provenance",
+          "valueType": "hatchLoopProvenance",
+          "nullable": false,
+          "optional": true
+        },
+        {
+          "name": "textIsland",
+          "valueType": "boolean",
+          "nullable": false,
+          "optional": true,
+          "default": false
         }
       ]
     },
@@ -4449,6 +4459,44 @@
       "kind": "sequence",
       "items": "dimensionAssociation",
       "minItems": 0
+    },
+    "hatchSourceEntityIds": {
+      "kind": "sequence",
+      "items": "entityId",
+      "minItems": 0
+    },
+    "hatchLoopProvenance": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "fromSourceObjects",
+          "valueType": "boolean",
+          "nullable": false,
+          "optional": true,
+          "default": false
+        },
+        {
+          "name": "derivedFromPickPoint",
+          "valueType": "boolean",
+          "nullable": false,
+          "optional": true,
+          "default": false
+        },
+        {
+          "name": "outermostHint",
+          "valueType": "boolean",
+          "nullable": false,
+          "optional": true,
+          "default": false
+        },
+        {
+          "name": "textBox",
+          "valueType": "boolean",
+          "nullable": false,
+          "optional": true,
+          "default": false
+        }
+      ]
     }
   },
   "resource": {
@@ -6863,6 +6911,13 @@
           "nullable": true,
           "optional": true,
           "default": null
+        },
+        {
+          "name": "associationEnabled",
+          "valueType": "boolean",
+          "nullable": false,
+          "optional": true,
+          "default": false
         }
       ]
     },

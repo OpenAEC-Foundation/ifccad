@@ -212,7 +212,7 @@ pub(super) fn append(
         drawing.set_preservation(preservation);
     }
     let mut document = drawing.build_document()?;
-    crate::source::hatch::bind(&mut document, &mapping, pending_hatches, diagnostics);
+    crate::source::hatch::bind(&mut document, &mapping, pending_hatches, diagnostics)?;
     crate::source::dimension::bind(&mut document, &mapping, pending_dimensions, diagnostics);
     let bindings = pending.into_iter().collect::<BTreeMap<_, _>>();
     for v in &mut document.viewports {

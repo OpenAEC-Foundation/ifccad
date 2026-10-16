@@ -5,7 +5,8 @@
     "nextEntityId": 3,
     "nextLayerId": 1,
     "nextLayoutId": 1,
-    "nextLinePatternId": 1,"nextSymbolSourceId":0,
+    "nextLinePatternId": 1,
+    "nextSymbolSourceId": 0,
     "unit": "mm",
     "version": "0.1.0"
   },
@@ -192,7 +193,7 @@
         }
       ],
       "joinTolerance": [
-        1e-9
+        1e-09
       ],
       "layerId": [
         0
@@ -252,7 +253,9 @@
               "kind": "circle",
               "radius": 1.0
             },
-            "sourceEntityId": 1
+            "sourceEntityIds": [
+              1
+            ]
           }
         ]
       ],
@@ -282,6 +285,9 @@
         }
       ],
       "visible": [
+        true
+      ],
+      "associationEnabled": [
         true
       ]
     }

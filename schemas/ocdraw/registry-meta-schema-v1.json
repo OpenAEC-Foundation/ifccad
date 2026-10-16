@@ -356,7 +356,9 @@
             "dimensionOverridesNumbersAlternateKind",
             "dimensionTypeOverrides",
             "dimensionStyleId",
-            "dimensionAssociations"
+            "dimensionAssociations",
+            "hatchSourceEntityIds",
+            "hatchLoopProvenance"
           ]
         },
         "nullable": {
@@ -751,7 +753,9 @@
                 "dimensionOverridesNumbersAlternateKind",
                 "dimensionTypeOverrides",
                 "dimensionStyleId",
-                "dimensionAssociations"
+                "dimensionAssociations",
+                "hatchSourceEntityIds",
+                "hatchLoopProvenance"
               ]
             },
             "minItems": {

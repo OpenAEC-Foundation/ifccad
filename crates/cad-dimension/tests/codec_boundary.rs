@@ -41,7 +41,8 @@ fn literal_dxf_group_11_is_ocs_independently_of_codec_comments() {
 
 #[test]
 fn literal_clone_group_12_and_angular_group_16_remain_outside_slice_one() {
-    let literal = include_str!("../../../tests/fixtures/dimension/tilted-aligned.dxf");
+    let literal =
+        include_str!("../../../tests/fixtures/dimension/tilted-aligned.dxf").replace("\r\n", "\n");
     let clone = literal.replace("AcDbDimension\n", "AcDbDimension\n12\n19\n22\n23\n32\n29\n");
     let doc = DxfReader::from_reader(Cursor::new(clone.into_bytes()))
         .unwrap()

@@ -22,7 +22,7 @@ fn ifccad(root: &Path) -> Result<(), Box<dyn Error>> {
             IfccadEntityKind::Hatch(hatch) => {
                 hatch.placement.origin[0] += 8.;
                 for contour in &mut hatch.loops {
-                    if let Some(id) = &mut contour.source_entity_id {
+                    for id in &mut contour.source_entity_ids {
                         *id += 2;
                     }
                 }
@@ -60,7 +60,7 @@ fn ocdraw(root: &Path) -> Result<(), Box<dyn Error>> {
         hatch.id += 2;
         hatch.placement = placement;
         for contour in &mut hatch.loops {
-            if let Some(id) = &mut contour.source_entity_id {
+            for id in &mut contour.source_entity_ids {
                 *id += 2;
             }
         }

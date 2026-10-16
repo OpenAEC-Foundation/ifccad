@@ -560,19 +560,35 @@ simplicity, absence of intersections, nesting or filled-area evaluability.
 Evaluation remains a viewer/editor responsibility; no generated fill cache
 or topology-valid flag is stored.
 
-A loop may reference one exact sourceEntityId: a full Circle/Ellipse or closed
-planar Polyline in the same owner. Missing, wrong-kind and wrong-owner sources
-fail. IO does not update stored boundaries from sources. Explicit detach keeps
-the boundary. Block-occurrence selectors and update reactors are separate work.
+A loop may store ordered `sourceEntityIds`, default empty, identifying whole
+boundary-contributing objects in the same direct owner. Eligible kinds are
+Line, Circle, Arc, full/partial Ellipse, open/closed PlanarPolyline and
+SpatialPolyline, Text, MText, local BlockInstance and Paper Viewport. IDs are
+exact uint64; order and repeated IDs are preserved without implying edge
+correspondence. Missing, wrong-kind and wrong-owner sources fail even when
+`associationEnabled` is false. This Hatch-wide switch defaults false; true
+without groups is valid unbound state. Explicit detach removes the whole
+affected group, preserving stored contour, fill and authored flags. IO does
+not compare current source geometry or regenerate boundaries. Precise selectors,
+block-component paths and automatic update reactors remain separate work.
+
+Optional loop `provenance` is closed: fromSourceObjects, derivedFromPickPoint,
+outermostHint and textBox default false. A present all-false record is invalid.
+These are authored hints, not proofs of current source agreement or nesting.
+Independent `textIsland` defaults false and preserves the special text-loop
+fill classification: text loops surrounded by an even number of outer loops
+are avoided in Solid fill. It is not a generic hole, provenance hint or areaRule
+replacement. All fill variants retain it; IO does not derive it from text,
+fonts, source lists or nesting. Pattern/gradient evaluation is unassessed.
 
 One hatchStream has ordinary common and placement columns, optional whole
-areaRule/joinTolerance columns with defaults, and typed nested loops/fill.
+areaRule/joinTolerance/associationEnabled columns with defaults, and typed nested loops/fill.
 All supplied columns match count. Unknown nested fields, null source references,
 floating-point IDs and unavailable fill variants are invalid.
 
 Stored contours contribute certified conservative bounds without nesting
-classification. Preparation remains explicit and atomic. Pattern fills,
-gradients, splines and CAD-route qualification are separate development work.
+classification. Preparation remains explicit and atomic. Spline contours,
+fill evaluation and CAD-editor updates remain separate development work.
 
 ## Hatch LinePattern fill
 

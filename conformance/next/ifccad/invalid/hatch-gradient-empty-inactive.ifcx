@@ -216,10 +216,13 @@
                 "kind": "circle",
                 "radius": 1.0
               },
-              "source": "/cad/d1/e7"
+              "sources": [
+                "/cad/d1/e7"
+              ]
             }
           ],
-          "gradient": {}
+          "gradient": {},
+          "associationEnabled": true
         }
       }
     },

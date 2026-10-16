@@ -295,7 +295,9 @@
               "kind": "circle",
               "radius": 1.0
             },
-            "sourceEntityId": 1
+            "sourceEntityIds": [
+              1
+            ]
           }
         ],
         [
@@ -337,7 +339,9 @@
               "kind": "circle",
               "radius": 1.0
             },
-            "sourceEntityId": 3
+            "sourceEntityIds": [
+              3
+            ]
           }
         ]
       ],
@@ -386,6 +390,10 @@
         }
       ],
       "visible": [
+        true,
+        true
+      ],
+      "associationEnabled": [
         true,
         true
       ]

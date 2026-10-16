@@ -301,12 +301,11 @@ Stored local contours become CAD OCS paths with the exact native area-rule mode.
 Curve/point evidence participates in hard numerical and nested occurrence
 assessment. Forward source references bind only after target handles exist;
 no contour regeneration or source-geometry equality check is performed.
-Missing converted targets detach only the relation with located loss. Invalid
+Missing converted targets omit the entire affected source group, with entry/group loss and preserved contour, flags, switch and other groups. Invalid
 native references fail shared core validation under Allow and Reject.
 
 CAD does not persist authored native join policy: a nondefault limit produces
-located rejectable loss. Default/polyline path flags do not assert outer/hole
-labels. Actual AC1032 DXF/DWG tests qualify contour/order/reference retention,
+located rejectable loss. Independent associationEnabled maps without inference; disabled source groups remain stored. Ordered sources retain duplicates. EXTERNAL/DERIVED/OUTERMOST/TEXTBOX map from provenance; TEXT_ISLAND retains special active text-loop fill semantics. POLYLINE is backing-derived. No topology/outer-hole roles are inferred. Actual AC1032 DXF/DWG tests qualify contour/order/reference retention,
 including small stored gaps; they do not certify CAD fill evaluation or reactor
 update behavior. Fill and nested fill occurrences remain unassessed. Explicit LinePattern families evaluate once into Custom CAD definitions, including
 origin/rotation/scale and signed phase. Missing literal metadata is diagnosed.
@@ -314,7 +313,7 @@ Pattern certificate envelopes join contour evidence in nested occurrence assessm
 Nonempty descriptions remain in CadDocument; pinned DXF/DWG storage loses them,
 with a separate viewer/browser physical-readback metadata diagnostic.
 No spline-boundary or MPOLYGON backing is offered by this slice.
-See [Hatch support](../../../docs/hatch.md) for the complete bounded guarantee.
+AC1032 file qualification includes enabled/disabled/unbound state, complete groups and TextIsland for Solid/LinePattern/Gradient and all area rules. The viewer/browser compares actual production readback before delivery; unbound switch clearing and other target losses are located and Reject refuses. Source reactors are generated only as codec bookkeeping, without a native update engine. See [Hatch support](../../../docs/hatch.md) for target codes and the complete bounded guarantee.
 ## IFCCAD validation rule organization
 
 Native output and input continue through the production reader and shared domain

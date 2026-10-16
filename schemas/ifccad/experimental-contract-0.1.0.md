@@ -487,10 +487,23 @@ Every ordered edge join, including closing join, requires a proof within that
 stored limit. Exact zero, proven exceedance and insufficient numerical proof
 remain distinct. IO does not snap, normalize, triangulate or regenerate bounds.
 
-One loop may store source as a canonical complete same-drawing entity path.
-The target must be a full Circle/Ellipse or closed planar Polyline in the
-same owner. References do not certify current agreement between source and
-stored contour. Invalid references fail; explicit detach keeps the contour.
+A loop may store ordered `sources`, default empty, as canonical complete
+same-drawing entity paths. Eligible whole-object targets are Line, Circle, Arc,
+Ellipse/EllipseArc, open/closed PlanarPolyline and SpatialPolyline, Text, MText,
+local BlockInstance and Paper Viewport in the same direct owner. Order and
+duplicates survive without implying segment or edge correspondence. Missing,
+wrong-kind and wrong-owner references fail even when the Hatch-wide
+`associationEnabled` switch is false (default). True without groups is valid
+unbound state. Explicit detach removes the entire affected group and retains
+contour, fill and flags. No current geometric agreement is asserted or checked.
+
+Optional loop `provenance` has only fromSourceObjects, derivedFromPickPoint,
+outermostHint and textBox, default false; a present all-false record is invalid.
+Independent `textIsland`, default false, preserves special text-loop fill
+classification, including the Solid-fill exception for text loops surrounded
+by an even number of outer loops. It is not a generic hole or provenance hint.
+All fills retain this classification; no flag is inferred from current nesting,
+source lists or font bounds. Pattern/gradient fill evaluation is unassessed.
 
 The complete ifccad::hatch value is replaced by a later fragment, including
 its loops array. Nested keys are ordinary typed values, not independent nodes

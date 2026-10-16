@@ -61,14 +61,18 @@ pub(crate) fn from_cad(
         issues,
     )?;
     Ok(Some(IfccadEntityKind::Hatch(IfccadHatch {
+        association_enabled: p.is_associative,
         gradient: p.gradient.map(super::hatch_gradient::gradient_from_cad),
         placement: super::geometry::placement(p.placement),
         loops: p
             .boundaries
             .into_iter()
-            .map(|boundary| IfccadHatchLoop {
+            .zip(p.loop_flags)
+            .map(|(boundary, flags)| IfccadHatchLoop {
+                provenance: flags.provenance,
+                text_island: flags.text_island,
                 boundary,
-                source_entity_id: None,
+                source_entity_ids: vec![],
             })
             .collect(),
         area_rule: p.area_rule,
@@ -126,7 +130,7 @@ pub(crate) fn to_cad(
             (Some(g), losses)
         })
         .unwrap_or_default();
-    let p = match cad_geometry_convert::hatch::prepare_hatch_to_cad(
+    let mut p = match cad_geometry_convert::hatch::prepare_hatch_to_cad(
         h.placement
             .coordinate_frame()
             .map_err(IfccadConversionError::CoreValidation)?,
@@ -160,6 +164,20 @@ pub(crate) fn to_cad(
             })
         }
     };
+    let flags = h
+        .loops
+        .iter()
+        .map(|l| cad_geometry_convert::hatch::PreparedHatchLoopFlags {
+            provenance: l.provenance.clone(),
+            text_island: l.text_island,
+        })
+        .collect::<Vec<_>>();
+    cad_geometry_convert::hatch::apply_loop_flags_to_cad(&mut p.hatch, &flags).map_err(
+        |source| IfccadConversionError::HatchPreparation {
+            location: format!("entity/{id}"),
+            source,
+        },
+    )?;
     if !p.losses.iter().any(|l| l.field == "gradient.frame") {
         for loss in color_losses {
             issues.push(crate::diagnostics::diagnostic(

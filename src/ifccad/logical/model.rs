@@ -262,6 +262,26 @@ pub enum IfccadEntityKind {
     },
 }
 
+impl IfccadEntityKind {
+    /// Boundary-providing native kinds, without geometric reconstruction or owner checks.
+    pub fn is_hatch_boundary_source(&self) -> bool {
+        matches!(
+            self,
+            Self::LineSegment { .. }
+                | Self::Circle { .. }
+                | Self::Arc { .. }
+                | Self::Ellipse { .. }
+                | Self::EllipseArc { .. }
+                | Self::PlanarPolyline { .. }
+                | Self::SpatialPolyline { .. }
+                | Self::Text(_)
+                | Self::MText(_)
+                | Self::BlockInstance { .. }
+                | Self::Viewport(_)
+        )
+    }
+}
+
 /// Drawing-local pattern identity; its complete IFCX path is the wire reference.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(transparent)]

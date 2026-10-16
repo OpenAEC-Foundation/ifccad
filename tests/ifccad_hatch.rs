@@ -22,7 +22,7 @@ fn missing_source_fails_and_source_edit_does_not_update_stored_contour() {
     let IfccadEntityKind::Hatch(h) = &mut d.model.entities[0].as_native_mut().unwrap().kind else {
         panic!()
     };
-    h.loops[1].source_entity_id = Some(123);
+    h.loops[1].source_entity_ids = vec![123];
     assert!(validate_ifccad_document(&d).is_err());
     let mut d = drawing();
     d.model.entities[1].as_native_mut().unwrap().kind = IfccadEntityKind::Circle {

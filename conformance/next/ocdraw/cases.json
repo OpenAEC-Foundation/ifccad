@@ -589,6 +589,30 @@
       "path": "invalid/dimension-zero-text-height.ocdraw.json",
       "status": "invalid",
       "diagnostic": "SCHEMA"
+    },
+    {
+      "path": "valid/hatch-associations-disabled.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "valid/hatch-associations-unbound.ocdraw.json",
+      "status": "valid"
+    },
+    {
+      "path": "invalid/hatch-empty-provenance.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/hatch-null-source-group.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/hatch-null-text-island.ocdraw.json",
+      "status": "invalid"
+    },
+    {
+      "path": "invalid/hatch-unknown-provenance.ocdraw.json",
+      "status": "invalid"
     }
   ]
 }

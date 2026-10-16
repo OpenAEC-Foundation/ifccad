@@ -1878,6 +1878,11 @@
           "payload": "gradient",
           "omission": "logicalDefault",
           "nullEncoding": "logicalNull"
+        },
+        {
+          "logical": "hatch.associationEnabled",
+          "payload": "associationEnabled",
+          "omission": "logicalDefault"
         }
       ]
     },

@@ -96,6 +96,7 @@ pub(crate) fn inspect(
     preserve_splines: bool,
     consumed_objects: &BTreeSet<Handle>,
     consumed_dimension_styles: &BTreeSet<Handle>,
+    hatch_reactors: &BTreeSet<(Handle, Handle)>,
 ) -> Result<Inspection, Error> {
     let invalid = |s: &str| Error::InvalidStructure(s.to_string());
     let models = doc
@@ -415,6 +416,7 @@ pub(crate) fn inspect(
         preserve_splines,
         consumed_objects,
         consumed_dimension_styles,
+        hatch_reactors,
         &mut issues,
     )?;
     for e in doc.entities() {
@@ -531,6 +533,7 @@ fn scan(
     preserve_splines: bool,
     consumed_objects: &BTreeSet<Handle>,
     consumed_dimension_styles: &BTreeSet<Handle>,
+    hatch_reactors: &BTreeSet<(Handle, Handle)>,
     issues: &mut Vec<IfccadDiagnostic>,
 ) -> Result<(), Error> {
     static DWG_DEFAULT: OnceLock<Result<CadDocument, String>> = OnceLock::new();
@@ -795,6 +798,11 @@ fn scan(
             source,
             target,
         } => {
+            if kind == SemanticRelationshipKindV1::Reactor {
+                if let (SemanticReferenceV1::Resolved(SemanticNodeV1::Entity(a)),SemanticReferenceV1::Resolved(SemanticNodeV1::Entity(b)))=(source,target) {
+                    if hatch_reactors.contains(&(a.common().handle,b.common().handle)) {return;}
+                }
+            }
             if kind == SemanticRelationshipKindV1::ExtensionDictionary && matches!(target, SemanticReferenceV1::Resolved(SemanticNodeV1::Object(o)) if doc.objects.iter().any(|(h,v)|std::ptr::eq(v,o) && consumed_objects.contains(h))) { return; }
             if preserve_splines && kind!=SemanticRelationshipKindV1::Ownership && matches!(source,SemanticReferenceV1::Resolved(SemanticNodeV1::Entity(EntityType::Spline(_)))) { return; }
             let missing = matches!(source, SemanticReferenceV1::Unresolved)

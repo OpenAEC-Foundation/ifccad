@@ -34,6 +34,7 @@ pub fn drawing() -> IfccadDocument {
     let source = template.clone();
     template.id = HATCH;
     template.kind = IfccadEntityKind::Hatch(IfccadHatch {
+        association_enabled: true,
         gradient: None,
         placement: plane(),
         area_rule: HatchAreaRule::Normal,
@@ -41,18 +42,22 @@ pub fn drawing() -> IfccadDocument {
         fill: HatchFill::Solid,
         loops: vec![
             IfccadHatchLoop {
+                provenance: None,
+                text_island: false,
                 boundary: HatchBoundary2::Polyline {
                     vertices: vec![[-3.0, -3.0], [3.0, -3.0], [3.0, 3.0], [-3.0, 3.0]],
                     bulges: vec![0.0; 4],
                 },
-                source_entity_id: None,
+                source_entity_ids: vec![],
             },
             IfccadHatchLoop {
+                provenance: None,
+                text_island: false,
                 boundary: HatchBoundary2::Circle {
                     center: [0.0, 0.0],
                     radius: 1.0,
                 },
-                source_entity_id: Some(SOURCE),
+                source_entity_ids: vec![SOURCE],
             },
         ],
     });

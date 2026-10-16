@@ -98,7 +98,7 @@ nine-kind design continues in later slices; annotative text and dimensions share
 a later annotation slice. See [Dimension support](docs/dimension.md).
 
 Both routes also provide native Solid, LinePattern and Gradient Hatch with stored planar boundaries,
-three area rules and optional same-owner source relations. Contour exchange
+three area rules, ordered same-owner whole-object source groups, independent association activation and stored text-island semantics. Contour exchange
 and unassessed fill are separate evidence; see [Hatch support](docs/hatch.md).
 Embedded pattern families retain origin, rotation, scale, signed spacing and ordered dash/gap/dot definitions; CAD support uses qualified explicit families. Gradients retain two endpoint colors and active/inactive authorship settings, with basis-preserving AC1032 exchange and explicit codec-loss reporting.
 

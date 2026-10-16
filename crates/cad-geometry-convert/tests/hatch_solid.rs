@@ -170,7 +170,8 @@ fn flags_are_audited_without_first_loop_role_inference() {
     h.paths[1].flags = BoundaryPathFlags::OUTERMOST;
     let p = prepare_hatch_from_cad(&h, 1e-9).unwrap();
     assert_eq!(p.boundaries.len(), 2);
-    assert!(p.losses.iter().any(|l| l.field == "paths.flags"));
+    assert!(!p.losses.iter().any(|l| l.field == "paths.flags"));
+    assert!(p.loop_flags[1].provenance.as_ref().unwrap().outermost_hint);
     let q = prepare_hatch_to_cad(
         p.placement,
         &p.boundaries,
@@ -186,13 +187,7 @@ fn flags_are_audited_without_first_loop_role_inference() {
         .iter()
         .all(|p| p.flags == BoundaryPathFlags::DEFAULT));
     h.paths[1].flags = BoundaryPathFlags::TEXT_ISLAND;
-    assert!(matches!(
-        prepare_hatch_from_cad(&h, 1e-9),
-        Err(CadHatchPreparationError::Unsupported {
-            field: "paths.flags",
-            ..
-        })
-    ));
+    assert!(prepare_hatch_from_cad(&h, 1e-9).unwrap().loop_flags[1].text_island);
     h.paths[1].flags = BoundaryPathFlags::from_bits(512);
     assert!(prepare_hatch_from_cad(&h, 1e-9).is_err());
 }

@@ -109,7 +109,11 @@ pub(crate) fn resolve_context(
 #[derive(Clone, Debug, PartialEq)]
 pub struct OcdrawHatchLoop {
     pub boundary: HatchBoundary2,
-    pub source_entity_id: Option<u64>,
+    /// Ordered whole-object dependencies; duplicates carry no edge correspondence.
+    pub source_entity_ids: Vec<u64>,
+    pub provenance: Option<crate::geometry_kernel::hatch::HatchLoopProvenance>,
+    /// Special text-loop fill classification, independent of provenance and sources.
+    pub text_island: bool,
 }
 
 pub type DrawingHatchGradient =
@@ -117,6 +121,7 @@ pub type DrawingHatchGradient =
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct DrawingHatchEntity {
+    pub association_enabled: bool,
     pub gradient: Option<DrawingHatchGradient>,
     pub id: u64,
     pub layer_id: u32,

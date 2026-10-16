@@ -346,7 +346,7 @@ Dot grid style and frequencies beyond CAD i16 receive field-specific substitutio
 ## Hatch
 
 Native Solid, LinePattern and Gradient Hatch map stored contours and the normal/outer/ignore area rule.
-Per-loop single same-owner source references bind after entity allocation.
+Ordered whole-object source groups bind after entity allocation, retaining duplicate IDs and disabled relations. The association switch, loopprovenance and TextIsland are independent authored state. Missing target sources omit their whole group with located loss; contours and other groups remain. Qualified AC1032 DXF/DWG readback preserves these states, with explicit unbound-switch codec loss and Reject-before-download.
 Unsupported associations retain contour geometry with located loss.
 `hatch_join_tolerance` is a CAD-to-native creation option, separate from numeric
 conversion tolerance. Nondefault native limits are not persisted in CAD and

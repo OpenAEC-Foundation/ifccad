@@ -262,17 +262,20 @@ fn builder_rejects_symbolic_endpoint_before_allocating_the_hatch() {
         ))
         .unwrap();
     let mut definition = HatchEntityDefinition {
+        association_enabled: false,
         scope_id: 0,
         layer_id: layer,
         visible: true,
         appearance: Default::default(),
         placement: Default::default(),
         loops: vec![OcdrawHatchLoop {
+            provenance: None,
+            text_island: false,
             boundary: HatchBoundary2::Circle {
                 center: [0., 0.],
                 radius: 1.,
             },
-            source_entity_id: None,
+            source_entity_ids: vec![],
         }],
         area_rule: HatchAreaRule::Normal,
         join_tolerance: DEFAULT_HATCH_JOIN_TOLERANCE,

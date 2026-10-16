@@ -201,6 +201,7 @@ pub fn prepare_hatch_from_cad(
         HatchFill::LinePattern(p.pattern)
     };
     Ok(PreparedNativeHatch {
+        loop_flags: super::prepare_loop_flags_from_cad(h)?,
         gradient: gradient.gradient,
         fill,
         placement,

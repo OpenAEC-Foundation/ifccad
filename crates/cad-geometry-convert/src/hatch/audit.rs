@@ -1,5 +1,5 @@
 use super::{unsupported, CadHatchPreparationError, HatchSourceLoss};
-use opencadcodec::entities::hatch::{BoundaryPathFlags, Hatch, HatchPatternType};
+use opencadcodec::entities::hatch::{Hatch, HatchPatternType};
 use opencadcodec::{Color, Vector2};
 
 pub(super) fn audit(h: &Hatch) -> Result<Vec<HatchSourceLoss>, CadHatchPreparationError> {
@@ -94,23 +94,6 @@ pub(super) fn audit(h: &Hatch) -> Result<Vec<HatchSourceLoss>, CadHatchPreparati
     {
         loss("mpolygon_fields", "inactive MPOLYGON state is not retained");
     }
-    for p in &h.paths {
-        let hints = BoundaryPathFlags::EXTERNAL.bits()
-            | BoundaryPathFlags::DERIVED.bits()
-            | BoundaryPathFlags::OUTERMOST.bits();
-        let backing = BoundaryPathFlags::POLYLINE.bits();
-        // POLYLINE is encoding; EXTERNAL/DERIVED/OUTERMOST are source hints.
-        // Text islands, invalid/open/duplicate loops and unknown flags require
-        // an actual interpretation, not removal into a normal fill.
-        if p.flags.bits() & !(hints | backing) != 0 {
-            return Err(unsupported(
-                "paths.flags",
-                format!("unqualified active loop flags {:#x}", p.flags.bits()),
-            ));
-        }
-        if p.flags.bits() & hints != 0 {
-            loss("paths.flags", "source provenance/nesting hints are not retained; native area rules use stored contours");
-        }
-    }
+    super::prepare_loop_flags_from_cad(h)?;
     Ok(losses)
 }

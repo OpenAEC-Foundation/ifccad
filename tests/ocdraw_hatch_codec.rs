@@ -14,6 +14,7 @@ fn builder_rejects_invalid_hatch_without_consuming_an_identity() {
         .add_layer(LayerDefinition::new("0", RgbColor::new(255, 255, 255), p))
         .unwrap();
     let definition = |radius| HatchEntityDefinition {
+        association_enabled: false,
         gradient: None,
         scope_id: 0,
         layer_id: layer,
@@ -24,11 +25,13 @@ fn builder_rejects_invalid_hatch_without_consuming_an_identity() {
         join_tolerance: DEFAULT_HATCH_JOIN_TOLERANCE,
         fill: HatchFill::Solid,
         loops: vec![OcdrawHatchLoop {
+            provenance: None,
+            text_island: false,
             boundary: HatchBoundary2::Circle {
                 center: [0.0, 0.0],
                 radius,
             },
-            source_entity_id: None,
+            source_entity_ids: vec![],
         }],
     };
     assert!(b.add_hatch(definition(0.0)).is_err());

@@ -5,7 +5,8 @@
     "nextEntityId": 3,
     "nextLayerId": 1,
     "nextLayoutId": 1,
-    "nextLinePatternId": 1,"nextSymbolSourceId":0,
+    "nextLinePatternId": 1,
+    "nextSymbolSourceId": 0,
     "unit": "mm",
     "version": "0.1.0"
   },
@@ -206,7 +207,9 @@
               "kind": "circle",
               "radius": 1.0
             },
-            "sourceEntityId": 999
+            "sourceEntityIds": [
+              999
+            ]
           }
         ]
       ],
@@ -236,6 +239,9 @@
         }
       ],
       "visible": [
+        true
+      ],
+      "associationEnabled": [
         true
       ]
     }

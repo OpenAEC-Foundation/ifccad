@@ -1,8 +1,9 @@
 import {translate} from './i18n.mjs';
 export function hatchValues(node){return node?.values?.['ifccad::hatch']||(node?.values?.geometry?.type==='hatch'?node.values.geometry:null);}
+export function hatchAssociationStatus(value){return !value.associationEnabled?'disabled':value.loops?.some(loop=>(loop.sources?.length||loop.sourceEntityIds?.length||0)>0)?'active':'unbound';}
 export function hatchSummary(value,language='en'){
  const t=(key,values)=>translate(language,key,values);
  let fill=value.fill?.kind==='solid'?t('solidFill'):value.fill?.kind==='linePattern'?t('patternFill')+' · '+t('hatchFamilies',{count:value.fill.families?.length||0}):value.fill?.kind==='gradient'?t('gradientFill')+' · '+t('gradient.'+value.gradient?.type):value.fill?.kind||'—';
  if(value.gradient&&value.fill?.kind!=='gradient')fill+=' · '+t(value.gradient.type&&value.gradient.colors?'gradientInactive':'gradientPartial');
- return t('hatchSummary',{fill,count:value.loops?.length||0,rule:t('hatchRule.'+value.areaRule)});
+ return t('hatchSummary',{fill,count:value.loops?.length||0,rule:t('hatchRule.'+value.areaRule)})+' · '+t('hatchAssociation.'+hatchAssociationStatus(value));
 }

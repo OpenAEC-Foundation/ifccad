@@ -115,8 +115,8 @@ fn independent_route_binds_forward_source_and_preserves_the_hole() {
             .unwrap();
         assert_eq!(hatch.loops.len(), 2);
         assert_eq!(
-            hatch.loops[1].source_entity_id,
-            back.mappings().entities.ifccad_id(source)
+            hatch.loops[1].source_entity_ids,
+            vec![back.mappings().entities.ifccad_id(source).unwrap()]
         );
         let bytes = encode_ifccad_document(back.document()).unwrap();
         assert!(load_ifccad_bytes(bytes.bytes(), Default::default()).is_ok());
@@ -159,16 +159,20 @@ fn unsupported_relation_detaches_only_source_and_nondefault_limit_is_loss() {
     let EntityType::Hatch(h) = cad.get_entity_mut(hh).unwrap() else {
         panic!()
     };
-    let source = h.paths[1].boundary_handles[0];
-    h.paths[1].boundary_handles.push(source);
+    h.paths[1]
+        .boundary_handles
+        .push(opencadcodec::Handle::new(u64::MAX));
     let back = cad_document_to_ifccad_document(&cad, metadata(), Default::default()).unwrap();
     let IfccadEntityKind::Hatch(h) = &back.document().model.entities[0].as_native().unwrap().kind
     else {
         panic!()
     };
     assert_eq!(h.loops.len(), 2);
-    assert_eq!(h.loops[1].source_entity_id, None);
-    assert!(back.diagnostics().iter().any(|d| d.code == "hatch-source"));
+    assert!(h.loops[1].source_entity_ids.is_empty());
+    assert!(back
+        .diagnostics()
+        .iter()
+        .any(|d| d.code == "hatch-source-group-loss"));
     assert!(matches!(
         cad_document_to_ifccad_document(
             &cad,
@@ -253,14 +257,17 @@ fn paper_producer_limit_uses_fixed_mapping_without_changing_accuracy_budget() {
         .clone();
     e.id = d.id_counters.allocate_entity_id().unwrap();
     e.kind = IfccadEntityKind::Hatch(IfccadHatch {
+        association_enabled: false,
         gradient: None,
         placement: fixture::plane(),
         loops: vec![IfccadHatchLoop {
+            provenance: None,
+            text_island: false,
             boundary: HatchBoundary2::Circle {
                 center: [0., 0.],
                 radius: 1.,
             },
-            source_entity_id: None,
+            source_entity_ids: vec![],
         }],
         area_rule: HatchAreaRule::Normal,
         join_tolerance: 1e-9,

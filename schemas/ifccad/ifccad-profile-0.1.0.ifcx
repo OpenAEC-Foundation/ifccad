@@ -3479,9 +3479,43 @@
                           }
                         }
                       },
-                      "source": {
-                        "dataType": "Reference",
+                      "sources": {
+                        "dataType": "Array",
+                        "optional": true,
+                        "arrayRestrictions": {
+                          "min": 0,
+                          "value": {
+                            "dataType": "Reference"
+                          }
+                        }
+                      },
+                      "textIsland": {
+                        "dataType": "Boolean",
                         "optional": true
+                      },
+                      "provenance": {
+                        "dataType": "Object",
+                        "optional": true,
+                        "objectRestrictions": {
+                          "values": {
+                            "fromSourceObjects": {
+                              "dataType": "Boolean",
+                              "optional": true
+                            },
+                            "derivedFromPickPoint": {
+                              "dataType": "Boolean",
+                              "optional": true
+                            },
+                            "outermostHint": {
+                              "dataType": "Boolean",
+                              "optional": true
+                            },
+                            "textBox": {
+                              "dataType": "Boolean",
+                              "optional": true
+                            }
+                          }
+                        }
                       }
                     }
                   }
@@ -3660,6 +3694,10 @@
                   }
                 }
               }
+            },
+            "associationEnabled": {
+              "dataType": "Boolean",
+              "optional": true
             }
           }
         }

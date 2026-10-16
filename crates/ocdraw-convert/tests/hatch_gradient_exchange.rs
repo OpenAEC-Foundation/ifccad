@@ -70,7 +70,7 @@ fn nine_gradient_definitions_authorship_modes_and_area_rules_survive_actual_file
             let association = h
                 .loops
                 .iter()
-                .filter(|l| l.source_entity_id.is_some())
+                .filter(|l| !l.source_entity_ids.is_empty())
                 .count();
             let mut target = ocdraw_document_to_cad_document(&d, Default::default())
                 .unwrap()
@@ -90,7 +90,7 @@ fn nine_gradient_definitions_authorship_modes_and_area_rules_survive_actual_file
                     actual
                         .loops
                         .iter()
-                        .filter(|l| l.source_entity_id.is_some())
+                        .filter(|l| !l.source_entity_ids.is_empty())
                         .count(),
                     association
                 );

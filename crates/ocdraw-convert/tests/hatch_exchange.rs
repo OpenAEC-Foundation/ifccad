@@ -75,8 +75,10 @@ fn tilted_curves_multiple_regions_and_tolerant_gap_survive_without_bridging() {
             .into_iter()
             .chain([contours::tolerant_loop()])
             .map(|boundary| OcdrawHatchLoop {
+                provenance: None,
+                text_island: false,
                 boundary,
-                source_entity_id: None,
+                source_entity_ids: vec![],
             })
             .collect();
         recompute_ocdraw_document_bounds(&mut d).unwrap();
@@ -131,7 +133,10 @@ fn all_area_rules_hole_first_and_association_survive_actual_files() {
                 assert_eq!(h.loops.len(), d.hatch_entities[0].loops.len());
                 for (a, b) in h.loops.iter().zip(&d.hatch_entities[0].loops) {
                     assert_eq!(a.boundary, b.boundary);
-                    assert_eq!(a.source_entity_id.is_some(), b.source_entity_id.is_some());
+                    assert_eq!(
+                        !a.source_entity_ids.is_empty(),
+                        !b.source_entity_ids.is_empty()
+                    );
                 }
                 let bytes = encode_ocdraw_document(back.document()).unwrap();
                 assert!(load_ocdraw_bytes(bytes.bytes()).is_ok());

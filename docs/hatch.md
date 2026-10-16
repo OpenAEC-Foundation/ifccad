@@ -39,13 +39,31 @@ This policy is independent of conversion accuracy. Use
 `resolve_ocdraw_hatch_join_tolerance`, `resolve_ifccad_hatch_join_tolerance`,
 the OCDraw builder resolver, or converter `hatch_join_tolerance` options.
 
-Each loop can additionally reference one complete closed circle, full ellipse
-or closed planar polyline in the same owner. OCDraw uses a uint64 entity ID;
-IFCCAD uses a complete entity path. IO checks existence, kind, closure and owner
-without geometry comparison or regeneration. Stored contours remain authoritative
-after source edits. Deleting a referenced source is invalid; explicitly detaching
-the reference keeps the contour. There are no source copies, stream-index links,
-fingerprints, inverse indices, block-occurrence references or native reactors.
+Each loop can retain an ordered group of whole source objects in the same
+direct owner: Line, Circle, Arc, full/partial Ellipse, open/closed PlanarPolyline
+and SpatialPolyline, Text, MText, local BlockInstance and Paper Viewport.
+OCDraw uses exact uint64 `sourceEntityIds`; IFCCAD uses canonical full `sources`
+paths. Order and duplicate IDs survive without implying segment, edge or block
+component selection. Point, Hatch, opaque/preserved objects and external sources
+are ineligible. Ordinary document validation still applies to each source.
+
+`associationEnabled` defaults false independently of the source lists. Disabled
+groups remain stored and valid references remain required. True without groups
+is valid unbound state. The inspector distinguishes active, disabled and unbound.
+IO never compares current source geometry or regenerates the contour. Source
+edits retain the cached Hatch; deletion requires explicit whole-group detach or
+rebind. A BlockInstance is the complete placed object, not an invented leaf or
+bounding box. Text bounds never replace the stored contour.
+
+Optional loop `provenance` retains fromSourceObjects, derivedFromPickPoint,
+outermostHint and textBox (default false); a present all-false record is invalid.
+Independent `textIsland` defaults false and retains special text-loop fill
+classification. Autodesk describes text loops surrounded by an even number of
+outer loops and avoided during Solid fill. It is not an ordinary ignored hint,
+generic hole or areaRule replacement. All fills retain the flag; IO does not
+infer nesting, font geometry or source agreement. Pattern/gradient evaluation
+remains unassessed. No source copies, precise selectors, inverse indices,
+fingerprints, occurrence chains or native reactor administration are added.
 CAD conversions allocate fresh identities and return mappings. Reference binding
 happens after allocation, independently of draw order. A future editor/BIM module
 can process these dependencies; synchronization is outside this implementation.
@@ -69,15 +87,36 @@ it does not certify arbitrary editor gap interpretation, pixels, topology or
 interactive reactor updates. Fill and its occurrences remain unassessed.
 
 Unsupported active fill/edges/flags omit the whole Hatch under Allow; Reject
-refuses loss. No supported contour is partially discarded. Unsupported source
-relations detach only the relation with located evidence. Inactive pattern or
-gradient settings, seed points, pixel size and provenance/nesting hints are
-diagnosed when omitted. Annotative Hatch markers and unqualified extension dictionaries also omit the
-whole Hatch; other common metadata follows each converter's coverage.
-EXTERNAL/DERIVED/OUTERMOST hints are not inferred from the first loop; output
-uses default/polyline encoding flags. CAD does not persist the native join
-limit: a nondefault limit is located loss, rejected by Reject. Native invalidity
-and hard numeric failures remain errors under both policies.
+refuses loss. Supported contours are never partially discarded. If any source
+entry is missing, skipped, wrong-owner or unsupported, Allow omits the entire
+affected group, retaining its contour, flags, switch and other complete groups.
+Entry and group loss are located separately; Reject refuses. Exact inverse
+source reactors to qualified complete groups are accounted as derived relation
+bookkeeping; unrelated reactors/attachments retain their existing audits.
+
+EXTERNAL/DERIVED/OUTERMOST/TEXTBOX map to provenance; TEXT_ISLAND maps to active
+textIsland semantics. POLYLINE remains backing-derived. No flags are inferred
+from first-loop order. NOT_CLOSED, SELF_INTERSECTING, DUPLICATE and unknown active
+flags remain unsupported. Annotative contexts and unqualified dictionaries
+remain outside this slice. Inactive classic settings, seeds/pixelSize and other
+editing state still produce their existing losses pending the separate slice B.
+Nondefault joinTolerance is located loss; native invalidity and hard numerical
+failures remain fatal under both policies.
+
+The production viewer/browser verifies the actual target CAD model after AC1032
+DXF/DWG write/read, including source-group order, duplicates, association switch,
+provenance and TextIsland, before offering a download. Other versions are refused
+for these new states with HATCH_ASSOCIATION_TARGET_VERSION_UNSUPPORTED. Missing
+Hatches, invalid owners, missing source correspondence or confirmed loop reorder
+fail with HATCH_READBACK_UNCONFIRMED. Unexpected nonempty changed source groups
+also fail, so physical codec changes cannot deliver a partial/substituted group.
+Complete physical group omission remains a located source-group loss.
+The codec clears enabled-without-sources
+state: Allow reports TARGET_CODEC_HATCH_ASSOCIATION_STATE_LOSS; Reject refuses.
+Other physical codes are TARGET_CODEC_HATCH_SOURCE_GROUP_LOSS,
+TARGET_CODEC_HATCH_LOOP_PROVENANCE_LOSS and TARGET_CODEC_HATCH_TEXT_ISLAND_LOSS.
+TextIsland loss is active fill-semantic loss. This verification qualifies stored
+parameters, not rendering or automatic CAD-editor updates.
 
 ## Explicit line patterns
 
