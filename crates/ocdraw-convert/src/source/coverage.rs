@@ -147,7 +147,8 @@ pub(crate) fn scan_document_semantics(document: &CadDocument, context: &mut Sour
             let represented = match (owner, application, values.as_deref()) {
                 (SemanticReferenceV1::Resolved(SemanticNodeV1::TableRecord(SemanticTableRecordV1::Layer(layer))), Some(app), Some(values)) => {
                     if app.name.eq_ignore_ascii_case("AcCmTransparency") {
-                        matches!(values, [XDataValue::Integer32(value)] if *value == layer.transparency.to_alpha_value())
+                        matches!(values, [XDataValue::Integer32(value)] if *value == layer.transparency.to_alpha_value()
+                            || (*value == 0 && matches!(layer.transparency, opencadcodec::Transparency::ByLayer | opencadcodec::Transparency::Explicit(0))))
                     } else if app.name.eq_ignore_ascii_case(opencadcodec::tables::layer::LAYER_DESCRIPTION_APP) {
                         matches!(values, [XDataValue::String(prefix), XDataValue::String(description)]
                             if prefix.is_empty() && description == &layer.description)

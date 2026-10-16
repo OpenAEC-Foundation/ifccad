@@ -138,6 +138,7 @@ pub(crate) fn unsupported_common_context(spline: &Spline) -> bool {
         || c.shadow_flags != 0
         || c.plotstyle_flags != 0
         || c.plotstyle_handle.is_some()
+        || c.r12_metadata.is_some()
         || c.has_ds_data
         || c.extended_data
             .records()

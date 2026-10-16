@@ -1,5 +1,7 @@
 # Ordinary dimension CAD field audit
 
+Historical audit; the [2026-10-16 update](../geometry/opencadcodec-update-2026-10-16.md) supersedes the pin, patch selection and DXF insertion read limitation below.
+
 Scope: linear/aligned native slice, opencadcodec base
 `ab2eecdbffc31120b5ad6d899f6fc67cf21ede39`. Tests use the repository's explicitly
 maintained viewport-off patch, read-only. No dimension dependency patch is applied.

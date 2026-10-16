@@ -1,5 +1,10 @@
 # Drawing workspace state
 
+Current dependency qualification (2026-10-16): codec `325fa98d2b881f48e106a830d5cf161624f63131`
+plus the explicit Dimension text-position repair; viewport repairs are upstream.
+The [current audit](geometry/opencadcodec-update-2026-10-16.md) supersedes dated
+pin/transport limitations below, including paper grid and DXF ShadePlot gates.
+
 Workspace describes saved drawing views, construction aids and current choices.
 OCDraw and IFCCAD retain independent records, identities and wire formats.
 The native and converter contracts below cover the workspace slice and its
@@ -7,7 +12,7 @@ qualified codec limits.
 
 ## Codec qualification
 
-Base: opencadcodec 0.6.0, revision `ab2eecdbffc31120b5ad6d899f6fc67cf21ede39`,
+Base: opencadcodec 0.6.0, revision `325fa98d2b881f48e106a830d5cf161624f63131`,
 with the explicit viewport-off-state repair documented in
 [patch provenance](../patches/opencadcodec-viewports/README.md).
 

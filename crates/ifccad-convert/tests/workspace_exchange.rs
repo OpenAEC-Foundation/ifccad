@@ -12,7 +12,7 @@ fn workspace_fields_survive_direct_dxf_and_dwg_exchange() {
     )
     .unwrap();
     let target = ifccad_source_to_cad_document(&original, Default::default()).unwrap();
-    assert!(target
+    assert!(!target
         .diagnostics()
         .iter()
         .any(|d| d.location.contains("grid.adaptive")));
@@ -79,7 +79,7 @@ fn workspace_fields_survive_direct_dxf_and_dwg_exchange() {
             let canvas = a.canvas.as_ref().unwrap();
             let b = p.canvas.as_ref().unwrap();
             assert_eq!(canvas.frame, b.frame, "{format}");
-            assert_eq!(canvas.grid, file_grid(b.grid, format), "{format}");
+            assert_eq!(canvas.grid, b.grid, "{format}");
             assert_eq!(canvas.snap, b.snap);
             assert_eq!(canvas.current_ucs, None);
             assert_eq!(canvas.active_context, None);
@@ -88,8 +88,7 @@ fn workspace_fields_survive_direct_dxf_and_dwg_exchange() {
                 if let (IfccadEntityKind::Viewport(a), IfccadEntityKind::Viewport(b)) =
                     (&a.as_native().unwrap().kind, &b.as_native().unwrap().kind)
                 {
-                    let mut expected_workspace = b.workspace.clone().unwrap();
-                    expected_workspace.grid = file_grid(expected_workspace.grid, format);
+                    let expected_workspace = b.workspace.clone().unwrap();
                     assert_eq!(a.workspace.as_ref(), Some(&expected_workspace), "{format}");
                     assert_eq!(a.view_enabled, b.view_enabled);
                     assert_eq!(a.view_locked, b.view_locked);
@@ -97,19 +96,6 @@ fn workspace_fields_survive_direct_dxf_and_dwg_exchange() {
             }
         }
     }
-}
-
-fn file_grid(
-    mut grid: ocdraw::workspace_kernel::WorkspaceGrid,
-    format: &str,
-) -> ocdraw::workspace_kernel::WorkspaceGrid {
-    if format != "direct" {
-        grid.beyond_limits = false;
-        grid.adaptive = false;
-        grid.subdivision = false;
-        grid.follows_workplane = false;
-    }
-    grid
 }
 
 #[test]

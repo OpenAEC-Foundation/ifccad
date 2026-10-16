@@ -17,6 +17,11 @@ pub fn import_text_style(source: &TextStyle) -> Result<PreparedTextStyle, CadTex
     if source.xref_dependent || !source.xref_block_record_handle.is_null() {
         return Err(CadTextError::Unsupported("external text style context"));
     }
+    if source.true_type_font_flags != 34 {
+        return Err(CadTextError::Unsupported(
+            "unqualified packed TrueType face flags",
+        ));
+    }
     name(&source.name)?;
     let optional = |value: &String| {
         if value.is_empty() {
@@ -63,7 +68,7 @@ pub fn prepare_text_style_to_cad(
         || font.pitch.is_some()
     {
         return Err(CadTextError::Unsupported(
-            "style font face flags not exposed by pinned TextStyle",
+            "style font face flags are not qualified by this adapter",
         ));
     }
     let mut target = TextStyle::new(style_name);

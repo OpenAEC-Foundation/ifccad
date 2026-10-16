@@ -60,7 +60,7 @@ fn source() -> CadDocument {
             let mut v = Viewport::new();
             v.id = 1;
             v.common.owner_handle = owner;
-            let h = doc.add_entity(EntityType::Viewport(v)).unwrap();
+            let h = doc.add_entity(EntityType::Viewport(Box::new(v))).unwrap();
             if let ObjectType::Layout(l) = doc.objects.get_mut(&layout).unwrap() {
                 l.viewport = h;
                 l.viewports.insert(0, h);
@@ -88,7 +88,7 @@ fn source() -> CadDocument {
         v.ucs_per_viewport = false;
         v.status.iso_pair_top = true;
         v.status.iso_pair_right = true;
-        let h = doc.add_entity(EntityType::Viewport(v)).unwrap();
+        let h = doc.add_entity(EntityType::Viewport(Box::new(v))).unwrap();
         if let ObjectType::Layout(l) = doc.objects.get_mut(&layout).unwrap() {
             l.viewports.push(h);
         }
@@ -244,7 +244,7 @@ fn dwg_overall_role_uses_layout_link_instead_of_entity_order() {
 }
 
 #[test]
-fn model_grid_behavior_survives_files_but_paper_viewport_behavior_does_not() {
+fn model_and_paper_grid_behavior_survive_dxf_and_dwg() {
     let mut source = source();
     let flags = opencadcodec::entities::GridFlags {
         beyond_limits: true,
@@ -273,7 +273,7 @@ fn model_grid_behavior_survives_files_but_paper_viewport_behavior_does_not() {
                     EntityType::Viewport(v) => Some(v),
                     _ => None,
                 })
-                .all(|v| v.grid_flags == opencadcodec::entities::GridFlags::default()),
+                .all(|v| v.grid_flags == flags),
             "dwg={dwg}"
         );
     }

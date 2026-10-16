@@ -60,6 +60,11 @@ pub fn marker_values_from_cad(
         offset: value.offset,
     };
     validate(&result)?;
+    if value.source_flags & !0x07 != 0 {
+        return Err(CadLinePatternValueError::Unsupported(
+            "unqualified complex linetype flags",
+        ));
+    }
     result.content = match &value.content {
         LineTypeComplexContent::Text { text } => CadLinePatternMarkerContent::Text(text.clone()),
         LineTypeComplexContent::Shape { shape_number } => CadLinePatternMarkerContent::Shape(
@@ -91,6 +96,7 @@ pub fn marker_values_to_cad(
         },
     };
     Ok(LineTypeComplexData {
+        source_flags: 0,
         content,
         style_handle,
         scale: value.scale,

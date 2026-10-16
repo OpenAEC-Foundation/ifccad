@@ -6,6 +6,32 @@ use opencadcodec::{CadDocument, EntityType, Handle, Line, Vector3};
 const LEGACY: &str = "fe69506cb99dea6f4c4a73b690a27fdf04403ea0";
 
 #[test]
+fn r12_context_remains_durable_without_guessing_viewport_identity() {
+    let mut doc = captured();
+    let r = &mut doc.preservation.as_mut().unwrap().records[0];
+    let mut body: serde_json::Value = serde_json::from_slice(&r.payload.bytes).unwrap();
+    body["common"]["r12Metadata"] = serde_json::json!({"viewport":0,"childViewports":[null,7]});
+    r.payload.bytes = serde_json::to_vec(&body).unwrap();
+    let doc = reopened(&doc);
+    let preserved = doc.preservation.clone();
+    let out = ocdraw_document_to_cad_document(&doc, Default::default()).unwrap();
+    assert!(out
+        .preservation_report()
+        .entries()
+        .iter()
+        .any(|e| e.reason == Some(OcdrawPreservationReason::UnsupportedContext)));
+    assert_eq!(doc.preservation, preserved);
+    assert!(ocdraw_document_to_cad_document(
+        &doc,
+        OcdrawToCadOptions {
+            loss_policy: OcdrawLossPolicy::Reject,
+            ..Default::default()
+        }
+    )
+    .is_err());
+}
+
+#[test]
 fn previous_version_two_snapshot_remains_readable_after_pin_update() {
     let previous = "063c10671fe7833d562f772159771318c7a0ebb9";
     let mut doc = captured();
@@ -14,6 +40,11 @@ fn previous_version_two_snapshot_remains_readable_after_pin_update() {
     let record = &mut preservation.records[0];
     let mut body: serde_json::Value = serde_json::from_slice(&record.payload.bytes).unwrap();
     body["codecRevision"] = serde_json::json!(previous);
+    body["common"]
+        .as_object_mut()
+        .unwrap()
+        .remove("r12Metadata");
+    record.payload.version = 2;
     record.payload.bytes = serde_json::to_vec(&body).unwrap();
     let restored = ocdraw_document_to_cad_document(&reopened(&doc), Default::default()).unwrap();
     assert!(restored
@@ -56,7 +87,7 @@ fn reopened(doc: &OcdrawDocument) -> OcdrawDocument {
 fn new_codec_skipped_fields_are_durable_and_layer_handle_is_rebound() {
     let doc = reopened(&captured());
     let record = &doc.preservation.as_ref().unwrap().records[0];
-    assert_eq!(record.payload.version, 2);
+    assert_eq!(record.payload.version, 3);
     let payload: serde_json::Value = serde_json::from_slice(&record.payload.bytes).unwrap();
     assert_eq!(payload["dwgScenario"], 1);
     assert!(payload["common"]["layerHandle"].is_string());
@@ -91,6 +122,10 @@ fn previous_revision_payload_one_still_restores_after_save_and_native_edit() {
     record.payload.version = 1;
     let mut payload: serde_json::Value = serde_json::from_slice(&record.payload.bytes).unwrap();
     payload["codecRevision"] = LEGACY.into();
+    payload["common"]
+        .as_object_mut()
+        .unwrap()
+        .remove("r12Metadata");
     payload.as_object_mut().unwrap().remove("dwgScenario");
     payload["common"]
         .as_object_mut()
@@ -120,7 +155,7 @@ fn previous_revision_payload_one_still_restores_after_save_and_native_edit() {
 
 #[test]
 fn new_payload_requires_both_explicit_nullable_source_fields() {
-    for missing in ["dwgScenario", "layerHandle"] {
+    for missing in ["dwgScenario", "layerHandle", "r12Metadata"] {
         let mut doc = captured();
         let record = &mut doc.preservation.as_mut().unwrap().records[0];
         let mut payload: serde_json::Value = serde_json::from_slice(&record.payload.bytes).unwrap();

@@ -10,7 +10,7 @@ fn independent_dimension_ids_paths_and_measurement_pass_strict_readback() {
     let mut cad = CadDocument::new();
     let mut d = DimensionLinear::new(Vector3::ZERO, Vector3::new(3.0, 4.0, 0.0));
     d.base.actual_measurement = 999.0;
-    cad.add_entity(EntityType::Dimension(Dimension::Linear(d)))
+    cad.add_entity(EntityType::Dimension(Box::new(Dimension::Linear(d))))
         .unwrap();
     let out =
         cad_document_to_ifccad_document(&cad, common::metadata(), Default::default()).unwrap();
@@ -33,9 +33,9 @@ fn independent_dimension_ids_paths_and_measurement_pass_strict_readback() {
 #[test]
 fn independent_numeric_excess_is_fatal_under_both_policies() {
     let mut cad = CadDocument::new();
-    cad.add_entity(EntityType::Dimension(Dimension::Linear(
+    cad.add_entity(EntityType::Dimension(Box::new(Dimension::Linear(
         DimensionLinear::new(Vector3::ZERO, Vector3::new(3.0, 4.0, 0.1)),
-    )))
+    ))))
     .unwrap();
     for loss_policy in [IfccadLossPolicy::Allow, IfccadLossPolicy::Reject] {
         assert!(matches!(
@@ -57,9 +57,9 @@ fn independent_forward_relation_keeps_stale_measurement_and_unused_style() {
     use opencadcodec::{objects::*, Line};
     let mut cad = CadDocument::new();
     let dimension = cad
-        .add_entity(EntityType::Dimension(Dimension::Linear(
+        .add_entity(EntityType::Dimension(Box::new(Dimension::Linear(
             DimensionLinear::new(Vector3::ZERO, Vector3::new(4000.0, 0.0, 0.0)),
-        )))
+        ))))
         .unwrap();
     let source = cad
         .add_entity(EntityType::Line(Line::from_coords(

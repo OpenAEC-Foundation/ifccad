@@ -271,7 +271,7 @@ Continuous scaffold with `line-pattern-scaffold` modification; Reject refuses it
 Optional native scale/generation defaults are normalized for comparison only;
 foreign graph data is still checked and exact numeric projection errors fail.
 
-Both converters pin upstream `ab2eecdbffc31120b5ad6d899f6fc67cf21ede39` and select
+Both converters pin upstream `325fa98d2b881f48e106a830d5cf161624f63131` and select
 only the [remaining viewport-off repair](../../patches/opencadcodec-viewports/README.md).
 The earlier exchange table retains its historical provenance. IFCCAD geometry,
 clipping and source classification remain separate from OCDraw.
@@ -335,7 +335,7 @@ and numeric evidence. `geometry_assessment().is_complete()` is false for opaque
 curves/occurrences. See [preservation](../../docs/preservation.md).
 ## Workspace and upstream update — 2026-10-08
 
-Both converters select opencadcodec 0.6.0 at `ab2eecdbffc31120b5ad6d899f6fc67cf21ede39` plus the explicit viewport-off repair [PR #103](https://github.com/HakanSeven12/opencadcodec/pull/103). Merged spline DXF parameterization and DWG Paper owner/overall-role repairs now come from upstream. See the [dependency audit](../../docs/geometry/opencadcodec-update-2026-10-08.md) and [workspace contract](../../docs/workspace-state.md) for the current field/transport boundary.
+Both converters select opencadcodec 0.6.0 at `325fa98d2b881f48e106a830d5cf161624f63131` plus the explicit viewport-off repair [PR #103](https://github.com/HakanSeven12/opencadcodec/pull/103). Merged spline DXF parameterization and DWG Paper owner/overall-role repairs now come from upstream. See the [dependency audit](../../docs/geometry/opencadcodec-update-2026-10-08.md) and [workspace contract](../../docs/workspace-state.md) for the current field/transport boundary.
 
 UCS definitions, Model windows, canvas frame/grid/snap/UCS and authored Paper viewport aids map through shared ID-free scalar helpers. Native identities, ownership, source classification and located losses stay format-specific. Disabled zero snap spacing and stored-UCS activation survive independently of current choices. Model-viewport aids retain Model coordinates inside Paper; canvas aids use Paper coordinates. Canvas frames do not enter geometry bounds or clip ownership.
 
@@ -396,3 +396,5 @@ from typed-object transfer and native validity; see [Dimension support](../../do
 CAD DIMDSEP zero/NULL is normalized to the decimal point, including unused
 styles and explicit DSTYLE 278 resets; it is never stored as native NUL.
 The equivalent explicit decimal-point code may be used on CAD export.
+
+Current codec qualification: [2026-10-16 dependency audit](../../docs/geometry/opencadcodec-update-2026-10-16.md). Only the documented Dimension patch remains selected; viewport repairs are upstream.

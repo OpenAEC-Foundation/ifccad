@@ -57,6 +57,22 @@ pub(crate) fn deferred_losses(
     let baseline = opencadcodec::entities::Viewport::new();
     let mut reasons = Vec::new();
     let mut status = viewport.status;
+    let derived_status = if !viewport.is_on() {
+        0
+    } else if viewport.off_screen {
+        -1
+    } else {
+        viewport.id
+    };
+    if viewport
+        .dxf_status
+        .is_some_and(|status| status != derived_status)
+        || (viewport.stacking != 0 && viewport.stacking != viewport.id)
+    {
+        reasons.push(CadToOcdrawLossReason::UnsupportedSemantic {
+            name: "viewport source status/stacking rank".into(),
+        });
+    }
     // Clipping activation is mapped independently of boundary presence.
     status = opencadcodec::entities::ViewportStatusFlags::from_bits(status.to_bits() & !0x10000);
     if viewport.off_screen {

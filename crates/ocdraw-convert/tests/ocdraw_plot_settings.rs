@@ -118,7 +118,7 @@ fn active_paper_header_does_not_replace_inactive_model_scaling() {
     }
     let mut canvas = Viewport::new();
     canvas.id = 1;
-    cad.add_entity_to_layout(EntityType::Viewport(canvas), "Layout1")
+    cad.add_entity_to_layout(EntityType::Viewport(Box::new(canvas)), "Layout1")
         .unwrap();
     let native = cad_document_to_ocdraw_document(&cad, Default::default()).unwrap();
     assert!(

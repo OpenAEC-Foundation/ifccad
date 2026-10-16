@@ -272,6 +272,20 @@ fn definition_metadata_and_anonymous_name_survive_memory_dxf_dwg() {
                 .read()
                 .unwrap(),
         };
+        // DWG reconstructs anonymous suffixes from live BLOCK_CONTROL order.
+        // Conversion must retain the decoded identity and its relationships.
+        let anonymous_name = source
+            .block_records
+            .iter()
+            .find(|b| b.flags.anonymous && b.description == "Reusable anonymous definition")
+            .unwrap()
+            .name
+            .clone();
+        if transport != 2 {
+            assert_eq!(anonymous_name, "*U42");
+        } else {
+            assert!(anonymous_name.starts_with("*U"));
+        }
         let native =
             cad_document_to_encoded_ifccad(&source, metadata(), Default::default()).unwrap();
         let raw: Value = serde_json::from_slice(native.encoded().bytes()).unwrap();
@@ -282,9 +296,9 @@ fn definition_metadata_and_anonymous_name_survive_memory_dxf_dwg() {
             .find_map(|n| {
                 n["attributes"]
                     .get("ifccad::blockDefinition")
-                    .filter(|b| b["name"] == "*U42")
+                    .filter(|b| b["name"] == anonymous_name)
             })
-            .expect("ordinary anonymous block omitted");
+            .unwrap_or_else(|| panic!("ordinary anonymous block omitted; transport={transport}, blocks={:?}, diagnostics={:?}", source.block_records.iter().map(|b| (&b.name, b.flags.anonymous)).collect::<Vec<_>>(), native.diagnostics()));
         assert_eq!(block["anonymous"], json!(true));
         assert_eq!(block["explodable"], json!(false));
         assert_eq!(block["description"], "Reusable anonymous definition");
@@ -298,7 +312,7 @@ fn definition_metadata_and_anonymous_name_survive_memory_dxf_dwg() {
             .document()
             .block_records
             .iter()
-            .find(|b| b.name == "*U42")
+            .find(|b| b.name == anonymous_name)
             .unwrap();
         assert!(block.flags.anonymous);
         assert!(!block.explodable);
@@ -313,7 +327,12 @@ fn definition_metadata_and_anonymous_name_survive_memory_dxf_dwg() {
         };
         assert_eq!(marker.description, block.description);
         let mut invalid = native.validated_source().document().clone();
-        let definition = invalid.blocks.iter().find(|b| b.name == "*U42").unwrap().id;
+        let definition = invalid
+            .blocks
+            .iter()
+            .find(|b| b.name == anonymous_name)
+            .unwrap()
+            .id;
         let mut changed = 0;
         for entity in invalid.model.entities.iter_mut().chain(
             invalid

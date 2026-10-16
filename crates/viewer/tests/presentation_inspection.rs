@@ -173,7 +173,7 @@ fn ocdraw_inspection_exposes_typed_viewport_override_refs_and_mode() {
 }
 
 #[test]
-fn physical_shadeplot_loss_is_explicit_for_dxf_but_not_dwg_in_both_routes() {
+fn physical_shadeplot_survives_dxf_and_dwg_in_both_routes() {
     use ocdraw::{ifccad::*, ocdraw::*};
     let mut oc = load_ocdraw_bytes(include_bytes!(
         "../../../conformance/next/ocdraw/valid/paper-viewport.ocdraw.json"
@@ -211,7 +211,7 @@ fn physical_shadeplot_loss_is_explicit_for_dxf_but_not_dwg_in_both_routes() {
                     .iter()
                     .filter(|d| d["code"] == "TARGET_CODEC_VIEWPORT_SHADEPLOT_LOSS")
                     .count(),
-                usize::from(format == "dxf"),
+                0,
                 "{name}/{format}: {diagnostics:?}"
             );
         }

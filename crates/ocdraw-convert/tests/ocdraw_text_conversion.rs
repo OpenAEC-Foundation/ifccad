@@ -18,7 +18,7 @@ fn source() -> CadDocument {
     let mut m = MText::new();
     m.value = "First\\PSecond".into();
     m.common.line_weight = LineWeight::ByLayer;
-    d.add_entity(EntityType::MText(m)).unwrap();
+    d.add_entity(EntityType::MText(Box::new(m))).unwrap();
     d
 }
 

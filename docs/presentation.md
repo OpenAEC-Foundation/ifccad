@@ -1,5 +1,10 @@
 # Drawing presentation and CAD exchange
 
+Current dependency qualification (2026-10-16): codec `325fa98d2b881f48e106a830d5cf161624f63131`
+plus the explicit Dimension text-position repair; viewport repairs are upstream.
+The [current audit](geometry/opencadcodec-update-2026-10-16.md) supersedes dated
+pin/transport limitations below, including paper grid and DXF ShadePlot gates.
+
 IFCCAD and OCDraw retain independent models, schemas, identities and converters.
 Presentation values describe authored display and plot intent; they do not certify
 glyph contours, point-symbol extents, projected curves or renderer output.
@@ -138,7 +143,7 @@ geometric tolerance. Reject refuses semantic substitutions.
 | Line pattern | 335 + typed pattern handle 343 | Qualified late-bound reference |
 | Lineweight | 335 + integer 91 | Qualified explicit hundredths of a millimeter |
 | Named/custom override identity | Native value is broader | Not qualified; located loss remains |
-| Viewport ShadePlot | Independent mode 0–3 | DWG qualified; DXF group 170 pending codec PR #107 |
+| Viewport ShadePlot | Independent mode 0–3 | DXF/DWG qualified on the current pin; PR #107 is merged |
 | Paper grid behavior flags | Stored public fields | Both file routes pending codec PR #106 |
 
 XRecord 420 differs from ordinary entity true color: the high byte is the
@@ -160,14 +165,11 @@ inventory; mixed containers retain their original container-level diagnostic.
 Supported siblings still map. Target handles bind after construction, and skipped
 viewports receive no emitted override or workspace references.
 
-All seven codec-dependent companions retain the audited ab2eecd pin with the
-explicit viewport-off repair. At this slice's qualification, upstream
-[PR #106](https://github.com/HakanSeven12/opencadcodec/pull/106) and
-[PR #107](https://github.com/HakanSeven12/opencadcodec/pull/107) remain open.
-No unmerged temporary fork is selected. Grid portability diagnostics remain;
-the browser export compares requested ShadePlot against physical readback and
-reports changed/unconfirmed values explicitly. Native success does not imply
-those fields survived the CAD file. Older CAD versions remain separately limited.
+All eight codec-dependent companions select the audited 325fa98 pin and the
+explicit Dimension text-position repair. Upstream #103, #106 and #107 are
+included; viewport off-state, paper grid flags and DXF ShadePlot are qualified.
+The browser still compares requested ShadePlot with physical readback and
+reports changed or unconfirmed values. Older CAD versions remain separately limited.
 
 ## Perspective qualification
 

@@ -20,10 +20,10 @@ fn read(text: &str) -> opencadcodec::entities::Hatch {
             }
         })
         .unwrap();
-    h
+    *h
 }
 #[test]
-fn pinned_dxf_reader_ignores_declared_count_and_later_aci_overwrites_rgb() {
+fn pinned_dxf_reader_ignores_declared_count_but_true_color_precedes_aci() {
     // Git may check out the literal fixture with CRLF on Windows. Normalize
     // line endings so each mutation really changes the intended wire tags.
     let text = include_str!("fixtures/hatch-gradient-reference.dxf").replace("\r\n", "\n");
@@ -33,7 +33,14 @@ fn pinned_dxf_reader_ignores_declared_count_and_later_aci_overwrites_rgb() {
     let mismatch = read(&text.replace("453\n2\n", "453\n9\n"));
     assert_eq!(mismatch.gradient_color.colors.len(), 2);
     let reversed = read(&text.replace("63\n1\n421\n14438430\n", "421\n14438430\n63\n1\n"));
-    assert_eq!(reversed.gradient_color.colors[0].color, Color::Index(1));
+    assert_eq!(
+        reversed.gradient_color.colors[0].color,
+        Color::Rgb {
+            r: 220,
+            g: 80,
+            b: 30
+        }
+    );
     let missing = read(&text.replace("460\n0.75\n", ""));
     assert_eq!(missing.gradient_color.angle, 0.0);
 }

@@ -19,7 +19,7 @@ fn source() -> (opencadcodec::CadDocument, Handle, Handle) {
     v.render_mode = opencadcodec::entities::ViewportRenderMode::Wireframe3D;
     v.frozen_layers = vec![d.layers.get("Notes").unwrap().handle];
     let viewport = d
-        .add_entity_to_layout(EntityType::Viewport(v), "Sheet")
+        .add_entity_to_layout(EntityType::Viewport(Box::new(v)), "Sheet")
         .unwrap();
     let circle = d
         .add_entity_to_layout(

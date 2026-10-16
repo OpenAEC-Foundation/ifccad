@@ -260,12 +260,26 @@ fn perspective_exchange_matches_independent_reference() {
 fn workspace_from_cad(source: &opencadcodec::CadDocument) -> CadToEncodedIfccadOutcome {
     let outcome =
         cad_document_to_encoded_ifccad(source, common::metadata(), Default::default()).unwrap();
+    let stack_ranks = source.entities().filter(|e| matches!(e, opencadcodec::EntityType::Viewport(v) if v.stacking != 0 && v.stacking != v.id)).count();
+    assert_eq!(
+        outcome
+            .diagnostics()
+            .iter()
+            .filter(|d| d.code == "source-field" && d.location.ends_with(".stacking"))
+            .count(),
+        stack_ranks
+    );
     assert!(
         outcome
             .diagnostics()
             .iter()
             .filter(|d| d.is_semantic_loss())
-            .all(|d| d.code == "workspace" && d.location.ends_with(".activeContext/currentUcs")),
+            .all(
+                |d| (d.code == "workspace" && d.location.ends_with(".activeContext/currentUcs"))
+                    || (d.code == "source-field"
+                        && (d.location.ends_with(".stacking")
+                            || d.location.ends_with(".dxf_status")))
+            ),
         "unexpected source loss: {:?}",
         outcome.diagnostics()
     );

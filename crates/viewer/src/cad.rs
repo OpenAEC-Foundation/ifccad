@@ -271,7 +271,7 @@ fn viewport_shadeplot_losses(expected: &CadDocument, actual: &CadDocument) -> Ve
                 });
             let actual_mode = target.map(|v| v.shade_plot_mode);
             if source.shade_plot_mode != 0 && actual_mode != Some(source.shade_plot_mode) {
-                losses.push(json!({"code":"TARGET_CODEC_VIEWPORT_SHADEPLOT_LOSS","location":format!("block/{}/viewports/{index}.shadePlot",block.name),"phase":"cadExchange","action":"Modified","expected":source.shade_plot_mode,"actual":actual_mode,"message":"The requested viewport ShadePlot mode was not retained or could not be confirmed in physical CAD readback. The pinned DXF codec lacks VIEWPORT group 170 support; memory/DWG support is qualified separately."}));
+                losses.push(json!({"code":"TARGET_CODEC_VIEWPORT_SHADEPLOT_LOSS","location":format!("block/{}/viewports/{index}.shadePlot",block.name),"phase":"cadExchange","action":"Modified","expected":source.shade_plot_mode,"actual":actual_mode,"message":"The requested viewport ShadePlot mode was not retained or could not be confirmed in physical CAD readback."}));
             }
         }
     }

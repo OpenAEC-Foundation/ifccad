@@ -4,6 +4,43 @@ use opencadcodec::xdata::{ExtendedDataRecord, XDataValue};
 use opencadcodec::{Color, Handle, LineWeight, Transparency, Vector3};
 
 #[test]
+fn revision_three_retains_r12_context_and_requires_its_explicit_presence() {
+    let mut source = Spline::new();
+    source.common.r12_metadata = Some(opencadcodec::entities::R12EntityMetadata {
+        viewport: Some(0),
+        child_viewports: vec![None, Some(7)],
+    });
+    let bytes = capture_spline(&source, 0, CODEC_REVISION).unwrap();
+    let restored = decode_spline_snapshot(&bytes).unwrap();
+    assert_eq!(restored.payload_version(), 3);
+    assert_eq!(
+        restored.to_source().common.r12_metadata,
+        source.common.r12_metadata
+    );
+    let mut value: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+    value["common"]
+        .as_object_mut()
+        .unwrap()
+        .remove("r12Metadata");
+    assert!(decode_spline_snapshot(&serde_json::to_vec(&value).unwrap()).is_err());
+    for revision in [OCTOBER_8_CODEC_REVISION, PREVIOUS_CODEC_REVISION] {
+        value["codecRevision"] = revision.into();
+        assert_eq!(
+            decode_spline_snapshot(&serde_json::to_vec(&value).unwrap())
+                .unwrap()
+                .payload_version(),
+            2
+        );
+        value["common"]["r12Metadata"] = serde_json::Value::Null;
+        assert!(decode_spline_snapshot(&serde_json::to_vec(&value).unwrap()).is_err());
+        value["common"]
+            .as_object_mut()
+            .unwrap()
+            .remove("r12Metadata");
+    }
+}
+
+#[test]
 fn snapshot_retains_every_parameter_and_skipped_common_carrier() {
     let mut source = Spline::new();
     source.degree = -4;
@@ -185,12 +222,17 @@ fn literal_payload_versions_and_current_bytes_remain_compatible() {
     assert_eq!(snapshot.source_handle(), Handle::new(0xab));
     assert_eq!(snapshot.source_owner_handle(), Handle::new(0xcd));
     assert_eq!(snapshot.source_order_index(), 3);
+    let current = capture_spline(&snapshot.to_source(), 3, CODEC_REVISION).unwrap();
+    let mut expected: serde_json::Value = serde_json::from_slice(bytes).unwrap();
+    expected["codecRevision"] = CODEC_REVISION.into();
+    expected["common"]["r12Metadata"] = serde_json::Value::Null;
     assert_eq!(
-        capture_spline(&snapshot.to_source(), 3, CODEC_REVISION).unwrap(),
-        std::str::from_utf8(bytes)
-            .unwrap()
-            .replace(PREVIOUS_CODEC_REVISION, CODEC_REVISION)
-            .as_bytes()
+        serde_json::from_slice::<serde_json::Value>(&current).unwrap(),
+        expected
+    );
+    assert_eq!(
+        decode_spline_snapshot(&current).unwrap().payload_version(),
+        3
     );
     let legacy =
         decode_spline_snapshot(include_bytes!("../tests/fixtures/spline-v1.json")).unwrap();

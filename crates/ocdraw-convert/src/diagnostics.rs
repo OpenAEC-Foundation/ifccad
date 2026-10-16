@@ -218,6 +218,7 @@ pub enum CadToOcdrawLossReason {
     },
     EntityLinetypeScale,
     EntityLinetypeHandle,
+    EntityR12ViewportMetadata,
     EntityExtendedData,
     EntityGraphicData,
     EntityReactors,

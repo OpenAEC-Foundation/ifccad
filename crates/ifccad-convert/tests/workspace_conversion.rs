@@ -55,7 +55,7 @@ fn paper_canvas_and_authored_viewport_workspace_are_distinct() {
     canvas.status.snap_on = false;
     canvas.ucs_per_viewport = false;
     let overall = source
-        .add_entity_to_layout(EntityType::Viewport(canvas), "Layout1")
+        .add_entity_to_layout(EntityType::Viewport(Box::new(canvas)), "Layout1")
         .unwrap();
     let mut view = Viewport::new();
     view.id = 2;
@@ -67,7 +67,7 @@ fn paper_canvas_and_authored_viewport_workspace_are_distinct() {
     view.snap_spacing = Vector3::ZERO;
     view.status.snap_on = false;
     let authored = source
-        .add_entity_to_layout(EntityType::Viewport(view), "Layout1")
+        .add_entity_to_layout(EntityType::Viewport(Box::new(view)), "Layout1")
         .unwrap();
     for object in source.objects.values_mut() {
         if let opencadcodec::objects::ObjectType::Layout(layout) = object {
@@ -225,7 +225,7 @@ fn omitted_viewport_cannot_hide_nonfinite_workspace() {
     viewport.width = 0.;
     viewport.grid_spacing.x = f64::NAN;
     source
-        .add_entity_to_layout(EntityType::Viewport(viewport), "Layout1")
+        .add_entity_to_layout(EntityType::Viewport(Box::new(viewport)), "Layout1")
         .unwrap();
     assert!(matches!(
         cad_document_to_ifccad_document(&source, common::metadata(), Default::default()),

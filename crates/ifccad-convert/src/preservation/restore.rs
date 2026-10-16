@@ -1,8 +1,5 @@
 use super::*;
-use cad_preservation::{
-    decode_spline_snapshot, CODEC_REVISION, LEGACY_CODEC_REVISION, PREVIOUS_CODEC_REVISION,
-    SPLINE_PAYLOAD_VERSION,
-};
+use cad_preservation::decode_spline_snapshot;
 use ocdraw::ifccad::*;
 use opencadcodec::entities::Spline;
 
@@ -19,17 +16,14 @@ pub(crate) fn restore_spline(
         .find(|s| s.id == record.source_id)
         .ok_or(MissingDependency)?;
     if record.payload.schema != "openaec.opencadcodec.spline"
-        || !matches!(record.payload.version, 1 | 2)
+        || !matches!(record.payload.version, 1..=3)
         || record.payload.kind != IfccadPreservationPayloadKind::AdapterSnapshot
         || record.representation != IfccadPreservationRepresentation::CodecTyped
     {
         return Err(UnsupportedPayload);
     }
-    let expected_version = match source.provider_revision.as_str() {
-        CODEC_REVISION | PREVIOUS_CODEC_REVISION => SPLINE_PAYLOAD_VERSION,
-        LEGACY_CODEC_REVISION => 1,
-        _ => return Err(UnsupportedPayload),
-    };
+    let expected_version = cad_preservation::spline_payload_version(&source.provider_revision)
+        .ok_or(UnsupportedPayload)?;
     if source.provider != "opencadcodec" || record.payload.version != expected_version {
         return Err(UnsupportedPayload);
     }

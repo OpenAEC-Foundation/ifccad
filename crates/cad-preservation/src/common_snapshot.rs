@@ -1,5 +1,5 @@
 use base64::{engine::general_purpose::STANDARD, Engine};
-use opencadcodec::entities::EntityCommon;
+use opencadcodec::entities::{EntityCommon, R12EntityMetadata};
 use opencadcodec::xdata::{ExtendedData, ExtendedDataRecord, XDataValue};
 use opencadcodec::{Color, Handle, LineWeight, Transparency, Vector3};
 use serde::{Deserialize, Serialize};
@@ -266,6 +266,8 @@ impl SnapshotExtendedData {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(crate) struct SplineCommonSnapshot {
+    #[serde(default)]
+    r12_metadata: Option<SnapshotR12Metadata>,
     pub(crate) handle: SnapshotHandle,
     pub(crate) owner_handle: SnapshotHandle,
     layer: String,
@@ -306,6 +308,13 @@ pub(crate) struct SplineCommonSnapshot {
     entity_mode: Option<u8>,
     has_ds_data: bool,
 }
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct SnapshotR12Metadata {
+    #[serde(deserialize_with = "required_option")]
+    viewport: Option<u16>,
+    child_viewports: Vec<Option<u16>>,
+}
 impl SplineCommonSnapshot {
     pub fn capture(common: &EntityCommon) -> Self {
         let EntityCommon {
@@ -336,9 +345,14 @@ impl SplineCommonSnapshot {
             plotstyle_flags,
             entity_mode,
             has_ds_data,
+            r12_metadata,
             raw_record: _,
         } = common;
         Self {
+            r12_metadata: r12_metadata.as_ref().map(|v| SnapshotR12Metadata {
+                viewport: v.viewport,
+                child_viewports: v.child_viewports.clone(),
+            }),
             handle: SnapshotHandle(*handle),
             owner_handle: SnapshotHandle(*owner_handle),
             layer: layer.clone(),
@@ -397,6 +411,10 @@ impl SplineCommonSnapshot {
             plotstyle_flags: self.plotstyle_flags,
             entity_mode: self.entity_mode,
             has_ds_data: self.has_ds_data,
+            r12_metadata: self.r12_metadata.as_ref().map(|v| R12EntityMetadata {
+                viewport: v.viewport,
+                child_viewports: v.child_viewports.clone(),
+            }),
             raw_record: None,
         }
     }

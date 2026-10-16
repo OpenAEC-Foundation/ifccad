@@ -86,6 +86,19 @@ pub(crate) fn viewport_residual(
 ) {
     let b = opencadcodec::entities::Viewport::new();
     let mut r = v.clone();
+    let derived_status = if !v.is_on() {
+        0
+    } else if v.off_screen {
+        -1
+    } else {
+        v.id
+    };
+    if r.dxf_status == Some(derived_status) {
+        r.dxf_status = None;
+    }
+    if r.stacking == v.id {
+        r.stacking = 0;
+    }
     if (0..=3).contains(&v.shade_plot_mode) {
         r.shade_plot_mode = b.shade_plot_mode;
     }

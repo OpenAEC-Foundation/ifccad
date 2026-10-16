@@ -6,5 +6,5 @@ license = "MPL-2.0"
 description = "Shared CAD color and presentation scalar conversion"
 
 [dependencies]
-opencadcodec = { git = "https://github.com/HakanSeven12/opencadcodec.git", rev = "ab2eecdbffc31120b5ad6d899f6fc67cf21ede39" }
+opencadcodec = { git = "https://github.com/HakanSeven12/opencadcodec.git", rev = "325fa98d2b881f48e106a830d5cf161624f63131" }
 thiserror = "1"

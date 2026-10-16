@@ -20,7 +20,7 @@ production-readback and semantic-mismatch phases. Error sources remain typed;
 this changes Rust error handling, not graph-aware loss or precision assessment.
 
 Profile `urn:example:ifccad:0.1.0`; opencadcodec revision
-`ab2eecdbffc31120b5ad6d899f6fc67cf21ede39`. Default Allow returns supported content
+`325fa98d2b881f48e106a830d5cf161624f63131`. Default Allow returns supported content
 with losses; explicit Reject refuses diagnosed omissions or modifications.
 
 The [dependency audit](../../../docs/geometry/opencadcodec-update-2026-10-05.md)
@@ -443,3 +443,24 @@ Gradient endpoints stay concrete after the Foreground color migration. Source
 ACI 7 endpoints are unqualified (active whole-Hatch or dormant-state omission
 under Allow; Reject refuses). Native Foreground endpoints fail validation;
 no fixed background or RGB replacement is invented.
+
+
+## Upstream pin update — 2026-10-16
+
+The current exact codec pin is `325fa98d2b881f48e106a830d5cf161624f63131`
+(upstream package version remains 0.6.0), with only the explicit
+[Dimension text-position patch](../../../patches/opencadcodec-dimension/README.md).
+Viewport off-state #103, paper grid flags #106, DXF ShadePlot #107 and gradient
+state #109 are upstream. Paper VIEWPORT grid behavior now survives DXF/DWG;
+its former target-loss diagnostics are removed. ShadePlot modes 0–3 survive
+both routes, with physical readback still detecting unexpected loss.
+
+The [public-model audit](../../../docs/geometry/opencadcodec-update-2026-10-16.md)
+records added fields on existing types. Spline captures use payload v3 to retain
+R12 common metadata, while audited v1/v2 sources remain readable. R12 viewport
+context is retained in snapshots but is not eligible for typed restoration;
+ordinary conversion diagnoses it. Packed nondefault TrueType flags, unknown
+complex-linetype flag bits and named gradient endpoint identity are explicitly
+unqualified. Additional header, viewport, object and unsupported-entity fields
+remain subject to source loss classification. No native format semantics or
+measurement claims are expanded by this dependency update.

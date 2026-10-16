@@ -29,7 +29,7 @@ pub fn source() -> CadDocument {
     text.common.color = Color::Index(7);
     text.background_fill_flags = 1;
     text.background_color = Color::Index(7);
-    d.add_entity(EntityType::MText(text)).unwrap();
+    d.add_entity(EntityType::MText(Box::new(text))).unwrap();
     d.add_layout("Sheet").unwrap();
     let layer = d.layers.get("0").unwrap().handle;
     let mut view = opencadcodec::entities::Viewport::new();
@@ -38,7 +38,7 @@ pub fn source() -> CadDocument {
     view.height = 80.;
     view.view_height = 120.;
     let view = d
-        .add_entity_to_layout(EntityType::Viewport(view), "Sheet")
+        .add_entity_to_layout(EntityType::Viewport(Box::new(view)), "Sheet")
         .unwrap();
     assert!(d.set_layer_viewport_override(
         layer,

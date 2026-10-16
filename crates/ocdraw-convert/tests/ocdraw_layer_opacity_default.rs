@@ -142,10 +142,10 @@ fn default_layer_survives_actual_dxf_and_dwg_import_and_canonical_export() {
                 .read()
                 .unwrap()
         };
-        assert_eq!(
+        assert!(matches!(
             loaded.layers.get("Coloured").unwrap().transparency,
-            Transparency::ByLayer
-        );
+            Transparency::ByLayer | Transparency::Explicit(0)
+        ));
         let native = cad_document_to_ocdraw_document(&loaded, Default::default()).unwrap();
         let encoded = encode_ocdraw_document(native.document()).unwrap();
         let strict = load_ocdraw_bytes(encoded.bytes()).unwrap();

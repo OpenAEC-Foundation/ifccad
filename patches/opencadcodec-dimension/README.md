@@ -1,9 +1,9 @@
 # Dimension text position codec repair
 
-Base: opencadcodec `ab2eecdbffc31120b5ad6d899f6fc67cf21ede39` (0.6.0).
-Apply `0001-text-position-flag.patch` alongside the existing viewport-off patch,
+Current base: opencadcodec `325fa98d2b881f48e106a830d5cf161624f63131` (0.6.0). The unchanged patch also applies to its original `ab2eecdbffc31120b5ad6d899f6fc67cf21ede39` base.
+Apply `0001-text-position-flag.patch` as the only remaining local repair,
 using the shared [codec configuration](../opencadcodec-viewports/README.md).
-The composite CI action selects both repairs for Rust checks and the browser
+The composite CI action selects this repair for Rust checks and the browser
 processor; both browser cache keys include this patch directory.
 
 The pinned DWG reader and writer incorrectly treat flags bit 0 as equivalent to
@@ -24,5 +24,5 @@ writer cannot pass this check merely by agreeing with one another. Existing
 anchor tests check actual DXF/AC1032 transport separately.
 
 This is local repair evidence, not evidence for the unmodified dependency.
-No upstream issue or pull request was created as part of this task. The patch
+Tracked upstream in [issue #117](https://github.com/HakanSeven12/opencadcodec/issues/117). The patch
 does not automatically recognize or repair files emitted with the old polarity.

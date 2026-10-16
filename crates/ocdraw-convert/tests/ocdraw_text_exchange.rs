@@ -19,7 +19,9 @@ fn simple_text_and_mtext_survive_native_then_actual_dxf_and_dwg_exchange() {
     mtext.height = 2.5;
     mtext.insertion_point = Vector3::new(10., 20., 0.);
     mtext.common.line_weight = LineWeight::ByLayer;
-    source.add_entity(EntityType::MText(mtext)).unwrap();
+    source
+        .add_entity(EntityType::MText(Box::new(mtext)))
+        .unwrap();
     let native = cad_document_to_ocdraw_document(&source, Default::default()).unwrap();
     let file = encode_ocdraw_document(native.document()).unwrap();
     let strict = load_ocdraw_bytes(file.bytes()).unwrap();

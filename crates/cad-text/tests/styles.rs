@@ -3,6 +3,18 @@ use ocdraw::text::*;
 use opencadcodec::tables::TextStyle;
 
 #[test]
+fn packed_font_face_metadata_requires_explicit_qualification() {
+    let mut style = TextStyle::new("Arial");
+    style.true_type_font = "Arial".into();
+    import_text_style(&style).unwrap();
+    style.true_type_font_flags |= 0x0200_0000;
+    assert!(matches!(
+        import_text_style(&style),
+        Err(CadTextError::Unsupported(_))
+    ));
+}
+
+#[test]
 fn local_style_requests_and_creation_metadata_roundtrip_without_loading_fonts() {
     let mut source = TextStyle::new("Labels");
     source.font_file = "simplex.shx".into();

@@ -4,6 +4,58 @@ use ocdraw::ifccad::*;
 use opencadcodec::{Color, EntityType, Vector3};
 mod spline_support;
 use spline_support::captured;
+
+#[test]
+fn historical_snapshots_restore_but_r12_context_remains_preserved() {
+    for revision in [
+        cad_preservation::OCTOBER_8_CODEC_REVISION,
+        cad_preservation::PREVIOUS_CODEC_REVISION,
+    ] {
+        let mut doc = captured();
+        let p = doc.preservation.as_mut().unwrap();
+        p.sources[0].provider_revision = revision.into();
+        let r = &mut p.records[0];
+        r.payload.version = 2;
+        let mut body: serde_json::Value = serde_json::from_slice(&r.payload.bytes).unwrap();
+        body["codecRevision"] = revision.into();
+        body["common"]
+            .as_object_mut()
+            .unwrap()
+            .remove("r12Metadata");
+        r.payload.bytes = serde_json::to_vec(&body).unwrap();
+        let reopened = load_ifccad_bytes(
+            encode_ifccad_document(&doc).unwrap().bytes(),
+            Default::default(),
+        )
+        .unwrap();
+        let out = ifccad_source_to_cad_document(&reopened, Default::default()).unwrap();
+        assert!(out
+            .document()
+            .entities()
+            .any(|e| matches!(e, EntityType::Spline(_))));
+    }
+    let mut doc = captured();
+    let r = &mut doc.preservation.as_mut().unwrap().records[0];
+    let mut body: serde_json::Value = serde_json::from_slice(&r.payload.bytes).unwrap();
+    body["common"]["r12Metadata"] = serde_json::json!({"viewport":0,"childViewports":[null,7]});
+    r.payload.bytes = serde_json::to_vec(&body).unwrap();
+    let preserved = doc.preservation.clone();
+    let out = ifccad_document_to_cad_document(&doc, Default::default()).unwrap();
+    assert!(out
+        .preservation_report()
+        .entries()
+        .iter()
+        .any(|e| e.reason == Some(IfccadPreservationReason::UnsupportedContext)));
+    assert_eq!(doc.preservation, preserved);
+    assert!(ifccad_document_to_cad_document(
+        &doc,
+        IfccadToCadOptions {
+            loss_policy: IfccadLossPolicy::Reject,
+            ..Default::default()
+        }
+    )
+    .is_err());
+}
 #[test]
 fn native_edits_remain_authoritative_after_durable_reopen() {
     let mut d = captured();
@@ -345,7 +397,7 @@ fn dormant_opaque_clip_survives_capture_and_failed_boundary_never_leaves_a_dangl
     v.height = 100.;
     v.view_height = 100.;
     let viewport = cad
-        .add_entity_to_layout(EntityType::Viewport(v), "Sheet")
+        .add_entity_to_layout(EntityType::Viewport(Box::new(v)), "Sheet")
         .unwrap();
     let boundary = cad
         .add_entity_to_layout(EntityType::Spline(spline_support::spline()), "Sheet")

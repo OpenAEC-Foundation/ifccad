@@ -11,7 +11,7 @@ fn source() -> (CadDocument, Handle, Handle) {
     v.view_height = 120.;
     v.frozen_layers = vec![layer];
     let viewport = d
-        .add_entity_to_layout(EntityType::Viewport(v), "Sheet")
+        .add_entity_to_layout(EntityType::Viewport(Box::new(v)), "Sheet")
         .unwrap();
     let literal: serde_json::Value = serde_json::from_str(include_str!(
         "fixtures/viewports/presentation-xrecord-scalars.json"
@@ -239,7 +239,7 @@ fn two_viewports_and_layers_keep_overrides_separate_without_thawing_global_freez
     v.height = 70.;
     v.view_height = 150.;
     let second = d
-        .add_entity_to_layout(EntityType::Viewport(v), "Sheet")
+        .add_entity_to_layout(EntityType::Viewport(Box::new(v)), "Sheet")
         .unwrap();
     d.set_layer_viewport_override(
         layer_handle,

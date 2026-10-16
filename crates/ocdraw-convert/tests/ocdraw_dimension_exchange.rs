@@ -26,7 +26,7 @@ fn strict_native_readback_and_both_cad_codecs_retain_definition_and_reset() {
             X::ControlString("}".into()),
         ],
     });
-    cad.add_entity(EntityType::Dimension(Dimension::Aligned(d)))
+    cad.add_entity(EntityType::Dimension(Box::new(Dimension::Aligned(d))))
         .unwrap();
     let native = cad_document_to_ocdraw_document(&cad, Default::default()).unwrap();
     let encoded = encode_ocdraw_document(native.document()).unwrap();

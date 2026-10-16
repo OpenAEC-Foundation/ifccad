@@ -55,7 +55,7 @@ pub(crate) fn allocate(
             let mut viewport = opencadcodec::entities::Viewport::new();
             viewport.id = 1;
             document
-                .add_entity_to_layout(EntityType::Viewport(viewport), &paper.name)
+                .add_entity_to_layout(EntityType::Viewport(Box::new(viewport)), &paper.name)
                 .map_err(|e| IfccadConversionError::CadConstruction(e.to_string()))?;
             handle
         } else {

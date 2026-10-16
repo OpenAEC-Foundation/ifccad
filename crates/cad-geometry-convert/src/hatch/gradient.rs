@@ -99,6 +99,16 @@ pub fn prepare_gradient_from_cad(
             detail: "incomplete endpoint pair".into(),
         });
     }
+    if p.colors
+        .iter()
+        .any(|e| e.color_name.is_some() || e.book_name.is_some())
+    {
+        return unqualified(
+            h,
+            "gradient.colors.identity",
+            "named gradient color identity is unqualified",
+        );
+    }
     if p.reserved != 0 {
         return unqualified(
             h,
@@ -193,10 +203,14 @@ pub fn apply_gradient_to_cad(
             .map(|cs| {
                 vec![
                     GradientColorEntry {
+                        color_name: None,
+                        book_name: None,
                         value: 0.,
                         color: cs[0],
                     },
                     GradientColorEntry {
+                        color_name: None,
+                        book_name: None,
                         value: 1.,
                         color: cs[1],
                     },

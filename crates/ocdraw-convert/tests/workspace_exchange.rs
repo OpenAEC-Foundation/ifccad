@@ -14,7 +14,7 @@ fn workspace_fields_survive_direct_dxf_and_dwg_exchange() {
         .diagnostics()
         .iter()
         .any(|d| d.location == "/viewState/activeModelWindowId"));
-    assert!(target
+    assert!(!target
         .diagnostics()
         .iter()
         .any(|d| d.location.contains("grid.adaptive")));
@@ -75,7 +75,7 @@ fn assert_workspace(format: &str, cad: &CadDocument, expected: &OcdrawDocument) 
             .find(|c| c.scope_id == scope)
             .unwrap();
         assert_eq!(a.frame, canvas.frame, "{format}: {name}");
-        assert_eq!(a.grid, file_grid(canvas.grid, format), "{format}");
+        assert_eq!(a.grid, canvas.grid, "{format}");
         assert_eq!(a.snap, canvas.snap);
         assert_eq!(a.current_ucs, None);
         assert_eq!(a.active_context, None);
@@ -91,7 +91,7 @@ fn assert_workspace(format: &str, cad: &CadDocument, expected: &OcdrawDocument) 
         .iter()
         .zip(&expected.viewport_workspaces)
     {
-        assert_eq!(a.grid, file_grid(b.grid, format), "{format}");
+        assert_eq!(a.grid, b.grid, "{format}");
         assert_eq!(a.snap, b.snap, "{format}");
         assert_eq!(a.stored_ucs, b.stored_ucs);
         assert_eq!(a.use_stored_ucs, b.use_stored_ucs);
@@ -116,19 +116,6 @@ fn assert_workspace(format: &str, cad: &CadDocument, expected: &OcdrawDocument) 
             ))
             .collect::<Vec<_>>()
     );
-}
-
-fn file_grid(
-    mut grid: ocdraw::workspace_kernel::WorkspaceGrid,
-    format: &str,
-) -> ocdraw::workspace_kernel::WorkspaceGrid {
-    if format != "direct" {
-        grid.beyond_limits = false;
-        grid.adaptive = false;
-        grid.subdivision = false;
-        grid.follows_workplane = false;
-    }
-    grid
 }
 
 #[test]

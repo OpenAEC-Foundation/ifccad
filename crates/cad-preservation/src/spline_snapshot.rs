@@ -1,6 +1,6 @@
 use super::common_snapshot::{SnapshotFloat, SnapshotHandle, SnapshotVector, SplineCommonSnapshot};
 use super::{
-    CadSplineSnapshotError, CODEC_REVISION, LEGACY_CODEC_REVISION, PREVIOUS_CODEC_REVISION,
+    spline_payload_version, CadSplineSnapshotError, CODEC_REVISION, LEGACY_CODEC_REVISION,
 };
 use opencadcodec::entities::{Spline, SplineFlags};
 use serde::{Deserialize, Serialize};
@@ -146,11 +146,7 @@ impl CadSplineSnapshot {
         &self.0.codec_revision
     }
     pub fn payload_version(&self) -> u32 {
-        if self.0.codec_revision == LEGACY_CODEC_REVISION {
-            1
-        } else {
-            2
-        }
+        spline_payload_version(&self.0.codec_revision).expect("audited snapshot revision")
     }
     pub fn source_handle(&self) -> opencadcodec::Handle {
         self.0.source_handle.0
@@ -183,10 +179,7 @@ pub fn capture_spline(
 pub fn decode_spline_snapshot(bytes: &[u8]) -> Result<CadSplineSnapshot, CadSplineSnapshotError> {
     let snapshot: SplineSnapshot =
         serde_json::from_slice(bytes).map_err(CadSplineSnapshotError::Malformed)?;
-    if snapshot.codec_revision != CODEC_REVISION
-        && snapshot.codec_revision != PREVIOUS_CODEC_REVISION
-        && snapshot.codec_revision != LEGACY_CODEC_REVISION
-    {
+    if spline_payload_version(&snapshot.codec_revision).is_none() {
         return Err(CadSplineSnapshotError::UnsupportedRevision);
     }
     // Version 1 predates these source fields. Version 2 must state both,
@@ -200,6 +193,9 @@ pub fn decode_spline_snapshot(bytes: &[u8]) -> Result<CadSplineSnapshot, CadSpli
     } else {
         !scenario && !layer_handle
     };
+    // Version 3 states the new R12 metadata carrier, including explicit null.
+    let r12_present = value["common"].get("r12Metadata").is_some();
+    let valid_shape = valid_shape && (r12_present == (snapshot.codec_revision == CODEC_REVISION));
     if !valid_shape {
         return Err(CadSplineSnapshotError::Malformed(
             <serde_json::Error as serde::de::Error>::custom(

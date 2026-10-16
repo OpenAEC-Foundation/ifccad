@@ -7,19 +7,19 @@ OCDraw and IFCCAD remain separate; this adapter implements only OCDraw.
 
 ## Carrier and compatibility
 
-Provider: `opencadcodec`; payload schema: `openaec.opencadcodec.spline`; version:
-`2` for new capture; `1` remains supported for the previous revision. Kind: `adapterSnapshot`; category/role/representation:
-`entity` / `complete` / `codecTyped`.
+Provider: `opencadcodec`; payload schema: `openaec.opencadcodec.spline`;
+version `3` for new capture at `325fa98d2b881f48e106a830d5cf161624f63131`.
+Kind: `adapterSnapshot`; category/role/representation: `entity` / `complete` / `codecTyped`.
 
-Current audited codec revision: `063c10671fe7833d562f772159771318c7a0ebb9` (0.6.0).
-The previous `fe69506cb99dea6f4c4a73b690a27fdf04403ea0` revision remains accepted
-for version-1 snapshots. Version 2 adds explicit nullable `dwgScenario` and
-`common.layerHandle`; version 1 lacks those fields and restores them as None,
-without inventing missing source state. The provider revision, payload version
-and body revision must agree. Current capture always emits version 2.
-See the [dependency audit](../../../docs/geometry/opencadcodec-update-2026-10-07.md).
-Only the documented viewport-off repair remains selected; clipping and angle
-repairs have merged upstream. PR #99's fit-spline DXF repair is not in this pin.
+Audited version-2 revisions `ab2eecd` and `063c106` and version-1 revision
+`fe69506` remain readable. Version 2 requires explicit nullable `dwgScenario`
+and `common.layerHandle`. Version 3 additionally requires `common.r12Metadata`,
+including null; its object retains `viewport` and ordered `childViewports`.
+Older payload shapes omit that carrier. R12 viewport context is preserved but
+not eligible for typed restoration. Source revision, payload version and body
+revision must agree. See the [current dependency audit](../../../docs/geometry/opencadcodec-update-2026-10-16.md).
+Only the documented Dimension text-position patch remains selected; viewport
+repairs and fit-spline DXF repair #99 are upstream.
 
 `SplineSnapshot` and `SplineCommonSnapshot` are private adapter types, independent
 of core storage. Version belongs to the persisted format, not the Rust names.

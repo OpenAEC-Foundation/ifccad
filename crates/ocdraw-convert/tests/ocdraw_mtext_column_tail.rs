@@ -16,7 +16,7 @@ fn source(final_height: f64) -> CadDocument {
     m.column_data.width = 40.;
     m.column_data.gutter = 5.;
     m.column_data.heights = vec![60., final_height];
-    doc.add_entity(EntityType::MText(m)).unwrap();
+    doc.add_entity(EntityType::MText(Box::new(m))).unwrap();
     doc
 }
 

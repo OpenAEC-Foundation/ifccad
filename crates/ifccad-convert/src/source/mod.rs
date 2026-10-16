@@ -487,7 +487,7 @@ fn overall_scaffold(doc: &CadDocument, e: &EntityType) -> bool {
     if resolved_layer_handle(doc, &a.common) {
         a.common.layer_handle = None;
     }
-    a == b
+    a.as_ref() == &b
 }
 
 fn untouched_paper(doc: &CadDocument, layout: &opencadcodec::objects::Layout) -> bool {
@@ -875,7 +875,12 @@ fn layer_transparency_duplicate(
             Some([opencadcodec::xdata::XDataValue::Integer32(value)]),
         ) => {
             (layer.transparency.is_explicit() && *value == layer.transparency.to_dxf_value())
-                || (layer.transparency == opencadcodec::Transparency::ByLayer && *value == 0)
+                || (*value == 0
+                    && matches!(
+                        layer.transparency,
+                        opencadcodec::Transparency::ByLayer
+                            | opencadcodec::Transparency::Explicit(0)
+                    ))
         }
         _ => false,
     }
@@ -1073,6 +1078,30 @@ mod transparency_tests {
                 wrong_owner,
                 Some("AcCmTransparency"),
                 Some(&valid)
+            ));
+        }
+    }
+
+    #[test]
+    fn packed_layer_zero_duplicates_the_readers_explicit_opaque_default() {
+        for transparency in [
+            opencadcodec::Transparency::ByLayer,
+            opencadcodec::Transparency::Explicit(0),
+        ] {
+            let mut layer = opencadcodec::tables::Layer::new("example");
+            layer.transparency = transparency;
+            let owner = SemanticReferenceV1::Resolved(SemanticNodeV1::TableRecord(
+                SemanticTableRecordV1::Layer(&layer),
+            ));
+            assert!(layer_transparency_duplicate(
+                owner,
+                Some("AcCmTransparency"),
+                Some(&[XDataValue::Integer32(0)])
+            ));
+            assert!(!layer_transparency_duplicate(
+                owner,
+                Some("AcCmTransparency"),
+                Some(&[XDataValue::Integer32(1)])
             ));
         }
     }

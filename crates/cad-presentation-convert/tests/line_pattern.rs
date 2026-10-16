@@ -15,6 +15,18 @@ fn marker() -> CadLinePatternMarkerValues {
 }
 
 #[test]
+fn newly_retained_unknown_linetype_flags_are_not_discarded() {
+    let mut cad = marker_values_to_cad(&marker(), Handle::new(7)).unwrap();
+    cad.source_flags = 0x04;
+    marker_values_from_cad(&cad).unwrap();
+    cad.source_flags |= 0x80;
+    assert!(matches!(
+        marker_values_from_cad(&cad),
+        Err(CadLinePatternValueError::Unsupported(_))
+    ));
+}
+
+#[test]
 fn marker_parameters_survive_value_roundtrip() {
     for absolute in [false, true] {
         let mut value = marker();

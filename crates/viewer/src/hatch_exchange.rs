@@ -244,7 +244,7 @@ mod tests {
         for angle in [0.25, 0.75] {
             let mut h = Hatch::solid();
             h.gradient_color.angle = angle;
-            d.add_entity(EntityType::Hatch(h)).unwrap();
+            d.add_entity(EntityType::Hatch(Box::new(h))).unwrap();
         }
         d
     }
@@ -291,7 +291,7 @@ mod tests {
             }));
             h.paths.push(p);
         }
-        d.add_entity(EntityType::Hatch(h)).unwrap();
+        d.add_entity(EntityType::Hatch(Box::new(h))).unwrap();
         d
     }
     #[test]

@@ -316,8 +316,11 @@ fn overall_viewport_scaffold_is_checked_by_role_and_values() {
     let mut c = cad();
     let mut viewport = opencadcodec::entities::Viewport::new();
     viewport.id = 1;
-    c.add_entity_to_layout(opencadcodec::EntityType::Viewport(viewport), "Layout1")
-        .unwrap();
+    c.add_entity_to_layout(
+        opencadcodec::EntityType::Viewport(Box::new(viewport)),
+        "Layout1",
+    )
+    .unwrap();
     from_cad(&c, metadata()).unwrap();
     let h = c.block_records.get("*Paper_Space").unwrap().entity_handles[0];
     let opencadcodec::EntityType::Viewport(v) = c.get_entity_mut(h).unwrap() else {

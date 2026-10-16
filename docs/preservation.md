@@ -1,5 +1,10 @@
 # Preservation direction
 
+Current dependency qualification (2026-10-16): codec `325fa98d2b881f48e106a830d5cf161624f63131`
+plus the explicit Dimension text-position repair; viewport repairs are upstream.
+The [current audit](geometry/opencadcodec-update-2026-10-16.md) supersedes dated
+pin/transport limitations below, including paper grid and DXF ShadePlot gates.
+
 Status: typed-spline pilots implemented separately for OCDraw and IFCCAD in their provisional 0.1.0 contracts. Broader providers remain follow-up designs; this does not publish or freeze the supported contract. ROADMAP remains authoritative; active schemas and tests remain the source of truth for existing behavior.
 
 ## Purpose and boundaries
@@ -86,7 +91,9 @@ on the native variant. Opaque layer and the complete appearance/scale bundle
 are optional; visibility remains independently editable. No geometry/default
 layer/appearance is invented. The codec-only `cad-preservation` companion shares
 only the audited opencadcodec byte DTO with both converters. Existing spline
-payload v2/current 063c106 and v1/legacy fe69506 bytes remain compatible.
+payload v2/ab2eecd/063c106 and v1/fe69506 bytes remain compatible. Current
+capture uses v3/325fa98 with explicit R12 common metadata; unqualified R12
+viewport context remains preserved and blocks typed restoration.
 
 The IFCX mapping uses `ifccad::opaqueEntity`, `ifccad::preservation` and
 `ifccad::preservationRecord`; see the active IFCCAD experimental contract.
