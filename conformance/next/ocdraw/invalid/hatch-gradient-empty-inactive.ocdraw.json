@@ -207,7 +207,9 @@
               "kind": "circle",
               "radius": 1.0
             },
-            "sourceEntityId": 1
+            "sourceEntityIds": [
+              1
+            ]
           }
         ]
       ],
@@ -241,6 +243,9 @@
       ],
       "gradient": [
         {}
+      ],
+      "associationEnabled": [
+        true
       ]
     }
   }

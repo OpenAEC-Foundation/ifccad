@@ -977,6 +977,12 @@ pub fn cad_document_to_ocdraw_document_with_id(
         consumed,
         &dimension_styles.consumed,
     ));
+    crate::source::hatch::account_reactors(
+        &drawing_document,
+        document,
+        &entity_mapping,
+        &mut diagnostics,
+    );
     crate::mapping::workspace::bind_viewport_workspaces(
         document,
         &mut drawing_document,

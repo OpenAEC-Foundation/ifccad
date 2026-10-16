@@ -200,7 +200,7 @@
             "tint": 0.8,
             "type": "inverseSpherical"
           },
-          "joinTolerance": 1e-9,
+          "joinTolerance": 1e-09,
           "loops": [
             {
               "boundary": {
@@ -240,9 +240,12 @@
                 "kind": "circle",
                 "radius": 1.0
               },
-              "source": "/cad/d1/e2"
+              "sources": [
+                "/cad/d1/e2"
+              ]
             }
-          ]
+          ],
+          "associationEnabled": true
         }
       }
     },
@@ -338,7 +341,7 @@
             "shift": 0.0,
             "tint": 0.65
           },
-          "joinTolerance": 1e-9,
+          "joinTolerance": 1e-09,
           "loops": [
             {
               "boundary": {
@@ -378,9 +381,12 @@
                 "kind": "circle",
                 "radius": 1.0
               },
-              "source": "/cad/d1/e2"
+              "sources": [
+                "/cad/d1/e2"
+              ]
             }
-          ]
+          ],
+          "associationEnabled": true
         }
       }
     }

@@ -16,7 +16,15 @@ pub(crate) fn validate_hatch_parts(
         .iter()
         .flat_map(|s| s.entities.iter().map(move |id| (*id, s.id)))
         .collect();
-    let sources: BTreeMap<_, _> = doc.geometric_entities.iter().map(|e| (e.id, e)).collect();
+    let sources: std::collections::BTreeSet<_> = doc
+        .geometric_entities
+        .iter()
+        .filter(|e| e.geometry.is_hatch_boundary_source())
+        .map(|e| e.id)
+        .chain(doc.text_entities.iter().map(|e| e.id))
+        .chain(doc.mtext_entities.iter().map(|e| e.id))
+        .chain(doc.viewports.iter().map(|e| e.id))
+        .collect();
     let scopes: BTreeMap<_, _> = doc.scopes.iter().map(|s| (s.id, s)).collect();
     let mut errors = Vec::new();
     for (i, h) in doc.hatch_entities.iter().enumerate() {
@@ -50,20 +58,20 @@ pub(crate) fn validate_hatch_parts(
             ));
         }
         for (j, l) in h.loops.iter().enumerate() {
-            if let Some(id) = l.source_entity_id {
-                let good = sources.get(&id).is_some_and(|e| {
-                    matches!(
-                        e.geometry,
-                        EntityGeometry::Circle { .. }
-                            | EntityGeometry::Ellipse { arc: None, .. }
-                            | EntityGeometry::PlanarPolyline { closed: true, .. }
-                    )
-                }) && owners.get(&id) == owners.get(&h.id);
+            if l.provenance.as_ref().is_some_and(|p| p.is_empty()) {
+                errors.push(logical_error(
+                    "HATCH_PROVENANCE",
+                    format!("{path}/loops/{j}/provenance"),
+                    "empty provenance must be omitted",
+                ));
+            }
+            for (k, id) in l.source_entity_ids.iter().enumerate() {
+                let good = sources.contains(id) && owners.get(id) == owners.get(&h.id);
                 if !good {
                     errors.push(logical_error(
                         "HATCH_SOURCE",
-                        format!("{path}/loops/{j}/sourceEntityId"),
-                        "source must be a full closed supported entity in the same owner",
+                        format!("{path}/loops/{j}/sourceEntityIds/{k}"),
+                        "source must be a supported boundary source entity in the same owner",
                     ));
                 }
             }

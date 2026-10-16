@@ -44,6 +44,7 @@ pub fn cad_document_to_ifccad_document(
         preservation.enabled,
         &Default::default(),
         &Default::default(),
+        &Default::default(),
     )?;
     for entity in source.entities() {
         if let opencadcodec::EntityType::Viewport(view) = entity {
@@ -353,6 +354,7 @@ pub fn cad_document_to_ifccad_document(
             preservation.enabled,
             &consumed,
             &dimensions.consumed_styles,
+            &crate::source::hatch::confirmed_reactors(&drawing, &mappings),
         )?
         .issues,
     );

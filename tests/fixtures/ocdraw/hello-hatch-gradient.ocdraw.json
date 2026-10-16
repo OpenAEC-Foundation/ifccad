@@ -186,8 +186,8 @@
         }
       ],
       "joinTolerance": [
-        1e-9,
-        1e-9
+        1e-09,
+        1e-09
       ],
       "layerId": [
         0,
@@ -253,7 +253,9 @@
               "kind": "circle",
               "radius": 1.0
             },
-            "sourceEntityId": 1
+            "sourceEntityIds": [
+              1
+            ]
           }
         ],
         [
@@ -295,7 +297,9 @@
               "kind": "circle",
               "radius": 1.0
             },
-            "sourceEntityId": 1
+            "sourceEntityIds": [
+              1
+            ]
           }
         ]
       ],
@@ -344,6 +348,10 @@
         }
       ],
       "visible": [
+        true,
+        true
+      ],
+      "associationEnabled": [
         true,
         true
       ]

@@ -328,6 +328,6 @@ pub(super) fn from_cad(
             }
         }
     }
-    crate::source::hatch::bind(&mut entities, source, mappings, issues);
+    crate::source::hatch::bind(&mut entities, source, mappings, issues)?;
     Ok(entities)
 }

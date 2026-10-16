@@ -96,12 +96,15 @@ fn tilted_curves_multiple_regions_and_tolerant_gap_survive_without_bridging() {
             x_axis: [1., 0., 0.],
             y_axis: [0., 0., 1.],
         };
+        h.association_enabled = false;
         h.loops = contours::contours()
             .into_iter()
             .chain([contours::tolerant_loop()])
             .map(|boundary| IfccadHatchLoop {
+                provenance: None,
+                text_island: false,
                 boundary,
-                source_entity_id: None,
+                source_entity_ids: vec![],
             })
             .collect();
         let meta = || IfccadTargetMetadata {
@@ -182,7 +185,10 @@ fn all_area_rules_hole_first_and_association_survive_actual_files() {
                 assert_eq!(h.loops.len(), expected.loops.len());
                 for (a, b) in h.loops.iter().zip(&expected.loops) {
                     assert_eq!(a.boundary, b.boundary);
-                    assert_eq!(a.source_entity_id.is_some(), b.source_entity_id.is_some());
+                    assert_eq!(
+                        !a.source_entity_ids.is_empty(),
+                        !b.source_entity_ids.is_empty()
+                    );
                 }
                 let bytes = encode_ifccad_document(back.document()).unwrap();
                 assert!(load_ifccad_bytes(bytes.bytes(), Default::default()).is_ok());

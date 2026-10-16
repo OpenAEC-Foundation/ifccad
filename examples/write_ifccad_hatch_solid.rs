@@ -35,6 +35,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let hatch = 1;
     template.id = hatch;
     template.kind = IfccadEntityKind::Hatch(IfccadHatch {
+        association_enabled: true,
         gradient: None,
         placement: plane,
         area_rule: HatchAreaRule::Normal,
@@ -42,18 +43,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         fill: HatchFill::Solid,
         loops: vec![
             IfccadHatchLoop {
+                provenance: None,
+                text_island: false,
                 boundary: HatchBoundary2::Polyline {
                     vertices: vec![[-3.0, -3.0], [3.0, -3.0], [3.0, 3.0], [-3.0, 3.0]],
                     bulges: vec![0.0; 4],
                 },
-                source_entity_id: None,
+                source_entity_ids: vec![],
             },
             IfccadHatchLoop {
+                provenance: None,
+                text_island: false,
                 boundary: HatchBoundary2::Circle {
                     center: [0.0, 0.0],
                     radius: 1.0,
                 },
-                source_entity_id: Some(source),
+                source_entity_ids: vec![source],
             },
         ],
     });

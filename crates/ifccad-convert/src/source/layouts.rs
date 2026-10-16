@@ -4,6 +4,34 @@ use crate::{IfccadConversionError as Error, IfccadDiagnostic};
 use opencadcodec::objects::{Layout, ObjectType};
 use opencadcodec::{CadDocument, EntityType, Handle};
 
+/// A model-only CAD document still needs the codec's reserved primary Paper
+/// record. It is bookkeeping only when no layout, content or authored state
+/// depends on it. Structural markers remain checked by the ordinary inspection.
+pub(crate) fn is_empty_reserved_paper_block(
+    doc: &CadDocument,
+    record: &opencadcodec::BlockRecord,
+) -> bool {
+    if record.handle != doc.header.paper_space_block_handle
+        || !record.name.eq_ignore_ascii_case("*Paper_Space")
+        || !record.layout.is_null()
+        || !record.entity_handles.is_empty()
+        || doc.objects.values().any(|o| matches!(o, ObjectType::Layout(l) if l.block_record == record.handle))
+        || doc.entities().any(|e| {
+            (e.common().owner_handle == record.handle
+                && !matches!(e, EntityType::Block(_) | EntityType::BlockEnd(_)))
+                || matches!(e, EntityType::Insert(i) if i.block_name.eq_ignore_ascii_case(&record.name))
+        })
+    {
+        return false;
+    }
+    let mut candidate = record.clone();
+    candidate.handle = Handle::NULL;
+    candidate.block_entity_handle = Handle::NULL;
+    candidate.block_end_handle = Handle::NULL;
+    candidate.name = "*Paper_Space".into();
+    candidate == opencadcodec::BlockRecord::paper_space()
+}
+
 pub(crate) fn dictionary(
     doc: &CadDocument,
     recoveries: &mut Vec<IfccadDiagnostic>,

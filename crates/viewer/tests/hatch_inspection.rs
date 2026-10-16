@@ -18,8 +18,49 @@ fn ocdraw_hatch_inspection_exposes_loops_sources_and_limit() {
         .as_array()
         .unwrap()
         .iter()
-        .any(|l| l["sourceEntityId"].is_string()));
+        .any(|l| l["sourceEntityIds"]
+            .as_array()
+            .is_some_and(|ids| ids.iter().all(|id| id.is_string()))));
     assert_eq!(h["geometry"]["fillEvaluation"], "unassessed");
+}
+
+#[test]
+fn hatch_association_states_keep_text_island_and_unassessed_fill() {
+    use ocdraw::ocdraw::*;
+    for (enabled, bound, status) in [
+        (false, true, "disabled"),
+        (true, true, "active"),
+        (true, false, "unbound"),
+    ] {
+        let mut d = load_ocdraw_bytes(include_bytes!(
+            "../../../tests/fixtures/ocdraw/hello-hatch-solid.ocdraw.json"
+        ))
+        .unwrap()
+        .into_document();
+        d.hatch_entities[0].association_enabled = enabled;
+        for l in &mut d.hatch_entities[0].loops {
+            l.text_island = true;
+            if !bound {
+                l.source_entity_ids.clear();
+            }
+        }
+        let bytes = encode_ocdraw_document(&d).unwrap();
+        let out = viewer::inspect_drawing_bytes("hatch.ocdraw.json", bytes.bytes());
+        let g = &out["presentation"]["entities"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|e| e["geometry"]["type"] == "hatch")
+            .unwrap()["geometry"];
+        assert_eq!(g["associationStatus"], status);
+        assert_eq!(g["associationEnabled"], enabled);
+        assert!(g["loops"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|l| l["textIsland"] == true));
+        assert_eq!(g["fillEvaluation"], "unassessed");
+    }
 }
 
 #[test]

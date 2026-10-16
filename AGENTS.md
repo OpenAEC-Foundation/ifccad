@@ -173,10 +173,12 @@ follow-up work. Retain designs and plans still needed by active or upcoming work
 
 ## Verification
 
-Use focused tests while developing.
+Use focused tests while developing. A worktree may be ready for integration
+with focused checks recorded and full verification explicitly pending; do not
+describe that state as fully verified or complete.
 
-Before reporting a change to Rust code, schemas, or conformance fixtures as
-complete, run:
+Before reporting changes to Rust code, schemas, or conformance fixtures as
+complete, run the full gate on the final integration candidate:
 
 ```text
 cargo fmt --all -- --check
@@ -184,8 +186,47 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
+Prepare the candidate against the intended current main, resolve conflicts, and
+run relevant regressions before the full gate. When several tasks are explicitly
+authorized for combined integration, verify their final combined candidate once;
+do not require a separate full gate for every intermediate integration step.
+Combining tasks or preparing a candidate does not authorize merging or pushing.
+
+Reuse a successful full gate when transferring an unchanged verified candidate
+to main. First compare all verification inputs: source, manifests, tests, schemas,
+fixtures, examples, relevant scripts/configuration, Cargo.lock, selected external
+dependency contents/patches, toolchain, target, features and relevant environment.
+A matching commit or clean tracked diff alone is insufficient: ignored local
+configuration/dependencies and untracked inputs also matter. Record the comparison
+and the original evidence; if equivalence cannot be established, rerun the gate.
+Content changes from conflict resolution, main advancement or dependency/config
+changes require fresh verification of the resulting candidate. Changes only to
+prose with no build/test inputs affected do not invalidate Rust verification.
+
+Record the verified commit/tree (or a content manifest including dirty/untracked
+inputs), dependency/lock/config identity, tool versions and relevant environment,
+commands, exit codes, durations and log paths in the task's local verification
+summary. Old logs without this provenance remain historical evidence, not a
+reusable passing gate. A failed or incomplete run never counts as a pass.
+
+Fix a failed gate with focused reproduction first, then rerun the full gate once
+the final candidate is ready. Do not repeatedly run the workspace suite against
+an unchanged known failure. Use `--no-fail-fast` only when collecting the remaining
+failures is needed, not as the default integration command.
+
 When editing public Rust documentation or examples, use
-`cargo test --doc --workspace` as a focused intermediate check.
+`cargo test --doc --workspace` as a focused intermediate check. An unrestricted
+successful `cargo test --workspace` already includes enabled library doctests;
+do not repeat them immediately without a change or missing coverage to verify.
+Prose-only documentation/instruction changes require diff and applicable link/
+content checks, not Rust builds, unless the changed files are build/test inputs.
+
+Keep Cargo target directories, profiles, incremental settings and dependency
+selection stable within a task. Preserve warm per-worktree caches; do not switch
+to a shared target directory or change build settings during integration merely
+to try to speed up a run. Coordinate expensive full workspace runs across active
+tasks to avoid competing builds; retain focused checks while developing.
+Frontend or other checks required by the actual change remain required.
 
 New writer or converter output must be loaded through the production reader and
 pass strict drawing validation. Conversion tests should compare semantic

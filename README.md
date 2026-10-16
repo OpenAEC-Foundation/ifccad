@@ -102,7 +102,7 @@ capture/reuse are planned next, before the remaining Dimension kinds; their
 design is under review. See [Dimension support](docs/dimension.md).
 
 Both routes also provide native Solid, LinePattern and Gradient Hatch with stored planar boundaries,
-three area rules and optional same-owner source relations. Contour exchange
+three area rules, ordered same-owner whole-object source groups, independent association activation and stored text-island semantics. Contour exchange
 and unassessed fill are separate evidence; see [Hatch support](docs/hatch.md).
 Embedded pattern families retain origin, rotation, scale, signed spacing and ordered dash/gap/dot definitions; CAD support uses qualified explicit families. Gradients retain two endpoint colors and active/inactive authorship settings, with basis-preserving AC1032 exchange and explicit codec-loss reporting.
 
@@ -197,6 +197,29 @@ cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
+
+Use focused tests while developing and run this full gate on the final candidate
+prepared against the intended main. Work awaiting that gate is ready for
+integration, not yet fully verified. For an explicitly authorized combined
+integration, verify the combined candidate once. Reuse a successful gate when
+moving the candidate to main only after checking that all relevant inputs match,
+including local dependency patches/configuration, Cargo.lock, toolchain and
+environment; a matching commit alone is insufficient. Conflict resolutions and
+other content changes need fresh verification.
+
+Keep a local verification summary with the content identity, dependency/config
+identity, commands, exit codes, durations and logs. Existing logs without enough
+provenance cannot certify the current candidate. Fix known failures with focused
+tests before another full run. Keep Cargo build settings and per-worktree caches
+stable, and coordinate expensive full runs across active tasks.
+
+The full test command includes enabled library doctests; a separate
+`cargo test --doc --workspace` is useful as a focused check while changing Rust
+documentation, not as an immediate duplicate of a successful full run. Prose-only
+documentation changes need diff and applicable link/content checks, unless the
+files are build/test inputs. See [agent verification rules](AGENTS.md#verification)
+for the evidence and reuse requirements. Change-specific frontend checks still
+apply.
 
 Controlled measurements have separate reproduction instructions under
 `docs/benchmarks`; historical IFCCAD ratios do not measure standalone OCDraw.

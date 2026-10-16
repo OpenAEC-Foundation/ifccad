@@ -3,7 +3,11 @@ mod audit;
 mod evidence;
 mod from_cad;
 mod gradient;
+mod loop_flags;
 pub use gradient::{apply_gradient_to_cad, prepare_gradient_from_cad, PreparedNativeGradient};
+pub use loop_flags::{
+    apply_loop_flags_to_cad, prepare_loop_flags_from_cad, PreparedHatchLoopFlags,
+};
 pub mod pattern;
 mod to_cad;
 use crate::{CadPreparationError, GeometryPair};
@@ -61,6 +65,7 @@ pub fn resolve_creation_tolerance(
 }
 
 pub struct PreparedNativeHatch {
+    pub loop_flags: Vec<PreparedHatchLoopFlags>,
     pub gradient: Option<ocdraw::geometry_kernel::hatch::HatchGradient<opencadcodec::Color>>,
     pub fill: HatchFill,
     pub placement: CoordinateFrame3,
@@ -84,6 +89,8 @@ pub struct HatchSourceLoss {
 }
 #[derive(Debug, thiserror::Error)]
 pub enum CadHatchPreparationError {
+    #[error("Hatch loop count mismatch: expected {expected}, got {actual}")]
+    LoopCountMismatch { expected: usize, actual: usize },
     #[error("{0}")]
     Gradient(#[from] ocdraw::geometry_kernel::hatch::HatchGradientValidationError),
     #[error("invalid gradient {field}: {detail}")]

@@ -60,8 +60,8 @@ fn nested_unknown_fields_null_sources_and_noncanonical_paths_are_rejected() {
         let body = &mut h["attributes"]["ifccad::hatch"];
         match mutation {
             0 => body["loops"][0]["boundary"]["secret"] = json!(1),
-            1 => body["loops"][1]["source"] = Value::Null,
-            2 => body["loops"][1]["source"] = json!("/cad/d1/e0001"),
+            1 => body["loops"][1]["sources"] = Value::Null,
+            2 => body["loops"][1]["sources"] = json!(["/cad/d1/e0001"]),
             _ => body["fill"] = json!({"kind":"linePattern"}),
         }
         assert!(load_ifccad_bytes(&serde_json::to_vec(&v).unwrap(), Default::default()).is_err());
@@ -77,7 +77,7 @@ fn hatch_reference_preserves_zero_ids_in_ifccad_domains() {
             e.id = 0;
         }
         if let IfccadEntityKind::Hatch(h) = &mut e.kind {
-            h.loops[1].source_entity_id = Some(0);
+            h.loops[1].source_entity_ids = vec![0];
         }
     }
     let bytes = encode_ifccad_document(&d).unwrap();

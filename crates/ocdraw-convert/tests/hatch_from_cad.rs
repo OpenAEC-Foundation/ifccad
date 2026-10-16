@@ -30,7 +30,11 @@ fn source(
     let EntityType::Hatch(h) = d.get_entity_mut(hh).unwrap() else {
         panic!()
     };
-    h.paths[0].boundary_handles = if multiple { vec![ch, ch] } else { vec![ch] };
+    h.paths[0].boundary_handles = if multiple {
+        vec![ch, opencadcodec::Handle::new(u64::MAX)]
+    } else {
+        vec![ch]
+    };
     (d, hh, ch)
 }
 
@@ -102,7 +106,7 @@ fn source_binding_is_independent_of_draw_order_and_strict_readback() {
         assert_eq!(out.document().hatch_entities.len(), 1);
         let h = &out.document().hatch_entities[0];
         assert_eq!(h.id, out.entity_mapping()[&hh]);
-        assert_eq!(h.loops[0].source_entity_id, Some(out.entity_mapping()[&ch]));
+        assert_eq!(h.loops[0].source_entity_ids, [out.entity_mapping()[&ch]]);
         let encoded = ocdraw::ocdraw::encode_ocdraw_document(out.document()).unwrap();
         assert!(ocdraw::ocdraw::load_ocdraw_bytes(encoded.bytes()).is_ok());
         assert!(
@@ -112,15 +116,14 @@ fn source_binding_is_independent_of_draw_order_and_strict_readback() {
     }
 }
 #[test]
-fn multiple_sources_detach_only_the_relation_and_reject_refuses_loss() {
+fn missing_source_detaches_only_the_complete_group_and_reject_refuses_loss() {
     let (d, _, _) = source(true, true);
     let out = cad_document_to_ocdraw_document_with_id(&d, "hatch", CadToOcdrawOptions::default())
         .unwrap();
     assert_eq!(out.document().hatch_entities.len(), 1);
-    assert_eq!(
-        out.document().hatch_entities[0].loops[0].source_entity_id,
-        None
-    );
+    assert!(out.document().hatch_entities[0].loops[0]
+        .source_entity_ids
+        .is_empty());
     assert!(!out.diagnostics().is_empty());
     assert!(matches!(
         cad_document_to_ocdraw_document_with_id(
@@ -142,11 +145,11 @@ fn large_native_ids_and_stale_relations_export_stored_contours() {
         .unwrap();
     let mut n = out.into_document();
     let old_h = n.hatch_entities[0].id;
-    let old_c = n.hatch_entities[0].loops[0].source_entity_id.unwrap();
+    let old_c = n.hatch_entities[0].loops[0].source_entity_ids[0];
     let h = 9_007_199_254_740_993;
     let c = h + 1;
     n.hatch_entities[0].id = h;
-    n.hatch_entities[0].loops[0].source_entity_id = Some(c);
+    n.hatch_entities[0].loops[0].source_entity_ids = vec![c];
     let pattern = ocdraw::ocdraw::load_ocdraw_bytes(include_bytes!(
         "../../../conformance/next/ocdraw/valid/hatch-pattern.ocdraw.json"
     ))
@@ -216,7 +219,7 @@ fn native_invalid_reference_is_hard_and_nondefault_limit_is_located_loss() {
         ),
         Err(OcdrawToCadError::LossRejected { .. })
     ));
-    n.hatch_entities[0].loops[0].source_entity_id = Some(u64::MAX - 1);
+    n.hatch_entities[0].loops[0].source_entity_ids = vec![u64::MAX - 1];
     for policy in [OcdrawLossPolicy::Allow, OcdrawLossPolicy::Reject] {
         assert!(matches!(
             ocdraw_document_to_cad_document(

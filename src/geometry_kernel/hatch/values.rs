@@ -2,6 +2,25 @@ use num_rational::BigRational;
 
 pub const DEFAULT_HATCH_JOIN_TOLERANCE: f64 = 1e-9;
 
+/// Authored loop construction hints; these do not certify current source geometry.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct HatchLoopProvenance {
+    pub from_source_objects: bool,
+    pub derived_from_pick_point: bool,
+    pub outermost_hint: bool,
+    pub text_box: bool,
+}
+
+impl HatchLoopProvenance {
+    /// An empty authored record has no meaning and must be omitted.
+    pub fn is_empty(&self) -> bool {
+        !self.from_source_objects
+            && !self.derived_from_pick_point
+            && !self.outermost_hint
+            && !self.text_box
+    }
+}
+
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum HatchAreaRule {
     #[default]

@@ -1,4 +1,5 @@
 use super::*;
+pub use crate::geometry_kernel::hatch::HatchLoopProvenance;
 mod allocation;
 mod dimension;
 mod dimension_validation;

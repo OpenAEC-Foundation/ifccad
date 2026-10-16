@@ -207,7 +207,9 @@
               "kind": "circle",
               "radius": 1.0
             },
-            "sourceEntityId": 1
+            "sourceEntityIds": [
+              1
+            ]
           }
         ]
       ],
@@ -246,6 +248,9 @@
           "colorMode": "oneColor",
           "tint": 0.65
         }
+      ],
+      "associationEnabled": [
+        true
       ]
     }
   }

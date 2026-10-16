@@ -447,20 +447,38 @@ pub(super) fn append_entities(
         else {
             unreachable!()
         };
+        if target.paths.len() != h.loops.len() {
+            return Err(OcdrawToCadError::Cad(
+                "Hatch target loop count mismatch".into(),
+            ));
+        }
         for (index, (p, l)) in target.paths.iter_mut().zip(&h.loops).enumerate() {
-            if let Some(id) = l.source_entity_id {
-                if let Some(handle) = entity_mapping.get(&id) {
-                    p.boundary_handles.push(*handle);
+            let mut handles = Vec::new();
+            let mut failed = false;
+            for (entry, id) in l.source_entity_ids.iter().enumerate() {
+                if let Some(handle) = entity_mapping.get(id).copied() {
+                    handles.push(handle);
                 } else {
+                    failed = true;
                     diagnostics.push(diagnostic(
-                        "HATCH_SOURCE",
-                        format!("/entities/{}/loops/{index}/source", h.id),
-                        "source was not materialized; stored contour retained",
+                        "HATCH_SOURCE_ENTRY_LOSS",
+                        format!("/entities/{}/loops/{index}/sourceEntityIds/{entry}", h.id),
+                        "source was not materialized",
                     ));
                 }
             }
+            if failed {
+                p.boundary_handles.clear();
+                diagnostics.push(diagnostic(
+                    "HATCH_SOURCE_GROUP_LOSS",
+                    format!("/entities/{}/loops/{index}/sourceEntityIds", h.id),
+                    "source group omitted; stored contour retained",
+                ));
+            } else {
+                p.boundary_handles = handles;
+            }
         }
-        target.is_associative = target.paths.iter().any(|p| !p.boundary_handles.is_empty());
+        target.is_associative = h.association_enabled;
     }
     // Rebind only after construction, propagating missing targets through live dependants.
     loop {

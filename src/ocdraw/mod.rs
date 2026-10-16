@@ -25,6 +25,7 @@
 //! through [`ValidatedOcdraw::into_document`] for mutation.
 
 mod codec;
+pub use crate::geometry_kernel::hatch::HatchLoopProvenance;
 mod display;
 pub(crate) mod geometry;
 mod layout;

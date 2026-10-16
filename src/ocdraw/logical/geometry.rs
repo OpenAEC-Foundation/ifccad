@@ -46,6 +46,20 @@ pub enum EntityGeometry {
 }
 
 impl EntityGeometry {
+    /// Whether this native kind can contribute geometry to a stored Hatch boundary.
+    /// This does not execute a boundary extractor or establish source ownership.
+    pub fn is_hatch_boundary_source(&self) -> bool {
+        matches!(
+            self,
+            Self::Line { .. }
+                | Self::Circle { .. }
+                | Self::Arc { .. }
+                | Self::Ellipse { .. }
+                | Self::PlanarPolyline { .. }
+                | Self::SpatialPolyline { .. }
+                | Self::BlockInstance { .. }
+        )
+    }
     /// Borrows primitive fields for shared mathematics; block references are evaluated separately.
     pub fn as_shared_geometry(&self) -> Option<crate::geometry_kernel::GeometryRef<'_>> {
         super::geometry_validation::geometry_ref(self)

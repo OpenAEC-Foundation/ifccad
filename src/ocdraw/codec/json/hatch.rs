@@ -9,12 +9,52 @@ use crate::ocdraw::*;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ProvenanceValue {
+    #[serde(default, skip_serializing_if = "is_false")]
+    from_source_objects: bool,
+    #[serde(default, skip_serializing_if = "is_false")]
+    derived_from_pick_point: bool,
+    #[serde(default, skip_serializing_if = "is_false")]
+    outermost_hint: bool,
+    #[serde(default, skip_serializing_if = "is_false")]
+    text_box: bool,
+}
+fn is_false(value: &bool) -> bool {
+    !*value
+}
+impl From<ProvenanceValue> for crate::geometry_kernel::hatch::HatchLoopProvenance {
+    fn from(p: ProvenanceValue) -> Self {
+        Self {
+            from_source_objects: p.from_source_objects,
+            derived_from_pick_point: p.derived_from_pick_point,
+            outermost_hint: p.outermost_hint,
+            text_box: p.text_box,
+        }
+    }
+}
+impl From<&crate::geometry_kernel::hatch::HatchLoopProvenance> for ProvenanceValue {
+    fn from(p: &crate::geometry_kernel::hatch::HatchLoopProvenance) -> Self {
+        Self {
+            from_source_objects: p.from_source_objects,
+            derived_from_pick_point: p.derived_from_pick_point,
+            outermost_hint: p.outermost_hint,
+            text_box: p.text_box,
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct LoopValue {
     boundary: BoundaryValue,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    source_entity_ids: Vec<u64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    source_entity_id: Option<u64>,
+    provenance: Option<ProvenanceValue>,
+    #[serde(default, skip_serializing_if = "is_false")]
+    text_island: bool,
 }
 pub(crate) fn encode_hatch(rows: &[DrawingHatchEntity]) -> Value {
     let mut v = json!({"count":rows.len(),"entityId":rows.iter().map(|h|h.id).collect::<Vec<_>>(),
@@ -24,8 +64,14 @@ pub(crate) fn encode_hatch(rows: &[DrawingHatchEntity]) -> Value {
         "areaRule":rows.iter().map(|h|match h.area_rule{HatchAreaRule::Normal=>"normal",HatchAreaRule::Outer=>"outer",HatchAreaRule::Ignore=>"ignore"}).collect::<Vec<_>>(),
         "joinTolerance":rows.iter().map(|h|h.join_tolerance).collect::<Vec<_>>(),
         "fill":rows.iter().map(|h|super::hatch_pattern::encode(&h.fill)).collect::<Vec<_>>(),
-        "loops":rows.iter().map(|h|h.loops.iter().map(|l|LoopValue{boundary:l.boundary.clone().into(),source_entity_id:l.source_entity_id}).collect::<Vec<_>>()).collect::<Vec<_>>()
+        "loops":rows.iter().map(|h|h.loops.iter().map(|l|LoopValue{boundary:l.boundary.clone().into(),source_entity_ids:l.source_entity_ids.clone(),provenance:l.provenance.as_ref().map(Into::into),text_island:l.text_island}).collect::<Vec<_>>()).collect::<Vec<_>>()
     });
+    if rows.iter().any(|h| h.association_enabled) {
+        v["associationEnabled"] = json!(rows
+            .iter()
+            .map(|h| h.association_enabled)
+            .collect::<Vec<_>>());
+    }
     if rows.iter().any(|h| h.gradient.is_some()) {
         v["gradient"] = Value::Array(
             rows.iter()
@@ -69,7 +115,9 @@ pub(crate) fn decode_hatch(value: &Value) -> Result<Vec<DrawingHatchEntity>, Ocd
             .ok_or_else(|| fail(row))?;
         let mut loops = Vec::new();
         for l in raw_loops {
-            if l.get("sourceEntityId").is_some_and(Value::is_null)
+            if ["sourceEntityIds", "provenance", "textIsland"]
+                .iter()
+                .any(|k| l.get(k).is_some_and(Value::is_null))
                 || l["boundary"].get("bulges").is_some_and(Value::is_null)
             {
                 return Err(fail(row));
@@ -77,7 +125,9 @@ pub(crate) fn decode_hatch(value: &Value) -> Result<Vec<DrawingHatchEntity>, Ocd
             let l: LoopValue = serde_json::from_value(l.clone()).map_err(|_| fail(row))?;
             loops.push(OcdrawHatchLoop {
                 boundary: l.boundary.into(),
-                source_entity_id: l.source_entity_id,
+                source_entity_ids: l.source_entity_ids,
+                provenance: l.provenance.map(Into::into),
+                text_island: l.text_island,
             });
         }
         let fill = get("fill").ok_or_else(|| fail(row))?;
@@ -94,6 +144,10 @@ pub(crate) fn decode_hatch(value: &Value) -> Result<Vec<DrawingHatchEntity>, Ocd
             Some(v) => v.as_f64().ok_or_else(|| fail(row))?,
         };
         rows.push(DrawingHatchEntity {
+            association_enabled: get("associationEnabled")
+                .map(|v| v.as_bool().ok_or_else(|| fail(row)))
+                .transpose()?
+                .unwrap_or(false),
             gradient: get("gradient")
                 .filter(|v| !v.is_null())
                 .map(super::hatch_gradient::decode)

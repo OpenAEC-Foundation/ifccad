@@ -15,6 +15,7 @@ fn native_hatch_is_materialized_with_stored_contours() {
         .add_layer(LayerDefinition::new("0", RgbColor::new(255, 255, 255), p))
         .unwrap();
     b.add_hatch(HatchEntityDefinition {
+        association_enabled: false,
         gradient: None,
         scope_id: 0,
         layer_id: layer,
@@ -22,11 +23,13 @@ fn native_hatch_is_materialized_with_stored_contours() {
         appearance: Default::default(),
         placement: Default::default(),
         loops: vec![OcdrawHatchLoop {
+            provenance: None,
+            text_island: false,
             boundary: HatchBoundary2::Circle {
                 center: [0.0, 0.0],
                 radius: 1.0,
             },
-            source_entity_id: None,
+            source_entity_ids: vec![],
         }],
         area_rule: HatchAreaRule::Normal,
         join_tolerance: DEFAULT_HATCH_JOIN_TOLERANCE,

@@ -5083,6 +5083,12 @@
                   }
                 ]
               }
+            },
+            "associationEnabled": {
+              "type": "array",
+              "items": {
+                "type": "boolean"
+              }
             }
           }
         },
@@ -9640,10 +9646,21 @@
         "boundary": {
           "$ref": "#/$defs/hatchBoundary"
         },
-        "sourceEntityId": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 18446744073709551615
+        "sourceEntityIds": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 18446744073709551615
+          },
+          "default": []
+        },
+        "provenance": {
+          "$ref": "#/$defs/hatchLoopProvenance"
+        },
+        "textIsland": {
+          "type": "boolean",
+          "default": false
         }
       }
     },
@@ -12282,6 +12299,70 @@
         }
       },
       "required": []
+    },
+    "hatchLoopProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "fromSourceObjects": {
+          "type": "boolean",
+          "default": false
+        },
+        "derivedFromPickPoint": {
+          "type": "boolean",
+          "default": false
+        },
+        "outermostHint": {
+          "type": "boolean",
+          "default": false
+        },
+        "textBox": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "fromSourceObjects"
+          ],
+          "properties": {
+            "fromSourceObjects": {
+              "const": true
+            }
+          }
+        },
+        {
+          "required": [
+            "derivedFromPickPoint"
+          ],
+          "properties": {
+            "derivedFromPickPoint": {
+              "const": true
+            }
+          }
+        },
+        {
+          "required": [
+            "outermostHint"
+          ],
+          "properties": {
+            "outermostHint": {
+              "const": true
+            }
+          }
+        },
+        {
+          "required": [
+            "textBox"
+          ],
+          "properties": {
+            "textBox": {
+              "const": true
+            }
+          }
+        }
+      ]
     }
   },
   "allOf": [

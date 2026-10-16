@@ -35,6 +35,12 @@ any diagnosed semantic loss. Errors distinguish invalid structure, unsupported
 content, core validation, encoding, output readback, ID allocation and CAD
 construction. It makes no losslessness claim for arbitrary CAD files or IFCX graphs.
 
+Model-only CAD input may contain the codec's empty reserved `*Paper_Space`
+record without a Paper layout. The converter accepts only the primary header-bound
+record with default metadata and no drawable content or layout/INSERT references; it creates
+no native Paper layout. Authored or conflicting orphan Paper records remain
+structural errors under both loss policies.
+
 ## API
 
 `IfccadDocument` is the central logical input/output between CAD conversion
@@ -340,7 +346,7 @@ Dot grid style and frequencies beyond CAD i16 receive field-specific substitutio
 ## Hatch
 
 Native Solid, LinePattern and Gradient Hatch map stored contours and the normal/outer/ignore area rule.
-Per-loop single same-owner source references bind after entity allocation.
+Ordered whole-object source groups bind after entity allocation, retaining duplicate IDs and disabled relations. The association switch, loopprovenance and TextIsland are independent authored state. Missing target sources omit their whole group with located loss; contours and other groups remain. Qualified AC1032 DXF/DWG readback preserves these states, with explicit unbound-switch codec loss and Reject-before-download.
 Unsupported associations retain contour geometry with located loss.
 `hatch_join_tolerance` is a CAD-to-native creation option, separate from numeric
 conversion tolerance. Nondefault native limits are not persisted in CAD and

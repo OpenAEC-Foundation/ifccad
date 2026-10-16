@@ -47,7 +47,19 @@ fn present(output: &mut Value, drawing: &ValidatedIfccad) {
         .map(|mut node| {
             let body = &node["attributes"]["ifccad::hatch"];
             let status = crate::inspection::gradient_status(&body["fill"], &body["gradient"]);
+            let association_status = if body["associationEnabled"] != true {
+                "disabled"
+            } else if body["loops"].as_array().is_some_and(|loops| {
+                loops
+                    .iter()
+                    .any(|l| l["sources"].as_array().is_some_and(|ids| !ids.is_empty()))
+            }) {
+                "active"
+            } else {
+                "unbound"
+            };
             node["gradientStatus"] = json!(status);
+            node["associationStatus"] = json!(association_status);
             node
         })
         .collect::<Vec<_>>();

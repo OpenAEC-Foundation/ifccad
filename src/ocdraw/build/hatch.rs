@@ -5,6 +5,7 @@ use crate::ocdraw::*;
 
 #[derive(Clone, Debug)]
 pub struct HatchEntityDefinition {
+    pub association_enabled: bool,
     pub gradient: Option<DrawingHatchGradient>,
     pub scope_id: u32,
     pub layer_id: u32,
@@ -46,6 +47,14 @@ impl OcdrawBuilder {
         .map_err(|e| OcdrawBuildError::Invalid(e.to_string()))
     }
     pub fn add_hatch(&mut self, d: HatchEntityDefinition) -> Result<u64, OcdrawBuildError> {
+        if d.loops
+            .iter()
+            .any(|l| l.provenance.as_ref().is_some_and(|p| p.is_empty()))
+        {
+            return Err(OcdrawBuildError::Invalid(
+                "empty Hatch provenance must be omitted".into(),
+            ));
+        }
         if d.scope_id as usize >= 1 + self.paper_layouts.len() + self.block_definitions.len()
             || d.layer_id as usize >= self.layers.len()
         {
@@ -77,6 +86,7 @@ impl OcdrawBuilder {
         let next = id.checked_add(1).ok_or(OcdrawBuildError::IdExhausted)?;
         self.scope_entities.entry(d.scope_id).or_default().push(id);
         self.hatch_entities.push(DrawingHatchEntity {
+            association_enabled: d.association_enabled,
             gradient: d.gradient,
             id,
             layer_id: d.layer_id,

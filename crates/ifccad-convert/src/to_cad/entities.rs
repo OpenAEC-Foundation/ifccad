@@ -311,20 +311,38 @@ pub(super) fn to_cad(
             let Some(EntityType::Hatch(target)) = retained.get_mut(&e.id) else {
                 continue;
             };
+            if target.paths.len() != h.loops.len() {
+                return Err(IfccadConversionError::InvalidStructure(
+                    "Hatch target loop count mismatch".into(),
+                ));
+            }
             for (index, (p, l)) in target.paths.iter_mut().zip(&h.loops).enumerate() {
-                if let Some(id) = l.source_entity_id {
-                    if let Some(handle) = mappings.entities.cad_handle(id) {
-                        p.boundary_handles.push(handle);
+                let mut handles = Vec::new();
+                let mut failed = false;
+                for (entry, id) in l.source_entity_ids.iter().enumerate() {
+                    if let Some(handle) = mappings.entities.cad_handle(*id) {
+                        handles.push(handle);
                     } else {
+                        failed = true;
                         issues.push(diagnostic(
-                            "hatch-source",
-                            format!("entity/{}/loops/{index}/source", e.id),
-                            "source omitted; stored contour retained",
+                            "hatch-source-entry-loss",
+                            format!("entity/{}/loops/{index}/sources/{entry}", e.id),
+                            "source was not materialized",
                         ));
                     }
                 }
+                if failed {
+                    p.boundary_handles.clear();
+                    issues.push(diagnostic(
+                        "hatch-source-group-loss",
+                        format!("entity/{}/loops/{index}/sources", e.id),
+                        "source group omitted; stored contour retained",
+                    ));
+                } else {
+                    p.boundary_handles = handles;
+                }
             }
-            target.is_associative = target.paths.iter().any(|p| !p.boundary_handles.is_empty());
+            target.is_associative = h.association_enabled;
         }
     }
     // All native and eligible opaque handles now exist, including forward

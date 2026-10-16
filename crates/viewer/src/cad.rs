@@ -92,6 +92,17 @@ pub(crate) fn export(
         );
         return output;
     }
+    if let Err(error) =
+        crate::hatch_exchange::check_association_target_version(&document, cad_version)
+    {
+        fail(
+            &mut output,
+            "exporting",
+            "HATCH_ASSOCIATION_TARGET_VERSION_UNSUPPORTED",
+            error,
+        );
+        return output;
+    }
     document.version = cad_version;
     progress("writing");
     let written = if format == "dxf" {
@@ -135,19 +146,14 @@ pub(crate) fn export(
         return output;
     }
     let original_count = diagnostics.len();
-    let gradient_issues = match crate::hatch_exchange::check_hatch_exchange(&document, &checked) {
+    let hatch_issues = match crate::hatch_exchange::check_hatch_exchange(&document, &checked) {
         Ok(v) => v,
         Err(error) => {
-            fail(
-                &mut output,
-                "checking",
-                "HATCH_GRADIENT_READBACK_UNCONFIRMED",
-                error,
-            );
+            fail(&mut output, "checking", "HATCH_READBACK_UNCONFIRMED", error);
             return output;
         }
     };
-    diagnostics.extend(gradient_issues.into_iter().map(|i| i.value()));
+    diagnostics.extend(hatch_issues.into_iter().map(|i| i.value()));
     diagnostics.extend(spline_parameterization_losses(&document, &checked));
     diagnostics.extend(viewport_shadeplot_losses(&document, &checked));
     diagnostics.extend(hatch_description_losses(&document, &checked));

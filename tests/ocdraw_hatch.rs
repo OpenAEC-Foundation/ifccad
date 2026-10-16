@@ -33,6 +33,7 @@ fn drawing() -> OcdrawDocument {
         },
     });
     d.hatch_entities.push(DrawingHatchEntity {
+        association_enabled: true,
         gradient: None,
         id: HATCH,
         layer_id: layer,
@@ -44,18 +45,22 @@ fn drawing() -> OcdrawDocument {
         fill: HatchFill::Solid,
         loops: vec![
             OcdrawHatchLoop {
+                provenance: None,
+                text_island: false,
                 boundary: HatchBoundary2::Polyline {
                     vertices: vec![[-3.0, -3.0], [3.0, -3.0], [3.0, 3.0], [-3.0, 3.0]],
                     bulges: vec![0.0; 4],
                 },
-                source_entity_id: None,
+                source_entity_ids: vec![],
             },
             OcdrawHatchLoop {
+                provenance: None,
+                text_island: false,
                 boundary: HatchBoundary2::Circle {
                     center: [0.0, 0.0],
                     radius: 1.0,
                 },
-                source_entity_id: Some(SOURCE),
+                source_entity_ids: vec![SOURCE],
             },
         ],
     });
@@ -82,16 +87,15 @@ fn solid_hatch_roundtrips_with_holes_sources_and_large_ids() {
 #[test]
 fn missing_wrong_kind_and_wrong_owner_sources_are_not_repaired() {
     let mut d = drawing();
-    d.hatch_entities[0].loops[1].source_entity_id = Some(123);
+    d.hatch_entities[0].loops[1].source_entity_ids = vec![123];
     assert!(validate_ocdraw_document(&d)
         .unwrap_err()
         .diagnostics()
         .iter()
         .any(|e| e.code == "HATCH_SOURCE"));
-    d.hatch_entities[0].loops[1].source_entity_id = Some(SOURCE);
-    d.geometric_entities[0].geometry = EntityGeometry::Line {
-        start: [0.0, 0.0, 0.0],
-        end: [1.0, 0.0, 0.0],
+    d.hatch_entities[0].loops[1].source_entity_ids = vec![SOURCE];
+    d.geometric_entities[0].geometry = EntityGeometry::Point {
+        placement: Default::default(),
     };
     assert!(validate_ocdraw_document(&d)
         .unwrap_err()
@@ -131,14 +135,16 @@ fn changing_a_valid_source_preserves_authored_boundary_and_detach_is_explicit() 
     let encoded = encode_ocdraw_document(&d).unwrap();
     let loaded = load_ocdraw_bytes(encoded.bytes()).unwrap();
     assert_eq!(loaded.hatch_entities()[0].loops[1].boundary, boundary);
-    d.hatch_entities[0].loops[1].source_entity_id = None;
+    d.hatch_entities[0].loops[1].source_entity_ids = vec![];
     d.geometric_entities.clear();
     d.scopes[0].entities = vec![HATCH];
     recompute_ocdraw_document_bounds(&mut d).unwrap();
     let encoded = encode_ocdraw_document(&d).unwrap();
     let loaded = load_ocdraw_bytes(encoded.bytes()).unwrap();
     assert_eq!(loaded.hatch_entities()[0].loops[1].boundary, boundary);
-    assert_eq!(loaded.hatch_entities()[0].loops[1].source_entity_id, None);
+    assert!(loaded.hatch_entities()[0].loops[1]
+        .source_entity_ids
+        .is_empty());
 }
 
 #[test]
@@ -168,7 +174,7 @@ fn unknown_nested_fields_null_refs_and_unavailable_fill_are_rejected() {
     bad["streams"]["hatchStream"]["loops"][0][0]["boundary"]["secret"] = serde_json::json!(1);
     assert!(load_ocdraw_bytes(&serde_json::to_vec(&bad).unwrap()).is_err());
     let mut bad = value.clone();
-    bad["streams"]["hatchStream"]["loops"][0][1]["sourceEntityId"] = serde_json::Value::Null;
+    bad["streams"]["hatchStream"]["loops"][0][1]["sourceEntityIds"] = serde_json::Value::Null;
     assert!(load_ocdraw_bytes(&serde_json::to_vec(&bad).unwrap()).is_err());
     let mut bad = value;
     bad["streams"]["hatchStream"]["fill"][0] = serde_json::json!({"kind":"linePattern"});

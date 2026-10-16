@@ -11,6 +11,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let layer = b.add_layer(LayerDefinition::new("0", DrawingColor::Foreground, p))?;
     let source = b.add_circle(CircleDefinition::new(layer, [0.0, 0.0, 0.0], 1.0))?;
     let hatch = b.add_hatch(HatchEntityDefinition {
+        association_enabled: true,
         gradient: None,
         scope_id: 0,
         layer_id: layer,
@@ -22,18 +23,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         fill: HatchFill::Solid,
         loops: vec![
             OcdrawHatchLoop {
+                provenance: None,
+                text_island: false,
                 boundary: HatchBoundary2::Polyline {
                     vertices: vec![[-3.0, -3.0], [3.0, -3.0], [3.0, 3.0], [-3.0, 3.0]],
                     bulges: vec![0.0; 4],
                 },
-                source_entity_id: None,
+                source_entity_ids: vec![],
             },
             OcdrawHatchLoop {
+                provenance: None,
+                text_island: false,
                 boundary: HatchBoundary2::Circle {
                     center: [0.0, 0.0],
                     radius: 1.0,
                 },
-                source_entity_id: Some(source),
+                source_entity_ids: vec![source],
             },
         ],
     })?;

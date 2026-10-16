@@ -357,7 +357,9 @@
             "dimensionTypeOverrides",
             "dimensionStyleId",
             "dimensionAssociations",
-            "dimensionFractionLayout"
+            "dimensionFractionLayout",
+            "hatchSourceEntityIds",
+            "hatchLoopProvenance"
           ]
         },
         "nullable": {
@@ -753,7 +755,9 @@
                 "dimensionTypeOverrides",
                 "dimensionStyleId",
                 "dimensionAssociations",
-                "dimensionFractionLayout"
+                "dimensionFractionLayout",
+                "hatchSourceEntityIds",
+                "hatchLoopProvenance"
               ]
             },
             "minItems": {

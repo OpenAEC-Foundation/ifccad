@@ -20,7 +20,8 @@ export function renderInspection(model,state){
   const entries=Object.entries(value),ownerNode=navigation.nodes.get(owner);
   return entries.slice(0,100).map(([key,v])=>{
    const next=[...path,key],fieldId=JSON.stringify([owner,next]),label=e(keyLabel(key,owner));
-   const composite=v!==null&&typeof v==='object'&&!(Array.isArray(v)&&v.length<=4&&v.every(item=>item===null||typeof item!=='object'));
+   const linkedArray=Array.isArray(v)&&ownerNode?.outgoing.some(link=>link.field.startsWith(next.join('.')+'.'));
+   const composite=v!==null&&typeof v==='object'&&(linkedArray||!(Array.isArray(v)&&v.length<=4&&v.every(item=>item===null||typeof item!=='object')));
    if(composite)return '<details class="inspector-field" data-field-id="'+e(fieldId)+'"'+(!state.fieldCollapsed?.has(fieldId)&&(depth===0||state.fieldExpanded?.has(fieldId))?' open':'')+'><summary>'+chevron+'<span class="property-label">'+label+'</span></summary><div class="field-children">'+fields(v,next,depth+1,owner)+'</div></details>';
    const edge=ownerNode?.outgoing.find(link=>link.field===next.join('.'));
    return '<div class="inspector-field field-value"><span class="property-label">'+label+'</span><span class="field-content">'+(edge&&model.nodes.has(edge.target)?jump(edge.target,itemTitle(model.nodes.get(edge.target),language)):summary(v,key,owner))+'</span></div>';

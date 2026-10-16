@@ -34,6 +34,7 @@ fn fixed_paper_scale_resolves_physical_limits_but_plot_edits_preserve_stored_tol
         .clone();
     e.id = d.id_counters.allocate_entity_id().unwrap();
     e.kind = IfccadEntityKind::Hatch(IfccadHatch {
+        association_enabled: false,
         gradient: None,
         placement: IfccadPlacement {
             origin: [0.0, 0.0, 0.0],
@@ -41,11 +42,13 @@ fn fixed_paper_scale_resolves_physical_limits_but_plot_edits_preserve_stored_tol
             y_axis: [0.0, 1.0, 0.0],
         },
         loops: vec![IfccadHatchLoop {
+            provenance: None,
+            text_island: false,
             boundary: HatchBoundary2::Circle {
                 center: [0.0, 0.0],
                 radius: 1.0,
             },
-            source_entity_id: None,
+            source_entity_ids: vec![],
         }],
         area_rule: HatchAreaRule::Normal,
         join_tolerance: resolved,

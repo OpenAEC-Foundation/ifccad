@@ -2967,9 +2967,20 @@
         "boundary": {
           "$ref": "#/$defs/hatchBoundary"
         },
-        "source": {
-          "type": "string",
-          "pattern": "^/cad/d(?:0|[1-9][0-9]*)/e(?:0|[1-9][0-9]*)$"
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^/cad/d(?:0|[1-9][0-9]*)/e(?:0|[1-9][0-9]*)$"
+          },
+          "default": []
+        },
+        "provenance": {
+          "$ref": "#/$defs/hatchLoopProvenance"
+        },
+        "textIsland": {
+          "type": "boolean",
+          "default": false
         }
       }
     },
@@ -3004,6 +3015,10 @@
         },
         "gradient": {
           "$ref": "#/$defs/hatchGradient"
+        },
+        "associationEnabled": {
+          "type": "boolean",
+          "default": false
         }
       },
       "allOf": [
@@ -6064,6 +6079,70 @@
           }
         }
       }
+    },
+    "hatchLoopProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "fromSourceObjects": {
+          "type": "boolean",
+          "default": false
+        },
+        "derivedFromPickPoint": {
+          "type": "boolean",
+          "default": false
+        },
+        "outermostHint": {
+          "type": "boolean",
+          "default": false
+        },
+        "textBox": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "fromSourceObjects"
+          ],
+          "properties": {
+            "fromSourceObjects": {
+              "const": true
+            }
+          }
+        },
+        {
+          "required": [
+            "derivedFromPickPoint"
+          ],
+          "properties": {
+            "derivedFromPickPoint": {
+              "const": true
+            }
+          }
+        },
+        {
+          "required": [
+            "outermostHint"
+          ],
+          "properties": {
+            "outermostHint": {
+              "const": true
+            }
+          }
+        },
+        {
+          "required": [
+            "textBox"
+          ],
+          "properties": {
+            "textBox": {
+              "const": true
+            }
+          }
+        }
+      ]
     }
   },
   "$comment": "Mandatory IFCCAD local supplements. Ordinary IFCX shapes, typed decoding and profile-rules graph/domain algorithms also apply. This is not a whole drawing schema or IFCX core syntax."

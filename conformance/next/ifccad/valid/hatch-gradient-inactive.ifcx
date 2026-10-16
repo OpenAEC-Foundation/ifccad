@@ -216,7 +216,9 @@
                 "kind": "circle",
                 "radius": 1.0
               },
-              "source": "/cad/d1/e7"
+              "sources": [
+                "/cad/d1/e7"
+              ]
             }
           ],
           "gradient": {
@@ -224,7 +226,8 @@
             "shift": 0,
             "colorMode": "oneColor",
             "tint": 0.65
-          }
+          },
+          "associationEnabled": true
         }
       }
     },

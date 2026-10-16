@@ -30,7 +30,8 @@
           "nextEntityId": 3,
           "nextLayerId": 3,
           "nextLayoutId": 2,
-          "nextLinePatternId": 1,"nextSymbolSourceId":1,
+          "nextLinePatternId": 1,
+          "nextSymbolSourceId": 1,
           "nextModelWindowId": 1,
           "nextUcsId": 1,
           "profileVersion": "0.1.0"
@@ -211,9 +212,12 @@
                 "kind": "circle",
                 "radius": 1.0
               },
-              "source": "/cad/d1/e2"
+              "sources": [
+                "/cad/d1/e2"
+              ]
             }
-          ]
+          ],
+          "associationEnabled": true
         }
       }
     },
