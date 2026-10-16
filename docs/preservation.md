@@ -91,6 +91,11 @@ payload v2/current 063c106 and v1/legacy fe69506 bytes remain compatible.
 The IFCX mapping uses `ifccad::opaqueEntity`, `ifccad::preservation` and
 `ifccad::preservationRecord`; see the active IFCCAD experimental contract.
 The record watermark lives in `IfccadIdCounters`, independently of entity IDs.
+The IFCX reader canonicalizes the typed record collection by ascending numeric
+record ID, independently of graph node and `children` member order. This does
+not change opaque-entity draw order, record contents, IDs or watermarks. Strict
+encoding still compares the complete reread document with the canonical input;
+graph-aware CAD export keeps this encoding check before source-graph comparison.
 Unknown provider bytes and soft missing/cyclic dependencies remain transportable.
 Complete live records match their opaque subjects; detached archives have no
 export obligation. The original IFCX graph stays immutable, and graph-aware CAD

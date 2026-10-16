@@ -234,6 +234,13 @@ Skip diagnoses omitted live content. Source ownership conflicts remain fatal;
 unsupported valid owners may retain detached archives with independent placement loss.
 Native fields remain authoritative; original baselines are never refreshed.
 
+Preservation record collection order is canonicalized by numeric ID on IFCX
+readback; mixed ID lengths do not change subjects, payloads or mixed entity draw
+order. Both `ifccad_source_to_cad_document` and
+`ifccad_document_to_cad_document` are exercised with 10/121 splines and physical
+DXF readback in `tests/spline_record_order.rs`. Graph-aware export keeps its
+strict canonical encoding and source-graph loss checks.
+
 Restore checks actual mandatory predicates, provider/payload versions, source/body
 identity and required constructed references, including forward typed XDATA.
 Model/block units and block insertion unit are guarded; Paper mapping uses exact
