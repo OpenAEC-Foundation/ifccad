@@ -16,7 +16,9 @@ fn simple_text_and_mtext_convert_with_styles_and_unassessed_glyphs() {
     mtext.value = "First\\PSecond".into();
     mtext.height = 3.;
     mtext.insertion_point = Vector3::new(15., 16., 0.);
-    source.add_entity(EntityType::MText(mtext)).unwrap();
+    source
+        .add_entity(EntityType::MText(Box::new(mtext)))
+        .unwrap();
     let native = cad_document_to_ifccad_document(&source, metadata(), Default::default()).unwrap();
     assert_eq!(native.document().model.entities.len(), 2);
     assert!(!native.document().text_styles.is_empty());
@@ -70,7 +72,9 @@ fn text_and_mtext_survive_actual_dxf_and_ac1032_dwg_readback() {
     mtext.value = "First\\PSecond\\P".into();
     mtext.height = 3.;
     mtext.insertion_point = Vector3::new(15., 16., 0.);
-    source.add_entity(EntityType::MText(mtext)).unwrap();
+    source
+        .add_entity(EntityType::MText(Box::new(mtext)))
+        .unwrap();
     let original =
         cad_document_to_ifccad_document(&source, metadata(), Default::default()).unwrap();
     let target = ifccad_document_to_cad_document(original.document(), Default::default()).unwrap();
@@ -271,7 +275,7 @@ fn manual_columns_use_auto_tail_in_ifccad_and_actual_file_readback() {
             gutter: 1.,
             heights: vec![30., tail],
         };
-        source.add_entity(EntityType::MText(t)).unwrap();
+        source.add_entity(EntityType::MText(Box::new(t))).unwrap();
         let native =
             cad_document_to_ifccad_document(&source, metadata(), Default::default()).unwrap();
         let IfccadEntityKind::MText(t) = &native.document().model.entities[0]
@@ -332,7 +336,7 @@ fn inline_palette_identity_is_retained_in_the_concrete_color_profile() {
     let mut source = CadDocument::new();
     let mut t = MText::new();
     t.value = "\\C65;Green".into();
-    source.add_entity(EntityType::MText(t)).unwrap();
+    source.add_entity(EntityType::MText(Box::new(t))).unwrap();
     let native = cad_document_to_ifccad_document(&source, metadata(), Default::default()).unwrap();
     assert_eq!(native.document().model.entities.len(), 1);
     assert!(!native

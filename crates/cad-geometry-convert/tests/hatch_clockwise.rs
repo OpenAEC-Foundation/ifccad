@@ -92,7 +92,9 @@ fn emitted_dxf_and_dwg_keep_the_original_clockwise_wire_orientation() {
         )
         .unwrap();
         let mut document = CadDocument::new();
-        document.add_entity(EntityType::Hatch(q.hatch)).unwrap();
+        document
+            .add_entity(EntityType::Hatch(Box::new(q.hatch)))
+            .unwrap();
         for dwg in [false, true] {
             let returned = if dwg {
                 DwgReader::from_stream(Cursor::new(DwgWriter::write_to_vec(&document).unwrap()))

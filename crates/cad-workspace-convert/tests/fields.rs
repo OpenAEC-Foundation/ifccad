@@ -101,7 +101,7 @@ fn workspace_nonfinite_scalars_are_errors() {
 }
 
 #[test]
-fn viewport_grid_behavior_has_explicit_file_codec_limitations() {
+fn viewport_grid_behavior_is_supported_by_the_pinned_codec() {
     let mut fields = prepare_model_window_from_cad(&VPort::active())
         .unwrap()
         .value;
@@ -110,14 +110,7 @@ fn viewport_grid_behavior_has_explicit_file_codec_limitations() {
     fields.aids.grid.subdivision = true;
     fields.aids.grid.follows_workplane = true;
     let issues = apply_viewport_aids_to_cad(&mut Viewport::new(), &fields.aids).unwrap();
-    for field in [
-        "grid.beyondLimits",
-        "grid.adaptive",
-        "grid.subdivision",
-        "grid.followsWorkplane",
-    ] {
-        assert!(issues.iter().any(|i| i.field == field));
-    }
+    assert!(issues.is_empty());
     assert!(apply_model_window_to_cad(&mut VPort::active(), &fields)
         .unwrap()
         .is_empty());

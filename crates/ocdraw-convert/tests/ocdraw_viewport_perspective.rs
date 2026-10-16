@@ -22,7 +22,7 @@ fn source(unit: i16, perspective: bool) -> CadDocument {
     canvas.height = 200.;
     canvas.view_height = 200.;
     document
-        .add_entity_to_layout(EntityType::Viewport(canvas), "Layout1")
+        .add_entity_to_layout(EntityType::Viewport(Box::new(canvas)), "Layout1")
         .unwrap();
     for entity in reference.entities() {
         if let EntityType::Viewport(v) = entity {

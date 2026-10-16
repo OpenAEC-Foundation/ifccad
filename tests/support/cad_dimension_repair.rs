@@ -32,7 +32,7 @@ pub fn drawing() -> CadDocument {
             X::ControlString("}".into()),
         ],
     });
-    doc.add_entity(EntityType::Dimension(Dimension::Aligned(d)))
+    doc.add_entity(EntityType::Dimension(Box::new(Dimension::Aligned(d))))
         .unwrap();
     let mut d = DimensionLinear::new(Vector3::ZERO, Vector3::new(4000.0, 0.0, 0.0));
     d.base.definition_point = Vector3::new(0.0, 300.0, 0.0);
@@ -48,7 +48,7 @@ pub fn drawing() -> CadDocument {
             X::ControlString("}".into()),
         ],
     });
-    doc.add_entity(EntityType::Dimension(Dimension::Linear(d)))
+    doc.add_entity(EntityType::Dimension(Box::new(Dimension::Linear(d))))
         .unwrap();
     doc
 }

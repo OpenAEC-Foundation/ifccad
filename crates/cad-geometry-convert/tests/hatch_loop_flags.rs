@@ -31,10 +31,14 @@ fn hatch(fill: usize, style: HatchStyleType, bits: u32) -> Hatch {
         h.gradient_color.name = "LINEAR".into();
         h.gradient_color.colors = vec![
             GradientColorEntry {
+                color_name: None,
+                book_name: None,
                 value: 0.,
                 color: Color::Rgb { r: 0, g: 0, b: 0 },
             },
             GradientColorEntry {
+                color_name: None,
+                book_name: None,
                 value: 1.,
                 color: Color::Rgb {
                     r: 255,
@@ -115,7 +119,7 @@ fn text_island_flags_survive_ac1032_dxf_and_dwg_for_every_fill_and_rule() {
         ] {
             for bits in [128, 136, 157] {
                 let mut d = CadDocument::new();
-                d.add_entity(EntityType::Hatch(hatch(fill, style, bits)))
+                d.add_entity(EntityType::Hatch(Box::new(hatch(fill, style, bits))))
                     .unwrap();
                 for dwg in [false, true] {
                     let read = if dwg {

@@ -396,7 +396,7 @@ pub(super) fn append_entities(
                 source.layer_id,
                 &source.appearance,
                 source.visible,
-                EntityType::Viewport(entity),
+                EntityType::Viewport(Box::new(entity)),
             )
         } else {
             continue;

@@ -66,9 +66,9 @@ fn emitted_circle_center_snap_is_wcs_instead_of_ocs() {
     circle.radius = 1.0;
     let source = doc.add_entity(EntityType::Circle(circle)).unwrap();
     let dimension = doc
-        .add_entity(EntityType::Dimension(
+        .add_entity(EntityType::Dimension(Box::new(
             opencadcodec::entities::Dimension::Aligned(Default::default()),
-        ))
+        )))
         .unwrap();
     let a = encode_point_references(
         dimension,

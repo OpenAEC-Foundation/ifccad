@@ -1,5 +1,10 @@
 # Hatch
 
+Current dependency qualification (2026-10-16): codec `325fa98d2b881f48e106a830d5cf161624f63131`
+plus the explicit Dimension text-position repair; viewport repairs are upstream.
+The [current audit](geometry/opencadcodec-update-2026-10-16.md) supersedes dated
+pin/transport limitations below, including paper grid and DXF ShadePlot gates.
+
 OCDraw and IFCCAD independently support native Solid, LinePattern and Gradient Hatch: an ordinary entity
 with identity, owner/order, appearance, one placed local XY plane, stored loops,
 an area rule and an authored join tolerance. OCDraw uses one `hatchStream`;
@@ -70,8 +75,8 @@ can process these dependencies; synchronization is outside this implementation.
 
 ## Qualified CAD subset
 
-The codec pin is `ab2eecdbffc31120b5ad6d899f6fc67cf21ede39`, with only the
-existing [viewport-off patch](../patches/opencadcodec-viewports/README.md).
+The codec pin is `325fa98d2b881f48e106a830d5cf161624f63131`, with only the
+[Dimension text-position patch](../patches/opencadcodec-dimension/README.md).
 Shared preparation audits fields and registers full contour curve evidence
 with nested occurrence assessment. Exact source spans qualify full turns;
 no epsilon promotes near-full arcs. Frames project to the actual CAD OCS;

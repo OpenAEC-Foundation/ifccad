@@ -5,6 +5,9 @@ use opencadcodec::{Arc, Circle, Ellipse, Line, LwPolyline, Point, Vector3};
 pub(crate) fn common_semantic_losses(common: &EntityCommon) -> Vec<CadToOcdrawLossReason> {
     let mut reasons = Vec::new();
 
+    if common.r12_metadata.is_some() {
+        reasons.push(CadToOcdrawLossReason::EntityR12ViewportMetadata);
+    }
     if !common.extended_data.is_empty() {
         reasons.push(CadToOcdrawLossReason::EntityExtendedData);
     }

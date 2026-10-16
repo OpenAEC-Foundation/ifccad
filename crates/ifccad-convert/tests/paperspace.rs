@@ -180,7 +180,7 @@ fn invalid_media_and_unsupported_viewports_keep_supported_siblings_with_losses()
     let mut viewport = opencadcodec::entities::Viewport::new();
     viewport.center.z = 1.;
     let h = cad
-        .add_entity_to_layout(EntityType::Viewport(viewport), "Inches")
+        .add_entity_to_layout(EntityType::Viewport(Box::new(viewport)), "Inches")
         .unwrap();
     let result = import(&cad, IfccadLossPolicy::Allow).unwrap();
     assert_eq!(

@@ -38,7 +38,7 @@ pub fn source(kind: &str, forward: bool, bulge: f64) -> (CadDocument, Handle, Ha
     let mut canvas = Viewport::new();
     canvas.id = 1;
     canvas.view_height = 35.;
-    d.add_entity_to_layout(EntityType::Viewport(canvas), "Layout1")
+    d.add_entity_to_layout(EntityType::Viewport(Box::new(canvas)), "Layout1")
         .unwrap();
     let mut boundary = match kind {
         "circle" => {
@@ -85,14 +85,14 @@ pub fn source(kind: &str, forward: bool, bulge: f64) -> (CadDocument, Handle, Ha
     .unwrap();
     let (b, h) = if forward {
         let h = d
-            .add_entity_to_layout(EntityType::Viewport(v), "Layout1")
+            .add_entity_to_layout(EntityType::Viewport(Box::new(v)), "Layout1")
             .unwrap();
         let b = d.add_entity_to_layout(boundary, "Layout1").unwrap();
         (b, h)
     } else {
         let b = d.add_entity_to_layout(boundary, "Layout1").unwrap();
         let h = d
-            .add_entity_to_layout(EntityType::Viewport(v), "Layout1")
+            .add_entity_to_layout(EntityType::Viewport(Box::new(v)), "Layout1")
             .unwrap();
         (b, h)
     };

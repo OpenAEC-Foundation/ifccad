@@ -3,8 +3,31 @@ use common::*;
 use ifccad_convert::*;
 
 #[test]
+fn r12_common_context_is_a_located_loss_under_both_policies() {
+    let mut doc = cad();
+    let mut line = opencadcodec::Line::new();
+    line.end = opencadcodec::Vector3::new(1., 0., 0.);
+    line.common.r12_metadata = Some(opencadcodec::entities::R12EntityMetadata {
+        viewport: Some(0),
+        child_viewports: vec![None, Some(7)],
+    });
+    let handle = doc
+        .add_entity(opencadcodec::EntityType::Line(line))
+        .unwrap();
+    let out = cad_document_to_encoded_ifccad(&doc, metadata(), Default::default()).unwrap();
+    assert!(out
+        .diagnostics()
+        .iter()
+        .any(|d| d.code == "entity-common" && d.location.contains(&handle.to_string())));
+    assert!(from_cad(&doc, metadata()).is_err());
+}
+
+#[test]
 fn newly_exposed_header_settings_are_diagnosed_and_rejectable() {
-    let edits: [fn(&mut opencadcodec::document::HeaderVariables); 4] = [
+    let edits: [fn(&mut opencadcodec::document::HeaderVariables); 7] = [
+        |h| h.polysolid_width = 4.,
+        |h| h.dim_text_fill = 1,
+        |h| h.real_world_scale = false,
         |h| h.dwf_frame = 1,
         |h| h.dgn_frame = 2,
         |h| h.universal_create_date_julian = 2_460_000.,
@@ -38,7 +61,7 @@ fn off_screen_state_prevents_default_viewport_scaffold_elision() {
     let mut v = opencadcodec::entities::Viewport::new();
     v.id = 1;
     let handle = doc
-        .add_entity_to_layout(opencadcodec::EntityType::Viewport(v), "Layout1")
+        .add_entity_to_layout(opencadcodec::EntityType::Viewport(Box::new(v)), "Layout1")
         .unwrap();
     let layout = doc
         .objects

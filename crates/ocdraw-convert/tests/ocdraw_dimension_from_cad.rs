@@ -22,7 +22,7 @@ pub fn source() -> CadDocument {
             X::ControlString("}".into()),
         ],
     });
-    doc.add_entity(EntityType::Dimension(Dimension::Linear(d)))
+    doc.add_entity(EntityType::Dimension(Box::new(Dimension::Linear(d))))
         .unwrap();
     doc
 }
@@ -61,8 +61,10 @@ fn invalid_dimension_input_is_fatal_even_with_loss_reporting() {
 fn out_of_plane_numeric_excess_is_fatal_under_both_policies() {
     let mut cad = source();
     let h = cad.entities().next().unwrap().common().handle;
-    if let Some(EntityType::Dimension(Dimension::Linear(d))) = cad.get_entity_mut(h) {
-        d.second_point.z = 0.1;
+    if let Some(EntityType::Dimension(d)) = cad.get_entity_mut(h) {
+        if let Dimension::Linear(d) = d.as_mut() {
+            d.second_point.z = 0.1;
+        }
     }
     for loss_policy in [OcdrawLossPolicy::Allow, OcdrawLossPolicy::Reject] {
         assert!(matches!(

@@ -1004,7 +1004,7 @@ fn standalone_preserves_paper_viewports_canvas_and_mixed_draw_order() {
         .frozen_layers
         .push(document.layers.get("0").unwrap().handle);
     document
-        .add_entity_to_layout(EntityType::Viewport(viewport), "Sheet")
+        .add_entity_to_layout(EntityType::Viewport(Box::new(viewport)), "Sheet")
         .unwrap();
     document
         .add_entity_to_layout(

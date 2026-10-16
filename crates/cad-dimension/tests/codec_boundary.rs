@@ -16,7 +16,7 @@ fn dwg_text_position_bit_has_opposite_polarity_to_dxf_128() {
         source.base.text_user_positioned = positioned;
         source.base.text_middle_point = Vector3::new(2.0, 4.0, 0.0);
         source.base.dwg_flags_byte = 0xa0;
-        doc.add_entity(EntityType::Dimension(Dimension::Aligned(source)))
+        doc.add_entity(EntityType::Dimension(Box::new(Dimension::Aligned(source))))
             .unwrap();
         let returned = DwgReader::from_stream(Cursor::new(DwgWriter::write_to_vec(&doc).unwrap()))
             .read()
@@ -89,13 +89,11 @@ fn literal_clone_group_12_and_angular_group_16_remain_outside_slice_one() {
             }
         })
         .unwrap();
-    // Pinned codec defect: read_dimension collects group 12 but never assigns it.
-    // Record the defect explicitly, without qualifying clones as supported.
-    assert_eq!(d.base().insertion_point, Vector3::ZERO);
-    let mut typed = d.clone();
-    typed.base_mut().insertion_point = Vector3::new(19.0, 23.0, 29.0);
+    // The updated codec retains group 12; cloned dimensions remain outside
+    // this adapter slice and must be rejected from actual decoded source state.
+    assert_eq!(d.base().insertion_point, Vector3::new(19.0, 23.0, 29.0));
     assert!(
-        matches!(prepare_dimension_from_cad(&typed,&doc),Err(CadDimensionPreparationError::Unsupported{field,..}) if field=="insertion")
+        matches!(prepare_dimension_from_cad(d,&doc),Err(CadDimensionPreparationError::Unsupported{field,..}) if field=="insertion")
     );
     let angular = literal
         .replace("161\n", "162\n")
@@ -118,7 +116,7 @@ fn literal_clone_group_12_and_angular_group_16_remain_outside_slice_one() {
             }
         })
         .unwrap();
-    let Dimension::Angular2Ln(d) = d else {
+    let Dimension::Angular2Ln(d) = &**d else {
         panic!("angular variant")
     };
     assert_eq!(d.dimension_arc, Vector3::new(2.0, 7.0, 3.0));
@@ -139,7 +137,7 @@ fn actual_dxf_and_ac1032_dwg_keep_wcs_definition_and_ocs_text() {
     source.base.actual_measurement = 999.0;
     source.base.set_text_override(Some("distance <> mm".into()));
     let mut doc = CadDocument::new();
-    doc.add_entity(EntityType::Dimension(Dimension::Aligned(source)))
+    doc.add_entity(EntityType::Dimension(Box::new(Dimension::Aligned(source))))
         .unwrap();
     for dwg in [false, true] {
         let loaded = if dwg {
@@ -203,12 +201,12 @@ fn dimassoc_start_reference_survives_both_codecs() {
         )))
         .unwrap();
     let dimension = doc
-        .add_entity(EntityType::Dimension(Dimension::Aligned(
+        .add_entity(EntityType::Dimension(Box::new(Dimension::Aligned(
             DimensionAligned::new(
                 Vector3::new(4000.0, 0.0, 0.0),
                 Vector3::new(8000.0, 0.0, 0.0),
             ),
-        )))
+        ))))
         .unwrap();
     let mut a = AssocDimensionAssociation {
         associativity: 1,

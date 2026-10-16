@@ -57,19 +57,7 @@ pub fn apply_viewport_aids_to_cad(
     target: &mut Viewport,
     source: &ViewportAidValues,
 ) -> Result<Vec<WorkspaceFieldLoss>, WorkspaceNumericError> {
-    let mut losses = check_aids(source)?;
-    // The public field exists, but the pinned VIEWPORT DXF/DWG routes omit it.
-    // Retain it in the runtime while rejecting unsupported file-fidelity claims.
-    for (field, enabled) in [
-        ("grid.beyondLimits", source.grid.beyond_limits),
-        ("grid.adaptive", source.grid.adaptive),
-        ("grid.subdivision", source.grid.subdivision),
-        ("grid.followsWorkplane", source.grid.follows_workplane),
-    ] {
-        if enabled {
-            losses.push(loss(field,"retained in CadDocument; pinned VIEWPORT DXF/DWG routes do not retain this grid behavior"));
-        }
-    }
+    let losses = check_aids(source)?;
     target.status.grid_on = source.grid.enabled;
     target.grid_spacing = Vector3::new(source.grid.spacing.x(), source.grid.spacing.y(), 0.);
     target.grid_major = i16::try_from(source.grid.major_line_frequency).unwrap_or(5);

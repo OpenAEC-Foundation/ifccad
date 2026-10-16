@@ -293,7 +293,7 @@ pub(super) fn to_cad(
                 continue;
             };
             authored_index += 1;
-            let mut target = EntityType::Viewport(viewport);
+            let mut target = EntityType::Viewport(Box::new(viewport));
             let mut c = common(drawing, document, mappings, e, issues);
             c.owner_handle = *owner;
             c.handle = document.allocate_handle();

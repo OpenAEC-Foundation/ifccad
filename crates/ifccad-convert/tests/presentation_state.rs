@@ -20,7 +20,7 @@ fn source() -> CadDocument {
     let mut mtext = MText::new();
     mtext.value = "Hidden MText".into();
     mtext.height = 3.;
-    doc.add_entity(EntityType::MText(mtext)).unwrap();
+    doc.add_entity(EntityType::MText(Box::new(mtext))).unwrap();
     doc.add_layout("Sheet").unwrap();
     let mut viewport = opencadcodec::entities::Viewport::new();
     viewport.id = 2;
@@ -29,7 +29,7 @@ fn source() -> CadDocument {
     viewport.height = 20.;
     viewport.view_height = 50.;
     viewport.view_direction = Vector3::new(0., 0., 100.);
-    doc.add_entity_to_layout(EntityType::Viewport(viewport), "Sheet")
+    doc.add_entity_to_layout(EntityType::Viewport(Box::new(viewport)), "Sheet")
         .unwrap();
     let handles: Vec<_> = doc
         .entities()

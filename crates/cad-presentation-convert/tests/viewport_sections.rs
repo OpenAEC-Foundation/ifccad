@@ -7,7 +7,7 @@ fn document() -> (CadDocument, Handle, Handle) {
     let layer = d.layers.get("0").unwrap().handle;
     let viewport = d
         .add_entity_to_layout(
-            EntityType::Viewport(opencadcodec::entities::Viewport::new()),
+            EntityType::Viewport(Box::new(opencadcodec::entities::Viewport::new())),
             "Layout1",
         )
         .unwrap();

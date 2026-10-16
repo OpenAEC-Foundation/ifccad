@@ -105,7 +105,7 @@ pub fn cad_nonuniform_block() -> opencadcodec::CadDocument {
     .unwrap()
     .hatch;
     h.common.owner_handle = owner;
-    d.add_entity(EntityType::Hatch(h)).unwrap();
+    d.add_entity(EntityType::Hatch(Box::new(h))).unwrap();
     let mut record = BlockRecord::new("NestedHatch");
     record.handle = d.allocate_handle();
     let nested = record.handle;

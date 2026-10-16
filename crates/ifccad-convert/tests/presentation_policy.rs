@@ -161,7 +161,9 @@ fn inline_aci_and_background_color_keep_identity_in_mtext_exchange() {
     text.value = "\\C1;Red".into();
     text.background_fill_flags = 1;
     text.background_color = Color::Index(2);
-    source.add_entity(EntityType::MText(text)).unwrap();
+    source
+        .add_entity(EntityType::MText(Box::new(text)))
+        .unwrap();
     let native = cad_document_to_ifccad_document(&source, metadata(), Default::default()).unwrap();
     let IfccadEntityKind::MText(text) = &native.document().model.entities[0]
         .as_native()

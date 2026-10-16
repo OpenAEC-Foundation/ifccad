@@ -38,7 +38,7 @@ pub fn source(enabled: bool, unsupported: bool) -> (CadDocument, Handle, Vec<Han
     h.paths.push(p.clone());
     p.boundary_handles = vec![c];
     h.paths.push(p);
-    let hh = d.add_entity(EntityType::Hatch(h)).unwrap();
+    let hh = d.add_entity(EntityType::Hatch(Box::new(h))).unwrap();
     (d, hh, vec![a, b, c])
 }
 

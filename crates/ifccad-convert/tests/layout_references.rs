@@ -300,7 +300,7 @@ fn missing_and_wrong_kind_viewport_references_remain_fatal() {
                     } else {
                         let mut v = opencadcodec::entities::Viewport::new();
                         v.id = 2;
-                        cad.add_entity_to_layout(EntityType::Viewport(v), "Layout1")
+                        cad.add_entity_to_layout(EntityType::Viewport(Box::new(v)), "Layout1")
                             .unwrap()
                     }
                 }
@@ -318,7 +318,7 @@ fn paper_viewport_reference_requires_the_same_paper_owner() {
     let mut v = opencadcodec::entities::Viewport::new();
     v.id = 2;
     let handle = cad
-        .add_entity_to_layout(EntityType::Viewport(v), "Layout1")
+        .add_entity_to_layout(EntityType::Viewport(Box::new(v)), "Layout1")
         .unwrap();
     layout_mut(&mut cad, "Sheet").viewport = handle;
     assert_invalid(&cad);

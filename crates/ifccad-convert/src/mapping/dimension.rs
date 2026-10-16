@@ -571,7 +571,9 @@ pub(crate) fn to_entity(
     for l in p.losses {
         loss(format!("{loc}/{}", l.field), l.detail, issues);
     }
-    Ok(Some(opencadcodec::EntityType::Dimension(p.entity)))
+    Ok(Some(opencadcodec::EntityType::Dimension(Box::new(
+        p.entity,
+    ))))
 }
 pub(crate) fn to_associations(
     d: &IfccadDimension,

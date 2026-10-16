@@ -5,6 +5,32 @@ use ocdraw_convert::{
 use opencadcodec::{CadDocument, EntityType};
 
 #[test]
+fn r12_common_context_is_a_located_loss_under_both_policies() {
+    let mut doc = CadDocument::new();
+    let mut line = opencadcodec::Line::new();
+    line.end = opencadcodec::Vector3::new(1., 0., 0.);
+    line.common.r12_metadata = Some(opencadcodec::entities::R12EntityMetadata {
+        viewport: Some(0),
+        child_viewports: vec![None, Some(7)],
+    });
+    doc.add_entity(EntityType::Line(line)).unwrap();
+    let out = cad_document_to_encoded_ocdraw(&doc, Default::default()).unwrap();
+    assert!(out
+        .diagnostics()
+        .iter()
+        .flat_map(|d| d.reasons())
+        .any(|r| matches!(r, CadToOcdrawLossReason::EntityR12ViewportMetadata)));
+    assert!(cad_document_to_encoded_ocdraw(
+        &doc,
+        CadToOcdrawOptions {
+            loss_policy: OcdrawLossPolicy::Reject,
+            ..Default::default()
+        }
+    )
+    .is_err());
+}
+
+#[test]
 fn autocad_anonymous_names_reach_ocdraw_without_name_repair() {
     let doc = opencadcodec::DwgReader::from_stream(std::io::Cursor::new(
         include_bytes!("fixtures/anonymous-names.dwg").as_slice(),
@@ -32,7 +58,10 @@ fn autocad_anonymous_names_reach_ocdraw_without_name_repair() {
 
 #[test]
 fn newly_exposed_header_settings_are_diagnosed_and_rejectable() {
-    let edits: [fn(&mut opencadcodec::document::HeaderVariables); 4] = [
+    let edits: [fn(&mut opencadcodec::document::HeaderVariables); 7] = [
+        |h| h.polysolid_width = 4.,
+        |h| h.dim_text_fill = 1,
+        |h| h.real_world_scale = false,
         |h| h.dwf_frame = 1,
         |h| h.dgn_frame = 2,
         |h| h.universal_create_date_julian = 2_460_000.,
@@ -70,7 +99,7 @@ fn off_screen_viewports_are_diagnosed_in_canvas_and_authored_viewports() {
         } else {
             let mut v = opencadcodec::entities::Viewport::new();
             v.id = 2;
-            doc.add_entity_to_layout(EntityType::Viewport(v), "Sheet")
+            doc.add_entity_to_layout(EntityType::Viewport(Box::new(v)), "Sheet")
                 .unwrap()
         };
         let EntityType::Viewport(v) = doc.get_entity_mut(handle).unwrap() else {

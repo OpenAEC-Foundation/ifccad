@@ -56,7 +56,7 @@ fn canvas_preserves_frame_disabled_spacing_and_activation() {
     view.snap_spacing = Vector3::ZERO;
     view.ucs_per_viewport = false;
     let handle = source
-        .add_entity_to_layout(EntityType::Viewport(view), "Layout1")
+        .add_entity_to_layout(EntityType::Viewport(Box::new(view)), "Layout1")
         .unwrap();
     for object in source.objects.values_mut() {
         if let opencadcodec::objects::ObjectType::Layout(layout) = object {
@@ -95,7 +95,7 @@ fn viewport_workspace_maps_both_directions_without_touching_geometry() {
     view.ucs_origin = Vector3::new(6., 7., 0.);
     view.ucs_per_viewport = false;
     let handle = source
-        .add_entity_to_layout(EntityType::Viewport(view), "Layout1")
+        .add_entity_to_layout(EntityType::Viewport(Box::new(view)), "Layout1")
         .unwrap();
     let result = cad_document_to_ocdraw_document(&source, Default::default()).unwrap();
     let id = result.entity_mapping()[&handle];
@@ -172,7 +172,7 @@ fn model_viewport_aids_keep_model_units_inside_inch_paper() {
     view.snap_base = Vector3::new(4., 5., 0.);
     view.ucs_origin = Vector3::new(6., 7., 0.);
     source
-        .add_entity_to_layout(EntityType::Viewport(view), "Layout1")
+        .add_entity_to_layout(EntityType::Viewport(Box::new(view)), "Layout1")
         .unwrap();
     for object in source.objects.values_mut() {
         if let opencadcodec::objects::ObjectType::Layout(layout) = object {
@@ -210,7 +210,7 @@ fn perspective_target_viewport_keeps_its_workspace() {
     view.width = 160.;
     view.height = 100.;
     let handle = source
-        .add_entity_to_layout(EntityType::Viewport(view), "Layout1")
+        .add_entity_to_layout(EntityType::Viewport(Box::new(view)), "Layout1")
         .unwrap();
     let result = cad_document_to_ocdraw_document(&source, Default::default()).unwrap();
     let id = result.entity_mapping()[&handle];
@@ -264,7 +264,7 @@ fn omitted_viewport_cannot_hide_nonfinite_workspace() {
     viewport.width = 0.;
     viewport.grid_spacing.x = f64::NAN;
     source
-        .add_entity_to_layout(EntityType::Viewport(viewport), "Layout1")
+        .add_entity_to_layout(EntityType::Viewport(Box::new(viewport)), "Layout1")
         .unwrap();
     assert!(matches!(
         cad_document_to_ocdraw_document(&source, Default::default()),

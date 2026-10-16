@@ -19,14 +19,17 @@ fn source(
     h.paths.push(p);
     h.is_associative = true;
     let hh = if hatch_first {
-        Some(d.add_entity(EntityType::Hatch(h.clone())).unwrap())
+        Some(
+            d.add_entity(EntityType::Hatch(Box::new(h.clone())))
+                .unwrap(),
+        )
     } else {
         None
     };
     let mut circle = Circle::new();
     circle.radius = 3.;
     let ch = d.add_entity(EntityType::Circle(circle)).unwrap();
-    let hh = hh.unwrap_or_else(|| d.add_entity(EntityType::Hatch(h)).unwrap());
+    let hh = hh.unwrap_or_else(|| d.add_entity(EntityType::Hatch(Box::new(h))).unwrap());
     let EntityType::Hatch(h) = d.get_entity_mut(hh).unwrap() else {
         panic!()
     };

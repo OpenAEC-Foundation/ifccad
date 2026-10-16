@@ -85,7 +85,7 @@ pub(super) fn prepare_paper_canvases(
             let mut viewport = opencadcodec::entities::Viewport::new();
             viewport.id = 1;
             document
-                .add_entity_to_layout(EntityType::Viewport(viewport), &source.name)
+                .add_entity_to_layout(EntityType::Viewport(Box::new(viewport)), &source.name)
                 .map_err(|error| {
                     OcdrawToCadError::Cad(format!("paper canvas {}: {error}", source.name))
                 })?;

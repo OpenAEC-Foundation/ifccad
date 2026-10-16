@@ -21,6 +21,8 @@ fn hatch() -> Hatch {
     h.gradient_color.color_tint = 0.8;
     h.gradient_color.colors = vec![
         GradientColorEntry {
+            color_name: None,
+            book_name: None,
             value: 0.,
             color: Color::Rgb {
                 r: 220,
@@ -29,6 +31,8 @@ fn hatch() -> Hatch {
             },
         },
         GradientColorEntry {
+            color_name: None,
+            book_name: None,
             value: 1.,
             color: Color::Rgb {
                 r: 30,
@@ -59,6 +63,25 @@ fn symbolic_aci_seven_is_unqualified_without_a_concrete_endpoint() {
                 .losses
                 .iter()
                 .any(|loss| loss.field == "gradient.colors"));
+        }
+    }
+}
+
+#[test]
+fn named_endpoint_identity_is_not_silently_reduced_to_rgb() {
+    for active in [true, false] {
+        let mut source = hatch();
+        source.gradient_color.enabled = active;
+        source.gradient_color.colors[0].color_name = Some("Authored color".into());
+        source.gradient_color.colors[0].book_name = Some("Color book".into());
+        let prepared = prepare_gradient_from_cad(&source);
+        if active {
+            assert!(matches!(
+                prepared,
+                Err(CadHatchPreparationError::Unsupported { .. })
+            ));
+        } else {
+            assert!(!prepared.unwrap().losses.is_empty());
         }
     }
 }

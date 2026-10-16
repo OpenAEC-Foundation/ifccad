@@ -23,8 +23,10 @@ intersection, occurrence and trans-space relations are unsupported. Binding neve
 updates the stored dimension definition. CAD host regeneration/update execution
 is outside the qualified codec boundary.
 
-Pinned opencadcodec base: `ab2eecdbffc31120b5ad6d899f6fc67cf21ede39`.
+Pinned opencadcodec base: `325fa98d2b881f48e106a830d5cf161624f63131`.
 The repository's explicit viewport-off patch is orthogonal to dimension tests;
 results are for that local patch configuration, not a new dependency revision.
 See the [field audit](../../docs/dimension/cad-field-audit-2026-10-09.md) and
 [fixture provenance](../../tests/fixtures/dimension/PROVENANCE.md).
+
+Current codec qualification: [2026-10-16 dependency audit](../../docs/geometry/opencadcodec-update-2026-10-16.md). Only the documented Dimension patch remains selected; viewport repairs are upstream.

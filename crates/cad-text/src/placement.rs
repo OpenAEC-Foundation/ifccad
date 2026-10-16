@@ -149,7 +149,7 @@ pub fn prepare_mtext_to_cad(input: &MTextCadInput<'_>) -> Result<PreparedCadText
     }
     let origin = input.placement.origin().components();
     Ok(PreparedCadText {
-        entity: EntityType::MText(target),
+        entity: EntityType::MText(Box::new(target)),
         pair: pair(origin.map(exact), origin.map(exact)),
         parameterization_changed: input.rotation != 0.,
         glyph_geometry_unassessed: true,

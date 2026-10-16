@@ -487,7 +487,7 @@ fn overall_scaffold(doc: &CadDocument, e: &EntityType) -> bool {
     if resolved_layer_handle(doc, &a.common) {
         a.common.layer_handle = None;
     }
-    a == b
+    a.as_ref() == &b
 }
 
 fn untouched_paper(doc: &CadDocument, layout: &opencadcodec::objects::Layout) -> bool {

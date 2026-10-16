@@ -153,7 +153,7 @@ fn resolving_shape_names_does_not_mask_invalid_mtext_column_heights() {
     m.column_data.gutter = 110.22316703811953;
     m.rectangle_width = 2. * m.column_data.width + m.column_data.gutter;
     m.column_data.heights = vec![-2.9442928603910867, 0.];
-    let handle = d.add_entity(EntityType::MText(m)).unwrap();
+    let handle = d.add_entity(EntityType::MText(Box::new(m))).unwrap();
     for loss_policy in [OcdrawLossPolicy::Allow, OcdrawLossPolicy::Reject] {
         assert!(
             matches!(cad_document_to_ocdraw_document(&d, CadToOcdrawOptions {

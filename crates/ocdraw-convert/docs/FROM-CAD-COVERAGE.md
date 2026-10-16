@@ -13,7 +13,7 @@ These are fresh conversions: no identity-preserving CAD editing session,
 watermark reconstruction or new source coverage is implied.
 
 This inventory is pinned to opencadcodec revision
-`ab2eecdbffc31120b5ad6d899f6fc67cf21ede39`. It defines what the
+`325fa98d2b881f48e106a830d5cf161624f63131`. It defines what the
 `CadDocument -> OCDraw` exporter must either represent or diagnose. Updating the
 dependency requires reviewing every row. The pinned opencadcodec
 `semantic_inventory_v1` is the export coverage traversal: its categories are
@@ -479,3 +479,24 @@ picture regeneration remain a distinct assessment.
 CAD DIMDSEP zero/NULL is normalized to the decimal point, including unused
 styles and explicit DSTYLE 278 resets; it is never stored as native NUL.
 The equivalent explicit decimal-point code may be used on CAD export.
+
+
+## Upstream pin update — 2026-10-16
+
+The current exact codec pin is `325fa98d2b881f48e106a830d5cf161624f63131`
+(upstream package version remains 0.6.0), with only the explicit
+[Dimension text-position patch](../../../patches/opencadcodec-dimension/README.md).
+Viewport off-state #103, paper grid flags #106, DXF ShadePlot #107 and gradient
+state #109 are upstream. Paper VIEWPORT grid behavior now survives DXF/DWG;
+its former target-loss diagnostics are removed. ShadePlot modes 0–3 survive
+both routes, with physical readback still detecting unexpected loss.
+
+The [public-model audit](../../../docs/geometry/opencadcodec-update-2026-10-16.md)
+records added fields on existing types. Spline captures use payload v3 to retain
+R12 common metadata, while audited v1/v2 sources remain readable. R12 viewport
+context is retained in snapshots but is not eligible for typed restoration;
+ordinary conversion diagnoses it. Packed nondefault TrueType flags, unknown
+complex-linetype flag bits and named gradient endpoint identity are explicitly
+unqualified. Additional header, viewport, object and unsupported-entity fields
+remain subject to source loss classification. No native format semantics or
+measurement claims are expanded by this dependency update.

@@ -1,5 +1,10 @@
 # OCDraw and IFCCAD Text and MText
 
+Current dependency qualification (2026-10-16): codec `325fa98d2b881f48e106a830d5cf161624f63131`
+plus the explicit Dimension text-position repair; viewport repairs are upstream.
+The [current audit](geometry/opencadcodec-update-2026-10-16.md) supersedes dated
+pin/transport limitations below, including paper grid and DXF ShadePlot gates.
+
 OCDraw supports standalone authored Text/MText, local text styles, typed rich
 content and strict native readback. Its core needs neither IFCX nor a CAD or font
 runtime. IFCCAD independently supports the same authored text values through its
@@ -142,8 +147,8 @@ Both IFCCAD directions expose `text_assessment()` and explicit unassessed glyph
 geometry. Loaded-source conversion compares closed text payloads and their
 defaults without changing source bytes; exact numeric projection loss is hard
 under both policies. The integrated IFCCAD qualification uses the main dependency
-base `ab2eecdbffc31120b5ad6d899f6fc67cf21ede39` and its explicit viewport-off
-repair; the earlier OCDraw slice evidence above records its original base.
+base `325fa98d2b881f48e106a830d5cf161624f63131` and its explicit Dimension
+text-position repair; the earlier OCDraw slice evidence above records its original base.
 See the two IFCCAD converter coverage contracts for limits.
 
 IFCCAD concrete character/background colors now use IfccadColor with RGB fallback

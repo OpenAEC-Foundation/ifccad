@@ -194,7 +194,7 @@ public `OcdrawSplineSnapshotError` alias remain compatible; extraction introduce
 no codec dependency into either core and does not change the active pin.
 ## Workspace and upstream update — 2026-10-08
 
-Both converters select opencadcodec 0.6.0 at `ab2eecdbffc31120b5ad6d899f6fc67cf21ede39` plus the explicit viewport-off repair [PR #103](https://github.com/HakanSeven12/opencadcodec/pull/103). Merged spline DXF parameterization and DWG Paper owner/overall-role repairs now come from upstream. See the [dependency audit](../../docs/geometry/opencadcodec-update-2026-10-08.md) and [workspace contract](../../docs/workspace-state.md) for the current field/transport boundary.
+Both converters select opencadcodec 0.6.0 at `325fa98d2b881f48e106a830d5cf161624f63131` plus the explicit viewport-off repair [PR #103](https://github.com/HakanSeven12/opencadcodec/pull/103). Merged spline DXF parameterization and DWG Paper owner/overall-role repairs now come from upstream. See the [dependency audit](../../docs/geometry/opencadcodec-update-2026-10-08.md) and [workspace contract](../../docs/workspace-state.md) for the current field/transport boundary.
 
 UCS definitions, Model windows, canvas frame/grid/snap/UCS and authored Paper viewport aids map through shared ID-free scalar helpers. Native identities, ownership, source classification and located losses stay format-specific. Disabled zero snap spacing and stored-UCS activation survive independently of current choices. Model-viewport aids retain Model coordinates inside Paper; canvas aids use Paper coordinates. Canvas frames do not enter geometry bounds or clip ownership.
 
@@ -224,3 +224,5 @@ Hatch, while dormant frame failure omits only state with a located loss.
 Native color identity may exceed the pinned gradient surface. Physical AC1032
 DXF/DWG qualification and #109 source/target limitations are detailed in
 [Hatch support](../../docs/hatch.md). No gradient renderer is implemented.
+
+Current codec qualification: [2026-10-16 dependency audit](../../docs/geometry/opencadcodec-update-2026-10-16.md). Only the documented Dimension patch remains selected; viewport repairs are upstream.

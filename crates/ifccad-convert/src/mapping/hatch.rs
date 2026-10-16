@@ -214,5 +214,5 @@ pub(crate) fn to_cad(
             "CAD does not persist the native Hatch join tolerance",
         ));
     }
-    Ok(Some(EntityType::Hatch(p.hatch)))
+    Ok(Some(EntityType::Hatch(Box::new(p.hatch))))
 }
