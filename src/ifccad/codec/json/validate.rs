@@ -870,6 +870,8 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         }) {
             return Err(problem("unowned preservation record"));
         }
+        // Collection membership is unordered; match the encoder's numeric ID order.
+        records.sort_by_key(|record| record.id.0);
         Some(IfccadPreservation {
             version: collection.version,
             sources: collection.sources,

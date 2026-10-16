@@ -313,6 +313,12 @@ Skip diagnoses omitted live content. Source ownership conflicts remain fatal;
 unsupported valid owners may retain detached archives with independent placement loss.
 Native fields remain authoritative; original baselines are never refreshed.
 
+IFCX readback canonicalizes preservation records by numeric ID, including mixed
+ID lengths; record collection order is independent of opaque/native entity draw
+order. Multi-record capture passes the same strict semantic readback as a single
+record. See `tests/spline_record_order.rs` for 10/121-spline capture, both public
+CAD export routes and physical DXF readback.
+
 Restore checks actual mandatory predicates, provider/payload versions, source/body
 identity and required constructed references, including forward typed XDATA.
 Model/block units and block insertion unit are guarded; Paper mapping uses exact
