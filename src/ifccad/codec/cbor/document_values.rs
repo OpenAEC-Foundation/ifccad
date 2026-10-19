@@ -1,0 +1,55 @@
+use super::*;
+use crate::plot_kernel::{LayoutOutputSettings, PlotStyleMode};
+record!(IfccadDocument;
+0 => header: IfccadHeader = None,
+1 => drawing_id: u64 = None,
+2 => id_counters: IfccadIdCounters = None,
+3 => length_unit: String = None,
+4 => plot_style_mode: PlotStyleMode = None,
+5 => model: IfccadLayout = None,
+6 => layers: Vec<IfccadLayer> = None,
+7 => blocks: Vec<IfccadBlockDefinition> = Some(Vec::new()),
+8 => paper_layouts: Vec<IfccadPaperLayout> = Some(Vec::new()),
+9 => line_patterns: Vec<IfccadLinePattern> = None,
+10 => line_pattern_scale: f64 = Some(1.0),
+11 => symbol_sources: Vec<IfccadSymbolSource> = Some(Vec::new()),
+12 => text_styles: Vec<IfccadTextStyle> = Some(Vec::new()),
+13 => dimension_styles: Vec<IfccadDimensionStyle> = Some(Vec::new()),
+14 => ucs_definitions: Vec<IfccadUcsDefinition> = Some(Vec::new()),
+15 => model_windows: Vec<IfccadModelWindow> = Some(Vec::new()),
+16 => point_display: Option<IfccadPointDisplay> = Some(None),
+17 => workspace_state: Option<IfccadDrawingWorkspaceState> = Some(None),
+18 => model_view_state: Option<IfccadModelViewState> = Some(None),
+19 => preservation: Option<IfccadPreservation> = Some(None),
+);
+record!(IfccadLayout;
+0 => bounds_quality: Option<IfccadBoundsQuality> = Some(None),
+1 => settings: LayoutOutputSettings = None,
+2 => id: u64 = None,
+3 => tab_index: u32 = None,
+4 => bounds: Option<IfccadBounds3d> = Some(None),
+5 => entities: Vec<IfccadEntity> = None,
+);
+record!(IfccadBlockDefinition;
+0 => description: String = None,
+1 => anonymous: bool = None,
+2 => explodable: bool = None,
+3 => uniform_scaling: bool = None,
+4 => bounds_quality: Option<IfccadBoundsQuality> = Some(None),
+5 => id: u64 = None,
+6 => name: String = None,
+7 => base_point: [f64;3] = None,
+8 => insertion_unit: String = None,
+9 => bounds: Option<IfccadBounds3d> = Some(None),
+10 => entities: Vec<IfccadEntity> = None,
+);
+record!(IfccadPaperLayout;
+0 => bounds_quality: Option<IfccadBoundsQuality> = Some(None),
+1 => canvas: Option<IfccadPaperCanvas> = Some(None),
+2 => id: u64 = None,
+3 => name: String = None,
+4 => tab_index: u32 = None,
+5 => settings: LayoutOutputSettings = None,
+6 => bounds: Option<IfccadBounds3d> = Some(None),
+7 => entities: Vec<IfccadEntity> = None,
+);

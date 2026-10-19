@@ -1,0 +1,174 @@
+{
+  "mappingRevision": 2,
+  "cases": [
+    {
+      "file": "valid/empty.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/empty.ifccad.cbor.diag"
+    },
+    {
+      "file": "valid/line-xy.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/line-xy.ifccad.cbor.diag"
+    },
+    {
+      "file": "valid/line-signed-zero.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/line-signed-zero.ifccad.cbor.diag"
+    },
+    {
+      "file": "valid/envelope-reordered.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/envelope-reordered.ifccad.cbor.diag"
+    },
+    {
+      "file": "valid/unused-high-watermark.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/unused-high-watermark.ifccad.cbor.diag"
+    },
+    {
+      "file": "invalid/future-revision.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/future-revision.ifccad.cbor.diag",
+      "errorClass": "UnsupportedRevision"
+    },
+    {
+      "file": "invalid/unknown-root-field.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/unknown-root-field.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/duplicate-root-field.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/duplicate-root-field.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/duplicate-native-field.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/duplicate-native-field.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/unknown-geometry-field.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/unknown-geometry-field.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/integer-in-float-slot.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/integer-in-float-slot.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/short-point.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/short-point.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/missing-watermark.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/missing-watermark.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/unresolved-layer.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/unresolved-layer.ifccad.cbor.diag",
+      "errorClass": "InvalidDocument"
+    },
+    {
+      "file": "invalid/unknown-native-kind.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/unknown-native-kind.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/unit-variant-with-body.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/unit-variant-with-body.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/null.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/null.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/undefined.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/undefined.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/tag.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/tag.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/indefinite.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/indefinite.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/float32.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/float32.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/float16.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/float16.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/infinite.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/infinite.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/nan.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/nan.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/invalid-utf8.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/invalid-utf8.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/length-overflow.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/length-overflow.ifccad.cbor.diag",
+      "errorClass": "ResourceLimit"
+    },
+    {
+      "file": "invalid/truncated.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/truncated.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/trailing.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/trailing.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/previous-revision.ifccad.cbor",
+      "valid": false,
+      "errorClass": "UnsupportedRevision",
+      "diagnostic": "invalid/previous-revision.ifccad.cbor.diag"
+    }
+  ]
+}

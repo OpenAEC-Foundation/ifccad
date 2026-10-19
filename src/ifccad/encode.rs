@@ -1,4 +1,10 @@
 use super::*;
+mod cbor;
+pub use cbor::*;
+#[cfg(feature = "ifccad-cbor-zstd")]
+mod cbor_zstd;
+#[cfg(feature = "ifccad-cbor-zstd")]
+pub use cbor_zstd::*;
 
 /// The phase that prevented strict IFCCAD encoding, retaining its original cause.
 #[derive(Debug, thiserror::Error)]

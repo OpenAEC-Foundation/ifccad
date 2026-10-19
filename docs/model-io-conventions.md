@@ -2,9 +2,9 @@
 
 The provisional Rust API uses explicit model and conversion direction names.
 OCDraw and IFCCAD remain independent models with independent encoding and
-validation contracts. This cleanup changes Rust call sites and module paths;
-it does not change native file content, logical schema definitions, format
-versions or conversion coverage.
+validation contracts. Naming and responsibility conventions do not by themselves
+change logical schema definitions or conversion coverage. Each additional
+physical encoding, including IFCCAD CBOR, has its own explicit mapping contract.
 
 ## Responsibilities
 
@@ -27,6 +27,14 @@ not match where the implementations differ. Shared unit mapping belongs in
 converter's `docs/`: `FROM-CAD-COVERAGE.md` and `TO-CAD-COVERAGE.md`.
 
 ## Routes and ownership
+
+The separate [IFCCAD CBOR route](experiments/ifccad-cbor.md) uses
+`load_ifccad_cbor_bytes`, `encode_ifccad_cbor_document` and
+`load_ifccad_cbor_file`, with `ValidatedIfccadCbor`/`EncodedIfccadCbor`.
+It shares the logical validator and document converter, and has no IFCX graph.
+Its direct typed mapping lives in `src/ifccad/codec/cbor`; JSON entrypoints
+retain their original meaning. Float bits and supplied definition vector order
+are retained by CBOR readback; JSON keeps its own documented normalizations.
 
 Byte readers return `Result<ValidatedOcdraw, OcdrawReadError>` or
 `Result<ValidatedIfccad, IfccadReadError>`. Invalid input yields no editable

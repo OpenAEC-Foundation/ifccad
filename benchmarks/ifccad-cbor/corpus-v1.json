@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "mappingRevision": 2,
+  "warmups": 1,
+  "samples": 5,
+  "untimedRepeat": true,
+  "syntheticRules": {
+    "unit": "mm",
+    "baseXY": "((i % 100) * 32, floor(i / 100) * 32)",
+    "layers": 4,
+    "explicitColorEvery": 3,
+    "lineEndOffset": [
+      8,
+      4,
+      0
+    ],
+    "polylineVertices": 4,
+    "polylineClosed": "i % 2 == 0",
+    "text": "alternating TEXT/MTEXT; indexed Unicode strings; MTEXT 3 paragraphs x 2 runs",
+    "hatch": "i % 3 selects Solid/Pattern/Gradient; circle hole for even i; source refs empty",
+    "timestamp": "2026-10-16T00:00:00Z"
+  },
+  "cases": [
+    {
+      "id": "lines-10000",
+      "family": "lines",
+      "count": 10000
+    },
+    {
+      "id": "polylines-10000",
+      "family": "polylines",
+      "count": 10000
+    },
+    {
+      "id": "text-1000",
+      "family": "text",
+      "count": 1000
+    },
+    {
+      "id": "hatches-1000",
+      "family": "hatches",
+      "count": 1000
+    },
+    {
+      "id": "practice-foundation",
+      "file": "DXF DWG samples/3bm/2705_model Funderingsherstel - Constructie - Sheet - CP-21 - Constructietekening.dwg",
+      "sha256": "24c225ffffae53f779646f824f4230799cbf39c475c0eb14f365997a453301b5"
+    },
+    {
+      "id": "practice-test-dxf",
+      "file": "DXF DWG samples/3bm/test.dxf",
+      "sha256": "74d8d7b861cda0e3859879c8149df2344a457f5c9cefce6a144a7cf52a4fbe9a"
+    }
+  ]
+}

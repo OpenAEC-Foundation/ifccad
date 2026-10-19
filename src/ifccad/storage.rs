@@ -1,4 +1,10 @@
 use super::*;
+mod cbor;
+pub use cbor::*;
+#[cfg(feature = "ifccad-cbor-zstd")]
+mod cbor_zstd;
+#[cfg(feature = "ifccad-cbor-zstd")]
+pub use cbor_zstd::*;
 use std::path::Path;
 
 /// Validated encoded bytes. Equality compares bytes, not logical drawing semantics.

@@ -60,6 +60,12 @@ Both routes use corresponding [drawing defaults](docs/drawing-defaults.md) for
 compact native JSON while retaining complete typed documents. Their physical
 omission rules, provisional compatibility and presence-sensitive state stay explicit.
 
+IFCCAD also provides an [experimental standalone CBOR mapping](docs/experiments/ifccad-cbor.md)
+with fixed numeric field codes and direct typed document readback. It retains
+the CAD projection, including existing preservation, rather than the original
+IFCX graph. Raw CBOR remains the default; optional experimental Zstd compression
+has configurable levels (default 3). Columns and partial access remain later work.
+
 `OcdrawDocument` is the complete mutable logical drawing. The builder can return
 it with `build_document()`; `finish()` uses that document and the common encoder.
 Reading exposes an immutable document snapshot, which can be consumed for edits.
@@ -124,9 +130,10 @@ relationships and composition. Future IFC associations, incremental collaboratio
 and efficient IFCX storage require concrete designs and upstream coordination;
 they are not current capability claims.
 
-Compact, directly openable files are an adoption goal for both routes. Physical
-encoding choices follow measured size, opening time and memory use. Binary storage
-and compression per part remain options to investigate, not selected contracts.
+Compact, directly openable files are an adoption goal for both routes. Final
+physical encoding choices follow measured size, opening time and memory use. The
+experimental IFCCAD CBOR mapping supplies one candidate; compression per part
+and final storage recommendations remain work for later investigation.
 
 ## Development sequence
 

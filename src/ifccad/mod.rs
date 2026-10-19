@@ -48,10 +48,27 @@ mod read;
 mod source;
 mod storage;
 pub(crate) const PROFILE_URI: &str = "urn:example:ifccad:0.1.0";
+pub use encode::{encode_ifccad_cbor_document, IfccadCborEncodeError};
+#[cfg(feature = "ifccad-cbor-zstd")]
+pub use encode::{
+    encode_ifccad_cbor_zstd_document, IfccadCborZstdEncodeError, IfccadCborZstdEncodeOptions,
+};
 pub use encode::{encode_ifccad_document, IfccadEncodeError};
 pub use logical::*;
 pub use read::{load_ifccad_bytes, IfccadReadError, IfccadReadOptions, ValidatedIfccad};
+pub use read::{
+    load_ifccad_cbor_bytes, IfccadCborReadError, IfccadCborReadLimits, IfccadCborReadOptions,
+    ValidatedIfccadCbor,
+};
+#[cfg(feature = "ifccad-cbor-zstd")]
+pub use read::{
+    load_ifccad_cbor_zstd_bytes, IfccadCborZstdReadError, IfccadCborZstdReadLimits,
+    IfccadCborZstdReadOptions,
+};
 pub use source::LoadedIfccadGraph;
+pub use storage::{load_ifccad_cbor_file, EncodedIfccadCbor, IfccadCborOpenError};
+#[cfg(feature = "ifccad-cbor-zstd")]
+pub use storage::{load_ifccad_cbor_zstd_file, EncodedIfccadCborZstd, IfccadCborZstdOpenError};
 pub use storage::{load_ifccad_file, EncodedIfccad, IfccadOpenError, IfccadWriteError};
 /// How repeated IFCX node paths are composed before CAD validation.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]

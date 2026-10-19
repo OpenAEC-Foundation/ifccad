@@ -165,6 +165,16 @@ or publish the initial contract.
 
 ## Later physical encodings and performance
 
+IFCCAD has an [experimental base-CBOR candidate](docs/experiments/ifccad-cbor.md)
+with local fixed numeric field codes, a separate mapping revision, production
+readback and shared document validation. It is a standalone CAD-document encoding,
+not a binary serialization of arbitrary IFCX graphs. Its
+[controlled comparison](docs/benchmarks/ifccad-cbor-results-summary-v1.md) records
+the qualified baseline scope. Optional experimental whole-file Zstd compression
+has configurable levels with default 3; raw CBOR remains the default. These
+experiments select no columns, chunking or final storage recommendation, and
+do not publish a supported version.
+
 Logical semantics remain independent of streams' physical packing, compression
 and chunking. Measure representative workloads and expand controlled recipes
 before using results to justify physical encoding choices. A future physical

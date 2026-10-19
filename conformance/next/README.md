@@ -1,5 +1,11 @@
 # Candidate OCDraw conformance
 
+The [standalone IFCCAD CBOR candidate](ifccad-cbor/README.md) separately tests
+the experimental binary mapping. Its revision and reader are independent of
+the JSON collections below; no numbered collection is changed.
+The [optional Zstd transport](ifccad-cbor-zstd/README.md) has its own independent
+frame fixtures and retains the same inner CBOR contract.
+
 This unpublished candidate develops the standalone OCDraw 0.1.0 contract.
 `ocdraw/cases.json` lists every fixture, its expected validity and, for invalid
 cases, the required diagnostic. The production reader exercises this index.

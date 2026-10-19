@@ -1,0 +1,92 @@
+{
+  "version": 1,
+  "requestedOn": "2026-10-19",
+  "executedUtc": "2026-10-19T11:25:50.435751+00:00",
+  "scope": "foundation CBOR only; external compression size probe; no timing",
+  "input": {
+    "bytes": 383443,
+    "sha256": "391fa55223f87f9821d8782b9ace5553725fe6d17a18aedd6cb4df2b915b7c68",
+    "baselineRun": "cbor-small-20261016-v1",
+    "baselineCase": "practice-foundation",
+    "qualification": "previous production strict-readback qualification; all decompressions reproduce exactly those bytes"
+  },
+  "runtime": {
+    "python": "3.14.7 (tags/v3.14.7:823f032, Aug  5 2026, 10:51:32) [MSC v.1944 64 bit (AMD64)]",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "zstd": "1.5.7",
+    "zlibBuild": "1.3.1.zlib-ng",
+    "zlibRuntime": "1.3.1.zlib-ng",
+    "extensionHashes": {
+      "_zstd.pyd": "33c6eca99470c3eb9d776b617c550ad41b002a668336f062a9ab7be677a7409a",
+      "zlib": "built into Python runtime",
+      "python.exe": "4942b86a6597e5aee0128daa00050ed79bc21f6e709a78eb19cbfeb0c2f39ac9",
+      "python314.dll": "0f9857ffdfe010fe6b99328d58c2e3c7472ce75f336bf9c2ad9bd5bca3bce700"
+    }
+  },
+  "options": {
+    "zstd": {
+      "levels": [
+        3,
+        9,
+        19
+      ],
+      "checksum": true,
+      "contentSize": true,
+      "workers": 0,
+      "dictionary": null
+    },
+    "gzip": {
+      "level": 9,
+      "mtime": 0,
+      "filename": ""
+    }
+  },
+  "probeSha256": "28e5d58e34a204637c43744e4e28e053e21b884b767f1cc50133051e688a67c3",
+  "variants": [
+    {
+      "codec": "gzip",
+      "level": 9,
+      "file": "foundation.level-9.ifccad.cbor.gz",
+      "bytes": 60666,
+      "sha256": "9d9c6c75e4f9210a6dda5425d4ea09d3cda4ea6a4f4bb4e9859a77f5e95c82cc",
+      "decompression": "byte-exact",
+      "decodedSha256": "391fa55223f87f9821d8782b9ace5553725fe6d17a18aedd6cb4df2b915b7c68",
+      "ratioToRaw": 0.15821386751094688
+    },
+    {
+      "codec": "zstd",
+      "level": 3,
+      "file": "foundation.level-3.ifccad.cbor.zst",
+      "bytes": 56782,
+      "sha256": "e497e1cfa4d6a6c55dc4c794563ab7b6bf85228ad734d73e77969bab56d16629",
+      "decompression": "byte-exact",
+      "decodedSha256": "391fa55223f87f9821d8782b9ace5553725fe6d17a18aedd6cb4df2b915b7c68",
+      "ratioToRaw": 0.14808459145166297
+    },
+    {
+      "codec": "zstd",
+      "level": 9,
+      "file": "foundation.level-9.ifccad.cbor.zst",
+      "bytes": 54679,
+      "sha256": "f8c061bdfc2399ac0ed1e3558bd23389cd385884f9d1e1946b4e8434296cd8ec",
+      "decompression": "byte-exact",
+      "decodedSha256": "391fa55223f87f9821d8782b9ace5553725fe6d17a18aedd6cb4df2b915b7c68",
+      "ratioToRaw": 0.14260007354417736
+    },
+    {
+      "codec": "zstd",
+      "level": 19,
+      "file": "foundation.level-19.ifccad.cbor.zst",
+      "bytes": 48238,
+      "sha256": "cfa09a5b877da48005fc7156ef1667a7ac6bfa41e69ca3ccabf5650ffb920396",
+      "decompression": "byte-exact",
+      "decodedSha256": "391fa55223f87f9821d8782b9ace5553725fe6d17a18aedd6cb4df2b915b7c68",
+      "ratioToRaw": 0.12580227048087983
+    }
+  ],
+  "limitations": [
+    "No native compressed IFCCAD implementation",
+    "No new CAD conversion, corpus rerun or speed comparison",
+    "One fixed qualified artifact; no general compression claim"
+  ]
+}

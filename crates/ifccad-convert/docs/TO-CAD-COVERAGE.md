@@ -1,5 +1,9 @@
 # IFCCAD â†’ CadDocument coverage
 
+Standalone CBOR uses the same validated logical document boundary. Its direct
+core mapping changes storage only; the IFCX source audit is not available from
+a binary document. No CAD coverage or loss-policy expansion is implied.
+
 The projection-only `ifccad_document_to_cad_document` routes validate typed
 input before using the shared CAD conversion implementation. They do not inspect
 or encode IFCX bytes. The existing loaded-source routes also assess the complete

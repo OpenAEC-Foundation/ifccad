@@ -1,4 +1,10 @@
 use super::*;
+mod cbor;
+pub use cbor::*;
+#[cfg(feature = "ifccad-cbor-zstd")]
+mod cbor_zstd;
+#[cfg(feature = "ifccad-cbor-zstd")]
+pub use cbor_zstd::*;
 /// A validated CAD projection together with its immutable full source context.
 #[derive(Clone, Debug)]
 pub struct ValidatedIfccad {

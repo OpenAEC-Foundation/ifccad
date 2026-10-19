@@ -1,0 +1,57 @@
+{
+  "transport": "IFCCAD CBOR Zstd experimental 1",
+  "mappingRevision": 2,
+  "generator": "Python 3.14 compression.zstd; libzstd 1.5.7",
+  "cases": [
+    {
+      "file": "valid/empty.ifccad.cbor.zst",
+      "valid": true,
+      "payload": "../ifccad-cbor/valid/empty.ifccad.cbor"
+    },
+    {
+      "file": "valid/signed-zero-level9.ifccad.cbor.zst",
+      "valid": true,
+      "payload": "../ifccad-cbor/valid/line-signed-zero.ifccad.cbor"
+    },
+    {
+      "file": "valid/unknown-content-size.ifccad.cbor.zst",
+      "valid": true,
+      "payload": "../ifccad-cbor/valid/empty.ifccad.cbor"
+    },
+    {
+      "file": "invalid/wrong-magic.ifccad.cbor.zst",
+      "valid": false,
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/no-checksum.ifccad.cbor.zst",
+      "valid": false,
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/truncated.ifccad.cbor.zst",
+      "valid": false,
+      "errorClass": "Decompression"
+    },
+    {
+      "file": "invalid/checksum-corrupt.ifccad.cbor.zst",
+      "valid": false,
+      "errorClass": "Decompression"
+    },
+    {
+      "file": "invalid/concatenated.ifccad.cbor.zst",
+      "valid": false,
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/trailing.ifccad.cbor.zst",
+      "valid": false,
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/future-revision.ifccad.cbor.zst",
+      "valid": false,
+      "errorClass": "Cbor.UnsupportedRevision"
+    }
+  ]
+}

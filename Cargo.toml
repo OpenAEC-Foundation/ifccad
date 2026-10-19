@@ -17,8 +17,11 @@ resolver = "2"
 
 [features]
 default = []
+ifccad-cbor-zstd = ["dep:zstd"]
 
 [dependencies]
+minicbor = { version = "=2.3.0", features = ["std"] }
+zstd = { version = "=0.13.3", default-features = false, optional = true }
 base64 = "0.22"
 fpmath = "=0.1.1"
 num-bigint = "0.4"

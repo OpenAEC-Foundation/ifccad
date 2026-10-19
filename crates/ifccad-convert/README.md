@@ -1,5 +1,12 @@
 # IFCCAD conversion proof
 
+The [standalone CBOR candidate](../../docs/experiments/ifccad-cbor.md) is core
+storage for the same typed CAD document. Use `ifccad_document_to_cad_document`
+with the validated CBOR document; IFCX source-graph audits remain specific to
+the JSON source route. CAD coverage and loss policies are unchanged.
+The optional experimental Zstd transport unwraps to this same validated document;
+it introduces no additional CAD conversion semantics.
+
 Ordinary linear/aligned dimensions have independent IFCCAD styles, full-width
 identities, same-owner relations and `dimension_assessment()` evidence. The CAD
 adapter shares only neutral preparation with OCDraw. Stored definition/text

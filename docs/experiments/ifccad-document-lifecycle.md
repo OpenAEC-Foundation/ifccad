@@ -7,6 +7,11 @@ history. It remains independent of `OcdrawDocument` and opencadcodec.
 
 ## Complete source and CAD projection
 
+The [standalone CBOR candidate](ifccad-cbor.md) encodes the same editable
+document directly, with a validated binary wrapper that has no source graph.
+It preserves supplied vector order and float bits. Original IFCX fragments,
+foreign information and JSON-source auditing remain specific to the route below.
+
 Native [drawing defaults](../drawing-defaults.md) are applied after fragment
 composition. Compact XY line endpoints expand to XYZ, and omitted native
 appearance properties become ByLayer. Source bytes and opaque/authoring presence
@@ -129,7 +134,7 @@ requires its stored boundary to remain in the same Paper owner, including when
 clipping is disabled. Copying a viewport needs a new entity ID and, if it has a
 boundary, an independently identified boundary: sharing one boundary between
 viewports is invalid. Editors must update those references before validation.
-Native encoding canonicalizes frozen-layer sets by numeric ID while preserving
+The JSON encoding canonicalizes frozen-layer sets by numeric ID while preserving
 all other viewport payload semantics and strict whole-attribute composition.
 The [viewport contract](../../schemas/ifccad/experimental-contract-0.1.0.md#paper-viewports)
 and candidate conformance fixtures define the current independent profile.
@@ -157,7 +162,8 @@ Updating the original IFCX graph from an edited CAD projection requires a later
 design covering fragment authorship, deletion/replacement, foreign references,
 shared nodes and unknown content. This implementation adds no partial merge
 function. CAD editing-session identity mapping, collaborative editing and
-additional encodings remain independent follow-ups.
+further encodings remain independent follow-ups. The standalone CBOR candidate
+already described above provides no source-graph writeback either.
 
 ## Evidence
 
