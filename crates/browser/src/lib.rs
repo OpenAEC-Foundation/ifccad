@@ -41,6 +41,11 @@ pub fn export_ifccad(name: &str, bytes: &[u8], format: &str, version: &str) -> S
     viewer::export_ifccad_bytes(name, bytes, format, version).to_string()
 }
 
+#[wasm_bindgen]
+pub fn export_ifccad_binary(name: &str, bytes: &[u8], encoding: &str) -> String {
+    viewer::export_ifccad_binary_bytes(name, bytes, encoding).to_string()
+}
+
 #[cfg(test)]
 mod tests {
     #[test]

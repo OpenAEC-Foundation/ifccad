@@ -34,6 +34,9 @@ jobs:
           targets: wasm32-unknown-unknown
       - uses: Swatinem/rust-cache@v2
         if: steps.browser-cache.outputs.cache-hit != 'true'
+      - name: Install the WebAssembly C compiler for Zstd
+        if: steps.browser-cache.outputs.cache-hit != 'true'
+        run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends clang
       - uses: taiki-e/install-action@v2
         if: steps.browser-cache.outputs.cache-hit != 'true'
         with:

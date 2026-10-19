@@ -89,13 +89,26 @@ audit behavior remains separate. Binary-to-CAD conversion uses
 source-graph audit can be inferred from a binary document.
 
 The example never overwrites a file or guesses a format from its extension.
-Explorer UI integration and new converter convenience entrypoints are deferred.
+The Explorer download menu also offers CBOR and CBOR + Zstd explicitly, marked
+experimental. These use the same production writers and strict readback. Ordinary
+IFCX source download keeps the original bytes. Binary downloads contain the drawing
+projection only, as noted in the menu. The Explorer opens `.cbor` and `.cbor.zst`
+(or `.zst`) through explicit application-level reader selection. It bounds input
+and decompressed bytes to 64 MiB, retains the binary document for conversion and
+labels its generated inspection JSON/nodes as decoded content. This display
+projection is not an original IFCX graph or source audit. DXF/DWG output uses
+typed document conversion directly; JSON download reconstructs an IFCX profile
+file. Same-encoding binary download preserves the original validated bytes.
+New converter convenience entrypoints remain deferred.
 
 ## Optional experimental Zstd
 
-Enable the native Cargo feature `ifccad-cbor-zstd` to use this separate route.
-It is disabled by default and adds no dependency to default core or browser
-builds. Feature-enabled WASM support is outside this experiment.
+Enable the Cargo feature `ifccad-cbor-zstd` to use this separate core route.
+It is disabled by default in the core. The browser adapter explicitly enables
+the feature for experimental downloads, using the existing Zstd implementation
+and its WebAssembly allocator shim. Building that adapter requires a
+WebAssembly-capable C compiler (Clang on CI); no server-side file upload or
+JavaScript reimplementation of the encoding is involved.
 
 ```text
 cargo run --features ifccad-cbor-zstd --example convert_ifccad_cbor -- to-cbor INPUT.ifcx OUTPUT.ifccad.cbor.zst --zstd

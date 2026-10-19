@@ -2,6 +2,7 @@ import {parsePresentationJson} from './presentation-json.mjs';
 import {encodeBase64,decodeBase64} from './browser-client.mjs';
 import {supportsCadVersion,defaultCadVersion} from './cad-formats.mjs';
 import {normalizeTolerance} from './conversion-settings.mjs';
+import {ifccadEncoding} from './ifccad-encoding.mjs';
 function selectedFile(request){
  if(!request||!['cad','drawing','ifccad'].includes(request.kind)||!Array.isArray(request.files)||request.files.length!==1)throw Error('Select one drawing');
  const file=request.files[0];
@@ -9,7 +10,7 @@ function selectedFile(request){
  if(!(file.bytes instanceof ArrayBuffer))throw Error('File bytes are missing');
  if(file.bytes.byteLength>64*1024*1024)throw Error('File size limit exceeded');
  if(request.kind==='cad'&&!/\.(dxf|dwg)$/i.test(file.path))throw Error('Select one DXF or DWG file');
- if(request.kind==='ifccad'&&!/\.ifcx(?:\.json)?$/i.test(file.path)&&!/\.ocdraw(?:\.json)?$/i.test(file.path))throw Error('Select an IFCCAD file');
+ if(request.kind==='ifccad'&&!ifccadEncoding(file.path)&&!/\.ocdraw(?:\.json)?$/i.test(file.path))throw Error('Select an IFCCAD file');
  return {...file,bytes:new Uint8Array(file.bytes)};
 }
 export function processBrowserRequest(request,wasm,onProgress=()=>{}){
@@ -29,19 +30,30 @@ export function processBrowserRequest(request,wasm,onProgress=()=>{}){
   return wasm[name](...args);
  };
  const drawingFormat='ifccad';
+ if(operation?.encoding!==undefined&&(operation.format!==drawingFormat||!['cbor','cbor-zstd'].includes(operation.encoding)))throw Error('Invalid download encoding');
  if(request.drawingFormat!==undefined&&request.drawingFormat!=='ifccad')throw Error('Invalid drawing format');
  if(operation&&(![drawingFormat,'dxf','dwg'].includes(operation.format)||(['dxf','dwg'].includes(operation.format)&&!supportsCadVersion(operation.version??defaultCadVersion))))throw Error('Invalid export selection');
  onProgress(request.kind==='cad'?'converting':'validating');
  const opening=parsePresentationJson(request.kind==='cad'
   ?invoke('convert_cad_to_ifccad',[request.name,/\.dwg$/i.test(file.path)?'dwg':'dxf',file.bytes,new Date().toISOString()])
   :wasm.open_ifccad(request.name,file.bytes));
- if(request.kind!=='cad')opening.nativeSourceText=new TextDecoder().decode(file.bytes);
+ const binary=request.kind!=='cad'&&['cbor','cbor-zstd'].includes(ifccadEncoding(file.path));
+ if(request.kind!=='cad'&&!binary)opening.nativeSourceText=new TextDecoder().decode(file.bytes);
  else if(opening.export?.download?.base64)opening.nativeSourceText=new TextDecoder().decode(decodeBase64(opening.export.download.base64));
  opening.conversionCapabilities=typeof wasm.conversion_capabilities==='function'?parsePresentationJson(wasm.conversion_capabilities()):{ifccad:{adjustableTolerance:false}};
  if(!operation||opening.failure||!opening.validation?.strictAvailable)return opening;
  if(operation.format===drawingFormat){
-  if(request.kind!=='cad')opening.export={format:drawingFormat,download:{format:drawingFormat,fileName:file.path.split('/').at(-1),byteLength:file.bytes.length,base64:encodeBase64(file.bytes)}};
-  return opening;
+  if(operation.encoding){
+   if(typeof wasm.export_ifccad_binary!=='function')throw Error('Binary download is unavailable in this processor');
+   onProgress('exporting');
+   const drawing=request.kind==='cad'?decodeBase64(opening.export.download.base64):file.bytes;
+   const exported=parsePresentationJson(wasm.export_ifccad_binary(request.name,drawing,operation.encoding));
+   return {...opening,export:exported.export,failure:exported.failure};
+  }
+  if(!binary){
+   if(request.kind!=='cad')opening.export={format:drawingFormat,download:{format:drawingFormat,fileName:file.path.split('/').at(-1),byteLength:file.bytes.length,base64:encodeBase64(file.bytes)}};
+   return opening;
+  }
  }
  const drawing=request.kind==='cad'?decodeBase64(opening.export.download.base64):file.bytes;
  onProgress('exporting');

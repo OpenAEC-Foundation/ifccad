@@ -76,5 +76,5 @@ export function createInspection(result,sourceText=''){
  }
  for(const n of nodes.values())n.incoming=[];
  for(const n of nodes.values())for(const edge of n.outgoing)nodes.get(edge.target)?.incoming.push(edge);
- return {format,nodes,roots,nodeRoots,storageRoots,sourceText,valid:result?.validation?.strictAvailable===true};
+ return {binary:result?.source?.representation==='decoded',format,nodes,roots,nodeRoots,storageRoots,sourceText,valid:result?.validation?.strictAvailable===true};
 }

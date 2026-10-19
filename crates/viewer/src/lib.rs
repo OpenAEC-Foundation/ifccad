@@ -1,12 +1,15 @@
 #![recursion_limit = "256"]
+mod binary_download;
 mod cad;
 mod geometry;
 mod hatch_exchange;
 mod ifccad;
+mod ifccad_input;
 mod inspection_dimension_label;
 mod inspection_ifccad_dimension;
 mod options;
 mod selection;
+pub use binary_download::export_ifccad_binary_bytes;
 pub use ifccad::{export_ifccad_bytes, inspect_cad_as_ifccad_bytes, inspect_ifccad_bytes};
 use serde_json::{json, Value};
 use std::path::Path;

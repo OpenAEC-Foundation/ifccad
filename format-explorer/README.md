@@ -3,7 +3,8 @@
 The Explorer inspects IFCCAD and converts DXF/DWG directly through
 `ifccad-convert`. IFCCAD is the only active native format. OCDraw files and
 explicit old selections report `OCDRAW_PARKED`; see [parking](../docs/ocdraw-parking.md).
-Default WASM excludes native Zstd. This migration adds no CBOR interface.
+The download menu includes experimental CBOR and CBOR + Zstd using the
+production writers. The browser explicitly enables Zstd.
 
 ## Using the Explorer
 
@@ -17,7 +18,17 @@ readback links exist; block-definition contents and skipped items have no direct
 Camera, workspace tab and prepared CAD output survive navigation.
 
 Four curated IFCCAD examples cover overview, Text/MText, Hatches and Dimensions.
-Native download retains original IFCX bytes. CAD download follows the shared
+The native download button opens a popup with IFCX / JSON, experimental CBOR
+(`.ifccad.cbor`) and experimental CBOR + Zstd (`.ifccad.cbor.zst`, level 3).
+IFCX / JSON retains original IFCX bytes. Binary downloads encode the validated
+IFCCAD drawing projection; foreign IFCX nodes/fragments are excluded, as noted
+in the menu. Both production writers strictly read back and compare their output.
+Opening `.cbor` and `.cbor.zst` / `.zst` selects the corresponding strict
+production reader. Input and decompressed CBOR are capped at 64 MiB. The
+inspector clearly labels decoded JSON/nodes; these are not original IFCX source
+fragments. Binary-to-CAD output uses typed document conversion without an
+invented IFCX source audit. JSON download reconstructs IFCX; same-encoding binary
+download retains the original validated bytes. CAD download follows the shared
 DXF/DWG and version selection. A native file requires no input conversion;
 output failure retains input validity and native download. Input/output diagnostics,
 numerical evidence, preservation and CAD readback remain separate.
@@ -44,7 +55,8 @@ npm --prefix format-explorer run build
 npm --prefix format-explorer start
 ```
 
-Run these from the repository root. Native code uses the same explicitly selected
+Run these from the repository root. The browser includes the Zstd feature and needs a WebAssembly-capable C compiler
+(e.g. Clang) to build its bundled Zstd dependency. Native code uses the same explicitly selected
 codec base/repair as [the converter](../crates/ifccad-convert/README.md).
 The browser module exports `open_ifccad`, `convert_cad_to_ifccad`,
 `export_ifccad`, option variants and `conversion_capabilities`; the worker defaults
@@ -66,4 +78,4 @@ The pinned Open CAD Studio revision is recorded in `ocs-source.json` and the wor
 cover release packaging, static smoke, rollback and public verification. Smoke uses
 the shipped IFCCAD manifest and examples, including actual CAD readback where
 available; it does not require source files in the deployed package. CI builds
-only IFCCAD plus the active companions and has separate native Zstd checks.
+only IFCCAD plus the active companions and has native and WASM Zstd checks.

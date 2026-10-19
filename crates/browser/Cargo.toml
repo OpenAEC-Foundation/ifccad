@@ -9,7 +9,7 @@ description = "Byte-oriented WebAssembly adapter for IFCCAD"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-viewer = { path = "../viewer" }
+viewer = { path = "../viewer", features = ["ifccad-cbor-zstd"] }
 js-sys = "0.3"
 wasm-bindgen = "0.2"
 

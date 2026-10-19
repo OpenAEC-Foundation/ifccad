@@ -74,7 +74,8 @@ pub fn encode_ifccad_cbor_zstd_document(
     let limits = IfccadCborZstdReadOptions {
         limits: IfccadCborZstdReadLimits {
             max_compressed_bytes: bytes.len() as u64,
-            max_window_log: 31,
+            // Zstd permits a maximum log of 30 on 32-bit targets, including WASM.
+            max_window_log: if usize::BITS == 32 { 30 } else { 31 },
         },
         cbor: IfccadCborReadOptions {
             limits: raw.readback_limits,

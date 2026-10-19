@@ -1,9 +1,6 @@
 use crate::{cad, fail, progress, result};
-use ifccad::{load_ifccad_bytes, IfccadHeader, ValidatedIfccad};
-use ifccad_convert::{
-    cad_document_to_encoded_ifccad, ifccad_source_to_cad_document, IfccadDiagnostic,
-    IfccadTargetMetadata,
-};
+use ifccad::{load_ifccad_bytes, IfccadDocument, IfccadHeader};
+use ifccad_convert::{cad_document_to_encoded_ifccad, IfccadDiagnostic, IfccadTargetMetadata};
 use serde_json::{json, Value};
 use std::path::Path;
 
@@ -14,11 +11,8 @@ fn text_report(report: &ifccad_convert::IfccadTextAssessment) -> Value {
     use ifccad_convert::{IfccadTextGlyphCoverage as G, IfccadTextNumericCoverage as N};
     json!({"entries":report.entries().iter().map(|e|json!({"entityId":e.entity_id.to_string(),"owner":format!("{:?}",e.owner),"numericCoverage":match e.numeric_coverage{N::ActiveTextAnchors=>"activeTextAnchors",N::MTextWcsAnchor=>"mTextWcsAnchor",N::NotTransferred=>"notTransferred"},"glyphCoverage":match e.glyph_coverage{G::Empty=>"empty",G::Unassessed=>"unassessed"}})).collect::<Vec<_>>()})
 }
-fn present(output: &mut Value, drawing: &ValidatedIfccad) {
-    let d = drawing.document();
-    let nodes = drawing.graph().composed_ifcx()["data"]
-        .as_array()
-        .expect("validated graph");
+pub(crate) fn present_document(output: &mut Value, d: &IfccadDocument, graph: &Value) {
+    let nodes = graph["data"].as_array().expect("validated graph");
     let role = |key: &str| {
         nodes
             .iter()
@@ -60,7 +54,7 @@ fn present(output: &mut Value, drawing: &ValidatedIfccad) {
     output["validation"] = json!({"strictAvailable":true,"status":"valid","diagnostics":[]});
     output["presentation"] = json!({"format":"ifccad","drawingId":d.drawing_id,"unit":d.length_unit,"linePatternScale":d.line_pattern_scale,"pointDisplay":nodes.iter().find_map(|n|n["attributes"].get("ifccad::drawing")).and_then(|d|d.get("pointDisplay")),
         "layers":role("ifccad::layer"),"layouts":role("ifccad::layout"),"blockDefinitions":role("ifccad::blockDefinition"),
-        "linePatterns":role("ifccad::linePattern"),"symbolSources":role("ifccad::symbolSource"),"ucsDefinitions":role("ifccad::ucsDefinition"),"modelWindows":role("ifccad::modelWindow"),"hatchEntityCount":role("ifccad::hatch").len(),"hatches":hatches,"hatchFillEvaluation":"unassessed","textStyles":role("ifccad::textStyle"),"textEntityCount":role("ifccad::text").len(),"mTextEntityCount":role("ifccad::mText").len(),"entities":role("ifccad::entity"),"opaqueEntities":role("ifccad::opaqueEntity"),"opaqueEntityCount":role("ifccad::opaqueEntity").len(),"preservationRecords":role("ifccad::preservationRecord"),"preservationSources":d.preservation.as_ref().map(|p|&p.sources),"boundsCompleteness":completeness,"graph":drawing.graph().composed_ifcx()});
+        "linePatterns":role("ifccad::linePattern"),"symbolSources":role("ifccad::symbolSource"),"ucsDefinitions":role("ifccad::ucsDefinition"),"modelWindows":role("ifccad::modelWindow"),"hatchEntityCount":role("ifccad::hatch").len(),"hatches":hatches,"hatchFillEvaluation":"unassessed","textStyles":role("ifccad::textStyle"),"textEntityCount":role("ifccad::text").len(),"mTextEntityCount":role("ifccad::mText").len(),"entities":role("ifccad::entity"),"opaqueEntities":role("ifccad::opaqueEntity"),"opaqueEntityCount":role("ifccad::opaqueEntity").len(),"preservationRecords":role("ifccad::preservationRecord"),"preservationSources":d.preservation.as_ref().map(|p|&p.sources),"boundsCompleteness":completeness,"graph":graph});
     output["presentation"]["dimensions"] = crate::inspection_ifccad_dimension::entities(d);
     output["presentation"]["dimensionStyles"] = crate::inspection_ifccad_dimension::styles(d);
 }
@@ -79,9 +73,16 @@ pub fn inspect_ifccad_bytes(name: &str, bytes: &[u8]) -> Value {
         return output;
     }
 
+    if crate::ifccad_input::encoding(name) != "ifcx" {
+        return crate::ifccad_input::inspect(name, bytes);
+    }
     let mut output = result(Path::new(name), "ifccad");
     match load_ifccad_bytes(bytes, Default::default()) {
-        Ok(drawing) => present(&mut output, &drawing),
+        Ok(drawing) => present_document(
+            &mut output,
+            drawing.document(),
+            drawing.graph().composed_ifcx(),
+        ),
         Err(report) => {
             output["validation"] = json!({"strictAvailable":false,"status":"invalid","diagnostics":report.report().errors.iter().map(|e|json!({"code":"IFCCAD_PROFILE","message":e})).collect::<Vec<_>>()});
             fail(
@@ -169,7 +170,11 @@ pub(crate) fn inspect_cad_as_ifccad_with_options(
     output["conversion"] = json!({"format":"ifccad","preservation":preservation_report(converted.preservation_report()),"diagnostics":diagnostics(converted.diagnostics()),"entityCount":converted.mappings().entities.iter().count(),"options":options.value(),"geometryAssessment":crate::geometry::assessment(converted.geometry_assessment()),"textAssessment":text_report(converted.text_assessment())});
     output["conversion"]["dimensionAssessment"] =
         crate::inspection_ifccad_dimension::report(converted.dimension_assessment());
-    present(&mut output, converted.validated_source());
+    present_document(
+        &mut output,
+        converted.validated_source().document(),
+        converted.validated_source().graph().composed_ifcx(),
+    );
     cad::download(&mut output, name, "ifccad", converted.encoded().bytes());
     output
 }
@@ -194,24 +199,33 @@ pub(crate) fn export_ifccad_with_options(
     if output["validation"]["strictAvailable"] != true {
         return output;
     }
+    let drawing = crate::ifccad_input::load(name, bytes).expect("strict status checked");
     if format == "ifccad" {
-        cad::download(&mut output, name, "ifccad", bytes);
+        if matches!(drawing, crate::ifccad_input::IfccadInput::Binary(_)) {
+            match ifccad::encode_ifccad_document(drawing.document()) {
+                Ok(encoded) => cad::download(
+                    &mut output,
+                    &format!("{}.ifcx", crate::ifccad_input::stem(name)),
+                    "ifccad",
+                    encoded.bytes(),
+                ),
+                Err(error) => fail(&mut output, "exporting", "IFCCAD_JSON_EXPORT_FAILED", error),
+            }
+        } else {
+            cad::download(&mut output, name, "ifccad", bytes);
+        }
         return output;
     }
     if let Err((code, message)) = cad::selection(format, version) {
         fail(&mut output, "exporting", code, message);
         return output;
     }
-    let drawing = load_ifccad_bytes(bytes, Default::default()).expect("strict status checked");
     progress("converting");
-    let converted = match ifccad_source_to_cad_document(
-        &drawing,
-        ifccad_convert::IfccadToCadOptions {
-            loss_policy: options.loss_policy.ifccad(),
-            geometry_tolerance: options.ifccad_tolerance().expect("checked options"),
-            ..Default::default()
-        },
-    ) {
+    let converted = match drawing.to_cad(ifccad_convert::IfccadToCadOptions {
+        loss_policy: options.loss_policy.ifccad(),
+        geometry_tolerance: options.ifccad_tolerance().expect("checked options"),
+        ..Default::default()
+    }) {
         Ok(v) => v,
         Err(error) => {
             fail(&mut output, "converting", "CAD_CONVERSION_FAILED", &error);
@@ -235,11 +249,16 @@ pub(crate) fn export_ifccad_with_options(
         drawing_id: drawing.document().drawing_id,
     };
     let mut readback_geometry = Value::Null;
+    let export_name = if crate::ifccad_input::encoding(name) == "ifcx" {
+        name.to_owned()
+    } else {
+        format!("{}.ifcx", crate::ifccad_input::stem(name))
+    };
     let mut output = cad::export(
         output,
         converted.into_document(),
         cad::CadFileExportRequest {
-            name,
+            name: &export_name,
             format,
             version,
             loss_policy: options.loss_policy,

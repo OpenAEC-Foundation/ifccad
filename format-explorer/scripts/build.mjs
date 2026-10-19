@@ -64,6 +64,6 @@ export async function build({outputRoot=output,ocsRoot=new URL('../ocs-build/',i
    'SOURCE.json':await readFile(new URL('../ocs-source.json',import.meta.url)),
   });
  }else await rm(target,{recursive:true,force:true});
- console.log('Built CAD Format Explorer: '+destination);
+ console.log('Built IFCCAD Format Explorer: '+destination);
 }
 if(process.argv[1]===fileURLToPath(import.meta.url))await build();

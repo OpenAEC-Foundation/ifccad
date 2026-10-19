@@ -5,6 +5,10 @@ edition = "2021"
 license = "MPL-2.0"
 description = "Local application adapter for IFCCAD"
 
+[features]
+default = []
+ifccad-cbor-zstd = ["ifccad/ifccad-cbor-zstd"]
+
 [dependencies]
 serde = { version = "1", features = ["derive"] }
 ifccad = { path = "../.." }

@@ -14,7 +14,8 @@ The core owns construction, shared validation, encoding and file IO and has no C
 runtime dependency. JSON/IFCX and experimental base-CBOR use the same logical
 model. CBOR mapping revision 2 and optional native Zstd transport revision 1
 remain experimental; this migration changes neither their bytes nor semantics.
-The `ifccad-cbor-zstd` feature is optional; the default browser build excludes it.
+The `ifccad-cbor-zstd` core feature is optional. The browser enables it for explicit
+experimental CBOR + Zstd downloads; ordinary IFCX download remains the default choice.
 
 Neutral geometry, color, text, dimension, line-pattern, plot and workspace kernels
 remain in the core. The six `cad-*` companions own CAD preparation, numerical

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {initSync,conversion_capabilities,open_ifccad,convert_cad_to_ifccad,export_ifccad,export_ifccad_with_options,convert_cad_to_ifccad_with_options} from '../wasm-build/browser.js';
+import {initSync,conversion_capabilities,open_ifccad,convert_cad_to_ifccad,export_ifccad,export_ifccad_binary,export_ifccad_with_options,convert_cad_to_ifccad_with_options} from '../wasm-build/browser.js';
 import {processBrowserRequest} from '../src/browser-worker.mjs';
 import {createInspection} from '../src/inspection-model.mjs';
 import {renderInspection} from '../src/inspection-view.mjs';
@@ -8,11 +8,43 @@ import {examples} from '../src/examples.mjs';
 import {hatchValues} from '../src/hatch-view.mjs';
 
 initSync({module:await readFile(new URL('../wasm-build/browser_bg.wasm',import.meta.url))});
-const wasm={conversion_capabilities,open_ifccad,convert_cad_to_ifccad,export_ifccad,export_ifccad_with_options,convert_cad_to_ifccad_with_options};
+const wasm={conversion_capabilities,open_ifccad,convert_cad_to_ifccad,export_ifccad,export_ifccad_binary,export_ifccad_with_options,convert_cad_to_ifccad_with_options};
 
 for(const example of examples){
  const kind='ifccad',name=example.path.split('/').at(-1),bytes=Uint8Array.from(await readFile(new URL('../../'+example.path,import.meta.url))),source={kind,name,files:[{path:name,bytes:bytes.buffer}]};
  const opened=processBrowserRequest(source,wasm);assert.equal(opened.failure,null,name+': '+JSON.stringify(opened.failure));assert.equal(opened.validation.strictAvailable,true);
+ for(const encoding of ['cbor','cbor-zstd']){
+  const exported=processBrowserRequest({...source,export:{format:'ifccad',encoding}},wasm);
+  assert.equal(exported.failure,null,name+': '+JSON.stringify(exported.failure));
+  const file=exported.export.download,output=Buffer.from(file.base64,'base64');
+  assert.equal(output.length,file.byteLength);
+  assert.ok(file.fileName.endsWith(encoding==='cbor'?'.ifccad.cbor':'.ifccad.cbor.zst'));
+  if(encoding==='cbor-zstd'){assert.deepEqual([...output.subarray(0,4)],[0x28,0xb5,0x2f,0xfd]);assert.equal(output[4]&4,4,'transport requires checksum');}
+  else assert.ok(output.includes(Buffer.from('IFCCAD-CBOR')));
+  const binary={kind:'ifccad',name:file.fileName,files:[{path:file.fileName,bytes:Uint8Array.from(output).buffer}]};
+  const reopened=processBrowserRequest(binary,wasm);
+  assert.equal(reopened.failure,null,JSON.stringify(reopened.failure));assert.equal(reopened.validation.strictAvailable,true);
+  assert.equal(reopened.source.encoding,encoding);assert.equal(reopened.source.representation,'decoded');
+  assert.equal(reopened.presentation.drawingId,opened.presentation.drawingId);
+  // JSON defaults, XY/XYZ spelling and foreign IFCX attributes are source syntax.
+  // Compare the typed assessments and identities here; native tests also compare
+  // the entire validated documents after binary and reconstructed JSON readback.
+  assert.deepEqual(reopened.presentation.entities.map(node=>node.path),opened.presentation.entities.map(node=>node.path));
+  for(const key of ['unit','linePatternScale','boundsCompleteness','dimensions','dimensionStyles','hatchEntityCount','textEntityCount','mTextEntityCount','opaqueEntityCount'])assert.deepEqual(reopened.presentation[key],opened.presentation[key],key);
+  const inspection=createInspection(reopened,reopened.nativeSourceText);assert.equal(inspection.binary,true);
+  const drawing=Array.from(inspection.nodes.values()).find(node=>node.type==='drawing');
+  const rendered=renderInspection(inspection,{language:'nl',selection:drawing.key,inspector:'source',expanded:new Set(),fieldExpanded:new Set(),fieldCollapsed:new Set()});
+  assert.match(rendered.details,/Gedecodeerde knoop/);assert.doesNotMatch(rendered.details,/>Fragment \d/);
+  for(const target of ['ifccad','dxf','dwg']){
+   const saved=processBrowserRequest({...binary,export:{format:target,version:'AC1032'}},wasm);
+   assert.equal(saved.failure,null,JSON.stringify(saved.failure));
+   if(target==='ifccad'){
+    const json=Buffer.from(saved.export.download.base64,'base64');
+    const read=processBrowserRequest({kind:'ifccad',name:saved.export.download.fileName,files:[{path:saved.export.download.fileName,bytes:Uint8Array.from(json).buffer}]},wasm);
+    assert.equal(read.failure,null);assert.deepEqual(read.presentation.entities,reopened.presentation.entities);
+   }
+  }
+ }
  const model=createInspection(opened,new TextDecoder().decode(bytes)),nodes=Array.from(model.nodes.values());
  if(example.name==='Drawing overview'){
   assert.ok(nodes.some(node=>node.type==='viewport'),name+' retains Paper viewports');
