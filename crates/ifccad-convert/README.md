@@ -280,10 +280,38 @@ See the [2026-10-07 dependency audit](../../docs/geometry/opencadcodec-update-20
 
 Native Paper names use full Unicode case folding; target CAD lookup additionally
 rejects uppercase collisions before allocation. Source tabs must be distinct and
-nonnegative, with Model at zero. Gaps normalize to contiguous Paper tabs with a
+nonnegative, with Model at zero. The sole exception is one Paper layout sharing
+zero with Model: its relative order is unique and becomes Paper tab one.
+Duplicate tabs across multiple Paper layouts remain structural errors.
+Gaps normalize to contiguous Paper tabs with a
 Recovery diagnostic, preserving relative order. Native IDs and watermarks are
 independent of tab order. Only the fully default initial Layout1 scaffold is
 excluded; additional empty sheets remain authored.
+
+Import resolves layout roles from the named root `ACAD_LAYOUT` membership.
+A stale header cache may point at unrelated metadata; a competing layout
+dictionary or root role remains an error. Null dictionary/Layout owners are
+inferred only from one exact named membership, with a located `Recovery`;
+non-null conflicts, duplicate entries and multiple parents are rejected.
+The source `CadDocument` is unchanged.
+
+The pinned DXF reader can leave a Model-only scaffold with an absent root cache.
+Import completes it only when the entire object graph consists of one default
+empty root and one default Model dictionary/Layout pair, with consistent Model
+block links and the dictionary owner equal to that absent cache. Derived extents
+are allowed. Authored settings, extra objects, multiple roots or existing cache
+targets prevent this recovery. This is a bounded structural inference, not
+general reconstruction of missing authored objects.
+
+Missing targets in unsupported metadata dictionaries produce located, rejectable
+loss with the entry name and target handle; named layout dictionary targets
+remain essential. An absent Model VPORT selection is also rejectable loss,
+independent of model geometry and separately assessed VPORT settings. Wrong-kind
+Model targets and missing/foreign Paper VIEWPORT targets remain structural errors.
+Fontless ordinary text styles are omitted with loss and no substitute font;
+dependent dimension styles and text entities follow the existing omission policy.
+Invalid style metrics and missing entity layers remain fatal under both policies;
+missing-layer errors identify the entity handle, kind and requested layer.
 
 CAD physical dimensions, margins and offsets are millimetres independently of plot
 unit selection. Both layouts and valid media survive when unsupported complete

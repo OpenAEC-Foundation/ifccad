@@ -35,6 +35,8 @@ pub fn cad_document_to_ifccad_document(
     metadata: IfccadTargetMetadata,
     options: CadToIfccadOptions,
 ) -> Result<CadToIfccadDocumentOutcome, IfccadConversionError> {
+    let (prepared, mut issues) = crate::source::scaffold::prepare(source);
+    let source = prepared.as_ref();
     let mut preservation = crate::preservation::Capture {
         enabled: options.preservation == crate::IfccadPreservationCapture::SupportedTyped,
         ..Default::default()
@@ -57,7 +59,6 @@ pub fn cad_document_to_ifccad_document(
             }
         }
     }
-    let mut issues = Vec::new();
     let mut ids = IfccadIdCounters::default();
     let mut mappings = IfccadMappings::default();
     let text_styles =
