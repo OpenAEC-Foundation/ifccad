@@ -287,6 +287,9 @@ fn dwg_model_vport_reference_survives_reader_and_strict_native_readback() {
 fn missing_and_wrong_kind_viewport_references_remain_fatal() {
     for paper in [false, true] {
         for case in 0..3 {
+            if !paper && case == 0 {
+                continue; // Missing Model selection is diagnosed separately below.
+            }
             let mut cad = sample();
             if paper {
                 cad.add_layout("Sheet").unwrap();
@@ -310,6 +313,21 @@ fn missing_and_wrong_kind_viewport_references_remain_fatal() {
             assert_invalid(&cad);
         }
     }
+}
+#[test]
+fn absent_model_selection_is_loss_but_does_not_discard_model_geometry() {
+    let mut cad = sample();
+    layout_mut(&mut cad, "Model").viewport = Handle::new(99999);
+    let result = encoded(&cad, IfccadLossPolicy::Allow).unwrap();
+    assert_eq!(result.validated_source().document().model.entities.len(), 3);
+    assert!(result
+        .diagnostics()
+        .iter()
+        .any(|d| d.code == "model-viewport-selection" && d.is_semantic_loss()));
+    assert!(matches!(
+        encoded(&cad, IfccadLossPolicy::Reject),
+        Err(IfccadConversionError::Unsupported(_))
+    ));
 }
 #[test]
 fn paper_viewport_reference_requires_the_same_paper_owner() {

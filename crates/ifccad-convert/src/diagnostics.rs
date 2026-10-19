@@ -5,7 +5,7 @@ use ocdraw::ifccad::{IfccadEncodeError, IfccadIdAllocationError, IfccadReadError
 pub enum IfccadDiagnosticAction {
     Omitted,
     Modified,
-    /// A uniquely established structural cache repair, without semantic loss.
+    /// A uniquely established structural recovery, without semantic loss.
     Recovery,
     /// Certified geometric rounding within the requested hard limit.
     RoundedWithinTolerance,

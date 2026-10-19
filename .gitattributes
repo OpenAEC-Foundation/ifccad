@@ -4,3 +4,8 @@ schemas/**/*.json text eol=lf
 conformance/**/*.json text eol=lf
 format-explorer/examples/**/*.json text eol=lf
 conformance/**/blobs/* binary
+conformance/**/*.cbor binary
+conformance/**/*.zst binary
+
+# Historical result reports record SHA-256 over these exact JSON bytes.
+benchmarks/ifccad-cbor/*.json text eol=lf

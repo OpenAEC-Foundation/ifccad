@@ -142,11 +142,22 @@ follow-up work. Retain designs and plans still needed by active or upcoming work
   unclassified material rather than indefinitely retaining it wholesale; if its
   value or ownership remains uncertain, preserve that limited material and
   report the uncertainty without retaining the entire completed worktree.
-- Run `pwsh -NoProfile -File scripts/cleanup_local.ps1` after integration to audit
-  all worktrees and caches. Explicitly select the completed task with `-Apply
+- Run `pwsh -NoProfile -File scripts/cleanup_local.ps1` at task resumption and
+  after integration to audit IFCCAD and separate codec worktrees/dependency
+  checkouts. Use `-Sizes` at task retirement to account for cache and other
+  target content; sizes are informational, with no hard budgets or build stops.
+  Explicitly select the completed task with `-Apply
   -RemoveWorktree <name>` after relocating local material; the script must not
   force deletion of changes or unknown ignored content. Do not clean caches in
-  other active worktrees. If cleanup remains blocked, report the exact blocker,
+  other active worktrees. `-CleanBuildCache` selects only main by default; select
+  another checkout explicitly with `-CacheCheckout <name-or-key>`. After task
+  retirement, also account for its main/dependency caches: clean those no longer
+  needed, or record the concrete ongoing task that still needs their warm cache.
+  Apply the same completion cleanup to codec tasks after integration into their
+  own main line; never compare their commits against IFCCAD main. Primary codec
+  repositories need separate review before removal because they can own shared
+  Git metadata or selected dependencies. See `docs/local-maintenance.md`.
+  If cleanup remains blocked, report the exact blocker,
   last commit date and preserved-material location, and resolve recoverable file
   blockers rather than silently retaining the entire worktree.
 - Keep work in one task by default. Do not delegate to subagents unless the

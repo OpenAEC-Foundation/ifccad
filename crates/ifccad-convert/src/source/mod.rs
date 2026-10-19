@@ -1,5 +1,6 @@
 pub(crate) mod entities;
 pub(crate) mod layouts;
+pub(crate) mod scaffold;
 pub(crate) mod workspace;
 
 use crate::diagnostics::diagnostic;
@@ -195,7 +196,16 @@ pub(crate) fn inspect(
     let mut layout_tabs = BTreeSet::new();
     let mut layout_names = BTreeSet::new();
     let mut paper_sources = Vec::new();
-    for object in doc.objects.values() {
+    let single_zero_paper = doc
+        .objects
+        .values()
+        .filter_map(|o| match o {
+            ObjectType::Layout(l) if l.block_record != model.handle => Some(l),
+            _ => None,
+        })
+        .collect::<Vec<_>>();
+    let single_zero_paper = single_zero_paper.len() == 1 && single_zero_paper[0].tab_order == 0;
+    for (object_handle, object) in &doc.objects {
         if let ObjectType::Layout(l) = object {
             let record = doc
                 .block_records
@@ -211,7 +221,8 @@ pub(crate) fn inspect(
                 return Err(invalid("each layout needs a unique Model/Paper block"));
             }
             if l.tab_order < 0
-                || !layout_tabs.insert(l.tab_order)
+                || (!(single_zero_paper && record.is_paper_space() && l.tab_order == 0)
+                    && !layout_tabs.insert(l.tab_order))
                 || (record.is_model_space() && l.tab_order != 0)
             {
                 return Err(invalid("ambiguous or invalid layout tab order"));
@@ -219,8 +230,14 @@ pub(crate) fn inspect(
             if !layout_names.insert(l.name.to_uppercase()) {
                 return Err(invalid("ambiguous duplicate layout name"));
             }
-            if !matches!(doc.objects.get(&layout_dictionary),Some(ObjectType::Dictionary(d)) if l.owner==d.handle && d.entries.iter().filter(|(name,h)| name==&l.name && *h==l.handle).count()==1)
-            {
+            if !layouts::owner(
+                doc,
+                l.handle,
+                l.owner,
+                layout_dictionary,
+                &l.name,
+                &mut recoveries,
+            ) {
                 return Err(invalid(
                     "layout dictionary membership or ownership disagrees",
                 ));
@@ -236,9 +253,20 @@ pub(crate) fn inspect(
             _ => None,
         };
         if let Some(entries) = entries {
-            for (_, h) in entries {
+            for (name, h) in entries {
                 if h.is_null() || doc.semantic_inventory_v1().resolve(*h).is_none() {
-                    return Err(invalid("dictionary references missing content"));
+                    if matches!(object, ObjectType::Dictionary(d) if d.handle == layout_dictionary)
+                    {
+                        return Err(invalid("layout dictionary references missing content"));
+                    }
+                    issues.push(diagnostic(
+                        "dictionary-entry-missing",
+                        format!("object/{object_handle}.entries/{name}"),
+                        format!(
+                            "unsupported dictionary entry target {h} ({}) is absent; entry omitted",
+                            h.value()
+                        ),
+                    ));
                 }
             }
         }
@@ -272,7 +300,12 @@ pub(crate) fn inspect(
             if doc.layers.get(&e.common().layer).is_none()
                 && !(preserve_splines && matches!(e, EntityType::Spline(_)))
             {
-                return Err(invalid("entity references missing layer"));
+                return Err(invalid(&format!(
+                    "entity/{} ({}) references missing layer {:?}",
+                    e.common().handle,
+                    e.as_entity().entity_type(),
+                    e.common().layer
+                )));
             }
             if let Some(handle) = e.common().layer_handle.filter(|h| !h.is_null()) {
                 let layer = match doc.layers.iter().find(|layer| layer.handle == handle) {
@@ -393,7 +426,11 @@ pub(crate) fn inspect(
             let mut recovery = diagnostic(
                 "layout-tabs-normalized",
                 format!("layout/{}.tabOrder", layout.name),
-                "source tab gaps normalized without changing relative order",
+                if layout.tab_order == 0 {
+                    "single Paper layout ordered after Model despite zero source tab; relative Paper order is unique"
+                } else {
+                    "source tab gaps normalized without changing relative order"
+                },
             );
             recovery.action = crate::IfccadDiagnosticAction::Recovery;
             recoveries.push(recovery);
@@ -969,6 +1006,10 @@ fn scaffold_object(
             let mut a = a.clone();
             let mut b = b.clone();
             if h == layout_dictionary {
+                // Inspection already established the unique root membership.
+                if a.owner.is_null() {
+                    a.owner = doc.header.named_objects_dict_handle;
+                }
                 a.entries.retain(|(name,h)|!matches!(doc.objects.get(h),Some(ObjectType::Layout(l)) if l.name==*name));
                 b.entries.retain(|(_,h)|matches!(base.objects.get(h),Some(o) if !matches!(o,ObjectType::Layout(_))));
             }

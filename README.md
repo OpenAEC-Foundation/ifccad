@@ -274,6 +274,12 @@ earlier experiment's context.
 
 ## Local maintenance
 
-Run `pwsh -NoProfile -File scripts/cleanup_local.ps1` to audit local worktrees
-and build caches. Removal requires an explicitly selected, unused worktree;
-the script retains local changes and unfamiliar files for review.
+Run `pwsh -NoProfile -File scripts/cleanup_local.ps1 -Sizes` to audit local
+worktrees, separate codec repositories and their build caches. Sizes are
+informational: there are no storage quotas or build limits. Cleanup follows
+task completion, with active work and measurement evidence preserved.
+
+Removal requires an explicitly selected, completed and unused worktree. Cache
+cleanup defaults to main only; other checkouts must be selected individually.
+See [local maintenance](docs/local-maintenance.md) for the completion checklist,
+commands and protection rules.

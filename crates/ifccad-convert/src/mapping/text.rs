@@ -66,6 +66,14 @@ pub(crate) fn from_styles(
                 "duplicate CAD text style lookup name".into(),
             ));
         }
+        if s.font_file.is_empty() && s.true_type_font.is_empty() {
+            skipped(
+                &loc,
+                "source style has no font family or CAD font name; no substitute font assigned",
+                issues,
+            );
+            continue;
+        }
         match cad_text::import_text_style(s) {
             Ok(p) => {
                 let id = ids.allocate_text_style_id()?;

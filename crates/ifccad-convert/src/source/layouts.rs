@@ -4,6 +4,45 @@ use crate::{IfccadConversionError as Error, IfccadDiagnostic};
 use opencadcodec::objects::{Layout, ObjectType};
 use opencadcodec::{CadDocument, EntityType, Handle};
 
+/// Missing owners are recoverable only from one exact dictionary membership.
+/// A non-null conflict, duplicate entry or second parent is never repaired.
+pub(crate) fn owner(
+    doc: &CadDocument,
+    handle: Handle,
+    actual: Handle,
+    expected: Handle,
+    name: &str,
+    recoveries: &mut Vec<IfccadDiagnostic>,
+) -> bool {
+    let memberships = doc
+        .objects
+        .iter()
+        .flat_map(|(parent, object)| {
+            let entries = match object {
+                ObjectType::Dictionary(d) => Some(&d.entries),
+                ObjectType::DictionaryWithDefault(d) => Some(&d.entries),
+                _ => None,
+            };
+            entries
+                .into_iter()
+                .flatten()
+                .filter(move |(_, h)| *h == handle)
+                .map(move |(key, _)| (*parent, key.as_str()))
+        })
+        .collect::<Vec<_>>();
+    if memberships != [(expected, name)] || (!actual.is_null() && actual != expected) {
+        return false;
+    }
+    if actual.is_null() {
+        recoveries.push(diagnostic(
+            "layout-owner-recovered",
+            format!("object/{handle}.owner"),
+            format!("unique dictionary {expected} entry {name:?} establishes missing owner"),
+        ));
+    }
+    true
+}
+
 /// A model-only CAD document still needs the codec's reserved primary Paper
 /// record. It is bookkeeping only when no layout, content or authored state
 /// depends on it. Structural markers remain checked by the ordinary inspection.
@@ -61,16 +100,27 @@ pub(crate) fn dictionary(
     let Some(ObjectType::Dictionary(dictionary)) = doc.objects.get(handle) else {
         return Err(invalid("named ACAD_LAYOUT target missing or wrong type"));
     };
-    if dictionary.handle != *handle || dictionary.owner != root_handle {
+    if dictionary.handle != *handle
+        || !owner(
+            doc,
+            *handle,
+            dictionary.owner,
+            root_handle,
+            "ACAD_LAYOUT",
+            recoveries,
+        )
+    {
         return Err(invalid(
             "named ACAD_LAYOUT dictionary identity or ownership disagrees",
         ));
     }
     if doc.header.acad_layout_dict_handle != *handle {
-        if matches!(
-            doc.objects.get(&doc.header.acad_layout_dict_handle),
-            Some(ObjectType::Dictionary(_))
-        ) {
+        if doc.header.acad_layout_dict_handle == root_handle
+            || matches!(
+                doc.objects.get(&doc.header.acad_layout_dict_handle),
+                Some(ObjectType::Dictionary(d)) if d.entries.iter().any(|(name,h)| name == "ACAD_LAYOUT" || matches!(doc.objects.get(h), Some(ObjectType::Layout(_))))
+            )
+        {
             return Err(invalid(
                 "layout dictionary cache points to a conflicting dictionary",
             ));
@@ -101,7 +151,7 @@ pub(crate) fn viewports(
         } else {
             matches!(doc.get_entity(*handle), Some(EntityType::Viewport(v)) if v.common.owner_handle == layout.block_record)
         };
-        if !valid {
+        if !valid && !(model && doc.semantic_inventory_v1().resolve(*handle).is_none()) {
             return Err(Error::InvalidStructure(if model {
                 "Model layout references missing or wrong-kind VPORT record".into()
             } else {
@@ -115,10 +165,20 @@ pub(crate) fn viewports(
             ("viewports", layout.viewports.iter().any(|h| !h.is_null())),
         ] {
             if present {
+                let handles = if field == "viewport" {
+                    std::slice::from_ref(&layout.viewport)
+                } else {
+                    &layout.viewports
+                };
+                let missing = handles
+                    .iter()
+                    .filter(|h| !h.is_null() && doc.semantic_inventory_v1().resolve(**h).is_none())
+                    .map(ToString::to_string)
+                    .collect::<Vec<_>>();
                 issues.push(diagnostic(
                     "model-viewport-selection",
                     format!("layout/{}.{field}", layout.name),
-                    "Model VPORT selection is outside the supported drawing projection; VPORT settings are assessed separately",
+                    format!("Model VPORT selection is outside the supported drawing projection; VPORT settings are assessed separately; absent selection targets: {}", missing.join(", ")),
                 ));
             }
         }
