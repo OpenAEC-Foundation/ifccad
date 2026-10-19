@@ -172,15 +172,35 @@ fn workspace_values_survive_dxf_and_ac1032_dwg() {
 
 #[test]
 fn positive_viewport_stack_rank_is_not_a_current_identity() {
-    let text = std::str::from_utf8(include_bytes!("fixtures/workspace-reference.dxf")).unwrap();
-    let first = dxf(text.as_bytes());
-    let third = dxf(text.replace("68\n1\n69", "68\n3\n69").as_bytes());
-    let viewport = |d: &CadDocument| match d.get_entity(Handle::new(0x41)).unwrap() {
-        EntityType::Viewport(v) => serde_json::to_value(v).unwrap(),
-        _ => panic!("viewport"),
-    };
-    assert_eq!(viewport(&first), viewport(&third));
+    let text = std::str::from_utf8(include_bytes!("fixtures/workspace-reference.dxf"))
+        .unwrap()
+        .replace("\r\n", "\n");
+    assert_eq!(text.matches("68\n1\n69").count(), 2);
+    let changed = text.replace("68\n1\n69", "68\n3\n69");
+    assert_ne!(text, changed);
     assert!(!text.contains("$CVPORT"));
+    for newline in ["\n", "\r\n"] {
+        let first = dxf(text.replace('\n', newline).as_bytes());
+        let third = dxf(changed.replace('\n', newline).as_bytes());
+        let viewport = |d: &CadDocument| match d.get_entity(Handle::new(0x41)).unwrap() {
+            EntityType::Viewport(v) => serde_json::to_value(v).unwrap(),
+            _ => panic!("viewport"),
+        };
+        let mut first = viewport(&first);
+        let mut third = viewport(&third);
+        assert_eq!(first["id"], 7);
+        assert_eq!(third["id"], 7);
+        // Group 68 retains stack metadata independently of the group 69 identity.
+        assert_eq!(first["stacking"], 1);
+        assert_eq!(third["stacking"], 3);
+        assert_eq!(first["dxf_status"], 1);
+        assert_eq!(third["dxf_status"], 3);
+        for field in ["stacking", "dxf_status"] {
+            first.as_object_mut().unwrap().remove(field);
+            third.as_object_mut().unwrap().remove(field);
+        }
+        assert_eq!(first, third, "all other viewport data, newline={newline:?}");
+    }
 }
 
 #[test]
