@@ -1,39 +1,23 @@
 # Shared geometry and conversion accuracy
 
-The independent OCDraw and IFCCAD contracts use `ocdraw::geometry_kernel` for primitive
-values, coordinate frames, length-unit tokens, intrinsic geometric validation,
-conservative bounds and analytic Paper clip containment. A borrowed
-`GeometryRef` covers points, lines, circles, signed arcs, full/partial ellipses,
-straight or bulged planar paths, and straight spatial paths. It carries no IDs,
-ownership, appearance, schema, codec packing or polyline pattern-generation state.
-Each model adapts its own records and retains its own reference validation.
-Existing public geometry-type imports under `ocdraw::ocdraw` remain reexports.
+The active IFCCAD core uses `ifccad::geometry_kernel` for primitive values,
+coordinate frames, length-unit tokens, intrinsic validation, conservative bounds
+and analytic Paper clip containment. `GeometryRef` is borrowed and carries no
+identity, ownership, appearance, schema or physical packing. The core has no CAD
+runtime dependency. `ifccad-convert` adapts native records and owns references.
 
-The core has no CAD-runtime dependency. The workspace `cad-geometry-convert` companion
-owns common CAD-plane preparation, exact/rational and interval calculations,
-paired primitive/curve evaluation, unit resolution, and nested block occurrence
-assessment. Both converters depend on it directly; neither converter depends
-on the other. Coverage inventories, losses, IDs and route errors remain separate.
-Both converters use the shared CAD unit-token registry and code order. IFCCAD's
-local unit-code helper adapts its string-valued units to that registry.
-OCDraw's typed spline preservation remains separate from native primitive proof:
-retained spline sources and their occurrences are registered as unassessed.
-The report's `is_complete()` remains false for those sources; primitive status
-and residuals never certify the preserved spline's geometry.
+`cad-geometry-convert` owns CAD-plane preparation, exact/rational and interval
+calculations, unit resolution and paired primitive/nested occurrence evidence.
+IFCCAD conversion directions share these kernels and retain separate directional
+coverage, errors and model ownership. Typed spline preservation remains outside
+native primitive proof: preserved sources and occurrences are unassessed and keep
+`is_complete()` false. Primitive residuals do not certify opaque geometry.
 
-Both converter crates use `from_cad/` and `to_cad/` for direction-specific
-orchestration and construction, `mapping/` for format adapters, and `source/`
-for CAD input inspection. `mapping/geometry.rs` translates each format's native
-records to and from shared geometry. Source inspection calls the shared CAD
-geometry helpers directly rather than going through a local forwarding module.
-Format-specific `geometry_context.rs` and `geometry_assessment.rs` remain at each
-converter's root. Matching folder responsibilities do not imply matching format
-coverage or a dependency between converters.
-
-Both converters wrap the shared `ExchangeState` with format-specific owner/domain
-contexts. Model and definition-local assessment use the drawing unit; Paper uses
-its layout's fixed plot mapping, without an independently authored coordinate unit.
-See [layout output](../layout-output.md) for medium, scale and migration rules.
+The converter keeps `from_cad`, `to_cad`, `mapping` and `source` responsibilities.
+Model and definition-local assessment use the drawing unit; Paper uses its fixed
+plot mapping. See [layout output](../layout-output.md).
+OCDraw and its former reexports are parked; the frozen checkpoint retains the
+old kernels. Active code must not depend on that reference archive.
 
 ## Accuracy policy
 

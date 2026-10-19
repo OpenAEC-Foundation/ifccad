@@ -1,5 +1,5 @@
 //! Explicit CAD-projection conversion; original foreign IFCX nodes are not copied.
-use ocdraw::ifccad::*;
+use ifccad::*;
 use std::ffi::OsString;
 
 fn transport_options(

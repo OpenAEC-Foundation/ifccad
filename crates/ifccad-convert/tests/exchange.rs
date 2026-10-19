@@ -16,7 +16,7 @@ fn exchange(c: &CadDocument, dwg: bool) -> CadDocument {
             .unwrap()
     }
 }
-fn roundtrip(d: &ocdraw::ifccad::IfccadDocument, dwg: bool) {
+fn roundtrip(d: &ifccad::IfccadDocument, dwg: bool) {
     let first = to_cad(&validated(d)).unwrap();
     let file = exchange(first.document(), dwg);
     let expected = from_cad(first.document(), metadata()).unwrap();
@@ -63,7 +63,7 @@ fn dwg_nested_blocks_with_nonzero_base() {
 
 #[test]
 fn dxf_degree_radian_rounding_is_an_external_codec_limit() {
-    use ocdraw::ifccad::IfccadEntityKind;
+    use ifccad::IfccadEntityKind;
     let mut d = nested([0.; 3]);
     let source_rotation = 1.570796326794893_f64;
     let IfccadEntityKind::BlockInstance { transform, .. } =
@@ -99,8 +99,8 @@ fn dxf_degree_radian_rounding_is_an_external_codec_limit() {
     assert_eq!(transform.rotation.to_bits(), source_rotation.to_bits() + 1);
 }
 
-fn semantic(d: &ocdraw::ifccad::IfccadDocument) -> serde_json::Value {
-    use ocdraw::ifccad::*;
+fn semantic(d: &ifccad::IfccadDocument) -> serde_json::Value {
+    use ifccad::*;
     let pattern_name = |id: IfccadLinePatternId| {
         d.line_patterns
             .iter()

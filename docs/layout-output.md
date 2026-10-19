@@ -1,5 +1,9 @@
 # Layout media and effective plot settings
 
+IFCCAD is the active track. OCDraw descriptions below retain historical context;
+its implementation and fixtures are parked. See [parking](ocdraw-parking.md).
+Only IFCCAD code, schemas and current converter coverage define active behavior.
+
 OCDraw and IFCCAD keep independent documents, schemas and codecs. Both use
 ID-free values and predicates from `ocdraw::plot_kernel` for layout output.
 The provisional 0.1.0 revision introduces a layout medium separate from complete
@@ -111,7 +115,7 @@ Paper evidence stores a mapping rather than a coordinate-unit label. Browser
 `coordinateMeaning` reports exact physical factors as rational decimal strings;
 uint64 identities remain decimal strings. Native opening remains independent of CAD.
 
-See the separate [OCDraw](../crates/ocdraw-convert/docs/TO-CAD-COVERAGE.md) and
+See the separate [OCDraw](../legacy/ocdraw/crates/ocdraw-convert/docs/TO-CAD-COVERAGE.md) and
 [IFCCAD](../crates/ifccad-convert/docs/TO-CAD-COVERAGE.md) coverage contracts and
 [codec qualification fixture](../crates/cad-geometry-convert/tests/fixtures/layout-plot-PROVENANCE.md).
 

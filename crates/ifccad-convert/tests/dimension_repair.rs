@@ -1,8 +1,8 @@
 mod common;
 #[path = "../../../tests/support/cad_dimension_repair.rs"]
 mod repair;
+use ifccad::{dimension::*, *};
 use ifccad_convert::*;
-use ocdraw::{dimension::*, ifccad::*};
 use opencadcodec::{DwgReader, DwgWriter, DxfReader, DxfWriter, EntityType};
 use std::io::Cursor;
 

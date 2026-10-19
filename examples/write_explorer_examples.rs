@@ -1,5 +1,5 @@
 //! Generate the explorer's representative native drawings and strict-read them.
-use ocdraw::ocdraw::*;
+use ifccad::{geometry_kernel::*, workspace_kernel::*};
 use serde_json::{json, Value};
 use std::{error::Error, path::Path};
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
@@ -10,221 +10,6 @@ mod line_patterns;
 #[path = "support/explorer_overview.rs"]
 mod overview;
 
-fn ocdraw_overview() -> Result<OcdrawDocument> {
-    let mut b = OcdrawBuilder::new(OcdrawBuildOptions::new("explorer-ocdraw-overview", "mm"))?;
-    let solid = b.ensure_continuous_line_pattern()?;
-    let dash = b.add_line_pattern(LinePatternDefinition {
-        name: "Axis".into(),
-        description: Some("Long dash and dot".into()),
-        pattern: vec![6., -2., 0., -2.]
-            .into_iter()
-            .map(ocdraw::line_pattern::LinePatternElement::simple)
-            .collect(),
-    })?;
-    b.add_line_pattern(LinePatternDefinition {
-        name: "Unused reference".into(),
-        description: Some("An unused definition stays in the document".into()),
-        pattern: vec![],
-    })?;
-    let layer = b.add_layer(LayerDefinition::new(
-        "Geometry",
-        RgbColor::new(210, 119, 6),
-        solid,
-    ))?;
-    b.add_layer(LayerDefinition::new(
-        "Construction",
-        RgbColor::new(90, 130, 160),
-        dash,
-    ))?;
-    let inner = b.add_block_definition(BlockDefinition::new("Marker"))?;
-    let outer = b.add_block_definition(BlockDefinition::new("Repeated markers"))?;
-    let frame = |x, y, z| {
-        CoordinateFrame3::try_new(
-            Point3::new(x, y, z),
-            Vector3::new(1., 0., 0.),
-            Vector3::new(0., 1., 0.),
-        )
-    };
-    b.add_line(LineDefinition::new(layer, [0., 0., 0.], [100., 0., 0.]))?;
-    let geometries = vec![
-        DrawingGeometry::Point {
-            placement: frame(10., 20., 0.)?,
-        },
-        DrawingGeometry::Circle {
-            placement: frame(30., 30., 0.)?,
-            radius: 10.,
-        },
-        DrawingGeometry::Arc {
-            placement: frame(65., 30., 0.)?,
-            radius: 12.,
-            start_parameter: 0.25,
-            sweep_parameter: 2.5,
-        },
-        DrawingGeometry::Ellipse {
-            placement: frame(100., 30., 0.)?,
-            semi_major_radius: 16.,
-            semi_minor_radius: 7.,
-            arc: None,
-        },
-        DrawingGeometry::Ellipse {
-            placement: frame(140., 30., 0.)?,
-            semi_major_radius: 16.,
-            semi_minor_radius: 7.,
-            arc: Some((0.2, 3.0)),
-        },
-        DrawingGeometry::PlanarPolyline {
-            placement: frame(0., 65., 0.)?,
-            vertices: vec![[0., 0., 0.5], [25., 0., 0.], [25., 20., 0.]],
-            closed: false,
-            line_pattern_generation: LinePatternGeneration::Continuous,
-        },
-        DrawingGeometry::SpatialPolyline {
-            vertices: vec![[60., 60., 0.], [80., 70., 15.], [100., 60., 0.]],
-            closed: false,
-            line_pattern_generation: LinePatternGeneration::PerSegment,
-        },
-    ];
-    for g in geometries {
-        b.add_geometric_entity(GeometricEntityDefinition::new(0, layer, g))?;
-    }
-    b.add_line(LineDefinition::new(layer, [2., 0., 0.], [12., 8., 0.]).in_scope(inner))?;
-    b.add_geometric_entity(GeometricEntityDefinition::new(
-        outer,
-        layer,
-        DrawingGeometry::BlockInstance {
-            definition_scope_id: inner,
-            transform: BlockTransform::try_new(frame(0., 0., 0.)?, 0., Scale3::new(1., 1., 1.))?,
-        },
-    ))?;
-    for x in [130., 160.] {
-        b.add_geometric_entity(GeometricEntityDefinition::new(
-            0,
-            layer,
-            DrawingGeometry::BlockInstance {
-                definition_scope_id: outer,
-                transform: BlockTransform::try_new(
-                    frame(x, 70., 0.)?,
-                    0.3,
-                    Scale3::new(-1., 1., 1.),
-                )?,
-            },
-        ))?;
-    }
-    b.add_ucs_definition(UcsDefinition::new(
-        "Detail plane",
-        CoordinateFrame3::try_new(
-            Point3::new(0., 0., 5.),
-            Vector3::new(0., 1., 0.),
-            Vector3::new(0., 0., 1.),
-        )?,
-        5.,
-    ))?;
-    b.set_current_layer(layer);
-    b.set_active_layout(0);
-    let mut d = b.build_document()?;
-    d.block_definitions
-        .iter_mut()
-        .find(|v| v.scope_id == inner)
-        .unwrap()
-        .base_point = [2., 0., 0.];
-    recompute_ocdraw_document_bounds(&mut d)?;
-    Ok(d)
-}
-fn ocdraw_layouts() -> Result<OcdrawDocument> {
-    let mut d = load_ocdraw_bytes(include_bytes!(
-        "../conformance/next/ocdraw/valid/viewport-bulged-clip.ocdraw.json"
-    ))?
-    .into_document();
-    d.drawing_id = "explorer-ocdraw-layouts-viewports".into();
-    d.unit = "mm".into();
-    d.layers[0].color = DrawingColor::Foreground;
-    for layout in &mut d.layouts {
-        if layout.kind == DrawingLayoutKind::Paper {
-            layout.name = "Detail sheet".into();
-        }
-    }
-    let base = ocdraw_overview()?;
-    let scope = d
-        .scopes
-        .iter_mut()
-        .find(|s| s.kind == DrawingScopeKind::Model)
-        .unwrap();
-    for mut e in base
-        .geometric_entities
-        .into_iter()
-        .filter(|e| !matches!(e.geometry, DrawingGeometry::BlockInstance { .. }))
-        .take(8)
-    {
-        e.id = d.next_entity_id;
-        d.next_entity_id += 1;
-        e.layer_id = d.layers[0].id;
-        scope.entities.push(e.id);
-        d.geometric_entities.push(e);
-    }
-    recompute_ocdraw_document_bounds(&mut d)?;
-    Ok(d)
-}
-fn ocdraw_state() -> Result<OcdrawDocument> {
-    let mut d = ocdraw_overview()?;
-    d.drawing_id = "explorer-ocdraw-state-storage".into();
-    let grid = DrawingGrid {
-        enabled: true,
-        spacing: Point2::new(10., 10.),
-        style: DrawingGridStyle::Dots,
-        major_line_frequency: 5,
-        beyond_limits: false,
-        adaptive: true,
-        subdivision: false,
-        follows_workplane: true,
-    };
-    let snap = DrawingSnap {
-        enabled: false,
-        base: Point2::new(0., 0.),
-        spacing: Point2::new(5., 5.),
-        angle: 0.,
-        style: DrawingSnapStyle::Rectangular,
-        isometric_plane: DrawingIsometricPlane::Top,
-    };
-    let view = DrawingView {
-        center: Point2::new(80., 40.),
-        target: Point3::new(0., 0., 0.),
-        direction: Vector3::new(0., 0., 1.),
-        height: 140.,
-        twist: 0.,
-        projection: DrawingProjection::Orthographic,
-        lens_length: Some(50.),
-        front_clip: DrawingClip {
-            mode: DrawingClipMode::Disabled,
-            distance: Some(10.),
-        },
-        back_clip: DrawingClip {
-            mode: DrawingClipMode::Disabled,
-            distance: None,
-        },
-    };
-    d.model_windows.push(DrawingModelWindow {
-        id: 7,
-        rectangle: [0., 0., 1., 1.],
-        view,
-        aspect_ratio: 1.5,
-        render_mode: DrawingRenderMode::TwoDimensional,
-        grid,
-        snap,
-        stored_ucs: DrawingUcsSelection::Named(d.ucs_definitions[0].id),
-        use_stored_ucs: true,
-    });
-    d.view_state = Some(DrawingViewState {
-        current_model_ucs: Some(DrawingUcsSelection::Named(d.ucs_definitions[0].id)),
-        active_model_window_id: Some(7),
-    });
-    d.scopes
-        .iter_mut()
-        .find(|s| s.kind == DrawingScopeKind::Model)
-        .unwrap()
-        .entities
-        .rotate_left(3);
-    Ok(d)
-}
 fn ifccad_overview() -> Result<Value> {
     // Retain the production-tested viewport construction; author a new model
     // inventory, patterns, nested blocks and source contributions around it.
@@ -367,11 +152,11 @@ fn prepare_ifccad(name: &str, value: &Value) -> Result<Vec<u8>> {
         }
     }
     let initial = serde_json::to_vec(&value)?;
-    let loaded = ocdraw::ifccad::load_ifccad_bytes(&initial, Default::default())
+    let loaded = ifccad::load_ifccad_bytes(&initial, Default::default())
         .map_err(|e| format!("{name}: {}", e.report().errors.join("; ")))?;
     let mut document = loaded.document().clone();
-    ocdraw::ifccad::recompute_ifccad_document_bounds(&mut document)?;
-    let encoded = ocdraw::ifccad::encode_ifccad_document(&document)?;
+    ifccad::recompute_ifccad_document_bounds(&mut document)?;
+    let encoded = ifccad::encode_ifccad_document(&document)?;
     let prepared: Value = serde_json::from_slice(encoded.bytes())?;
     for node in value["data"].as_array_mut().unwrap() {
         if let Some(prepared) = prepared["data"]
@@ -397,7 +182,7 @@ fn prepare_ifccad(name: &str, value: &Value) -> Result<Vec<u8>> {
         }
     }
     let bytes = consistency::normalize(&value)?;
-    ocdraw::ifccad::load_ifccad_bytes(&bytes, Default::default())
+    ifccad::load_ifccad_bytes(&bytes, Default::default())
         .map_err(|e| format!("{name}: {}", e.report().errors.join("; ")))?;
     Ok(bytes)
 }
@@ -405,64 +190,9 @@ fn write_ifccad(root: &Path, name: &str, value: &Value) -> Result<()> {
     std::fs::write(root.join(name), prepare_ifccad(name, value)?)?;
     Ok(())
 }
-fn ocdraw_workspace() -> Result<OcdrawDocument> {
-    let mut d = ocdraw_layouts()?;
-    let state = ocdraw_state()?;
-    d.drawing_id = "explorer-ocdraw-workspace".into();
-    d.ucs_definitions = state.ucs_definitions;
-    let mut window = state.model_windows[0];
-    window.grid.style = DrawingGridStyle::Lines;
-    window.snap.spacing = Point2::new(0., 0.);
-    window.snap.angle = std::f64::consts::FRAC_PI_2;
-    window.snap.style = DrawingSnapStyle::Isometric;
-    window.snap.isometric_plane = DrawingIsometricPlane::Left;
-    window.use_stored_ucs = false;
-    d.model_windows = vec![window];
-    d.view_state = Some(DrawingViewState {
-        current_model_ucs: Some(DrawingUcsSelection::World),
-        active_model_window_id: None,
-    });
-    for layout in &d.layouts {
-        if layout.kind == DrawingLayoutKind::Paper {
-            let mut grid = window.grid;
-            grid.spacing = Point2::new(0.25, 0.5);
-            d.paper_canvases.push(DrawingPaperCanvas {
-                scope_id: layout.id,
-                view: window.view,
-                frame: Some(ocdraw::workspace_kernel::WorkspaceCanvasFrame {
-                    center: Point3::new(100., -50., 3.),
-                    width: 20.,
-                    height: 10.,
-                }),
-                grid,
-                snap: window.snap,
-                stored_ucs: DrawingUcsSelection::World,
-                use_stored_ucs: false,
-                current_ucs: None,
-                active_context: None,
-            });
-        }
-    }
-    for v in &d.viewports {
-        let mut grid = window.grid;
-        grid.spacing = Point2::new(2., 3.);
-        d.viewport_workspaces.push(DrawingViewportWorkspace {
-            viewport_entity_id: v.id,
-            grid,
-            snap: window.snap,
-            stored_ucs: DrawingUcsSelection::Unnamed(CoordinateFrame3::try_new(
-                Point3::new(2., 3., 0.),
-                Vector3::new(1., 0., 0.),
-                Vector3::new(0., 1., 0.),
-            )?),
-            use_stored_ucs: false,
-        });
-    }
-    validate_ocdraw_document(&d)?;
-    Ok(d)
-}
-fn ifccad_workspace() -> Result<ocdraw::ifccad::IfccadDocument> {
-    use ocdraw::ifccad::*;
+
+fn ifccad_workspace() -> Result<ifccad::IfccadDocument> {
+    use ifccad::*;
     const BIG: u64 = 9007199254740993;
     let mut d = load_ifccad_bytes(
         include_bytes!("../tests/fixtures/ifccad/hello-viewports.ifcx"),
@@ -470,27 +200,61 @@ fn ifccad_workspace() -> Result<ocdraw::ifccad::IfccadDocument> {
     )?
     .into_document();
     d.header.id = "explorer-ifccad-workspace".into();
-    let state = ocdraw_state()?;
-    let window = state.model_windows[0];
+    let grid = WorkspaceGrid {
+        enabled: true,
+        spacing: Point2::new(10., 10.),
+        style: WorkspaceGridStyle::Dots,
+        major_line_frequency: 5,
+        beyond_limits: false,
+        adaptive: true,
+        subdivision: false,
+        follows_workplane: true,
+    };
+    let snap = WorkspaceSnap {
+        enabled: false,
+        base: Point2::new(0., 0.),
+        spacing: Point2::new(5., 5.),
+        angle: 0.,
+        style: WorkspaceSnapStyle::Rectangular,
+        isometric_plane: WorkspaceIsometricPlane::Top,
+    };
+    let view = WorkspaceView {
+        center: Point2::new(80., 40.),
+        target: Point3::new(0., 0., 0.),
+        direction: Vector3::new(0., 0., 1.),
+        height: 140.,
+        twist: 0.,
+        projection: WorkspaceProjection::Orthographic,
+        lens_length: Some(50.),
+        front_clip: WorkspaceClip {
+            mode: WorkspaceClipMode::Disabled,
+            distance: Some(10.),
+        },
+        back_clip: WorkspaceClip {
+            mode: WorkspaceClipMode::Disabled,
+            distance: None,
+        },
+    };
+
     d.ucs_definitions.push(IfccadUcsDefinition {
         id: IfccadUcsId(BIG),
         name: "Reference plane".into(),
         frame: CoordinateFrame3::default(),
         elevation: 0.,
     });
-    let mut grid = window.grid;
-    grid.style = DrawingGridStyle::Lines;
-    let mut snap = window.snap;
+    let mut grid = grid;
+    grid.style = WorkspaceGridStyle::Lines;
+    let mut snap = snap;
     snap.spacing = Point2::new(0., 0.);
     snap.angle = std::f64::consts::FRAC_PI_2;
-    snap.style = DrawingSnapStyle::Isometric;
-    snap.isometric_plane = DrawingIsometricPlane::Left;
+    snap.style = WorkspaceSnapStyle::Isometric;
+    snap.isometric_plane = WorkspaceIsometricPlane::Left;
     d.model_windows.push(IfccadModelWindow {
         id: IfccadModelWindowId(BIG),
-        rectangle: window.rectangle,
-        view: window.view,
-        aspect_ratio: window.aspect_ratio,
-        render_mode: window.render_mode,
+        rectangle: [0., 0., 1., 1.],
+        view,
+        aspect_ratio: 1.5,
+        render_mode: WorkspaceRenderMode::TwoDimensional,
         grid,
         snap,
         stored_ucs: IfccadUcsSelection::World,
@@ -510,8 +274,8 @@ fn ifccad_workspace() -> Result<ocdraw::ifccad::IfccadDocument> {
         let mut canvas_grid = grid;
         canvas_grid.spacing = Point2::new(0.25, 0.5);
         p.canvas = Some(IfccadPaperCanvas {
-            view: window.view,
-            frame: Some(ocdraw::workspace_kernel::WorkspaceCanvasFrame {
+            view,
+            frame: Some(ifccad::workspace_kernel::WorkspaceCanvasFrame {
                 center: Point3::new(100., -50., 3.),
                 width: 20.,
                 height: 10.,
@@ -547,12 +311,7 @@ fn ifccad_workspace() -> Result<ocdraw::ifccad::IfccadDocument> {
     validate_ifccad_document(&d)?;
     Ok(d)
 }
-fn write_ocdraw(root: &Path, name: &str, d: &OcdrawDocument) -> Result<()> {
-    let encoded = encode_ocdraw_document(d)?;
-    load_ocdraw_bytes(encoded.bytes())?;
-    std::fs::write(root.join(name), encoded.bytes())?;
-    Ok(())
-}
+
 fn main() -> Result<()> {
     let mut args = std::env::args_os().skip(1);
     let root = args
@@ -563,45 +322,23 @@ fn main() -> Result<()> {
         .next()
         .map(std::path::PathBuf::from)
         .ok_or("test-fixtures-directory required")?;
-    std::fs::create_dir_all(root.join("ocdraw"))?;
     std::fs::create_dir_all(root.join("ifccad"))?;
-    std::fs::create_dir_all(fixtures.join("ocdraw"))?;
     std::fs::create_dir_all(fixtures.join("ifccad"))?;
-    write_ocdraw(
-        &root.join("ocdraw"),
-        "overview.ocdraw.json",
-        &line_patterns::ocdraw(overview::ocdraw(ocdraw_state()?, ocdraw_workspace()?)?)?,
-    )?;
-    write_ocdraw(
-        &fixtures.join("ocdraw"),
-        "layouts-viewports.ocdraw.json",
-        &ocdraw_layouts()?,
-    )?;
-    write_ocdraw(
-        &fixtures.join("ocdraw"),
-        "state-and-storage.ocdraw.json",
-        &ocdraw_state()?,
-    )?;
-    write_ocdraw(
-        &fixtures.join("ocdraw"),
-        "workspace-state.ocdraw.json",
-        &ocdraw_workspace()?,
-    )?;
-    let workspace = ocdraw::ifccad::encode_ifccad_document(&ifccad_workspace()?)?;
-    ocdraw::ifccad::load_ifccad_bytes(workspace.bytes(), Default::default())?;
+    let workspace = ifccad::encode_ifccad_document(&ifccad_workspace()?)?;
+    ifccad::load_ifccad_bytes(workspace.bytes(), Default::default())?;
     std::fs::write(
         fixtures.join("ifccad/workspace-state.ifcx"),
         workspace.bytes(),
     )?;
     let overview = ifccad_overview()?;
-    let native = ocdraw::ifccad::load_ifccad_bytes(
+    let native = ifccad::load_ifccad_bytes(
         &prepare_ifccad("overview.ifcx", &overview)?,
         Default::default(),
     )?
     .into_document();
     let native = line_patterns::ifccad(overview::ifccad(native, ifccad_workspace()?)?)?;
-    let bytes = ocdraw::ifccad::encode_ifccad_document(&native)?;
-    ocdraw::ifccad::load_ifccad_bytes(bytes.bytes(), Default::default())?;
+    let bytes = ifccad::encode_ifccad_document(&native)?;
+    ifccad::load_ifccad_bytes(bytes.bytes(), Default::default())?;
     let mut curated: Value = serde_json::from_slice(bytes.bytes())?;
     let all = curated["data"].as_array_mut().unwrap();
     let entity = all

@@ -1,7 +1,7 @@
 mod common;
 use common::*;
+use ifccad::*;
 use ifccad_convert::*;
-use ocdraw::ifccad::*;
 use opencadcodec::objects::{Layout, ObjectType};
 use opencadcodec::{CadDocument, EntityType};
 
@@ -90,10 +90,10 @@ fn cad_import_retains_multiple_empty_and_populated_paper_layouts() {
         assert_eq!((&*inches.name, inches.tab_index), ("Inches", 2));
         assert_eq!(
             inches.settings.media,
-            Some(ocdraw::ifccad::IfccadLayoutMedia {
+            Some(ifccad::IfccadLayoutMedia {
                 width: 297.,
                 height: 210.,
-                unit: ocdraw::ifccad::IfccadMediaUnit::from_token("mm").unwrap()
+                unit: ifccad::IfccadMediaUnit::from_token("mm").unwrap()
             })
         );
         assert_eq!(inches.entities.len(), 3);
@@ -206,11 +206,11 @@ fn native_papers() -> IfccadDocument {
             bounds_quality: None,
             canvas: None,
 
-            settings: ocdraw::ifccad::IfccadLayoutSettings {
-                media: Some(ocdraw::ifccad::IfccadLayoutMedia {
+            settings: ifccad::IfccadLayoutSettings {
+                media: Some(ifccad::IfccadLayoutMedia {
                     width: 297.,
                     height: 210.,
-                    unit: ocdraw::ifccad::IfccadMediaUnit::from_token("mm").unwrap(),
+                    unit: ifccad::IfccadMediaUnit::from_token("mm").unwrap(),
                 }),
                 ..Default::default()
             },
@@ -224,7 +224,7 @@ fn native_papers() -> IfccadDocument {
             bounds_quality: None,
             canvas: None,
 
-            settings: ocdraw::ifccad::IfccadLayoutSettings {
+            settings: ifccad::IfccadLayoutSettings {
                 media: None,
                 ..Default::default()
             },
@@ -364,10 +364,10 @@ fn native_papers_allocate_ordered_owners_and_survive_both_cad_codecs() {
 #[test]
 fn media_conversion_is_exact_and_unsupported_coordinates_are_located() {
     let mut doc = native_papers();
-    doc.paper_layouts[0].settings.media = Some(ocdraw::ifccad::IfccadLayoutMedia {
+    doc.paper_layouts[0].settings.media = Some(ifccad::IfccadLayoutMedia {
         width: 5.,
         height: 10.,
-        unit: ocdraw::ifccad::IfccadMediaUnit::from_token("in").unwrap(),
+        unit: ifccad::IfccadMediaUnit::from_token("in").unwrap(),
     });
     let output = to_cad(&validated(&doc)).unwrap();
     let handle = output.mappings().layouts.cad_handle(3).unwrap();
@@ -438,7 +438,7 @@ fn target_layout_name_collisions_and_tab_overflow_are_fatal() {
         .map(|tab| IfccadPaperLayout {
             canvas: None,
 
-            settings: ocdraw::ifccad::IfccadLayoutSettings {
+            settings: ifccad::IfccadLayoutSettings {
                 media: None,
                 ..Default::default()
             },
@@ -460,7 +460,7 @@ fn target_layout_name_collisions_and_tab_overflow_are_fatal() {
 fn unsupported_medium_omits_only_media_and_definition_loss_reaches_paper() {
     let mut doc = native_papers();
     doc.paper_layouts[0].settings.media.as_mut().unwrap().unit =
-        ocdraw::ifccad::IfccadMediaUnit::from_token("pc").unwrap();
+        ifccad::IfccadMediaUnit::from_token("pc").unwrap();
     let output = ifccad_document_to_cad_document(&doc, Default::default()).unwrap();
     assert!(output.mappings().entities.cad_handle(501).is_some());
     assert!(output

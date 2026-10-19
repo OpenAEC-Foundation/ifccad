@@ -1,6 +1,6 @@
 use crate::units::{q, ResolvedTolerance};
+use ifccad::geometry_kernel::CoordinateLengthUnit as DrawingLengthUnit;
 use num_rational::BigRational;
-use ocdraw::geometry_kernel::CoordinateLengthUnit as DrawingLengthUnit;
 use thiserror::Error;
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum ToleranceKind {

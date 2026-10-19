@@ -1,6 +1,6 @@
 //! CAD Layout plot fields and the standalone drawing Layout contract.
 
-use ocdraw::plot_kernel::{
+use ifccad::plot_kernel::{
     LayoutMedia, MediaUnit, PlotArea, PlotMapping, PlotOffsetReference, PlotOptions, PlotOutput,
     PlotPage, PlotPlacement, PlotRect as LayoutRect, PlotRotation, PlotScale, PlotSettings,
     PlotUnit, ShadedPlot, ShadedPlotMode, ShadedPlotQuality, ShadedPlotQualityMode,
@@ -359,7 +359,7 @@ pub(crate) fn apply_plot_to_cad(
 use cad_geometry_convert::plot_units::{
     convert_plot_length_exact, subtract_plot_lengths_exact, PlotNumericError,
 };
-use ocdraw::geometry_kernel::CoordinateLengthUnit;
+use ifccad::geometry_kernel::CoordinateLengthUnit;
 #[derive(Debug)]
 pub(crate) enum PlotMappingError {
     Unsupported(&'static str),
@@ -508,7 +508,7 @@ pub(crate) fn settings_from_cad(
     l: &Layout,
     model: bool,
     issues: &mut Vec<IfccadDiagnostic>,
-) -> Result<ocdraw::ifccad::IfccadLayoutSettings, IfccadConversionError> {
+) -> Result<ifccad::IfccadLayoutSettings, IfccadConversionError> {
     let location = format!("layout/{}", l.name);
     if medium_from_cad(l).is_none() && (l.paper_width != 0. || l.paper_height != 0.) {
         issues.push(crate::diagnostics::diagnostic(
@@ -517,7 +517,7 @@ pub(crate) fn settings_from_cad(
             "invalid or partial medium omitted; layout geometry retained",
         ));
     }
-    let mut settings = ocdraw::ifccad::IfccadLayoutSettings {
+    let mut settings = ifccad::IfccadLayoutSettings {
         media: medium_from_cad(l),
         limits: if l.min_limits != l.max_limits {
             rect(
@@ -544,12 +544,12 @@ pub(crate) fn settings_from_cad(
             }
         },
     };
-    if ocdraw::plot_kernel::validate_layout_output(
+    if ifccad::plot_kernel::validate_layout_output(
         &settings,
         if model {
-            ocdraw::plot_kernel::LayoutOutputKind::Model
+            ifccad::plot_kernel::LayoutOutputKind::Model
         } else {
-            ocdraw::plot_kernel::LayoutOutputKind::Paper
+            ifccad::plot_kernel::LayoutOutputKind::Paper
         },
     )
     .is_err()
@@ -572,7 +572,7 @@ pub(crate) fn settings_from_cad(
 }
 pub(crate) fn apply_settings(
     l: &mut Layout,
-    settings: &ocdraw::ifccad::IfccadLayoutSettings,
+    settings: &ifccad::IfccadLayoutSettings,
     issues: &mut Vec<IfccadDiagnostic>,
 ) -> Result<(), IfccadConversionError> {
     if settings.paper_space_linetype_scaling {

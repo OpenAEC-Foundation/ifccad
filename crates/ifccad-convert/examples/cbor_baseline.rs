@@ -13,7 +13,7 @@ fn main() -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ocdraw::ifccad::*;
+    use ifccad::*;
     #[test]
     fn batch_exclusion_requires_production_rejection_of_a_degenerate_bulge() {
         use opencadcodec::{CadDocument, EntityType, LwPolyline, Vector2};
@@ -50,7 +50,7 @@ mod tests {
         let mut failure = IfccadGeometryFailure {
             domain: IfccadGeometryDomain::Drawing,
             coordinate_meaning: IfccadGeometryCoordinateMeaning::DrawingUnit(
-                ocdraw::geometry_kernel::CoordinateLengthUnit::Millimetre,
+                ifccad::geometry_kernel::CoordinateLengthUnit::Millimetre,
             ),
             failure: Box::new(GeometryFailure {
                 source: IfccadGeometryEntitySource::CadEntity {

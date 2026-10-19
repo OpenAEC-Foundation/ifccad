@@ -1,5 +1,5 @@
-use ocdraw::geometry_kernel::{CoordinateFrame3, Point3, Vector3};
-use ocdraw::text::*;
+use ifccad::geometry_kernel::{CoordinateFrame3, Point3, Vector3};
+use ifccad::text::*;
 
 fn text<'a>(content: &'a [TextRun]) -> ResolvedTextExtentInput<'a> {
     ResolvedTextExtentInput {

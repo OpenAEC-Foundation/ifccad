@@ -1,5 +1,5 @@
 use cad_dimension::*;
-use ocdraw::dimension::*;
+use ifccad::dimension::*;
 use opencadcodec::{
     entities::{Dimension, DimensionAligned},
     xdata::{ExtendedDataRecord, XDataValue as X},

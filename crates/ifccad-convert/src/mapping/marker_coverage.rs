@@ -1,5 +1,5 @@
 use crate::{IfccadGeometryEntitySource, IfccadGeometryOwner};
-use ocdraw::ifccad::*;
+use ifccad::*;
 
 type Context = (Option<u64>, Option<IfccadLinePatternId>);
 pub(crate) fn record(doc: &IfccadDocument, out: &mut Vec<IfccadGeometryEntitySource>) {

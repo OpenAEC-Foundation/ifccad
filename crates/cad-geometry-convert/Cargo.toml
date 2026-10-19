@@ -6,7 +6,7 @@ license = "MPL-2.0"
 description = "Shared geometric preparation and certified CAD conversion accuracy"
 
 [dependencies]
-ocdraw = { path = "../.." }
+ifccad = { path = "../.." }
 opencadcodec = { git = "https://github.com/HakanSeven12/opencadcodec.git", rev = "325fa98d2b881f48e106a830d5cf161624f63131" }
 fpmath = "=0.1.1"
 num-bigint = "0.4"

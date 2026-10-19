@@ -1,400 +1,69 @@
-# CAD Format Explorer
+# IFCCAD Explorer
 
-Geometric tolerance defaults to exactly 1e-9 in each coordinate domain. The
-Overview toolbar opens an anchored popup; expanded Conversion / checks shows
-the same controls in its left column. Draft values are retained across these
-views and take effect on Apply. Exact remains zero. Custom settings choose
-coordinates of each space or a physical mm/m limit with an independently
-editable coordinate fallback (initially 1e-9) for unitless Model and Paper without
-a fixed physical plot scale. The generic Unit label is now Model unit. Effective
-tolerances list certified limits from the current conversion result, with
-fallback indications; changed drafts identify that limits update after Apply.
-The controls target input and output together by default, or input/output alone.
-Separate choices retain the other boundary's limit. The summary indicates when
-they differ, and effective limits are grouped by conversion step. Input tolerance
-applies to CAD import; native-file validation does not use it. Output tolerance
-also applies to roundtrip CAD readback.
-Physical-only callers without an explicit fallback keep strict rejection of
-unknown physical meaning. These options reach both native routes and CAD readback.
+The Explorer inspects IFCCAD and converts DXF/DWG directly through
+`ifccad-convert`. IFCCAD is the only active native format. OCDraw files and
+explicit old selections report `OCDRAW_PARKED`; see [parking](../docs/ocdraw-parking.md).
+Default WASM excludes native Zstd. This migration adds no CBOR interface.
 
-Selecting an IFCCAD or OCDraw element in the tree also selects its mapped object in the
-generated Open CAD Studio document. The link comes from conversion and is
-qualified against the written CAD readback; IDs/handles remain strings. Selection
-waits for existing preparation and never triggers an additional conversion.
-Camera position and document edits are retained. The relevant CAD layout must
-already be active. Shared block-definition contents and skipped/foreign items
-have no direct selectable link; block instances are selectable. Unavailable
-links produce a brief viewer notice. Selection also works from the generated CAD
-document back to Contents: one mapped CAD object reveals the owning native record
-in the readable document tree, expands its ancestors and scrolls it into view.
-The current workspace pane and camera are retained. A record beyond the initial
-row budget is included without rendering all siblings. Original/external CAD
-tabs, new/unmapped objects and empty/multiple selections retain the last inspected
-record. CAD edits do not rewrite the native source. The pinned OCS state API is
-observed only while the drawing is visible and focused; forward operations pause
-observation and seed its baseline, and reverse updates never select CAD again.
+## Using the Explorer
 
-The document/storage inspector, integrated IFCX navigation, overview and panel navigation
-and adjustable conversion tolerance are specified in
-[CAD Format Explorer interface design](../docs/architecture/format-explorer.md).
+Start with Overview: IFCCAD contents, Open CAD Studio and conversion evidence
+share resizable panes. Document structure groups entities by type within their
+layout/block; Draw order preserves authored sequence. Storage structure shows
+composed IFCX nodes and ordered original source fragments. Full-width identities
+remain strings. Collections above ten items use a bounded searchable list.
+Selection maps to the generated CAD document in both directions when qualified
+readback links exist; block-definition contents and skipped items have no direct link.
+Camera, workspace tab and prepared CAD output survive navigation.
 
-The application starts in **Overview / Overzicht** with **IFCCAD · Drawing
-overview**: file contents on the left, Open CAD Studio on the right and both
-conversion stages beneath them. Drag the separators or use their arrow keys to
-adjust the split. Each pane's expand icon opens it across the workspace; the
-restore icon replaces that button and returns to Overview. Tooltips and accessible
-labels follow the selected language. Returning to Overview retains the tree
-selection, settings and existing CAD session.
+Four curated IFCCAD examples cover overview, Text/MText, Hatches and Dimensions.
+Native download retains original IFCX bytes. CAD download follows the shared
+DXF/DWG and version selection. A native file requires no input conversion;
+output failure retains input validity and native download. Input/output diagnostics,
+numerical evidence, preservation and CAD readback remain separate.
 
-Native download uses an icon beside the contents heading, with the actual
-IFCCAD/OCDraw format in its tooltip. CAD download is beside Output format and
-Version, with the selected CAD format/version in its tooltip. Keyboard activation
-and disabled/stale-result guards remain available.
+Conversion / checks owns tolerance. Default is exactly 1e-9 per coordinate domain;
+Exact is zero. Custom may specify drawing coordinates or physical mm/m, with an
+independent coordinate fallback for unitless Model/Paper without a fixed output
+mapping. Without an explicit fallback, unknown physical meaning is rejected.
+Input and output limits can be selected together or independently and apply on
+Apply; effective evidence records the domain and fallback provenance.
 
-Narrow screens stack the panels. Inspection starts in the **Bestandsboom / File tree**
-view. Choose **Document structure** for logical contents and **Storage
-structure** for IFCX node/source inspection or OCDraw streams/columns. Entities
-are grouped by type within their layout or block by default (singleton types
-appear directly); **Draw order**
-shows the original sequence and each item retains its original draw position.
-The native contents heading follows the selected IFCCAD/OCDraw result and shows
-the source filename. Validation/readback stay in the report; redundant document
-and footer status bars are omitted. Actionable errors or settings reminders
-appear beside the file controls, and invalid contents remain explicitly labelled.
-Composed IFCX node JSON in Source uses `path`, optional
-`children`, then `attributes`, followed by any remaining fields. Original source
-fragments retain their stored order and values; full-file JSON retains its source text.
-Collections of up to ten records stay inline. Larger collections, including
-layers and block definitions, open an independently scrolling middle list with
-search and an optional layer filter. It renders only the visible rows and scrolls
-continuously without a Show more button. The structure remains visible; selected
-records retain a tree anchor. Home/End, arrows and Page Up/Down navigate the list.
-Once opened, the middle list also follows small collections until closed. Linked
-CAD selection reveals the appropriate group and list record by native identity,
-clearing filters only when they would hide that record. The inspector can be
-collapsed; on narrow contents panes it can open as an overlay. Column widths are
-resizable and start at equal widths. Group counts appear directly beside each group name. Opening another file or
-selecting an example retains the active workspace view. A visible loading panel
-shows the filename, operation and current phase, with cancellation available
-while reading, fetching examples or converting.
+Supported typed spline preservation is on for newly selected CAD files and can
+be disabled before opening. Capture, opaque native geometry and qualified fresh
+CAD restoration have separate evidence. This does not add native spline geometry,
+font geometry, evaluated Hatch fill or complete Dimension display.
 
-**Conversion / checks** owns tolerance and output settings; CAD input exposes
-its IFCCAD/OCDraw target next to the file picker before processing. Default,
-exact and explicit physical/drawing-coordinate tolerances reach both converters
-and generated CAD output/readback. The numerical evidence remains available
-separately from semantic loss and strict native validity. The existing optional
-OCDraw supported-SPLINE capture/restoration route is retained.
-Its **Input conversion / Invoerconversie** tab shows source reading, CAD-to-native
-diagnostics and native validation. **Output conversion / Uitvoerconversie**
-shows export, source restoration and written CAD readback, with its own status
-and diagnostic JSON. Both show their actual direction (for example DWG → OCDraw
-and OCDraw → DWG); output identifies the written version. Opening a native file
-explicitly reports that no input conversion was needed. An output failure does
-not change input validity, and native downloads retain the existing input/output
-reports. The nested tab survives file/example changes and preferences changes,
-and supports arrow keys and Home/End. Output format/version and CAD actions are
-on output in the full view; source capture is on input; tolerance and Apply settings remain shared.
-Overview also exposes a compact settings strip with tolerance, CAD format/version,
-Apply settings and CAD download, plus source capture when available. Hide/show
-reports with the header chevron, or drag the row separator down to the settings
-strip. Both reports disappear together while the settings remain available;
-expanding Conversion shows its reports regardless of that overview preference.
-For newly opened DWG/DXF files, CAD output automatically follows the original
-format and the version reported by the CAD reader. The background roundtrip and
-CAD download share these settings. Subsequent manual choices are retained when
-applying settings. A source version outside the supported writer choices keeps
-a supported output version and is explicitly identified beside the controls.
-
-**Drawing** keeps the Open CAD Studio session across views. **Settings** offers
-Dutch/English and light/dark appearance, remembered locally; changing them does
-not reopen the source or reset the CAD session. **About** explains the formats,
-local processing and source/licenses. The [representative example inventory](../examples/README.md)
-describes the bundled demonstrations and their production-reader verification.
-
-Generating CAD for the drawing viewer updates the same **Conversion / checks**
-report as an explicit export. Reading/native validation, conversion messages,
-tolerance evidence and CAD readback stay there; Drawing has no duplicate
-diagnostic block. CAD viewer startup/session status remains beside the viewer.
-After successful opening, CAD roundtrip output is prepared automatically in a
-background worker using the applied CAD format/version and tolerance. Its
-progress and cancel control are available in Conversion / checks, and its
-readback/evidence is available without opening Drawing. Drawing shares an
-ongoing job or reuses the prepared output; Open CAD Studio itself starts when
-Drawing is visible in Overview or its own tab. Viewer startup does not block file
-opening or native inspection. Opening a new source or changing settings invalidates
-old pending output; applying settings starts preparation again.
-Drawing shows a compact filename and expand/restore icon above Open CAD Studio;
-its full view gives the remaining height to CAD. No separate browser-fullscreen
-action is added to the explorer toolbar.
-
-The current application opens one standalone OCDraw or experimental IFCCAD
-file, or converts one DXF/DWG file to the selected drawing format. It displays
-validated records and diagnostics and can download the selected native format,
-DXF or DWG. Drawing preview embeds Open CAD Studio. The selectable routes support
-parallel OCDraw and IFCCAD development, with their own models, validation and
-coverage. Support in one route does not imply support in the other. The former
-IFCX package explorer is retired.
-
-All inspection and conversion runs in the browser through WebAssembly. Selected
-files stay on the device; the website exposes no upload or native processing API.
-The HTTP service only serves the website, WASM and viewer assets.
-
-If the selected file cannot be read (for example, another application locks it),
-the inspector reports the failure and clears the previous drawing selection.
-Close the file in the other application and select it again before retrying.
-
-A valid native result confirms the converted content meets that drawing contract;
-it does not confirm lossless CAD conversion. Consult the conversion diagnostics:
-unsupported entities can be skipped. The IFCCAD route retains named simple
-patterns; complex text/shape patterns get a diagnosed whole-pattern fallback.
-
-OCDraw Text/MText appears in draw order with links to text styles, literal content
-and authored nested formatting. Layout/block inspection shows independently
-derived bounds quality, the stored producer declaration and whether enclosure is
-verified. Conversion reports distinguish text anchor coverage from unassessed
-letter shapes/layout. Estimated/partial bounds never certify negative spatial
-queries. The chooser includes a standalone Text/MText example; see
-[text support](../docs/text.md) for native semantics and the narrower CAD profile.
-IFCCAD text integration is deferred until the OCDraw slice has been tested on main.
-
-Run the app: `npm start` in this directory. A matching wasm-bindgen build of
-`browser` must be placed in `wasm-build/` for browser processing.
-No hosted deployment is performed by development commands.
-
-The dev server supports an alternate `PORT` and an optional `OCS_ROOT` for an
-existing pinned viewer bundle. It stays on loopback and reloads when frontend
-source changes. Rebuilding WASM or adding example assets requires a website
-rebuild. This live development view is independent of hosted publication.
-Website assembly compares file contents and writes only changed files. Existing
-WASM, viewer runtime, fonts and bridge files retain their output files on an
-unchanged build. Changed bundle files are synchronized and removed source files
-are pruned; a missing converter/viewer bundle clears its stale output. The viewer
-HTML is regenerated from its source with one bridge injection. Compilation of
-Rust/WASM and Open CAD Studio remains a separate operation.
-
-The production Rust-check cache includes repository `examples/` alongside Rust,
-schemas and conformance inputs, so edits to the authored examples invalidate a
-previous passing-check marker. The corrected cache key uses a new version;
-converter and pinned Open CAD Studio caches remain independent.
-
-Opening/conversion cancellation is available in the loading popup. The file
-toolbar keeps only Open / convert; background roundtrip retains its own cancel
-action in Conversion / checks.
-
-Tests: `npm test`. Release smoke reads the shipped example manifest, checks every
-listed native asset and uses its OCDraw overview for real CAD readback. The
-packaged static smoke regression runs on Windows as well as Linux.
-File and CAD accuracy checks use the production Rust
-reader/converter; the browser worker transport is tested independently.
-
-For a DXF/DWG input on either native route, **Spline-brongegevens bewaren** explicitly
-controls that route's independent typed spline preservation. It is on by default
-for a newly selected CAD file and can be switched off before opening. IFCCAD uses
-its opaque entity and preservation records; OCDraw keeps its existing route.
-Every interpreted spline variant can be stored; this does not add native
-spline geometry or certified bounds. Capture, unavailable native geometry and
-qualified restoration are reported separately. Current native layer/appearance/
-visibility/order edits are authoritative. Unknown/raw/attached contexts may remain
-stored without safe restoration. Native save/open preserves those bytes.
-
-The CLI equivalent is `viewer cad FILE --preserve-splines` or
-`viewer export-cad FILE FORMAT [VERSION] --preserve-splines`. Rust callers select
-`OcdrawPreservationCapture::SupportedTyped` or `IfccadPreservationCapture::SupportedTyped`;
-existing entry points remain disabled
-wrappers. Actual DXF/AC1032 DWG readback and the WASM smoke fixture cover the bounded
-pilot; neither snapshots nor a successful native readback prove whole-file fidelity.
-
-## Drawing preview
-
-Choose **Tekening bekijken** after opening a file. Original DXF/DWG bytes open
-as the original document; the strictly validated OCDraw conversion is exported
-back to DXF/DWG as a distinct `via-ocdraw` or `via-ifccad` document. A native
-OCDraw/IFCCAD file has only the converted document. One shared CAD format/version selection controls both preview regeneration and
-CAD download. OCDraw download is a separate action next to the drawing contents.
-Changing a selection regenerates a visible preview. The viewer uses the available
-page width and can enter full screen; leaving full screen restores inspection. An edited generated document remains open when it is replaced;
-no automatic save/discard is performed. Preview conversion diagnostics appear
-in Conversion / checks alongside the original reading and validation sections.
-The original can still be viewed if conversion fails.
-Leaving the Drawing tab keeps its document session; opening a new source or explicitly
-restarting the viewer replaces the session.
-Compound inspector values expand into JSON beneath their label/count row, using
-the full information-panel width. Their label, count and chevron align centrally
-on the same summary row.
-
-Open CAD Studio reads the generated CAD bytes, not OCDraw or IFCX directly. Viewing a
-similar drawing does not prove lossless conversion. Named simple line patterns,
-local references and scales are inspectable and exported. Complex text/shape
-patterns use a diagnosed named continuous fallback. Spatial pattern generation
-has a known limitation in the pinned DWG codec; see the converter coverage.
-The two converters retain their own coverage contracts and diagnostics.
-
-The pinned viewer bundle must be in the ignored `ocs-build/` directory. Pin:
-Open CAD Studio main, commit `2a2d9b55d9a328fb6e2ec4d4adb6b122aa189459`.
-This is a fixed snapshot of main, not a moving checkout. The deployment checkout,
-viewer cache and source attribution use the same revision. Its independent
-opencadcodec dependency is `8189f833574c544fc57a1d773591014c3a5907c9`, including
-DXF viewport clip-boundary decoding (group 340). The explorer converters retain
-their separately pinned dependency and patches.
-White foreground layers in the supplied examples explicitly retain CAD color
-ACI 7, with native RGB white as fallback. The viewer adapts ACI 7 to light/dark
-backgrounds, so Model contents remain visible on white Paper sheets. Authored
-true RGB white remains white. The circular Paper clip is verified in DXF/DWG;
-the example color identity is checked through production CAD readback.
-Build the official source in a checkout outside this repository, so Cargo does
-not inherit the explorer converter's local codec patch. Use the unchanged
-upstream Cargo.lock, Trunk and its matching wasm-bindgen CLI version:
-
-```text
-trunk build --locked --release --public-url /ocs/app/ --dist dist/app --html-output index.html web-app.html
-```
-
-Copy `dist/app/` contents plus upstream `LICENSE` into `ocs-build/`. The workflow
-also supplies an empty supporters.json to keep that source self-hosted. The site
-build copies the bundle and injects the separate same-origin message bridge.
-A missing bundle produces a visible message; inspection and download still work.
-GPL-3.0 and source revision attribution accompany the bundle. The OpenAEC symbol
-keeps its CC BY-SA license; see `src/THIRD-PARTY.txt`.
-
-Build the browser processor from the repository root after preparing and
-selecting the [viewport-off and Dimension codec repairs](../patches/opencadcodec-viewports/README.md).
-The deployment workflow uses the same pinned base and patches for its Rust
-checks and browser processor; both cache keys include the patch recipe.
+## Development and checks
 
 ```text
 wasm-pack build crates/browser --target web --out-dir ../../format-explorer/wasm-build --release
 node format-explorer/tests/wasm-smoke.mjs
+npm --prefix format-explorer test
+npm --prefix format-explorer run build
+npm --prefix format-explorer start
 ```
 
-The smoke check exercises standalone fixtures and actual OCDraw/IFCCAD/DXF/DWG
-output and production readback, including active/dormant DXF clip references
-and viewport angles in radians. Deployment checks exercise the static HTTP service,
-WASM and framed viewer assets. Linux deployment activation/rollback tests are
-skipped on Windows.
+Run these from the repository root. Native code uses the same explicitly selected
+codec base/repair as [the converter](../crates/ifccad-convert/README.md).
+The browser module exports `open_ifccad`, `convert_cad_to_ifccad`,
+`export_ifccad`, option variants and `conversion_capabilities`; the worker defaults
+CAD input to IFCCAD and rejects retired route choices before invoking WASM.
 
-Pull requests targeting main run the same Rust formatting, Clippy, workspace
-tests, WASM readback smoke checks, website tests, asset assembly and local release
-smoke checks as main. Unchanged converter and pinned Open CAD Studio bundles reuse
-the existing build caches. The Rust verification cache includes repository-root
-examples and the workflow recipe. The **CAD Format Explorer checks** status fails
-when a required job fails, is cancelled or is skipped; it can be selected as a
-required check in GitHub's branch rules. PR updates cancel only that PR's old run.
+The dev server uses loopback, accepts `PORT` and optional `OCS_ROOT` for an existing
+pinned viewer bundle, and reloads frontend source. Website assembly writes changed
+assets only, prunes removed examples and clears stale missing bundles. WASM and
+Open CAD Studio compilation remain separate; no deployment occurs here.
 
-Only a push to main or a manual workflow run on main can deploy, after all checks
-succeed. PR runs use read-only repository permissions and never enter the
-production deployment job. Local development commands do not publish the website.
+## Drawing preview and deployment
 
-Deployment currently retains the existing Docker service: a checksummed archive
-is tested before transfer, activated as one release, checked for the expected
-revision, and rolled back on activation or service-check failure. OpenAEC's
-[shared site deployment workflow](https://github.com/OpenAEC-Foundation/github/blob/main/.github/workflows/deploy-site.yml)
-currently syncs static files directly to a web directory and can configure nginx.
-The explorer retains its own deployment workflow and the existing release
-activation and rollback behavior; migration to the shared workflow is outside
-the current scope.
+Open CAD Studio reads generated DXF/DWG bytes. Native IFCCAD files have a converted
+preview; CAD source can also be opened as its original document. Preview preparation
+runs in the background and supports cancellation. Editing CAD does not rewrite
+IFCCAD source. The viewer bridge accepts only its same-origin parent/current token.
 
-## IFCCAD workflow
-
-Open `.ifcx` or `.ifcx.json` using the same file picker. The production IFCCAD
-reader composes fragments with LaterWins and validates the experimental profile;
-the contents show named patterns, layers, layouts, entities, blocks and the
-composed graph, including foreign attributes/nodes. Its bundled profile schema
-resolves the experimental import offline. A native IFCCAD download preserves the
-original bytes and fragments, including foreign information.
-
-For a roundtrip, download DXF/DWG, select that file and choose **IFCCAD** under
-**DXF omzetten naar** or **DWG omzetten naar**, then open it and download IFCCAD.
-This choice appears only for DXF/DWG input; native OCDraw/IFCCAD files determine
-their own route. Changing the selection after opening reruns the
-original CAD input with the chosen converter. IFCCAD uses `ifccad-convert`
-directly, without OCDraw as an intermediate. The current supported CAD profile
-is documented [here](../schemas/ifccad/experimental-contract-0.1.0.md);
-this route does not claim arbitrary IFCX building-geometry rendering.
-
-Allow conversion returns the supported subset and exposes all located loss
-messages. CAD output is read back and version checked. The IFCX route additionally
-converts that actual readback to IFCX and strict-reads it before exposing download
-bytes. This is structural/profile readback, not a claim of exact semantic or
-numeric equality through the external codec. Readback diagnostics are displayed.
-The processor uses pinned opencadcodec under its upstream Rust name `opencadcodec`.
-Nonzero BLOCK bases now pass both real DXF and DWG routes, including the browser
-smoke fixture, without marker repair or block explosion. Paper CAD conversion
-retains multiple sheets, separate coordinate units and expanded clips through
-the documented codec repairs. Full plot conversion remains deferred. The
-separately pinned Open CAD Studio viewer is unchanged.
-
-The chooser and built assets contain four representative drawings per format:
-overview, text, Hatches and Dimensions. Overviews include Model/Paper, blocks and workspace
-state; Hatch drawings show Solid and Pattern together. Specialized inputs live
-under repository `tests/fixtures/` and are not shipped by site assembly. Retired
-example assets are pruned on rebuild without rewriting unchanged bundles.
-Browser worker, UI and WASM smoke tests
-exercise both native formats. Publishing remains a separate repository action.
-
-Expanded IFCCAD geometry and supplied scope bounds appear in composed nodes.
-Import reports expose `conversion.geometryAssessment`; CAD exports expose
-`export.geometryAssessment` and independent readback evidence under
-`export.fileCheck.geometryAssessment`. Domains show units, resolved limits,
-counts and source/occurrence evidence. Identity fields in these records are
-decimal strings to preserve uint64 values. Numerical failures expose a structured
-`failure.geometry` reason and available limit/deviation. Each report qualifies
-its own conversion boundary, rather than equality through an arbitrary codec.
-The browser request applies the selected default, exact or explicit tolerance,
-including a drawing-coordinate limit for unitless domains, to both conversion
-routes. Native validation retains its own rules; no UI setting is stored in
-native geometry. See [shared geometry](../docs/geometry/shared-geometry.md).
-
-
-The structure tree expands only structural children. Record properties expand
-under Stored values in the inspector, preserving nested expansion and clickable
-references. Primitive property names and values are plain text; the inspector heading stays
-on the selected native record.
-
-The first property layer opens by default. Property headings show a left chevron
-and title without field counts; explicit expansion/collapse is retained until a
-new source is opened.
-
-Clicking a small navigation group opens its members inline; its arrow still
-supports collapsing it. Larger groups open the middle list.
-
-
-Native layout selection activates that layout in generated Open CAD Studio.
-Selecting a qualified element in another layout switches to its owner layout
-before selecting it, without a new export or drawing reload. CAD commands/dialogs
-are respected, and missing layouts are reported. Switching layouts follows OCS's
-normal saved-view behavior. Ordinary property labels/values are text; nested
-object headings and typed reference links remain interactive.
-
-
-Solid Hatch has a dedicated entity label/group, a contour-count/fill-rule list
-summary, and nested properties for stored loops and join tolerance. Loop sources
-are navigable typed references in Properties and Relationships. Both formats have
-an official Solid Hatch/source-contour example in the menu. Hatch storage rows
-remain inspectable in OCDraw hatchStream. Filled area/nesting remain unassessed;
-join tolerance is local and independent of conversion accuracy. Native contour
-sources do not regenerate stored boundaries. No pattern/gradient fallback is
-introduced. See ../docs/hatch.md for the native and conversion contract.
-
-The existing Drawing overview example in each native route includes complex
-line patterns; the chooser remains at four drawings per format. Pattern
-inspection shows ordered text/SHX markers and links to ordinary text styles or
-independent symbol sources, including repeated filenames and full-width IFCCAD
-paths. Source filenames do not imply availability; no SHX upload or asset probe
-is added. The embedded editor may resolve its own libraries. Derived Partial
-symbol coverage, producer bounds claims and enclosure verification remain separate
-in inspection, alongside existing text estimates. See
-[complex line patterns](../docs/line-patterns.md).
-
-## Dimension properties and fraction preview
-
-Dimension entities, named styles, fields and enum values have English/Dutch
-labels. The properties panel separates authored definition, label, overrides and
-source links from the calculated measurement, formatted label and effective
-settings. Calculations use stored definition points; source associations never
-update them implicitly. The source tab retains the original field representation
-and full-width identities remain exact across navigation and language changes.
-
-Typed label fragments display horizontal/diagonal fractions with their relative
-digit scale and a plain accessible label. Literal text is escaped and its existing
-decorations are retained. The preview does not certify CAD fonts, placement or
-bounds; Open CAD Studio loading/regeneration is a separate display check.
+The pinned Open CAD Studio revision is recorded in `ocs-source.json` and the workflow. Preserve its license and self-hosted bundle. The deployment scripts under `deploy/`
+cover release packaging, static smoke, rollback and public verification. Smoke uses
+the shipped IFCCAD manifest and examples, including actual CAD readback where
+available; it does not require source files in the deployed package. CI builds
+only IFCCAD plus the active companions and has separate native Zstd checks.

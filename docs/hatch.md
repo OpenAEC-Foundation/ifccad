@@ -1,5 +1,9 @@
 # Hatch
 
+IFCCAD is the active track. OCDraw descriptions below retain historical context;
+its implementation and fixtures are parked. See [parking](ocdraw-parking.md).
+Only IFCCAD code, schemas and current converter coverage define active behavior.
+
 Current dependency qualification (2026-10-16): codec `325fa98d2b881f48e106a830d5cf161624f63131`
 plus the explicit Dimension text-position repair; viewport repairs are upstream.
 The [current audit](geometry/opencadcodec-update-2026-10-16.md) supersedes dated

@@ -1,4 +1,17 @@
-# Model IO and conversion conventions
+# Active model IO conventions
+
+The root package is now `ifccad`. Import public model and IO types directly from
+`ifccad`, replacing the previous `ocdraw::ifccad` path. The core owns construction,
+validation, preparation, encoding and storage. `ifccad-convert` connects owned
+or validated IFCCAD models to `CadDocument`; CAD runtimes stay outside the core.
+See the [IFCCAD lifecycle](experiments/ifccad-document-lifecycle.md).
+
+OCDraw APIs described in the historical conventions below are parked, not exported
+by the active workspace. Restore their full checkpoint for legacy work; see
+[parking](ocdraw-parking.md). No deprecated compatibility facade is provided.
+
+## Historical conventions before parking
+
 
 The provisional Rust API uses explicit model and conversion direction names.
 OCDraw and IFCCAD remain independent models with independent encoding and
@@ -86,7 +99,7 @@ domain independently. Within-limit rounding is distinct from semantic loss;
 raw-source projection and CAD setter checks remain exact guards.
 Model-specific diagnostic identities and source inventories stay separate.
 Recovery remains distinguishable from semantic loss. The core neutral primitive
-validation lives in `ocdraw::geometry_kernel`, independently of any CAD runtime or IFCX
+validation lives in `ifccad::geometry_kernel`, independently of any CAD runtime or IFCX
 schema. See [shared geometry](geometry/shared-geometry.md).
 
 ## Migration from the previous provisional API
@@ -127,7 +140,7 @@ IDs, allocation watermarks, ordered membership, loss messages and numerical
 guarantees retain their contracts. New geometry, editor context, source writeback
 and merging edited copies remain outside this task.
 
-See the [OCDraw lifecycle](ocdraw-document-lifecycle.md) and
+See the [OCDraw lifecycle](../legacy/ocdraw/docs/ocdraw-document-lifecycle.md) and
 [IFCCAD lifecycle](experiments/ifccad-document-lifecycle.md) for model-specific
 guarantees and the converter READMEs for executable examples.
 
@@ -138,7 +151,7 @@ consistently. This is a breaking naming migration without deprecated aliases.
 
 | Previous name | Current name |
 | --- | --- |
-| `ocdraw::ifcx_cad`, `src/ifcx_cad` | `ocdraw::ifccad`, `src/ifccad` |
+| `ocdraw::ifcx_cad`, `src/ifcx_cad` | `ifccad`, `src/ifccad` |
 | `ifcx-cad-convert`, `ifcx_cad_convert` | `ifccad-convert`, `ifccad_convert` |
 | `IfcxCadDocument`, other `IfcxCad…` types | `IfccadDocument`, corresponding `Ifccad…` types |
 | `ValidatedIfcxCad`, `EncodedIfcxCad` | `ValidatedIfccad`, `EncodedIfccad` |

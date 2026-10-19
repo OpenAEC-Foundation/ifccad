@@ -1,5 +1,5 @@
+use ifccad::*;
 use ifccad_convert::*;
-use ocdraw::ifccad::*;
 use opencadcodec::{CadDocument, Color, EntityType, LineWeight, Transparency, Vector3};
 pub fn captured() -> IfccadDocument {
     let mut cad = CadDocument::new();

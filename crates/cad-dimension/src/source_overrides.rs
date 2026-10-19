@@ -1,6 +1,6 @@
 //! Bounded source DSTYLE grammar and context-dependent preparation.
 use crate::*;
-use ocdraw::dimension::*;
+use ifccad::dimension::*;
 use opencadcodec::{
     tables::DimStyle,
     xdata::{ExtendedDataRecord, XDataValue as X},

@@ -77,7 +77,7 @@ pub(crate) fn validate_workspace(document: &IfccadDocument) -> Result<(), Ifccad
         let path = format!("{prefix}/ucs/{}", ucs.id.0);
         if !ucs_ids.insert(ucs.id)
             || ucs.name.trim().is_empty()
-            || !names.insert(crate::ocdraw::names::name_key(&ucs.name))
+            || !names.insert(crate::names::name_key(&ucs.name))
             || !ucs.elevation.is_finite()
         {
             return Err(fail(&path, "invalid or duplicate UCS definition"));

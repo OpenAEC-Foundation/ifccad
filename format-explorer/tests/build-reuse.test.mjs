@@ -28,5 +28,5 @@ test('unchanged viewer and converter assets retain their files while changed and
 });
 test('Rust check cache includes the repository examples instead of the retired explorer examples folder',async()=>{
  const workflow=await readFile(new URL('../../.github/workflows/format-explorer.yml',import.meta.url),'utf8');
- const key=workflow.split(/\r?\n/).find(line=>line.includes('key: ocdraw-rust-checks-'));assert.match(key,/'examples\/\*\*'/);assert.doesNotMatch(key,/format-explorer\/examples/);
+ const key=workflow.split(/\r?\n/).find(line=>line.includes('key: ifccad-rust-checks-'));assert.match(key,/'examples\/\*\*'/);assert.doesNotMatch(key,/format-explorer\/examples/);
 });

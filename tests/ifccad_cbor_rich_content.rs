@@ -1,4 +1,4 @@
-use ocdraw::ifccad::*;
+use ifccad::*;
 #[path = "support/ifccad_dimension.rs"]
 mod dimensions;
 #[path = "support/ifccad_hatch.rs"]
@@ -6,7 +6,7 @@ mod hatches;
 
 #[test]
 fn inactive_gradient_and_font_false_remain_authored() {
-    use ocdraw::geometry_kernel::hatch::*;
+    use ifccad::geometry_kernel::hatch::*;
     let mut d = hatches::drawing();
     let IfccadEntityKind::Hatch(h) = &mut d.model.entities[0].as_native_mut().unwrap().kind else {
         panic!()
@@ -42,7 +42,7 @@ fn inactive_gradient_and_font_false_remain_authored() {
 
 #[test]
 fn dimensions_retain_all_style_selectors_and_authored_presence() {
-    use ocdraw::dimension::*;
+    use ifccad::dimension::*;
     let mut d = dimensions::drawing();
     for kind in [
         DimensionKind::Linear,
@@ -145,7 +145,7 @@ fn signed_zero_subnormals_and_high_watermarks_remain_exact() {
 
 #[test]
 fn current_fraction_settings_and_explicit_resets_survive() {
-    use ocdraw::dimension::*;
+    use ifccad::dimension::*;
     for layout in [
         DimensionFractionLayout::Inline,
         DimensionFractionLayout::Horizontal,
@@ -194,7 +194,7 @@ fn current_fraction_settings_and_explicit_resets_survive() {
 
 #[test]
 fn ordered_hatch_sources_provenance_and_text_islands_survive() {
-    use ocdraw::geometry_kernel::hatch::HatchLoopProvenance;
+    use ifccad::geometry_kernel::hatch::HatchLoopProvenance;
     for enabled in [false, true] {
         let mut d = hatches::drawing();
         let IfccadEntityKind::Hatch(h) = &mut d.model.entities[0].as_native_mut().unwrap().kind

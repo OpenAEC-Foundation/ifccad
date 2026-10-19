@@ -1,8 +1,8 @@
-use ocdraw::geometry_kernel::hatch::{
+use ifccad::geometry_kernel::hatch::{
     hatch_bounds, validate_hatch_boundaries, HatchBoundary2, HatchEdge2, HatchFailureReason,
     DEFAULT_HATCH_JOIN_TOLERANCE,
 };
-use ocdraw::geometry_kernel::{CoordinateFrame3, Point3, Vector3};
+use ifccad::geometry_kernel::{CoordinateFrame3, Point3, Vector3};
 
 #[test]
 fn circle_enclosure_is_exact_for_identity_plane() {

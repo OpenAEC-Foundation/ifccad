@@ -1,6 +1,6 @@
 //! CAD Paper ownership and layout allocation; plot mapping is separate.
 use crate::{IfccadConversionError, IfccadDiagnostic, IfccadMappings};
-use ocdraw::ifccad::IfccadPaperLayout;
+use ifccad::IfccadPaperLayout;
 use opencadcodec::objects::ObjectType;
 use opencadcodec::{CadDocument, EntityType, Handle};
 pub(crate) fn allocate(

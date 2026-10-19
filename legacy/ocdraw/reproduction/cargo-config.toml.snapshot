@@ -1,0 +1,11 @@
+# Copy as .cargo/config.toml in a complete frozen checkout.
+# Clone opencadcodec at dependencyRevision to this repository-local directory,
+# then apply selected-codec.patch from this reproduction directory.
+[patch."https://github.com/HakanSeven12/opencadcodec.git"]
+opencadcodec = { path = ".superpowers/dependencies/ocdraw-frozen-codec" }
+[build]
+target-dir = "target"
+[profile.dev]
+debug = 0
+[profile.test]
+debug = 0

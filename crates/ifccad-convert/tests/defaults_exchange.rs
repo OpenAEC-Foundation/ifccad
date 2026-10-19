@@ -1,7 +1,7 @@
 mod common;
 use common::*;
+use ifccad::*;
 use ifccad_convert::*;
-use ocdraw::ifccad::*;
 
 #[test]
 fn compact_and_expanded_sources_have_equal_cad_semantics() {

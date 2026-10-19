@@ -1,7 +1,7 @@
 use crate::diagnostics::diagnostic;
 use crate::units::unit_code;
 use crate::*;
-use ocdraw::ifccad::*;
+use ifccad::*;
 use opencadcodec::{BlockRecord, CadDocument, EntityType};
 
 pub(crate) fn allocate(

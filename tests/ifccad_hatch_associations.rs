@@ -1,5 +1,5 @@
-use ocdraw::geometry_kernel::hatch::*;
-use ocdraw::ifccad::*;
+use ifccad::geometry_kernel::hatch::*;
+use ifccad::*;
 #[path = "support/ifccad_hatch.rs"]
 mod fixture;
 

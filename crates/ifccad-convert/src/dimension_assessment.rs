@@ -1,6 +1,6 @@
 //! Definition-anchor evidence remains separate from unassessed dimension display.
 use crate::IfccadGeometryOwner;
-use ocdraw::{dimension::DimensionTextPlacement, ifccad::*};
+use ifccad::{dimension::DimensionTextPlacement, *};
 use std::collections::BTreeSet;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum IfccadDimensionNumericCoverage {

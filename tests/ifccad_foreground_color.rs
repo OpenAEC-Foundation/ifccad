@@ -1,4 +1,4 @@
-use ocdraw::ifccad::{encode_ifccad_document, load_ifccad_bytes};
+use ifccad::{encode_ifccad_document, load_ifccad_bytes};
 use serde_json::{json, Value};
 #[path = "support/ifccad_preservation.rs"]
 mod preservation_support;

@@ -2,20 +2,16 @@
 
 ## Project context
 
-This repository develops OCDraw and IFCCAD in parallel. OCDraw is an open,
-application-independent information model and exchange format for standalone CAD
-drawings; IFCCAD is an independent experimental CAD drawing profile using IFCX.
-IFCCAD was formerly called IFCX-CAD; the repository name matches this track.
-Project-owned API, folder, schema and crate names use IFCCAD; underlying IFCX
-syntax and file extensions retain their IFCX names. Active code and schemas no longer require an
-IFCX package or IFCDR/IFCPR resources. Initial OCDraw 0.1.0 remains provisional.
-
-The active IFCCAD development track has its independent model under
-`src/ifccad`, conversion under `crates/ifccad-convert`, and a separate browser
-inspection/conversion route alongside OCDraw.
-Keep its model, schemas, validation and conversion routes clearly separate from
-standalone OCDraw. IFCX must not become a requirement for opening OCDraw.
-Retiring the old package architecture does not retire this independent experiment.
+IFCCAD is the active CAD drawing profile using IFCX. The root Rust package is
+`ifccad`, with public model/IO types exported directly; implementation remains
+under `src/ifccad`. `ifccad-convert` and the CAD companions own direct CAD exchange.
+The viewer/browser/Explorer support IFCCAD only. OCDraw is parked under
+`legacy/ocdraw`, excluded from ordinary builds/tests and active dependencies.
+Do not restore parity, import archived helpers or add an OCDraw compatibility
+feature. Restore the complete pre-migration checkpoint only for explicitly
+requested legacy work; see `docs/ocdraw-parking.md` and the archive manifest.
+Underlying IFCX syntax/extensions retain their names. CBOR revision 2 and optional
+native Zstd transport revision 1 remain experimental; default WASM excludes Zstd.
 
 Start with:
 
@@ -25,15 +21,14 @@ Start with:
   dependencies, and exit criteria;
 - `docs/vision.md` for long-term use cases, design principles, and success
   criteria;
-- `crates/ocdraw-convert/README.md` for conversion terminology and the boundary
-  between OCDraw and opencadcodec `CadDocument`;
-- `crates/ocdraw-convert/docs/FROM-CAD-COVERAGE.md` for the pinned opencadcodec export
-  coverage and loss-classification contract.
+- `crates/ifccad-convert/README.md` for conversion terminology and the boundary
+  between IFCCAD and opencadcodec `CadDocument`;
+- `crates/ifccad-convert/README.md` for pinned codec coverage and loss classification.
 
 For measurement or encoding work, also read
 `docs/benchmarks/ocdraw-size-exchange-v1.md` for the standalone controlled experiment, its limits,
 and reproduction instructions. Import changes must also consult
-`crates/ocdraw-convert/docs/TO-CAD-COVERAGE.md`.
+`crates/ifccad-convert/README.md`. Historical OCDraw contracts live in the archive.
 
 For performance work, also read `docs/benchmarks/placement-preparation-v1.md`
 for the current preparation measurements and practice-file inventory. Prefer
@@ -80,10 +75,10 @@ follow-up work. Retain designs and plans still needed by active or upcoming work
 
 ## Architecture boundaries
 
-- The core `ocdraw` crate owns the drawing model, shared validation, typed
+- The core `ifccad` crate owns the drawing model, shared validation, typed
   construction, encoding, and standalone file storage.
 - The core crate must remain independent of opencadcodec and other CAD runtimes.
-- The `ocdraw-convert` companion crate owns conversion between validated OCDraw
+- The `ifccad-convert` companion crate owns conversion between validated IFCCAD
   drawings and opencadcodec `CadDocument`.
 - Keep conversion, logical package construction, physical encoding, and
   filesystem storage as separate responsibilities.
@@ -177,8 +172,8 @@ follow-up work. Retain designs and plans still needed by active or upcoming work
   build-cache entries with `-Apply -CleanBuildCache` and reports other `target/`
   content for review. Run cache cleanup only when no build or test process is
   using those directories.
-- When updating opencadcodec, review public-model changes against both converter
-  coverage contracts, including added fields on existing types. Keep local
+- When updating opencadcodec, review public-model changes against the active IFCCAD converter
+  coverage contract, including added fields on existing types. Keep local
   codec patches explicit and tied to a base revision; do not edit the Cargo
   cache or treat patched results as evidence for the unmodified dependency.
 
@@ -192,6 +187,7 @@ Before reporting changes to Rust code, schemas, or conformance fixtures as
 complete, run the full gate on the final integration candidate:
 
 ```text
+python scripts/check_active_workspace.py
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace

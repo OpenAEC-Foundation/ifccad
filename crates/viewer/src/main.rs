@@ -1,26 +1,26 @@
 use base64::{engine::general_purpose::STANDARD, Engine};
 use serde_json::json;
 use std::path::Path;
-use viewer::{export_drawing_bytes, inspect_drawing, progress};
+use viewer::{export_ifccad_bytes, inspect_ifccad, progress};
 fn main() {
     let mut args = std::env::args().collect::<Vec<_>>();
-    let drawing_format = if let Some(index) = args.iter().position(|a| a == "--drawing-format") {
+    let _drawing_format = if let Some(index) = args.iter().position(|a| a == "--drawing-format") {
         if args.iter().filter(|a| *a == "--drawing-format").count() != 1 {
             eprintln!("Choose one drawing format");
             std::process::exit(2);
         }
         let value = args
             .get(index + 1)
-            .filter(|v| matches!(v.as_str(), "ifccad" | "ocdraw"))
+            .filter(|v| v.as_str() == "ifccad")
             .cloned()
             .unwrap_or_else(|| {
-                eprintln!("--drawing-format requires ifccad or ocdraw");
+                eprintln!("OCDRAW_PARKED: --drawing-format only supports ifccad");
                 std::process::exit(2)
             });
         args.drain(index..index + 2);
         value
     } else {
-        "ocdraw".into()
+        "ifccad".into()
     };
     let preserve_splines = args.iter().any(|arg| arg == "--preserve-splines");
     args.retain(|arg| arg != "--preserve-splines");
@@ -30,7 +30,7 @@ fn main() {
         .expect("UTC timestamp");
     progress("reading");
     let result = match args.get(1).map(String::as_str) {
-        Some("drawing") if args.len() == 3 => inspect_drawing(Path::new(&args[2])),
+        Some("drawing" | "ifccad") if args.len() == 3 => inspect_ifccad(Path::new(&args[2])),
         Some("cad") if args.len() == 3 => {
             let path = Path::new(&args[2]);
             let format = path
@@ -39,16 +39,8 @@ fn main() {
                 .unwrap_or("")
                 .to_ascii_lowercase();
             match std::fs::read(path) {
-                Ok(bytes) if drawing_format == "ifccad" => {
-                    viewer::inspect_cad_as_ifccad_bytes_with_options(
-                        &args[2], &format, &bytes, &timestamp, &options,
-                    )
-                }
-                Ok(bytes) => viewer::inspect_cad_as_drawing_bytes_with_preservation(
-                    &args[2],
-                    &format,
-                    &bytes,
-                    preserve_splines,
+                Ok(bytes) => viewer::inspect_cad_as_ifccad_bytes_with_options(
+                    &args[2], &format, &bytes, &timestamp, &options,
                 ),
                 Err(e) => {
                     let mut r = viewer::result(path, &format);
@@ -65,7 +57,7 @@ fn main() {
                 .unwrap_or("")
                 .to_ascii_lowercase();
             match std::fs::read(path) {
-                Ok(bytes) if drawing_format == "ifccad" => {
+                Ok(bytes) => {
                     let opening = viewer::inspect_cad_as_ifccad_bytes_with_options(
                         &args[2], &format, &bytes, &timestamp, &options,
                     );
@@ -94,14 +86,6 @@ fn main() {
                         exported
                     }
                 }
-                Ok(bytes) => viewer::export_cad_bytes_with_preservation(
-                    &args[2],
-                    &format,
-                    &bytes,
-                    &args[3],
-                    args.get(4).map(String::as_str).unwrap_or("AC1032"),
-                    preserve_splines,
-                ),
                 Err(e) => {
                     let mut r = viewer::result(path, &format);
                     viewer::fail(&mut r, "reading", "CAD_OPEN_FAILED", e);
@@ -109,17 +93,17 @@ fn main() {
                 }
             }
         }
-        Some("export-drawing") if matches!(args.len(), 4 | 5) => {
+        Some("export-drawing" | "export-ifccad") if matches!(args.len(), 4 | 5) => {
             let path = Path::new(&args[2]);
             match std::fs::read(path) {
-                Ok(bytes) => export_drawing_bytes(
+                Ok(bytes) => export_ifccad_bytes(
                     &args[2],
                     &bytes,
                     &args[3],
                     args.get(4).map(String::as_str).unwrap_or("AC1032"),
                 ),
                 Err(e) => {
-                    let mut r = viewer::result(path, "ocdraw");
+                    let mut r = viewer::result(path, "ifccad");
                     viewer::fail(&mut r, "reading", "DRAWING_OPEN_FAILED", e);
                     r
                 }
@@ -127,7 +111,7 @@ fn main() {
         }
         _ => {
             eprintln!(
-                "Usage: viewer drawing FILE | cad FILE [--drawing-format ifccad|ocdraw] [--preserve-splines] | export-cad FILE FORMAT [VERSION] [--drawing-format ifccad|ocdraw] [--preserve-splines] | export-drawing FILE FORMAT [VERSION]"
+                "Usage: viewer drawing FILE | cad FILE [--drawing-format ifccad] [--preserve-splines] | export-cad FILE FORMAT [VERSION] [--drawing-format ifccad] [--preserve-splines] | export-drawing FILE FORMAT [VERSION]"
             );
             std::process::exit(2)
         }

@@ -9,12 +9,12 @@ use cad_geometry_convert::{
     },
     GeometryPair,
 };
-use num_rational::BigRational as Q;
-use num_traits::Zero;
-use ocdraw::geometry_kernel::{
+use ifccad::geometry_kernel::{
     BlockTransform, CoordinateFrame3, Point3, Scale3, Vector3 as NativeVector,
 };
-use ocdraw::text::*;
+use ifccad::text::*;
+use num_rational::BigRational as Q;
+use num_traits::Zero;
 use opencadcodec::{
     entities::{TextHorizontalAlignment as H, TextVerticalAlignment as V},
     EntityType, MText, Text, Vector3,

@@ -1,7 +1,7 @@
 mod common;
 use common::*;
+use ifccad::*;
 use ifccad_convert::*;
-use ocdraw::ifccad::*;
 
 #[test]
 fn fresh_cad_import_emits_valid_counters_under_both_policies() {
@@ -76,7 +76,7 @@ fn empty_roundtrip_keeps_unit_and_unused_layer() {
             .collect::<Vec<_>>(),
         ["0", "Notes"]
     );
-    ocdraw::ifccad::load_ifccad_bytes(result.encoded().bytes(), Default::default()).unwrap();
+    ifccad::load_ifccad_bytes(result.encoded().bytes(), Default::default()).unwrap();
 }
 
 #[test]

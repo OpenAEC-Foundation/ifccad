@@ -3,7 +3,7 @@ use cad_geometry_convert::{
     units::q,
     GeometryTolerance,
 };
-use ocdraw::geometry_kernel::CoordinateLengthUnit as Unit;
+use ifccad::geometry_kernel::CoordinateLengthUnit as Unit;
 
 #[test]
 fn physical_tolerance_fallback_is_explicit_and_domain_specific() {

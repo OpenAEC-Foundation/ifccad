@@ -1,5 +1,9 @@
 # OCDraw and IFCCAD Text and MText
 
+IFCCAD is the active track. OCDraw descriptions below retain historical context;
+its implementation and fixtures are parked. See [parking](ocdraw-parking.md).
+Only IFCCAD code, schemas and current converter coverage define active behavior.
+
 Current dependency qualification (2026-10-16): codec `325fa98d2b881f48e106a830d5cf161624f63131`
 plus the explicit Dimension text-position repair; viewport repairs are upstream.
 The [current audit](geometry/opencadcodec-update-2026-10-16.md) supersedes dated
@@ -36,7 +40,7 @@ OCDraw identities and reference checks; text does not masquerade as a curve.
 use the existing shared entity counter and ordered scope ownership. Reader
 accessors expose typed records. The registered `textStream` and `mTextStream`
 use ordinary row columns for common values and closed nested rows for layout and
-content. The [logical contract](../schemas/ocdraw/logical-contract-0.1.0.md#text),
+content. The [logical contract](../legacy/ocdraw/schemas/ocdraw/logical-contract-0.1.0.md#text),
 registry, JSON mapping and active schema define the provisional wire contract.
 
 IFCCAD uses `IfccadTextStyleId(u64)`, `IfccadTextStyle`, `IfccadText` and
@@ -128,7 +132,7 @@ or full CAD/native parity. See both OCDraw converter coverage contracts and
 viewport-off-state repair; it is not evidence for an unmodified dependency.
 No size/exchange measurement was run for this slice.
 
-Generate the [Explorer example](../examples/ocdraw/text.ocdraw.json) with
+Generate the [Explorer example](../legacy/ocdraw/examples/ocdraw/text.ocdraw.json) with
 `cargo run --example write_text -- <new-output.ocdraw.json>`. The producer strictly
 reads its output and refuses overwrite. Fonts remain requested rather than bundled.
 

@@ -5,11 +5,11 @@ pub enum CadTextError {
     #[error("invalid CAD text structure: {0}")]
     InvalidSource(&'static str),
     #[error("invalid native text values: {0}")]
-    Values(#[from] ocdraw::text::TextValueError),
+    Values(#[from] ifccad::text::TextValueError),
     #[error("invalid CAD text content: {0}")]
     Markup(#[from] crate::markup::TextMarkupError),
     #[error("invalid text frame: {0}")]
-    Frame(#[from] ocdraw::geometry_kernel::CoordinateFrameError),
+    Frame(#[from] ifccad::geometry_kernel::CoordinateFrameError),
     #[error("CAD text numeric preparation failed: {0}")]
     Preparation(#[from] cad_geometry_convert::CadPreparationError),
     #[error("CAD text numeric preparation exceeds finite range")]

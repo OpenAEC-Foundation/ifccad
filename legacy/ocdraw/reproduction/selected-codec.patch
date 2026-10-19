@@ -1,0 +1,49 @@
+diff --git a/src/entities/dimension.rs b/src/entities/dimension.rs
+index c7d70ed..7f97ffc 100644
+--- a/src/entities/dimension.rs
++++ b/src/entities/dimension.rs
+@@ -92,8 +92,8 @@ pub struct DimensionBase {
+     pub flip_arrow1: bool,
+     /// Flip the second dimension arrow.
+     pub flip_arrow2: bool,
+-    /// Complete DWG dimension flag byte. Bit zero mirrors
+-    /// [`text_user_positioned`](Self::text_user_positioned).
++    /// Complete DWG dimension flag byte. Bit zero has the opposite polarity to
++    /// [`text_user_positioned`](Self::text_user_positioned), matching ODA and DXF 70 bit 128.
+     pub dwg_flags_byte: u8,
+     /// Dimension text was positioned at a user-defined location rather than at
+     /// the style's default (DXF group 70, bit 0x80). When false the text
+diff --git a/src/io/dwg/dwg_document_builder.rs b/src/io/dwg/dwg_document_builder.rs
+index 8beb710..962ee5a 100644
+--- a/src/io/dwg/dwg_document_builder.rs
++++ b/src/io/dwg/dwg_document_builder.rs
+@@ -8185,8 +8185,8 @@ fn map_dimension_common(
+     base.normal = common.normal;
+     base.text_middle_point = common.text_middle_point;
+     base.dwg_flags_byte = common.flags_byte;
+-    // Flags byte bit 0: dimension text positioned at a user-defined location.
+-    base.text_user_positioned = (common.flags_byte & 0x01) != 0;
++    // ODA Common Dimension Data: bit 0 is the opposite of DXF 70 bit 128.
++    base.text_user_positioned = (common.flags_byte & 0x01) == 0;
+     base.text = common.text.clone();
+     base.text_rotation = common.text_rotation;
+     base.horizontal_direction = common.horizontal_direction;
+diff --git a/src/io/dwg/dwg_stream_writers/object_writer/entities.rs b/src/io/dwg/dwg_stream_writers/object_writer/entities.rs
+index b6114ce..9249a69 100644
+--- a/src/io/dwg/dwg_stream_writers/object_writer/entities.rs
++++ b/src/io/dwg/dwg_stream_writers/object_writer/entities.rs
+@@ -2345,11 +2345,11 @@ impl<'a> DwgObjectWriter<'a> {
+         // Elevation BD 11 Z-coord
+         self.writer.write_bit_double(base.text_middle_point.z);
+ 
+-        // Flags byte — bit 0: text positioned at a user-defined location.
++        // DWG bit 0 has the opposite polarity to DXF 70 bit 128.
+         let flags_byte = if base.text_user_positioned {
+-            base.dwg_flags_byte | 0x01
+-        } else {
+             base.dwg_flags_byte & !0x01
++        } else {
++            base.dwg_flags_byte | 0x01
+         };
+         self.writer.write_byte(flags_byte);
+ 

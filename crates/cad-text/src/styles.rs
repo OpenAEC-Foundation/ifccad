@@ -1,5 +1,5 @@
 use crate::CadTextError;
-use ocdraw::text::*;
+use ifccad::text::*;
 use opencadcodec::tables::TextStyle;
 
 pub struct PreparedTextStyle {

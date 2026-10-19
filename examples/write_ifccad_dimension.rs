@@ -1,5 +1,5 @@
 //! Author independent native IFCCAD ordinary dimensions and exact path references.
-use ocdraw::{dimension::*, ifccad::*, text::*};
+use ifccad::{dimension::*, text::*, *};
 use std::collections::BTreeMap;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let path = std::env::args()

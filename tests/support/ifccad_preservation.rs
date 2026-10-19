@@ -1,4 +1,4 @@
-use ocdraw::ifccad::*;
+use ifccad::*;
 pub fn base() -> IfccadDocument {
     load_ifccad_bytes(
         include_bytes!("../../tests/fixtures/ifccad/hello-cad.ifcx"),

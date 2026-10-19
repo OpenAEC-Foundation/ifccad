@@ -18,11 +18,11 @@ graph and canonical output, including XY line endpoints. Expanded and compact
 spellings are equivalent; foreign graph content and exact scalar projection loss
 still receive the existing diagnostics. Typed document conversion is unchanged.
 
-Experimental direct conversion between `ocdraw::ifccad` and pinned
+Experimental direct conversion between `ifccad` and pinned
 opencadcodec `CadDocument`. The core remains independent of opencadcodec. No IFCDR
 package, block explosion or appearance resolver is used.
 
-The source organization follows `ocdraw-convert`: [`src/from_cad`](src/from_cad)
+The source organization separates directions: [`src/from_cad`](src/from_cad)
 and [`src/to_cad`](src/to_cad) own conversion orchestration and entity construction;
 [`src/mapping`](src/mapping) owns format-specific geometry, appearance, block,
 layout, line-pattern and viewport adapters; [`src/source`](src/source) inspects
@@ -78,7 +78,7 @@ See the [document lifecycle](../../docs/experiments/ifccad-document-lifecycle.md
 for ownership, validation and output boundaries.
 
 ```rust
-use ocdraw::ifccad::ValidatedIfccad;
+use ifccad::ValidatedIfccad;
 use ifccad_convert::{ifccad_source_to_cad_document, cad_document_to_encoded_ifccad,
     IfccadTargetMetadata, IfccadConversionError};
 
@@ -249,18 +249,14 @@ The serde feature enables field inspection, not a new file encoding. No Cargo
 cache code is edited. Baseline benchmark code is unchanged; no size experiment
 is part of this proof. Cargo.lock follows the repository's existing ignore rule.
 
-## OCDraw boundary
+## Core and CAD boundary
 
-This adapter remains separate from `ocdraw-convert`. Its root dependency is the
-`ocdraw` crate, whose independent IFCCAD module lives in `src/ifccad`.
-Both readers use the neutral core geometry validation and unit registry;
-IFCX nodes, composition, schema imports and profile validation stay separate
-from the standalone OCDraw model and JSON encoding. Conversion is direct to
-`CadDocument`, without an intermediate OCDraw file.
-
-Both converters use the `cad-geometry-convert` companion for CAD preparation, tolerance
-resolution and paired primitive/nested occurrence proof. Model identity and
-source coverage stay in their own adapters. See [shared geometry](../../docs/geometry/shared-geometry.md). Browser support and main integration are implemented as an independent route.
+The root dependency is `ifccad`, with direct public types and internal model
+implementation under `src/ifccad`. Conversion connects validated IFCCAD directly
+to `CadDocument`. The core remains independent of CAD runtimes. Neutral kernels
+and the CAD companions retain their separate responsibilities. OCDraw reference
+source is archived and is never an intermediate conversion step.
+See [shared geometry](../../docs/geometry/shared-geometry.md).
 
 ### Line-pattern conversion boundary
 

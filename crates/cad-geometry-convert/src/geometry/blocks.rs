@@ -92,7 +92,7 @@ pub struct EvaluatedBlock {
     pub constant: [[Q; 3]; 3],
 }
 impl EvaluatedBlock {
-    pub fn native(transform: ocdraw::geometry_kernel::BlockTransform, base: [f64; 3]) -> Self {
+    pub fn native(transform: ifccad::geometry_kernel::BlockTransform, base: [f64; 3]) -> Self {
         let (o, u, v) = super::components(transform.placement());
         let u = u.map(exact);
         let v = v.map(exact);
@@ -247,14 +247,14 @@ pub fn from_cad_instance<S: crate::GeometrySource>(
     assessment: &crate::GeometryAssessment<S>,
 ) -> Result<
     (
-        ocdraw::geometry_kernel::BlockTransform,
+        ifccad::geometry_kernel::BlockTransform,
         EvaluatedBlock,
         EvaluatedBlock,
     ),
     Box<crate::GeometryFailure<S>>,
 > {
     use crate::{GeometryFailureReason as Reason, GeometryStage as Stage};
-    use ocdraw::geometry_kernel::{BlockTransform, CoordinateFrame3, Point3, Scale3, Vector3};
+    use ifccad::geometry_kernel::{BlockTransform, CoordinateFrame3, Point3, Scale3, Vector3};
     let source = S::cad_entity(insert.common.handle, "INSERT".into());
     let fail = || {
         assessment.failure(
@@ -330,7 +330,7 @@ pub fn from_cad_instance<S: crate::GeometrySource>(
 
 pub fn polyline_pairs(
     poly: &opencadcodec::LwPolyline,
-    plane: ocdraw::geometry_kernel::CoordinateFrame3,
+    plane: ifccad::geometry_kernel::CoordinateFrame3,
 ) -> Vec<PairedPoint> {
     let basis = super::cad_plane(poly.normal).expect("validated CAD polyline axes");
     let (o, x, y) = super::components(plane);
@@ -377,7 +377,7 @@ pub fn polyline_pairs(
 }
 
 pub fn to_cad_instance_parts<S: crate::GeometrySource>(
-    transform: ocdraw::geometry_kernel::BlockTransform,
+    transform: ifccad::geometry_kernel::BlockTransform,
     name: &str,
     base: [f64; 3],
     source: S,
@@ -457,7 +457,7 @@ pub fn to_cad_instance_parts<S: crate::GeometrySource>(
 }
 
 pub fn import_polyline_parts(
-    placement: ocdraw::geometry_kernel::CoordinateFrame3,
+    placement: ifccad::geometry_kernel::CoordinateFrame3,
     vertices: &[[f64; 3]],
     closed: bool,
     target: &opencadcodec::LwPolyline,

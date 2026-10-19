@@ -5,25 +5,6 @@ pub fn conversion_capabilities() -> String {
 }
 
 #[wasm_bindgen]
-pub fn convert_cad_to_drawing_with_options(
-    name: &str,
-    format: &str,
-    bytes: &[u8],
-    options: &str,
-) -> String {
-    viewer::inspect_cad_as_drawing_bytes_with_options(name, format, bytes, options).to_string()
-}
-#[wasm_bindgen]
-pub fn export_drawing_with_options(
-    name: &str,
-    bytes: &[u8],
-    format: &str,
-    version: &str,
-    options: &str,
-) -> String {
-    viewer::export_drawing_bytes_with_options(name, bytes, format, version, options).to_string()
-}
-#[wasm_bindgen]
 pub fn convert_cad_to_ifccad_with_options(
     name: &str,
     format: &str,
@@ -46,31 +27,6 @@ pub fn export_ifccad_with_options(
 }
 
 #[wasm_bindgen]
-pub fn open_drawing(name: &str, bytes: &[u8]) -> String {
-    viewer::inspect_drawing_bytes(name, bytes).to_string()
-}
-
-#[wasm_bindgen]
-pub fn convert_cad_to_drawing(name: &str, format: &str, bytes: &[u8]) -> String {
-    viewer::inspect_cad_as_drawing_bytes(name, format, bytes).to_string()
-}
-
-#[wasm_bindgen]
-pub fn convert_cad_to_drawing_with_preservation(
-    name: &str,
-    format: &str,
-    bytes: &[u8],
-    capture: bool,
-) -> String {
-    viewer::inspect_cad_as_drawing_bytes_with_preservation(name, format, bytes, capture).to_string()
-}
-
-#[wasm_bindgen]
-pub fn export_drawing(name: &str, bytes: &[u8], format: &str, version: &str) -> String {
-    viewer::export_drawing_bytes(name, bytes, format, version).to_string()
-}
-
-#[wasm_bindgen]
 pub fn open_ifccad(name: &str, bytes: &[u8]) -> String {
     viewer::inspect_ifccad_bytes(name, bytes).to_string()
 }
@@ -84,51 +40,55 @@ pub fn convert_cad_to_ifccad(name: &str, format: &str, bytes: &[u8], timestamp: 
 pub fn export_ifccad(name: &str, bytes: &[u8], format: &str, version: &str) -> String {
     viewer::export_ifccad_bytes(name, bytes, format, version).to_string()
 }
+
 #[cfg(test)]
-mod hatch_tests {
+mod tests {
     #[test]
-    fn browser_gradient_routes_forward_state_and_reject_file_loss() {
-        let o = include_bytes!("../../../tests/fixtures/ocdraw/hello-hatch-gradient.ocdraw.json");
-        let i = include_bytes!("../../../tests/fixtures/ifccad/hello-hatch-gradient.ifcx");
-        for result in [
-            super::open_drawing("gradient.ocdraw.json", o),
-            super::open_ifccad("gradient.ifcx", i),
-        ] {
-            let v: serde_json::Value = serde_json::from_str(&result).unwrap();
-            assert_eq!(v["presentation"]["hatchEntityCount"], 2);
-            assert!(result.contains("partial"));
-        }
-        let result = super::export_drawing_with_options(
-            "gradient.ocdraw.json",
-            o,
-            "dxf",
-            "AC1032",
-            r#"{"lossPolicy":"reject"}"#,
-        );
-        let v: serde_json::Value = serde_json::from_str(&result).unwrap();
-        assert_eq!(v["failure"]["code"], "CAD_EXCHANGE_LOSS_REJECTED");
-        assert!(v["export"]["download"].is_null());
-        let result = super::export_ifccad_with_options(
+    fn ifccad_hatch_routes_keep_state_and_report_qualified_readback() {
+        let input = include_bytes!("../../../tests/fixtures/ifccad/hello-hatch-gradient.ifcx");
+        let opened = super::open_ifccad("gradient.ifcx", input);
+        let value: serde_json::Value = serde_json::from_str(&opened).unwrap();
+        assert!(value["failure"].is_null());
+        assert_eq!(value["presentation"]["hatchEntityCount"], 2);
+        assert!(opened.contains("partial"));
+        let output: serde_json::Value = serde_json::from_str(&super::export_ifccad_with_options(
             "gradient.ifcx",
-            i,
+            input,
             "dxf",
             "AC1032",
-            r#"{"lossPolicy":"reject"}"#,
-        );
-        let v: serde_json::Value = serde_json::from_str(&result).unwrap();
-        assert_eq!(v["failure"]["code"], "CAD_EXCHANGE_LOSS_REJECTED");
+            "{}",
+        ))
+        .unwrap();
+        assert!(output["failure"].is_null());
+        assert!(output["export"]["download"]["base64"].is_string());
     }
     #[test]
-    fn existing_browser_open_routes_expose_hatch_inspection() {
-        assert!(super::open_drawing(
-            "hatch.ocdraw.json",
-            include_bytes!("../../../tests/fixtures/ocdraw/hello-hatch-solid.ocdraw.json")
-        )
-        .contains("hatchEntityCount\":1"));
-        assert!(super::open_ifccad(
+    fn hatch_solid_open_and_gradient_reject_keep_ifccad_evidence() {
+        let solid: serde_json::Value = serde_json::from_str(&super::open_ifccad(
             "hatch.ifcx",
-            include_bytes!("../../../tests/fixtures/ifccad/hello-hatch-solid.ifcx")
-        )
-        .contains("hatchEntityCount\":1"));
+            include_bytes!("../../../tests/fixtures/ifccad/hello-hatch-solid.ifcx"),
+        ))
+        .unwrap();
+        assert_eq!(solid["presentation"]["hatchEntityCount"], 1);
+        let rejected: serde_json::Value = serde_json::from_str(&super::export_ifccad_with_options(
+            "gradient.ifcx",
+            include_bytes!("../../../tests/fixtures/ifccad/hello-hatch-gradient.ifcx"),
+            "dxf",
+            "AC1032",
+            r#"{"lossPolicy":"reject"}"#,
+        ))
+        .unwrap();
+        assert_eq!(rejected["failure"]["code"], "CAD_EXCHANGE_LOSS_REJECTED");
+        assert!(rejected["export"]["download"].is_null());
+    }
+    #[test]
+    fn parked_input_does_not_parse_as_ifccad() {
+        let value: serde_json::Value =
+            serde_json::from_str(&super::open_ifccad("old.ocdraw.json", b"{}")).unwrap();
+        assert_eq!(value["failure"]["code"], "OCDRAW_PARKED");
+        let capabilities: serde_json::Value =
+            serde_json::from_str(&super::conversion_capabilities()).unwrap();
+        assert!(capabilities.get("ocdraw").is_none());
+        assert_eq!(capabilities["ifccad"]["splinePreservation"], true);
     }
 }

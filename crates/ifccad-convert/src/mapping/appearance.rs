@@ -1,6 +1,6 @@
 use crate::diagnostics::{diagnostic, modification};
 use crate::IfccadDiagnostic;
-use ocdraw::ifccad::{IfccadColor, IfccadEntityAppearance, IfccadLayerAppearance, IfccadMode};
+use ifccad::{IfccadColor, IfccadEntityAppearance, IfccadLayerAppearance, IfccadMode};
 use opencadcodec::entities::EntityCommon;
 use opencadcodec::{Color, Layer, LineWeight, Transparency};
 

@@ -3,7 +3,7 @@ use cad_geometry_convert::{
     units::{q, ResolvedTolerance},
     GeometryTolerance,
 };
-use ocdraw::{geometry_kernel::CoordinateLengthUnit as Unit, plot_kernel::MediaUnit};
+use ifccad::{geometry_kernel::CoordinateLengthUnit as Unit, plot_kernel::MediaUnit};
 #[test]
 fn physical_plot_conversion_is_exact_or_fails() {
     let inch = MediaUnit::Physical(Unit::Inch);

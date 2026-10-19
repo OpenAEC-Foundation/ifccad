@@ -1,5 +1,5 @@
 use cad_dimension::*;
-use ocdraw::dimension::*;
+use ifccad::dimension::*;
 use opencadcodec::{
     objects::{AssocDimensionAssociation, AssocDimensionReference},
     CadDocument, EntityType, Handle, Line, Vector3,

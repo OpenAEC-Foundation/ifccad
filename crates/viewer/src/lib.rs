@@ -3,18 +3,16 @@ mod cad;
 mod geometry;
 mod hatch_exchange;
 mod ifccad;
-mod inspection;
-mod inspection_dimension;
 mod inspection_dimension_label;
 mod inspection_ifccad_dimension;
-mod line_pattern;
 mod options;
 mod selection;
+pub use ifccad::{export_ifccad_bytes, inspect_cad_as_ifccad_bytes, inspect_ifccad_bytes};
+use serde_json::{json, Value};
+use std::path::Path;
 pub fn conversion_capabilities() -> Value {
-    json!({"ocdraw":{"adjustableTolerance":true,"coordinateToleranceDefault":true,"coordinateToleranceFallback":true,"splinePreservation":true},"ifccad":{"adjustableTolerance":true,"coordinateToleranceDefault":true,"coordinateToleranceFallback":true,"splinePreservation":true}})
+    json!({"ifccad":{"adjustableTolerance":true,"coordinateToleranceDefault":true,"coordinateToleranceFallback":true,"splinePreservation":true}})
 }
-pub use ocdraw::{export_drawing_bytes_with_options, inspect_cad_as_drawing_bytes_with_options};
-
 pub fn export_ifccad_bytes_with_options(
     name: &str,
     bytes: &[u8],
@@ -39,15 +37,16 @@ pub fn inspect_cad_as_ifccad_bytes_with_options(
         Err(e) => options::invalid(name, "ifccad", "INVALID_CONVERSION_OPTIONS", e),
     }
 }
-mod ocdraw;
-pub use ifccad::{export_ifccad_bytes, inspect_cad_as_ifccad_bytes, inspect_ifccad_bytes};
-pub use ocdraw::{
-    export_cad_bytes, export_cad_bytes_with_preservation, export_drawing_bytes,
-    inspect_cad_as_drawing_bytes, inspect_cad_as_drawing_bytes_with_preservation, inspect_drawing,
-    inspect_drawing_bytes,
-};
-use serde_json::{json, Value};
-use std::path::Path;
+pub fn inspect_ifccad(path: &Path) -> Value {
+    match std::fs::read(path) {
+        Ok(bytes) => inspect_ifccad_bytes(&path.to_string_lossy(), &bytes),
+        Err(error) => {
+            let mut output = result(path, "ifccad");
+            fail(&mut output, "reading", "IFCCAD_OPEN_FAILED", error);
+            output
+        }
+    }
+}
 pub fn result(path: &Path, format: &str) -> Value {
     json!({"source":{"name":path.file_name().unwrap_or_default().to_string_lossy(),"format":format},"reader":{"status":"ok","messages":[]},"conversion":null,"validation":null,"presentation":null,"failure":null})
 }

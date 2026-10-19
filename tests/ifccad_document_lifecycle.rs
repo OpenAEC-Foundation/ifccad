@@ -1,4 +1,4 @@
-use ocdraw::ifccad::*;
+use ifccad::*;
 use serde_json::{json, Value};
 
 const HELLO: &[u8] = include_bytes!("../tests/fixtures/ifccad/hello-cad.ifcx");
@@ -238,10 +238,9 @@ fn invalid_typed_documents_fail_without_encoding() {
         d.paper_layouts[0].settings.media.as_mut().unwrap().width = -1.
     });
     add("paper unit", |d| {
-        d.paper_layouts[0].settings.media.as_mut().unwrap().unit =
-            ocdraw::ifccad::IfccadMediaUnit::Physical(
-                ocdraw::geometry_kernel::CoordinateLengthUnit::Unitless,
-            )
+        d.paper_layouts[0].settings.media.as_mut().unwrap().unit = ifccad::IfccadMediaUnit::Physical(
+            ifccad::geometry_kernel::CoordinateLengthUnit::Unitless,
+        )
     });
     add("paper name", |d| d.paper_layouts[0].name = " ".into());
     add("block unit", |d| {
@@ -258,7 +257,7 @@ fn invalid_typed_documents_fail_without_encoding() {
             .line_pattern_scale = f64::NAN
     });
     add("pattern definition", |d| {
-        d.line_patterns[0].pattern = vec![ocdraw::line_pattern::LinePatternElement::simple(
+        d.line_patterns[0].pattern = vec![ifccad::line_pattern::LinePatternElement::simple(
             f64::INFINITY,
         )]
     });

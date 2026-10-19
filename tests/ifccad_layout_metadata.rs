@@ -1,4 +1,4 @@
-use ocdraw::ifccad::*;
+use ifccad::*;
 use serde_json::{json, Value};
 
 fn wire() -> Value {
@@ -109,10 +109,10 @@ fn names_tabs_units_and_optional_media_are_strict() {
 fn editing_tab_order_preserves_units_identity_and_allocation() {
     let mut document = read(&papers()).unwrap().into_document();
 
-    document.paper_layouts[0].settings.media = Some(ocdraw::ifccad::IfccadLayoutMedia {
+    document.paper_layouts[0].settings.media = Some(ifccad::IfccadLayoutMedia {
         width: 297.,
         height: 210.,
-        unit: ocdraw::ifccad::IfccadMediaUnit::from_token("mm").unwrap(),
+        unit: ifccad::IfccadMediaUnit::from_token("mm").unwrap(),
     });
     let counters = document.id_counters;
     document.paper_layouts[0].tab_index = 2;

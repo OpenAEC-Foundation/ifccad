@@ -40,8 +40,8 @@ assert.doesNotMatch(html,/id="processing"/);
 const processorHead=await request('/wasm/browser_bg.wasm',{method:'HEAD'});
 assert.equal(processorHead.headers['content-type'],'application/wasm');
 const processorScript=await (await request('/wasm/browser.js')).text();
-assert.match(processorScript,/convert_cad_to_drawing/);
-assert.match(processorScript,/open_drawing/);
+assert.match(processorScript,/convert_cad_to_ifccad/);
+assert.match(processorScript,/open_ifccad/);
 for(const api of ['open_ifccad','convert_cad_to_ifccad','export_ifccad'])assert.ok(processorScript.includes(`export function ${api}(`),`Missing IFCCAD API: ${api}`);
 for(const example of examples){
  const head=await request('/'+example.path,{method:'HEAD'});
@@ -57,23 +57,23 @@ if(mode==='full') {
   assert.equal(wasmHead.headers['x-frame-options'],'SAMEORIGIN');
   const workerHead=await request('/ocs/app/worker_pkg/ocs_web_worker_bg.wasm',{method:'HEAD'});
   assert.equal(workerHead.headers['content-type'],'application/wasm');
-  const example=examples.find(example=>example.format==='OCDraw'&&example.name==='Drawing overview');
-  assert.ok(example,'OCDraw overview is missing from the shipped example manifest');
+  const example=examples.find(example=>example.format==='IFCCAD'&&example.name==='Drawing overview');
+  assert.ok(example,'IFCCAD overview is missing from the shipped example manifest');
   const fixture=await (await request('/'+example.path)).text();
-  const {initSync,open_drawing,convert_cad_to_drawing,export_drawing}=await import('../dist/wasm/browser.js');
+  const {initSync,open_ifccad,convert_cad_to_ifccad,export_ifccad}=await import('../dist/wasm/browser.js');
   const {readFile}=await import('node:fs/promises');
   const {processBrowserRequest}=await import('../dist/browser-worker.mjs');
   initSync({module:await readFile(new URL('../dist/wasm/browser_bg.wasm',import.meta.url))});
-  const wasm={open_drawing,convert_cad_to_drawing,export_drawing};
+  const wasm={open_ifccad,convert_cad_to_ifccad,export_ifccad};
   const name=example.path.split('/').at(-1);
-  const source={kind:'drawing',name,files:[{path:name,bytes:Uint8Array.from(Buffer.from(fixture)).buffer}]};
+  const source={kind:'ifccad',name,files:[{path:name,bytes:Uint8Array.from(Buffer.from(fixture)).buffer}]};
   const process=request=>{const result=processBrowserRequest(request,wasm);assert.equal(result.failure,null,JSON.stringify(result.failure));assert.equal(result.validation.strictAvailable,true);return result;};
   process(source);
-  for(const format of ['dxf','dwg','ocdraw']){
+  for(const format of ['dxf','dwg','ifccad']){
    const result=process({...source,export:{format,version:'AC1027'}}),download=result.export.download;
    assert.equal(download.format,format);
    const bytes=Buffer.from(download.base64,'base64');assert.equal(bytes.length,download.byteLength);
-   process({kind:format==='ocdraw'?'drawing':'cad',name:'readback',files:[{path:'readback.'+(format==='ocdraw'?'ocdraw.json':format),bytes:Uint8Array.from(bytes).buffer}]});
+   process({kind:format==='ifccad'?'ifccad':'cad',name:'readback',files:[{path:'readback.'+(format==='ifccad'?'ifcx':format),bytes:Uint8Array.from(bytes).buffer}]});
    console.log(`Verified browser WASM ${format} export and readback`);
   }
 }

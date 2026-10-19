@@ -40,8 +40,8 @@ fn source() -> (CadDocument, Handle, Handle) {
     (d, layer, viewport)
 }
 mod common;
+use ifccad::*;
 use ifccad_convert::*;
-use ocdraw::ifccad::*;
 #[test]
 fn all_viewport_overrides_merge_with_freezing_and_export_again() {
     let (d, _, _) = source();
@@ -143,7 +143,7 @@ fn literal_source_overrides_survive_actual_dxf_and_dwg() {
 }
 #[test]
 fn shade_plot_is_independent_from_render_mode_and_survives_dwg() {
-    use ocdraw::plot_kernel::ShadedPlotMode as Mode;
+    use ifccad::plot_kernel::ShadedPlotMode as Mode;
     for (value, mode) in [(1, Mode::Wireframe), (2, Mode::Hidden), (3, Mode::Rendered)] {
         let (mut d, _, handle) = source();
         let EntityType::Viewport(view) = d.get_entity_mut(handle).unwrap() else {

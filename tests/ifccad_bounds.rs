@@ -1,4 +1,4 @@
-use ocdraw::ifccad::*;
+use ifccad::*;
 fn base() -> IfccadDocument {
     load_ifccad_bytes(
         include_bytes!("../tests/fixtures/ifccad/hello-cad.ifcx"),
@@ -167,7 +167,7 @@ fn paper_bounds_use_coordinates_and_include_hidden_viewport_frames() {
     recompute_ifccad_document_bounds(&mut d).unwrap();
     let before = d.paper_layouts[0].bounds;
     d.paper_layouts[0].settings.media = Some(IfccadLayoutMedia {
-        unit: IfccadMediaUnit::Physical(ocdraw::geometry_kernel::CoordinateLengthUnit::Inch),
+        unit: IfccadMediaUnit::Physical(ifccad::geometry_kernel::CoordinateLengthUnit::Inch),
         width: 1000.,
         height: 1000.,
     });

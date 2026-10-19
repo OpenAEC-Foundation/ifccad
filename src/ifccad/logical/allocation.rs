@@ -29,12 +29,12 @@ pub struct IfccadIdAllocationError {
 /// Keep the advanced counter even if the reserved ID is not used.
 ///
 /// ```
-/// use ocdraw::ifccad::IfccadIdCounters;
+/// use ifccad::IfccadIdCounters;
 /// let mut ids = IfccadIdCounters::default();
 /// let reserved = ids.allocate_entity_id()?;
 /// assert_eq!(reserved, 1);
 /// assert_eq!(ids.next_entity_id, 2);
-/// # Ok::<(), ocdraw::ifccad::IfccadIdAllocationError>(())
+/// # Ok::<(), ifccad::IfccadIdAllocationError>(())
 /// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct IfccadIdCounters {

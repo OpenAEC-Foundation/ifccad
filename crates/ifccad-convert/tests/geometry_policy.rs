@@ -1,7 +1,7 @@
 mod common;
 use common::*;
+use ifccad::*;
 use ifccad_convert::*;
-use ocdraw::ifccad::*;
 
 #[test]
 fn unsupported_medium_does_not_remove_paper_geometry_domain() {
@@ -24,11 +24,11 @@ fn unitless_media_does_not_enable_physical_tolerance() {
         bounds_quality: None,
         canvas: None,
 
-        settings: ocdraw::ifccad::IfccadLayoutSettings {
-            media: Some(ocdraw::ifccad::IfccadLayoutMedia {
+        settings: ifccad::IfccadLayoutSettings {
+            media: Some(ifccad::IfccadLayoutMedia {
                 width: 100.,
                 height: 200.,
-                unit: ocdraw::ifccad::IfccadMediaUnit::from_token("mm").unwrap(),
+                unit: ifccad::IfccadMediaUnit::from_token("mm").unwrap(),
             }),
             ..Default::default()
         },
@@ -113,7 +113,7 @@ fn physical_limits_are_resolved_separately_for_each_paper_unit() {
         bounds_quality: None,
         canvas: None,
 
-        settings: common::paper_settings(ocdraw::plot_kernel::PlotUnit::Millimetre, 1.),
+        settings: common::paper_settings(ifccad::plot_kernel::PlotUnit::Millimetre, 1.),
         id,
         name: "Millimetre sheet".into(),
         tab_index: 1,

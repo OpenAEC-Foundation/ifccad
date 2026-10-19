@@ -31,14 +31,7 @@ test('IFCCAD Hatch type, grouping and contour-source links keep native identitie
  assert.match(view.details,/Fill.*not assessed/i);assert.match(view.details,/2 contours/);assert.match(view.details,/data-select="\/cad\/d1\/e2"/);
  const entries=collectionEntries(model,[first.path],n=>itemTitle(n,'en'));assert.match(entries[0].summary,/Solid.*2 contours/i);
 });
-test('OCDraw Hatch references retain uint64 strings, storage row and independent fill evidence',()=>{
- const id='9007199254740993',target='9007199254740997',geometry={type:'hatch',fill:{kind:'solid'},areaRule:'normal',joinTolerance:1e-9,fillEvaluation:'unassessed',loops:[{sourceEntityIds:[target,target],textIsland:true,associationEnabled:false,boundary:{kind:'circle',center:[0,0],radius:1}}]};
- const model=createInspection({presentation:{format:'ocdraw',entities:[{id,geometry},{id:target,geometry:{type:'circle',radius:1}}],layouts:[{id:0,scopeId:0,name:'Model',kind:'model'}],scopes:[{id:0,entities:[id,target]}],streams:{hatchStream:{entityId:[id],loops:[geometry.loops]}}},validation:{strictAvailable:true}});
- const node=model.nodes.get('entity:'+id);assert.equal(node.type,'hatch');assert.equal(node.storage.stream,'hatchStream');assert.equal(node.storage.row,0);
- assert.ok(node.outgoing.some(edge=>edge.field==='geometry.loops.0.sourceEntityIds.0'&&edge.target==='entity:'+target));
- const view=renderInspection(model,{language:'en',view:'drawing',selection:node.key,expanded:new Set(),inspector:'properties'});assert.match(view.details,/Fill.*not assessed/i);assert.match(view.details,/data-select="entity:9007199254740997"/);
- assert.equal(node.values.geometry.loops[0].sourceEntityIds[0],target);
-});
+
 
 test('Hatch association state distinguishes stored disabled groups and unbound switch',()=>{
  for(const [enabled,sources,status] of [[false,['9'],'disabled'],[true,['9'],'active'],[true,[],'unbound']]){

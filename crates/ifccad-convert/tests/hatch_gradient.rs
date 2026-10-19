@@ -1,5 +1,5 @@
+use ifccad::{geometry_kernel::hatch::*, *};
 use ifccad_convert::*;
-use ocdraw::{geometry_kernel::hatch::*, ifccad::*};
 use opencadcodec::EntityType;
 fn drawing() -> IfccadDocument {
     let mut d = load_ifccad_bytes(

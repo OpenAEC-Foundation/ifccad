@@ -3,9 +3,9 @@ use crate::geometry::numeric::exact;
 use crate::geometry::numeric::{round_down, round_up};
 use crate::units::{ResolvedTolerance, ToleranceVerdict};
 use crate::{GeometryTolerance, GeometryToleranceError};
+use ifccad::geometry_kernel::CoordinateLengthUnit as DrawingLengthUnit;
 use num_rational::BigRational;
 use num_traits::Zero;
-use ocdraw::geometry_kernel::CoordinateLengthUnit as DrawingLengthUnit;
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct DistanceInterval {
     pub lower: f64,

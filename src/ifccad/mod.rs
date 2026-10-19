@@ -1,13 +1,13 @@
-//! Experimental IFCCAD drawing profile using IFCX, independent of standalone OCDraw.
+//! Experimental IFCCAD drawing profile using IFCX.
 //!
-//! The formats share geometric validation types and the OCDraw unit registry.
+//! The model uses neutral geometric validation and coordinate-unit types.
 //! IFCX composition, nodes, schema imports and CAD attributes stay in this module.
 //!
 //! The owned [`IfccadDocument`] is a CAD projection; [`LoadedIfccadGraph`] retains
 //! its complete immutable source. Encoding produces a fresh CAD-profile file.
 //!
 //! ```
-//! use ocdraw::ifccad::{load_ifccad_bytes, validate_ifccad_document,
+//! use ifccad::{load_ifccad_bytes, validate_ifccad_document,
 //!     encode_ifccad_document};
 //! # fn edit(bytes: &[u8]) -> Result<(), Box<dyn std::error::Error>> {
 //! let (source, mut document) = load_ifccad_bytes(bytes, Default::default())?.into_parts();
@@ -23,7 +23,7 @@
 //!
 //! Add an empty, unsized sheet without inventing a physical paper format:
 //! ```
-//! use ocdraw::ifccad::{load_ifccad_bytes, encode_ifccad_document,
+//! use ifccad::{load_ifccad_bytes, encode_ifccad_document,
 //!     IfccadPaperLayout};
 //! # fn add_sheet(bytes: &[u8]) -> Result<(), Box<dyn std::error::Error>> {
 //! let mut document = load_ifccad_bytes(bytes, Default::default())?.into_document();

@@ -2,7 +2,7 @@
 use crate::placement::{finite, positive};
 use crate::MTextCadInput;
 use crate::{CadTextError, CadTextIssue, MarkupColor};
-use ocdraw::text::*;
+use ifccad::text::*;
 use opencadcodec::{
     entities::{AttachmentPoint, DrawingDirection, LineSpacingStyle},
     Color, MText,

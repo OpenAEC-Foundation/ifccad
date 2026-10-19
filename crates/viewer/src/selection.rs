@@ -1,7 +1,7 @@
 //! Transient selection links qualified against the CAD file readback.
+use ifccad::IfccadDocument;
+use ifccad_convert::opencadcodec::{objects::ObjectType, CadDocument, EntityType, Handle};
 use ifccad_convert::IfccadMappings;
-use ocdraw::ifccad::IfccadDocument;
-use ocdraw_convert::opencadcodec::{objects::ObjectType, CadDocument, EntityType, Handle};
 use serde_json::{json, Value};
 
 pub(crate) struct CadSelectionCandidate {
@@ -47,33 +47,6 @@ pub(crate) fn ifccad_candidates(
     candidates
 }
 
-pub(crate) fn ocdraw_candidates(
-    mappings: &std::collections::BTreeMap<u64, Handle>,
-    cad: &CadDocument,
-) -> Vec<CadSelectionCandidate> {
-    mappings
-        .iter()
-        .filter_map(|(id, handle)| {
-            let entity = cad.get_entity(*handle)?;
-            let owner = entity.common().owner_handle;
-            // Only entities directly owned by a layout have a visible instance.
-            let layout = cad.objects.values().find_map(|object| match object {
-                ObjectType::Layout(layout) if layout.block_record == owner => {
-                    Some(layout.name.clone())
-                }
-                _ => None,
-            })?;
-            Some(CadSelectionCandidate {
-                path: format!("entity:{id}"),
-                handle: *handle,
-                owner,
-                kind: std::mem::discriminant(entity),
-                layout,
-            })
-        })
-        .collect()
-}
-
 pub(crate) fn qualified_ifccad_selection(
     candidates: &[CadSelectionCandidate],
     readback: &CadDocument,
@@ -101,7 +74,7 @@ mod tests {
     #[test]
     fn absent_or_changed_readback_identity_is_not_linked() {
         let bytes = include_bytes!("../../../tests/fixtures/ifccad/hello-line-patterns.ifcx");
-        let source = ocdraw::ifccad::load_ifccad_bytes(bytes, Default::default()).unwrap();
+        let source = ifccad::load_ifccad_bytes(bytes, Default::default()).unwrap();
         let converted =
             ifccad_convert::ifccad_source_to_cad_document(&source, Default::default()).unwrap();
         let candidates = ifccad_candidates(

@@ -1,10 +1,11 @@
-use ocdraw::{ifccad::*, ocdraw::*};
-use viewer::{export_drawing_bytes_with_options, export_ifccad_bytes_with_options};
+use ifccad::*;
+use viewer::export_ifccad_bytes_with_options;
 
 #[test]
 fn unbound_switch_loss_is_visible_and_reject_never_offers_download() {
-    for ifccad in [false, true] {
-        let bytes = if ifccad {
+    {
+        let _ifccad = true;
+        let bytes = {
             let mut d = load_ifccad_bytes(
                 include_bytes!("../../../tests/fixtures/ifccad/hello-hatch-solid.ifcx"),
                 Default::default(),
@@ -24,32 +25,12 @@ fn unbound_switch_loss_is_visible_and_reject_never_offers_download() {
                 }
             }
             encode_ifccad_document(&d).unwrap().bytes().to_vec()
-        } else {
-            let mut d = load_ocdraw_bytes(include_bytes!(
-                "../../../tests/fixtures/ocdraw/hello-hatch-solid.ocdraw.json"
-            ))
-            .unwrap()
-            .into_document();
-            d.hatch_entities[0].association_enabled = true;
-            for l in &mut d.hatch_entities[0].loops {
-                l.source_entity_ids.clear();
-                l.text_island = true;
-            }
-            encode_ocdraw_document(&d).unwrap().bytes().to_vec()
         };
         for format in ["dxf", "dwg"] {
             let export = |options| {
-                if ifccad {
+                {
                     export_ifccad_bytes_with_options(
                         "hatch.ifcx",
-                        &bytes,
-                        format,
-                        "AC1032",
-                        options,
-                    )
-                } else {
-                    export_drawing_bytes_with_options(
-                        "hatch.ocdraw.json",
                         &bytes,
                         format,
                         "AC1032",
@@ -82,19 +63,12 @@ fn unbound_switch_loss_is_visible_and_reject_never_offers_download() {
 
 #[test]
 fn hatch_association_file_profile_is_explicitly_ac1032() {
-    for ifccad in [false, true] {
-        let bytes: &[u8] = if ifccad {
+    {
+        let _ifccad = true;
+        let bytes: &[u8] = {
             include_bytes!("../../../conformance/next/ifccad/valid/hatch-associations-unbound.ifcx")
-        } else {
-            include_bytes!(
-                "../../../conformance/next/ocdraw/valid/hatch-associations-unbound.ocdraw.json"
-            )
         };
-        let out = if ifccad {
-            export_ifccad_bytes_with_options("hatch.ifcx", bytes, "dwg", "AC1027", "{}")
-        } else {
-            export_drawing_bytes_with_options("hatch.ocdraw.json", bytes, "dwg", "AC1027", "{}")
-        };
+        let out = { export_ifccad_bytes_with_options("hatch.ifcx", bytes, "dwg", "AC1027", "{}") };
         assert_eq!(
             out["failure"]["code"], "HATCH_ASSOCIATION_TARGET_VERSION_UNSUPPORTED",
             "{}",

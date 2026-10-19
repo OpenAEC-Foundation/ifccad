@@ -1,6 +1,6 @@
 #[path = "support/ifccad_dimension.rs"]
 mod support;
-use ocdraw::{dimension::*, ifccad::*};
+use ifccad::{dimension::*, *};
 #[test]
 fn independent_dimension_style_domain_has_full_width_ids_and_monotonic_counters() {
     let mut d = support::drawing();

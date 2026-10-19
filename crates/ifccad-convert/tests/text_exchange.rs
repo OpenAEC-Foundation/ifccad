@@ -1,7 +1,7 @@
 mod common;
 use common::metadata;
+use ifccad::*;
 use ifccad_convert::*;
-use ocdraw::ifccad::*;
 use opencadcodec::{CadDocument, EntityType, MText, Text, Vector3};
 use opencadcodec::{DwgReader, DwgWriter, DxfReader, DxfWriter};
 use std::io::Cursor;
@@ -258,7 +258,7 @@ fn unsupported_annotation_does_not_hide_invalid_text_scalars_or_references() {
 
 #[test]
 fn manual_columns_use_auto_tail_in_ifccad_and_actual_file_readback() {
-    use ocdraw::text::{MTextColumnHeight, MTextColumns};
+    use ifccad::text::{MTextColumnHeight, MTextColumns};
     for tail in [0., -123.] {
         let mut source = CadDocument::new();
         let mut t = MText::new();
@@ -351,6 +351,6 @@ fn inline_palette_identity_is_retained_in_the_concrete_color_profile() {
         panic!()
     };
     assert!(
-        matches!(&text.character_format.color, Some(ocdraw::text::TextColor::Explicit(color)) if color.indexed_identity().cloned() == Some(("ACI".into(),65)))
+        matches!(&text.character_format.color, Some(ifccad::text::TextColor::Explicit(color)) if color.indexed_identity().cloned() == Some(("ACI".into(),65)))
     );
 }

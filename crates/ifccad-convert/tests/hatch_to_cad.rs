@@ -21,7 +21,7 @@ fn native_ifccad_hatch_materializes_contours_and_association() {
 
 #[test]
 fn pattern_with_large_ids_keeps_phase_and_stored_contours_after_source_edits() {
-    use ocdraw::ifccad::*;
+    use ifccad::*;
     use opencadcodec::{entities::hatch::BoundaryEdge, EntityType, Vector2};
     let mut d = fixture::drawing();
     let pattern = load_ifccad_bytes(

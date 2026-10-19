@@ -1,5 +1,5 @@
 use super::dimension_values::*;
-use crate::{dimension::DimensionKind, ifccad::*};
+use crate::{dimension::DimensionKind, *};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::collections::BTreeMap;

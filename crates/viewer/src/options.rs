@@ -1,4 +1,4 @@
-use ocdraw_convert::{OcdrawGeometryAssessment, OcdrawGeometryTolerance};
+use ifccad_convert::IfccadGeometryTolerance;
 use serde::Deserialize;
 use serde_json::{json, Value};
 #[derive(Default, Deserialize)]
@@ -19,12 +19,6 @@ pub(crate) enum ExportLossPolicy {
     Reject,
 }
 impl ExportLossPolicy {
-    pub(crate) fn ocdraw(self) -> ocdraw_convert::OcdrawLossPolicy {
-        match self {
-            Self::Allow => ocdraw_convert::OcdrawLossPolicy::Allow,
-            Self::Reject => ocdraw_convert::OcdrawLossPolicy::Reject,
-        }
-    }
     pub(crate) fn ifccad(self) -> ifccad_convert::IfccadLossPolicy {
         match self {
             Self::Allow => ifccad_convert::IfccadLossPolicy::Allow,
@@ -57,22 +51,22 @@ fn coordinate_fallback<'de, D: serde::Deserializer<'de>>(
 impl ConversionOptions {
     pub(crate) fn parse(text: &str) -> Result<Self, String> {
         let value: Self = serde_json::from_str(text).map_err(|e| e.to_string())?;
-        value.ocdraw_tolerance()?;
+        value.ifccad_tolerance()?;
         Ok(value)
     }
-    pub(crate) fn ocdraw_tolerance(&self) -> Result<OcdrawGeometryTolerance, String> {
+    pub(crate) fn ifccad_tolerance(&self) -> Result<IfccadGeometryTolerance, String> {
         match &self.tolerance {
-            Tolerance::Default => Ok(OcdrawGeometryTolerance::default()),
-            Tolerance::Exact => Ok(OcdrawGeometryTolerance::exact()),
+            Tolerance::Default => Ok(IfccadGeometryTolerance::default()),
+            Tolerance::Exact => Ok(IfccadGeometryTolerance::exact()),
             Tolerance::Custom {
                 value,
                 unit,
                 coordinate_fallback,
             } => {
                 let tolerance = match unit.as_str() {
-                    "mm" => OcdrawGeometryTolerance::millimetres(*value),
-                    "m" => OcdrawGeometryTolerance::metres(*value),
-                    "drawing" => OcdrawGeometryTolerance::drawing_units(*value),
+                    "mm" => IfccadGeometryTolerance::millimetres(*value),
+                    "m" => IfccadGeometryTolerance::metres(*value),
+                    "drawing" => IfccadGeometryTolerance::drawing_units(*value),
                     _ => return Err("Unknown tolerance unit".into()),
                 }
                 .map_err(|e| e.to_string())?;
@@ -104,20 +98,9 @@ impl ConversionOptions {
         json!({"preserveSplines":self.preserve_splines,"tolerance":tolerance,"lossPolicy":self.loss_policy})
     }
 }
-pub(crate) fn geometry(value: &OcdrawGeometryAssessment) -> Value {
-    crate::ocdraw::geometry_report(value)
-}
+
 pub(crate) fn invalid(name: &str, format: &str, code: &str, message: impl ToString) -> Value {
     let mut output = crate::result(std::path::Path::new(name), format);
     crate::fail(&mut output, "converting", code, message);
     output
-}
-pub(crate) fn geometry_failure(f: &ocdraw_convert::OcdrawGeometryFailure) -> Value {
-    let interval =
-        |i: ocdraw_convert::OcdrawDistanceInterval| json!({"lower":i.lower(),"upper":i.upper()});
-    json!({"domain":format!("{:?}",f.domain),"coordinateMeaning":crate::geometry::meaning(&f.coordinate_meaning),"source":format!("{:?}",f.source),"vertexIndex":f.vertex_index,"stage":format!("{:?}",f.stage),"requestedTolerance":format!("{:?}",f.requested_tolerance),"resolvedTolerance":f.resolved_tolerance.map(interval),"deviation":f.deviation.map(interval),"reason":format!("{:?}",f.reason)})
-}
-
-pub(crate) fn paper_tolerance_failure(error: &ocdraw_convert::OcdrawPaperToleranceError) -> Value {
-    json!({"domain":{"kind":"PaperLayout","layoutId":error.layout_id.to_string()},"reason":format!("{:?}",error.reason)})
 }

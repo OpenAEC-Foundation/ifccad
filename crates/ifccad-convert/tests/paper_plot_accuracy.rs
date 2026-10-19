@@ -47,16 +47,14 @@ fn paper_mapping_is_exposed_without_an_authored_coordinate_unit() {
 
 #[test]
 fn missing_target_mapping_blocks_an_explicit_physical_request() {
-    let native = ocdraw::ifccad::load_ifccad_bytes(
+    let native = ifccad::load_ifccad_bytes(
         include_bytes!("../../../conformance/next/ifccad/valid/layout-plot-inch.ifcx"),
         Default::default(),
     )
     .unwrap();
     let mut doc = native.into_document();
     doc.paper_layouts[0].settings.media.as_mut().unwrap().unit =
-        ocdraw::ifccad::IfccadMediaUnit::Physical(
-            ocdraw::geometry_kernel::CoordinateLengthUnit::Parsec,
-        );
+        ifccad::IfccadMediaUnit::Physical(ifccad::geometry_kernel::CoordinateLengthUnit::Parsec);
     assert!(matches!(
         ifccad_document_to_cad_document(
             &doc,
@@ -74,7 +72,7 @@ fn missing_target_mapping_blocks_an_explicit_physical_request() {
 
 #[test]
 fn nested_signed_occurrence_uses_paper_output_limit_under_both_policies() {
-    use ocdraw::ifccad::*;
+    use ifccad::*;
     let mut d = common::empty();
     let mut leaf = common::primitives().model.entities[1].clone();
     leaf.as_native_mut().unwrap().id = 1;
@@ -143,7 +141,7 @@ fn nested_signed_occurrence_uses_paper_output_limit_under_both_policies() {
         name: "Sheet".into(),
         tab_index: 1,
         bounds: None,
-        settings: common::paper_settings(ocdraw::plot_kernel::PlotUnit::Millimetre, 2.),
+        settings: common::paper_settings(ifccad::plot_kernel::PlotUnit::Millimetre, 2.),
         entities: vec![outer],
     }];
     d.id_counters.next_entity_id = 4;
@@ -165,7 +163,7 @@ fn nested_signed_occurrence_uses_paper_output_limit_under_both_policies() {
         );
     }
     d.paper_layouts[0].settings =
-        common::paper_settings(ocdraw::plot_kernel::PlotUnit::Millimetre, 0.1);
+        common::paper_settings(ifccad::plot_kernel::PlotUnit::Millimetre, 0.1);
     let out = ifccad_document_to_cad_document(
         &d,
         IfccadToCadOptions {

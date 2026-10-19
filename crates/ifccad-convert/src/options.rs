@@ -9,7 +9,7 @@ pub enum IfccadLossPolicy {
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct CadToIfccadOptions {
-    pub hatch_join_tolerance: ocdraw::geometry_kernel::hatch::HatchJoinToleranceRequest,
+    pub hatch_join_tolerance: ifccad::geometry_kernel::hatch::HatchJoinToleranceRequest,
     pub preservation: IfccadPreservationCapture,
     pub loss_policy: IfccadLossPolicy,
     pub geometry_tolerance: crate::IfccadGeometryTolerance,
@@ -29,7 +29,7 @@ pub struct IfccadTargetMetadata {
     pub drawing_id: u64,
 }
 
-use ocdraw::ifccad::IfccadHeader;
+use ifccad::IfccadHeader;
 
 /// Capture is explicitly enabled by callers; native conversion defaults stay unchanged.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]

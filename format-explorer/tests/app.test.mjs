@@ -13,7 +13,7 @@ test('source preservation defaults on for CAD input while explicit opt-out is re
  const elements=new Map(),requests=[];const element=id=>{if(!elements.has(id))elements.set(id,{disabled:false,textContent:'',hidden:false,value:'',checked:false});return elements.get(id);};
  const code=(await readFile(new URL('../src/app.mjs',import.meta.url),'utf8')).replace(/^import .*;\r?\n/gm,'');
  vm.runInNewContext(code,{initializeWorkspace,conversionOptions,examples,...cadFormats,document:{getElementById:element},createFileClient:()=>({async open(request){requests.push(request);return {validation:{strictAvailable:true},reader:{version:'AC1032'}};}}),initializeCadPreview:()=>({clear(){},setSource(){},updateSource(){},cancel(){},select(){return Promise.resolve();}}),AbortController});
- element('drawing-format').value='ocdraw';element('file').files=[{name:'spline.dxf',size:1,arrayBuffer:async()=>new ArrayBuffer(1)}];element('file').onchange();await element('open').onclick();assert.equal(requests[0].preserveSplines,true);
+ element('drawing-format').value='ifccad';element('file').files=[{name:'spline.dxf',size:1,arrayBuffer:async()=>new ArrayBuffer(1)}];element('file').onchange();await element('open').onclick();assert.equal(requests[0].preserveSplines,true);
  element('preserve-splines').checked=false;await element('open').onclick();assert.equal(requests[1].preserveSplines,false);
  element('file').files=[{name:'next.dwg',size:1,arrayBuffer:async()=>new ArrayBuffer(1)}];element('file').onchange();await element('open').onclick();assert.equal(requests[2].preserveSplines,true);
 });
@@ -49,11 +49,11 @@ test('opening and converting show actual progress and cancellation also stops pe
  const workspace={...initializeWorkspace(),setLoading(value){progress.push(value);},clearLoading(){progress.push(null);}};
  const code=(await readFile(new URL('../src/app.mjs',import.meta.url),'utf8')).replace(/^import .*;\r?\n/gm,'');
  vm.runInNewContext(code,{initializeWorkspace:()=>workspace,conversionOptions,examples,...cadFormats,document:{getElementById:element},createFileClient:()=>({async open(r,{onProgress}){requests.push(r);onProgress('converting');return {validation:{strictAvailable:true}};}}),initializeCadPreview:()=>({clear(){},setSource(){},select(){return Promise.resolve();},cancel(){}}),AbortController});
- element('drawing-format').value='ocdraw';element('file').files=[{name:'slow.dxf',size:1,arrayBuffer:()=>new Promise(r=>{resolveRead=r;})}];
+ element('drawing-format').value='ifccad';element('file').files=[{name:'slow.dxf',size:1,arrayBuffer:()=>new Promise(r=>{resolveRead=r;})}];
  const pending=element('open').onclick();assert.equal(progress.at(-1)?.phase,'loading');assert.equal(progress.at(-1)?.name,'slow.dxf');assert.equal(element('open').disabled,true);
  element('loading-cancel').onclick();assert.equal(progress.at(-1),null);assert.equal(element('open').disabled,false);resolveRead(new ArrayBuffer(1));await pending;assert.equal(requests.length,0);
  element('file').files=[{name:'drawing.dxf',size:1,arrayBuffer:async()=>new ArrayBuffer(1)}];await element('open').onclick();
- assert.ok(progress.some(p=>p?.action==='convertingTo'&&p?.format==='OCDraw'));assert.ok(progress.some(p=>p?.phase==='converting'));assert.equal(progress.at(-1),null);
+ assert.ok(progress.some(p=>p?.action==='convertingTo'&&p?.format==='IFCCAD'));assert.ok(progress.some(p=>p?.phase==='converting'));assert.equal(progress.at(-1),null);
 });
 
 test('file toolbar has no duplicate cancel action while loading keeps its cancellation control',async()=>{
@@ -76,7 +76,7 @@ test('spline preservation is available for either CAD route and is explicitly fo
  const code=(await readFile(new URL('../src/app.mjs',import.meta.url),'utf8')).replace(/^import .*;\r?\n/gm,'');
  vm.runInNewContext(code,{initializeWorkspace,conversionOptions,examples,...cadFormats,document:{getElementById:element},createFileClient:()=>({async open(request){requests.push(request);return {validation:{strictAvailable:true},presentation:{opaqueEntityCount:request.preserveSplines?1:0}};}}),initializeCadPreview:()=>({clear(){},setSource(){},updateSource(){},cancel(){},select(){return Promise.resolve();}}),AbortController});
  element('file').files=[{name:'spline.dxf',size:1,arrayBuffer:async()=>new ArrayBuffer(1)}];
- element('drawing-format').value='ocdraw';await element('file').onchange();
+ element('drawing-format').value='ifccad';await element('file').onchange();
  assert.equal(element('preservation-control').hidden,false);
  element('preserve-splines').checked=true;
  await element('open').onclick();assert.equal(requests[0].preserveSplines,true);
@@ -105,19 +105,19 @@ test('a file read failure is visible and cannot export the previously opened dra
  assert.equal(calls,1);
 });
 
-test('CAD download uses the shared preview choice while OCDraw download is independent',async()=>{
+test('CAD download uses the shared preview choice while IFCCAD download is independent',async()=>{
  const elements=new Map();const element=id=>{if(!elements.has(id))elements.set(id,{disabled:false,textContent:'',hidden:true,value:''});return elements.get(id);};
  const requests=[],links=[],blobs=[];const client={async open(request){requests.push(request);return {validation:{strictAvailable:true},...(request.export?{export:{download:{base64:'AQI=',fileName:'drawing.'+request.export.format}}}:{})};}};
  const code=(await readFile(new URL('../src/app.mjs',import.meta.url),'utf8')).replace(/^import .*;\r?\n/gm,'');
  vm.runInNewContext(code,{initializeWorkspace,conversionOptions,examples,...cadFormats,document:{getElementById:element,createElement(){const link={click(){this.clicked=true;}};links.push(link);return link;}},createFileClient:()=>client,initializeCadPreview:()=>({clear(){},setSource(){},updateSource(){},cancel(){},select(){return Promise.resolve();}}),AbortController,decodeBase64,Blob,URL:{createObjectURL(blob){blobs.push(blob);return 'blob:test';},revokeObjectURL(){}},setTimeout(){}});
- element('file').files=[{name:'drawing.ocdraw.json',size:1,arrayBuffer:async()=>new ArrayBuffer(1)}];
+ element('file').files=[{name:'drawing.ifcx',size:1,arrayBuffer:async()=>new ArrayBuffer(1)}];
  await element('open').onclick();
  element('preview-format').value='dwg';element('preview-version').value='AC1027';
  await element('cad-download').onclick();
  await element('export').onclick();
  assert.deepEqual(JSON.parse(JSON.stringify(requests[1].export)),{format:'dwg',version:'AC1027'});
- assert.deepEqual(JSON.parse(JSON.stringify(requests[2].export)),{format:'ocdraw'});
- assert.deepEqual(links.map(link=>[link.download,link.clicked]),[['drawing.dwg',true],['drawing.ocdraw',true]]);
+ assert.deepEqual(JSON.parse(JSON.stringify(requests[2].export)),{format:'ifccad'});
+ assert.deepEqual(links.map(link=>[link.download,link.clicked]),[['drawing.dwg',true],['drawing.ifccad',true]]);
  for(const blob of blobs)assert.deepEqual([...new Uint8Array(await blob.arrayBuffer())],[1,2]);
 });
 
@@ -161,7 +161,7 @@ test('only a selected DWG or DXF offers conversion with its actual format name',
  const code=(await readFile(new URL('../src/app.mjs',import.meta.url),'utf8')).replace(/^import .*;\r?\n/gm,'');
  vm.runInNewContext(code,{initializeWorkspace,conversionOptions,examples,...cadFormats,document:{getElementById:element},createFileClient:()=>({async open(request){requests.push(request);return {validation:{strictAvailable:true}};}}),initializeCadPreview:()=>({clear(){},setSource(){},updateSource(){},cancel(){},select(){return Promise.resolve();}}),AbortController});
  assert.equal(element('drawing-format-control').hidden,true);
- for(const [name,label] of [['drawing.DWG','DWG omzetten naar'],['drawing.dxf','DXF omzetten naar'],['hello.ifcx',null],['hello.ifcx.json',null],['drawing.ocdraw',null],['drawing.ocdraw.json',null]]){
+ for(const [name,label] of [['drawing.DWG','DWG omzetten naar'],['drawing.dxf','DXF omzetten naar'],['hello.ifcx',null],['hello.ifcx.json',null],['drawing.ifccad',null],['drawing.ifcx',null]]){
   element('file').files=[{name,size:1,arrayBuffer:async()=>new ArrayBuffer(1)}];
   await element('file').onchange();
   assert.equal(element('drawing-format-control').hidden,label===null,name);
@@ -180,8 +180,8 @@ test('opening a native file does not overwrite an explicitly chosen CAD route',a
  const elements=new Map(),requests=[];const element=id=>{if(!elements.has(id))elements.set(id,{disabled:false,textContent:'',hidden:false,value:''});return elements.get(id);};
  const code=(await readFile(new URL('../src/app.mjs',import.meta.url),'utf8')).replace(/^import .*;\r?\n/gm,'');
  vm.runInNewContext(code,{initializeWorkspace,conversionOptions,examples,...cadFormats,document:{getElementById:element},createFileClient:()=>({async open(r){requests.push(r);return {validation:{strictAvailable:true}};}}),initializeCadPreview:()=>({clear(){},setSource(){},updateSource(){},cancel(){},select(){return Promise.resolve();}}),AbortController});
- element('drawing-format').value='ocdraw';element('file').files=[{name:'native.ifcx',size:1,arrayBuffer:async()=>new ArrayBuffer(1)}];await element('open').onclick();
- element('file').files=[{name:'source.dxf',size:1,arrayBuffer:async()=>new ArrayBuffer(1)}];await element('open').onclick();assert.equal(requests[1].drawingFormat,'ocdraw');
+ element('drawing-format').value='ifccad';element('file').files=[{name:'native.ifcx',size:1,arrayBuffer:async()=>new ArrayBuffer(1)}];await element('open').onclick();
+ element('file').files=[{name:'source.dxf',size:1,arrayBuffer:async()=>new ArrayBuffer(1)}];await element('open').onclick();assert.equal(requests[1].drawingFormat,'ifccad');
 });
 test('a late file read cannot replace a newer source',async()=>{
  const elements=new Map(),requests=[];const element=id=>{if(!elements.has(id))elements.set(id,{disabled:false,textContent:'',hidden:false,value:''});return elements.get(id);};let resolveRead;

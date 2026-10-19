@@ -1,4 +1,4 @@
-use ocdraw::{ifccad::*, text::*};
+use ifccad::{text::*, *};
 #[path = "support/ifccad_preservation.rs"]
 mod preservation;
 fn drawing() -> IfccadDocument {

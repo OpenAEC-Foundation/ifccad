@@ -1,5 +1,5 @@
 use crate::IfccadDiagnostic;
-use ocdraw::ifccad::*;
+use ifccad::*;
 use opencadcodec::{EntityType, Vector3};
 
 pub(crate) fn v(p: [f64; 3]) -> Vector3 {
@@ -56,7 +56,7 @@ pub(crate) fn to_entity(
     context.record(key, source, prepared.pair, issues)?;
     Ok(Some(prepared.entity))
 }
-pub(crate) fn placement(frame: ocdraw::geometry_kernel::CoordinateFrame3) -> IfccadPlacement {
+pub(crate) fn placement(frame: ifccad::geometry_kernel::CoordinateFrame3) -> IfccadPlacement {
     IfccadPlacement {
         origin: frame.origin().components(),
         x_axis: frame.x_axis().components(),
@@ -105,7 +105,7 @@ pub(crate) fn from_entity(
             "CAD normal magnitude cannot be retained in a placed unit-frame primitive",
         ));
     }
-    use ocdraw::geometry_kernel::OwnedGeometry as G;
+    use ifccad::geometry_kernel::OwnedGeometry as G;
     let line_pattern_generation = generation(e);
     let kind = match prepared.geometry {
         G::Line { start, end } => IfccadEntityKind::LineSegment { start, end },

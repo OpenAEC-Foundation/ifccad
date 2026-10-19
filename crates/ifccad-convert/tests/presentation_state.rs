@@ -124,26 +124,26 @@ fn common_hidden_state_survives_geometry_instances_text_and_viewports() {
         let document = native.validated_source().document();
         assert!(document.model.entities.iter().any(|e| matches!(
             &e.as_native().unwrap().kind,
-            ocdraw::ifccad::IfccadEntityKind::Text(_)
+            ifccad::IfccadEntityKind::Text(_)
         )));
         assert!(document.model.entities.iter().any(|e| matches!(
             &e.as_native().unwrap().kind,
-            ocdraw::ifccad::IfccadEntityKind::MText(_)
+            ifccad::IfccadEntityKind::MText(_)
         )));
         assert!(document.model.entities.iter().any(|e| matches!(
             &e.as_native().unwrap().kind,
-            ocdraw::ifccad::IfccadEntityKind::Point { .. }
+            ifccad::IfccadEntityKind::Point { .. }
         )));
         assert!(document.model.entities.iter().any(|e| matches!(
             &e.as_native().unwrap().kind,
-            ocdraw::ifccad::IfccadEntityKind::BlockInstance { .. }
+            ifccad::IfccadEntityKind::BlockInstance { .. }
         )));
         assert!(document
             .paper_layouts
             .iter()
             .any(|p| p.entities.iter().any(|e| matches!(
                 &e.as_native().unwrap().kind,
-                ocdraw::ifccad::IfccadEntityKind::Viewport(_)
+                ifccad::IfccadEntityKind::Viewport(_)
             ))));
         let raw: Value = serde_json::from_slice(native.encoded().bytes()).unwrap();
         for entity in raw["data"]

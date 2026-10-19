@@ -1,5 +1,9 @@
 # Preservation direction
 
+IFCCAD is the active track. OCDraw descriptions below retain historical context;
+its implementation and fixtures are parked. See [parking](ocdraw-parking.md).
+Only IFCCAD code, schemas and current converter coverage define active behavior.
+
 Current dependency qualification (2026-10-16): codec `325fa98d2b881f48e106a830d5cf161624f63131`
 plus the explicit Dimension text-position repair; viewport repairs are upstream.
 The [current audit](geometry/opencadcodec-update-2026-10-16.md) supersedes dated
@@ -72,13 +76,13 @@ authoritative. Actual missing/unqualified source context receives independent
 restoration evidence, and Reject still refuses actual omitted live content.
 Unknown provider bytes and soft missing/cyclic dependencies remain transportable.
 
-The [spline snapshot contract](../crates/ocdraw-convert/docs/SPLINE-SNAPSHOT-V1.md)
+The [spline snapshot contract](../legacy/ocdraw/crates/ocdraw-convert/docs/SPLINE-SNAPSHOT-V1.md)
 records every public field, payload shape, mandatory predicates, known typed
 reference rebinding, omitted raw records, and the actual DXF/AC1032 DWG matrix.
 Library-only CadDocument inputs use cadDocument provenance; the file inspector
 records the explicitly known DXF/DWG origin and version before core encoding.
 
-The inspector's Spline-brongegevens bewaren option applies only to the OCDraw
+The inspector's Spline-brongegevens bewaren option applies to the IFCCAD
 CAD route. It reports opaque counts, source provenance, unavailable bounds and
 separate capture/restoration evidence. The CLI supports --preserve-splines for
 cad/export-cad. Native opening and IFCCAD conversion do not require this option.
@@ -130,10 +134,10 @@ raw source record replay or native spline evaluator is added.
 
 Library capture defaults to Disabled; RestoreSupported is the export default,
 with explicit Skip and located loss under Allow/Reject. The explorer forwards its
-existing CAD-input preservation choice through either route. Its inspector shows
+CAD-input preservation choice through IFCCAD. Its inspector shows
 opaque records and separately captured/restored evidence, plus unassessed geometry.
-CLI CAD-input commands accept `--drawing-format ifccad|ocdraw` and
-`--preserve-splines`; default remains OCDraw. Native input follows its extension.
+CLI CAD-input commands accept `--drawing-format ifccad` and
+`--preserve-splines`; default is IFCCAD. Old OCDraw choices/files report `OCDRAW_PARKED`.
 
 On the 2026-10-08 pin ab2eecd, Uniform/SquareRoot fit-only parameterization
 survives snapshot storage, typed restoration and the qualified DXF/DWG routes;

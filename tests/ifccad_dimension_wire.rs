@@ -1,6 +1,6 @@
 #[path = "support/ifccad_dimension.rs"]
 mod support;
-use ocdraw::{dimension::*, ifccad::*};
+use ifccad::{dimension::*, *};
 #[test]
 fn independent_style_and_entity_paths_roundtrip_with_unused_settings() {
     let mut d = support::drawing();

@@ -1,6 +1,6 @@
 mod common;
+use ifccad::{dimension::*, *};
 use ifccad_convert::*;
-use ocdraw::{dimension::*, ifccad::*};
 use opencadcodec::{DwgReader, DwgWriter, DxfReader, DxfWriter};
 use std::io::Cursor;
 #[test]

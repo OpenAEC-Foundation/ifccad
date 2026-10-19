@@ -1,8 +1,8 @@
 mod common;
 #[path = "common/perspective_reference.rs"]
 mod perspective_reference;
+use ifccad::*;
 use ifccad_convert::*;
-use ocdraw::ifccad::*;
 use opencadcodec::{CadDocument, DwgReader, DwgWriter, DxfReader, DxfWriter, EntityType};
 use perspective_reference::*;
 use std::io::Cursor;
@@ -61,7 +61,7 @@ fn multiple_paper_viewports_exchange_in_memory_dxf_dwg() {
     second.name = "Other".into();
     second.tab_index = 2;
     if let Some(plot) = second.settings.plot_settings.as_mut() {
-        plot.plot_unit = ocdraw::plot_kernel::PlotUnit::Inch;
+        plot.plot_unit = ifccad::plot_kernel::PlotUnit::Inch;
     }
     for e in &mut second.entities {
         e.as_native_mut().unwrap().id += 1000;
@@ -104,7 +104,7 @@ fn multiple_paper_viewports_exchange_in_memory_dxf_dwg() {
         bounds_quality: None,
         canvas: None,
 
-        settings: ocdraw::ifccad::IfccadLayoutSettings {
+        settings: ifccad::IfccadLayoutSettings {
             media: None,
             ..Default::default()
         },

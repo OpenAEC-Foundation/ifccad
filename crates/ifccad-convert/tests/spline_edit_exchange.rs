@@ -1,6 +1,6 @@
 mod spline_support;
+use ifccad::*;
 use ifccad_convert::*;
-use ocdraw::ifccad::*;
 use opencadcodec::{
     CadDocument, Color, DwgReader, DwgWriter, DxfReader, DxfWriter, EntityType, Vector3,
 };

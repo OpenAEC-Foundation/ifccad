@@ -1,6 +1,6 @@
 use super::IfccadPreservationReason;
 use crate::*;
-use ocdraw::ifccad::*;
+use ifccad::*;
 use opencadcodec::{entities::Spline, xdata::XDataValue, CadDocument, Handle};
 use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, PartialEq, Eq)]

@@ -1,5 +1,5 @@
+use ifccad::*;
 use ifccad_convert::*;
-use ocdraw::ifccad::*;
 use opencadcodec::EntityType;
 #[test]
 fn full_width_native_dimension_relations_are_bound_after_allocation() {
@@ -81,7 +81,7 @@ fn independent_signed_nested_occurrence_excess_is_fatal() {
     if let IfccadEntityKind::Dimension(d) = &mut leaf.kind {
         d.associations.clear();
         d.placement.origin = [1e8, 0.0, 0.0];
-        d.definition = ocdraw::dimension::DimensionDefinition::Aligned {
+        d.definition = ifccad::dimension::DimensionDefinition::Aligned {
             first_point: [0.0; 2],
             second_point: [3e-12, 0.0],
             dimension_line_point: [0.0, 1e-12],

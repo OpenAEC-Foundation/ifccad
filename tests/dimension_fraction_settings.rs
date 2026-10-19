@@ -1,4 +1,4 @@
-use ocdraw::dimension::*;
+use ifccad::dimension::*;
 use serde_json::json;
 
 #[test]

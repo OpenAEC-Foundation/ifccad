@@ -1,6 +1,6 @@
 use cad_workspace_convert::*;
-use ocdraw::geometry_kernel::Point2;
-use ocdraw::workspace_kernel::*;
+use ifccad::geometry_kernel::Point2;
+use ifccad::workspace_kernel::*;
 use opencadcodec::entities::Viewport;
 use opencadcodec::{VPort, Vector3};
 

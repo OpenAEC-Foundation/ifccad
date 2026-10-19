@@ -1,0 +1,110 @@
+//! Geometry values independent of the JSON stream layout.
+
+use super::appearance::EntityAppearance;
+use crate::ocdraw::{BlockTransform, CoordinateFrame3};
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum EntityGeometry {
+    Line {
+        start: [f64; 3],
+        end: [f64; 3],
+    },
+    Point {
+        placement: CoordinateFrame3,
+    },
+    Circle {
+        placement: CoordinateFrame3,
+        radius: f64,
+    },
+    Arc {
+        placement: CoordinateFrame3,
+        radius: f64,
+        start_parameter: f64,
+        sweep_parameter: f64,
+    },
+    Ellipse {
+        placement: CoordinateFrame3,
+        semi_major_radius: f64,
+        semi_minor_radius: f64,
+        arc: Option<(f64, f64)>,
+    },
+    PlanarPolyline {
+        placement: CoordinateFrame3,
+        vertices: Vec<[f64; 3]>,
+        closed: bool,
+        line_pattern_generation: super::LinePatternGeneration,
+    },
+    SpatialPolyline {
+        vertices: Vec<[f64; 3]>,
+        closed: bool,
+        line_pattern_generation: super::LinePatternGeneration,
+    },
+    BlockInstance {
+        definition_scope_id: u32,
+        transform: BlockTransform,
+    },
+}
+
+impl EntityGeometry {
+    /// Whether this native kind can contribute geometry to a stored Hatch boundary.
+    /// This does not execute a boundary extractor or establish source ownership.
+    pub fn is_hatch_boundary_source(&self) -> bool {
+        matches!(
+            self,
+            Self::Line { .. }
+                | Self::Circle { .. }
+                | Self::Arc { .. }
+                | Self::Ellipse { .. }
+                | Self::PlanarPolyline { .. }
+                | Self::SpatialPolyline { .. }
+                | Self::BlockInstance { .. }
+        )
+    }
+    /// Borrows primitive fields for shared mathematics; block references are evaluated separately.
+    pub fn as_shared_geometry(&self) -> Option<crate::geometry_kernel::GeometryRef<'_>> {
+        super::geometry_validation::geometry_ref(self)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct DrawingGeometricEntity {
+    pub id: u64,
+    pub layer_id: u32,
+    pub visible: bool,
+    pub appearance: EntityAppearance,
+    pub geometry: EntityGeometry,
+}
+
+#[derive(Clone, Debug)]
+pub(crate) struct DrawingEntityRecord {
+    pub id: u64,
+    pub kind: &'static str,
+    pub layer_id: u32,
+    pub appearance: EntityAppearance,
+    pub visible: bool,
+    pub geometry: EntityGeometry,
+    pub min: [f64; 3],
+    pub max: [f64; 3],
+}
+
+impl DrawingGeometricEntity {
+    pub fn id(&self) -> u64 {
+        self.id
+    }
+
+    pub fn layer_id(&self) -> u32 {
+        self.layer_id
+    }
+
+    pub fn visible(&self) -> bool {
+        self.visible
+    }
+
+    pub fn appearance(&self) -> &EntityAppearance {
+        &self.appearance
+    }
+
+    pub fn geometry(&self) -> &EntityGeometry {
+        &self.geometry
+    }
+}

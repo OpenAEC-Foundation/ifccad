@@ -1,8 +1,8 @@
-use ocdraw::{geometry_kernel::hatch::*, ifccad::*, ocdraw::*};
-use viewer::{export_drawing_bytes_with_options, export_ifccad_bytes_with_options};
+use ifccad::{geometry_kernel::hatch::*, *};
+use viewer::export_ifccad_bytes_with_options;
 
-fn bytes(ifccad: bool, inactive: bool) -> Vec<u8> {
-    if ifccad {
+fn bytes(_ifccad: bool, inactive: bool) -> Vec<u8> {
+    {
         let mut d = load_ifccad_bytes(
             include_bytes!("../../../conformance/next/ifccad/valid/hatch-gradient.ifcx"),
             Default::default(),
@@ -21,28 +21,23 @@ fn bytes(ifccad: bool, inactive: bool) -> Vec<u8> {
             }
         }
         encode_ifccad_document(&d).unwrap().bytes().to_vec()
-    } else {
-        let mut d = load_ocdraw_bytes(include_bytes!(
-            "../../../conformance/next/ocdraw/valid/hatch-gradient.ocdraw.json"
-        ))
-        .unwrap()
-        .into_document();
-        if inactive {
-            d.hatch_entities[0].fill = HatchFill::Solid;
-        }
-        encode_ocdraw_document(&d).unwrap().bytes().to_vec()
     }
 }
-fn export(ifccad: bool, b: &[u8], format: &str, version: &str, options: &str) -> serde_json::Value {
-    if ifccad {
+fn export(
+    _ifccad: bool,
+    b: &[u8],
+    format: &str,
+    version: &str,
+    options: &str,
+) -> serde_json::Value {
+    {
         export_ifccad_bytes_with_options("gradient.ifcx", b, format, version, options)
-    } else {
-        export_drawing_bytes_with_options("gradient.ocdraw.json", b, format, version, options)
     }
 }
 #[test]
 fn actual_disabled_dxf_loss_is_visible_and_reject_never_offers_download() {
-    for ifccad in [false, true] {
+    {
+        let ifccad = true;
         let b = bytes(ifccad, true);
         let allowed = export(ifccad, &b, "dxf", "AC1032", "{}");
         assert!(allowed["failure"].is_null(), "{allowed}");
@@ -65,7 +60,8 @@ fn actual_disabled_dxf_loss_is_visible_and_reject_never_offers_download() {
 }
 #[test]
 fn only_qualified_ac1032_is_offered_for_active_and_inactive_gradient_state() {
-    for ifccad in [false, true] {
+    {
+        let ifccad = true;
         for inactive in [false, true] {
             let b = bytes(ifccad, inactive);
             for version in ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027"] {

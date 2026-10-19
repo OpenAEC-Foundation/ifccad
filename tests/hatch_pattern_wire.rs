@@ -1,4 +1,4 @@
-use ocdraw::{geometry_kernel::hatch::*, ifccad::*, ocdraw::*};
+use ifccad::{geometry_kernel::hatch::*, *};
 #[path = "support/ifccad_hatch.rs"]
 mod fixture;
 fn pattern() -> HatchFill {
@@ -20,30 +20,7 @@ fn pattern() -> HatchFill {
         }],
     })
 }
-#[test]
-fn ocdraw_pattern_strict_readback_preserves_phase_after_contour_edit() {
-    let mut d = load_ocdraw_bytes(include_bytes!(
-        "../tests/fixtures/ocdraw/hello-hatch-solid.ocdraw.json"
-    ))
-    .unwrap()
-    .into_document();
-    d.hatch_entities[0].fill = pattern();
-    let bytes = encode_ocdraw_document(&d).unwrap();
-    assert_eq!(
-        load_ocdraw_bytes(bytes.bytes()).unwrap().hatch_entities(),
-        d.hatch_entities.as_slice()
-    );
-    d.hatch_entities[0].loops[0].boundary = HatchBoundary2::Circle {
-        center: [10., 0.],
-        radius: 3.,
-    };
-    recompute_ocdraw_document_bounds(&mut d).unwrap();
-    let bytes = encode_ocdraw_document(&d).unwrap();
-    assert_eq!(
-        load_ocdraw_bytes(bytes.bytes()).unwrap().hatch_entities()[0].fill,
-        pattern()
-    );
-}
+
 #[test]
 fn ifccad_pattern_strict_readback_keeps_source_and_whole_attribute() {
     let mut d = fixture::drawing();
@@ -62,34 +39,23 @@ fn ifccad_pattern_strict_readback_keeps_source_and_whole_attribute() {
 
 #[test]
 fn unknown_null_dot_length_and_missing_families_are_rejected_in_both_formats() {
-    let mut o = load_ocdraw_bytes(include_bytes!(
-        "../tests/fixtures/ocdraw/hello-hatch-solid.ocdraw.json"
-    ))
-    .unwrap()
-    .into_document();
-    o.hatch_entities[0].fill = pattern();
     let mut i = fixture::drawing();
     let IfccadEntityKind::Hatch(h) = &mut i.model.entities[0].as_native_mut().unwrap().kind else {
         panic!()
     };
     h.fill = pattern();
     for mutation in 0..6 {
-        for ifccad in [false, true] {
-            let bytes = if ifccad {
-                encode_ifccad_document(&i).unwrap().bytes().to_vec()
-            } else {
-                encode_ocdraw_document(&o).unwrap().bytes().to_vec()
-            };
+        {
+            let _ifccad = true;
+            let bytes = { encode_ifccad_document(&i).unwrap().bytes().to_vec() };
             let mut v: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
-            let fill = if ifccad {
+            let fill = {
                 &mut v["data"]
                     .as_array_mut()
                     .unwrap()
                     .iter_mut()
                     .find(|n| n["attributes"].get("ifccad::hatch").is_some())
                     .unwrap()["attributes"]["ifccad::hatch"]["fill"]
-            } else {
-                &mut v["streams"]["hatchStream"]["fill"][0]
             };
             match mutation {
                 0 => fill["unknown"] = serde_json::json!(1),
@@ -102,11 +68,7 @@ fn unknown_null_dot_length_and_missing_families_are_rejected_in_both_formats() {
                 _ => fill["families"][0]["dashes"] = serde_json::json!([{"kind":"dot"}]),
             }
             let bytes = serde_json::to_vec(&v).unwrap();
-            assert!(if ifccad {
-                load_ifccad_bytes(&bytes, Default::default()).is_err()
-            } else {
-                load_ocdraw_bytes(&bytes).is_err()
-            });
+            assert!({ load_ifccad_bytes(&bytes, Default::default()).is_err() });
         }
     }
 }

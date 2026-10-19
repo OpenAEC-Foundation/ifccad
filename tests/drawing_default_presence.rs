@@ -1,11 +1,9 @@
-use ocdraw::{ifccad as ifc, ocdraw as oc};
+use ifccad as ifc;
 use serde_json::{json, Value};
-#[path = "support/drawing_defaults.rs"]
-mod support;
 
-fn encode_checked(source: &Value, ifccad: bool) -> Value {
+fn encode_checked(source: &Value, _ifccad: bool) -> Value {
     let bytes = serde_json::to_vec(source).unwrap();
-    if ifccad {
+    {
         let doc = ifc::load_ifccad_bytes(&bytes, Default::default())
             .unwrap()
             .into_document();
@@ -15,14 +13,6 @@ fn encode_checked(source: &Value, ifccad: bool) -> Value {
                 .unwrap()
                 .document(),
             &doc
-        );
-        serde_json::from_slice(out.bytes()).unwrap()
-    } else {
-        let doc = oc::load_ocdraw_bytes(&bytes).unwrap().into_document();
-        let out = oc::encode_ocdraw_document(&doc).unwrap();
-        support::assert_ocdraw_eq(
-            &oc::load_ocdraw_bytes(out.bytes()).unwrap().into_document(),
-            &doc,
         );
         serde_json::from_slice(out.bytes()).unwrap()
     }
@@ -44,30 +34,6 @@ fn attr<'a>(v: &'a Value, key: &str) -> &'a Value {
 
 #[test]
 fn registered_text_and_style_defaults_are_omitted() {
-    let mut v = load("conformance/next/ocdraw/valid/text-rich-content.ocdraw.json");
-    v["textStyles"][0]["font"]["bold"] = json!(false);
-    v["textStyles"][0]["font"]["italic"] = json!(false);
-    let out = encode_checked(&v, false);
-    for stream in ["textStream", "mTextStream"] {
-        for key in ["rotation", "backward", "upsideDown"] {
-            assert!(out["streams"][stream].get(key).is_none(), "{stream}.{key}");
-        }
-    }
-    for key in ["obliqueAngle", "thickness"] {
-        assert!(out["streams"]["textStream"].get(key).is_none());
-    }
-    for key in [
-        "widthFactor",
-        "obliqueAngle",
-        "vertical",
-        "creationBackward",
-        "creationUpsideDown",
-    ] {
-        assert!(out["textStyles"][0].get(key).is_none(), "{key}");
-    }
-    assert_eq!(out["textStyles"][0]["font"]["bold"], json!(false));
-    assert_eq!(out["textStyles"][0]["font"]["italic"], json!(false));
-
     let mut v = load("conformance/next/ifccad/valid/text-rich.ifcx");
     for node in v["data"].as_array_mut().unwrap() {
         for key in ["ifccad::text", "ifccad::mText"] {
@@ -95,61 +61,48 @@ fn registered_text_and_style_defaults_are_omitted() {
 
 #[test]
 fn marker_defaults_preserve_absolute_rotation() {
-    for (ifccad, path) in [
-        (
-            false,
-            "conformance/next/ocdraw/valid/line-pattern-text.ocdraw.json",
-        ),
-        (true, "conformance/next/ifccad/valid/line-pattern-text.ifcx"),
-    ] {
+    {
+        let (ifccad, path) = (true, "conformance/next/ifccad/valid/line-pattern-text.ifcx");
         let mut v = load(path);
-        let pattern = if ifccad {
+        let pattern = {
             &mut v["data"]
                 .as_array_mut()
                 .unwrap()
                 .iter_mut()
                 .find(|n| n["attributes"]["ifccad::linePattern"]["name"] == "GAS")
                 .unwrap()["attributes"]["ifccad::linePattern"]["pattern"]
-        } else {
-            &mut v["linePatterns"][1]["pattern"]
         };
         pattern[1]["marker"]["scale"] = json!(1.);
         let out = encode_checked(&v, ifccad);
-        let pattern = if ifccad {
+        let pattern = {
             &out["data"]
                 .as_array()
                 .unwrap()
                 .iter()
                 .find(|n| n["attributes"]["ifccad::linePattern"]["name"] == "GAS")
                 .unwrap()["attributes"]["ifccad::linePattern"]["pattern"]
-        } else {
-            &out["linePatterns"][1]["pattern"]
         };
         for key in ["scale", "offset", "rotation"] {
             assert!(pattern[1]["marker"].get(key).is_none(), "{key}");
         }
-        let pattern = if ifccad {
+        let pattern = {
             &mut v["data"]
                 .as_array_mut()
                 .unwrap()
                 .iter_mut()
                 .find(|n| n["attributes"]["ifccad::linePattern"]["name"] == "GAS")
                 .unwrap()["attributes"]["ifccad::linePattern"]["pattern"]
-        } else {
-            &mut v["linePatterns"][1]["pattern"]
         };
         pattern[1]["marker"]["rotation"] = json!({"mode":"absolute","angle":0.});
         pattern[1]["marker"]["offset"] = json!([-0., 0.]);
         let out = encode_checked(&v, ifccad);
-        let pattern = if ifccad {
+        let pattern = {
             &out["data"]
                 .as_array()
                 .unwrap()
                 .iter()
                 .find(|n| n["attributes"]["ifccad::linePattern"]["name"] == "GAS")
                 .unwrap()["attributes"]["ifccad::linePattern"]["pattern"]
-        } else {
-            &out["linePatterns"][1]["pattern"]
         };
         assert_eq!(pattern[1]["marker"]["rotation"]["mode"], "absolute");
         assert_eq!(
@@ -164,33 +117,22 @@ fn marker_defaults_preserve_absolute_rotation() {
 
 #[test]
 fn hatch_fill_defaults_are_omitted() {
-    for (ifccad, path) in [
-        (
-            false,
-            "conformance/next/ocdraw/valid/hatch-pattern.ocdraw.json",
-        ),
-        (true, "conformance/next/ifccad/valid/hatch-pattern.ifcx"),
-    ] {
+    {
+        let (ifccad, path) = (true, "conformance/next/ifccad/valid/hatch-pattern.ifcx");
         let mut v = load(path);
-        let fill = if ifccad {
+        let fill = {
             &mut v["data"]
                 .as_array_mut()
                 .unwrap()
                 .iter_mut()
                 .find(|n| n["attributes"].get("ifccad::hatch").is_some())
                 .unwrap()["attributes"]["ifccad::hatch"]["fill"]
-        } else {
-            &mut v["streams"]["hatchStream"]["fill"][0]
         };
         fill["origin"] = json!([0., 0.]);
         fill["rotation"] = json!(0.);
         fill["scale"] = json!(1.);
         let out = encode_checked(&v, ifccad);
-        let fill = if ifccad {
-            &attr(&out, "ifccad::hatch")["fill"]
-        } else {
-            &out["streams"]["hatchStream"]["fill"][0]
-        };
+        let fill = { &attr(&out, "ifccad::hatch")["fill"] };
         for key in ["origin", "rotation", "scale"] {
             assert!(fill.get(key).is_none(), "{key}");
         }
@@ -199,15 +141,6 @@ fn hatch_fill_defaults_are_omitted() {
 
 #[test]
 fn authored_presence_is_not_default_stripped() {
-    for path in [
-        "conformance/next/ocdraw/valid/text-rich-content.ocdraw.json",
-        "conformance/next/ocdraw/valid/hatch-gradient-inactive.ocdraw.json",
-        "tests/fixtures/ocdraw/workspace-state.ocdraw.json",
-        "tests/fixtures/ocdraw/preserved-spline.ocdraw.json",
-        "tests/fixtures/ocdraw/layouts-viewports.ocdraw.json",
-    ] {
-        encode_checked(&load(path), false);
-    }
     for path in [
         "conformance/next/ifccad/valid/text-rich.ifcx",
         "conformance/next/ifccad/valid/hatch-gradient-inactive.ifcx",

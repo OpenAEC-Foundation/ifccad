@@ -1,11 +1,11 @@
 # cad-text
 
-Shared CAD text preparation for the independent OCDraw and IFCCAD adapters.
+Shared CAD text preparation for the IFCCAD adapters.
 The library has no drawing identities, ownership, native codec, filesystem IO,
-font resolver, renderer or conversion loss policy. The core `ocdraw::text`
-module stays independent of opencadcodec. Both native/directional routes use
+font resolver, renderer or conversion loss policy. The core `ifccad::text`
+module stays independent of opencadcodec. Both conversion directions use
 this bounded profile through their own adapters and qualification tests.
-Shared helper success never establishes route parity.
+Shared helper success does not replace adapter qualification.
 
 `parse_text` and `parse_mtext` turn supported CAD control codes into typed values.
 TEXT and MTEXT have different grammars: ordinary TEXT braces/backslashes are

@@ -1,8 +1,8 @@
 mod common;
 
 use common::metadata;
+use ifccad::load_ifccad_bytes;
 use ifccad_convert::*;
-use ocdraw::ifccad::load_ifccad_bytes;
 use opencadcodec::{objects::ObjectType, CadDocument, EntityType, Handle, Line};
 use std::io::Cursor;
 

@@ -3,9 +3,9 @@ use crate::geometry::{
     blocks::{trig, PairedCurve, PairedPoint, Range},
     numeric::exact,
 };
+use ifccad::geometry_kernel::hatch::HatchEdge2;
 use num_rational::BigRational as Q;
 use num_traits::{Signed, Zero};
-use ocdraw::geometry_kernel::hatch::HatchEdge2;
 use opencadcodec::entities::hatch::*;
 
 #[derive(Clone)]

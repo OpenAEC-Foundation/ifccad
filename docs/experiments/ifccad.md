@@ -110,7 +110,7 @@ In a 2026-09-30 viewer check, a temporary copy of the then-current bracketed fix
 ## OCDraw migration (2026-10-01)
 
 The experiment now builds on the standalone OCDraw repository layout. Core IFCX
-code is in `src/ifccad`, exported as `ocdraw::ifccad`; its separate converter
+code is in `src/ifccad`, exported as `ifccad`; its separate converter
 is in `crates/ifccad-convert`. Geometric frame/transform validation uses
 OCDraw's shared types and length-unit validation reads OCDraw's bundled logical
 registry. IFCX nodes, composition, schema imports and CAD profile rules remain

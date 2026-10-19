@@ -1,6 +1,6 @@
 use crate::content::{error, valid_color, MarkupColor};
 use crate::markup::{escape_mtext_literal, TextMarkupError, TextMarkupErrorCode};
-use ocdraw::text::*;
+use ifccad::text::*;
 
 #[derive(Clone, Copy, Debug, Default)]
 pub enum CadTextProfile {

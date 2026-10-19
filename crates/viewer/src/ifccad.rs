@@ -1,16 +1,12 @@
 use crate::{cad, fail, progress, result};
+use ifccad::{load_ifccad_bytes, IfccadHeader, ValidatedIfccad};
 use ifccad_convert::{
     cad_document_to_encoded_ifccad, ifccad_source_to_cad_document, IfccadDiagnostic,
     IfccadTargetMetadata,
 };
-use ocdraw::ifccad::{load_ifccad_bytes, IfccadHeader, ValidatedIfccad};
 use serde_json::{json, Value};
 use std::path::Path;
 
-pub(crate) fn is_ifccad_name(name: &str) -> bool {
-    let name = name.to_ascii_lowercase();
-    name.ends_with(".ifcx") || name.ends_with(".ifcx.json")
-}
 fn diagnostics(items: &[IfccadDiagnostic]) -> Vec<Value> {
     items.iter().map(|d|json!({"code":d.code,"location":d.location,"message":d.message,"action":format!("{:?}",d.action)})).collect()
 }
@@ -30,9 +26,7 @@ fn present(output: &mut Value, drawing: &ValidatedIfccad) {
             .cloned()
             .collect::<Vec<_>>()
     };
-    use ocdraw::ifccad::{
-        assess_ifccad_document_bounds, IfccadBoundsQuality as Q, IfccadScopeId as S,
-    };
+    use ifccad::{assess_ifccad_document_bounds, IfccadBoundsQuality as Q, IfccadScopeId as S};
     let completeness=assess_ifccad_document_bounds(d).expect("validated numerical extents").scopes.into_iter().map(|(scope,a)|{
         let (scope_path,bounds,claim)=match scope {
             S::Layout(id) if id==d.model.id=>(format!("/cad/d{}/layout/{id}",d.drawing_id),d.model.bounds,d.model.bounds_quality),
@@ -46,7 +40,7 @@ fn present(output: &mut Value, drawing: &ValidatedIfccad) {
         .into_iter()
         .map(|mut node| {
             let body = &node["attributes"]["ifccad::hatch"];
-            let status = crate::inspection::gradient_status(&body["fill"], &body["gradient"]);
+            let status = crate::hatch_exchange::gradient_status(&body["fill"], &body["gradient"]);
             let association_status = if body["associationEnabled"] != true {
                 "disabled"
             } else if body["loops"].as_array().is_some_and(|loops| {
@@ -72,6 +66,19 @@ fn present(output: &mut Value, drawing: &ValidatedIfccad) {
 }
 /// Inspect the experimental IFCCAD profile after production composition/validation.
 pub fn inspect_ifccad_bytes(name: &str, bytes: &[u8]) -> Value {
+    if name.to_ascii_lowercase().ends_with(".ocdraw.json")
+        || name.to_ascii_lowercase().ends_with(".ocdraw")
+    {
+        let mut output = result(Path::new(name), "ocdraw");
+        fail(
+            &mut output,
+            "reading",
+            "OCDRAW_PARKED",
+            "OCDraw is parked; use the archived reference or choose IFCCAD.",
+        );
+        return output;
+    }
+
     let mut output = result(Path::new(name), "ifccad");
     match load_ifccad_bytes(bytes, Default::default()) {
         Ok(drawing) => present(&mut output, &drawing),
@@ -143,7 +150,7 @@ pub(crate) fn inspect_cad_as_ifccad_with_options(
             } else {
                 ifccad_convert::IfccadPreservationCapture::Disabled
             },
-            geometry_tolerance: options.ocdraw_tolerance().expect("checked options"),
+            geometry_tolerance: options.ifccad_tolerance().expect("checked options"),
             ..Default::default()
         },
     ) {
@@ -201,7 +208,7 @@ pub(crate) fn export_ifccad_with_options(
         &drawing,
         ifccad_convert::IfccadToCadOptions {
             loss_policy: options.loss_policy.ifccad(),
-            geometry_tolerance: options.ocdraw_tolerance().expect("checked options"),
+            geometry_tolerance: options.ifccad_tolerance().expect("checked options"),
             ..Default::default()
         },
     ) {
@@ -244,7 +251,7 @@ pub(crate) fn export_ifccad_with_options(
                 metadata,
                 ifccad_convert::CadToIfccadOptions {
                     preservation: ifccad_convert::IfccadPreservationCapture::SupportedTyped,
-                    geometry_tolerance: options.ocdraw_tolerance().expect("checked options"),
+                    geometry_tolerance: options.ifccad_tolerance().expect("checked options"),
                     ..Default::default()
                 },
             )

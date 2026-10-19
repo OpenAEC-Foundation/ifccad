@@ -3,7 +3,7 @@ mod entities;
 use crate::diagnostics::diagnostic;
 use crate::units::UNIT_TOKENS;
 use crate::*;
-use ocdraw::ifccad::*;
+use ifccad::*;
 use opencadcodec::CadDocument;
 
 /// Convert supported content with explicit semantic loss acceptance.

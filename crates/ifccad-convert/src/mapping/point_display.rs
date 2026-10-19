@@ -1,4 +1,4 @@
-use ocdraw::ifccad::{IfccadPointDisplay, IfccadPointGlyph, IfccadPointSize};
+use ifccad::{IfccadPointDisplay, IfccadPointGlyph, IfccadPointSize};
 
 pub(crate) fn from_cad(mode: i16, size: f64) -> Option<IfccadPointDisplay> {
     if mode < 0 || mode & !0x67 != 0 || mode & 7 > 4 || !size.is_finite() {

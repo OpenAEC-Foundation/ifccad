@@ -46,7 +46,7 @@ pub fn cad_plane(normal: Vector3) -> Option<CadPlane> {
 }
 
 /// Builds a right-handed in-plane pair from two independent source directions.
-/// This is opt-in conversion preparation; it never repairs an OCDraw frame on read.
+/// This is opt-in conversion preparation; it never repairs an authored frame on read.
 pub fn orthonormal_pair(x: Vector3, y: Vector3) -> Option<(Vector3, Vector3)> {
     let x = normalized(x)?;
     let y = normalized(y)?;
@@ -89,11 +89,11 @@ mod frame_helper_tests {
 use crate::{
     GeometryAssessment, GeometryFailure, GeometryFailureReason as Reason, GeometryStage as Stage,
 };
+use ifccad::geometry_kernel::{CoordinateFrame3, Point3};
 use numeric::{exact, round_nearest};
-use ocdraw::geometry_kernel::{CoordinateFrame3, Point3};
 use opencadcodec::{LwPolyline, Vector2};
-fn cv(v: [f64; 3]) -> ocdraw::geometry_kernel::Vector3 {
-    ocdraw::geometry_kernel::Vector3::new(v[0], v[1], v[2])
+fn cv(v: [f64; 3]) -> ifccad::geometry_kernel::Vector3 {
+    ifccad::geometry_kernel::Vector3::new(v[0], v[1], v[2])
 }
 fn components(plane: CoordinateFrame3) -> ([f64; 3], [f64; 3], [f64; 3]) {
     let (o, x, y) = (plane.origin(), plane.x_axis(), plane.y_axis());
@@ -199,7 +199,7 @@ pub fn from_cad<S: crate::GeometrySource>(
             || vertex.location.y.abs() > f64::MAX / 8.0
         {
             plane
-                .try_to_scope_point(ocdraw::geometry_kernel::Point2::new(
+                .try_to_scope_point(ifccad::geometry_kernel::Point2::new(
                     vertex.location.x,
                     vertex.location.y,
                 ))

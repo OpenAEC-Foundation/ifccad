@@ -28,19 +28,19 @@ test('native export conversion belongs to the output stage and successful export
  assert.deepEqual(report.output.restoration,{preservation:{entries:['native source restored']}});
 });
 
-test('OCDraw basic CAD readback is visible when successful download has no detailed native file check',()=>{
+test('IFCCAD basic CAD readback is visible when successful download has no detailed native file check',()=>{
  const output={failure:null,export:{format:'dwg',requestedVersion:'AC1027',fileCheck:null,download:{base64:'AQI='}}};
  assert.deepEqual(reports.inspectionReport({},output).output.readback,{cadReadback:true,versionMatched:true,version:'AC1027'});
  assert.equal(reports.inspectionReport({},{...output,failure:{message:'write failed'}}).output.readback,undefined);
  assert.equal(reports.inspectionReport({},{failure:null,export:{format:'dwg',fileCheck:null}}).output.readback,undefined);
- assert.equal(reports.inspectionReport({},{failure:null,export:{format:'ocdraw',download:{base64:'AQI='}}}).output.readback,undefined);
+ assert.equal(reports.inspectionReport({},{failure:null,export:{format:'ifccad',download:{base64:'AQI='}}}).output.readback,undefined);
 });
 
 test('conversion directions follow actual input, native route and prepared output rather than later settings',()=>{
  assert.equal(typeof reports.conversionDirections,'function');
- assert.deepEqual(reports.conversionDirections({source:{name:'drawing.DWG'},inspectedFormat:'ocdraw'},{export:{format:'dwg',requestedVersion:'AC1027'}},{format:'dxf',version:'AC1032'}),{input:'DWG → OCDraw',output:'OCDraw → DWG',version:'AC1027',inputConverted:true});
+ assert.deepEqual(reports.conversionDirections({source:{name:'drawing.DWG'},inspectedFormat:'ifccad'},{export:{format:'dwg',requestedVersion:'AC1027'}},{format:'dxf',version:'AC1032'}),{input:'DWG → IFCCAD',output:'IFCCAD → DWG',version:'AC1027',inputConverted:true});
  assert.deepEqual(reports.conversionDirections({source:{name:'drawing.ifcx'},inspectedFormat:'ifccad'},undefined,{format:'dxf',version:'AC1032'}),{input:'IFCCAD',output:'IFCCAD → DXF',version:'AC1032',inputConverted:false});
- assert.deepEqual(reports.conversionDirections({source:{name:'drawing.ocdraw.json'},inspectedFormat:'ocdraw'},undefined,{format:'dwg'}),{input:'OCDraw',output:'OCDraw → DWG',version:undefined,inputConverted:false});
+ assert.deepEqual(reports.conversionDirections({source:{name:'drawing.ifcx'},inspectedFormat:'ifccad'},undefined,{format:'dwg'}),{input:'IFCCAD',output:'IFCCAD → DWG',version:undefined,inputConverted:false});
  assert.deepEqual(reports.conversionDirections(),{input:'',output:'',version:undefined,inputConverted:false});
  assert.deepEqual(reports.conversionDirections(null,null,null),{input:'',output:'',version:undefined,inputConverted:false});
 });

@@ -5,8 +5,8 @@ use crate::geometry::{
     numeric::{exact, round_nearest},
     stored_normal,
 };
+use ifccad::geometry_kernel::hatch::{validate_hatch_boundaries, HatchEdge2};
 use num_rational::BigRational as Q;
-use ocdraw::geometry_kernel::hatch::{validate_hatch_boundaries, HatchEdge2};
 use opencadcodec::entities::hatch::*;
 use opencadcodec::{Vector2, Vector3};
 use std::f64::consts::TAU;
@@ -180,7 +180,7 @@ pub fn prepare_hatch_to_cad(
     area_rule: HatchAreaRule,
     join_tolerance: f64,
     fill: &HatchFill,
-    gradient: Option<&ocdraw::geometry_kernel::hatch::HatchGradient<opencadcodec::Color>>,
+    gradient: Option<&ifccad::geometry_kernel::hatch::HatchGradient<opencadcodec::Color>>,
 ) -> Result<PreparedCadHatch, CadHatchPreparationError> {
     validate_hatch_boundaries(boundaries, join_tolerance)?;
     let mut hatch = construct_hatch(placement, boundaries, area_rule)?;

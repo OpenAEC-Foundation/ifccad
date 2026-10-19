@@ -1,4 +1,4 @@
-use ocdraw::dimension::*;
+use ifccad::dimension::*;
 use serde_json::{json, Value};
 pub(crate) fn label(value: DimensionFormattedLabel) -> Value {
     let fragments: Vec<_> = value.fragments.into_iter().map(|part| match part {

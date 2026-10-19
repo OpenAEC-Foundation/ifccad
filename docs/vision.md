@@ -1,21 +1,15 @@
-# OCDraw and IFCCAD vision
+# IFCCAD vision
 
-OCDraw describes CAD drawings as an open, application-independent information
-model and exchange format. Drawings are useful deliverables in their own right,
-including CAD-authored work and geometry generated from building models. A
-standalone drawing must not depend on an IFC project graph to be understood.
+IFCCAD describes CAD drawings as typed, application-independent information
+within IFCX. Drawings remain understandable deliverables in their own right,
+including authored CAD and geometry generated from building models. Identity,
+relationships and composition offer opportunities alongside other building
+information, without making an IFC project graph a requirement for every drawing.
 
-OpenAEC develops two complementary routes in parallel. OCDraw provides a
-standalone CAD drawing contract and direct control over physical storage.
-IFCCAD explores a CAD drawing profile within the evolving IFCX ecosystem,
-with opportunities for shared identity, relationships and composition alongside
-other building information. Its CAD content must also be understandable as a
-drawing in its own right. Both contracts remain provisional.
-
-The models and encoding routes stay separate. CAD requirements, reference
-drawings and exchange evidence inform both; different coverage and implementation
-trade-offs are stated explicitly. Reassess priorities using demonstrated CAD
-usability, independent implementation, performance and IFCX ecosystem progress.
+IFCCAD is the active track. OCDraw is parked as a recoverable source reference;
+future work follows demonstrated CAD usability, semantic fidelity and measured
+performance rather than maintaining two models at feature parity. Neither the
+IFCCAD profile nor its experimental CBOR/Zstd transport is a published standard.
 
 ## Principles
 
@@ -36,16 +30,13 @@ usability, independent implementation, performance and IFCX ecosystem progress.
 
 Preservation retains source information that cannot yet be modeled natively;
 external associations refer to semantic information such as IFC objects. These
-have different purposes and lifecycles. Both might eventually fit extensible
-OCDraw records, but neither is implemented or standardized by a speculative
+have different purposes and lifecycles. Each requires a concrete IFCCAD design, but neither is implemented or standardized by a speculative
 common extension protocol today. Design them from concrete use cases with
 identity, ownership, persistence, unknown-content handling and conformance
 requirements. The former IFCPR experiment is available in Git history as
-inspiration; it is not an unchanged future OCDraw payload.
+inspiration; it is not an unchanged future IFCCAD payload.
 
-External CAD references such as images or xrefs can be added later. Standalone
-means opening without IFCX; it does not require embedding all future external
-sources in one file. IFCX-native CAD is an active independent development route.
+External CAD references such as images or xrefs can be added later. A drawing does not need to embed every future external source.
 Future shared identity, incremental contributions and progressive delivery are
 opportunities to investigate with IFCX, not promises of a complete CAD workflow
 in its current alpha technology. The

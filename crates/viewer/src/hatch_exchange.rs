@@ -1,5 +1,5 @@
 //! Physical verification against the already mapped target model.
-use ocdraw_convert::opencadcodec::{
+use ifccad_convert::opencadcodec::{
     entities::hatch::{Hatch, HatchGradientPattern},
     CadDocument, Color, DxfVersion, EntityType,
 };
@@ -236,6 +236,18 @@ pub(crate) fn check_association_target_version(
     Ok(())
 }
 
+pub(crate) fn gradient_status(fill: &Value, gradient: &Value) -> &'static str {
+    if gradient.is_null() {
+        "absent"
+    } else if fill["kind"] == "gradient" {
+        "active"
+    } else if gradient.get("type").is_some() && gradient.get("colors").is_some() {
+        "inactive"
+    } else {
+        "partial"
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -273,7 +285,7 @@ mod tests {
     }
 
     fn solid_document() -> CadDocument {
-        use ocdraw_convert::opencadcodec::{entities::hatch::*, Circle, Vector2};
+        use ifccad_convert::opencadcodec::{entities::hatch::*, Circle, Vector2};
         let mut d = CadDocument::new();
         let source = d.add_entity(EntityType::Circle(Circle::new())).unwrap();
         let mut h = Hatch::solid();
@@ -308,7 +320,7 @@ mod tests {
             panic!()
         };
         h.paths[0].flags =
-            ocdraw_convert::opencadcodec::entities::hatch::BoundaryPathFlags::DEFAULT;
+            ifccad_convert::opencadcodec::entities::hatch::BoundaryPathFlags::DEFAULT;
         let issues = check_hatch_exchange(&expected, &actual).unwrap();
         assert_eq!(issues.len(), 1);
         assert_eq!(issues[0].code, "TARGET_CODEC_HATCH_TEXT_ISLAND_LOSS");

@@ -1,6 +1,6 @@
 //! CAD gradient authorship and qualification, independent of native colors/IDs.
 use super::{unsupported, CadHatchPreparationError, HatchSourceLoss};
-use ocdraw::geometry_kernel::{hatch::*, CoordinateFrame3};
+use ifccad::geometry_kernel::{hatch::*, CoordinateFrame3};
 use opencadcodec::{entities::hatch::*, types::Matrix3, Color};
 
 pub struct PreparedNativeGradient {

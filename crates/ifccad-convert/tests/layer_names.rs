@@ -1,7 +1,7 @@
 mod common;
 use common::*;
+use ifccad::*;
 use ifccad_convert::*;
-use ocdraw::ifccad::*;
 
 #[test]
 fn target_layer_name_collisions_fail_under_both_policies_and_routes() {

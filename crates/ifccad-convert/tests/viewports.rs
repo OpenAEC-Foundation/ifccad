@@ -1,7 +1,7 @@
 mod common;
 use common::*;
+use ifccad::*;
 use ifccad_convert::*;
-use ocdraw::ifccad::*;
 use opencadcodec::{EntityType, Handle, Vector3};
 
 fn source() -> (opencadcodec::CadDocument, Handle, Handle) {

@@ -1,7 +1,7 @@
 use super::*;
 use crate::*;
 use cad_preservation::{capture_spline, CODEC_REVISION, SPLINE_PAYLOAD_VERSION, SPLINE_SCHEMA};
-use ocdraw::ifccad::*;
+use ifccad::*;
 use opencadcodec::{entities::Spline, CadDocument, Color, EntityType, LineWeight};
 
 #[derive(Default)]

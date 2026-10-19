@@ -1,5 +1,5 @@
+use ifccad::*;
 use ifccad_convert::*;
-use ocdraw::ifccad::*;
 use opencadcodec::EntityType;
 #[path = "../../../tests/support/ifccad_hatch.rs"]
 mod fixture;
@@ -13,7 +13,7 @@ fn metadata() -> IfccadTargetMetadata {
 
 #[test]
 fn user_defined_active_linetype_is_resolved_in_the_document() {
-    use ocdraw::geometry_kernel::hatch::HatchFill;
+    use ifccad::geometry_kernel::hatch::HatchFill;
     use opencadcodec::{entities::hatch::*, Vector2};
     for (mode, accepted) in [
         ("Continuous", true),
@@ -238,7 +238,7 @@ fn omitted_pattern_defaults_are_native_but_foreign_graph_data_remains_loss() {
 }
 #[test]
 fn paper_producer_limit_uses_fixed_mapping_without_changing_accuracy_budget() {
-    use ocdraw::{
+    use ifccad::{
         geometry_kernel::hatch::*,
         plot_kernel::{PlotScale, PlotUnit},
     };

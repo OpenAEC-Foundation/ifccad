@@ -1,4 +1,4 @@
-use ocdraw::ifccad::*;
+use ifccad::*;
 
 fn viewport() -> IfccadViewport {
     IfccadViewport {
@@ -196,7 +196,7 @@ fn viewport_requires_paper_and_unique_model_target() {
         bounds_quality: None,
         canvas: None,
 
-        settings: ocdraw::ifccad::IfccadLayoutSettings {
+        settings: ifccad::IfccadLayoutSettings {
             media: None,
             ..Default::default()
         },
@@ -234,7 +234,7 @@ fn drawing_with_viewport() -> IfccadDocument {
         bounds_quality: None,
         canvas: None,
 
-        settings: ocdraw::ifccad::IfccadLayoutSettings {
+        settings: ifccad::IfccadLayoutSettings {
             media: None,
             ..Default::default()
         },

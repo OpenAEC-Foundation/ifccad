@@ -7,7 +7,7 @@ mod math;
 mod projection;
 use super::{CadHatchPreparationError, HatchSourceLoss};
 use crate::{CadPreparationError, GeometryPair};
-use ocdraw::geometry_kernel::{hatch::*, CoordinateFrame3};
+use ifccad::geometry_kernel::{hatch::*, CoordinateFrame3};
 use opencadcodec::{
     entities::{Hatch, HatchPattern},
     Vector2, Vector3,

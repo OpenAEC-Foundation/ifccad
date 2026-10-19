@@ -109,8 +109,8 @@ impl IfccadGeometryAssessment {
     pub fn unassessed_entities(&self) -> &[IfccadGeometryEntitySource] {
         &self.unassessed
     }
-    pub(crate) fn with_unassessed(mut self, d: &ocdraw::ifccad::IfccadDocument) -> Self {
-        use ocdraw::ifccad::*;
+    pub(crate) fn with_unassessed(mut self, d: &ifccad::IfccadDocument) -> Self {
+        use ifccad::*;
         fn walk(
             d: &IfccadDocument,
             owner: IfccadGeometryOwner,

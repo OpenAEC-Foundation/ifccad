@@ -1,4 +1,4 @@
-use ocdraw::ifccad::*;
+use ifccad::*;
 use serde::{Deserialize, Serialize};
 pub(crate) const ENTITY_PREDICATE: &str = "openaec.ifccad.splineEntityBinding";
 pub(crate) const COORDINATE_PREDICATE: &str = "openaec.ifccad.splineCoordinateContext";

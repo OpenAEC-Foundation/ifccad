@@ -28,7 +28,7 @@ fn assert_recovery(cad: &CadDocument, code: &str) {
         .iter()
         .any(|d| d.code == code && !d.is_loss()));
     assert_eq!(serde_json::to_value(cad).unwrap(), before);
-    ocdraw::ifccad::load_ifccad_bytes(result.encoded().bytes(), Default::default()).unwrap();
+    ifccad::load_ifccad_bytes(result.encoded().bytes(), Default::default()).unwrap();
 }
 
 #[test]

@@ -1,4 +1,4 @@
-use ocdraw::{ifccad::*, text::*};
+use ifccad::{text::*, *};
 use serde_json::{json, Value};
 
 #[test]

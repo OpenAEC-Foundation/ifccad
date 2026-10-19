@@ -1,4 +1,4 @@
-use ocdraw::ifccad::IfccadPreservationRecordId;
+use ifccad::IfccadPreservationRecordId;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]

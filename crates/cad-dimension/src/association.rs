@@ -1,5 +1,5 @@
 use crate::{invalid, unsupported, CadDimensionPreparationError};
-use ocdraw::dimension::{DimensionPointSelector, DimensionRole};
+use ifccad::dimension::{DimensionPointSelector, DimensionRole};
 use opencadcodec::Handle;
 use opencadcodec::{objects::AssocDimensionAssociation, CadDocument, EntityType};
 #[derive(Clone, Debug)]

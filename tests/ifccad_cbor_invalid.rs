@@ -1,4 +1,4 @@
-use ocdraw::ifccad::*;
+use ifccad::*;
 fn encoded() -> Vec<u8> {
     let d = load_ifccad_bytes(
         include_bytes!("fixtures/ifccad/hello-cad.ifcx"),

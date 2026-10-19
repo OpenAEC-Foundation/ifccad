@@ -1,10 +1,10 @@
 use super::*;
 use crate::geometry::numeric::exact;
-use num_traits::Signed;
-use ocdraw::geometry_kernel::{
+use ifccad::geometry_kernel::{
     hatch::{validate_hatch_boundaries, HatchEdge2},
     Point3, Vector3,
 };
+use num_traits::Signed;
 use opencadcodec::entities::hatch::*;
 use std::f64::consts::TAU;
 

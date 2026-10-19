@@ -23,8 +23,7 @@ fn dwg_layer_transparency_duplicate_survives_strict_native_roundtrip() {
     });
     assert_eq!(records, 1);
     let native = from_cad(&doc, metadata()).unwrap();
-    let loaded =
-        ocdraw::ifccad::load_ifccad_bytes(native.encoded().bytes(), Default::default()).unwrap();
+    let loaded = ifccad::load_ifccad_bytes(native.encoded().bytes(), Default::default()).unwrap();
     let restored = to_cad(&loaded).unwrap();
     assert_eq!(
         restored.document().layers.get("0").unwrap().transparency,

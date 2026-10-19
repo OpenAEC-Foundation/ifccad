@@ -1,6 +1,6 @@
 //! IFCCAD text identities and independent CAD conversion adapters.
 use crate::*;
-use ocdraw::{ifccad::*, text::*};
+use ifccad::{text::*, *};
 use opencadcodec::{CadDocument, EntityType};
 use std::collections::BTreeMap;
 

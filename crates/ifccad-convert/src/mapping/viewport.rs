@@ -1,5 +1,5 @@
 use crate::{diagnostics::diagnostic, IfccadDiagnostic, IfccadMappings};
-use ocdraw::ifccad::*;
+use ifccad::*;
 use opencadcodec::entities::{Viewport, ViewportRenderMode, ViewportStatusFlags};
 use opencadcodec::{CadDocument, Handle};
 
@@ -122,9 +122,9 @@ pub(crate) fn from_cad(
             .collect(),
         plot_shading_override: match v.shade_plot_mode {
             0 => None,
-            1 => Some(ocdraw::plot_kernel::ShadedPlotMode::Wireframe),
-            2 => Some(ocdraw::plot_kernel::ShadedPlotMode::Hidden),
-            3 => Some(ocdraw::plot_kernel::ShadedPlotMode::Rendered),
+            1 => Some(ifccad::plot_kernel::ShadedPlotMode::Wireframe),
+            2 => Some(ifccad::plot_kernel::ShadedPlotMode::Hidden),
+            3 => Some(ifccad::plot_kernel::ShadedPlotMode::Rendered),
             _ => None, // The source residual diagnoses unsupported plot modes.
         },
     };
@@ -200,12 +200,12 @@ pub(crate) fn to_cad(
     target.clip_boundary_handle = boundary;
     target.shade_plot_mode = match v
         .plot_shading_override
-        .unwrap_or(ocdraw::plot_kernel::ShadedPlotMode::AsDisplayed)
+        .unwrap_or(ifccad::plot_kernel::ShadedPlotMode::AsDisplayed)
     {
-        ocdraw::plot_kernel::ShadedPlotMode::AsDisplayed => 0,
-        ocdraw::plot_kernel::ShadedPlotMode::Wireframe => 1,
-        ocdraw::plot_kernel::ShadedPlotMode::Hidden => 2,
-        ocdraw::plot_kernel::ShadedPlotMode::Rendered => 3,
+        ifccad::plot_kernel::ShadedPlotMode::AsDisplayed => 0,
+        ifccad::plot_kernel::ShadedPlotMode::Wireframe => 1,
+        ifccad::plot_kernel::ShadedPlotMode::Hidden => 2,
+        ifccad::plot_kernel::ShadedPlotMode::Rendered => 3,
     };
     target.frozen_layers = v
         .layer_overrides

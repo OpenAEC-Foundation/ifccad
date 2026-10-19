@@ -109,7 +109,7 @@ pub(super) fn validate_dimensions(d: &IfccadDocument) -> Result<(), IfccadReport
         }
         if s.name.is_empty()
             || s.name.contains('\0')
-            || !names.insert(crate::ocdraw::names::name_key(&s.name))
+            || !names.insert(crate::names::name_key(&s.name))
         {
             return Err(fail(&path, "invalid/colliding DimensionStyle name"));
         }

@@ -2,7 +2,7 @@ use crate::{
     diagnostics::{diagnostic, modification},
     *,
 };
-use ocdraw::ifccad::*;
+use ifccad::*;
 use opencadcodec::{CadDocument, Handle, LineType};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -20,7 +20,7 @@ fn from_marker(
     symbols: &super::symbol_source::SourceSymbolSources,
 ) -> Result<Option<IfccadLinePatternMarker>, IfccadConversionError> {
     use cad_presentation_convert::*;
-    use ocdraw::line_pattern::*;
+    use ifccad::line_pattern::*;
     let style = doc
         .text_styles
         .iter()
@@ -71,7 +71,7 @@ fn to_marker(
     symbols: &BTreeMap<IfccadSymbolSourceId, Handle>,
 ) -> Result<Option<opencadcodec::tables::LineTypeComplexData>, IfccadConversionError> {
     use cad_presentation_convert::*;
-    use ocdraw::line_pattern::*;
+    use ifccad::line_pattern::*;
     let (content, handle, transform) = match marker {
         IfccadLinePatternMarker::Text {
             text,
@@ -228,12 +228,12 @@ pub(crate) fn from_cad(
         let raw = p
             .elements
             .iter()
-            .map(|e| ocdraw::line_pattern::LinePatternElement {
+            .map(|e| ifccad::line_pattern::LinePatternElement {
                 length: e.length,
                 marker: e.complex.as_ref().map(|_| ()),
             })
             .collect::<Vec<_>>();
-        ocdraw::line_pattern::validate_line_pattern_values(&raw)
+        ifccad::line_pattern::validate_line_pattern_values(&raw)
             .map_err(|e| invalid(e.to_string()))?;
         let mut pattern = Vec::new();
         let mut fallback = false;
@@ -247,7 +247,7 @@ pub(crate) fn from_cad(
             } else {
                 None
             };
-            pattern.push(ocdraw::line_pattern::LinePatternElement {
+            pattern.push(ifccad::line_pattern::LinePatternElement {
                 length: element.length,
                 marker,
             });

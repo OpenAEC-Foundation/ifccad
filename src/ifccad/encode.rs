@@ -23,7 +23,7 @@ pub enum IfccadEncodeError {
 /// Failures retain the phase and typed cause instead of flattening diagnostics.
 ///
 /// ```
-/// use ocdraw::ifccad::{encode_ifccad_document, IfccadDocument, IfccadEncodeError};
+/// use ifccad::{encode_ifccad_document, IfccadDocument, IfccadEncodeError};
 /// # fn inspect(document: &IfccadDocument) -> Result<(), IfccadEncodeError> {
 /// match encode_ifccad_document(document) {
 ///     Ok(encoded) => { let _ = encoded.bytes(); }

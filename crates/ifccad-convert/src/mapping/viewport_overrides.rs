@@ -1,7 +1,7 @@
 use crate::diagnostics::diagnostic;
 use crate::{IfccadConversionError, IfccadDiagnostic, IfccadMappings};
 use cad_presentation_convert::*;
-use ocdraw::ifccad::*;
+use ifccad::*;
 use opencadcodec::objects::{KnownXRecordKind as K, XRecordValue};
 use opencadcodec::{CadDocument, Handle};
 use std::collections::BTreeSet;

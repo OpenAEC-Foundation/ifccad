@@ -1,5 +1,5 @@
 use cad_geometry_convert::hatch::*;
-use ocdraw::geometry_kernel::hatch::HatchBoundary2;
+use ifccad::geometry_kernel::hatch::HatchBoundary2;
 use opencadcodec::{entities::hatch::*, Vector2};
 use serde_json::Value;
 fn point(v: &Value) -> Vector2 {
@@ -57,7 +57,7 @@ fn original_dxf_9aa_and_dwg_counterpart_close_at_the_existing_default_limit() {
             &p.boundaries,
             p.area_rule,
             p.join_tolerance,
-            &ocdraw::geometry_kernel::hatch::HatchFill::Solid,
+            &ifccad::geometry_kernel::hatch::HatchFill::Solid,
             None,
         )
         .unwrap();

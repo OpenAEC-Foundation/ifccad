@@ -7,11 +7,11 @@ use geometry::{
     blocks::{PairedCurve, PairedPoint},
     circular,
 };
-use num_rational::BigRational;
-use ocdraw::geometry_kernel::{
+use ifccad::geometry_kernel::{
     validate_geometry, CoordinateFrame3, CoordinateLengthUnit, GeometryRef, OwnedGeometry,
     PlanarVertices, Point3, Vector3,
 };
+use num_rational::BigRational;
 use opencadcodec::{EntityType, Handle};
 
 #[derive(Clone)]

@@ -25,7 +25,7 @@ jobs:
         id: browser-cache
         with:
           path: format-explorer/wasm-build
-          key: browser-wasm-ubuntu24-v2-${{ hashFiles('Cargo.toml', 'crates/**/Cargo.toml', 'src/**/*.rs', 'crates/**/src/**/*.rs', 'schemas/**', 'crates/ocdraw-convert/README.md', 'patches/opencadcodec-viewports*', 'patches/opencadcodec-viewports/**', 'patches/opencadcodec-dimension/**', '.github/actions/viewport-codec/**') }}
+          key: ifccad-browser-wasm-ubuntu24-v3-${{ hashFiles('Cargo.toml', 'crates/**/Cargo.toml', 'src/**/*.rs', 'crates/**/src/**/*.rs', 'schemas/**', 'crates/ifccad-convert/README.md', 'patches/opencadcodec-viewports*', 'patches/opencadcodec-viewports/**', 'patches/opencadcodec-dimension/**', '.github/actions/viewport-codec/**') }}
       - uses: ./.github/actions/viewport-codec
         if: steps.browser-cache.outputs.cache-hit != 'true'
       - uses: dtolnay/rust-toolchain@stable
@@ -124,12 +124,12 @@ jobs:
       - name: Install cache tool
         run: |
           apt-get update -qq
-          apt-get install -y --no-install-recommends zstd
+          apt-get install -y --no-install-recommends zstd python3
       - uses: actions/cache@v4
         id: rust-checks-cache
         with:
           path: target/explorer-rust-checks-passed
-          key: ocdraw-rust-checks-debian12-v3-${{ hashFiles('Cargo.toml', 'crates/**', 'src/**', 'tests/**', 'schemas/**', 'conformance/**', 'examples/**', 'patches/opencadcodec-viewports*', 'patches/opencadcodec-viewports/**', 'patches/opencadcodec-dimension/**', '.github/actions/viewport-codec/**', '.github/workflows/format-explorer.yml') }}
+          key: ifccad-rust-checks-debian12-v4-${{ hashFiles('Cargo.toml', 'scripts/check_active_workspace.py', 'scripts/tests/test_active_workspace.py', 'crates/**', 'src/**', 'tests/**', 'schemas/**', 'conformance/**', 'examples/**', 'patches/opencadcodec-viewports*', 'patches/opencadcodec-viewports/**', 'patches/opencadcodec-dimension/**', '.github/actions/viewport-codec/**', '.github/workflows/format-explorer.yml') }}
       - uses: ./.github/actions/viewport-codec
         if: steps.rust-checks-cache.outputs.cache-hit != 'true'
       - name: Install Rust check tools
@@ -143,9 +143,14 @@ jobs:
       - name: Check Rust workspace
         if: steps.rust-checks-cache.outputs.cache-hit != 'true'
         run: |
+          cargo fetch
+          python3 scripts/check_active_workspace.py
+          python3 -m unittest discover -s scripts/tests -p test_active_workspace.py
           cargo fmt --all -- --check
           cargo clippy --workspace --all-targets -- -D warnings
           cargo test --workspace
+          cargo clippy -p ifccad --all-targets --features ifccad-cbor-zstd -- -D warnings
+          cargo test -p ifccad --features ifccad-cbor-zstd --test ifccad_cbor_zstd
       - name: Record passing Rust checks
         if: steps.rust-checks-cache.outputs.cache-hit != 'true'
         run: |

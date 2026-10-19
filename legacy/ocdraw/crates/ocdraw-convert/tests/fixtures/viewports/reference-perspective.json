@@ -1,0 +1,16 @@
+[
+  {"name":"axial","center":[100,75],"width":160,"height":100,"target":[0,0,0],"direction":[0,0,100],"viewCenter":[0,0],"viewHeight":200,"twist":0,"lens":50,"front":null,"back":null,
+   "landmarks":[
+     {"model":[0,0,-25],"paper":[100,75],"visible":true},
+     {"model":[0,0,0],"paper":[100,75],"visible":true},
+     {"model":[0,0,25],"paper":[100,75],"visible":true},
+     {"model":[10,0,-25],"paper":[117.969487870584,75],"visible":true},
+     {"model":[10,0,0],"paper":[122.46185983823001,75],"visible":true},
+     {"model":[10,0,25],"paper":[129.94914645097336,75],"visible":true}]},
+  {"name":"oblique","center":[40,30],"width":120,"height":80,"target":[10,20,30],"direction":[60,0,80],"viewCenter":[5,-3],"viewHeight":150,"twist":0.5235987755982988,"lens":35,"front":-10,"back":-20,
+   "landmarks":[
+     {"model":[20,40,60],"paper":[52.56879391873528,67.18912217763041],"visible":false},
+     {"model":[-5,20,10],"paper":[35.192598299381345,32.88444102037119],"visible":false},
+     {"model":[1,20,18],"paper":[34.77456336889277,33.13526197866434],"visible":true},
+     {"model":[7,20,26],"paper":[34.276902737358746,33.433858357584754],"visible":false}]}
+]

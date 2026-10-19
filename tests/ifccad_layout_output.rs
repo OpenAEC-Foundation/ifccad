@@ -1,4 +1,4 @@
-use ocdraw::{geometry_kernel::CoordinateLengthUnit as Unit, ifccad::*, plot_kernel::*};
+use ifccad::{geometry_kernel::CoordinateLengthUnit as Unit, plot_kernel::*, *};
 use serde_json::Value;
 fn sample() -> IfccadDocument {
     load_ifccad_bytes(

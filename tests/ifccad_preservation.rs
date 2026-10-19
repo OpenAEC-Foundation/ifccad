@@ -1,4 +1,4 @@
-use ocdraw::ifccad::*;
+use ifccad::*;
 #[test]
 fn opaque_identity_and_allocation_are_independent() {
     let entity = IfccadEntity::Opaque(IfccadOpaqueEntity {

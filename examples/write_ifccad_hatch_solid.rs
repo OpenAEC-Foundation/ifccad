@@ -1,5 +1,5 @@
-use ocdraw::geometry_kernel::hatch::*;
-use ocdraw::ifccad::*;
+use ifccad::geometry_kernel::hatch::*;
+use ifccad::*;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let path = std::env::args().nth(1).ok_or("provide a new output path")?;
     let mut d = load_ifccad_bytes(

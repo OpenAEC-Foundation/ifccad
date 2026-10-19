@@ -1,6 +1,6 @@
 mod common;
+use ifccad::*;
 use ifccad_convert::*;
-use ocdraw::ifccad::*;
 use opencadcodec::entities::Viewport;
 use opencadcodec::{CadDocument, EntityType, VPort, Vector3};
 
@@ -37,7 +37,7 @@ fn available_windows_and_ucs_survive_unknown_current_window() {
     );
     assert_eq!(
         drawing.model_windows[1].snap.spacing,
-        ocdraw::geometry_kernel::Point2::new(0., 0.)
+        ifccad::geometry_kernel::Point2::new(0., 0.)
     );
     assert!(drawing.id_counters.next_model_window_id > drawing.model_windows[1].id.0);
     assert!(drawing.id_counters.next_ucs_id > drawing.ucs_definitions[0].id.0);
@@ -103,11 +103,11 @@ fn paper_canvas_and_authored_viewport_workspace_are_distinct() {
     let workspace = view.workspace.as_ref().unwrap();
     assert_eq!(
         workspace.grid.spacing,
-        ocdraw::geometry_kernel::Point2::new(2., 3.)
+        ifccad::geometry_kernel::Point2::new(2., 3.)
     );
     assert_eq!(
         workspace.snap.spacing,
-        ocdraw::geometry_kernel::Point2::new(0., 0.)
+        ifccad::geometry_kernel::Point2::new(0., 0.)
     );
     let target =
         ifccad_source_to_cad_document(result.validated_source(), Default::default()).unwrap();

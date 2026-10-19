@@ -1,5 +1,5 @@
-use ocdraw::dimension::*;
-use ocdraw::text::TextRun;
+use ifccad::dimension::*;
+use ifccad::text::TextRun;
 
 fn fragment_text(label: &DimensionFormattedLabel) -> String {
     label

@@ -1,6 +1,6 @@
 mod common;
+use ifccad::{dimension::*, *};
 use ifccad_convert::*;
-use ocdraw::{dimension::*, ifccad::*};
 use opencadcodec::{
     entities::{Dimension, DimensionLinear},
     CadDocument, EntityType, Vector3,

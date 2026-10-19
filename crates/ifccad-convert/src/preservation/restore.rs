@@ -1,6 +1,6 @@
 use super::*;
 use cad_preservation::decode_spline_snapshot;
-use ocdraw::ifccad::*;
+use ifccad::*;
 use opencadcodec::entities::Spline;
 
 pub(crate) fn restore_spline(

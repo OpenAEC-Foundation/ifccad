@@ -2,9 +2,9 @@ use super::blocks::{trig, PairedCurve, PairedPoint, Range};
 use super::numeric::exact;
 use super::{cad_plane, orthonormal_pair, stored_normal};
 use crate::CadConstructionError;
+use ifccad::geometry_kernel::{CoordinateFrame3, Point3};
 use num_rational::BigRational;
 use num_traits::Signed;
-use ocdraw::geometry_kernel::{CoordinateFrame3, Point3};
 use opencadcodec::Vector3;
 
 type CurveComponents = ([BigRational; 3], [[Range; 3]; 2]);
@@ -234,8 +234,8 @@ fn scaled(a: [f64; 3], value: f64) -> [f64; 3] {
 fn vec3(a: [f64; 3]) -> Vector3 {
     Vector3::new(a[0], a[1], a[2])
 }
-fn ifc_vec3(a: [f64; 3]) -> ocdraw::geometry_kernel::Vector3 {
-    ocdraw::geometry_kernel::Vector3::new(a[0], a[1], a[2])
+fn ifc_vec3(a: [f64; 3]) -> ifccad::geometry_kernel::Vector3 {
+    ifccad::geometry_kernel::Vector3::new(a[0], a[1], a[2])
 }
 
 pub fn from_cad_ocs(center: Vector3, normal: Vector3) -> Option<CoordinateFrame3> {
@@ -306,7 +306,7 @@ fn source_point(
     angle: f64,
 ) -> Result<Point3, CadConstructionError> {
     plane
-        .try_to_scope_point(ocdraw::geometry_kernel::Point2::new(
+        .try_to_scope_point(ifccad::geometry_kernel::Point2::new(
             radius * angle.cos(),
             radius * angle.sin(),
         ))
@@ -364,7 +364,7 @@ pub fn export_circle_sample_pairs(
     .into_iter()
     .map(|angle| {
         let target = plane
-            .try_to_scope_point(ocdraw::geometry_kernel::Point2::new(
+            .try_to_scope_point(ifccad::geometry_kernel::Point2::new(
                 source.radius * angle.cos(),
                 source.radius * angle.sin(),
             ))
@@ -383,7 +383,7 @@ pub fn export_arc_sample_pairs(
         .map(|fraction| {
             let angle = source.start_angle + fraction * sweep;
             let target = plane
-                .try_to_scope_point(ocdraw::geometry_kernel::Point2::new(
+                .try_to_scope_point(ifccad::geometry_kernel::Point2::new(
                     source.radius * angle.cos(),
                     source.radius * angle.sin(),
                 ))
@@ -422,8 +422,8 @@ pub fn from_cad_ellipse(source: &opencadcodec::Ellipse) -> Option<(CoordinateFra
     let center = source.center;
     let placement = CoordinateFrame3::try_new(
         Point3::new(center.x, center.y, center.z),
-        ocdraw::geometry_kernel::Vector3::new(x.x, x.y, x.z),
-        ocdraw::geometry_kernel::Vector3::new(y.x, y.y, y.z),
+        ifccad::geometry_kernel::Vector3::new(x.x, x.y, x.z),
+        ifccad::geometry_kernel::Vector3::new(y.x, y.y, y.z),
     )
     .ok()?;
     Some((placement, length, minor))
@@ -481,7 +481,7 @@ pub fn ellipse_sample_pairs(
             let source_angle = start + fraction * sweep;
             let target_angle = target.start_parameter + fraction * sweep.abs();
             let source = plane
-                .try_to_scope_point(ocdraw::geometry_kernel::Point2::new(
+                .try_to_scope_point(ifccad::geometry_kernel::Point2::new(
                     major * source_angle.cos(),
                     minor * source_angle.sin(),
                 ))
@@ -504,7 +504,7 @@ pub fn export_ellipse_sample_pairs(
         .map(|fraction| {
             let angle = start + fraction * sweep;
             let target = plane
-                .try_to_scope_point(ocdraw::geometry_kernel::Point2::new(
+                .try_to_scope_point(ifccad::geometry_kernel::Point2::new(
                     major * angle.cos(),
                     minor * angle.sin(),
                 ))

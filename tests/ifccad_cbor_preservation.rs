@@ -1,4 +1,4 @@
-use ocdraw::ifccad::*;
+use ifccad::*;
 #[path = "support/ifccad_preservation.rs"]
 mod fixtures;
 

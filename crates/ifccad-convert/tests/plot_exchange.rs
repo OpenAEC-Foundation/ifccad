@@ -24,7 +24,7 @@ fn plot_and_medium_only_have_independent_strict_file_readback() {
         include_bytes!("../../../conformance/next/ifccad/valid/layout-linetype-scaling.ifcx")
             .as_slice(),
     ] {
-        let native = ocdraw::ifccad::load_ifccad_bytes(bytes, Default::default()).unwrap();
+        let native = ifccad::load_ifccad_bytes(bytes, Default::default()).unwrap();
         let output =
             ifccad_document_to_cad_document(native.document(), Default::default()).unwrap();
         for dwg in [false, true] {
@@ -43,7 +43,7 @@ fn plot_and_medium_only_have_independent_strict_file_readback() {
 }
 #[test]
 fn raster_medium_is_native_but_not_guessed_into_cad_millimetres() {
-    let native = ocdraw::ifccad::load_ifccad_bytes(
+    let native = ifccad::load_ifccad_bytes(
         include_bytes!("../../../conformance/next/ifccad/valid/layout-raster.ifcx"),
         Default::default(),
     )

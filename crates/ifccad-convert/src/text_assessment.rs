@@ -1,6 +1,6 @@
 //! Text anchor evidence is independent of font and layout fidelity.
 use crate::IfccadGeometryOwner;
-use ocdraw::ifccad::*;
+use ifccad::*;
 use std::collections::BTreeSet;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum IfccadTextNumericCoverage {

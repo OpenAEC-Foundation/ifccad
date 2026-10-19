@@ -1,5 +1,5 @@
 //! Construct independent IFCCAD text in Model, Paper and a local definition.
-use ocdraw::{ifccad::*, text::*};
+use ifccad::{text::*, *};
 fn placement(origin: [f64; 3]) -> IfccadPlacement {
     IfccadPlacement {
         origin,

@@ -1,4 +1,4 @@
-use ocdraw::line_pattern::*;
+use ifccad::line_pattern::*;
 
 #[test]
 fn simple_and_complex_period_rules() {

@@ -1,20 +1,20 @@
-//! Open CAD Drawing (OCDraw): an open, application-independent information
-//! model and exchange format for CAD drawings.
+//! IFCCAD drawing model, shared validation and IFCX JSON / experimental CBOR IO.
 //!
-//! The typed logical model and shared validation are separate from the JSON
-//! mapping. CAD conversion lives in the companion `ocdraw-convert` crate.
-//! The independent experimental IFCCAD drawing profile lives in [`ifccad`],
-//! with direct CAD conversion in the companion `ifccad-convert` crate.
+//! Public model and IO types are exported directly from this crate. Geometry,
+//! text, dimensions, line patterns, plot and workspace kernels remain independent
+//! of CAD runtimes. Direct CAD exchange lives in `ifccad-convert`.
 #![allow(missing_docs)]
 #![warn(rustdoc::missing_crate_level_docs)]
 pub mod color;
 pub mod dimension;
 pub mod geometry_kernel;
-pub mod ifccad;
+pub(crate) mod ifccad;
+pub use ifccad::*;
 pub mod line_pattern;
-pub mod ocdraw;
 
 pub mod plot_kernel;
 pub mod text;
 
 pub mod workspace_kernel;
+
+pub(crate) mod names;

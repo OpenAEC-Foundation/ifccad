@@ -7,8 +7,8 @@ import {examples} from '../src/examples.mjs';
 import {build} from '../scripts/build.mjs';
 
 test('four representative drawings per format match the authored example directories',async()=>{
- assert.equal(examples.length,8);
- for(const format of ['IFCCAD','OCDraw']){
+ assert.equal(examples.length,4);
+ for(const format of ['IFCCAD']){
   const selected=examples.filter(example=>example.format===format);
   assert.deepEqual(selected.map(example=>example.name),['Drawing overview','Text and multiline text','Hatches','Dimensions']);
   const files=(await readdir(new URL('../../examples/'+format.toLowerCase()+'/',import.meta.url))).filter(file=>/\.(ifcx|json)$/.test(file)).sort();

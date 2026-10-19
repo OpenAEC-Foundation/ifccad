@@ -1,5 +1,5 @@
 //! Independent typed IFCCAD dimension inspection; full-width IDs become complete paths.
-use ocdraw::{dimension::*, ifccad::*};
+use ifccad::{dimension::*, *};
 use serde_json::{json, Value};
 fn color(c: &IfccadColor) -> Value {
     match c {

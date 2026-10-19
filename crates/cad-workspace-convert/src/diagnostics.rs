@@ -9,8 +9,8 @@ pub struct WorkspaceNumericError {
     pub field: &'static str,
     pub message: String,
 }
-impl From<ocdraw::workspace_kernel::WorkspaceScalarError> for WorkspaceNumericError {
-    fn from(error: ocdraw::workspace_kernel::WorkspaceScalarError) -> Self {
+impl From<ifccad::workspace_kernel::WorkspaceScalarError> for WorkspaceNumericError {
+    fn from(error: ifccad::workspace_kernel::WorkspaceScalarError) -> Self {
         Self {
             field: error.field,
             message: format!("{:?}", error.reason),

@@ -1,5 +1,9 @@
 # CadDocument â†’ IFCCAD coverage
 
+The active core package is `ifccad`, exporting its model/IO API directly. OCDraw
+is parked and excluded from active verification. This ownership migration changes
+no CAD coverage, geometry policy or source/target loss classification.
+
 Standalone CBOR uses the same validated logical document boundary. Its direct
 core mapping changes storage only; the IFCX source audit is not available from
 a binary document. No CAD coverage or loss-policy expansion is implied.

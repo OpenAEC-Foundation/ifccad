@@ -1,6 +1,6 @@
 //! Independent IFCCAD identities and owner binding around neutral CAD dimension values.
 use crate::*;
-use ocdraw::{dimension::*, ifccad::*};
+use ifccad::{dimension::*, *};
 use opencadcodec::{entities::Dimension, CadDocument, Handle};
 use std::{
     cell::RefCell,

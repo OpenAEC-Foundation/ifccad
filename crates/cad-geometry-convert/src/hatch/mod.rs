@@ -13,7 +13,7 @@ mod to_cad;
 use crate::{CadPreparationError, GeometryPair};
 pub use from_cad::prepare_hatch_from_cad;
 pub use from_cad::prepare_hatch_from_cad_with_pattern_context;
-use ocdraw::geometry_kernel::{
+use ifccad::geometry_kernel::{
     hatch::{HatchAreaRule, HatchBoundary2, HatchFill, HatchValidationError},
     CoordinateFrame3,
 };
@@ -22,11 +22,11 @@ pub use to_cad::prepare_hatch_to_cad;
 /// Resolve a producer limit before a native document exists. `Some(None)`
 /// denotes Paper coordinates without a known physical mapping.
 pub fn resolve_creation_tolerance(
-    request: ocdraw::geometry_kernel::hatch::HatchJoinToleranceRequest,
+    request: ifccad::geometry_kernel::hatch::HatchJoinToleranceRequest,
     unit: &str,
-    paper: Option<Option<&ocdraw::plot_kernel::PlotSettings>>,
-) -> Result<f64, ocdraw::geometry_kernel::hatch::HatchJoinToleranceError> {
-    use ocdraw::{
+    paper: Option<Option<&ifccad::plot_kernel::PlotSettings>>,
+) -> Result<f64, ifccad::geometry_kernel::hatch::HatchJoinToleranceError> {
+    use ifccad::{
         geometry_kernel::{
             hatch::{resolve_hatch_join_tolerance, HatchJoinToleranceError},
             CoordinateLengthUnit,
@@ -66,7 +66,7 @@ pub fn resolve_creation_tolerance(
 
 pub struct PreparedNativeHatch {
     pub loop_flags: Vec<PreparedHatchLoopFlags>,
-    pub gradient: Option<ocdraw::geometry_kernel::hatch::HatchGradient<opencadcodec::Color>>,
+    pub gradient: Option<ifccad::geometry_kernel::hatch::HatchGradient<opencadcodec::Color>>,
     pub fill: HatchFill,
     pub placement: CoordinateFrame3,
     pub boundaries: Vec<HatchBoundary2>,
@@ -92,7 +92,7 @@ pub enum CadHatchPreparationError {
     #[error("Hatch loop count mismatch: expected {expected}, got {actual}")]
     LoopCountMismatch { expected: usize, actual: usize },
     #[error("{0}")]
-    Gradient(#[from] ocdraw::geometry_kernel::hatch::HatchGradientValidationError),
+    Gradient(#[from] ifccad::geometry_kernel::hatch::HatchGradientValidationError),
     #[error("invalid gradient {field}: {detail}")]
     InvalidGradientSource { field: &'static str, detail: String },
     #[error("{0}")]

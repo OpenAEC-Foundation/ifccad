@@ -1,5 +1,5 @@
 use crate::{diagnostics::diagnostic, *};
-use ocdraw::ifccad::*;
+use ifccad::*;
 use opencadcodec::{CadDocument, EntityType, Handle};
 use std::collections::BTreeSet;
 pub(crate) fn bind(

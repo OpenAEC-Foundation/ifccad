@@ -1,5 +1,5 @@
 use crate::{diagnostics::diagnostic, *};
-use ocdraw::ifccad::*;
+use ifccad::*;
 use opencadcodec::{CadDocument, EntityType, Handle};
 use std::collections::BTreeMap;
 
@@ -183,10 +183,10 @@ pub(super) fn to_cad(
                         .placement
                         .coordinate_frame()
                         .map_err(IfccadConversionError::CoreValidation)?;
-                    let native = ocdraw::geometry_kernel::BlockTransform::try_new(
+                    let native = ifccad::geometry_kernel::BlockTransform::try_new(
                         frame,
                         transform.rotation,
-                        ocdraw::geometry_kernel::Scale3::new(
+                        ifccad::geometry_kernel::Scale3::new(
                             transform.scale[0],
                             transform.scale[1],
                             transform.scale[2],

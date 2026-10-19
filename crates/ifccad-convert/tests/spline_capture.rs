@@ -1,6 +1,6 @@
 mod common;
+use ifccad::*;
 use ifccad_convert::*;
-use ocdraw::ifccad::*;
 use opencadcodec::{CadDocument, EntityType, Vector3};
 fn metadata() -> IfccadTargetMetadata {
     IfccadTargetMetadata {

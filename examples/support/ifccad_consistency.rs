@@ -1,5 +1,5 @@
 //! Presentation and compact IDs for authored examples, never a production codec.
-use ocdraw::ifccad::load_ifccad_bytes;
+use ifccad::load_ifccad_bytes;
 use serde::{ser::SerializeMap, Serialize, Serializer};
 use serde_json::{json, Value};
 use std::{collections::BTreeMap, error::Error};

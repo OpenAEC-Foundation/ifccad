@@ -1,5 +1,5 @@
 use cad_text::*;
-use ocdraw::text::*;
+use ifccad::text::*;
 
 #[test]
 fn text_parses_only_literal_unicode_and_supported_run_decorations() {

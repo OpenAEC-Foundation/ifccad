@@ -1,4 +1,4 @@
-use ocdraw::geometry_kernel::{
+use ifccad::geometry_kernel::{
     geometry_bounds, validate_geometry, validate_paper_boundary, CoordinateFrame3, GeometryRef,
     PaperFrame, PlanarVertices,
 };
@@ -109,28 +109,31 @@ fn invalid_parameters_fail_before_exact_arithmetic() {
 }
 
 #[test]
-fn drawing_units_and_coordinate_types_keep_existing_public_imports() {
-    use ocdraw::geometry_kernel::CoordinateLengthUnit;
-    use ocdraw::ocdraw::DrawingLengthUnit;
-    let registry: serde_json::Value =
-        serde_json::from_str(include_str!("../schemas/ocdraw/registry-0.1.0.json")).unwrap();
-    for token in registry["types"]["unit"]["values"].as_array().unwrap() {
-        assert!(CoordinateLengthUnit::from_token(token.as_str().unwrap()).is_some());
+fn registered_coordinate_units_remain_available() {
+    use ifccad::geometry_kernel::CoordinateLengthUnit;
+    let tokens: Vec<String> =
+        serde_json::from_str(include_str!("fixtures/coordinate-units-v1.json")).unwrap();
+    for token in tokens {
+        assert!(
+            CoordinateLengthUnit::from_token(&token).is_some(),
+            "{token}"
+        );
     }
     assert_eq!(
         CoordinateLengthUnit::from_token("mm"),
-        Some(DrawingLengthUnit::Millimetre)
+        Some(CoordinateLengthUnit::Millimetre)
     );
     assert_eq!(CoordinateLengthUnit::from_token("metre"), None);
-    let legacy: ocdraw::ocdraw::CoordinateFrame3 = CoordinateFrame3::default();
-    assert_eq!(legacy.origin().components(), [0.; 3]);
 }
-
 #[test]
 fn the_native_model_exposes_a_borrowed_geometry_view() {
-    let circle = ocdraw::ocdraw::DrawingGeometry::Circle {
-        placement: CoordinateFrame3::default(),
+    let circle = ifccad::IfccadEntityKind::Circle {
+        placement: ifccad::IfccadPlacement {
+            origin: [0.; 3],
+            x_axis: [1., 0., 0.],
+            y_axis: [0., 1., 0.],
+        },
         radius: 2.,
     };
-    assert!(geometry_bounds(circle.as_shared_geometry().unwrap()).is_ok());
+    assert!(geometry_bounds(circle.as_shared_geometry().unwrap().unwrap()).is_ok());
 }

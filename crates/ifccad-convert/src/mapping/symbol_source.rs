@@ -1,5 +1,5 @@
 use crate::*;
-use ocdraw::{ifccad::*, line_pattern::SymbolSource};
+use ifccad::{line_pattern::SymbolSource, *};
 use opencadcodec::{tables::TextStyle, CadDocument, Handle};
 use std::collections::BTreeMap;
 

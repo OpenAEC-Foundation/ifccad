@@ -1,5 +1,9 @@
 # Dimension support
 
+IFCCAD is the active track. OCDraw descriptions below retain historical context;
+its implementation and fixtures are parked. See [parking](ocdraw-parking.md).
+Only IFCCAD code, schemas and current converter coverage define active behavior.
+
 OCDraw and IFCCAD independently store ordinary linear and aligned dimensions,
 local named DimensionStyles, authored overrides and optional same-owner source
 relations. Their models, IDs, schemas, readers and converters remain separate.
@@ -110,7 +114,7 @@ unassessed. The pinned reader loses clone group 12; DXF also omits certain flips
 and true colors and suppresses some near-default values. These limitations are
 explicit, not display fidelity claims. See the complete
 [CAD field audit](dimension/cad-field-audit-2026-10-09.md) and both converters'
-[OCDraw](../crates/ocdraw-convert/README.md) /
+[OCDraw](../legacy/ocdraw/crates/ocdraw-convert/README.md) /
 [IFCCAD](../crates/ifccad-convert/README.md) coverage contracts.
 
 ## Design and subsequent slices

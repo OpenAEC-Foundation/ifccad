@@ -1,13 +1,13 @@
 use crate::{diagnostics::diagnostic, *};
-use ocdraw::ifccad::*;
+use ifccad::*;
 use opencadcodec::{CadDocument, EntityType, Handle};
 use std::collections::{BTreeMap, BTreeSet};
 
 pub(super) struct SourceScope<'a> {
     pub dimensions: &'a mut crate::mapping::dimension::SourceDimensions,
     pub unit: &'a str,
-    pub paper: Option<Option<&'a ocdraw::plot_kernel::PlotSettings>>,
-    pub hatch_tolerance: ocdraw::geometry_kernel::hatch::HatchJoinToleranceRequest,
+    pub paper: Option<Option<&'a ifccad::plot_kernel::PlotSettings>>,
+    pub hatch_tolerance: ifccad::geometry_kernel::hatch::HatchJoinToleranceRequest,
     pub document: &'a CadDocument,
     pub patterns: &'a crate::mapping::line_pattern::SourcePatterns,
     pub entities: &'a [Handle],

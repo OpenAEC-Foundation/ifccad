@@ -1,6 +1,5 @@
 use super::*;
-use crate::ocdraw::{BlockTransform, CoordinateFrame3, Point3, Scale3, Vector3};
-use serde_json::Value;
+use crate::geometry_kernel::{BlockTransform, CoordinateFrame3, Point3, Scale3, Vector3};
 use std::collections::{BTreeMap, BTreeSet};
 
 /// Validate a logical CAD document without encoding it or invoking a CAD runtime.
@@ -113,12 +112,11 @@ fn validate_document_inner(
         ));
     }
     let mut tabs = BTreeSet::from([0]);
-    let mut layout_names = BTreeSet::from([crate::ocdraw::names::name_key("Model")]);
+    let mut layout_names = BTreeSet::from([crate::names::name_key("Model")]);
     for paper in &document.paper_layouts {
         let path = format!("{prefix}/layout/{}", paper.id);
         unique(&mut layouts, paper.id, &path)?;
-        if paper.name.trim().is_empty()
-            || !layout_names.insert(crate::ocdraw::names::name_key(&paper.name))
+        if paper.name.trim().is_empty() || !layout_names.insert(crate::names::name_key(&paper.name))
         {
             return Err(crate::ifccad::diagnostics::failure(
                 "IFCCAD-LAYOUT-001",
@@ -350,21 +348,7 @@ fn placement(value: &IfccadPlacement, context: &str) -> Result<CoordinateFrame3,
     })
 }
 fn unit(token: &str) -> bool {
-    static UNITS: std::sync::OnceLock<Vec<String>> = std::sync::OnceLock::new();
-    UNITS
-        .get_or_init(|| {
-            let registry: Value =
-                serde_json::from_str(include_str!("../../../schemas/ocdraw/registry-0.1.0.json"))
-                    .expect("bundled OCDraw registry");
-            registry["types"]["unit"]["values"]
-                .as_array()
-                .expect("OCDraw unit registry")
-                .iter()
-                .map(|value| value.as_str().expect("unit token").to_owned())
-                .collect()
-        })
-        .iter()
-        .any(|unit| unit == token)
+    crate::geometry_kernel::CoordinateLengthUnit::from_token(token).is_some()
 }
 pub(super) fn color(value: &IfccadColor) -> bool {
     value.is_valid()

@@ -1,6 +1,6 @@
 //! CAD codec qualification only; native document schemas/routes are separate.
 use cad_text::*;
-use ocdraw::{geometry_kernel::CoordinateFrame3, text::*};
+use ifccad::{geometry_kernel::CoordinateFrame3, text::*};
 use opencadcodec::{CadDocument, DwgReader, DwgWriter, DxfReader, DxfWriter, EntityType};
 use std::io::Cursor;
 

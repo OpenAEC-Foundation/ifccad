@@ -1,6 +1,6 @@
 #[path = "support/ifccad_dimension.rs"]
 mod support;
-use ocdraw::ifccad::*;
+use ifccad::*;
 #[test]
 fn definition_points_do_not_certify_display_enclosure() {
     let d = support::drawing();

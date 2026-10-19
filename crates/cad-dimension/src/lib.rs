@@ -12,13 +12,13 @@ pub use overrides::*;
 pub use placement::*;
 pub use source_overrides::*;
 pub use styles::*;
-pub type CadDimensionStyleValues = ocdraw::dimension::DimensionStyleSettings<
+pub type CadDimensionStyleValues = ifccad::dimension::DimensionStyleSettings<
     opencadcodec::Handle,
     opencadcodec::Handle,
     CadColorValue,
     opencadcodec::Handle,
 >;
-pub type CadDimensionStyleOverrides = ocdraw::dimension::DimensionStyleOverrides<
+pub type CadDimensionStyleOverrides = ifccad::dimension::DimensionStyleOverrides<
     opencadcodec::Handle,
     opencadcodec::Handle,
     CadColorValue,

@@ -2,8 +2,8 @@ mod common;
 #[allow(dead_code)]
 mod spline_support;
 use common::*;
+use ifccad::*;
 use ifccad_convert::*;
-use ocdraw::ifccad::*;
 use opencadcodec::{Color, EntityType, Line, LineWeight, Transparency, Vector3};
 
 #[test]
@@ -154,7 +154,7 @@ fn source_aci_and_named_identity_survive_layer_and_entity_native_colors() {
 
 #[test]
 fn inline_aci_and_background_color_keep_identity_in_mtext_exchange() {
-    use ocdraw::text::{MTextFill, MTextInline, TextColor};
+    use ifccad::text::{MTextFill, MTextInline, TextColor};
     let mut source = cad();
     let mut text = opencadcodec::MText::new();
     text.height = 3.;

@@ -60,7 +60,7 @@ fn unrelated_acad_values_are_retained_as_residual_evidence() {
 #[test]
 fn writer_rejects_unmapped_override_instead_of_omitting_it() {
     let base: CadDimensionStyleValues =
-        ocdraw::dimension::DimensionStyleSettings::new(opencadcodec::Handle::new(5));
+        ifccad::dimension::DimensionStyleSettings::new(opencadcodec::Handle::new(5));
     let mut over: CadDimensionStyleOverrides = Default::default();
     over.arrows.flip_first = Some(true);
     assert!(encode_dimension_overrides(&over, &base).is_err());
@@ -92,7 +92,7 @@ fn duplicate_subsections_and_unknown_dimvars_are_distinct_failures() {
 
 #[test]
 fn per_entity_fields_and_dstyle_reset_are_materialized_separately() {
-    use ocdraw::dimension::*;
+    use ifccad::dimension::*;
     let base: CadDimensionStyleValues = DimensionStyleSettings::new(opencadcodec::Handle::new(5));
     let mut over: CadDimensionStyleOverrides = Default::default();
     over.arrows.flip_first = Some(false);

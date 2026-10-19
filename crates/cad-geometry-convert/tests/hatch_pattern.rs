@@ -1,5 +1,5 @@
 use cad_geometry_convert::hatch::pattern::*;
-use ocdraw::geometry_kernel::hatch::*;
+use ifccad::geometry_kernel::hatch::*;
 use opencadcodec::{entities::hatch::*, Vector2};
 fn bounded_pattern() -> Hatch {
     let mut h = Hatch::with_pattern(HatchPattern::new("Literal"));
@@ -164,7 +164,7 @@ fn already_effective_families_are_inverted_once_and_phase_is_preserved() {
 #[test]
 fn mirrored_occurrence_cannot_hide_certificate_error() {
     use cad_geometry_convert::geometry::{blocks::EvaluatedBlock, numeric::exact};
-    use ocdraw::geometry_kernel::{BlockTransform, CoordinateFrame3, Scale3};
+    use ifccad::geometry_kernel::{BlockTransform, CoordinateFrame3, Scale3};
     let mut h = Hatch::with_pattern(HatchPattern::new("Dashed"));
     h.pattern.lines.push(HatchPatternLine {
         angle: 0.25,
@@ -252,7 +252,7 @@ fn spacing_underflow_is_numeric_failure_not_semantic_omission() {
 #[test]
 fn oblique_plane_pattern_certificate_propagates_through_nested_nonuniform_blocks() {
     use cad_geometry_convert::geometry::{blocks::EvaluatedBlock, numeric::exact};
-    use ocdraw::geometry_kernel::{BlockTransform, CoordinateFrame3, Point3, Scale3, Vector3};
+    use ifccad::geometry_kernel::{BlockTransform, CoordinateFrame3, Point3, Scale3, Vector3};
     let a = 2f64.sqrt().recip();
     let b = 6f64.sqrt().recip();
     let plane = CoordinateFrame3::try_new(

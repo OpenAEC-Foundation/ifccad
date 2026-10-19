@@ -1,0 +1,30 @@
+import {createServer} from 'node:http';
+import {readFile} from 'node:fs/promises';
+import {fileURLToPath} from 'node:url';
+import path from 'node:path';
+
+/** HTTPS terminates at the OpenAEC reverse proxy. This service stays on loopback. */
+export function productionServer({publicOrigin=process.env.PUBLIC_ORIGIN,root=fileURLToPath(new URL('../dist/',import.meta.url))}={}){
+ if(!publicOrigin)throw Error('PUBLIC_ORIGIN is required');
+ const origin=new URL(publicOrigin),base=path.resolve(root);
+ const types={'.html':'text/html; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.ifcx':'application/json; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.ttf':'font/ttf','.woff':'font/woff','.woff2':'font/woff2','.wasm':'application/wasm','.png':'image/png','.ico':'image/x-icon','.txt':'text/plain; charset=utf-8'};
+ const server=createServer(async(req,res)=>{
+  res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Cache-Control','no-store');
+  res.setHeader('Referrer-Policy','no-referrer');res.setHeader('X-Frame-Options','DENY');
+  try{
+   if(req.headers.host!==origin.host){res.writeHead(403);res.end('Invalid host');return;}
+   if(!['GET','HEAD'].includes(req.method)){res.writeHead(405);res.end();return;}
+   const pathname=decodeURIComponent(new URL(req.url,origin).pathname),file=path.resolve(base,'.'+(pathname==='/'?'/index.html':pathname));
+   const type=types[path.extname(file)];
+   if(!file.startsWith(base+path.sep)||!type){res.writeHead(404);res.end();return;}
+   const data=await readFile(file);if(pathname.startsWith('/ocs/app/'))res.setHeader('X-Frame-Options','SAMEORIGIN');res.writeHead(200,{'Content-Type':type});res.end(req.method==='HEAD'?undefined:data);
+  }catch{if(!res.headersSent)res.writeHead(404);res.end();}
+ });
+ server.requestTimeout=30000;server.headersTimeout=10000;server.keepAliveTimeout=5000;server.maxConnections=64;
+ return {server,async close(){await new Promise(resolve=>server.close(resolve));}};
+}
+if(process.argv[1]===fileURLToPath(import.meta.url)){
+ const service=productionServer();
+ service.server.listen(Number(process.env.PORT||4183),'127.0.0.1',()=>console.log('OCDraw inspector ready'));
+ for(const signal of ['SIGINT','SIGTERM'])process.on(signal,async()=>{await service.close();process.exit(0);});
+}

@@ -35,9 +35,9 @@ export function initializeWorkspace({onTab=()=>{},onPreferences=()=>{},onSelecti
   const overview=state.tab==='overview';
   if(overview){$('workspace-body').setAttribute('role','group');$('workspace-body').setAttribute('aria-label',t('overview'));}else{$('workspace-body').removeAttribute('role');$('workspace-body').removeAttribute('aria-label');}
   for(const name of ['contents','conversion','drawing'])$(name+'-panel').hidden=!overview&&state.tab!==name;
-  const format=model?.format==='ocdraw'?'OCDraw':'IFCCAD';$('content-title').textContent=format+'-'+t('contents').toLowerCase();$('content-filename').textContent=result?.source?.name||'';$('content-filename').title=result?.source?.name||'';$('content-validity').textContent=t('invalid');$('content-validity').hidden=!model||model.valid;$('export').title=t('downloadNative',{format});$('export').setAttribute('aria-label',$('export').title);
+  const format='IFCCAD';$('content-title').textContent=format+'-'+t('contents').toLowerCase();$('content-filename').textContent=result?.source?.name||'';$('content-filename').title=result?.source?.name||'';$('content-validity').textContent=t('invalid');$('content-validity').hidden=!model||model.valid;$('export').title=t('downloadNative',{format});$('export').setAttribute('aria-label',$('export').title);
   for(const name of ['properties','relations','source'])$(name+'-tab').setAttribute('aria-selected',state.inspector===name);$('item-information').setAttribute('aria-labelledby',state.inspector+'-tab');
-  $('structure').options[1].value=model?.format==='ocdraw'?'storage':'nodes';$('structure').options[1].textContent=t(model?.format==='ocdraw'?'storage':'nodes');$('structure').value=state.view;
+  $('structure').options[1].value='nodes';$('structure').options[1].textContent=t('nodes');$('structure').value=state.view;
   $('grouping-control').hidden=state.view!=='drawing'||state.mode==='json';$('grouping').value=state.grouping;
   $('empty-contents').hidden=!!model;$('content-tree').hidden=state.mode!=='readable';$('records').hidden=state.mode!=='json';$('readable-view').setAttribute('aria-pressed',state.mode==='readable');$('json-view').setAttribute('aria-pressed',state.mode==='json');
   layoutContents();

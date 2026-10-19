@@ -1,4 +1,4 @@
-use ocdraw::ifccad::*;
+use ifccad::*;
 
 fn base() -> IfccadDocument {
     load_ifccad_bytes(

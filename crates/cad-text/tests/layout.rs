@@ -1,5 +1,5 @@
 use cad_text::*;
-use ocdraw::text::*;
+use ifccad::text::*;
 use opencadcodec::{entities::LineSpacingStyle, MText};
 
 #[test]

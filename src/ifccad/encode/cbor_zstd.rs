@@ -43,7 +43,7 @@ impl IfccadCborZstdEncodeError {
 /// the default route. The standard Zstd header identifies the method, not the level.
 ///
 /// ```
-/// use ocdraw::ifccad::{encode_ifccad_cbor_zstd_document,
+/// use ifccad::{encode_ifccad_cbor_zstd_document,
 ///     load_ifccad_cbor_zstd_bytes, IfccadDocument, IfccadCborZstdEncodeOptions};
 /// # fn example(document: &IfccadDocument) -> Result<(), Box<dyn std::error::Error>> {
 /// let encoded = encode_ifccad_cbor_zstd_document(document,

@@ -7,7 +7,7 @@
 //! routes avoid an IFCX byte bridge; loaded-source conversion retains graph loss
 //! and numeric projection checks.
 //!
-//! Both directions expose the same hard geometric tolerance as OCDraw.
+//! Both directions expose the same domain-qualified hard geometric tolerance.
 //! Defaults use 1e-9 in each domain's own coordinates, including unitless
 //! domains. Each Paper layout resolves its own coordinate-unit limit.
 //! Certified within-limit rounding is accepted even under semantic Reject.
@@ -34,7 +34,7 @@
 //! use ifccad_convert::{cad_document_to_ifccad_document,
 //!     ifccad_document_to_cad_document, IfccadTargetMetadata,
 //!     IfccadConversionError};
-//! use ocdraw::ifccad::encode_ifccad_document;
+//! use ifccad::encode_ifccad_document;
 //! # fn convert(source: &opencadcodec::CadDocument, metadata: IfccadTargetMetadata)
 //! # -> Result<(), IfccadConversionError> {
 //! let logical = cad_document_to_ifccad_document(source, metadata, Default::default())?;
@@ -47,7 +47,7 @@
 //! ```
 //!
 //! ```
-//! use ocdraw::ifccad::ValidatedIfccad;
+//! use ifccad::ValidatedIfccad;
 //! use ifccad_convert::{ifccad_source_to_cad_document, cad_document_to_encoded_ifccad,
 //!     IfccadTargetMetadata, IfccadConversionError};
 //! # fn convert(source: &ValidatedIfccad, metadata: IfccadTargetMetadata)

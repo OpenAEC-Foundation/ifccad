@@ -1,6 +1,6 @@
 mod common;
+use ifccad::*;
 use ifccad_convert::*;
-use ocdraw::ifccad::*;
 use opencadcodec::{
     tables::{LineTypeComplexContent, LineTypeComplexData, LineTypeElement, TextStyle},
     CadDocument, Handle, LineType,

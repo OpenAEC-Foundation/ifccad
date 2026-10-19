@@ -27,6 +27,6 @@ fn physical_medium_and_plot_mapping_are_independent() {
     assert_eq!(paper.settings.media.as_ref().unwrap().unit.as_str(), "mm");
     assert_eq!(
         paper.settings.plot_settings.as_ref().unwrap().plot_unit,
-        ocdraw::plot_kernel::PlotUnit::Inch
+        ifccad::plot_kernel::PlotUnit::Inch
     );
 }

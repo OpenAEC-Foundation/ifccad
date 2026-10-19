@@ -1,4 +1,4 @@
-use ocdraw::ifccad::*;
+use ifccad::*;
 fn frame() -> IfccadViewportFrame {
     IfccadViewportFrame {
         center: [0., 0.],

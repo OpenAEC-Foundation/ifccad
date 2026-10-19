@@ -1,5 +1,5 @@
 use super::{unsupported, CadHatchPreparationError};
-use ocdraw::geometry_kernel::hatch::HatchLoopProvenance;
+use ifccad::geometry_kernel::hatch::HatchLoopProvenance;
 use opencadcodec::entities::hatch::{BoundaryPathFlags, Hatch};
 
 #[derive(Clone, Debug, PartialEq, Eq)]

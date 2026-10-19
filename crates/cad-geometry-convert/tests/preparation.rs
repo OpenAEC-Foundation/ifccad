@@ -1,5 +1,5 @@
 use cad_geometry_convert::{prepare_from_cad, prepare_to_cad};
-use ocdraw::geometry_kernel::{CoordinateFrame3, GeometryRef, OwnedGeometry};
+use ifccad::geometry_kernel::{CoordinateFrame3, GeometryRef, OwnedGeometry};
 use opencadcodec::{Circle, EntityType, Vector3};
 
 #[test]
@@ -41,7 +41,7 @@ fn bulged_contours_include_full_segment_curve_evidence() {
     let vertices = [[-1., 0., 1.], [1., 0., 1.]];
     let prepared = prepare_to_cad(GeometryRef::PlanarPolyline {
         placement: CoordinateFrame3::default(),
-        vertices: ocdraw::geometry_kernel::PlanarVertices::Packed(&vertices),
+        vertices: ifccad::geometry_kernel::PlanarVertices::Packed(&vertices),
         closed: true,
     })
     .unwrap();
@@ -71,9 +71,9 @@ fn malformed_curve_parameters_do_not_panic_during_preparation() {
 fn rounded_away_curve_parameters_cannot_be_emitted_as_degenerate_cad_curves() {
     let plane = CoordinateFrame3::default();
     let distant = CoordinateFrame3::try_new(
-        ocdraw::geometry_kernel::Point3::new(1e20, 0., 0.),
-        ocdraw::geometry_kernel::Vector3::new(1., 0., 0.),
-        ocdraw::geometry_kernel::Vector3::new(0., 1., 0.),
+        ifccad::geometry_kernel::Point3::new(1e20, 0., 0.),
+        ifccad::geometry_kernel::Vector3::new(1., 0., 0.),
+        ifccad::geometry_kernel::Vector3::new(0., 1., 0.),
     )
     .unwrap();
     let vertices = [[0., 0., 1.], [0.0001, 0., 0.]];
@@ -98,7 +98,7 @@ fn rounded_away_curve_parameters_cannot_be_emitted_as_degenerate_cad_curves() {
         },
         GeometryRef::PlanarPolyline {
             placement: distant,
-            vertices: ocdraw::geometry_kernel::PlanarVertices::Packed(&vertices),
+            vertices: ifccad::geometry_kernel::PlanarVertices::Packed(&vertices),
             closed: false,
         },
     ] {

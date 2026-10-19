@@ -1,7 +1,7 @@
 mod common;
 use common::*;
+use ifccad::*;
 use ifccad_convert::*;
-use ocdraw::ifccad::*;
 
 #[test]
 fn default_allow_keeps_supported_entities_and_reports_skipped_spline() {
@@ -529,11 +529,11 @@ fn missing_layer_zero_has_loss_evidence_while_paper_geometry_is_retained() {
         bounds_quality: None,
         canvas: None,
 
-        settings: ocdraw::ifccad::IfccadLayoutSettings {
-            media: Some(ocdraw::ifccad::IfccadLayoutMedia {
+        settings: ifccad::IfccadLayoutSettings {
+            media: Some(ifccad::IfccadLayoutMedia {
                 width: 297.,
                 height: 210.,
-                unit: ocdraw::ifccad::IfccadMediaUnit::from_token("mm").unwrap(),
+                unit: ifccad::IfccadMediaUnit::from_token("mm").unwrap(),
             }),
             ..Default::default()
         },

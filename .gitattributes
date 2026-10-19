@@ -9,3 +9,8 @@ conformance/**/*.zst binary
 
 # Historical result reports record SHA-256 over these exact JSON bytes.
 benchmarks/ifccad-cbor/*.json text eol=lf
+
+# Frozen reference files must retain their recorded bytes across checkouts.
+legacy/ocdraw/** -text whitespace=cr-at-eol
+# Unified-diff context lines deliberately contain a space.
+legacy/ocdraw/reproduction/selected-codec.patch -whitespace

@@ -3,7 +3,7 @@
 IFCCAD has two independent physical mappings of its editable `IfccadDocument`:
 the existing IFCX JSON CAD profile and this standalone CBOR candidate. The
 binary file is not a general IFCX serialization and is not automatically
-readable by IFCX JSON applications. OCDraw is unchanged and remains independent.
+readable by IFCX JSON applications. OCDraw is parked as a frozen reference outside the active workspace.
 
 The [revision-2 contract](../../schemas/ifccad/cbor-mapping-2.md) and
 [complete field register](../../schemas/ifccad/cbor-mapping-2.json) define the
@@ -41,7 +41,7 @@ external URI integration and quantization remain outside this candidate.
 ## Core API
 
 ```rust,no_run
-use ocdraw::ifccad::{
+use ifccad::{
     encode_ifccad_cbor_document, load_ifccad_cbor_bytes,
     IfccadDocument, IfccadCborEncodeError,
 };
@@ -94,7 +94,7 @@ Explorer UI integration and new converter convenience entrypoints are deferred.
 ## Optional experimental Zstd
 
 Enable the native Cargo feature `ifccad-cbor-zstd` to use this separate route.
-It is disabled by default and adds no dependency to default OCDraw or browser
+It is disabled by default and adds no dependency to default core or browser
 builds. Feature-enabled WASM support is outside this experiment.
 
 ```text

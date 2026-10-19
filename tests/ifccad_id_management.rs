@@ -1,4 +1,4 @@
-use ocdraw::ifccad::*;
+use ifccad::*;
 use serde_json::{json, Value};
 
 const FIELDS: [&str; 5] = [
@@ -269,7 +269,7 @@ fn deleted_definitions_do_not_reset_their_watermarks() {
     layout.paper_layouts.push(IfccadPaperLayout {
         canvas: None,
 
-        settings: ocdraw::ifccad::IfccadLayoutSettings {
+        settings: ifccad::IfccadLayoutSettings {
             media: None,
             ..Default::default()
         },

@@ -1,5 +1,5 @@
 use cad_dimension::*;
-use ocdraw::dimension::*;
+use ifccad::dimension::*;
 use opencadcodec::{
     entities::{Dimension, DimensionAligned, DimensionLinear},
     CadDocument, Vector3,
@@ -52,7 +52,7 @@ fn automatic_text_keeps_style_vertical_placement() {
     p.overrides.apply(&mut effective);
     assert_eq!(
         effective.text.attachment,
-        ocdraw::text::MTextAttachment::BottomCenter
+        ifccad::text::MTextAttachment::BottomCenter
     );
 }
 
@@ -119,7 +119,7 @@ fn legacy_control_codes_are_not_misclassified_as_plain_literal_labels() {
         matches!(prepare_dimension_from_cad(&Dimension::Aligned(d),&CadDocument::new()),Err(CadDimensionPreparationError::Unsupported{field,..}) if field=="text")
     );
     let label = DimensionLabel::Template(vec![DimensionLabelPart::Literal(vec![
-        ocdraw::text::TextRun {
+        ifccad::text::TextRun {
             text: "Literal %%d {group}".into(),
             ..Default::default()
         },
@@ -131,7 +131,7 @@ fn legacy_control_codes_are_not_misclassified_as_plain_literal_labels() {
             dimension_line_point: [0.0, 8.0],
             extension_direction_angle: None
         },
-        ocdraw::geometry_kernel::CoordinateFrame3::default(),
+        ifccad::geometry_kernel::CoordinateFrame3::default(),
         &DimensionTextPlacement::StyleDriven,
         &label
     )

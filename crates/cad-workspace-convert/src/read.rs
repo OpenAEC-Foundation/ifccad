@@ -1,7 +1,7 @@
 use super::*;
 use crate::diagnostics::{finite, loss};
-use ocdraw::geometry_kernel::{CoordinateFrame3, Point2, Point3, Vector3};
-use ocdraw::workspace_kernel::*;
+use ifccad::geometry_kernel::{CoordinateFrame3, Point2, Point3, Vector3};
+use ifccad::workspace_kernel::*;
 use opencadcodec::entities::{Viewport, ViewportRenderMode};
 use opencadcodec::{VPort, Vector3 as CadVector};
 

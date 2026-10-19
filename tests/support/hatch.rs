@@ -1,4 +1,4 @@
-use ocdraw::geometry_kernel::hatch::{HatchBoundary2 as B, HatchEdge2 as E};
+use ifccad::geometry_kernel::hatch::{HatchBoundary2 as B, HatchEdge2 as E};
 pub fn contours() -> Vec<B> {
     vec![
         B::Circle {
@@ -97,9 +97,9 @@ pub fn cad_nonuniform_block() -> opencadcodec::CadDocument {
     let mut h = cad_geometry_convert::hatch::prepare_hatch_to_cad(
         Default::default(),
         &contours(),
-        ocdraw::geometry_kernel::hatch::HatchAreaRule::Normal,
+        ifccad::geometry_kernel::hatch::HatchAreaRule::Normal,
         1e-9,
-        &ocdraw::geometry_kernel::hatch::HatchFill::Solid,
+        &ifccad::geometry_kernel::hatch::HatchFill::Solid,
         None,
     )
     .unwrap()

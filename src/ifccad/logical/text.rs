@@ -145,7 +145,7 @@ pub(super) fn validate_styles(document: &super::IfccadDocument) -> Result<(), su
         }
         if style.name.is_empty()
             || style.name.contains('\0')
-            || !names.insert(crate::ocdraw::names::name_key(&style.name))
+            || !names.insert(crate::names::name_key(&style.name))
         {
             return Err(crate::ifccad::diagnostics::failure(
                 "IFCCAD-TEXT-001",

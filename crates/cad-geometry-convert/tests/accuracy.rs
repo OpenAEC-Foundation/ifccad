@@ -1,6 +1,6 @@
 use cad_geometry_convert::{GeometryAssessment, GeometryFailureReason, GeometryTolerance};
+use ifccad::geometry_kernel::CoordinateLengthUnit as Unit;
 use num_rational::BigRational;
-use ocdraw::geometry_kernel::CoordinateLengthUnit as Unit;
 
 #[test]
 fn coordinate_default_is_equal_in_each_domain_without_guessing_physical_scale() {

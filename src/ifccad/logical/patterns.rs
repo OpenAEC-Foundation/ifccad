@@ -6,7 +6,7 @@ pub fn validate_ifccad_line_patterns(patterns: &[IfccadLinePattern]) -> Result<(
     let mut ids = BTreeSet::new();
     let mut names = BTreeSet::new();
     for p in patterns {
-        let name = crate::ocdraw::names::name_key(&p.name);
+        let name = crate::names::name_key(&p.name);
         if p.name.is_empty()
             || !ids.insert(p.id)
             || !names.insert(name.clone())

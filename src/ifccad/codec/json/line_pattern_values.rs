@@ -1,5 +1,5 @@
 //! Profile-owned closed marker values and canonical complete local references.
-use crate::{ifccad::*, line_pattern::*};
+use crate::{line_pattern::*, *};
 use serde_json::{json, Value};
 
 pub(crate) fn encode_pattern_elements(

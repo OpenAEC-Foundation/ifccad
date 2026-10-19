@@ -234,7 +234,7 @@ pub(crate) fn from_cad(
     propagate(defs, instances, issues);
 }
 
-pub(crate) fn to_cad(doc: &ocdraw::ifccad::IfccadDocument, issues: &mut Vec<IfccadDiagnostic>) {
+pub(crate) fn to_cad(doc: &ifccad::IfccadDocument, issues: &mut Vec<IfccadDiagnostic>) {
     let defs = doc
         .blocks
         .iter()
@@ -261,11 +261,8 @@ pub(crate) fn to_cad(doc: &ocdraw::ifccad::IfccadDocument, issues: &mut Vec<Ifcc
                 .map(|b| (Some(b.id), b.entities.as_slice())),
         )
     {
-        for e in entities
-            .iter()
-            .filter_map(ocdraw::ifccad::IfccadEntity::as_native)
-        {
-            if let ocdraw::ifccad::IfccadEntityKind::BlockInstance { definition_id, .. } = e.kind {
+        for e in entities.iter().filter_map(ifccad::IfccadEntity::as_native) {
+            if let ifccad::IfccadEntityKind::BlockInstance { definition_id, .. } = e.kind {
                 instances.push(Instance {
                     owner,
                     location: format!("entity/{}", e.id),

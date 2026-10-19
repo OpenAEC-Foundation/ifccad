@@ -1,5 +1,5 @@
 use cad_geometry_convert::hatch::*;
-use ocdraw::geometry_kernel::hatch::{HatchAreaRule, HatchBoundary2};
+use ifccad::geometry_kernel::hatch::{HatchAreaRule, HatchBoundary2};
 use opencadcodec::entities::hatch::*;
 use opencadcodec::{Handle, Vector2};
 
@@ -34,7 +34,7 @@ fn solid_keeps_loops_handles_and_curve_evidence() {
         &p.boundaries,
         p.area_rule,
         p.join_tolerance,
-        &ocdraw::geometry_kernel::hatch::HatchFill::Solid,
+        &ifccad::geometry_kernel::hatch::HatchFill::Solid,
         None,
     )
     .unwrap();
@@ -94,7 +94,7 @@ fn no_epsilon_full_turn_or_open_polyline_repair() {
 #[test]
 fn rotated_plane_full_circle_has_equivalent_curve_correspondence() {
     use cad_geometry_convert::geometry::numeric::exact;
-    use ocdraw::geometry_kernel::{CoordinateFrame3, Point3, Vector3};
+    use ifccad::geometry_kernel::{CoordinateFrame3, Point3, Vector3};
     let p = CoordinateFrame3::try_new(
         Point3::new(7., -2., 3.),
         Vector3::new(0., 1., 0.),
@@ -110,7 +110,7 @@ fn rotated_plane_full_circle_has_equivalent_curve_correspondence() {
         &b,
         HatchAreaRule::Normal,
         1e-9,
-        &ocdraw::geometry_kernel::hatch::HatchFill::Solid,
+        &ifccad::geometry_kernel::hatch::HatchFill::Solid,
         None,
     )
     .unwrap();
@@ -154,7 +154,7 @@ fn ellipse_bulges_and_reversed_edge_sweeps_keep_all_contours() {
         &p.boundaries,
         p.area_rule,
         p.join_tolerance,
-        &ocdraw::geometry_kernel::hatch::HatchFill::Solid,
+        &ifccad::geometry_kernel::hatch::HatchFill::Solid,
         None,
     )
     .unwrap();
@@ -177,7 +177,7 @@ fn flags_are_audited_without_first_loop_role_inference() {
         &p.boundaries,
         p.area_rule,
         p.join_tolerance,
-        &ocdraw::geometry_kernel::hatch::HatchFill::Solid,
+        &ifccad::geometry_kernel::hatch::HatchFill::Solid,
         None,
     )
     .unwrap();
@@ -262,14 +262,14 @@ fn unrepresentable_ellipse_ratio_does_not_emit_degenerate_cad_geometry() {
         &boundaries,
         HatchAreaRule::Normal,
         1e-9,
-        &ocdraw::geometry_kernel::hatch::HatchFill::Solid,
+        &ifccad::geometry_kernel::hatch::HatchFill::Solid,
         None
     )
     .is_err());
 }
 #[test]
 fn native_partial_arc_is_not_rounded_into_a_full_cad_turn() {
-    use ocdraw::geometry_kernel::hatch::HatchEdge2;
+    use ifccad::geometry_kernel::hatch::HatchEdge2;
     let boundaries = vec![HatchBoundary2::Edges(vec![HatchEdge2::CircularArc {
         center: [0., 0.],
         radius: 1.,
@@ -281,7 +281,7 @@ fn native_partial_arc_is_not_rounded_into_a_full_cad_turn() {
         &boundaries,
         HatchAreaRule::Normal,
         1e-9,
-        &ocdraw::geometry_kernel::hatch::HatchFill::Solid,
+        &ifccad::geometry_kernel::hatch::HatchFill::Solid,
         None
     )
     .is_err());

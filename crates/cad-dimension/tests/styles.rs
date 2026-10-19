@@ -1,5 +1,5 @@
 use cad_dimension::*;
-use ocdraw::dimension::*;
+use ifccad::dimension::*;
 use opencadcodec::{tables::DimStyle, CadDocument};
 #[test]
 fn paper_only_measure_factor_is_explicit_without_changing_coordinates() {
@@ -79,7 +79,7 @@ fn ordinary_style_values_roundtrip_without_coordinate_rescaling() {
 
 #[test]
 fn null_target_references_and_zero_center_mark_modes_do_not_become_defaults() {
-    use ocdraw::dimension::*;
+    use ifccad::dimension::*;
     let doc = CadDocument::new();
     let base = prepare_style_from_cad(doc.dim_styles.get("Standard").unwrap(), &doc)
         .unwrap()

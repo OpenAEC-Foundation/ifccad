@@ -1,5 +1,5 @@
+use ifccad::geometry_kernel::CoordinateLengthUnit as DrawingLengthUnit;
 use num_rational::BigRational;
-use ocdraw::geometry_kernel::CoordinateLengthUnit as DrawingLengthUnit;
 
 pub const UNIT_TOKENS: [&str; 25] = [
     "unitless",

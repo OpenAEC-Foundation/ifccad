@@ -1,7 +1,7 @@
 mod common;
 use common::metadata;
+use ifccad::*;
 use ifccad_convert::*;
-use ocdraw::ifccad::*;
 use opencadcodec::{CadDocument, EntityType, Text, Vector3};
 use serde_json::{json, Value};
 fn source() -> Value {

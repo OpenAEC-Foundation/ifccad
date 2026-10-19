@@ -1,5 +1,5 @@
 #![cfg(feature = "ifccad-cbor-zstd")]
-use ocdraw::ifccad::*;
+use ifccad::*;
 
 fn document() -> IfccadDocument {
     load_ifccad_bytes(

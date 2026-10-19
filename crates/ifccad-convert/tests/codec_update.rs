@@ -170,7 +170,7 @@ fn object_xdata_is_visible_after_both_codecs_and_never_silently_dropped() {
                 .count(),
             1
         );
-        ocdraw::ifccad::load_ifccad_bytes(out.encoded().bytes(), Default::default()).unwrap();
+        ifccad::load_ifccad_bytes(out.encoded().bytes(), Default::default()).unwrap();
         assert!(matches!(
             cad_document_to_encoded_ifccad(
                 &doc,

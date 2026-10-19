@@ -1,7 +1,7 @@
 mod common;
 use common::*;
+use ifccad::*;
 use ifccad_convert::*;
-use ocdraw::ifccad::*;
 
 #[test]
 fn nested_blocks_keep_shared_targets_and_order() {
@@ -402,7 +402,7 @@ fn unused_anonymous_definition_is_allocated_and_cad_role_names_are_not_local_blo
     assert!(!record.explodable);
     for name in ["*Model_Space", "*Paper_Space", "*Paper_Space9"] {
         document.blocks.last_mut().unwrap().name = name.into();
-        ocdraw::ifccad::validate_ifccad_document(&document).unwrap();
+        ifccad::validate_ifccad_document(&document).unwrap();
         let allowed = ifccad_document_to_cad_document(&document, Default::default()).unwrap();
         assert!(allowed.mappings().blocks.cad_handle(id).is_none());
         assert!(allowed

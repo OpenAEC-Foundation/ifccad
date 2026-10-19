@@ -1,4 +1,4 @@
-use ocdraw::dimension::*;
+use ifccad::dimension::*;
 use std::collections::BTreeMap;
 
 fn aligned(first: [f64; 2], second: [f64; 2]) -> DimensionDefinition {

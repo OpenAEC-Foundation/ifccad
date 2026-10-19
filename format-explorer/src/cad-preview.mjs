@@ -2,8 +2,8 @@ import {createFileClient,encodeBase64} from './browser-client.mjs';
 import {createOcsSession} from './ocs-messages.mjs';
 import {supportsCadVersion,defaultCadVersion} from './cad-formats.mjs';
 
-function drawingFormat(source){return source?.kind==='ifccad'||source?.drawingFormat==='ifccad'?'ifccad':'ocdraw';}
-function drawingLabel(source){return drawingFormat(source)==='ifccad'?'IFCCAD':'OCDraw';}
+function drawingFormat(){return 'ifccad';}
+function drawingLabel(){return 'IFCCAD';}
 
 export function createCadPreviewController({openExport,openSession,onUpdate=()=>{},onCadSelection=()=>{}}){
  const state={source:null,valid:false,visible:false,busy:false,viewerBusy:false,phase:'',format:'dxf',version:defaultCadVersion,conversionOptions:undefined,result:null,download:null,error:'',viewerError:'',viewerReady:false,selectionKey:null,selectionLayout:null,selectionStatus:'',selectionError:'',selectionRequested:false};

@@ -1,276 +1,118 @@
-# IFCCAD and OCDraw
+# IFCCAD
 
-**Website: [IFCCAD & OCDraw Explorer](https://ifccad-explorer.open-aec.com)**
+IFCCAD is an experimental CAD drawing profile using IFCX. It describes drawings
+as typed, application-independent information with explicit validation, ownership,
+order and conversion evidence. IFCCAD is the active development track.
+[OCDraw is parked](docs/ocdraw-parking.md) as a frozen source reference under
+`legacy/ocdraw`, outside ordinary builds and tests. Feature parity is no longer a requirement.
 
-OpenAEC develops two experimental, open CAD drawing formats in parallel.
-IFCCAD is a CAD drawing profile built on IFCX structure and composition.
-OCDraw is a standalone, application-independent drawing model and exchange
-format, with direct control over storage and performance.
+## Architecture and capabilities
 
-| Format | Direction | Contract and implementation |
-| --- | --- | --- |
-| **OCDraw** | A standalone, application-independent CAD drawing model, with direct control over storage and performance | [Contract](schemas/ocdraw), [core](src/ocdraw), [CAD conversion](crates/ocdraw-convert/README.md) |
-| **IFCCAD** | A CAD drawing profile using IFCX structure and composition, exploring a place for drawings in the evolving IFCX ecosystem | [Experimental contract](schemas/ifccad/experimental-contract-0.1.0.md), [core](src/ifccad), [CAD conversion](crates/ifccad-convert/README.md) |
+The root Rust package is `ifccad`; its public API is `ifccad::{IfccadDocument,
+load_ifccad_bytes, encode_ifccad_document, ...}`. The model stays under `src/ifccad`.
+The core owns construction, shared validation, encoding and file IO and has no CAD
+runtime dependency. JSON/IFCX and experimental base-CBOR use the same logical
+model. CBOR mapping revision 2 and optional native Zstd transport revision 1
+remain experimental; this migration changes neither their bytes nor semantics.
+The `ifccad-cbor-zstd` feature is optional; the default browser build excludes it.
 
-Both routes develop typed drawing content, strict validation and explicit CAD
-conversion diagnostics. Their models, schemas and encoding routes stay separate.
-OCDraw opens independently of IFCX. Current capabilities differ; support in one
-route does not establish support in the other. IFCCAD is a provisional profile,
-not an official buildingSMART CAD standard.
+Neutral geometry, color, text, dimension, line-pattern, plot and workspace kernels
+remain in the core. The six `cad-*` companions own CAD preparation, numerical
+proof, presentation, text, dimensions, workspace conversion and preservation.
+`ifccad-convert` connects validated IFCCAD and opencadcodec `CadDocument` directly.
+Conversion, logical construction, encoding and storage remain separate responsibilities.
 
-An OCDraw drawing contains typed geometric entities, layers, layouts, entity appearance
-choices, named line patterns with text/SHX markers, shared block definitions, and drawing-bound state. It opens without
-IFCX. The JSON format marker is `open_cad_drawing`. The initial 0.1.0 contract
-and entity schema v1 are provisional until contract completion and verification.
+Current support includes primitive and planar/spatial path geometry, local blocks,
+Model/Paper layouts, appearance, simple and complex line patterns, Text/MText,
+viewports, workspace state, Solid/LinePattern/Gradient Hatch and ordinary
+linear/aligned Dimensions. Font contours, complete dimension display and evaluated
+Hatch fill remain unassessed. The bounded opaque spline preservation route retains
+source capture separately from qualified CAD restoration.
 
-## Architecture
-
-- `schemas/ocdraw`: language-neutral logical registry, logical rules, JSON
-  mapping and document schema.
-- `conformance/next/ocdraw`: candidate valid and invalid drawings.
-- `src/ocdraw/logical`: typed model and shared semantic validation.
-- `src/ocdraw/codec/json`: physical fields, column packing, decoding and encoding.
-- `src/ocdraw/read.rs`, `build.rs`, `build/`: validated access and typed construction.
-- [IFCCAD profile rules](schemas/ifccad/profile-rules-0.1.0.md): ordinary IFCX declarations, temporary local-value supplements and graph/domain obligations.
-- `src/ifccad` and `schemas/ifccad`: separate IFCCAD model,
-  source graph, validation, profile and encoding.
-- `src/geometry_kernel`: shared primitive geometry, placement, validation,
-  bounds and analytic clip calculations, independent of CAD runtimes.
-- Both cores separate `encode.rs` orchestration, `codec/` physical mapping and
-  `storage.rs` file IO; see [API conventions and migration](docs/model-io-conventions.md).
-- `crates/ocdraw-convert`: conversion between OCDraw and pinned opencadcodec
-  `CadDocument`; DXF/DWG IO remains a CAD codec responsibility. Both converters
-  use pinned upstream opencadcodec under its upstream name.
-- `crates/ifccad-convert`: the independent IFCCAD conversion route.
-- `crates/cad-preservation`: audited codec-specific spline byte snapshots shared
-  by the converters; envelopes and predicates stay format-specific.
-- `crates/cad-presentation-convert`: CAD-only color/quantization rules and strict
-  viewport XRecord grammar; native reference binding stays in each adapter.
-- `crates/cad-geometry-convert`: shared CAD geometric preparation, tolerance
-  resolution and primitive/nested occurrence accuracy proofs for both routes.
-- `crates/viewer`, `crates/browser`: file inspection/conversion
-  adapters. The inspector presents data and can embed Open CAD Studio to view
-  original CAD and generated CAD through either route; see [website](format-explorer/README.md).
-
-Reader and writer use shared logical validation. Generated outputs are loaded
-through the production reader. CAD conversion consumes typed drawing values,
-without JSON inspection. Core has no CAD runtime dependency.
-
-Both routes use corresponding [drawing defaults](docs/drawing-defaults.md) for
-compact native JSON while retaining complete typed documents. Their physical
-omission rules, provisional compatibility and presence-sensitive state stay explicit.
-
-IFCCAD also provides an [experimental standalone CBOR mapping](docs/experiments/ifccad-cbor.md)
-with fixed numeric field codes and direct typed document readback. It retains
-the CAD projection, including existing preservation, rather than the original
-IFCX graph. Raw CBOR remains the default; optional experimental Zstd compression
-has configurable levels (default 3). Columns and partial access remain later work.
-
-`OcdrawDocument` is the complete mutable logical drawing. The builder can return
-it with `build_document()`; `finish()` uses that document and the common encoder.
-Reading exposes an immutable document snapshot, which can be consumed for edits.
-`encode_ocdraw_document()` retains IDs, allocation watermarks and valid supplied bounds;
-bounds recomputation is explicit. See the [document lifecycle](docs/ocdraw-document-lifecycle.md).
-
-Current geometry includes XYZ lines, oriented points, placed circles/arcs and
-ellipses, planar polylines with bulges, direct XYZ spatial polylines, and local
-shared block instances. Layouts, appearances, plot state, named/current UCS,
-model windows, paper canvases and paper viewports have typed records.
-Active viewport clips support circles, full ellipses and closed planar
-polylines with straight or bulged segments. Direct CAD conversion resolves clip
-references independently of draw order, preserving activation separately from
-stored boundaries. The new upstream pin includes clipping and DXF angle repairs;
-the [remaining local codec patch](patches/opencadcodec-viewports/README.md)
-retains the independent viewport-off bit. The DWG profile includes a paper canvas.
-See the [dependency audit](docs/geometry/opencadcodec-update-2026-10-07.md) and the
-converter coverage contracts for limits.
-Named patterns retain definitions, unused records, local references, scale and
-polyline generation. Both native routes support text and SHX markers with separate
-style/source identities and relative/absolute rotation. Qualified markers survive
-CAD conversion and AC1032 DXF/DWG exchange. Unsupported active dependencies use a
-diagnosed whole-definition named-continuous fallback under Allow; Reject refuses it.
-Unknown external glyph outlines remain unassessed while host curves stay checked.
-See [complex line patterns](docs/line-patterns.md).
-Both routes have independent native Text/MText, local font requests and text styles, rich
-paragraph/inline formatting, column/background state and explicit estimated
-bound quality. Their CAD routes separately qualify a bounded text profile and expose
-unverified glyph geometry separately from anchor accuracy. See [text support](docs/text.md).
-
-Both routes store native linear/aligned dimensions, named styles, authored
-overrides and same-owner source selectors. Measurement uses the stored definition;
-associative updates belong to an editor or separate engine. CAD exchange and
-inspection distinguish anchor accuracy from unassessed dimension display. The
-nine-kind design continues in later slices; annotative text and dimensions share
-a later annotation slice. Native horizontal/diagonal fraction presentation,
-qualified CAD override repairs and localized Explorer properties extend the
-ordinary slice. Optional native worked-out graphics and CAD picture-block
-capture/reuse are planned next, before the remaining Dimension kinds; their
-design is under review. See [Dimension support](docs/dimension.md).
-
-Both routes also provide native Solid, LinePattern and Gradient Hatch with stored planar boundaries,
-three area rules, ordered same-owner whole-object source groups, independent association activation and stored text-island semantics. Contour exchange
-and unassessed fill are separate evidence; see [Hatch support](docs/hatch.md).
-Embedded pattern families retain origin, rotation, scale, signed spacing and ordered dash/gap/dot definitions; CAD support uses qualified explicit families. Gradients retain two endpoint colors and active/inactive authorship settings, with basis-preserving AC1032 exchange and explicit codec-loss reporting.
-
-Unsupported conversion semantics are diagnosed or rejected. Numerical accuracy
-has a hard unit-aware tolerance, including nested block occurrences. See
-[export coverage](crates/ocdraw-convert/docs/FROM-CAD-COVERAGE.md) and
-[import coverage](crates/ocdraw-convert/docs/TO-CAD-COVERAGE.md) for limits.
-
-## Parallel development
-
-OCDraw and IFCCAD are active development tracks. CAD semantics are considered
-together and implemented against each format's own contract. Reference drawings,
-strict readback and comparable retained-content measurements inform both tracks.
-Each route can expand at its own pace while keeping coverage differences visible.
-
-OCDraw focuses on standalone CAD functionality and measured storage/performance
-improvements. IFCCAD explores drawing integration with IFCX identity,
-relationships and composition. Future IFC associations, incremental collaboration
-and efficient IFCX storage require concrete designs and upstream coordination;
-they are not current capability claims.
-
-Compact, directly openable files are an adoption goal for both routes. Final
-physical encoding choices follow measured size, opening time and memory use. The
-experimental IFCCAD CBOR mapping supplies one candidate; compression per part
-and final storage recommendations remain work for later investigation.
+The [converter contract](crates/ifccad-convert/README.md) describes supported
+semantics, loss policy, source/target restrictions and the explicit codec repair.
+The [Explorer](format-explorer/README.md) inspects IFCCAD and converts DXF/DWG
+through this route. Native files retain their original source bytes on download.
+Legacy OCDraw files and explicit legacy selections return `OCDRAW_PARKED`.
 
 ## Development sequence
 
-The typed model/JSON boundary, standalone parity and package retirement are
-implemented. The complete document lifecycle supports direct logical conversion,
-shared validation and identity-preserving core encoding. Scope lists now define
-ownership and order; the JSON mapping uses
-present stream names without a stream directory. Rust gates, candidate
-conformance and the standalone primitive exchange experiment pass. Recording
-0.1.0 and schema v1 as the first supported version remains a separate step.
-[ROADMAP.md](ROADMAP.md) defines sequencing and exit criteria.
+[ROADMAP.md](ROADMAP.md) is authoritative. The current order is:
 
-OCDraw's first bounded preservation slice stores complete typed spline snapshots
-with editable native common properties, ordinary ownership/order, durable readback
-and separately qualified CAD restoration. Capture is opt-in; it does not add
-native spline geometry. Broader providers, raw/private/shared codec storage and
-external links such as IFC associations remain future work. See
-[preservation](docs/preservation.md). No generic foreign-semantic extension
-protocol or IFCPR resource is introduced.
-IFCCAD is integrated on main as an independent experiment alongside OCDraw,
-with separate models, schemas, validation and direct conversion routes.
-The explorer opens either native format and converts DWG/DXF through the chosen
-route. IFCCAD geometry now includes points, signed arcs, full/partial ellipses,
-bulged planar and straight spatial paths, optional scope bounds and expanded
-viewport clips. Both converters share adjustable accuracy with independent
-coordinate-domain evidence. This remains a provisional 0.1.0 revision;
-see [shared geometry](docs/geometry/shared-geometry.md).
-Both formats now retain layout media independently of plot settings. IFCCAD adds
-effective plot output, limits, plot-style mode and Paper-space linetype-scaling
-parity; both CAD routes assess Paper accuracy through each fixed physical plot
-mapping. The provisional contract removes IFCCAD's independent Paper coordinate
-unit. See [layout output](docs/layout-output.md) for numeric/raster restrictions.
-Both routes now offer independent opaque SPLINE preservation pilots: durable
-storage, optional exact native common properties, guarded fresh CAD restoration
-and explicit incomplete geometry evidence. IFCCAD Paper guards use exact effective
-physical mapping. Broader raw/private/shared preservation and native spline
-geometry remain separate follow-up work; see [preservation](docs/preservation.md).
+1. Complete and integrate this IFCCAD-main-track migration after the accepted CBOR gate.
+2. Resume Hatch B on the integrated basis, updating its scope to IFCCAD and reviewing
+   any CBOR revision implications before contract changes.
+3. Continue worked-out Dimension graphics, then remaining kinds/selectors and later
+   joint annotation support according to their dependencies.
+4. Expand semantic coverage and assess physical storage using representative evidence.
 
-Both formats now retain UCS, Model windows, Paper canvases and per-viewport
-grid/snap state, including unspecified choices and dormant values. Known active
-Paper layouts survive DXF/DWG exchange through consistent reserved-block roles.
-Qualified CAD limitations remain explicit; see [workspace state](docs/workspace-state.md).
-Both native presentation models now retain symbolic Foreground (ACI 7), concrete
-color identity, layer/common
-visibility, PointDisplay and ordinary block metadata. Relational viewport
-appearance overrides map through qualified CAD XRecords. OCDraw now also
-converts perspective Paper cameras; quality/DPI stays on layouts while viewport
-ShadePlot stores mode only. The Paper grid and DXF ShadePlot repairs remain
-upstream-gated; see [presentation and transport coverage](docs/presentation.md).
+Hatch B stays paused during this migration. The xformop experiment stays separate;
+combining or rebasing unrelated work is not part of migration execution. One broad
+cross-cutting task runs at a time; independent narrow work can proceed with focused
+checks and coordinated integration verification.
 
+## Repository layout
+
+| Path | Responsibility |
+| --- | --- |
+| `src/ifccad`, `src/*_kernel`, `src/text`, `src/dimension` | Active model and neutral kernels |
+| `crates/ifccad-convert`, `crates/cad-*` | CAD adapters and numerical evidence |
+| `crates/viewer`, `crates/browser`, `format-explorer` | IFCCAD CLI, WASM and Explorer |
+| `schemas/ifccad`, `conformance/next/ifccad` | Active provisional contract |
+| `tests/fixtures/ifccad`, `examples/ifccad` | Active readback fixtures and curated examples |
+| `legacy/ocdraw` | Frozen reference source, tests and reproduction metadata |
+| `conformance/1.0.0`, `docs/benchmarks`, `benchmarks` | Immutable releases / retained historical evidence |
 
 ## Using the implementation
 
 ```text
-cargo run --example write_ocdraw -- drawing.ocdraw.json
-cargo run -p viewer -- drawing drawing.ocdraw.json
-cargo run -p ocdraw-convert --example minimal_to_dxf -- drawing.ocdraw.json drawing.dxf
+cargo run -p viewer -- ifccad examples/ifccad/overview.ifcx
+cargo run -p viewer -- export-ifccad examples/ifccad/overview.ifcx dxf
 ```
 
-New drawing files refuse to overwrite existing files. The crate and companion
-README documents describe public APIs. Implementations can independently use
-the published schemas and conformance materials.
+CAD input defaults to IFCCAD. `--drawing-format ifccad` remains accepted;
+`--drawing-format ocdraw` reports `OCDRAW_PARKED` before reading the input.
+See [model IO conventions](docs/model-io-conventions.md), the
+[IFCCAD lifecycle](docs/experiments/ifccad-document-lifecycle.md),
+[experimental contract](schemas/ifccad/experimental-contract-0.1.0.md) and
+[CBOR experiment](docs/experiments/ifccad-cbor.md).
 
 ## Verification
 
 ```text
+python scripts/check_active_workspace.py
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-Use focused tests while developing and run this full gate on the final candidate
-prepared against the intended main. Work awaiting that gate is ready for
-integration, not yet fully verified. For an explicitly authorized combined
-integration, verify the combined candidate once. Reuse a successful gate when
-moving the candidate to main only after checking that all relevant inputs match,
-including local dependency patches/configuration, Cargo.lock, toolchain and
-environment; a matching commit alone is insufficient. Conflict resolutions and
-other content changes need fresh verification.
+On a fresh checkout, select the documented codec configuration and run `cargo fetch`
+once before the offline boundary audit. These commands cover only the active workspace, including its companions,
+converter, viewer and browser. There is no active compatibility feature that
+re-enables OCDraw. The boundary guard rejects parked packages, dependency paths
+and active Rust references to parked fixtures.
+Use focused checks during development, then one full gate for the final candidate
+prepared against intended main. Reuse requires comparison of all verification
+inputs, including ignored dependency patches/configuration, Cargo.lock, toolchain
+and environment. Keep per-worktree caches and build settings stable; coordinate
+expensive runs. See [verification rules](AGENTS.md#verification).
 
-Keep a local verification summary with the content identity, dependency/config
-identity, commands, exit codes, durations and logs. Existing logs without enough
-provenance cannot certify the current candidate. Fix known failures with focused
-tests before another full run. Keep Cargo build settings and per-worktree caches
-stable, and coordinate expensive full runs across active tasks.
-
-The full test command includes enabled library doctests; a separate
-`cargo test --doc --workspace` is useful as a focused check while changing Rust
-documentation, not as an immediate duplicate of a successful full run. Prose-only
-documentation changes need diff and applicable link/content checks, unless the
-files are build/test inputs. See [agent verification rules](AGENTS.md#verification)
-for the evidence and reuse requirements. Change-specific frontend checks still
-apply.
-
-Controlled measurements have separate reproduction instructions under
-`docs/benchmarks`; historical IFCCAD ratios do not measure standalone OCDraw.
-The repeatable [four-format experiment](benchmarks/size-exchange/README.md)
-compares OCDraw, IFCCAD, DXF and DWG with identical retained content. See the
-[synthetic/foundation report](docs/benchmarks/common-subset-size-exchange-v1.md)
-and [large DXF report](docs/benchmarks/common-subset-test-dxf-v1.md).
-Size measurements are run only on explicit user request, for the full experiment
-or a requested selection. They are never automatic checks for a new main revision
-or converter/encoding/dependency changes. Focused correctness tests still apply.
-Licensed under [MPL-2.0](LICENSE).
-
-
-## IFCCAD capabilities and resources
-
-The independent IFCCAD proof is available in
-`src/ifccad`, with its [experimental contract](schemas/ifccad/experimental-contract-0.1.0.md),
-[sample](tests/fixtures/ifccad/hello-cad.ifcx) and
-[evaluation](docs/experiments/ifccad.md). Its direct
-[converter](crates/ifccad-convert/README.md) connects the supported subset to
-opencadcodec `CadDocument`, including named line patterns with text/SHX markers, scales and polyline
-pattern generation. See the [geometry sample](tests/fixtures/ifccad/hello-geometry.ifcx)
-and [line-pattern sample](tests/fixtures/ifccad/hello-line-patterns.ifcx). Geometry validation and length-unit tokens use shared neutral helpers;
-the two drawing models, schemas and encoding routes remain separate. The
-[IFCCAD & OCDraw Explorer](format-explorer/README.md) now opens IFCCAD and
-roundtrips through DXF/DWG using its own converter. Model and multiple Paper layouts convert with explicit tab order, optional media and explicit output mappings. Paper viewports now retain orthographic/perspective camera, depth/display state and circle/full-ellipse/closed straight-or-bulged path clipping. CAD viewport exchange uses the explicit development codec repairs described in the converter; effective plot settings retain the documented CAD limits.
+When changing native Zstd, also run `cargo test -p ifccad --features ifccad-cbor-zstd
+--test ifccad_cbor_zstd` and the corresponding feature-enabled Clippy check.
+Explorer changes require `npm --prefix format-explorer test`, the default WASM
+build and `node format-explorer/tests/wasm-smoke.mjs` as applicable.
+Measurements run only on explicit request and never as completion gates.
+Historical reports retain their original scope and checkpoint; they do not measure
+this migration. Numbered conformance collections remain immutable.
 
 ## History and naming
 
-The current IFCX-native CAD profile was previously called IFCX-CAD and is now
-named IFCCAD. Its Rust module, public types, converter crate, schema files and
-browser APIs use IFCCAD names. See the [API migration](docs/model-io-conventions.md#ifccad-naming-migration)
-for the previous-to-current names. The underlying IFCX syntax, `.ifcx` file
-extension and `ifccad::` schema namespace retain their meaning.
-
-The IFCCAD name also belonged to an earlier package experiment combining an
-IFCX semantic graph with IFCDR drawing resources and optional IFCPR source
-preservation. That package architecture, its readers and writers, and its active
-schemas are retired. Today's IFCCAD and OCDraw are independent drawing models
-with their own schemas, validation and conversion routes.
-
-Numbered conformance collections remain immutable. The
-[historical package design](docs/legacy-ifccad.md) and Git history retain the
-earlier experiment's context.
+IFCCAD was previously called IFCX-CAD. Project-owned APIs use IFCCAD; underlying
+IFCX syntax, `.ifcx` extensions and `ifccad::` schema keys retain their meaning.
+The earlier package architecture using IFCDR/IFCPR remains retired. Today's IFCCAD
+has no OCDraw intermediate and does not revive that architecture. OCDraw can be
+restored from its complete frozen checkpoint rather than maintained for parity.
+Licensed under [MPL-2.0](LICENSE).
 
 ## Local maintenance
 

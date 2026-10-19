@@ -2,7 +2,7 @@
 //! Model/definitions use drawing units; each Paper domain uses fixed output
 //! mapping or unknown coordinate meaning. Conversion state is not drawing data.
 use crate::{geometry_assessment::Assessment, *};
-use ocdraw::geometry_kernel::CoordinateLengthUnit;
+use ifccad::geometry_kernel::CoordinateLengthUnit;
 use std::collections::BTreeMap;
 pub(crate) struct GeometryContext {
     pub state: cad_geometry_convert::ExchangeState<u64, IfccadGeometryEntitySource>,

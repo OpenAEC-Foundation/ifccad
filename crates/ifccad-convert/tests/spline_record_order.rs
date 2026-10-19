@@ -1,7 +1,7 @@
 mod common;
 
+use ifccad::*;
 use ifccad_convert::*;
-use ocdraw::ifccad::*;
 use opencadcodec::{entities::Spline, CadDocument, DxfReader, DxfWriter, EntityType, Vector3};
 use std::io::Cursor;
 

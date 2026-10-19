@@ -1,4 +1,4 @@
-use ocdraw::ifccad::{encode_ifccad_document, load_ifccad_bytes};
+use ifccad::{encode_ifccad_document, load_ifccad_bytes};
 #[test]
 fn candidate_ifccad_viewport_contract_uses_production_reader() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("conformance/next/ifccad");

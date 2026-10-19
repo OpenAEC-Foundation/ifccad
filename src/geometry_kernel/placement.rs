@@ -88,7 +88,7 @@ impl CoordinateFrameComponents {
 /// without applying a scope base or any external semantic placement.
 ///
 /// ```
-/// use ocdraw::ocdraw::{CoordinateFrame3, Point2, Point3, Vector3};
+/// use ifccad::geometry_kernel::{CoordinateFrame3, Point2, Point3, Vector3};
 /// let plane = CoordinateFrame3::try_new(
 ///     Point3::new(10.0, 20.0, 30.0),
 ///     Vector3::new(0.0, 1.0, 0.0),
@@ -148,13 +148,13 @@ impl CoordinateFrame3 {
     /// [`Self::try_new`], and does not establish a CAD conversion accuracy proof.
     ///
     /// ```
-    /// use ocdraw::geometry_kernel::{CoordinateFrame3, Point3, Vector3};
+    /// use ifccad::geometry_kernel::{CoordinateFrame3, Point3, Vector3};
     /// let frame = CoordinateFrame3::try_from_normal_arbitrary_axis(
     ///     Point3::new(10., 20., 30.), Vector3::new(0., 2., 0.),
     /// )?;
     /// assert_eq!(frame.x_axis().components(), [-1., 0., 0.]);
     /// assert_eq!(frame.y_axis().components(), [0., 0., 1.]);
-    /// # Ok::<(), ocdraw::geometry_kernel::CoordinateFrameError>(())
+    /// # Ok::<(), ifccad::geometry_kernel::CoordinateFrameError>(())
     /// ```
     pub fn try_from_normal_arbitrary_axis(
         origin: Point3,

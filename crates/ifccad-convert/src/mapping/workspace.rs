@@ -1,8 +1,8 @@
 //! IFCCAD-owned identity allocation and workspace bindings.
 use crate::{IfccadConversionError as Error, IfccadDiagnostic, IfccadMappings};
 use cad_workspace_convert::{ModelWindowValues, PaperCanvasValues, ViewportAidValues};
-use ocdraw::geometry_kernel::CoordinateFrame3;
-use ocdraw::ifccad::*;
+use ifccad::geometry_kernel::CoordinateFrame3;
+use ifccad::*;
 use opencadcodec::objects::ObjectType;
 use opencadcodec::{CadDocument, EntityType, Handle, Vector3};
 fn loss(
@@ -312,8 +312,8 @@ fn binding(
     }
 }
 fn aids(
-    grid: ocdraw::workspace_kernel::WorkspaceGrid,
-    snap: ocdraw::workspace_kernel::WorkspaceSnap,
+    grid: ifccad::workspace_kernel::WorkspaceGrid,
+    snap: ifccad::workspace_kernel::WorkspaceSnap,
     selection: IfccadUcsSelection,
     enabled: bool,
     drawing: &IfccadDocument,

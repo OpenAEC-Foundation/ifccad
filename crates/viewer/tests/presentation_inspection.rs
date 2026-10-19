@@ -1,43 +1,8 @@
-use viewer::{export_drawing_bytes, inspect_drawing_bytes};
-
-#[test]
-fn inspection_reports_foreground_without_rgb() {
-    use ocdraw::ocdraw::*;
-    let mut d = load_ocdraw_bytes(include_bytes!(
-        "../../../conformance/next/ocdraw/valid/paper-viewport.ocdraw.json"
-    ))
-    .unwrap()
-    .into_document();
-    d.viewports[0].appearance.color = AppearanceSelection::Explicit(DrawingColor::Foreground);
-    d.viewports[0].layer_overrides = vec![DrawingViewportLayerOverride {
-        layer_id: d.layers[0].id,
-        frozen: false,
-        color: Some(DrawingColor::Foreground),
-        opacity: None,
-        line_pattern_id: None,
-        line_weight: None,
-    }];
-    let bytes = encode_ocdraw_document(&d).unwrap();
-    let result = inspect_drawing_bytes("foreground.ocdraw.json", bytes.bytes());
-    let v = result["presentation"]["entities"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .find(|v| v["type"] == "viewport")
-        .unwrap();
-    assert_eq!(
-        v["appearance"]["color"]["value"],
-        serde_json::json!({"kind":"Foreground"})
-    );
-    assert_eq!(
-        v["layerOverrides"][0]["color"],
-        serde_json::json!({"kind":"Foreground"})
-    );
-}
+use viewer::{export_ifccad_bytes, inspect_ifccad_bytes};
 
 #[test]
 fn ifccad_inspection_exposes_native_presentation_and_point_display() {
-    use ocdraw::ifccad::*;
+    use ifccad::*;
     let mut d = load_ifccad_bytes(
         include_bytes!("../../../tests/fixtures/ifccad/hello-viewports.ifcx"),
         Default::default(),
@@ -76,7 +41,7 @@ fn ifccad_inspection_exposes_native_presentation_and_point_display() {
     let IfccadEntityKind::Viewport(v) = &mut entity.kind else {
         panic!()
     };
-    v.plot_shading_override = Some(ocdraw::plot_kernel::ShadedPlotMode::Hidden);
+    v.plot_shading_override = Some(ifccad::plot_kernel::ShadedPlotMode::Hidden);
     v.layer_overrides = vec![IfccadViewportLayerOverride {
         layer_id: layer,
         frozen: true,
@@ -100,7 +65,7 @@ fn ifccad_inspection_exposes_native_presentation_and_point_display() {
         bounds_quality: None,
     });
     let bytes = encode_ifccad_document(&d).unwrap();
-    let result = inspect_drawing_bytes("presentation.ifcx", bytes.bytes());
+    let result = inspect_ifccad_bytes("presentation.ifcx", bytes.bytes());
     assert_eq!(result["validation"]["strictAvailable"], true);
     assert_eq!(
         result["presentation"]["pointDisplay"]["form"]["glyph"],
@@ -138,51 +103,8 @@ fn ifccad_inspection_exposes_native_presentation_and_point_display() {
 }
 
 #[test]
-fn ocdraw_inspection_exposes_typed_viewport_override_refs_and_mode() {
-    use ocdraw::ocdraw::*;
-    let mut d = load_ocdraw_bytes(include_bytes!(
-        "../../../conformance/next/ocdraw/valid/paper-viewport.ocdraw.json"
-    ))
-    .unwrap()
-    .document()
-    .clone();
-    d.viewports[0].plot_shading_override = Some(ShadedPlotMode::Hidden);
-    d.viewports[0].layer_overrides = vec![DrawingViewportLayerOverride {
-        layer_id: d.layers[0].id,
-        frozen: true,
-        color: Some(DrawingColor::rgb(255, 0, 0).with_indexed("ACI", 1).unwrap()),
-        opacity: Some(1.),
-        line_pattern_id: Some(d.line_patterns[0].id),
-        line_weight: Some(0.25),
-    }];
-    let bytes = encode_ocdraw_document(&d).unwrap();
-    let result = inspect_drawing_bytes("presentation.ocdraw.json", bytes.bytes());
-    let v = result["presentation"]["entities"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .find(|e| e["type"] == "viewport")
-        .unwrap();
-    assert_eq!(v["plotShadingOverride"], "Hidden");
-    assert_eq!(v["layerOverrides"][0]["layerId"], d.layers[0].id);
-    assert_eq!(
-        v["layerOverrides"][0]["linePatternId"],
-        d.line_patterns[0].id.0
-    );
-    assert_eq!(v["layerOverrides"][0]["color"]["indexed"][1], 1);
-}
-
-#[test]
 fn physical_shadeplot_survives_dxf_and_dwg_in_both_routes() {
-    use ocdraw::{ifccad::*, ocdraw::*};
-    let mut oc = load_ocdraw_bytes(include_bytes!(
-        "../../../conformance/next/ocdraw/valid/paper-viewport.ocdraw.json"
-    ))
-    .unwrap()
-    .document()
-    .clone();
-    oc.viewports[0].plot_shading_override = Some(ShadedPlotMode::Hidden);
-    let oc = encode_ocdraw_document(&oc).unwrap();
+    use ifccad::{plot_kernel::ShadedPlotMode, *};
     let mut ifc = load_ifccad_bytes(
         include_bytes!("../../../tests/fixtures/ifccad/hello-viewports.ifcx"),
         Default::default(),
@@ -198,12 +120,10 @@ fn physical_shadeplot_survives_dxf_and_dwg_in_both_routes() {
         }
     }
     let ifc = encode_ifccad_document(&ifc).unwrap();
-    for (name, bytes) in [
-        ("presentation.ocdraw.json", oc.bytes()),
-        ("presentation.ifcx", ifc.bytes()),
-    ] {
+    {
+        let (name, bytes) = ("presentation.ifcx", ifc.bytes());
         for format in ["dxf", "dwg"] {
-            let result = export_drawing_bytes(name, bytes, format, "AC1032");
+            let result = export_ifccad_bytes(name, bytes, format, "AC1032");
             assert!(result["failure"].is_null(), "{:?}", result["failure"]);
             let diagnostics = result["export"]["diagnostics"].as_array().unwrap();
             assert_eq!(

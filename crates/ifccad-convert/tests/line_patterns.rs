@@ -1,7 +1,7 @@
 mod common;
 use common::*;
+use ifccad::*;
 use ifccad_convert::*;
-use ocdraw::ifccad::*;
 
 fn patterns() -> IfccadDocument {
     let mut d = primitives();
@@ -13,7 +13,7 @@ fn patterns() -> IfccadDocument {
             description: Some("authored".into()),
             pattern: vec![0.5, -0.25, 0., -0.25]
                 .into_iter()
-                .map(ocdraw::line_pattern::LinePatternElement::simple)
+                .map(ifccad::line_pattern::LinePatternElement::simple)
                 .collect(),
         },
         IfccadLinePattern {

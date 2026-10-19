@@ -1,7 +1,7 @@
 //! Shared physical CAD IO; the two drawing converters remain independent.
 use crate::{fail, progress};
 use base64::{engine::general_purpose::STANDARD, Engine};
-use ocdraw_convert::opencadcodec::{
+use ifccad_convert::opencadcodec::{
     CadDocument, DwgReader, DwgWriter, DxfReader, DxfVersion, DxfWriter,
 };
 use serde_json::{json, Value};
@@ -113,7 +113,7 @@ pub(crate) fn export(
     let bytes = match written {
         Ok(v) => v,
         Err(error) => {
-            crate::ocdraw::record_target_codec_failure(&mut output, &error.to_string());
+            crate::cad::record_target_codec_failure(&mut output, &error.to_string());
             fail(&mut output, "writing", "CAD_WRITE_FAILED", error);
             return output;
         }
@@ -131,7 +131,7 @@ pub(crate) fn export(
     let checked = match read(format, &bytes) {
         Ok(v) => v,
         Err(error) => {
-            crate::ocdraw::record_target_codec_failure(&mut output, &error);
+            crate::cad::record_target_codec_failure(&mut output, &error);
             fail(&mut output, "checking", "CAD_READBACK_FAILED", error);
             return output;
         }
@@ -189,7 +189,7 @@ pub(crate) fn export(
 // Compare independent outgoing typed parameters with physical reader output.
 // Scope name and spline order locate the curve without comparing CAD handles.
 fn spline_parameterization_losses(expected: &CadDocument, actual: &CadDocument) -> Vec<Value> {
-    use ocdraw_convert::opencadcodec::EntityType;
+    use ifccad_convert::opencadcodec::EntityType;
     let mut losses = Vec::new();
     for block in expected.block_records.iter() {
         let Some(returned) = actual.block_records.get(&block.name) else {
@@ -233,7 +233,7 @@ fn spline_parameterization_losses(expected: &CadDocument, actual: &CadDocument) 
 // Match frame occurrences within the owning block, allowing a generated overall canvas.
 // Handles and runtime viewport numbers are not stable exchange identities.
 fn viewport_shadeplot_losses(expected: &CadDocument, actual: &CadDocument) -> Vec<Value> {
-    use ocdraw_convert::opencadcodec::EntityType;
+    use ifccad_convert::opencadcodec::EntityType;
     let mut losses = Vec::new();
     for block in expected.block_records.iter() {
         let returned: Vec<_> = actual
@@ -280,7 +280,7 @@ fn viewport_shadeplot_losses(expected: &CadDocument, actual: &CadDocument) -> Ve
 
 // Scope and typed Hatch order locate metadata independently of fresh handles.
 fn hatch_description_losses(expected: &CadDocument, actual: &CadDocument) -> Vec<Value> {
-    use ocdraw_convert::opencadcodec::EntityType;
+    use ifccad_convert::opencadcodec::EntityType;
     let mut losses = Vec::new();
     for block in expected.block_records.iter() {
         let returned: Vec<_> = actual
@@ -313,4 +313,23 @@ fn hatch_description_losses(expected: &CadDocument, actual: &CadDocument) -> Vec
         }
     }
     losses
+}
+
+pub(crate) fn record_target_codec_failure(output: &mut Value, message: &str) {
+    if let Some(entries) = output["conversion"]["preservation"]["entries"].as_array_mut() {
+        let failures = entries
+            .iter()
+            .filter(|e| e["result"] == "restoredTyped")
+            .map(|e| {
+                let mut e = e.clone();
+                e["phase"] = json!("cadExchange");
+                e["result"] = json!("notRestored");
+                e["reason"] = json!("targetCodecRejected");
+                e["location"] = json!("/export");
+                e["message"] = json!(format!("physical CAD output failed: {message}"));
+                e
+            })
+            .collect::<Vec<_>>();
+        entries.extend(failures);
+    }
 }

@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use ocdraw::ifccad::*;
+use ifccad::*;
 
 /// The original exact-subset tests continue to exercise explicit rejection.
 pub fn to_cad(
@@ -92,7 +92,7 @@ pub fn empty() -> IfccadDocument {
         layers: vec![layer(0, "0"), layer(4, "Notes")],
         model: IfccadLayout {
             bounds_quality: None,
-            settings: ocdraw::ifccad::IfccadLayoutSettings {
+            settings: ifccad::IfccadLayoutSettings {
                 media: None,
                 ..Default::default()
             },
@@ -363,7 +363,7 @@ pub fn viewport_drawing() -> IfccadDocument {
         bounds_quality: None,
         canvas: None,
 
-        settings: paper_settings(ocdraw::plot_kernel::PlotUnit::Millimetre, 1.),
+        settings: paper_settings(ifccad::plot_kernel::PlotUnit::Millimetre, 1.),
         bounds: None,
         id: 42,
         name: "Sheet".into(),
@@ -395,13 +395,13 @@ pub fn viewport_drawing() -> IfccadDocument {
 
 /// Explicit physical output for viewport accuracy fixtures; dimensions never rescale geometry.
 pub fn paper_settings(
-    plot_unit: ocdraw::plot_kernel::PlotUnit,
+    plot_unit: ifccad::plot_kernel::PlotUnit,
     output_length: f64,
 ) -> IfccadLayoutSettings {
-    use ocdraw::plot_kernel::*;
+    use ifccad::plot_kernel::*;
     IfccadLayoutSettings {
         media: Some(LayoutMedia {
-            unit: MediaUnit::Physical(ocdraw::geometry_kernel::CoordinateLengthUnit::Millimetre),
+            unit: MediaUnit::Physical(ifccad::geometry_kernel::CoordinateLengthUnit::Millimetre),
             width: 1000.,
             height: 1000.,
         }),

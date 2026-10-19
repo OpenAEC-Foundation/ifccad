@@ -7,11 +7,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if std::path::Path::new(&path).exists() {
         return Err("output already exists".into());
     }
-    let result = viewer::inspect_cad_as_drawing_bytes_with_preservation(
+    let result = viewer::inspect_cad_as_ifccad_bytes_with_options(
         "source-spline.dxf",
         "dxf",
-        include_bytes!("../../ocdraw-convert/tests/fixtures/splines/open-cubic.dxf"),
-        true,
+        include_bytes!("../tests/fixtures/open-cubic.dxf"),
+        "2026-10-19T00:00:00Z",
+        r#"{"preserveSplines":true}"#,
     );
     if !result["failure"].is_null() {
         return Err(result["failure"].to_string().into());
@@ -21,7 +22,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .as_str()
             .ok_or("no native download")?,
     )?;
-    ocdraw::ocdraw::load_ocdraw_bytes(&bytes)?;
+    ifccad::load_ifccad_bytes(&bytes, Default::default())?;
     std::fs::write(path, bytes)?;
     Ok(())
 }

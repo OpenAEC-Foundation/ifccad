@@ -15,13 +15,12 @@ fn result(output: &std::process::Output) -> serde_json::Value {
         .clone()
 }
 #[test]
-fn cli_selects_direct_ifccad_and_preserves_legacy_default() {
-    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../ocdraw-convert/tests/fixtures/splines/open-cubic.dxf");
+fn cli_selects_ifccad_and_preserves_explicit_capture_and_export() {
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/open-cubic.dxf");
     let file = path.to_str().unwrap();
     let legacy = cli(&["cad", file]);
     assert!(legacy.status.success());
-    assert_eq!(result(&legacy)["presentation"]["format"], "ocdraw");
+    assert_eq!(result(&legacy)["presentation"]["format"], "ifccad");
     let selected = cli(&[
         "cad",
         file,

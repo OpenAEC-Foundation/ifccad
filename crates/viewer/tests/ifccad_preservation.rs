@@ -5,7 +5,7 @@ fn ifccad_capture_durable_open_and_actual_export_show_separate_evidence() {
     let opened = viewer::inspect_cad_as_ifccad_bytes_with_options(
         "spline.dxf",
         "dxf",
-        include_bytes!("../../ocdraw-convert/tests/fixtures/splines/open-cubic.dxf"),
+        include_bytes!("fixtures/open-cubic.dxf"),
         "2026-10-07T00:00:00Z",
         options,
     );
@@ -39,9 +39,9 @@ fn ifccad_capture_durable_open_and_actual_export_show_separate_evidence() {
 
 #[test]
 fn merged_dxf_parameterization_fix_matches_successful_typed_restore() {
-    use ocdraw_convert::opencadcodec::{CadDocument, DwgWriter, EntityType, Vector3};
+    use ifccad_convert::opencadcodec::{CadDocument, DwgWriter, EntityType, Vector3};
     let mut c = CadDocument::new();
-    let mut s = ocdraw_convert::opencadcodec::entities::Spline::new();
+    let mut s = ifccad_convert::opencadcodec::entities::Spline::new();
     s.fit_points = vec![Vector3::new(0., 0., 0.), Vector3::new(3., 1., 0.)];
     s.begin_tangent = Vector3::new(1., 0., 0.);
     s.end_tangent = Vector3::new(1., 0., 0.);
@@ -83,7 +83,7 @@ fn merged_dxf_parameterization_fix_matches_successful_typed_restore() {
     let bytes = STANDARD
         .decode(out["export"]["download"]["base64"].as_str().unwrap())
         .unwrap();
-    let cad = ocdraw_convert::opencadcodec::DxfReader::from_reader(std::io::Cursor::new(bytes))
+    let cad = ifccad_convert::opencadcodec::DxfReader::from_reader(std::io::Cursor::new(bytes))
         .unwrap()
         .read()
         .unwrap();

@@ -1,4 +1,4 @@
-use ocdraw::ifccad::*;
+use ifccad::*;
 use serde_json::{json, Value};
 
 fn drawing() -> Value {
@@ -141,7 +141,7 @@ fn unknown_marker_values_and_nulls_are_rejected() {
 
 #[test]
 fn text_markers_use_independent_style_role() {
-    use ocdraw::{line_pattern::*, text::*};
+    use ifccad::{line_pattern::*, text::*};
     let mut doc = load_ifccad_bytes(&serde_json::to_vec(&drawing()).unwrap(), Default::default())
         .unwrap()
         .into_document();

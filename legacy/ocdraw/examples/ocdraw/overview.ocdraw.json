@@ -1,0 +1,1405 @@
+{
+  "blockDefinitions": [
+    {
+      "basePoint": {
+        "x": 2.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "name": "Marker",
+      "scopeId": 1
+    },
+    {
+      "name": "Repeated markers",
+      "scopeId": 2
+    }
+  ],
+  "drawingViewState": {
+    "activeModelWindowId": 1,
+    "currentModelUcs": {
+      "kind": "Named",
+      "ucsId": 0
+    }
+  },
+  "drawingWorkspaceState": {
+    "activeLayoutId": 0,
+    "currentLayerId": 0
+  },
+  "header": {
+    "drawingId": "explorer-ocdraw-overview",
+    "format": "open_cad_drawing",
+    "nextEntityId": 19,
+    "nextLayerId": 4,
+    "nextLayoutId": 2,
+    "nextLinePatternId": 7,
+    "nextSymbolSourceId": 3,
+    "nextTextStyleId": 2,
+    "unit": "mm",
+    "version": "0.1.0"
+  },
+  "layers": [
+    {
+      "color": {
+        "rgb": [
+          210,
+          119,
+          6
+        ]
+      },
+      "frozen": false,
+      "frozenInNewViewports": false,
+      "id": 0,
+      "linePatternId": 0,
+      "lineWeight": 0.25,
+      "locked": false,
+      "name": "Geometry",
+      "opacity": 1.0,
+      "plottable": true,
+      "visible": true
+    },
+    {
+      "color": {
+        "rgb": [
+          90,
+          130,
+          160
+        ]
+      },
+      "frozen": false,
+      "frozenInNewViewports": false,
+      "id": 1,
+      "linePatternId": 1,
+      "lineWeight": 0.25,
+      "locked": false,
+      "name": "Construction",
+      "opacity": 1.0,
+      "plottable": true,
+      "visible": true
+    },
+    {
+      "color": {
+        "kind": "Foreground"
+      },
+      "frozen": false,
+      "frozenInNewViewports": false,
+      "id": 2,
+      "linePatternId": 0,
+      "lineWeight": 0.25,
+      "locked": false,
+      "name": "Paper",
+      "opacity": 1.0,
+      "plottable": true,
+      "visible": true
+    },
+    {
+      "color": {
+        "kind": "Foreground"
+      },
+      "frozen": false,
+      "frozenInNewViewports": false,
+      "id": 3,
+      "linePatternId": 3,
+      "lineWeight": 0.25,
+      "locked": false,
+      "name": "Line patterns",
+      "opacity": 1.0,
+      "plottable": true,
+      "visible": true
+    }
+  ],
+  "layouts": [
+    {
+      "id": 0,
+      "kind": "model",
+      "name": "Model",
+      "scopeId": 0,
+      "tabIndex": 0
+    },
+    {
+      "id": 1,
+      "kind": "paper",
+      "media": {
+        "height": 297.0,
+        "unit": "mm",
+        "width": 420.0
+      },
+      "name": "A3 detail sheet",
+      "scopeId": 3,
+      "tabIndex": 1
+    }
+  ],
+  "linePatterns": [
+    {
+      "id": 0,
+      "name": "Continuous",
+      "pattern": []
+    },
+    {
+      "description": "Long dash and dot",
+      "id": 1,
+      "name": "Axis",
+      "pattern": [
+        6.0,
+        -2.0,
+        0.0,
+        -2.0
+      ]
+    },
+    {
+      "description": "An unused definition stays in the document",
+      "id": 2,
+      "name": "Unused reference",
+      "pattern": []
+    },
+    {
+      "description": "Text or external SHX glyph request",
+      "id": 3,
+      "name": "GAS",
+      "pattern": [
+        10.0,
+        {
+          "length": 0.0,
+          "marker": {
+            "kind": "text",
+            "offset": [
+              0.0,
+              0.0
+            ],
+            "rotation": {
+              "angle": 0.0,
+              "mode": "relative"
+            },
+            "scale": 2.0,
+            "text": "GAS",
+            "textStyleId": 1
+          }
+        },
+        -5.0
+      ]
+    },
+    {
+      "description": "Text or external SHX glyph request",
+      "id": 4,
+      "name": "Boxes",
+      "pattern": [
+        10.0,
+        {
+          "length": 0.0,
+          "marker": {
+            "kind": "symbol",
+            "offset": [
+              0.0,
+              0.0
+            ],
+            "rotation": {
+              "angle": 0.0,
+              "mode": "relative"
+            },
+            "scale": 2.0,
+            "shapeNumber": 132,
+            "symbolSourceId": 0
+          }
+        },
+        -5.0
+      ]
+    },
+    {
+      "description": "Text or external SHX glyph request",
+      "id": 5,
+      "name": "Mixed",
+      "pattern": [
+        10.0,
+        {
+          "length": 0.0,
+          "marker": {
+            "kind": "text",
+            "offset": [
+              0.0,
+              0.0
+            ],
+            "rotation": {
+              "angle": 0.0,
+              "mode": "relative"
+            },
+            "scale": 2.0,
+            "text": "GAS",
+            "textStyleId": 1
+          }
+        },
+        -4.0,
+        {
+          "length": 0.0,
+          "marker": {
+            "kind": "symbol",
+            "offset": [
+              0.0,
+              0.0
+            ],
+            "rotation": {
+              "angle": 0.0,
+              "mode": "relative"
+            },
+            "scale": 2.0,
+            "shapeNumber": 42,
+            "symbolSourceId": 1
+          }
+        },
+        -4.0
+      ]
+    },
+    {
+      "description": "Text or external SHX glyph request",
+      "id": 6,
+      "name": "Unused symbols",
+      "pattern": [
+        {
+          "length": 1.0,
+          "marker": {
+            "kind": "symbol",
+            "offset": [
+              0.0,
+              0.0
+            ],
+            "rotation": {
+              "angle": 0.0,
+              "mode": "relative"
+            },
+            "scale": 2.0,
+            "shapeNumber": 42,
+            "symbolSourceId": 1
+          }
+        }
+      ]
+    }
+  ],
+  "modelWindows": [
+    {
+      "aspectRatio": 1.5,
+      "grid": {
+        "adaptive": true,
+        "beyondLimits": false,
+        "enabled": false,
+        "followsWorkplane": true,
+        "majorLineFrequency": 5,
+        "spacing": {
+          "x": 10.0,
+          "y": 10.0
+        },
+        "style": "Dots",
+        "subdivision": false
+      },
+      "modelWindowId": 1,
+      "rectangle": {
+        "maxX": 1.0,
+        "maxY": 1.0,
+        "minX": 0.0,
+        "minY": 0.0
+      },
+      "renderMode": "TwoDimensional",
+      "snap": {
+        "angle": 0.0,
+        "base": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "enabled": false,
+        "isometricPlane": "Top",
+        "spacing": {
+          "x": 5.0,
+          "y": 5.0
+        },
+        "style": "Rectangular"
+      },
+      "storedUcs": {
+        "kind": "Named",
+        "ucsId": 0
+      },
+      "useStoredUcs": true,
+      "view": {
+        "backClip": {
+          "mode": "Disabled"
+        },
+        "center": {
+          "x": 80.0,
+          "y": 40.0
+        },
+        "direction": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0
+        },
+        "frontClip": {
+          "distance": 10.0,
+          "mode": "Disabled"
+        },
+        "height": 160.0,
+        "lensLength": 50.0,
+        "projection": "Orthographic",
+        "target": {
+          "x": 90.0,
+          "y": 40.0,
+          "z": 0.0
+        },
+        "twist": 0.0
+      }
+    }
+  ],
+  "scopes": [
+    {
+      "bounds": null,
+      "entities": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        11,
+        12,
+        1,
+        2,
+        3,
+        15,
+        16,
+        17
+      ],
+      "id": 0,
+      "kind": 0
+    },
+    {
+      "bounds": null,
+      "entities": [
+        9
+      ],
+      "id": 1,
+      "kind": 2
+    },
+    {
+      "bounds": null,
+      "entities": [
+        10
+      ],
+      "id": 2,
+      "kind": 2
+    },
+    {
+      "bounds": null,
+      "entities": [
+        13,
+        14,
+        18
+      ],
+      "id": 3,
+      "kind": 1
+    }
+  ],
+  "streams": {
+    "arcStream": {
+      "color": [
+        null
+      ],
+      "colorMode": [
+        "ByLayer"
+      ],
+      "count": 1,
+      "entityId": [
+        4
+      ],
+      "layerId": [
+        0
+      ],
+      "linePatternId": [
+        null
+      ],
+      "linePatternMode": [
+        "ByLayer"
+      ],
+      "linePatternScale": [
+        1.0
+      ],
+      "lineWeight": [
+        null
+      ],
+      "lineWeightMode": [
+        "ByLayer"
+      ],
+      "opacity": [
+        null
+      ],
+      "opacityMode": [
+        "ByLayer"
+      ],
+      "placement": [
+        {
+          "X": {
+            "x": 1.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "Y": {
+            "x": 0.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "origin": {
+            "x": 65.0,
+            "y": 30.0,
+            "z": 0.0
+          }
+        }
+      ],
+      "radius": [
+        12.0
+      ],
+      "startParameter": [
+        0.25
+      ],
+      "sweepParameter": [
+        2.5
+      ],
+      "visible": [
+        true
+      ]
+    },
+    "blockInstanceStream": {
+      "color": [
+        null,
+        null,
+        null
+      ],
+      "colorMode": [
+        "ByLayer",
+        "ByLayer",
+        "ByLayer"
+      ],
+      "count": 3,
+      "definitionScopeId": [
+        1,
+        2,
+        2
+      ],
+      "entityId": [
+        10,
+        11,
+        12
+      ],
+      "layerId": [
+        0,
+        0,
+        0
+      ],
+      "linePatternId": [
+        5,
+        null,
+        null
+      ],
+      "linePatternMode": [
+        "Explicit",
+        "ByLayer",
+        "ByLayer"
+      ],
+      "linePatternScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "lineWeight": [
+        null,
+        null,
+        null
+      ],
+      "lineWeightMode": [
+        "ByLayer",
+        "ByLayer",
+        "ByLayer"
+      ],
+      "opacity": [
+        null,
+        null,
+        null
+      ],
+      "opacityMode": [
+        "ByLayer",
+        "ByLayer",
+        "ByLayer"
+      ],
+      "transform": [
+        {
+          "placement": {
+            "X": {
+              "x": 1.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "Y": {
+              "x": 0.0,
+              "y": 1.0,
+              "z": 0.0
+            },
+            "origin": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            }
+          }
+        },
+        {
+          "placement": {
+            "X": {
+              "x": 1.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "Y": {
+              "x": 0.0,
+              "y": 1.0,
+              "z": 0.0
+            },
+            "origin": {
+              "x": 130.0,
+              "y": 70.0,
+              "z": 0.0
+            }
+          },
+          "rotation": 0.3,
+          "scale": {
+            "x": -1.0,
+            "y": 1.0,
+            "z": 1.0
+          }
+        },
+        {
+          "placement": {
+            "X": {
+              "x": 1.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "Y": {
+              "x": 0.0,
+              "y": 1.0,
+              "z": 0.0
+            },
+            "origin": {
+              "x": 160.0,
+              "y": 70.0,
+              "z": 0.0
+            }
+          },
+          "rotation": 0.3,
+          "scale": {
+            "x": -1.0,
+            "y": 1.0,
+            "z": 1.0
+          }
+        }
+      ],
+      "visible": [
+        true,
+        true,
+        true
+      ]
+    },
+    "circleStream": {
+      "color": [
+        null
+      ],
+      "colorMode": [
+        "ByLayer"
+      ],
+      "count": 1,
+      "entityId": [
+        3
+      ],
+      "layerId": [
+        0
+      ],
+      "linePatternId": [
+        null
+      ],
+      "linePatternMode": [
+        "ByLayer"
+      ],
+      "linePatternScale": [
+        1.0
+      ],
+      "lineWeight": [
+        null
+      ],
+      "lineWeightMode": [
+        "ByLayer"
+      ],
+      "opacity": [
+        null
+      ],
+      "opacityMode": [
+        "ByLayer"
+      ],
+      "placement": [
+        {
+          "X": {
+            "x": 1.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "Y": {
+            "x": 0.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "origin": {
+            "x": 30.0,
+            "y": 30.0,
+            "z": 0.0
+          }
+        }
+      ],
+      "radius": [
+        10.0
+      ],
+      "visible": [
+        true
+      ]
+    },
+    "ellipseArcStream": {
+      "color": [
+        null
+      ],
+      "colorMode": [
+        "ByLayer"
+      ],
+      "count": 1,
+      "entityId": [
+        6
+      ],
+      "layerId": [
+        0
+      ],
+      "linePatternId": [
+        null
+      ],
+      "linePatternMode": [
+        "ByLayer"
+      ],
+      "linePatternScale": [
+        1.0
+      ],
+      "lineWeight": [
+        null
+      ],
+      "lineWeightMode": [
+        "ByLayer"
+      ],
+      "opacity": [
+        null
+      ],
+      "opacityMode": [
+        "ByLayer"
+      ],
+      "placement": [
+        {
+          "X": {
+            "x": 1.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "Y": {
+            "x": 0.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "origin": {
+            "x": 140.0,
+            "y": 30.0,
+            "z": 0.0
+          }
+        }
+      ],
+      "semiMajorRadius": [
+        16.0
+      ],
+      "semiMinorRadius": [
+        7.0
+      ],
+      "startParameter": [
+        0.2
+      ],
+      "sweepParameter": [
+        3.0
+      ],
+      "visible": [
+        true
+      ]
+    },
+    "ellipseStream": {
+      "color": [
+        null
+      ],
+      "colorMode": [
+        "ByLayer"
+      ],
+      "count": 1,
+      "entityId": [
+        5
+      ],
+      "layerId": [
+        0
+      ],
+      "linePatternId": [
+        null
+      ],
+      "linePatternMode": [
+        "ByLayer"
+      ],
+      "linePatternScale": [
+        1.0
+      ],
+      "lineWeight": [
+        null
+      ],
+      "lineWeightMode": [
+        "ByLayer"
+      ],
+      "opacity": [
+        null
+      ],
+      "opacityMode": [
+        "ByLayer"
+      ],
+      "placement": [
+        {
+          "X": {
+            "x": 1.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "Y": {
+            "x": 0.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "origin": {
+            "x": 100.0,
+            "y": 30.0,
+            "z": 0.0
+          }
+        }
+      ],
+      "semiMajorRadius": [
+        16.0
+      ],
+      "semiMinorRadius": [
+        7.0
+      ],
+      "visible": [
+        true
+      ]
+    },
+    "lineStream": {
+      "color": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "colorMode": [
+        "ByLayer",
+        "ByLayer",
+        "ByLayer",
+        "ByLayer",
+        "ByLayer",
+        "ByLayer"
+      ],
+      "count": 6,
+      "entityId": [
+        1,
+        9,
+        15,
+        16,
+        17,
+        18
+      ],
+      "layerId": [
+        0,
+        0,
+        3,
+        3,
+        3,
+        3
+      ],
+      "linePatternId": [
+        null,
+        null,
+        3,
+        4,
+        5,
+        4
+      ],
+      "linePatternMode": [
+        "ByLayer",
+        "ByBlock",
+        "Explicit",
+        "Explicit",
+        "Explicit",
+        "Explicit"
+      ],
+      "linePatternScale": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "lineWeight": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "lineWeightMode": [
+        "ByLayer",
+        "ByLayer",
+        "ByLayer",
+        "ByLayer",
+        "ByLayer",
+        "ByLayer"
+      ],
+      "opacity": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "opacityMode": [
+        "ByLayer",
+        "ByLayer",
+        "ByLayer",
+        "ByLayer",
+        "ByLayer",
+        "ByLayer"
+      ],
+      "visible": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "x1": [
+        0.0,
+        2.0,
+        10.0,
+        10.0,
+        10.0,
+        20.0
+      ],
+      "x2": [
+        100.0,
+        12.0,
+        70.0,
+        70.0,
+        70.0,
+        80.0
+      ],
+      "y1": [
+        0.0,
+        0.0,
+        70.0,
+        80.0,
+        90.0,
+        20.0
+      ],
+      "y2": [
+        0.0,
+        8.0,
+        70.0,
+        80.0,
+        90.0,
+        20.0
+      ],
+      "z1": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "z2": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "planarPolylineStream": {
+      "bulge": [
+        0.5,
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ],
+      "closed": [
+        false,
+        true
+      ],
+      "color": [
+        null,
+        null
+      ],
+      "colorMode": [
+        "ByLayer",
+        "ByLayer"
+      ],
+      "count": 2,
+      "entityId": [
+        7,
+        13
+      ],
+      "layerId": [
+        0,
+        2
+      ],
+      "linePatternGeneration": [
+        "continuous",
+        "perSegment"
+      ],
+      "linePatternId": [
+        null,
+        null
+      ],
+      "linePatternMode": [
+        "ByLayer",
+        "ByLayer"
+      ],
+      "linePatternScale": [
+        1.0,
+        1.0
+      ],
+      "lineWeight": [
+        null,
+        null
+      ],
+      "lineWeightMode": [
+        "ByLayer",
+        "ByLayer"
+      ],
+      "opacity": [
+        null,
+        null
+      ],
+      "opacityMode": [
+        "ByLayer",
+        "ByLayer"
+      ],
+      "placement": [
+        {
+          "X": {
+            "x": 1.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "Y": {
+            "x": 0.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "origin": {
+            "x": 0.0,
+            "y": 65.0,
+            "z": 0.0
+          }
+        },
+        {
+          "X": {
+            "x": 1.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "Y": {
+            "x": 0.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "origin": {
+            "x": 100.0,
+            "y": 75.0,
+            "z": 0.0
+          }
+        }
+      ],
+      "vertexCount": [
+        3,
+        2
+      ],
+      "vertexOffset": [
+        0,
+        3
+      ],
+      "visible": [
+        true,
+        true
+      ],
+      "x": [
+        0.0,
+        25.0,
+        25.0,
+        -2.5,
+        2.5
+      ],
+      "y": [
+        0.0,
+        0.0,
+        20.0,
+        0.0,
+        0.0
+      ]
+    },
+    "pointStream": {
+      "color": [
+        null
+      ],
+      "colorMode": [
+        "ByLayer"
+      ],
+      "count": 1,
+      "entityId": [
+        2
+      ],
+      "layerId": [
+        0
+      ],
+      "linePatternId": [
+        null
+      ],
+      "linePatternMode": [
+        "ByLayer"
+      ],
+      "linePatternScale": [
+        1.0
+      ],
+      "lineWeight": [
+        null
+      ],
+      "lineWeightMode": [
+        "ByLayer"
+      ],
+      "opacity": [
+        null
+      ],
+      "opacityMode": [
+        "ByLayer"
+      ],
+      "placement": [
+        {
+          "X": {
+            "x": 1.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "Y": {
+            "x": 0.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "origin": {
+            "x": 10.0,
+            "y": 20.0,
+            "z": 0.0
+          }
+        }
+      ],
+      "visible": [
+        true
+      ]
+    },
+    "spatialPolylineStream": {
+      "closed": [
+        false
+      ],
+      "color": [
+        null
+      ],
+      "colorMode": [
+        "ByLayer"
+      ],
+      "count": 1,
+      "entityId": [
+        8
+      ],
+      "layerId": [
+        0
+      ],
+      "linePatternGeneration": [
+        "perSegment"
+      ],
+      "linePatternId": [
+        null
+      ],
+      "linePatternMode": [
+        "ByLayer"
+      ],
+      "linePatternScale": [
+        1.0
+      ],
+      "lineWeight": [
+        null
+      ],
+      "lineWeightMode": [
+        "ByLayer"
+      ],
+      "opacity": [
+        null
+      ],
+      "opacityMode": [
+        "ByLayer"
+      ],
+      "vertexCount": [
+        3
+      ],
+      "vertexOffset": [
+        0
+      ],
+      "visible": [
+        true
+      ],
+      "x": [
+        60.0,
+        80.0,
+        100.0
+      ],
+      "y": [
+        60.0,
+        70.0,
+        60.0
+      ],
+      "z": [
+        0.0,
+        15.0,
+        0.0
+      ]
+    },
+    "viewportStream": {
+      "color": [
+        null
+      ],
+      "colorMode": [
+        "ByLayer"
+      ],
+      "count": 1,
+      "entityId": [
+        14
+      ],
+      "frame": [
+        {
+          "center": {
+            "x": 100.0,
+            "y": 75.0
+          },
+          "height": 15.0,
+          "width": 20.0
+        }
+      ],
+      "layerId": [
+        2
+      ],
+      "layerOverrideCount": [
+        0
+      ],
+      "layerOverrideOffset": [
+        0
+      ],
+      "linePatternId": [
+        null
+      ],
+      "linePatternMode": [
+        "ByLayer"
+      ],
+      "linePatternScale": [
+        1.0
+      ],
+      "lineWeight": [
+        null
+      ],
+      "lineWeightMode": [
+        "ByLayer"
+      ],
+      "opacity": [
+        null
+      ],
+      "opacityMode": [
+        "ByLayer"
+      ],
+      "paperClip": [
+        {
+          "boundaryEntityId": 13,
+          "enabled": true
+        }
+      ],
+      "plotShadingOverride": [
+        null
+      ],
+      "renderMode": [
+        "Wireframe"
+      ],
+      "view": [
+        {
+          "backClip": {
+            "mode": "Disabled"
+          },
+          "center": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "direction": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 1.0
+          },
+          "frontClip": {
+            "mode": "Disabled"
+          },
+          "height": 160.0,
+          "projection": "Orthographic",
+          "target": {
+            "x": 90.0,
+            "y": 40.0,
+            "z": 0.0
+          },
+          "twist": 0.0
+        }
+      ],
+      "viewEnabled": [
+        true
+      ],
+      "viewLocked": [
+        false
+      ],
+      "viewScopeId": [
+        0
+      ],
+      "visible": [
+        true
+      ]
+    }
+  },
+  "symbolSources": [
+    {
+      "fileName": "ltypeshp.shx",
+      "id": 0,
+      "kind": "shx"
+    },
+    {
+      "fileName": "custom-missing.shx",
+      "id": 1,
+      "kind": "shx"
+    },
+    {
+      "fileName": "custom-missing.shx",
+      "id": 2,
+      "kind": "shx"
+    }
+  ],
+  "textStyles": [
+    {
+      "creationBackward": false,
+      "creationUpsideDown": false,
+      "font": {
+        "cadFontName": "txt.shx"
+      },
+      "id": 1,
+      "lastUsedHeight": 2.5,
+      "name": "Pattern text",
+      "obliqueAngle": 0.0,
+      "vertical": false,
+      "widthFactor": 1.0
+    }
+  ],
+  "ucsDefinitions": [
+    {
+      "elevation": 5.0,
+      "frame": {
+        "X": {
+          "x": 0.0,
+          "y": 1.0,
+          "z": 0.0
+        },
+        "Y": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0
+        },
+        "origin": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 5.0
+        }
+      },
+      "name": "Detail plane",
+      "ucsId": 0
+    }
+  ],
+  "viewportWorkspaces": [
+    {
+      "grid": {
+        "adaptive": true,
+        "beyondLimits": false,
+        "enabled": false,
+        "followsWorkplane": true,
+        "majorLineFrequency": 5,
+        "spacing": {
+          "x": 2.0,
+          "y": 3.0
+        },
+        "style": "Lines",
+        "subdivision": false
+      },
+      "snap": {
+        "angle": 1.5707963267948966,
+        "base": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "enabled": false,
+        "isometricPlane": "Left",
+        "spacing": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "style": "Isometric"
+      },
+      "storedUcs": {
+        "frame": {
+          "X": {
+            "x": 1.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "Y": {
+            "x": 0.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "origin": {
+            "x": 2.0,
+            "y": 3.0,
+            "z": 0.0
+          }
+        },
+        "kind": "Unnamed"
+      },
+      "useStoredUcs": false,
+      "viewportEntityId": 14
+    }
+  ]
+}

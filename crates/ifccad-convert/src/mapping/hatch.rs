@@ -1,5 +1,5 @@
 use crate::*;
-use ocdraw::ifccad::*;
+use ifccad::*;
 use opencadcodec::{entities::Hatch, EntityType};
 fn combine(pairs: Vec<cad_geometry_convert::GeometryPair>) -> cad_geometry_convert::GeometryPair {
     let mut p = cad_geometry_convert::GeometryPair {
@@ -207,7 +207,7 @@ pub(crate) fn to_cad(
         combine(p.pairs),
         issues,
     )?;
-    if h.join_tolerance != ocdraw::geometry_kernel::hatch::DEFAULT_HATCH_JOIN_TOLERANCE {
+    if h.join_tolerance != ifccad::geometry_kernel::hatch::DEFAULT_HATCH_JOIN_TOLERANCE {
         issues.push(crate::diagnostics::diagnostic(
             "hatch-join-policy",
             format!("entity/{id}/joinTolerance"),

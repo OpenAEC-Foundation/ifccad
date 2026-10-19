@@ -1,5 +1,5 @@
-use ocdraw::geometry_kernel::{Point2, Point3, Vector3};
-use ocdraw::workspace_kernel::*;
+use ifccad::geometry_kernel::{Point2, Point3, Vector3};
+use ifccad::workspace_kernel::*;
 
 fn snap(enabled: bool, x: f64, y: f64) -> WorkspaceSnap {
     WorkspaceSnap {

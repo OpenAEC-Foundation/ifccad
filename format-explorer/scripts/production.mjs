@@ -25,6 +25,6 @@ export function productionServer({publicOrigin=process.env.PUBLIC_ORIGIN,root=fi
 }
 if(process.argv[1]===fileURLToPath(import.meta.url)){
  const service=productionServer();
- service.server.listen(Number(process.env.PORT||4183),'127.0.0.1',()=>console.log('OCDraw inspector ready'));
+ service.server.listen(Number(process.env.PORT||4183),'127.0.0.1',()=>console.log('IFCCAD inspector ready'));
  for(const signal of ['SIGINT','SIGTERM'])process.on(signal,async()=>{await service.close();process.exit(0);});
 }

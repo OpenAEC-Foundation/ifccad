@@ -1,5 +1,5 @@
 use crate::*;
-use ocdraw::{dimension::*, text::MTextAttachment};
+use ifccad::{dimension::*, text::MTextAttachment};
 use opencadcodec::{tables::DimStyle, CadDocument, Color, Handle};
 
 pub struct PreparedCadDimensionStyle {

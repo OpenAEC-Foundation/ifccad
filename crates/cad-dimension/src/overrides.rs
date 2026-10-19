@@ -1,5 +1,5 @@
 use crate::*;
-use ocdraw::dimension::*;
+use ifccad::dimension::*;
 use opencadcodec::xdata::{ExtendedDataRecord, XDataValue as X};
 pub struct CadDimensionOverrides {
     pub values: CadDimensionStyleOverrides,
@@ -265,8 +265,8 @@ pub fn encode_dimension_overrides(
         pair(
             77,
             X::Integer16(match x {
-                ocdraw::text::MTextAttachment::MiddleCenter => 0,
-                ocdraw::text::MTextAttachment::BottomCenter => 1,
+                ifccad::text::MTextAttachment::MiddleCenter => 0,
+                ifccad::text::MTextAttachment::BottomCenter => 1,
                 _ => {
                     return Err(unsupported(
                         "overrides/text/attachment",

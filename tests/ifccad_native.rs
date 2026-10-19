@@ -1,5 +1,5 @@
-use ocdraw::ifccad::load_ifccad_bytes;
-use ocdraw::ifccad::*;
+use ifccad::load_ifccad_bytes;
+use ifccad::*;
 use serde_json::{json, Value};
 #[path = "../examples/support/ifccad_consistency.rs"]
 mod example_consistency;
@@ -45,7 +45,7 @@ fn base() -> Value {
     value
 }
 
-fn read(value: &Value) -> Result<ocdraw::ifccad::ValidatedIfccad, ocdraw::ifccad::IfccadReadError> {
+fn read(value: &Value) -> Result<ifccad::ValidatedIfccad, ifccad::IfccadReadError> {
     load_ifccad_bytes(&serde_json::to_vec(value).unwrap(), Default::default())
 }
 
@@ -319,7 +319,7 @@ fn fixture_document() -> IfccadDocument {
         ],
         model: IfccadLayout {
             bounds_quality: None,
-            settings: ocdraw::ifccad::IfccadLayoutSettings {
+            settings: ifccad::IfccadLayoutSettings {
                 media: None,
                 ..Default::default()
             },

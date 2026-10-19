@@ -1,5 +1,5 @@
+use ifccad::*;
 use ifccad_convert::*;
-use ocdraw::ifccad::*;
 use opencadcodec::EntityType;
 #[path = "../../../tests/support/cad_hatch_associations.rs"]
 mod fixture;

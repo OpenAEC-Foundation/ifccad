@@ -9,12 +9,15 @@ function selectedFile(request){
  if(!(file.bytes instanceof ArrayBuffer))throw Error('File bytes are missing');
  if(file.bytes.byteLength>64*1024*1024)throw Error('File size limit exceeded');
  if(request.kind==='cad'&&!/\.(dxf|dwg)$/i.test(file.path))throw Error('Select one DXF or DWG file');
- if(request.kind==='drawing'&&!/\.ocdraw(?:\.json)?$/i.test(file.path))throw Error('Select an OCDraw file');
- if(request.kind==='ifccad'&&!/\.ifcx(?:\.json)?$/i.test(file.path))throw Error('Select an IFCCAD file');
+ if(request.kind==='ifccad'&&!/\.ifcx(?:\.json)?$/i.test(file.path)&&!/\.ocdraw(?:\.json)?$/i.test(file.path))throw Error('Select an IFCCAD file');
  return {...file,bytes:new Uint8Array(file.bytes)};
 }
 export function processBrowserRequest(request,wasm,onProgress=()=>{}){
  const file=selectedFile(request),operation=request.export;
+ if(request.kind==='drawing'||request.drawingFormat==='ocdraw'||operation?.format==='ocdraw'||/\.ocdraw(?:\.json)?$/i.test(file.path))return {
+  source:{name:request.name,format:'ocdraw'},reader:{status:'failed',messages:[]},validation:{strictAvailable:false},
+  failure:{stage:'reading',code:'OCDRAW_PARKED',message:'OCDraw is parked. Choose an IFCCAD file or use the archived OCDraw reference.'}
+ };
  const options=request.conversionOptions||request.preserveSplines===true?{tolerance:normalizeTolerance(request.conversionOptions?.tolerance??{mode:"default"}),...(request.preserveSplines===true?{preserveSplines:true}:{})}:undefined;
  const exportOptions=request.exportConversionOptions?{tolerance:normalizeTolerance(request.exportConversionOptions.tolerance??{mode:'default'})}:options;
  const invoke=(name,args,config=options)=>{
@@ -23,19 +26,18 @@ export function processBrowserRequest(request,wasm,onProgress=()=>{}){
   if(config?.tolerance.coordinateFallback!==undefined&&capabilities[drawingFormat]?.coordinateToleranceFallback!==true)throw Error('Coordinate tolerance fallback is unavailable in this processor');
   if(name==='convert_cad_to_ifccad'&&request.preserveSplines===true&&(capabilities.ifccad?.splinePreservation!==true||typeof wasm.convert_cad_to_ifccad_with_options!=='function'))throw Error('IFCCAD spline preservation is unavailable in this processor');
   if(config){if(typeof wasm[name+'_with_options']==='function')return wasm[name+'_with_options'](...args,JSON.stringify(config));if(config.tolerance.mode!=='default')throw Error('This converter build does not support adjustable tolerance options');}
-  if(name==='convert_cad_to_drawing'&&request.preserveSplines===true){if(typeof wasm.convert_cad_to_drawing_with_preservation!=='function')throw Error('Spline preservation is unavailable in this processor');return wasm.convert_cad_to_drawing_with_preservation(...args,true);}
   return wasm[name](...args);
  };
- const drawingFormat=request.kind==='ifccad'?'ifccad':request.kind==='cad'?(request.drawingFormat??'ocdraw'):'ocdraw';
- if(!['ocdraw','ifccad'].includes(drawingFormat))throw Error('Invalid drawing format');
+ const drawingFormat='ifccad';
+ if(request.drawingFormat!==undefined&&request.drawingFormat!=='ifccad')throw Error('Invalid drawing format');
  if(operation&&(![drawingFormat,'dxf','dwg'].includes(operation.format)||(['dxf','dwg'].includes(operation.format)&&!supportsCadVersion(operation.version??defaultCadVersion))))throw Error('Invalid export selection');
  onProgress(request.kind==='cad'?'converting':'validating');
  const opening=parsePresentationJson(request.kind==='cad'
-  ?(drawingFormat==='ifccad'?invoke('convert_cad_to_ifccad',[request.name,/\.dwg$/i.test(file.path)?'dwg':'dxf',file.bytes,new Date().toISOString()]):invoke('convert_cad_to_drawing',[request.name,/\.dwg$/i.test(file.path)?'dwg':'dxf',file.bytes]))
-  :(drawingFormat==='ifccad'?wasm.open_ifccad(request.name,file.bytes):wasm.open_drawing(request.name,file.bytes)));
+  ?invoke('convert_cad_to_ifccad',[request.name,/\.dwg$/i.test(file.path)?'dwg':'dxf',file.bytes,new Date().toISOString()])
+  :wasm.open_ifccad(request.name,file.bytes));
  if(request.kind!=='cad')opening.nativeSourceText=new TextDecoder().decode(file.bytes);
  else if(opening.export?.download?.base64)opening.nativeSourceText=new TextDecoder().decode(decodeBase64(opening.export.download.base64));
- opening.conversionCapabilities=typeof wasm.conversion_capabilities==='function'?parsePresentationJson(wasm.conversion_capabilities()):{ocdraw:{adjustableTolerance:typeof wasm.export_drawing_with_options==='function'},ifccad:{adjustableTolerance:false}};
+ opening.conversionCapabilities=typeof wasm.conversion_capabilities==='function'?parsePresentationJson(wasm.conversion_capabilities()):{ifccad:{adjustableTolerance:false}};
  if(!operation||opening.failure||!opening.validation?.strictAvailable)return opening;
  if(operation.format===drawingFormat){
   if(request.kind!=='cad')opening.export={format:drawingFormat,download:{format:drawingFormat,fileName:file.path.split('/').at(-1),byteLength:file.bytes.length,base64:encodeBase64(file.bytes)}};
@@ -43,7 +45,7 @@ export function processBrowserRequest(request,wasm,onProgress=()=>{}){
  }
  const drawing=request.kind==='cad'?decodeBase64(opening.export.download.base64):file.bytes;
  onProgress('exporting');
- const result=parsePresentationJson(drawingFormat==='ifccad'?invoke('export_ifccad',[request.name,drawing,operation.format,operation.version??defaultCadVersion],exportOptions):invoke('export_drawing',[request.name,drawing,operation.format,operation.version??defaultCadVersion],exportOptions));
+ const result=parsePresentationJson(invoke('export_ifccad',[request.name,drawing,operation.format,operation.version??defaultCadVersion],exportOptions));
  result.nativeSourceText=opening.nativeSourceText;
  result.conversionCapabilities=opening.conversionCapabilities;
  if(!result.presentation)result.presentation=opening.presentation;

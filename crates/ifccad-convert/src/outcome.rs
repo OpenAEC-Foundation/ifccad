@@ -1,5 +1,5 @@
 use crate::IfccadDiagnostic;
-use ocdraw::ifccad::{IfccadDocument, ValidatedIfccad};
+use ifccad::{IfccadDocument, ValidatedIfccad};
 use opencadcodec::{CadDocument, Handle};
 use std::collections::BTreeMap;
 /// A single identity domain. Numeric IDs never pass through floating point.
@@ -115,7 +115,7 @@ pub struct CadToEncodedIfccadOutcome {
     pub(crate) dimension: crate::IfccadDimensionAssessment,
     pub(crate) text: crate::IfccadTextAssessment,
     pub(crate) validated: ValidatedIfccad,
-    pub(crate) encoded: ocdraw::ifccad::EncodedIfccad,
+    pub(crate) encoded: ifccad::EncodedIfccad,
     pub(crate) diagnostics: Vec<IfccadDiagnostic>,
     pub(crate) mappings: IfccadMappings,
     pub(crate) geometry: crate::IfccadGeometryAssessment,
@@ -137,10 +137,10 @@ impl CadToEncodedIfccadOutcome {
     pub fn validated_source(&self) -> &ValidatedIfccad {
         &self.validated
     }
-    pub fn encoded(&self) -> &ocdraw::ifccad::EncodedIfccad {
+    pub fn encoded(&self) -> &ifccad::EncodedIfccad {
         &self.encoded
     }
-    pub fn into_encoded(self) -> ocdraw::ifccad::EncodedIfccad {
+    pub fn into_encoded(self) -> ifccad::EncodedIfccad {
         self.encoded
     }
     pub fn diagnostics(&self) -> &[IfccadDiagnostic] {

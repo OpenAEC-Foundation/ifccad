@@ -1,7 +1,7 @@
 mod common;
 use common::*;
+use ifccad::*;
 use ifccad_convert::*;
-use ocdraw::ifccad::*;
 #[test]
 fn native_families_emit_supported_cad_geometry() {
     let mut d = empty();
@@ -125,7 +125,7 @@ fn paper_occurrences_compare_error_in_their_declared_coordinate_unit() {
         bounds_quality: None,
         canvas: None,
 
-        settings: ocdraw::ifccad::IfccadLayoutSettings {
+        settings: ifccad::IfccadLayoutSettings {
             media: None,
             ..Default::default()
         },

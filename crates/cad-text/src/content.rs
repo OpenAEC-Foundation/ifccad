@@ -1,6 +1,6 @@
 //! Typed content normalization, separate from drawing-owned style/reference lookup.
 use crate::markup::*;
-use ocdraw::text::*;
+use ifccad::text::*;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum MarkupColor {

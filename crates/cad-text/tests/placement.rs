@@ -1,6 +1,6 @@
 use cad_text::*;
-use ocdraw::geometry_kernel::{CoordinateFrame3, Point3};
-use ocdraw::text::*;
+use ifccad::geometry_kernel::{CoordinateFrame3, Point3};
+use ifccad::text::*;
 use opencadcodec::{
     entities::{TextHorizontalAlignment as H, TextVerticalAlignment as V},
     EntityType, MText, Text, Vector3,
@@ -144,7 +144,7 @@ fn mtext_target_keeps_wcs_direction_and_declines_independent_mirrors() {
         style_name: "Labels",
         placement: CoordinateFrame3::try_from_normal_arbitrary_axis(
             Point3::new(100., 50., 7.),
-            ocdraw::geometry_kernel::Vector3::new(0., 1., 0.),
+            ifccad::geometry_kernel::Vector3::new(0., 1., 0.),
         )
         .unwrap(),
         rotation: 0.,

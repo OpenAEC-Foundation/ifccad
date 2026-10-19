@@ -2,7 +2,7 @@ use cad_geometry_convert::{
     ExchangeState, GeometryAssessment, GeometryFailureReason, GeometryPair, GeometrySource,
     GeometryTolerance,
 };
-use ocdraw::geometry_kernel::{BlockTransform, CoordinateFrame3, CoordinateLengthUnit, Scale3};
+use ifccad::geometry_kernel::{BlockTransform, CoordinateFrame3, CoordinateLengthUnit, Scale3};
 use opencadcodec::Handle;
 use std::collections::BTreeMap;
 

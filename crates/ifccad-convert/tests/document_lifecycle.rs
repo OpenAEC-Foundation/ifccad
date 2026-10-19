@@ -1,7 +1,7 @@
 mod common;
 use common::*;
+use ifccad::*;
 use ifccad_convert::*;
-use ocdraw::ifccad::*;
 use serde_json::{json, Value};
 
 fn options(policy: IfccadLossPolicy) -> CadToIfccadOptions {
@@ -32,7 +32,7 @@ fn logical_and_encoded_imports_have_equivalent_documents_diagnostics_and_mapping
         description: Some("Unused pattern".into()),
         pattern: vec![2., -1.]
             .into_iter()
-            .map(ocdraw::line_pattern::LinePatternElement::simple)
+            .map(ifccad::line_pattern::LinePatternElement::simple)
             .collect(),
     });
     patterned.id_counters.next_line_pattern_id = 3;

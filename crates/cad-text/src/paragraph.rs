@@ -1,6 +1,6 @@
 use crate::content::error;
 use crate::markup::{TextMarkupError, TextMarkupErrorCode};
-use ocdraw::text::*;
+use ifccad::text::*;
 
 pub(crate) fn parse_paragraph(
     body: &str,

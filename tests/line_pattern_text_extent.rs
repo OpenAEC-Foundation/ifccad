@@ -1,4 +1,4 @@
-use ocdraw::line_pattern::*;
+use ifccad::line_pattern::*;
 
 fn input(text: &str) -> ResolvedLinePatternTextExtentInput<'_> {
     ResolvedLinePatternTextExtentInput {
@@ -75,7 +75,7 @@ fn overflow_is_hard_error() {
 
 #[test]
 fn radius_covers_rotated_estimate() {
-    use ocdraw::{geometry_kernel::*, text::*};
+    use ifccad::{geometry_kernel::*, text::*};
     let runs = [TextRun {
         text: "GAS α".into(),
         ..Default::default()

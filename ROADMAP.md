@@ -1,67 +1,33 @@
-# OCDraw and IFCCAD development roadmap
+# IFCCAD development roadmap
 
-This document is authoritative for development sequencing and milestone status
-in this repository. Schemas and conformance define the format contract;
-Rust code and tests define implementation behavior. README summarizes this
-sequence and must be updated with it.
+This document is authoritative for sequencing and status. Schemas/conformance
+and current Rust code define contracts; dated local plans retain their slice scope.
 
-## Parallel development tracks
+## Current sequence and worktrees
 
-This repository actively develops standalone OCDraw and the independent
-IFCCAD profile. The initial OCDraw sequence below retains its architectural
-dependencies and completion criteria. IFCCAD has its own provisional contract
-and coverage progression; either route can continue independently.
+IFCCAD is the active track. OCDraw is parked as a reference archive, without
+feature parity, routine builds or tests; see [parking](docs/ocdraw-parking.md).
+The accepted CBOR revision-2/native-Zstd checkpoint precedes this migration.
 
-Consider CAD semantics together, with reference drawings and validation evidence
-reused where applicable. Each model, schema, reader, writer and conversion route
-keeps its own contract. New support is verified separately; feature parity is
-not assumed or required before either route can progress. OCDraw opening remains
-independent of IFCX.
+1. Complete and integrate the IFCCAD-main-track migration against current main.
+   It changes workspace/API ownership, archive and application routing, not format semantics.
+2. Keep Hatch B paused until that integration. Rebase once afterward, replace the
+   old codec pin and dual-model scope, and decide its IFCCAD/CBOR contract boundary
+   before implementation. Do not couple later work to its unresolved boundary.
+3. Resume worked-out Dimension graphics on the resulting stable basis, then the
+   remaining kinds/selectors and later joint annotation slice. Graphics and Hatch
+   contract changes require explicit dependency assessment when they overlap.
+4. Expand semantics and investigate storage/performance as described below.
 
-## Initial OCDraw contract
-
-The initial OCDraw 0.1.0 contract remains provisional. The sequence below
-expresses architectural dependencies; it is not a release calendar.
-
-1. **Typed logical model and JSON separation - implemented.** Reader, writer
-   and converter exchange typed drawing records. JSON fields and packing stay
-   in the codec. Production readback validates generated outputs. The complete
-   `OcdrawDocument` lifecycle is implemented as a refinement of this boundary:
-   builder construction, shared authored validation, explicit bounds preparation
-   and one document encoder retain IDs and allocation watermarks. CAD conversion
-   accepts/returns the logical document; identity-preserving CAD editor sessions
-   and merging independent copies remain future designs. See
-   [lifecycle contracts](docs/ocdraw-document-lifecycle.md).
-2. **Standalone parity and package retirement - implemented.** Geometry, blocks,
-   layers, layouts and drawing state have standalone readback. Active
-   package IFCX/IFCDR/IFCPR Rust routes and schemas are retired. DXF/DWG tests retain source/target limitations and
-   numerical accuracy checks. Tools, examples and standalone measurements use OCDraw.
-3. **Ordered scope ownership - implemented.** A scope's direct ordered `entities`
-   list is authoritative for ownership and draw order. Stored entity owner IDs and both order streams were removed in a separate
-   contract change.
-4. **JSON stream simplification - implemented.** Present stream names and the
-   versioned mapping identify streams without a stream directory. Unused streams
-   may remain absent.
-5. **Initial supported contract - candidate verified.** Full Rust gates,
-   candidate conformance and the standalone primitive exchange experiment pass.
-   Recording OCDraw 0.1.0 and entity schema v1 as the first supported contract
-   remains a separate step. No compatibility layer is required for unpublished
-   intermediate contracts.
-
-The first bounded OCDraw preservation slice builds on the implemented lifecycle
-and ownership boundaries: complete typed spline snapshots, native common
-properties, durable envelope/opaque transport and separately qualified CAD
-restoration. It does not publish the initial contract or implement native spline
-geometry. Broader providers, raw/private/shared storage and external semantic
-links (including IFC) require separate concrete follow-up designs. No IFCPR
-resource or generic foreign-semantic extension protocol is revived.
+The independent xformop worktree remains separate. One broad structural task runs
+at a time. Independent narrow work can use focused checks; coordinate expensive
+full gates and verify one explicitly authorized final integration candidate.
+Migration execution alone does not authorize merging, pushing or resuming Hatch B.
 
 ## IFCCAD development track
 
-The CAD-native-in-IFCX implementation and browser inspection route coexist on
-main with standalone OCDraw. Native IFCCAD opening, composed graph inspection
-and direct DXF/DWG roundtrip use their own model, schemas, validation and
-converter. OCDraw opening does not require an IFCX file or package.
+Native opening, composition inspection and direct DXF/DWG roundtrip use the
+`ifccad` core and `ifccad-convert` with independent validation and codec mapping.
 The experiment includes points, lines, circles/signed arcs, full/partial ellipses,
 straight/bulged planar paths, straight spatial paths and local block geometry,
 native Model/Paper layouts, named simple and complex text/SHX line patterns, scales and polyline
@@ -110,8 +76,7 @@ language-neutral rules, shared validation, production readback and actual
 DXF/DWG tests. Diagnose losses and target restrictions. Review conversion
 coverage whenever the pinned CAD codec public model changes.
 
-Consider the meaning and reference cases of new CAD features across both tracks,
-then implement each format's explicit mapping and coverage. Keep unsupported
+Consider CAD meaning and reference cases, then implement the IFCCAD mapping and coverage. Keep unsupported
 families and numerical policies visible in the separate converter contracts.
 
 The named simple line-pattern slice adds drawing-local definitions (including
@@ -122,7 +87,7 @@ Allow; Reject refuses that loss. Native shapes, external assets, current
 creation defaults and model-tab annotation scaling remain later work. This is
 semantic expansion of the provisional contract, not its publication.
 
-The OCDraw Text/MText slice implements native styles, typed rich content, authored
+The earlier Text/MText slice implemented native styles, typed rich content, authored
 inheritance, strict JSON readback and enclosing/estimated/partial bounds evidence.
 Its separate CAD route qualifies a bounded profile with anchor accuracy and
 unassessed font geometry. Native content and CAD editing-dependency normalization
@@ -183,10 +148,10 @@ Historical package benchmarks remain retained evidence for their old corpus;
 the [standalone OCDraw report](docs/benchmarks/ocdraw-size-exchange-v1.md)
 records its own applicable results.
 
-Compact, directly openable storage is an adoption goal for both tracks. Compare
+Compact, directly openable storage is an IFCCAD adoption goal. Compare
 size, full/partial opening time and peak/resident memory on representative
 drawings before selecting binary storage, integrated compression or indexed
-chunks. OCDraw can explore its own storage choices; IFCCAD storage experiments
+chunks. IFCCAD storage experiments
 must identify compatibility boundaries and coordinate with evolving IFCX
 technology. Current JSON/gzip probes do not establish native compressed formats
 or future IFCX capabilities. Measurements run only on explicit user request,
@@ -197,11 +162,11 @@ completion gates, including after relevant code or dependency changes.
 
 - All current entities, ownership, order and shared blocks survive strict
   production reader/writer readback and semantic conversion tests.
-- Unknown core fields, malformed columns and invalid references are rejected.
+- Unknown core fields and invalid references are rejected.
 - Candidate conformance/schema/mapping/model agree; numbered collections are
   untouched. All new entity schemas begin at v1.
 - Full format, lint and workspace tests pass, as do applicable inspector checks.
-- Relevant measurements use the pinned dependency and fresh directories.
+- Explicitly requested measurements use the pinned dependency and fresh directories; they are not automatic gates.
 - Only then record the first supported 0.1.0 contract. Release operations
   require a separate explicit request.
 
@@ -210,8 +175,16 @@ documented in [model IO conventions](docs/model-io-conventions.md). This
 organization refinement does not change milestone order or semantic coverage.
 
 The complex line-pattern slice extends the existing drawing model and converter
-coverage without adding external asset resolution to the core. Both native routes
-keep closed text/SHX markers, independent source identity/watermarks, and separate
+coverage without adding external asset resolution to the core. The IFCCAD route keeps closed text/SHX markers, independent source identity/watermarks, and separate
 producer/derived bounds evidence. Resource resolution and future source kinds
 remain deferred to issue 15; upright requires upstream codec support (issue 108).
 See [line patterns](docs/line-patterns.md). Milestone ordering is unchanged.
+
+## Parked OCDraw checkpoint
+
+OCDraw 0.1.0 remains provisional and unpublished. Its model/JSON separation,
+ordered scope ownership, package retirement and bounded spline preservation
+were implemented before parking. Those milestones are historical, not ongoing
+parallel obligations. Frozen sources, tests and exact checkpoint/dependency
+identity are indexed by [FREEZE.json](legacy/ocdraw/FREEZE.json). Restoring OCDraw
+requires the complete checkpoint and a new explicit development decision.

@@ -4,9 +4,7 @@ mod layouts;
 use crate::diagnostics::diagnostic;
 use crate::units::unit_code;
 use crate::*;
-use ocdraw::ifccad::{
-    encode_ifccad_document, validate_ifccad_document, IfccadDocument, ValidatedIfccad,
-};
+use ifccad::{encode_ifccad_document, validate_ifccad_document, IfccadDocument, ValidatedIfccad};
 use opencadcodec::CadDocument;
 
 /// Convert supported content with explicit semantic loss acceptance.
@@ -98,7 +96,7 @@ fn convert_document(
         ) = crate::mapping::point_display::to_cad(display);
     }
     document.header.plotstyle_mode =
-        drawing.plot_style_mode == ocdraw::ifccad::IfccadPlotStyleMode::ColorDependent;
+        drawing.plot_style_mode == ifccad::IfccadPlotStyleMode::ColorDependent;
     document.header.paper_space_linetype_scaling =
         drawing.model.settings.paper_space_linetype_scaling;
     let model_layout = document
@@ -260,15 +258,12 @@ fn convert_document(
             )
         })
         .collect::<std::collections::BTreeMap<_, _>>();
-    let roots = |entities: &[ocdraw::ifccad::IfccadEntity]| {
+    let roots = |entities: &[ifccad::IfccadEntity]| {
         entities
             .iter()
             .filter(|e| {
                 e.as_native().is_some_and(|e| {
-                    matches!(
-                        e.kind,
-                        ocdraw::ifccad::IfccadEntityKind::BlockInstance { .. }
-                    )
+                    matches!(e.kind, ifccad::IfccadEntityKind::BlockInstance { .. })
                 }) && mappings.entities.cad_handle(e.id()).is_some()
             })
             .map(|e| e.id())

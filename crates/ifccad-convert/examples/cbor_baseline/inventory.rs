@@ -1,4 +1,4 @@
-use ocdraw::ifccad::*;
+use ifccad::*;
 use opencadcodec::{CadDocument, EntityType};
 use serde_json::{json, Value};
 use std::collections::BTreeMap;
@@ -56,7 +56,7 @@ pub fn native(d: &IfccadDocument) -> Value {
                 Some(IfccadEntityKind::MText(t)) => {
                     for p in &t.content {
                         for i in &p.inlines {
-                            if let ocdraw::text::MTextInline::Run { text, .. } = i {
+                            if let ifccad::text::MTextInline::Run { text, .. } = i {
                                 text_chars += text.chars().count();
                             }
                         }
@@ -71,9 +71,9 @@ pub fn native(d: &IfccadDocument) -> Value {
                         .map(|l| l.source_entity_ids.len())
                         .sum::<usize>();
                     match h.fill {
-                        ocdraw::geometry_kernel::hatch::HatchFill::Solid => "HatchSolid",
-                        ocdraw::geometry_kernel::hatch::HatchFill::LinePattern(_) => "HatchPattern",
-                        ocdraw::geometry_kernel::hatch::HatchFill::Gradient => "HatchGradient",
+                        ifccad::geometry_kernel::hatch::HatchFill::Solid => "HatchSolid",
+                        ifccad::geometry_kernel::hatch::HatchFill::LinePattern(_) => "HatchPattern",
+                        ifccad::geometry_kernel::hatch::HatchFill::Gradient => "HatchGradient",
                     }
                 }
             };

@@ -1,17 +1,16 @@
 #[test]
 fn custom_tolerance_is_checked_and_exposed_in_output() {
-    let bytes =
-        include_bytes!("../../../conformance/next/ocdraw/valid/placed-geometry.ocdraw.json");
-    let invalid = viewer::export_drawing_bytes_with_options(
-        "geometry.ocdraw.json",
+    let bytes = include_bytes!("../../../tests/fixtures/ifccad/hello-geometry.ifcx");
+    let invalid = viewer::export_ifccad_bytes_with_options(
+        "geometry.ifcx",
         bytes,
         "dxf",
         "AC1032",
         r#"{"tolerance":{"mode":"custom","value":-1,"unit":"mm"}}"#,
     );
     assert_eq!(invalid["failure"]["code"], "INVALID_CONVERSION_OPTIONS");
-    let output = viewer::export_drawing_bytes_with_options(
-        "geometry.ocdraw.json",
+    let output = viewer::export_ifccad_bytes_with_options(
+        "geometry.ifcx",
         bytes,
         "dxf",
         "AC1032",
@@ -19,8 +18,8 @@ fn custom_tolerance_is_checked_and_exposed_in_output() {
     );
     assert!(output["failure"].is_null(), "{output}");
     assert_eq!(output["export"]["options"]["tolerance"]["value"], 0.001);
-    assert!(output["export"]["geometry"]["domains"][0]["resolvedTolerance"].is_object());
-    assert!(output["export"]["geometry"]
+    assert!(output["export"]["geometryAssessment"]["domains"][0]["resolvedTolerance"].is_object());
+    assert!(output["export"]["geometryAssessment"]
         .get("resolvedTolerance")
         .is_none());
 }
@@ -77,13 +76,13 @@ fn cad_input_uses_the_selected_ifccad_tolerance_and_reports_domains() {
 #[test]
 fn physical_tolerance_without_paper_mapping_reports_the_layout() {
     let mut source: serde_json::Value = serde_json::from_slice(include_bytes!(
-        "../../../conformance/next/ocdraw/valid/layout-medium-only.ocdraw.json"
+        "../../../conformance/next/ifccad/valid/layout-medium-only.ifcx"
     ))
     .unwrap();
-    source["header"]["unit"] = serde_json::json!("mm");
+    source["data"][0]["attributes"]["ifccad::drawing"]["lengthUnit"] = serde_json::json!("mm");
     let bytes = serde_json::to_vec(&source).unwrap();
-    let output = viewer::export_drawing_bytes_with_options(
-        "medium.ocdraw.json",
+    let output = viewer::export_ifccad_bytes_with_options(
+        "medium.ifcx",
         &bytes,
         "dxf",
         "AC1032",
@@ -104,31 +103,21 @@ fn physical_tolerance_without_paper_mapping_reports_the_layout() {
 fn explicit_coordinate_fallback_reaches_both_native_routes_and_readback() {
     let options =
         r#"{"tolerance":{"mode":"custom","value":0.001,"unit":"mm","coordinateFallback":1e-9}}"#;
-    for (name, bytes) in [
-        (
-            "medium.ocdraw.json",
-            include_bytes!("../../../conformance/next/ocdraw/valid/layout-medium-only.ocdraw.json")
-                .as_slice(),
-        ),
-        (
+    {
+        let (name, bytes) = (
             "medium.ifcx",
             include_bytes!("../../../conformance/next/ifccad/valid/layout-medium-only.ifcx")
                 .as_slice(),
-        ),
-    ] {
+        );
         let output =
-            viewer::export_drawing_bytes_with_options(name, bytes, "dxf", "AC1032", options);
+            viewer::export_ifccad_bytes_with_options(name, bytes, "dxf", "AC1032", options);
         assert!(output["failure"].is_null(), "{output}");
         assert_eq!(
             output["export"]["options"]["tolerance"]["coordinateFallback"],
             1e-9
         );
         assert!(output["export"]["download"].is_object());
-        let geometry = if name.ends_with("ifcx") {
-            &output["export"]["geometryAssessment"]
-        } else {
-            &output["export"]["geometry"]
-        };
+        let geometry = &output["export"]["geometryAssessment"];
         assert!(geometry["domains"]
             .as_array()
             .unwrap()
@@ -143,9 +132,9 @@ fn explicit_coordinate_fallback_reaches_both_native_routes_and_readback() {
         r#"{"mode":"custom","value":1,"unit":"mm","coordinateFallback":-1}"#,
         r#"{"mode":"custom","value":1,"unit":"mm","coordinateFallback":null}"#,
     ] {
-        let output = viewer::export_drawing_bytes_with_options(
-            "test.ocdraw.json",
-            include_bytes!("../../../examples/ocdraw/overview.ocdraw.json"),
+        let output = viewer::export_ifccad_bytes_with_options(
+            "test.ifcx",
+            include_bytes!("../../../examples/ifccad/overview.ifcx"),
             "dxf",
             "AC1032",
             &format!("{{\"tolerance\":{value}}}"),

@@ -1,6 +1,6 @@
 mod common;
+use ifccad::*;
 use ifccad_convert::*;
-use ocdraw::ifccad::*;
 use opencadcodec::{CadDocument, DwgReader, DwgWriter, DxfReader, DxfWriter};
 use std::io::Cursor;
 
@@ -21,7 +21,7 @@ fn close(a: f64, b: f64) {
 }
 fn bounds_equal(a: &IfccadEntityKind, b: &IfccadEntityKind) {
     let bounds = |k: &IfccadEntityKind| {
-        ocdraw::geometry_kernel::geometry_bounds(k.as_shared_geometry().unwrap().unwrap()).unwrap()
+        ifccad::geometry_kernel::geometry_bounds(k.as_shared_geometry().unwrap().unwrap()).unwrap()
     };
     let (a, b) = (bounds(a), bounds(b));
     for (a, b) in a.min().components().into_iter().zip(b.min().components()) {

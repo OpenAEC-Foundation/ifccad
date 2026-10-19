@@ -1,4 +1,4 @@
-use ocdraw::ifccad::*;
+use ifccad::*;
 #[path = "support/ifccad_hatch.rs"]
 mod fixture;
 use serde_json::{json, Value};
@@ -44,7 +44,7 @@ fn hatch_fragment_replaces_the_whole_value_instead_of_merging_loops() {
     assert_eq!(e.loops.len(), 1);
     assert_eq!(
         e.area_rule,
-        ocdraw::geometry_kernel::hatch::HatchAreaRule::Ignore
+        ifccad::geometry_kernel::hatch::HatchAreaRule::Ignore
     );
 }
 #[test]

@@ -2,7 +2,7 @@ use cad_geometry_convert::geometry::{
     blocks::{EvaluatedBlock, PairedPoint, Range},
     numeric::exact,
 };
-use ocdraw::geometry_kernel::{BlockTransform, CoordinateFrame3, Scale3};
+use ifccad::geometry_kernel::{BlockTransform, CoordinateFrame3, Scale3};
 #[test]
 fn ranged_certificate_points_propagate_through_occurrences() {
     let mut p = PairedPoint::from_ranges(

@@ -1,6 +1,6 @@
 mod common;
+use ifccad::*;
 use ifccad_convert::*;
-use ocdraw::ifccad::*;
 use opencadcodec::{Color, EntityType, Vector3};
 mod spline_support;
 use spline_support::captured;
@@ -246,7 +246,7 @@ fn scoped() -> IfccadDocument {
             name: "Physical".into(),
             tab_index: 1,
             bounds: None,
-            settings: common::paper_settings(ocdraw::plot_kernel::PlotUnit::Inch, 5.),
+            settings: common::paper_settings(ifccad::plot_kernel::PlotUnit::Inch, 5.),
             entities: vec![],
         },
         IfccadPaperLayout {
@@ -339,19 +339,19 @@ fn all_owners_nested_occurrences_and_exact_paper_contexts_are_separate() {
     .unwrap();
     assert_eq!(baseline["meaning"]["numerator"], "127");
     assert_eq!(baseline["meaning"]["denominator"], "1000");
-    paper.settings = common::paper_settings(ocdraw::plot_kernel::PlotUnit::Millimetre, 127.);
+    paper.settings = common::paper_settings(ifccad::plot_kernel::PlotUnit::Millimetre, 127.);
     assert_eq!(restored_count(&d), 5);
     d.paper_layouts
         .iter_mut()
         .find(|p| p.name == "Physical")
         .unwrap()
-        .settings = common::paper_settings(ocdraw::plot_kernel::PlotUnit::Millimetre, 254.);
+        .settings = common::paper_settings(ifccad::plot_kernel::PlotUnit::Millimetre, 254.);
     assert_eq!(restored_count(&d), 4);
     d.paper_layouts
         .iter_mut()
         .find(|p| p.name == "Physical")
         .unwrap()
-        .settings = common::paper_settings(ocdraw::plot_kernel::PlotUnit::Inch, 5.);
+        .settings = common::paper_settings(ifccad::plot_kernel::PlotUnit::Inch, 5.);
     assert_eq!(restored_count(&d), 5);
     d.blocks
         .iter_mut()

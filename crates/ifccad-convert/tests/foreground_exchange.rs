@@ -1,9 +1,9 @@
 mod common;
-#[path = "../../ocdraw-convert/tests/support/foreground.rs"]
+#[path = "support/foreground.rs"]
 mod support;
+use ifccad::text::{MTextFill, MTextInline, TextColor};
+use ifccad::*;
 use ifccad_convert::*;
-use ocdraw::ifccad::*;
-use ocdraw::text::{MTextFill, MTextInline, TextColor};
 
 fn assert_native(d: &IfccadDocument) {
     assert_eq!(

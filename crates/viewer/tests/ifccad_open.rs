@@ -1,10 +1,10 @@
 use base64::{engine::general_purpose::STANDARD, Engine};
-use ocdraw::ifccad::load_ifccad_bytes;
-use viewer::{export_drawing_bytes, inspect_drawing_bytes};
+use ifccad::load_ifccad_bytes;
+use viewer::{export_ifccad_bytes, inspect_ifccad_bytes};
 
 #[test]
 fn native_ifccad_text_and_independent_bounds_evidence_are_inspectable() {
-    let opened = inspect_drawing_bytes(
+    let opened = inspect_ifccad_bytes(
         "text.ifcx",
         include_bytes!("../../../examples/ifccad/text.ifcx"),
     );
@@ -27,7 +27,7 @@ fn native_ifccad_text_and_independent_bounds_evidence_are_inspectable() {
     assert_eq!(scope["quality"], "estimated");
     assert_eq!(scope["enclosureVerified"], false);
     assert_eq!(scope["safeForNegativeQuery"], false);
-    let exported = export_drawing_bytes(
+    let exported = export_ifccad_bytes(
         "text.ifcx",
         include_bytes!("../../../examples/ifccad/text.ifcx"),
         "dxf",
@@ -47,10 +47,10 @@ const HELLO: &[u8] = include_bytes!("../../../tests/fixtures/ifccad/hello-line-p
 
 #[test]
 fn ifccad_viewer_selection_identifies_entities_in_written_cad() {
-    use ocdraw_convert::opencadcodec::{DwgReader, DxfReader, Handle};
+    use ifccad_convert::opencadcodec::{DwgReader, DxfReader, Handle};
     use std::io::Cursor;
     for format in ["dxf", "dwg"] {
-        let out = export_drawing_bytes("patterns.ifcx", HELLO, format, "AC1032");
+        let out = export_ifccad_bytes("patterns.ifcx", HELLO, format, "AC1032");
         assert!(out["failure"].is_null(), "{out}");
         let selection = &out["export"]["viewerSelection"];
         assert_eq!(selection["format"], "ifccad");
@@ -83,7 +83,7 @@ fn ifccad_viewer_selection_identifies_entities_in_written_cad() {
 
 #[test]
 fn viewer_selection_preserves_large_native_identities_as_paths() {
-    use ocdraw::ifccad::encode_ifccad_document;
+    use ifccad::encode_ifccad_document;
     let mut drawing = load_ifccad_bytes(HELLO, Default::default())
         .unwrap()
         .into_document();
@@ -91,7 +91,7 @@ fn viewer_selection_preserves_large_native_identities_as_paths() {
     drawing.model.entities[0].as_native_mut().unwrap().id = 9_007_199_254_740_993;
     drawing.id_counters.next_entity_id = 9_007_199_254_740_994;
     let bytes = encode_ifccad_document(&drawing).unwrap();
-    let output = export_drawing_bytes("large.ifcx", bytes.bytes(), "dxf", "AC1032");
+    let output = export_ifccad_bytes("large.ifcx", bytes.bytes(), "dxf", "AC1032");
     assert!(output["failure"].is_null(), "{output}");
     assert!(output["export"]["viewerSelection"]["entities"]
         .as_array()
@@ -103,7 +103,7 @@ fn viewer_selection_preserves_large_native_identities_as_paths() {
 #[test]
 fn ifccad_geometry_and_bounds_are_inspectable() {
     let bytes = include_bytes!("../../../tests/fixtures/ifccad/hello-geometry.ifcx");
-    let opened = inspect_drawing_bytes("geometry.ifcx", bytes);
+    let opened = inspect_ifccad_bytes("geometry.ifcx", bytes);
     assert_eq!(opened["validation"]["status"], "valid");
     assert!(opened["presentation"]["layouts"]
         .as_array()
@@ -128,7 +128,7 @@ fn ifccad_geometry_and_bounds_are_inspectable() {
                 .is_some()));
     }
     for format in ["dxf", "dwg"] {
-        let out = export_drawing_bytes("geometry.ifcx", bytes, format, "AC1032");
+        let out = export_ifccad_bytes("geometry.ifcx", bytes, format, "AC1032");
         assert!(out["failure"].is_null(), "{out}");
         assert!(out["export"]["geometryAssessment"]["domains"].is_array());
         assert_eq!(out["export"]["fileCheck"]["ifccadStrictReadback"], true);
@@ -138,7 +138,7 @@ fn ifccad_geometry_and_bounds_are_inspectable() {
 
 #[test]
 fn conversion_evidence_retains_domains_and_large_ids() {
-    use ocdraw::ifccad::*;
+    use ifccad::*;
     let mut d = load_ifccad_bytes(
         include_bytes!("../../../tests/fixtures/ifccad/hello-viewports.ifcx"),
         Default::default(),
@@ -169,7 +169,7 @@ fn conversion_evidence_retains_domains_and_large_ids() {
     d.model.entities.push(e);
     d.id_counters.next_entity_id = 9_007_199_254_740_994;
     let bytes = encode_ifccad_document(&d).unwrap();
-    let failed = export_drawing_bytes("precision.ifcx", bytes.bytes(), "dxf", "AC1032");
+    let failed = export_ifccad_bytes("precision.ifcx", bytes.bytes(), "dxf", "AC1032");
     assert_eq!(
         failed["failure"]["geometry"]["source"]["entityId"],
         "9007199254740993"
@@ -189,12 +189,12 @@ fn conversion_evidence_retains_domains_and_large_ids() {
         vertices[0][0] = 0.0001;
     }
     let bytes = encode_ifccad_document(&d).unwrap();
-    let rejected = export_drawing_bytes("round.ifcx", bytes.bytes(), "dxf", "AC1032");
+    let rejected = export_ifccad_bytes("round.ifcx", bytes.bytes(), "dxf", "AC1032");
     assert_eq!(
         rejected["failure"]["geometry"]["reason"],
         "ProvenExceedance"
     );
-    let out = viewer::export_drawing_bytes_with_options(
+    let out = viewer::export_ifccad_bytes_with_options(
         "round.ifcx",
         bytes.bytes(),
         "dxf",
@@ -230,7 +230,7 @@ fn conversion_evidence_retains_domains_and_large_ids() {
 
 #[test]
 fn ifccad_native_download_preserves_large_counter_bytes() {
-    use ocdraw::ifccad::{encode_ifccad_document, IfccadIdCounters};
+    use ifccad::{encode_ifccad_document, IfccadIdCounters};
     let mut document = load_ifccad_bytes(HELLO, Default::default())
         .unwrap()
         .document()
@@ -250,9 +250,9 @@ fn ifccad_native_download_preserves_large_counter_bytes() {
         next_line_pattern_id: u64::MAX,
     };
     let bytes = encode_ifccad_document(&document).unwrap();
-    let inspected = inspect_drawing_bytes("large.ifcx", bytes.bytes());
+    let inspected = inspect_ifccad_bytes("large.ifcx", bytes.bytes());
     assert_eq!(inspected["validation"]["strictAvailable"], true);
-    let exported = export_drawing_bytes("large.ifcx", bytes.bytes(), "ifccad", "AC1032");
+    let exported = export_ifccad_bytes("large.ifcx", bytes.bytes(), "ifccad", "AC1032");
     let returned = STANDARD
         .decode(exported["export"]["download"]["base64"].as_str().unwrap())
         .unwrap();
@@ -280,7 +280,7 @@ fn missing_counter_never_yields_native_or_cad_export_bytes() {
         .remove("nextEntityId");
     let bytes = serde_json::to_vec(&graph).unwrap();
     for format in ["ifccad", "dxf", "dwg"] {
-        let result = export_drawing_bytes("legacy.ifcx", &bytes, format, "AC1032");
+        let result = export_ifccad_bytes("legacy.ifcx", &bytes, format, "AC1032");
         assert_eq!(result["validation"]["strictAvailable"], false);
         assert!(result["export"]["download"].is_null());
     }
@@ -288,7 +288,7 @@ fn missing_counter_never_yields_native_or_cad_export_bytes() {
 
 #[test]
 fn ifccad_uses_its_own_reader_and_shows_composed_nodes() {
-    let result = inspect_drawing_bytes("hello.ifcx", HELLO);
+    let result = inspect_ifccad_bytes("hello.ifcx", HELLO);
     assert_eq!(result["failure"], serde_json::Value::Null);
     assert_eq!(result["source"]["format"], "ifccad");
     assert_eq!(result["validation"]["strictAvailable"], true);
@@ -328,7 +328,7 @@ fn ifccad_download_retains_original_fragments_and_foreign_information() {
         .unwrap()
         .push(serde_json::json!({"path":"/foreign","attributes":{"example::value":42}}));
     let bytes = serde_json::to_vec_pretty(&graph).unwrap();
-    let result = export_drawing_bytes("hello.ifcx.json", &bytes, "ifccad", "AC1032");
+    let result = export_ifccad_bytes("hello.ifcx.json", &bytes, "ifccad", "AC1032");
     assert_eq!(result["failure"], serde_json::Value::Null);
     assert_eq!(
         STANDARD
@@ -344,7 +344,7 @@ fn ifccad_download_retains_original_fragments_and_foreign_information() {
         1
     );
     assert!(nodes.iter().any(|n| n["path"] == "/foreign"));
-    let dxf = export_drawing_bytes("hello.ifcx", &bytes, "dxf", "AC1032");
+    let dxf = export_ifccad_bytes("hello.ifcx", &bytes, "dxf", "AC1032");
     assert_eq!(dxf["failure"], serde_json::Value::Null);
     assert!(dxf["export"]["diagnostics"]
         .as_array()
@@ -356,7 +356,7 @@ fn ifccad_download_retains_original_fragments_and_foreign_information() {
 #[test]
 fn ifccad_exports_real_dxf_and_dwg_with_diagnostics_and_strict_native_readback() {
     for format in ["dxf", "dwg"] {
-        let result = export_drawing_bytes("hello.ifcx", HELLO, format, "AC1032");
+        let result = export_ifccad_bytes("hello.ifcx", HELLO, format, "AC1032");
         assert_eq!(result["failure"], serde_json::Value::Null, "{result}");
         assert_eq!(result["export"]["fileCheck"]["ifccadStrictReadback"], true);
         assert!(result["export"]["diagnostics"]
@@ -368,12 +368,12 @@ fn ifccad_exports_real_dxf_and_dwg_with_diagnostics_and_strict_native_readback()
             .decode(result["export"]["download"]["base64"].as_str().unwrap())
             .unwrap();
         let cad = if format == "dxf" {
-            ocdraw_convert::opencadcodec::DxfReader::from_reader(std::io::Cursor::new(bytes))
+            ifccad_convert::opencadcodec::DxfReader::from_reader(std::io::Cursor::new(bytes))
                 .unwrap()
                 .read()
                 .unwrap()
         } else {
-            ocdraw_convert::opencadcodec::DwgReader::from_stream(std::io::Cursor::new(bytes))
+            ifccad_convert::opencadcodec::DwgReader::from_stream(std::io::Cursor::new(bytes))
                 .read()
                 .unwrap()
         };
@@ -405,13 +405,13 @@ fn ifccad_exports_real_dxf_and_dwg_with_diagnostics_and_strict_native_readback()
 
 #[test]
 fn dwg_nonzero_base_passes_readback_and_download_retains_diagnostics() {
-    let result = export_drawing_bytes("hello.ifcx", HELLO, "dwg", "AC1032");
+    let result = export_ifccad_bytes("hello.ifcx", HELLO, "dwg", "AC1032");
     assert!(result["failure"].is_null(), "{result}");
     assert_eq!(result["export"]["fileCheck"]["ifccadStrictReadback"], true);
     let bytes = STANDARD
         .decode(result["export"]["download"]["base64"].as_str().unwrap())
         .unwrap();
-    let cad = ocdraw_convert::opencadcodec::DwgReader::from_stream(std::io::Cursor::new(bytes))
+    let cad = ifccad_convert::opencadcodec::DwgReader::from_stream(std::io::Cursor::new(bytes))
         .read()
         .unwrap();
     let original = load_ifccad_bytes(HELLO, Default::default()).unwrap();
@@ -419,7 +419,7 @@ fn dwg_nonzero_base_passes_readback_and_download_retains_diagnostics() {
         let record = cad.block_records.get(&block.name).unwrap();
         assert_eq!(
             record.base_point,
-            ocdraw_convert::opencadcodec::Vector3::new(
+            ifccad_convert::opencadcodec::Vector3::new(
                 block.base_point[0],
                 block.base_point[1],
                 block.base_point[2]
@@ -435,7 +435,7 @@ fn dwg_nonzero_base_passes_readback_and_download_retains_diagnostics() {
 #[test]
 fn invalid_ifcx_never_yields_export_bytes() {
     for format in ["ifccad", "dxf", "dwg"] {
-        let result = export_drawing_bytes("invalid.ifcx", b"{}", format, "AC1032");
+        let result = export_ifccad_bytes("invalid.ifcx", b"{}", format, "AC1032");
         assert_eq!(result["validation"]["strictAvailable"], false);
         assert!(result["export"]["download"].is_null());
     }
@@ -443,7 +443,7 @@ fn invalid_ifcx_never_yields_export_bytes() {
 
 #[test]
 fn cad_input_can_be_downloaded_and_reopened_as_ifcx_with_caller_timestamp() {
-    let output = export_drawing_bytes("hello.ifcx", HELLO, "dxf", "AC1032");
+    let output = export_ifccad_bytes("hello.ifcx", HELLO, "dxf", "AC1032");
     let bytes = STANDARD
         .decode(output["export"]["download"]["base64"].as_str().unwrap())
         .unwrap();

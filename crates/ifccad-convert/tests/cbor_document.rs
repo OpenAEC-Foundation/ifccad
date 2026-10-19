@@ -4,8 +4,8 @@ mod hatch_sources;
 #[path = "../../../tests/support/cad_dimension_repair.rs"]
 mod repair;
 mod spline_support;
+use ifccad::*;
 use ifccad_convert::*;
-use ocdraw::ifccad::*;
 #[path = "../../../tests/support/ifccad_dimension.rs"]
 mod dimensions;
 

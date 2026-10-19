@@ -1,15 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createInspection} from '../src/inspection-model.mjs';
+import {createInspection} from './support/inspection-fixture.mjs';
 
-test('OCDraw complex patterns link styles and sources without probing availability',()=>{
- const model=createInspection({presentation:{format:'ocdraw',linePatterns:[{id:1,name:'Mixed',pattern:[2,{length:0,marker:{kind:'text',text:'GAS',textStyleId:7}},{length:0,marker:{kind:'symbol',symbolSourceId:4,shapeNumber:42}},-2]}],textStyles:[{id:7,name:'Requested'}],symbolSources:[{id:4,kind:'shx',fileName:'Custom.SHX'}]}});
- assert.deepEqual(model.nodes.get('pattern:1').outgoing.map(e=>e.target),['textStyle:7','symbolSource:4']);
- assert.deepEqual(model.nodes.get('group:symbolSources').children,['symbolSource:4']);
- assert.equal(model.nodes.get('symbolSource:4').title,'Custom.SHX');
- assert.equal(model.nodes.get('symbolSource:4').values.availability,undefined);
- assert.ok(model.storageRoots.includes('table:symbolSources'));
-});
+
 test('IFCCAD marker paths keep full-width source identities and independent bounds evidence',()=>{
  const source='/cad/d1/symbolSource/9007199254740993',style='/cad/d1/textStyle/7',pattern='/cad/d1/linePattern/3',layout='/cad/d1/layout/1';
  const evidence={scopePath:layout,storedQuality:'enclosing',quality:'partial',enclosureVerified:false,safeForNegativeQuery:false,linePatternReasons:['SymbolFootprintUnavailable']};
@@ -30,23 +23,14 @@ test('IFCCAD text style paths and glyph bounds evidence stay independent',()=>{
  assert.equal(model.nodes.get(entity.path).type,'mText');assert.equal(model.nodes.get(entity.path).outgoing.some(e=>e.target===style&&e.kind==='style'),true);
  assert.equal(model.nodes.get('/cad/d1/layout/1').values.boundsAssessment.quality,'estimated');assert.equal(model.nodes.get('/cad/d1/layout/1').values.boundsAssessment.safeForNegativeQuery,false);assert.equal(model.roots.includes('group:textStyle'),true);
 });
-test('OCDraw text styles are linked and estimated bounds never become verified enclosure',()=>{
- const model=adapter.createInspection({validation:{strictAvailable:true},presentation:{format:'ocdraw',unit:'mm',textStyles:[{id:0,name:'Requested',font:{family:'Face'}}],entities:[{id:'9007199254740993',styleId:0,geometry:{type:'mText',content:[{inlines:[{kind:'run',text:'Literal <script>'}]}]}}],layouts:[{id:0,name:'Model',kind:'model',scopeId:9}],scopes:[{id:9,entities:['9007199254740993']}],boundsCompleteness:[{scopeId:9,quality:'estimated',enclosureVerified:false,safeForNegativeQuery:false}]}},'{}');
- assert.equal(model.nodes.get('textStyle:0').title,'Requested');
- assert.equal(model.nodes.get('entity:9007199254740993').outgoing.some(e=>e.target==='textStyle:0'),true);
- assert.equal(model.nodes.get('layout:0').values.boundsAssessment.quality,'estimated');
- assert.equal(model.nodes.get('layout:0').values.boundsAssessment.enclosureVerified,false);
- assert.equal(model.nodes.get('layout:0').values.boundsAssessment.safeForNegativeQuery,false);
-});
+
 test('Paper coordinates never inherit the physical drawing unit',()=>{
  const paperGraph=structuredClone(graph);
  paperGraph.data[1].attributes['ifccad::layout'].kind='Paper';
  const native=adapter.createInspection({validation:{strictAvailable:true},presentation:{format:'ifccad',graph:paperGraph}},JSON.stringify(paperGraph));
  assert.equal(native.nodes.get('/cad/d1/layout/1').unit,null);
  assert.equal(native.nodes.get('/cad/d1/e9007199254740993').unit,null);
- const standalone=adapter.createInspection({validation:{strictAvailable:true},presentation:{format:'ocdraw',unit:'mm',entities:[{id:2,geometry:{type:'line'}}],layouts:[{id:0,name:'Paper',kind:'paper',scopeId:9}],scopes:[{id:9,entities:[2]}]}},'{}');
- assert.equal(standalone.nodes.get('layout:0').unit,null);
- assert.equal(standalone.nodes.get('entity:2').unit,null);
+
 });
 test('failed IFCCAD validation retains its format and never fabricates validated CAD records',()=>{
  const model=adapter.createInspection({source:{format:'ifccad'},validation:{strictAvailable:false},presentation:null},JSON.stringify(graph));
@@ -65,13 +49,7 @@ test('one IFCCAD record underlies drawing and node views, with ordered source co
  assert.equal(node.drawPosition,0);assert.equal(node.owner,'/cad/d1/layout/1');
  const owner=model.nodes.get('/cad/d1/layout/1');assert.equal(owner.groupedChildren.length,1);assert.deepEqual(model.nodes.get(owner.groupedChildren[0]).children,owner.children);
 });
-test('OCDraw typed entities preserve scope order and actual pool provenance',()=>{
- assert.equal(typeof adapter.createInspection,'function');
- const model=adapter.createInspection({validation:{strictAvailable:true},presentation:{format:'ocdraw',entities:[{id:'9007199254740993',layerId:0,geometry:{type:'planarPolyline',vertices:[[5,6,0],[7,8,0]]}},{id:2,layerId:0,geometry:{type:'line',start:[0,0,0],end:[1,0,0]}}],layouts:[{id:0,name:'Model',scopeId:9}],scopes:[{id:9,entities:[2,'9007199254740993']}],streams:{planarPolylineStream:{entityId:[13,'9007199254740993'],vertexOffset:[0,3],vertexCount:[3,2],x:[0,0,0,5,7]},lineStream:{entityId:[2]}}}},'{}');
- assert.deepEqual(model.nodes.get('layout:0').children,['entity:2','entity:9007199254740993']);
- assert.deepEqual(model.nodes.get('entity:9007199254740993').storage,{stream:'planarPolylineStream',row:1,offset:3,count:2});
- assert.equal(model.nodes.get('entity:9007199254740993').values.geometry.vertices[0][0],5);
-});
+
 
 test('IFCCAD opaque rows expose preservation links and retain mixed draw order',()=>{
  const g=structuredClone(graph),e=g.data.find(n=>n.attributes?.['ifccad::entity']);
@@ -97,16 +75,7 @@ test('IFCCAD workspace links are explicit and full-width identities remain exact
  assert.equal(model.nodes.get(paper).workspaceChoices.activeContext,null);
  assert.equal(model.nodes.get(paper).workspaceChoices.currentUcs,null);
 });
-test('OCDraw viewport workspace rows use owning entity identity and saved UCS links',()=>{
- const p={format:'ocdraw',unit:'m',ucsDefinitions:[{id:0,name:'Plane'}],viewportWorkspaces:[{viewportEntityId:'9007199254740993',storedUcs:{kind:'Named',ucsId:0},useStoredUcs:false},{viewportEntityId:'9007199254740995',storedUcs:{kind:'World'},useStoredUcs:true}],paperCanvases:[{scopeId:7,storedUcs:{kind:'World'},useStoredUcs:false}],modelWindows:[{id:3,storedUcs:{kind:'Named',ucsId:0}}],viewState:{currentModelUcs:{kind:'World'}},entities:[{id:'9007199254740993',type:'viewport'},{id:'9007199254740995',type:'viewport'}]};
- const model=adapter.createInspection({validation:{strictAvailable:true},presentation:p});
- assert.ok(model.nodes.has('workspace:9007199254740993')); assert.ok(model.nodes.has('workspace:9007199254740995'));
- assert.ok(model.nodes.get('workspace:9007199254740993').outgoing.some(e=>e.target==='entity:9007199254740993'));
- assert.ok(model.nodes.get('workspace:9007199254740993').outgoing.some(e=>e.target==='ucs:0'));
- assert.equal(model.nodes.get('workspace:9007199254740993').workspace.coordinateDomain,'Model');
- assert.equal(model.nodes.get('canvas:7').workspace.coordinateDomain,'Paper');
- assert.equal(model.nodes.get('drawing').workspaceChoices.activeModelWindow,null);
-});
+
 
 test('IFCCAD relational override rows expose their own layer and pattern references',()=>{
  const graph={data:[
@@ -122,13 +91,4 @@ test('IFCCAD relational override rows expose their own layer and pattern referen
  assert.equal(view.values['ifccad::viewport'].plotShadingOverride,'Hidden');
  assert.equal(view.values['ifccad::entity'].visible,false);
  assert.equal(model.nodes.get('/cad/d1').values['ifccad::drawing'].pointDisplay.form.glyph,'plus');
-});
-
-test('OCDraw typed viewport overrides expose independent layer and pattern references',()=>{
- const presentation={layers:[{id:0,name:'Layer'}],linePatterns:[{id:1,name:'Pattern'}],entities:[{id:7,type:'viewport',layerId:0,plotShadingOverride:'Hidden',layerOverrides:[{layerId:0,frozen:true,linePatternId:1,color:{rgb:[255,0,0],indexed:['ACI',1]}}]}]};
- const model=adapter.createInspection({validation:{strictAvailable:true},presentation},'{}');
- const view=model.nodes.get('entity:7');
- assert.ok(view.outgoing.some(e=>e.field==='layerOverrides.0.layerId'&&e.target==='layer:0'));
- assert.ok(view.outgoing.some(e=>e.field==='layerOverrides.0.linePatternId'&&e.target==='pattern:1'));
- assert.equal(view.values.plotShadingOverride,'Hidden');
 });

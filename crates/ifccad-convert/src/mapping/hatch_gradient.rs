@@ -1,8 +1,8 @@
 //! Format-owned concrete gradient colors and target identity losses.
 use cad_geometry_convert::hatch::HatchSourceLoss;
 use cad_presentation_convert::{color_to_cad, explicit_color_from_cad, CadColorValue};
-use ocdraw::geometry_kernel::hatch::HatchGradient;
-use ocdraw::ifccad::{IfccadColor, IfccadHatchGradient};
+use ifccad::geometry_kernel::hatch::HatchGradient;
+use ifccad::{IfccadColor, IfccadHatchGradient};
 use opencadcodec::Color;
 
 pub(super) fn gradient_from_cad(g: HatchGradient<Color>) -> IfccadHatchGradient {

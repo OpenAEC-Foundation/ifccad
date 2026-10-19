@@ -3,12 +3,11 @@ name = "viewer"
 version = "0.1.0"
 edition = "2021"
 license = "MPL-2.0"
-description = "Local application adapter for IFCCAD and OCDraw"
+description = "Local application adapter for IFCCAD"
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }
-ocdraw = { path = "../.." }
-ocdraw-convert = { path = "../ocdraw-convert" }
+ifccad = { path = "../.." }
 ifccad-convert = { path = "../ifccad-convert" }
 serde_json = "1"
 base64 = "0.22"
@@ -16,7 +15,3 @@ time = { version = "0.3", features = ["formatting"] }
 
 [dev-dependencies]
 serde = { version = "1", features = ["derive"] }
-
-[[example]]
-name = "size_exchange"
-test = true

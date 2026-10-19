@@ -1,4 +1,4 @@
-use ocdraw::ifccad::*;
+use ifccad::*;
 #[test]
 fn candidate_binary_contract_uses_production_reader() {
     let root =

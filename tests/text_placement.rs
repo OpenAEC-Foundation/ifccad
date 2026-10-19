@@ -1,4 +1,4 @@
-use ocdraw::geometry_kernel::{CoordinateFrame3, Point2, Point3, Vector3};
+use ifccad::geometry_kernel::{CoordinateFrame3, Point2, Point3, Vector3};
 
 #[test]
 fn arbitrary_axis_constructor_has_independent_axis_reference_cases() {
@@ -109,7 +109,7 @@ fn vector(v: [f64; 3]) -> Vector3 {
 
 #[test]
 fn frame_constructor_preserves_existing_block_axis_construction() {
-    use ocdraw::geometry_kernel::{BlockTransform, Scale3};
+    use ifccad::geometry_kernel::{BlockTransform, Scale3};
     for normal in [[1., 2., 3.], [0.1, -0.7, 2.], [1e-250, 3e-250, 4e-250]] {
         let origin = Point3::new(10., 20., 30.);
         let old = BlockTransform::from_normal(origin, vector(normal), 0.7, Scale3::default())

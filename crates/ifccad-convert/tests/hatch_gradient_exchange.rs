@@ -1,6 +1,6 @@
+use ifccad::geometry_kernel::hatch::*;
+use ifccad::*;
 use ifccad_convert::*;
-use ocdraw::geometry_kernel::hatch::*;
-use ocdraw::ifccad::*;
 use opencadcodec::{CadDocument, DwgReader, DwgWriter, DxfReader, DxfVersion, DxfWriter};
 use std::io::Cursor;
 fn drawing() -> IfccadDocument {

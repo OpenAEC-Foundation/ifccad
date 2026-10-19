@@ -1,4 +1,4 @@
-use ocdraw::{ifccad::*, text::*};
+use ifccad::{text::*, *};
 fn rich() -> IfccadDocument {
     let mut d = load_ifccad_bytes(
         include_bytes!("../tests/fixtures/ifccad/hello-cad.ifcx"),

@@ -1,4 +1,4 @@
-use ocdraw::ifccad::*;
+use ifccad::*;
 use serde_json::{json, Value};
 
 fn base() -> IfccadDocument {
@@ -69,7 +69,7 @@ fn new_families_preserve_parameters_in_every_owner() {
         bounds_quality: None,
         canvas: None,
 
-        settings: ocdraw::ifccad::IfccadLayoutSettings {
+        settings: ifccad::IfccadLayoutSettings {
             media: None,
             ..Default::default()
         },

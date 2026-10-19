@@ -1,5 +1,5 @@
 //! Independently author IFCCAD marker/source records and occurrence contexts.
-use ocdraw::{ifccad::*, line_pattern::*, text::*};
+use ifccad::{line_pattern::*, text::*, *};
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let path = std::env::args()
         .nth(1)

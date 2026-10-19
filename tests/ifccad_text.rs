@@ -1,4 +1,4 @@
-use ocdraw::{ifccad::*, text::*};
+use ifccad::{text::*, *};
 
 fn drawing() -> IfccadDocument {
     load_ifccad_bytes(

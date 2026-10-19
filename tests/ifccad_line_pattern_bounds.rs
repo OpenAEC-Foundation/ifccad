@@ -1,4 +1,4 @@
-use ocdraw::{ifccad::*, line_pattern::*, text::*};
+use ifccad::{line_pattern::*, text::*, *};
 fn drawing(text: bool) -> IfccadDocument {
     let mut doc = load_ifccad_bytes(
         include_bytes!("../tests/fixtures/ifccad/hello-cad.ifcx"),

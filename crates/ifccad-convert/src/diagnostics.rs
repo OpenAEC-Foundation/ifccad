@@ -1,5 +1,5 @@
 use crate::IfccadLossPolicy;
-use ocdraw::ifccad::{IfccadEncodeError, IfccadIdAllocationError, IfccadReadError, IfccadReport};
+use ifccad::{IfccadEncodeError, IfccadIdAllocationError, IfccadReadError, IfccadReport};
 /// What happened to the located source information.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum IfccadDiagnosticAction {
@@ -48,7 +48,7 @@ pub enum IfccadConversionError {
         source: cad_geometry_convert::hatch::CadHatchPreparationError,
     },
     #[error("Hatch creation tolerance: {0}")]
-    HatchTolerance(#[from] ocdraw::geometry_kernel::hatch::HatchJoinToleranceError),
+    HatchTolerance(#[from] ifccad::geometry_kernel::hatch::HatchJoinToleranceError),
     #[error("text preparation at {location}: {source}")]
     TextPreparation {
         location: String,

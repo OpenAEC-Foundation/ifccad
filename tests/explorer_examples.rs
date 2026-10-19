@@ -128,7 +128,7 @@ fn every_ifccad_example_uses_compact_ids_and_writer_node_order() {
             continue;
         }
         let bytes = std::fs::read(&path).unwrap();
-        let loaded = ocdraw::ifccad::load_ifccad_bytes(&bytes, Default::default()).unwrap();
+        let loaded = ifccad::load_ifccad_bytes(&bytes, Default::default()).unwrap();
         let d = loaded.document();
         let mut papers: Vec<_> = d.paper_layouts.iter().collect();
         papers.sort_by_key(|p| p.tab_index);
@@ -207,53 +207,19 @@ fn every_ifccad_example_uses_compact_ids_and_writer_node_order() {
 
 #[test]
 fn representative_native_examples_strict_read_and_cover_entity_families() {
-    use ocdraw::ocdraw::{load_ocdraw_bytes, DrawingGeometry};
-    for bytes in [
-        include_bytes!("../examples/ocdraw/overview.ocdraw.json").as_slice(),
-        include_bytes!("../tests/fixtures/ocdraw/layouts-viewports.ocdraw.json").as_slice(),
-        include_bytes!("../tests/fixtures/ocdraw/state-and-storage.ocdraw.json").as_slice(),
-    ] {
-        load_ocdraw_bytes(bytes).unwrap();
-    }
-    let drawing =
-        load_ocdraw_bytes(include_bytes!("../examples/ocdraw/overview.ocdraw.json")).unwrap();
-    let kinds: std::collections::BTreeSet<_> = drawing
-        .geometric_entities()
-        .iter()
-        .map(|e| match e.geometry {
-            DrawingGeometry::Line { .. } => "line",
-            DrawingGeometry::Point { .. } => "point",
-            DrawingGeometry::Circle { .. } => "circle",
-            DrawingGeometry::Arc { .. } => "arc",
-            DrawingGeometry::Ellipse { .. } => "ellipse",
-            DrawingGeometry::PlanarPolyline { .. } => "planar",
-            DrawingGeometry::SpatialPolyline { .. } => "spatial",
-            DrawingGeometry::BlockInstance { .. } => "block",
-        })
-        .collect();
-    assert_eq!(kinds.len(), 8);
     for bytes in [
         include_bytes!("../examples/ifccad/overview.ifcx").as_slice(),
         include_bytes!("../tests/fixtures/ifccad/layouts-viewports.ifcx").as_slice(),
         include_bytes!("../tests/fixtures/ifccad/blocks-and-fragments.ifcx").as_slice(),
     ] {
-        ocdraw::ifccad::load_ifccad_bytes(bytes, Default::default()).unwrap();
+        ifccad::load_ifccad_bytes(bytes, Default::default()).unwrap();
     }
 }
 
 #[test]
 fn curated_overviews_include_complex_patterns_without_expanding_the_chooser() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-    let ocdraw = ocdraw::ocdraw::load_ocdraw_bytes(
-        &std::fs::read(root.join("examples/ocdraw/overview.ocdraw.json")).unwrap(),
-    )
-    .unwrap();
-    assert_eq!(ocdraw.symbol_sources().len(), 3);
-    assert!(ocdraw
-        .line_patterns()
-        .iter()
-        .any(|p| p.name == "Mixed" && p.pattern.iter().any(|e| e.marker.is_some())));
-    let ifccad = ocdraw::ifccad::load_ifccad_bytes(
+    let ifccad = ifccad::load_ifccad_bytes(
         &std::fs::read(root.join("examples/ifccad/overview.ifcx")).unwrap(),
         Default::default(),
     )

@@ -1,19 +1,20 @@
 [package]
-name = "ocdraw"
+name = "ifccad"
 version = "0.1.0"
 edition = "2021"
-description = "Open CAD Drawing information model and exchange format"
+description = "IFCCAD drawing model with IFCX JSON and CBOR encodings"
 license = "MPL-2.0"
 repository = "https://github.com/OpenAEC-Foundation/ifccad"
 homepage = "https://github.com/OpenAEC-Foundation/ifccad"
-documentation = "https://docs.rs/ocdraw"
+documentation = "https://docs.rs/ifccad"
 readme = "README.md"
-keywords = ["cad", "drawing", "ocdraw", "exchange", "conformance"]
+keywords = ["cad", "drawing", "ifccad", "exchange", "conformance"]
 categories = ["parser-implementations", "encoding"]
 
 [workspace]
-members = ["crates/cad-preservation", "crates/cad-workspace-convert", "crates/cad-geometry-convert", "crates/cad-presentation-convert", "crates/cad-text", "crates/cad-dimension", "crates/ocdraw-convert", "crates/viewer", "crates/browser", "crates/ifccad-convert"]
+members = ["crates/cad-preservation", "crates/cad-workspace-convert", "crates/cad-geometry-convert", "crates/cad-presentation-convert", "crates/cad-text", "crates/cad-dimension", "crates/viewer", "crates/browser", "crates/ifccad-convert"]
 resolver = "2"
+exclude = ["legacy/ocdraw", "legacy/ocdraw/crates/ocdraw-convert"]
 
 [features]
 default = []

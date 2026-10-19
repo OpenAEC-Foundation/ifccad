@@ -1,0 +1,34 @@
+[package]
+name = "ocdraw-convert"
+version = "0.1.0"
+edition = "2021"
+description = "Conversion between OCDraw drawings and opencadcodec CadDocument"
+license = "MPL-2.0"
+repository = "https://github.com/OpenAEC-Foundation/ifccad"
+
+[dependencies]
+cad-dimension = { path = "../cad-dimension" }
+cad-presentation-convert = { path = "../cad-presentation-convert" }
+cad-preservation = { path = "../cad-preservation" }
+cad-workspace-convert = { path = "../cad-workspace-convert" }
+cad-text = { path = "../cad-text" }
+cad-geometry-convert = { path = "../cad-geometry-convert" }
+serde = { version = "1.0", features = ["derive"] }
+base64 = "0.22"
+fpmath = "=0.1.1"
+num-bigint = "0.4"
+num-rational = "0.4"
+num-traits = "0.2"
+ocdraw = { path = "../.." }
+opencadcodec = { package = "opencadcodec", git = "https://github.com/HakanSeven12/opencadcodec.git", rev = "325fa98d2b881f48e106a830d5cf161624f63131" }
+thiserror = "1.0"
+serde_json = "1.0"
+
+[dev-dependencies]
+sha2 = "0.10"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[[example]]
+name = "size_baseline"
+test = true
