@@ -51,3 +51,30 @@ pub fn load_ifccad_bytes(
     let document = super::codec::json::project(graph.composed_ifcx())?;
     Ok(ValidatedIfccad { graph, document })
 }
+
+/// Read the explicitly selected xformop placement experiment.
+///
+/// Supported matrices replace geometry placement only. They must map exactly
+/// to the native origin/X/Y frame, including its derived Z direction. The
+/// immutable source graph retains the matrix, while the editable document and
+/// ordinary encoder use native placements. This is not general USD scene loading.
+///
+/// ```
+/// use ifccad::{load_ifccad_xformop_bytes, encode_ifccad_document};
+/// # fn project(bytes: &[u8]) -> Result<(), Box<dyn std::error::Error>> {
+/// let source = load_ifccad_xformop_bytes(bytes, Default::default())?;
+/// let native = encode_ifccad_document(source.document())?;
+/// // Original source bytes stay available independently of native re-encoding.
+/// let original = source.graph().source_bytes();
+/// # let _ = (native, original);
+/// # Ok(())
+/// # }
+/// ```
+pub fn load_ifccad_xformop_bytes(
+    bytes: &[u8],
+    options: IfccadReadOptions,
+) -> Result<ValidatedIfccad, IfccadReadError> {
+    let graph = LoadedIfccadGraph::load(bytes, options.composition_policy)?;
+    let document = super::codec::json::project_xformop(graph.composed_ifcx())?;
+    Ok(ValidatedIfccad { graph, document })
+}

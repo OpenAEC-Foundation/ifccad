@@ -24,6 +24,15 @@ at a time. Independent narrow work can use focused checks; coordinate expensive
 full gates and verify one explicitly authorized final integration candidate.
 Migration execution alone does not authorize merging, pushing or resuming Hatch B.
 
+The [xformop placement experiment](docs/experiments/ifcx-xformop.md) follows the
+active IFCCAD crate/API and remains independent of the parked OCDraw archive.
+Its explicitly selected JSON reader maps exact supported matrices to the native
+logical document. Native placement stays the default; general affine authorship,
+matrix block decoding and source-graph writeback remain separate design work.
+This is the first bounded evaluation of
+[published IFCX schema reuse](docs/vision.md#alignment-with-ifcx-schema-modules),
+not a prerequisite for the semantic coverage slices below.
+
 ## IFCCAD development track
 
 Native opening, composition inspection and direct DXF/DWG roundtrip use the

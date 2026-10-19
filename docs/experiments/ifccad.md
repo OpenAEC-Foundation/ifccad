@@ -10,6 +10,12 @@ Status: experimental profile, 2026-10-01. This is an opt-in IFCX alpha drawing w
 
 ## Finding
 
+The separate [IFCX transform reuse experiment](ifcx-xformop.md) uses the active
+`ifccad` crate and keeps IFCCAD geometry and drawing structure while replacing
+supported geometry placement with `usd::xformop`. Its explicitly selected reader
+returns the native logical document for ordinary encoding and CAD conversion.
+Native placement remains the default; the nested block schema is a proposal only.
+
 ### Direct conversion proof (2026-10-01)
 
 The experimental [IFCCAD converter](../../crates/ifccad-convert/README.md)

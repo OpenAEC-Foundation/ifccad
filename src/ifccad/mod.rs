@@ -55,7 +55,10 @@ pub use encode::{
 };
 pub use encode::{encode_ifccad_document, IfccadEncodeError};
 pub use logical::*;
-pub use read::{load_ifccad_bytes, IfccadReadError, IfccadReadOptions, ValidatedIfccad};
+pub use read::{
+    load_ifccad_bytes, load_ifccad_xformop_bytes, IfccadReadError, IfccadReadOptions,
+    ValidatedIfccad,
+};
 pub use read::{
     load_ifccad_cbor_bytes, IfccadCborReadError, IfccadCborReadLimits, IfccadCborReadOptions,
     ValidatedIfccadCbor,

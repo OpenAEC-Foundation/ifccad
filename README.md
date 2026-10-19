@@ -47,10 +47,16 @@ Legacy OCDraw files and explicit legacy selections return `OCDRAW_PARKED`.
    joint annotation support according to their dependencies.
 4. Expand semantic coverage and assess physical storage using representative evidence.
 
-Hatch B stays paused during this migration. The xformop experiment stays separate;
+Hatch B stays paused during this migration. The [xformop experiment](docs/experiments/ifcx-xformop.md) stays separate;
 combining or rebasing unrelated work is not part of migration execution. One broad
 cross-cutting task runs at a time; independent narrow work can proceed with focused
 checks and coordinated integration verification.
+
+The xformop experiment now uses the active `ifccad` crate. Its explicit reader
+maps a bounded exact subset of `usd::xformop` placements to `IfccadDocument`,
+keeping IFCCAD geometry and drawing structure. Native placement remains the
+default; nested matrix block placement is a schema-only proposal. This evaluates
+[reuse of published IFCX schemas](docs/vision.md#alignment-with-ifcx-schema-modules).
 
 ## Repository layout
 

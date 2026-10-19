@@ -1,0 +1,84 @@
+{
+  "experiment": "ifccad-xformop-placement-reader-1",
+  "coordinateConvention": "right-handed XYZ; numeric lengths interpreted as metres for this comparison",
+  "upstream": {
+    "repository": "buildingSMART/ifcx.dev",
+    "commit": "36010c0e1069043f964a7dff8367e3e910255ebb",
+    "module": "@openusd.org/usd@v1.ifcx",
+    "gitBlob": "7a3301c9dce41e9cc87993a3fef1040c00015915"
+  },
+  "cases": [
+    {
+      "name": "rigid",
+      "nativeEntity": 1,
+      "standardNode": "/cad/d1/e1",
+      "expectedPoints": [
+        [
+          97,
+          202,
+          10
+        ],
+        [
+          97,
+          204,
+          10
+        ]
+      ],
+      "placementEncoding": "usd::xformop"
+    },
+    {
+      "name": "oblique",
+      "nativeEntity": 2,
+      "standardNode": "/cad/d1/e2",
+      "expectedPoints": [
+        [
+          10,
+          20,
+          30
+        ],
+        [
+          12,
+          20,
+          33
+        ]
+      ],
+      "placementEncoding": "usd::xformop"
+    },
+    {
+      "name": "mirrored nonuniform, nonzero base",
+      "nativeEntity": 3,
+      "standardNode": "/cad/d1/e3",
+      "expectedPoints": [
+        [
+          10,
+          20,
+          0
+        ],
+        [
+          8,
+          23,
+          0
+        ]
+      ],
+      "placementEncoding": "unchanged native block transform"
+    },
+    {
+      "name": "nested nonuniform",
+      "nativeEntity": 4,
+      "standardNode": "/cad/d1/e4",
+      "expectedPoints": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          -0.4,
+          1.4,
+          0
+        ]
+      ],
+      "placementEncoding": "unchanged native block transform"
+    }
+  ]
+}

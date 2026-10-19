@@ -18,8 +18,10 @@ mod text_values;
 mod validate;
 mod viewports;
 mod wire;
+mod xformop;
 pub(crate) use encode::encode_bytes;
 pub(crate) use validate::project;
+pub(crate) use xformop::project_xformop;
 
 mod layout;
 

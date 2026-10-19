@@ -1,5 +1,14 @@
 # IFCCAD conversion proof
 
+The [xformop placement experiment](../../docs/experiments/ifcx-xformop.md) uses
+the active `ifccad::load_ifccad_xformop_bytes` reader to obtain an ordinary
+`IfccadDocument`. Convert that projection with `ifccad_document_to_cad_document`;
+selected DXF/DWG readback is compared with the same native-placement reference.
+The source-aware converter still diagnoses the original matrix attributes and
+USD import as outside its ordinary native graph contract; Reject refuses that
+graph loss. Native placement, loss policies and the bounded matrix scope stay
+unchanged. The experiment has no dependency on parked OCDraw code or fixtures.
+
 The [standalone CBOR candidate](../../docs/experiments/ifccad-cbor.md) is core
 storage for the same typed CAD document. Use `ifccad_document_to_cad_document`
 with the validated CBOR document; IFCX source-graph audits remain specific to

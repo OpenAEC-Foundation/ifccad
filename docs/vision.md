@@ -26,6 +26,40 @@ IFCCAD profile nor its experimental CBOR/Zstd transport is a published standard.
   and memory alongside transfer size; storage compression alone does not imply
   a compact in-memory drawing or efficient partial access.
 
+## Alignment with IFCX schema modules
+
+IFCCAD aims to reuse published buildingSMART IFCX schema modules wherever they
+can express the required drawing meaning. Its current local geometry and
+presentation definitions support development during the IFCX alpha stage;
+maintaining a separate vocabulary for equivalent standard concepts is not a
+long-term goal. As suitable modules become available, review them and prefer
+direct reuse over parallel CAD definitions. Geometry, placement, units,
+reusable representations and presentation are candidates, not claims of current
+standard-module coverage.
+
+A review on 2026-10-07 of the
+[published modules](https://github.com/buildingSMART/ifcx.dev/tree/36010c0e1069043f964a7dff8367e3e910255ebb)
+found preliminary USD mesh, basis-curve and transform attributes alongside IFC
+attributes, but no complete analytic geometry vocabulary matching this CAD profile.
+The [IFC 5 development examples](https://github.com/buildingSMART/IFC5-development#disclaimer-early-stage-examples)
+were preliminary; classical IFC geometry does not establish equivalent IFCX modules.
+
+Adoption must preserve required CAD meaning, identity and references, ownership,
+draw order, presentation and numerical accuracy, with reader/writer and CAD
+exchange evidence. Similar geometry alone does not prove that source parameters
+or editing semantics survive. Record the module revision, mapping, migration and
+remaining gaps. Keep local definitions and profile rules only for uncovered
+semantics and reconsider those gaps as upstream evolves. Coordinate applicable
+gaps with buildingSMART; local definitions are not an official standard.
+Upstream availability does not block current CAD coverage work.
+
+The [IFCX transform reuse experiment](experiments/ifcx-xformop.md) starts this
+evaluation with paired native-placement and standard-matrix IFCCAD examples.
+Its explicit reader maps a bounded exact subset into the native logical document
+using the active `ifccad` crate. Native placement remains the default. Later
+modules need their own assessment of usability, compatibility, CAD semantics and
+numerical evidence. OCDraw remains parked and is not an experiment dependency.
+
 ## Future integration and preservation
 
 Preservation retains source information that cannot yet be modeled natively;
