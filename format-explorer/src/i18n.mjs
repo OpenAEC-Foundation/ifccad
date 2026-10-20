@@ -687,6 +687,8 @@ Object.assign(copy, {
 });
 
 Object.assign(copy, {
+ automatic:['Automatic','Automatisch'],
+ ifccadWebsite:['Web page','Webpagina'],
  'dimension.field.type':['Entity type','Elementtype'],
  'dimension.value.dimension':['Dimension','Bemating'],
  'dimension.value.foreground':['Foreground','Voorgrond'],

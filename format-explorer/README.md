@@ -8,6 +8,12 @@ production writers. The browser explicitly enables Zstd.
 
 ## Using the Explorer
 
+The interface defaults to Automatic language selection: the first supported
+Dutch or English browser preference, with English as fallback. Settings can
+override this with Nederlands or English, or return to Automatic. Saved explicit
+choices remain in effect; changing the theme does not pin an automatic language.
+About links to the OpenAEC IFCCAD concept page.
+
 Start with Overview: IFCCAD contents, Open CAD Studio and conversion evidence
 share resizable panes. Document structure groups entities by type within their
 layout/block; Draw order preserves authored sequence. Storage structure shows
