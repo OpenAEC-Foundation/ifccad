@@ -19,7 +19,8 @@ test('partial opening is an explicit retry after an eligible error, persists thr
  await element('open').onclick();
  assert.equal(requests.length,1);assert.equal(requests[0].conversionOptions.partialOpen,undefined);
  assert.equal(element('partial-open').hidden,false);assert.match(element('status').textContent,/Gap exceeds/);
- assert.match(element('partial-open-error').textContent,/Gap exceeds/);
+ assert.equal(element('status').hidden,false);
+ assert.equal([...elements.values()].filter(item=>!item.hidden&&item.textContent==='Gap exceeds limit').length,1,'The opening error appears once, beside its recovery action');
  await element('partial-open').onclick();
  assert.equal(requests[1].conversionOptions.partialOpen,true);assert.equal(element('export').disabled,false);
  assert.equal(element('partial-open').hidden,true);assert.equal(element('partial-opening').hidden,false);

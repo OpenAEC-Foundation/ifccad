@@ -112,7 +112,9 @@
 #application[data-workspace=overview] .detail-only{display:none}
 .document-strip{display:none}
 .statusbar{display:none}
-.file-notice{flex-basis:100%;font-size:12px;padding:5px 8px;border-left:3px solid var(--theme-accent);overflow-wrap:anywhere}
+.file-notice{display:flex;align-items:center;flex-wrap:wrap;gap:12px;flex-basis:100%;font-size:12px;padding:5px 8px;border-left:3px solid var(--theme-accent);overflow-wrap:anywhere}
+.file-notice:has(> #status[hidden]):has(> #partial-open[hidden]){display:none}
+.file-notice #status{flex:1 1 360px;min-width:0}
 #conversion-collapse svg{transition:transform .15s;transform-origin:50% 50%}
 #conversion-collapse[aria-expanded=false] svg{transform:rotate(180deg)}
 #application[data-workspace=overview][data-reports=collapsed] .workspace-body{grid-template-rows:minmax(0,1fr) 6px auto}
@@ -220,5 +222,5 @@
 :root .partial-opening p{margin:4px 0;}
 :root .partial-opening pre{max-height:240px;overflow:auto;white-space:pre-wrap;color:var(--theme-text);}
 :root .partial-opening button{color:var(--theme-text);}
-.partial-open-action{align-self:flex-start;margin:8px 20px;}
-.partial-open-error{margin:8px 20px 0;overflow-wrap:anywhere;}
+.partial-open-action{flex:none;margin-left:auto;}
+@media(max-width:620px){.partial-open-action{margin-left:0}}
