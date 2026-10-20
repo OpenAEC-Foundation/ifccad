@@ -1,6 +1,72 @@
 use cad_geometry_convert::hatch::pattern::*;
 use ifccad::geometry_kernel::hatch::*;
 use opencadcodec::{entities::hatch::*, Vector2};
+#[path = "../../../tests/support/far_hatch_pattern.rs"]
+mod far;
+
+#[test]
+fn far_periodic_pattern_is_certified_without_changing_the_default_limit() {
+    use num_rational::BigRational as Q;
+    let source = far::hatch();
+    let before = source.clone();
+    let p = cad_geometry_convert::hatch::prepare_hatch_from_cad(&source, 1e-9).unwrap();
+    assert_eq!(source, before);
+    let check = |pairs: &[cad_geometry_convert::GeometryPair]| {
+        for pair in pairs {
+            for (point, upper) in &pair.points {
+                assert_eq!(*upper, point.squared_deviation().1);
+                let limit = Q::new(1.into(), 1_000_000_000.into());
+                assert!(
+                    *upper <= &limit * &limit,
+                    "pattern proof exceeds unchanged limit"
+                );
+            }
+        }
+    };
+    check(&p.pairs);
+    let q = cad_geometry_convert::hatch::prepare_hatch_to_cad(
+        p.placement,
+        &p.boundaries,
+        p.area_rule,
+        p.join_tolerance,
+        &p.fill,
+        None,
+    )
+    .unwrap();
+    check(&q.pairs);
+}
+
+#[test]
+fn shared_directions_work_on_oblique_and_negative_planes_for_continuous_and_periodic_families() {
+    use cad_geometry_convert::geometry::numeric::exact;
+    use opencadcodec::Vector3;
+    for normal in [Vector3::new(1., 2., 3.), Vector3::new(0., 0., -1.)] {
+        for continuous in [false, true] {
+            let mut h = far::hatch();
+            h.normal = normal;
+            h.elevation = 17.;
+            if continuous {
+                h.pattern.lines[0].dash_lengths.clear();
+            }
+            let p = cad_geometry_convert::hatch::prepare_hatch_from_cad(&h, 1e-9).unwrap();
+            for (point, _) in p.pairs.iter().flat_map(|p| &p.points) {
+                assert!(point.squared_deviation().1 < exact(1e-18));
+            }
+            let q = cad_geometry_convert::hatch::prepare_hatch_to_cad(
+                p.placement,
+                &p.boundaries,
+                p.area_rule,
+                p.join_tolerance,
+                &p.fill,
+                None,
+            )
+            .unwrap();
+            for (point, _) in q.pairs.iter().flat_map(|p| &p.points) {
+                assert!(point.squared_deviation().1 < exact(1e-18));
+            }
+        }
+    }
+}
 fn bounded_pattern() -> Hatch {
     let mut h = Hatch::with_pattern(HatchPattern::new("Literal"));
     h.pattern.lines.push(HatchPatternLine {

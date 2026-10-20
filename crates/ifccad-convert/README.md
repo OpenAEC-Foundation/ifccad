@@ -392,6 +392,10 @@ Unsupported associations retain contour geometry with located loss.
 conversion tolerance. Nondefault native limits are not persisted in CAD and
 produce rejectable loss. Fill remains unassessed despite contour curve proofs.
 Explicit pattern families retain phase, signed spacing and dash/gap/dot order.
+Their numerical certificates retain exact shared effective directions before
+interval evaluation, including genuine parameter and 3D frame drift. Point
+intervals crossing the unchanged hard limit report incomplete proof rather than
+proven exceedance; both remain errors under Allow and Reject.
 CAD definitions are evaluated once; qualified continuous UserDefined and a narrow
 double profile are supported. Other active dependencies omit the whole Hatch.
 See [Hatch support](../../docs/hatch.md) and the coverage inventories.

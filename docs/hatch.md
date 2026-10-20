@@ -178,6 +178,24 @@ clipped regions or pixels are generated. Dense patterns have no density cap;
 unrepresentable values or an incomplete accuracy proof remain hard errors.
 Fill and its occurrences remain separately unassessed.
 
+When the exact rational sum of stored native family angle and pattern rotation
+equals the stored effective CAD angle, the certificate retains their shared
+direction. It subtracts base, offset and along-parameter terms before interval
+evaluation, using the trigonometric addition identity for the native offset.
+Periodic residuals include period, cumulative dash/gap and segment-length drift.
+This identity changes the proof expression only; stored families, source
+parameters, contour domains and tolerance are unchanged. A rounded binary64
+angle-sum match alone is insufficient; other angles use independent conservative
+enclosures. The qualified UserDefined double quarter-turn retains its separate
+proof semantics.
+
+The world residual retains all three origin components and actual axis
+differences as `S*(s-t) + (S-T)*t`, alongside the target position needed by nested
+block maps. This applies to oblique and negative-normal planes as well as +Z.
+Point assessment uses both squared-distance bounds: a lower bound beyond the
+limit proves exceedance; a straddling interval is a hard incomplete-proof error.
+Neither case is accepted by the semantic Allow policy.
+
 Solid was integrated and verified on main before this pattern slice. The
 provisional contract is not published by these slices. Intersection auditing,
 rendering and runtime associative updates remain separate work. Example writers:

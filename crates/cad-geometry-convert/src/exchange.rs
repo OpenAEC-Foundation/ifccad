@@ -76,8 +76,9 @@ impl<K: Copy + Ord, S: crate::GeometrySource> ExchangeState<K, S> {
         pair: crate::GeometryPair,
     ) -> Result<f64, Box<GeometryFailure<S>>> {
         let mut maximum = 0.0_f64;
-        for (index, (_, d2)) in pair.points.iter().enumerate() {
-            maximum = maximum.max(self.assessment.check(&source, index, d2)?);
+        for (index, (point, _)) in pair.points.iter().enumerate() {
+            let (lo, hi) = point.squared_deviation();
+            maximum = maximum.max(self.assessment.check_interval(&source, index, &lo, &hi)?);
         }
         for curve in &pair.curves {
             maximum = maximum.max(self.assessment.check_curve(&source, curve)?);
@@ -132,8 +133,9 @@ impl<K: Copy + Ord, S: crate::GeometrySource> ExchangeState<K, S> {
         })?;
         let mut maximum = 0.0_f64;
         let mut points = Vec::new();
-        for (index, (point, d2)) in samples.into_iter().enumerate() {
-            maximum = maximum.max(self.assessment.check(identity, index, &d2)?);
+        for (index, (point, _)) in samples.into_iter().enumerate() {
+            let (lo, hi) = point.squared_deviation();
+            maximum = maximum.max(self.assessment.check_interval(identity, index, &lo, &hi)?);
             points.push(point);
         }
         maximum = maximum.max(self.assessment.check_curve(identity, &curve)?);

@@ -187,6 +187,12 @@ pub struct PairedPoint {
     residual: [Range; 3],
 }
 impl PairedPoint {
+    /// Internally certified source-minus-target residual and target enclosure.
+    /// Keep the latter for unequal enclosing block maps; a residual alone does
+    /// not suffice to propagate occurrence-space error.
+    pub(crate) fn from_residual_ranges(target: [Range; 3], residual: [Range; 3]) -> Self {
+        Self { target, residual }
+    }
     /// Bounded evaluated positions for certified affine-region corner checks.
     /// Independent intervals are conservative; exact operand correlation can
     /// still be retained by callers using `new` or `exact`.

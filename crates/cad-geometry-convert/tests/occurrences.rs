@@ -34,6 +34,43 @@ fn assessment(limit: f64) -> GeometryAssessment<Source> {
 }
 
 #[test]
+fn uncertain_point_bound_is_a_hard_proof_gap_instead_of_proven_exceedance() {
+    use cad_geometry_convert::geometry::{
+        blocks::{trig, PairedPoint, Range},
+        numeric::exact,
+    };
+    let (s, _) = trig(0.7);
+    let position = [
+        s.scale(&exact(1e9)),
+        Range::point(exact(0.)),
+        Range::point(exact(0.)),
+    ];
+    let point = PairedPoint::from_ranges(position.clone(), position);
+    let upper = point.squared_deviation().1;
+    let pair = GeometryPair {
+        points: vec![(point, upper)],
+        curves: vec![],
+    };
+    let error = ExchangeState::new(assessment(1e-9))
+        .record_geometry(1, Source::Entity(1), pair)
+        .unwrap_err();
+    assert_eq!(
+        error.reason,
+        GeometryFailureReason::NumericalProofIncomplete
+    );
+    assert_eq!(error.deviation.unwrap().lower(), 0.);
+    let error = ExchangeState::new(assessment(1e-9))
+        .record_geometry(
+            1,
+            Source::Entity(1),
+            GeometryPair::points(&[[0., 0., 2e-9]], &[[0.; 3]]).unwrap(),
+        )
+        .unwrap_err();
+    assert_eq!(error.reason, GeometryFailureReason::ProvenExceedance);
+    assert!(error.deviation.unwrap().lower() > 1e-9);
+}
+
+#[test]
 fn occurrence_limit_uses_root_coordinates_without_narrowing_ids() {
     let high = 9_007_199_254_740_993_u64;
     let mut state = ExchangeState::new(assessment(1.));
