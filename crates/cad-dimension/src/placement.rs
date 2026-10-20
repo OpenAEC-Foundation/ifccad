@@ -65,10 +65,35 @@ fn frame_vectors(p: CoordinateFrame3) -> ([f64; 3], [f64; 3], [f64; 3]) {
     )
 }
 fn world(p: CoordinateFrame3, local: [f64; 2]) -> [Q; 3] {
+    world_spatial(p, [local[0], local[1], 0.0])
+}
+fn world_spatial(p: CoordinateFrame3, local: [f64; 3]) -> [Q; 3] {
     let (o, u, v) = frame_vectors(p);
     std::array::from_fn(|i| {
-        exact(o[i]) + exact(u[i]) * exact(local[0]) + exact(v[i]) * exact(local[1])
+        let (j, k) = ((i + 1) % 3, (i + 2) % 3);
+        let n = exact(u[j]) * exact(v[k]) - exact(u[k]) * exact(v[j]);
+        exact(o[i])
+            + exact(u[i]) * exact(local[0])
+            + exact(v[i]) * exact(local[1])
+            + n * exact(local[2])
     })
+}
+fn project_spatial(
+    p: CoordinateFrame3,
+    position: [Q; 3],
+) -> Result<[f64; 3], CadDimensionPreparationError> {
+    let xy = project(p, position.clone())?;
+    let (o, u, v) = frame_vectors(p);
+    let n: [Q; 3] = std::array::from_fn(|i| {
+        let (j, k) = ((i + 1) % 3, (i + 2) % 3);
+        exact(u[j]) * exact(v[k]) - exact(u[k]) * exact(v[j])
+    });
+    let square: Q = n.iter().map(|x| x * x).sum();
+    if square <= Q::zero() {
+        return Err(numeric("placement", "singular spatial basis"));
+    }
+    let z: Q = (0..3).map(|i| (&position[i] - exact(o[i])) * &n[i]).sum();
+    Ok([xy[0], xy[1], round(&(z / square))?])
 }
 fn project(
     p: CoordinateFrame3,
@@ -277,14 +302,14 @@ pub fn prepare_dimension_from_cad(
     }
     let axis = cad_plane(base.normal).ok_or_else(|| invalid("normal", "invalid plane normal"))?;
     let plane = CoordinateFrame3::try_new(
-        Point3::new(first.x, first.y, first.z),
+        Point3::new(line.x, line.y, line.z),
         V::new(axis.u[0], axis.u[1], axis.u[2]),
         V::new(axis.v[0], axis.v[1], axis.v[2]),
     )
     .map_err(|e| numeric("placement", &e.to_string()))?;
-    let a = [0.0, 0.0];
-    let b = project(plane, xyz(second).map(exact))?;
-    let line_local = project(plane, xyz(line).map(exact))?;
+    let a = project_spatial(plane, xyz(first).map(exact))?;
+    let b = project_spatial(plane, xyz(second).map(exact))?;
+    let line_local = [0.0, 0.0];
     let definition = if let Some(angle) = rotation {
         DimensionDefinition::Linear {
             first_point: a,
@@ -311,8 +336,8 @@ pub fn prepare_dimension_from_cad(
         unreachable!()
     };
     let mut pairs = vec![
-        pair(xyz(first).map(exact), world(plane, a)),
-        pair(xyz(second).map(exact), world(plane, b)),
+        pair(xyz(first).map(exact), world_spatial(plane, a)),
+        pair(xyz(second).map(exact), world_spatial(plane, b)),
         pair(xyz(line).map(exact), world(plane, line_local)),
     ];
     let style = doc
@@ -477,9 +502,9 @@ pub fn prepare_dimension_to_cad(
             .to_f64()
             .ok_or_else(|| numeric("phase", "range"))?,
     );
-    let (a, b) = definition.points();
-    let a_q = world(placement, a);
-    let b_q = world(placement, b);
+    let (a, b) = definition.reference_points();
+    let a_q = world_spatial(placement, a);
+    let b_q = world_spatial(placement, b);
     let a_c = [round(&a_q[0])?, round(&a_q[1])?, round(&a_q[2])?];
     let b_c = [round(&b_q[0])?, round(&b_q[1])?, round(&b_q[2])?];
     let (line, extension) = match definition {

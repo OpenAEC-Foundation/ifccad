@@ -15,6 +15,19 @@ fn independent_ifccad_inspector_keeps_full_width_source_paths() {
 }
 
 #[test]
+fn dimension_inspector_exposes_spatial_references_and_planar_line() {
+    let out = viewer::inspect_ifccad_bytes(
+        "spatial.ifcx",
+        include_bytes!("../../../conformance/next/ifccad/valid/dimension-spatial-references.ifcx"),
+    );
+    let def = &out["presentation"]["dimensions"][0]["geometry"]["definition"];
+    assert_eq!(def["firstPoint"].as_array().unwrap().len(), 3);
+    assert_eq!(def["firstPoint"][2], 544.);
+    assert_eq!(def["secondPoint"][2], 1632.);
+    assert_eq!(def["dimensionLinePoint"].as_array().unwrap().len(), 2);
+}
+
+#[test]
 fn maintained_dimension_examples_strictly_load_with_model_paper_and_block_content() {
     let ifccad = ifccad::load_ifccad_bytes(
         include_bytes!("../../../examples/ifccad/dimensions.ifcx"),

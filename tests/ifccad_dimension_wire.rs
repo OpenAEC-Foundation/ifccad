@@ -1,6 +1,103 @@
 #[path = "support/ifccad_dimension.rs"]
 mod support;
 use ifccad::{dimension::*, *};
+
+#[test]
+fn spatial_reference_anchors_and_signed_zero_survive_both_strict_readers() {
+    let mut d = support::drawing();
+    let IfccadEntityKind::Dimension(dim) = &mut d.model.entities[0].as_native_mut().unwrap().kind
+    else {
+        panic!("dimension")
+    };
+    dim.placement.origin = [-17., 10., 30.];
+    dim.placement.x_axis = [0., 1., 0.];
+    dim.placement.y_axis = [0., 0., 1.];
+    dim.definition = DimensionDefinition::Aligned {
+        first_point: [0., 0., -0.],
+        second_point: [3., 4., 1632.],
+        dimension_line_point: [0., 8.],
+        extension_direction_angle: None,
+    };
+    validate_ifccad_document(&d).unwrap();
+    let frame = dim_frame(&d);
+    assert_eq!(
+        frame
+            .try_to_scope_spatial_point(ifccad::geometry_kernel::Point3::new(3., 4., 1632.))
+            .unwrap()
+            .components(),
+        [1615., 13., 34.]
+    );
+    let json = encode_ifccad_document(&d).unwrap();
+    let cbor = encode_ifccad_cbor_document(&d).unwrap();
+    let reads = [
+        load_ifccad_bytes(json.bytes(), Default::default())
+            .unwrap()
+            .into_document(),
+        load_ifccad_cbor_bytes(cbor.bytes(), Default::default())
+            .unwrap()
+            .into_document(),
+    ];
+    for read in reads {
+        validate_ifccad_document(&read).unwrap();
+        let IfccadEntityKind::Dimension(dim) = &read.model.entities[0].as_native().unwrap().kind
+        else {
+            panic!("dimension")
+        };
+        let (a, b) = dim.definition.reference_points();
+        assert_eq!(a[2].to_bits(), (-0.0_f64).to_bits());
+        assert_eq!(b, [3., 4., 1632.]);
+        assert_eq!(
+            evaluate_dimension(&dim.definition).unwrap(),
+            DimensionMeasurement::Distance(5.)
+        );
+    }
+}
+
+fn dim_frame(d: &IfccadDocument) -> ifccad::geometry_kernel::CoordinateFrame3 {
+    let IfccadEntityKind::Dimension(dim) = &d.model.entities[0].as_native().unwrap().kind else {
+        panic!("dimension")
+    };
+    dim.placement.coordinate_frame().unwrap()
+}
+
+#[test]
+fn strict_dimension_points_have_xyz_references_and_xy_line_only() {
+    let bytes = encode_ifccad_document(&support::drawing()).unwrap();
+    for (field, value) in [
+        ("firstPoint", serde_json::json!([0., 0.])),
+        ("secondPoint", serde_json::json!([1., 2., 3., 4.])),
+        ("dimensionLinePoint", serde_json::json!([0., 8., 0.])),
+    ] {
+        let mut wire: serde_json::Value = serde_json::from_slice(bytes.bytes()).unwrap();
+        let body = wire["data"]
+            .as_array_mut()
+            .unwrap()
+            .iter_mut()
+            .find_map(|n| n["attributes"].get_mut("ifccad::dimension"))
+            .unwrap();
+        body["definition"][field] = value;
+        assert!(
+            load_ifccad_bytes(&serde_json::to_vec(&wire).unwrap(), Default::default()).is_err(),
+            "{field}"
+        );
+    }
+}
+
+#[test]
+fn spatial_reference_placement_must_stay_in_finite_scope_range() {
+    let mut d = support::drawing();
+    let IfccadEntityKind::Dimension(dim) = &mut d.model.entities[0].as_native_mut().unwrap().kind
+    else {
+        panic!("dimension")
+    };
+    dim.placement.origin[2] = f64::MAX;
+    if let DimensionDefinition::Aligned { first_point, .. } = &mut dim.definition {
+        first_point[2] = f64::MAX;
+    }
+    assert!(validate_ifccad_document(&d).is_err());
+    assert!(encode_ifccad_document(&d).is_err());
+    assert!(encode_ifccad_cbor_document(&d).is_err());
+}
 #[test]
 fn independent_style_and_entity_paths_roundtrip_with_unused_settings() {
     let mut d = support::drawing();

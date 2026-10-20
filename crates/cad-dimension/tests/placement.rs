@@ -30,11 +30,11 @@ fn tilted_plane_keeps_wcs_definition_and_ocs_text_anchor() {
         p.text_placement,
         DimensionTextPlacement::Explicit { .. }
     ));
-    assert_eq!(p.placement.origin().components(), [3.0, 0.0, 0.0]);
+    assert_eq!(p.placement.origin().components(), [3.0, 8.0, 0.0]);
     let DimensionTextPlacement::Explicit { position, .. } = p.text_placement else {
         unreachable!()
     };
-    assert_eq!(position, [2.0, 7.0]);
+    assert_eq!(position, [-6.0, 7.0]);
 }
 
 #[test]
@@ -126,8 +126,8 @@ fn legacy_control_codes_are_not_misclassified_as_plain_literal_labels() {
     ])]);
     assert!(prepare_dimension_to_cad(
         &DimensionDefinition::Aligned {
-            first_point: [0.0; 2],
-            second_point: [3.0, 4.0],
+            first_point: [0.0; 3],
+            second_point: [3.0, 4.0, 0.0],
             dimension_line_point: [0.0, 8.0],
             extension_direction_angle: None
         },

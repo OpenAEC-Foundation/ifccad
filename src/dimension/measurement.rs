@@ -8,7 +8,7 @@ pub fn evaluate_dimension(
     definition: &DimensionDefinition,
 ) -> Result<DimensionMeasurement, DimensionValueError> {
     validate_dimension_definition(definition)?;
-    let (a, b) = definition.points();
+    let (a, b) = definition.projected_points();
     let dx = exact(b[0]) - exact(a[0]);
     let dy = exact(b[1]) - exact(a[1]);
     let value = match definition {

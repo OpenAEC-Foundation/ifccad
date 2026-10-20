@@ -44,14 +44,14 @@ impl CborValue for DimensionDefinition {
                 w.u64(1)?;
                 let mut __cbor_fields = 0_u64;
                 if first_point.present()
-                    && (None as Option<[f64; 2]>)
+                    && (None as Option<[f64; 3]>)
                         .as_ref()
                         .is_none_or(|d| !first_point.exact(d))
                 {
                     __cbor_fields += 1;
                 }
                 if second_point.present()
-                    && (None as Option<[f64; 2]>)
+                    && (None as Option<[f64; 3]>)
                         .as_ref()
                         .is_none_or(|d| !second_point.exact(d))
                 {
@@ -80,7 +80,7 @@ impl CborValue for DimensionDefinition {
                 }
                 w.map(__cbor_fields)?;
                 if first_point.present()
-                    && (None as Option<[f64; 2]>)
+                    && (None as Option<[f64; 3]>)
                         .as_ref()
                         .is_none_or(|d| !first_point.exact(d))
                 {
@@ -88,7 +88,7 @@ impl CborValue for DimensionDefinition {
                     first_point.encode(w)?;
                 }
                 if second_point.present()
-                    && (None as Option<[f64; 2]>)
+                    && (None as Option<[f64; 3]>)
                         .as_ref()
                         .is_none_or(|d| !second_point.exact(d))
                 {
@@ -133,14 +133,14 @@ impl CborValue for DimensionDefinition {
                 w.u64(1)?;
                 let mut __cbor_fields = 0_u64;
                 if first_point.present()
-                    && (None as Option<[f64; 2]>)
+                    && (None as Option<[f64; 3]>)
                         .as_ref()
                         .is_none_or(|d| !first_point.exact(d))
                 {
                     __cbor_fields += 1;
                 }
                 if second_point.present()
-                    && (None as Option<[f64; 2]>)
+                    && (None as Option<[f64; 3]>)
                         .as_ref()
                         .is_none_or(|d| !second_point.exact(d))
                 {
@@ -162,7 +162,7 @@ impl CborValue for DimensionDefinition {
                 }
                 w.map(__cbor_fields)?;
                 if first_point.present()
-                    && (None as Option<[f64; 2]>)
+                    && (None as Option<[f64; 3]>)
                         .as_ref()
                         .is_none_or(|d| !first_point.exact(d))
                 {
@@ -170,7 +170,7 @@ impl CborValue for DimensionDefinition {
                     first_point.encode(w)?;
                 }
                 if second_point.present()
-                    && (None as Option<[f64; 2]>)
+                    && (None as Option<[f64; 3]>)
                         .as_ref()
                         .is_none_or(|d| !second_point.exact(d))
                 {
@@ -213,8 +213,8 @@ impl CborValue for DimensionDefinition {
                         (4, "extension_direction_angle"),
                     ],
                 )?;
-                let first_point: [f64; 2] = b.take(0, None)?;
-                let second_point: [f64; 2] = b.take(1, None)?;
+                let first_point: [f64; 3] = b.take(0, None)?;
+                let second_point: [f64; 3] = b.take(1, None)?;
                 let direction_angle: f64 = b.take(2, None)?;
                 let dimension_line_point: [f64; 2] = b.take(3, None)?;
                 let extension_direction_angle: Option<f64> = b.take(4, Some(None))?;
@@ -238,8 +238,8 @@ impl CborValue for DimensionDefinition {
                         (3, "extension_direction_angle"),
                     ],
                 )?;
-                let first_point: [f64; 2] = b.take(0, None)?;
-                let second_point: [f64; 2] = b.take(1, None)?;
+                let first_point: [f64; 3] = b.take(0, None)?;
+                let second_point: [f64; 3] = b.take(1, None)?;
                 let dimension_line_point: [f64; 2] = b.take(2, None)?;
                 let extension_direction_angle: Option<f64> = b.take(3, Some(None))?;
                 b.finish()?;

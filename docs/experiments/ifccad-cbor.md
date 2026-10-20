@@ -5,22 +5,26 @@ the existing IFCX JSON CAD profile and this standalone CBOR candidate. The
 binary file is not a general IFCX serialization and is not automatically
 readable by IFCX JSON applications. OCDraw is parked as a frozen reference outside the active workspace.
 
-The [revision-2 contract](../../schemas/ifccad/cbor-mapping-2.md) and
-[complete field register](../../schemas/ifccad/cbor-mapping-2.json) define the
+The [revision-1 contract](../../schemas/ifccad/cbor-mapping-1.md) and
+[complete field register](../../schemas/ifccad/cbor-mapping-1.json) define the
 language-neutral physical mapping. Candidate conformance is in
 `conformance/next/ifccad-cbor`. No supported-format publication is implied.
 
 ## Structure and evolution
 
 The complete file is one definite-length CBOR map:
-`{0: "IFCCAD-CBOR", 1: 2, 2: Document}`. File names conventionally use
+`{0: "IFCCAD-CBOR", 1: 1, 2: Document}`. File names conventionally use
 `.ifccad.cbor`. Each record has its own small unsigned field codes; entity
 kind codes and document identities have separate meanings. Source order in
 Rust does not assign codes. The registry explicitly fixes every field/variant.
 
-The reader accepts only mapping revision 2. Unknown fields, variants or
+The reader accepts only mapping revision 1. Unknown fields, variants or
 revisions are errors; there is no compatibility migration or silent skipping.
-New contract changes require a new revision, even for optional additions.
+Version 1 is a mutable unreleased draft, like the active IFCCAD profile: change
+the single mapping and fixtures in place. There are no historical mappings,
+compatibility promises for earlier experimental files or migration routes.
+A future release/versioning policy requires an explicit decision. Dimension
+references are required XYZ; the dimension-line point is XY in its placed plane.
 
 All supported logical content survives: IDs/counters, ownership/draw order,
 definition vector order, native geometry, Paper/Model state, text, patterns,
@@ -50,7 +54,7 @@ fn encode(document: &IfccadDocument) -> Result<Vec<u8>, IfccadCborEncodeError> {
     Ok(encode_ifccad_cbor_document(document)?.into_bytes())
 }
 
-let bytes: &[u8] = &[]; // Supply a complete revision-2 file.
+let bytes: &[u8] = &[]; // Supply a complete revision-1 file.
 let result = load_ifccad_cbor_bytes(bytes, Default::default());
 ```
 
@@ -125,7 +129,7 @@ cargo run --features ifccad-cbor-zstd --example convert_ifccad_cbor -- to-json I
 compression.
 
 The [transport contract](../../schemas/ifccad/cbor-zstd-transport-1.md) requires
-one standard, checksummed Zstd frame containing ordinary revision-2 CBOR, without
+one standard, checksummed Zstd frame containing ordinary revision-1 CBOR, without
 a dictionary. Standard magic/header bytes identify Zstd. Compression level is a
 writer setting, is not stored in that header and is unnecessary for reading.
 No private container or inner field codes are introduced. Writer output passes
@@ -150,11 +154,10 @@ DWG, faster loading, incremental saving or a cross-format canonical fingerprint.
 
 ## Current main alignment
 
-Mapping revision 2 includes fraction layout/scale and explicit resets introduced
-by the Dimension repair, Hatch ordered source groups, association state, provenance
-flags and text islands. Revision 1 was an unmerged experimental candidate and is
-rejected; it has no compatibility decoder. The fixed-code contract describes
-retired code 1 in HatchLoop and the appended current fields.
+The current draft includes fraction layout/scale and explicit resets introduced
+by the Dimension repair, Hatch ordered source groups, association state,
+provenance flags and text islands. HatchLoop code 1 remains unassigned; the
+single register specifies the current fields.
 
 JSON graph loading canonicalizes preservation records by numeric ID. CBOR retains
 the supplied vector order, including reverse/multi-digit record IDs. Both retain

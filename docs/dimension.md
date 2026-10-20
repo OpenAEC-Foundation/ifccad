@@ -12,9 +12,14 @@ engine. Active schemas and `conformance/next` define the format contract.
 
 ## Definition, measurement and text
 
-A dimension owns its definition points and presentation state. Linear measurement
-is the absolute projection onto its direction; aligned measurement is the distance
-between its two points. Zero measurements are valid. Numeric overflow or unavailable
+A dimension owns its definition points and presentation state. Both reference
+points are required local XYZ coordinates. The dimension-line point is XY in
+the local dimension plane, placed in 3D by the common placement. Reference Z
+uses the exact cross product of the stored X/Y axes; stored axes are not
+renormalized. Linear measurement is the absolute projection of the local XY
+reference difference onto its direction; aligned measurement is the XY distance
+between the projected references. Independent reference Z values survive but
+do not change either planar measurement. Zero measurements are valid. Numeric overflow or unavailable
 evaluation is an error, never a replacement zero. ExtensionDirectionAngle is an
 absolute local direction when explicitly present; absence requests ordinary
 automatic extension placement.
@@ -83,6 +88,13 @@ can retain partial/estimated evidence; definition anchors do not establish an
 enclosing box for text, markers or extension lines. Conversion assessments
 separate submitted definition/explicit text anchors from unassessed display,
 including nested occurrences and the existing owner-specific Paper tolerance.
+
+CAD import places the frame at the WCS dimension-line point and keeps both
+full spatial reference anchors. Explicit OCS text is mapped to that plane;
+out-of-plane explicit text remains a hard numerical failure. The existing
+Euclidean tolerance and nested-occurrence checks include all XYZ components.
+The active experimental schema requires three reference components; older XY
+definitions are rejected, not silently completed. The mutable experimental CBOR version-1 mapping uses the same XYZ contract.
 
 Both converters use `cad-dimension` for ID-free preparation and bind their own
 identities afterward. A CAD measurement cache is ignored; disagreement with the

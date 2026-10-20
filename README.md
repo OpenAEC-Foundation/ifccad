@@ -12,7 +12,7 @@ The root Rust package is `ifccad`; its public API is `ifccad::{IfccadDocument,
 load_ifccad_bytes, encode_ifccad_document, ...}`. The model stays under `src/ifccad`.
 The core owns construction, shared validation, encoding and file IO and has no CAD
 runtime dependency. JSON/IFCX and experimental base-CBOR use the same logical
-model. CBOR mapping revision 2 and optional native Zstd transport revision 1
+model. CBOR mapping revision 1 and optional native Zstd transport revision 1
 remain experimental; this migration changes neither their bytes nor semantics.
 The `ifccad-cbor-zstd` core feature is optional. The browser enables it for explicit
 experimental CBOR + Zstd downloads; ordinary IFCX download remains the default choice.
@@ -126,3 +126,6 @@ Removal requires an explicitly selected, completed and unused worktree. Cache
 cleanup defaults to main only; other checkouts must be selected individually.
 See [local maintenance](docs/local-maintenance.md) for the completion checklist,
 commands and protection rules.
+
+For large CAD inputs, the [report-only conversion diagnosis](docs/conversion-diagnostics.md)
+collects independent errors and blocked checks without pre-excluding entities.

@@ -99,6 +99,43 @@ pub(crate) fn inspect(
     consumed_dimension_styles: &BTreeSet<Handle>,
     hatch_reactors: &BTreeSet<(Handle, Handle)>,
 ) -> Result<Inspection, Error> {
+    inspect_impl(
+        doc,
+        preserve_splines,
+        consumed_objects,
+        consumed_dimension_styles,
+        hatch_reactors,
+        true,
+    )
+}
+
+/// Only the report-only audit may defer per-entity scalar rejection. Its caller
+/// must run the same validate_source function on every entity before preparation.
+pub(crate) fn inspect_for_audit(
+    doc: &CadDocument,
+    preserve_splines: bool,
+    consumed_objects: &BTreeSet<Handle>,
+    consumed_dimension_styles: &BTreeSet<Handle>,
+    hatch_reactors: &BTreeSet<(Handle, Handle)>,
+) -> Result<Inspection, Error> {
+    inspect_impl(
+        doc,
+        preserve_splines,
+        consumed_objects,
+        consumed_dimension_styles,
+        hatch_reactors,
+        false,
+    )
+}
+
+fn inspect_impl(
+    doc: &CadDocument,
+    preserve_splines: bool,
+    consumed_objects: &BTreeSet<Handle>,
+    consumed_dimension_styles: &BTreeSet<Handle>,
+    hatch_reactors: &BTreeSet<(Handle, Handle)>,
+    validate_entities: bool,
+) -> Result<Inspection, Error> {
     let invalid = |s: &str| Error::InvalidStructure(s.to_string());
     let models = doc
         .block_records
@@ -456,8 +493,10 @@ pub(crate) fn inspect(
         hatch_reactors,
         &mut issues,
     )?;
-    for e in doc.entities() {
-        entities::validate_source(e)?;
+    if validate_entities {
+        for e in doc.entities() {
+            entities::validate_source(e)?;
+        }
     }
     for recovery in &mut recoveries {
         recovery.action = crate::IfccadDiagnosticAction::Recovery;

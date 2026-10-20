@@ -3750,8 +3750,8 @@
                       "value": {
                         "dataType": "Real"
                       },
-                      "min": 2,
-                      "max": 2
+                      "min": 3,
+                      "max": 3
                     }
                   },
                   "secondPoint": {
@@ -3760,8 +3760,8 @@
                       "value": {
                         "dataType": "Real"
                       },
-                      "min": 2,
-                      "max": 2
+                      "min": 3,
+                      "max": 3
                     }
                   },
                   "dimensionLinePoint": {

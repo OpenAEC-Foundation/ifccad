@@ -58,6 +58,8 @@
 //! Ok(back.encoded().bytes().to_vec())
 //! # }
 //! ```
+mod audit;
+pub use audit::*;
 mod diagnostics;
 mod dimension_assessment;
 mod from_cad;

@@ -1,6 +1,6 @@
 # Experimental IFCCAD CBOR Zstd transport
 
-This optional transport wraps the [revision-2 CBOR mapping](cbor-mapping-2.md)
+This optional transport wraps the [revision-1 CBOR mapping](cbor-mapping-1.md)
 without changing its logical model, field codes or payload bytes. Uncompressed
 CBOR remains the default. This is an independent IFCCAD experiment, not a general
 IFCX compression contract or a promise about future IFCX encodings.
@@ -9,7 +9,7 @@ IFCX compression contract or a promise about future IFCX encodings.
 
 A file contains exactly one ordinary Zstandard frame, beginning with the standard
 magic bytes `28 B5 2F FD`. Its decompressed content is exactly one complete
-revision-2 IFCCAD CBOR document. The frame checksum is mandatory. Dictionary ID
+revision-1 IFCCAD CBOR document. The frame checksum is mandatory. Dictionary ID
 fields and external dictionaries are prohibited. Skippable frames, concatenated
 frames, trailing bytes and nested compression are rejected. Reserved frame bits
 follow the Zstandard specification. The frame content size may be present or

@@ -7,6 +7,7 @@ use std::collections::BTreeMap;
 pub(crate) struct GeometryContext {
     pub state: cad_geometry_convert::ExchangeState<u64, IfccadGeometryEntitySource>,
     pub owner: IfccadGeometryOwner,
+    pub preparation_error: Option<cad_geometry_convert::CadPreparationError>,
     stored: BTreeMap<IfccadGeometryDomain, Assessment>,
     tolerance: IfccadGeometryTolerance,
     meanings:
@@ -25,6 +26,7 @@ impl GeometryContext {
         Ok(Self {
             state: cad_geometry_convert::ExchangeState::new(assessment),
             owner: IfccadGeometryOwner::ModelLayout(model_id),
+            preparation_error: None,
             stored: BTreeMap::new(),
             tolerance,
             meanings: BTreeMap::from([(
@@ -120,11 +122,12 @@ impl GeometryContext {
         }))
     }
     pub fn preparation_failure(
-        &self,
+        &mut self,
         source: &IfccadGeometryEntitySource,
         error: cad_geometry_convert::CadPreparationError,
         stage: IfccadGeometryStage,
     ) -> IfccadConversionError {
+        self.preparation_error = Some(error);
         let (stage, reason) = match error {
             cad_geometry_convert::CadPreparationError::Numerical { stage, reason } => {
                 (stage, reason)

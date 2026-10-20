@@ -1,5 +1,5 @@
 {
-  "mappingRevision": 2,
+  "mappingRevision": 1,
   "cases": [
     {
       "file": "valid/empty.ifccad.cbor",
@@ -165,10 +165,10 @@
       "errorClass": "Malformed"
     },
     {
-      "file": "invalid/previous-revision.ifccad.cbor",
+      "file": "invalid/zero-version.ifccad.cbor",
       "valid": false,
       "errorClass": "UnsupportedRevision",
-      "diagnostic": "invalid/previous-revision.ifccad.cbor.diag"
+      "diagnostic": "invalid/zero-version.ifccad.cbor.diag"
     }
   ]
 }

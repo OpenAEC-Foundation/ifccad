@@ -1,6 +1,6 @@
 {
   "format": "IFCCAD-CBOR",
-  "mappingRevision": 2,
+  "mappingRevision": 1,
   "rootType": "IfccadDocument",
   "types": {
     "IfccadDocument": {
@@ -7785,13 +7785,13 @@
             {
               "code": 0,
               "name": "first_point",
-              "type": "[f64;2]",
+              "type": "[f64;3]",
               "presence": "required"
             },
             {
               "code": 1,
               "name": "second_point",
-              "type": "[f64;2]",
+              "type": "[f64;3]",
               "presence": "required"
             },
             {
@@ -7822,13 +7822,13 @@
             {
               "code": 0,
               "name": "first_point",
-              "type": "[f64;2]",
+              "type": "[f64;3]",
               "presence": "required"
             },
             {
               "code": 1,
               "name": "second_point",
-              "type": "[f64;2]",
+              "type": "[f64;3]",
               "presence": "required"
             },
             {
@@ -7849,6 +7849,7 @@
       "dependencies": [
         "Option<f64>",
         "[f64;2]",
+        "[f64;3]",
         "f64"
       ]
     },

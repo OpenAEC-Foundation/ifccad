@@ -206,6 +206,32 @@ impl CoordinateFrame3 {
         self.0
     }
 
+    /// Evaluate local XYZ using the exact cross product of the stored X/Y axes
+    /// for Z, without normalizing any stored direction. Rounds once per axis.
+    pub fn try_to_scope_spatial_point(
+        self,
+        point: Point3,
+    ) -> Result<Point3, GeometryEvaluationError> {
+        for (axis, value) in CoordinateAxis::ALL.into_iter().zip(point.components()) {
+            if !value.is_finite() {
+                return Err(GeometryEvaluationError::NonFiniteLocalCoordinate { axis });
+            }
+        }
+        let u = self.0.x.components().map(exact);
+        let v = self.0.y.components().map(exact);
+        let p = point.components().map(exact);
+        let mut result = [0.0; 3];
+        for (i, axis) in CoordinateAxis::ALL.into_iter().enumerate() {
+            let (j, k) = ((i + 1) % 3, (i + 2) % 3);
+            let n = &u[j] * &v[k] - &u[k] * &v[j];
+            let q =
+                exact(self.0.origin.components()[i]) + &u[i] * &p[0] + &v[i] * &p[1] + n * &p[2];
+            result[i] = round_nearest(&q)
+                .map_err(|_| GeometryEvaluationError::CoordinateOutOfRange { axis })?;
+        }
+        Ok(Point3::new(result[0], result[1], result[2]))
+    }
+
     /// Evaluate a local point, rounding each exact coordinate once to nearest/even.
     pub fn try_to_scope_point(self, point: Point2) -> Result<Point3, GeometryEvaluationError> {
         Self::validate_point(point)?;
@@ -277,6 +303,32 @@ impl CoordinateFrame3 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn spatial_points_keep_the_exact_stored_axis_cross_product() {
+        let x = 1.0 + 1e-13;
+        let y = 1.0 + 1e-13;
+        let frame = CoordinateFrame3::try_new(
+            Point3::new(3., 4., 5.),
+            Vector3::new(x, 0., 0.),
+            Vector3::new(0., y, 0.),
+        )
+        .unwrap();
+        let p = Point3::new(2., 7., 1e8);
+        let actual = frame.try_to_scope_spatial_point(p).unwrap().components();
+        assert_eq!(
+            actual[2],
+            round_nearest(&(exact(5.) + exact(x) * exact(y) * exact(1e8))).unwrap()
+        );
+        assert_ne!(actual[2], 5. + 1e8);
+        assert_eq!(
+            actual[0],
+            round_nearest(&(exact(3.) + exact(2.) * exact(x))).unwrap()
+        );
+        assert!(frame
+            .try_to_scope_spatial_point(Point3::new(0., 0., f64::INFINITY))
+            .is_err());
+    }
 
     #[test]
     fn coordinate_frame3_preserves_oblique_axes() {

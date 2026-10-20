@@ -10,8 +10,12 @@ The viewer/browser/Explorer support IFCCAD only. OCDraw is parked under
 Do not restore parity, import archived helpers or add an OCDraw compatibility
 feature. Restore the complete pre-migration checkpoint only for explicitly
 requested legacy work; see `docs/ocdraw-parking.md` and the archive manifest.
-Underlying IFCX syntax/extensions retain their names. CBOR revision 2 and optional
+Underlying IFCX syntax/extensions retain their names. CBOR revision 1 and optional
 native Zstd transport revision 1 remain experimental; default WASM excludes Zstd.
+CBOR version 1 is a mutable unreleased draft, like the active IFCCAD profile.
+Update its single mapping and conformance/next fixtures in place; do not bump
+versions or keep historical mappings until a release/versioning policy is
+explicitly agreed. Earlier experimental files have no compatibility guarantee.
 
 Start with:
 

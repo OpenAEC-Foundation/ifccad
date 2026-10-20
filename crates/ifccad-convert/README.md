@@ -7,7 +7,13 @@ the JSON source route. CAD coverage and loss policies are unchanged.
 The optional experimental Zstd transport unwraps to this same validated document;
 it introduces no additional CAD conversion semantics.
 
-Ordinary linear/aligned dimensions have independent IFCCAD styles, full-width
+Ordinary linear/aligned dimensions retain full local XYZ reference anchors and
+an XY dimension-line point in the placed plane. Measurement uses the reference
+XY projections; all three spatial components remain in accuracy proofs.
+Independent heights are retained without changing tolerances. Explicit text
+outside the plane remains a hard failure. Active IFCX definitions require XYZ
+and the current CBOR mapping is revision 1; no implicit XY migration exists.
+Dimensions have independent IFCCAD styles, full-width
 identities, same-owner relations and `dimension_assessment()` evidence. The CAD
 adapter shares only neutral preparation with OCDraw. Stored definition/text
 anchors use the hard owner-specific tolerance; dimension display and host
@@ -429,3 +435,12 @@ styles and explicit DSTYLE 278 resets; it is never stored as native NUL.
 The equivalent explicit decimal-point code may be used on CAD export.
 
 Current codec qualification: [2026-10-16 dependency audit](../../docs/geometry/opencadcodec-update-2026-10-16.md). Only the documented Dimension patch remains selected; viewport repairs are upstream.
+
+## Conversion diagnosis
+
+The report-only [CAD diagnosis pass](../../docs/conversion-diagnostics.md) collects
+independent preparation failures through this same production route. It neither
+removes source entities nor exposes partial native output. The native
+`diagnose_cad` command writes individual JSON evidence, a flushed progress journal
+and grouped Markdown coverage, including blocked checks. It is independent of
+benchmark drivers; ordinary conversion and hard tolerances are unchanged.

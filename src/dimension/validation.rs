@@ -48,9 +48,12 @@ pub(crate) fn point(field: &str, value: [f64; 2]) -> Result<(), DimensionValueEr
 }
 
 pub fn validate_dimension_definition(v: &DimensionDefinition) -> Result<(), DimensionValueError> {
-    let (a, b) = v.points();
-    point("definition/firstPoint", a)?;
-    point("definition/secondPoint", b)?;
+    let (a, b) = v.reference_points();
+    for (field, p) in [("firstPoint", a), ("secondPoint", b)] {
+        for (i, value) in p.into_iter().enumerate() {
+            finite(&format!("definition/{field}/{i}"), value)?;
+        }
+    }
     let (line, extension) = match v {
         DimensionDefinition::Linear {
             direction_angle,

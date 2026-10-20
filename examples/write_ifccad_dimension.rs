@@ -86,8 +86,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
     entity.id = SOURCE - 1;
     entity.kind = IfccadEntityKind::Dimension(Box::new(make(DimensionDefinition::Linear {
-        first_point: [0.0, 0.0],
-        second_point: [4000.0, 0.0],
+        first_point: [0.0, 0.0, 0.0],
+        second_point: [4000.0, 0.0, 0.0],
         direction_angle: 0.0,
         dimension_line_point: [0.0, 300.0],
         extension_direction_angle: None,
@@ -95,8 +95,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let linear = entity.clone();
     entity.id = SOURCE + 1;
     let mut aligned = make(DimensionDefinition::Aligned {
-        first_point: [0.0, 0.0],
-        second_point: [4000.0, 0.0],
+        first_point: [0.0, 0.0, 0.0],
+        second_point: [4000.0, 0.0, 0.0],
         dimension_line_point: [0.0, 600.0],
         extension_direction_angle: None,
     });
@@ -105,8 +105,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let aligned = entity.clone();
     entity.id = SOURCE + 2;
     let mut vertical = make(DimensionDefinition::Linear {
-        first_point: [0.0; 2],
-        second_point: [0.0, 2500.0],
+        first_point: [0.0; 3],
+        second_point: [0.0, 2500.0, 0.0],
         direction_angle: std::f64::consts::FRAC_PI_2,
         dimension_line_point: [300.0, 0.0],
         extension_direction_angle: None,

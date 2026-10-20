@@ -5,6 +5,37 @@ use opencadcodec::{
     entities::{Dimension, DimensionLinear},
     CadDocument, EntityType, Vector3,
 };
+
+#[test]
+fn spatial_references_and_dimension_plane_survive_native_readback() {
+    let mut cad = CadDocument::new();
+    let mut source =
+        DimensionLinear::new(Vector3::new(10., 20., 544.), Vector3::new(13., 24., 1632.));
+    source.definition_point = Vector3::new(10., 30., -17.);
+    source.base.definition_point = source.definition_point;
+    source.base.text_user_positioned = true;
+    source.base.text_middle_point = Vector3::new(12., 31., -17.);
+    cad.add_entity(EntityType::Dimension(Box::new(Dimension::Linear(source))))
+        .unwrap();
+    let output =
+        cad_document_to_encoded_ifccad(&cad, common::metadata(), Default::default()).unwrap();
+    let doc = output.validated_source().document();
+    let IfccadEntityKind::Dimension(d) = &doc.model.entities[0].as_native().unwrap().kind else {
+        panic!("dimension")
+    };
+    assert_eq!(d.placement.origin, [10., 30., -17.]);
+    let wire = serde_json::to_value(&d.definition).unwrap();
+    assert_eq!(wire["firstPoint"], serde_json::json!([0., -10., 561.]));
+    assert_eq!(wire["secondPoint"], serde_json::json!([3., -6., 1649.]));
+    assert_eq!(wire["dimensionLinePoint"], serde_json::json!([0., 0.]));
+    let cbor = encode_ifccad_cbor_document(doc).unwrap();
+    assert_eq!(
+        load_ifccad_cbor_bytes(cbor.bytes(), Default::default())
+            .unwrap()
+            .document(),
+        doc
+    );
+}
 #[test]
 fn independent_dimension_ids_paths_and_measurement_pass_strict_readback() {
     let mut cad = CadDocument::new();
@@ -31,12 +62,13 @@ fn independent_dimension_ids_paths_and_measurement_pass_strict_readback() {
     assert_eq!(read.document().dimension_styles, doc.dimension_styles);
 }
 #[test]
-fn independent_numeric_excess_is_fatal_under_both_policies() {
+fn out_of_plane_explicit_text_is_fatal_under_both_policies() {
     let mut cad = CadDocument::new();
-    cad.add_entity(EntityType::Dimension(Box::new(Dimension::Linear(
-        DimensionLinear::new(Vector3::ZERO, Vector3::new(3.0, 4.0, 0.1)),
-    ))))
-    .unwrap();
+    let mut d = DimensionLinear::new(Vector3::ZERO, Vector3::new(3.0, 4.0, 0.1));
+    d.base.text_user_positioned = true;
+    d.base.text_middle_point = Vector3::new(1.0, 2.0, 0.1);
+    cad.add_entity(EntityType::Dimension(Box::new(Dimension::Linear(d))))
+        .unwrap();
     for loss_policy in [IfccadLossPolicy::Allow, IfccadLossPolicy::Reject] {
         assert!(matches!(
             cad_document_to_ifccad_document(

@@ -35,6 +35,15 @@ impl<K: Copy + Ord, S: crate::GeometrySource> ExchangeState<K, S> {
         }
     }
 
+    /// Discard registrations from a failed entity transaction. The caller must
+    /// also restore its aggregate assessment checkpoint.
+    pub fn discard_entity(&mut self, key: K) {
+        self.points.remove(&key);
+        self.curves.remove(&key);
+        self.instances.remove(&key);
+        self.identities.remove(&key);
+    }
+
     pub fn register_identity(&mut self, key: K, source: S) {
         self.identities.insert(key, source);
     }

@@ -1,11 +1,11 @@
-# Experimental IFCCAD CBOR mapping, revision 2
+# Experimental IFCCAD CBOR mapping, revision 1
 
 This is a standalone encoding of `IfccadDocument`, not a general IFCX binary
 serialization. It retains the complete supported CAD projection, including
 opaque CAD preservation, but no original IFCX fragments, imports or foreign
 nodes. JSON/IFCX remains a separate mapping through the same typed document.
 
-The normative field/type inventory is [cbor-mapping-2.json](cbor-mapping-2.json).
+The normative field/type inventory is [cbor-mapping-1.json](cbor-mapping-1.json).
 It enumerates concrete records and generic instantiations reachable from the
 document. Names in that registry are explanatory, not transmitted type names.
 Record field codes are local to their record type. Codes and enum variants are
@@ -14,12 +14,14 @@ values and never inferred from field codes, vector indices or content.
 
 ## Envelope and revision
 
-Exactly one CBOR map contains `{0: "IFCCAD-CBOR", 1: 2, 2: Document}`.
+Exactly one CBOR map contains `{0: "IFCCAD-CBOR", 1: 1, 2: Document}`.
 All three fields are required. Other revisions are rejected; no migration,
 forward-compatible skipping, feature negotiation or historical decoder is
-provided. Every change to the accepted language, semantics, code assignment,
-defaults or writer normalization requires a new mapping revision. Implementation
-repairs restoring this contract do not. File names conventionally end in
+provided. Version 1 is a mutable, unreleased experimental draft, like the active IFCCAD
+profile. Update this single contract and its fixtures in place, including changes
+to language, semantics, codes, defaults and normalization. No compatibility with
+earlier experimental files is promised. Do not add historical mappings or bump
+the version until an explicit release/versioning policy is agreed. File names conventionally end in
 `.ifccad.cbor`; contents determine validity. This raw mapping uses no compression
 or extra binary prefix. The optional experimental
 [Zstd transport](cbor-zstd-transport-1.md) wraps these unchanged payload bytes
@@ -121,19 +123,23 @@ documented separately from this mapping contract.
 
 Reference: [CBOR, RFC 8949](https://www.rfc-editor.org/rfc/rfc8949.html).
 
-## Revision-2 alignment
+## Current logical model
 
-This candidate follows the current logical model after Dimension repair and
-Hatch source-association slice A. It supersedes the unmerged revision-1 experiment;
-revision 1 is rejected rather than interpreted with new meanings. Unchanged field
-codes retain their assignments. IfccadHatch adds association_enabled at 6.
-IfccadHatchLoop retires scalar source code 1: ordered source_entity_ids use 2,
-provenance uses 3 and text_island uses 4. Primary settings/overrides append fraction
-layout/scale at 11/12; alternate settings append them at 8/9. New enum and provenance
-records have their own local codes in the register. There is no associative
-geometry update engine in this encoding.
+The registry includes Dimension fraction layout/scale and explicit resets,
+Hatch ordered source groups, association state, provenance flags and text islands.
+HatchLoop code 1 is unassigned; ordered source_entity_ids use 2, provenance uses 3
+and text_island uses 4. There is no associative geometry update engine.
 
 The JSON reader's numeric preservation-record ordering is graph normalization.
 CBOR preserves supplied record-vector order, along with payload bytes, IDs,
 watermarks and opaque entity draw order. JSON export may normalize record order
 when the document is explicitly passed through that separate mapping.
+
+## Spatial Dimension reference anchors
+
+`DimensionDefinition::Linear` and `Aligned` store first_point/second_point
+as required fixed XYZ arrays of three binary64 values. A +0 Z is not omitted.
+The dimension-line point remains fixed XY. Measurement uses the XY reference
+projections; Z is retained native reference geometry along the exact cross
+product of the stored placement X/Y axes. Explicit text remains XY in that plane.
+XY reference tuples are rejected, never completed with an inferred Z.

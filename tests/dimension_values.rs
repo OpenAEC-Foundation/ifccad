@@ -1,10 +1,62 @@
 use ifccad::dimension::*;
 use std::collections::BTreeMap;
 
+#[test]
+fn xyz_references_keep_independent_heights_but_measure_in_the_plane() {
+    for (kind, expected) in [("linear", 3.0), ("aligned", 5.0)] {
+        let mut wire = serde_json::json!({
+            "kind":kind, "firstPoint":[0.0,0.0,544.0],
+            "secondPoint":[3.0,4.0,1632.0], "dimensionLinePoint":[0.0,8.0]
+        });
+        if kind == "linear" {
+            wire["directionAngle"] = serde_json::json!(0.0);
+        }
+        let definition: DimensionDefinition = serde_json::from_value(wire.clone()).unwrap();
+        validate_dimension_definition(&definition).unwrap();
+        assert_eq!(
+            evaluate_dimension(&definition).unwrap(),
+            DimensionMeasurement::Distance(expected)
+        );
+        assert_eq!(
+            serde_json::to_value(&definition).unwrap()["firstPoint"],
+            wire["firstPoint"]
+        );
+        assert_eq!(
+            serde_json::to_value(&definition).unwrap()["secondPoint"],
+            wire["secondPoint"]
+        );
+    }
+}
+
+#[test]
+fn reference_z_is_validated_even_though_measurement_uses_xy() {
+    let mut d = aligned([0., 0.], [3., 4.]);
+    if let DimensionDefinition::Aligned {
+        first_point,
+        second_point,
+        ..
+    } = &mut d
+    {
+        first_point[2] = -f64::MAX;
+        second_point[2] = f64::MAX;
+    }
+    assert_eq!(
+        evaluate_dimension(&d).unwrap(),
+        DimensionMeasurement::Distance(5.)
+    );
+    if let DimensionDefinition::Aligned { second_point, .. } = &mut d {
+        second_point[2] = f64::NAN;
+    }
+    assert_eq!(
+        validate_dimension_definition(&d).unwrap_err().field,
+        "definition/secondPoint/2"
+    );
+}
+
 fn aligned(first: [f64; 2], second: [f64; 2]) -> DimensionDefinition {
     DimensionDefinition::Aligned {
-        first_point: first,
-        second_point: second,
+        first_point: [first[0], first[1], 0.0],
+        second_point: [second[0], second[1], 0.0],
         dimension_line_point: [0.0, 300.0],
         extension_direction_angle: None,
     }
@@ -13,8 +65,8 @@ fn aligned(first: [f64; 2], second: [f64; 2]) -> DimensionDefinition {
 #[test]
 fn linear_projects_and_aligned_measures_distance() {
     let linear = DimensionDefinition::Linear {
-        first_point: [0.0, 0.0],
-        second_point: [3.0, 4.0],
+        first_point: [0.0, 0.0, 0.0],
+        second_point: [3.0, 4.0, 0.0],
         direction_angle: 0.0,
         dimension_line_point: [0.0, 300.0],
         extension_direction_angle: None,

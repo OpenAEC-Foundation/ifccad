@@ -147,8 +147,14 @@ pub(super) fn validate_dimensions(d: &IfccadDocument) -> Result<(), IfccadReport
             continue;
         };
         let path = format!("{prefix}/e{id}/ifccad::dimension");
-        v.placement.coordinate_frame()?;
+        let frame = v.placement.coordinate_frame()?;
         validate_dimension_definition(&v.definition).map_err(|e| fail(&path, e))?;
+        let (a, b) = v.definition.reference_points();
+        for p in [a, b] {
+            frame
+                .try_to_scope_spatial_point(crate::geometry_kernel::Point3::new(p[0], p[1], p[2]))
+                .map_err(|e| fail(&path, e))?;
+        }
         validate_dimension_text_placement(&v.text_placement).map_err(|e| fail(&path, e))?;
         evaluate_dimension(&v.definition).map_err(|e| fail(&path, e))?;
         if let DimensionLabel::Template(parts) = &v.label {

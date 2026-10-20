@@ -1,7 +1,7 @@
 use crate::IfccadLossPolicy;
 use ifccad::{IfccadEncodeError, IfccadIdAllocationError, IfccadReadError, IfccadReport};
 /// What happened to the located source information.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize)]
 pub enum IfccadDiagnosticAction {
     Omitted,
     Modified,
@@ -12,7 +12,7 @@ pub enum IfccadDiagnosticAction {
 }
 
 /// Located unsupported content or a documented source recovery.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize)]
 pub struct IfccadDiagnostic {
     pub code: &'static str,
     pub location: String,
@@ -35,6 +35,9 @@ impl IfccadDiagnostic {
 /// Conversion failure retaining the core phase and original typed cause.
 #[derive(Debug, thiserror::Error)]
 pub enum IfccadConversionError {
+    /// Only produced by an explicitly supplied diagnosis progress observer.
+    #[error("diagnosis progress IO failed: {0}")]
+    AuditProgress(#[source] std::io::Error),
     #[error("dimension preparation at {location}: {source}")]
     DimensionPreparation {
         location: String,

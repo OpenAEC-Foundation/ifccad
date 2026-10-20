@@ -402,5 +402,17 @@
   {
     "file": "invalid/dimension-fraction-null.ifcx",
     "valid": false
+  },
+  {
+    "file": "valid/dimension-spatial-references.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid/dimension-reference-xy.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/dimension-line-xyz.ifcx",
+    "valid": false
   }
 ]

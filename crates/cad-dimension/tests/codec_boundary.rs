@@ -57,17 +57,20 @@ fn literal_dxf_group_11_is_ocs_independently_of_codec_comments() {
         .unwrap();
     assert_eq!(d.base().text_middle_point, Vector3::new(2.0, 7.0, 3.0));
     let p = prepare_dimension_from_cad(d, &doc).unwrap();
-    assert_eq!(p.definition.points(), ([0.0, 0.0], [4.0, 5.0]));
+    assert_eq!(
+        p.definition.reference_points(),
+        ([-8.0, 0.0, 0.0], [-4.0, 5.0, 0.0])
+    );
     assert!(matches!(
         p.text_placement,
         DimensionTextPlacement::Explicit {
-            position: [2.0, 7.0],
+            position: [-6.0, 7.0],
             ..
         }
     ));
     // AA basis for N=(1,0,0): U=(0,1,0), V=(0,0,1).
     // Raw text (2,7,3) therefore means WCS (3,2,7), not WCS (2,7,3).
-    assert_eq!(p.placement.origin().components(), [3.0, 0.0, 0.0]);
+    assert_eq!(p.placement.origin().components(), [3.0, 8.0, 0.0]);
 }
 
 #[test]
@@ -163,15 +166,19 @@ fn actual_dxf_and_ac1032_dwg_keep_wcs_definition_and_ocs_text() {
         let p = prepare_dimension_from_cad(d, &loaded).unwrap();
         assert_eq!(
             p.placement.origin().components(),
-            [3.0, 0.0, 0.0],
+            [3.0, 8.0, 0.0],
             "dwg={dwg}"
         );
-        assert_eq!(p.definition.points(), ([0.0, 0.0], [4.0, 5.0]), "dwg={dwg}");
+        assert_eq!(
+            p.definition.reference_points(),
+            ([-8.0, 0.0, 0.0], [-4.0, 5.0, 0.0]),
+            "dwg={dwg}"
+        );
         assert!(
             matches!(
                 p.text_placement,
                 DimensionTextPlacement::Explicit {
-                    position: [2.0, 7.0],
+                    position: [-6.0, 7.0],
                     ..
                 }
             ),

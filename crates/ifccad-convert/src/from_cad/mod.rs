@@ -35,19 +35,55 @@ pub fn cad_document_to_ifccad_document(
     metadata: IfccadTargetMetadata,
     options: CadToIfccadOptions,
 ) -> Result<CadToIfccadDocumentOutcome, IfccadConversionError> {
+    convert(
+        source,
+        metadata,
+        options,
+        &mut crate::audit::AuditRun::disabled(),
+    )
+    .map(|outcome| outcome.expect("ordinary conversion returns its complete document"))
+}
+
+pub(crate) fn convert(
+    source: &CadDocument,
+    metadata: IfccadTargetMetadata,
+    options: CadToIfccadOptions,
+    audit: &mut crate::audit::AuditRun<'_>,
+) -> Result<Option<CadToIfccadDocumentOutcome>, IfccadConversionError> {
     let (prepared, mut issues) = crate::source::scaffold::prepare(source);
-    let source = prepared.as_ref();
+    let result = convert_prepared(prepared.as_ref(), metadata, options, audit, &mut issues);
+    if audit.enabled && !matches!(&result, Ok(Some(_))) {
+        audit.report.diagnostics.extend(issues);
+    }
+    result
+}
+
+fn convert_prepared(
+    source: &CadDocument,
+    metadata: IfccadTargetMetadata,
+    options: CadToIfccadOptions,
+    audit: &mut crate::audit::AuditRun<'_>,
+    issues: &mut Vec<IfccadDiagnostic>,
+) -> Result<Option<CadToIfccadDocumentOutcome>, IfccadConversionError> {
     let mut preservation = crate::preservation::Capture {
         enabled: options.preservation == crate::IfccadPreservationCapture::SupportedTyped,
         ..Default::default()
     };
-    let info = crate::source::inspect(
+    let inspect = if audit.enabled {
+        crate::source::inspect_for_audit
+    } else {
+        crate::source::inspect
+    };
+    let info = inspect(
         source,
         preservation.enabled,
         &Default::default(),
         &Default::default(),
         &Default::default(),
     )?;
+    if audit.enabled {
+        audit.validate_entities(source)?;
+    }
     for entity in source.entities() {
         if let opencadcodec::EntityType::Viewport(view) = entity {
             if source
@@ -59,21 +95,30 @@ pub fn cad_document_to_ifccad_document(
             }
         }
     }
+    audit.stage(
+        "source-context",
+        CadAuditStatus::Passed,
+        "source-context",
+        "production source graph inspection passed",
+    )?;
+    if audit.enabled {
+        audit.report.diagnostics.extend(info.recoveries.clone());
+    }
+    audit.phase = "shared-preparation";
     let mut ids = IfccadIdCounters::default();
     let mut mappings = IfccadMappings::default();
-    let text_styles =
-        crate::mapping::text::from_styles(source, &mut ids, &mut mappings, &mut issues)?;
+    let text_styles = crate::mapping::text::from_styles(source, &mut ids, &mut mappings, issues)?;
     let (symbol_sources, symbol_map) = crate::mapping::symbol_source::from_cad_symbol_sources(
         source,
         &mut ids,
         &mut mappings,
-        &mut issues,
+        issues,
     )?;
     let (mut line_patterns, patterns) = crate::mapping::line_pattern::from_cad(
         source,
         preservation.enabled,
         &mut ids,
-        &mut issues,
+        issues,
         &mappings,
         &symbol_map,
     )?;
@@ -92,8 +137,7 @@ pub fn cad_document_to_ifccad_document(
     mappings.layouts.insert(model_id, info.model_layout);
     let mut layers = Vec::new();
     for l in source.layers.iter() {
-        let Some(appearance) = crate::mapping::appearance::from_layer(l, &patterns, &mut issues)
-        else {
+        let Some(appearance) = crate::mapping::appearance::from_layer(l, &patterns, issues) else {
             continue;
         };
         let id = ids.allocate_layer_id().map_err(allocation_error)?;
@@ -110,16 +154,58 @@ pub fn cad_document_to_ifccad_document(
             appearance,
         });
     }
-    let supported: Vec<_> = info.blocks.iter().copied().filter(|h| {
-        let b = source.block_records.iter().find(|b| b.handle == *h).unwrap();
-        let dynamic = source.objects.values().any(|o| matches!(o, opencadcodec::objects::ObjectType::DynamicBlock(d) if d.owner == *h));
-        let supported = !b.flags.is_xref && !b.flags.is_xref_overlay && !b.flags.is_external
-            && !b.flags.is_xref_unloaded && b.xref_path.is_empty() && !dynamic;
-        if !supported {
-            issues.push(diagnostic("block-skipped", format!("block/{}", b.name), "external or dynamic block definition omitted, together with referring instances"));
+    let mut supported = Vec::new();
+    for h in &info.blocks {
+        let b = source
+            .block_records
+            .iter()
+            .find(|b| b.handle == *h)
+            .unwrap();
+        let dynamic = source
+            .objects
+            .values()
+            .any(|o| matches!(o,opencadcodec::objects::ObjectType::DynamicBlock(d) if d.owner==*h));
+        if b.flags.is_xref
+            || b.flags.is_xref_overlay
+            || b.flags.is_external
+            || b.flags.is_xref_unloaded
+            || !b.xref_path.is_empty()
+            || dynamic
+        {
+            issues.push(diagnostic(
+                "block-skipped",
+                format!("block/{}", b.name),
+                "external or dynamic block definition omitted, together with referring instances",
+            ));
+            for entity in &b.entity_handles {
+                audit.entity_finished(
+                    *entity,
+                    CadAuditStatus::Omitted,
+                    "external or dynamic owner definition is outside the conversion profile",
+                )?;
+            }
+        } else {
+            supported.push(*h);
         }
-        supported
-    }).collect();
+    }
+    if audit.enabled {
+        for paper in &info.papers {
+            let block = source
+                .block_records
+                .iter()
+                .find(|b| b.handle == paper.block_handle)
+                .unwrap();
+            for h in &block.entity_handles {
+                if !paper.entity_handles.contains(h) {
+                    audit.entity_finished(
+                        *h,
+                        CadAuditStatus::NotApplicable,
+                        "overall Paper canvas scaffold; checked as workspace context",
+                    )?;
+                }
+            }
+        }
+    }
     for h in &supported {
         mappings
             .blocks
@@ -143,7 +229,7 @@ pub fn cad_document_to_ifccad_document(
         else {
             unreachable!("inspected Paper layout")
         };
-        let settings = crate::mapping::layout::settings_from_cad(layout, false, &mut issues)?;
+        let settings = crate::mapping::layout::settings_from_cad(layout, false, issues)?;
         geometry.add_paper(
             mappings
                 .layouts
@@ -153,13 +239,9 @@ pub fn cad_document_to_ifccad_document(
         )?;
         paper_metadata.insert(paper.layout_handle, settings);
     }
-    let (dimension_styles, mut dimensions) = crate::mapping::dimension::from_styles(
-        source,
-        &patterns,
-        &mut ids,
-        &mut mappings,
-        &mut issues,
-    )?;
+    let (dimension_styles, mut dimensions) =
+        crate::mapping::dimension::from_styles(source, &patterns, &mut ids, &mut mappings, issues)?;
+    audit.phase = "scope-preparation";
     let entities = entities::from_cad(
         entities::SourceScope {
             dimensions: &mut dimensions,
@@ -169,11 +251,12 @@ pub fn cad_document_to_ifccad_document(
             document: source,
             patterns: &patterns,
             entities: &info.entities,
+            audit,
         },
         &mut preservation,
         &mut ids,
         &mut mappings,
-        &mut issues,
+        issues,
         &mut geometry,
     )?;
     let mut blocks = Vec::new();
@@ -214,11 +297,12 @@ pub fn cad_document_to_ifccad_document(
                     document: source,
                     patterns: &patterns,
                     entities: &b.entity_handles,
+                    audit,
                 },
                 &mut preservation,
                 &mut ids,
                 &mut mappings,
-                &mut issues,
+                issues,
                 &mut geometry,
             )?,
         });
@@ -249,11 +333,12 @@ pub fn cad_document_to_ifccad_document(
                 document: source,
                 patterns: &patterns,
                 entities: &paper.entity_handles,
+                audit,
             },
             &mut preservation,
             &mut ids,
             &mut mappings,
-            &mut issues,
+            issues,
             &mut geometry,
         )?;
         paper_layouts.push(IfccadPaperLayout {
@@ -285,7 +370,7 @@ pub fn cad_document_to_ifccad_document(
             .iter()
             .map(|p| p.entity_handles.as_slice())
             .collect::<Vec<_>>(),
-        &mut issues,
+        issues,
     );
     let mut drawing = IfccadDocument {
         dimension_styles,
@@ -321,7 +406,7 @@ pub fn cad_document_to_ifccad_document(
                 else {
                     unreachable!()
                 };
-                let mut settings = crate::mapping::layout::settings_from_cad(l, true, &mut issues)?;
+                let mut settings = crate::mapping::layout::settings_from_cad(l, true, issues)?;
                 if source.header.show_model_space {
                     settings.paper_space_linetype_scaling =
                         source.header.paper_space_linetype_scaling;
@@ -343,11 +428,31 @@ pub fn cad_document_to_ifccad_document(
             "unsupported PDMODE/PDSIZE setting omitted; point geometry retained",
         ));
     }
+    if audit.enabled {
+        audit.report.traversal_complete = true;
+        audit.assess_occurrences(source, &drawing, &mappings, &mut geometry, issues)?;
+        if audit.failed() {
+            // Residual source diagnostics describe partial preparation only.
+            issues.extend(
+                crate::source::inspect_for_audit(
+                    source,
+                    preservation.enabled,
+                    &dimensions.consumed_objects,
+                    &dimensions.consumed_styles,
+                    &crate::source::hatch::confirmed_reactors(&drawing, &mappings),
+                )?
+                .issues,
+            );
+            audit.stage("finalization", CadAuditStatus::Blocked, "dependency-failed", "relation, preservation, workspace, bounds and strict document validation require successful entity and occurrence preparation")?;
+            return Ok(None);
+        }
+    }
+    audit.phase = "finalization";
     preservation.finish(source, &mut drawing, &mappings)?;
-    crate::mapping::workspace::from_cad(source, &mut drawing, &mut mappings, &mut issues)?;
-    crate::mapping::dimension::bind(&mut drawing, &mappings, &dimensions, &mut issues);
+    crate::mapping::workspace::from_cad(source, &mut drawing, &mut mappings, issues)?;
+    crate::mapping::dimension::bind(&mut drawing, &mappings, &dimensions, issues);
     let mut consumed =
-        crate::mapping::viewport_overrides::from_cad(source, &mut drawing, &mappings, &mut issues)?;
+        crate::mapping::viewport_overrides::from_cad(source, &mut drawing, &mappings, issues)?;
     consumed.extend(dimensions.consumed_objects);
     issues.extend(
         crate::source::inspect(
@@ -359,45 +464,47 @@ pub fn cad_document_to_ifccad_document(
         )?
         .issues,
     );
-    crate::diagnostics::enforce_policy(options.loss_policy, &issues)?;
-    let members = drawing
-        .blocks
-        .iter()
-        .map(|b| {
-            (
-                mappings.blocks.cad_handle(b.id).unwrap().value(),
-                b.entities
-                    .iter()
-                    .filter_map(|e| mappings.entities.cad_handle(e.id()).map(|h| h.value()))
-                    .collect::<Vec<_>>(),
-            )
-        })
-        .collect::<std::collections::BTreeMap<_, _>>();
-    let roots = |entities: &[IfccadEntity]| {
-        entities
+    crate::diagnostics::enforce_policy(options.loss_policy, issues)?;
+    if !audit.enabled {
+        let members = drawing
+            .blocks
             .iter()
-            .filter(|e| {
-                e.as_native()
-                    .is_some_and(|e| matches!(e.kind, IfccadEntityKind::BlockInstance { .. }))
+            .map(|b| {
+                (
+                    mappings.blocks.cad_handle(b.id).unwrap().value(),
+                    b.entities
+                        .iter()
+                        .filter_map(|e| mappings.entities.cad_handle(e.id()).map(|h| h.value()))
+                        .collect::<Vec<_>>(),
+                )
             })
-            .map(|e| mappings.entities.cad_handle(e.id()).unwrap().value())
-            .collect::<Vec<_>>()
-    };
-    geometry.select(crate::IfccadGeometryOwner::ModelLayout(drawing.model.id));
-    geometry.assess_roots(&members, &roots(&drawing.model.entities), &mut issues)?;
-    for b in &drawing.blocks {
-        geometry.select(crate::IfccadGeometryOwner::BlockDefinition(b.id));
-        geometry.assess_roots(&members, &roots(&b.entities), &mut issues)?;
+            .collect::<std::collections::BTreeMap<_, _>>();
+        let roots = |entities: &[IfccadEntity]| {
+            entities
+                .iter()
+                .filter(|e| {
+                    e.as_native()
+                        .is_some_and(|e| matches!(e.kind, IfccadEntityKind::BlockInstance { .. }))
+                })
+                .map(|e| mappings.entities.cad_handle(e.id()).unwrap().value())
+                .collect::<Vec<_>>()
+        };
+        geometry.select(crate::IfccadGeometryOwner::ModelLayout(drawing.model.id));
+        geometry.assess_roots(&members, &roots(&drawing.model.entities), issues)?;
+        for b in &drawing.blocks {
+            geometry.select(crate::IfccadGeometryOwner::BlockDefinition(b.id));
+            geometry.assess_roots(&members, &roots(&b.entities), issues)?;
+        }
+        for p in &drawing.paper_layouts {
+            geometry.select(crate::IfccadGeometryOwner::PaperLayout(p.id));
+            geometry.assess_roots(&members, &roots(&p.entities), issues)?;
+        }
     }
-    for p in &drawing.paper_layouts {
-        geometry.select(crate::IfccadGeometryOwner::PaperLayout(p.id));
-        geometry.assess_roots(&members, &roots(&p.entities), &mut issues)?;
-    }
-    crate::diagnostics::enforce_policy(options.loss_policy, &issues)?;
+    crate::diagnostics::enforce_policy(options.loss_policy, issues)?;
     recompute_ifccad_document_bounds(&mut drawing)
         .map_err(IfccadConversionError::CoreValidation)?;
     validate_ifccad_document(&drawing).map_err(IfccadConversionError::CoreValidation)?;
-    Ok(CadToIfccadDocumentOutcome {
+    Ok(Some(CadToIfccadDocumentOutcome {
         dimension: crate::IfccadDimensionAssessment::new(
             &drawing,
             mappings.entities.iter().map(|(id, _)| id),
@@ -409,9 +516,12 @@ pub fn cad_document_to_ifccad_document(
         geometry: geometry.finish().with_unassessed(&drawing),
         preservation: preservation.report,
         document: drawing,
-        diagnostics: issues.into_iter().chain(info.recoveries).collect(),
+        diagnostics: std::mem::take(issues)
+            .into_iter()
+            .chain(info.recoveries)
+            .collect(),
         mappings,
-    })
+    }))
 }
 fn allocation_error(error: IfccadIdAllocationError) -> IfccadConversionError {
     IfccadConversionError::IdAllocation(error)

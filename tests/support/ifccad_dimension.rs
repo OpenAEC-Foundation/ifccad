@@ -41,8 +41,8 @@ pub fn drawing() -> IfccadDocument {
         },
         style_id: IfccadDimensionStyleId(0),
         definition: DimensionDefinition::Aligned {
-            first_point: [0.0, 0.0],
-            second_point: [4000.0, 0.0],
+            first_point: [0.0, 0.0, 0.0],
+            second_point: [4000.0, 0.0, 0.0],
             dimension_line_point: [0.0, 300.0],
             extension_direction_angle: None,
         },

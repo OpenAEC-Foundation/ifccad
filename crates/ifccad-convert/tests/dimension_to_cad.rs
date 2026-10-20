@@ -64,6 +64,11 @@ fn sparse_native_dimension_containers_are_not_foreign_ifcx_data() {
 
 #[test]
 fn independent_signed_nested_occurrence_excess_is_fatal() {
+    nested_occurrence_excess(false);
+    nested_occurrence_excess(true);
+}
+
+fn nested_occurrence_excess(spatial_z: bool) {
     let read = load_ifccad_bytes(
         include_bytes!("../../../conformance/next/ifccad/valid/dimension-linear-aligned.ifcx"),
         Default::default(),
@@ -80,10 +85,18 @@ fn independent_signed_nested_occurrence_excess_is_fatal() {
         .clone();
     if let IfccadEntityKind::Dimension(d) = &mut leaf.kind {
         d.associations.clear();
-        d.placement.origin = [1e8, 0.0, 0.0];
+        d.placement.origin = if spatial_z {
+            [0.0, 0.0, 1e8]
+        } else {
+            [1e8, 0.0, 0.0]
+        };
         d.definition = ifccad::dimension::DimensionDefinition::Aligned {
-            first_point: [0.0; 2],
-            second_point: [3e-12, 0.0],
+            first_point: [0.0; 3],
+            second_point: if spatial_z {
+                [0.0, 0.0, 3e-12]
+            } else {
+                [3e-12, 0.0, 0.0]
+            },
             dimension_line_point: [0.0, 1e-12],
             extension_direction_angle: None,
         };
@@ -99,7 +112,7 @@ fn independent_signed_nested_occurrence_excess_is_fatal() {
                 y_axis: [0.0, 1.0, 0.0],
             },
             rotation: 0.0,
-            scale: [-1e4, 2.0, 3.0],
+            scale: [-1e4, 2.0, 1e4],
         },
     };
     let mut root = inner.clone();
@@ -110,7 +123,7 @@ fn independent_signed_nested_occurrence_excess_is_fatal() {
     } = &mut root.kind
     {
         *definition_id = 2;
-        transform.scale = [1e4, -2.0, 3.0];
+        transform.scale = [1e4, -2.0, 1e4];
     }
     let block = |id, name: &str, entities| IfccadBlockDefinition {
         id,

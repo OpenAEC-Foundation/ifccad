@@ -25,8 +25,8 @@ pub enum DimensionKind {
 )]
 pub enum DimensionDefinition {
     Linear {
-        first_point: [f64; 2],
-        second_point: [f64; 2],
+        first_point: [f64; 3],
+        second_point: [f64; 3],
         direction_angle: f64,
         dimension_line_point: [f64; 2],
         #[serde(
@@ -37,8 +37,8 @@ pub enum DimensionDefinition {
         extension_direction_angle: Option<f64>,
     },
     Aligned {
-        first_point: [f64; 2],
-        second_point: [f64; 2],
+        first_point: [f64; 3],
+        second_point: [f64; 3],
         dimension_line_point: [f64; 2],
         #[serde(
             default,
@@ -55,7 +55,8 @@ impl DimensionDefinition {
             Self::Aligned { .. } => DimensionKind::Aligned,
         }
     }
-    pub fn points(&self) -> ([f64; 2], [f64; 2]) {
+    /// Independent spatial reference anchors in the dimension's local frame.
+    pub fn reference_points(&self) -> ([f64; 3], [f64; 3]) {
         match self {
             Self::Linear {
                 first_point,
@@ -68,6 +69,12 @@ impl DimensionDefinition {
                 ..
             } => (*first_point, *second_point),
         }
+    }
+
+    /// Reference projections used for measurement in the local XY dimension plane.
+    pub fn projected_points(&self) -> ([f64; 2], [f64; 2]) {
+        let (a, b) = self.reference_points();
+        ([a[0], a[1]], [b[0], b[1]])
     }
 }
 

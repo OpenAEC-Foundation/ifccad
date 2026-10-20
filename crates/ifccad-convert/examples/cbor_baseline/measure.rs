@@ -574,7 +574,7 @@ pub fn run(args: Vec<String>) -> Result<()> {
     }
     save(
         &root.join("results.json"),
-        &json!({"version":1,"mappingRevision":2,"cases":results}),
+        &json!({"version":1,"mappingRevision":1,"cases":results}),
     )?;
     if failed {
         return Err("one or more cases failed; detailed records retained".into());

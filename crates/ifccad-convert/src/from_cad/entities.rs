@@ -3,7 +3,8 @@ use ifccad::*;
 use opencadcodec::{CadDocument, EntityType, Handle};
 use std::collections::{BTreeMap, BTreeSet};
 
-pub(super) struct SourceScope<'a> {
+pub(super) struct SourceScope<'a, 'observer> {
+    pub audit: &'a mut crate::audit::AuditRun<'observer>,
     pub dimensions: &'a mut crate::mapping::dimension::SourceDimensions,
     pub unit: &'a str,
     pub paper: Option<Option<&'a ifccad::plot_kernel::PlotSettings>>,
@@ -13,7 +14,7 @@ pub(super) struct SourceScope<'a> {
     pub entities: &'a [Handle],
 }
 pub(super) fn from_cad(
-    scope: SourceScope<'_>,
+    scope: SourceScope<'_, '_>,
     preservation: &mut crate::preservation::Capture,
     ids: &mut IfccadIdCounters,
     mappings: &mut IfccadMappings,
@@ -22,6 +23,7 @@ pub(super) fn from_cad(
 ) -> Result<Vec<IfccadEntity>, IfccadConversionError> {
     let SourceScope {
         dimensions,
+        audit,
         unit,
         paper,
         hatch_tolerance,
@@ -31,6 +33,9 @@ pub(super) fn from_cad(
     } = scope;
     let mut retained = BTreeMap::new();
     for h in handles {
+        if audit.entity_failed(*h) {
+            continue;
+        }
         let e = source.get_entity(*h).expect("inspected entity");
         if preservation.enabled && matches!(e, EntityType::Spline(_)) {
             continue;
@@ -81,81 +86,111 @@ pub(super) fn from_cad(
         ) else {
             continue;
         };
-        let mut kind = match e {
-            EntityType::Dimension(d) => crate::mapping::dimension::from_entity(
-                d, source, patterns, mappings, dimensions, geometry, issues,
-            )?,
-            EntityType::Hatch(h) => crate::mapping::hatch::from_cad(
-                h,
-                source,
-                cad_geometry_convert::hatch::resolve_creation_tolerance(
-                    hatch_tolerance,
-                    unit,
-                    paper,
+        let checkpoint = audit.enabled.then(|| geometry.state.assessment.clone());
+        geometry.preparation_error = None;
+        let prepared = (|| -> Result<_, IfccadConversionError> {
+            let mut kind = match e {
+                EntityType::Dimension(d) => crate::mapping::dimension::from_entity(
+                    d, source, patterns, mappings, dimensions, geometry, issues,
                 )?,
-                geometry,
-                issues,
-            )?,
-            EntityType::Text(_) | EntityType::MText(_) => {
-                crate::mapping::text::from_entity(source, e, mappings, geometry, issues)?
-            }
-            EntityType::Insert(i) => mappings
-                .blocks
-                .ifccad_id(
-                    source
-                        .block_records
-                        .get(&i.block_name)
-                        .expect("inspected target")
-                        .handle,
-                )
-                .and_then(|id| crate::mapping::blocks::from_insert(i, id, &loc, issues)),
-            e => crate::mapping::geometry::from_entity(e, &loc, issues, geometry)?,
-        };
-        if let Some(kind) = &mut kind {
-            if let (IfccadEntityKind::BlockInstance { transform, .. }, EntityType::Insert(insert)) =
-                (kind, e)
-            {
-                let record = source
-                    .block_records
-                    .get(&insert.block_name)
-                    .expect("inspected definition");
-                let identity = crate::IfccadGeometryEntitySource::CadEntity {
-                    handle: *h,
-                    kind: "INSERT".into(),
-                };
-                let (native, source_map, target_map) =
-                    cad_geometry_convert::geometry::blocks::from_cad_instance(
-                        insert,
-                        record.base_point,
-                        &geometry.state.assessment,
+                EntityType::Hatch(h) => crate::mapping::hatch::from_cad(
+                    h,
+                    source,
+                    cad_geometry_convert::hatch::resolve_creation_tolerance(
+                        hatch_tolerance,
+                        unit,
+                        paper,
+                    )?,
+                    geometry,
+                    issues,
+                )?,
+                EntityType::Text(_) | EntityType::MText(_) => {
+                    crate::mapping::text::from_entity(source, e, mappings, geometry, issues)?
+                }
+                EntityType::Insert(i) => mappings
+                    .blocks
+                    .ifccad_id(
+                        source
+                            .block_records
+                            .get(&i.block_name)
+                            .expect("inspected target")
+                            .handle,
                     )
-                    .map_err(|e| geometry.numerical_failure(e))?;
-                *transform = IfccadBlockTransform {
-                    placement: crate::mapping::geometry::placement(native.placement()),
-                    rotation: native.rotation(),
-                    scale: [native.scale().x(), native.scale().y(), native.scale().z()],
-                };
-                geometry.state.register_identity(h.value(), identity);
-                geometry.state.record_instance_parts(
-                    h.value(),
-                    record.handle.value(),
-                    source_map,
-                    target_map,
-                );
-                if cad_geometry_convert::geometry::stored_normal(native.placement())
-                    != Some(insert.normal)
+                    .and_then(|id| crate::mapping::blocks::from_insert(i, id, &loc, issues)),
+                e => crate::mapping::geometry::from_entity(e, &loc, issues, geometry)?,
+            };
+            if let Some(kind) = &mut kind {
+                if let (
+                    IfccadEntityKind::BlockInstance { transform, .. },
+                    EntityType::Insert(insert),
+                ) = (kind, e)
                 {
-                    issues.push(crate::diagnostics::modification(
-                        "source-normal-normalized",
-                        &loc,
-                        "insert normal magnitude changed in native frame",
-                    ));
+                    let record = source
+                        .block_records
+                        .get(&insert.block_name)
+                        .expect("inspected definition");
+                    let identity = crate::IfccadGeometryEntitySource::CadEntity {
+                        handle: *h,
+                        kind: "INSERT".into(),
+                    };
+                    let (native, source_map, target_map) =
+                        cad_geometry_convert::geometry::blocks::from_cad_instance(
+                            insert,
+                            record.base_point,
+                            &geometry.state.assessment,
+                        )
+                        .map_err(|e| geometry.numerical_failure(e))?;
+                    *transform = IfccadBlockTransform {
+                        placement: crate::mapping::geometry::placement(native.placement()),
+                        rotation: native.rotation(),
+                        scale: [native.scale().x(), native.scale().y(), native.scale().z()],
+                    };
+                    geometry.state.register_identity(h.value(), identity);
+                    geometry.state.record_instance_parts(
+                        h.value(),
+                        record.handle.value(),
+                        source_map,
+                        target_map,
+                    );
+                    if cad_geometry_convert::geometry::stored_normal(native.placement())
+                        != Some(insert.normal)
+                    {
+                        issues.push(crate::diagnostics::modification(
+                            "source-normal-normalized",
+                            &loc,
+                            "insert normal magnitude changed in native frame",
+                        ));
+                    }
                 }
             }
-        }
+            Ok(kind)
+        })();
+        let kind = match prepared {
+            Ok(kind) => kind,
+            Err(error) => {
+                if !audit.enabled {
+                    return Err(error);
+                }
+                geometry.state.discard_entity(h.value());
+                geometry.state.assessment = checkpoint.expect("audit checkpoint");
+                audit.failure(
+                    "entity-preparation",
+                    Some(*h),
+                    &error,
+                    geometry.preparation_error,
+                )?;
+                continue;
+            }
+        };
         if let Some(kind) = kind {
             retained.insert(*h, (kind, appearance));
+            audit.entity_finished(*h, CadAuditStatus::Passed, "local production preparation passed; references and occurrences are separate checks")?;
         } else {
+            audit.entity_finished(
+                *h,
+                CadAuditStatus::Omitted,
+                "unsupported geometry or entity family",
+            )?;
             issues.push(diagnostic(
                 "entity-skipped",
                 loc,
@@ -186,6 +221,9 @@ pub(super) fn from_cad(
     let mut boundaries = BTreeMap::new();
     let mut claimed = BTreeSet::new();
     for h in handles {
+        if audit.entity_failed(*h) {
+            continue;
+        }
         let Some(EntityType::Viewport(v)) = source.get_entity(*h) else {
             continue;
         };
@@ -276,6 +314,9 @@ pub(super) fn from_cad(
     }
     let mut entities = Vec::new();
     for (index, h) in handles.iter().enumerate() {
+        if audit.entity_failed(*h) {
+            continue;
+        }
         if preservation.enabled {
             if let Some(EntityType::Spline(s)) = source.get_entity(*h) {
                 entities.push(preservation.entity(
@@ -329,5 +370,6 @@ pub(super) fn from_cad(
         }
     }
     crate::source::hatch::bind(&mut entities, source, mappings, issues)?;
+    audit.finish_scope(handles, mappings)?;
     Ok(entities)
 }

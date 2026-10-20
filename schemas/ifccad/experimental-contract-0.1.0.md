@@ -531,7 +531,13 @@ context admission are documented separately as those routes are qualified.
 `ifccad::dimension` is an independent native drawable attribute with a closed
 linear/aligned definition, style reference, textPlacement, label, sparse overrides
 and optional associations. `ifccad::geom::placement` supplies the common local XY
-plane. The whole attribute replaces on LaterWins composition; no nested graph
+plane. The required firstPoint/secondPoint are local XYZ reference anchors;
+dimensionLinePoint and explicit text position are local XY in that plane.
+The third placement axis is the exact cross product of the stored X/Y axes,
+without renormalizing them. Measurement uses the XY projections, retaining
+reference Z without adding it to the distance. Unknown fields, short reference
+arrays and XYZ dimension-line points are rejected; the experimental schema
+does not infer a zero Z for older XY definitions. The whole attribute replaces on LaterWins composition; no nested graph
 nodes or per-field merge behavior are implied. Unknown fields and null optionals
 are invalid. Other Dimension definitions and annotative contexts remain later work.
 Explicit text rotation is an offset from the dimension's default text orientation,

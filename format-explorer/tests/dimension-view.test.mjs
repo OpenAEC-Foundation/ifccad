@@ -6,7 +6,7 @@ import {renderDimensionLabel} from '../src/dimension-view.mjs';
 
 function fixture(format) {
  const wide='9007199254740993',style='/cad/d1/dimensionStyle/4',key='/cad/d1/e1';
- const geometry={type:'dimension',variant:'Aligned',definition:{kind:'aligned',firstPoint:[0,0],secondPoint:[48.25,0]},labelDefinition:{kind:'generated'},textPlacement:{kind:'styleDriven'},rawMeasurement:{kind:'distance',value:48.25},label:{state:'visible',runs:[{text:'4\'-0 1/4" <script>&'}],primary:'4\'-0 1/4"',fragments:[{kind:'run',run:{text:'4\'-0 <script>& '}},{kind:'fraction',numerator:'1',denominator:'4',layout:'diagonal',textScale:0.75},{kind:'run',run:{text:'"'}}]},effectiveSettings:{text:{height:2.5},numbers:{primary:{fractionLayout:'diagonal',fractionScale:0.75}}},associationUpdate:'external',displayEvaluation:'unassessed'};
+ const geometry={type:'dimension',variant:'Aligned',definition:{kind:'aligned',firstPoint:[0,0,544],secondPoint:[48.25,0,1632],dimensionLinePoint:[0,8]},labelDefinition:{kind:'generated'},textPlacement:{kind:'styleDriven'},rawMeasurement:{kind:'distance',value:48.25},label:{state:'visible',runs:[{text:'4\'-0 1/4" <script>&'}],primary:'4\'-0 1/4"',fragments:[{kind:'run',run:{text:'4\'-0 <script>& '}},{kind:'fraction',numerator:'1',denominator:'4',layout:'diagonal',textScale:0.75},{kind:'run',run:{text:'"'}}]},effectiveSettings:{text:{height:2.5},numbers:{primary:{fractionLayout:'diagonal',fractionScale:0.75}}},associationUpdate:'external',displayEvaluation:'unassessed'};
  const p={format,graph:{data:[{path:key,attributes:{'ifccad::entity':{},'ifccad::dimension':{style,definition:geometry.definition,label:geometry.labelDefinition,textPlacement:geometry.textPlacement,associations:[{role:'secondPoint',source:'/cad/d1/e'+wide,selector:{kind:'end'}}]}}},{path:style,attributes:{'ifccad::dimensionStyle':{name:'Building',settings:{text:{style:'/cad/d1/textStyle/2'}}}}},{path:'/cad/d1/e'+wide,attributes:{'ifccad::entity':{},'ifccad::geom::line':{}}}]},dimensions:[{path:key,geometry}]};
  return {model:createInspection({validation:{strictAvailable:true},presentation:p}),key,wide};
 }
@@ -35,6 +35,8 @@ test('stacked label preview is escaped and keeps full-width source references',(
   assert.ok(model.nodes.get(key).outgoing.some(e=>e.target===target));
   const source=panel(format,'en','source').details;
   assert.match(source,/definition/);
+  assert.match(source,/544/);
+  assert.match(source,/1632/);
   assert.doesNotMatch(source,/dimension-fraction/);
  }
 });
