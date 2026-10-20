@@ -89,3 +89,10 @@ The [test.dxf Dimension investigation](dimension/reference-elevations-investigat
 explains the 267 noncoplanar-reference failures, the implemented native XYZ
 reference/XY dimension-line contract, and the complete original-file recheck.
 Other source failures and explicitly diagnosed conversion losses remain visible.
+
+
+The [coincident-polyline follow-up](geometry/coincident-polyline.md) checks the
+same complete test.dxf after retaining source-coincident planar segments:
+all 154 previous LWPOLYLINE failures are resolved and the 267 Dimension fixes
+still pass. The same 89 Hatch failures remain; the whole drawing is still
+blocked. No exclusions, benchmark or tolerance change was used.

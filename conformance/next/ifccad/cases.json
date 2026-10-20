@@ -36,8 +36,8 @@
     "valid": false
   },
   {
-    "file": "invalid/polyline-coincident-bulge.ifcx",
-    "valid": false
+    "file": "valid/polyline-coincident-bulge.ifcx",
+    "valid": true
   },
   {
     "file": "invalid/arc-full-sweep.ifcx",

@@ -554,3 +554,13 @@ complex-linetype flag bits and named gradient endpoint identity are explicitly
 unqualified. Additional header, viewport, object and unsupported-entity fields
 remain subject to source loss classification. No native format semantics or
 measurement claims are expanded by this dependency update.
+
+### Exact coincident planar segments
+
+Both vertices and their finite signed outgoing bulges remain stored, including
+active and dormant values, closure, placement/elevation and pattern generation.
+Exactly coincident endpoints describe a point-shaped segment; no deduplication,
+bulge reset/reassignment or proximity epsilon is used. A nonzero source bulged chord
+newly collapsed by target construction remains a hard error under either loss
+policy and any tolerance. Contour eligibility counts only nondegenerate arcs.
+See [the shared contract](../../../docs/geometry/coincident-polyline.md).

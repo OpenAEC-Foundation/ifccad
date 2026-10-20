@@ -6,12 +6,13 @@ use opencadcodec::{
 };
 
 fn bad_polyline() -> EntityType {
+    // Scalar-valid inputs whose major-arc enclosure exceeds finite range.
+    // Coincident endpoints are supported and must no longer be the error fixture.
     let mut p = LwPolyline::from_points(vec![
-        Vector2::new(0., 0.),
-        Vector2::new(0., 0.),
-        Vector2::new(1., 0.),
+        Vector2::new(f64::MAX / 2., 0.),
+        Vector2::new(-f64::MAX / 2., 0.),
     ]);
-    p.vertices[0].bulge = 0.5;
+    p.vertices[0].bulge = 2.;
     EntityType::LwPolyline(p)
 }
 fn bad_dimension() -> EntityType {

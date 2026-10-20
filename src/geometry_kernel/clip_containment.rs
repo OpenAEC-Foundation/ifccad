@@ -61,7 +61,7 @@ fn bulged_segment(p: CoordinateFrame3, start: [f64; 3], end: [f64; 3], bounds: B
         return false;
     }
     let b = start[2];
-    if b == 0. {
+    if b == 0. || (start[0] == end[0] && start[1] == end[1]) {
         return true;
     }
     if !paper_plane(p) {

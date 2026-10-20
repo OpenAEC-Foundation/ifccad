@@ -552,6 +552,7 @@ pub fn prepare_to_cad(g: GeometryRef<'_>) -> Result<PreparedCadGeometry, CadPrep
             for i in 0..count {
                 if p.vertices[i].bulge != 0.
                     && p.vertices[i].location == p.vertices[(i + 1) % p.vertices.len()].location
+                    && (v[i][0] != v[(i + 1) % v.len()][0] || v[i][1] != v[(i + 1) % v.len()][1])
                 {
                     return Err(unrepresentable_target());
                 }

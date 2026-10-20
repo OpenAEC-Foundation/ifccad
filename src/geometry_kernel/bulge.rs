@@ -6,8 +6,12 @@ pub(crate) fn bulge_segment_bounds(start: Point2, end: Point2, bulge: f64) -> Op
     if ![x0, y0, x1, y1, bulge].into_iter().all(f64::is_finite) {
         return None;
     }
-    if bulge != 0.0 && start == end {
-        return None;
+    // Coincident vertices retain their authored bulge but describe a point.
+    if start == end {
+        return Some(Bounds2d {
+            min: start,
+            max: end,
+        });
     }
     let (min_x, max_x, min_y, max_y) = if bulge == 0.0 {
         (x0.min(x1), x0.max(x1), y0.min(y1), y0.max(y1))
@@ -62,7 +66,10 @@ mod tests {
         let end = Point2::new(2.0, 0.0);
         let bounds = bulge_segment_bounds(start, end, 1.0).unwrap();
         assert!(bounds.min().y() < 0.0 && bounds.max().y() > 0.0);
-        assert!(bulge_segment_bounds(start, start, 1.0).is_none());
+        assert_eq!(
+            bulge_segment_bounds(start, start, 1.0).unwrap().min(),
+            start
+        );
         assert!(bulge_segment_bounds(start, start, 0.0).is_some());
     }
 }

@@ -38,9 +38,12 @@ fn command_collects_all_errors_journals_progress_and_never_overwrites() {
     let output = f.0.join("report");
     let mut cad = CadDocument::new();
     for _ in 0..2 {
-        let mut p =
-            LwPolyline::from_points(vec![Vector2::ZERO, Vector2::ZERO, Vector2::new(1., 0.)]);
-        p.vertices[0].bulge = 0.5;
+        // Finite scalar inputs but a major-arc enclosure outside finite range.
+        let mut p = LwPolyline::from_points(vec![
+            Vector2::new(f64::MAX / 2., 0.),
+            Vector2::new(-f64::MAX / 2., 0.),
+        ]);
+        p.vertices[0].bulge = 2.;
         cad.add_entity(EntityType::LwPolyline(p)).unwrap();
     }
     cad.add_entity(EntityType::Line(Line::from_coords(0., 0., 0., 1., 2., 0.)))

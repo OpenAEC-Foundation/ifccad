@@ -100,7 +100,12 @@ pub(super) fn parameters(boundary: &HatchBoundary2, index: usize) -> Result<(), 
                     let distinct: BTreeSet<_> =
                         vertices.iter().map(|v| (bits(v[0]), bits(v[1]))).collect();
                     if distinct.len()
-                        >= if bulges.iter().any(|b| *b != 0.0) {
+                        >= if (PlanarVertices::Separate {
+                            xy: vertices,
+                            bulges,
+                        })
+                        .has_active_arc(true)
+                        {
                             2
                         } else {
                             3

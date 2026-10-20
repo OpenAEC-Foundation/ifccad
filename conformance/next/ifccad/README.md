@@ -15,7 +15,8 @@ Use the active schema and experimental contract as the authoritative requirement
 The provisional 0.1.0 geometry expansion additionally covers all native primitive
 families, optional conservative Model/definition bounds through nested blocks,
 full-ellipse and two-semicircle bulged clips, and forward boundary references.
-Negative cases cover bulge cardinality/coincident curved endpoints, zero/full
+Positive cases retain exact coincident vertices and their outgoing bulges as
+point-shaped segments. Negative cases cover bulge cardinality, zero/full
 arc sweeps, unordered/undersized bounds, unknown primitive fields, forbidden
 spatial placement, off-plane clips and whole-curve escape despite fitting vertices.
 These cases live only in `next`; no numbered collection is revised.

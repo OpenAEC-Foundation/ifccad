@@ -230,7 +230,7 @@ fn conic(
     Some(make_box(v))
 }
 fn bulged(plane: CoordinateFrame3, start: [f64; 2], end: [f64; 2], bulge: f64) -> Option<Bounds3d> {
-    if bulge == 0.0 {
+    if bulge == 0.0 || start == end {
         return straight(plane, start, end);
     }
     let s = start.map(exact);

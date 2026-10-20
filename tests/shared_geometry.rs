@@ -101,7 +101,7 @@ fn invalid_parameters_fail_before_exact_arithmetic() {
         placement: CoordinateFrame3::default(),
         vertices: PlanarVertices::Separate {
             xy: &xy,
-            bulges: &[1., 0.]
+            bulges: &[f64::NAN, 0.]
         },
         closed: false,
     })

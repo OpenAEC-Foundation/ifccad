@@ -3,6 +3,28 @@ use ifccad::geometry_kernel::{CoordinateFrame3, GeometryRef, OwnedGeometry};
 use opencadcodec::{Circle, EntityType, Vector3};
 
 #[test]
+fn source_coincident_bulges_survive_both_preparation_directions() {
+    for bulge in [0.414213562373095, -0.414213562373095] {
+        let mut p = opencadcodec::LwPolyline::from_points(vec![
+            opencadcodec::Vector2::new(2., 3.),
+            opencadcodec::Vector2::new(2., 3.),
+            opencadcodec::Vector2::new(4., 5.),
+        ]);
+        p.vertices[0].bulge = bulge;
+        p.vertices[2].bulge = -0.;
+        p.elevation = -544.;
+        let native = prepare_from_cad(&EntityType::LwPolyline(p.clone())).unwrap();
+        let cad = prepare_to_cad(native.geometry.as_ref()).unwrap();
+        let EntityType::LwPolyline(actual) = cad.entity else {
+            panic!()
+        };
+        assert_eq!(actual.vertices, p.vertices);
+        assert_eq!(actual.vertices[2].bulge.to_bits(), (-0_f64).to_bits());
+        assert_eq!(actual.elevation, p.elevation);
+    }
+}
+
+#[test]
 fn cad_circle_prepares_pure_geometry_without_a_format_document() {
     let circle = Circle::from_center_radius(Vector3::new(3., 4., 5.), 2.);
     let prepared = prepare_from_cad(&EntityType::Circle(circle)).unwrap();

@@ -153,6 +153,9 @@ for nested occurrence proof, conservative bulge limits and separate file checks.
 - Points, XYZ lines, circles/signed arcs, full/partial ellipses, straight/bulged
   planar and straight spatial paths in valid oriented planes. Local-origin
   decomposition may change while the shape meets the configured hard limit.
+  Exact coincident planar vertices retain their order and signed outgoing bulges
+  as point-shaped segments; newly collapsed nonzero source bulged chords remain errors.
+  See [the shared contract](../../docs/geometry/coincident-polyline.md).
 - Foreground/ACI 7, qualified concrete RGB/indexed/named colors, named signed-length patterns (including unused/empty definitions), supported CAD hundredth-mm line weights and
   exactly byte-representable opacity. ByLayer/ByBlock/Explicit are independent
   for each entity property and remain stored. Native colors use closed value objects.

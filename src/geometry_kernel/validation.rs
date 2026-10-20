@@ -35,22 +35,7 @@ pub(crate) fn validate_parameters(g: GeometryRef<'_>) -> Result<(), GeometryVali
                 && major >= minor
                 && arc.is_none_or(|(s, w)| arc_valid(s, w))
         }
-        GeometryRef::PlanarPolyline {
-            vertices, closed, ..
-        } => {
-            vertices.len() >= 2
-                && vertices.is_finite()
-                && (0..if closed {
-                    vertices.len()
-                } else {
-                    vertices.len() - 1
-                })
-                    .all(|i| {
-                        let a = vertices.get(i);
-                        let b = vertices.get((i + 1) % vertices.len());
-                        a[2] == 0. || a[0] != b[0] || a[1] != b[1]
-                    })
-        }
+        GeometryRef::PlanarPolyline { vertices, .. } => vertices.len() >= 2 && vertices.is_finite(),
         GeometryRef::SpatialPolyline { vertices, .. } => {
             vertices.len() >= 2 && vertices.iter().flatten().all(|v| v.is_finite())
         }
@@ -83,12 +68,7 @@ pub fn validate_paper_boundary(
                     (bits(v[0]), bits(v[1]))
                 })
                 .collect();
-            distinct.len()
-                >= if (0..vertices.len()).any(|i| vertices.get(i)[2] != 0.) {
-                    2
-                } else {
-                    3
-                }
+            distinct.len() >= if vertices.has_active_arc(true) { 2 } else { 3 }
         }
         _ => false,
     };

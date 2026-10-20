@@ -56,8 +56,12 @@ parameter-matched complete segment circles. This deliberately conservative
 enclosure may reject a tight limit even where the directed arc would fit; the
 converter never relaxes the request or silently samples its way to acceptance.
 CAD construction also refuses partial spans rounded to zero/full turns,
-underflowed ellipse ratios and coincident target endpoints of a nonzero bulged
-segment. A generous tolerance does not authorize an invalid target curve.
+underflowed ellipse ratios and newly coincident target endpoints of a nonzero
+source bulged chord. Already coincident source vertices remain point-shaped
+segments with both vertices and original bulges retained. No epsilon or
+deduplication is used; these segments do not supply curvature for contour
+eligibility. See [coincident polyline segments](coincident-polyline.md).
+A generous tolerance does not authorize an invalid target curve.
 Evidence applies to the CadDocument conversion boundary. Independent file-codec
 readback remains necessary and does not establish application rendering fidelity.
 

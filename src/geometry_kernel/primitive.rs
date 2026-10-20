@@ -10,6 +10,19 @@ pub enum PlanarVertices<'a> {
     },
 }
 impl PlanarVertices<'_> {
+    /// Only nonzero chords with nonzero outgoing bulges provide contour curvature.
+    pub(crate) fn has_active_arc(self, closed: bool) -> bool {
+        (0..if closed {
+            self.len()
+        } else {
+            self.len().saturating_sub(1)
+        })
+            .any(|i| {
+                let a = self.get(i);
+                let b = self.get((i + 1) % self.len());
+                a[2] != 0. && (a[0] != b[0] || a[1] != b[1])
+            })
+    }
     pub(crate) fn len(self) -> usize {
         match self {
             Self::Packed(v) => v.len(),

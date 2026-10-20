@@ -169,7 +169,8 @@ must exist in the same Paper owner, must not itself be a viewport, and may be
 claimed by only one viewport. Dormant boundary geometry is otherwise unrestricted.
 An active boundary is a Circle, full Ellipse or closed planar polyline with
 straight/bulged segments. All-straight contours need three distinct XY vertices;
-a contour with active nonzero bulges needs two, permitting two-semicircle contours.
+a contour with nondegenerate active arcs needs two, permitting two-semicircle contours.
+Coincident segments with stored bulges do not lower that distinct-vertex requirement.
 Signed zero does not distinguish vertices. Standalone arcs, elliptic arcs,
 spatial polylines, points and block instances are not active clip families.
 The whole represented curve must lie in Paper Z=0 inside the frame's finite
@@ -304,8 +305,12 @@ A typed planar polyline has one finite outgoing bulge per vertex. Wire omission
 resolves to all zero; a present array must exactly match the vertex count. A
 nonzero bulge represents signed included angle `4 * atan(bulge)`. Closed paths
 activate every outgoing segment; the last bulge of an open path is retained but
-not evaluated. An active curved segment with coincident endpoints is invalid;
-straight repeats remain valid. Spatial polylines remain a separate straight XYZ
+not evaluated. Exactly coincident endpoints describe a point-shaped segment,
+including when its finite outgoing bulge is nonzero. Both vertices, their order
+and bulges MUST be retained; no deduplication, bulge reset/reassignment, inferred
+radius/tangent or proximity epsilon is allowed. Only nonzero chords with nonzero
+bulges supply contour curvature. CAD conversion MUST reject a nonzero source
+bulged chord that newly collapses to coincident target endpoints. Straight repeats remain valid. Spatial polylines remain a separate straight XYZ
 family even when coplanar. Neither native family has width or fit semantics.
 These intrinsic rules use the same geometry predicates as OCDraw, through
 independent model adapters; no OCDraw file or CAD runtime is needed.
