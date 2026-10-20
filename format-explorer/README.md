@@ -80,5 +80,8 @@ IFCCAD source. The viewer bridge accepts only its same-origin parent/current tok
 The pinned Open CAD Studio revision is recorded in `ocs-source.json` and the workflow. Preserve its license and self-hosted bundle. The deployment scripts under `deploy/`
 cover release packaging, static smoke, rollback and public verification. Smoke uses
 the shipped IFCCAD manifest and examples, including actual CAD readback where
-available; it does not require source files in the deployed package. CI builds
+available, using the Explorer's default CAD version so the catalogue's gradient
+fills can be retained. The full packaged smoke regression runs with `npm test`
+when both browser WASM and Open CAD Studio bundles are present; it does not
+require source files in the deployed package. CI builds
 only IFCCAD plus the active companions and has native and WASM Zstd checks.
