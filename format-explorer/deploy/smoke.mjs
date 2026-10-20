@@ -57,7 +57,7 @@ if(mode==='full') {
   assert.equal(wasmHead.headers['x-frame-options'],'SAMEORIGIN');
   const workerHead=await request('/ocs/app/worker_pkg/ocs_web_worker_bg.wasm',{method:'HEAD'});
   assert.equal(workerHead.headers['content-type'],'application/wasm');
-  const example=examples.find(example=>example.format==='IFCCAD'&&example.name==='Drawing overview');
+  const example=examples.find(example=>example.format==='IFCCAD');
   assert.ok(example,'IFCCAD overview is missing from the shipped example manifest');
   const fixture=await (await request('/'+example.path)).text();
   const {initSync,open_ifccad,convert_cad_to_ifccad,export_ifccad}=await import('../dist/wasm/browser.js');

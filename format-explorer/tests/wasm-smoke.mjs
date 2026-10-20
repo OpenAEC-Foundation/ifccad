@@ -13,6 +13,8 @@ const wasm={conversion_capabilities,open_ifccad,convert_cad_to_ifccad,export_ifc
 for(const example of examples){
  const kind='ifccad',name=example.path.split('/').at(-1),bytes=Uint8Array.from(await readFile(new URL('../../'+example.path,import.meta.url))),source={kind,name,files:[{path:name,bytes:bytes.buffer}]};
  const opened=processBrowserRequest(source,wasm);assert.equal(opened.failure,null,name+': '+JSON.stringify(opened.failure));assert.equal(opened.validation.strictAvailable,true);
+ const expectedDimensions=(example.name==='House floor plan'?['10000','6100','3900','12000']:['58','56.92']).sort();
+ assert.deepEqual(opened.presentation.dimensions.map(d=>d.geometry.label.primary).sort(),expectedDimensions,name+' has compact, unscaled dimension labels');
  for(const encoding of ['cbor','cbor-zstd']){
   const exported=processBrowserRequest({...source,export:{format:'ifccad',encoding}},wasm);
   assert.equal(exported.failure,null,name+': '+JSON.stringify(exported.failure));
@@ -46,32 +48,20 @@ for(const example of examples){
   }
  }
  const model=createInspection(opened,new TextDecoder().decode(bytes)),nodes=Array.from(model.nodes.values());
- if(example.name==='Drawing overview'){
-  assert.ok(nodes.some(node=>node.type==='viewport'),name+' retains Paper viewports');
-  assert.ok(nodes.some(node=>node.type==='blockInstance'),name+' retains blocks');
-  const group='group:symbolSource';
-  assert.equal(model.nodes.get(group).children.length,3);
-  assert.ok(nodes.some(node=>node.outgoing.some(edge=>edge.kind==='symbolSource')));
-  assert.ok(opened.presentation.boundsCompleteness.some(a=>a.quality==='partial'&&!a.enclosureVerified&&!a.safeForNegativeQuery));
+ if(example.name==='Entity catalogue'){
+  for(const type of ['point','lineSegment','circle','arc','ellipse','ellipseArc','planarPolyline','spatialPolyline','text','mText','hatch','dimension','blockInstance','viewport'])assert.ok(nodes.some(node=>node.type===type),name+' contains '+type);
+  assert.deepEqual(nodes.filter(node=>node.type==='hatch').map(node=>hatchValues(node).fill.kind).sort(),['gradient','linePattern','solid']);
  }
- if(example.name==='Hatches')assert.deepEqual(nodes.filter(node=>node.type==='hatch').map(node=>hatchValues(node).fill.kind).sort(),['linePattern','solid']);
  for(const format of ['dxf','dwg']){
   const output=processBrowserRequest({...source,export:{format,version:'AC1032'}},wasm);assert.equal(output.failure,null,name+' '+format+': '+JSON.stringify(output.failure));
   const returned=processBrowserRequest({kind:'cad',drawingFormat:'ifccad',name:'curated.'+format,files:[{path:'curated.'+format,bytes:Uint8Array.from(Buffer.from(output.export.download.base64,'base64')).buffer}]},wasm);
   assert.equal(returned.failure,null,name+': '+JSON.stringify(returned.failure));assert.equal(returned.validation.strictAvailable,true);
-  if(example.name==='Drawing overview') {
-   const inspected=createInspection(returned,returned.nativeSourceText),group='group:symbolSource';
-   assert.equal(inspected.nodes.get(group).children.length,3);
-   assert.ok([...inspected.nodes.values()].some(node=>node.outgoing.some(edge=>edge.kind==='symbolSource')));
-  }
-  if(example.name==='Hatches'){
-   assert.equal(returned.presentation.hatchEntityCount,2);
-   const inspected=createInspection(returned,returned.nativeSourceText);
-   assert.deepEqual(Array.from(inspected.nodes.values()).filter(node=>node.type==='hatch').map(node=>hatchValues(node).fill.kind).sort(),['linePattern','solid']);
-  }
+  assert.deepEqual(returned.presentation.dimensions.map(d=>d.geometry.label.primary).sort(),expectedDimensions,name+' retains dimension labels through '+format);
+  if(example.name==='Entity catalogue')assert.equal(returned.presentation.hatchEntityCount,3);
+
  }
 }
-console.log('Four curated IFCCAD examples open and pass DXF/DWG production strict readback');
+console.log('Two curated IFCCAD examples open and pass DXF/DWG production strict readback');
 
 for(const [kind,path]of [['ifccad','../../examples/ifccad/overview.ifcx']]){
  const name=path.split('/').at(-1),bytes=Uint8Array.from(await readFile(new URL(path,import.meta.url))),source={kind,name,files:[{path:name,bytes:bytes.buffer}]};

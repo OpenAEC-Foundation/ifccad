@@ -17,7 +17,10 @@ Selection maps to the generated CAD document in both directions when qualified
 readback links exist; block-definition contents and skipped items have no direct link.
 Camera, workspace tab and prepared CAD output survive navigation.
 
-Four curated IFCCAD examples cover overview, Text/MText, Hatches and Dimensions.
+Two curated IFCCAD examples provide an extensible entity catalogue and a fictitious
+house floor plan with an A3 sheet at 1:100. See [example recipes and extension
+instructions](../examples/README.md). Dimensions use native entities with compact
+millimetre labels; the CAD host regenerates their display.
 The native download button opens a popup with IFCX / JSON, experimental CBOR
 (`.ifccad.cbor`) and experimental CBOR + Zstd (`.ifccad.cbor.zst`, level 3).
 IFCX / JSON retains original IFCX bytes. Binary downloads encode the validated
