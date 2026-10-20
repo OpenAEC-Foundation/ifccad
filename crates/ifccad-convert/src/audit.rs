@@ -134,6 +134,8 @@ type AuditObserver<'a> = dyn FnMut(&CadAuditEvent) -> io::Result<()> + 'a;
 
 pub(crate) struct AuditRun<'a> {
     pub enabled: bool,
+    pub partial: bool,
+    rejected: std::collections::BTreeSet<Handle>,
     pub phase: &'static str,
     pub report: CadToIfccadAuditReport,
     index: BTreeMap<Handle, usize>,
@@ -143,6 +145,8 @@ impl AuditRun<'_> {
     pub fn disabled() -> Self {
         Self {
             enabled: false,
+            partial: false,
+            rejected: Default::default(),
             phase: "source-context",
             index: BTreeMap::new(),
             observer: None,
@@ -198,6 +202,8 @@ impl AuditRun<'_> {
         }
         AuditRun {
             enabled: observer.is_some(),
+            partial: false,
+            rejected: Default::default(),
             phase: "source-context",
             index,
             observer,
@@ -212,11 +218,38 @@ impl AuditRun<'_> {
         }
     }
     pub fn entity_failed(&self, handle: Handle) -> bool {
+        if self.partial {
+            return self.rejected.contains(&handle);
+        }
         self.enabled
             && self
                 .index
                 .get(&handle)
                 .is_some_and(|i| self.report.entities[*i].status == CadAuditStatus::Failed)
+    }
+    pub fn partial(source: &CadDocument) -> Self {
+        let mut run = Self::new(source, None);
+        run.enabled = true;
+        run.partial = true;
+        run
+    }
+    pub fn partial_report(&self) -> Option<CadPartialOpenReport> {
+        self.partial.then(|| CadPartialOpenReport {
+            entities: self
+                .report
+                .entities
+                .iter()
+                .filter(|e| e.status == CadAuditStatus::Omitted)
+                .cloned()
+                .collect(),
+            errors: self
+                .report
+                .events
+                .iter()
+                .filter(|e| e.detail.get("debug").is_some())
+                .cloned()
+                .collect(),
+        })
     }
     pub fn validate_entities(&mut self, source: &CadDocument) -> Result<(), IfccadConversionError> {
         for entity in source.entities() {
@@ -238,6 +271,9 @@ impl AuditRun<'_> {
     }
     fn emit(&mut self, event: CadAuditEvent) -> Result<(), IfccadConversionError> {
         if self.enabled {
+            if self.partial && event.status != CadAuditStatus::Omitted {
+                return Ok(());
+            }
             if let Some(observer) = &mut self.observer {
                 observer(&event).map_err(IfccadConversionError::AuditProgress)?;
             }
@@ -272,7 +308,7 @@ impl AuditRun<'_> {
         }
         let entry = &mut self.report.entities[self.index[&handle]];
         // A failure may not be overwritten by a later scope completion.
-        if entry.status == CadAuditStatus::Failed {
+        if entry.status == CadAuditStatus::Failed || self.rejected.contains(&handle) {
             return Ok(());
         }
         entry.status = status;
@@ -296,11 +332,26 @@ impl AuditRun<'_> {
         if !self.enabled {
             return Ok(());
         }
+        let status = if self.partial {
+            CadAuditStatus::Omitted
+        } else {
+            CadAuditStatus::Failed
+        };
+        if self.partial {
+            if phase != "entity-preparation" && phase != "block-occurrence" {
+                return Err(IfccadConversionError::InvalidStructure(
+                    "partial recovery requires a located entity transaction".into(),
+                ));
+            }
+            if let Some(h) = handle {
+                self.rejected.insert(h);
+            }
+        }
         if let Some(index) = handle
-            .filter(|_| phase == "entity-preparation")
+            .filter(|_| phase == "entity-preparation" || self.partial)
             .and_then(|h| self.index.get(&h))
         {
-            self.report.entities[*index].status = CadAuditStatus::Failed;
+            self.report.entities[*index].status = status;
             self.report.entities[*index].reason = error.to_string();
         }
         let (code, mut detail) = error_detail(error);
@@ -317,7 +368,7 @@ impl AuditRun<'_> {
         detail["causes"] = json!(chain);
         self.emit(CadAuditEvent {
             phase: phase.into(),
-            status: CadAuditStatus::Failed,
+            status,
             source: handle.and_then(|h| self.source(h)),
             code,
             message: error.to_string(),

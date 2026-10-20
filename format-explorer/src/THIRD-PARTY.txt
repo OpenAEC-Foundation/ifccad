@@ -8,5 +8,5 @@ The optional embedded viewer is Open CAD Studio v2026.38, revision
 https://github.com/HakanSeven12/OpenCADStudio/tree/0d023d267bc5b7afeca3b54e98875b0efd4f3926
 GPL-3.0; the unmodified upstream license is distributed at /ocs/app/LICENSE.
 Viewer source and build instructions are in format-explorer/README.md.
-The OCDraw message bridge is authored in this repository and loaded separately.
-These asset licenses do not change the OCDraw format's license.
+The viewer message bridge is authored in this repository and loaded separately.
+These asset licenses do not change the IFCCAD format's license.

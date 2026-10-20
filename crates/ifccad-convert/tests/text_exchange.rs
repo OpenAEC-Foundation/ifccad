@@ -241,17 +241,24 @@ fn unsupported_annotation_does_not_hide_invalid_text_scalars_or_references() {
         text.common.extended_data.add_record(r);
         source.add_entity(EntityType::Text(text)).unwrap();
         for loss_policy in [IfccadLossPolicy::Allow, IfccadLossPolicy::Reject] {
-            assert!(matches!(
-                cad_document_to_ifccad_document(
-                    &source,
-                    metadata(),
-                    CadToIfccadOptions {
-                        loss_policy,
-                        ..Default::default()
-                    }
-                ),
-                Err(IfccadConversionError::InvalidStructure(_))
-            ));
+            let error = cad_document_to_ifccad_document(
+                &source,
+                metadata(),
+                CadToIfccadOptions {
+                    loss_policy,
+                    ..Default::default()
+                },
+            )
+            .err()
+            .expect("invalid source must remain fatal in normal import");
+            if invalid_style {
+                assert!(matches!(error, IfccadConversionError::InvalidStructure(_)));
+            } else {
+                assert!(
+                    matches!(error,IfccadConversionError::EntitySourceValidation { source,.. }
+                    if matches!(*source,IfccadConversionError::InvalidStructure(_)))
+                );
+            }
         }
     }
 }

@@ -76,6 +76,7 @@ impl IfccadToCadOutcome {
 }
 /// A validated logical CAD projection, before IFCX encoding.
 pub struct CadToIfccadDocumentOutcome {
+    pub(crate) partial_open: Option<crate::CadPartialOpenReport>,
     pub(crate) dimension: crate::IfccadDimensionAssessment,
     pub(crate) text: crate::IfccadTextAssessment,
     pub(crate) document: IfccadDocument,
@@ -85,6 +86,9 @@ pub struct CadToIfccadDocumentOutcome {
     pub(crate) preservation: crate::IfccadPreservationReport,
 }
 impl CadToIfccadDocumentOutcome {
+    pub fn partial_open_report(&self) -> Option<&crate::CadPartialOpenReport> {
+        self.partial_open.as_ref()
+    }
     pub fn dimension_assessment(&self) -> &crate::IfccadDimensionAssessment {
         &self.dimension
     }
@@ -112,6 +116,7 @@ impl CadToIfccadDocumentOutcome {
 }
 
 pub struct CadToEncodedIfccadOutcome {
+    pub(crate) partial_open: Option<crate::CadPartialOpenReport>,
     pub(crate) dimension: crate::IfccadDimensionAssessment,
     pub(crate) text: crate::IfccadTextAssessment,
     pub(crate) validated: ValidatedIfccad,
@@ -122,6 +127,9 @@ pub struct CadToEncodedIfccadOutcome {
     pub(crate) preservation: crate::IfccadPreservationReport,
 }
 impl CadToEncodedIfccadOutcome {
+    pub fn partial_open_report(&self) -> Option<&crate::CadPartialOpenReport> {
+        self.partial_open.as_ref()
+    }
     pub fn dimension_assessment(&self) -> &crate::IfccadDimensionAssessment {
         &self.dimension
     }

@@ -445,6 +445,22 @@ Current codec qualification: [2026-10-16 dependency audit](../../docs/geometry/o
 
 ## Conversion diagnosis
 
+CAD import additionally accepts explicit `CadImportErrorPolicy::SkipInvalidEntities`.
+The default `Abort` behavior is unchanged. Partial import omits whole entities on
+located source-scalar, geometry, Hatch, Text or Dimension preparation failure, and
+omits unsafe block instances on occurrence proof failure. It preserves other block
+members, diagnoses affected nested instances and uses the same hard tolerances.
+Shared structure, options, preservation, workspace and final validation failures
+remain fatal. `IfccadLossPolicy::Reject` still rejects diagnosed semantic loss.
+
+Successful logical/encoded outcomes expose `partial_open_report()`: source identity,
+owner, layer and reason for omitted entities, and original error categories, cause
+chains and numerical evidence for failures. All other field/group losses remain
+in `diagnostics()`. No source mutation or automatic geometric repair occurs.
+Every retained drawing passes strict validation; encoded output uses production
+readback. A partial result and its exports omit skipped content. Omission reports
+are conversion evidence, not a native preservation payload or lossless roundtrip.
+
 The report-only [CAD diagnosis pass](../../docs/conversion-diagnostics.md) collects
 independent preparation failures through this same production route. It neither
 removes source entities nor exposes partial native output. The native

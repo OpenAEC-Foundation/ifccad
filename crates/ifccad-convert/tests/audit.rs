@@ -341,6 +341,6 @@ fn nonfinite_entity_scalars_are_collected_without_blocking_independent_geometry(
     assert_eq!(report.entity(good).unwrap().status, CadAuditStatus::Passed);
     assert!(matches!(
         cad_document_to_ifccad_document(&cad, common::metadata(), Default::default()),
-        Err(IfccadConversionError::InvalidStructure(_))
+        Err(IfccadConversionError::EntitySourceValidation { .. })
     ));
 }

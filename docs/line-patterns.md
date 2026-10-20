@@ -126,12 +126,12 @@ patch documented in each converter's coverage contracts. Upright flags remain
 outside this public-model boundary; see
 [codec issue 108](https://github.com/HakanSeven12/opencadcodec/issues/108).
 
-The two curated Drawing overview examples contain GAS text, the standard library request
+The Explorer entity catalogue contains continuous, dashed and GAS text patterns.
+The retained IFCCAD `examples/ifccad/overview.ifcx` regression asset also contains
 `ltypeshp.shx` shape 132, custom external shape 42, duplicate/unused sources,
-mixed and empty definitions, and Model/Paper/block contexts. The embedded editor
-may resolve its own libraries; a successful preview does not certify every glyph.
-Regenerate them with `write_explorer_examples`, selecting fresh example and
-fixture output directories. Focused standalone authoring programs
-`write_line_patterns` and `write_ifccad_line_patterns` remain available; their
-small regression drawings live below `tests/fixtures/`, outside the six-entry
-chooser.
+mixed and empty definitions, and Model/Paper/block contexts. It is outside the
+chooser and remains unchanged for historical evidence. The embedded editor may
+resolve its own libraries; a successful preview does not certify every glyph.
+See [example reproduction and extension](../examples/README.md) for the current
+catalogue. Focused standalone authoring programs `write_line_patterns` and
+`write_ifccad_line_patterns` remain available.

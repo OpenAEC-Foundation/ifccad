@@ -4,6 +4,8 @@ use serde_json::{json, Value};
 #[derive(Default, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct ConversionOptions {
+    #[serde(default, rename = "partialOpen")]
+    pub partial_open: bool,
     #[serde(default, rename = "lossPolicy")]
     pub loss_policy: ExportLossPolicy,
     #[serde(default, rename = "preserveSplines")]
@@ -95,7 +97,7 @@ impl ConversionOptions {
                 value
             }
         };
-        json!({"preserveSplines":self.preserve_splines,"tolerance":tolerance,"lossPolicy":self.loss_policy})
+        json!({"partialOpen":self.partial_open,"preserveSplines":self.preserve_splines,"tolerance":tolerance,"lossPolicy":self.loss_policy})
     }
 }
 

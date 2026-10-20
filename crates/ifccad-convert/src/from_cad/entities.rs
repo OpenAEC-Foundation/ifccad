@@ -34,6 +34,13 @@ pub(super) fn from_cad(
     let mut retained = BTreeMap::new();
     for h in handles {
         if audit.entity_failed(*h) {
+            if audit.partial {
+                issues.push(diagnostic(
+                    "partial-entity-skipped",
+                    format!("entity/{h}"),
+                    "invalid source scalar values; see partial opening error evidence",
+                ));
+            }
             continue;
         }
         let e = source.get_entity(*h).expect("inspected entity");
@@ -168,7 +175,7 @@ pub(super) fn from_cad(
         let kind = match prepared {
             Ok(kind) => kind,
             Err(error) => {
-                if !audit.enabled {
+                if !audit.enabled || (audit.partial && !error.allows_partial_open_retry()) {
                     return Err(error);
                 }
                 geometry.state.discard_entity(h.value());
@@ -179,6 +186,13 @@ pub(super) fn from_cad(
                     &error,
                     geometry.preparation_error,
                 )?;
+                if audit.partial {
+                    issues.push(diagnostic(
+                        "partial-entity-skipped",
+                        &loc,
+                        error.to_string(),
+                    ));
+                }
                 continue;
             }
         };

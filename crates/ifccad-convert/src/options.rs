@@ -9,10 +9,21 @@ pub enum IfccadLossPolicy {
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct CadToIfccadOptions {
+    pub error_policy: CadImportErrorPolicy,
     pub hatch_join_tolerance: ifccad::geometry_kernel::hatch::HatchJoinToleranceRequest,
     pub preservation: IfccadPreservationCapture,
     pub loss_policy: IfccadLossPolicy,
     pub geometry_tolerance: crate::IfccadGeometryTolerance,
+}
+
+/// Recovery of entity-local import failures, independent of semantic loss acceptance.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum CadImportErrorPolicy {
+    #[default]
+    Abort,
+    /// Omit failed entities with located evidence; retained content still needs
+    /// unchanged accuracy proofs and strict final validation.
+    SkipInvalidEntities,
 }
 
 /// Loss acceptance for conversion from an IFCCAD source or document.

@@ -35,6 +35,12 @@ impl IfccadDiagnostic {
 /// Conversion failure retaining the core phase and original typed cause.
 #[derive(Debug, thiserror::Error)]
 pub enum IfccadConversionError {
+    #[error("source entity {handle} validation: {source}")]
+    EntitySourceValidation {
+        handle: opencadcodec::Handle,
+        #[source]
+        source: Box<IfccadConversionError>,
+    },
     /// Only produced by an explicitly supplied diagnosis progress observer.
     #[error("diagnosis progress IO failed: {0}")]
     AuditProgress(#[source] std::io::Error),

@@ -1,4 +1,4 @@
-import {loadPreferences,savePreferences} from './preferences.mjs';
+import {loadPreferences,savePreferences,detectLanguage} from './preferences.mjs';
 import {translate,localize} from './i18n.mjs';
 import {createInspection} from './inspection-model.mjs';
 import {renderInspection,itemTitle,escapeHtml} from './inspection-view.mjs';
@@ -8,8 +8,9 @@ import {initializeDialogs} from './dialogs.mjs';
 import {inspectionReport,conversionDirections} from './inspection-report.mjs';
 export function initializeWorkspace({onTab=()=>{},onPreferences=()=>{},onSelection=()=>{},onLayout=()=>{}}={}){
  const $=id=>document.getElementById(id);let storage;try{storage=localStorage;}catch{}
- const preferences=loadPreferences(storage,navigator.language,matchMedia('(prefers-color-scheme: dark)').matches);
- const state={language:preferences.language,theme:preferences.theme,tab:'overview',conversionTab:'input',reportsCollapsed:false,view:'drawing',grouping:'type',selection:null,expanded:new Set(),fieldExpanded:new Set(),fieldCollapsed:new Set(),inspector:'properties',mode:'readable',collection:null,listOpen:false,inspectorOverride:null,statusSpec:{key:'select'}};let model,result,cadReport;
+ const browserLanguages=()=>navigator.languages?.length?navigator.languages:[navigator.language];
+ const preferences=loadPreferences(storage,browserLanguages(),matchMedia('(prefers-color-scheme: dark)').matches);
+ const state={language:preferences.language,languageChoice:preferences.languageChoice,theme:preferences.theme,tab:'overview',conversionTab:'input',reportsCollapsed:false,view:'drawing',grouping:'type',selection:null,expanded:new Set(),fieldExpanded:new Set(),fieldCollapsed:new Set(),inspector:'properties',mode:'readable',collection:null,listOpen:false,inspectorOverride:null,statusSpec:{key:'select'}};let model,result,cadReport;
  const t=(key,values)=>translate(state.language,key,values);let loading,cadStatus;
  function renderStatus(){const spec=state.statusSpec;$('status').textContent=spec.message||t(spec.key,spec.values);$('status').hidden=spec.quiet??['select','ready','loading','preparing','converting','validating','exporting','writing','checking'].includes(spec.key);}
  function renderReportVisibility(){const key=state.reportsCollapsed?'showReports':'hideReports';$('application').dataset.reports=state.reportsCollapsed?'collapsed':'expanded';$('conversion-collapse').setAttribute('aria-expanded',!state.reportsCollapsed);$('conversion-collapse').setAttribute('aria-label',t(key));$('conversion-collapse').title=t(key);}
@@ -29,7 +30,7 @@ export function initializeWorkspace({onTab=()=>{},onPreferences=()=>{},onSelecti
  new ResizeObserver(layoutContents).observe($('drawing'));
  function render(){
   $('item-information').querySelectorAll('details[data-field-id]').forEach(d=>{const id=d.dataset.fieldId;if(d.open){state.fieldExpanded.add(id);state.fieldCollapsed.delete(id);}else{state.fieldExpanded.delete(id);state.fieldCollapsed.add(id);}});
-  document.documentElement.lang=state.language;document.documentElement.dataset.theme=state.theme;localize(document,state.language);$('language').value=state.language;$('theme').value=state.theme;
+  document.documentElement.lang=state.language;document.documentElement.dataset.theme=state.theme;localize(document,state.language);$('language').value=state.languageChoice;$('theme').value=state.theme;
   $('application').dataset.workspace=state.tab;
   $('name').textContent=result?.source?.name||t('select');renderStatus();renderReportVisibility();
   const overview=state.tab==='overview';
@@ -101,7 +102,9 @@ export function initializeWorkspace({onTab=()=>{},onPreferences=()=>{},onSelecti
  $('structure').onchange=e=>{state.view=e.target.value;state.collection=null;state.listOpen=false;elementList.reset();if(!model){render();return;}const navigation=inspectionNavigation(model,state);select(navigation.nodes.has(state.selection)?state.selection:navigation.roots[0],false);};$('readable-view').onclick=()=>{state.mode='readable';render();};$('json-view').onclick=()=>{state.mode='json';render();};$('element-close').onclick=()=>{state.listOpen=false;state.collection=null;elementList.reset();render();$('content-tree').querySelector('[aria-current=true]')?.focus();};$('inspector-toggle').onclick=()=>{state.inspectorOverride=$('drawing').dataset.info!=='visible';layoutContents();};
  $('grouping').onchange=e=>{state.grouping=e.target.value;state.collection=null;state.listOpen=false;elementList.reset();select(state.selection,false);};
  $('drawing').addEventListener('click',event=>{const b=event.target.closest('button');if(!b)return;if(b.dataset.select)select(b.dataset.select);if(b.dataset.toggle){const key=b.dataset.toggle,navigation=inspectionNavigation(model,state);if(navigation.isLarge(key)){select(key);state.expanded.add(key);}else state.expanded.has(key)?state.expanded.delete(key):state.expanded.add(key);render();}});
- for(const name of ['language','theme'])$(name).onchange=e=>{state[name]=e.target.value;savePreferences(storage,{language:state.language,theme:state.theme});render();onPreferences({language:state.language,theme:state.theme});};
+ const refreshPreferences=()=>{state.language=state.languageChoice==='auto'?detectLanguage(browserLanguages()):state.languageChoice;render();onPreferences({language:state.language,theme:state.theme});};
+ for(const name of ['language','theme'])$(name).onchange=e=>{state[name==='language'?'languageChoice':name]=e.target.value;savePreferences(storage,state);refreshPreferences();};
+ window.addEventListener('languagechange',()=>{if(state.languageChoice==='auto')refreshPreferences();});
  initializeDialogs();const handle=document.querySelector('.information-resize');let width=350;
  const proportions={left:50,top:62};
  for(const [id,key,min,max,back,forward]of [['overview-column-resize','left',35,65,'ArrowLeft','ArrowRight'],['overview-row-resize','top',40,95,'ArrowUp','ArrowDown']]){

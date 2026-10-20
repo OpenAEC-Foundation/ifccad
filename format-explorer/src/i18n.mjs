@@ -1,4 +1,6 @@
 const copy={
+ partialReport:['Download complete omission report','Volledig weglatingsrapport downloaden'],
+ partialOpen:['Open partially','Gedeeltelijk openen'],partialDetails:['Omitted content and original errors','Weggelaten inhoud en oorspronkelijke fouten'],partialNotice:['Opened partially. Omitted entities: {count}, including {errors} because of errors. Saved and exported drawings exclude these entities.','Gedeeltelijk geopend. Weggelaten entiteiten: {count}, waarvan {errors} door fouten. Opgeslagen en geëxporteerde tekeningen bevatten deze entiteiten niet.'],
  decodedNode:['Decoded node','Gedecodeerde knoop'],decodedFileJson:['Decoded IFCCAD JSON','Gedecodeerde IFCCAD-JSON'],decodedNodeHelp:['These fields are decoded from the binary IFCCAD drawing, not original IFCX source fragments.','Deze velden zijn gedecodeerd uit de binaire IFCCAD-tekening en zijn geen oorspronkelijke IFCX-bronfragmenten.'],
  binarySourceNote:['{encoding} · experimental. JSON and source fields show the decoded IFCCAD content. Original IFCX source fragments are not present.','{encoding} · experimenteel. JSON en bronvelden tonen de gedecodeerde IFCCAD-inhoud. Oorspronkelijke IFCX-bronfragmenten zijn niet aanwezig.'],
  decodedJsonDescription:['IFCCAD drawing as IFCX / JSON','IFCCAD-tekening als IFCX / JSON'],decodedStructure:['Decoded structure','Gedecodeerde structuur'],
@@ -687,6 +689,8 @@ Object.assign(copy, {
 });
 
 Object.assign(copy, {
+ automatic:['Automatic','Automatisch'],
+ ifccadWebsite:['Web page','Webpagina'],
  'dimension.field.type':['Entity type','Elementtype'],
  'dimension.value.dimension':['Dimension','Bemating'],
  'dimension.value.foreground':['Foreground','Voorgrond'],

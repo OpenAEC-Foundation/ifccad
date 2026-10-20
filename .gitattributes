@@ -10,6 +10,10 @@ conformance/**/*.zst binary
 # Historical result reports record SHA-256 over these exact JSON bytes.
 benchmarks/ifccad-cbor/*.json text eol=lf
 
+# Curated recipes reproduce these assets byte-for-byte on every checkout.
+examples/ifccad/entities.ifcx text eol=lf
+examples/ifccad/house.ifcx text eol=lf
+
 # Frozen reference files must retain their recorded bytes across checkouts.
 legacy/ocdraw/** -text whitespace=cr-at-eol
 # Unified-diff context lines deliberately contain a space.

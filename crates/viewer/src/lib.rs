@@ -14,7 +14,7 @@ pub use ifccad::{export_ifccad_bytes, inspect_cad_as_ifccad_bytes, inspect_ifcca
 use serde_json::{json, Value};
 use std::path::Path;
 pub fn conversion_capabilities() -> Value {
-    json!({"ifccad":{"adjustableTolerance":true,"coordinateToleranceDefault":true,"coordinateToleranceFallback":true,"splinePreservation":true}})
+    json!({"ifccad":{"partialOpening":true,"adjustableTolerance":true,"coordinateToleranceDefault":true,"coordinateToleranceFallback":true,"splinePreservation":true}})
 }
 pub fn export_ifccad_bytes_with_options(
     name: &str,

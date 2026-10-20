@@ -11,7 +11,9 @@
 //! Defaults use 1e-9 in each domain's own coordinates, including unitless
 //! domains. Each Paper layout resolves its own coordinate-unit limit.
 //! Certified within-limit rounding is accepted even under semantic Reject.
-//! Exceedance or incomplete proof returns no output.
+//! Normal import returns no output on exceedance or incomplete proof. Explicit
+//! partial CAD import can omit a whole failed entity with located evidence;
+//! every retained entity and occurrence keeps the same hard proof requirements.
 //!
 //! ```
 //! use ifccad_convert::{IfccadToCadOptions, CadToIfccadOptions,
@@ -75,6 +77,8 @@ mod options;
 mod preservation;
 pub use preservation::*;
 mod outcome;
+mod partial;
+pub use partial::CadPartialOpenReport;
 mod source;
 mod to_cad;
 mod units;

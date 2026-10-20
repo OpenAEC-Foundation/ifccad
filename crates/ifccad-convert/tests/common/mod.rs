@@ -22,6 +22,7 @@ pub fn from_cad(
         source,
         metadata,
         ifccad_convert::CadToIfccadOptions {
+            error_policy: Default::default(),
             hatch_join_tolerance: Default::default(),
             preservation: Default::default(),
             loss_policy: ifccad_convert::IfccadLossPolicy::Reject,

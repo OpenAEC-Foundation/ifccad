@@ -13,6 +13,8 @@ const wasm={conversion_capabilities,open_ifccad,convert_cad_to_ifccad,export_ifc
 for(const example of examples){
  const kind='ifccad',name=example.path.split('/').at(-1),bytes=Uint8Array.from(await readFile(new URL('../../'+example.path,import.meta.url))),source={kind,name,files:[{path:name,bytes:bytes.buffer}]};
  const opened=processBrowserRequest(source,wasm);assert.equal(opened.failure,null,name+': '+JSON.stringify(opened.failure));assert.equal(opened.validation.strictAvailable,true);
+ const expectedDimensions=(example.name==='House floor plan'?['10000','6100','3900','12000']:['58','56.92']).sort();
+ assert.deepEqual(opened.presentation.dimensions.map(d=>d.geometry.label.primary).sort(),expectedDimensions,name+' has compact, unscaled dimension labels');
  for(const encoding of ['cbor','cbor-zstd']){
   const exported=processBrowserRequest({...source,export:{format:'ifccad',encoding}},wasm);
   assert.equal(exported.failure,null,name+': '+JSON.stringify(exported.failure));
@@ -46,32 +48,20 @@ for(const example of examples){
   }
  }
  const model=createInspection(opened,new TextDecoder().decode(bytes)),nodes=Array.from(model.nodes.values());
- if(example.name==='Drawing overview'){
-  assert.ok(nodes.some(node=>node.type==='viewport'),name+' retains Paper viewports');
-  assert.ok(nodes.some(node=>node.type==='blockInstance'),name+' retains blocks');
-  const group='group:symbolSource';
-  assert.equal(model.nodes.get(group).children.length,3);
-  assert.ok(nodes.some(node=>node.outgoing.some(edge=>edge.kind==='symbolSource')));
-  assert.ok(opened.presentation.boundsCompleteness.some(a=>a.quality==='partial'&&!a.enclosureVerified&&!a.safeForNegativeQuery));
+ if(example.name==='Entity catalogue'){
+  for(const type of ['point','lineSegment','circle','arc','ellipse','ellipseArc','planarPolyline','spatialPolyline','text','mText','hatch','dimension','blockInstance','viewport'])assert.ok(nodes.some(node=>node.type===type),name+' contains '+type);
+  assert.deepEqual(nodes.filter(node=>node.type==='hatch').map(node=>hatchValues(node).fill.kind).sort(),['gradient','linePattern','solid']);
  }
- if(example.name==='Hatches')assert.deepEqual(nodes.filter(node=>node.type==='hatch').map(node=>hatchValues(node).fill.kind).sort(),['linePattern','solid']);
  for(const format of ['dxf','dwg']){
   const output=processBrowserRequest({...source,export:{format,version:'AC1032'}},wasm);assert.equal(output.failure,null,name+' '+format+': '+JSON.stringify(output.failure));
   const returned=processBrowserRequest({kind:'cad',drawingFormat:'ifccad',name:'curated.'+format,files:[{path:'curated.'+format,bytes:Uint8Array.from(Buffer.from(output.export.download.base64,'base64')).buffer}]},wasm);
   assert.equal(returned.failure,null,name+': '+JSON.stringify(returned.failure));assert.equal(returned.validation.strictAvailable,true);
-  if(example.name==='Drawing overview') {
-   const inspected=createInspection(returned,returned.nativeSourceText),group='group:symbolSource';
-   assert.equal(inspected.nodes.get(group).children.length,3);
-   assert.ok([...inspected.nodes.values()].some(node=>node.outgoing.some(edge=>edge.kind==='symbolSource')));
-  }
-  if(example.name==='Hatches'){
-   assert.equal(returned.presentation.hatchEntityCount,2);
-   const inspected=createInspection(returned,returned.nativeSourceText);
-   assert.deepEqual(Array.from(inspected.nodes.values()).filter(node=>node.type==='hatch').map(node=>hatchValues(node).fill.kind).sort(),['linePattern','solid']);
-  }
+  assert.deepEqual(returned.presentation.dimensions.map(d=>d.geometry.label.primary).sort(),expectedDimensions,name+' retains dimension labels through '+format);
+  if(example.name==='Entity catalogue')assert.equal(returned.presentation.hatchEntityCount,3);
+
  }
 }
-console.log('Four curated IFCCAD examples open and pass DXF/DWG production strict readback');
+console.log('Two curated IFCCAD examples open and pass DXF/DWG production strict readback');
 
 for(const [kind,path]of [['ifccad','../../examples/ifccad/overview.ifcx']]){
  const name=path.split('/').at(-1),bytes=Uint8Array.from(await readFile(new URL(path,import.meta.url))),source={kind,name,files:[{path:name,bytes:bytes.buffer}]};
@@ -324,3 +314,26 @@ for(const format of ['dxf','dwg']){
  assert.equal(output.export.fileCheck.opaqueEntityCount,1);
 }
 console.log('Browser WASM IFCCAD opaque spline capture, durable reopen and actual DXF/DWG exchange verified');
+
+// Exercise an actual recoverable source error through the worker and WASM,
+// including production strict readback and a subsequent CAD export.
+{
+ const input=await readFile(new URL('../../tests/fixtures/ifccad/hello-geometry.ifcx',import.meta.url));
+ const cad=JSON.parse(export_ifccad('geometry.ifcx',input,'dxf','AC1032'));
+ assert.equal(cad.failure,null,JSON.stringify(cad.failure));
+ const lines=Buffer.from(cad.export.download.base64,'base64').toString('utf8').trimEnd().split(/\r?\n/);
+ let inCircle=false,changed=false;
+ for(let i=0;i<lines.length;i+=2){
+  const code=Number(lines[i]),value=lines[i+1]?.trim();
+  if(code===0)inCircle=value==='CIRCLE';
+  if(inCircle&&code===40){lines[i+1]='-1.0';changed=true;break;}
+ }
+ assert.equal(changed,true,'geometry fixture must contain a circle');
+ const broken=Uint8Array.from(Buffer.from(lines.join('\n')+'\n'));
+ const request={kind:'cad',name:'invalid-circle.dxf',files:[{path:'invalid-circle.dxf',bytes:broken.buffer}]};
+ const normal=processBrowserRequest(request,wasm);assert.equal(normal.failure.partialOpenAvailable,true);assert.notEqual(normal.validation?.strictAvailable,true);
+ const partial={...request,conversionOptions:{partialOpen:true}};
+ const opened=processBrowserRequest(partial,wasm);assert.equal(opened.failure,null,JSON.stringify(opened.failure));assert.equal(opened.validation.strictAvailable,true);assert.equal(opened.partialOpening.errorCount,1);
+ const exported=processBrowserRequest({...partial,export:{format:'dxf',version:'AC1032'}},wasm);assert.equal(exported.failure,null,JSON.stringify(exported.failure));assert.equal(exported.partialOpening.errorCount,1);assert.ok(exported.export.download.base64);
+ console.log('Browser WASM normal error, explicit partial opening, omission report and CAD readback verified');
+}

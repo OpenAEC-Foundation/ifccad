@@ -18,6 +18,7 @@ pub fn cad_document_to_encoded_ifccad(
     let validated = load_ifccad_bytes(encoded.bytes(), Default::default())
         .map_err(IfccadConversionError::CoreReadback)?;
     Ok(CadToEncodedIfccadOutcome {
+        partial_open: logical.partial_open,
         dimension: logical.dimension,
         text: logical.text,
         validated,
@@ -35,13 +36,13 @@ pub fn cad_document_to_ifccad_document(
     metadata: IfccadTargetMetadata,
     options: CadToIfccadOptions,
 ) -> Result<CadToIfccadDocumentOutcome, IfccadConversionError> {
-    convert(
-        source,
-        metadata,
-        options,
-        &mut crate::audit::AuditRun::disabled(),
-    )
-    .map(|outcome| outcome.expect("ordinary conversion returns its complete document"))
+    let mut run = if options.error_policy == CadImportErrorPolicy::SkipInvalidEntities {
+        crate::audit::AuditRun::partial(source)
+    } else {
+        crate::audit::AuditRun::disabled()
+    };
+    convert(source, metadata, options, &mut run)
+        .map(|outcome| outcome.expect("ordinary conversion returns its complete document"))
 }
 
 pub(crate) fn convert(
@@ -428,7 +429,7 @@ fn convert_prepared(
             "unsupported PDMODE/PDSIZE setting omitted; point geometry retained",
         ));
     }
-    if audit.enabled {
+    if audit.enabled && !audit.partial {
         audit.report.traversal_complete = true;
         audit.assess_occurrences(source, &drawing, &mappings, &mut geometry, issues)?;
         if audit.failed() {
@@ -447,6 +448,16 @@ fn convert_prepared(
             return Ok(None);
         }
     }
+    if audit.partial {
+        crate::partial::assess_partial_occurrences(
+            source,
+            &mut drawing,
+            &mut mappings,
+            &mut geometry,
+            audit,
+            issues,
+        )?;
+    }
     audit.phase = "finalization";
     preservation.finish(source, &mut drawing, &mappings)?;
     crate::mapping::workspace::from_cad(source, &mut drawing, &mut mappings, issues)?;
@@ -455,7 +466,11 @@ fn convert_prepared(
         crate::mapping::viewport_overrides::from_cad(source, &mut drawing, &mappings, issues)?;
     consumed.extend(dimensions.consumed_objects);
     issues.extend(
-        crate::source::inspect(
+        (if audit.partial {
+            crate::source::inspect_for_audit
+        } else {
+            crate::source::inspect
+        })(
             source,
             preservation.enabled,
             &consumed,
@@ -505,6 +520,7 @@ fn convert_prepared(
         .map_err(IfccadConversionError::CoreValidation)?;
     validate_ifccad_document(&drawing).map_err(IfccadConversionError::CoreValidation)?;
     Ok(Some(CadToIfccadDocumentOutcome {
+        partial_open: audit.partial_report(),
         dimension: crate::IfccadDimensionAssessment::new(
             &drawing,
             mappings.entities.iter().map(|(id, _)| id),

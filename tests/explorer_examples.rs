@@ -1,5 +1,216 @@
+#[path = "../examples/support/explorer_catalogue.rs"]
+mod catalogue;
 #[path = "../examples/support/ifccad_consistency.rs"]
-mod example_consistency;
+mod consistency;
+#[path = "../examples/support/explorer_drawing.rs"]
+mod drawing;
+#[path = "../examples/support/explorer_house.rs"]
+mod house;
+
+#[test]
+fn curated_files_match_their_strictly_read_back_recipes() {
+    for (name, bytes) in [
+        ("entities", catalogue::build().unwrap()),
+        ("house", house::build().unwrap()),
+    ] {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join(format!("examples/ifccad/{name}.ifcx"));
+        assert_eq!(
+            bytes,
+            std::fs::read(path).unwrap(),
+            "regenerate {name} after recipe changes"
+        );
+    }
+}
+
+#[test]
+fn adding_catalogue_samples_grows_the_grid_and_saved_views() {
+    let samples: Vec<_> = catalogue::SAMPLES
+        .iter()
+        .chain(std::iter::repeat_n(&catalogue::SAMPLES[0], 5))
+        .map(|s| catalogue::Sample {
+            title: s.title,
+            note: s.note,
+            draw: s.draw,
+        })
+        .collect();
+    let bytes = catalogue::build_with_samples(&samples).unwrap();
+    let loaded = ifccad::load_ifccad_bytes(&bytes, Default::default()).unwrap();
+    let json: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+    let nodes = json["data"].as_array().unwrap();
+    for number in [
+        "20  Point",
+        "21  Point",
+        "22  Point",
+        "23  Point",
+        "24  Point",
+    ] {
+        assert!(String::from_utf8_lossy(&bytes).contains(number));
+    }
+    let viewport = nodes
+        .iter()
+        .find_map(|n| n["attributes"].get("ifccad::viewport"))
+        .unwrap();
+    assert_eq!(viewport["view"]["height"].as_f64(), Some(538.)); // Six rows * 78 + 70.
+    assert_eq!(loaded.document().model_windows[0].view.height, 658.);
+}
+
+// Exhaustive on purpose: a new native kind requires a catalogue coverage decision.
+fn family(kind: &ifccad::IfccadEntityKind) -> &'static str {
+    use ifccad::IfccadEntityKind::*;
+    match kind {
+        Dimension(_) => "dimension",
+        Hatch(_) => "hatch",
+        Text(_) => "text",
+        MText(_) => "mtext",
+        Viewport(_) => "viewport",
+        Point { .. } => "point",
+        Arc { .. } => "arc",
+        Ellipse { .. } => "ellipse",
+        EllipseArc { .. } => "ellipseArc",
+        LineSegment { .. } => "line",
+        PlanarPolyline { .. } => "planarPolyline",
+        SpatialPolyline { .. } => "spatialPolyline",
+        Circle { .. } => "circle",
+        BlockInstance { .. } => "blockInstance",
+    }
+}
+
+#[test]
+fn catalogue_covers_every_native_family_and_both_dimension_kinds() {
+    use std::collections::BTreeSet;
+    let bytes = std::fs::read(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/examples/ifccad/entities.ifcx"
+    ))
+    .unwrap();
+    let loaded = ifccad::load_ifccad_bytes(&bytes, Default::default()).unwrap();
+    let d = loaded.document();
+    let entities: Vec<_> = d
+        .model
+        .entities
+        .iter()
+        .chain(d.paper_layouts.iter().flat_map(|p| &p.entities))
+        .filter_map(ifccad::IfccadEntity::as_native)
+        .collect();
+    let actual: BTreeSet<_> = entities.iter().map(|e| family(&e.kind)).collect();
+    assert_eq!(
+        actual,
+        BTreeSet::from([
+            "dimension",
+            "hatch",
+            "text",
+            "mtext",
+            "viewport",
+            "point",
+            "arc",
+            "ellipse",
+            "ellipseArc",
+            "line",
+            "planarPolyline",
+            "spatialPolyline",
+            "circle",
+            "blockInstance"
+        ])
+    );
+    let json: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+    for kind in ["linear", "aligned"] {
+        assert!(json["data"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|n| n["attributes"]["ifccad::dimension"]["definition"]["kind"] == kind));
+    }
+    for kind in ["solid", "linePattern", "gradient"] {
+        assert!(json["data"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|n| n["attributes"]["ifccad::hatch"]["fill"]["kind"] == kind));
+    }
+}
+
+#[test]
+fn examples_use_native_dimensions_without_duplicate_text_stand_ins() {
+    for name in ["entities", "house"] {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join(format!("examples/ifccad/{name}.ifcx"));
+        let value: serde_json::Value =
+            serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
+        for node in value["data"].as_array().unwrap() {
+            if let Some(runs) = node["attributes"]["ifccad::text"]["content"].as_array() {
+                for run in runs {
+                    assert!(
+                        !["58", "56.92 mm", "10000", "12000", "6100", "3900"]
+                            .contains(&run["text"].as_str().unwrap_or_default()),
+                        "{name} duplicates a native measurement in ordinary Text"
+                    );
+                }
+            }
+        }
+        let style = value["data"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find_map(|n| n["attributes"].get("ifccad::dimensionStyle"))
+            .unwrap();
+        let numbers = &style["settings"]["numbers"]["primary"];
+        assert_eq!(numbers["measurementFactor"].as_f64(), Some(1.));
+        assert_eq!(
+            numbers["precision"].as_u64(),
+            Some(if name == "house" { 0 } else { 2 })
+        );
+        assert_eq!(numbers["suffix"], "");
+        assert_eq!(numbers["zeroSuppression"]["trailing"], true);
+    }
+}
+
+#[test]
+fn house_is_in_millimetres_and_has_a_scaled_a3_sheet_and_reused_blocks() {
+    let bytes = std::fs::read(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/examples/ifccad/house.ifcx"
+    ))
+    .unwrap();
+    let loaded = ifccad::load_ifccad_bytes(&bytes, Default::default()).unwrap();
+    let d = loaded.document();
+    let canvas = d.paper_layouts[0]
+        .canvas
+        .as_ref()
+        .expect("A3 sheet needs a saved initial view");
+    assert_eq!(canvas.view.center.x(), 210.);
+    assert_eq!(canvas.view.center.y(), 148.5);
+    assert!(canvas.view.height >= 340.);
+    let json: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+    let nodes = json["data"].as_array().unwrap();
+    assert!(nodes
+        .iter()
+        .any(|n| n["attributes"]["ifccad::drawing"]["lengthUnit"] == "mm"));
+    assert!(nodes
+        .iter()
+        .any(|n| n["attributes"]["ifccad::layout"]["media"]["width"].as_f64() == Some(420.)));
+    let viewport = nodes
+        .iter()
+        .find_map(|n| n["attributes"].get("ifccad::viewport"))
+        .unwrap();
+    assert_eq!(
+        viewport["view"]["height"].as_f64().unwrap()
+            / viewport["frame"]["height"].as_f64().unwrap(),
+        100.0
+    );
+    assert!(
+        d.model
+            .entities
+            .iter()
+            .filter_map(ifccad::IfccadEntity::as_native)
+            .filter(|e| family(&e.kind) == "blockInstance")
+            .count()
+            >= 8
+    );
+    for room in ["Living room", "Kitchen", "Hall", "WC"] {
+        assert!(String::from_utf8_lossy(&bytes).contains(room));
+    }
+}
 
 #[test]
 fn compact_examples_recover_sparse_ids_without_changing_content_or_fragments() {
@@ -9,10 +220,10 @@ fn compact_examples_recover_sparse_ids_without_changing_content_or_fragments() {
         "../tests/fixtures/ifccad/blocks-and-fragments.ifcx"
     ))
     .unwrap();
-    let canonical = example_consistency::normalize(&original).unwrap();
+    let canonical = consistency::normalize(&original).unwrap();
     assert_eq!(
         canonical,
-        example_consistency::normalize(&serde_json::from_slice(&canonical).unwrap()).unwrap()
+        consistency::normalize(&serde_json::from_slice(&canonical).unwrap()).unwrap()
     );
     let mut mapping = BTreeMap::new();
     for node in original["data"].as_array().unwrap() {
@@ -66,7 +277,7 @@ fn compact_examples_recover_sparse_ids_without_changing_content_or_fragments() {
         }
     }
     let recovered: Value =
-        serde_json::from_slice(&example_consistency::normalize(&modified).unwrap()).unwrap();
+        serde_json::from_slice(&consistency::normalize(&modified).unwrap()).unwrap();
     assert_eq!(recovered, original);
     let fragments: Vec<_> = recovered["data"]
         .as_array()

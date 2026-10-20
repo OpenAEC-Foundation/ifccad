@@ -145,6 +145,11 @@ pub(crate) fn inspect_cad_as_ifccad_with_options(
         &cad,
         metadata,
         ifccad_convert::CadToIfccadOptions {
+            error_policy: if options.partial_open {
+                ifccad_convert::CadImportErrorPolicy::SkipInvalidEntities
+            } else {
+                ifccad_convert::CadImportErrorPolicy::Abort
+            },
             loss_policy: options.loss_policy.ifccad(),
             preservation: if options.preserve_splines {
                 ifccad_convert::IfccadPreservationCapture::SupportedTyped
@@ -163,6 +168,8 @@ pub(crate) fn inspect_cad_as_ifccad_with_options(
                 "IFCCAD_CONVERSION_FAILED",
                 &error,
             );
+            output["failure"]["partialOpenAvailable"] =
+                json!(!options.partial_open && error.allows_partial_open_retry());
             crate::geometry::failure(&mut output, &error);
             return output;
         }
@@ -170,6 +177,9 @@ pub(crate) fn inspect_cad_as_ifccad_with_options(
     output["conversion"] = json!({"format":"ifccad","preservation":preservation_report(converted.preservation_report()),"diagnostics":diagnostics(converted.diagnostics()),"entityCount":converted.mappings().entities.iter().count(),"options":options.value(),"geometryAssessment":crate::geometry::assessment(converted.geometry_assessment()),"textAssessment":text_report(converted.text_assessment())});
     output["conversion"]["dimensionAssessment"] =
         crate::inspection_ifccad_dimension::report(converted.dimension_assessment());
+    if let Some(report) = converted.partial_open_report() {
+        output["partialOpening"] = json!({"errorCount":report.errors.len(),"omittedEntityCount":report.entities.len(),"entities":report.entities,"errors":report.errors});
+    }
     present_document(
         &mut output,
         converted.validated_source().document(),

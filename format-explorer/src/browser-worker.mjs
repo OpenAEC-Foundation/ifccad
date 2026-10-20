@@ -19,10 +19,11 @@ export function processBrowserRequest(request,wasm,onProgress=()=>{}){
   source:{name:request.name,format:'ocdraw'},reader:{status:'failed',messages:[]},validation:{strictAvailable:false},
   failure:{stage:'reading',code:'OCDRAW_PARKED',message:'OCDraw is parked. Choose an IFCCAD file or use the archived OCDraw reference.'}
  };
- const options=request.conversionOptions||request.preserveSplines===true?{tolerance:normalizeTolerance(request.conversionOptions?.tolerance??{mode:"default"}),...(request.preserveSplines===true?{preserveSplines:true}:{})}:undefined;
+ const options=request.conversionOptions||request.preserveSplines===true?{tolerance:normalizeTolerance(request.conversionOptions?.tolerance??{mode:"default"}),...(request.conversionOptions?.partialOpen===true?{partialOpen:true}:{}),...(request.preserveSplines===true?{preserveSplines:true}:{})}:undefined;
  const exportOptions=request.exportConversionOptions?{tolerance:normalizeTolerance(request.exportConversionOptions.tolerance??{mode:'default'})}:options;
  const invoke=(name,args,config=options)=>{
   const capabilities=typeof wasm.conversion_capabilities==='function'?parsePresentationJson(wasm.conversion_capabilities()):{};
+  if(name==='convert_cad_to_ifccad'&&config?.partialOpen===true&&(capabilities.ifccad?.partialOpening!==true||typeof wasm.convert_cad_to_ifccad_with_options!=='function'))throw Error('Partial opening is unavailable in this processor');
   if(typeof wasm.conversion_capabilities==='function'&&(config?.tolerance.mode??'default')==='default'&&capabilities[drawingFormat]?.coordinateToleranceDefault!==true)throw Error('Coordinate default tolerance is unavailable in this processor');
   if(config?.tolerance.coordinateFallback!==undefined&&capabilities[drawingFormat]?.coordinateToleranceFallback!==true)throw Error('Coordinate tolerance fallback is unavailable in this processor');
   if(name==='convert_cad_to_ifccad'&&request.preserveSplines===true&&(capabilities.ifccad?.splinePreservation!==true||typeof wasm.convert_cad_to_ifccad_with_options!=='function'))throw Error('IFCCAD spline preservation is unavailable in this processor');
@@ -63,6 +64,7 @@ export function processBrowserRequest(request,wasm,onProgress=()=>{}){
  if(!result.presentation)result.presentation=opening.presentation;
  if(!result.validation)result.validation=opening.validation;
  result.source=opening.source;
+ if(opening.partialOpening)result.partialOpening=opening.partialOpening;
  if(request.kind==='cad'){result.source=opening.source;result.reader=opening.reader;result.conversion={...opening.conversion,restoration:result.conversion};}
  return result;
 }

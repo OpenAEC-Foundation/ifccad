@@ -8,6 +8,12 @@ production writers. The browser explicitly enables Zstd.
 
 ## Using the Explorer
 
+The interface defaults to Automatic language selection: the first supported
+Dutch or English browser preference, with English as fallback. Settings can
+override this with Nederlands or English, or return to Automatic. Saved explicit
+choices remain in effect; changing the theme does not pin an automatic language.
+About links to the OpenAEC IFCCAD web page at https://open-aec.com/ifccad/.
+
 Start with Overview: IFCCAD contents, Open CAD Studio and conversion evidence
 share resizable panes. Document structure groups entities by type within their
 layout/block; Draw order preserves authored sequence. Storage structure shows
@@ -17,7 +23,10 @@ Selection maps to the generated CAD document in both directions when qualified
 readback links exist; block-definition contents and skipped items have no direct link.
 Camera, workspace tab and prepared CAD output survive navigation.
 
-Four curated IFCCAD examples cover overview, Text/MText, Hatches and Dimensions.
+Two curated IFCCAD examples provide an extensible entity catalogue and a fictitious
+house floor plan with an A3 sheet at 1:100. See [example recipes and extension
+instructions](../examples/README.md). Dimensions use native entities with compact
+millimetre labels; the CAD host regenerates their display.
 The native download button opens a popup with IFCX / JSON, experimental CBOR
 (`.ifccad.cbor`) and experimental CBOR + Zstd (`.ifccad.cbor.zst`, level 3).
 IFCX / JSON retains original IFCX bytes. Binary downloads encode the validated
@@ -46,6 +55,16 @@ CAD restoration have separate evidence. This does not add native spline geometry
 font geometry, evaluated Hatch fill or complete Dimension display.
 
 ## Development and checks
+
+On an entity-local CAD conversion failure the Explorer first shows the normal
+error, then offers **Open partially / Gedeeltelijk openen**. Recovery is explicit
+per source; selecting a new file restores ordinary import. The retry uses the same
+tolerance settings. A persistent notice gives omitted-entity/error counts and a
+complete list with source handles, owners, layers and reasons. The downloadable
+JSON omission report includes every conversion diagnostic and original failure
+evidence. Native and CAD exports use the partial drawing; skipped content is absent.
+Shared structure and strict final validation still block output. Older WASM builds
+without partial-opening support reject the request instead of silently ignoring it.
 
 ```text
 wasm-pack build crates/browser --target web --out-dir ../../format-explorer/wasm-build --release
@@ -77,5 +96,8 @@ IFCCAD source. The viewer bridge accepts only its same-origin parent/current tok
 The pinned Open CAD Studio revision is recorded in `ocs-source.json` and the workflow. Preserve its license and self-hosted bundle. The deployment scripts under `deploy/`
 cover release packaging, static smoke, rollback and public verification. Smoke uses
 the shipped IFCCAD manifest and examples, including actual CAD readback where
-available; it does not require source files in the deployed package. CI builds
+available, using the Explorer's default CAD version so the catalogue's gradient
+fills can be retained. The full packaged smoke regression runs with `npm test`
+when both browser WASM and Open CAD Studio bundles are present; it does not
+require source files in the deployed package. CI builds
 only IFCCAD plus the active companions and has native and WASM Zstd checks.

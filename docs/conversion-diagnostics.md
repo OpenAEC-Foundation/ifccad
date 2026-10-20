@@ -1,5 +1,12 @@
 # Diagnosing CAD conversion
 
+For explicitly authorized partial import, see `CadImportErrorPolicy::SkipInvalidEntities`
+in the [converter contract](../crates/ifccad-convert/README.md#conversion-diagnosis).
+It produces a strictly validated retained drawing with a separate omission report.
+This report-only diagnosis API keeps collecting hard failures without output, even
+when supplied partial-import options; it never disguises a failed source check as
+a successful full conversion. Partial import does not change proof tolerances.
+
 `ifccad-convert` provides a report-only diagnosis pass over its production
 CAD-to-IFCCAD conversion route. It borrows the original `CadDocument`, applies no
 exclusions and exposes no partial native document. Ordinary conversion retains

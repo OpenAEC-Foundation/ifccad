@@ -495,7 +495,10 @@ fn inspect_impl(
     )?;
     if validate_entities {
         for e in doc.entities() {
-            entities::validate_source(e)?;
+            entities::validate_source(e).map_err(|source| Error::EntitySourceValidation {
+                handle: e.common().handle,
+                source: Box::new(source),
+            })?;
         }
     }
     for recovery in &mut recoveries {
