@@ -220,27 +220,26 @@ pub const SAMPLES: &[Sample] = &[
     },
     Sample {
         title: "SOLID filled faces",
-        note: "Triangle / rectangle / trapezoid",
+        note: "Filled face / arrowhead",
         draw: |d, x, y| {
-            for (offset, corners, h) in [
-                (0., [[0., 0.], [24., 0.], [12., 22.], [12., 22.]], 0.),
-                (28., [[0., 0.], [24., 0.], [0., 22.], [24., 22.]], 3.),
-                (56., [[4., 0.], [20., 0.], [0., 22.], [24., 22.]], 0.),
+            for corners in [
+                [[4., 8.], [34., 8.], [4., 30.], [34., 30.]],
+                [[48., 15.], [48., 23.], [76., 19.], [76., 19.]],
             ] {
-                d.entity(MODEL,1,json!({"ifccad::geom::placement":plane(x+offset,y+8.),"ifccad::geom::solid":{"corners":corners,"thickness":h}}));
+                d.entity(MODEL,1,json!({"ifccad::geom::placement":plane(x,y),"ifccad::geom::solid":{"corners":corners}}));
             }
         },
     },
     Sample {
-        title: "TRACE filled faces",
-        note: "Triangle / rectangle / trapezoid",
+        title: "TRACE wide strokes",
+        note: "Wide strip / joined strips",
         draw: |d, x, y| {
-            for (offset, corners, h) in [
-                (0., [[0., 0.], [24., 0.], [12., 22.], [12., 22.]], -3.),
-                (28., [[0., 0.], [24., 0.], [0., 22.], [24., 22.]], 3.),
-                (56., [[4., 0.], [20., 0.], [0., 22.], [24., 22.]], 0.),
+            for corners in [
+                [[4., 12.], [4., 18.], [31., 12.], [31., 18.]],
+                [[47., 9.], [47., 15.], [72., 9.], [66., 15.]],
+                [[72., 9.], [66., 15.], [72., 30.], [66., 30.]],
             ] {
-                d.entity(MODEL,1,json!({"ifccad::geom::placement":plane(x+offset,y+8.),"ifccad::geom::trace":{"corners":corners,"thickness":h}}));
+                d.entity(MODEL,1,json!({"ifccad::geom::placement":plane(x,y),"ifccad::geom::trace":{"corners":corners}}));
             }
         },
     },

@@ -14,9 +14,12 @@ stand-ins. The house uses whole millimetres; the catalogue uses up to two decima
 with trailing zeros suppressed. Units are stated on the drawing, not repeated in
 every dimension label. This does not add baked native Dimension graphics or
 certify every CAD host's rendering.
-SOLID and TRACE have separate appended samples showing ordinary triangles,
-rectangles and trapezoids, with signed thickness. Concave, crossing and collapsed
-cases stay in regression and conformance tests rather than the curated catalogue. Their
+SOLID shows a filled face and a filled arrowhead, as used in CAD symbols and
+dimension pictures. Legacy TRACE shows a straight wide strip and two adjoining
+strips with a mitred corner; their width is already expressed by the stored
+corners. All these examples have zero extrusion thickness. Signed thickness,
+concave, crossing and collapsed cases stay in regression and conformance tests
+rather than the curated catalogue. Their
 parameter and CAD-type retention does not certify host filling; Solid Hatch
 remains its own entity family.
 The Point sample includes a separate cross so its position stays visible.

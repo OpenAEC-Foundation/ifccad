@@ -39,7 +39,7 @@
           ],
           "nextBlockId": 2,
           "nextDimensionStyleId": 1,
-          "nextEntityId": 113,
+          "nextEntityId": 112,
           "nextLayerId": 5,
           "nextLayoutId": 3,
           "nextLinePatternId": 3,
@@ -303,7 +303,6 @@
         "102": "/cad/d1/e103",
         "103": "/cad/d1/e104",
         "104": "/cad/d1/e105",
-        "105": "/cad/d1/e106",
         "11": "/cad/d1/e12",
         "12": "/cad/d1/e13",
         "13": "/cad/d1/e14",
@@ -412,10 +411,10 @@
     {
       "path": "/cad/d1/layout/2",
       "children": {
-        "0": "/cad/d1/e107",
-        "1": "/cad/d1/e108",
-        "2": "/cad/d1/e109",
-        "3": "/cad/d1/e110"
+        "0": "/cad/d1/e106",
+        "1": "/cad/d1/e107",
+        "2": "/cad/d1/e108",
+        "3": "/cad/d1/e109"
       },
       "attributes": {
         "ifccad::layout": {
@@ -678,8 +677,8 @@
     {
       "path": "/cad/d1/block/1",
       "children": {
-        "0": "/cad/d1/e111",
-        "1": "/cad/d1/e112"
+        "0": "/cad/d1/e110",
+        "1": "/cad/d1/e111"
       },
       "attributes": {
         "ifccad::blockDefinition": {
@@ -4778,7 +4777,7 @@
             {
               "overline": false,
               "strikeThrough": false,
-              "text": "Triangle / rectangle / trapezoid",
+              "text": "Filled face / arrowhead",
               "underline": false
             }
           ],
@@ -4802,98 +4801,7 @@
         "ifccad::geom::placement": {
           "origin": [
             299.0,
-            91.0,
-            0.0
-          ],
-          "xAxis": [
-            1.0,
-            0.0,
-            0.0
-          ],
-          "yAxis": [
-            0.0,
-            1.0,
-            0.0
-          ]
-        },
-        "ifccad::geom::solid": {
-          "corners": [
-            [
-              0.0,
-              0.0
-            ],
-            [
-              24.0,
-              0.0
-            ],
-            [
-              12.0,
-              22.0
-            ],
-            [
-              12.0,
-              22.0
-            ]
-          ]
-        }
-      }
-    },
-    {
-      "path": "/cad/d1/e98",
-      "attributes": {
-        "ifccad::entity": {
-          "layer": "/cad/d1/layer/1"
-        },
-        "ifccad::geom::placement": {
-          "origin": [
-            327.0,
-            91.0,
-            0.0
-          ],
-          "xAxis": [
-            1.0,
-            0.0,
-            0.0
-          ],
-          "yAxis": [
-            0.0,
-            1.0,
-            0.0
-          ]
-        },
-        "ifccad::geom::solid": {
-          "corners": [
-            [
-              0.0,
-              0.0
-            ],
-            [
-              24.0,
-              0.0
-            ],
-            [
-              0.0,
-              22.0
-            ],
-            [
-              24.0,
-              22.0
-            ]
-          ],
-          "thickness": 3.0
-        }
-      }
-    },
-    {
-      "path": "/cad/d1/e99",
-      "attributes": {
-        "ifccad::entity": {
-          "layer": "/cad/d1/layer/1"
-        },
-        "ifccad::geom::placement": {
-          "origin": [
-            355.0,
-            91.0,
+            83.0,
             0.0
           ],
           "xAxis": [
@@ -4911,26 +4819,71 @@
           "corners": [
             [
               4.0,
-              0.0
+              8.0
             ],
             [
-              20.0,
-              0.0
+              34.0,
+              8.0
             ],
             [
-              0.0,
-              22.0
+              4.0,
+              30.0
             ],
             [
-              24.0,
-              22.0
+              34.0,
+              30.0
             ]
           ]
         }
       }
     },
     {
-      "path": "/cad/d1/e100",
+      "path": "/cad/d1/e98",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            299.0,
+            83.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::geom::solid": {
+          "corners": [
+            [
+              48.0,
+              15.0
+            ],
+            [
+              48.0,
+              23.0
+            ],
+            [
+              76.0,
+              19.0
+            ],
+            [
+              76.0,
+              19.0
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e99",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -4976,7 +4929,7 @@
       }
     },
     {
-      "path": "/cad/d1/e101",
+      "path": "/cad/d1/e100",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -5003,7 +4956,7 @@
             {
               "overline": false,
               "strikeThrough": false,
-              "text": "21  TRACE filled faces",
+              "text": "21  TRACE wide strokes",
               "underline": false
             }
           ],
@@ -5019,7 +4972,7 @@
       }
     },
     {
-      "path": "/cad/d1/e102",
+      "path": "/cad/d1/e101",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -5046,7 +4999,7 @@
             {
               "overline": false,
               "strikeThrough": false,
-              "text": "Triangle / rectangle / trapezoid",
+              "text": "Wide strip / joined strips",
               "underline": false
             }
           ],
@@ -5062,7 +5015,7 @@
       }
     },
     {
-      "path": "/cad/d1/e103",
+      "path": "/cad/d1/e102",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/1"
@@ -5070,99 +5023,7 @@
         "ifccad::geom::placement": {
           "origin": [
             5.0,
-            13.0,
-            0.0
-          ],
-          "xAxis": [
-            1.0,
-            0.0,
-            0.0
-          ],
-          "yAxis": [
-            0.0,
-            1.0,
-            0.0
-          ]
-        },
-        "ifccad::geom::trace": {
-          "corners": [
-            [
-              0.0,
-              0.0
-            ],
-            [
-              24.0,
-              0.0
-            ],
-            [
-              12.0,
-              22.0
-            ],
-            [
-              12.0,
-              22.0
-            ]
-          ],
-          "thickness": -3.0
-        }
-      }
-    },
-    {
-      "path": "/cad/d1/e104",
-      "attributes": {
-        "ifccad::entity": {
-          "layer": "/cad/d1/layer/1"
-        },
-        "ifccad::geom::placement": {
-          "origin": [
-            33.0,
-            13.0,
-            0.0
-          ],
-          "xAxis": [
-            1.0,
-            0.0,
-            0.0
-          ],
-          "yAxis": [
-            0.0,
-            1.0,
-            0.0
-          ]
-        },
-        "ifccad::geom::trace": {
-          "corners": [
-            [
-              0.0,
-              0.0
-            ],
-            [
-              24.0,
-              0.0
-            ],
-            [
-              0.0,
-              22.0
-            ],
-            [
-              24.0,
-              22.0
-            ]
-          ],
-          "thickness": 3.0
-        }
-      }
-    },
-    {
-      "path": "/cad/d1/e105",
-      "attributes": {
-        "ifccad::entity": {
-          "layer": "/cad/d1/layer/1"
-        },
-        "ifccad::geom::placement": {
-          "origin": [
-            61.0,
-            13.0,
+            5.0,
             0.0
           ],
           "xAxis": [
@@ -5180,26 +5041,116 @@
           "corners": [
             [
               4.0,
-              0.0
+              12.0
             ],
             [
-              20.0,
-              0.0
+              4.0,
+              18.0
             ],
             [
-              0.0,
-              22.0
+              31.0,
+              12.0
             ],
             [
-              24.0,
-              22.0
+              31.0,
+              18.0
             ]
           ]
         }
       }
     },
     {
-      "path": "/cad/d1/e106",
+      "path": "/cad/d1/e103",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            5.0,
+            5.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::geom::trace": {
+          "corners": [
+            [
+              47.0,
+              9.0
+            ],
+            [
+              47.0,
+              15.0
+            ],
+            [
+              72.0,
+              9.0
+            ],
+            [
+              66.0,
+              15.0
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e104",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            5.0,
+            5.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::geom::trace": {
+          "corners": [
+            [
+              72.0,
+              9.0
+            ],
+            [
+              66.0,
+              15.0
+            ],
+            [
+              72.0,
+              30.0
+            ],
+            [
+              66.0,
+              30.0
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e105",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -5242,7 +5193,7 @@
       }
     },
     {
-      "path": "/cad/d1/e107",
+      "path": "/cad/d1/e106",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -5294,7 +5245,7 @@
       }
     },
     {
-      "path": "/cad/d1/e108",
+      "path": "/cad/d1/e107",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -5340,7 +5291,7 @@
       }
     },
     {
-      "path": "/cad/d1/e109",
+      "path": "/cad/d1/e108",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -5383,7 +5334,7 @@
       }
     },
     {
-      "path": "/cad/d1/e110",
+      "path": "/cad/d1/e109",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -5426,7 +5377,7 @@
       }
     },
     {
-      "path": "/cad/d1/e111",
+      "path": "/cad/d1/e110",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -5471,7 +5422,7 @@
       }
     },
     {
-      "path": "/cad/d1/e112",
+      "path": "/cad/d1/e111",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"

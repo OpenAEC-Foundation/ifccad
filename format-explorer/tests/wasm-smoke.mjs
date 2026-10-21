@@ -59,8 +59,8 @@ for(const example of examples){
   assert.deepEqual(returned.presentation.dimensions.map(d=>d.geometry.label.primary).sort(),expectedDimensions,name+' retains dimension labels through '+format);
   if(example.name==='Entity catalogue'){
    assert.equal(returned.presentation.hatchEntityCount,3);
-   for(const kind of ['solid','trace'])assert.equal(returned.presentation.graph.data.filter(n=>n.attributes?.['ifccad::geom::'+kind]).length,3,'retains '+kind+' through '+format);
-   const surfaces=output.export.geometryAssessment.filledSurfaces;assert.ok(surfaces.length>=6);
+   for(const [kind,count] of [['solid',2],['trace',3]])assert.equal(returned.presentation.graph.data.filter(n=>n.attributes?.['ifccad::geom::'+kind]).length,count,'retains '+kind+' through '+format);
+   const surfaces=output.export.geometryAssessment.filledSurfaces;assert.ok(surfaces.length>=5);
    for(const r of surfaces){assert.equal(r.surfaceCoverage,'Proven');assert.equal(r.positionScope,'FourBaseAndFourTop');assert.equal(r.displayEvaluation,'unassessed');}
   }
 
