@@ -453,14 +453,14 @@ under Allow; Reject refuses). Native Foreground endpoints fail validation;
 no fixed background or RGB replacement is invented.
 
 
-## Upstream pin update — 2026-10-16
+## Upstream pin update â€” 2026-10-16
 
 The current exact codec pin is `325fa98d2b881f48e106a830d5cf161624f63131`
 (upstream package version remains 0.6.0), with only the explicit
 [Dimension text-position patch](../../../patches/opencadcodec-dimension/README.md).
 Viewport off-state #103, paper grid flags #106, DXF ShadePlot #107 and gradient
 state #109 are upstream. Paper VIEWPORT grid behavior now survives DXF/DWG;
-its former target-loss diagnostics are removed. ShadePlot modes 0–3 survive
+its former target-loss diagnostics are removed. ShadePlot modes 0â€“3 survive
 both routes, with physical readback still detecting unexpected loss.
 
 The [public-model audit](../../../docs/geometry/opencadcodec-update-2026-10-16.md)
@@ -482,3 +482,6 @@ bulge reset/reassignment or proximity epsilon is used. A nonzero source bulged c
 newly collapsed by target construction remains a hard error under either loss
 policy and any tolerance. Contour eligibility counts only nondegenerate arcs.
 See [the shared contract](../../../docs/geometry/coincident-polyline.md).
+## SOLID/TRACE CAD export
+
+Both native kinds retain four ordered finite corners, signed thickness and the existing frame. Crossing, repeated, overlapping and collapsed slots are supported. Unequal CAD OCS-Z remains outside the planar mapping; scalar/frame failures stay separate from semantic loss. Eight mandatory base/top position pairs, optional common surface cells and unassessed host display are distinct. ASCII/binary DXF and AC1032 DWG type identity and production strict readback are qualified in `filled_exchange`; no polyline-width or Dimension-graphics coverage is implied. See the [converter contract](../README.md#native-solid-and-trace).

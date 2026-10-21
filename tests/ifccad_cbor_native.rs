@@ -57,6 +57,8 @@ fn compact_and_expanded_current_conformance_survives_cbor() {
                     IfccadEntityKind::MText(_) => 11,
                     IfccadEntityKind::Hatch(_) => 12,
                     IfccadEntityKind::Dimension(_) => 13,
+                    IfccadEntityKind::Solid(_) => 14,
+                    IfccadEntityKind::Trace(_) => 15,
                 });
             }
         }
@@ -67,7 +69,7 @@ fn compact_and_expanded_current_conformance_survives_cbor() {
     }
     assert_eq!(
         seen,
-        (0..14).collect(),
+        (0..16).collect(),
         "all current native families must be exercised"
     );
 }

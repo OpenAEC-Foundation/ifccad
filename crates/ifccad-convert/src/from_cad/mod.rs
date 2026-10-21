@@ -519,6 +519,9 @@ fn convert_prepared(
     recompute_ifccad_document_bounds(&mut drawing)
         .map_err(IfccadConversionError::CoreValidation)?;
     validate_ifccad_document(&drawing).map_err(IfccadConversionError::CoreValidation)?;
+    let mut assessment = geometry.finish();
+    assessment.filled_surfaces =
+        crate::filled_surface_assessment::collect_filled_surfaces(&drawing, source, &mappings)?;
     Ok(Some(CadToIfccadDocumentOutcome {
         partial_open: audit.partial_report(),
         dimension: crate::IfccadDimensionAssessment::new(
@@ -529,7 +532,7 @@ fn convert_prepared(
             &drawing,
             mappings.entities.iter().map(|(id, _)| id),
         ),
-        geometry: geometry.finish().with_unassessed(&drawing),
+        geometry: assessment.with_unassessed(&drawing),
         preservation: preservation.report,
         document: drawing,
         diagnostics: std::mem::take(issues)

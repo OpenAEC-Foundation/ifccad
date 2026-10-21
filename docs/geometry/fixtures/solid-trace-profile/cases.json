@@ -1,0 +1,443 @@
+{
+  "license": "CC0-1.0",
+  "author": "Original synthetic IFCCAD research cases, 2026-10-21",
+  "boundaryOrder": [
+    1,
+    2,
+    4,
+    3
+  ],
+  "ocs": {
+    "version": "2026.42",
+    "build": "b6fbac39ffc7",
+    "toolSchema": "d15005e14fc00154501db5d261cb9febae1bcc61f6d9b850e91b7fd1879c3b8e"
+  },
+  "files": [
+    {
+      "file": "zero-thickness.dxf",
+      "sha256": "00781d3d84d0846679444f12796331b20b61f015c22fe2c820c9abb6410ca35a",
+      "thickness": 0,
+      "reversed": false
+    },
+    {
+      "file": "positive-thickness.dxf",
+      "sha256": "b3771a9d8006f5f0d8046d482e832e97db9a4edd76db52b63f21dbfbd3577b4f",
+      "thickness": 3,
+      "reversed": false
+    },
+    {
+      "file": "reversed-zero-thickness.dxf",
+      "sha256": "1454b50f7cb649796a08a210b08261a4c8f8479bb2472be046b5bd4b3925d2ce",
+      "thickness": 0,
+      "reversed": true
+    }
+  ],
+  "casePlacement": {
+    "x": "(index % 8) * 18",
+    "y": "-(index // 8) * 22 - (48 if TRACE else 0)"
+  },
+  "cases": [
+    {
+      "index": 0,
+      "case": "convex",
+      "corners": [
+        [
+          0,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          0,
+          8
+        ],
+        [
+          8,
+          8
+        ]
+      ],
+      "nativeProfile": "included",
+      "ocsObservation": "filled",
+      "simpleSurfaceCoverCandidate": true
+    },
+    {
+      "index": 1,
+      "case": "triangle34",
+      "corners": [
+        [
+          0,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          0,
+          8
+        ],
+        [
+          0,
+          8
+        ]
+      ],
+      "nativeProfile": "included",
+      "ocsObservation": "filled; conventional triangle",
+      "simpleSurfaceCoverCandidate": true
+    },
+    {
+      "index": 2,
+      "case": "concave1",
+      "corners": [
+        [
+          5,
+          5
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          0,
+          8
+        ],
+        [
+          8,
+          8
+        ]
+      ],
+      "nativeProfile": "included",
+      "ocsObservation": "filled concave",
+      "simpleSurfaceCoverCandidate": true
+    },
+    {
+      "index": 3,
+      "case": "concave2",
+      "corners": [
+        [
+          0,
+          0
+        ],
+        [
+          3,
+          5
+        ],
+        [
+          0,
+          8
+        ],
+        [
+          8,
+          8
+        ]
+      ],
+      "nativeProfile": "included",
+      "ocsObservation": "filled concave",
+      "simpleSurfaceCoverCandidate": true
+    },
+    {
+      "index": 4,
+      "case": "concave3",
+      "corners": [
+        [
+          0,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          5,
+          3
+        ],
+        [
+          8,
+          8
+        ]
+      ],
+      "nativeProfile": "included",
+      "ocsObservation": "filled concave",
+      "simpleSurfaceCoverCandidate": true
+    },
+    {
+      "index": 5,
+      "case": "concave4",
+      "corners": [
+        [
+          0,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          0,
+          8
+        ],
+        [
+          3,
+          3
+        ]
+      ],
+      "nativeProfile": "included",
+      "ocsObservation": "filled concave",
+      "simpleSurfaceCoverCandidate": true
+    },
+    {
+      "index": 6,
+      "case": "crossing",
+      "corners": [
+        [
+          0,
+          0
+        ],
+        [
+          8,
+          8
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          0,
+          8
+        ]
+      ],
+      "nativeProfile": "included",
+      "ocsObservation": "crossing outline only",
+      "simpleSurfaceCoverCandidate": false
+    },
+    {
+      "index": 7,
+      "case": "repeat12",
+      "corners": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          8
+        ],
+        [
+          8,
+          0
+        ]
+      ],
+      "nativeProfile": "included",
+      "ocsObservation": "filled at h=0; base outline only at h=3",
+      "simpleSurfaceCoverCandidate": true
+    },
+    {
+      "index": 8,
+      "case": "repeat13",
+      "corners": [
+        [
+          0,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          8
+        ]
+      ],
+      "nativeProfile": "included",
+      "ocsObservation": "filled at h=0; base outline only at h=3",
+      "simpleSurfaceCoverCandidate": true
+    },
+    {
+      "index": 9,
+      "case": "repeat24",
+      "corners": [
+        [
+          0,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          0,
+          8
+        ],
+        [
+          8,
+          0
+        ]
+      ],
+      "nativeProfile": "included",
+      "ocsObservation": "filled at h=0; base outline only at h=3",
+      "simpleSurfaceCoverCandidate": true
+    },
+    {
+      "index": 10,
+      "case": "repeat14",
+      "corners": [
+        [
+          0,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          0,
+          8
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "nativeProfile": "included",
+      "ocsObservation": "retraced L outline only",
+      "simpleSurfaceCoverCandidate": false
+    },
+    {
+      "index": 11,
+      "case": "collinear",
+      "corners": [
+        [
+          0,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          5,
+          0
+        ]
+      ],
+      "nativeProfile": "included",
+      "ocsObservation": "line only",
+      "simpleSurfaceCoverCandidate": false
+    },
+    {
+      "index": 12,
+      "case": "point",
+      "corners": [
+        [
+          4,
+          4
+        ],
+        [
+          4,
+          4
+        ],
+        [
+          4,
+          4
+        ],
+        [
+          4,
+          4
+        ]
+      ],
+      "nativeProfile": "included",
+      "ocsObservation": "point only",
+      "simpleSurfaceCoverCandidate": false
+    },
+    {
+      "index": 13,
+      "case": "flat_corner",
+      "corners": [
+        [
+          0,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          0,
+          8
+        ],
+        [
+          4,
+          4
+        ]
+      ],
+      "nativeProfile": "included",
+      "ocsObservation": "filled; straight-through corner",
+      "simpleSurfaceCoverCandidate": true
+    },
+    {
+      "index": 14,
+      "case": "backtrack",
+      "corners": [
+        [
+          0,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          0,
+          8
+        ],
+        [
+          3,
+          0
+        ]
+      ],
+      "nativeProfile": "included",
+      "ocsObservation": "filled triangle plus retraced spur; extrusion does not sweep entire spur",
+      "simpleSurfaceCoverCandidate": false
+    },
+    {
+      "index": 15,
+      "case": "two_points",
+      "corners": [
+        [
+          0,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "nativeProfile": "included",
+      "ocsObservation": "line only",
+      "simpleSurfaceCoverCandidate": false
+    }
+  ],
+  "nativeValidity": "Every finite local corner combination is supported, subject to existing frame and finite-enclosure limits.",
+  "evidencePolicy": "Eight-position accuracy required; full-surface coverage optional; display unassessed."
+}

@@ -70,6 +70,7 @@ not suffix-only references. Foreign namespaces remain outside this catalog.
 | `ifccad::symbolSource` | independent drawing definition; ID, SYMBOL | `symbolSource` |
 | `ifccad::blockDefinition` | drawing definition; OWN, GEOMETRY, BOUNDS | `blockDefinitionExtras` |
 | `ifccad::blockInstance` | ordered drawable; OWN, GEOMETRY | `blockInstanceExtras` |
+| `ifccad::geom::solid`, `ifccad::geom::trace` | placed ordered filled descriptors; FILLED | `geometryFilledExtras` |
 | `ifccad::geom::placement` | required local frame on placed payloads; GEOMETRY | `placementExtras` |
 | `ifccad::geom::point` | placed empty point payload; GEOMETRY | `geometryPointExtras` |
 | `ifccad::geom::lineSegment` | direct XYZ; GEOMETRY | `geometryLineExtras` |
@@ -136,6 +137,8 @@ not suffix-only references. Foreign namespaces remain outside this catalog.
 | IFCCAD-GEOMETRY-001 | Native coordinates/scalars MUST be finite binary64 in fixed right-handed local XYZ. Placement MUST retain origin/axes and pass the shared orthonormal right-handed coordinate-frame predicate without normalization. Direct XYZ line/spatial polyline MUST forbid placement; placed payloads MUST require it. | V/D; G7/P | [geometry](../../tests/ifccad_geometry.rs), [geometry kernel](../../src/geometry_kernel) |
 | IFCCAD-GEOMETRY-002 | Circle/arc radius and ellipse axes MUST be positive. Ellipse major MUST be >=minor; equal axes remain Ellipse. Arc starts retain finite unreduced radians; signed sweep MUST satisfy `0 < abs(sweep) < binary64 TAU`. Full circles/ellipses remain distinct kinds. | V/D; G7/P | [geometry](../../tests/ifccad_geometry.rs), [next cases](../../conformance/next/ifccad/cases.json) |
 | IFCCAD-GEOMETRY-003 | Polyline MUST have >=2 vertices. Planar outgoing bulges MUST match vertex count; omission means zeros. Closed activates every segment, open retains dormant final bulge. Exact coincident endpoints MUST describe a point while retaining both vertices and their finite outgoing bulges. No epsilon, deduplication or inferred arc is permitted. Newly collapsed nonzero bulged chords during CAD conversion MUST fail. Such segments do not supply contour curvature. Spatial paths have neither bulges nor placement. | V/D; G4/P | [geometry](../../tests/ifccad_geometry.rs) |
+| IFCCAD-FILLED-001 | Intrinsic corners and signed thickness MUST be finite. No simplicity, convexity, area or distinct-point test gates native validity. | D; P | [filled geometry](../../tests/filled_geometry.rs), [native storage](../../tests/ifccad_filled.rs) |
+| IFCCAD-FILLED-002 | Filled placement MUST satisfy the existing frame predicate; all four base and four top positions MUST have a finite conservative enclosure using the exact stored-axis cross product. | D; P | [filled geometry](../../tests/filled_geometry.rs), [native storage](../../tests/ifccad_filled.rs) |
 | IFCCAD-GEOMETRY-004 | Block definitions MUST have nonempty names, finite XYZ base points and supported insertionUnit tokens. Block transforms MUST have valid placement, finite rotation and finite nonzero signed XYZ scale. Evaluation MUST subtract definition base point, apply scale/rotation then placement. Model/definitions use drawing units; Paper root has its own numerical domain. Instance scale explicitly includes any required unit conversion; insertionUnit MUST NOT silently rescale content. | V/D; P | [geometry](../../tests/ifccad_geometry.rs), [bounds](../../tests/ifccad_bounds.rs) |
 
 ## IFCCAD-LAYOUT
@@ -324,3 +327,30 @@ Primary sparse overrides retain explicit `inline` and `1.0` resets. Alternate
 overrides retain the existing complete enabled-profile replacement rule.
 Literal label text is never parsed as a fraction. Formatted fragments are derived
 inspection results, not an authoritative stored label or measurement cache.
+
+## Ordered filled primitives: SOLID and TRACE
+
+`ifccad::geom::solid` and `ifccad::geom::trace` are distinct drawable payloads,
+sharing `geometryFilledExtras`. Each requires sibling `ifccad::geom::placement`
+and exactly four numeric local XY `corners`; `thickness` is optional with default
+**+0.0**. Null/unknown members and additional geometry payloads are rejected.
+Composition replaces each complete attribute with LaterWins, without merging
+corner members. Writers omit +0 thickness, retain explicit -0 and preserve all
+four slots. CAD boundary order is **1,2,4,3**; no sorting or deduplication occurs.
+
+Every finite corner combination is allowed, including crossings, overlap,
+retracing, repeated corners and line/point collapse. No minimum area, simplicity,
+convexity, distinct-point count or surface cover is a validity condition.
+`IFCCAD-FILLED-001` rejects nonfinite intrinsic values. `IFCCAD-FILLED-002`
+rejects invalid placement or unavailable finite conservative enclosure.
+For stored axes U,V, N=U×V is evaluated exactly without normalization;
+B_i=O+U*x_i+V*y_i, T_i=B_i+N*thickness. The parameter enclosure covers all four
+base and all four top points, even when they coincide. It is not a universal
+rendered footprint or a host filling rule. Appearance/layer fields remain
+stored; line pattern/lineweight do not expand this parameter enclosure.
+
+Neither kind becomes a Hatch source, active viewport clip or Dimension-selector
+target. Native records contain no topology/proof/render flags. Conversion
+requires its ordinary hard position evidence independently of optional simple
+surface correspondence; absent surface evidence does not invalidate, omit or
+lose a finite descriptor. Viewer rendering remains unassessed.

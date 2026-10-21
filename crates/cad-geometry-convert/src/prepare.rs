@@ -91,7 +91,7 @@ pub enum CadPreparationError {
     },
 }
 #[derive(Clone)]
-struct PreparationSource;
+pub(crate) struct PreparationSource;
 impl GeometrySource for PreparationSource {
     fn cad_entity(_: Handle, _: String) -> Self {
         Self
@@ -121,7 +121,7 @@ impl From<CadGeometryError<PreparationSource>> for CadPreparationError {
         }
     }
 }
-fn preparation_assessment() -> GeometryAssessment<PreparationSource> {
+pub(crate) fn preparation_assessment() -> GeometryAssessment<PreparationSource> {
     // This permissive construction limit is not exposed as conversion acceptance.
     // Every returned pair must be checked under the caller's actual limit.
     GeometryAssessment::new(
@@ -216,6 +216,9 @@ fn planar_curves(
 pub fn prepare_from_cad(
     entity: &EntityType,
 ) -> Result<PreparedNativeGeometry, CadPreparationError> {
+    if let EntityType::Solid(s) = entity {
+        return geometry::filled::from_cad(s);
+    }
     let mut normalized = false;
     let (geometry, pair) = match entity {
         EntityType::Line(l) if finite(l.start) && finite(l.end) => (
@@ -430,9 +433,18 @@ pub fn prepare_from_cad(
 }
 
 pub fn prepare_to_cad(g: GeometryRef<'_>) -> Result<PreparedCadGeometry, CadPreparationError> {
+    if let GeometryRef::FilledQuadrilateral {
+        placement,
+        corners,
+        thickness,
+    } = g
+    {
+        return geometry::filled::to_cad(placement, corners, thickness);
+    }
     validate_geometry(g).map_err(|_| CadPreparationError::InvalidGeometry)?;
     let mut changed = false;
     let (entity, pair) = match g {
+        GeometryRef::FilledQuadrilateral { .. } => unreachable!("handled before generic dispatch"),
         GeometryRef::Line { start, end } => (
             EntityType::Line(opencadcodec::Line::from_coords(
                 start[0], start[1], start[2], end[0], end[1], end[2],

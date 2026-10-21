@@ -210,6 +210,8 @@ pub struct IfccadBlockTransform {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum IfccadEntityKind {
+    Solid(IfccadFilledQuadrilateral),
+    Trace(IfccadFilledQuadrilateral),
     Dimension(Box<super::IfccadDimension>),
     Hatch(super::IfccadHatch),
     Text(super::IfccadText),
@@ -301,4 +303,18 @@ pub enum IfccadLinePatternGeneration {
     #[default]
     PerSegment,
     Continuous,
+}
+
+/// Four ordered local corner slots (CAD boundary 1,2,4,3), with signed sweep.
+/// Every finite corner topology is valid; storage does not prescribe host filling.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct IfccadFilledQuadrilateral {
+    pub placement: IfccadPlacement,
+    pub corners: [[f64; 2]; 4],
+    #[serde(default, skip_serializing_if = "filled_positive_zero")]
+    pub thickness: f64,
+}
+fn filled_positive_zero(v: &f64) -> bool {
+    v.to_bits() == 0
 }

@@ -1,0 +1,2355 @@
+{
+  "header": {
+    "id": "ifccad-experimental-hello",
+    "ifcxVersion": "ifcx_alpha",
+    "dataVersion": "0.1.0",
+    "author": "OpenAEC",
+    "timestamp": "2026-09-29T00:00:00Z"
+  },
+  "imports": [
+    {
+      "uri": "urn:example:ifccad:0.1.0"
+    }
+  ],
+  "schemas": {},
+  "data": [
+    {
+      "path": "/cad/d1",
+      "children": {
+        "block1": "/cad/d1/block/1",
+        "layer0": "/cad/d1/layer/0",
+        "layer1": "/cad/d1/layer/1",
+        "layer2": "/cad/d1/layer/2",
+        "linePattern0": "/cad/d1/linePattern/0",
+        "model": "/cad/d1/layout/1"
+      },
+      "attributes": {
+        "ifccad::drawing": {
+          "lengthUnit": "cm",
+          "nextBlockId": 2,
+          "nextEntityId": 39,
+          "nextLayerId": 3,
+          "nextLayoutId": 2,
+          "nextLinePatternId": 1,
+          "nextSymbolSourceId": 1,
+          "profileVersion": "0.1.0",
+          "nextUcsId": 1,
+          "nextModelWindowId": 1
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/linePattern/0",
+      "attributes": {
+        "ifccad::linePattern": {
+          "name": "Continuous",
+          "pattern": []
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layout/1",
+      "children": {
+        "0": "/cad/d1/e1",
+        "1": "/cad/d1/e2",
+        "2": "/cad/d1/e3",
+        "3": "/cad/d1/e4",
+        "4": "/cad/d1/e5",
+        "5": "/cad/d1/e7",
+        "6": "/cad/d1/e8",
+        "7": "/cad/d1/e9",
+        "8": "/cad/d1/e10",
+        "9": "/cad/d1/e11",
+        "10": "/cad/d1/e12",
+        "11": "/cad/d1/e13",
+        "12": "/cad/d1/e14",
+        "13": "/cad/d1/e15",
+        "14": "/cad/d1/e16",
+        "15": "/cad/d1/e17",
+        "16": "/cad/d1/e18",
+        "17": "/cad/d1/e19",
+        "18": "/cad/d1/e20",
+        "19": "/cad/d1/e21",
+        "20": "/cad/d1/e22",
+        "21": "/cad/d1/e23",
+        "22": "/cad/d1/e24",
+        "23": "/cad/d1/e25",
+        "24": "/cad/d1/e26",
+        "25": "/cad/d1/e27",
+        "26": "/cad/d1/e28",
+        "27": "/cad/d1/e29",
+        "28": "/cad/d1/e30",
+        "29": "/cad/d1/e31",
+        "30": "/cad/d1/e32",
+        "31": "/cad/d1/e33",
+        "32": "/cad/d1/e34",
+        "33": "/cad/d1/e35",
+        "34": "/cad/d1/e36",
+        "35": "/cad/d1/e37",
+        "36": "/cad/d1/e38"
+      },
+      "attributes": {
+        "ifccad::layout": {
+          "kind": "Model",
+          "tabIndex": 0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layer/0",
+      "attributes": {
+        "ifccad::layer": {
+          "appearance": {
+            "color": {
+              "kind": "Foreground"
+            },
+            "linePattern": "/cad/d1/linePattern/0",
+            "lineWeight": 0.1,
+            "opacity": 1.0
+          },
+          "name": "0"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layer/1",
+      "attributes": {
+        "ifccad::layer": {
+          "appearance": {
+            "color": {
+              "rgb": [
+                0,
+                255,
+                0
+              ]
+            },
+            "linePattern": "/cad/d1/linePattern/0",
+            "lineWeight": 0.25,
+            "opacity": 0.8
+          },
+          "name": "Construction"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layer/2",
+      "attributes": {
+        "ifccad::layer": {
+          "appearance": {
+            "color": {
+              "rgb": [
+                255,
+                0,
+                0
+              ]
+            },
+            "linePattern": "/cad/d1/linePattern/0",
+            "lineWeight": 0.35,
+            "opacity": 1.0
+          },
+          "name": "Symbols"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/block/1",
+      "children": {
+        "0": "/cad/d1/e6"
+      },
+      "attributes": {
+        "ifccad::blockDefinition": {
+          "basePoint": [
+            2.0,
+            0.0,
+            0.0
+          ],
+          "insertionUnit": "cm",
+          "name": "Marker"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e1",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::lineSegment": {
+          "end": [
+            50.0,
+            0.0,
+            0.0
+          ],
+          "start": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e2",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            10.0,
+            2.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::geom::planarPolyline": {
+          "closed": false,
+          "vertices": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              2.0,
+              0.0
+            ],
+            [
+              2.0,
+              3.0
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e3",
+      "attributes": {
+        "ifccad::blockInstance": {
+          "definition": "/cad/d1/block/1",
+          "transform": {
+            "placement": {
+              "origin": [
+                20.0,
+                0.0,
+                0.0
+              ],
+              "xAxis": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "yAxis": [
+                0.0,
+                1.0,
+                0.0
+              ]
+            },
+            "rotation": 0.25,
+            "scale": [
+              2.0,
+              1.0,
+              1.0
+            ]
+          }
+        },
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "Explicit",
+              "value": {
+                "rgb": [
+                  0,
+                  0,
+                  255
+                ]
+              }
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/2"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e4",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/2"
+        },
+        "ifccad::geom::circle": {
+          "radius": 3.0
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            10.0,
+            2.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e5",
+      "attributes": {
+        "ifccad::blockInstance": {
+          "definition": "/cad/d1/block/1",
+          "transform": {
+            "placement": {
+              "origin": [
+                40.0,
+                0.0,
+                0.0
+              ],
+              "xAxis": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "yAxis": [
+                0.0,
+                1.0,
+                0.0
+              ]
+            },
+            "rotation": 0.25,
+            "scale": [
+              2.0,
+              1.0,
+              1.0
+            ]
+          }
+        },
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "Explicit",
+              "value": {
+                "rgb": [
+                  255,
+                  255,
+                  0
+                ]
+              }
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/2"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e6",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByBlock"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::geom::lineSegment": {
+          "end": [
+            4.0,
+            0.0,
+            0.0
+          ],
+          "start": [
+            2.0,
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e7",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::solid": {
+          "corners": [
+            [
+              0,
+              0
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              0,
+              8
+            ],
+            [
+              8,
+              8
+            ]
+          ],
+          "thickness": -3
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e8",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::trace": {
+          "corners": [
+            [
+              0,
+              0
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              0,
+              8
+            ],
+            [
+              8,
+              8
+            ]
+          ],
+          "thickness": 3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e9",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::solid": {
+          "corners": [
+            [
+              0,
+              0
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              0,
+              8
+            ],
+            [
+              0,
+              8
+            ]
+          ],
+          "thickness": 3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e10",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::trace": {
+          "corners": [
+            [
+              0,
+              0
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              0,
+              8
+            ],
+            [
+              0,
+              8
+            ]
+          ],
+          "thickness": -3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e11",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::solid": {
+          "corners": [
+            [
+              5,
+              5
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              0,
+              8
+            ],
+            [
+              8,
+              8
+            ]
+          ],
+          "thickness": 3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e12",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::trace": {
+          "corners": [
+            [
+              5,
+              5
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              0,
+              8
+            ],
+            [
+              8,
+              8
+            ]
+          ],
+          "thickness": 3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e13",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::solid": {
+          "corners": [
+            [
+              0,
+              0
+            ],
+            [
+              3,
+              5
+            ],
+            [
+              0,
+              8
+            ],
+            [
+              8,
+              8
+            ]
+          ],
+          "thickness": -3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e14",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::trace": {
+          "corners": [
+            [
+              0,
+              0
+            ],
+            [
+              3,
+              5
+            ],
+            [
+              0,
+              8
+            ],
+            [
+              8,
+              8
+            ]
+          ],
+          "thickness": 3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e15",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::solid": {
+          "corners": [
+            [
+              0,
+              0
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              5,
+              3
+            ],
+            [
+              8,
+              8
+            ]
+          ],
+          "thickness": 3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e16",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::trace": {
+          "corners": [
+            [
+              0,
+              0
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              5,
+              3
+            ],
+            [
+              8,
+              8
+            ]
+          ],
+          "thickness": -3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e17",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::solid": {
+          "corners": [
+            [
+              0,
+              0
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              0,
+              8
+            ],
+            [
+              3,
+              3
+            ]
+          ],
+          "thickness": 3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e18",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::trace": {
+          "corners": [
+            [
+              0,
+              0
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              0,
+              8
+            ],
+            [
+              3,
+              3
+            ]
+          ],
+          "thickness": 3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e19",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::solid": {
+          "corners": [
+            [
+              0,
+              0
+            ],
+            [
+              8,
+              8
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              0,
+              8
+            ]
+          ],
+          "thickness": -3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e20",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::trace": {
+          "corners": [
+            [
+              0,
+              0
+            ],
+            [
+              8,
+              8
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              0,
+              8
+            ]
+          ],
+          "thickness": 3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e21",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::solid": {
+          "corners": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              8
+            ],
+            [
+              8,
+              0
+            ]
+          ],
+          "thickness": 3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e22",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::trace": {
+          "corners": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              8
+            ],
+            [
+              8,
+              0
+            ]
+          ],
+          "thickness": -3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e23",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::solid": {
+          "corners": [
+            [
+              0,
+              0
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              8
+            ]
+          ],
+          "thickness": 3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e24",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::trace": {
+          "corners": [
+            [
+              0,
+              0
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              8
+            ]
+          ],
+          "thickness": 3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e25",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::solid": {
+          "corners": [
+            [
+              0,
+              0
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              0,
+              8
+            ],
+            [
+              8,
+              0
+            ]
+          ],
+          "thickness": -3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e26",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::trace": {
+          "corners": [
+            [
+              0,
+              0
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              0,
+              8
+            ],
+            [
+              8,
+              0
+            ]
+          ],
+          "thickness": 3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e27",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::solid": {
+          "corners": [
+            [
+              0,
+              0
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              0,
+              8
+            ],
+            [
+              0,
+              0
+            ]
+          ],
+          "thickness": 3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e28",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::trace": {
+          "corners": [
+            [
+              0,
+              0
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              0,
+              8
+            ],
+            [
+              0,
+              0
+            ]
+          ],
+          "thickness": -3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e29",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::solid": {
+          "corners": [
+            [
+              0,
+              0
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              5,
+              0
+            ]
+          ],
+          "thickness": 3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e30",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::trace": {
+          "corners": [
+            [
+              0,
+              0
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              5,
+              0
+            ]
+          ],
+          "thickness": 3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e31",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::solid": {
+          "corners": [
+            [
+              4,
+              4
+            ],
+            [
+              4,
+              4
+            ],
+            [
+              4,
+              4
+            ],
+            [
+              4,
+              4
+            ]
+          ],
+          "thickness": -3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e32",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::trace": {
+          "corners": [
+            [
+              4,
+              4
+            ],
+            [
+              4,
+              4
+            ],
+            [
+              4,
+              4
+            ],
+            [
+              4,
+              4
+            ]
+          ],
+          "thickness": 3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e33",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::solid": {
+          "corners": [
+            [
+              0,
+              0
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              0,
+              8
+            ],
+            [
+              4,
+              4
+            ]
+          ],
+          "thickness": 3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e34",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::trace": {
+          "corners": [
+            [
+              0,
+              0
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              0,
+              8
+            ],
+            [
+              4,
+              4
+            ]
+          ],
+          "thickness": -3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e35",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::solid": {
+          "corners": [
+            [
+              0,
+              0
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              0,
+              8
+            ],
+            [
+              3,
+              0
+            ]
+          ],
+          "thickness": 3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e36",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::trace": {
+          "corners": [
+            [
+              0,
+              0
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              0,
+              8
+            ],
+            [
+              3,
+              0
+            ]
+          ],
+          "thickness": 3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e37",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::solid": {
+          "corners": [
+            [
+              0,
+              0
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              0,
+              0
+            ]
+          ],
+          "thickness": -3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e38",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::trace": {
+          "corners": [
+            [
+              0,
+              0
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              0,
+              0
+            ]
+          ],
+          "thickness": 3
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    }
+  ]
+}

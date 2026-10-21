@@ -25,6 +25,17 @@ impl IfccadEntityKind {
     /// Borrows primitive geometry without copying entity identity or file fields.
     pub fn as_shared_geometry(&self) -> Result<Option<G<'_>>, IfccadReport> {
         Ok(Some(match self {
+            Self::Solid(v) | Self::Trace(v) => G::FilledQuadrilateral {
+                placement: v.placement.coordinate_frame().map_err(|e| {
+                    crate::ifccad::diagnostics::failure(
+                        "IFCCAD-FILLED-002",
+                        "/",
+                        format!("invalid filled placement: {e:?}"),
+                    )
+                })?,
+                corners: &v.corners,
+                thickness: v.thickness,
+            },
             Self::LineSegment { start, end } => G::Line {
                 start: *start,
                 end: *end,

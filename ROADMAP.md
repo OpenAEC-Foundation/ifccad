@@ -14,10 +14,18 @@ The accepted CBOR revision-2/native-Zstd checkpoint precedes this migration.
 2. Keep Hatch B paused until that integration. Rebase once afterward, replace the
    old codec pin and dual-model scope, and decide its IFCCAD/CBOR contract boundary
    before implementation. Do not couple later work to its unresolved boundary.
-3. Resume worked-out Dimension graphics on the resulting stable basis, then the
-   remaining kinds/selectors and later joint annotation slice. Graphics and Hatch
-   contract changes require explicit dependency assessment when they overlap.
-4. Expand semantics and investigate storage/performance as described below.
+3. Native SOLID and TRACE are implemented and verified: two kinds retaining every
+   finite local corner combination, native IFCX/CBOR storage and qualified CAD
+   type retention, with coordinate/surface/display evidence kept separate.
+4. Add bounded worked-out Dimension graphics on that basis, keeping polyline
+   widths outside the slice. Graphics and Hatch contract changes require explicit
+   dependency assessment when they overlap.
+5. Add native polyline widths in a separate follow-up slice. The red sample_AC1032
+   Dimension and its width-0.15 `_ArchTick` marker are acceptance evidence for that
+   follow-up, not a completion gate for the bounded graphics slice.
+6. Continue remaining Dimension kinds/selectors and later joint annotation support
+   according to their dependencies.
+7. Expand semantics and investigate storage/performance as described below.
 
 The independent xformop worktree remains separate. One broad structural task runs
 at a time. Independent narrow work can use focused checks; coordinate expensive
@@ -110,6 +118,22 @@ intersection auditing and runtime associative updates remain separate work.
 The gradient slice adds nine predefined types, two stored colors, independent mode/tint and partial inactive settings in both native models. CAD exchange is qualified for exact retained local axes and AC1032; inactive DXF settings and unavailable named color metadata remain diagnosed codec limitations. Gradient fields/pixels are unassessed.
 See [Hatch support](docs/hatch.md). No initial contract publication is implied.
 
+## SOLID and TRACE checkpoint
+
+Before Dimension graphics, the SOLID/TRACE slice adds native SOLID and TRACE as ordinary Model/Paper/block
+entities sharing one planar four-corner descriptor with signed extrusion thickness.
+All finite local corner combinations are supported, including crossing, retraced
+and wholly collapsed states. Preserve their distinct CAD types in qualified exchange and reuse the
+same payloads in later graphics parts. This replaces the proposed conversion to
+Solid Hatch and avoids a new opaque preservation family. The concrete
+[design](docs/geometry/solid-trace-design.md), revised after the
+[OCS behaviour investigation](docs/geometry/solid-trace-cad-behaviour.md), is
+implemented and verified. Required coordinate/envelope guarantees, optional filled-surface
+evidence and unassessed viewer display remain separate. Missing surface evidence
+does not refuse or omit an otherwise supported finite record.
+The checkpoint includes native schemas, readers, CAD exchange and inspection. It does not expand
+Hatch-source, viewport-clip or Dimension-selector eligibility or add polyline widths.
+
 ## Ordinary Dimension checkpoint
 
 The ordinary Dimension slice adds independent native linear/aligned entities and
@@ -119,14 +143,45 @@ tolerance; complete display and picture regeneration remain unassessed. Seven
 additional kinds, extended selectors and joint annotative Text/MText/Dimension
 remain subsequent slices. The repair round adds native fraction presentation,
 qualified CAD override coverage and localized inspector properties within this
-checkpoint. The next planned slice adds optional native worked-out Dimension
-graphics and qualified CAD picture-block capture/reuse, initially for linear and
+checkpoint. Following the native SOLID/TRACE precursor, the planned graphics
+slice adds optional native worked-out Dimension graphics and qualified CAD
+picture-block capture/reuse, initially for linear and
 aligned. It precedes the remaining kinds and extended selectors; annotative
 per-context graphics stay with the later joint annotation slice. The graphics
 design is under review and does not yet extend the active contract. See
 [Dimension support](docs/dimension.md). This adds
 content within the existing sequence; it does not reopen layout/workspace work
 or publish the initial contract.
+
+Polyline widths are explicitly deferred to the separate slice below. They do not
+block the bounded graphics implementation plan. Its positive capture/reuse cases
+must use complete supported graphics, including zero-width paths and native
+SOLID/TRACE arrows. The red sample is a limitation/rejection regression here:
+unsupported width remains diagnosed, with no zeroing, primitive substitution or
+partial picture presented as complete. Existing Allow/Reject and entity-recovery
+policies remain distinct.
+
+## Planned polyline-width follow-up
+
+After bounded Dimension graphics, design and implement native polyline widths
+as a separate semantic slice. Include constant width and start/end widths per
+segment for supported lightweight/classic planar polylines, with straight/bulged
+geometry, joins, bounds and qualified CAD exchange. Reuse this support in ordinary
+Model/Paper/block entities and Dimension graphics. Detailed fields, defaults and
+mapping codes require their own design; they are not added by this roadmap update.
+Existing presentation lineweight is already supported and remains independent;
+extrusion thickness is a separate coordinate/geometry property.
+
+The original red linear/aligned Dimension `0x527` in sample_AC1032, its pictureblock
+`*D8`, and both INSERTs of `_ArchTick` are the concrete follow-up acceptance case.
+Retain marker LWPOLYLINE width 0.15 (source entity `4A6`), its layer/ByBlock context,
+the placed graphics and the original MText wrap width zero/stacked-fraction text.
+Qualify complete picture capture, native IFCX/CBOR readback and actual supported
+DXF/DWG re-export; numerical/visual claims retain the graphics design's existing
+limits. Test the relevant source content/resources without requiring unrelated
+unsupported content elsewhere in the full sample to become lossless. Source
+handles locate evidence, not stable output identities. No narrower or zero-width
+replacement of the marker satisfies this acceptance case.
 
 ## Later physical encodings and performance
 
@@ -177,7 +232,8 @@ organization refinement does not change milestone order or semantic coverage.
 The complex line-pattern slice extends the existing drawing model and converter
 coverage without adding external asset resolution to the core. The IFCCAD route keeps closed text/SHX markers, independent source identity/watermarks, and separate
 producer/derived bounds evidence. Resource resolution and future source kinds
-remain deferred to issue 15; upright requires upstream codec support (issue 108).
+remain deferred to issue 15; upright requires adoption and qualification of the
+upstream codec repair (issue 108), followed by its native semantic slice.
 See [line patterns](docs/line-patterns.md). Milestone ordering is unchanged.
 
 ## Parked OCDraw checkpoint

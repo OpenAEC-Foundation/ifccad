@@ -195,6 +195,7 @@ impl GeometryContext {
         self.stored
             .insert(self.owner.domain(), self.state.assessment);
         IfccadGeometryAssessment {
+            filled_surfaces: vec![],
             unassessed: vec![],
             domains: self
                 .stored

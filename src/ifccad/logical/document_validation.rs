@@ -250,6 +250,31 @@ fn validate_document_inner(
                     )
                 })?;
             }
+            IfccadEntityKind::Solid(v) | IfccadEntityKind::Trace(v) => {
+                use crate::geometry_kernel::{validate_geometry, GeometryRef};
+                if !v.corners.iter().flatten().all(|v| v.is_finite()) || !v.thickness.is_finite() {
+                    return Err(crate::ifccad::diagnostics::failure(
+                        "IFCCAD-FILLED-001",
+                        &path,
+                        "nonfinite filled descriptor",
+                    ));
+                }
+                let p = v.placement.coordinate_frame().map_err(|e| {
+                    crate::ifccad::diagnostics::failure(
+                        "IFCCAD-FILLED-002",
+                        &path,
+                        format!("invalid filled placement: {e:?}"),
+                    )
+                })?;
+                validate_geometry(GeometryRef::FilledQuadrilateral {
+                    placement: p,
+                    corners: &v.corners,
+                    thickness: v.thickness,
+                })
+                .map_err(|e| {
+                    crate::ifccad::diagnostics::failure("IFCCAD-FILLED-002", &path, e.to_string())
+                })?;
+            }
             _ => {
                 let geometry = entity
                     .kind

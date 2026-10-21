@@ -287,3 +287,27 @@ fn independent_transport_fixtures_obey_the_published_contract() {
         }
     }
 }
+
+#[test]
+fn filled_zstd_keeps_native_kind_and_bits() {
+    let mut d = document();
+    let e = d.model.entities[0].as_native_mut().unwrap();
+    e.kind = IfccadEntityKind::Trace(IfccadFilledQuadrilateral {
+        placement: IfccadPlacement {
+            origin: [0.; 3],
+            x_axis: [1., 0., 0.],
+            y_axis: [0., 1., 0.],
+        },
+        corners: [[-0., f64::from_bits(1)]; 4],
+        thickness: -0.,
+    });
+    let encoded = encode_ifccad_cbor_zstd_document(&d, Default::default()).unwrap();
+    let out = load_ifccad_cbor_zstd_bytes(encoded.bytes(), Default::default()).unwrap();
+    let IfccadEntityKind::Trace(q) = &out.document().model.entities[0].as_native().unwrap().kind
+    else {
+        panic!()
+    };
+    assert_eq!(q.corners[0][0].to_bits(), (-0f64).to_bits());
+    assert_eq!(q.corners[0][1].to_bits(), 1);
+    assert_eq!(q.thickness.to_bits(), (-0f64).to_bits());
+}

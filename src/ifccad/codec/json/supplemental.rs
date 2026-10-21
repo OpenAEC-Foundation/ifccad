@@ -5,6 +5,16 @@ use std::{collections::BTreeMap, sync::OnceLock};
 
 const ENTRIES: &[(&str, &str, &str)] = &[
     (
+        "ifccad::geom::solid",
+        "geometryFilledExtras",
+        "IFCCAD-FILLED-001",
+    ),
+    (
+        "ifccad::geom::trace",
+        "geometryFilledExtras",
+        "IFCCAD-FILLED-001",
+    ),
+    (
         "ifccad::dimension",
         "dimensionExtras",
         "IFCCAD-DIMENSION-001",

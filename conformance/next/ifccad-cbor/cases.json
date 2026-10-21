@@ -169,6 +169,94 @@
       "valid": false,
       "errorClass": "UnsupportedRevision",
       "diagnostic": "invalid/zero-version.ifccad.cbor.diag"
+    },
+    {
+      "file": "valid/filled-all-finite.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/filled-all-finite.ifccad.cbor.diag"
+    },
+    {
+      "file": "invalid/filled-wrapper.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/filled-wrapper.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/filled-placement.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/filled-placement.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/filled-corners.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/filled-corners.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/filled-unknown.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/filled-unknown.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/filled-duplicate.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/filled-duplicate.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/filled-null.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/filled-null.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/filled-short.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/filled-short.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/filled-long.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/filled-long.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/filled-integer.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/filled-integer.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/filled-float16.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/filled-float16.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/filled-float32.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/filled-float32.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/filled-frame.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/filled-frame.ifccad.cbor.diag",
+      "errorClass": "InvalidDocument"
+    },
+    {
+      "file": "invalid/filled-overflow.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/filled-overflow.ifccad.cbor.diag",
+      "errorClass": "InvalidDocument"
+    },
+    {
+      "file": "valid/filled-float-bits-uint64.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/filled-float-bits-uint64.ifccad.cbor.diag"
     }
   ]
 }

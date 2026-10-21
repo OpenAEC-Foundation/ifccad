@@ -11,6 +11,11 @@ pub fn geometry_bounds(g: GeometryRef<'_>) -> Result<Bounds3d, Error> {
         }
     };
     match g {
+        GeometryRef::FilledQuadrilateral {
+            placement,
+            corners,
+            thickness,
+        } => return super::filled::bounds(placement, corners, thickness),
         GeometryRef::Line { start, end } => {
             union(start, start);
             union(end, end);

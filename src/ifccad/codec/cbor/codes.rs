@@ -29,6 +29,7 @@ mod tests {
     fn explicit_code_declarations_match_contract() {
         let r: serde_json::Value = serde_json::from_str(super::MAPPING).unwrap();
         check::<IfccadDocument>(&r, "IfccadDocument");
+        check::<IfccadFilledQuadrilateral>(&r, "IfccadFilledQuadrilateral");
         check::<IfccadHeader>(&r, "IfccadHeader");
         check::<IfccadIdCounters>(&r, "IfccadIdCounters");
         check::<PlotStyleMode>(&r, "PlotStyleMode");

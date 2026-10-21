@@ -39,7 +39,7 @@
           ],
           "nextBlockId": 2,
           "nextDimensionStyleId": 1,
-          "nextEntityId": 101,
+          "nextEntityId": 113,
           "nextLayerId": 5,
           "nextLayoutId": 3,
           "nextLinePatternId": 3,
@@ -270,7 +270,7 @@
             },
             "center": [
               194.0,
-              210.0
+              249.0
             ],
             "direction": [
               0.0,
@@ -280,7 +280,7 @@
             "frontClip": {
               "mode": "Disabled"
             },
-            "height": 580.0,
+            "height": 658.0,
             "projection": "Orthographic",
             "target": [
               0.0,
@@ -298,6 +298,12 @@
         "0": "/cad/d1/e1",
         "1": "/cad/d1/e2",
         "10": "/cad/d1/e11",
+        "100": "/cad/d1/e101",
+        "101": "/cad/d1/e102",
+        "102": "/cad/d1/e103",
+        "103": "/cad/d1/e104",
+        "104": "/cad/d1/e105",
+        "105": "/cad/d1/e106",
         "11": "/cad/d1/e12",
         "12": "/cad/d1/e13",
         "13": "/cad/d1/e14",
@@ -388,7 +394,13 @@
         "90": "/cad/d1/e91",
         "91": "/cad/d1/e92",
         "92": "/cad/d1/e93",
-        "93": "/cad/d1/e94"
+        "93": "/cad/d1/e94",
+        "94": "/cad/d1/e95",
+        "95": "/cad/d1/e96",
+        "96": "/cad/d1/e97",
+        "97": "/cad/d1/e98",
+        "98": "/cad/d1/e99",
+        "99": "/cad/d1/e100"
       },
       "attributes": {
         "ifccad::layout": {
@@ -400,10 +412,10 @@
     {
       "path": "/cad/d1/layout/2",
       "children": {
-        "0": "/cad/d1/e95",
-        "1": "/cad/d1/e96",
-        "2": "/cad/d1/e97",
-        "3": "/cad/d1/e98"
+        "0": "/cad/d1/e107",
+        "1": "/cad/d1/e108",
+        "2": "/cad/d1/e109",
+        "3": "/cad/d1/e110"
       },
       "attributes": {
         "ifccad::layout": {
@@ -666,8 +678,8 @@
     {
       "path": "/cad/d1/block/1",
       "children": {
-        "0": "/cad/d1/e99",
-        "1": "/cad/d1/e100"
+        "0": "/cad/d1/e111",
+        "1": "/cad/d1/e112"
       },
       "attributes": {
         "ifccad::blockDefinition": {
@@ -690,7 +702,7 @@
         "ifccad::geom::placement": {
           "origin": [
             0.0,
-            420.0,
+            498.0,
             0.0
           ],
           "xAxis": [
@@ -733,7 +745,7 @@
         "ifccad::geom::placement": {
           "origin": [
             0.0,
-            408.0,
+            486.0,
             0.0
           ],
           "xAxis": [
@@ -795,19 +807,19 @@
           "vertices": [
             [
               0.0,
-              312.0
+              390.0
             ],
             [
               94.0,
-              312.0
+              390.0
             ],
             [
               94.0,
-              386.0
+              464.0
             ],
             [
               0.0,
-              386.0
+              464.0
             ]
           ]
         }
@@ -822,7 +834,7 @@
         "ifccad::geom::placement": {
           "origin": [
             5.0,
-            375.0,
+            453.0,
             0.0
           ],
           "xAxis": [
@@ -865,7 +877,7 @@
         "ifccad::geom::placement": {
           "origin": [
             5.0,
-            366.0,
+            444.0,
             0.0
           ],
           "xAxis": [
@@ -908,7 +920,7 @@
         "ifccad::geom::placement": {
           "origin": [
             45.0,
-            337.0,
+            415.0,
             0.0
           ],
           "xAxis": [
@@ -934,11 +946,11 @@
         "ifccad::geom::lineSegment": {
           "end": [
             50.0,
-            337.0
+            415.0
           ],
           "start": [
             40.0,
-            337.0
+            415.0
           ]
         }
       }
@@ -952,11 +964,11 @@
         "ifccad::geom::lineSegment": {
           "end": [
             45.0,
-            342.0
+            420.0
           ],
           "start": [
             45.0,
-            332.0
+            410.0
           ]
         }
       }
@@ -989,19 +1001,19 @@
           "vertices": [
             [
               98.0,
-              312.0
+              390.0
             ],
             [
               192.0,
-              312.0
+              390.0
             ],
             [
               192.0,
-              386.0
+              464.0
             ],
             [
               98.0,
-              386.0
+              464.0
             ]
           ]
         }
@@ -1016,7 +1028,7 @@
         "ifccad::geom::placement": {
           "origin": [
             103.0,
-            375.0,
+            453.0,
             0.0
           ],
           "xAxis": [
@@ -1059,7 +1071,7 @@
         "ifccad::geom::placement": {
           "origin": [
             103.0,
-            366.0,
+            444.0,
             0.0
           ],
           "xAxis": [
@@ -1102,11 +1114,11 @@
         "ifccad::geom::lineSegment": {
           "end": [
             175.0,
-            349.0
+            427.0
           ],
           "start": [
             113.0,
-            325.0
+            403.0
           ]
         }
       }
@@ -1139,19 +1151,19 @@
           "vertices": [
             [
               196.0,
-              312.0
+              390.0
             ],
             [
               290.0,
-              312.0
+              390.0
             ],
             [
               290.0,
-              386.0
+              464.0
             ],
             [
               196.0,
-              386.0
+              464.0
             ]
           ]
         }
@@ -1166,7 +1178,7 @@
         "ifccad::geom::placement": {
           "origin": [
             201.0,
-            375.0,
+            453.0,
             0.0
           ],
           "xAxis": [
@@ -1209,7 +1221,7 @@
         "ifccad::geom::placement": {
           "origin": [
             201.0,
-            366.0,
+            444.0,
             0.0
           ],
           "xAxis": [
@@ -1255,7 +1267,7 @@
         "ifccad::geom::placement": {
           "origin": [
             242.0,
-            338.0,
+            416.0,
             0.0
           ],
           "xAxis": [
@@ -1299,19 +1311,19 @@
           "vertices": [
             [
               294.0,
-              312.0
+              390.0
             ],
             [
               388.0,
-              312.0
+              390.0
             ],
             [
               388.0,
-              386.0
+              464.0
             ],
             [
               294.0,
-              386.0
+              464.0
             ]
           ]
         }
@@ -1326,7 +1338,7 @@
         "ifccad::geom::placement": {
           "origin": [
             299.0,
-            375.0,
+            453.0,
             0.0
           ],
           "xAxis": [
@@ -1369,7 +1381,7 @@
         "ifccad::geom::placement": {
           "origin": [
             299.0,
-            366.0,
+            444.0,
             0.0
           ],
           "xAxis": [
@@ -1417,7 +1429,7 @@
         "ifccad::geom::placement": {
           "origin": [
             321.0,
-            337.0,
+            415.0,
             0.0
           ],
           "xAxis": [
@@ -1447,7 +1459,7 @@
         "ifccad::geom::placement": {
           "origin": [
             361.0,
-            337.0,
+            415.0,
             0.0
           ],
           "xAxis": [
@@ -1491,19 +1503,19 @@
           "vertices": [
             [
               0.0,
-              234.0
+              312.0
             ],
             [
               94.0,
-              234.0
+              312.0
             ],
             [
               94.0,
-              308.0
+              386.0
             ],
             [
               0.0,
-              308.0
+              386.0
             ]
           ]
         }
@@ -1518,7 +1530,7 @@
         "ifccad::geom::placement": {
           "origin": [
             5.0,
-            297.0,
+            375.0,
             0.0
           ],
           "xAxis": [
@@ -1561,7 +1573,7 @@
         "ifccad::geom::placement": {
           "origin": [
             5.0,
-            288.0,
+            366.0,
             0.0
           ],
           "xAxis": [
@@ -1608,7 +1620,7 @@
         "ifccad::geom::placement": {
           "origin": [
             46.0,
-            260.0,
+            338.0,
             0.0
           ],
           "xAxis": [
@@ -1652,19 +1664,19 @@
           "vertices": [
             [
               98.0,
-              234.0
+              312.0
             ],
             [
               192.0,
-              234.0
+              312.0
             ],
             [
               192.0,
-              308.0
+              386.0
             ],
             [
               98.0,
-              308.0
+              386.0
             ]
           ]
         }
@@ -1679,7 +1691,7 @@
         "ifccad::geom::placement": {
           "origin": [
             103.0,
-            297.0,
+            375.0,
             0.0
           ],
           "xAxis": [
@@ -1722,7 +1734,7 @@
         "ifccad::geom::placement": {
           "origin": [
             103.0,
-            288.0,
+            366.0,
             0.0
           ],
           "xAxis": [
@@ -1771,7 +1783,7 @@
         "ifccad::geom::placement": {
           "origin": [
             144.0,
-            260.0,
+            338.0,
             0.0
           ],
           "xAxis": [
@@ -1815,19 +1827,19 @@
           "vertices": [
             [
               196.0,
-              234.0
+              312.0
             ],
             [
               290.0,
-              234.0
+              312.0
             ],
             [
               290.0,
-              308.0
+              386.0
             ],
             [
               196.0,
-              308.0
+              386.0
             ]
           ]
         }
@@ -1842,7 +1854,7 @@
         "ifccad::geom::placement": {
           "origin": [
             201.0,
-            297.0,
+            375.0,
             0.0
           ],
           "xAxis": [
@@ -1885,7 +1897,7 @@
         "ifccad::geom::placement": {
           "origin": [
             201.0,
-            288.0,
+            366.0,
             0.0
           ],
           "xAxis": [
@@ -1946,15 +1958,15 @@
           "vertices": [
             [
               205.0,
-              244.0
+              322.0
             ],
             [
               219.0,
-              273.0
+              351.0
             ],
             [
               231.0,
-              247.0
+              325.0
             ]
           ]
         }
@@ -1969,7 +1981,7 @@
         "ifccad::geom::placement": {
           "origin": [
             248.0,
-            246.0,
+            324.0,
             0.0
           ],
           "xAxis": [
@@ -2040,19 +2052,19 @@
           "vertices": [
             [
               294.0,
-              234.0
+              312.0
             ],
             [
               388.0,
-              234.0
+              312.0
             ],
             [
               388.0,
-              308.0
+              386.0
             ],
             [
               294.0,
-              308.0
+              386.0
             ]
           ]
         }
@@ -2067,7 +2079,7 @@
         "ifccad::geom::placement": {
           "origin": [
             299.0,
-            297.0,
+            375.0,
             0.0
           ],
           "xAxis": [
@@ -2110,7 +2122,7 @@
         "ifccad::geom::placement": {
           "origin": [
             299.0,
-            288.0,
+            366.0,
             0.0
           ],
           "xAxis": [
@@ -2154,22 +2166,22 @@
           "vertices": [
             [
               304.0,
-              244.0,
+              322.0,
               0.0
             ],
             [
               324.0,
-              269.0,
+              347.0,
               10.0
             ],
             [
               349.0,
-              249.0,
+              327.0,
               25.0
             ],
             [
               374.0,
-              274.0,
+              352.0,
               15.0
             ]
           ]
@@ -2204,19 +2216,19 @@
           "vertices": [
             [
               0.0,
-              156.0
+              234.0
             ],
             [
               94.0,
-              156.0
+              234.0
             ],
             [
               94.0,
-              230.0
+              308.0
             ],
             [
               0.0,
-              230.0
+              308.0
             ]
           ]
         }
@@ -2231,7 +2243,7 @@
         "ifccad::geom::placement": {
           "origin": [
             5.0,
-            219.0,
+            297.0,
             0.0
           ],
           "xAxis": [
@@ -2274,7 +2286,7 @@
         "ifccad::geom::placement": {
           "origin": [
             5.0,
-            210.0,
+            288.0,
             0.0
           ],
           "xAxis": [
@@ -2317,7 +2329,7 @@
         "ifccad::geom::placement": {
           "origin": [
             10.0,
-            188.0,
+            266.0,
             0.0
           ],
           "xAxis": [
@@ -2360,7 +2372,7 @@
         "ifccad::geom::placement": {
           "origin": [
             10.0,
-            171.0,
+            249.0,
             0.0
           ],
           "xAxis": [
@@ -2422,19 +2434,19 @@
           "vertices": [
             [
               98.0,
-              156.0
+              234.0
             ],
             [
               192.0,
-              156.0
+              234.0
             ],
             [
               192.0,
-              230.0
+              308.0
             ],
             [
               98.0,
-              230.0
+              308.0
             ]
           ]
         }
@@ -2449,7 +2461,7 @@
         "ifccad::geom::placement": {
           "origin": [
             103.0,
-            219.0,
+            297.0,
             0.0
           ],
           "xAxis": [
@@ -2492,7 +2504,7 @@
         "ifccad::geom::placement": {
           "origin": [
             103.0,
-            210.0,
+            288.0,
             0.0
           ],
           "xAxis": [
@@ -2535,7 +2547,7 @@
         "ifccad::geom::placement": {
           "origin": [
             108.0,
-            198.0,
+            276.0,
             0.0
           ],
           "xAxis": [
@@ -2612,19 +2624,19 @@
           "vertices": [
             [
               196.0,
-              156.0
+              234.0
             ],
             [
               290.0,
-              156.0
+              234.0
             ],
             [
               290.0,
-              230.0
+              308.0
             ],
             [
               196.0,
-              230.0
+              308.0
             ]
           ]
         }
@@ -2639,7 +2651,7 @@
         "ifccad::geom::placement": {
           "origin": [
             201.0,
-            219.0,
+            297.0,
             0.0
           ],
           "xAxis": [
@@ -2682,7 +2694,7 @@
         "ifccad::geom::placement": {
           "origin": [
             201.0,
-            210.0,
+            288.0,
             0.0
           ],
           "xAxis": [
@@ -2758,19 +2770,19 @@
                 "vertices": [
                   [
                     209.0,
-                    166.0
+                    244.0
                   ],
                   [
                     275.0,
-                    166.0
+                    244.0
                   ],
                   [
                     275.0,
-                    198.0
+                    276.0
                   ],
                   [
                     209.0,
-                    198.0
+                    276.0
                   ]
                 ]
               }
@@ -2779,7 +2791,7 @@
               "boundary": {
                 "center": [
                   242.0,
-                  182.0
+                  260.0
                 ],
                 "kind": "circle",
                 "radius": 10.0
@@ -2817,19 +2829,19 @@
           "vertices": [
             [
               294.0,
-              156.0
+              234.0
             ],
             [
               388.0,
-              156.0
+              234.0
             ],
             [
               388.0,
-              230.0
+              308.0
             ],
             [
               294.0,
-              230.0
+              308.0
             ]
           ]
         }
@@ -2844,7 +2856,7 @@
         "ifccad::geom::placement": {
           "origin": [
             299.0,
-            219.0,
+            297.0,
             0.0
           ],
           "xAxis": [
@@ -2887,7 +2899,7 @@
         "ifccad::geom::placement": {
           "origin": [
             299.0,
-            210.0,
+            288.0,
             0.0
           ],
           "xAxis": [
@@ -2979,19 +2991,19 @@
                 "vertices": [
                   [
                     307.0,
-                    166.0
+                    244.0
                   ],
                   [
                     373.0,
-                    166.0
+                    244.0
                   ],
                   [
                     373.0,
-                    198.0
+                    276.0
                   ],
                   [
                     307.0,
-                    198.0
+                    276.0
                   ]
                 ]
               }
@@ -3028,19 +3040,19 @@
           "vertices": [
             [
               0.0,
-              78.0
+              156.0
             ],
             [
               94.0,
-              78.0
+              156.0
             ],
             [
               94.0,
-              152.0
+              230.0
             ],
             [
               0.0,
-              152.0
+              230.0
             ]
           ]
         }
@@ -3055,7 +3067,7 @@
         "ifccad::geom::placement": {
           "origin": [
             5.0,
-            141.0,
+            219.0,
             0.0
           ],
           "xAxis": [
@@ -3098,7 +3110,7 @@
         "ifccad::geom::placement": {
           "origin": [
             5.0,
-            132.0,
+            210.0,
             0.0
           ],
           "xAxis": [
@@ -3197,19 +3209,19 @@
                 "vertices": [
                   [
                     13.0,
-                    88.0
+                    166.0
                   ],
                   [
                     79.0,
-                    88.0
+                    166.0
                   ],
                   [
                     79.0,
-                    120.0
+                    198.0
                   ],
                   [
                     13.0,
-                    120.0
+                    198.0
                   ]
                 ]
               }
@@ -3246,19 +3258,19 @@
           "vertices": [
             [
               98.0,
-              78.0
+              156.0
             ],
             [
               192.0,
-              78.0
+              156.0
             ],
             [
               192.0,
-              152.0
+              230.0
             ],
             [
               98.0,
-              152.0
+              230.0
             ]
           ]
         }
@@ -3273,7 +3285,7 @@
         "ifccad::geom::placement": {
           "origin": [
             103.0,
-            141.0,
+            219.0,
             0.0
           ],
           "xAxis": [
@@ -3316,7 +3328,7 @@
         "ifccad::geom::placement": {
           "origin": [
             103.0,
-            132.0,
+            210.0,
             0.0
           ],
           "xAxis": [
@@ -3359,11 +3371,11 @@
         "ifccad::geom::lineSegment": {
           "end": [
             173.0,
-            89.0
+            167.0
           ],
           "start": [
             115.0,
-            89.0
+            167.0
           ]
         }
       }
@@ -3376,18 +3388,18 @@
           "definition": {
             "dimensionLinePoint": [
               115.0,
-              111.0
+              189.0
             ],
             "directionAngle": 0.0,
             "firstPoint": [
               115.0,
-              89.0,
+              167.0,
               0.0
             ],
             "kind": "linear",
             "secondPoint": [
               173.0,
-              89.0,
+              167.0,
               0.0
             ]
           },
@@ -3478,19 +3490,19 @@
           "vertices": [
             [
               196.0,
-              78.0
+              156.0
             ],
             [
               290.0,
-              78.0
+              156.0
             ],
             [
               290.0,
-              152.0
+              230.0
             ],
             [
               196.0,
-              152.0
+              230.0
             ]
           ]
         }
@@ -3505,7 +3517,7 @@
         "ifccad::geom::placement": {
           "origin": [
             201.0,
-            141.0,
+            219.0,
             0.0
           ],
           "xAxis": [
@@ -3548,7 +3560,7 @@
         "ifccad::geom::placement": {
           "origin": [
             201.0,
-            132.0,
+            210.0,
             0.0
           ],
           "xAxis": [
@@ -3591,11 +3603,11 @@
         "ifccad::geom::lineSegment": {
           "end": [
             267.0,
-            106.0
+            184.0
           ],
           "start": [
             213.0,
-            88.0
+            166.0
           ]
         }
       }
@@ -3608,17 +3620,17 @@
           "definition": {
             "dimensionLinePoint": [
               211.0,
-              110.0
+              188.0
             ],
             "firstPoint": [
               213.0,
-              88.0,
+              166.0,
               0.0
             ],
             "kind": "aligned",
             "secondPoint": [
               267.0,
-              106.0,
+              184.0,
               0.0
             ]
           },
@@ -3709,19 +3721,19 @@
           "vertices": [
             [
               294.0,
-              78.0
+              156.0
             ],
             [
               388.0,
-              78.0
+              156.0
             ],
             [
               388.0,
-              152.0
+              230.0
             ],
             [
               294.0,
-              152.0
+              230.0
             ]
           ]
         }
@@ -3736,7 +3748,7 @@
         "ifccad::geom::placement": {
           "origin": [
             299.0,
-            141.0,
+            219.0,
             0.0
           ],
           "xAxis": [
@@ -3779,7 +3791,7 @@
         "ifccad::geom::placement": {
           "origin": [
             299.0,
-            132.0,
+            210.0,
             0.0
           ],
           "xAxis": [
@@ -3822,7 +3834,7 @@
             "placement": {
               "origin": [
                 311.0,
-                95.0,
+                173.0,
                 0.0
               ],
               "xAxis": [
@@ -3852,7 +3864,7 @@
             "placement": {
               "origin": [
                 342.0,
-                95.0,
+                173.0,
                 0.0
               ],
               "xAxis": [
@@ -3888,7 +3900,7 @@
             "placement": {
               "origin": [
                 373.0,
-                95.0,
+                173.0,
                 0.0
               ],
               "xAxis": [
@@ -3942,19 +3954,19 @@
           "vertices": [
             [
               0.0,
-              0.0
+              78.0
             ],
             [
               94.0,
-              0.0
+              78.0
             ],
             [
               94.0,
-              74.0
+              152.0
             ],
             [
               0.0,
-              74.0
+              152.0
             ]
           ]
         }
@@ -3969,7 +3981,7 @@
         "ifccad::geom::placement": {
           "origin": [
             5.0,
-            63.0,
+            141.0,
             0.0
           ],
           "xAxis": [
@@ -4012,7 +4024,7 @@
         "ifccad::geom::placement": {
           "origin": [
             5.0,
-            54.0,
+            132.0,
             0.0
           ],
           "xAxis": [
@@ -4055,11 +4067,11 @@
         "ifccad::geom::lineSegment": {
           "end": [
             82.0,
-            39.0
+            117.0
           ],
           "start": [
             10.0,
-            39.0
+            117.0
           ]
         }
       }
@@ -4079,11 +4091,11 @@
         "ifccad::geom::lineSegment": {
           "end": [
             82.0,
-            26.0
+            104.0
           ],
           "start": [
             10.0,
-            26.0
+            104.0
           ]
         }
       }
@@ -4103,11 +4115,11 @@
         "ifccad::geom::lineSegment": {
           "end": [
             82.0,
-            13.0
+            91.0
           ],
           "start": [
             10.0,
-            13.0
+            91.0
           ]
         }
       }
@@ -4140,19 +4152,19 @@
           "vertices": [
             [
               98.0,
-              0.0
+              78.0
             ],
             [
               192.0,
-              0.0
+              78.0
             ],
             [
               192.0,
-              74.0
+              152.0
             ],
             [
               98.0,
-              74.0
+              152.0
             ]
           ]
         }
@@ -4167,7 +4179,7 @@
         "ifccad::geom::placement": {
           "origin": [
             103.0,
-            63.0,
+            141.0,
             0.0
           ],
           "xAxis": [
@@ -4210,7 +4222,7 @@
         "ifccad::geom::placement": {
           "origin": [
             103.0,
-            54.0,
+            132.0,
             0.0
           ],
           "xAxis": [
@@ -4272,19 +4284,19 @@
           "vertices": [
             [
               111.0,
-              13.0
+              91.0
             ],
             [
               129.0,
-              13.0
+              91.0
             ],
             [
               129.0,
-              39.0
+              117.0
             ],
             [
               111.0,
-              39.0
+              117.0
             ]
           ]
         }
@@ -4318,19 +4330,19 @@
           "vertices": [
             [
               135.0,
-              13.0
+              91.0
             ],
             [
               153.0,
-              13.0
+              91.0
             ],
             [
               153.0,
-              39.0
+              117.0
             ],
             [
               135.0,
-              39.0
+              117.0
             ]
           ]
         }
@@ -4364,19 +4376,19 @@
           "vertices": [
             [
               159.0,
-              13.0
+              91.0
             ],
             [
               177.0,
-              13.0
+              91.0
             ],
             [
               177.0,
-              39.0
+              117.0
             ],
             [
               159.0,
-              39.0
+              117.0
             ]
           ]
         }
@@ -4410,19 +4422,19 @@
           "vertices": [
             [
               196.0,
-              0.0
+              78.0
             ],
             [
               290.0,
-              0.0
+              78.0
             ],
             [
               290.0,
-              74.0
+              152.0
             ],
             [
               196.0,
-              74.0
+              152.0
             ]
           ]
         }
@@ -4437,7 +4449,7 @@
         "ifccad::geom::placement": {
           "origin": [
             201.0,
-            63.0,
+            141.0,
             0.0
           ],
           "xAxis": [
@@ -4480,7 +4492,7 @@
         "ifccad::geom::placement": {
           "origin": [
             201.0,
-            54.0,
+            132.0,
             0.0
           ],
           "xAxis": [
@@ -4542,19 +4554,19 @@
           "vertices": [
             [
               213.0,
-              8.0
+              86.0
             ],
             [
               271.0,
-              8.0
+              86.0
             ],
             [
               271.0,
-              46.0
+              124.0
             ],
             [
               213.0,
-              46.0
+              124.0
             ]
           ]
         }
@@ -4588,19 +4600,19 @@
           "vertices": [
             [
               218.0,
-              17.0
+              95.0
             ],
             [
               266.0,
-              17.0
+              95.0
             ],
             [
               266.0,
-              41.0
+              119.0
             ],
             [
               218.0,
-              41.0
+              119.0
             ]
           ]
         }
@@ -4615,7 +4627,7 @@
         "ifccad::geom::placement": {
           "origin": [
             220.0,
-            10.0,
+            88.0,
             0.0
           ],
           "xAxis": [
@@ -4658,6 +4670,543 @@
         "ifccad::geom::placement": {
           "origin": [
             0.0,
+            0.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::geom::planarPolyline": {
+          "closed": true,
+          "vertices": [
+            [
+              294.0,
+              78.0
+            ],
+            [
+              388.0,
+              78.0
+            ],
+            [
+              388.0,
+              152.0
+            ],
+            [
+              294.0,
+              152.0
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e95",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            299.0,
+            141.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::text": {
+          "content": [
+            {
+              "overline": false,
+              "strikeThrough": false,
+              "text": "20  SOLID filled faces",
+              "underline": false
+            }
+          ],
+          "layout": {
+            "height": 4.0,
+            "horizontal": "left",
+            "kind": "anchored",
+            "vertical": "baseline",
+            "widthFactor": 1.0
+          },
+          "style": "/cad/d1/textStyle/0"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e96",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            299.0,
+            132.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::text": {
+          "content": [
+            {
+              "overline": false,
+              "strikeThrough": false,
+              "text": "Triangle / rectangle / trapezoid",
+              "underline": false
+            }
+          ],
+          "layout": {
+            "height": 2.6,
+            "horizontal": "left",
+            "kind": "anchored",
+            "vertical": "baseline",
+            "widthFactor": 1.0
+          },
+          "style": "/cad/d1/textStyle/0"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e97",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            299.0,
+            91.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::geom::solid": {
+          "corners": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              24.0,
+              0.0
+            ],
+            [
+              12.0,
+              22.0
+            ],
+            [
+              12.0,
+              22.0
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e98",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            327.0,
+            91.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::geom::solid": {
+          "corners": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              24.0,
+              0.0
+            ],
+            [
+              0.0,
+              22.0
+            ],
+            [
+              24.0,
+              22.0
+            ]
+          ],
+          "thickness": 3.0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e99",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            355.0,
+            91.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::geom::solid": {
+          "corners": [
+            [
+              4.0,
+              0.0
+            ],
+            [
+              20.0,
+              0.0
+            ],
+            [
+              0.0,
+              22.0
+            ],
+            [
+              24.0,
+              22.0
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e100",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::geom::planarPolyline": {
+          "closed": true,
+          "vertices": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              94.0,
+              0.0
+            ],
+            [
+              94.0,
+              74.0
+            ],
+            [
+              0.0,
+              74.0
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e101",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            5.0,
+            63.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::text": {
+          "content": [
+            {
+              "overline": false,
+              "strikeThrough": false,
+              "text": "21  TRACE filled faces",
+              "underline": false
+            }
+          ],
+          "layout": {
+            "height": 4.0,
+            "horizontal": "left",
+            "kind": "anchored",
+            "vertical": "baseline",
+            "widthFactor": 1.0
+          },
+          "style": "/cad/d1/textStyle/0"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e102",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            5.0,
+            54.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::text": {
+          "content": [
+            {
+              "overline": false,
+              "strikeThrough": false,
+              "text": "Triangle / rectangle / trapezoid",
+              "underline": false
+            }
+          ],
+          "layout": {
+            "height": 2.6,
+            "horizontal": "left",
+            "kind": "anchored",
+            "vertical": "baseline",
+            "widthFactor": 1.0
+          },
+          "style": "/cad/d1/textStyle/0"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e103",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            5.0,
+            13.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::geom::trace": {
+          "corners": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              24.0,
+              0.0
+            ],
+            [
+              12.0,
+              22.0
+            ],
+            [
+              12.0,
+              22.0
+            ]
+          ],
+          "thickness": -3.0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e104",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            33.0,
+            13.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::geom::trace": {
+          "corners": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              24.0,
+              0.0
+            ],
+            [
+              0.0,
+              22.0
+            ],
+            [
+              24.0,
+              22.0
+            ]
+          ],
+          "thickness": 3.0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e105",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            61.0,
+            13.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::geom::trace": {
+          "corners": [
+            [
+              4.0,
+              0.0
+            ],
+            [
+              20.0,
+              0.0
+            ],
+            [
+              0.0,
+              22.0
+            ],
+            [
+              24.0,
+              22.0
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e106",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0.0,
             -12.0,
             0.0
           ],
@@ -4693,7 +5242,7 @@
       }
     },
     {
-      "path": "/cad/d1/e95",
+      "path": "/cad/d1/e107",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -4729,12 +5278,12 @@
             "frontClip": {
               "mode": "Disabled"
             },
-            "height": 460.0,
+            "height": 538.0,
             "lensLengthMm": 50.0,
             "projection": "Orthographic",
             "target": [
               194.0,
-              205.0,
+              244.0,
               0.0
             ],
             "twist": 0.0
@@ -4745,7 +5294,7 @@
       }
     },
     {
-      "path": "/cad/d1/e96",
+      "path": "/cad/d1/e108",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -4791,7 +5340,7 @@
       }
     },
     {
-      "path": "/cad/d1/e97",
+      "path": "/cad/d1/e109",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -4834,7 +5383,7 @@
       }
     },
     {
-      "path": "/cad/d1/e98",
+      "path": "/cad/d1/e110",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -4877,7 +5426,7 @@
       }
     },
     {
-      "path": "/cad/d1/e99",
+      "path": "/cad/d1/e111",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -4922,7 +5471,7 @@
       }
     },
     {
-      "path": "/cad/d1/e100",
+      "path": "/cad/d1/e112",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"

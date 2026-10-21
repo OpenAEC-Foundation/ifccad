@@ -218,6 +218,32 @@ pub const SAMPLES: &[Sample] = &[
             d.text(MODEL, 0, x + 19., y + 5., 3., "MODEL > PAPER");
         },
     },
+    Sample {
+        title: "SOLID filled faces",
+        note: "Triangle / rectangle / trapezoid",
+        draw: |d, x, y| {
+            for (offset, corners, h) in [
+                (0., [[0., 0.], [24., 0.], [12., 22.], [12., 22.]], 0.),
+                (28., [[0., 0.], [24., 0.], [0., 22.], [24., 22.]], 3.),
+                (56., [[4., 0.], [20., 0.], [0., 22.], [24., 22.]], 0.),
+            ] {
+                d.entity(MODEL,1,json!({"ifccad::geom::placement":plane(x+offset,y+8.),"ifccad::geom::solid":{"corners":corners,"thickness":h}}));
+            }
+        },
+    },
+    Sample {
+        title: "TRACE filled faces",
+        note: "Triangle / rectangle / trapezoid",
+        draw: |d, x, y| {
+            for (offset, corners, h) in [
+                (0., [[0., 0.], [24., 0.], [12., 22.], [12., 22.]], -3.),
+                (28., [[0., 0.], [24., 0.], [0., 22.], [24., 22.]], 3.),
+                (56., [[4., 0.], [20., 0.], [0., 22.], [24., 22.]], 0.),
+            ] {
+                d.entity(MODEL,1,json!({"ifccad::geom::placement":plane(x+offset,y+8.),"ifccad::geom::trace":{"corners":corners,"thickness":h}}));
+            }
+        },
+    },
 ];
 
 pub fn build() -> Result<Vec<u8>> {

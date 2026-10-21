@@ -5,6 +5,39 @@ use opencadcodec::{EntityType, Vector3};
 pub(crate) fn classified(e: &EntityType, loc: &str, issues: &mut Vec<IfccadDiagnostic>) -> bool {
     let before = issues.len();
     match e {
+        EntityType::Solid(s) => {
+            if [s.second_corner, s.third_corner, s.fourth_corner]
+                .iter()
+                .any(|p| p.z != s.first_corner.z)
+            {
+                issues.push(diagnostic(
+                    "geometry",
+                    loc,
+                    "independent SOLID/TRACE OCS elevations are outside the planar profile",
+                ));
+            }
+            residual(
+                s,
+                &opencadcodec::entities::Solid::new(
+                    Vector3::ZERO,
+                    Vector3::ZERO,
+                    Vector3::ZERO,
+                    Vector3::ZERO,
+                ),
+                &[
+                    "common",
+                    "first_corner",
+                    "second_corner",
+                    "third_corner",
+                    "fourth_corner",
+                    "normal",
+                    "thickness",
+                    "is_trace",
+                ],
+                loc,
+                issues,
+            );
+        }
         EntityType::Line(p) => residual(
             p,
             &opencadcodec::Line::new(),
@@ -181,6 +214,19 @@ pub(crate) fn classified(e: &EntityType, loc: &str, issues: &mut Vec<IfccadDiagn
 pub(crate) fn validate_source(entity: &EntityType) -> Result<(), crate::IfccadConversionError> {
     let finite = |v: Vector3| p(v).iter().all(|n| n.is_finite());
     let valid = match entity {
+        EntityType::Solid(s) => {
+            [
+                s.first_corner,
+                s.second_corner,
+                s.third_corner,
+                s.fourth_corner,
+                s.normal,
+            ]
+            .into_iter()
+            .all(finite)
+                && s.normal != Vector3::ZERO
+                && s.thickness.is_finite()
+        }
         EntityType::Text(t) => {
             finite(t.insertion_point)
                 && t.alignment_point.is_none_or(finite)

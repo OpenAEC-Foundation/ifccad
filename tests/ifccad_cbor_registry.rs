@@ -25,7 +25,7 @@ fn registry_pins_root_document_and_current_families() {
         11
     );
     let kinds = types["IfccadEntityKind"]["variants"].as_array().unwrap();
-    assert_eq!(kinds.len(), 14);
+    assert_eq!(kinds.len(), 16);
     assert_eq!(
         kinds.iter().find(|v| v["name"] == "Dimension").unwrap()["code"],
         13

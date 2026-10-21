@@ -98,10 +98,14 @@ impl IfccadGeometryDomainAssessment {
 }
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadGeometryAssessment {
+    pub(crate) filled_surfaces: Vec<crate::IfccadFilledSurfaceAssessment>,
     pub(crate) domains: Vec<IfccadGeometryDomainAssessment>,
     pub(crate) unassessed: Vec<IfccadGeometryEntitySource>,
 }
 impl IfccadGeometryAssessment {
+    pub fn filled_surfaces(&self) -> &[crate::IfccadFilledSurfaceAssessment] {
+        &self.filled_surfaces
+    }
     /// Accuracy evidence covers native subsets; opaque geometry stays explicitly unassessed.
     pub fn is_complete(&self) -> bool {
         self.unassessed.is_empty()
@@ -186,6 +190,12 @@ impl IfccadGeometryAssessment {
                 &mut self.unassessed,
             );
         }
+        self.unassessed.extend(
+            self.filled_surfaces
+                .iter()
+                .filter(|s| s.coverage() == crate::IfccadFilledSurfaceCoverage::Unassessed)
+                .map(|s| s.source().clone()),
+        );
         crate::mapping::marker_coverage::record(d, &mut self.unassessed);
         self
     }

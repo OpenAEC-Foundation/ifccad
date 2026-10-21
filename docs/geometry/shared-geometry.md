@@ -119,3 +119,24 @@ registers complete contour curves and occurrence evidence; fill remains
 unassessed. Source edits do not regenerate stored contours during IO. Explicit
 detachment keeps geometry; invalid source deletion fails validation.
 See [Hatch support](../hatch.md).
+
+## SOLID/TRACE descriptors and proof scope
+
+The [filled descriptor](solid-trace-design.md) stores four ordered local XY slots
+and signed thickness in one existing frame; two native kinds preserve CAD identity.
+All finite topologies remain supported. Exact rational evaluation and outward
+bounds include B0..B3 and T0..T3 with the cross product of the stored axes.
+Line/point collapse is not empty geometry and does not remove these eight pairs.
+Native save preserves authored bounds and does not recompute them; explicit bounds
+recomputation remains atomic. Filled parameters have no pattern-marker or stroke
+adapter and are not eligible clip boundaries.
+
+CAD preparation checks actual codec OCS positions against all eight native
+positions in the existing Model/Paper/definition/occurrence domains. Common
+simple-polygon cells optionally prove mathematical surface/sweep correspondence;
+concave shapes require an interior diagonal. No common cover gives Unassessed,
+never a numeric failure or omission. Required position proof failures remain hard.
+`filled_surfaces()` exposes retained native/occurrence identities and Proven or
+Unassessed coverage. Unknown surface coverage keeps geometry `is_complete()` false,
+even with Exact positions. Neither Exact nor Proven certifies a host picture.
+These records are conversion evidence, absent from native IFCX/CBOR payloads.

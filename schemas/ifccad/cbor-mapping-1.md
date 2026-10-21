@@ -65,7 +65,12 @@ not an invented inherited appearance.
 
 Kinds 0..13 are LineSegment, Point, Circle, Arc, Ellipse, EllipseArc,
 PlanarPolyline, SpatialPolyline, BlockInstance, Viewport, Text, MText, Hatch,
-Dimension. IDs, ownership vectors and draw order retain their original meaning.
+Dimension. Codes 14 and 15 are Solid and Trace. Their body is `{0: filledValue}`;
+filledValue is `{0: placement, 1: corners, 2?: thickness}`. Corners is exactly
+four XY binary64 pairs; thickness defaults to exact +0, so -0 stays present.
+All finite corner topologies are allowed under the shared frame/enclosure rules.
+No derived surface or display evidence is stored.
+IDs, ownership vectors and draw order retain their original meaning.
 
 The single Dimension kind has its own definition enum: Linear=0, Aligned=1.
 Other DimensionKind values 2..8 are legal style override keys but do not make

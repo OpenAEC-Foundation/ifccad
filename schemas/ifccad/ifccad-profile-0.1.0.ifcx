@@ -18025,6 +18025,66 @@
           }
         }
       }
+    },
+    "ifccad::geom::solid": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "corners": {
+              "dataType": "Array",
+              "arrayRestrictions": {
+                "value": {
+                  "dataType": "Array",
+                  "arrayRestrictions": {
+                    "value": {
+                      "dataType": "Real"
+                    },
+                    "min": 2,
+                    "max": 2
+                  }
+                },
+                "min": 4,
+                "max": 4
+              }
+            },
+            "thickness": {
+              "dataType": "Real",
+              "optional": true
+            }
+          }
+        }
+      }
+    },
+    "ifccad::geom::trace": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "corners": {
+              "dataType": "Array",
+              "arrayRestrictions": {
+                "value": {
+                  "dataType": "Array",
+                  "arrayRestrictions": {
+                    "value": {
+                      "dataType": "Real"
+                    },
+                    "min": 2,
+                    "max": 2
+                  }
+                },
+                "min": 4,
+                "max": 4
+              }
+            },
+            "thickness": {
+              "dataType": "Real",
+              "optional": true
+            }
+          }
+        }
+      }
     }
   },
   "data": []

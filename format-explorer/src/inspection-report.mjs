@@ -1,3 +1,4 @@
+import {translate} from './i18n.mjs';
 /** Keep the two conversion boundaries distinct; downloads are not diagnostics. */
 export function inspectionReport(input={},cadResult){
  const exported=cadResult?.export,conversion=cadResult?.conversion;
@@ -15,4 +16,9 @@ export function conversionDirections(input,cadResult,settings={}){
  const cad=input?.source?.name?.match(/\.(dwg|dxf)$/i)?.[1]?.toUpperCase(),native='IFCCAD';
  const format=cadResult?.export?.format||settings?.format||'dxf',version=cadResult?.export?.requestedVersion??settings?.version;
  return {input:input?(cad?`${cad} → ${native}`:native):'',output:input?`${native} → ${format.toUpperCase()}`:'',version,inputConverted:!!cad};
+}
+
+export function filledEvidenceSummary(assessment,language){
+ const rows=assessment?.filledSurfaces||[];if(!rows.length)return '';
+ return [translate(language,'filled.positions'),translate(language,'filled.summary',{proven:rows.filter(r=>r.surfaceCoverage==='Proven').length,unassessed:rows.filter(r=>r.surfaceCoverage!=='Proven').length}),translate(language,'filled.displayUnassessed')].join(' ');
 }

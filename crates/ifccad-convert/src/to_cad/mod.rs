@@ -287,6 +287,8 @@ fn convert_document(
         IfccadGeometryDomain::Drawing => true,
         IfccadGeometryDomain::PaperLayout(id) => mappings.layouts.cad_handle(id).is_some(),
     });
+    assessment.filled_surfaces =
+        crate::filled_surface_assessment::collect_filled_surfaces(drawing, &document, &mappings)?;
     Ok(IfccadToCadOutcome {
         dimension: crate::IfccadDimensionAssessment::new(
             drawing,

@@ -467,3 +467,36 @@ removes source entities nor exposes partial native output. The native
 `diagnose_cad` command writes individual JSON evidence, a flushed progress journal
 and grouped Markdown coverage, including blocked checks. It is independent of
 benchmark drivers; ordinary conversion and hard tolerances are unchanged.
+
+## Native SOLID and TRACE
+
+SOLID and legacy TRACE map to distinct native kinds sharing four ordered local
+XY corners, placement and signed thickness. All finite corner combinations are
+supported, including crossing/retraced/collapsed cases. All four raw CAD slots
+are used; the codec's epsilon triangle helper and base-only bounds are not used.
+Four source OCS-Z values must be exactly equal. Unequal elevations are diagnosed
+unsupported geometry under Allow and rejected under Reject. Invalid scalars or
+normal are errors; partial import may omit a failed entity with existing evidence.
+Topology or unknown filling alone never triggers loss, omission or recovery.
+
+Both directions require four base and four top rational pairs, including under
+nested/reflected/nonuniform INSERTs and Paper coordinate mappings. Position
+status Exact/RoundedWithinTolerance, optional surface coverage Proven/Unassessed,
+and always unassessed display evaluation are separate. `filled_surfaces()` retains
+canonical native/occurrence sources including unused block definitions. Missing
+surface correspondence keeps `is_complete()` false without failing Reject.
+Native JSON/CBOR preserve signed-zero/subnormal bits; CAD bit preservation is
+qualified separately. Source-graph defaults expand only absent thickness to +0;
+foreign fields and exact-number projection losses still receive normal audits.
+
+Qualification covers 16 original synthetic configurations in each CAD kind,
+independent ASCII/binary DXF tag and AC1032 DWG object-type checks (31/32), strict
+production readback, and signed thickness/elevation/tilted-normal recipes.
+OCS 2026.42 b6fbac39ffc7 additionally opened original h=0, h=3 and reversed h=0
+sources and actual IFCCAD roundtrips through DXF and DWG: all 32 filled records per
+file retained raw slots, normal, thickness and kind. Captured top views showed
+matching form behaviour. This is bounded host observation, not AutoCAD/BricsCAD,
+pixel-equivalence or a universal filling guarantee. Wireframe thickness and
+alternate-triangle host fallback are separate from the stored descriptor.
+The existing Paper current-UCS workspace diagnostic remains unrelated coverage.
+See [source provenance](tests/fixtures/filled-primitives-PROVENANCE.md).

@@ -49,7 +49,7 @@ for(const example of examples){
  }
  const model=createInspection(opened,new TextDecoder().decode(bytes)),nodes=Array.from(model.nodes.values());
  if(example.name==='Entity catalogue'){
-  for(const type of ['point','lineSegment','circle','arc','ellipse','ellipseArc','planarPolyline','spatialPolyline','text','mText','hatch','dimension','blockInstance','viewport'])assert.ok(nodes.some(node=>node.type===type),name+' contains '+type);
+  for(const type of ['point','lineSegment','circle','arc','ellipse','ellipseArc','planarPolyline','spatialPolyline','text','mText','hatch','dimension','blockInstance','viewport','solid','trace'])assert.ok(nodes.some(node=>node.type===type),name+' contains '+type);
   assert.deepEqual(nodes.filter(node=>node.type==='hatch').map(node=>hatchValues(node).fill.kind).sort(),['gradient','linePattern','solid']);
  }
  for(const format of ['dxf','dwg']){
@@ -57,7 +57,12 @@ for(const example of examples){
   const returned=processBrowserRequest({kind:'cad',drawingFormat:'ifccad',name:'curated.'+format,files:[{path:'curated.'+format,bytes:Uint8Array.from(Buffer.from(output.export.download.base64,'base64')).buffer}]},wasm);
   assert.equal(returned.failure,null,name+': '+JSON.stringify(returned.failure));assert.equal(returned.validation.strictAvailable,true);
   assert.deepEqual(returned.presentation.dimensions.map(d=>d.geometry.label.primary).sort(),expectedDimensions,name+' retains dimension labels through '+format);
-  if(example.name==='Entity catalogue')assert.equal(returned.presentation.hatchEntityCount,3);
+  if(example.name==='Entity catalogue'){
+   assert.equal(returned.presentation.hatchEntityCount,3);
+   for(const kind of ['solid','trace'])assert.equal(returned.presentation.graph.data.filter(n=>n.attributes?.['ifccad::geom::'+kind]).length,3,'retains '+kind+' through '+format);
+   const surfaces=output.export.geometryAssessment.filledSurfaces;assert.ok(surfaces.length>=6);
+   for(const r of surfaces){assert.equal(r.surfaceCoverage,'Proven');assert.equal(r.positionScope,'FourBaseAndFourTop');assert.equal(r.displayEvaluation,'unassessed');}
+  }
 
  }
 }

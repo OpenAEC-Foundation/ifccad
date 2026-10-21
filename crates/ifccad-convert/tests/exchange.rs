@@ -115,6 +115,7 @@ fn semantic(d: &ifccad::IfccadDocument) -> serde_json::Value {
             .map(|e| {
                 let layer = &d.layers.iter().find(|l| l.id == e.as_native().unwrap().layer_id).unwrap().name;
                 let geometry = match &e.as_native().unwrap().kind {
+                    IfccadEntityKind::Solid(_) | IfccadEntityKind::Trace(_) => panic!("filled entities have their own exchange fixture"),
                     IfccadEntityKind::Viewport(v) => serde_json::json!(["viewport", v.frame, v.view]),
                     IfccadEntityKind::Point{..} | IfccadEntityKind::Arc{..} | IfccadEntityKind::Ellipse{..} | IfccadEntityKind::EllipseArc{..} | IfccadEntityKind::SpatialPolyline{..} => panic!("unexpected family in this existing primitive exchange fixture"),
                     IfccadEntityKind::LineSegment { start, end } => {

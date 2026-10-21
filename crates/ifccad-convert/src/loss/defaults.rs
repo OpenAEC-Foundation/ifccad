@@ -11,6 +11,11 @@ fn fill(value: &mut Value, fields: &[(&str, Value)]) {
 }
 
 pub(super) fn expand_attributes(attrs: &mut Map<String, Value>) {
+    for key in ["ifccad::geom::solid", "ifccad::geom::trace"] {
+        if let Some(v) = attrs.get_mut(key) {
+            fill(v, &[("thickness", json!(0.))]);
+        }
+    }
     if let Some(entity) = attrs.get_mut("ifccad::entity") {
         fill(
             entity,

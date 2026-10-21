@@ -10,6 +10,7 @@ mod dimension_style;
 mod dimension_style_values;
 mod document;
 mod document_values;
+mod filled;
 mod geometry;
 mod geometry_kinds;
 mod hatch;

@@ -140,8 +140,9 @@ validation, bounds and CAD qualification.
 Curve parameters, occurrence paths, intersections, trans-space references and
 external sources require a later selector/update contract. Annotative Text/MText
 and Dimension belong in one later shared annotation slice. Dynamic fields,
-attributes, font resolution, dimension rendering and host update execution are
-also separate work. This development does not publish or freeze version 0.1.0.
+attributes and font resolution remain separate work. Generating or refreshing
+Dimension graphics and executing associative updates belong to editors or external
+engines. This development does not publish or freeze version 0.1.0.
 
 The maintained writers `write_dimension` and `write_ifccad_dimension` demonstrate
 ordinary styles, kind/local overrides, Model/Paper/block owners and source
@@ -185,12 +186,55 @@ See [Autodesk DIMDSEP](https://help.autodesk.com/cloudhelp/2020/ENG/AutoCAD-Core
 
 ## Planned worked-out graphics
 
-After the repair round, a separate planned slice adds optional native vector
-representations for ordinary linear/aligned Dimensions in both independent
-models, before the remaining Dimension kinds. The measure definition stays
-authoritative. The proposed design covers complete source picture capture,
-ordered graphics, input-basis comparison, resource dependencies and qualified CAD
-picture-block reuse. Native rendering data and CAD-specific opaque preservation
-remain separate. Annotative per-context graphics stay with the later joint
-annotation slice. This is planned work under design review, not current storage
-or CAD fidelity support. Built-in generation has a separate scope decision.
+The planned graphics slice targets IFCCAD only, after the stable migration/Hatch
+boundary and the [native SOLID/TRACE precursor](geometry/solid-trace-design.md)
+in [ROADMAP.md](../ROADMAP.md), before the remaining Dimension kinds.
+OCDraw remains parked. Ordinary linear/aligned Dimensions gain an optional typed
+ordered vector representation alongside the authoritative definition. The design
+covers complete source picture capture, local resources and qualified CAD
+picture-block reuse, without a built-in generator.
+
+IFCX uses a Dimension-owned graphics child group whose ordered part nodes carry
+registered geometry/text attributes. Parts stay outside ordinary Model/Paper/block
+ownership and draw order. The same logical value is encoded directly in CBOR as
+an optional record with ordered parts, without IFCX node paths. Experimental CBOR
+version 1 is updated in place; optional Zstd transport remains separate. There is
+no legacy parity or compatibility work.
+
+The [concrete design mapping](dimension/graphics-design.md) specifies the proposed
+`graphics` child role, group/part paths, role attributes, CBOR codes and CAD part
+profiles. Explicit Point helpers stay non-displaying. Qualified SOLID and TRACE
+use their native primitive payloads and retain their separate CAD types, including
+when used by marker blocks. The proposed Hatch substitution has been superseded.
+All finite local corner combinations, including crossing and collapsed records,
+remain native graphics content. Required coordinate/envelope evidence is separate
+from optional surface coverage and unassessed viewer display; an unknown fill is
+not by itself a partial-cache or unsupported-content condition.
+The CAD cache adapter distinguishes picture coordinates from an ordinary INSERT
+transform.
+
+The red sample's `_ArchTick` marker also requires polyline width 0.15. The current
+zero-width native polyline profile cannot preserve it; the SOLID/TRACE precursor
+does not add that support. Polyline widths are an agreed separate follow-up after
+bounded graphics, with the complete red sample Dimension as their acceptance
+case. They do not block the current graphics plan. Here the sample verifies
+explicit unsupported-width reporting and absence of a silently truncated picture;
+positive capture/reuse cases use complete supported graphics. See the
+[follow-up scope](../ROADMAP.md#planned-polyline-width-follow-up).
+
+Existing keywise IFCX composition still applies: omitting a child key does not
+delete it. The current XYZ reference anchors and XY measure
+plane remain unchanged; the Dimension placement applies to local graphics once.
+This slice can write complete fresh documents. Editing existing source graphs,
+fragment preservation, replacement/deletion protocols and transactions remain later work.
+
+The core validates structure, geometry and hard references. Editors or external
+engines assess correspondence with the definition and generate, update or remove
+graphics explicitly. No required input-basis snapshots or automatic validity
+analysis are planned. Unsupported visible parts cannot yield silently incomplete
+graphics; existing loss and explicit partial-import policies remain distinct.
+Native graphics and opaque preservation remain separate. Annotative per-context
+graphics stay with the later joint annotation slice. This is design under review,
+not current storage or CAD display fidelity support.
+
+The SOLID/TRACE precursor is implemented and verified in its isolated candidate: native IFCX/CBOR storage, all finite corner descriptors, qualified CAD type retention and separate position/surface/display evidence. Dimension graphics and polyline widths remain subsequent slices; this does not add picture capture or an update/generation engine.

@@ -53,6 +53,9 @@ pub(crate) fn to_entity(
         p.flags.linetype_continuous =
             *line_pattern_generation == IfccadLinePatternGeneration::Continuous;
     }
+    if let EntityType::Solid(s) = &mut prepared.entity {
+        s.is_trace = matches!(kind, IfccadEntityKind::Trace(_));
+    }
     context.record(key, source, prepared.pair, issues)?;
     Ok(Some(prepared.entity))
 }
@@ -108,6 +111,22 @@ pub(crate) fn from_entity(
     use ifccad::geometry_kernel::OwnedGeometry as G;
     let line_pattern_generation = generation(e);
     let kind = match prepared.geometry {
+        G::FilledQuadrilateral {
+            placement: frame,
+            corners,
+            thickness,
+        } => {
+            let v = IfccadFilledQuadrilateral {
+                placement: placement(frame),
+                corners,
+                thickness,
+            };
+            if matches!(e,EntityType::Solid(s) if s.is_trace) {
+                IfccadEntityKind::Trace(v)
+            } else {
+                IfccadEntityKind::Solid(v)
+            }
+        }
         G::Line { start, end } => IfccadEntityKind::LineSegment { start, end },
         G::Point { placement: frame } => IfccadEntityKind::Point {
             placement: placement(frame),

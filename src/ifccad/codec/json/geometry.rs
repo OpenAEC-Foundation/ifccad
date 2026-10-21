@@ -4,6 +4,8 @@ use serde::Deserialize;
 use serde_json::{json, Map, Value};
 
 pub(super) const PAYLOADS: &[&str] = &[
+    "ifccad::geom::solid",
+    "ifccad::geom::trace",
     "ifccad::geom::point",
     "ifccad::geom::lineSegment",
     "ifccad::geom::circle",
@@ -14,6 +16,13 @@ pub(super) const PAYLOADS: &[&str] = &[
     "ifccad::geom::spatialPolyline",
 ];
 
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct FilledValue {
+    corners: [[f64; 2]; 4],
+    #[serde(default)]
+    thickness: f64,
+}
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct PointValue {}
@@ -134,6 +143,19 @@ pub(super) fn decode_kind(
         ));
     }
     Ok(match key {
+        "ifccad::geom::solid" | "ifccad::geom::trace" => {
+            let v: FilledValue = decode(v, path)?;
+            let q = IfccadFilledQuadrilateral {
+                placement: frame()?,
+                corners: v.corners,
+                thickness: v.thickness,
+            };
+            if key == "ifccad::geom::trace" {
+                IfccadEntityKind::Trace(q)
+            } else {
+                IfccadEntityKind::Solid(q)
+            }
+        }
         "ifccad::geom::point" => {
             let _: PointValue = decode(v, path)?;
             IfccadEntityKind::Point {
@@ -217,6 +239,21 @@ pub(super) fn decode_kind(
 }
 pub(super) fn encode_kind(kind: &IfccadEntityKind, attrs: &mut Map<String, Value>) -> bool {
     let (key, payload, placement) = match kind {
+        IfccadEntityKind::Solid(v) | IfccadEntityKind::Trace(v) => {
+            let mut payload = json!({"corners":v.corners});
+            if v.thickness.to_bits() != 0 {
+                payload["thickness"] = json!(v.thickness);
+            }
+            (
+                if matches!(kind, IfccadEntityKind::Trace(_)) {
+                    "ifccad::geom::trace"
+                } else {
+                    "ifccad::geom::solid"
+                },
+                payload,
+                Some(&v.placement),
+            )
+        }
         IfccadEntityKind::Point { placement } => {
             ("ifccad::geom::point", json!({}), Some(placement))
         }

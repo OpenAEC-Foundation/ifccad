@@ -1,5 +1,6 @@
 pub mod blocks;
 pub mod circular;
+pub mod filled;
 pub mod numeric;
 use num_rational::BigRational;
 use opencadcodec::types::Matrix3;

@@ -28,6 +28,8 @@ pub fn native(d: &IfccadDocument) -> Value {
         for entity in entities {
             let name = match entity.as_native().map(|e| &e.kind) {
                 None => "Opaque",
+                Some(IfccadEntityKind::Solid(_)) => "Solid",
+                Some(IfccadEntityKind::Trace(_)) => "Trace",
                 Some(IfccadEntityKind::LineSegment { .. }) => "Line",
                 Some(IfccadEntityKind::Point { .. }) => "Point",
                 Some(IfccadEntityKind::Circle { .. }) => "Circle",

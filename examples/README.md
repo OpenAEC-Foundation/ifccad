@@ -4,7 +4,7 @@ The Explorer offers two curated drawings:
 
 | File | Purpose |
 | --- | --- |
-| `ifccad/entities.ifcx` | A numbered catalogue: all 14 native entity families, three Hatch fills, linear/aligned Dimensions, layers, simple/text line patterns, block transforms and an A3 Paper viewport. |
+| `ifccad/entities.ifcx` | A numbered catalogue: all 16 native entity families, three Hatch fills, linear/aligned Dimensions, layers, simple/text line patterns, block transforms and an A3 Paper viewport. |
 | `ifccad/house.ifcx` | A fictitious 10000 x 12000 mm ground floor with wall hatching, actual openings, repeated door/window/furniture blocks, room labels, dimensions, north arrow and an A3 sheet at 1:100. |
 
 Both open with an authored Model view. Their Paper tabs contain locked orthographic
@@ -14,6 +14,11 @@ stand-ins. The house uses whole millimetres; the catalogue uses up to two decima
 with trailing zeros suppressed. Units are stated on the drawing, not repeated in
 every dimension label. This does not add baked native Dimension graphics or
 certify every CAD host's rendering.
+SOLID and TRACE have separate appended samples showing ordinary triangles,
+rectangles and trapezoids, with signed thickness. Concave, crossing and collapsed
+cases stay in regression and conformance tests rather than the curated catalogue. Their
+parameter and CAD-type retention does not certify host filling; Solid Hatch
+remains its own entity family.
 The Point sample includes a separate cross so its position stays visible.
 
 ## Reproduction

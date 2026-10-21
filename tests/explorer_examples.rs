@@ -39,11 +39,11 @@ fn adding_catalogue_samples_grows_the_grid_and_saved_views() {
     let json: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
     let nodes = json["data"].as_array().unwrap();
     for number in [
-        "20  Point",
-        "21  Point",
         "22  Point",
         "23  Point",
         "24  Point",
+        "25  Point",
+        "26  Point",
     ] {
         assert!(String::from_utf8_lossy(&bytes).contains(number));
     }
@@ -51,14 +51,16 @@ fn adding_catalogue_samples_grows_the_grid_and_saved_views() {
         .iter()
         .find_map(|n| n["attributes"].get("ifccad::viewport"))
         .unwrap();
-    assert_eq!(viewport["view"]["height"].as_f64(), Some(538.)); // Six rows * 78 + 70.
-    assert_eq!(loaded.document().model_windows[0].view.height, 658.);
+    assert_eq!(viewport["view"]["height"].as_f64(), Some(616.)); // Seven rows * 78 + 70.
+    assert_eq!(loaded.document().model_windows[0].view.height, 736.);
 }
 
 // Exhaustive on purpose: a new native kind requires a catalogue coverage decision.
 fn family(kind: &ifccad::IfccadEntityKind) -> &'static str {
     use ifccad::IfccadEntityKind::*;
     match kind {
+        Solid(_) => "solid",
+        Trace(_) => "trace",
         Dimension(_) => "dimension",
         Hatch(_) => "hatch",
         Text(_) => "text",
@@ -110,7 +112,9 @@ fn catalogue_covers_every_native_family_and_both_dimension_kinds() {
             "planarPolyline",
             "spatialPolyline",
             "circle",
-            "blockInstance"
+            "blockInstance",
+            "solid",
+            "trace"
         ])
     );
     let json: serde_json::Value = serde_json::from_slice(&bytes).unwrap();

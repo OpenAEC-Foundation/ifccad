@@ -69,6 +69,12 @@ export function createInspection(result,sourceText=''){
   const kinds=new Map();n.children.forEach((key,index)=>{const child=nodes.get(key);if(!child)return;child.owner=n.key;child.drawPosition=index;child.unit=n.unit;const kind=child.type;kinds.set(kind,[...(kinds.get(kind)||[]),key]);});
   n.groupedChildren=Array.from(kinds,([kind,keys])=>{const key=group('types:'+n.key+':'+kind,'plural.'+kind,keys);nodes.get(key).unit=n.unit;return key;});
  }
+ const drawingPrefix=[...nodes.values()].find(n=>n.type==='drawing')?.key||[...nodes.values()].find(n=>n.type==='layout')?.key.split('/layout/')[0];
+ for(const evidence of (result.conversion?.geometryAssessment||result.export?.geometryAssessment)?.filledSurfaces||[]){
+  const source=evidence.source;if(source?.kind!=='NativeEntity'||!drawingPrefix)continue;
+  const n=nodes.get(drawingPrefix+'/e'+source.entityId),owner=drawingPrefix+(source.owner?.kind==='BlockDefinition'?'/block/':'/layout/')+source.owner?.id;
+  if(n&&['solid','trace'].includes(n.type)&&n.owner===owner)n.filledEvidence=evidence;
+ }
  for(const n of nodes.values())if(n.type==='dimension'){
   n.sourceValues=n.values;
 

@@ -414,5 +414,45 @@
   {
     "file": "invalid/dimension-line-xyz.ifcx",
     "valid": false
+  },
+  {
+    "file": "valid/filled-primitives.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid/filled-missing-placement.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/filled-three-corners.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/filled-five-corners.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/filled-xyz-corner.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/filled-null-thickness.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/filled-unknown-member.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/filled-two-payloads.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/filled-invalid-frame.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/filled-overflow.ifcx",
+    "valid": false
   }
 ]

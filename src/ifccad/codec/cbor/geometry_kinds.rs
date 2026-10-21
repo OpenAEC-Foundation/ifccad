@@ -18,6 +18,8 @@ impl CborValue for IfccadEntityKind {
             (11, "MText"),
             (12, "Hatch"),
             (13, "Dimension"),
+            (14, "Solid"),
+            (15, "Trace"),
         ]
     }
     fn encode(&self, w: &mut CborWriter) -> Result<(), IfccadCborEncodeError> {
@@ -36,6 +38,7 @@ impl CborValue for IfccadEntityKind {
     }
     fn exact(&self, o: &Self) -> bool {
         match (self, o) {
+            (Self::Solid(a), Self::Solid(b)) | (Self::Trace(a), Self::Trace(b)) => a.exact(b),
             (
                 Self::LineSegment { start, end },
                 Self::LineSegment {
@@ -191,10 +194,17 @@ impl IfccadEntityKind {
             Self::MText(..) => 11,
             Self::Hatch(..) => 12,
             Self::Dimension(..) => 13,
+            Self::Solid(..) => 14,
+            Self::Trace(..) => 15,
         }
     }
     pub(super) fn encode_body(&self, w: &mut CborWriter) -> Result<(), IfccadCborEncodeError> {
         match self {
+            Self::Solid(v) | Self::Trace(v) => {
+                w.map(1)?;
+                w.u64(0)?;
+                v.encode(w)
+            }
             Self::LineSegment { start, end } => {
                 let mut __cbor_fields = 0_u64;
                 if start.present()
@@ -955,6 +965,16 @@ impl IfccadEntityKind {
                 let value_0: Box<IfccadDimension> = b.take(0, None)?;
                 b.finish()?;
                 Ok(Self::Dimension(value_0))
+            }
+            14 | 15 => {
+                let mut b = RecordFields::new(r, &[(0, "value_0")])?;
+                let v = b.take(0, None)?;
+                b.finish()?;
+                Ok(if code == 14 {
+                    Self::Solid(v)
+                } else {
+                    Self::Trace(v)
+                })
             }
             _ => Err(r.error("unknown native kind")),
         }

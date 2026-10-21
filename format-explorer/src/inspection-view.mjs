@@ -44,6 +44,10 @@ export function renderInspection(model,state){
   details+='<dl class="properties-list workspace-choices">'+Object.entries(node.workspaceChoices).map(([key,value])=>'<div><dt>'+e(t(key))+'</dt><dd>'+e(key==='currentUcs'?current(value):value==null?t('unspecified'):typeof value==='string'?(model.nodes.get(value)?.title||value):value.kind)+'</dd></div>').join('')+'</dl>';
  }
  const hatch=hatchValues(node);if(hatch)details+='<p class="secondary">'+e(hatchSummary(hatch,language))+'</p>';
+ if(['solid','trace'].includes(node.type)){
+  if(node.filledEvidence){details+='<p class="secondary">'+e(t('filled.positions'))+'</p><p class="secondary">'+e(t(node.filledEvidence.surfaceCoverage==='Proven'?'filled.surfaceProven':'filled.surfaceUnassessed'))+'</p>';}
+  details+='<p class="secondary">'+e(t('filled.displayUnassessed'))+'</p>';
+ }
  const help=t('help.'+node.type);if(!help.startsWith('help.'))details+='<p class="secondary">'+e(help)+'</p>';
   const assessment=node.values.boundsAssessment;if(assessment)details+='<p class="secondary">'+e(t('boundsSummary',{quality:t(assessment.quality||'empty'),proof:t(assessment.enclosureVerified?'enclosureChecked':'enclosureNotChecked')}))+'</p>';
   for(const reason of new Set(assessment?.linePatternReasons||[]))details+='<p class="secondary">'+e(t('linePatternReason.'+reason))+'</p>';

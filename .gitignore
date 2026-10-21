@@ -19,3 +19,7 @@ __pycache__/
 
 # Per-worktree opt-in dependency configuration; see patches/opencadcodec-viewports.
 /.cargo/config.toml
+
+# Open CAD Studio transient drawing locks (not source inputs).
+*.ocs.lock
+*.ocs-autosave.sv$

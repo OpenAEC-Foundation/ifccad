@@ -48,6 +48,11 @@ impl PlanarVertices<'_> {
 /// A borrowed primitive geometry view, without identity, appearance or ownership.
 #[derive(Clone, Copy, Debug)]
 pub enum GeometryRef<'a> {
+    FilledQuadrilateral {
+        placement: CoordinateFrame3,
+        corners: &'a [[f64; 2]; 4],
+        thickness: f64,
+    },
     Line {
         start: [f64; 3],
         end: [f64; 3],
@@ -85,6 +90,11 @@ pub enum GeometryRef<'a> {
 /// Pure geometry prepared for a native adapter, independent of its storage layout.
 #[derive(Clone, Debug, PartialEq)]
 pub enum OwnedGeometry {
+    FilledQuadrilateral {
+        placement: CoordinateFrame3,
+        corners: [[f64; 2]; 4],
+        thickness: f64,
+    },
     Line {
         start: [f64; 3],
         end: [f64; 3],
@@ -121,6 +131,15 @@ pub enum OwnedGeometry {
 impl OwnedGeometry {
     pub fn as_ref(&self) -> GeometryRef<'_> {
         match self {
+            Self::FilledQuadrilateral {
+                placement,
+                corners,
+                thickness,
+            } => GeometryRef::FilledQuadrilateral {
+                placement: *placement,
+                corners,
+                thickness: *thickness,
+            },
             Self::Line { start, end } => GeometryRef::Line {
                 start: *start,
                 end: *end,

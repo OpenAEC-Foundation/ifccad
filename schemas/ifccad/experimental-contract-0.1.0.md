@@ -83,6 +83,7 @@ The drawing has named `children` referring to exactly one Model layout, zero or 
 | `ifccad::blockDefinition` | `name`, `basePoint` XYZ, `insertionUnit`; description, anonymous, explodable and signed-uniform scaling policy |
 | `ifccad::entity` | required resolvable drawing-local `layer`; missing native `appearance` or its properties mean ByLayer; optional positive finite `linePatternScale` defaults to 1; common `visible` defaults true |
 | `ifccad::geom::lineSegment` | required `start` and `end`, each XY or XYZ with missing Z=+0; finite segment, unlike unbounded IFC4 `IfcLine` |
+| `ifccad::geom::solid`, `ifccad::geom::trace` | four ordered local XY corners, optional signed thickness default +0, required placement; all finite topologies allowed |
 | `ifccad::geom::point` | empty object plus required placement; its origin is the position and its axes retain presentation orientation |
 | `ifccad::geom::planarPolyline` | at least two XY `vertices`, `closed`, optional outgoing `bulges` array plus placement; optional `linePatternGeneration` defaults to `perSegment`, alternatively `continuous` |
 | `ifccad::geom::spatialPolyline` | at least two direct owning-scope XYZ vertices, closure and optional pattern generation; placement and bulges are forbidden |
@@ -613,3 +614,30 @@ replacement includes gradient state, without nested merging.
 Gradient endpoints require concrete fixed RGB colors; Foreground is not a
 gradient endpoint. Concrete ACI 7 identity remains invalid under the common
 color contract. No background-dependent endpoint is resolved during IO.
+
+## SOLID and TRACE
+
+`ifccad::geom::solid` and `ifccad::geom::trace` are distinct drawable payloads,
+sharing `geometryFilledExtras`. Each requires sibling `ifccad::geom::placement`
+and exactly four numeric local XY `corners`; `thickness` is optional with default
+**+0.0**. Null/unknown members and additional geometry payloads are rejected.
+Composition replaces each complete attribute with LaterWins, without merging
+corner members. Writers omit +0 thickness, retain explicit -0 and preserve all
+four slots. CAD boundary order is **1,2,4,3**; no sorting or deduplication occurs.
+
+Every finite corner combination is allowed, including crossings, overlap,
+retracing, repeated corners and line/point collapse. No minimum area, simplicity,
+convexity, distinct-point count or surface cover is a validity condition.
+`IFCCAD-FILLED-001` rejects nonfinite intrinsic values. `IFCCAD-FILLED-002`
+rejects invalid placement or unavailable finite conservative enclosure.
+For stored axes U,V, N=U×V is evaluated exactly without normalization;
+B_i=O+U*x_i+V*y_i, T_i=B_i+N*thickness. The parameter enclosure covers all four
+base and all four top points, even when they coincide. It is not a universal
+rendered footprint or a host filling rule. Appearance/layer fields remain
+stored; line pattern/lineweight do not expand this parameter enclosure.
+
+Neither kind becomes a Hatch source, active viewport clip or Dimension-selector
+target. Native records contain no topology/proof/render flags. Conversion
+requires its ordinary hard position evidence independently of optional simple
+surface correspondence; absent surface evidence does not invalidate, omit or
+lose a finite descriptor. Viewer rendering remains unassessed.

@@ -21,7 +21,7 @@ Drawing files are processed locally in your browser.
 
 | Example | What it shows |
 | --- | --- |
-| [Entity catalogue](examples/ifccad/entities.ifcx) | A numbered overview of all 14 current native entity families, Hatch fills, dimensions, blocks and drawing styles. |
+| [Entity catalogue](examples/ifccad/entities.ifcx) | A numbered overview of all 16 current native entity families, Hatch fills, dimensions, blocks and drawing styles. |
 | [House floor plan](examples/ifccad/house.ifcx) | A fictitious house with rooms, openings, reusable blocks, dimensions and an A3 sheet at 1:100. |
 
 The catalogue is generated from an extensible sample registry. See
@@ -48,7 +48,7 @@ Conversion, logical construction, encoding and storage remain separate responsib
 
 Current support includes primitive and planar/spatial path geometry, local blocks,
 Model/Paper layouts, appearance, simple and complex line patterns, Text/MText,
-viewports, workspace state, Solid/LinePattern/Gradient Hatch and ordinary
+viewports, workspace state, native SOLID/TRACE, Solid/LinePattern/Gradient Hatch and ordinary
 linear/aligned Dimensions. Font contours, complete dimension display and evaluated
 Hatch fill remain unassessed. The bounded opaque spline preservation route retains
 source capture separately from qualified CAD restoration.
@@ -66,9 +66,16 @@ downloads encode the validated IFCCAD drawing projection.
 1. Complete and integrate the IFCCAD-main-track migration after the accepted CBOR gate.
 2. Resume Hatch B on the integrated basis, updating its scope to IFCCAD and reviewing
    any CBOR revision implications before contract changes.
-3. Continue worked-out Dimension graphics, then remaining kinds/selectors and later
-   joint annotation support according to their dependencies.
-4. Expand semantic coverage and assess physical storage using representative evidence.
+3. The [native SOLID/TRACE precursor](docs/geometry/solid-trace-design.md) is implemented,
+   retaining all finite local corner combinations and both CAD object types,
+   with coordinate, surface and display guarantees kept separate.
+4. Add bounded worked-out Dimension graphics using the currently supported
+   zero-width polyline profile.
+5. Add polyline widths as a separate follow-up, using the red sample_AC1032
+   Dimension and its wide `_ArchTick` marker as an acceptance case.
+6. Continue remaining Dimension kinds/selectors and later joint annotation support
+   according to their dependencies.
+7. Expand semantic coverage and assess physical storage using representative evidence.
 
 Hatch B stays paused until migration integration. The xformop experiment stays
 separate. One broad cross-cutting task runs at a time; independent narrow work

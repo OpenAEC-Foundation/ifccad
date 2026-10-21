@@ -144,3 +144,50 @@ fn equal_endpoints_do_not_certify_curve_interiors() {
         1.
     );
 }
+
+#[test]
+fn filled_occurrences_transform_top_vertices() {
+    use cad_geometry_convert::{geometry::blocks::EvaluatedBlock, prepare_to_cad};
+    use ifccad::geometry_kernel::{GeometryRef, Point3, Vector3};
+    let p = CoordinateFrame3::try_new(
+        Point3::new(0., 0., 0.),
+        Vector3::new(1. + 2e-13, 0., 0.),
+        Vector3::new(0., 1., 0.),
+    )
+    .unwrap();
+    let c = [[0., 0.]; 4];
+    let prepared = prepare_to_cad(GeometryRef::FilledQuadrilateral {
+        placement: p,
+        corners: &c,
+        thickness: 1e8,
+    })
+    .unwrap();
+    let mut state = ExchangeState::new(assessment(1e-4));
+    state
+        .record_geometry(1, Source::Entity(1), prepared.pair)
+        .unwrap();
+    let transform = |scale| {
+        EvaluatedBlock::native(
+            BlockTransform::try_new(CoordinateFrame3::default(), 0., Scale3::new(-2., 3., scale))
+                .unwrap(),
+            [1., 2., 3.],
+        )
+    };
+    let a = transform(4.);
+    let b = transform(4.);
+    state.register_identity(2, Source::Entity(2));
+    state.record_instance_parts(2, 10, a.clone(), a);
+    state.register_identity(3, Source::Entity(3));
+    state.record_instance_parts(3, 20, b.clone(), b);
+    let members = BTreeMap::from([(10, vec![1]), (20, vec![2])]);
+    let e = state
+        .assess_roots(&members, &[3], &mut assessment(1e-4))
+        .unwrap_err();
+    assert_eq!(e.reason, GeometryFailureReason::ProvenExceedance);
+    assert_eq!(e.vertex_index, Some(4));
+    let Source::Occurrence { path, leaf } = e.source else {
+        panic!()
+    };
+    assert_eq!(path, vec![Source::Entity(3), Source::Entity(2)]);
+    assert_eq!(*leaf, Source::Entity(1));
+}

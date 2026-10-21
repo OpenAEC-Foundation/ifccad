@@ -35,7 +35,7 @@ fn interval(d: IfccadDistanceInterval) -> Value {
     json!({"lower":d.lower(),"upper":d.upper()})
 }
 pub(crate) fn assessment(a: &IfccadGeometryAssessment) -> Value {
-    json!({"complete":a.is_complete(),"unassessedSources":a.unassessed_entities().iter().map(source).collect::<Vec<_>>(),"status":format!("{:?}",a.status()),"domains":a.domains().iter().map(|d|json!({
+    json!({"filledSurfaces":a.filled_surfaces().iter().map(|f|json!({"source":source(f.source()),"positionScope":"FourBaseAndFourTop","surfaceCoverage":format!("{:?}",f.coverage()),"displayEvaluation":"unassessed"})).collect::<Vec<_>>(),"complete":a.is_complete(),"unassessedSources":a.unassessed_entities().iter().map(source).collect::<Vec<_>>(),"status":format!("{:?}",a.status()),"domains":a.domains().iter().map(|d|json!({
         "domain":domain(d.domain()),"coordinateMeaning":meaning(d.coordinate_meaning()),"status":format!("{:?}",d.status()),
         "requestedTolerance":format!("{:?}",d.requested_tolerance()),"resolvedTolerance":interval(d.resolved_tolerance()),
         "assessedEntities":d.assessed_entities(),"assessedVertices":d.assessed_vertices(),"roundedEntities":d.rounded_entities(),

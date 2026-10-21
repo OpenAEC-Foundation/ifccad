@@ -3455,6 +3455,32 @@
               "presence": "required"
             }
           ]
+        },
+        {
+          "code": 14,
+          "name": "Solid",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "IfccadFilledQuadrilateral",
+              "presence": "required"
+            }
+          ],
+          "shape": "("
+        },
+        {
+          "code": 15,
+          "name": "Trace",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "IfccadFilledQuadrilateral",
+              "presence": "required"
+            }
+          ],
+          "shape": "("
         }
       ],
       "dependencies": [
@@ -3473,7 +3499,8 @@
         "[f64;3]",
         "bool",
         "f64",
-        "u64"
+        "u64",
+        "IfccadFilledQuadrilateral"
       ]
     },
     "IfccadEntityAppearance": {
@@ -9508,6 +9535,44 @@
       ],
       "dependencies": [
         "DimensionFractionLayout"
+      ]
+    },
+    "IfccadFilledQuadrilateral": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "placement",
+          "type": "IfccadPlacement",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "corners",
+          "type": "[[f64;2];4]",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "thickness",
+          "type": "f64",
+          "presence": "default",
+          "default": 0.0,
+          "omit": "exact"
+        }
+      ],
+      "dependencies": [
+        "IfccadPlacement",
+        "[[f64;2];4]",
+        "f64"
+      ]
+    },
+    "[[f64;2];4]": {
+      "kind": "tuple",
+      "itemType": "[f64;2]",
+      "length": 4,
+      "dependencies": [
+        "[f64;2]"
       ]
     }
   }
