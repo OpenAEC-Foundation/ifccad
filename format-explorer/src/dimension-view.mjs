@@ -1,7 +1,7 @@
 import {translate} from './i18n.mjs';
 
 const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-export const isDimensionNode=node=>['dimension','dimensionStyle','dimensionStyles'].includes(node?.type);
+export const isDimensionNode=node=>['dimension','dimensionStyle','dimensionStyles','dimensionGraphics'].includes(node?.type)||!!node?.values?.['ifccad::dimensionGraphicsPart'];
 export function dimensionPresentation(node,format){
  if(!isDimensionNode(node))return null;
  return {authored:node.values,derived:node.derived,authoredPath:format==='ifccad'?['ifccad::dimension']:['geometry']};
@@ -11,7 +11,7 @@ export function dimensionFieldLabel(key,language){
  const label=translate(language,'dimension.field.'+field);
  return label.startsWith('dimension.field.')?translate(language,field):label;
 }
-const enumFields=new Set(['type','kind','variant','state','format','angleFormat','application','role','attachment','insideOrientation','outsideOrientation','movement','preferredPlacement','arcSymbol','fractionLayout','mode','alignment','associationUpdate','displayEvaluation']);
+const enumFields=new Set(['type','kind','variant','state','format','angleFormat','application','role','attachment','insideOrientation','outsideOrientation','movement','preferredPlacement','arcSymbol','fractionLayout','mode','alignment','associationUpdate','displayEvaluation','origin','purpose']);
 export function dimensionValueLabel(field,value,language){
  if(!enumFields.has(field)||typeof value!=='string')return value;
  const key='dimension.value.'+value.slice(0,1).toLowerCase()+value.slice(1),label=translate(language,key);

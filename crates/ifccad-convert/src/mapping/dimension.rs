@@ -10,6 +10,8 @@ use std::{
 #[derive(Default)]
 pub(crate) struct SourceDimensions {
     pub consumed_objects: BTreeSet<Handle>,
+    pub pictures: crate::source::dimension_graphics::SourcePictureInventory,
+    pub native_text_styles: Vec<IfccadTextStyle>,
     pub consumed_styles: BTreeSet<Handle>,
     pub pending: BTreeMap<Handle, Vec<cad_dimension::CadDimensionPointReference>>,
 }
@@ -168,12 +170,14 @@ pub(crate) fn from_styles(
     }
     Ok((styles, state))
 }
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn from_entity(
     d: &Dimension,
     doc: &CadDocument,
     patterns: &super::line_pattern::SourcePatterns,
     maps: &IfccadMappings,
     state: &mut SourceDimensions,
+    creation: super::dimension_graphics::Creation<'_>,
     geometry: &mut crate::geometry_context::GeometryContext,
     issues: &mut Vec<IfccadDiagnostic>,
 ) -> Result<Option<IfccadEntityKind>, IfccadConversionError> {
@@ -212,8 +216,23 @@ pub(crate) fn from_entity(
         pair,
         issues,
     )?;
+    let graphics = super::dimension_graphics::capture(
+        d,
+        p.placement,
+        super::dimension_graphics::ImportInput {
+            source: doc,
+            patterns,
+            maps,
+            styles: &state.native_text_styles,
+            creation,
+        },
+        geometry,
+        issues,
+    )?;
     for l in p.losses {
-        loss(format!("{loc}/{}", l.field), l.detail, issues);
+        if l.field != "pictureBlock" || graphics.is_none() {
+            loss(format!("{loc}/{}", l.field), l.detail, issues);
+        }
     }
     state
         .consumed_objects
@@ -223,6 +242,7 @@ pub(crate) fn from_entity(
         .insert(d.base().common.handle, p.pending_associations);
     Ok(Some(IfccadEntityKind::Dimension(Box::new(
         IfccadDimension {
+            graphics,
             placement: super::geometry::placement(p.placement),
             style_id: IfccadDimensionStyleId(style),
             definition: p.definition,

@@ -4,11 +4,22 @@
 use crate::{geometry_assessment::Assessment, *};
 use ifccad::geometry_kernel::CoordinateLengthUnit;
 use std::collections::BTreeMap;
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub(crate) enum GeometryNodeKey {
+    Entity(u64),
+    BlockDefinition(u64),
+    DimensionGraphicsGroup(u64),
+    DimensionGraphicsPart { dimension: u64, index: usize },
+    DimensionGraphicsOccurrence(u64),
+}
 pub(crate) struct GeometryContext {
-    pub state: cad_geometry_convert::ExchangeState<u64, IfccadGeometryEntitySource>,
+    pub state: cad_geometry_convert::ExchangeState<GeometryNodeKey, IfccadGeometryEntitySource>,
     pub owner: IfccadGeometryOwner,
     pub preparation_error: Option<cad_geometry_convert::CadPreparationError>,
     stored: BTreeMap<IfccadGeometryDomain, Assessment>,
+    pub graphics_members: BTreeMap<GeometryNodeKey, Vec<GeometryNodeKey>>,
+    pub graphics_owners: BTreeMap<u64, IfccadGeometryOwner>,
+    pub buffered_pairs: Option<Vec<cad_geometry_convert::GeometryPair>>,
     tolerance: IfccadGeometryTolerance,
     meanings:
         BTreeMap<IfccadGeometryDomain, cad_geometry_convert::plot_units::GeometryCoordinateMeaning>,
@@ -28,6 +39,9 @@ impl GeometryContext {
             owner: IfccadGeometryOwner::ModelLayout(model_id),
             preparation_error: None,
             stored: BTreeMap::new(),
+            graphics_members: BTreeMap::new(),
+            graphics_owners: BTreeMap::new(),
+            buffered_pairs: None,
             tolerance,
             meanings: BTreeMap::from([(
                 IfccadGeometryDomain::Drawing,
@@ -147,6 +161,19 @@ impl GeometryContext {
         pair: cad_geometry_convert::GeometryPair,
         issues: &mut Vec<IfccadDiagnostic>,
     ) -> Result<(), IfccadConversionError> {
+        if let Some(buffer) = &mut self.buffered_pairs {
+            buffer.push(pair);
+            return Ok(());
+        }
+        self.record_key(GeometryNodeKey::Entity(key), source, pair, issues)
+    }
+    pub fn record_key(
+        &mut self,
+        key: GeometryNodeKey,
+        source: IfccadGeometryEntitySource,
+        pair: cad_geometry_convert::GeometryPair,
+        issues: &mut Vec<IfccadDiagnostic>,
+    ) -> Result<(), IfccadConversionError> {
         let bound = self
             .state
             .record_geometry(key, source.clone(), pair)
@@ -166,10 +193,22 @@ impl GeometryContext {
         roots: &[u64],
         issues: &mut Vec<IfccadDiagnostic>,
     ) -> Result<(), IfccadConversionError> {
+        let mut members = self.tag_members(members);
+        members.extend(self.graphics_members.clone());
+        let roots = roots
+            .iter()
+            .map(|id| {
+                if self.graphics_owners.contains_key(id) {
+                    GeometryNodeKey::DimensionGraphicsOccurrence(*id)
+                } else {
+                    GeometryNodeKey::Entity(*id)
+                }
+            })
+            .collect::<Vec<_>>();
         let mut assessment = self.state.assessment.clone();
         let records = self
             .state
-            .assess_roots(members, roots, &mut assessment)
+            .assess_roots(&members, &roots, &mut assessment)
             .map_err(|e| self.numerical_failure(e))?;
         self.state.assessment = assessment;
         for record in records {
@@ -191,6 +230,108 @@ impl GeometryContext {
         }
         Ok(())
     }
+    pub fn install_graphics_group(
+        &mut self,
+        id: u64,
+        source: IfccadGeometryEntitySource,
+        parts: Vec<GeometryNodeKey>,
+        source_map: cad_geometry_convert::geometry::blocks::EvaluatedBlock,
+        target_map: cad_geometry_convert::geometry::blocks::EvaluatedBlock,
+    ) {
+        let root = GeometryNodeKey::DimensionGraphicsOccurrence(id);
+        let group = GeometryNodeKey::DimensionGraphicsGroup(id);
+        self.state.register_identity(root, source);
+        self.state
+            .record_instance_parts(root, group, source_map, target_map);
+        self.graphics_members.insert(group, parts);
+        self.graphics_owners.insert(id, self.owner);
+    }
+    pub fn register_identity(&mut self, key: u64, source: IfccadGeometryEntitySource) {
+        self.state
+            .register_identity(GeometryNodeKey::Entity(key), source);
+    }
+    pub fn record_instance_parts(
+        &mut self,
+        key: u64,
+        definition: u64,
+        source: cad_geometry_convert::geometry::blocks::EvaluatedBlock,
+        target: cad_geometry_convert::geometry::blocks::EvaluatedBlock,
+    ) {
+        self.state.record_instance_parts(
+            GeometryNodeKey::Entity(key),
+            GeometryNodeKey::BlockDefinition(definition),
+            source,
+            target,
+        );
+    }
+    pub fn discard_entity(&mut self, id: u64) {
+        self.state.discard_entity(GeometryNodeKey::Entity(id));
+        if let Some(parts) = self
+            .graphics_members
+            .remove(&GeometryNodeKey::DimensionGraphicsGroup(id))
+        {
+            for key in parts {
+                self.state.discard_entity(key);
+            }
+        }
+        self.state
+            .discard_entity(GeometryNodeKey::DimensionGraphicsOccurrence(id));
+        self.graphics_owners.remove(&id);
+    }
+    fn tag_members(
+        &self,
+        members: &BTreeMap<u64, Vec<u64>>,
+    ) -> BTreeMap<GeometryNodeKey, Vec<GeometryNodeKey>> {
+        members
+            .iter()
+            .map(|(id, list)| {
+                (
+                    GeometryNodeKey::BlockDefinition(*id),
+                    list.iter()
+                        .flat_map(|e| {
+                            std::iter::once(GeometryNodeKey::Entity(*e)).chain(
+                                self.graphics_owners
+                                    .contains_key(e)
+                                    .then_some(GeometryNodeKey::DimensionGraphicsOccurrence(*e)),
+                            )
+                        })
+                        .collect(),
+                )
+            })
+            .collect()
+    }
+    pub fn affected_instances(
+        &self,
+        members: &BTreeMap<u64, Vec<u64>>,
+        affected: &std::collections::BTreeSet<u64>,
+    ) -> BTreeMap<u64, Vec<u64>> {
+        self.state
+            .affected_instances(
+                &self.tag_members(members),
+                &affected
+                    .iter()
+                    .map(|id| GeometryNodeKey::BlockDefinition(*id))
+                    .collect(),
+            )
+            .into_iter()
+            .filter_map(|(key, roots)| {
+                let GeometryNodeKey::BlockDefinition(id) = key else {
+                    return None;
+                };
+                Some((
+                    id,
+                    roots
+                        .into_iter()
+                        .filter_map(|r| match r {
+                            GeometryNodeKey::Entity(id)
+                            | GeometryNodeKey::DimensionGraphicsOccurrence(id) => Some(id),
+                            _ => None,
+                        })
+                        .collect(),
+                ))
+            })
+            .collect()
+    }
     pub fn finish(mut self) -> IfccadGeometryAssessment {
         self.stored
             .insert(self.owner.domain(), self.state.assessment);
@@ -206,6 +347,113 @@ impl GeometryContext {
                     evidence,
                 })
                 .collect(),
+        }
+    }
+}
+
+#[cfg(test)]
+mod graphics_identity_tests {
+    use super::*;
+    #[test]
+    fn part_indices_do_not_overwrite_definition_entities_or_markers() {
+        let mut c = GeometryContext::new(IfccadGeometryTolerance::exact(), "unitless", 1).unwrap();
+        let entity = IfccadGeometryEntitySource::NativeEntity {
+            owner: c.owner,
+            entity_id: 1,
+        };
+        c.record(
+            1,
+            entity.clone(),
+            cad_geometry_convert::GeometryPair::points(&[[0.; 3]], &[[0.; 3]]).unwrap(),
+            &mut vec![],
+        )
+        .unwrap();
+        for index in [0, 1] {
+            let source = IfccadGeometryEntitySource::DimensionGraphicsPart {
+                owner: c.owner,
+                dimension: Box::new(entity.clone()),
+                part_index: index,
+                source: Box::new(IfccadGeometryEntitySource::CadEntity {
+                    handle: opencadcodec::Handle::new(1),
+                    kind: "POINT".into(),
+                }),
+            };
+            c.record_key(
+                GeometryNodeKey::DimensionGraphicsPart {
+                    dimension: 1,
+                    index,
+                },
+                source.clone(),
+                cad_geometry_convert::GeometryPair::points(&[[2.; 3]], &[[2.; 3]]).unwrap(),
+                &mut vec![],
+            )
+            .unwrap();
+            assert_eq!(
+                c.state.identity(GeometryNodeKey::DimensionGraphicsPart {
+                    dimension: 1,
+                    index
+                }),
+                &source
+            );
+        }
+        assert_eq!(c.state.identity(GeometryNodeKey::Entity(1)), &entity);
+        assert_eq!(c.state.assessment.assessed_entities(), 3);
+    }
+}
+
+#[cfg(test)]
+mod graphics_occurrence_tests {
+    use super::*;
+    use crate::dimension_graphics_context::PictureMap;
+    use ifccad::*;
+    #[test]
+    fn picture_coordinates_have_independent_hard_proof_after_owner_placement() {
+        for (x, passes) in [(2., true), (3., false)] {
+            let mut c =
+                GeometryContext::new(IfccadGeometryTolerance::exact(), "unitless", 1).unwrap();
+            let dimension = IfccadGeometryEntitySource::NativeEntity {
+                owner: c.owner,
+                entity_id: 1,
+            };
+            let source = IfccadGeometryEntitySource::DimensionGraphicsPart {
+                owner: c.owner,
+                dimension: Box::new(dimension.clone()),
+                part_index: 0,
+                source: Box::new(IfccadGeometryEntitySource::CadEntity {
+                    handle: opencadcodec::Handle::new(1),
+                    kind: "LINE".into(),
+                }),
+            };
+            let key = GeometryNodeKey::DimensionGraphicsPart {
+                dimension: 1,
+                index: 0,
+            };
+            c.state.register_geometry(
+                key,
+                source,
+                cad_geometry_convert::GeometryPair::points(&[[100., 9., 0.]], &[[x, 9., 0.]])
+                    .unwrap(),
+            );
+            let p = IfccadPlacement {
+                origin: [98., 0., 0.],
+                x_axis: [1., 0., 0.],
+                y_axis: [0., 1., 0.],
+            };
+            c.install_graphics_group(
+                1,
+                dimension,
+                vec![key],
+                PictureMap::identity().evaluated(),
+                PictureMap::native(p.coordinate_frame().unwrap()).evaluated(),
+            );
+            let result = c.assess_roots(&BTreeMap::new(), &[1], &mut vec![]);
+            assert_eq!(result.is_ok(), passes);
+            if let Err(IfccadConversionError::Geometry(e)) = result {
+                assert!(matches!(
+                    e.source,
+                    IfccadGeometryEntitySource::BlockOccurrence { .. }
+                ));
+            }
         }
     }
 }

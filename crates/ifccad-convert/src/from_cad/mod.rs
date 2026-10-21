@@ -155,8 +155,12 @@ fn convert_prepared(
             appearance,
         });
     }
+    let pictures = crate::source::dimension_graphics::SourcePictureInventory::new(source);
     let mut supported = Vec::new();
     for h in &info.blocks {
+        if pictures.private_roots.contains(h) {
+            continue;
+        }
         let b = source
             .block_records
             .iter()
@@ -242,6 +246,8 @@ fn convert_prepared(
     }
     let (dimension_styles, mut dimensions) =
         crate::mapping::dimension::from_styles(source, &patterns, &mut ids, &mut mappings, issues)?;
+    dimensions.pictures = pictures;
+    dimensions.native_text_styles = text_styles.clone();
     audit.phase = "scope-preparation";
     let entities = entities::from_cad(
         entities::SourceScope {
@@ -458,6 +464,24 @@ fn convert_prepared(
             issues,
         )?;
     }
+    if audit.enabled {
+        for root in &dimensions.pictures.private_roots {
+            let captured=dimensions.pictures.links.iter().filter(|(_,r)|*r==root).any(|(handle,_)| {
+                mappings.entities.ifccad_id(*handle).is_some_and(|id| drawing.model.entities.iter().chain(drawing.paper_layouts.iter().flat_map(|p|&p.entities)).chain(drawing.blocks.iter().flat_map(|b|&b.entities)).any(|e|e.id()==id&&matches!(e.as_native().map(|e|&e.kind),Some(IfccadEntityKind::Dimension(v)) if v.graphics.is_some())))
+            });
+            for h in &source
+                .block_records
+                .iter()
+                .find(|b| b.handle == *root)
+                .expect("picture inventory")
+                .entity_handles
+            {
+                if !audit.entity_failed(*h) {
+                    audit.entity_finished(*h,if captured{CadAuditStatus::Passed}else{CadAuditStatus::Omitted},if captured{"complete Dimension graphics capture; numerical occurrence evidence remains separate"}else{"whole private Dimension picture omitted with its owning representation"})?;
+                }
+            }
+        }
+    }
     audit.phase = "finalization";
     preservation.finish(source, &mut drawing, &mappings)?;
     crate::mapping::workspace::from_cad(source, &mut drawing, &mut mappings, issues)?;
@@ -499,7 +523,7 @@ fn convert_prepared(
                 .iter()
                 .filter(|e| {
                     e.as_native()
-                        .is_some_and(|e| matches!(e.kind, IfccadEntityKind::BlockInstance { .. }))
+                        .is_some_and(|e| matches!(&e.kind, IfccadEntityKind::BlockInstance { .. }) || matches!(&e.kind, IfccadEntityKind::Dimension(v) if v.graphics.is_some()))
                 })
                 .map(|e| mappings.entities.cad_handle(e.id()).unwrap().value())
                 .collect::<Vec<_>>()
@@ -519,14 +543,26 @@ fn convert_prepared(
     recompute_ifccad_document_bounds(&mut drawing)
         .map_err(IfccadConversionError::CoreValidation)?;
     validate_ifccad_document(&drawing).map_err(IfccadConversionError::CoreValidation)?;
+    let graphics_transferred = geometry
+        .graphics_owners
+        .keys()
+        .filter_map(|key| mappings.entities.ifccad_id(opencadcodec::Handle::new(*key)))
+        .collect::<Vec<_>>();
+    let picture_attempts=mappings.entities.iter().filter_map(|(id,h)|matches!(source.get_entity(h),Some(opencadcodec::EntityType::Dimension(d)) if !d.base().block_name.is_empty()).then_some(id)).collect::<Vec<_>>();
     let mut assessment = geometry.finish();
-    assessment.filled_surfaces =
-        crate::filled_surface_assessment::collect_filled_surfaces(&drawing, source, &mappings)?;
+    assessment.filled_surfaces = crate::filled_surface_assessment::collect_filled_surfaces(
+        &drawing,
+        source,
+        &mappings,
+        crate::filled_surface_assessment::FilledSourceDirection::FromCad,
+    )?;
     Ok(Some(CadToIfccadDocumentOutcome {
         partial_open: audit.partial_report(),
         dimension: crate::IfccadDimensionAssessment::new(
             &drawing,
             mappings.entities.iter().map(|(id, _)| id),
+            graphics_transferred,
+            picture_attempts,
         ),
         text: crate::IfccadTextAssessment::new(
             &drawing,

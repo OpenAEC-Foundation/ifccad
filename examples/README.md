@@ -8,12 +8,13 @@ The Explorer offers two curated drawings:
 | `ifccad/house.ifcx` | A fictitious 10000 x 12000 mm ground floor with wall hatching, actual openings, repeated door/window/furniture blocks, room labels, dimensions, north arrow and an A3 sheet at 1:100. |
 
 Both open with an authored Model view. Their Paper tabs contain locked orthographic
-viewports and explicit millimetre plot mappings. Dimensions use native definitions
-only; the CAD host regenerates their display. There are no duplicate line/text
-stand-ins. The house uses whole millimetres; the catalogue uses up to two decimals
+viewports and explicit millimetre plot mappings. The catalogue's linear Dimension
+owns a small Generated picture with extension/dimension lines, native SOLID
+arrowheads and Text. Its aligned case and the house dimensions retain independent
+definitions without stored graphics and rely on CAD-host regeneration. Owned
+parts do not add ordinary scope entities or duplicate stand-ins. The house uses whole millimetres; the catalogue uses up to two decimals
 with trailing zeros suppressed. Units are stated on the drawing, not repeated in
-every dimension label. This does not add baked native Dimension graphics or
-certify every CAD host's rendering.
+every dimension label. Stored parts do not certify every CAD host's rendering.
 SOLID shows a filled face and a filled arrowhead, as used in CAD symbols and
 dimension pictures. Legacy TRACE shows a straight wide strip and two adjoining
 strips with a mitred corner; their width is already expressed by the stored

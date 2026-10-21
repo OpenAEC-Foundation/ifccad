@@ -448,9 +448,7 @@ impl AuditRun<'_> {
             })
             .map(|b| b.handle.value())
             .collect::<BTreeSet<_>>();
-        let affected = geometry
-            .state
-            .affected_instances(&members, &failed_definitions);
+        let affected = geometry.affected_instances(&members, &failed_definitions);
         let blocked_roots = affected
             .values()
             .flatten()
@@ -476,7 +474,7 @@ impl AuditRun<'_> {
             geometry.select(owner);
             for e in entities {
                 if !e.as_native().is_some_and(|n| {
-                    matches!(n.kind, ifccad::IfccadEntityKind::BlockInstance { .. })
+                    matches!(&n.kind, ifccad::IfccadEntityKind::BlockInstance { .. }) || matches!(&n.kind, ifccad::IfccadEntityKind::Dimension(v) if v.graphics.is_some())
                 }) {
                     continue;
                 }

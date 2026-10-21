@@ -1,4 +1,21 @@
 #[test]
+fn stored_picture_inspection_keeps_origin_empty_state_and_child_paths() {
+    let out = viewer::inspect_ifccad_bytes(
+        "graphics.ifcx",
+        include_bytes!("../../../conformance/next/ifccad/valid/dimension-graphics.ifcx"),
+    );
+    let dims = out["presentation"]["dimensions"].as_array().unwrap();
+    let stored = &dims[0]["geometry"]["graphics"];
+    assert_eq!(stored["state"], "stored");
+    assert_eq!(stored["origin"], "sourceSnapshot");
+    assert_eq!(stored["partCount"], 2);
+    assert!(stored["path"].as_str().unwrap().ends_with("/graphics"));
+    assert_eq!(dims[1]["geometry"]["graphics"]["origin"], "generated");
+    assert_eq!(dims[1]["geometry"]["graphics"]["partCount"], 0);
+    assert_eq!(dims[0]["geometry"]["displayEvaluation"], "unassessed");
+}
+
+#[test]
 fn independent_ifccad_inspector_keeps_full_width_source_paths() {
     let out = viewer::inspect_ifccad_bytes(
         "dims.ifcx",

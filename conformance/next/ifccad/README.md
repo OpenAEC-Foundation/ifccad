@@ -36,3 +36,12 @@ scalar conversion limits, raster restrictions and per-domain accuracy reports ar
 specified in [layout output](../../../docs/layout-output.md). No new workspace state, renderer, release or controlled measurement is implied.
 
 Workspace candidates cover saved/current separation, unknown choices, disabled zero snap spacing, independent canvas frames and malformed references/scalars. IFCCAD also covers full-width UCS/window identities with explicit independent watermarks.
+
+## Owned Dimension graphics
+
+The graphics candidate retains a SourceSnapshot group with ordered line/helper
+parts and a distinct Generated empty group. Invalid cases exercise unowned roles,
+noncontiguous canonical child roles and explicit null instead of an absent layer.
+Native validation additionally closes picture/marker kinds, resources and helper
+purpose; ordered IFCX composition does not make omission delete a child. These
+values are optional independent stored state, without freshness or generation.

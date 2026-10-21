@@ -74,7 +74,7 @@ pub(crate) fn assess_partial_occurrences(
             geometry.select(owner);
             for e in entities.iter() {
                 if !e.as_native().is_some_and(|e| {
-                    matches!(e.kind, ifccad::IfccadEntityKind::BlockInstance { .. })
+                    matches!(&e.kind, ifccad::IfccadEntityKind::BlockInstance { .. }) || matches!(&e.kind, ifccad::IfccadEntityKind::Dimension(v) if v.graphics.is_some())
                 }) {
                     continue;
                 }
@@ -107,7 +107,7 @@ pub(crate) fn assess_partial_occurrences(
         }
         for id in omitted {
             let h = mappings.entities.cad_handle(id).unwrap();
-            geometry.state.discard_entity(h.value());
+            geometry.discard_entity(h.value());
             mappings.entities.remove(id);
         }
     }
@@ -167,7 +167,7 @@ pub(crate) fn assess_partial_occurrences(
         .filter(|b| b.entity_handles.iter().any(|h| audit.entity_failed(*h)))
         .map(|b| b.handle.value())
         .collect();
-    let affected = geometry.state.affected_instances(&members, &incomplete);
+    let affected = geometry.affected_instances(&members, &incomplete);
     for (definition, roots) in affected {
         for root in roots {
             issues.push(crate::diagnostics::diagnostic("partial-block-content",format!("entity/{}",Handle::new(root)),

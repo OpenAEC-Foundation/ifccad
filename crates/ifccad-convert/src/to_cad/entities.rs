@@ -158,17 +158,41 @@ pub(super) fn to_cad(
             let loc = format!("entity/{}", e.id);
             let common = common(drawing, document, mappings, e, issues);
             let target = match &e.kind {
-                IfccadEntityKind::Dimension(d) => crate::mapping::dimension::to_entity(
-                    d,
-                    e.id,
-                    document,
-                    mappings,
-                    dimension_styles,
-                    geometry,
-                    issues,
-                )?,
+                IfccadEntityKind::Dimension(d) => {
+                    let before = issues.len();
+                    let mut target = crate::mapping::dimension::to_entity(
+                        d,
+                        e.id,
+                        document,
+                        mappings,
+                        dimension_styles,
+                        geometry,
+                        issues,
+                    )?;
+                    if let Some(EntityType::Dimension(cad)) = &mut target {
+                        if let Some(picture) = crate::mapping::dimension_graphics_target::prepare(
+                            d, e.id, e.layer_id, drawing, document, cad, mappings, geometry, issues,
+                        )? {
+                            picture.commit(document, cad, geometry)?;
+                            let expected = format!("entity/{}/pictureBlock", e.id);
+                            let mut suffix = issues.split_off(before);
+                            suffix.retain(|d| {
+                                !(d.code == "dimension-metadata" && d.location == expected)
+                            });
+                            issues.extend(suffix);
+                        }
+                    }
+                    target
+                }
                 IfccadEntityKind::Text(_) | IfccadEntityKind::MText(_) => {
-                    crate::mapping::text::to_entity(drawing, e, mappings, geometry, issues)?
+                    crate::mapping::text::to_entity(
+                        &drawing.text_styles,
+                        &e.kind,
+                        e.id,
+                        mappings,
+                        geometry,
+                        issues,
+                    )?
                 }
                 IfccadEntityKind::BlockInstance {
                     definition_id,
@@ -215,13 +239,8 @@ pub(super) fn to_cad(
                                 IfccadConversionError::Unsupported(diagnostics)
                             }
                         })?;
-                    geometry.state.register_identity(e.id, identity);
-                    geometry.state.record_instance_parts(
-                        e.id,
-                        *definition_id,
-                        source_map,
-                        target_map,
-                    );
+                    geometry.register_identity(e.id, identity);
+                    geometry.record_instance_parts(e.id, *definition_id, source_map, target_map);
                     Some(EntityType::Insert(target))
                 }
                 IfccadEntityKind::BlockInstance { .. } => None,

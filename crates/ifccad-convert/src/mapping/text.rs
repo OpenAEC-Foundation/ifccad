@@ -299,14 +299,15 @@ pub(crate) fn from_entity(
     Ok(Some(kind))
 }
 pub(crate) fn to_entity(
-    d: &IfccadDocument,
-    e: &IfccadNativeEntity,
+    styles: &[IfccadTextStyle],
+    kind: &IfccadEntityKind,
+    entity_id: u64,
     mappings: &IfccadMappings,
     geometry: &mut crate::geometry_context::GeometryContext,
     issues: &mut Vec<IfccadDiagnostic>,
 ) -> Result<Option<EntityType>, IfccadConversionError> {
-    let loc = format!("entity/{}", e.id);
-    let id = match &e.kind {
+    let loc = format!("entity/{}", entity_id);
+    let id = match kind {
         IfccadEntityKind::Text(t) => t.style_id,
         IfccadEntityKind::MText(t) => t.style_id,
         _ => unreachable!(),
@@ -315,14 +316,13 @@ pub(crate) fn to_entity(
         skipped(&loc, "unsupported target text style", issues);
         return Ok(None);
     }
-    let name = &d
-        .text_styles
+    let name = &styles
         .iter()
         .find(|s| s.id == id)
         .expect("validated style")
         .name;
     let prepared = (|| -> Result<_, cad_text::CadTextError> {
-        match &e.kind {
+        match kind {
             IfccadEntityKind::Text(t) => cad_text::prepare_text_to_cad(&cad_text::TextCadInput {
                 style_name: name,
                 placement: t.placement.coordinate_frame().map_err(|_| {
@@ -370,10 +370,10 @@ pub(crate) fn to_entity(
         Err(e) => return Err(fatal(&loc, e)),
     };
     geometry.record(
-        e.id,
+        entity_id,
         IfccadGeometryEntitySource::NativeEntity {
             owner: geometry.owner,
-            entity_id: e.id,
+            entity_id,
         },
         p.pair,
         issues,

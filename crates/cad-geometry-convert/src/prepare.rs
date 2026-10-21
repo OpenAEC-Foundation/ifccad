@@ -20,6 +20,74 @@ pub struct GeometryPair {
     pub curves: Vec<PairedCurve>,
 }
 impl GeometryPair {
+    /// Join parameter-compatible native source and actual CAD target operands.
+    pub fn from_prepared_source_and_target(
+        a: &Self,
+        b: &Self,
+    ) -> Result<Self, CadPreparationError> {
+        if a.points.len() != b.points.len() || a.curves.len() != b.curves.len() {
+            return Err(CadPreparationError::InvalidGeometry);
+        }
+        Ok(Self {
+            points: a
+                .points
+                .iter()
+                .zip(&b.points)
+                .map(|((a, _), (b, _))| {
+                    let p = PairedPoint::from_prepared_source_and_target(a, b);
+                    let d = p.squared_deviation().1;
+                    (p, d)
+                })
+                .collect(),
+            curves: a
+                .curves
+                .iter()
+                .zip(&b.curves)
+                .map(|(a, b)| PairedCurve::from_prepared_source_and_target(a, b))
+                .collect(),
+        })
+    }
+
+    /// Compare the source sides of two parameter-compatible preparations.
+    /// Callers must retain the same primitive kind, parameterization and sample
+    /// ordering. Both complete curve envelopes and all point samples are kept.
+    pub fn from_prepared_sources(a: &Self, b: &Self) -> Result<Self, CadPreparationError> {
+        if a.points.len() != b.points.len() || a.curves.len() != b.curves.len() {
+            return Err(CadPreparationError::InvalidGeometry);
+        }
+        let points = a
+            .points
+            .iter()
+            .zip(&b.points)
+            .map(|((a, _), (b, _))| {
+                let p = PairedPoint::from_prepared_sources(a, b);
+                let d = p.squared_deviation().1;
+                (p, d)
+            })
+            .collect();
+        let curves = a
+            .curves
+            .iter()
+            .zip(&b.curves)
+            .map(|(a, b)| PairedCurve::from_prepared_sources(a, b))
+            .collect();
+        Ok(Self { points, curves })
+    }
+    /// Place the two evaluated sides independently, preserving occurrence proof.
+    pub fn apply(
+        &mut self,
+        source: &geometry::blocks::EvaluatedBlock,
+        target: &geometry::blocks::EvaluatedBlock,
+    ) {
+        for (p, d) in &mut self.points {
+            p.apply(source, target);
+            *d = p.squared_deviation().1;
+        }
+        for c in &mut self.curves {
+            c.apply(source, target);
+        }
+    }
+
     pub fn points(source: &[[f64; 3]], target: &[[f64; 3]]) -> Result<Self, CadPreparationError> {
         if source.len() != target.len()
             || source

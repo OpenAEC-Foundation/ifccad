@@ -257,6 +257,82 @@
       "file": "valid/filled-float-bits-uint64.ifccad.cbor",
       "valid": true,
       "diagnostic": "valid/filled-float-bits-uint64.ifccad.cbor.diag"
+    },
+    {
+      "file": "valid/graphics-line.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/graphics-line.ifccad.cbor.diag"
+    },
+    {
+      "file": "valid/graphics-empty.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/graphics-empty.ifccad.cbor.diag"
+    },
+    {
+      "file": "invalid/graphics-null.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/graphics-null.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/graphics-origin.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/graphics-origin.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/graphics-required.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/graphics-required.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/graphics-duplicate.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/graphics-duplicate.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/graphics-kind-9.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/graphics-kind-9.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/graphics-kind-13.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/graphics-kind-13.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/graphics-kind-16.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/graphics-kind-16.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/graphics-integer.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/graphics-integer.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/graphics-float32.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/graphics-float32.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/graphics-float16.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/graphics-float16.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/graphics-reference-line.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/graphics-reference-line.ifccad.cbor.diag",
+      "errorClass": "InvalidDocument"
     }
   ]
 }

@@ -148,3 +148,7 @@ The dimension-line point remains fixed XY. Measurement uses the XY reference
 projections; Z is retained native reference geometry along the exact cross
 product of the stored placement X/Y axes. Explicit text remains XY in that plane.
 XY reference tuples are rejected, never completed with an inferred Z.
+
+## Dimension graphics
+
+Dimension record field 7 optionally stores IfccadDimensionGraphics. Its required fields are 0 origin (SourceSnapshot=0, Generated=1), 1 ordered parts (including explicit empty). Each part has 0 optional layer_id, 1 required kind code, 2 required contextual geometry body, 3 appearance (all ByLayer default), 4 visible (true), 5 binary64 line_pattern_scale (1.0), 6 purpose (Display=0 default, ReferencePoint=1). Layer zero is present, not inherited; negative zero is preserved. The body is the existing primitive body, without a second enum envelope. Standalone graphics-kind values retain the ordinary tagged-map envelope. Allowed codes are 0..8, 10..12, 14/15; codes 9/13 are invalid. Origin/parts have no omission defaults. These records update the one experimental revision 1 in place. Shared logical validation applies the closed Hatch and marker/helper restrictions.

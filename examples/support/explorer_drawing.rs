@@ -167,7 +167,7 @@ impl Drawing {
         p: [f64; 2],
         aligned: bool,
         height: f64,
-    ) {
+    ) -> u64 {
         let mut definition = json!({"kind":if aligned {"aligned"} else {"linear"},"firstPoint":[a[0],a[1],0.],"secondPoint":[b[0],b[1],0.],"dimensionLinePoint":p});
         if !aligned {
             definition["directionAngle"] = json!(if a[0] == b[0] {
@@ -176,7 +176,7 @@ impl Drawing {
                 0.
             });
         }
-        self.entity(MODEL,layer,json!({"ifccad::geom::placement":plane(0.,0.),"ifccad::dimension":{"style":"/cad/d1/dimensionStyle/0","definition":definition,"label":{"kind":"generated"},"textPlacement":{"kind":"styleDriven"},"overrides":{"text":{"height":height,"gap":height*0.25},"arrows":{"size":height},"extensionLines":{"first":{"extension":height*0.5,"offset":height*0.25},"second":{"extension":height*0.5,"offset":height*0.25}}},"associations":[]}}));
+        self.entity(MODEL,layer,json!({"ifccad::geom::placement":plane(0.,0.),"ifccad::dimension":{"style":"/cad/d1/dimensionStyle/0","definition":definition,"label":{"kind":"generated"},"textPlacement":{"kind":"styleDriven"},"overrides":{"text":{"height":height,"gap":height*0.25},"arrows":{"size":height},"extensionLines":{"first":{"extension":height*0.5,"offset":height*0.25},"second":{"extension":height*0.5,"offset":height*0.25}}},"associations":[]}}))
     }
     pub fn dimension_precision(&mut self, precision: u8) {
         let style = self

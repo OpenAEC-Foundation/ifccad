@@ -98,7 +98,18 @@ pub(super) fn from_cad(
         let prepared = (|| -> Result<_, IfccadConversionError> {
             let mut kind = match e {
                 EntityType::Dimension(d) => crate::mapping::dimension::from_entity(
-                    d, source, patterns, mappings, dimensions, geometry, issues,
+                    d,
+                    source,
+                    patterns,
+                    mappings,
+                    dimensions,
+                    crate::mapping::dimension_graphics::Creation {
+                        unit,
+                        paper,
+                        request: hatch_tolerance,
+                    },
+                    geometry,
+                    issues,
                 )?,
                 EntityType::Hatch(h) => crate::mapping::hatch::from_cad(
                     h,
@@ -152,8 +163,8 @@ pub(super) fn from_cad(
                         rotation: native.rotation(),
                         scale: [native.scale().x(), native.scale().y(), native.scale().z()],
                     };
-                    geometry.state.register_identity(h.value(), identity);
-                    geometry.state.record_instance_parts(
+                    geometry.register_identity(h.value(), identity);
+                    geometry.record_instance_parts(
                         h.value(),
                         record.handle.value(),
                         source_map,
@@ -178,7 +189,7 @@ pub(super) fn from_cad(
                 if !audit.enabled || (audit.partial && !error.allows_partial_open_retry()) {
                     return Err(error);
                 }
-                geometry.state.discard_entity(h.value());
+                geometry.discard_entity(h.value());
                 geometry.state.assessment = checkpoint.expect("audit checkpoint");
                 audit.failure(
                     "entity-preparation",

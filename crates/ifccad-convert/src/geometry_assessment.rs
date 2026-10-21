@@ -41,6 +41,12 @@ pub enum IfccadGeometryEntitySource {
         owner: IfccadGeometryOwner,
         entity_id: u64,
     },
+    DimensionGraphicsPart {
+        owner: IfccadGeometryOwner,
+        dimension: Box<IfccadGeometryEntitySource>,
+        part_index: usize,
+        source: Box<IfccadGeometryEntitySource>,
+    },
     BlockOccurrence {
         path: Vec<IfccadGeometryEntitySource>,
         leaf: Box<IfccadGeometryEntitySource>,

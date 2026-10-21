@@ -6,6 +6,7 @@ use value::{record, unit_enum, CborValue};
 mod codes;
 mod common;
 mod dimension;
+mod dimension_graphics;
 mod dimension_style;
 mod dimension_style_values;
 mod document;

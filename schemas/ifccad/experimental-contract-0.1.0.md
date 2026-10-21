@@ -641,3 +641,5 @@ target. Native records contain no topology/proof/render flags. Conversion
 requires its ordinary hard position evidence independently of optional simple
 surface correspondence; absent surface evidence does not invalidate, omit or
 lose a finite descriptor. Viewer rendering remains unassessed.
+
+Dimension owns optional independent graphics, projected as canonical child groups/parts in IFCX. No identity allocation or freshness evaluation is introduced; see [profile rules](profile-rules-0.1.0.md#owned-dimension-graphics).

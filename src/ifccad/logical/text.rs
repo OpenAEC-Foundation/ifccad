@@ -39,10 +39,24 @@ pub(super) fn validate_entity(
     kind: &super::IfccadEntityKind,
     path: &str,
 ) -> Result<(), super::IfccadReport> {
+    match kind {
+        super::IfccadEntityKind::Text(t) => validate_value(document, TextValue::Text(t), path),
+        super::IfccadEntityKind::MText(t) => validate_value(document, TextValue::MText(t), path),
+        _ => Ok(()),
+    }
+}
+pub(super) enum TextValue<'a> {
+    Text(&'a IfccadText),
+    MText(&'a IfccadMText),
+}
+pub(super) fn validate_value(
+    document: &super::IfccadDocument,
+    kind: TextValue<'_>,
+    path: &str,
+) -> Result<(), super::IfccadReport> {
     let (id, placement, rotation) = match kind {
-        super::IfccadEntityKind::Text(t) => (t.style_id, &t.placement, t.rotation),
-        super::IfccadEntityKind::MText(t) => (t.style_id, &t.placement, t.rotation),
-        _ => return Ok(()),
+        TextValue::Text(t) => (t.style_id, &t.placement, t.rotation),
+        TextValue::MText(t) => (t.style_id, &t.placement, t.rotation),
     };
     let style = document
         .text_styles
@@ -59,7 +73,7 @@ pub(super) fn validate_entity(
         crate::ifccad::diagnostics::context(report, "IFCCAD-GEOMETRY-001", path)
     })?;
     let (rule, attribute) = match kind {
-        super::IfccadEntityKind::Text(_) => ("IFCCAD-TEXT-002", "ifccad::text"),
+        TextValue::Text(_) => ("IFCCAD-TEXT-002", "ifccad::text"),
         _ => ("IFCCAD-TEXT-003", "ifccad::mText"),
     };
     if !rotation.is_finite() {
@@ -73,7 +87,7 @@ pub(super) fn validate_entity(
         crate::ifccad::diagnostics::failure(rule, &format!("{path}/{attribute}"), e.to_string())
     };
     match kind {
-        super::IfccadEntityKind::Text(t) => {
+        TextValue::Text(t) => {
             validate_text_layout(&t.layout).map_err(error)?;
             validate_text_runs(&t.content).map_err(error)?;
             if !t.oblique_angle.is_finite()
@@ -87,7 +101,7 @@ pub(super) fn validate_entity(
                 ));
             }
         }
-        super::IfccadEntityKind::MText(t) => {
+        TextValue::MText(t) => {
             let color = |c: &IfccadColor| super::document_validation::color(c);
             let context = MTextValueContext {
                 nominal_height: t.height,
@@ -116,7 +130,6 @@ pub(super) fn validate_entity(
                 validate_background(background, color).map_err(error)?;
             }
         }
-        _ => unreachable!(),
     }
     Ok(())
 }

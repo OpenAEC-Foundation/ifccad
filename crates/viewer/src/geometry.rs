@@ -26,6 +26,14 @@ fn source(s: &IfccadGeometryEntitySource) -> Value {
             owner: o,
             entity_id,
         } => json!({"kind":"NativeEntity","owner":owner(*o),"entityId":entity_id.to_string()}),
+        IfccadGeometryEntitySource::DimensionGraphicsPart {
+            owner: o,
+            dimension,
+            part_index,
+            source: s,
+        } => {
+            json!({"kind":"DimensionGraphicsPart","owner":owner(*o),"dimension":source(dimension),"partIndex":part_index.to_string(),"source":source(s)})
+        }
         IfccadGeometryEntitySource::BlockOccurrence { path, leaf } => {
             json!({"kind":"BlockOccurrence","path":path.iter().map(source).collect::<Vec<_>>(),"leaf":source(leaf)})
         }

@@ -18085,6 +18085,193 @@
           }
         }
       }
+    },
+    "ifccad::dimensionGraphics": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "origin": {
+              "dataType": "Enum",
+              "enumRestrictions": {
+                "options": [
+                  "sourceSnapshot",
+                  "generated"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "ifccad::dimensionGraphicsPart": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "layer": {
+              "dataType": "Reference",
+              "optional": true
+            },
+            "appearance": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "color": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "mode": {
+                          "dataType": "Enum",
+                          "enumRestrictions": {
+                            "options": [
+                              "ByLayer",
+                              "ByBlock",
+                              "Explicit"
+                            ]
+                          }
+                        },
+                        "value": {
+                          "dataType": "Object",
+                          "objectRestrictions": {
+                            "values": {
+                              "rgb": {
+                                "dataType": "Array",
+                                "arrayRestrictions": {
+                                  "min": 3,
+                                  "max": 3,
+                                  "value": {
+                                    "dataType": "Integer"
+                                  }
+                                }
+                              },
+                              "indexedColor": {
+                                "dataType": "Object",
+                                "optional": true,
+                                "objectRestrictions": {
+                                  "values": {
+                                    "system": {
+                                      "dataType": "String"
+                                    },
+                                    "index": {
+                                      "dataType": "Integer"
+                                    }
+                                  }
+                                }
+                              },
+                              "namedColor": {
+                                "dataType": "Object",
+                                "optional": true,
+                                "objectRestrictions": {
+                                  "values": {
+                                    "catalog": {
+                                      "dataType": "String"
+                                    },
+                                    "name": {
+                                      "dataType": "String"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "optional": true
+                        }
+                      }
+                    },
+                    "optional": true
+                  },
+                  "opacity": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "mode": {
+                          "dataType": "Enum",
+                          "enumRestrictions": {
+                            "options": [
+                              "ByLayer",
+                              "ByBlock",
+                              "Explicit"
+                            ]
+                          }
+                        },
+                        "value": {
+                          "dataType": "Real",
+                          "optional": true
+                        }
+                      }
+                    },
+                    "optional": true
+                  },
+                  "linePattern": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "mode": {
+                          "dataType": "Enum",
+                          "enumRestrictions": {
+                            "options": [
+                              "ByLayer",
+                              "ByBlock",
+                              "Explicit"
+                            ]
+                          }
+                        },
+                        "value": {
+                          "dataType": "String",
+                          "optional": true
+                        }
+                      }
+                    },
+                    "optional": true
+                  },
+                  "lineWeight": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "mode": {
+                          "dataType": "Enum",
+                          "enumRestrictions": {
+                            "options": [
+                              "ByLayer",
+                              "ByBlock",
+                              "Explicit"
+                            ]
+                          }
+                        },
+                        "value": {
+                          "dataType": "Real",
+                          "optional": true
+                        }
+                      }
+                    },
+                    "optional": true
+                  }
+                }
+              },
+              "optional": true
+            },
+            "linePatternScale": {
+              "dataType": "Real",
+              "optional": true
+            },
+            "visible": {
+              "dataType": "Boolean",
+              "optional": true
+            },
+            "purpose": {
+              "dataType": "Enum",
+              "optional": true,
+              "enumRestrictions": {
+                "options": [
+                  "display",
+                  "referencePoint"
+                ]
+              }
+            }
+          }
+        }
+      }
     }
   },
   "data": []

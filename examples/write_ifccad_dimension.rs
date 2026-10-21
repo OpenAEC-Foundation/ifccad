@@ -72,6 +72,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         },
     ];
     let make = |definition: DimensionDefinition| IfccadDimension {
+        graphics: None,
         placement: IfccadPlacement {
             origin: [0.0; 3],
             x_axis: [1.0, 0.0, 0.0],

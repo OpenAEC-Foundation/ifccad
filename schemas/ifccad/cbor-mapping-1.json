@@ -7066,6 +7066,12 @@
           "name": "associations",
           "type": "Vec<IfccadDimensionAssociation>",
           "presence": "required"
+        },
+        {
+          "code": 7,
+          "name": "graphics",
+          "type": "Option<IfccadDimensionGraphics>",
+          "presence": "optional"
         }
       ],
       "dependencies": [
@@ -7075,7 +7081,8 @@
         "DimensionTextPlacement",
         "IfccadDimensionStyleId",
         "IfccadPlacement",
-        "Vec<IfccadDimensionAssociation>"
+        "Vec<IfccadDimensionAssociation>",
+        "Option<IfccadDimensionGraphics>"
       ]
     },
     "LinePatternTransform": {
@@ -9573,6 +9580,477 @@
       "length": 4,
       "dependencies": [
         "[f64;2]"
+      ]
+    },
+    "Option<IfccadDimensionGraphics>": {
+      "kind": "optional",
+      "items": [
+        "IfccadDimensionGraphics"
+      ],
+      "dependencies": [
+        "IfccadDimensionGraphics"
+      ]
+    },
+    "Vec<IfccadDimensionGraphicsPart>": {
+      "kind": "list",
+      "items": [
+        "IfccadDimensionGraphicsPart"
+      ],
+      "dependencies": [
+        "IfccadDimensionGraphicsPart"
+      ]
+    },
+    "IfccadDimensionGraphicsOrigin": {
+      "kind": "enum",
+      "variants": [
+        {
+          "code": 0,
+          "name": "SourceSnapshot",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 1,
+          "name": "Generated",
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": [],
+      "representation": "integer"
+    },
+    "IfccadDimensionGraphicsPurpose": {
+      "kind": "enum",
+      "variants": [
+        {
+          "code": 0,
+          "name": "Display",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 1,
+          "name": "ReferencePoint",
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": [],
+      "representation": "integer"
+    },
+    "IfccadDimensionGraphics": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "origin",
+          "type": "IfccadDimensionGraphicsOrigin",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "parts",
+          "type": "Vec<IfccadDimensionGraphicsPart>",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "IfccadDimensionGraphicsOrigin",
+        "Vec<IfccadDimensionGraphicsPart>"
+      ]
+    },
+    "IfccadDimensionGraphicsPart": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "layer_id",
+          "type": "Option<u64>",
+          "presence": "optional"
+        },
+        {
+          "code": 1,
+          "name": "kind",
+          "type": "u64",
+          "presence": "required",
+          "enumDomain": "IfccadDimensionGraphicsKind"
+        },
+        {
+          "code": 2,
+          "name": "geometry",
+          "type": "IfccadDimensionGraphicsKind",
+          "presence": "required",
+          "valueForm": "variantBody",
+          "variantSelector": 1
+        },
+        {
+          "code": 3,
+          "name": "appearance",
+          "type": "IfccadEntityAppearance",
+          "presence": "default",
+          "default": {
+            "nativeByLayer": true
+          },
+          "omit": "exact"
+        },
+        {
+          "code": 4,
+          "name": "visible",
+          "type": "bool",
+          "presence": "default",
+          "default": true,
+          "omit": "exact"
+        },
+        {
+          "code": 5,
+          "name": "line_pattern_scale",
+          "type": "f64",
+          "presence": "default",
+          "default": 1.0,
+          "omit": "exact"
+        },
+        {
+          "code": 6,
+          "name": "purpose",
+          "type": "IfccadDimensionGraphicsPurpose",
+          "presence": "default",
+          "default": "Display",
+          "omit": "exact"
+        }
+      ],
+      "dependencies": [
+        "IfccadDimensionGraphicsKind",
+        "IfccadDimensionGraphicsPurpose",
+        "IfccadEntityAppearance",
+        "Option<u64>",
+        "bool",
+        "f64",
+        "u64"
+      ]
+    },
+    "IfccadDimensionGraphicsKind": {
+      "kind": "enum",
+      "representation": "taggedMap",
+      "variants": [
+        {
+          "name": "LineSegment",
+          "code": 0,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "start",
+              "type": "LinePoint",
+              "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "end",
+              "type": "LinePoint",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "Point",
+          "code": 1,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "placement",
+              "type": "IfccadPlacement",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "Circle",
+          "code": 2,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "placement",
+              "type": "IfccadPlacement",
+              "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "radius",
+              "type": "f64",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "Arc",
+          "code": 3,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "placement",
+              "type": "IfccadPlacement",
+              "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "radius",
+              "type": "f64",
+              "presence": "required"
+            },
+            {
+              "code": 2,
+              "name": "start_parameter",
+              "type": "f64",
+              "presence": "required"
+            },
+            {
+              "code": 3,
+              "name": "sweep_parameter",
+              "type": "f64",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "Ellipse",
+          "code": 4,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "placement",
+              "type": "IfccadPlacement",
+              "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "semi_major_radius",
+              "type": "f64",
+              "presence": "required"
+            },
+            {
+              "code": 2,
+              "name": "semi_minor_radius",
+              "type": "f64",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "EllipseArc",
+          "code": 5,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "placement",
+              "type": "IfccadPlacement",
+              "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "semi_major_radius",
+              "type": "f64",
+              "presence": "required"
+            },
+            {
+              "code": 2,
+              "name": "semi_minor_radius",
+              "type": "f64",
+              "presence": "required"
+            },
+            {
+              "code": 3,
+              "name": "start_parameter",
+              "type": "f64",
+              "presence": "required"
+            },
+            {
+              "code": 4,
+              "name": "sweep_parameter",
+              "type": "f64",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "PlanarPolyline",
+          "code": 6,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "placement",
+              "type": "IfccadPlacement",
+              "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "vertices",
+              "type": "Vec<[f64;2]>",
+              "presence": "required"
+            },
+            {
+              "code": 2,
+              "name": "bulges",
+              "type": "Vec<f64>",
+              "presence": "required"
+            },
+            {
+              "code": 3,
+              "name": "closed",
+              "type": "bool",
+              "presence": "default",
+              "default": false,
+              "omit": "exact"
+            },
+            {
+              "code": 4,
+              "name": "line_pattern_generation",
+              "type": "IfccadLinePatternGeneration",
+              "presence": "default",
+              "default": {
+                "variant": "PerSegment"
+              },
+              "omit": "exact"
+            }
+          ]
+        },
+        {
+          "name": "SpatialPolyline",
+          "code": 7,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "vertices",
+              "type": "Vec<[f64;3]>",
+              "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "closed",
+              "type": "bool",
+              "presence": "default",
+              "default": false,
+              "omit": "exact"
+            },
+            {
+              "code": 2,
+              "name": "line_pattern_generation",
+              "type": "IfccadLinePatternGeneration",
+              "presence": "default",
+              "default": {
+                "variant": "PerSegment"
+              },
+              "omit": "exact"
+            }
+          ]
+        },
+        {
+          "name": "BlockInstance",
+          "code": 8,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "definition_id",
+              "type": "u64",
+              "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "transform",
+              "type": "IfccadBlockTransform",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "Text",
+          "code": 10,
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "IfccadText",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "MText",
+          "code": 11,
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "Box<IfccadMText>",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "Hatch",
+          "code": 12,
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "IfccadHatch",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "code": 14,
+          "name": "Solid",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "IfccadFilledQuadrilateral",
+              "presence": "required"
+            }
+          ],
+          "shape": "("
+        },
+        {
+          "code": 15,
+          "name": "Trace",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "IfccadFilledQuadrilateral",
+              "presence": "required"
+            }
+          ],
+          "shape": "("
+        }
+      ],
+      "dependencies": [
+        "Box<IfccadMText>",
+        "IfccadBlockTransform",
+        "IfccadHatch",
+        "IfccadLinePatternGeneration",
+        "IfccadPlacement",
+        "IfccadText",
+        "LinePoint",
+        "Vec<[f64;2]>",
+        "Vec<[f64;3]>",
+        "Vec<f64>",
+        "[f64;3]",
+        "bool",
+        "f64",
+        "u64",
+        "IfccadFilledQuadrilateral"
       ]
     }
   }

@@ -23,6 +23,7 @@ record!(IfccadDimension;
 4 => label: DimensionLabel = None,
 5 => overrides: DimensionStyleOverrides<IfccadTextStyleId,u64,IfccadColor,IfccadLinePatternId> = None,
 6 => associations: Vec<IfccadDimensionAssociation> = None,
+7 => graphics: Option<IfccadDimensionGraphics> = Some(None),
 );
 impl CborValue for DimensionDefinition {
     #[cfg(test)]

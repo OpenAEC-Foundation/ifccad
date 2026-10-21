@@ -190,6 +190,9 @@ fn source_handle(source: &IfccadGeometryEntitySource) -> Option<Handle> {
     match source {
         IfccadGeometryEntitySource::CadEntity { handle, .. } => Some(*handle),
         IfccadGeometryEntitySource::BlockOccurrence { leaf, .. } => source_handle(leaf),
+        IfccadGeometryEntitySource::DimensionGraphicsPart { dimension, .. } => {
+            source_handle(dimension)
+        }
         IfccadGeometryEntitySource::NativeEntity { .. } => None,
     }
 }

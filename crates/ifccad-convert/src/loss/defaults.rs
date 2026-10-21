@@ -16,18 +16,29 @@ pub(super) fn expand_attributes(attrs: &mut Map<String, Value>) {
             fill(v, &[("thickness", json!(0.))]);
         }
     }
-    if let Some(entity) = attrs.get_mut("ifccad::entity") {
+    for key in ["ifccad::entity", "ifccad::dimensionGraphicsPart"] {
+        if let Some(entity) = attrs.get_mut(key) {
+            fill(
+                entity,
+                &[("visible", json!(true)), ("appearance", json!({}))],
+            );
+            fill(
+                &mut entity["appearance"],
+                &[
+                    ("color", json!({"mode":"ByLayer"})),
+                    ("opacity", json!({"mode":"ByLayer"})),
+                    ("linePattern", json!({"mode":"ByLayer"})),
+                    ("lineWeight", json!({"mode":"ByLayer"})),
+                ],
+            );
+        }
+    }
+    if let Some(part) = attrs.get_mut("ifccad::dimensionGraphicsPart") {
         fill(
-            entity,
-            &[("visible", json!(true)), ("appearance", json!({}))],
-        );
-        fill(
-            &mut entity["appearance"],
+            part,
             &[
-                ("color", json!({"mode":"ByLayer"})),
-                ("opacity", json!({"mode":"ByLayer"})),
-                ("linePattern", json!({"mode":"ByLayer"})),
-                ("lineWeight", json!({"mode":"ByLayer"})),
+                ("purpose", json!("display")),
+                ("linePatternScale", json!(1.)),
             ],
         );
     }

@@ -110,6 +110,38 @@ fn pair_components(source: CurveComponents, target: CurveComponents) -> PairedCu
     PairedCurve::new(source.0, source.1, target.0, target.1)
 }
 
+/// Native full-basis reference matching CAD-to-native curve preparation.
+/// Partial spans retain the same complete coefficient proof and angular budget;
+/// no glyph, tessellation or alternate curve evaluation is introduced.
+pub fn native_reference_curve(
+    geometry: ifccad::geometry_kernel::GeometryRef<'_>,
+) -> Option<PairedCurve> {
+    use ifccad::geometry_kernel::GeometryRef as G;
+    let (plane, major, minor, span) = match geometry {
+        G::Circle { placement, radius } => (placement, radius, radius, std::f64::consts::TAU),
+        G::Arc {
+            placement,
+            radius,
+            sweep,
+            ..
+        } => (placement, radius, radius, sweep.abs()),
+        G::Ellipse {
+            placement,
+            major,
+            minor,
+            arc,
+        } => (
+            placement,
+            major,
+            minor,
+            arc.map_or(std::f64::consts::TAU, |(_, s)| s.abs()),
+        ),
+        _ => return None,
+    };
+    let components = native_components(plane, major, minor, 0., 1.);
+    Some(pair_components(components.clone(), components).with_span(span))
+}
+
 pub fn import_circle_curve(
     plane: CoordinateFrame3,
     radius: f64,

@@ -91,6 +91,14 @@ impl<K: Copy + Ord, S: crate::GeometrySource> ExchangeState<K, S> {
         self.curves.insert(key, pair.curves);
         Ok(maximum)
     }
+    /// Register operands that will be assessed through an enclosing occurrence.
+    /// The caller must run assess_roots before accepting an output candidate.
+    pub fn register_geometry(&mut self, key: K, source: S, pair: crate::GeometryPair) {
+        self.identities.insert(key, source);
+        self.points
+            .insert(key, pair.points.into_iter().map(|(p, _)| p).collect());
+        self.curves.insert(key, pair.curves);
+    }
     pub fn affected_instances(
         &self,
         members: &BTreeMap<K, Vec<K>>,

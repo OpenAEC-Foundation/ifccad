@@ -54,6 +54,7 @@ export function renderInspection(model,state){
   details+=node.type==='group'?'<p class="secondary">'+e(t('group'))+'</p>':'<h3>'+e(t('storedValues'))+'</h3>';
   if(node.type!=='group')details+='<div class="inspector-fields" data-field-owner="'+e(node.key)+'">'+fields(node.values,[],0,node.key)+'</div>';
   const dimension=dimensionPresentation(node,model.format),computed=dimension?.derived;
+  if(computed?.graphics)details+='<h3>'+e(t('dimension.field.graphics'))+'</h3><div class="inspector-fields">'+fields(computed.graphics,['derived','graphics'],0,node.key)+'</div>';
   if(computed){
    const raw=computed.rawMeasurement;
    details+='<h3>'+e(t('dimension.calculatedMeasurement'))+'</h3><p class="secondary">'+e(t('dimension.calculatedHelp'))+'</p>';

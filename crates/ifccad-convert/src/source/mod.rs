@@ -1,3 +1,4 @@
+pub(crate) mod dimension_graphics;
 pub(crate) mod entities;
 pub(crate) mod layouts;
 pub(crate) mod scaffold;

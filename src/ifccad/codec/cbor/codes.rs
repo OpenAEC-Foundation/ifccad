@@ -213,6 +213,11 @@ mod tests {
         check::<HatchAreaRule>(&r, "HatchAreaRule");
         check::<HatchFill>(&r, "HatchFill");
         check::<IfccadDimension>(&r, "IfccadDimension");
+        check::<IfccadDimensionGraphics>(&r, "IfccadDimensionGraphics");
+        check::<IfccadDimensionGraphicsPart>(&r, "IfccadDimensionGraphicsPart");
+        check::<IfccadDimensionGraphicsKind>(&r, "IfccadDimensionGraphicsKind");
+        check::<IfccadDimensionGraphicsOrigin>(&r, "IfccadDimensionGraphicsOrigin");
+        check::<IfccadDimensionGraphicsPurpose>(&r, "IfccadDimensionGraphicsPurpose");
         check::<LinePatternTransform>(&r, "LinePatternTransform");
         check::<DimensionAlternateChoice>(&r, "DimensionAlternateChoice");
         check::<ShadedPlotQualityMode>(&r, "ShadedPlotQualityMode");

@@ -24,6 +24,9 @@ export function createInspection(result,sourceText=''){
    for(const [name,target]of ordered){link(key,target,'children.'+name,'child');if(/^\d+$/.test(name)&&(a['ifccad::layout']||a['ifccad::blockDefinition']))nodes.get(key).children.push(target);}
    for(const [name,target]of Object.entries(item.inherits||{}))if(typeof target==='string')link(key,target,'inherits.'+name,'inherits');
    if(a['ifccad::entity']){link(key,a['ifccad::entity'].layer,'ifccad::entity.layer','layer');const pattern=a['ifccad::entity'].appearance?.linePattern;if(pattern?.mode==='Explicit')link(key,pattern.value,'ifccad::entity.appearance.linePattern.value','pattern');}
+   const part=a['ifccad::dimensionGraphicsPart'];if(part){link(key,part.layer,'ifccad::dimensionGraphicsPart.layer','layer');const pattern=part.appearance?.linePattern;if(pattern?.mode==='Explicit')link(key,pattern.value,'ifccad::dimensionGraphicsPart.appearance.linePattern.value','pattern');}
+   if(a['ifccad::dimension']&&item.children?.graphics){nodes.get(key).children=[item.children.graphics];nodes.get(item.children.graphics).owner=key;}
+   if(a['ifccad::dimensionGraphics']){const n=nodes.get(key);n.children=ordered.filter(([name])=>/^\d+$/.test(name)).map(([,path])=>path);for(const child of n.children){nodes.get(child).owner=key.slice(0,-'/graphics'.length);nodes.get(child).partIndex=child.split('/p').at(-1);}}
    const opaque=a['ifccad::opaqueEntity'];if(opaque){link(key,opaque.preservationRecord,'ifccad::opaqueEntity.preservationRecord','preservation');link(key,opaque.nativeLayer,'ifccad::opaqueEntity.nativeLayer','layer');const pattern=opaque.nativeAppearance?.appearance?.linePattern;if(pattern?.mode==='Explicit')link(key,pattern.value,'ifccad::opaqueEntity.nativeAppearance.appearance.linePattern.value','pattern');}
    const record=a['ifccad::preservationRecord'];if(record){link(key,record.subject?.path,'ifccad::preservationRecord.subject','subject');for(const [i,b]of(record.bindings||[]).entries())link(key,b.target?.path,'ifccad::preservationRecord.bindings.'+i,'binding');for(const [i,c]of(record.conditions||[]).entries())link(key,c.target?.path,'ifccad::preservationRecord.conditions.'+i,'condition');}
    if(a['ifccad::preservation'])nodes.get(key).children=Object.entries(item.children||{}).sort(([x],[y])=>numeric(x.slice(1),y.slice(1))).map(([,path])=>path);
@@ -42,7 +45,7 @@ export function createInspection(result,sourceText=''){
   for(const [r,title]of [['layout','layouts'],['layer','layers'],['linePattern','linePatterns'],['symbolSource','symbolSources'],['blockDefinition','blocks'],['preservationRecord','preservation'],['ucsDefinition','ucsDefinitions'],['modelWindow','modelWindows']]){const children=role(r);if(r==='layout')children.sort((a,b)=>(nodes.get(a).values['ifccad::layout'].tabIndex||0)-(nodes.get(b).values['ifccad::layout'].tabIndex||0));if(children.length)roots.push(group(r,title,children));}
   const textStyles=role('textStyle');if(textStyles.length)roots.push(group('textStyle','textStyles',textStyles));
   const dimensionStyles=role('dimensionStyle');if(dimensionStyles.length)roots.push(group('dimensionStyle','dimensionStyles',dimensionStyles));
-  const known=new Set(['drawing','layout','layer','linePattern','symbolSource','textStyle','dimensionStyle','blockDefinition','entity','opaqueEntity','preservation','preservationRecord','ucsDefinition','modelWindow'].flatMap(role));const others=all.filter(n=>!known.has(n.path)).map(n=>n.path);if(others.length)roots.push(group('other','otherNodes',others));
+  const known=new Set(['drawing','layout','layer','linePattern','symbolSource','textStyle','dimensionStyle','dimensionGraphics','dimensionGraphicsPart','blockDefinition','entity','opaqueEntity','preservation','preservationRecord','ucsDefinition','modelWindow'].flatMap(role));const others=all.filter(n=>!known.has(n.path)).map(n=>n.path);if(others.length)roots.push(group('other','otherNodes',others));
   for(const name of ['header','imports','schemas']){const n=put('file:'+name,name,graph[name]??source?.[name]??{},'file');roots.push(n.key);nodeRoots.push(n.key);}
 
  const drawingUnit=p.unit||(p.graph?.data||[]).find(n=>n.attributes?.['ifccad::drawing'])?.attributes['ifccad::drawing'].lengthUnit;
@@ -71,10 +74,17 @@ export function createInspection(result,sourceText=''){
  }
  const drawingPrefix=[...nodes.values()].find(n=>n.type==='drawing')?.key||[...nodes.values()].find(n=>n.type==='layout')?.key.split('/layout/')[0];
  for(const evidence of (result.conversion?.geometryAssessment||result.export?.geometryAssessment)?.filledSurfaces||[]){
-  const source=evidence.source;if(source?.kind!=='NativeEntity'||!drawingPrefix)continue;
+  const source=evidence.source;if(!drawingPrefix)continue;
+  if(source?.kind==='DimensionGraphicsPart'&&source.dimension?.kind==='NativeEntity'){
+   const n=nodes.get(drawingPrefix+'/e'+source.dimension.entityId+'/graphics/p'+source.partIndex);
+   if(n&&['solid','trace'].includes(n.type))n.filledEvidence=evidence;
+   continue;
+  }
+  if(source?.kind!=='NativeEntity')continue;
   const n=nodes.get(drawingPrefix+'/e'+source.entityId),owner=drawingPrefix+(source.owner?.kind==='BlockDefinition'?'/block/':'/layout/')+source.owner?.id;
   if(n&&['solid','trace'].includes(n.type)&&n.owner===owner)n.filledEvidence=evidence;
  }
+ for(const n of nodes.values())if(n.type==='dimensionGraphics'){n.unit=nodes.get(n.owner)?.unit;for(const key of n.children)nodes.get(key).unit=n.unit;}
  for(const n of nodes.values())if(n.type==='dimension'){
   n.sourceValues=n.values;
 

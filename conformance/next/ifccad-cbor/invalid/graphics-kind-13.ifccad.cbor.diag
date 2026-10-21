@@ -1,0 +1,3 @@
+IFCCAD-CBOR revision 1. Independently authored graphics map in Dimension field 7:
+{0: 0, 1: [{1: 13, 2: {}}]}
+Second Dimension has literal {0:1,1:[]}. Existing definition-only envelope comes from conformance/next/ifccad/valid/dimension-linear-aligned.ifcx through the pre-existing native mappings; no new graphics encoder was used to construct these new records.

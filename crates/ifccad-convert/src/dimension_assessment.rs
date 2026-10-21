@@ -12,12 +12,20 @@ pub enum IfccadDimensionNumericCoverage {
 pub enum IfccadDimensionDisplayCoverage {
     Unassessed,
 }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum IfccadDimensionGraphicsCoverage {
+    Absent,
+    ExplicitEmpty,
+    Transferred { part_count: usize },
+    NotTransferred,
+}
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct IfccadDimensionAssessmentEntry {
     pub owner: IfccadGeometryOwner,
     pub entity_id: u64,
     pub numeric_coverage: IfccadDimensionNumericCoverage,
     pub display_coverage: IfccadDimensionDisplayCoverage,
+    pub graphics_coverage: IfccadDimensionGraphicsCoverage,
 }
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct IfccadDimensionAssessment {
@@ -27,7 +35,14 @@ impl IfccadDimensionAssessment {
     pub fn entries(&self) -> &[IfccadDimensionAssessmentEntry] {
         &self.entries
     }
-    pub(crate) fn new(doc: &IfccadDocument, transferred: impl IntoIterator<Item = u64>) -> Self {
+    pub(crate) fn new(
+        doc: &IfccadDocument,
+        transferred: impl IntoIterator<Item = u64>,
+        graphics_transferred: impl IntoIterator<Item = u64>,
+        source_picture_attempts: impl IntoIterator<Item = u64>,
+    ) -> Self {
+        let graphics_transferred = graphics_transferred.into_iter().collect::<BTreeSet<_>>();
+        let attempts = source_picture_attempts.into_iter().collect::<BTreeSet<_>>();
         let transferred = transferred.into_iter().collect::<BTreeSet<_>>();
         let mut entries = Vec::new();
         let scopes = std::iter::once((
@@ -60,6 +75,21 @@ impl IfccadDimensionAssessment {
                         IfccadDimensionNumericCoverage::StoredDefinitionAnchors
                     },
                     display_coverage: IfccadDimensionDisplayCoverage::Unassessed,
+                    graphics_coverage: match &d.graphics {
+                        None if attempts.contains(&e.id) => {
+                            IfccadDimensionGraphicsCoverage::NotTransferred
+                        }
+                        None => IfccadDimensionGraphicsCoverage::Absent,
+                        Some(_) if !graphics_transferred.contains(&e.id) => {
+                            IfccadDimensionGraphicsCoverage::NotTransferred
+                        }
+                        Some(g) if g.parts.is_empty() => {
+                            IfccadDimensionGraphicsCoverage::ExplicitEmpty
+                        }
+                        Some(g) => IfccadDimensionGraphicsCoverage::Transferred {
+                            part_count: g.parts.len(),
+                        },
+                    },
                 });
             }
         }

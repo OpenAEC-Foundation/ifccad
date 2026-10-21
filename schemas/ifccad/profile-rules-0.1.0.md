@@ -354,3 +354,13 @@ target. Native records contain no topology/proof/render flags. Conversion
 requires its ordinary hard position evidence independently of optional simple
 surface correspondence; absent surface evidence does not invalidate, omit or
 lose a finite descriptor. Viewer rendering remains unassessed.
+
+## Owned Dimension graphics
+
+IFCCAD-DIMENSION-GRAPHICS-001: optional Dimension graphics is an independent ordered value with required SourceSnapshot/Generated origin. ReferencePoint purpose requires Point and does not display. Payloads are the existing primitive, Text/MText, BlockInstance, Solid/Trace bodies and Solid, unassociated, source-free Hatch; Viewport, Dimension and opaque content are excluded, including reachable marker contents. Validation does not check freshness against definitions/styles.
+
+IFCCAD-DIMENSION-GRAPHICS-002: part layers/patterns/styles and local markers must resolve within the drawing, with no graphics render cycles. Parts have no ordinary entity ID or allocation counter. Omitted layer inherits the owner; explicit layer zero is a reference. Every part, including hidden/helper content, is validated.
+
+IFCCAD-DIMENSION-GRAPHICS-003: a Dimension's optional children.graphics must target its canonical /cad/dD/eE/graphics group. The group requires dimensionGraphics and children, with contiguous numeric roles I targeting /cad/dD/eE/graphics/pI. Each part requires dimensionGraphicsPart and exactly one permitted payload. Groups have no placement/appearance/payload, parts have no CAD children or ordinary entity roles. Direct XYZ lines/spatial paths and BlockInstance forbid separate placement; all other permitted kinds require their existing placement. Known graphics nodes require exactly one proper owner; orphan, shared, cross-Dimension, noncanonical, null and unknown core values fail. Existing IFCX key composition runs before these checks; absence of a child key in a later fragment does not delete earlier links.
+
+See [Dimension mapping](../../docs/dimension/graphics-design.md) for exact fields, defaults and frame conventions. These rules add neither implicit child inheritance nor a generator/update protocol.

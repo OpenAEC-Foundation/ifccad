@@ -216,39 +216,7 @@ fn validate_document_inner(
                 definition_id,
                 transform,
             } => {
-                if !blocks.contains(definition_id) {
-                    return Err(crate::ifccad::diagnostics::failure(
-                        "IFCCAD-OWN-003",
-                        &format!("{path}/ifccad::blockInstance/definition"),
-                        format!("{path} unresolved block definition {definition_id}"),
-                    ));
-                }
-                if document
-                    .blocks
-                    .iter()
-                    .any(|b| b.id == *definition_id && b.uniform_scaling)
-                    && !(transform.scale[0] == transform.scale[1]
-                        && transform.scale[1] == transform.scale[2])
-                {
-                    return Err(crate::ifccad::diagnostics::failure(
-                        "IFCCAD-GEOMETRY-004",
-                        &format!("{path}/ifccad::blockInstance/transform/scale"),
-                        "definition requires signed uniform scaling",
-                    ));
-                }
-                let frame = placement(&transform.placement, &path)?;
-                BlockTransform::try_new(
-                    frame,
-                    transform.rotation,
-                    Scale3::new(transform.scale[0], transform.scale[1], transform.scale[2]),
-                )
-                .map_err(|e| {
-                    crate::ifccad::diagnostics::failure(
-                        "IFCCAD-GEOMETRY-004",
-                        &format!("{path}/ifccad::blockInstance/transform"),
-                        format!("invalid block transform: {e}"),
-                    )
-                })?;
+                validate_block_instance(document, *definition_id, transform, &path)?;
             }
             IfccadEntityKind::Solid(v) | IfccadEntityKind::Trace(v) => {
                 use crate::geometry_kernel::{validate_geometry, GeometryRef};
@@ -296,6 +264,7 @@ fn validate_document_inner(
             }
         }
     }
+    super::dimension_graphics_validation::validate(document)?;
     super::preservation_validation::validate_preservation(document)?;
     super::viewports::validate_references(document)?;
     super::hatch::validate_hatch_sources(document)?;
@@ -400,7 +369,10 @@ fn appearance_check(layer: &IfccadLayerAppearance, context: &str) -> Result<(), 
     }
     Ok(())
 }
-fn entity_appearance(a: &IfccadEntityAppearance, context: &str) -> Result<(), IfccadReport> {
+pub(super) fn entity_appearance(
+    a: &IfccadEntityAppearance,
+    context: &str,
+) -> Result<(), IfccadReport> {
     for (field, invalid) in [
         (
             "color",
@@ -472,4 +444,45 @@ fn cycle(blocks: &[IfccadBlockDefinition]) -> bool {
     graph
         .keys()
         .any(|id| visit(*id, &graph, &mut active, &mut done))
+}
+
+pub(super) fn validate_block_instance(
+    document: &IfccadDocument,
+    definition_id: u64,
+    transform: &IfccadBlockTransform,
+    path: &str,
+) -> Result<(), IfccadReport> {
+    if !document.blocks.iter().any(|b| b.id == definition_id) {
+        return Err(crate::ifccad::diagnostics::failure(
+            "IFCCAD-OWN-003",
+            &format!("{path}/ifccad::blockInstance/definition"),
+            format!("{path} unresolved block definition {definition_id}"),
+        ));
+    }
+    if document
+        .blocks
+        .iter()
+        .any(|b| b.id == definition_id && b.uniform_scaling)
+        && !(transform.scale[0] == transform.scale[1] && transform.scale[1] == transform.scale[2])
+    {
+        return Err(crate::ifccad::diagnostics::failure(
+            "IFCCAD-GEOMETRY-004",
+            &format!("{path}/ifccad::blockInstance/transform/scale"),
+            "definition requires signed uniform scaling",
+        ));
+    }
+    let frame = placement(&transform.placement, path)?;
+    BlockTransform::try_new(
+        frame,
+        transform.rotation,
+        Scale3::new(transform.scale[0], transform.scale[1], transform.scale[2]),
+    )
+    .map_err(|e| {
+        crate::ifccad::diagnostics::failure(
+            "IFCCAD-GEOMETRY-004",
+            &format!("{path}/ifccad::blockInstance/transform"),
+            format!("invalid block transform: {e}"),
+        )
+    })?;
+    Ok(())
 }

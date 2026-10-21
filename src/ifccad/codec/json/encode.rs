@@ -5,11 +5,11 @@ use serde_json::{json, Map, Value};
 
 // Struct field order is the presentation order in the example and writer output.
 #[derive(Serialize)]
-struct NodeOut {
-    path: String,
+pub(super) struct NodeOut {
+    pub(super) path: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    children: Option<Map<String, Value>>,
-    attributes: Map<String, Value>,
+    pub(super) children: Option<Map<String, Value>>,
+    pub(super) attributes: Map<String, Value>,
 }
 
 #[derive(Serialize)]
@@ -76,40 +76,7 @@ fn entity_node(entity: &IfccadEntity, prefix: &str) -> NodeOut {
     if !entity.visible {
         attrs["ifccad::entity"]["visible"] = json!(false);
     }
-    match &entity.kind {
-        IfccadEntityKind::Dimension(v) => {
-            attrs.insert("ifccad::geom::placement".into(), json!(v.placement));
-            attrs.insert(
-                "ifccad::dimension".into(),
-                super::dimension::encode(v, prefix),
-            );
-        }
-        IfccadEntityKind::Hatch(h) => {
-            attrs.insert("ifccad::geom::placement".into(), json!(h.placement));
-            attrs.insert(
-                "ifccad::hatch".into(),
-                super::hatch::encode_hatch(h, prefix),
-            );
-        }
-        IfccadEntityKind::Text(_) | IfccadEntityKind::MText(_) => {
-            super::text::encode_entity(&entity.kind, prefix, &mut attrs);
-        }
-        IfccadEntityKind::Viewport(viewport) => {
-            attrs.insert(
-                "ifccad::viewport".into(),
-                super::viewports::encode_viewport(viewport, prefix),
-            );
-        }
-        IfccadEntityKind::BlockInstance {
-            definition_id,
-            transform,
-        } => {
-            attrs.insert("ifccad::blockInstance".into(), json!({"definition":format!("{prefix}/block/{definition_id}"),"transform":super::wire::block_transform(transform)}));
-        }
-        kind => {
-            super::geometry::encode_kind(kind, &mut attrs);
-        }
-    }
+    encode_payload(&entity.kind, prefix, &mut attrs);
     NodeOut {
         path: format!("{prefix}/e{}", entity.id),
         children: None,
@@ -400,6 +367,13 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
                 );
             }
         }
+        if let Some(IfccadEntityKind::Dimension(v)) = entity.as_native().map(|e| &e.kind) {
+            if let Some(g) = &v.graphics {
+                let path = format!("{}/graphics", node.path);
+                node.children = Some(Map::from_iter([("graphics".into(), json!(path))]));
+                data.extend(super::dimension_graphics::encode(g, &path, &prefix));
+            }
+        }
         data.push(node);
     }
     let result = FileOut {
@@ -415,4 +389,45 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
         data,
     };
     serde_json::to_vec_pretty(&result)
+}
+
+pub(super) fn encode_payload(
+    kind: &IfccadEntityKind,
+    prefix: &str,
+    attrs: &mut Map<String, Value>,
+) {
+    match kind {
+        IfccadEntityKind::Dimension(v) => {
+            attrs.insert("ifccad::geom::placement".into(), json!(v.placement));
+            attrs.insert(
+                "ifccad::dimension".into(),
+                super::dimension::encode(v, prefix),
+            );
+        }
+        IfccadEntityKind::Hatch(h) => {
+            attrs.insert("ifccad::geom::placement".into(), json!(h.placement));
+            attrs.insert(
+                "ifccad::hatch".into(),
+                super::hatch::encode_hatch(h, prefix),
+            );
+        }
+        IfccadEntityKind::Text(_) | IfccadEntityKind::MText(_) => {
+            super::text::encode_entity(kind, prefix, attrs);
+        }
+        IfccadEntityKind::Viewport(viewport) => {
+            attrs.insert(
+                "ifccad::viewport".into(),
+                super::viewports::encode_viewport(viewport, prefix),
+            );
+        }
+        IfccadEntityKind::BlockInstance {
+            definition_id,
+            transform,
+        } => {
+            attrs.insert("ifccad::blockInstance".into(), json!({"definition":format!("{prefix}/block/{definition_id}"),"transform":super::wire::block_transform(transform)}));
+        }
+        kind => {
+            super::geometry::encode_kind(kind, attrs);
+        }
+    }
 }

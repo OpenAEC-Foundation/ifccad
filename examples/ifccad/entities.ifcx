@@ -3346,7 +3346,7 @@
             {
               "overline": false,
               "strikeThrough": false,
-              "text": "Linear measurement in millimetres",
+              "text": "Stored lines, arrowheads and text",
               "underline": false
             }
           ],
@@ -3380,7 +3380,201 @@
       }
     },
     {
+      "path": "/cad/d1/e64/graphics",
+      "children": {
+        "0": "/cad/d1/e64/graphics/p0",
+        "1": "/cad/d1/e64/graphics/p1",
+        "2": "/cad/d1/e64/graphics/p2",
+        "3": "/cad/d1/e64/graphics/p3",
+        "4": "/cad/d1/e64/graphics/p4",
+        "5": "/cad/d1/e64/graphics/p5"
+      },
+      "attributes": {
+        "ifccad::dimensionGraphics": {
+          "origin": "generated"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e64/graphics/p0",
+      "attributes": {
+        "ifccad::dimensionGraphicsPart": {},
+        "ifccad::geom::lineSegment": {
+          "end": [
+            115.0,
+            191.0
+          ],
+          "start": [
+            115.0,
+            168.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e64/graphics/p1",
+      "attributes": {
+        "ifccad::dimensionGraphicsPart": {},
+        "ifccad::geom::lineSegment": {
+          "end": [
+            173.0,
+            191.0
+          ],
+          "start": [
+            173.0,
+            168.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e64/graphics/p2",
+      "attributes": {
+        "ifccad::dimensionGraphicsPart": {},
+        "ifccad::geom::lineSegment": {
+          "end": [
+            173.0,
+            189.0
+          ],
+          "start": [
+            115.0,
+            189.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e64/graphics/p3",
+      "attributes": {
+        "ifccad::dimensionGraphicsPart": {},
+        "ifccad::geom::placement": {
+          "origin": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::geom::solid": {
+          "corners": [
+            [
+              115.0,
+              189.0
+            ],
+            [
+              119.0,
+              190.0
+            ],
+            [
+              119.0,
+              188.0
+            ],
+            [
+              119.0,
+              188.0
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e64/graphics/p4",
+      "attributes": {
+        "ifccad::dimensionGraphicsPart": {},
+        "ifccad::geom::placement": {
+          "origin": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::geom::solid": {
+          "corners": [
+            [
+              173.0,
+              189.0
+            ],
+            [
+              169.0,
+              188.0
+            ],
+            [
+              169.0,
+              190.0
+            ],
+            [
+              169.0,
+              190.0
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e64/graphics/p5",
+      "attributes": {
+        "ifccad::dimensionGraphicsPart": {},
+        "ifccad::geom::placement": {
+          "origin": [
+            141.0,
+            191.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::text": {
+          "content": [
+            {
+              "overline": false,
+              "strikeThrough": false,
+              "text": "58",
+              "underline": false
+            }
+          ],
+          "layout": {
+            "height": 4.0,
+            "horizontal": "left",
+            "kind": "anchored",
+            "vertical": "baseline",
+            "widthFactor": 1.0
+          },
+          "style": "/cad/d1/textStyle/0"
+        }
+      }
+    },
+    {
       "path": "/cad/d1/e64",
+      "children": {
+        "graphics": "/cad/d1/e64/graphics"
+      },
       "attributes": {
         "ifccad::dimension": {
           "associations": [],

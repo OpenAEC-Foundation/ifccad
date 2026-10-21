@@ -34,6 +34,7 @@ pub fn drawing() -> IfccadDocument {
     d.id_counters.next_dimension_style_id = 1;
     e.id = DIMENSION;
     e.kind = IfccadEntityKind::Dimension(Box::new(IfccadDimension {
+        graphics: None,
         placement: IfccadPlacement {
             origin: [0.0; 3],
             x_axis: [1.0, 0.0, 0.0],

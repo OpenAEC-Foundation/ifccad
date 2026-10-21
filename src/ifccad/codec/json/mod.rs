@@ -1,6 +1,7 @@
 use crate::ifccad::*;
 mod defaults;
 mod dimension;
+mod dimension_graphics;
 mod dimension_style;
 mod dimension_values;
 mod encode;

@@ -188,6 +188,12 @@ fn frame_stroke(
     }
     Ok(Some(value))
 }
+struct ExtentContext<'a> {
+    appearance: &'a IfccadEntityAppearance,
+    layer_id: Option<u64>,
+    occurrence: AppearanceContext,
+    line_pattern_scale: f64,
+}
 struct Evaluation<'a> {
     drawing: &'a IfccadDocument,
     contents: BTreeMap<Owner, &'a [IfccadEntity]>,
@@ -235,181 +241,259 @@ impl<'a> Evaluation<'a> {
                 matches!(owner, Owner::BlockDefinition(_)),
                 self.drawing,
             );
-            let mut value = match &e.kind {
-                IfccadEntityKind::BlockInstance {
-                    definition_id,
-                    transform,
-                } => {
-                    let block = self.blocks[definition_id];
-                    let mut local =
-                        self.scope(Owner::BlockDefinition(*definition_id), Some(context))?;
-                    let t = BlockTransform::try_new(
-                        transform.placement.coordinate_frame()?,
-                        transform.rotation,
-                        Scale3::new(transform.scale[0], transform.scale[1], transform.scale[2]),
-                    )
-                    .map_err(|e| error(owner, &e.to_string()))?;
-                    let base = block.base_point;
-                    let prepared =
-                        PreparedBlockTransform::new(t, Point3::new(base[0], base[1], base[2]))
-                            .ok_or_else(|| error(owner, "cannot evaluate block transform"))?;
-                    let apply = |b: IfccadBounds3d| -> Result<IfccadBounds3d, IfccadReport> {
-                        let result = prepared
-                            .apply_intervals(std::array::from_fn(|i| Interval {
-                                lower: b.min[i],
-                                upper: b.max[i],
-                            }))
-                            .ok_or_else(|| {
-                                error(owner, "transformed block enclosure exceeds finite range")
-                            })?;
-                        Ok(IfccadBounds3d {
-                            min: result.map(|v| v.lower),
-                            max: result.map(|v| v.upper),
-                        })
-                    };
-                    if block.entities.is_empty() && local.all.is_none() && !local.unavailable {
-                        let b = IfccadBounds3d {
-                            min: transform.placement.origin,
-                            max: transform.placement.origin,
-                        };
-                        local.all = Some(b);
-                        local.proven = Some(b);
-                    } else {
-                        local.all = local.all.map(apply).transpose()?;
-                        local.proven = local.proven.map(apply).transpose()?;
-                    }
-                    local
-                }
-                IfccadEntityKind::Text(t) => {
-                    let style = self
-                        .drawing
-                        .text_styles
-                        .iter()
-                        .find(|s| s.id == t.style_id)
-                        .expect("validated style");
-                    let estimate = estimate_text_extent(&ResolvedTextExtentInput {
-                        content: &t.content,
-                        layout: t.layout,
-                        placement: t.placement.coordinate_frame()?,
-                        rotation: t.rotation,
-                        backward: t.backward,
-                        upside_down: t.upside_down,
-                        oblique_angle: t.oblique_angle,
-                        thickness: t.thickness,
-                        vertical: style.properties.vertical,
-                    })
-                    .map_err(|e| error(owner, &e.to_string()))?;
-                    Self::estimate(estimate)
-                }
-                IfccadEntityKind::MText(t) => {
-                    let style = self
-                        .drawing
-                        .text_styles
-                        .iter()
-                        .find(|s| s.id == t.style_id)
-                        .expect("validated style");
-                    let weight = match e.appearance.line_weight {
-                        IfccadMode::Explicit(w) => Some(w),
-                        IfccadMode::ByLayer => self
-                            .drawing
-                            .layers
-                            .iter()
-                            .find(|l| l.id == e.layer_id)
-                            .map(|l| l.appearance.line_weight),
-                        IfccadMode::ByBlock => None,
-                    };
-                    let estimate = estimate_mtext_extent(&ResolvedMTextExtentInput {
-                        content: &t.content,
-                        style: &style.properties,
-                        character_format: &t.character_format,
-                        paragraph_format: &t.paragraph_format,
-                        height: t.height,
-                        attachment: t.attachment,
-                        flow: t.flow,
-                        wrap_width: t.wrap_width,
-                        columns: t.columns.as_ref(),
-                        background: t.background.as_ref(),
-                        frame_stroke_width: frame_stroke(self.drawing, owner, weight)
-                            .map_err(|e| error(owner, &e.to_string()))?,
-                        placement: t.placement.coordinate_frame()?,
-                        rotation: t.rotation,
-                        backward: t.backward,
-                        upside_down: t.upside_down,
-                    })
-                    .map_err(|e| error(owner, &e.to_string()))?;
-                    Self::estimate(estimate)
-                }
-                IfccadEntityKind::Hatch(h) => {
-                    let b = native(
-                        crate::geometry_kernel::hatch::hatch_bounds(
-                            h.placement.coordinate_frame()?,
-                            h.loops.iter().map(|l| &l.boundary),
-                        )
-                        .map_err(|e| error(owner, &e.to_string()))?,
-                    );
-                    Extents {
-                        all: Some(b),
-                        proven: Some(b),
-                        ..Default::default()
-                    }
-                }
-                IfccadEntityKind::Dimension(_) => Extents {
-                    unavailable: true,
-                    ..Default::default()
+            let value = self.kind_extents(
+                owner,
+                &e.kind,
+                ExtentContext {
+                    appearance: &e.appearance,
+                    layer_id: Some(e.layer_id),
+                    occurrence: context,
+                    line_pattern_scale: e.line_pattern_scale,
                 },
-                IfccadEntityKind::Viewport(v) => {
-                    let b = native(
-                        paper_frame_bounds(PaperFrame {
-                            center: v.frame.center,
-                            width: v.frame.width,
-                            height: v.frame.height,
-                        })
-                        .map_err(|e| error(owner, &e.to_string()))?,
-                    );
-                    Extents {
-                        all: Some(b),
-                        proven: Some(b),
-                        ..Default::default()
-                    }
-                }
-                kind => {
-                    let b = native(
-                        geometry_bounds(kind.as_shared_geometry()?.expect("primitive branch"))
-                            .map_err(|e| error(owner, &e.to_string()))?,
-                    );
-                    Extents {
-                        all: Some(b),
-                        proven: Some(b),
-                        ..Default::default()
-                    }
-                }
-            };
-            if matches!(
-                e.kind,
-                IfccadEntityKind::LineSegment { .. }
-                    | IfccadEntityKind::Circle { .. }
-                    | IfccadEntityKind::Arc { .. }
-                    | IfccadEntityKind::Ellipse { .. }
-                    | IfccadEntityKind::EllipseArc { .. }
-                    | IfccadEntityKind::PlanarPolyline { .. }
-                    | IfccadEntityKind::SpatialPolyline { .. }
-            ) {
-                let markers =
-                    marker_contribution(context.pattern_id, e.line_pattern_scale, self.drawing)?;
-                value.marker_unavailable |= markers.unavailable;
-                value.estimated |= markers.radius.is_some();
-                value.reasons.extend(markers.reasons);
-                value.line_pattern_reasons.extend(markers.bounds_reasons);
-                if let (Some(b), Some(radius)) = (value.all, markers.radius) {
-                    let (min, max) = crate::line_pattern::inflate_range((b.min, b.max), radius)
-                        .ok_or_else(|| error(owner, "text marker estimate exceeds finite range"))?;
-                    value.all = Some(IfccadBounds3d { min, max });
-                }
-            }
+            )?;
             combined.merge(value);
         }
         self.completed.insert(key, combined.clone());
         Ok(combined)
+    }
+    fn kind_extents(
+        &mut self,
+        owner: Owner,
+        kind: &IfccadEntityKind,
+        input: ExtentContext<'_>,
+    ) -> Result<Extents, IfccadReport> {
+        let ExtentContext {
+            appearance,
+            layer_id,
+            occurrence: context,
+            line_pattern_scale,
+        } = input;
+        let mut value = match kind {
+            IfccadEntityKind::BlockInstance {
+                definition_id,
+                transform,
+            } => {
+                let block = self.blocks[definition_id];
+                let mut local =
+                    self.scope(Owner::BlockDefinition(*definition_id), Some(context))?;
+                let t = BlockTransform::try_new(
+                    transform.placement.coordinate_frame()?,
+                    transform.rotation,
+                    Scale3::new(transform.scale[0], transform.scale[1], transform.scale[2]),
+                )
+                .map_err(|e| error(owner, &e.to_string()))?;
+                let base = block.base_point;
+                let prepared =
+                    PreparedBlockTransform::new(t, Point3::new(base[0], base[1], base[2]))
+                        .ok_or_else(|| error(owner, "cannot evaluate block transform"))?;
+                let apply = |b: IfccadBounds3d| -> Result<IfccadBounds3d, IfccadReport> {
+                    let result = prepared
+                        .apply_intervals(std::array::from_fn(|i| Interval {
+                            lower: b.min[i],
+                            upper: b.max[i],
+                        }))
+                        .ok_or_else(|| {
+                            error(owner, "transformed block enclosure exceeds finite range")
+                        })?;
+                    Ok(IfccadBounds3d {
+                        min: result.map(|v| v.lower),
+                        max: result.map(|v| v.upper),
+                    })
+                };
+                if block.entities.is_empty() && local.all.is_none() && !local.unavailable {
+                    let b = IfccadBounds3d {
+                        min: transform.placement.origin,
+                        max: transform.placement.origin,
+                    };
+                    local.all = Some(b);
+                    local.proven = Some(b);
+                } else {
+                    local.all = local.all.map(apply).transpose()?;
+                    local.proven = local.proven.map(apply).transpose()?;
+                }
+                local
+            }
+            IfccadEntityKind::Text(t) => {
+                let style = self
+                    .drawing
+                    .text_styles
+                    .iter()
+                    .find(|s| s.id == t.style_id)
+                    .expect("validated style");
+                let estimate = estimate_text_extent(&ResolvedTextExtentInput {
+                    content: &t.content,
+                    layout: t.layout,
+                    placement: t.placement.coordinate_frame()?,
+                    rotation: t.rotation,
+                    backward: t.backward,
+                    upside_down: t.upside_down,
+                    oblique_angle: t.oblique_angle,
+                    thickness: t.thickness,
+                    vertical: style.properties.vertical,
+                })
+                .map_err(|e| error(owner, &e.to_string()))?;
+                Self::estimate(estimate)
+            }
+            IfccadEntityKind::MText(t) => {
+                let style = self
+                    .drawing
+                    .text_styles
+                    .iter()
+                    .find(|s| s.id == t.style_id)
+                    .expect("validated style");
+                let weight = match appearance.line_weight {
+                    IfccadMode::Explicit(w) => Some(w),
+                    IfccadMode::ByLayer => self
+                        .drawing
+                        .layers
+                        .iter()
+                        .find(|l| Some(l.id) == layer_id)
+                        .map(|l| l.appearance.line_weight),
+                    IfccadMode::ByBlock => None,
+                };
+                let estimate = estimate_mtext_extent(&ResolvedMTextExtentInput {
+                    content: &t.content,
+                    style: &style.properties,
+                    character_format: &t.character_format,
+                    paragraph_format: &t.paragraph_format,
+                    height: t.height,
+                    attachment: t.attachment,
+                    flow: t.flow,
+                    wrap_width: t.wrap_width,
+                    columns: t.columns.as_ref(),
+                    background: t.background.as_ref(),
+                    frame_stroke_width: frame_stroke(self.drawing, owner, weight)
+                        .map_err(|e| error(owner, &e.to_string()))?,
+                    placement: t.placement.coordinate_frame()?,
+                    rotation: t.rotation,
+                    backward: t.backward,
+                    upside_down: t.upside_down,
+                })
+                .map_err(|e| error(owner, &e.to_string()))?;
+                Self::estimate(estimate)
+            }
+            IfccadEntityKind::Hatch(h) => {
+                let b = native(
+                    crate::geometry_kernel::hatch::hatch_bounds(
+                        h.placement.coordinate_frame()?,
+                        h.loops.iter().map(|l| &l.boundary),
+                    )
+                    .map_err(|e| error(owner, &e.to_string()))?,
+                );
+                Extents {
+                    all: Some(b),
+                    proven: Some(b),
+                    ..Default::default()
+                }
+            }
+            IfccadEntityKind::Dimension(dimension) => {
+                let Some(graphics) = &dimension.graphics else {
+                    return Ok(Extents {
+                        unavailable: true,
+                        ..Default::default()
+                    });
+                };
+                let mut local = Extents::default();
+                for part in &graphics.parts {
+                    if part.purpose == IfccadDimensionGraphicsPurpose::ReferencePoint {
+                        continue;
+                    }
+                    let context =
+                        super::line_pattern_bounds::graphics_context(part, context, self.drawing);
+                    let scale = Interval::point(line_pattern_scale)
+                        .mul(Interval::point(part.line_pattern_scale))
+                        .ok_or_else(|| {
+                            error(owner, "dimension part pattern scale exceeds finite range")
+                        })?
+                        .upper;
+                    let kind = IfccadEntityKind::from(part.kind.clone());
+                    local.merge(self.kind_extents(
+                        owner,
+                        &kind,
+                        ExtentContext {
+                            appearance: &part.appearance,
+                            layer_id: context.layer_id,
+                            occurrence: context,
+                            line_pattern_scale: scale,
+                        },
+                    )?);
+                }
+                let transform = BlockTransform::try_new(
+                    dimension.placement.coordinate_frame()?,
+                    0.,
+                    Scale3::new(1., 1., 1.),
+                )
+                .map_err(|e| error(owner, &e.to_string()))?;
+                let prepared = PreparedBlockTransform::new(transform, Point3::new(0., 0., 0.))
+                    .ok_or_else(|| error(owner, "cannot evaluate dimension placement"))?;
+                let apply = |b: IfccadBounds3d| -> Result<IfccadBounds3d, IfccadReport> {
+                    let b = prepared
+                        .apply_intervals(std::array::from_fn(|i| Interval {
+                            lower: b.min[i],
+                            upper: b.max[i],
+                        }))
+                        .ok_or_else(|| {
+                            error(owner, "dimension picture enclosure exceeds finite range")
+                        })?;
+                    Ok(IfccadBounds3d {
+                        min: b.map(|v| v.lower),
+                        max: b.map(|v| v.upper),
+                    })
+                };
+                local.all = local.all.map(apply).transpose()?;
+                local.proven = local.proven.map(apply).transpose()?;
+                local
+            }
+            IfccadEntityKind::Viewport(v) => {
+                let b = native(
+                    paper_frame_bounds(PaperFrame {
+                        center: v.frame.center,
+                        width: v.frame.width,
+                        height: v.frame.height,
+                    })
+                    .map_err(|e| error(owner, &e.to_string()))?,
+                );
+                Extents {
+                    all: Some(b),
+                    proven: Some(b),
+                    ..Default::default()
+                }
+            }
+            kind => {
+                let b = native(
+                    geometry_bounds(kind.as_shared_geometry()?.expect("primitive branch"))
+                        .map_err(|e| error(owner, &e.to_string()))?,
+                );
+                Extents {
+                    all: Some(b),
+                    proven: Some(b),
+                    ..Default::default()
+                }
+            }
+        };
+        if matches!(
+            kind,
+            IfccadEntityKind::LineSegment { .. }
+                | IfccadEntityKind::Circle { .. }
+                | IfccadEntityKind::Arc { .. }
+                | IfccadEntityKind::Ellipse { .. }
+                | IfccadEntityKind::EllipseArc { .. }
+                | IfccadEntityKind::PlanarPolyline { .. }
+                | IfccadEntityKind::SpatialPolyline { .. }
+        ) {
+            let markers =
+                marker_contribution(context.pattern_id, line_pattern_scale, self.drawing)?;
+            value.marker_unavailable |= markers.unavailable;
+            value.estimated |= markers.radius.is_some();
+            value.reasons.extend(markers.reasons);
+            value.line_pattern_reasons.extend(markers.bounds_reasons);
+            if let (Some(b), Some(radius)) = (value.all, markers.radius) {
+                let (min, max) = crate::line_pattern::inflate_range((b.min, b.max), radius)
+                    .ok_or_else(|| error(owner, "text marker estimate exceeds finite range"))?;
+                value.all = Some(IfccadBounds3d { min, max });
+            }
+        }
+        Ok(value)
     }
     fn estimate(e: TextExtentEstimate) -> Extents {
         Extents {

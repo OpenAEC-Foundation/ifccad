@@ -67,12 +67,26 @@ pub(crate) fn entities(doc: &IfccadDocument) -> Value {
                 Ok(v) => crate::inspection_dimension_label::label(v),
                 Err(e) => json!({"state":"unavailable","reason":e.to_string()}),
             };
-            output.push(json!({"path":format!("/cad/d{}/e{}",doc.drawing_id,e.id),"entityId":e.id.to_string(),"style":format!("/cad/d{}/dimensionStyle/{}",doc.drawing_id,d.style_id.0),"geometry":{"type":"dimension","variant":d.definition.kind(),"definition":d.definition,"placement":d.placement,"textPlacement":d.text_placement,"rawMeasurement":raw,"labelDefinition":d.label,"label":label,"effectiveSettings":settings(&effective,doc.drawing_id),"overrides":overrides(&d.overrides,doc.drawing_id),"associations":d.associations.iter().map(|r|json!({"role":r.role,"source":format!("/cad/d{}/e{}",doc.drawing_id,r.source_entity_id),"selector":r.selector})).collect::<Vec<_>>(),"associationUpdate":"external","displayEvaluation":"unassessed"}}));
+            let graphics = match &d.graphics {
+                None => json!({"state":"absent"}),
+                Some(g) => {
+                    json!({"state":"stored","origin":match g.origin {IfccadDimensionGraphicsOrigin::SourceSnapshot=>"sourceSnapshot",IfccadDimensionGraphicsOrigin::Generated=>"generated"},"partCount":g.parts.len(),"path":format!("/cad/d{}/e{}/graphics",doc.drawing_id,e.id)})
+                }
+            };
+            output.push(json!({"path":format!("/cad/d{}/e{}",doc.drawing_id,e.id),"entityId":e.id.to_string(),"style":format!("/cad/d{}/dimensionStyle/{}",doc.drawing_id,d.style_id.0),"geometry":{"type":"dimension","variant":d.definition.kind(),"definition":d.definition,"placement":d.placement,"textPlacement":d.text_placement,"rawMeasurement":raw,"labelDefinition":d.label,"label":label,"effectiveSettings":settings(&effective,doc.drawing_id),"overrides":overrides(&d.overrides,doc.drawing_id),"associations":d.associations.iter().map(|r|json!({"role":r.role,"source":format!("/cad/d{}/e{}",doc.drawing_id,r.source_entity_id),"selector":r.selector})).collect::<Vec<_>>(),"associationUpdate":"external","displayEvaluation":"unassessed","graphics":graphics}}));
         }
     }
     json!(output)
 }
 pub(crate) fn report(r: &ifccad_convert::IfccadDimensionAssessment) -> Value {
-    use ifccad_convert::IfccadDimensionNumericCoverage as N;
-    json!({"entries":r.entries().iter().map(|e|json!({"entityId":e.entity_id.to_string(),"owner":format!("{:?}",e.owner),"numericCoverage":match e.numeric_coverage{N::StoredDefinitionAnchors=>"storedDefinitionAnchors",N::StoredDefinitionAndExplicitTextAnchors=>"storedDefinitionAndExplicitTextAnchors",N::NotTransferred=>"notTransferred"},"displayCoverage":"unassessed"})).collect::<Vec<_>>()})
+    use ifccad_convert::{
+        IfccadDimensionGraphicsCoverage as G, IfccadDimensionNumericCoverage as N,
+    };
+    let graphics = |value: G| match value {
+        G::Absent => json!({"state":"absent"}),
+        G::ExplicitEmpty => json!({"state":"explicitEmpty"}),
+        G::Transferred { part_count } => json!({"state":"transferred","partCount":part_count}),
+        G::NotTransferred => json!({"state":"notTransferred"}),
+    };
+    json!({"entries":r.entries().iter().map(|e|json!({"entityId":e.entity_id.to_string(),"owner":format!("{:?}",e.owner),"numericCoverage":match e.numeric_coverage{N::StoredDefinitionAnchors=>"storedDefinitionAnchors",N::StoredDefinitionAndExplicitTextAnchors=>"storedDefinitionAndExplicitTextAnchors",N::NotTransferred=>"notTransferred"},"displayCoverage":"unassessed","graphicsCoverage":graphics(e.graphics_coverage)})).collect::<Vec<_>>()})
 }

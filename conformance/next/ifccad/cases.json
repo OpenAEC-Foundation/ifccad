@@ -454,5 +454,21 @@
   {
     "file": "invalid/filled-overflow.ifcx",
     "valid": false
+  },
+  {
+    "file": "valid/dimension-graphics.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid/dimension-graphics-orphan.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/dimension-graphics-gap.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/dimension-graphics-null.ifcx",
+    "valid": false
   }
 ]

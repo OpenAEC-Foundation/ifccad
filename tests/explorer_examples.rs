@@ -141,7 +141,12 @@ fn examples_use_native_dimensions_without_duplicate_text_stand_ins() {
             .join(format!("examples/ifccad/{name}.ifcx"));
         let value: serde_json::Value =
             serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
-        for node in value["data"].as_array().unwrap() {
+        for node in value["data"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|n| n["attributes"].get("ifccad::entity").is_some())
+        {
             if let Some(runs) = node["attributes"]["ifccad::text"]["content"].as_array() {
                 for run in runs {
                     assert!(

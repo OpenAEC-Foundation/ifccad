@@ -1,14 +1,12 @@
-# Planned Dimension graphics mapping
+# Dimension graphics mapping
 
-Design candidate, 21 October 2026. These are proposed additions to the active
-experimental IFCCAD profile, not fields accepted by today's readers. The design
-targets IFCCAD only. The user has approved deferring polyline widths to a separate
-follow-up after this bounded graphics slice. The red sample is that follow-up's
-complete-picture acceptance case, not a prerequisite of this implementation plan.
-Current schemas and conformance remain authoritative for implemented behavior.
+Implementation contract, 21 October 2026. The active experimental IFCCAD profile
+stores optional worked-out graphics; schemas and conformance remain authoritative.
+This slice targets IFCCAD only. Polyline widths remain a separate follow-up,
+with the red sample as its complete-picture acceptance case.
 
-Updated after the native SOLID/TRACE decision: this slice depends on the
-[preparatory native primitive slice](../geometry/solid-trace-design.md).
+Implementation baseline: remote main commit `bdbcee1b24ebbf12504ec4d45d81a2eea2466bb1`
+contains the verified [native primitive slice](../geometry/solid-trace-design.md).
 The earlier SOLID/TRACE-to-Hatch substitution is superseded.
 
 The native precursor is necessary but not sufficient for the red sample: its
@@ -33,6 +31,14 @@ generator nor source-graph editing. [Dimension support](../dimension.md),
 `IfccadDimensionGraphicsOrigin` is closed: `SourceSnapshot` or `Generated`.
 An absent value, an explicitly empty parts list and a nonempty list are distinct.
 There is no validity flag, input basis, cached measurement or dependency snapshot.
+
+CAD has no corresponding native `origin` field. Captured CAD pictures use
+SourceSnapshot. Exporting Generated graphics can retain the complete picture,
+but cannot retain that native provenance without a new extension. Under Allow,
+report `dimension-graphics-helper-state` at `graphics/origin` and write the full
+picture; Reject refuses this metadata loss. Do not relabel native data silently,
+drop the picture, or invent XDATA to hide this boundary. A later CAD recapture is
+a new SourceSnapshot. Native IFCX/CBOR roundtrips preserve either origin exactly.
 
 Each `IfccadDimensionGraphicsPart` contains:
 
@@ -243,7 +249,7 @@ primitive bodies; they are a separate closed enum, not a cast of EntityKind:
 | 8 | BlockInstance | 0=definition_id, 1=transform, existing IfccadBlockTransform mapping |
 | 10 | Text | 0=value_0, existing IfccadText record |
 | 11 | MText | 0=value_0, existing IfccadMText record; Box is transparent |
-| 12 | Hatch | 0=value_0, existing IfccadHatch record, with graphics restrictions |
+| 12 | Hatch | 0=value_0, existing IfccadHatch record, with graphics restrictions; Box is transparent |
 | 14 | Solid | 0=value_0, IfccadFilledQuadrilateral: 0=placement, 1=corners, 2=thickness |
 | 15 | Trace | 0=value_0, the same IfccadFilledQuadrilateral record |
 
@@ -276,6 +282,53 @@ Revision remains the single mutable unreleased version 1. Implementation updates
 the active code inventory, record registration and conformance/next in place.
 No historical decoder or version bump is added. Optional Zstd transport revision
 1 wraps the same bytes; it introduces no graphics codes or feature negotiation.
+
+## Stored state, bounds and rendering
+
+Ordinary load, validation and encoding retain the current definition and the
+current graphics independently. They never compare a snapshot with its style,
+measurement or associations, generate replacements, or remove a representation
+because it might be stale. A placement change applies to the whole local
+representation. An editor or future update engine decides when to replace/remove
+graphics after other edits; no invalidation API or hidden regeneration is added.
+
+Absent graphics keeps the current unavailable Dimension display-bounds result.
+Present graphics derives its enclosure from stored Display parts, transformed
+through the Dimension frame and any marker occurrences. Definition anchors and
+ReferencePoint helpers do not enlarge that enclosure. Empty or helper-only
+graphics is a known empty display, not missing graphics. Text/MText retains the
+existing estimated/partial extent quality, with font contours unassessed.
+Primitive enclosure does not become proof of filled area or identical pixels.
+
+As with ordinary scope bounds, the assessment conservatively includes stored
+Display geometry even when visibility is off; rendering independently applies
+the stored visibility and layer context. ReferencePoint is the explicit exception.
+Validation and numerical conversion still examine every part, including helpers
+and hidden parts. Missing optional surface evidence never drops a SOLID/TRACE.
+
+## Transient conversion identities and reports
+
+Extend the existing generic occurrence proof graph with tagged internal keys for
+ordinary entities, ordinary definitions, Dimension graphics groups, their local
+parts and their placed occurrences. These are conversion-only keys, not native
+entity/block IDs. A graphics group contributes its owning Dimension placement
+once; a nested marker contributes its own transform once. Keep definition-anchor
+proofs alongside graphics proofs instead of overwriting them under the same key.
+
+Each graphics diagnostic/evidence source identifies owner, the owning Dimension
+and part index, plus the actual CAD part handle when available. Use the real CAD
+Dimension handle during import and the native Dimension ID during export; do
+not pretend a source handle is an allocated native ID. Extend the existing
+`IfccadGeometryEntitySource` with a graphics-part wrapper around its existing
+CAD/native source. Do not synthesize ordinary handles/IDs to reuse scope conversion.
+Full-width IDs remain integers throughout IFCX/CBOR and browser inspection.
+
+Dimension transfer reports distinguish Absent, ExplicitEmpty, Transferred (with
+part count) and NotTransferred graphics. This is derived operation evidence,
+not a stored validity state. Display coverage remains Unassessed in all cases.
+Re-use the existing primitive/curve/text/Hatch/filled-surface evidence in each
+actual owner/occurrence; Paper physical tolerance still requires its qualified
+plot mapping. Definition-only success cannot certify picture coordinates.
 
 ## CAD parts and exact substitutions
 
@@ -551,4 +604,10 @@ primitives. That observed convention motivates the bounded cache-frame profile;
 it does not certify every producer, codec or host and does not select a new
 runtime dependency. The actual fixtures/readback remain the implementation gate.
 
-The SOLID/TRACE precursor is implemented and verified in its isolated candidate: native IFCX/CBOR storage, all finite corner descriptors, qualified CAD type retention and separate position/surface/display evidence. Dimension graphics and polyline widths remain subsequent slices; this does not add picture capture or an update/generation engine.
+The SOLID/TRACE precursor is integrated on remote main at the baseline recorded
+above. Graphics capture/reuse remains unimplemented. Open issues
+[#2](https://github.com/OpenAEC-Foundation/ifccad/issues/2) and
+[#13](https://github.com/OpenAEC-Foundation/ifccad/issues/13) were reviewed for this
+plan: typed bounded entities fit #2; stable regeneration identity and dependency
+updates remain #13's separate workflow. Neither selects a picture generator,
+persisted validity test or generic preservation framework for this slice.

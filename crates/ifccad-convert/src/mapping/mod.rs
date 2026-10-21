@@ -16,3 +16,7 @@ pub(crate) mod viewport;
 pub(crate) mod workspace;
 
 pub(crate) mod viewport_overrides;
+
+pub(crate) mod dimension_graphics;
+
+pub(crate) mod dimension_graphics_target;

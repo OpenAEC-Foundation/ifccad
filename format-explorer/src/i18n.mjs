@@ -1,4 +1,20 @@
 const copy={
+ 'dimension.graphicsTransfer':['Dimension pictures: {transferred} transferred, {empty} empty, {absent} absent, {omitted} omitted. Display equivalence unassessed.','Bematingsweergaven: {transferred} overgebracht, {empty} leeg, {absent} afwezig, {omitted} weggelaten. Gelijke weergave niet beoordeeld.'],
+
+ dimensionGraphics:['Stored dimension graphics','Opgeslagen bematingsweergave'],dimensionGraphicsPart:['Graphics part','Weergaveonderdeel'],
+ sourceSnapshot:['Source snapshot','Bronmomentopname'],generated:['Generated','Gegenereerd'],origin:['Origin','Herkomst'],purpose:['Purpose','Functie'],referencePoint:['Reference point','Hulppunt'],display:['Display','Weergave'],
+ 'dimension.value.referencePoint':['Reference point','Hulppunt'],
+ 'dimension.value.display':['Display','Weergave'],
+ 'dimension.field.graphics':['Stored graphics','Opgeslagen weergave'],
+ 'dimension.field.partCount':['Parts','Onderdelen'],
+ 'dimension.field.origin':['Origin','Herkomst'],
+ 'dimension.field.state':['State','Toestand'],
+ 'dimension.field.path':['Node','Knoop'],
+ 'dimension.value.stored':['Stored','Opgeslagen'],
+ 'dimension.value.absent':['Absent','Afwezig'],
+ 'dimension.value.sourceSnapshot':['Source snapshot','Bronmomentopname'],
+ 'dimension.value.generated':['Generated','Gegenereerd'],
+
  solid:['Filled face (SOLID)','Gevuld vlak (SOLID)'],trace:['Filled face (TRACE)','Gevuld vlak (TRACE)'],
  'plural.solid':['Filled faces (SOLID)','Gevulde vlakken (SOLID)'],'plural.trace':['Filled faces (TRACE)','Gevulde vlakken (TRACE)'],
  'help.solid':['Four ordered corner slots and signed extrusion thickness. Rendering depends on the CAD application.','Vier geordende hoekslots en getekende extrusiedikte. De weergave hangt af van de CAD-applicatie.'],

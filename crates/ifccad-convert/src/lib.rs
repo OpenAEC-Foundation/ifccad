@@ -68,6 +68,7 @@ mod filled_surface_assessment;
 mod from_cad;
 mod geometry_assessment;
 pub use filled_surface_assessment::{IfccadFilledSurfaceAssessment, IfccadFilledSurfaceCoverage};
+mod dimension_graphics_context;
 mod geometry_context;
 mod text_assessment;
 pub use dimension_assessment::*;

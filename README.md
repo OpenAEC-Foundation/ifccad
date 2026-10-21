@@ -70,7 +70,7 @@ downloads encode the validated IFCCAD drawing projection.
    retaining all finite local corner combinations and both CAD object types,
    with coordinate, surface and display guarantees kept separate.
 4. Add bounded worked-out Dimension graphics using the currently supported
-   zero-width polyline profile.
+   zero-width polyline profile; native storage, CAD exchange and Explorer support are implemented and verified.
 5. Add polyline widths as a separate follow-up, using the red sample_AC1032
    Dimension and its wide `_ArchTick` marker as an acceptance case.
 6. Continue remaining Dimension kinds/selectors and later joint annotation support

@@ -1,14 +1,10 @@
 # Dimension support
 
-IFCCAD is the active track. OCDraw descriptions below retain historical context;
-its implementation and fixtures are parked. See [parking](ocdraw-parking.md).
-Only IFCCAD code, schemas and current converter coverage define active behavior.
-
-OCDraw and IFCCAD independently store ordinary linear and aligned dimensions,
-local named DimensionStyles, authored overrides and optional same-owner source
-relations. Their models, IDs, schemas, readers and converters remain separate.
-The shared neutral values and formatter do not depend on a CAD runtime or font
-engine. Active schemas and `conformance/next` define the format contract.
+IFCCAD stores ordinary linear and aligned dimensions, local named
+DimensionStyles, authored overrides, optional same-owner source relations and
+optional worked-out graphics. The neutral values and formatter do not depend
+on a CAD runtime or font engine. Active schemas and `conformance/next` define
+the format contract. OCDraw remains [parked](ocdraw-parking.md).
 
 ## Definition, measurement and text
 
@@ -83,9 +79,13 @@ retains the stored definition and produces a located diagnostic.
 
 ## Bounds, inspection and CAD exchange
 
-Without a renderer, dimension display bounds are unavailable. Existing scopes
-can retain partial/estimated evidence; definition anchors do not establish an
-enclosing box for text, markers or extension lines. Conversion assessments
+Without stored graphics, Dimension display bounds are unavailable: definition
+anchors do not establish an enclosing box for text, markers or extension lines.
+With graphics, the existing primitive and text enclosure/estimate logic evaluates
+the stored Display parts, including hidden parts, in the Dimension placement.
+ReferencePoint helpers are validated but contribute no display enclosure.
+Present empty and helper-only graphics are known empty; text retains its
+Estimated/Partial limits. Conversion assessments
 separate submitted definition/explicit text anchors from unassessed display,
 including nested occurrences and the existing owner-specific Paper tolerance.
 
@@ -96,7 +96,7 @@ Euclidean tolerance and nested-occurrence checks include all XYZ components.
 The active experimental schema requires three reference components; older XY
 definitions are rejected, not silently completed. The mutable experimental CBOR version-1 mapping uses the same XYZ contract.
 
-Both converters use `cad-dimension` for ID-free preparation and bind their own
+The converter uses `cad-dimension` for ID-free preparation and binds native
 identities afterward. A CAD measurement cache is ignored; disagreement with the
 stored definition is diagnosed. Ordinary WCS definition points and OCS explicit
 text are qualified with literal fixtures and actual DXF/AC1032 DWG tests.
@@ -120,14 +120,46 @@ background, tolerance, annotation and dynamic-field profiles can be unsupported.
 Simple single-object CAD associations qualify line start/end, circle center and
 point position; other native selectors remain supported natively.
 
-Output has no generated anonymous CAD picture. Visibility requires host
-regeneration, and dictionary/reactor activation of automatic updates is
-unassessed. The pinned reader loses clone group 12; DXF also omits certain flips
-and true colors and suppresses some near-default values. These limitations are
-explicit, not display fidelity claims. See the complete
-[CAD field audit](dimension/cad-field-audit-2026-10-09.md) and both converters'
-[OCDraw](../legacy/ocdraw/crates/ocdraw-convert/README.md) /
-[IFCCAD](../crates/ifccad-convert/README.md) coverage contracts.
+When graphics is present and eligible, export writes a private anonymous CAD
+picture block and links it to the Dimension; it adds no scope INSERT. The
+complete picture is staged atomically with its local marker resources. Without
+stored graphics, visibility still requires host regeneration. There is no
+built-in generator or freshness analysis. Automatic association updates remain
+external. See [graphics mapping](dimension/graphics-design.md) for the exact
+child roles, physical mapping, frame qualification and loss boundaries.
+
+## Optional stored graphics
+
+`graphics: None`, present empty graphics and nonempty graphics are distinct.
+Required origin is `SourceSnapshot` or `Generated`; it describes provenance,
+not validity relative to the independent definition/style. Parts are owned
+values without ordinary entity IDs. IFCX uses `/cad/dD/eE/graphics` with ordered
+`pI` children; CBOR revision 1 stores the same logical value directly.
+
+The closed family includes lines, points, circular/elliptic curves, zero-width
+polylines, local block instances, Text/MText, restricted solid Hatch, SOLID and
+TRACE. Nested Dimensions, Viewports, opaque values and associated/patterned Hatch
+are excluded from the picture and its marker closure. SOLID/TRACE retain all
+finite ordered corners and signed thickness. Definition measurements, numerical
+position evidence, optional filled-surface evidence and display equivalence
+remain separate; storing graphics never certifies pixels.
+
+CAD capture uses the actual block link and captures the entire eligible picture.
+Unsupported content, including any reachable polyline width, loses the whole
+picture under Allow and is rejected under Reject. Malformed/numerically invalid
+parts remain errors, including hidden parts; partial import may omit the affected
+Dimension as a whole. The definition is independently retained on a supported
+picture-only loss. Shared ordinary INSERT uses keep their ordinary block too.
+Local helpers retain an explicit Defpoints role. CAD cannot retain Generated
+provenance: Allow transfers the picture and diagnoses `/graphics/origin`; Reject
+refuses that metadata loss. Existing unrelated style/continuation metadata losses
+still apply, so a complete CAD picture alone does not make import pass Reject.
+
+The original red sample_AC1032 marker has width 0.15. Its complete picture is
+therefore deferred to the polyline-width slice; no width is zeroed or substituted.
+The current supported foundation sample retains all 87 stored pictures through
+IFCCAD and actual DXF/DWG readback. This is transfer evidence, not a universal
+rendering guarantee.
 
 ## Design and subsequent slices
 
@@ -140,18 +172,16 @@ validation, bounds and CAD qualification.
 Curve parameters, occurrence paths, intersections, trans-space references and
 external sources require a later selector/update contract. Annotative Text/MText
 and Dimension belong in one later shared annotation slice. Dynamic fields,
-attributes and font resolution remain separate work. Generating or refreshing
-Dimension graphics and executing associative updates belong to editors or external
-engines. This development does not publish or freeze version 0.1.0.
+attributes and font resolution remain separate work. Generating Dimension
+graphics and executing associative updates belong to editors or external engines. This development does not publish or freeze version 0.1.0.
 
-The maintained writers `write_dimension` and `write_ifccad_dimension` demonstrate
+The maintained writer `write_ifccad_dimension` demonstrates
 ordinary styles, kind/local overrides, Model/Paper/block owners and source
-references. They refuse to overwrite an existing output file. Their corresponding
-inputs under `examples/ocdraw` and `examples/ifccad` can be opened independently.
+references. It refuses to overwrite an existing output file. Its input under
+`examples/ifccad` can be opened independently.
 
 Dimension follows the shared [drawing defaults](drawing-defaults.md) for common
-entity appearance, visibility and line-pattern scale. OCDraw omits a default
-column only when every row has that default; mixed columns remain complete.
+entity appearance, visibility and line-pattern scale.
 Component colors support the symbolic `Foreground` choice, just like other
 presentation colors. Authored style settings and sparse override leaves retain
 their presence, including explicit false, zero and empty reset values.
@@ -184,57 +214,12 @@ Export may write the equivalent explicit character code 46 rather than the CAD
 sentinel. No native NUL character or locale-dependent fallback is introduced.
 See [Autodesk DIMDSEP](https://help.autodesk.com/cloudhelp/2020/ENG/AutoCAD-Core/files/GUID-0CDD6AA6-CDD8-4C9D-A270-A3DA00DCE63E.htm).
 
-## Planned worked-out graphics
+## Graphics qualification boundary
 
-The planned graphics slice targets IFCCAD only, after the stable migration/Hatch
-boundary and the [native SOLID/TRACE precursor](geometry/solid-trace-design.md)
-in [ROADMAP.md](../ROADMAP.md), before the remaining Dimension kinds.
-OCDraw remains parked. Ordinary linear/aligned Dimensions gain an optional typed
-ordered vector representation alongside the authoritative definition. The design
-covers complete source picture capture, local resources and qualified CAD
-picture-block reuse, without a built-in generator.
-
-IFCX uses a Dimension-owned graphics child group whose ordered part nodes carry
-registered geometry/text attributes. Parts stay outside ordinary Model/Paper/block
-ownership and draw order. The same logical value is encoded directly in CBOR as
-an optional record with ordered parts, without IFCX node paths. Experimental CBOR
-version 1 is updated in place; optional Zstd transport remains separate. There is
-no legacy parity or compatibility work.
-
-The [concrete design mapping](dimension/graphics-design.md) specifies the proposed
-`graphics` child role, group/part paths, role attributes, CBOR codes and CAD part
-profiles. Explicit Point helpers stay non-displaying. Qualified SOLID and TRACE
-use their native primitive payloads and retain their separate CAD types, including
-when used by marker blocks. The proposed Hatch substitution has been superseded.
-All finite local corner combinations, including crossing and collapsed records,
-remain native graphics content. Required coordinate/envelope evidence is separate
-from optional surface coverage and unassessed viewer display; an unknown fill is
-not by itself a partial-cache or unsupported-content condition.
-The CAD cache adapter distinguishes picture coordinates from an ordinary INSERT
-transform.
-
-The red sample's `_ArchTick` marker also requires polyline width 0.15. The current
-zero-width native polyline profile cannot preserve it; the SOLID/TRACE precursor
-does not add that support. Polyline widths are an agreed separate follow-up after
-bounded graphics, with the complete red sample Dimension as their acceptance
-case. They do not block the current graphics plan. Here the sample verifies
-explicit unsupported-width reporting and absence of a silently truncated picture;
-positive capture/reuse cases use complete supported graphics. See the
-[follow-up scope](../ROADMAP.md#planned-polyline-width-follow-up).
-
-Existing keywise IFCX composition still applies: omitting a child key does not
-delete it. The current XYZ reference anchors and XY measure
-plane remain unchanged; the Dimension placement applies to local graphics once.
-This slice can write complete fresh documents. Editing existing source graphs,
-fragment preservation, replacement/deletion protocols and transactions remain later work.
-
-The core validates structure, geometry and hard references. Editors or external
-engines assess correspondence with the definition and generate, update or remove
-graphics explicitly. No required input-basis snapshots or automatic validity
-analysis are planned. Unsupported visible parts cannot yield silently incomplete
-graphics; existing loss and explicit partial-import policies remain distinct.
-Native graphics and opaque preservation remain separate. Annotative per-context
-graphics stay with the later joint annotation slice. This is design under review,
-not current storage or CAD display fidelity support.
-
-The SOLID/TRACE precursor is implemented and verified in its isolated candidate: native IFCX/CBOR storage, all finite corner descriptors, qualified CAD type retention and separate position/surface/display evidence. Dimension graphics and polyline widths remain subsequent slices; this does not add picture capture or an update/generation engine.
+The [complete graphics contract](dimension/graphics-design.md) records canonical
+child ownership, physical codes and the bounded CAD cache profile. IFCX keywise
+composition still applies: omitting a child key does not delete an existing key.
+Fresh complete-document IO is supported; editing source fragments, transactions
+and replacement/deletion protocols remain later work. Editors decide whether a
+stored snapshot still corresponds to the definition. Annotative per-context
+graphics remains part of the later shared annotation slice.

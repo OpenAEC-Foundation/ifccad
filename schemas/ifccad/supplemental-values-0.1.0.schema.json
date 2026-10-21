@@ -6169,6 +6169,49 @@
         }
       },
       "additionalProperties": false
+    },
+    "dimensionGraphicsPart": {
+      "type": "object",
+      "properties": {
+        "layer": {},
+        "appearance": {
+          "$ref": "#/$defs/nativeAppearanceModes"
+        },
+        "linePatternScale": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "purpose": {
+          "enum": [
+            "display",
+            "referencePoint"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "dimensionGraphics": {
+      "type": "object",
+      "required": [
+        "origin"
+      ],
+      "properties": {
+        "origin": {
+          "enum": [
+            "sourceSnapshot",
+            "generated"
+          ]
+        }
+      },
+      "additionalProperties": false
     }
   },
   "$comment": "Mandatory IFCCAD local supplements. Ordinary IFCX shapes, typed decoding and profile-rules graph/domain algorithms also apply. This is not a whole drawing schema or IFCX core syntax."

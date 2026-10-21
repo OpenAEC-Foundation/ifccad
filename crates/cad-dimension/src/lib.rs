@@ -2,7 +2,9 @@
 mod association;
 mod diagnostics;
 mod overrides;
+mod picture;
 mod placement;
+pub use picture::*;
 mod source_overrides;
 mod styles;
 pub use association::*;

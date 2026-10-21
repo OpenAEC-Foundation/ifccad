@@ -301,85 +301,7 @@ fn entity(
         .get("attributes")
         .and_then(Value::as_object)
         .ok_or_else(|| problem(format!("{path} missing attributes")))?;
-    let mut payloads = super::geometry::PAYLOADS.to_vec();
-    payloads.extend([
-        "ifccad::viewport",
-        "ifccad::blockInstance",
-        "ifccad::text",
-        "ifccad::mText",
-        "ifccad::hatch",
-        "ifccad::dimension",
-    ]);
-    let present: Vec<_> = payloads
-        .iter()
-        .filter(|key| attrs.contains_key(**key))
-        .collect();
-    if present.len() != 1 {
-        return Err(problem(format!(
-            "{path} needs exactly one drawable payload"
-        )));
-    }
-    if attrs.keys().any(|key| {
-        key.starts_with("ifccad::geom::")
-            && key != "ifccad::geom::placement"
-            && !payloads.contains(&key.as_str())
-    }) {
-        return Err(problem(format!("{path} unsupported CAD geometry")));
-    }
-    let kind = match *present[0] {
-        "ifccad::dimension" => super::dimension::decode(
-            &attrs["ifccad::dimension"],
-            attrs
-                .get("ifccad::geom::placement")
-                .ok_or_else(|| problem("Dimension placement required"))?,
-            prefix,
-            path,
-        )?,
-        "ifccad::hatch" => super::hatch::decode_hatch(
-            &attrs["ifccad::hatch"],
-            attrs
-                .get("ifccad::geom::placement")
-                .ok_or_else(|| problem("Hatch placement required"))?,
-            prefix,
-            path,
-        )?,
-        key @ ("ifccad::text" | "ifccad::mText") => super::text::decode_entity(
-            &attrs[key],
-            &attrs["ifccad::geom::placement"],
-            key,
-            path,
-            style_paths,
-        )?,
-        "ifccad::viewport" => {
-            if attrs.contains_key("ifccad::geom::placement") {
-                return Err(problem(format!("{path} viewport has a geometry placement")));
-            }
-            super::supplemental::validate_value(
-                "ifccad::viewport",
-                &attrs["ifccad::viewport"],
-                path,
-            )?;
-            IfccadEntityKind::Viewport(super::viewports::decode_viewport(
-                &attrs["ifccad::viewport"],
-                prefix,
-                path,
-            )?)
-        }
-        "ifccad::blockInstance" => {
-            let instance: InstanceValue = required(node, present[0])?;
-            let definition_id = *block_paths.get(&instance.definition).ok_or_else(|| {
-                problem(format!(
-                    "{path} unresolved block definition {}",
-                    instance.definition
-                ))
-            })?;
-            IfccadEntityKind::BlockInstance {
-                definition_id,
-                transform: instance.transform.into_typed(),
-            }
-        }
-        key => super::geometry::decode_kind(attrs, key, path)?,
-    };
+    let kind = decode_payload(attrs, prefix, path, block_paths, style_paths)?;
     Ok(IfccadEntity::Native(IfccadNativeEntity {
         id,
         visible: value.visible,
@@ -716,6 +638,15 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
             return Err(problem(format!("drawing does not reference {path}")));
         }
     }
+    let mut graphics = super::dimension_graphics::Reader {
+        nodes: &nodes,
+        prefix: &prefix,
+        layers: &layer_paths,
+        blocks: &block_paths,
+        patterns: &pattern_paths,
+        styles: &style_paths,
+        seen: BTreeSet::new(),
+    };
     let mut owners = BTreeSet::new();
     let mut parse_owner = |path: &str| -> Result<Vec<IfccadEntity>, IfccadReport> {
         let node = nodes
@@ -730,14 +661,16 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
                 let child = nodes
                     .get(target)
                     .ok_or_else(|| problem(format!("{path} missing child {target}")))?;
-                entity(
+                let mut entity = entity(
                     child,
                     &prefix,
                     &layer_paths,
                     &block_paths,
                     &pattern_paths,
                     &style_paths,
-                )
+                )?;
+                graphics.attach(&mut entity, child)?;
+                Ok(entity)
             })
             .collect()
     };
@@ -787,6 +720,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
             entities: parse_owner(path)?,
         });
     }
+    graphics.finish()?;
     let entity_paths: BTreeSet<_> = nodes
         .iter()
         .filter(|(_, n)| {
@@ -944,4 +878,99 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
     super::workspace::decode_document(raw, &mut document)?;
     validate_ifccad_document(&document)?;
     Ok(document)
+}
+
+pub(super) fn decode_payload(
+    attrs: &serde_json::Map<String, Value>,
+    prefix: &str,
+    path: &str,
+    block_paths: &BTreeMap<String, u64>,
+    style_paths: &BTreeMap<String, IfccadTextStyleId>,
+) -> Result<IfccadEntityKind, IfccadReport> {
+    let mut payloads = super::geometry::PAYLOADS.to_vec();
+    payloads.extend([
+        "ifccad::viewport",
+        "ifccad::blockInstance",
+        "ifccad::text",
+        "ifccad::mText",
+        "ifccad::hatch",
+        "ifccad::dimension",
+    ]);
+    let present: Vec<_> = payloads
+        .iter()
+        .filter(|key| attrs.contains_key(**key))
+        .collect();
+    if present.len() != 1 {
+        return Err(problem(format!(
+            "{path} needs exactly one drawable payload"
+        )));
+    }
+    if attrs.keys().any(|key| {
+        key.starts_with("ifccad::geom::")
+            && key != "ifccad::geom::placement"
+            && !payloads.contains(&key.as_str())
+    }) {
+        return Err(problem(format!("{path} unsupported CAD geometry")));
+    }
+    Ok(match *present[0] {
+        "ifccad::dimension" => super::dimension::decode(
+            &attrs["ifccad::dimension"],
+            attrs
+                .get("ifccad::geom::placement")
+                .ok_or_else(|| problem("Dimension placement required"))?,
+            prefix,
+            path,
+        )?,
+        "ifccad::hatch" => super::hatch::decode_hatch(
+            &attrs["ifccad::hatch"],
+            attrs
+                .get("ifccad::geom::placement")
+                .ok_or_else(|| problem("Hatch placement required"))?,
+            prefix,
+            path,
+        )?,
+        key @ ("ifccad::text" | "ifccad::mText") => super::text::decode_entity(
+            &attrs[key],
+            &attrs["ifccad::geom::placement"],
+            key,
+            path,
+            style_paths,
+        )?,
+        "ifccad::viewport" => {
+            if attrs.contains_key("ifccad::geom::placement") {
+                return Err(problem(format!("{path} viewport has a geometry placement")));
+            }
+            super::supplemental::validate_value(
+                "ifccad::viewport",
+                &attrs["ifccad::viewport"],
+                path,
+            )?;
+            IfccadEntityKind::Viewport(super::viewports::decode_viewport(
+                &attrs["ifccad::viewport"],
+                prefix,
+                path,
+            )?)
+        }
+        "ifccad::blockInstance" => {
+            super::supplemental::validate_value(
+                "ifccad::blockInstance",
+                &attrs["ifccad::blockInstance"],
+                path,
+            )?;
+            let instance: InstanceValue =
+                serde_json::from_value(attrs["ifccad::blockInstance"].clone())
+                    .map_err(|e| problem(e.to_string()))?;
+            let definition_id = *block_paths.get(&instance.definition).ok_or_else(|| {
+                problem(format!(
+                    "{path} unresolved block definition {}",
+                    instance.definition
+                ))
+            })?;
+            IfccadEntityKind::BlockInstance {
+                definition_id,
+                transform: instance.transform.into_typed(),
+            }
+        }
+        key => super::geometry::decode_kind(attrs, key, path)?,
+    })
 }

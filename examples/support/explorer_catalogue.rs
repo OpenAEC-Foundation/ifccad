@@ -142,10 +142,10 @@ pub const SAMPLES: &[Sample] = &[
     },
     Sample {
         title: "Linear dimension",
-        note: "Linear measurement in millimetres",
+        note: "Stored lines, arrowheads and text",
         draw: |d, x, y| {
             d.line(MODEL, 1, [x + 12., y + 6.], [x + 70., y + 6.]);
-            d.dimension(
+            let id = d.dimension(
                 2,
                 [x + 12., y + 6.],
                 [x + 70., y + 6.],
@@ -153,6 +153,23 @@ pub const SAMPLES: &[Sample] = &[
                 false,
                 4.,
             );
+            let path = format!("/cad/d1/e{id}");
+            d.nodes.iter_mut().find(|n| n["path"] == path).unwrap()["children"] =
+                json!({"graphics":format!("{path}/graphics")});
+            let parts = vec![
+                json!({"ifccad::geom::lineSegment":{"start":[x+12.,y+7.,0.],"end":[x+12.,y+30.,0.]}}),
+                json!({"ifccad::geom::lineSegment":{"start":[x+70.,y+7.,0.],"end":[x+70.,y+30.,0.]}}),
+                json!({"ifccad::geom::lineSegment":{"start":[x+12.,y+28.,0.],"end":[x+70.,y+28.,0.]}}),
+                json!({"ifccad::geom::placement":plane(0.,0.),"ifccad::geom::solid":{"corners":[[x+12.,y+28.],[x+16.,y+29.],[x+16.,y+27.],[x+16.,y+27.]]}}),
+                json!({"ifccad::geom::placement":plane(0.,0.),"ifccad::geom::solid":{"corners":[[x+70.,y+28.],[x+66.,y+27.],[x+66.,y+29.],[x+66.,y+29.]]}}),
+                json!({"ifccad::geom::placement":plane(x+38.,y+30.),"ifccad::text":{"style":"/cad/d1/textStyle/0","content":[{"text":"58"}],"layout":{"kind":"anchored","height":4.,"horizontal":"left","vertical":"baseline","widthFactor":1.}}}),
+            ];
+            d.nodes.push(json!({"path":format!("{path}/graphics"),"attributes":{"ifccad::dimensionGraphics":{"origin":"generated"}},"children":parts.iter().enumerate().map(|(i,_)|(i.to_string(),json!(format!("{path}/graphics/p{i}")))).collect::<serde_json::Map<_,_>>()}));
+            for (i, mut attributes) in parts.into_iter().enumerate() {
+                attributes["ifccad::dimensionGraphicsPart"] = json!({});
+                d.nodes
+                    .push(json!({"path":format!("{path}/graphics/p{i}"),"attributes":attributes}));
+            }
         },
     },
     Sample {

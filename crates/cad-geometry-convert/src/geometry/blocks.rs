@@ -239,6 +239,17 @@ impl PairedPoint {
         });
         self.residual = residual;
     }
+    pub(crate) fn from_prepared_source_and_target(a: &Self, b: &Self) -> Self {
+        Self::from_ranges(
+            std::array::from_fn(|i| a.target[i].add(&a.residual[i])),
+            b.target.clone(),
+        )
+    }
+    pub(crate) fn from_prepared_sources(a: &Self, b: &Self) -> Self {
+        let source = std::array::from_fn(|i| a.target[i].add(&a.residual[i]));
+        let target = std::array::from_fn(|i| b.target[i].add(&b.residual[i]));
+        Self::from_ranges(source, target)
+    }
     pub fn squared_deviation(&self) -> (Q, Q) {
         self.residual
             .iter()
@@ -651,6 +662,18 @@ impl PairedVector {
         self.target = mapped_target;
         self.residual = residual;
     }
+    fn from_prepared_source_and_target(a: &Self, b: &Self) -> Self {
+        Self::new(
+            std::array::from_fn(|i| a.target[i].add(&a.residual[i])),
+            b.target.clone(),
+        )
+    }
+    fn from_prepared_sources(a: &Self, b: &Self) -> Self {
+        Self::new(
+            std::array::from_fn(|i| a.target[i].add(&a.residual[i])),
+            std::array::from_fn(|i| b.target[i].add(&b.residual[i])),
+        )
+    }
     fn upper_squared(&self) -> Q {
         self.residual.iter().map(|range| range.squared().1).sum()
     }
@@ -690,6 +713,24 @@ impl PairedCurve {
             sine: PairedVector::new(source_sine, target_sine),
             angular_drift: Q::zero(),
             span: std::f64::consts::TAU,
+        }
+    }
+    pub(crate) fn from_prepared_source_and_target(a: &Self, b: &Self) -> Self {
+        Self {
+            center: PairedPoint::from_prepared_source_and_target(&a.center, &b.center),
+            cosine: PairedVector::from_prepared_source_and_target(&a.cosine, &b.cosine),
+            sine: PairedVector::from_prepared_source_and_target(&a.sine, &b.sine),
+            angular_drift: &a.angular_drift + &b.angular_drift,
+            span: a.span.max(b.span),
+        }
+    }
+    pub(crate) fn from_prepared_sources(a: &Self, b: &Self) -> Self {
+        Self {
+            center: PairedPoint::from_prepared_sources(&a.center, &b.center),
+            cosine: PairedVector::from_prepared_sources(&a.cosine, &b.cosine),
+            sine: PairedVector::from_prepared_sources(&a.sine, &b.sine),
+            angular_drift: &a.angular_drift + &b.angular_drift,
+            span: a.span.max(b.span),
         }
     }
     pub fn with_span(mut self, span: f64) -> Self {

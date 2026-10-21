@@ -43,6 +43,7 @@ pub(super) fn decode(
         });
     }
     Ok(IfccadEntityKind::Dimension(Box::new(IfccadDimension {
+        graphics: None,
         placement,
         style_id: IfccadDimensionStyleId(reference(prefix, "dimensionStyle/", &v.style, path)?),
         definition: v.definition,

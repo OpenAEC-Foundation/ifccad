@@ -29,4 +29,6 @@ pub struct IfccadDimension {
     pub label: DimensionLabel,
     pub overrides: IfccadDimensionOverrides,
     pub associations: Vec<IfccadDimensionAssociation>,
+    /// Optional independent worked-out picture, in the Dimension frame.
+    pub graphics: Option<IfccadDimensionGraphics>,
 }

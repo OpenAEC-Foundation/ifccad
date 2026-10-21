@@ -263,7 +263,7 @@ fn convert_document(
             .iter()
             .filter(|e| {
                 e.as_native().is_some_and(|e| {
-                    matches!(e.kind, ifccad::IfccadEntityKind::BlockInstance { .. })
+                    matches!(&e.kind, ifccad::IfccadEntityKind::BlockInstance { .. }) || matches!(&e.kind, ifccad::IfccadEntityKind::Dimension(v) if v.graphics.is_some())
                 }) && mappings.entities.cad_handle(e.id()).is_some()
             })
             .map(|e| e.id())
@@ -282,17 +282,24 @@ fn convert_document(
     }
     crate::loss::to_cad(drawing, &mut issues);
     crate::diagnostics::enforce_policy(options.loss_policy, &issues)?;
+    let graphics_transferred = geometry.graphics_owners.keys().copied().collect::<Vec<_>>();
     let mut assessment = geometry.finish();
     assessment.domains.retain(|domain| match domain.domain() {
         IfccadGeometryDomain::Drawing => true,
         IfccadGeometryDomain::PaperLayout(id) => mappings.layouts.cad_handle(id).is_some(),
     });
-    assessment.filled_surfaces =
-        crate::filled_surface_assessment::collect_filled_surfaces(drawing, &document, &mappings)?;
+    assessment.filled_surfaces = crate::filled_surface_assessment::collect_filled_surfaces(
+        drawing,
+        &document,
+        &mappings,
+        crate::filled_surface_assessment::FilledSourceDirection::ToCad,
+    )?;
     Ok(IfccadToCadOutcome {
         dimension: crate::IfccadDimensionAssessment::new(
             drawing,
             mappings.entities.iter().map(|(id, _)| id),
+            graphics_transferred,
+            std::iter::empty(),
         ),
         text: crate::IfccadTextAssessment::new(drawing, mappings.entities.iter().map(|(id, _)| id)),
         geometry: assessment.with_unassessed(drawing),

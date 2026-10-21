@@ -47,13 +47,18 @@ pub(crate) fn native_defaults(
                     "ifccad::hatch",
                     "ifccad::dimension",
                     "ifccad::dimensionStyle",
+                    "ifccad::dimensionGraphicsPart",
                 ] {
                     if let Some(value) = attrs.get_mut(key) {
                         defaults(value, &reference["attributes"][key]);
                     }
                 }
             }
-            for key in ["ifccad::drawing", "ifccad::entity"] {
+            for key in [
+                "ifccad::drawing",
+                "ifccad::entity",
+                "ifccad::dimensionGraphicsPart",
+            ] {
                 if let Some(value) = attrs
                     .get_mut(key)
                     .and_then(serde_json::Value::as_object_mut)
@@ -340,6 +345,7 @@ pub(crate) fn precision(
                 || key == "ifccad::text"
                 || key == "ifccad::mText"
                 || key == "ifccad::textStyle"
+                || key == "ifccad::dimensionGraphicsPart"
                 || matches!(
                     key.as_str(),
                     "ifccad::ucsDefinition"
@@ -351,7 +357,9 @@ pub(crate) fn precision(
             {
                 issues.push(diagnostic("precision", format!("{path}.{key}"), "typed native projection changes an exact source value; scalar approximation is rejected under both policies"));
             }
-            if (key == "ifccad::drawing" || key == "ifccad::entity")
+            if (key == "ifccad::drawing"
+                || key == "ifccad::entity"
+                || key == "ifccad::dimensionGraphicsPart")
                 && !projected(
                     &node["attributes"][key]["linePatternScale"],
                     &value["linePatternScale"],

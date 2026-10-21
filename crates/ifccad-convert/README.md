@@ -500,3 +500,28 @@ pixel-equivalence or a universal filling guarantee. Wireframe thickness and
 alternate-triangle host fallback are separate from the stored descriptor.
 The existing Paper current-UCS workspace diagnostic remains unrelated coverage.
 See [source provenance](tests/fixtures/filled-primitives-PROVENANCE.md).
+
+## Stored Dimension graphics
+
+Optional worked-out graphics is captured/recreated as one complete anonymous
+CAD picture, independently of the linear/aligned definition and formatted label.
+A named unavailable optional cache is a picture loss, not a fabricated block.
+Private blocks are consumed only after source-use/resource accounting; ordinary
+INSERT references retain ordinary block contents. Parts have tagged proof
+identities without native entity-ID allocation. Actual cache and owner frames
+are each applied once, with exact stored-basis inverse and the existing hard
+Model/Paper occurrence tolerance. Hidden parts and helpers still receive numeric
+validation/proof. Filled base/top positions and optional surface correspondence
+are reported separately from always-unassessed display equivalence.
+
+Capture and target construction are atomic per picture. Unsupported reachable
+content loses the whole representation under Allow and Reject refuses it;
+malformed geometry remains an error under either loss policy. Entity recovery
+can omit the whole affected Dimension, never publish partial graphics. Generated
+origin transfers the picture under Allow with a located provenance loss; Reject
+refuses it. Existing unrelated Dimension style losses are not waived. Zero-width
+polylines, native SOLID/TRACE arrows and the existing Text/MText profile are
+supported; wide polylines, nonzero cache root bases, clone insertion transforms
+and unqualified tilted cache conventions remain bounded limitations. No generator,
+validity engine, opaque picture preservation or CAD-host product patch is added.
+See [the complete mapping](../../docs/dimension/graphics-design.md).

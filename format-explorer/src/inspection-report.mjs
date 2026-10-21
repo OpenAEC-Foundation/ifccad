@@ -22,3 +22,9 @@ export function filledEvidenceSummary(assessment,language){
  const rows=assessment?.filledSurfaces||[];if(!rows.length)return '';
  return [translate(language,'filled.positions'),translate(language,'filled.summary',{proven:rows.filter(r=>r.surfaceCoverage==='Proven').length,unassessed:rows.filter(r=>r.surfaceCoverage!=='Proven').length}),translate(language,'filled.displayUnassessed')].join(' ');
 }
+
+export function dimensionGraphicsSummary(assessment,language){
+ const rows=assessment?.entries||[];if(!rows.some(r=>r.graphicsCoverage))return '';
+ const count=state=>rows.filter(r=>r.graphicsCoverage?.state===state).length;
+ return translate(language,'dimension.graphicsTransfer',{transferred:count('transferred'),empty:count('explicitEmpty'),absent:count('absent'),omitted:count('notTransferred')});
+}

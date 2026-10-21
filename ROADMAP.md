@@ -20,6 +20,9 @@ The accepted CBOR revision-2/native-Zstd checkpoint precedes this migration.
 4. Add bounded worked-out Dimension graphics on that basis, keeping polyline
    widths outside the slice. Graphics and Hatch contract changes require explicit
    dependency assessment when they overlap.
+   The implementation is complete and verified: optional owned
+   graphics, IFCX/CBOR storage, atomic CAD picture transfer, occurrence proof
+   and Explorer support.
 5. Add native polyline widths in a separate follow-up slice. The red sample_AC1032
    Dimension and its width-0.15 `_ArchTick` marker are acceptance evidence for that
    follow-up, not a completion gate for the bounded graphics slice.
@@ -143,12 +146,12 @@ tolerance; complete display and picture regeneration remain unassessed. Seven
 additional kinds, extended selectors and joint annotative Text/MText/Dimension
 remain subsequent slices. The repair round adds native fraction presentation,
 qualified CAD override coverage and localized inspector properties within this
-checkpoint. Following the native SOLID/TRACE precursor, the planned graphics
-slice adds optional native worked-out Dimension graphics and qualified CAD
+checkpoint. Following the native SOLID/TRACE precursor, the graphics
+slice implements optional native worked-out Dimension graphics and qualified CAD
 picture-block capture/reuse, initially for linear and
 aligned. It precedes the remaining kinds and extended selectors; annotative
-per-context graphics stay with the later joint annotation slice. The graphics
-design is under review and does not yet extend the active contract. See
+per-context graphics stay with the later joint annotation slice. The active experimental graphics contract and its bounded transfer profile are
+documented in
 [Dimension support](docs/dimension.md). This adds
 content within the existing sequence; it does not reopen layout/workspace work
 or publish the initial contract.

@@ -140,3 +140,13 @@ never a numeric failure or omission. Required position proof failures remain har
 Unassessed coverage. Unknown surface coverage keeps geometry `is_complete()` false,
 even with Exact positions. Neither Exact nor Proven certifies a host picture.
 These records are conversion evidence, absent from native IFCX/CBOR payloads.
+
+
+Dimension graphics uses owned primitive payloads and the same shared validators
+and bounds/preparation kernels as ordinary entities; parts allocate no native
+entity IDs. Conversion uses tagged group/part/occurrence keys and pairs the
+actual source and target picture frames. The parent Dimension placement applies
+once to every part, including helpers for numeric proof. ReferencePoint helpers
+are excluded only from display/bounds. Nested marker transforms retain the
+ordinary occurrence arithmetic. Eight SOLID/TRACE positions, optional surface
+coverage and unassessed display remain independent evidence.

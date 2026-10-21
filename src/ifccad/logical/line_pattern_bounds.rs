@@ -44,6 +44,28 @@ pub(crate) fn effective_context(
         pattern_id,
     }
 }
+pub(crate) fn graphics_context(
+    part: &IfccadDimensionGraphicsPart,
+    parent: AppearanceContext,
+    doc: &IfccadDocument,
+) -> AppearanceContext {
+    let layer_id = part.layer_id.or(parent.layer_id);
+    let pattern_id = match part.appearance.line_pattern {
+        IfccadMode::Explicit(id) => Some(id),
+        IfccadMode::ByBlock => parent.pattern_id,
+        IfccadMode::ByLayer => layer_id.and_then(|id| {
+            doc.layers
+                .iter()
+                .find(|l| l.id == id)
+                .map(|l| l.appearance.line_pattern)
+        }),
+    };
+    AppearanceContext {
+        layer_id,
+        pattern_id,
+    }
+}
+
 pub(crate) fn marker_contribution(
     id: Option<IfccadLinePatternId>,
     entity_scale: f64,
