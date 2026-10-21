@@ -1,5 +1,11 @@
 # IFCCAD conversion proof
 
+The [`roundtrip_cad` command](../../docs/cad-roundtrip.md) qualifies actual
+DWG/DXF → native binary IFCCAD → same-version DWG/DXF file boundaries, retaining
+reader diagnostics, exact geometry checks and before/after native projections.
+It never enables partial opening or opaque source preservation. Qualification
+remains bounded by the exposed codec model and the coverage contracts below.
+
 The [standalone CBOR candidate](../../docs/experiments/ifccad-cbor.md) is core
 storage for the same typed CAD document. Use `ifccad_document_to_cad_document`
 with the validated CBOR document; IFCX source-graph audits remain specific to

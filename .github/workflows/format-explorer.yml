@@ -132,7 +132,7 @@ jobs:
         id: rust-checks-cache
         with:
           path: target/explorer-rust-checks-passed
-          key: ifccad-rust-checks-debian12-v4-${{ hashFiles('Cargo.toml', 'scripts/check_active_workspace.py', 'scripts/tests/test_active_workspace.py', 'crates/**', 'src/**', 'tests/**', 'schemas/**', 'conformance/**', 'examples/**', 'patches/opencadcodec-viewports*', 'patches/opencadcodec-viewports/**', 'patches/opencadcodec-dimension/**', '.github/actions/viewport-codec/**', '.github/workflows/format-explorer.yml') }}
+          key: ifccad-rust-checks-debian12-v4-${{ hashFiles('Cargo.toml', 'scripts/check_active_workspace.py', 'scripts/cad_corpus.py', 'scripts/tests/**', 'crates/**', 'src/**', 'tests/**', 'schemas/**', 'conformance/**', 'examples/**', 'patches/opencadcodec-viewports*', 'patches/opencadcodec-viewports/**', 'patches/opencadcodec-dimension/**', '.github/actions/viewport-codec/**', '.github/workflows/format-explorer.yml') }}
       - uses: ./.github/actions/viewport-codec
         if: steps.rust-checks-cache.outputs.cache-hit != 'true'
       - name: Install Rust check tools
@@ -149,6 +149,7 @@ jobs:
           cargo fetch
           python3 scripts/check_active_workspace.py
           python3 -m unittest discover -s scripts/tests -p test_active_workspace.py
+          python3 -m unittest discover -s scripts/tests -p test_cad_corpus.py
           cargo fmt --all -- --check
           cargo clippy --workspace --all-targets -- -D warnings
           cargo test --workspace

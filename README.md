@@ -106,6 +106,12 @@ See [model IO conventions](docs/model-io-conventions.md), the
 
 ## Verification
 
+For an explicit file-level **DWG/DXF → binary IFCCAD → DWG/DXF** check, use
+[`roundtrip_cad`](docs/cad-roundtrip.md). It writes validated binary and IFCX
+projections, reopens the emitted CAD file and reports losses and exact projection
+differences. A pinned public corpus can be fetched and run separately. This is
+bounded qualification, not a claim of complete DWG/DXF coverage.
+
 ```text
 python scripts/check_active_workspace.py
 cargo fmt --all -- --check
