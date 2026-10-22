@@ -5,6 +5,7 @@ import {renderInspection,itemTitle,escapeHtml} from './inspection-view.mjs';
 import {inspectionNavigation,cadSelectionForNode} from './inspection-navigation.mjs';
 import {initializeElementList} from './element-list.mjs';
 import {initializeDialogs} from './dialogs.mjs';
+import {initializeFeedback} from './feedback.mjs';
 import {inspectionReport,filledEvidenceSummary,dimensionGraphicsSummary,conversionDirections} from './inspection-report.mjs';
 export function initializeWorkspace({onTab=()=>{},onPreferences=()=>{},onSelection=()=>{},onLayout=()=>{}}={}){
  const $=id=>document.getElementById(id);let storage;try{storage=localStorage;}catch{}
@@ -12,6 +13,7 @@ export function initializeWorkspace({onTab=()=>{},onPreferences=()=>{},onSelecti
  const preferences=loadPreferences(storage,browserLanguages(),matchMedia('(prefers-color-scheme: dark)').matches);
  const state={language:preferences.language,languageChoice:preferences.languageChoice,theme:preferences.theme,tab:'overview',conversionTab:'input',reportsCollapsed:false,view:'drawing',grouping:'type',selection:null,expanded:new Set(),fieldExpanded:new Set(),fieldCollapsed:new Set(),inspector:'properties',mode:'readable',collection:null,listOpen:false,inspectorOverride:null,statusSpec:{key:'select'}};let model,result,cadReport;
  const t=(key,values)=>translate(state.language,key,values);let loading,cadStatus;
+ const feedback=initializeFeedback({translate:t});
  function renderStatus(){const spec=state.statusSpec;$('status').textContent=spec.message||t(spec.key,spec.values);$('status').hidden=spec.quiet??['select','ready','loading','preparing','converting','validating','exporting','writing','checking'].includes(spec.key);}
  function renderReportVisibility(){const key=state.reportsCollapsed?'showReports':'hideReports';$('application').dataset.reports=state.reportsCollapsed?'collapsed':'expanded';$('conversion-collapse').setAttribute('aria-expanded',!state.reportsCollapsed);$('conversion-collapse').setAttribute('aria-label',t(key));$('conversion-collapse').title=t(key);}
  function renderCadStatus(){const phase=cadStatus?.phase,label=phase==='ready'?t('roundtripReady'):phase==='failed'?t('roundtripFailed'):phase?t(phase):'',text=phase?t('roundtripStatus',{format:cadStatus.format.toUpperCase(),version:cadStatus.version,status:label}):'';$('cad-roundtrip-status').textContent=text;$('cad-roundtrip-summary').textContent=text;$('cad-roundtrip-summary').hidden=!text;$('cad-roundtrip-state').hidden=!text;$('cad-roundtrip-status').title=cadStatus?.error||'';$('cad-roundtrip-cancel').hidden=!phase||['ready','failed','cancelled'].includes(phase);}
@@ -31,6 +33,7 @@ export function initializeWorkspace({onTab=()=>{},onPreferences=()=>{},onSelecti
  function render(){
   $('item-information').querySelectorAll('details[data-field-id]').forEach(d=>{const id=d.dataset.fieldId;if(d.open){state.fieldExpanded.add(id);state.fieldCollapsed.delete(id);}else{state.fieldExpanded.delete(id);state.fieldCollapsed.add(id);}});
   document.documentElement.lang=state.language;document.documentElement.dataset.theme=state.theme;localize(document,state.language);$('language').value=state.languageChoice;$('theme').value=state.theme;
+  feedback.refresh();
   $('application').dataset.workspace=state.tab;
   $('name').textContent=result?.source?.name||t('select');renderStatus();renderReportVisibility();
   const overview=state.tab==='overview';

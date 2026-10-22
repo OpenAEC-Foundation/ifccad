@@ -218,6 +218,9 @@
 .dimension-fraction.diagonal .numerator{grid-column:1;grid-row:1}
 .dimension-fraction.diagonal .fraction-separator{grid-column:2;grid-row:1/3;align-self:center;font-size:1.8em}
 .dimension-fraction.diagonal .denominator{grid-column:3;grid-row:2}
+
+#feedback-message,#feedback-email{width:100%;padding:9px;border:1px solid var(--theme-border);border-radius:4px;background:var(--theme-surface);color:var(--theme-text);font:inherit}#feedback-message{resize:vertical;min-height:110px}#feedback-message:focus-visible{outline:2px solid var(--theme-accent);outline-offset:3px}#feedback-form [hidden]{display:none}#feedback-status{margin:14px 0}#feedback-send{margin-top:14px}
+@media(max-width:620px){.titlebar{flex-wrap:wrap}#feedback-message{font-size:16px}}
 :root .partial-opening{padding:8px 16px;background:#fff4d6;border-bottom:1px solid #b98d27;color:#352800;}
 :root .partial-opening p{margin:4px 0;}
 :root .partial-opening pre{max-height:240px;overflow:auto;white-space:pre-wrap;color:var(--theme-text);}
